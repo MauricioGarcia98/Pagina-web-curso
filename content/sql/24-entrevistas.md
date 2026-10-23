@@ -7,6 +7,33 @@ resumen: Problemas reales de entrevistas técnicas para Data Engineer y Analytic
 
 Llegaste al final del módulo de SQL. Estos desafíos combinan todo lo aprendido. Son del tipo que se piden en entrevistas para **Data Engineer**, **Analytics Engineer** y **Data Analyst senior**.
 
+## Cómo es una entrevista técnica de SQL
+
+Casi siempre tiene esta forma: te dan 2 a 4 tablas (muy parecidas a las de este curso), una pregunta de negocio y entre 15 y 30 minutos. A veces en una pizarra, a veces en un editor compartido sin poder ejecutar. Lo que evalúan **no** es solo si llegas al resultado:
+
+| Lo que miran | Cómo demostrarlo |
+|---|---|
+| **Entender el problema** | Repite la pregunta con tus palabras y pregunta lo ambiguo: "¿los pedidos cancelados cuentan?", "¿qué pasa con los empates?" |
+| **Estructurar** | Di el grano del resultado y los pasos antes de escribir: "primero agrupo por cliente y mes, después numero…" |
+| **Conocer las herramientas** | Elige la correcta y justifícala: "uso `DENSE_RANK` porque si hay empate en el primer puesto…" |
+| **Casos borde** | NULL, empates, clientes sin pedidos, divisiones por cero, días sin datos |
+| **Comunicación** | Piensa en voz alta. Un silencio de 10 minutos y una respuesta perfecta vale menos que un razonamiento claro con un detalle a corregir |
+
+## Las familias de preguntas que más aparecen
+
+| Familia | Ejemplo | Técnica (lección) |
+|---|---|---|
+| Top-N por grupo | "El producto más vendido de cada país" | `ROW_NUMBER`/`RANK` + CTE (16) |
+| Segundo / n-ésimo valor | "El segundo salario más alto" | `DENSE_RANK` (16) |
+| Comparar con el periodo anterior | "Crecimiento mes a mes" | `LAG` (17) |
+| Acumulados y móviles | "Ventas acumuladas del año", "promedio de 7 días" | `SUM … OVER`, marcos (17) |
+| Rachas y consecutivos | "Usuarios que entraron 3 días seguidos" | Gaps & islands (20) |
+| Lo que falta | "Clientes que nunca compraron" | Anti-join / `NOT EXISTS` (12, 13) |
+| Retención y cohortes | "% de usuarios que vuelven al mes siguiente" | Primera fecha + meses (20) |
+| Deduplicación | "Quédate con la última versión de cada registro" | `ROW_NUMBER` + `rn = 1` (20) |
+| Métricas con condición | "Tasa de cancelación por canal" | `SUM(CASE WHEN …)` (10) |
+| Mediana y percentiles | "Mediana del ticket" | Numerar y tomar el centro (este módulo) |
+
 :::tip Método para resolver problemas difíciles
 1. **Reformula** el problema con tus palabras y define el **grano** del resultado (“una fila por…”).
 2. Escribe la solución en **pasos** con CTEs. Ejecuta cada paso y mira los datos.

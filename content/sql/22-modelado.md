@@ -63,6 +63,69 @@ Ejemplo de SCD2:
 - **Data Vault**: hubs, links y satellites; muy auditable, usado en empresas grandes.
 - **Medallón** (bronze / silver / gold): capas de calidad en un lakehouse. Bronze = crudo, Silver = limpio y conformado, Gold = listo para negocio (a menudo en esquema estrella).
 
+## OLTP vs. OLAP: dos mundos con necesidades opuestas
+
+| | OLTP (transaccional) | OLAP (analítico) |
+|---|---|---|
+| Para qué | Operar el negocio: registrar ventas, pagos, altas | Analizar el negocio: reportes, tendencias, KPIs |
+| Consultas típicas | "Inserta este pedido", "trae el cliente 42" | "Ventas por país y mes de los últimos 3 años" |
+| Filas por consulta | Pocas | Millones |
+| Diseño | Normalizado (3FN): muchas tablas chicas | Dimensional: hechos + dimensiones |
+| Ejemplos | PostgreSQL, MySQL, SQL Server de la app | BigQuery, Snowflake, Redshift, Databricks SQL |
+
+El trabajo del data engineer es, en buena parte, **llevar datos del mundo OLTP al OLAP**: extraer de las bases de las aplicaciones, limpiar y remodelar en un esquema pensado para analizar.
+
+## Ejemplo: construir una estrella con las tablas de la tienda
+
+Las tablas del curso están normalizadas (OLTP). Así se construiría un modelo dimensional mínimo con SQL (en un proyecto real, cada consulta sería un modelo de dbt):
+
+```sql
+-- Dimensión de productos: aplanamos la categoría para no tener que unirla siempre
+CREATE TABLE dim_producto AS
+SELECT pr.producto_id, pr.nombre AS producto, pr.marca, c.nombre AS categoria, pr.precio AS precio_lista
+FROM productos pr
+LEFT JOIN categorias c ON c.categoria_id = pr.categoria_id;
+
+-- Hechos de ventas: grano = una fila por línea de pedido no cancelado
+CREATE TABLE fct_ventas AS
+SELECT d.detalle_id, p.pedido_id, p.cliente_id, d.producto_id,
+       date(p.fecha_pedido) AS fecha, p.canal,
+       d.cantidad,
+       ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe
+FROM detalle_pedidos d
+JOIN pedidos p ON p.pedido_id = d.pedido_id
+WHERE p.estado <> 'cancelado';
+
+-- Y ahora las preguntas de negocio son simples:
+SELECT dp.categoria, strftime('%Y', f.fecha) AS anio, ROUND(SUM(f.importe), 2) AS ventas
+FROM fct_ventas f
+JOIN dim_producto dp ON dp.producto_id = f.producto_id
+GROUP BY dp.categoria, anio
+ORDER BY dp.categoria, anio;
+```
+
+Fíjate en lo que ganamos:
+
+- **Las métricas ya están calculadas** (`importe`), con la regla de negocio (descuento, excluir cancelados) aplicada **una sola vez** y para todos.
+- **Las dimensiones son anchas y legibles**: la categoría está en `dim_producto`, no hace falta saber que existe una tabla `categorias`.
+- **Una consulta de BI une los hechos con 1 o 2 dimensiones**, nunca 5 tablas en cadena.
+
+### Tipos de tablas de hechos
+
+| Tipo | Grano | Ejemplo |
+|---|---|---|
+| **Transaccional** | Un evento | Una línea de venta, un pago, un clic |
+| **Snapshot periódico** | El estado al cierre de cada periodo | Saldo de cada cuenta al fin de cada mes, stock diario por almacén |
+| **Snapshot acumulativo** | Un proceso con varios hitos que se actualiza | Un pedido con fecha de compra, pago, envío y entrega |
+
+### Las dimensiones conformadas
+
+Una dimensión **conformada** es la misma tabla (por ejemplo `dim_cliente` o `dim_fecha`) compartida por **varias** tablas de hechos (ventas, pagos, tickets de soporte). Así, "clientes de Chile" significa lo mismo en todos los reportes y puedes cruzar procesos distintos. Es una de las ideas más valiosas de Kimball.
+
+:::entrevista "Diseña el modelo de datos para…"
+Es una pregunta habitual en entrevistas de data engineer (una app de viajes, un e-commerce, un banco). El orden que se espera: (1) aclarar las **preguntas de negocio**, (2) definir los **procesos** (viajes, pagos, calificaciones), (3) fijar el **grano** de cada hecho, (4) listar **dimensiones** y **métricas**, (5) explicar cómo manejarías los **cambios** (SCD2) y la **carga incremental**.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql

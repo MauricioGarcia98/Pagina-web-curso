@@ -79,6 +79,50 @@ Los data warehouses columnares casi no usan índices B-tree. En su lugar optimiz
 
 Lo verás en detalle en el módulo de Spark.
 
+## Cómo combina tablas el motor: los algoritmos de join
+
+Cuando escribes un `JOIN`, el optimizador elige **cómo** emparejar las filas. Conocer las tres estrategias te ayuda a leer planes (en Spark las verás con estos mismos nombres):
+
+| Algoritmo | Cómo funciona | Cuándo es bueno |
+|---|---|---|
+| **Nested loop** (bucle anidado) | Para cada fila de A, busca sus parejas en B (idealmente con un índice) | A es chica y B tiene índice en la columna de unión |
+| **Hash join** | Construye una tabla *hash* (un diccionario) con la tabla chica y recorre la grande consultándolo | Tablas grandes sin índice, uniones por igualdad. El más común en analítica |
+| **Merge join** (sort-merge) | Ordena ambas por la clave y las recorre en paralelo, como un cierre relámpago | Datos ya ordenados o muy grandes (Spark lo usa por defecto entre tablas grandes) |
+
+:::analogia Buscar a tus compañeros en una fiesta
+*Nested loop*: por cada persona de tu lista, recorres la fiesta buscándola (lento sin un "índice", es decir, sin saber dónde está cada uno). *Hash join*: primero armas un mapa "nombre → mesa" de la lista chica y después recorres la fiesta una vez, consultando el mapa. *Merge join*: ordenas ambas listas alfabéticamente y las comparas de arriba hacia abajo a la vez.
+:::
+
+## Cómo leer un plan de SQLite
+
+`EXPLAIN QUERY PLAN` muestra una línea por paso. Las palabras clave:
+
+| Verás | Significa | ¿Bueno o malo? |
+|---|---|---|
+| `SCAN tabla` | Recorre **toda** la tabla | Malo en tablas grandes si filtrabas por pocos valores |
+| `SEARCH tabla USING INDEX idx (col=?)` | Usa un índice para ir directo | Bueno |
+| `USING COVERING INDEX` | El índice tiene todas las columnas necesarias: ni siquiera lee la tabla | Muy bueno |
+| `USE TEMP B-TREE FOR ORDER BY / GROUP BY` | Tiene que ordenar en una estructura temporal | Costoso con muchos datos |
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT c.pais, COUNT(*)
+FROM pedidos p JOIN clientes c ON c.cliente_id = p.cliente_id
+WHERE p.fecha_pedido >= '2024-12-01'
+GROUP BY c.pais;
+```
+
+En PostgreSQL usa `EXPLAIN ANALYZE` (ejecuta la consulta y muestra los tiempos **reales** de cada paso, además de las filas estimadas vs. reales: una gran diferencia indica estadísticas desactualizadas). En Spark y Databricks, `df.explain()` o la pestaña SQL de la Spark UI.
+
+## Checklist de optimización (en orden)
+
+1. **¿La consulta es correcta?** Optimizar algo mal hecho es perder el tiempo. Verifica conteos y totales.
+2. **¿Lee menos datos?** Filtra lo antes posible (`WHERE` antes que `HAVING`), elige columnas, filtra por partición.
+3. **¿Los filtros son sargables?** Nada de funciones sobre la columna filtrada.
+4. **¿Los joins están bien?** Claves correctas, mismos tipos, sin multiplicar filas por un `ON` incompleto.
+5. **¿Hay índice (o partición/clustering) para los filtros y joins frecuentes?**
+6. **Mira el plan** antes y después de cada cambio. Mide, no adivines.
+
 ## Ejercicios
 
 :::ejercicio quiz
