@@ -15,7 +15,7 @@
   const save = () => Machine.save();
 
   // ---------------------------------------------------------------- argumentos
-  const BOOLS = ['--recursive', '--summarize', '--yes', '-y', '--no-wait', '--use-device-code', '--force', '--active', '--auto-ack', '--dry_run', '--autodetect', '--full-refresh', '--help', '-h', '--version', '-r', '--service-principal'];
+  const BOOLS = ['--recursive', '--summarize', '--yes', '-y', '--no-wait', '--use-device-code', '--force', '--active', '--auto-ack', '--dry_run', '--autodetect', '--full-refresh', '--help', '-h', '--version', '-r', '--service-principal', '--versioning', '--no-versioning', '--clear-lifecycle', '--uniform-bucket-level-access', '--public-access-prevention', '--readable-sizes'];
   function args(a, extra = []) {
     const flags = {}, pos = [];
     for (let i = 0; i < a.length; i++) {
@@ -706,6 +706,70 @@
       if (p[1] === 'list') return output(s.apis.map((n) => ({ NAME: n, TITLE: n.split('.')[0] })), A, 'table');
     }
     if (p[0] === 'storage') {
+      // en ls/du/rm/mv, -l -L -r -s -a son banderas sin valor (no se comen la ruta siguiente)
+      if (['ls', 'du', 'rm', 'mv', 'rsync'].includes(a[1]) || (a[1] === 'cp')) {
+        const B = args(a, ['-l', '-L', '--long', '-r', '-R', '-s', '-a', '--summarize', '--readable-sizes', '--delete-unmatched-destination-objects', '-c', '--checksums-only']);
+        Object.assign(A.flags, B.flags); p.length = 0; p.push(...B.pos);
+      }
+      const rec = A.flags['--recursive'] || A.flags['-r'] || A.flags['-R'];
+      const glob = (pat) => new RegExp('^' + pat.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*\*/g, '\u0000').replace(/\*/g, '[^/]*').replace(/\u0000/g, '.*').replace(/\?/g, '[^/]') + '$');
+      const match = (t) => { const b = s.buckets[t.b]; if (!b) return null; if (!/[*?]/.test(t.k)) return null; const re = glob(t.k); return Object.keys(b.objects).filter((k) => re.test(k)).sort(); };
+      const size = (c) => new TextEncoder().encode(c).length;
+      const human = (n) => (n < 1024 ? n + 'B' : n < 1048576 ? (n / 1024).toFixed(2) + 'kiB' : (n / 1048576).toFixed(2) + 'MiB');
+      if (p[1] === 'buckets' && p[2] === 'add-iam-policy-binding') {
+        const t = gsPath(p[3]); const b = t && s.buckets[t.b];
+        if (!b) return fail(`ERROR: (gcloud.storage.buckets.add-iam-policy-binding) gs://${t ? t.b : p[3]} not found: 404.`);
+        if (!A.get('--member') || !A.get('--role')) return fail('ERROR: (gcloud.storage.buckets.add-iam-policy-binding) argument --member --role: Must be specified.');
+        b.iam = (b.iam || []).concat({ member: A.get('--member'), role: A.get('--role') }); save();
+        return ok(`bindings:\n${b.iam.map((x) => `- members:\n  - ${x.member}\n  role: ${x.role}`).join('\n')}\netag: CAE=`);
+      }
+      if (p[1] === 'buckets' && (p[2] === 'describe' || p[2] === 'update')) {
+        const t = gsPath(p[3]); const b = t && s.buckets[t.b];
+        if (!b) return fail(`ERROR: (gcloud.storage.buckets.${p[2]}) gs://${t ? t.b : p[3]} not found: 404.`);
+        if (p[2] === 'update') {
+          const lf = A.get('--lifecycle-file');
+          if (lf) { const c = Sh.readFile(Sh.norm(lf)); if (c === null) return fail(`ERROR: (gcloud.storage.buckets.update) Could not read file ${lf}`); try { b.lifecycle = JSON.parse(c); } catch (err) { return fail(`ERROR: (gcloud.storage.buckets.update) Invalid JSON in ${lf}: ${err.message}`); } }
+          if (A.flags['--clear-lifecycle']) delete b.lifecycle;
+          if (A.flags['--versioning']) b.versioning = true;
+          if (A.flags['--no-versioning']) b.versioning = false;
+          if (A.get('--default-storage-class')) b.storageClass = String(A.get('--default-storage-class')).toUpperCase();
+          if (A.flags['--public-access-prevention']) b.pap = true;
+          if (A.get('--update-labels')) b.labels = Object.assign(b.labels || {}, Object.fromEntries(String(A.get('--update-labels')).split(',').map((x) => x.split('='))));
+          save(); return ok(`Updating gs://${t.b}/...
+  Completed 1`);
+        }
+        return output({ name: t.b, storage_url: `gs://${t.b}/`, location: b.location, location_type: /^(US|EU|ASIA)$/.test(b.location) ? 'multi-region' : 'region', default_storage_class: b.storageClass || 'STANDARD', uniform_bucket_level_access: true, public_access_prevention: b.pap ? 'enforced' : 'inherited', versioning_enabled: !!b.versioning, lifecycle_config: b.lifecycle || undefined, labels: b.labels || undefined, creation_time: b.created }, A, 'yaml');
+      }
+      if (p[1] === 'du') {
+        const t = gsPath(p[2]); const b = t && s.buckets[t.b];
+        if (!b) return fail(`ERROR: (gcloud.storage.du) The following URLs matched no objects or files:\n-${p[2]}`);
+        const keys = Object.keys(b.objects).filter((k) => k.startsWith(t.k)).sort();
+        const fmt = (n) => (A.flags['--readable-sizes'] ? human(n) : String(n)).padEnd(10);
+        if (A.flags['-s'] || A.flags['--summarize']) return ok(`${fmt(keys.reduce((x, k) => x + size(b.objects[k]), 0))} gs://${t.b}${t.k ? '/' + t.k : ''}`);
+        return ok(keys.map((k) => `${fmt(size(b.objects[k]))} gs://${t.b}/${k}`).join('\n'));
+      }
+      if (p[1] === 'mv') {
+        const S = gsPath(p[2]), D = gsPath(p[3]);
+        if (!S || !D) return fail('ERROR: (gcloud.storage.mv) en este simulador, origen y destino deben ser gs://…');
+        const bs = s.buckets[S.b], bd = s.buckets[D.b];
+        if (!bs || bs.objects[S.k] === undefined) return fail(`ERROR: (gcloud.storage.mv) The following URLs matched no objects or files:\n-${p[2]}`);
+        if (!bd) return fail(`ERROR: (gcloud.storage.mv) gs://${D.b} not found: 404.`);
+        const key = !D.k || D.k.endsWith('/') ? D.k + S.k.split('/').pop() : D.k;
+        bd.objects[key] = bs.objects[S.k]; delete bs.objects[S.k]; save();
+        return ok(`Copying gs://${S.b}/${S.k} to gs://${D.b}/${key}\nRemoving gs://${S.b}/${S.k}...\n  Completed files 1/1`);
+      }
+      if (p[1] === 'rsync') {
+        const D = gsPath(p[3]); const lp = Sh.norm(p[2] || '');
+        if (!D || gsPath(p[2])) return fail('ERROR: (gcloud.storage.rsync) en este simulador: rsync CARPETA_LOCAL gs://BUCKET/PREFIJO');
+        const b = s.buckets[D.b]; if (!b) return fail(`ERROR: (gcloud.storage.rsync) gs://${D.b} not found: 404.`);
+        if (!Sh.isDir(lp)) return fail(`ERROR: (gcloud.storage.rsync) ${p[2]} no es una carpeta`);
+        const pre = D.k ? D.k.replace(/\/?$/, '/') : '';
+        const files = Object.keys(Machine.fs).filter((x) => Machine.fs[x].t === 'f' && x.startsWith(lp + '/') && (rec || !x.slice(lp.length + 1).includes('/')));
+        const lines = []; const want = new Set();
+        for (const f of files) { const key = pre + f.slice(lp.length + 1); want.add(key); if (b.objects[key] !== Machine.fs[f].c) { b.objects[key] = Machine.fs[f].c; lines.push(`Copying file://${Sh.display(f)} to gs://${D.b}/${key}`); } }
+        if (A.flags['--delete-unmatched-destination-objects']) for (const k of Object.keys(b.objects)) if (k.startsWith(pre) && !want.has(k)) { delete b.objects[k]; lines.push(`Removing gs://${D.b}/${k}...`); }
+        save(); return ok(lines.length ? lines.join('\n') + `\n  Completed files ${lines.length}` : 'Nada que sincronizar: el destino ya está al día.');
+      }
       if (p[1] === 'buckets' && p[2] === 'create') {
         const t = gsPath(p[3]); if (!t) return fail('ERROR: (gcloud.storage.buckets.create) argument URL: debe ser gs://NOMBRE');
         if (!/^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$/.test(t.b)) return fail(`ERROR: (gcloud.storage.buckets.create) HTTPError 400: Invalid bucket name: '${t.b}'`);
@@ -718,13 +782,20 @@
         const t = gsPath(p[2]);
         if (!t) return ok(Object.keys(s.buckets).map((n) => `gs://${n}/`).join('\n'));
         const b = s.buckets[t.b]; if (!b) return fail(`ERROR: (gcloud.storage.ls) gs://${t.b} not found: 404.`);
+        const long = A.flags['-l'] || A.flags['-L'] || A.flags['--long'];
+        const linea = (k) => (long ? `${String(size(b.objects[k])).padStart(10)}  ${String(b.created || now()).slice(0, 19)}Z  ` : '') + `gs://${t.b}/${k}`;
+        const m = match(t);
+        if (m) return m.length ? ok(m.map(linea).join('\n')) : fail(`ERROR: (gcloud.storage.ls) One or more URLs matched no objects.`);
         const keys = Object.keys(b.objects).filter((k) => k.startsWith(t.k)).sort();
-        if (A.flags['--recursive'] || A.flags['-r']) return ok(keys.map((k) => `gs://${t.b}/${k}`).join('\n'));
-        const set = new Set(keys.map((k) => { const r = k.slice(t.k.length).replace(/^\//, ''); return `gs://${t.b}/${t.k ? t.k.replace(/\/?$/, '/') : ''}${r.includes('/') ? r.split('/')[0] + '/' : r}`; }));
+        if (!keys.length && t.k) return fail(`ERROR: (gcloud.storage.ls) One or more URLs matched no objects.`);
+        if (rec) return ok(keys.map(linea).join('\n') + (long ? `\nTOTAL: ${keys.length} objects, ${keys.reduce((x, k) => x + size(b.objects[k]), 0)} bytes` : ''));
+        if (long && keys.includes(t.k)) return ok(linea(t.k));
+        const pre = t.k ? t.k.replace(/\/?$/, '/') : '';
+        const set = new Set(keys.map((k) => { const r = k.slice(t.k.length).replace(/^\//, ''); return r.includes('/') ? `${' '.repeat(long ? 34 : 0)}gs://${t.b}/${pre}${r.split('/')[0]}/` : linea(pre + r); }));
         return ok([...set].join('\n'));
       }
-      if (p[1] === 'cp') return gcsCopy(s, p[2], p[3], A.flags['--recursive'] || A.flags['-r']);
-      if (p[1] === 'rm') { const t = gsPath(p[2]); const b = s.buckets[t && t.b]; if (!b) return fail('ERROR: not found: 404'); const keys = A.flags['--recursive'] || A.flags['-r'] ? Object.keys(b.objects).filter((k) => k.startsWith(t.k)) : [t.k]; keys.forEach((k) => delete b.objects[k]); save(); return ok(keys.map((k) => `Removing gs://${t.b}/${k}...`).join('\n')); }
+      if (p[1] === 'cp') return gcsCopy(s, p[2], p[3], rec);
+      if (p[1] === 'rm') { const t = gsPath(p[2]); const b = s.buckets[t && t.b]; if (!b) return fail('ERROR: not found: 404'); const keys = match(t) || (rec ? Object.keys(b.objects).filter((k) => k.startsWith(t.k)) : b.objects[t.k] !== undefined ? [t.k] : []); if (!keys.length) return fail(`ERROR: (gcloud.storage.rm) The following URLs matched no objects or files:\n-${p[2]}`); keys.forEach((k) => delete b.objects[k]); save(); return ok(keys.map((k) => `Removing gs://${t.b}/${k}...`).join('\n')); }
       if (p[1] === 'cat') { const t = gsPath(p[2]); const b = s.buckets[t && t.b]; if (!b || b.objects[t.k] === undefined) return fail('ERROR: (gcloud.storage.cat) The following URLs matched no objects or files'); return ok(b.objects[t.k].replace(/\n$/, '')); }
     }
     if (p[0] === 'pubsub') {
@@ -758,11 +829,11 @@
     const s = gcp(); const e = needGcp(s, ctx); if (e) return e;
     const A = args(a); const p = A.pos;
     if (p[0] === 'mb') { const t = gsPath(p[1]); if (!t) return fail('CommandException: mb requiere gs://BUCKET'); if (s.buckets[t.b]) return fail(`ServiceException: 409 A Cloud Storage bucket named '${t.b}' already exists.`); s.buckets[t.b] = { location: A.get('-l') || 'US', objects: {}, created: now() }; save(); return ok(`Creating gs://${t.b}/...`); }
-    if (p[0] === 'ls') return window.Shell.Commands.gcloud(['storage', 'ls', ...p.slice(1), ...(A.flags['-r'] ? ['--recursive'] : [])], ctx);
+    if (['ls', 'du', 'mv', 'rsync'].includes(a[0])) return window.Shell.Commands.gcloud(['storage', ...a], ctx);
     if (p[0] === 'cp') return gcsCopy(s, p[1], p[2], A.flags['-r']);
-    if (p[0] === 'rm') return window.Shell.Commands.gcloud(['storage', 'rm', ...p.slice(1), ...(A.flags['-r'] ? ['--recursive'] : [])], ctx);
+    if (a[0] === 'rm') return window.Shell.Commands.gcloud(['storage', ...a], ctx);
     if (p[0] === 'cat') return window.Shell.Commands.gcloud(['storage', 'cat', p[1]], ctx);
-    return ok('Usage: gsutil [mb|ls|cp|rm|cat] …  (hoy se recomienda gcloud storage)');
+    return ok('Usage: gsutil [mb|ls|cp|mv|rm|cat|du|rsync] …  (hoy se recomienda gcloud storage)');
   });
 
   // ---- bq: consultas reales sobre SQLite
