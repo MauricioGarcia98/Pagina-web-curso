@@ -7,6 +7,26 @@ resumen: Problemas tipo entrevista técnica para Data Engineer con PySpark.
 
 Resuelve estos problemas **solo con la API de DataFrames** (sin `spark.sql`). Son los que suelen pedir en entrevistas técnicas para Data Engineer con Spark/Databricks.
 
+## Cómo encarar un desafío de PySpark
+
+Casi todos se resuelven combinando **cuatro** herramientas que ya conoces:
+
+| Si el problema dice… | Probablemente necesitas |
+|---|---|
+| "el último", "el primero", "el top N de cada…" | `Window.partitionBy(…).orderBy(…)` + `row_number` + `filter` |
+| "desde la vez anterior", "consecutivos", "sesiones" | `F.lag` / `F.lead` sobre una ventana ordenada por tiempo |
+| "por cada…", "cuántos", "total" | `groupBy(…).agg(…)` |
+| "que nunca", "que no tienen" | `join(…, how="left_anti")` |
+| "en cada paso", "cuántos llegaron a…" | `F.countDistinct(F.when(cond, id))` |
+
+El método:
+
+1. **Escribe el grano** del resultado: "una fila por cliente", "una fila por dispositivo".
+2. **Divide en pasos**, cada uno guardado en una variable con nombre (`ev`, `marcados`, `resultado`), como harías con CTE en SQL.
+3. **Mira un ejemplo chico**: filtra un solo cliente (`filter(F.col("cliente_id") == 5)`) y verifica cada columna intermedia con `show()`.
+4. **Casos borde**: nulos, empates (¡desempata en los `orderBy`!), el primer evento sin anterior.
+5. Al final, deja solo las columnas pedidas y con los nombres pedidos.
+
 :::ejercicio pyspark dificultad=Experto titulo="Sesionización"
 Sesioniza `eventos_web` (solo eventos con `cliente_id`): una nueva sesión empieza si pasaron **más de 30 minutos** desde el evento anterior del mismo cliente. Devuelve, por cliente, la cantidad de sesiones. Columnas: `cliente_id`, `sesiones`.
 ```python solucion

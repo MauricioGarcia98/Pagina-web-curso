@@ -7,9 +7,27 @@ resumen: Un pipeline completo en PySpark con funciones reutilizables, idempotent
 
 Vamos a construir, paso a paso, un pipeline como los que se hacen en Databricks. Ejecuta cada bloque con **▶ Probar**.
 
+## La arquitectura medallón
+
+Es la forma estándar de organizar un lakehouse: los datos pasan por tres capas, cada una más limpia y más cercana al negocio que la anterior.
+
+| Capa | Contenido | Reglas | Quién la usa |
+|---|---|---|---|
+| **Bronze** | Datos **crudos**, tal como llegaron, más metadatos de ingesta (origen, fecha de carga) | Inmutable: nunca se corrige, solo se agrega | Data engineers (para reprocesar) |
+| **Silver** | Datos **limpios**: tipos correctos, formatos normalizados, sin duplicados, validados | Una fila por entidad o evento; registros inválidos en cuarentena | Data engineers, data scientists |
+| **Gold** | **Métricas de negocio** y tablas listas para BI: agregados, esquemas estrella | Nombres de negocio, reglas acordadas con el área | Analistas, dashboards, directorio |
+
+¿Por qué no ir directo de crudo a gold? Porque si mañana cambia una regla de negocio (por ejemplo, cómo se calcula una venta neta), puedes **recalcular** gold desde silver sin volver a pedir los datos al origen. Y si un día se descubre un error en la limpieza, bronze guarda la versión original para reprocesar.
+
 ## La estructura: funciones puras de DataFrame a DataFrame
 
-En código profesional, cada transformación es una **función que recibe un DataFrame y devuelve otro**. Así se pueden **probar** por separado y **componer** con `.transform()`.
+En código profesional, cada transformación es una **función que recibe un DataFrame y devuelve otro**, sin leer ni escribir nada por su cuenta. Así se pueden **probar** por separado (con un DataFrame chiquito hecho a mano) y **componer** con `.transform()`:
+
+```text
+df.transform(limpiar).transform(enriquecer)   ≡   enriquecer(limpiar(df))
+```
+
+`.transform(f)` simplemente llama a `f(df)`, pero permite escribir la cadena en el orden en que ocurren los pasos. El código de abajo separa claramente **qué** hace cada capa; la lectura (`spark.table`) y la escritura (`saveAsTable`) quedan al final, fuera de las funciones.
 
 ```python
 from pyspark.sql import DataFrame, functions as F

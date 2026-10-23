@@ -7,7 +7,22 @@ resumen: La API de bajo nivel, explain(), particiones, caché, broadcast y antip
 
 ## RDDs: la base de todo
 
-Un **RDD** (*Resilient Distributed Dataset*) es la abstracción original de Spark: una colección distribuida de objetos de Python, sin esquema. Hoy casi no se usa directamente, pero aparece en entrevistas y en código antiguo.
+Un **RDD** (*Resilient Distributed Dataset*, "conjunto de datos distribuido y resiliente") es la abstracción original de Spark: una colección de objetos de Python repartida entre las máquinas del cluster, **sin esquema** (Spark no sabe qué hay adentro de cada objeto).
+
+| | RDD | DataFrame |
+|---|---|---|
+| Qué guarda | Objetos cualesquiera (tuplas, diccionarios…) | Filas con columnas con nombre y tipo |
+| Cómo se opera | Funciones de Python (`map`, `filter`, `reduceByKey`) | Expresiones de columnas (`select`, `groupBy`, `F.*`) |
+| Optimización | Ninguna: Spark ejecuta tus funciones tal cual | El optimizador **Catalyst** reordena y mejora el plan |
+| Velocidad en PySpark | Lenta (los datos van y vienen entre Java y Python) | Rápida (todo corre dentro del motor) |
+
+Hoy casi no se usan directamente: los DataFrames son más rápidos y más claros. Pero conviene conocerlos porque aparecen en **entrevistas**, en código antiguo, y porque explican cómo funciona Spark por dentro (un DataFrame, al final, se ejecuta como RDDs).
+
+Las tres operaciones clásicas:
+
+- `map(f)`: aplica `f` a cada elemento (un elemento entra, uno sale).
+- `flatMap(f)`: como `map`, pero si `f` devuelve una lista, la "aplana" (un elemento entra, varios salen). Es el `explode` de los RDD.
+- `reduceByKey(f)`: para pares `(clave, valor)`, combina los valores de cada clave con `f`. Es el `groupBy + sum` de los RDD.
 
 ```python
 sc = spark.sparkContext
@@ -30,6 +45,8 @@ print(conteo.collect())
 :::
 
 ## Leer el plan con explain()
+
+`explain()` muestra **cómo** va a ejecutar Spark tu código: el plan físico. Es la herramienta principal para entender por qué algo es lento. Se lee **de abajo hacia arriba** (primero se leen los datos, al final se produce el resultado).
 
 ```python
 from pyspark.sql import functions as F

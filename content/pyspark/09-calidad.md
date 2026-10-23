@@ -5,7 +5,19 @@ duracion: 35
 resumen: Deduplicar, normalizar textos, manejar nulos, validar reglas y separar registros inválidos.
 ---
 
-En la vida real, **la mitad del trabajo de un ingeniero de datos es limpiar**. Estos son los patrones de PySpark que vas a repetir siempre.
+En la vida real, **la mitad del trabajo de un ingeniero de datos es limpiar**. Los datos llegan con espacios de más, mayúsculas mezcladas, duplicados porque un sistema reenvió un archivo, nulos donde no debería haberlos y valores imposibles (cantidades negativas, fechas del año 2099). Si esos problemas llegan a la capa gold, terminan en un reporte del directorio con números equivocados, y la confianza en el equipo de datos se pierde muy rápido.
+
+La capa **silver** existe justamente para esto. Sus tareas típicas:
+
+| Problema | Ejemplo | Solución en PySpark |
+|---|---|---|
+| Formato inconsistente | `" ANA "`, `"ana"`, `"Ana"` | `F.trim`, `F.lower`, `F.initcap` |
+| Tipos incorrectos | `"120.50"` como texto | `.cast("double")` y contar los `null` resultantes |
+| Duplicados | El mismo pedido cargado dos veces | `row_number()` por clave + `rn = 1` |
+| Nulos | Email faltante | Contar, completar (`fillna`) o descartar según la regla de negocio |
+| Valores imposibles | Cantidad −2, descuento 150 % | Reglas de validación + **cuarentena** |
+
+La regla más importante: **nunca descartes datos en silencio**. Cada fila que quitas debe quedar contada y, mejor aún, guardada con el motivo.
 
 ## Normalizar textos
 
@@ -54,7 +66,13 @@ c.na.drop(subset=["email"]).count()
 
 ## Reglas de calidad y cuarentena
 
-Patrón profesional: en lugar de descartar en silencio, **separa** las filas válidas de las inválidas y guarda las inválidas (con el motivo) en una tabla de cuarentena.
+Patrón profesional: en lugar de descartar en silencio, **separa** las filas válidas de las inválidas y guarda las inválidas (con el motivo) en una tabla de **cuarentena**. Así:
+
+- El pipeline **sigue funcionando** aunque lleguen algunas filas malas.
+- Alguien puede **revisar** la cuarentena, corregir el origen y reprocesar.
+- Puedes **alertar** si la cantidad de inválidas supera un umbral (por ejemplo, más del 1 %): eso suele indicar que el sistema de origen cambió algo.
+
+La técnica es un `F.when` encadenado que asigna el **primer** motivo de rechazo (o `null` si la fila es válida), y después dos filtros:
 
 ```python
 from pyspark.sql import functions as F
