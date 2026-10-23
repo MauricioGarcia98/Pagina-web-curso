@@ -25,6 +25,10 @@ from {{ ref('stg_pedidos') }}
 group by canal
 ```
 
+:::analogia Fotocopia vs. libreta
+Una **vista** es una nota que dice "para saber la respuesta, calculá esto": no guarda nada, se recalcula cada vez que alguien la lee. Una **tabla** es una fotocopia de la respuesta: rápida de leer, pero hay que volver a sacarla completa cada vez que cambian los datos. Un modelo **incremental** es una libreta: cada día solo **agregas las páginas nuevas** en vez de reescribir el cuaderno entero.
+:::
+
 ## Modelos incrementales
 
 En la **primera** ejecución, dbt crea la tabla con todo el resultado. En las **siguientes**, `is_incremental()` es verdadero y solo procesas las filas nuevas, que dbt **agrega o fusiona** en la tabla existente, referenciada como `{{ this }}`.
@@ -44,6 +48,22 @@ from {{ source('tienda', 'eventos_web') }}
   where fecha_hora > (select max(fecha_hora) from {{ this }})
 {% endif %}
 ```
+
+### Cómo se comporta en el tiempo
+
+Supón una tabla de eventos con 500 millones de filas que crece 2 millones por día:
+
+| Ejecución | `is_incremental()` | Qué hace dbt | Filas procesadas |
+|---|---|---|---|
+| Primera vez (la tabla no existe) | `false` | Crea la tabla con **todo** el `SELECT` (el `if` no se aplica) | 500 millones |
+| Día siguiente | `true` | Ejecuta el `SELECT` **con** el filtro y fusiona el resultado en `{{ this }}` | ~2 millones |
+| `dbt run --full-refresh` | `false` | Borra y reconstruye desde cero | 500 millones |
+
+Con `materialized='table'`, **cada** ejecución procesaría los 500 millones. Con incremental, solo los nuevos: la diferencia es de horas y de mucho dinero en la nube.
+
+`{{ this }}` es la propia tabla del modelo tal como existe ahora en la base: por eso el filtro `fecha_hora > (select max(fecha_hora) from {{ this }})` significa "lo que es más nuevo que lo último que ya cargué".
+
+### Estrategias de incremental
 
 | Estrategia | Qué hace | Cuándo |
 |---|---|---|

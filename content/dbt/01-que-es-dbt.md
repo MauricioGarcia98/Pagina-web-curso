@@ -11,6 +11,51 @@ resumen: ELT, analytics engineering, qué hace dbt (y qué no) y cómo encaja co
 Tú escribes archivos `.sql` con un `SELECT` cada uno (un **modelo**). dbt los **compila** (resolviendo referencias y plantillas), descubre en qué **orden** ejecutarlos y los **materializa** en tu base como vistas o tablas. No mueve datos de un lado a otro: le dice a tu motor (Databricks, Snowflake, BigQuery, Postgres…) qué SQL ejecutar.
 :::
 
+## El problema que resuelve
+
+Imagina el área de datos de una empresa **antes** de dbt. Las transformaciones (de las tablas crudas a las tablas de reportes) vivían en:
+
+- **Decenas de scripts SQL sueltos**, ejecutados en un orden que solo una persona conocía ("primero corro `limpiar_clientes.sql`, después `ventas.sql`, y el viernes `resumen.sql`").
+- **Stored procedures** de cientos de líneas dentro de la base de datos, sin control de versiones.
+- **Cero tests**: los errores se descubrían cuando el gerente veía un número raro en el dashboard.
+- **Sin documentación**: nadie sabía de dónde salía la columna `venta_neta_ajustada` ni quién la usaba.
+
+dbt resuelve cada uno de esos problemas con una idea simple: **cada transformación es un archivo `.sql` con un `SELECT`**, guardado en un repositorio Git, y dbt se ocupa del resto.
+
+| Problema | Cómo lo resuelve dbt |
+|---|---|
+| ¿En qué orden se ejecuta? | Lees `{{ ref('otro_modelo') }}` y dbt arma solo el **grafo de dependencias** (DAG) |
+| ¿Tabla o vista? ¿`CREATE` o `INSERT`? | Una línea de configuración (`materialized`); dbt escribe el DDL |
+| ¿Los datos están bien? | **Tests** declarados en YAML (`unique`, `not_null`…) que corren con `dbt test` |
+| ¿Qué significa cada columna? | Documentación en YAML y un sitio web generado con `dbt docs` |
+| ¿Cómo pruebo sin romper producción? | **Entornos**: cada desarrollador escribe en su propio esquema |
+| ¿Quién cambió qué? | Todo es código en Git, con *pull requests* y revisión |
+
+## Qué pasa cuando ejecutas `dbt run`
+
+1. dbt **lee** todos los archivos `.sql` de la carpeta `models/`.
+2. **Compila** cada uno: reemplaza las expresiones Jinja (`{{ ref('stg_pedidos') }}` → `analytics.staging.stg_pedidos`) y produce SQL puro.
+3. Con los `ref()`, arma el **DAG** y decide el orden: primero los modelos que no dependen de nadie.
+4. **Envuelve** cada `SELECT` en el DDL de su materialización (`CREATE VIEW … AS SELECT …`, `CREATE TABLE … AS SELECT …`) y lo envía a tu motor.
+5. Ejecuta en paralelo lo que se puede y reporta qué funcionó y qué falló.
+
+El trabajo pesado lo hace tu **motor** (Databricks, Snowflake, BigQuery…): dbt solo genera y ordena el SQL.
+
+## Pruébalo en la terminal
+
+La terminal del curso tiene un proyecto dbt de verdad en la carpeta `tienda_dbt` (los modelos se ejecutan sobre la base SQLite del curso). Ábrela con el botón **⌨ En la terminal** y ejecuta:
+
+```bash
+cd tienda_dbt
+dbt debug
+dbt ls
+dbt compile -s ventas_por_canal
+dbt run
+dbt test
+```
+
+Fíjate en la salida de `dbt compile`: el modelo tiene `from {{ ref('stg_ventas') }}` y el SQL compilado tiene `from main.stg_ventas`. Esa traducción es el corazón de dbt.
+
 ## Qué hace y qué no hace
 
 | dbt SÍ | dbt NO |

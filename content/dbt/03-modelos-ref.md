@@ -37,6 +37,36 @@ source(tienda.detalle) ─▶ stg_detalle_pedidos ─┼─▶ ventas_por_canal
                                                └─▶ fct_ventas ─▶ ...
 ```
 
+## Qué es el DAG y por qué te importa
+
+**DAG** significa *Directed Acyclic Graph* (grafo dirigido acíclico): un dibujo de cajas (modelos) unidas por flechas (dependencias), donde las flechas van siempre "hacia adelante" y **nunca forman un círculo**. dbt lo construye solo, leyendo los `ref()` de cada archivo. Te importa por tres razones:
+
+1. **Orden de ejecución**: dbt ejecuta primero los modelos sin dependencias y después los que dependen de ellos; lo que no depende entre sí corre en **paralelo**.
+2. **Ejecutar solo una parte**: con **selectores** reconstruyes un modelo y lo que lo rodea, sin correr todo el proyecto.
+3. **Impacto de un cambio**: antes de modificar `stg_pedidos`, puedes ver qué modelos (y dashboards) dependen de él.
+
+| Selector | Qué ejecuta |
+|---|---|
+| `dbt run -s fct_ventas` | Solo ese modelo |
+| `dbt run -s +fct_ventas` | El modelo **y todo lo que necesita** (sus ancestros) |
+| `dbt run -s fct_ventas+` | El modelo **y todo lo que depende de él** (descendientes) |
+| `dbt run -s +fct_ventas+` | Ancestros, el modelo y descendientes |
+| `dbt run -s staging` | Todos los modelos de la carpeta `staging` |
+| `dbt build -s state:modified+` | Lo que cambió en tu rama y lo que depende de eso (CI) |
+
+:::cuidado Referencias circulares
+Si `a` usa `ref('b')` y `b` usa `ref('a')`, ya no es un DAG: dbt se niega a compilar con un error de *dependency cycle*. Casi siempre significa que falta un modelo intermedio que ambos deberían usar.
+:::
+
+Pruébalo con el proyecto de la terminal:
+
+```bash
+cd tienda_dbt
+dbt ls -s +ventas_por_canal
+dbt run -s ventas_por_canal
+dbt run -s +top_clientes
+```
+
 ## El estilo de dbt: CTEs de importación
 
 La guía de estilo de dbt Labs recomienda empezar cada modelo **importando** sus dependencias en CTEs, y luego transformarlas en pasos con nombre:

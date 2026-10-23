@@ -838,7 +838,11 @@ for _n, _fn in list(_ns.items()):
       if (!c.ok) { status = col.err('ERROR'); errN++; lines.push(`${hhmmss()}  ${i + 1} of ${ord.length} ERROR creating ${m.mat} model ${m.name}`); lines.push(col.err('  Compilation Error: ' + c.error)); continue; }
       const sql = c.sql.replace(/;\s*$/, '');
       try {
-        db.exec(`DROP VIEW IF EXISTS "${m.name}"; DROP TABLE IF EXISTS "${m.name}";`);
+        // SQLite no permite DROP VIEW sobre una tabla (ni al revés): miramos qué existe antes de borrar
+        const prev = db.exec(`SELECT type FROM sqlite_master WHERE name = '${m.name.replace(/'/g, "''")}'`);
+        const tipo = prev.length && prev[0].values.length ? prev[0].values[0][0] : null;
+        if (tipo === 'view') db.exec(`DROP VIEW "${m.name}"`);
+        else if (tipo === 'table') db.exec(`DROP TABLE "${m.name}"`);
         db.exec(`CREATE ${m.mat === 'view' ? 'VIEW' : 'TABLE'} "${m.name}" AS ${sql}`);
         const n = m.mat === 'view' ? '' : ` [SELECT ${db.exec(`SELECT COUNT(*) FROM "${m.name}"`)[0].values[0][0]}]`;
         status = col.ok('OK') + ` created sql ${m.mat === 'view' ? 'view' : 'table'} model main.${m.name}${n}`;

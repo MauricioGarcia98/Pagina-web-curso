@@ -21,6 +21,19 @@ cd tienda_andina
 dbt debug                         # verifica la conexión y la configuración
 ```
 
+## Qué es cada cosa
+
+Un proyecto dbt es **una carpeta con archivos de texto**: SQL para los modelos y YAML para la configuración. No hay nada "instalado en la base": todo vive en tu repositorio Git y dbt lo convierte en tablas y vistas cuando lo ejecutas. Hay dos archivos de configuración que conviene no confundir:
+
+| Archivo | Qué define | Dónde vive | ¿Va a Git? |
+|---|---|---|---|
+| `dbt_project.yml` | **Qué** construir: nombre del proyecto, carpetas, materializaciones por defecto | En la raíz del proyecto | **Sí** |
+| `profiles.yml` | **Dónde** construirlo: la conexión a tu motor (host, usuario, token, esquema) | En `~/.dbt/` (tu carpeta personal) | **No** (tiene credenciales) |
+
+:::analogia El plano y la dirección de la obra
+`dbt_project.yml` es el plano de la casa: qué habitaciones hay y cómo son. `profiles.yml` es la dirección del terreno y la llave del portón. El mismo plano se puede construir en el terreno de pruebas (dev) o en el definitivo (prod) cambiando solo la dirección.
+:::
+
 ## Estructura de carpetas
 
 ```text
@@ -43,6 +56,18 @@ tienda_andina/
 └── packages.yml             # dependencias (por ejemplo dbt_utils)
 ```
 
+### Las tres capas de modelos
+
+La convención de dbt Labs, usada en casi todos los proyectos:
+
+| Capa | Prefijo | Qué hace | Regla |
+|---|---|---|---|
+| **staging** | `stg_` | Un modelo por tabla de origen: renombrar columnas, convertir tipos, limpiar formatos | Sin joins ni agregaciones; nada de lógica de negocio |
+| **intermediate** | `int_` | Pasos de lógica reutilizable: joins, enriquecimientos, cálculos intermedios | No los consume el negocio directamente |
+| **marts** | `fct_` / `dim_` | Las tablas finales: hechos y dimensiones listos para BI | Nombres y métricas de negocio |
+
+Es la misma idea que bronze → silver → gold, aplicada dentro del warehouse.
+
 ## dbt_project.yml
 
 ```yaml norun
@@ -59,6 +84,8 @@ models:
       +materialized: table      # marts como tablas
       +schema: marts
 ```
+
+Los `+` delante de `materialized` y `schema` indican que es una configuración que se **aplica a toda la carpeta** (y sus subcarpetas). Un modelo puede sobrescribirla individualmente con `{{ config(materialized='table') }}` al principio del archivo.
 
 ## profiles.yml: la conexión (¡fuera del repo!)
 
@@ -87,6 +114,19 @@ tienda_andina:
 :::tip Entornos
 Con `--target` eliges a dónde escribir: `dbt run` (dev, por defecto) o `dbt run --target prod`. Así cada desarrollador prueba en su esquema sin tocar producción.
 :::
+
+## Recorre el proyecto en la terminal
+
+```bash
+cd tienda_dbt
+ls
+cat dbt_project.yml
+ls models/staging models/marts
+cat models/staging/stg_ventas.sql
+cat models/schema.yml
+```
+
+Con `code models/marts/top_clientes.sql` puedes abrir un modelo en el editor, cambiarlo, guardarlo (Ctrl+S) y volver a ejecutar `dbt run -s top_clientes`.
 
 ## Ejercicios
 

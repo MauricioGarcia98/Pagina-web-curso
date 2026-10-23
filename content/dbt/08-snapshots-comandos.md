@@ -24,6 +24,29 @@ select * from {{ source('tienda', 'clientes') }}
 
 Estrategias: `timestamp` (usa una columna `updated_at`) o `check` (compara columnas). En versiones nuevas también se pueden definir en YAML.
 
+### Qué pasa en cada ejecución, paso a paso
+
+La tabla `clientes` del sistema de origen solo guarda **el estado actual**: si Sofía se muda de Lima a Santiago, la fila se sobrescribe y la ciudad anterior se pierde. El snapshot conserva la historia:
+
+**Día 1** (`dbt snapshot`, primera vez): copia todas las filas, cada una "vigente desde hoy, sin fin".
+
+| cliente_id | ciudad | dbt_valid_from | dbt_valid_to |
+|---|---|---|---|
+| 7 | Lima | 2024-01-01 | `NULL` |
+
+**Día 2**: en el origen, Sofía ahora dice Santiago. Al ejecutar `dbt snapshot`, dbt detecta que `ciudad` cambió (estrategia `check`), **cierra** la fila vieja y **agrega** una nueva:
+
+| cliente_id | ciudad | dbt_valid_from | dbt_valid_to |
+|---|---|---|---|
+| 7 | Lima | 2024-01-01 | **2024-06-01** |
+| 7 | Santiago | **2024-06-01** | `NULL` |
+
+Ahora puedes responder "¿en qué ciudad vivía Sofía cuando hizo el pedido de marzo?" uniendo por cliente y por rango de fechas (`fecha_pedido >= dbt_valid_from AND (fecha_pedido < dbt_valid_to OR dbt_valid_to IS NULL)`). Es exactamente la **dimensión lentamente cambiante tipo 2** (SCD2) de la lección de modelado de SQL, sin escribir la lógica a mano.
+
+:::cuidado Los snapshots solo ven lo que existe cuando corren
+Si un cliente cambia de ciudad dos veces entre una ejecución y la siguiente, el snapshot solo registra el estado final. Por eso los snapshots se programan con frecuencia (al menos diaria) y se ejecutan **antes** de los modelos que los usan.
+:::
+
 ## Comandos esenciales
 
 | Comando | Qué hace |

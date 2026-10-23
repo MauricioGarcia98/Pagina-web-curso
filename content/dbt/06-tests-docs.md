@@ -42,6 +42,20 @@ group by pedido_id
 having count(*) > 1
 ```
 
+### Pruébalo en la terminal
+
+El proyecto `tienda_dbt` tiene tests declarados en `models/schema.yml`. Ejecútalos y mira cómo dbt informa cada uno:
+
+```bash
+cd tienda_dbt
+cat models/schema.yml
+dbt run
+dbt test
+dbt build
+```
+
+`dbt build` hace `run` + `test` en el orden del DAG: si un test de un modelo falla, **no** se construyen los modelos que dependen de él. Así, un dato malo no se propaga hacia los dashboards. En producción se usa casi siempre `dbt build`.
+
 ## Tests singulares
 
 Un archivo `.sql` en `tests/` con una consulta que devuelve las filas “malas”:
