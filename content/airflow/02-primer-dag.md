@@ -31,6 +31,16 @@ with DAG(
 dag.test()                                 # ejecuta el DAG completo una vez (como `airflow dags test`)
 ```
 
+## Cómo lee Airflow tu archivo
+
+Esto confunde a todos al principio: el archivo del DAG **no se ejecuta como un script** de principio a fin para procesar datos. Lo que pasa es:
+
+1. El **scheduler** lee (*parsea*) todos los archivos `.py` de la carpeta `dags/` cada 30 segundos aproximadamente.
+2. Al leerlo, Python ejecuta el código "de nivel superior": crea el objeto `DAG` y las tareas, y anota las dependencias. **No** ejecuta las funciones de las tareas.
+3. Cuando llega la hora (según el `schedule`), el scheduler crea un **DAG run** y va enviando cada tarea a un *worker*, que recién ahí ejecuta `transformar()` o el comando de Bash.
+
+Consecuencia práctica: el código que está **fuera** de las funciones de las tareas se ejecuta cada vez que se parsea el archivo (¡miles de veces por día!). Nunca pongas ahí consultas a bases de datos, llamadas a APIs o lecturas de archivos grandes: van **dentro** de las tareas.
+
 ## Las piezas
 
 - `with DAG(...) as dag:` todo lo que crees adentro pertenece a ese DAG.
@@ -61,6 +71,19 @@ chain(a, [b, c], d)
 :::cuidado task_id únicos
 Dentro de un DAG, cada `task_id` debe ser único. Y el nombre de la **variable** Python (`limpiar`) no importa para Airflow: lo que vale es el `task_id` (`"transformar"`).
 :::
+
+## Pruébalo en la terminal
+
+La terminal tiene un DAG de ejemplo en `~/dags/etl_ventas.py`, y el comando `airflow` usa el mismo simulador que los ejercicios:
+
+```bash
+cat dags/etl_ventas.py
+airflow dags list
+airflow tasks list etl_ventas
+airflow dags test etl_ventas 2024-12-31
+```
+
+`airflow dags test` ejecuta el DAG completo **una vez**, en orden, sin el scheduler: es la forma de probar un DAG en tu computadora antes de subirlo. Puedes editar el archivo con `code dags/etl_ventas.py` y volver a probarlo.
 
 ## Ejercicios
 

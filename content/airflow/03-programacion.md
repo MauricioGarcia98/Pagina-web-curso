@@ -51,6 +51,21 @@ Ejecución que corre el 2024-01-02 a las 00:00
 La `logical_date` (antes `execution_date`) **no es cuándo corre**, sino **qué periodo procesa**. El run del “1 de enero” corre el 2 de enero, cuando el día 1 ya está completo.
 :::
 
+### Un calendario para verlo
+
+DAG con `schedule="@daily"` y `start_date=datetime(2024, 1, 1)`, activado el 4 de enero a las 10:00:
+
+| DAG run (logical date / `{{ ds }}`) | Periodo que procesa | Cuándo corre |
+|---|---|---|
+| 2024-01-01 | 1 de enero 00:00 → 2 de enero 00:00 | 2 de enero 00:00 (o al activarlo, si ya pasó) |
+| 2024-01-02 | 2 de enero completo | 3 de enero 00:00 |
+| 2024-01-03 | 3 de enero completo | 4 de enero 00:00 |
+| 2024-01-04 | 4 de enero completo | 5 de enero 00:00 |
+
+Con `catchup=True`, al activarlo el día 4 Airflow crea **de inmediato** las tres ejecuciones atrasadas (1, 2 y 3 de enero). Con `catchup=False`, solo crea la más reciente y sigue desde ahí.
+
+Por qué este diseño es bueno: tu tarea no pregunta "¿qué día es hoy?", sino que **recibe** el periodo a procesar (`{{ ds }}`). Así, re-ejecutar el run del 2 de enero dentro de un mes procesa exactamente el 2 de enero: el pipeline es **determinista** y **reprocesable**.
+
 ## catchup y backfill
 
 Si el DAG tiene `start_date=2024-01-01`, `schedule="@daily"` y lo activas el 2024-03-01:

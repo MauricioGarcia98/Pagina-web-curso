@@ -27,6 +27,32 @@ extraer_clientes ┘
 - **Acíclico**: no hay ciclos (B no puede depender de A si A depende de B).
 - En Airflow, **un DAG se escribe en un archivo Python**.
 
+## ¿Por qué no alcanza con cron?
+
+Linux trae `cron`, que ejecuta comandos a una hora fija. Muchas empresas empezaron así… y se encontraron con estos problemas:
+
+| Necesidad | cron | Airflow |
+|---|---|---|
+| Ejecutar a una hora | ✅ | ✅ |
+| "B solo cuando A termina bien" | ❌ (adivinas horarios: "A tarda ~20 min, pongo B a las 2:30") | ✅ dependencias explícitas |
+| Reintentar si falla | ❌ | ✅ `retries=3` |
+| Ver qué falló, cuándo y por qué | ❌ (buscar en logs sueltos) | ✅ interfaz web con el historial y los logs de cada tarea |
+| Reprocesar el martes pasado | ❌ (a mano) | ✅ cada ejecución sabe **qué día** procesa |
+| Alertar si algo falla o tarda demasiado | ❌ | ✅ callbacks, SLA |
+| Paralelizar tareas independientes | ❌ | ✅ |
+
+## Vocabulario básico
+
+| Término | Qué es | Ejemplo |
+|---|---|---|
+| **DAG** | El flujo completo, definido en un archivo Python | `etl_ventas` |
+| **Tarea** (*task*) | Un paso del DAG | `extraer_ventas` |
+| **Operador** | La "plantilla" de una tarea: qué tipo de trabajo hace | `PythonOperator`, `BashOperator` |
+| **DAG run** | **Una ejecución** del DAG, para un periodo concreto | "la ejecución del 15 de marzo" |
+| **Task instance** | **Una ejecución de una tarea** dentro de un DAG run | "`extraer_ventas` del 15 de marzo" |
+
+Cada task instance pasa por **estados**: `scheduled` → `queued` → `running` → `success` (o `failed`, `up_for_retry`, `skipped`, `upstream_failed`). En la interfaz web se ven como cuadraditos de colores: verde (éxito), rojo (falló), amarillo (reintentando), rosa (salteada). Gran parte del trabajo diario de un data engineer de guardia es mirar esa grilla y entender por qué algo está en rojo.
+
 ## Componentes de Airflow
 
 | Componente | Qué hace |
