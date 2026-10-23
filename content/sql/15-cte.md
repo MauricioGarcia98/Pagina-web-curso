@@ -1,11 +1,31 @@
 ---
 titulo: CTE: consultas legibles con WITH
 nivel: Avanzado
-duracion: 25
+duracion: 35
 resumen: Common Table Expressions para dividir un problema en pasos con nombre.
 ---
 
-Una **CTE** (*Common Table Expression*) es una subconsulta con nombre, declarada **antes** de la consulta principal con `WITH`. Convierte un laberinto de paréntesis en una receta paso a paso.
+## El problema: consultas que se leen de adentro hacia afuera
+
+Con subconsultas puedes resolver problemas de varios pasos, pero el código se lee **al revés**: lo primero que se ejecuta está en el paréntesis más profundo, y para entender la consulta tienes que empezar por el medio. Con dos o tres niveles de anidamiento, nadie (ni tú dentro de un mes) entiende qué hace.
+
+Una **CTE** (*Common Table Expression*, "expresión de tabla común") resuelve esto: le pones **nombre** a cada paso y los escribes **en orden**, de arriba hacia abajo, antes de la consulta final. Se declara con la palabra `WITH`.
+
+:::analogia La receta de cocina
+Una receta no dice "cocina (lo que resulta de mezclar (lo que resulta de picar (las cebollas)))". Dice: **1.** Pica las cebollas. **2.** Mézclalas con los tomates. **3.** Cocina la mezcla. Cada paso tiene un resultado con nombre que usa el siguiente. Las CTE son eso: pasos con nombre.
+:::
+
+## La sintaxis
+
+```sql norun
+WITH nombre_del_paso AS (
+    SELECT …            -- una consulta cualquiera
+)
+SELECT …
+FROM nombre_del_paso;   -- se usa como si fuera una tabla
+```
+
+Un ejemplo real: los 10 clientes que más compraron (solo pedidos entregados).
 
 ```sql
 WITH ventas_por_cliente AS (
@@ -23,33 +43,120 @@ ORDER BY v.total DESC
 LIMIT 10;
 ```
 
-## Varias CTE encadenadas
+Se lee como un texto:
 
-Se separan con comas, y cada una puede usar las anteriores:
+1. **Primero** calculo `ventas_por_cliente`: una fila por cliente con su total comprado.
+2. **Después** uno ese resultado con `clientes` para mostrar nombre y país, y me quedo con los 10 mayores.
+
+Compárala con la versión con subconsulta: `FROM (SELECT p.cliente_id, SUM(…) … GROUP BY p.cliente_id) v JOIN clientes …`. Hace lo mismo, pero el paso 1 queda enterrado dentro del `FROM`.
+
+:::nota Importante: una CTE existe solo dentro de su consulta
+La CTE no crea una tabla en la base de datos. Es un nombre temporal que vive **solo durante esa instrucción**. Si ejecutas otra consulta después, `ventas_por_cliente` ya no existe. Para guardar resultados de forma permanente se usan tablas o vistas (lección 19) o modelos de dbt.
+:::
+
+## Varias CTE encadenadas: un pipeline en miniatura
+
+Puedes declarar varias CTE separadas **por comas** (con un único `WITH` al principio). Cada una puede usar las anteriores:
 
 ```sql
-WITH pedidos_2024 AS (
+WITH pedidos_2024 AS (                       -- paso 1: filtrar
     SELECT * FROM pedidos WHERE fecha_pedido >= '2024-01-01'
 ),
-por_cliente AS (
+por_cliente AS (                              -- paso 2: contar por cliente
     SELECT cliente_id, COUNT(*) AS pedidos FROM pedidos_2024 GROUP BY cliente_id
 ),
-distribucion AS (
+distribucion AS (                             -- paso 3: ¿cuántos clientes hicieron 1, 2, 3… pedidos?
     SELECT pedidos, COUNT(*) AS clientes FROM por_cliente GROUP BY pedidos
 )
 SELECT * FROM distribucion ORDER BY pedidos;
 ```
 
-:::tip Por qué los profesionales aman las CTE
-- **Legibilidad**: cada paso tiene un nombre que explica qué hace.
-- **Depuración**: puedes ejecutar `SELECT * FROM paso_intermedio` para revisar cada etapa.
-- **Reutilización**: una CTE se puede usar varias veces en la misma consulta.
-- Es exactamente el estilo que usarás en **dbt**, donde cada modelo es una cadena de CTEs.
+| pedidos | clientes |
+|---|---|
+| 1 | 344 |
+| 2 | 235 |
+| 3 | 167 |
+| 4 | 124 |
+| … | … |
+
+La respuesta de negocio: en 2024, 344 clientes compraron **una sola vez**, 235 dos veces, y así. Es una **distribución de frecuencia**, y necesitó dos agregaciones seguidas, imposible en una sola consulta plana.
+
+Fíjate en la estructura: **filtrar → transformar → agregar → presentar**. Es la misma forma que tiene un pipeline de datos completo. No es casualidad: así se escriben los modelos de dbt.
+
+:::cuidado Errores de sintaxis típicos
+- Escribir `WITH` en cada paso: solo va **una vez**, al principio. Los demás se separan con coma.
+- Poner una coma **después** de la última CTE (antes del `SELECT` final): error de sintaxis.
+- Terminar con la CTE sin un `SELECT` final: el `WITH` siempre va seguido de la consulta principal.
 :::
 
-:::experto ¿Las CTE son más rápidas?
-No necesariamente. La mayoría de los motores modernos (PostgreSQL ≥ 12, Spark, Snowflake) las **expanden** como si fueran subconsultas y optimizan todo junto. Algunos pueden “materializarlas” (calcularlas una vez y guardarlas). Úsalas por claridad; mide si el rendimiento importa.
+## Ventajas que hacen que todos los profesionales usen CTE
+
+| Ventaja | En la práctica |
+|---|---|
+| **Legibilidad** | Cada paso tiene un nombre que explica qué hace (`clientes_activos`, `ventas_mensuales`) |
+| **Depuración** | Para revisar un paso, cambia el `SELECT` final por `SELECT * FROM paso_intermedio LIMIT 20` y mira qué hay |
+| **Reutilización** | Una CTE se puede usar **varias veces** en la misma consulta (por ejemplo, unir `ventas_mensuales` consigo misma para comparar con el mes anterior) |
+| **Revisión de código** | En un *pull request*, un compañero entiende los pasos sin descifrar paréntesis |
+| **Es el estilo de dbt** | En dbt, cada modelo es una cadena de CTE: importaciones, transformaciones, resultado final |
+
+### El estilo dbt: CTE de importación
+
+En proyectos profesionales verás este patrón: las primeras CTE solo "importan" las tablas (sin transformarlas), y después vienen los pasos lógicos.
+
+```sql
+WITH pedidos AS (
+    SELECT * FROM pedidos
+),
+detalle AS (
+    SELECT * FROM detalle_pedidos
+),
+totales AS (
+    SELECT pedido_id, SUM(cantidad * precio_unitario) AS total
+    FROM detalle
+    GROUP BY pedido_id
+),
+final AS (
+    SELECT p.pedido_id, p.cliente_id, p.fecha_pedido, t.total
+    FROM pedidos p
+    JOIN totales t ON t.pedido_id = p.pedido_id
+)
+SELECT * FROM final
+LIMIT 5;
+```
+
+Parece redundante, pero al principio del archivo ves de un vistazo **de qué tablas depende** el modelo, y el `SELECT * FROM final` del final permite depurar cambiando una sola palabra.
+
+## CTE con datos escritos a mano
+
+Una CTE también puede contener datos literales con `VALUES`. Lo usamos en varias lecciones para crear tablitas de ejemplo o tablas de parámetros:
+
+```sql
+WITH metas(canal, meta_mensual) AS (
+    VALUES ('web', 200), ('app', 110), ('tienda', 100), ('telefono', 40)
+)
+SELECT p.canal, COUNT(*) AS pedidos_dic_2024, m.meta_mensual,
+       CASE WHEN COUNT(*) >= m.meta_mensual THEN 'cumplió' ELSE 'no cumplió' END AS estado
+FROM pedidos p
+JOIN metas m ON m.canal = p.canal
+WHERE p.fecha_pedido >= '2024-12-01' AND p.fecha_pedido < '2025-01-01'
+GROUP BY p.canal, m.meta_mensual;
+```
+
+:::experto ¿Las CTE hacen más rápida la consulta?
+No necesariamente. La mayoría de los motores modernos (PostgreSQL 12+, Spark, Snowflake, BigQuery) **expanden** las CTE como si fueran subconsultas y optimizan todo junto, así que el rendimiento es el mismo. Algunos motores pueden "materializarlas" (calcular una vez y guardar el resultado), lo que ayuda si la usas muchas veces y perjudica si impide filtrar antes. Úsalas por **claridad**; si el rendimiento importa, mide con el plan de ejecución (lección 21).
 :::
+
+## Lo que viene: CTE recursivas
+
+Hay un tipo especial de CTE que se usa **a sí misma** para recorrer jerarquías (el organigrama de la empresa, categorías dentro de categorías) o generar secuencias (todos los días de un año). Lo verás en la lección 18.
+
+## Resumen
+
+- `WITH nombre AS (SELECT …)` crea un paso con nombre que se usa como una tabla en la consulta principal.
+- Varias CTE se separan con comas; cada una puede usar las anteriores. Un solo `WITH` al principio.
+- Existen solo durante la consulta; no crean tablas.
+- Ventajas: legibilidad, depuración paso a paso, reutilización. Es el estilo de dbt.
+- Patrón profesional: importaciones → pasos lógicos → `final` → `SELECT * FROM final`.
 
 ## Ejercicios
 

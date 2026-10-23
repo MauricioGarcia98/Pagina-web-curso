@@ -1,39 +1,126 @@
 ---
 titulo: UNION, INTERSECT y EXCEPT
 nivel: Intermedio
-duracion: 15
+duracion: 30
 resumen: Combinar resultados de varias consultas verticalmente.
 ---
 
-Los JOIN combinan tablas **a lo ancho** (agregan columnas). Los operadores de conjuntos combinan resultados **a lo largo** (agregan filas).
+## Combinar resultados "hacia abajo"
 
-| Operador | Resultado |
-|---|---|
-| `UNION` | Filas de ambas consultas, **sin duplicados** |
-| `UNION ALL` | Filas de ambas consultas, **con duplicados** (más rápido) |
-| `INTERSECT` | Filas que están en **ambas** |
-| `EXCEPT` (`MINUS` en Oracle) | Filas de la primera que **no están** en la segunda |
+Los `JOIN` combinan tablas **a lo ancho**: pegan columnas de una tabla al lado de las de otra. Los **operadores de conjuntos** combinan resultados **a lo largo**: apilan las filas de una consulta **debajo** de las de otra.
 
-Reglas: ambas consultas deben tener **el mismo número de columnas** y tipos compatibles. Los nombres de las columnas salen de la primera consulta. El `ORDER BY` va una sola vez, al final.
+```text
+JOIN (a lo ancho)                 UNION (a lo largo)
+┌────┬──────┐ + ┌──────┐          ┌──────────┐
+│ id │ col1 │   │ col2 │          │ consulta │
+└────┴──────┘   └──────┘          │    A     │
+        =                         ├──────────┤
+┌────┬──────┬──────┐              │ consulta │
+│ id │ col1 │ col2 │              │    B     │
+└────┴──────┴──────┘              └──────────┘
+```
+
+Cuándo los necesitas:
+
+- Juntar datos **parecidos** que viven en tablas distintas: ventas de la tienda online + ventas de la tienda física; clientes + empleados en un directorio único.
+- Unir tablas **particionadas** por periodo: `ventas_2023` + `ventas_2024`.
+- Comparar dos listas: ¿qué ids están en ambas? ¿Cuáles están solo en una?
+
+## Los cuatro operadores
+
+| Operador | Resultado | Analogía con dos listas de invitados |
+|---|---|---|
+| `UNION ALL` | Todas las filas de ambas, **con** repetidos | Juntar las dos listas tal cual |
+| `UNION` | Todas las filas de ambas, **sin** repetidos | Juntarlas y tachar los nombres repetidos |
+| `INTERSECT` | Solo las filas que están en **las dos** | Quienes están invitados por ambos |
+| `EXCEPT` | Las filas de la primera que **no** están en la segunda | Invitados solo de la primera lista |
+
+(`EXCEPT` se llama `MINUS` en Oracle.)
+
+## Las reglas
+
+1. Las consultas deben tener **la misma cantidad de columnas**.
+2. Las columnas se emparejan **por posición**, no por nombre: la primera con la primera, la segunda con la segunda. Los tipos deben ser compatibles.
+3. Los **nombres** de las columnas del resultado salen de la **primera** consulta.
+4. `ORDER BY` va **una sola vez, al final**, y ordena el resultado completo.
 
 ```sql
--- Un directorio de contactos: clientes y empleados juntos
-SELECT nombre, apellido, email, 'cliente' AS tipo FROM clientes WHERE pais = 'Uruguay'
+-- Directorio de contactos: clientes de Uruguay y empleados de Recursos Humanos
+SELECT nombre, apellido, email, 'cliente' AS tipo FROM clientes  WHERE pais = 'Uruguay'
 UNION ALL
-SELECT nombre, apellido, email, 'empleado' FROM empleados WHERE departamento_id = 8
+SELECT nombre, apellido, email, 'empleado'        FROM empleados WHERE departamento_id = 8
 ORDER BY apellido;
 ```
 
-:::tip ¿UNION o UNION ALL?
-Usa `UNION ALL` salvo que **necesites** eliminar duplicados. `UNION` tiene que ordenar o comparar todo para quitarlos, lo cual es costoso con muchos datos.
+Fíjate en la columna literal `tipo`: le agrega a cada fila una etiqueta de **de dónde vino**. Es una práctica muy buena cuando apilas fuentes distintas: después puedes filtrar o contar por origen.
+
+:::cuidado El orden de las columnas importa, no su nombre
+Si escribes `SELECT nombre, apellido …` arriba y `SELECT apellido, nombre …` abajo, SQL **no** da error: apila apellidos en la columna `nombre`. Revisa que las columnas estén en el mismo orden en todas las consultas.
 :::
 
+## UNION vs UNION ALL
+
 ```sql
--- Ciudades donde hay clientes Y oficinas de algún departamento
+SELECT (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION     SELECT ciudad FROM departamentos)) AS con_union,
+       (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION ALL SELECT ciudad FROM departamentos)) AS con_union_all;
+```
+
+| con_union | con_union_all |
+|---|---|
+| 24 | 2009 |
+
+`UNION ALL` apila las 2.000 ciudades de clientes y las 9 de departamentos (2.009 filas, con muchísimas repetidas). `UNION` además elimina repetidos y deja las **24 ciudades distintas**.
+
+:::tip Usa UNION ALL por defecto
+`UNION` tiene que comparar todas las filas para eliminar duplicados (ordenar o "hashear" todo el resultado), lo cual es costoso con muchos datos. Y a veces los duplicados son **información válida** (dos ventas idénticas son dos ventas). Usa `UNION ALL` salvo que **quieras** eliminar repetidos.
+:::
+
+## INTERSECT y EXCEPT
+
+```sql
+-- Ciudades donde hay clientes Y alguna oficina de la empresa
 SELECT ciudad FROM clientes
 INTERSECT
 SELECT ciudad FROM departamentos;
 ```
+
+Devuelve 7 ciudades (Bogotá, Buenos Aires, Ciudad de México, Lima, Madrid, Montevideo, Santiago).
+
+```sql
+-- Ciudades con clientes pero SIN oficina
+SELECT ciudad FROM clientes
+EXCEPT
+SELECT ciudad FROM departamentos
+ORDER BY ciudad;
+```
+
+`INTERSECT` y `EXCEPT` eliminan repetidos (como `UNION`). Tienen equivalentes con `EXISTS` y `NOT EXISTS`, pero cuando comparas **filas completas** de varias columnas, son mucho más cortos y claros.
+
+:::experto EXCEPT para probar pipelines
+Un uso profesional: verificar que dos versiones de una tabla son idénticas (por ejemplo, después de migrar un proceso). `(A EXCEPT B)` y `(B EXCEPT A)` deben dar **cero** filas. Si alguna devuelve algo, esas son exactamente las filas que difieren. Es un test de regresión barato y potente.
+:::
+
+## Apilar y después agregar
+
+Para agregar sobre el resultado apilado, envuélvelo en una tabla derivada (o una CTE):
+
+```sql
+SELECT tipo, COUNT(*) AS personas
+FROM (
+  SELECT 'cliente'  AS tipo FROM clientes
+  UNION ALL
+  SELECT 'empleado' AS tipo FROM empleados
+) AS todos
+GROUP BY tipo;
+```
+
+## Resumen
+
+- Los operadores de conjuntos apilan filas; los `JOIN` agregan columnas.
+- Misma cantidad de columnas, emparejadas por **posición**; nombres de la primera consulta; un único `ORDER BY` al final.
+- `UNION ALL` conserva repetidos (y es más rápido); `UNION` los elimina.
+- `INTERSECT` = filas en ambas; `EXCEPT` = filas solo en la primera. Útiles para comparar tablas.
+- Agrega una columna literal de origen cuando apilas fuentes distintas.
 
 ## Ejercicios
 
