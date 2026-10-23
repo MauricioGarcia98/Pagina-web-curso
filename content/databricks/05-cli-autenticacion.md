@@ -7,6 +7,12 @@ resumen: Instalar la CLI, autenticarse con OAuth o token, perfiles en .databrick
 
 La **Databricks CLI** controla tu workspace desde la terminal: archivos, clusters, jobs, secretos, catálogos y, sobre todo, el despliegue con **Asset Bundles**. La versión actual (0.2xx, escrita en Go) reemplazó a la antigua `databricks-cli` de Python.
 
+## ¿Para qué una CLI si existe la interfaz web?
+
+La interfaz web de Databricks es excelente para explorar y desarrollar. La CLI es para todo lo que tiene que ser **repetible**: subir archivos de un proceso, crear secretos en un script de instalación, reiniciar un cluster desde un job de monitoreo y, sobre todo, **desplegar** notebooks y jobs desde Git hacia dev y prod con CI/CD (Asset Bundles, lección 7). Es exactamente la misma idea que `az`, `aws` o `gcloud`, pero para el workspace de Databricks.
+
+La CLI habla con la **API REST** de Databricks: cada comando es una llamada HTTPS autenticada a tu workspace. Por eso lo primero es decirle **a qué workspace** hablar (el *host*) y **con qué credencial**.
+
 ## Instalación
 
 ```bash norun
@@ -51,6 +57,23 @@ databricks clusters list --profile prod   # usar otro perfil (-p prod)
 ```
 
 También puedes usar variables de entorno `DATABRICKS_HOST` y `DATABRICKS_TOKEN` (útil en CI).
+
+### ¿Por qué OAuth y no un token?
+
+Un **token personal** (PAT) es como una contraseña que no vence (o vence en meses): si alguien lo copia de un archivo o de un repositorio, tiene acceso a todo lo que tú tienes. **OAuth** emite credenciales de **corta duración** que se renuevan solas y se pueden revocar centralmente. Por eso la recomendación actual es `databricks auth login` para personas y *service principals* con OAuth M2M para automatizaciones.
+
+## Pruébalo en la terminal
+
+```bash
+databricks current-user me
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks auth profiles
+databricks current-user me
+databricks clusters list
+databricks catalogs list
+```
+
+El primer `current-user me` falla con el mismo mensaje que la CLI real cuando no hay credenciales configuradas; después del `auth login` funciona. Ese error ("cannot configure default credentials") es el que más vas a ver al empezar: casi siempre significa que falta el login o que el perfil apunta a otro host.
 
 ## Ejercicios
 

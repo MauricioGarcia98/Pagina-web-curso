@@ -5,6 +5,16 @@ duracion: 30
 resumen: Celdas multi-lenguaje, %sql, %run, %pip, display, widgets, dbutils.fs y dbutils.secrets.
 ---
 
+## Qué es un notebook
+
+Un **notebook** es un documento interactivo formado por **celdas**. Cada celda tiene código (Python, SQL, Scala o R) o texto (Markdown), y se ejecuta por separado mostrando su resultado justo debajo: una tabla, un gráfico, un mensaje. Todas las celdas comparten el mismo **contexto**: una variable creada en la celda 1 existe en la celda 5.
+
+Es la herramienta ideal para **explorar** datos y desarrollar paso a paso: lees una tabla, la miras, pruebas una transformación, corriges. En Databricks, además, el notebook está conectado a un cluster: el código PySpark de cada celda se ejecuta distribuido.
+
+:::cuidado El orden de ejecución
+En un notebook puedes ejecutar las celdas en cualquier orden, y eso es una trampa: una variable puede tener el valor de una ejecución vieja, o depender de una celda que borraste. Antes de dar por terminado un notebook (o de convertirlo en job), ejecútalo **completo de arriba a abajo** en un cluster limpio ("Run all" después de "Clear state"). Para producción, la lógica importante debería vivir en módulos `.py` versionados, y el notebook solo llamarla.
+:::
+
 ## Magic commands
 
 En un notebook de Python, una celda puede cambiar de lenguaje o de función con un comando “mágico” en la primera línea:

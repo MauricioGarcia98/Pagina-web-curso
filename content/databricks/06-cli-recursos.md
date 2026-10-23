@@ -5,6 +5,20 @@ duracion: 35
 resumen: Los comandos que usarás a diario para operar un workspace desde la terminal.
 ---
 
+Una vez autenticado, la CLI organiza los comandos por **tipo de recurso**, con el mismo patrón que `az` o `aws`: `databricks <grupo> <acción> [argumentos]`.
+
+| Grupo | Administra | Ejemplos de acciones |
+|---|---|---|
+| `workspace` | Notebooks y carpetas del workspace | `list`, `import`, `export`, `mkdirs`, `delete` |
+| `fs` | Archivos en Volumes (y DBFS) | `ls`, `cp`, `cat`, `rm` |
+| `clusters` | Cómputo | `list`, `get`, `start`, `restart`, `delete` |
+| `jobs` | Jobs (Lakeflow Jobs) | `list`, `create`, `run-now`, `get-run` |
+| `secrets` | Secret scopes y secretos | `create-scope`, `put-secret`, `list-secrets` |
+| `catalogs`, `schemas`, `tables` | Unity Catalog | `list`, `get` |
+| `bundle` | Asset Bundles | `init`, `validate`, `deploy`, `run` |
+
+Agrega `--output json` a casi cualquier comando para procesar la respuesta con `jq` en un script.
+
 ## Workspace (notebooks y carpetas)
 
 ```bash norun
@@ -73,6 +87,20 @@ databricks warehouses list
 :::tip --output json + jq
 Casi todos los comandos aceptan `--output json`. Combínalo con `jq` para scripts: `databricks clusters list --output json | jq -r '.[] | select(.state=="RUNNING") | .cluster_id'`.
 :::
+
+## Laboratorio en la terminal
+
+```bash
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks fs cp datos/clientes.csv dbfs:/Volumes/main/crudo/archivos/clientes.csv
+databricks fs ls dbfs:/Volumes/main/crudo/archivos
+databricks secrets create-scope datos-api
+databricks secrets put-secret datos-api token --string-value abc123
+databricks secrets list-secrets datos-api
+databricks jobs list
+```
+
+Fíjate que `list-secrets` muestra las **claves** pero nunca los **valores**: los secretos solo se leen desde el código que corre en Databricks (`dbutils.secrets.get`), y aun así aparecen como `[REDACTED]` si alguien intenta imprimirlos.
 
 ## Ejercicios
 

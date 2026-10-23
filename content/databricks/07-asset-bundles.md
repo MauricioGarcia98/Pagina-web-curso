@@ -7,6 +7,21 @@ resumen: Proyectos como código con databricks.yml, targets dev/prod, validate/d
 
 **Databricks Asset Bundles (DABs)** son la forma oficial de tratar jobs, pipelines, notebooks y configuraciones como **código**: se versionan en Git, se revisan en Pull Requests y se despliegan a dev/test/prod con la CLI.
 
+## El problema: "funciona en mi workspace"
+
+Sin bundles, un proyecto de Databricks se despliega a mano: alguien copia notebooks de su carpeta personal a la de producción, crea el job con clics, configura el cluster, los parámetros, los horarios… y nadie sabe exactamente qué versión está corriendo en producción ni cómo recrearla si se borra.
+
+Los **Databricks Asset Bundles** (DABs) aplican al proyecto de datos la misma idea que la infraestructura como código: **todo** (código, jobs, pipelines, clusters, permisos) se describe en archivos YAML dentro del repositorio Git, y un comando lo despliega idéntico en cada entorno.
+
+| Sin bundles | Con bundles |
+|---|---|
+| Jobs creados a mano en la interfaz | Jobs definidos en YAML, revisados en un *pull request* |
+| "¿Qué versión corre en prod?" | La del último commit desplegado en `main` |
+| Dev y prod configurados distinto por error | Un mismo archivo con **targets** (`dev`, `prod`) que solo cambian lo necesario |
+| Recrear todo si se borra el workspace | `databricks bundle deploy -t prod` |
+
+El ciclo de trabajo es siempre: **editar → `bundle validate` → `bundle deploy -t dev` → `bundle run -t dev` → commit → CI despliega a prod**.
+
 ## Crear un bundle
 
 ```bash norun
@@ -120,6 +135,20 @@ jobs:
 ```
 
 Flujo típico: rama → PR (CI: tests unitarios + `bundle validate` + deploy a un entorno de pruebas) → merge a `main` → deploy automático a producción con un **service principal**.
+
+## Laboratorio en la terminal
+
+```bash
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks bundle init
+cd mi_proyecto
+cat databricks.yml
+databricks bundle validate
+databricks bundle deploy -t dev
+databricks bundle summary
+```
+
+En `summary`, el job aparece como `[dev alumno] mi_proyecto_job`: en el target `dev` (con `mode: development`), Databricks antepone tu nombre a cada recurso. Así cada desarrollador despliega su propia copia sin pisar la de los demás. En `prod` el nombre queda limpio.
 
 ## Ejercicios
 

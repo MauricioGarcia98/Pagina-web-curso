@@ -7,6 +7,33 @@ resumen: Crear tablas Delta, MERGE, time travel, RESTORE, OPTIMIZE, VACUUM, Liqu
 
 Todo lo que sigue se ejecuta en Databricks (SQL warehouse o notebook con `%sql`). Los ejercicios te piden **escribir** las sentencias y compararlas con una respuesta modelo.
 
+## Cómo funciona Delta Lake por dentro
+
+Una tabla Delta es una carpeta en el lago con dos cosas:
+
+```text
+/lake/silver/clientes/
+├── part-00000-a1b2.snappy.parquet      ← los datos: archivos Parquet comunes
+├── part-00001-c3d4.snappy.parquet
+├── part-00002-e5f6.snappy.parquet
+└── _delta_log/                         ← el "libro de actas" de la tabla
+    ├── 00000000000000000000.json       ← versión 0: se crearon los archivos a1b2 y c3d4
+    ├── 00000000000000000001.json       ← versión 1: se agregó e5f6 (un INSERT)
+    └── 00000000000000000002.json       ← versión 2: se quitó c3d4 y se agregó otro (un UPDATE)
+```
+
+Cada operación (`INSERT`, `UPDATE`, `MERGE`, `DELETE`) **no modifica** los archivos existentes: escribe archivos nuevos y agrega una entrada al `_delta_log` que dice "a partir de ahora, la tabla está formada por estos archivos y no por aquellos". Esto permite todo lo que hace especial a Delta:
+
+| Capacidad | Cómo la logra el registro |
+|---|---|
+| **Transacciones ACID** | Una escritura solo "existe" cuando su entrada en el log se confirma: si el job falla a la mitad, los archivos a medio escribir se ignoran |
+| **Lecturas consistentes** | Un lector usa la última versión confirmada; nunca ve una escritura a medias |
+| **Time travel** | Las versiones viejas siguen descritas en el log (y sus archivos siguen en disco hasta el `VACUUM`) |
+| **UPDATE / DELETE / MERGE** | Se reescriben solo los archivos afectados y el log registra el cambio |
+| **Esquema obligatorio** | El log guarda el esquema; una escritura con columnas incompatibles se rechaza |
+
+Apache **Iceberg** y **Hudi** funcionan con la misma idea (metadatos + archivos Parquet). Hoy Databricks puede leer y escribir también Iceberg (UniForm), así que los conceptos se transfieren.
+
 ## Crear tablas
 
 ```sql norun
@@ -48,6 +75,17 @@ WHEN NOT MATCHED AND s.operacion <> 'D' THEN INSERT *;
 :::cuidado MERGE con duplicados en el origen
 Si dos filas del origen coinciden con la misma fila del destino, `MERGE` falla. Deduplica la fuente antes (como arriba con `QUALIFY`).
 :::
+
+### Qué hace este MERGE, fila por fila
+
+| Situación del cliente en `s` (cambios) | ¿Existe en `t`? | Cláusula que aplica | Resultado |
+|---|---|---|---|
+| Cliente nuevo | No | `WHEN NOT MATCHED … INSERT *` | Se agrega |
+| Cambió su email, y el cambio es más reciente | Sí | `WHEN MATCHED AND s.actualizado_en > t.actualizado_en THEN UPDATE SET *` | Se actualiza |
+| Llegó un cambio **viejo** (atrasado) | Sí | Ninguna (la condición de fecha no se cumple) | No se toca: evita "pisar" un dato nuevo con uno viejo |
+| Se dio de baja (`operacion = 'D'`) | Sí | `WHEN MATCHED AND s.operacion = 'D' THEN DELETE` | Se borra |
+
+Las cláusulas `WHEN` se evalúan **en orden** y cada fila usa la primera que se cumple, como un `CASE`. Correr este `MERGE` dos veces con los mismos cambios deja la tabla igual: es **idempotente**, la propiedad que buscamos en todo pipeline.
 
 ## Historial, time travel y RESTORE
 

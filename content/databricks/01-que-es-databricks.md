@@ -7,6 +7,25 @@ resumen: Workspace, cómputo (clusters, SQL warehouses, serverless), Unity Catal
 
 **Databricks** es una plataforma de datos en la nube (Azure, AWS y GCP) creada por los autores de Spark. Reúne en un solo lugar el **lakehouse**: almacenamiento barato en el data lake + tablas Delta confiables + Spark + SQL + orquestación + gobierno + machine learning.
 
+## El problema que resolvió: lago vs. warehouse
+
+Durante años, las empresas tuvieron **dos** sistemas de datos separados, cada uno con sus limitaciones:
+
+| | Data warehouse (Teradata, Redshift, Snowflake…) | Data lake (archivos en S3 / ADLS / HDFS) | **Lakehouse** (Databricks, Delta/Iceberg) |
+|---|---|---|---|
+| Qué guarda | Tablas estructuradas | Cualquier archivo: CSV, JSON, imágenes, logs | Tablas abiertas sobre archivos del lago |
+| Costo de almacenamiento | Alto | Muy bajo | Muy bajo |
+| Transacciones (ACID), `UPDATE`, `MERGE` | Sí | No (archivos sueltos) | **Sí** (gracias a Delta Lake) |
+| SQL rápido para BI | Sí | Lento | Sí |
+| Machine learning, Python, streaming | Limitado | Sí | Sí |
+| Formato | Cerrado (propietario) | Abierto | **Abierto** (Parquet + Delta/Iceberg) |
+
+El resultado era copiar los datos del lago al warehouse (con su costo y sus desfasajes), y tener dos verdades distintas. El **lakehouse** propone **una sola copia** en el lago, con una capa de tablas (Delta Lake) que le da las garantías de un warehouse. Databricks es la plataforma que popularizó esa idea, y la usan desde startups hasta bancos.
+
+:::analogia Una casa con depósito y biblioteca juntos
+El lago era un depósito enorme y barato donde se tiraba todo en cajas. El warehouse, una biblioteca ordenada pero cara, adonde había que llevar copias de lo útil. El lakehouse pone **fichas de biblioteca** (el registro de Delta) sobre las cajas del depósito: los datos siguen en el depósito barato, pero ordenados y consultables como en una biblioteca.
+:::
+
 ## Las piezas del workspace
 
 | Pieza | Qué es |
