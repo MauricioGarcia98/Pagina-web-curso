@@ -105,7 +105,7 @@ pyJobs.push(...exampleJobs);
 
 if (pyJobs.length) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'academia-'));
-  const pick = ['clientes', 'productos', 'categorias', 'pedidos', 'detalle_pedidos', 'pagos', 'empleados', 'departamentos', 'eventos_web'];
+  const pick = Object.keys(T).filter((k) => !['logins', 'tipos_cambio', 'clientes_crudo'].includes(k));
   fs.writeFileSync(path.join(tmp, 'tables.json'), JSON.stringify(Object.fromEntries(pick.map((k) => [k, T[k]]))));
   fs.writeFileSync(path.join(tmp, 'jobs.json'), JSON.stringify(pyJobs));
   const eng = fs.readFileSync(path.join(ROOT, 'assets/js/engines.js'), 'utf8');

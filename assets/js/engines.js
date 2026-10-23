@@ -222,9 +222,9 @@ def _env(mode):
         import pyspark.sql as ps
         global _SAMPLE
         if _SAMPLE is None:
-            _SAMPLE = ps._load_sample_tables(json.loads(_TABLES_JSON))
+            _SAMPLE = json.loads(_TABLES_JSON)
+            ps._RAW.update(_SAMPLE)
         ps._CATALOG.clear(); ps._TEMP_VIEWS.clear(); ps._FILES.clear()
-        ps._CATALOG.update(_SAMPLE)
         ps.SparkSession._active = None
         spark = ps.SparkSession.builder.appName("academia-datos").getOrCreate()
         ns.update(spark=spark, sc=spark.sparkContext, display=_display)
@@ -461,7 +461,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     _tables() {
       if (!this._tablesJson) {
         const T = SQL.tables || window.DataGen.build();
-        const pick = ['clientes', 'productos', 'categorias', 'pedidos', 'detalle_pedidos', 'pagos', 'empleados', 'departamentos', 'eventos_web'];
+        const pick = Object.keys(T).filter((k) => !['logins', 'tipos_cambio', 'clientes_crudo'].includes(k));
         this._tablesJson = JSON.stringify(Object.fromEntries(pick.map((k) => [k, T[k]])));
       }
       return this._tablesJson;

@@ -14,6 +14,24 @@ __all__ = ["SparkSession", "DataFrame", "Column", "Row", "Window", "functions", 
 _CATALOG = {}        # tablas registradas (saveAsTable / tablas de ejemplo)
 _TEMP_VIEWS = {}     # vistas temporales
 _FILES = {}          # "sistema de archivos" virtual: ruta -> DataFrame
+_RAW = {}            # tablas de ejemplo sin convertir (se convierten al primer uso)
+_CACHE = {}          # tablas de ejemplo ya convertidas
+
+
+def _lazy_get(name):
+    """Devuelve una tabla del catálogo, convirtiendo las de ejemplo solo cuando se usan."""
+    if name in _CATALOG:
+        return _CATALOG[name]
+    if name in _CACHE:
+        return _CACHE[name]
+    if name in _RAW:
+        _CACHE[name] = _load_sample_tables({name: _RAW[name]})[name]
+        return _CACHE[name]
+    return None
+
+
+def _all_table_names():
+    return set(_CATALOG) | set(_RAW)
 
 
 class AnalysisException(Exception):
@@ -1836,11 +1854,11 @@ class DataFrameReader:
         if df is None:
             base = p.split("/")[-1]
             name = base.split(".")[0]
-            if name.lower() in _CATALOG:
-                df = _CATALOG[name.lower()]
+            if _lazy_get(name.lower()) is not None:
+                df = _lazy_get(name.lower())
         if df is None:
             raise AnalysisException("[PATH_NOT_FOUND] La ruta no existe: %s. Rutas disponibles: %s"
-                                    % (path, sorted(set(list(_FILES.keys()) + ["/datos/%s.csv" % k for k in _CATALOG]))))
+                                    % (path, sorted(set(list(_FILES.keys()) + ["/datos/%s.csv" % k for k in _all_table_names()]))))
         if isinstance(df, str):
             return self._parse_csv_text(df)
         if self._fmt == "csv" and not _truthy(self._opts.get("inferSchema")) and self._schema is None:
@@ -2031,11 +2049,11 @@ class _Conf:
 
 class _Catalog:
     def listTables(self, db=None):
-        return [_mkrow(["name", "isTemporary"], (k, False)) for k in sorted(_CATALOG)] + \
+        return [_mkrow(["name", "isTemporary"], (k, False)) for k in sorted(_all_table_names())] + \
                [_mkrow(["name", "isTemporary"], (k, True)) for k in sorted(_TEMP_VIEWS)]
 
     def tableExists(self, name, db=None):
-        return name.lower() in _CATALOG or name.lower() in _TEMP_VIEWS
+        return name.lower() in _all_table_names() or name.lower() in _TEMP_VIEWS
 
     def dropTempView(self, name):
         return _TEMP_VIEWS.pop(name.lower(), None) is not None
@@ -2148,11 +2166,11 @@ class SparkSession:
             key = key[8:]
         if key in _TEMP_VIEWS:
             return _TEMP_VIEWS[key]
-        if key in _CATALOG:
-            df = _CATALOG[key]
+        df = _lazy_get(key)
+        if df is not None:
             return df._new(df._fields, df._rows, df._types)
         raise AnalysisException("[TABLE_OR_VIEW_NOT_FOUND] La tabla o vista '%s' no existe. Disponibles: %s"
-                                % (name, sorted(list(_CATALOG) + list(_TEMP_VIEWS))))
+                                % (name, sorted(_all_table_names() | set(_TEMP_VIEWS))))
 
     # ---- SQL vía sqlite3
     def sql(self, query, **kwargs):
@@ -2170,7 +2188,7 @@ class SparkSession:
             return DataFrame([], [], self)
         m = _re.match(r"(?is)^(show\s+tables)$", q)
         if m:
-            return self.createDataFrame([(k, k in _TEMP_VIEWS) for k in sorted(set(_CATALOG) | set(_TEMP_VIEWS))], ["tableName", "isTemporary"])
+            return self.createDataFrame([(k, k in _TEMP_VIEWS) for k in sorted(_all_table_names() | set(_TEMP_VIEWS))], ["tableName", "isTemporary"])
         m = _re.match(r"(?is)^(describe|desc)\s+(table\s+)?([\w.]+)$", q)
         if m:
             df = self.table(m.group(3))
@@ -2180,18 +2198,15 @@ class SparkSession:
     def _run_sql(self, q, extra=None):
         conn = _sqlite3.connect(":memory:")
         _register_functions(conn)
-        sources = dict(_CATALOG)
-        sources.update(_TEMP_VIEWS)
-        if extra:
-            sources.update(extra)
+        names = _all_table_names() | set(_TEMP_VIEWS) | set(extra or {})
         # tablas referenciadas: cargamos solo las que aparecen en la consulta
         ql = q.lower()
-        loaded = []
-        for name, df in sources.items():
+        for name in names:
             nm = name.replace("global_temp.", "")
             if _re.search(r"\b%s\b" % _re.escape(nm), ql):
-                _load_sqlite(conn, nm, df)
-                loaded.append(nm)
+                df = (extra or {}).get(name) or _TEMP_VIEWS.get(name) or _lazy_get(name)
+                if df is not None:
+                    _load_sqlite(conn, nm, df)
         q2 = _translate_sql(q)
         try:
             cur = conn.execute(q2)
