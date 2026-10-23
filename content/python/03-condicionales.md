@@ -1,9 +1,13 @@
 ---
 titulo: Condicionales: if, elif, else
 nivel: Básico
-duracion: 20
+duracion: 30
 resumen: Tomar decisiones con comparaciones, operadores lógicos e indentación.
 ---
+
+## Programas que deciden
+
+Hasta ahora tus programas ejecutaban **todas** sus líneas, siempre. Pero la lógica de negocio está llena de decisiones: "si el stock es bajo, avisar", "si el total supera 2.000, el envío es gratis", "si el email está vacío, mandar el registro a revisión". Para eso existen los **condicionales**: bloques de código que se ejecutan **solo si** se cumple una condición.
 
 ## if: hacer algo solo si se cumple una condición
 
@@ -15,11 +19,26 @@ if stock < 5:
 print("Fin del chequeo")
 ```
 
-:::cuidado La indentación es obligatoria
-En Python, **los espacios al inicio de la línea** definen qué código está “dentro” del `if`. Usa 4 espacios (el editor lo hace solo con <kbd>Tab</kbd>). Y no olvides los **dos puntos** `:` al final de la línea del `if`.
+Cómo se lee y cómo se ejecuta:
+
+1. Python evalúa la condición `stock < 5` → `3 < 5` → `True`.
+2. Como es verdadera, ejecuta el **bloque** de abajo: las dos líneas con sangría.
+3. Sigue con la primera línea **sin** sangría: "Fin del chequeo", que se ejecuta siempre.
+
+Si `stock` fuera 10, la condición daría `False`, Python **saltaría** el bloque y solo imprimiría "Fin del chequeo". Pruébalo cambiando el valor.
+
+### Las dos reglas de sintaxis
+
+| Regla | Detalle | Error si la olvidas |
+|---|---|---|
+| **Dos puntos** al final de la línea del `if` | `if stock < 5:` | `SyntaxError: expected ':'` |
+| **Sangría** (indentación) del bloque | 4 espacios al principio de cada línea "de adentro" | `IndentationError: expected an indented block` |
+
+:::cuidado La indentación no es decorativa
+En muchos lenguajes los bloques se marcan con llaves `{ }` y la sangría es solo estética. En Python, **la sangría ES la sintaxis**: los espacios al principio de la línea deciden qué código está dentro del `if`. Usa siempre 4 espacios (el editor los pone solo al presionar Enter después de `:` o con <kbd>Tab</kbd>) y nunca mezcles espacios con tabulaciones.
 :::
 
-## elif y else
+## elif y else: varias alternativas
 
 ```python
 total = 1800
@@ -32,18 +51,41 @@ else:
 print("Costo de envío:", envio)
 ```
 
-Python revisa las condiciones de arriba hacia abajo y ejecuta **solo el primer bloque** que se cumple (igual que `CASE WHEN` en SQL).
+- `elif` (abreviatura de *else if*, "si no, si…") agrega otra condición. Puede haber todos los que necesites.
+- `else` ("si no") es el caso por defecto: se ejecuta si **ninguna** condición anterior se cumplió. Es opcional y va al final.
 
-## Comparaciones y lógica
+Python revisa de arriba hacia abajo y ejecuta **solo el primer bloque** cuya condición sea verdadera; los demás se saltean, aunque también se cumplieran. Con `total = 1800`: `1800 >= 2000` es falso → `1800 >= 1000` es verdadero → `envio = 50`, y el `else` ni se mira. Es exactamente la lógica de `CASE WHEN` en SQL, y el **orden** importa igual: si pusieras `total >= 1000` primero, un pedido de 5.000 pagaría 50.
 
-| Comparación | Significado |
-|---|---|
-| `==` | igual (¡dos signos! uno solo `=` es asignar) |
-| `!=` | distinto |
-| `<`, `<=`, `>`, `>=` | menor, mayor… |
-| `in` | está contenido en |
+:::analogia El portero de la discoteca
+El portero tiene una lista de reglas en orden: "¿Estás en la lista VIP? Pasa por la puerta dorada. ¿Si no, tienes entrada? Pasa por la puerta común. ¿Si no? No entras". Aplica la primera regla que te corresponde y no sigue preguntando.
+:::
 
-Combina condiciones con `and`, `or`, `not`:
+## Comparaciones
+
+| Operador | Significa | Ejemplo | Resultado |
+|---|---|---|---|
+| `==` | igual | `3 == 3` | `True` |
+| `!=` | distinto | `"web" != "app"` | `True` |
+| `<` `<=` `>` `>=` | menor, menor o igual, mayor, mayor o igual | `10 >= 10` | `True` |
+| `in` | está contenido en | `"Chile" in ["Chile", "Perú"]` | `True` |
+| `not in` | no está contenido en | `"@" not in "anamail.com"` | `True` |
+| `is` / `is not` | es el mismo objeto (se usa con `None`) | `x is None` | según `x` |
+
+:::cuidado `=` vs `==`
+`=` **asigna** (guarda un valor). `==` **compara** (pregunta si son iguales). Escribir `if total = 100:` da `SyntaxError`. Es el error número uno al empezar.
+:::
+
+Las comparaciones de texto distinguen mayúsculas y espacios, igual que en SQL: `"chile" == "Chile"` es `False`. Si los datos pueden venir "sucios", normaliza antes de comparar: `pais.strip().lower() == "chile"`.
+
+Python permite **comparaciones encadenadas**, como en matemática: `0 <= descuento <= 0.5` significa "descuento entre 0 y 0,5, ambos incluidos".
+
+## Combinar condiciones: and, or, not
+
+| Operador | Es verdadero si… | Ejemplo |
+|---|---|---|
+| `a and b` | se cumplen **las dos** | `edad >= 18 and pais == "Chile"` |
+| `a or b` | se cumple **al menos una** | `canal == "web" or canal == "app"` |
+| `not a` | `a` es falso | `not es_cliente` |
 
 ```python
 pais = "Chile"
@@ -54,25 +96,75 @@ else:
     print("No puede registrarse")
 ```
 
-Python permite comparaciones encadenadas: `0 <= descuento <= 0.5`.
+Igual que en SQL, `and` se evalúa antes que `or`. Si mezclas ambos, **usa paréntesis**: `(canal == "web" or canal == "app") and estado == "cancelado"`.
+
+:::experto Evaluación en cortocircuito
+Python deja de evaluar en cuanto conoce el resultado: en `a and b`, si `a` es falso ya no mira `b`. Se usa para protegerse: `if lista and lista[0] > 10:` nunca falla con una lista vacía, porque si está vacía no llega a pedir `lista[0]`. Lo mismo con `if usuario is not None and usuario.activo:`.
+:::
 
 ## Valores "verdaderos" y "falsos" (truthiness)
 
-En un `if`, estos valores cuentan como **falsos**: `False`, `None`, `0`, `0.0`, `""` (texto vacío), `[]`, `{}`. Todo lo demás es verdadero.
+En un `if` no hace falta que la condición sea literalmente `True` o `False`: cualquier valor se interpreta. Estos cuentan como **falsos**:
+
+| Falsos | Ejemplos |
+|---|---|
+| `False`, `None` | |
+| Cero | `0`, `0.0` |
+| Colecciones vacías | `""` (texto vacío), `[]`, `{}`, `()`, `set()` |
+
+**Todo lo demás es verdadero** (incluido `" "`, un texto con un espacio, y `"0"`, un texto con un cero).
 
 ```python
 email = ""
 if not email:
     print("Falta el email")
+
+pedidos = []
+if pedidos:
+    print("Hay pedidos para procesar")
+else:
+    print("Nada que procesar hoy")
 ```
 
-## Expresión condicional (if en una línea)
+Es una forma muy idiomática (típica de Python) de escribir "si está vacío" o "si hay algo". Pero cuidado: `if not cantidad:` también es verdadero cuando `cantidad` es `0`, que puede ser un valor válido. Si quieres distinguir "cero" de "sin dato", pregunta explícitamente: `if cantidad is None:`.
+
+## Condicionales anidados
+
+Un `if` puede ir dentro de otro (con más sangría):
+
+```python
+es_cliente = True
+total = 2500
+if es_cliente:
+    if total > 2000:
+        print("Cliente con compra grande: 15 % de descuento")
+    else:
+        print("Cliente: 5 % de descuento")
+else:
+    print("Sin descuento")
+```
+
+Más de dos o tres niveles se vuelve difícil de leer. Muchas veces se puede aplanar con `and` (`if es_cliente and total > 2000:`) o con *guardas* (salir temprano con `return` dentro de una función, como verás después).
+
+## La expresión condicional: if en una línea
+
+Para asignar un valor u otro según una condición, existe una forma compacta:
 
 ```python
 nota = 7
 resultado = "aprobado" if nota >= 6 else "desaprobado"
 print(resultado)
 ```
+
+Se lee: "`resultado` es `'aprobado'` **si** `nota >= 6`, **si no** `'desaprobado'`". Úsala para decisiones simples de dos ramas; para más casos, `if/elif/else` es más claro.
+
+## Resumen
+
+- `if condición:` + bloque con sangría de 4 espacios. Los dos puntos y la sangría son obligatorios.
+- `elif` agrega alternativas, `else` es el caso por defecto; solo se ejecuta el primer bloque verdadero.
+- `==` compara, `=` asigna. `in` pregunta pertenencia; `is None` pregunta por la ausencia de valor.
+- `and`, `or`, `not`; paréntesis cuando los mezcles.
+- `0`, `""`, `[]`, `None` son falsos en un `if`; cuidado con el `0` válido.
 
 ## Ejercicios
 

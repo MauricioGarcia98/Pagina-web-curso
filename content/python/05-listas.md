@@ -1,76 +1,122 @@
 ---
 titulo: Listas y tuplas
 nivel: Básico
-duracion: 25
+duracion: 35
 resumen: Guardar colecciones ordenadas, agregar, quitar, ordenar y recortar.
 ---
 
-Una **lista** guarda varios valores **en orden**. Se escribe con corchetes:
+## Muchos valores bajo un mismo nombre
+
+Una variable guarda **un** valor. Pero los datos casi siempre vienen en grupos: las ventas del mes, los emails de los clientes, las líneas de un archivo. Una **lista** guarda varios valores **en orden** bajo un solo nombre. Es la estructura de datos más usada de Python.
 
 ```python
 ventas = [120, 340, 90, 560]
 nombres = ["Ana", "Luis", "Eva"]
-mezcla = [1, "dos", 3.0, True, None]   # puede mezclar tipos (no es buena idea)
+mezcla = [1, "dos", 3.0, True, None]   # puede mezclar tipos (casi nunca conviene)
 vacia = []
 print(len(ventas), ventas[0], ventas[-1], ventas[1:3])
 ```
 
+- Se escribe con **corchetes** `[ ]` y los elementos separados por comas.
+- `len(lista)` da la cantidad de elementos.
+- Los índices funcionan **igual que en los strings**: empiezan en 0, `-1` es el último, y `lista[1:3]` es un *slice* con las posiciones 1 y 2.
+
+:::analogia Una fila de casilleros numerados
+Una lista es una fila de casilleros con números grabados desde el 0. Cada casillero guarda un valor. Puedes abrir el casillero 2 (`ventas[2]`), cambiar su contenido, agregar casilleros al final o sacar alguno (y los de la derecha se corren).
+:::
+
+Si pides un índice que no existe, Python avisa: `ventas[10]` → `IndexError: list index out of range`.
+
 ## Modificar listas
 
-Las listas son **mutables** (se pueden cambiar):
+A diferencia de los strings, las listas son **mutables**: se pueden cambiar sin crear una nueva.
 
 ```python
 carrito = ["mouse", "teclado"]
-carrito.append("monitor")          # agrega al final
-carrito.insert(0, "webcam")        # agrega en una posición
-carrito.remove("teclado")          # quita por valor
-ultimo = carrito.pop()             # quita y devuelve el último
-carrito[0] = "webcam HD"           # reemplaza
-carrito.extend(["cable", "hub"])   # agrega varios
+carrito.append("monitor")          # agrega AL FINAL               → ['mouse', 'teclado', 'monitor']
+carrito.insert(0, "webcam")        # agrega en una posición       → ['webcam', 'mouse', 'teclado', 'monitor']
+carrito.remove("teclado")          # quita la primera aparición de ese VALOR
+ultimo = carrito.pop()             # quita y DEVUELVE el último   → 'monitor'
+carrito[0] = "webcam HD"           # reemplaza por posición
+carrito.extend(["cable", "hub"])   # agrega varios elementos
 print(carrito, ultimo)
 ```
 
-## Funciones útiles
+| Operación | Qué hace | Ojo |
+|---|---|---|
+| `lista.append(x)` | Agrega `x` al final | La más usada: construir una lista en un bucle |
+| `lista.insert(i, x)` | Agrega en la posición `i` | Lento en listas enormes |
+| `lista.extend(otra)` | Agrega todos los elementos de `otra` | `append(otra)` agregaría la lista entera como UN elemento |
+| `lista.remove(x)` | Quita la primera aparición de `x` | `ValueError` si no está |
+| `lista.pop()` / `pop(i)` | Quita y devuelve el último / el de la posición `i` | |
+| `lista[i] = x` | Reemplaza | |
+| `del lista[i]` | Borra por posición | |
+
+## Funciones y métodos útiles
 
 ```python
 numeros = [5, 3, 9, 1, 7]
-print(sum(numeros), min(numeros), max(numeros))
-print(sorted(numeros))                 # nueva lista ordenada
+print(sum(numeros), min(numeros), max(numeros))   # 25 1 9
+print(sorted(numeros))                 # NUEVA lista ordenada: [1, 3, 5, 7, 9]
 print(sorted(numeros, reverse=True))   # de mayor a menor
-numeros.sort()                         # ordena la misma lista (no devuelve nada)
+numeros.sort()                         # ordena LA MISMA lista (no devuelve nada)
 print(numeros, 9 in numeros, numeros.index(9), numeros.count(3))
 ```
 
+Con esto ya puedes calcular un promedio: `sum(numeros) / len(numeros)` (¡cuidado con la lista vacía: división por cero!).
+
 :::cuidado sort() vs sorted()
-`lista.sort()` modifica la lista y devuelve `None`. Un error típico: `lista = lista.sort()` → ¡pierdes la lista! Usa `sorted(lista)` si quieres una copia ordenada.
+`lista.sort()` **modifica** la lista y devuelve `None`. `sorted(lista)` **devuelve una lista nueva** y deja la original intacta. El error típico es `lista = lista.sort()`: guardas `None` y pierdes la lista. Regla: si quieres conservar el original o encadenar, usa `sorted`.
 :::
+
+### Ordenar por un criterio: key
+
+`sorted` acepta `key=`, una función que dice **por qué** ordenar:
+
+```python
+nombres = ["valentina", "Ana", "luis", "Bruno"]
+print(sorted(nombres))                    # mayúsculas primero: ['Ana', 'Bruno', 'luis', 'valentina']
+print(sorted(nombres, key=str.lower))     # ignorando mayúsculas
+print(sorted(nombres, key=len))           # por largo
+```
+
+Lo usarás muchísimo con listas de diccionarios o tuplas: "ordena los clientes por total gastado" (`key=lambda c: c["total"]`, lo verás en funciones).
 
 ## Copiar listas: la trampa de las referencias
 
+Esto sorprende a todos la primera vez:
+
 ```python
 a = [1, 2, 3]
-b = a          # ¡b es la MISMA lista, no una copia!
+b = a          # ¡b NO es una copia: es otro nombre para LA MISMA lista!
 b.append(4)
-print(a)       # [1, 2, 3, 4]  😱
-c = a.copy()   # o list(a), o a[:]
+print(a)       # [1, 2, 3, 4]  😱 a también cambió
+c = a.copy()   # copia de verdad (también list(a) o a[:])
 c.append(5)
-print(a, c)
+print(a, c)    # a no cambia
 ```
 
-## Listas de listas
+Recuerda la analogía de las etiquetas: `b = a` pega una **segunda etiqueta** sobre la misma lista, no fabrica una lista nueva. Con números o textos no lo notas porque son inmutables (no se pueden modificar "en el lugar"), pero con listas y diccionarios sí. Por eso, si una función recibe una lista y la modifica, **modifica la del que la llamó**: un error difícil de encontrar.
+
+## Listas de listas: tablas en memoria
+
+Una lista puede contener otras listas. Así se representa una tabla: una lista de filas.
 
 ```python
 tabla = [
     ["Ana", "Chile", 3],
     ["Luis", "Perú", 5],
 ]
-for nombre, pais, compras in tabla:     # desempaquetado
+print(tabla[1][0])                      # fila 1, columna 0 → 'Luis'
+for nombre, pais, compras in tabla:     # desempaquetado de cada fila
     print(nombre, "de", pais, "hizo", compras, "compras")
 ```
 
-## Tuplas
+El **desempaquetado** (`for nombre, pais, compras in tabla`) asigna cada elemento de la fila a una variable. Es mucho más legible que `fila[0]`, `fila[1]`, `fila[2]`. (Para tablas con nombres de columnas, en la próxima lección verás que es mejor una lista de **diccionarios**.)
 
-Una **tupla** es como una lista pero **inmutable** (no se puede modificar). Se usa para registros fijos:
+## Tuplas: registros que no cambian
+
+Una **tupla** es como una lista pero **inmutable**: una vez creada no se puede modificar. Se escribe con paréntesis:
 
 ```python
 punto = (-34.6, -58.4)           # latitud, longitud
@@ -78,6 +124,22 @@ lat, lon = punto                 # desempaquetado
 registro = ("2024-03-15", "web", 120.5)
 print(lat, lon, registro[1])
 ```
+
+| | Lista `[ ]` | Tupla `( )` |
+|---|---|---|
+| ¿Se puede modificar? | Sí | No |
+| Uso típico | Colecciones que crecen o cambian: las ventas del día | Registros fijos: una coordenada, una fila (fecha, canal, monto) |
+| Se puede usar como clave de diccionario | No | Sí |
+
+¿Por qué querrías algo que no se puede cambiar? Porque **comunica intención** ("esto es un registro, no se toca") y evita modificaciones accidentales. Además, muchas funciones devuelven tuplas: `divmod(17, 5)` → `(3, 2)`, y un `return a, b` en una función devuelve una tupla.
+
+## Resumen
+
+- Lista: colección ordenada y mutable `[a, b, c]`; índices desde 0, slices `[i:j]`, `len()`.
+- `append` (al final), `extend`, `insert`, `remove`, `pop`; `sum`, `min`, `max`, `in`.
+- `sorted()` devuelve una lista nueva (acepta `key=` y `reverse=`); `.sort()` modifica y devuelve `None`.
+- `b = a` no copia: usa `a.copy()`.
+- Tupla: como una lista inmutable; ideal para registros fijos y desempaquetado.
 
 ## Ejercicios
 
