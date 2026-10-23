@@ -21,6 +21,48 @@ vuelos_reservas (reserva_id, vuelo_id, pasajero_id, fecha_reserva, clase, precio
 - `vuelos_reservas` es una **muestra**: cada reserva representa a 40 pasajeros reales (factor de expansión 40). Para estimar la ocupación: `pasajeros_estimados = reservas_confirmadas × 40`.
 - **Load factor** (ocupación) = pasajeros / asientos ofrecidos.
 
+## Cómo funciona una aerolínea
+
+Una aerolínea tiene costos enormes y casi fijos: el avión, el combustible y la tripulación cuestan casi lo mismo si el vuelo va lleno o medio vacío. Por eso sus dos obsesiones son:
+
+1. **Llenar los aviones** (*load factor*): cada asiento vacío al despegar es ingreso perdido para siempre (como el turno vacío de la clínica).
+2. **Vender cada asiento al mejor precio posible** (*revenue management*): el mismo asiento cuesta distinto según la anticipación, la clase y la demanda. Quien compra a último momento suele pagar más.
+
+Y operaciones vive de la **puntualidad**: una demora en la mañana se **propaga** a todos los vuelos siguientes del mismo avión, genera conexiones perdidas, compensaciones y malas reseñas.
+
+## Un ejemplo resuelto paso a paso
+
+**Pregunta:** "¿Hay días de la semana con más demora de salida?"
+
+1. **Grano**: una fila por día de la semana (`strftime('%w', fecha)`: 0 = domingo … 6 = sábado).
+2. **Filtro**: excluir los cancelados (no tienen `salida_real`).
+3. **Métrica**: demora promedio en minutos = (salida real − salida programada) × 1.440.
+
+```sql
+SELECT strftime('%w', fecha) AS dia_semana,
+       COUNT(*) AS vuelos,
+       ROUND(AVG((julianday(salida_real) - julianday(salida_programada)) * 1440), 1) AS demora_min
+FROM vuelos_vuelos
+WHERE estado <> 'cancelado'
+GROUP BY dia_semana
+ORDER BY dia_semana;
+```
+
+| dia_semana | vuelos | demora_min |
+|---|---|---|
+| 0 (dom) | 650 | 20.6 |
+| 1 (lun) | 683 | 22.9 |
+| 3 (mié) | 685 | 23.4 |
+| 5 (vie) | 663 | 19.2 |
+
+**Lectura de negocio:** las diferencias entre días son pequeñas (19 a 23 minutos). El día de la semana **no** explica las demoras; hay que buscar en otro lado: aeropuerto de origen y, sobre todo, la propagación desde el vuelo anterior (lo verás en los ejercicios). Un resultado "sin hallazgo" también es información: evita invertir en la solución equivocada.
+
+:::cuidado Las trampas de este caso
+- **Muestra con factor de expansión**: `vuelos_reservas` es una muestra; cada reserva representa 40 pasajeros. Olvidar el ×40 da ocupaciones absurdas de 2 %.
+- **Doble conteo al unir vuelos con reservas**: si unes primero y después sumas la capacidad, la capacidad de cada vuelo se suma una vez **por reserva**. Agrega las reservas por vuelo antes de unir.
+- **Puntualidad se mide en la llegada** (15 minutos de tolerancia), no en la salida; y los cancelados cuentan como no puntuales.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Puntualidad por ruta"

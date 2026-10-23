@@ -20,6 +20,59 @@ logistica_envios (envio_id, almacen_id, ciudad_destino, transportista,
 - **Quiebre de stock**: días en que el stock quedó **negativo** (se registraron salidas sin mercadería: un error operativo grave).
 - Un envío es **a tiempo** si se entregó el día prometido o antes: `date(fecha_entrega) <= fecha_prometida`.
 
+## Cómo funciona una empresa de logística
+
+Mercurio tiene dos negocios entrelazados:
+
+1. **Almacenamiento**: guarda mercadería de sus clientes en seis almacenes. Debe saber en todo momento **cuánto hay de cada producto (SKU)** en cada almacén, para no vender lo que no tiene ni ocupar espacio con lo que no rota.
+2. **Distribución**: despacha envíos con transportistas tercerizados y promete una fecha de entrega. Cumplir esa promesa (y a buen costo) es lo que el cliente final percibe.
+
+El detalle técnico clave del caso: el **stock no se guarda**, se **calcula**. La tabla `logistica_movimientos` es un registro de cada entrada (+), salida (−) y ajuste (−), como un extracto bancario. Esto es muy común en sistemas reales (contabilidad, inventarios, billeteras), porque permite reconstruir el stock de **cualquier día** del pasado y auditar cada cambio.
+
+| KPI | Fórmula | Por qué importa |
+|---|---|---|
+| **Stock a una fecha** | `SUM(cantidad)` de los movimientos hasta esa fecha | Base de todo |
+| **Ocupación del almacén** | stock / capacidad | ¿Hace falta otro almacén? ¿Sobra espacio pagado? |
+| **Rotación** | unidades que salen / stock promedio | SKUs que se mueven vs. mercadería "dormida" |
+| **Quiebre de stock** | días con stock negativo | Errores operativos: se despachó lo que no había |
+| **Entrega a tiempo (OTD)** | entregados a tiempo / entregados | Calidad del transportista |
+| **Costo por envío exitoso** | costo total / envíos entregados | Un transportista barato que pierde paquetes sale caro |
+
+## Un ejemplo resuelto paso a paso
+
+**Pregunta:** "¿Qué tan llenos están los almacenes al final del año?"
+
+1. **Grano**: una fila por almacén.
+2. **Stock final**: la suma de **todos** los movimientos de cada almacén (las salidas ya vienen con signo negativo).
+3. **Ocupación**: stock / capacidad.
+
+```sql
+SELECT a.ciudad,
+       a.capacidad_unidades,
+       SUM(m.cantidad)                                          AS stock_final,
+       ROUND(100.0 * SUM(m.cantidad) / a.capacidad_unidades, 1) AS pct_ocupacion
+FROM logistica_movimientos m
+JOIN logistica_almacenes a ON a.almacen_id = m.almacen_id
+GROUP BY a.ciudad, a.capacidad_unidades
+ORDER BY pct_ocupacion DESC;
+```
+
+| ciudad | capacidad_unidades | stock_final | pct_ocupacion |
+|---|---|---|---|
+| Lima | 30000 | 3150 | 10.5 |
+| Monterrey | 25000 | 2209 | 8.8 |
+| Bogotá | 40000 | 2808 | 7.0 |
+| … | … | … | … |
+
+**Lectura de negocio:** todos los almacenes están **muy vacíos** al cierre del año (menos del 11 %). O se dimensionaron para picos de temporada, o la empresa está pagando espacio que no usa: una conversación concreta para el área de finanzas.
+
+:::cuidado Las trampas de este caso
+- **Las salidas y ajustes ya son negativos**: sumar `cantidad` directamente da el stock. Si además las restaras con un `CASE`, las contarías dos veces.
+- **Stock a una fecha = acumulado hasta esa fecha inclusive**: es una suma acumulada (`SUM(…) OVER (… ORDER BY fecha)`), no la suma del día.
+- **Días sin movimientos**: el stock existe aunque ese día no hubiera movimientos; para series diarias completas necesitas un calendario.
+- **A tiempo se compara contra la fecha prometida, en fecha** (`date(fecha_entrega) <= fecha_prometida`): la hora de entrega no importa.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql titulo="Stock al cierre del año"

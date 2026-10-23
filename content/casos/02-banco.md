@@ -33,6 +33,68 @@ banco_clientes 1..N banco_prestamos (prestamo_id, cliente_id, fecha_otorgado, mo
 Antes de cada ejercicio, escribe en un comentario: *grano* (“una fila por…”), *métricas* (fórmulas) y *tablas*. Por ejemplo: `-- grano: cuenta | métrica: saldo = SUM(monto) | tablas: banco_transacciones`.
 :::
 
+## Cómo gana (y pierde) dinero un banco
+
+Para analizar bien un negocio, primero hay que entender **cómo funciona**. Un banco digital como Banco Austral gana dinero principalmente de tres formas:
+
+1. **Intereses de préstamos**: presta dinero a una tasa (por ejemplo 30 % anual) más alta de la que paga por los depósitos. La diferencia es su margen.
+2. **Comisiones**: por uso de tarjetas en comercios (cada compra deja un pequeño porcentaje), mantenimiento de cuentas, transferencias.
+3. **Saldos de los clientes**: el dinero depositado le permite prestar e invertir.
+
+Y pierde dinero de dos formas que el área de **riesgo** vigila todo el tiempo:
+
+- **Mora e incobrables**: clientes que no devuelven los préstamos.
+- **Fraude**: transacciones hechas por terceros con tarjetas o cuentas robadas, que el banco suele devolver al cliente.
+
+## Los indicadores (KPIs) de este caso
+
+| KPI | Definición | Fórmula | Por qué importa |
+|---|---|---|---|
+| **Saldo** | Dinero disponible en una cuenta | `SUM(monto)` de sus transacciones | Base de todo: productos, riesgo, cuentas dormidas |
+| **Gasto por comercio/canal** | Cuánto compran los clientes y dónde | `-SUM(monto)` de las compras | Acuerdos con comercios, campañas de cashback |
+| **Tasa de fraude** | Qué parte de las transacciones son fraude | fraudes / transacciones | En este banco es ~2,3 %: cada punto son millones |
+| **Precisión de una regla** | De las alertas que dispara, cuántas son fraude real | verdaderos positivos / alertas | Una regla con baja precisión molesta a clientes honestos |
+| **Recall (cobertura)** | De los fraudes reales, cuántos detecta | verdaderos positivos / fraudes | Una regla con bajo recall deja pasar fraudes |
+| **Tasa de mora** | Préstamos con cuotas vencidas impagas | préstamos en mora / préstamos activos | El indicador central de riesgo de crédito |
+| **Score crediticio** | Probabilidad de que el cliente pague (300 a 850) | lo calcula un modelo | Decide a quién prestar y a qué tasa |
+
+:::analogia Precisión y recall con una red de pesca
+Una regla de fraude es una red. **Precisión**: de todo lo que atrapaste, ¿qué parte eran peces (fraudes) y qué parte basura (clientes honestos bloqueados)? **Recall**: de todos los peces del lago, ¿cuántos atrapaste? Una red con agujeros chicos atrapa casi todos los peces (mucho recall) pero también mucha basura (poca precisión). Siempre hay que balancear las dos.
+:::
+
+## Un ejemplo resuelto paso a paso
+
+**Pregunta:** "¿Por qué canal compran más nuestros clientes y cuál es el ticket promedio de cada uno?"
+
+1. **Grano**: una fila por canal.
+2. **Filtro**: solo transacciones de tipo `compra` (los depósitos o retiros no son gasto).
+3. **Métricas**: cantidad de compras, gasto total y ticket promedio. Como las compras tienen `monto` **negativo** (sale dinero), invertimos el signo para mostrar el gasto en positivo.
+
+```sql
+SELECT canal,
+       COUNT(*)                AS compras,
+       ROUND(-SUM(monto), 2)   AS gasto,
+       ROUND(-AVG(monto), 2)   AS ticket_promedio
+FROM banco_transacciones
+WHERE tipo = 'compra'
+GROUP BY canal
+ORDER BY gasto DESC;
+```
+
+| canal | compras | gasto | ticket_promedio |
+|---|---|---|---|
+| web | 2072 | 441391.64 | 213.03 |
+| app | 2663 | 331787.9 | 124.59 |
+| pos | 1263 | 321339.38 | 254.43 |
+
+**Lectura de negocio:** la app tiene **más** compras pero tickets más chicos (compras cotidianas); el POS (las terminales de los comercios) tiene pocas compras pero el ticket más alto. Si el banco quiere aumentar el gasto, una campaña de cuotas sin interés en POS apunta a compras grandes; un cashback en la app apunta a frecuencia. Una consulta, una conversación con el área de marketing.
+
+:::cuidado Las trampas de este caso
+- **El signo del monto**: si sumas compras sin invertir el signo, el "gasto" sale negativo; si sumas todos los tipos juntos, obtienes el saldo, no el gasto.
+- **El "hoy" del análisis**: para saber si una cuota está vencida necesitas una fecha de referencia. Aquí es `2024-12-31`; nunca uses `date('now')`, porque el resultado cambiaría según el día en que ejecutes.
+- **Contar clientes vs. cuentas**: un cliente puede tener varias cuentas. "Clientes con saldo negativo" y "cuentas con saldo negativo" son preguntas distintas.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql titulo="Saldo de cada cuenta"

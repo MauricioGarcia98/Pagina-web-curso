@@ -21,6 +21,54 @@ clinica_facturas (factura_id, turno_id, monto, monto_cubierto, pagada)
 - **Tasa de ausentismo** = ausentes / (atendidos + ausentes). Los cancelados **no** cuentan: avisaron y el turno se pudo reasignar.
 - En `clinica_facturas`, `monto_cubierto` es lo que paga el seguro; el resto (`monto - monto_cubierto`) lo paga el paciente (copago).
 
+## Cómo funciona una clínica (y por qué el ausentismo duele tanto)
+
+Una clínica vende **tiempo de profesionales**: cada médico tiene una agenda con turnos de duración fija. Ese tiempo es un recurso **perecedero**: un turno de las 10:00 que nadie usa no se puede guardar para mañana. Por eso el ausentismo (*no-show*) es tan caro: el médico cobra igual, otro paciente que necesitaba ese turno no lo consiguió, y la clínica pierde la facturación.
+
+Los ingresos vienen de dos fuentes: lo que paga el **seguro o la cobertura** del paciente (prepaga, obra social) y el **copago** que paga el paciente. Coberturas distintas pagan montos distintos y tienen comportamientos distintos, así que casi todo análisis se corta por cobertura, especialidad y sede.
+
+| KPI | Fórmula | Por qué importa |
+|---|---|---|
+| **Tasa de ausentismo** | ausentes / (atendidos + ausentes) | Turnos perdidos; los cancelados no cuentan porque avisaron |
+| **Ocupación de agenda** | turnos usados / turnos disponibles | ¿Faltan o sobran médicos? |
+| **Anticipación** | días entre reserva y turno | Turnos reservados con mucha anticipación se olvidan más |
+| **Tasa de retorno a 30 días** | pacientes que vuelven antes de 30 días / pacientes atendidos | Controles o problemas no resueltos |
+| **% cubierto por el seguro** | `SUM(monto_cubierto) / SUM(monto)` | Dependencia de cada cobertura |
+
+## Un ejemplo resuelto paso a paso
+
+**Pregunta:** "¿Algunas coberturas faltan más que otras?"
+
+1. **Grano**: una fila por cobertura. La cobertura es un atributo del **paciente**, así que unimos cada turno con su paciente.
+2. **Métrica**: la tasa de ausentismo con el denominador correcto. Contamos todos los turnos en `turnos` (como dato de volumen), pero el porcentaje se calcula solo sobre `atendido` + `ausente`.
+
+```sql
+SELECT p.cobertura,
+       COUNT(*) AS turnos,
+       ROUND(100.0 * SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END)
+             / SUM(CASE WHEN t.estado IN ('atendido', 'ausente') THEN 1 ELSE 0 END), 2) AS pct_ausentismo
+FROM clinica_turnos t
+JOIN clinica_pacientes p ON p.paciente_id = t.paciente_id
+GROUP BY p.cobertura
+ORDER BY pct_ausentismo DESC;
+```
+
+| cobertura | turnos | pct_ausentismo |
+|---|---|---|
+| Galeno | 1950 | 12.41 |
+| OSDE | 1779 | 12.37 |
+| Particular | 1562 | 12.09 |
+| Swiss Medical | 1167 | 11.89 |
+| PAMI | 1296 | 9.82 |
+
+**Lectura de negocio:** PAMI (la cobertura de jubilados) falta claramente menos. Las diferencias entre las demás son chicas: antes de lanzar una acción por cobertura, conviene mirar otras variables (anticipación, día de la semana), que son justamente los ejercicios.
+
+:::cuidado Las trampas de este caso
+- **El denominador del ausentismo**: incluir los cancelados en el total baja artificialmente la tasa.
+- **Fecha vs. fecha-hora**: `fecha_hora` del turno tiene hora; `fecha_reserva` es solo fecha. Para calcular la anticipación en días, lleva el turno a fecha con `date(fecha_hora)`.
+- **Una factura por turno, pero no todos los turnos facturan**: los ausentes y cancelados no generan factura; un `JOIN` con facturas los hace desaparecer.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Ausentismo por especialidad"

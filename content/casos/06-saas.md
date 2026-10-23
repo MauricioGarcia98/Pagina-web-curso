@@ -29,6 +29,49 @@ saas_tickets (ticket_id, empresa_id, fecha_creacion, fecha_cierre, prioridad, ca
 - **NRR** (*Net Revenue Retention*): MRR de hoy de las empresas que ya eran clientes hace 12 meses / su MRR de hace 12 meses. Más de 100% = crecen aunque no entren clientes nuevos.
 - **SLA de soporte**: un ticket `critica` debe cerrarse en 24 h; `alta` en 48 h.
 
+## Cómo funciona un negocio SaaS
+
+Una empresa SaaS (*Software as a Service*) no vende licencias de una sola vez: cobra una **suscripción mensual** mientras el cliente use el software. Eso cambia todo el análisis:
+
+- El ingreso más importante es el **recurrente**: el MRR (*Monthly Recurring Revenue*). Los inversores valoran la empresa como un múltiplo de su MRR anualizado (ARR = MRR × 12).
+- Conseguir un cliente es caro (ventas, marketing); el negocio funciona solo si el cliente **se queda** muchos meses. Por eso el **churn** (bajas) y la **NRR** son métricas de supervivencia.
+- Los clientes pueden **subir de plan** (expansión) o **bajar** (contracción). Una buena SaaS crece aunque no entren clientes nuevos, solo con expansiones: eso significa NRR > 100 %.
+- El **soporte** influye directamente: un cliente que espera tres días por un problema crítico es un cliente que evalúa irse.
+
+## Un ejemplo resuelto paso a paso
+
+**Pregunta:** "¿Qué industrias nos facturan más en 2024 (facturas pagadas)?"
+
+1. **Grano**: una fila por industria (atributo de `saas_empresas`).
+2. **Filtro**: facturas de 2024 (`mes >= '2024-01-01'`) y **pagadas**: lo facturado y no cobrado es otra métrica (cobranza).
+3. **Métricas**: empresas distintas (`COUNT(DISTINCT …)`, porque cada empresa tiene una factura por mes) y monto facturado.
+
+```sql
+SELECT e.industria,
+       COUNT(DISTINCT e.empresa_id) AS empresas,
+       ROUND(SUM(f.monto), 2)       AS facturado
+FROM saas_empresas e
+JOIN saas_facturas f ON f.empresa_id = e.empresa_id
+WHERE f.mes >= '2024-01-01' AND f.estado = 'pagada'
+GROUP BY e.industria
+ORDER BY facturado DESC;
+```
+
+| industria | empresas | facturado |
+|---|---|---|
+| Turismo | 78 | 152379.0 |
+| Logística | 67 | 137402.0 |
+| Salud | 57 | 127887.0 |
+| … | … | … |
+
+Fíjate en `COUNT(DISTINCT e.empresa_id)`: después del join hay **una fila por factura** (hasta 12 por empresa en el año). `COUNT(*)` contaría facturas, no empresas: el error de doble conteo más común en SaaS.
+
+:::cuidado Las trampas de este caso
+- **Facturas recientes todavía no vencidas**: el último mes siempre parece tener una cobranza peor (muchas facturas están `pendiente` porque recién se emitieron). Compara meses "maduros".
+- **MRR no es lo mismo que lo cobrado**: el MRR mide lo que el cliente **se comprometió** a pagar; la cobranza mide lo que efectivamente entró.
+- **Churn y meses salteados**: una empresa que no factura en marzo pero vuelve en abril, ¿fue churn y reactivación? Define la regla antes de contar.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="MRR y clientes activos"

@@ -28,6 +28,45 @@ streaming_usuarios (usuario_id, pais, fecha_registro, edad, dispositivo_principa
 
 Una suscripción está **vigente** en una fecha `F` si `fecha_inicio <= F` y (`fecha_fin` es NULL o `fecha_fin >= F`).
 
+## Cómo funciona un negocio de streaming
+
+Una app de música por suscripción tiene un modelo **freemium**: mucha gente usa el plan **gratis** (con anuncios y limitaciones), y el negocio vive de **convertir** a una parte de ellos en suscriptores pagos y de **retenerlos** mes a mes. Por eso la directora de producto mira dos familias de métricas que están conectadas:
+
+- **Engagement** (uso): si la gente escucha mucho y todos los días, es más probable que pague y que no se vaya.
+- **Negocio**: cuántos pagan (MRR), cuántos se van (churn) y por qué.
+
+La cadena causal que el equipo intenta mover es: **buen catálogo y recomendaciones → más horas de escucha → más conversión a pago → menos bajas → más MRR**.
+
+## Un ejemplo resuelto paso a paso
+
+**Pregunta:** "¿La gente termina lo que empieza a escuchar? Compara canciones y podcasts."
+
+1. **Grano**: una fila por tipo de contenido (`cancion`, `podcast`). El tipo está en `streaming_contenidos`, así que unimos cada reproducción con su contenido.
+2. **Métricas**: reproducciones, minutos promedio escuchados y **% completado**. Para el % completado usamos el cociente de sumas: segundos escuchados totales / duración total de lo reproducido. (El promedio de los porcentajes individuales daría el mismo peso a una canción de 2 minutos que a un podcast de 1 hora.)
+
+```sql
+SELECT c.tipo,
+       COUNT(*)                                                   AS reproducciones,
+       ROUND(AVG(r.segundos_escuchados) / 60.0, 1)                AS min_promedio,
+       ROUND(100.0 * SUM(r.segundos_escuchados) / SUM(c.duracion_seg), 1) AS pct_completado
+FROM streaming_reproducciones r
+JOIN streaming_contenidos c ON c.contenido_id = r.contenido_id
+GROUP BY c.tipo;
+```
+
+| tipo | reproducciones | min_promedio | pct_completado |
+|---|---|---|---|
+| cancion | 16057 | 2.4 | 67.0 |
+| podcast | 1943 | 18.7 | 54.1 |
+
+**Lectura de negocio:** los podcasts se escuchan mucho más tiempo por reproducción (casi 19 minutos), pero se **abandonan más** (solo se completa el 54 %). Una función "continuar donde lo dejaste" para podcasts tiene sentido; también recomendar episodios más cortos.
+
+:::cuidado Las trampas de este caso
+- **"Activo" se define por reproducciones**, no por suscripciones: un suscriptor pago que no escucha nada en el mes no es un usuario activo (y es un candidato a darse de baja).
+- **Vigencia de una suscripción**: está vigente en la fecha F si empezó antes o ese día y no terminó (`fecha_fin` es NULL o posterior). Olvidar el `NULL` deja afuera a todos los suscriptores actuales.
+- **Churn de planes pagos**: el que pasa de pago a gratis también es churn de ingresos, aunque siga usando la app.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Usuarios activos por mes (MAU)"

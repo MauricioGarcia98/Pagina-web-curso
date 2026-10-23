@@ -22,6 +22,64 @@ viajes_viajes (viaje_id, pasajero_id, conductor_id, ciudad,
 - `multiplicador` > 1 significa **tarifa dinámica** (*surge*): hay más demanda que conductores.
 - `tarifa` y `calificacion` solo existen en viajes completados (y no todos califican).
 
+## Cómo funciona una app de viajes
+
+Una app como Ruta es un **mercado de dos lados** (*marketplace*): de un lado los **pasajeros** que piden viajes, del otro los **conductores** que los aceptan. La app no tiene autos: conecta a ambos y cobra una comisión por cada viaje completado. Su gran desafío es el **equilibrio entre oferta y demanda**:
+
+- Si hay **más pasajeros que conductores** (hora pico, lluvia), las esperas crecen, muchas solicitudes quedan `sin_conductor` y los pasajeros se van a la competencia.
+- Si hay **más conductores que pasajeros**, los conductores ganan poco por hora y dejan de conectarse.
+
+La **tarifa dinámica** (*surge pricing*) es la herramienta para equilibrar: cuando falta oferta, el precio sube (`multiplicador` > 1). Eso reduce algo de demanda y, sobre todo, atrae conductores a la calle.
+
+## Los indicadores (KPIs) de este caso
+
+| KPI | Definición | Fórmula | Por qué importa |
+|---|---|---|---|
+| **Tasa de completados** | Solicitudes que terminan en viaje | completados / solicitudes | Mide la calidad del servicio: cada solicitud perdida es ingreso perdido |
+| **Tasa sin conductor** | Solicitudes que nadie aceptó | sin_conductor / solicitudes | Indica **falta de oferta** (zonas u horas a reforzar) |
+| **Tasa de cancelación** | Cancelaciones del pasajero o del conductor | canceladas / solicitudes | Pasajero: esperas largas o precio. Conductor: viajes poco convenientes |
+| **Tiempo de espera** | Minutos desde la solicitud hasta el inicio | `(inicio − solicitud) × 1440` | La métrica que más percibe el pasajero |
+| **Tarifa por km** | Ingreso por distancia recorrida | `SUM(tarifa) / SUM(distancia_km)` | Compara precios entre ciudades o tipos de vehículo |
+| **Ingreso por hora conectado** | Lo que gana un conductor por hora de viaje | tarifa / horas de viaje | Si baja, los conductores se van |
+| **Retención de pasajeros** | Pasajeros que vuelven a viajar | activos en el mes N que ya viajaban antes | Adquirir un pasajero nuevo es caro: retener es crecer |
+
+## Un ejemplo resuelto paso a paso
+
+**Pregunta:** "¿Cambia la experiencia según el tipo de vehículo? Queremos viajes, distancia promedio, tarifa por km y calificación promedio."
+
+1. **Grano**: una fila por tipo de vehículo. El vehículo está en `viajes_conductores`, así que hay que **unir** con el conductor de cada viaje.
+2. **Filtro**: solo viajes `completado` (los demás no tienen tarifa ni distancia).
+3. **Métricas**: ojo con la tarifa por km: es `SUM(tarifa) / SUM(distancia)`, **no** el promedio de `tarifa / distancia` de cada viaje (un viaje de 1 km a precio mínimo distorsionaría ese promedio). Es el famoso "promedio de cocientes vs. cociente de sumas".
+
+```sql
+SELECT c.vehiculo,
+       COUNT(*)                                   AS viajes,
+       ROUND(AVG(v.distancia_km), 1)              AS km_promedio,
+       ROUND(SUM(v.tarifa) / SUM(v.distancia_km), 2) AS tarifa_por_km,
+       ROUND(AVG(v.calificacion), 2)              AS calificacion
+FROM viajes_viajes v
+JOIN viajes_conductores c ON c.conductor_id = v.conductor_id
+WHERE v.estado = 'completado'
+GROUP BY c.vehiculo
+ORDER BY tarifa_por_km DESC;
+```
+
+| vehiculo | viajes | km_promedio | tarifa_por_km | calificacion |
+|---|---|---|---|---|
+| van | 647 | 10.1 | 1.29 | 4.21 |
+| auto | 6437 | 10.2 | 1.28 | 4.27 |
+| moto | 1839 | 10.2 | 1.26 | 4.34 |
+
+**Lectura de negocio:** las motos cobran un poco menos por km pero tienen la **mejor calificación** (probablemente llegan más rápido en el tráfico). Ese dato justifica, por ejemplo, ofrecer motos en las horas pico de ciudades congestionadas.
+
+Fíjate en `AVG(v.calificacion)`: 2.317 viajes completados **no** tienen calificación (`NULL`), y `AVG` los ignora. Es lo correcto aquí: un viaje sin calificar no es un viaje con nota 0.
+
+:::cuidado Las trampas de este caso
+- **El denominador**: "tasa de cancelación" sobre **todas** las solicitudes o sobre las que tuvieron conductor asignado da números distintos. Decláralo siempre.
+- **Promedio de cocientes**: usa `SUM(a) / SUM(b)` para tasas como tarifa por km o ingreso por hora.
+- **Columnas que solo existen en algunos estados**: tarifa, inicio, fin y calificación son `NULL` en los viajes no completados. Filtra antes de calcular.
+:::
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Embudo de estados por ciudad"

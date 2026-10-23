@@ -7,6 +7,24 @@ resumen: Canasta de productos, cliente nuevo vs recurrente, primer producto comp
 
 Volvemos a la tienda que conoces, ahora con preguntas que haría un directorio. Todas exigen pensar bien el **grano** y el **orden temporal**.
 
+## Preguntas de directorio: qué hay detrás de cada una
+
+Los ejercicios de esta lección son los que aparecen en una reunión de directorio de cualquier e-commerce. Antes de resolverlos, conviene entender qué concepto de negocio hay detrás de cada uno:
+
+| Pregunta | Concepto | Para qué se usa |
+|---|---|---|
+| ¿Qué productos se compran juntos? | **Análisis de canasta** (*market basket*) | Recomendaciones ("quienes compraron esto también…"), combos, ubicación en la tienda |
+| ¿Cuánto venden los clientes nuevos vs. los que vuelven? | **Nuevo vs. recurrente** | Saber si el crecimiento depende de adquirir (caro) o de retener (barato) |
+| ¿Con qué categoría entran los clientes? | **Categoría de entrada** (*first purchase*) | Qué productos traen clientes nuevos: dónde invertir en publicidad |
+| ¿Cuánto vale un cliente a lo largo del tiempo? | **LTV** (*lifetime value*) por cohorte | Cuánto se puede gastar para conseguir un cliente (debe ser menor que su LTV) |
+| ¿Cuánto tarda en volver a comprar? | **Mediana de tiempo a la segunda compra** | Cuándo enviar un recordatorio o un cupón |
+
+Todas comparten dos dificultades: el **orden temporal** (qué pasó primero: hay que identificar la *primera* compra de cada cliente con `MIN` o `ROW_NUMBER`) y el **grano** (pedidos, líneas, clientes y pares de productos son niveles distintos; mezclarlos multiplica o pierde filas).
+
+:::tip ¿Por qué la mediana y no el promedio?
+Si 9 clientes vuelven a los 20 días y uno a los 700, el promedio da 88 días, que no describe a nadie. La **mediana** (el valor del medio) da 20: lo que le pasa al cliente típico. Para tiempos, montos de compra y salarios, que tienen valores extremos, la mediana es casi siempre más honesta.
+:::
+
 :::ejercicio sql titulo="Productos que se compran juntos"
 Análisis de **canasta**: pares de productos que aparecen en el **mismo pedido**. Devuelve los 10 pares más frecuentes: `producto_a`, `producto_b` (ids, con `producto_a < producto_b` para no duplicar), `pedidos_juntos`. Desempata por `producto_a` y `producto_b`.
 ```sql solucion
