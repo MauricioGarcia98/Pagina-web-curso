@@ -1,11 +1,17 @@
 ---
 titulo: Grupos de recursos, formatos de salida y --query
 nivel: Intermedio
-duracion: 30
+duracion: 40
 resumen: Crear y listar recursos, --output (json, table, tsv), consultas JMESPath con --query y uso en scripts.
 ---
 
+En la lección anterior iniciaste sesión con `az`. Ahora vas a crear tus primeros recursos y, sobre todo, a aprender a **leer y filtrar** lo que `az` responde. Eso se usa todo el tiempo: en scripts de despliegue, en pipelines de CI y cada vez que necesitas un dato puntual ("¿cuál es el id de esta cuenta de almacenamiento?").
+
+Abre la terminal del curso (⌨ Terminal) y escribe cada comando a medida que lees. Antes, ejecuta `az login`.
+
 ## Grupos de recursos
+
+Un grupo de recursos es la carpeta donde viven los recursos de un proyecto y un entorno. Su ciclo de vida completo se maneja con cinco comandos:
 
 ```bash norun
 az group create --name rg-datos-dev --location eastus2 --tags proyecto=tienda entorno=dev
@@ -15,19 +21,85 @@ az resource list --resource-group rg-datos-dev --output table      # qué hay ad
 az group delete --name rg-datos-dev --yes --no-wait                 # ¡borra TODO lo que contiene!
 ```
 
+Qué hace cada parámetro de `az group create`:
+
+- `--name` (o `-n`): el nombre. Tiene que ser único **dentro de la suscripción**.
+- `--location` (o `-l`): la región donde se guarda la *información sobre* el grupo. Los recursos que pongas adentro pueden estar en otras regiones, aunque lo normal es que estén en la misma.
+- `--tags`: etiquetas `clave=valor` separadas por espacios. Sirven para filtrar costos y recursos después.
+
+Al crearlo, `az` responde con un **JSON** que describe el recurso creado:
+
+```json
+{
+  "id": "/subscriptions/1111aaaa-1111-4111-8111-111111111111/resourceGroups/rg-datos-dev",
+  "location": "eastus2",
+  "name": "rg-datos-dev",
+  "properties": { "provisioningState": "Succeeded" },
+  "tags": { "proyecto": "tienda", "entorno": "dev" },
+  "type": "Microsoft.Resources/resourceGroups"
+}
+```
+
+Fíjate en el **`id`**. Todo recurso de Azure tiene un id con forma de ruta: `/subscriptions/<sub>/resourceGroups/<grupo>/providers/<tipo>/<nombre>`. Lo vas a necesitar para asignar permisos (RBAC) en la lección siguiente.
+
+:::cuidado `az group delete` no tiene papelera
+Borrar un grupo elimina **todos** sus recursos: el lake con sus datos, el Databricks, los secretos del Key Vault. `--yes` salta la pregunta "¿estás seguro?" y `--no-wait` devuelve el control sin esperar a que termine. Úsalo en laboratorios, y **nunca** en producción desde un script sin revisar dos veces el nombre. En producción se agregan **locks** (`az lock create --lock-type CanNotDelete`) para impedirlo.
+:::
+
 ## Formatos de salida: --output / -o
 
-| Formato | Para qué |
-|---|---|
-| `json` (por defecto) | Completo, para procesar con otras herramientas |
-| `table` | Para leer en pantalla |
-| `tsv` | Para usar en **scripts** (sin comillas ni encabezados) |
-| `yaml`, `jsonc` | Variantes legibles |
-| `none` | No imprimir nada |
+El mismo dato se puede pedir en distintos formatos. Crea un segundo grupo (`az group create -n rg-datos-prod -l brazilsouth`) y compara:
+
+```text
+$ az group list -o table
+Location     Name
+-----------  -------------
+eastus2      rg-datos-dev
+brazilsouth  rg-datos-prod
+
+$ az group list --query "[].name" -o tsv
+rg-datos-dev
+rg-datos-prod
+```
+
+| Formato | Cómo se ve | Para qué |
+|---|---|---|
+| `json` (por defecto) | Todo el detalle, con llaves y comillas | Procesar con otras herramientas (`jq`, Python) |
+| `table` | Columnas alineadas | **Leer** en pantalla |
+| `tsv` | Valores separados por tabulación, sin comillas ni encabezados | Usar en **scripts** |
+| `yaml`, `jsonc` | Variantes legibles del JSON | Leer configuraciones largas |
+| `none` | Nada | Comandos donde solo importa si funcionó |
+
+:::tip Configúralo una vez
+`az config set core.output=table` cambia el formato por defecto para tu usuario. Igual puedes pedir otro con `-o` en cada comando.
+:::
 
 ## --query: filtrar y transformar con JMESPath
 
-Todas las respuestas de `az` son JSON, y `--query` aplica una consulta **JMESPath** sobre ellas. Es como un mini-SQL para JSON:
+Todas las respuestas de `az` son JSON, y `--query` aplica sobre ellas una consulta **JMESPath**. Es como un mini-SQL para JSON: eliges qué campos quieres (como un `SELECT`) y qué elementos (como un `WHERE`). Lo bueno es que el filtro se aplica **antes** de formatear, así que funciona con cualquier `-o`.
+
+Piensa en `az group list` como una **lista de objetos**:
+
+```json
+[
+  { "name": "rg-datos-dev",  "location": "eastus2",     "tags": { "proyecto": "tienda", "entorno": "dev" } },
+  { "name": "rg-datos-prod", "location": "brazilsouth", "tags": {} }
+]
+```
+
+Ahora mira qué devuelve cada consulta sobre esa lista:
+
+| Consulta | Se lee como | Resultado |
+|---|---|---|
+| `"[].name"` | De cada elemento, el campo `name` | `rg-datos-dev`, `rg-datos-prod` |
+| `"[0].name"` | El `name` del primer elemento | `rg-datos-dev` |
+| `"[?location=='eastus2'].name"` | Los que están en eastus2 → su `name` | `rg-datos-dev` |
+| `"[?tags.entorno=='dev'].name"` | Los que tienen la etiqueta entorno=dev | `rg-datos-dev` |
+| `"[].{Nombre:name, Region:location}"` | De cada uno, un objeto nuevo con dos columnas renombradas | Una tabla de dos columnas |
+| `"length(@)"` | Cuántos elementos hay (`@` es "el dato actual") | `2` |
+| `"[?contains(name, 'prod')].name"` | Los que tienen "prod" en el nombre | `rg-datos-prod` |
+
+Y en comandos completos:
 
 ```bash norun
 # Solo el nombre de la suscripción activa
@@ -46,25 +118,46 @@ az group list --query "[].{Nombre:name, Region:location}" -o table
 az resource list --query "[?type=='Microsoft.Storage/storageAccounts'].name" -o tsv
 ```
 
+Resumen de la sintaxis:
+
 | JMESPath | Significado |
 |---|---|
 | `[]` | Recorrer la lista |
-| `.campo` | Acceder a un campo |
-| `[?cond]` | Filtrar |
-| `{A:a, B:b}` | Proyectar con nuevos nombres |
-| `[0]` | Primer elemento |
+| `.campo` | Acceder a un campo (se pueden encadenar: `.tags.entorno`) |
+| `[?cond]` | Filtrar: `==`, `!=`, `<`, `>`, `&&`, `\|\|`, `contains()`, `starts_with()` |
+| `{A:a, B:b}` | Proyectar con nombres nuevos |
+| `[0]`, `[-1]` | Primer y último elemento |
 | `length(@)` | Cantidad |
 
+:::cuidado Comillas
+Los textos dentro de JMESPath van entre **comillas simples** (`'eastus2'`), y toda la consulta entre **comillas dobles** para que bash no interprete `[`, `?` ni `@`. Si las mezclas al revés, bash corta la consulta y `az` responde con un error de sintaxis.
+:::
+
 ## Usar resultados en scripts
+
+Lo que hace útil a `--query` + `-o tsv` es guardar un valor en una **variable de shell** con `$( ... )` y usarlo en el siguiente comando:
 
 ```bash norun
 SUB_ID=$(az account show --query id -o tsv)
 RG_ID=$(az group show --name rg-datos-dev --query id -o tsv)
 echo "Suscripción: $SUB_ID"
+echo "Grupo: $RG_ID"
+```
+
+`$( ... )` ejecuta el comando de adentro y lo reemplaza por lo que imprimió. Así `SUB_ID` queda con `1111aaaa-1111-4111-8111-111111111111`, sin comillas.
+
+Un script real recorre una lista con un bucle:
+
+```bash norun
+# Imprime cuántos recursos tiene cada grupo
+for rg in $(az group list --query "[].name" -o tsv); do
+  n=$(az resource list -g "$rg" --query "length(@)")
+  echo "$rg: $n recursos"
+done
 ```
 
 :::tip ¿Por qué tsv en scripts?
-Con `-o json` obtienes `"valor"` con comillas; con `-o tsv` obtienes `valor` limpio, listo para asignar a una variable.
+Con `-o json` obtienes `"valor"`, con comillas, y con `-o table` obtienes también el encabezado. Con `-o tsv` obtienes `valor` limpio, listo para asignar a una variable.
 :::
 
 ## Ejercicios
