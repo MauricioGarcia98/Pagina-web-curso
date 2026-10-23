@@ -26,6 +26,30 @@ conteo = (eventos
    .toTable("silver.conteo_eventos"))
 ```
 
+### Cómo pensar un stream
+
+La idea genial de Structured Streaming es que **no tienes que aprender una API nueva**. Imagina la fuente como una tabla a la que **se le agregan filas sin parar**. Escribes la consulta como si fuera batch (`filter`, `groupBy`, `join`), y Spark la ejecuta **incrementalmente**: cada cierto tiempo toma solo las filas nuevas, actualiza el resultado y lo escribe.
+
+```text
+tiempo →     t1               t2                 t3
+fuente:      [e1 e2 e3]   +   [e4 e5]        +   [e6 e7 e8]
+Spark:       procesa e1-e3    procesa e4-e5      procesa e6-e8   (cada "micro-lote")
+resultado:   conteo = 3       conteo = 5         conteo = 8
+checkpoint:  "leí hasta e3"   "leí hasta e5"     "leí hasta e8"
+```
+
+Si el job se cae después de `t2`, al reiniciar lee el **checkpoint**, ve "leí hasta e5" y continúa desde `e6`: no pierde ni duplica eventos.
+
+### ¿Realmente necesitas streaming?
+
+| Latencia que pide el negocio | Solución típica |
+|---|---|
+| Segundos (fraude, precios dinámicos, alertas) | Streaming continuo (`processingTime`) |
+| Minutos a horas (tablero "casi en vivo") | Streaming con `availableNow` programado cada 15–60 minutos |
+| Un día (reporte diario) | Batch normal |
+
+Muchísimas veces, "tiempo real" en una reunión significa "actualizado cada hora". Un stream encendido 24/7 cuesta un cluster encendido 24/7; un job `availableNow` cada hora usa el **mismo código** y cuesta una fracción.
+
 ## Conceptos clave
 
 | Concepto | Qué es |

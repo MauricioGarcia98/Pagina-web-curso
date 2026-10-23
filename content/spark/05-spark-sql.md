@@ -7,6 +7,26 @@ resumen: Vistas temporales, tablas administradas y externas, Unity Catalog y SQL
 
 Todo lo que aprendiste de SQL funciona en Spark. **Spark SQL** y la API de DataFrames comparten el mismo optimizador: elige el que haga tu código más claro (¡y puedes mezclarlos!).
 
+### ¿SQL o DataFrames? El mismo motor
+
+Esta es la idea más tranquilizadora del módulo: una consulta escrita en SQL y la misma lógica escrita con la API de DataFrames **producen exactamente el mismo plan** de ejecución. Ambas pasan por **Catalyst**, el optimizador de Spark:
+
+```text
+spark.sql("SELECT …")  ─┐
+                         ├─▶  plan lógico  ─▶  Catalyst optimiza  ─▶  plan físico  ─▶  ejecución en el cluster
+df.filter(…).groupBy(…) ─┘
+```
+
+No hay uno "más rápido". La elección es de **claridad y de equipo**:
+
+| Usa SQL cuando… | Usa la API de DataFrames cuando… |
+|---|---|
+| La lógica es una consulta clásica (joins, agregaciones) | Necesitas construir la consulta dinámicamente (columnas en una lista, bucles, parámetros) |
+| Trabajas con analistas que saben SQL | Quieres funciones reutilizables y testeables (`def limpiar(df) -> df`) |
+| Es un modelo de dbt o un dashboard | Mezclas con lógica de Python (UDFs, validaciones) |
+
+Y se pueden mezclar libremente: `spark.sql(…)` devuelve un DataFrame, y un DataFrame se puede registrar como vista para consultarlo con SQL.
+
 ## Vistas temporales: SQL sobre un DataFrame
 
 ```python norun
@@ -22,6 +42,12 @@ top = spark.sql("""
 """)
 top.show()
 ```
+
+`createOrReplaceTempView("pedidos")` no copia datos: solo le pone un **nombre** al DataFrame para que SQL pueda referirse a él. La vista existe mientras dure la sesión de Spark (en Databricks, mientras el notebook esté conectado).
+
+## El catálogo: dónde viven los nombres de las tablas
+
+Un **catálogo** (o *metastore*) es la "guía telefónica" de las tablas: para cada nombre (`main.ventas.pedidos`) guarda **dónde** están los archivos, en qué **formato**, con qué **esquema** y quién tiene **permiso**. Spark consulta el catálogo cada vez que escribes `spark.table("…")` o un `FROM` en SQL. Es el mismo papel que cumplen el Glue Data Catalog en AWS y el catálogo de BigQuery en Google Cloud.
 
 ## Tablas en el catálogo
 
