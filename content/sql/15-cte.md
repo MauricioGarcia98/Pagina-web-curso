@@ -104,27 +104,27 @@ Fíjate en la estructura: **filtrar → transformar → agregar → presentar**.
 En proyectos profesionales verás este patrón: las primeras CTE solo "importan" las tablas (sin transformarlas), y después vienen los pasos lógicos.
 
 ```sql
-WITH pedidos AS (
+WITH src_pedidos AS (
     SELECT * FROM pedidos
 ),
-detalle AS (
+src_detalle AS (
     SELECT * FROM detalle_pedidos
 ),
 totales AS (
     SELECT pedido_id, SUM(cantidad * precio_unitario) AS total
-    FROM detalle
+    FROM src_detalle
     GROUP BY pedido_id
 ),
 final AS (
     SELECT p.pedido_id, p.cliente_id, p.fecha_pedido, t.total
-    FROM pedidos p
+    FROM src_pedidos p
     JOIN totales t ON t.pedido_id = p.pedido_id
 )
 SELECT * FROM final
 LIMIT 5;
 ```
 
-Parece redundante, pero al principio del archivo ves de un vistazo **de qué tablas depende** el modelo, y el `SELECT * FROM final` del final permite depurar cambiando una sola palabra.
+(En dbt las importaciones se escriben `pedidos AS (SELECT * FROM {{ ref('stg_pedidos') }})`; aquí usamos el prefijo `src_` porque SQLite no permite que una CTE se llame igual que la tabla que lee.) Parece redundante, pero al principio del archivo ves de un vistazo **de qué tablas depende** el modelo, y el `SELECT * FROM final` del final permite depurar cambiando una sola palabra.
 
 ## CTE con datos escritos a mano
 

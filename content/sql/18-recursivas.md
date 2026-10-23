@@ -1,45 +1,87 @@
 ---
 titulo: CTE recursivas: jerarquías y series
 nivel: Avanzado
-duracion: 30
+duracion: 40
 resumen: Recorrer árboles (organigramas, categorías) y generar series de fechas.
 ---
 
-Una **CTE recursiva** se llama a sí misma. Sirve para datos con forma de **árbol** o **grafo** (organigramas, categorías y subcategorías, rutas) y para **generar** filas (series de números o de fechas).
+## Datos con forma de árbol
 
-## Estructura
+Hay datos donde una fila apunta a **otra fila de la misma tabla**, formando una jerarquía:
+
+- **Organigrama**: cada empleado tiene un `jefe_id`, que es otro empleado, que a su vez tiene jefe… hasta llegar al CEO.
+- **Categorías**: "Laptops" está dentro de "Computadoras", que está dentro de "Tecnología".
+- **Cuentas contables**, carpetas de archivos, comentarios con respuestas, rutas entre ciudades.
+
+```text
+categorias                                    el árbol que forman
+categoria_id │ nombre       │ padre           Tecnología (1)
+─────────────┼──────────────┼───────          ├── Computadoras (5)
+1            │ Tecnología   │ NULL            │   └── Laptops (8)
+5            │ Computadoras │ 1               ├── Celulares (6)
+6            │ Celulares    │ 1               └── Audio (7)
+7            │ Audio        │ 1
+8            │ Laptops      │ 5
+```
+
+Con un self join (lección 12) subes **un** nivel: "el padre de Laptops es Computadoras". Pero ¿y si quieres **todos** los niveles, sin saber cuántos hay? Necesitarías un join para cada nivel, y la profundidad cambia. La solución es una **CTE recursiva**: una CTE que se usa **a sí misma** hasta que no hay más que recorrer.
+
+## La estructura
 
 ```sql norun
 WITH RECURSIVE nombre AS (
-    -- 1. Caso base (ancla): las filas iniciales
-    SELECT ...
+    -- 1. ANCLA (caso base): las filas con las que se empieza
+    SELECT …
     UNION ALL
-    -- 2. Paso recursivo: usa "nombre" para producir las siguientes filas
-    SELECT ... FROM tabla JOIN nombre ON ...
+    -- 2. PASO RECURSIVO: a partir de las filas que ya están en "nombre", produce las siguientes
+    SELECT … FROM tabla JOIN nombre ON …
 )
 SELECT * FROM nombre;
 ```
 
-El motor ejecuta el ancla, luego aplica el paso recursivo sobre las filas nuevas, una y otra vez, **hasta que el paso no produce filas**.
+Cómo la ejecuta el motor:
 
-## Generar una serie
+1. Ejecuta el **ancla** → esas filas son la "vuelta 0".
+2. Ejecuta el **paso recursivo** usando **solo las filas nuevas** de la vuelta anterior → vuelta 1.
+3. Repite el paso 2 con las filas de la vuelta 1 → vuelta 2… y así.
+4. Se **detiene** cuando una vuelta no produce ninguna fila nueva.
+5. El resultado es la unión de todas las vueltas.
+
+:::analogia Las fichas de dominó
+El ancla es empujar la primera ficha. El paso recursivo es la regla "cada ficha que cae empuja a la siguiente". El proceso termina solo cuando ya no quedan fichas por caer. Si las fichas formaran un círculo, nunca terminaría: por eso la condición de parada es crucial.
+:::
+
+## Ejemplo 1: generar una serie de números
+
+El caso más simple, para entender la mecánica:
 
 ```sql
 WITH RECURSIVE numeros(n) AS (
-    SELECT 1
+    SELECT 1                                  -- ancla: empiezo en 1
     UNION ALL
-    SELECT n + 1 FROM numeros WHERE n < 10
+    SELECT n + 1 FROM numeros WHERE n < 10    -- paso: el siguiente, mientras sea menor a 10
 )
 SELECT n, n * n AS cuadrado FROM numeros;
 ```
 
+| vuelta | qué produce |
+|---|---|
+| 0 (ancla) | 1 |
+| 1 | 1 + 1 = 2 |
+| 2 | 3 |
+| … | … |
+| 9 | 10 |
+| 10 | nada (10 no es < 10): **fin** |
+
+El `(n)` después del nombre define el nombre de la columna. `UNION ALL` es obligatorio entre ancla y paso.
+
 :::cuidado La condición de parada
-Sin `WHERE n < 10`, la recursión sería infinita. Siempre asegúrate de que el paso recursivo, en algún momento, no devuelva filas.
+Sin `WHERE n < 10`, el paso recursivo produciría filas para siempre (en la práctica, hasta un límite de seguridad del motor o hasta llenar la memoria). Antes de ejecutar, pregúntate: **¿en qué momento el paso deja de devolver filas?** En un árbol, se detiene sola cuando llegas a las hojas (nadie tiene como jefe a un empleado sin subordinados). Si los datos tuvieran un **ciclo** (A es jefe de B y B jefe de A), también sería infinita: en ese caso agrega un límite de profundidad (`WHERE nivel < 20`).
 :::
 
-## Calendario de fechas
+## Ejemplo 2: un calendario para rellenar huecos
 
-Muy útil para rellenar días sin ventas (con LEFT JOIN):
+Ya viste que `GROUP BY` no muestra los días **sin** datos. Un calendario generado con recursión, unido con `LEFT JOIN`, lo resuelve:
 
 ```sql
 WITH RECURSIVE dias(dia) AS (
@@ -48,22 +90,70 @@ WITH RECURSIVE dias(dia) AS (
     SELECT date(dia, '+1 day') FROM dias WHERE dia < '2024-12-31'
 )
 SELECT d.dia, COUNT(p.pedido_id) AS pedidos
-FROM dias d LEFT JOIN pedidos p ON p.fecha_pedido = d.dia
+FROM dias d
+LEFT JOIN pedidos p ON p.fecha_pedido = d.dia
 GROUP BY d.dia;
 ```
 
-## Recorrer el organigrama
+| dia | pedidos |
+|---|---|
+| 2024-12-20 | 18 |
+| 2024-12-21 | 24 |
+| … | … |
+
+Si algún día no hubiera tenido pedidos, aparecería con **0** en lugar de desaparecer. En reportes y gráficos esto es fundamental: un día faltante en un gráfico de líneas une puntos que no deberían unirse. (En Spark, BigQuery o PostgreSQL existen funciones que generan series directamente, como `sequence()` o `generate_series()`; la recursión funciona en todos.)
+
+## Ejemplo 3: recorrer el organigrama completo
 
 ```sql
 WITH RECURSIVE org AS (
+    -- ancla: el CEO (no tiene jefe)
     SELECT empleado_id, nombre, cargo, jefe_id, 0 AS nivel, nombre AS ruta
-    FROM empleados WHERE jefe_id IS NULL                 -- ancla: el CEO
+    FROM empleados
+    WHERE jefe_id IS NULL
     UNION ALL
-    SELECT e.empleado_id, e.nombre, e.cargo, e.jefe_id, o.nivel + 1, o.ruta || ' > ' || e.nombre
-    FROM empleados e JOIN org o ON e.jefe_id = o.empleado_id
+    -- paso: los empleados cuyo jefe ya está en "org"
+    SELECT e.empleado_id, e.nombre, e.cargo, e.jefe_id,
+           o.nivel + 1,
+           o.ruta || ' > ' || e.nombre
+    FROM empleados e
+    JOIN org o ON e.jefe_id = o.empleado_id
 )
-SELECT nivel, nombre, cargo, ruta FROM org ORDER BY nivel, nombre LIMIT 25;
+SELECT nivel, nombre, cargo, ruta
+FROM org
+ORDER BY nivel, nombre
+LIMIT 25;
 ```
+
+Qué pasa en cada vuelta:
+
+| vuelta | quiénes entran | cuántos |
+|---|---|---|
+| 0 | el CEO | 1 |
+| 1 | los que reportan al CEO (directores) | 8 |
+| 2 | los que reportan a esos directores (gerentes) | 18 |
+| 3 | los que reportan a los gerentes | 96 |
+| 4 | nadie: **fin** | 0 |
+
+Dos columnas se van "arrastrando" y calculando en cada vuelta:
+
+- `nivel`: el del jefe + 1 → la profundidad en el organigrama.
+- `ruta`: la ruta del jefe + el nombre propio → `Camila > Daniela > Pedro`. Muy útil para mostrar y para ordenar jerárquicamente.
+
+Con este resultado puedes responder preguntas como "¿cuántas personas tiene a cargo (directa o indirectamente) cada director?" o "¿cuál es la masa salarial de cada rama?".
+
+:::experto En el mundo real
+- En los data warehouses, las jerarquías profundas suelen "aplanarse" en la etapa de transformación (una columna por nivel: `nivel_1`, `nivel_2`, `nivel_3`), justamente con una CTE recursiva, para que los usuarios de BI no tengan que escribir recursión.
+- Spark SQL agregó soporte de CTE recursivas recién en versiones recientes; en Databricks antiguo se resolvía con bucles en PySpark. BigQuery y Snowflake las soportan con `WITH RECURSIVE`.
+:::
+
+## Resumen
+
+- Una CTE recursiva tiene **ancla** + `UNION ALL` + **paso recursivo** que se refiere a la propia CTE.
+- El motor aplica el paso sobre las filas nuevas hasta que no aparecen más.
+- Siempre debe haber una condición de parada (o un límite de profundidad si puede haber ciclos).
+- Usos: series de números y fechas (calendarios para rellenar huecos), árboles (organigramas, categorías), rutas.
+- Arrastra columnas como `nivel` y `ruta` para describir la posición en la jerarquía.
 
 ## Ejercicios
 
