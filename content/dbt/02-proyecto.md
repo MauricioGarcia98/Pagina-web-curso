@@ -157,6 +157,9 @@ Running with dbt=1.9.0
   Connection test: [OK connection ok]
 All checks passed!
 ```
+```setup
+cd ~/tienda_dbt
+```
 :::
 
 :::ejercicio quiz

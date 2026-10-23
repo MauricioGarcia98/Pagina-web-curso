@@ -176,9 +176,9 @@ airflow dags list-import-errors
 :::
 
 :::ejercicio cli
-Prueba **solo la tarea** `transformar` del DAG `etl_ventas` para la fecha `2024-03-15`.
+Prueba **solo la tarea** `validar` del DAG `etl_ventas` para la fecha `2024-03-15`.
 ```respuesta
-airflow tasks test etl_ventas transformar 2024-03-15
+airflow tasks test etl_ventas validar 2024-03-15
 ```
 :::
 
@@ -197,6 +197,9 @@ airflow dags trigger etl_ventas --conf '{"pais": "Chile"}'
 Pausa el DAG `reporte_mensual`.
 ```respuesta
 airflow dags pause reporte_mensual
+```
+```setup
+printf "from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.empty import EmptyOperator\n\nwith DAG(\"reporte_mensual\", start_date=datetime(2024, 1, 1), schedule=\"@monthly\", catchup=False) as dag:\n    EmptyOperator(task_id=\"generar\")\n" > ~/dags/reporte_mensual.py
 ```
 :::
 

@@ -236,7 +236,7 @@ models:
       const ch = src[i];
       if (q) {
         if (ch === q) { q = null; continue; }
-        if (ch === '\\' && q === '"' && i + 1 < src.length) { cur += src[++i]; continue; }
+        if (ch === '\\' && q === '"' && i + 1 < src.length) { cur += '$`"\\\n'.includes(src[i + 1]) ? src[++i] : ch; continue; }
         cur += ch; continue;
       }
       if (ch === "'" || ch === '"') { q = ch; has = true; continue; }
@@ -274,6 +274,7 @@ models:
     let out = '', i = 0;
     while (i < src.length) {
       if (src[i] === "'") { const j = src.indexOf("'", i + 1); const end = j < 0 ? src.length : j + 1; out += src.slice(i, end); i = end; continue; }
+      if (src[i] === '\\' && src[i + 1] === '$') { out += '\\$'; i += 2; continue; }   // \$ = $ literal (lo resuelve tokenize)
       if (src[i] === '$' && src[i + 1] === '(') {
         let depth = 1, j = i + 2;
         while (j < src.length && depth) { if (src[j] === '(') depth++; else if (src[j] === ')') depth--; j++; }
@@ -440,6 +441,16 @@ models:
     if (a[0] === '-n') { n = true; a = a.slice(1); }
     if (a[0] === '-e') a = a.slice(1);
     return ok(a.join(' ').replace(/\\n/g, '\n') + (n ? '' : ''));
+  });
+  def('printf', 'imprime con formato: printf "a,b\\n1,2\\n" > archivo.csv', (a) => {
+    if (!a.length) return fail('printf: uso: printf FORMATO [ARGUMENTOS...]');
+    const fmt = a[0], args = a.slice(1);
+    const esc = (t) => t.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
+    let i = 0, out = '';
+    do {
+      out += esc(fmt).replace(/%[sdf%]/g, (m) => (m === '%%' ? '%' : args[i++] ?? ''));
+    } while (i > 0 && i < args.length);
+    return ok(out.replace(/\n$/, ''));
   });
   def('cd', 'cambia de carpeta', (a) => {
     const p = norm(a[0] === '-' ? Machine.env.OLDPWD || HOME : a[0] || HOME);
@@ -892,7 +903,57 @@ for _n, _fn in list(_ns.items()):
     lines.push('', `${hhmmss()}  Done. PASS=${pass} WARN=0 ERROR=${err} FAIL=${failN} TOTAL=${tests.length}`);
     return { out: lines.join('\n'), code: failN || err ? 1 : 0 };
   }
+  // dbt seed: carga cada seeds/*.csv como tabla (tipos inferidos: entero, decimal o texto)
+  async function dbtSeed(root) {
+    const E = window.Engines.SQL;
+    if (!E._bytes) await E.init();
+    const db = E.playground();
+    const files = Object.keys(Machine.fs).filter((k) => k.startsWith(root + '/seeds/') && k.endsWith('.csv')).sort();
+    const lines = [`${hhmmss()}  Running with dbt=1.8.7`, `${hhmmss()}  Found ${files.length} seeds`, ''];
+    if (!files.length) return ok(lines.concat(col.dim('  (la carpeta seeds/ no tiene archivos .csv)')).join('\n'));
+    const parse = (line) => {
+      const out = []; let cur = '', q = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+        else if (ch === '"') q = true; else if (ch === ',') { out.push(cur); cur = ''; } else cur += ch;
+      }
+      out.push(cur); return out;
+    };
+    let errN = 0;
+    files.forEach((f, i) => {
+      const name = base(f).replace(/\.csv$/, '');
+      try {
+        const rows = readFile(f).split(/\r?\n/).filter((l) => l.trim()).map(parse);
+        const cols = rows.shift().map((c) => c.trim());
+        const tipo = (j) => rows.every((r) => /^-?\d+$/.test(r[j] || '')) ? 'INTEGER' : rows.every((r) => /^-?\d+(\.\d+)?$/.test(r[j] || '')) ? 'REAL' : 'TEXT';
+        const tipos = cols.map((_, j) => tipo(j));
+        const prev = db.exec(`SELECT type FROM sqlite_master WHERE name = '${name}'`);
+        const t = prev.length && prev[0].values.length ? prev[0].values[0][0] : null;
+        if (t) db.exec(`DROP ${t === 'view' ? 'VIEW' : 'TABLE'} "${name}"`);
+        db.exec(`CREATE TABLE "${name}" (${cols.map((c, j) => `"${c}" ${tipos[j]}`).join(', ')})`);
+        const st = db.prepare(`INSERT INTO "${name}" VALUES (${cols.map(() => '?').join(',')})`);
+        for (const r of rows) st.run(cols.map((_, j) => (r[j] === undefined || r[j] === '' ? null : tipos[j] === 'TEXT' ? r[j] : Number(r[j]))));
+        st.free();
+        lines.push(`${hhmmss()}  ${i + 1} of ${files.length} ${col.ok('OK')} loaded seed file main.${name} [INSERT ${rows.length}]`);
+      } catch (e) { errN++; lines.push(`${hhmmss()}  ${i + 1} of ${files.length} ${col.err('ERROR')} seed ${name}: ${e.message}`); }
+    });
+    lines.push('', `${hhmmss()}  Done. PASS=${files.length - errN} WARN=0 ERROR=${errN} SKIP=0 TOTAL=${files.length}`);
+    return { out: lines.join('\n'), code: errN ? 1 : 0 };
+  }
   def('dbt', 'dbt real sobre SQLite: init, debug, run, test, build, compile, ls, seed, docs', async (a) => {
+    // como en dbt real, --select acepta varios nodos separados por espacios: -s a b c
+    {
+      const out = [];
+      let modo = null;   // 'valor': el próximo argumento es el selector; 'mas': los siguientes se suman
+      for (const x of a) {
+        if (modo === 'valor') { out.push(x); modo = 'mas'; continue; }
+        if (modo === 'mas' && !x.startsWith('-')) { out[out.length - 1] += ' ' + x; continue; }
+        modo = ['-s', '--select', '-m'].includes(x) ? 'valor' : null;
+        out.push(x);
+      }
+      a = out;
+    }
     const { flags, pos } = parseArgs(a, { alias: { '-s': '--select', '-m': '--select' }, bool: ['--full-refresh', '--version'] });
     const sub = pos[0];
     if (flags['--version'] || sub === '--version') return ok('Core:\n  - installed: 1.8.7\nPlugins:\n  - databricks: 1.8.5 (simulado: ejecuta sobre SQLite)');
@@ -912,7 +973,7 @@ for _n, _fn in list(_ns.items()):
     switch (sub) {
       case 'debug': return ok(`${hhmmss()}  Running with dbt=1.8.7\n  dbt_project.yml file [${col.ok('OK found and valid')}]\n  profiles.yml file [${col.ok('OK found and valid')}]\nConnection:\n  host: sqlite (navegador)\n  schema: main\n  Connection test: [${col.ok('OK connection ok')}]\n\n${col.ok('All checks passed!')}`);
       case 'deps': return ok(`${hhmmss()}  Installing dbt-labs/dbt_utils\n${hhmmss()}  Installed from version 1.3.0`);
-      case 'seed': return ok(`${hhmmss()}  Found 0 seeds (carpeta seeds/ vacía)`);
+      case 'seed': return dbtSeed(root);
       case 'ls': case 'list': return ok(selectModels(models, sel).map((m) => `${base(root)}.${m.folder}.${m.name}`).join('\n'));
       case 'compile': {
         const ms = selectModels(models, sel);

@@ -88,6 +88,15 @@ Construye y prueba **todo** el proyecto en el orden correcto (modelos, tests, se
 ```respuesta
 dbt build
 ```
+```setup
+cd ~/tienda_dbt
+mkdir -p models/marts seeds
+printf "select cliente_id, nombre, apellido, pais, segmento\nfrom {{ source('tienda', 'clientes') }}\n" > models/marts/dim_clientes.sql
+printf "select * from {{ ref('stg_ventas') }}\n" > models/marts/fct_ventas.sql
+printf "{{ config(materialized='incremental') }}\nselect pedido_id, cliente_id, fecha_pedido, estado\nfrom {{ source('tienda', 'pedidos') }}\n" > models/marts/fct_eventos.sql
+printf "version: 2\nmodels:\n  - name: dim_clientes\n    columns:\n      - name: cliente_id\n        data_tests: [unique, not_null]\n" > models/marts/_dim_clientes.yml
+printf "pais,region\nChile,Cono Sur\nPerú,Andina\n" > seeds/regiones.csv
+```
 :::
 
 :::ejercicio cli
@@ -99,6 +108,15 @@ dbt build (-s|--select) \+fct_ventas
 ```solucion
 dbt run -s +fct_ventas
 ```
+```setup
+cd ~/tienda_dbt
+mkdir -p models/marts seeds
+printf "select cliente_id, nombre, apellido, pais, segmento\nfrom {{ source('tienda', 'clientes') }}\n" > models/marts/dim_clientes.sql
+printf "select * from {{ ref('stg_ventas') }}\n" > models/marts/fct_ventas.sql
+printf "{{ config(materialized='incremental') }}\nselect pedido_id, cliente_id, fecha_pedido, estado\nfrom {{ source('tienda', 'pedidos') }}\n" > models/marts/fct_eventos.sql
+printf "version: 2\nmodels:\n  - name: dim_clientes\n    columns:\n      - name: cliente_id\n        data_tests: [unique, not_null]\n" > models/marts/_dim_clientes.yml
+printf "pais,region\nChile,Cono Sur\nPerú,Andina\n" > seeds/regiones.csv
+```
 :::
 
 :::ejercicio cli
@@ -108,6 +126,16 @@ dbt test (-s|--select) dim_clientes
 ```
 ```solucion
 dbt test -s dim_clientes
+```
+```setup
+cd ~/tienda_dbt
+mkdir -p models/marts seeds
+printf "select cliente_id, nombre, apellido, pais, segmento\nfrom {{ source('tienda', 'clientes') }}\n" > models/marts/dim_clientes.sql
+printf "select * from {{ ref('stg_ventas') }}\n" > models/marts/fct_ventas.sql
+printf "{{ config(materialized='incremental') }}\nselect pedido_id, cliente_id, fecha_pedido, estado\nfrom {{ source('tienda', 'pedidos') }}\n" > models/marts/fct_eventos.sql
+printf "version: 2\nmodels:\n  - name: dim_clientes\n    columns:\n      - name: cliente_id\n        data_tests: [unique, not_null]\n" > models/marts/_dim_clientes.yml
+printf "pais,region\nChile,Cono Sur\nPerú,Andina\n" > seeds/regiones.csv
+dbt run -s dim_clientes > /dev/null
 ```
 :::
 
@@ -121,6 +149,15 @@ dbt build (-s|--select) fct_eventos --full-refresh
 ```solucion
 dbt run -s fct_eventos --full-refresh
 ```
+```setup
+cd ~/tienda_dbt
+mkdir -p models/marts seeds
+printf "select cliente_id, nombre, apellido, pais, segmento\nfrom {{ source('tienda', 'clientes') }}\n" > models/marts/dim_clientes.sql
+printf "select * from {{ ref('stg_ventas') }}\n" > models/marts/fct_ventas.sql
+printf "{{ config(materialized='incremental') }}\nselect pedido_id, cliente_id, fecha_pedido, estado\nfrom {{ source('tienda', 'pedidos') }}\n" > models/marts/fct_eventos.sql
+printf "version: 2\nmodels:\n  - name: dim_clientes\n    columns:\n      - name: cliente_id\n        data_tests: [unique, not_null]\n" > models/marts/_dim_clientes.yml
+printf "pais,region\nChile,Cono Sur\nPerú,Andina\n" > seeds/regiones.csv
+```
 :::
 
 :::ejercicio cli
@@ -133,11 +170,29 @@ dbt build (-s|--select) state:modified\+ --defer --state \.?/?prod/?
 ```solucion
 dbt build -s state:modified+ --state ./prod
 ```
+```setup
+cd ~/tienda_dbt
+mkdir -p models/marts seeds
+printf "select cliente_id, nombre, apellido, pais, segmento\nfrom {{ source('tienda', 'clientes') }}\n" > models/marts/dim_clientes.sql
+printf "select * from {{ ref('stg_ventas') }}\n" > models/marts/fct_ventas.sql
+printf "{{ config(materialized='incremental') }}\nselect pedido_id, cliente_id, fecha_pedido, estado\nfrom {{ source('tienda', 'pedidos') }}\n" > models/marts/fct_eventos.sql
+printf "version: 2\nmodels:\n  - name: dim_clientes\n    columns:\n      - name: cliente_id\n        data_tests: [unique, not_null]\n" > models/marts/_dim_clientes.yml
+printf "pais,region\nChile,Cono Sur\nPerú,Andina\n" > seeds/regiones.csv
+```
 :::
 
 :::ejercicio cli
 Carga los archivos CSV de la carpeta `seeds/`.
 ```respuesta
 dbt seed
+```
+```setup
+cd ~/tienda_dbt
+mkdir -p models/marts seeds
+printf "select cliente_id, nombre, apellido, pais, segmento\nfrom {{ source('tienda', 'clientes') }}\n" > models/marts/dim_clientes.sql
+printf "select * from {{ ref('stg_ventas') }}\n" > models/marts/fct_ventas.sql
+printf "{{ config(materialized='incremental') }}\nselect pedido_id, cliente_id, fecha_pedido, estado\nfrom {{ source('tienda', 'pedidos') }}\n" > models/marts/fct_eventos.sql
+printf "version: 2\nmodels:\n  - name: dim_clientes\n    columns:\n      - name: cliente_id\n        data_tests: [unique, not_null]\n" > models/marts/_dim_clientes.yml
+printf "pais,region\nChile,Cono Sur\nPerú,Andina\n" > seeds/regiones.csv
 ```
 :::
