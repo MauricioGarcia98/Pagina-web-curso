@@ -1,6 +1,6 @@
 ---
 titulo: Unity Catalog: permisos y gobierno
-nivel: Avanzado
+nivel: Intermedio
 duracion: 25
 resumen: Jerarquía de objetos, GRANT/REVOKE, grupos, external locations, volúmenes y tablas de sistema.
 ---

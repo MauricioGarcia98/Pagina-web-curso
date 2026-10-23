@@ -146,7 +146,7 @@ button { font: inherit; color: inherit; }
 pre { margin: 16px 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font-size: 13.8px; line-height: 1.6; color: var(--code-ink); position: relative; }
 pre code { background: none; padding: 0; }
 .code-block { position: relative; margin: 16px 0; }
-.code-block pre { margin: 0; }
+.code-block pre { margin: 0; padding-top: 40px; }
 .code-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; opacity: .92; }
 .code-tools button { font-size: 12px; border: 1px solid var(--line-2); background: var(--surface); border-radius: 7px; padding: 3px 9px; cursor: pointer; color: var(--ink-2); }
 .code-tools button:hover { color: var(--brand); border-color: var(--brand); }
@@ -340,6 +340,7 @@ table.result .rn { color: var(--ink-3); text-align: right; user-select: none; }
 .schema-cols div { padding: 1px 0; cursor: pointer; }
 .schema-cols div:hover { color: var(--brand); }
 .schema-cols em { color: var(--ink-3); font-style: normal; margin-left: 4px; }
+.lab-main { min-width: 0; }
 .lab-main .card { overflow: hidden; }
 .lab-main .ex-tools { border-top: 1px solid var(--line); }
 .samples select { border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13.5px; max-width: 100%; }

@@ -135,7 +135,8 @@
   };
   function tableHtml(res, max = 200) {
     const rows = res.values.slice(0, max);
-    return `<div class="result-table-wrap"><table class="result"><thead><tr><th class="rn">#</th>${res.columns.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map((r, i) => `<tr><td class="rn">${i + 1}</td>${r.map(fmtCell).join('')}</tr>`).join('')}</tbody></table></div>`;
+    const numCol = res.columns.map((_, j) => { const v = rows.find((r) => r[j] !== null && r[j] !== undefined); return v && typeof v[j] === 'number'; });
+    return `<div class="result-table-wrap"><table class="result"><thead><tr><th class="rn">#</th>${res.columns.map((c, j) => `<th class="${numCol[j] ? 'num' : ''}">${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map((r, i) => `<tr><td class="rn">${i + 1}</td>${r.map(fmtCell).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
   function renderSqlOutput(out, r) {
     out.innerHTML = '';
@@ -739,7 +740,7 @@
       <div class="table-wrap"><table><thead><tr><th>Columna</th><th>Apunta a</th></tr></thead><tbody>${RELS.map(([a, b]) => `<tr><td><code>${a}</code></td><td><code>${b}</code></td></tr>`).join('')}</tbody></table></div>
       <h2>Tablas</h2><div id="tablesList"><div class="loading-block"><span class="spinner"></span> Cargando…</div></div>
       <h2>Datos curiosos para tus análisis</h2>
-      <ul><li>Las ventas tienen <b>estacionalidad</b>: suben en noviembre-diciembre y en julio.</li><li>Un ~12% de los clientes <b>nunca compró</b> (útil para LEFT JOIN y anti-joins).</li><li>Algunos productos venden muchísimo más que otros (distribución de “cola larga”).</li><li><code>clientes_crudo</code> tiene duplicados con mayúsculas y espacios: perfecta para limpiar datos.</li><li><code>logins</code> tiene rachas de días consecutivos (el clásico problema “gaps &amp; islands”).</li><li><code>tipos_cambio</code> no tiene fines de semana: ideal para practicar “último valor conocido”.</li><li>Las fechas se guardan como texto ISO (<code>'2024-03-15'</code>), como es habitual en SQLite.</li></ul>
+      <ul><li>Las ventas tienen <b>estacionalidad</b>: suben en noviembre-diciembre y en julio.</li><li>Más de 500 clientes (≈27%) <b>nunca compraron</b>: útiles para practicar LEFT JOIN y anti-joins.</li><li>Las ventas <b>crecen</b> año a año (2022 → 2024) y los pedidos se numeran en orden cronológico.</li><li>Algunos productos venden muchísimo más que otros (distribución de “cola larga”).</li><li><code>clientes_crudo</code> tiene duplicados con mayúsculas y espacios: perfecta para limpiar datos.</li><li><code>logins</code> tiene rachas de días consecutivos (el clásico problema “gaps &amp; islands”).</li><li><code>tipos_cambio</code> no tiene fines de semana: ideal para practicar “último valor conocido”.</li><li>Las fechas se guardan como texto ISO (<code>'2024-03-15'</code>), como es habitual en SQLite.</li></ul>
     </div>`;
     SQL.init().then(() => {
       const box = $('#tablesList'); if (!box) return; box.innerHTML = '';
