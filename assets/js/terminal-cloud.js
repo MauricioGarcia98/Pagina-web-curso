@@ -1009,17 +1009,27 @@
       }
       case 'jobs': {
         if (p[1] === 'list') return A.get('--output', '-o') === 'json' ? out(Object.entries(s.jobs).map(([k, j]) => ({ job_id: Number(k), settings: { name: j.name } }))) : asText(Object.entries(s.jobs).map(([k, j]) => ({ ID: k, Name: j.name })), ['ID', 'Name']);
-        if (p[1] === 'create') { const nid = Math.floor(100000 + Math.random() * 900000); const js = A.get('--json'); let name = 'nuevo_job'; if (js && js !== true) { const raw = String(js).startsWith('@') ? Sh.readFile(Sh.norm(String(js).slice(1))) : js; try { name = JSON.parse(raw).name || name; } catch (er) { return fail('Error: el --json no es válido'); } } s.jobs[nid] = { name, runs: [] }; save(); return out({ job_id: nid }); }
+        if (p[1] === 'create') { const nid = Math.floor(100000 + Math.random() * 900000); const js = A.get('--json'); let name = 'nuevo_job'; let cfg = {}; if (js && js !== true) { const raw = String(js).startsWith('@') ? Sh.readFile(Sh.norm(String(js).slice(1))) : js; try { cfg = JSON.parse(raw); name = cfg.name || name; } catch (er) { return fail('Error: el --json no es válido: ' + er.message); }
+            const keys = (cfg.tasks || []).map((t) => t.task_key);
+            for (const t of cfg.tasks || []) { if (!t.task_key) return fail('Error: cada tarea necesita un task_key'); for (const d of t.depends_on || []) if (!keys.includes(d.task_key)) return fail(`Error: Invalid dependency: task '${t.task_key}' depends on '${d.task_key}', which does not exist in the job.`); }
+          } s.jobs[nid] = { name, runs: [], settings: cfg }; save(); return out({ job_id: nid }); }
         const jid = p[2] || A.get('--job-id');
         if (p[1] === 'run-now') {
           const j = s.jobs[jid]; if (!jid) return fail('Error: accepts 1 arg(s), received 0 (falta JOB_ID)'); if (!j) return fail(`Error: Job ${jid} does not exist.`);
           let params = {};
           const js = A.get('--json'); if (js && js !== true) { try { params = JSON.parse(js).job_parameters || {}; } catch (er) { return fail(`Error: invalid character in --json: ${er.message}`); } }
+          const defs = Object.fromEntries(((j.settings || {}).parameters || []).map((x) => [x.name, x.default]));
+          params = Object.assign(defs, params);
           const run = { run_id: Math.floor(1e8 + Math.random() * 9e8), params, state: 'TERMINATED', result: 'SUCCESS', at: now() }; j.runs.unshift(run); save();
+          const tareas = ((j.settings || {}).tasks || []).slice(); const orden = []; const hechas = new Set();
+          while (tareas.length) { const i = tareas.findIndex((t) => (t.depends_on || []).every((d) => hechas.has(d.task_key))); if (i < 0) break; const [t] = tareas.splice(i, 1); hechas.add(t.task_key); orden.push(t); }
+          const hh = () => new Date().toTimeString().slice(0, 8);
+          const detalle = orden.length ? '\n' + orden.map((t) => `${hh()} tarea ${col.b(t.task_key)}${(t.depends_on || []).length ? col.dim(' (después de ' + t.depends_on.map((d) => d.task_key).join(', ') + ')') : ''}: ${col.ok('SUCCESS')}`).join('\n') : '';
+          const pr = Object.keys(params).length ? '\n' + col.dim('parámetros: ' + JSON.stringify(params)) : '';
           if (A.flags['--no-wait']) return out({ run_id: run.run_id });
-          return ok(`${col.dim(`Run URL: https://adb-1234567890123456.7.azuredatabricks.net/?o=1234567890123456#job/${jid}/run/${run.run_id}`)}\n${new Date().toTimeString().slice(0, 8)} "${j.name}" RUNNING\n${new Date().toTimeString().slice(0, 8)} "${j.name}" TERMINATED ${col.ok('SUCCESS')}\n` + JSON.stringify({ job_id: Number(jid), run_id: run.run_id, state: { life_cycle_state: 'TERMINATED', result_state: 'SUCCESS' }, job_parameters: Object.entries(params).map(([k, v]) => ({ name: k, value: v })) }, null, 2));
+          return ok(`${col.dim(`Run URL: https://adb-1234567890123456.7.azuredatabricks.net/?o=1234567890123456#job/${jid}/run/${run.run_id}`)}\n${new Date().toTimeString().slice(0, 8)} "${j.name}" RUNNING${pr}${detalle}\n${new Date().toTimeString().slice(0, 8)} "${j.name}" TERMINATED ${col.ok('SUCCESS')}\n` + JSON.stringify({ job_id: Number(jid), run_id: run.run_id, state: { life_cycle_state: 'TERMINATED', result_state: 'SUCCESS' }, job_parameters: Object.entries(params).map(([k, v]) => ({ name: k, value: v })) }, null, 2));
         }
-        if (p[1] === 'get') { const j = s.jobs[jid]; if (!j) return fail(`Error: Job ${jid} does not exist.`); return out({ job_id: Number(jid), settings: { name: j.name, max_concurrent_runs: 1, tasks: [{ task_key: 'main' }] } }); }
+        if (p[1] === 'get') { const j = s.jobs[jid]; if (!j) return fail(`Error: Job ${jid} does not exist.`); return out({ job_id: Number(jid), settings: Object.assign({ name: j.name, max_concurrent_runs: 1, tasks: [{ task_key: 'main' }] }, j.settings || {}) }); }
         if (p[1] === 'list-runs') { const j = s.jobs[A.get('--job-id') || jid]; return out((j ? j.runs : Object.values(s.jobs).flatMap((x) => x.runs)).map((r) => ({ run_id: r.run_id, state: { life_cycle_state: r.state, result_state: r.result }, start_time: r.at }))); }
         if (p[1] === 'get-run' || p[1] === 'cancel-run') { const r = Object.values(s.jobs).flatMap((x) => x.runs).find((x) => String(x.run_id) === String(p[2])); if (!r) return fail(`Error: Run ${p[2]} does not exist.`); if (p[1] === 'cancel-run') return ok(''); return out({ run_id: r.run_id, state: { life_cycle_state: r.state, result_state: r.result } }); }
         if (p[1] === 'delete') { delete s.jobs[jid]; save(); return ok(''); }
