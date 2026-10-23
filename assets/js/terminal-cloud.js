@@ -379,6 +379,39 @@
   });
   function parseTags(t) { const o = {}; if (t && t !== true) for (const kv of String(t).split(/\s+/)) { const [k, v] = kv.split('='); if (k) o[k] = v ?? ''; } return o; }
 
+  // ---- tablas del lago: CSV guardados en buckets simulados -> tabla real en la base del navegador
+  function parseCsvLine(l) {
+    const out = []; let cur = '', q = false;
+    for (let i = 0; i < l.length; i++) {
+      const ch = l[i];
+      if (q) { if (ch === '"' && l[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+      else if (ch === '"') q = true; else if (ch === ',') { out.push(cur); cur = ''; } else cur += ch;
+    }
+    out.push(cur); return out;
+  }
+  // files: [{ text, parts: {col: valor} }]; header: true si la primera línea es el encabezado; cols: nombres si no hay encabezado
+  async function materialize(name, files, { header = true, cols = null } = {}) {
+    const E = window.Engines.SQL; if (!E._bytes) await E.init();
+    const db = E.playground();
+    let names = cols, rows = [];
+    for (const f of files) {
+      const lines = String(f.text).replace(/\r/g, '').split('\n').filter((x) => x.trim());
+      if (!lines.length) continue;
+      if (header) { const h = parseCsvLine(lines.shift()).map((x) => x.trim()); if (!names) names = h; }
+      for (const l of lines) rows.push(parseCsvLine(l).concat(Object.values(f.parts || {})));
+    }
+    if (!names) return false;
+    const partCols = Object.keys((files[0] && files[0].parts) || {}).filter((c) => !names.includes(c));
+    const all = names.concat(partCols);
+    const qi = (c) => '"' + c.replace(/"/g, '') + '"';
+    const val = (v) => (v === undefined || v === '' ? 'NULL' : /^-?\d+(\.\d+)?$/.test(v) ? v : "'" + String(v).replace(/'/g, "''") + "'");
+    let sql = `DROP TABLE IF EXISTS ${name}; CREATE TABLE ${name} (${all.map(qi).join(', ')});`;
+    for (let i = 0; i < rows.length; i += 400) sql += `INSERT INTO ${name} VALUES ${rows.slice(i, i + 400).map((r) => '(' + all.map((_, j) => val(r[j])).join(', ') + ')').join(', ')};`;
+    const r = E.exec(sql, db);
+    return r.ok;
+  }
+  const partsOf = (key) => Object.fromEntries(key.split('/').slice(0, -1).filter((x) => /^\w+=/.test(x)).map((x) => x.split('=')));
+
   // ================================================================== AWS
   const AWS_REGIONS = ['us-east-1', 'us-east-2', 'us-west-2', 'sa-east-1', 'eu-west-1', 'eu-central-1', 'mx-central-1'];
   function aws() {
@@ -396,7 +429,7 @@
     const s = aws();
     const A = args(a);
     const p = A.pos;
-    if (!p.length || p[0] === 'help') return ok(`usage: aws [options] <command> <subcommand> [parameters]\n\nServicios simulados: s3, s3api, sts, iam, glue, athena, emr, kinesis, lambda, stepfunctions, redshift, configure\nEjemplo: aws s3 mb s3://mi-data-lake-2025`);
+    if (!p.length || p[0] === 'help') return ok(`usage: aws [options] <command> <subcommand> [parameters]\n\nServicios simulados: s3, s3api, sts, iam, glue, athena, emr, kinesis, firehose, lambda, stepfunctions, events, redshift-data, lakeformation, logs, cloudformation, mwaa, configure\nEjemplo: aws s3 mb s3://mi-data-lake-2025`);
     if (A.flags['--version']) return ok('aws-cli/2.17.0 Python/3.11.9 Linux/x86_64');
     if (p[0] === 'configure') {
       if (p[1] === 'list') return ok(`      Name                    Value             Type    Location\n      ----                    -----             ----    --------\n   profile                <not set>             None    None\naccess_key     ****************${s.configured ? 'ABCD' : '<not set>'} shared-credentials-file\nsecret_key     ****************${s.configured ? 'wxyz' : '<not set>'} shared-credentials-file\n    region                ${s.region}      config-file    ~/.aws/config`);
@@ -522,7 +555,17 @@
         const q = A.get('--query-string'); if (!q || q === true) return fail('aws: error: the following arguments are required: --query-string', 252);
         if (!A.get('--result-configuration') && !A.get('--work-group')) return fail('An error occurred (InvalidRequestException) when calling the StartQueryExecution operation: No output location provided. An output location is required either through the Workgroup result configuration setting or as an API input. (agrega --result-configuration OutputLocation=s3://…)', 254);
         const id = uid(8) + '-' + uid(4) + '-' + uid(4) + '-' + uid(4) + '-' + uid(12);
-        const sql = String(q).replace(/"?(\w+)"?\."?(\w+)"?(?=\s|$|,|\))/g, (m0, a1, b1) => (s.glueDbs[a1] ? b1 : m0)).replace(/\bAwsDataCatalog\./gi, '');
+        let sql = String(q).replace(/\bAwsDataCatalog\./gi, '');
+        // tablas del catálogo con archivos reales en el bucket: se cargan desde el CSV; si no, se usan las tablas del curso
+        const refs = [...sql.matchAll(/"?(\w+)"?\."?(\w+)"?(?=\s|$|,|\)|;)/g)];
+        for (const m of refs) {
+          const t = s.glueDbs[m[1]] && s.glueDbs[m[1]].tables[m[2]];
+          if (!t || !t.location) continue;
+          const L = s3path(t.location); const bk = L && s.buckets[L.b];
+          const files = bk ? Object.keys(bk.objects).filter((k) => k.startsWith(L.k) && /\.(csv|txt)$/i.test(k)).map((k) => ({ text: bk.objects[k].c, parts: partsOf(k.slice(L.k.length)) })) : [];
+          if (files.length && await materialize(`${m[1]}__${m[2]}`, files)) t.local = `${m[1]}__${m[2]}`;
+        }
+        sql = sql.replace(/"?(\w+)"?\."?(\w+)"?(?=\s|$|,|\)|;)/g, (m0, a1, b1) => { const t = s.glueDbs[a1] && s.glueDbs[a1].tables[b1]; return t && t.local ? t.local : s.glueDbs[a1] ? b1 : m0; });
         const E = window.Engines.SQL; if (!E._bytes) await E.init();
         const r = E.exec(sql, E.playground());
         s.athena[id] = r.ok ? { state: 'SUCCEEDED', res: r.results[r.results.length - 1] || { columns: [], values: [] }, q } : { state: 'FAILED', reason: r.error.split('\n')[0], q };
@@ -532,6 +575,7 @@
       if (p[1] === 'get-query-results') {
         const x = s.athena[A.get('--query-execution-id')]; if (!x) return fail('QueryExecution not found', 254);
         if (x.state !== 'SUCCEEDED') return fail(`An error occurred (InvalidRequestException) when calling the GetQueryResults operation: Query has not yet finished. Current state: FAILED (${x.reason})`, 254);
+        if ((A.get('--output', '-o') || s.output) === 'table' && !A.get('--query')) return ok(Sh.fmtTable(x.res.columns, x.res.values.slice(0, 1000).map((r) => r.map((v) => (v === null ? '' : String(v))))));
         const rows = [{ Data: x.res.columns.map((c) => ({ VarCharValue: c })) }, ...x.res.values.slice(0, 1000).map((r) => ({ Data: r.map((v) => (v === null ? {} : { VarCharValue: String(v) })) }))];
         return out({ ResultSet: { Rows: rows, ResultSetMetadata: { ColumnInfo: x.res.columns.map((c) => ({ Name: c, Type: 'varchar' })) } } });
       }
@@ -559,7 +603,46 @@
       if (p[1] === 'list-state-machines') return out({ stateMachines: Object.keys(s.sfn).map((n) => ({ name: n, stateMachineArn: arn('states', 'stateMachine:' + n), type: 'STANDARD' })) });
       if (p[1] === 'start-execution') return out({ executionArn: arn('states', 'execution:pipeline-diario:' + uid(8)), startDate: now() });
     }
+    if (p[0] === 'redshift-data') {
+      s.rsStmts = s.rsStmts || {};
+      if (p[1] === 'execute-statement') {
+        const q = A.get('--sql'); if (!q || q === true) return fail('aws: error: the following arguments are required: --sql', 252);
+        if (!A.get('--workgroup-name') && !A.get('--cluster-identifier')) return fail('An error occurred (ValidationException) when calling the ExecuteStatement operation: Either a cluster identifier or a workgroup name must be provided.', 254);
+        if (!A.get('--database')) return fail('aws: error: the following arguments are required: --database', 252);
+        const id = uid(8) + '-' + uid(4) + '-' + uid(4) + '-' + uid(4) + '-' + uid(12);
+        const E = window.Engines.SQL; if (!E._bytes) await E.init();
+        const r = E.exec(String(q).replace(/\bpublic\./gi, ''), E.playground());
+        s.rsStmts[id] = r.ok ? { state: 'FINISHED', res: r.results[r.results.length - 1] || { columns: [], values: [] } } : { state: 'FAILED', reason: r.error.split('\n')[0] };
+        save(); return out({ Id: id, Database: A.get('--database'), WorkgroupName: A.get('--workgroup-name'), CreatedAt: now() });
+      }
+      if (p[1] === 'describe-statement') { const x = s.rsStmts[A.get('--id')]; if (!x) return fail('An error occurred (ResourceNotFoundException) when calling the DescribeStatement operation: Query does not exist.', 254); return out({ Id: A.get('--id'), Status: x.state, Error: x.reason, HasResultSet: x.state === 'FINISHED' && x.res.columns.length > 0, ResultRows: x.res ? x.res.values.length : 0 }); }
+      if (p[1] === 'get-statement-result') {
+        const x = s.rsStmts[A.get('--id')]; if (!x) return fail('ResourceNotFoundException: Query does not exist.', 254);
+        if (x.state !== 'FINISHED') return fail(`An error occurred (ValidationException): Query failed: ${x.reason}`, 254);
+        return out({ ColumnMetadata: x.res.columns.map((c) => ({ name: c })), Records: x.res.values.slice(0, 1000).map((r) => r.map((v) => (v === null ? { isNull: true } : typeof v === 'number' ? (Number.isInteger(v) ? { longValue: v } : { doubleValue: v }) : { stringValue: String(v) }))), TotalNumRows: x.res.values.length });
+      }
+    }
     if (p[0] === 'redshift-serverless' || p[0] === 'redshift') return out({ workgroups: [{ workgroupName: 'analitica', status: 'AVAILABLE', baseCapacity: 8 }] });
+    if (p[0] === 'lakeformation') {
+      s.lf = s.lf || [];
+      if (p[1] === 'grant-permissions') { const pr = A.get('--principal'), rs = A.get('--resource'), pe = A.get('--permissions'); if (!pr || !rs || !pe) return fail('aws: error: the following arguments are required: --principal, --resource, --permissions', 252); s.lf.push({ Principal: { DataLakePrincipalIdentifier: String(pr).replace(/^.*DataLakePrincipalIdentifier=/, '') }, Resource: String(rs), Permissions: String(pe).split(/[\s,]+/) }); save(); return ok(''); }
+      if (p[1] === 'list-permissions') return out({ PrincipalResourcePermissions: s.lf });
+    }
+    if (p[0] === 'firehose') {
+      s.firehose = s.firehose || {};
+      if (p[1] === 'create-delivery-stream') { const n = A.get('--delivery-stream-name'); if (!n) return fail('aws: error: the following arguments are required: --delivery-stream-name', 252); s.firehose[n] = { records: 0 }; save(); return out({ DeliveryStreamARN: arn('firehose', 'deliverystream/' + n) }); }
+      if (p[1] === 'list-delivery-streams') return out({ DeliveryStreamNames: Object.keys(s.firehose), HasMoreDeliveryStreams: false });
+      if (p[1] === 'put-record') { const x = s.firehose[A.get('--delivery-stream-name')]; if (!x) return fail(`An error occurred (ResourceNotFoundException) when calling the PutRecord operation: Firehose ${A.get('--delivery-stream-name')} under account ${s.account} not found.`, 254); x.records++; save(); return out({ RecordId: uid(56), Encrypted: false }); }
+    }
+    if (p[0] === 'events') {
+      s.rules = s.rules || {};
+      if (p[1] === 'put-rule') { const n = A.get('--name'); if (!n) return fail('aws: error: the following arguments are required: --name', 252); if (!A.get('--schedule-expression') && !A.get('--event-pattern')) return fail('An error occurred (ValidationException) when calling the PutRule operation: Parameter(s) ScheduleExpression or EventPattern must be specified.', 254); s.rules[n] = { schedule: A.get('--schedule-expression'), pattern: A.get('--event-pattern'), targets: [] }; save(); return out({ RuleArn: arn('events', 'rule/' + n) }); }
+      if (p[1] === 'put-targets') { const r = s.rules[A.get('--rule')]; if (!r) return fail(`An error occurred (ResourceNotFoundException) when calling the PutTargets operation: Rule ${A.get('--rule')} does not exist on EventBus default.`, 254); r.targets.push(A.get('--targets')); save(); return out({ FailedEntryCount: 0, FailedEntries: [] }); }
+      if (p[1] === 'list-rules') return out({ Rules: Object.entries(s.rules).map(([n, r]) => ({ Name: n, State: 'ENABLED', ScheduleExpression: r.schedule })) });
+    }
+    if (p[0] === 'logs' && p[1] === 'tail') return ok(`${now().slice(0, 19)} [INFO] START RequestId: ${uid(8)}\n${now().slice(0, 19)} [INFO] Procesando s3://datos/landing/ventas.csv\n${now().slice(0, 19)} [INFO] 1250 filas válidas, 3 descartadas\n${now().slice(0, 19)} [INFO] END RequestId (Duration: 812 ms, Max Memory Used: 96 MB)`);
+    if (p[0] === 'cloudformation' && p[1] === 'deploy') { if (!A.get('--template-file') || !A.get('--stack-name')) return fail('aws: error: the following arguments are required: --template-file, --stack-name', 252); return ok(`\nWaiting for changeset to be created..\nWaiting for stack create/update to complete\nSuccessfully created/updated stack - ${A.get('--stack-name')}`); }
+    if (p[0] === 'stepfunctions' && p[1] === 'create-state-machine') { const n = A.get('--name'); if (!n || !A.get('--definition') || !A.get('--role-arn')) return fail('aws: error: the following arguments are required: --name, --definition, --role-arn', 252); s.sfn[n] = {}; save(); return out({ stateMachineArn: arn('states', 'stateMachine:' + n), creationDate: now() }); }
     if (p[0] === 'mwaa' && p[1] === 'list-environments') return out({ Environments: ['airflow-datos'] });
     return fail(`aws: error: argument operation: '${p.slice(0, 2).join(' ')}' no está simulado en esta terminal (o está mal escrito). Prueba: aws help`, 252);
   });
@@ -710,7 +793,7 @@
       if (!b || b.objects[t.k] === undefined) return fail(`BigQuery error in load operation: Error processing job: Not found: URI ${src}`);
       const lines = b.objects[t.k].replace(/\n$/, '').split('\n');
       const n = lines.length - (A.get('--skip_leading_rows') ? Number(A.get('--skip_leading_rows')) : 0);
-      s.datasets[ds].tables[tb] = { rows: n, schema: schema || (A.flags['--autodetect'] ? 'autodetect' : lines[0]) }; save();
+      s.datasets[ds].tables[tb] = { rows: n, schema: schema || (A.flags['--autodetect'] ? 'autodetect' : lines[0]), csv: b.objects[t.k], skip: Number(A.get('--skip_leading_rows') || 0), cols: schema ? schema.split(',').map((x) => x.split(':')[0]) : null }; save();
       return ok(`Waiting on bqjob_r${uid(16)}_${uid(16)} ... (1s) Current status: DONE\n${col.dim(`(${n} filas cargadas en ${proj}:${ds}.${tb})`)}`);
     }
     if (p[0] === 'show') { const [ds, tb] = (p[1] || '').replace(/^.*:/, '').split('.'); const d = s.datasets[ds]; if (!d) return fail(`BigQuery error in show operation: Not found: Dataset ${proj}:${ds}`); if (tb) { const x = d.tables[tb]; if (!x) return fail(`BigQuery error in show operation: Not found: Table ${proj}:${ds}.${tb}`); return ok(`Table ${proj}:${ds}.${tb}\n\n   Last modified       Total Rows\n ----------------- ------------\n  ${now().slice(0, 16)}   ${x.rows}`); } return ok(`Dataset ${proj}:${ds}\n\n   Last modified    Location\n ----------------- ----------\n  ${now().slice(0, 16)}   ${d.location}`); }
@@ -722,7 +805,18 @@
       if (legacy === undefined || legacy === 'true') return fail(`Error in query string: Error processing job: ${col.warn('Legacy SQL')} es el valor por defecto de bq. Agrega --use_legacy_sql=false para usar GoogleSQL (estándar).`);
       if (A.flags['--dry_run']) return ok(`Query successfully validated. Assuming the tables are not modified, running this query will process ${Math.floor(Math.random() * 9e8)} bytes of data.`);
       // `proyecto.dataset.tabla` -> tabla del curso
-      q = q.replace(/`([\w-]+\.)?([\w-]+)\.(\w+)`/g, (m0, pr, ds, tb) => tb).replace(/\b[\w-]+\.(tienda|curso|banco|ventas|analytics|datos)\.(\w+)/g, '$2');
+      // tablas cargadas con bq load: se materializan desde el CSV; el resto apunta a las tablas del curso
+      const local = async (ds, tb) => {
+        const t = s.datasets[ds] && s.datasets[ds].tables[tb];
+        if (!t || !t.csv) return tb;
+        const header = t.cols ? t.skip > 0 : true;
+        const text = t.cols && t.skip > 1 ? t.csv.split('\n').slice(t.skip - 1).join('\n') : t.csv;
+        return (await materialize(`${ds}__${tb}`, [{ text }], { header, cols: t.cols })) ? `${ds}__${tb}` : tb;
+      };
+      const refs = [...q.matchAll(/`(?:[\w-]+\.)?([\w-]+)\.(\w+)`|\b(?:[\w-]+\.)?([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b/g)];
+      const map = {};
+      for (const m of refs) { const ds = m[1] || m[3], tb = m[2] || m[4]; if (s.datasets[ds] || /^(tienda|curso|banco|ventas|analytics|datos)$/.test(ds)) map[m[0]] = await local(ds, tb); }
+      q = q.replace(/`(?:[\w-]+\.)?([\w-]+)\.(\w+)`|\b(?:[\w-]+\.)?([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b/g, (m0) => map[m0] || m0);
       const r = await Sh.sqlExec(q);
       return r;
     }

@@ -67,6 +67,9 @@ Mira qué archivos cambiaron y cuáles están preparados para el commit.
 git status
 git status -s
 ```
+```setup
+git init
+```
 :::
 
 :::ejercicio cli
@@ -79,6 +82,10 @@ git add --all
 ```solucion
 git add .
 ```
+```setup
+git init
+echo "# práctica $(date)" > limpiar_clientes.py
+```
 :::
 
 :::ejercicio cli
@@ -89,6 +96,11 @@ git commit -m ["']Agrega limpieza de clientes["']
 ```solucion
 git commit -m "Agrega limpieza de clientes"
 ```
+```setup
+git init
+echo "# práctica $(date)" > limpiar_clientes.py
+git add .
+```
 :::
 
 :::ejercicio cli
@@ -96,6 +108,9 @@ Crea una rama nueva llamada `feature/airflow-dag` y cámbiate a ella en un solo 
 ```respuesta
 git switch -c feature/airflow-dag
 git checkout -b feature/airflow-dag
+```
+```setup
+git init
 ```
 :::
 

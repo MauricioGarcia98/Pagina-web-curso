@@ -269,7 +269,7 @@ models:
     parts.push({ text: cur, sep: null });
     return parts;
   }
-  async function expand(src, env) {
+  async function expand(src, env, opts = {}) {
     // $(comando)
     let out = '', i = 0;
     while (i < src.length) {
@@ -278,8 +278,10 @@ models:
         let depth = 1, j = i + 2;
         while (j < src.length && depth) { if (src[j] === '(') depth++; else if (src[j] === ')') depth--; j++; }
         const inner = src.slice(i + 2, j - 1);
-        const r = await runLine(inner, { capture: true });
-        out += r.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '').replace(/\n+$/, '');
+        const r = await runLine(inner, Object.assign({}, opts, { capture: true }));
+        // como en bash: si falla, el error se muestra (stderr) y no se pega dentro del comando
+        if (r.code) { (opts._err = opts._err || []).push(r.out); }
+        else out += r.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '').replace(/\n+$/, '');
         i = j; continue;
       }
       if (src[i] === '$' && /[A-Za-z_{?]/.test(src[i + 1] || '')) {
@@ -303,7 +305,7 @@ models:
   const fail = (out, code = 1) => ({ out: col.err(out), code });
 
   async function runSimple(text, stdin, opts) {
-    let toks = tokenize(await expand(text, Machine.env));
+    let toks = tokenize(await expand(text, Machine.env, opts));
     // asignaciones VAR=valor
     while (toks.length && typeof toks[0] === 'string' && /^[A-Za-z_]\w*=/.test(toks[0])) {
       const [k, ...v] = toks.shift().split('=');
@@ -374,6 +376,7 @@ models:
     for (const p of parts) {
       if (!skip && p.text.trim()) {
         last = await runPipeline(p.text.trim(), opts);
+        if (opts._err && opts._err.length) { out.push(...opts._err.map((x) => x.replace(/\n$/, ''))); opts._err = []; }
         Machine.env['?'] = String(last.code);
         if (last.out) out.push(last.out.replace(/\n$/, ''));
         if (last.clear) out = ['\u0000CLEAR'];
@@ -1226,7 +1229,7 @@ for _n, _fn in list(_ns.items()):
       const slow = /^\s*(python|python3|pytest|dbt|airflow|sqlite3)\b/.test(line);
       if (slow) print('<span class="t-dim">' + (window.Engines.PY.status === 'ready' || /sqlite3/.test(line) ? 'ejecutando…' : 'cargando Python en tu navegador (solo la primera vez)…') + '</span>');
       let r;
-      try { r = await runLine(line, { autoLogin: !!opts.autoLogin }); } catch (e) { r = { out: col.err(e.message), code: 1 }; }
+      try { if (opts.beforeRun) await opts.beforeRun(); r = await runLine(line, { autoLogin: !!opts.autoLogin }); } catch (e) { r = { out: col.err(e.message), code: 1 }; }
       if (slow) out.lastChild && out.lastChild.remove();
       busy = false; el.classList.remove('busy');
       if (r.out.startsWith('\u0000CLEAR')) { out.innerHTML = ''; r.out = r.out.slice(6).replace(/^\n/, ''); }

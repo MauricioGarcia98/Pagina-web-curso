@@ -86,7 +86,7 @@ echo $AMBIENTE        # imprime: desarrollo
 
 ## Practica
 
-Escribe el comando exacto que se pide. (Aquí no hay una terminal real: el sitio revisa que tu comando sea correcto.)
+Cada ejercicio trae su propia **terminal**: escribe el comando y presiona Enter. Se ejecuta de verdad sobre una máquina simulada (la misma del **Laboratorio → Terminal**), que ya tiene archivos en las carpetas `datos/` y `logs/`. Puedes explorar con `ls` antes de responder.
 
 :::ejercicio cli
 ¿Con qué comando ves **en qué carpeta estás**?
@@ -99,22 +99,22 @@ pwd
 :::
 
 :::ejercicio cli
-Crea una carpeta llamada `datos`.
+Crea una carpeta llamada `reportes`.
 ```respuesta
-mkdir datos
-mkdir -p datos
+mkdir reportes
+mkdir -p reportes
 ```
 :::
 
 :::ejercicio cli
-Muestra las **primeras 10 líneas** del archivo `ventas.csv`.
+Muestra las **primeras 10 líneas** del archivo `datos/ventas_2024_12.csv`.
 ```respuesta
-head ventas\.csv
-head -n ?10 ventas\.csv
-head -10 ventas\.csv
+head (\./)?datos/ventas_2024_12\.csv
+head -n ?10 (\./)?datos/ventas_2024_12\.csv
+head -10 (\./)?datos/ventas_2024_12\.csv
 ```
 ```solucion
-head -n 10 ventas.csv
+head -n 10 datos/ventas_2024_12.csv
 ```
 ```pista
 El comando es `head`. Por defecto ya muestra 10 líneas, pero también puedes usar `-n 10`.
@@ -122,14 +122,14 @@ El comando es `head`. Por defecto ya muestra 10 líneas, pero también puedes us
 :::
 
 :::ejercicio cli
-Cuenta cuántas líneas tiene `clientes.csv`.
+Cuenta cuántas líneas tiene `datos/clientes.csv`.
 ```respuesta
-wc -l clientes\.csv
-wc -l < clientes\.csv
-cat clientes\.csv \| wc -l
+wc -l (\./)?datos/clientes\.csv
+wc -l < (\./)?datos/clientes\.csv
+cat (\./)?datos/clientes\.csv \| wc -l
 ```
 ```solucion
-wc -l clientes.csv
+wc -l datos/clientes.csv
 ```
 ```pista
 `wc` significa *word count*; con la opción `-l` cuenta líneas.
@@ -137,13 +137,13 @@ wc -l clientes.csv
 :::
 
 :::ejercicio cli
-Busca las líneas que contienen la palabra `ERROR` en el archivo `pipeline.log` y **cuéntalas**, usando una tubería.
+Busca las líneas que contienen la palabra `ERROR` en el archivo `logs/pipeline.log` y **cuéntalas**, usando una tubería.
 ```respuesta
-grep ['"]?ERROR['"]? pipeline\.log \| wc -l
-cat pipeline\.log \| grep ['"]?ERROR['"]? \| wc -l
+grep ['"]?ERROR['"]? (\./)?logs/pipeline\.log \| wc -l
+cat (\./)?logs/pipeline\.log \| grep ['"]?ERROR['"]? \| wc -l
 ```
 ```solucion
-grep "ERROR" pipeline.log | wc -l
+grep "ERROR" logs/pipeline.log | wc -l
 ```
 ```pista
 Primero `grep` filtra las líneas, luego `|` las pasa a `wc -l`.

@@ -556,7 +556,7 @@
     const tools = h(`<div class="ex-tools">${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
     card.append(box, tools, fb, extra);
     const tool = (ex.respuesta[0].replace(/^todos:\s*/, '').match(/^[\w-]+/) || [''])[0];
-    const term = window.Shell.createTerminal(box, {
+    const termOpts = {
       compact: true, autoLogin: true,
       welcome: `\u0001t-dim\u0002Escribe el comando que pide el ejercicio y presiona Enter. Puedes explorar con otros comandos (ls, cat, help…).\u0003`,
       onCommand: (line, r, mode) => {
@@ -571,9 +571,18 @@
         } else if (!tool || line.trim().replace(/^\$\s*/, '').startsWith(tool)) feedback('bad', '✗ ' + g.msg);
         else feedback('info', 'Ese comando no es el que pide el ejercicio, pero puedes seguir explorando la terminal.');
       },
-    });
+    };
+    const term = window.Shell.createTerminal(box, termOpts);
     const last = Store.code(ex.id);
     if (last) term.input.value = last;
+    // preparación silenciosa (por ejemplo, crear el bucket que el ejercicio da por existente)
+    // se ejecuta al enfocar la terminal por primera vez, en cola para no mezclarse con otras preparaciones
+    let prepared = null;
+    const prep = () => {
+      if (!prepared) prepared = CLI.setupQueue = (CLI.setupQueue || Promise.resolve()).then(async () => { for (const l of ex.setup.split('\n').filter((x) => x.trim())) await window.Shell.runLine(l, { autoLogin: true }); }).catch(() => {});
+      return prepared;
+    };
+    if (ex.setup) { term.input.addEventListener('focus', prep, { once: true }); termOpts.beforeRun = prep; }
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
       if (a === 'hint') showExtra('Pista', ex.pista);

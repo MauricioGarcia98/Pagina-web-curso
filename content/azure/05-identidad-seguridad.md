@@ -67,6 +67,9 @@ todos: az keyvault create || (--name|-n) kv-datos-dev || (--resource-group|-g) r
 ```solucion
 az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+```
 :::
 
 :::ejercicio cli
@@ -76,6 +79,10 @@ todos: az keyvault secret set || --vault-name kv-datos-dev || (--name|-n) databr
 ```
 ```solucion
 az keyvault secret set --vault-name kv-datos-dev --name databricks-token --value "dapi123"
+```
+```setup
+az group create --name rg-datos-dev --location eastus2
+az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
 ```
 :::
 
@@ -87,6 +94,11 @@ todos: az keyvault secret show || --vault-name kv-datos-dev || (--name|-n) datab
 ```solucion
 az keyvault secret show --vault-name kv-datos-dev --name databricks-token --query value -o tsv
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
+az keyvault secret set --vault-name kv-datos-dev --name databricks-token --value dapi123
+```
 :::
 
 :::ejercicio cli
@@ -96,6 +108,11 @@ todos: az role assignment create || --assignee ['"]?ana@empresa\.com['"]? || --r
 ```
 ```solucion
 az role assignment create --assignee ana@empresa.com --role "Storage Blob Data Reader" --scope $ST_ID
+```
+```setup
+az group create --name rg-datos-dev --location eastus2
+az storage account create --name stdatosdev001 --resource-group rg-datos-dev --location eastus2 --sku Standard_LRS --kind StorageV2 --hns true
+ST_ID=$(az storage account show --name stdatosdev001 --resource-group rg-datos-dev --query id -o tsv)
 ```
 :::
 

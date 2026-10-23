@@ -84,6 +84,9 @@ databricks fs cp (\./)?clientes\.csv dbfs:/Volumes/main/crudo/archivos/clientes\
 ```solucion
 databricks fs cp ./clientes.csv dbfs:/Volumes/main/crudo/archivos/clientes.csv
 ```
+```setup
+cp datos/clientes.csv clientes.csv
+```
 :::
 
 :::ejercicio cli
@@ -135,6 +138,9 @@ Guarda en el scope `datos-api` el secreto `token` (deja que la CLI te pida el va
 ```respuesta
 databricks secrets put-secret datos-api token
 ```
+```setup
+databricks secrets create-scope datos-api
+```
 :::
 
 :::ejercicio cli
@@ -144,5 +150,8 @@ todos: databricks workspace import /Shared/pipelines/silver || --file (\./)?silv
 ```
 ```solucion
 databricks workspace import /Shared/pipelines/silver --file ./silver.py --language PYTHON --format SOURCE
+```
+```setup
+echo "df = spark.table(\"bronze.ventas\")" > silver.py
 ```
 :::

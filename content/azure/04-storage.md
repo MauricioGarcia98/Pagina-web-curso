@@ -87,6 +87,9 @@ az storage account create --name stdatosdev001 --resource-group rg-datos-dev --l
 ```pista
 Parámetros: `--name`, `--resource-group`, `--location`, `--sku Standard_LRS` y `--hns true` (opcionalmente `--kind StorageV2`).
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+```
 :::
 
 :::ejercicio cli
@@ -98,6 +101,10 @@ todos: az storage fs create || (--name|-n) silver || --account-name stdatosdev00
 ```solucion
 az storage container create --name silver --account-name stdatosdev001 --auth-mode login
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+az storage account create --name stdatosdev001 --resource-group rg-datos-dev --location eastus2 --sku Standard_LRS --kind StorageV2 --hns true
+```
 :::
 
 :::ejercicio cli
@@ -108,6 +115,12 @@ todos: az storage blob upload || --account-name stdatosdev001 || (--container-na
 ```solucion
 az storage blob upload --account-name stdatosdev001 --container-name bronze --name clientes/clientes.csv --file ./clientes.csv --auth-mode login
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+az storage account create --name stdatosdev001 --resource-group rg-datos-dev --location eastus2 --sku Standard_LRS --kind StorageV2 --hns true
+az storage container create --name bronze --account-name stdatosdev001 --auth-mode login
+cp datos/clientes.csv clientes.csv
+```
 :::
 
 :::ejercicio cli
@@ -117,6 +130,12 @@ todos: az storage blob list || --account-name stdatosdev001 || (--container-name
 ```
 ```solucion
 az storage blob list --account-name stdatosdev001 --container-name bronze --output table --auth-mode login
+```
+```setup
+az group create --name rg-datos-dev --location eastus2
+az storage account create --name stdatosdev001 --resource-group rg-datos-dev --location eastus2 --sku Standard_LRS --kind StorageV2 --hns true
+az storage container create --name bronze --account-name stdatosdev001 --auth-mode login
+az storage blob upload --account-name stdatosdev001 --container-name bronze --name clientes/clientes.csv --file datos/clientes.csv --auth-mode login
 ```
 :::
 

@@ -123,6 +123,9 @@ az group delete (--yes|-y) --no-wait (--name|-n) rg-lab-temporal
 ```solucion
 az group delete --name rg-lab-temporal --yes --no-wait
 ```
+```setup
+az group create --name rg-lab-temporal --location eastus2
+```
 :::
 
 :::ejercicio quiz

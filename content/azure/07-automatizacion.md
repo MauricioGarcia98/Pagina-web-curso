@@ -85,6 +85,10 @@ todos: az deployment group what-if || (--resource-group|-g) rg-datos-dev || (--t
 ```solucion
 az deployment group what-if --resource-group rg-datos-dev --template-file main.bicep
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+echo "param location string = resourceGroup().location" > main.bicep
+```
 :::
 
 :::ejercicio cli
@@ -94,6 +98,10 @@ todos: az deployment group create || (--resource-group|-g) rg-datos-prod || (--t
 ```
 ```solucion
 az deployment group create --resource-group rg-datos-prod --template-file main.bicep --parameters entorno=prod
+```
+```setup
+az group create --name rg-datos-prod --location eastus2
+echo "param entorno string" > main.bicep
 ```
 :::
 

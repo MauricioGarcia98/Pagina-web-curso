@@ -141,6 +141,14 @@ databricks bundle validate( (-t|--target) \w+)?
 ```solucion
 databricks bundle validate
 ```
+```setup
+databricks bundle init
+cd mi_proyecto
+echo "resources:" > resources/etl_diario.job.yml
+echo "  jobs:" >> resources/etl_diario.job.yml
+echo "    etl_diario:" >> resources/etl_diario.job.yml
+echo "      name: etl_diario" >> resources/etl_diario.job.yml
+```
 :::
 
 :::ejercicio cli
@@ -150,6 +158,14 @@ databricks bundle deploy (-t|--target) dev
 ```
 ```solucion
 databricks bundle deploy -t dev
+```
+```setup
+databricks bundle init
+cd mi_proyecto
+echo "resources:" > resources/etl_diario.job.yml
+echo "  jobs:" >> resources/etl_diario.job.yml
+echo "    etl_diario:" >> resources/etl_diario.job.yml
+echo "      name: etl_diario" >> resources/etl_diario.job.yml
 ```
 :::
 
@@ -162,6 +178,15 @@ databricks bundle run etl_diario (-t|--target) dev
 ```solucion
 databricks bundle run -t dev etl_diario
 ```
+```setup
+databricks bundle init
+cd mi_proyecto
+echo "resources:" > resources/etl_diario.job.yml
+echo "  jobs:" >> resources/etl_diario.job.yml
+echo "    etl_diario:" >> resources/etl_diario.job.yml
+echo "      name: etl_diario" >> resources/etl_diario.job.yml
+databricks bundle deploy -t dev
+```
 :::
 
 :::ejercicio cli
@@ -171,6 +196,15 @@ databricks bundle destroy (-t|--target) dev( --auto-approve)?
 ```
 ```solucion
 databricks bundle destroy -t dev
+```
+```setup
+databricks bundle init
+cd mi_proyecto
+echo "resources:" > resources/etl_diario.job.yml
+echo "  jobs:" >> resources/etl_diario.job.yml
+echo "    etl_diario:" >> resources/etl_diario.job.yml
+echo "      name: etl_diario" >> resources/etl_diario.job.yml
+databricks bundle deploy -t dev
 ```
 :::
 

@@ -538,6 +538,157 @@ class EmailOperator(_RecordingOperator):
     pass
 
 
+
+# ---------------------------------------------------------------- proveedores de nube (AWS y Google Cloud)
+class _RecordingSensor(BaseSensorOperator):
+    """Sensores de proveedores: guardan su configuración y se cumplen al instante."""
+
+    def __init__(self, task_id, **kw):
+        base_keys = set(_inspect.signature(BaseSensorOperator.__init__).parameters) | set(_inspect.signature(BaseOperator.__init__).parameters)
+        own = {k: v for k, v in kw.items() if k not in base_keys}
+        base = {k: v for k, v in kw.items() if k in base_keys}
+        super().__init__(task_id, **base)
+        for k, v in own.items():
+            setattr(self, k, v)
+        self.config = own
+
+    def poke(self, context):
+        print("     (simulado) %s: condición cumplida (%s)" % (type(self).__name__, ", ".join("%s=%r" % kv for kv in self.config.items())))
+        return True
+
+
+class S3CreateBucketOperator(_RecordingOperator):
+    pass
+
+
+class S3CreateObjectOperator(_RecordingOperator):
+    pass
+
+
+class S3CopyObjectOperator(_RecordingOperator):
+    pass
+
+
+class S3DeleteObjectsOperator(_RecordingOperator):
+    pass
+
+
+class GlueJobOperator(_RecordingOperator):
+    pass
+
+
+class GlueCrawlerOperator(_RecordingOperator):
+    pass
+
+
+class AthenaOperator(_RecordingOperator):
+    pass
+
+
+class EmrServerlessStartJobOperator(_RecordingOperator):
+    pass
+
+
+class EmrCreateJobFlowOperator(_RecordingOperator):
+    pass
+
+
+class EmrAddStepsOperator(_RecordingOperator):
+    pass
+
+
+class EmrTerminateJobFlowOperator(_RecordingOperator):
+    pass
+
+
+class RedshiftDataOperator(_RecordingOperator):
+    pass
+
+
+class LambdaInvokeFunctionOperator(_RecordingOperator):
+    pass
+
+
+class StepFunctionStartExecutionOperator(_RecordingOperator):
+    pass
+
+
+class S3KeySensor(_RecordingSensor):
+    pass
+
+
+class GlueJobSensor(_RecordingSensor):
+    pass
+
+
+class GlueCrawlerSensor(_RecordingSensor):
+    pass
+
+
+class AthenaSensor(_RecordingSensor):
+    pass
+
+
+class GCSCreateBucketOperator(_RecordingOperator):
+    pass
+
+
+class GCSDeleteObjectsOperator(_RecordingOperator):
+    pass
+
+
+class GCSToBigQueryOperator(_RecordingOperator):
+    pass
+
+
+class BigQueryInsertJobOperator(_RecordingOperator):
+    pass
+
+
+class BigQueryCreateEmptyDatasetOperator(_RecordingOperator):
+    pass
+
+
+class BigQueryCheckOperator(_RecordingOperator):
+    pass
+
+
+class DataprocCreateClusterOperator(_RecordingOperator):
+    pass
+
+
+class DataprocSubmitJobOperator(_RecordingOperator):
+    pass
+
+
+class DataprocDeleteClusterOperator(_RecordingOperator):
+    pass
+
+
+class DataprocCreateBatchOperator(_RecordingOperator):
+    pass
+
+
+class DataflowStartFlexTemplateOperator(_RecordingOperator):
+    pass
+
+
+class DataformCreateCompilationResultOperator(_RecordingOperator):
+    pass
+
+
+class DataformCreateWorkflowInvocationOperator(_RecordingOperator):
+    pass
+
+
+class GCSObjectExistenceSensor(_RecordingSensor):
+    pass
+
+
+class BigQueryTableExistenceSensor(_RecordingSensor):
+    pass
+
+
 # ---------------------------------------------------------------- TaskGroup
 class TaskGroup:
     def __init__(self, group_id, tooltip=None, prefix_group_id=True, dag=None, **kw):

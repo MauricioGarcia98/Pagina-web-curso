@@ -67,6 +67,9 @@ todos: az databricks workspace create || (--resource-group|-g) rg-datos-dev || (
 ```solucion
 az databricks workspace create --resource-group rg-datos-dev --name dbw-datos-dev --location eastus2 --sku premium
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+```
 :::
 
 :::ejercicio cli
@@ -80,6 +83,10 @@ az databricks workspace show --resource-group rg-datos-dev --name dbw-datos-dev 
 ```salida
 adb-1234567890123456.7.azuredatabricks.net
 ```
+```setup
+az group create --name rg-datos-dev --location eastus2
+az databricks workspace create --resource-group rg-datos-dev --name dbw-datos-dev --location eastus2 --sku premium
+```
 :::
 
 :::ejercicio cli
@@ -89,6 +96,9 @@ todos: az datafactory create || (--resource-group|-g) rg-datos-dev || (--factory
 ```
 ```solucion
 az datafactory create --resource-group rg-datos-dev --factory-name adf-datos-dev --location eastus2
+```
+```setup
+az group create --name rg-datos-dev --location eastus2
 ```
 :::
 
