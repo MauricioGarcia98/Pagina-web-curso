@@ -1,25 +1,33 @@
 ---
 titulo: Crear y modificar datos: DDL, DML y transacciones
 nivel: Avanzado
-duracion: 35
+duracion: 50
 resumen: CREATE TABLE, restricciones, INSERT, UPDATE, DELETE, UPSERT, vistas y transacciones ACID.
 ---
 
-Hasta ahora solo **leímos** datos. Ahora vamos a crearlos y modificarlos. SQL se divide en “sublenguajes”:
+## De leer a escribir
 
-| Sigla | Nombre | Comandos |
-|---|---|---|
-| **DQL** | Consulta | `SELECT` |
-| **DDL** | Definición | `CREATE`, `ALTER`, `DROP`, `TRUNCATE` |
-| **DML** | Manipulación | `INSERT`, `UPDATE`, `DELETE`, `MERGE` |
-| **DCL** | Control de acceso | `GRANT`, `REVOKE` |
-| **TCL** | Transacciones | `BEGIN`, `COMMIT`, `ROLLBACK` |
+Hasta ahora solo **leíste** datos: ningún `SELECT` cambia nada. Pero alguien tiene que **crear** las tablas, **cargar** las filas y **corregirlas**. En ingeniería de datos lo harás todo el tiempo: crear tablas de staging, cargar el lote del día, actualizar el estado de un pedido, borrar datos de prueba, y hacerlo de forma **segura**, porque aquí sí puedes romper cosas.
 
-:::tip Aquí puedes romper todo
-Cada ejercicio se ejecuta en una **copia nueva** de la base de datos. En los ejemplos (▶ Probar) y en el laboratorio se usa una copia compartida que puedes reiniciar.
+SQL se divide en "sublenguajes" según lo que hace cada instrucción:
+
+| Sigla | Nombre | Comandos | Qué cambia |
+|---|---|---|---|
+| **DQL** | Consulta | `SELECT` | Nada: solo lee |
+| **DDL** | Definición de datos | `CREATE`, `ALTER`, `DROP`, `TRUNCATE` | La **estructura**: tablas, columnas, vistas |
+| **DML** | Manipulación de datos | `INSERT`, `UPDATE`, `DELETE`, `MERGE` | El **contenido**: las filas |
+| **DCL** | Control de acceso | `GRANT`, `REVOKE` | Los **permisos** |
+| **TCL** | Control de transacciones | `BEGIN`, `COMMIT`, `ROLLBACK` | Agrupa cambios en "todo o nada" |
+
+:::analogia La planilla y sus datos
+DDL es diseñar la planilla: qué columnas tiene, de qué tipo, qué reglas cumplen. DML es escribir, corregir y borrar los datos dentro de la planilla. Cambiar el diseño es raro y delicado; cargar datos es diario.
 :::
 
-## CREATE TABLE y restricciones
+:::tip Aquí puedes romper todo
+Cada ejercicio se ejecuta en una **copia nueva** de la base de datos. Los ejemplos (▶) y el laboratorio usan una copia compartida que puedes reiniciar. Experimenta con tranquilidad: es justamente el lugar para equivocarse.
+:::
+
+## CREATE TABLE: diseñar una tabla
 
 ```sql
 CREATE TABLE proveedores (
@@ -32,89 +40,189 @@ CREATE TABLE proveedores (
 );
 ```
 
-| Restricción | Garantiza |
-|---|---|
-| `PRIMARY KEY` | Identificador único y no nulo |
-| `NOT NULL` | Siempre tiene valor |
-| `UNIQUE` | No se repite |
-| `DEFAULT` | Valor por defecto si no se indica |
-| `CHECK` | Cumple una condición |
-| `REFERENCES otra(col)` | Clave foránea: el valor existe en la otra tabla |
+Cada línea define una columna: **nombre**, **tipo** y, opcionalmente, **restricciones**.
 
-## INSERT
+### Tipos de datos más comunes
+
+| Tipo (estándar) | Guarda | En SQLite | En Spark / BigQuery |
+|---|---|---|---|
+| `INTEGER` / `BIGINT` | Números enteros | `INTEGER` | `INT`, `BIGINT` / `INT64` |
+| `DECIMAL(p, s)` / `NUMERIC` | Decimales exactos (dinero) | `REAL` (aproximado) | `DECIMAL(10,2)` / `NUMERIC` |
+| `REAL` / `DOUBLE` / `FLOAT` | Decimales aproximados | `REAL` | `DOUBLE` / `FLOAT64` |
+| `VARCHAR(n)` / `TEXT` | Texto | `TEXT` | `STRING` |
+| `DATE` / `TIMESTAMP` | Fechas y fecha-hora | `TEXT` en formato ISO | `DATE`, `TIMESTAMP` |
+| `BOOLEAN` | Verdadero / falso | `INTEGER` (0/1) | `BOOLEAN` / `BOOL` |
+
+SQLite es muy permisivo con los tipos (puedes guardar texto en una columna `INTEGER`); PostgreSQL, Spark o BigQuery son estrictos y dan error. Diseña tus tablas como si fueran estrictos.
+
+### Restricciones: las reglas que la base hace cumplir
+
+| Restricción | Garantiza | Si se viola… |
+|---|---|---|
+| `PRIMARY KEY` | Identificador único y no nulo | Error: `UNIQUE constraint failed` |
+| `NOT NULL` | Siempre tiene valor | Error al insertar sin ese dato |
+| `UNIQUE` | No se repite (pero puede ser `NULL`) | Error con un duplicado |
+| `DEFAULT valor` | Valor automático si no se indica | — |
+| `CHECK (condición)` | Cumple una regla de negocio | Error: `CHECK constraint failed` |
+| `REFERENCES otra(col)` | Clave foránea: el valor existe en la otra tabla | Error si apunta a algo inexistente (si está activado) |
+
+Las restricciones son **la primera línea de defensa de la calidad de datos**: un error que la base rechaza al cargar es mucho más barato que uno que llega a un reporte del directorio.
+
+:::nota En los data lakes y warehouses
+Snowflake, BigQuery y Redshift **aceptan** declarar `PRIMARY KEY` y `FOREIGN KEY`, pero **no las hacen cumplir** (por rendimiento). Por eso en esos mundos la calidad se verifica con **tests** (los de dbt, por ejemplo: `unique`, `not_null`, `relationships`), que verás en su módulo. Delta Lake sí admite `NOT NULL` y `CHECK`.
+:::
+
+## INSERT: agregar filas
 
 ```sql
 INSERT INTO proveedores (proveedor_id, nombre, email, calificacion)
 VALUES (1, 'Distribuidora Sur', 'ventas@dsur.com', 5),
-       (2, 'TecnoImport', 'hola@tecnoimport.com', 4);
-
--- Insertar el resultado de una consulta
-CREATE TABLE marcas AS SELECT DISTINCT marca FROM productos;
+       (2, 'TecnoImport',       'hola@tecnoimport.com', 4);
 
 SELECT * FROM proveedores;
 ```
 
-## UPDATE y DELETE
+- Lista las columnas **explícitamente** (`(proveedor_id, nombre, …)`): si mañana alguien agrega una columna a la tabla, tu `INSERT` sigue funcionando. Las columnas que no menciones toman su `DEFAULT` (o `NULL`).
+- Puedes insertar **varias filas** en una sola instrucción, separadas por comas. Es mucho más rápido que una instrucción por fila.
 
-```sql norun
-UPDATE productos SET precio = precio * 1.10 WHERE marca = 'Apple';
-DELETE FROM pedidos WHERE estado = 'cancelado' AND fecha_pedido < '2022-06-01';
+### Insertar el resultado de una consulta
+
+```sql
+-- Crear una tabla nueva a partir de una consulta (CTAS: CREATE TABLE AS SELECT)
+CREATE TABLE marcas AS SELECT DISTINCT marca FROM productos;
+
+-- Agregar filas a una tabla existente desde una consulta
+INSERT INTO proveedores (proveedor_id, nombre)
+SELECT 100 + ROW_NUMBER() OVER (ORDER BY marca), 'Proveedor de ' || marca
+FROM marcas;
 ```
 
+`CREATE TABLE … AS SELECT` (CTAS) e `INSERT INTO … SELECT` son las dos formas en que se materializan los resultados en un pipeline: la capa silver se construye con CTAS a partir de bronze, la capa gold a partir de silver. Lo verás en Athena, BigQuery, Databricks y dbt.
+
+## UPDATE y DELETE: modificar y borrar
+
+```sql norun
+-- Subir 10 % el precio de los productos Apple
+UPDATE productos
+SET precio = ROUND(precio * 1.10, 2)
+WHERE marca = 'Apple';
+
+-- Borrar pedidos cancelados antiguos
+DELETE FROM pedidos
+WHERE estado = 'cancelado' AND fecha_pedido < '2022-06-01';
+```
+
+- `UPDATE tabla SET columna = nuevo_valor WHERE condición`: puedes cambiar varias columnas a la vez (`SET a = 1, b = 2`), y el nuevo valor puede usar el valor viejo (`precio * 1.10`).
+- `DELETE FROM tabla WHERE condición`: borra las filas que cumplen la condición.
+
 :::cuidado El WHERE olvidado
-`UPDATE productos SET precio = 0;` sin `WHERE` modifica **todas** las filas. Antes de un UPDATE o DELETE, ejecuta un `SELECT` con el mismo `WHERE` para ver qué vas a tocar. Y en producción, usa transacciones.
+`UPDATE productos SET precio = 0;` **sin** `WHERE` modifica las 300 filas. `DELETE FROM pedidos;` las borra todas. No hay papelera ni "deshacer". El protocolo profesional:
+1. Escribe primero un `SELECT` con el **mismo** `WHERE` y mira cuántas filas devuelve y cuáles son.
+2. Si es lo esperado, cambia `SELECT *` por `UPDATE … SET …` o `DELETE`.
+3. En producción, hazlo dentro de una **transacción** (abajo) y verifica antes del `COMMIT`.
 :::
+
+### DELETE, TRUNCATE y DROP
+
+| Instrucción | Qué borra | ¿La tabla sigue existiendo? | Notas |
+|---|---|---|---|
+| `DELETE FROM t WHERE …` | Las filas que cumplen la condición | Sí | Puede ser lento con millones de filas |
+| `DELETE FROM t` / `TRUNCATE TABLE t` | **Todas** las filas | Sí, vacía | `TRUNCATE` es mucho más rápido (no existe en SQLite) |
+| `DROP TABLE t` | La tabla **completa** (estructura y datos) | No | Usa `DROP TABLE IF EXISTS t` para no fallar si no existe |
+
+## ALTER TABLE: cambiar la estructura
+
+```sql norun
+ALTER TABLE proveedores ADD COLUMN telefono TEXT;          -- agregar columna
+ALTER TABLE proveedores RENAME COLUMN pais TO pais_origen; -- renombrar
+ALTER TABLE proveedores RENAME TO proveedores_v2;          -- renombrar la tabla
+```
+
+Cambiar la estructura de una tabla que ya usan reportes y procesos es delicado: quien hacía `SELECT pais` deja de funcionar. Por eso en equipos grandes los cambios de esquema se versionan y se anuncian (*migraciones*, *contratos de datos*).
 
 ## UPSERT: insertar o actualizar
 
-“Si no existe, insértalo; si existe, actualízalo”. En SQLite y PostgreSQL:
+El problema más común al cargar datos: llega un lote donde algunos registros son **nuevos** y otros son **cambios** de registros existentes. "Si no existe, insértalo; si existe, actualízalo" se llama **upsert** (*update* + *insert*).
+
+En SQLite y PostgreSQL:
 
 ```sql norun
 INSERT INTO proveedores (proveedor_id, nombre, calificacion)
 VALUES (1, 'Distribuidora Sur SA', 4)
-ON CONFLICT (proveedor_id) DO UPDATE SET nombre = excluded.nombre, calificacion = excluded.calificacion;
+ON CONFLICT (proveedor_id) DO UPDATE
+   SET nombre = excluded.nombre,
+       calificacion = excluded.calificacion;
 ```
 
-En Databricks, Snowflake, SQL Server y Oracle se usa `MERGE`, que verás en el módulo de Databricks:
+`excluded` se refiere a la fila que **intentabas** insertar. Si el `proveedor_id` 1 ya existe, en vez de dar error, actualiza sus columnas.
+
+En Databricks, Snowflake, BigQuery, SQL Server y Oracle se usa `MERGE`, más completo (también puede borrar):
 
 ```sql norun
-MERGE INTO destino d USING cambios c ON d.id = c.id
-WHEN MATCHED THEN UPDATE SET *
-WHEN NOT MATCHED THEN INSERT *;
+MERGE INTO clientes_silver AS d
+USING cambios_del_dia AS c
+   ON d.cliente_id = c.cliente_id
+WHEN MATCHED AND c.operacion = 'baja' THEN DELETE
+WHEN MATCHED THEN UPDATE SET d.email = c.email, d.segmento = c.segmento
+WHEN NOT MATCHED THEN INSERT (cliente_id, email, segmento) VALUES (c.cliente_id, c.email, c.segmento);
 ```
+
+`MERGE` es **idempotente** si la clave está bien elegida: ejecutarlo dos veces con el mismo lote deja la tabla igual. Por eso es la base de las cargas incrementales (dbt incremental, Delta Lake, Iceberg).
 
 ## Transacciones y ACID
 
-Una **transacción** agrupa varias operaciones que deben ocurrir **todas o ninguna**. Ejemplo clásico: transferir dinero (restar de una cuenta y sumar en otra).
+Una **transacción** agrupa varias operaciones que deben ocurrir **todas o ninguna**. El ejemplo clásico: una transferencia bancaria. Si se resta de una cuenta y se corta la luz antes de sumar en la otra, el dinero desaparece.
 
 ```sql norun
-BEGIN;
+BEGIN;                                                  -- empieza la transacción
 UPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;
 UPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;
-COMMIT;      -- o ROLLBACK; para deshacer todo
+-- (verificación: SELECT … para comprobar que todo está bien)
+COMMIT;                                                 -- confirma: los cambios son definitivos
+-- o ROLLBACK;                                          -- deshace todo lo hecho desde el BEGIN
 ```
 
-**ACID** son las garantías de una base de datos transaccional:
+**ACID** son las cuatro garantías de una base de datos transaccional:
 
-- **A**tomicidad: todo o nada.
-- **C**onsistencia: las restricciones siempre se cumplen.
-- a**I**slamiento: las transacciones simultáneas no se pisan.
-- **D**urabilidad: lo confirmado no se pierde aunque se corte la luz.
+| Letra | Propiedad | Significa | En el ejemplo |
+|---|---|---|---|
+| **A** | Atomicidad | Todo o nada | No queda la resta sin la suma |
+| **C** | Consistencia | Las reglas (restricciones) siempre se cumplen | Un `CHECK (saldo >= 0)` impide saldos negativos |
+| **I** | Aislamiento | Transacciones simultáneas no se pisan | Dos transferencias a la vez no leen saldos a medio actualizar |
+| **D** | Durabilidad | Lo confirmado no se pierde | Tras el `COMMIT`, aunque se corte la luz, la transferencia quedó |
 
-Delta Lake lleva estas garantías a los archivos del data lake.
+Durante años los data lakes (archivos en S3 o ADLS) **no** tenían estas garantías: un job que fallaba a la mitad dejaba archivos sueltos. **Delta Lake**, **Apache Iceberg** y **Hudi** llevaron ACID a los archivos del lago: es una de las razones por las que existe el *lakehouse*.
 
-## Vistas
+## Vistas: consultas guardadas con nombre
 
-Una **vista** es una consulta guardada con nombre. No guarda datos: se recalcula cada vez.
+Una **vista** es una consulta guardada con un nombre. **No guarda datos**: cada vez que la consultas, ejecuta la consulta original sobre los datos actuales.
 
 ```sql
 CREATE VIEW v_ventas_diarias AS
-SELECT p.fecha_pedido AS dia, ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+SELECT p.fecha_pedido AS dia,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
 FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
 GROUP BY p.fecha_pedido;
 
 SELECT * FROM v_ventas_diarias ORDER BY dia DESC LIMIT 5;
 ```
+
+| | Vista | Tabla (CTAS) | Vista materializada |
+|---|---|---|---|
+| Guarda datos | No | Sí | Sí |
+| Siempre actualizada | Sí | No (hay que recalcularla) | El motor la refresca |
+| Velocidad al consultar | Lo que tarde la consulta | Rápida | Rápida |
+| Uso típico | Simplificar consultas, ocultar columnas sensibles | Capas de un pipeline | Dashboards con agregados frecuentes |
+
+En dbt, elegir entre vista y tabla es elegir la **materialización** de un modelo (`view`, `table`, `incremental`).
+
+## Resumen
+
+- DDL cambia estructuras (`CREATE`, `ALTER`, `DROP`); DML cambia filas (`INSERT`, `UPDATE`, `DELETE`, `MERGE`).
+- Las restricciones (`PRIMARY KEY`, `NOT NULL`, `UNIQUE`, `CHECK`, `REFERENCES`) protegen la calidad.
+- Antes de `UPDATE`/`DELETE`, prueba el `WHERE` con un `SELECT`. Sin `WHERE`, afecta todas las filas.
+- Upsert: `INSERT … ON CONFLICT` (SQLite/PostgreSQL) o `MERGE` (Databricks, Snowflake, BigQuery…).
+- Transacciones = todo o nada (ACID). Vistas = consultas guardadas sin datos.
 
 ## Ejercicios
 

@@ -5,11 +5,29 @@ duracion: 50
 resumen: Deduplicación, gaps & islands (rachas), sesiones, embudos, cohortes y "último valor conocido".
 ---
 
-Estos son los problemas que separan a un analista de un **experto**. Aparecen todo el tiempo en el trabajo real y en entrevistas de nivel senior. Todos combinan CTEs y funciones de ventana.
+Estos son los problemas que separan a un analista de un **experto**. Ninguno se resuelve con una sola cláusula: todos combinan CTE, funciones de ventana y agregaciones en **varios pasos**. La forma de abordarlos es siempre la misma: entender el patrón con un ejemplo chico (como las tablas de abajo), escribir cada paso en una CTE y verificar el resultado intermedio antes de seguir.
+
+| Patrón | Pregunta de negocio típica | Herramienta clave |
+|---|---|---|
+| Deduplicación | "Quédate con la versión más reciente de cada cliente" | `ROW_NUMBER` + `rn = 1` |
+| Gaps & islands | "¿Cuál fue la racha más larga de días seguidos?" | fecha − número de fila |
+| Sesionización | "Agrupa los clics en visitas" | `LAG` + suma acumulada de cortes |
+| Embudos | "¿Cuántos llegaron a cada paso de la compra?" | `COUNT(DISTINCT CASE …)` |
+| Cohortes | "¿Qué % de los clientes de enero sigue comprando?" | primera fecha + meses transcurridos |
+| Último valor conocido | "Usa el tipo de cambio vigente ese día" | as-of join |
+
+ Aparecen todo el tiempo en el trabajo real y en entrevistas de nivel senior. Todos combinan CTEs y funciones de ventana.
 
 ## 1. Deduplicación: quedarse con el registro más reciente
 
-La tabla `clientes_crudo` tiene el mismo cliente cargado varias veces. Patrón: numerar las copias de cada clave y quedarse con la #1.
+Los datos crudos casi siempre traen **duplicados**: el sistema de origen reenvió un registro, un proceso se ejecutó dos veces, o el cliente actualizó su email y llegó una versión nueva. En la capa limpia (silver) debe quedar **una fila por clave**, normalmente la más reciente.
+
+La tabla `clientes_crudo` tiene el mismo cliente cargado varias veces, con distintas `fecha_carga`. El patrón tiene dos pasos:
+
+1. **Numerar** las copias de cada `cliente_id`, de la más reciente a la más vieja: `ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_carga DESC)`. La más reciente recibe el 1.
+2. **Quedarse** con las filas numeradas 1.
+
+Aprovecha el mismo paso para limpiar (`TRIM`, `LOWER`): deduplicar y normalizar van juntos.
 
 ```sql
 WITH numerados AS (
@@ -25,7 +43,9 @@ LIMIT 10;
 
 ## 2. Gaps & islands: rachas de días consecutivos
 
-La tabla `logins` tiene los días en que cada cliente entró. ¿Cuál fue su racha más larga de días seguidos?
+La tabla `logins` tiene los días en que cada cliente entró a la app. Queremos sus **rachas** (*streaks*): bloques de días **consecutivos**. Se llama *gaps and islands* (huecos e islas): las rachas son islas separadas por huecos.
+
+¿Por qué es difícil? Porque "consecutivo" compara cada fila con la anterior, y una racha puede tener 2 días o 200: no sirve un número fijo de `LAG`.
 
 El truco genial: si a cada fecha le restas su número de fila (en días), las fechas **consecutivas** dan **el mismo resultado**. Ese valor identifica la “isla”.
 
@@ -53,7 +73,15 @@ SELECT * FROM rachas WHERE cliente_id = 1 ORDER BY desde;
 
 ## 3. Sesionización: agrupar clics en visitas
 
-Una **sesión** termina si pasan más de 30 minutos sin actividad. Patrón: con `LAG` detectas los “cortes” y con una **suma acumulada** de cortes numeras las sesiones.
+Las herramientas de analítica web (como Google Analytics) agrupan los eventos de un usuario en **sesiones** (visitas). La regla estándar: una sesión **termina** si pasan más de 30 minutos sin actividad; el próximo evento abre una sesión nueva. Los datos crudos solo traen eventos sueltos; las sesiones hay que construirlas.
+
+El razonamiento en tres pasos:
+
+1. Para cada evento, ¿cuántos minutos pasaron desde el evento **anterior del mismo usuario**? → `LAG`.
+2. Si fueron más de 30 (o es el primer evento), marca un **corte**: `1`; si no, `0`.
+3. La **suma acumulada** de los cortes numera las sesiones: 1, 1, 1, 2, 2, 3… Cada corte incrementa el contador.
+
+
 
 ```sql
 WITH e AS (
@@ -75,6 +103,10 @@ ORDER BY fecha_hora;
 
 ## 4. Embudos (funnels)
 
+Un **embudo** (*funnel*) mide cuántas personas llegan a cada paso de un proceso: ver un producto → agregar al carrito → iniciar el pago → confirmar. Siempre se "angosta" hacia abajo, y la pregunta del negocio es **dónde se pierde más gente** (la conversión entre pasos).
+
+Se calcula en una sola pasada contando **personas distintas** que pasaron por cada paso (no eventos: alguien que vio 10 productos cuenta una vez). La técnica es `COUNT(DISTINCT CASE WHEN condición THEN cliente_id END)`: el `CASE` sin `ELSE` devuelve `NULL` para los demás, y `COUNT(DISTINCT …)` ignora los `NULL`.
+
 ¿Cuántos visitantes vieron un producto, cuántos agregaron al carrito y cuántos compraron?
 
 ```sql
@@ -88,7 +120,15 @@ WHERE cliente_id IS NOT NULL;
 
 ## 5. Cohortes de retención
 
-Una **cohorte** agrupa clientes por el mes de su primera compra; luego se mide qué proporción vuelve a comprar en los meses siguientes.
+"¿Los clientes vuelven?" es una de las preguntas más importantes de cualquier negocio. Mirar el total de clientes activos por mes engaña: puede crecer porque entran muchos nuevos aunque los viejos se vayan. Un **análisis de cohortes** separa a los clientes según **cuándo empezaron** y sigue a cada grupo en el tiempo.
+
+Pasos:
+
+1. **Cohorte** de cada cliente: el mes de su **primera** compra (`MIN` de la fecha, truncada al mes).
+2. **Mes relativo** de cada compra: cuántos meses pasaron desde la cohorte (mes 0 = el de la primera compra, mes 1 = el siguiente…). Se calcula como (años de diferencia × 12) + meses de diferencia.
+3. **Pivotar**: para cada cohorte, cuántos clientes distintos compraron en el mes 0, 1, 2, 3… Dividiendo por el mes 0 obtienes el **% de retención**.
+
+El resultado es la famosa tabla triangular de retención: cada fila es una cohorte y cada columna, un mes desde el inicio.
 
 ```sql
 WITH primera AS (
@@ -112,6 +152,8 @@ ORDER BY cohorte;
 ```
 
 ## 6. Último valor conocido (forward fill)
+
+Muchos datos de referencia solo existen en **algunas** fechas: el tipo de cambio no se publica los fines de semana, un precio cambia de vez en cuando, el estado de un cliente se actualiza solo cuando algo cambia. Para cada evento necesitas **el último valor vigente en ese momento**: ni el de hoy, ni uno posterior (eso sería "ver el futuro", un error grave en análisis financieros y en modelos de machine learning).
 
 `tipos_cambio` no tiene sábados ni domingos. Para convertir un pedido del sábado, usamos la última cotización **anterior o igual** a esa fecha:
 
