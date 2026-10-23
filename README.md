@@ -2,20 +2,30 @@
 
 Curso **gratuito, interactivo y en español** para pasar de no saber nada a trabajar como ingeniero/a de datos. Todo se practica **en el navegador**, sin instalar nada.
 
-| Módulo | Lecciones | Qué practicas |
-|---|---|---|
-| 🧱 Fundamentos | 4 | Ingeniería de datos, formatos, terminal, Git |
-| 🗄️ SQL: de cero a experto | 24 | Desde `SELECT` hasta ventanas, CTE recursivas, gaps & islands, cohortes, optimización y modelado |
-| 🐍 Python | 15 | Desde variables hasta generadores, decoradores, POO, tests y ETL |
-| ⚡ Apache Spark | 8 | Arquitectura, lazy evaluation, shuffles, joins, Delta Lake, optimización, streaming |
-| 🔥 PySpark | 12 | DataFrames, funciones, agregaciones, joins, ventanas, calidad, pipeline medallón |
-| 🔧 dbt | 8 | Modelos, `ref`/`source`, incrementales, tests, Jinja, macros, snapshots, CI |
-| 🌬️ Apache Airflow | 8 | DAGs, programación, XCom, TaskFlow, ramas, sensores, buenas prácticas |
-| ☁️ Azure y Azure CLI | 7 | `az`, `--query`, ADLS Gen2, RBAC, Key Vault, Databricks, ADF, Bicep |
-| 🧩 Databricks y Databricks CLI | 8 | Notebooks, Delta, Unity Catalog, CLI, Asset Bundles, Workflows |
-| 🏆 Proyecto final y entrevistas | 4 | Arquitectura de punta a punta, casos en SQL y PySpark, plan de carrera |
+| Módulo | Lecciones | Ejercicios | Qué practicas |
+|---|---|---|---|
+| 🧱 Fundamentos | 4 | 17 | Ingeniería de datos, formatos, terminal, Git |
+| 🗄️ SQL: de cero a experto | 24 | 118 | Desde `SELECT` hasta ventanas, CTE recursivas, gaps & islands, cohortes, optimización y modelado |
+| 💼 Casos de negocio con SQL | 9 | 57 | 8 empresas (banco, streaming, movilidad, clínica, SaaS, aerolínea, logística, tienda): KPIs reales y trampas lógicas |
+| 🐍 Python | 15 | 54 | Desde variables hasta generadores, decoradores, POO, tests y ETL |
+| ⚡ Apache Spark | 8 | 24 | Arquitectura, lazy evaluation, shuffles, joins, Delta Lake, optimización, streaming |
+| 🔥 PySpark | 12 | 46 | DataFrames, funciones, agregaciones, joins, ventanas, calidad, pipeline medallón |
+| 🔧 dbt | 8 | 28 | Modelos, `ref`/`source`, incrementales, tests, Jinja, macros, snapshots, CI |
+| 🌬️ Apache Airflow | 8 | 23 | DAGs, programación, XCom, TaskFlow, ramas, sensores, buenas prácticas |
+| ☁️ Azure y Azure CLI | 7 | 34 | `az`, `--query`, ADLS Gen2, RBAC, Key Vault, Databricks, ADF, Bicep |
+| 🟧 AWS para Data Engineers | 8 | 69 | IAM, S3, Glue, Athena, Redshift, EMR, Kinesis, Lambda, Step Functions, MWAA, Lake Formation |
+| 🔷 Google Cloud para Data Engineers | 8 | 59 | gcloud, Cloud Storage, BigQuery (particiones, clustering, MERGE), Pub/Sub, Dataflow, Dataproc, Composer, Dataform |
+| 🧩 Databricks y Databricks CLI | 8 | 35 | Notebooks, Delta, Unity Catalog, CLI, Asset Bundles, Workflows |
+| 🧠 Casos de negocio de punta a punta | 10 | 51 | Los 8 casos resueltos con Python, PySpark, dbt y Airflow |
+| 🏆 Proyecto final y entrevistas | 4 | 11 | Arquitectura de punta a punta, casos en SQL y PySpark, plan de carrera |
 
-**98 lecciones y 390 ejercicios corregidos automáticamente**, sobre una base de datos ficticia (“Tienda Andina”) de **~90.000 filas** en 12 tablas.
+**133 lecciones y 626 ejercicios corregidos automáticamente**, sobre una base de datos ficticia de **8 empresas**, con **más de 200.000 filas** en 38 tablas.
+
+### Herramientas de práctica
+
+- **Editor Monaco** (el de VS Code) con autocompletado de tablas y columnas; CodeMirror como respaldo.
+- **Terminal Linux simulada** (botón ⌨ Terminal o `Ctrl+``) con sistema de archivos persistente, tuberías y redirecciones, `git`, Python y `sqlite3` reales, un proyecto **dbt** que se ejecuta de verdad, `airflow dags test`, y las CLIs de la nube con estado: `az`, `aws` (S3, Glue, Athena que consulta los CSV subidos, Redshift Data API, EMR, Kinesis, Lambda…), `gcloud`, `gsutil`, `bq` (cargas, tablas particionadas, CTAS, dry-run) y `databricks` (fs, secrets, jobs, Asset Bundles).
+- **Laboratorio de terminal** con misiones guiadas, y ejercicios de terminal que preparan solos el entorno que necesitan.
 
 ## Cómo funciona por dentro
 
@@ -24,12 +34,14 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 - **PySpark**: *mini-Spark* (`assets/py/minispark`), un simulador en Python puro de gran parte de `pyspark.sql` (DataFrames, funciones, joins, ventanas, Spark SQL, lectura/escritura, RDDs básicos).
 - **Airflow**: *mini-Airflow* (`assets/py/miniairflow`), con `DAG`, operadores, `>>`, XCom, TaskFlow, ramas, trigger rules y `TaskGroup`; el corrector inspecciona y ejecuta el DAG.
 - **dbt**: los modelos se compilan con Jinja2 real (`ref`, `source`, `config`, `is_incremental`, macros) y se ejecutan en SQLite.
-- **CLI** (terminal, Git, Azure CLI, Databricks CLI, dbt, Airflow): se valida el comando con patrones flexibles (orden de parámetros, abreviaturas).
+- **CLI** (terminal, Git, Azure, AWS, Google Cloud, Databricks, dbt, Airflow): cada ejercicio trae una terminal; el comando se ejecuta en la máquina simulada (`assets/js/terminal.js` y `terminal-cloud.js`) y se valida con patrones flexibles (orden de parámetros, abreviaturas). El bloque `setup` prepara el entorno (por ejemplo, crea el bucket) la primera vez que se usa la terminal del ejercicio.
 - El progreso y tu código se guardan en `localStorage` (exportable desde “Mi progreso”).
 
 ## Usarlo
 
-Es un sitio estático. Necesita conexión a internet la primera vez (carga sql.js, Pyodide, CodeMirror y highlight.js desde CDN).
+Es un sitio estático. Necesita conexión a internet la primera vez (carga sql.js, Pyodide, Monaco, CodeMirror y highlight.js desde CDN).
+
+Versión publicada: **https://mauriciogarcia98.github.io/Pagina-web-curso/**
 
 ```bash
 python3 -m http.server 8000      # o: npm run serve

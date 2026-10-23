@@ -286,7 +286,7 @@
 
   async function ensureSql(out) {
     if (SQL._bytes) return true;
-    loadingInto(out, 'Cargando la base de datos SQLite con ~90.000 filas (solo la primera vez)…');
+    loadingInto(out, 'Cargando la base de datos SQLite con más de 200.000 filas (solo la primera vez)…');
     try { await SQL.init(); return true; } catch (e) { out.innerHTML = `<pre class="console"><span class="err">${esc(e.message)}</span></pre>`; return false; }
   }
   const pyLoadingMsg = () => (PY.status === 'ready' ? 'Ejecutando…' : 'Cargando Python en tu navegador (≈10 MB, solo la primera vez; puede tardar 10-30 s)…');
@@ -691,7 +691,7 @@
       <section class="hero">
         <span class="badge b-type">Gratis · En español · Desde cero</span>
         <h1>De no saber nada a <span class="grad">ingeniero/a de datos</span>.</h1>
-        <p class="lead">Un curso práctico y completo: SQL de básico a súper avanzado, Python, Spark, PySpark, Airflow, dbt, Databricks CLI y Azure CLI. Todo se practica <b>aquí mismo, en tu navegador</b>, con una base de datos real de ~90.000 filas. Sin instalar nada.</p>
+        <p class="lead">Un curso práctico y completo: SQL de básico a súper avanzado, Python, Spark, PySpark, Airflow, dbt, Databricks, Azure, AWS y Google Cloud, con <b>8 empresas</b> y sus casos de negocio. Todo se practica <b>aquí mismo, en tu navegador</b>: un editor profesional, una terminal Linux con las CLIs de la nube y una base de datos con más de 200.000 filas. Sin instalar nada.</p>
         <div class="row">
           <a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">${started ? 'Continuar donde lo dejé →' : 'Empezar desde cero →'}</a>
           <a class="btn btn-lg" href="#/ruta">Ver la ruta completa</a>
@@ -701,7 +701,7 @@
           <div class="stat"><b>${C.modulos.length}</b><span>módulos</span></div>
           <div class="stat"><b>${LESSONS.length}</b><span>lecciones</span></div>
           <div class="stat"><b>${totalEx}</b><span>ejercicios corregidos al instante</span></div>
-          <div class="stat"><b>~90.000</b><span>filas de datos para practicar</span></div>
+          <div class="stat"><b>+200.000</b><span>filas de 8 empresas para practicar</span></div>
           <div class="stat"><b>${tp.pct}%</b><span>tu avance</span></div>
         </div>
       </section>
@@ -710,6 +710,8 @@
         <div class="card"><h4>📚 1. Lee la lección</h4><p>Explicaciones en lenguaje simple, con analogías y ejemplos. Cada ejemplo tiene un botón <b>▶ Probar</b>.</p></div>
         <div class="card"><h4>⌨️ 2. Resuelve ejercicios</h4><p>Escribes código real (SQL, Python, PySpark, dbt, DAGs de Airflow, comandos CLI) y el sitio lo corrige al instante.</p></div>
         <div class="card"><h4>💡 3. Usa pistas</h4><p>Si te trabas, pide una pista o mira la solución explicada. Equivocarse es parte de aprender.</p></div>
+        <div class="card"><h4>🖥️ Terminal real</h4><p>Una terminal Linux simulada con <code>bash</code>, <code>git</code>, Python, <code>sqlite3</code>, <code>dbt</code>, <code>airflow</code> y las CLIs <code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code> y <code>databricks</code>. Botón <b>⌨ Terminal</b> arriba, o el <a href="#/lab/terminal">laboratorio con misiones</a>.</p></div>
+        <div class="card"><h4>💼 Casos de negocio</h4><p>Un banco, una app de música, una de viajes, una clínica, un SaaS, una aerolínea, una empresa de logística y una tienda: preguntas reales para entrenar la lógica, en SQL, Python, PySpark, dbt y Airflow.</p></div>
         <div class="card"><h4>📈 4. Avanza de nivel</h4><p>Básico → Intermedio → Avanzado → Experto. Tu progreso se guarda en este navegador.</p></div>
       </div>
       <h2 class="section-title">Los módulos (en el orden recomendado)</h2>
@@ -723,7 +725,7 @@
         </a>`;
       }).join('')}</div>
       <h2 class="section-title">¿Por qué estas herramientas?</h2>
-      <div class="prose"><p>Un <b>ingeniero de datos</b> construye “tuberías” (pipelines) que llevan los datos desde donde nacen (apps, ventas, sensores) hasta donde se usan (reportes, modelos de IA). <b>SQL</b> es el idioma universal de los datos; <b>Python</b> automatiza todo; <b>Spark/PySpark</b> procesa volúmenes enormes repartiendo el trabajo entre muchas máquinas; <b>Databricks</b> es la plataforma donde corre Spark en la nube; <b>dbt</b> organiza las transformaciones SQL como un proyecto de software; <b>Airflow</b> programa y coordina cuándo se ejecuta cada paso; y <b>Azure CLI</b> / <b>Databricks CLI</b> te permiten controlar la nube desde la terminal.</p></div>
+      <div class="prose"><p>Un <b>ingeniero de datos</b> construye “tuberías” (pipelines) que llevan los datos desde donde nacen (apps, ventas, sensores) hasta donde se usan (reportes, modelos de IA). <b>SQL</b> es el idioma universal de los datos; <b>Python</b> automatiza todo; <b>Spark/PySpark</b> procesa volúmenes enormes repartiendo el trabajo entre muchas máquinas; <b>Databricks</b> es la plataforma donde corre Spark en la nube; <b>dbt</b> organiza las transformaciones SQL como un proyecto de software; <b>Airflow</b> programa y coordina cuándo se ejecuta cada paso; y las tres grandes nubes (<b>Azure</b>, <b>AWS</b> y <b>Google Cloud</b>) ponen el almacenamiento, el cómputo y los servicios de datos, que se controlan desde la terminal con sus CLIs (<code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code>, <code>databricks</code>).</p><p>Los conceptos se repiten en todas las nubes con otros nombres: un lago de archivos (ADLS, S3, Cloud Storage), un catálogo de tablas, SQL sin servidores (Athena, BigQuery), Spark administrado (Databricks, Glue/EMR, Dataproc), streaming (Event Hubs, Kinesis, Pub/Sub) y Airflow administrado. Aprenderlos una vez te sirve para las tres.</p></div>
     </div>`;
   }
 
@@ -970,9 +972,12 @@
   }
   function viewDatos() {
     main.innerHTML = `<div class="container prose">
-      <h1>🗃️ Los datos: “Tienda Andina”</h1>
-      <p>Todos los ejercicios usan la misma empresa ficticia: <b>Tienda Andina</b>, un comercio online que vende tecnología, hogar, deportes y moda en Latinoamérica y España entre 2022 y 2024. Los datos se generan siempre iguales (con una “semilla” fija), así que tus resultados son reproducibles.</p>
-      <p>Hay <b>~90.000 filas</b> repartidas en 12 tablas, más 5 vistas <code>stg_*</code> para el módulo de dbt. Las líneas del diagrama muestran qué columnas conectan las tablas (claves foráneas).</p>
+      <h1>🗃️ Los datos: 8 empresas</h1>
+      <p>La empresa principal del curso es <b>Tienda Andina</b>, un comercio online que vende tecnología, hogar, deportes y moda en Latinoamérica y España entre 2022 y 2024. Además hay <b>siete empresas más</b>, cada una con sus tablas (separadas por un prefijo), para los casos de negocio. Los datos se generan siempre iguales (con una “semilla” fija), así que tus resultados son reproducibles.</p>
+      <p>En total hay <b>más de 200.000 filas</b> en 38 tablas, más 5 vistas <code>stg_*</code> para el módulo de dbt. Todas están en la misma base: puedes consultarlas desde cualquier ejercicio de SQL, desde PySpark con <code>spark.table("…")</code>, desde dbt con <code>ref('…')</code> y desde la terminal con <code>sqlite3</code>.</p>
+      <div class="table-wrap not-prose"><table><thead><tr><th>Empresa</th><th>Rubro</th><th>Prefijo de sus tablas</th><th>Qué contiene</th></tr></thead><tbody>${(window.DataGen.CASOS || []).map((c) => `<tr><td>${c.icono} <b>${esc(c.nombre)}</b></td><td>${esc(c.rubro)}</td><td><code>${esc(c.prefijo || '(sin prefijo)')}</code></td><td>${esc(c.resumen)}</td></tr>`).join('')}</tbody></table></div>
+      <h2>Tienda Andina: el diagrama</h2>
+      <p>Las líneas del diagrama muestran qué columnas conectan las tablas de la tienda (claves foráneas).</p>
       ${erDiagram()}
       <h2>Relaciones (para hacer JOIN)</h2>
       <div class="table-wrap"><table><thead><tr><th>Columna</th><th>Apunta a</th></tr></thead><tbody>${RELS.map(([a, b]) => `<tr><td><code>${a}</code></td><td><code>${b}</code></td></tr>`).join('')}</tbody></table></div>
