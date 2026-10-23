@@ -1,13 +1,17 @@
 ---
 titulo: Diccionarios y conjuntos
 nivel: Básico
-duracion: 30
+duracion: 35
 resumen: Pares clave-valor, contar y agrupar, JSON y conjuntos sin duplicados.
 ---
 
-## Diccionarios
+## Buscar por nombre, no por posición
 
-Un **diccionario** (`dict`) guarda pares **clave → valor**. Es como una ficha: buscas por la clave y obtienes el valor al instante.
+Con una lista, para encontrar el stock del "monitor" tienes que recorrerla hasta dar con él. Si guardas datos con **nombres** (de productos, de columnas, de clientes), la estructura correcta es un **diccionario** (`dict`): guarda pares **clave → valor** y te da el valor de una clave **al instante**, sin recorrer nada, aunque tenga un millón de entradas.
+
+:::analogia Un diccionario de verdad
+En un diccionario de papel no lees todas las páginas para encontrar "dato": vas directo a la palabra (la **clave**) y lees su definición (el **valor**). Las claves no se repiten: cada palabra aparece una sola vez.
+:::
 
 ```python
 cliente = {
@@ -16,28 +20,59 @@ cliente = {
     "pais": "Chile",
     "compras": 12,
 }
-print(cliente["nombre"])
-cliente["email"] = "sofia@mail.com"   # agregar
-cliente["compras"] += 1               # modificar
-del cliente["pais"]                   # borrar
+print(cliente["nombre"])              # leer por clave → Sofía
+cliente["email"] = "sofia@mail.com"   # agregar una clave nueva
+cliente["compras"] += 1               # modificar un valor
+del cliente["pais"]                   # borrar una clave
 print(cliente)
 ```
 
-:::tip get(): leer sin errores
-`cliente["telefono"]` lanza `KeyError` si la clave no existe. `cliente.get("telefono")` devuelve `None`, y `cliente.get("telefono", "sin dato")` devuelve un valor por defecto.
-:::
+- Se escribe con **llaves** `{ }`; cada par es `clave: valor`, separados por comas.
+- Las claves suelen ser textos (también pueden ser números o tuplas: cualquier valor **inmutable**). Los valores pueden ser **cualquier cosa**: números, listas, otros diccionarios.
+- Asignar a una clave que no existe la **crea**; asignar a una que existe la **reemplaza**.
+
+Un diccionario es la forma natural de representar **un registro** (una fila con nombres de columna). Por eso, cuando leas un CSV con `csv.DictReader` o un JSON de una API, cada fila te llegará como un diccionario.
+
+## Leer sin errores: get
+
+```python
+cliente = {"id": 7, "nombre": "Sofía"}
+# print(cliente["telefono"])                 # KeyError: 'telefono'
+print(cliente.get("telefono"))               # None
+print(cliente.get("telefono", "sin dato"))   # valor por defecto
+print("telefono" in cliente)                 # ¿existe la clave? → False
+```
+
+| Forma | Si la clave no existe |
+|---|---|
+| `d["clave"]` | Error `KeyError` (detiene el programa) |
+| `d.get("clave")` | Devuelve `None` |
+| `d.get("clave", valor)` | Devuelve `valor` |
+| `"clave" in d` | Responde `True`/`False` |
+
+En datos reales (JSON de APIs, eventos) es muy común que falten campos: `get` con valor por defecto es tu mejor amigo. Usa `d["clave"]` cuando la clave **tiene** que estar y prefieres que el programa falle si no está.
 
 ## Recorrer un diccionario
 
 ```python
 stock = {"mouse": 40, "teclado": 0, "monitor": 7}
-for producto, unidades in stock.items():
+for producto, unidades in stock.items():          # pares (clave, valor)
     estado = "AGOTADO" if unidades == 0 else unidades
     print(f"{producto:10} {estado}")
 print(list(stock.keys()), list(stock.values()))
 ```
 
-## El patrón más importante en datos: contar y agrupar
+| Método | Devuelve |
+|---|---|
+| `d.keys()` | Las claves |
+| `d.values()` | Los valores |
+| `d.items()` | Los pares `(clave, valor)`: lo más usado para recorrer |
+
+`for k in d:` recorre las **claves**. Desde Python 3.7 los diccionarios **conservan el orden** en que se insertaron las claves.
+
+## El patrón más importante: contar y agrupar
+
+Este es el `GROUP BY` de Python. Recorres los registros y acumulas en un diccionario cuya **clave es el grupo**:
 
 ```python
 pedidos = [("web", 120), ("app", 80), ("web", 200), ("tienda", 50), ("app", 30)]
@@ -49,12 +84,26 @@ for canal, monto in pedidos:
     total_por_canal[canal] = total_por_canal.get(canal, 0) + monto
 
 print(conteo)            # {'web': 2, 'app': 2, 'tienda': 1}
-print(total_por_canal)   # es un GROUP BY canal hecho a mano 😉
+print(total_por_canal)   # {'web': 320, 'app': 110, 'tienda': 50}
 ```
 
-## Estructuras anidadas (como JSON)
+La línea clave es `conteo.get(canal, 0) + 1`: "lo que había para este canal (o 0 si es la primera vez), más uno". Así funciona por dentro un `GROUP BY` en cualquier motor: una tabla en memoria con una entrada por grupo.
 
-Los datos de las APIs llegan como diccionarios y listas anidados:
+| Vuelta | canal | conteo después |
+|---|---|---|
+| 1 | web | `{'web': 1}` |
+| 2 | app | `{'web': 1, 'app': 1}` |
+| 3 | web | `{'web': 2, 'app': 1}` |
+| 4 | tienda | `{'web': 2, 'app': 1, 'tienda': 1}` |
+| 5 | app | `{'web': 2, 'app': 2, 'tienda': 1}` |
+
+:::tip Atajos de la librería estándar
+`from collections import Counter` cuenta en una línea: `Counter(c for c, _ in pedidos)`. Y `defaultdict(list)` crea listas automáticamente para agrupar: `grupos[canal].append(pedido)`. Los verás en la lección de Python avanzado; primero entiende el patrón a mano.
+:::
+
+## Estructuras anidadas: así llegan los datos de las APIs
+
+El formato **JSON**, que usan casi todas las APIs, es exactamente "diccionarios y listas anidados". Leerlo es encadenar claves e índices:
 
 ```python
 pedido = {
@@ -65,25 +114,48 @@ pedido = {
         {"sku": "B7", "cantidad": 1, "precio": 35.5},
     ],
 }
-print(pedido["cliente"]["pais"])
+print(pedido["cliente"]["pais"])            # entrar a un diccionario dentro de otro
+print(pedido["items"][1]["sku"])            # la segunda línea, su sku
 total = sum(item["cantidad"] * item["precio"] for item in pedido["items"])
-print(total)
+print(total)                                # 55.5
 ```
 
-## Conjuntos (set)
+Léelo de izquierda a derecha: `pedido["items"]` es una lista → `[1]` es su segundo elemento (un diccionario) → `["sku"]` es un valor de ese diccionario.
 
-Un **conjunto** guarda valores **sin repetir** y sin orden. Ideal para quitar duplicados y comparar grupos:
+Un trabajo típico de data engineer es **aplanar** (*flatten*) estas estructuras: convertir cada `item` en una fila de una tabla con columnas `pedido_id`, `sku`, `cantidad`, `precio`. Es lo mismo que hace `explode` en PySpark o `UNNEST` en SQL.
+
+## Conjuntos (set): valores únicos
+
+Un **conjunto** guarda valores **sin repetir** y **sin orden**. Se escribe con llaves pero sin `:`:
 
 ```python
 compraron_2023 = {1, 2, 3, 5, 8}
 compraron_2024 = {2, 3, 4, 8, 9}
-print(compraron_2023 & compraron_2024)   # intersección: compraron ambos años
-print(compraron_2023 - compraron_2024)   # diferencia: se fueron (churn)
-print(compraron_2023 | compraron_2024)   # unión
+print(compraron_2023 & compraron_2024)   # intersección: compraron ambos años → {2, 3, 8}
+print(compraron_2023 - compraron_2024)   # diferencia: compraron en 2023 y NO en 2024 (churn) → {1, 5}
+print(compraron_2023 | compraron_2024)   # unión: todos
 print(len(set(["a", "b", "a", "c"])))    # quitar duplicados: 3
 ```
 
-¿Te suenan? Son `INTERSECT`, `EXCEPT` y `UNION` de SQL.
+| Operación | Símbolo | Equivalente SQL |
+|---|---|---|
+| Intersección | `a & b` | `INTERSECT` |
+| Diferencia | `a - b` | `EXCEPT` |
+| Unión | `a \| b` | `UNION` |
+
+Usos típicos: quitar duplicados (`set(lista)`), comprobar pertenencia muy rápido (`if id in ids_vistos`), comparar dos fuentes (¿qué ids están en el sistema A y no en el B?). Para crear un conjunto vacío usa `set()`: `{}` crea un **diccionario** vacío.
+
+:::experto Por qué buscar en un dict o set es tan rápido
+Diccionarios y conjuntos usan una **tabla hash**: calculan una "dirección" a partir de la clave y van directo a ella. Buscar en una lista de un millón de elementos puede requerir un millón de comparaciones; en un set, prácticamente una. Es la misma idea del *hash join* de las bases de datos.
+:::
+
+## Resumen
+
+- `dict`: pares clave → valor; acceso instantáneo por clave. `d[k]` falla si no existe; `d.get(k, defecto)` no.
+- Recorre con `for k, v in d.items()`.
+- Contar y agrupar: `d[k] = d.get(k, 0) + valor` es un `GROUP BY` hecho a mano.
+- JSON = diccionarios y listas anidados; se navega encadenando `["clave"]` y `[índice]`.
+- `set`: valores únicos; `&`, `-`, `|` son `INTERSECT`, `EXCEPT`, `UNION`.
 
 ## Ejercicios
 
