@@ -56,6 +56,9 @@ Descarga (clona) el repositorio `https://github.com/empresa/pipelines.git`.
 ```respuesta
 git clone https://github\.com/empresa/pipelines(\.git)?
 ```
+```solucion
+git clone https://github.com/empresa/pipelines.git
+```
 :::
 
 :::ejercicio cli
@@ -73,12 +76,18 @@ git add \.
 git add -A
 git add --all
 ```
+```solucion
+git add .
+```
 :::
 
 :::ejercicio cli
 Haz un commit con el mensaje `Agrega limpieza de clientes`.
 ```respuesta
 git commit -m ["']Agrega limpieza de clientes["']
+```
+```solucion
+git commit -m "Agrega limpieza de clientes"
 ```
 :::
 

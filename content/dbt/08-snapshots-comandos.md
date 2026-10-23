@@ -83,6 +83,9 @@ Ejecuta los **tests** solo del modelo `dim_clientes`.
 ```respuesta
 dbt test (-s|--select) dim_clientes
 ```
+```solucion
+dbt test -s dim_clientes
+```
 :::
 
 :::ejercicio cli

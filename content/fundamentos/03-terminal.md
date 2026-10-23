@@ -113,6 +113,9 @@ head ventas\.csv
 head -n ?10 ventas\.csv
 head -10 ventas\.csv
 ```
+```solucion
+head -n 10 ventas.csv
+```
 ```pista
 El comando es `head`. Por defecto ya muestra 10 líneas, pero también puedes usar `-n 10`.
 ```
@@ -124,6 +127,9 @@ Cuenta cuántas líneas tiene `clientes.csv`.
 wc -l clientes\.csv
 wc -l < clientes\.csv
 cat clientes\.csv \| wc -l
+```
+```solucion
+wc -l clientes.csv
 ```
 ```pista
 `wc` significa *word count*; con la opción `-l` cuenta líneas.
@@ -149,5 +155,8 @@ Sube a la carpeta **padre** de la actual.
 ```respuesta
 cd \.\.
 cd \.\./
+```
+```solucion
+cd ..
 ```
 :::

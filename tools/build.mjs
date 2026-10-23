@@ -48,6 +48,13 @@ function parseFrontMatter(src, file) {
 
 const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo'];
 
+// "todos: base || frag1 || frag2" => el comando debe empezar con base y contener todos los fragmentos, en cualquier orden
+function cliPattern(line) {
+  if (!line.startsWith('todos:')) return line;
+  const [base, ...frags] = line.slice(6).trim().split(/\s+\|\|\s+/);
+  return base + frags.map((f) => `(?=.* ${f}(?: |$))`).join('') + '( .*)?';
+}
+
 function parseExercise(header, body, file, idx, lessonId) {
   const titleMatch = header.match(/titulo="([^"]+)"/);
   const words = header.replace(/titulo="[^"]*"/, '').trim().split(/\s+/);
@@ -67,7 +74,7 @@ function parseExercise(header, body, file, idx, lessonId) {
     if (info.includes('ordenado')) throw new Error(`"ordenado" debe ir en la línea :::ejercicio, no en el bloque de código (${file} #${idx + 1})`);
     const content = f[2].replace(/\n$/, '');
     if (role === 'pista' || role === 'explicacion') ex[role] = (ex[role] ? ex[role] + '\n' : '') + content;
-    else if (role === 'respuesta') (ex.respuesta = ex.respuesta || []).push(...content.split('\n').map((s) => s.trim()).filter(Boolean));
+    else if (role === 'respuesta') (ex.respuesta = ex.respuesta || []).push(...content.split('\n').map((s) => s.trim()).filter(Boolean).map(cliPattern));
     else ex[role] = content;
     if (role === 'solucion' || role === 'inicial') ex.lang = info.find((w) => !ROLES.includes(w)) || ex.lang;
     prompt = prompt.replace(f[0], '');

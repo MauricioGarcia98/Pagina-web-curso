@@ -63,6 +63,7 @@ for (const m of course.modulos) {
           pyJobs.push(ex);
         } else if (ex.type === 'cli') {
           const sol = (ex.solucion || '').trim();
+          if (!sol && ex.respuesta.some((p) => /[(?|\\[]/.test(p))) fail(ex, 'ejercicio cli con patrón complejo: agrega un bloque solucion');
           const pats = ex.respuesta.map((p) => new RegExp('^' + p + '$', 'i'));
           const norm = (s) => s.trim().replace(/^\$\s*/, '').replace(/\s+/g, ' ');
           if (sol && !pats.some((re) => re.test(norm(sol)))) fail(ex, `la solución "${sol}" no coincide con ningún patrón`);
