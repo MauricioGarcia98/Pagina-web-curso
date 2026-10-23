@@ -1,11 +1,19 @@
 ---
 titulo: CASE WHEN: lógica condicional
 nivel: Intermedio
-duracion: 20
+duracion: 35
 resumen: Clasificar valores, crear categorías y hacer "conteos condicionales".
 ---
 
-`CASE` es el **si… entonces… si no…** de SQL. Evalúa condiciones en orden y devuelve el valor de la primera que se cumpla.
+## Decisiones dentro de una consulta
+
+Muchas preguntas de negocio necesitan **clasificar**: "¿este producto es barato, medio o caro?", "¿este cliente es nuevo o recurrente?", "¿este pedido llegó a tiempo o tarde?". Los datos no traen esas etiquetas: las crea tu consulta con reglas. En SQL, la herramienta para decir **"si pasa esto, entonces aquello; si no, lo otro"** es `CASE`.
+
+:::analogia El semáforo de notas de un colegio
+Una maestra clasifica: "si la nota es 9 o más, *excelente*; si es 7 o más, *aprobado*; si es 4 o más, *recupera*; si no, *desaprobado*". Revisa las reglas **en orden** y se queda con la **primera** que se cumple: un 9 también es "7 o más", pero ya quedó como *excelente*. `CASE` funciona exactamente así.
+:::
+
+## La forma general: CASE WHEN
 
 ```sql
 SELECT nombre, precio,
@@ -16,23 +24,80 @@ SELECT nombre, precio,
          ELSE 'lujo'
        END AS gama
 FROM productos
-LIMIT 10;
+LIMIT 5;
 ```
 
-- Las condiciones se revisan **de arriba hacia abajo**; gana la primera verdadera.
-- Si ninguna se cumple y no hay `ELSE`, el resultado es `NULL`.
+| nombre | precio | gama |
+|---|---|---|
+| Smartphone Apple Mini 300 | 484.99 | premium |
+| Notebook Apple X | 1044.99 | lujo |
+| Juego de ollas Philips Plus 400 | 42.99 | económico |
 
-Hay una forma corta cuando comparas una sola columna por igualdad:
+Anatomía:
+
+| Parte | Significa |
+|---|---|
+| `CASE` | Empieza la decisión |
+| `WHEN condición THEN valor` | "Si se cumple la condición, el resultado es este valor". Puede haber muchas |
+| `ELSE valor` | "Si no se cumplió ninguna, este". Es opcional |
+| `END` | Termina la decisión (¡no lo olvides!) |
+| `AS gama` | El alias de la nueva columna |
+
+Tres reglas que hay que tener claras:
+
+1. **Gana la primera condición verdadera**, de arriba hacia abajo. Por eso `WHEN precio < 300` no necesita decir `precio >= 50`: si el precio fuera menor a 50, ya lo habría atrapado la línea anterior. El orden de las líneas **cambia el resultado**: si pusieras primero `precio < 1000`, casi todo sería "premium".
+2. **Sin `ELSE`, lo que no coincide es `NULL`.** Escribe siempre un `ELSE`, aunque sea `ELSE 'otro'`: así ves los casos que no previste en vez de que desaparezcan.
+3. **Todos los resultados deben ser del mismo tipo** (todos texto o todos números). Mezclar `THEN 'alto'` con `THEN 0` falla en motores estrictos.
+
+:::cuidado Los NULL en las condiciones
+Si `precio` fuera `NULL`, todas las comparaciones darían UNKNOWN (lección de NULL) y caería en el `ELSE`: un producto sin precio quedaría como "lujo". Si los nulos son posibles, trátalos primero: `WHEN precio IS NULL THEN 'sin precio'`.
+:::
+
+## La forma corta: comparar un valor contra opciones
+
+Cuando todas las condiciones son "esta columna es igual a…", hay una sintaxis abreviada:
 
 ```sql
-SELECT pedido_id,
-       CASE canal WHEN 'web' THEN 'Online' WHEN 'app' THEN 'Online' ELSE 'Presencial' END AS tipo_canal
-FROM pedidos LIMIT 5;
+SELECT pedido_id, canal,
+       CASE canal
+         WHEN 'web' THEN 'Online'
+         WHEN 'app' THEN 'Online'
+         ELSE 'Presencial'
+       END AS tipo_canal
+FROM pedidos
+LIMIT 5;
 ```
 
-## CASE + agregación = superpoder
+Equivale a `CASE WHEN canal = 'web' THEN … WHEN canal = 'app' THEN …`. Solo sirve para igualdades; para rangos (`<`, `>`) o condiciones combinadas usa la forma general.
 
-Poner un `CASE` **dentro** de `SUM` o `COUNT` permite contar o sumar solo lo que cumple una condición, todo en una consulta. Se llama **agregación condicional** y es la base de los “pivots”:
+## Usar la clasificación: CASE + GROUP BY
+
+Una vez que creas la categoría, puedes agrupar por ella. "¿Cuántos productos hay en cada gama?":
+
+```sql
+SELECT CASE
+         WHEN precio < 50   THEN 'económico'
+         WHEN precio < 300  THEN 'medio'
+         WHEN precio < 1000 THEN 'premium'
+         ELSE 'lujo'
+       END AS gama,
+       COUNT(*) AS productos
+FROM productos
+GROUP BY gama;
+```
+
+| gama | productos |
+|---|---|
+| económico | 56 |
+| lujo | 32 |
+| medio | 128 |
+| premium | 84 |
+
+Esto se llama **segmentar** o **"bucketizar"**: convertir un número continuo en tramos. Lo usarás para rangos de edad, tramos de mora, bandas de score crediticio, rangos de anticipación de una reserva…
+
+## CASE + agregación: la agregación condicional
+
+Este es el uso más poderoso de `CASE`. Si lo pones **dentro** de `SUM` o `COUNT`, puedes contar o sumar **solo** lo que cumple una condición, varias veces en la misma consulta:
 
 ```sql
 SELECT strftime('%Y', fecha_pedido) AS anio,
@@ -44,9 +109,64 @@ GROUP BY anio
 ORDER BY anio;
 ```
 
-:::nota FILTER
-PostgreSQL, SQLite (≥3.30) y Spark aceptan una sintaxis más limpia: `COUNT(*) FILTER (WHERE estado = 'cancelado')`.
+| anio | total | cancelados | pct_cancelados |
+|---|---|---|---|
+| 2022 | 3346 | 264 | 7.89 |
+| 2023 | 4021 | 332 | 8.26 |
+| 2024 | 4633 | 371 | 8.01 |
+
+Cómo funciona, fila por fila: cada pedido aporta un `1` a la suma si fue cancelado y un `0` si no. La suma de esos unos **es** la cantidad de cancelados. Para sumar montos en vez de contar, devuelve el monto en lugar del 1: `SUM(CASE WHEN canal = 'web' THEN total ELSE 0 END)`.
+
+### Pivotar: de filas a columnas
+
+Con varias agregaciones condicionales conviertes valores de una columna en **columnas** del resultado (un *pivot*, como las tablas dinámicas de Excel):
+
+```sql
+SELECT c.segmento,
+       SUM(CASE WHEN p.canal = 'web'      THEN 1 ELSE 0 END) AS web,
+       SUM(CASE WHEN p.canal = 'app'      THEN 1 ELSE 0 END) AS app,
+       SUM(CASE WHEN p.canal = 'tienda'   THEN 1 ELSE 0 END) AS tienda,
+       SUM(CASE WHEN p.canal = 'telefono' THEN 1 ELSE 0 END) AS telefono
+FROM pedidos p
+JOIN clientes c ON c.cliente_id = p.cliente_id
+GROUP BY c.segmento;
+```
+
+| segmento | web | app | tienda | telefono |
+|---|---|---|---|---|
+| Consumidor | 3786 | 2010 | 1854 | 696 |
+| Corporativo | 481 | 310 | 246 | 100 |
+| Pyme | 1133 | 653 | 545 | 186 |
+
+(Esa consulta usa un `JOIN`, que es justamente la próxima lección.)
+
+:::nota Sintaxis alternativas
+- `COUNT(*) FILTER (WHERE estado = 'cancelado')`: más limpia; funciona en PostgreSQL, SQLite 3.30+ y Spark.
+- `COUNTIF(estado = 'cancelado')`: en BigQuery.
+- `IIF(condición, sí, no)`: atajo de SQL Server (y SQLite 3.32+) para un `CASE` de dos ramas.
+- En SQLite y MySQL, una comparación ya vale 1 o 0, así que `SUM(estado = 'cancelado')` también funciona. Es práctico pero no portable: `CASE` funciona en todos los motores.
 :::
+
+## CASE en otros lugares
+
+`CASE` es una expresión: va donde iría un valor.
+
+```sql
+-- En ORDER BY: un orden personalizado (primero los pendientes, después el resto)
+SELECT pedido_id, estado
+FROM pedidos
+ORDER BY CASE estado WHEN 'pendiente' THEN 1 WHEN 'enviado' THEN 2 ELSE 3 END, pedido_id
+LIMIT 10;
+```
+
+También dentro de `WHERE` (aunque casi siempre se puede escribir más simple con `AND`/`OR`) y dentro de otras funciones (`ROUND(CASE … END, 2)`).
+
+## Resumen
+
+- `CASE WHEN cond THEN valor … ELSE valor END`: gana la primera condición verdadera; el orden importa.
+- Pon siempre `ELSE` y trata los `NULL` explícitamente.
+- `CASE` + `GROUP BY` crea segmentos; `SUM(CASE WHEN … THEN 1 ELSE 0 END)` cuenta con condición.
+- Varias agregaciones condicionales = un pivot (valores de una columna convertidos en columnas).
 
 ## Ejercicios
 

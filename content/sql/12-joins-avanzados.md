@@ -1,37 +1,85 @@
 ---
 titulo: LEFT, RIGHT, FULL, SELF y CROSS JOIN
 nivel: Intermedio
-duracion: 35
+duracion: 45
 resumen: Conservar filas sin pareja, encontrar lo que falta (anti-join), unir una tabla consigo misma y productos cartesianos.
 ---
 
-## LEFT JOIN: conservar todo lo de la izquierda
+## El problema que resuelven
 
-`LEFT JOIN` devuelve **todas** las filas de la tabla izquierda, tengan o no pareja. Si no la tienen, las columnas de la derecha vienen en `NULL`.
+`INNER JOIN` descarta las filas sin pareja. Muchas veces eso es justo lo que **no** quieres:
+
+- "Lista **todos** los clientes con su cantidad de pedidos" → los que nunca compraron deben aparecer con 0.
+- "¿Qué productos **nunca** se vendieron?" → justamente los que no tienen pareja en el detalle.
+- "Ventas por mes, **incluidos** los meses sin ventas" → necesitas filas que no existen en los datos.
+
+Para esto existen los **outer joins** (externos): `LEFT`, `RIGHT` y `FULL`.
+
+## Las cinco formas de unir, con un ejemplo mínimo
+
+Imagina dos tablitas:
+
+```text
+clientes            pedidos
+id │ nombre         pedido │ cliente_id
+───┼────────        ───────┼───────────
+1  │ Ana            10     │ 1
+2  │ Beto           11     │ 1
+3  │ Carla          12     │ 4      ← cliente que no existe
+```
+
+| Tipo | Filas del resultado | En el ejemplo |
+|---|---|---|
+| `INNER JOIN` | Solo pares que coinciden | Ana-10, Ana-11 |
+| `LEFT JOIN` | **Todas** las de la izquierda; sin pareja → `NULL` a la derecha | Ana-10, Ana-11, Beto-NULL, Carla-NULL |
+| `RIGHT JOIN` | **Todas** las de la derecha; sin pareja → `NULL` a la izquierda | Ana-10, Ana-11, NULL-12 |
+| `FULL OUTER JOIN` | Todas las de ambos lados | Ana-10, Ana-11, Beto-NULL, Carla-NULL, NULL-12 |
+| `CROSS JOIN` | Todas las combinaciones, sin condición | 3 × 3 = 9 filas |
+
+"Izquierda" es la tabla que está en el `FROM` (o la acumulada hasta ese punto) y "derecha" es la que está después del `JOIN`.
+
+:::analogia La lista de invitados
+`LEFT JOIN` es pasar lista con la planilla de invitados (izquierda) en la mano: lees **todos** los nombres de tu planilla y anotas al lado si vino o no. Los que no vinieron siguen en la planilla, con la casilla vacía (`NULL`). Los que vinieron sin estar invitados (filas de la derecha sin pareja) no aparecen en tu planilla.
+:::
+
+## LEFT JOIN en la práctica
 
 ```sql
 SELECT c.cliente_id, c.nombre, p.pedido_id
 FROM clientes c
 LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
 ORDER BY c.cliente_id
-LIMIT 15;
+LIMIT 6;
 ```
 
-| Tipo | Qué filas devuelve |
-|---|---|
-| `INNER JOIN` | Solo las que tienen pareja en ambos lados |
-| `LEFT JOIN` | Todas las de la izquierda + pareja (o NULL) |
-| `RIGHT JOIN` | Todas las de la derecha + pareja (o NULL). Es un LEFT JOIN con las tablas al revés |
-| `FULL OUTER JOIN` | Todas las de ambos lados |
-| `CROSS JOIN` | Todas las combinaciones posibles (producto cartesiano) |
+| cliente_id | nombre | pedido_id |
+|---|---|---|
+| 1 | Lucía | NULL |
+| 2 | Juan | NULL |
+| 3 | Andrés | 10386 |
+| 3 | Andrés | 10727 |
+| … | … | … |
 
-:::nota Soporte
-SQLite soporta `RIGHT` y `FULL OUTER JOIN` desde la versión 3.39 (la de este sitio lo soporta). En la práctica, el 95% de las veces usarás `INNER` y `LEFT`.
-:::
+- Lucía y Juan no compraron nunca: aparecen **una vez**, con `NULL` en las columnas de `pedidos`.
+- Andrés aparece una vez **por cada pedido** (igual que con `INNER`).
+- En total: 12.000 filas de clientes con pedido + 547 clientes sin pedido = **12.547 filas**.
+
+### Contar correctamente después de un LEFT JOIN
+
+```sql
+SELECT c.cliente_id, c.nombre, COUNT(p.pedido_id) AS pedidos
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
+GROUP BY c.cliente_id, c.nombre
+ORDER BY pedidos
+LIMIT 5;
+```
+
+Fíjate en `COUNT(p.pedido_id)` y no `COUNT(*)`. Para Lucía hay **una** fila (con `pedido_id` en `NULL`): `COUNT(*)` diría 1 pedido (¡falso!), mientras que `COUNT(p.pedido_id)` ignora el `NULL` y da **0**. Es un error muy común.
 
 ## El anti-join: encontrar lo que falta
 
-¿Qué clientes **nunca** compraron? LEFT JOIN y quedarse con los que no encontraron pareja:
+"¿Qué clientes **nunca** compraron?" Haz un `LEFT JOIN` y quédate con las filas donde la derecha vino vacía:
 
 ```sql
 SELECT c.cliente_id, c.nombre, c.fecha_registro
@@ -40,36 +88,86 @@ LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
 WHERE p.pedido_id IS NULL;
 ```
 
-:::cuidado WHERE vs ON en un LEFT JOIN
-Una condición sobre la tabla **derecha** puesta en el `WHERE` convierte tu LEFT JOIN en un INNER JOIN (porque descarta las filas con NULL). Si quieres filtrar la tabla derecha **y conservar** a todos los de la izquierda, pon la condición en el `ON`:
+Devuelve los 547 clientes sin pedidos. El patrón `LEFT JOIN … WHERE derecha.clave IS NULL` se llama **anti-join** y es de los más usados: productos sin ventas, empleados sin jefe asignado, pagos sin pedido, archivos que no se cargaron. (En la lección de subconsultas verás su hermano: `NOT EXISTS`.)
+
+Para el `IS NULL`, usa una columna que **nunca** es nula cuando hay pareja (la clave primaria de la tabla derecha es lo más seguro).
+
+## La trampa más común: filtrar la tabla derecha en el WHERE
+
+Quieres "todos los clientes, con sus pedidos de 2024 si los tienen". El intento intuitivo:
 
 ```sql
--- Todos los clientes, con sus pedidos de 2024 (si tienen)
+-- ❌ Este "LEFT JOIN" se comporta como INNER: 4.633 filas, solo clientes que compraron en 2024
+SELECT c.cliente_id, p.pedido_id
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
+WHERE p.fecha_pedido >= '2024-01-01';
+```
+
+¿Qué pasó? El `LEFT JOIN` sí conservó a los clientes sin pedidos (con `fecha_pedido` en `NULL`), pero después el `WHERE` evaluó `NULL >= '2024-01-01'` → UNKNOWN → **descartados**. La condición sobre la tabla derecha hay que ponerla **en el `ON`**:
+
+```sql
+-- ✅ Todos los clientes (2.000), con la cantidad de pedidos de 2024 (0 si no compraron)
 SELECT c.cliente_id, COUNT(p.pedido_id) AS pedidos_2024
 FROM clientes c
-LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id AND p.fecha_pedido >= '2024-01-01'
+LEFT JOIN pedidos p
+       ON p.cliente_id = c.cliente_id
+      AND p.fecha_pedido >= '2024-01-01'
 GROUP BY c.cliente_id
 LIMIT 10;
 ```
-Fíjate en `COUNT(p.pedido_id)`: cuenta solo las filas con pedido (los NULL no cuentan), así quien no compró queda con 0.
+
+La regla:
+
+| Dónde pones la condición | Efecto en un LEFT JOIN |
+|---|---|
+| En el `ON` | Decide **qué filas de la derecha** se emparejan. Las de la izquierda se conservan todas |
+| En el `WHERE` | Filtra el resultado **final**. Si es sobre la derecha, elimina las filas sin pareja |
+
+Condiciones sobre la tabla **izquierda** (por ejemplo `c.pais = 'Chile'`) van en el `WHERE` sin problema.
+
+## RIGHT y FULL OUTER JOIN
+
+- `RIGHT JOIN` es un `LEFT JOIN` con las tablas al revés. `A RIGHT JOIN B` = `B LEFT JOIN A`. Casi nadie lo usa: es más fácil leer siempre de izquierda a derecha y poner la tabla "principal" primero.
+- `FULL OUTER JOIN` conserva todo de ambos lados. Su uso clásico es **comparar dos fuentes**: "¿qué ids están solo en el sistema A, solo en el B, o en los dos?" (conciliaciones, migraciones, validar que una carga no perdió filas).
+
+```sql
+-- ¿Hay pedidos sin pago o pagos sin pedido?
+SELECT CASE WHEN p.pedido_id IS NULL THEN 'pago sin pedido'
+            WHEN g.pedido_id IS NULL THEN 'pedido sin pago'
+            ELSE 'ok' END AS situacion,
+       COUNT(*) AS filas
+FROM pedidos p
+FULL OUTER JOIN pagos g ON g.pedido_id = p.pedido_id
+GROUP BY situacion;
+```
+
+:::nota Soporte
+SQLite soporta `RIGHT` y `FULL OUTER JOIN` desde la versión 3.39 (la de este sitio lo soporta). MySQL no tiene `FULL OUTER JOIN` (se simula con un `LEFT` + `UNION` + un `RIGHT`).
 :::
 
 ## SELF JOIN: una tabla consigo misma
 
-La tabla `empleados` tiene `jefe_id`, que apunta a otro empleado. Para ver cada empleado con el nombre de su jefe, unimos la tabla con ella misma usando **dos alias**:
+A veces una tabla apunta **a sí misma**. En `empleados`, la columna `jefe_id` guarda el `empleado_id` de otro empleado. Para ver cada empleado con el nombre de su jefe, usas la misma tabla **dos veces**, con dos alias distintos, como si fueran dos tablas:
 
 ```sql
 SELECT e.nombre AS empleado, e.cargo, j.nombre AS jefe, j.cargo AS cargo_jefe
-FROM empleados e
-LEFT JOIN empleados j ON j.empleado_id = e.jefe_id
+FROM empleados e                               -- e = "el empleado"
+LEFT JOIN empleados j ON j.empleado_id = e.jefe_id   -- j = "su jefe"
 LIMIT 10;
 ```
 
-(Es LEFT porque el CEO no tiene jefe.)
+| empleado | cargo | jefe | cargo_jefe |
+|---|---|---|---|
+| Camila | CEO | NULL | NULL |
+| Camila | Director de Ventas | Camila | CEO |
+| Daniela | Director de Marketing | Camila | CEO |
+
+Es `LEFT` porque el CEO no tiene jefe: con `INNER` desaparecería. Otros usos del self join: comparar cada fila con la anterior (aunque las funciones de ventana lo hacen mejor), encontrar duplicados (`a.email = b.email AND a.id < b.id`), o pares de productos comprados juntos.
 
 ## CROSS JOIN: todas las combinaciones
 
-Útil para generar “grillas”: por ejemplo, todas las combinaciones de canal y año, para luego rellenar con ceros los que no tuvieron ventas.
+`CROSS JOIN` no tiene condición: combina **cada** fila de la izquierda con **cada** fila de la derecha (producto cartesiano). Su uso legítimo es generar **grillas** completas, por ejemplo todos los pares canal × año, para después rellenar con ceros los que no tuvieron ventas:
 
 ```sql
 SELECT canales.canal, anios.anio
@@ -78,13 +176,15 @@ CROSS JOIN (SELECT DISTINCT strftime('%Y', fecha_pedido) AS anio FROM pedidos) A
 ORDER BY 1, 2;
 ```
 
+4 canales × 3 años = 12 filas. Luego harías un `LEFT JOIN` de esa grilla con las ventas agregadas.
+
 :::cuidado Explosión de filas
-Un CROSS JOIN de dos tablas de 10.000 filas da 100 millones. Y un JOIN con un `ON` mal escrito puede hacer lo mismo sin que te des cuenta. Si un total te da “demasiado grande”, sospecha de un join que duplica filas.
+Un `CROSS JOIN` de dos tablas de 10.000 filas da 100 millones. Y un `JOIN` con un `ON` incompleto (por ejemplo, unir por `fecha` cuando la clave real es `fecha` + `tienda`) produce una "explosión" parecida sin avisar. Si un total te da sospechosamente grande, cuenta las filas antes y después de cada join.
 :::
 
 ## Joins con condiciones que no son igualdad
 
-El `ON` acepta cualquier condición. Ejemplo: asignar a cada pedido el **rango de precio** de una tabla de rangos.
+El `ON` acepta **cualquier** condición, no solo `=`. Un uso típico es asignar cada fila a un **rango** definido en otra tabla:
 
 ```sql
 WITH rangos(nombre, desde, hasta) AS (VALUES ('chico', 0, 100), ('mediano', 100, 1000), ('grande', 1000, 1e9))
@@ -93,6 +193,16 @@ FROM detalle_pedidos d
 JOIN rangos r ON d.precio_unitario >= r.desde AND d.precio_unitario < r.hasta
 GROUP BY r.nombre;
 ```
+
+Otros ejemplos reales: unir una venta con el **tipo de cambio vigente** en su fecha, o con la versión del cliente que estaba activa en ese momento (`fecha BETWEEN valido_desde AND valido_hasta`, lo verás en modelado y en los snapshots de dbt).
+
+## Resumen
+
+- `LEFT JOIN` conserva todo lo de la izquierda; lo que no tiene pareja trae `NULL` a la derecha.
+- Después de un `LEFT JOIN`, cuenta con `COUNT(derecha.clave)`, no con `COUNT(*)`.
+- Anti-join: `LEFT JOIN … WHERE derecha.clave IS NULL` encuentra lo que falta.
+- Condiciones sobre la tabla derecha van en el `ON`; en el `WHERE` convierten el `LEFT` en `INNER`.
+- `FULL` sirve para comparar fuentes; `SELF JOIN` une una tabla consigo misma con dos alias; `CROSS JOIN` genera grillas.
 
 ## Ejercicios
 
