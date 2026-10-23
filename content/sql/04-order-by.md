@@ -1,22 +1,49 @@
 ---
 titulo: ORDER BY, LIMIT y DISTINCT
 nivel: Básico
-duracion: 20
+duracion: 30
 resumen: Ordenar resultados, paginar y eliminar duplicados.
 ---
 
-## Ordenar con ORDER BY
+## Las tablas no tienen orden
 
-Las filas de una tabla **no tienen un orden garantizado**. Si el orden importa, pídelo con `ORDER BY`:
+Una idea que sorprende al principio: **las filas de una tabla no tienen un orden garantizado**. Si ejecutas `SELECT * FROM productos` dos veces, normalmente verás el mismo orden, pero es casualidad: depende de cómo están guardadas en disco, de si se borró o actualizó algo, de si el motor trabaja en paralelo (en Spark o BigQuery el orden cambia de una ejecución a otra). Si el orden **importa** para tu pregunta, tienes que pedirlo explícitamente con `ORDER BY`.
+
+## ORDER BY: ordenar el resultado
 
 ```sql
 SELECT nombre, precio
 FROM productos
-ORDER BY precio DESC   -- DESC = de mayor a menor; ASC (por defecto) = de menor a mayor
+ORDER BY precio DESC
 LIMIT 5;
 ```
 
-Puedes ordenar por varias columnas. La segunda desempata a la primera:
+| nombre | precio |
+|---|---|
+| Notebook Apple Sport | 2374.99 |
+| Laptop Asus Classic 900 | 2251.99 |
+| Notebook Asus Eco | 2079.99 |
+| Laptop Apple Neo 700 | 2039.99 |
+| Candado Specialized Pro 800 | 1945.99 |
+
+- `ASC` (*ascending*, ascendente): de menor a mayor. Es el valor **por defecto**: si no escribes nada, ordena ascendente.
+- `DESC` (*descending*, descendente): de mayor a menor.
+
+Cómo ordena cada tipo de dato:
+
+| Tipo | ASC significa | Ejemplo |
+|---|---|---|
+| Números | del más chico al más grande | 1, 2, 10, 100 |
+| Texto | orden alfabético (según la "intercalación" del motor) | Argentina, Bolivia, Chile |
+| Fechas `AAAA-MM-DD` | de la más antigua a la más reciente | 2022-01-01, 2024-12-31 |
+
+:::cuidado Números guardados como texto
+Si una columna guarda números como **texto**, el orden es alfabético: `'10'` va antes que `'9'` (porque compara el primer carácter: "1" < "9"). Si ves un orden raro, revisa el tipo de la columna y conviértela: `ORDER BY CAST(columna AS INTEGER)`.
+:::
+
+### Ordenar por varias columnas
+
+Puedes ordenar por varias columnas separadas por comas. La segunda solo se usa para **desempatar** cuando la primera es igual, la tercera para desempatar la segunda, y así:
 
 ```sql
 SELECT pais, ciudad, nombre
@@ -25,7 +52,13 @@ ORDER BY pais ASC, ciudad ASC, nombre ASC
 LIMIT 20;
 ```
 
-También puedes ordenar por un alias o por una expresión:
+Primero todos los de Argentina (ordenados por ciudad, y dentro de cada ciudad por nombre), después Bolivia, etc. Cada columna lleva su propio `ASC`/`DESC`: `ORDER BY pais ASC, precio DESC` es "países de la A a la Z y, dentro de cada país, del más caro al más barato".
+
+:::analogia La guía telefónica
+Una guía se ordena por apellido y, entre los que se apellidan igual, por nombre. "García, Ana" va antes que "García, Beto". Eso es `ORDER BY apellido, nombre`.
+:::
+
+### Ordenar por un cálculo o un alias
 
 ```sql
 SELECT nombre, precio - costo AS ganancia
@@ -34,48 +67,116 @@ ORDER BY ganancia DESC
 LIMIT 5;
 ```
 
-:::nota ¿Dónde quedan los NULL?
-En SQLite y MySQL los `NULL` van **primero** en orden ascendente; en PostgreSQL y Oracle van **al final**. Puedes controlarlo con `NULLS FIRST` / `NULLS LAST` (SQLite ≥ 3.30, PostgreSQL, Spark).
+Aquí **sí** puedes usar el alias `ganancia`. ¿Por qué en `ORDER BY` sí y en `WHERE` no? Lo explica la sección "El orden real de ejecución", más abajo. También puedes ordenar por una expresión que no aparece en el `SELECT` (`ORDER BY precio - costo DESC`) o por la posición de la columna (`ORDER BY 2 DESC` = por la segunda columna; funciona, pero es frágil: si agregas una columna al principio, cambia el significado).
+
+:::nota ¿Dónde quedan los NULL al ordenar?
+Los valores vacíos (`NULL`) no son ni grandes ni chicos. Cada motor decide: en SQLite y MySQL van **primero** en orden ascendente; en PostgreSQL y Oracle, **al final**. Puedes forzarlo con `NULLS FIRST` o `NULLS LAST` (SQLite 3.30+, PostgreSQL, Spark, BigQuery): `ORDER BY fecha_entrega DESC NULLS LAST`.
 :::
 
-## LIMIT y OFFSET: paginar
+## LIMIT: el "top N"
+
+Combinado con `ORDER BY`, `LIMIT` responde preguntas de tipo **ranking**: "los 5 productos más caros", "los 10 clientes más antiguos", "el último pedido".
 
 ```sql
--- "Página 3" de 10 resultados: salta 20, toma 10
-SELECT producto_id, nombre FROM productos
+-- Los 10 clientes que se registraron primero
+SELECT nombre, apellido, fecha_registro
+FROM clientes
+ORDER BY fecha_registro ASC
+LIMIT 10;
+```
+
+:::cuidado LIMIT sin ORDER BY no es "los primeros"
+`SELECT * FROM pedidos LIMIT 5` no te da "los 5 primeros pedidos": te da **5 pedidos cualesquiera**. Para "los 5 primeros", ordena por fecha. Para "el top 5", ordena por la métrica.
+:::
+
+:::cuidado Empates en el corte
+"Los 3 productos más caros" con `LIMIT 3`: si el 3.º y el 4.º cuestan lo mismo, uno queda afuera y cuál depende del azar. Para un resultado estable, agrega una columna de desempate: `ORDER BY precio DESC, producto_id`. Para incluir todos los empatados necesitarás funciones de ventana (`RANK`), que verás más adelante.
+:::
+
+### Paginar con OFFSET
+
+`OFFSET n` **salta** las primeras `n` filas. Sirve para mostrar resultados por páginas, como un buscador:
+
+```sql
+-- Página 3, con 10 resultados por página: salta 20 y toma 10
+SELECT producto_id, nombre
+FROM productos
 ORDER BY producto_id
 LIMIT 10 OFFSET 20;
 ```
 
-:::nota Dialectos
-- SQL Server: `SELECT TOP 10 ...` o `OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY`.
-- Oracle / estándar: `FETCH FIRST 10 ROWS ONLY`.
-- PostgreSQL, MySQL, SQLite, Spark: `LIMIT 10`.
+La fórmula: `OFFSET = (número_de_página − 1) × tamaño_de_página`.
+
+:::nota Cómo se escribe en otros motores
+- PostgreSQL, MySQL, SQLite, Spark, BigQuery: `LIMIT 10 OFFSET 20`.
+- SQL Server: `SELECT TOP 10 …` o `OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY`.
+- Oracle y el estándar SQL: `FETCH FIRST 10 ROWS ONLY`.
 :::
 
-## DISTINCT: valores únicos
+## DISTINCT: quitar repetidos
+
+`DISTINCT` elimina las filas **repetidas** del resultado. Es la forma más rápida de responder "¿qué valores distintos hay en esta columna?":
 
 ```sql
-SELECT DISTINCT pais FROM clientes ORDER BY pais;
+SELECT DISTINCT pais
+FROM clientes
+ORDER BY pais;
 ```
 
-`DISTINCT` aplica a **la combinación** de todas las columnas seleccionadas:
+La tabla tiene 2.000 clientes, pero el resultado son **11** filas, una por país.
+
+`DISTINCT` se aplica a la **combinación** de todas las columnas del `SELECT`, no a la primera:
 
 ```sql
-SELECT DISTINCT pais, segmento FROM clientes ORDER BY pais, segmento;
+SELECT DISTINCT pais, segmento
+FROM clientes
+ORDER BY pais, segmento;
 ```
 
-## El orden en que se escriben las cláusulas
+Devuelve **33** filas: cada combinación país + segmento (11 países × 3 segmentos). Si existe "Chile – Pyme" y "Chile – Consumidor", aparecen ambas.
+
+:::cuidado DISTINCT no es un arreglo mágico
+Si una consulta devuelve filas duplicadas que no esperabas, agregar `DISTINCT` "para que desaparezcan" suele **esconder** un error (típicamente, un `JOIN` mal hecho que multiplica filas). Primero entiende **por qué** se duplican. Además, `DISTINCT` obliga al motor a comparar todas las filas: en tablas grandes es costoso.
+:::
+
+## El orden de escritura y el orden real de ejecución
+
+Las cláusulas se **escriben** siempre en este orden:
 
 ```sql norun
-SELECT    columnas
+SELECT    columnas y cálculos
 FROM      tabla
-WHERE     condición
+WHERE     condición sobre filas
 ORDER BY  columnas
-LIMIT     n;
+LIMIT     n OFFSET m;
 ```
 
-¡El orden importa! `WHERE` siempre va antes de `ORDER BY`, y `LIMIT` al final.
+Pero la base de datos las **ejecuta** en otro orden, que tiene mucha lógica:
+
+| Paso | Cláusula | Qué hace |
+|---|---|---|
+| 1 | `FROM` | Busca la tabla |
+| 2 | `WHERE` | Descarta las filas que no cumplen la condición |
+| 3 | `SELECT` | Calcula las columnas pedidas y les pone alias |
+| 4 | `DISTINCT` | Quita repetidos |
+| 5 | `ORDER BY` | Ordena |
+| 6 | `LIMIT` / `OFFSET` | Corta |
+
+(Cuando aprendas `GROUP BY` y `HAVING`, se ubicarán entre `WHERE` y `SELECT`.)
+
+Este orden explica varias cosas que parecían caprichos:
+
+- En `WHERE` **no** puedes usar un alias del `SELECT`: cuando se ejecuta `WHERE` (paso 2), el `SELECT` (paso 3) todavía no calculó nada.
+- En `ORDER BY` **sí** puedes usar alias: se ejecuta en el paso 5, cuando los alias ya existen.
+- `LIMIT` se aplica **al final**: primero se filtra y se ordena todo, y recién después se cortan las filas. Por eso `ORDER BY … LIMIT 5` da el verdadero top 5.
+
+## Resumen
+
+- Sin `ORDER BY`, el orden de las filas no está garantizado.
+- `ORDER BY col [ASC|DESC]`, con varias columnas para desempatar; acepta alias y expresiones.
+- `LIMIT n` corta el resultado (top N con `ORDER BY`); `OFFSET` salta filas para paginar.
+- `DISTINCT` devuelve combinaciones únicas de todas las columnas seleccionadas; no lo uses para tapar duplicados que no entiendes.
+- Orden de ejecución: `FROM → WHERE → SELECT → DISTINCT → ORDER BY → LIMIT`.
 
 ## Ejercicios
 
