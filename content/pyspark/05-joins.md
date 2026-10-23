@@ -1,18 +1,34 @@
 ---
 titulo: Joins en PySpark
 nivel: Intermedio
-duracion: 30
+duracion: 40
 resumen: inner, left, anti y semi joins, columnas ambiguas, alias y self joins.
 ---
+
+## Los mismos joins de SQL, con otra sintaxis
+
+Todo lo que aprendiste de `JOIN` en SQL vale aquí: claves que conectan tablas, `INNER` que descarta lo que no tiene pareja, `LEFT` que conserva todo lo de la izquierda, el anti-join para encontrar lo que falta y la multiplicación de filas en relaciones uno a muchos. En PySpark un join es un **método** del DataFrame de la izquierda:
 
 ```python norun
 df_izq.join(df_der, on=..., how="inner")
 ```
 
-- `on` puede ser un **nombre de columna** (o lista) que existe en ambos lados, o una **condición**.
-- `how`: `"inner"` (por defecto), `"left"`, `"right"`, `"full"`, `"left_semi"`, `"left_anti"`, `"cross"`.
+| Parámetro | Qué es | Valores |
+|---|---|---|
+| `df_der` | La tabla de la derecha | otro DataFrame |
+| `on` | Cómo emparejar | un **nombre** de columna, una **lista** de nombres, o una **condición** |
+| `how` | El tipo de join | `"inner"` (por defecto), `"left"`, `"right"`, `"full"`, `"left_semi"`, `"left_anti"`, `"cross"` |
+
+| SQL | PySpark |
+|---|---|
+| `FROM pedidos JOIN clientes USING (cliente_id)` | `pedidos.join(clientes, "cliente_id")` |
+| `LEFT JOIN … ON a.x = b.y` | `a.join(b, a.x == b.y, "left")` |
+| `WHERE EXISTS (…)` | `.join(…, how="left_semi")` |
+| `WHERE NOT EXISTS (…)` / anti-join | `.join(…, how="left_anti")` |
 
 ## Join por nombre de columna
+
+Si la columna de unión **se llama igual** en las dos tablas, pasa su nombre:
 
 ```python
 pedidos = spark.table("pedidos")
@@ -20,22 +36,36 @@ clientes = spark.table("clientes")
 pedidos.join(clientes, "cliente_id").select("pedido_id", "nombre", "pais").show(5)
 ```
 
-Cuando unes por nombre, la columna de unión aparece **una sola vez** en el resultado.
+```text
++---------+--------+----------+
+|pedido_id|  nombre|      pais|
++---------+--------+----------+
+|        1|   Paula| Argentina|
+|        2|Santiago|Costa Rica|
+|        3| Gabriel| Argentina|
+```
+
+Es el `USING` de SQL: la columna `cliente_id` aparece **una sola vez** en el resultado (no hay ambigüedad). Para unir por varias columnas, pasa una lista: `ventas.join(metas, ["anio", "mes", "tienda"])`.
 
 ## Join por condición y el problema de las columnas ambiguas
+
+Si los nombres son distintos, o necesitas una condición más compleja, escribe la condición con columnas de cada DataFrame:
 
 ```python
 from pyspark.sql import functions as F
 
 p = spark.table("productos")
 c = spark.table("categorias")
-# ambas tienen la columna "nombre": hay que decir de cuál hablamos
+# ambas tablas tienen una columna "nombre": hay que decir de cuál hablamos
 (p.join(c, p.categoria_id == c.categoria_id)
    .select(p.nombre.alias("producto"), c.nombre.alias("categoria"))
    .show(5))
 ```
 
-Otra forma muy usada es con **alias** de DataFrame:
+Con una condición, **ambas** columnas de unión quedan en el resultado, y cualquier columna que exista en las dos tablas (aquí `nombre` y `categoria_id`) queda **duplicada**. Si después escribes `F.col("nombre")`, Spark responde `AMBIGUOUS_REFERENCE`: no sabe de cuál hablas. Tres soluciones:
+
+1. Referirte a la columna a través de su DataFrame (`p.nombre`, `c.nombre`), como arriba.
+2. Ponerle **alias** a cada DataFrame y usar `F.col("alias.columna")`:
 
 ```python
 from pyspark.sql import functions as F
@@ -46,23 +76,48 @@ from pyspark.sql import functions as F
    .show(5))
 ```
 
-:::tip Truco práctico
-Renombra las columnas conflictivas **antes** del join (`withColumnRenamed("nombre", "categoria")`) y une por nombre de columna. Evita muchos dolores de cabeza.
+3. La más práctica: **renombrar** las columnas conflictivas antes del join y unir por nombre.
+
+```python
+from pyspark.sql import functions as F
+
+categorias = spark.table("categorias").select("categoria_id", F.col("nombre").alias("categoria"))
+spark.table("productos").join(categorias, "categoria_id").select("nombre", "categoria").show(3)
+```
+
+:::tip Un hábito que evita la mayoría de los problemas
+Antes de un join, deja en cada lado **solo** las columnas que vas a usar (`select`) y con nombres que no choquen. El código queda más claro, no hay ambigüedades y Spark mueve menos datos por la red.
 :::
 
-## left_anti y left_semi: los joins “filtro”
+## Los tipos de join, con números reales
 
-- `left_semi`: filas de la izquierda que **tienen** pareja (como `WHERE EXISTS`). No agrega columnas.
-- `left_anti`: filas de la izquierda que **no tienen** pareja (como `WHERE NOT EXISTS`). Perfecto para “clientes sin pedidos”.
+Con 2.000 clientes, 1.453 de ellos con pedidos y 12.000 pedidos en total:
 
 ```python
 clientes = spark.table("clientes")
 pedidos = spark.table("pedidos")
-sin_pedidos = clientes.join(pedidos, "cliente_id", "left_anti")
-print(sin_pedidos.count())
+print("inner:", clientes.join(pedidos, "cliente_id").count())               # 12000: solo clientes con pedidos, una fila por pedido
+print("left:", clientes.join(pedidos, "cliente_id", "left").count())        # 12547: + 547 clientes sin pedidos, con nulos
+print("left_semi:", clientes.join(pedidos, "cliente_id", "left_semi").count())  # 1453: clientes que tienen pedidos, UNA vez
+print("left_anti:", clientes.join(pedidos, "cliente_id", "left_anti").count())  # 547: clientes SIN pedidos
 ```
 
+| Tipo | Filas | Columnas | Equivale en SQL |
+|---|---|---|---|
+| `inner` | Solo con pareja; se repite por cada pareja | De ambas tablas | `INNER JOIN` |
+| `left` | Todas las de la izquierda | De ambas (nulos si no hay pareja) | `LEFT JOIN` |
+| `left_semi` | Las de la izquierda que **tienen** pareja, sin repetir | **Solo** de la izquierda | `WHERE EXISTS` / `IN` |
+| `left_anti` | Las de la izquierda que **no** tienen pareja | **Solo** de la izquierda | `WHERE NOT EXISTS` |
+
+`left_semi` y `left_anti` son "joins filtro": usan la otra tabla solo para decidir qué filas quedan. Son más claros y más eficientes que un `left` + `filter(isNull)`, y en Spark se usan muchísimo: "clientes activos" (`semi`), "productos nunca vendidos" (`anti`), "registros nuevos que todavía no están en la tabla destino" (`anti`, clave en las cargas incrementales).
+
+:::cuidado La explosión de filas
+Igual que en SQL, si la clave **no es única** en ninguno de los dos lados, el join multiplica filas (si una fecha aparece 1.000 veces a cada lado, salen 1.000.000 de filas). En un cluster eso no solo da un resultado equivocado: puede dejar el job corriendo horas. Antes de unir, pregúntate si la clave es única en al menos un lado, y verifica con `count()` antes y después.
+:::
+
 ## Self join
+
+Unir una tabla consigo misma requiere **alias**, porque las dos "copias" tienen exactamente las mismas columnas:
 
 ```python
 from pyspark.sql import functions as F
@@ -73,6 +128,33 @@ e = spark.table("empleados")
    .select(F.col("e.nombre").alias("empleado"), F.col("j.nombre").alias("jefe"))
    .show(5))
 ```
+
+## Cómo ejecuta Spark un join
+
+En un cluster, unir no es trivial: las filas con la misma clave tienen que estar **en la misma máquina** para poder emparejarse. Spark elige una estrategia:
+
+| Estrategia | Cuándo | Costo |
+|---|---|---|
+| **Broadcast hash join** | Una tabla es chica (por defecto < 10 MB): se **copia entera** a cada máquina | Barato: la tabla grande no se mueve |
+| **Sort-merge join** | Ambas son grandes: se reparten por la clave (shuffle) y se ordenan | Caro: mueve las dos tablas por la red |
+
+Puedes sugerir el broadcast cuando sabes que una tabla es chica (una dimensión de países, de categorías):
+
+```python
+from pyspark.sql import functions as F
+
+spark.table("productos").join(F.broadcast(spark.table("categorias")), "categoria_id").count()
+```
+
+Lo verás en detalle en la lección de rendimiento; por ahora quédate con la idea: **unir una tabla grande con una chica es barato; unir dos grandes, caro**.
+
+## Resumen
+
+- `izq.join(der, on, how)`: `on` es un nombre, una lista de nombres o una condición.
+- Por nombre, la columna de unión aparece una vez; por condición, cuidado con las columnas duplicadas (usa alias o renombra antes).
+- `inner`, `left`, `full` como en SQL; `left_semi` = `EXISTS`, `left_anti` = `NOT EXISTS`.
+- Claves no únicas multiplican filas: verifica conteos.
+- Tabla chica + tabla grande → `F.broadcast(chica)`.
 
 ## Ejercicios
 
