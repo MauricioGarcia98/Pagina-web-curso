@@ -33,6 +33,18 @@ dag.test()
 XCom se guarda en la base de metadatos: úsalo para **metadatos** (rutas, conteos, IDs). Los datos en sí (millones de filas) van al data lake o a una tabla; por XCom pasas **dónde** están.
 :::
 
+### Cómo funciona por dentro
+
+1. La función `extraer` **devuelve** `1500`. Airflow guarda automáticamente ese valor en la base de metadatos, asociado a esta tarea y a esta ejecución, con la clave `return_value`.
+2. `ti.xcom_push(key="ruta", value=…)` guarda un valor adicional con otra clave.
+3. En `transformar`, `ti.xcom_pull(task_ids="extraer")` busca en la base el valor que dejó `extraer` **en la misma ejecución del DAG** (no el de ayer).
+
+`ti` es la *task instance* (la ejecución concreta de la tarea), que Airflow pasa automáticamente a la función si declaras un parámetro con ese nombre.
+
+:::analogia El casillero de la oficina
+Las tareas son empleados que trabajan en turnos distintos y quizás en edificios distintos: no pueden pasarse papeles en mano. XCom es un casillero compartido, rotulado con el nombre de la tarea y la fecha de la ejecución: una deja una nota ("el archivo quedó en /lake/bronze/…"), la siguiente la retira. Para notas, perfecto; para mudanzas (millones de filas), no entra.
+:::
+
 ## TaskFlow API: Airflow “pythónico”
 
 Desde Airflow 2, los decoradores `@dag` y `@task` convierten funciones comunes en DAGs y tareas. Lo que una tarea **devuelve** pasa automáticamente por XCom a la siguiente, y las **dependencias se infieren** de cómo pasas los valores:
@@ -61,6 +73,16 @@ def etl_taskflow():
 dag_etl = etl_taskflow()                # ¡hay que llamar a la función para crear el DAG!
 dag_etl.test()
 ```
+
+Compara con la versión clásica de arriba:
+
+| Clásico (`PythonOperator` + XCom) | TaskFlow (`@task`) |
+|---|---|
+| `ti.xcom_push` / `ti.xcom_pull` explícitos | El `return` de una tarea es el argumento de la siguiente |
+| Dependencias con `>>` | Dependencias **inferidas** de cómo pasas los valores |
+| Más código repetitivo | Se lee como Python normal |
+
+Por dentro es **exactamente lo mismo**: TaskFlow usa XCom. Por eso las mismas reglas aplican: lo que devuelves debe ser **chico** y **serializable a JSON** (números, textos, listas, diccionarios; no un DataFrame de pandas ni una conexión a una base).
 
 ### multiple_outputs
 

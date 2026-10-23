@@ -5,6 +5,31 @@ duracion: 25
 resumen: Jerarquía de objetos, GRANT/REVOKE, grupos, external locations, volúmenes y tablas de sistema.
 ---
 
+## Por qué existe Unity Catalog
+
+Antes de Unity Catalog, cada workspace de Databricks tenía su propio catálogo (el *Hive metastore*) y los permisos se manejaban por separado en cada uno, muchas veces con llaves de almacenamiento compartidas. En una empresa con 10 workspaces, nadie podía responder con certeza "¿quién puede ver la tabla de salarios?".
+
+**Unity Catalog** centraliza el **gobierno** de todos los datos de la cuenta:
+
+| Necesidad | Cómo la resuelve |
+|---|---|
+| ¿Quién puede ver qué? | Permisos con `GRANT`/`REVOKE` sobre catálogos, esquemas, tablas, vistas, volúmenes y funciones, en **un solo lugar** para todos los workspaces |
+| ¿De dónde sale esta tabla y quién la usa? | **Linaje** automático, hasta el nivel de columna |
+| ¿Quién consultó la tabla de clientes ayer? | **Auditoría** en tablas de sistema |
+| Ocultar datos sensibles | Filtros de filas y máscaras de columnas |
+| Acceso al almacenamiento sin llaves | *Storage credentials* y *external locations* |
+
+```text
+Metastore (uno por región, compartido por los workspaces)
+ └── Catálogo        dev, prod, main             ← normalmente por entorno o unidad de negocio
+      └── Esquema    bronze, silver, gold, ventas ← por capa o dominio
+           ├── Tabla / Vista       prod.gold.ventas_diarias
+           ├── Volumen (archivos)  /Volumes/prod/crudo/archivos/
+           └── Función, Modelo
+```
+
+Los permisos se **heredan** hacia abajo: `GRANT SELECT ON SCHEMA prod.gold TO analistas` da lectura sobre todas las tablas del esquema, incluidas las que se creen después. Y para leer una tabla hacen falta tres permisos encadenados: `USE CATALOG` en el catálogo, `USE SCHEMA` en el esquema y `SELECT` en la tabla.
+
 ## Permisos con SQL
 
 Los permisos se dan a **grupos** (no a personas) y se heredan hacia abajo. Para leer una tabla hacen falta `USE CATALOG`, `USE SCHEMA` y `SELECT`:
