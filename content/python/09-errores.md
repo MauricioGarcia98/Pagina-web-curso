@@ -1,11 +1,15 @@
 ---
 titulo: Errores y excepciones
 nivel: Intermedio
-duracion: 25
+duracion: 35
 resumen: Leer un traceback, try/except/else/finally, lanzar tus propios errores y validar datos.
 ---
 
-Los errores no son fracasos: son **mensajes** que te dicen qué pasó. Aprender a leerlos es una habilidad clave.
+## Los errores son información
+
+Cuando algo sale mal, Python no "se rompe" sin más: **lanza una excepción**, un objeto que describe qué pasó, y si nadie la maneja, detiene el programa y muestra un mensaje. Al principio esos mensajes en rojo asustan; con práctica se vuelven tu mejor herramienta, porque dicen **exactamente** qué falló y dónde.
+
+En ingeniería de datos los errores son parte del día a día: un archivo que llega con una columna de menos, un precio escrito "N/A", una API que no responde, una fecha imposible. Esta lección te enseña a **leer** errores, **manejarlos** cuando corresponde y **lanzarlos** tú misma cuando los datos no tienen sentido.
 
 ## Leer un error (traceback)
 
@@ -14,54 +18,111 @@ precios = {"mouse": 25}
 print(precios["teclado"])
 ```
 
-Python dice **qué tipo de error** (`KeyError`), **dónde** (la línea) y **un detalle** (`'teclado'`). Lee siempre la **última línea** primero.
+El mensaje se llama **traceback** ("rastro") y tiene tres partes:
 
-| Error | Causa típica |
-|---|---|
-| `SyntaxError` | Código mal escrito: faltan `:` o paréntesis |
-| `NameError` | Usas una variable que no existe (¿la escribiste mal?) |
-| `TypeError` | Operación con tipos incompatibles: `"3" + 1` |
-| `ValueError` | Tipo correcto, valor inválido: `int("hola")` |
-| `KeyError` | Clave inexistente en un diccionario |
-| `IndexError` | Índice fuera de rango en una lista |
-| `ZeroDivisionError` | División por cero |
-| `AttributeError` | El objeto no tiene ese método: `None.upper()` |
+```text
+Traceback (most recent call last):
+  File "main.py", line 2, in <module>      ← DÓNDE: archivo y número de línea
+    print(precios["teclado"])               ← la línea que falló
+KeyError: 'teclado'                         ← QUÉ: tipo de error + detalle
+```
 
-## try / except: manejar errores
+:::tip Lee el traceback de abajo hacia arriba
+La **última línea** es la más importante: el tipo de error y el detalle. Después sube para ver en qué línea ocurrió. Si el error pasó dentro de una función que llamaste desde otra, verás varias líneas `File …`: la de más abajo es donde explotó, las de arriba son el camino de llamadas que llevó hasta ahí.
+:::
+
+### Los errores más frecuentes
+
+| Error | Qué significa | Ejemplo típico | Cómo se arregla |
+|---|---|---|---|
+| `SyntaxError` | El código está mal escrito | Falta `:` o un paréntesis | Revisa la línea indicada (o la anterior) |
+| `IndentationError` | Sangría incorrecta | Un bloque sin indentar | 4 espacios consistentes |
+| `NameError` | Variable o función inexistente | `totl` en vez de `total` | Revisa el nombre y que esté definida antes |
+| `TypeError` | Operación con tipos incompatibles | `"3" + 1`, llamar `len(5)` | Convierte tipos |
+| `ValueError` | Tipo correcto, valor inválido | `int("hola")`, `int("")` | Valida o maneja el valor |
+| `KeyError` | Clave inexistente en un diccionario | `d["telefono"]` | `d.get("telefono")` |
+| `IndexError` | Índice fuera de rango | `lista[10]` con 3 elementos | Revisa el largo |
+| `ZeroDivisionError` | División por cero | `total / 0` | Guarda: `if divisor:` |
+| `AttributeError` | El objeto no tiene ese atributo o método | `None.upper()` | Casi siempre: una variable es `None` cuando no debía |
+| `FileNotFoundError` | No existe el archivo | Ruta mal escrita | Revisa la ruta y la carpeta actual |
+
+## try / except: manejar los errores esperables
+
+A veces **sabes** que algo puede fallar y tienes un plan para ese caso. Por ejemplo, al convertir textos de un archivo a números: algunos vendrán vacíos o mal escritos. En vez de que el programa entero se detenga en la fila 5.000, quieres convertir lo que se pueda y marcar lo demás.
 
 ```python
 def a_numero(texto):
     try:
-        return float(texto)
-    except ValueError:
+        return float(texto)            # intenta esto…
+    except ValueError:                 # …si falla con ValueError, haz esto otro
         print(f"No se pudo convertir {texto!r}")
         return None
 
 valores = ["10.5", "abc", "7", ""]
-print([a_numero(v) for v in valores])
+print([a_numero(v) for v in valores])  # [10.5, None, 7.0, None]
 ```
 
-La estructura completa:
+1. Python ejecuta el bloque `try`.
+2. Si **no** hay error, se saltea el `except` y sigue.
+3. Si ocurre un `ValueError`, abandona el `try` en ese punto y ejecuta el bloque `except`.
+4. Si ocurre un error de **otro** tipo (por ejemplo `TypeError`), el `except ValueError` no lo atrapa y el programa se detiene igual. Eso es bueno: no esperabas ese error.
+
+### La estructura completa
 
 ```python
 try:
     resultado = 10 / 0
-except ZeroDivisionError as e:      # captura un tipo específico
+except ZeroDivisionError as e:      # captura un tipo específico; e es el objeto error
     print("Error:", e)
     resultado = None
 else:                                # solo si NO hubo error
     print("Todo bien")
-finally:                             # SIEMPRE se ejecuta (cerrar conexiones, archivos...)
+finally:                             # SIEMPRE se ejecuta, haya error o no
     print("Fin")
 ```
 
+| Bloque | Cuándo se ejecuta | Uso típico |
+|---|---|---|
+| `try` | Siempre (hasta que algo falle) | La operación riesgosa |
+| `except Tipo as e` | Si ocurre ese tipo de error | El plan B |
+| `else` | Si no hubo ningún error | Lo que depende de que el `try` haya salido bien |
+| `finally` | Siempre, al final | Liberar recursos: cerrar conexiones, archivos |
+
+Puedes tener varios `except` para distintos errores: `except (ValueError, TypeError):` o uno debajo del otro.
+
 :::cuidado No atrapes todo a ciegas
-`except:` o `except Exception:` sin más esconde errores de programación (como un `NameError`). Captura **solo** los errores que esperas y sabes manejar. En un pipeline, es mejor que falle ruidosamente a que cargue datos corruptos en silencio.
+`except:` o `except Exception:` sin más atrapa **cualquier** error, incluidos los tuyos de programación (`NameError` por un nombre mal escrito). El programa "funciona" pero hace cualquier cosa, y nadie se entera. Captura **solo** los errores que esperas y sabes manejar. En un pipeline de datos, es mucho mejor que el proceso **falle ruidosamente** (y Airflow te avise) a que cargue datos corruptos en silencio en el reporte del directorio.
 :::
 
-## Lanzar tus propios errores
+## Reintentos: un uso real de try
 
-Con `raise` detienes la ejecución cuando algo no tiene sentido. Es la base de la **validación de datos**:
+Las conexiones de red fallan a veces por motivos pasajeros. Un patrón común es reintentar unas pocas veces antes de rendirse:
+
+```python
+import random
+
+def llamar_api():
+    if random.random() < 0.6:                       # simulamos una API inestable
+        raise ConnectionError("timeout")
+    return {"pedidos": 42}
+
+def con_reintentos(funcion, intentos=5):
+    for n in range(1, intentos + 1):
+        try:
+            return funcion()
+        except ConnectionError as e:
+            print(f"Intento {n} falló: {e}")
+    raise RuntimeError(f"Falló después de {intentos} intentos")
+
+random.seed(3)
+print(con_reintentos(llamar_api))
+```
+
+Airflow tiene esto incorporado (`retries=3` en cada tarea), pero la lógica es la misma.
+
+## Lanzar tus propios errores: raise
+
+A veces el código no falla, pero los **datos no tienen sentido**: una cantidad negativa, un estado desconocido, una fecha de entrega anterior a la de compra. Python no lo sabe; tú sí. Con `raise` detienes la ejecución con un mensaje claro. Es la base de la **validación de datos**:
 
 ```python
 def validar_pedido(p):
@@ -77,7 +138,46 @@ except ValueError as e:
     print("Pedido rechazado →", e)
 ```
 
-También puedes crear tus propias clases de error: `class DatosInvalidos(Exception): pass`.
+Un buen mensaje de error dice **qué** está mal, **dónde** (el id del registro) y **qué valor** tenía. Quien lo lea a las 3 de la mañana te lo agradecerá.
+
+### Tus propias clases de error
+
+Puedes definir errores con nombre propio, para distinguirlos de los de Python:
+
+```python
+class DatosInvalidos(Exception):
+    """Los datos de entrada no cumplen el contrato esperado."""
+
+def leer_monto(texto):
+    try:
+        return float(texto)
+    except ValueError:
+        raise DatosInvalidos(f"Monto no numérico: {texto!r}")
+
+try:
+    leer_monto("doce")
+except DatosInvalidos as e:
+    print("Validación:", e)
+```
+
+## ¿Fallar o seguir? La decisión de diseño
+
+Cuando un registro está mal, hay dos estrategias, y elegir bien es parte del trabajo:
+
+| Estrategia | Cuándo | Ejemplo |
+|---|---|---|
+| **Fallar todo** (*fail fast*) | Si el error indica que algo grave cambió | Falta una columna entera, el archivo está vacío, el esquema cambió |
+| **Apartar el registro** (cuarentena) y seguir | Si son errores puntuales y aceptables | 3 filas con monto "N/A" en 1 millón |
+
+Lo profesional es combinar ambas: apartar las filas malas con su motivo, y **fallar** si superan un umbral ("más del 1 % inválidas"). Lo practicarás en el módulo de casos de punta a punta.
+
+## Resumen
+
+- Un traceback dice qué error, en qué línea y por qué: léelo de abajo hacia arriba.
+- `try`/`except Tipo` maneja errores esperables; `else` si salió bien; `finally` siempre.
+- Captura solo los errores que sabes manejar; nunca `except:` a ciegas.
+- `raise ValueError("mensaje claro")` para datos que no tienen sentido; puedes crear tus propias excepciones.
+- En pipelines: apartar registros inválidos con su motivo, y fallar si son demasiados.
 
 ## Ejercicios
 

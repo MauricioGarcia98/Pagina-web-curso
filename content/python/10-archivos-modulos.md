@@ -1,13 +1,17 @@
 ---
 titulo: Módulos, archivos, CSV, JSON y fechas
 nivel: Intermedio
-duracion: 35
+duracion: 45
 resumen: import, la biblioteca estándar, leer y escribir archivos, csv, json, datetime, collections y pathlib.
 ---
 
+## Más allá de un solo archivo de código
+
+Hasta ahora todo tu código vivía en un solo lugar y los datos estaban escritos dentro del programa. En el trabajo real, los datos vienen de **archivos** (CSV, JSON, logs), y el código se organiza en **módulos** que se reutilizan. Además, Python trae una enorme **biblioteca estándar** con herramientas listas para usar. Esta lección cubre esas tres cosas: importar, leer y escribir archivos, y las herramientas más útiles para datos.
+
 ## Importar módulos
 
-Un **módulo** es un archivo con código reutilizable. Python trae una enorme **biblioteca estándar** (“baterías incluidas”):
+Un **módulo** es un archivo `.py` con funciones, clases o variables que puedes usar desde otro programa. Para usarlo, lo **importas**:
 
 ```python
 import math
@@ -16,73 +20,126 @@ from collections import Counter, defaultdict
 import json, csv, random as rnd
 
 print(math.sqrt(16), math.pi)
-print(date.today() - timedelta(days=7))
+print(date(2024, 12, 31) - timedelta(days=7))
 print(Counter("abracadabra").most_common(2))
 ```
 
-Paquetes externos (pandas, requests, pyspark…) se instalan con `pip install paquete`. Lo veremos en “Buenas prácticas”.
+| Forma | Cómo se usa después | Cuándo |
+|---|---|---|
+| `import math` | `math.sqrt(16)` | Deja claro de dónde viene cada cosa (recomendado) |
+| `from datetime import date` | `date(2024, 1, 1)` | Cuando usas mucho una o dos cosas |
+| `import pandas as pd` | `pd.read_csv(…)` | Un alias corto (convenciones: `pd`, `np`, `F` para `pyspark.sql.functions`) |
+| `from modulo import *` | Todo, sin prefijo | **Evítalo**: no se sabe de dónde viene cada nombre |
 
-## Leer y escribir archivos
+Hay tres tipos de módulos:
+
+1. **Biblioteca estándar**: viene con Python ("baterías incluidas"): `math`, `datetime`, `json`, `csv`, `pathlib`, `collections`, `os`, `re`…
+2. **Paquetes externos**: los instala la comunidad con `pip install pandas` (lo verás en buenas prácticas): `pandas`, `requests`, `pyspark`, `boto3`…
+3. **Tus propios módulos**: si tienes `limpieza.py` con una función `limpiar_email`, desde otro archivo de la misma carpeta haces `from limpieza import limpiar_email`.
+
+## Leer y escribir archivos de texto
 
 ```python
-# Escribir (modo "w" sobrescribe, "a" agrega)
+# Escribir: modo "w" crea o SOBRESCRIBE; modo "a" agrega al final
 with open("notas.txt", "w", encoding="utf-8") as f:
     f.write("línea 1\n")
     f.write("línea 2\n")
 
-# Leer
+# Leer línea por línea
 with open("notas.txt", encoding="utf-8") as f:
     for linea in f:
-        print(linea.strip())
+        print(linea.strip())     # strip quita el salto de línea "\n" del final
 ```
 
-:::tip Siempre usa with
-`with open(...) as f:` cierra el archivo automáticamente, aunque ocurra un error. Y especifica `encoding="utf-8"` para no tener problemas con tildes y eñes.
+| Modo | Significa |
+|---|---|
+| `"r"` (por defecto) | Leer. Error si no existe |
+| `"w"` | Escribir. **Borra** el contenido anterior |
+| `"a"` | Agregar al final (*append*). Ideal para logs |
+| `"rb"` / `"wb"` | Binario (imágenes, Parquet, archivos comprimidos) |
+
+:::tip Siempre usa with y encoding
+- `with open(...) as f:` **cierra el archivo automáticamente** al salir del bloque, aunque ocurra un error. Un archivo que queda abierto puede no guardarse completo o bloquearse.
+- `encoding="utf-8"` evita los famosos caracteres raros (`Ã±` en vez de `ñ`). Los archivos que vienen de Excel en Windows a veces usan `"latin-1"` o `"utf-8-sig"`: si ves caracteres raros, prueba esos.
 :::
 
-## CSV
+Leer un archivo **línea por línea** (`for linea in f`) no carga todo en memoria: puedes procesar archivos de varios gigabytes. `f.read()` lee todo de una vez (cómodo para archivos chicos).
+
+## CSV: el formato más común
+
+Un **CSV** (*comma-separated values*) es texto donde cada línea es una fila y las columnas se separan con comas. Parece fácil de leer con `split(",")`, pero **no lo es**: un nombre como `"Pérez, Ana"` tiene una coma adentro (va entre comillas) y `split` lo rompería. El módulo `csv` maneja esos casos:
 
 ```python
 import csv
 
 filas = [
     {"producto": "Mouse", "unidades": 3, "precio": 25.5},
-    {"producto": "Teclado", "unidades": 1, "precio": 49.9},
+    {"producto": "Teclado, inalámbrico", "unidades": 1, "precio": 49.9},
 ]
 with open("ventas.csv", "w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=["producto", "unidades", "precio"])
-    w.writeheader()
+    w.writeheader()          # la fila de encabezados
     w.writerows(filas)
 
 with open("ventas.csv", encoding="utf-8") as f:
+    total = 0
     for fila in csv.DictReader(f):
-        print(fila)          # ¡todo llega como texto! Hay que convertir tipos
+        print(fila)                                          # cada fila es un diccionario
+        total += int(fila["unidades"]) * float(fila["precio"])   # ¡convertir tipos!
+    print("Total:", total)
 ```
 
-## JSON
+- `csv.DictReader` usa la primera línea como encabezado y devuelve cada fila como un **diccionario** `{"producto": "Mouse", …}`.
+- **Todo llega como texto**: `"3"`, no `3`. Hay que convertir con `int()` y `float()`, y prepararse para valores vacíos o inválidos (lección de errores).
+- `newline=""` al escribir evita líneas en blanco de más en Windows.
+- Para otro separador (muy común en países que usan coma decimal): `csv.DictReader(f, delimiter=";")`.
+
+## JSON: el formato de las APIs
+
+**JSON** representa diccionarios, listas, textos, números, `true/false` y `null`. Es el formato de casi todas las APIs y de muchos eventos. El módulo `json` convierte en ambas direcciones:
 
 ```python
 import json
 
-pedido = {"id": 1, "cliente": "Eva", "items": [{"sku": "A1", "cant": 2}], "pagado": True}
-texto = json.dumps(pedido, ensure_ascii=False, indent=2)   # dict -> texto JSON
+pedido = {"id": 1, "cliente": "Eva", "items": [{"sku": "A1", "cant": 2}], "pagado": True, "cupon": None}
+texto = json.dumps(pedido, ensure_ascii=False, indent=2)   # dict -> texto JSON (dump String)
 print(texto)
-de_vuelta = json.loads(texto)                              # texto JSON -> dict
+de_vuelta = json.loads(texto)                              # texto JSON -> dict (load String)
 print(de_vuelta["items"][0]["sku"])
-# Con archivos: json.dump(obj, f) y json.load(f)
 ```
+
+| Función | Convierte | Con archivos |
+|---|---|---|
+| `json.dumps(obj)` | objeto Python → texto | `json.dump(obj, f)` |
+| `json.loads(texto)` | texto → objeto Python | `json.load(f)` |
+
+Fíjate cómo `True` se escribe `true` y `None` se escribe `null` en JSON. `ensure_ascii=False` conserva las tildes; `indent=2` lo hace legible para humanos.
+
+:::nota JSON Lines
+En datos se usa mucho **JSON Lines** (`.jsonl`): un objeto JSON **por línea**. Se lee línea por línea con `json.loads(linea)`, sin cargar todo el archivo, y es fácil de dividir entre muchas máquinas. Spark lo lee directamente.
+:::
 
 ## Fechas con datetime
 
 ```python
 from datetime import datetime, date, timedelta
 
-f = datetime.strptime("2024-03-15 14:30", "%Y-%m-%d %H:%M")   # texto -> fecha
-print(f.year, f.month, f.strftime("%d/%m/%Y"))                 # fecha -> texto
-print(f + timedelta(days=30))
-print((date(2024, 12, 25) - date(2024, 3, 15)).days)          # diferencia en días
+f = datetime.strptime("2024-03-15 14:30", "%Y-%m-%d %H:%M")   # texto -> fecha (string parse time)
+print(f.year, f.month, f.strftime("%d/%m/%Y"))                 # fecha -> texto (string format time)
+print(f + timedelta(days=30))                                  # sumar tiempo
+print((date(2024, 12, 25) - date(2024, 3, 15)).days)          # restar fechas → timedelta → .days
 print(date(2024, 3, 15).isoformat(), date.fromisoformat("2024-03-15").weekday())  # 0 = lunes
 ```
+
+| Necesitas | Herramienta |
+|---|---|
+| Texto → fecha | `datetime.strptime(texto, formato)` o `date.fromisoformat("2024-03-15")` |
+| Fecha → texto | `fecha.strftime("%d/%m/%Y")` o `fecha.isoformat()` |
+| Sumar/restar tiempo | `fecha + timedelta(days=7, hours=3)` |
+| Diferencia entre fechas | `(b - a).days` |
+| Día de la semana | `fecha.weekday()` (0 = lunes … 6 = domingo) |
+
+Los códigos de formato (`%Y`, `%m`, `%d`, `%H`, `%M`) son los mismos que viste en `strftime` de SQLite.
 
 ## collections: estructuras extra
 
@@ -90,23 +147,41 @@ print(date(2024, 3, 15).isoformat(), date.fromisoformat("2024-03-15").weekday())
 from collections import Counter, defaultdict
 
 canales = ["web", "app", "web", "tienda", "web"]
-print(Counter(canales))                        # contar en una línea
+print(Counter(canales))                        # contar en una línea: {'web': 3, 'app': 1, 'tienda': 1}
+print(Counter(canales).most_common(1))         # el más frecuente
 
-por_pais = defaultdict(list)                   # diccionario con valor por defecto
+por_pais = defaultdict(list)                   # diccionario que crea una lista vacía si la clave no existe
 for nombre, pais in [("Ana", "Chile"), ("Luis", "Perú"), ("Eva", "Chile")]:
     por_pais[pais].append(nombre)
-print(dict(por_pais))
+print(dict(por_pais))                          # {'Chile': ['Ana', 'Eva'], 'Perú': ['Luis']}
 ```
 
-## pathlib: rutas de archivos
+`Counter` y `defaultdict` son atajos del patrón "contar y agrupar" que hiciste a mano con `.get(k, 0)`.
+
+## pathlib: rutas de archivos sin dolor
+
+Las rutas se escriben distinto en Windows (`datos\crudos`) y en Linux/Mac (`datos/crudos`). `pathlib` las maneja como objetos y funciona igual en todos lados:
 
 ```python
 from pathlib import Path
-carpeta = Path("datos") / "crudos"
-carpeta.mkdir(parents=True, exist_ok=True)
+
+carpeta = Path("datos") / "crudos"                      # el operador / une partes de la ruta
+carpeta.mkdir(parents=True, exist_ok=True)              # crea la carpeta (y las intermedias) si no existe
 (carpeta / "a.txt").write_text("hola", encoding="utf-8")
-print([p.name for p in carpeta.glob("*.txt")])
+(carpeta / "b.txt").write_text("chau", encoding="utf-8")
+print([p.name for p in carpeta.glob("*.txt")])          # listar archivos que coinciden con un patrón
+print((carpeta / "a.txt").exists(), (carpeta / "a.txt").suffix)
 ```
+
+Es la forma moderna de trabajar con archivos y carpetas: procesar todos los CSV de una carpeta es `for archivo in Path("entrada").glob("*.csv"):`.
+
+## Resumen
+
+- `import modulo` / `from modulo import nombre`: biblioteca estándar, paquetes con `pip`, y tus propios archivos.
+- `with open(ruta, modo, encoding="utf-8") as f:` para leer y escribir; recorre línea por línea los archivos grandes.
+- `csv.DictReader`/`DictWriter` para CSV (todo llega como texto); `json.loads`/`dumps` para JSON.
+- `datetime`: `strptime` (texto → fecha), `strftime` (fecha → texto), `timedelta` para sumar.
+- `Counter` y `defaultdict` para contar y agrupar; `pathlib.Path` para rutas.
 
 ## Ejercicios
 

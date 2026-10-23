@@ -1,20 +1,31 @@
 ---
 titulo: Programación orientada a objetos
 nivel: Avanzado
-duracion: 35
+duracion: 45
 resumen: Clases, objetos, métodos, herencia, métodos especiales y dataclasses.
 ---
 
-Una **clase** es un molde para crear **objetos** que agrupan **datos** (atributos) y **comportamiento** (métodos). Casi todo lo que usarás en PySpark o Airflow son objetos: un `DataFrame`, una `SparkSession`, un `DAG`, un operador…
+## Por qué aprender clases si vas a trabajar con datos
+
+Quizás pienses que la programación orientada a objetos es "para programadores de aplicaciones". Pero casi todo lo que usarás como data engineer **son objetos**: un `DataFrame` de PySpark, la `SparkSession`, un `DAG` y sus operadores en Airflow, un cliente de S3 de `boto3`, una conexión a una base. Entender clases te permite **leer** esas librerías, entender sus errores y, cuando haga falta, escribir tus propias piezas reutilizables (un lector de una API, un validador, un operador personalizado).
+
+## Clase y objeto
+
+- Una **clase** es un **molde**: describe qué datos tiene algo y qué puede hacer.
+- Un **objeto** (o **instancia**) es **una cosa concreta** hecha con ese molde.
+
+:::analogia El molde de galletitas
+La clase `Producto` es el molde: dice que todo producto tiene nombre, precio y stock, y que se puede vender. Con ese molde haces muchas galletitas (objetos): el mouse, el teclado, el monitor. Cada una tiene **sus propios** valores, pero todas tienen la misma forma y saben hacer lo mismo.
+:::
 
 ```python
 class Producto:
-    def __init__(self, nombre, precio, stock=0):   # constructor: se ejecuta al crear el objeto
-        self.nombre = nombre                       # self = "este objeto"
+    def __init__(self, nombre, precio, stock=0):   # constructor: se ejecuta al crear cada objeto
+        self.nombre = nombre                       # atributos: los datos de ESTE objeto
         self.precio = precio
         self.stock = stock
 
-    def valor_inventario(self):
+    def valor_inventario(self):                    # métodos: lo que el objeto sabe hacer
         return self.precio * self.stock
 
     def vender(self, unidades):
@@ -22,14 +33,30 @@ class Producto:
             raise ValueError(f"Stock insuficiente de {self.nombre}")
         self.stock -= unidades
 
-mouse = Producto("Mouse", 25.0, stock=40)    # crear un objeto (instancia)
+mouse = Producto("Mouse", 25.0, stock=40)      # crear un objeto (instanciar)
+teclado = Producto("Teclado", 49.9, stock=5)
 mouse.vender(3)
 print(mouse.nombre, mouse.stock, mouse.valor_inventario())
+print(teclado.nombre, teclado.stock)           # el teclado no se vio afectado
 ```
+
+Pieza por pieza:
+
+| Pieza | Qué es |
+|---|---|
+| `class Producto:` | Define la clase. Por convención, los nombres de clases van en `CamelCase` |
+| `def __init__(self, …)` | El **constructor**: se ejecuta automáticamente al hacer `Producto(...)`. Prepara los atributos |
+| `self` | "Este objeto". Es el primer parámetro de todo método; Python lo pasa solo |
+| `self.nombre = nombre` | Guarda un **atributo** en el objeto |
+| `def vender(self, unidades)` | Un **método**: una función que pertenece a la clase y trabaja con los datos de `self` |
+| `mouse = Producto(…)` | Crea un objeto. Python llama a `__init__` con `self = mouse` |
+| `mouse.vender(3)` | Llama al método. Python lo traduce a `Producto.vender(mouse, 3)` |
+
+La gran ventaja: **datos y comportamiento viajan juntos**. El objeto `mouse` sabe su stock y sabe cómo venderse, incluida la regla "no vender más de lo que hay". Nadie puede olvidarse de esa validación porque está **dentro** del método.
 
 ## Métodos especiales (dunder)
 
-Los métodos con doble guion bajo cambian cómo se comporta el objeto con Python:
+Los métodos con doble guion bajo al principio y al final (*double underscore*, "dunder") definen cómo se comporta el objeto con las operaciones de Python: cómo se muestra, qué hace el `+`, cómo se compara.
 
 ```python
 class Dinero:
@@ -37,40 +64,52 @@ class Dinero:
         self.monto = monto
         self.moneda = moneda
 
-    def __repr__(self):                       # cómo se muestra
+    def __repr__(self):                       # cómo se muestra con print o en la consola
         return f"Dinero({self.monto:.2f} {self.moneda})"
 
-    def __add__(self, otro):                  # qué hace el +
+    def __add__(self, otro):                  # qué hace el operador +
         if self.moneda != otro.moneda:
             raise ValueError("No se pueden sumar monedas distintas")
         return Dinero(self.monto + otro.monto, self.moneda)
 
-    def __eq__(self, otro):                   # qué hace el ==
+    def __eq__(self, otro):                   # qué hace el operador ==
         return (self.monto, self.moneda) == (otro.monto, otro.moneda)
 
 print(Dinero(10) + Dinero(5.5))
+print(Dinero(10) == Dinero(10.0))
 ```
 
-¡Así es como PySpark permite escribir `F.col("a") + F.col("b")`!
+| Método | Se activa con |
+|---|---|
+| `__init__` | `Clase(…)` |
+| `__repr__` / `__str__` | `print(obj)`, la consola |
+| `__add__`, `__sub__`, `__mul__` | `+`, `-`, `*` |
+| `__eq__`, `__lt__` | `==`, `<` |
+| `__len__` | `len(obj)` |
+| `__getitem__` | `obj[clave]` |
 
-## Herencia
+:::experto Así funciona PySpark
+Cuando escribes `F.col("precio") * F.col("cantidad")` en PySpark, no se multiplica nada en ese momento: el objeto `Column` tiene un `__mul__` que **construye** una expresión "precio × cantidad" para ejecutarla más tarde en el cluster. Lo mismo `F.col("a") > 5` (con `__gt__`). Esa "magia" son métodos dunder.
+:::
 
-Una clase puede **heredar** de otra y especializarla:
+## Herencia: especializar una clase
+
+Una clase puede **heredar** de otra: recibe todos sus atributos y métodos, y puede agregar o **reemplazar** (*sobrescribir*) algunos.
 
 ```python
 class Fuente:
     def __init__(self, nombre):
         self.nombre = nombre
     def leer(self):
-        raise NotImplementedError
+        raise NotImplementedError("Cada fuente debe implementar leer()")
     def describir(self):
         return f"Fuente {self.nombre}"
 
-class FuenteCSV(Fuente):
+class FuenteCSV(Fuente):                    # FuenteCSV hereda de Fuente
     def __init__(self, nombre, separador=","):
-        super().__init__(nombre)            # llama al constructor del padre
+        super().__init__(nombre)            # reutiliza el constructor del padre
         self.separador = separador
-    def leer(self):
+    def leer(self):                          # sobrescribe leer()
         return f"leyendo {self.nombre} separado por '{self.separador}'"
 
 class FuenteAPI(Fuente):
@@ -81,9 +120,21 @@ for f in [FuenteCSV("ventas.csv", ";"), FuenteAPI("https://api/pedidos")]:
     print(f.describir(), "→", f.leer())     # polimorfismo: misma interfaz, distinto comportamiento
 ```
 
-Así funcionan los operadores de Airflow: todos heredan de `BaseOperator` e implementan `execute()`.
+- `class FuenteCSV(Fuente)` = "una FuenteCSV **es una** Fuente".
+- `super().__init__(nombre)` llama al constructor de la clase padre, para no repetir código.
+- `describir()` no está en `FuenteCSV`: lo hereda de `Fuente`.
 
-## dataclasses: clases de datos sin repetir código
+El bucle final muestra la idea más poderosa, el **polimorfismo**: el código que recorre las fuentes no necesita saber de qué tipo es cada una; solo llama a `leer()`, y cada clase responde a su manera. Agregar una `FuenteS3` no requiere tocar ese bucle.
+
+Así está construido Airflow: todos los operadores (`PythonOperator`, `BashOperator`, los de AWS o Databricks) **heredan de `BaseOperator`** y cada uno implementa su propio `execute()`. Airflow solo sabe "llamar a `execute()`".
+
+:::tip No abuses de la herencia
+Usa herencia cuando hay una relación clara "es un" y un comportamiento compartido. Para combinar capacidades, muchas veces es más simple **componer**: que un objeto *tenga* otro como atributo (un `Pipeline` que tiene una lista de `Fuente`s).
+:::
+
+## dataclasses: clases de datos sin escribir de más
+
+Muchas clases solo existen para **agrupar datos** (un pedido, un evento, una fila). Escribir `__init__`, `__repr__` y `__eq__` a mano es repetitivo. El decorador `@dataclass` los genera por ti a partir de las anotaciones de tipo:
 
 ```python
 from dataclasses import dataclass, field
@@ -92,15 +143,18 @@ from dataclasses import dataclass, field
 class Pedido:
     id: int
     cliente: str
-    items: list = field(default_factory=list)
+    items: list = field(default_factory=list)   # una lista nueva para cada pedido (¡no compartida!)
     pagado: bool = False
 
     def total(self):
         return sum(i["cantidad"] * i["precio"] for i in self.items)
 
 p = Pedido(1, "Eva", [{"cantidad": 2, "precio": 10.0}])
-print(p, p.total())   # __init__, __repr__ y __eq__ se generan solos
+print(p, p.total())            # __init__, __repr__ y __eq__ se generaron solos
+print(p == Pedido(1, "Eva", [{"cantidad": 2, "precio": 10.0}]))
 ```
+
+`field(default_factory=list)` resuelve la misma trampa de los valores por defecto mutables que viste en funciones. Con `@dataclass(frozen=True)` el objeto se vuelve inmutable, ideal para registros que no deben cambiar.
 
 ## Propiedades y métodos de clase
 
@@ -110,16 +164,27 @@ class Temperatura:
         self.celsius = celsius
 
     @property
-    def fahrenheit(self):              # se usa como atributo: t.fahrenheit
+    def fahrenheit(self):              # se calcula al pedirlo, pero se usa como atributo: t.fahrenheit
         return self.celsius * 9 / 5 + 32
 
     @classmethod
-    def desde_fahrenheit(cls, f):      # constructor alternativo
+    def desde_fahrenheit(cls, f):      # un constructor alternativo
         return cls((f - 32) * 5 / 9)
 
 t = Temperatura.desde_fahrenheit(212)
 print(t.celsius, t.fahrenheit)
 ```
+
+- `@property` convierte un método en un "atributo calculado": `t.fahrenheit` sin paréntesis, siempre coherente con `celsius`.
+- `@classmethod` recibe la **clase** (`cls`) en vez del objeto. Se usa para constructores alternativos. Lo verás en librerías: `SparkSession.builder…getOrCreate()`, `datetime.fromisoformat(…)`.
+
+## Resumen
+
+- Clase = molde; objeto = instancia concreta. `__init__` prepara los atributos; `self` es "este objeto".
+- Los métodos agrupan comportamiento con los datos (y protegen sus reglas).
+- Los métodos dunder definen `print`, `+`, `==`… (así funciona `F.col(...) * ...` en PySpark).
+- Herencia: `class Hija(Padre)`, `super().__init__()`, polimorfismo (así funcionan los operadores de Airflow).
+- `@dataclass` para clases de datos; `@property` para atributos calculados; `@classmethod` para constructores alternativos.
 
 ## Ejercicios
 
