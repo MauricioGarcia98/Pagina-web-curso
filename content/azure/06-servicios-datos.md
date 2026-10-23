@@ -18,6 +18,18 @@ resumen: Crear un workspace de Databricks, Data Factory y Event Hubs, y una arqu
  Transversal: Entra ID + RBAC, Key Vault, Azure Monitor, Cost Management
 ```
 
+Cada servicio cumple un papel en ese recorrido:
+
+| Etapa | Servicio | Qué hace | Equivalente en AWS / GCP |
+|---|---|---|---|
+| Ingesta batch | **Data Factory (ADF)** | Copia datos desde más de 100 conectores al lago, con orquestación visual | Glue / DMS · Data Transfer / Datastream |
+| Ingesta streaming | **Event Hubs** | Recibe millones de eventos por segundo (compatible con Kafka) | Kinesis / MSK · Pub/Sub |
+| Almacenamiento | **ADLS Gen2** | El lago: bronze, silver, gold | S3 · Cloud Storage |
+| Proceso | **Azure Databricks** | Spark, Delta Lake, SQL, notebooks, jobs | EMR / Glue · Dataproc |
+| Plataforma integrada | **Microsoft Fabric** | Lakehouse, warehouse y Power BI en un producto SaaS | — |
+| Consumo | **Power BI** | Dashboards y reportes | QuickSight · Looker |
+| Secretos | **Key Vault** | Contraseñas y tokens | Secrets Manager · Secret Manager |
+
 ## Azure Databricks
 
 ```bash norun
@@ -57,6 +69,19 @@ az resource list --tag entorno=dev -o table
 az consumption usage list --start-date 2024-12-01 --end-date 2024-12-31 -o table
 ```
 
+## Pruébalo en la terminal
+
+```bash
+az login
+az group create --name rg-datos-dev --location eastus2
+az extension add --name databricks
+az databricks workspace create --resource-group rg-datos-dev --name dbw-datos-dev --location eastus2 --sku premium
+az databricks workspace show --resource-group rg-datos-dev --name dbw-datos-dev --query workspaceUrl -o tsv
+az resource list --resource-group rg-datos-dev -o table
+```
+
+Sin el `az extension add`, el comando `az databricks` responde que no existe: prueba quitarlo para ver el error real. La URL que devuelve el `show` es la dirección del workspace; con ella configurarás la **Databricks CLI** en el módulo de Databricks (`databricks auth login --host https://…`).
+
 ## Ejercicios
 
 :::ejercicio cli
@@ -85,6 +110,7 @@ adb-1234567890123456.7.azuredatabricks.net
 ```
 ```setup
 az group create --name rg-datos-dev --location eastus2
+az extension add --name databricks
 az databricks workspace create --resource-group rg-datos-dev --name dbw-datos-dev --location eastus2 --sku premium
 ```
 :::

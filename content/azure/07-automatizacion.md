@@ -30,7 +30,23 @@ echo "✔ Entorno $ENTORNO listo"
 
 `create` en Azure suele ser **idempotente**: si el recurso ya existe con la misma configuración, no falla. Igual, verifica con `az ... show` antes de acciones destructivas.
 
+Tres detalles del script que lo hacen profesional:
+
+- `set -euo pipefail`: si **cualquier** comando falla, el script se detiene (sin esto, seguiría ejecutando con un recurso a medio crear).
+- **Parámetros** (`ENTORNO=${1:-dev}`): el mismo script crea dev, test o prod. Los nombres se derivan del entorno, así nunca hay "nombres a mano".
+- `-o none`: no imprime el JSON de cada creación; la salida queda limpia y solo se ve el mensaje final.
+
 ## Infraestructura como código (IaC)
+
+Un script dice **cómo** llegar ("crea esto, después esto"). La **infraestructura como código** declarativa dice **qué** quieres que exista ("debe haber una cuenta con HNS y tres contenedores") y la herramienta calcula la diferencia con lo que ya existe:
+
+| | Script con `az` | IaC declarativa (Bicep, Terraform) |
+|---|---|---|
+| Describe | Pasos | Estado final deseado |
+| Si lo ejecutas dos veces | Depende de cómo lo escribiste | Segunda vez: "no hay cambios" |
+| Si borras un recurso del código | Sigue existiendo en Azure | La herramienta propone **borrarlo** |
+| Vista previa de cambios | No | Sí (`what-if`, `terraform plan`) |
+| Uso típico | Tareas puntuales, operaciones | Toda la infraestructura de un proyecto |
 
 **Bicep** (de Microsoft) y **Terraform** (multi-nube) describen el estado deseado; la herramienta calcula qué crear, cambiar o borrar.
 

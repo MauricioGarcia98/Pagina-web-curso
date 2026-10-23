@@ -5,6 +5,19 @@ duracion: 35
 resumen: Usuarios, service principals, managed identities, roles RBAC, alcance y secretos con Key Vault.
 ---
 
+## Las dos preguntas de la seguridad
+
+Toda la seguridad en la nube se reduce a dos preguntas:
+
+1. **Autenticación**: ¿**quién** eres? (demuéstralo con una contraseña, un certificado, un token).
+2. **Autorización**: ¿**qué** puedes hacer y **dónde**?
+
+En Azure, la primera la responde **Microsoft Entra ID** (antes Azure Active Directory), el directorio de identidades de la organización. La segunda, **RBAC** (*role-based access control*): permisos asignados por roles. Y un tercer servicio, **Key Vault**, guarda los secretos (contraseñas, tokens, llaves) para que nunca estén escritos en el código.
+
+:::analogia El edificio de oficinas
+Entra ID es la recepción que verifica tu DNI y te da una tarjeta. RBAC define qué puertas abre tu tarjeta: el piso 3 completo (un grupo de recursos), solo la sala de servidores (un recurso), o todo el edificio (la suscripción). Key Vault es la caja fuerte donde se guardan las llaves de los proveedores; quien tiene permiso puede pedirlas, pero nadie las lleva en el bolsillo.
+:::
+
 ## ¿Quién accede? Tipos de identidad
 
 | Identidad | Qué es | Uso típico |
@@ -46,6 +59,10 @@ az role assignment create --assignee "equipo-datos@empresa.com" \
 az role assignment list --scope $ST_ID -o table
 ```
 
+### Cómo se lee un role assignment
+
+`az role assignment create --assignee equipo-datos@empresa.com --role "Storage Blob Data Contributor" --scope $ST_ID` se lee: "el grupo **equipo-datos** puede **leer y escribir datos** en **esta cuenta de almacenamiento** (y en todo lo que contiene)". Las tres partes son obligatorias, y equivocarse en el alcance es el error más peligroso: el mismo rol con `--scope /subscriptions/$SUB_ID` daría acceso a **todas** las cuentas de la suscripción.
+
 ## Key Vault: el lugar de los secretos
 
 ```bash norun
@@ -56,6 +73,19 @@ az keyvault secret list --vault-name kv-datos-dev -o table
 ```
 
 En Databricks, un **secret scope respaldado por Key Vault** permite leer esos secretos en notebooks con `dbutils.secrets.get(scope="kv", key="sql-password")`, sin que el valor aparezca nunca en pantalla. Airflow puede usar Key Vault como backend de Connections y Variables.
+
+## Pruébalo en la terminal
+
+```bash
+az login
+az group create --name rg-datos-dev --location eastus2
+az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
+az keyvault secret set --vault-name kv-datos-dev --name databricks-token --value dapi-ejemplo-123
+az keyvault secret list --vault-name kv-datos-dev -o table
+az keyvault secret show --vault-name kv-datos-dev --name databricks-token --query value -o tsv
+```
+
+Fíjate en el último comando: `--query value -o tsv` devuelve **solo** el valor, listo para guardarlo en una variable (`TOKEN=$(az keyvault secret show … )`) sin que quede escrito en ningún archivo.
 
 ## Ejercicios
 
