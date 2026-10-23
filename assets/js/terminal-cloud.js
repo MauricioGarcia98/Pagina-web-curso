@@ -768,7 +768,7 @@
   // ---- bq: consultas reales sobre SQLite
   def('bq', 'BigQuery (simulado): mk, ls, show, load, query (se ejecuta de verdad sobre las tablas del curso)', async (a, ctx) => {
     const s = gcp(); const e = needGcp(s, ctx); if (e) return e;
-    const A = args(a, ['--dataset', '-d', '--table', '-t']); const p = A.pos;
+    const A = args(a, ['--dataset', '-d', '--table', '-t', '--replace', '--append_table', '--dry_run', '--autodetect', '--nouse_legacy_sql', '--schema', '--force', '-f']); const p = A.pos;
     const proj = A.get('--project_id') || s.project;
     if (!p.length) return ok('Usage: bq [mk|ls|show|load|query|rm] …');
     if (p[0] === 'mk') {
@@ -777,6 +777,19 @@
         const ds = name.includes(':') ? name.split(':')[1] : name;
         if (s.datasets[ds]) return fail(`BigQuery error in mk operation: Dataset '${proj}:${ds}' already exists.`);
         s.datasets[ds] = { location: A.get('--location') || 'US', tables: {} }; save(); return ok(`Dataset '${proj}:${ds}' successfully created.`);
+      }
+      if (A.flags['--table'] || A.flags['-t']) {
+        const [ds, tb] = name.replace(/^.*:/, '').split('.');
+        if (!s.datasets[ds]) return fail(`BigQuery error in mk operation: Not found: Dataset ${proj}:${ds}`);
+        if (s.datasets[ds].tables[tb]) return fail(`BigQuery error in mk operation: Table '${proj}:${ds}.${tb}' already exists.`);
+        const schema = p[2]; if (!schema) return fail('BigQuery error in mk operation: falta el esquema (ej. pedido_id:INTEGER,fecha:DATE,canal:STRING)');
+        const cols = schema.split(',').map((x) => x.split(':'));
+        const part = A.get('--time_partitioning_field'), clus = A.get('--clustering_fields');
+        if (part && !cols.some(([c, t]) => c === part && /^(DATE|TIMESTAMP|DATETIME)$/i.test(t || ''))) return fail(`BigQuery error in mk operation: The field specified for time partitioning can only be of type TIMESTAMP, DATE or DATETIME. (revisa '${part}' en el esquema)`);
+        const E = window.Engines.SQL; if (!E._bytes) await E.init();
+        E.exec(`DROP TABLE IF EXISTS ${ds}__${tb}; CREATE TABLE ${ds}__${tb} (${cols.map(([c]) => '"' + c + '"').join(', ')});`, E.playground());
+        s.datasets[ds].tables[tb] = { rows: 0, schema, local: `${ds}__${tb}`, partition: part || (A.get('--time_partitioning_type') ? '_PARTITIONTIME' : null), cluster: clus || null }; save();
+        return ok(`Table '${proj}:${ds}.${tb}' successfully created.`);
       }
     }
     if (p[0] === 'ls') {
@@ -796,18 +809,32 @@
       s.datasets[ds].tables[tb] = { rows: n, schema: schema || (A.flags['--autodetect'] ? 'autodetect' : lines[0]), csv: b.objects[t.k], skip: Number(A.get('--skip_leading_rows') || 0), cols: schema ? schema.split(',').map((x) => x.split(':')[0]) : null }; save();
       return ok(`Waiting on bqjob_r${uid(16)}_${uid(16)} ... (1s) Current status: DONE\n${col.dim(`(${n} filas cargadas en ${proj}:${ds}.${tb})`)}`);
     }
-    if (p[0] === 'show') { const [ds, tb] = (p[1] || '').replace(/^.*:/, '').split('.'); const d = s.datasets[ds]; if (!d) return fail(`BigQuery error in show operation: Not found: Dataset ${proj}:${ds}`); if (tb) { const x = d.tables[tb]; if (!x) return fail(`BigQuery error in show operation: Not found: Table ${proj}:${ds}.${tb}`); return ok(`Table ${proj}:${ds}.${tb}\n\n   Last modified       Total Rows\n ----------------- ------------\n  ${now().slice(0, 16)}   ${x.rows}`); } return ok(`Dataset ${proj}:${ds}\n\n   Last modified    Location\n ----------------- ----------\n  ${now().slice(0, 16)}   ${d.location}`); }
+    if (p[0] === 'show') { const [ds, tb] = (p[1] || '').replace(/^.*:/, '').split('.'); const d = s.datasets[ds]; if (!d) return fail(`BigQuery error in show operation: Not found: Dataset ${proj}:${ds}`); if (tb) { const x = d.tables[tb]; if (!x) return fail(`BigQuery error in show operation: Not found: Table ${proj}:${ds}.${tb}`); if (A.flags['--schema']) return ok(JSON.stringify(String(x.schema === 'autodetect' ? '' : x.schema).split(',').filter(Boolean).map((c) => ({ name: c.split(':')[0], type: (c.split(':')[1] || 'STRING').toUpperCase(), mode: 'NULLABLE' })), null, A.get('--format') === 'prettyjson' ? 2 : 0)); return ok(`Table ${proj}:${ds}.${tb}\n\n   Last modified       Total Rows   Time Partitioning      Clustered Fields\n ----------------- ------------ --------------------- ------------------\n  ${now().slice(0, 16)}   ${String(x.rows).padEnd(12)} ${(x.partition ? 'DAY (field: ' + x.partition + ')' : '').padEnd(21)} ${x.cluster || ''}`); } return ok(`Dataset ${proj}:${ds}\n\n   Last modified    Location\n ----------------- ----------\n  ${now().slice(0, 16)}   ${d.location}`); }
     if (p[0] === 'rm') { const n = (p[1] || '').replace(/^.*:/, ''); if (n.includes('.')) { const [ds, tb] = n.split('.'); if (s.datasets[ds]) delete s.datasets[ds].tables[tb]; } else delete s.datasets[n]; save(); return ok(''); }
     if (p[0] === 'query') {
       let q = p.slice(1).join(' ');
       if (!q) return fail('BigQuery error in query operation: falta la consulta');
       const legacy = A.get('--use_legacy_sql');
-      if (legacy === undefined || legacy === 'true') return fail(`Error in query string: Error processing job: ${col.warn('Legacy SQL')} es el valor por defecto de bq. Agrega --use_legacy_sql=false para usar GoogleSQL (estándar).`);
-      if (A.flags['--dry_run']) return ok(`Query successfully validated. Assuming the tables are not modified, running this query will process ${Math.floor(Math.random() * 9e8)} bytes of data.`);
+      if (!A.flags['--nouse_legacy_sql'] && (legacy === undefined || legacy === 'true')) return fail(`Error in query string: Error processing job: ${col.warn('Legacy SQL')} es el valor por defecto de bq. Agrega --use_legacy_sql=false para usar GoogleSQL (estándar).`);
+      // CREATE [OR REPLACE] TABLE ds.tb [PARTITION BY …] [CLUSTER BY …] [OPTIONS(…)] AS SELECT …
+      let ddl = null;
+      const cm = q.match(/^\s*CREATE\s+(OR\s+REPLACE\s+)?TABLE\s+(IF\s+NOT\s+EXISTS\s+)?`?(?:[\w-]+\.)?(\w+)\.(\w+)`?\s*([\s\S]*?)\bAS\s*(\(?\s*(?:SELECT|WITH)\b[\s\S]*)$/i);
+      if (cm) {
+        const [, orRep, , ds, tb, mid, body] = cm;
+        if (!s.datasets[ds]) return fail(`BigQuery error in query operation: Error processing job: Not found: Dataset ${proj}:${ds}`);
+        if (s.datasets[ds].tables[tb] && !orRep && !cm[2]) return fail(`BigQuery error in query operation: Error processing job: Already Exists: Table ${proj}:${ds}.${tb}`);
+        const part = (mid.match(/PARTITION\s+BY\s+(?:DATE\s*\(\s*)?(?:DATE_TRUNC\s*\(\s*)?(\w+)/i) || [])[1] || null;
+        const clus = (mid.match(/CLUSTER\s+BY\s+([\w\s,]+?)(?:\s+OPTIONS|\s*$)/i) || [])[1] || null;
+        ddl = { ds, tb, part, clus: clus && clus.replace(/\s+/g, '') };
+        q = body;
+      }
+      const dest = A.get('--destination_table');
+      if (dest && !ddl) { const [ds, tb] = String(dest).replace(/^.*:/, '').split('.'); if (!s.datasets[ds]) return fail(`BigQuery error in query operation: Not found: Dataset ${proj}:${ds}`); if (s.datasets[ds].tables[tb] && !A.flags['--replace'] && !A.flags['--append_table']) return fail(`BigQuery error in query operation: Error processing job: Already Exists: Table ${proj}:${ds}.${tb} (usa --replace)`); ddl = { ds, tb }; }
       // `proyecto.dataset.tabla` -> tabla del curso
       // tablas cargadas con bq load: se materializan desde el CSV; el resto apunta a las tablas del curso
       const local = async (ds, tb) => {
         const t = s.datasets[ds] && s.datasets[ds].tables[tb];
+        if (t && t.local && !t.csv) return t.local;
         if (!t || !t.csv) return tb;
         const header = t.cols ? t.skip > 0 : true;
         const text = t.cols && t.skip > 1 ? t.csv.split('\n').slice(t.skip - 1).join('\n') : t.csv;
@@ -817,6 +844,39 @@
       const map = {};
       for (const m of refs) { const ds = m[1] || m[3], tb = m[2] || m[4]; if (s.datasets[ds] || /^(tienda|curso|banco|ventas|analytics|datos)$/.test(ds)) map[m[0]] = await local(ds, tb); }
       q = q.replace(/`(?:[\w-]+\.)?([\w-]+)\.(\w+)`|\b(?:[\w-]+\.)?([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b/g, (m0) => map[m0] || m0);
+      if (A.flags['--dry_run']) {
+        // estimación: filas × columnas leídas × 8 bytes (BigQuery cobra por columnas leídas, no por filas devueltas)
+        const E = window.Engines.SQL; if (!E._bytes) await E.init();
+        let bytes = 0;
+        for (const tname of new Set(Object.values(map).concat([...q.matchAll(/\b(?:FROM|JOIN)\s+(\w+)/gi)].map((m) => m[1])))) {
+          const r = E.exec(`SELECT COUNT(*) FROM ${tname}`, E.playground()); if (!r.ok) continue;
+          let n = r.results[0].values[0][0];
+          // poda de particiones: si se filtra la columna de partición con = o BETWEEN, solo se leen esas particiones
+          const meta = Object.values(s.datasets).flatMap((d) => Object.values(d.tables)).find((t) => t.local === tname);
+          if (meta && meta.partition) {
+            const pc = meta.partition;
+            const eq = q.match(new RegExp('\\b' + pc + "\\s*=\\s*(?:DATE\\s*)?'([^']+)'", 'i'));
+            const bt = q.match(new RegExp('\\b' + pc + "\\s+BETWEEN\\s+(?:DATE\\s*)?'([^']+)'\\s+AND\\s+(?:DATE\\s*)?'([^']+)'", 'i'));
+            const w = eq ? `"${pc}" = '${eq[1]}'` : bt ? `"${pc}" BETWEEN '${bt[1]}' AND '${bt[2]}'` : null;
+            if (w) { const rr = E.exec(`SELECT COUNT(*) FROM ${tname} WHERE ${w}`, E.playground()); if (rr.ok) n = rr.results[0].values[0][0]; }
+          }
+          const info = E.exec(`PRAGMA table_info(${tname})`, E.playground());
+          const cols = info.ok && info.results[0] ? info.results[0].values.map((v) => v[1]) : [];
+          const used = /SELECT\s+\*/i.test(q) ? cols.length : cols.filter((c) => new RegExp('\\b' + c + '\\b', 'i').test(q)).length || 1;
+          bytes += n * used * 8;
+        }
+        return ok(`Query successfully validated. Assuming the tables are not modified, running this query will process ${bytes} bytes of data.`);
+      }
+      if (ddl) {
+        const E = window.Engines.SQL; if (!E._bytes) await E.init();
+        const name = `${ddl.ds}__${ddl.tb}`;
+        const r = E.exec((A.flags['--append_table'] && s.datasets[ddl.ds].tables[ddl.tb] ? `INSERT INTO ${name} ` : `DROP TABLE IF EXISTS ${name}; CREATE TABLE ${name} AS `) + q.replace(/;\s*$/, ''), E.playground());
+        if (!r.ok) return fail('BigQuery error in query operation: Error processing job: ' + r.error.split('\n')[0]);
+        const n = E.exec(`SELECT COUNT(*) FROM ${name}`, E.playground()).results[0].values[0][0];
+        const prev = s.datasets[ddl.ds].tables[ddl.tb] || {};
+        s.datasets[ddl.ds].tables[ddl.tb] = { rows: n, schema: prev.schema || 'autodetect', local: name, partition: ddl.part || prev.partition || null, cluster: ddl.clus || prev.cluster || null }; save();
+        return ok(`Waiting on bqjob_r${uid(16)}_${uid(16)} ... (1s) Current status: DONE\n${cm ? `Created ${proj}.${ddl.ds}.${ddl.tb}` : `Replaced/created ${proj}:${ddl.ds}.${ddl.tb}`} ${col.dim(`(${n} filas)`)}`);
+      }
       const r = await Sh.sqlExec(q);
       return r;
     }
