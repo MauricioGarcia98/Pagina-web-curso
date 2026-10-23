@@ -5,7 +5,12 @@
     "icono": "🧱",
     "color": "#64748b",
     "descripcion": "Empieza aquí si no sabes nada. Qué es un dato, qué hace un ingeniero de datos, formatos de archivo, la terminal y Git.",
-    "objetivos": ["Entender qué es la ingeniería de datos y qué hace cada herramienta del curso", "Conocer los formatos de datos más comunes (CSV, JSON, Parquet)", "Moverte por la terminal con comandos básicos", "Guardar tu trabajo con Git y GitHub"]
+    "objetivos": [
+      "Entender qué es la ingeniería de datos y qué hace cada herramienta del curso",
+      "Conocer los formatos de datos más comunes (CSV, JSON, Parquet)",
+      "Moverte por la terminal con comandos básicos",
+      "Guardar tu trabajo con Git y GitHub"
+    ]
   },
   {
     "id": "sql",
@@ -13,7 +18,26 @@
     "icono": "🗄️",
     "color": "#4f46e5",
     "descripcion": "El idioma universal de los datos. Desde tu primer SELECT hasta funciones de ventana, CTEs recursivas, optimización y problemas de entrevista de nivel senior.",
-    "objetivos": ["Consultar, filtrar, ordenar y agregar datos", "Combinar tablas con todo tipo de JOIN", "Dominar subconsultas, CTEs y funciones de ventana", "Resolver patrones avanzados: rachas, sesiones, cohortes, deduplicación", "Entender índices, planes de ejecución y modelado dimensional"]
+    "objetivos": [
+      "Consultar, filtrar, ordenar y agregar datos",
+      "Combinar tablas con todo tipo de JOIN",
+      "Dominar subconsultas, CTEs y funciones de ventana",
+      "Resolver patrones avanzados: rachas, sesiones, cohortes, deduplicación",
+      "Entender índices, planes de ejecución y modelado dimensional"
+    ]
+  },
+  {
+    "id": "casos",
+    "titulo": "Casos de negocio con SQL",
+    "icono": "💼",
+    "color": "#7c3aed",
+    "descripcion": "Ocho empresas reales-simuladas (banco, streaming, movilidad, salud, SaaS, aerolínea, logística y e-commerce) para entrenar la lógica: pasar de una pregunta de negocio a la consulta correcta.",
+    "objetivos": [
+      "Aplicar un método para traducir preguntas de negocio a SQL",
+      "Calcular KPIs reales: saldo, fraude, mora, churn, MRR, ocupación, puntualidad, stock",
+      "Evitar trampas lógicas: denominadores, doble conteo, promedios de promedios",
+      "Resolver problemas de entrevista con datos de distintos rubros"
+    ]
   },
   {
     "id": "python",
@@ -21,7 +45,13 @@
     "icono": "🐍",
     "color": "#0ea5e9",
     "descripcion": "El lenguaje para automatizar todo. Variables, estructuras de datos, funciones, errores, archivos, clases, generadores y Python profesional para datos.",
-    "objetivos": ["Escribir programas con variables, condiciones y bucles", "Usar listas, diccionarios y conjuntos con soltura", "Crear funciones, clases y manejar errores", "Procesar archivos CSV y JSON", "Aplicar buenas prácticas: tests, tipado, entornos virtuales"]
+    "objetivos": [
+      "Escribir programas con variables, condiciones y bucles",
+      "Usar listas, diccionarios y conjuntos con soltura",
+      "Crear funciones, clases y manejar errores",
+      "Procesar archivos CSV y JSON",
+      "Aplicar buenas prácticas: tests, tipado, entornos virtuales"
+    ]
   },
   {
     "id": "spark",
@@ -29,7 +59,13 @@
     "icono": "⚡",
     "color": "#f97316",
     "descripcion": "Cómo se procesan terabytes: computación distribuida, arquitectura de Spark, evaluación perezosa, particiones, shuffles, formatos (Parquet, Delta Lake) y optimización.",
-    "objetivos": ["Explicar cómo Spark reparte el trabajo entre máquinas", "Distinguir transformaciones, acciones, narrow y wide", "Entender particiones, shuffle, tipos de join y skew", "Conocer Parquet, Delta Lake y la arquitectura medallón", "Diagnosticar y optimizar trabajos lentos"]
+    "objetivos": [
+      "Explicar cómo Spark reparte el trabajo entre máquinas",
+      "Distinguir transformaciones, acciones, narrow y wide",
+      "Entender particiones, shuffle, tipos de join y skew",
+      "Conocer Parquet, Delta Lake y la arquitectura medallón",
+      "Diagnosticar y optimizar trabajos lentos"
+    ]
   },
   {
     "id": "pyspark",
@@ -37,7 +73,13 @@
     "icono": "🔥",
     "color": "#ef4444",
     "descripcion": "Spark desde Python, con ejercicios que se ejecutan y corrigen en tu navegador: DataFrames, transformaciones, agregaciones, joins, ventanas, Spark SQL, UDFs y pipelines completos.",
-    "objetivos": ["Crear, leer y escribir DataFrames", "Transformar con select, withColumn, filter y funciones", "Agregar, unir y usar funciones de ventana", "Trabajar con arrays, structs y JSON", "Construir un pipeline bronze → silver → gold"]
+    "objetivos": [
+      "Crear, leer y escribir DataFrames",
+      "Transformar con select, withColumn, filter y funciones",
+      "Agregar, unir y usar funciones de ventana",
+      "Trabajar con arrays, structs y JSON",
+      "Construir un pipeline bronze → silver → gold"
+    ]
   },
   {
     "id": "dbt",
@@ -45,7 +87,13 @@
     "icono": "🔧",
     "color": "#ff694b",
     "descripcion": "Transformaciones SQL como un proyecto de software: modelos, ref(), sources, materializaciones, modelos incrementales, tests, Jinja, macros y snapshots. Los modelos se compilan y ejecutan aquí.",
-    "objetivos": ["Estructurar un proyecto dbt (staging, intermediate, marts)", "Escribir modelos con ref() y source()", "Elegir la materialización correcta, incluida la incremental", "Probar y documentar tus datos", "Reutilizar lógica con Jinja y macros"]
+    "objetivos": [
+      "Estructurar un proyecto dbt (staging, intermediate, marts)",
+      "Escribir modelos con ref() y source()",
+      "Elegir la materialización correcta, incluida la incremental",
+      "Probar y documentar tus datos",
+      "Reutilizar lógica con Jinja y macros"
+    ]
   },
   {
     "id": "airflow",
@@ -53,7 +101,13 @@
     "icono": "🌬️",
     "color": "#017cee",
     "descripcion": "El director de orquesta de los pipelines: DAGs, operadores, programación, XCom, TaskFlow, ramas, sensores y buenas prácticas. Tus DAGs se validan y ejecutan en un simulador.",
-    "objetivos": ["Escribir DAGs con dependencias correctas", "Programar ejecuciones con schedule, start_date y catchup", "Pasar datos entre tareas con XCom y TaskFlow", "Usar ramas, trigger rules, sensores y TaskGroups", "Diseñar pipelines idempotentes y robustos"]
+    "objetivos": [
+      "Escribir DAGs con dependencias correctas",
+      "Programar ejecuciones con schedule, start_date y catchup",
+      "Pasar datos entre tareas con XCom y TaskFlow",
+      "Usar ramas, trigger rules, sensores y TaskGroups",
+      "Diseñar pipelines idempotentes y robustos"
+    ]
   },
   {
     "id": "azure",
@@ -61,7 +115,41 @@
     "icono": "☁️",
     "color": "#0078d4",
     "descripcion": "La nube de Microsoft desde la terminal: suscripciones, grupos de recursos, almacenamiento (ADLS Gen2), identidades y permisos, Key Vault, servicios de datos y automatización.",
-    "objetivos": ["Entender suscripciones, grupos de recursos y regiones", "Usar az con --output y --query (JMESPath)", "Crear cuentas de almacenamiento y subir datos a ADLS Gen2", "Gestionar identidades, RBAC y secretos", "Automatizar infraestructura con scripts"]
+    "objetivos": [
+      "Entender suscripciones, grupos de recursos y regiones",
+      "Usar az con --output y --query (JMESPath)",
+      "Crear cuentas de almacenamiento y subir datos a ADLS Gen2",
+      "Gestionar identidades, RBAC y secretos",
+      "Automatizar infraestructura con scripts"
+    ]
+  },
+  {
+    "id": "aws",
+    "titulo": "AWS para Data Engineers",
+    "icono": "🟧",
+    "color": "#ff9900",
+    "descripcion": "La nube más usada, orientada a datos: IAM, S3, Glue, Athena, Redshift, EMR, Kinesis, Lambda, Step Functions y MWAA, practicando con la AWS CLI en la terminal.",
+    "objetivos": [
+      "Entender cuentas, regiones e IAM",
+      "Construir un data lake en S3 con la CLI",
+      "Catalogar y consultar con Glue y Athena",
+      "Elegir entre Redshift, EMR, Glue y Lambda",
+      "Orquestar con Step Functions y MWAA"
+    ]
+  },
+  {
+    "id": "gcp",
+    "titulo": "Google Cloud para Data Engineers",
+    "icono": "🔷",
+    "color": "#4285f4",
+    "descripcion": "Google Cloud orientado a datos: proyectos e IAM, Cloud Storage, BigQuery (el estrella), Pub/Sub, Dataflow, Dataproc, Composer y Dataform, con gcloud y bq en la terminal.",
+    "objetivos": [
+      "Moverte con gcloud, proyectos e IAM",
+      "Cargar y consultar datos en BigQuery con bq",
+      "Diseñar tablas particionadas y clusterizadas",
+      "Procesar streaming con Pub/Sub y Dataflow",
+      "Orquestar con Cloud Composer"
+    ]
   },
   {
     "id": "databricks",
@@ -69,7 +157,26 @@
     "icono": "🧩",
     "color": "#ff3621",
     "descripcion": "La plataforma lakehouse: workspace, clusters, notebooks, Delta Lake, Unity Catalog, jobs y la Databricks CLI con Asset Bundles para CI/CD.",
-    "objetivos": ["Moverte por un workspace de Databricks", "Usar notebooks, dbutils y Delta Lake (MERGE, time travel, OPTIMIZE)", "Autenticarte y operar con la Databricks CLI", "Gestionar clusters, jobs, archivos y secretos desde la terminal", "Desplegar proyectos con Databricks Asset Bundles"]
+    "objetivos": [
+      "Moverte por un workspace de Databricks",
+      "Usar notebooks, dbutils y Delta Lake (MERGE, time travel, OPTIMIZE)",
+      "Autenticarte y operar con la Databricks CLI",
+      "Gestionar clusters, jobs, archivos y secretos desde la terminal",
+      "Desplegar proyectos con Databricks Asset Bundles"
+    ]
+  },
+  {
+    "id": "pipelines",
+    "titulo": "Casos de negocio de punta a punta",
+    "icono": "🧠",
+    "color": "#0d9488",
+    "descripcion": "Los mismos casos de negocio resueltos con Python, PySpark, dbt y Airflow: lógica de negocio en código, pipelines y modelos completos.",
+    "objetivos": [
+      "Programar reglas de negocio en Python (intereses, comisiones, SLA)",
+      "Construir tablas silver y gold de cada caso en PySpark",
+      "Modelar métricas de negocio con dbt",
+      "Orquestar pipelines de cada caso con Airflow"
+    ]
   },
   {
     "id": "proyecto",
@@ -77,6 +184,11 @@
     "icono": "🏆",
     "color": "#16a34a",
     "descripcion": "Une todo en un proyecto de punta a punta y prepárate para entrevistas técnicas: arquitectura, retos de SQL y PySpark, diseño de sistemas y plan de carrera.",
-    "objetivos": ["Diseñar una arquitectura de datos completa en Azure + Databricks", "Resolver un caso de negocio con SQL y PySpark", "Responder preguntas de diseño de sistemas de datos", "Armar un portafolio y un plan para seguir creciendo"]
+    "objetivos": [
+      "Diseñar una arquitectura de datos completa en Azure + Databricks",
+      "Resolver un caso de negocio con SQL y PySpark",
+      "Responder preguntas de diseño de sistemas de datos",
+      "Armar un portafolio y un plan para seguir creciendo"
+    ]
   }
 ]

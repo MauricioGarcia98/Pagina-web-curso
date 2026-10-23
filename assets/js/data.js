@@ -362,7 +362,20 @@ CREATE VIEW stg_pagos AS SELECT pago_id, pedido_id, date(fecha_pago) AS fecha_pa
     tipos_cambio: 'Cotización diaria de monedas vs USD (sin fines de semana).'
   };
 
-  const api = { build, SCHEMA, VIEWS, TABLE_INFO };
+  // casos de negocio adicionales (data-casos.js)
+  const casos = (typeof module !== 'undefined' && module.exports) ? require('./data-casos.js') : root.DataCasos;
+  const buildAll = () => {
+    const T = build();
+    if (casos) Object.assign(T, casos.build());
+    return T;
+  };
+  const api = {
+    build: buildAll,
+    SCHEMA: SCHEMA + (casos ? casos.SCHEMA : ''),
+    VIEWS,
+    TABLE_INFO: Object.assign({}, TABLE_INFO, casos ? casos.TABLE_INFO : {}),
+    CASOS: casos ? casos.CASOS : [],
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DataGen = api;
 })(typeof window !== 'undefined' ? window : globalThis);
