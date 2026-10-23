@@ -401,6 +401,8 @@ models:
         let v = true;
         if (a.includes('=')) { [a, v] = [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)]; }
         a = (spec.alias && spec.alias[a]) || a;
+        // banderas cortas juntas (-ic, -rn, -la): si todas son booleanas, no consumen el siguiente argumento
+        if (v === true && /^-[A-Za-z]{2,}$/.test(a) && [...a.slice(1)].every((ch) => (spec.bool || []).includes('-' + ch))) { for (const ch of a.slice(1)) flags['-' + ch] = true; continue; }
         if (v === true && !(spec.bool || []).includes(a) && i + 1 < args.length && !/^--?[A-Za-z]/.test(args[i + 1])) v = args[++i];
         if (/^-[A-Za-z]{2,}$/.test(a) && v === true) { for (const ch of a.slice(1)) flags['-' + ch] = true; continue; }
         if (flags[a] !== undefined && spec.multi && spec.multi.includes(a)) flags[a] = [].concat(flags[a], v); else flags[a] = v;
@@ -535,7 +537,10 @@ models:
   def('tail', 'últimas líneas (-n N)', (a, ctx) => {
     a = a.map((x) => (/^-\d+$/.test(x) ? ['-n', x.slice(1)] : [x])).flat().filter((x) => x !== '-f');
     const { flags, pos } = parseArgs(a, { attach: 'n' }); const r = readArgOrStdin(pos, ctx, 'tail'); if (r.err) return fail(r.err);
-    const ls = r.text.replace(/\n$/, '').split('\n'); return ok(ls.slice(-nLines(flags, 10)).join('\n'));
+    const ls = r.text.replace(/\n$/, '').split('\n');
+    // tail -n +K: desde la línea K hasta el final (muy usado para saltar el encabezado de un CSV)
+    if (/^\+\d+$/.test(String(flags['-n']))) return ok(ls.slice(Math.max(0, parseInt(String(flags['-n']).slice(1), 10) - 1)).join('\n'));
+    return ok(ls.slice(-nLines(flags, 10)).join('\n'));
   });
   def('wc', 'cuenta líneas (-l), palabras (-w) y caracteres (-c)', (a, ctx) => {
     const { flags, pos } = parseArgs(a, { bool: ['-l', '-w', '-c'] });
