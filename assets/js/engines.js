@@ -292,6 +292,7 @@ def _grade(mode, code, solution, tests, var, ordered):
             return out
     if tests:
         ns["salida"] = stdout
+        ns["_codigo"] = code
         if mode == "airflow":
             import airflow._core as c
             ns["dags"] = dict(c._DAG_REGISTRY)

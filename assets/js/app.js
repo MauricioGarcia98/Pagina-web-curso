@@ -181,7 +181,7 @@
   const pyLoadingMsg = () => (PY.status === 'ready' ? 'Ejecutando…' : 'Cargando Python en tu navegador (≈10 MB, solo la primera vez; puede tardar 10-30 s)…');
 
   function pyMode(code, fallback = 'python') {
-    if (/\bpyspark\b|\bspark\.(read|table|sql|createDataFrame|range)|SparkSession/.test(code)) return 'pyspark';
+    if (/\bpyspark\b|\bspark\.\w+|SparkSession|\bsc\.parallelize/.test(code)) return 'pyspark';
     if (/\bfrom airflow\b|\bimport airflow\b/.test(code)) return 'airflow';
     return fallback;
   }

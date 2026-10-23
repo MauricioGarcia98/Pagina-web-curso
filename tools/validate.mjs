@@ -73,6 +73,35 @@ for (const m of course.modulos) {
   }
 }
 
+// ejemplos de las lecciones (bloques con ▶ Probar): deben ejecutarse sin errores
+const exampleJobs = [];
+for (const m of course.modulos) {
+  if (only && m.id !== only) continue;
+  const dir = path.join(ROOT, 'content', m.id);
+  if (!fs.existsSync(dir)) continue;
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.md')).sort()) {
+    const src = fs.readFileSync(path.join(dir, f), 'utf8').replace(/^:::ejercicio[\s\S]*?^:::[ \t]*$/gm, '');
+    const db = new SQL.Database(bytes);
+    let k = 0;
+    for (const mm of src.matchAll(/^```(sql|python|pyspark|dbt)([^\n]*)\n([\s\S]*?)^```[ \t]*$/gm)) {
+      const [, lang, info, code] = mm;
+      k++;
+      if (info.includes('norun') || info.includes('error')) continue;
+      const id = `${m.id}/${f}#${k}`;
+      if (lang === 'sql') {
+        try { db.exec(code); okCount++; } catch (e) { fails++; console.log(`✗ ejemplo ${id}: ${e.message}`); }
+      } else if (lang === 'dbt') {
+        exampleJobs.push({ id: 'ejemplo:' + id, type: 'dbt', solucion: code });
+      } else {
+        const mode = /\bpyspark\b|\bspark\.\w+|SparkSession|\bsc\.parallelize/.test(code) ? 'pyspark' : /\bfrom airflow\b|\bimport airflow\b/.test(code) ? 'airflow' : 'python';
+        exampleJobs.push({ id: 'ejemplo:' + id, type: mode, solucion: code, example: true });
+      }
+    }
+    db.close();
+  }
+}
+pyJobs.push(...exampleJobs);
+
 if (pyJobs.length) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'academia-'));
   const pick = ['clientes', 'productos', 'categorias', 'pedidos', 'detalle_pedidos', 'pagos', 'empleados', 'departamentos', 'eventos_web'];
@@ -94,6 +123,7 @@ if (pyJobs.length) {
       } catch (e) { fail(ex, 'SQL compilado falló: ' + e.message + '\n' + r.sql); }
       continue;
     }
+    if (ex.example) { if (!r.ok) fail(ex, 'error: ' + r.error); else okCount++; continue; }
     if (!r.ok) fail(ex, 'error: ' + r.error + (r.stdout ? '\n' + r.stdout.slice(-800) : ''));
     else if (!r.pass) fail(ex, 'no pasa su propia corrección: ' + r.msg);
     else { okCount++; if (process.env.VERBOSE) console.log(`✓ ${ex.id} (${r.t}s)`); }

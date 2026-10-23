@@ -22,6 +22,12 @@ for ex in jobs:
             sql = ns["_dbt_render"](ex["solucion"], ex.get("setup") or "", bool(ex.get("incremental")), "{}")
             res[ex["id"]] = {"ok": True, "sql": sql}
             continue
+        if ex.get("example"):
+            r = ns["_grade"](ex["type"], ex["solucion"], "", "", "", False)
+            r["pass"] = True
+            r["t"] = round(time.time() - t, 2)
+            res[ex["id"]] = r
+            continue
         var = ex.get("variable") or ("" if ex.get("test") else ("resultado" if ex["type"] == "pyspark" else ""))
         if not var and not ex.get("test"):
             r = {"ok": False, "error": "ejercicio sin test ni variable a comparar"}

@@ -202,7 +202,9 @@ class Column:
         """Devuelve una lista con un valor por fila de df."""
         k = self.kind
         if k == "ref":
-            idx = df._resolve(self._name, self.kw.get("df_id"))
+            idx, path = df._resolve_path(self._name, self.kw.get("df_id"))
+            if path:
+                return [_get_path(r[idx], path) for r in df._rows]
             return [r[idx] for r in df._rows]
         if k == "lit":
             return [self.kw["value"]] * len(df._rows)
@@ -272,13 +274,13 @@ class Column:
         def f(x, y):
             if x is None or y is None:
                 return None
+            if type(x) is not type(y):
+                x, y = _coerce(x, y)
             try:
                 return op(x, y)
             except ZeroDivisionError:
                 return None
             except TypeError:
-                if sym in ("+", "-") and isinstance(x, _dt.date):
-                    return None
                 raise AnalysisException("No se puede aplicar '%s' entre %r y %r" % (sym, x, y))
         return Column("fn", "(%s %s %s)" % (a._name, sym, b._name), [a, b], f, op=sym)
 
@@ -433,6 +435,38 @@ def _get_item(x, key):
         return x[key]
     except (IndexError, KeyError, TypeError):
         return None
+
+
+def _coerce(x, y):
+    """Conversión implícita al comparar tipos distintos, como hace Spark."""
+    def conv(v, ref):
+        if isinstance(v, str):
+            if isinstance(ref, _dt.datetime):
+                return _to_ts(v)
+            if isinstance(ref, _dt.date):
+                return _to_date(v)
+            if isinstance(ref, bool):
+                return v.strip().lower() == "true"
+            if isinstance(ref, (int, float)):
+                try:
+                    return float(v)
+                except ValueError:
+                    return v
+        if isinstance(v, _dt.datetime) and type(ref) is _dt.date:
+            return v.date()
+        return v
+    return conv(x, y), conv(y, x)
+
+
+def _get_path(v, path):
+    for p in path:
+        if v is None:
+            return None
+        try:
+            v = v[p]
+        except (KeyError, IndexError, TypeError, ValueError):
+            raise AnalysisException("El campo '%s' no existe en el struct" % p)
+    return v
 
 
 def _like_to_regex(pat, flags=0):
@@ -645,6 +679,22 @@ class DataFrame:
                                     % (name, len(matches), name, name))
         return matches[0]
 
+    def _resolve_path(self, name, df_id=None):
+        """Como _resolve, pero acepta 'struct.campo' y devuelve (índice, [campos])."""
+        try:
+            return self._resolve(name, df_id), []
+        except AnalysisException:
+            if "." not in name:
+                raise
+            parts = name.split(".")
+            for k in range(len(parts) - 1, 0, -1):
+                try:
+                    idx = self._resolve(".".join(parts[:k]), df_id)
+                except AnalysisException:
+                    continue
+                return idx, parts[k:]
+            raise
+
     def _new(self, fields, rows, types=None):
         df = DataFrame(fields, rows, self._session, types)
         df._partitions = self._partitions
@@ -660,7 +710,13 @@ class DataFrame:
                     out.extend(Column("ref", f.name, df_id=None, idx=i) for i, f in enumerate(self._fields))
                 elif c.endswith(".*"):
                     q = c[:-2]
-                    out.extend(Column("ref", f.name, idx=i) for i, f in enumerate(self._fields) if q in f.quals)
+                    quals = [Column("ref", f.name, idx=i) for i, f in enumerate(self._fields) if q in f.quals]
+                    if not quals and q in self.columns:
+                        i = self.columns.index(q)
+                        sample = next((r[i] for r in self._rows if r[i] is not None), None)
+                        names = list(getattr(sample, "__fields__", None) or (sample.keys() if isinstance(sample, dict) else []))
+                        quals = [_col("%s.%s" % (q, n)) for n in names]
+                    out.extend(quals)
                 else:
                     out.append(_col(c))
             elif isinstance(c, Column) and c.kind == "star":
@@ -759,9 +815,14 @@ class DataFrame:
                 types.append(self._types[c.kw["idx"]] if self._types else None)
                 vecs.append(self._eval_col(c))
             elif c.kind == "ref":
-                i = self._resolve(c._name, c.kw.get("df_id"))
+                i, path = self._resolve_path(c._name, c.kw.get("df_id"))
                 f = self._fields[i]
                 aliased = "alias" in c.kw
+                if path:
+                    fields.append(_Field(c.kw["alias"] if aliased else path[-1]))
+                    types.append(None)
+                    vecs.append([_get_path(r[i], path) for r in self._rows])
+                    continue
                 fields.append(_Field(c.kw["alias"] if aliased else f.name, () if aliased else f.quals))
                 types.append(self._types[i] if self._types and not aliased else None)
                 vecs.append([r[i] for r in self._rows])
