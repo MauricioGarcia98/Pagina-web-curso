@@ -48,7 +48,11 @@ mi_pipeline/
 
 ## Tests con pytest
 
-Un **test** es código que verifica que tu código hace lo que debe. Se ejecutan con `pytest` y corren automáticamente en cada Pull Request (CI).
+Un **test** es código que verifica que tu código hace lo que debe. Puede parecer trabajo extra, pero en datos es lo que te permite dormir tranquilo: si mañana alguien cambia la función `limpiar_email` y rompe un caso, el test falla **antes** de que el error llegue a producción y a los reportes.
+
+Cada test sigue tres pasos (*arrange, act, assert*): **preparar** una entrada, **ejecutar** la función, **verificar** con `assert` que el resultado es el esperado. Con `pytest`, cualquier función cuyo nombre empiece con `test_`, en un archivo que empiece con `test_`, se ejecuta automáticamente con el comando `pytest`. En los equipos profesionales los tests corren solos en cada Pull Request (**CI**, integración continua): si alguno falla, no se puede fusionar el cambio.
+
+Los ejercicios de este curso funcionan exactamente así: tu código + unos `assert` que lo verifican.
 
 ```python norun
 # tests/test_transformar.py
@@ -68,7 +72,15 @@ def test_invalidos(entrada):
 
 ## Logging en vez de print
 
-En producción no ves la pantalla: los mensajes van a **logs**. El módulo `logging` agrega nivel, fecha y origen:
+En producción nadie mira la pantalla: tu código corre a las 3 de la mañana en un servidor, dentro de Airflow o de un job de Databricks. Los mensajes van a **logs**, archivos o sistemas donde se guardan para revisarlos después (o para disparar alertas). El módulo `logging` agrega a cada mensaje la fecha, el **nivel** de importancia y de qué parte del código viene:
+
+| Nivel | Para qué |
+|---|---|
+| `DEBUG` | Detalles para depurar (normalmente apagado en producción) |
+| `INFO` | El progreso normal: "leí 3 archivos", "cargué 12.000 filas" |
+| `WARNING` | Algo raro pero no grave: "descarté 12 filas inválidas" |
+| `ERROR` | Algo falló |
+| `CRITICAL` | El proceso no puede seguir |
 
 ```python
 import logging

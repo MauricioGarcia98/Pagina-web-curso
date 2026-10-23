@@ -14,6 +14,27 @@ Estos problemas aparecen en entrevistas de **Data Engineer**. No buscan algoritm
 4. Menciona la complejidad: O(n), O(n log n)…
 :::
 
+## Complejidad: qué significa O(n)
+
+En las entrevistas te van a preguntar "¿qué complejidad tiene tu solución?". La **notación O grande** describe cómo **crece** el tiempo (o la memoria) cuando crece la cantidad de datos `n`. No mide segundos: mide la **forma** del crecimiento.
+
+| Notación | Nombre | Si los datos se multiplican por 10, el tiempo… | Ejemplo |
+|---|---|---|---|
+| O(1) | constante | no cambia | Buscar una clave en un `dict` o `set` |
+| O(log n) | logarítmica | crece muy poco | Búsqueda binaria en una lista ordenada |
+| O(n) | lineal | se multiplica por 10 | Recorrer una lista una vez |
+| O(n log n) | "n log n" | algo más de 10 veces | Ordenar con `sorted` |
+| O(n²) | cuadrática | se multiplica por **100** | Dos `for` anidados sobre la misma lista |
+
+Con 1.000 elementos, O(n²) son un millón de pasos; con un millón de elementos, un billón: imposible. El truco más frecuente para bajar de O(n²) a O(n) es usar un **diccionario o conjunto** para recordar lo que ya viste, en vez de volver a recorrer la lista. Es exactamente lo que hacen los ejercicios "Dos que suman" y "Join en Python" (y lo que hace un *hash join* en una base de datos).
+
+## Cómo encarar cada desafío
+
+1. **Entender**: lee el enunciado dos veces y escribe un ejemplo chico a mano, con su resultado esperado.
+2. **Casos borde**: ¿qué pasa con una lista vacía, un solo elemento, empates, repetidos, `None`? Los tests de cada ejercicio prueban justamente eso.
+3. **Primero que funcione**: una solución simple y correcta, aunque no sea la más rápida.
+4. **Después, mejorar**: ¿estoy recorriendo dos veces lo mismo? ¿Puedo usar un `dict` o un `set`?
+
 :::ejercicio python dificultad=Experto titulo="Dos que suman"
 Escribe `dos_suman(numeros, objetivo)` que devuelva una tupla con los **índices** `(i, j)`, con `i < j`, de los dos números que suman `objetivo`, o `None` si no existen. Debe ser O(n) (usa un diccionario).
 ```python inicial

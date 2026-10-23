@@ -5,11 +5,30 @@ duracion: 40
 resumen: Procesar datos sin cargarlos en memoria, envolver funciones y manejar recursos.
 ---
 
-Estos conceptos aparecen en todo el código profesional de datos (Airflow usa decoradores, Spark usa evaluación perezosa como los generadores…).
+Esta lección cubre cuatro ideas que aparecen en todo el código profesional de datos, aunque al principio no las veas:
+
+| Concepto | Problema que resuelve | Dónde lo vas a ver |
+|---|---|---|
+| **Generadores** | Procesar datos más grandes que la memoria, de a poco | Leer archivos enormes, paginar APIs; la "evaluación perezosa" de Spark es la misma idea |
+| **Iteradores** | Recorrer cualquier cosa con `for` de forma uniforme | Archivos, cursores de bases de datos, resultados de APIs |
+| **Decoradores** | Agregar comportamiento a una función sin tocar su código | `@task` y `@dag` en Airflow, `@dataclass`, `@property` |
+| **Context managers** | Abrir y cerrar recursos de forma segura | `with open(...)`, conexiones a bases, transacciones, sesiones de Spark |
+
+No hace falta dominarlos para empezar, pero sí reconocerlos: cuando leas el código de un proyecto real, estarán por todos lados.
 
 ## Generadores: datos “a demanda”
 
-Una función con `yield` es un **generador**: produce valores **de a uno**, solo cuando se le piden, sin construir toda la lista en memoria. Ideal para archivos de varios GB.
+Imagina un archivo de 20 GB y una computadora con 8 GB de memoria. Si lo lees completo en una lista, el programa se cae. La solución es procesarlo **de a pedazos**: leer un poco, procesarlo, descartarlo y leer el siguiente. Los **generadores** hacen eso de forma natural.
+
+Una función con `yield` (en lugar de `return`) es un **generador**: no calcula todo de una vez, sino que **produce valores de a uno**, solo cuando se le piden, y "se pausa" entre valor y valor recordando dónde estaba.
+
+| `return` | `yield` |
+|---|---|
+| Devuelve un valor y la función **termina** | Entrega un valor y la función queda **pausada** |
+| Si devuelves una lista, toda la lista está en memoria | Solo existe en memoria el valor actual |
+| Se ejecuta al llamarla | No se ejecuta nada hasta que alguien pide el primer valor (con `for` o `next`) |
+
+Este ejemplo agrupa una secuencia en **lotes** de 4 (por ejemplo, para insertar en una base de a 1.000 filas, o enviar a una API de a 500 registros):
 
 ```python
 def leer_en_lotes(datos, tamanio):
@@ -30,7 +49,11 @@ for lote in leer_en_lotes(range(1, 11), 4):
 Una lista es una caja con todas las galletas horneadas de antemano. Un generador es un horno que te da una galleta recién hecha cada vez que pides una. Si son 10 millones de galletas, la diferencia es enorme.
 :::
 
-Expresión generadora: como una list comprehension pero con paréntesis: `(x * 2 for x in datos)`.
+Expresión generadora: como una list comprehension pero con paréntesis: `(x * 2 for x in datos)`. Ya la usaste dentro de `sum(...)`.
+
+:::experto La evaluación perezosa de Spark
+Un generador no hace nada hasta que alguien pide un valor: es **perezoso** (*lazy*). Spark funciona igual a gran escala: `df.filter(...).select(...)` no procesa ningún dato, solo **anota** los pasos; recién cuando pides un resultado (`count()`, `show()`, `write`) ejecuta todo de una vez, optimizado. Si entiendes los generadores, entiendes la mitad de Spark.
+:::
 
 ## Iteradores
 
@@ -54,7 +77,13 @@ for canal, grupo in groupby(datos, key=lambda x: x[0]):   # agrupa consecutivos 
 
 ## Decoradores: envolver funciones
 
-Un **decorador** es una función que recibe otra función y devuelve una versión “mejorada”. Se aplica con `@`:
+Supón que quieres medir cuánto tarda cada función de tu pipeline, o reintentar automáticamente las que llaman a una API. Podrías copiar el código de medir o reintentar dentro de cada función, pero repetirías lo mismo diez veces. Un **decorador** es una función que **recibe otra función** y devuelve una versión "envuelta" con comportamiento extra, sin modificar su código original. Se aplica escribiendo `@nombre_decorador` encima de la definición.
+
+:::analogia El envoltorio de regalo
+El regalo (tu función) no cambia. El decorador lo envuelve: antes de abrirlo pasa algo (empieza el cronómetro), después de abrirlo pasa algo más (lo detiene e imprime el tiempo). Quien lo recibe usa el regalo igual que siempre.
+:::
+
+`@medir_tiempo` encima de `def suma_lenta` es exactamente lo mismo que escribir `suma_lenta = medir_tiempo(suma_lenta)` después de definirla. La función `envoltura` recibe cualquier argumento (`*args, **kwargs`), hace algo antes, llama a la original, hace algo después y devuelve el resultado. `functools.wraps` conserva el nombre y la documentación de la función original.
 
 ```python
 import time
@@ -96,7 +125,9 @@ def reintentar(veces):
 
 ## Context managers: with
 
-`with` garantiza que un recurso se “cierre” al terminar, pase lo que pase. Puedes crear los tuyos con `contextlib`:
+Muchos recursos deben **abrirse y cerrarse**: archivos, conexiones a bases de datos, sesiones, transacciones. Si el programa falla en el medio y nadie cierra el recurso, quedan conexiones colgadas o archivos a medio escribir. `with` garantiza que el "cierre" ocurra **siempre**, haya error o no. Ya lo usaste con `open`.
+
+Un objeto que funciona con `with` se llama **context manager**. Puedes crear los tuyos con `contextlib.contextmanager`: lo que va antes del `yield` se ejecuta al **entrar** al bloque `with`, y lo que va después, al **salir**. Este ejemplo simula una transacción: confirma si todo salió bien y "deshace" si hubo un error:
 
 ```python
 from contextlib import contextmanager
