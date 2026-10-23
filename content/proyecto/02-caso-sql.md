@@ -7,6 +7,32 @@ resumen: Responde las preguntas de la gerencia con SQL sobre los datos de Tienda
 
 La gerente general te pide un informe para la reunión de directorio. Cada pregunta es un ejercicio. Usa CTEs y piensa en el **grano** de cada resultado. Considera **ventas netas** = `cantidad * precio_unitario * (1 - descuento)` y excluye pedidos **cancelados** salvo que se indique otra cosa.
 
+## Cómo encarar un informe ejecutivo
+
+Un directorio no quiere tablas de 500 filas: quiere **pocas cifras, bien definidas, comparables en el tiempo**, y la explicación de qué cambió. Antes de escribir SQL, un analista senior acuerda tres cosas:
+
+| Qué acordar | Por qué | En este caso |
+|---|---|---|
+| **Definiciones** | "Ventas" puede ser bruto, neto, con o sin cancelados, con o sin devoluciones | Ventas netas de descuento, sin cancelados |
+| **Periodos** | Comparar años completos con un año parcial engaña | Años calendario; 2024 completo |
+| **Grano de cada cuadro** | "Por año", "por categoría", "por vendedor" | Lo dice cada ejercicio |
+
+Y después de calcular, **valida**: ¿la suma de las ventas por categoría da el total anual? ¿Los porcentajes suman 100? ¿El número de clientes es menor o igual al de pedidos? Un informe con una cifra incoherente pierde toda credibilidad.
+
+### Las preguntas de este informe
+
+| Ejercicio | Pregunta de negocio | Técnicas que usa |
+|---|---|---|
+| KPIs anuales | ¿Cómo evolucionó el negocio año a año? | Agregación con `COUNT(DISTINCT)`, cociente de sumas |
+| Participación por categoría | ¿Qué categorías explican las ventas? | CTE recursiva para subir a la categoría padre, porcentaje sobre el total con ventana |
+| Mejores vendedores | ¿Quién vende más en cada equipo? | Joins con empleados y departamentos, ranking por grupo |
+| Segmentación RFM | ¿Quiénes son nuestros mejores clientes y quiénes se están yendo? | Recencia, frecuencia y monto por cliente, `NTILE` |
+| Alertas de calidad | ¿Podemos confiar en los datos? | Reglas de validación en una sola consulta |
+
+:::tip RFM en una línea
+**RFM** clasifica a los clientes por **R**ecencia (hace cuánto compraron), **F**recuencia (cuántas veces) y **M**onto (cuánto gastaron). Un cliente que compró hace poco, seguido y mucho es un "campeón"; uno que compraba mucho pero hace meses que no vuelve está "en riesgo". Es una de las segmentaciones más usadas en marketing porque se calcula solo con datos de ventas.
+:::
+
 :::ejercicio sql ordenado titulo="KPIs anuales"
 Para cada año: `anio`, `pedidos` (cantidad de pedidos no cancelados), `clientes` (distintos), `ventas` (redondeado a 2) y `ticket_promedio` (ventas / pedidos, redondeado a 2). Ordena por año.
 ```sql solucion

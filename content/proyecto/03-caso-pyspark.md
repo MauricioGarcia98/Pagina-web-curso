@@ -7,6 +7,32 @@ resumen: Construye las capas silver y gold del proyecto con PySpark.
 
 Ahora construimos las tablas que alimentan el tablero. Cada ejercicio es una pieza del pipeline; en Databricks, cada una sería una tarea de un job.
 
+## El diseño antes del código
+
+Un pipeline profesional se diseña antes de escribirlo. Para este proyecto, el diseño es:
+
+```text
+bronze (crudo)            silver (limpio, grano fino)            gold (negocio)
+pedidos ─────────┐
+detalle_pedidos ─┼──▶  silver.fct_ventas  ──┬──▶ gold.ventas_mensuales_pais   → tablero de ventas
+productos ───────┘     (una fila por línea)  └──▶ gold.dim_clientes             → CRM / marketing
+clientes ─────────────────────────────────────────┘
+```
+
+| Tabla | Grano | Para qué | Decisiones clave |
+|---|---|---|---|
+| `silver.fct_ventas` | Una fila por **línea de pedido** | La base de todos los cálculos de ventas | Excluir cancelados aquí, **una sola vez**; calcular `importe` neto con la regla oficial |
+| `gold.ventas_mensuales_pais` | Una fila por **mes y país** | El tablero de ventas | Variación contra el mes anterior **del mismo país** (ventana particionada por país) |
+| `gold.dim_clientes` | Una fila por **cliente** | Segmentación, CRM | Incluir clientes **sin** compras (left join), con métricas en 0 o nulas |
+
+Fíjate en el principio de la arquitectura medallón: las reglas de negocio (qué es una venta, cómo se calcula el importe) se aplican **en silver**, y las tablas gold **reutilizan** silver. Si mañana cambia la regla del importe, se corrige en un solo lugar y todo lo de gold se recalcula coherente.
+
+:::tip Cómo resolver cada ejercicio
+1. Escribe el grano en un comentario (`# grano: mes x país`).
+2. Construye el resultado en variables con nombre (`ped`, `lineas`, `mensual`), revisando cada una con `show(5)`.
+3. Compara contra la consulta SQL equivalente del caso práctico I: los totales deben coincidir.
+:::
+
 :::ejercicio pyspark titulo="silver.fct_ventas"
 Construye la tabla de hechos con grano “línea de pedido”, solo pedidos no cancelados: `detalle_id`, `pedido_id`, `fecha_pedido`, `anio` (año), `cliente_id`, `producto_id`, `canal`, `cantidad`, `importe` (neto, redondeado a 2).
 ```python solucion
