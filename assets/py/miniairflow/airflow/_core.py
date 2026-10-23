@@ -165,6 +165,15 @@ class DagRun:
                         self.xcoms[(task.task_id, "return_value")] = result
                     self.states[task.task_id] = "success"
                     print("  ✅ %-22s success%s" % (task.task_id, "" if result is None else "  (XCom: %r)" % (result,)))
+                    if getattr(task, "_is_short_circuit", False) and not result:
+                        print("     condición falsa: se saltean las tareas siguientes")
+                        pend = list(task.downstream_task_ids)
+                        while pend:
+                            d = pend.pop()
+                            if self.states.get(d) != "skipped":
+                                self.states[d] = "skipped"
+                                if task.ignore_downstream_trigger_rules:
+                                    pend.extend(self.dag.get_task(d).downstream_task_ids)
                     if getattr(task, "_is_branch", False):
                         chosen = set(result) if isinstance(result, (list, tuple, set)) else {result}
                         for d in task.downstream_task_ids:
@@ -442,11 +451,12 @@ class BranchPythonOperator(PythonOperator):
 
 
 class ShortCircuitOperator(PythonOperator):
-    def execute(self, context):
-        res = super().execute(context)
-        if not res:
-            raise AirflowSkipException("ShortCircuit: condición falsa")
-        return res
+    """Como en Airflow: la tarea termina en success y, si la condición es falsa, se saltean todas las siguientes."""
+    _is_short_circuit = True
+
+    def __init__(self, task_id, python_callable, ignore_downstream_trigger_rules=True, **kw):
+        super().__init__(task_id, python_callable=python_callable, **kw)
+        self.ignore_downstream_trigger_rules = ignore_downstream_trigger_rules
 
 
 class BaseSensorOperator(BaseOperator):
