@@ -132,7 +132,7 @@ México,Norteamérica
 
 ## Laboratorio: seed + source + ref en la terminal
 
-Vas a construir un mart que cuente clientes por región comercial usando las tres piezas. Abre la terminal (⌨ Terminal) y ejecuta paso a paso.
+Vas a construir un mart que cuente clientes por región comercial usando las tres piezas. Abre la terminal (⌨ Terminal) y ejecuta paso a paso. Los archivos se crean con `printf` para que puedas copiar y pegar; si prefieres, ábrelos con `code archivo`, que abre el editor visual, y pega el contenido.
 
 **1. Crea el seed** con la región de cada país:
 

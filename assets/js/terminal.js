@@ -791,6 +791,12 @@ for _n, _fn in list(_ns.items()):
     while (p && p !== '/') { if (isFile(p + '/dbt_project.yml')) return p; p = parent(p); }
     return null;
   }
+  // como dbt real: todas las macros de macros/*.sql quedan disponibles en todos los modelos
+  function dbtMacros() {
+    const root = dbtProjectRoot();
+    if (!root) return '';
+    return Object.keys(Machine.fs).filter((k) => k.startsWith(root + '/macros/') && k.endsWith('.sql')).sort().map(readFile).join('\n');
+  }
   function dbtModels(root) {
     const out = [];
     for (const k of Object.keys(Machine.fs)) if (k.startsWith(root + '/models/') && k.endsWith('.sql')) {
@@ -844,7 +850,7 @@ for _n, _fn in list(_ns.items()):
     for (let i = 0; i < ord.length; i++) {
       const m = ord[i];
       const t0 = performance.now();
-      const c = await window.Engines.PY.dbt(m.sql, {});
+      const c = await window.Engines.PY.dbt(m.sql, { macros: dbtMacros() });
       let status;
       if (!c.ok) { status = col.err('ERROR'); errN++; lines.push(`${hhmmss()}  ${i + 1} of ${ord.length} ERROR creating ${m.mat} model ${m.name}`); lines.push(col.err('  Compilation Error: ' + c.error)); continue; }
       const sql = c.sql.replace(/;\s*$/, '');
@@ -978,7 +984,7 @@ for _n, _fn in list(_ns.items()):
       case 'compile': {
         const ms = selectModels(models, sel);
         const out = [];
-        for (const m of ms) { const c = await window.Engines.PY.dbt(m.sql, {}); out.push(col.b(`-- ${m.name}`), c.ok ? c.sql : col.err(c.error)); }
+        for (const m of ms) { const c = await window.Engines.PY.dbt(m.sql, { macros: dbtMacros() }); out.push(col.b(`-- ${m.name}`), c.ok ? c.sql.replace(/^\s+/, '') : col.err(c.error)); }
         return ok(out.join('\n'));
       }
       case 'run': return dbtRun(selectModels(models, sel), { full: flags['--full-refresh'] });
