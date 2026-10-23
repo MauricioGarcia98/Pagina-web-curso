@@ -46,7 +46,7 @@ function parseFrontMatter(src, file) {
   return { meta, body: src.slice(m[0].length) };
 }
 
-const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup'];
+const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo'];
 
 function parseExercise(header, body, file, idx, lessonId) {
   const titleMatch = header.match(/titulo="([^"]+)"/);

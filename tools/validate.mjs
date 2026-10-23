@@ -117,8 +117,8 @@ if (pyJobs.length) {
     if (ex.type === 'dbt') {
       if (!r.ok) { fail(ex, 'jinja: ' + r.error); continue; }
       try {
-        const q = runSql(r.sql);
-        if (!q || !q.values.length) fail(ex, 'el modelo dbt no devuelve filas');
+        const q = runSql((ex.previo ? ex.previo + ';\n' : '') + r.sql);
+        if ((!q || !q.values.length) && !ex.vacio) fail(ex, 'el modelo dbt no devuelve filas');
         else { okCount++; if (process.env.VERBOSE) console.log(`✓ ${ex.id} → ${q.values.length} filas`); }
       } catch (e) { fail(ex, 'SQL compilado falló: ' + e.message + '\n' + r.sql); }
       continue;

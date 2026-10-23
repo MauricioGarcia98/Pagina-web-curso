@@ -19,7 +19,7 @@ for ex in jobs:
     t = time.time()
     try:
         if ex["type"] == "dbt":
-            sql = ns["_dbt_render"](ex["solucion"], ex.get("setup") or "", bool(ex.get("incremental")), "{}")
+            sql = ns["_dbt_render"](ex["solucion"], ex.get("setup") or "", bool(ex.get("incremental")), "{}", ex.get("this") or "this")
             res[ex["id"]] = {"ok": True, "sql": sql}
             continue
         if ex.get("example"):

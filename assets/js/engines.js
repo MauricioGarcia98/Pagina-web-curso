@@ -308,21 +308,21 @@ def _grade(mode, code, solution, tests, var, ordered):
             sys.stdout = old
     return out
 
-def _dbt_render(template, macros, is_inc, vars_json):
+def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     import jinja2
     vs = json.loads(vars_json or "{}")
     refs = []
     def ref(*a, **k):
         name = a[-1]
         refs.append(name)
-        return name
+        return "main." + name
     def source(src, table):
-        return table
+        return "main." + table
     def var(k, default=None):
         return vs.get(k, default)
     env = jinja2.Environment(extensions=["jinja2.ext.do"])
     ctx = dict(ref=ref, source=source, config=lambda *a, **k: "", var=var, is_incremental=lambda: bool(is_inc),
-               this="this", target={"name": "dev", "schema": "analytics"}, env_var=lambda k, d=None: d,
+               this=this_name, target={"name": "dev", "schema": "analytics"}, env_var=lambda k, d=None: d,
                log=lambda *a, **k: "", run_started_at=_dt.datetime(2024, 12, 31))
     tpl = env.from_string((macros or "") + "\\n" + template)
     return tpl.render(**ctx).strip()
@@ -354,7 +354,7 @@ def _dbt_render(template, macros, is_inc, vars_json):
         if (msg.kind === 'warmup') { self.postMessage({ id: msg.id, ok: true }); return; }
         if (msg.kind === 'dbt') {
           const f = py.globals.get('_dbt_render');
-          const sql = f(msg.template, msg.macros || '', !!msg.incremental, JSON.stringify(msg.vars || {}));
+          const sql = f(msg.template, msg.macros || '', !!msg.incremental, JSON.stringify(msg.vars || {}), msg.thisName || 'this');
           f.destroy();
           self.postMessage({ id: msg.id, ok: true, sql });
           return;
@@ -426,13 +426,15 @@ def _dbt_render(template, macros, is_inc, vars_json):
   // --------------------------------------------------------------- dbt
   const DBT = {
     async compile(ex, code) {
-      const r = await PY.dbt(code, { macros: ex.setup || '', incremental: !!ex.incremental });
+      const r = await PY.dbt(code, { macros: ex.setup || '', incremental: !!ex.incremental, thisName: ex.this || 'this' });
       return r;
     },
     async run(ex, code) {
       const c = await this.compile(ex, code);
       if (!c.ok) return { ok: false, error: c.error };
-      const r = SQL.exec(c.sql);
+      let r;
+      if (ex.previo) { const db = SQL.fresh(); db.exec(ex.previo); r = SQL.exec(c.sql, db); db.close(); }
+      else r = SQL.exec(c.sql);
       return { ...r, compiled: c.sql };
     },
     async grade(ex, code) {
@@ -442,11 +444,11 @@ def _dbt_render(template, macros, is_inc, vars_json):
       if (!this._exp.has(ex.id)) {
         const s = await this.compile(ex, ex.solucion);
         if (!s.ok) return { ok: false, error: 'La solución de referencia falló: ' + s.error };
-        const r = SQL.runForGrade(s.sql);
+        const r = SQL.runForGrade((ex.previo ? ex.previo + ';\n' : '') + s.sql);
         if (!r.ok) return { ok: false, error: 'La solución de referencia falló: ' + r.error };
         this._exp.set(ex.id, r.result);
       }
-      const r = SQL.runForGrade(c.sql);
+      const r = SQL.runForGrade((ex.previo ? ex.previo + ';\n' : '') + c.sql);
       if (!r.ok) return { ok: false, error: r.error, compiled: c.sql };
       return { ok: true, ...compareResults(r.result, this._exp.get(ex.id), !!ex.ordenado), result: r.result, compiled: c.sql };
     }
