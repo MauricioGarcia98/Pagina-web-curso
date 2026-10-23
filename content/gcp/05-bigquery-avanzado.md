@@ -99,11 +99,11 @@ ORDER BY total_bytes_billed DESC LIMIT 10;
 ## Ejercicios de SQL
 
 :::ejercicio sql ordenado titulo="Banco: saldo de fin de mes por cuenta"
-Caso 🏦. Para la cuenta `cuenta_id = 1`, calcula el saldo acumulado al cierre de cada `mes` (`YYYY-MM`): los `deposito` suman y el resto de los tipos restan (usa `monto` en positivo). Columnas: `mes`, `movimiento_neto` (redondeado a 2) y `saldo_cierre` (acumulado, redondeado a 2). Ordena por mes.
+Caso 🏦. Para la cuenta `cuenta_id = 1`, calcula el saldo acumulado al cierre de cada `mes` (`YYYY-MM`). Ojo: `monto` ya viene **con signo** (los depósitos son positivos y las compras, retiros, transferencias y pagos de tarjeta, negativos). Columnas: `mes`, `movimiento_neto` (redondeado a 2) y `saldo_cierre` (acumulado, redondeado a 2). Ordena por mes.
 ```sql solucion
 WITH m AS (
   SELECT strftime('%Y-%m', fecha_hora) AS mes,
-         SUM(CASE WHEN tipo = 'deposito' THEN monto ELSE -monto END) AS neto
+         SUM(monto) AS neto
   FROM banco_transacciones
   WHERE cuenta_id = 1
   GROUP BY mes

@@ -151,7 +151,7 @@ resultado = (spark.table("banco_transacciones")
 :::
 
 :::ejercicio pyspark titulo="Tabla gold: gasto mensual por canal"
-A partir de las compras de `banco_transacciones`, construye la tabla gold con el gasto por `mes` (`YYYY-MM`) y `canal`: `compras` (cantidad), `monto_total` (redondeado a 2) y `ticket_promedio` (redondeado a 2). Guarda en `resultado`.
+A partir de las compras de `banco_transacciones`, construye la tabla gold con el gasto por `mes` (`YYYY-MM`) y `canal`: `compras` (cantidad), `monto_total` y `ticket_promedio`, ambos **en positivo** (en la tabla, los egresos tienen `monto` negativo) y redondeados a 2. Guarda en `resultado`.
 ```python solucion
 from pyspark.sql import functions as F
 
@@ -160,8 +160,8 @@ resultado = (spark.table("banco_transacciones")
                .withColumn("mes", F.substring("fecha_hora", 1, 7))
                .groupBy("mes", "canal")
                .agg(F.count("*").alias("compras"),
-                    F.round(F.sum("monto"), 2).alias("monto_total"),
-                    F.round(F.avg("monto"), 2).alias("ticket_promedio")))
+                    F.round(F.sum(-F.col("monto")), 2).alias("monto_total"),
+                    F.round(F.avg(-F.col("monto")), 2).alias("ticket_promedio")))
 ```
 :::
 
