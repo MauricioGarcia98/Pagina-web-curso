@@ -96,34 +96,144 @@
     return hintTables;
   }
 
-  function createEditor(parent, { lang = 'sql', value = '', onRun, onCheck, onChange, tall = false } = {}) {
-    const wrap = h(`<div class="${tall ? 'editor-tall' : ''}"></div>`);
-    parent.appendChild(wrap);
-    if (!window.CodeMirror) {
-      const ta = h('<textarea class="fallback-editor" spellcheck="false"></textarea>');
-      ta.value = value; wrap.appendChild(ta);
-      ta.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); (e.shiftKey ? onCheck : onRun)?.(); }
-        if (e.key === 'Tab') { e.preventDefault(); const s = ta.selectionStart; ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(ta.selectionEnd); ta.selectionStart = ta.selectionEnd = s + 4; }
+  // Monaco (el editor de VS Code) con CodeMirror como respaldo mientras carga o si falla.
+  const MONACO_BASE = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs';
+  const Monaco = {
+    promise: null, ready: false,
+    load() {
+      if (this.promise) return this.promise;
+      this.promise = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = MONACO_BASE + '/loader.js';
+        s.onerror = () => reject(new Error('monaco'));
+        s.onload = () => {
+          const req = window.require;
+          window.MonacoEnvironment = {
+            getWorkerUrl: () => `data:text/javascript;charset=utf-8,${encodeURIComponent(`self.MonacoEnvironment={baseUrl:'${MONACO_BASE.replace(/\/vs$/, '')}/'};importScripts('${MONACO_BASE}/base/worker/workerMain.js');`)}`,
+          };
+          req.config({ paths: { vs: MONACO_BASE } });
+          req(['vs/editor/editor.main'], () => {
+            setupMonaco(window.monaco);
+            this.ready = true;
+            resolve(window.monaco);
+          }, reject);
+        };
+        document.head.appendChild(s);
       });
-      ta.addEventListener('input', () => onChange?.(ta.value));
-      return { getValue: () => ta.value, setValue: (v) => { ta.value = v; }, focus: () => ta.focus(), refresh() {} };
-    }
-    const cm = window.CodeMirror(wrap, {
-      value, mode: cmMode(lang), lineNumbers: true, matchBrackets: true, autoCloseBrackets: true,
-      indentUnit: 4, tabSize: 4, indentWithTabs: false, lineWrapping: false, viewportMargin: Infinity,
-      extraKeys: {
-        'Ctrl-Enter': () => onRun?.(), 'Cmd-Enter': () => onRun?.(),
-        'Shift-Ctrl-Enter': () => onCheck?.(), 'Shift-Cmd-Enter': () => onCheck?.(),
-        'Ctrl-Space': (ed) => { if (lang === 'sql' || lang === 'dbt') ed.showHint({ hint: window.CodeMirror.hint.sql, tables: sqlHintTables(), completeSingle: false }); },
-        'Ctrl-/': 'toggleComment', 'Cmd-/': 'toggleComment',
-        Tab: (ed) => { if (ed.somethingSelected()) ed.indentSelection('add'); else ed.replaceSelection('    ', 'end'); },
-        'Shift-Tab': (ed) => ed.indentSelection('subtract')
-      }
+      this.promise.catch(() => {});
+      return this.promise;
+    },
+  };
+  function setupMonaco(monaco) {
+    monaco.editor.defineTheme('academia', {
+      base: 'vs-dark', inherit: true,
+      rules: [
+        { token: 'keyword', foreground: 'C4A7FF', fontStyle: 'bold' }, { token: 'string', foreground: '7EE0A1' }, { token: 'number', foreground: 'F5B971' },
+        { token: 'comment', foreground: '6C7389', fontStyle: 'italic' }, { token: 'predefined', foreground: '8CB8FF' }, { token: 'operator', foreground: 'B4B9CB' },
+      ],
+      colors: { 'editor.background': '#12151d', 'editor.lineHighlightBackground': '#1b1f2b', 'editorLineNumber.foreground': '#4b5266', 'editorLineNumber.activeForeground': '#b4b9cb', 'editor.selectionBackground': '#3a3f7a', 'editorCursor.foreground': '#a5a1ff', 'editorIndentGuide.background1': '#232838' },
     });
-    cm.on('change', () => onChange?.(cm.getValue()));
-    setTimeout(() => cm.refresh(), 0);
-    return { cm, getValue: () => cm.getValue(), setValue: (v) => cm.setValue(v), focus: () => cm.focus(), refresh: () => cm.refresh() };
+    const kw = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'HAVING', 'JOIN', 'LEFT JOIN', 'INNER JOIN', 'WITH', 'AS', 'ON', 'AND', 'OR', 'NOT', 'IN', 'IS NULL', 'IS NOT NULL', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'DISTINCT', 'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'ROUND', 'COALESCE', 'OVER', 'PARTITION BY', 'ROW_NUMBER()', 'RANK()', 'DENSE_RANK()', 'LAG', 'LEAD', 'LIMIT', 'UNION ALL', 'strftime', 'julianday', 'date', 'CAST', 'BETWEEN', 'LIKE', 'EXISTS'];
+    monaco.languages.registerCompletionItemProvider('sql', {
+      provideCompletionItems(model, pos) {
+        const w = model.getWordUntilPosition(pos);
+        const range = { startLineNumber: pos.lineNumber, endLineNumber: pos.lineNumber, startColumn: w.startColumn, endColumn: w.endColumn };
+        const t = sqlHintTables();
+        const sugg = [];
+        for (const [name, cols] of Object.entries(t)) {
+          sugg.push({ label: name, kind: monaco.languages.CompletionItemKind.Class, insertText: name, detail: 'tabla', range });
+          for (const c of cols) sugg.push({ label: c, kind: monaco.languages.CompletionItemKind.Field, insertText: c, detail: name, range });
+        }
+        for (const k of kw) sugg.push({ label: k, kind: monaco.languages.CompletionItemKind.Keyword, insertText: k, range });
+        const seen = new Set();
+        return { suggestions: sugg.filter((x) => (seen.has(x.label + x.detail) ? false : seen.add(x.label + x.detail))) };
+      },
+    });
+    const pyWords = ['print', 'def', 'return', 'import', 'from', 'class', 'for', 'while', 'if', 'elif', 'else', 'try', 'except', 'finally', 'with', 'lambda', 'yield', 'len', 'range', 'enumerate', 'zip', 'sorted', 'dict', 'list', 'set', 'tuple', 'True', 'False', 'None',
+      'spark', 'F.col', 'F.sum', 'F.count', 'F.avg', 'F.round', 'F.when', 'F.lit', 'F.year', 'F.month', 'Window.partitionBy', 'withColumn', 'select', 'filter', 'groupBy', 'agg', 'join', 'orderBy', 'show()', 'alias', 'createOrReplaceTempView', 'spark.table', 'spark.sql', 'DAG', 'PythonOperator', 'BashOperator', 'EmptyOperator', 'task_id', 'python_callable'];
+    monaco.languages.registerCompletionItemProvider('python', {
+      provideCompletionItems(model, pos) {
+        const w = model.getWordUntilPosition(pos);
+        const range = { startLineNumber: pos.lineNumber, endLineNumber: pos.lineNumber, startColumn: w.startColumn, endColumn: w.endColumn };
+        const words = new Set([...pyWords, ...(model.getValue().match(/[A-Za-z_]\w{2,}/g) || [])]);
+        return { suggestions: [...words].map((x) => ({ label: x, kind: monaco.languages.CompletionItemKind.Text, insertText: x, range })) };
+      },
+    });
+  }
+  function monacoLang(lang) { return { sql: 'sql', dbt: 'sql', jinja: 'sql', python: 'python', pyspark: 'python', airflow: 'python', bash: 'shell', shell: 'shell', yaml: 'yaml', json: 'json' }[lang] || 'plaintext'; }
+
+  function mountMonaco(wrap, { lang, value, onRun, onCheck, onChange, tall }) {
+    const monaco = window.monaco;
+    wrap.classList.add('monaco-host');
+    const ed = monaco.editor.create(wrap, {
+      value, language: monacoLang(lang), theme: 'academia', automaticLayout: true, minimap: { enabled: false },
+      fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 14, lineHeight: 22, tabSize: 4, insertSpaces: true,
+      scrollBeyondLastLine: false, renderLineHighlight: 'line', roundedSelection: true, padding: { top: 10, bottom: 10 },
+      scrollbar: { alwaysConsumeMouseWheel: false, verticalScrollbarSize: 10, horizontalScrollbarSize: 10 }, wordBasedSuggestions: 'currentDocument',
+      quickSuggestions: { other: true, comments: false, strings: false }, fixedOverflowWidgets: true, bracketPairColorization: { enabled: true }, guides: { indentation: true },
+      stickyScroll: { enabled: false }, overviewRulerLanes: 0, lineNumbersMinChars: 3,
+    });
+    const minH = tall ? 320 : 130, maxH = tall ? 720 : 520;
+    const fit = () => { const hgt = Math.min(maxH, Math.max(minH, ed.getContentHeight())); wrap.style.height = hgt + 'px'; ed.layout(); };
+    ed.onDidContentSizeChange(fit); fit();
+    ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRun && onRun());
+    ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => onCheck && onCheck());
+    ed.onDidChangeModelContent(() => onChange && onChange(ed.getValue()));
+    return ed;
+  }
+
+  function createEditor(parent, opts = {}) {
+    const { lang = 'sql', value = '', onRun, onCheck, onChange, tall = false } = opts;
+    const wrap = h(`<div class="editor-host ${tall ? 'editor-tall' : ''}"></div>`);
+    parent.appendChild(wrap);
+    const api = { impl: null, touched: false, kind: null };
+    const useMonaco = () => {
+      wrap.innerHTML = '';
+      const cur = api.impl ? api.getValue() : value;
+      const ed = mountMonaco(wrap, { lang, value: cur, onRun, onCheck, onChange: (v) => { api.touched = true; onChange && onChange(v); }, tall });
+      api.kind = 'monaco'; api.monaco = ed; api.cm = null;
+      api.impl = { getValue: () => ed.getValue(), setValue: (v) => ed.setValue(v), focus: () => ed.focus(), refresh: () => ed.layout() };
+    };
+    const useCm = () => {
+      if (!window.CodeMirror) {
+        const ta = h('<textarea class="fallback-editor" spellcheck="false"></textarea>');
+        ta.value = value; wrap.appendChild(ta);
+        ta.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); (e.shiftKey ? onCheck : onRun)?.(); }
+          if (e.key === 'Tab') { e.preventDefault(); const s = ta.selectionStart; ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(ta.selectionEnd); ta.selectionStart = ta.selectionEnd = s + 4; }
+        });
+        ta.addEventListener('input', () => { api.touched = true; onChange?.(ta.value); });
+        api.impl = { getValue: () => ta.value, setValue: (v) => { ta.value = v; }, focus: () => ta.focus(), refresh() {} };
+        return;
+      }
+      const cm = window.CodeMirror(wrap, {
+        value, mode: cmMode(lang), lineNumbers: true, matchBrackets: true, autoCloseBrackets: true,
+        indentUnit: 4, tabSize: 4, indentWithTabs: false, lineWrapping: false, viewportMargin: Infinity,
+        extraKeys: {
+          'Ctrl-Enter': () => onRun?.(), 'Cmd-Enter': () => onRun?.(),
+          'Shift-Ctrl-Enter': () => onCheck?.(), 'Shift-Cmd-Enter': () => onCheck?.(),
+          'Ctrl-Space': (ed) => { if (lang === 'sql' || lang === 'dbt') ed.showHint({ hint: window.CodeMirror.hint.sql, tables: sqlHintTables(), completeSingle: false }); },
+          'Ctrl-/': 'toggleComment', 'Cmd-/': 'toggleComment',
+          Tab: (ed) => { if (ed.somethingSelected()) ed.indentSelection('add'); else ed.replaceSelection('    ', 'end'); },
+          'Shift-Tab': (ed) => ed.indentSelection('subtract')
+        }
+      });
+      cm.on('change', () => { api.touched = true; onChange?.(cm.getValue()); });
+      cm.on('focus', () => { api.touched = true; });
+      setTimeout(() => cm.refresh(), 0);
+      api.kind = 'cm'; api.cm = cm;
+      api.impl = { getValue: () => cm.getValue(), setValue: (v) => cm.setValue(v), focus: () => cm.focus(), refresh: () => cm.refresh() };
+    };
+    if (Store.data.editor !== 'simple' && Monaco.ready) useMonaco();
+    else {
+      useCm();
+      if (Store.data.editor !== 'simple') Monaco.load().then(() => { if (!api.touched && wrap.isConnected) useMonaco(); }).catch(() => {});
+    }
+    api.getValue = () => api.impl.getValue();
+    api.setValue = (v) => api.impl.setValue(v);
+    api.focus = () => api.impl.focus();
+    api.refresh = () => api.impl.refresh();
+    return api;
   }
 
   // ---------------------------------------------------------------- salidas
@@ -199,6 +309,11 @@
       pre.replaceWith(box); box.append(pre);
       const tools = h(`<div class="code-tools"><span class="lang">${esc(lang === 'text' ? '' : lang)}</span><button type="button" data-copy title="Copiar">Copiar</button></div>`);
       if (RUNNABLE.has(lang) && !pre.hasAttribute('data-norun')) tools.append(h('<button type="button" data-run title="Ejecutar este ejemplo">▶ Probar</button>'));
+      if ((lang === 'bash' || lang === 'shell') && termRunnable(code)) {
+        const b = h('<button type="button" title="Ejecutar en la terminal de práctica">⌨ En la terminal</button>');
+        b.addEventListener('click', () => Dock.runScript(code));
+        tools.append(b);
+      }
       box.append(tools);
       $('[data-copy]', tools).addEventListener('click', () => { navigator.clipboard?.writeText(code); toast('Copiado al portapapeles'); });
       $('[data-run]', tools)?.addEventListener('click', () => turnIntoRunner(box, lang, code));
@@ -238,6 +353,59 @@
     }
     run();
   }
+  function scriptLines(code) {
+    const out = [];
+    let cur = '';
+    for (const raw of code.split('\n')) {
+      const l = raw.replace(/\s+#\s.*$/, '');
+      if (!cur && (/^\s*#/.test(l) || !l.trim())) continue;
+      if (/\\\s*$/.test(l)) { cur += l.replace(/\\\s*$/, ' '); continue; }
+      out.push((cur + l).trim()); cur = '';
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+  function termRunnable(code) {
+    if (!window.Shell) return false;
+    const ls = scriptLines(code);
+    return ls.length > 0 && ls.length <= 12 && ls.every((l) => { const w = l.replace(/^\$\s*/, '').split(/\s+/)[0]; return /^[A-Z_]+=/.test(w) || !!window.Shell.Commands[w]; });
+  }
+
+  // ---------------------------------------------------------------- terminal acoplada (abajo)
+  const Dock = {
+    term: null,
+    el: null,
+    open() {
+      if (!this.el) {
+        this.el = h('<div class="term-dock" id="termDock"><div class="dock-head"><b>⌨ Terminal</b><span class="small muted">misma máquina que el laboratorio</span><span class="spacer"></span><a class="btn btn-ghost btn-sm" href="#/lab/terminal">Abrir laboratorio</a><button class="btn btn-ghost btn-sm" data-close>✕</button></div><div class="dock-body"></div></div>');
+        document.body.appendChild(this.el);
+        $('[data-close]', this.el).addEventListener('click', () => this.close());
+        this.term = window.Shell.createTerminal($('.dock-body', this.el), { compact: true });
+      }
+      this.el.hidden = false; document.body.classList.add('dock-open');
+      setTimeout(() => this.term.focus(), 50);
+    },
+    close() { if (this.el) this.el.hidden = true; document.body.classList.remove('dock-open'); },
+    toggle() { if (this.el && !this.el.hidden) this.close(); else this.open(); },
+    async runScript(code) {
+      this.open();
+      for (const l of scriptLines(code)) await this.term.run(l.replace(/^\$\s*/, ''));
+    },
+  };
+
+  function openFileEditor(path, content, save) {
+    const box = h(`<div><div class="row" style="margin-bottom:10px"><b style="font-family:var(--mono)">${esc(window.Shell.display(path))}</b><span class="spacer"></span><button class="btn btn-primary btn-sm" data-save>💾 Guardar <span class="kbd">Ctrl+S</span></button></div><div class="file-ed"></div></div>`);
+    openModal(box);
+    const ext = path.split('.').pop();
+    const lang = { py: 'python', sql: 'sql', yml: 'yaml', yaml: 'yaml', sh: 'bash', json: 'json' }[ext] || 'text';
+    const ed = createEditor($('.file-ed', box), { lang, value: content, tall: true });
+    const doSave = () => { save(ed.getValue()); toast('Guardado ' + window.Shell.display(path)); };
+    $('[data-save]', box).addEventListener('click', () => { doSave(); closeModal(); });
+    box.addEventListener('keydown', (e) => { if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); doSave(); } });
+    setTimeout(() => ed.focus(), 100);
+  }
+  if (window.Shell) window.Shell.openEditor = openFileEditor;
+
   function compiledBlock(sql) {
     const d = h('<details class="compiled"><summary>Ver SQL compilado (lo que dbt envía a la base)</summary><pre data-lang="sql"><code></code></pre></details>');
     $('code', d).textContent = sql; highlight($('pre', d));
@@ -277,6 +445,7 @@
     const edBox = h('<div class="ex-editor"></div>');
     card.append(edBox);
     const ed = createEditor(edBox, { lang, value: Store.code(ex.id) ?? starter, onRun: () => run(), onCheck: () => check(), onChange: (v) => Store.setCode(ex.id, v) });
+    card.__editor = ed;
     const tools = h(`<div class="ex-tools">
       <button class="btn btn-primary btn-sm" data-act="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button>
       <button class="btn btn-ok btn-sm" data-act="check">✓ Comprobar</button>
@@ -383,25 +552,36 @@
   }
 
   function mountCli(card, ex, markPassed, fb, feedback, extra, showExtra) {
-    const line = h('<div class="cli-input"><span>$</span><input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="escribe el comando y presiona Enter"></div>');
-    const input = $('input', line);
-    input.value = Store.code(ex.id) || '';
-    input.addEventListener('input', () => Store.setCode(ex.id, input.value));
-    const tools = h(`<div class="ex-tools"><button class="btn btn-ok btn-sm" data-act="check">✓ Comprobar <span class="kbd">↵</span></button>${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button></div>`);
-    card.append(line, tools, fb, extra);
-    const check = () => {
-      const r = CLI.grade(ex, input.value);
-      if (r.pass) {
-        feedback('ok', '✓ ' + r.msg); markPassed();
-        if (ex.salida) showExtra('Salida (simulada)', `<pre data-lang="text"><code>${esc(ex.salida)}</code></pre>${ex.explicacion || ''}`);
-      } else feedback('bad', '✗ ' + r.msg);
-    };
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') check(); });
+    const box = h('<div class="ex-term"></div>');
+    const tools = h(`<div class="ex-tools">${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
+    card.append(box, tools, fb, extra);
+    const tool = (ex.respuesta[0].replace(/^todos:\s*/, '').match(/^[\w-]+/) || [''])[0];
+    const term = window.Shell.createTerminal(box, {
+      compact: true, autoLogin: true,
+      welcome: `\u0001t-dim\u0002Escribe el comando que pide el ejercicio y presiona Enter. Puedes explorar con otros comandos (ls, cat, help…).\u0003`,
+      onCommand: (line, r, mode) => {
+        if (mode) return;
+        Store.setCode(ex.id, line);
+        const g = CLI.grade(ex, line);
+        if (g.pass) {
+          feedback('ok', '✓ ' + g.msg + (r.code ? ' (El comando es correcto; la terminal simulada no pudo ejecutarlo completo, mira la salida esperada abajo.)' : ''));
+          markPassed();
+          if (ex.salida && r.code) showExtra('Salida esperada', `<pre data-lang="text"><code>${esc(ex.salida)}</code></pre>${ex.explicacion || ''}`);
+          else if (ex.explicacion) showExtra('Explicación', ex.explicacion);
+        } else if (!tool || line.trim().replace(/^\$\s*/, '').startsWith(tool)) feedback('bad', '✗ ' + g.msg);
+        else feedback('info', 'Ese comando no es el que pide el ejercicio, pero puedes seguir explorando la terminal.');
+      },
+    });
+    const last = Store.code(ex.id);
+    if (last) term.input.value = last;
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
-      if (a === 'check') check();
       if (a === 'hint') showExtra('Pista', ex.pista);
-      if (a === 'sol') showExtra('Solución', `<pre data-lang="bash"><code>${esc(ex.solucion || ex.respuesta[0].replace(/\\/g, ''))}</code></pre>${ex.explicacion || ''}`);
+      if (a === 'sol') {
+        const sol = ex.solucion || ex.respuesta[0].replace(/\\/g, '');
+        showExtra('Solución', `<pre data-lang="bash"><code>${esc(sol)}</code></pre>${ex.explicacion || ''}<button class="btn btn-sm" data-type>⌨ Escribirla en la terminal</button>`);
+        $('[data-type]', extra).addEventListener('click', () => { term.type(sol); });
+      }
     });
   }
 
@@ -461,6 +641,7 @@
       html += '</div></div>';
     }
     html += '<div class="side-section">Practica libre</div>';
+    html += link('#/lab/terminal', '⌨️', 'Laboratorio de terminal', route.name === 'lab-terminal');
     html += link('#/lab/sql', '🧪', 'Laboratorio SQL', route.name === 'lab-sql');
     html += link('#/lab/python', '🐍', 'Laboratorio Python', route.name === 'lab-python');
     html += link('#/lab/pyspark', '⚡', 'Laboratorio PySpark', route.name === 'lab-pyspark');
@@ -665,7 +846,7 @@
         const el = h(`<div class="schema-table"><button><span>▸</span>${esc(name)}<span class="cnt">${t.rows.length.toLocaleString('es')}</span></button><div class="schema-cols">${t.columns.map((c) => `<div data-col="${esc(c)}">${esc(c)}</div>`).join('')}<div data-q="${esc(name)}" style="color:var(--brand)">▶ SELECT * … LIMIT 10</div></div></div>`);
         $('button', el).addEventListener('click', () => el.classList.toggle('open'));
         el.addEventListener('click', (e) => {
-          const c = e.target.closest('[data-col]'); if (c && ed.cm) { ed.cm.replaceSelection(c.dataset.col); ed.focus(); }
+          const c = e.target.closest('[data-col]'); if (c) { if (ed.cm) ed.cm.replaceSelection(c.dataset.col); else if (ed.monaco) ed.monaco.trigger('kbd', 'type', { text: c.dataset.col }); ed.focus(); }
           const q = e.target.closest('[data-q]'); if (q) { ed.setValue(`SELECT *\nFROM ${q.dataset.q}\nLIMIT 10;`); run(); }
         });
         sc.append(el);
@@ -699,6 +880,54 @@
     $('#run').addEventListener('click', run);
     $('#clear').addEventListener('click', () => { out.innerHTML = ''; });
     $$('[data-s]').forEach((b) => b.addEventListener('click', () => { ed.setValue(samples[b.dataset.s][1]); run(); }));
+  }
+
+  // ---------------------------------------------------------------- laboratorio de terminal con misiones
+  const MISIONES = [
+    { g: 'Linux', t: 'Explora: entra a la carpeta datos y lista su contenido con detalle', h: 'cd datos  →  ls -l', check: (M) => M.history.some((x, i) => /^cd\s+(~\/)?datos\/?$/.test(x.trim()) && M.history.slice(i + 1).some((y) => /^ls\b/.test(y.trim()))) },
+    { g: 'Linux', t: 'Guarda en ~/errores.txt solo las líneas con ERROR de logs/pipeline.log', h: 'grep ERROR logs/pipeline.log > errores.txt', check: (M) => { const c = M.fs['/home/alumno/errores.txt']; return c && c.c.trim().split('\n').length >= 2 && c.c.split('\n').filter(Boolean).every((l) => l.includes('ERROR')); } },
+    { g: 'Linux', t: 'Crea la estructura proyecto/{datos,src,tests} con un solo comando', h: 'mkdir -p proyecto/datos proyecto/src proyecto/tests', check: (M) => ['datos', 'src', 'tests'].every((d) => M.fs['/home/alumno/proyecto/' + d]) },
+    { g: 'Python', t: 'Ejecuta scripts/resumen_ventas.py (desde ~) y verifica que creó datos/resumen_canales.csv', h: 'python scripts/resumen_ventas.py  →  cat datos/resumen_canales.csv', check: (M) => !!M.fs['/home/alumno/datos/resumen_canales.csv'] },
+    { g: 'Git', t: 'Inicializa un repo en ~/proyecto, crea un README.md y haz tu primer commit', h: 'cd ~/proyecto && git init && echo "# Proyecto" > README.md && git add . && git commit -m "Primer commit"', check: (M) => Object.entries(M.git).some(([k, g]) => k.endsWith('/proyecto') && Object.keys(g.commits).length > 0) },
+    { g: 'Git', t: 'Crea la rama feature/limpieza y haz un commit en ella', h: 'git switch -c feature/limpieza  →  edita algo  →  git add . && git commit -m "..."', check: (M) => Object.values(M.git).some((g) => g.branches['feature/limpieza'] && g.branches['feature/limpieza'] !== g.branches.main) },
+    { g: 'SQL', t: 'Abre sqlite3 y cuenta los pedidos de 2024 (SELECT COUNT(*) …;)', h: "sqlite3  →  SELECT COUNT(*) FROM pedidos WHERE fecha_pedido >= '2024-01-01';", check: (M) => M.history.some((x) => /^sqlite3/.test(x)) },
+    { g: 'dbt', t: 'Entra a ~/tienda_dbt y ejecuta dbt build (modelos + tests)', h: 'cd ~/tienda_dbt && dbt build', check: (M) => M.history.some((x) => /dbt\s+build/.test(x)) },
+    { g: 'Airflow', t: 'Lista los DAGs y prueba etl_ventas para el 2024-12-31', h: 'airflow dags list  →  airflow dags test etl_ventas 2024-12-31', check: (M) => M.history.some((x) => /airflow\s+dags\s+test\s+etl_ventas/.test(x)) },
+    { g: 'Azure', t: 'Inicia sesión, crea rg-lab en eastus2, una cuenta ADLS Gen2 y el contenedor bronze', h: 'az login → az group create -n rg-lab -l eastus2 → az storage account create -n stlab<numeros> -g rg-lab --sku Standard_LRS --hns true → az storage container create -n bronze --account-name … --auth-mode login', check: (M) => { const a = M.cloud.az; return a && a.groups['rg-lab'] && Object.values(a.storage).some((x) => x.rg === 'rg-lab' && x.hns && x.containers.bronze); } },
+    { g: 'Azure', t: 'Sube datos/clientes.csv al contenedor bronze de tu cuenta', h: 'az storage blob upload --account-name … -c bronze -n clientes/clientes.csv -f datos/clientes.csv --auth-mode login', check: (M) => { const a = M.cloud.az; return a && Object.values(a.storage).some((x) => x.containers.bronze && Object.keys(x.containers.bronze.blobs).length); } },
+    { g: 'AWS', t: 'Configura AWS, crea un bucket y sube la carpeta datos/ con --recursive', h: 'aws configure → aws s3 mb s3://mi-lake-<algo> → aws s3 cp datos s3://mi-lake-<algo>/crudo/ --recursive', check: (M) => { const a = M.cloud.aws; return a && Object.values(a.buckets).some((b) => Object.keys(b.objects).length >= 2); } },
+    { g: 'AWS', t: 'Cataloga tu bucket con un crawler de Glue y consulta con Athena', h: 'aws glue create-database … → create-crawler … → start-crawler … → aws athena start-query-execution --query-string "…" --result-configuration OutputLocation=s3://…', check: (M) => { const a = M.cloud.aws; return a && Object.values(a.glueDbs).some((d) => Object.keys(d.tables).length) && Object.keys(a.athena || {}).length; } },
+    { g: 'GCP', t: 'Inicia sesión en gcloud, fija el proyecto academia-datos-dev y crea un bucket', h: 'gcloud auth login → gcloud config set project academia-datos-dev → gcloud storage buckets create gs://…', check: (M) => { const g = M.cloud.gcp; return g && g.project === 'academia-datos-dev' && Object.keys(g.buckets).length; } },
+    { g: 'GCP', t: 'Crea el dataset tienda en BigQuery y ejecuta una consulta con GoogleSQL', h: "bq mk --dataset tienda → bq query --use_legacy_sql=false 'SELECT …'", check: (M) => { const g = M.cloud.gcp; return g && g.datasets.tienda && M.history.some((x) => /bq\s+query.*--use_legacy_sql=false/.test(x)); } },
+    { g: 'Databricks', t: 'Autentícate, crea un bundle, valídalo, despliégalo en dev y ejecuta su job', h: 'databricks auth login --host https://adb-…azuredatabricks.net → databricks bundle init → cd mi_proyecto → databricks bundle validate → databricks bundle deploy -t dev → databricks bundle run -t dev mi_proyecto_job', check: (M) => M.cloud.dbx && M.cloud.dbx.bundle && Object.keys(M.cloud.dbx.bundle).length && M.history.some((x) => /bundle\s+run/.test(x)) },
+  ];
+  function viewLabTerminal() {
+    main.innerHTML = `<div class="container wide">
+      <h1 style="margin:0 0 4px">⌨️ Laboratorio de terminal</h1>
+      <p class="muted" style="margin:0 0 16px">Una máquina Linux simulada que <b>recuerda todo lo que haces</b>. Ejecuta <b>Python</b>, <b>SQLite</b>, <b>dbt</b> y <b>Airflow</b> de verdad, y simula con estado <b>git</b>, <b>Azure</b> (az), <b>AWS</b> (aws), <b>Google Cloud</b> (gcloud, gsutil, bq) y <b>Databricks</b>. Usa <code>code archivo</code> para editar archivos con el editor.</p>
+      <div class="lab lab-term">
+        <div class="lab-main" id="termHost"></div>
+        <aside class="card lab-side missions"><h4>Misiones</h4><div id="mis"></div>
+          <h4 style="margin-top:16px">Atajos</h4><div class="small muted">↑/↓ historial · Tab autocompletar · Ctrl+L limpiar · Ctrl+C cancelar</div>
+          <div style="margin-top:14px" class="row"><button class="btn btn-sm" id="resetM">↺ Reiniciar máquina</button></div>
+        </aside>
+      </div>
+    </div>`;
+    const term = window.Shell.createTerminal($('#termHost'), { onCommand: () => paint() });
+    term.el.classList.add('term-big');
+    const paint = () => {
+      const M = window.Shell.Machine;
+      let last = null;
+      $('#mis').innerHTML = MISIONES.map((m, i) => {
+        let done = false; try { done = !!m.check(M); } catch (e) { done = false; }
+        const head = m.g !== last ? `<div class="mis-g">${esc(m.g)}</div>` : '';
+        last = m.g;
+        return `${head}<details class="mis ${done ? 'done' : ''}"><summary><span class="dot">${done ? '✓' : i + 1}</span>${esc(m.t)}</summary><div class="small"><code>${esc(m.h)}</code></div></details>`;
+      }).join('');
+    };
+    paint();
+    $('#resetM').addEventListener('click', () => { if (confirm('¿Reiniciar la máquina? Se borran tus archivos, repos y recursos de nube simulados.')) { window.Shell.Machine.reset(); route(); } });
+    setTimeout(() => term.focus(), 50);
   }
 
   // ---------------------------------------------------------------- datos
@@ -845,7 +1074,7 @@
     if (!parts.length) return { name: 'home' };
     if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]) };
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
-    if (parts[0] === 'lab' && ['sql', 'python', 'pyspark'].includes(parts[1])) return { name: 'lab-' + parts[1] };
+    if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal'].includes(parts[1])) return { name: 'lab-' + parts[1] };
     if (['ruta', 'datos', 'glosario', 'progreso'].includes(parts[0])) return { name: parts[0], q: params.get('q') || '' };
     return { name: 'notfound' };
   }
@@ -853,7 +1082,7 @@
     const r = parse();
     document.body.classList.remove('nav-open');
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -861,6 +1090,7 @@
     else if (r.name === 'lab-sql') viewLabSql();
     else if (r.name === 'lab-python') viewLabPython('python');
     else if (r.name === 'lab-pyspark') viewLabPython('pyspark');
+    else if (r.name === 'lab-terminal') viewLabTerminal();
     else if (r.name === 'datos') viewDatos();
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
@@ -875,5 +1105,8 @@
   $('#menuBtn').addEventListener('click', () => document.body.classList.toggle('nav-open'));
   $('#scrim').addEventListener('click', () => document.body.classList.remove('nav-open'));
   updateProgressPill();
+  $('#termBtn').addEventListener('click', () => Dock.toggle());
+  document.addEventListener('keydown', (e) => { if (e.key === '`' && e.ctrlKey) { e.preventDefault(); Dock.toggle(); } });
+  if (Store.data.editor !== 'simple') Monaco.load().catch(() => {});
   route();
 })();

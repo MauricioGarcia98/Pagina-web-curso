@@ -15,8 +15,12 @@
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = src; s.async = true; s.crossOrigin = 'anonymous';
-      s.onload = resolve;
-      s.onerror = () => reject(new Error('No se pudo cargar ' + src + '. ¿Tienes conexión a internet?'));
+      // el cargador AMD de Monaco define window.define; lo ocultamos mientras se evalúa una librería UMD
+      const amd = window.define;
+      window.define = undefined;
+      const restore = () => { if (amd) window.define = amd; };
+      s.onload = () => { restore(); resolve(); };
+      s.onerror = () => { restore(); reject(new Error('No se pudo cargar ' + src + '. ¿Tienes conexión a internet?')); };
       document.head.appendChild(s);
     });
   }
@@ -308,6 +312,56 @@ def _grade(mode, code, solution, tests, var, ordered):
             sys.stdout = old
     return out
 
+_REPL_NS = {"__name__": "__main__"}
+
+def _shell(mode, code, argv_json, files_json, cwd):
+    import os, shutil
+    home = "/home/alumno"
+    if os.path.isdir(home):
+        shutil.rmtree(home)
+    os.makedirs(home, exist_ok=True)
+    for path, content in json.loads(files_json).items():
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+    os.makedirs(cwd, exist_ok=True)
+    os.chdir(cwd)
+    argv = json.loads(argv_json)
+    sys.argv = argv or [""]
+    ns = _env(mode)
+    fname = argv[0] if argv and argv[0].endswith(".py") else "<stdin>"
+    stdout, err = _exec(code, ns, fname)
+    os.chdir("/")
+    out_files = {}
+    for root, dirs, fs in os.walk(home):
+        for name in fs:
+            full = os.path.join(root, name)
+            try:
+                if os.path.getsize(full) < 2000000:
+                    out_files[full] = open(full, encoding="utf-8").read()
+            except (UnicodeDecodeError, OSError):
+                pass
+    return {"ok": err is None, "stdout": stdout, "error": err, "files": out_files}
+
+def _repl(code):
+    buf = io.StringIO()
+    old = sys.stdout, sys.stderr
+    sys.stdout = sys.stderr = buf
+    err = None
+    try:
+        try:
+            comp = compile(code, "<stdin>", "single")
+        except SyntaxError:
+            comp = compile(code, "<stdin>", "exec")
+        exec(comp, _REPL_NS)
+    except SystemExit:
+        pass
+    except BaseException as e:
+        err = _fmt_exc(e, "<stdin>")
+    finally:
+        sys.stdout, sys.stderr = old
+    return {"ok": err is None, "stdout": buf.getvalue(), "error": err}
+
 def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     import jinja2
     vs = json.loads(vars_json or "{}")
@@ -357,6 +411,22 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
           const sql = f(msg.template, msg.macros || '', !!msg.incremental, JSON.stringify(msg.vars || {}), msg.thisName || 'this');
           f.destroy();
           self.postMessage({ id: msg.id, ok: true, sql });
+          return;
+        }
+        if (msg.kind === 'shell') {
+          const f = py.globals.get('_shell');
+          const r = f(msg.mode, msg.code, JSON.stringify(msg.argv || []), JSON.stringify(msg.files || {}), msg.cwd || '/home/alumno');
+          const out = r.toJs({ dict_converter: Object.fromEntries });
+          r.destroy(); f.destroy();
+          self.postMessage({ id: msg.id, ...out });
+          return;
+        }
+        if (msg.kind === 'repl') {
+          const f = py.globals.get('_repl');
+          const r = f(msg.code);
+          const out = r.toJs({ dict_converter: Object.fromEntries });
+          r.destroy(); f.destroy();
+          self.postMessage({ id: msg.id, ...out });
           return;
         }
         const g = py.globals.get('_grade');
@@ -420,7 +490,9 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       return this._send({ kind: 'grade', mode, code, solution: ex.solucion, tests: ex.test || '', compareVar: ex.variable || (ex.test ? '' : (mode === 'pyspark' ? 'resultado' : '')), ordered: !!ex.ordenado });
     },
     dbt(template, opts = {}) { return this._send({ kind: 'dbt', mode: 'dbt', template, ...opts }); },
-    warmup(mode) { return this._send({ kind: 'warmup', mode }); }
+    warmup(mode) { return this._send({ kind: 'warmup', mode }); },
+    shell({ code, argv, files, cwd, mode = 'python' }) { return this._send({ kind: 'shell', mode, code, argv, files, cwd }); },
+    repl(code) { return this._send({ kind: 'repl', mode: 'python', code }); }
   };
 
   // --------------------------------------------------------------- dbt

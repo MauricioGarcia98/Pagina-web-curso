@@ -402,3 +402,68 @@ table.result .rn { color: var(--ink-3); text-align: right; user-select: none; }
   .topbar, .sidebar, .ex-tools, .code-tools { display: none !important; }
   .main { padding: 0; }
 }
+
+/* ========================================================== terminal */
+.term { background: #0d1017; border: 1px solid #232838; border-radius: 12px; overflow: hidden; color: #d7dbe8; font: 13.5px/1.55 var(--mono); box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
+.ex-term .term { border-radius: 0; border: 0; border-top: 1px solid var(--line); box-shadow: none; }
+.term-bar { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: #161a24; border-bottom: 1px solid #232838; font-size: 12px; color: #8b91a7; }
+.term-dots { display: flex; gap: 6px; }
+.term-dots i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; display: block; }
+.term-dots i:nth-child(2) { background: #febc2e; }
+.term-dots i:nth-child(3) { background: #28c840; }
+.term-title { flex: 1; text-align: center; font-family: var(--font); }
+.term-actions button { background: none; border: 1px solid #2b3143; color: #8b91a7; border-radius: 6px; font-size: 11px; padding: 1px 8px; cursor: pointer; }
+.term-actions button:hover { color: #fff; border-color: #4b5266; }
+.term-body { padding: 10px 14px 12px; height: 300px; overflow-y: auto; cursor: text; outline: none; }
+.term-compact .term-body { height: 230px; }
+.term-big .term-body { height: calc(100vh - 290px); min-height: 380px; }
+.term-out { white-space: pre-wrap; word-break: break-word; }
+.term-chunk { margin: 0; }
+.term-line { display: flex; align-items: baseline; white-space: pre; }
+.term-input-wrap { flex: 1; min-width: 0; }
+.term-input { width: 100%; background: transparent; border: 0; outline: none; color: #f1f3f9; font: inherit; padding: 0; caret-color: #a5a1ff; }
+.term.busy .term-line { opacity: .5; }
+.t-user { color: #34c77b; font-weight: 600; }
+.t-dir { color: #8cb8ff; font-weight: 600; }
+.t-ok { color: #34c77b; }
+.t-err { color: #ff6b60; }
+.t-warn { color: #e3b341; }
+.t-dim { color: #6c7389; }
+.t-b { color: #fff; font-weight: 700; }
+.t-info { color: #c4a7ff; }
+.term-btn { gap: 6px; }
+.term-dock { position: fixed; left: var(--sidebar-w); right: 0; bottom: 0; z-index: 70; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -10px 30px rgba(0, 0, 0, .18); }
+.term-dock[hidden] { display: none; }
+.dock-head { display: flex; align-items: center; gap: 10px; padding: 6px 12px; }
+.dock-body .term { border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0; box-shadow: none; }
+.dock-body .term-body { height: 300px; }
+body.dock-open .main { padding-bottom: 400px; }
+.lab-term { grid-template-columns: 1fr 330px; }
+.missions .mis-g { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); font-weight: 700; margin: 12px 4px 4px; }
+.mis { border: 1px solid var(--line); border-radius: 9px; margin: 6px 0; background: var(--surface); }
+.mis summary { cursor: pointer; padding: 7px 9px; font-size: 13px; display: flex; gap: 8px; align-items: flex-start; list-style: none; }
+.mis summary::-webkit-details-marker { display: none; }
+.mis .dot { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: var(--surface-3); }
+.mis.done { border-color: color-mix(in srgb, var(--ok) 50%, var(--line)); }
+.mis.done .dot { background: var(--ok); color: #fff; }
+.mis > div { padding: 0 10px 9px 37px; }
+.mis code { white-space: pre-wrap; word-break: break-word; font-size: 11.5px; }
+
+/* ========================================================== editor Monaco */
+.editor-host { position: relative; }
+.monaco-host { min-height: 130px; background: #12151d; }
+.ex-editor .monaco-host, .inline-runner .monaco-host { border-radius: 0; }
+.file-ed .monaco-host { border-radius: 10px; overflow: hidden; }
+.monaco-editor .suggest-widget { border-radius: 8px; }
+.ex-editor .CodeMirror, .inline-runner .CodeMirror { background: #12151d; color: #dfe3ef; }
+.ex-editor .CodeMirror-gutters, .inline-runner .CodeMirror-gutters { background: #12151d; border-right-color: #232838; }
+
+@media (max-width: 900px) {
+  .term-dock { left: 0; }
+  .lab-term { grid-template-columns: 1fr; }
+  .term-big .term-body { height: 60vh; }
+}
+@media (max-width: 640px) {
+  .term-btn { padding: 4px 8px; }
+  .term { font-size: 12.5px; }
+}
