@@ -1193,9 +1193,10 @@ for _n, _fn in list(_ns.items()):
     if (sub === 'init') {
       const r = Machine.cwd;
       if (Machine.git[r]) return ok(`Reinicializado el repositorio Git existente en ${r}/.git/`);
-      Machine.git[r] = { branch: 'main', branches: { main: null }, commits: {}, staged: {}, remotes: {} };
+      const rama = (Machine.git.__config || {})['init.defaultBranch'] || 'main';
+      Machine.git[r] = { branch: rama, branches: { [rama]: null }, commits: {}, staged: {}, remotes: {} };
       mkdirp(r + '/.git'); Machine.save();
-      return ok(`Inicializado repositorio Git vacío en ${r}/.git/`);
+      return ok((Machine.git.__config || {})['user.email'] ? `Inicializado repositorio Git vacío en ${r}/.git/` : `Inicializado repositorio Git vacío en ${r}/.git/\n${col.dim('(aún no configuraste tu identidad: git config --global user.name "Tu Nombre" y user.email)')}`);
     }
     if (sub === 'clone') {
       const url = a[1] || '';
@@ -1208,6 +1209,17 @@ for _n, _fn in list(_ns.items()):
       const h = shortHash(); g.commits[h] = { msg: 'Commit inicial', parent: null, snap: snapshot(r), author: 'equipo', date: new Date().toISOString() }; g.branches.main = h;
       Machine.save();
       return ok(`Clonando en '${name}'...\nremote: Enumerating objects: 12, done.\nRecibiendo objetos: 100% (12/12), listo.`);
+    }
+    if (sub === 'config') {
+      // configuración global (fuera de un repositorio) o local
+      const glob = a.includes('--global');
+      const resto = a.slice(1).filter((x) => x !== '--global' && x !== '--local');
+      const cfg = glob || !gitRoot() ? (Machine.git.__config = Machine.git.__config || {}) : (Machine.git[gitRoot()].config = Machine.git[gitRoot()].config || {});
+      if (!glob && !gitRoot() && resto.length >= 2) return fail('fatal: no es un repositorio git (usa --global para la configuración de tu usuario)', 128);
+      if (resto[0] === '--list' || resto[0] === '-l') return ok(Object.entries(Object.assign({}, Machine.git.__config || {}, glob ? {} : cfg)).map(([k, v]) => `${k}=${v}`).join('\n'));
+      if (resto.length === 1) { const v = cfg[resto[0]] ?? (Machine.git.__config || {})[resto[0]]; return v === undefined ? { out: '', code: 1 } : ok(v); }
+      if (resto.length >= 2) { cfg[resto[0]] = resto.slice(1).join(' '); Machine.save(); return ok(''); }
+      return ok('uso: git config [--global] clave [valor] | git config --list');
     }
     const root = gitRoot();
     if (!root) return fail('fatal: no es un repositorio git (ni ninguno de los directorios superiores): .git', 128);
@@ -1331,7 +1343,6 @@ for _n, _fn in list(_ns.items()):
         return ok(`Enumerando objetos: 5, listo.\nEscribiendo objetos: 100% (5/5), listo.\nTo ${g.remotes[remote]}\n * [new branch]      ${g.branch} -> ${g.branch}` + (a.includes('-u') ? `\nrama '${g.branch}' configurada para rastrear '${remote}/${g.branch}'.` : ''));
       }
       case 'pull': case 'fetch': return ok('Ya está actualizado.');
-      case 'config': return ok('');
       default: return ok('uso: git [init|clone|status|add|commit|log|branch|switch|checkout|merge|diff|restore|remote|push|pull]');
     }
   });

@@ -221,6 +221,21 @@
     ]
   },
   {
+    "id": "local",
+    "titulo": "Desde tu computadora: el entorno local paso a paso",
+    "icono": "💻",
+    "color": "#0891b2",
+    "descripcion": "Tutorial paso a paso para armar en tu propia computadora (Windows con WSL, macOS o Linux) el entorno completo de un data engineer: Git y GitHub, Python con uv, Docker, PostgreSQL, DuckDB, dbt, Airflow, Spark, las CLIs de nube y Terraform, y el proyecto final corriendo en tu máquina.",
+    "objetivos": [
+      "Instalar y configurar el entorno de trabajo en Windows (WSL), macOS o Linux",
+      "Versionar proyectos con Git y GitHub usando SSH",
+      "Crear proyectos de Python reproducibles con uv, entornos virtuales, ruff y pytest",
+      "Levantar bases de datos y servicios con Docker y Docker Compose",
+      "Correr dbt, Airflow y Spark localmente y conectar las CLIs de nube de forma segura",
+      "Armar un proyecto de datos completo en tu computadora, listo para tu portafolio"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",

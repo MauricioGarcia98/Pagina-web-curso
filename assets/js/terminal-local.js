@@ -681,6 +681,8 @@
     return fail(`docker: '${sub}' is not a docker command.\nSee 'docker --help'`);
   });
 
+  def('docker-compose', 'Docker Compose v1 (hoy se usa "docker compose")', (a, ctx) => Commands.docker(['compose', ...a], ctx));
+
   // ================================================================== entornos de Python y herramientas
   def('source', 'carga un script en la sesión (source .venv/bin/activate)', (a) => {
     const p = norm(a[0] || '');
