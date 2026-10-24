@@ -6,7 +6,8 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 |---|---|---|---|
 | 🧱 Fundamentos | 4 | 17 | Ingeniería de datos, formatos, terminal, Git |
 | 🗄️ SQL: de cero a experto | 24 | 118 | Desde `SELECT` hasta ventanas, CTE recursivas, gaps & islands, cohortes, optimización y modelado |
-| 💼 Casos de negocio con SQL | 9 | 57 | 8 empresas (banco, streaming, movilidad, clínica, SaaS, aerolínea, logística, tienda): KPIs reales y trampas lógicas |
+| 💼 Casos de negocio con SQL | 14 | 94 | 13 empresas (banco, streaming, movilidad, clínica, SaaS, aerolínea, logística, tienda, telco, seguros, hotelería, energía, delivery): KPIs reales y trampas lógicas |
+| 📐 Modelado de datos | 7 | 31 | Del negocio al modelo, normalización, Kimball, SCD, Data Vault, OBT y tipos anidados |
 | 🐍 Python | 15 | 54 | Desde variables hasta generadores, decoradores, POO, tests y ETL |
 | ⚡ Apache Spark | 8 | 24 | Arquitectura, lazy evaluation, shuffles, joins, Delta Lake, optimización, streaming |
 | 🔥 PySpark | 12 | 46 | DataFrames, funciones, agregaciones, joins, ventanas, calidad, pipeline medallón |
@@ -16,15 +17,18 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | 🟧 AWS para Data Engineers | 8 | 69 | IAM, S3, Glue, Athena, Redshift, EMR, Kinesis, Lambda, Step Functions, MWAA, Lake Formation |
 | 🔷 Google Cloud para Data Engineers | 8 | 59 | gcloud, Cloud Storage, BigQuery (particiones, clustering, MERGE), Pub/Sub, Dataflow, Dataproc, Composer, Dataform |
 | 🧩 Databricks y Databricks CLI | 8 | 35 | Notebooks, Delta, Unity Catalog, CLI, Asset Bundles, Workflows |
-| 🧠 Casos de negocio de punta a punta | 10 | 51 | Los 8 casos resueltos con Python, PySpark, dbt y Airflow |
-| 🏆 Proyecto final y entrevistas | 4 | 11 | Arquitectura de punta a punta, casos en SQL y PySpark, plan de carrera |
+| 🏛️ Arquitectura de datos | 8 | 38 | Ingesta, almacenamiento, batch y streaming, lakehouse, calidad y gobierno, patrones modernos |
+| 🏗️ Terraform | 7 | 53 | HCL, variables, `for_each`, estado remoto, módulos, import, lifecycle, plataformas en Azure + Databricks, AWS y GCP, `terraform test` y CI/CD |
+| 🧠 Casos de negocio de punta a punta | 10 | 51 | Los casos resueltos con Python, PySpark, dbt y Airflow |
+| 💻 Desde tu computadora | 10 | 61 | WSL/Homebrew, VS Code, Git y GitHub con SSH, Python con uv, Docker y Compose, PostgreSQL, DuckDB, dbt, Airflow, Spark, CLIs de nube y el proyecto completo en tu máquina |
+| 🏆 Proyecto final y entrevistas | 6 | 23 | Arquitectura, el proyecto completo de Rápido (modelo, pipeline, calidad, Terraform, CI), retos de SQL y PySpark, plan de carrera |
 
-**133 lecciones y 626 ejercicios corregidos automáticamente**, sobre una base de datos ficticia de **8 empresas**, con **más de 200.000 filas** en 38 tablas.
+**172 lecciones y 858 ejercicios corregidos automáticamente**, sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 60 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
 
 ### Herramientas de práctica
 
 - **Editor Monaco** (el de VS Code) con autocompletado de tablas y columnas; CodeMirror como respaldo.
-- **Terminal Linux simulada** (botón ⌨ Terminal o `Ctrl+``) con sistema de archivos persistente, tuberías y redirecciones, `git`, Python y `sqlite3` reales, un proyecto **dbt** que se ejecuta de verdad, `airflow dags test`, y las CLIs de la nube con estado: `az`, `aws` (S3, Glue, Athena que consulta los CSV subidos, Redshift Data API, EMR, Kinesis, Lambda…), `gcloud`, `gsutil`, `bq` (cargas, tablas particionadas, CTAS, dry-run) y `databricks` (fs, secrets, jobs, Asset Bundles).
+- **Terminal Linux simulada** (botón ⌨ Terminal o `Ctrl+``) con sistema de archivos persistente, tuberías y redirecciones, `git`, Python y `sqlite3` reales, un proyecto **dbt** que se ejecuta de verdad, `airflow dags test`, **Docker y Docker Compose** con estado (imágenes, contenedores, puertos, volúmenes, `build`), **`psql`** sobre los contenedores de PostgreSQL, **DuckDB** que consulta CSV y JSON, `uv`, entornos virtuales, `ssh-keygen`, `make`, un **Terraform** simulado que lee tus `.tf` de verdad (plan, apply, destroy, estado remoto, workspaces, módulos, import, `terraform test`) y las CLIs de la nube con estado: `az`, `aws` (S3, Glue, Athena que consulta los CSV subidos, Redshift Data API, EMR, Kinesis, Lambda…), `gcloud`, `gsutil`, `bq` (cargas, tablas particionadas, CTAS, dry-run) y `databricks` (fs, secrets, jobs, Asset Bundles).
 - **Laboratorio de terminal** con misiones guiadas, y ejercicios de terminal que preparan solos el entorno que necesitan.
 
 ## Cómo funciona por dentro
@@ -34,7 +38,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 - **PySpark**: *mini-Spark* (`assets/py/minispark`), un simulador en Python puro de gran parte de `pyspark.sql` (DataFrames, funciones, joins, ventanas, Spark SQL, lectura/escritura, RDDs básicos).
 - **Airflow**: *mini-Airflow* (`assets/py/miniairflow`), con `DAG`, operadores, `>>`, XCom, TaskFlow, ramas, trigger rules y `TaskGroup`; el corrector inspecciona y ejecuta el DAG.
 - **dbt**: los modelos se compilan con Jinja2 real (`ref`, `source`, `config`, `is_incremental`, macros) y se ejecutan en SQLite.
-- **CLI** (terminal, Git, Azure, AWS, Google Cloud, Databricks, dbt, Airflow): cada ejercicio trae una terminal; el comando se ejecuta en la máquina simulada (`assets/js/terminal.js` y `terminal-cloud.js`) y se valida con patrones flexibles (orden de parámetros, abreviaturas). El bloque `setup` prepara el entorno (por ejemplo, crea el bucket) la primera vez que se usa la terminal del ejercicio.
+- **CLI** (terminal, Git, Azure, AWS, Google Cloud, Databricks, dbt, Airflow): cada ejercicio trae una terminal; el comando se ejecuta en la máquina simulada (`assets/js/terminal.js`, `terminal-cloud.js`, `terminal-iac.js` y `terminal-local.js`) y se valida con patrones flexibles (orden de parámetros, abreviaturas). El bloque `setup` prepara el entorno (por ejemplo, crea el bucket) la primera vez que se usa la terminal del ejercicio.
 - El progreso y tu código se guardan en `localStorage` (exportable desde “Mi progreso”).
 
 ## Usarlo
