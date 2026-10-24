@@ -402,7 +402,7 @@ models:
       else if (p.sep === '||') skip = last.code === 0;
       else skip = false;
     }
-    return { out: out.join('\n'), code: last.code };
+    return { out: out.join('\n'), code: last.code, repl: last.repl };
   }
 
   // ------------------------------------------------------------- flags helper
@@ -818,6 +818,8 @@ models:
     return files;
   }
   async function runPython(code, argv, mode = 'python') {
+    // un script que importa pyspark corre con el mini-Spark del curso (y sus tablas)
+    if (mode === 'python' && /^\s*(from|import)\s+pyspark/m.test(code)) mode = 'pyspark';
     const r = await window.Engines.PY.shell({ code, argv, files: homeFiles(), cwd: Machine.cwd, mode });
     if (r.files) {
       for (const [k, c] of Object.entries(r.files)) if (!isFile(k) || Machine.fs[k].c !== c) writeFile(k, c);
