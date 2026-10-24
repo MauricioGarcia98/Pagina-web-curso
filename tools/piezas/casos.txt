@@ -69,7 +69,7 @@ autoevaluacion: ¿Sabes por qué los turnos cancelados no entran en la tasa de a
 >> escenario Clínica del Sur
 El director médico de **Clínica del Sur** está preocupado:
 
-> "Uno de cada cinco pacientes no viene al turno y nadie avisa. Es tiempo de médico perdido y otro paciente que no consiguió turno. ¿En qué especialidades pasa más? ¿Tiene que ver con cuánto antes reservan? Si confirmamos por mensaje los turnos de mayor riesgo, ¿cuáles serían?"
+> "Casi uno de cada ocho pacientes no viene al turno y nadie avisa. Es tiempo de médico perdido y otro paciente que no consiguió turno. ¿En qué especialidades pasa más? ¿Tiene que ver con cuánto antes reservan? Si confirmamos por mensaje los turnos de mayor riesgo, ¿cuáles serían?"
 
 En salud, cada turno vacío es un costo fijo que no se recupera. Y los datos de salud son de los más sensibles que existen.
 >> trabajo
