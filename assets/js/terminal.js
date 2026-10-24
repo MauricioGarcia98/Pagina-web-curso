@@ -56,6 +56,11 @@ Prueba estos comandos:
   airflow dags list              ver los DAGs de la carpeta dags/
   git init                       empezar un repositorio
   az login / aws configure / gcloud auth login / databricks auth login
+  docker run -d --name pg -e POSTGRES_PASSWORD=secreto -p 5432:5432 postgres:16
+  psql -U postgres -c "SELECT 1"       conectarte al Postgres del contenedor
+  duckdb -c "SELECT * FROM 'datos/clientes.csv' LIMIT 5"
+  uv init etl && cd etl && uv add pandas   un proyecto de Python
+  terraform init / plan / apply        infraestructura como código
 
 Escribe "help" para ver todos los comandos.
 `);
@@ -431,12 +436,15 @@ models:
   def('help', 'muestra esta ayuda', () => {
     const groups = {
       'Archivos y carpetas': ['pwd', 'ls', 'cd', 'mkdir', 'touch', 'cat', 'head', 'tail', 'less', 'wc', 'cp', 'mv', 'rm', 'tree', 'find', 'code'],
-      'Texto': ['echo', 'grep', 'sort', 'uniq', 'cut', 'tr', 'jq'],
-      'Sistema': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'reset-maquina'],
-      'Datos y programación': ['python', 'pip', 'sqlite3', 'git', 'dbt', 'airflow', 'curl'],
-      'Nube': ['az', 'aws', 'gcloud', 'gsutil', 'bq', 'databricks'],
+      'Texto': ['echo', 'printf', 'grep', 'sed', 'sort', 'uniq', 'cut', 'tr', 'diff', 'jq'],
+      'Sistema y scripts': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'source', 'bash', 'chmod', 'make', 'sudo', 'reset-maquina'],
+      'Instalar herramientas': ['apt', 'brew', 'winget', 'wsl'],
+      'Python y Git': ['python', 'uv', 'pip', 'pytest', 'git', 'gh', 'ssh-keygen', 'ssh'],
+      'Bases de datos y contenedores': ['sqlite3', 'duckdb', 'psql', 'docker', 'docker-compose'],
+      'Pipelines': ['dbt', 'airflow', 'astro', 'java', 'spark-submit', 'curl'],
+      'Nube e infraestructura': ['az', 'aws', 'gcloud', 'gsutil', 'bq', 'databricks', 'terraform'],
     };
-    return ok(Object.entries(groups).map(([g, cs]) => col.b(g) + '\n' + cs.map((c) => `  ${col.info(c.padEnd(14))}${Help[c] || ''}`).join('\n')).join('\n\n') + `\n\n${col.dim('Atajos: ↑/↓ historial · Tab autocompleta · Ctrl+L limpia · Ctrl+C cancela la línea')}`);
+    return ok(Object.entries(groups).map(([g, cs]) => col.b(g) + '\n' + cs.filter((c) => Commands[c]).map((c) => `  ${col.info(c.padEnd(15))}${Help[c] || ''}`).join('\n')).join('\n\n') + `\n\n${col.dim('Atajos: ↑/↓ historial · Tab autocompleta · Ctrl+L limpia · Ctrl+C cancela la línea')}`);
   });
   def('pwd', 'muestra la carpeta actual', () => ok(Machine.cwd));
   def('whoami', 'tu usuario', () => ok('alumno'));
