@@ -3,8 +3,19 @@ titulo: Trabajar con fechas
 nivel: Básico
 duracion: 35
 resumen: Formato ISO, date(), strftime(), julianday(), rangos de fechas y diferencias entre motores.
+objetivos: Filtrar periodos con rangos semiabiertos que no pierden datos | Extraer año, mes y día de la semana con `strftime` | Calcular diferencias entre fechas en días con `julianday` | Sumar y restar intervalos con `date(..., '+N days')` y reconocer la trampa de fin de mes
+prerrequisitos: sql-where | sql-funciones
+autoevaluacion: ¿Puedes filtrar los pedidos de diciembre de 2024 sin usar `BETWEEN`? | ¿Sabes por qué el formato `2024-03-15` es el único que conviene guardar? | ¿Puedes calcular cuántos días pasaron entre un pedido y su pago? | ¿Puedes contar los pedidos hechos en fin de semana? | ¿Sabes por qué usar "la fecha de hoy" en una consulta de un pipeline es peligroso?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El cierre de diciembre
+Diego, de finanzas, está cerrando el año:
+
+> "Necesito los pedidos de diciembre de 2024, y cuántos días tardamos en cobrar cada uno. También me piden saber si los fines de semana se vende más. Ojo, que el año pasado alguien me pasó un número que no incluía el 31 de diciembre."
+
+Las fechas parecen simples hasta que aparecen los rangos, las horas, los meses de distinto largo y las zonas horarias. Esta lección te enseña a no perder ni duplicar un día.
+:::
 ## Por qué las fechas merecen una lección aparte
 
 Casi toda pregunta de negocio tiene una fecha adentro: "ventas **por mes**", "clientes nuevos **este año**", "días **entre** la compra y la entrega", "usuarios activos **en los últimos 30 días**". Y las fechas son traicioneras: meses de distinta cantidad de días, años bisiestos, horas, zonas horarias, formatos distintos según el país (`03/04/2024`, ¿es 3 de abril o 4 de marzo?). Esta lección te da las herramientas para trabajarlas sin errores.
@@ -158,6 +169,24 @@ Un evento a las 23:30 del 31 de diciembre en Buenos Aires (UTC−3) es el **1 de
 | Formatear año-mes | `strftime('%Y-%m', f)` | `to_char(f, 'YYYY-MM')` | `date_format(f, 'yyyy-MM')` | `FORMAT_DATE('%Y-%m', f)` | `FORMAT(f, 'yyyy-MM')` |
 
 Los conceptos son los mismos en todos: extraer partes, truncar a un periodo, sumar intervalos y restar fechas.
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **`BETWEEN` con fechas y horas**: `fecha BETWEEN '2024-12-01' AND '2024-12-31'` excluye todo el 31 después de la medianoche. Usa `fecha >= '2024-12-01' AND fecha < '2025-01-01'`.
+- **Fechas guardadas en otro formato**: `'15/03/2024'` se ordena y compara como texto, mal. Conviértelas a ISO (`2024-03-15`) en la capa de limpieza.
+- **Restar fechas como texto**: `'2024-03-15' - '2024-03-01'` da `0` en SQLite (resta los primeros números). Usa `julianday(a) - julianday(b)`.
+- **"Hoy" en el código**: `date('now')` hace que el resultado dependa del día en que corre. En un pipeline se usa la fecha lógica que recibe (por ejemplo `{{ ds }}` en Airflow), para poder reprocesar cualquier día.
+- **Zonas horarias**: un pedido de las 23:30 en México es del día siguiente en UTC. Decide (y documenta) en qué zona se reporta.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Casi todas las tablas grandes están **particionadas por fecha**. Un filtro de rango sobre esa columna hace que la base lea solo los días necesarios; una función sobre la columna (`strftime('%Y', fecha) = '2024'`) puede obligarla a leer todo.
+- Los equipos guardan las marcas de tiempo en **UTC** y convierten a la hora local solo al mostrar. Es la forma de evitar errores con el cambio de horario.
+- Para reportes con días sin ventas se usa una **tabla calendario** (una fila por día) y se une con los datos. Lo verás con CTE recursivas y en dbt (`date_spine`).
+:::
 
 ## Resumen
 

@@ -3,8 +3,19 @@ titulo: SELECT: elegir columnas, alias y cálculos
 nivel: Básico
 duracion: 30
 resumen: Seleccionar columnas específicas, renombrarlas con AS y calcular nuevas columnas.
+objetivos: Elegir solo las columnas que necesitas, en el orden que quieras | Calcular columnas nuevas con operaciones aritméticas | Ponerles nombres claros a los resultados con `AS` | Combinar textos con `||` para armar columnas como el nombre completo
+prerrequisitos: sql-introduccion
+autoevaluacion: ¿Puedes mostrar tres columnas concretas de una tabla en el orden que te pidan? | ¿Sabes calcular el precio con IVA de cada producto y llamarlo `precio_con_iva`? | ¿Sabes por qué `SELECT nombre precio FROM productos` no da error pero está mal? | ¿Puedes armar `apellido, nombre` en una sola columna? | ¿Sabes por qué en producción se evita `SELECT *`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El listado de precios para Comercial
+Valentina, la gerente comercial, te escribe:
+
+> "Necesito un listado de productos para revisar precios con los proveedores: nombre, marca y precio, y una columna con el precio con IVA, que es lo que ve el cliente. No me mandes las 9 columnas de la tabla, que me pierdo."
+
+Ya sabes ver una tabla completa con `SELECT *`. Ahora vas a aprender a **elegir** columnas, **calcular** columnas nuevas y **ponerles nombre**, para entregar exactamente lo que te pidieron.
+:::
 ## Elegir columnas: pedir solo lo que necesitas
 
 En la lección anterior usaste `SELECT *`, que trae **todas** las columnas. En la práctica casi nunca necesitas todas. Para elegir, escribe los nombres de las columnas **separados por comas**, en el orden en que quieres verlas:
@@ -164,6 +175,24 @@ SELECT 1250 * 0.21 AS iva, ROUND(1250 * 1.21, 2) AS total, 'hola' || ' mundo' AS
 ```
 
 Es muy útil para probar una expresión antes de usarla en una consulta grande.
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Olvidar una coma**: `SELECT nombre precio FROM productos` no da error, pero muestra **una sola columna** llamada `precio` con el contenido de `nombre` (SQL entiende que `precio` es un alias). Si un resultado tiene menos columnas de las esperadas, busca la coma que falta.
+- **Una coma de más** antes del `FROM` (`SELECT nombre, precio, FROM ...`): error de sintaxis "near FROM".
+- **Comillas dobles para textos**: en SQL estándar, `"Apple"` es el nombre de una columna, no un texto. Los textos van con comillas simples: `'Apple'`.
+- **Dividir enteros**: `SELECT 7 / 2` da `3` en SQLite, PostgreSQL y SQL Server. Si quieres decimales, multiplica por `1.0` o usa `CAST`.
+- **Alias con espacios sin comillas**: `AS precio final` da error. Usa `precio_final` (recomendado) o `"precio final"`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En producción se evita `SELECT *`: si mañana alguien agrega una columna a la tabla, tu consulta cambia sin avisar, y en plataformas columnares (BigQuery, Snowflake, Databricks) **pagas por cada columna leída**. Se nombran explícitamente las columnas necesarias.
+- Los alias se escriben en `snake_case` (minúsculas con guiones bajos: `precio_con_iva`). Es la convención de casi todos los equipos de datos y de herramientas como dbt.
+- Los cálculos de negocio (como el IVA) no se escriben "a mano" en cada consulta: se definen **una vez** en un modelo o una macro (lo verás en dbt), para que todos usen el mismo número. Si el IVA cambia, se corrige en un solo lugar.
+:::
 
 ## Resumen
 

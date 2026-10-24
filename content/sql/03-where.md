@@ -3,8 +3,19 @@ titulo: WHERE: filtrar filas
 nivel: Básico
 duracion: 35
 resumen: Comparaciones, AND/OR/NOT, IN, BETWEEN y LIKE.
+objetivos: Filtrar filas con `WHERE` usando comparaciones de números, textos y fechas | Combinar condiciones con `AND`, `OR` y `NOT` usando paréntesis cuando hace falta | Usar `IN`, `BETWEEN` y `LIKE` para filtros comunes | Detectar filtros que dejan afuera filas por mayúsculas o espacios
+prerrequisitos: sql-select
+autoevaluacion: ¿Puedes filtrar los clientes de un país concreto? | ¿Sabes por qué `canal = 'web' OR canal = 'app' AND metodo_pago = 'efectivo'` puede dar un resultado distinto al esperado? | ¿Puedes reescribir varios `OR` sobre la misma columna con `IN`? | ¿Sabes si `BETWEEN 10 AND 20` incluye el 10 y el 20? | ¿Puedes buscar los productos cuyo nombre contiene una palabra?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los clientes de Argentina
+Camila, de marketing, prepara una campaña para Argentina:
+
+> "Necesito la lista de clientes de Argentina con su ciudad. Ah, y aparte, los pedidos cancelados o devueltos del último mes, que quiero entender qué pasó."
+
+Para eso no sirve ver toda la tabla: necesitas **filtrar** filas. Esta lección es sobre `WHERE`, la cláusula que más vas a escribir en tu vida.
+:::
 ## Para qué sirve WHERE
 
 `SELECT` decide **qué columnas** ves. `WHERE` decide **qué filas** ves: se queda solo con las que cumplen una **condición**. Es el filtro de cualquier pregunta de negocio: "los pedidos **de diciembre**", "los clientes **de Chile**", "los productos **sin stock**".
@@ -175,6 +186,29 @@ WHERE (precio - costo) / precio < 0.20;
 ```
 
 Pero **no** puedes usar en el `WHERE` un alias definido en el `SELECT` (`WHERE margen < 0.20` falla en la mayoría de los motores), porque el `WHERE` se evalúa **antes** que el `SELECT`. Lo explicamos con detalle en la próxima lección.
+
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Precedencia de AND y OR**: `AND` se evalúa antes que `OR`. `WHERE canal = 'web' OR canal = 'app' AND metodo_pago = 'efectivo'` significa "web (con cualquier pago) **o** app en efectivo". Pon paréntesis siempre que mezcles los dos: `(canal = 'web' OR canal = 'app') AND metodo_pago = 'efectivo'`.
+- **Comparar con NULL usando `=`**: `WHERE telefono = NULL` nunca devuelve filas. Se usa `IS NULL` (lo verás en la lección de NULL).
+- **Textos con distinta escritura**: `WHERE pais = 'argentina'` no encuentra `'Argentina'` en muchas bases. Si los datos están sucios, normaliza con `LOWER(TRIM(pais))`.
+- **Fechas con hora y BETWEEN**: `BETWEEN '2024-12-01' AND '2024-12-31'` deja afuera todo lo que pasó el 31 después de las 00:00 si la columna tiene hora. Usa el rango semiabierto `>= '2024-12-01' AND < '2025-01-01'`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Casi todas las consultas en producción filtran por **fecha**: "los pedidos de ayer", "el último mes". En tablas grandes, filtrar por la columna de partición (normalmente la fecha) es lo que hace que una consulta tarde segundos en vez de horas.
+- Los filtros que vienen "del negocio" (qué cuenta como venta, qué estados se excluyen) se documentan y se acuerdan con el área. Un error típico de un junior es excluir `devuelto` cuando finanzas sí lo quiere ver, o al revés. Ante la duda, **pregunta y anota la definición**.
+- `LIKE '%texto%'` no puede usar índices: en tablas grandes es lento. Para búsquedas de texto en serio se usan índices de texto completo u otras herramientas.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Qué diferencia hay entre WHERE y HAVING?"
+`WHERE` filtra **filas** antes de agrupar y no puede usar funciones de agregación. `HAVING` filtra **grupos** después del `GROUP BY` y sí puede usar `COUNT`, `SUM`, etc. Lo verás a fondo en la lección de GROUP BY; ya puedes dar la primera mitad de la respuesta.
+:::
 
 ## Resumen
 

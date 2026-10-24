@@ -3,8 +3,19 @@ titulo: NULL: el valor que no es un valor
 nivel: Básico
 duracion: 30
 resumen: IS NULL, COALESCE, NULLIF y la lógica de tres valores.
+objetivos: Explicar qué significa NULL y en qué se diferencia de 0 y de un texto vacío | Filtrar valores nulos y no nulos con `IS NULL` e `IS NOT NULL` | Predecir cómo afecta NULL a comparaciones, cálculos, `COUNT` y `AVG` | Reemplazar nulos con `COALESCE` y crear nulos a propósito con `NULLIF`
+prerrequisitos: sql-where
+autoevaluacion: ¿Sabes por qué `WHERE telefono = NULL` no devuelve nada? | ¿Puedes predecir qué devuelve `NULL + 5`? | ¿Sabes la diferencia entre `COUNT(*)` y `COUNT(telefono)`? | ¿Puedes mostrar el email o, si no hay, el teléfono, en una sola columna? | ¿Sabes por qué `NOT IN` con un NULL en la lista no devuelve filas? | ¿Sabes evitar una división por cero con `NULLIF`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los clientes sin teléfono
+Sofía, de operaciones, quiere llamar a los clientes cuyos pedidos se demoran:
+
+> "El call center dice que a muchos clientes no los pueden contactar. ¿Cuántos no tienen teléfono? Y para los que no tienen, ¿me das al menos el email?"
+
+Parece fácil: buscar los que tienen el teléfono vacío. Pero en SQL "vacío" tiene un nombre especial, `NULL`, y se comporta distinto que cualquier otro valor. Es la fuente número uno de resultados incorrectos que **no dan error**.
+:::
 ## Qué es NULL
 
 `NULL` es la forma en que SQL dice **"no hay dato"**: el valor es desconocido, no aplica o nunca se cargó. No es un cero, no es un texto vacío, no es un espacio. Es **la ausencia** de valor.
@@ -150,6 +161,20 @@ Si `stock` es 0, `NULLIF(stock, 0)` devuelve `NULL`, y `precio / NULL` es `NULL`
 
 - `ORDER BY`: los `NULL` van primero o último según el motor (ver lección anterior); usa `NULLS LAST` para controlarlo.
 - `GROUP BY` y `DISTINCT`: todos los `NULL` se juntan en **un solo grupo**. Es la única situación en que SQL "trata a los NULL como iguales".
+
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En los pipelines, los NULL se tratan a propósito en la capa **silver**: se decide, columna por columna, si un nulo significa "no se sabe", "no aplica" o "cero", y se documenta. Nunca se reemplaza un nulo por `0` sin preguntar: el promedio de ventas cambia por completo.
+- Los tests de calidad más comunes en dbt y en cualquier pipeline son `not_null` sobre las claves (un pedido sin `cliente_id` es un bug en el origen) y el porcentaje de nulos por columna, con una alerta si sube de golpe.
+- Un salto en los nulos suele ser la primera señal de que **cambió el sistema de origen**: alguien renombró un campo en la API y ahora llega vacío.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Por qué NOT IN puede no devolver ninguna fila?"
+Porque si la lista (o la subconsulta) contiene un `NULL`, la comparación `x <> NULL` da "desconocido" para todas las filas, y `NOT IN` necesita que todas sean verdaderas. La solución es filtrar los nulos en la subconsulta (`WHERE col IS NOT NULL`) o usar `NOT EXISTS`, que no tiene ese problema.
+:::
 
 ## Resumen
 

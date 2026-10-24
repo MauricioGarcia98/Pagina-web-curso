@@ -3,8 +3,19 @@ titulo: JOIN: combinar tablas
 nivel: Intermedio
 duracion: 40
 resumen: Claves primarias y foráneas, INNER JOIN, alias de tabla y joins de varias tablas.
+objetivos: Explicar por qué los datos están repartidos en varias tablas y cómo se conectan con claves | Unir dos o más tablas con `INNER JOIN … ON` | Anticipar cuántas filas devuelve un JOIN en relaciones uno a muchos | Agregar después de unir sin duplicar importes
+prerrequisitos: sql-group-by
+autoevaluacion: ¿Puedes mostrar cada pedido con el nombre de su cliente? | ¿Sabes qué filas quedan afuera de un `INNER JOIN`? | ¿Puedes calcular las ventas netas por categoría uniendo tres o cuatro tablas? | ¿Sabes por qué un JOIN puede multiplicar filas y cómo detectarlo? | ¿Sabes cuándo usar alias de tabla y por qué conviene siempre?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Las ventas por categoría
+Valentina necesita saber qué categorías venden más:
+
+> "¿Cuánto vendimos por categoría? Celulares, notebooks, audio… Y por país del cliente."
+
+El problema es que esa información está **repartida**: la categoría está en `categorias`, el producto en `productos`, las cantidades en `detalle_pedidos` y el país en `clientes`. Para responder tienes que **unir** tablas. Es el paso que separa a quien "sabe un poco de SQL" de quien lo usa en el trabajo.
+:::
 ## Por qué los datos están repartidos en varias tablas
 
 En la primera lección viste que una base relacional **no repite** información: el pedido no guarda el nombre del cliente, solo su `cliente_id`. Es eficiente y evita inconsistencias, pero tiene una consecuencia: para responder "¿qué compró Martina López?" necesitas datos de **varias** tablas a la vez. Juntarlas es el trabajo de `JOIN`, la operación más importante de SQL después de `SELECT`.
@@ -164,6 +175,29 @@ Con `USING`, la columna `cliente_id` aparece una sola vez en el resultado y ya n
 
 :::nota La sintaxis antigua
 Verás código viejo que une tablas con comas y pone la condición en el `WHERE`: `FROM pedidos p, clientes c WHERE c.cliente_id = p.cliente_id`. Funciona, pero si olvidas la condición obtienes **todas las combinaciones** (12.000 × 2.000 = 24 millones de filas). La sintaxis `JOIN … ON` separa la regla de unión de los filtros y es la que se usa hoy.
+:::
+
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Unir por la columna equivocada**: `ON p.pedido_id = c.cliente_id` no da error, pero mezcla datos que no tienen nada que ver. Une siempre la clave foránea con la clave primaria que le corresponde.
+- **Filas multiplicadas**: si unes `pedidos` con `detalle_pedidos` y sumas el total del pedido, lo cuentas una vez por línea. Antes de sumar, pregúntate: ¿cuál es el **grano** de mi resultado (una fila por qué cosa)?
+- **Columnas ambiguas**: si dos tablas tienen una columna `nombre`, `SELECT nombre` da error "ambiguous column". Usa alias (`c.nombre`, `pr.nombre`).
+- **Perder filas sin darte cuenta**: el `INNER JOIN` descarta los pedidos cuyo cliente no existe en `clientes`. Si el total da menos de lo esperado, compara `COUNT(*)` antes y después del JOIN.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Antes de un JOIN importante, los ingenieros revisan las claves: ¿la del lado "uno" es realmente única? (`SELECT id, COUNT(*) ... GROUP BY id HAVING COUNT(*) > 1`). Un duplicado en una tabla de dimensión multiplica silenciosamente todas las ventas.
+- En tablas de hechos grandes, unir con dimensiones chicas (productos, países) es barato: los motores distribuidos copian la tabla chica a todas las máquinas (*broadcast join*). Unir dos tablas enormes es lo que hace lentos los pipelines.
+- Los modelos de datos analíticos (esquema estrella, en la lección de modelado) están pensados justamente para que los JOIN sean simples: una tabla de hechos en el centro y dimensiones alrededor.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Qué pasa si haces un JOIN y la clave tiene duplicados en las dos tablas?"
+Cada fila de un lado se combina con **todas** las filas del otro que tienen la misma clave: si una clave aparece 3 veces a la izquierda y 4 a la derecha, salen 12 filas. Es la causa más común de totales inflados. Se detecta comparando el conteo de filas antes y después, y se soluciona agregando o deduplicando antes de unir.
 :::
 
 ## Resumen

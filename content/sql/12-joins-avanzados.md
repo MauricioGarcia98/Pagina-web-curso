@@ -3,8 +3,19 @@ titulo: LEFT, RIGHT, FULL, SELF y CROSS JOIN
 nivel: Intermedio
 duracion: 45
 resumen: Conservar filas sin pareja, encontrar lo que falta (anti-join), unir una tabla consigo misma y productos cartesianos.
+objetivos: Elegir entre `INNER`, `LEFT`, `FULL`, `SELF` y `CROSS JOIN` según la pregunta | Encontrar lo que falta con un anti-join (`LEFT JOIN … WHERE … IS NULL`) | Evitar que un filtro en el `WHERE` convierta un `LEFT JOIN` en un `INNER JOIN` | Recorrer relaciones dentro de una misma tabla con un self join
+prerrequisitos: sql-joins
+autoevaluacion: ¿Puedes listar los clientes que nunca compraron? | ¿Sabes por qué un filtro sobre la tabla derecha en el `WHERE` hace desaparecer las filas sin pareja, y dónde ponerlo? | ¿Puedes mostrar cada empleado con el nombre de su jefe, incluido el CEO? | ¿Puedes armar una grilla de canales por años con ceros donde no hubo pedidos? | ¿Sabes cuántas filas devuelve un `CROSS JOIN` de 4 canales y 3 años?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los clientes que nunca compraron
+Camila, de marketing, quiere reactivar clientes:
+
+> "Hay gente que se registró y nunca compró nada. ¿Cuántos son? Y aparte, Diego me dice que hay pedidos sin pagos aprobados: ¿me los pasas?"
+
+Con `INNER JOIN` solo ves lo que **tiene** pareja. Las preguntas más valiosas del negocio suelen ser sobre lo que **falta**: clientes sin pedidos, pedidos sin pago, productos sin ventas. Para eso hacen falta los otros tipos de JOIN.
+:::
 ## El problema que resuelven
 
 `INNER JOIN` descarta las filas sin pareja. Muchas veces eso es justo lo que **no** quieres:
@@ -195,6 +206,20 @@ GROUP BY r.nombre;
 ```
 
 Otros ejemplos reales: unir una venta con el **tipo de cambio vigente** en su fecha, o con la versión del cliente que estaba activa en ese momento (`fecha BETWEEN valido_desde AND valido_hasta`, lo verás en modelado y en los snapshots de dbt).
+
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- El anti-join es una herramienta clave para la **calidad de datos**: "pedidos cuyo cliente no existe", "pagos sin pedido". En dbt existe un test listo para eso (`relationships`), que por dentro es un `LEFT JOIN … WHERE … IS NULL`.
+- `FULL OUTER JOIN` se usa mucho para **conciliar** dos fuentes: lo que dice el sistema de pagos frente a lo que dice el banco. Las filas que solo están de un lado son exactamente las diferencias a investigar.
+- Los `CROSS JOIN` con una tabla calendario son el truco estándar para que un reporte muestre ceros en lugar de huecos.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿LEFT JOIN … WHERE b.id IS NULL o NOT EXISTS?"
+Las dos encuentran filas de A sin pareja en B y, en los motores modernos, suelen generar el mismo plan (un *anti join*). `NOT EXISTS` se lee mejor y no tiene la trampa de `NOT IN` con nulos. Lo importante en la respuesta es mencionar que `NOT IN` puede fallar si la subconsulta devuelve un NULL.
+:::
 
 ## Resumen
 

@@ -3,8 +3,19 @@ titulo: ¿Qué es SQL? Tu primera consulta
 nivel: Básico
 duracion: 25
 resumen: Bases de datos relacionales, el dataset del curso y SELECT * FROM.
+objetivos: Explicar qué es una base de datos relacional con tus palabras: tablas, filas, columnas y claves | Distinguir una clave primaria de una clave foránea en una tabla real | Escribir y ejecutar tu primera consulta con `SELECT * FROM` | Explorar una tabla desconocida de forma segura con `LIMIT`
+prerrequisitos: fundamentos-datos-y-formatos
+autoevaluacion: ¿Puedes explicar, sin mirar, qué es una fila, una columna y una clave primaria? | ¿Sabes por qué `categoria_id` en `productos` es una clave foránea y a qué tabla apunta? | ¿Puedes escribir de memoria una consulta que muestre las 5 primeras filas de `pedidos`? | ¿Sabes qué significa que SQL sea un lenguaje declarativo? | ¿Sabes qué hacer si aparece el error `no such table`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Tu primer día en Tienda Andina
+Hoy empiezas como **data engineer junior** en **Tienda Andina**, un e-commerce de tecnología que vende en Latinoamérica y España. Martín, el líder del equipo de datos, te da la bienvenida con un pedido sencillo:
+
+> "Antes de tocar nada, quiero que conozcas los datos. Entra a la base, mira qué tablas hay y qué tiene cada una. Mañana me cuentas qué entendiste."
+
+Eso es exactamente lo que vas a aprender en esta lección: qué es una base de datos, cómo está organizada y cómo hacerle tu primera pregunta. A lo largo del curso vas a recibir pedidos de distintas personas de la empresa: Valentina (gerente comercial), Camila (marketing), Diego (finanzas), Sofía (operaciones) y Tomás (personas). Cada lección resuelve uno.
+:::
 ## Antes de empezar: ¿qué es un dato y dónde se guarda?
 
 Cada vez que compras algo en una tienda online se generan **datos**: quién compró, qué producto, cuántas unidades, a qué precio, en qué fecha, con qué medio de pago. Una empresa mediana genera miles de estos registros por día; una grande, millones por hora. Esos datos tienen que guardarse en algún lugar ordenado, para después poder responder preguntas como:
@@ -153,6 +164,20 @@ SELECT * FROM pedidos LIMIT 1;
 
 :::tip Explora sin miedo
 En el [Laboratorio SQL](#/lab/sql) puedes escribir cualquier consulta, sobre cualquier tabla, sin que nada se califique. Ninguna consulta `SELECT` modifica los datos: solo los lee. Equivocarse es parte de aprender, y los mensajes de error te dicen exactamente qué falló.
+:::
+
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En una empresa, lo primero que hace alguien nuevo en datos es justamente esto: **explorar**. Abre las tablas principales con `LIMIT`, lee la documentación (si existe) y pregunta qué significa cada columna rara. Nadie espera que lo sepas todo el primer día.
+- En bases grandes (BigQuery, Snowflake, Databricks), un `SELECT *` sin `LIMIT` sobre una tabla de miles de millones de filas puede tardar minutos y **costar dinero**, porque esas plataformas cobran por datos leídos. Muchas incluso muestran una vista previa gratuita de la tabla: úsala.
+- Los equipos suelen tener un **catálogo de datos** (Unity Catalog, Dataplex, un wiki) con la descripción de cada tabla. Si no existe, los ingenieros de datos son quienes lo construyen.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Qué es una clave primaria y para qué sirve?"
+Respuesta modelo: "Es una columna (o combinación de columnas) cuyo valor identifica de forma **única** cada fila y nunca es nulo, como `cliente_id` en `clientes`. Sirve para referirse a una fila sin ambigüedad y es lo que usan las claves foráneas de otras tablas para relacionarse con ella, como `pedidos.cliente_id`." Si puedes, menciona que la base la usa además para crear un índice y que no debería cambiar con el tiempo.
 :::
 
 ## Resumen

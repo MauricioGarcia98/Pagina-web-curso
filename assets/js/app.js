@@ -22,7 +22,7 @@
   // ---------------------------------------------------------------- progreso
   const KEY = 'academia-datos-v1';
   const Store = {
-    data: { ex: {}, lessons: {}, code: {}, theme: null, visited: {} },
+    data: { ex: {}, lessons: {}, code: {}, theme: null, visited: {}, auto: {} },
     load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d) this.data = Object.assign(this.data, d); } catch (e) { /* sin almacenamiento */ } },
     save() { try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (e) { /* sin almacenamiento */ } },
     exDone(id) { return !!this.data.ex[id]; },
@@ -767,6 +767,16 @@
     </div>`;
   }
 
+  // objetivos de aprendizaje y prerrequisitos al inicio de la lección
+  function lessonIntro(l) {
+    if (!l.objetivos.length && !l.prerrequisitos.length) return '';
+    const pre = l.prerrequisitos.map((id) => LESSONS.find((x) => x.id === id)).filter(Boolean);
+    return `<div class="lesson-intro">
+      ${l.objetivos.length ? `<div><div class="li-title">🎯 Al terminar esta lección vas a poder</div><ul>${l.objetivos.map((o) => `<li>${o}</li>`).join('')}</ul></div>` : ''}
+      ${pre.length ? `<div class="li-pre"><div class="li-title">📚 Antes conviene haber hecho</div><ul>${pre.map((p) => `<li><a href="#/l/${p.id}">${esc(p.titulo)}</a>${Store.lessonDone(p) ? ' <span class="ok-mark">✓</span>' : ''}</li>`).join('')}</ul></div>` : ''}
+    </div>`;
+  }
+
   function viewLesson(l) {
     const m = l.modulo;
     const idx = LESSONS.indexOf(l);
@@ -777,7 +787,9 @@
       <article class="prose" id="lessonBody">
         <h1>${esc(l.titulo)}</h1>
         <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}</div>
+        ${lessonIntro(l)}
         ${l.html}
+        ${l.autoevaluacion.length ? `<section class="autoeval" id="autoEval"><h2>✅ Autoevaluación</h2><p class="muted">Marca solo lo que puedas hacer <b>sin mirar la lección</b>. Si dudas en algo, vuelve a esa parte: esto es lo que se pregunta en una entrevista o se usa el primer día de trabajo.</p>${l.autoevaluacion.map((q, i) => `<label class="auto-item"><input type="checkbox" data-auto="${i}"><span>${q}</span></label>`).join('')}<div class="small muted" id="autoCount"></div></section>` : ''}
       </article>
       <div class="card lesson-done-bar" id="doneBar"></div>
       <nav class="lesson-nav">
@@ -791,6 +803,16 @@
       const k = Number(slot.dataset.ex);
       mountExercise(slot, l.ejercicios[k], k + 1);
     });
+    const ae = $('#autoEval');
+    if (ae) {
+      const marks = (Store.data.auto = Store.data.auto || {})[l.id] = Store.data.auto[l.id] || [];
+      const count = () => { const n = marks.length; $('#autoCount', ae).textContent = n === l.autoevaluacion.length ? '🎉 ¡Dominas todos los objetivos de esta lección!' : `${n} de ${l.autoevaluacion.length}`; };
+      $$('[data-auto]', ae).forEach((cb) => {
+        const i = Number(cb.dataset.auto); cb.checked = marks.includes(i);
+        cb.addEventListener('change', () => { const k = marks.indexOf(i); if (cb.checked && k < 0) marks.push(i); if (!cb.checked && k >= 0) marks.splice(k, 1); Store.saveSoon(); count(); });
+      });
+      count();
+    }
     const bar = $('#doneBar');
     const paint = () => {
       const d = Store.lessonDone(l);

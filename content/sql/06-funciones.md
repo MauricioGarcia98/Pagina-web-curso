@@ -3,8 +3,19 @@ titulo: Funciones de texto, números y conversiones
 nivel: Básico
 duracion: 35
 resumen: UPPER, LOWER, TRIM, SUBSTR, REPLACE, LENGTH, INSTR, ROUND, CAST y la división entera.
+objetivos: Limpiar y transformar textos con `UPPER`, `LOWER`, `TRIM`, `SUBSTR`, `INSTR` y `REPLACE` | Redondear y calcular porcentajes sin caer en la división entera | Convertir tipos con `CAST` y anticipar lo que puede salir mal | Leer y escribir funciones anidadas de adentro hacia afuera
+prerrequisitos: sql-select | sql-null
+autoevaluacion: ¿Puedes extraer el dominio de un email (lo que va después de la @)? | ¿Sabes por qué `SELECT 1 / 4` da 0 en SQLite y cómo obtener 0.25? | ¿Puedes calcular un margen en porcentaje redondeado a 1 decimal? | ¿Puedes normalizar un nombre con espacios y mayúsculas mezcladas? | ¿Sabes por qué poner una función sobre una columna en el `WHERE` puede hacer lenta una consulta?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los emails de los clientes
+Camila, de marketing, quiere saber con qué proveedores de correo trabajan sus clientes:
+
+> "¿Cuántos clientes usan Gmail, Hotmail, Outlook…? Quiero ajustar el diseño del newsletter. Y de paso, en la tabla de carga de clientes los nombres vienen con espacios y mayúsculas mezcladas: ¿se pueden limpiar?"
+
+La información está, pero no en la forma en que la necesitas: hay que **cortar**, **limpiar** y **convertir**. Para eso están las funciones.
+:::
 ## Qué es una función
 
 Una **función** recibe uno o más valores (sus *argumentos*, entre paréntesis), hace algo con ellos y **devuelve un valor**. Ya usaste una: `ROUND(precio, 2)`. Las funciones se pueden usar en cualquier lugar donde iría un valor: en el `SELECT`, en el `WHERE`, en el `ORDER BY`, e incluso unas dentro de otras.
@@ -157,6 +168,24 @@ LIMIT 10;
 
 :::experto Funciones sobre columnas y los índices
 `WHERE LOWER(email) = 'ana@gmail.com'` no puede usar un índice normal sobre `email`, porque el índice guarda los valores originales, no los convertidos. En tablas grandes conviene guardar los datos ya normalizados (en minúsculas) en la capa limpia del pipeline, o crear un índice sobre la expresión. Lo verás en la lección de rendimiento.
+:::
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **División entera**: `cantidad / total` con dos enteros da 0 en vez de 0,25. Multiplica por `1.0` o convierte con `CAST(x AS REAL)` antes de dividir.
+- **`ROUND` en el lugar equivocado**: redondear cada línea y después sumar no da lo mismo que sumar y después redondear. En dinero, redondea **al final**.
+- **`SUBSTR` empieza en 1**, no en 0 como en Python. `SUBSTR('hola', 1, 2)` es `'ho'`.
+- **Funciones distintas en cada motor**: `INSTR` en SQLite es `POSITION` en PostgreSQL y `CHARINDEX` en SQL Server. Revisa la lección de dialectos cuando cambies de base.
+- **`CAST` de texto sucio**: `CAST('12,5' AS REAL)` da `12` en SQLite (se detiene en la coma) sin avisar. Limpia antes con `REPLACE`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- La limpieza de textos (`TRIM`, `LOWER`, quitar acentos, normalizar teléfonos) se hace **una sola vez**, en la capa silver o en el modelo de staging de dbt, y todos leen de ahí. Si cada analista limpia a su manera, cada dashboard muestra un número distinto.
+- Una función sobre la columna en el `WHERE` (`WHERE LOWER(email) = ...`, `WHERE strftime('%Y', fecha) = '2024'`) impide usar índices y el *partition pruning*. En tablas grandes se reescribe para dejar la columna "limpia": `WHERE fecha >= '2024-01-01' AND fecha < '2025-01-01'`.
+- Para dinero, en producción se usa `DECIMAL(12,2)` (exacto) en vez de `REAL` (aproximado).
 :::
 
 ## Resumen

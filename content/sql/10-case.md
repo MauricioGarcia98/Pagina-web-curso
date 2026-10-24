@@ -3,8 +3,19 @@ titulo: CASE WHEN: lógica condicional
 nivel: Intermedio
 duracion: 35
 resumen: Clasificar valores, crear categorías y hacer "conteos condicionales".
+objetivos: Clasificar filas en categorías con `CASE WHEN … THEN … ELSE … END` | Ordenar las condiciones para que cada fila caiga en el grupo correcto | Combinar `CASE` con `GROUP BY` para contar por categoría | Hacer un pivot con agregación condicional (`SUM(CASE WHEN …)`)
+prerrequisitos: sql-group-by
+autoevaluacion: ¿Puedes clasificar los productos en gamas de precio y contar cuántos hay en cada una? | ¿Sabes qué pasa con una fila que no cumple ninguna condición y no hay `ELSE`? | ¿Sabes por qué el orden de los `WHEN` importa? | ¿Puedes contar, por canal, el total de pedidos y cuántos fueron entregados en la misma consulta? | ¿Puedes convertir los valores de una columna en columnas (pivot)?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Las gamas de precio
+Valentina quiere reorganizar el catálogo:
+
+> "Quiero clasificar los productos en económico, medio, premium y lujo según el precio, y saber cuántos hay de cada uno. Y una tabla por canal con el total de pedidos, los entregados y los cancelados, todo en una fila por canal."
+
+Ninguna columna de la tabla dice "premium". Tienes que **crear la categoría** con una regla. Para eso está `CASE`: el "si… entonces…" de SQL.
+:::
 ## Decisiones dentro de una consulta
 
 Muchas preguntas de negocio necesitan **clasificar**: "¿este producto es barato, medio o caro?", "¿este cliente es nuevo o recurrente?", "¿este pedido llegó a tiempo o tarde?". Los datos no traen esas etiquetas: las crea tu consulta con reglas. En SQL, la herramienta para decir **"si pasa esto, entonces aquello; si no, lo otro"** es `CASE`.
@@ -160,6 +171,28 @@ LIMIT 10;
 ```
 
 También dentro de `WHERE` (aunque casi siempre se puede escribir más simple con `AND`/`OR`) y dentro de otras funciones (`ROUND(CASE … END, 2)`).
+
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Condiciones en el orden equivocado**: `CASE WHEN precio < 300 THEN 'medio' WHEN precio < 50 THEN 'económico' ...` nunca devuelve `'económico'`, porque un precio de 20 ya cumplió la primera condición. Escribe las condiciones de la más restrictiva a la más general.
+- **Olvidar el `ELSE`**: las filas que no cumplen ninguna condición quedan en `NULL`. Pon un `ELSE 'sin clasificar'` para verlas.
+- **NULL en la condición**: `WHEN telefono <> '' THEN ...` no se cumple cuando `telefono` es NULL. Trata el nulo primero: `WHEN telefono IS NULL THEN ...`.
+- **Tipos mezclados en los THEN**: un `THEN 1` y otro `THEN 'alto'` dan un resultado de tipo confuso o error según el motor. Todas las ramas deben devolver el mismo tipo.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las reglas de clasificación (gamas de precio, tramos de edad, segmentos de clientes) son reglas de negocio: cambian. En vez de repetir el `CASE` en diez consultas, se guardan en **una** tabla de referencia (un *seed* en dbt) o en un solo modelo.
+- La agregación condicional (`SUM(CASE WHEN estado = 'entregado' THEN 1 ELSE 0 END)`) es una de las técnicas más usadas en reportes, porque calcula varias métricas **en una sola pasada** sobre la tabla. En PostgreSQL y otros motores existe el atajo `COUNT(*) FILTER (WHERE ...)`.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "Calcula la tasa de cancelación por canal en una sola consulta"
+`SELECT canal, ROUND(100.0 * SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) / COUNT(*), 2) AS tasa_cancelacion FROM pedidos GROUP BY canal;` Explica el `100.0` (evita la división entera) y que el `CASE` dentro del `SUM` cuenta solo las filas que cumplen la condición.
+:::
 
 ## Resumen
 

@@ -3,8 +3,19 @@ titulo: ORDER BY, LIMIT y DISTINCT
 nivel: Básico
 duracion: 30
 resumen: Ordenar resultados, paginar y eliminar duplicados.
+objetivos: Ordenar resultados por una o varias columnas, ascendente o descendente | Obtener un "top N" correcto combinando `ORDER BY` y `LIMIT` | Paginar resultados con `LIMIT` y `OFFSET` | Quitar filas repetidas con `DISTINCT` y saber cuándo no es la solución
+prerrequisitos: sql-where
+autoevaluacion: ¿Puedes mostrar los 10 productos más caros, del más caro al más barato? | ¿Sabes por qué `LIMIT` sin `ORDER BY` no devuelve "los primeros"? | ¿Sabes desempatar un ranking agregando una segunda columna al `ORDER BY`? | ¿Puedes mostrar la segunda página de 15 resultados? | ¿Sabes qué hace `DISTINCT` cuando le das dos columnas?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El top 5 de sueldos
+Tomás, del área de personas, prepara la revisión salarial anual:
+
+> "¿Me pasas los 5 empleados que más ganan, con su cargo? Y aparte, la lista de marcas que vendemos, sin repetidos, que la necesito para un formulario."
+
+Las tablas no tienen un orden propio. Para un ranking necesitas **ordenar** y **cortar**, y para una lista de valores únicos, **quitar repetidos**.
+:::
 ## Las tablas no tienen orden
 
 Una idea que sorprende al principio: **las filas de una tabla no tienen un orden garantizado**. Si ejecutas `SELECT * FROM productos` dos veces, normalmente verás el mismo orden, pero es casualidad: depende de cómo están guardadas en disco, de si se borró o actualizó algo, de si el motor trabaja en paralelo (en Spark o BigQuery el orden cambia de una ejecución a otra). Si el orden **importa** para tu pregunta, tienes que pedirlo explícitamente con `ORDER BY`.
@@ -169,6 +180,29 @@ Este orden explica varias cosas que parecían caprichos:
 - En `WHERE` **no** puedes usar un alias del `SELECT`: cuando se ejecuta `WHERE` (paso 2), el `SELECT` (paso 3) todavía no calculó nada.
 - En `ORDER BY` **sí** puedes usar alias: se ejecuta en el paso 5, cuando los alias ya existen.
 - `LIMIT` se aplica **al final**: primero se filtra y se ordena todo, y recién después se cortan las filas. Por eso `ORDER BY … LIMIT 5` da el verdadero top 5.
+
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **`LIMIT` sin `ORDER BY`**: devuelve filas en el orden que la base las encuentre, que puede cambiar entre ejecuciones. Un "top 10" siempre necesita `ORDER BY`.
+- **Empates en el corte**: si el producto 10 y el 11 cuestan lo mismo, `LIMIT 10` elige uno al azar. Agrega una columna de desempate (`ORDER BY precio DESC, producto_id`) para que el resultado sea siempre el mismo.
+- **`DESC` solo afecta a la columna que lo tiene**: `ORDER BY pais, ventas DESC` ordena país de A a Z y ventas de mayor a menor dentro de cada país.
+- **`DISTINCT` para "arreglar" duplicados de un JOIN**: si aparecen filas repetidas, casi siempre el problema es el JOIN. `DISTINCT` lo esconde y puede dar totales incorrectos.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Ordenar es caro en tablas grandes: la base tiene que ver **todas** las filas antes de saber cuál es la primera. Por eso en un pipeline no se ordena "por si acaso": se ordena solo el resultado final que alguien va a mirar.
+- La paginación con `OFFSET` se vuelve lenta en páginas altas (`OFFSET 100000` lee y descarta cien mil filas). Las APIs y aplicaciones usan *keyset pagination*: `WHERE id > ultimo_id_visto ORDER BY id LIMIT 50`.
+- Para rankings por grupo ("el top 3 de cada categoría") no alcanza con `ORDER BY` + `LIMIT`: se usan funciones de ventana, que verás más adelante.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿En qué orden ejecuta SQL las cláusulas de un SELECT?"
+`FROM` → `WHERE` → `GROUP BY` → `HAVING` → `SELECT` → `DISTINCT` → `ORDER BY` → `LIMIT`. Por eso en `ORDER BY` sí puedes usar un alias definido en el `SELECT`, pero en `WHERE` no (todavía no existe cuando se filtra).
+:::
 
 ## Resumen
 

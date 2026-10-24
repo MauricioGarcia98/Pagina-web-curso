@@ -26,11 +26,11 @@ const marked = new Marked({
   }
 });
 
-const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuidado', analogia: '🧠 Analogía', experto: '🚀 Nivel experto', entrevista: '🎯 Pregunta de entrevista' };
+const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuidado', analogia: '🧠 Analogía', experto: '🚀 Nivel experto', entrevista: '🎯 Pregunta de entrevista', escenario: '🏢 El caso', trabajo: '🧑‍💻 En el trabajo real', errores: '🐞 Errores frecuentes' };
 
 function md(text) {
   // bloques :::tip ... ::: (no confundir con :::ejercicio)
-  text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
+  text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
     `<div class="callout callout-${kind}"><div class="callout-title">${escapeHtml(title ? CALLOUTS[kind].split(' ')[0] + ' ' + title : CALLOUTS[kind])}</div>\n\n${body}\n</div>\n`);
   return marked.parse(text);
 }
@@ -93,6 +93,10 @@ function parseExercise(header, body, file, idx, lessonId) {
   return ex;
 }
 
+// listas del front matter en una sola línea, separadas por " | "
+const lista = (v) => (v ? String(v).split(/\s+\|\s+/).map((x) => x.trim()).filter(Boolean) : []);
+const mdInline = (t) => marked.parseInline(t);
+
 function buildLesson(file, moduleId, order) {
   const src = fs.readFileSync(file, 'utf8');
   const { meta, body } = parseFrontMatter(src, file);
@@ -107,7 +111,8 @@ function buildLesson(file, moduleId, order) {
   });
   return {
     id, order, titulo: meta.titulo, nivel: meta.nivel || 'Básico', duracion: Number(meta.duracion || 15),
-    resumen: meta.resumen || '', html: md(content), ejercicios: exercises
+    resumen: meta.resumen || '', html: md(content), ejercicios: exercises,
+    objetivos: lista(meta.objetivos).map((x) => mdInline(x)), prerrequisitos: lista(meta.prerrequisitos), autoevaluacion: lista(meta.autoevaluacion).map((x) => mdInline(x))
   };
 }
 
@@ -121,6 +126,8 @@ function build() {
     nLessons += mod.lecciones.length;
     nEx += mod.lecciones.reduce((s, l) => s + l.ejercicios.length, 0);
   }
+  const ids = new Set(modules.flatMap((m) => m.lecciones.map((l) => l.id)));
+  for (const m of modules) for (const l of m.lecciones) for (const r of l.prerrequisitos) if (!ids.has(r)) throw new Error(`Prerrequisito desconocido "${r}" en la lección ${l.id}`);
   const glosarioFile = path.join(CONTENT, 'glosario.json');
   const glosario = fs.existsSync(glosarioFile) ? JSON.parse(fs.readFileSync(glosarioFile, 'utf8')) : [];
   const course = { generado: new Date().toISOString().slice(0, 10), modulos: modules, glosario };

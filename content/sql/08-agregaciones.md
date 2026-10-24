@@ -3,8 +3,19 @@ titulo: Funciones de agregación
 nivel: Intermedio
 duracion: 30
 resumen: COUNT, SUM, AVG, MIN, MAX y COUNT(DISTINCT): resumir muchas filas en un número.
+objetivos: Resumir una tabla con `COUNT`, `SUM`, `AVG`, `MIN` y `MAX` | Elegir entre `COUNT(*)`, `COUNT(columna)` y `COUNT(DISTINCT columna)` según la pregunta | Calcular importes netos agregando expresiones | Evitar los errores clásicos: promedio de promedios y nulos ignorados
+prerrequisitos: sql-where | sql-null
+autoevaluacion: ¿Puedes calcular el total de unidades vendidas y el importe neto de todas las líneas de pedido? | ¿Sabes qué pregunta responde cada una de las tres versiones de `COUNT`? | ¿Sabes por qué `AVG(columna)` puede no ser el promedio que esperabas cuando hay nulos? | ¿Puedes contar dos cosas distintas en una sola consulta sin `WHERE`? | ¿Sabes por qué no se puede mostrar una columna suelta junto a un `SUM` sin `GROUP BY`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los números del trimestre
+Valentina, la gerente comercial, prepara la reunión de directorio:
+
+> "Necesito tres números para mañana: cuántos clientes distintos nos compraron, cuántas unidades vendimos y cuánto facturamos en neto. Nada de listados, solo los totales."
+
+Hasta ahora tus consultas devolvían filas. Ahora vas a **resumir** muchas filas en un número: es el corazón de cualquier reporte.
+:::
 ## De muchas filas a un número
 
 Hasta ahora, cada fila del resultado correspondía a una fila de la tabla: si había 2.000 clientes, podías ver hasta 2.000 filas. Pero las preguntas de negocio casi nunca son "muéstrame los 12.000 pedidos", sino:
@@ -145,6 +156,29 @@ SELECT nombre, COUNT(*) FROM clientes;   -- ❌ ¿qué "nombre" mostraría al la
 ```
 
 Hay 2.000 nombres y un solo conteo: no hay una respuesta lógica. PostgreSQL, SQL Server, BigQuery y Spark dan **error**. SQLite y MySQL (en ciertos modos) lo permiten y muestran **un nombre cualquiera**, lo que es aún peor porque parece correcto. Si quieres "el conteo **por** algo", necesitas `GROUP BY`: es la próxima lección.
+
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **`COUNT(*)` cuando querías clientes distintos**: `COUNT(*)` sobre `pedidos` cuenta pedidos, no clientes. Para clientes, `COUNT(DISTINCT cliente_id)`.
+- **El promedio de promedios**: promediar el ticket promedio de cada país no da el ticket promedio total, porque cada país tiene distinta cantidad de pedidos. Calcula `SUM(total) / COUNT(*)` sobre todas las filas.
+- **Nulos que desaparecen**: `AVG(descuento)` ignora los nulos. Si un nulo significa "sin descuento" (0), usa `AVG(COALESCE(descuento, 0))`. Si significa "no se sabe", déjalo y aclara la base del cálculo.
+- **`SUM` de una tabla que se multiplicó en un JOIN**: si unes pedidos con su detalle y sumas el total del pedido, lo sumas una vez por línea. Agrega al nivel correcto antes de unir.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las definiciones de las métricas ("venta neta", "cliente activo") son acuerdos con el negocio y se escriben **una sola vez**: en un modelo de dbt, una capa semántica o una vista. Así, el número del dashboard de comercial coincide con el de finanzas.
+- `COUNT(DISTINCT ...)` es caro en tablas enormes, porque hay que recordar cada valor visto. Plataformas como BigQuery y Databricks ofrecen `APPROX_COUNT_DISTINCT`, que es mucho más rápido con un error de alrededor del 1 %: suficiente para un dashboard, no para facturar.
+- Antes de entregar un total, compáralo con una fuente conocida (el sistema contable, el reporte del mes anterior). Un número que "parece razonable" no está necesariamente bien.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Qué diferencia hay entre COUNT(*), COUNT(col) y COUNT(DISTINCT col)?"
+`COUNT(*)` cuenta filas, incluidas las que tienen nulos. `COUNT(col)` cuenta las filas donde `col` **no es nula**. `COUNT(DISTINCT col)` cuenta los **valores distintos** no nulos. Un buen ejemplo para dar: en `clientes`, `COUNT(*)` es el total de clientes, `COUNT(telefono)` los que tienen teléfono y `COUNT(DISTINCT pais)` cuántos países hay.
+:::
 
 ## Resumen
 

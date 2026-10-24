@@ -3,8 +3,19 @@ titulo: GROUP BY y HAVING
 nivel: Intermedio
 duracion: 40
 resumen: Agrupar filas para calcular totales por categoría, y filtrar grupos.
+objetivos: Calcular métricas "por cada…" con `GROUP BY` | Agrupar por varias columnas y por expresiones (año, mes) | Filtrar grupos con `HAVING` y saber cuándo usar `WHERE` | Aplicar la regla de oro: toda columna del `SELECT` está en el `GROUP BY` o dentro de una agregación
+prerrequisitos: sql-agregaciones
+autoevaluacion: ¿Puedes contar los pedidos de cada estado? | ¿Puedes contar los pedidos por año y canal? | ¿Sabes por qué `WHERE COUNT(*) >= 10` da error y cómo se escribe bien? | ¿Puedes explicar el orden lógico FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY? | ¿Sabes por qué un grupo sin filas no aparece en el resultado?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Las ventas por canal
+Valentina vuelve con otra pregunta, la más común de todas:
+
+> "Los totales estuvieron bien, pero en el directorio me preguntaron: ¿y por canal? ¿Y por año? ¿Y qué clientes nos compran más de 10 veces?"
+
+Un total sirve poco. Lo que el negocio quiere casi siempre es **un total por cada algo**: por canal, por país, por mes. Eso es `GROUP BY`, y vas a usarlo en casi todas tus consultas.
+:::
 ## De "un total" a "un total por cada…"
 
 La lección anterior te dio **un** número para toda la tabla: 2.000 clientes. Pero el negocio pregunta casi siempre **"por"**: clientes **por país**, ventas **por mes**, pedidos **por canal**, ticket promedio **por segmento**. Eso es `GROUP BY`: divide las filas en **grupos** según el valor de una o más columnas y calcula la agregación **dentro de cada grupo**.
@@ -95,7 +106,7 @@ ORDER BY anio;
 Si agruparas por `fecha_pedido` directamente obtendrías una fila por **día** (más de mil filas). Al transformar la fecha a año, todos los días de 2022 caen en el mismo grupo.
 
 :::nota ¿Puedo usar el alias en el GROUP BY?
-SQLite, PostgreSQL, MySQL, Spark y BigQuery aceptan `GROUP BY anio` (el alias del `SELECT`). SQL Server y Oracle no: allí debes repetir la expresión (`GROUP BY strftime('%Y', fecha_pedido)`). También existe `GROUP BY 1` (la primera columna del `SELECT`), muy usado en análisis rápido.
+SQLite, PostgreSQL, MySQL, Spark y BigQuery aceptan `GROUP BY anio` (el alias del `SELECT`). SQL Server y Oracle (antes de la versión 23ai) no: allí debes repetir la expresión (`GROUP BY strftime('%Y', fecha_pedido)`). También existe `GROUP BY 1` (la primera columna del `SELECT`), muy usado en análisis rápido.
 :::
 
 ## HAVING: filtrar grupos
@@ -169,6 +180,20 @@ Si agrupas por `cliente_id, fecha_pedido` cuando querías "por cliente", obtiene
 
 :::cuidado Grupos que no aparecen
 `GROUP BY` solo crea grupos para los valores que **existen** en los datos. Si en marzo no hubo ventas, marzo no aparece (no aparece con 0). Para mostrar los meses vacíos necesitas un calendario y un `LEFT JOIN` (lecciones de JOIN y CTE recursivas).
+:::
+
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Los dashboards de negocio son, en el fondo, `GROUP BY` sobre una tabla de hechos: ventas por día, por país, por canal. En los pipelines, esas agregaciones se **precalculan** en la capa gold para que el dashboard no tenga que recalcular millones de filas cada vez que alguien lo abre.
+- Agrupar por una columna con muchísimos valores distintos (el id de usuario en una tabla de mil millones de eventos) genera un *shuffle* enorme en Spark o BigQuery. Antes de agrupar, pregúntate si realmente necesitas ese nivel de detalle.
+- Cuando el resultado es un reporte, los grupos sin datos (un día sin ventas) desaparecen. Si el negocio necesita ver el cero, se parte de una tabla calendario o de una lista de todos los grupos y se hace un `LEFT JOIN`.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Se puede usar un alias del SELECT en el GROUP BY o en el HAVING?"
+Según el estándar, no, porque `GROUP BY` y `HAVING` se evalúan antes que el `SELECT`. En la práctica, SQLite, PostgreSQL (en GROUP BY), MySQL, BigQuery y Spark lo permiten por comodidad; SQL Server y Oracle (antes de la versión 23ai) no. Lo seguro y portable es repetir la expresión o calcularla antes en una CTE.
 :::
 
 ## Resumen
