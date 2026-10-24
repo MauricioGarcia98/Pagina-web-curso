@@ -63,3 +63,25 @@ El problema de negocio concreto que motiva la lección (quién pide qué y por q
 - [ ] `node tools/validate.mjs <módulo>` pasa sin errores (ejemplos y ejercicios).
 - [ ] Los números y salidas que muestra el texto coinciden con los datos reales.
 - [ ] Los comandos de terminal se probaron en el simulador.
+
+## Diagramas
+
+Los diagramas se escriben dentro de la lección en un bloque `diagrama`. El sitio los dibuja con trazo a mano (rough.js, la librería de Excalidraw), con íconos, y se pueden ampliar a pantalla completa.
+
+```text
+```diagrama
+titulo: Texto que va debajo del diagrama
+nodo app: App y web | icono=movil | col=0 | fila=0 | sub=texto chico
+nodo db: Base de datos | icono=base | col=1 | fila=0 | forma=cilindro | color=azul
+grupo nube: AWS | nodos=db | color=naranja
+flecha app -> db: guarda el pedido | estilo=punteada
+```
+```
+
+- **Hasta 4 columnas** (`col` 0 a 3). Si el recorrido es más largo, sigue en la fila de abajo.
+- `forma`: `caja` (por defecto), `cilindro`, `nube`, `nota`.
+- `color`: azul, verde, naranja, rojo, violeta, amarillo, gris, cian, rosa.
+- Flechas: `a -> b`, `a <-> b` (doble) o `a -- b` (sin punta); `estilo=punteada`.
+- Saltos de línea en textos: `\n`.
+- Íconos disponibles: `base`, `bucket`, `archivo`, `archivos`, `csv`, `json`, `nube`, `servidor`, `usuario`, `equipo`, `movil`, `web`, `api`, `engranaje`, `spark`, `reloj`, `orquestador`, `transformar`, `grafico`, `dashboard`, `stream`, `lambda`, `candado`, `llave`, `tabla`, `notebook`, `codigo`, `git`, `cubo`, `capas`, `almacen`, `alerta`, `correo`, `lupa`, `ml`, `dinero`, `carrito`, `camion`, `avion`, `hospital`, `banco`, `musica`, `auto`, `telefono`, `energia`, `hotel`, `escudo`, `comida`, `check`, `x`, `docker`, `terraform`, `kafka`.
+- Si un nodo no tiene `col`/`fila`, se ubica solo según las flechas.

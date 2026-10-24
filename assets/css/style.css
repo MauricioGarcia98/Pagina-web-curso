@@ -481,3 +481,24 @@ body.dock-open .main { padding-bottom: 400px; }
   .term-btn { padding: 4px 8px; }
   .term { font-size: 12.5px; }
 }
+
+/* ========================================================== diagramas (estilo Excalidraw) */
+figure.diagrama { margin: 26px 0; }
+.dg-marco { position: relative; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 8px; overflow-x: auto; color: var(--ink); }
+.dg-svg { display: block; width: 100%; height: auto; margin: 0 auto; }
+.dg-grupo path[fill]:not([fill="none"]) { fill-opacity: .22; }
+.dg-fondo-etiqueta { fill: var(--surface); opacity: .92; }
+.dg-sub { opacity: .8; }
+.dg-svg text { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.dg-relleno { opacity: .75; }
+:root[data-theme="dark"] .dg-relleno { opacity: .3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dg-relleno { opacity: .3; } }
+figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--ink-2); margin-top: 8px; }
+.dg-zoom { position: absolute; top: 8px; right: 8px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 17px; }
+.dg-zoom:hover { color: var(--brand); border-color: var(--brand); }
+.dg-capa { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.dg-capa-in { position: relative; background: var(--surface); color: var(--ink); border-radius: 16px; padding: 18px; width: min(1400px, 100%); max-height: 100%; overflow: auto; }
+.dg-capa-in svg { width: 100%; height: auto; }
+.dg-capa-tit { font-weight: 700; margin: 0 40px 8px 4px; }
+.dg-cerrar { position: absolute; top: 10px; right: 10px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; }
+

@@ -28,7 +28,51 @@ const marked = new Marked({
 
 const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuidado', analogia: '🧠 Analogía', experto: '🚀 Nivel experto', entrevista: '🎯 Pregunta de entrevista', escenario: '🏢 El caso', trabajo: '🧑‍💻 En el trabajo real', errores: '🐞 Errores frecuentes' };
 
-function md(text) {
+// ---------------------------------------------------------------- diagramas
+// ```diagrama
+// titulo: Pie del diagrama
+// nodo id: Texto (\n = salto) | icono=base | col=0 | fila=1 | color=azul | sub=texto chico | forma=caja|cilindro|nube|nota
+// grupo id: Etiqueta | nodos=a,b | color=naranja
+// flecha a -> b: etiqueta | estilo=punteada | color=rojo | doble
+// ```
+const DG_COLORES = ['azul', 'verde', 'naranja', 'rojo', 'violeta', 'amarillo', 'gris', 'cian', 'rosa'];
+function parseDiagrama(src, file) {
+  const spec = { titulo: '', direccion: 'derecha', nodos: [], grupos: [], flechas: [] };
+  const opts = (parts) => Object.fromEntries(parts.map((x) => x.trim()).filter(Boolean).map((x) => { const i = x.indexOf('='); return i < 0 ? [x, true] : [x.slice(0, i).trim(), x.slice(i + 1).trim()]; }));
+  for (const raw of src.split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    let m;
+    if ((m = line.match(/^(titulo|direccion|ancho):\s*(.*)$/))) { spec[m[1]] = m[2]; continue; }
+    if ((m = line.match(/^nodo\s+([\w-]+)\s*:\s*(.*)$/))) {
+      const [label, ...rest] = m[2].split('|'); const o = opts(rest);
+      if (o.color && !DG_COLORES.includes(o.color)) throw new Error(`Diagrama en ${file}: color desconocido "${o.color}"`);
+      spec.nodos.push({ id: m[1], label: label.trim().replace(/\\n/g, '\n'), ...o, col: o.col !== undefined ? Number(o.col) : undefined, fila: o.fila !== undefined ? Number(o.fila) : undefined });
+      continue;
+    }
+    if ((m = line.match(/^grupo\s+([\w-]+)\s*:\s*(.*)$/))) {
+      const [label, ...rest] = m[2].split('|'); const o = opts(rest);
+      spec.grupos.push({ id: m[1], label: label.trim(), ...o, nodos: String(o.nodos || '').split(',').map((x) => x.trim()).filter(Boolean) });
+      continue;
+    }
+    if ((m = line.match(/^flecha\s+([\w-]+)\s*(->|<->|--)\s*([\w-]+)\s*(?::\s*(.*))?$/))) {
+      const [label, ...rest] = (m[4] || '').split('|'); const o = opts(rest);
+      spec.flechas.push({ de: m[1], a: m[3], label: (label || '').trim().replace(/\\n/g, '\n'), doble: m[2] === '<->' || !!o.doble, sinpunta: m[2] === '--', ...o });
+      continue;
+    }
+    throw new Error(`Diagrama en ${file}: no entiendo la línea "${line}"`);
+  }
+  const ids = new Set(spec.nodos.map((n) => n.id));
+  for (const f of spec.flechas) for (const k of [f.de, f.a]) if (!ids.has(k)) throw new Error(`Diagrama en ${file}: la flecha usa el nodo "${k}", que no existe`);
+  for (const g of spec.grupos) for (const k of g.nodos) if (!ids.has(k)) throw new Error(`Diagrama en ${file}: el grupo "${g.id}" usa el nodo "${k}", que no existe`);
+  return spec;
+}
+
+function md(text, file = '') {
+  text = text.replace(/^```diagrama[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
+    const spec = parseDiagrama(body, file);
+    return `<figure class="diagrama" data-spec="${escapeHtml(JSON.stringify(spec))}">${spec.titulo ? `<figcaption>${escapeHtml(spec.titulo)}</figcaption>` : ''}</figure>\n`;
+  });
   // bloques :::tip ... ::: (no confundir con :::ejercicio)
   text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
     `<div class="callout callout-${kind}"><div class="callout-title">${escapeHtml(title ? CALLOUTS[kind].split(' ')[0] + ' ' + title : CALLOUTS[kind])}</div>\n\n${body}\n</div>\n`);
@@ -111,7 +155,7 @@ function buildLesson(file, moduleId, order) {
   });
   return {
     id, order, titulo: meta.titulo, nivel: meta.nivel || 'Básico', duracion: Number(meta.duracion || 15),
-    resumen: meta.resumen || '', html: md(content), ejercicios: exercises,
+    resumen: meta.resumen || '', html: md(content, file), ejercicios: exercises,
     objetivos: lista(meta.objetivos).map((x) => mdInline(x)), prerrequisitos: lista(meta.prerrequisitos), autoevaluacion: lista(meta.autoevaluacion).map((x) => mdInline(x))
   };
 }

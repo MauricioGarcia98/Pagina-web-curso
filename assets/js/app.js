@@ -799,6 +799,7 @@
     </div>`;
     const body = $('#lessonBody');
     enhanceCode(body);
+    if (window.Diagramas) window.Diagramas.dibujar(body);
     $$('.exercise-slot', body).forEach((slot) => {
       const k = Number(slot.dataset.ex);
       mountExercise(slot, l.ejercicios[k], k + 1);

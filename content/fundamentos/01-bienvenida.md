@@ -43,6 +43,24 @@ Para que se vea concreto, sigamos una sola compra en **Tienda Andina**, la empre
 4. **3:40.** Unos modelos de **dbt** cruzan pedidos con clientes y productos, y calculan las ventas por día, país y categoría, con tests que verifican que no haya totales negativos. Es la capa *gold*.
 5. **8:00.** La gerente comercial abre su tablero y ve que ayer se vendieron 1.284 pedidos en Chile. No sabe que todo eso pasó, y **así tiene que ser**: si el pipeline funciona, nadie lo nota.
 
+```diagrama
+titulo: El recorrido de una compra en Tienda Andina, de la app al tablero de la gerente
+nodo app: App y web | icono=movil | col=0 | fila=0 | sub=10:22 Lucía compra
+nodo oltp: Base de la app | icono=base | col=1 | fila=0 | forma=cilindro | sub=OLTP · PostgreSQL
+nodo orq: Airflow | icono=orquestador | col=2 | fila=0 | color=violeta | sub=arranca a las 3:00
+nodo bronze: Bronze | icono=bucket | col=0 | fila=1 | color=naranja | sub=datos crudos
+nodo silver: Silver | icono=spark | col=1 | fila=1 | color=gris | sub=limpios con Spark
+nodo gold: Gold | icono=transformar | col=2 | fila=1 | color=amarillo | sub=métricas con dbt
+nodo bi: Tablero | icono=dashboard | col=3 | fila=1 | color=verde | sub=8:00 la gerente
+grupo lake: Data lake en la nube | nodos=bronze,silver,gold | color=azul
+flecha app -> oltp: guarda
+flecha oltp -> bronze: copia nocturna
+flecha bronze -> silver: limpia
+flecha silver -> gold: calcula
+flecha gold -> bi: consulta
+flecha orq -> silver: orquesta | estilo=punteada | color=violeta
+```
+
 Un ingeniero o ingeniera de datos diseña, construye y mantiene ese recorrido. Un día normal puede incluir conectar una fuente nueva (la API de un proveedor), escribir una transformación en SQL o PySpark, revisar por qué el job de anoche falló, optimizar una consulta que tardaba una hora o agregar un test de calidad.
 
 ### ETL y ELT
