@@ -3,8 +3,16 @@ titulo: Bienvenida: qué es la ingeniería de datos
 nivel: Básico
 duracion: 25
 resumen: Qué hace un ingeniero de datos, qué vas a aprender y cómo usar este sitio.
+objetivos: Explicar con tus palabras qué hace un ingeniero o ingeniera de datos y en qué se diferencia de un analista o un científico de datos | Describir las etapas de un pipeline (extraer, transformar, cargar) con un ejemplo | Ubicar cada herramienta del curso en el recorrido de un dato | Usar el sitio: ejecutar ejemplos, comprobar ejercicios y abrir la terminal
+autoevaluacion: ¿Puedes contarle a alguien que no sabe nada qué hace un data engineer, usando el ejemplo de una compra? | ¿Sabes qué diferencia hay entre ETL y ELT y cuál es más común hoy? | ¿Sabes cuándo conviene batch y cuándo streaming? | ¿Puedes nombrar para qué sirve SQL, Spark, dbt y Airflow en una frase cada uno? | ¿Ejecutaste el ejemplo de SQL de esta lección y cambiaste el número del LIMIT?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Tu nuevo trabajo
+Imagina que acabas de conseguir tu primer trabajo como **data engineer junior** en **Tienda Andina**, un e-commerce de tecnología que vende en Latinoamérica y España. Tiene una app, una web, tiendas físicas y un call center, y cada día genera miles de pedidos, pagos y clics.
+
+En este curso vas a vivir ese trabajo: cada lección empieza con un pedido real de alguien de la empresa (la gerente comercial, finanzas, marketing, operaciones o tu líder técnico) y termina con lo que necesitas saber para resolverlo como lo haría un profesional. Esta primera lección es tu inducción: qué hace el equipo de datos y con qué herramientas.
+:::
 ¡Hola! Si llegaste hasta aquí sin saber nada de programación ni de datos, **este es exactamente tu lugar**. Vamos a ir paso a paso, sin dar nada por sabido. Al terminar el curso vas a poder hacer el trabajo diario de un ingeniero o ingeniera de datos: consultar y transformar datos con SQL y Python, procesar volúmenes enormes con Spark, ordenar las transformaciones con dbt, automatizarlas con Airflow y desplegar todo en Azure, AWS, Google Cloud o Databricks.
 
 ## ¿Qué es un dato?
@@ -124,6 +132,13 @@ LIMIT 5;
 ```
 
 Todavía no hace falta entenderlo, pero intenta adivinar: `SELECT` elige qué columnas mostrar, `FROM` dice de qué tabla y `LIMIT 5` pide solo 5 filas. Cambia el `5` por un `10` y vuelve a probar. En unas lecciones vas a poder escribir esto (y cosas mucho más potentes) tú solo.
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las ofertas de trabajo de data engineer piden casi siempre lo mismo: **SQL** (siempre), **Python**, una herramienta de procesamiento (**Spark**), una de orquestación (**Airflow**), una de transformación (**dbt**), una **nube** y **Git**. Es exactamente el recorrido de este curso.
+- Un junior no necesita saberlo todo: necesita SQL muy sólido, Python básico, Git y saber aprender rápido. Lo demás se aprende en el trabajo, pero llegar sabiéndolo te pone muy por delante.
+- La habilidad que más se valora y menos se enseña: **entender el negocio**. Saber qué es una venta neta, por qué importa la tasa de cancelación o qué espera finanzas de un cierre de mes. Por eso cada lección parte de un pedido del negocio.
+:::
 
 ## Ejercicios
 

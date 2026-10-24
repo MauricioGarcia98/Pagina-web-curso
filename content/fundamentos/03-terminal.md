@@ -3,8 +3,19 @@ titulo: La terminal sin miedo
 nivel: Básico
 duracion: 40
 resumen: Qué es la línea de comandos y los 15 comandos que vas a usar siempre.
+objetivos: Moverte entre carpetas usando rutas absolutas y relativas | Crear, copiar, mover y borrar archivos y carpetas desde la terminal | Inspeccionar un archivo de datos con `head`, `wc`, `grep`, `cut`, `sort` y `uniq` | Encadenar comandos con tuberías y guardar resultados con redirecciones | Usar variables de entorno y guardar la salida de un comando en una variable
+prerrequisitos: fundamentos-datos-y-formatos
+autoevaluacion: ¿Sabes en qué carpeta estás y cómo volver a tu carpeta personal? | ¿Puedes contar las filas de un CSV sin contar el encabezado? | ¿Puedes contar los pedidos por canal solo con comandos de terminal? | ¿Puedes buscar los errores de un log y ver en qué línea están? | ¿Sabes la diferencia entre `>` y `>>`? | ¿Sabes por qué `rm -rf` es peligroso?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El pipeline falló anoche
+Son las 8:30 de la mañana y Martín, tu líder, te escribe:
+
+> "El dashboard de ventas no se actualizó. El log del pipeline está en `logs/pipeline.log` del servidor. ¿Puedes ver qué falló? Y de paso fíjate si el archivo de ventas de diciembre llegó completo."
+
+El servidor no tiene ventanas ni mouse: solo una terminal. En esta lección aprendes a moverte, mirar archivos y encontrar lo que buscas escribiendo comandos, que es lo que hace un data engineer cuando algo se rompe.
+:::
 La **terminal** (o consola, o línea de comandos) es una ventana donde le das órdenes a la computadora escribiendo, en vez de hacer clics. Parece antigua, pero los ingenieros de datos la usan todo el día: para Git, para las CLIs de Azure, AWS, Google Cloud y Databricks, para dbt, para Airflow…
 
 ¿Por qué escribir si se puede hacer clic? Por tres razones:
@@ -214,6 +225,27 @@ echo "El archivo tiene $TOTAL líneas"
 ## Practica
 
 Cada ejercicio trae su propia **terminal**: escribe el comando y presiona Enter. Se ejecuta de verdad sobre una máquina simulada (la misma del **Laboratorio → Terminal**), que ya tiene archivos en las carpetas `datos/` y `logs/`. Puedes explorar con `ls` antes de responder.
+
+<!-- estandar:errores -->
+:::errores
+- **"No existe el archivo o el directorio"**: casi siempre estás en otra carpeta. Ejecuta `pwd` y `ls` para ver dónde estás, o usa la ruta completa.
+- **Espacios en los nombres**: `cat mis ventas.csv` busca dos archivos (`mis` y `ventas.csv`). Usa comillas: `cat "mis ventas.csv"`, o mejor, no uses espacios en nombres de archivos.
+- **`>` en lugar de `>>`**: `>` **reemplaza** el contenido del archivo. Si querías agregar líneas al final, perdiste lo que había.
+- **`uniq -c` sin `sort` antes**: `uniq` solo junta repetidos que están **seguidos**. Sin ordenar, cuenta mal.
+- **Contar el encabezado**: `wc -l` en un CSV incluye la línea de títulos. Resta 1 o usa `tail -n +2`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Cuando un pipeline falla, lo primero es **leer el log**: `tail -n 50` para ver el final, `grep -n ERROR` para encontrar el error y su línea. Es una habilidad que se usa todas las semanas.
+- Antes de procesar un archivo grande, se inspecciona con `head`, `wc -l` y `cut | sort | uniq -c`. En segundos sabes si el archivo llegó completo y si tiene valores raros, sin cargarlo en ninguna herramienta.
+- Los comandos que repites se guardan en un **script** (`.sh`) dentro del repositorio, para que cualquiera del equipo los pueda ejecutar igual.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Cómo verías las 10 IPs que más aparecen en un archivo de log enorme?"
+Con una tubería: `cut -d' ' -f1 acceso.log | sort | uniq -c | sort -rn | head -10`. Explica cada paso: extraer la columna, ordenar para juntar los iguales, contar, ordenar por cantidad de mayor a menor y quedarse con 10. Mencionar que funciona con archivos de gigabytes sin cargarlos en memoria suma puntos.
+:::
 
 :::ejercicio cli
 ¿Con qué comando ves **en qué carpeta estás**?

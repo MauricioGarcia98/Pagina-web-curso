@@ -3,8 +3,19 @@ titulo: Datos, tablas y formatos de archivo
 nivel: Básico
 duracion: 35
 resumen: Filas y columnas, tipos de datos, CSV, JSON, Parquet, bases de datos OLTP y OLAP.
+objetivos: Identificar filas, columnas, claves primarias y claves foráneas en una tabla | Elegir el tipo de dato adecuado para cada columna y explicar por qué importa | Comparar CSV, JSON, Parquet y Delta y decidir cuál usar en cada caso | Distinguir una base transaccional (OLTP) de un warehouse (OLAP), un data lake y un lakehouse
+prerrequisitos: fundamentos-bienvenida
+autoevaluacion: ¿Puedes señalar la clave primaria y una clave foránea en las tablas `clientes` y `pedidos`? | ¿Sabes por qué el dinero se guarda como `DECIMAL` y no como `REAL`? | ¿Sabes por qué `NULL` no es lo mismo que 0 o que un texto vacío? | ¿Puedes nombrar tres problemas de los archivos CSV? | ¿Puedes explicar por qué Parquet es más rápido que CSV para analizar? | ¿Sabes por qué no se analiza directamente en la base de datos de la app?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El archivo que llegó por mail
+En tu primera semana, Diego, de finanzas, te manda un archivo:
+
+> "Te paso el export de ventas del sistema viejo, `ventas.csv`. Cuando lo abro en Excel, los montos salen raros y algunas fechas no se entienden. ¿Lo podemos cargar al warehouse?"
+
+Antes de cargar nada, necesitas entender cómo están organizados los datos: tablas, tipos y formatos. Esta lección te da ese vocabulario, y vas a ver por qué "un CSV" puede esconder muchos problemas.
+:::
 Antes de aprender a consultar datos, conviene entender **cómo están guardados**: en tablas, con tipos, en archivos de distintos formatos y en distintos sistemas. Esta lección te da ese vocabulario, que vas a usar todos los días.
 
 ## Todo empieza con una tabla
@@ -165,6 +176,21 @@ Imagina una biblioteca. En CSV cada libro es un cliente con todos sus datos; par
 ## Nuestros datos: 8 empresas
 
 En todo el curso usamos empresas ficticias con datos realistas. La principal es **Tienda Andina**, un e-commerce con 12 tablas: clientes, productos, categorías, pedidos, detalle de pedidos, pagos, empleados, departamentos, eventos web y más. Además hay **7 empresas más** para los casos de negocio: un banco, una plataforma de streaming, una app de viajes, una clínica, un SaaS, una aerolínea y una empresa de logística. En total son 38 tablas con más de 200.000 filas. Puedes explorarlas en [Los datos](#/datos).
+
+<!-- estandar:errores -->
+:::errores
+- **Guardar números como texto**: un código de producto `0012` guardado como número se convierte en `12`, y un monto `1.234,50` guardado como texto no se puede sumar. Decide el tipo de cada columna a propósito.
+- **Fechas en formato local**: `03/04/2024` es 3 de abril en Latinoamérica y 4 de marzo en EE. UU. Convierte todo a ISO (`2024-04-03`) al cargar.
+- **Abrir un CSV con la codificación equivocada**: aparecen caracteres como `PerÃº`. Usa UTF-8 siempre que puedas, y pregunta con qué codificación se generó el archivo.
+- **Confundir vacío con nulo**: un campo `""` y un campo ausente no significan lo mismo. Al cargar, decide cómo tratar cada caso.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En las empresas, los datos que llegan de afuera (exports, archivos de proveedores, APIs) aterrizan primero **tal cual** en una zona de "landing" o "bronze". Se limpian y tipan después, en un paso separado. Así siempre puedes volver al original.
+- La conversión de CSV o JSON a Parquet/Delta es uno de los primeros pasos de casi todos los pipelines: reduce el tamaño, guarda los tipos y acelera todo lo que viene después.
+- Cuando recibas un archivo nuevo, antes de procesarlo, revisa: cuántas filas tiene, qué columnas, qué separador, qué codificación, cuántos nulos y si hay duplicados. Lo vas a practicar en la terminal, en Python y en SQL.
+:::
 
 ## Ejercicios
 
