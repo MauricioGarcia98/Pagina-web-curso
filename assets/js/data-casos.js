@@ -666,6 +666,9 @@
         raw.push([t, c[0], rest[0], rep ? rep[0] : null, c[1], aceptado, retirado, entregado, subtotal, envio, cupon, propina, estado, calif]);
       }
       raw.sort((a, b) => a[0] - b[0]);
+      // incidente real: del 14 al 16 de agosto una versión de la app registró mal el reloj del restaurante
+      // y parte de los pedidos quedó con "aceptado" DESPUÉS de "retirado" (lo detecta el control de calidad)
+      for (const r of raw) if (r[12] === 'entregado' && r[0] >= U(2024, 8, 14) && r[0] < U(2024, 8, 17) && rnd() < 0.3) r[5] = r[6] + int(1, 4) * MIN;
       const tf = (x) => (x ? ft(new Date(x)) : null);
       T.delivery_pedidos = { columns: ['pedido_id', 'cliente_id', 'restaurante_id', 'repartidor_id', 'ciudad', 'creado', 'aceptado', 'retirado', 'entregado', 'subtotal', 'costo_envio', 'descuento_cupon', 'propina', 'estado', 'calificacion'],
         rows: raw.map((r, i) => [i + 1, r[1], r[2], r[3], r[4], tf(r[0]), tf(r[5]), tf(r[6]), tf(r[7]), r[8], r[9], r[10], r[11], r[12], r[13]]) };

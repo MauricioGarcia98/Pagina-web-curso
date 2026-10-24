@@ -31,10 +31,10 @@
     "titulo": "Casos de negocio con SQL",
     "icono": "💼",
     "color": "#7c3aed",
-    "descripcion": "Ocho empresas reales-simuladas (banco, streaming, movilidad, salud, SaaS, aerolínea, logística y e-commerce) para entrenar la lógica: pasar de una pregunta de negocio a la consulta correcta.",
+    "descripcion": "Trece empresas reales-simuladas (banco, streaming, movilidad, salud, SaaS, aerolínea, logística, e-commerce, telecomunicaciones, seguros, hotelería, energía y delivery) para entrenar la lógica: pasar de una pregunta de negocio a la consulta correcta.",
     "objetivos": [
       "Aplicar un método para traducir preguntas de negocio a SQL",
-      "Calcular KPIs reales: saldo, fraude, mora, churn, MRR, ocupación, puntualidad, stock",
+      "Calcular KPIs reales: fraude, mora, churn, MRR, ARPU, siniestralidad, RevPAR, SAIDI, take rate, cohortes",
       "Evitar trampas lógicas: denominadores, doble conteo, promedios de promedios",
       "Resolver problemas de entrevista con datos de distintos rubros"
     ]
@@ -225,12 +225,12 @@
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",
     "color": "#16a34a",
-    "descripcion": "Une todo en un proyecto de punta a punta y prepárate para entrevistas técnicas: arquitectura, retos de SQL y PySpark, diseño de sistemas y plan de carrera.",
+    "descripcion": "Une todo en proyectos de punta a punta y prepárate para entrevistas: arquitectura, el proyecto completo de Rápido (relevamiento, capas en SQL, Python, PySpark, dbt, Airflow con compuerta de calidad, Terraform y CI), retos de SQL y PySpark, y plan de carrera.",
     "objetivos": [
-      "Diseñar una arquitectura de datos completa en Azure + Databricks",
-      "Resolver un caso de negocio con SQL y PySpark",
-      "Responder preguntas de diseño de sistemas de datos",
-      "Armar un portafolio y un plan para seguir creciendo"
+      "Diseñar una arquitectura de datos completa",
+      "Llevar un proyecto real del pedido de negocio a producción: modelo, pipeline, calidad, infraestructura y CI",
+      "Resolver casos de negocio con SQL y PySpark",
+      "Presentar un proyecto y responder preguntas de diseño en entrevistas"
     ]
   }
 ]

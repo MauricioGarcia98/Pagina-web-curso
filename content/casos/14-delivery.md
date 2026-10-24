@@ -57,6 +57,7 @@ delivery_pedidos      (pedido_id, cliente_id, restaurante_id, repartidor_id, ciu
 - **Minutos entre dos momentos**: `(julianday(b) - julianday(a)) * 1440` (un día tiene 1440 minutos).
 - `estado`: `entregado`, `cancelado_cliente`, `cancelado_restaurante`, `sin_repartidor` (nadie lo tomó).
 - `comision_pct` es del restaurante: la comisión de un pedido es `subtotal * comision_pct / 100`.
+- Ojo: del 14 al 16 de agosto una versión de la app registró mal algunos horarios (hay pedidos con `aceptado` después de `retirado`). En el proyecto final escribirás el control que lo detecta.
 
 ## Un ejemplo resuelto: ¿dónde se va el tiempo?
 
@@ -75,11 +76,11 @@ ORDER BY total_min DESC;
 
 | ciudad | entregados | aceptacion_min | preparacion_min | viaje_min | total_min |
 |---|---|---|---|---|---|
-| Medellín | 1782 | 3.5 | 20.3 | 18.8 | 42.5 |
-| Ciudad de México | 4235 | 3.5 | 20.4 | 18.4 | 42.3 |
-| Bogotá | 3138 | 3.5 | 20.2 | 18.6 | 42.3 |
-| Lima | 2642 | 3.5 | 20 | 18.5 | 41.9 |
-| Buenos Aires | 2608 | 3.5 | 19.9 | 18.2 | 41.5 |
+| Medellín | 1782 | 3.5 | 20.2 | 18.8 | 42.5 |
+| Ciudad de México | 4235 | 3.5 | 20.3 | 18.4 | 42.3 |
+| Bogotá | 3138 | 3.6 | 20.1 | 18.6 | 42.3 |
+| Lima | 2642 | 3.6 | 19.9 | 18.5 | 41.9 |
+| Buenos Aires | 2608 | 3.6 | 19.8 | 18.2 | 41.5 |
 
 **Lectura:** el total ronda los 42 minutos en todas las ciudades, así que la meta de 40 no se logra mirando una ciudad en particular. La **preparación** (unos 20 minutos) es la etapa más larga, un poco más que el viaje: hay que trabajar con los restaurantes, no solo con los repartidores. El ejercicio de restaurantes lentos muestra con quién empezar.
 
