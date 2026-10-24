@@ -1046,28 +1046,67 @@
   }
 
   function viewGlosario(filter = '') {
-    const tags = [...new Set(C.glosario.map((g) => g.area))];
+    const G = C.glosario;
+    const areas = [...new Set(G.map((g) => g.area))];
+    const norm = (x) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const letra = (t) => { const c = norm(t)[0].toUpperCase(); return /[A-Z]/.test(c) ? c : '#'; };
+    const exacto = G.find((g) => norm(g.termino) === norm(filter) || (g.alias || []).some((a) => norm(a) === norm(filter)));
     main.innerHTML = `<div class="container">
       <h1 style="margin-bottom:4px">📖 Glosario</h1>
-      <p class="muted">${C.glosario.length} términos explicados en lenguaje simple.</p>
-      <input id="gq" type="search" placeholder="Filtrar términos…" style="width:100%;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:0 14px;font:inherit">
-      <div class="gloss-filter" id="gtags"><button class="chip active" data-t="">Todos</button>${tags.map((t) => `<button class="chip" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-      <div class="card" id="glist"></div>
+      <p class="muted" style="margin-top:0">${G.length} términos de ingeniería de datos explicados paso a paso: primero <b>como si tuvieras 8 años</b>, con una comparación de la vida diaria, y después la definición precisa, un ejemplo, para qué sirve y los errores típicos. Toca un término para abrirlo.</p>
+      <input id="gq" type="search" placeholder="Buscar: join, Parquet, idempotencia, Terraform, churn…" class="gloss-search">
+      <div class="gloss-filter" id="gtags"><button class="chip active" data-t="">Todas las áreas</button>${areas.map((t) => `<button class="chip" data-t="${esc(t)}">${esc(t)} <span class="muted">${G.filter((g) => g.area === t).length}</span></button>`).join('')}</div>
+      <div class="gloss-az" id="gaz"></div>
+      <div id="glist"></div>
     </div>`;
     let tag = '';
-    const paint = () => {
-      const q = $('#gq').value.toLowerCase();
-      const items = C.glosario.filter((g) => (!tag || g.area === tag) && (!q || (g.termino + ' ' + g.def).toLowerCase().includes(q)))
-        .sort((a, b) => a.termino.localeCompare(b.termino, 'es'));
-      $('#glist').innerHTML = items.map((g) => `<div class="gloss-item"><b>${esc(g.termino)}</b><span class="badge tag">${esc(g.area)}</span><div>${esc(g.def)}</div></div>`).join('') || '<div class="gloss-item muted">Sin resultados.</div>';
+    const abiertos = new Set(exacto ? [exacto.termino] : []);
+    const tarjeta = (g) => {
+      const resumen = g.nino.replace(/<[^>]+>/g, '').split(/(?<=[.!?])\s/)[0];
+      const sec = (ico, tit, html, cls = '') => (html ? `<section class="gloss-sec ${cls}"><h4>${ico} ${tit}</h4>${html}</section>` : '');
+      const ver = (g.ver || []).map((v) => `<a class="chip" href="#/glosario?q=${encodeURIComponent(v)}">${esc(v)}</a>`).join('');
+      const lec = (g.lecciones || []).map((l) => `<a href="#/l/${l.id}">${esc(l.titulo)}</a>`).join('');
+      return `<details class="gloss-card" id="g-${encodeURIComponent(g.termino)}" ${abiertos.has(g.termino) ? 'open' : ''}>
+        <summary><span class="gloss-term">${esc(g.termino)}</span><span class="badge tag">${esc(g.area)}</span>${(g.alias || []).length ? `<span class="gloss-alias">también: ${g.alias.map(esc).join(', ')}</span>` : ''}<span class="gloss-res">${resumen}</span></summary>
+        <div class="gloss-body">
+          ${sec('👶', 'Explicado como a un niño', g.nino, 'nino')}
+          ${sec('📘', 'Qué es, con precisión', g.que)}
+          ${sec('🧪', 'Un ejemplo', g.ejemplo)}
+          ${sec('🎯', 'Para qué sirve', g.para)}
+          ${sec('⚠️', 'Cuidado con', g.cuidado, 'cuidado')}
+          ${ver ? `<section class="gloss-sec"><h4>🔗 Términos relacionados</h4><div class="gloss-chips">${ver}</div></section>` : ''}
+          ${lec ? `<section class="gloss-sec"><h4>📚 Lo ves en estas lecciones</h4><div class="gloss-lec">${lec}</div></section>` : ''}
+        </div></details>`;
     };
-    $('#gq').value = filter;
+    const paint = () => {
+      const q = norm($('#gq').value.trim());
+      const items = G.filter((g) => (!tag || g.area === tag) && (!q || norm(g.termino + ' ' + (g.alias || []).join(' ') + ' ' + g.texto).includes(q)))
+        .sort((a, b) => {
+          // lo que coincide en el nombre va primero
+          const pa = q && norm(a.termino + ' ' + (a.alias || []).join(' ')).includes(q) ? 0 : 1, pb = q && norm(b.termino + ' ' + (b.alias || []).join(' ')).includes(q) ? 0 : 1;
+          return pa - pb || a.termino.localeCompare(b.termino, 'es');
+        });
+      const letras = [...new Set(items.map((g) => letra(g.termino)))];
+      $('#gaz').innerHTML = q ? `<span class="muted small">${items.length} resultado(s)</span>` : letras.map((l) => `<a href="#" data-l="${l}">${l}</a>`).join('');
+      let actual = null;
+      $('#glist').innerHTML = items.map((g) => {
+        const l = letra(g.termino);
+        const cab = !q && l !== actual ? `<h3 class="gloss-letra" id="letra-${l}">${l}</h3>` : '';
+        actual = l;
+        return cab + tarjeta(g);
+      }).join('') || '<div class="card muted" style="padding:16px">Sin resultados. Prueba con otra palabra.</div>';
+      const colorear = (d) => { if (d.open && !d.dataset.hl) { d.dataset.hl = '1'; $$('pre', d).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } }); } };
+      for (const d of $$('#glist details')) { colorear(d); d.addEventListener('toggle', () => { const t = decodeURIComponent(d.id.slice(2)); if (d.open) abiertos.add(t); else abiertos.delete(t); colorear(d); }); }
+    };
+    $('#gq').value = exacto ? '' : filter;
     $('#gq').addEventListener('input', paint);
+    $('#gaz').addEventListener('click', (e) => { const a = e.target.closest('[data-l]'); if (!a) return; e.preventDefault(); document.getElementById('letra-' + a.dataset.l)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     $('#gtags').addEventListener('click', (e) => {
       const b = e.target.closest('[data-t]'); if (!b) return;
       tag = b.dataset.t; $$('#gtags .chip').forEach((c) => c.classList.toggle('active', c === b)); paint();
     });
     paint();
+    if (exacto) setTimeout(() => document.getElementById('g-' + encodeURIComponent(exacto.termino))?.scrollIntoView({ block: 'start' }), 50);
   }
 
   function viewProgreso() {
@@ -1103,7 +1142,7 @@
   // ---------------------------------------------------------------- búsqueda
   const searchIndex = [
     ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, body: (l.resumen + ' ' + l.html.replace(/<[^>]+>/g, ' ')).toLowerCase() })),
-    ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: g.def.toLowerCase() }))
+    ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + g.texto).toLowerCase() }))
   ];
   const sIn = $('#search'), sOut = $('#searchResults');
   let sSel = 0;

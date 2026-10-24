@@ -163,6 +163,75 @@ function buildLesson(file, moduleId, order) {
   };
 }
 
+// ---------------------------------------------------------------- glosario
+// content/glosario/*.md: un bloque "## Término" por entrada, con campos
+//   alias:   otros nombres (separados por coma) — también se usan para buscar y enlazar lecciones
+//   nino:    explicado como a un niño (con una comparación de la vida diaria)
+//   que:     la definición precisa
+//   ejemplo: un ejemplo concreto (admite bloques de código)
+//   para:    para qué sirve / cuándo se usa
+//   cuidado: confusiones y errores típicos (opcional)
+//   ver:     términos relacionados (separados por coma; deben existir)
+const CAMPOS_GLOSARIO = ['alias', 'nino', 'que', 'ejemplo', 'para', 'cuidado', 'ver'];
+function buildGlosario(modules) {
+  const dir = path.join(CONTENT, 'glosario');
+  if (!fs.existsSync(dir)) return [];
+  const entradas = [];
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.md')).sort()) {
+    const file = path.join(dir, f);
+    const txt = fs.readFileSync(file, 'utf8');
+    const area = (txt.match(/^# area:\s*(.+)$/m) || [])[1];
+    if (!area) throw new Error(`${f}: falta la línea "# area: …"`);
+    for (const bloque of txt.split(/^## /m).slice(1)) {
+      const [cab, ...lineas] = bloque.split('\n');
+      const e = { termino: cab.trim(), area: area.trim() };
+      let campo = null; const crudo = {}; let enCodigo = false;
+      for (const l of lineas) {
+        if (l.startsWith('```')) enCodigo = !enCodigo;
+        const m = !enCodigo && l.match(/^(alias|nino|que|ejemplo|para|cuidado|ver):\s?(.*)$/);
+        if (m) { campo = m[1]; crudo[campo] = m[2]; continue; }
+        if (campo) crudo[campo] += '\n' + l;
+      }
+      for (const c of ['nino', 'que', 'ejemplo', 'para']) if (!crudo[c] || !crudo[c].trim()) throw new Error(`Glosario ${f}: "${e.termino}" no tiene el campo ${c}`);
+      e.alias = crudo.alias ? crudo.alias.split(',').map((x) => x.trim()).filter(Boolean) : [];
+      e.ver = crudo.ver ? crudo.ver.split(',').map((x) => x.trim()).filter(Boolean) : [];
+      for (const c of ['nino', 'que', 'ejemplo', 'para', 'cuidado']) if (crudo[c] && crudo[c].trim()) e[c] = md(crudo[c].trim(), file);
+      e.texto = Object.values(crudo).join(' ').replace(/[`*_#>|]/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+      entradas.push(e);
+    }
+  }
+  const nombres = new Map(entradas.map((e) => [e.termino.toLowerCase(), e.termino]));
+  const faltan = new Set();
+  for (const e of entradas) for (const v of e.ver) if (!nombres.has(v.toLowerCase())) faltan.add(v);
+  if (faltan.size) throw new Error(`Glosario: términos relacionados que no existen: ${[...faltan].join(", ")}`);
+  for (const e of entradas) e.ver = e.ver.filter((v) => nombres.has(v.toLowerCase())).map((v) => nombres.get(v.toLowerCase()));
+  const dup = entradas.map((e) => e.termino.toLowerCase()).filter((t, i, a) => a.indexOf(t) !== i);
+  if (dup.length) throw new Error('Glosario: términos repetidos: ' + dup.join(', '));
+  // lecciones donde aparece cada término: primero las que lo tienen en el título, después las que más lo mencionan
+  const lecciones = [];
+  for (const m of modules) {
+    const ddir = path.join(CONTENT, m.id);
+    const files = fs.existsSync(ddir) ? fs.readdirSync(ddir).filter((f) => f.endsWith('.md')).sort() : [];
+    files.forEach((f, i) => { const l = m.lecciones[i]; if (l) lecciones.push({ id: l.id, titulo: l.titulo, texto: fs.readFileSync(path.join(ddir, f), 'utf8').toLowerCase() }); });
+  }
+  const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  for (const e of entradas) {
+    const formas = [e.termino, ...e.alias].map((x) => x.toLowerCase()).filter((x) => x.length >= 2);
+    const res = [];
+    for (const l of lecciones) {
+      let n = 0, enTitulo = false;
+      for (const fm of formas) {
+        const re = new RegExp(`(^|[^\\wáéíóúñ])${escRe(fm)}(?![\\wáéíóúñ])`, 'g');
+        n += (l.texto.match(re) || []).length;
+        if (re.test(l.titulo.toLowerCase())) enTitulo = true;
+      }
+      if (n) res.push({ id: l.id, titulo: l.titulo, puntos: n + (enTitulo ? 1000 : 0) });
+    }
+    e.lecciones = res.sort((a, b) => b.puntos - a.puntos).slice(0, 5).map(({ id, titulo }) => ({ id, titulo }));
+  }
+  return entradas;
+}
+
 function build() {
   const modules = JSON.parse(fs.readFileSync(path.join(CONTENT, 'modules.json'), 'utf8'));
   let nLessons = 0, nEx = 0;
@@ -175,8 +244,7 @@ function build() {
   }
   const ids = new Set(modules.flatMap((m) => m.lecciones.map((l) => l.id)));
   for (const m of modules) for (const l of m.lecciones) for (const r of l.prerrequisitos) if (!ids.has(r)) throw new Error(`Prerrequisito desconocido "${r}" en la lección ${l.id}`);
-  const glosarioFile = path.join(CONTENT, 'glosario.json');
-  const glosario = fs.existsSync(glosarioFile) ? JSON.parse(fs.readFileSync(glosarioFile, 'utf8')) : [];
+  const glosario = buildGlosario(modules);
   const course = { generado: new Date().toISOString().slice(0, 10), modulos: modules, glosario };
   fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
     '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
@@ -198,7 +266,7 @@ function build() {
   walk(pyRoot);
   fs.writeFileSync(path.join(ROOT, 'assets/js/pysrc.js'),
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
-  console.log(`✔ ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
+  console.log(`✔ ${glosario.length} términos de glosario · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
   return course;
 }
 
