@@ -3,8 +3,19 @@ titulo: Diccionarios y conjuntos
 nivel: Básico
 duracion: 35
 resumen: Pares clave-valor, contar y agrupar, JSON y conjuntos sin duplicados.
+objetivos: Guardar y buscar datos por clave con diccionarios | Leer claves que pueden no existir con `get` | Contar y agrupar valores con diccionarios (el patrón más usado en datos) | Recorrer estructuras anidadas como las que devuelven las APIs | Comparar grupos con conjuntos (intersección, diferencia)
+prerrequisitos: python-listas
+autoevaluacion: ¿Puedes contar cuántas veces aparece cada palabra de un texto? | ¿Puedes sumar ventas por país en un diccionario? | ¿Sabes por qué `d["clave"]` puede fallar y `d.get("clave")` no? | ¿Puedes sacar un dato de un JSON anidado de dos niveles? | ¿Puedes encontrar los clientes que compraron en enero y también en febrero con conjuntos?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Las ventas por país desde la API
+El equipo de desarrollo expuso una API interna de pedidos. Valentina pregunta:
+
+> "¿Cuánto vendimos por país esta semana? La API devuelve los pedidos con el país del cliente adentro. Y quiero saber cuántos clientes de enero volvieron a comprar en febrero."
+
+Contar y agrupar "por algo" es la operación más frecuente en datos, y en Python se hace con **diccionarios**. Los **conjuntos** responden preguntas de "quiénes están en los dos grupos".
+:::
 ## Buscar por nombre, no por posición
 
 Con una lista, para encontrar el stock del "monitor" tienes que recorrerla hasta dar con él. Si guardas datos con **nombres** (de productos, de columnas, de clientes), la estructura correcta es un **diccionario** (`dict`): guarda pares **clave → valor** y te da el valor de una clave **al instante**, sin recorrer nada, aunque tenga un millón de entradas.
@@ -147,6 +158,20 @@ Usos típicos: quitar duplicados (`set(lista)`), comprobar pertenencia muy rápi
 
 :::experto Por qué buscar en un dict o set es tan rápido
 Diccionarios y conjuntos usan una **tabla hash**: calculan una "dirección" a partir de la clave y van directo a ella. Buscar en una lista de un millón de elementos puede requerir un millón de comparaciones; en un set, prácticamente una. Es la misma idea del *hash join* de las bases de datos.
+:::
+
+<!-- estandar:errores -->
+:::errores
+- **`KeyError`**: pediste una clave que no existe. Usa `d.get(clave, valor_por_defecto)` o revisa con `if clave in d`.
+- **Olvidar inicializar al contar**: `conteo[palabra] += 1` falla la primera vez. Usa `conteo[palabra] = conteo.get(palabra, 0) + 1`, o `collections.Counter`.
+- **Listas como claves**: `{[1, 2]: "x"}` da error, porque las claves tienen que ser inmutables. Usa una tupla `(1, 2)`.
+- **Asumir que el JSON siempre tiene la misma forma**: una API puede omitir un campo cuando está vacío. Lee los campos opcionales con `.get`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- El patrón "diccionario para agrupar" es exactamente lo que hace un `GROUP BY` por dentro. Cuando los datos no caben en memoria, la misma idea se reparte entre muchas máquinas: eso es Spark.
+- Los conjuntos (`set`) son la forma más rápida de comparar listas grandes de ids: "qué clientes están en el CRM pero no en la base de pedidos". Es una tarea de conciliación muy común.
 :::
 
 ## Resumen

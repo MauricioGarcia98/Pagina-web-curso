@@ -3,8 +3,19 @@ titulo: Listas y tuplas
 nivel: Básico
 duracion: 35
 resumen: Guardar colecciones ordenadas, agregar, quitar, ordenar y recortar.
+objetivos: Crear listas, leer elementos por posición y modificar su contenido | Usar `len`, `sum`, `min`, `max`, `sorted` y slices para analizar una lista | Evitar la trampa de las referencias al copiar listas | Representar registros con tuplas y tablas con listas de tuplas
+prerrequisitos: python-bucles
+autoevaluacion: ¿Puedes calcular el promedio y el máximo de una lista de ventas? | ¿Sabes qué diferencia hay entre `append` y `extend`? | ¿Sabes por qué `b = a` no copia la lista y cómo copiarla de verdad? | ¿Puedes ordenar una lista de tuplas por su segundo elemento? | ¿Sabes cuándo conviene una tupla en lugar de una lista?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La cola de pedidos
+Sofía, de operaciones, administra la cola de pedidos a despachar:
+
+> "Los pedidos entran al final y salen por el principio. A veces hay que sacar uno del medio porque se canceló. ¿Me ayudas a modelarlo? Y quiero saber el promedio y el máximo de unidades por pedido."
+
+Una **lista** guarda muchos valores en orden bajo un solo nombre. Es la estructura más usada de Python, y la base para entender cómo se representan tablas en memoria.
+:::
 ## Muchos valores bajo un mismo nombre
 
 Una variable guarda **un** valor. Pero los datos casi siempre vienen en grupos: las ventas del mes, los emails de los clientes, las líneas de un archivo. Una **lista** guarda varios valores **en orden** bajo un solo nombre. Es la estructura de datos más usada de Python.
@@ -132,6 +143,20 @@ print(lat, lon, registro[1])
 | Se puede usar como clave de diccionario | No | Sí |
 
 ¿Por qué querrías algo que no se puede cambiar? Porque **comunica intención** ("esto es un registro, no se toca") y evita modificaciones accidentales. Además, muchas funciones devuelven tuplas: `divmod(17, 5)` → `(3, 2)`, y un `return a, b` en una función devuelve una tupla.
+
+<!-- estandar:errores -->
+:::errores
+- **El primer elemento es el 0**: `lista[1]` es el **segundo**. El último es `lista[-1]`.
+- **`lista.sort()` devuelve `None`**: ordena la lista en el lugar. Si escribes `ordenada = lista.sort()`, `ordenada` queda en `None`. Usa `sorted(lista)` si quieres una lista nueva.
+- **Copias que no son copias**: `b = a` hace que las dos variables apunten a la misma lista; cambiar `b` cambia `a`. Usa `b = a.copy()` o `b = list(a)`.
+- **`sum` de textos**: `sum(["1", "2"])` da error. Convierte primero: `sum(int(x) for x in lista)`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Una lista de tuplas `[(producto, unidades, precio), ...]` es la forma más simple de una tabla en memoria. Es lo que devuelven muchas librerías de bases de datos (`cursor.fetchall()`).
+- Sacar elementos del principio de una lista grande (`pop(0)`) es lento, porque mueve todos los demás. Para colas de verdad se usa `collections.deque`.
+:::
 
 ## Resumen
 

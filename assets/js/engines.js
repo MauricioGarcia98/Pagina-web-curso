@@ -406,6 +406,9 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       try {
         await ensure(msg.mode, msg);
         if (msg.kind === 'warmup') { self.postMessage({ id: msg.id, ok: true }); return; }
+        // pandas, numpy y otras librerías de Pyodide se cargan solas si el código las importa
+        const codigo = [msg.code, msg.solution, msg.tests].filter(Boolean).join('\n');
+        if (/^\s*(import|from)\s+(pandas|numpy)\b/m.test(codigo) && !loaded.has('pandas')) { await py.loadPackage(['pandas']); loaded.add('pandas'); }
         if (msg.kind === 'dbt') {
           const f = py.globals.get('_dbt_render');
           const sql = f(msg.template, msg.macros || '', !!msg.incremental, JSON.stringify(msg.vars || {}), msg.thisName || 'this');

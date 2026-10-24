@@ -3,8 +3,19 @@ titulo: Funciones
 nivel: Intermedio
 duracion: 40
 resumen: def, parámetros, valores por defecto, return, alcance, *args/**kwargs, lambda y docstrings.
+objetivos: Definir funciones con parámetros y valores por defecto | Devolver resultados con `return` (y no confundirlo con `print`) | Explicar qué variables ve cada función (alcance) | Escribir funciones pequeñas, con una responsabilidad, documentadas y con type hints
+prerrequisitos: python-diccionarios
+autoevaluacion: ¿Sabes qué diferencia hay entre una función que hace `print` y una que hace `return`? | ¿Puedes escribir `normalizar_email(email)` que devuelva `None` si el email no es válido? | ¿Puedes devolver varios valores y recibirlos en variables separadas? | ¿Sabes por qué no conviene usar una lista como valor por defecto de un parámetro? | ¿Puedes ordenar una lista de tuplas con `key=lambda ...`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La misma limpieza en cinco scripts
+Martín revisa el repositorio y encuentra el mismo bloque de limpieza de emails copiado en cinco scripts distintos, cada uno con una pequeña diferencia:
+
+> "Por eso marketing y finanzas tienen distinto número de clientes. Hay que tener **una** función de limpieza, probada, y que todos la usen."
+
+Las **funciones** son la forma de escribir una lógica una sola vez y reutilizarla. Son la base de todo código mantenible, y de todos los pipelines que vas a construir.
+:::
 ## Por qué existen las funciones
 
 Imagina que calculas el precio final (con descuento e IVA) en diez lugares de tu programa. Un día cambia el IVA: tienes que encontrar y corregir los diez, y seguro se te escapa uno. Una **función** resuelve eso: escribes la lógica **una vez**, le pones un nombre, y la usas (la "llamas") donde la necesites. Si la regla cambia, la corriges en un solo lugar.
@@ -147,6 +158,20 @@ Se lee: "`precio` es un `float`, `tasa` es un `float` con valor por defecto 0.21
 | Pocos parámetros (≤ 4–5) | Muchos parámetros suelen indicar que hace demasiado |
 | Docstring en las funciones importantes | Qué recibe, qué devuelve, qué supuestos tiene |
 | Sin efectos escondidos | No modificar variables globales ni las listas que recibe |
+
+<!-- estandar:errores -->
+:::errores
+- **`print` en lugar de `return`**: la función muestra el resultado, pero quien la llama recibe `None`. Si el valor se va a usar después, va con `return`.
+- **Olvidar los paréntesis al llamar**: `limpiar` es la función; `limpiar(x)` la ejecuta.
+- **Lista como valor por defecto**: `def agregar(x, lista=[])` comparte la **misma** lista entre todas las llamadas. Usa `lista=None` y créala adentro.
+- **Funciones que hacen de todo**: una función de 80 líneas que lee, limpia, calcula y escribe no se puede probar por partes. Divídela.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En los equipos de datos, las funciones de transformación son **puras** siempre que se puede: reciben datos y devuelven datos, sin leer archivos ni bases por su cuenta. Así se pueden probar con pytest en milisegundos.
+- Los *type hints* (`def limpiar(email: str) -> str | None`) no cambian cómo corre el código, pero el editor y herramientas como mypy detectan errores antes de ejecutar. En proyectos profesionales son casi obligatorios.
+:::
 
 ## Resumen
 

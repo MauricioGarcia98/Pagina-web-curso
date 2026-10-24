@@ -3,8 +3,19 @@ titulo: Errores y excepciones
 nivel: Intermedio
 duracion: 35
 resumen: Leer un traceback, try/except/else/finally, lanzar tus propios errores y validar datos.
+objetivos: Leer un traceback e identificar en qué línea y por qué falló el programa | Manejar errores esperables con `try/except` sin esconder los inesperados | Reintentar operaciones que fallan por causas pasajeras | Lanzar tus propios errores con `raise` y mensajes claros
+prerrequisitos: python-funciones
+autoevaluacion: ¿Puedes leer un traceback y decir qué error fue y en qué línea? | ¿Puedes convertir una lista de textos a números separando los que fallan? | ¿Sabes por qué `except:` sin tipo es una mala idea? | ¿Puedes escribir una función que reintente 3 veces antes de rendirse? | ¿Sabes decidir si un error debe detener el pipeline o solo registrarse?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El pipeline que se cae por una fila
+El pipeline de ventas se cayó a las 3 de la mañana. Martín te muestra el log:
+
+> "`ValueError: could not convert string to float: 'N/A'`. Una sola fila con 'N/A' en el monto tiró abajo todo el proceso y el dashboard no se actualizó. Hay que manejar esto, pero sin esconder errores de verdad."
+
+Los errores no son el enemigo: son información. Esta lección te enseña a leerlos, a manejar los esperables y a decidir cuándo un pipeline tiene que fallar.
+:::
 ## Los errores son información
 
 Cuando algo sale mal, Python no "se rompe" sin más: **lanza una excepción**, un objeto que describe qué pasó, y si nadie la maneja, detiene el programa y muestra un mensaje. Al principio esos mensajes en rojo asustan; con práctica se vuelven tu mejor herramienta, porque dicen **exactamente** qué falló y dónde.
@@ -170,6 +181,20 @@ Cuando un registro está mal, hay dos estrategias, y elegir bien es parte del tr
 | **Apartar el registro** (cuarentena) y seguir | Si son errores puntuales y aceptables | 3 filas con monto "N/A" en 1 millón |
 
 Lo profesional es combinar ambas: apartar las filas malas con su motivo, y **fallar** si superan un umbral ("más del 1 % inválidas"). Lo practicarás en el módulo de casos de punta a punta.
+
+<!-- estandar:errores -->
+:::errores
+- **`except:` sin tipo** (o `except Exception: pass`): atrapa **todo**, incluso errores de programación, y los esconde. El pipeline "funciona" pero con datos incorrectos. Atrapa solo lo que esperas (`except ValueError:`).
+- **Reintentar errores que no son pasajeros**: un `401` (credenciales inválidas) o un error de sintaxis no se arregla reintentando. Reintenta solo errores de red o del servidor.
+- **Mensajes de error inútiles**: `raise ValueError("error")` no ayuda a nadie a las 3 de la mañana. Incluye el valor y el contexto: `raise ValueError(f"monto inválido en pedido {pid}: {valor!r}")`.
+- **Tragarse el error y seguir con un valor inventado**: reemplazar un monto inválido por 0 cambia los totales sin que nadie se entere.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- La decisión clave en un pipeline: **¿fallar o seguir?** Si se rechazan unas pocas filas, se registran en cuarentena y el proceso sigue. Si se rechaza el 30 %, algo cambió en el origen y el pipeline **debe fallar** para que alguien lo mire antes de publicar datos malos.
+- Los reintentos con espera exponencial (1, 2, 4, 8 segundos) son estándar para llamadas a APIs y bases. Librerías como `tenacity` lo hacen con un decorador, y Airflow lo ofrece con `retries`.
+:::
 
 ## Resumen
 

@@ -3,8 +3,19 @@ titulo: Módulos, archivos, CSV, JSON y fechas
 nivel: Intermedio
 duracion: 45
 resumen: import, la biblioteca estándar, leer y escribir archivos, csv, json, datetime, collections y pathlib.
+objetivos: Importar módulos de la librería estándar y entender cómo se organiza el código en archivos | Leer y escribir archivos de texto, CSV y JSON | Trabajar con fechas con `datetime` y calcular diferencias | Usar `Counter`, `defaultdict` y `pathlib` para tareas frecuentes
+prerrequisitos: python-errores
+autoevaluacion: ¿Puedes escribir un CSV con encabezado y leerlo de vuelta como diccionarios? | ¿Puedes parsear un JSON y sumar un campo de los elementos que cumplen una condición? | ¿Puedes calcular los días entre dos fechas en texto? | ¿Sabes por qué conviene abrir archivos con `with`? | ¿Puedes encontrar los 2 valores más frecuentes de una lista con `Counter`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El reporte diario de pagos
+Diego, de finanzas, recibe cada mañana un JSON con los pagos del día que manda la pasarela de pagos:
+
+> "Necesito un CSV con el total aprobado y cuántos días tardó cada pago desde el pedido. Hoy lo hago copiando y pegando en Excel."
+
+Leer un archivo, procesarlo y escribir otro es el corazón de cualquier pipeline. Esta lección te da las herramientas de la librería estándar para hacerlo: archivos, CSV, JSON y fechas.
+:::
 ## Más allá de un solo archivo de código
 
 Hasta ahora todo tu código vivía en un solo lugar y los datos estaban escritos dentro del programa. En el trabajo real, los datos vienen de **archivos** (CSV, JSON, logs), y el código se organiza en **módulos** que se reutilizan. Además, Python trae una enorme **biblioteca estándar** con herramientas listas para usar. Esta lección cubre esas tres cosas: importar, leer y escribir archivos, y las herramientas más útiles para datos.
@@ -174,6 +185,22 @@ print((carpeta / "a.txt").exists(), (carpeta / "a.txt").suffix)
 ```
 
 Es la forma moderna de trabajar con archivos y carpetas: procesar todos los CSV de una carpeta es `for archivo in Path("entrada").glob("*.csv"):`.
+
+<!-- estandar:errores -->
+:::errores
+- **Archivos sin cerrar**: `f = open(...)` sin `close()` puede dejar datos sin escribir. Usa siempre `with open(...) as f:`, que cierra solo.
+- **Codificación**: en Windows, `open("clientes.csv")` puede usar una codificación distinta de UTF-8 y romper los acentos. Escribe siempre `encoding="utf-8"`.
+- **Líneas en blanco extra en CSV en Windows**: abre el archivo con `newline=""` al escribir con el módulo `csv`.
+- **Comparar fechas como texto en otro formato**: `"15/03/2024" < "02/04/2024"` es falso. Convierte a `date` o usa formato ISO.
+- **Rutas con barras de Windows**: `"C:\nuevos\datos"` contiene un `\n` (salto de línea). Usa `pathlib.Path` o barras normales `/`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En los pipelines reales, los archivos no están en tu disco sino en un data lake (S3, ADLS, GCS). Las librerías cambian (`boto3`, `fsspec`), pero el patrón de leer, procesar y escribir es el mismo.
+- JSON es el formato de las APIs y de los eventos; CSV, el de los exports y los proveedores. Los dos se convierten a Parquet apenas entran al lake.
+- Las fechas se guardan en UTC y en formato ISO. Las conversiones a hora local se hacen solo al mostrar.
+:::
 
 ## Resumen
 

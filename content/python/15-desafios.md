@@ -3,8 +3,19 @@ titulo: Desafíos de Python para entrevistas de datos
 nivel: Experto
 duracion: 60
 resumen: Problemas típicos de entrevistas técnicas resueltos con estructuras de datos.
+objetivos: Seguir un método para resolver desafíos: entender, casos borde, solución simple, mejora | Estimar la complejidad de una solución con notación O | Bajar una solución de O(n²) a O(n) usando diccionarios y conjuntos | Explicar en voz alta tu razonamiento como en una entrevista real
+prerrequisitos: python-diccionarios | python-python-avanzado
+autoevaluacion: ¿Puedes explicar qué significa O(n²) con un ejemplo? | ¿Puedes resolver "dos que suman" en una sola pasada? | ¿Puedes fusionar intervalos superpuestos? | ¿Puedes aplanar un diccionario anidado? | ¿Sabes qué casos borde revisar antes de decir "listo"?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La prueba técnica de Python
+En la entrevista para data engineer semi senior, después de SQL viene la parte de Python:
+
+> "Tienes 45 minutos para tres problemas. Puedes elegir el orden. Lo importante es que nos cuentes cómo piensas."
+
+Estos desafíos no buscan algoritmos rebuscados: buscan que manejes bien diccionarios, conjuntos, ordenamiento y casos borde, y que expliques tu razonamiento.
+:::
 Estos problemas aparecen en entrevistas de **Data Engineer**. No buscan algoritmos rebuscados sino que demuestres que manejas bien diccionarios, conjuntos, ordenamiento, generadores y casos borde.
 
 :::tip En una entrevista, piensa en voz alta
@@ -34,6 +45,55 @@ Con 1.000 elementos, O(n²) son un millón de pasos; con un millón de elementos
 2. **Casos borde**: ¿qué pasa con una lista vacía, un solo elemento, empates, repetidos, `None`? Los tests de cada ejercicio prueban justamente eso.
 3. **Primero que funcione**: una solución simple y correcta, aunque no sea la más rápida.
 4. **Después, mejorar**: ¿estoy recorriendo dos veces lo mismo? ¿Puedo usar un `dict` o un `set`?
+
+## Ejemplo resuelto: el primer pedido duplicado, de O(n²) a O(n)
+
+**Enunciado**: un sistema reenvía pedidos por error. Dada la lista de `pedido_id` en el orden en que llegaron, devuelve el **primer id que aparece por segunda vez** (o `None` si no hay repetidos).
+
+**Paso 1, entender y preguntar.** "¿'Primero' es el primero en repetirse, o el primero de la lista que tiene un repetido?" Son distintos: en `[7, 3, 5, 3, 7]`, el primero en repetirse es el `3` (su segunda aparición está en la posición 3), aunque el `7` aparezca antes en la lista. Supongamos que piden el primero en repetirse.
+
+**Paso 2, la solución simple.** Para cada elemento, mirar si ya apareció antes:
+
+```python
+def primer_repetido_lento(ids):
+    for j in range(len(ids)):
+        for i in range(j):              # todo lo anterior
+            if ids[i] == ids[j]:
+                return ids[j]
+    return None
+
+print(primer_repetido_lento([7, 3, 5, 3, 7]))   # 3
+```
+
+Funciona, pero con dos `for` anidados es **O(n²)**: con un millón de pedidos son medio billón de comparaciones.
+
+**Paso 3, mejorar con un conjunto.** La pregunta "¿ya lo vi?" la responde un `set` en O(1):
+
+```python
+def primer_repetido(ids):
+    vistos = set()
+    for x in ids:
+        if x in vistos:                 # búsqueda O(1)
+            return x
+        vistos.add(x)
+    return None
+
+print(primer_repetido([7, 3, 5, 3, 7]))  # 3
+print(primer_repetido([1, 2, 3]))        # None
+print(primer_repetido([]))               # None: caso borde, lista vacía
+```
+
+Una sola pasada: **O(n)** en tiempo y O(n) en memoria. Con un millón de pedidos, un millón de pasos.
+
+**Paso 4, decirlo en voz alta.** "Cambié tiempo por memoria: guardo lo que vi en un conjunto. Es la misma idea que usa una base de datos en un *hash join* o en un `DISTINCT`." Conectar el algoritmo con el trabajo de datos suele sumar puntos. Ahora aplica la misma idea en el primer desafío.
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Más allá de la entrevista, estas técnicas aparecen en el trabajo: deduplicar con un `set`, unir datos con un `dict` (un join en memoria), fusionar intervalos para calcular sesiones o tiempos de conexión.
+- En una entrevista real, preguntar por los casos borde antes de escribir es tan importante como la solución. "¿La lista puede estar vacía? ¿Puede haber empates?" muestra criterio profesional.
+:::
+
+## Ejercicios
 
 :::ejercicio python dificultad=Experto titulo="Dos que suman"
 Escribe `dos_suman(numeros, objetivo)` que devuelva una tupla con los **índices** `(i, j)`, con `i < j`, de los dos números que suman `objetivo`, o `None` si no existen. Debe ser O(n) (usa un diccionario).

@@ -3,8 +3,19 @@ titulo: Iteradores, generadores, decoradores y context managers
 nivel: Avanzado
 duracion: 40
 resumen: Procesar datos sin cargarlos en memoria, envolver funciones y manejar recursos.
+objetivos: Escribir generadores con `yield` para procesar datos a demanda | Explicar el protocolo de iteración | Crear decoradores que agregan comportamiento a funciones (medir tiempo, contar llamadas, reintentar) | Usar y escribir context managers con `with`
+prerrequisitos: python-comprensiones | python-clases
+autoevaluacion: ¿Puedes escribir un generador que agrupe elementos en lotes de tamaño fijo? | ¿Sabes por qué un generador usa menos memoria que una lista? | ¿Puedes escribir un decorador que mida cuánto tarda una función? | ¿Sabes qué garantiza un bloque `with` aunque ocurra un error? | ¿Reconoces decoradores en el código de Airflow (`@task`, `@dag`)?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El archivo que no entra en memoria
+Sofía te pasa un archivo de 8 GB con todos los movimientos de inventario del año:
+
+> "Mi Excel no lo abre y tu script anterior se quedó sin memoria. Necesito el total por depósito."
+
+Cargar todo en una lista no sirve. Los **generadores** procesan los datos **de a uno** (o de a lotes), con muy poca memoria. Y los **decoradores** y **context managers** son las herramientas que hacen elegante el código profesional.
+:::
 Esta lección cubre cuatro ideas que aparecen en todo el código profesional de datos, aunque al principio no las veas:
 
 | Concepto | Problema que resuelve | Dónde lo vas a ver |
@@ -145,6 +156,19 @@ def transaccion(nombre):
 with transaccion("carga_diaria"):
     print("insertando filas...")
 ```
+
+<!-- estandar:errores -->
+:::errores
+- **Consumir un generador dos veces**: la segunda vez está vacío. Si necesitas recorrerlo de nuevo, vuelve a crearlo.
+- **Convertir el generador en lista "para ver qué tiene"**: `list(gen)` con 8 GB de datos vuelve a llenar la memoria.
+- **Decoradores que pierden el nombre de la función**: sin `@functools.wraps`, la función decorada se llama `wrapper` en los logs y los tracebacks.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Leer archivos grandes por partes (`for linea in archivo:`), paginar APIs con un generador y enviar a la base en **lotes** de 1.000 filas son patrones de todos los días.
+- Los decoradores están en todas las herramientas de datos: `@task` y `@dag` en Airflow, `@pytest.fixture` en tests, `@F.udf` en PySpark, `@retry` de tenacity.
+:::
 
 ## Ejercicios
 

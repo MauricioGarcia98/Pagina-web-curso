@@ -3,8 +3,19 @@ titulo: Bucles: for y while
 nivel: Básico
 duracion: 35
 resumen: Repetir acciones, range, acumuladores, break y continue.
+objetivos: Recorrer listas y textos con `for` | Repetir un número de veces con `range` | Acumular totales y contar con el patrón acumulador | Controlar un bucle con `while`, `break` y `continue` | Recorrer con índice o dos listas a la vez con `enumerate` y `zip`
+prerrequisitos: python-condicionales
+autoevaluacion: ¿Puedes sumar solo los montos positivos de una lista con un `for`? | ¿Sabes qué números genera `range(1, 10, 2)`? | ¿Sabes cuándo usar `while` en lugar de `for`? | ¿Sabes qué hace `continue` y en qué se diferencia de `break`? | ¿Puedes recorrer dos listas en paralelo con `zip`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Sumar las ventas válidas
+Diego, de finanzas, recibe cada día un archivo con cientos de movimientos, algunos negativos (devoluciones) y algunos vacíos:
+
+> "Sumo a mano solo las ventas positivas. ¿Se puede automatizar? Y ya que estás, ¿cuántos movimientos había de cada tipo?"
+
+Cuando hay que hacer lo mismo con cada elemento de una lista (sumar, revisar, contar), se usa un **bucle**. Es la herramienta que convierte una tarea manual de media hora en un programa de un segundo.
+:::
 ## Repetir sin copiar y pegar
 
 Imagina que tienes que imprimir el total de 12.000 pedidos. No vas a escribir 12.000 `print`. Un **bucle** repite un bloque de código tantas veces como haga falta: para cada pedido, para cada línea de un archivo, para cada día de un mes, hasta que se cumpla una condición. Es lo que hace a las computadoras útiles: hacer lo mismo un millón de veces sin cansarse ni equivocarse.
@@ -169,6 +180,20 @@ for p, precio in zip(productos, precios):
 
 :::experto ¿Bucles en big data?
 En Python puro, un bucle sobre 10 millones de filas es lento (segundos o minutos). Por eso en datos grandes se usan herramientas que ejecutan el bucle "por dentro" de forma optimizada: SQL, pandas, PySpark. Pero la **lógica** es la misma, y entender bucles te permite entender qué hacen esas herramientas.
+:::
+
+<!-- estandar:errores -->
+:::errores
+- **El acumulador dentro del bucle**: si escribes `total = 0` dentro del `for`, se reinicia en cada vuelta y al final vale solo el último monto. Inicialízalo **antes** del bucle.
+- **`while` infinito**: si la condición nunca se vuelve falsa (olvidaste actualizar la variable), el programa no termina. Detenlo con Ctrl + C y revisa qué cambia en cada vuelta.
+- **`range(1, 100)` no incluye el 100**: el final es exclusivo. Para 1 a 100, `range(1, 101)`.
+- **Modificar la lista mientras la recorres**: borrar elementos dentro del `for` salta elementos. Construye una lista nueva con los que quieres conservar.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En datos, los bucles de Python sobre millones de filas son lentos. Para volúmenes grandes se usan herramientas que procesan columnas enteras de una vez (pandas, SQL, Spark). Pero para recorrer archivos, tablas, páginas de una API o días a reprocesar, el `for` está en todos lados.
+- El patrón "recorrer, validar, acumular, contar los rechazos" es el esqueleto de muchísimos scripts de calidad de datos.
 :::
 
 ## Resumen

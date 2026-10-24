@@ -3,8 +3,19 @@ titulo: Programación orientada a objetos
 nivel: Avanzado
 duracion: 45
 resumen: Clases, objetos, métodos, herencia, métodos especiales y dataclasses.
+objetivos: Explicar qué son una clase y un objeto con un ejemplo de datos | Definir clases con `__init__`, atributos y métodos | Reutilizar código con herencia | Usar `@dataclass` para representar registros con poco código
+prerrequisitos: python-funciones
+autoevaluacion: ¿Puedes crear una clase `CuentaBancaria` con métodos para depositar y retirar que validen el monto? | ¿Sabes qué es `self`? | ¿Puedes crear una `@dataclass` con valores por defecto? | ¿Puedes explicar para qué sirve la herencia con un ejemplo de validadores? | ¿Sabes reconocer clases en el código de Airflow o PySpark?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los validadores de calidad
+Martín quiere ordenar las reglas de calidad de datos del equipo:
+
+> "Tenemos validaciones copiadas por todos lados: que el email tenga arroba, que el monto sea positivo, que la fecha no sea futura. Quiero una estructura común: cada regla con el mismo formato, que se puedan combinar y probar."
+
+Las **clases** permiten crear tus propios tipos de objetos, con datos y comportamiento juntos. No las vas a escribir todos los días, pero las usas todo el tiempo: un DAG de Airflow, un DataFrame de Spark y un operador son objetos.
+:::
 ## Por qué aprender clases si vas a trabajar con datos
 
 Quizás pienses que la programación orientada a objetos es "para programadores de aplicaciones". Pero casi todo lo que usarás como data engineer **son objetos**: un `DataFrame` de PySpark, la `SparkSession`, un `DAG` y sus operadores en Airflow, un cliente de S3 de `boto3`, una conexión a una base. Entender clases te permite **leer** esas librerías, entender sus errores y, cuando haga falta, escribir tus propias piezas reutilizables (un lector de una API, un validador, un operador personalizado).
@@ -177,6 +188,19 @@ print(t.celsius, t.fahrenheit)
 
 - `@property` convierte un método en un "atributo calculado": `t.fahrenheit` sin paréntesis, siempre coherente con `celsius`.
 - `@classmethod` recibe la **clase** (`cls`) en vez del objeto. Se usa para constructores alternativos. Lo verás en librerías: `SparkSession.builder…getOrCreate()`, `datetime.fromisoformat(…)`.
+
+<!-- estandar:errores -->
+:::errores
+- **Olvidar `self`**: un método sin `self` como primer parámetro da `TypeError: takes 0 positional arguments but 1 was given`.
+- **Atributos de clase compartidos por accidente**: una lista definida en el cuerpo de la clase (fuera de `__init__`) la comparten todos los objetos.
+- **Usar clases donde basta una función**: una clase con un solo método y sin estado es una función disfrazada.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En ingeniería de datos se usan mucho las `dataclass` (o modelos de **pydantic**) para definir la forma de los registros que llegan de una API y validarlos al entrar.
+- Leer código de librerías (Airflow, PySpark, dbt) exige entender clases: un operador de Airflow es una clase que hereda de `BaseOperator` y define `execute`. Si algún día escribes un operador propio, es exactamente lo que vas a hacer.
+:::
 
 ## Resumen
 

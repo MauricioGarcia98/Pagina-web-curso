@@ -3,8 +3,19 @@ titulo: Condicionales: if, elif, else
 nivel: Básico
 duracion: 30
 resumen: Tomar decisiones con comparaciones, operadores lógicos e indentación.
+objetivos: Tomar decisiones en un programa con `if`, `elif` y `else` | Escribir condiciones con comparaciones y con `and`, `or` y `not` | Anticipar qué valores Python considera falsos | Escribir una regla de negocio como código legible
+prerrequisitos: python-tipos-y-strings
+autoevaluacion: ¿Puedes clasificar un valor en tres categorías con `if/elif/else`? | ¿Sabes por qué el orden de los `elif` importa? | ¿Puedes escribir la regla "envío gratis si el total es al menos 2000 o si es cliente premium"? | ¿Sabes qué valores son falsos en Python (`0`, `""`, `[]`, `None`)? | ¿Sabes la diferencia entre `=` y `==`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La regla del envío gratis
+Valentina define una nueva política comercial:
+
+> "Desde el lunes, el envío es gratis si la compra es de 2000 o más, o si el cliente es premium. Los pedidos cancelados o devueltos no cuentan. ¿Lo puedes implementar en el proceso?"
+
+Las reglas del negocio son, en el fondo, **condiciones**: "si pasa esto, haz aquello". Esta lección te enseña a escribirlas en Python sin errores de lógica.
+:::
 ## Programas que deciden
 
 Hasta ahora tus programas ejecutaban **todas** sus líneas, siempre. Pero la lógica de negocio está llena de decisiones: "si el stock es bajo, avisar", "si el total supera 2.000, el envío es gratis", "si el email está vacío, mandar el registro a revisión". Para eso existen los **condicionales**: bloques de código que se ejecutan **solo si** se cumple una condición.
@@ -157,6 +168,20 @@ print(resultado)
 ```
 
 Se lee: "`resultado` es `'aprobado'` **si** `nota >= 6`, **si no** `'desaprobado'`". Úsala para decisiones simples de dos ramas; para más casos, `if/elif/else` es más claro.
+
+<!-- estandar:errores -->
+:::errores
+- **`=` en lugar de `==`**: `if estado = "entregado":` es un error de sintaxis. `=` asigna, `==` compara.
+- **Condiciones en el orden equivocado**: si el primer `if` es `total > 0`, el `elif total > 2000` nunca se ejecuta. Ve de lo más específico a lo más general.
+- **`if estado == "cancelado" or "devuelto":`** siempre es verdadero, porque `"devuelto"` (un texto no vacío) es verdadero por sí solo. Se escribe `estado in ("cancelado", "devuelto")`.
+- **Olvidar la indentación**: en Python, lo que va "dentro" del `if` se marca con 4 espacios. Sin ellos, `IndentationError`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las reglas de negocio cambian ("ahora el mínimo es 2500"). En vez de dejar el número escrito dentro del `if`, se guarda en una constante con nombre (`MINIMO_ENVIO_GRATIS = 2000`) o en un archivo de configuración.
+- Una regla de negocio importante siempre lleva tests con los casos límite: justo 2000, 1999,99, cliente premium con total 0. Ahí es donde aparecen los errores.
+:::
 
 ## Resumen
 

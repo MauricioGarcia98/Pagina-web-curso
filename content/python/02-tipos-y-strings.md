@@ -3,8 +3,19 @@ titulo: Tipos de datos y textos (strings)
 nivel: Básico
 duracion: 35
 resumen: int, float, str, bool, None, conversiones, f-strings y métodos de texto.
+objetivos: Reconocer los tipos `int`, `float`, `str`, `bool` y `None` y convertir entre ellos | Armar textos con f-strings | Limpiar textos con métodos como `strip`, `lower`, `replace` y `split` | Extraer partes de un texto con índices y slices
+prerrequisitos: python-primeros-pasos
+autoevaluacion: ¿Sabes por qué `"12" + 8` da error y cómo arreglarlo? | ¿Puedes limpiar un email con espacios y mayúsculas en una línea? | ¿Puedes imprimir un texto con un precio formateado a 2 decimales con un f-string? | ¿Puedes sacar el año, el mes y el día de `"2024-03-15"` con slices? | ¿Sabes qué representa `None` y en qué se diferencia de `0` o de `""`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los emails sucios del formulario
+Camila, de marketing, te reenvía la lista de emails del formulario de suscripción:
+
+> "La mitad rebota. Hay emails con espacios, con mayúsculas, algunos vacíos… ¿Los puedes limpiar antes de que los cargue en la herramienta de envíos?"
+
+Casi todos los datos que vas a recibir llegan como **texto**, aunque sean números o fechas. Esta lección te enseña a reconocer los tipos, convertirlos y limpiar textos, que es una parte enorme del trabajo diario.
+:::
 ## Cada valor tiene un tipo
 
 Para Python no es lo mismo `29` que `"29"`. El primero es un **número** (se puede sumar, multiplicar); el segundo es un **texto** formado por los caracteres "2" y "9" (se puede poner en mayúsculas o cortar, pero no sumar). El **tipo** de un valor determina qué puedes hacer con él.
@@ -151,6 +162,20 @@ Un paso típico de la capa *silver* es normalizar textos: `strip()` para espacio
 `True` y `False` (con mayúscula inicial) son el resultado de cualquier comparación: `5 > 3` → `True`, `"a" == "b"` → `False`. Los usarás en la próxima lección con `if`.
 
 `None` representa la **ausencia de valor**. Para preguntar si algo es `None` se usa `is`: `if telefono is None:`. Igual que en SQL con `IS NULL`.
+
+<!-- estandar:errores -->
+:::errores
+- **`TypeError: can only concatenate str (not "int") to str`**: intentaste sumar texto y número. Convierte con `int(...)`/`str(...)` o usa un f-string.
+- **`int("12.5")` da `ValueError`**: un texto con decimales se convierte con `float(...)` primero.
+- **Los textos no se modifican**: `email.lower()` **devuelve** un texto nuevo, no cambia `email`. Tienes que guardarlo: `email = email.lower()`.
+- **Índices fuera de rango**: `texto[10]` en un texto de 5 letras da `IndexError`. Los slices (`texto[0:10]`) no fallan, devuelven lo que haya.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- La limpieza de textos (espacios, mayúsculas, acentos, formatos de teléfono) es de las tareas más frecuentes de un data engineer. Se hace **una vez**, en una función reutilizable y probada, y todos los procesos la usan.
+- Los decimales con `float` no son exactos (`0.1 + 0.2` da `0.30000000000000004`). Para dinero, en Python se usa el módulo `decimal`, y en las bases de datos, el tipo `DECIMAL`.
+:::
 
 ## Resumen
 

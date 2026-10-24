@@ -3,8 +3,19 @@ titulo: Comprensiones y funciones de orden superior
 nivel: Intermedio
 duracion: 30
 resumen: List/dict/set comprehensions, any/all, map/filter y el estilo "pythónico".
+objetivos: Transformar y filtrar listas en una línea con list comprehensions | Crear diccionarios y conjuntos con comprensiones | Usar expresiones generadoras para procesar sin crear listas intermedias | Pasar funciones como argumentos (`sorted`, `map`, `filter`)
+prerrequisitos: python-funciones
+autoevaluacion: ¿Puedes crear la lista de los cuadrados de los números pares del 1 al 20 en una línea? | ¿Puedes convertir una lista de textos CSV en una lista de diccionarios con una comprensión? | ¿Puedes crear un diccionario `{sku: precio}` solo con los productos activos? | ¿Sabes qué diferencia hay entre `[x for x in ...]` y `(x for x in ...)`? | ¿Sabes cuándo una comprensión se vuelve ilegible y conviene un `for`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El catálogo para la web
+El equipo web necesita un archivo con el precio de cada producto activo:
+
+> "Mándanos un diccionario `{sku: precio}`, solo de productos activos, con el precio redondeado. Lo actualizamos cada hora."
+
+Con un `for` son cinco líneas. Con una **comprensión** es una, y se lee casi como la frase del pedido: "el precio de cada producto, para cada producto activo".
+:::
 ## Transformar colecciones en una línea
 
 Muchísimo código de datos tiene esta forma: "crea una lista vacía, recorre otra lista, transforma o filtra cada elemento y agrégalo". Python tiene una sintaxis compacta para eso: las **comprensiones** (*comprehensions*). Son uno de los rasgos más queridos del lenguaje porque se leen casi como una frase.
@@ -126,6 +137,20 @@ Eso es **aplanar** datos anidados (como `explode` en Spark): una fila por cada i
 
 :::tip ¿Cuándo NO usar comprensiones?
 Si no entra cómodamente en una línea, tiene varios `if`/`else` anidados, o necesitas manejar errores (`try`), usa un `for` normal. Una comprensión ilegible es peor que cinco líneas claras. La regla de Python: **la legibilidad cuenta**.
+:::
+
+<!-- estandar:errores -->
+:::errores
+- **Comprensiones ilegibles**: dos `for` y tres `if` en una sola línea funcionan, pero nadie los entiende. Si no se lee de un vistazo, usa un `for` normal.
+- **Usar una comprensión solo por los efectos**: `[print(x) for x in lista]` crea una lista de `None` que nadie usa. Para hacer algo con cada elemento, usa un `for`.
+- **El `if` en el lugar equivocado**: `[x for x in l if x > 0]` filtra; `[x if x > 0 else 0 for x in l]` transforma. El `if ... else` va antes del `for`.
+- **Un generador se consume una vez**: después de recorrerlo, queda vacío. Si lo necesitas dos veces, conviértelo en lista.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las comprensiones son el estilo idiomático de Python para transformar colecciones, y las vas a ver en todo el código profesional.
+- Las expresiones generadoras (`sum(x["monto"] for x in filas)`) no crean una lista intermedia: con millones de registros, ahorran memoria.
 :::
 
 ## Resumen

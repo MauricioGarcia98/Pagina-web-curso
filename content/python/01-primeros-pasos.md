@@ -3,8 +3,19 @@ titulo: Primeros pasos: print, comentarios y variables
 nivel: Básico
 duracion: 30
 resumen: Qué es programar, tu primer programa y cómo guardar datos en variables.
+objetivos: Escribir y ejecutar tu primer programa con `print` | Guardar valores en variables con nombres claros | Hacer cálculos con `+ - * /`, `//`, `%` y `**` | Leer un mensaje de error y corregir el problema
+prerrequisitos: fundamentos-bienvenida
+autoevaluacion: ¿Puedes imprimir un texto y el valor de una variable en la misma línea? | ¿Sabes qué diferencia hay entre `/` y `//`? | ¿Puedes calcular un precio con descuento usando variables? | ¿Sabes por qué `print(Ciudad)` da error si la variable se llama `ciudad`? | ¿Sabes qué nombres de variables son válidos y cuáles no?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Automatizar una cuenta que se hace a mano
+Sofía, de operaciones, arma cada mañana una planilla con cuentas a mano: cuántas cajas completas llenan los pedidos del día, cuánto queda suelto, cuánto cuesta cada envío con descuento. Te pregunta:
+
+> "¿Esto no se puede hacer solo? Pierdo media hora por día."
+
+Sí se puede, y el primer paso es aprender a darle instrucciones a la computadora en **Python**, el lenguaje más usado en datos. Hoy escribes tu primer programa.
+:::
 ## ¿Qué es programar?
 
 **Programar** es escribir instrucciones tan precisas que una computadora pueda seguirlas sin preguntar nada. La computadora es increíblemente rápida pero no tiene sentido común: hace **exactamente** lo que escribiste, en el **orden** en que lo escribiste, una instrucción a la vez, de arriba hacia abajo.
@@ -155,6 +166,20 @@ Escribes tu código en el editor y presionas **✓ Comprobar** (o Ctrl+Shift+Ent
 3. Si alguna prueba falla, te muestra un mensaje que indica qué esperaba.
 
 Usa **▶ Ejecutar** las veces que quieras para probar sin que se califique, y **💡 Pista** si te trabas.
+
+<!-- estandar:errores -->
+:::errores
+- **`NameError: name 'x' is not defined`**: usaste una variable antes de crearla, o la escribiste distinto (Python distingue mayúsculas: `Total` y `total` son dos variables).
+- **`SyntaxError`**: falta un paréntesis o unas comillas, o hay un carácter raro. Python te marca la línea con una flecha `^`.
+- **Comillas "inteligentes"**: si copias código de Word o de un chat, las comillas `“ ”` no son las de Python (`" "`). Escríbelas de nuevo.
+- **Números con separador de miles**: `7.900.000` no es un número válido. Escribe `7900000` o `7_900_000`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En el trabajo, Python se usa para todo lo que SQL no resuelve bien: leer APIs, mover archivos, validar datos, orquestar procesos (Airflow está escrito en Python) y transformar datos con PySpark.
+- Los nombres de variables importan muchísimo: el código se lee muchas más veces de las que se escribe. `precio_con_descuento` se entiende solo; `p2` obliga a leer todo el programa.
+:::
 
 ## Resumen
 

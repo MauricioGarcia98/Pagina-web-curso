@@ -1,0 +1,281 @@
+@@ 01-primeros-pasos
+objetivos: Escribir y ejecutar tu primer programa con `print` | Guardar valores en variables con nombres claros | Hacer cálculos con `+ - * /`, `//`, `%` y `**` | Leer un mensaje de error y corregir el problema
+prerrequisitos: fundamentos-bienvenida
+autoevaluacion: ¿Puedes imprimir un texto y el valor de una variable en la misma línea? | ¿Sabes qué diferencia hay entre `/` y `//`? | ¿Puedes calcular un precio con descuento usando variables? | ¿Sabes por qué `print(Ciudad)` da error si la variable se llama `ciudad`? | ¿Sabes qué nombres de variables son válidos y cuáles no?
+>> escenario Automatizar una cuenta que se hace a mano
+Sofía, de operaciones, arma cada mañana una planilla con cuentas a mano: cuántas cajas completas llenan los pedidos del día, cuánto queda suelto, cuánto cuesta cada envío con descuento. Te pregunta:
+
+> "¿Esto no se puede hacer solo? Pierdo media hora por día."
+
+Sí se puede, y el primer paso es aprender a darle instrucciones a la computadora en **Python**, el lenguaje más usado en datos. Hoy escribes tu primer programa.
+>> errores
+- **`NameError: name 'x' is not defined`**: usaste una variable antes de crearla, o la escribiste distinto (Python distingue mayúsculas: `Total` y `total` son dos variables).
+- **`SyntaxError`**: falta un paréntesis o unas comillas, o hay un carácter raro. Python te marca la línea con una flecha `^`.
+- **Comillas "inteligentes"**: si copias código de Word o de un chat, las comillas `“ ”` no son las de Python (`" "`). Escríbelas de nuevo.
+- **Números con separador de miles**: `7.900.000` no es un número válido. Escribe `7900000` o `7_900_000`.
+>> trabajo
+- En el trabajo, Python se usa para todo lo que SQL no resuelve bien: leer APIs, mover archivos, validar datos, orquestar procesos (Airflow está escrito en Python) y transformar datos con PySpark.
+- Los nombres de variables importan muchísimo: el código se lee muchas más veces de las que se escribe. `precio_con_descuento` se entiende solo; `p2` obliga a leer todo el programa.
+
+@@ 02-tipos-y-strings
+objetivos: Reconocer los tipos `int`, `float`, `str`, `bool` y `None` y convertir entre ellos | Armar textos con f-strings | Limpiar textos con métodos como `strip`, `lower`, `replace` y `split` | Extraer partes de un texto con índices y slices
+prerrequisitos: python-primeros-pasos
+autoevaluacion: ¿Sabes por qué `"12" + 8` da error y cómo arreglarlo? | ¿Puedes limpiar un email con espacios y mayúsculas en una línea? | ¿Puedes imprimir un texto con un precio formateado a 2 decimales con un f-string? | ¿Puedes sacar el año, el mes y el día de `"2024-03-15"` con slices? | ¿Sabes qué representa `None` y en qué se diferencia de `0` o de `""`?
+>> escenario Los emails sucios del formulario
+Camila, de marketing, te reenvía la lista de emails del formulario de suscripción:
+
+> "La mitad rebota. Hay emails con espacios, con mayúsculas, algunos vacíos… ¿Los puedes limpiar antes de que los cargue en la herramienta de envíos?"
+
+Casi todos los datos que vas a recibir llegan como **texto**, aunque sean números o fechas. Esta lección te enseña a reconocer los tipos, convertirlos y limpiar textos, que es una parte enorme del trabajo diario.
+>> errores
+- **`TypeError: can only concatenate str (not "int") to str`**: intentaste sumar texto y número. Convierte con `int(...)`/`str(...)` o usa un f-string.
+- **`int("12.5")` da `ValueError`**: un texto con decimales se convierte con `float(...)` primero.
+- **Los textos no se modifican**: `email.lower()` **devuelve** un texto nuevo, no cambia `email`. Tienes que guardarlo: `email = email.lower()`.
+- **Índices fuera de rango**: `texto[10]` en un texto de 5 letras da `IndexError`. Los slices (`texto[0:10]`) no fallan, devuelven lo que haya.
+>> trabajo
+- La limpieza de textos (espacios, mayúsculas, acentos, formatos de teléfono) es de las tareas más frecuentes de un data engineer. Se hace **una vez**, en una función reutilizable y probada, y todos los procesos la usan.
+- Los decimales con `float` no son exactos (`0.1 + 0.2` da `0.30000000000000004`). Para dinero, en Python se usa el módulo `decimal`, y en las bases de datos, el tipo `DECIMAL`.
+
+@@ 03-condicionales
+objetivos: Tomar decisiones en un programa con `if`, `elif` y `else` | Escribir condiciones con comparaciones y con `and`, `or` y `not` | Anticipar qué valores Python considera falsos | Escribir una regla de negocio como código legible
+prerrequisitos: python-tipos-y-strings
+autoevaluacion: ¿Puedes clasificar un valor en tres categorías con `if/elif/else`? | ¿Sabes por qué el orden de los `elif` importa? | ¿Puedes escribir la regla "envío gratis si el total es al menos 2000 o si es cliente premium"? | ¿Sabes qué valores son falsos en Python (`0`, `""`, `[]`, `None`)? | ¿Sabes la diferencia entre `=` y `==`?
+>> escenario La regla del envío gratis
+Valentina define una nueva política comercial:
+
+> "Desde el lunes, el envío es gratis si la compra es de 2000 o más, o si el cliente es premium. Los pedidos cancelados o devueltos no cuentan. ¿Lo puedes implementar en el proceso?"
+
+Las reglas del negocio son, en el fondo, **condiciones**: "si pasa esto, haz aquello". Esta lección te enseña a escribirlas en Python sin errores de lógica.
+>> errores
+- **`=` en lugar de `==`**: `if estado = "entregado":` es un error de sintaxis. `=` asigna, `==` compara.
+- **Condiciones en el orden equivocado**: si el primer `if` es `total > 0`, el `elif total > 2000` nunca se ejecuta. Ve de lo más específico a lo más general.
+- **`if estado == "cancelado" or "devuelto":`** siempre es verdadero, porque `"devuelto"` (un texto no vacío) es verdadero por sí solo. Se escribe `estado in ("cancelado", "devuelto")`.
+- **Olvidar la indentación**: en Python, lo que va "dentro" del `if` se marca con 4 espacios. Sin ellos, `IndentationError`.
+>> trabajo
+- Las reglas de negocio cambian ("ahora el mínimo es 2500"). En vez de dejar el número escrito dentro del `if`, se guarda en una constante con nombre (`MINIMO_ENVIO_GRATIS = 2000`) o en un archivo de configuración.
+- Una regla de negocio importante siempre lleva tests con los casos límite: justo 2000, 1999,99, cliente premium con total 0. Ahí es donde aparecen los errores.
+
+@@ 04-bucles
+objetivos: Recorrer listas y textos con `for` | Repetir un número de veces con `range` | Acumular totales y contar con el patrón acumulador | Controlar un bucle con `while`, `break` y `continue` | Recorrer con índice o dos listas a la vez con `enumerate` y `zip`
+prerrequisitos: python-condicionales
+autoevaluacion: ¿Puedes sumar solo los montos positivos de una lista con un `for`? | ¿Sabes qué números genera `range(1, 10, 2)`? | ¿Sabes cuándo usar `while` en lugar de `for`? | ¿Sabes qué hace `continue` y en qué se diferencia de `break`? | ¿Puedes recorrer dos listas en paralelo con `zip`?
+>> escenario Sumar las ventas válidas
+Diego, de finanzas, recibe cada día un archivo con cientos de movimientos, algunos negativos (devoluciones) y algunos vacíos:
+
+> "Sumo a mano solo las ventas positivas. ¿Se puede automatizar? Y ya que estás, ¿cuántos movimientos había de cada tipo?"
+
+Cuando hay que hacer lo mismo con cada elemento de una lista (sumar, revisar, contar), se usa un **bucle**. Es la herramienta que convierte una tarea manual de media hora en un programa de un segundo.
+>> errores
+- **El acumulador dentro del bucle**: si escribes `total = 0` dentro del `for`, se reinicia en cada vuelta y al final vale solo el último monto. Inicialízalo **antes** del bucle.
+- **`while` infinito**: si la condición nunca se vuelve falsa (olvidaste actualizar la variable), el programa no termina. Detenlo con Ctrl + C y revisa qué cambia en cada vuelta.
+- **`range(1, 100)` no incluye el 100**: el final es exclusivo. Para 1 a 100, `range(1, 101)`.
+- **Modificar la lista mientras la recorres**: borrar elementos dentro del `for` salta elementos. Construye una lista nueva con los que quieres conservar.
+>> trabajo
+- En datos, los bucles de Python sobre millones de filas son lentos. Para volúmenes grandes se usan herramientas que procesan columnas enteras de una vez (pandas, SQL, Spark). Pero para recorrer archivos, tablas, páginas de una API o días a reprocesar, el `for` está en todos lados.
+- El patrón "recorrer, validar, acumular, contar los rechazos" es el esqueleto de muchísimos scripts de calidad de datos.
+
+@@ 05-listas
+objetivos: Crear listas, leer elementos por posición y modificar su contenido | Usar `len`, `sum`, `min`, `max`, `sorted` y slices para analizar una lista | Evitar la trampa de las referencias al copiar listas | Representar registros con tuplas y tablas con listas de tuplas
+prerrequisitos: python-bucles
+autoevaluacion: ¿Puedes calcular el promedio y el máximo de una lista de ventas? | ¿Sabes qué diferencia hay entre `append` y `extend`? | ¿Sabes por qué `b = a` no copia la lista y cómo copiarla de verdad? | ¿Puedes ordenar una lista de tuplas por su segundo elemento? | ¿Sabes cuándo conviene una tupla en lugar de una lista?
+>> escenario La cola de pedidos
+Sofía, de operaciones, administra la cola de pedidos a despachar:
+
+> "Los pedidos entran al final y salen por el principio. A veces hay que sacar uno del medio porque se canceló. ¿Me ayudas a modelarlo? Y quiero saber el promedio y el máximo de unidades por pedido."
+
+Una **lista** guarda muchos valores en orden bajo un solo nombre. Es la estructura más usada de Python, y la base para entender cómo se representan tablas en memoria.
+>> errores
+- **El primer elemento es el 0**: `lista[1]` es el **segundo**. El último es `lista[-1]`.
+- **`lista.sort()` devuelve `None`**: ordena la lista en el lugar. Si escribes `ordenada = lista.sort()`, `ordenada` queda en `None`. Usa `sorted(lista)` si quieres una lista nueva.
+- **Copias que no son copias**: `b = a` hace que las dos variables apunten a la misma lista; cambiar `b` cambia `a`. Usa `b = a.copy()` o `b = list(a)`.
+- **`sum` de textos**: `sum(["1", "2"])` da error. Convierte primero: `sum(int(x) for x in lista)`.
+>> trabajo
+- Una lista de tuplas `[(producto, unidades, precio), ...]` es la forma más simple de una tabla en memoria. Es lo que devuelven muchas librerías de bases de datos (`cursor.fetchall()`).
+- Sacar elementos del principio de una lista grande (`pop(0)`) es lento, porque mueve todos los demás. Para colas de verdad se usa `collections.deque`.
+
+@@ 06-diccionarios
+objetivos: Guardar y buscar datos por clave con diccionarios | Leer claves que pueden no existir con `get` | Contar y agrupar valores con diccionarios (el patrón más usado en datos) | Recorrer estructuras anidadas como las que devuelven las APIs | Comparar grupos con conjuntos (intersección, diferencia)
+prerrequisitos: python-listas
+autoevaluacion: ¿Puedes contar cuántas veces aparece cada palabra de un texto? | ¿Puedes sumar ventas por país en un diccionario? | ¿Sabes por qué `d["clave"]` puede fallar y `d.get("clave")` no? | ¿Puedes sacar un dato de un JSON anidado de dos niveles? | ¿Puedes encontrar los clientes que compraron en enero y también en febrero con conjuntos?
+>> escenario Las ventas por país desde la API
+El equipo de desarrollo expuso una API interna de pedidos. Valentina pregunta:
+
+> "¿Cuánto vendimos por país esta semana? La API devuelve los pedidos con el país del cliente adentro. Y quiero saber cuántos clientes de enero volvieron a comprar en febrero."
+
+Contar y agrupar "por algo" es la operación más frecuente en datos, y en Python se hace con **diccionarios**. Los **conjuntos** responden preguntas de "quiénes están en los dos grupos".
+>> errores
+- **`KeyError`**: pediste una clave que no existe. Usa `d.get(clave, valor_por_defecto)` o revisa con `if clave in d`.
+- **Olvidar inicializar al contar**: `conteo[palabra] += 1` falla la primera vez. Usa `conteo[palabra] = conteo.get(palabra, 0) + 1`, o `collections.Counter`.
+- **Listas como claves**: `{[1, 2]: "x"}` da error, porque las claves tienen que ser inmutables. Usa una tupla `(1, 2)`.
+- **Asumir que el JSON siempre tiene la misma forma**: una API puede omitir un campo cuando está vacío. Lee los campos opcionales con `.get`.
+>> trabajo
+- El patrón "diccionario para agrupar" es exactamente lo que hace un `GROUP BY` por dentro. Cuando los datos no caben en memoria, la misma idea se reparte entre muchas máquinas: eso es Spark.
+- Los conjuntos (`set`) son la forma más rápida de comparar listas grandes de ids: "qué clientes están en el CRM pero no en la base de pedidos". Es una tarea de conciliación muy común.
+
+@@ 07-funciones
+objetivos: Definir funciones con parámetros y valores por defecto | Devolver resultados con `return` (y no confundirlo con `print`) | Explicar qué variables ve cada función (alcance) | Escribir funciones pequeñas, con una responsabilidad, documentadas y con type hints
+prerrequisitos: python-diccionarios
+autoevaluacion: ¿Sabes qué diferencia hay entre una función que hace `print` y una que hace `return`? | ¿Puedes escribir `normalizar_email(email)` que devuelva `None` si el email no es válido? | ¿Puedes devolver varios valores y recibirlos en variables separadas? | ¿Sabes por qué no conviene usar una lista como valor por defecto de un parámetro? | ¿Puedes ordenar una lista de tuplas con `key=lambda ...`?
+>> escenario La misma limpieza en cinco scripts
+Martín revisa el repositorio y encuentra el mismo bloque de limpieza de emails copiado en cinco scripts distintos, cada uno con una pequeña diferencia:
+
+> "Por eso marketing y finanzas tienen distinto número de clientes. Hay que tener **una** función de limpieza, probada, y que todos la usen."
+
+Las **funciones** son la forma de escribir una lógica una sola vez y reutilizarla. Son la base de todo código mantenible, y de todos los pipelines que vas a construir.
+>> errores
+- **`print` en lugar de `return`**: la función muestra el resultado, pero quien la llama recibe `None`. Si el valor se va a usar después, va con `return`.
+- **Olvidar los paréntesis al llamar**: `limpiar` es la función; `limpiar(x)` la ejecuta.
+- **Lista como valor por defecto**: `def agregar(x, lista=[])` comparte la **misma** lista entre todas las llamadas. Usa `lista=None` y créala adentro.
+- **Funciones que hacen de todo**: una función de 80 líneas que lee, limpia, calcula y escribe no se puede probar por partes. Divídela.
+>> trabajo
+- En los equipos de datos, las funciones de transformación son **puras** siempre que se puede: reciben datos y devuelven datos, sin leer archivos ni bases por su cuenta. Así se pueden probar con pytest en milisegundos.
+- Los *type hints* (`def limpiar(email: str) -> str | None`) no cambian cómo corre el código, pero el editor y herramientas como mypy detectan errores antes de ejecutar. En proyectos profesionales son casi obligatorios.
+
+@@ 08-comprensiones
+objetivos: Transformar y filtrar listas en una línea con list comprehensions | Crear diccionarios y conjuntos con comprensiones | Usar expresiones generadoras para procesar sin crear listas intermedias | Pasar funciones como argumentos (`sorted`, `map`, `filter`)
+prerrequisitos: python-funciones
+autoevaluacion: ¿Puedes crear la lista de los cuadrados de los números pares del 1 al 20 en una línea? | ¿Puedes convertir una lista de textos CSV en una lista de diccionarios con una comprensión? | ¿Puedes crear un diccionario `{sku: precio}` solo con los productos activos? | ¿Sabes qué diferencia hay entre `[x for x in ...]` y `(x for x in ...)`? | ¿Sabes cuándo una comprensión se vuelve ilegible y conviene un `for`?
+>> escenario El catálogo para la web
+El equipo web necesita un archivo con el precio de cada producto activo:
+
+> "Mándanos un diccionario `{sku: precio}`, solo de productos activos, con el precio redondeado. Lo actualizamos cada hora."
+
+Con un `for` son cinco líneas. Con una **comprensión** es una, y se lee casi como la frase del pedido: "el precio de cada producto, para cada producto activo".
+>> errores
+- **Comprensiones ilegibles**: dos `for` y tres `if` en una sola línea funcionan, pero nadie los entiende. Si no se lee de un vistazo, usa un `for` normal.
+- **Usar una comprensión solo por los efectos**: `[print(x) for x in lista]` crea una lista de `None` que nadie usa. Para hacer algo con cada elemento, usa un `for`.
+- **El `if` en el lugar equivocado**: `[x for x in l if x > 0]` filtra; `[x if x > 0 else 0 for x in l]` transforma. El `if ... else` va antes del `for`.
+- **Un generador se consume una vez**: después de recorrerlo, queda vacío. Si lo necesitas dos veces, conviértelo en lista.
+>> trabajo
+- Las comprensiones son el estilo idiomático de Python para transformar colecciones, y las vas a ver en todo el código profesional.
+- Las expresiones generadoras (`sum(x["monto"] for x in filas)`) no crean una lista intermedia: con millones de registros, ahorran memoria.
+
+@@ 09-errores
+objetivos: Leer un traceback e identificar en qué línea y por qué falló el programa | Manejar errores esperables con `try/except` sin esconder los inesperados | Reintentar operaciones que fallan por causas pasajeras | Lanzar tus propios errores con `raise` y mensajes claros
+prerrequisitos: python-funciones
+autoevaluacion: ¿Puedes leer un traceback y decir qué error fue y en qué línea? | ¿Puedes convertir una lista de textos a números separando los que fallan? | ¿Sabes por qué `except:` sin tipo es una mala idea? | ¿Puedes escribir una función que reintente 3 veces antes de rendirse? | ¿Sabes decidir si un error debe detener el pipeline o solo registrarse?
+>> escenario El pipeline que se cae por una fila
+El pipeline de ventas se cayó a las 3 de la mañana. Martín te muestra el log:
+
+> "`ValueError: could not convert string to float: 'N/A'`. Una sola fila con 'N/A' en el monto tiró abajo todo el proceso y el dashboard no se actualizó. Hay que manejar esto, pero sin esconder errores de verdad."
+
+Los errores no son el enemigo: son información. Esta lección te enseña a leerlos, a manejar los esperables y a decidir cuándo un pipeline tiene que fallar.
+>> errores
+- **`except:` sin tipo** (o `except Exception: pass`): atrapa **todo**, incluso errores de programación, y los esconde. El pipeline "funciona" pero con datos incorrectos. Atrapa solo lo que esperas (`except ValueError:`).
+- **Reintentar errores que no son pasajeros**: un `401` (credenciales inválidas) o un error de sintaxis no se arregla reintentando. Reintenta solo errores de red o del servidor.
+- **Mensajes de error inútiles**: `raise ValueError("error")` no ayuda a nadie a las 3 de la mañana. Incluye el valor y el contexto: `raise ValueError(f"monto inválido en pedido {pid}: {valor!r}")`.
+- **Tragarse el error y seguir con un valor inventado**: reemplazar un monto inválido por 0 cambia los totales sin que nadie se entere.
+>> trabajo
+- La decisión clave en un pipeline: **¿fallar o seguir?** Si se rechazan unas pocas filas, se registran en cuarentena y el proceso sigue. Si se rechaza el 30 %, algo cambió en el origen y el pipeline **debe fallar** para que alguien lo mire antes de publicar datos malos.
+- Los reintentos con espera exponencial (1, 2, 4, 8 segundos) son estándar para llamadas a APIs y bases. Librerías como `tenacity` lo hacen con un decorador, y Airflow lo ofrece con `retries`.
+
+@@ 10-archivos-modulos
+objetivos: Importar módulos de la librería estándar y entender cómo se organiza el código en archivos | Leer y escribir archivos de texto, CSV y JSON | Trabajar con fechas con `datetime` y calcular diferencias | Usar `Counter`, `defaultdict` y `pathlib` para tareas frecuentes
+prerrequisitos: python-errores
+autoevaluacion: ¿Puedes escribir un CSV con encabezado y leerlo de vuelta como diccionarios? | ¿Puedes parsear un JSON y sumar un campo de los elementos que cumplen una condición? | ¿Puedes calcular los días entre dos fechas en texto? | ¿Sabes por qué conviene abrir archivos con `with`? | ¿Puedes encontrar los 2 valores más frecuentes de una lista con `Counter`?
+>> escenario El reporte diario de pagos
+Diego, de finanzas, recibe cada mañana un JSON con los pagos del día que manda la pasarela de pagos:
+
+> "Necesito un CSV con el total aprobado y cuántos días tardó cada pago desde el pedido. Hoy lo hago copiando y pegando en Excel."
+
+Leer un archivo, procesarlo y escribir otro es el corazón de cualquier pipeline. Esta lección te da las herramientas de la librería estándar para hacerlo: archivos, CSV, JSON y fechas.
+>> errores
+- **Archivos sin cerrar**: `f = open(...)` sin `close()` puede dejar datos sin escribir. Usa siempre `with open(...) as f:`, que cierra solo.
+- **Codificación**: en Windows, `open("clientes.csv")` puede usar una codificación distinta de UTF-8 y romper los acentos. Escribe siempre `encoding="utf-8"`.
+- **Líneas en blanco extra en CSV en Windows**: abre el archivo con `newline=""` al escribir con el módulo `csv`.
+- **Comparar fechas como texto en otro formato**: `"15/03/2024" < "02/04/2024"` es falso. Convierte a `date` o usa formato ISO.
+- **Rutas con barras de Windows**: `"C:\nuevos\datos"` contiene un `\n` (salto de línea). Usa `pathlib.Path` o barras normales `/`.
+>> trabajo
+- En los pipelines reales, los archivos no están en tu disco sino en un data lake (S3, ADLS, GCS). Las librerías cambian (`boto3`, `fsspec`), pero el patrón de leer, procesar y escribir es el mismo.
+- JSON es el formato de las APIs y de los eventos; CSV, el de los exports y los proveedores. Los dos se convierten a Parquet apenas entran al lake.
+- Las fechas se guardan en UTC y en formato ISO. Las conversiones a hora local se hacen solo al mostrar.
+
+@@ 11-clases
+objetivos: Explicar qué son una clase y un objeto con un ejemplo de datos | Definir clases con `__init__`, atributos y métodos | Reutilizar código con herencia | Usar `@dataclass` para representar registros con poco código
+prerrequisitos: python-funciones
+autoevaluacion: ¿Puedes crear una clase `CuentaBancaria` con métodos para depositar y retirar que validen el monto? | ¿Sabes qué es `self`? | ¿Puedes crear una `@dataclass` con valores por defecto? | ¿Puedes explicar para qué sirve la herencia con un ejemplo de validadores? | ¿Sabes reconocer clases en el código de Airflow o PySpark?
+>> escenario Los validadores de calidad
+Martín quiere ordenar las reglas de calidad de datos del equipo:
+
+> "Tenemos validaciones copiadas por todos lados: que el email tenga arroba, que el monto sea positivo, que la fecha no sea futura. Quiero una estructura común: cada regla con el mismo formato, que se puedan combinar y probar."
+
+Las **clases** permiten crear tus propios tipos de objetos, con datos y comportamiento juntos. No las vas a escribir todos los días, pero las usas todo el tiempo: un DAG de Airflow, un DataFrame de Spark y un operador son objetos.
+>> errores
+- **Olvidar `self`**: un método sin `self` como primer parámetro da `TypeError: takes 0 positional arguments but 1 was given`.
+- **Atributos de clase compartidos por accidente**: una lista definida en el cuerpo de la clase (fuera de `__init__`) la comparten todos los objetos.
+- **Usar clases donde basta una función**: una clase con un solo método y sin estado es una función disfrazada.
+>> trabajo
+- En ingeniería de datos se usan mucho las `dataclass` (o modelos de **pydantic**) para definir la forma de los registros que llegan de una API y validarlos al entrar.
+- Leer código de librerías (Airflow, PySpark, dbt) exige entender clases: un operador de Airflow es una clase que hereda de `BaseOperator` y define `execute`. Si algún día escribes un operador propio, es exactamente lo que vas a hacer.
+
+@@ 12-python-avanzado
+objetivos: Escribir generadores con `yield` para procesar datos a demanda | Explicar el protocolo de iteración | Crear decoradores que agregan comportamiento a funciones (medir tiempo, contar llamadas, reintentar) | Usar y escribir context managers con `with`
+prerrequisitos: python-comprensiones | python-clases
+autoevaluacion: ¿Puedes escribir un generador que agrupe elementos en lotes de tamaño fijo? | ¿Sabes por qué un generador usa menos memoria que una lista? | ¿Puedes escribir un decorador que mida cuánto tarda una función? | ¿Sabes qué garantiza un bloque `with` aunque ocurra un error? | ¿Reconoces decoradores en el código de Airflow (`@task`, `@dag`)?
+>> escenario El archivo que no entra en memoria
+Sofía te pasa un archivo de 8 GB con todos los movimientos de inventario del año:
+
+> "Mi Excel no lo abre y tu script anterior se quedó sin memoria. Necesito el total por depósito."
+
+Cargar todo en una lista no sirve. Los **generadores** procesan los datos **de a uno** (o de a lotes), con muy poca memoria. Y los **decoradores** y **context managers** son las herramientas que hacen elegante el código profesional.
+>> errores
+- **Consumir un generador dos veces**: la segunda vez está vacío. Si necesitas recorrerlo de nuevo, vuelve a crearlo.
+- **Convertir el generador en lista "para ver qué tiene"**: `list(gen)` con 8 GB de datos vuelve a llenar la memoria.
+- **Decoradores que pierden el nombre de la función**: sin `@functools.wraps`, la función decorada se llama `wrapper` en los logs y los tracebacks.
+>> trabajo
+- Leer archivos grandes por partes (`for linea in archivo:`), paginar APIs con un generador y enviar a la base en **lotes** de 1.000 filas son patrones de todos los días.
+- Los decoradores están en todas las herramientas de datos: `@task` y `@dag` en Airflow, `@pytest.fixture` en tests, `@F.udf` en PySpark, `@retry` de tenacity.
+
+@@ 13-python-datos
+objetivos: Construir un pipeline ETL en Python con funciones pequeñas: extraer, limpiar, deduplicar, agregar | Separar las filas inválidas con su motivo en lugar de descartarlas en silencio | Describir cómo extraer datos de una API con timeouts, reintentos y paginación | Limpiar y agregar datos con pandas y traducir entre SQL, pandas y PySpark
+prerrequisitos: python-archivos-modulos | python-errores
+autoevaluacion: ¿Puedes escribir una función que limpie un registro y devuelva `None` si es inválido? | ¿Sabes por qué conviene guardar las filas rechazadas con su motivo? | ¿Puedes explicar por qué una extracción de una API necesita timeout, reintentos y paginación? | ¿Puedes agrupar y sumar con pandas usando `groupby(...).agg(...)`? | ¿Sabes cuándo usar pandas y cuándo Spark?
+>> escenario El primer pipeline de verdad
+Martín te asigna tu primer pipeline completo:
+
+> "El sistema de pedidos viejo nos manda un CSV cada noche. Hay que limpiarlo, sacar duplicados, rechazar lo inválido (pero guardarlo, que operaciones lo quiere revisar) y calcular las ventas por país. Hazlo en Python, con funciones chicas y probadas."
+
+Esta lección junta todo lo que aprendiste de Python en un pipeline real, y te presenta pandas, la herramienta para analizar datos que entran en una computadora.
+>> errores
+- **Rechazar sin contar ni guardar**: si un día el 40 % de las filas son inválidas y nadie lo sabe, el dashboard muestra ventas que bajaron "de golpe".
+- **Deduplicar por la fila completa**: dos registros del mismo pedido con distinta hora de carga no son idénticos, pero son el mismo pedido. Deduplica por la **clave** (`pedido_id`) y decide cuál versión conservar.
+- **pandas con datos enormes**: pandas carga todo en memoria y suele necesitar de 5 a 10 veces el tamaño del archivo en RAM. Con un CSV de 5 GB, tu computadora no alcanza.
+- **`SettingWithCopyWarning` en pandas**: modificaste una "vista" de un DataFrame filtrado. Usa `.copy()` después de filtrar si vas a modificar el resultado.
+>> trabajo
+- Los pipelines en Python puro siguen existiendo para fuentes chicas: APIs, archivos de proveedores, planillas. En cuanto el volumen crece, la misma lógica se lleva a PySpark o a SQL con dbt.
+- La "cuarentena" de filas inválidas es una práctica estándar: una tabla con la fila original, el motivo y la fecha. Operaciones la revisa, corrige el origen y se reprocesa.
+>> entrevista "¿Cómo diseñarías la extracción diaria de una API paginada con límite de solicitudes?"
+Menciona: autenticación con un token desde un gestor de secretos; extracción incremental (pedir solo lo nuevo desde la última fecha cargada); paginación hasta que no haya más resultados; reintentos con espera exponencial ante `429` y `5xx`; timeout en cada llamada; guardar la respuesta cruda en el lake antes de transformar; y que todo sea idempotente, para poder volver a correr un día sin duplicar.
+
+@@ 14-buenas-practicas
+objetivos: Aislar las dependencias de cada proyecto con entornos virtuales | Organizar un proyecto de Python en carpetas con código, tests y configuración | Escribir tests con pytest siguiendo preparar, ejecutar y verificar | Registrar el progreso con logging y leer secretos desde variables de entorno
+prerrequisitos: python-funciones | fundamentos-git
+autoevaluacion: ¿Puedes crear un entorno virtual, instalar paquetes y guardar las versiones? | ¿Puedes escribir un test con `assert` para una función de limpieza, incluidos los casos borde? | ¿Sabes qué nivel de log usar para "cargué 12.000 filas" y para "descarté 12 filas"? | ¿Sabes dónde debe estar la contraseña de la base de producción? | ¿Puedes señalar cinco problemas en un script "rápido" y cómo corregirlos?
+>> escenario El script que solo funciona en la computadora de Pedro
+Martín te pasa un script que alguien escribió hace un año:
+
+> "Pedro se fue de la empresa y nadie más lo puede correr: tiene rutas de su computadora, una contraseña escrita adentro y ningún test. Convertilo en algo que el equipo pueda mantener."
+
+Que el código funcione en tu computadora es el primer paso. Que **otros** lo puedan instalar, probar, entender y ejecutar en producción es lo que hace a un profesional.
+>> errores
+- **Instalar paquetes sin entorno virtual**: terminan mezclados con los de otros proyectos y del sistema, y un día una actualización rompe todo.
+- **`requirements.txt` sin versiones**: `pandas` a secas instala la última versión, que puede cambiar el comportamiento. Fija las versiones (`pandas==2.2.2`) o usa un archivo de bloqueo.
+- **Tests que dependen de la red o de una base real**: son lentos y fallan por razones ajenas al código. Prueba las funciones de transformación con datos chicos escritos en el test.
+- **Subir el `.env`**: agrega `.env` al `.gitignore` antes del primer commit.
+>> trabajo
+- En los equipos de datos, cada pull request ejecuta en CI los tests (`pytest`), el linter (`ruff`) y a veces el chequeo de tipos (`mypy`). Si algo falla, no se puede unir el cambio.
+- Los logs de los pipelines terminan en sistemas centralizados (CloudWatch, Azure Monitor, Datadog), donde se buscan y se configuran alertas. Un buen mensaje de log incluye siempre **cuántas filas** se procesaron.
+
+@@ 15-desafios
+objetivos: Seguir un método para resolver desafíos: entender, casos borde, solución simple, mejora | Estimar la complejidad de una solución con notación O | Bajar una solución de O(n²) a O(n) usando diccionarios y conjuntos | Explicar en voz alta tu razonamiento como en una entrevista real
+prerrequisitos: python-diccionarios | python-python-avanzado
+autoevaluacion: ¿Puedes explicar qué significa O(n²) con un ejemplo? | ¿Puedes resolver "dos que suman" en una sola pasada? | ¿Puedes fusionar intervalos superpuestos? | ¿Puedes aplanar un diccionario anidado? | ¿Sabes qué casos borde revisar antes de decir "listo"?
+>> escenario La prueba técnica de Python
+En la entrevista para data engineer semi senior, después de SQL viene la parte de Python:
+
+> "Tienes 45 minutos para tres problemas. Puedes elegir el orden. Lo importante es que nos cuentes cómo piensas."
+
+Estos desafíos no buscan algoritmos rebuscados: buscan que manejes bien diccionarios, conjuntos, ordenamiento y casos borde, y que expliques tu razonamiento.
+>> trabajo
+- Más allá de la entrevista, estas técnicas aparecen en el trabajo: deduplicar con un `set`, unir datos con un `dict` (un join en memoria), fusionar intervalos para calcular sesiones o tiempos de conexión.
+- En una entrevista real, preguntar por los casos borde antes de escribir es tan importante como la solución. "¿La lista puede estar vacía? ¿Puede haber empates?" muestra criterio profesional.
