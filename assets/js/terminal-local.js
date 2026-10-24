@@ -859,5 +859,61 @@
     return fail(`Error: unknown command "${a[1]}" for "astro dev"`);
   });
 
+  // ================================================================== nube desde tu computadora: versiones, SSO, presupuestos
+  const awsBase = Commands.aws, gcloudBase = Commands.gcloud, azBase = Commands.az;
+  def('aws', 'AWS CLI simulada (s3, sts, iam, glue, athena, sso, budgets…)', async (a, ctx) => {
+    if (a[0] === '--version') return ok('aws-cli/2.18.12 Python/3.12.6 Linux/5.15.167.4-microsoft-standard-WSL2 exe/x86_64.ubuntu.24');
+    if (a[0] === 'sso' && a[1] === 'login') { const c = window.CloudSim.aws(); c.configured = true; save(); return ok(`Attempting to automatically open the SSO authorization page in your default browser.\nIf the browser does not open, open the following URL:\n\nhttps://device.sso.us-east-1.amazonaws.com/\n\nThen enter the code:\n\n${uid(4).toUpperCase()}-${uid(4).toUpperCase()}\nSuccessfully logged into Start URL: https://academia.awsapps.com/start`); }
+    if (a[0] === 'sso' && a[1] === 'logout') { window.CloudSim.aws().configured = false; save(); return ok(''); }
+    if (a[0] === 'budgets') {
+      const B = (Machine.cloud.presupuestos = Machine.cloud.presupuestos || {});
+      if (!window.CloudSim.aws().configured && !(ctx && ctx.opts && ctx.opts.autoLogin)) return fail('Unable to locate credentials. You can configure credentials by running "aws configure".', 253);
+      if (a[1] === 'create-budget') {
+        const i = a.indexOf('--budget'); let b;
+        try { b = JSON.parse(a[i + 1]); } catch (e) { return fail("aws: error: argument --budget: Invalid JSON: Expecting value. Ejemplo: --budget '{\"BudgetName\":\"mensual\",\"BudgetLimit\":{\"Amount\":\"10\",\"Unit\":\"USD\"},\"TimeUnit\":\"MONTHLY\",\"BudgetType\":\"COST\"}'", 252); }
+        if (!b.BudgetName || !b.BudgetLimit) return fail('An error occurred (InvalidParameterException) when calling the CreateBudget operation: BudgetName and BudgetLimit are required', 254);
+        B[b.BudgetName] = b; save(); return ok('');
+      }
+      if (a[1] === 'describe-budgets') {
+        let d = { Budgets: Object.values(B).map((b) => Object.assign({ CalculatedSpend: { ActualSpend: { Amount: '0.42', Unit: 'USD' } } }, b)) };
+        if (a.includes('--query')) d = window.CloudSim.jmes(d, a[a.indexOf('--query') + 1]);
+        if (a.includes('--output') && a[a.indexOf('--output') + 1] === 'text') return ok([].concat(d).join('\t'));
+        return ok(JSON.stringify(d, null, 4));
+      }
+      if (a[1] === 'delete-budget') { delete B[a[a.indexOf('--budget-name') + 1]]; save(); return ok(''); }
+    }
+    return awsBase(a, ctx);
+  });
+  def('gcloud', 'Google Cloud CLI simulada (auth, config, storage, pubsub, billing budgets…)', async (a, ctx) => {
+    if (a[0] === '--version' || a[0] === 'version') return ok('Google Cloud SDK 499.0.0\nbq 2.1.9\ncore 2024.11.08\ngcloud-crc32c 1.0.0\ngsutil 5.31');
+    if (a[0] === 'init') {
+      const g = window.CloudSim.gcp(); g.account = g.account || 'alumno@academia.dev'; g.project = g.project || 'academia-datos-dev'; save();
+      return ok(`Welcome! This command will take you through the configuration of gcloud.\n\nYou are logged in as: [${g.account}].\n\nPick cloud project to use:\n [1] academia-datos-dev\n [2] Create a new project\nPlease enter numeric choice: 1\n\nYour current project has been set to: [${g.project}].\n\nYour Google Cloud SDK is configured and ready to use!`);
+    }
+    if (a[0] === 'billing' && a[1] === 'budgets') {
+      const B = (Machine.cloud.presupuestosGcp = Machine.cloud.presupuestosGcp || {});
+      if (a[2] === 'create') {
+        const nombre = (a.find((x) => x.startsWith('--display-name=')) || '').split('=')[1] || a[a.indexOf('--display-name') + 1];
+        const monto = (a.find((x) => x.startsWith('--budget-amount=')) || '').split('=')[1] || a[a.indexOf('--budget-amount') + 1];
+        if (!a.some((x) => x.startsWith('--billing-account'))) return fail('ERROR: (gcloud.billing.budgets.create) argument --billing-account: Must be specified.');
+        if (!nombre || !monto) return fail('ERROR: (gcloud.billing.budgets.create) --display-name y --budget-amount son obligatorios');
+        B[nombre] = { displayName: nombre, amount: monto }; save();
+        return ok(`Created budget [billingAccounts/0X0X0X-0X0X0X-0X0X0X/budgets/${uid(8)}-${uid(4)}].`);
+      }
+      if (a[2] === 'list') return ok(Object.values(B).map((b) => `---\namount:\n  specifiedAmount:\n    currencyCode: USD\n    units: '${String(b.amount).replace(/USD$/i, '')}'\ndisplayName: ${b.displayName}`).join('\n'));
+    }
+    return gcloudBase(a, ctx);
+  });
+  def('az', 'Azure CLI simulada (login, account, group, storage, keyvault, consumption…)', async (a, ctx) => {
+    if (a[0] === '--version' || a[0] === 'version') return ok('azure-cli                         2.66.0\n\ncore                              2.66.0\ntelemetry                          1.1.0\n\nPython location \'/opt/az/bin/python3\'\nYour CLI is up-to-date.');
+    if (a[0] === 'consumption' && a[1] === 'budget' && a[2] === 'create') {
+      const nombre = a[a.indexOf('--budget-name') + 1]; const monto = a[a.indexOf('--amount') + 1];
+      if (!a.includes('--budget-name') || !a.includes('--amount')) return fail('the following arguments are required: --budget-name, --amount');
+      (Machine.cloud.presupuestosAz = Machine.cloud.presupuestosAz || {})[nombre] = { amount: monto }; save();
+      return ok(JSON.stringify({ amount: monto, category: 'Cost', name: nombre, timeGrain: 'Monthly' }, null, 2));
+    }
+    return azBase(a, ctx);
+  });
+
   window.LocalSim = { yaml, parseCsv, dk };
 })();
