@@ -3,8 +3,19 @@ titulo: Dialectos de SQL: SQLite, PostgreSQL, SQL Server, Spark
 nivel: Experto
 duracion: 35
 resumen: Lo que cambia entre motores y cómo traducir tus consultas a Databricks / Spark SQL.
+objetivos: Reconocer las diferencias más comunes entre SQLite, PostgreSQL, SQL Server, BigQuery y Spark SQL | Traducir funciones de fecha, texto y límites de un dialecto a otro | Anticipar diferencias que no dan error pero cambian el resultado | Aprender un dialecto nuevo con un método rápido
+prerrequisitos: sql-fechas | sql-ventanas-1
+autoevaluacion: ¿Sabes cómo se escribe "las primeras 10 filas" en SQL Server? | ¿Sabes cómo se obtiene el año de una fecha en Spark SQL y en SQL Server? | ¿Sabes en qué motores `7 / 2` da 3 y en cuáles 3.5? | ¿Sabes qué es `QUALIFY` y en qué motores existe? | ¿Tienes un plan para aprender el SQL de una plataforma nueva en una tarde?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La migración a Databricks
+Martín trae novedades:
+
+> "La empresa decidió migrar el warehouse a Databricks. Tenemos 200 consultas escritas para PostgreSQL y SQL Server. No hay que reescribirlas desde cero, pero sí revisarlas una por una."
+
+SQL es un estándar, pero cada motor tiene su "acento". La mayoría de las diferencias dan error y se corrigen rápido. Las peligrosas son las que **no dan error** y devuelven otro número.
+:::
 ## Un idioma, muchos acentos
 
 SQL tiene un **estándar** (ANSI/ISO SQL) que define el núcleo común: `SELECT`, `JOIN`, `GROUP BY`, `CASE`, CTE, funciones de ventana. Todo eso funciona igual en casi cualquier motor. Pero cada fabricante agregó, a lo largo de décadas, sus propias funciones y atajos: esas variantes se llaman **dialectos**.
@@ -93,6 +104,23 @@ Herramientas como **sqlglot** (Python) traducen automáticamente entre dialectos
 
 :::tip Consejo profesional
 Escribe SQL lo más **estándar** posible (CTE, `COALESCE`, `CASE`, ventanas, `CAST`) y usa los trucos específicos solo cuando aporten mucho. Tu código será más fácil de leer para otros y de migrar entre motores, algo que pasa más seguido de lo que crees (de un PostgreSQL a Snowflake, de un Hive a Databricks…).
+:::
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **División entera**: `7 / 2` es 3 en PostgreSQL, SQL Server y SQLite, pero 3.5 en Spark SQL, BigQuery (con `/`) y MySQL. Una métrica migrada puede cambiar sin avisar.
+- **Comparación de textos**: SQL Server y MySQL suelen ignorar mayúsculas al comparar (`'ana' = 'ANA'` es verdadero); PostgreSQL, Spark y BigQuery no.
+- **NULL al ordenar**: PostgreSQL pone los NULL al final en orden ascendente; SQL Server y SQLite, al principio. Usa `NULLS FIRST`/`NULLS LAST` donde exista.
+- **Funciones de fecha con argumentos en distinto orden**: `DATEDIFF(day, inicio, fin)` en SQL Server y `DATEDIFF(fin, inicio)` en Spark. Si los inviertes, el signo cambia.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En una migración real se arma un **conjunto de pruebas**: se ejecuta cada consulta en el motor viejo y en el nuevo y se comparan los resultados (con `EXCEPT` o comparando totales). Las diferencias muestran justamente los errores silenciosos.
+- Herramientas como **sqlglot** traducen SQL entre dialectos automáticamente. Sirven como primer paso, pero el resultado se revisa igual.
+- dbt ayuda a escribir SQL portable con macros que se traducen según el motor (`dateadd`, `datediff`, `type_string`).
 :::
 
 :::ejercicio quiz

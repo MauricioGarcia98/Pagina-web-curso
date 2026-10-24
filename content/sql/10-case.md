@@ -175,6 +175,9 @@ También dentro de `WHERE` (aunque casi siempre se puede escribir más simple co
 
 
 
+
+
+
 <!-- estandar:errores -->
 :::errores
 - **Condiciones en el orden equivocado**: `CASE WHEN precio < 300 THEN 'medio' WHEN precio < 50 THEN 'económico' ...` nunca devuelve `'económico'`, porque un precio de 20 ya cumplió la primera condición. Escribe las condiciones de la más restrictiva a la más general.

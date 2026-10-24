@@ -3,8 +3,19 @@ titulo: Funciones de ventana II: acumulados, LAG/LEAD y marcos
 nivel: Avanzado
 duracion: 50
 resumen: Totales acumulados, promedios móviles, comparar con el periodo anterior, FIRST_VALUE, NTILE y percentiles.
+objetivos: Calcular totales acumulados y promedios móviles con marcos de ventana | Elegir entre `ROWS` y `RANGE` sabiendo cómo tratan los empates | Comparar cada fila con la anterior o la siguiente usando `LAG` y `LEAD` | Calcular variaciones porcentuales período contra período
+prerrequisitos: sql-ventanas-1
+autoevaluacion: ¿Puedes calcular las ventas diarias y el acumulado del mes? | ¿Puedes calcular un promedio móvil de 3 meses? | ¿Sabes qué devuelve `LAG` en la primera fila y cómo cambiarlo? | ¿Puedes calcular la variación de ventas año contra año? | ¿Sabes por qué `LAST_VALUE` sin marco explícito devuelve la fila actual?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El acumulado del mes
+Diego, de finanzas, quiere seguir el mes en tiempo real:
+
+> "Necesito un reporte con los pedidos de cada día de diciembre y el acumulado del mes, para ver si llegamos a la meta. Y el directorio pide la variación de facturación año contra año."
+
+Un acumulado necesita "todas las filas anteriores", y una variación necesita "la fila anterior". Las funciones de ventana con **marcos** y las funciones `LAG`/`LEAD` resuelven exactamente eso.
+:::
 ## Más allá del ranking
 
 En la lección anterior usaste `ORDER BY` dentro de `OVER` para numerar filas. Ese mismo orden abre otras puertas: **acumular** ("ventas acumuladas del año"), **suavizar** ("promedio de los últimos 3 meses") y **comparar con filas vecinas** ("¿cuánto crecimos respecto al mes anterior?", "¿cuántos días pasaron desde la compra anterior?"). Son las herramientas de cualquier análisis temporal.
@@ -215,6 +226,29 @@ LIMIT 10;
 ```
 
 Funciona en SQLite, PostgreSQL, MySQL 8 y Spark. Hace el código más corto y evita que dos ventanas "iguales" queden distintas por un error de tipeo.
+
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **El marco por defecto**: con `ORDER BY` y sin marco, la ventana es `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`. Si hay dos filas con la misma fecha, las dos reciben el mismo acumulado. Si quieres fila por fila, escribe `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`.
+- **Promedio móvil con huecos**: `ROWS BETWEEN 2 PRECEDING AND CURRENT ROW` toma las 2 filas anteriores, no los 2 meses anteriores. Si falta un mes en los datos, el promedio mezcla meses que no son consecutivos. Rellena los huecos con una tabla calendario.
+- **División por el período anterior cuando es cero o nulo**: `(actual - anterior) / anterior` falla o da infinito. Usa `NULLIF(anterior, 0)`.
+- **`LAST_VALUE` engañoso**: con el marco por defecto, termina en la fila actual. Usa `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`, o `FIRST_VALUE` con el orden invertido.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Los acumulados ("ventas del mes a la fecha", *MTD*; "del año a la fecha", *YTD*) y las comparaciones con el período anterior son las métricas más pedidas en los dashboards. Normalmente se calculan en la capa gold, una vez, y no en cada dashboard.
+- `LAG` sobre eventos ordenados por tiempo es la base de la **sesionización** y de la detección de rachas, que verás en la lección de patrones.
+- En entrevistas y en el trabajo, aclara siempre si un promedio móvil de "3 meses" incluye o no el mes actual: es una de las ambigüedades más comunes en los pedidos del negocio.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "Calcula el crecimiento mes a mes de las ventas"
+Agrega primero por mes (en una CTE), y después usa `LAG(ventas) OVER (ORDER BY mes)` para traer el mes anterior y calcular `ROUND(100.0 * (ventas - anterior) / NULLIF(anterior, 0), 2)`. Menciona los meses sin ventas (rellenar con calendario) y que el primer mes queda en NULL a propósito.
+:::
 
 ## Resumen
 

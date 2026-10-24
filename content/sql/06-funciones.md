@@ -172,6 +172,8 @@ LIMIT 10;
 
 
 
+
+
 <!-- estandar:errores -->
 :::errores
 - **División entera**: `cantidad / total` con dos enteros da 0 en vez de 0,25. Multiplica por `1.0` o convierte con `CAST(x AS REAL)` antes de dividir.

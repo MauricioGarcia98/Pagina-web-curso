@@ -3,8 +3,19 @@ titulo: CTE: consultas legibles con WITH
 nivel: Avanzado
 duracion: 35
 resumen: Common Table Expressions para dividir un problema en pasos con nombre.
+objetivos: Reescribir una consulta anidada como una secuencia de pasos con `WITH` | Encadenar varias CTE donde cada una usa la anterior | Usar CTE para calcular métricas en dos niveles (por pedido y después por cliente) | Explicar por qué los equipos prefieren CTE para código que otros van a mantener
+prerrequisitos: sql-subconsultas
+autoevaluacion: ¿Puedes escribir la sintaxis de una consulta con dos CTE encadenadas sin mirar? | ¿Puedes encontrar los clientes que gastaron más de tres veces el promedio usando CTE? | ¿Sabes dónde van las comas entre CTE y dónde no? | ¿Puedes crear una pequeña tabla de datos "a mano" dentro de una CTE? | ¿Sabes si una CTE hace más rápida una consulta?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los clientes VIP
+Valentina quiere lanzar un programa de fidelización:
+
+> "Quiero saber quiénes son nuestros clientes VIP: los que gastaron mucho más que el promedio. Digamos más de tres veces. Y necesito que la lógica quede clara, porque marketing la va a revisar."
+
+Con subconsultas se puede, pero el resultado se lee de adentro hacia afuera y nadie lo entiende. Las **CTE** permiten escribirlo como una receta: primero esto, después aquello. Es como escriben SQL los equipos profesionales.
+:::
 ## El problema: consultas que se leen de adentro hacia afuera
 
 Con subconsultas puedes resolver problemas de varios pasos, pero el código se lee **al revés**: lo primero que se ejecuta está en el paréntesis más profundo, y para entender la consulta tienes que empezar por el medio. Con dos o tres niveles de anidamiento, nadie (ni tú dentro de un mes) entiende qué hace.
@@ -149,6 +160,20 @@ No necesariamente. La mayoría de los motores modernos (PostgreSQL 12+, Spark, S
 ## Lo que viene: CTE recursivas
 
 Hay un tipo especial de CTE que se usa **a sí misma** para recorrer jerarquías (el organigrama de la empresa, categorías dentro de categorías) o generar secuencias (todos los días de un año). Lo verás en la lección 18.
+
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En dbt, **cada modelo** es una sucesión de CTE: una por cada fuente (`with pedidos as (select * from {{ ref('stg_pedidos') }})`), una por cada paso de lógica y un `select` final. Si aprendes a pensar en CTE, ya escribes como un analytics engineer.
+- Nombra las CTE por **lo que contienen** (`ventas_por_cliente`, `clientes_vip`), no por el paso (`paso1`, `tmp`). Quien revise tu código lee los nombres como si fuera un índice.
+- Para depurar, puedes cambiar el `SELECT` final por `SELECT * FROM una_cte_intermedia LIMIT 20` y ver qué hay en ese paso, sin tocar nada más.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Qué diferencia hay entre una CTE, una subconsulta y una tabla temporal?"
+Una **CTE** y una **subconsulta** existen solo durante esa consulta; la CTE tiene nombre, se puede reutilizar dentro de la consulta y permite recursión. Una **tabla temporal** se guarda (en memoria o disco) durante la sesión y se puede consultar varias veces e indexar, lo que conviene cuando un resultado intermedio caro se usa en muchas consultas.
+:::
 
 ## Resumen
 

@@ -3,8 +3,19 @@ titulo: Crear y modificar datos: DDL, DML y transacciones
 nivel: Avanzado
 duracion: 50
 resumen: CREATE TABLE, restricciones, INSERT, UPDATE, DELETE, UPSERT, vistas y transacciones ACID.
+objetivos: Crear tablas con tipos, claves y restricciones adecuadas | Insertar, actualizar y borrar filas de forma segura | Hacer un upsert (insertar o actualizar) con `INSERT … ON CONFLICT` | Explicar qué garantizan las transacciones (ACID) y cuándo usarlas
+prerrequisitos: sql-where | sql-null
+autoevaluacion: ¿Puedes crear una tabla con clave primaria, columnas obligatorias y un valor por defecto? | ¿Sabes qué hacer antes de ejecutar un `UPDATE` o un `DELETE` para no romper datos? | ¿Puedes crear una tabla a partir del resultado de una consulta? | ¿Puedes actualizar el stock si el producto existe o insertarlo si no? | ¿Sabes qué pasa con los cambios de una transacción si el segundo `UPDATE` falla?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La tabla de cupones
+Camila va a lanzar cupones de descuento y el equipo de desarrollo te pide ayuda:
+
+> "Necesitamos una tabla nueva para los cupones: código, descuento y fecha de vencimiento. Ah, y Valentina pidió subir un 5 % los precios de Audio. ¿Lo haces tú?"
+
+Hasta ahora solo **leías** datos. Ahora vas a **crearlos y modificarlos**. Es poder real, y con poder real se pueden hacer daños reales: esta lección también es sobre cómo no borrar una tabla de producción.
+:::
 ## De leer a escribir
 
 Hasta ahora solo **leíste** datos: ningún `SELECT` cambia nada. Pero alguien tiene que **crear** las tablas, **cargar** las filas y **corregirlas**. En ingeniería de datos lo harás todo el tiempo: crear tablas de staging, cargar el lote del día, actualizar el estado de un pedido, borrar datos de prueba, y hacerlo de forma **segura**, porque aquí sí puedes romper cosas.
@@ -215,6 +226,21 @@ SELECT * FROM v_ventas_diarias ORDER BY dia DESC LIMIT 5;
 | Uso típico | Simplificar consultas, ocultar columnas sensibles | Capas de un pipeline | Dashboards con agregados frecuentes |
 
 En dbt, elegir entre vista y tabla es elegir la **materialización** de un modelo (`view`, `table`, `incremental`).
+
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En una empresa, casi nunca se ejecuta un `UPDATE` o `DELETE` a mano en producción. Los cambios de estructura (`CREATE`, `ALTER`) van en **migraciones** versionadas en Git y revisadas por otra persona, y los cambios de datos los hacen los pipelines.
+- Si de verdad hay que corregir datos a mano: primero un `SELECT` con el mismo `WHERE` para ver qué filas se van a tocar, después el cambio **dentro de una transacción**, revisar el número de filas afectadas y recién ahí `COMMIT`.
+- En los data lakes con Delta Lake o Iceberg existen `UPDATE`, `DELETE` y `MERGE`, y además *time travel*: si algo sale mal, se puede volver a la versión anterior de la tabla.
+- El upsert (`MERGE`) es la operación central de las cargas incrementales: "si el cliente ya existe, actualízalo; si no, insértalo".
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "¿Qué significa ACID?"
+**Atomicidad** (la transacción se aplica completa o no se aplica), **Consistencia** (deja la base en un estado válido según sus reglas), **Aislamiento** (las transacciones simultáneas no ven los cambios a medias de las otras) y **Durabilidad** (lo confirmado sobrevive a un corte de luz). Un buen ejemplo: transferir dinero entre dos cuentas, que son dos `UPDATE` que tienen que ocurrir juntos.
+:::
 
 ## Resumen
 

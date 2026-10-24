@@ -178,6 +178,8 @@ Es muy útil para probar una expresión antes de usarla en una consulta grande.
 
 
 
+
+
 <!-- estandar:errores -->
 :::errores
 - **Olvidar una coma**: `SELECT nombre precio FROM productos` no da error, pero muestra **una sola columna** llamada `precio` con el contenido de `nombre` (SQL entiende que `precio` es un alias). Si un resultado tiene menos columnas de las esperadas, busca la coma que falta.

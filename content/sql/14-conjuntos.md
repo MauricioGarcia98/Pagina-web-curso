@@ -3,8 +3,19 @@ titulo: UNION, INTERSECT y EXCEPT
 nivel: Intermedio
 duracion: 30
 resumen: Combinar resultados de varias consultas verticalmente.
+objetivos: Apilar resultados de varias consultas con `UNION` y `UNION ALL` | Elegir entre `UNION` y `UNION ALL` según si quieres eliminar repetidos | Encontrar coincidencias y diferencias entre dos conjuntos con `INTERSECT` y `EXCEPT` | Comparar dos tablas para validar un pipeline
+prerrequisitos: sql-where
+autoevaluacion: ¿Sabes qué diferencia hay entre `UNION` y `UNION ALL`, y cuál es más rápido? | ¿Sabes qué condiciones deben cumplir las consultas para poder unirlas con `UNION`? | ¿Puedes encontrar los clientes que compraron en 2022 pero no en 2024? | ¿Puedes encontrar los clientes que compraron por web y también en tienda? | ¿Sabes cómo usar `EXCEPT` para comprobar que dos tablas son iguales?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los clientes que se fueron
+Camila quiere entender la fuga de clientes:
+
+> "¿Qué clientes compraron en 2022 y nunca más volvieron en 2024? Y al revés, ¿quiénes compran tanto online como en la tienda física? Esos son nuestros mejores clientes."
+
+Son preguntas sobre **conjuntos** de clientes: los de un año menos los de otro, los que están en los dos grupos. SQL tiene operadores pensados exactamente para eso.
+:::
 ## Combinar resultados "hacia abajo"
 
 Los `JOIN` combinan tablas **a lo ancho**: pegan columnas de una tabla al lado de las de otra. Los **operadores de conjuntos** combinan resultados **a lo largo**: apilan las filas de una consulta **debajo** de las de otra.
@@ -113,6 +124,23 @@ FROM (
 ) AS todos
 GROUP BY tipo;
 ```
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Usar `UNION` cuando querías todas las filas**: `UNION` elimina duplicados. Si apilas las ventas de dos meses y dos ventas son idénticas, una desaparece. Para apilar datos, usa `UNION ALL`.
+- **Columnas en distinto orden**: `UNION` empareja por **posición**, no por nombre. `SELECT nombre, ciudad ... UNION SELECT ciudad, nombre ...` mezcla ciudades con nombres sin dar error.
+- **`ORDER BY` en cada parte**: solo se permite un `ORDER BY`, al final de todo.
+- **`EXCEPT` no es simétrico**: `A EXCEPT B` (lo que está en A y no en B) no es lo mismo que `B EXCEPT A`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- `UNION ALL` es la forma estándar de juntar datos que llegan partidos: una tabla por país, por año o por sistema de origen. En dbt existe la macro `union_relations` para hacerlo con tablas que tienen columnas distintas.
+- `EXCEPT` en las dos direcciones es una prueba clásica de **regresión** en pipelines: después de reescribir un modelo, comparas el resultado nuevo con el viejo. Si `nuevo EXCEPT viejo` y `viejo EXCEPT nuevo` están vacíos, tu cambio no alteró los datos.
+- `UNION` (sin ALL) obliga a la base a ordenar o comparar todas las filas para quitar duplicados: en tablas grandes, es mucho más lento.
+:::
 
 ## Resumen
 

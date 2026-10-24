@@ -3,8 +3,19 @@ titulo: Modelado de datos: normalización y esquema estrella
 nivel: Experto
 duracion: 35
 resumen: Normalización, OLTP vs OLAP, hechos y dimensiones, granularidad y SCD tipo 2.
+objetivos: Explicar la normalización y para qué sirve en sistemas transaccionales | Diseñar un esquema estrella con una tabla de hechos y sus dimensiones | Definir el grano de una tabla de hechos antes de construirla | Elegir un tipo de dimensión lentamente cambiante (SCD 1 o 2) según la pregunta del negocio
+prerrequisitos: sql-joins | sql-ddl-dml
+autoevaluacion: ¿Puedes explicar la diferencia entre un modelo normalizado y uno dimensional? | ¿Puedes definir el grano de una tabla de hechos de ventas en una frase? | ¿Sabes qué va en una tabla de hechos y qué va en una dimensión? | ¿Sabes qué tipo de SCD usar si las ventas pasadas deben conservar el segmento que tenía el cliente en ese momento? | ¿Puedes construir una tabla de hechos y una dimensión con las tablas de la tienda?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El modelo para el nuevo dashboard
+Martín te da tu primera tarea de diseño:
+
+> "Vamos a reconstruir el dashboard de ventas desde cero. Antes de escribir una línea, quiero que propongas el modelo de datos: qué tablas, con qué columnas y a qué nivel de detalle. Lo revisamos juntos el jueves."
+
+Hasta ahora consultabas tablas que alguien más diseñó. Ahora te toca **diseñarlas**. Un buen modelo hace que todas las consultas futuras sean simples; uno malo te persigue durante años.
+:::
 Saber consultar es la mitad del trabajo. La otra mitad es **diseñar** las tablas para que las consultas sean simples, correctas y rápidas.
 
 ## Normalización (mundo OLTP)
@@ -124,6 +135,23 @@ Una dimensión **conformada** es la misma tabla (por ejemplo `dim_cliente` o `di
 
 :::entrevista "Diseña el modelo de datos para…"
 Es una pregunta habitual en entrevistas de data engineer (una app de viajes, un e-commerce, un banco). El orden que se espera: (1) aclarar las **preguntas de negocio**, (2) definir los **procesos** (viajes, pagos, calificaciones), (3) fijar el **grano** de cada hecho, (4) listar **dimensiones** y **métricas**, (5) explicar cómo manejarías los **cambios** (SCD2) y la **carga incremental**.
+:::
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **No definir el grano**: si la tabla de hechos mezcla filas "por pedido" y "por línea de pedido", cualquier suma da mal. Escribe el grano en una frase antes de empezar: "una fila por línea de pedido".
+- **Métricas de distinto grano en la misma tabla**: el costo de envío es por pedido; si lo pones en cada línea, se suma una vez por producto.
+- **Dimensiones con claves duplicadas**: si `dim_producto` tiene dos filas para el mismo producto, cada venta se cuenta dos veces al unir.
+- **Sobrescribir historia que el negocio necesitaba**: actualizar el segmento del cliente (SCD 1) cambia también los reportes de años anteriores. Pregunta antes si la historia importa.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- El esquema estrella (Kimball) sigue siendo el modelo más usado en analítica, también en lakehouses: la capa gold suele ser un conjunto de tablas `fct_` y `dim_` construidas con dbt.
+- Antes de modelar, se hace una sesión con el negocio para listar las **preguntas** que el modelo tiene que responder. El modelo se diseña desde las preguntas, no desde las tablas de origen.
+- Las SCD tipo 2 se implementan con los **snapshots** de dbt o con `MERGE` en Delta Lake. Las vas a construir en esos módulos.
 :::
 
 ## Ejercicios

@@ -47,7 +47,8 @@ def leer_piezas(texto):
                     meta[mm.group(1)] = mm.group(2).strip()
             else:
                 actual[2].append(linea)
-        piezas[nombre.strip()] = (meta, [(k, t, '\n'.join(c).strip()) for k, t, c in secciones])
+        # un ':::' de cierre escrito por costumbre se ignora: el script ya cierra el bloque
+        piezas[nombre.strip()] = (meta, [(k, t, re.sub(r'\n?:::\s*$', '', '\n'.join(c).strip())) for k, t, c in secciones])
     return piezas
 
 

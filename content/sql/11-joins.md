@@ -180,6 +180,9 @@ Verás código viejo que une tablas con comas y pone la condición en el `WHERE`
 
 
 
+
+
+
 <!-- estandar:errores -->
 :::errores
 - **Unir por la columna equivocada**: `ON p.pedido_id = c.cliente_id` no da error, pero mezcla datos que no tienen nada que ver. Une siempre la clave foránea con la clave primaria que le corresponde.

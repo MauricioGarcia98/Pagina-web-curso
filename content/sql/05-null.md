@@ -164,6 +164,8 @@ Si `stock` es 0, `NULLIF(stock, 0)` devuelve `NULL`, y `precio / NULL` es `NULL`
 
 
 
+
+
 <!-- estandar:trabajo -->
 :::trabajo
 - En los pipelines, los NULL se tratan a propósito en la capa **silver**: se decide, columna por columna, si un nulo significa "no se sabe", "no aplica" o "cero", y se documenta. Nunca se reemplaza un nulo por `0` sin preguntar: el promedio de ventas cambia por completo.

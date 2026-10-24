@@ -160,6 +160,9 @@ Hay 2.000 nombres y un solo conteo: no hay una respuesta lógica. PostgreSQL, SQ
 
 
 
+
+
+
 <!-- estandar:errores -->
 :::errores
 - **`COUNT(*)` cuando querías clientes distintos**: `COUNT(*)` sobre `pedidos` cuenta pedidos, no clientes. Para clientes, `COUNT(DISTINCT cliente_id)`.

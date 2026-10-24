@@ -3,8 +3,19 @@ titulo: Funciones de ventana I: rankings
 nivel: Avanzado
 duracion: 45
 resumen: OVER, PARTITION BY, ROW_NUMBER, RANK, DENSE_RANK y el top-N por grupo.
+objetivos: Calcular agregaciones sin perder el detalle de cada fila con `OVER (PARTITION BY …)` | Numerar y rankear filas con `ROW_NUMBER`, `RANK` y `DENSE_RANK`, eligiendo según los empates | Resolver el patrón "top N por grupo" | Calcular la participación de cada fila en el total de su grupo
+prerrequisitos: sql-group-by | sql-cte
+autoevaluacion: ¿Puedes mostrar cada empleado junto al salario promedio de su departamento? | ¿Sabes qué diferencia hay entre `RANK` y `DENSE_RANK` cuando hay empates? | ¿Puedes mostrar el último pedido de cada cliente? | ¿Puedes calcular qué porcentaje de las ventas de su categoría representa cada producto? | ¿Sabes por qué no se puede filtrar una función de ventana en el `WHERE`?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El top 2 por categoría
+Valentina prepara la vidriera de la home:
+
+> "Para cada categoría, quiero los 2 productos más caros, para destacarlos. Y para cada cliente, ¿cuál fue su último pedido? Marketing quiere mandar un mail de 'vuelve a comprar'."
+
+Con `GROUP BY` obtienes una fila por categoría, pero pierdes los productos. Necesitas calcular algo **por grupo** sin colapsar las filas. Eso hacen las **funciones de ventana**, la herramienta más pedida en entrevistas de SQL.
+:::
 ## El límite de GROUP BY
 
 Con `GROUP BY` puedes calcular el precio promedio **por categoría**. Pero el resultado tiene **una fila por categoría**: perdiste el detalle de cada producto. ¿Y si quieres ver **cada producto** junto al promedio de su categoría, o su **puesto** dentro de su marca? Necesitas un cálculo de grupo **sin colapsar las filas**. Eso hacen las **funciones de ventana** (*window functions*).
@@ -153,6 +164,23 @@ SELECT nombre, precio,
 FROM productos
 LIMIT 10;
 ```
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Filtrar la ventana en el `WHERE`**: `WHERE ROW_NUMBER() OVER (...) <= 2` da error, porque las ventanas se calculan **después** del `WHERE`. Calcula la ventana en una CTE y filtra afuera.
+- **`ROW_NUMBER` con empates**: si dos productos cuestan lo mismo, `ROW_NUMBER` elige uno al azar. Agrega un desempate al `ORDER BY` de la ventana o usa `RANK`/`DENSE_RANK` si quieres incluir a los dos.
+- **Olvidar el `PARTITION BY`**: sin él, la ventana es toda la tabla. `ROW_NUMBER() OVER (ORDER BY precio DESC)` numera todos los productos juntos, no dentro de cada categoría.
+- **Confundir el `ORDER BY` de la ventana con el de la consulta**: el de la ventana define el ranking; el del final define cómo se muestra el resultado. Son independientes.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- `ROW_NUMBER() ... = 1` es **el** patrón para deduplicar en los pipelines: "quedarme con la versión más reciente de cada cliente". Lo vas a escribir en SQL, en PySpark y en dbt (en la capa staging).
+- En Databricks, BigQuery y Snowflake existe `QUALIFY`, que filtra por una ventana sin necesitar una CTE: `... QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha DESC) = 1`.
+- Una ventana con `PARTITION BY` en Spark provoca un *shuffle* por esa columna. Si la columna tiene un valor muy frecuente (por ejemplo, un `cliente_id` nulo), esa partición queda gigante.
+:::
 
 ## Resumen
 

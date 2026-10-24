@@ -3,8 +3,19 @@ titulo: Desafíos SQL de entrevista (nivel senior)
 nivel: Experto
 duracion: 60
 resumen: Problemas reales de entrevistas técnicas para Data Engineer y Analytics Engineer.
+objetivos: Seguir un método para resolver un problema de SQL en una entrevista: aclarar, planificar, escribir, verificar | Reconocer las familias de preguntas que más aparecen | Explicar en voz alta tu razonamiento mientras escribes | Validar tu propia respuesta con casos borde antes de entregarla
+prerrequisitos: sql-patrones | sql-ventanas-2 | sql-rendimiento
+autoevaluacion: ¿Puedes resolver un "top N por grupo" con empates en menos de 10 minutos? | ¿Puedes calcular una mediana sin función de mediana? | ¿Puedes detectar meses consecutivos de compra de un cliente? | ¿Puedes explicar en voz alta qué hace cada CTE de tu solución? | ¿Sabes qué casos borde revisar (nulos, empates, duplicados, períodos vacíos) antes de decir "listo"?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La entrevista para semi senior
+Pasó un año. Te va bien en Tienda Andina y un headhunter te ofrece una entrevista para un puesto de **data engineer semi senior**. Te avisa:
+
+> "La primera etapa es una prueba de SQL en vivo, de 45 minutos, compartiendo pantalla. Suelen ser 3 o 4 problemas de dificultad creciente."
+
+Esta lección es el entrenamiento para ese día: problemas reales de entrevista, con los datos que ya conoces, y un método para no bloquearte.
+:::
 Llegaste al final del módulo de SQL. Estos desafíos combinan todo lo aprendido. Son del tipo que se piden en entrevistas para **Data Engineer**, **Analytics Engineer** y **Data Analyst senior**.
 
 ## Cómo es una entrevista técnica de SQL
@@ -39,6 +50,14 @@ Casi siempre tiene esta forma: te dan 2 a 4 tablas (muy parecidas a las de este 
 2. Escribe la solución en **pasos** con CTEs. Ejecuta cada paso y mira los datos.
 3. Piensa en los **casos borde**: NULLs, empates, clientes sin pedidos, días sin datos.
 4. Recién al final, optimiza.
+:::
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En una entrevista evalúan **cómo piensas** tanto como el resultado. Antes de escribir, repite el problema con tus palabras y pregunta: "¿los pedidos cancelados cuentan?", "¿qué hago con los empates?". Hacer esas preguntas suma puntos: es lo mismo que se espera en el trabajo.
+- Escribe por pasos, con CTE nombradas, y ejecuta cada paso antes de seguir. Una solución en 5 pasos claros vale más que una consulta brillante de 30 líneas que nadie entiende.
+- Al terminar, valida en voz alta: "revisemos un cliente concreto", "¿qué pasa si un mes no tiene ventas?". Encontrar tu propio error antes que el entrevistador es una de las mejores señales que puedes dar.
 :::
 
 :::ejercicio sql dificultad=Experto titulo="Producto estrella por país"

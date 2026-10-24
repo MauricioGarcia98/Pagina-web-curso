@@ -3,8 +3,19 @@ titulo: Subconsultas
 nivel: Intermedio
 duracion: 45
 resumen: Consultas dentro de consultas: escalares, con IN, EXISTS, correlacionadas y tablas derivadas.
+objetivos: Usar una subconsulta escalar para comparar contra un valor calculado (como el promedio) | Filtrar con `IN` y `EXISTS` usando el resultado de otra consulta | Escribir subconsultas correlacionadas y entender su costo | Usar tablas derivadas en el `FROM` para agregar en dos pasos
+prerrequisitos: sql-group-by | sql-joins
+autoevaluacion: ¿Puedes listar los empleados que ganan más que el promedio de la empresa? | ¿Puedes listar los productos más caros que el promedio de su propia categoría? | ¿Sabes cuándo una subconsulta escalar da error? | ¿Sabes por qué `NOT EXISTS` es más seguro que `NOT IN`? | ¿Puedes calcular un promedio de totales por pedido usando una tabla derivada?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Los sueldos sobre el promedio
+Tomás, de personas, sigue con la revisión salarial:
+
+> "¿Quiénes ganan más que el promedio de la empresa? Y otra: ¿qué productos están más caros que el promedio de su categoría? Me lo pidió Valentina para revisar precios."
+
+Para responder necesitas un número que **todavía no tienes** (el promedio) y usarlo dentro de otra consulta. Eso es una subconsulta: una consulta dentro de otra.
+:::
 ## Una consulta dentro de otra
 
 Algunas preguntas necesitan **dos pasos**: "¿qué productos cuestan más **que el promedio**?" Primero hay que calcular el promedio (374,28) y después comparar cada producto contra ese número. Podrías hacer dos consultas y copiar el número a mano, pero sería frágil: mañana el promedio cambia. Una **subconsulta** resuelve ambos pasos en una sola instrucción: es un `SELECT` escrito **entre paréntesis** dentro de otro `SELECT`.
@@ -166,6 +177,28 @@ La tabla derivada **necesita un alias** (`AS t`), aunque no lo uses.
 ## Legibilidad: cuando las subconsultas se anidan
 
 Una subconsulta dentro de otra dentro de otra se lee "de adentro hacia afuera", y se vuelve difícil muy rápido. En la lección 15 aprenderás las **CTE** (`WITH`), que permiten escribir los mismos pasos **en orden, de arriba hacia abajo**, con nombres. Para todo lo que tenga más de un nivel de anidamiento, usa CTE.
+
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Subconsulta escalar que devuelve varias filas**: `WHERE precio > (SELECT precio FROM productos WHERE marca = 'Apple')` falla (o toma solo la primera fila, según el motor). Una subconsulta escalar debe devolver **una fila y una columna**: agrégala con `AVG`, `MAX`, etc.
+- **`NOT IN` con nulos**: si la subconsulta devuelve algún `NULL`, `NOT IN` no devuelve nada. Usa `NOT EXISTS` o filtra los nulos.
+- **Correlacionar con la tabla equivocada**: en una correlacionada, la columna de afuera tiene que llevar el alias de afuera (`p.categoria_id`). Si no pones alias, SQL puede tomar la columna de la tabla de adentro y la condición siempre se cumple.
+- **Subconsultas anidadas en tres niveles**: funcionan, pero nadie las puede leer ni revisar. Pásalas a CTE (próxima lección).
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las subconsultas correlacionadas se ejecutan, en principio, **una vez por fila** de afuera. Los optimizadores modernos suelen reescribirlas como JOIN, pero no siempre. En tablas grandes, revisa el plan o reescríbelas con una CTE + JOIN o con funciones de ventana.
+- En revisión de código, una subconsulta de más de 10 líneas casi siempre recibe el comentario "pásala a una CTE con nombre". La legibilidad es una exigencia del equipo, no un detalle estético.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "Encuentra los productos más caros que el promedio de su categoría"
+Hay tres formas, y conviene mencionar al menos dos: una subconsulta correlacionada (`WHERE precio > (SELECT AVG(precio) FROM productos p2 WHERE p2.categoria_id = p.categoria_id)`), una CTE con el promedio por categoría unida por `categoria_id`, o una función de ventana `AVG(precio) OVER (PARTITION BY categoria_id)`. La de ventana lee la tabla una sola vez.
+:::
 
 ## Resumen
 

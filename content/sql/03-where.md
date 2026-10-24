@@ -190,6 +190,9 @@ Pero **no** puedes usar en el `WHERE` un alias definido en el `SELECT` (`WHERE m
 
 
 
+
+
+
 <!-- estandar:errores -->
 :::errores
 - **Precedencia de AND y OR**: `AND` se evalúa antes que `OR`. `WHERE canal = 'web' OR canal = 'app' AND metodo_pago = 'efectivo'` significa "web (con cualquier pago) **o** app en efectivo". Pon paréntesis siempre que mezcles los dos: `(canal = 'web' OR canal = 'app') AND metodo_pago = 'efectivo'`.

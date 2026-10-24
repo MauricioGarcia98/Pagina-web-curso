@@ -3,8 +3,19 @@ titulo: CTE recursivas: jerarquías y series
 nivel: Avanzado
 duracion: 40
 resumen: Recorrer árboles (organigramas, categorías) y generar series de fechas.
+objetivos: Explicar la estructura de una CTE recursiva: caso base, paso recursivo y condición de parada | Generar series de números y de fechas | Recorrer jerarquías (organigramas, categorías) calculando niveles y rutas | Rellenar huecos de un reporte con un calendario generado
+prerrequisitos: sql-cte | sql-joins-avanzados
+autoevaluacion: ¿Puedes generar los números del 1 al 20 con una CTE recursiva? | ¿Sabes qué pasa si olvidas la condición de parada? | ¿Puedes mostrar el organigrama completo con el nivel de cada persona? | ¿Puedes contar cuántas personas tiene a cargo, directa o indirectamente, un director? | ¿Puedes mostrar los pedidos de cada día de enero, incluidos los días con cero?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El organigrama completo
+Tomás, de personas, tiene que armar el organigrama:
+
+> "Para cada director necesito saber cuánta gente tiene a cargo en total, no solo los que le reportan directo, sino también los de sus jefes de equipo, y así para abajo."
+
+La tabla `empleados` solo dice quién es el jefe **directo** de cada persona. Para recorrer todos los niveles hace falta una consulta que se llame a sí misma: una **CTE recursiva**.
+:::
 ## Datos con forma de árbol
 
 Hay datos donde una fila apunta a **otra fila de la misma tabla**, formando una jerarquía:
@@ -145,6 +156,23 @@ Con este resultado puedes responder preguntas como "¿cuántas personas tiene a 
 :::experto En el mundo real
 - En los data warehouses, las jerarquías profundas suelen "aplanarse" en la etapa de transformación (una columna por nivel: `nivel_1`, `nivel_2`, `nivel_3`), justamente con una CTE recursiva, para que los usuarios de BI no tengan que escribir recursión.
 - Spark SQL agregó soporte de CTE recursivas recién en versiones recientes; en Databricks antiguo se resolvía con bucles en PySpark. BigQuery y Snowflake las soportan con `WITH RECURSIVE`.
+:::
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Sin condición de parada**: la CTE crece para siempre (o hasta el límite del motor). Siempre incluye un `WHERE n < 20` o una condición que termine.
+- **Ciclos en los datos**: si por error A es jefe de B y B es jefe de A, la recursión no termina. En jerarquías reales conviene limitar la profundidad (`WHERE nivel < 20`).
+- **`UNION` en lugar de `UNION ALL`**: en la mayoría de los casos quieres `UNION ALL`; `UNION` quita duplicados en cada paso, es más lento y puede esconder errores.
+- **Tipos que no coinciden** entre el caso base y el paso recursivo (por ejemplo, un texto que se alarga en cada nivel): algunos motores dan error. Convierte el caso base al tipo final con `CAST`.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En la práctica, la CTE recursiva más usada es el **calendario**: una fila por día, para que los reportes muestren los días sin ventas. En dbt se hace con la macro `date_spine`, y en Spark con `sequence()` + `explode()`.
+- Las jerarquías profundas (categorías de productos, cuentas contables, organigramas) se suelen **aplanar** una vez en el pipeline: se guarda para cada elemento su ruta completa y su nivel, para que los reportes no necesiten recursión.
+- Spark SQL no tuvo CTE recursivas durante muchos años (llegaron en versiones muy recientes). Muchos equipos todavía resuelven las jerarquías con bucles en PySpark.
 :::
 
 ## Resumen

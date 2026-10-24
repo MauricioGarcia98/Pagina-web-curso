@@ -1,0 +1,242 @@
+@@ 13-subconsultas
+objetivos: Usar una subconsulta escalar para comparar contra un valor calculado (como el promedio) | Filtrar con `IN` y `EXISTS` usando el resultado de otra consulta | Escribir subconsultas correlacionadas y entender su costo | Usar tablas derivadas en el `FROM` para agregar en dos pasos
+prerrequisitos: sql-group-by | sql-joins
+autoevaluacion: ¿Puedes listar los empleados que ganan más que el promedio de la empresa? | ¿Puedes listar los productos más caros que el promedio de su propia categoría? | ¿Sabes cuándo una subconsulta escalar da error? | ¿Sabes por qué `NOT EXISTS` es más seguro que `NOT IN`? | ¿Puedes calcular un promedio de totales por pedido usando una tabla derivada?
+>> escenario Los sueldos sobre el promedio
+Tomás, de personas, sigue con la revisión salarial:
+
+> "¿Quiénes ganan más que el promedio de la empresa? Y otra: ¿qué productos están más caros que el promedio de su categoría? Me lo pidió Valentina para revisar precios."
+
+Para responder necesitas un número que **todavía no tienes** (el promedio) y usarlo dentro de otra consulta. Eso es una subconsulta: una consulta dentro de otra.
+:::
+>> errores
+- **Subconsulta escalar que devuelve varias filas**: `WHERE precio > (SELECT precio FROM productos WHERE marca = 'Apple')` falla (o toma solo la primera fila, según el motor). Una subconsulta escalar debe devolver **una fila y una columna**: agrégala con `AVG`, `MAX`, etc.
+- **`NOT IN` con nulos**: si la subconsulta devuelve algún `NULL`, `NOT IN` no devuelve nada. Usa `NOT EXISTS` o filtra los nulos.
+- **Correlacionar con la tabla equivocada**: en una correlacionada, la columna de afuera tiene que llevar el alias de afuera (`p.categoria_id`). Si no pones alias, SQL puede tomar la columna de la tabla de adentro y la condición siempre se cumple.
+- **Subconsultas anidadas en tres niveles**: funcionan, pero nadie las puede leer ni revisar. Pásalas a CTE (próxima lección).
+>> trabajo
+- Las subconsultas correlacionadas se ejecutan, en principio, **una vez por fila** de afuera. Los optimizadores modernos suelen reescribirlas como JOIN, pero no siempre. En tablas grandes, revisa el plan o reescríbelas con una CTE + JOIN o con funciones de ventana.
+- En revisión de código, una subconsulta de más de 10 líneas casi siempre recibe el comentario "pásala a una CTE con nombre". La legibilidad es una exigencia del equipo, no un detalle estético.
+>> entrevista "Encuentra los productos más caros que el promedio de su categoría"
+Hay tres formas, y conviene mencionar al menos dos: una subconsulta correlacionada (`WHERE precio > (SELECT AVG(precio) FROM productos p2 WHERE p2.categoria_id = p.categoria_id)`), una CTE con el promedio por categoría unida por `categoria_id`, o una función de ventana `AVG(precio) OVER (PARTITION BY categoria_id)`. La de ventana lee la tabla una sola vez.
+
+@@ 14-conjuntos
+objetivos: Apilar resultados de varias consultas con `UNION` y `UNION ALL` | Elegir entre `UNION` y `UNION ALL` según si quieres eliminar repetidos | Encontrar coincidencias y diferencias entre dos conjuntos con `INTERSECT` y `EXCEPT` | Comparar dos tablas para validar un pipeline
+prerrequisitos: sql-where
+autoevaluacion: ¿Sabes qué diferencia hay entre `UNION` y `UNION ALL`, y cuál es más rápido? | ¿Sabes qué condiciones deben cumplir las consultas para poder unirlas con `UNION`? | ¿Puedes encontrar los clientes que compraron en 2022 pero no en 2024? | ¿Puedes encontrar los clientes que compraron por web y también en tienda? | ¿Sabes cómo usar `EXCEPT` para comprobar que dos tablas son iguales?
+>> escenario Los clientes que se fueron
+Camila quiere entender la fuga de clientes:
+
+> "¿Qué clientes compraron en 2022 y nunca más volvieron en 2024? Y al revés, ¿quiénes compran tanto online como en la tienda física? Esos son nuestros mejores clientes."
+
+Son preguntas sobre **conjuntos** de clientes: los de un año menos los de otro, los que están en los dos grupos. SQL tiene operadores pensados exactamente para eso.
+:::
+>> errores
+- **Usar `UNION` cuando querías todas las filas**: `UNION` elimina duplicados. Si apilas las ventas de dos meses y dos ventas son idénticas, una desaparece. Para apilar datos, usa `UNION ALL`.
+- **Columnas en distinto orden**: `UNION` empareja por **posición**, no por nombre. `SELECT nombre, ciudad ... UNION SELECT ciudad, nombre ...` mezcla ciudades con nombres sin dar error.
+- **`ORDER BY` en cada parte**: solo se permite un `ORDER BY`, al final de todo.
+- **`EXCEPT` no es simétrico**: `A EXCEPT B` (lo que está en A y no en B) no es lo mismo que `B EXCEPT A`.
+>> trabajo
+- `UNION ALL` es la forma estándar de juntar datos que llegan partidos: una tabla por país, por año o por sistema de origen. En dbt existe la macro `union_relations` para hacerlo con tablas que tienen columnas distintas.
+- `EXCEPT` en las dos direcciones es una prueba clásica de **regresión** en pipelines: después de reescribir un modelo, comparas el resultado nuevo con el viejo. Si `nuevo EXCEPT viejo` y `viejo EXCEPT nuevo` están vacíos, tu cambio no alteró los datos.
+- `UNION` (sin ALL) obliga a la base a ordenar o comparar todas las filas para quitar duplicados: en tablas grandes, es mucho más lento.
+
+@@ 15-cte
+objetivos: Reescribir una consulta anidada como una secuencia de pasos con `WITH` | Encadenar varias CTE donde cada una usa la anterior | Usar CTE para calcular métricas en dos niveles (por pedido y después por cliente) | Explicar por qué los equipos prefieren CTE para código que otros van a mantener
+prerrequisitos: sql-subconsultas
+autoevaluacion: ¿Puedes escribir la sintaxis de una consulta con dos CTE encadenadas sin mirar? | ¿Puedes encontrar los clientes que gastaron más de tres veces el promedio usando CTE? | ¿Sabes dónde van las comas entre CTE y dónde no? | ¿Puedes crear una pequeña tabla de datos "a mano" dentro de una CTE? | ¿Sabes si una CTE hace más rápida una consulta?
+>> escenario Los clientes VIP
+Valentina quiere lanzar un programa de fidelización:
+
+> "Quiero saber quiénes son nuestros clientes VIP: los que gastaron mucho más que el promedio. Digamos más de tres veces. Y necesito que la lógica quede clara, porque marketing la va a revisar."
+
+Con subconsultas se puede, pero el resultado se lee de adentro hacia afuera y nadie lo entiende. Las **CTE** permiten escribirlo como una receta: primero esto, después aquello. Es como escriben SQL los equipos profesionales.
+:::
+>> trabajo
+- En dbt, **cada modelo** es una sucesión de CTE: una por cada fuente (`with pedidos as (select * from {{ ref('stg_pedidos') }})`), una por cada paso de lógica y un `select` final. Si aprendes a pensar en CTE, ya escribes como un analytics engineer.
+- Nombra las CTE por **lo que contienen** (`ventas_por_cliente`, `clientes_vip`), no por el paso (`paso1`, `tmp`). Quien revise tu código lee los nombres como si fuera un índice.
+- Para depurar, puedes cambiar el `SELECT` final por `SELECT * FROM una_cte_intermedia LIMIT 20` y ver qué hay en ese paso, sin tocar nada más.
+>> entrevista "¿Qué diferencia hay entre una CTE, una subconsulta y una tabla temporal?"
+Una **CTE** y una **subconsulta** existen solo durante esa consulta; la CTE tiene nombre, se puede reutilizar dentro de la consulta y permite recursión. Una **tabla temporal** se guarda (en memoria o disco) durante la sesión y se puede consultar varias veces e indexar, lo que conviene cuando un resultado intermedio caro se usa en muchas consultas.
+
+@@ 16-ventanas-1
+objetivos: Calcular agregaciones sin perder el detalle de cada fila con `OVER (PARTITION BY …)` | Numerar y rankear filas con `ROW_NUMBER`, `RANK` y `DENSE_RANK`, eligiendo según los empates | Resolver el patrón "top N por grupo" | Calcular la participación de cada fila en el total de su grupo
+prerrequisitos: sql-group-by | sql-cte
+autoevaluacion: ¿Puedes mostrar cada empleado junto al salario promedio de su departamento? | ¿Sabes qué diferencia hay entre `RANK` y `DENSE_RANK` cuando hay empates? | ¿Puedes mostrar el último pedido de cada cliente? | ¿Puedes calcular qué porcentaje de las ventas de su categoría representa cada producto? | ¿Sabes por qué no se puede filtrar una función de ventana en el `WHERE`?
+>> escenario El top 2 por categoría
+Valentina prepara la vidriera de la home:
+
+> "Para cada categoría, quiero los 2 productos más caros, para destacarlos. Y para cada cliente, ¿cuál fue su último pedido? Marketing quiere mandar un mail de 'vuelve a comprar'."
+
+Con `GROUP BY` obtienes una fila por categoría, pero pierdes los productos. Necesitas calcular algo **por grupo** sin colapsar las filas. Eso hacen las **funciones de ventana**, la herramienta más pedida en entrevistas de SQL.
+:::
+>> errores
+- **Filtrar la ventana en el `WHERE`**: `WHERE ROW_NUMBER() OVER (...) <= 2` da error, porque las ventanas se calculan **después** del `WHERE`. Calcula la ventana en una CTE y filtra afuera.
+- **`ROW_NUMBER` con empates**: si dos productos cuestan lo mismo, `ROW_NUMBER` elige uno al azar. Agrega un desempate al `ORDER BY` de la ventana o usa `RANK`/`DENSE_RANK` si quieres incluir a los dos.
+- **Olvidar el `PARTITION BY`**: sin él, la ventana es toda la tabla. `ROW_NUMBER() OVER (ORDER BY precio DESC)` numera todos los productos juntos, no dentro de cada categoría.
+- **Confundir el `ORDER BY` de la ventana con el de la consulta**: el de la ventana define el ranking; el del final define cómo se muestra el resultado. Son independientes.
+>> trabajo
+- `ROW_NUMBER() ... = 1` es **el** patrón para deduplicar en los pipelines: "quedarme con la versión más reciente de cada cliente". Lo vas a escribir en SQL, en PySpark y en dbt (en la capa staging).
+- En Databricks, BigQuery y Snowflake existe `QUALIFY`, que filtra por una ventana sin necesitar una CTE: `... QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha DESC) = 1`.
+- Una ventana con `PARTITION BY` en Spark provoca un *shuffle* por esa columna. Si la columna tiene un valor muy frecuente (por ejemplo, un `cliente_id` nulo), esa partición queda gigante.
+
+@@ 17-ventanas-2
+objetivos: Calcular totales acumulados y promedios móviles con marcos de ventana | Elegir entre `ROWS` y `RANGE` sabiendo cómo tratan los empates | Comparar cada fila con la anterior o la siguiente usando `LAG` y `LEAD` | Calcular variaciones porcentuales período contra período
+prerrequisitos: sql-ventanas-1
+autoevaluacion: ¿Puedes calcular las ventas diarias y el acumulado del mes? | ¿Puedes calcular un promedio móvil de 3 meses? | ¿Sabes qué devuelve `LAG` en la primera fila y cómo cambiarlo? | ¿Puedes calcular la variación de ventas año contra año? | ¿Sabes por qué `LAST_VALUE` sin marco explícito devuelve la fila actual?
+>> escenario El acumulado del mes
+Diego, de finanzas, quiere seguir el mes en tiempo real:
+
+> "Necesito un reporte con los pedidos de cada día de diciembre y el acumulado del mes, para ver si llegamos a la meta. Y el directorio pide la variación de facturación año contra año."
+
+Un acumulado necesita "todas las filas anteriores", y una variación necesita "la fila anterior". Las funciones de ventana con **marcos** y las funciones `LAG`/`LEAD` resuelven exactamente eso.
+:::
+>> errores
+- **El marco por defecto**: con `ORDER BY` y sin marco, la ventana es `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`. Si hay dos filas con la misma fecha, las dos reciben el mismo acumulado. Si quieres fila por fila, escribe `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`.
+- **Promedio móvil con huecos**: `ROWS BETWEEN 2 PRECEDING AND CURRENT ROW` toma las 2 filas anteriores, no los 2 meses anteriores. Si falta un mes en los datos, el promedio mezcla meses que no son consecutivos. Rellena los huecos con una tabla calendario.
+- **División por el período anterior cuando es cero o nulo**: `(actual - anterior) / anterior` falla o da infinito. Usa `NULLIF(anterior, 0)`.
+- **`LAST_VALUE` engañoso**: con el marco por defecto, termina en la fila actual. Usa `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`, o `FIRST_VALUE` con el orden invertido.
+>> trabajo
+- Los acumulados ("ventas del mes a la fecha", *MTD*; "del año a la fecha", *YTD*) y las comparaciones con el período anterior son las métricas más pedidas en los dashboards. Normalmente se calculan en la capa gold, una vez, y no en cada dashboard.
+- `LAG` sobre eventos ordenados por tiempo es la base de la **sesionización** y de la detección de rachas, que verás en la lección de patrones.
+- En entrevistas y en el trabajo, aclara siempre si un promedio móvil de "3 meses" incluye o no el mes actual: es una de las ambigüedades más comunes en los pedidos del negocio.
+>> entrevista "Calcula el crecimiento mes a mes de las ventas"
+Agrega primero por mes (en una CTE), y después usa `LAG(ventas) OVER (ORDER BY mes)` para traer el mes anterior y calcular `ROUND(100.0 * (ventas - anterior) / NULLIF(anterior, 0), 2)`. Menciona los meses sin ventas (rellenar con calendario) y que el primer mes queda en NULL a propósito.
+
+@@ 18-recursivas
+objetivos: Explicar la estructura de una CTE recursiva: caso base, paso recursivo y condición de parada | Generar series de números y de fechas | Recorrer jerarquías (organigramas, categorías) calculando niveles y rutas | Rellenar huecos de un reporte con un calendario generado
+prerrequisitos: sql-cte | sql-joins-avanzados
+autoevaluacion: ¿Puedes generar los números del 1 al 20 con una CTE recursiva? | ¿Sabes qué pasa si olvidas la condición de parada? | ¿Puedes mostrar el organigrama completo con el nivel de cada persona? | ¿Puedes contar cuántas personas tiene a cargo, directa o indirectamente, un director? | ¿Puedes mostrar los pedidos de cada día de enero, incluidos los días con cero?
+>> escenario El organigrama completo
+Tomás, de personas, tiene que armar el organigrama:
+
+> "Para cada director necesito saber cuánta gente tiene a cargo en total, no solo los que le reportan directo, sino también los de sus jefes de equipo, y así para abajo."
+
+La tabla `empleados` solo dice quién es el jefe **directo** de cada persona. Para recorrer todos los niveles hace falta una consulta que se llame a sí misma: una **CTE recursiva**.
+:::
+>> errores
+- **Sin condición de parada**: la CTE crece para siempre (o hasta el límite del motor). Siempre incluye un `WHERE n < 20` o una condición que termine.
+- **Ciclos en los datos**: si por error A es jefe de B y B es jefe de A, la recursión no termina. En jerarquías reales conviene limitar la profundidad (`WHERE nivel < 20`).
+- **`UNION` en lugar de `UNION ALL`**: en la mayoría de los casos quieres `UNION ALL`; `UNION` quita duplicados en cada paso, es más lento y puede esconder errores.
+- **Tipos que no coinciden** entre el caso base y el paso recursivo (por ejemplo, un texto que se alarga en cada nivel): algunos motores dan error. Convierte el caso base al tipo final con `CAST`.
+>> trabajo
+- En la práctica, la CTE recursiva más usada es el **calendario**: una fila por día, para que los reportes muestren los días sin ventas. En dbt se hace con la macro `date_spine`, y en Spark con `sequence()` + `explode()`.
+- Las jerarquías profundas (categorías de productos, cuentas contables, organigramas) se suelen **aplanar** una vez en el pipeline: se guarda para cada elemento su ruta completa y su nivel, para que los reportes no necesiten recursión.
+- Spark SQL no tuvo CTE recursivas durante muchos años (llegaron en versiones muy recientes). Muchos equipos todavía resuelven las jerarquías con bucles en PySpark.
+
+@@ 19-ddl-dml
+objetivos: Crear tablas con tipos, claves y restricciones adecuadas | Insertar, actualizar y borrar filas de forma segura | Hacer un upsert (insertar o actualizar) con `INSERT … ON CONFLICT` | Explicar qué garantizan las transacciones (ACID) y cuándo usarlas
+prerrequisitos: sql-where | sql-null
+autoevaluacion: ¿Puedes crear una tabla con clave primaria, columnas obligatorias y un valor por defecto? | ¿Sabes qué hacer antes de ejecutar un `UPDATE` o un `DELETE` para no romper datos? | ¿Puedes crear una tabla a partir del resultado de una consulta? | ¿Puedes actualizar el stock si el producto existe o insertarlo si no? | ¿Sabes qué pasa con los cambios de una transacción si el segundo `UPDATE` falla?
+>> escenario La tabla de cupones
+Camila va a lanzar cupones de descuento y el equipo de desarrollo te pide ayuda:
+
+> "Necesitamos una tabla nueva para los cupones: código, descuento y fecha de vencimiento. Ah, y Valentina pidió subir un 5 % los precios de Audio. ¿Lo haces tú?"
+
+Hasta ahora solo **leías** datos. Ahora vas a **crearlos y modificarlos**. Es poder real, y con poder real se pueden hacer daños reales: esta lección también es sobre cómo no borrar una tabla de producción.
+:::
+>> trabajo
+- En una empresa, casi nunca se ejecuta un `UPDATE` o `DELETE` a mano en producción. Los cambios de estructura (`CREATE`, `ALTER`) van en **migraciones** versionadas en Git y revisadas por otra persona, y los cambios de datos los hacen los pipelines.
+- Si de verdad hay que corregir datos a mano: primero un `SELECT` con el mismo `WHERE` para ver qué filas se van a tocar, después el cambio **dentro de una transacción**, revisar el número de filas afectadas y recién ahí `COMMIT`.
+- En los data lakes con Delta Lake o Iceberg existen `UPDATE`, `DELETE` y `MERGE`, y además *time travel*: si algo sale mal, se puede volver a la versión anterior de la tabla.
+- El upsert (`MERGE`) es la operación central de las cargas incrementales: "si el cliente ya existe, actualízalo; si no, insértalo".
+>> entrevista "¿Qué significa ACID?"
+**Atomicidad** (la transacción se aplica completa o no se aplica), **Consistencia** (deja la base en un estado válido según sus reglas), **Aislamiento** (las transacciones simultáneas no ven los cambios a medias de las otras) y **Durabilidad** (lo confirmado sobrevive a un corte de luz). Un buen ejemplo: transferir dinero entre dos cuentas, que son dos `UPDATE` que tienen que ocurrir juntos.
+
+@@ 20-patrones
+objetivos: Deduplicar registros quedándote con la versión más reciente | Detectar rachas de días consecutivos (gaps & islands) | Agrupar eventos en sesiones con un corte de inactividad | Calcular embudos de conversión y retención por cohortes
+prerrequisitos: sql-ventanas-2 | sql-cte
+autoevaluacion: ¿Puedes deduplicar una tabla de clientes quedándote con la carga más reciente? | ¿Puedes explicar el truco de restar un `ROW_NUMBER` a la fecha para encontrar rachas? | ¿Puedes sesionizar clics con un corte de 30 minutos? | ¿Puedes calcular un embudo vista → carrito → compra por dispositivo? | ¿Puedes armar una tabla de retención por cohortes mensuales?
+>> escenario Las preguntas difíciles de producto
+El equipo de producto se sumó a los pedidos, y sus preguntas son más difíciles:
+
+> "¿Cuánto dura una visita promedio al sitio? ¿Cuántos usuarios llegan al carrito y cuántos terminan comprando, por dispositivo? ¿Cuántos de los que compraron por primera vez en enero siguen comprando tres meses después?"
+
+Ninguna se resuelve con una sola función. Son **patrones**: combinaciones de ventanas, CTE y agregaciones que se repiten en todas las empresas. Aprenderlos de memoria te ahorra días de trabajo (y te hace brillar en las entrevistas).
+:::
+>> errores
+- **Deduplicar sin desempate**: si dos registros tienen la misma `fecha_carga`, `ROW_NUMBER` elige uno al azar en cada ejecución y el resultado cambia. Agrega un segundo criterio (`registro_id DESC`).
+- **Rachas con fechas repetidas**: si un usuario tiene dos logins el mismo día, el truco de restar el `ROW_NUMBER` falla. Deduplica a un registro por día antes.
+- **Sesiones que cruzan la medianoche**: si agrupas por día antes de sesionizar, partes una visita en dos. Sesioniza sobre la marca de tiempo completa.
+- **Embudos que cuentan eventos en vez de personas**: un usuario que vio 10 páginas no es 10 visitantes. Cuenta `DISTINCT` usuarios en cada paso.
+- **Cohortes que mezclan meses incompletos**: el último mes siempre parece tener mala retención porque todavía no terminó. Exclúyelo o márcalo.
+>> trabajo
+- Estos patrones son el trabajo diario de los equipos de analítica de producto. En una empresa grande, los resultados (sesiones, embudos, cohortes) se guardan como tablas gold que alimentan los dashboards de producto.
+- La deduplicación aparece en **todos** los pipelines: los sistemas de origen reenvían eventos, las APIs devuelven el mismo registro dos veces y los reintentos duplican cargas. Es lo primero que hace la capa silver.
+- Cuando el volumen es muy grande (miles de millones de eventos), la sesionización se hace en Spark con las mismas ventanas que aprendiste aquí: el SQL se traslada casi palabra por palabra.
+
+@@ 21-rendimiento
+objetivos: Leer un plan de ejecución e identificar si una consulta usa un índice o recorre toda la tabla | Explicar qué es un índice, cuándo ayuda y qué cuesta | Reescribir filtros para que sean sargables | Aplicar una checklist de optimización en el orden correcto
+prerrequisitos: sql-joins | sql-funciones
+autoevaluacion: ¿Puedes explicar con una analogía qué es un índice? | ¿Sabes por qué `WHERE strftime('%Y', fecha_pedido) = '2024'` no usa el índice y cómo reescribirlo? | ¿Sabes qué columnas de un índice compuesto `(pais, ciudad)` sirven para filtrar solo por ciudad? | ¿Puedes leer un `EXPLAIN QUERY PLAN` y distinguir `SCAN` de `SEARCH`? | ¿Sabes por qué agregar muchos índices puede empeorar una tabla?
+>> escenario La consulta que tarda 10 minutos
+Martín, tu líder, te reenvía un mensaje del equipo de BI:
+
+> "El dashboard de ventas tarda 10 minutos en cargar y los gerentes se quejan. La consulta es esta. ¿Puedes ver qué pasa?"
+
+Que una consulta dé el resultado correcto es la mitad del trabajo. La otra mitad es que lo dé **rápido** y **sin gastar de más**. Esta lección te enseña a mirar dentro del motor para entender por qué una consulta es lenta.
+:::
+>> trabajo
+- En los data warehouses en la nube (BigQuery, Snowflake, Databricks SQL) casi no hay índices como en PostgreSQL. Lo que manda es **leer menos**: particionar por fecha, agrupar los datos por las columnas más filtradas (*clustering*, Z-ORDER, Liquid Clustering) y seleccionar solo las columnas necesarias. La idea de fondo es la misma: no recorrer lo que no hace falta.
+- Optimizar sin medir es adivinar. El flujo profesional es: medir cuánto tarda y cuánto lee, mirar el plan, cambiar **una** cosa y volver a medir.
+- En la nube, rendimiento es plata: en BigQuery se paga por byte leído y en Snowflake o Databricks, por tiempo de cómputo. Una consulta 10 veces más eficiente es una factura 10 veces más chica.
+>> entrevista "Una consulta que antes tardaba 2 segundos ahora tarda 2 minutos. ¿Qué haces?"
+Una buena respuesta es un método: 1) ¿Cambió el volumen de datos o la consulta? 2) Mirar el plan de ejecución: ¿dejó de usar un índice o de podar particiones? 3) Revisar si las estadísticas están desactualizadas. 4) Buscar cambios recientes (un JOIN nuevo que multiplica filas, una función sobre una columna filtrada). 5) Probar la corrección y medir.
+
+@@ 22-modelado
+objetivos: Explicar la normalización y para qué sirve en sistemas transaccionales | Diseñar un esquema estrella con una tabla de hechos y sus dimensiones | Definir el grano de una tabla de hechos antes de construirla | Elegir un tipo de dimensión lentamente cambiante (SCD 1 o 2) según la pregunta del negocio
+prerrequisitos: sql-joins | sql-ddl-dml
+autoevaluacion: ¿Puedes explicar la diferencia entre un modelo normalizado y uno dimensional? | ¿Puedes definir el grano de una tabla de hechos de ventas en una frase? | ¿Sabes qué va en una tabla de hechos y qué va en una dimensión? | ¿Sabes qué tipo de SCD usar si las ventas pasadas deben conservar el segmento que tenía el cliente en ese momento? | ¿Puedes construir una tabla de hechos y una dimensión con las tablas de la tienda?
+>> escenario El modelo para el nuevo dashboard
+Martín te da tu primera tarea de diseño:
+
+> "Vamos a reconstruir el dashboard de ventas desde cero. Antes de escribir una línea, quiero que propongas el modelo de datos: qué tablas, con qué columnas y a qué nivel de detalle. Lo revisamos juntos el jueves."
+
+Hasta ahora consultabas tablas que alguien más diseñó. Ahora te toca **diseñarlas**. Un buen modelo hace que todas las consultas futuras sean simples; uno malo te persigue durante años.
+:::
+>> errores
+- **No definir el grano**: si la tabla de hechos mezcla filas "por pedido" y "por línea de pedido", cualquier suma da mal. Escribe el grano en una frase antes de empezar: "una fila por línea de pedido".
+- **Métricas de distinto grano en la misma tabla**: el costo de envío es por pedido; si lo pones en cada línea, se suma una vez por producto.
+- **Dimensiones con claves duplicadas**: si `dim_producto` tiene dos filas para el mismo producto, cada venta se cuenta dos veces al unir.
+- **Sobrescribir historia que el negocio necesitaba**: actualizar el segmento del cliente (SCD 1) cambia también los reportes de años anteriores. Pregunta antes si la historia importa.
+>> trabajo
+- El esquema estrella (Kimball) sigue siendo el modelo más usado en analítica, también en lakehouses: la capa gold suele ser un conjunto de tablas `fct_` y `dim_` construidas con dbt.
+- Antes de modelar, se hace una sesión con el negocio para listar las **preguntas** que el modelo tiene que responder. El modelo se diseña desde las preguntas, no desde las tablas de origen.
+- Las SCD tipo 2 se implementan con los **snapshots** de dbt o con `MERGE` en Delta Lake. Las vas a construir en esos módulos.
+
+@@ 23-dialectos
+objetivos: Reconocer las diferencias más comunes entre SQLite, PostgreSQL, SQL Server, BigQuery y Spark SQL | Traducir funciones de fecha, texto y límites de un dialecto a otro | Anticipar diferencias que no dan error pero cambian el resultado | Aprender un dialecto nuevo con un método rápido
+prerrequisitos: sql-fechas | sql-ventanas-1
+autoevaluacion: ¿Sabes cómo se escribe "las primeras 10 filas" en SQL Server? | ¿Sabes cómo se obtiene el año de una fecha en Spark SQL y en SQL Server? | ¿Sabes en qué motores `7 / 2` da 3 y en cuáles 3.5? | ¿Sabes qué es `QUALIFY` y en qué motores existe? | ¿Tienes un plan para aprender el SQL de una plataforma nueva en una tarde?
+>> escenario La migración a Databricks
+Martín trae novedades:
+
+> "La empresa decidió migrar el warehouse a Databricks. Tenemos 200 consultas escritas para PostgreSQL y SQL Server. No hay que reescribirlas desde cero, pero sí revisarlas una por una."
+
+SQL es un estándar, pero cada motor tiene su "acento". La mayoría de las diferencias dan error y se corrigen rápido. Las peligrosas son las que **no dan error** y devuelven otro número.
+:::
+>> errores
+- **División entera**: `7 / 2` es 3 en PostgreSQL, SQL Server y SQLite, pero 3.5 en Spark SQL, BigQuery (con `/`) y MySQL. Una métrica migrada puede cambiar sin avisar.
+- **Comparación de textos**: SQL Server y MySQL suelen ignorar mayúsculas al comparar (`'ana' = 'ANA'` es verdadero); PostgreSQL, Spark y BigQuery no.
+- **NULL al ordenar**: PostgreSQL pone los NULL al final en orden ascendente; SQL Server y SQLite, al principio. Usa `NULLS FIRST`/`NULLS LAST` donde exista.
+- **Funciones de fecha con argumentos en distinto orden**: `DATEDIFF(day, inicio, fin)` en SQL Server y `DATEDIFF(fin, inicio)` en Spark. Si los inviertes, el signo cambia.
+>> trabajo
+- En una migración real se arma un **conjunto de pruebas**: se ejecuta cada consulta en el motor viejo y en el nuevo y se comparan los resultados (con `EXCEPT` o comparando totales). Las diferencias muestran justamente los errores silenciosos.
+- Herramientas como **sqlglot** traducen SQL entre dialectos automáticamente. Sirven como primer paso, pero el resultado se revisa igual.
+- dbt ayuda a escribir SQL portable con macros que se traducen según el motor (`dateadd`, `datediff`, `type_string`).
+
+@@ 24-entrevistas
+objetivos: Seguir un método para resolver un problema de SQL en una entrevista: aclarar, planificar, escribir, verificar | Reconocer las familias de preguntas que más aparecen | Explicar en voz alta tu razonamiento mientras escribes | Validar tu propia respuesta con casos borde antes de entregarla
+prerrequisitos: sql-patrones | sql-ventanas-2 | sql-rendimiento
+autoevaluacion: ¿Puedes resolver un "top N por grupo" con empates en menos de 10 minutos? | ¿Puedes calcular una mediana sin función de mediana? | ¿Puedes detectar meses consecutivos de compra de un cliente? | ¿Puedes explicar en voz alta qué hace cada CTE de tu solución? | ¿Sabes qué casos borde revisar (nulos, empates, duplicados, períodos vacíos) antes de decir "listo"?
+>> escenario La entrevista para semi senior
+Pasó un año. Te va bien en Tienda Andina y un headhunter te ofrece una entrevista para un puesto de **data engineer semi senior**. Te avisa:
+
+> "La primera etapa es una prueba de SQL en vivo, de 45 minutos, compartiendo pantalla. Suelen ser 3 o 4 problemas de dificultad creciente."
+
+Esta lección es el entrenamiento para ese día: problemas reales de entrevista, con los datos que ya conoces, y un método para no bloquearte.
+:::
+>> trabajo
+- En una entrevista evalúan **cómo piensas** tanto como el resultado. Antes de escribir, repite el problema con tus palabras y pregunta: "¿los pedidos cancelados cuentan?", "¿qué hago con los empates?". Hacer esas preguntas suma puntos: es lo mismo que se espera en el trabajo.
+- Escribe por pasos, con CTE nombradas, y ejecuta cada paso antes de seguir. Una solución en 5 pasos claros vale más que una consulta brillante de 30 líneas que nadie entiende.
+- Al terminar, valida en voz alta: "revisemos un cliente concreto", "¿qué pasa si un mes no tiene ventas?". Encontrar tu propio error antes que el entrevistador es una de las mejores señales que puedes dar.

@@ -172,6 +172,8 @@ Los conceptos son los mismos en todos: extraer partes, truncar a un periodo, sum
 
 
 
+
+
 <!-- estandar:errores -->
 :::errores
 - **`BETWEEN` con fechas y horas**: `fecha BETWEEN '2024-12-01' AND '2024-12-31'` excluye todo el 31 después de la medianoche. Usa `fecha >= '2024-12-01' AND fecha < '2025-01-01'`.

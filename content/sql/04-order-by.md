@@ -184,6 +184,9 @@ Este orden explica varias cosas que parecían caprichos:
 
 
 
+
+
+
 <!-- estandar:errores -->
 :::errores
 - **`LIMIT` sin `ORDER BY`**: devuelve filas en el orden que la base las encuentre, que puede cambiar entre ejecuciones. Un "top 10" siempre necesita `ORDER BY`.

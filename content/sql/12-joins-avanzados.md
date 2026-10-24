@@ -209,6 +209,8 @@ Otros ejemplos reales: unir una venta con el **tipo de cambio vigente** en su fe
 
 
 
+
+
 <!-- estandar:trabajo -->
 :::trabajo
 - El anti-join es una herramienta clave para la **calidad de datos**: "pedidos cuyo cliente no existe", "pagos sin pedido". En dbt existe un test listo para eso (`relationships`), que por dentro es un `LEFT JOIN … WHERE … IS NULL`.

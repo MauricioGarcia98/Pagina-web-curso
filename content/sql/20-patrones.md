@@ -3,8 +3,19 @@ titulo: Patrones avanzados de análisis
 nivel: Experto
 duracion: 50
 resumen: Deduplicación, gaps & islands (rachas), sesiones, embudos, cohortes y "último valor conocido".
+objetivos: Deduplicar registros quedándote con la versión más reciente | Detectar rachas de días consecutivos (gaps & islands) | Agrupar eventos en sesiones con un corte de inactividad | Calcular embudos de conversión y retención por cohortes
+prerrequisitos: sql-ventanas-2 | sql-cte
+autoevaluacion: ¿Puedes deduplicar una tabla de clientes quedándote con la carga más reciente? | ¿Puedes explicar el truco de restar un `ROW_NUMBER` a la fecha para encontrar rachas? | ¿Puedes sesionizar clics con un corte de 30 minutos? | ¿Puedes calcular un embudo vista → carrito → compra por dispositivo? | ¿Puedes armar una tabla de retención por cohortes mensuales?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Las preguntas difíciles de producto
+El equipo de producto se sumó a los pedidos, y sus preguntas son más difíciles:
+
+> "¿Cuánto dura una visita promedio al sitio? ¿Cuántos usuarios llegan al carrito y cuántos terminan comprando, por dispositivo? ¿Cuántos de los que compraron por primera vez en enero siguen comprando tres meses después?"
+
+Ninguna se resuelve con una sola función. Son **patrones**: combinaciones de ventanas, CTE y agregaciones que se repiten en todas las empresas. Aprenderlos de memoria te ahorra días de trabajo (y te hace brillar en las entrevistas).
+:::
 Estos son los problemas que separan a un analista de un **experto**. Ninguno se resuelve con una sola cláusula: todos combinan CTE, funciones de ventana y agregaciones en **varios pasos**. La forma de abordarlos es siempre la misma: entender el patrón con un ejemplo chico (como las tablas de abajo), escribir cada paso en una CTE y verificar el resultado intermedio antes de seguir.
 
 | Patrón | Pregunta de negocio típica | Herramienta clave |
@@ -169,6 +180,24 @@ LIMIT 10;
 
 :::experto El “as-of join”
 Esto se llama **as-of join** o *point-in-time join*. Con volúmenes grandes, la subconsulta correlacionada es lenta; alternativas: un calendario con el valor propagado (`LAST_VALUE ... IGNORE NULLS` en Spark/Snowflake), o rangos de validez `[desde, hasta)` con `LEAD(fecha)` y un join por rango.
+:::
+
+
+
+<!-- estandar:errores -->
+:::errores
+- **Deduplicar sin desempate**: si dos registros tienen la misma `fecha_carga`, `ROW_NUMBER` elige uno al azar en cada ejecución y el resultado cambia. Agrega un segundo criterio (`registro_id DESC`).
+- **Rachas con fechas repetidas**: si un usuario tiene dos logins el mismo día, el truco de restar el `ROW_NUMBER` falla. Deduplica a un registro por día antes.
+- **Sesiones que cruzan la medianoche**: si agrupas por día antes de sesionizar, partes una visita en dos. Sesioniza sobre la marca de tiempo completa.
+- **Embudos que cuentan eventos en vez de personas**: un usuario que vio 10 páginas no es 10 visitantes. Cuenta `DISTINCT` usuarios en cada paso.
+- **Cohortes que mezclan meses incompletos**: el último mes siempre parece tener mala retención porque todavía no terminó. Exclúyelo o márcalo.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Estos patrones son el trabajo diario de los equipos de analítica de producto. En una empresa grande, los resultados (sesiones, embudos, cohortes) se guardan como tablas gold que alimentan los dashboards de producto.
+- La deduplicación aparece en **todos** los pipelines: los sistemas de origen reenvían eventos, las APIs devuelven el mismo registro dos veces y los reintentos duplican cargas. Es lo primero que hace la capa silver.
+- Cuando el volumen es muy grande (miles de millones de eventos), la sesionización se hace en Spark con las mismas ventanas que aprendiste aquí: el SQL se traslada casi palabra por palabra.
 :::
 
 ## Ejercicios

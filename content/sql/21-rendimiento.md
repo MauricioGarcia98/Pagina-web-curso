@@ -3,8 +3,19 @@ titulo: Rendimiento: índices y planes de ejecución
 nivel: Experto
 duracion: 35
 resumen: Cómo ejecuta el motor tu consulta, índices B-tree, EXPLAIN, consultas "sargables" y antipatrones.
+objetivos: Leer un plan de ejecución e identificar si una consulta usa un índice o recorre toda la tabla | Explicar qué es un índice, cuándo ayuda y qué cuesta | Reescribir filtros para que sean sargables | Aplicar una checklist de optimización en el orden correcto
+prerrequisitos: sql-joins | sql-funciones
+autoevaluacion: ¿Puedes explicar con una analogía qué es un índice? | ¿Sabes por qué `WHERE strftime('%Y', fecha_pedido) = '2024'` no usa el índice y cómo reescribirlo? | ¿Sabes qué columnas de un índice compuesto `(pais, ciudad)` sirven para filtrar solo por ciudad? | ¿Puedes leer un `EXPLAIN QUERY PLAN` y distinguir `SCAN` de `SEARCH`? | ¿Sabes por qué agregar muchos índices puede empeorar una tabla?
 ---
 
+<!-- estandar:escenario -->
+:::escenario La consulta que tarda 10 minutos
+Martín, tu líder, te reenvía un mensaje del equipo de BI:
+
+> "El dashboard de ventas tarda 10 minutos en cargar y los gerentes se quejan. La consulta es esta. ¿Puedes ver qué pasa?"
+
+Que una consulta dé el resultado correcto es la mitad del trabajo. La otra mitad es que lo dé **rápido** y **sin gastar de más**. Esta lección te enseña a mirar dentro del motor para entender por qué una consulta es lenta.
+:::
 Una consulta correcta pero lenta es un problema en producción. Para optimizar, primero hay que entender **cómo** ejecuta el motor tu consulta.
 
 ## El optimizador y el plan de ejecución
@@ -122,6 +133,20 @@ En PostgreSQL usa `EXPLAIN ANALYZE` (ejecuta la consulta y muestra los tiempos *
 4. **¿Los joins están bien?** Claves correctas, mismos tipos, sin multiplicar filas por un `ON` incompleto.
 5. **¿Hay índice (o partición/clustering) para los filtros y joins frecuentes?**
 6. **Mira el plan** antes y después de cada cambio. Mide, no adivines.
+
+
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En los data warehouses en la nube (BigQuery, Snowflake, Databricks SQL) casi no hay índices como en PostgreSQL. Lo que manda es **leer menos**: particionar por fecha, agrupar los datos por las columnas más filtradas (*clustering*, Z-ORDER, Liquid Clustering) y seleccionar solo las columnas necesarias. La idea de fondo es la misma: no recorrer lo que no hace falta.
+- Optimizar sin medir es adivinar. El flujo profesional es: medir cuánto tarda y cuánto lee, mirar el plan, cambiar **una** cosa y volver a medir.
+- En la nube, rendimiento es plata: en BigQuery se paga por byte leído y en Snowflake o Databricks, por tiempo de cómputo. Una consulta 10 veces más eficiente es una factura 10 veces más chica.
+:::
+
+<!-- estandar:entrevista -->
+:::entrevista "Una consulta que antes tardaba 2 segundos ahora tarda 2 minutos. ¿Qué haces?"
+Una buena respuesta es un método: 1) ¿Cambió el volumen de datos o la consulta? 2) Mirar el plan de ejecución: ¿dejó de usar un índice o de podar particiones? 3) Revisar si las estadísticas están desactualizadas. 4) Buscar cambios recientes (un JOIN nuevo que multiplica filas, una función sobre una columna filtrada). 5) Probar la corrección y medir.
+:::
 
 ## Ejercicios
 

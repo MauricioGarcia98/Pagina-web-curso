@@ -168,6 +168,8 @@ En el [Laboratorio SQL](#/lab/sql) puedes escribir cualquier consulta, sobre cua
 
 
 
+
+
 <!-- estandar:trabajo -->
 :::trabajo
 - En una empresa, lo primero que hace alguien nuevo en datos es justamente esto: **explorar**. Abre las tablas principales con `LIMIT`, lee la documentación (si existe) y pregunta qué significa cada columna rara. Nadie espera que lo sepas todo el primer día.

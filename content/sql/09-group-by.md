@@ -184,6 +184,8 @@ Si agrupas por `cliente_id, fecha_pedido` cuando querías "por cliente", obtiene
 
 
 
+
+
 <!-- estandar:trabajo -->
 :::trabajo
 - Los dashboards de negocio son, en el fondo, `GROUP BY` sobre una tabla de hechos: ventas por día, por país, por canal. En los pipelines, esas agregaciones se **precalculan** en la capa gold para que el dashboard no tenga que recalcular millones de filas cada vez que alguien lo abre.
