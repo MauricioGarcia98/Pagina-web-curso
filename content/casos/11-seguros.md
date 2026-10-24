@@ -1,6 +1,6 @@
 ---
 titulo: "Caso 🛡️ Escudo Seguros: siniestralidad, frecuencia, severidad y fraude"
-nivel: Avanzado
+nivel: Experto
 duracion: 55
 resumen: Una aseguradora descubre que el ramo hogar casi no deja ganancia. Calcula primas, siniestralidad, frecuencia y severidad por ramo y por edad, y arma reglas para detectar siniestros sospechosos de fraude.
 objetivos: Calcular la siniestralidad (loss ratio) por ramo sin multiplicar filas en el JOIN | Separar frecuencia y severidad para explicar por qué un ramo pierde dinero | Comparar el riesgo por tramo de edad en el seguro de autos | Construir y evaluar una regla de detección de fraude con precisión y cobertura | Medir el embudo de siniestros: pagados, rechazados y en revisión

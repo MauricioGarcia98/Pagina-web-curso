@@ -1,6 +1,6 @@
 ---
 titulo: "Caso ⚡ Luz del Valle: hurto de energía, cobranza y calidad del servicio"
-nivel: Avanzado
+nivel: Experto
 duracion: 55
 resumen: Una distribuidora eléctrica pierde energía que nadie paga. Detecta caídas bruscas de consumo (posible hurto) comparando períodos, mide la cobranza y la deuda por zona, calcula los índices de calidad SAIDI y SAIFI y la proporción de lecturas estimadas.
 objetivos: Comparar el consumo de cada cliente entre dos períodos para detectar caídas anómalas | Calcular la cobranza a tiempo, la morosidad y la deuda por zona | Calcular los indicadores regulatorios de calidad SAIDI y SAIFI | Medir las lecturas estimadas por tipo de medidor y explicar su efecto en la facturación | Encontrar los meses de mayor consumo por tipo de cliente

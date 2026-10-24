@@ -1,6 +1,6 @@
 ---
 titulo: "Caso 🏨 Posada Andina: ocupación, ADR, RevPAR y canales de venta"
-nivel: Avanzado
+nivel: Experto
 duracion: 55
 resumen: Una cadena de seis hoteles quiere saber qué hotel rinde más y cuánto le cuestan las agencias online. Calcula noches, ocupación, ADR y RevPAR, el ingreso neto de comisiones por canal, las cancelaciones según la anticipación y el gasto extra por estadía.
 objetivos: Calcular noches vendidas, ocupación, ADR y RevPAR por hotel a partir de reservas con fechas de entrada y salida | Comparar canales por ingreso bruto y neto de comisiones | Medir la cancelación según la anticipación de la reserva | Calcular el gasto extra por estadía y la satisfacción por canal | Detectar la estacionalidad de la tarifa por destino

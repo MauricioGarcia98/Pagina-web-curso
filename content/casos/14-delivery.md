@@ -1,6 +1,6 @@
 ---
 titulo: "Caso 🛵 Rápido: tiempos de entrega, take rate y retención en una app de delivery"
-nivel: Avanzado
+nivel: Experto
 duracion: 60
 resumen: Una app de delivery quiere entregar más rápido y que los clientes vuelvan. Descompone el tiempo de entrega por etapa, relaciona la demora con la calificación, calcula GMV y take rate, mide la falta de repartidores por hora y arma cohortes de recompra a 30 días.
 objetivos: Descomponer el tiempo de entrega en aceptación, preparación y viaje con diferencias de fechas | Relacionar el tiempo de entrega con la calificación del cliente | Calcular GMV, ingresos de la plataforma y take rate | Encontrar las horas con falta de repartidores | Construir cohortes de recompra y reconocer el sesgo de los meses recientes

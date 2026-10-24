@@ -1,6 +1,6 @@
 ---
 titulo: "Caso 📱 Conecta: bajas de clientes (churn), reclamos y ARPU en una telco"
-nivel: Avanzado
+nivel: Experto
 duracion: 55
 resumen: Una operadora móvil pierde clientes por portabilidad. Mide la tasa de bajas por región y plan, relaciona los reclamos con las bajas, calcula ingresos y ARPU por mes y encuentra líneas que necesitan un plan más grande.
 objetivos: Calcular la tasa de bajas (churn) por segmento con el denominador correcto | Relacionar los reclamos de una línea con su probabilidad de baja | Calcular ingresos y ARPU mensuales a partir del consumo | Detectar oportunidades de venta (líneas que superan su plan) | Construir una tabla mensual de churn: activas al inicio, bajas y tasa
