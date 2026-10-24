@@ -166,6 +166,20 @@
     ]
   },
   {
+    "id": "arquitectura",
+    "titulo": "Arquitectura de datos",
+    "icono": "🏛️",
+    "color": "#0e7490",
+    "descripcion": "Cómo se combinan las herramientas en una plataforma: ingesta, almacenamiento, batch y streaming, lakehouse, calidad, gobierno, patrones modernos y arquitecturas de referencia en las tres nubes, con diagramas.",
+    "objetivos": [
+      "Nombrar los componentes de una plataforma de datos y elegir herramientas según requisitos",
+      "Diseñar la ingesta: completa, incremental, CDC y streaming",
+      "Elegir entre warehouse, lake y lakehouse, y entre batch y streaming",
+      "Diseñar calidad, observabilidad y gobierno desde el principio",
+      "Defender una arquitectura completa en una entrevista de diseño"
+    ]
+  },
+  {
     "id": "pipelines",
     "titulo": "Casos de negocio de punta a punta",
     "icono": "🧠",
