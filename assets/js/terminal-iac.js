@@ -315,7 +315,7 @@
       case 'for': {
         const coleccion = evaluar(x.col, ctx);
         if (esDesc(coleccion)) return DESC;
-        const pares = Array.isArray(coleccion) ? coleccion.map((v, i) => [i, v]) : Object.entries(coleccion || {});
+        const pares = Array.isArray(coleccion) ? coleccion.map((v, i) => [i, v]) : Object.entries(coleccion || {}).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0));
         const res = x.obj ? {} : [];
         for (const [k, v] of pares) {
           const sub = Object.assign(Object.create(ctx), { locales: Object.assign({}, ctx.locales, x.v2 ? { [x.v1]: k, [x.v2]: v } : { [x.v1]: v }) });
@@ -450,7 +450,15 @@
       crear: (a) => { window.CloudSim.az().eh[a.name] = { rg: a.resource_group_name, location: a.location, hubs: {} }; }, borrar: (a) => { delete window.CloudSim.az().eh[a.name]; } },
     azurerm_role_assignment: { req: ['scope', 'principal_id'], calc: (a) => ({ id: `${a.scope}/providers/Microsoft.Authorization/roleAssignments/${uid(8)}-${uid(4)}` }) },
     azurerm_user_assigned_identity: { req: ['name', 'location', 'resource_group_name'], calc: (a) => ({ id: `/subscriptions/${AZ_SUB}/resourceGroups/${a.resource_group_name}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${a.name}`, principal_id: `${uid(8)}-${uid(4)}-${uid(4)}-${uid(4)}-${uid(12)}`, client_id: `${uid(8)}-${uid(4)}-${uid(4)}-${uid(4)}-${uid(12)}` }) },
+    azurerm_databricks_access_connector: { req: ['name', 'resource_group_name', 'location'], calc: (a) => ({ id: `/subscriptions/${AZ_SUB}/resourceGroups/${a.resource_group_name}/providers/Microsoft.Databricks/accessConnectors/${a.name}`, identity: [{ type: 'SystemAssigned', principal_id: `${uid(8)}-${uid(4)}-${uid(4)}-${uid(4)}-${uid(12)}`, tenant_id: '9999ffff-0000-4000-8000-000000000000' }] }) },
+    azurerm_eventhub: { req: ['name', 'partition_count', 'message_retention'], nuevo: ['name', 'partition_count'], calc: (a) => ({ id: `${a.namespace_id || ''}/eventhubs/${a.name}` }),
+      crear: (a) => { const ns = window.CloudSim.az().eh[String(a.namespace_id || '').split('/').pop()]; if (ns) ns.hubs[a.name] = { partitions: Number(a.partition_count) }; } },
     // ---------- Databricks
+    databricks_storage_credential: { req: ['name'], nuevo: ['name'], calc: (a) => ({ id: a.name }) },
+    databricks_external_location: { req: ['name', 'url', 'credential_name'], calc: (a) => ({ id: a.name }) },
+    databricks_sql_endpoint: { req: ['name', 'cluster_size'], calc: (a) => ({ id: uid(16), jdbc_url: `jdbc:spark://adb-1234567890123456.7.azuredatabricks.net:443/default;transportMode=http;ssl=1;httpPath=/sql/1.0/warehouses/${uid(16)}` }), defecto: () => ({ auto_stop_mins: 120 }) },
+    databricks_notebook: { req: ['path'], nuevo: ['path'], calc: (a) => ({ id: a.path, url: `https://adb-1234567890123456.7.azuredatabricks.net/#workspace${a.path}` }),
+      crear: (a, d) => { window.CloudSim.dbx().workspace[a.path] = 'NOTEBOOK'; }, borrar: (a) => { delete window.CloudSim.dbx().workspace[a.path]; } },
     databricks_cluster: { req: ['spark_version'], calc: (a) => ({ id: `0${uid(3)}-${uid(6)}-${uid(8)}`, url: `https://adb-1234567890123456.7.azuredatabricks.net/#setting/clusters/${uid(8)}/configuration`, state: 'RUNNING' }),
       crear: (a, d, calc) => { window.CloudSim.dbx().clusters[calc.id] = { name: a.cluster_name || 'terraform-cluster', state: 'RUNNING', spark: a.spark_version, node: a.node_type_id || 'Standard_D4ds_v5', workers: Number(a.num_workers || 1) }; },
       borrar: (a, calc) => { delete window.CloudSim.dbx().clusters[calc.id]; } },
@@ -608,9 +616,13 @@
   function planificar(dir, opciones, estado, prefijo = '', varsModulo = null, raiz = null, depsExtra = []) {
     const cfg = cargarModulo(dir);
     const vars = varsModulo || valoresVariables(cfg, opciones);
-    const provs = {};
-    for (const [n, b] of Object.entries(cfg.proveedores)) provs[n] = evaluarCuerpo(b.body, { vars, locals: {}, recursos: {}, dir, file: b.file });
     const ctx = { vars, locals: {}, recursos: {}, modulos: {}, dir, raiz: raiz || dir, workspace: opciones.workspace };
+    // la configuración de un proveedor puede usar locals o data sources: se evalúa la primera vez que se necesita
+    const provs = {};
+    for (const [n, b] of Object.entries(cfg.proveedores)) {
+      let memo = null;
+      Object.defineProperty(provs, n, { enumerable: true, get: () => (memo = memo || evaluarCuerpo(b.body, Object.assign(Object.create(ctx), { file: b.file }))) });
+    }
     // locals pueden depender entre sí: se resuelven en varias pasadas
     const pendientes = [...cfg.locals];
     let vueltas = 0;
@@ -619,6 +631,12 @@
         const l = pendientes[i];
         try { ctx.locals[l.nombre] = evaluar(l.expr, Object.assign(Object.create(ctx), { file: l.file })); pendientes.splice(i--, 1); } catch (e) { if (!/undeclared local|undeclared resource|undeclared module/.test(e.message)) throw e; }
       }
+      if (pendientes.every((l) => !(l.nombre in ctx.locals))) break;
+    }
+    // los que dependen de recursos, data sources o módulos se calculan cuando alguien los usa (ya en orden de dependencias)
+    for (const l of pendientes) {
+      let memo; let listo = false;
+      Object.defineProperty(ctx.locals, l.nombre, { enumerable: true, configurable: true, get: () => { if (!listo) { memo = evaluar(l.expr, Object.assign(Object.create(ctx), { file: l.file })); listo = true; } return memo; } });
     }
     const nodos = {};
     for (const r of cfg.recursos) nodos[`${r.etiquetas[0]}.${r.etiquetas[1]}`] = { tipo: 'resource', b: r };
@@ -626,12 +644,19 @@
     for (const m of cfg.modulos) nodos[`module.${m.etiquetas[0]}`] = { tipo: 'module', b: m };
     // dependencias de cada nodo (también las que entran por locals)
     const depsLocal = {};
+    const localesUsados = (x) => (JSON.stringify(x).match(/"n":"local","line":\d+\},"n":"(\w+)"/g) || []).map((m) => m.match(/"n":"(\w+)"$/)[1]);
     for (const l of cfg.locals) depsLocal[l.nombre] = dependencias(l.expr);
+    // transitivo: un local que usa otro local hereda sus dependencias
+    for (let vuelta = 0; vuelta < 10; vuelta++) for (const l of cfg.locals) for (const otro of localesUsados(l.expr)) (depsLocal[otro] || []).forEach((d) => depsLocal[l.nombre].add(d));
+    const depsProv = {};
+    for (const [pn, b] of Object.entries(cfg.proveedores)) { const ds = dependencias(b.body); localesUsados(b.body).forEach((nom) => (depsLocal[nom] || []).forEach((d) => ds.add(d))); depsProv[pn] = ds; }
     const deps = {};
     for (const [k, n] of Object.entries(nodos)) {
       const s = dependencias(n.b.body);
       const usaLocals = JSON.stringify(n.b.body).match(/"n":"local","line":\d+\},"n":"(\w+)"/g) || [];
       usaLocals.forEach((m) => { const nom = m.match(/"n":"(\w+)"$/)[1]; (depsLocal[nom] || []).forEach((d) => s.add(d)); });
+      const provNodo = n.tipo === 'module' ? null : proveedorDe(n.b.etiquetas[0]);
+      for (const [pn, ds] of Object.entries(depsProv)) if (n.tipo === 'module' || pn === provNodo) ds.forEach((d) => d !== k && s.add(d));
       const dep = n.b.body.find((x) => x.k === 'attr' && x.nombre === 'depends_on');
       if (dep) for (const it of dep.expr.items || []) { const t = dependencias([{ e: 'attr', x: it, n: '_' }]); t.forEach((d) => s.add(d)); if (it.e === 'attr' && it.x.e === 'ref') s.add(`${it.x.n}.${it.n}`); }
       deps[k] = [...s].filter((d) => d !== k && nodos[d]);
@@ -655,18 +680,35 @@
         const mdir = Sh.norm(src, dir);
         if (!Sh.isDir(mdir)) throw new ErrorHCL(`Unreadable module directory: Unable to evaluate directory symlink: lstat ${src}: no such file or directory`, n.b.file, n.b.line);
         const mcfg = cargarModulo(mdir);
-        const entradas = {};
-        for (const [nom, x] of Object.entries(a)) if (!['source', 'version', 'depends_on', 'providers', 'count', 'for_each'].includes(nom)) {
-          if (!(nom in mcfg.variables)) throw new ErrorHCL(`Unsupported argument: An argument named "${nom}" is not expected here (el módulo no declara esa variable).`, n.b.file, x.line);
-          entradas[nom] = evaluar(x.expr, ctx);
+        // count / for_each también en módulos: una copia del módulo por clave
+        let claves = [null];
+        if (a.count && a.for_each) throw new ErrorHCL('Invalid combination of "count" and "for_each": The "count" and "for_each" meta-arguments are mutually-exclusive.', n.b.file, n.b.line);
+        if (a.count) { const c = evaluar(a.count.expr, ctx); if (esDesc(c)) throw new ErrorHCL('Invalid count argument: The "count" value depends on resource attributes that cannot be determined until apply.', n.b.file, n.b.line); claves = Array.from({ length: Number(c) }, (_, i) => i); }
+        if (a.for_each) {
+          const fe = evaluar(a.for_each.expr, ctx);
+          if (fe instanceof Desconocido || (Array.isArray(fe) && fe.some(esDesc))) throw new ErrorHCL('Invalid for_each argument: The "for_each" value depends on resource attributes that cannot be determined until apply.', n.b.file, n.b.line);
+          claves = Array.isArray(fe) ? fe.map((x) => ({ key: x, value: x })) : Object.entries(fe).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0)).map(([kk, v]) => ({ key: kk, value: v }));
         }
-        for (const [nom, v] of Object.entries(mcfg.variables)) if (!(nom in entradas)) {
-          if (v.attrs.default) entradas[nom] = evaluar(v.attrs.default.expr, { vars: {}, locals: {}, recursos: {}, dir: mdir });
-          else throw new ErrorHCL(`Missing required argument: The argument "${nom}" is required, but no definition was found.`, n.b.file, n.b.line);
+        const salidasMod = [];
+        for (const clave of claves) {
+          const subc = Object.assign(Object.create(ctx), {});
+          let pref = `${prefijo}module.${n.b.etiquetas[0]}`;
+          if (a.count) { subc.count = { index: clave }; pref += `[${clave}]`; }
+          if (a.for_each) { subc.each = clave; pref += `["${clave.key}"]`; }
+          const entradas = {};
+          for (const [nom, x] of Object.entries(a)) if (!['source', 'version', 'depends_on', 'providers', 'count', 'for_each'].includes(nom)) {
+            if (!(nom in mcfg.variables)) throw new ErrorHCL(`Unsupported argument: An argument named "${nom}" is not expected here (el módulo no declara esa variable).`, n.b.file, x.line);
+            entradas[nom] = evaluar(x.expr, subc);
+          }
+          for (const [nom, v] of Object.entries(mcfg.variables)) if (!(nom in entradas)) {
+            if (v.attrs.default) entradas[nom] = evaluar(v.attrs.default.expr, { vars: {}, locals: {}, recursos: {}, dir: mdir });
+            else throw new ErrorHCL(`Missing required argument: The argument "${nom}" is required, but no definition was found.`, n.b.file, n.b.line);
+          }
+          const sub = planificar(mdir, Object.assign({}, opciones, { proveedoresPadre: Object.assign({}, opciones.proveedoresPadre, provs) }), estado, `${pref}.`, entradas, raiz || dir, deps[k].map((d) => prefijo + d).concat(depsExtra));
+          instancias.push(...sub.instancias);
+          salidasMod.push([clave, sub.salidas]);
         }
-        const sub = planificar(mdir, Object.assign({}, opciones, { proveedoresPadre: Object.assign({}, opciones.proveedoresPadre, provs) }), estado, `${prefijo}module.${n.b.etiquetas[0]}.`, entradas, raiz || dir, deps[k].map((d) => prefijo + d).concat(depsExtra));
-        instancias.push(...sub.instancias);
-        ctx.modulos[n.b.etiquetas[0]] = sub.salidas;
+        ctx.modulos[n.b.etiquetas[0]] = a.count ? salidasMod.map((x) => x[1]) : a.for_each ? Object.fromEntries(salidasMod.map(([c, v]) => [c.key, v])) : salidasMod[0][1];
         continue;
       }
       const [tipoR, nombreR] = n.tipo === 'data' ? n.b.etiquetas : n.b.etiquetas;
@@ -693,7 +735,7 @@
         const feDesc = fe instanceof Desconocido || (Array.isArray(fe) ? fe.some(esDesc) : false);
         if (feDesc && opciones.soloValidar) { claves = [{ key: 'x', value: DESC }]; } else if (feDesc) throw new ErrorHCL('Invalid for_each argument: The "for_each" value depends on resource attributes that cannot be determined until apply.', n.b.file, n.b.line);
         if (Array.isArray(fe) && fe.some((x) => typeof x !== 'string')) throw new ErrorHCL('Invalid for_each argument: The given "for_each" argument value is unsuitable: "for_each" supports maps and sets of strings.', n.b.file, n.b.line);
-        if (!feDesc) claves = Array.isArray(fe) ? fe.map((x) => ({ key: x, value: x })) : Object.entries(fe).map(([kk, v]) => ({ key: kk, value: v }));
+        if (!feDesc) claves = Array.isArray(fe) ? fe.map((x) => ({ key: x, value: x })) : Object.entries(fe).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0)).map(([kk, v]) => ({ key: kk, value: v }));
       }
       const lc = n.b.body.find((x) => x.k === 'block' && x.tipo === 'lifecycle');
       const lcA = lc ? Object.fromEntries(lc.body.filter((x) => x.k === 'attr').map((x) => [x.nombre, x.expr])) : {};
@@ -784,7 +826,7 @@
   function guardarEstado(dir, ws, est) {
     const recursos = {};
     for (const [d, r] of Object.entries(est.recursos)) {
-      const m = d.match(/^((?:module\.[\w-]+\.)*)([\w-]+)\.([\w-]+)(?:\[(.+)\])?$/);
+      const m = d.match(/^((?:module\.[\w-]+(?:\[[^\]]+\])?\.)*)([\w-]+)\.([\w-]+)(?:\[(.+)\])?$/);
       const mod = m[1].replace(/\.$/, '');
       const k = `${mod}|${m[2]}|${m[3]}`;
       recursos[k] = recursos[k] || { module: mod || undefined, mode: 'managed', type: m[2], name: m[3], provider: `provider["registry.terraform.io/${PROVEEDORES[proveedorDe(m[2])].fuente}"]`, instances: [] };
