@@ -7,6 +7,11 @@
  *  saas_*       Nube Pyme          (software B2B: MRR, facturas, soporte)
  *  vuelos_*     Cóndor Air         (aerolínea: vuelos, demoras, ocupación, reservas)
  *  logistica_*  Mercurio Logística (almacenes, movimientos de stock, envíos)
+ *  telco_*      Conecta            (telecomunicaciones: líneas, consumo, reclamos, bajas)
+ *  seguros_*    Escudo Seguros     (pólizas, primas, siniestros, fraude)
+ *  hotel_*      Posada Andina      (hotelería: reservas por canal, ocupación, consumos, reseñas)
+ *  energia_*    Luz del Valle      (distribuidora eléctrica: lecturas, facturas, cortes)
+ *  delivery_*   Rápido             (delivery de comida: pedidos por etapa, restaurantes, repartidores)
  */
 (function (root) {
   'use strict';
@@ -380,7 +385,291 @@
       }
       T.logistica_envios = { columns: ['envio_id', 'almacen_id', 'ciudad_destino', 'transportista', 'fecha_despacho', 'fecha_prometida', 'fecha_entrega', 'costo', 'estado'], rows: envios };
     }
+    // ======================================================================
+    // Empresas nuevas: usan su propio generador para no cambiar los datos de arriba
+    nuevasEmpresas(T);
     return T;
+  }
+
+  function nuevasEmpresas(T) {
+    const rnd = mulberry32(424242);
+    const int = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+    const pick = (a) => a[Math.floor(rnd() * a.length)];
+    const pickW = (pairs) => { const t = pairs.reduce((s, p) => s + p[1], 0); let r = rnd() * t; for (const p of pairs) { r -= p[1]; if (r <= 0) return p[0]; } return pairs[pairs.length - 1][0]; };
+    const mes = (y, m) => `${y}-${pad(m)}`;
+    const MESES_2024 = Array.from({ length: 12 }, (_, i) => [2024, i + 1]);
+
+    // =============================================================== TELCO CONECTA
+    {
+      T.telco_planes = { columns: ['plan_id', 'nombre', 'tipo', 'datos_gb', 'minutos', 'precio_mensual'], rows: [
+        [1, 'Prepago Recarga', 'prepago', 0, 0, 0], [2, 'Control 5', 'pospago', 5, 300, 12], [3, 'Libre 15', 'pospago', 15, 1000, 20],
+        [4, 'Libre 40', 'pospago', 40, 3000, 30], [5, 'Ilimitado', 'pospago', 999, 9999, 45]] };
+      const regiones = [['Norte', 3], ['Centro', 5], ['Sur', 3], ['Costa', 2], ['Andina', 2]];
+      // la región Andina tiene mala cobertura: más reclamos y más bajas
+      const malaCobertura = { Andina: 2.4, Sur: 1.3 };
+      const clientes = [], lineas = [], consumos = [], reclamos = [];
+      let lid = 1, rid = 1;
+      for (let id = 1; id <= 1200; id++) {
+        const region = pickW(regiones);
+        const tipo = pickW([['persona', 88], ['empresa', 12]]);
+        const alta = U(2020, 1, 1) + int(0, 1600) * DAY;
+        clientes.push([id, tipo, region, fd(new Date(alta)), tipo === 'persona' ? int(18, 75) : null]);
+        const n = tipo === 'empresa' ? int(2, 6) : pickW([[1, 80], [2, 15], [3, 5]]);
+        for (let k = 0; k < n; k++) {
+          let plan = tipo === 'empresa' ? pickW([[3, 40], [4, 40], [5, 20]]) : pickW([[1, 38], [2, 22], [3, 22], [4, 12], [5, 6]]);
+          const altaL = Math.max(alta + int(0, 300) * DAY, U(2021, 1, 1));
+          const riesgo = (malaCobertura[region] || 1) * (plan === 1 ? 1.4 : 1) * (tipo === 'empresa' ? 0.5 : 1);
+          let baja = null, motivo = null;
+          const numero = `9${int(10000000, 99999999)}`;
+          const lineaId = lid++;
+          let reclamosLinea = 0;
+          for (const [y, m] of MESES_2024) {
+            const ini = U(y, m, 1);
+            if (ini < altaL) continue;
+            if (baja) break;
+            const p = T.telco_planes.rows[plan - 1];
+            const datos = plan === 1 ? r2(Math.pow(rnd(), 1.5) * 4) : r2(Math.min(p[3] === 999 ? 120 : p[3] * 1.4, Math.pow(rnd(), 0.8) * (p[3] === 999 ? 60 : p[3] * 1.2)));
+            const minutos = plan === 1 ? int(10, 200) : int(30, Math.min(p[4], 1500));
+            const monto = plan === 1 ? r2(int(1, 6) * 3.5) : r2(p[5] + (datos > p[3] ? (datos - p[3]) * 1.5 : 0));
+            consumos.push([lineaId, mes(y, m), datos, minutos, int(0, 40), monto]);
+            const pRec = 0.05 * riesgo;
+            if (rnd() < pRec) {
+              const cat = pickW([['cobertura', malaCobertura[region] ? 50 : 15], ['facturacion', 25], ['velocidad', 20], ['atencion', 15]]);
+              const f = ini + int(0, 27) * DAY + int(8, 21) * HOUR;
+              const horas = cat === 'facturacion' ? int(2, 96) : int(4, 240);
+              const resuelto = rnd() < (cat === 'cobertura' ? 0.55 : 0.85) ? 1 : 0;
+              reclamos.push([rid++, lineaId, ft(new Date(f)), cat, resuelto ? horas : null, resuelto]);
+              reclamosLinea++;
+            }
+            const pBaja = 0.006 * riesgo + reclamosLinea * 0.02;
+            if (rnd() < pBaja) {
+              baja = ini + int(5, 27) * DAY;
+              motivo = pickW([['portabilidad', 45 * (malaCobertura[region] || 1)], ['precio', 30], ['cobertura', 20 * (malaCobertura[region] || 0.5)], ['mudanza', 8]]);
+            }
+            if (!baja && rnd() < 0.015 && plan > 1 && plan < 5) plan++;
+          }
+          lineas.push([lineaId, id, plan, numero, fd(new Date(altaL)), baja ? fd(new Date(baja)) : null, motivo]);
+        }
+      }
+      T.telco_clientes = { columns: ['cliente_id', 'tipo', 'region', 'fecha_alta', 'edad'], rows: clientes };
+      T.telco_lineas = { columns: ['linea_id', 'cliente_id', 'plan_id', 'numero', 'fecha_alta', 'fecha_baja', 'motivo_baja'], rows: lineas };
+      T.telco_consumos = { columns: ['linea_id', 'mes', 'datos_gb', 'minutos', 'sms', 'monto_facturado'], rows: consumos };
+      T.telco_reclamos = { columns: ['reclamo_id', 'linea_id', 'fecha_hora', 'categoria', 'horas_resolucion', 'resuelto'], rows: reclamos };
+    }
+
+    // =============================================================== SEGUROS ESCUDO
+    {
+      const clientes = [], polizas = [], siniestros = [];
+      let pid = 1, sid = 1;
+      const ciudades = ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'Santiago', 'Lima', 'Bogotá', 'Ciudad de México'];
+      for (let id = 1; id <= 1500; id++) {
+        const edad = int(19, 78);
+        clientes.push([id, edad, pick(ciudades), fd(new Date(U(2019, 1, 1) + int(0, 1800) * DAY))]);
+        const n = pickW([[1, 65], [2, 25], [3, 10]]);
+        const ramos = new Set();
+        for (let k = 0; k < n; k++) {
+          const ramo = pickW([['auto', 45], ['hogar', 30], ['vida', 15], ['salud', 10]]);
+          if (ramos.has(ramo)) continue;
+          ramos.add(ramo);
+          const canal = pickW([['broker', 45], ['web', 30], ['banco', 25]]);
+          const ini = U(2022, 1, 1) + int(0, 900) * DAY;
+          const fin = ini + 365 * DAY;
+          const suma = ramo === 'auto' ? int(8, 40) * 1000 : ramo === 'hogar' ? int(30, 200) * 1000 : ramo === 'vida' ? int(20, 150) * 1000 : int(5, 30) * 1000;
+          const tasa = ramo === 'auto' ? 0.0045 * (edad < 25 ? 1.8 : edad > 65 ? 1.3 : 1) : ramo === 'hogar' ? 0.0009 : ramo === 'vida' ? 0.0004 * (1 + edad / 40) : 0.006;
+          const prima = r2(suma * tasa * (canal === 'broker' ? 1.08 : 1));
+          const estado = fin < U(2024, 12, 31) ? (rnd() < 0.7 ? 'renovada' : 'vencida') : 'vigente';
+          const polId = pid++;
+          polizas.push([polId, id, ramo, fd(new Date(ini)), fd(new Date(fin)), prima, suma, canal, estado]);
+          // siniestros: frecuencia por ramo; jóvenes en auto chocan más
+          const freq = ramo === 'auto' ? 0.32 * (edad < 25 ? 2 : 1) : ramo === 'hogar' ? 0.12 : ramo === 'salud' ? 0.9 : 0.01;
+          let nS = 0; while (rnd() < freq / (nS + 1) && nS < 4) nS++;
+          for (let j = 0; j < nS; j++) {
+            const ocurr = ini + int(1, 364) * DAY;
+            const denuncia = ocurr + int(0, rnd() < 0.85 ? 5 : 60) * DAY;
+            const tipo = ramo === 'auto' ? pickW([['choque', 60], ['robo', 15], ['granizo', 10], ['cristales', 15]]) : ramo === 'hogar' ? pickW([['agua', 40], ['robo', 30], ['incendio', 5], ['electrico', 25]]) : ramo === 'salud' ? pickW([['consulta', 50], ['internacion', 15], ['estudios', 35]]) : 'fallecimiento';
+            const reclamado = r2(Math.min(suma, (tipo === 'robo' && ramo === 'auto' ? suma * (0.7 + rnd() * 0.3) : tipo === 'incendio' || tipo === 'fallecimiento' ? suma * (0.4 + rnd() * 0.6) : Math.pow(rnd(), 2) * suma * (ramo === 'hogar' ? 0.07 : 0.15) + 50)));
+            const estadoS = pickW([['pagado', 78], ['rechazado', 14], ['en_revision', 8]]);
+            const pagado = estadoS === 'pagado' ? r2(reclamado * (0.75 + rnd() * 0.25)) : 0;
+            siniestros.push([sid++, polId, fd(new Date(ocurr)), fd(new Date(denuncia)), tipo, reclamado, pagado, estadoS, 0]);
+          }
+        }
+      }
+      // fraude: siniestros grandes pocos días después de contratar, denunciados tarde
+      for (let f = 0; f < 35; f++) {
+        const p = pick(polizas.filter((x) => x[2] === 'auto' || x[2] === 'hogar'));
+        const ini = Date.parse(p[3] + 'T00:00:00Z');
+        const ocurr = ini + int(2, 25) * DAY;
+        const reclamado = r2(p[6] * (0.5 + rnd() * 0.5));
+        const estadoS = pickW([['rechazado', 45], ['pagado', 30], ['en_revision', 25]]);
+        siniestros.push([sid++, p[0], fd(new Date(ocurr)), fd(new Date(ocurr + int(8, 40) * DAY)), p[2] === 'auto' ? 'robo' : 'robo', reclamado, estadoS === 'pagado' ? reclamado : 0, estadoS, 1]);
+      }
+      siniestros.sort((a, b) => (a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : a[0] - b[0]));
+      T.seguros_clientes = { columns: ['cliente_id', 'edad', 'ciudad', 'fecha_alta'], rows: clientes };
+      T.seguros_polizas = { columns: ['poliza_id', 'cliente_id', 'ramo', 'fecha_inicio', 'fecha_fin', 'prima_mensual', 'suma_asegurada', 'canal', 'estado'], rows: polizas };
+      T.seguros_siniestros = { columns: ['siniestro_id', 'poliza_id', 'fecha_ocurrencia', 'fecha_denuncia', 'tipo', 'monto_reclamado', 'monto_pagado', 'estado', 'fraude_confirmado'], rows: siniestros.map((s, i) => [i + 1, ...s.slice(1)]) };
+    }
+
+    // =============================================================== HOTELES POSADA ANDINA
+    {
+      const hoteles = [[1, 'Posada Andina Cusco', 'Cusco', 4, 24], [2, 'Posada Andina Lima', 'Lima', 4, 36], [3, 'Posada Andina Mendoza', 'Mendoza', 3, 18],
+        [4, 'Posada Andina Bariloche', 'Bariloche', 5, 28], [5, 'Posada Andina Cartagena', 'Cartagena', 4, 30], [6, 'Posada Andina Salta', 'Salta', 3, 16]];
+      T.hotel_hoteles = { columns: ['hotel_id', 'nombre', 'ciudad', 'estrellas', 'habitaciones'], rows: hoteles };
+      const tarifas = { estandar: 70, superior: 105, suite: 190 };
+      const temporadaAlta = { Cusco: [6, 7, 8], Lima: [1, 2, 12], Mendoza: [2, 3, 4], Bariloche: [7, 8, 1], Cartagena: [12, 1, 6, 7], Salta: [7, 9, 10] };
+      const huespedes = [];
+      for (let id = 1; id <= 4000; id++) huespedes.push([id, pickW([['Argentina', 25], ['Perú', 15], ['Chile', 10], ['Colombia', 12], ['Estados Unidos', 12], ['Brasil', 10], ['España', 8], ['Alemania', 4], ['Francia', 4]]), rnd() < 0.3 ? 1 : 0]);
+      T.hotel_huespedes = { columns: ['huesped_id', 'pais', 'programa_fidelidad'], rows: huespedes };
+      const reservas = [], consumos = [], resenas = [];
+      let rid = 1, cid = 1, eid = 1;
+      for (const h of hoteles) {
+        // habitaciones ocupadas por noche: una reserva confirmada no puede superar la capacidad (no hay sobreventa)
+        const ocupadas = new Array(380).fill(0);
+        for (let d = U(2024, 1, 1); d <= U(2024, 12, 31); d += DAY) {
+          const m = new Date(d).getUTCMonth() + 1;
+          const alta = (temporadaAlta[h[2]] || []).includes(m);
+          const finde = [5, 6].includes(new Date(d).getUTCDay());
+          const llegadas = Math.round(h[4] * (alta ? 0.3 : 0.17) * (finde ? 1.25 : 1) * (0.7 + rnd() * 0.6));
+          for (let k = 0; k < llegadas; k++) {
+            const noches = pickW([[1, 20], [2, 30], [3, 25], [4, 12], [5, 8], [7, 5]]);
+            const ant = Math.round(Math.pow(rnd(), 1.3) * 150);
+            const canal = pickW([['directo', 30], ['booking', 35], ['expedia', 20], ['agencia', 15]]);
+            const tipoHab = pickW([['estandar', 60], ['superior', 30], ['suite', 10]]);
+            const tarifa = r2(tarifas[tipoHab] * (1 + (h[3] - 4) * 0.25) * (alta ? 1.45 : 1) * (finde ? 1.1 : 1) * (canal === 'directo' ? 0.95 : 1) * (0.9 + rnd() * 0.2));
+            const pCancel = (canal === 'booking' ? 0.22 : canal === 'expedia' ? 0.18 : 0.1) + (ant > 60 ? 0.08 : 0);
+            let estado = rnd() < pCancel ? 'cancelada' : rnd() < 0.03 ? 'no_show' : 'completada';
+            const dia0 = Math.round((d - U(2024, 1, 1)) / DAY);
+            if (estado !== 'cancelada') {
+              let hay = true;
+              for (let n = 0; n < noches; n++) if (ocupadas[dia0 + n] >= h[4]) hay = false;
+              if (!hay) continue;                       // sin lugar: el hotel la rechazó, no queda registrada
+              for (let n = 0; n < noches; n++) ocupadas[dia0 + n]++;
+            }
+            const comision = canal === 'booking' ? 18 : canal === 'expedia' ? 20 : canal === 'agencia' ? 12 : 0;
+            const hu = pick(huespedes);
+            reservas.push([rid, h[0], hu[0], fd(new Date(d - ant * DAY)), fd(new Date(d)), fd(new Date(d + noches * DAY)), tipoHab, canal, tarifa, comision, estado]);
+            if (estado === 'completada') {
+              const nC = int(0, noches + 1);
+              for (let c = 0; c < nC; c++) {
+                const concepto = pickW([['restaurante', 45], ['bar', 25], ['spa', 10], ['minibar', 12], ['lavanderia', 8]]);
+                const monto = r2(concepto === 'spa' ? int(40, 120) : concepto === 'restaurante' ? int(15, 80) : int(5, 35));
+                consumos.push([cid++, rid, fd(new Date(d + int(0, noches - 1) * DAY)), concepto, monto]);
+              }
+              if (rnd() < 0.35) {
+                const base = 8.6 - (canal === 'booking' ? 0.3 : 0) - (alta ? 0.4 : 0) + (tipoHab === 'suite' ? 0.6 : 0);
+                resenas.push([eid++, rid, fd(new Date(d + (noches + int(0, 10)) * DAY)), Math.max(1, Math.min(10, Math.round(base + (rnd() - 0.5) * 4)))]);
+              }
+            }
+            rid++;
+          }
+        }
+      }
+      T.hotel_reservas = { columns: ['reserva_id', 'hotel_id', 'huesped_id', 'fecha_reserva', 'check_in', 'check_out', 'tipo_habitacion', 'canal', 'tarifa_noche', 'comision_pct', 'estado'], rows: reservas };
+      T.hotel_consumos = { columns: ['consumo_id', 'reserva_id', 'fecha', 'concepto', 'monto'], rows: consumos };
+      T.hotel_resenas = { columns: ['resena_id', 'reserva_id', 'fecha', 'puntaje'], rows: resenas };
+    }
+
+    // =============================================================== ENERGÍA LUZ DEL VALLE
+    {
+      const zonas = [['Centro', 4], ['Norte', 3], ['Sur', 3], ['Industrial', 1], ['Rural', 2]];
+      const clientes = [], medidores = [], lecturas = [], facturas = [], cortes = [];
+      const precioKwh = { residencial: 0.11, comercial: 0.14, industrial: 0.09 };
+      let mid = 1, lid = 1, fid = 1;
+      for (let id = 1; id <= 1000; id++) {
+        const zona = pickW(zonas);
+        const tipo = zona === 'Industrial' ? pickW([['industrial', 60], ['comercial', 40]]) : pickW([['residencial', 85], ['comercial', 15]]);
+        clientes.push([id, tipo, zona, fd(new Date(U(2015, 1, 1) + int(0, 3000) * DAY))]);
+        const inteligente = rnd() < (zona === 'Rural' ? 0.2 : 0.6);
+        const medId = mid++;
+        medidores.push([medId, id, inteligente ? 'inteligente' : 'analogico', fd(new Date(U(2018, 1, 1) + int(0, 2000) * DAY))]);
+        const base = tipo === 'industrial' ? int(8000, 30000) : tipo === 'comercial' ? int(600, 3000) : int(120, 450);
+        const roba = tipo !== 'industrial' && rnd() < 0.025; // hurto: desde un mes, el consumo medido cae mucho
+        const mesRobo = int(4, 10);
+        const moroso = rnd() < 0.08;
+        for (const [y, m] of MESES_2024) {
+          const estacion = [12, 1, 2].includes(m) ? 1.25 : [6, 7, 8].includes(m) ? 1.15 : 1;
+          let kwh = Math.round(base * estacion * (0.85 + rnd() * 0.3));
+          if (roba && m >= mesRobo) kwh = Math.round(kwh * (0.15 + rnd() * 0.15));
+          const estimada = !inteligente && rnd() < 0.12 ? 1 : 0;
+          lecturas.push([lid++, medId, mes(y, m), kwh, estimada]);
+          const monto = r2(kwh * precioKwh[tipo] + (tipo === 'residencial' ? 4 : 15));
+          const venc = U(y, m, 1) + 45 * DAY;
+          const pago = moroso && rnd() < 0.5 ? (rnd() < 0.4 ? null : venc + int(5, 60) * DAY) : venc - int(0, 15) * DAY + (rnd() < 0.1 ? int(1, 20) * DAY : 0);
+          facturas.push([fid++, id, mes(y, m), kwh, monto, fd(new Date(venc)), pago && pago <= U(2025, 1, 31) ? fd(new Date(pago)) : null]);
+        }
+      }
+      let corteId = 1;
+      for (let d = U(2024, 1, 1); d <= U(2024, 12, 31); d += DAY) {
+        const m = new Date(d).getUTCMonth() + 1;
+        for (const [zona] of zonas) {
+          const p = (zona === 'Rural' ? 0.05 : 0.018) * ([12, 1, 2].includes(m) ? 2 : 1);
+          if (rnd() < p) {
+            const ini = d + int(0, 23) * HOUR + int(0, 59) * MIN;
+            const causa = pickW([['tormenta', [12, 1, 2].includes(m) ? 40 : 10], ['falla_equipo', 35], ['mantenimiento', 20], ['sobrecarga', 15]]);
+            const dur = causa === 'mantenimiento' ? int(60, 240) : causa === 'tormenta' ? int(45, 900) : int(10, 300);
+            const afectados = clientes.filter((c) => c[2] === zona).length;
+            cortes.push([corteId++, zona, ft(new Date(ini)), ft(new Date(ini + dur * MIN)), causa, Math.round(afectados * (0.1 + rnd() * 0.9))]);
+          }
+        }
+      }
+      T.energia_clientes = { columns: ['cliente_id', 'tipo', 'zona', 'fecha_alta'], rows: clientes };
+      T.energia_medidores = { columns: ['medidor_id', 'cliente_id', 'tipo', 'fecha_instalacion'], rows: medidores };
+      T.energia_lecturas = { columns: ['lectura_id', 'medidor_id', 'mes', 'kwh', 'estimada'], rows: lecturas };
+      T.energia_facturas = { columns: ['factura_id', 'cliente_id', 'mes', 'kwh', 'monto', 'fecha_vencimiento', 'fecha_pago'], rows: facturas };
+      T.energia_cortes = { columns: ['corte_id', 'zona', 'inicio', 'fin', 'causa', 'clientes_afectados'], rows: cortes };
+    }
+
+    // =============================================================== DELIVERY RÁPIDO
+    {
+      const ciudades = [['Bogotá', 4], ['Medellín', 2], ['Lima', 3], ['Ciudad de México', 5], ['Buenos Aires', 3]];
+      const categorias = [['Hamburguesas', 4], ['Pizza', 4], ['Sushi', 2], ['Pollo', 3], ['Saludable', 2], ['Postres', 1], ['Comida casera', 3], ['Mexicana', 2]];
+      const restaurantes = [], repartidores = [], clientes = [], pedidos = [];
+      for (let id = 1; id <= 220; id++) {
+        const cat = pickW(categorias);
+        restaurantes.push([id, `${pick(['La Esquina', 'El Fogón', 'El Sabor', 'El Rincón', 'La Parrilla', 'La Cocina', 'El Puerto', 'La Casona'])} de ${pick(APELLIDOS)}`, pickW(ciudades), cat, pickW([[15, 20], [20, 50], [25, 30]]), r2(3.6 + rnd() * 1.3)]);
+      }
+      for (let id = 1; id <= 400; id++) repartidores.push([id, pickW(ciudades), pickW([['moto', 60], ['bicicleta', 30], ['auto', 10]]), fd(new Date(U(2022, 1, 1) + int(0, 900) * DAY))]);
+      for (let id = 1; id <= 5000; id++) clientes.push([id, pickW(ciudades), fd(new Date(U(2023, 1, 1) + int(0, 640) * DAY)), pickW([['android', 60], ['ios', 35], ['web', 5]])]);
+      T.delivery_restaurantes = { columns: ['restaurante_id', 'nombre', 'ciudad', 'categoria', 'comision_pct', 'rating'], rows: restaurantes };
+      T.delivery_repartidores = { columns: ['repartidor_id', 'ciudad', 'vehiculo', 'fecha_alta'], rows: repartidores };
+      T.delivery_clientes = { columns: ['cliente_id', 'ciudad', 'fecha_registro', 'plataforma'], rows: clientes };
+      const restPorCiudad = {}, repPorCiudad = {};
+      restaurantes.forEach((r) => (restPorCiudad[r[2]] = restPorCiudad[r[2]] || []).push(r));
+      repartidores.forEach((r) => (repPorCiudad[r[1]] = repPorCiudad[r[1]] || []).push(r));
+      const lealtad = clientes.map(() => Math.pow(rnd(), 2.2) * 10 + 0.3);
+      const totL = lealtad.reduce((a, b) => a + b, 0);
+      const pickCli = () => { let r = rnd() * totL; for (let i = 0; i < clientes.length; i++) { r -= lealtad[i]; if (r <= 0) return clientes[i]; } return clientes[0]; };
+      const raw = [];
+      for (let i = 0; i < 16000; i++) {
+        const c = pickCli();
+        const reg = Date.parse(c[2] + 'T00:00:00Z');
+        const desde = Math.max(reg, U(2024, 1, 1));
+        if (desde > U(2024, 12, 31)) continue;
+        let hora;
+        for (;;) { hora = int(9, 23); const w = (hora >= 12 && hora <= 14) || (hora >= 19 && hora <= 22) ? 3 : 0.8; if (rnd() < w / 3) break; }
+        const t = desde + Math.floor(rnd() * ((U(2024, 12, 31) - desde) / DAY + 1)) * DAY + hora * HOUR + int(0, 59) * MIN + int(0, 59) * 1000;
+        const pico = (hora >= 12 && hora <= 14) || (hora >= 19 && hora <= 22);
+        const lluvia = rnd() < 0.1;
+        const rest = pick(restPorCiudad[c[1]]);
+        const subtotal = r2(int(6, 45) + rnd());
+        const cupon = rnd() < 0.18 ? r2(Math.min(subtotal * 0.3, int(2, 8))) : 0;
+        const envio = r2((lluvia ? 2.9 : 1.9) + (pico ? 0.6 : 0));
+        let estado = pickW([['entregado', 90], ['cancelado_cliente', 4], ['cancelado_restaurante', 3], ['sin_repartidor', (pico ? 3 : 1) * (lluvia ? 3 : 1)]]);
+        const rep = estado === 'entregado' || estado === 'cancelado_cliente' ? pick(repPorCiudad[c[1]]) : null;
+        const aceptado = estado === 'cancelado_restaurante' || estado === 'sin_repartidor' ? null : t + int(1, 6) * MIN;
+        const prep = int(8, rest[3] === 'Pizza' || rest[3] === 'Comida casera' ? 30 : 22) + (pico ? int(0, 10) : 0);
+        const retirado = estado === 'entregado' ? aceptado + prep * MIN : null;
+        const viaje = rep ? int(8, 25) * (rep[2] === 'bicicleta' ? 1.3 : 1) * (lluvia ? 1.4 : 1) : 0;
+        const entregado = estado === 'entregado' ? retirado + Math.round(viaje) * MIN : null;
+        const total = entregado ? (entregado - t) / MIN : null;
+        const calif = entregado && rnd() < 0.55 ? Math.max(1, Math.min(5, Math.round(5.2 - Math.max(0, total - 35) / 12 + (rnd() - 0.5) * 1.5))) : null;
+        const propina = entregado && rnd() < 0.4 ? r2(int(1, 4) * 0.5) : 0;
+        raw.push([t, c[0], rest[0], rep ? rep[0] : null, c[1], aceptado, retirado, entregado, subtotal, envio, cupon, propina, estado, calif]);
+      }
+      raw.sort((a, b) => a[0] - b[0]);
+      const tf = (x) => (x ? ft(new Date(x)) : null);
+      T.delivery_pedidos = { columns: ['pedido_id', 'cliente_id', 'restaurante_id', 'repartidor_id', 'ciudad', 'creado', 'aceptado', 'retirado', 'entregado', 'subtotal', 'costo_envio', 'descuento_cupon', 'propina', 'estado', 'calificacion'],
+        rows: raw.map((r, i) => [i + 1, r[1], r[2], r[3], r[4], tf(r[0]), tf(r[5]), tf(r[6]), tf(r[7]), r[8], r[9], r[10], r[11], r[12], r[13]]) };
+    }
   }
 
   const SCHEMA = `
@@ -413,6 +702,32 @@ CREATE TABLE logistica_envios (envio_id INTEGER PRIMARY KEY, almacen_id INTEGER,
 CREATE INDEX idx_btx_cuenta ON banco_transacciones(cuenta_id);
 CREATE INDEX idx_srep_usuario ON streaming_reproducciones(usuario_id);
 CREATE INDEX idx_vres_vuelo ON vuelos_reservas(vuelo_id);
+CREATE TABLE telco_planes (plan_id INTEGER PRIMARY KEY, nombre TEXT, tipo TEXT, datos_gb INTEGER, minutos INTEGER, precio_mensual REAL);
+CREATE TABLE telco_clientes (cliente_id INTEGER PRIMARY KEY, tipo TEXT, region TEXT, fecha_alta TEXT, edad INTEGER);
+CREATE TABLE telco_lineas (linea_id INTEGER PRIMARY KEY, cliente_id INTEGER, plan_id INTEGER, numero TEXT, fecha_alta TEXT, fecha_baja TEXT, motivo_baja TEXT);
+CREATE TABLE telco_consumos (linea_id INTEGER, mes TEXT, datos_gb REAL, minutos INTEGER, sms INTEGER, monto_facturado REAL, PRIMARY KEY (linea_id, mes));
+CREATE TABLE telco_reclamos (reclamo_id INTEGER PRIMARY KEY, linea_id INTEGER, fecha_hora TEXT, categoria TEXT, horas_resolucion INTEGER, resuelto INTEGER);
+CREATE TABLE seguros_clientes (cliente_id INTEGER PRIMARY KEY, edad INTEGER, ciudad TEXT, fecha_alta TEXT);
+CREATE TABLE seguros_polizas (poliza_id INTEGER PRIMARY KEY, cliente_id INTEGER, ramo TEXT, fecha_inicio TEXT, fecha_fin TEXT, prima_mensual REAL, suma_asegurada REAL, canal TEXT, estado TEXT);
+CREATE TABLE seguros_siniestros (siniestro_id INTEGER PRIMARY KEY, poliza_id INTEGER, fecha_ocurrencia TEXT, fecha_denuncia TEXT, tipo TEXT, monto_reclamado REAL, monto_pagado REAL, estado TEXT, fraude_confirmado INTEGER);
+CREATE TABLE hotel_hoteles (hotel_id INTEGER PRIMARY KEY, nombre TEXT, ciudad TEXT, estrellas INTEGER, habitaciones INTEGER);
+CREATE TABLE hotel_huespedes (huesped_id INTEGER PRIMARY KEY, pais TEXT, programa_fidelidad INTEGER);
+CREATE TABLE hotel_reservas (reserva_id INTEGER PRIMARY KEY, hotel_id INTEGER, huesped_id INTEGER, fecha_reserva TEXT, check_in TEXT, check_out TEXT, tipo_habitacion TEXT, canal TEXT, tarifa_noche REAL, comision_pct REAL, estado TEXT);
+CREATE TABLE hotel_consumos (consumo_id INTEGER PRIMARY KEY, reserva_id INTEGER, fecha TEXT, concepto TEXT, monto REAL);
+CREATE TABLE hotel_resenas (resena_id INTEGER PRIMARY KEY, reserva_id INTEGER, fecha TEXT, puntaje INTEGER);
+CREATE TABLE energia_clientes (cliente_id INTEGER PRIMARY KEY, tipo TEXT, zona TEXT, fecha_alta TEXT);
+CREATE TABLE energia_medidores (medidor_id INTEGER PRIMARY KEY, cliente_id INTEGER, tipo TEXT, fecha_instalacion TEXT);
+CREATE TABLE energia_lecturas (lectura_id INTEGER PRIMARY KEY, medidor_id INTEGER, mes TEXT, kwh INTEGER, estimada INTEGER);
+CREATE TABLE energia_facturas (factura_id INTEGER PRIMARY KEY, cliente_id INTEGER, mes TEXT, kwh INTEGER, monto REAL, fecha_vencimiento TEXT, fecha_pago TEXT);
+CREATE TABLE energia_cortes (corte_id INTEGER PRIMARY KEY, zona TEXT, inicio TEXT, fin TEXT, causa TEXT, clientes_afectados INTEGER);
+CREATE TABLE delivery_restaurantes (restaurante_id INTEGER PRIMARY KEY, nombre TEXT, ciudad TEXT, categoria TEXT, comision_pct REAL, rating REAL);
+CREATE TABLE delivery_repartidores (repartidor_id INTEGER PRIMARY KEY, ciudad TEXT, vehiculo TEXT, fecha_alta TEXT);
+CREATE TABLE delivery_clientes (cliente_id INTEGER PRIMARY KEY, ciudad TEXT, fecha_registro TEXT, plataforma TEXT);
+CREATE TABLE delivery_pedidos (pedido_id INTEGER PRIMARY KEY, cliente_id INTEGER, restaurante_id INTEGER, repartidor_id INTEGER, ciudad TEXT, creado TEXT, aceptado TEXT, retirado TEXT, entregado TEXT, subtotal REAL, costo_envio REAL, descuento_cupon REAL, propina REAL, estado TEXT, calificacion INTEGER);
+CREATE INDEX idx_tcons_linea ON telco_consumos(linea_id);
+CREATE INDEX idx_hres_hotel ON hotel_reservas(hotel_id);
+CREATE INDEX idx_elec_medidor ON energia_lecturas(medidor_id);
+CREATE INDEX idx_dped_rest ON delivery_pedidos(restaurante_id);
 `;
 
   const CASOS = [
@@ -424,6 +739,11 @@ CREATE INDEX idx_vres_vuelo ON vuelos_reservas(vuelo_id);
     { id: 'saas', nombre: 'Nube Pyme', icono: '☁️', prefijo: 'saas_', rubro: 'Software B2B (SaaS)', resumen: 'Empresas clientes, facturas mensuales (MRR) y soporte.' },
     { id: 'vuelos', nombre: 'Cóndor Air', icono: '✈️', prefijo: 'vuelos_', rubro: 'Aerolínea', resumen: 'Vuelos, demoras, reservas y precios.' },
     { id: 'logistica', nombre: 'Mercurio Logística', icono: '📦', prefijo: 'logistica_', rubro: 'Logística', resumen: 'Almacenes, movimientos de stock y envíos.' },
+    { id: 'telco', nombre: 'Conecta', icono: '📱', prefijo: 'telco_', rubro: 'Telecomunicaciones', resumen: 'Líneas, planes, consumo mensual, reclamos y bajas (churn, portabilidad).' },
+    { id: 'seguros', nombre: 'Escudo Seguros', icono: '🛡️', prefijo: 'seguros_', rubro: 'Seguros', resumen: 'Pólizas, primas, siniestros, siniestralidad y fraude.' },
+    { id: 'hotel', nombre: 'Posada Andina', icono: '🏨', prefijo: 'hotel_', rubro: 'Hotelería', resumen: 'Hoteles, reservas por canal, ocupación, ADR, RevPAR, consumos y reseñas.' },
+    { id: 'energia', nombre: 'Luz del Valle', icono: '⚡', prefijo: 'energia_', rubro: 'Energía (distribuidora eléctrica)', resumen: 'Medidores, lecturas mensuales, facturación, cobranza, hurto y cortes.' },
+    { id: 'delivery', nombre: 'Rápido', icono: '🛵', prefijo: 'delivery_', rubro: 'Delivery de comida', resumen: 'Pedidos con tiempos por etapa, restaurantes, repartidores, cupones y calificaciones.' },
   ];
 
   const TABLE_INFO = {
@@ -453,6 +773,28 @@ CREATE INDEX idx_vres_vuelo ON vuelos_reservas(vuelo_id);
     logistica_almacenes: 'Almacenes y su capacidad.',
     logistica_movimientos: 'Entradas, salidas y ajustes de stock por día (el stock es la suma acumulada).',
     logistica_envios: 'Envíos con fecha prometida y real, transportista y costo.',
+    telco_planes: 'Planes de Conecta: prepago y pospago con GB, minutos y precio.',
+    telco_clientes: 'Clientes (personas y empresas) por región.',
+    telco_lineas: 'Líneas móviles: plan actual, alta y baja (fecha_baja NULL = activa) con motivo.',
+    telco_consumos: 'Consumo mensual 2024 por línea: GB, minutos, SMS y monto facturado.',
+    telco_reclamos: 'Reclamos por línea: categoría, horas hasta resolver y si se resolvió.',
+    seguros_clientes: 'Asegurados de Escudo Seguros.',
+    seguros_polizas: 'Pólizas por ramo (auto, hogar, vida, salud) con prima mensual, suma asegurada y canal de venta.',
+    seguros_siniestros: 'Siniestros denunciados: montos reclamado y pagado, estado y fraude confirmado.',
+    hotel_hoteles: 'Hoteles de la cadena Posada Andina con su cantidad de habitaciones.',
+    hotel_huespedes: 'Huéspedes: país y si están en el programa de fidelidad.',
+    hotel_reservas: 'Reservas 2024 (muestra): fechas, canal, tarifa por noche, comisión del canal y estado.',
+    hotel_consumos: 'Consumos extra durante la estadía (restaurante, bar, spa…).',
+    hotel_resenas: 'Reseñas de huéspedes con puntaje de 1 a 10.',
+    energia_clientes: 'Clientes de la distribuidora por tipo y zona.',
+    energia_medidores: 'Medidor de cada cliente (inteligente o analógico).',
+    energia_lecturas: 'Lectura mensual 2024 por medidor en kWh; estimada = 1 si no se leyó.',
+    energia_facturas: 'Facturas mensuales con vencimiento y fecha de pago (NULL = impaga).',
+    energia_cortes: 'Cortes de servicio por zona: inicio, fin, causa y clientes afectados.',
+    delivery_restaurantes: 'Restaurantes de Rápido con categoría, comisión y rating.',
+    delivery_repartidores: 'Repartidores por ciudad y vehículo.',
+    delivery_clientes: 'Clientes de la app.',
+    delivery_pedidos: 'Pedidos 2024 con la hora de cada etapa (creado, aceptado, retirado, entregado), importes y estado.',
   };
 
   const api = { build, SCHEMA, TABLE_INFO, CASOS };
