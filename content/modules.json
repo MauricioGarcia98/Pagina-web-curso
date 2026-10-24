@@ -40,6 +40,20 @@
     ]
   },
   {
+    "id": "modelado",
+    "titulo": "Modelado de datos",
+    "icono": "📐",
+    "color": "#9333ea",
+    "descripcion": "Diseñar cómo quedan los datos: del negocio al modelo, normalización, modelado dimensional de Kimball a fondo, dimensiones lentamente cambiantes, Data Vault, tablas anchas y un proyecto de modelado completo, con diagramas y SQL que se ejecuta.",
+    "objetivos": [
+      "Pasar de la descripción de un negocio a un modelo conceptual, lógico y físico",
+      "Normalizar y saber cuándo desnormalizar",
+      "Diseñar esquemas estrella con el método de Kimball: proceso, grano, dimensiones y hechos",
+      "Implementar dimensiones SCD tipo 2 y consultas point-in-time",
+      "Elegir entre estrella, Data Vault y tablas anchas según el caso"
+    ]
+  },
+  {
     "id": "python",
     "titulo": "Python",
     "icono": "🐍",
