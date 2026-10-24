@@ -817,5 +817,47 @@
     return ok(out.join('\n'));
   });
 
+  // ================================================================== Airflow local: standalone, db, users; Astro CLI
+  const airflowBase = Commands.airflow;
+  def('airflow', 'Airflow (mini-Airflow real): standalone, db migrate, dags list/test, tasks test, dags trigger…', async (a, ctx) => {
+    const [g, s] = a;
+    if (g === 'standalone') {
+      Machine.cloud.airflowLocal = true; save();
+      return ok(['standalone | Starting Airflow Standalone', 'standalone | Checking database is initialized', 'standalone | Database ready', 'standalone | Creating admin user', 'scheduler  | Starting the scheduler', 'triggerer  | Starting the triggerer', 'webserver  | Running the Gunicorn Server with: ... Listening at: http://0.0.0.0:8080', 'standalone |', 'standalone | Airflow is ready', `standalone | Login with username: admin  password: ${uid(16)}`, 'standalone | Airflow Standalone is for development purposes only. Do not use this in production!', col.dim('(abre http://localhost:8080; los DAGs se leen de $AIRFLOW_HOME/dags, en este simulador ~/dags)')].join('\n'));
+    }
+    if (g === 'db' && (s === 'migrate' || s === 'init')) return ok('DB: sqlite:////home/alumno/airflow/airflow.db\nPerforming upgrade to the metadata database sqlite:////home/alumno/airflow/airflow.db\nDatabase migrating done!');
+    if (g === 'users' && s === 'create') return ok(`User "${a[a.indexOf('--username') + 1] || 'admin'}" created with role "${a[a.indexOf('--role') + 1] || 'Admin'}"`);
+    if (g === 'info') return ok('Apache Airflow\nversion                | 2.9.3\nexecutor               | SequentialExecutor\ndags_folder            | /home/alumno/dags\nsql_alchemy_conn       | sqlite:////home/alumno/airflow/airflow.db');
+    return airflowBase(a, ctx);
+  });
+  def('astro', 'Astro CLI: Airflow local en Docker (astro dev init | start | stop | pytest)', async (a, ctx) => {
+    if (a[0] === 'version' || a[0] === '--version') return ok('Astro CLI Version: 1.29.0');
+    if (a[0] !== 'dev') return ok('Uso: astro dev init | astro dev start | astro dev stop | astro dev ps | astro dev pytest');
+    const d = Machine.cwd;
+    if (a[1] === 'init') {
+      ['dags', 'include', 'plugins', 'tests/dags'].forEach((x) => mkdirp(d + '/' + x));
+      writeFile(d + '/Dockerfile', 'FROM quay.io/astronomer/astro-runtime:12.1.1\n');
+      writeFile(d + '/requirements.txt', '');
+      writeFile(d + '/packages.txt', '');
+      writeFile(d + '/.env', '');
+      writeFile(d + '/airflow_settings.yaml', 'airflow:\n  connections: []\n  variables: []\n');
+      writeFile(d + '/dags/exampledag.py', 'from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.empty import EmptyOperator\n\nwith DAG("example_astronauts", schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False) as dag:\n    EmptyOperator(task_id="hola")\n');
+      writeFile(d + '/tests/dags/test_dag_example.py', 'def test_hay_dags():\n    assert True\n');
+      save();
+      return ok(`Initializing Astro project\nPulling Airflow development files from Astro Runtime 12.1.1\nInitialized empty Astro project in ${display(d)}`);
+    }
+    if (a[1] === 'start') {
+      if (!exists(d + '/Dockerfile')) return fail('Error: this is not an Astro project directory. Run astro dev init');
+      Machine.cloud.airflowLocal = true; save();
+      return ok(['Building image…', ' => [1/2] FROM quay.io/astronomer/astro-runtime:12.1.1', ' => [2/2] COPY . .', '✔ Project image has been updated', '✔ Project started', '➤ Airflow UI: http://localhost:8080', '➤ Postgres Database: postgresql://localhost:5432/postgres', '➤ The default Postgres DB credentials are: postgres:postgres', '➤ The default Airflow UI credentials are: admin:admin'].join('\n'));
+    }
+    if (a[1] === 'stop') return ok('✔ Project stopped');
+    if (a[1] === 'ps') return ok('Name                    State     Ports\nproyecto-scheduler-1    running\nproyecto-webserver-1    running   8080\nproyecto-postgres-1     running   5432\nproyecto-triggerer-1    running');
+    if (a[1] === 'restart') return ok('✔ Project stopped\n✔ Project started');
+    if (a[1] === 'pytest') return Commands.pytest(['tests'], ctx);
+    if (a[1] === 'run') return Commands.airflow(a.slice(2), ctx);
+    return fail(`Error: unknown command "${a[1]}" for "astro dev"`);
+  });
+
   window.LocalSim = { yaml, parseCsv, dk };
 })();
