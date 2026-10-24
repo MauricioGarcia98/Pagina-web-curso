@@ -339,8 +339,13 @@ models:
       if (c === null) return fail(`bash: ${input}: No existe el archivo o el directorio`);
       stdin = c;
     }
-    const name = args[0];
-    const fn = Commands[name];
+    let name = args[0];
+    let fn = Commands[name];
+    // ./script.sh o ruta a un script: se ejecuta con bash (si tiene permiso de ejecución)
+    if (!fn && /^\.{0,2}\//.test(name) && isFile(norm(name)) && Commands.bash) {
+      if (!Machine.fs[norm(name)].x) return fail(`bash: ${name}: Permiso denegado` + col.dim('\n(dale permiso de ejecución: chmod +x ' + name + ')'), 126);
+      fn = Commands.bash; args.splice(1, 0, name); name = 'bash';
+    }
     let res;
     if (!fn) res = { out: col.err(`bash: ${name}: comando no encontrado`) + (suggest(name) ? `\n¿Quisiste decir ${col.b(suggest(name))}?` : ''), code: 127 };
     else {
@@ -495,22 +500,6 @@ models:
       } else outs.push(names.map((n) => (isDir(full(n)) ? col.dir(n + '/') : n)).join('  '));
     }
     return ok(outs.join('\n'));
-  });
-  def('tree', 'muestra el árbol de carpetas', (a) => {
-    const root = norm(a[0] || '.');
-    const lines = [display(root)];
-    let nd = 0, nf = 0;
-    const walk = (p, pre) => {
-      const ch = children(p).filter((n) => !n.startsWith('.'));
-      ch.forEach((n, i) => {
-        const last = i === ch.length - 1;
-        const full = (p === '/' ? '' : p) + '/' + n;
-        lines.push(pre + (last ? '└── ' : '├── ') + (isDir(full) ? col.dir(n) : n));
-        if (isDir(full)) { nd++; walk(full, pre + (last ? '    ' : '│   ')); } else nf++;
-      });
-    };
-    walk(root, '');
-    return ok(lines.join('\n') + `\n\n${nd} directorios, ${nf} archivos`);
   });
   def('mkdir', 'crea carpetas (-p crea las intermedias)', (a) => {
     const { flags, pos } = parseArgs(a, { bool: ['-p'] });
@@ -1375,7 +1364,7 @@ for _n, _fn in list(_ns.items()):
   function render(text) {
     return escHtml(text).replace(/\u0001([^\u0002]*)\u0002([\s\S]*?)\u0003/g, (_, c, t) => `<span class="${c}">${t}</span>`);
   }
-  const promptHtml = () => `<span class="t-user">alumno@academia</span>:<span class="t-dir">${escHtml(display(Machine.cwd))}</span>$ `;
+  const promptHtml = () => `${Machine.env.VIRTUAL_ENV ? `(${escHtml(Machine.env.VIRTUAL_ENV.split('/').pop())}) ` : ''}<span class="t-user">alumno@academia</span>:<span class="t-dir">${escHtml(display(Machine.cwd))}</span>$ `;
 
   function createTerminal(container, opts = {}) {
     if (!Machine.ready) Machine.load();
@@ -1384,8 +1373,9 @@ for _n, _fn in list(_ns.items()):
     el.innerHTML = `<div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">${escHtml(opts.title || 'alumno@academia: ~')}</span><span class="term-actions"><button type="button" data-clear title="Limpiar (Ctrl+L)">limpiar</button></span></div><div class="term-body" tabindex="0"><div class="term-out"></div><div class="term-line"><span class="term-prompt"></span><span class="term-input-wrap"><input class="term-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Línea de comandos"></span></div></div>`;
     container.appendChild(el);
     const out = el.querySelector('.term-out'), input = el.querySelector('.term-input'), promptEl = el.querySelector('.term-prompt'), body = el.querySelector('.term-body');
-    let mode = null, buffer = '', hIdx = Machine.history.length, busy = false, draft = '';
+    let mode = null, buffer = '', hIdx = Machine.history.length, busy = false, draft = '', repl = null;
     const setPrompt = () => {
+      if (mode === 'repl' || mode === 'repl-cont') { promptEl.innerHTML = `<span class="t-info">${escHtml(mode === 'repl' ? repl.prompt : repl.cont)}</span>`; el.querySelector('.term-title').textContent = 'alumno@academia: ' + display(Machine.cwd); return; }
       promptEl.innerHTML = mode === 'sqlite' ? '<span class="t-info">sqlite&gt;</span> ' : mode === 'sqlite-cont' ? '<span class="t-info">   ...&gt;</span> ' : mode === 'python' ? '<span class="t-warn">&gt;&gt;&gt;</span> ' : mode === 'python-cont' ? '<span class="t-warn">...</span> ' : promptHtml();
       el.querySelector('.term-title').textContent = 'alumno@academia: ' + display(Machine.cwd);
     };
@@ -1395,6 +1385,24 @@ for _n, _fn in list(_ns.items()):
     setPrompt();
     async function submit(line) {
       echoLine(line);
+      // consolas de otras herramientas (psql, duckdb): las define el comando con r.repl
+      if (mode === 'repl' || mode === 'repl-cont') {
+        if (mode === 'repl' && repl.esMeta(line)) {
+          const r = await repl.meta(line);
+          if (r.exitMode) { mode = null; repl = null; }
+          if (r.out) print(render(r.out));
+          setPrompt(); return;
+        }
+        if (mode === 'repl' && /^(exit|quit)\s*$/.test(line.trim())) { mode = null; repl = null; setPrompt(); return; }
+        buffer += line + '\n';
+        if (!repl.fin.test(line)) { mode = buffer.trim() ? 'repl-cont' : 'repl'; setPrompt(); return; }
+        const sql = buffer; buffer = ''; mode = 'repl';
+        const r = await repl.ejecutar(sql);
+        if (r.out) print(render(r.out));
+        setPrompt();
+        opts.onCommand && opts.onCommand(sql.trim(), r, 'repl');
+        return;
+      }
       if (mode === 'sqlite' || mode === 'sqlite-cont') {
         if (mode === 'sqlite' && line.trim().startsWith('.')) { const r = await sqliteDot(line); if (r.exitMode) mode = null; if (r.out) print(render(r.out)); setPrompt(); return; }
         buffer += line + '\n';
@@ -1433,6 +1441,7 @@ for _n, _fn in list(_ns.items()):
       if (r.out) print(render(r.out));
       const last = await lastMode(line);
       if (last) mode = last;
+      if (r.repl) { repl = r.repl; mode = 'repl'; }
       setPrompt();
       opts.onCommand && opts.onCommand(line, r, null);
     }
@@ -1459,7 +1468,7 @@ for _n, _fn in list(_ns.items()):
           else { echoLine(input.value); print(escHtml(c.opts.join('  '))); }
         }
       } else if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); out.innerHTML = ''; }
-      else if (e.key === 'c' && e.ctrlKey && !window.getSelection().toString()) { e.preventDefault(); echoLine(input.value + '^C'); input.value = ''; buffer = ''; if (mode === 'sqlite-cont') mode = 'sqlite'; if (mode === 'python-cont') mode = 'python'; setPrompt(); }
+      else if (e.key === 'c' && e.ctrlKey && !window.getSelection().toString()) { e.preventDefault(); echoLine(input.value + '^C'); input.value = ''; buffer = ''; if (mode === 'sqlite-cont') mode = 'sqlite'; if (mode === 'python-cont') mode = 'python'; if (mode === 'repl-cont') mode = 'repl'; setPrompt(); }
     });
     body.addEventListener('click', () => { if (!window.getSelection().toString()) input.focus(); });
     el.querySelector('[data-clear]').addEventListener('click', () => { out.innerHTML = ''; input.focus(); });
