@@ -102,9 +102,12 @@
     for (const n of nodos) {
       const c = vertical ? n.fila : n.col, f = vertical ? n.col : n.fila;
       const w = n.ancho ? Number(n.ancho) : NODO_W;
-      n.w = w; n.h = NODO_H;
+      n.lineas = envolver(n.label, Math.floor(w / 11));
+      n.sublineas = n.sub ? envolver(n.sub, Math.floor(w / 7.6)) : [];
+      const conIcono = n.icono && ICONOS[n.icono];
+      n.w = w; n.h = Math.max(NODO_H, (conIcono ? 52 : 18) + n.lineas.length * 21 + n.sublineas.length * 17 + 12 + (n.forma === 'cilindro' ? 14 : 0));
       n.x = MARGEN + c * CELDA_W + (CELDA_W - w) / 2;
-      n.y = MARGEN + 24 + f * CELDA_H + (CELDA_H - NODO_H) / 2;
+      n.y = MARGEN + 24 + f * CELDA_H + (CELDA_H - n.h) / 2;
     }
     return porId;
   }
@@ -117,6 +120,22 @@
     const sx = (n.w / 2 + 6) / Math.abs(dx || 1e-9), sy = (n.h / 2 + 6) / Math.abs(dy || 1e-9);
     const t = Math.min(sx, sy);
     return { x: cx + dx * t, y: cy + dy * t };
+  }
+
+  // parte un texto en líneas de hasta `max` caracteres, respetando los \n puestos a mano
+  function envolver(str, max) {
+    const out = [];
+    for (const parrafo of String(str).split('\n')) {
+      let linea = '';
+      // una palabra más larga que la línea (stg_tienda__pedidos) se parte en sus guiones bajos
+      const palabras = parrafo.split(' ').flatMap((p) => (p.length > max && p.includes('_') ? p.split(/(?<=_)/).reduce((acc, t) => { if (acc.length && (acc[acc.length - 1] + t).length <= max) acc[acc.length - 1] += t; else acc.push(t); return acc; }, []) : [p]));
+      for (const palabra of palabras) {
+        const sep = linea.endsWith('_') ? '' : ' ';
+        if (linea && (linea + sep + palabra).length > max) { out.push(linea); linea = palabra; } else linea = linea ? linea + sep + palabra : palabra;
+      }
+      out.push(linea);
+    }
+    return out;
   }
 
   function el(tag, attrs, parent) {
@@ -212,13 +231,14 @@
       if (forma === 'cilindro') svg.querySelectorAll(':scope > g:nth-last-of-type(2) > path:first-child').forEach((p) => fi && p.classList.add('dg-relleno'));
       const tieneIcono = n.icono && ICONOS[n.icono];
       if (tieneIcono) {
-        const g = el('g', { transform: `translate(${n.x + n.w / 2 - 17} ${n.y + 10}) scale(1.4)`, fill: 'none', stroke: fi ? st : 'currentColor', 'stroke-width': 1.7, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
+        const dy = forma === 'cilindro' ? 16 : 0;
+        const g = el('g', { transform: `translate(${n.x + n.w / 2 - 17} ${n.y + 10 + dy}) scale(1.4)`, fill: 'none', stroke: fi ? st : 'currentColor', 'stroke-width': 1.7, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
         el('path', { d: ICONOS[n.icono] }, g);
       }
-      const lineas = n.label.split('\n').length + (n.sub ? 1 : 0);
-      const y0 = tieneIcono ? n.y + 66 : n.y + n.h / 2 - (lineas - 1) * 11 + 6;
-      texto(svg, n.label, n.x + n.w / 2, y0, { size: 19, bold: true, color: 'currentColor' });
-      if (n.sub) texto(svg, n.sub, n.x + n.w / 2, y0 + n.label.split('\n').length * 21, { size: 15, color: 'currentColor' }).setAttribute('class', 'dg-sub');
+      const total = n.lineas.length * 21 + n.sublineas.length * 17;
+      const y0 = (tieneIcono ? n.y + 66 : n.y + (n.h - total) / 2 + 16) + (forma === 'cilindro' ? 12 : 0);
+      texto(svg, n.lineas.join('\n'), n.x + n.w / 2, y0, { size: 19, bold: true, color: 'currentColor', lh: 1.1 });
+      if (n.sublineas.length) texto(svg, n.sublineas.join('\n'), n.x + n.w / 2, y0 + n.lineas.length * 21, { size: 15, color: 'currentColor', lh: 1.12 }).setAttribute('class', 'dg-sub');
     }
 
     const marco = document.createElement('div');

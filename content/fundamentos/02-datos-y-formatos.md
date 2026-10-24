@@ -164,6 +164,24 @@ Imagina una biblioteca. En CSV cada libro es un cliente con todos sus datos; par
 | **Data lake** | Archivos (CSV, JSON, Parquet) de cualquier tipo, baratos, en la nube | Amazon S3, Azure Data Lake Storage, Google Cloud Storage |
 | **Lakehouse** | Lo mejor de ambos: archivos baratos en el lake con la fiabilidad de un warehouse (gracias a Delta o Iceberg) | Databricks, BigQuery + BigLake, Snowflake con Iceberg |
 
+<!-- dg:f02-donde -->
+```diagrama
+titulo: Dónde vive cada dato: la app escribe en OLTP, el pipeline copia al lake y el análisis lee de ahí
+nodo app: App, web, POS | icono=movil | col=0 | fila=0 | sub=miles de escrituras/seg
+nodo oltp: Base OLTP | icono=base | col=1 | fila=0 | forma=cilindro | sub=PostgreSQL, MySQL
+nodo files: Archivos y APIs | icono=archivos | col=0 | fila=1 | sub=CSV, JSON de proveedores
+nodo lake: Data lake | icono=bucket | col=2 | fila=0 | color=naranja | sub=S3 · ADLS · GCS
+nodo wh: Warehouse / lakehouse | icono=almacen | col=2 | fila=1 | color=azul | sub=BigQuery, Databricks…
+nodo bi: Tableros | icono=dashboard | col=3 | fila=0 | color=verde | sub=Power BI, Looker
+nodo ml: Modelos de ML | icono=ml | col=3 | fila=1 | color=violeta | sub=predicciones
+flecha app -> oltp: guarda
+flecha oltp -> lake: copia (pipeline)
+flecha files -> lake: ingesta
+flecha lake -> wh: modela
+flecha wh -> bi
+flecha wh -> ml
+```
+
 ¿Por qué no se analiza directo en la base de la app? Porque una consulta de "ventas de los últimos 5 años" lee millones de filas, y mientras tanto la app, que necesita responder en milisegundos para que los clientes puedan comprar, se pone lenta. Por eso los datos se **copian** a un sistema pensado para analizar. Esa copia es, justamente, el pipeline que construye un ingeniero de datos.
 
 | | OLTP (la app) | OLAP (el análisis) |

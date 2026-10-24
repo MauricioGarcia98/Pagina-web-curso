@@ -65,6 +65,26 @@ REDUCE     Chile: 2+1 = 3         Perú: 1+1+1 = 3        México: 1+2 = 3
 (cada una suma los parciales de su país)
 ```
 
+<!-- dg:sp01-mapreduce -->
+```diagrama
+titulo: MapReduce: cada máquina cuenta lo suyo, el shuffle junta cada país y el reduce suma
+nodo m1: Máquina 1 | icono=servidor | col=0 | fila=0 | sub=Chile:2 · Perú:1
+nodo m2: Máquina 2 | icono=servidor | col=0 | fila=1 | sub=Perú:1 · México:1 · Chile:1
+nodo m3: Máquina 3 | icono=servidor | col=0 | fila=2 | sub=México:2 · Perú:1
+nodo r1: Chile | icono=check | col=2 | fila=0 | color=verde | sub=2 + 1 = 3
+nodo r2: Perú | icono=check | col=2 | fila=1 | color=verde | sub=1 + 1 + 1 = 3
+nodo r3: México | icono=check | col=2 | fila=2 | color=verde | sub=1 + 2 = 3
+grupo map: MAP (en paralelo) | nodos=m1,m2,m3 | color=azul
+grupo red: REDUCE | nodos=r1,r2,r3 | color=verde
+flecha m1 -> r1
+flecha m1 -> r2
+flecha m2 -> r1
+flecha m2 -> r2: SHUFFLE (red) | color=rojo
+flecha m2 -> r3
+flecha m3 -> r2
+flecha m3 -> r3
+```
+
 Las tres fases son la base de todo lo que hace Spark:
 
 1. **Map**: cada máquina procesa **su parte** de los datos de forma independiente. Es lo que hace que escale: con el doble de máquinas, cada una tiene la mitad de trabajo.

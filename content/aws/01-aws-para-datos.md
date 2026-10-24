@@ -55,6 +55,27 @@ Lo que hace un data engineer en AWS casi siempre sigue este recorrido:
 | **IAM / Lake Formation** | Quién puede hacer qué; permisos finos sobre tablas y columnas | Las llaves del edificio |
 | **DMS** | Copiar bases de datos (incluido CDC: los cambios en vivo) | Una mudanza sin cerrar la tienda |
 
+<!-- dg:aws01-mapa -->
+```diagrama
+titulo: Plataforma de datos de referencia en AWS
+nodo src: Bases y APIs | icono=base | col=0 | fila=0 | forma=cilindro
+nodo app: Eventos | icono=movil | col=0 | fila=1
+nodo glue: Glue | icono=engranaje | col=1 | fila=0 | color=naranja | sub=ETL + catálogo
+nodo kin: Kinesis / Firehose | icono=stream | col=1 | fila=1 | color=naranja | sub=streaming
+nodo s3: S3 | icono=bucket | col=2 | fila=0 | color=verde | sub=el data lake
+nodo ath: Athena | icono=lupa | col=3 | fila=0 | color=azul | sub=SQL sobre S3
+nodo rs: Redshift | icono=almacen | col=2 | fila=1 | color=azul | sub=warehouse
+nodo qs: QuickSight | icono=dashboard | col=3 | fila=1 | color=violeta
+flecha src -> glue
+flecha app -> kin
+flecha glue -> s3
+flecha kin -> s3
+flecha s3 -> ath
+flecha s3 -> rs: COPY
+flecha rs -> qs
+flecha ath -> qs
+```
+
 ## Las tres nubes lado a lado
 
 En este curso vas a ver Azure, AWS y Google Cloud. Los conceptos son **los mismos**; cambian los nombres:

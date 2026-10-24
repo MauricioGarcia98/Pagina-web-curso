@@ -51,6 +51,26 @@ Organización (tuempresa.com)                 ← la empresa, ligada a su domini
 | **Dataplex** | Catálogo, calidad y gobierno del lago y del warehouse | El bibliotecario |
 | **Cloud Run / Functions** | Código que reacciona a eventos | El timbre |
 
+<!-- dg:gcp01-mapa -->
+```diagrama
+titulo: Plataforma de datos de referencia en Google Cloud
+nodo src: Bases y APIs | icono=base | col=0 | fila=0 | forma=cilindro
+nodo app: Eventos | icono=movil | col=0 | fila=1
+nodo ps: Pub/Sub | icono=stream | col=1 | fila=1 | color=azul | sub=mensajería
+nodo df: Dataflow | icono=transformar | col=2 | fila=1 | color=azul | sub=Beam, streaming
+nodo gcs: Cloud Storage | icono=bucket | col=1 | fila=0 | color=verde | sub=bronze
+nodo bq: BigQuery | icono=almacen | col=2 | fila=0 | color=azul | sub=warehouse + SQL
+nodo cmp: Composer | icono=orquestador | col=3 | fila=1 | color=violeta | sub=Airflow
+nodo lk: Looker | icono=dashboard | col=3 | fila=0 | color=amarillo
+flecha src -> gcs: carga
+flecha app -> ps
+flecha ps -> df
+flecha df -> bq
+flecha gcs -> bq: load / BigLake
+flecha bq -> lk
+flecha cmp -> bq: orquesta | estilo=punteada
+```
+
 ## Las tres nubes lado a lado
 
 | Concepto | Google Cloud | AWS | Azure |

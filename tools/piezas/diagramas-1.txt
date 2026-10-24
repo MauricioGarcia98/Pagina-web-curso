@@ -1,0 +1,283 @@
+@@ f02-donde | fundamentos/02-datos-y-formatos | antes=¿Por qué no se analiza directo
+```diagrama
+titulo: Dónde vive cada dato: la app escribe en OLTP, el pipeline copia al lake y el análisis lee de ahí
+nodo app: App, web, POS | icono=movil | col=0 | fila=0 | sub=miles de escrituras/seg
+nodo oltp: Base OLTP | icono=base | col=1 | fila=0 | forma=cilindro | sub=PostgreSQL, MySQL
+nodo files: Archivos y APIs | icono=archivos | col=0 | fila=1 | sub=CSV, JSON de proveedores
+nodo lake: Data lake | icono=bucket | col=2 | fila=0 | color=naranja | sub=S3 · ADLS · GCS
+nodo wh: Warehouse / lakehouse | icono=almacen | col=2 | fila=1 | color=azul | sub=BigQuery, Databricks…
+nodo bi: Tableros | icono=dashboard | col=3 | fila=0 | color=verde | sub=Power BI, Looker
+nodo ml: Modelos de ML | icono=ml | col=3 | fila=1 | color=violeta | sub=predicciones
+flecha app -> oltp: guarda
+flecha oltp -> lake: copia (pipeline)
+flecha files -> lake: ingesta
+flecha lake -> wh: modela
+flecha wh -> bi
+flecha wh -> ml
+```
+
+@@ f04-pr | fundamentos/04-git | antes=## Buenas prácticas
+```diagrama
+titulo: El camino de un cambio: de tu rama a producción
+nodo rama: Tu rama | icono=git | col=0 | fila=0 | sub=feature/nuevo-modelo
+nodo pr: Pull request | icono=codigo | col=1 | fila=0 | color=azul | sub=descripción del cambio
+nodo ci: CI automática | icono=engranaje | col=2 | fila=0 | color=amarillo | sub=pytest · dbt build
+nodo rev: Revisión | icono=equipo | col=2 | fila=1 | color=violeta | sub=una compañera aprueba
+nodo main: main | icono=git | col=1 | fila=1 | color=verde | sub=siempre funciona
+nodo prod: Producción | icono=nube | col=0 | fila=1 | color=naranja | sub=despliegue automático
+flecha rama -> pr: git push
+flecha pr -> ci: ejecuta
+flecha ci -> rev: en verde
+flecha rev -> main: merge
+flecha main -> prod: deploy
+flecha rev -> rama: pide cambios | estilo=punteada | color=rojo
+```
+
+@@ sql11-er | sql/11-joins | antes=## Tu primer JOIN
+```diagrama
+titulo: Las tablas de Tienda Andina y las claves que las conectan (1 → N: "uno a muchos")
+nodo cli: clientes | icono=tabla | col=0 | fila=0 | color=azul | sub=PK cliente_id
+nodo ped: pedidos | icono=tabla | col=1 | fila=0 | color=naranja | sub=PK pedido_id · FK cliente_id
+nodo pag: pagos | icono=dinero | col=2 | fila=0 | color=verde | sub=FK pedido_id
+nodo det: detalle_pedidos | icono=tabla | col=1 | fila=1 | color=naranja | sub=FK pedido_id · FK producto_id
+nodo prod: productos | icono=tabla | col=2 | fila=1 | color=violeta | sub=PK producto_id · FK categoria_id
+nodo cat: categorias | icono=capas | col=3 | fila=1 | color=gris | sub=PK categoria_id
+flecha cli -> ped: 1 → N
+flecha ped -> pag: 1 → N
+flecha ped -> det: 1 → N
+flecha prod -> det: 1 → N
+flecha cat -> prod: 1 → N
+```
+
+@@ sql22-estrella | sql/22-modelado | fin=## Modelado dimensional
+```diagrama
+titulo: Esquema estrella de ventas: la tabla de hechos en el centro y las dimensiones alrededor
+nodo fecha: dim_fecha | icono=reloj | col=1 | fila=0 | color=azul | sub=día, mes, feriado…
+nodo cli: dim_cliente | icono=usuario | col=0 | fila=1 | color=azul | sub=segmento, país
+nodo fct: fct_ventas | icono=tabla | col=1 | fila=1 | color=naranja | sub=1 fila por línea\nunidades, importe
+nodo prod: dim_producto | icono=carrito | col=2 | fila=1 | color=azul | sub=marca, categoría
+nodo canal: dim_canal | icono=web | col=1 | fila=2 | color=azul | sub=web, app, tienda
+flecha fecha -- fct
+flecha cli -- fct
+flecha prod -- fct
+flecha canal -- fct
+```
+
+@@ sp02-cluster | spark/02-arquitectura | antes=:::analogia Una obra en construcción
+```diagrama
+titulo: Un clúster de Spark: el driver planifica, el cluster manager presta máquinas y los executors trabajan
+nodo drv: Driver | icono=notebook | col=1 | fila=0 | color=violeta | sub=tu código + SparkSession
+nodo cm: Cluster manager | icono=engranaje | col=2 | fila=0 | color=gris | sub=YARN · Kubernetes
+nodo e1: Executor 1 | icono=servidor | col=0 | fila=1 | color=naranja | sub=4 cores · 4 tasks
+nodo e2: Executor 2 | icono=servidor | col=1 | fila=1 | color=naranja | sub=4 cores · 4 tasks
+nodo e3: Executor 3 | icono=servidor | col=2 | fila=1 | color=naranja | sub=4 cores · 4 tasks
+nodo lake: Data lake | icono=bucket | col=3 | fila=1 | color=azul | sub=Parquet / Delta
+flecha drv <-> cm: pide recursos
+flecha drv -> e1: tasks
+flecha drv -> e2: tasks
+flecha drv -> e3: tasks
+flecha e3 <-> lake: lee / escribe
+```
+
+@@ sp01-mapreduce | spark/01-big-data | antes=Las tres fases son la base
+```diagrama
+titulo: MapReduce: cada máquina cuenta lo suyo, el shuffle junta cada país y el reduce suma
+nodo m1: Máquina 1 | icono=servidor | col=0 | fila=0 | sub=Chile:2 · Perú:1
+nodo m2: Máquina 2 | icono=servidor | col=0 | fila=1 | sub=Perú:1 · México:1 · Chile:1
+nodo m3: Máquina 3 | icono=servidor | col=0 | fila=2 | sub=México:2 · Perú:1
+nodo r1: Chile | icono=check | col=2 | fila=0 | color=verde | sub=2 + 1 = 3
+nodo r2: Perú | icono=check | col=2 | fila=1 | color=verde | sub=1 + 1 + 1 = 3
+nodo r3: México | icono=check | col=2 | fila=2 | color=verde | sub=1 + 2 = 3
+grupo map: MAP (en paralelo) | nodos=m1,m2,m3 | color=azul
+grupo red: REDUCE | nodos=r1,r2,r3 | color=verde
+flecha m1 -> r1
+flecha m1 -> r2
+flecha m2 -> r1
+flecha m2 -> r2: SHUFFLE (red) | color=rojo
+flecha m2 -> r3
+flecha m3 -> r2
+flecha m3 -> r3
+```
+
+@@ sp04-medallon | spark/04-formatos-delta | antes=Así viaja un pedido de Tienda Andina
+```diagrama
+titulo: Arquitectura medallón: cada capa agrega calidad y valor
+nodo src: Fuentes | icono=archivos | col=0 | fila=0 | sub=APIs, bases, archivos
+nodo br: Bronze | icono=bucket | col=1 | fila=0 | color=naranja | sub=crudo, solo se agrega
+nodo sv: Silver | icono=spark | col=2 | fila=0 | color=gris | sub=limpio, sin duplicados
+nodo gd: Gold | icono=grafico | col=3 | fila=0 | color=amarillo | sub=métricas del negocio
+nodo bi: BI y reportes | icono=dashboard | col=3 | fila=1 | color=verde
+nodo ml: Ciencia de datos | icono=ml | col=2 | fila=1 | color=violeta
+flecha src -> br: ingesta
+flecha br -> sv: limpia y tipa
+flecha sv -> gd: agrega y modela
+flecha gd -> bi
+flecha sv -> ml: features
+```
+
+@@ dbt04-capas | dbt/04-sources-capas | antes=### Convención de nombres
+```diagrama
+titulo: El linaje de un proyecto dbt: source() solo en staging, ref() en todo lo demás
+nodo s1: source tienda.pedidos | icono=base | col=0 | fila=0 | forma=cilindro | color=gris
+nodo s2: source tienda.clientes | icono=base | col=0 | fila=1 | forma=cilindro | color=gris
+nodo seed: seed regiones | icono=csv | col=0 | fila=2 | color=amarillo
+nodo st1: stg_tienda__pedidos | icono=tabla | col=1 | fila=0 | color=azul | sub=view
+nodo st2: stg_tienda__clientes | icono=tabla | col=1 | fila=1 | color=azul | sub=view
+nodo int: int_pedidos_con_totales | icono=transformar | col=2 | fila=0 | color=violeta | sub=ephemeral
+nodo f: fct_ventas | icono=tabla | col=3 | fila=0 | color=naranja | sub=table
+nodo d: dim_clientes | icono=tabla | col=3 | fila=1 | color=naranja | sub=table
+grupo stg: staging | nodos=st1,st2 | color=azul
+grupo marts: marts | nodos=f,d | color=naranja
+flecha s1 -> st1
+flecha s2 -> st2
+flecha st1 -> int
+flecha int -> f
+flecha st2 -> d
+flecha seed -> d: ref()
+```
+
+@@ af01-componentes | airflow/01-orquestacion | fin=## Componentes de Airflow
+```diagrama
+titulo: Los componentes de Airflow y cómo se comunican
+nodo dags: Carpeta dags/ | icono=codigo | col=0 | fila=0 | sub=archivos .py (en Git)
+nodo sch: Scheduler | icono=reloj | col=1 | fila=0 | color=violeta | sub=decide qué corre
+nodo meta: Base de metadatos | icono=base | col=1 | fila=1 | forma=cilindro | color=gris | sub=estados, historial
+nodo web: Interfaz web | icono=web | col=0 | fila=1 | color=azul | sub=ver, relanzar, logs
+nodo w: Workers | icono=servidor | col=2 | fila=0 | color=naranja | sub=ejecutan las tareas
+nodo ext: Sistemas externos | icono=nube | col=3 | fila=0 | sub=Spark, dbt, bases, APIs
+flecha dags -> sch: lee y parsea
+flecha sch <-> meta
+flecha web <-> meta
+flecha sch -> w: encola tareas
+flecha w -> meta: reporta estado | estilo=punteada
+flecha w -> ext: dispara trabajo
+```
+
+@@ af08-lakehouse | airflow/08-airflow-databricks-dbt | antes=## La configuración del DAG, línea por línea
+```diagrama
+titulo: El DAG lakehouse_diario: Airflow coordina, Databricks y dbt procesan
+nodo af: Airflow | icono=orquestador | col=0 | fila=0 | color=violeta | sub=03:00 todos los días
+nodo t1: ingesta_bronze | icono=bucket | col=1 | fila=0 | color=naranja | sub=RunNow job 123456
+nodo t2: silver_pedidos | icono=spark | col=2 | fila=0 | color=gris | sub=notebook, clúster efímero
+nodo t3: dbt_build | icono=transformar | col=3 | fila=0 | color=amarillo | sub=modelos + tests
+nodo dbx: Databricks | icono=cubo | col=1 | fila=1 | color=rojo | sub=jobs y clústeres
+nodo bi: Dashboard 7:00 | icono=dashboard | col=3 | fila=1 | color=verde
+nodo al: Teams | icono=alerta | col=0 | fila=1 | color=rojo | sub=si algo falla
+flecha af -> t1
+flecha t1 -> t2
+flecha t2 -> t3
+flecha t1 -> dbx | estilo=punteada
+flecha t2 -> dbx | estilo=punteada
+flecha t3 -> bi
+flecha af -> al: on_failure_callback | estilo=punteada | color=rojo
+```
+
+@@ az01-jerarquia | azure/01-nube-azure | antes=Nivel por nivel:
+```diagrama
+titulo: La jerarquía de Azure: los permisos y la facturación se heredan hacia abajo
+nodo t: Tenant (Entra ID) | icono=equipo | col=1 | fila=0 | color=violeta | sub=usuarios y grupos
+nodo s1: sub-datos-dev | icono=dinero | col=0 | fila=1 | color=azul | sub=suscripción
+nodo s2: sub-datos-prod | icono=dinero | col=2 | fila=1 | color=azul | sub=suscripción
+nodo rg1: rg-datos-dev | icono=capas | col=0 | fila=2 | color=gris | sub=grupo de recursos
+nodo rg2: rg-datos-prod | icono=capas | col=2 | fila=2 | color=gris | sub=grupo de recursos
+nodo r1: Lake + Databricks | icono=bucket | col=1 | fila=2 | color=naranja | sub=recursos de dev
+nodo r2: Lake + Key Vault | icono=candado | col=3 | fila=2 | color=naranja | sub=recursos de prod
+flecha t -> s1
+flecha t -> s2
+flecha s1 -> rg1
+flecha s2 -> rg2
+flecha rg1 -> r1
+flecha rg2 -> r2
+```
+
+@@ az06-ref | azure/06-servicios-datos | fin=## Arquitectura de referencia
+```diagrama
+titulo: Lakehouse de referencia en Azure
+nodo erp: ERP y bases | icono=base | col=0 | fila=0 | forma=cilindro
+nodo ev: Eventos de la app | icono=movil | col=0 | fila=1
+nodo adf: Data Factory | icono=engranaje | col=1 | fila=0 | color=azul | sub=copia por lotes
+nodo eh: Event Hubs | icono=stream | col=1 | fila=1 | color=azul | sub=streaming
+nodo adls: ADLS Gen2 | icono=bucket | col=2 | fila=0 | color=naranja | sub=bronze · silver · gold
+nodo dbx: Azure Databricks | icono=spark | col=2 | fila=1 | color=rojo | sub=Spark + Unity Catalog
+nodo pbi: Power BI | icono=dashboard | col=3 | fila=0 | color=amarillo
+nodo kv: Key Vault | icono=candado | col=3 | fila=1 | color=gris | sub=secretos
+flecha erp -> adf
+flecha ev -> eh
+flecha adf -> adls
+flecha eh -> dbx
+flecha adls <-> dbx: lee / escribe Delta
+flecha dbx -> pbi: SQL warehouse
+flecha kv -> dbx: credenciales | estilo=punteada
+```
+
+@@ aws01-mapa | aws/01-aws-para-datos | fin=## El mapa de servicios de datos
+```diagrama
+titulo: Plataforma de datos de referencia en AWS
+nodo src: Bases y APIs | icono=base | col=0 | fila=0 | forma=cilindro
+nodo app: Eventos | icono=movil | col=0 | fila=1
+nodo glue: Glue | icono=engranaje | col=1 | fila=0 | color=naranja | sub=ETL + catálogo
+nodo kin: Kinesis / Firehose | icono=stream | col=1 | fila=1 | color=naranja | sub=streaming
+nodo s3: S3 | icono=bucket | col=2 | fila=0 | color=verde | sub=el data lake
+nodo ath: Athena | icono=lupa | col=3 | fila=0 | color=azul | sub=SQL sobre S3
+nodo rs: Redshift | icono=almacen | col=2 | fila=1 | color=azul | sub=warehouse
+nodo qs: QuickSight | icono=dashboard | col=3 | fila=1 | color=violeta
+flecha src -> glue
+flecha app -> kin
+flecha glue -> s3
+flecha kin -> s3
+flecha s3 -> ath
+flecha s3 -> rs: COPY
+flecha rs -> qs
+flecha ath -> qs
+```
+
+@@ gcp01-mapa | gcp/01-gcp-para-datos | fin=## El mapa de servicios de datos
+```diagrama
+titulo: Plataforma de datos de referencia en Google Cloud
+nodo src: Bases y APIs | icono=base | col=0 | fila=0 | forma=cilindro
+nodo app: Eventos | icono=movil | col=0 | fila=1
+nodo ps: Pub/Sub | icono=stream | col=1 | fila=1 | color=azul | sub=mensajería
+nodo df: Dataflow | icono=transformar | col=2 | fila=1 | color=azul | sub=Beam, streaming
+nodo gcs: Cloud Storage | icono=bucket | col=1 | fila=0 | color=verde | sub=bronze
+nodo bq: BigQuery | icono=almacen | col=2 | fila=0 | color=azul | sub=warehouse + SQL
+nodo cmp: Composer | icono=orquestador | col=3 | fila=1 | color=violeta | sub=Airflow
+nodo lk: Looker | icono=dashboard | col=3 | fila=0 | color=amarillo
+flecha src -> gcs: carga
+flecha app -> ps
+flecha ps -> df
+flecha df -> bq
+flecha gcs -> bq: load / BigLake
+flecha bq -> lk
+flecha cmp -> bq: orquesta | estilo=punteada
+```
+
+@@ dbx01-planos | databricks/01-que-es-databricks | fin=## Las piezas del workspace
+```diagrama
+titulo: Databricks por dentro: el plano de control es de Databricks, los datos quedan en tu nube
+nodo u: Tú (navegador, CLI) | icono=usuario | col=0 | fila=0
+nodo cp: Plano de control | icono=engranaje | col=1 | fila=0 | color=violeta | sub=workspace, notebooks, jobs
+nodo uc: Unity Catalog | icono=candado | col=2 | fila=0 | color=amarillo | sub=permisos y linaje
+nodo cl: Clústeres / serverless | icono=spark | col=1 | fila=1 | color=rojo | sub=cómputo
+nodo st: Tu almacenamiento | icono=bucket | col=2 | fila=1 | color=naranja | sub=S3 · ADLS · GCS (Delta)
+grupo nube: Tu cuenta de nube (plano de datos) | nodos=cl,st | color=azul
+flecha u -> cp
+flecha cp -> cl: lanza
+flecha cl <-> st: lee / escribe
+flecha uc -> cl: ¿puede leer? | estilo=punteada
+```
+
+@@ dbx04-uc | databricks/04-unity-catalog | fin=## Por qué existe Unity Catalog
+```diagrama
+titulo: La jerarquía de Unity Catalog: catálogo.esquema.tabla
+nodo meta: Metastore | icono=capas | col=1 | fila=0 | color=violeta | sub=uno por región
+nodo c1: prod | icono=almacen | col=0 | fila=1 | color=azul | sub=catálogo
+nodo c2: dev | icono=almacen | col=2 | fila=1 | color=azul | sub=catálogo
+nodo e1: ventas | icono=capas | col=0 | fila=2 | color=gris | sub=esquema
+nodo t1: pedidos | icono=tabla | col=1 | fila=2 | color=naranja | sub=prod.ventas.pedidos
+nodo v1: vol_crudos | icono=archivos | col=1 | fila=1 | color=amarillo | sub=volumen (archivos)
+flecha meta -> c1
+flecha meta -> c2
+flecha c1 -> e1
+flecha e1 -> t1
+flecha e1 -> v1
+```

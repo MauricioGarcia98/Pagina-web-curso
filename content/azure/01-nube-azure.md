@@ -39,6 +39,24 @@ Tenant (tu organización en Microsoft Entra ID: usuarios, grupos, identidades)
                 └── Recursos                                ← cuenta de almacenamiento, workspace de Databricks, Key Vault…
 ```
 
+<!-- dg:az01-jerarquia -->
+```diagrama
+titulo: La jerarquía de Azure: los permisos y la facturación se heredan hacia abajo
+nodo t: Tenant (Entra ID) | icono=equipo | col=1 | fila=0 | color=violeta | sub=usuarios y grupos
+nodo s1: sub-datos-dev | icono=dinero | col=0 | fila=1 | color=azul | sub=suscripción
+nodo s2: sub-datos-prod | icono=dinero | col=2 | fila=1 | color=azul | sub=suscripción
+nodo rg1: rg-datos-dev | icono=capas | col=0 | fila=2 | color=gris | sub=grupo de recursos
+nodo rg2: rg-datos-prod | icono=capas | col=2 | fila=2 | color=gris | sub=grupo de recursos
+nodo r1: Lake + Databricks | icono=bucket | col=1 | fila=2 | color=naranja | sub=recursos de dev
+nodo r2: Lake + Key Vault | icono=candado | col=3 | fila=2 | color=naranja | sub=recursos de prod
+flecha t -> s1
+flecha t -> s2
+flecha s1 -> rg1
+flecha s2 -> rg2
+flecha rg1 -> r1
+flecha rg2 -> r2
+```
+
 Nivel por nivel:
 
 - **Tenant y Microsoft Entra ID** (antes llamado Azure Active Directory): el directorio de **identidades** de la empresa. Ahí viven los usuarios (`ana@tiendaandina.com`), los grupos (`grp-data-engineers`) y las identidades de aplicaciones (*service principals* y *managed identities*), que son las "cuentas" que usan los programas, por ejemplo Airflow o Data Factory, para entrar a otros servicios.

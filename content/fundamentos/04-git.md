@@ -171,6 +171,23 @@ Qué pasa en el paso 7, el **pull request**:
 3. Una compañera **revisa** el código y deja comentarios ("este filtro excluye los devueltos, ¿es a propósito?"). Respondes o corriges con nuevos commits en la misma rama.
 4. Cuando está aprobado y en verde, se hace **merge** y el cambio llega a `main`. Muchas veces eso dispara el despliegue automático a producción.
 
+<!-- dg:f04-pr -->
+```diagrama
+titulo: El camino de un cambio: de tu rama a producción
+nodo rama: Tu rama | icono=git | col=0 | fila=0 | sub=feature/nuevo-modelo
+nodo pr: Pull request | icono=codigo | col=1 | fila=0 | color=azul | sub=descripción del cambio
+nodo ci: CI automática | icono=engranaje | col=2 | fila=0 | color=amarillo | sub=pytest · dbt build
+nodo rev: Revisión | icono=equipo | col=2 | fila=1 | color=violeta | sub=una compañera aprueba
+nodo main: main | icono=git | col=1 | fila=1 | color=verde | sub=siempre funciona
+nodo prod: Producción | icono=nube | col=0 | fila=1 | color=naranja | sub=despliegue automático
+flecha rama -> pr: git push
+flecha pr -> ci: ejecuta
+flecha ci -> rev: en verde
+flecha rev -> main: merge
+flecha main -> prod: deploy
+flecha rev -> rama: pide cambios | estilo=punteada | color=rojo
+```
+
 ## Buenas prácticas
 
 - Commits **pequeños y frecuentes**, con mensajes claros en imperativo: "Agrega test de unicidad", no "cambios" ni "arreglo".

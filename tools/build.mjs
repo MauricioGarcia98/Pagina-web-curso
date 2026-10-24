@@ -47,6 +47,7 @@ function parseDiagrama(src, file) {
     if ((m = line.match(/^nodo\s+([\w-]+)\s*:\s*(.*)$/))) {
       const [label, ...rest] = m[2].split('|'); const o = opts(rest);
       if (o.color && !DG_COLORES.includes(o.color)) throw new Error(`Diagrama en ${file}: color desconocido "${o.color}"`);
+      if (typeof o.sub === 'string') o.sub = o.sub.replace(/\\n/g, '\n');
       spec.nodos.push({ id: m[1], label: label.trim().replace(/\\n/g, '\n'), ...o, col: o.col !== undefined ? Number(o.col) : undefined, fila: o.fila !== undefined ? Number(o.fila) : undefined });
       continue;
     }
@@ -55,7 +56,9 @@ function parseDiagrama(src, file) {
       spec.grupos.push({ id: m[1], label: label.trim(), ...o, nodos: String(o.nodos || '').split(',').map((x) => x.trim()).filter(Boolean) });
       continue;
     }
-    if ((m = line.match(/^flecha\s+([\w-]+)\s*(->|<->|--)\s*([\w-]+)\s*(?::\s*(.*))?$/))) {
+    // "flecha a -> b | opciones" (sin etiqueta) equivale a "flecha a -> b: | opciones"
+    const lineaF = line.replace(/^(flecha\s+[\w-]+\s*(?:->|<->|--)\s*[\w-]+)\s*\|/, '$1: |');
+    if ((m = lineaF.match(/^flecha\s+([\w-]+)\s*(->|<->|--)\s*([\w-]+)\s*(?::\s*(.*))?$/))) {
       const [label, ...rest] = (m[4] || '').split('|'); const o = opts(rest);
       spec.flechas.push({ de: m[1], a: m[3], label: (label || '').trim().replace(/\\n/g, '\n'), doble: m[2] === '<->' || !!o.doble, sinpunta: m[2] === '--', ...o });
       continue;

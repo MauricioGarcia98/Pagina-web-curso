@@ -67,6 +67,27 @@ sources ──► staging ──► intermediate ──► marts ──► dashb
 `source()` solo aparece en **staging**. Todo lo demás usa `ref()`. Así, si una fuente cambia, solo tocas un modelo.
 :::
 
+<!-- dg:dbt04-capas -->
+```diagrama
+titulo: El linaje de un proyecto dbt: source() solo en staging, ref() en todo lo demás
+nodo s1: source tienda.pedidos | icono=base | col=0 | fila=0 | forma=cilindro | color=gris
+nodo s2: source tienda.clientes | icono=base | col=0 | fila=1 | forma=cilindro | color=gris
+nodo seed: seed regiones | icono=csv | col=0 | fila=2 | color=amarillo
+nodo st1: stg_tienda__pedidos | icono=tabla | col=1 | fila=0 | color=azul | sub=view
+nodo st2: stg_tienda__clientes | icono=tabla | col=1 | fila=1 | color=azul | sub=view
+nodo int: int_pedidos_con_totales | icono=transformar | col=2 | fila=0 | color=violeta | sub=ephemeral
+nodo f: fct_ventas | icono=tabla | col=3 | fila=0 | color=naranja | sub=table
+nodo d: dim_clientes | icono=tabla | col=3 | fila=1 | color=naranja | sub=table
+grupo stg: staging | nodos=st1,st2 | color=azul
+grupo marts: marts | nodos=f,d | color=naranja
+flecha s1 -> st1
+flecha s2 -> st2
+flecha st1 -> int
+flecha int -> f
+flecha st2 -> d
+flecha seed -> d: ref()
+```
+
 ### Convención de nombres
 
 - **Staging**: `stg_<fuente>__<tabla>`, con **doble guion bajo** entre la fuente y la tabla: `stg_tienda__clientes`, `stg_stripe__pagos`. El doble guion permite que la fuente o la tabla tengan guiones bajos sin ambigüedad.

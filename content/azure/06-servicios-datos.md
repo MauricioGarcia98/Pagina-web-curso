@@ -30,6 +30,26 @@ Cada servicio cumple un papel en ese recorrido:
 | Consumo | **Power BI** | Dashboards y reportes | QuickSight · Looker |
 | Secretos | **Key Vault** | Contraseñas y tokens | Secrets Manager · Secret Manager |
 
+<!-- dg:az06-ref -->
+```diagrama
+titulo: Lakehouse de referencia en Azure
+nodo erp: ERP y bases | icono=base | col=0 | fila=0 | forma=cilindro
+nodo ev: Eventos de la app | icono=movil | col=0 | fila=1
+nodo adf: Data Factory | icono=engranaje | col=1 | fila=0 | color=azul | sub=copia por lotes
+nodo eh: Event Hubs | icono=stream | col=1 | fila=1 | color=azul | sub=streaming
+nodo adls: ADLS Gen2 | icono=bucket | col=2 | fila=0 | color=naranja | sub=bronze · silver · gold
+nodo dbx: Azure Databricks | icono=spark | col=2 | fila=1 | color=rojo | sub=Spark + Unity Catalog
+nodo pbi: Power BI | icono=dashboard | col=3 | fila=0 | color=amarillo
+nodo kv: Key Vault | icono=candado | col=3 | fila=1 | color=gris | sub=secretos
+flecha erp -> adf
+flecha ev -> eh
+flecha adf -> adls
+flecha eh -> dbx
+flecha adls <-> dbx: lee / escribe Delta
+flecha dbx -> pbi: SQL warehouse
+flecha kv -> dbx: credenciales | estilo=punteada
+```
+
 ## Azure Databricks
 
 ```bash norun

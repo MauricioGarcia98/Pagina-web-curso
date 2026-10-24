@@ -74,6 +74,25 @@ dag.test()
 
 Ejecútalo: el mini-Airflow del curso simula las llamadas a Databricks y muestra qué parámetros enviaría, con las plantillas ya resueltas.
 
+<!-- dg:af08-lakehouse -->
+```diagrama
+titulo: El DAG lakehouse_diario: Airflow coordina, Databricks y dbt procesan
+nodo af: Airflow | icono=orquestador | col=0 | fila=0 | color=violeta | sub=03:00 todos los días
+nodo t1: ingesta_bronze | icono=bucket | col=1 | fila=0 | color=naranja | sub=RunNow job 123456
+nodo t2: silver_pedidos | icono=spark | col=2 | fila=0 | color=gris | sub=notebook, clúster efímero
+nodo t3: dbt_build | icono=transformar | col=3 | fila=0 | color=amarillo | sub=modelos + tests
+nodo dbx: Databricks | icono=cubo | col=1 | fila=1 | color=rojo | sub=jobs y clústeres
+nodo bi: Dashboard 7:00 | icono=dashboard | col=3 | fila=1 | color=verde
+nodo al: Teams | icono=alerta | col=0 | fila=1 | color=rojo | sub=si algo falla
+flecha af -> t1
+flecha t1 -> t2
+flecha t2 -> t3
+flecha t1 -> dbx | estilo=punteada
+flecha t2 -> dbx | estilo=punteada
+flecha t3 -> bi
+flecha af -> al: on_failure_callback | estilo=punteada | color=rojo
+```
+
 ## La configuración del DAG, línea por línea
 
 - **`schedule="0 3 * * *"`**: una expresión cron que significa "a las 03:00 todos los días". Los cinco campos son minuto, hora, día del mes, mes y día de la semana.

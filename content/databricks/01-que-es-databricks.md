@@ -39,6 +39,21 @@ El lago era un depósito enorme y barato donde se tiraba todo en cajas. El wareh
 | **SQL Editor / Dashboards** | SQL para analistas y tableros |
 | **Lakeflow Declarative Pipelines** | Pipelines declarativos batch/streaming (antes Delta Live Tables) |
 
+<!-- dg:dbx01-planos -->
+```diagrama
+titulo: Databricks por dentro: el plano de control es de Databricks, los datos quedan en tu nube
+nodo u: Tú (navegador, CLI) | icono=usuario | col=0 | fila=0
+nodo cp: Plano de control | icono=engranaje | col=1 | fila=0 | color=violeta | sub=workspace, notebooks, jobs
+nodo uc: Unity Catalog | icono=candado | col=2 | fila=0 | color=amarillo | sub=permisos y linaje
+nodo cl: Clústeres / serverless | icono=spark | col=1 | fila=1 | color=rojo | sub=cómputo
+nodo st: Tu almacenamiento | icono=bucket | col=2 | fila=1 | color=naranja | sub=S3 · ADLS · GCS (Delta)
+grupo nube: Tu cuenta de nube (plano de datos) | nodos=cl,st | color=azul
+flecha u -> cp
+flecha cp -> cl: lanza
+flecha cl <-> st: lee / escribe
+flecha uc -> cl: ¿puede leer? | estilo=punteada
+```
+
 ## Tipos de cómputo
 
 | Tipo | Uso | Comentario |

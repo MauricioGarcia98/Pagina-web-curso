@@ -160,6 +160,22 @@ La forma estándar de organizar un lakehouse es en capas de calidad creciente:
 | 🥈 **Silver** | Datos **limpios y conformados**: tipos correctos, sin duplicados, validados y unidos con referencias | `pedidos`, `clientes` limpios |
 | 🥇 **Gold** | Datos **listos para el negocio**: agregados, métricas y esquema estrella para BI y ML | `ventas_diarias_por_pais`, `dim_cliente` |
 
+<!-- dg:sp04-medallon -->
+```diagrama
+titulo: Arquitectura medallón: cada capa agrega calidad y valor
+nodo src: Fuentes | icono=archivos | col=0 | fila=0 | sub=APIs, bases, archivos
+nodo br: Bronze | icono=bucket | col=1 | fila=0 | color=naranja | sub=crudo, solo se agrega
+nodo sv: Silver | icono=spark | col=2 | fila=0 | color=gris | sub=limpio, sin duplicados
+nodo gd: Gold | icono=grafico | col=3 | fila=0 | color=amarillo | sub=métricas del negocio
+nodo bi: BI y reportes | icono=dashboard | col=3 | fila=1 | color=verde
+nodo ml: Ciencia de datos | icono=ml | col=2 | fila=1 | color=violeta
+flecha src -> br: ingesta
+flecha br -> sv: limpia y tipa
+flecha sv -> gd: agrega y modela
+flecha gd -> bi
+flecha sv -> ml: features
+```
+
 Así viaja un pedido de Tienda Andina por las tres capas:
 
 ```text

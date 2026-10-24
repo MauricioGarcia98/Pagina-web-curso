@@ -30,6 +30,22 @@ Metastore (uno por región, compartido por los workspaces)
 
 Los permisos se **heredan** hacia abajo: `GRANT SELECT ON SCHEMA prod.gold TO analistas` da lectura sobre todas las tablas del esquema, incluidas las que se creen después. Y para leer una tabla hacen falta tres permisos encadenados: `USE CATALOG` en el catálogo, `USE SCHEMA` en el esquema y `SELECT` en la tabla.
 
+<!-- dg:dbx04-uc -->
+```diagrama
+titulo: La jerarquía de Unity Catalog: catálogo.esquema.tabla
+nodo meta: Metastore | icono=capas | col=1 | fila=0 | color=violeta | sub=uno por región
+nodo c1: prod | icono=almacen | col=0 | fila=1 | color=azul | sub=catálogo
+nodo c2: dev | icono=almacen | col=2 | fila=1 | color=azul | sub=catálogo
+nodo e1: ventas | icono=capas | col=0 | fila=2 | color=gris | sub=esquema
+nodo t1: pedidos | icono=tabla | col=1 | fila=2 | color=naranja | sub=prod.ventas.pedidos
+nodo v1: vol_crudos | icono=archivos | col=1 | fila=1 | color=amarillo | sub=volumen (archivos)
+flecha meta -> c1
+flecha meta -> c2
+flecha c1 -> e1
+flecha e1 -> t1
+flecha e1 -> v1
+```
+
 ## Permisos con SQL
 
 Los permisos se dan a **grupos** (no a personas) y se heredan hacia abajo. Para leer una tabla hacen falta `USE CATALOG`, `USE SCHEMA` y `SELECT`:

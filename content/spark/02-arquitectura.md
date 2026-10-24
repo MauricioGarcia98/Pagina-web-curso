@@ -25,6 +25,22 @@ En la lección anterior viste la idea: repartir el trabajo entre muchas máquina
    └─────────────┘  └─────────────┘  └─────────────┘
 ```
 
+<!-- dg:sp02-cluster -->
+```diagrama
+titulo: Un clúster de Spark: el driver planifica, el cluster manager presta máquinas y los executors trabajan
+nodo drv: Driver | icono=notebook | col=1 | fila=0 | color=violeta | sub=tu código + SparkSession
+nodo cm: Cluster manager | icono=engranaje | col=2 | fila=0 | color=gris | sub=YARN · Kubernetes
+nodo e1: Executor 1 | icono=servidor | col=0 | fila=1 | color=naranja | sub=4 cores · 4 tasks
+nodo e2: Executor 2 | icono=servidor | col=1 | fila=1 | color=naranja | sub=4 cores · 4 tasks
+nodo e3: Executor 3 | icono=servidor | col=2 | fila=1 | color=naranja | sub=4 cores · 4 tasks
+nodo lake: Data lake | icono=bucket | col=3 | fila=1 | color=azul | sub=Parquet / Delta
+flecha drv <-> cm: pide recursos
+flecha drv -> e1: tasks
+flecha drv -> e2: tasks
+flecha drv -> e3: tasks
+flecha e3 <-> lake: lee / escribe
+```
+
 :::analogia Una obra en construcción
 - El **driver** es el **jefe de obra**: lee los planos (tu código), decide en qué orden se hace cada cosa y reparte el trabajo. No pone ladrillos.
 - Los **executors** son las **cuadrillas de obreros**. Cada obrero (un **core**) hace una tarea a la vez.

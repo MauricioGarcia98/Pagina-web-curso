@@ -73,6 +73,23 @@ Formas de usarlo: instalarlo tú (`pip install apache-airflow`, Docker Compose, 
 Tus DAGs se ejecutan en **mini-Airflow**, un simulador con la misma API que Airflow 2.x: `DAG`, operadores, `>>`, XCom, TaskFlow (`@dag`, `@task`), ramas, trigger rules y `TaskGroup`. El corrector inspecciona el DAG que creaste (tareas, dependencias, programación) y puede “ejecutarlo” con `dag.test()`.
 :::
 
+<!-- dg:af01-componentes -->
+```diagrama
+titulo: Los componentes de Airflow y cómo se comunican
+nodo dags: Carpeta dags/ | icono=codigo | col=0 | fila=0 | sub=archivos .py (en Git)
+nodo sch: Scheduler | icono=reloj | col=1 | fila=0 | color=violeta | sub=decide qué corre
+nodo meta: Base de metadatos | icono=base | col=1 | fila=1 | forma=cilindro | color=gris | sub=estados, historial
+nodo web: Interfaz web | icono=web | col=0 | fila=1 | color=azul | sub=ver, relanzar, logs
+nodo w: Workers | icono=servidor | col=2 | fila=0 | color=naranja | sub=ejecutan las tareas
+nodo ext: Sistemas externos | icono=nube | col=3 | fila=0 | sub=Spark, dbt, bases, APIs
+flecha dags -> sch: lee y parsea
+flecha sch <-> meta
+flecha web <-> meta
+flecha sch -> w: encola tareas
+flecha w -> meta: reporta estado | estilo=punteada
+flecha w -> ext: dispara trabajo
+```
+
 :::ejercicio quiz
 ¿Por qué un DAG no puede tener ciclos?
 

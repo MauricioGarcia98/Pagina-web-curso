@@ -40,6 +40,22 @@ clientes                       pedidos
 
 Martina (cliente 562) aparece **una vez** en `clientes` y su id aparece en **cada uno** de sus pedidos. Eso es una relación **uno a muchos** (1:N).
 
+<!-- dg:sql11-er -->
+```diagrama
+titulo: Las tablas de Tienda Andina y las claves que las conectan (1 → N: "uno a muchos")
+nodo cli: clientes | icono=tabla | col=0 | fila=0 | color=azul | sub=PK cliente_id
+nodo ped: pedidos | icono=tabla | col=1 | fila=0 | color=naranja | sub=PK pedido_id · FK cliente_id
+nodo pag: pagos | icono=dinero | col=2 | fila=0 | color=verde | sub=FK pedido_id
+nodo det: detalle_pedidos | icono=tabla | col=1 | fila=1 | color=naranja | sub=FK pedido_id · FK producto_id
+nodo prod: productos | icono=tabla | col=2 | fila=1 | color=violeta | sub=PK producto_id · FK categoria_id
+nodo cat: categorias | icono=capas | col=3 | fila=1 | color=gris | sub=PK categoria_id
+flecha cli -> ped: 1 → N
+flecha ped -> pag: 1 → N
+flecha ped -> det: 1 → N
+flecha prod -> det: 1 → N
+flecha cat -> prod: 1 → N
+```
+
 ## Tu primer JOIN
 
 ```sql

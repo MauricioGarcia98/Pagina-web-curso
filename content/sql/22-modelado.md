@@ -49,6 +49,20 @@ Para **analizar**, conviene lo contrario: menos tablas y más anchas, pensadas p
 Antes de diseñar una tabla de hechos, define su **grano**: “una fila representa…”. Por ejemplo: “una fila por producto en cada pedido”. Mezclar granos (líneas y pedidos en la misma tabla) es la fuente número uno de totales duplicados.
 :::
 
+<!-- dg:sql22-estrella -->
+```diagrama
+titulo: Esquema estrella de ventas: la tabla de hechos en el centro y las dimensiones alrededor
+nodo fecha: dim_fecha | icono=reloj | col=1 | fila=0 | color=azul | sub=día, mes, feriado…
+nodo cli: dim_cliente | icono=usuario | col=0 | fila=1 | color=azul | sub=segmento, país
+nodo fct: fct_ventas | icono=tabla | col=1 | fila=1 | color=naranja | sub=1 fila por línea\nunidades, importe
+nodo prod: dim_producto | icono=carrito | col=2 | fila=1 | color=azul | sub=marca, categoría
+nodo canal: dim_canal | icono=web | col=1 | fila=2 | color=azul | sub=web, app, tienda
+flecha fecha -- fct
+flecha cli -- fct
+flecha prod -- fct
+flecha canal -- fct
+```
+
 ## Dimensiones lentamente cambiantes (SCD)
 
 ¿Qué pasa si un cliente se muda de Lima a Santiago? Las ventas viejas, ¿se reportan en Lima o en Santiago?
