@@ -1122,5 +1122,5 @@
   });
   function hash(s) { let h = 0; for (const ch of String(s)) h = (Math.imul(31, h) + ch.charCodeAt(0)) | 0; return h; }
 
-  window.CloudSim = { jmes, asTable };
+  window.CloudSim = { jmes, asTable, aws, gcp, az, dbx };
 })();

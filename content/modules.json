@@ -194,6 +194,20 @@
     ]
   },
   {
+    "id": "terraform",
+    "titulo": "Terraform: infraestructura como código",
+    "icono": "🏗️",
+    "color": "#7c3aed",
+    "descripcion": "Crea y administra la plataforma de datos con código: HCL, variables, estado remoto, count y for_each, módulos, y la plataforma completa en Azure, AWS y Google Cloud. Con un Terraform simulado en la terminal que crea los recursos en las nubes del curso.",
+    "objetivos": [
+      "Explicar la infraestructura como código y el ciclo init, plan, apply, destroy",
+      "Escribir HCL con variables, locals, outputs, expresiones y funciones",
+      "Administrar el estado en un backend remoto y separar entornos",
+      "Reutilizar código con count, for_each y módulos",
+      "Desplegar una plataforma de datos completa y llevar Terraform a un flujo de CI/CD"
+    ]
+  },
+  {
     "id": "pipelines",
     "titulo": "Casos de negocio de punta a punta",
     "icono": "🧠",

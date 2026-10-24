@@ -542,6 +542,131 @@ models:
     if (/^\+\d+$/.test(String(flags['-n']))) return ok(ls.slice(Math.max(0, parseInt(String(flags['-n']).slice(1), 10) - 1)).join('\n'));
     return ok(ls.slice(-nLines(flags, 10)).join('\n'));
   });
+  // ---- sed: s/a/b/[gip], d, p con direcciones (N, $, /re/, N,M); -n, -i, -e, -E
+  function sedPrograma(texto) {
+    const cmds = [];
+    for (let src of texto.split(/;\s*|\n/).map((x) => x.trim()).filter(Boolean)) {
+      let dir = null, m;
+      const dirRe = /^(\d+|\$|\/(?:[^/\\]|\\.)*\/)(?:,(\d+|\$|\/(?:[^/\\]|\\.)*\/))?/;
+      if ((m = src.match(dirRe)) && !src.startsWith('s/')) { dir = [m[1], m[2]]; src = src.slice(m[0].length).trim(); }
+      if (src.startsWith('s')) {
+        const sep = src[1];
+        const partes = []; let cur = '', i = 2;
+        while (i < src.length && partes.length < 2) { if (src[i] === '\\' && src[i + 1] === sep) { cur += sep; i += 2; continue; } if (src[i] === sep) { partes.push(cur); cur = ''; i++; continue; } cur += src[i++]; }
+        if (partes.length < 2) throw new Error(`sed: -e expresión #1, carácter ${src.length}: comando "s" sin terminar`);
+        const flags = src.slice(i);
+        cmds.push({ dir, op: 's', re: new RegExp(partes[0].replace(/\\\(/g, '(').replace(/\\\)/g, ')'), (flags.includes('g') ? 'g' : '') + (flags.includes('i') || flags.includes('I') ? 'i' : '')), rep: partes[1].replace(/\\(\d)/g, '$$$1').replace(/&/g, '$$&').replace(/\\n/g, '\n'), p: flags.includes('p') });
+      } else if (src === 'd' || src === 'p' || src === 'q') cmds.push({ dir, op: src });
+      else throw new Error(`sed: -e expresión #1, carácter 1: comando desconocido: "${src[0]}"`);
+    }
+    return cmds;
+  }
+  function sedAplicar(texto, cmds, soloP) {
+    const lineas = texto.replace(/\n$/, '').split('\n');
+    const out = []; const enRango = cmds.map(() => false);
+    const coincide = (d, l, n) => (d === '$' ? n === lineas.length : /^\d+$/.test(d) ? Number(d) === n : new RegExp(d.slice(1, -1)).test(l));
+    for (let n = 1; n <= lineas.length; n++) {
+      let l = lineas[n - 1], borrar = false, salir = false;
+      cmds.forEach((c, k) => {
+        if (borrar || salir) return;
+        let aplica = true;
+        if (c.dir) {
+          if (!c.dir[1]) aplica = coincide(c.dir[0], l, n);
+          else if (enRango[k]) { aplica = true; if (coincide(c.dir[1], l, n)) enRango[k] = false; }
+          else if (coincide(c.dir[0], l, n)) { aplica = true; enRango[k] = !coincide(c.dir[1], l, n); } else aplica = false;
+        }
+        if (!aplica) return;
+        if (c.op === 's') { const nueva = l.replace(c.re, c.rep); if (nueva !== l && c.p) out.push(nueva); l = nueva; }
+        if (c.op === 'd') borrar = true;
+        if (c.op === 'p') out.push(l);
+        if (c.op === 'q') salir = true;
+      });
+      if (!borrar && !soloP) out.push(l);
+      if (salir) break;
+    }
+    return out.join('\n');
+  }
+  def('sed', 'edita texto: sed "s/viejo/nuevo/g" archivo, sed -i (en el lugar), sed -n "5,10p"', (a, ctx) => {
+    let soloP = false, enLugar = false; const exprs = []; const archivos = [];
+    for (let i = 0; i < a.length; i++) {
+      const x = a[i];
+      if (x === '-n') soloP = true; else if (x === '-i' || x.startsWith('-i')) enLugar = true; else if (x === '-E' || x === '-r') continue;
+      else if (x === '-e') exprs.push(a[++i]); else if (/^-[nirE]+$/.test(x)) { if (x.includes('n')) soloP = true; if (x.includes('i')) enLugar = true; }
+      else if (!exprs.length) exprs.push(x); else archivos.push(x);
+    }
+    if (!exprs.length) return fail('Uso: sed [-n] [-i] "s/viejo/nuevo/g" [ARCHIVO...]');
+    let cmds; try { cmds = sedPrograma(exprs.join(';')); } catch (e) { return fail(e.message); }
+    if (enLugar) {
+      if (!archivos.length) return fail('sed: no hay archivos de entrada para editar en el lugar (-i)');
+      for (const f of archivos) { const p = norm(f); const c = readFile(p); if (c === null) return fail(`sed: no se puede leer ${f}: No existe el archivo o el directorio`); writeFile(p, sedAplicar(c, cmds, soloP) + (c.endsWith('\n') ? '\n' : '')); }
+      Machine.save(); return ok('');
+    }
+    const r = readArgOrStdin(archivos, ctx, 'sed'); if (r.err) return fail(r.err);
+    return ok(sedAplicar(r.text, cmds, soloP));
+  });
+  def('tree', 'muestra carpetas y archivos como árbol (-a: ocultos, -L N: niveles)', (a) => {
+    const { flags, pos } = parseArgs(a, { bool: ['-a', '-d'], attach: 'L' });
+    const raiz = norm(pos[0] || '.');
+    if (!isDir(raiz)) return fail(`${pos[0] || '.'} [error opening dir]`);
+    const max = flags['-L'] ? Number(flags['-L']) : Infinity;
+    const lineas = [pos[0] || '.']; let nd = 0, nf = 0;
+    const rec = (dir, pre, nivel) => {
+      if (nivel > max) return;
+      const hijos = children(dir).filter((n) => flags['-a'] || !n.startsWith('.')).filter((n) => !flags['-d'] || isDir(dir + '/' + n)).sort();
+      hijos.forEach((n, i) => {
+        const ult = i === hijos.length - 1; const p = dir + '/' + n; const d = isDir(p);
+        lineas.push(pre + (ult ? '└── ' : '├── ') + (d ? col.b(n) : n));
+        if (d) { nd++; rec(p, pre + (ult ? '    ' : '│   '), nivel + 1); } else nf++;
+      });
+    };
+    rec(raiz, '', 1);
+    lineas.push('', `${nd} directories${flags['-d'] ? '' : `, ${nf} files`}`);
+    return ok(lineas.join('\n'));
+  });
+  def('diff', 'compara dos archivos línea por línea (-u: formato unificado)', (a) => {
+    const { flags, pos } = parseArgs(a, { bool: ['-u', '-q'] });
+    if (pos.length < 2) return fail('diff: falta un operando después de ' + (pos[0] || "'diff'"));
+    const [x, y] = pos.map((f) => readFile(norm(f)));
+    if (x === null || y === null) return fail(`diff: ${x === null ? pos[0] : pos[1]}: No existe el archivo o el directorio`, 2);
+    if (x === y) return ok('');
+    if (flags['-q']) return { out: `Los archivos ${pos[0]} y ${pos[1]} son distintos`, code: 1 };
+    const A = x.replace(/\n$/, '').split('\n'), B = y.replace(/\n$/, '').split('\n');
+    // LCS simple para alinear líneas
+    const L = Array.from({ length: A.length + 1 }, () => new Array(B.length + 1).fill(0));
+    for (let i = A.length - 1; i >= 0; i--) for (let j = B.length - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    const out = flags['-u'] ? [`--- ${pos[0]}`, `+++ ${pos[1]}`] : [];
+    let i = 0, j = 0;
+    while (i < A.length || j < B.length) {
+      if (i < A.length && j < B.length && A[i] === B[j]) { if (flags['-u']) out.push(' ' + A[i]); i++; j++; }
+      else if (j < B.length && (i >= A.length || L[i][j + 1] > L[i + 1][j])) { out.push(flags['-u'] ? col.ok('+' + B[j]) : col.ok(`> ${B[j]}`)); j++; }
+      else { out.push(flags['-u'] ? col.err('-' + A[i]) : col.err(`< ${A[i]}`)); i++; }
+    }
+    return { out: out.join('\n'), code: 1 };
+  });
+  def('jq', 'filtra JSON: jq ".campo", jq ".[] | .nombre", jq -r', (a, ctx) => {
+    const raw = a.includes('-r'); const resto = a.filter((x) => x !== '-r' && x !== '-c');
+    const filtro = resto[0] || '.';
+    const r = readArgOrStdin(resto.slice(1), ctx, 'jq'); if (r.err) return fail(r.err);
+    let datos; try { datos = JSON.parse(r.text); } catch (e) { return fail('jq: error (at <stdin>:0): Cannot parse input as JSON'); }
+    const paso = (vals, f) => {
+      f = f.trim(); if (f === '.' || !f) return vals;
+      const out = [];
+      for (const v of vals) {
+        let m = f.match(/^\.(\[\])(.*)$/) || f.match(/^\.([\w-]+)(.*)$/) || f.match(/^\.\[(\d+)\](.*)$/) || f.match(/^\.\["([^"]+)"\](.*)$/) || f.match(/^(\[\])(.*)$/);
+        if (f === 'keys') { out.push(Object.keys(v).sort()); continue; }
+        if (f === 'length') { out.push(Array.isArray(v) || typeof v === 'string' ? v.length : Object.keys(v || {}).length); continue; }
+        if (!m) throw new Error(`jq: error: syntax error, unexpected "${f}"`);
+        const nuevo = m[1] === '[]' ? (Array.isArray(v) ? v : Object.values(v || {})) : [v == null ? null : v[m[1]]];
+        out.push(...paso(nuevo, m[2] ? (m[2].startsWith('.') || m[2].startsWith('[') ? (m[2].startsWith('[') ? '.' + m[2] : m[2]) : m[2]) : '.'));
+      }
+      return out;
+    };
+    try {
+      let vals = [datos];
+      for (const parte of filtro.split('|')) vals = paso(vals, parte);
+      return ok(vals.map((v) => (raw && typeof v === 'string' ? v : JSON.stringify(v, null, a.includes('-c') ? 0 : 2))).join('\n'));
+    } catch (e) { return fail(e.message, 3); }
+  });
   def('wc', 'cuenta líneas (-l), palabras (-w) y caracteres (-c)', (a, ctx) => {
     const { flags, pos } = parseArgs(a, { bool: ['-l', '-w', '-c'] });
     const one = (text, name) => {
@@ -664,21 +789,6 @@ models:
     const ty = a.indexOf('-type') >= 0 ? a[a.indexOf('-type') + 1] : null;
     const rel = a[0] && !a[0].startsWith('-') ? a[0] : '.';
     return ok(Object.keys(Machine.fs).filter((k) => (k === root || k.startsWith(root + '/')) && (!re || re.test(base(k))) && (!ty || (ty === 'd') === isDir(k))).sort().map((k) => rel.replace(/\/$/, '') + k.slice(root.length)).join('\n'));
-  });
-  def('jq', 'filtra JSON (., .campo, .[], .[].campo)', (a, ctx) => {
-    const flt = a.find((x) => !x.startsWith('-')) || '.';
-    const raw = a.includes('-r');
-    let data;
-    try { data = JSON.parse(ctx.stdin || 'null'); } catch (e) { return fail('jq: error: entrada no es JSON válido'); }
-    let vals = [data];
-    for (const part of flt.replace(/^\./, '').split('.').filter(Boolean)) {
-      if (part === '[]') { vals = vals.flatMap((v) => (Array.isArray(v) ? v : Object.values(v || {}))); continue; }
-      const m = part.match(/^(\w+)(\[\])?$/);
-      if (!m) return fail('jq: filtro no soportado en esta terminal (soporta ., .campo, .[], .[].campo)');
-      vals = vals.map((v) => (v == null ? null : v[m[1]]));
-      if (m[2]) vals = vals.flatMap((v) => v || []);
-    }
-    return ok(vals.map((v) => (raw && typeof v === 'string' ? v : JSON.stringify(v, null, 2))).join('\n'));
   });
   def('curl', 'peticiones HTTP (simuladas, sin red)', (a) => {
     const url = a.find((x) => /^https?:/.test(x)) || '';
