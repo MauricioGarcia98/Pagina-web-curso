@@ -314,7 +314,8 @@
       }
       case 'for': {
         const coleccion = evaluar(x.col, ctx);
-        if (esDesc(coleccion)) return DESC;
+        // solo es desconocido si la colección entera lo es: sus elementos conocidos se pueden usar ya en el plan
+        if (coleccion instanceof Desconocido) return DESC;
         const pares = Array.isArray(coleccion) ? coleccion.map((v, i) => [i, v]) : Object.entries(coleccion || {}).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0));
         const res = x.obj ? {} : [];
         for (const [k, v] of pares) {
@@ -390,8 +391,9 @@
       crear: (a, d) => { const b = window.CloudSim.aws().buckets[a.bucket]; if (!b) return `uploading S3 Object: NoSuchBucket: ${a.bucket}`; b.objects[a.key] = { c: a.content ?? (a.source ? Sh.readFile(Sh.norm(a.source, d)) || '' : ''), m: now() }; },
       borrar: (a) => { const b = window.CloudSim.aws().buckets[a.bucket]; if (b) delete b.objects[a.key]; } },
     aws_glue_catalog_database: { req: ['name'], nuevo: ['name'], calc: (a) => ({ id: `123456789012:${a.name}`, arn: awsArn('glue', `database/${a.name}`) }), crear: (a) => { window.CloudSim.aws().glueDbs[a.name] = { tables: {} }; }, borrar: (a) => { delete window.CloudSim.aws().glueDbs[a.name]; } },
-    aws_glue_crawler: { req: ['name', 'database_name', 'role'], calc: (a) => ({ id: a.name, arn: awsArn('glue', `crawler/${a.name}`) }) },
-    aws_glue_job: { req: ['name', 'role_arn', 'command'], calc: (a) => ({ id: a.name, arn: awsArn('glue', `job/${a.name}`) }), crear: (a) => { window.CloudSim.aws().glueJobs[a.name] = { runs: [] }; }, borrar: (a) => { delete window.CloudSim.aws().glueJobs[a.name]; } },
+    aws_glue_crawler: { req: ['name', 'database_name', 'role'], calc: (a) => ({ id: a.name, arn: awsArn('glue', `crawler/${a.name}`) }),
+      crear: (a) => { const t = (a.s3_target || [])[0] || {}; window.CloudSim.aws().crawlers[a.name] = { db: a.database_name, path: t.path || '', state: 'READY' }; }, borrar: (a) => { delete window.CloudSim.aws().crawlers[a.name]; } },
+    aws_glue_job: { req: ['name', 'role_arn', 'command'], calc: (a) => ({ id: a.name, arn: awsArn('glue', `job/${a.name}`) }), crear: (a) => { const c = (a.command || [])[0] || {}; window.CloudSim.aws().glueJobs[a.name] = { runs: [], role: a.role_arn, glue: a.glue_version, worker: a.worker_type, workers: a.number_of_workers, script: c.script_location }; }, borrar: (a) => { delete window.CloudSim.aws().glueJobs[a.name]; } },
     aws_iam_role: { req: ['assume_role_policy'], nuevo: ['name'], calc: (a) => ({ id: a.name, arn: `arn:aws:iam::123456789012:role/${a.name}`, unique_id: 'AROA' + uid(16).toUpperCase() }), defecto: (a) => ({ name: a.name || `terraform-${uid(12)}` }), crear: (a) => { window.CloudSim.aws().roles[a.name] = {}; }, borrar: (a) => { delete window.CloudSim.aws().roles[a.name]; } },
     aws_iam_policy: { req: ['policy'], calc: (a) => ({ id: `arn:aws:iam::123456789012:policy/${a.name}`, arn: `arn:aws:iam::123456789012:policy/${a.name}` }) },
     aws_iam_role_policy_attachment: { req: ['role', 'policy_arn'], calc: (a) => ({ id: `${a.role}-${uid(8)}` }) },
@@ -411,7 +413,13 @@
     google_bigquery_dataset: { req: ['dataset_id'], nuevo: ['dataset_id', 'location'], calc: (a) => ({ id: `projects/${a._project}/datasets/${a.dataset_id}`, self_link: `https://bigquery.googleapis.com/bigquery/v2/projects/${a._project}/datasets/${a.dataset_id}` }),
       crear: (a) => { window.CloudSim.gcp().datasets[a.dataset_id] = { location: a.location || 'US', tables: {} }; }, borrar: (a) => { delete window.CloudSim.gcp().datasets[a.dataset_id]; } },
     google_bigquery_table: { req: ['dataset_id', 'table_id'], nuevo: ['dataset_id', 'table_id'], calc: (a) => ({ id: `projects/${a._project}/datasets/${a.dataset_id}/tables/${a.table_id}` }),
-      crear: (a) => { const d = window.CloudSim.gcp().datasets[a.dataset_id]; if (!d) return `googleapi: Error 404: Not found: Dataset ${a._project}:${a.dataset_id}`; d.tables[a.table_id] = d.tables[a.table_id] || { rows: [], schema: a.schema || null }; }, borrar: (a) => { const d = window.CloudSim.gcp().datasets[a.dataset_id]; if (d) delete d.tables[a.table_id]; } },
+      crear: (a) => { const d = window.CloudSim.gcp().datasets[a.dataset_id]; if (!d) return `googleapi: Error 404: Not found: Dataset ${a._project}:${a.dataset_id}`; 
+        // el esquema JSON de Terraform pasa al formato de bq (col:TIPO,…) y se crea la tabla consultable
+        let cols = []; try { cols = JSON.parse(a.schema || '[]').map((c) => [c.name, c.type]); } catch (e) { cols = []; }
+        const tp = (a.time_partitioning || [])[0];
+        const E = window.Engines && window.Engines.SQL;
+        if (cols.length && E && E._bytes) E.exec(`DROP TABLE IF EXISTS ${a.dataset_id}__${a.table_id}; CREATE TABLE ${a.dataset_id}__${a.table_id} (${cols.map(([c]) => '"' + c + '"').join(', ')});`, E.playground());
+        d.tables[a.table_id] = d.tables[a.table_id] || { rows: 0, schema: cols.length ? cols.map((c) => c.join(':')).join(',') : 'autodetect', local: cols.length ? `${a.dataset_id}__${a.table_id}` : undefined, partition: tp ? tp.field || '_PARTITIONTIME' : null, cluster: (a.clustering || []).join(',') || null }; }, borrar: (a) => { const d = window.CloudSim.gcp().datasets[a.dataset_id]; if (d) delete d.tables[a.table_id]; } },
     google_pubsub_topic: { req: ['name'], nuevo: ['name'], calc: (a) => ({ id: `projects/${a._project}/topics/${a.name}` }), crear: (a) => { window.CloudSim.gcp().topics[a.name] = { msgs: [] }; }, borrar: (a) => { delete window.CloudSim.gcp().topics[a.name]; } },
     google_pubsub_subscription: { req: ['name', 'topic'], nuevo: ['name', 'topic'], calc: (a) => ({ id: `projects/${a._project}/subscriptions/${a.name}` }),
       crear: (a) => { const t = String(a.topic).split('/').pop(); if (!window.CloudSim.gcp().topics[t]) return `googleapi: Error 404: Resource not found (resource=${t}).`; window.CloudSim.gcp().subs[a.name] = { topic: t, queue: [] }; }, borrar: (a) => { delete window.CloudSim.gcp().subs[a.name]; } },
@@ -547,12 +555,13 @@
       const c = Sh.readFile(path); if (c === null) throw new ErrorHCL(`Failed to read variables file: Given variables file ${Sh.display(path)} does not exist.`, '');
       for (const a of parsearArchivo(c, Sh.display(path).split('/').pop())) if (a.k === 'attr') vals[a.nombre] = evaluar(a.expr, { vars: {}, locals: {}, recursos: {}, dir: cfg.dir });
     };
+    // orden de precedencia del Terraform real: TF_VAR_ < terraform.tfvars < *.auto.tfvars < -var-file / -var
+    for (const [k, v] of Object.entries(Machine.env || {})) if (k.startsWith('TF_VAR_')) vals[k.slice(7)] = v;
     const tfvars = cfg.dir + '/terraform.tfvars';
     if (Sh.exists(tfvars)) desdeArchivo(tfvars);
     Object.keys(Machine.fs).filter((k) => k.startsWith(cfg.dir + '/') && k.endsWith('.auto.tfvars') && !k.slice(cfg.dir.length + 1).includes('/')).sort().forEach(desdeArchivo);
     for (const f of opciones.varFiles || []) desdeArchivo(Sh.norm(f));
-    for (const [k, v] of Object.entries(Machine.env || {})) if (k.startsWith('TF_VAR_')) vals[k.slice(7)] = v;
-    Object.assign(vals, opciones.vars || {});
+    Object.assign(vals, opciones.vars || {}, opciones.varsTipadas || {});
     const out = {};
     for (const [n, v] of Object.entries(cfg.variables)) {
       let val;
@@ -563,6 +572,7 @@
       const tipo = v.attrs.type ? textoTipo(v.attrs.type.expr) : null;
       if (tipo === 'number' && typeof val === 'string' && /^-?\d+(\.\d+)?$/.test(val)) val = Number(val);
       if (tipo === 'bool' && typeof val === 'string') val = val === 'true';
+      if (['list', 'set', 'map', 'object', 'tuple'].includes(tipo) && typeof val === 'string' && /^\s*[[{]/.test(val)) val = evaluar(parsearArchivo(`v = ${val}`, '-var')[0].expr, { vars: {}, locals: {}, recursos: {}, dir: cfg.dir });
       if (tipo === 'number' && typeof val !== 'number') throw new ErrorHCL(`Invalid value for input variable: The given value is not suitable for var.${n}: a number is required.`, v.file, v.line);
       out[n] = val;
     }
@@ -750,20 +760,22 @@
         if (a.for_each) { sub.each = clave; dir2 += `["${clave.key}"]`; }
         const args = evaluarCuerpo(n.b.body, sub, ['count', 'for_each', 'depends_on', 'provider']);
         for (const r of cat.req) if (!(r in args)) throw new ErrorHCL(`Missing required argument: The argument "${r}" is required, but no definition was found.`, n.b.file, n.b.line);
-        const previoE = estado.recursos[dir2];
+        // refresh: si el objeto ya no existe en la nube (lo borraron a mano), Terraform lo vuelve a crear
+        const borradoFuera = !!(estado.recursos[dir2] && !opciones.soloValidar && existente(tipoR, estado.recursos[dir2].calc.id) === false);
+        const previoE = borradoFuera ? null : estado.recursos[dir2];
         if (cat.defecto) for (const [kk, vv] of Object.entries(cat.defecto(args))) if (!(kk in args)) args[kk] = previoE && kk in previoE.args ? previoE.args[kk] : vv;
         if (prov === 'aws') args._region = pcfg.region || 'us-east-1';
         if (prov === 'google') args._project = args.project || pcfg.project || 'academia-datos-dev';
         if (cat.validar && !esDesc(args)) { const err = cat.validar(args); if (err) throw new ErrorHCL(`invalid value: ${err}`, n.b.file, n.b.line); }
-        const previo = estado.recursos[dir2];
+        const previo = previoE;
         // lifecycle.ignore_changes: para esos argumentos manda lo que ya existe, no el código
         if (previo && ignorar.length) for (const kk of Object.keys(Object.assign({}, args, previo.args))) if (!kk.startsWith('_') && (ignorar.includes('*') || ignorar.includes(kk))) { if (kk in previo.args) args[kk] = previo.args[kk]; else delete args[kk]; }
         let cambio = calcularCambio(cat, previo, args);
         if (previo && (opciones.replace || []).includes(dir2)) cambio = 'reemplazar';
         const calc = previo && cambio !== 'reemplazar' ? previo.calc : null;
-        const inst = { direccion: dir2, tipo: tipoR, nombre: nombreR, args, previo, accion: cambio, calc, cat, dir, deps: deps[k].map((d) => prefijo + d).concat(depsExtra), sensibles: cat.sensible || [], prevenir, antesDeBorrar, file: n.b.file, line: n.b.line };
+        const inst = { direccion: dir2, tipo: tipoR, nombre: nombreR, args, previo, accion: cambio, calc, cat, dir, deps: deps[k].map((d) => prefijo + d).concat(depsExtra), sensibles: cat.sensible || [], prevenir, antesDeBorrar, file: n.b.file, line: n.b.line, borradoFuera, previoEstado: estado.recursos[dir2] };
         instancias.push(inst);
-        const visible = Object.assign({}, args, calc || conDesconocidos(cat, args));
+        const visible = Object.assign({}, args, calc || (opciones.simularApply ? cat.calc(Object.assign({}, args)) : conDesconocidos(cat, args)));
         delete visible._region; delete visible._project;
         valores.push([clave, visible]);
       }
@@ -778,7 +790,7 @@
       salidas[n] = evaluar(o.attrs.value.expr, Object.assign(Object.create(ctx), { file: o.file }));
       if (!prefijo && o.attrs.sensitive && evaluar(o.attrs.sensitive.expr, ctx)) salidas['__sensible_' + n] = true;
     }
-    return { instancias, salidas, cfg, provs };
+    return { instancias, salidas, cfg, provs, ctx };
   }
   function conDesconocidos(cat, args) {
     const muestra = cat.calc(Object.assign({}, args));
@@ -907,6 +919,10 @@
     for (const a of acciones) { if (a.accion === 'crear') n.crear++; else if (a.accion === 'actualizar') n.actualizar++; else if (a.accion === 'destruir') n.destruir++; else if (a.accion === 'reemplazar') { n.crear++; n.destruir++; } }
     const out = [];
     const salidasCambian = Object.entries(plan.salidas).filter(([k, v]) => !k.startsWith('__') && JSON.stringify(plan.estado.salidas[k] && plan.estado.salidas[k].value) !== JSON.stringify(v));
+    const borrados = (plan.instancias || []).filter((i) => i.borradoFuera);
+    if (borrados.length) out.push('', C.b('Note: Objects have changed outside of Terraform'), '', 'Terraform detected the following changes made outside of Terraform since the last "terraform apply" which may have affected this plan:', '',
+      ...borrados.map((i) => `  ${C.b(`# ${i.direccion} has been deleted`)}\n  ${C.menos('-')} resource "${i.tipo}" "${i.nombre}" {\n      ${C.menos('-')} id = ${JSON.stringify(i.previoEstado.calc.id)} ${C.dim('-> null')}\n        ${C.dim('# (los demás atributos no se muestran)')}\n    }\n`),
+      plan.refrescar ? 'This is a refresh-only plan, so Terraform will not take any actions to undo these. If you were expecting these changes then you can apply this plan to record the updated values in the Terraform state without changing any remote objects.' : 'Unless you have made equivalent changes to your configuration, or ignored the relevant attributes using ignore_changes, the following plan may include actions to undo or respond to these changes.', '', col.dim('─'.repeat(70)));
     const textoMovidos = (plan.movidos || []).map(([a, b]) => `  ${C.b(`# ${a} has moved to ${b}`)}\n    resource "${b.split('.').slice(-2, -1)[0]}" "${b.split('.').pop().replace(/\[.*$/, '')}" {\n        ${C.dim('# (los atributos no cambian)')}\n    }\n`);
     if (!acciones.length && textoMovidos.length) {
       out.push('', 'Terraform will perform the following actions:', '', ...textoMovidos, C.b('Plan: 0 to add, 0 to change, 0 to destroy.'));
@@ -1035,6 +1051,52 @@
     return { lineas, errores, est, segundos: Math.max(1, Math.round((Date.now() - t0) / 1000)) };
   }
 
+  // ======================================================================= terraform test
+  // Corre los bloques run de *.tftest.hcl (en la carpeta o en tests/). command = plan evalúa el plan;
+  // command = apply (por defecto) simula el apply sin tocar la nube ni el estado real.
+  function cmdTest(dir, o) {
+    const archivos = Object.keys(Machine.fs).filter((k) => Machine.fs[k].t === 'f' && k.endsWith('.tftest.hcl') && (k.slice(dir.length + 1) === k.split('/').pop() || k.startsWith(dir + '/tests/'))).filter((k) => k.startsWith(dir + '/')).sort();
+    if (!archivos.length) return ok(`${col.warn('Success!')} 0 passed, 0 failed.\n${col.dim('(no hay archivos .tftest.hcl en esta carpeta ni en tests/)')}`);
+    const out = []; let pasan = 0; let fallan = 0;
+    const ctx0 = { vars: {}, locals: {}, recursos: {}, dir };
+    const atributos = (b) => Object.fromEntries(b.body.filter((x) => x.k === 'attr').map((x) => [x.nombre, x]));
+    for (const f of archivos) {
+      const nombre = f.slice(dir.length + 1);
+      let bloques;
+      try { bloques = parsearArchivo(Sh.readFile(f), nombre); } catch (err) { return fail(errorTexto(err)); }
+      const globales = {};
+      for (const b of bloques.filter((x) => x.k === 'block' && x.tipo === 'variables')) for (const a of b.body) if (a.k === 'attr') globales[a.nombre] = evaluar(a.expr, ctx0);
+      out.push(`${nombre}... in progress`);
+      let archivoFalla = false;
+      for (const run of bloques.filter((x) => x.k === 'block' && x.tipo === 'run')) {
+        const a = atributos(run);
+        const vars = Object.assign({}, globales);
+        for (const b of run.body.filter((x) => x.k === 'block' && x.tipo === 'variables')) for (const v of b.body) if (v.k === 'attr') vars[v.nombre] = evaluar(v.expr, ctx0);
+        const comando = a.command ? (a.command.expr.n || evaluar(a.command.expr, ctx0)) : 'apply';
+        const esperados = a.expect_failures ? (a.expect_failures.expr.items || []).map((it) => direccionDe(it)) : [];
+        const errores = [];
+        try {
+          const r = planificar(dir, Object.assign({}, o, { varsTipadas: vars, simularApply: comando === 'apply', workspace: workspaceActual(dir) }), { recursos: {}, salidas: {} });
+          const tctx = Object.assign(Object.create(r.ctx), { locales: { output: Object.fromEntries(Object.entries(r.salidas).filter(([k]) => !k.startsWith('__'))) }, file: nombre });
+          for (const as of run.body.filter((x) => x.k === 'block' && x.tipo === 'assert')) {
+            const aa = atributos(as);
+            const c = evaluar(aa.condition.expr, tctx);
+            if (esDesc(c)) errores.push(`Unknown condition value: The condition depends on values that are not known until apply (usa command = apply).\n\n  on ${nombre} line ${aa.condition.line}, in run "${run.etiquetas[0]}"`);
+            else if (c !== true) errores.push(`Test assertion failed: ${aa.error_message ? evaluar(aa.error_message.expr, tctx) : 'la condición dio false'}\n\n  on ${nombre} line ${aa.condition.line}, in run "${run.etiquetas[0]}"`);
+          }
+          if (esperados.length) errores.push(`Missing expected failure: The checkable object, ${esperados[0]}, was expected to report an error but did not.`);
+        } catch (err) {
+          const esValidacion = /^Invalid value for variable/.test(err.message);
+          if (!(esValidacion && esperados.some((x) => x.startsWith('var.')))) errores.push(String(err.message).split('\n\nThis was checked')[0]);
+        }
+        if (errores.length) { fallan++; archivoFalla = true; out.push(`  run "${run.etiquetas[0]}"... ${col.err('fail')}`); for (const er of errores) out.push(errorTexto(new ErrorHCL(er))); } else { pasan++; out.push(`  run "${run.etiquetas[0]}"... ${col.ok('pass')}`); }
+      }
+      out.push(`${nombre}... tearing down`, `${nombre}... ${archivoFalla ? col.err('fail') : col.ok('pass')}`);
+    }
+    out.push('', fallan ? `${col.err(C.b('Failure!'))} ${pasan} passed, ${fallan} failed.` : `${col.ok(C.b('Success!'))} ${pasan} passed, ${fallan} failed.`);
+    return { out: out.join('\n'), code: fallan ? 1 : 0 };
+  }
+
   // para import: lee el objeto real de la nube simulada (false si no existe, null si este tipo no se puede comprobar)
   function existente(tipo, id) {
     const nombre = String(id).split('/').pop();
@@ -1126,6 +1188,7 @@ All other commands:
   show          Show the current state or a saved plan
   force-unlock  Release a stuck lock on the current workspace
   import        Associate existing infrastructure with a Terraform resource
+  test          Execute integration tests for Terraform modules
   state         Advanced state management (list, show, mv, rm, pull)
   version       Show the current Terraform version
   workspace     Workspace management (list, new, select, show)
@@ -1167,6 +1230,10 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
           Machine.save();
           return { out: cambiados.join('\n'), code: o.check && cambiados.length ? 3 : 0 };
         }
+        case 'test': {
+          const e = necesitaInit(dir); if (e) return e;
+          return cmdTest(dir, o, pos);
+        }
         case 'force-unlock': {
           if (!pos[0]) return fail('Usage: terraform [global options] force-unlock LOCK_ID');
           return ok(`${o.force ? '' : `${C.b('Do you really want to force-unlock?')}\n  Terraform will remove the lock on the remote state.\n  This will allow local Terraform commands to modify this state, even though it\n  may still be in use. Only 'yes' will be accepted to confirm.\n\n  ${C.b('Enter a value:')} yes\n\n`}${col.ok(C.b('Terraform state has been successfully unlocked!'))}\n\n${col.ok('The state has been unlocked, and Terraform commands should now be able to\nobtain a new lock on the remote state.')}`);
@@ -1174,6 +1241,7 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
         case 'plan': {
           const e = necesitaInit(dir); if (e) return e;
           const plan = calcularPlan(dir, o, o.destruir);
+          if (o['refresh-only'] && plan.instancias.some((i) => i.borradoFuera)) { plan.refrescar = true; plan.acciones = []; const t = textoPlan(plan).texto.split(col.dim('─'.repeat(70)))[0]; return { out: lecturaEstado(plan) + t, code: o['detailed-exitcode'] ? 2 : 0 }; }
           if (o['refresh-only']) return ok(lecturaEstado(plan) + `\n${col.ok(C.b('No changes.'))}${C.b(' Your infrastructure still matches the configuration.')}\n\nTerraform has checked that the real remote objects still match the result of\nyour most recent changes, and found no differences.`);
           const sinCred = credenciales(plan, ctx); if (sinCred) return sinCred;
           const { texto } = textoPlan(plan, o.destruir);
@@ -1280,7 +1348,7 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
 
   function firmaEstado(est) { return hashHex(JSON.stringify(est.recursos), 16); }
   function lecturaEstado(plan) {
-    const ls = Object.keys(plan.estado.recursos).filter((d) => !plan.acciones.some((a) => a.direccion === d && a.accion === 'crear'));
+    const ls = Object.keys(plan.estado.recursos).filter((d) => !plan.acciones.some((a) => a.direccion === d && a.accion === 'crear' && !a.borradoFuera));
     return ls.map((d) => `${d}: Refreshing state... [id=${plan.estado.recursos[d].calc.id}]`).join('\n') + (ls.length ? '\n' : '');
   }
   function leerLock(dir) {

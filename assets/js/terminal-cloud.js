@@ -492,6 +492,8 @@
             }
           } else if (S3 && !D3) {
             const b = s.buckets[S3.b]; if (!b) return fail('fatal error: An error occurred (NoSuchBucket) when calling the ListObjectsV2 operation');
+            // "-" como destino: el contenido va a la salida estándar (para encadenar con head, jq…)
+            if (dst === '-' && sub === 'cp') { const o = b.objects[S3.k]; if (!o) return fail(`fatal error: An error occurred (404) when calling the HeadObject operation: Key "${S3.k}" does not exist`); return ok(o.c.replace(/\n$/, '')); }
             const keys = A.flags['--recursive'] || sub === 'sync' ? Object.keys(b.objects).filter((k) => k.startsWith(S3.k)) : [S3.k];
             for (const k of keys) {
               if (!b.objects[k]) return fail(`fatal error: An error occurred (404) when calling the HeadObject operation: Key "${k}" does not exist`);
@@ -545,6 +547,8 @@
       if (p[1] === 'get-crawler') { const c = s.crawlers[A.get('--name')]; if (!c) return fail('EntityNotFoundException', 254); return out({ Crawler: { Name: A.get('--name'), State: c.state, DatabaseName: c.db, Targets: { S3Targets: [{ Path: c.path }] }, LastCrawl: c.last ? { Status: 'SUCCEEDED', StartTime: c.last } : undefined } }); }
       if (p[1] === 'get-tables') { const d = s.glueDbs[A.get('--database-name')]; if (!d) return fail(`An error occurred (EntityNotFoundException) when calling the GetTables operation: Database ${A.get('--database-name')} not found.`, 254); return out({ TableList: Object.entries(d.tables).map(([n, t]) => ({ Name: n, DatabaseName: A.get('--database-name'), StorageDescriptor: { Location: t.location, Columns: t.columns }, Parameters: { classification: t.format } })) }); }
       if (p[1] === 'start-job-run') { const j = s.glueJobs[A.get('--job-name')]; if (!j) return fail(`An error occurred (EntityNotFoundException) when calling the StartJobRun operation: Failed to start job run due to missing metadata`, 254); const id = 'jr_' + uid(40); j.runs.push({ id, at: now(), args: A.get('--arguments') }); save(); return out({ JobRunId: id }); }
+      if (p[1] === 'get-job') { const j = s.glueJobs[A.get('--job-name')]; if (!j) return fail(`An error occurred (EntityNotFoundException) when calling the GetJob operation: Job with name: ${A.get('--job-name')} not found`, 254); return out({ Job: { Name: A.get('--job-name'), Role: j.role || 'arn:aws:iam::123456789012:role/glue', GlueVersion: j.glue || '4.0', WorkerType: j.worker || 'G.1X', NumberOfWorkers: j.workers || 2, Command: { Name: 'glueetl', ScriptLocation: j.script || '' } } }); }
+      if (p[1] === 'get-jobs') return out({ Jobs: Object.keys(s.glueJobs).map((n) => ({ Name: n })) });
       if (p[1] === 'get-job-runs') { const j = s.glueJobs[A.get('--job-name')]; return out({ JobRuns: (j ? j.runs : []).map((r) => ({ Id: r.id, JobRunState: 'SUCCEEDED', StartedOn: r.at, ExecutionTime: 87 })) }); }
       if (p[1] === 'list-jobs' || p[1] === 'get-jobs') return out(p[1] === 'list-jobs' ? { JobNames: Object.keys(s.glueJobs) } : { Jobs: Object.keys(s.glueJobs).map((n) => ({ Name: n, GlueVersion: '4.0', WorkerType: 'G.1X', NumberOfWorkers: 10 })) });
       if (p[1] === 'create-job') { const n = A.get('--name'); if (!n) return fail('aws: error: the following arguments are required: --name, --role, --command', 252); s.glueJobs[n] = { runs: [] }; save(); return out({ Name: n }); }
@@ -803,6 +807,7 @@
       if (p[1] === 'topics' && p[2] === 'list') return output(Object.keys(s.topics).map((n) => ({ name: `projects/${proj}/topics/${n}` })), A, 'yaml');
       if (p[1] === 'topics' && p[2] === 'publish') { const t = s.topics[p[3]]; if (!t) return fail(`ERROR: (gcloud.pubsub.topics.publish) NOT_FOUND: Resource not found (resource=${p[3]}).`); const msg = A.get('--message'); t.msgs.push(msg); for (const sub of Object.values(s.subs)) if (sub.topic === p[3]) sub.queue.push(msg); save(); return ok(`messageIds:\n- '${Date.now()}'`); }
       if (p[1] === 'subscriptions' && p[2] === 'create') { const t = A.get('--topic'); if (!t || !s.topics[t]) return fail(`ERROR: (gcloud.pubsub.subscriptions.create) NOT_FOUND: Requested entity was not found (topic ${t}).`); s.subs[p[3]] = { topic: t, queue: [] }; save(); return ok(`Created subscription [projects/${proj}/subscriptions/${p[3]}].`); }
+      if (p[1] === 'subscriptions' && p[2] === 'list') return output(Object.entries(s.subs).map(([n, x]) => ({ name: `projects/${proj}/subscriptions/${n}`, topic: `projects/${proj}/topics/${x.topic}`, ackDeadlineSeconds: 10 })), A, 'yaml');
       if (p[1] === 'subscriptions' && p[2] === 'pull') { const sub = s.subs[p[3]]; if (!sub) return fail('ERROR: NOT_FOUND'); const msgs = A.flags['--auto-ack'] ? sub.queue.splice(0, Number(A.get('--limit') || 1)) : sub.queue.slice(0, Number(A.get('--limit') || 1)); save(); return msgs.length ? output(msgs.map((m) => ({ DATA: m, MESSAGE_ID: String(Date.now()) })), A, 'table') : ok('Listed 0 items.'); }
     }
     if (p[0] === 'dataproc') {
