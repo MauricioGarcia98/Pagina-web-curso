@@ -100,14 +100,28 @@
     }
     const vertical = spec.direccion === 'abajo';
     for (const n of nodos) {
-      const c = vertical ? n.fila : n.col, f = vertical ? n.col : n.fila;
       const w = n.ancho ? Number(n.ancho) : NODO_W;
       n.lineas = envolver(n.label, Math.floor(w / 11));
       n.sublineas = n.sub ? envolver(n.sub, Math.floor(w / 7.6)) : [];
       const conIcono = n.icono && ICONOS[n.icono];
       n.w = w; n.h = Math.max(NODO_H, (conIcono ? 52 : 18) + n.lineas.length * 21 + n.sublineas.length * 17 + 12 + (n.forma === 'cilindro' ? 14 : 0));
-      n.x = MARGEN + c * CELDA_W + (CELDA_W - w) / 2;
-      n.y = MARGEN + 24 + f * CELDA_H + (CELDA_H - n.h) / 2;
+      n._c = vertical ? n.fila : n.col; n._f = vertical ? n.col : n.fila;
+    }
+    // alto de cada fila: crece con el nodo más alto, y deja aire extra donde termina un grupo y empieza otro
+    const filas = Math.max(...nodos.map((n) => n._f)) + 1;
+    const grupoDe = {};
+    for (const g of spec.grupos || []) for (const id of g.nodos) grupoDe[id] = g.id;
+    const altoFila = Array.from({ length: filas }, (_, f) => Math.max(CELDA_H, ...nodos.filter((n) => n._f === f).map((n) => n.h + 80)));
+    const y0 = [MARGEN + 24];
+    for (let f = 1; f < filas; f++) {
+      const arriba = new Set(nodos.filter((n) => n._f === f - 1).map((n) => grupoDe[n.id]).filter(Boolean));
+      const abajo = new Set(nodos.filter((n) => n._f === f).map((n) => grupoDe[n.id]).filter(Boolean));
+      const cambiaGrupo = [...abajo].some((g) => !arriba.has(g)) && arriba.size > 0;
+      y0[f] = y0[f - 1] + altoFila[f - 1] + (cambiaGrupo ? 40 : 0);
+    }
+    for (const n of nodos) {
+      n.x = MARGEN + n._c * CELDA_W + (CELDA_W - n.w) / 2;
+      n.y = y0[n._f] + (altoFila[n._f] - n.h) / 2;
     }
     return porId;
   }
@@ -199,13 +213,17 @@
       if (f.doble) punta(p2, p1);
       if (f.label) {
         const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
-        const lineas = f.label.split('\n');
-        const ancho = Math.max(...lineas.map((l) => l.length)) * 8.4 + 14, alto = lineas.length * 18 + 6;
         const horizontal = Math.abs(p2.x - p1.x) >= Math.abs(p2.y - p1.y);
+        // entre dos cajas vecinas hay poco espacio: la etiqueta se parte en líneas que entren en el hueco
+        let etiqueta = f.label;
+        const hueco = Math.abs(p2.x - p1.x);
+        if (horizontal && Math.max(...etiqueta.split('\n').map((l) => l.length)) * 8.4 + 14 > hueco + 16) etiqueta = envolver(etiqueta, Math.max(5, Math.floor((hueco + 2) / 8.4))).join('\n');
+        const lineas = etiqueta.split('\n');
+        const ancho = Math.max(...lineas.map((l) => l.length)) * 8.4 + 14, alto = lineas.length * 18 + 6;
         // horizontal: la etiqueta va arriba de la línea; vertical: a la derecha
         const cx = horizontal ? mx : mx + ancho / 2 + 8, cy = horizontal ? my - alto / 2 - 6 : my;
         el('rect', { x: cx - ancho / 2, y: cy - alto / 2, width: ancho, height: alto, rx: 6, class: 'dg-fondo-etiqueta' }, svg);
-        texto(svg, f.label, cx, cy - alto / 2 + 16, { size: 16, color: st, lh: 1.1 });
+        texto(svg, etiqueta, cx, cy - alto / 2 + 16, { size: 16, color: st, lh: 1.1 });
       }
     }
 

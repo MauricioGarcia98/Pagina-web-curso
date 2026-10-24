@@ -319,9 +319,27 @@
       $('[data-run]', tools)?.addEventListener('click', () => turnIntoRunner(box, lang, code));
     }
   }
+  // highlight.js no trae HCL en su paquete común: una definición chica para los bloques de Terraform
+  function registrarHcl(hljs) {
+    if (hljs.getLanguage('hcl')) return;
+    hljs.registerLanguage('hcl', () => ({
+      name: 'HCL',
+      aliases: ['terraform', 'tf', 'tfvars'],
+      keywords: { keyword: 'resource data variable output locals module provider terraform backend required_providers lifecycle dynamic content moved import run assert variables for in if', literal: 'true false null', built_in: 'var local module data each count path self' },
+      contains: [
+        hljs.HASH_COMMENT_MODE, hljs.C_LINE_COMMENT_MODE, hljs.C_BLOCK_COMMENT_MODE,
+        { className: 'string', begin: '"', end: '"', contains: [hljs.BACKSLASH_ESCAPE, { className: 'subst', begin: /\$\{/, end: /\}/ }] },
+        { className: 'string', begin: /<<-?\s*(\w+)/, end: /^\s*\w+\s*$/ },
+        { className: 'number', begin: /\b\d+(\.\d+)?\b/ },
+        { className: 'attr', begin: /^\s*[\w-]+(?=\s*=[^=])/ },
+        { className: 'title', begin: /\b[a-z]+_[a-z0-9_]+(?=\s*\()/ },
+      ],
+    }));
+  }
   function highlight(pre) {
     const code = $('code', pre);
     if (!window.hljs || !code) return;
+    registrarHcl(window.hljs);
     const lang = { pyspark: 'python', airflow: 'python', dbt: 'sql', jinja: 'sql', shell: 'bash', powershell: 'powershell', toml: 'ini' }[pre.dataset.lang] || pre.dataset.lang;
     if (!window.hljs.getLanguage(lang)) return;
     code.innerHTML = window.hljs.highlight(code.textContent, { language: lang, ignoreIllegals: true }).value;

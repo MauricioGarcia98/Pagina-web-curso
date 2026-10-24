@@ -24,16 +24,16 @@ nodo kv: kv-andina-dev | icono=llave | col=2 | fila=0 | color=amarillo | sub=sec
 nodo adf: adf-andina-dev | icono=orquestador | col=3 | fila=0 | color=cian | sub=Data Factory
 nodo ac: Access connector | icono=escudo | col=1 | fila=1 | color=rojo | sub=identidad administrada
 nodo dbw: dbw-andina-dev | icono=spark | col=2 | fila=1 | color=naranja | sub=workspace premium
-nodo uc: Unity Catalog | icono=tabla | col=1 | fila=2 | color=violeta | sub=credencial, ubicaciones,\ncatálogo dev, esquemas
-nodo comp: Cómputo | icono=servidor | col=2 | fila=2 | color=verde | sub=clúster ETL, job diario,\nSQL Warehouse
+nodo uc: Unity Catalog | icono=tabla | col=1 | fila=2 | color=violeta | sub=credencial con la identidad\ndel connector, catálogo,\nesquemas, grants
+nodo comp: Cómputo | icono=servidor | col=2 | fila=2 | color=verde | sub=clúster ETL, job diario,\nSQL Warehouse: leen y\nescriben tablas
 grupo p1: Proyecto 1 · plataforma (azurerm) | nodos=rg,st,kv,adf,ac,dbw | color=azul
 grupo p2: Proyecto 2 · workspace (databricks) | nodos=uc,comp | color=violeta
 flecha rg -> st
 flecha st -> kv | estilo=punteada
 flecha ac -> st: Storage Blob Data Contributor
 flecha dbw -> comp
-flecha uc -> ac: usa la identidad
-flecha comp -> uc: lee y escribe tablas
+flecha uc -> ac
+flecha comp -> uc
 ```
 
 | Recurso | Para qué | Decisión clave |

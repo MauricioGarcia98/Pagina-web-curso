@@ -30,13 +30,13 @@ nodo pab: public_access_block | icono=candado | col=3 | fila=0 | color=rojo | su
 nodo ver: versioning | icono=capas | col=3 | fila=1 | color=verde | sub=según la entrada
 nodo lc: lifecycle | icono=reloj | col=2 | fila=1 | color=gris | sub=solo si dias > 0
 nodo vout: outputs | icono=check | col=1 | fila=1 | color=verde | sub=nombre, arn
-flecha raiz -> vin: module "capa" { … }
+flecha raiz -> vin: entradas
 flecha vin -> b
 flecha b -> pab
 flecha b -> ver
 flecha b -> lc
 flecha lc -> vout | estilo=punteada
-flecha vout -> raiz: module.capa.arn
+flecha vout -> raiz: salidas
 ```
 
 ## Escribir el módulo
