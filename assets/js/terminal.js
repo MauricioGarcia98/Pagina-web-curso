@@ -306,12 +306,23 @@ models:
   const fail = (out, code = 1) => ({ out: col.err(out), code });
 
   async function runSimple(text, stdin, opts) {
-    let toks = tokenize(await expand(text, Machine.env, opts));
-    // asignaciones VAR=valor
+    const toks = tokenize(await expand(text, Machine.env, opts));
+    // asignaciones VAR=valor: solas quedan en la sesión; delante de un comando valen solo para ese comando
+    const temporales = {};
     while (toks.length && typeof toks[0] === 'string' && /^[A-Za-z_]\w*=/.test(toks[0])) {
       const [k, ...v] = toks.shift().split('=');
-      if (!toks.length) { Machine.env[k] = v.join('='); Machine.save(); return ok(''); }
+      if (!toks.length) { Object.assign(Machine.env, temporales, { [k]: v.join('=') }); Machine.save(); return ok(''); }
+      temporales[k] = v.join('=');
     }
+    if (!Object.keys(temporales).length) return runTokens(toks, stdin, opts, text);
+    const antes = Object.fromEntries(Object.keys(temporales).map((k) => [k, Machine.env[k]]));
+    Object.assign(Machine.env, temporales);
+    try { return await runTokens(toks, stdin, opts, text); } finally {
+      for (const [k, v] of Object.entries(antes)) { if (v === undefined) delete Machine.env[k]; else Machine.env[k] = v; }
+    }
+  }
+
+  async function runTokens(toks, stdin, opts, text) {
     // redirecciones
     let redir = null, input = null;
     const args = [];

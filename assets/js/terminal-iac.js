@@ -246,17 +246,31 @@
     trimspace: (s) => String(s).trim(), trim: (s, c) => String(s).replace(new RegExp(`^[${c}]+|[${c}]+$`, 'g'), ''),
     replace: (s, a, b) => (String(a).startsWith('/') && String(a).endsWith('/') ? String(s).replace(new RegExp(String(a).slice(1, -1), 'g'), b) : String(s).split(a).join(b)),
     substr: (s, o, l) => String(s).substr(o, l < 0 ? undefined : l), join: (sep, l) => l.join(sep), split: (sep, s) => String(s).split(sep),
-    format: (f, ...a) => { let i = 0; return String(f).replace(/%(\d*)([sdfq%])/g, (m, w, t) => (t === '%' ? '%' : t === 'd' ? String(Math.trunc(a[i++])) : t === 'q' ? JSON.stringify(a[i++]) : aTexto(a[i++]))); },
+    format: (f, ...a) => {
+      let i = 0;
+      return String(f).replace(/%([-0]?)(\d*)(?:\.(\d+))?([sdfqv%])/g, (m, fl, w, p, t) => {
+        if (t === '%') return '%';
+        const x = a[i++];
+        let r = t === 'd' ? String(Math.trunc(x)) : t === 'f' ? Number(x).toFixed(p === undefined ? 6 : Number(p)) : t === 'q' ? JSON.stringify(x) : aTexto(x);
+        if (w) r = fl === '-' ? r.padEnd(Number(w)) : r.padStart(Number(w), fl === '0' ? '0' : ' ');
+        return r;
+      });
+    },
     length: (x) => (typeof x === 'string' ? x.length : Array.isArray(x) ? x.length : Object.keys(x || {}).length),
     concat: (...ls) => [].concat(...ls), merge: (...os) => Object.assign({}, ...os), keys: (o) => Object.keys(o).sort(), values: (o) => Object.keys(o).sort().map((k) => o[k]),
     lookup: (o, k, d) => (o && k in o ? o[k] : d), element: (l, i) => l[i % l.length], contains: (l, v) => l.includes(v), index: (l, v) => l.indexOf(v),
-    toset: (l) => [...new Set(l)], tolist: (l) => [...l], tomap: (o) => ({ ...o }), tostring: (x) => aTexto(x), tonumber: (x) => Number(x), tobool: (x) => x === true || x === 'true',
+    toset: (l) => [...new Set(l)].sort(), tolist: (l) => [...l], tomap: (o) => ({ ...o }), tostring: (x) => aTexto(x), tonumber: (x) => Number(x), tobool: (x) => x === true || x === 'true',
     distinct: (l) => [...new Set(l)], flatten: (l) => l.flat(Infinity), reverse: (l) => [...l].reverse(), sort: (l) => [...l].sort(),
     coalesce: (...a) => a.find((x) => x !== null && x !== ''), max: (...a) => Math.max(...a), min: (...a) => Math.min(...a), abs: Math.abs, ceil: Math.ceil, floor: Math.floor,
     jsonencode: (x) => JSON.stringify(x), jsondecode: (s) => JSON.parse(s), zipmap: (k, v) => Object.fromEntries(k.map((x, i) => [x, v[i]])),
     range: (a, b, s = 1) => { if (b === undefined) { b = a; a = 0; } const r = []; for (let i = a; s > 0 ? i < b : i > b; i += s) r.push(i); return r; },
     startswith: (s, p) => String(s).startsWith(p), endswith: (s, p) => String(s).endsWith(p), md5: (s) => hashHex(s, 32), sha256: (s) => hashHex(s, 64),
     timestamp: () => now(), uuid: () => `${uid(8)}-${uid(4)}-4${uid(3)}-a${uid(3)}-${uid(12)}`, base64encode: (s) => btoa(unescape(encodeURIComponent(s))),
+    regexall: (re, s) => [...String(s).matchAll(new RegExp(re, 'g'))].map((m) => (m.length > 1 ? m.slice(1) : m[0])),
+    regex: (re, s) => { const m = String(s).match(new RegExp(re)); if (!m) throw new Error('Invalid function argument: pattern did not match any part of the given string.'); return m.length > 1 ? m.slice(1) : m[0]; },
+    one: (l) => { if (l.length > 1) throw new Error('Invalid function argument: must be a list, set, or tuple value with either zero or one elements.'); return l.length ? l[0] : null; },
+    alltrue: (l) => l.every((x) => x === true || x === 'true'), anytrue: (l) => l.some((x) => x === true || x === 'true'),
+    compact: (l) => l.filter((x) => x !== null && x !== ''), sum: (l) => l.reduce((a, b) => a + Number(b), 0), slice: (l, a, b) => l.slice(a, b),
     can: (x) => !(x instanceof Error), try: (...a) => a.find((x) => !(x instanceof Error)),
     cidrsubnet: (cidr, nb, n) => { const [ip, m] = cidr.split('/'); const p = ip.split('.').map(Number); const nm = Number(m) + nb; const v = ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]) + n * 2 ** (32 - nm); return [(v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255].join('.') + '/' + nm; },
   };
@@ -373,7 +387,7 @@
     aws_s3_bucket_public_access_block: { req: ['bucket'], calc: (a) => ({ id: a.bucket }) },
     aws_s3_bucket_server_side_encryption_configuration: { req: ['bucket', 'rule'], calc: (a) => ({ id: a.bucket }) },
     aws_s3_object: { req: ['bucket', 'key'], nuevo: ['bucket', 'key'], calc: (a) => ({ id: a.key, etag: hashHex(a.content || a.source || '', 32) }),
-      crear: (a, d) => { const b = window.CloudSim.aws().buckets[a.bucket]; if (!b) return `uploading S3 Object: NoSuchBucket: ${a.bucket}`; b.objects[a.key] = a.content ?? (a.source ? Sh.readFile(Sh.norm(a.source, d)) || '' : ''); },
+      crear: (a, d) => { const b = window.CloudSim.aws().buckets[a.bucket]; if (!b) return `uploading S3 Object: NoSuchBucket: ${a.bucket}`; b.objects[a.key] = { c: a.content ?? (a.source ? Sh.readFile(Sh.norm(a.source, d)) || '' : ''), m: now() }; },
       borrar: (a) => { const b = window.CloudSim.aws().buckets[a.bucket]; if (b) delete b.objects[a.key]; } },
     aws_glue_catalog_database: { req: ['name'], nuevo: ['name'], calc: (a) => ({ id: `123456789012:${a.name}`, arn: awsArn('glue', `database/${a.name}`) }), crear: (a) => { window.CloudSim.aws().glueDbs[a.name] = { tables: {} }; }, borrar: (a) => { delete window.CloudSim.aws().glueDbs[a.name]; } },
     aws_glue_crawler: { req: ['name', 'database_name', 'role'], calc: (a) => ({ id: a.name, arn: awsArn('glue', `crawler/${a.name}`) }) },
@@ -465,6 +479,13 @@
     google_project: (a, p) => ({ id: `projects/${p.project}`, project_id: p.project, number: '123456789012' }),
     google_client_config: (a, p) => ({ id: 'cfg', project: p.project, region: p.region || 'us-central1', access_token: '(sensitive value)' }),
     aws_s3_bucket: (a) => { const b = window.CloudSim.aws().buckets[a.bucket]; if (!b) throw new Error(`reading S3 Bucket (${a.bucket}): couldn't find resource`); return { id: a.bucket, bucket: a.bucket, arn: `arn:aws:s3:::${a.bucket}`, region: b.region }; },
+    terraform_remote_state: (a, p, dir) => {
+      const b = { type: a.backend, config: a.config || {} };
+      const txt = b.type === 'local' ? Sh.readFile(Sh.norm(b.config.path || 'terraform.tfstate', dir)) : leerTextoEstado(b, a.workspace || 'default');
+      if (!txt) throw new Error('Unable to find remote state: No stored state was found for the given workspace in the given backend.');
+      const j = JSON.parse(txt);
+      return { id: '2016-07-19 00:00:00 +0000 UTC', backend: a.backend, outputs: Object.fromEntries(Object.entries(j.outputs || {}).map(([k, v]) => [k, v.value])) };
+    },
     databricks_spark_version: () => ({ id: '15.4.x-scala2.12' }),
     databricks_node_type: () => ({ id: 'Standard_D4ds_v5' }),
   };
@@ -479,10 +500,17 @@
   function archivosTf(dir) {
     return Object.keys(Machine.fs).filter((k) => Machine.fs[k].t === 'f' && k.startsWith(dir + '/') && !k.slice(dir.length + 1).includes('/') && k.endsWith('.tf')).sort();
   }
+  // aws_s3_bucket.a["x"] escrito como expresión → texto de dirección
+  function direccionDe(x) {
+    if (x.e === 'ref') return x.n;
+    if (x.e === 'attr') return `${direccionDe(x.x)}.${x.n}`;
+    if (x.e === 'idx') { const i = x.i.e === 'lit' ? x.i.v : x.i.e === 'tpl' ? x.i.partes.join('') : '?'; return `${direccionDe(x.x)}[${typeof i === 'number' ? i : JSON.stringify(i)}]`; }
+    throw new ErrorHCL('Invalid address: se esperaba una dirección como aws_s3_bucket.nombre', '', x.line);
+  }
   function cargarModulo(dir) {
     const items = [];
     for (const f of archivosTf(dir)) items.push(...parsearArchivo(Sh.readFile(f), Sh.display(f).split('/').pop()));
-    const cfg = { dir, variables: {}, locals: [], outputs: {}, recursos: [], datos: [], modulos: [], proveedores: {}, requeridos: {}, backend: null, archivos: archivosTf(dir) };
+    const cfg = { dir, variables: {}, locals: [], outputs: {}, recursos: [], datos: [], modulos: [], proveedores: {}, requeridos: {}, backend: null, movidos: [], archivos: archivosTf(dir) };
     for (const b of items) {
       if (b.k !== 'block') throw new ErrorHCL(`Unsupported argument: An argument named "${b.nombre}" is not expected here.`, b.file, b.line);
       const attrs = Object.fromEntries(b.body.filter((x) => x.k === 'attr').map((x) => [x.nombre, x]));
@@ -493,6 +521,7 @@
       else if (b.tipo === 'data') cfg.datos.push(b);
       else if (b.tipo === 'module') cfg.modulos.push(b);
       else if (b.tipo === 'provider') cfg.proveedores[b.etiquetas[0]] = b;
+      else if (b.tipo === 'moved') { if (!attrs.from || !attrs.to) throw new ErrorHCL('Missing required argument: A moved block requires "from" and "to".', b.file, b.line); cfg.movidos.push({ from: direccionDe(attrs.from.expr), to: direccionDe(attrs.to.expr), file: b.file, line: b.line }); }
       else if (b.tipo === 'terraform') {
         for (const x of b.body) {
           if (x.k === 'block' && x.tipo === 'required_providers') for (const a of x.body) cfg.requeridos[a.nombre] = a;
@@ -647,7 +676,7 @@
         const f = DATOS[tipoR];
         if (!f) throw new ErrorHCL(`Invalid data source: The provider hashicorp/${prov} does not support data source "${tipoR}" (o este simulador no lo incluye).`, n.b.file, n.b.line);
         const args = evaluarCuerpo(n.b.body, ctx);
-        let val; try { val = f(args, pcfg); } catch (e) { throw new ErrorHCL(e.message, n.b.file, n.b.line); }
+        let val; try { val = f(args, pcfg, dir); } catch (e) { throw new ErrorHCL(e.message, n.b.file, n.b.line); }
         ctx.recursos[k] = () => Object.assign({}, args, val);
         continue;
       }
@@ -660,10 +689,17 @@
       if (a.count) { const c = evaluar(a.count.expr, ctx); if (esDesc(c) && opciones.soloValidar) claves = [0]; else if (esDesc(c)) throw new ErrorHCL('Invalid count argument: The "count" value depends on resource attributes that cannot be determined until apply.', n.b.file, n.b.line); if (!esDesc(c)) claves = Array.from({ length: Number(c) }, (_, i) => i); }
       if (a.for_each) {
         const fe = evaluar(a.for_each.expr, ctx);
-        if (esDesc(fe) && opciones.soloValidar) { claves = [{ key: 'x', value: DESC }]; } else if (esDesc(fe)) throw new ErrorHCL('Invalid for_each argument: The "for_each" value depends on resource attributes that cannot be determined until apply.', n.b.file, n.b.line);
+        // en un mapa basta con conocer las claves: los valores pueden ser "known after apply"
+        const feDesc = fe instanceof Desconocido || (Array.isArray(fe) ? fe.some(esDesc) : false);
+        if (feDesc && opciones.soloValidar) { claves = [{ key: 'x', value: DESC }]; } else if (feDesc) throw new ErrorHCL('Invalid for_each argument: The "for_each" value depends on resource attributes that cannot be determined until apply.', n.b.file, n.b.line);
         if (Array.isArray(fe) && fe.some((x) => typeof x !== 'string')) throw new ErrorHCL('Invalid for_each argument: The given "for_each" argument value is unsuitable: "for_each" supports maps and sets of strings.', n.b.file, n.b.line);
-        if (!esDesc(fe)) claves = Array.isArray(fe) ? fe.map((x) => ({ key: x, value: x })) : Object.entries(fe).map(([kk, v]) => ({ key: kk, value: v }));
+        if (!feDesc) claves = Array.isArray(fe) ? fe.map((x) => ({ key: x, value: x })) : Object.entries(fe).map(([kk, v]) => ({ key: kk, value: v }));
       }
+      const lc = n.b.body.find((x) => x.k === 'block' && x.tipo === 'lifecycle');
+      const lcA = lc ? Object.fromEntries(lc.body.filter((x) => x.k === 'attr').map((x) => [x.nombre, x.expr])) : {};
+      const ignorar = !lcA.ignore_changes ? [] : lcA.ignore_changes.e === 'ref' && lcA.ignore_changes.n === 'all' ? ['*'] : (lcA.ignore_changes.items || []).map((it) => (it.e === 'ref' ? it.n : it.e === 'tpl' ? it.partes.join('') : ''));
+      const prevenir = lcA.prevent_destroy ? evaluar(lcA.prevent_destroy, ctx) === true : false;
+      const antesDeBorrar = lcA.create_before_destroy ? evaluar(lcA.create_before_destroy, ctx) === true : false;
       const valores = [];
       for (const clave of claves) {
         const sub = Object.assign(Object.create(ctx), {});
@@ -678,9 +714,12 @@
         if (prov === 'google') args._project = args.project || pcfg.project || 'academia-datos-dev';
         if (cat.validar && !esDesc(args)) { const err = cat.validar(args); if (err) throw new ErrorHCL(`invalid value: ${err}`, n.b.file, n.b.line); }
         const previo = estado.recursos[dir2];
-        const cambio = calcularCambio(cat, previo, args);
+        // lifecycle.ignore_changes: para esos argumentos manda lo que ya existe, no el código
+        if (previo && ignorar.length) for (const kk of Object.keys(Object.assign({}, args, previo.args))) if (!kk.startsWith('_') && (ignorar.includes('*') || ignorar.includes(kk))) { if (kk in previo.args) args[kk] = previo.args[kk]; else delete args[kk]; }
+        let cambio = calcularCambio(cat, previo, args);
+        if (previo && (opciones.replace || []).includes(dir2)) cambio = 'reemplazar';
         const calc = previo && cambio !== 'reemplazar' ? previo.calc : null;
-        const inst = { direccion: dir2, tipo: tipoR, nombre: nombreR, args, previo, accion: cambio, calc, cat, dir, deps: deps[k].map((d) => prefijo + d).concat(depsExtra), sensibles: cat.sensible || [] };
+        const inst = { direccion: dir2, tipo: tipoR, nombre: nombreR, args, previo, accion: cambio, calc, cat, dir, deps: deps[k].map((d) => prefijo + d).concat(depsExtra), sensibles: cat.sensible || [], prevenir, antesDeBorrar, file: n.b.file, line: n.b.line };
         instancias.push(inst);
         const visible = Object.assign({}, args, calc || conDesconocidos(cat, args));
         delete visible._region; delete visible._project;
@@ -717,13 +756,15 @@
     const f = dir + '/.terraform/terraform.tfstate';
     const c = Sh.readFile(f); return c ? JSON.parse(c).backend : null;
   }
+  function leerTextoEstado(b, ws) {
+    if (b.type === 's3') { const bk = window.CloudSim.aws().buckets[b.config.bucket]; const o = bk && bk.objects[clave(b, ws)]; return o ? (typeof o === 'string' ? o : o.c) : null; }
+    if (b.type === 'gcs') { const bk = window.CloudSim.gcp().buckets[b.config.bucket]; return bk ? bk.objects[clave(b, ws)] || null : null; }
+    if (b.type === 'azurerm') { const sa = window.CloudSim.az().storage[b.config.storage_account_name]; const c = sa && sa.containers[b.config.container_name]; return c ? c.blobs[clave(b, ws)] || null : null; }
+    return null;
+  }
   function leerEstado(dir, ws) {
     const b = backendDe(dir);
-    let txt = null;
-    if (b && b.type === 's3') { const bk = window.CloudSim.aws().buckets[b.config.bucket]; txt = bk ? bk.objects[clave(b, ws)] || null : null; }
-    else if (b && b.type === 'gcs') { const bk = window.CloudSim.gcp().buckets[b.config.bucket]; txt = bk ? bk.objects[clave(b, ws)] || null : null; }
-    else if (b && b.type === 'azurerm') { const sa = window.CloudSim.az().storage[b.config.storage_account_name]; const c = sa && sa.containers[b.config.container_name]; txt = c ? c.blobs[clave(b, ws)] || null : null; }
-    else txt = Sh.readFile(rutaEstado(dir, ws));
+    const txt = b ? leerTextoEstado(b, ws) : Sh.readFile(rutaEstado(dir, ws));
     if (!txt) return { version: 4, serial: 0, lineage: `${uid(8)}-${uid(4)}-${uid(4)}-${uid(4)}-${uid(12)}`, recursos: {}, salidas: {} };
     const j = JSON.parse(txt);
     const recursos = {};
@@ -754,7 +795,7 @@
     const j = { version: 4, terraform_version: '1.10.3', serial: (est.serial || 0) + 1, lineage: est.lineage, outputs: est.salidas, resources: Object.values(recursos), check_results: null };
     const txt = JSON.stringify(j, null, 2);
     const b = backendDe(dir);
-    if (b && b.type === 's3') window.CloudSim.aws().buckets[b.config.bucket].objects[clave(b, ws)] = txt;
+    if (b && b.type === 's3') window.CloudSim.aws().buckets[b.config.bucket].objects[clave(b, ws)] = { c: txt, m: now() };
     else if (b && b.type === 'gcs') window.CloudSim.gcp().buckets[b.config.bucket].objects[clave(b, ws)] = txt;
     else if (b && b.type === 'azurerm') window.CloudSim.az().storage[b.config.storage_account_name].containers[b.config.container_name].blobs[clave(b, ws)] = txt;
     else Sh.writeFile(rutaEstado(dir, ws), txt);
@@ -770,11 +811,11 @@
     if (v === null) return 'null';
     if (typeof v === 'string') return v.includes('\n') ? `<<-EOT\n${v.replace(/\n$/, '').split('\n').map((l) => ' '.repeat(sangria + 4) + l).join('\n')}\n${' '.repeat(sangria + 2)}EOT` : JSON.stringify(v);
     if (Array.isArray(v)) { if (!v.length) return '[]'; return '[\n' + v.map((x) => ' '.repeat(sangria + 4) + (signo ? signo + ' ' : '') + mostrarValor(x, sangria + 2, false, signo) + ',').join('\n') + '\n' + ' '.repeat(sangria + 2) + ']'; }
-    if (typeof v === 'object') { const ks = Object.keys(v); if (!ks.length) return '{}'; const w = Math.max(...ks.map((k) => JSON.stringify(k).length)); return '{\n' + ks.map((k) => ' '.repeat(sangria + 4) + (signo ? signo + ' ' : '') + JSON.stringify(k).padEnd(w) + ' = ' + mostrarValor(v[k], sangria + 2, false, signo)).join('\n') + '\n' + ' '.repeat(sangria + 2) + '}'; }
+    if (typeof v === 'object') { const ks = Object.keys(v).sort(); if (!ks.length) return '{}'; const w = Math.max(...ks.map((k) => JSON.stringify(k).length)); return '{\n' + ks.map((k) => ' '.repeat(sangria + 4) + (signo ? signo + ' ' : '') + JSON.stringify(k).padEnd(w) + ' = ' + mostrarValor(v[k], sangria + 2, false, signo)).join('\n') + '\n' + ' '.repeat(sangria + 2) + '}'; }
     return String(v);
   }
   function bloquePlan(inst, accion) {
-    const sim = { crear: C.mas('+'), destruir: C.menos('-'), actualizar: C.tilde('~'), reemplazar: C.menos('-') + '/' + C.mas('+') }[accion];
+    const sim = { crear: C.mas('+'), destruir: C.menos('-'), actualizar: C.tilde('~'), reemplazar: inst.antesDeBorrar ? C.mas('+') + '/' + C.menos('-') : C.menos('-') + '/' + C.mas('+') }[accion];
     const textos = { crear: 'will be created', destruir: 'will be destroyed', actualizar: 'will be updated in-place', reemplazar: 'must be ' + C.menos('replaced') };
     const lineas = [`  ${C.b(`# ${inst.direccion} ${textos[accion]}`)}`, `  ${sim} resource "${inst.tipo}" "${inst.nombre}" {`];
     let attrs;
@@ -791,6 +832,23 @@
         if (JSON.stringify(antes) === JSON.stringify(despues) && !(despues instanceof Desconocido)) continue;
         if (antes === undefined) { lineas.push(`      ${C.mas('+')} ${k.padEnd(w)} = ${mostrarValor(despues, 6, sens)}`); continue; }
         const fuerza = accion === 'reemplazar' && (inst.cat.nuevo || []).includes(k) ? C.menos(' # forces replacement') : '';
+        const esMapa = (x) => x && typeof x === 'object' && !Array.isArray(x) && !(x instanceof Desconocido);
+        if (esMapa(antes) && esMapa(despues) && !sens) {
+          // como el Terraform real: un mapa cambiado se muestra clave por clave
+          const cs = [...new Set([...Object.keys(antes), ...Object.keys(despues)])].sort();
+          const wk = Math.max(...cs.map((c) => JSON.stringify(c).length));
+          lineas.push(`      ${C.tilde('~')} ${k.padEnd(w)} = {`);
+          for (const c of cs) {
+            const q = JSON.stringify(c).padEnd(wk);
+            if (!(c in antes)) lineas.push(`          ${C.mas('+')} ${q} = ${mostrarValor(despues[c], 10)}`);
+            else if (!(c in despues)) lineas.push(`          ${C.menos('-')} ${q} = ${mostrarValor(antes[c], 10)} ${C.dim('-> null')}`);
+            else if (JSON.stringify(antes[c]) !== JSON.stringify(despues[c])) lineas.push(`          ${C.tilde('~')} ${q} = ${mostrarValor(antes[c], 10)} -> ${mostrarValor(despues[c], 10)}`);
+          }
+          const iguales = cs.filter((c) => c in antes && c in despues && JSON.stringify(antes[c]) === JSON.stringify(despues[c])).length;
+          if (iguales) lineas.push(C.dim(`            # (${iguales} unchanged element${iguales > 1 ? 's' : ''} hidden)`));
+          lineas.push(`        }${fuerza}`);
+          continue;
+        }
         lineas.push(`      ${C.tilde('~')} ${k.padEnd(w)} = ${mostrarValor(antes, 6, sens)} -> ${mostrarValor(despues, 6, sens)}${fuerza}`);
         continue;
       }
@@ -807,6 +865,11 @@
     for (const a of acciones) { if (a.accion === 'crear') n.crear++; else if (a.accion === 'actualizar') n.actualizar++; else if (a.accion === 'destruir') n.destruir++; else if (a.accion === 'reemplazar') { n.crear++; n.destruir++; } }
     const out = [];
     const salidasCambian = Object.entries(plan.salidas).filter(([k, v]) => !k.startsWith('__') && JSON.stringify(plan.estado.salidas[k] && plan.estado.salidas[k].value) !== JSON.stringify(v));
+    const textoMovidos = (plan.movidos || []).map(([a, b]) => `  ${C.b(`# ${a} has moved to ${b}`)}\n    resource "${b.split('.').slice(-2, -1)[0]}" "${b.split('.').pop().replace(/\[.*$/, '')}" {\n        ${C.dim('# (los atributos no cambian)')}\n    }\n`);
+    if (!acciones.length && textoMovidos.length) {
+      out.push('', 'Terraform will perform the following actions:', '', ...textoMovidos, C.b('Plan: 0 to add, 0 to change, 0 to destroy.'));
+      return { texto: out.join('\n'), n };
+    }
     if (!acciones.length) {
       out.push('', col.ok(C.b('No changes.')) + C.b(' Your infrastructure matches the configuration.'), '', 'Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.');
       if (salidasCambian.length) out.push('', 'Changes to Outputs:', ...salidasCambian.map(([k, v]) => `  ${C.mas('+')} ${k} = ${mostrarValor(v, 2, plan.salidas['__sensible_' + k])}`));
@@ -817,8 +880,9 @@
     if (simbolos.includes('crear')) out.push(`  ${C.mas('+')} create`);
     if (simbolos.includes('actualizar')) out.push(`  ${C.tilde('~')} update in-place`);
     if (simbolos.includes('destruir')) out.push(`  ${C.menos('-')} destroy`);
-    if (simbolos.includes('reemplazar')) out.push(`${C.menos('-')}/${C.mas('+')} destroy and then create replacement`);
-    out.push('', 'Terraform will perform the following actions:', '');
+    if (acciones.some((a) => a.accion === 'reemplazar' && !a.antesDeBorrar)) out.push(`${C.menos('-')}/${C.mas('+')} destroy and then create replacement`);
+    if (acciones.some((a) => a.accion === 'reemplazar' && a.antesDeBorrar)) out.push(`${C.mas('+')}/${C.menos('-')} create replacement and then destroy`);
+    out.push('', 'Terraform will perform the following actions:', '', ...textoMovidos);
     for (const a of acciones) out.push(bloquePlan(a, a.accion), '');
     out.push(C.b(`Plan: ${n.crear} to add, ${n.actualizar} to change, ${n.destruir} to destroy.`));
     if (salidasCambian.length && !destruirTodo) out.push('', 'Changes to Outputs:', ...salidasCambian.map(([k, v]) => `  ${C.mas('+')} ${k} = ${mostrarValor(v, 2, plan.salidas['__sensible_' + k])}`));
@@ -830,8 +894,26 @@
     const ws = workspaceActual(dir);
     opciones.workspace = ws;
     const estado = leerEstado(dir, ws);
+    // bloques moved: se renombra en el estado antes de comparar, así no se destruye y se vuelve a crear
+    const movidos = [];
+    for (const m of cargarModulo(dir).movidos) {
+      for (const d of Object.keys(estado.recursos)) {
+        if (d !== m.from && !d.startsWith(m.from + '[') && !d.startsWith(m.from + '.')) continue;
+        const nueva = m.to + d.slice(m.from.length);
+        if (estado.recursos[nueva]) continue;
+        estado.recursos[nueva] = estado.recursos[d]; delete estado.recursos[d]; movidos.push([d, nueva]);
+      }
+    }
     let instancias = [], salidas = {};
     if (!destruir) ({ instancias, salidas } = planificar(dir, opciones, estado));
+    else { try { instancias = planificar(dir, opciones, estado).instancias; } catch (e) { instancias = []; } }
+    const protegidas = {};
+    for (const i of instancias) if (i.prevenir) protegidas[i.direccion] = i;
+    const frenar = (i) => { throw new ErrorHCL(`Instance cannot be destroyed: Resource ${i.direccion} has lifecycle.prevent_destroy set, but the plan calls for this resource to be destroyed. To avoid this error and continue with the plan, either disable lifecycle.prevent_destroy or reduce the scope of the plan using the -target flag.`, i.file, i.line); };
+    if (destruir) {
+      for (const d of Object.keys(estado.recursos)) if (protegidas[d] && (!opciones.target || !opciones.target.length || opciones.target.some((t) => d === t || d.startsWith(t + '[') || d.startsWith(t + '.')))) frenar(protegidas[d]);
+      instancias = [];
+    }
     const deseadas = new Set(instancias.map((i) => i.direccion));
     let acciones = instancias.filter((i) => i.accion !== 'nada');
     if (opciones.target && opciones.target.length) {
@@ -844,7 +926,8 @@
 ;
     const ordenD = ordenDestruccion(aDestruir);
     acciones = acciones.concat(ordenD);
-    return { acciones, salidas, estado, ws, instancias };
+    for (const a of acciones) if (a.accion === 'reemplazar' && a.prevenir) frenar(a);
+    return { acciones, salidas, estado, ws, instancias, movidos };
   }
 
   // se destruye primero lo que depende de otros (un contenedor antes que su cuenta, la cuenta antes que el grupo)
@@ -910,6 +993,16 @@
     return { lineas, errores, est, segundos: Math.max(1, Math.round((Date.now() - t0) / 1000)) };
   }
 
+  // para import: lee el objeto real de la nube simulada (false si no existe, null si este tipo no se puede comprobar)
+  function existente(tipo, id) {
+    const nombre = String(id).split('/').pop();
+    if (tipo === 'aws_s3_bucket') { const b = window.CloudSim.aws().buckets[id]; return b ? { bucket: id, tags: b.tags || {} } : false; }
+    if (tipo === 'google_storage_bucket') { const b = window.CloudSim.gcp().buckets[nombre]; return b ? { name: nombre } : false; }
+    if (tipo === 'azurerm_resource_group') { const g = window.CloudSim.az().groups[nombre]; return g ? { name: nombre, location: g.location, tags: g.tags || {} } : false; }
+    if (tipo === 'azurerm_storage_account') { const sa = window.CloudSim.az().storage[nombre]; return sa ? { name: nombre } : false; }
+    return null;
+  }
+
   // ======================================================================= fmt
   function formatear(src) {
     const lineas = src.split('\n');
@@ -957,6 +1050,9 @@
       else if ((m = x.match(/^-var-file=(.*)$/)) || (x === '-var-file' && (m = [null, a[++i]]))) o.varFiles.push(m[1]);
       else if ((m = x.match(/^-target=(.*)$/)) || (x === '-target' && (m = [null, a[++i]]))) o.target.push(m[1]);
       else if ((m = x.match(/^-out=(.*)$/))) o.out = m[1];
+      else if ((m = x.match(/^-backend-config=(.*)$/)) || (x === '-backend-config' && (m = [null, a[++i]]))) (o.backendConfig = o.backendConfig || []).push(m[1]);
+      else if (x === '-refresh-only' || x === '-detailed-exitcode' || x === '-force') o[x.slice(1)] = true;
+      else if ((m = x.match(/^-replace=(.*)$/)) || (x === '-replace' && (m = [null, a[++i]]))) (o.replace = o.replace || []).push(m[1]);
       else if (x === '-auto-approve') o.autoApprove = true;
       else if (x === '-destroy') o.destruir = true;
       else if (x === '-json') o.json = true;
@@ -986,7 +1082,9 @@ All other commands:
   output        Show output values from your root module
   providers     Show the providers required for this configuration
   show          Show the current state or a saved plan
-  state         Advanced state management (list, show, rm)
+  force-unlock  Release a stuck lock on the current workspace
+  import        Associate existing infrastructure with a Terraform resource
+  state         Advanced state management (list, show, mv, rm, pull)
   version       Show the current Terraform version
   workspace     Workspace management (list, new, select, show)
 
@@ -1027,15 +1125,20 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
           Machine.save();
           return { out: cambiados.join('\n'), code: o.check && cambiados.length ? 3 : 0 };
         }
+        case 'force-unlock': {
+          if (!pos[0]) return fail('Usage: terraform [global options] force-unlock LOCK_ID');
+          return ok(`${o.force ? '' : `${C.b('Do you really want to force-unlock?')}\n  Terraform will remove the lock on the remote state.\n  This will allow local Terraform commands to modify this state, even though it\n  may still be in use. Only 'yes' will be accepted to confirm.\n\n  ${C.b('Enter a value:')} yes\n\n`}${col.ok(C.b('Terraform state has been successfully unlocked!'))}\n\n${col.ok('The state has been unlocked, and Terraform commands should now be able to\nobtain a new lock on the remote state.')}`);
+        }
         case 'plan': {
           const e = necesitaInit(dir); if (e) return e;
           const plan = calcularPlan(dir, o, o.destruir);
+          if (o['refresh-only']) return ok(lecturaEstado(plan) + `\n${col.ok(C.b('No changes.'))}${C.b(' Your infrastructure still matches the configuration.')}\n\nTerraform has checked that the real remote objects still match the result of\nyour most recent changes, and found no differences.`);
           const sinCred = credenciales(plan, ctx); if (sinCred) return sinCred;
           const { texto } = textoPlan(plan, o.destruir);
           let extra = '';
           if (o.out) { Sh.writeFile(Sh.norm(o.out), JSON.stringify({ opciones: o, destruir: !!o.destruir, firma: firmaEstado(plan.estado) })); Machine.save(); extra = `\n\n${col.dim('─'.repeat(70))}\n\nSaved the plan to: ${o.out}\n\nTo perform exactly these actions, run the following command to apply:\n    terraform apply "${o.out}"`; }
           else if (plan.acciones.length) extra = `\n\n${col.dim('─'.repeat(70))}\n\nNote: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform apply" now.`;
-          return ok(lecturaEstado(plan) + texto + extra);
+          return { out: lecturaEstado(plan) + texto + extra, code: o['detailed-exitcode'] && plan.acciones.length ? 2 : 0 };
         }
         case 'apply': case 'destroy': {
           const e = necesitaInit(dir); if (e) return e;
@@ -1050,6 +1153,7 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
           plan.opciones = opciones;
           const sinCred = credenciales(plan, ctx); if (sinCred) return sinCred;
           const { texto, n } = textoPlan(plan, destruir);
+          if (!plan.acciones.length && plan.movidos.length && !destruir) guardarEstado(dir, plan.ws, { serial: plan.estado.serial, lineage: plan.estado.lineage, recursos: plan.estado.recursos, salidas: plan.estado.salidas });
           if (!plan.acciones.length) return ok(lecturaEstado(plan) + texto + `\n\n${col.ok(C.b(`${destruir ? 'Destroy' : 'Apply'} complete! Resources: 0 ${destruir ? 'destroyed' : 'added, 0 changed, 0 destroyed'}.`))}`);
           const confirmacion = desdeArchivo || o.autoApprove ? '' : `\n\n${C.b(destruir ? 'Do you really want to destroy all resources?' : 'Do you want to perform these actions?')}\n  Terraform will perform the actions described above.\n  Only 'yes' will be accepted to approve.\n\n  ${C.b('Enter a value:')} yes ${col.dim('(el simulador confirma solo; en tu computadora tendrías que escribir yes)')}`;
           const r = aplicar(dir, plan);
@@ -1070,7 +1174,17 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
           if (pos[0] === 'list') { const ds = Object.keys(est.recursos).filter((d) => !pos[1] || d.startsWith(pos[1])); return ok(ds.join('\n')); }
           if (pos[0] === 'show') { const r = est.recursos[pos[1]]; if (!r) return fail(`${C.menos('Error:')} No instance found for the given address!\n\nThis command requires that the address references one specific instance.`); const at = Object.assign({}, r.args, r.calc); delete at._region; delete at._project; return ok(`# ${pos[1]}:\nresource "${r.tipo}" "${pos[1].split('.').pop().replace(/\[.*$/, '')}" {\n${Object.keys(at).sort().map((k) => `    ${k.padEnd(Math.max(...Object.keys(at).map((x) => x.length)))} = ${mostrarValor(at[k], 2, (CATALOGO[r.tipo] || {}).sensible && CATALOGO[r.tipo].sensible.includes(k))}`).join('\n')}\n}`); }
           if (pos[0] === 'rm') { if (!est.recursos[pos[1]]) return fail(`${C.menos('Error:')} Invalid target address: ${pos[1]}`); delete est.recursos[pos[1]]; guardarEstado(dir, ws, { serial: est.serial, lineage: est.lineage, recursos: est.recursos, salidas: est.salidas }); return ok(`Removed ${pos[1]}\nSuccessfully removed 1 resource instance(s).`); }
-          return ok('Usage: terraform state <list|show|rm> [ADDRESS]');
+          if (pos[0] === 'pull') { const b = backendDe(dir); return ok((b ? leerTextoEstado(b, ws) : Sh.readFile(rutaEstado(dir, ws))) || ''); }
+          if (pos[0] === 'mv') {
+            const [, de, a2] = pos;
+            if (!de || !a2) return fail('Usage: terraform state mv [options] SOURCE DESTINATION');
+            const mover = Object.keys(est.recursos).filter((d) => d === de || d.startsWith(de + '[') || d.startsWith(de + '.'));
+            if (!mover.length) return fail(`${C.menos('Error:')} Invalid source address\n\nCannot move ${de}: does not match anything in the current state.`);
+            for (const d of mover) { const nueva = a2 + d.slice(de.length); if (est.recursos[nueva]) return fail(`${C.menos('Error:')} Invalid target address\n\nCannot move to ${nueva}: there is already a resource instance at that address in the current state.`); est.recursos[nueva] = est.recursos[d]; delete est.recursos[d]; }
+            guardarEstado(dir, ws, { serial: est.serial, lineage: est.lineage, recursos: est.recursos, salidas: est.salidas });
+            return ok(`Move "${de}" to "${a2}"\nSuccessfully moved ${mover.length} object(s).`);
+          }
+          return ok('Usage: terraform state <list|show|mv|rm|pull> [ADDRESS]');
         }
         case 'show': {
           const est = leerEstado(dir, workspaceActual(dir));
@@ -1094,7 +1208,26 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
           return ok('Usage: terraform workspace <list|show|new|select> [NAME]');
         }
         case 'console': return ok(col.dim('(terraform console no está disponible en el simulador: prueba tus expresiones en un output y ejecuta terraform plan)'));
-        case 'import': return ok(col.dim('(terraform import no está simulado: en tu computadora sirve para traer al estado un recurso creado a mano)'));
+        case 'import': {
+          const e = necesitaInit(dir); if (e) return e;
+          const [addr, id] = pos;
+          if (!addr || !id) return fail('Usage: terraform [global options] import [options] ADDR ID');
+          const ws = workspaceActual(dir); const est = leerEstado(dir, ws);
+          if (est.recursos[addr]) return fail(errorTexto(new ErrorHCL(`Resource already managed by Terraform: Terraform is already managing a remote object for ${addr}. To import to this address you must first remove the existing object from the state.`)));
+          const plan = planificar(dir, o, est);
+          const inst = plan.instancias.find((i) => i.direccion === addr);
+          if (!inst) return fail(errorTexto(new ErrorHCL(`resource address "${addr}" does not exist in the configuration.: Before importing this resource, please create its configuration in the root module. For example:\n\nresource "${addr.split('.')[0]}" "${(addr.split('.')[1] || '').replace(/\[.*$/, '')}" {\n  # (resource arguments)\n}`)));
+          const sinCred = credenciales({ acciones: [inst] }, ctx); if (sinCred) return sinCred;
+          const real = existente(inst.tipo, id);
+          if (real === false) return fail(errorTexto(new ErrorHCL(`Cannot import non-existent remote object: While attempting to import an existing object to "${addr}", the provider detected that no object exists with the given id. Only pre-existing objects can be imported; check that the id is correct and that it is associated with the provider's configured region or endpoint, or use "terraform apply" to create a new remote object for this resource.`)));
+          const args = Object.assign({}, inst.args);
+          for (const [kk, vv] of Object.entries(real || {})) if (kk in inst.args || (vv && (typeof vv !== 'object' || Object.keys(vv).length))) args[kk] = vv;
+          for (const [kk, vv] of Object.entries(args)) if (vv instanceof Desconocido) delete args[kk];
+          const calc = Object.assign(inst.cat.calc(Object.assign({}, args)), { id });
+          est.recursos[addr] = { tipo: inst.tipo, args, calc, deps: inst.deps || [] };
+          guardarEstado(dir, ws, { serial: est.serial, lineage: est.lineage, recursos: est.recursos, salidas: est.salidas });
+          return ok(`${addr}: Importing from ID "${id}"...\n${addr}: Import prepared!\n  Prepared ${inst.tipo} for import\n${addr}: Refreshing state... [id=${id}]\n\n${col.ok(C.b('Import successful!'))}\n\n${col.ok('The resources that were imported are shown above. These resources are now in\nyour Terraform state and will henceforth be managed by Terraform.')}`);
+        }
         default: return fail(`Terraform has no command named "${sub}".\n\nTo see all of Terraform's top-level commands, run:\n  terraform -help`);
       }
     } catch (e) {
@@ -1124,6 +1257,13 @@ ${col.dim('(simulado en el navegador: lee tus archivos .tf y crea los recursos e
     let backend = null;
     if (cfg.backend) {
       const b = evaluarCuerpo(cfg.backend.body, { vars: {}, locals: {}, recursos: {}, dir });
+      // -backend-config=clave=valor o -backend-config=archivo.tfbackend (configuración parcial)
+      for (const bc of o.backendConfig || []) {
+        if (/^[\w-]+=/.test(bc)) { const [k, ...v] = bc.split('='); b[k] = v.join('='); continue; }
+        const c = Sh.readFile(Sh.norm(bc, dir));
+        if (c === null) return fail(errorTexto(new ErrorHCL(`Failed to read file: The file "${bc}" could not be read.`)));
+        for (const l of c.split('\n')) { const m = l.match(/^\s*([\w-]+)\s*=\s*"?([^"]*)"?\s*$/); if (m) b[m[1]] = /^(true|false)$/.test(m[2]) ? m[2] === 'true' : m[2]; }
+      }
       if (cfg.backend.tipo === 's3') { if (!b.bucket || !b.key) throw new ErrorHCL('Missing required argument: The backend "s3" requires "bucket" and "key".', 'backend'); if (!window.CloudSim.aws().buckets[b.bucket]) return fail(`\n${C.menos('╷')}\n${C.menos('│')} ${C.menos('Error:')} ${C.b('Failed to get existing workspaces: S3 bucket "' + b.bucket + '" does not exist.')}\n${C.menos('│')}\n${C.menos('│')} The referenced S3 bucket must have been previously created. If the S3 bucket\n${C.menos('│')} was created within the last minute, please wait for a minute or two and try again.\n${C.menos('│')} ${col.dim('(créalo antes con: aws s3 mb s3://' + b.bucket + ')')}\n${C.menos('╵')}`); }
       if (cfg.backend.tipo === 'gcs') { if (!b.bucket) throw new ErrorHCL('Missing required argument: The backend "gcs" requires "bucket".', 'backend'); if (!window.CloudSim.gcp().buckets[b.bucket]) return fail(`\n${C.menos('╷')}\n${C.menos('│')} ${C.menos('Error:')} ${C.b('Failed to get existing workspaces: querying Cloud Storage failed: storage: bucket doesn\'t exist')}\n${C.menos('│')} ${col.dim('(créalo antes con: gcloud storage buckets create gs://' + b.bucket + ')')}\n${C.menos('╵')}`); }
       if (cfg.backend.tipo === 'azurerm') { const sa = window.CloudSim.az().storage[b.storage_account_name]; if (!sa || !sa.containers[b.container_name]) return fail(`\n${C.menos('╷')}\n${C.menos('│')} ${C.menos('Error:')} ${C.b('Failed to get existing workspaces: containers.Client#ListBlobs: Failure responding to request: StatusCode=404 -- Original Error: The specified container does not exist.')}\n${C.menos('│')} ${col.dim('(crea la cuenta de almacenamiento y el contenedor antes, con az storage account create y az storage container create)')}\n${C.menos('╵')}`); }
