@@ -3,8 +3,19 @@ titulo: "Caso 🚕 Ruta: viajes, esperas y tarifa dinámica"
 nivel: Avanzado
 duracion: 55
 resumen: Tasa de cancelación, tiempos de espera, horas pico, tarifa dinámica, ranking de conductores y retención de pasajeros.
+objetivos: Calcular tasas de completitud y de viajes sin conductor por ciudad y por hora | Medir tiempos de espera y duración con diferencias entre marcas de tiempo | Separar el ingreso base del ingreso por tarifa dinámica | Rankear conductores con un mínimo de viajes y medir la retención de pasajeros
+prerrequisitos: casos-metodo | sql-ventanas-1
+autoevaluacion: ¿Puedes calcular el porcentaje de viajes sin conductor por hora del día? | ¿Puedes calcular el tiempo de espera en minutos entre la solicitud y el inicio? | ¿Sabes cuánto del ingreso viene del recargo dinámico y cómo se calcula? | ¿Sabes por qué un ranking de calificación necesita un mínimo de viajes? | ¿Puedes seguir mes a mes a una cohorte de pasajeros?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Ruta
+La gerente de operaciones de **Ruta**, la app de viajes, tiene la reunión mensual con las ciudades:
+
+> "Cada ciudad dice que le va bien, pero los números de quejas dicen otra cosa. Quiero ver por ciudad cuántas solicitudes se completan, cuánto espera la gente y qué conductores son los mejores. Y finanzas quiere saber cuánto ganamos por la tarifa dinámica."
+
+Una app de viajes es un **mercado de dos lados**: pasajeros que piden y conductores que ofrecen. Si falta oferta, se pierden viajes; si sobra, los conductores ganan poco y se van.
+:::
 **Ruta** es una app de viajes que opera en cinco ciudades. Operaciones quiere saber dónde falla el servicio y finanzas quiere entender los ingresos.
 
 ## El modelo de datos
@@ -78,6 +89,13 @@ Fíjate en `AVG(v.calificacion)`: 2.317 viajes completados **no** tienen calific
 - **El denominador**: "tasa de cancelación" sobre **todas** las solicitudes o sobre las que tuvieron conductor asignado da números distintos. Decláralo siempre.
 - **Promedio de cocientes**: usa `SUM(a) / SUM(b)` para tasas como tarifa por km o ingreso por hora.
 - **Columnas que solo existen en algunos estados**: tarifa, inicio, fin y calificación son `NULL` en los viajes no completados. Filtra antes de calcular.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las apps de movilidad usan **streaming**: los precios dinámicos se calculan cada pocos segundos con la oferta y la demanda de cada zona. Lo verás con Kinesis, Pub/Sub y Spark Streaming.
+- Los rankings de calificación siempre usan un mínimo de viajes (o promedios bayesianos), porque un conductor con un solo viaje de 5 estrellas no es mejor que uno con 2.000 viajes de 4,9.
+- Las marcas de tiempo se guardan en UTC y se convierten a la hora local de cada ciudad. Con ciudades en distintos husos horarios, un error de zona horaria mueve los picos de demanda.
 :::
 
 ## Ejercicios

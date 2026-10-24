@@ -3,8 +3,19 @@ titulo: "Caso ☁️ Nube Pyme: MRR, retención neta y soporte"
 nivel: Experto
 duracion: 60
 resumen: MRR, movimientos de MRR (nuevo, expansión, contracción, churn), ARPA, NRR, cobranza y SLA de soporte.
+objetivos: Calcular MRR, empresas activas y ARPA por mes | Descomponer la variación del MRR en nuevo, expansión, contracción y churn | Calcular la retención neta de ingresos (NRR) | Medir el cumplimiento de SLA de soporte y relacionarlo con el churn
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes calcular el ARPA de un mes? | ¿Puedes clasificar el cambio de MRR de cada empresa entre un mes y el siguiente en nuevo, expansión, contracción o churn? | ¿Sabes qué significa un NRR mayor a 100 %? | ¿Puedes calcular el porcentaje de tickets críticos que incumplieron el SLA? | ¿Sabes por qué correlación entre satisfacción y churn no prueba causalidad?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Nube Pyme
+El CEO de **Nube Pyme**, un software de gestión para pequeñas empresas, prepara una ronda de inversión:
+
+> "Los inversores van a mirar tres cosas: cómo crece el MRR, de dónde viene ese crecimiento y cuánto retenemos de los clientes que ya tenemos. Si el NRR está arriba de 100 %, crecemos aunque no consigamos clientes nuevos. Necesito esos números bien calculados, sin maquillaje."
+
+En un SaaS B2B, el crecimiento sano viene tanto de vender a clientes nuevos como de que los actuales paguen más con el tiempo.
+:::
 **Nube Pyme** vende un software de gestión a pequeñas y medianas empresas, con tres planes mensuales. Es el tipo de empresa donde las métricas de suscripción lo son todo, y donde un Analytics/Data Engineer las calcula para el directorio y los inversores.
 
 ## El modelo de datos
@@ -70,6 +81,12 @@ Fíjate en `COUNT(DISTINCT e.empresa_id)`: después del join hay **una fila por 
 - **Facturas recientes todavía no vencidas**: el último mes siempre parece tener una cobranza peor (muchas facturas están `pendiente` porque recién se emitieron). Compara meses "maduros".
 - **MRR no es lo mismo que lo cobrado**: el MRR mide lo que el cliente **se comprometió** a pagar; la cobranza mide lo que efectivamente entró.
 - **Churn y meses salteados**: una empresa que no factura en marzo pero vuelve en abril, ¿fue churn y reactivación? Define la regla antes de contar.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Las métricas SaaS (MRR, NRR, churn) se calculan en un modelo "MRR por empresa y mes" que es la fuente de verdad para finanzas, ventas y el directorio. Un error ahí se repite en todas las presentaciones.
+- Los datos de facturación suelen venir de herramientas externas (Stripe, Chargebee) y los de soporte de otras (Zendesk). Unirlos exige un id común de cliente, y conciliar esos ids es parte importante del trabajo.
 :::
 
 ## Ejercicios

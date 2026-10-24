@@ -3,8 +3,19 @@ titulo: "Caso 🛒 Tienda Andina: preguntas de directorio"
 nivel: Experto
 duracion: 50
 resumen: Canasta de productos, cliente nuevo vs recurrente, primer producto comprado, LTV y tiempo hasta la recompra.
+objetivos: Encontrar pares de productos que se compran juntos sin contar cada par dos veces | Separar ventas de clientes nuevos y recurrentes usando la primera compra | Calcular el LTV por cohorte de registro | Calcular la mediana del tiempo hasta la segunda compra sin funciones de mediana
+prerrequisitos: casos-metodo | sql-patrones
+autoevaluacion: ¿Puedes listar los pares de productos más comprados juntos? | ¿Sabes cómo evitar contar el par (A, B) y el par (B, A) por separado? | ¿Puedes marcar si cada pedido fue el primero de su cliente? | ¿Puedes calcular el LTV promedio por año de registro? | ¿Puedes calcular una mediana con funciones de ventana?
 ---
 
+<!-- estandar:escenario -->
+:::escenario El directorio de Tienda Andina
+Valentina vuelve a presentar en el directorio y esta vez las preguntas son de estrategia:
+
+> "Me van a preguntar: ¿crecemos porque conseguimos clientes nuevos o porque los que tenemos vuelven? ¿Con qué productos entra la gente? ¿Cuánto vale un cliente en toda su vida? ¿Y cuánto tarda en volver a comprar? Con eso decidimos el presupuesto de marketing del año."
+
+Son las preguntas que hace cualquier directorio de un e-commerce. Todas dependen de identificar bien la **primera** compra de cada cliente y de no mezclar granos.
+:::
 Volvemos a la tienda que conoces, ahora con preguntas que haría un directorio. Todas exigen pensar bien el **grano** y el **orden temporal**.
 
 ## Preguntas de directorio: qué hay detrás de cada una
@@ -23,6 +34,20 @@ Todas comparten dos dificultades: el **orden temporal** (qué pasó primero: hay
 
 :::tip ¿Por qué la mediana y no el promedio?
 Si 9 clientes vuelven a los 20 días y uno a los 700, el promedio da 88 días, que no describe a nadie. La **mediana** (el valor del medio) da 20: lo que le pasa al cliente típico. Para tiempos, montos de compra y salarios, que tienen valores extremos, la mediana es casi siempre más honesta.
+:::
+
+<!-- estandar:errores -->
+:::errores
+- **Pares duplicados en la canasta**: un self join de las líneas del mismo pedido devuelve (A, B) y (B, A), y también (A, A). Usa `a.producto_id < b.producto_id`.
+- **"Nuevo" por año en vez de por cliente**: un cliente nuevo es el que hace su **primer** pedido, no el que se registró ese año.
+- **Primera compra con pedidos cancelados**: si el primer pedido se canceló, ¿cuenta? Decide y aplica la misma regla en todas las métricas.
+- **LTV de cohortes recientes**: los clientes de 2024 tuvieron menos tiempo para comprar. Compara cohortes con el mismo tiempo de antigüedad, o acláralo.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Estas métricas (nuevos vs. recurrentes, LTV, tiempo a la recompra) son la base de las decisiones de marketing: cuánto invertir para conseguir un cliente (que tiene que ser menos que su LTV) y cuándo mandar un recordatorio.
+- El análisis de canasta con millones de pedidos genera una explosión de pares. En producción se limita a los productos más vendidos o se usan algoritmos específicos en Spark.
 :::
 
 :::ejercicio sql titulo="Productos que se compran juntos"

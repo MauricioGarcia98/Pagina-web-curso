@@ -3,8 +3,19 @@ titulo: "Caso 🎧 Ritmo: suscripciones, MRR y churn"
 nivel: Avanzado
 duracion: 60
 resumen: Usuarios activos, skips, artistas top, MRR mes a mes, churn, conversión de gratis a pago y motivos de baja.
+objetivos: Calcular usuarios activos mensuales (MAU) y métricas de consumo | Calcular el MRR a una fecha a partir de suscripciones vigentes | Medir churn y conversión de plan gratis a pago sin contar mal los cambios de plan | Identificar usuarios en riesgo de baja con reglas de inactividad
+prerrequisitos: casos-metodo | sql-fechas
+autoevaluacion: ¿Puedes calcular el MAU por mes? | ¿Sabes qué suscripciones cuentan como "vigentes" en una fecha dada? | ¿Sabes por qué un cambio de plan no es una baja y cómo excluirlo? | ¿Puedes calcular qué porcentaje de usuarios gratis pasó a pago después? | ¿Puedes definir y listar usuarios en riesgo?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Ritmo
+El director de producto de **Ritmo**, la app de música, está preocupado:
+
+> "Los inversores nos preguntan por el MRR y el churn de cada mes. Y quiero saber cuántos usuarios gratis terminan pagando, porque ahí está el negocio. Ah, y los que pagan pero no escuchan nada hace un mes: esos se van a ir, quiero mandarles algo."
+
+Un negocio de suscripciones vive de **retener**: conseguir un usuario cuesta mucho más que conservarlo. Estas métricas son las que miran todos los días.
+:::
 **Ritmo** es una app de música por suscripción con planes `gratis`, `individual`, `duo` y `familiar`. La directora de producto quiere entender el **engagement** (cuánto se usa la app) y el **negocio** (cuánto se factura y cuántos se van).
 
 ## El modelo de datos
@@ -65,6 +76,13 @@ GROUP BY c.tipo;
 - **"Activo" se define por reproducciones**, no por suscripciones: un suscriptor pago que no escucha nada en el mes no es un usuario activo (y es un candidato a darse de baja).
 - **Vigencia de una suscripción**: está vigente en la fecha F si empezó antes o ese día y no terminó (`fecha_fin` es NULL o posterior). Olvidar el `NULL` deja afuera a todos los suscriptores actuales.
 - **Churn de planes pagos**: el que pasa de pago a gratis también es churn de ingresos, aunque siga usando la app.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En las empresas de suscripción, el MRR y el churn se calculan en tablas gold "por mes y por usuario" que guardan el estado de cada suscripción en cada mes. Los dashboards leen de ahí, y finanzas e inversores usan exactamente la misma definición.
+- Los eventos de reproducción son enormes (miles de millones de filas). Se procesan con Spark o en BigQuery, particionados por fecha, y se resumen por día y usuario apenas entran.
+- Las listas de "usuarios en riesgo" alimentan campañas automáticas. Por eso se miden después: ¿los que recibieron el mensaje se fueron menos que los que no?
 :::
 
 ## Ejercicios

@@ -3,8 +3,19 @@ titulo: "Caso ✈️ Cóndor Air: puntualidad, ocupación y precios"
 nivel: Experto
 duracion: 55
 resumen: On-time performance, demoras por ruta, propagación de demoras, factor de ocupación, ingresos y precio según anticipación.
+objetivos: Calcular la puntualidad (OTP) por ruta con la tolerancia estándar de 15 minutos | Medir demoras promedio por aeropuerto sin incluir vuelos cancelados | Estimar ocupación ponderada por asientos | Analizar precio según anticipación y la propagación de demoras entre vuelos encadenados
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes calcular el porcentaje de vuelos puntuales por ruta? | ¿Sabes por qué la ocupación promedio de los vuelos no es lo mismo que pasajeros totales sobre asientos totales? | ¿Puedes agrupar reservas por días de anticipación y comparar precios? | ¿Puedes encontrar el vuelo siguiente del mismo avión con una función de ventana? | ¿Sabes qué vuelos excluir al calcular demoras?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Cóndor Air
+El gerente de operaciones de **Cóndor Air** recibió una queja del regulador:
+
+> "Dicen que nuestra puntualidad está por debajo del promedio. Necesito saber en qué rutas y aeropuertos fallamos. Y comercial quiere entender la ocupación y si los que compran tarde realmente pagan más."
+
+Una aerolínea vive de llenar aviones al mejor precio y de cumplir horarios. Un avión que sale tarde arrastra la demora a todos los vuelos que hace ese día.
+:::
 **Cóndor Air** opera 20 rutas en Latinoamérica y una a Madrid. Operaciones mide la **puntualidad** y comercial la **ocupación** y el **ingreso**.
 
 ## El modelo de datos
@@ -61,6 +72,12 @@ ORDER BY dia_semana;
 - **Muestra con factor de expansión**: `vuelos_reservas` es una muestra; cada reserva representa 40 pasajeros. Olvidar el ×40 da ocupaciones absurdas de 2 %.
 - **Doble conteo al unir vuelos con reservas**: si unes primero y después sumas la capacidad, la capacidad de cada vuelo se suma una vez **por reserva**. Agrega las reservas por vuelo antes de unir.
 - **Puntualidad se mide en la llegada** (15 minutos de tolerancia), no en la salida; y los cancelados cuentan como no puntuales.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- La puntualidad se mide con un estándar de la industria: un vuelo es puntual si llega dentro de los 15 minutos de lo programado. Usar otra definición hace que tus números no se puedan comparar con nadie.
+- Las aerolíneas combinan datos de muchas fuentes (reservas, operaciones, mantenimiento, clima). Integrarlas por vuelo y fecha es un trabajo típico de data engineering, y los datos de operación llegan en tiempo casi real.
 :::
 
 ## Ejercicios

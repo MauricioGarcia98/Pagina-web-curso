@@ -3,8 +3,19 @@ titulo: "Caso 🏦 Banco Austral: saldos, fraude y morosidad"
 nivel: Avanzado
 duracion: 60
 resumen: Saldos, gasto por comercio, saldo acumulado, reglas de fraude, mora y riesgo crediticio.
+objetivos: Calcular saldos y extractos con montos con signo y totales acumulados | Detectar patrones de fraude con ventanas de tiempo y medir una regla con precisión y cobertura | Calcular la mora de una cartera de préstamos a una fecha de corte | Evaluar si un score crediticio separa bien a los buenos y malos pagadores
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes armar el extracto de una cuenta con el saldo después de cada movimiento? | ¿Sabes por qué en esta base los montos ya vienen con signo y qué cambia eso al sumar? | ¿Puedes explicar la diferencia entre precisión y cobertura de una regla de fraude? | ¿Puedes calcular la deuda vencida de cada préstamo a una fecha de corte? | ¿Sabes cómo comprobar si un score predice la morosidad?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Banco Austral
+La gerente de riesgos de **Banco Austral** pide reunión con el equipo de datos:
+
+> "Tenemos tres frentes. Seguridad propone una regla nueva para detectar fraude y quiero saber si sirve antes de activarla. Cobranzas necesita la deuda vencida al cierre del año. Y el directorio pregunta si nuestro score crediticio funciona o si estamos prestando a ciegas."
+
+Un banco vive de prestar dinero y cobrarlo, y pierde por fraude y por morosidad. Cada error en estos números es dinero real.
+:::
 **Banco Austral** es un banco digital que opera en cinco países. El equipo de riesgo y el de producto necesitan respuestas. Tú eres el/la analista de datos.
 
 ## El modelo de datos
@@ -93,6 +104,13 @@ ORDER BY gasto DESC;
 - **El signo del monto**: si sumas compras sin invertir el signo, el "gasto" sale negativo; si sumas todos los tipos juntos, obtienes el saldo, no el gasto.
 - **El "hoy" del análisis**: para saber si una cuota está vencida necesitas una fecha de referencia. Aquí es `2024-12-31`; nunca uses `date('now')`, porque el resultado cambiaría según el día en que ejecutes.
 - **Contar clientes vs. cuentas**: un cliente puede tener varias cuentas. "Clientes con saldo negativo" y "cuentas con saldo negativo" son preguntas distintas.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- En un banco, los saldos nunca se recalculan sumando todo el historial cada vez: se guardan **saldos diarios** (una foto por cuenta y día) y se concilian contra el sistema contable. Si no coinciden, se detiene todo hasta encontrar la diferencia.
+- Las reglas de fraude se evalúan siempre con dos números: cuántos fraudes atrapa (cobertura) y cuántas alertas son falsas (precisión). Una regla con muchas falsas alarmas bloquea tarjetas de clientes honestos, y eso también cuesta.
+- Los datos bancarios están muy regulados: acceso por roles, enmascaramiento de datos personales y auditoría de quién consultó qué. Lo verás en Unity Catalog, Lake Formation y BigQuery.
 :::
 
 ## Ejercicios

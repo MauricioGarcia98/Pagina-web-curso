@@ -3,8 +3,19 @@ titulo: "Caso 🏥 Clínica del Sur: ausentismo, agenda y facturación"
 nivel: Avanzado
 duracion: 50
 resumen: Ausentismo por anticipación, productividad de médicos, pacientes recurrentes y facturación por cobertura.
+objetivos: Calcular el ausentismo con el denominador correcto (turnos que debían atenderse) | Relacionar el ausentismo con la anticipación de la reserva y el día de la semana | Medir la productividad de los médicos por día trabajado | Separar lo facturado, lo cubierto y el copago por cobertura
+prerrequisitos: casos-metodo | sql-case
+autoevaluacion: ¿Sabes por qué los turnos cancelados no entran en la tasa de ausentismo? | ¿Puedes agrupar turnos por días de anticipación de la reserva? | ¿Puedes calcular pacientes atendidos por día trabajado de cada médico? | ¿Puedes detectar pacientes que vuelven a la misma especialidad dentro de 30 días? | ¿Puedes calcular el porcentaje cubierto por cada obra social o seguro?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Clínica del Sur
+El director médico de **Clínica del Sur** está preocupado:
+
+> "Uno de cada cinco pacientes no viene al turno y nadie avisa. Es tiempo de médico perdido y otro paciente que no consiguió turno. ¿En qué especialidades pasa más? ¿Tiene que ver con cuánto antes reservan? Si confirmamos por mensaje los turnos de mayor riesgo, ¿cuáles serían?"
+
+En salud, cada turno vacío es un costo fijo que no se recupera. Y los datos de salud son de los más sensibles que existen.
+:::
 **Clínica del Sur** atiende en tres sedes. El problema número uno es el **ausentismo** (*no-show*): pacientes que reservan un turno y no vienen, dejando a un médico sin atender a nadie.
 
 ## El modelo de datos
@@ -67,6 +78,12 @@ ORDER BY pct_ausentismo DESC;
 - **El denominador del ausentismo**: incluir los cancelados en el total baja artificialmente la tasa.
 - **Fecha vs. fecha-hora**: `fecha_hora` del turno tiene hora; `fecha_reserva` es solo fecha. Para calcular la anticipación en días, lleva el turno a fecha con `date(fecha_hora)`.
 - **Una factura por turno, pero no todos los turnos facturan**: los ausentes y cancelados no generan factura; un `JOIN` con facturas los hace desaparecer.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Los datos de salud tienen leyes específicas de privacidad. En los entornos de análisis, los pacientes se identifican con ids seudónimos, los datos de diagnóstico tienen acceso restringido y cada consulta queda auditada.
+- Las clínicas usan modelos de predicción de ausentismo para decidir a quién confirmar o a quién sobreagendar. La base de esos modelos son exactamente las variables de este caso: anticipación, día, especialidad e historial del paciente.
 :::
 
 ## Ejercicios

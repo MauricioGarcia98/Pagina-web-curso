@@ -3,8 +3,19 @@ titulo: "Caso 📦 Mercurio: stock, quiebres y entregas a tiempo"
 nivel: Experto
 duracion: 55
 resumen: Stock a partir de movimientos, quiebres de stock, rotación, entregas a tiempo por transportista y costo por envío.
+objetivos: Calcular stock a una fecha sumando movimientos con signo | Detectar quiebres de stock día por día con acumulados | Medir entregas a tiempo (OTD) y retraso por transportista | Calcular el costo real por envío exitoso incluyendo devoluciones y pérdidas
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes calcular el stock de cada SKU y almacén a una fecha? | ¿Puedes contar cuántos días terminó un SKU con stock negativo? | ¿Puedes calcular el porcentaje de envíos entregados a tiempo por transportista? | ¿Sabes por qué el costo por envío exitoso es más justo que el costo por envío? | ¿Sabes qué significa un stock negativo en los datos y qué hacer con él?
 ---
 
+<!-- estandar:escenario -->
+:::escenario Mercurio
+La jefa de operaciones de **Mercurio**, la empresa de logística, tiene que renegociar contratos:
+
+> "Tenemos tres transportistas y cada uno dice que es el mejor. Quiero ver cuántos envíos entrega cada uno a tiempo y cuánto nos cuestan de verdad, contando los que se pierden. Y en los depósitos, hay productos que se quedan sin stock y nadie se entera hasta que un cliente se queja."
+
+En logística, el inventario se calcula a partir de movimientos (entradas y salidas), y un error en un signo hace que el sistema diga que hay stock cuando no lo hay.
+:::
 **Mercurio Logística** gestiona seis almacenes y despacha envíos con cuatro transportistas. No guarda el stock en una tabla: guarda **movimientos** (como un extracto bancario) y el stock se **calcula**.
 
 ## El modelo de datos
@@ -71,6 +82,12 @@ ORDER BY pct_ocupacion DESC;
 - **Stock a una fecha = acumulado hasta esa fecha inclusive**: es una suma acumulada (`SUM(…) OVER (… ORDER BY fecha)`), no la suma del día.
 - **Días sin movimientos**: el stock existe aunque ese día no hubiera movimientos; para series diarias completas necesitas un calendario.
 - **A tiempo se compara contra la fecha prometida, en fecha** (`date(fecha_entrega) <= fecha_prometida`): la hora de entrega no importa.
+:::
+
+<!-- estandar:trabajo -->
+:::trabajo
+- Los sistemas de inventario guardan **movimientos**, y el stock se calcula acumulándolos. En los pipelines se guarda además una foto diaria del stock por SKU y almacén, para no recalcular años de movimientos en cada consulta.
+- Un stock negativo en los datos casi siempre es un error de registro: una salida cargada antes que la entrada, o una entrada que nunca se registró. Detectarlos es una tarea típica de calidad de datos.
 :::
 
 ## Ejercicios
