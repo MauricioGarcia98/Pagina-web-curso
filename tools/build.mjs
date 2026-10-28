@@ -232,6 +232,57 @@ function buildGlosario(modules) {
   return entradas;
 }
 
+// ---------------------------------------------------------------- exámenes
+// content/examenes/<modulo>.md: "# examen: <id del módulo>" y un bloque "## Tema" por pregunta:
+//   leccion: <id de la lección donde se repasa>
+//   el enunciado (Markdown, admite bloques de código)
+//   - [ ] opción incorrecta
+//   - [x] la opción correcta (exactamente una)
+//   porque: la explicación de la respuesta (hasta el final del bloque)
+const MIN_PREGUNTAS = 10;
+const MAX_CORRECTA_MAS_LARGA = 0.4;
+function buildExamenes(modules) {
+  const dir = path.join(CONTENT, 'examenes');
+  if (!fs.existsSync(dir)) return [];
+  const lecciones = new Map(modules.flatMap((m) => m.lecciones.map((l) => [l.id, { id: l.id, titulo: l.titulo, modulo: m.id }])));
+  const examenes = [];
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.md')).sort()) {
+    const file = path.join(dir, f);
+    const txt = fs.readFileSync(file, 'utf8');
+    const modulo = (txt.match(/^# examen:\s*(\S+)\s*$/m) || [])[1];
+    if (!modules.some((m) => m.id === modulo)) throw new Error(`${f}: la línea "# examen: …" debe nombrar un módulo existente`);
+    const preguntas = txt.split(/^## /m).slice(1).map((bloque, i) => {
+      const donde = `Examen ${f}, pregunta ${i + 1}`;
+      const [cab, ...lineas] = bloque.split('\n');
+      const p = { tema: cab.trim(), opciones: [] };
+      const enunciado = [], porque = []; let enCodigo = false, enPorque = false;
+      for (const l of lineas) {
+        if (l.startsWith('```')) enCodigo = !enCodigo;
+        let m;
+        if (enPorque) { porque.push(l); continue; }
+        if (!enCodigo && (m = l.match(/^leccion:\s*(\S+)\s*$/))) { p.leccion = m[1]; continue; }
+        if (!enCodigo && (m = l.match(/^- \[( |x)\] (.*)$/))) { p.opciones.push({ text: marked.parseInline(m[2]), ok: m[1] === 'x' }); continue; }
+        if (!enCodigo && (m = l.match(/^porque:\s?(.*)$/))) { enPorque = true; porque.push(m[1]); continue; }
+        enunciado.push(l);
+      }
+      if (!p.leccion || !lecciones.has(p.leccion)) throw new Error(`${donde}: "leccion:" falta o no existe (${p.leccion})`);
+      if (p.opciones.length < 3) throw new Error(`${donde}: necesita al menos 3 opciones`);
+      if (p.opciones.filter((o) => o.ok).length !== 1) throw new Error(`${donde}: debe tener exactamente una opción correcta`);
+      if (!porque.join('').trim()) throw new Error(`${donde}: falta "porque:"`);
+      if (!enunciado.join('').trim()) throw new Error(`${donde}: falta el enunciado`);
+      const lec = lecciones.get(p.leccion);
+      return { id: `${modulo}-p${i + 1}`, ...p, leccion: { id: lec.id, titulo: lec.titulo }, enunciado: md(enunciado.join('\n').trim(), file), porque: md(porque.join('\n').trim(), file) };
+    });
+    if (preguntas.length < MIN_PREGUNTAS) throw new Error(`${f}: tiene ${preguntas.length} preguntas; el mínimo es ${MIN_PREGUNTAS}`);
+    // si la correcta suele ser la opción más larga, se puede aprobar sin saber: hay que emparejar los largos
+    const largo = (o) => o.text.replace(/<[^>]+>/g, '').length;
+    const delatoras = preguntas.filter((p) => { const ls = p.opciones.map(largo), c = ls[p.opciones.findIndex((o) => o.ok)]; return ls.filter((x) => x >= c).length === 1; });
+    if (delatoras.length > preguntas.length * MAX_CORRECTA_MAS_LARGA) throw new Error(`${f}: en ${delatoras.length} de ${preguntas.length} preguntas la correcta es la opción más larga (${delatoras.map((p) => p.tema).join(', ')}); empareja el largo de las opciones`);
+    examenes.push({ modulo, preguntas });
+  }
+  return examenes;
+}
+
 function build() {
   const modules = JSON.parse(fs.readFileSync(path.join(CONTENT, 'modules.json'), 'utf8'));
   let nLessons = 0, nEx = 0;
@@ -245,7 +296,8 @@ function build() {
   const ids = new Set(modules.flatMap((m) => m.lecciones.map((l) => l.id)));
   for (const m of modules) for (const l of m.lecciones) for (const r of l.prerrequisitos) if (!ids.has(r)) throw new Error(`Prerrequisito desconocido "${r}" en la lección ${l.id}`);
   const glosario = buildGlosario(modules);
-  const course = { generado: new Date().toISOString().slice(0, 10), modulos: modules, glosario };
+  const examenes = buildExamenes(modules);
+  const course = { generado: new Date().toISOString().slice(0, 10), modulos: modules, glosario, examenes };
   fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
     '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
 
@@ -266,7 +318,7 @@ function build() {
   walk(pyRoot);
   fs.writeFileSync(path.join(ROOT, 'assets/js/pysrc.js'),
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
-  console.log(`✔ ${glosario.length} términos de glosario · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
+  console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
   return course;
 }
 

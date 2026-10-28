@@ -675,6 +675,8 @@
     html += '<div class="side-section">Recursos</div>';
     html += link('#/datos', '🗃️', 'Los datos (Tienda Andina)', route.name === 'datos');
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
+    html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
+    html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
@@ -730,6 +732,7 @@
         <div class="card"><h4>💡 3. Usa pistas</h4><p>Si te trabas, pide una pista o mira la solución explicada. Equivocarse es parte de aprender.</p></div>
         <div class="card"><h4>🖥️ Terminal real</h4><p>Una terminal Linux simulada con <code>bash</code>, <code>git</code>, Python, <code>uv</code>, <code>sqlite3</code>, <code>duckdb</code>, <code>docker</code>, <code>psql</code>, <code>dbt</code>, <code>airflow</code>, <code>terraform</code> y las CLIs <code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code> y <code>databricks</code>. Botón <b>⌨ Terminal</b> arriba, o el <a href="#/lab/terminal">laboratorio con misiones</a>.</p></div>
         <div class="card"><h4>💼 Casos de negocio</h4><p>Un banco, una app de música, una de viajes, una clínica, un SaaS, una aerolínea, una empresa de logística y una tienda: preguntas reales para entrenar la lógica, en SQL, Python, PySpark, dbt y Airflow.</p></div>
+        <div class="card"><h4>📝 Repasa y certifícate</h4><p>Tarjetas de repaso espaciado con los ${C.glosario.length} términos del glosario, un examen por módulo y un examen final que te da el <a href="#/examenes">certificado</a>.</p></div>
         <div class="card"><h4>📈 4. Avanza de nivel</h4><p>Básico → Intermedio → Avanzado → Experto. Tu progreso se guarda en este navegador.</p></div>
       </div>
       <h2 class="section-title">Los módulos (en el orden recomendado)</h2>
@@ -782,7 +785,15 @@
       <div class="bar" style="margin:10px 0 6px"><i style="width:${p.pct}%;background:${m.color}"></i></div>
       ${first ? `<p><a class="btn btn-primary" href="#/l/${first.id}">${p.done ? 'Continuar' : 'Empezar'}: ${esc(first.titulo)} →</a></p>` : '<p class="muted">Contenido en preparación.</p>'}
       <div class="lesson-list">${html}</div>
+      ${examenModulo(m)}
     </div>`;
+  }
+  function examenModulo(m) {
+    const x = (C.examenes || []).find((e) => e.modulo === m.id);
+    if (!x) return '';
+    const n = (Store.data.exams || {})[m.id];
+    const est = !n ? 'Comprueba lo que aprendiste' : n.best >= 70 ? `✓ Aprobado · mejor nota ${n.best}%` : `Mejor nota ${n.best}% · se aprueba con 70%`;
+    return `<a class="card lesson-row examen-row ${n && n.best >= 70 ? 'done' : ''}" href="#/examen/${m.id}"><span class="num">📝</span><span class="t"><b>Examen del módulo</b><small>${x.preguntas.length} preguntas · ${est}</small></span><span class="small muted">Rendir →</span></a>`;
   }
 
   // objetivos de aprendizaje y prerrequisitos al inicio de la lección
@@ -1109,6 +1120,18 @@
     if (exacto) setTimeout(() => document.getElementById('g-' + encodeURIComponent(exacto.termino))?.scrollIntoView({ block: 'start' }), 50);
   }
 
+  function resumenPractica() {
+    const N = Store.data.exams || {}, c = Store.data.cards || {};
+    const vistas = Object.values(c), dominadas = vistas.filter((t) => t.b >= 4).length, hoy = vistas.filter((t) => t.due <= Date.now()).length;
+    const aprob = (C.examenes || []).filter((x) => N[x.modulo] && N[x.modulo].best >= 70).length;
+    return `<h2 class="section-title">Repaso y exámenes</h2>
+      <div class="grid grid-3">
+        <a class="card module-card" href="#/repaso"><h3>🃏 Tarjetas de repaso</h3><div class="small muted">${vistas.length}/${C.glosario.length} términos vistos · ${dominadas} dominados · ${hoy} para repasar hoy</div><div class="bar" style="margin-top:8px"><i style="width:${Math.round((dominadas / C.glosario.length) * 100)}%;background:var(--brand)"></i></div></a>
+        <a class="card module-card" href="#/examenes"><h3>📝 Exámenes de módulo</h3><div class="small muted">${aprob}/${(C.examenes || []).length} aprobados</div><div class="bar" style="margin-top:8px"><i style="width:${Math.round((aprob / Math.max(1, (C.examenes || []).length)) * 100)}%;background:var(--ok)"></i></div></a>
+        <a class="card module-card" href="#/examenes"><h3>🎓 Examen final</h3><div class="small muted">${N.final ? `Mejor nota ${N.final.best}% · ${N.final.best >= 75 ? 'certificado disponible' : 'se aprueba con 75%'}` : 'Sin rendir'}</div></a>
+      </div>`;
+  }
+
   function viewProgreso() {
     const tp = totalProgress();
     const exDone = ALL_EX.filter((e) => Store.exDone(e.id)).length;
@@ -1121,6 +1144,7 @@
         const ed = e.filter((x) => Store.exDone(x.id)).length;
         return `<a class="card module-card" href="#/m/${m.id}" style="flex-direction:row;align-items:center;gap:16px"><span class="mc-ico">${m.icono}</span><div style="flex:1"><h3>${esc(m.titulo)}</h3><div class="small muted">${p.done}/${p.total} lecciones · ${ed}/${e.length} ejercicios</div><div class="bar" style="margin-top:8px"><i style="width:${p.pct}%;background:${m.color}"></i></div></div><b>${p.pct}%</b></a>`;
       }).join('')}</div>
+      ${resumenPractica()}
       <h2 class="section-title">Tus datos</h2>
       <p class="muted">El progreso se guarda solo en este navegador. Puedes exportarlo para llevarlo a otra computadora.</p>
       <div class="row"><button class="btn" id="exp">⬇ Exportar progreso</button><label class="btn">⬆ Importar<input type="file" id="imp" accept="application/json" hidden></label><span class="spacer"></span><button class="btn btn-ghost" id="rst" style="color:var(--bad)">Borrar todo mi progreso</button></div>
@@ -1136,6 +1160,298 @@
     });
     $('#rst').addEventListener('click', () => {
       if (confirm('¿Seguro? Se borrará todo tu progreso y tu código guardado.')) { Store.data = { ex: {}, lessons: {}, code: {}, theme: Store.data.theme, visited: {} }; Store.save(); route(); }
+    });
+  }
+
+  // ---------------------------------------------------------------- atajos de teclado por vista
+  let teclasVista = null;
+  function setTeclas(fn) {
+    if (teclasVista) document.removeEventListener('keydown', teclasVista);
+    teclasVista = fn;
+    if (fn) document.addEventListener('keydown', fn);
+  }
+  const barajar = (arr) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const DIA = 86400000;
+
+  // ---------------------------------------------------------------- tarjetas de repaso
+  // Repaso espaciado con 5 cajas (sistema Leitner): si la sabes, la tarjeta sube de caja y vuelve más tarde;
+  // si no, vuelve a la caja 1 y se repite en esta misma sesión.
+  const INTERVALO_CAJA = [0, 1, 2, 4, 8, 16]; // días hasta el próximo repaso, por caja (1..5)
+  const POR_SESION = 20, NUEVAS_POR_SESION = 10;
+  const tarjetas = () => (Store.data.cards = Store.data.cards || {});
+
+  // tapa el término y sus alias dentro de la explicación, para adivinarlo sin pistas
+  function taparTermino(html, g) {
+    const formas = [...g.termino.split(' / '), ...(g.alias || [])]
+      .map((x) => x.replace(/\s*\(.*?\)\s*/g, '').trim()).filter((x) => x.length >= 3)
+      .sort((a, b) => b.length - a.length)
+      .map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (!formas.length) return html;
+    const re = new RegExp(`(^|[^\\p{L}\\p{N}_])(${formas.join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
+    return html.replace(/(<[^>]+>)|([^<]+)/g, (m, tag, txt) => tag || txt.replace(re, (_, pre) => `${pre}<span class="tapado">?????</span>`));
+  }
+
+  function viewRepaso() {
+    const G = C.glosario;
+    const areas = [...new Set(G.map((g) => g.area))];
+    let modo = Store.data.repasoModo || 'adivinar', area = '';
+    main.innerHTML = `<div class="container">
+      <h1 style="margin-bottom:4px">🃏 Tarjetas de repaso</h1>
+      <p class="muted" style="margin-top:0">Los ${G.length} términos del glosario en tarjetas. Usan <b>repaso espaciado</b>: lo que ya sabes vuelve cada vez más espaciado y lo que te cuesta vuelve pronto. Unos minutos por día alcanzan.</p>
+      <div class="stats" id="rstats"></div>
+      <div class="rep-opciones">
+        <div class="seg" id="rmodo">
+          <button data-m="adivinar">¿Qué término es?</button>
+          <button data-m="explicar">Explica el término</button>
+        </div>
+        <p class="small muted" id="rmodoTxt"></p>
+        <div class="gloss-filter" id="rareas"><button class="chip active" data-a="">Todas las áreas</button>${areas.map((a) => `<button class="chip" data-a="${esc(a)}">${esc(a)}</button>`).join('')}</div>
+        <div class="row"><button class="btn btn-primary btn-lg" id="rstart"></button><span class="small muted" id="rinfo"></span></div>
+      </div>
+    </div>`;
+    const deArea = () => G.filter((g) => !area || g.area === area);
+    const pintarInicio = () => {
+      const c = tarjetas(), ahora = Date.now(), lista = deArea();
+      const vistas = lista.filter((g) => c[g.termino]);
+      const dominadas = vistas.filter((g) => c[g.termino].b >= 4).length;
+      const pendientes = vistas.filter((g) => c[g.termino].due <= ahora).length;
+      const nuevas = lista.length - vistas.length;
+      $('#rstats').innerHTML = `<div class="stat"><b>${pendientes}</b><span>para repasar hoy</span></div><div class="stat"><b>${nuevas}</b><span>sin ver todavía</span></div><div class="stat"><b>${vistas.length - dominadas}</b><span>aprendiendo</span></div><div class="stat"><b>${dominadas}</b><span>dominadas</span></div>`;
+      $$('#rmodo button').forEach((b) => b.classList.toggle('active', b.dataset.m === modo));
+      $('#rmodoTxt').textContent = modo === 'adivinar' ? 'Ves la explicación para niños con el nombre tapado y tienes que decir de qué término se trata.' : 'Ves el nombre del término y tienes que explicarlo con tus palabras antes de dar vuelta la tarjeta.';
+      const n = Math.min(POR_SESION, pendientes + Math.min(nuevas, NUEVAS_POR_SESION));
+      $('#rstart').textContent = n ? `Empezar: ${n} tarjetas →` : 'Practicar igual →';
+      $('#rinfo').textContent = n ? '' : '¡Al día! No hay tarjetas pendientes en esta área. Puedes practicar con tarjetas al azar.';
+    };
+    $('#rmodo').addEventListener('click', (e) => { const b = e.target.closest('[data-m]'); if (!b) return; modo = b.dataset.m; Store.data.repasoModo = modo; Store.save(); pintarInicio(); });
+    $('#rareas').addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; area = b.dataset.a; $$('#rareas .chip').forEach((x) => x.classList.toggle('active', x === b)); pintarInicio(); });
+    $('#rstart').addEventListener('click', () => {
+      const c = tarjetas(), ahora = Date.now(), lista = deArea();
+      const pend = lista.filter((g) => c[g.termino] && c[g.termino].due <= ahora).sort((a, b) => c[a.termino].due - c[b.termino].due);
+      const nuevas = barajar(lista.filter((g) => !c[g.termino])).slice(0, NUEVAS_POR_SESION);
+      let mazo = [...pend, ...nuevas].slice(0, POR_SESION);
+      if (!mazo.length) mazo = barajar(lista).slice(0, POR_SESION);
+      sesionRepaso(barajar(mazo), modo);
+    });
+    pintarInicio();
+  }
+
+  function sesionRepaso(mazo, modo) {
+    const total = mazo.length, res = { 1: 0, 2: 0, 3: 0 };
+    let actual = null, volteada = false, hechas = 0;
+    main.innerHTML = `<div class="container">
+      <div class="crumbs"><a href="#/repaso">Tarjetas de repaso</a><span>/</span><span>Sesión</span></div>
+      <div class="bar" style="margin:6px 0 4px"><i id="rbar" style="width:0%;background:var(--brand)"></i></div>
+      <p class="small muted" id="rcont"></p>
+      <div id="rcarta"></div>
+      <p class="small muted rep-ayuda"><kbd>Espacio</kbd> dar vuelta · <kbd>1</kbd> no lo sabía · <kbd>2</kbd> más o menos · <kbd>3</kbd> lo sabía</p>
+    </div>`;
+    const siguiente = () => {
+      if (!mazo.length) return final();
+      actual = mazo.shift(); volteada = false;
+      $('#rbar').style.width = Math.round((hechas / total) * 100) + '%';
+      $('#rcont').textContent = `Tarjeta ${Math.min(hechas + 1, total)} de ${total}${mazo.length + 1 > total - hechas ? ' · repitiendo las que te costaron' : ''}`;
+      pintar();
+    };
+    const pintar = () => {
+      const g = actual;
+      const frente = modo === 'adivinar'
+        ? `<div class="rep-pista">👶 ${taparTermino(g.nino, g)}</div><p class="rep-preg">¿Qué término es? <span class="badge tag">${esc(g.area)}</span></p>`
+        : `<div class="rep-term">${esc(g.termino)}</div><p class="rep-preg"><span class="badge tag">${esc(g.area)}</span> Explícalo con tus palabras: qué es, para qué sirve y un ejemplo.</p>`;
+      const dorso = modo === 'adivinar'
+        ? `<div class="rep-term">${esc(g.termino)}</div><div class="rep-def">${g.que}</div>`
+        : `<div class="rep-def"><h4>👶 Como a un niño</h4>${g.nino}<h4>📘 Con precisión</h4>${g.que}<h4>🎯 Para qué sirve</h4>${g.para}</div>`;
+      $('#rcarta').innerHTML = `<div class="card rep-carta ${volteada ? 'volteada' : ''}">
+        <div class="rep-frente">${frente}</div>
+        ${volteada ? `<div class="rep-dorso">${dorso}<p class="small"><a href="#/glosario?q=${encodeURIComponent(g.termino)}" target="_blank" rel="noopener">Ver la ficha completa en el glosario ↗</a></p></div>
+          <div class="rep-botones"><button class="btn rep-mal" data-r="1">✗ No lo sabía</button><button class="btn rep-medio" data-r="2">~ Más o menos</button><button class="btn rep-bien" data-r="3">✓ Lo sabía</button></div>`
+        : '<div class="rep-botones"><button class="btn btn-primary" data-flip>Dar vuelta</button></div>'}
+      </div>`;
+      $$('#rcarta pre').forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } });
+    };
+    const calificar = (r) => {
+      const c = tarjetas(), t = actual.termino, ahora = Date.now();
+      const prev = c[t] || { b: 0 };
+      if (r === 1) { c[t] = { b: 1, due: ahora }; mazo.push(actual); }
+      else if (r === 2) { const b = Math.max(1, prev.b); c[t] = { b, due: ahora + DIA }; hechas++; }
+      else { const b = Math.min(5, prev.b + 1); c[t] = { b, due: ahora + INTERVALO_CAJA[b] * DIA }; hechas++; }
+      res[r]++;
+      Store.save();
+      siguiente();
+    };
+    const final = () => {
+      setTeclas(null);
+      $('#rbar').style.width = '100%';
+      $('#rcont').textContent = '';
+      $('.rep-ayuda').remove();
+      $('#rcarta').innerHTML = `<div class="card rep-carta"><h2 style="margin-top:0">🎉 ¡Sesión terminada!</h2>
+        <p>Repasaste <b>${total}</b> tarjetas: <b>${res[3]}</b> las sabías, <b>${res[2]}</b> más o menos y <b>${res[1]}</b> veces tuviste que repetir alguna.</p>
+        <p class="muted">Las que sabías vuelven en unos días; las que te costaron, mañana. Volver un poco cada día funciona mucho mejor que repasar todo de una vez.</p>
+        <div class="row"><a class="btn btn-primary" href="#/repaso">Volver a las tarjetas</a><a class="btn" href="#/examenes">📝 Ir a los exámenes</a></div></div>`;
+    };
+    $('#rcarta').addEventListener('click', (e) => {
+      if (e.target.closest('[data-flip]')) { volteada = true; pintar(); return; }
+      const b = e.target.closest('[data-r]'); if (b) calificar(Number(b.dataset.r));
+    });
+    setTeclas((e) => {
+      if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+      if (e.key === ' ' && !volteada) { e.preventDefault(); volteada = true; pintar(); }
+      else if (volteada && ['1', '2', '3'].includes(e.key)) calificar(Number(e.key));
+    });
+    siguiente();
+  }
+
+  // ---------------------------------------------------------------- exámenes
+  const EXAMEN_POR_MODULO = new Map((C.examenes || []).map((x) => [x.modulo, x]));
+  const NOTA_MODULO = 70, NOTA_FINAL = 75, PREGUNTAS_FINAL = 40;
+  const notas = () => (Store.data.exams = Store.data.exams || {});
+  const certificado = () => { const f = notas().final; return f && f.best >= NOTA_FINAL ? f : null; };
+
+  function preguntasFinal() {
+    // al menos 2 preguntas de cada módulo y el resto al azar, para cubrir todo el curso
+    const porModulo = (C.examenes || []).map((x) => barajar(x.preguntas));
+    const elegidas = porModulo.flatMap((ps) => ps.slice(0, 2));
+    const resto = barajar(porModulo.flatMap((ps) => ps.slice(2)));
+    return barajar([...elegidas, ...resto.slice(0, Math.max(0, PREGUNTAS_FINAL - elegidas.length))]);
+  }
+
+  function viewExamenes() {
+    const N = notas(), cert = certificado();
+    const aprobados = (C.examenes || []).filter((x) => N[x.modulo] && N[x.modulo].best >= NOTA_MODULO).length;
+    const fila = (m) => {
+      const x = EXAMEN_POR_MODULO.get(m.id); if (!x) return '';
+      const n = N[m.id];
+      const est = !n ? '<span class="badge">Sin rendir</span>' : n.best >= NOTA_MODULO ? `<span class="badge b-basico">✓ Aprobado · ${n.best}%</span>` : `<span class="badge b-experto">Mejor nota ${n.best}%</span>`;
+      return `<a class="card lesson-row ${n && n.best >= NOTA_MODULO ? 'done' : ''}" href="#/examen/${m.id}"><span class="num">${m.icono}</span><span class="t"><b>${esc(m.titulo)}</b><small>${x.preguntas.length} preguntas · se aprueba con ${NOTA_MODULO}%</small></span>${est}</a>`;
+    };
+    const f = N.final;
+    main.innerHTML = `<div class="container">
+      <h1 style="margin-bottom:4px">📝 Exámenes y certificado</h1>
+      <p class="muted" style="margin-top:0">Cada módulo tiene un examen para comprobar que entendiste, no que memorizaste: muchas preguntas traen código o una situación real. Al terminar ves qué fallaste, por qué, y qué lección repasar. Puedes rendir cada examen todas las veces que quieras: se guarda tu mejor nota.</p>
+      <div class="stats"><div class="stat"><b>${aprobados}/${(C.examenes || []).length}</b><span>exámenes de módulo aprobados</span></div><div class="stat"><b>${f ? f.best + '%' : '—'}</b><span>mejor nota del examen final</span></div></div>
+      <div class="card examen-final">
+        <div><h2 style="margin:0 0 6px">🎓 Examen final</h2>
+        <p style="margin:0">${PREGUNTAS_FINAL} preguntas al azar de todo el curso (al menos dos de cada módulo). Se aprueba con <b>${NOTA_FINAL}%</b> y te da el <b>certificado de aprobación</b>. Conviene rendirlo después de aprobar los exámenes de los módulos.</p></div>
+        <a class="btn btn-primary btn-lg" href="#/examen/final">${f ? 'Volver a rendir' : 'Rendir el examen final'} →</a>
+      </div>
+      <div class="card" id="certBox" style="padding:18px 20px;margin-top:14px"></div>
+      <h2 class="section-title">Exámenes por módulo</h2>
+      <div class="lesson-list">${C.modulos.map(fila).join('')}</div>
+    </div>`;
+    const box = $('#certBox');
+    if (!cert) {
+      box.innerHTML = `<h3 style="margin-top:0">📜 Certificado</h3><p class="muted" style="margin:0">Se desbloquea cuando apruebas el examen final con ${NOTA_FINAL}% o más.${f ? ` Tu mejor nota hasta ahora es ${f.best}%.` : ''}</p>`;
+      return;
+    }
+    box.innerHTML = `<h3 style="margin-top:0">📜 Tu certificado</h3>
+      <p>Aprobaste el examen final con <b>${cert.best}%</b>. Escribe tu nombre como quieres que aparezca y descarga el certificado.</p>
+      <div class="row"><input id="certNombre" class="gloss-search" style="max-width:360px;margin:0" maxlength="60" placeholder="Nombre y apellido" value="${esc(Store.data.nombre || '')}"><button class="btn btn-primary" id="certBtn">⬇ Descargar certificado (PNG)</button></div>
+      <canvas id="certCanvas" width="1600" height="1130" class="cert-canvas"></canvas>`;
+    const dibujar = () => dibujarCertificado($('#certCanvas'), $('#certNombre').value.trim() || 'Tu nombre', cert, aprobados);
+    $('#certNombre').addEventListener('input', () => { Store.data.nombre = $('#certNombre').value.trim(); Store.saveSoon(); dibujar(); });
+    $('#certBtn').addEventListener('click', () => {
+      if (!$('#certNombre').value.trim()) { toast('Escribe tu nombre primero'); $('#certNombre').focus(); return; }
+      dibujar();
+      const a = document.createElement('a');
+      a.href = $('#certCanvas').toDataURL('image/png');
+      a.download = 'certificado-academia-de-datos.png'; a.click();
+    });
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(dibujar);
+  }
+
+  function codigoCertificado(nombre, cert) {
+    // identificador corto del certificado (FNV-1a sobre nombre, fecha y nota)
+    let h = 0x811c9dc5;
+    for (const ch of `${nombre}|${cert.at}|${cert.best}`) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+    return 'AD-' + h.toString(16).toUpperCase().padStart(8, '0');
+  }
+
+  function dibujarCertificado(cv, nombre, cert, aprobados) {
+    const x = cv.getContext('2d'), W = cv.width, H = cv.height;
+    const fuente = getComputedStyle(document.documentElement).getPropertyValue('--font') || 'sans-serif';
+    x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#4f46e5'; x.lineWidth = 14; x.strokeRect(40, 40, W - 80, H - 80);
+    x.strokeStyle = '#c7c9f5'; x.lineWidth = 3; x.strokeRect(70, 70, W - 140, H - 140);
+    x.textAlign = 'center'; x.fillStyle = '#4f46e5';
+    x.font = `700 34px ${fuente}`; x.fillText('ACADEMIA DE DATOS', W / 2, 190);
+    x.fillStyle = '#171a26'; x.font = `800 70px ${fuente}`; x.fillText('Certificado de aprobación', W / 2, 300);
+    x.fillStyle = '#4a4f63'; x.font = `400 32px ${fuente}`; x.fillText('Se certifica que', W / 2, 400);
+    let tam = 84; x.font = `800 ${tam}px ${fuente}`;
+    while (x.measureText(nombre).width > W - 300 && tam > 40) { tam -= 4; x.font = `800 ${tam}px ${fuente}`; }
+    x.fillStyle = '#171a26'; x.fillText(nombre, W / 2, 510);
+    x.strokeStyle = '#e1e3ec'; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2 - 420, 545); x.lineTo(W / 2 + 420, 545); x.stroke();
+    x.fillStyle = '#4a4f63'; x.font = `400 32px ${fuente}`;
+    x.fillText('aprobó el examen final del curso Ingeniería de Datos: de cero a experto', W / 2, 620);
+    x.fillText(`con una nota de ${cert.best}%`, W / 2, 670);
+    x.fillStyle = '#767b90';
+    const lineaAjustada = (txt, y) => { let t = 26; x.font = `400 ${t}px ${fuente}`; while (x.measureText(txt).width > W - 280 && t > 16) { t -= 1; x.font = `400 ${t}px ${fuente}`; } x.fillText(txt, W / 2, y); };
+    lineaAjustada('SQL · Python · Spark · PySpark · dbt · Airflow · Modelado · Arquitectura · Terraform · Azure · AWS · Google Cloud · Databricks', 750);
+    lineaAjustada(`Examen final de ${C.modulos.length} módulos · ${aprobados} ${aprobados === 1 ? 'examen de módulo aprobado' : 'exámenes de módulo aprobados'}`, 795);
+    const fecha = new Date(cert.at).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+    x.textAlign = 'left'; x.fillStyle = '#4a4f63'; x.font = `400 26px ${fuente}`;
+    x.fillText(`Fecha: ${fecha}`, 150, H - 170);
+    x.textAlign = 'right'; x.fillText(`Código: ${codigoCertificado(nombre, cert)}`, W - 150, H - 170);
+    x.textAlign = 'center'; x.font = `56px ${fuente}`; x.fillText('🎓', W / 2, H - 160);
+  }
+
+  function viewExamen(id) {
+    const esFinal = id === 'final';
+    const m = MODULE_BY_ID.get(id);
+    const base = esFinal ? null : EXAMEN_POR_MODULO.get(id);
+    if (!esFinal && !base) { main.innerHTML = '<div class="container prose"><h1>Examen no encontrado</h1><p><a href="#/examenes">Ver los exámenes</a></p></div>'; return; }
+    const titulo = esFinal ? '🎓 Examen final' : `${m.icono} Examen: ${m.titulo}`;
+    const minimo = esFinal ? NOTA_FINAL : NOTA_MODULO;
+    const preguntas = (esFinal ? preguntasFinal() : barajar(base.preguntas)).map((p) => ({ ...p, opciones: barajar(p.opciones) }));
+    const modDe = (p) => MODULE_BY_ID.get(p.id.replace(/-p\d+$/, ''));
+    main.innerHTML = `<div class="container">
+      <div class="crumbs"><a href="#/examenes">Exámenes</a><span>/</span><span>${esc(esFinal ? 'Examen final' : m.titulo)}</span></div>
+      <h1 style="margin-bottom:4px">${esc(titulo)}</h1>
+      <p class="muted" style="margin-top:0">${preguntas.length} preguntas · se aprueba con ${minimo}% · las preguntas y las opciones cambian de orden en cada intento. Responde todas y corrige al final.</p>
+      <form id="exForm">${preguntas.map((p, i) => `<div class="card exam-q" data-i="${i}" data-id="${esc(p.id)}">
+        <div class="exam-q-head"><span class="badge b-type">Pregunta ${i + 1}</span>${esFinal ? `<span class="badge">${modDe(p).icono} ${esc(modDe(p).titulo)}</span>` : ''}<span class="badge tag">${esc(p.tema)}</span></div>
+        <div class="prose exam-enunciado">${p.enunciado}</div>
+        <div class="quiz-opts">${p.opciones.map((o, j) => `<label class="quiz-opt"><input type="radio" name="q${i}" value="${j}"><span>${o.text}</span></label>`).join('')}</div>
+        <div class="exam-fb" hidden></div>
+      </div>`).join('')}
+      <div class="exam-barra"><span id="exCont" class="small"></span><button type="submit" class="btn btn-ok btn-lg">Corregir examen</button></div>
+      </form>
+      <div id="exRes"></div>
+    </div>`;
+    const colorear = (root) => $$('pre[data-lang]', root).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } });
+    colorear(main);
+    const cont = () => { const n = $$('#exForm input:checked').length; $('#exCont').textContent = `Respondidas: ${n} de ${preguntas.length}`; return n; };
+    $('#exForm').addEventListener('change', cont); cont();
+    $('#exForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const n = cont();
+      if (n < preguntas.length && !confirm(`Te faltan ${preguntas.length - n} preguntas. Las que no respondas cuentan como incorrectas. ¿Corregir igual?`)) return;
+      let bien = 0; const repasar = new Map();
+      preguntas.forEach((p, i) => {
+        const card = $(`.exam-q[data-i="${i}"]`), sel = $(`input[name="q${i}"]:checked`, card);
+        const elegida = sel ? Number(sel.value) : -1, ok = elegida >= 0 && p.opciones[elegida].ok;
+        if (ok) bien++; else repasar.set(p.leccion.id, p.leccion.titulo);
+        $$('.quiz-opt', card).forEach((l, j) => { l.classList.toggle('right', p.opciones[j].ok); l.classList.toggle('wrong', j === elegida && !ok); $('input', l).disabled = true; });
+        card.classList.add(ok ? 'ok' : 'mal');
+        const fb = $('.exam-fb', card); fb.hidden = false;
+        fb.innerHTML = `<div class="exam-fb-tit ${ok ? 'ok' : 'mal'}">${ok ? '✓ Correcto' : elegida < 0 ? '— Sin responder' : '✗ Incorrecto'}</div>${p.porque}<p class="small" style="margin-bottom:0">📚 Repasar: <a href="#/l/${p.leccion.id}">${esc(p.leccion.titulo)}</a></p>`;
+        colorear(fb);
+      });
+      const pct = Math.round((bien / preguntas.length) * 100), aprobo = pct >= minimo;
+      const N = notas(), prev = N[id] || { best: 0, intentos: 0 };
+      N[id] = { best: Math.max(prev.best, pct), last: pct, intentos: prev.intentos + 1, at: pct > prev.best ? Date.now() : prev.at || Date.now() };
+      Store.save();
+      $('.exam-barra').remove();
+      const otraVez = `<button class="btn" id="exOtra">↻ Rendir de nuevo</button>`;
+      $('#exRes').innerHTML = `<div class="card exam-res ${aprobo ? 'ok' : 'mal'}">
+        <div class="exam-nota">${pct}%</div>
+        <div><h2 style="margin:0 0 4px">${aprobo ? (esFinal ? '🎓 ¡Aprobaste el examen final!' : '✓ ¡Aprobaste!') : 'Todavía no: necesitas ' + minimo + '%'}</h2>
+        <p style="margin:0">Respondiste bien <b>${bien} de ${preguntas.length}</b>. ${prev.best ? `Tu mejor nota anterior era ${prev.best}%.` : ''}</p>
+        ${repasar.size ? `<p style="margin:10px 0 4px"><b>Para repasar:</b></p><ul class="exam-repasar">${[...repasar].map(([lid, t]) => `<li><a href="#/l/${lid}">${esc(t)}</a></li>`).join('')}</ul>` : '<p>¡Sin errores! 🎉</p>'}
+        <div class="row" style="margin-top:10px">${aprobo && esFinal ? '<a class="btn btn-primary" href="#/examenes">📜 Descargar el certificado</a>' : ''}${otraVez}<a class="btn btn-ghost" href="#/examenes">Volver a los exámenes</a></div>
+        <p class="small muted" style="margin:10px 0 0">Abajo tienes cada pregunta corregida con su explicación.</p></div></div>`;
+      $('#exOtra').addEventListener('click', () => viewExamen(id));
+      $('#exRes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      updateProgressPill();
     });
   }
 
@@ -1175,14 +1491,16 @@
     if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]) };
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
     if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal'].includes(parts[1])) return { name: 'lab-' + parts[1] };
-    if (['ruta', 'datos', 'glosario', 'progreso'].includes(parts[0])) return { name: parts[0], q: params.get('q') || '' };
+    if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMEN_POR_MODULO.has(parts[1]))) return { name: 'examen', examen: parts[1] };
+    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes'].includes(parts[0])) return { name: parts[0], q: params.get('q') || '' };
     return { name: 'notfound' };
   }
   function route() {
     const r = parse();
     document.body.classList.remove('nav-open');
+    setTeclas(null);
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -1194,6 +1512,9 @@
     else if (r.name === 'datos') viewDatos();
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
+    else if (r.name === 'repaso') viewRepaso();
+    else if (r.name === 'examenes') viewExamenes();
+    else if (r.name === 'examen') viewExamen(r.examen);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
@@ -1202,6 +1523,12 @@
     main.focus({ preventScroll: true });
   }
   window.addEventListener('hashchange', route);
+  // un enlace a la página en la que ya estás no dispara hashchange: igual se vuelve a dibujar
+  // (por ejemplo, "Volver a las tarjetas" al terminar una sesión de repaso)
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#/"]');
+    if (a && !a.target && !e.ctrlKey && !e.metaKey && a.getAttribute('href') === location.hash) { e.preventDefault(); route(); }
+  });
   $('#menuBtn').addEventListener('click', () => document.body.classList.toggle('nav-open'));
   $('#scrim').addEventListener('click', () => document.body.classList.remove('nav-open'));
   updateProgressPill();
