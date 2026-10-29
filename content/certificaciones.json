@@ -401,5 +401,227 @@
     ]
    }
   ]
+ },
+ {
+  "id": "az-dp700",
+  "proveedor": "Microsoft Azure",
+  "nombre": "Fabric Data Engineer Associate",
+  "codigo": "DP-700",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "40–60 (variable)",
+   "minutos": "100",
+   "costo": "USD 165 (según país)",
+   "aprobacion": "700 / 1000",
+   "vigencia": "1 año, renovación gratis"
+  },
+  "fuente": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-700",
+  "actualizado": "el temario del 21 de julio de 2026",
+  "examen": "az-dp700",
+  "notas": "Reemplaza a DP-203 (retirado el 31 de marzo de 2025). Los tres dominios pesan lo mismo: no hay un dominio que se pueda dejar de lado. Incluye casos de estudio.",
+  "dominios": [
+   {
+    "nombre": "Implementar y administrar una solución de analítica",
+    "peso": 33,
+    "rango": "30–35 %",
+    "temas": [
+     "Configuración del workspace: Spark, dominios, OneLake, Apache Airflow",
+     "Ciclo de vida: Git, canalizaciones de despliegue, proyectos de base de datos",
+     "Seguridad: roles, permisos de ítem, RLS, CLS, enmascaramiento, etiquetas",
+     "Orquestación: pipeline, notebook, Dataflow Gen2, disparadores"
+    ],
+    "lecciones": [
+     "cert-azure-fabric-plataforma"
+    ]
+   },
+   {
+    "nombre": "Ingerir y transformar datos",
+    "peso": 34,
+    "rango": "30–35 %",
+    "temas": [
+     "Cargas completas e incrementales, SCD, miembro inferido",
+     "Lotes: copy activity, Copy job, Dataflow Gen2, notebooks, T-SQL, shortcuts, mirroring",
+     "Tiempo real: Eventstream, Spark Structured Streaming, KQL y ventanas"
+    ],
+    "lecciones": [
+     "cert-azure-fabric-ingesta-transformacion"
+    ]
+   },
+   {
+    "nombre": "Monitorear y optimizar una solución de analítica",
+    "peso": 33,
+    "rango": "30–35 %",
+    "temas": [
+     "Monitoring hub, Capacity Metrics, alertas con Activator",
+     "Errores de pipelines, dataflows, notebooks, eventstreams y T-SQL",
+     "V-Order, OPTIMIZE, VACUUM, Spark, warehouse, eventhouse"
+    ],
+    "lecciones": [
+     "cert-azure-fabric-monitoreo-optimizacion"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "az-ai103",
+  "proveedor": "Microsoft Azure",
+  "nombre": "Azure AI Apps and Agents Developer Associate",
+  "codigo": "AI-103",
+  "nivel": "Intermedio",
+  "rol": "IA generativa y agentes",
+  "formato": {
+   "preguntas": "40–60 (variable)",
+   "minutos": "100",
+   "costo": "USD 165 (según país)",
+   "aprobacion": "700 / 1000",
+   "vigencia": "1 año, renovación gratis"
+  },
+  "fuente": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-103",
+  "actualizado": "el temario del 16 de abril de 2026",
+  "examen": "az-ai103",
+  "notas": "Reemplaza a AI-102 (retirado el 30 de junio de 2026). La IA generativa y los agentes en Microsoft Foundry son el centro del examen.",
+  "dominios": [
+   {
+    "nombre": "Planificar y administrar una solución de IA en Azure",
+    "peso": 27,
+    "rango": "25–30 %",
+    "temas": [
+     "Recursos y proyectos de Foundry",
+     "Tipos de despliegue y cuotas",
+     "Autenticación sin claves, red privada, filtros de contenido, costos"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-foundry-agentes"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de IA generativa y agentes",
+    "peso": 32,
+    "rango": "30–35 %",
+    "temas": [
+     "RAG con Azure AI Search (híbrida y semántica)",
+     "Foundry Agent Service: herramientas, multiagente, aprobaciones",
+     "Evaluación, trazas y ajuste fino"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-foundry-agentes"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de visión por computadora",
+    "peso": 13,
+    "rango": "10–15 %",
+    "temas": [
+     "Análisis de imágenes y OCR",
+     "Modelos personalizados y multimodales"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-vision-lenguaje-extraccion"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de análisis de texto",
+    "peso": 14,
+    "rango": "10–15 %",
+    "temas": [
+     "Sentimiento, entidades, PII, CLU",
+     "Voz y traducción"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-vision-lenguaje-extraccion"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de extracción de información",
+    "peso": 14,
+    "rango": "10–15 %",
+    "temas": [
+     "Document Intelligence: precompilados y personalizados",
+     "Content Understanding"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-vision-lenguaje-extraccion"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "az-ai300",
+  "proveedor": "Microsoft Azure",
+  "nombre": "Machine Learning Operations (MLOps) Engineer Associate",
+  "codigo": "AI-300",
+  "nivel": "Avanzado",
+  "rol": "MLOps y GenAIOps",
+  "formato": {
+   "preguntas": "40–60 (variable)",
+   "minutos": "120",
+   "costo": "USD 165 (según país)",
+   "aprobacion": "700 / 1000",
+   "vigencia": "1 año, renovación gratis"
+  },
+  "fuente": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-300",
+  "actualizado": "el temario publicado en 2026",
+  "examen": "az-ai300",
+  "notas": "Reemplaza a DP-100 (retirado en junio de 2026), con mucho más peso en automatización, infraestructura como código, CI/CD, observabilidad, deriva y costo.",
+  "dominios": [
+   {
+    "nombre": "Diseñar e implementar una infraestructura de MLOps",
+    "peso": 17,
+    "rango": "15–20 %",
+    "temas": [
+     "Workspace, cómputo, datos, entornos y registros como código"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   },
+   {
+    "nombre": "Implementar el ciclo de vida y la operación de modelos de ML",
+    "peso": 27,
+    "rango": "25–30 %",
+    "temas": [
+     "Jobs, pipelines, MLflow, registro",
+     "Endpoints online y batch, azul-verde, deriva"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   },
+   {
+    "nombre": "Diseñar e implementar una infraestructura de GenAIOps",
+    "peso": 22,
+    "rango": "20–25 %",
+    "temas": [
+     "Proyectos de Foundry por entorno, versionado de prompts y agentes"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops",
+     "cert-azure-ai103-foundry-agentes"
+    ]
+   },
+   {
+    "nombre": "Calidad y observabilidad de IA generativa",
+    "peso": 13,
+    "rango": "10–15 %",
+    "temas": [
+     "Evaluación en CI, red teaming, trazas y monitoreo"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   },
+   {
+    "nombre": "Optimizar sistemas de IA generativa y el rendimiento de modelos",
+    "peso": 13,
+    "rango": "10–15 %",
+    "temas": [
+     "Costo, latencia, cuota, destilación y ajuste fino"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   }
+  ]
  }
 ]
