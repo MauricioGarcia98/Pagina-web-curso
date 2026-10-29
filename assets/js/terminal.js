@@ -1015,44 +1015,192 @@ for _n, _fn in list(_ns.items()):
     lines.push('', `${hhmmss()}  ${errN ? col.err('Completed with errors') : col.ok('Completed successfully')}`, `${hhmmss()}  Done. PASS=${okN} WARN=0 ERROR=${errN} SKIP=0 TOTAL=${ord.length}`);
     return { out: lines.join('\n'), code: errN ? 1 : 0 };
   }
+  // YAML mínimo (mapas, listas, listas/mapas en línea, comillas): suficiente para schema.yml de dbt
+  function miniYaml(src) {
+    const escalar = (s) => {
+      s = s.trim();
+      if (s === '') return null;
+      if (/^\[.*\]$/.test(s)) return partir(s.slice(1, -1)).map(escalar);
+      if (/^\{.*\}$/.test(s)) { const o = {}; for (const kv of partir(s.slice(1, -1))) { const i = kv.indexOf(':'); if (i > 0) o[kv.slice(0, i).trim()] = escalar(kv.slice(i + 1)); } return o; }
+      if (/^(['"]).*\1$/.test(s)) return s.slice(1, -1);
+      if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+      if (s === 'true' || s === 'false') return s === 'true';
+      return s;
+    };
+    function partir(s) {   // separa por comas fuera de comillas, [] y {}
+      const out = []; let cur = '', prof = 0, q = null;
+      for (const ch of s) {
+        if (q) { cur += ch; if (ch === q) q = null; continue; }
+        if (ch === '"' || ch === "'") { q = ch; cur += ch; continue; }
+        if ('[{'.includes(ch)) prof++; if (']}'.includes(ch)) prof--;
+        if (ch === ',' && !prof) { out.push(cur); cur = ''; } else cur += ch;
+      }
+      if (cur.trim()) out.push(cur);
+      return out;
+    }
+    const lineas = src.split('\n').map((l) => l.replace(/\s+#.*$/, '').replace(/^\s*#.*$/, '')).filter((l) => l.trim())
+      .map((l) => ({ ind: l.search(/\S/), txt: l.trim() }));
+    let i = 0;
+    function bloque(ind) {
+      if (i >= lineas.length) return null;
+      if (lineas[i].txt.startsWith('- ') || lineas[i].txt === '-') {
+        const arr = [];
+        while (i < lineas.length && lineas[i].ind === ind && (lineas[i].txt.startsWith('- ') || lineas[i].txt === '-')) {
+          const resto = lineas[i].txt.slice(1).trim();
+          if (!resto) { i++; arr.push(bloque(lineas[i] ? lineas[i].ind : ind + 2)); continue; }
+          if (/^[\w.-]+\s*:(\s|$)/.test(resto) && !/^(['"])/.test(resto)) {
+            // elemento que es un mapa: la primera clave va en la línea del guion
+            lineas[i] = { ind: ind + 2, txt: resto };
+            arr.push(mapa(ind + 2));
+          } else { arr.push(escalar(resto)); i++; }
+        }
+        return arr;
+      }
+      return mapa(ind);
+    }
+    function mapa(ind) {
+      const o = {};
+      while (i < lineas.length && lineas[i].ind === ind && !lineas[i].txt.startsWith('- ')) {
+        const m = lineas[i].txt.match(/^([^:]+?)\s*:\s*(.*)$/);
+        if (!m) { i++; continue; }
+        i++;
+        if (m[2] === '' || m[2] === '|' || m[2] === '>') {
+          if (i < lineas.length && lineas[i].ind > ind) o[m[1]] = m[2] ? lineasCrudas(ind) : bloque(lineas[i].ind);
+          else if (i < lineas.length && lineas[i].ind === ind && lineas[i].txt.startsWith('- ')) o[m[1]] = bloque(ind);
+          else o[m[1]] = null;
+        } else o[m[1]] = escalar(m[2]);
+      }
+      return o;
+    }
+    function lineasCrudas(ind) { const out = []; while (i < lineas.length && lineas[i].ind > ind) out.push(lineas[i++].txt); return out.join('\n'); }
+    return lineas.length ? bloque(lineas[0].ind) : null;
+  }
+  // Lee los tests genéricos de models/**/*.yml (data_tests: o tests:) y los singulares de tests/*.sql
   function dbtTests(root, sel) {
     const tests = [];
-    for (const k of Object.keys(Machine.fs)) if (k.startsWith(root + '/models/') && /\.ya?ml$/.test(k)) {
-      const y = readFile(k);
-      let model = null, column = null;
-      for (const line of y.split('\n')) {
-        let m;
-        if ((m = line.match(/^\s*-\s*name:\s*(\w+)/))) {
-          const indent = line.search(/\S/);
-          if (indent <= 4) { model = m[1]; column = null; } else column = m[1];
-        }
-        const tl = line.match(/(?:data_)?tests:\s*\[(.*)\]/);
-        if (tl && model && column) for (const t of tl[1].split(',').map((x) => x.trim()).filter(Boolean)) tests.push({ model, column, test: t });
-        const single = line.match(/^\s*-\s*(unique|not_null)\s*$/);
-        if (single && model && column) tests.push({ model, column, test: single[1] });
+    const norm1 = (t) => {
+      if (typeof t === 'string') return { test: t, args: {}, config: {} };
+      const [nombre] = Object.keys(t); const v = t[nombre] || {};
+      const args = Object.assign({}, v, v.arguments || {}); delete args.arguments; delete args.config;
+      return { test: nombre, args, config: v.config || {} };
+    };
+    for (const k of Object.keys(Machine.fs).sort()) if (k.startsWith(root + '/models/') && /\.ya?ml$/.test(k)) {
+      let y; try { y = miniYaml(readFile(k)); } catch (e) { y = null; }
+      for (const m of (y && y.models) || []) {
+        if (!m || !m.name) continue;
+        for (const t of m.data_tests || m.tests || []) tests.push(Object.assign(norm1(t), { model: m.name }));
+        for (const c of m.columns || []) for (const t of (c && (c.data_tests || c.tests)) || []) tests.push(Object.assign(norm1(t), { model: m.name, column: c.name }));
       }
     }
-    return sel ? tests.filter((t) => String(sel).replace(/\+/g, '').split(/[ ,]+/).includes(t.model)) : tests;
+    for (const k of Object.keys(Machine.fs).sort()) if (k.startsWith(root + '/tests/') && k.endsWith('.sql')) {
+      const sql = readFile(k);
+      tests.push({ test: 'singular', name: base(k).replace(/\.sql$/, ''), sql, refs: [...sql.matchAll(/ref\(\s*['"](\w+)['"]\s*\)/g)].map((m) => m[1]), config: {} });
+    }
+    if (!sel) return tests;
+    const nombres = String(sel).replace(/\+/g, '').split(/[ ,]+/);
+    return tests.filter((t) => nombres.includes(t.model) || (t.refs || []).some((r) => nombres.includes(r)) || nombres.includes(t.name));
   }
-  async function dbtTest(root, sel) {
+  const sqlLista = (vals) => (Array.isArray(vals) ? vals : [vals]).map((v) => (typeof v === 'number' ? v : `'${String(v).replace(/'/g, "''")}'`)).join(', ');
+  async function consultaTest(t) {
+    const w = t.config.where ? ` WHERE ${t.config.where}` : '';
+    const desde = `(SELECT * FROM "${t.model}"${w})`;
+    switch (t.test) {
+      case 'unique': return `SELECT ${t.column} FROM ${desde} AS m WHERE ${t.column} IS NOT NULL GROUP BY ${t.column} HAVING COUNT(*) > 1`;
+      case 'not_null': return `SELECT * FROM ${desde} AS m WHERE ${t.column} IS NULL`;
+      case 'accepted_values': return `SELECT ${t.column} AS valor, COUNT(*) AS n FROM ${desde} AS m WHERE ${t.column} NOT IN (${sqlLista(t.args.values || [])}) GROUP BY ${t.column}`;
+      case 'relationships': {
+        const destino = (String(t.args.to || '').match(/ref\(\s*['"](\w+)['"]\s*\)|source\(\s*['"]\w+['"]\s*,\s*['"](\w+)['"]\s*\)/) || [])[1] || String(t.args.to || '').match(/source\(\s*['"]\w+['"]\s*,\s*['"](\w+)['"]/)?.[1];
+        if (!destino || !t.args.field) throw new Error('relationships necesita to: ref(\'modelo\') y field: columna');
+        return `SELECT h.${t.column} FROM ${desde} AS h LEFT JOIN "${destino}" AS p ON h.${t.column} = p.${t.args.field} WHERE h.${t.column} IS NOT NULL AND p.${t.args.field} IS NULL`;
+      }
+      case 'singular': {
+        const c = await window.Engines.PY.dbt(t.sql, { macros: dbtMacros() });
+        if (!c.ok) throw new Error('Compilation Error: ' + c.error);
+        return c.sql.replace(/;\s*$/, '');
+      }
+      default: throw new Error(`test genérico "${t.test}" no disponible en el simulador (sí: unique, not_null, accepted_values, relationships y tests singulares)`);
+    }
+  }
+  const nombreTest = (t) => t.test === 'singular' ? t.name : `${t.test}_${t.model}_${t.column || ''}`.replace(/_$/, '') + (t.test === 'accepted_values' ? '__' + [].concat(t.args.values || []).join('__') : '');
+  // Igual que dbt: severity error|warn; error_if y warn_if (por defecto "!=0") sobre la cantidad de fallas
+  function evaluarSeveridad(n, cfg) {
+    const cumple = (expr) => { const m = String(expr || '!=0').trim().match(/^(!=|>=|<=|=|==|>|<)\s*(\d+)$/); if (!m) return n !== 0; const x = Number(m[2]); return { '!=': n !== x, '>=': n >= x, '<=': n <= x, '=': n === x, '==': n === x, '>': n > x, '<': n < x }[m[1]]; };
+    if ((cfg.severity || 'error') === 'error' && cumple(cfg.error_if)) return 'error';
+    return cumple(cfg.warn_if) ? 'warn' : 'pass';
+  }
+  async function ejecutarTests(db, tests, lines, acc) {
+    for (const t of tests) {
+      const i = ++acc.i, name = nombreTest(t);
+      try {
+        const q = await consultaTest(t);
+        const r = db.exec(q);
+        const n = r.length ? r[0].values.length : 0;
+        const est = evaluarSeveridad(n, t.config);
+        if (est === 'error') { acc.fail++; t.fallo = true; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.err('FAIL ' + n)} ${name}`); }
+        else if (est === 'warn') { acc.warn++; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.warn ? col.warn('WARN ' + n) : 'WARN ' + n} ${name}`); }
+        else { acc.pass++; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.ok('PASS')} ${name}`); }
+        if (n && est !== 'pass') {
+          acc.detalles.push(`${col.b(name)}: ${n} fila(s) que no cumplen. SQL compilado:\n  ${col.dim(q.replace(/\s+/g, ' ').trim())}`);
+          if (t.config.store_failures || acc.storeFailures) {
+            const tabla = 'dbt_test__audit_' + name.replace(/\W+/g, '_').slice(0, 50);
+            db.exec(`DROP TABLE IF EXISTS "${tabla}"; CREATE TABLE "${tabla}" AS ${q}`);
+            acc.detalles.push(`  fallas guardadas en ${col.b(tabla)} (consulta: SELECT * FROM ${tabla})`);
+          }
+        }
+      } catch (e) { acc.err++; t.fallo = true; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.err('ERROR')} ${name}: ${/no such table/.test(e.message) ? 'el modelo no existe: ejecuta dbt run primero' : e.message}`); }
+    }
+  }
+  function resumenTests(lines, acc) {
+    if (acc.detalles.length) lines.push('', col.b('Detalle de los tests con fallas:'), ...acc.detalles);
+    lines.push('', `${hhmmss()}  Done. PASS=${acc.pass} WARN=${acc.warn} ERROR=${acc.err} FAIL=${acc.fail} SKIP=${acc.skip || 0} TOTAL=${acc.total}`);
+  }
+  async function dbtTest(root, sel, { storeFailures } = {}) {
     const E = window.Engines.SQL;
     if (!E._bytes) await E.init();
     const db = E.playground();
     const tests = dbtTests(root, sel);
     const lines = [`${hhmmss()}  Running with dbt=1.8.7`, `${hhmmss()}  Found ${tests.length} data tests`, ''];
-    let pass = 0, failN = 0, err = 0;
-    tests.forEach((t, i) => {
-      const q = t.test === 'unique' ? `SELECT ${t.column} FROM "${t.model}" GROUP BY ${t.column} HAVING COUNT(*) > 1` : `SELECT * FROM "${t.model}" WHERE ${t.column} IS NULL`;
-      const name = `${t.test}_${t.model}_${t.column}`;
-      try {
-        const r = db.exec(q);
-        const n = r.length ? r[0].values.length : 0;
-        if (n) { failN++; lines.push(`${hhmmss()}  ${i + 1} of ${tests.length} ${col.err('FAIL ' + n)} ${name}`); }
-        else { pass++; lines.push(`${hhmmss()}  ${i + 1} of ${tests.length} ${col.ok('PASS')} ${name}`); }
-      } catch (e) { err++; lines.push(`${hhmmss()}  ${i + 1} of ${tests.length} ${col.err('ERROR')} ${name}: ${e.message.includes('no such table') ? 'el modelo no existe: ejecuta dbt run primero' : e.message}`); }
-    });
-    lines.push('', `${hhmmss()}  Done. PASS=${pass} WARN=0 ERROR=${err} FAIL=${failN} TOTAL=${tests.length}`);
-    return { out: lines.join('\n'), code: failN || err ? 1 : 0 };
+    const acc = { i: 0, total: tests.length, pass: 0, warn: 0, err: 0, fail: 0, detalles: [], storeFailures };
+    await ejecutarTests(db, tests, lines, acc);
+    resumenTests(lines, acc);
+    return { out: lines.join('\n'), code: acc.fail || acc.err ? 1 : 0 };
+  }
+  // dbt build: en orden del DAG, cada modelo y enseguida sus tests; si un test con severidad error falla,
+  // los modelos que dependen de él se saltan (SKIP), igual que en dbt real
+  async function dbtBuild(root, models, sel, opts = {}) {
+    const ord = topo(models);
+    const tests = dbtTests(root, null);
+    const lines = [`${hhmmss()}  Running with dbt=1.8.7 (simulado sobre SQLite)`, `${hhmmss()}  Found ${ord.length} models, ${tests.length} data tests`, ''];
+    const E = window.Engines.SQL; if (!E._bytes) await E.init();
+    const db = E.playground();
+    const acc = { i: 0, total: 0, pass: 0, warn: 0, err: 0, fail: 0, skip: 0, detalles: [], storeFailures: opts.storeFailures };
+    const roto = new Set();
+    const hechos = new Set();
+    const nodos = [];
+    for (const m of ord) {
+      nodos.push({ m });
+      for (const t of tests) if (!t.usado && (t.model === m.name || (t.refs && t.refs.length && t.refs.every((r) => hechos.has(r) || r === m.name)))) { t.usado = true; nodos.push({ t }); }
+      hechos.add(m.name);
+    }
+    acc.total = nodos.length;
+    for (const n of nodos) {
+      if (n.m) {
+        const m = n.m, i = ++acc.i;
+        if (m.refs.some((r) => roto.has(r))) { roto.add(m.name); acc.skip++; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.dim('SKIP relation main.' + m.name + ' (un test o modelo anterior falló)')}`); continue; }
+        const r = await dbtRun([m], opts);
+        const okM = r.code === 0;
+        if (okM) acc.pass++; else { acc.err++; roto.add(m.name); }
+        lines.push(`${hhmmss()}  ${i} of ${acc.total} ${okM ? col.ok('OK') : col.err('ERROR')} ${m.mat} model main.${m.name}`);
+        if (!okM) lines.push(col.err('  ' + (r.out.split('\n').find((l) => /Error/.test(l)) || '').trim()));
+      } else {
+        const t = n.t;
+        if (roto.has(t.model) || (t.refs || []).some((r) => roto.has(r))) { acc.i++; acc.skip++; lines.push(`${hhmmss()}  ${acc.i} of ${acc.total} ${col.dim('SKIP test ' + nombreTest(t))}`); continue; }
+        await ejecutarTests(db, [t], lines, acc);
+        if (t.fallo && t.model) roto.add(t.model);
+      }
+    }
+    resumenTests(lines, acc);
+    return { out: lines.join('\n'), code: acc.fail || acc.err ? 1 : 0 };
   }
   // dbt seed: carga cada seeds/*.csv como tabla (tipos inferidos: entero, decimal o texto)
   async function dbtSeed(root) {
@@ -1105,7 +1253,7 @@ for _n, _fn in list(_ns.items()):
       }
       a = out;
     }
-    const { flags, pos } = parseArgs(a, { alias: { '-s': '--select', '-m': '--select' }, bool: ['--full-refresh', '--version'] });
+    const { flags, pos } = parseArgs(a, { alias: { '-s': '--select', '-m': '--select' }, bool: ['--full-refresh', '--version', '--store-failures'] });
     const sub = pos[0];
     if (flags['--version'] || sub === '--version') return ok('Core:\n  - installed: 1.8.7\nPlugins:\n  - databricks: 1.8.5 (simulado: ejecuta sobre SQLite)');
     if (sub === 'init') {
@@ -1133,8 +1281,8 @@ for _n, _fn in list(_ns.items()):
         return ok(out.join('\n'));
       }
       case 'run': return dbtRun(selectModels(models, sel), { full: flags['--full-refresh'] });
-      case 'test': return dbtTest(root, sel);
-      case 'build': { const r = await dbtRun(selectModels(models, sel)); const t = await dbtTest(root, sel); return { out: r.out + '\n\n' + t.out, code: r.code || t.code }; }
+      case 'test': return dbtTest(root, sel, { storeFailures: flags['--store-failures'] });
+      case 'build': return dbtBuild(root, selectModels(models, sel), sel, { full: flags['--full-refresh'], storeFailures: flags['--store-failures'] });
       case 'docs': return ok(pos[1] === 'serve' ? col.dim('(simulado) Sirviendo documentación en http://localhost:8080') : `${hhmmss()}  Catalog written to target/catalog.json`);
       case 'snapshot': return ok(`${hhmmss()}  Found 0 snapshots`);
       case 'source': return ok(`${hhmmss()}  Pulling freshness from warehouse metadata tables\n${hhmmss()}  1 of 1 ${col.ok('PASS')} freshness of tienda.pedidos`);
