@@ -717,6 +717,7 @@
     html += link('#/generador', '🏭', 'Generador de datos', route.name === 'generador');
     html += link('#/lab/python', '🐍', 'Laboratorio Python', route.name === 'lab-python');
     html += link('#/lab/pyspark', '⚡', 'Laboratorio PySpark', route.name === 'lab-pyspark');
+    html += link('#/lab/dbt', '🔧', 'Laboratorio dbt', route.name === 'lab-dbt');
     html += '<div class="side-section">Recursos</div>';
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
@@ -1082,6 +1083,28 @@
     { g: 'Terraform', t: 'Crea un bucket de S3 con Terraform (init, plan, apply) y después destrúyelo', h: 'aws configure → code main.tf (provider "aws" + resource "aws_s3_bucket") → terraform init → terraform plan → terraform apply → terraform destroy', check: (M) => M.history.some((x) => /terraform\s+apply/.test(x)) && M.history.some((x) => /terraform\s+destroy/.test(x)) },
     { g: 'Databricks', t: 'Autentícate, crea un bundle, valídalo, despliégalo en dev y ejecuta su job', h: 'databricks auth login --host https://adb-…azuredatabricks.net → databricks bundle init → cd mi_proyecto → databricks bundle validate → databricks bundle deploy -t dev → databricks bundle run -t dev mi_proyecto_job', check: (M) => M.cloud.dbx && M.cloud.dbx.bundle && Object.keys(M.cloud.dbx.bundle).length && M.history.some((x) => /bundle\s+run/.test(x)) },
   ];
+  // en el modo libre, una pestaña para volver a las misiones (las dos vistas comparten el mismo encabezado)
+  function tabsLabLibre(lab) {
+    const h1 = $('.container h1', main); if (!h1) return;
+    const n = ((window.MISIONES || {})[lab] || []).length;
+    const top = h(`<div class="mis-top"></div>`);
+    h1.replaceWith(top); top.append(h1); h1.style.margin = '0';
+    top.append(h(`<div class="mis-modos" role="tablist"><button role="tab" data-mis>🎯 Misiones <small>${n}</small></button><button class="on" role="tab" aria-selected="true">🧪 Práctica libre</button></div>`));
+    $('[data-mis]', top).addEventListener('click', () => { location.hash = '#/lab/' + lab; });
+  }
+  function viewLabDbtLibre() {
+    main.innerHTML = `<div class="container wide">
+      <h1 style="margin:0 0 4px">🔧 Laboratorio dbt</h1>
+      <p class="muted" style="margin:0 0 16px">Escribe un modelo de dbt con <code>{{ source('tienda', 'tabla') }}</code>, <code>{{ ref('stg_pedidos') }}</code> y Jinja: se compila y se ejecuta sobre la base de la tienda. Abajo ves el SQL compilado. Para el proyecto completo con <code>dbt build</code>, usa el <a href="#/lab/terminal?modo=libre">laboratorio de terminal</a> (<code>cd ~/tienda_dbt</code>).</p>
+      <div class="card"><div id="ed"></div>
+        <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Compilar y ejecutar <span class="kbd">Ctrl+↵</span></button></div>
+        <div class="output" id="out"></div></div>
+    </div>`;
+    const out = $('#out');
+    const ed = createEditor($('#ed'), { lang: 'sql', value: Store.data.code['lab-dbt'] ?? "-- un modelo de staging\nselect\n    pedido_id,\n    cliente_id,\n    lower(canal) as canal\nfrom {{ source('tienda', 'pedidos') }}\nwhere estado = 'entregado'\nlimit 20", tall: true, onRun: () => run(), onChange: (v) => Store.setCode('lab-dbt', v) });
+    const run = async () => { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); const r = await window.Engines.DBT.run({}, ed.getValue()); renderSqlOutput(out, r); if (r.compiled) out.append(compiledBlock(r.compiled)); };
+    $('#run').addEventListener('click', run);
+  }
   function viewLabTerminal() {
     main.innerHTML = `<div class="container wide">
       <h1 style="margin:0 0 4px">⌨️ Laboratorio de terminal</h1>
@@ -2052,7 +2075,7 @@
     if (!parts.length) return { name: 'home' };
     if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]) };
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
-    if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal'].includes(parts[1])) return { name: 'lab-' + parts[1] };
+    if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal', 'dbt'].includes(parts[1])) return { name: 'lab-' + parts[1], libre: params.get('modo') === 'libre' };
     if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMENES.has(parts[1]))) return { name: 'examen', examen: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
     if (parts[0] === 'claves' && parts[1]) return { name: 'claves', cert: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
     if (parts[0] === 'plan' && parts[1]) return { name: 'plan', cert: parts[1] };
@@ -2070,15 +2093,20 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
     else if (r.name === 'lesson') viewLesson(r.lesson);
-    else if (r.name === 'lab-sql') viewLabSql();
-    else if (r.name === 'lab-python') viewLabPython('python');
-    else if (r.name === 'lab-pyspark') viewLabPython('pyspark');
-    else if (r.name === 'lab-terminal') viewLabTerminal();
+    else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
+      const lab = r.name.slice(4);
+      window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
+    }
+    else if (r.name === 'lab-sql') { viewLabSql(); tabsLabLibre('sql'); }
+    else if (r.name === 'lab-python') { viewLabPython('python'); tabsLabLibre('python'); }
+    else if (r.name === 'lab-pyspark') { viewLabPython('pyspark'); tabsLabLibre('pyspark'); }
+    else if (r.name === 'lab-terminal') { viewLabTerminal(); tabsLabLibre('terminal'); }
+    else if (r.name === 'lab-dbt') { viewLabDbtLibre(); tabsLabLibre('dbt'); }
     else if (r.name === 'datos') viewDatos(r.id);
     else if (r.name === 'modelado') window.Modelado.vista(main, { h, esc, createEditor, Store, toast, abrirEnLab, $, $$ });
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });

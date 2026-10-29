@@ -997,3 +997,45 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .gen-prev .null { color: var(--ink-3); font-style: italic; }
 .gen-ddl pre { max-height: 300px; overflow: auto; font-size: 12px; }
 @media (max-width: 960px) { .gen-grid { grid-template-columns: 1fr; } .gen-cfg { position: static; max-height: none; } }
+
+/* ---------------------------------------------------------------- laboratorios con misiones */
+.mis-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.mis-modos { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.mis-modos button { border: 0; background: none; color: var(--ink-2); font: inherit; font-size: 14px; font-weight: 600; padding: 7px 14px; cursor: pointer; }
+.mis-modos button small { color: var(--ink-3); font-weight: 500; }
+.mis-modos button.on { background: var(--brand); color: #fff; }
+.mis-grid { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px; align-items: start; }
+.mis-side { padding: 12px; position: sticky; top: calc(var(--topbar-h) + 12px); max-height: calc(100vh - var(--topbar-h) - 30px); overflow: auto; margin: 0; }
+.mis-prog { font-size: 13px; margin-bottom: 10px; } .mis-prog .bar { margin-top: 6px; }
+.mis-camp { margin: 4px 0; }
+.mis-camp summary { display: flex; justify-content: space-between; gap: 6px; cursor: pointer; font-weight: 650; font-size: 13.5px; padding: 6px 4px; list-style: none; }
+.mis-camp summary::-webkit-details-marker { display: none; }
+.mis-camp summary small { color: var(--ink-3); font-weight: 500; }
+.mis-item { display: flex; gap: 8px; align-items: flex-start; width: 100%; text-align: left; border: 1px solid transparent; background: none; border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; }
+.mis-item small { display: block; color: var(--ink-3); font-size: 11.5px; }
+.mis-item:hover { background: var(--surface-2); }
+.mis-item.on { background: var(--brand-soft); border-color: var(--brand); }
+.mis-dot { width: 18px; flex-shrink: 0; text-align: center; color: var(--ink-3); }
+.mis-item.hecha .mis-dot { color: var(--ok); font-weight: 800; } .mis-item.intentada .mis-dot { color: var(--warn); }
+.mis-main { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.mis-ticket { padding: 16px 20px; margin: 0; border-left: 4px solid var(--brand); }
+.mis-ticket-cab { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mis-ticket h2 { margin: 8px 0 6px; font-size: 1.3rem; }
+.mis-pedido { font-size: 15.5px; line-height: 1.6; }
+.mis-ok { background: var(--ok-soft); color: var(--ok); }
+.mis-crit { margin-top: 10px; background: var(--surface-2); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+.mis-crit ul { margin: 6px 0 0; padding-left: 20px; }
+.mis-crit li.ok { color: var(--ok); } .mis-crit li.ok::marker { content: '✓  '; }
+.mis-crit li.no { color: var(--bad); } .mis-crit li.no::marker { content: '✗  '; }
+.mis-meta { margin-top: 10px; }
+.mis-previo { margin-top: 10px; font-size: 13.5px; } .mis-previo summary { cursor: pointer; font-weight: 600; }
+.mis-previo pre { max-height: 240px; overflow: auto; font-size: 12.5px; }
+.mis-work { padding: 0; margin: 0; overflow: hidden; }
+.mis-work .term { border-radius: 0; border: 0; }
+.mis-tools { border-top: 1px solid var(--line); }
+.mis-fb .ex-feedback { margin: 0; border-radius: 0; }
+.mis-pistas { display: flex; flex-direction: column; gap: 6px; padding: 0 14px; }
+.mis-pistas:not(:empty) { padding: 10px 14px; }
+.mis-pista { background: var(--warn-soft); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+#misExtra:not(:empty) { padding: 0 14px 14px; }
+@media (max-width: 900px) { .mis-grid { grid-template-columns: 1fr; } .mis-side { position: static; max-height: 340px; } }
