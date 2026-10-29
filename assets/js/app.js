@@ -582,7 +582,7 @@
         Store.setCode(ex.id, line);
         const g = CLI.grade(ex, line);
         if (g.pass) {
-          feedback('ok', '✓ ' + g.msg + (r.code ? ' (El comando es correcto; la terminal simulada no pudo ejecutarlo completo, mira la salida esperada abajo.)' : ''));
+          feedback('ok', '✓ ' + g.msg + (r.code && ex.error ? ' Este error era el esperado: léelo antes de seguir.' : r.code ? ' (El comando es correcto; la terminal simulada no pudo ejecutarlo completo, mira la salida esperada abajo.)' : ''));
           markPassed();
           if (ex.salida && r.code) showExtra('Salida esperada', `<pre data-lang="text"><code>${esc(ex.salida)}</code></pre>${ex.explicacion || ''}`);
           else if (ex.explicacion) showExtra('Explicación', ex.explicacion);

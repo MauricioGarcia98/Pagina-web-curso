@@ -24,11 +24,11 @@ nodo app: Aplicación | icono=usuario | col=4 | fila=1
 nodo gr: Guardrail | icono=guardrails | col=3 | fila=2 | sub=temas, PII, prompt attack | color=rojo
 nodo fm: Nova Pro (perfil us.) | icono=bedrock | col=3 | fila=1 | sub=responde con citas | color=verde
 flecha doc -> s3
-flecha s3 -> kb | texto=ingesta
+flecha s3 -> kb: ingesta
 flecha kb -> emb
 flecha emb -> vec
 flecha app -> fm
-flecha fm -> kb | texto=retrieve
+flecha fm -> kb: retrieve
 flecha app -> gr | estilo=punteada
 ```
 

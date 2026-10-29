@@ -836,7 +836,8 @@
       const W = s.aml;
       if (p[1] === 'workspace' && p[2] === 'create') { const e = needRg(); if (e) return e; const n = A.get('--name', '-n'); if (!n) return fail('the following arguments are required: --name/-n', 2); W[n] = { rg, computes: {}, jobs: {}, endpoints: {}, models: {} }; save(); return out({ name: n, location: s.groups[rg].location, resourceGroup: rg, mlflow_tracking_uri: `azureml://${s.groups[rg].location}.api.azureml.ms/mlflow/v1.0/subscriptions/${sub}/resourceGroups/${rg}/providers/Microsoft.MachineLearningServices/workspaces/${n}` }); }
       if (p[1] === 'workspace' && p[2] === 'list') return out(Object.entries(W).map(([n, w]) => ({ name: n, resourceGroup: w.rg })));
-      const w = W[ws];
+      // sin -w se usa el workspace por defecto (az configure --defaults workspace=…): aquí, el único o el último creado
+      const w = W[ws || Object.keys(W).pop()];
       if (!w) return fail(`(ResourceNotFound) Workspace '${ws || '(falta --workspace-name/-w)'}' not found.`, 3);
       if (p[1] === 'compute' && p[2] === 'create') { const n = A.get('--name', '-n'); const min = Number(A.get('--min-instances') || 0); w.computes[n] = { tipo: A.get('--type') || 'amlcompute', size: A.get('--size') || 'Standard_DS3_v2', min, max: Number(A.get('--max-instances') || 4) }; save(); return ok(out({ name: n, type: A.get('--type') || 'amlcompute', size: w.computes[n].size, min_instances: min, max_instances: w.computes[n].max }).out + (min > 0 ? col.warn(`\nAviso: con --min-instances ${min} el clúster cobra aunque no haya jobs. Para entrenamiento, usa 0.`) : '')); }
       if (p[1] === 'compute' && p[2] === 'list') return out(Object.entries(w.computes).map(([n, c]) => ({ name: n, type: c.tipo, size: c.size, min_instances: c.min })));
@@ -1015,7 +1016,7 @@
     },
     databricks: {
       auth: ['login', 'profiles', 'env', 'token'], configure: [], 'current-user': ['me'], clusters: ['list', 'get', 'create', 'start', 'delete', 'permanent-delete', 'restart', 'spark-versions'],
-      jobs: ['list', 'get', 'create', 'run-now', 'list-runs', 'get-run', 'cancel-run', 'delete'], fs: ['ls', 'cp', 'cat', 'mkdir', 'rm'], secrets: ['create-scope', 'list-scopes', 'put-secret', 'list-secrets', 'get-secret', 'delete-secret', 'put-acl'],
+      jobs: ['list', 'get', 'create', 'run-now', 'list-runs', 'get-run', 'cancel-run', 'repair-run', 'delete'], fs: ['ls', 'cp', 'cat', 'mkdir', 'rm'], secrets: ['create-scope', 'list-scopes', 'put-secret', 'list-secrets', 'get-secret', 'delete-secret', 'put-acl'],
       workspace: ['list', 'import', 'export', 'mkdirs', 'delete', 'import-dir'], bundle: ['init', 'validate', 'deploy', 'run', 'summary', 'destroy'],
       catalogs: ['list', 'get', 'create'], schemas: ['list', 'create'], tables: ['list', 'get'], warehouses: ['list'], repos: ['list', 'create'],
       pipelines: ['create', 'list-pipelines', 'get', 'start-update', 'list-updates', 'delete'], grants: ['get', 'update', 'get-effective'], 'serving-endpoints': ['list', 'query'],
