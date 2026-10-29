@@ -154,6 +154,46 @@ SELECT nombre, salario FROM r WHERE dr = 2;
 ¿Por qué `DENSE_RANK` y no `ROW_NUMBER`? Si dos personas empatan en el sueldo más alto, el "segundo salario" es el **siguiente valor distinto**. `ROW_NUMBER` devolvería a una de las empatadas; `RANK` saltaría al 3. Explicar esa diferencia es lo que el entrevistador quiere escuchar.
 :::
 
+Las funciones de ventana son estándar, pero algunos motores tienen atajos para el top-N por grupo:
+
+```motores
+titulo: El producto más caro de cada categoría
+[sqlite]
+SELECT categoria_id, nombre, precio
+FROM (
+  SELECT categoria_id, nombre, precio,
+         ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS rn
+  FROM productos
+) AS t
+WHERE rn = 1;
+[postgres]
+-- DISTINCT ON es exclusivo de PostgreSQL: la primera fila de cada grupo según el ORDER BY
+SELECT DISTINCT ON (categoria_id) categoria_id, nombre, precio
+FROM productos
+ORDER BY categoria_id, precio DESC;
+[mysql]
+SELECT categoria_id, nombre, precio
+FROM (
+  SELECT categoria_id, nombre, precio,
+         ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS rn
+  FROM productos
+) AS t
+WHERE rn = 1;
+[sqlserver]
+SELECT categoria_id, nombre, precio
+FROM (
+  SELECT categoria_id, nombre, precio,
+         ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS rn
+  FROM productos
+) AS t
+WHERE rn = 1;
+[databricks]
+-- QUALIFY filtra por una función de ventana sin subconsulta (también en BigQuery y Snowflake)
+SELECT categoria_id, nombre, precio
+FROM productos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) = 1;
+```
+
 ## NTILE: repartir en grupos iguales
 
 `NTILE(n)` divide las filas ordenadas en `n` grupos de tamaño parecido y devuelve el número de grupo. Sirve para cuartiles, deciles o segmentos ("el 25 % de clientes que más compra"):
@@ -261,5 +301,53 @@ WITH v AS (
 SELECT categoria_id, producto_id, ROUND(ventas, 2) AS ventas,
        ROUND(100.0 * ventas / SUM(ventas) OVER (PARTITION BY categoria_id), 2) AS pct_categoria
 FROM v;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre`, `salario` y una columna `ranking` con la posición de cada empleado por salario (de mayor a menor), usando `RANK()`.
+```sql solucion
+SELECT nombre, salario, RANK() OVER (ORDER BY salario DESC) AS ranking FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre`, `departamento_id`, `salario` y `salario_promedio_depto` (2 decimales): el promedio de su departamento al lado de cada empleado, sin perder filas.
+```pista
+`AVG(salario) OVER (PARTITION BY departamento_id)`.
+```
+```sql solucion
+SELECT nombre, departamento_id, salario, ROUND(AVG(salario) OVER (PARTITION BY departamento_id), 2) AS salario_promedio_depto FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Para cada **país**, muestra los **3 clientes con más pedidos**. Columnas: `pais`, `cliente_id`, `pedidos`, `puesto`. Si hay empates, desempata por `cliente_id` (usa `ROW_NUMBER`).
+```pista
+Primero cuenta pedidos por cliente (con su país); después numera dentro de cada país.
+```
+```pista
+`ROW_NUMBER() OVER (PARTITION BY pais ORDER BY pedidos DESC, cliente_id)` y filtra `puesto <= 3` en una consulta externa.
+```
+```sql solucion
+WITH por_cliente AS (
+  SELECT c.pais, c.cliente_id, COUNT(*) AS pedidos
+  FROM pedidos p JOIN clientes c ON c.cliente_id = p.cliente_id
+  GROUP BY c.pais, c.cliente_id
+), numerados AS (
+  SELECT pais, cliente_id, pedidos, ROW_NUMBER() OVER (PARTITION BY pais ORDER BY pedidos DESC, cliente_id) AS puesto
+  FROM por_cliente
+)
+SELECT pais, cliente_id, pedidos, puesto FROM numerados WHERE puesto <= 3;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Muestra `nombre`, `marca`, `precio` y `pct_marca`: qué porcentaje representa el precio de cada producto sobre la **suma de precios de su marca** (2 decimales).
+```pista
+`SUM(precio) OVER (PARTITION BY marca)` da el total de la marca en cada fila.
+```
+```sql solucion
+SELECT nombre, marca, precio, ROUND(100.0 * precio / SUM(precio) OVER (PARTITION BY marca), 2) AS pct_marca FROM productos;
 ```
 :::

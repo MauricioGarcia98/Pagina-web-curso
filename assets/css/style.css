@@ -687,3 +687,106 @@ table.result.motor-comp { width: 100%; min-width: 640px; }
 table.result.motor-comp td, table.result.motor-comp th { font-size: 12.5px; vertical-align: top; white-space: normal; overflow: visible; max-width: none; }
 .motor-comp code { white-space: normal; word-break: break-word; }
 @media (max-width: 640px) { .motor-tabs [data-motor] { padding: 5px 10px; font-size: 13px; } }
+
+/* Laboratorio SQL: bases por negocio */
+.schema-db { border-bottom: 1px solid var(--line); padding: 2px 0; }
+.schema-db .db-head { display: flex; width: 100%; align-items: center; gap: 6px; border: 0; background: none; padding: 7px 4px; cursor: pointer; font: inherit; font-size: 13.5px; text-align: left; color: var(--ink); border-radius: 7px; }
+.schema-db .db-head:hover { background: var(--surface-2); }
+.schema-db .db-head .cnt { margin-left: auto; color: var(--ink-3); font-size: 11px; }
+.schema-db .chev { font-size: 10px; color: var(--ink-3); transition: transform .15s; }
+.schema-db.open .chev { transform: rotate(90deg); }
+.schema-db .db-body { display: none; padding: 0 0 6px 12px; }
+.schema-db.open .db-body { display: block; }
+.schema-db .db-links { font-size: 12px; margin: 0 0 4px 6px; }
+.schema-cols div .muted { font-size: 10.5px; }
+
+/* Catálogo de bases y diagramas entidad-relación */
+.bases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-top: 16px; }
+.base-card { display: flex; gap: 12px; padding: 16px; color: inherit; text-decoration: none; transition: border-color .15s, transform .15s; }
+.base-card:hover { border-color: var(--brand); transform: translateY(-2px); }
+.base-card h3 { margin: 0 0 2px; font-size: 16px; }
+.base-card p { margin: 6px 0 0; color: var(--ink-2); }
+.base-ico { font-size: 30px; line-height: 1; }
+.base-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+.base-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+.base-tabs button { border: 0; background: none; font: inherit; font-size: 14px; padding: 8px 12px; cursor: pointer; color: var(--ink-2); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.base-tabs button.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+.base-page .porque { padding: 14px 18px; margin-bottom: 10px; }
+.base-page .porque h3 { margin: 0 0 6px; font-size: 16px; }
+.base-page .porque p { margin: 0; }
+.base-tabla { padding: 10px 14px; margin-bottom: 8px; }
+.base-tabla summary { cursor: pointer; }
+.consultas { display: grid; gap: 12px; }
+.consultas .card { padding: 14px 16px; }
+.consultas h3 { margin: 0 0 8px; font-size: 15px; }
+.er-wrap { overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 8px; margin-bottom: 14px; max-height: 78vh; }
+.er-svg { display: block; max-width: none; font-family: var(--mono); }
+.er-caja { fill: var(--surface); stroke: var(--line-2); stroke-width: 1.2; }
+.er-cab { fill: var(--brand-soft); }
+.er-hecho .er-cab { fill: var(--warn-soft); }
+.er-dim .er-cab { fill: var(--info-soft); }
+.er-nombre { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.er-sub { font-size: 10px; fill: var(--ink-3); font-family: var(--font); }
+.er-par { fill: var(--surface-2); }
+.er-ico { font-size: 10px; }
+.er-col { font-size: 12px; fill: var(--ink-2); }
+.er-col.er-pk { fill: var(--ink); font-weight: 700; }
+.er-col.er-fk { fill: var(--brand); }
+.er-tipo { font-size: 10px; fill: var(--ink-3); font-family: var(--font); }
+.er-linea { fill: none; stroke: var(--ink-3); stroke-width: 1.4; }
+.er-opcional .er-linea { stroke-dasharray: 5 4; }
+.er-marca { fill: none; stroke: var(--ink-3); stroke-width: 1.4; }
+.er-tabla { cursor: pointer; }
+.er-foco .er-rel { opacity: .15; }
+.er-foco .er-rel.activa { opacity: 1; }
+.er-foco .er-rel.activa .er-linea, .er-foco .er-rel.activa .er-marca { stroke: var(--brand); stroke-width: 2.2; }
+.er-foco .er-tabla { opacity: .45; }
+.er-foco .er-tabla.activa { opacity: 1; }
+.er-foco .er-tabla.activa .er-caja { stroke: var(--brand); stroke-width: 2; }
+table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
+
+/* Laboratorio de modelado */
+.mod-ejs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.mod-grid { display: grid; grid-template-columns: minmax(260px, 2fr) 3fr; gap: 14px; align-items: start; }
+.mod-req { padding: 16px 18px; }
+.mod-req ul { margin: 6px 0 12px; padding-left: 20px; }
+.mod-req li { margin: 4px 0; }
+.mod-editor select { font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.mod-errores { padding: 8px 12px; font-size: 13px; }
+.mod-errores .error { color: var(--bad); }
+.mod-errores .aviso { color: var(--warn); }
+.mod-res { margin-top: 14px; padding: 16px 18px; }
+.mod-res h3 { margin: 4px 0 8px; font-size: 16px; }
+.mod-checks, .mod-reglas { list-style: none; padding: 0; margin: 0 0 12px; }
+.mod-checks li, .mod-reglas li { padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.mod-checks li.ok { color: var(--ok); }
+.mod-checks li.falta { color: var(--bad); }
+.mod-reglas li.error { color: var(--bad); }
+.mod-bien { background: var(--ok-soft); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 10px; }
+.mod-bien p { margin: 6px 0 0; }
+.ok-txt { color: var(--ok); }
+@media (max-width: 900px) { .mod-grid { grid-template-columns: 1fr; } }
+
+/* La misma consulta en varios motores */
+.motores { border: 1px solid var(--line); border-radius: var(--radius); margin: 16px 0; overflow: hidden; background: var(--surface); }
+.motores-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 14px; }
+.motores-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.motores-tabs button { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 3px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.motores-tabs button.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.motores pre[data-sql] { margin: 0; border-radius: 0; background: var(--code-bg); color: var(--code-ink); padding: 12px 14px; overflow: auto; font-size: 13px; }
+.motores-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--line); }
+.motores-tools button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 3px 10px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.motores-tools button:hover { border-color: var(--brand); }
+.motores .output:empty { display: none; }
+
+/* Barra lateral y paneles plegables */
+.menu-btn { display: grid; }
+@media (min-width: 901px) {
+  .sidebar { transition: width .2s, padding .2s; }
+  body.side-collapsed .sidebar { width: 0; padding-left: 0; padding-right: 0; border-right: 0; overflow: hidden; }
+  body.side-collapsed .term-dock { left: 0; }
+}
+.panel-toggle { display: inline-block; margin: 0 0 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 6px; font: inherit; font-size: 12.5px; padding: 3px 9px; cursor: pointer; z-index: 2; }
+.panel-toggle:hover { border-color: var(--brand); color: var(--brand); }
+.lab.panel-oculto { grid-template-columns: 1fr; }
+.lab.panel-oculto > .lab-side { display: none; }

@@ -185,6 +185,10 @@ Si un pedido puede tener varios pagos (por ejemplo, uno rechazado y uno aprobado
 Empieza por las entidades (libro, autor, ejemplar, socio, préstamo) y pregunta las cardinalidades: un libro puede tener varios autores y un autor varios libros (N:M → tabla `libro_autor`); un libro tiene varios **ejemplares** físicos (1:N), y lo que se presta es el ejemplar, no el libro; un socio tiene muchos préstamos (1:N). Distinguir libro de ejemplar es justamente lo que el entrevistador espera ver.
 :::
 
+:::tip Practica en el laboratorio de modelado
+En el [Laboratorio de modelado](#/modelado) escribes el modelo de ocho negocios (biblioteca, cursos online, restaurante, gimnasio, red social, alquiler de autos, organigrama y una estrella de ventas), ves el diagrama mientras escribes, el sitio revisa claves, formas normales y lo que pide el requerimiento, y genera el SQL de creación para SQLite, PostgreSQL, MySQL o SQL Server. También puedes ver cómo están modeladas las [13 bases del curso](#/datos) y por qué.
+:::
+
 ## Ejercicios
 
 :::ejercicio quiz

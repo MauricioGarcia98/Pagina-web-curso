@@ -316,6 +316,24 @@
     }
     T.tipos_cambio = { columns: ['fecha', 'moneda', 'valor_usd'], rows: tc };
 
+    // ---------- experimento A/B del checkout (septiembre de 2024) ----------
+    // Generador propio para no alterar el resto del dataset. El checkout nuevo mejora 2 puntos la
+    // conversión en cada dispositivo, pero por un error de asignación recibió más tráfico móvil
+    // (que convierte menos): en el total parece peor (paradoja de Simpson).
+    const rab = mulberry32(20240901);
+    const ab = [];
+    for (const c of T.clientes.rows) {
+      const grupo = rab() < 0.5 ? 'control' : 'nuevo_checkout';
+      const movil = rab() < (grupo === 'control' ? 0.4 : 0.7);
+      const base = movil ? 0.08 : 0.16;
+      const p = base + (grupo === 'nuevo_checkout' ? 0.02 : 0);
+      const conv = rab() < p ? 1 : 0;
+      const dia = 1 + Math.floor(rab() * 30);
+      const ingreso = conv ? Math.round((40 + rab() * 360) * 100) / 100 : 0;
+      ab.push([c[0], grupo, `2024-09-${String(dia).padStart(2, '0')}`, movil ? 'movil' : 'escritorio', conv, ingreso]);
+    }
+    T.experimento_checkout = { columns: ['cliente_id', 'grupo', 'fecha_asignacion', 'dispositivo', 'convirtio', 'ingreso'], rows: ab };
+
     return T;
   }
 
@@ -332,6 +350,7 @@ CREATE TABLE eventos_web (evento_id INTEGER PRIMARY KEY, cliente_id INTEGER, fec
 CREATE TABLE logins (cliente_id INTEGER, fecha TEXT);
 CREATE TABLE clientes_crudo (registro_id INTEGER PRIMARY KEY, cliente_id INTEGER, nombre TEXT, apellido TEXT, email TEXT, ciudad TEXT, fecha_carga TEXT);
 CREATE TABLE tipos_cambio (fecha TEXT, moneda TEXT, valor_usd REAL);
+CREATE TABLE experimento_checkout (cliente_id INTEGER PRIMARY KEY REFERENCES clientes(cliente_id), grupo TEXT, fecha_asignacion TEXT, dispositivo TEXT, convirtio INTEGER, ingreso REAL);
 CREATE INDEX idx_pedidos_cliente ON pedidos(cliente_id);
 CREATE INDEX idx_detalle_pedido ON detalle_pedidos(pedido_id);
 CREATE INDEX idx_detalle_producto ON detalle_pedidos(producto_id);
@@ -359,7 +378,8 @@ CREATE VIEW stg_pagos AS SELECT pago_id, pedido_id, date(fecha_pago) AS fecha_pa
     eventos_web: 'Clics de navegación en la web durante 2024.',
     logins: 'Días en que los clientes iniciaron sesión (rachas).',
     clientes_crudo: 'Carga “sucia” de clientes con duplicados y formatos mezclados.',
-    tipos_cambio: 'Cotización diaria de monedas vs USD (sin fines de semana).'
+    tipos_cambio: 'Cotización diaria de monedas vs USD (sin fines de semana).',
+    experimento_checkout: 'Prueba A/B del checkout nuevo en septiembre de 2024: grupo, dispositivo y si compró.'
   };
 
   // casos de negocio adicionales (data-casos.js)

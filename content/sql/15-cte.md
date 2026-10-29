@@ -234,3 +234,109 @@ GROUP BY mes
 ORDER BY mes;
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Con una CTE llamada `caros` que tenga los productos de precio mayor a 1000, muestra cuántos hay por `marca`. Columnas: `marca`, `productos`.
+```sql solucion
+WITH caros AS (SELECT * FROM productos WHERE precio > 1000)
+SELECT marca, COUNT(*) AS productos FROM caros GROUP BY marca;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Con una CTE que calcule los pedidos de cada cliente, muestra cuántos clientes hicieron exactamente 1 pedido, 2 pedidos, etc. Columnas: `pedidos`, `clientes`.
+```pista
+La CTE agrupa por `cliente_id`; la consulta final agrupa por la cantidad que calculó la CTE.
+```
+```sql solucion
+WITH por_cliente AS (SELECT cliente_id, COUNT(*) AS pedidos FROM pedidos GROUP BY cliente_id)
+SELECT pedidos, COUNT(*) AS clientes FROM por_cliente GROUP BY pedidos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre`, `salario` y el `promedio_depto` (2 decimales) de los empleados que ganan **más que el promedio de su departamento**. Usa una CTE con el promedio por departamento.
+```pista
+La CTE: `SELECT departamento_id, AVG(salario) AS prom FROM empleados GROUP BY departamento_id`.
+```
+```pista
+Después un JOIN entre empleados y la CTE por `departamento_id`, y el filtro `salario > prom`.
+```
+```sql solucion
+WITH prom AS (SELECT departamento_id, AVG(salario) AS promedio FROM empleados GROUP BY departamento_id)
+SELECT e.nombre, e.salario, ROUND(p.promedio, 2) AS promedio_depto
+FROM empleados e
+JOIN prom p ON p.departamento_id = e.departamento_id
+WHERE e.salario > p.promedio;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Con CTE encadenadas: (1) las ventas por mes de 2024 (importe con descuento) y (2) el promedio mensual. Muestra los meses (`mes`, `'YYYY-MM'`) que **superaron el promedio**, con sus `ventas` (2 decimales), ordenados por mes.
+```pista
+Primera CTE: `ventas_mes` con `strftime('%Y-%m', fecha_pedido)` y la suma del importe.
+```
+```pista
+Segunda CTE: `promedio` con `AVG(ventas)` de la primera. La consulta final cruza ambas.
+```
+```sql solucion
+WITH ventas_mes AS (
+  SELECT strftime('%Y-%m', p.fecha_pedido) AS mes, SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
+  FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  WHERE p.fecha_pedido >= '2024-01-01' AND p.fecha_pedido < '2025-01-01'
+  GROUP BY mes
+), promedio AS (
+  SELECT AVG(ventas) AS prom FROM ventas_mes
+)
+SELECT v.mes, ROUND(v.ventas, 2) AS ventas
+FROM ventas_mes v, promedio
+WHERE v.ventas > promedio.prom
+ORDER BY v.mes;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Con CTE, calcula para cada `segmento` de clientes el **ticket promedio** (importe promedio por pedido, sin descuento, 2 decimales). Columnas: `segmento`, `ticket_promedio`.
+```pista
+Primero el total de cada pedido (una CTE agrupada por `pedido_id`).
+```
+```pista
+Después únelo con pedidos y clientes y promedia por segmento. Si promedias las líneas en vez de los pedidos, el resultado es otro.
+```
+```sql solucion
+WITH total_pedido AS (
+  SELECT pedido_id, SUM(cantidad * precio_unitario) AS total FROM detalle_pedidos GROUP BY pedido_id
+)
+SELECT c.segmento, ROUND(AVG(t.total), 2) AS ticket_promedio
+FROM total_pedido t
+JOIN pedidos p ON p.pedido_id = t.pedido_id
+JOIN clientes c ON c.cliente_id = p.cliente_id
+GROUP BY c.segmento;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Con una CTE de valores escritos a mano (`metas`: canal y meta de pedidos de 2024: `app` 1000, `web` 900, `tienda` 800, `telefono` 300), muestra para cada canal los pedidos reales de 2024 (`reales`), la `meta` y si la cumplió (`cumplio`: 1 o 0).
+```pista
+`WITH metas(canal, meta) AS (VALUES ('app', 1000), ('web', 900), …)`.
+```
+```sql solucion
+WITH metas(canal, meta) AS (VALUES ('app', 1000), ('web', 900), ('tienda', 800), ('telefono', 300)),
+reales AS (
+  SELECT canal, COUNT(*) AS reales FROM pedidos
+  WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < '2025-01-01'
+  GROUP BY canal
+)
+SELECT m.canal, r.reales, m.meta, CASE WHEN r.reales >= m.meta THEN 1 ELSE 0 END AS cumplio
+FROM metas m JOIN reales r ON r.canal = m.canal;
+```
+:::
+
+:::ejercicio quiz dificultad=Básico
+¿Cuál es la principal ventaja de una CTE frente a una subconsulta en el `FROM`?
+
+- [ ] Siempre es más rápida
+- [x] Se lee de arriba hacia abajo y se puede reutilizar por nombre en la misma consulta
+- [ ] Guarda el resultado en disco para la próxima consulta
+- [ ] Permite usar `GROUP BY`, que en las subconsultas no se puede
+:::

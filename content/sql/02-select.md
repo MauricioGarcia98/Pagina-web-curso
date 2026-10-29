@@ -137,6 +137,33 @@ Reglas de los alias:
 No en la mayoría de los motores: `SELECT precio - costo AS ganancia, ganancia * 2 …` falla porque el alias "todavía no existe" mientras se calcula esa misma lista. Repite la expresión, o usa una subconsulta o CTE (lecciones 13 y 15). Entenderás por qué en la lección de `ORDER BY`, cuando veas el **orden en que SQL ejecuta** cada cláusula.
 :::
 
+Las comillas para los alias cambian según el motor. Elige el motor en las pestañas y prueba el ejemplo:
+
+```motores
+titulo: Un alias con espacios
+[sqlite]
+SELECT nombre, precio AS "precio de lista"
+FROM productos
+LIMIT 3;
+[postgres]
+SELECT nombre, precio AS "precio de lista"
+FROM productos
+LIMIT 3;
+[mysql]
+-- MySQL usa backticks para los identificadores
+SELECT nombre, precio AS `precio de lista`
+FROM productos
+LIMIT 3;
+[sqlserver]
+-- SQL Server acepta corchetes (y también comillas dobles)
+SELECT TOP (3) nombre, precio AS [precio de lista]
+FROM productos;
+[bigquery]
+SELECT nombre, precio AS `precio de lista`
+FROM tienda.productos
+LIMIT 3;
+```
+
 ## Texto: comillas simples y concatenación
 
 En SQL, **el texto va entre comillas simples**: `'Chile'`, `'Cliente de '`. Las comillas dobles se reservan para nombres de columnas o alias especiales. Mezclarlas es uno de los errores más comunes al empezar.
@@ -165,6 +192,34 @@ Si un texto contiene una comilla simple (como `O'Brien`), se escribe **doble**: 
 - **MySQL, Spark SQL, BigQuery** usan la función `CONCAT(nombre, ' ', apellido)` (BigQuery y Spark también aceptan `||`).
 - En casi todos los motores, si uno de los valores es `NULL` (vacío), `||` devuelve `NULL`. Lo verás en la lección de `NULL`.
 :::
+
+Concatenar es una de las diferencias más comunes entre motores:
+
+```motores
+titulo: Nombre y apellido en una columna
+[sqlite]
+SELECT nombre || ' ' || apellido AS cliente
+FROM clientes
+LIMIT 3;
+[postgres]
+SELECT nombre || ' ' || apellido AS cliente
+FROM clientes
+LIMIT 3;
+-- también: CONCAT(nombre, ' ', apellido), que trata NULL como texto vacío
+[mysql]
+-- en MySQL, || es el OR lógico: para concatenar se usa CONCAT
+SELECT CONCAT(nombre, ' ', apellido) AS cliente
+FROM clientes
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) nombre + ' ' + apellido AS cliente
+FROM clientes;
+-- también: CONCAT(nombre, ' ', apellido)
+[bigquery]
+SELECT CONCAT(nombre, ' ', apellido) AS cliente
+FROM tienda.clientes
+LIMIT 3;
+```
 
 ## Columnas sin tabla
 
@@ -239,5 +294,62 @@ Muestra `nombre`, `stock`, `costo` y el **valor del inventario** de cada product
 ```sql solucion
 SELECT nombre, stock, costo, stock * costo AS valor_inventario
 FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre`, `precio` y `costo` de los productos, y una columna `margen` con la diferencia entre precio y costo.
+```sql solucion
+SELECT nombre, precio, costo, precio - costo AS margen FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra el `nombre` de cada producto y su precio con IVA del 21 % en una columna `precio_con_iva`, redondeado a 2 decimales.
+```pista
+El precio con IVA es `precio * 1.21`. Para redondear: `ROUND(valor, 2)`.
+```
+```sql solucion
+SELECT nombre, ROUND(precio * 1.21, 2) AS precio_con_iva FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra una sola columna `empleado` con el nombre y el apellido de cada empleado separados por un espacio (por ejemplo, `Camila Ríos`).
+```sql solucion
+SELECT nombre || ' ' || apellido AS empleado FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Para cada línea de `detalle_pedidos`, muestra `detalle_id` y el `importe` de la línea: cantidad por precio unitario, aplicando el descuento (que es una fracción, por ejemplo 0.1 = 10 %). Redondea a 2 decimales.
+```pista
+Un descuento de 0.1 significa pagar el 90 %: `(1 - descuento)`.
+```
+```pista
+`cantidad * precio_unitario * (1 - descuento)`, todo dentro de `ROUND(…, 2)`.
+```
+```sql solucion
+SELECT detalle_id, ROUND(cantidad * precio_unitario * (1 - descuento), 2) AS importe FROM detalle_pedidos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre` y una columna `margen_pct` con el margen de cada producto como porcentaje del precio (`(precio - costo) / precio * 100`), redondeado a 1 decimal.
+```pista
+Ojo con el orden de las operaciones: la resta va entre paréntesis.
+```
+```sql solucion
+SELECT nombre, ROUND((precio - costo) / precio * 100, 1) AS margen_pct FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Arma una etiqueta para cada cliente en una columna `etiqueta`, con el formato `apellido, nombre (ciudad)`. Por ejemplo: `Aguilar, Lucía (Madrid)`.
+```pista
+Concatena varias piezas con `||`: columnas y textos entre comillas simples.
+```
+```sql solucion
+SELECT apellido || ', ' || nombre || ' (' || ciudad || ')' AS etiqueta FROM clientes;
 ```
 :::

@@ -172,6 +172,58 @@ Consecuencias:
 - `WHERE margen > 0.3` (alias) → error en el estándar: en el paso 2 el `SELECT` no se ejecutó.
 - `ORDER BY clientes DESC` (alias) → funciona: en el paso 7 los alias ya existen.
 
+Los motores no son igual de estrictos con el `GROUP BY`. Prueba la misma consulta (incorrecta) en cada uno:
+
+```motores
+titulo: Error típico: una columna fuera del GROUP BY
+[sqlite]
+-- SQLite la acepta y devuelve una ciudad cualquiera de cada país: un error silencioso
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+[postgres]
+-- PostgreSQL la rechaza: ciudad debe ir en el GROUP BY o dentro de una agregación
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+[mysql]
+-- MySQL 8 también la rechaza (modo ONLY_FULL_GROUP_BY)
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+[sqlserver]
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+```
+
+Usar el alias del `SELECT` en el `GROUP BY` funciona en casi todos, salvo SQL Server:
+
+```motores
+titulo: Agrupar por un alias
+[sqlite]
+SELECT strftime('%Y', fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY anio
+ORDER BY anio;
+[postgres]
+SELECT EXTRACT(YEAR FROM fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY anio
+ORDER BY anio;
+[mysql]
+SELECT YEAR(fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY anio
+ORDER BY anio;
+[sqlserver]
+-- SQL Server no acepta el alias en el GROUP BY: se repite la expresión
+SELECT YEAR(fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY YEAR(fecha_pedido)
+ORDER BY anio;
+```
+
 ## Errores frecuentes
 
 :::cuidado Agrupar de más
@@ -273,4 +325,52 @@ Quieres las categorías con un precio promedio mayor a 300. ¿Dónde va la condi
 - [x] En el HAVING
 - [ ] En el ORDER BY
 - [ ] En el FROM
+:::
+
+:::ejercicio sql dificultad=Básico
+Cuenta los clientes por `segmento`. Columnas: `segmento`, `clientes`.
+```sql solucion
+SELECT segmento, COUNT(*) AS clientes FROM clientes GROUP BY segmento;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Para cada `metodo_pago`, cuenta los pedidos **cancelados** (`cancelados`). Ordena de mayor a menor.
+```pista
+Filtra con `WHERE` antes de agrupar.
+```
+```sql solucion
+SELECT metodo_pago, COUNT(*) AS cancelados FROM pedidos WHERE estado = 'cancelado' GROUP BY metodo_pago ORDER BY cancelados DESC;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Muestra las **marcas** que tienen **5 o más productos** y un precio promedio **mayor a 500**. Columnas: `marca`, `productos`, `precio_promedio` (2 decimales). Ordena por `precio_promedio` de mayor a menor.
+```pista
+Las condiciones sobre agregados van en `HAVING`.
+```
+```pista
+`HAVING COUNT(*) >= 5 AND AVG(precio) > 500`.
+```
+```sql solucion
+SELECT marca, COUNT(*) AS productos, ROUND(AVG(precio), 2) AS precio_promedio
+FROM productos
+GROUP BY marca
+HAVING COUNT(*) >= 5 AND AVG(precio) > 500
+ORDER BY precio_promedio DESC;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Cuenta los eventos web por **hora del día** (`hora`, de `'00'` a `'23'`) y `dispositivo`, solo de los eventos de tipo `compra`. Ordena por `hora` y `dispositivo`. Columnas: `hora`, `dispositivo`, `compras`.
+```pista
+`strftime('%H', fecha_hora)` extrae la hora.
+```
+```sql solucion
+SELECT strftime('%H', fecha_hora) AS hora, dispositivo, COUNT(*) AS compras
+FROM eventos_web
+WHERE tipo_evento = 'compra'
+GROUP BY hora, dispositivo
+ORDER BY hora, dispositivo;
+```
 :::

@@ -172,7 +172,7 @@ El camino es: detalle → (su pedido) → (el cliente de ese pedido) y detalle �
 
 :::tip Método para escribir un join de varias tablas
 1. **Define el grano**: "una fila por línea de pedido". Empieza el `FROM` por la tabla que tiene ese nivel de detalle (aquí, `detalle_pedidos`).
-2. **Dibuja el camino** con las flechas del diagrama de [Los datos](#/datos): ¿cómo llego desde el detalle hasta el país?
+2. **Dibuja el camino** con las flechas del diagrama de [Tienda Andina](#/datos/tienda): ¿cómo llego desde el detalle hasta el país?
 3. **Agrega una tabla por vez** y ejecuta: verifica que la cantidad de filas no cambie de forma inesperada.
 4. **Recién al final** agrega `WHERE`, `GROUP BY` y `ORDER BY`.
 :::
@@ -286,5 +286,63 @@ GROUP BY e.empleado_id, e.nombre, e.apellido, d.nombre;
 ```
 ```pista
 Agrupa por `e.empleado_id` (y las columnas que muestras): dos empleados pueden llamarse igual.
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre` del producto y `nombre` de su categoría (alias `categoria`) para todos los productos.
+```sql solucion
+SELECT p.nombre, c.nombre AS categoria FROM productos p JOIN categorias c ON c.categoria_id = p.categoria_id;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `pedido_id`, `fecha_pedido` y el `pais` del cliente de cada pedido.
+```sql solucion
+SELECT p.pedido_id, p.fecha_pedido, c.pais FROM pedidos p JOIN clientes c ON c.cliente_id = p.cliente_id;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Cuenta los pedidos por **país** del cliente. Columnas: `pais`, `pedidos`.
+```pista
+Primero el JOIN, después el `GROUP BY` por la columna de la tabla de clientes.
+```
+```sql solucion
+SELECT c.pais, COUNT(*) AS pedidos FROM pedidos p JOIN clientes c ON c.cliente_id = p.cliente_id GROUP BY c.pais;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+¿Cuántas **unidades** se vendieron de cada **marca**? Columnas: `marca`, `unidades`. Ordena de mayor a menor.
+```pista
+Las unidades están en `detalle_pedidos` y la marca en `productos`.
+```
+```sql solucion
+SELECT pr.marca, SUM(d.cantidad) AS unidades
+FROM detalle_pedidos d
+JOIN productos pr ON pr.producto_id = d.producto_id
+GROUP BY pr.marca
+ORDER BY unidades DESC;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Calcula las **ventas** (importe con descuento, 2 decimales) por **categoría** de los pedidos entregados de 2024. Columnas: `categoria`, `ventas`. Ordena de mayor a menor.
+```pista
+Hacen falta cuatro tablas: pedidos → detalle_pedidos → productos → categorias.
+```
+```pista
+Filtra `estado = 'entregado'` y el rango de fechas de 2024 sobre `pedidos`, y suma `cantidad * precio_unitario * (1 - descuento)`.
+```
+```sql solucion
+SELECT c.nombre AS categoria, ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+JOIN productos pr ON pr.producto_id = d.producto_id
+JOIN categorias c ON c.categoria_id = pr.categoria_id
+WHERE p.estado = 'entregado' AND p.fecha_pedido >= '2024-01-01' AND p.fecha_pedido < '2025-01-01'
+GROUP BY c.nombre
+ORDER BY ventas DESC;
 ```
 :::

@@ -319,6 +319,49 @@
       $('[data-run]', tools)?.addEventListener('click', () => turnIntoRunner(box, lang, code));
     }
   }
+  // pistas progresivas: cada clic muestra una pista más
+  function mostrarPista(ex, showExtra, btn) {
+    const todas = ex.pistas || [ex.pista];
+    const n = Math.min(Number(btn.dataset.vistas || 0) + 1, todas.length);
+    btn.dataset.vistas = n;
+    showExtra(todas.length > 1 ? `Pistas (${n} de ${todas.length})` : 'Pista', todas.slice(0, n).map((p, i) => (todas.length > 1 ? `<div class="pista-n"><b>Pista ${i + 1}</b>${p}</div>` : p)).join(''));
+    if (todas.length > 1) btn.innerHTML = n < todas.length ? `💡 Otra pista <span class="muted">${n + 1}/${todas.length}</span>` : '💡 Pistas';
+  }
+
+  // ---------------------------------------------------------------- la misma consulta en varios motores
+  const NOMBRE_MOTOR = { sqlite: 'SQLite', postgres: 'PostgreSQL', mysql: 'MySQL', sqlserver: 'SQL Server', bigquery: 'BigQuery', databricks: 'Databricks SQL', snowflake: 'Snowflake', oracle: 'Oracle' };
+  function enhanceMotores(root) {
+    for (const box of $$('.motores[data-spec]', root)) {
+      const spec = JSON.parse(box.dataset.spec); box.removeAttribute('data-spec');
+      const pref = Store.data.code['motor-preferido'];
+      const inicial = spec.variantes.find((v) => v.m === pref) ? pref : spec.variantes[0].m;
+      box.innerHTML = `<div class="motores-cab">${spec.titulo ? `<b>${esc(spec.titulo)}</b>` : '<b>La misma consulta en cada motor</b>'}<div class="motores-tabs">${spec.variantes.map((v) => `<button data-m="${v.m}">${esc(NOMBRE_MOTOR[v.m])}</button>`).join('')}</div></div>
+        ${spec.variantes.map((v) => `<div class="motores-var" data-v="${v.m}" hidden><pre data-sql><code>${esc(v.code)}</code></pre><div class="motores-tools"><button type="button" data-copiar>Copiar</button>${v.norun ? `<span class="small muted">${v.m === 'sqlite' || v.m === 'postgres' || v.m === 'mysql' || v.m === 'sqlserver' ? 'Este ejemplo no se ejecuta en el navegador' : 'Para ver la sintaxis: este motor no corre en el navegador'}</span>` : `<button type="button" data-ejecutar>▶ Probar en ${esc(NOMBRE_MOTOR[v.m])}</button>${v.m === 'mysql' || v.m === 'sqlserver' ? '<span class="small muted">modo compatible</span>' : ''}`}</div><div class="output" data-out></div></div>`).join('')}`;
+      if (window.hljs) $$('pre[data-sql] code', box).forEach((c) => { try { c.innerHTML = window.hljs.highlight(c.textContent, { language: 'sql', ignoreIllegals: true }).value; } catch (e) { /* sin resaltado */ } });
+      const mostrar = (m) => { $$('.motores-tabs button', box).forEach((b) => b.classList.toggle('active', b.dataset.m === m)); $$('.motores-var', box).forEach((d) => { d.hidden = d.dataset.v !== m; }); };
+      $('.motores-tabs', box).addEventListener('click', (e) => {
+        const b = e.target.closest('[data-m]'); if (!b) return;
+        Store.setCode('motor-preferido', b.dataset.m);
+        // todos los bloques de la página cambian juntos al motor elegido
+        $$('.motores', root).forEach((otro) => { if (otro.querySelector(`.motores-tabs [data-m="${b.dataset.m}"]`)) otro.querySelector(`.motores-tabs [data-m="${b.dataset.m}"]`).dispatchEvent(new CustomEvent('elegir')); });
+        mostrar(b.dataset.m);
+      });
+      $$('.motores-tabs button', box).forEach((b) => b.addEventListener('elegir', () => mostrar(b.dataset.m)));
+      for (const d of $$('.motores-var', box)) {
+        const v = spec.variantes.find((x) => x.m === d.dataset.v);
+        $('[data-copiar]', d).addEventListener('click', () => { navigator.clipboard?.writeText(v.code); toast('Copiado al portapapeles'); });
+        const run = $('[data-ejecutar]', d);
+        if (run) run.addEventListener('click', async () => {
+          const out = $('[data-out]', d);
+          if (!(await ensureSql(out))) return;
+          loadingInto(out, v.m === 'postgres' && window.SqlMotores.PG.estado !== 'listo' ? 'Cargando PostgreSQL (unos 6 MB, solo la primera vez)…' : 'Ejecutando…');
+          try { const r = await window.SqlMotores.ejecutar(v.m, v.code, (msg) => loadingInto(out, msg)); renderSqlOutput(out, r); if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`)); }
+          catch (e) { out.innerHTML = `<pre class="console"><span class="err">${esc(e.message)}</span></pre>`; }
+        });
+      }
+      mostrar(inicial);
+    }
+  }
   // highlight.js no trae HCL en su paquete común: una definición chica para los bloques de Terraform
   function registrarHcl(hljs) {
     if (hljs.getLanguage('hcl')) return;
@@ -467,7 +510,7 @@
     const tools = h(`<div class="ex-tools">
       <button class="btn btn-primary btn-sm" data-act="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button>
       <button class="btn btn-ok btn-sm" data-act="check">✓ Comprobar</button>
-      ${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}
+      ${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}
       <button class="btn btn-sm" data-act="sol">👁 Solución</button>
       ${ex.type === 'sql' || ex.type === 'dbt' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}
       <span class="spacer"></span>
@@ -480,7 +523,7 @@
       const a = b.dataset.act;
       if (a === 'run') run();
       if (a === 'check') check();
-      if (a === 'hint') showExtra('Pista', ex.pista);
+      if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
       if (a === 'sol') showSolution();
       if (a === 'reset') { ed.setValue(starter); fb.hidden = true; out.innerHTML = ''; }
       if (a === 'schema') showSchemaModal();
@@ -571,7 +614,7 @@
 
   function mountCli(card, ex, markPassed, fb, feedback, extra, showExtra) {
     const box = h('<div class="ex-term"></div>');
-    const tools = h(`<div class="ex-tools">${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
+    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
     card.append(box, tools, fb, extra);
     const tool = (ex.respuesta[0].replace(/^todos:\s*/, '').match(/^[\w-]+/) || [''])[0];
     const termOpts = {
@@ -603,7 +646,7 @@
     if (ex.setup) { term.input.addEventListener('focus', prep, { once: true }); termOpts.beforeRun = prep; }
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
-      if (a === 'hint') showExtra('Pista', ex.pista);
+      if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
       if (a === 'sol') {
         const sol = ex.solucion || ex.respuesta[0].replace(/\\/g, '');
         showExtra('Solución', `<pre data-lang="bash"><code>${esc(sol)}</code></pre>${ex.explicacion || ''}<button class="btn btn-sm" data-type>⌨ Escribirla en la terminal</button>`);
@@ -617,11 +660,11 @@
     const ta = $('textarea', box);
     ta.value = Store.code(ex.id) || ex.inicial || '';
     ta.addEventListener('input', () => Store.setCode(ex.id, ta.value));
-    const tools = h(`<div class="ex-tools">${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}<button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
+    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
     card.append(box, tools, extra);
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
-      if (a === 'hint') showExtra('Pista', ex.pista);
+      if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
       if (a === 'sol') showExtra('Respuesta modelo', (ex.solucion ? `<pre data-lang="${esc(ex.lang || 'text')}"><code>${esc(ex.solucion)}</code></pre>` : '') + (ex.explicacion || ''));
       if (a === 'done') { markPassed(); toast('¡Bien! Marcado como hecho.'); }
     });
@@ -670,10 +713,11 @@
     html += '<div class="side-section">Practica libre</div>';
     html += link('#/lab/terminal', '⌨️', 'Laboratorio de terminal', route.name === 'lab-terminal');
     html += link('#/lab/sql', '🧪', 'Laboratorio SQL', route.name === 'lab-sql');
+    html += link('#/modelado', '📐', 'Laboratorio de modelado', route.name === 'modelado');
     html += link('#/lab/python', '🐍', 'Laboratorio Python', route.name === 'lab-python');
     html += link('#/lab/pyspark', '⚡', 'Laboratorio PySpark', route.name === 'lab-pyspark');
     html += '<div class="side-section">Recursos</div>';
-    html += link('#/datos', '🗃️', 'Los datos (Tienda Andina)', route.name === 'datos');
+    html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
@@ -829,6 +873,7 @@
     </div>`;
     const body = $('#lessonBody');
     enhanceCode(body);
+    enhanceMotores(body);
     if (window.Diagramas) window.Diagramas.dibujar(body);
     $$('.exercise-slot', body).forEach((slot) => {
       const k = Number(slot.dataset.ex);
@@ -895,7 +940,7 @@
       <div class="motor-tabs" role="tablist">${Object.entries(MOT).map(([k, m]) => `<button role="tab" data-motor="${k}"><span>${m.icono}</span> ${esc(m.nombre)}${m.real ? '' : ' <small>compatible</small>'}</button>`).join('')}<span class="spacer"></span><button class="btn btn-ghost btn-sm" id="comparar">📋 Diferencias entre motores</button></div>
       <div class="motor-info" id="motorInfo"></div>
       <div class="lab">
-        <aside class="card lab-side"><h4>Tablas</h4><div id="schema"><div class="muted small">Cargando…</div></div></aside>
+        <aside class="card lab-side"><h4>Bases de datos</h4><div id="schema"><div class="muted small">Cargando…</div></div></aside>
         <div class="lab-main"><div class="card">
           <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb">↺ Reiniciar base</button></div>
           <div id="ed"></div>
@@ -945,15 +990,23 @@
     pintarMotor();
     ensureSql(out).then((ok) => {
       if (!ok) return;
+      // panel de bases: cada empresa se despliega en sus tablas y cada tabla en sus columnas
       const sc = $('#schema'); sc.innerHTML = '';
-      for (const [name, t] of Object.entries(SQL.tables)) {
-        const el = h(`<div class="schema-table"><button><span>▸</span>${esc(name)}<span class="cnt">${t.rows.length.toLocaleString('es')}</span></button><div class="schema-cols">${t.columns.map((c) => `<div data-col="${esc(c)}">${esc(c)}</div>`).join('')}<div data-q="${esc(name)}" style="color:var(--brand);cursor:pointer">▶ ver 10 filas</div></div></div>`);
-        $('button', el).addEventListener('click', () => el.classList.toggle('open'));
-        el.addEventListener('click', (e) => {
-          const c = e.target.closest('[data-col]'); if (c) { if (ed.cm) ed.cm.replaceSelection(c.dataset.col); else if (ed.monaco) ed.monaco.trigger('kbd', 'type', { text: c.dataset.col }); ed.focus(); }
+      const B = window.Bases;
+      const abierta = Store.data.code['lab-sql-base'] || 'tienda';
+      for (const c of window.DataGen.CASOS || []) {
+        const b = B.infoBase(c.id); if (!b) continue;
+        const tablas = b.orden.filter((n) => SQL.tables[n]);
+        const filas = tablas.reduce((x, n) => x + SQL.tables[n].rows.length, 0);
+        const db = h(`<div class="schema-db ${c.id === abierta ? 'open' : ''}"><button class="db-head"><span class="chev">▸</span><span>${c.icono}</span><b>${esc(c.nombre)}</b><span class="cnt">${tablas.length}</span></button>
+          <div class="db-body"><div class="db-links"><a href="#/datos/${c.id}">🗺️ Modelo y por qué</a></div>${tablas.map((name) => { const cols = B.columnasTabla(b, name); return `<div class="schema-table"><button><span>▸</span>${esc(name)}<span class="cnt">${SQL.tables[name].rows.length.toLocaleString('es')}</span></button><div class="schema-cols">${cols.map((x) => `<div data-col="${esc(x.n)}" title="${esc(x.t)}${x.fk ? ' → ' + esc(x.fk) : ''}">${x.pk ? '🔑 ' : x.fk ? '🔗 ' : ''}${esc(x.n)} <span class="muted">${esc(x.t)}</span></div>`).join('')}<div data-q="${esc(name)}" style="color:var(--brand);cursor:pointer">▶ ver 10 filas</div></div></div>`; }).join('')}</div></div>`);
+        $('.db-head', db).addEventListener('click', () => { db.classList.toggle('open'); if (db.classList.contains('open')) Store.setCode('lab-sql-base', c.id); });
+        $$('.schema-table > button', db).forEach((bt) => bt.addEventListener('click', () => bt.parentElement.classList.toggle('open')));
+        db.addEventListener('click', (e) => {
+          const col = e.target.closest('[data-col]'); if (col) { if (ed.cm) ed.cm.replaceSelection(col.dataset.col); else if (ed.monaco) ed.monaco.trigger('kbd', 'type', { text: col.dataset.col }); ed.focus(); }
           const q = e.target.closest('[data-q]'); if (q) { ed.setValue(motor === 'sqlserver' ? `SELECT TOP 10 *\nFROM ${q.dataset.q};` : `SELECT *\nFROM ${q.dataset.q}\nLIMIT 10;`); run(); }
         });
-        sc.append(el);
+        sc.append(db);
       }
       if (motor !== 'postgres') run();
       else out.innerHTML = '<div class="out-meta">PostgreSQL se descarga la primera vez que ejecutas (unos 6 MB). Presiona ▶ Ejecutar.</div>';
@@ -1042,60 +1095,57 @@
   }
 
   // ---------------------------------------------------------------- datos
-  const RELS = [
-    ['pedidos.cliente_id', 'clientes.cliente_id'], ['pedidos.empleado_id', 'empleados.empleado_id'],
-    ['detalle_pedidos.pedido_id', 'pedidos.pedido_id'], ['detalle_pedidos.producto_id', 'productos.producto_id'],
-    ['productos.categoria_id', 'categorias.categoria_id'], ['categorias.categoria_padre_id', 'categorias.categoria_id'],
-    ['pagos.pedido_id', 'pedidos.pedido_id'], ['empleados.departamento_id', 'departamentos.departamento_id'],
-    ['empleados.jefe_id', 'empleados.empleado_id'], ['eventos_web.cliente_id', 'clientes.cliente_id'],
-    ['logins.cliente_id', 'clientes.cliente_id'], ['clientes_crudo.cliente_id', 'clientes.cliente_id']
-  ];
-  function erDiagram() {
-    // diagrama simple: cajas en una grilla con líneas de relación
-    const pos = {
-      clientes: [20, 150], pedidos: [290, 150], detalle_pedidos: [560, 150], productos: [830, 150],
-      categorias: [830, 20], pagos: [290, 20], empleados: [290, 290], departamentos: [560, 290],
-      eventos_web: [20, 20], logins: [20, 290], clientes_crudo: [20, 380], tipos_cambio: [830, 290]
-    };
-    const W = 210, H = 44;
-    let lines = '', boxes = '';
-    for (const [a, b] of RELS) {
-      const ta = a.split('.')[0], tb = b.split('.')[0];
-      if (ta === tb) continue;
-      const [x1, y1] = pos[ta], [x2, y2] = pos[tb];
-      lines += `<line x1="${x1 + W / 2}" y1="${y1 + H / 2}" x2="${x2 + W / 2}" y2="${y2 + H / 2}" stroke="var(--line-2)" stroke-width="1.5"/>`;
-    }
-    for (const [t, [x, y]] of Object.entries(pos)) {
-      boxes += `<g><rect x="${x}" y="${y}" width="${W}" height="${H}" rx="9" fill="var(--surface)" stroke="var(--brand)" stroke-width="1.4"/><text x="${x + W / 2}" y="${y + 27}" text-anchor="middle" font-size="14" fill="var(--ink)">${t}</text></g>`;
-    }
-    return `<div class="er card" style="padding:12px"><svg viewBox="0 0 1060 440" width="100%" style="min-width:720px" role="img" aria-label="Diagrama de relaciones entre tablas">${lines}${boxes}</svg></div>`;
-  }
-  function viewDatos() {
-    main.innerHTML = `<div class="container prose">
-      <h1>🗃️ Los datos: 8 empresas</h1>
-      <p>La empresa principal del curso es <b>Tienda Andina</b>, un comercio online que vende tecnología, hogar, deportes y moda en Latinoamérica y España entre 2022 y 2024. Además hay <b>siete empresas más</b>, cada una con sus tablas (separadas por un prefijo), para los casos de negocio. Los datos se generan siempre iguales (con una “semilla” fija), así que tus resultados son reproducibles.</p>
-      <p>En total hay <b>más de 200.000 filas</b> en 38 tablas, más 5 vistas <code>stg_*</code> para el módulo de dbt. Todas están en la misma base: puedes consultarlas desde cualquier ejercicio de SQL, desde PySpark con <code>spark.table("…")</code>, desde dbt con <code>ref('…')</code> y desde la terminal con <code>sqlite3</code>.</p>
-      <div class="table-wrap not-prose"><table><thead><tr><th>Empresa</th><th>Rubro</th><th>Prefijo de sus tablas</th><th>Qué contiene</th></tr></thead><tbody>${(window.DataGen.CASOS || []).map((c) => `<tr><td>${c.icono} <b>${esc(c.nombre)}</b></td><td>${esc(c.rubro)}</td><td><code>${esc(c.prefijo || '(sin prefijo)')}</code></td><td>${esc(c.resumen)}</td></tr>`).join('')}</tbody></table></div>
-      <h2>Tienda Andina: el diagrama</h2>
-      <p>Las líneas del diagrama muestran qué columnas conectan las tablas de la tienda (claves foráneas).</p>
-      ${erDiagram()}
-      <h2>Relaciones (para hacer JOIN)</h2>
-      <div class="table-wrap"><table><thead><tr><th>Columna</th><th>Apunta a</th></tr></thead><tbody>${RELS.map(([a, b]) => `<tr><td><code>${a}</code></td><td><code>${b}</code></td></tr>`).join('')}</tbody></table></div>
-      <h2>Tablas</h2><div id="tablesList"><div class="loading-block"><span class="spinner"></span> Cargando…</div></div>
-      <h2>Datos curiosos para tus análisis</h2>
-      <ul><li>Las ventas tienen <b>estacionalidad</b>: suben en noviembre-diciembre y en julio.</li><li>Más de 500 clientes (≈27%) <b>nunca compraron</b>: útiles para practicar LEFT JOIN y anti-joins.</li><li>Las ventas <b>crecen</b> año a año (2022 → 2024) y los pedidos se numeran en orden cronológico.</li><li>Algunos productos venden muchísimo más que otros (distribución de “cola larga”).</li><li><code>clientes_crudo</code> tiene duplicados con mayúsculas y espacios: perfecta para limpiar datos.</li><li><code>logins</code> tiene rachas de días consecutivos (el clásico problema “gaps &amp; islands”).</li><li><code>tipos_cambio</code> no tiene fines de semana: ideal para practicar “último valor conocido”.</li><li>Las fechas se guardan como texto ISO (<code>'2024-03-15'</code>), como es habitual en SQLite.</li></ul>
+  // abre una consulta en el laboratorio SQL (motor SQLite)
+  function abrirEnLab(q) { Store.setCode('lab-sql-motor', 'sqlite'); Store.setCode('lab-sql', q); location.hash = '#/lab/sql'; }
+  const CURIOSOS_TIENDA = `<ul><li>Las ventas tienen <b>estacionalidad</b>: suben en noviembre-diciembre y en julio.</li><li>Más de 500 clientes (≈27%) <b>nunca compraron</b>: útiles para practicar LEFT JOIN y anti-joins.</li><li>Las ventas <b>crecen</b> año a año (2022 → 2024) y los pedidos se numeran en orden cronológico.</li><li>Algunos productos venden muchísimo más que otros (distribución de “cola larga”).</li><li><code>clientes_crudo</code> tiene duplicados con mayúsculas y espacios: perfecta para limpiar datos.</li><li><code>logins</code> tiene rachas de días consecutivos (el clásico problema “gaps &amp; islands”).</li><li><code>tipos_cambio</code> no tiene fines de semana: ideal para practicar “último valor conocido”.</li><li>Las fechas se guardan como texto ISO (<code>'2024-03-15'</code>), como es habitual en SQLite.</li></ul>`;
+
+  function viewDatos(id) {
+    const B = window.Bases;
+    if (id && B.infoBase(id)) return viewBase(id);
+    const casos = window.DataGen.CASOS || [];
+    main.innerHTML = `<div class="container">
+      <h1 style="margin-bottom:4px">🗃️ Las bases de datos del curso</h1>
+      <p class="muted" style="margin-top:0;max-width:820px">Trece empresas ficticias, cada una con su base de datos: más de 320.000 filas en 61 tablas. Todas se consultan desde los ejercicios, el laboratorio SQL (SQLite, PostgreSQL, MySQL y SQL Server) y PySpark. Entra a cada una para ver <b>cómo está modelada y por qué</b>, qué representa cada fila y su versión dimensional para análisis.</p>
+      <div class="bases-grid" id="basesGrid">${casos.map((c) => { const b = B.infoBase(c.id); return `<a class="card base-card" href="#/datos/${c.id}"><div class="base-ico">${c.icono}</div><div><h3>${esc(c.nombre)}</h3><div class="small muted">${esc(c.rubro)} · ${b ? b.orden.length : 0} tablas<span data-filas="${c.id}"></span></div><p class="small">${esc(c.resumen)}</p></div></a>`; }).join('')}</div>
+      <div class="card" style="margin-top:20px;padding:16px 20px"><b>¿Cómo leer los diagramas?</b> <span class="small muted">🔑 clave primaria · 🔗 clave foránea · la “pata de gallo” marca el lado <i>muchos</i> de la relación y las dos barras el lado <i>uno</i>. Una línea punteada es una relación opcional o lógica. Pasa el mouse por una tabla para resaltar sus relaciones.</span></div>
     </div>`;
     SQL.init().then(() => {
-      const box = $('#tablesList'); if (!box) return; box.innerHTML = '';
-      for (const [name, t] of Object.entries(SQL.tables)) {
-        const fks = new Set(RELS.filter(([a]) => a.startsWith(name + '.')).map(([a]) => a.split('.')[1]));
-        const el = h(`<div class="card dataset-table not-prose"><h3>${esc(name)}</h3><div class="muted small">${t.rows.length.toLocaleString('es')} filas · ${esc(window.DataGen.TABLE_INFO[name] || '')}</div>
-          <div class="cols-list">${t.columns.map((c, i) => `<span class="${i === 0 && c.endsWith('_id') && name !== 'logins' && name !== 'tipos_cambio' ? 'pk' : fks.has(c) ? 'fk' : ''}">${esc(c)}</span>`).join('')}</div>
-          <details><summary class="small" style="cursor:pointer">Ver 8 filas de ejemplo</summary>${tableHtml({ columns: t.columns, values: t.rows.slice(0, 8) })}</details></div>`);
-        box.append(el);
-      }
-      box.append(h('<p class="small muted">Borde naranja = clave primaria (PK) · borde violeta = clave foránea (FK).</p>'));
-    }).catch((e) => { const box = $('#tablesList'); if (box) box.innerHTML = `<p>${esc(e.message)}</p>`; });
+      for (const c of casos) { const b = B.infoBase(c.id); const span = $(`[data-filas="${c.id}"]`); if (b && span) span.textContent = ' · ' + b.orden.reduce((s, n) => s + ((SQL.tables[n] || {}).rows || []).length, 0).toLocaleString('es') + ' filas'; }
+    }).catch(() => {});
+  }
+
+  function viewBase(id) {
+    const B = window.Bases, b = B.infoBase(id);
+    const caso = LESSONS.find((l) => l.modulo.id === 'casos' && new RegExp(b.nombre.split(' ')[0], 'i').test(l.titulo));
+    main.innerHTML = `<div class="container base-page">
+      <div class="breadcrumb small"><a href="#/datos">Bases de datos</a> / ${esc(b.nombre)}</div>
+      <h1 style="margin:4px 0">${b.icono} ${esc(b.nombre)} <span class="muted" style="font-size:.55em;font-weight:500">${esc(b.rubro)}</span></h1>
+      <p class="muted" style="margin-top:0;max-width:820px">${esc(b.resumen)}</p>
+      <div class="base-acciones"><button class="btn btn-primary" id="abrirLab">🧪 Abrir en el laboratorio SQL</button>${caso ? `<a class="btn" href="#/l/${caso.id}">💼 Caso de negocio</a>` : ''}<a class="btn btn-ghost" href="#/modelado">📐 Practicar modelado</a></div>
+      <nav class="base-tabs" role="tablist"><button data-tab="modelo" class="active">🗺️ Modelo</button><button data-tab="tablas">📋 Tablas</button><button data-tab="porque">💡 Por qué así</button><button data-tab="estrella">⭐ Para análisis</button><button data-tab="consultas">▶ Consultas</button></nav>
+      <section data-panel="modelo"><p class="small muted">Las tablas de la izquierda son las “maestras”; a la derecha, las que dependen de ellas. Pasa el mouse por una tabla para ver sus relaciones; haz clic para ver sus datos.</p><div class="er-wrap" id="er"><div class="loading-block"><span class="spinner"></span> Cargando…</div></div></section>
+      <section data-panel="tablas" hidden><div id="tablasBase"></div></section>
+      <section data-panel="porque" hidden><div class="prose">${b.porQue.map(([t, x]) => `<div class="card porque"><h3>${esc(t)}</h3><p>${x}</p></div>`).join('')}${id === 'tienda' ? `<h3>Datos curiosos para tus análisis</h3>${CURIOSOS_TIENDA}` : ''}</div></section>
+      <section data-panel="estrella" hidden><div class="prose"><p>La base de arriba está pensada para <b>operar</b> el negocio (muchas escrituras pequeñas, sin datos repetidos). Para <b>analizar</b> conviene otra forma: un <b>modelo estrella</b>, con tablas de <i>hechos</i> (lo que pasa y se mide) rodeadas de <i>dimensiones</i> (por qué filtrar y agrupar).</p><p>${b.estrella.notas}</p></div><div class="er-wrap" id="erEstrella"></div>
+        <div class="table-wrap"><table><thead><tr><th>Tabla de hechos</th><th>Grano (una fila es…)</th></tr></thead><tbody>${b.estrella.hechos.map((f) => `<tr><td><code>${esc(f.nombre)}</code></td><td>${esc(f.grano)}</td></tr>`).join('')}</tbody></table></div></section>
+      <section data-panel="consultas" hidden><div class="consultas">${b.preguntas.map(([t, q], i) => `<div class="card"><h3>${esc(t)}</h3><pre data-lang="sql"><code>${esc(q)}</code></pre><button class="btn btn-sm" data-q="${i}">🧪 Abrir en el laboratorio</button></div>`).join('')}</div></section>
+    </div>`;
+    const tabs = $$('.base-tabs [data-tab]');
+    const mostrar = (t) => { tabs.forEach((x) => x.classList.toggle('active', x.dataset.tab === t)); $$('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== t; }); if (t === 'estrella' && !$('#erEstrella svg')) B.dibujarEstrella($('#erEstrella'), id); };
+    tabs.forEach((x) => x.addEventListener('click', () => mostrar(x.dataset.tab)));
+    $('#abrirLab').addEventListener('click', () => abrirEnLab(`-- ${b.nombre}: ${b.orden.join(', ')}\nSELECT *\nFROM ${b.orden[0]}\nLIMIT 10;`));
+    $$('[data-q]').forEach((x) => x.addEventListener('click', () => abrirEnLab(b.preguntas[x.dataset.q][1])));
+    if (window.hljs) $$('.consultas pre code').forEach((c) => { try { window.hljs.highlightElement(c); } catch (e) { /* sin resaltado */ } });
+    SQL.init().then(() => {
+      B.dibujarBase($('#er'), id, { onTabla: (t) => { mostrar('tablas'); const c = $(`#tb-${t}`); if (c) { c.open = true; c.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } });
+      $('#tablasBase').innerHTML = b.orden.filter((n) => SQL.tables[n]).map((n) => {
+        const t = SQL.tables[n], cols = B.columnasTabla(b, n);
+        return `<details class="card base-tabla" id="tb-${n}"><summary><b>${esc(n)}</b> <span class="small muted">${t.rows.length.toLocaleString('es')} filas · una fila = ${esc(b.tablas[n].grano)}</span></summary>
+          <p class="small muted">${esc(window.DataGen.TABLE_INFO[n] || '')}</p>
+          <div class="table-wrap"><table class="cols-tabla"><thead><tr><th>Columna</th><th>Tipo</th><th>Clave</th></tr></thead><tbody>${cols.map((c) => `<tr><td><code>${esc(c.n)}</code></td><td class="small">${esc(c.t)}</td><td class="small">${c.pk ? '🔑 primaria' : ''}${c.fk ? `🔗 → <code>${esc(c.fk)}</code>` : ''}</td></tr>`).join('')}</tbody></table></div>
+          <div class="small muted" style="margin:8px 0 4px">Primeras 8 filas</div>${tableHtml({ columns: t.columns, values: t.rows.slice(0, 8) })}</details>`;
+      }).join('');
+    }).catch((e) => { $('#er').innerHTML = `<p>${esc(e.message)}</p>`; });
   }
 
   function viewGlosario(filter = '') {
@@ -1990,6 +2040,8 @@
     if (parts[0] === 'claves' && parts[1]) return { name: 'claves', cert: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
     if (parts[0] === 'plan' && parts[1]) return { name: 'plan', cert: parts[1] };
     if (parts[0] === 'simulacro' && parts[1]) return { name: 'simulacro', cert: parts[1] };
+    if (parts[0] === 'datos' && parts[1]) return { name: 'datos', id: parts[1] };
+    if (parts[0] === 'modelado') return { name: 'modelado' };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -1999,7 +2051,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', modelado: 'Laboratorio de modelado' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -2008,7 +2060,8 @@
     else if (r.name === 'lab-python') viewLabPython('python');
     else if (r.name === 'lab-pyspark') viewLabPython('pyspark');
     else if (r.name === 'lab-terminal') viewLabTerminal();
-    else if (r.name === 'datos') viewDatos();
+    else if (r.name === 'datos') viewDatos(r.id);
+    else if (r.name === 'modelado') window.Modelado.vista(main, { h, esc, createEditor, Store, toast, abrirEnLab, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
     else if (r.name === 'repaso') viewRepaso();
@@ -2024,6 +2077,16 @@
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();
     else window.scrollTo(0, 0);
     main.focus({ preventScroll: true });
+    // los paneles laterales de los laboratorios también se pliegan
+    for (const lab of $$('.lab', main)) {
+      const side = $('.lab-side', lab); if (!side || (lab.previousElementSibling && lab.previousElementSibling.classList.contains('panel-toggle'))) continue;
+      const btn = h('<button class="panel-toggle" title="Mostrar u ocultar el panel lateral">⇤ Ocultar panel</button>');
+      const aplicar = (oculto) => { lab.classList.toggle('panel-oculto', oculto); btn.textContent = oculto ? '⇥ Mostrar panel' : '⇤ Ocultar panel'; };
+      let oculto = false; try { oculto = localStorage.getItem('panel-lab-oculto') === '1'; } catch (e) { /* sin almacenamiento */ }
+      aplicar(oculto);
+      btn.addEventListener('click', () => { oculto = !oculto; aplicar(oculto); try { localStorage.setItem('panel-lab-oculto', oculto ? '1' : '0'); } catch (e) { /* sin almacenamiento */ } });
+      lab.before(btn);
+    }
   }
   window.addEventListener('hashchange', route);
   // lo pendiente de guardar (respuestas recién marcadas, código) no se pierde al cerrar o recargar
@@ -2034,7 +2097,15 @@
     const a = e.target.closest('a[href^="#/"]');
     if (a && !a.target && !e.ctrlKey && !e.metaKey && a.getAttribute('href') === location.hash) { e.preventDefault(); route(); }
   });
-  $('#menuBtn').addEventListener('click', () => document.body.classList.toggle('nav-open'));
+  // en escritorio el botón pliega la barra lateral (y se recuerda); en pantallas chicas la abre como panel
+  const esMovil = () => window.matchMedia('(max-width: 900px)').matches;
+  try { if (localStorage.getItem('barra-plegada') === '1') document.body.classList.add('side-collapsed'); } catch (e) { /* sin almacenamiento */ }
+  $('#menuBtn').addEventListener('click', () => {
+    if (esMovil()) { document.body.classList.toggle('nav-open'); return; }
+    const plegada = document.body.classList.toggle('side-collapsed');
+    try { localStorage.setItem('barra-plegada', plegada ? '1' : '0'); } catch (e) { /* sin almacenamiento */ }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'b' && (e.ctrlKey || e.metaKey) && !e.target.closest('input, textarea, .CodeMirror, .monaco-editor')) { e.preventDefault(); $('#menuBtn').click(); } });
   $('#scrim').addEventListener('click', () => document.body.classList.remove('nav-open'));
   updateProgressPill();
   $('#termBtn').addEventListener('click', () => Dock.toggle());

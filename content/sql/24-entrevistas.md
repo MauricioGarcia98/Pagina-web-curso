@@ -189,3 +189,37 @@ WHERE a.anio = 2024
 ORDER BY a.mes;
 ```
 :::
+
+:::ejercicio sql dificultad=Experto titulo="Segundo salario más alto"
+El **segundo salario más alto** de la empresa (distinto del primero). Columna: `segundo_salario`.
+```pista
+El máximo de los salarios que son menores que el máximo.
+```
+```pista
+También se resuelve con `DENSE_RANK() OVER (ORDER BY salario DESC) = 2`.
+```
+```sql solucion
+SELECT MAX(salario) AS segundo_salario FROM empleados WHERE salario < (SELECT MAX(salario) FROM empleados);
+```
+:::
+
+:::ejercicio sql dificultad=Experto titulo="Clientes reactivados"
+¿Cuántos clientes compraron en 2022, **no** compraron en 2023 y **volvieron** a comprar en 2024? Columna: `reactivados`.
+```pista
+Arma por cliente tres banderas: si compró en cada año.
+```
+```pista
+`MAX(CASE WHEN strftime('%Y', fecha_pedido) = '2022' THEN 1 ELSE 0 END)` y lo mismo para 2023 y 2024; después filtra 1, 0, 1.
+```
+```sql solucion
+SELECT COUNT(*) AS reactivados FROM (
+  SELECT cliente_id,
+         MAX(CASE WHEN strftime('%Y', fecha_pedido) = '2022' THEN 1 ELSE 0 END) AS c22,
+         MAX(CASE WHEN strftime('%Y', fecha_pedido) = '2023' THEN 1 ELSE 0 END) AS c23,
+         MAX(CASE WHEN strftime('%Y', fecha_pedido) = '2024' THEN 1 ELSE 0 END) AS c24
+  FROM pedidos
+  GROUP BY cliente_id
+) AS t
+WHERE c22 = 1 AND c23 = 0 AND c24 = 1;
+```
+:::

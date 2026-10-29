@@ -104,6 +104,37 @@ LIMIT 10;
 "Los 3 productos más caros" con `LIMIT 3`: si el 3.º y el 4.º cuestan lo mismo, uno queda afuera y cuál depende del azar. Para un resultado estable, agrega una columna de desempate: `ORDER BY precio DESC, producto_id`. Para incluir todos los empatados necesitarás funciones de ventana (`RANK`), que verás más adelante.
 :::
 
+`LIMIT` no es estándar: cada motor tiene su forma de pedir “las primeras N filas”.
+
+```motores
+titulo: Los 5 productos más caros
+[sqlite]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;
+[postgres]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;
+-- la forma estándar también vale: FETCH FIRST 5 ROWS ONLY
+[mysql]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;
+[sqlserver]
+SELECT TOP (5) nombre, precio
+FROM productos
+ORDER BY precio DESC;
+[oracle]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+FETCH FIRST 5 ROWS ONLY;
+```
+
 ### Paginar con OFFSET
 
 `OFFSET n` **salta** las primeras `n` filas. Sirve para mostrar resultados por páginas, como un buscador:
@@ -123,6 +154,32 @@ La fórmula: `OFFSET = (número_de_página − 1) × tamaño_de_página`.
 - SQL Server: `SELECT TOP 10 …` o `OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY`.
 - Oracle y el estándar SQL: `FETCH FIRST 10 ROWS ONLY`.
 :::
+
+```motores
+titulo: La tercera página de 10 productos
+[sqlite]
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+LIMIT 10 OFFSET 20;
+[postgres]
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+LIMIT 10 OFFSET 20;
+[mysql]
+-- MySQL también acepta LIMIT desde, cantidad
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+LIMIT 20, 10;
+[sqlserver]
+-- OFFSET … FETCH exige ORDER BY
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;
+```
 
 ## DISTINCT: quitar repetidos
 
@@ -249,5 +306,52 @@ SELECT DISTINCT canal, metodo_pago FROM pedidos ORDER BY canal, metodo_pago;
 Muestra `producto_id` y `nombre` de los productos de la **segunda página** de 15 resultados, ordenados por `producto_id` (es decir, los productos que ocupan las posiciones 16 a 30).
 ```sql solucion
 SELECT producto_id, nombre FROM productos ORDER BY producto_id LIMIT 15 OFFSET 15;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Básico
+Muestra `nombre` y `fecha_registro` de los **10 clientes más antiguos** (los que se registraron primero).
+```sql solucion
+SELECT nombre, fecha_registro FROM clientes ORDER BY fecha_registro LIMIT 10;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Básico
+Muestra los países distintos donde hay clientes, ordenados alfabéticamente (una columna `pais`).
+```sql solucion
+SELECT DISTINCT pais FROM clientes ORDER BY pais;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Muestra `nombre`, `marca` y `precio` de los productos ordenados por `marca` (A→Z) y, dentro de cada marca, del **más caro al más barato**.
+```pista
+Cada columna del `ORDER BY` puede llevar su propia dirección.
+```
+```sql solucion
+SELECT nombre, marca, precio FROM productos ORDER BY marca, precio DESC;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Muestra `nombre`, `precio`, `costo` y la columna `margen` (precio − costo) de los **5 productos con mayor margen**.
+```pista
+Puedes ordenar por el alias de una columna calculada.
+```
+```sql solucion
+SELECT nombre, precio, costo, precio - costo AS margen FROM productos ORDER BY margen DESC LIMIT 5;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Muestra `empleado_id`, `nombre` y `salario` del empleado que ocupa el **puesto 3** del ranking de salarios (de mayor a menor). Si hay empates, desempata por `empleado_id`.
+```pista
+`LIMIT 1` con `OFFSET` te deja elegir “la fila número N”.
+```
+```pista
+El puesto 3 se salta 2 filas: `OFFSET 2`. Agrega `empleado_id` al `ORDER BY` para desempatar.
+```
+```sql solucion
+SELECT empleado_id, nombre, salario FROM empleados ORDER BY salario DESC, empleado_id LIMIT 1 OFFSET 2;
 ```
 :::

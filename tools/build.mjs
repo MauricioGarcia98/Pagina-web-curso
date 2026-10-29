@@ -76,10 +76,42 @@ function parseDiagrama(src, file) {
   return spec;
 }
 
+// ---------------------------------------------------------------- la misma consulta en varios motores
+// ```motores
+// titulo: Las 5 más caras
+// [sqlite]
+// SELECT ... LIMIT 5;
+// [sqlserver]
+// SELECT TOP (5) ...;
+// [bigquery norun]      <- se muestra pero no se ejecuta en el navegador
+// ```
+const MOTORES_OK = ['sqlite', 'postgres', 'mysql', 'sqlserver', 'bigquery', 'databricks', 'snowflake', 'oracle'];
+function parseMotores(body, file) {
+  const spec = { titulo: '', variantes: [] };
+  let actual = null;
+  for (const linea of body.replace(/\n$/, '').split('\n')) {
+    const m = linea.match(/^\[(\w+)((?:\s+\w+)*)\]\s*$/);
+    if (m) {
+      if (!MOTORES_OK.includes(m[1])) throw new Error(`Bloque motores en ${file}: motor desconocido "${m[1]}"`);
+      actual = { m: m[1], norun: /\bnorun\b/.test(m[2]) || !['sqlite', 'postgres', 'mysql', 'sqlserver'].includes(m[1]), code: '' };
+      spec.variantes.push(actual); continue;
+    }
+    if (!actual) { const t = linea.match(/^titulo:\s*(.*)$/); if (t) spec.titulo = t[1].trim(); continue; }
+    actual.code += linea + '\n';
+  }
+  spec.variantes.forEach((v) => { v.code = v.code.replace(/\s+$/, ''); });
+  if (spec.variantes.length < 2) throw new Error(`Bloque motores en ${file}: necesita al menos dos motores`);
+  return spec;
+}
+
 function md(text, file = '') {
   text = text.replace(/^```diagrama[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
     const spec = parseDiagrama(body, file);
     return `<figure class="diagrama" data-spec="${escapeHtml(JSON.stringify(spec))}">${spec.titulo ? `<figcaption>${escapeHtml(spec.titulo)}</figcaption>` : ''}</figure>\n`;
+  });
+  text = text.replace(/^```motores[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
+    const spec = parseMotores(body, file);
+    return `<div class="motores" data-spec="${escapeHtml(JSON.stringify(spec))}"></div>\n`;
   });
   // bloques :::tip ... ::: (no confundir con :::ejercicio)
   text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
@@ -125,7 +157,8 @@ function parseExercise(header, body, file, idx, lessonId) {
     if (!role) continue;
     if (info.includes('ordenado')) throw new Error(`"ordenado" debe ir en la línea :::ejercicio, no en el bloque de código (${file} #${idx + 1})`);
     const content = f[2].replace(/\n$/, '');
-    if (role === 'pista' || role === 'explicacion') ex[role] = (ex[role] ? ex[role] + '\n' : '') + content;
+    if (role === 'pista') (ex.pistas = ex.pistas || []).push(content); // varias pistas: se abren de a una
+    else if (role === 'explicacion') ex[role] = (ex[role] ? ex[role] + '\n' : '') + content;
     else if (role === 'respuesta') (ex.respuesta = ex.respuesta || []).push(...content.split('\n').map((s) => s.trim()).filter(Boolean).map(cliPattern));
     else ex[role] = content;
     if (role === 'solucion' || role === 'inicial') ex.lang = info.find((w) => !ROLES.includes(w)) || ex.lang;
@@ -138,7 +171,7 @@ function parseExercise(header, body, file, idx, lessonId) {
     if (opts.filter((o) => o.ok).length !== 1) throw new Error(`Quiz sin exactamente una respuesta correcta en ${file} (#${idx + 1})`);
   }
   ex.enunciado = md(prompt.trim());
-  if (ex.pista) ex.pista = md(ex.pista);
+  if (ex.pistas) { ex.pistas = ex.pistas.map((x) => md(x)); ex.pista = ex.pistas[0]; }
   if (ex.explicacion) ex.explicacion = md(ex.explicacion);
   if (['sql', 'python', 'pyspark', 'airflow', 'dbt'].includes(type) && ex.solucion === undefined) throw new Error(`Ejercicio sin solución en ${file} (#${idx + 1})`);
   if (type === 'cli' && !ex.respuesta) throw new Error(`Ejercicio cli sin respuesta en ${file} (#${idx + 1})`);

@@ -343,3 +343,66 @@ FROM pedidos;
 Para la última, usa `FIRST_VALUE` con el orden invertido (`DESC`), así evitas la trampa del marco de `LAST_VALUE`.
 ```
 :::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Muestra para cada mes de 2024 (`mes`) los pedidos del mes (`pedidos`) y los del mes anterior (`pedidos_mes_anterior`). Ordena por mes.
+```pista
+Primero agrupa por mes; después `LAG(pedidos) OVER (ORDER BY mes)`.
+```
+```sql solucion
+WITH m AS (
+  SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+  FROM pedidos WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < '2025-01-01'
+  GROUP BY mes
+)
+SELECT mes, pedidos, LAG(pedidos) OVER (ORDER BY mes) AS pedidos_mes_anterior FROM m ORDER BY mes;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Muestra los pedidos acumulados del año 2024 mes a mes: `mes`, `pedidos` y `acumulado`. Ordena por mes.
+```pista
+`SUM(pedidos) OVER (ORDER BY mes)` acumula desde el primer mes.
+```
+```sql solucion
+WITH m AS (
+  SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+  FROM pedidos WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < '2025-01-01'
+  GROUP BY mes
+)
+SELECT mes, pedidos, SUM(pedidos) OVER (ORDER BY mes) AS acumulado FROM m ORDER BY mes;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Calcula el **promedio móvil de 3 meses** (el mes y los dos anteriores) de los pedidos de 2024. Columnas: `mes`, `pedidos`, `promedio_3m` (2 decimales). Ordena por mes.
+```pista
+El marco va dentro del `OVER`: `ROWS BETWEEN 2 PRECEDING AND CURRENT ROW`.
+```
+```sql solucion
+WITH m AS (
+  SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+  FROM pedidos WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < '2025-01-01'
+  GROUP BY mes
+)
+SELECT mes, pedidos, ROUND(AVG(pedidos) OVER (ORDER BY mes ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 2) AS promedio_3m
+FROM m ORDER BY mes;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Para el cliente `cliente_id = 42`, muestra cada pedido (`pedido_id`, `fecha_pedido`) y los **días desde su pedido anterior** (`dias_desde_anterior`, entero; NULL en el primero). Ordena por fecha y `pedido_id`.
+```pista
+`LAG(fecha_pedido) OVER (ORDER BY fecha_pedido, pedido_id)` trae la fecha del pedido anterior.
+```
+```pista
+Resta con `julianday` y convierte a entero.
+```
+```sql solucion
+SELECT pedido_id, fecha_pedido,
+       CAST(julianday(fecha_pedido) - julianday(LAG(fecha_pedido) OVER (ORDER BY fecha_pedido, pedido_id)) AS INTEGER) AS dias_desde_anterior
+FROM pedidos
+WHERE cliente_id = 42
+ORDER BY fecha_pedido, pedido_id;
+```
+:::

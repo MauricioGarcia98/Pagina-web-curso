@@ -5,8 +5,9 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | Módulo | Lecciones | Ejercicios | Qué practicas |
 |---|---|---|---|
 | 🧱 Fundamentos | 4 | 17 | Ingeniería de datos, formatos, terminal, Git |
-| 🗄️ SQL: de cero a experto | 24 | 118 | Desde `SELECT` hasta ventanas, CTE recursivas, gaps & islands, cohortes, optimización y modelado |
+| 🗄️ SQL: de cero a experto | 24 | 242 | Desde `SELECT` hasta ventanas, CTE recursivas, gaps & islands, cohortes, optimización y modelado |
 | 💼 Casos de negocio con SQL | 14 | 94 | 13 empresas (banco, streaming, movilidad, clínica, SaaS, aerolínea, logística, tienda, telco, seguros, hotelería, energía, delivery): KPIs reales y trampas lógicas |
+| 📊 Análisis de datos con SQL | 10 | 127 | De cero a senior: método del analista, KPIs sin trampas, segmentación (Pareto, RFM), cohortes y churn, embudos, unit economics (MRR, NRR, LTV), pruebas A/B con paradoja de Simpson, series de tiempo, causa raíz y casos ambiguos |
 | 📐 Modelado de datos | 7 | 31 | Del negocio al modelo, normalización, Kimball, SCD, Data Vault, OBT y tipos anidados |
 | 🐍 Python | 15 | 54 | Desde variables hasta generadores, decoradores, POO, tests y ETL |
 | ⚡ Apache Spark | 8 | 24 | Arquitectura, lazy evaluation, shuffles, joins, Delta Lake, optimización, streaming |
@@ -21,17 +22,22 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | 🏗️ Terraform | 7 | 53 | HCL, variables, `for_each`, estado remoto, módulos, import, lifecycle, plataformas en Azure + Databricks, AWS y GCP, `terraform test` y CI/CD |
 | 🧠 Casos de negocio de punta a punta | 10 | 51 | Los casos resueltos con Python, PySpark, dbt y Airflow |
 | 💻 Desde tu computadora | 10 | 61 | WSL/Homebrew, VS Code, Git y GitHub con SSH, Python con uv, Docker y Compose, PostgreSQL, DuckDB, dbt, Airflow, Spark, CLIs de nube y el proyecto completo en tu máquina |
+| 🚨 Guardia: incidentes y mantenimiento | 12 | 157 | Doce incidentes reales que se preparan en la terminal (`incidente-preparar`): tablero vacío con tareas en verde, checks y alertas ruidosas, duplicados por reintentos, cambios de esquema, datos tardíos y marcas de agua, zombies y OOM en Airflow, skew y archivos chicos en Spark, zonas horarias y BOM, lag y mensajes venenosos en Kafka, overwrite + VACUUM en Delta, APIs, secretos y costos, y un simulacro con postmortem |
 | 🧪 Laboratorios guiados en la nube | 9 | 139 | Data lake con calidad en AWS, RAG con Bedrock y Guardrails, SageMaker, operación y seguridad, BigQuery y BQML, Pub/Sub, Workflows y Vertex AI, Foundry y Azure ML blue/green, Databricks bundles y Unity Catalog, con costos y limpieza |
 | 🏆 Proyecto final y entrevistas | 6 | 23 | Arquitectura, el proyecto completo de Rápido (modelo, pipeline, calidad, Terraform, CI), retos de SQL y PySpark, plan de carrera |
 
-**214 lecciones y 1205 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 60 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
+**236 lecciones y 1596 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 61 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
 
 ### Herramientas de práctica
 
 - **Editor Monaco** (el de VS Code) con autocompletado de tablas y columnas; CodeMirror como respaldo.
 - **Terminal Linux simulada** (botón ⌨ Terminal o `Ctrl+``) con sistema de archivos persistente, tuberías y redirecciones, `git`, Python y `sqlite3` reales, un proyecto **dbt** que se ejecuta de verdad, `airflow dags test`, **Docker y Docker Compose** con estado (imágenes, contenedores, puertos, volúmenes, `build`), **`psql`** sobre los contenedores de PostgreSQL, **DuckDB** que consulta CSV y JSON, `uv`, entornos virtuales, `ssh-keygen`, `make`, un **Terraform** simulado que lee tus `.tf` de verdad (plan, apply, destroy, estado remoto, workspaces, módulos, import, `terraform test`) y las CLIs de la nube con estado: `az`, `aws` (S3, Glue, Athena que consulta los CSV subidos, Redshift Data API, EMR, Kinesis, Lambda…), `gcloud`, `gsutil`, `bq` (cargas, tablas particionadas, CTAS, dry-run) y `databricks` (fs, secrets, jobs, Asset Bundles).
+- **Bases de datos por negocio** (`#/datos`): las 13 empresas con su diagrama entidad-relación, qué representa cada fila, por qué están diseñadas así y su versión en estrella. En el laboratorio SQL las tablas aparecen agrupadas por empresa.
+- **Laboratorio de modelado** (`#/modelado`): ocho requerimientos de negocio para modelar en texto con diagrama en vivo, revisión de claves y formas normales, y SQL de creación para SQLite, PostgreSQL, MySQL y SQL Server.
+- **La misma consulta en cada motor**: en el curso de SQL, los ejemplos clave tienen pestañas para SQLite, PostgreSQL, MySQL y SQL Server (ejecutables) y BigQuery, Databricks y Oracle.
+- **Pistas progresivas**: los ejercicios de dificultad media y alta se abren de a una pista.
 - **Laboratorio SQL con cuatro motores**: SQLite, **PostgreSQL 17 real** ([PGlite](https://pglite.dev), Postgres compilado a WebAssembly, con el dataset completo y tipos DATE, TIMESTAMP y NUMERIC) y modos compatibles de **MySQL** y **SQL Server** que traducen su dialecto (TOP, OFFSET … FETCH, DATEADD, DATE_FORMAT, GROUP_CONCAT, DECLARE…) y devuelven los errores reales de cada motor cuando usas sintaxis ajena (LIMIT en SQL Server, columnas fuera del GROUP BY…). Incluye ejemplos por motor y una tabla comparativa de sintaxis.
-- **Laboratorio de terminal** con misiones guiadas, y ejercicios de terminal que preparan solos el entorno que necesitan.
+- **Laboratorio de terminal** con misiones guiadas, y ejercicios de terminal que preparan solos el entorno que necesitan. Incluye `awk`, `grep -A/-B/-C`, `uniq -d`, `file` y `jq` para diagnosticar logs como en una guardia real.
 
 ## Cómo funciona por dentro
 

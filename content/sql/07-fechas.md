@@ -190,6 +190,102 @@ Los conceptos son los mismos en todos: extraer partes, truncar a un periodo, sum
 - Para reportes con días sin ventas se usa una **tabla calendario** (una fila por día) y se une con los datos. Lo verás con CTE recursivas y en dbt (`date_spine`).
 :::
 
+### Pruébalo en cada motor
+
+Las fechas son lo que más cambia entre motores. Elige el motor y ejecuta los tres ejemplos:
+
+```motores
+titulo: Pedidos por mes
+[sqlite]
+SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+[postgres]
+SELECT TO_CHAR(fecha_pedido, 'YYYY-MM') AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+[mysql]
+SELECT DATE_FORMAT(fecha_pedido, '%Y-%m') AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) FORMAT(fecha_pedido, 'yyyy-MM') AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY FORMAT(fecha_pedido, 'yyyy-MM')
+ORDER BY mes DESC;
+[bigquery]
+SELECT FORMAT_DATE('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+FROM tienda.pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+```
+
+```motores
+titulo: Vencimiento a 30 días
+[sqlite]
+SELECT pedido_id, fecha_pedido, date(fecha_pedido, '+30 days') AS vence
+FROM pedidos
+LIMIT 3;
+[postgres]
+-- a una DATE se le suman días con +; también: fecha + INTERVAL '30 days'
+SELECT pedido_id, fecha_pedido, fecha_pedido::date + 30 AS vence
+FROM pedidos
+LIMIT 3;
+[mysql]
+SELECT pedido_id, fecha_pedido, DATE_ADD(fecha_pedido, INTERVAL 30 DAY) AS vence
+FROM pedidos
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) pedido_id, fecha_pedido, DATEADD(day, 30, fecha_pedido) AS vence
+FROM pedidos;
+[bigquery]
+SELECT pedido_id, fecha_pedido, DATE_ADD(fecha_pedido, INTERVAL 30 DAY) AS vence
+FROM tienda.pedidos
+LIMIT 3;
+```
+
+```motores
+titulo: Días entre el pedido y el pago
+[sqlite]
+SELECT p.pedido_id,
+       CAST(julianday(pg.fecha_pago) - julianday(p.fecha_pedido) AS INTEGER) AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+[postgres]
+-- restar dos DATE da días
+SELECT p.pedido_id,
+       pg.fecha_pago::date - p.fecha_pedido::date AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+[mysql]
+SELECT p.pedido_id,
+       DATEDIFF(pg.fecha_pago, p.fecha_pedido) AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+[sqlserver]
+-- la unidad va primero y el orden es (desde, hasta)
+SELECT TOP (5) p.pedido_id,
+       DATEDIFF(day, p.fecha_pedido, pg.fecha_pago) AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id;
+[bigquery]
+SELECT p.pedido_id,
+       DATE_DIFF(DATE(pg.fecha_pago), p.fecha_pedido, DAY) AS dias
+FROM tienda.pedidos p
+JOIN tienda.pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+```
+
 ## Resumen
 
 - Usa siempre el formato ISO `AAAA-MM-DD [HH:MM:SS]`: se ordena igual que el tiempo.
@@ -248,5 +344,55 @@ SELECT COUNT(*) AS pedidos_fin_de_semana FROM pedidos WHERE strftime('%w', fecha
 ```
 ```pista
 `strftime('%w', fecha)` devuelve `'0'` para domingo y `'6'` para sábado.
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `pedido_id` y `fecha_pedido` de los pedidos hechos el **25 de diciembre de 2023**.
+```sql solucion
+SELECT pedido_id, fecha_pedido FROM pedidos WHERE fecha_pedido = '2023-12-25';
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+¿Cuántos pedidos hubo en **marzo de 2024**? Usa un rango semiabierto. Columna: `pedidos`.
+```pista
+Desde el primer día del mes (incluido) hasta el primer día del mes siguiente (excluido).
+```
+```sql solucion
+SELECT COUNT(*) AS pedidos FROM pedidos WHERE fecha_pedido >= '2024-03-01' AND fecha_pedido < '2024-04-01';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre`, `fecha_contratacion` y una columna `anio` (número entero) con el año de contratación de cada empleado.
+```pista
+`strftime('%Y', fecha)` devuelve el año como texto; conviértelo con `CAST(... AS INTEGER)`.
+```
+```sql solucion
+SELECT nombre, fecha_contratacion, CAST(strftime('%Y', fecha_contratacion) AS INTEGER) AS anio FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Cuántos eventos web ocurrieron un **fin de semana**? Columna: `eventos`.
+```pista
+`strftime('%w', fecha)` devuelve el día de la semana: `'0'` es domingo y `'6'` es sábado (como texto).
+```
+```sql solucion
+SELECT COUNT(*) AS eventos FROM eventos_web WHERE strftime('%w', fecha_hora) IN ('0', '6');
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Para cada empleado que dejó la empresa, muestra `nombre`, `fecha_contratacion`, `fecha_salida` y los **días trabajados** (`dias`, entero).
+```pista
+`julianday(b) - julianday(a)` da la diferencia en días (con decimales).
+```
+```pista
+Filtra `fecha_salida IS NOT NULL` y convierte con `CAST(... AS INTEGER)`.
+```
+```sql solucion
+SELECT nombre, fecha_contratacion, fecha_salida, CAST(julianday(fecha_salida) - julianday(fecha_contratacion) AS INTEGER) AS dias FROM empleados WHERE fecha_salida IS NOT NULL;
 ```
 :::

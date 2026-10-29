@@ -88,6 +88,47 @@ Con la misma idea, `SUBSTR(email, 1, INSTR(email, '@') - 1)` da la parte de ante
 Los conceptos son idénticos; ante la duda, busca "nombre de la función + nombre del motor".
 :::
 
+Las funciones de texto son de las que más cambian de nombre:
+
+```motores
+titulo: El dominio del email y su largo
+[sqlite]
+SELECT email,
+       SUBSTR(email, INSTR(email, '@') + 1) AS dominio,
+       LENGTH(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+[postgres]
+SELECT email,
+       SPLIT_PART(email, '@', 2) AS dominio,
+       LENGTH(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+[mysql]
+-- también existe SUBSTRING_INDEX(email, '@', -1)
+SELECT email,
+       SUBSTRING(email, LOCATE('@', email) + 1) AS dominio,
+       CHAR_LENGTH(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) email,
+       SUBSTRING(email, CHARINDEX('@', email) + 1, LEN(email)) AS dominio,
+       LEN(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL;
+[bigquery]
+SELECT email,
+       SPLIT(email, '@')[OFFSET(1)] AS dominio,
+       LENGTH(email) AS largo
+FROM tienda.clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+```
+
 ## Funciones numéricas
 
 | Función | Qué hace | Ejemplo | Resultado |
@@ -115,6 +156,19 @@ SELECT 7 / 2                AS division_entera,   -- 3
 ```
 
 Entero dividido entero da entero (en SQLite, PostgreSQL y SQL Server; en MySQL, Spark y BigQuery no). Cuando calcules un porcentaje, escribe **siempre** `100.0 * parte / total`: funciona en todos los motores.
+
+```motores
+titulo: 7 dividido 2
+[sqlite]
+SELECT 7 / 2 AS entera, 7 / 2.0 AS con_decimal, CAST(7 AS REAL) / 2 AS con_cast;
+[postgres]
+SELECT 7 / 2 AS entera, 7 / 2.0 AS con_decimal, 7::numeric / 2 AS con_cast;
+[mysql]
+-- en MySQL / siempre devuelve decimales; DIV es la división entera
+SELECT 7 DIV 2 AS entera, 7 / 2 AS con_decimal;
+[sqlserver]
+SELECT 7 / 2 AS entera, 7 / 2.0 AS con_decimal, CAST(7 AS DECIMAL(10, 2)) / 2 AS con_cast;
+```
 
 ## CAST: convertir de un tipo a otro
 
@@ -244,5 +298,52 @@ SELECT registro_id, LOWER(TRIM(nombre)) AS nombre_limpio, LOWER(email) AS email_
 - [ ] Error
 ```explicacion
 Ambos operandos son enteros, así que la división es entera. Usa `1.0 / 4` para obtener 0.25.
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra el `nombre` de cada producto en **mayúsculas**, en una columna `nombre_mayus`.
+```sql solucion
+SELECT UPPER(nombre) AS nombre_mayus FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre` y la cantidad de caracteres del nombre en una columna `largo`, para todos los productos.
+```sql solucion
+SELECT nombre, LENGTH(nombre) AS largo FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra el `email` de los empleados y, en una columna `usuario`, lo que está **antes** de la `@` (por ejemplo `camila.rios`).
+```pista
+`INSTR(email, '@')` dice en qué posición está la arroba.
+```
+```pista
+`SUBSTR(email, 1, posición - 1)` corta desde el principio hasta antes de la arroba.
+```
+```sql solucion
+SELECT email, SUBSTR(email, 1, INSTR(email, '@') - 1) AS usuario FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre` y el `precio` redondeado **hacia el entero más cercano** en una columna `precio_redondo`, solo para los productos de la marca `Sony`.
+```pista
+`ROUND(x)` sin segundo argumento redondea a entero (en SQLite devuelve un número con .0).
+```
+```sql solucion
+SELECT nombre, ROUND(precio) AS precio_redondo FROM productos WHERE marca = 'Sony';
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+En `clientes_crudo` los nombres vienen con mayúsculas mezcladas y espacios de más. Muestra `registro_id` y una columna `nombre_limpio` con el nombre **sin espacios a los costados y en minúsculas**.
+```pista
+Las funciones se anidan: primero `TRIM`, después `LOWER` (el orden aquí no cambia el resultado).
+```
+```sql solucion
+SELECT registro_id, LOWER(TRIM(nombre)) AS nombre_limpio FROM clientes_crudo;
 ```
 :::

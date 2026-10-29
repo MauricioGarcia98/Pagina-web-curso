@@ -183,6 +183,33 @@ Hay 2.000 nombres y un solo conteo: no hay una respuesta lógica. PostgreSQL, SQ
 `COUNT(*)` cuenta filas, incluidas las que tienen nulos. `COUNT(col)` cuenta las filas donde `col` **no es nula**. `COUNT(DISTINCT col)` cuenta los **valores distintos** no nulos. Un buen ejemplo para dar: en `clientes`, `COUNT(*)` es el total de clientes, `COUNT(telefono)` los que tienen teléfono y `COUNT(DISTINCT pais)` cuántos países hay.
 :::
 
+Juntar valores de un grupo en una lista de texto es muy útil para reportes, y cada motor lo llama distinto:
+
+```motores
+titulo: Las ciudades de cada país en una lista
+[sqlite]
+SELECT pais, GROUP_CONCAT(DISTINCT ciudad) AS ciudades
+FROM clientes
+GROUP BY pais;
+[postgres]
+SELECT pais, STRING_AGG(DISTINCT ciudad, ', ' ORDER BY ciudad) AS ciudades
+FROM clientes
+GROUP BY pais;
+[mysql]
+SELECT pais, GROUP_CONCAT(DISTINCT ciudad ORDER BY ciudad SEPARATOR ', ') AS ciudades
+FROM clientes
+GROUP BY pais;
+[sqlserver]
+-- STRING_AGG no admite DISTINCT: se quitan los repetidos antes
+SELECT pais, STRING_AGG(ciudad, ', ') WITHIN GROUP (ORDER BY ciudad) AS ciudades
+FROM (SELECT DISTINCT pais, ciudad FROM clientes) AS c
+GROUP BY pais;
+[bigquery]
+SELECT pais, STRING_AGG(DISTINCT ciudad, ', ' ORDER BY ciudad) AS ciudades
+FROM tienda.clientes
+GROUP BY pais;
+```
+
 ## Resumen
 
 - Las agregaciones resumen muchas filas en un valor: `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`.
@@ -226,5 +253,57 @@ FROM detalle_pedidos;
 ¿Cuántos clientes **no tienen** teléfono y cuántos no tienen email? Hazlo en una sola consulta, **sin WHERE**, usando la diferencia entre `COUNT(*)` y `COUNT(columna)`. Columnas: `sin_telefono`, `sin_email`.
 ```sql solucion
 SELECT COUNT(*) - COUNT(telefono) AS sin_telefono, COUNT(*) - COUNT(email) AS sin_email FROM clientes;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+¿Cuál es el salario **más alto**, el **más bajo** y el **promedio** (redondeado a 2 decimales) de los empleados? Columnas: `maximo`, `minimo`, `promedio`.
+```sql solucion
+SELECT MAX(salario) AS maximo, MIN(salario) AS minimo, ROUND(AVG(salario), 2) AS promedio FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+¿Cuántos países distintos tienen clientes? Columna: `paises`.
+```sql solucion
+SELECT COUNT(DISTINCT pais) AS paises FROM clientes;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Cuál es el monto total de los pagos **aprobados** de 2024? Redondea a 2 decimales. Columna: `total`.
+```pista
+Primero filtra (estado y fecha) con `WHERE`, después suma.
+```
+```sql solucion
+SELECT ROUND(SUM(monto), 2) AS total FROM pagos WHERE estado = 'aprobado' AND fecha_pago >= '2024-01-01' AND fecha_pago < '2025-01-01';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Qué **porcentaje** de los clientes no tiene teléfono? Redondea a 1 decimal. Columna: `pct_sin_telefono`.
+```pista
+`COUNT(*)` cuenta todas las filas y `COUNT(telefono)` solo las que no son NULL.
+```
+```pista
+Sin teléfono = `COUNT(*) - COUNT(telefono)`. Multiplica por `100.0` para que la división no sea entera.
+```
+```sql solucion
+SELECT ROUND(100.0 * (COUNT(*) - COUNT(telefono)) / COUNT(*), 1) AS pct_sin_telefono FROM clientes;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Calcula el **descuento promedio** de las líneas de `detalle_pedidos` de dos formas: el promedio simple de la columna `descuento` (`promedio_simple`) y el promedio **ponderado por el importe** de cada línea (`promedio_ponderado`), ambos redondeados a 4 decimales.
+```pista
+El promedio ponderado es `SUM(peso * valor) / SUM(peso)`.
+```
+```pista
+El peso es el importe sin descuento: `cantidad * precio_unitario`.
+```
+```sql solucion
+SELECT ROUND(AVG(descuento), 4) AS promedio_simple,
+       ROUND(SUM(cantidad * precio_unitario * descuento) / SUM(cantidad * precio_unitario), 4) AS promedio_ponderado
+FROM detalle_pedidos;
 ```
 :::

@@ -124,3 +124,23 @@ Cada certificación declara en `certificaciones.json` el bloque `simulacro: { pr
 ### Tarjetas de palabras clave
 
 `content/claves/<id-certificación>.md` contiene las tarjetas de cada certificación: el título `##` es la situación del examen y el cuerpo, la respuesta. `dominio: N` es opcional. Se repasan con el mismo repaso espaciado que el glosario (`#/claves/<id>`), y el plan de estudio (`#/plan/<id>`) las asigna por dominio.
+
+## La misma consulta en varios motores
+
+Para mostrar cómo se escribe algo en cada motor, usa un bloque `motores`. Cada variante empieza con `[motor]`; los motores posibles son `sqlite`, `postgres`, `mysql`, `sqlserver` (se ejecutan en el navegador: PostgreSQL real con PGlite, MySQL y SQL Server en modo compatible) y `bigquery`, `databricks`, `snowflake`, `oracle` (solo se muestran). Agrega `norun` para mostrar una variante sin botón de ejecutar.
+
+````
+```motores
+titulo: Los 5 productos más caros
+[sqlite]
+SELECT nombre, precio FROM productos ORDER BY precio DESC LIMIT 5;
+[sqlserver]
+SELECT TOP (5) nombre, precio FROM productos ORDER BY precio DESC;
+[mysql norun]
+…
+```
+````
+
+- Todas las variantes deben devolver lo mismo; agrega `ORDER BY` para que el orden coincida.
+- Si el bloque muestra un error a propósito, el título empieza con `Error típico:` (en SQLite debe funcionar y en los demás motores debe fallar).
+- La pestaña elegida se recuerda y cambia todos los bloques de la página.

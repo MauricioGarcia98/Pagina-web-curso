@@ -110,6 +110,44 @@ FROM marcas;
 
 `CREATE TABLE … AS SELECT` (CTAS) e `INSERT INTO … SELECT` son las dos formas en que se materializan los resultados en un pipeline: la capa silver se construye con CTAS a partir de bronze, la capa gold a partir de silver. Lo verás en Athena, BigQuery, Databricks y dbt.
 
+Cómo se declara una clave que se numera sola cambia en cada motor:
+
+```motores
+titulo: Una clave que se numera sola
+[sqlite]
+DROP TABLE IF EXISTS notas_demo;
+CREATE TABLE notas_demo (
+  nota_id INTEGER PRIMARY KEY,   -- INTEGER PRIMARY KEY se numera solo
+  texto TEXT
+);
+INSERT INTO notas_demo (texto) VALUES ('primera'), ('segunda');
+SELECT * FROM notas_demo;
+[postgres]
+DROP TABLE IF EXISTS notas_demo;
+CREATE TABLE notas_demo (
+  nota_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  texto TEXT
+);
+INSERT INTO notas_demo (texto) VALUES ('primera'), ('segunda');
+SELECT * FROM notas_demo;
+[mysql]
+DROP TABLE IF EXISTS notas_demo;
+CREATE TABLE notas_demo (
+  nota_id INT AUTO_INCREMENT PRIMARY KEY,
+  texto VARCHAR(100)
+);
+INSERT INTO notas_demo (texto) VALUES ('primera'), ('segunda');
+SELECT * FROM notas_demo;
+[sqlserver]
+DROP TABLE IF EXISTS notas_demo;
+CREATE TABLE notas_demo (
+  nota_id INT IDENTITY(1, 1) PRIMARY KEY,
+  texto NVARCHAR(100)
+);
+INSERT INTO notas_demo (texto) VALUES ('primera'), ('segunda');
+SELECT * FROM notas_demo;
+```
+
 ## UPDATE y DELETE: modificar y borrar
 
 ```sql norun
@@ -179,6 +217,39 @@ WHEN NOT MATCHED THEN INSERT (cliente_id, email, segmento) VALUES (c.cliente_id,
 ```
 
 `MERGE` es **idempotente** si la clave está bien elegida: ejecutarlo dos veces con el mismo lote deja la tabla igual. Por eso es la base de las cargas incrementales (dbt incremental, Delta Lake, Iceberg).
+
+```motores
+titulo: Insertar o actualizar (upsert)
+[sqlite]
+DROP TABLE IF EXISTS stock_demo;
+CREATE TABLE stock_demo (sku TEXT PRIMARY KEY, cantidad INTEGER);
+INSERT INTO stock_demo VALUES ('A1', 10);
+INSERT INTO stock_demo VALUES ('A1', 5)
+  ON CONFLICT (sku) DO UPDATE SET cantidad = stock_demo.cantidad + excluded.cantidad;
+SELECT * FROM stock_demo;
+[postgres]
+DROP TABLE IF EXISTS stock_demo;
+CREATE TABLE stock_demo (sku TEXT PRIMARY KEY, cantidad INTEGER);
+INSERT INTO stock_demo VALUES ('A1', 10);
+INSERT INTO stock_demo VALUES ('A1', 5)
+  ON CONFLICT (sku) DO UPDATE SET cantidad = stock_demo.cantidad + EXCLUDED.cantidad;
+SELECT * FROM stock_demo;
+[mysql norun]
+CREATE TABLE stock_demo (sku VARCHAR(20) PRIMARY KEY, cantidad INT);
+INSERT INTO stock_demo VALUES ('A1', 10);
+INSERT INTO stock_demo VALUES ('A1', 5) AS nuevo
+  ON DUPLICATE KEY UPDATE cantidad = stock_demo.cantidad + nuevo.cantidad;
+SELECT * FROM stock_demo;
+[sqlserver norun]
+CREATE TABLE stock_demo (sku NVARCHAR(20) PRIMARY KEY, cantidad INT);
+INSERT INTO stock_demo VALUES ('A1', 10);
+MERGE stock_demo AS destino
+USING (VALUES ('A1', 5)) AS origen (sku, cantidad)
+  ON destino.sku = origen.sku
+WHEN MATCHED THEN UPDATE SET cantidad = destino.cantidad + origen.cantidad
+WHEN NOT MATCHED THEN INSERT (sku, cantidad) VALUES (origen.sku, origen.cantidad);
+SELECT * FROM stock_demo;
+```
 
 ## Transacciones y ACID
 
@@ -328,4 +399,63 @@ En una transacción haces dos UPDATE y el segundo falla. ¿Qué garantiza la **a
 - [x] Que se deshagan ambos: o se aplica todo o nada
 - [ ] Que el segundo se reintente automáticamente
 - [ ] Que la base se bloquee hasta que alguien lo arregle
+:::
+
+:::ejercicio sql dificultad=Básico
+Agrega el departamento `10`, `Atención al cliente`, en `Lima`, con un presupuesto de `150000`.
+```sql solucion
+INSERT INTO departamentos (departamento_id, nombre, ciudad, presupuesto) VALUES (10, 'Atención al cliente', 'Lima', 150000);
+```
+```check
+SELECT * FROM departamentos ORDER BY departamento_id;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Marca como inactivos (`activo = 0`) todos los productos **sin stock**.
+```pista
+`UPDATE … SET … WHERE …`. Sin `WHERE` cambiarías todos los productos.
+```
+```sql solucion
+UPDATE productos SET activo = 0 WHERE stock = 0;
+```
+```check
+SELECT producto_id, activo FROM productos ORDER BY producto_id;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Agrega a `clientes` la columna `email_verificado` (entero, por defecto `0`) y márcala con `1` para los clientes que tienen email.
+```pista
+Primero `ALTER TABLE … ADD COLUMN …`, después un `UPDATE`.
+```
+```sql solucion
+ALTER TABLE clientes ADD COLUMN email_verificado INTEGER DEFAULT 0;
+UPDATE clientes SET email_verificado = 1 WHERE email IS NOT NULL;
+```
+```check
+SELECT COUNT(*) AS clientes, SUM(email_verificado) AS verificados FROM clientes;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Crea la vista `v_ventas_mes` con las ventas por mes (`mes` con formato `'YYYY-MM'` y `ventas`: importe con descuento redondeado a 2 decimales) de los pedidos **no cancelados**.
+```pista
+`CREATE VIEW v_ventas_mes AS SELECT …`: la consulta es la de siempre.
+```
+```pista
+Une pedidos con detalle_pedidos, filtra `estado <> 'cancelado'` y agrupa por mes.
+```
+```sql solucion
+CREATE VIEW v_ventas_mes AS
+SELECT strftime('%Y-%m', p.fecha_pedido) AS mes,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado <> 'cancelado'
+GROUP BY mes;
+```
+```check
+SELECT mes, ventas FROM v_ventas_mes ORDER BY mes;
+```
 :::

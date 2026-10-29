@@ -688,8 +688,9 @@ models:
     for (const f of pos) { const c = readFile(norm(f)); if (c === null) return fail(`wc: ${f}: No existe el archivo o el directorio`); out.push(one(c, f)); }
     return ok(out.join('\n'));
   });
-  def('grep', 'busca texto (-i, -v, -c, -n, -E)', (a, ctx) => {
-    const { flags, pos } = parseArgs(a, { bool: ['-i', '-v', '-c', '-n', '-E', '-r', '-l', '-w', '-o'] });
+  def('grep', 'busca texto (-i, -v, -c, -n, -E, -o, -A/-B/-C N líneas de contexto)', (a, ctx) => {
+    const { flags, pos } = parseArgs(a, { bool: ['-i', '-v', '-c', '-n', '-E', '-r', '-l', '-w', '-o'], attach: 'ABC' });
+    const ctxA = parseInt(flags['-A'] ?? flags['-C'] ?? 0, 10) || 0, ctxB = parseInt(flags['-B'] ?? flags['-C'] ?? 0, 10) || 0;
     const pat = pos.shift();
     if (pat === undefined) return fail('Uso: grep [OPCIÓN]... PATRÓN [ARCHIVO]...');
     let re;
@@ -701,14 +702,26 @@ models:
       const text = f === null ? (ctx.stdin || '') : readFile(norm(f));
       if (text === null) { out.push(col.err(`grep: ${f}: No existe el archivo o el directorio`)); continue; }
       const lines = text.replace(/\n$/, '').split('\n');
-      let n = 0;
+      let n = 0, ultima = -1;
+      const conCtx = (ctxA || ctxB) && !flags['-c'] && !flags['-l'] && !flags['-o'];
       lines.forEach((l, i) => {
         const m = re.test(l) !== !!flags['-v'];
         if (!m) return;
         n++;
         if (flags['-c'] || flags['-l']) return;
         const shown = flags['-v'] ? l : l.replace(new RegExp(re.source, re.flags + 'g'), (x) => S('t-err', x));
-        out.push((files.length > 1 ? col.info(f + ':') : '') + (flags['-n'] ? col.ok(i + 1 + ':') : '') + (flags['-o'] ? (l.match(re) || [''])[0] : shown));
+        if (conCtx) {
+          const desde = Math.max(0, i - ctxB, ultima + 1);
+          if (ultima >= 0 && desde > ultima + 1) out.push(col.dim('--'));
+          for (let k = desde; k < i; k++) out.push((flags['-n'] ? col.ok(k + 1 + '-') : '') + lines[k]);
+        }
+        if (flags['-o']) { for (const x of l.match(new RegExp(re.source, re.flags + 'g')) || []) out.push((files.length > 1 ? col.info(f + ':') : '') + (flags['-n'] ? col.ok(i + 1 + ':') : '') + x); }
+        else out.push((files.length > 1 ? col.info(f + ':') : '') + (flags['-n'] ? col.ok(i + 1 + ':') : '') + shown);
+        ultima = i;
+        if (conCtx) for (let k = i + 1; k <= Math.min(lines.length - 1, i + ctxA); k++) {
+          if (re.test(lines[k]) !== !!flags['-v']) break;
+          out.push((flags['-n'] ? col.ok(k + 1 + '-') : '') + lines[k]); ultima = k;
+        }
       });
       if (flags['-c']) out.push((files.length > 1 ? f + ':' : '') + n);
       if (flags['-l'] && n) out.push(f);
@@ -729,11 +742,13 @@ models:
     if (flags['-u']) ls = [...new Set(ls)];
     return ok(ls.join('\n'));
   });
-  def('uniq', 'quita duplicados consecutivos (-c cuenta)', (a, ctx) => {
-    const { flags, pos } = parseArgs(a, { bool: ['-c'] });
+  def('uniq', 'quita duplicados consecutivos (-c cuenta, -d solo repetidas, -u solo únicas)', (a, ctx) => {
+    const { flags, pos } = parseArgs(a, { bool: ['-c', '-d', '-u'] });
     const r = readArgOrStdin(pos, ctx, 'uniq'); if (r.err) return fail(r.err);
-    const out = [];
+    let out = [];
     for (const l of r.text.replace(/\n$/, '').split('\n')) { if (out.length && out[out.length - 1][1] === l) out[out.length - 1][0]++; else out.push([1, l]); }
+    if (flags['-d']) out = out.filter(([c]) => c > 1);
+    if (flags['-u']) out = out.filter(([c]) => c === 1);
     return ok(out.map(([c, l]) => (flags['-c'] ? `${String(c).padStart(7)} ${l}` : l)).join('\n'));
   });
   def('cut', 'corta columnas (-d SEP -f N)', (a, ctx) => {

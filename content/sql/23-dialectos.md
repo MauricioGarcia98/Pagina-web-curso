@@ -140,3 +140,75 @@ Estás en Databricks y quieres el último pedido de cada cliente **sin** escribi
 - [ ] `DATEPART(f)`
 - [ ] `f.year`
 :::
+
+:::ejercicio quiz dificultad=Básico
+Quieres los 10 productos más caros en **SQL Server**. ¿Qué escribes?
+
+- [ ] `SELECT * FROM productos ORDER BY precio DESC LIMIT 10`
+- [x] `SELECT TOP (10) * FROM productos ORDER BY precio DESC`
+- [ ] `SELECT * FROM productos ORDER BY precio DESC FETCH 10`
+- [ ] `SELECT FIRST 10 * FROM productos ORDER BY precio DESC`
+:::
+
+:::ejercicio quiz dificultad=Básico
+En **MySQL**, `SELECT nombre || ' ' || apellido FROM clientes` devuelve una columna de ceros y unos. ¿Por qué?
+
+- [ ] Porque los nombres tienen acentos
+- [x] Porque en MySQL `||` es el operador lógico OR; para concatenar se usa `CONCAT()`
+- [ ] Porque falta un `CAST` a texto
+- [ ] Es un error de MySQL que se corrige reiniciando el servidor
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+En **SQL Server**, ¿qué devuelve `DATEDIFF(day, '2024-03-10', '2024-03-01')`?
+
+- [ ] `9`
+- [x] `-9`, porque el orden es (unidad, desde, hasta)
+- [ ] Un error: las fechas están al revés
+- [ ] `0`
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+¿Cuál de estos motores **no** acepta el alias de una columna del `SELECT` dentro del `GROUP BY`?
+
+- [ ] PostgreSQL
+- [ ] MySQL
+- [x] SQL Server
+- [ ] SQLite
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+En **PostgreSQL**, `ROUND(AVG(precio)::float, 2)` da error. ¿Por qué?
+
+- [ ] `AVG` no se puede redondear
+- [x] `ROUND` con decimales solo existe para el tipo `numeric`
+- [ ] Hay que usar `TRUNC` en lugar de `ROUND`
+- [ ] Porque `::float` no existe en PostgreSQL
+:::
+
+:::ejercicio quiz dificultad=Avanzado
+En Databricks SQL, BigQuery y Snowflake puedes filtrar el top-N por grupo sin subconsulta. ¿Con qué cláusula?
+
+- [ ] `HAVING ROW_NUMBER() = 1`
+- [x] `QUALIFY ROW_NUMBER() OVER (PARTITION BY … ORDER BY …) = 1`
+- [ ] `WHERE ROW_NUMBER() OVER (…) = 1`
+- [ ] `LIMIT 1 PER GROUP`
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+¿Cuánto da `SELECT 7 / 2` en PostgreSQL, SQL Server y SQLite, y cuánto en MySQL?
+
+- [ ] 3.5 en todos
+- [x] 3 en PostgreSQL, SQL Server y SQLite; 3.5000 en MySQL
+- [ ] 3 en todos
+- [ ] 4 en todos, porque redondea
+:::
+
+:::ejercicio quiz dificultad=Avanzado
+Ordenas por una columna con NULL de forma ascendente. ¿Dónde quedan los NULL?
+
+- [ ] Siempre al final, en todos los motores
+- [ ] Siempre al principio, en todos los motores
+- [x] Depende del motor: al principio en SQLite, MySQL y SQL Server; al final en PostgreSQL y Oracle
+- [ ] Se descartan del resultado
+:::

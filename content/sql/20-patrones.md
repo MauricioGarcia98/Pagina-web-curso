@@ -309,3 +309,59 @@ SELECT pedido_id, fecha_pedido, ROUND(importe, 2) AS importe_usd,
 FROM t;
 ```
 :::
+
+:::ejercicio sql dificultad=Intermedio
+En `clientes_crudo` hay varias cargas del mismo cliente. Quédate con la **más reciente** de cada `cliente_id` (según `fecha_carga`). Columnas: `cliente_id`, `registro_id`, `fecha_carga`.
+```pista
+Numera los registros de cada cliente del más nuevo al más viejo con `ROW_NUMBER()`.
+```
+```pista
+`PARTITION BY cliente_id ORDER BY fecha_carga DESC` y filtra la fila 1 en una consulta externa.
+```
+```sql solucion
+SELECT cliente_id, registro_id, fecha_carga
+FROM (
+  SELECT cliente_id, registro_id, fecha_carga,
+         ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_carga DESC) AS rn
+  FROM clientes_crudo
+) AS t
+WHERE rn = 1;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Embudo de 2024: cuántos clientes distintos (sin contar visitantes anónimos) tuvieron al menos un evento de cada tipo. En una fila: `vieron` (`vista`), `agregaron` (`agregar_carrito`) y `compraron` (`compra`).
+```pista
+`COUNT(DISTINCT CASE WHEN tipo_evento = 'vista' THEN cliente_id END)`: el CASE devuelve NULL en las demás filas y `COUNT` las ignora.
+```
+```sql solucion
+SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista' THEN cliente_id END) AS vieron,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'agregar_carrito' THEN cliente_id END) AS agregaron,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'compra' THEN cliente_id END) AS compraron
+FROM eventos_web
+WHERE cliente_id IS NOT NULL AND fecha_hora >= '2024-01-01' AND fecha_hora < '2025-01-01';
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Gaps & islands: muestra los **5 clientes con la racha más larga** de días consecutivos con login. Columnas: `cliente_id`, `racha_max`. Ordena por racha (mayor primero) y desempata por `cliente_id`.
+```pista
+En una racha, la fecha menos su número de fila (en días) da siempre la misma fecha “ancla”.
+```
+```pista
+`date(fecha, '-' || ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) || ' days')` es la isla. Cuenta por cliente e isla y después toma el máximo por cliente.
+```
+```sql solucion
+WITH islas AS (
+  SELECT cliente_id, date(fecha, '-' || ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) || ' days') AS isla
+  FROM logins
+), rachas AS (
+  SELECT cliente_id, isla, COUNT(*) AS dias FROM islas GROUP BY cliente_id, isla
+)
+SELECT cliente_id, MAX(dias) AS racha_max
+FROM rachas
+GROUP BY cliente_id
+ORDER BY racha_max DESC, cliente_id
+LIMIT 5;
+```
+:::

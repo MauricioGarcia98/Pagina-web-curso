@@ -158,6 +158,49 @@ GROUP BY c.segmento;
 - En SQLite y MySQL, una comparación ya vale 1 o 0, así que `SUM(estado = 'cancelado')` también funciona. Es práctico pero no portable: `CASE` funciona en todos los motores.
 :::
 
+`CASE` funciona igual en todos los motores, pero varios tienen atajos para la agregación condicional:
+
+```motores
+titulo: Pedidos cancelados por canal
+[sqlite]
+SELECT canal,
+       COUNT(*) AS pedidos,
+       SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[postgres]
+-- FILTER es estándar SQL y muy legible
+SELECT canal,
+       COUNT(*) AS pedidos,
+       COUNT(*) FILTER (WHERE estado = 'cancelado') AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[mysql]
+-- en MySQL una comparación vale 1 o 0, así que se suma directo
+SELECT canal,
+       COUNT(*) AS pedidos,
+       SUM(estado = 'cancelado') AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[sqlserver]
+SELECT canal,
+       COUNT(*) AS pedidos,
+       SUM(IIF(estado = 'cancelado', 1, 0)) AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[bigquery]
+SELECT canal,
+       COUNT(*) AS pedidos,
+       COUNTIF(estado = 'cancelado') AS cancelados
+FROM tienda.pedidos
+GROUP BY canal
+ORDER BY canal;
+```
+
 ## CASE en otros lugares
 
 `CASE` es una expresión: va donde iría un valor.
@@ -258,5 +301,80 @@ SELECT pais,
        SUM(CASE WHEN segmento = 'Corporativo' THEN 1 ELSE 0 END) AS corporativo
 FROM clientes
 GROUP BY pais;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre`, `stock` y una columna `disponibilidad` que diga `agotado` si el stock es 0, `pocas unidades` si es menor a 10 y `disponible` en otro caso.
+```sql solucion
+SELECT nombre, stock,
+       CASE WHEN stock = 0 THEN 'agotado'
+            WHEN stock < 10 THEN 'pocas unidades'
+            ELSE 'disponible' END AS disponibilidad
+FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `pedido_id` y una columna `tipo_canal` que diga `online` para los canales `app` y `web`, y `offline` para el resto.
+```sql solucion
+SELECT pedido_id, CASE WHEN canal IN ('app', 'web') THEN 'online' ELSE 'offline' END AS tipo_canal FROM pedidos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Cuenta los productos por rango de precio: `económico` (menos de 100), `medio` (de 100 a menos de 500) y `premium` (500 o más). Columnas: `rango`, `productos`.
+```pista
+Agrupa por la misma expresión `CASE` (o por su alias).
+```
+```sql solucion
+SELECT CASE WHEN precio < 100 THEN 'económico'
+            WHEN precio < 500 THEN 'medio'
+            ELSE 'premium' END AS rango,
+       COUNT(*) AS productos
+FROM productos
+GROUP BY rango;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+En una sola fila, cuenta los pedidos `entregado` (`entregados`), `cancelado` (`cancelados`) y `devuelto` (`devueltos`).
+```pista
+Agregación condicional: `SUM(CASE WHEN estado = '…' THEN 1 ELSE 0 END)`.
+```
+```sql solucion
+SELECT SUM(CASE WHEN estado = 'entregado' THEN 1 ELSE 0 END) AS entregados,
+       SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados,
+       SUM(CASE WHEN estado = 'devuelto' THEN 1 ELSE 0 END) AS devueltos
+FROM pedidos;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Para cada `canal`, calcula el **porcentaje de pedidos devueltos** sobre los pedidos entregados o devueltos (es decir, los que llegaron al cliente). Redondea a 2 decimales. Columnas: `canal`, `pct_devueltos`.
+```pista
+El denominador no es el total: solo los pedidos con estado `entregado` o `devuelto`.
+```
+```pista
+Filtra esos dos estados en el `WHERE` y usa `100.0 * SUM(CASE WHEN estado = 'devuelto' THEN 1 ELSE 0 END) / COUNT(*)`.
+```
+```sql solucion
+SELECT canal, ROUND(100.0 * SUM(CASE WHEN estado = 'devuelto' THEN 1 ELSE 0 END) / COUNT(*), 2) AS pct_devueltos
+FROM pedidos
+WHERE estado IN ('entregado', 'devuelto')
+GROUP BY canal;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Ordena los pedidos de forma personalizada: primero los `pendiente`, después `enviado`, `entregado`, `devuelto` y al final `cancelado`; dentro de cada estado, por `pedido_id`. Muestra `pedido_id` y `estado` de las **primeras 10** filas.
+```pista
+Un `CASE` en el `ORDER BY` que convierta cada estado en un número.
+```
+```sql solucion
+SELECT pedido_id, estado
+FROM pedidos
+ORDER BY CASE estado WHEN 'pendiente' THEN 1 WHEN 'enviado' THEN 2 WHEN 'entregado' THEN 3 WHEN 'devuelto' THEN 4 ELSE 5 END, pedido_id
+LIMIT 10;
 ```
 :::

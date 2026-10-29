@@ -144,6 +144,37 @@ Nombres en otros motores: `IFNULL(a, b)` (SQLite, MySQL), `ISNULL(a, b)` (SQL Se
 En motores estrictos (PostgreSQL, BigQuery, Spark), `COALESCE(precio, 'sin precio')` da error: no se puede mezclar un número con un texto en la misma columna. Usa un valor del mismo tipo (`COALESCE(precio, 0)`) o convierte (`COALESCE(CAST(precio AS TEXT), 'sin precio')`).
 :::
 
+Cada motor tiene además su propia función de dos argumentos, pero `COALESCE` funciona en todos:
+
+```motores
+titulo: Reemplazar un NULL
+[sqlite]
+SELECT nombre, COALESCE(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+LIMIT 3;
+-- también existe IFNULL(telefono, 'sin teléfono')
+[postgres]
+SELECT nombre, COALESCE(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+LIMIT 3;
+[mysql]
+SELECT nombre, IFNULL(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) nombre, ISNULL(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL;
+[oracle]
+SELECT nombre, NVL(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+FETCH FIRST 3 ROWS ONLY;
+```
+
 ## NULLIF: crear un NULL a propósito
 
 `NULLIF(a, b)` devuelve `NULL` si `a` es igual a `b`; si no, devuelve `a`. Parece rara, pero tiene un uso estrella: **evitar la división por cero**.
@@ -177,6 +208,32 @@ Si `stock` es 0, `NULLIF(stock, 0)` devuelve `NULL`, y `precio / NULL` es `NULL`
 :::entrevista "¿Por qué NOT IN puede no devolver ninguna fila?"
 Porque si la lista (o la subconsulta) contiene un `NULL`, la comparación `x <> NULL` da "desconocido" para todas las filas, y `NOT IN` necesita que todas sean verdaderas. La solución es filtrar los nulos en la subconsulta (`WHERE col IS NOT NULL`) o usar `NOT EXISTS`, que no tiene ese problema.
 :::
+
+Dónde quedan los NULL al ordenar también cambia: SQLite, MySQL y SQL Server los ponen primero en orden ascendente; PostgreSQL y Oracle, al final.
+
+```motores
+titulo: Los clientes sin teléfono, al final
+[sqlite]
+SELECT nombre, telefono
+FROM clientes
+ORDER BY telefono NULLS LAST
+LIMIT 5;
+[postgres]
+SELECT nombre, telefono
+FROM clientes
+ORDER BY telefono NULLS LAST
+LIMIT 5;
+[mysql]
+-- MySQL no tiene NULLS LAST: se ordena primero por “es nulo” (0 antes que 1)
+SELECT nombre, telefono
+FROM clientes
+ORDER BY telefono IS NULL, telefono
+LIMIT 5;
+[sqlserver]
+SELECT TOP (5) nombre, telefono
+FROM clientes
+ORDER BY CASE WHEN telefono IS NULL THEN 1 ELSE 0 END, telefono;
+```
 
 ## Resumen
 
@@ -227,4 +284,48 @@ SELECT nombre, apellido, fecha_salida FROM empleados WHERE fecha_salida IS NOT N
 - [x] No los cuenta, porque `NULL <> '123'` es UNKNOWN
 - [ ] Da un error
 - [ ] Los cuenta dos veces
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre` y `apellido` de los clientes que **sí** tienen email.
+```sql solucion
+SELECT nombre, apellido FROM clientes WHERE email IS NOT NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre`, `apellido` y `fecha_salida` de los empleados que **ya no** trabajan en la empresa (tienen fecha de salida).
+```sql solucion
+SELECT nombre, apellido, fecha_salida FROM empleados WHERE fecha_salida IS NOT NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra el `nombre` de cada categoría y una columna `padre` con el id de su categoría padre; si no tiene padre, que diga `0`.
+```pista
+`COALESCE(columna, valor)` devuelve el primer valor que no es NULL.
+```
+```sql solucion
+SELECT nombre, COALESCE(categoria_padre_id, 0) AS padre FROM categorias;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Cuántos clientes **no tienen ni email ni teléfono**? Devuelve una columna `clientes`.
+```pista
+Las dos condiciones tienen que cumplirse a la vez: `AND`.
+```
+```sql solucion
+SELECT COUNT(*) AS clientes FROM clientes WHERE email IS NULL AND telefono IS NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Muestra `nombre` y una columna `contacto` con la mejor forma de contactar a cada cliente: el email si lo tiene; si no, el teléfono; y si no tiene ninguno, el texto `sin contacto`.
+```pista
+`COALESCE` acepta más de dos argumentos y devuelve el primero que no sea NULL.
+```
+```sql solucion
+SELECT nombre, COALESCE(email, telefono, 'sin contacto') AS contacto FROM clientes;
+```
 :::
