@@ -956,3 +956,44 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .t-pl { padding: 0 6px; border-radius: 3px; margin-right: 2px; font-weight: 600; }
 .t-pl-u { background: var(--tuser); color: var(--tbg); } .t-pl-d { background: var(--tdir); color: var(--tbg); } .t-pl-g { background: var(--twarn); color: var(--tbg); }
 .t-git { color: var(--twarn); }
+
+/* ---------------------------------------------------------------- generador de datos */
+.gen-esc { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.gen-esc-b { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 12px; cursor: pointer; font: inherit; color: var(--ink); border: 2px solid var(--line); margin: 0; }
+.gen-esc-b:hover { border-color: var(--brand-2); }
+.gen-esc-b.on { border-color: var(--brand); background: var(--brand-soft); }
+.gen-esc-b small { color: var(--ink-2); font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.gen-ico { font-size: 22px; }
+.gen-grid { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 14px; align-items: start; }
+.gen-cfg { padding: 14px; position: sticky; top: calc(var(--topbar-h) + 12px); max-height: calc(100vh - var(--topbar-h) - 30px); overflow: auto; margin: 0; }
+.gen-cfg h3 { margin: 0 0 8px; }
+.gen-cfg label { display: block; font-size: 13px; color: var(--ink-2); margin: 6px 0; }
+.gen-cfg input[type=number], .gen-cfg input[type=date], .gen-cfg select { display: block; width: 100%; box-sizing: border-box; margin-top: 3px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); font: inherit; font-size: 13.5px; }
+.gen-cfg fieldset { border: 1px solid var(--line); border-radius: 9px; padding: 6px 10px 8px; margin: 10px 0; }
+.gen-cfg legend { font-size: 13px; font-weight: 650; padding: 0 4px; }
+.gen-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gen-tam, .gen-presets { display: flex; gap: 4px; margin: 2px 0 6px; }
+.gen-tam button, .gen-presets button { flex: 1; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 6px; font: inherit; font-size: 12px; padding: 3px 0; cursor: pointer; }
+.gen-tam button:hover, .gen-presets button:hover { border-color: var(--brand); color: var(--brand); }
+.gen-semilla { display: flex; gap: 6px; align-items: flex-end; } .gen-semilla input { flex: 1; }
+.gen-semilla button { border: 1px solid var(--line); background: var(--surface); border-radius: 7px; padding: 5px 8px; cursor: pointer; }
+.gen-paises { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
+.gen-chk { display: flex !important; align-items: center; gap: 6px; margin: 3px 0 !important; }
+.gen-prob { display: grid !important; grid-template-columns: 1fr 100px 36px; align-items: center; gap: 6px; margin: 2px 0 !important; }
+.gen-prob output { font-size: 12px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gen-res { padding: 14px; min-height: 300px; margin: 0; min-width: 0; }
+.gen-vacio { color: var(--ink-3); text-align: center; padding: 90px 20px; }
+.gen-res-cab { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.gen-acc { display: flex; gap: 6px; flex-wrap: wrap; }
+.gen-log { background: var(--warn-soft); border-radius: 9px; padding: 6px 12px; margin: 6px 0 10px; font-size: 13.5px; }
+.gen-log summary { cursor: pointer; font-weight: 650; }
+.gen-log ul { margin: 6px 0; padding-left: 20px; }
+.gen-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.gen-tabs button { border: 0; border-bottom: 3px solid transparent; background: none; color: var(--ink-2); font: inherit; font-size: 13.5px; padding: 6px 10px; cursor: pointer; }
+.gen-tabs button small { color: var(--ink-3); } .gen-tabs button.on { border-bottom-color: var(--brand); color: var(--brand); font-weight: 650; }
+.gen-prev { overflow: auto; max-height: 460px; border: 1px solid var(--line); border-radius: 9px; }
+.gen-prev table { margin: 0; font-size: 12.5px; white-space: nowrap; }
+.gen-prev th small { display: block; font-weight: 400; color: var(--ink-3); font-size: 10.5px; }
+.gen-prev .null { color: var(--ink-3); font-style: italic; }
+.gen-ddl pre { max-height: 300px; overflow: auto; font-size: 12px; }
+@media (max-width: 960px) { .gen-grid { grid-template-columns: 1fr; } .gen-cfg { position: static; max-height: none; } }
