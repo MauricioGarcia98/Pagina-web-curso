@@ -4,7 +4,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 
 | Módulo | Lecciones | Ejercicios | Qué practicas |
 |---|---|---|---|
-| 🧱 Fundamentos | 4 | 17 | Ingeniería de datos, formatos, terminal, Git |
+| 🧱 Fundamentos | 8 | 58 | El viaje de una compra con recorridos animados (del clic al tablero), dónde viven y cómo se mueven los datos, calidad, linaje y privacidad, formatos, terminal, Git |
 | 🗄️ SQL: de cero a experto | 24 | 242 | Desde `SELECT` hasta ventanas, CTE recursivas, gaps & islands, cohortes, optimización y modelado |
 | 💼 Casos de negocio con SQL | 14 | 94 | 13 empresas (banco, streaming, movilidad, clínica, SaaS, aerolínea, logística, tienda, telco, seguros, hotelería, energía, delivery): KPIs reales y trampas lógicas |
 | 📊 Análisis de datos con SQL | 10 | 127 | De cero a senior: método del analista, KPIs sin trampas, segmentación (Pareto, RFM), cohortes y churn, embudos, unit economics (MRR, NRR, LTV), pruebas A/B con paradoja de Simpson, series de tiempo, causa raíz y casos ambiguos |
@@ -26,7 +26,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | 🧪 Laboratorios guiados en la nube | 9 | 139 | Data lake con calidad en AWS, RAG con Bedrock y Guardrails, SageMaker, operación y seguridad, BigQuery y BQML, Pub/Sub, Workflows y Vertex AI, Foundry y Azure ML blue/green, Databricks bundles y Unity Catalog, con costos y limpieza |
 | 🏆 Proyecto final y entrevistas | 6 | 23 | Arquitectura, el proyecto completo de Rápido (modelo, pipeline, calidad, Terraform, CI), retos de SQL y PySpark, plan de carrera |
 
-**236 lecciones y 1596 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 61 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
+**240 lecciones y 1637 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 61 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
 
 ### Herramientas de práctica
 

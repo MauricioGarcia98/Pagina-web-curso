@@ -104,10 +104,55 @@ function parseMotores(body, file) {
   return spec;
 }
 
+// ---------------------------------------------------------------- recorridos animados
+// ```recorrido
+// titulo: El viaje de una compra
+// estacion app: App | icono=movil
+// estacion db: Base de datos | icono=postgres
+// paso app: El cliente toca "Comprar"
+// Texto del paso (Markdown, varias líneas).
+// >>> json                <- el dato en ese momento: json, sql, csv, tabla (CSV que se dibuja como tabla), texto, python, bash
+// {"evento": "checkout"}
+// ```
+const RC_LANGS = ['json', 'sql', 'csv', 'tabla', 'texto', 'python', 'bash', 'yaml', 'log'];
+function parseRecorrido(body, file) {
+  const spec = { titulo: '', estaciones: [], pasos: [] };
+  let paso = null, enDato = false;
+  for (const raw of body.replace(/\n$/, '').split('\n')) {
+    let m;
+    if (!paso && (m = raw.match(/^titulo:\s*(.*)$/))) { spec.titulo = m[1].trim(); continue; }
+    if ((m = raw.match(/^estacion\s+([\w-]+)\s*:\s*(.*)$/))) {
+      const [label, ...rest] = m[2].split('|');
+      const o = Object.fromEntries(rest.map((x) => x.trim()).filter(Boolean).map((x) => { const i = x.indexOf('='); return [x.slice(0, i).trim(), x.slice(i + 1).trim()]; }));
+      if (o.icono && ICONOS_VALIDOS && !ICONOS_VALIDOS.has(o.icono)) throw new Error(`Recorrido en ${file}: ícono desconocido "${o.icono}"`);
+      spec.estaciones.push({ id: m[1], label: label.trim(), icono: o.icono || null });
+      continue;
+    }
+    if ((m = raw.match(/^paso\s+([\w-]+)\s*:\s*(.*)$/))) {
+      if (!spec.estaciones.some((e) => e.id === m[1])) throw new Error(`Recorrido en ${file}: el paso usa la estación "${m[1]}", que no existe`);
+      paso = { estacion: m[1], titulo: m[2].trim(), texto: '', lang: null, dato: '' };
+      spec.pasos.push(paso); enDato = false; continue;
+    }
+    if (paso && (m = raw.match(/^>>>\s*(\w+)\s*$/))) {
+      if (!RC_LANGS.includes(m[1])) throw new Error(`Recorrido en ${file}: tipo de dato desconocido "${m[1]}" (usa ${RC_LANGS.join(', ')})`);
+      paso.lang = m[1]; enDato = true; continue;
+    }
+    if (!paso) { if (raw.trim()) throw new Error(`Recorrido en ${file}: no entiendo la línea "${raw}"`); continue; }
+    if (enDato) paso.dato += raw + '\n'; else paso.texto += raw + '\n';
+  }
+  if (spec.pasos.length < 2) throw new Error(`Recorrido en ${file}: necesita al menos dos pasos`);
+  for (const p of spec.pasos) { p.texto = marked.parse(p.texto.trim()); p.dato = p.dato.replace(/\s+$/, ''); }
+  return spec;
+}
+
 function md(text, file = '') {
   text = text.replace(/^```diagrama[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
     const spec = parseDiagrama(body, file);
     return `<figure class="diagrama" data-spec="${escapeHtml(JSON.stringify(spec))}">${spec.titulo ? `<figcaption>${escapeHtml(spec.titulo)}</figcaption>` : ''}</figure>\n`;
+  });
+  text = text.replace(/^```recorrido[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
+    const spec = parseRecorrido(body, file);
+    return `<div class="recorrido" data-spec="${escapeHtml(JSON.stringify(spec))}"></div>\n`;
   });
   text = text.replace(/^```motores[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
     const spec = parseMotores(body, file);
