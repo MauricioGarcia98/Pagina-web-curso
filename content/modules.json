@@ -237,6 +237,20 @@
     ]
   },
   {
+    "id": "incidentes",
+    "titulo": "Guardia: incidentes y mantenimiento de pipelines",
+    "icono": "🚨",
+    "color": "#dc2626",
+    "descripcion": "La otra mitad del trabajo: operar lo que ya está en producción. Doce incidentes reales con alertas, logs y datos rotos que preparas en la terminal: cargas duplicadas por reintentos, cambios de esquema, datos tardíos, zombies y OOM en Airflow, skew y archivos chicos en Spark, zonas horarias, lag de Kafka, un overwrite en Delta, tokens vencidos y consultas que cuestan miles. Diagnosticas con grep, awk, jq y SQL, reparas de forma idempotente y escribes el postmortem.",
+    "objetivos": [
+      "Seguir un método de guardia: reconocer, comunicar, mitigar, diagnosticar, reparar, verificar y escribir el postmortem",
+      "Leer logs de Airflow, Spark, Kafka y Delta para encontrar la causa en minutos",
+      "Diagnosticar con grep, awk, jq y SQL directamente sobre los datos rotos",
+      "Reparar sin empeorar: deduplicar, reprocesar de forma idempotente, restaurar versiones",
+      "Prevenir: checks de frescura, volumen, unicidad y esquema, alertas accionables y runbooks"
+    ]
+  },
+  {
     "id": "local",
     "titulo": "Desde tu computadora: el entorno local paso a paso",
     "icono": "💻",

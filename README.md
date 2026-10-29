@@ -22,10 +22,11 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | 🏗️ Terraform | 7 | 53 | HCL, variables, `for_each`, estado remoto, módulos, import, lifecycle, plataformas en Azure + Databricks, AWS y GCP, `terraform test` y CI/CD |
 | 🧠 Casos de negocio de punta a punta | 10 | 51 | Los casos resueltos con Python, PySpark, dbt y Airflow |
 | 💻 Desde tu computadora | 10 | 61 | WSL/Homebrew, VS Code, Git y GitHub con SSH, Python con uv, Docker y Compose, PostgreSQL, DuckDB, dbt, Airflow, Spark, CLIs de nube y el proyecto completo en tu máquina |
+| 🚨 Guardia: incidentes y mantenimiento | 12 | 157 | Doce incidentes reales que se preparan en la terminal (`incidente-preparar`): tablero vacío con tareas en verde, checks y alertas ruidosas, duplicados por reintentos, cambios de esquema, datos tardíos y marcas de agua, zombies y OOM en Airflow, skew y archivos chicos en Spark, zonas horarias y BOM, lag y mensajes venenosos en Kafka, overwrite + VACUUM en Delta, APIs, secretos y costos, y un simulacro con postmortem |
 | 🧪 Laboratorios guiados en la nube | 9 | 139 | Data lake con calidad en AWS, RAG con Bedrock y Guardrails, SageMaker, operación y seguridad, BigQuery y BQML, Pub/Sub, Workflows y Vertex AI, Foundry y Azure ML blue/green, Databricks bundles y Unity Catalog, con costos y limpieza |
 | 🏆 Proyecto final y entrevistas | 6 | 23 | Arquitectura, el proyecto completo de Rápido (modelo, pipeline, calidad, Terraform, CI), retos de SQL y PySpark, plan de carrera |
 
-**224 lecciones y 1439 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 61 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
+**236 lecciones y 1596 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 61 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
 
 ### Herramientas de práctica
 
@@ -36,7 +37,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 - **La misma consulta en cada motor**: en el curso de SQL, los ejemplos clave tienen pestañas para SQLite, PostgreSQL, MySQL y SQL Server (ejecutables) y BigQuery, Databricks y Oracle.
 - **Pistas progresivas**: los ejercicios de dificultad media y alta se abren de a una pista.
 - **Laboratorio SQL con cuatro motores**: SQLite, **PostgreSQL 17 real** ([PGlite](https://pglite.dev), Postgres compilado a WebAssembly, con el dataset completo y tipos DATE, TIMESTAMP y NUMERIC) y modos compatibles de **MySQL** y **SQL Server** que traducen su dialecto (TOP, OFFSET … FETCH, DATEADD, DATE_FORMAT, GROUP_CONCAT, DECLARE…) y devuelven los errores reales de cada motor cuando usas sintaxis ajena (LIMIT en SQL Server, columnas fuera del GROUP BY…). Incluye ejemplos por motor y una tabla comparativa de sintaxis.
-- **Laboratorio de terminal** con misiones guiadas, y ejercicios de terminal que preparan solos el entorno que necesitan.
+- **Laboratorio de terminal** con misiones guiadas, y ejercicios de terminal que preparan solos el entorno que necesitan. Incluye `awk`, `grep -A/-B/-C`, `uniq -d`, `file` y `jq` para diagnosticar logs como en una guardia real.
 
 ## Cómo funciona por dentro
 
