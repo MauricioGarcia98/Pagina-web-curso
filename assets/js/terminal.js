@@ -1372,6 +1372,17 @@ for _n, _fn in list(_ns.items()):
       const opts = Object.keys(Commands).filter((c) => c.startsWith(word)).sort();
       return { opts, base: before, word };
     }
+    // subcomandos de las CLIs de nube (terminal-cloud-ia.js define el árbol)
+    const arbol = window.Shell && window.Shell.Subcomandos;
+    const toks = before.trim().split(/\s+/);
+    if (arbol && arbol[toks[0]] && !word.startsWith('-') && toks.every((t) => !t.startsWith('-'))) {
+      let nodo = arbol[toks[0]];
+      for (const t of toks.slice(1)) { nodo = nodo && !Array.isArray(nodo) ? nodo[t] : null; if (!nodo) break; }
+      if (nodo) {
+        const opts = (Array.isArray(nodo) ? nodo : Object.keys(nodo)).filter((c) => c.startsWith(word)).sort();
+        if (opts.length) return { opts, base: before, word };
+      }
+    }
     const dirPart = word.includes('/') ? word.slice(0, word.lastIndexOf('/') + 1) : '';
     const dir = norm(dirPart || '.');
     if (!isDir(dir)) return { opts: [], base: before, word };

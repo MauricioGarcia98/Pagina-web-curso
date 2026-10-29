@@ -21,14 +21,16 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | 🏗️ Terraform | 7 | 53 | HCL, variables, `for_each`, estado remoto, módulos, import, lifecycle, plataformas en Azure + Databricks, AWS y GCP, `terraform test` y CI/CD |
 | 🧠 Casos de negocio de punta a punta | 10 | 51 | Los casos resueltos con Python, PySpark, dbt y Airflow |
 | 💻 Desde tu computadora | 10 | 61 | WSL/Homebrew, VS Code, Git y GitHub con SSH, Python con uv, Docker y Compose, PostgreSQL, DuckDB, dbt, Airflow, Spark, CLIs de nube y el proyecto completo en tu máquina |
+| 🧪 Laboratorios guiados en la nube | 9 | 139 | Data lake con calidad en AWS, RAG con Bedrock y Guardrails, SageMaker, operación y seguridad, BigQuery y BQML, Pub/Sub, Workflows y Vertex AI, Foundry y Azure ML blue/green, Databricks bundles y Unity Catalog, con costos y limpieza |
 | 🏆 Proyecto final y entrevistas | 6 | 23 | Arquitectura, el proyecto completo de Rápido (modelo, pipeline, calidad, Terraform, CI), retos de SQL y PySpark, plan de carrera |
 
-**172 lecciones y 858 ejercicios corregidos automáticamente**, sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 60 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
+**214 lecciones y 1205 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 60 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
 
 ### Herramientas de práctica
 
 - **Editor Monaco** (el de VS Code) con autocompletado de tablas y columnas; CodeMirror como respaldo.
 - **Terminal Linux simulada** (botón ⌨ Terminal o `Ctrl+``) con sistema de archivos persistente, tuberías y redirecciones, `git`, Python y `sqlite3` reales, un proyecto **dbt** que se ejecuta de verdad, `airflow dags test`, **Docker y Docker Compose** con estado (imágenes, contenedores, puertos, volúmenes, `build`), **`psql`** sobre los contenedores de PostgreSQL, **DuckDB** que consulta CSV y JSON, `uv`, entornos virtuales, `ssh-keygen`, `make`, un **Terraform** simulado que lee tus `.tf` de verdad (plan, apply, destroy, estado remoto, workspaces, módulos, import, `terraform test`) y las CLIs de la nube con estado: `az`, `aws` (S3, Glue, Athena que consulta los CSV subidos, Redshift Data API, EMR, Kinesis, Lambda…), `gcloud`, `gsutil`, `bq` (cargas, tablas particionadas, CTAS, dry-run) y `databricks` (fs, secrets, jobs, Asset Bundles).
+- **Laboratorio SQL con cuatro motores**: SQLite, **PostgreSQL 17 real** ([PGlite](https://pglite.dev), Postgres compilado a WebAssembly, con el dataset completo y tipos DATE, TIMESTAMP y NUMERIC) y modos compatibles de **MySQL** y **SQL Server** que traducen su dialecto (TOP, OFFSET … FETCH, DATEADD, DATE_FORMAT, GROUP_CONCAT, DECLARE…) y devuelven los errores reales de cada motor cuando usas sintaxis ajena (LIMIT en SQL Server, columnas fuera del GROUP BY…). Incluye ejemplos por motor y una tabla comparativa de sintaxis.
 - **Laboratorio de terminal** con misiones guiadas, y ejercicios de terminal que preparan solos el entorno que necesitan.
 
 ## Cómo funciona por dentro
@@ -43,7 +45,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 
 ## Usarlo
 
-Es un sitio estático. Necesita conexión a internet la primera vez (carga sql.js, Pyodide, Monaco, CodeMirror y highlight.js desde CDN).
+Es un sitio estático. Necesita conexión a internet la primera vez (carga sql.js, Pyodide, Monaco, CodeMirror y highlight.js desde CDN; PGlite se descarga de cdn.jsdelivr.net solo si eliges PostgreSQL en el laboratorio SQL).
 
 Versión publicada: **https://mauriciogarcia98.github.io/Pagina-web-curso/**
 

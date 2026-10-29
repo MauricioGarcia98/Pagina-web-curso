@@ -329,7 +329,7 @@
     }
     // ---- role / ad
     if (p[0] === 'role' && p[1] === 'assignment') {
-      if (p[2] === 'create') { const e = need(A, [['--assignee'], ['--role'], ['--scope']]); if (e) return fail(e, 2); const r = { principalName: A.get('--assignee'), roleDefinitionName: A.get('--role'), scope: A.get('--scope'), id: uid(32) }; s.roles.push(r); save(); return output(r, A); }
+      if (p[2] === 'create') { const e = need(A, [['--assignee', '--assignee-object-id'], ['--role'], ['--scope']]); if (e) return fail(e, 2); const r = { principalName: A.get('--assignee', '--assignee-object-id'), roleDefinitionName: A.get('--role'), scope: A.get('--scope'), id: uid(32) }; s.roles.push(r); save(); return output(r, A); }
       if (p[2] === 'list') { const sc = A.get('--scope'); return output(s.roles.filter((r) => !sc || sc === true || r.scope === sc), A); }
       if (p[2] === 'delete') { s.roles = s.roles.filter((r) => !(r.principalName === A.get('--assignee') && r.roleDefinitionName === A.get('--role'))); save(); return ok(''); }
     }
@@ -882,7 +882,10 @@
       if (!b || b.objects[t.k] === undefined) return fail(`BigQuery error in load operation: Error processing job: Not found: URI ${src}`);
       const lines = b.objects[t.k].replace(/\n$/, '').split('\n');
       const n = lines.length - (A.get('--skip_leading_rows') ? Number(A.get('--skip_leading_rows')) : 0);
-      s.datasets[ds].tables[tb] = { rows: n, schema: schema || (A.flags['--autodetect'] ? 'autodetect' : lines[0]), csv: b.objects[t.k], skip: Number(A.get('--skip_leading_rows') || 0), cols: schema ? schema.split(',').map((x) => x.split(':')[0]) : null }; save();
+      // si la tabla ya existía (bq mk con esquema, partición y clustering), la carga conserva esa definición
+      const prev = s.datasets[ds].tables[tb] || {};
+      const esq = schema || (typeof prev.schema === 'string' && prev.schema.includes(':') ? prev.schema : null);
+      s.datasets[ds].tables[tb] = { rows: n, schema: esq || (A.flags['--autodetect'] ? 'autodetect' : lines[0]), csv: b.objects[t.k], skip: Number(A.get('--skip_leading_rows') || 0), cols: esq ? esq.split(',').map((x) => x.split(':')[0]) : null, local: `${ds}__${tb}`, partition: prev.partition || null, cluster: prev.cluster || null }; save();
       return ok(`Waiting on bqjob_r${uid(16)}_${uid(16)} ... (1s) Current status: DONE\n${col.dim(`(${n} filas cargadas en ${proj}:${ds}.${tb})`)}`);
     }
     if (p[0] === 'show') { const [ds, tb] = (p[1] || '').replace(/^.*:/, '').split('.'); const d = s.datasets[ds]; if (!d) return fail(`BigQuery error in show operation: Not found: Dataset ${proj}:${ds}`); if (tb) { const x = d.tables[tb]; if (!x) return fail(`BigQuery error in show operation: Not found: Table ${proj}:${ds}.${tb}`); if (A.flags['--schema']) return ok(JSON.stringify(String(x.schema === 'autodetect' ? '' : x.schema).split(',').filter(Boolean).map((c) => ({ name: c.split(':')[0], type: (c.split(':')[1] || 'STRING').toUpperCase(), mode: 'NULLABLE' })), null, A.get('--format') === 'prettyjson' ? 2 : 0)); return ok(`Table ${proj}:${ds}.${tb}\n\n   Last modified       Total Rows   Time Partitioning      Clustered Fields\n ----------------- ------------ --------------------- ------------------\n  ${now().slice(0, 16)}   ${String(x.rows).padEnd(12)} ${(x.partition ? 'DAY (field: ' + x.partition + ')' : '').padEnd(21)} ${x.cluster || ''}`); } return ok(`Dataset ${proj}:${ds}\n\n   Last modified    Location\n ----------------- ----------\n  ${now().slice(0, 16)}   ${d.location}`); }
@@ -1019,6 +1022,11 @@
             for (const t of cfg.tasks || []) { if (!t.task_key) return fail('Error: cada tarea necesita un task_key'); for (const d of t.depends_on || []) if (!keys.includes(d.task_key)) return fail(`Error: Invalid dependency: task '${t.task_key}' depends on '${d.task_key}', which does not exist in the job.`); }
           } s.jobs[nid] = { name, runs: [], settings: cfg }; save(); return out({ job_id: nid }); }
         const jid = p[2] || A.get('--job-id');
+        if (p[1] === 'repair-run') {
+          const rid = p[2] || A.get('--run-id'); if (!rid) return fail('Error: accepts 1 arg(s), received 0 (falta RUN_ID)');
+          if (!A.flags['--rerun-all-failed-tasks'] && !A.get('--rerun-tasks') && !A.get('--json')) return fail('Error: indica qué reparar: --rerun-all-failed-tasks, --rerun-tasks o --json');
+          return out({ repair_id: Math.floor(100000 + Math.random() * 900000) });
+        }
         if (p[1] === 'run-now') {
           const j = s.jobs[jid]; if (!jid) return fail('Error: accepts 1 arg(s), received 0 (falta JOB_ID)'); if (!j) return fail(`Error: Job ${jid} does not exist.`);
           let params = {};
@@ -1127,5 +1135,5 @@
   });
   function hash(s) { let h = 0; for (const ch of String(s)) h = (Math.imul(31, h) + ch.charCodeAt(0)) | 0; return h; }
 
-  window.CloudSim = { jmes, asTable, aws, gcp, az, dbx };
+  window.CloudSim = { jmes, asTable, aws, gcp, az, dbx, args, output, fail, uid, now, save, st, s3path, gsPath, parseCsvLine, materialize };
 })();

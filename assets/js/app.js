@@ -582,7 +582,7 @@
         Store.setCode(ex.id, line);
         const g = CLI.grade(ex, line);
         if (g.pass) {
-          feedback('ok', '✓ ' + g.msg + (r.code ? ' (El comando es correcto; la terminal simulada no pudo ejecutarlo completo, mira la salida esperada abajo.)' : ''));
+          feedback('ok', '✓ ' + g.msg + (r.code && ex.error ? ' Este error era el esperado: léelo antes de seguir.' : r.code ? ' (El comando es correcto; la terminal simulada no pudo ejecutarlo completo, mira la salida esperada abajo.)' : ''));
           markPassed();
           if (ex.salida && r.code) showExtra('Salida esperada', `<pre data-lang="text"><code>${esc(ex.salida)}</code></pre>${ex.explicacion || ''}`);
           else if (ex.explicacion) showExtra('Explicación', ex.explicacion);
@@ -883,13 +883,21 @@
   ];
 
   function viewLabSql() {
+    const SM = window.SqlMotores;
+    const MOT = SM.MOTORES;
+    let motor = Store.data.code['lab-sql-motor'] || 'sqlite';
+    if (!MOT[motor]) motor = 'sqlite';
+    const clave = (m) => (m === 'sqlite' ? 'lab-sql' : 'lab-sql-' + m);
+    const ejemplos = (m) => (m === 'sqlite' ? SQL_SAMPLES : SM.EJEMPLOS[m]);
     main.innerHTML = `<div class="container wide">
       <h1 style="margin:0 0 4px">🧪 Laboratorio SQL</h1>
-      <p class="muted" style="margin:0 0 16px">SQLite real en tu navegador con el dataset completo. Experimenta sin miedo: si rompes algo, presiona “Reiniciar base”. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> ejecuta · <kbd>Ctrl</kbd>+<kbd>Espacio</kbd> autocompleta.</p>
+      <p class="muted" style="margin:0 0 12px">Elige el motor y practica su dialecto con el dataset completo de la tienda. Experimenta sin miedo: si rompes algo, presiona “Reiniciar base”. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> ejecuta · <kbd>Ctrl</kbd>+<kbd>Espacio</kbd> autocompleta.</p>
+      <div class="motor-tabs" role="tablist">${Object.entries(MOT).map(([k, m]) => `<button role="tab" data-motor="${k}"><span>${m.icono}</span> ${esc(m.nombre)}${m.real ? '' : ' <small>compatible</small>'}</button>`).join('')}<span class="spacer"></span><button class="btn btn-ghost btn-sm" id="comparar">📋 Diferencias entre motores</button></div>
+      <div class="motor-info" id="motorInfo"></div>
       <div class="lab">
         <aside class="card lab-side"><h4>Tablas</h4><div id="schema"><div class="muted small">Cargando…</div></div></aside>
         <div class="lab-main"><div class="card">
-          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples"><option value="">📂 Ejemplos…</option>${SQL_SAMPLES.map((s, i) => `<option value="${i}">${esc(s[0])}</option>`).join('')}</select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb">↺ Reiniciar base</button></div>
+          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb">↺ Reiniciar base</button></div>
           <div id="ed"></div>
           <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><span class="small muted">Se ejecutan todas las sentencias; se muestran los resultados de las últimas 3.</span></div>
           <div class="output" id="out"></div>
@@ -897,25 +905,58 @@
       </div>
     </div>`;
     const out = $('#out');
-    const saved = Store.data.code['lab-sql'];
-    const ed = createEditor($('#ed'), { lang: 'sql', value: saved ?? SQL_SAMPLES[0][1], tall: true, onRun: () => run(), onChange: (v) => Store.setCode('lab-sql', v) });
-    const run = async () => { if (!(await ensureSql(out))) return; renderSqlOutput(out, SQL.exec(ed.getValue(), SQL.playground())); };
+    const ed = createEditor($('#ed'), { lang: 'sql', value: Store.data.code[clave(motor)] ?? ejemplos(motor)[0][1], tall: true, onRun: () => run(), onChange: (v) => Store.setCode(clave(motor), v) });
+    const pintarMotor = () => {
+      $$('.motor-tabs [data-motor]').forEach((b) => b.classList.toggle('active', b.dataset.motor === motor));
+      const m = MOT[motor];
+      $('#motorInfo').innerHTML = `<span class="badge ${m.real ? 'b-real' : 'b-compat'}">${m.real ? 'motor real' : 'modo compatible'}</span> <b>${esc(m.version)}</b> · ${esc(m.desc)}`;
+      $('#samples').innerHTML = `<option value="">📂 Ejemplos de ${esc(m.nombre)}…</option>` + ejemplos(motor).map((x, i) => `<option value="${i}">${esc(x[0])}</option>`).join('');
+    };
+    const run = async () => {
+      if (!(await ensureSql(out))) return;
+      if (motor === 'postgres' && SM.PG.estado !== 'listo') loadingInto(out, 'Preparando PostgreSQL…');
+      let r;
+      try { r = await SM.ejecutar(motor, ed.getValue(), (msg) => loadingInto(out, msg)); } catch (e) {
+        out.innerHTML = `<pre class="console"><span class="err">${esc(motor === 'postgres' ? 'No se pudo cargar PostgreSQL (PGlite) desde cdn.jsdelivr.net: ' + e.message + '\nRevisa tu conexión o prueba con otro motor.' : e.message)}</span></pre>`; return;
+      }
+      renderSqlOutput(out, r);
+      if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`));
+      if (r.traducido) out.append(h(`<details class="motor-trad"><summary>Ver cómo se tradujo a SQLite</summary><pre data-lang="sql"><code>${esc(r.traducido)}</code></pre></details>`));
+    };
     $('#run').addEventListener('click', run);
-    $('#samples').addEventListener('change', (e) => { if (e.target.value !== '') { ed.setValue(SQL_SAMPLES[e.target.value][1]); run(); } });
-    $('#resetDb').addEventListener('click', () => { SQL.resetPlayground(); toast('Base de datos reiniciada a su estado original'); });
+    $('#samples').addEventListener('change', (e) => { if (e.target.value !== '') { ed.setValue(ejemplos(motor)[e.target.value][1]); run(); } });
+    $('#resetDb').addEventListener('click', async () => {
+      if (motor === 'postgres') { if (SM.PG.estado !== 'listo') return; await SM.PG.reiniciar((msg) => loadingInto(out, msg)); out.innerHTML = ''; toast('PostgreSQL reiniciado a su estado original'); return; }
+      SQL.resetPlayground(); toast('Base de datos reiniciada a su estado original');
+    });
+    $$('.motor-tabs [data-motor]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.motor === motor) return;
+      Store.setCode(clave(motor), ed.getValue());
+      motor = b.dataset.motor; Store.setCode('lab-sql-motor', motor);
+      ed.setValue(Store.data.code[clave(motor)] ?? ejemplos(motor)[0][1]);
+      pintarMotor(); out.innerHTML = '';
+      if (motor !== 'postgres' || SM.PG.estado === 'listo') run();
+      else out.innerHTML = '<div class="out-meta">PostgreSQL se descarga la primera vez que ejecutas (unos 6 MB). Presiona ▶ Ejecutar.</div>';
+    }));
+    $('#comparar').addEventListener('click', () => {
+      openModal(`<h2 style="margin-top:0">La misma idea en cada motor</h2><div class="result-table-wrap motor-comp-wrap"><table class="result motor-comp"><thead><tr><th>Qué quieres</th><th>SQLite</th><th>PostgreSQL</th><th>MySQL</th><th>SQL Server</th></tr></thead><tbody>${SM.COMPARATIVA.map((f) => `<tr><td><b>${esc(f[0])}</b></td>${f.slice(1).map((c) => `<td><code>${esc(c)}</code></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+        <p class="small muted">También cambian los tipos: PostgreSQL y SQL Server dividen enteros como enteros (7 / 2 = 3), MySQL devuelve decimales (3.5000). PostgreSQL y SQL Server exigen que toda columna no agregada del SELECT esté en el GROUP BY; MySQL 8 también, salvo que agrupes por la clave primaria.</p>`);
+    });
+    pintarMotor();
     ensureSql(out).then((ok) => {
       if (!ok) return;
       const sc = $('#schema'); sc.innerHTML = '';
       for (const [name, t] of Object.entries(SQL.tables)) {
-        const el = h(`<div class="schema-table"><button><span>▸</span>${esc(name)}<span class="cnt">${t.rows.length.toLocaleString('es')}</span></button><div class="schema-cols">${t.columns.map((c) => `<div data-col="${esc(c)}">${esc(c)}</div>`).join('')}<div data-q="${esc(name)}" style="color:var(--brand)">▶ SELECT * … LIMIT 10</div></div></div>`);
+        const el = h(`<div class="schema-table"><button><span>▸</span>${esc(name)}<span class="cnt">${t.rows.length.toLocaleString('es')}</span></button><div class="schema-cols">${t.columns.map((c) => `<div data-col="${esc(c)}">${esc(c)}</div>`).join('')}<div data-q="${esc(name)}" style="color:var(--brand);cursor:pointer">▶ ver 10 filas</div></div></div>`);
         $('button', el).addEventListener('click', () => el.classList.toggle('open'));
         el.addEventListener('click', (e) => {
           const c = e.target.closest('[data-col]'); if (c) { if (ed.cm) ed.cm.replaceSelection(c.dataset.col); else if (ed.monaco) ed.monaco.trigger('kbd', 'type', { text: c.dataset.col }); ed.focus(); }
-          const q = e.target.closest('[data-q]'); if (q) { ed.setValue(`SELECT *\nFROM ${q.dataset.q}\nLIMIT 10;`); run(); }
+          const q = e.target.closest('[data-q]'); if (q) { ed.setValue(motor === 'sqlserver' ? `SELECT TOP 10 *\nFROM ${q.dataset.q};` : `SELECT *\nFROM ${q.dataset.q}\nLIMIT 10;`); run(); }
         });
         sc.append(el);
       }
-      run();
+      if (motor !== 'postgres') run();
+      else out.innerHTML = '<div class="out-meta">PostgreSQL se descarga la primera vez que ejecutas (unos 6 MB). Presiona ▶ Ejecutar.</div>';
     });
   }
 
