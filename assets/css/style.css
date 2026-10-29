@@ -642,7 +642,15 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .sim-hist { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .sim-hist th, .sim-hist td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
 .sim-hist td.ok { color: var(--ok); } .sim-hist td.mal { color: var(--bad); }
-@media (max-width: 640px) { .sim-barra { gap: 8px; } .sim-barra .btn { margin-left: 0; width: 100%; } .sim-hist { font-size: .8rem; } }
+@media (max-width: 640px) {
+  .sim-barra { gap: 6px 10px; padding: 8px 10px; }
+  .sim-barra #simCont { order: 3; width: 100%; }
+  .sim-barra .btn { padding: 6px 10px; font-size: .85rem; }
+  .sim-reloj { font-size: 1.05rem; }
+  .sim-n { width: 28px; height: 28px; font-size: .75rem; }
+  .sim-nav .btn { flex: 1 1 30%; padding-left: 6px; padding-right: 6px; }
+  .sim-hist { font-size: .8rem; }
+}
 
 /* ---------------------------------------------------------------- tarjetas de certificación y plan de estudio */
 .rep-situacion { font-size: 1.35rem; line-height: 1.35; }
