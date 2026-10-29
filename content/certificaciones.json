@@ -912,5 +912,311 @@
     ]
    }
   ]
+ },
+ {
+  "id": "gcp-pde",
+  "proveedor": "Google Cloud",
+  "nombre": "Professional Data Engineer",
+  "codigo": "PDE",
+  "nivel": "Avanzado",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "120",
+   "costo": "USD 200",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/data-engineer",
+  "actualizado": "la guía vigente en 2026",
+  "examen": "gcp-pde",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. La versión 2026 da más peso a BigLake, Dataform, Knowledge Catalog e IA, y menos a Hadoop.",
+  "dominios": [
+   {
+    "nombre": "Diseñar sistemas de procesamiento de datos",
+    "peso": 22,
+    "rango": "≈22 %",
+    "temas": [
+     "Seguridad, cumplimiento, confiabilidad, portabilidad",
+     "Migración a Google Cloud"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Ingerir y procesar datos",
+    "peso": 25,
+    "rango": "≈25 %",
+    "temas": [
+     "Pub/Sub, Dataflow y Beam: ventanas, marcas de agua, datos tardíos",
+     "Datastream, Dataproc, Data Fusion, Dataform, Composer"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Almacenar los datos",
+    "peso": 20,
+    "rango": "≈20 %",
+    "temas": [
+     "Cloud Storage, BigQuery, Bigtable, Spanner, AlloyDB",
+     "BigLake e Iceberg, Dataplex y Knowledge Catalog"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-almacenamiento-analisis"
+    ]
+   },
+   {
+    "nombre": "Preparar y usar datos para el análisis",
+    "peso": 15,
+    "rango": "≈15 %",
+    "temas": [
+     "Seguridad por fila y columna, Analytics Hub",
+     "BigQuery ML, funciones de IA, BI Engine, Looker"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-almacenamiento-analisis"
+    ]
+   },
+   {
+    "nombre": "Mantener y automatizar cargas de datos",
+    "peso": 18,
+    "rango": "≈18 %",
+    "temas": [
+     "Costos, slots y reservas, monitoreo y alertas",
+     "Recuperación, IAM, CMEK, VPC Service Controls, auditoría"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-operacion-seguridad-adp"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "gcp-adp",
+  "proveedor": "Google Cloud",
+  "nombre": "Associate Data Practitioner",
+  "codigo": "ADP",
+  "nivel": "Fundamental",
+  "rol": "Datos (nivel inicial)",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "120",
+   "costo": "USD 125",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/data-practitioner",
+  "actualizado": "la guía vigente en 2026",
+  "examen": "gcp-adp",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. Cubre los mismos productos que el PDE con menos profundidad y foco en la ejecución.",
+  "dominios": [
+   {
+    "nombre": "Preparación e ingesta de datos",
+    "peso": 30,
+    "rango": "≈30 %",
+    "temas": [
+     "Limpieza y formatos",
+     "Storage Transfer, Data Transfer Service, Datastream, Dataflow"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Análisis y presentación de datos",
+    "peso": 27,
+    "rango": "≈27 %",
+    "temas": [
+     "SQL en BigQuery, BigQuery ML",
+     "Looker y Looker Studio"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-almacenamiento-analisis"
+    ]
+   },
+   {
+    "nombre": "Orquestación de pipelines de datos",
+    "peso": 18,
+    "rango": "≈18 %",
+    "temas": [
+     "Composer, Dataform, Workflows, consultas programadas"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Gestión de datos",
+    "peso": 25,
+    "rango": "≈25 %",
+    "temas": [
+     "IAM, ciclo de vida de Cloud Storage, time travel",
+     "Sensitive Data Protection, Dataplex"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-operacion-seguridad-adp"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "gcp-pmle",
+  "proveedor": "Google Cloud",
+  "nombre": "Professional Machine Learning Engineer",
+  "codigo": "PMLE",
+  "nivel": "Avanzado",
+  "rol": "Ingeniería de ML",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "120",
+   "costo": "USD 200",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/machine-learning-engineer",
+  "actualizado": "la guía del 1 de junio de 2026",
+  "examen": "gcp-pmle",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. La plataforma Vertex AI ahora se llama Gemini Enterprise Agent Platform; el examen puede usar ambos nombres.",
+  "dominios": [
+   {
+    "nombre": "Diseñar soluciones de IA de bajo código",
+    "peso": 13,
+    "rango": "≈13 %",
+    "temas": [
+     "APIs preentrenadas, BigQuery ML, AutoML",
+     "Gemini, Model Garden, agentes"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Colaborar para gestionar datos y modelos",
+    "peso": 16,
+    "rango": "≈16 %",
+    "temas": [
+     "Feature Store, Workbench, Experiments, Metadata"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Escalar prototipos a modelos de ML",
+    "peso": 21,
+    "rango": "≈21 %",
+    "temas": [
+     "Entrenamiento personalizado y distribuido, GPU y TPU",
+     "Ajuste de hiperparámetros, Explainable AI, ajuste de Gemini"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Servir y escalar modelos",
+    "peso": 20,
+    "rango": "≈20 %",
+    "temas": [
+     "Endpoints, predicción por lotes, división de tráfico"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Automatizar y orquestar pipelines de ML",
+    "peso": 18,
+    "rango": "≈18 %",
+    "temas": [
+     "Pipelines (Kubeflow), Cloud Build, reentrenamiento"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Monitorear soluciones de IA",
+    "peso": 13,
+    "rango": "≈13 %",
+    "temas": [
+     "Skew y deriva, IA responsable, Model Armor",
+     "Evaluación de IA generativa"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "gcp-genai-leader",
+  "proveedor": "Google Cloud",
+  "nombre": "Generative AI Leader",
+  "codigo": "GAIL",
+  "nivel": "Fundamental",
+  "rol": "Liderazgo y negocio",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "90",
+   "costo": "USD 99",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/generative-ai-leader",
+  "actualizado": "la guía vigente en 2026",
+  "examen": "gcp-genai-leader",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. No requiere experiencia técnica: evalúa conceptos, productos de Google y estrategia.",
+  "dominios": [
+   {
+    "nombre": "Fundamentos de la IA generativa",
+    "peso": 30,
+    "rango": "≈30 %",
+    "temas": [
+     "Modelos fundacionales, LLM, multimodales",
+     "Tipos de datos y aprendizaje, limitaciones"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   },
+   {
+    "nombre": "Oferta de IA generativa de Google Cloud",
+    "peso": 35,
+    "rango": "≈35 %",
+    "temas": [
+     "Gemini, Model Garden, Agent Platform",
+     "Gemini Enterprise, NotebookLM, agentes"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   },
+   {
+    "nombre": "Técnicas para mejorar la salida de los modelos",
+    "peso": 20,
+    "rango": "≈20 %",
+    "temas": [
+     "Prompts, grounding, RAG, ajuste, parámetros"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   },
+   {
+    "nombre": "Estrategias de negocio para una solución exitosa",
+    "peso": 15,
+    "rango": "≈15 %",
+    "temas": [
+     "Casos de uso, métricas, IA responsable, SAIF"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   }
+  ]
  }
 ]
