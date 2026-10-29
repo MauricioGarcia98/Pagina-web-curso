@@ -2077,6 +2077,16 @@
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();
     else window.scrollTo(0, 0);
     main.focus({ preventScroll: true });
+    // los paneles laterales de los laboratorios también se pliegan
+    for (const lab of $$('.lab', main)) {
+      const side = $('.lab-side', lab); if (!side || (lab.previousElementSibling && lab.previousElementSibling.classList.contains('panel-toggle'))) continue;
+      const btn = h('<button class="panel-toggle" title="Mostrar u ocultar el panel lateral">⇤ Ocultar panel</button>');
+      const aplicar = (oculto) => { lab.classList.toggle('panel-oculto', oculto); btn.textContent = oculto ? '⇥ Mostrar panel' : '⇤ Ocultar panel'; };
+      let oculto = false; try { oculto = localStorage.getItem('panel-lab-oculto') === '1'; } catch (e) { /* sin almacenamiento */ }
+      aplicar(oculto);
+      btn.addEventListener('click', () => { oculto = !oculto; aplicar(oculto); try { localStorage.setItem('panel-lab-oculto', oculto ? '1' : '0'); } catch (e) { /* sin almacenamiento */ } });
+      lab.before(btn);
+    }
   }
   window.addEventListener('hashchange', route);
   // lo pendiente de guardar (respuestas recién marcadas, código) no se pierde al cerrar o recargar
@@ -2087,7 +2097,15 @@
     const a = e.target.closest('a[href^="#/"]');
     if (a && !a.target && !e.ctrlKey && !e.metaKey && a.getAttribute('href') === location.hash) { e.preventDefault(); route(); }
   });
-  $('#menuBtn').addEventListener('click', () => document.body.classList.toggle('nav-open'));
+  // en escritorio el botón pliega la barra lateral (y se recuerda); en pantallas chicas la abre como panel
+  const esMovil = () => window.matchMedia('(max-width: 900px)').matches;
+  try { if (localStorage.getItem('barra-plegada') === '1') document.body.classList.add('side-collapsed'); } catch (e) { /* sin almacenamiento */ }
+  $('#menuBtn').addEventListener('click', () => {
+    if (esMovil()) { document.body.classList.toggle('nav-open'); return; }
+    const plegada = document.body.classList.toggle('side-collapsed');
+    try { localStorage.setItem('barra-plegada', plegada ? '1' : '0'); } catch (e) { /* sin almacenamiento */ }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'b' && (e.ctrlKey || e.metaKey) && !e.target.closest('input, textarea, .CodeMirror, .monaco-editor')) { e.preventDefault(); $('#menuBtn').click(); } });
   $('#scrim').addEventListener('click', () => document.body.classList.remove('nav-open'));
   updateProgressPill();
   $('#termBtn').addEventListener('click', () => Dock.toggle());

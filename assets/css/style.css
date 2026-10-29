@@ -778,3 +778,15 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .motores-tools button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 3px 10px; font: inherit; font-size: 12.5px; cursor: pointer; }
 .motores-tools button:hover { border-color: var(--brand); }
 .motores .output:empty { display: none; }
+
+/* Barra lateral y paneles plegables */
+.menu-btn { display: grid; }
+@media (min-width: 901px) {
+  .sidebar { transition: width .2s, padding .2s; }
+  body.side-collapsed .sidebar { width: 0; padding-left: 0; padding-right: 0; border-right: 0; overflow: hidden; }
+  body.side-collapsed .term-dock { left: 0; }
+}
+.panel-toggle { display: inline-block; margin: 0 0 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 6px; font: inherit; font-size: 12.5px; padding: 3px 9px; cursor: pointer; z-index: 2; }
+.panel-toggle:hover { border-color: var(--brand); color: var(--brand); }
+.lab.panel-oculto { grid-template-columns: 1fr; }
+.lab.panel-oculto > .lab-side { display: none; }
