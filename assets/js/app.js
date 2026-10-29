@@ -391,7 +391,7 @@
     const runner = h('<div class="inline-runner"></div>');
     box.replaceWith(runner);
     const ed = createEditor(runner, { lang, value: code, onRun: () => run() });
-    const bar = h('<div class="bar"><button class="btn btn-primary btn-sm" data-run>▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><button class="btn btn-ghost btn-sm" data-reset>↺ Original</button></div>');
+    const bar = h('<div class="runner-bar"><button class="btn btn-primary btn-sm" data-run>▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><button class="btn btn-ghost btn-sm" data-reset>↺ Original</button></div>');
     const out = h('<div class="output"></div>');
     runner.append(bar, out);
     $('[data-run]', bar).addEventListener('click', () => run());
@@ -878,6 +878,20 @@
     enhanceMotores(body);
     if (window.Diagramas) window.Diagramas.dibujar(body);
     if (window.Recorrido) window.Recorrido.montar(body);
+    // cada lección con ejercicios de terminal empieza como una terminal recién abierta: en ~ y sin entorno
+    // virtual (los archivos y el historial se conservan). Así un ejercicio de Azure no hereda la carpeta
+    // ni el .venv de la lección de dbt.
+    const Sh = window.Shell;
+    if (Sh && l.ejercicios.some((e) => e.type === 'cli')) {
+      if (!Sh.Machine.ready) Sh.Machine.load();
+      if (Sh.Machine.ultimaLeccion !== l.id) {
+        Sh.Machine.ultimaLeccion = l.id;
+        Sh.Machine.cwd = Sh.HOME;
+        delete Sh.Machine.env.VIRTUAL_ENV;
+        Sh.Machine.save();
+        document.dispatchEvent(new CustomEvent('term-config'));   // refresca el prompt de las terminales abiertas
+      }
+    }
     $$('.exercise-slot', body).forEach((slot) => {
       const k = Number(slot.dataset.ex);
       mountExercise(slot, l.ejercicios[k], k + 1);
