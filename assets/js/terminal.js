@@ -15,22 +15,22 @@
 
   // ------------------------------------------------------------------ máquina
   const Machine = {
-    fs: {}, cwd: HOME, env: {}, history: [], cloud: {}, git: {}, ready: false,
+    fs: {}, cwd: HOME, env: {}, history: [], cloud: {}, git: {}, alias: {}, ready: false,
     load() {
       try {
         const d = JSON.parse(localStorage.getItem(KEY));
-        if (d && d.v === 1) { Object.assign(this, d); this.ready = true; return; }
+        if (d && d.v === 1) { Object.assign(this, d); this.alias = this.alias || {}; this.ready = true; return; }
       } catch (e) { /* sin almacenamiento */ }
       this.reset();
     },
     save() {
       clearTimeout(this._t);
       this._t = setTimeout(() => {
-        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git })); } catch (e) { /* lleno */ }
+        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias })); } catch (e) { /* lleno */ }
       }, 300);
     },
     reset() {
-      this.fs = {}; this.cwd = HOME; this.history = []; this.cloud = {}; this.git = {};
+      this.fs = {}; this.cwd = HOME; this.history = []; this.cloud = {}; this.git = {}; this.alias = { ll: 'ls -la', la: 'ls -a', '..': 'cd ..' };
       this.env = { HOME, USER: 'alumno', PATH: '/usr/local/bin:/usr/bin:/bin', SHELL: '/bin/bash', LANG: 'es_ES.UTF-8' };
       seedFiles();
       this.ready = true;
@@ -190,7 +190,7 @@ models:
       - name: cliente_id
         data_tests: [unique, not_null]
 `);
-    w(HOME + '/.bashrc', '# configuración de la terminal\nexport EDITOR=code\n');
+    w(HOME + '/.bashrc', '# ~/.bashrc: se ejecuta cada vez que abres la terminal\nexport EDITOR=code\nalias ll=\'ls -la\'\nalias gs=\'git status\'\n# tema dracula        # descomenta para cambiar el tema (o usa el botón ⚙)\n# export PS1=\'\\u@\\h \\W \\$ \'\n');
   }
 
   // --------------------------------------------------------------- utilidades FS
@@ -312,6 +312,10 @@ models:
 
   async function runSimple(text, stdin, opts) {
     const toks = tokenize(await expand(text, Machine.env, opts));
+    // alias: se expande la primera palabra (una sola vez, como bash)
+    if (typeof toks[0] === 'string' && Machine.alias && Object.prototype.hasOwnProperty.call(Machine.alias, toks[0])) {
+      toks.splice(0, 1, ...tokenize(await expand(Machine.alias[toks[0]], Machine.env, opts)));
+    }
     // asignaciones VAR=valor: solas quedan en la sesión; delante de un comando valen solo para ese comando
     const temporales = {};
     while (toks.length && typeof toks[0] === 'string' && /^[A-Za-z_]\w*=/.test(toks[0])) {
@@ -437,14 +441,15 @@ models:
     const groups = {
       'Archivos y carpetas': ['pwd', 'ls', 'cd', 'mkdir', 'touch', 'cat', 'head', 'tail', 'less', 'wc', 'cp', 'mv', 'rm', 'tree', 'find', 'code'],
       'Texto': ['echo', 'printf', 'grep', 'sed', 'sort', 'uniq', 'cut', 'tr', 'diff', 'jq'],
-      'Sistema y scripts': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'source', 'bash', 'chmod', 'make', 'sudo', 'reset-maquina'],
+      'Sistema y scripts': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'type', 'source', 'bash', 'chmod', 'make', 'sudo', 'reset-maquina'],
+      'Personalizar': ['alias', 'unalias', 'tema', 'neofetch'],
       'Instalar herramientas': ['apt', 'brew', 'winget', 'wsl'],
       'Python y Git': ['python', 'uv', 'pip', 'pytest', 'git', 'gh', 'ssh-keygen', 'ssh'],
       'Bases de datos y contenedores': ['sqlite3', 'duckdb', 'psql', 'docker', 'docker-compose'],
       'Pipelines': ['dbt', 'airflow', 'astro', 'java', 'spark-submit', 'curl'],
       'Nube e infraestructura': ['az', 'aws', 'gcloud', 'gsutil', 'bq', 'databricks', 'terraform'],
     };
-    return ok(Object.entries(groups).map(([g, cs]) => col.b(g) + '\n' + cs.filter((c) => Commands[c]).map((c) => `  ${col.info(c.padEnd(15))}${Help[c] || ''}`).join('\n')).join('\n\n') + `\n\n${col.dim('Atajos: ↑/↓ historial · Tab autocompleta · Ctrl+L limpia · Ctrl+C cancela la línea')}`);
+    return ok(Object.entries(groups).map(([g, cs]) => col.b(g) + '\n' + cs.filter((c) => Commands[c]).map((c) => `  ${col.info(c.padEnd(15))}${Help[c] || ''}`).join('\n')).join('\n\n') + `\n\n${col.dim('Atajos: ↑/↓ historial · Ctrl+R busca en el historial · !! repite el último · Tab autocompleta · Ctrl+A/E inicio/fin · Ctrl+U/K borra antes/después · Ctrl+W borra palabra · Ctrl+L limpia · Ctrl+C cancela · ⚙ apariencia')}`);
   });
   def('pwd', 'muestra la carpeta actual', () => ok(Machine.cwd));
   def('whoami', 'tu usuario', () => ok('alumno'));
@@ -454,7 +459,7 @@ models:
   def('false', '', () => ({ out: '', code: 1 }));
   def('sleep', '', () => ok(''));
   def('reset-maquina', 'vuelve la máquina a su estado inicial', () => { Machine.reset(); return { out: col.ok('✔ Máquina reiniciada'), code: 0, clear: true }; });
-  def('history', 'historial de comandos', () => ok(Machine.history.map((h, i) => `${String(i + 1).padStart(5)}  ${h}`).join('\n')));
+  def('history', 'historial de comandos (history -c lo borra; !! repite el último; !n el número n)', (a) => { if (a[0] === '-c') { Machine.history = []; Machine.save(); return ok(''); } const n = parseInt(a[0], 10); const hs = Machine.history.map((h, i) => `${String(i + 1).padStart(5)}  ${h}`); return ok((n > 0 ? hs.slice(-n) : hs).join('\n')); });
   def('which', 'dónde está un comando', (a) => ok(a.map((n) => (Commands[n] ? `/usr/bin/${n}` : '')).filter(Boolean).join('\n')));
   def('export', 'define una variable de entorno', (a) => {
     if (!a.length) return ok(Object.entries(Machine.env).filter(([k]) => k !== '?').map(([k, v]) => `declare -x ${k}="${v}"`).join('\n'));
@@ -1411,20 +1416,93 @@ for _n, _fn in list(_ns.items()):
   function render(text) {
     return escHtml(text).replace(/\u0001([^\u0002]*)\u0002([\s\S]*?)\u0003/g, (_, c, t) => `<span class="${c}">${t}</span>`);
   }
-  const promptHtml = () => `${Machine.env.VIRTUAL_ENV ? `(${escHtml(Machine.env.VIRTUAL_ENV.split('/').pop())}) ` : ''}<span class="t-user">alumno@academia</span>:<span class="t-dir">${escHtml(display(Machine.cwd))}</span>$ `;
+  // ------------------------------------------------------------- apariencia (tema, fuente, cursor, prompt)
+  const TEMAS = {
+    academia: ['Academia', '#0d1017', '#c4a7ff'], dracula: ['Dracula', '#282a36', '#ff79c6'], monokai: ['Monokai', '#272822', '#a6e22e'],
+    nord: ['Nord', '#2e3440', '#88c0d0'], solarized: ['Solarized', '#002b36', '#b58900'], gruvbox: ['Gruvbox', '#282828', '#fe8019'],
+    claro: ['Claro', '#ffffff', '#0969da'], 'solarized-claro': ['Solar claro', '#fdf6e3', '#cb4b16'], retro: ['Retro CRT', '#050f05', '#33ff66'],
+  };
+  const FUENTES = { 'JetBrains Mono': "'JetBrains Mono', ui-monospace, monospace", 'Sistema': 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', 'Courier': "'Courier New', Courier, monospace" };
+  const PROMPTS = { clasico: 'Clásico (usuario@host:dir$)', git: 'Con rama de git', minimal: 'Minimalista (dir ❯)', powerline: 'Bloques de color' };
+  const TermCfg = {
+    KEY: 'academia-terminal-config',
+    def: { tema: 'academia', fuente: 'JetBrains Mono', tam: 13.5, cursor: 'linea', prompt: 'clasico', usuario: 'alumno', host: 'academia', hora: false },
+    v: null,
+    get() { if (!this.v) { let d = null; try { d = JSON.parse(localStorage.getItem(this.KEY)); } catch (e) { /* sin almacenamiento */ } this.v = Object.assign({}, this.def, d || {}); } return this.v; },
+    set(cambios) { Object.assign(this.get(), cambios); try { localStorage.setItem(this.KEY, JSON.stringify(this.v)); } catch (e) { /* sin almacenamiento */ } this.aplicar(); },
+    aplicar() {
+      const c = this.get(), r = document.documentElement;
+      if (c.tema === 'academia') delete r.dataset.termTema; else r.dataset.termTema = c.tema;
+      r.dataset.termCursor = c.cursor;
+      r.style.setProperty('--term-fs', `${c.tam}px`);
+      r.style.setProperty('--term-font', FUENTES[c.fuente] || FUENTES['JetBrains Mono']);
+      document.dispatchEvent(new CustomEvent('term-config'));
+    },
+  };
+  const ramaGit = () => { const r = gitRoot(); return r && Machine.git[r] ? Machine.git[r].branch : null; };
+  // PS1 al estilo bash: \u usuario, \h host, \w ruta, \W carpeta, \$ $, \t hora, \A hh:mm, \d fecha
+  function ps1(fmt, c) {
+    const d = new Date(), pad = (n) => String(n).padStart(2, '0');
+    return escHtml(fmt).replace(/\\([uhwW$tAd])/g, (_, k) => ({ u: `<span class="t-user">${escHtml(c.usuario)}</span>`, h: escHtml(c.host), w: `<span class="t-dir">${escHtml(display(Machine.cwd))}</span>`, W: `<span class="t-dir">${escHtml(display(Machine.cwd).split('/').pop() || '/')}</span>`, $: '$', t: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`, A: `${pad(d.getHours())}:${pad(d.getMinutes())}`, d: d.toDateString().slice(0, 10) }[k]));
+  }
+  const promptHtml = () => {
+    const c = TermCfg.get(), d = new Date();
+    const venv = Machine.env.VIRTUAL_ENV ? `(${escHtml(Machine.env.VIRTUAL_ENV.split('/').pop())}) ` : '';
+    const hora = c.hora ? `<span class="t-dim">[${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}]</span> ` : '';
+    if (Machine.env.PS1) return hora + venv + ps1(Machine.env.PS1, c);
+    const dir = escHtml(display(Machine.cwd)), rama = ramaGit(), u = escHtml(c.usuario), hst = escHtml(c.host);
+    if (c.prompt === 'minimal') return `${hora}${venv}<span class="t-dir">${escHtml(display(Machine.cwd).split('/').pop() || '/')}</span>${rama ? ` <span class="t-git">${escHtml(rama)}</span>` : ''} <span class="t-info">❯</span> `;
+    if (c.prompt === 'git') return `${hora}${venv}<span class="t-user">${u}@${hst}</span> <span class="t-dir">${dir}</span>${rama ? ` <span class="t-git">(${escHtml(rama)})</span>` : ''} $ `;
+    if (c.prompt === 'powerline') return `${hora}${venv}<span class="t-pl t-pl-u">${u}</span><span class="t-pl t-pl-d">${dir}</span>${rama ? `<span class="t-pl t-pl-g">⎇ ${escHtml(rama)}</span>` : ''} `;
+    return `${hora}${venv}<span class="t-user">${u}@${hst}</span>:<span class="t-dir">${dir}</span>$ `;
+  };
+  const tituloTerm = () => { const c = TermCfg.get(); return `${c.usuario}@${c.host}: ${display(Machine.cwd)}`; };
+
+  def('alias', "define atajos: alias ll='ls -la' · alias (lista)", (a) => {
+    if (!a.length) return ok(Object.entries(Machine.alias).sort().map(([k, v]) => `alias ${k}='${v}'`).join('\n'));
+    const out = [];
+    for (const x of a) {
+      const i = x.indexOf('=');
+      if (i < 0) { if (Machine.alias[x] === undefined) return fail(`bash: alias: ${x}: no se encontró`); out.push(`alias ${x}='${Machine.alias[x]}'`); continue; }
+      const k = x.slice(0, i);
+      if (!/^[\w.-]+$/.test(k)) return fail(`bash: alias: \`${k}': nombre de alias inválido`);
+      Machine.alias[k] = x.slice(i + 1);
+    }
+    Machine.save();
+    return ok(out.join('\n'));
+  });
+  def('unalias', 'borra un alias: unalias ll · unalias -a (todos)', (a) => {
+    if (a[0] === '-a') { Machine.alias = {}; Machine.save(); return ok(''); }
+    for (const x of a) { if (Machine.alias[x] === undefined) return fail(`bash: unalias: ${x}: no se encontró`); delete Machine.alias[x]; }
+    Machine.save(); return ok('');
+  });
+  def('type', 'dice qué es un comando: alias, programa o integrado', (a) => ok(a.map((n) => (Machine.alias[n] !== undefined ? `${n} es un alias de «${Machine.alias[n]}»` : ['cd', 'export', 'alias', 'unalias', 'history', 'source', 'type', 'echo', 'pwd'].includes(n) ? `${n} es una orden interna del shell` : Commands[n] ? `${n} es /usr/bin/${n}` : col.err(`bash: type: ${n}: no se encontró`))).join('\n')));
+  def('tema', 'cambia el tema de la terminal: tema dracula · tema (lista)', (a) => {
+    if (!a[0]) return ok('Temas: ' + Object.keys(TEMAS).map((t) => (t === TermCfg.get().tema ? col.ok(t + ' ✓') : t)).join(', ') + col.dim('\nTambién puedes usar el botón ⚙ de la barra de la terminal.'));
+    if (!TEMAS[a[0]]) return fail(`tema: no existe "${a[0]}". Opciones: ${Object.keys(TEMAS).join(', ')}`);
+    TermCfg.set({ tema: a[0] }); return ok(col.ok(`Tema ${TEMAS[a[0]][0]} aplicado.`));
+  });
+  def('neofetch', 'información del sistema, con estilo', () => {
+    const c = TermCfg.get();
+    const logo = ['    .--.    ', '   |o_o |   ', '   |:_/ |   ', '  //   \\ \\  ', ' (|     | ) ', "/'\\_   _/`\\ ", '\\___)=(___/ '];
+    const datos = [`${col.b(c.usuario + '@' + c.host)}`, '-'.repeat(c.usuario.length + c.host.length + 1), `${col.info('SO')}: Academia Linux (simulado en tu navegador)`, `${col.info('Shell')}: bash 5.2 · ${Object.keys(Machine.alias).length} alias`, `${col.info('Terminal')}: tema ${TEMAS[c.tema][0]}, ${c.fuente} ${c.tam}px`, `${col.info('Comandos')}: ${Object.keys(Commands).length}`, `${col.info('Historial')}: ${Machine.history.length} comandos`];
+    return ok(logo.map((l, i) => col.warn(l) + '  ' + (datos[i] || '')).join('\n'));
+  });
 
   function createTerminal(container, opts = {}) {
     if (!Machine.ready) Machine.load();
     const el = document.createElement('div');
     el.className = 'term' + (opts.compact ? ' term-compact' : '');
-    el.innerHTML = `<div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">${escHtml(opts.title || 'alumno@academia: ~')}</span><span class="term-actions"><button type="button" data-clear title="Limpiar (Ctrl+L)">limpiar</button></span></div><div class="term-body" tabindex="0"><div class="term-out"></div><div class="term-line"><span class="term-prompt"></span><span class="term-input-wrap"><input class="term-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Línea de comandos"></span></div></div>`;
+    el.innerHTML = `<div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">${escHtml(opts.title || tituloTerm())}</span><span class="term-actions"><button type="button" data-clear title="Limpiar (Ctrl+L)">limpiar</button> <button type="button" class="term-cfg-btn" data-cfg title="Apariencia: tema, fuente, cursor y prompt" aria-label="Ajustes de la terminal">⚙</button></span></div><div class="term-body" tabindex="0"><div class="term-out"></div><div class="term-line"><span class="term-prompt"></span><span class="term-input-wrap"><input class="term-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Línea de comandos"></span></div><div class="term-rsearch" hidden></div></div>`;
     container.appendChild(el);
     const out = el.querySelector('.term-out'), input = el.querySelector('.term-input'), promptEl = el.querySelector('.term-prompt'), body = el.querySelector('.term-body');
     let mode = null, buffer = '', hIdx = Machine.history.length, busy = false, draft = '', repl = null;
+    let busq = null;   // búsqueda en el historial (Ctrl+R): { q, i, antes }
+    const rsearch = el.querySelector('.term-rsearch');
     const setPrompt = () => {
-      if (mode === 'repl' || mode === 'repl-cont') { promptEl.innerHTML = `<span class="t-info">${escHtml(mode === 'repl' ? repl.prompt : repl.cont)}</span>`; el.querySelector('.term-title').textContent = 'alumno@academia: ' + display(Machine.cwd); return; }
+      if (mode === 'repl' || mode === 'repl-cont') { promptEl.innerHTML = `<span class="t-info">${escHtml(mode === 'repl' ? repl.prompt : repl.cont)}</span>`; el.querySelector('.term-title').textContent = tituloTerm(); return; }
       promptEl.innerHTML = mode === 'sqlite' ? '<span class="t-info">sqlite&gt;</span> ' : mode === 'sqlite-cont' ? '<span class="t-info">   ...&gt;</span> ' : mode === 'python' ? '<span class="t-warn">&gt;&gt;&gt;</span> ' : mode === 'python-cont' ? '<span class="t-warn">...</span> ' : promptHtml();
-      el.querySelector('.term-title').textContent = 'alumno@academia: ' + display(Machine.cwd);
+      el.querySelector('.term-title').textContent = tituloTerm();
     };
     const print = (html) => { const d = document.createElement('div'); d.className = 'term-chunk'; d.innerHTML = html; out.appendChild(d); body.scrollTop = body.scrollHeight; };
     const echoLine = (line) => print(promptEl.innerHTML + escHtml(line));
@@ -1475,6 +1553,18 @@ for _n, _fn in list(_ns.items()):
         return;
       }
       if (!line.trim()) return;
+      // expansión del historial, como bash: !! (último), !n (número n), !texto (el último que empieza así)
+      if (/(^|\s)!(!|\d+|[a-z][\w-]*)/i.test(line)) {
+        let error = null;
+        const exp = line.replace(/(^|\s)!(!|\d+|[a-z][\w-]*)/gi, (m, pre, k) => {
+          const hs = Machine.history;
+          const v = k === '!' ? hs[hs.length - 1] : /^\d+$/.test(k) ? hs[Number(k) - 1] : [...hs].reverse().find((x) => x.startsWith(k));
+          if (v === undefined) { error = `bash: !${k}: no se encontró el evento`; return m; }
+          return pre + v;
+        });
+        if (error) { print(render(col.err(error))); return; }
+        if (exp !== line) { print(render(col.dim(exp))); line = exp; }
+      }
       Machine.history.push(line); Machine.save();
       hIdx = Machine.history.length;
       busy = true; el.classList.add('busy');
@@ -1498,8 +1588,46 @@ for _n, _fn in list(_ns.items()):
       if (/^python3?\s*$/.test(t)) return 'python';
       return null;
     }
+    const coincidencia = () => {
+      const hs = Machine.history; const q = busq.q;
+      for (let i = Math.min(busq.i, hs.length - 1); i >= 0; i--) if (!q || hs[i].includes(q)) { busq.i = i; return hs[i]; }
+      return null;
+    };
+    const pintarBusq = () => {
+      const m = coincidencia(); busq.m = m;
+      const marcado = m ? escHtml(m).replace(escHtml(busq.q), (x) => `<b>${x}</b>`) : '';
+      rsearch.innerHTML = `${m || !busq.q ? '' : 'falló '}(reverse-i-search)\`${escHtml(busq.q)}': ${marcado}`;
+    };
     input.addEventListener('keydown', async (e) => {
       if (busy) { e.preventDefault(); return; }
+      // búsqueda inversa en el historial
+      if (e.key === 'r' && e.ctrlKey) {
+        e.preventDefault();
+        if (!busq) { busq = { q: '', i: Machine.history.length - 1, antes: input.value }; input.value = ''; rsearch.hidden = false; }
+        else busq.i = Math.max(0, busq.i - 1);
+        pintarBusq(); return;
+      }
+      if (busq) {
+        if (e.key === 'Escape' || (e.key === 'g' && e.ctrlKey) || (e.key === 'c' && e.ctrlKey)) { e.preventDefault(); input.value = busq.antes; busq = null; rsearch.hidden = true; return; }
+        if (e.key === 'Enter' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Tab') {
+          const m = busq.m; busq = null; rsearch.hidden = true; input.value = m || '';
+          if (e.key !== 'Enter') { e.preventDefault(); return; }
+        } else {
+          setTimeout(() => { if (busq) { busq.q = input.value; busq.i = Machine.history.length - 1; pintarBusq(); } }, 0);
+          return;
+        }
+      }
+      // atajos de edición de readline
+      if (e.ctrlKey && !e.altKey && ['a', 'e', 'u', 'k', 'w'].includes(e.key)) {
+        e.preventDefault();
+        const p = input.selectionStart, v = input.value;
+        if (e.key === 'a') input.setSelectionRange(0, 0);
+        if (e.key === 'e') input.setSelectionRange(v.length, v.length);
+        if (e.key === 'u') { input.value = v.slice(p); input.setSelectionRange(0, 0); }
+        if (e.key === 'k') input.value = v.slice(0, p);
+        if (e.key === 'w') { const ini = v.slice(0, p).replace(/\S+\s*$/, '').length; input.value = v.slice(0, ini) + v.slice(p); input.setSelectionRange(ini, ini); }
+        return;
+      }
       if (e.key === 'Enter') { const v = input.value; input.value = ''; await submit(v); input.focus(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); if (hIdx === Machine.history.length) draft = input.value; if (hIdx > 0) { hIdx--; input.value = Machine.history[hIdx]; } }
       else if (e.key === 'ArrowDown') { e.preventDefault(); if (hIdx < Machine.history.length) { hIdx++; input.value = hIdx === Machine.history.length ? draft : Machine.history[hIdx]; } }
@@ -1518,6 +1646,56 @@ for _n, _fn in list(_ns.items()):
       else if (e.key === 'c' && e.ctrlKey && !window.getSelection().toString()) { e.preventDefault(); echoLine(input.value + '^C'); input.value = ''; buffer = ''; if (mode === 'sqlite-cont') mode = 'sqlite'; if (mode === 'python-cont') mode = 'python'; if (mode === 'repl-cont') mode = 'repl'; setPrompt(); }
     });
     body.addEventListener('click', () => { if (!window.getSelection().toString()) input.focus(); });
+    // los cambios de apariencia hechos en otra terminal (o con el comando tema) se ven en todas
+    const alCambiar = () => { if (!document.body.contains(el)) return document.removeEventListener('term-config', alCambiar); if (!mode) setPrompt(); };
+    document.addEventListener('term-config', alCambiar);
+    // ~/.bashrc: se ejecuta una vez por sesión del navegador, como al abrir una terminal real
+    if (!Machine._rcHecho) {
+      Machine._rcHecho = true;
+      const rc = readFile(HOME + '/.bashrc');
+      if (rc) (async () => {
+        const errores = [];
+        for (const l of rc.split('\n')) { if (!l.trim() || l.trim().startsWith('#')) continue; try { const r = await runLine(l.trim()); if (r.code) errores.push(`~/.bashrc: ${l.trim()}: ${r.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '')}`); } catch (e) { errores.push(`~/.bashrc: ${e.message}`); } }
+        if (errores.length) print(render(col.warn(errores.join('\n'))));
+        setPrompt();
+      })();
+    }
+    // panel de apariencia
+    el.querySelector('[data-cfg]').addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const viejo = el.querySelector('.term-cfg'); if (viejo) { viejo.remove(); return; }
+      const c = TermCfg.get();
+      const p = document.createElement('div');
+      p.className = 'term-cfg'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', 'Apariencia de la terminal');
+      p.innerHTML = `<h5>🎨 Apariencia de la terminal</h5>
+        <div class="temas">${Object.entries(TEMAS).map(([k, [n, bg, fg]]) => `<button data-t="${k}" class="${c.tema === k ? 'on' : ''}" style="background:${bg};color:${fg}">${n}</button>`).join('')}</div>
+        <label>Prompt<select data-k="prompt">${Object.entries(PROMPTS).map(([k, n]) => `<option value="${k}" ${c.prompt === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>Usuario<input type="text" data-k="usuario" value="${escHtml(c.usuario)}" maxlength="20"></label>
+        <label>Host<input type="text" data-k="host" value="${escHtml(c.host)}" maxlength="24"></label>
+        <label>Fuente<select data-k="fuente">${Object.keys(FUENTES).map((f) => `<option ${c.fuente === f ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
+        <label>Tamaño<input type="range" data-k="tam" min="11" max="20" step="0.5" value="${c.tam}"></label>
+        <label>Cursor<select data-k="cursor">${[['linea', 'Línea'], ['bloque', 'Bloque'], ['subrayado', 'Subrayado']].map(([k, n]) => `<option value="${k}" ${c.cursor === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>Hora<span><input type="checkbox" data-k="hora" ${c.hora ? 'checked' : ''}> mostrar la hora en el prompt</span></label>
+        <div class="pie"><button class="btn btn-ghost btn-sm" data-reset>Restablecer</button><span class="small muted">También: <code>tema</code>, <code>alias</code>, <code>export PS1=…</code></span></div>`;
+      el.querySelector('.term-bar').appendChild(p);
+      p.addEventListener('click', (e2) => {
+        e2.stopPropagation();
+        const t = e2.target.closest('[data-t]');
+        if (t) { TermCfg.set({ tema: t.dataset.t }); p.querySelectorAll('[data-t]').forEach((b) => b.classList.toggle('on', b === t)); }
+        if (e2.target.closest('[data-reset]')) { TermCfg.set(Object.assign({}, TermCfg.def)); p.remove(); }
+      });
+      p.addEventListener('input', (e2) => {
+        const k = e2.target.dataset.k; if (!k) return;
+        const v = e2.target.type === 'checkbox' ? e2.target.checked : k === 'tam' ? Number(e2.target.value) : e2.target.value;
+        if ((k === 'usuario' || k === 'host') && !/^[\w.-]+$/.test(v)) return;
+        TermCfg.set({ [k]: v });
+      });
+      const fin = () => { p.remove(); document.removeEventListener('click', cerrar); document.removeEventListener('keydown', esc); input.focus(); };
+      const cerrar = (e3) => { if (!p.contains(e3.target)) fin(); };
+      const esc = (e3) => { if (e3.key === 'Escape') fin(); };
+      setTimeout(() => { document.addEventListener('click', cerrar); document.addEventListener('keydown', esc); }, 0);
+      p.querySelector('[data-t].on, [data-t]').focus();
+    });
     el.querySelector('[data-clear]').addEventListener('click', () => { out.innerHTML = ''; input.focus(); });
     return {
       el, input,
@@ -1529,7 +1707,9 @@ for _n, _fn in list(_ns.items()):
     };
   }
 
+  TermCfg.aplicar();
   window.Shell = {
+    TermCfg, TEMAS,
     Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, mkdirp, display, HOME,
     fail, ok, sqlExec, openEditor: null,
   };
