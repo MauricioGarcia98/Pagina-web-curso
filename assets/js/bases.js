@@ -502,5 +502,14 @@
     return dibujarER(contenedor, [...dims, ...hechos], rels, { titulo: `Modelo estrella de ${b.nombre}`, niveles, gapx: 120 });
   }
 
+  // tablas adicionales de cada empresa (data-extra.js): se agregan al modelo, las relaciones y el porqué
+  if (window.DataExtra) {
+    for (const [id, x] of Object.entries(window.DataExtra.BASES)) {
+      const b = BASES.find((y) => y.id === id); if (!b) continue;
+      for (const [t, v] of Object.entries(x.tablas)) if (!b.tablas[t]) { b.tablas[t] = v; b.orden.push(t); }
+      b.rels.push(...x.rels);
+      b.porQue.push(...(x.porQue || []));
+    }
+  }
   window.Bases = { BASES, infoBase, baseDeTabla, columnasTabla, tipoColumna, dibujarER, dibujarBase, dibujarEstrella };
 })();

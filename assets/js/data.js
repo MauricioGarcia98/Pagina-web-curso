@@ -384,16 +384,19 @@ CREATE VIEW stg_pagos AS SELECT pago_id, pedido_id, date(fecha_pago) AS fecha_pa
 
   // casos de negocio adicionales (data-casos.js)
   const casos = (typeof module !== 'undefined' && module.exports) ? require('./data-casos.js') : root.DataCasos;
+  // tablas adicionales de las 13 empresas (data-extra.js): se generan al final y no alteran las anteriores
+  const extra = (typeof module !== 'undefined' && module.exports) ? require('./data-extra.js') : root.DataExtra;
   const buildAll = () => {
     const T = build();
     if (casos) Object.assign(T, casos.build());
+    if (extra) Object.assign(T, extra.build(T));
     return T;
   };
   const api = {
     build: buildAll,
-    SCHEMA: SCHEMA + (casos ? casos.SCHEMA : ''),
+    SCHEMA: SCHEMA + (casos ? casos.SCHEMA : '') + (extra ? extra.SCHEMA : ''),
     VIEWS,
-    TABLE_INFO: Object.assign({}, TABLE_INFO, casos ? casos.TABLE_INFO : {}),
+    TABLE_INFO: Object.assign({}, TABLE_INFO, casos ? casos.TABLE_INFO : {}, extra ? extra.TABLE_INFO : {}),
     CASOS: casos ? casos.CASOS : [],
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

@@ -41,6 +41,9 @@ Cada ejercicio se ejecuta en una **copia nueva** de la base de datos. Los ejempl
 ## CREATE TABLE: diseñar una tabla
 
 ```sql
+-- la base del curso ya trae una tabla proveedores: la borramos para recrearla con este diseño
+DROP TABLE IF EXISTS proveedores;
+
 CREATE TABLE proveedores (
     proveedor_id  INTEGER PRIMARY KEY,
     nombre        TEXT NOT NULL,
@@ -326,7 +329,10 @@ En dbt, elegir entre vista y tabla es elegir la **materialización** de un model
 Estos ejercicios se corrigen ejecutando una consulta de verificación **después** de tu código.
 
 :::ejercicio sql
-Crea una tabla `cupones` con las columnas `codigo` (texto, clave primaria), `descuento` (número real, obligatorio) y `activo` (entero, por defecto 1). Luego inserta los cupones `'BIENVENIDA'` con 0.1 y `'VERANO24'` con 0.15.
+Crea una tabla `cupones` con las columnas `codigo` (texto, clave primaria), `descuento` (número real, obligatorio) y `activo` (entero, por defecto 1). Luego inserta los cupones `'BIENVENIDA'` con 0.1 y `'VERANO24'` con 0.15. (La base del curso trae una tabla `cupones` de campañas; en este ejercicio se borra antes, así que puedes crearla desde cero.)
+```sql setup
+DROP TABLE IF EXISTS cupones;
+```
 ```sql inicial
 -- CREATE TABLE ...
 -- INSERT INTO ...

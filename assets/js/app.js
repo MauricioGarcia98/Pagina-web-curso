@@ -1146,7 +1146,7 @@
     const casos = window.DataGen.CASOS || [];
     main.innerHTML = `<div class="container">
       <h1 style="margin-bottom:4px">🗃️ Las bases de datos del curso</h1>
-      <p class="muted" style="margin-top:0;max-width:820px">Trece empresas ficticias, cada una con su base de datos: más de 320.000 filas en 61 tablas. Todas se consultan desde los ejercicios, el laboratorio SQL (SQLite, PostgreSQL, MySQL y SQL Server) y PySpark. Entra a cada una para ver <b>cómo está modelada y por qué</b>, qué representa cada fila y su versión dimensional para análisis.</p>
+      <p class="muted" style="margin-top:0;max-width:820px">Trece empresas ficticias, cada una con su base de datos: más de 500.000 filas en 97 tablas. Todas se consultan desde los ejercicios, el laboratorio SQL (SQLite, PostgreSQL, MySQL y SQL Server) y PySpark. Entra a cada una para ver <b>cómo está modelada y por qué</b>, qué representa cada fila y su versión dimensional para análisis.</p>
       <div class="bases-grid" id="basesGrid">${casos.map((c) => { const b = B.infoBase(c.id); return `<a class="card base-card" href="#/datos/${c.id}"><div class="base-ico">${c.icono}</div><div><h3>${esc(c.nombre)}</h3><div class="small muted">${esc(c.rubro)} · ${b ? b.orden.length : 0} tablas<span data-filas="${c.id}"></span></div><p class="small">${esc(c.resumen)}</p></div></a>`; }).join('')}</div>
       <div class="card" style="margin-top:20px;padding:16px 20px"><b>¿Cómo leer los diagramas?</b> <span class="small muted">🔑 clave primaria · 🔗 clave foránea · la “pata de gallo” marca el lado <i>muchos</i> de la relación y las dos barras el lado <i>uno</i>. Una línea punteada es una relación opcional o lógica. Pasa el mouse por una tabla para resaltar sus relaciones.</span></div>
     </div>`;
