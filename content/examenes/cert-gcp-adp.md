@@ -4,6 +4,7 @@
 
 ## Carga desde S3
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 1
 Cada día hay que copiar archivos nuevos de un bucket de Amazon S3 a Cloud Storage. ¿Qué servicio usas?
 - [ ] Datastream con S3 como origen.
 - [x] Storage Transfer Service.
@@ -13,6 +14,7 @@ porque: Storage Transfer Service copia programadamente desde S3, Azure u otras f
 
 ## SaaS
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 1
 Marketing necesita los datos de Google Ads en BigQuery cada día sin escribir código. ¿Qué usa?
 - [ ] Dataflow con una plantilla personalizada.
 - [x] BigQuery Data Transfer Service.
@@ -22,6 +24,7 @@ porque: BigQuery Data Transfer Service carga programadamente datos de Google Ads
 
 ## Formato
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 1
 ¿Qué formato de archivo conviene para cargar grandes volúmenes en BigQuery conservando el esquema y los tipos?
 - [ ] CSV sin encabezado.
 - [x] Parquet o Avro.
@@ -31,6 +34,7 @@ porque: Parquet y Avro son autodescriptivos, comprimidos y conservan los tipos.
 
 ## ELT
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 3
 Los datos crudos ya están en BigQuery y el equipo quiere transformarlos con SQL versionado en Git, con pruebas y dependencias. ¿Qué usa?
 - [ ] Cloud Data Fusion.
 - [x] Dataform.
@@ -40,6 +44,7 @@ porque: Dataform gestiona transformaciones SQL en BigQuery con dependencias, ase
 
 ## Consulta programada
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 3
 Una única consulta debe recalcular una tabla de resumen cada mañana. ¿Qué es lo más simple?
 - [ ] Un entorno de Cloud Composer con un DAG.
 - [x] Una consulta programada de BigQuery.

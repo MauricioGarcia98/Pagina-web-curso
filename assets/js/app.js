@@ -677,7 +677,7 @@
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
-    if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones');
+    if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
@@ -1403,48 +1403,99 @@
     x.textAlign = 'center'; x.font = `56px ${fuente}`; x.fillText('🎓', W / 2, H - 160);
   }
 
+  // ---- piezas comunes a exámenes y simulacros
+  const CERT_BY_ID = new Map((C.certificaciones || []).map((c) => [c.id, c]));
+  const colorearCodigo = (root) => $$('pre[data-lang]', root).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } });
+
+  // agrupa las preguntas de un mismo caso de estudio para que queden seguidas
+  function agruparCasos(preguntas) {
+    const grupos = [], porCaso = new Map();
+    for (const p of preguntas) {
+      if (!p.caso) { grupos.push([p]); continue; }
+      if (!porCaso.has(p.caso)) { const g = []; porCaso.set(p.caso, g); grupos.push(g); }
+      porCaso.get(p.caso).push(p);
+    }
+    return grupos.flat();
+  }
+
+  function htmlPregunta(p, i, base, opts = {}) {
+    const tipo = p.multiple ? 'checkbox' : 'radio';
+    const caso = p.caso && base.casos ? base.casos[p.caso] : null;
+    const casoHtml = !caso ? '' : opts.casoAbierto
+      ? `<div class="exam-caso"><div class="exam-caso-tit">📋 Caso de estudio: ${esc(caso.titulo)}</div><div class="prose">${caso.html}</div></div>`
+      : `<details class="exam-caso exam-caso-mini"><summary>📋 Caso de estudio: ${esc(caso.titulo)} (releer)</summary><div class="prose">${caso.html}</div></details>`;
+    return `<div class="card exam-q" data-i="${i}" data-id="${esc(p.id)}">
+      ${casoHtml}
+      <div class="exam-q-head"><span class="badge b-type">Pregunta ${i + 1}</span>${opts.badges || ''}${p.multiple ? `<span class="badge b-experto">Elige ${p.multiple}</span>` : ''}<span class="badge tag">${esc(p.tema)}</span></div>
+      <div class="prose exam-enunciado">${p.enunciado}</div>
+      <div class="quiz-opts">${p.opciones.map((o, j) => `<label class="quiz-opt"><input type="${tipo}" name="q${i}" value="${j}"><span>${o.text}</span></label>`).join('')}</div>
+      <div class="exam-fb" hidden></div>
+    </div>`;
+  }
+
+  // respuesta múltiple: todo o nada, como en los exámenes oficiales
+  const esCorrecta = (p, elegidas) => elegidas.length > 0 && p.opciones.every((o, j) => o.ok === elegidas.includes(j));
+
+  function corregirTarjeta(card, p, elegidas) {
+    const ok = esCorrecta(p, elegidas);
+    $$('.quiz-opt', card).forEach((l, j) => { l.classList.toggle('right', p.opciones[j].ok); l.classList.toggle('wrong', elegidas.includes(j) && !p.opciones[j].ok); $('input', l).checked = elegidas.includes(j); $('input', l).disabled = true; });
+    card.classList.add(ok ? 'ok' : 'mal');
+    const fb = $('.exam-fb', card); fb.hidden = false;
+    const parcial = p.multiple && !ok && elegidas.some((j) => p.opciones[j].ok) ? ` (elegiste ${elegidas.filter((j) => p.opciones[j].ok).length} de ${p.multiple} correctas)` : '';
+    fb.innerHTML = `<div class="exam-fb-tit ${ok ? 'ok' : 'mal'}">${ok ? '✓ Correcto' : !elegidas.length ? '— Sin responder' : '✗ Incorrecto' + parcial}</div>${p.porque}<p class="small" style="margin-bottom:0">📚 Repasar: <a href="#/l/${p.leccion.id}">${esc(p.leccion.titulo)}</a></p>`;
+    colorearCodigo(fb);
+    return ok;
+  }
+
+  // resultado por dominio de una certificación: [{nombre, peso, bien, total, pct, lecciones}]
+  function porDominio(cert, preguntas, oks) {
+    return cert.dominios.map((d, j) => {
+      const idx = preguntas.map((p, i) => (p.dominio === j ? i : -1)).filter((i) => i >= 0);
+      const bien = idx.filter((i) => oks[i]).length;
+      return { nombre: d.nombre, rango: d.rango || d.peso + '%', bien, total: idx.length, pct: idx.length ? Math.round((bien / idx.length) * 100) : null, lecciones: d.lecciones };
+    });
+  }
+
+  function htmlDominios(doms, minimo) {
+    return `<div class="sim-doms">${doms.filter((d) => d.total).map((d) => `<div class="sim-dom ${d.pct >= minimo ? 'ok' : 'mal'}">
+      <div class="sim-dom-head"><b>${esc(d.nombre)}</b><span class="small muted">peso ${esc(d.rango)}</span><span class="sim-dom-pct">${d.pct}% <small>(${d.bien}/${d.total})</small></span></div>
+      <div class="bar"><i style="width:${d.pct}%"></i><span class="bar-meta" style="left:${minimo}%"></span></div>
+      ${d.pct < minimo && d.lecciones.length ? `<div class="small">📚 Repasa: ${d.lecciones.map((l) => `<a href="#/l/${l.id}">${esc(l.titulo)}</a>`).join(' · ')}</div>` : ''}
+    </div>`).join('')}</div>`;
+  }
+
   function viewExamen(id) {
     const esFinal = id === 'final';
     const base = esFinal ? null : EXAMENES.get(id);
     if (!esFinal && !base) { main.innerHTML = '<div class="container prose"><h1>Examen no encontrado</h1><p><a href="#/examenes">Ver los exámenes</a></p></div>'; return; }
     const m = esFinal ? null : MODULE_BY_ID.get(base.modulo);
+    const cert = base && base.cert ? CERT_BY_ID.get(base.cert) : null;
     const titulo = esFinal ? '🎓 Examen final' : base.titulo ? `🏅 ${base.titulo}` : `${m.icono} Examen: ${m.titulo}`;
     const minimo = esFinal ? NOTA_FINAL : NOTA_MODULO;
-    const preguntas = (esFinal ? preguntasFinal() : barajar(base.preguntas)).map((p) => ({ ...p, opciones: barajar(p.opciones) }));
+    const preguntas = agruparCasos(esFinal ? preguntasFinal() : barajar(base.preguntas)).map((p) => ({ ...p, opciones: barajar(p.opciones) }));
     const modDe = (p) => MODULE_BY_ID.get(p.modulo);
+    const vistos = new Set();
     main.innerHTML = `<div class="container">
       <div class="crumbs"><a href="#/examenes">Exámenes</a><span>/</span><span>${esc(esFinal ? 'Examen final' : base.titulo || m.titulo)}</span></div>
       <h1 style="margin-bottom:4px">${esc(titulo)}</h1>
-      <p class="muted" style="margin-top:0">${preguntas.length} preguntas · se aprueba con ${minimo}% · las preguntas y las opciones cambian de orden en cada intento. Responde todas y corrige al final.</p>
-      <form id="exForm">${preguntas.map((p, i) => `<div class="card exam-q" data-i="${i}" data-id="${esc(p.id)}">
-        <div class="exam-q-head"><span class="badge b-type">Pregunta ${i + 1}</span>${esFinal ? `<span class="badge">${modDe(p).icono} ${esc(modDe(p).titulo)}</span>` : ''}<span class="badge tag">${esc(p.tema)}</span></div>
-        <div class="prose exam-enunciado">${p.enunciado}</div>
-        <div class="quiz-opts">${p.opciones.map((o, j) => `<label class="quiz-opt"><input type="radio" name="q${i}" value="${j}"><span>${o.text}</span></label>`).join('')}</div>
-        <div class="exam-fb" hidden></div>
-      </div>`).join('')}
+      <p class="muted" style="margin-top:0">${preguntas.length} preguntas · se aprueba con ${minimo}% · las preguntas y las opciones cambian de orden en cada intento. En las de respuesta múltiple hay que marcar todas las correctas. Responde todas y corrige al final.</p>
+      ${cert && cert.simulacro ? `<div class="callout callout-tip"><div class="callout-title">⏱ ¿Quieres practicar como en el examen real?</div><p>El <a href="#/simulacro/${cert.id}">simulacro de ${esc(cert.codigo)}</a> tiene la cantidad de preguntas y el tiempo del examen oficial, y te muestra el resultado por dominio.</p></div>` : ''}
+      <form id="exForm">${preguntas.map((p, i) => { const abierto = p.caso && !vistos.has(p.caso); if (p.caso) vistos.add(p.caso); return htmlPregunta(p, i, base || {}, { casoAbierto: abierto, badges: esFinal ? `<span class="badge">${modDe(p).icono} ${esc(modDe(p).titulo)}</span>` : '' }); }).join('')}
       <div class="exam-barra"><span id="exCont" class="small"></span><button type="submit" class="btn btn-ok btn-lg">Corregir examen</button></div>
       </form>
       <div id="exRes"></div>
     </div>`;
-    const colorear = (root) => $$('pre[data-lang]', root).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } });
-    colorear(main);
-    const cont = () => { const n = $$('#exForm input:checked').length; $('#exCont').textContent = `Respondidas: ${n} de ${preguntas.length}`; return n; };
+    colorearCodigo(main);
+    const elegidasDe = (i) => $$(`input[name="q${i}"]:checked`).map((x) => Number(x.value));
+    const cont = () => { const n = preguntas.filter((_, i) => elegidasDe(i).length).length; $('#exCont').textContent = `Respondidas: ${n} de ${preguntas.length}`; return n; };
     $('#exForm').addEventListener('change', cont); cont();
     $('#exForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const n = cont();
       if (n < preguntas.length && !confirm(`Te faltan ${preguntas.length - n} preguntas. Las que no respondas cuentan como incorrectas. ¿Corregir igual?`)) return;
-      let bien = 0; const repasar = new Map();
-      preguntas.forEach((p, i) => {
-        const card = $(`.exam-q[data-i="${i}"]`), sel = $(`input[name="q${i}"]:checked`, card);
-        const elegida = sel ? Number(sel.value) : -1, ok = elegida >= 0 && p.opciones[elegida].ok;
-        if (ok) bien++; else repasar.set(p.leccion.id, p.leccion.titulo);
-        $$('.quiz-opt', card).forEach((l, j) => { l.classList.toggle('right', p.opciones[j].ok); l.classList.toggle('wrong', j === elegida && !ok); $('input', l).disabled = true; });
-        card.classList.add(ok ? 'ok' : 'mal');
-        const fb = $('.exam-fb', card); fb.hidden = false;
-        fb.innerHTML = `<div class="exam-fb-tit ${ok ? 'ok' : 'mal'}">${ok ? '✓ Correcto' : elegida < 0 ? '— Sin responder' : '✗ Incorrecto'}</div>${p.porque}<p class="small" style="margin-bottom:0">📚 Repasar: <a href="#/l/${p.leccion.id}">${esc(p.leccion.titulo)}</a></p>`;
-        colorear(fb);
-      });
+      const repasar = new Map();
+      const oks = preguntas.map((p, i) => { const ok = corregirTarjeta($(`.exam-q[data-i="${i}"]`), p, elegidasDe(i)); if (!ok) repasar.set(p.leccion.id, p.leccion.titulo); return ok; });
+      const bien = oks.filter(Boolean).length;
       const pct = Math.round((bien / preguntas.length) * 100), aprobo = pct >= minimo;
       const N = notas(), prev = N[id] || { best: 0, intentos: 0 };
       N[id] = { best: Math.max(prev.best, pct), last: pct, intentos: prev.intentos + 1, at: pct > prev.best ? Date.now() : prev.at || Date.now() };
@@ -1455,7 +1506,7 @@
         <div class="exam-nota">${pct}%</div>
         <div><h2 style="margin:0 0 4px">${aprobo ? (esFinal ? '🎓 ¡Aprobaste el examen final!' : '✓ ¡Aprobaste!') : 'Todavía no: necesitas ' + minimo + '%'}</h2>
         <p style="margin:0">Respondiste bien <b>${bien} de ${preguntas.length}</b>. ${prev.best ? `Tu mejor nota anterior era ${prev.best}%.` : ''}</p>
-        ${repasar.size ? `<p style="margin:10px 0 4px"><b>Para repasar:</b></p><ul class="exam-repasar">${[...repasar].map(([lid, t]) => `<li><a href="#/l/${lid}">${esc(t)}</a></li>`).join('')}</ul>` : '<p>¡Sin errores! 🎉</p>'}
+        ${cert ? `<p style="margin:10px 0 4px"><b>Resultado por dominio:</b></p>${htmlDominios(porDominio(cert, preguntas, oks), minimo)}` : repasar.size ? `<p style="margin:10px 0 4px"><b>Para repasar:</b></p><ul class="exam-repasar">${[...repasar].map(([lid, t]) => `<li><a href="#/l/${lid}">${esc(t)}</a></li>`).join('')}</ul>` : '<p>¡Sin errores! 🎉</p>'}
         <div class="row" style="margin-top:10px">${aprobo && esFinal ? '<a class="btn btn-primary" href="#/examenes">📜 Descargar el certificado</a>' : ''}${otraVez}<a class="btn btn-ghost" href="#/examenes">Volver a los exámenes</a></div>
         <p class="small muted" style="margin:10px 0 0">Abajo tienes cada pregunta corregida con su explicación.</p></div></div>`;
       $('#exOtra').addEventListener('click', () => viewExamen(id));
@@ -1464,6 +1515,179 @@
     });
   }
 
+  // ---------------------------------------------------------------- simulacro
+  // Examen con la cantidad de preguntas y el tiempo del oficial, preguntas repartidas según el peso de
+  // cada dominio, una por pantalla, con marcas para revisar. El intento en curso se guarda: si sales,
+  // al volver sigue donde estaba (el reloj no se detiene).
+  let relojVista = null;
+  const sims = () => (Store.data.simulacros = Store.data.simulacros || {});
+
+  function elegirSimulacro(cert, base) {
+    const total = Math.min(cert.simulacro.preguntas, base.preguntas.length);
+    const pesos = cert.dominios.map((d) => d.peso);
+    const disp = cert.dominios.map((_, j) => barajar(base.preguntas.filter((p) => p.dominio === j)));
+    // cuota por dominio con el método del mayor resto, sin pasarse de lo que hay en el banco
+    const suma = pesos.reduce((a, b) => a + b, 0);
+    const exacto = pesos.map((w) => (w / suma) * total);
+    const cuota = exacto.map((x, j) => Math.min(Math.floor(x), disp[j].length));
+    let falta = total - cuota.reduce((a, b) => a + b, 0);
+    const orden = exacto.map((x, j) => [x - Math.floor(x), j]).sort((a, b) => b[0] - a[0]).map(([, j]) => j);
+    while (falta > 0) {
+      const j = orden.find((k) => cuota[k] < disp[k].length);
+      if (j === undefined) break;
+      cuota[j]++; falta--; orden.push(orden.splice(orden.indexOf(j), 1)[0]);
+    }
+    return agruparCasos(barajar(disp.flatMap((ps, j) => ps.slice(0, cuota[j]))));
+  }
+
+  function viewSimulacro(certId) {
+    const cert = CERT_BY_ID.get(certId), base = cert && cert.examen ? EXAMENES.get(cert.examen) : null;
+    if (!cert || !base || !cert.simulacro) { main.innerHTML = '<div class="container prose"><h1>Simulacro no encontrado</h1><p><a href="#/certificaciones">Ver las certificaciones</a></p></div>'; return; }
+    const activo = Store.data.simActivo && Store.data.simActivo.cert === certId ? Store.data.simActivo : null;
+    if (activo) return correrSimulacro(cert, base, activo);
+    const n = Math.min(cert.simulacro.preguntas, base.preguntas.length);
+    const minutos = Math.round((cert.simulacro.minutos * n) / cert.simulacro.preguntas);
+    const hist = (sims()[certId] || []).slice().reverse();
+    const otro = Store.data.simActivo ? CERT_BY_ID.get(Store.data.simActivo.cert) : null;
+    main.innerHTML = `<div class="container">
+      <div class="crumbs"><a href="#/certificaciones?c=${esc(cert.id)}">Certificaciones</a><span>/</span><span>Simulacro ${esc(cert.codigo)}</span></div>
+      <h1 style="margin-bottom:4px">⏱ Simulacro: ${esc(cert.nombre)}</h1>
+      <p class="muted" style="margin-top:0">${esc(cert.proveedor)} · ${esc(cert.codigo)}</p>
+      <div class="cert-datos"><div><b>${n}</b><span>preguntas</span></div><div><b>${minutos} min</b><span>tiempo</span></div><div><b>${cert.simulacro.aprobar}%</b><span>para aprobar</span></div><div><b>${base.preguntas.length}</b><span>preguntas en el banco</span></div></div>
+      <div class="card prose" style="padding:16px 20px">
+        <h3 style="margin-top:0">Cómo funciona</h3>
+        <ul>
+          <li>Las preguntas salen del banco al azar, repartidas según el <b>peso de cada dominio</b> del examen oficial. Cada intento es distinto.</li>
+          <li>Ves <b>una pregunta por pantalla</b>. Puedes ir y volver, y <b>marcar para revisar</b> las dudosas; el mapa de preguntas muestra cuáles faltan.</li>
+          <li>Las de <b>respuesta múltiple</b> dicen "Elige N" y solo suman si marcas todas las correctas, como en el examen real.</li>
+          <li>El reloj no se detiene: al llegar a cero se corrige solo. Si cierras la página, al volver sigues donde estabas.</li>
+          <li>Al final ves tu nota, el <b>resultado por dominio</b> con las lecciones para repasar y cada pregunta explicada.</li>
+        </ul>
+        ${n < cert.simulacro.preguntas ? `<p class="small muted">El examen oficial tiene ${cert.simulacro.preguntas} preguntas en ${cert.simulacro.minutos} minutos; el banco tiene ${base.preguntas.length}, así que el tiempo se ajusta en proporción.</p>` : ''}
+        <p class="small muted">Atajos de teclado: <kbd>1</kbd>–<kbd>6</kbd> eligen opción · <kbd>→</kbd> siguiente · <kbd>←</kbd> anterior · <kbd>M</kbd> marcar para revisar.</p>
+        ${otro ? `<div class="callout callout-cuidado"><p>Tienes un simulacro de ${esc(otro.codigo)} en curso. Si empiezas este, aquel se descarta. <a href="#/simulacro/${otro.id}">Volver a ese simulacro</a></p></div>` : ''}
+        <button class="btn btn-primary btn-lg" id="simEmpezar">Comenzar el simulacro →</button>
+      </div>
+      ${hist.length ? `<h2 class="section-title">Tus intentos</h2>
+      <div class="card" style="padding:8px 16px"><table class="sim-hist"><thead><tr><th>Fecha</th><th>Nota</th><th>Tiempo</th>${cert.dominios.map((d, j) => `<th title="${esc(d.nombre)}">D${j + 1}</th>`).join('')}</tr></thead><tbody>
+      ${hist.map((h) => `<tr><td>${new Date(h.at).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</td><td class="${h.pct >= cert.simulacro.aprobar ? 'ok' : 'mal'}"><b>${h.pct}%</b></td><td>${Math.round(h.seg / 60)} min</td>${cert.dominios.map((_, j) => `<td>${h.dom[j] == null ? '—' : h.dom[j] + '%'}</td>`).join('')}</tr>`).join('')}
+      </tbody></table><p class="small muted">${cert.dominios.map((d, j) => `D${j + 1}: ${esc(d.nombre)}`).join(' · ')}</p></div>` : ''}
+    </div>`;
+    $('#simEmpezar').addEventListener('click', () => {
+      const ps = elegirSimulacro(cert, base);
+      const st = { cert: certId, ids: ps.map((p) => p.id), orden: Object.fromEntries(ps.map((p) => [p.id, barajar(p.opciones.map((_, j) => j))])), resp: {}, marcas: [], actual: 0, inicio: Date.now(), fin: Date.now() + minutos * 60000 };
+      Store.data.simActivo = st; Store.save();
+      correrSimulacro(cert, base, st);
+    });
+  }
+
+  function correrSimulacro(cert, base, st) {
+    const porId = new Map(base.preguntas.map((p) => [p.id, p]));
+    const preguntas = st.ids.map((id) => porId.get(id)).filter(Boolean).map((p) => ({ ...p, opciones: (st.orden[p.id] || p.opciones.map((_, j) => j)).map((j) => p.opciones[j]) }));
+    if (preguntas.length !== st.ids.length) { delete Store.data.simActivo; Store.save(); return viewSimulacro(cert.id); } // el banco cambió
+    const guardar = () => Store.saveSoon();
+    main.innerHTML = `<div class="container sim">
+      <div class="sim-barra">
+        <b>⏱ ${esc(cert.codigo)}</b>
+        <span id="simReloj" class="sim-reloj"></span>
+        <span id="simCont" class="small muted"></span>
+        <button class="btn btn-ok" id="simTerminar">Terminar y corregir</button>
+      </div>
+      <div class="sim-mapa" id="simMapa"></div>
+      <div id="simPregunta"></div>
+      <div class="row sim-nav">
+        <button class="btn" id="simAnt">← Anterior</button>
+        <button class="btn" id="simMarcar"></button>
+        <button class="btn btn-primary" id="simSig">Siguiente →</button>
+      </div>
+    </div>`;
+    const respondida = (i) => (st.resp[preguntas[i].id] || []).length > 0;
+    const pintarMapa = () => {
+      $('#simMapa').innerHTML = preguntas.map((p, i) => `<button class="sim-n ${respondida(i) ? 'resp' : ''} ${st.marcas.includes(p.id) ? 'marca' : ''} ${i === st.actual ? 'act' : ''}" data-n="${i}" title="Pregunta ${i + 1}${st.marcas.includes(p.id) ? ' (marcada)' : ''}">${i + 1}</button>`).join('');
+      const r = preguntas.filter((_, i) => respondida(i)).length;
+      $('#simCont').textContent = `${r}/${preguntas.length} respondidas · ${st.marcas.length} marcadas`;
+    };
+    const pintar = () => {
+      const i = st.actual, p = preguntas[i];
+      const anterior = i > 0 && preguntas[i - 1].caso === p.caso;
+      $('#simPregunta').innerHTML = htmlPregunta(p, i, base, { casoAbierto: !anterior });
+      (st.resp[p.id] || []).forEach((j) => { const inp = $(`#simPregunta input[value="${j}"]`); if (inp) inp.checked = true; });
+      colorearCodigo($('#simPregunta'));
+      $('#simAnt').disabled = i === 0;
+      $('#simSig').textContent = i === preguntas.length - 1 ? 'Revisar y terminar' : 'Siguiente →';
+      $('#simMarcar').textContent = st.marcas.includes(p.id) ? '🚩 Quitar marca' : '🚩 Marcar para revisar';
+      pintarMapa();
+    };
+    const ir = (i) => { st.actual = Math.max(0, Math.min(preguntas.length - 1, i)); guardar(); pintar(); window.scrollTo(0, 0); };
+    $('#simPregunta').addEventListener('change', () => {
+      const p = preguntas[st.actual];
+      st.resp[p.id] = $$('#simPregunta input:checked').map((x) => Number(x.value));
+      guardar(); pintarMapa();
+    });
+    const marcar = () => { const id = preguntas[st.actual].id; st.marcas = st.marcas.includes(id) ? st.marcas.filter((x) => x !== id) : [...st.marcas, id]; guardar(); pintar(); };
+    $('#simMapa').addEventListener('click', (e) => { const b = e.target.closest('[data-n]'); if (b) ir(Number(b.dataset.n)); });
+    $('#simAnt').addEventListener('click', () => ir(st.actual - 1));
+    $('#simSig').addEventListener('click', () => (st.actual === preguntas.length - 1 ? terminar(false) : ir(st.actual + 1)));
+    $('#simMarcar').addEventListener('click', marcar);
+    $('#simTerminar').addEventListener('click', () => terminar(false));
+    function terminar(porTiempo) {
+      if (!porTiempo) {
+        const sin = preguntas.filter((_, i) => !respondida(i)).length;
+        const msg = [sin ? `${sin} sin responder` : '', st.marcas.length ? `${st.marcas.length} marcadas para revisar` : ''].filter(Boolean).join(' y ');
+        if (!confirm(msg ? `Tienes ${msg}. ¿Terminar y corregir igual?` : '¿Terminar y corregir el simulacro?')) return;
+      }
+      clearInterval(relojVista); relojVista = null; setTeclas(null);
+      resultadoSimulacro(cert, base, st, preguntas, porTiempo);
+    }
+    const tic = () => {
+      const quedan = Math.max(0, Math.round((st.fin - Date.now()) / 1000));
+      const el = $('#simReloj'); if (!el) return;
+      el.textContent = `${Math.floor(quedan / 60)}:${String(quedan % 60).padStart(2, '0')}`;
+      el.classList.toggle('poco', quedan <= 300);
+      if (quedan === 0) terminar(true);
+    };
+    clearInterval(relojVista); relojVista = setInterval(tic, 1000); tic();
+    setTeclas((e) => {
+      if (/INPUT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.type !== 'radio' && document.activeElement.type !== 'checkbox') return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); if (st.actual < preguntas.length - 1) ir(st.actual + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); ir(st.actual - 1); }
+      else if (e.key === 'm' || e.key === 'M') marcar();
+      else if (/^[1-6]$/.test(e.key)) { const inp = $$('#simPregunta input')[Number(e.key) - 1]; if (inp) { inp.checked = inp.type === 'checkbox' ? !inp.checked : true; inp.dispatchEvent(new Event('change', { bubbles: true })); } }
+    });
+    pintar();
+  }
+
+  function resultadoSimulacro(cert, base, st, preguntas, porTiempo) {
+    const seg = Math.round((Math.min(Date.now(), st.fin) - st.inicio) / 1000);
+    const minimo = cert.simulacro.aprobar;
+    main.innerHTML = `<div class="container">
+      <div class="crumbs"><a href="#/certificaciones?c=${esc(cert.id)}">Certificaciones</a><span>/</span><a href="#/simulacro/${esc(cert.id)}">Simulacro ${esc(cert.codigo)}</a><span>/</span><span>Resultado</span></div>
+      <div id="simRes"></div>
+      <div class="gloss-filter" id="simFiltro"><button class="chip active" data-f="">Todas</button><button class="chip" data-f="mal">Solo incorrectas</button><button class="chip" data-f="marca">Solo marcadas</button></div>
+      <div id="simLista">${preguntas.map((p, i) => htmlPregunta(p, i, base, { casoAbierto: false, badges: st.marcas.includes(p.id) ? '<span class="badge">🚩 marcada</span>' : '' })).join('')}</div>
+    </div>`;
+    const oks = preguntas.map((p, i) => corregirTarjeta($(`#simLista .exam-q[data-i="${i}"]`), p, st.resp[p.id] || []));
+    colorearCodigo($('#simLista'));
+    const bien = oks.filter(Boolean).length, pct = Math.round((bien / preguntas.length) * 100), aprobo = pct >= minimo;
+    const doms = porDominio(cert, preguntas, oks);
+    const H = sims(); H[cert.id] = [...(H[cert.id] || []), { at: Date.now(), pct, n: preguntas.length, seg, dom: doms.map((d) => d.pct) }].slice(-20);
+    delete Store.data.simActivo; Store.save();
+    const flojos = doms.filter((d) => d.total && d.pct < minimo).sort((a, b) => a.pct - b.pct);
+    $('#simRes').innerHTML = `<div class="card exam-res ${aprobo ? 'ok' : 'mal'}">
+      <div class="exam-nota">${pct}%</div>
+      <div><h2 style="margin:0 0 4px">${aprobo ? '✓ Aprobarías con este resultado' : `Todavía no: el corte es ${minimo}%`}</h2>
+      <p style="margin:0">Respondiste bien <b>${bien} de ${preguntas.length}</b> en ${Math.floor(seg / 60)} min ${seg % 60} s${porTiempo ? ' (se terminó el tiempo)' : ''}. ${flojos.length ? `Lo más flojo: <b>${esc(flojos[0].nombre)}</b>.` : 'Todos los dominios están por encima del corte.'}</p>
+      <p style="margin:10px 0 4px"><b>Resultado por dominio</b> (la línea marca el ${minimo}%):</p>
+      ${htmlDominios(doms, minimo)}
+      <div class="row" style="margin-top:10px"><a class="btn btn-primary" href="#/simulacro/${esc(cert.id)}">↻ Otro simulacro</a><a class="btn" href="#/certificaciones?c=${esc(cert.id)}">Ver el temario</a></div>
+      <p class="small muted" style="margin:10px 0 0">El corte real no siempre se publica y la nota oficial es escalada: tómalo como referencia. Apunta a superar el ${Math.min(90, minimo + 10)}% de forma estable antes de rendir.</p></div></div>`;
+    $('#simFiltro').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-f]'); if (!b) return;
+      $$('#simFiltro .chip').forEach((x) => x.classList.toggle('active', x === b));
+      $$('#simLista .exam-q').forEach((c, i) => { c.hidden = (b.dataset.f === 'mal' && oks[i]) || (b.dataset.f === 'marca' && !st.marcas.includes(preguntas[i].id)); });
+    });
+    window.scrollTo(0, 0);
+  }
 
   // ---------------------------------------------------------------- certificaciones
   function viewCertificaciones(abrir = '') {
@@ -1478,6 +1702,7 @@
       <div class="gloss-filter" id="cprov"><button class="chip active" data-p="">Todas</button>${provs.map((p) => `<button class="chip" data-p="${esc(p)}">${esc(p)} <span class="muted">${CERTS.filter((c) => c.proveedor === p).length}</span></button>`).join('')}</div>
       <div id="clist"></div>
     </div>`;
+    const ultimo = (id) => { const h = sims()[id]; return h && h.length ? h[h.length - 1] : null; };
     const tarjeta = (c) => {
       const ex = c.examen ? EXAMENES.get(c.examen) : null, n = c.examen ? N[c.examen] : null;
       const lecs = c.dominios.flatMap((d) => d.lecciones);
@@ -1503,7 +1728,8 @@
             ${d.lecciones.length ? `<div class="cert-lecs small">📚 ${d.lecciones.map((l) => `<a href="#/l/${l.id}">${hechas.has(l.id) ? '✓ ' : ''}${esc(l.titulo)}</a>`).join(' · ')}</div>` : ''}
           </div>`).join('')}
           <div class="row" style="margin-top:14px">
-            ${ex ? `<a class="btn btn-primary" href="#/examen/${ex.id}">🏅 Examen de práctica (${ex.preguntas.length} preguntas)${n ? ` · mejor nota ${n.best}%` : ''}</a>` : ''}
+            ${ex ? `<a class="btn" href="#/examen/${ex.id}">🏅 Examen de práctica (${ex.preguntas.length} preguntas)${n ? ` · mejor nota ${n.best}%` : ''}</a>` : ''}
+            ${ex && c.simulacro ? `<a class="btn btn-primary" href="#/simulacro/${c.id}">⏱ Simulacro (${Math.min(c.simulacro.preguntas, ex.preguntas.length)} preguntas)${ultimo(c.id) ? ` · último ${ultimo(c.id).pct}%` : ''}</a>` : ''}
             <a class="btn" href="${esc(c.fuente)}" target="_blank" rel="noopener">Guía oficial ↗</a>
             <span class="small muted">Temario según la guía vigente en ${esc(c.actualizado)}</span>
           </div>
@@ -1556,6 +1782,7 @@
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
     if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal'].includes(parts[1])) return { name: 'lab-' + parts[1] };
     if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMENES.has(parts[1]))) return { name: 'examen', examen: parts[1] };
+    if (parts[0] === 'simulacro' && parts[1]) return { name: 'simulacro', cert: parts[1] };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -1563,8 +1790,9 @@
     const r = parse();
     document.body.classList.remove('nav-open');
     setTeclas(null);
+    clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -1579,6 +1807,7 @@
     else if (r.name === 'repaso') viewRepaso();
     else if (r.name === 'examenes') viewExamenes();
     else if (r.name === 'examen') viewExamen(r.examen);
+    else if (r.name === 'simulacro') viewSimulacro(r.cert);
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
@@ -1588,6 +1817,8 @@
     main.focus({ preventScroll: true });
   }
   window.addEventListener('hashchange', route);
+  // lo pendiente de guardar (respuestas recién marcadas, código) no se pierde al cerrar o recargar
+  window.addEventListener('pagehide', () => { clearTimeout(Store._t); Store.save(); });
   // un enlace a la página en la que ya estás no dispara hashchange: igual se vuelve a dibujar
   // (por ejemplo, "Volver a las tarjetas" al terminar una sesión de repaso)
   document.addEventListener('click', (e) => {

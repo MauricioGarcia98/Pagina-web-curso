@@ -262,7 +262,18 @@ function buildExamenes(modules) {
     const titulo = ((txt.match(/^# titulo:\s*(.+)$/m) || [])[1] || '').trim();
     if (id !== modulo && !titulo) throw new Error(`${f}: un examen con "# id" necesita "# titulo"`);
     if (examenes.some((e) => e.id === id)) throw new Error(`${f}: el id de examen "${id}" está repetido`);
-    const preguntas = txt.split(/^## /m).slice(1).map((bloque, i) => {
+    // "## @caso id: Título" abre un caso de estudio (un escenario que comparten varias preguntas);
+    // cualquier otro "## Tema" es una pregunta
+    const bloques = txt.split(/^## /m).slice(1);
+    const casos = {};
+    for (const b of bloques.filter((x) => x.startsWith('@caso '))) {
+      const [cab, ...resto] = b.split('\n');
+      const m = cab.match(/^@caso\s+([\w-]+):\s*(.+)$/);
+      if (!m) throw new Error(`${f}: un caso se escribe "## @caso id: Título" (${cab})`);
+      if (casos[m[1]]) throw new Error(`${f}: el caso "${m[1]}" está repetido`);
+      casos[m[1]] = { titulo: m[2].trim(), html: md(resto.join('\n').trim(), file) };
+    }
+    const preguntas = bloques.filter((x) => !x.startsWith('@caso ')).map((bloque, i) => {
       const donde = `Examen ${f}, pregunta ${i + 1}`;
       const [cab, ...lineas] = bloque.split('\n');
       const p = { tema: cab.trim(), opciones: [] };
@@ -272,24 +283,35 @@ function buildExamenes(modules) {
         let m;
         if (enPorque) { porque.push(l); continue; }
         if (!enCodigo && (m = l.match(/^leccion:\s*(\S+)\s*$/))) { p.leccion = m[1]; continue; }
+        if (!enCodigo && (m = l.match(/^dominio:\s*(\d+)\s*$/))) { p.dominio = Number(m[1]); continue; }
+        if (!enCodigo && (m = l.match(/^caso:\s*([\w-]+)\s*$/))) { p.caso = m[1]; continue; }
         if (!enCodigo && (m = l.match(/^- \[( |x)\] (.*)$/))) { p.opciones.push({ text: marked.parseInline(m[2]), ok: m[1] === 'x' }); continue; }
         if (!enCodigo && (m = l.match(/^porque:\s?(.*)$/))) { enPorque = true; porque.push(m[1]); continue; }
         enunciado.push(l);
       }
       if (!p.leccion || !lecciones.has(p.leccion)) throw new Error(`${donde}: "leccion:" falta o no existe (${p.leccion})`);
-      if (p.opciones.length < 3) throw new Error(`${donde}: necesita al menos 3 opciones`);
-      if (p.opciones.filter((o) => o.ok).length !== 1) throw new Error(`${donde}: debe tener exactamente una opción correcta`);
+      if (p.caso && !casos[p.caso]) throw new Error(`${donde}: el caso "${p.caso}" no existe`);
+      const correctas = p.opciones.filter((o) => o.ok).length;
+      if (!correctas) throw new Error(`${donde}: no tiene ninguna opción correcta`);
+      if (p.opciones.length < Math.max(3, correctas + 2)) throw new Error(`${donde}: necesita al menos ${Math.max(3, correctas + 2)} opciones`);
+      if (correctas > 1) p.multiple = correctas; // respuesta múltiple: "Elige N", se puntúa todo o nada
       if (!porque.join('').trim()) throw new Error(`${donde}: falta "porque:"`);
       if (!enunciado.join('').trim()) throw new Error(`${donde}: falta el enunciado`);
       const lec = lecciones.get(p.leccion);
       return { id: `${id}-p${i + 1}`, ...p, leccion: { id: lec.id, titulo: lec.titulo }, enunciado: md(enunciado.join('\n').trim(), file), porque: md(porque.join('\n').trim(), file) };
     });
+    for (const c of Object.keys(casos)) if (!preguntas.some((p) => p.caso === c)) throw new Error(`${f}: el caso "${c}" no tiene preguntas`);
     if (preguntas.length < MIN_PREGUNTAS) throw new Error(`${f}: tiene ${preguntas.length} preguntas; el mínimo es ${MIN_PREGUNTAS}`);
     // si la correcta suele ser la opción más larga, se puede aprobar sin saber: hay que emparejar los largos
+    // (solo en las de respuesta única; en las múltiples se revisa que las correctas no sean justo las más largas)
     const largo = (o) => o.text.replace(/<[^>]+>/g, '').length;
-    const delatoras = preguntas.filter((p) => { const ls = p.opciones.map(largo), c = ls[p.opciones.findIndex((o) => o.ok)]; return ls.filter((x) => x >= c).length === 1; });
+    const delatoras = preguntas.filter((p) => {
+      const ls = p.opciones.map(largo);
+      if (p.multiple) { const minOk = Math.min(...ls.filter((_, j) => p.opciones[j].ok)); return ls.filter((x, j) => !p.opciones[j].ok && x >= minOk).length === 0; }
+      const c = ls[p.opciones.findIndex((o) => o.ok)]; return ls.filter((x) => x >= c).length === 1;
+    });
     if (delatoras.length > preguntas.length * MAX_CORRECTA_MAS_LARGA) throw new Error(`${f}: en ${delatoras.length} de ${preguntas.length} preguntas la correcta es la opción más larga (${delatoras.map((p) => p.tema).join(', ')}); empareja el largo de las opciones`);
-    examenes.push({ id, modulo, titulo, preguntas });
+    examenes.push({ id, modulo, titulo, casos, preguntas });
   }
   return examenes;
 }
@@ -313,6 +335,23 @@ function buildCertificaciones(modules, examenes) {
     const total = c.dominios.reduce((s, d) => s + d.peso, 0);
     const tolerancia = c.dominios.some((d) => d.rango) ? 12 : 2;
     if (Math.abs(total - 100) > tolerancia) throw new Error(`${donde}: los pesos de los dominios suman ${total}, no 100`);
+    if (c.examen) {
+      // cada pregunta de práctica pertenece a un dominio: explícito con "dominio: N" o deducido de la
+      // lección cuando solo un dominio la cubre (para el puntaje por dominio y el simulacro)
+      const ex = examenes.find((e) => e.id === c.examen);
+      ex.cert = c.id;
+      for (const p of ex.preguntas) {
+        if (p.dominio) {
+          if (p.dominio < 1 || p.dominio > c.dominios.length) throw new Error(`${donde}: la pregunta "${p.tema}" tiene dominio ${p.dominio} y solo hay ${c.dominios.length}`);
+          p.dominio -= 1;
+          continue;
+        }
+        const cand = c.dominios.map((d, j) => ((d.lecciones || []).includes(p.leccion.id) ? j : -1)).filter((j) => j >= 0);
+        if (cand.length !== 1) throw new Error(`${donde}: la pregunta "${p.tema}" necesita "dominio: N" (su lección está en ${cand.length ? 'los dominios ' + cand.map((j) => j + 1).join(', ') : 'ningún dominio'})`);
+        p.dominio = cand[0];
+      }
+    }
+    if (c.simulacro) for (const k of ['preguntas', 'minutos', 'aprobar']) if (typeof c.simulacro[k] !== 'number') throw new Error(`${donde}: "simulacro.${k}" debe ser un número`);
     for (const d of c.dominios) {
       for (const l of d.lecciones || []) if (!lecciones.has(l)) throw new Error(`${donde}: la lección "${l}" del dominio "${d.nombre}" no existe`);
       d.lecciones = (d.lecciones || []).map((l) => ({ id: l, titulo: lecciones.get(l) }));

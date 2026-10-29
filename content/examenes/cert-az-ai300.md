@@ -4,6 +4,7 @@
 
 ## Infraestructura como código
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
 La infraestructura de Azure Machine Learning debe poder recrearse igual en dev, test y prod. ¿Cómo se define?
 - [ ] Creando los recursos desde el portal y documentando cada paso en una wiki del equipo.
 - [x] Bicep o Terraform para Azure, y YAML de la CLI v2 para Azure ML.
@@ -13,6 +14,7 @@ porque: La infraestructura como código hace los entornos reproducibles, revisab
 
 ## Registros
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
 El modelo aprobado en el workspace de dev debe usarse en el de prod sin reentrenarlo y con linaje. ¿Qué usas?
 - [ ] Un datastore compartido entre los workspaces con el archivo serializado del modelo.
 - [x] Un registro de Azure ML compartido entre los workspaces.
@@ -22,6 +24,7 @@ porque: Los registros comparten modelos, componentes y entornos entre workspaces
 
 ## Componentes
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 1
 Varios equipos repiten el mismo paso de preparación de datos en sus pipelines. ¿Cómo lo reutilizan?
 - [ ] Copiando el script de preparación en cada repositorio y manteniendo las copias sincronizadas.
 - [x] Como un componente versionado, compartido en un registro.
@@ -31,6 +34,7 @@ porque: Un componente define un paso con entradas, salidas, código y entorno, y
 
 ## Hiperparámetros
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
 Hay que probar automáticamente combinaciones de hiperparámetros y cortar temprano las que van mal. ¿Qué tipo de job usas?
 - [ ] Un command job por cada combinación lanzado a mano.
 - [x] Un sweep job con una política de terminación temprana.
@@ -40,6 +44,7 @@ porque: El sweep job muestrea combinaciones y la política de terminación detie
 
 ## Azul-verde
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
 Un modelo nuevo debe probarse con el 5 % del tráfico real y poder revertirse al instante. ¿Qué haces?
 - [ ] Reemplazar el despliegue actual por el nuevo durante una ventana de mantenimiento nocturna.
 - [x] Agregar un segundo despliegue al endpoint y darle el 5 % del tráfico.
@@ -49,6 +54,7 @@ porque: Un endpoint online puede tener varios despliegues con reparto de tráfic
 
 ## Espejado
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
 Quieres comparar el comportamiento del despliegue nuevo con tráfico real **sin** que sus respuestas lleguen a los usuarios. ¿Qué usas?
 - [ ] Un reparto de tráfico de 50 % y 50 %.
 - [x] El espejado de tráfico (*mirror traffic*) hacia el despliegue nuevo.
@@ -58,6 +64,7 @@ porque: El espejado copia un porcentaje de las solicitudes al despliegue nuevo y
 
 ## Batch
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
 Hay que puntuar 80 millones de registros cada noche y escribir los resultados en ADLS. ¿Qué despliegue usas?
 - [ ] Un endpoint online con autoescalado agresivo.
 - [x] Un endpoint batch.
@@ -67,6 +74,7 @@ porque: Los endpoints batch procesan grandes volúmenes de forma asíncrona en c
 
 ## Deriva
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 2
 Después de una campaña, la distribución de las entradas del modelo cambió mucho respecto del entrenamiento. ¿Qué lo detecta y qué conviene automatizar?
 - [ ] El panel de IA responsable, con un reentrenamiento manual una vez por año.
 - [x] Monitoreo de deriva de datos, con una alerta que dispare el reentrenamiento.
@@ -76,6 +84,7 @@ porque: El monitoreo de modelos compara producción con una referencia y puede d
 
 ## Compuerta de calidad
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
 ¿Qué debe frenar un despliegue de un cambio de prompt de una app generativa en el pipeline de CI?
 - [ ] Que el prompt nuevo tenga más palabras que el anterior y supere el límite del equipo.
 - [x] Evaluaciones de calidad y seguridad por debajo del umbral.
@@ -85,6 +94,7 @@ porque: La evaluación automática con umbrales es la compuerta de calidad en Ge
 
 ## Red teaming
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 4
 Antes de publicar un agente, seguridad quiere probar automáticamente ataques de jailbreak y contenido dañino. ¿Qué usas?
 - [ ] Un test unitario que verifica la respuesta a tres preguntas.
 - [x] El agente de red teaming y los evaluadores de seguridad de Foundry.
@@ -94,6 +104,7 @@ porque: El red teaming automatizado genera ataques y los evaluadores de segurida
 
 ## Observabilidad
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 4
 Para depurar respuestas incorrectas en producción, hay que ver cada llamada al modelo, cada herramienta usada, la latencia y los tokens. ¿Qué configuras?
 - [ ] Los registros de actividad del portal de Azure de la suscripción, filtrados por recurso.
 - [x] Trazas con OpenTelemetry en Application Insights.
@@ -103,6 +114,7 @@ porque: Las trazas registran cada paso de la aplicación generativa con su laten
 
 ## Costo
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
 Una app usa el modelo más grande para clasificar tickets en 6 categorías simples. ¿Qué optimización es más directa?
 - [ ] Ajustar el modelo grande con miles de ejemplos.
 - [x] Usar un modelo más chico o enrutar esas tareas a uno más chico, validando con evaluación.
@@ -112,6 +124,7 @@ porque: Para tareas simples, un modelo más chico baja costo y latencia; la eval
 
 ## 429 en producción
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
 La app generativa recibe errores 429 en horas pico. ¿Qué combinación de acciones es la adecuada?
 - [ ] Bajar la temperatura y acortar el prompt de sistema.
 - [x] Reintentos con espera exponencial y más cuota, Global Standard o Provisioned.
@@ -121,6 +134,7 @@ porque: 429 es límite de tasa: se mitiga con reintentos y se resuelve con más 
 
 ## Destilación
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 5
 Un modelo grande da muy buena calidad en una tarea concreta pero es caro. ¿Qué técnica permite obtener calidad parecida con un modelo chico?
 - [ ] Aumentar la temperatura del modelo chico.
 - [x] Destilación: ajustar el modelo chico con las salidas del grande para esa tarea.
@@ -130,6 +144,7 @@ porque: La destilación entrena un modelo más chico para imitar al grande en un
 
 ## Credenciales de CI
 leccion: cert-azure-ai300-mlops-genaiops
+dominio: 3
 El pipeline de GitHub Actions despliega a Azure ML. ¿Cómo se autentica de la forma recomendada?
 - [ ] Con un secreto de service principal sin vencimiento guardado en los secretos del repositorio.
 - [x] Con identidad federada (OIDC) hacia un service principal o identidad administrada.

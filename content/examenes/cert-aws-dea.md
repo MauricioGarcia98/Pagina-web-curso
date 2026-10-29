@@ -184,6 +184,7 @@ porque: IVF agrupa los vectores y busca en pocos grupos, con menos memoria que H
 
 ## Alertas
 leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
 Un job de Glue falla de noche y nadie se entera. ¿Qué configuras con el menor esfuerzo operativo?
 - [ ] Un script en EC2 que consulta el estado del job cada cinco minutos.
 - [x] Una regla de EventBridge para el estado FAILED que publique en SNS.
@@ -193,6 +194,7 @@ porque: Glue emite eventos de cambio de estado; EventBridge los envía a SNS sin
 
 ## Calidad
 leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
 Un pipeline debe frenar la publicación si hay ids duplicados o montos negativos, con reglas declarativas. ¿Qué usas?
 - [ ] Amazon Macie con identificadores de datos personalizados.
 - [x] AWS Glue Data Quality con reglas DQDL en el job.
@@ -202,6 +204,7 @@ porque: Glue Data Quality evalúa reglas como `IsUnique` y `ColumnValues` y perm
 
 ## Lake Formation
 leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
 Analistas de varios equipos consultan el lago desde Athena y EMR; cada equipo solo debe ver las filas de su región y no ver la columna de salario. ¿Qué usas?
 - [ ] Una copia de la tabla por equipo, filtrada y sin la columna.
 - [x] Lake Formation con filtros de datos por fila y columna.
@@ -211,6 +214,7 @@ porque: Lake Formation aplica permisos de fila, columna y celda que respetan Ath
 
 ## Secretos
 leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
 Un job de Glue se conecta a una base RDS y la contraseña debe rotarse automáticamente cada 30 días. ¿Dónde la guardas?
 - [ ] En los parámetros del job de Glue, como texto plano.
 - [x] En AWS Secrets Manager con rotación automática.
@@ -220,6 +224,7 @@ porque: Secrets Manager guarda y rota credenciales; el job lee el secreto por AR
 
 ## PII
 leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
 Auditoría quiere saber qué buckets contienen números de tarjeta y documentos de identidad. ¿Qué servicio usas?
 - [ ] AWS CloudTrail con data events habilitados en S3.
 - [x] Amazon Macie.

@@ -4,6 +4,7 @@
 
 ## Estado sin watermark
 leccion: cert-databricks-nivel-professional
+dominio: 1
 Un stream cuenta eventos por usuario en ventanas de 1 hora. Después de una semana, el job falla por falta de memoria aunque el volumen diario es estable. ¿Cuál es la causa más probable?
 - [ ] El checkpoint está en un volumen lento y se acumulan escrituras pendientes en memoria.
 - [x] Falta una watermark, así que el estado de todas las ventanas pasadas nunca se libera.
@@ -13,6 +14,7 @@ porque: Sin watermark, Spark conserva el estado de cada ventana para siempre por
 
 ## MERGE desde stream
 leccion: cert-databricks-nivel-professional
+dominio: 1
 Los cambios de clientes llegan por streaming y hay que aplicarlos con upsert a `silver.clientes`. Cada micro-lote puede traer varias versiones del mismo cliente. ¿Qué implementación es correcta?
 - [ ] `writeStream` con `outputMode("update")` hacia la tabla, que aplica un upsert por clave primaria.
 - [x] `foreachBatch` que deduplica el lote por cliente y luego ejecuta un `MERGE`.
@@ -22,6 +24,7 @@ porque: El `MERGE` falla si varias filas del origen coinciden con la misma fila 
 
 ## Escritura idempotente
 leccion: cert-databricks-nivel-professional
+dominio: 1
 Dentro de `foreachBatch`, un job hace append a dos tablas distintas. Si el job falla y el lote se reintenta, no deben duplicarse filas. ¿Qué usas?
 - [ ] Cambiar el trigger a `availableNow`, que nunca reprocesa un lote ya iniciado.
 - [x] Las opciones `txnAppId` y `txnVersion` (con el `batch_id`) en cada escritura.
@@ -31,6 +34,7 @@ porque: Con `txnAppId` y `txnVersion`, Delta detecta que esa aplicación ya escr
 
 ## Change Data Feed
 leccion: cert-databricks-nivel-professional
+dominio: 3
 Gold debe actualizarse con los cambios de `silver.pedidos` (inserts, updates y deletes) sin releer la tabla entera. ¿Qué habilitas y lees?
 - [ ] Liquid Clustering en silver y una lectura batch filtrada por la última fecha de carga.
 - [x] Change Data Feed en silver, leído con `readChangeFeed`.
@@ -40,6 +44,7 @@ porque: Change Data Feed registra cada fila insertada, actualizada (pre y post i
 
 ## Constraints
 leccion: cert-databricks-nivel-professional
+dominio: 3
 ¿Cuál de estas restricciones **se fuerza** al escribir en una tabla Delta de Databricks?
 - [ ] `PRIMARY KEY`, que rechaza filas con una clave repetida.
 - [ ] `FOREIGN KEY`, que rechaza filas sin su fila en la tabla padre.
@@ -49,6 +54,7 @@ porque: `NOT NULL` y `CHECK` se fuerzan. Las claves primarias y foráneas son in
 
 ## Funciones de IA
 leccion: cert-databricks-nivel-professional
+dominio: 1
 Hay que clasificar 4 millones de reseñas en categorías fijas usando un LLM, dentro de un pipeline SQL. ¿Qué es lo más adecuado?
 - [ ] Un notebook con un bucle de Python que llama al endpoint de a una reseña.
 - [x] `ai_classify` o `ai_query` aplicados a la tabla en SQL.
@@ -58,6 +64,7 @@ porque: Las funciones de IA en SQL procesan tablas completas en paralelo y se in
 
 ## UDF correcta
 leccion: cert-databricks-nivel-professional
+dominio: 1
 Una regla de negocio para calcular el impuesto se puede expresar con `CASE` y operaciones aritméticas, y la usan varios equipos desde SQL. ¿Cómo la implementas?
 - [ ] Una Python UDF fila a fila, registrada en cada notebook que la necesita usar.
 - [x] Función SQL en Unity Catalog con `CREATE FUNCTION ... RETURN`.
@@ -67,6 +74,7 @@ porque: La función SQL de Unity Catalog es gobernada, reutilizable y se expande
 
 ## Leer de otros motores
 leccion: cert-databricks-nivel-professional
+dominio: 4
 Un equipo de análisis usa Snowflake y necesita leer las tablas Delta administradas por Unity Catalog sin copiarlas. ¿Qué habilitas?
 - [ ] Un job que exporte las tablas a CSV en un bucket compartido cada noche.
 - [x] UniForm, para que las tablas se lean como Iceberg desde el catálogo de Unity Catalog.
@@ -76,6 +84,7 @@ porque: UniForm genera metadatos Iceberg, y otros motores leen las tablas a trav
 
 ## Particionado excesivo
 leccion: cert-databricks-optimizacion-monitoreo
+dominio: 6
 Una tabla particionada por `cliente_id` (3 millones de valores) tiene consultas lentas y millones de archivos chicos. ¿Qué haces?
 - [ ] Agregar `fecha` como segunda columna de partición para repartir mejor los archivos.
 - [x] Recrear la tabla sin particiones, con Liquid Clustering por `cliente_id`.
@@ -85,6 +94,7 @@ porque: Particionar por una columna de alta cardinalidad crea demasiadas partici
 
 ## Predictive Optimization
 leccion: cert-databricks-optimizacion-monitoreo
+dominio: 6
 La plataforma tiene 2.000 tablas administradas de Unity Catalog y nadie programa `OPTIMIZE` ni `VACUUM`. ¿Qué activas?
 - [ ] Un job nocturno que recorre todas las tablas y ejecuta `OPTIMIZE` y `VACUUM`.
 - [x] Predictive Optimization en el catálogo o la cuenta.
@@ -94,6 +104,7 @@ porque: Predictive Optimization ejecuta OPTIMIZE, VACUUM y ANALYZE en tablas adm
 
 ## Spill
 leccion: cert-databricks-optimizacion-monitoreo
+dominio: 6
 En la Spark UI, todas las tasks de un stage de agregación tienen spill a disco de varios GB, con tiempos parejos. ¿Qué ajuste es el más adecuado?
 - [ ] Activar AQE skew join, que divide las particiones más grandes de ese stage del shuffle.
 - [x] Más particiones de shuffle, o máquinas con más memoria por núcleo.
@@ -103,6 +114,7 @@ porque: Spill parejo en todas las tasks indica particiones demasiado grandes par
 
 ## Consultas caras
 leccion: cert-databricks-optimizacion-monitoreo
+dominio: 5
 ¿Cómo encuentras las consultas de un SQL warehouse que más bytes leyeron en el último mes?
 - [ ] En `system.billing.usage`, filtrando por `warehouse_id`.
 - [x] En `system.query.history`, ordenando por `read_bytes`.
@@ -112,6 +124,7 @@ porque: `system.query.history` guarda cada consulta con su duración, bytes leí
 
 ## Alerta de frescura
 leccion: cert-databricks-optimizacion-monitoreo
+dominio: 5
 El equipo quiere enterarse si `gold.ventas` no se actualizó en las últimas 6 horas, aunque el job no haya fallado. ¿Qué configuras?
 - [ ] Una notificación de falla en el job que actualiza la tabla.
 - [x] Una alerta de SQL o el monitoreo de calidad de datos con detección de frescura.
@@ -121,6 +134,7 @@ porque: Un job puede terminar bien sin escribir datos nuevos. Las alertas de fre
 
 ## Política ABAC
 leccion: cert-databricks-gobierno-seguridad
+dominio: 7
 Hay columnas con datos personales en cientos de tablas y se crean tablas nuevas cada semana. ¿Cómo garantizas que se enmascaren siempre?
 - [ ] Revisando cada semana las tablas nuevas y aplicando una column mask a mano a cada una.
 - [x] Etiquetas gobernadas en las columnas y una política ABAC de máscara en el catálogo.
@@ -130,6 +144,7 @@ porque: La política ABAC se define una vez y aplica a toda columna con la etiqu
 
 ## Derecho al olvido
 leccion: cert-databricks-gobierno-seguridad
+dominio: 7
 Un cliente pidió que se borren sus datos. La tabla tiene deletion vectors activados. Ejecutaste `DELETE`. ¿Qué falta para que los datos desaparezcan físicamente?
 - [ ] Nada, porque los deletion vectors borran las filas de los archivos al instante.
 - [x] Reescribir los archivos afectados (`REORG TABLE ... APPLY (PURGE)`) y luego `VACUUM`.
@@ -139,6 +154,7 @@ porque: Con deletion vectors las filas solo se marcan como borradas; hay que pur
 
 ## Compartir parcialmente
 leccion: cert-databricks-gobierno-seguridad
+dominio: 4
 Un socio solo debe ver las filas de Lima de una tabla de ventas compartida por Delta Sharing. ¿Qué haces?
 - [ ] Le das acceso a toda la tabla y le pides que filtre por Lima.
 - [x] Agregas la tabla al share con una partición (`PARTITION (ciudad = 'Lima')`) o compartes una vista filtrada.
@@ -148,6 +164,7 @@ porque: Delta Sharing permite compartir particiones específicas o vistas, así 
 
 ## Monitorear streams
 leccion: cert-databricks-nivel-professional
+dominio: 5
 ¿Dónde obtienes métricas de un stream como filas procesadas por segundo, retraso y tamaño del estado?
 - [ ] En `system.billing.usage`, que registra el consumo de cada stream.
 - [x] En `query.lastProgress` o con un `StreamingQueryListener`.
@@ -166,6 +183,7 @@ porque: Con bundles, el YAML es la fuente de verdad. Los cambios manuales se pie
 
 ## Pruebas
 leccion: cert-databricks-nivel-professional
+dominio: 9
 ¿Cómo se prueba de forma unitaria una función que limpia un DataFrame de pedidos?
 - [ ] Ejecutando el job en producción y revisando a la mañana siguiente si el resultado se ve bien.
 - [x] Con `pytest`, DataFrames chicos de entrada y salida esperada, y `assertDataFrameEqual`.
@@ -175,6 +193,7 @@ porque: Las pruebas unitarias verifican la lógica con datos mínimos y conocido
 
 ## Ingesta con CDC
 leccion: cert-databricks-ingesta
+dominio: 2
 Hay que replicar en Databricks una base SQL Server con todos sus cambios, incluidos borrados, con latencia de minutos y sin escribir el código de CDC. ¿Qué usas?
 - [ ] `spark.read.jdbc` programado cada 5 minutos con filtro por fecha de modificación.
 - [x] Un conector gestionado de Lakeflow Connect para SQL Server, con su gateway de ingesta.

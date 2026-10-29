@@ -4,6 +4,7 @@
 
 ## Servicio de streaming
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 1
 Eventos de clics deben agregarse por ventanas de 5 minutos, corrigiendo resultados cuando llegan datos tardíos, sin administrar servidores. ¿Qué usas?
 - [ ] Dataproc con Spark Streaming en un clúster permanente.
 - [x] Pub/Sub y Dataflow con ventanas fijas y allowed lateness.
@@ -13,6 +14,7 @@ porque: Dataflow maneja ventanas, marcas de agua y datos tardíos de forma serve
 
 ## Marca de agua
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
 En Apache Beam, ¿qué representa la marca de agua (watermark)?
 - [ ] El número máximo de mensajes que puede procesar un worker.
 - [x] La estimación de hasta qué tiempo de evento ya llegaron los datos.
@@ -22,6 +24,7 @@ porque: La marca de agua indica cuándo se considera completa una ventana; los d
 
 ## Sesiones
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
 Hay que agrupar la actividad de cada usuario en visitas que terminan tras 30 minutos sin eventos. ¿Qué ventana usas?
 - [ ] Fijas de 30 minutos.
 - [x] De sesión con un intervalo de 30 minutos.
@@ -31,6 +34,7 @@ porque: Las ventanas de sesión se cierran por inactividad para cada clave.
 
 ## Actualizar streaming
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
 Un pipeline de Dataflow en streaming debe actualizarse sin perder datos en vuelo, y el cambio es compatible. ¿Qué haces?
 - [ ] Cancelar el job y lanzar el nuevo de inmediato.
 - [x] Lanzar el nuevo código con la opción de actualización sobre el job existente.
@@ -40,6 +44,7 @@ porque: Update reemplaza el job conservando el estado; drain se usa si no es com
 
 ## CDC
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
 Una base PostgreSQL on-premises debe replicarse a BigQuery con cambios casi en tiempo real y mínimo mantenimiento. ¿Qué usas?
 - [ ] Exportaciones nocturnas a Cloud Storage con cargas por lotes.
 - [x] Datastream hacia BigQuery.
@@ -49,6 +54,7 @@ porque: Datastream captura los cambios (CDC) y los aplica en BigQuery de forma s
 
 ## Hadoop
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 1
 Una empresa quiere mover 300 trabajos de Spark y Hive a Google Cloud con cambios mínimos y menor costo. ¿Qué combinación recomiendas?
 - [ ] Reescribir todo en Dataflow con Apache Beam antes de migrar.
 - [x] Dataproc con clústeres efímeros, datos en Cloud Storage y workers Spot.
@@ -58,6 +64,7 @@ porque: Dataproc ejecuta los trabajos existentes; clústeres efímeros, Cloud St
 
 ## ETL visual
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
 Un equipo sin programadores necesita construir pipelines ETL con conectores a muchas fuentes usando una interfaz visual. ¿Qué usas?
 - [ ] Dataflow con plantillas Flex.
 - [x] Cloud Data Fusion.
@@ -67,6 +74,7 @@ porque: Data Fusion ofrece ETL visual sin código basado en CDAP.
 
 ## Orquestación
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
 Un proceso nocturno depende de cargas en Cloud Storage, jobs de Dataflow, Dataproc y transformaciones en BigQuery, con reintentos y alertas. ¿Qué orquestador usas?
 - [ ] Cloud Scheduler con un disparador por servicio.
 - [x] Cloud Composer.
@@ -76,6 +84,7 @@ porque: Composer (Airflow) maneja dependencias complejas entre servicios con rei
 
 ## Transferencia física
 leccion: cert-gcp-pde-diseno-ingesta
+dominio: 1
 Hay que mover 600 TB de archivos históricos con un enlace lento. ¿Qué usas?
 - [ ] Storage Transfer Service por internet.
 - [x] Transfer Appliance.
@@ -85,6 +94,7 @@ porque: Transfer Appliance envía grandes volúmenes en un dispositivo físico c
 
 ## Bigtable
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
 Una aplicación de IoT escribe 2 millones de lecturas por segundo y consulta las de un sensor por rango de tiempo en milisegundos. ¿Qué almacén usas?
 - [ ] BigQuery con particiones por hora.
 - [x] Bigtable.
@@ -94,6 +104,7 @@ porque: Bigtable sostiene millones de operaciones por segundo con latencia de mi
 
 ## Hotspot
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
 En Bigtable, ¿qué clave de fila evita concentrar las escrituras en un nodo?
 - [ ] `timestamp#sensor_id`.
 - [x] `sensor_id#timestamp_invertido`.
@@ -103,6 +114,7 @@ porque: Empezar por un campo de alta cardinalidad reparte las escrituras; los va
 
 ## Spanner
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
 Un sistema de inventario global necesita transacciones con consistencia fuerte en varios continentes y escala horizontal. ¿Qué usas?
 - [ ] Cloud SQL con réplicas de lectura entre regiones.
 - [x] Spanner multirregional.
@@ -112,6 +124,7 @@ porque: Spanner ofrece SQL relacional, transacciones globales con consistencia f
 
 ## Particiones
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
 Las consultas sobre una tabla de 40 TB siempre filtran por fecha y cliente pero escanean todo. ¿Qué haces?
 - [ ] Crear un índice de búsqueda sobre todas las columnas.
 - [x] Particionar por fecha y agrupar por cliente.
@@ -121,6 +134,7 @@ porque: La partición reduce los días leídos y el clustering reduce los bloque
 
 ## Anidados
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
 Los pedidos y sus líneas se unen en todas las consultas y el join es costoso. ¿Qué diseño de BigQuery recomienda Google?
 - [ ] Mantener dos tablas normalizadas y agregar más slots.
 - [x] Una tabla de pedidos con las líneas como ARRAY de STRUCT.
@@ -130,6 +144,7 @@ porque: Los campos anidados y repetidos evitan el join y mantienen juntos los da
 
 ## BigLake
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
 Archivos Iceberg en Cloud Storage deben consultarse desde BigQuery y Spark con seguridad por columna. ¿Qué usas?
 - [ ] Tablas externas simples sin metadatos.
 - [x] Tablas BigLake.
@@ -139,6 +154,7 @@ porque: BigLake aplica seguridad fina sobre datos en formatos abiertos y los exp
 
 ## Compartir
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
 Hay que compartir un dataset con 30 empresas socias, siempre actualizado, sin copias y sin pagar sus consultas. ¿Qué usas?
 - [ ] Exportaciones diarias a un bucket por socio.
 - [x] Analytics Hub.
@@ -148,6 +164,7 @@ porque: Analytics Hub publica listings; cada suscriptor obtiene un dataset vincu
 
 ## Columna sensible
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
 La columna `dni` solo debe verse completa para el grupo de cumplimiento; el resto debe verla enmascarada. ¿Qué usas?
 - [ ] Una política de acceso por fila.
 - [x] Una etiqueta de política con enmascaramiento dinámico.
@@ -157,6 +174,7 @@ porque: Las policy tags controlan el acceso por columna y el enmascaramiento din
 
 ## BigQuery ML
 leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
 Analistas que solo saben SQL deben pronosticar ventas diarias por producto con datos en BigQuery. ¿Qué usan?
 - [ ] Un entrenamiento personalizado en TPU.
 - [x] BigQuery ML con un modelo ARIMA_PLUS.

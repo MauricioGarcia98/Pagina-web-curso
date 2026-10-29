@@ -102,7 +102,12 @@
      "cert-databricks-gobierno-seguridad"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 45,
+   "minutos": 90,
+   "aprobar": 70
+  }
  },
  {
   "id": "dbx-de-professional",
@@ -243,7 +248,12 @@
      "cert-databricks-nivel-professional"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 60,
+   "minutos": 120,
+   "aprobar": 70
+  }
  },
  {
   "id": "dbx-genai",
@@ -334,7 +344,12 @@
      "cert-databricks-genai-despliegue-evaluacion"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 45,
+   "minutos": 90,
+   "aprobar": 70
+  }
  },
  {
   "id": "dbx-ml",
@@ -400,7 +415,12 @@
      "cert-databricks-ml-associate"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 48,
+   "minutos": 90,
+   "aprobar": 70
+  }
  },
  {
   "id": "az-dp700",
@@ -461,7 +481,12 @@
      "cert-azure-fabric-monitoreo-optimizacion"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 100,
+   "aprobar": 70
+  }
  },
  {
   "id": "az-ai103",
@@ -544,7 +569,12 @@
      "cert-azure-ai103-vision-lenguaje-extraccion"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 100,
+   "aprobar": 70
+  }
  },
  {
   "id": "az-ai300",
@@ -622,7 +652,12 @@
      "cert-azure-ai300-mlops-genaiops"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
  },
  {
   "id": "aws-dea",
@@ -693,7 +728,12 @@
      "cert-aws-dea-operacion-seguridad"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 65,
+   "minutos": 130,
+   "aprobar": 72
+  }
  },
  {
   "id": "aws-aif",
@@ -769,7 +809,12 @@
      "cert-aws-aif-fundamentos-ia"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 65,
+   "minutos": 90,
+   "aprobar": 70
+  }
  },
  {
   "id": "aws-mla",
@@ -835,7 +880,12 @@
      "cert-aws-mla-sagemaker"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 65,
+   "minutos": 130,
+   "aprobar": 72
+  }
  },
  {
   "id": "aws-aip",
@@ -911,7 +961,12 @@
      "cert-aws-aip-bedrock-profesional"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 75,
+   "minutos": 180,
+   "aprobar": 75
+  }
  },
  {
   "id": "gcp-pde",
@@ -992,7 +1047,12 @@
      "cert-gcp-pde-operacion-seguridad-adp"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
  },
  {
   "id": "gcp-adp",
@@ -1060,7 +1120,12 @@
      "cert-gcp-pde-operacion-seguridad-adp"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
  },
  {
   "id": "gcp-pmle",
@@ -1150,7 +1215,12 @@
      "cert-gcp-pmle-agent-platform"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
  },
  {
   "id": "gcp-genai-leader",
@@ -1217,6 +1287,11 @@
      "cert-gcp-genai-leader"
     ]
    }
-  ]
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 90,
+   "aprobar": 70
+  }
  }
 ]

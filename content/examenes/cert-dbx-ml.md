@@ -4,6 +4,7 @@
 
 ## Autolog
 leccion: cert-databricks-ml-associate
+dominio: 1
 Quieres que cada entrenamiento de scikit-learn registre parámetros, métricas y el modelo sin escribir cada `log_param`. ¿Qué usas?
 - [ ] `mlflow.log_model` al final de cada notebook de entrenamiento.
 - [x] `mlflow.autolog()`
@@ -13,6 +14,7 @@ porque: `autolog` registra automáticamente hiperparámetros, métricas de entre
 
 ## Fuga temporal
 leccion: cert-databricks-ml-associate
+dominio: 2
 Un modelo de churn tiene AUC de 0,97 en validación y 0,61 en producción. Las features se calcularon con todos los datos disponibles hoy. ¿Cuál es el problema más probable?
 - [ ] El modelo es demasiado simple para los datos de producción.
 - [x] Fuga de información del futuro en las features.
@@ -22,6 +24,7 @@ porque: Si las features usan información posterior a la fecha de cada etiqueta,
 
 ## Point-in-time
 leccion: cert-databricks-ml-associate
+dominio: 2
 ¿Qué permite que cada fila de entrenamiento reciba las features tal como eran en su fecha de corte?
 - [ ] Ordenar la tabla de features por fecha de forma descendente antes de unirla con las etiquetas.
 - [x] Una tabla de features con clave de tiempo y `timestamp_lookup_key` en el `FeatureLookup`.
@@ -31,6 +34,7 @@ porque: La clave de tiempo permite la unión a un momento dado: trae el valor vi
 
 ## AutoML
 leccion: cert-databricks-ml-associate
+dominio: 1
 El equipo necesita en un día un modelo de referencia de regresión y el código para mejorarlo. ¿Qué usa?
 - [x] AutoML.
 - [ ] Un endpoint de provisioned throughput.
@@ -40,6 +44,7 @@ porque: AutoML prueba algoritmos e hiperparámetros, registra todo en MLflow y g
 
 ## Alias
 leccion: cert-databricks-ml-associate
+dominio: 4
 El job de inferencia carga `models:/prod.ml.ventas@champion`. ¿Qué haces para que use la versión 9?
 - [ ] Editar el job para que cargue `models:/prod.ml.ventas/9`.
 - [x] Mover el alias `champion` a la versión 9.
@@ -49,6 +54,7 @@ porque: El alias apunta a una versión; al moverlo, el job usa la versión nueva
 
 ## Inferencia batch
 leccion: cert-databricks-ml-associate
+dominio: 4
 Cada noche hay que puntuar 8 millones de clientes y guardar el resultado en una tabla. ¿Qué despliegue usas?
 - [ ] Un endpoint de Model Serving llamado desde un bucle de Python.
 - [x] Un job con `mlflow.pyfunc.spark_udf` (o `score_batch`).
@@ -58,6 +64,7 @@ porque: La inferencia batch con Spark aplica el modelo en paralelo y es mucho m�
 
 ## Tiempo real
 leccion: cert-databricks-ml-associate
+dominio: 4
 La app necesita la probabilidad de fraude de cada compra en menos de 100 ms. ¿Qué despliegue usas?
 - [ ] Inferencia batch cada hora con `spark_udf`, guardando las probabilidades en una tabla.
 - [x] Un endpoint de Model Serving, con features en una tienda en línea.
@@ -67,6 +74,7 @@ porque: Model Serving responde en milisegundos; la tienda en línea da las featu
 
 ## Preprocesamiento
 leccion: cert-databricks-ml-associate
+dominio: 2
 Calculaste la media para imputar nulos con **todos** los datos antes de separar entrenamiento y prueba. ¿Qué problema introduces?
 - [ ] Ninguno, la media no cambia mucho con más datos.
 - [x] Fuga de información del conjunto de prueba hacia el entrenamiento.
@@ -76,6 +84,7 @@ porque: Los parámetros de preprocesamiento deben calcularse solo con entrenamie
 
 ## Spark ML
 leccion: cert-databricks-ml-associate
+dominio: 3
 ¿Por qué conviene encadenar `StringIndexer`, `VectorAssembler` y el modelo en un `Pipeline` de Spark ML?
 - [ ] Porque un Pipeline entrena más rápido que ejecutar cada paso por separado en el clúster.
 - [x] Para aplicar el mismo preprocesamiento en entrenamiento e inferencia.
@@ -85,6 +94,7 @@ porque: El Pipeline ajustado guarda todos los pasos; al aplicarlo a datos nuevos
 
 ## Ajuste
 leccion: cert-databricks-ml-associate
+dominio: 3
 Tienes un presupuesto de 40 pruebas para ajustar 6 hiperparámetros. ¿Qué estrategia aprovecha mejor ese presupuesto?
 - [ ] Grid search con todas las combinaciones posibles.
 - [x] Optimización bayesiana (por ejemplo con Optuna).
@@ -94,6 +104,7 @@ porque: La optimización bayesiana usa los resultados previos para proponer comb
 
 ## Deriva
 leccion: cert-databricks-ml-associate
+dominio: 4
 Después de un cambio en la app, la distribución de una feature en producción es muy distinta a la de entrenamiento. ¿Cómo se llama y qué la detecta?
 - [ ] Sobreajuste; lo detecta la validación cruzada.
 - [x] Deriva de datos; la detecta el monitoreo sobre las tablas de inferencia.
@@ -103,6 +114,7 @@ porque: El cambio en la distribución de entrada es deriva de datos; el monitore
 
 ## Firma
 leccion: cert-databricks-ml-associate
+dominio: 4
 Un endpoint de Model Serving rechaza solicitudes con columnas de tipos incorrectos antes de llegar al modelo. ¿Qué lo permite?
 - [ ] El alias del modelo registrado.
 - [x] La firma del modelo registrada en MLflow.
