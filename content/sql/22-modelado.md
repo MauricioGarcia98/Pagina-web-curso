@@ -213,3 +213,81 @@ Un cliente cambia de segmento de “Pyme” a “Corporativo”. Necesitas que l
 - [ ] Borrar el cliente y crearlo de nuevo
 - [ ] Un índice
 :::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Arma las primeras filas de una **dimensión de fechas**: los 7 primeros días de 2024 con `fecha`, `anio`, `mes` (enteros) y `dia_semana` (0 = domingo … 6 = sábado, entero). Ordena por fecha.
+```pista
+Una CTE recursiva genera las fechas; `strftime` extrae cada parte.
+```
+```sql solucion
+WITH RECURSIVE d(fecha) AS (
+  SELECT '2024-01-01' UNION ALL SELECT date(fecha, '+1 day') FROM d WHERE fecha < '2024-01-07'
+)
+SELECT fecha,
+       CAST(strftime('%Y', fecha) AS INTEGER) AS anio,
+       CAST(strftime('%m', fecha) AS INTEGER) AS mes,
+       CAST(strftime('%w', fecha) AS INTEGER) AS dia_semana
+FROM d
+ORDER BY fecha;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+La tabla `dim_cliente_scd` (ya creada por el ejercicio) es una dimensión **SCD tipo 2**: cada cambio de segmento abre una versión nueva. Muestra la versión **vigente** de cada cliente: `cliente_id` y `segmento`.
+```sql setup
+CREATE TABLE dim_cliente_scd (cliente_key INTEGER PRIMARY KEY, cliente_id INTEGER, segmento TEXT, vigente_desde TEXT, vigente_hasta TEXT);
+INSERT INTO dim_cliente_scd VALUES (1, 10, 'Consumidor', '2022-01-01', '2023-06-30'), (2, 10, 'Pyme', '2023-07-01', NULL), (3, 11, 'Pyme', '2022-03-01', NULL), (4, 12, 'Consumidor', '2022-05-01', '2024-01-31'), (5, 12, 'Corporativo', '2024-02-01', NULL)
+```
+```pista
+La versión vigente es la que no tiene fecha de fin.
+```
+```sql solucion
+SELECT cliente_id, segmento FROM dim_cliente_scd WHERE vigente_hasta IS NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Con la misma `dim_cliente_scd`, muestra qué `segmento` tenía cada cliente el **15 de enero de 2024**. Columnas: `cliente_id`, `segmento`.
+```sql setup
+CREATE TABLE dim_cliente_scd (cliente_key INTEGER PRIMARY KEY, cliente_id INTEGER, segmento TEXT, vigente_desde TEXT, vigente_hasta TEXT);
+INSERT INTO dim_cliente_scd VALUES (1, 10, 'Consumidor', '2022-01-01', '2023-06-30'), (2, 10, 'Pyme', '2023-07-01', NULL), (3, 11, 'Pyme', '2022-03-01', NULL), (4, 12, 'Consumidor', '2022-05-01', '2024-01-31'), (5, 12, 'Corporativo', '2024-02-01', NULL)
+```
+```pista
+La fecha tiene que caer entre `vigente_desde` y `vigente_hasta`; si `vigente_hasta` es NULL, la versión sigue abierta.
+```
+```sql solucion
+SELECT cliente_id, segmento
+FROM dim_cliente_scd
+WHERE vigente_desde <= '2024-01-15' AND (vigente_hasta IS NULL OR vigente_hasta >= '2024-01-15');
+```
+:::
+
+:::ejercicio quiz dificultad=Básico
+En una tabla de hechos de ventas con el grano “una línea de ticket”, ¿cuál de estas columnas **no** debería estar?
+
+- [ ] `producto_key`
+- [ ] `cantidad`
+- [x] `total_del_mes_del_cliente`
+- [ ] `fecha_key`
+```explicacion
+Un total mensual es de otro grano. Si lo guardas en cada línea, al sumarlo lo multiplicas por la cantidad de líneas.
+```
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+Un cliente cambia de ciudad y el área comercial quiere que las ventas viejas sigan contando en la ciudad anterior. ¿Qué tipo de dimensión lentamente cambiante usas?
+
+- [ ] Tipo 1: sobrescribir la ciudad
+- [x] Tipo 2: agregar una versión nueva con vigencia
+- [ ] Tipo 0: no permitir cambios
+- [ ] Ninguna: se borra al cliente y se crea otro
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+¿Por qué las tablas de hechos usan claves sustitutas (`cliente_key`) en lugar del `cliente_id` del sistema de origen?
+
+- [ ] Porque los números enteros ocupan menos que los textos
+- [x] Porque permiten varias versiones del mismo cliente (SCD 2) y aíslan el almacén de los cambios del sistema de origen
+- [ ] Porque el `cliente_id` es un dato sensible
+- [ ] Porque los motores no permiten JOIN por claves naturales
+:::

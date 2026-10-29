@@ -400,3 +400,62 @@ En una transacción haces dos UPDATE y el segundo falla. ¿Qué garantiza la **a
 - [ ] Que el segundo se reintente automáticamente
 - [ ] Que la base se bloquee hasta que alguien lo arregle
 :::
+
+:::ejercicio sql dificultad=Básico
+Agrega el departamento `10`, `Atención al cliente`, en `Lima`, con un presupuesto de `150000`.
+```sql solucion
+INSERT INTO departamentos (departamento_id, nombre, ciudad, presupuesto) VALUES (10, 'Atención al cliente', 'Lima', 150000);
+```
+```check
+SELECT * FROM departamentos ORDER BY departamento_id;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Marca como inactivos (`activo = 0`) todos los productos **sin stock**.
+```pista
+`UPDATE … SET … WHERE …`. Sin `WHERE` cambiarías todos los productos.
+```
+```sql solucion
+UPDATE productos SET activo = 0 WHERE stock = 0;
+```
+```check
+SELECT producto_id, activo FROM productos ORDER BY producto_id;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Agrega a `clientes` la columna `email_verificado` (entero, por defecto `0`) y márcala con `1` para los clientes que tienen email.
+```pista
+Primero `ALTER TABLE … ADD COLUMN …`, después un `UPDATE`.
+```
+```sql solucion
+ALTER TABLE clientes ADD COLUMN email_verificado INTEGER DEFAULT 0;
+UPDATE clientes SET email_verificado = 1 WHERE email IS NOT NULL;
+```
+```check
+SELECT COUNT(*) AS clientes, SUM(email_verificado) AS verificados FROM clientes;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Crea la vista `v_ventas_mes` con las ventas por mes (`mes` con formato `'YYYY-MM'` y `ventas`: importe con descuento redondeado a 2 decimales) de los pedidos **no cancelados**.
+```pista
+`CREATE VIEW v_ventas_mes AS SELECT …`: la consulta es la de siempre.
+```
+```pista
+Une pedidos con detalle_pedidos, filtra `estado <> 'cancelado'` y agrupa por mes.
+```
+```sql solucion
+CREATE VIEW v_ventas_mes AS
+SELECT strftime('%Y-%m', p.fecha_pedido) AS mes,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado <> 'cancelado'
+GROUP BY mes;
+```
+```check
+SELECT mes, ventas FROM v_ventas_mes ORDER BY mes;
+```
+:::

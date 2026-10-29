@@ -207,3 +207,69 @@ Agregas 5 índices nuevos a una tabla donde se insertan 10.000 filas por segundo
 - [ ] No cambia nada
 - [ ] La tabla deja de aceptar inserciones
 :::
+
+:::ejercicio sql dificultad=Intermedio
+Esta consulta cuenta los pedidos de 2024, pero no puede usar un índice sobre `fecha_pedido` porque aplica una función a la columna:
+
+`SELECT COUNT(*) AS pedidos FROM pedidos WHERE strftime('%Y', fecha_pedido) = '2024';`
+
+Reescríbela de forma **sargable** (que pueda usar el índice) y que devuelva lo mismo.
+```pista
+Compara la columna “desnuda” contra un rango de fechas.
+```
+```sql solucion
+SELECT COUNT(*) AS pedidos FROM pedidos WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < '2025-01-01';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Reescribe de forma sargable: `SELECT nombre FROM productos WHERE precio * 1.21 > 1210;` (precio con IVA mayor a 1210).
+```pista
+Pasa la operación al otro lado: `precio > 1210 / 1.21`.
+```
+```sql solucion
+SELECT nombre FROM productos WHERE precio > 1210 / 1.21;
+```
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+Hay un índice sobre `clientes(email)`. ¿Cuál de estos filtros **no** puede aprovecharlo para buscar?
+
+- [ ] `WHERE email = 'ana@correo.com'`
+- [ ] `WHERE email LIKE 'ana%'`
+- [x] `WHERE email LIKE '%@gmail.com'`
+- [ ] `WHERE email IN ('a@x.com', 'b@x.com')`
+```explicacion
+Un comodín al principio obliga a revisar todos los valores: el índice está ordenado por el comienzo del texto.
+```
+:::
+
+:::ejercicio quiz dificultad=Avanzado
+Tienes un índice compuesto `(cliente_id, fecha_pedido)`. ¿Qué consulta lo aprovecha **mejor**?
+
+- [ ] `WHERE fecha_pedido = '2024-05-01'`
+- [x] `WHERE cliente_id = 42 AND fecha_pedido >= '2024-01-01'`
+- [ ] `WHERE fecha_pedido >= '2024-01-01' OR cliente_id = 42`
+- [ ] `WHERE strftime('%Y', fecha_pedido) = '2024'`
+```explicacion
+Un índice compuesto se usa de izquierda a derecha: primero la igualdad sobre la primera columna, después el rango sobre la segunda.
+```
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+Una consulta de un tablero hace `SELECT *` sobre una tabla de 80 columnas y solo usa 3. En un almacén columnar (BigQuery, Snowflake, Databricks), ¿qué cambia si pides solo esas 3?
+
+- [ ] Nada: el costo depende de las filas, no de las columnas
+- [x] Lee y cobra mucho menos, porque los formatos columnares leen solo las columnas pedidas
+- [ ] Es más lenta, porque el motor tiene que elegir columnas
+- [ ] Solo cambia si además agregas LIMIT
+:::
+
+:::ejercicio quiz dificultad=Avanzado
+Una consulta une `pedidos` (12.000 filas) con `detalle_pedidos` (25.000) por `pedido_id`, sin índices sobre esa columna en el detalle. ¿Qué algoritmo de join suele elegir un motor moderno?
+
+- [ ] Nested loop sin índice, recorriendo el detalle una vez por cada pedido
+- [x] Hash join: arma una tabla hash con la tabla chica y recorre la grande una sola vez
+- [ ] Un producto cartesiano y después un filtro
+- [ ] Ninguno: el motor exige un índice para hacer el join
+:::
