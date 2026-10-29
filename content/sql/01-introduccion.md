@@ -92,7 +92,7 @@ Para practicar usarás una base **SQLite** que corre **dentro de tu navegador**:
 | `empleados`, `departamentos` | La empresa por dentro: sueldos, jefes, áreas | ~100 |
 | `eventos_web` | Visitas, búsquedas y clics en el sitio | ~20.000 |
 
-Además hay tablas de **siete empresas más** (un banco, una app de música, una de viajes, una clínica, un SaaS, una aerolínea y una empresa de logística) que usarás en el módulo de casos de negocio. Puedes verlas todas en [Los datos](#/datos).
+Además hay tablas de **doce empresas más** (banco, música, viajes, clínica, SaaS, aerolínea, logística, telco, seguros, hotelería, energía y delivery) que usarás en el módulo de casos de negocio. Puedes verlas todas, con su diagrama, en [Bases de datos](#/datos).
 
 La relación entre las tablas principales es esta:
 
@@ -155,7 +155,7 @@ SELECT * FROM clientes LIMIT 5;
 Tienes tres formas:
 
 1. El botón **📋 Tablas** de cualquier ejercicio muestra todas las tablas y sus columnas (y haciendo clic en una columna se escribe en el editor).
-2. La página [Los datos](#/datos) describe cada tabla.
+2. La página [Bases de datos](#/datos) describe cada tabla y dibuja cómo se relacionan.
 3. Una consulta rápida con `LIMIT 1`: verás todos los nombres de columnas en el encabezado del resultado.
 
 ```sql

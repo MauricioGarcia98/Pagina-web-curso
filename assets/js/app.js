@@ -670,10 +670,11 @@
     html += '<div class="side-section">Practica libre</div>';
     html += link('#/lab/terminal', '⌨️', 'Laboratorio de terminal', route.name === 'lab-terminal');
     html += link('#/lab/sql', '🧪', 'Laboratorio SQL', route.name === 'lab-sql');
+    html += link('#/modelado', '📐', 'Laboratorio de modelado', route.name === 'modelado');
     html += link('#/lab/python', '🐍', 'Laboratorio Python', route.name === 'lab-python');
     html += link('#/lab/pyspark', '⚡', 'Laboratorio PySpark', route.name === 'lab-pyspark');
     html += '<div class="side-section">Recursos</div>';
-    html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos' || route.name === 'modelado');
+    html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
@@ -1996,6 +1997,7 @@
     if (parts[0] === 'plan' && parts[1]) return { name: 'plan', cert: parts[1] };
     if (parts[0] === 'simulacro' && parts[1]) return { name: 'simulacro', cert: parts[1] };
     if (parts[0] === 'datos' && parts[1]) return { name: 'datos', id: parts[1] };
+    if (parts[0] === 'modelado') return { name: 'modelado' };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -2005,7 +2007,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', modelado: 'Laboratorio de modelado' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -2015,6 +2017,7 @@
     else if (r.name === 'lab-pyspark') viewLabPython('pyspark');
     else if (r.name === 'lab-terminal') viewLabTerminal();
     else if (r.name === 'datos') viewDatos(r.id);
+    else if (r.name === 'modelado') window.Modelado.vista(main, { h, esc, createEditor, Store, toast, abrirEnLab, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
     else if (r.name === 'repaso') viewRepaso();

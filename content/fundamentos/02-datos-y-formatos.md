@@ -193,7 +193,7 @@ flecha wh -> ml
 
 ## Nuestros datos: 8 empresas
 
-En todo el curso usamos empresas ficticias con datos realistas. La principal es **Tienda Andina**, un e-commerce con 12 tablas: clientes, productos, categorías, pedidos, detalle de pedidos, pagos, empleados, departamentos, eventos web y más. Además hay **7 empresas más** para los casos de negocio: un banco, una plataforma de streaming, una app de viajes, una clínica, un SaaS, una aerolínea y una empresa de logística. En total son 38 tablas con más de 200.000 filas. Puedes explorarlas en [Los datos](#/datos).
+En todo el curso usamos empresas ficticias con datos realistas. La principal es **Tienda Andina**, un e-commerce con 12 tablas: clientes, productos, categorías, pedidos, detalle de pedidos, pagos, empleados, departamentos, eventos web y más. Además hay **12 empresas más** para los casos de negocio: un banco, una app de música, una app de viajes, una clínica, un SaaS, una aerolínea, una empresa de logística, una telco, una aseguradora, una cadena de hoteles, una distribuidora de energía y una app de delivery. En total son 60 tablas con más de 320.000 filas. En [Bases de datos](#/datos) puedes ver cada una con su diagrama y por qué está diseñada así.
 
 <!-- estandar:errores -->
 :::errores

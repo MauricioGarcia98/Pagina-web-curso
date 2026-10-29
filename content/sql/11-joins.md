@@ -172,7 +172,7 @@ El camino es: detalle → (su pedido) → (el cliente de ese pedido) y detalle �
 
 :::tip Método para escribir un join de varias tablas
 1. **Define el grano**: "una fila por línea de pedido". Empieza el `FROM` por la tabla que tiene ese nivel de detalle (aquí, `detalle_pedidos`).
-2. **Dibuja el camino** con las flechas del diagrama de [Los datos](#/datos): ¿cómo llego desde el detalle hasta el país?
+2. **Dibuja el camino** con las flechas del diagrama de [Tienda Andina](#/datos/tienda): ¿cómo llego desde el detalle hasta el país?
 3. **Agrega una tabla por vez** y ejecuta: verifica que la cantidad de filas no cambie de forma inesperada.
 4. **Recién al final** agrega `WHERE`, `GROUP BY` y `ORDER BY`.
 :::
