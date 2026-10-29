@@ -637,7 +637,7 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
       if (e.target.closest('#genTerm')) {
         const Sh = window.Shell; if (!Sh) return;
         const fs = archivos(res, 'csv'); const tam = fs.reduce((s, [, x]) => s + x.length, 0);
-        if (tam > 2.5 * 1048576) { toast(`Son ${(tam / 1048576).toFixed(1)} MB: demasiado para la terminal del navegador (máximo 2,5 MB). Baja la escala o descarga el .zip.`, 4500); return; }
+        if (tam > 1.5 * 1048576) { toast(`Son ${(tam / 1048576).toFixed(1)} MB: demasiado para la terminal del navegador (máximo 1,5 MB). Baja la escala o descarga el .zip.`, 4500); return; }
         if (!Sh.Machine.ready) Sh.Machine.load();   // si la terminal todavía no se abrió, cargar su disco antes de escribir
         const dir = `${Sh.HOME}/datos/generados/${res.cfg.escenario}`;
         for (const [n, x] of fs) Sh.writeFile(`${dir}/${n}`, x);
@@ -662,4 +662,30 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
   }
 
   window.Generador = { vista, generar, ESCENARIOS, PROBLEMAS, aCsv, aSql, aJsonl, readme, zip, deParams, aParams };
+
+  // ---------------------------------------------------------------- comando de terminal: generar-datos
+  const Sh = window.Shell;
+  if (Sh && Sh.def) {
+    const NIVELES = { limpio: {}, realista: { duplicados: 2, nulos: 4, formatos: 5, atipicos: 1, huerfanos: 1, tardios: 3, mojibake: 1 }, caotico: { duplicados: 8, nulos: 12, formatos: 15, atipicos: 5, huerfanos: 6, tardios: 10, mojibake: 5 } };
+    Sh.def('generar-datos', 'crea un dataset de proyecto: generar-datos ecommerce --filas 500 --semilla 42 --problemas realista', (a) => {
+      const { flags, pos } = Sh.parseArgs(a, {});
+      const esc = pos[0];
+      if (!esc || !ESCENARIOS[esc]) return (esc ? Sh.fail : Sh.ok)((esc ? `generar-datos: escenario desconocido "${esc}"\n\n` : '') + 'Uso: generar-datos <escenario> [--filas N] [--semilla N] [--problemas limpio|realista|caotico] [--formato csv|jsonl] [--salida carpeta]\n\nEscenarios:\n' + Object.entries(ESCENARIOS).map(([k, e]) => `  ${k.padEnd(10)} ${e.titulo} (escala en ${e.unidad}, por defecto ${e.base})`).join('\n') + '\n\nTambién está la versión visual: #/generador');
+      const nivel = String(flags['--problemas'] || 'limpio').normalize('NFD').replace(/[̀-ͯ]/g, '');
+      if (!NIVELES[nivel]) return Sh.fail('generar-datos: --problemas debe ser limpio, realista o caotico');
+      const cfg = deParams(new URLSearchParams({ esc, ...(flags['--filas'] ? { n: flags['--filas'] } : {}), semilla: flags['--semilla'] || 42, ...NIVELES[nivel] }));
+      if (!flags['--filas']) cfg.n = Math.min(cfg.n, Math.round(ESCENARIOS[esc].base / 4));
+      const formato = flags['--formato'] === 'jsonl' ? 'jsonl' : 'csv';
+      const res = generar(cfg);
+      const fs = archivos(res, formato);
+      const tam = fs.reduce((s, [, x]) => s + x.length, 0);
+      if (tam > 1.5 * 1048576) return Sh.fail(`generar-datos: serían ${(tam / 1048576).toFixed(1)} MB y el disco de la terminal admite hasta 1,5 MB por dataset. Baja --filas (o usa #/generador para descargar el .zip).`);
+      if (!Sh.Machine.ready) Sh.Machine.load();
+      const dir = flags['--salida'] ? Sh.norm(String(flags['--salida'])) : `${Sh.HOME}/datos/generados/${esc}`;
+      for (const [n, x] of fs) Sh.writeFile(`${dir}/${n}`, x);
+      Sh.Machine.save();
+      const filas = res.tablas.map((t) => `  ${(t.nombre + '.' + formato).padEnd(26)} ${String(t.filas.length).padStart(7)} filas`).join('\n');
+      return Sh.ok(`${Sh.col.ok('✓')} ${res.esq.titulo}: ${res.tablas.length} tablas en ${Sh.display(dir)}/  (semilla ${cfg.semilla}, problemas: ${nivel})\n${filas}\n  README.md                   diccionario de datos${nivel !== 'limpio' ? ' y problemas sembrados' : ''}\n\nPrueba: ${Sh.col.info(`duckdb -c "SELECT COUNT(*) FROM '${Sh.display(dir)}/${res.tablas[res.tablas.length - 1].nombre}.${formato}'"`)}`);
+    });
+  }
 })();
