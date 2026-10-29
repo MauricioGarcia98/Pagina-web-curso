@@ -9,7 +9,7 @@
   // rel: [tabla_hija, columna, tabla_padre, columna_padre, nota opcional]
   const BASES = [
     {
-      id: 'tienda', orden: ['clientes', 'productos', 'categorias', 'empleados', 'departamentos', 'pedidos', 'detalle_pedidos', 'pagos', 'eventos_web', 'logins', 'clientes_crudo', 'tipos_cambio'],
+      id: 'tienda', orden: ['clientes', 'productos', 'categorias', 'empleados', 'departamentos', 'pedidos', 'detalle_pedidos', 'pagos', 'eventos_web', 'logins', 'clientes_crudo', 'tipos_cambio', 'experimento_checkout'],
       tablas: {
         clientes: { grano: 'un cliente', pk: ['cliente_id'] },
         productos: { grano: 'un producto del catálogo, con su precio vigente', pk: ['producto_id'] },
@@ -23,6 +23,7 @@
         logins: { grano: 'un cliente en un día en que inició sesión', pk: ['cliente_id', 'fecha'] },
         clientes_crudo: { grano: 'un registro tal como llegó en la carga (puede repetir clientes)', pk: ['registro_id'] },
         tipos_cambio: { grano: 'una moneda en un día hábil', pk: ['fecha', 'moneda'] },
+        experimento_checkout: { grano: 'un cliente asignado a la prueba A/B del checkout', pk: ['cliente_id'] },
       },
       rels: [
         ['pedidos', 'cliente_id', 'clientes', 'cliente_id'], ['pedidos', 'empleado_id', 'empleados', 'empleado_id'],
@@ -31,6 +32,7 @@
         ['categorias', 'categoria_padre_id', 'categorias', 'categoria_id'], ['empleados', 'departamento_id', 'departamentos', 'departamento_id'],
         ['empleados', 'jefe_id', 'empleados', 'empleado_id'], ['eventos_web', 'cliente_id', 'clientes', 'cliente_id', 'opcional: los visitantes anónimos no tienen cliente'],
         ['logins', 'cliente_id', 'clientes', 'cliente_id'], ['clientes_crudo', 'cliente_id', 'clientes', 'cliente_id', 'lógica: es una tabla de aterrizaje sin restricciones'],
+        ['experimento_checkout', 'cliente_id', 'clientes', 'cliente_id', 'de 1 a 0..1: cada cliente, como mucho una asignación'],
       ],
       porQue: [
         ['Cabecera y detalle separados', 'Un pedido tiene varios productos. Si cada fila de <code>pedidos</code> llevara un producto, repetiríamos cliente, fecha y canal en cada línea, y cambiar uno obligaría a tocar muchas filas. Por eso <code>pedidos</code> guarda lo que es del pedido y <code>detalle_pedidos</code> lo que es de cada línea (tercera forma normal).'],

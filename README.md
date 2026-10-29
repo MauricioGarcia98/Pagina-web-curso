@@ -24,7 +24,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | 🧪 Laboratorios guiados en la nube | 9 | 139 | Data lake con calidad en AWS, RAG con Bedrock y Guardrails, SageMaker, operación y seguridad, BigQuery y BQML, Pub/Sub, Workflows y Vertex AI, Foundry y Azure ML blue/green, Databricks bundles y Unity Catalog, con costos y limpieza |
 | 🏆 Proyecto final y entrevistas | 6 | 23 | Arquitectura, el proyecto completo de Rápido (modelo, pipeline, calidad, Terraform, CI), retos de SQL y PySpark, plan de carrera |
 
-**214 lecciones y 1205 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 60 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
+**214 lecciones y 1205 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 61 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
 
 ### Herramientas de práctica
 
