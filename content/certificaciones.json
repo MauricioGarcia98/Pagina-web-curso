@@ -1,0 +1,405 @@
+[
+ {
+  "id": "dbx-de-associate",
+  "proveedor": "Databricks",
+  "nombre": "Data Engineer Associate",
+  "codigo": "DE Associate",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "45",
+   "minutos": "90",
+   "costo": "USD 200",
+   "aprobacion": "no publicado (≈70 %)",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/data-engineer-associate",
+  "actualizado": "la guía del 4 de mayo de 2026",
+  "examen": "dbx-de-associate",
+  "notas": "La guía de mayo de 2026 reorganizó el examen en siete dominios y le dio a CI/CD un dominio propio. Ingesta, transformación y jobs suman el 59 %.",
+  "dominios": [
+   {
+    "nombre": "Databricks Intelligence Platform",
+    "peso": 6,
+    "temas": [
+     "Plano de control y de cómputo",
+     "Tipos de cómputo y modelo de costos (DBU)",
+     "Delta Lake y Unity Catalog, conceptos básicos"
+    ],
+    "lecciones": [
+     "cert-databricks-plataforma-computo"
+    ]
+   },
+   {
+    "nombre": "Ingesta y carga de datos",
+    "peso": 21,
+    "temas": [
+     "Auto Loader y `COPY INTO`",
+     "Lakeflow Connect: conectores gestionados y estándar",
+     "JSON y datos semiestructurados; evolución de esquema"
+    ],
+    "lecciones": [
+     "cert-databricks-ingesta"
+    ]
+   },
+   {
+    "nombre": "Transformación y modelado",
+    "peso": 22,
+    "temas": [
+     "Transformaciones en Spark SQL y PySpark: joins, deduplicación, agregaciones",
+     "Lakeflow Spark Declarative Pipelines, expectativas y AUTO CDC",
+     "Objetos de la capa gold"
+    ],
+    "lecciones": [
+     "cert-databricks-transformacion-pipelines"
+    ]
+   },
+   {
+    "nombre": "Trabajar con Lakeflow Jobs",
+    "peso": 16,
+    "temas": [
+     "Tareas, dependencias y condiciones Run if",
+     "Disparadores, parámetros y task values",
+     "Reintentos, notificaciones y repair run"
+    ],
+    "lecciones": [
+     "cert-databricks-lakeflow-jobs"
+    ]
+   },
+   {
+    "nombre": "Implementar CI/CD",
+    "peso": 10,
+    "temas": [
+     "Git folders",
+     "Declarative Automation Bundles",
+     "CLI de Databricks"
+    ],
+    "lecciones": [
+     "cert-databricks-cicd-bundles"
+    ]
+   },
+   {
+    "nombre": "Troubleshooting, monitoreo y optimización",
+    "peso": 10,
+    "temas": [
+     "Spark UI y Query Profile",
+     "Liquid Clustering, OPTIMIZE y Predictive Optimization",
+     "Tablas de sistema"
+    ],
+    "lecciones": [
+     "cert-databricks-optimizacion-monitoreo"
+    ]
+   },
+   {
+    "nombre": "Gobierno y seguridad",
+    "peso": 15,
+    "temas": [
+     "Tablas administradas y externas, permisos",
+     "Row filters, column masks y ABAC",
+     "Delta Sharing y linaje"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dbx-de-professional",
+  "proveedor": "Databricks",
+  "nombre": "Data Engineer Professional",
+  "codigo": "DE Professional",
+  "nivel": "Avanzado",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "60",
+   "minutos": "120",
+   "costo": "USD 200",
+   "aprobacion": "no publicado",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/data-engineer-professional",
+  "actualizado": "la guía de noviembre de 2025 (con los cambios del 9 de octubre de 2026 en las notas)",
+  "examen": "dbx-de-professional",
+  "notas": "Desde el 9 de octubre de 2026 rige una guía de **nueve secciones** y 60 preguntas puntuadas. Según los análisis publicados: *Compartir y federar* se integra en **Ingesta** (≈12 %, que suma CDC con Lakeflow Connect, Iceberg y Clean Rooms), *Transformación y calidad* pasa a llamarse **Manipulación de datos** (≈12 %, con `VARIANT` y funciones de IA), **Desarrollar código** queda en ≈23 % y **Costo y rendimiento** sube a ≈15 %. Abajo están los pesos de la guía de noviembre de 2025.",
+  "dominios": [
+   {
+    "nombre": "Desarrollar código de procesamiento con Python y SQL",
+    "peso": 22,
+    "temas": [
+     "Structured Streaming con estado y watermarks",
+     "`foreachBatch` y MERGE idempotente",
+     "Tipos de UDF"
+    ],
+    "lecciones": [
+     "cert-databricks-nivel-professional",
+     "cert-databricks-transformacion-pipelines"
+    ]
+   },
+   {
+    "nombre": "Ingesta y adquisición de datos",
+    "peso": 7,
+    "temas": [
+     "Auto Loader y Lakeflow Connect con CDC"
+    ],
+    "lecciones": [
+     "cert-databricks-ingesta"
+    ]
+   },
+   {
+    "nombre": "Transformación, limpieza y calidad",
+    "peso": 10,
+    "temas": [
+     "Expectativas, cuarentena, AUTO CDC",
+     "`VARIANT` y funciones de IA"
+    ],
+    "lecciones": [
+     "cert-databricks-transformacion-pipelines",
+     "cert-databricks-nivel-professional"
+    ]
+   },
+   {
+    "nombre": "Compartir y federar datos",
+    "peso": 5,
+    "temas": [
+     "Delta Sharing",
+     "Lakehouse Federation",
+     "Clean Rooms"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad",
+     "cert-databricks-ingesta"
+    ]
+   },
+   {
+    "nombre": "Monitoreo y alertas",
+    "peso": 10,
+    "temas": [
+     "Tablas de sistema, alertas de SQL",
+     "Monitoreo de calidad de datos",
+     "Métricas de streaming"
+    ],
+    "lecciones": [
+     "cert-databricks-optimizacion-monitoreo",
+     "cert-databricks-nivel-professional"
+    ]
+   },
+   {
+    "nombre": "Optimización de costo y rendimiento",
+    "peso": 13,
+    "temas": [
+     "Liquid Clustering, Predictive Optimization",
+     "Skew, spill, Photon y AQE",
+     "Costos con `system.billing`"
+    ],
+    "lecciones": [
+     "cert-databricks-optimizacion-monitoreo",
+     "cert-databricks-plataforma-computo"
+    ]
+   },
+   {
+    "nombre": "Seguridad y cumplimiento",
+    "peso": 10,
+    "temas": [
+     "Row filters, column masks, ABAC",
+     "Secretos y service principals",
+     "Borrado de datos personales"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad"
+    ]
+   },
+   {
+    "nombre": "Gobierno de datos",
+    "peso": 7,
+    "temas": [
+     "Unity Catalog, linaje y auditoría"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad"
+    ]
+   },
+   {
+    "nombre": "Depuración y despliegue",
+    "peso": 10,
+    "temas": [
+     "Bundles y CI/CD",
+     "Pruebas con pytest y Databricks Connect",
+     "Logs y Spark UI"
+    ],
+    "lecciones": [
+     "cert-databricks-cicd-bundles",
+     "cert-databricks-nivel-professional"
+    ]
+   },
+   {
+    "nombre": "Modelado de datos",
+    "peso": 6,
+    "temas": [
+     "Identity, constraints y columnas generadas",
+     "SCD y star schema en el lakehouse"
+    ],
+    "lecciones": [
+     "cert-databricks-nivel-professional"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dbx-genai",
+  "proveedor": "Databricks",
+  "nombre": "Generative AI Engineer Associate",
+  "codigo": "GenAI Associate",
+  "nivel": "Intermedio",
+  "rol": "IA generativa",
+  "formato": {
+   "preguntas": "45",
+   "minutos": "90",
+   "costo": "USD 200",
+   "aprobacion": "no publicado",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/genai-engineer-associate",
+  "actualizado": "la guía de marzo de 2026",
+  "examen": "dbx-genai",
+  "notas": "El dominio más pesado es **desarrollar aplicaciones** (30 %): agentes, herramientas, MCP y Agent Bricks. La guía de 2026 incorpora MLflow 3 para trazas y evaluación.",
+  "dominios": [
+   {
+    "nombre": "Diseñar aplicaciones",
+    "peso": 14,
+    "temas": [
+     "Prompt, RAG, agente o multiagente",
+     "Descomponer un caso de uso en componentes"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-diseno-datos"
+    ]
+   },
+   {
+    "nombre": "Preparar datos",
+    "peso": 14,
+    "temas": [
+     "Parseo y chunking",
+     "Embeddings",
+     "Índices de Vector Search"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-diseno-datos"
+    ]
+   },
+   {
+    "nombre": "Desarrollar aplicaciones",
+    "peso": 30,
+    "temas": [
+     "Herramientas como funciones de Unity Catalog",
+     "Agent Framework, `ResponsesAgent`, LangGraph",
+     "MCP, Genie y Agent Bricks"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-agentes"
+    ]
+   },
+   {
+    "nombre": "Ensamblar y desplegar",
+    "peso": 22,
+    "temas": [
+     "Registrar con MLflow en Unity Catalog",
+     "Model Serving: pay-per-token, provisioned throughput, external models",
+     "`ai_query` y Databricks Apps"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-despliegue-evaluacion"
+    ]
+   },
+   {
+    "nombre": "Gobierno",
+    "peso": 8,
+    "temas": [
+     "Permisos y AI Gateway",
+     "Guardrails y datos sensibles"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-despliegue-evaluacion",
+     "cert-databricks-gobierno-seguridad"
+    ]
+   },
+   {
+    "nombre": "Evaluar y monitorear",
+    "peso": 12,
+    "temas": [
+     "`mlflow.genai.evaluate` y scorers",
+     "Feedback humano y monitoreo en producción"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-despliegue-evaluacion"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "dbx-ml",
+  "proveedor": "Databricks",
+  "nombre": "Machine Learning Associate",
+  "codigo": "ML Associate",
+  "nivel": "Intermedio",
+  "rol": "Machine learning",
+  "formato": {
+   "preguntas": "48",
+   "minutos": "90",
+   "costo": "USD 200",
+   "aprobacion": "no publicado",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/machine-learning-associate",
+  "actualizado": "la guía de marzo de 2025 (la de agosto de 2026 reagrupa los dominios)",
+  "examen": "dbx-ml",
+  "notas": "La guía de agosto de 2026 reagrupa los dominios e integra el monitoreo dentro de MLOps; los temas son los mismos.",
+  "dominios": [
+   {
+    "nombre": "Databricks Machine Learning",
+    "peso": 38,
+    "temas": [
+     "Runtime ML, AutoML",
+     "Features en Unity Catalog",
+     "MLflow: experimentos y registro"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   },
+   {
+    "nombre": "Flujos de ML",
+    "peso": 19,
+    "temas": [
+     "Exploración, separación y preprocesamiento",
+     "Ajuste de hiperparámetros"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   },
+   {
+    "nombre": "Desarrollo de modelos",
+    "peso": 31,
+    "temas": [
+     "Spark ML y pandas API on Spark",
+     "Métricas y validación"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   },
+   {
+    "nombre": "Despliegue de modelos",
+    "peso": 12,
+    "temas": [
+     "Batch, streaming y Model Serving",
+     "Alias y monitoreo"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   }
+  ]
+ }
+]

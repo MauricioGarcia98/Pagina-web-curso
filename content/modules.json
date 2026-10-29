@@ -236,6 +236,63 @@
     ]
   },
   {
+    "id": "cert-databricks",
+    "titulo": "Certificaciones Databricks: Data Engineer e IA",
+    "icono": "🏅",
+    "color": "#ff3621",
+    "descripcion": "Prepárate para las certificaciones Data Engineer Associate, Data Engineer Professional, Generative AI Engineer Associate y Machine Learning Associate dominando la plataforma a fondo: cómputo, ingesta, Lakeflow, CI/CD, optimización, Unity Catalog, agentes y MLflow.",
+    "objetivos": [
+      "Conocer el formato, los dominios y los pesos de cada certificación de Databricks",
+      "Elegir el cómputo correcto y explicar su modelo de costos",
+      "Construir pipelines con Auto Loader, Lakeflow Connect, Spark Declarative Pipelines y Lakeflow Jobs",
+      "Desplegar con Git folders, Declarative Automation Bundles y la CLI",
+      "Optimizar, monitorear y gobernar con system tables y Unity Catalog",
+      "Construir, evaluar y desplegar aplicaciones de IA generativa y modelos de ML en Databricks"
+    ]
+  },
+  {
+    "id": "cert-azure",
+    "titulo": "Certificaciones Azure: Fabric, IA y MLOps",
+    "icono": "🎖️",
+    "color": "#0078d4",
+    "descripcion": "Prepárate para DP-700 (Fabric Data Engineer), AI-103 (Azure AI Apps and Agents Developer) y AI-300 (MLOps): Microsoft Fabric y OneLake, ingesta y transformación, monitoreo, Microsoft Foundry, agentes, Azure AI Search y Azure Machine Learning.",
+    "objetivos": [
+      "Conocer el formato y los dominios de DP-700, AI-103 y AI-300",
+      "Diseñar, implementar y asegurar una solución de analítica en Microsoft Fabric",
+      "Ingerir, transformar, monitorear y optimizar datos en Fabric",
+      "Construir aplicaciones y agentes de IA con Microsoft Foundry y Azure AI Search",
+      "Operar el ciclo de vida de modelos con Azure Machine Learning"
+    ]
+  },
+  {
+    "id": "cert-aws",
+    "titulo": "Certificaciones AWS: Data Engineer e IA",
+    "icono": "🥇",
+    "color": "#ff9900",
+    "descripcion": "Prepárate para DEA-C01 (Data Engineer Associate), AIF-C01 (AI Practitioner), MLA-C01 (Machine Learning Engineer Associate) y AIP-C01 (Generative AI Developer Professional), con los cuatro dominios de datos y la IA en Bedrock y SageMaker.",
+    "objetivos": [
+      "Conocer el formato y los dominios de las certificaciones de datos e IA de AWS",
+      "Elegir el servicio de ingesta, almacenamiento y procesamiento correcto para cada escenario",
+      "Operar, monitorear y asegurar pipelines de datos en AWS",
+      "Construir aplicaciones de IA generativa con Amazon Bedrock",
+      "Entrenar, desplegar y monitorear modelos con SageMaker AI"
+    ]
+  },
+  {
+    "id": "cert-gcp",
+    "titulo": "Certificaciones Google Cloud: Data Engineer e IA",
+    "icono": "🏆",
+    "color": "#34a853",
+    "descripcion": "Prepárate para Professional Data Engineer, Professional Machine Learning Engineer, Associate Data Practitioner y Generative AI Leader: diseño de sistemas, ingesta con Dataflow y Pub/Sub, BigQuery a fondo, operación y la plataforma de IA de Google.",
+    "objetivos": [
+      "Conocer el formato y los dominios de las certificaciones de datos e IA de Google Cloud",
+      "Diseñar sistemas de procesamiento de datos seguros, confiables y económicos",
+      "Ingerir, procesar y almacenar datos con el servicio correcto",
+      "Preparar datos para análisis e IA en BigQuery y mantener las cargas automatizadas",
+      "Construir, desplegar y monitorear soluciones de ML e IA generativa"
+    ]
+  },
+  {
     "id": "proyecto",
     "titulo": "Proyecto final y entrevistas",
     "icono": "🏆",

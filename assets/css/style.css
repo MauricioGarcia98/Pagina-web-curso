@@ -176,6 +176,7 @@ pre code { background: none; padding: 0; }
 .callout-entrevista { border-left-color: var(--tok-fn); background: color-mix(in srgb, var(--tok-fn) 8%, var(--surface)); }
 .callout-escenario { border-left-color: #0ea5e9; background: color-mix(in srgb, #0ea5e9 9%, var(--surface)); }
 .callout-trabajo { border-left-color: #14b8a6; background: color-mix(in srgb, #14b8a6 9%, var(--surface)); }
+.callout-examen { border-left-color: #d97706; background: color-mix(in srgb, #d97706 9%, var(--surface)); }
 .callout-errores { border-left-color: var(--bad); background: var(--bad-soft); }
 
 /* objetivos, prerrequisitos y autoevaluación */
@@ -568,3 +569,25 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .exam-nota { font-size: 54px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
 .exam-repasar { margin: 0; padding-left: 20px; }
 .cert-canvas { display: block; width: 100%; max-width: 800px; height: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; }
+
+/* ========================================================== certificaciones */
+.cert-card { padding: 0; margin: 10px 0; overflow: hidden; }
+.cert-card > summary { list-style: none; cursor: pointer; padding: 16px 20px; display: grid; gap: 4px; }
+.cert-card > summary::-webkit-details-marker { display: none; }
+.cert-card[open] > summary { border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.cert-tit { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 17px; }
+.cert-prog { display: flex; align-items: center; gap: 8px; color: var(--ink-3); }
+.cert-prog .bar { width: 140px; margin: 0; }
+.cert-body { padding: 16px 20px 20px; }
+.cert-datos { display: flex; flex-wrap: wrap; gap: 10px; }
+.cert-datos > div { background: var(--surface-2); border-radius: 10px; padding: 8px 14px; min-width: 110px; }
+.cert-datos b { display: block; font-size: 16px; }
+.cert-datos span { font-size: 12px; color: var(--ink-3); }
+.cert-notas { margin-top: 12px; }
+.cert-body h4 { margin: 18px 0 8px; }
+.cert-dom { padding: 10px 0; border-top: 1px dashed var(--line); }
+.cert-dom-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.cert-dom-head span { font-weight: 800; color: var(--brand); }
+.cert-temas { margin: 8px 0 4px; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
+.cert-temas li { margin: 2px 0; }
+.cert-lecs { margin-top: 6px; line-height: 1.7; }

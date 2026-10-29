@@ -26,7 +26,7 @@ const marked = new Marked({
   }
 });
 
-const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuidado', analogia: '🧠 Analogía', experto: '🚀 Nivel experto', entrevista: '🎯 Pregunta de entrevista', escenario: '🏢 El caso', trabajo: '🧑‍💻 En el trabajo real', errores: '🐞 Errores frecuentes' };
+const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuidado', analogia: '🧠 Analogía', experto: '🚀 Nivel experto', entrevista: '🎯 Pregunta de entrevista', escenario: '🏢 El caso', trabajo: '🧑‍💻 En el trabajo real', errores: '🐞 Errores frecuentes', examen: '🏅 En el examen' };
 
 // ---------------------------------------------------------------- diagramas
 // ```diagrama
@@ -77,7 +77,7 @@ function md(text, file = '') {
     return `<figure class="diagrama" data-spec="${escapeHtml(JSON.stringify(spec))}">${spec.titulo ? `<figcaption>${escapeHtml(spec.titulo)}</figcaption>` : ''}</figure>\n`;
   });
   // bloques :::tip ... ::: (no confundir con :::ejercicio)
-  text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
+  text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
     `<div class="callout callout-${kind}"><div class="callout-title">${escapeHtml(title ? CALLOUTS[kind].split(' ')[0] + ' ' + title : CALLOUTS[kind])}</div>\n\n${body}\n</div>\n`);
   return marked.parse(text);
 }
@@ -233,7 +233,9 @@ function buildGlosario(modules) {
 }
 
 // ---------------------------------------------------------------- exámenes
-// content/examenes/<modulo>.md: "# examen: <id del módulo>" y un bloque "## Tema" por pregunta:
+// content/examenes/*.md: "# examen: <id del módulo>" y un bloque "## Tema" por pregunta.
+// Un módulo puede tener varios exámenes (por ejemplo, uno por certificación): en ese caso cada
+// archivo agrega "# id: <id único>" y "# titulo: <nombre>"; sin "# id", el examen es el del módulo.
 //   leccion: <id de la lección donde se repasa>
 //   el enunciado (Markdown, admite bloques de código)
 //   - [ ] opción incorrecta
@@ -251,6 +253,10 @@ function buildExamenes(modules) {
     const txt = fs.readFileSync(file, 'utf8');
     const modulo = (txt.match(/^# examen:\s*(\S+)\s*$/m) || [])[1];
     if (!modules.some((m) => m.id === modulo)) throw new Error(`${f}: la línea "# examen: …" debe nombrar un módulo existente`);
+    const id = (txt.match(/^# id:\s*(\S+)\s*$/m) || [])[1] || modulo;
+    const titulo = ((txt.match(/^# titulo:\s*(.+)$/m) || [])[1] || '').trim();
+    if (id !== modulo && !titulo) throw new Error(`${f}: un examen con "# id" necesita "# titulo"`);
+    if (examenes.some((e) => e.id === id)) throw new Error(`${f}: el id de examen "${id}" está repetido`);
     const preguntas = txt.split(/^## /m).slice(1).map((bloque, i) => {
       const donde = `Examen ${f}, pregunta ${i + 1}`;
       const [cab, ...lineas] = bloque.split('\n');
@@ -271,16 +277,43 @@ function buildExamenes(modules) {
       if (!porque.join('').trim()) throw new Error(`${donde}: falta "porque:"`);
       if (!enunciado.join('').trim()) throw new Error(`${donde}: falta el enunciado`);
       const lec = lecciones.get(p.leccion);
-      return { id: `${modulo}-p${i + 1}`, ...p, leccion: { id: lec.id, titulo: lec.titulo }, enunciado: md(enunciado.join('\n').trim(), file), porque: md(porque.join('\n').trim(), file) };
+      return { id: `${id}-p${i + 1}`, ...p, leccion: { id: lec.id, titulo: lec.titulo }, enunciado: md(enunciado.join('\n').trim(), file), porque: md(porque.join('\n').trim(), file) };
     });
     if (preguntas.length < MIN_PREGUNTAS) throw new Error(`${f}: tiene ${preguntas.length} preguntas; el mínimo es ${MIN_PREGUNTAS}`);
     // si la correcta suele ser la opción más larga, se puede aprobar sin saber: hay que emparejar los largos
     const largo = (o) => o.text.replace(/<[^>]+>/g, '').length;
     const delatoras = preguntas.filter((p) => { const ls = p.opciones.map(largo), c = ls[p.opciones.findIndex((o) => o.ok)]; return ls.filter((x) => x >= c).length === 1; });
     if (delatoras.length > preguntas.length * MAX_CORRECTA_MAS_LARGA) throw new Error(`${f}: en ${delatoras.length} de ${preguntas.length} preguntas la correcta es la opción más larga (${delatoras.map((p) => p.tema).join(', ')}); empareja el largo de las opciones`);
-    examenes.push({ modulo, preguntas });
+    examenes.push({ id, modulo, titulo, preguntas });
   }
   return examenes;
+}
+
+// ---------------------------------------------------------------- certificaciones
+// content/certificaciones.json: cada certificación con su formato, sus dominios (con el peso del
+// examen y las lecciones del curso que los cubren) y el examen de práctica asociado.
+function buildCertificaciones(modules, examenes) {
+  const file = path.join(CONTENT, 'certificaciones.json');
+  if (!fs.existsSync(file)) return [];
+  const certs = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const lecciones = new Map(modules.flatMap((m) => m.lecciones.map((l) => [l.id, l.titulo])));
+  const ids = new Set();
+  for (const c of certs) {
+    const donde = `certificaciones.json (${c.id})`;
+    for (const k of ['id', 'proveedor', 'nombre', 'codigo', 'nivel', 'formato', 'dominios', 'fuente', 'actualizado']) if (!c[k]) throw new Error(`${donde}: falta "${k}"`);
+    if (ids.has(c.id)) throw new Error(`${donde}: id repetido`);
+    ids.add(c.id);
+    if (c.examen && !examenes.some((e) => e.id === c.examen)) throw new Error(`${donde}: el examen "${c.examen}" no existe`);
+    const total = c.dominios.reduce((s, d) => s + d.peso, 0);
+    if (Math.abs(total - 100) > 2) throw new Error(`${donde}: los pesos de los dominios suman ${total}, no 100`);
+    for (const d of c.dominios) {
+      for (const l of d.lecciones || []) if (!lecciones.has(l)) throw new Error(`${donde}: la lección "${l}" del dominio "${d.nombre}" no existe`);
+      d.lecciones = (d.lecciones || []).map((l) => ({ id: l, titulo: lecciones.get(l) }));
+      if (d.temas) d.temas = d.temas.map((t) => marked.parseInline(t));
+    }
+    if (c.notas) c.notas = md(c.notas, file);
+  }
+  return certs;
 }
 
 function build() {
@@ -297,7 +330,8 @@ function build() {
   for (const m of modules) for (const l of m.lecciones) for (const r of l.prerrequisitos) if (!ids.has(r)) throw new Error(`Prerrequisito desconocido "${r}" en la lección ${l.id}`);
   const glosario = buildGlosario(modules);
   const examenes = buildExamenes(modules);
-  const course = { generado: new Date().toISOString().slice(0, 10), modulos: modules, glosario, examenes };
+  const certificaciones = buildCertificaciones(modules, examenes);
+  const course = { generado: new Date().toISOString().slice(0, 10), modulos: modules, glosario, examenes, certificaciones };
   fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
     '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
 
@@ -318,7 +352,7 @@ function build() {
   walk(pyRoot);
   fs.writeFileSync(path.join(ROOT, 'assets/js/pysrc.js'),
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
-  console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
+  console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${certificaciones.length} certificaciones · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
   return course;
 }
 

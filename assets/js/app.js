@@ -677,6 +677,7 @@
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
+    if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
@@ -789,11 +790,11 @@
     </div>`;
   }
   function examenModulo(m) {
-    const x = (C.examenes || []).find((e) => e.modulo === m.id);
-    if (!x) return '';
-    const n = (Store.data.exams || {})[m.id];
-    const est = !n ? 'Comprueba lo que aprendiste' : n.best >= 70 ? `✓ Aprobado · mejor nota ${n.best}%` : `Mejor nota ${n.best}% · se aprueba con 70%`;
-    return `<a class="card lesson-row examen-row ${n && n.best >= 70 ? 'done' : ''}" href="#/examen/${m.id}"><span class="num">📝</span><span class="t"><b>Examen del módulo</b><small>${x.preguntas.length} preguntas · ${est}</small></span><span class="small muted">Rendir →</span></a>`;
+    return (C.examenes || []).filter((e) => e.modulo === m.id).map((x) => {
+      const n = (Store.data.exams || {})[x.id];
+      const est = !n ? 'Comprueba lo que aprendiste' : n.best >= 70 ? `✓ Aprobado · mejor nota ${n.best}%` : `Mejor nota ${n.best}% · se aprueba con 70%`;
+      return `<a class="card lesson-row examen-row ${n && n.best >= 70 ? 'done' : ''}" href="#/examen/${x.id}"><span class="num">${x.titulo ? '🏅' : '📝'}</span><span class="t"><b>${x.titulo ? 'Examen de práctica: ' + esc(x.titulo) : 'Examen del módulo'}</b><small>${x.preguntas.length} preguntas · ${est}</small></span><span class="small muted">Rendir →</span></a>`;
+    }).join('');
   }
 
   // objetivos de aprendizaje y prerrequisitos al inicio de la lección
@@ -1123,11 +1124,12 @@
   function resumenPractica() {
     const N = Store.data.exams || {}, c = Store.data.cards || {};
     const vistas = Object.values(c), dominadas = vistas.filter((t) => t.b >= 4).length, hoy = vistas.filter((t) => t.due <= Date.now()).length;
-    const aprob = (C.examenes || []).filter((x) => N[x.modulo] && N[x.modulo].best >= 70).length;
+    const propios = (C.examenes || []).filter((x) => x.id === x.modulo);
+    const aprob = propios.filter((x) => N[x.id] && N[x.id].best >= 70).length;
     return `<h2 class="section-title">Repaso y exámenes</h2>
       <div class="grid grid-3">
         <a class="card module-card" href="#/repaso"><h3>🃏 Tarjetas de repaso</h3><div class="small muted">${vistas.length}/${C.glosario.length} términos vistos · ${dominadas} dominados · ${hoy} para repasar hoy</div><div class="bar" style="margin-top:8px"><i style="width:${Math.round((dominadas / C.glosario.length) * 100)}%;background:var(--brand)"></i></div></a>
-        <a class="card module-card" href="#/examenes"><h3>📝 Exámenes de módulo</h3><div class="small muted">${aprob}/${(C.examenes || []).length} aprobados</div><div class="bar" style="margin-top:8px"><i style="width:${Math.round((aprob / Math.max(1, (C.examenes || []).length)) * 100)}%;background:var(--ok)"></i></div></a>
+        <a class="card module-card" href="#/examenes"><h3>📝 Exámenes de módulo</h3><div class="small muted">${aprob}/${propios.length} aprobados</div><div class="bar" style="margin-top:8px"><i style="width:${Math.round((aprob / Math.max(1, propios.length)) * 100)}%;background:var(--ok)"></i></div></a>
         <a class="card module-card" href="#/examenes"><h3>🎓 Examen final</h3><div class="small muted">${N.final ? `Mejor nota ${N.final.best}% · ${N.final.best >= 75 ? 'certificado disponible' : 'se aprueba con 75%'}` : 'Sin rendir'}</div></a>
       </div>`;
   }
@@ -1302,14 +1304,16 @@
   }
 
   // ---------------------------------------------------------------- exámenes
-  const EXAMEN_POR_MODULO = new Map((C.examenes || []).map((x) => [x.modulo, x]));
+  const EXAMENES = new Map((C.examenes || []).map((x) => [x.id, x]));
+  const EXAMENES_MODULO = (C.examenes || []).filter((x) => x.id === x.modulo); // el examen propio de cada módulo
+  const EXAMENES_PRACTICA = (C.examenes || []).filter((x) => x.id !== x.modulo); // los de práctica de certificaciones
   const NOTA_MODULO = 70, NOTA_FINAL = 75, PREGUNTAS_FINAL = 40;
   const notas = () => (Store.data.exams = Store.data.exams || {});
   const certificado = () => { const f = notas().final; return f && f.best >= NOTA_FINAL ? f : null; };
 
   function preguntasFinal() {
     // al menos 2 preguntas de cada módulo y el resto al azar, para cubrir todo el curso
-    const porModulo = (C.examenes || []).map((x) => barajar(x.preguntas));
+    const porModulo = EXAMENES_MODULO.map((x) => barajar(x.preguntas).map((p) => ({ ...p, modulo: x.modulo })));
     const elegidas = porModulo.flatMap((ps) => ps.slice(0, 2));
     const resto = barajar(porModulo.flatMap((ps) => ps.slice(2)));
     return barajar([...elegidas, ...resto.slice(0, Math.max(0, PREGUNTAS_FINAL - elegidas.length))]);
@@ -1317,9 +1321,11 @@
 
   function viewExamenes() {
     const N = notas(), cert = certificado();
-    const aprobados = (C.examenes || []).filter((x) => N[x.modulo] && N[x.modulo].best >= NOTA_MODULO).length;
+    const aprobados = EXAMENES_MODULO.filter((x) => N[x.id] && N[x.id].best >= NOTA_MODULO).length;
+    const estado = (n) => (!n ? '<span class="badge">Sin rendir</span>' : n.best >= NOTA_MODULO ? `<span class="badge b-basico">✓ Aprobado · ${n.best}%</span>` : `<span class="badge b-experto">Mejor nota ${n.best}%</span>`);
+    const filaPractica = (x) => { const m = MODULE_BY_ID.get(x.modulo), n = N[x.id]; return `<a class="card lesson-row ${n && n.best >= NOTA_MODULO ? 'done' : ''}" href="#/examen/${x.id}"><span class="num">${m.icono}</span><span class="t"><b>${esc(x.titulo)}</b><small>${x.preguntas.length} preguntas · se aprueba con ${NOTA_MODULO}%</small></span>${estado(n)}</a>`; };
     const fila = (m) => {
-      const x = EXAMEN_POR_MODULO.get(m.id); if (!x) return '';
+      const x = EXAMENES.get(m.id); if (!x) return '';
       const n = N[m.id];
       const est = !n ? '<span class="badge">Sin rendir</span>' : n.best >= NOTA_MODULO ? `<span class="badge b-basico">✓ Aprobado · ${n.best}%</span>` : `<span class="badge b-experto">Mejor nota ${n.best}%</span>`;
       return `<a class="card lesson-row ${n && n.best >= NOTA_MODULO ? 'done' : ''}" href="#/examen/${m.id}"><span class="num">${m.icono}</span><span class="t"><b>${esc(m.titulo)}</b><small>${x.preguntas.length} preguntas · se aprueba con ${NOTA_MODULO}%</small></span>${est}</a>`;
@@ -1328,7 +1334,7 @@
     main.innerHTML = `<div class="container">
       <h1 style="margin-bottom:4px">📝 Exámenes y certificado</h1>
       <p class="muted" style="margin-top:0">Cada módulo tiene un examen para comprobar que entendiste, no que memorizaste: muchas preguntas traen código o una situación real. Al terminar ves qué fallaste, por qué, y qué lección repasar. Puedes rendir cada examen todas las veces que quieras: se guarda tu mejor nota.</p>
-      <div class="stats"><div class="stat"><b>${aprobados}/${(C.examenes || []).length}</b><span>exámenes de módulo aprobados</span></div><div class="stat"><b>${f ? f.best + '%' : '—'}</b><span>mejor nota del examen final</span></div></div>
+      <div class="stats"><div class="stat"><b>${aprobados}/${EXAMENES_MODULO.length}</b><span>exámenes de módulo aprobados</span></div><div class="stat"><b>${f ? f.best + '%' : '—'}</b><span>mejor nota del examen final</span></div></div>
       <div class="card examen-final">
         <div><h2 style="margin:0 0 6px">🎓 Examen final</h2>
         <p style="margin:0">${PREGUNTAS_FINAL} preguntas al azar de todo el curso (al menos dos de cada módulo). Se aprueba con <b>${NOTA_FINAL}%</b> y te da el <b>certificado de aprobación</b>. Conviene rendirlo después de aprobar los exámenes de los módulos.</p></div>
@@ -1337,6 +1343,9 @@
       <div class="card" id="certBox" style="padding:18px 20px;margin-top:14px"></div>
       <h2 class="section-title">Exámenes por módulo</h2>
       <div class="lesson-list">${C.modulos.map(fila).join('')}</div>
+      ${EXAMENES_PRACTICA.length ? `<h2 class="section-title">🏅 Exámenes de práctica de certificaciones</h2>
+      <p class="muted">Simulan los exámenes oficiales de Databricks, Azure, AWS y Google Cloud, con preguntas de escenario como las reales. No cuentan para el examen final del curso. Para ver el temario de cada certificación, qué lecciones lo cubren y cómo prepararte, entra a <a href="#/certificaciones">Certificaciones</a>.</p>
+      <div class="lesson-list">${EXAMENES_PRACTICA.map(filaPractica).join('')}</div>` : ''}
     </div>`;
     const box = $('#certBox');
     if (!cert) {
@@ -1396,15 +1405,15 @@
 
   function viewExamen(id) {
     const esFinal = id === 'final';
-    const m = MODULE_BY_ID.get(id);
-    const base = esFinal ? null : EXAMEN_POR_MODULO.get(id);
+    const base = esFinal ? null : EXAMENES.get(id);
     if (!esFinal && !base) { main.innerHTML = '<div class="container prose"><h1>Examen no encontrado</h1><p><a href="#/examenes">Ver los exámenes</a></p></div>'; return; }
-    const titulo = esFinal ? '🎓 Examen final' : `${m.icono} Examen: ${m.titulo}`;
+    const m = esFinal ? null : MODULE_BY_ID.get(base.modulo);
+    const titulo = esFinal ? '🎓 Examen final' : base.titulo ? `🏅 ${base.titulo}` : `${m.icono} Examen: ${m.titulo}`;
     const minimo = esFinal ? NOTA_FINAL : NOTA_MODULO;
     const preguntas = (esFinal ? preguntasFinal() : barajar(base.preguntas)).map((p) => ({ ...p, opciones: barajar(p.opciones) }));
-    const modDe = (p) => MODULE_BY_ID.get(p.id.replace(/-p\d+$/, ''));
+    const modDe = (p) => MODULE_BY_ID.get(p.modulo);
     main.innerHTML = `<div class="container">
-      <div class="crumbs"><a href="#/examenes">Exámenes</a><span>/</span><span>${esc(esFinal ? 'Examen final' : m.titulo)}</span></div>
+      <div class="crumbs"><a href="#/examenes">Exámenes</a><span>/</span><span>${esc(esFinal ? 'Examen final' : base.titulo || m.titulo)}</span></div>
       <h1 style="margin-bottom:4px">${esc(titulo)}</h1>
       <p class="muted" style="margin-top:0">${preguntas.length} preguntas · se aprueba con ${minimo}% · las preguntas y las opciones cambian de orden en cada intento. Responde todas y corrige al final.</p>
       <form id="exForm">${preguntas.map((p, i) => `<div class="card exam-q" data-i="${i}" data-id="${esc(p.id)}">
@@ -1455,6 +1464,61 @@
     });
   }
 
+
+  // ---------------------------------------------------------------- certificaciones
+  function viewCertificaciones(abrir = '') {
+    const CERTS = C.certificaciones || [];
+    const provs = [...new Set(CERTS.map((c) => c.proveedor))];
+    const N = notas();
+    let prov = '';
+    main.innerHTML = `<div class="container">
+      <h1 style="margin-bottom:4px">🏅 Certificaciones</h1>
+      <p class="muted" style="margin-top:0">Las certificaciones de datos e IA de Databricks, Azure, AWS y Google Cloud, con su temario completo: cada dominio del examen, cuánto pesa, qué lecciones del curso lo cubren y un examen de práctica con preguntas de escenario.</p>
+      <div class="callout callout-cuidado"><div class="callout-title">⚠️ Los temarios cambian seguido</div><p>Los dominios y porcentajes vienen de las guías oficiales vigentes en la fecha que indica cada certificación. Los proveedores los actualizan varias veces al año y cambian nombres de productos: <b>antes de rendir, confirma el temario en la guía oficial</b> (el enlace está en cada tarjeta).</p></div>
+      <div class="gloss-filter" id="cprov"><button class="chip active" data-p="">Todas</button>${provs.map((p) => `<button class="chip" data-p="${esc(p)}">${esc(p)} <span class="muted">${CERTS.filter((c) => c.proveedor === p).length}</span></button>`).join('')}</div>
+      <div id="clist"></div>
+    </div>`;
+    const tarjeta = (c) => {
+      const ex = c.examen ? EXAMENES.get(c.examen) : null, n = c.examen ? N[c.examen] : null;
+      const lecs = c.dominios.flatMap((d) => d.lecciones);
+      const hechas = new Set(lecs.filter((l) => Store.lessonDone(LESSON_BY_ID.get(l.id))).map((l) => l.id));
+      const unicas = new Set(lecs.map((l) => l.id));
+      const pct = unicas.size ? Math.round((hechas.size / unicas.size) * 100) : 0;
+      const f = c.formato;
+      const dato = (k, v) => (v ? `<div><b>${esc(v)}</b><span>${k}</span></div>` : '');
+      return `<details class="card cert-card" id="cert-${esc(c.id)}" ${abrir === c.id ? 'open' : ''}>
+        <summary>
+          <span class="cert-tit"><b>${esc(c.nombre)}</b><span class="badge b-type">${esc(c.codigo)}</span><span class="badge ${levelClass(c.nivel)}">${esc(c.nivel)}</span></span>
+          <span class="cert-sub small muted">${esc(c.proveedor)} · ${esc(c.rol || '')}</span>
+          <span class="cert-prog small"><span class="bar"><i style="width:${pct}%;background:var(--brand)"></i></span> ${hechas.size}/${unicas.size} lecciones${n ? ` · práctica: ${n.best}%` : ''}</span>
+        </summary>
+        <div class="cert-body">
+          <div class="cert-datos">${dato('preguntas', f.preguntas)}${dato('minutos', f.minutos)}${dato('costo', f.costo)}${dato('para aprobar', f.aprobacion)}${dato('vigencia', f.vigencia)}</div>
+          ${c.notas ? `<div class="prose cert-notas">${c.notas}</div>` : ''}
+          <h4>Dominios del examen</h4>
+          ${c.dominios.map((d) => `<div class="cert-dom">
+            <div class="cert-dom-head"><b>${esc(d.nombre)}</b><span>${d.peso}%</span></div>
+            <div class="bar"><i style="width:${d.peso * 2.5}%;max-width:100%;background:var(--brand)"></i></div>
+            ${d.temas ? `<ul class="cert-temas">${d.temas.map((t) => `<li>${t}</li>`).join('')}</ul>` : ''}
+            ${d.lecciones.length ? `<div class="cert-lecs small">📚 ${d.lecciones.map((l) => `<a href="#/l/${l.id}">${hechas.has(l.id) ? '✓ ' : ''}${esc(l.titulo)}</a>`).join(' · ')}</div>` : ''}
+          </div>`).join('')}
+          <div class="row" style="margin-top:14px">
+            ${ex ? `<a class="btn btn-primary" href="#/examen/${ex.id}">🏅 Examen de práctica (${ex.preguntas.length} preguntas)${n ? ` · mejor nota ${n.best}%` : ''}</a>` : ''}
+            <a class="btn" href="${esc(c.fuente)}" target="_blank" rel="noopener">Guía oficial ↗</a>
+            <span class="small muted">Temario según la guía vigente en ${esc(c.actualizado)}</span>
+          </div>
+        </div>
+      </details>`;
+    };
+    const paint = () => {
+      const lista = CERTS.filter((c) => !prov || c.proveedor === prov);
+      $('#clist').innerHTML = provs.filter((p) => !prov || p === prov).map((p) => `<h2 class="section-title">${esc(p)}</h2>${lista.filter((c) => c.proveedor === p).map(tarjeta).join('')}`).join('');
+    };
+    $('#cprov').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (!b) return; prov = b.dataset.p; $$('#cprov .chip').forEach((x) => x.classList.toggle('active', x === b)); paint(); });
+    paint();
+    if (abrir) setTimeout(() => document.getElementById('cert-' + abrir)?.scrollIntoView({ block: 'start' }), 50);
+  }
+
   // ---------------------------------------------------------------- búsqueda
   const searchIndex = [
     ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, body: (l.resumen + ' ' + l.html.replace(/<[^>]+>/g, ' ')).toLowerCase() })),
@@ -1491,8 +1555,8 @@
     if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]) };
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
     if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal'].includes(parts[1])) return { name: 'lab-' + parts[1] };
-    if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMEN_POR_MODULO.has(parts[1]))) return { name: 'examen', examen: parts[1] };
-    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes'].includes(parts[0])) return { name: parts[0], q: params.get('q') || '' };
+    if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMENES.has(parts[1]))) return { name: 'examen', examen: parts[1] };
+    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
   function route() {
@@ -1500,7 +1564,7 @@
     document.body.classList.remove('nav-open');
     setTeclas(null);
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -1515,6 +1579,7 @@
     else if (r.name === 'repaso') viewRepaso();
     else if (r.name === 'examenes') viewExamenes();
     else if (r.name === 'examen') viewExamen(r.examen);
+    else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
