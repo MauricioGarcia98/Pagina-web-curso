@@ -190,6 +190,102 @@ Los conceptos son los mismos en todos: extraer partes, truncar a un periodo, sum
 - Para reportes con días sin ventas se usa una **tabla calendario** (una fila por día) y se une con los datos. Lo verás con CTE recursivas y en dbt (`date_spine`).
 :::
 
+### Pruébalo en cada motor
+
+Las fechas son lo que más cambia entre motores. Elige el motor y ejecuta los tres ejemplos:
+
+```motores
+titulo: Pedidos por mes
+[sqlite]
+SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+[postgres]
+SELECT TO_CHAR(fecha_pedido, 'YYYY-MM') AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+[mysql]
+SELECT DATE_FORMAT(fecha_pedido, '%Y-%m') AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) FORMAT(fecha_pedido, 'yyyy-MM') AS mes, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY FORMAT(fecha_pedido, 'yyyy-MM')
+ORDER BY mes DESC;
+[bigquery]
+SELECT FORMAT_DATE('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+FROM tienda.pedidos
+GROUP BY mes
+ORDER BY mes DESC
+LIMIT 3;
+```
+
+```motores
+titulo: Vencimiento a 30 días
+[sqlite]
+SELECT pedido_id, fecha_pedido, date(fecha_pedido, '+30 days') AS vence
+FROM pedidos
+LIMIT 3;
+[postgres]
+-- a una DATE se le suman días con +; también: fecha + INTERVAL '30 days'
+SELECT pedido_id, fecha_pedido, fecha_pedido::date + 30 AS vence
+FROM pedidos
+LIMIT 3;
+[mysql]
+SELECT pedido_id, fecha_pedido, DATE_ADD(fecha_pedido, INTERVAL 30 DAY) AS vence
+FROM pedidos
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) pedido_id, fecha_pedido, DATEADD(day, 30, fecha_pedido) AS vence
+FROM pedidos;
+[bigquery]
+SELECT pedido_id, fecha_pedido, DATE_ADD(fecha_pedido, INTERVAL 30 DAY) AS vence
+FROM tienda.pedidos
+LIMIT 3;
+```
+
+```motores
+titulo: Días entre el pedido y el pago
+[sqlite]
+SELECT p.pedido_id,
+       CAST(julianday(pg.fecha_pago) - julianday(p.fecha_pedido) AS INTEGER) AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+[postgres]
+-- restar dos DATE da días
+SELECT p.pedido_id,
+       pg.fecha_pago::date - p.fecha_pedido::date AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+[mysql]
+SELECT p.pedido_id,
+       DATEDIFF(pg.fecha_pago, p.fecha_pedido) AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+[sqlserver]
+-- la unidad va primero y el orden es (desde, hasta)
+SELECT TOP (5) p.pedido_id,
+       DATEDIFF(day, p.fecha_pedido, pg.fecha_pago) AS dias
+FROM pedidos p
+JOIN pagos pg ON pg.pedido_id = p.pedido_id;
+[bigquery]
+SELECT p.pedido_id,
+       DATE_DIFF(DATE(pg.fecha_pago), p.fecha_pedido, DAY) AS dias
+FROM tienda.pedidos p
+JOIN tienda.pagos pg ON pg.pedido_id = p.pedido_id
+LIMIT 5;
+```
+
 ## Resumen
 
 - Usa siempre el formato ISO `AAAA-MM-DD [HH:MM:SS]`: se ordena igual que el tiempo.

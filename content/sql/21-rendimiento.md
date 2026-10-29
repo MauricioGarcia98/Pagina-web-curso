@@ -104,6 +104,24 @@ Cuando escribes un `JOIN`, el optimizador elige **cómo** emparejar las filas. C
 *Nested loop*: por cada persona de tu lista, recorres la fiesta buscándola (lento sin un "índice", es decir, sin saber dónde está cada uno). *Hash join*: primero armas un mapa "nombre → mesa" de la lista chica y después recorres la fiesta una vez, consultando el mapa. *Merge join*: ordenas ambas listas alfabéticamente y las comparas de arriba hacia abajo a la vez.
 :::
 
+```motores
+titulo: Ver el plan de ejecución
+[sqlite]
+EXPLAIN QUERY PLAN
+SELECT * FROM pedidos WHERE cliente_id = 42;
+[postgres]
+-- ANALYZE ejecuta la consulta y muestra los tiempos reales
+EXPLAIN ANALYZE
+SELECT * FROM pedidos WHERE cliente_id = 42;
+[mysql norun]
+EXPLAIN ANALYZE
+SELECT * FROM pedidos WHERE cliente_id = 42;
+[sqlserver norun]
+-- en SSMS: Ctrl+M (plan real) o Ctrl+L (plan estimado)
+SET STATISTICS PROFILE ON;
+SELECT * FROM pedidos WHERE cliente_id = 42;
+```
+
 ## Cómo leer un plan de SQLite
 
 `EXPLAIN QUERY PLAN` muestra una línea por paso. Las palabras clave:

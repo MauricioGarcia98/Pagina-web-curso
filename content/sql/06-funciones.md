@@ -88,6 +88,47 @@ Con la misma idea, `SUBSTR(email, 1, INSTR(email, '@') - 1)` da la parte de ante
 Los conceptos son idénticos; ante la duda, busca "nombre de la función + nombre del motor".
 :::
 
+Las funciones de texto son de las que más cambian de nombre:
+
+```motores
+titulo: El dominio del email y su largo
+[sqlite]
+SELECT email,
+       SUBSTR(email, INSTR(email, '@') + 1) AS dominio,
+       LENGTH(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+[postgres]
+SELECT email,
+       SPLIT_PART(email, '@', 2) AS dominio,
+       LENGTH(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+[mysql]
+-- también existe SUBSTRING_INDEX(email, '@', -1)
+SELECT email,
+       SUBSTRING(email, LOCATE('@', email) + 1) AS dominio,
+       CHAR_LENGTH(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) email,
+       SUBSTRING(email, CHARINDEX('@', email) + 1, LEN(email)) AS dominio,
+       LEN(email) AS largo
+FROM clientes
+WHERE email IS NOT NULL;
+[bigquery]
+SELECT email,
+       SPLIT(email, '@')[OFFSET(1)] AS dominio,
+       LENGTH(email) AS largo
+FROM tienda.clientes
+WHERE email IS NOT NULL
+LIMIT 3;
+```
+
 ## Funciones numéricas
 
 | Función | Qué hace | Ejemplo | Resultado |
@@ -115,6 +156,19 @@ SELECT 7 / 2                AS division_entera,   -- 3
 ```
 
 Entero dividido entero da entero (en SQLite, PostgreSQL y SQL Server; en MySQL, Spark y BigQuery no). Cuando calcules un porcentaje, escribe **siempre** `100.0 * parte / total`: funciona en todos los motores.
+
+```motores
+titulo: 7 dividido 2
+[sqlite]
+SELECT 7 / 2 AS entera, 7 / 2.0 AS con_decimal, CAST(7 AS REAL) / 2 AS con_cast;
+[postgres]
+SELECT 7 / 2 AS entera, 7 / 2.0 AS con_decimal, 7::numeric / 2 AS con_cast;
+[mysql]
+-- en MySQL / siempre devuelve decimales; DIV es la división entera
+SELECT 7 DIV 2 AS entera, 7 / 2 AS con_decimal;
+[sqlserver]
+SELECT 7 / 2 AS entera, 7 / 2.0 AS con_decimal, CAST(7 AS DECIMAL(10, 2)) / 2 AS con_cast;
+```
 
 ## CAST: convertir de un tipo a otro
 

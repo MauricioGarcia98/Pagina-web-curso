@@ -172,6 +172,58 @@ Consecuencias:
 - `WHERE margen > 0.3` (alias) → error en el estándar: en el paso 2 el `SELECT` no se ejecutó.
 - `ORDER BY clientes DESC` (alias) → funciona: en el paso 7 los alias ya existen.
 
+Los motores no son igual de estrictos con el `GROUP BY`. Prueba la misma consulta (incorrecta) en cada uno:
+
+```motores
+titulo: Error típico: una columna fuera del GROUP BY
+[sqlite]
+-- SQLite la acepta y devuelve una ciudad cualquiera de cada país: un error silencioso
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+[postgres]
+-- PostgreSQL la rechaza: ciudad debe ir en el GROUP BY o dentro de una agregación
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+[mysql]
+-- MySQL 8 también la rechaza (modo ONLY_FULL_GROUP_BY)
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+[sqlserver]
+SELECT pais, ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais;
+```
+
+Usar el alias del `SELECT` en el `GROUP BY` funciona en casi todos, salvo SQL Server:
+
+```motores
+titulo: Agrupar por un alias
+[sqlite]
+SELECT strftime('%Y', fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY anio
+ORDER BY anio;
+[postgres]
+SELECT EXTRACT(YEAR FROM fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY anio
+ORDER BY anio;
+[mysql]
+SELECT YEAR(fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY anio
+ORDER BY anio;
+[sqlserver]
+-- SQL Server no acepta el alias en el GROUP BY: se repite la expresión
+SELECT YEAR(fecha_pedido) AS anio, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY YEAR(fecha_pedido)
+ORDER BY anio;
+```
+
 ## Errores frecuentes
 
 :::cuidado Agrupar de más

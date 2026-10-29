@@ -137,6 +137,33 @@ Reglas de los alias:
 No en la mayoría de los motores: `SELECT precio - costo AS ganancia, ganancia * 2 …` falla porque el alias "todavía no existe" mientras se calcula esa misma lista. Repite la expresión, o usa una subconsulta o CTE (lecciones 13 y 15). Entenderás por qué en la lección de `ORDER BY`, cuando veas el **orden en que SQL ejecuta** cada cláusula.
 :::
 
+Las comillas para los alias cambian según el motor. Elige el motor en las pestañas y prueba el ejemplo:
+
+```motores
+titulo: Un alias con espacios
+[sqlite]
+SELECT nombre, precio AS "precio de lista"
+FROM productos
+LIMIT 3;
+[postgres]
+SELECT nombre, precio AS "precio de lista"
+FROM productos
+LIMIT 3;
+[mysql]
+-- MySQL usa backticks para los identificadores
+SELECT nombre, precio AS `precio de lista`
+FROM productos
+LIMIT 3;
+[sqlserver]
+-- SQL Server acepta corchetes (y también comillas dobles)
+SELECT TOP (3) nombre, precio AS [precio de lista]
+FROM productos;
+[bigquery]
+SELECT nombre, precio AS `precio de lista`
+FROM tienda.productos
+LIMIT 3;
+```
+
 ## Texto: comillas simples y concatenación
 
 En SQL, **el texto va entre comillas simples**: `'Chile'`, `'Cliente de '`. Las comillas dobles se reservan para nombres de columnas o alias especiales. Mezclarlas es uno de los errores más comunes al empezar.
@@ -165,6 +192,34 @@ Si un texto contiene una comilla simple (como `O'Brien`), se escribe **doble**: 
 - **MySQL, Spark SQL, BigQuery** usan la función `CONCAT(nombre, ' ', apellido)` (BigQuery y Spark también aceptan `||`).
 - En casi todos los motores, si uno de los valores es `NULL` (vacío), `||` devuelve `NULL`. Lo verás en la lección de `NULL`.
 :::
+
+Concatenar es una de las diferencias más comunes entre motores:
+
+```motores
+titulo: Nombre y apellido en una columna
+[sqlite]
+SELECT nombre || ' ' || apellido AS cliente
+FROM clientes
+LIMIT 3;
+[postgres]
+SELECT nombre || ' ' || apellido AS cliente
+FROM clientes
+LIMIT 3;
+-- también: CONCAT(nombre, ' ', apellido), que trata NULL como texto vacío
+[mysql]
+-- en MySQL, || es el OR lógico: para concatenar se usa CONCAT
+SELECT CONCAT(nombre, ' ', apellido) AS cliente
+FROM clientes
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) nombre + ' ' + apellido AS cliente
+FROM clientes;
+-- también: CONCAT(nombre, ' ', apellido)
+[bigquery]
+SELECT CONCAT(nombre, ' ', apellido) AS cliente
+FROM tienda.clientes
+LIMIT 3;
+```
 
 ## Columnas sin tabla
 

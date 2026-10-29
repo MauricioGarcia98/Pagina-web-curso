@@ -183,6 +183,33 @@ Hay 2.000 nombres y un solo conteo: no hay una respuesta lógica. PostgreSQL, SQ
 `COUNT(*)` cuenta filas, incluidas las que tienen nulos. `COUNT(col)` cuenta las filas donde `col` **no es nula**. `COUNT(DISTINCT col)` cuenta los **valores distintos** no nulos. Un buen ejemplo para dar: en `clientes`, `COUNT(*)` es el total de clientes, `COUNT(telefono)` los que tienen teléfono y `COUNT(DISTINCT pais)` cuántos países hay.
 :::
 
+Juntar valores de un grupo en una lista de texto es muy útil para reportes, y cada motor lo llama distinto:
+
+```motores
+titulo: Las ciudades de cada país en una lista
+[sqlite]
+SELECT pais, GROUP_CONCAT(DISTINCT ciudad) AS ciudades
+FROM clientes
+GROUP BY pais;
+[postgres]
+SELECT pais, STRING_AGG(DISTINCT ciudad, ', ' ORDER BY ciudad) AS ciudades
+FROM clientes
+GROUP BY pais;
+[mysql]
+SELECT pais, GROUP_CONCAT(DISTINCT ciudad ORDER BY ciudad SEPARATOR ', ') AS ciudades
+FROM clientes
+GROUP BY pais;
+[sqlserver]
+-- STRING_AGG no admite DISTINCT: se quitan los repetidos antes
+SELECT pais, STRING_AGG(ciudad, ', ') WITHIN GROUP (ORDER BY ciudad) AS ciudades
+FROM (SELECT DISTINCT pais, ciudad FROM clientes) AS c
+GROUP BY pais;
+[bigquery]
+SELECT pais, STRING_AGG(DISTINCT ciudad, ', ' ORDER BY ciudad) AS ciudades
+FROM tienda.clientes
+GROUP BY pais;
+```
+
 ## Resumen
 
 - Las agregaciones resumen muchas filas en un valor: `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`.

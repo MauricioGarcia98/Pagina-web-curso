@@ -319,6 +319,40 @@
       $('[data-run]', tools)?.addEventListener('click', () => turnIntoRunner(box, lang, code));
     }
   }
+  // ---------------------------------------------------------------- la misma consulta en varios motores
+  const NOMBRE_MOTOR = { sqlite: 'SQLite', postgres: 'PostgreSQL', mysql: 'MySQL', sqlserver: 'SQL Server', bigquery: 'BigQuery', databricks: 'Databricks SQL', snowflake: 'Snowflake', oracle: 'Oracle' };
+  function enhanceMotores(root) {
+    for (const box of $$('.motores[data-spec]', root)) {
+      const spec = JSON.parse(box.dataset.spec); box.removeAttribute('data-spec');
+      const pref = Store.data.code['motor-preferido'];
+      const inicial = spec.variantes.find((v) => v.m === pref) ? pref : spec.variantes[0].m;
+      box.innerHTML = `<div class="motores-cab">${spec.titulo ? `<b>${esc(spec.titulo)}</b>` : '<b>La misma consulta en cada motor</b>'}<div class="motores-tabs">${spec.variantes.map((v) => `<button data-m="${v.m}">${esc(NOMBRE_MOTOR[v.m])}</button>`).join('')}</div></div>
+        ${spec.variantes.map((v) => `<div class="motores-var" data-v="${v.m}" hidden><pre data-sql><code>${esc(v.code)}</code></pre><div class="motores-tools"><button type="button" data-copiar>Copiar</button>${v.norun ? `<span class="small muted">${v.m === 'sqlite' || v.m === 'postgres' || v.m === 'mysql' || v.m === 'sqlserver' ? 'Este ejemplo no se ejecuta en el navegador' : 'Para ver la sintaxis: este motor no corre en el navegador'}</span>` : `<button type="button" data-ejecutar>▶ Probar en ${esc(NOMBRE_MOTOR[v.m])}</button>${v.m === 'mysql' || v.m === 'sqlserver' ? '<span class="small muted">modo compatible</span>' : ''}`}</div><div class="output" data-out></div></div>`).join('')}`;
+      if (window.hljs) $$('pre[data-sql] code', box).forEach((c) => { try { c.innerHTML = window.hljs.highlight(c.textContent, { language: 'sql', ignoreIllegals: true }).value; } catch (e) { /* sin resaltado */ } });
+      const mostrar = (m) => { $$('.motores-tabs button', box).forEach((b) => b.classList.toggle('active', b.dataset.m === m)); $$('.motores-var', box).forEach((d) => { d.hidden = d.dataset.v !== m; }); };
+      $('.motores-tabs', box).addEventListener('click', (e) => {
+        const b = e.target.closest('[data-m]'); if (!b) return;
+        Store.setCode('motor-preferido', b.dataset.m);
+        // todos los bloques de la página cambian juntos al motor elegido
+        $$('.motores', root).forEach((otro) => { if (otro.querySelector(`.motores-tabs [data-m="${b.dataset.m}"]`)) otro.querySelector(`.motores-tabs [data-m="${b.dataset.m}"]`).dispatchEvent(new CustomEvent('elegir')); });
+        mostrar(b.dataset.m);
+      });
+      $$('.motores-tabs button', box).forEach((b) => b.addEventListener('elegir', () => mostrar(b.dataset.m)));
+      for (const d of $$('.motores-var', box)) {
+        const v = spec.variantes.find((x) => x.m === d.dataset.v);
+        $('[data-copiar]', d).addEventListener('click', () => { navigator.clipboard?.writeText(v.code); toast('Copiado al portapapeles'); });
+        const run = $('[data-ejecutar]', d);
+        if (run) run.addEventListener('click', async () => {
+          const out = $('[data-out]', d);
+          if (!(await ensureSql(out))) return;
+          loadingInto(out, v.m === 'postgres' && window.SqlMotores.PG.estado !== 'listo' ? 'Cargando PostgreSQL (unos 6 MB, solo la primera vez)…' : 'Ejecutando…');
+          try { const r = await window.SqlMotores.ejecutar(v.m, v.code, (msg) => loadingInto(out, msg)); renderSqlOutput(out, r); if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`)); }
+          catch (e) { out.innerHTML = `<pre class="console"><span class="err">${esc(e.message)}</span></pre>`; }
+        });
+      }
+      mostrar(inicial);
+    }
+  }
   // highlight.js no trae HCL en su paquete común: una definición chica para los bloques de Terraform
   function registrarHcl(hljs) {
     if (hljs.getLanguage('hcl')) return;
@@ -830,6 +864,7 @@
     </div>`;
     const body = $('#lessonBody');
     enhanceCode(body);
+    enhanceMotores(body);
     if (window.Diagramas) window.Diagramas.dibujar(body);
     $$('.exercise-slot', body).forEach((slot) => {
       const k = Number(slot.dataset.ex);

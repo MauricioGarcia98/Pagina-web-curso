@@ -76,10 +76,42 @@ function parseDiagrama(src, file) {
   return spec;
 }
 
+// ---------------------------------------------------------------- la misma consulta en varios motores
+// ```motores
+// titulo: Las 5 más caras
+// [sqlite]
+// SELECT ... LIMIT 5;
+// [sqlserver]
+// SELECT TOP (5) ...;
+// [bigquery norun]      <- se muestra pero no se ejecuta en el navegador
+// ```
+const MOTORES_OK = ['sqlite', 'postgres', 'mysql', 'sqlserver', 'bigquery', 'databricks', 'snowflake', 'oracle'];
+function parseMotores(body, file) {
+  const spec = { titulo: '', variantes: [] };
+  let actual = null;
+  for (const linea of body.replace(/\n$/, '').split('\n')) {
+    const m = linea.match(/^\[(\w+)((?:\s+\w+)*)\]\s*$/);
+    if (m) {
+      if (!MOTORES_OK.includes(m[1])) throw new Error(`Bloque motores en ${file}: motor desconocido "${m[1]}"`);
+      actual = { m: m[1], norun: /\bnorun\b/.test(m[2]) || !['sqlite', 'postgres', 'mysql', 'sqlserver'].includes(m[1]), code: '' };
+      spec.variantes.push(actual); continue;
+    }
+    if (!actual) { const t = linea.match(/^titulo:\s*(.*)$/); if (t) spec.titulo = t[1].trim(); continue; }
+    actual.code += linea + '\n';
+  }
+  spec.variantes.forEach((v) => { v.code = v.code.replace(/\s+$/, ''); });
+  if (spec.variantes.length < 2) throw new Error(`Bloque motores en ${file}: necesita al menos dos motores`);
+  return spec;
+}
+
 function md(text, file = '') {
   text = text.replace(/^```diagrama[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
     const spec = parseDiagrama(body, file);
     return `<figure class="diagrama" data-spec="${escapeHtml(JSON.stringify(spec))}">${spec.titulo ? `<figcaption>${escapeHtml(spec.titulo)}</figcaption>` : ''}</figure>\n`;
+  });
+  text = text.replace(/^```motores[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
+    const spec = parseMotores(body, file);
+    return `<div class="motores" data-spec="${escapeHtml(JSON.stringify(spec))}"></div>\n`;
   });
   // bloques :::tip ... ::: (no confundir con :::ejercicio)
   text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>

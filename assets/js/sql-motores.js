@@ -257,6 +257,8 @@
     // operadores
     // en MySQL 7 / 2 = 3.5000 (en SQLite, división entera); DIV es la división entera de MySQL
     t = t.replace(/\|\|/g, ' OR ').replace(/\//g, '* 1.0 /').replace(/\bDIV\b/gi, '/');
+    // INT AUTO_INCREMENT PRIMARY KEY → en SQLite solo INTEGER PRIMARY KEY se numera solo
+    t = t.replace(/\b(?:BIG)?INT(?:EGER)?(?:\(\d+\))?\s+(?:NOT\s+NULL\s+)?(?:AUTO_INCREMENT\s+PRIMARY\s+KEY|PRIMARY\s+KEY\s+AUTO_INCREMENT)\b/gi, 'INTEGER PRIMARY KEY AUTOINCREMENT');
     t = t.replace(/\bINSERT\s+IGNORE\b/gi, 'INSERT OR IGNORE').replace(/\bAUTO_INCREMENT\b(\s*=\s*\d+)?/gi, '').replace(/\bUNSIGNED\b/gi, '').replace(/\)\s*(ENGINE|DEFAULT\s+CHARSET|CHARSET|COLLATE)\s*=?[\s\S]*$/i, ')');
     const L = ctx.lit;
     t = reescribirLlamadas(t, {
@@ -311,6 +313,7 @@
     if (/\bILIKE\b/i.test(t)) throw errMs('ILIKE', 'SQL Server no tiene ILIKE: LIKE ya ignora mayúsculas con la intercalación por defecto (SQL_Latin1_General_CP1_CI_AS).');
     if (t.includes('::')) throw errMs(':', 'El operador :: es de PostgreSQL. En SQL Server: CAST(valor AS tipo) o CONVERT(tipo, valor).');
     if (t.includes('`')) throw errMs('`', 'En SQL Server los identificadores van entre corchetes [nombre] o comillas dobles "nombre".');
+    if (/\bWITH\s+RECURSIVE\b/i.test(t)) throw errMs('RECURSIVE', 'En SQL Server las CTE recursivas se escriben sin la palabra RECURSIVE: WITH serie(n) AS (…).');
     if (/\bNULLS\s+(FIRST|LAST)\b/i.test(t)) throw errMs('NULLS', 'SQL Server no tiene NULLS FIRST/LAST: ordena con CASE WHEN columna IS NULL THEN 1 ELSE 0 END.');
     if (/\b(CROSS|OUTER)\s+APPLY\b/i.test(t)) throw new ErrorMotor('APPLY no está disponible en el modo compatible de SQL Server. Pruébalo con una subconsulta correlacionada o una ventana con ROW_NUMBER().');
     if ((m = t.match(/\bTOP\s*\(?\s*\d+\s*\)?\s+PERCENT\b/i))) throw new ErrorMotor('TOP … PERCENT no está disponible en el modo compatible de SQL Server.');
@@ -320,6 +323,7 @@
     if ((m = t.match(/^SELECT\s+([\s\S]+?)\s+INTO\s+(#?\w+|¤\d+¤)\s+(FROM\b[\s\S]*)$/i))) t = `CREATE TABLE ${m[2]} AS SELECT ${m[1]} ${m[3]}`;
     // tablas temporales #t
     t = t.replace(/\bCREATE\s+TABLE\s+#(\w+)/gi, 'CREATE TEMP TABLE tmp_$1').replace(/#(\w+)/g, 'tmp_$1');
+    t = t.replace(/\b(?:BIG)?INT(?:EGER)?\s+(?:NOT\s+NULL\s+)?IDENTITY\s*\(\s*\d+\s*,\s*\d+\s*\)\s+(?:NOT\s+NULL\s+)?PRIMARY\s+KEY\b/gi, 'INTEGER PRIMARY KEY AUTOINCREMENT');
     t = t.replace(/\bWITH\s*\(\s*NOLOCK\s*\)/gi, '').replace(/\bIDENTITY\s*\(\s*\d+\s*,\s*\d+\s*\)/gi, '').replace(/\bdbo\./gi, '');
     // OFFSET … FETCH
     t = t.replace(/\bOFFSET\s+(\S+)\s+ROWS?\s+FETCH\s+(?:NEXT|FIRST)\s+(\S+)\s+ROWS?\s+ONLY\b/gi, 'LIMIT $2 OFFSET $1').replace(/\bOFFSET\s+(\S+)\s+ROWS?\b/gi, 'LIMIT -1 OFFSET $1');

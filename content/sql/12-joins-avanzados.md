@@ -157,6 +157,36 @@ GROUP BY situacion;
 SQLite soporta `RIGHT` y `FULL OUTER JOIN` desde la versión 3.39 (la de este sitio lo soporta). MySQL no tiene `FULL OUTER JOIN` (se simula con un `LEFT` + `UNION` + un `RIGHT`).
 :::
 
+```motores
+titulo: Departamentos sin empleados y empleados sin departamento
+[sqlite]
+-- 0 filas significa que no hay huérfanos de ningún lado: es un buen control de calidad
+-- SQLite soporta RIGHT y FULL JOIN desde la versión 3.39
+SELECT d.nombre AS departamento, e.nombre AS empleado
+FROM departamentos d
+FULL OUTER JOIN empleados e ON e.departamento_id = d.departamento_id
+WHERE d.departamento_id IS NULL OR e.empleado_id IS NULL;
+[postgres]
+SELECT d.nombre AS departamento, e.nombre AS empleado
+FROM departamentos d
+FULL OUTER JOIN empleados e ON e.departamento_id = d.departamento_id
+WHERE d.departamento_id IS NULL OR e.empleado_id IS NULL;
+[mysql]
+-- MySQL no tiene FULL OUTER JOIN: se arma con LEFT JOIN UNION RIGHT JOIN
+SELECT d.nombre AS departamento, e.nombre AS empleado
+FROM departamentos d LEFT JOIN empleados e ON e.departamento_id = d.departamento_id
+WHERE e.empleado_id IS NULL
+UNION
+SELECT d.nombre, e.nombre
+FROM departamentos d RIGHT JOIN empleados e ON e.departamento_id = d.departamento_id
+WHERE d.departamento_id IS NULL;
+[sqlserver]
+SELECT d.nombre AS departamento, e.nombre AS empleado
+FROM departamentos d
+FULL OUTER JOIN empleados e ON e.departamento_id = d.departamento_id
+WHERE d.departamento_id IS NULL OR e.empleado_id IS NULL;
+```
+
 ## SELF JOIN: una tabla consigo misma
 
 A veces una tabla apunta **a sí misma**. En `empleados`, la columna `jefe_id` guarda el `empleado_id` de otro empleado. Para ver cada empleado con el nombre de su jefe, usas la misma tabla **dos veces**, con dos alias distintos, como si fueran dos tablas:

@@ -62,6 +62,48 @@ Cómo la ejecuta el motor:
 El ancla es empujar la primera ficha. El paso recursivo es la regla "cada ficha que cae empuja a la siguiente". El proceso termina solo cuando ya no quedan fichas por caer. Si las fichas formaran un círculo, nunca terminaría: por eso la condición de parada es crucial.
 :::
 
+La palabra `RECURSIVE` es obligatoria en PostgreSQL y MySQL, y no existe en SQL Server ni en Oracle:
+
+```motores
+titulo: Números del 1 al 5
+[sqlite]
+WITH RECURSIVE serie(n) AS (
+  SELECT 1
+  UNION ALL
+  SELECT n + 1 FROM serie WHERE n < 5
+)
+SELECT n FROM serie;
+[postgres]
+WITH RECURSIVE serie(n) AS (
+  SELECT 1
+  UNION ALL
+  SELECT n + 1 FROM serie WHERE n < 5
+)
+SELECT n FROM serie;
+-- atajo propio de PostgreSQL: SELECT generate_series(1, 5);
+[mysql]
+WITH RECURSIVE serie(n) AS (
+  SELECT 1
+  UNION ALL
+  SELECT n + 1 FROM serie WHERE n < 5
+)
+SELECT n FROM serie;
+[sqlserver]
+WITH serie(n) AS (
+  SELECT 1
+  UNION ALL
+  SELECT n + 1 FROM serie WHERE n < 5
+)
+SELECT n FROM serie;
+[oracle]
+WITH serie(n) AS (
+  SELECT 1 FROM dual
+  UNION ALL
+  SELECT n + 1 FROM serie WHERE n < 5
+)
+SELECT n FROM serie;
+```
+
 ## Ejemplo 1: generar una serie de números
 
 El caso más simple, para entender la mecánica:

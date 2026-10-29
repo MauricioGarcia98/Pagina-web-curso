@@ -158,6 +158,49 @@ GROUP BY c.segmento;
 - En SQLite y MySQL, una comparación ya vale 1 o 0, así que `SUM(estado = 'cancelado')` también funciona. Es práctico pero no portable: `CASE` funciona en todos los motores.
 :::
 
+`CASE` funciona igual en todos los motores, pero varios tienen atajos para la agregación condicional:
+
+```motores
+titulo: Pedidos cancelados por canal
+[sqlite]
+SELECT canal,
+       COUNT(*) AS pedidos,
+       SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[postgres]
+-- FILTER es estándar SQL y muy legible
+SELECT canal,
+       COUNT(*) AS pedidos,
+       COUNT(*) FILTER (WHERE estado = 'cancelado') AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[mysql]
+-- en MySQL una comparación vale 1 o 0, así que se suma directo
+SELECT canal,
+       COUNT(*) AS pedidos,
+       SUM(estado = 'cancelado') AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[sqlserver]
+SELECT canal,
+       COUNT(*) AS pedidos,
+       SUM(IIF(estado = 'cancelado', 1, 0)) AS cancelados
+FROM pedidos
+GROUP BY canal
+ORDER BY canal;
+[bigquery]
+SELECT canal,
+       COUNT(*) AS pedidos,
+       COUNTIF(estado = 'cancelado') AS cancelados
+FROM tienda.pedidos
+GROUP BY canal
+ORDER BY canal;
+```
+
 ## CASE en otros lugares
 
 `CASE` es una expresión: va donde iría un valor.

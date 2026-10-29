@@ -174,6 +174,36 @@ En SQLite, `LIKE` **no** distingue mayúsculas en letras simples (`'laptop%'` ta
 Un patrón que **empieza** con `%` obliga a revisar todas las filas: no puede usar un índice (como buscar en una guía telefónica todas las personas cuyo apellido *termina* en "ez"). `'texto%'` sí aprovecha índices. En tablas enormes, la búsqueda de texto libre se resuelve con índices especiales (*full-text search*).
 :::
 
+Que `LIKE` distinga mayúsculas o no depende del motor (y de su configuración):
+
+```motores
+titulo: Buscar sin importar mayúsculas
+[sqlite]
+-- LIKE ya ignora mayúsculas en las letras sin acento
+SELECT nombre FROM productos
+WHERE nombre LIKE '%samsung%'
+LIMIT 5;
+[postgres]
+-- LIKE distingue mayúsculas: para ignorarlas está ILIKE
+SELECT nombre FROM productos
+WHERE nombre ILIKE '%samsung%'
+LIMIT 5;
+[mysql]
+-- con la intercalación por defecto, LIKE no distingue mayúsculas ni acentos
+SELECT nombre FROM productos
+WHERE nombre LIKE '%samsung%'
+LIMIT 5;
+[sqlserver]
+-- con la intercalación por defecto (CI = case insensitive), tampoco
+SELECT TOP (5) nombre FROM productos
+WHERE nombre LIKE '%samsung%';
+[bigquery]
+-- LIKE distingue mayúsculas: se compara en minúsculas
+SELECT nombre FROM tienda.productos
+WHERE LOWER(nombre) LIKE '%samsung%'
+LIMIT 5;
+```
+
 ## Filtrar por columnas calculadas
 
 La condición puede usar cálculos:

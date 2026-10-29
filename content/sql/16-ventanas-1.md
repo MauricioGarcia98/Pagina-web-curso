@@ -154,6 +154,46 @@ SELECT nombre, salario FROM r WHERE dr = 2;
 ¿Por qué `DENSE_RANK` y no `ROW_NUMBER`? Si dos personas empatan en el sueldo más alto, el "segundo salario" es el **siguiente valor distinto**. `ROW_NUMBER` devolvería a una de las empatadas; `RANK` saltaría al 3. Explicar esa diferencia es lo que el entrevistador quiere escuchar.
 :::
 
+Las funciones de ventana son estándar, pero algunos motores tienen atajos para el top-N por grupo:
+
+```motores
+titulo: El producto más caro de cada categoría
+[sqlite]
+SELECT categoria_id, nombre, precio
+FROM (
+  SELECT categoria_id, nombre, precio,
+         ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS rn
+  FROM productos
+) AS t
+WHERE rn = 1;
+[postgres]
+-- DISTINCT ON es exclusivo de PostgreSQL: la primera fila de cada grupo según el ORDER BY
+SELECT DISTINCT ON (categoria_id) categoria_id, nombre, precio
+FROM productos
+ORDER BY categoria_id, precio DESC;
+[mysql]
+SELECT categoria_id, nombre, precio
+FROM (
+  SELECT categoria_id, nombre, precio,
+         ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS rn
+  FROM productos
+) AS t
+WHERE rn = 1;
+[sqlserver]
+SELECT categoria_id, nombre, precio
+FROM (
+  SELECT categoria_id, nombre, precio,
+         ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) AS rn
+  FROM productos
+) AS t
+WHERE rn = 1;
+[databricks]
+-- QUALIFY filtra por una función de ventana sin subconsulta (también en BigQuery y Snowflake)
+SELECT categoria_id, nombre, precio
+FROM productos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY categoria_id ORDER BY precio DESC) = 1;
+```
+
 ## NTILE: repartir en grupos iguales
 
 `NTILE(n)` divide las filas ordenadas en `n` grupos de tamaño parecido y devuelve el número de grupo. Sirve para cuartiles, deciles o segmentos ("el 25 % de clientes que más compra"):

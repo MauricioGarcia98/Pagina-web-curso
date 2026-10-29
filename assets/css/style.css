@@ -766,3 +766,15 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .mod-bien p { margin: 6px 0 0; }
 .ok-txt { color: var(--ok); }
 @media (max-width: 900px) { .mod-grid { grid-template-columns: 1fr; } }
+
+/* La misma consulta en varios motores */
+.motores { border: 1px solid var(--line); border-radius: var(--radius); margin: 16px 0; overflow: hidden; background: var(--surface); }
+.motores-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 14px; }
+.motores-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.motores-tabs button { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 3px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.motores-tabs button.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.motores pre[data-sql] { margin: 0; border-radius: 0; background: var(--code-bg); color: var(--code-ink); padding: 12px 14px; overflow: auto; font-size: 13px; }
+.motores-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--line); }
+.motores-tools button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 3px 10px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.motores-tools button:hover { border-color: var(--brand); }
+.motores .output:empty { display: none; }

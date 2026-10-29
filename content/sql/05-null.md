@@ -144,6 +144,37 @@ Nombres en otros motores: `IFNULL(a, b)` (SQLite, MySQL), `ISNULL(a, b)` (SQL Se
 En motores estrictos (PostgreSQL, BigQuery, Spark), `COALESCE(precio, 'sin precio')` da error: no se puede mezclar un número con un texto en la misma columna. Usa un valor del mismo tipo (`COALESCE(precio, 0)`) o convierte (`COALESCE(CAST(precio AS TEXT), 'sin precio')`).
 :::
 
+Cada motor tiene además su propia función de dos argumentos, pero `COALESCE` funciona en todos:
+
+```motores
+titulo: Reemplazar un NULL
+[sqlite]
+SELECT nombre, COALESCE(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+LIMIT 3;
+-- también existe IFNULL(telefono, 'sin teléfono')
+[postgres]
+SELECT nombre, COALESCE(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+LIMIT 3;
+[mysql]
+SELECT nombre, IFNULL(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+LIMIT 3;
+[sqlserver]
+SELECT TOP (3) nombre, ISNULL(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL;
+[oracle]
+SELECT nombre, NVL(telefono, 'sin teléfono') AS telefono
+FROM clientes
+WHERE telefono IS NULL
+FETCH FIRST 3 ROWS ONLY;
+```
+
 ## NULLIF: crear un NULL a propósito
 
 `NULLIF(a, b)` devuelve `NULL` si `a` es igual a `b`; si no, devuelve `a`. Parece rara, pero tiene un uso estrella: **evitar la división por cero**.
@@ -177,6 +208,32 @@ Si `stock` es 0, `NULLIF(stock, 0)` devuelve `NULL`, y `precio / NULL` es `NULL`
 :::entrevista "¿Por qué NOT IN puede no devolver ninguna fila?"
 Porque si la lista (o la subconsulta) contiene un `NULL`, la comparación `x <> NULL` da "desconocido" para todas las filas, y `NOT IN` necesita que todas sean verdaderas. La solución es filtrar los nulos en la subconsulta (`WHERE col IS NOT NULL`) o usar `NOT EXISTS`, que no tiene ese problema.
 :::
+
+Dónde quedan los NULL al ordenar también cambia: SQLite, MySQL y SQL Server los ponen primero en orden ascendente; PostgreSQL y Oracle, al final.
+
+```motores
+titulo: Los clientes sin teléfono, al final
+[sqlite]
+SELECT nombre, telefono
+FROM clientes
+ORDER BY telefono NULLS LAST
+LIMIT 5;
+[postgres]
+SELECT nombre, telefono
+FROM clientes
+ORDER BY telefono NULLS LAST
+LIMIT 5;
+[mysql]
+-- MySQL no tiene NULLS LAST: se ordena primero por “es nulo” (0 antes que 1)
+SELECT nombre, telefono
+FROM clientes
+ORDER BY telefono IS NULL, telefono
+LIMIT 5;
+[sqlserver]
+SELECT TOP (5) nombre, telefono
+FROM clientes
+ORDER BY CASE WHEN telefono IS NULL THEN 1 ELSE 0 END, telefono;
+```
 
 ## Resumen
 

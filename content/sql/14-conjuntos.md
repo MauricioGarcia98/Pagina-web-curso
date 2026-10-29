@@ -111,6 +111,37 @@ ORDER BY ciudad;
 Un uso profesional: verificar que dos versiones de una tabla son idénticas (por ejemplo, después de migrar un proceso). `(A EXCEPT B)` y `(B EXCEPT A)` deben dar **cero** filas. Si alguna devuelve algo, esas son exactamente las filas que difieren. Es un test de regresión barato y potente.
 :::
 
+```motores
+titulo: Clientes que nunca compraron, con EXCEPT
+[sqlite]
+SELECT cliente_id FROM clientes
+EXCEPT
+SELECT cliente_id FROM pedidos
+ORDER BY cliente_id;
+[postgres]
+SELECT cliente_id FROM clientes
+EXCEPT
+SELECT cliente_id FROM pedidos
+ORDER BY cliente_id;
+[mysql]
+-- disponible desde MySQL 8.0.31; antes se usaba NOT EXISTS
+SELECT cliente_id FROM clientes
+EXCEPT
+SELECT cliente_id FROM pedidos
+ORDER BY cliente_id;
+[sqlserver]
+SELECT cliente_id FROM clientes
+EXCEPT
+SELECT cliente_id FROM pedidos
+ORDER BY cliente_id;
+[oracle]
+-- Oracle lo llama MINUS
+SELECT cliente_id FROM clientes
+MINUS
+SELECT cliente_id FROM pedidos
+ORDER BY cliente_id;
+```
+
 ## Apilar y después agregar
 
 Para agregar sobre el resultado apilado, envuélvelo en una tabla derivada (o una CTE):

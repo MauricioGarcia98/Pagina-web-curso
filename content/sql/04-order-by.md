@@ -104,6 +104,37 @@ LIMIT 10;
 "Los 3 productos más caros" con `LIMIT 3`: si el 3.º y el 4.º cuestan lo mismo, uno queda afuera y cuál depende del azar. Para un resultado estable, agrega una columna de desempate: `ORDER BY precio DESC, producto_id`. Para incluir todos los empatados necesitarás funciones de ventana (`RANK`), que verás más adelante.
 :::
 
+`LIMIT` no es estándar: cada motor tiene su forma de pedir “las primeras N filas”.
+
+```motores
+titulo: Los 5 productos más caros
+[sqlite]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;
+[postgres]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;
+-- la forma estándar también vale: FETCH FIRST 5 ROWS ONLY
+[mysql]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;
+[sqlserver]
+SELECT TOP (5) nombre, precio
+FROM productos
+ORDER BY precio DESC;
+[oracle]
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+FETCH FIRST 5 ROWS ONLY;
+```
+
 ### Paginar con OFFSET
 
 `OFFSET n` **salta** las primeras `n` filas. Sirve para mostrar resultados por páginas, como un buscador:
@@ -123,6 +154,32 @@ La fórmula: `OFFSET = (número_de_página − 1) × tamaño_de_página`.
 - SQL Server: `SELECT TOP 10 …` o `OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY`.
 - Oracle y el estándar SQL: `FETCH FIRST 10 ROWS ONLY`.
 :::
+
+```motores
+titulo: La tercera página de 10 productos
+[sqlite]
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+LIMIT 10 OFFSET 20;
+[postgres]
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+LIMIT 10 OFFSET 20;
+[mysql]
+-- MySQL también acepta LIMIT desde, cantidad
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+LIMIT 20, 10;
+[sqlserver]
+-- OFFSET … FETCH exige ORDER BY
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;
+```
 
 ## DISTINCT: quitar repetidos
 
