@@ -285,3 +285,47 @@ SELECT nombre, apellido, fecha_salida FROM empleados WHERE fecha_salida IS NOT N
 - [ ] Da un error
 - [ ] Los cuenta dos veces
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre` y `apellido` de los clientes que **sí** tienen email.
+```sql solucion
+SELECT nombre, apellido FROM clientes WHERE email IS NOT NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre`, `apellido` y `fecha_salida` de los empleados que **ya no** trabajan en la empresa (tienen fecha de salida).
+```sql solucion
+SELECT nombre, apellido, fecha_salida FROM empleados WHERE fecha_salida IS NOT NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra el `nombre` de cada categoría y una columna `padre` con el id de su categoría padre; si no tiene padre, que diga `0`.
+```pista
+`COALESCE(columna, valor)` devuelve el primer valor que no es NULL.
+```
+```sql solucion
+SELECT nombre, COALESCE(categoria_padre_id, 0) AS padre FROM categorias;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Cuántos clientes **no tienen ni email ni teléfono**? Devuelve una columna `clientes`.
+```pista
+Las dos condiciones tienen que cumplirse a la vez: `AND`.
+```
+```sql solucion
+SELECT COUNT(*) AS clientes FROM clientes WHERE email IS NULL AND telefono IS NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Muestra `nombre` y una columna `contacto` con la mejor forma de contactar a cada cliente: el email si lo tiene; si no, el teléfono; y si no tiene ninguno, el texto `sin contacto`.
+```pista
+`COALESCE` acepta más de dos argumentos y devuelve el primero que no sea NULL.
+```
+```sql solucion
+SELECT nombre, COALESCE(email, telefono, 'sin contacto') AS contacto FROM clientes;
+```
+:::

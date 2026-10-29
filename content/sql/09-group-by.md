@@ -326,3 +326,51 @@ Quieres las categorías con un precio promedio mayor a 300. ¿Dónde va la condi
 - [ ] En el ORDER BY
 - [ ] En el FROM
 :::
+
+:::ejercicio sql dificultad=Básico
+Cuenta los clientes por `segmento`. Columnas: `segmento`, `clientes`.
+```sql solucion
+SELECT segmento, COUNT(*) AS clientes FROM clientes GROUP BY segmento;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Para cada `metodo_pago`, cuenta los pedidos **cancelados** (`cancelados`). Ordena de mayor a menor.
+```pista
+Filtra con `WHERE` antes de agrupar.
+```
+```sql solucion
+SELECT metodo_pago, COUNT(*) AS cancelados FROM pedidos WHERE estado = 'cancelado' GROUP BY metodo_pago ORDER BY cancelados DESC;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Muestra las **marcas** que tienen **5 o más productos** y un precio promedio **mayor a 500**. Columnas: `marca`, `productos`, `precio_promedio` (2 decimales). Ordena por `precio_promedio` de mayor a menor.
+```pista
+Las condiciones sobre agregados van en `HAVING`.
+```
+```pista
+`HAVING COUNT(*) >= 5 AND AVG(precio) > 500`.
+```
+```sql solucion
+SELECT marca, COUNT(*) AS productos, ROUND(AVG(precio), 2) AS precio_promedio
+FROM productos
+GROUP BY marca
+HAVING COUNT(*) >= 5 AND AVG(precio) > 500
+ORDER BY precio_promedio DESC;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Cuenta los eventos web por **hora del día** (`hora`, de `'00'` a `'23'`) y `dispositivo`, solo de los eventos de tipo `compra`. Ordena por `hora` y `dispositivo`. Columnas: `hora`, `dispositivo`, `compras`.
+```pista
+`strftime('%H', fecha_hora)` extrae la hora.
+```
+```sql solucion
+SELECT strftime('%H', fecha_hora) AS hora, dispositivo, COUNT(*) AS compras
+FROM eventos_web
+WHERE tipo_evento = 'compra'
+GROUP BY hora, dispositivo
+ORDER BY hora, dispositivo;
+```
+:::

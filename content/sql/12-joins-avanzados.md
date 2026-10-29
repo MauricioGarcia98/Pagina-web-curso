@@ -330,3 +330,68 @@ ORDER BY c.canal, a.anio;
 CROSS JOIN de canales distintos y años distintos, y luego LEFT JOIN a pedidos con todas las condiciones en el `ON`.
 ```
 :::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `cliente_id` y `nombre` de los clientes que **nunca hicieron un pedido por la `app`** (incluye a los que nunca compraron).
+```pista
+Anti-join: `LEFT JOIN` y quedarse con las filas donde la tabla derecha es NULL.
+```
+```pista
+La condición del canal va en el `ON`, no en el `WHERE`.
+```
+```sql solucion
+SELECT c.cliente_id, c.nombre
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id AND p.canal = 'app'
+WHERE p.pedido_id IS NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra el `nombre` de cada categoría y el `nombre` de su categoría padre (alias `padre`). Las categorías principales también deben aparecer, con `padre` en NULL.
+```pista
+Es un self join: la tabla `categorias` dos veces, con alias distintos.
+```
+```pista
+Tiene que ser `LEFT JOIN` para no perder las categorías sin padre.
+```
+```sql solucion
+SELECT c.nombre, p.nombre AS padre
+FROM categorias c
+LEFT JOIN categorias p ON p.categoria_id = c.categoria_padre_id;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Para **todos** los clientes de `Uruguay`, muestra `cliente_id` y la cantidad de pedidos **cancelados** que tienen (`cancelados`), incluyendo los que tienen 0.
+```pista
+Si filtras `estado = 'cancelado'` en el `WHERE`, los clientes sin cancelaciones desaparecen.
+```
+```pista
+Pon la condición del estado en el `ON` del `LEFT JOIN` y cuenta `p.pedido_id`.
+```
+```sql solucion
+SELECT c.cliente_id, COUNT(p.pedido_id) AS cancelados
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id AND p.estado = 'cancelado'
+WHERE c.pais = 'Uruguay'
+GROUP BY c.cliente_id;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Arma la grilla completa de **canal × método de pago** (todas las combinaciones posibles) con la cantidad de pedidos de cada una, incluso las que no tienen pedidos (0). Columnas: `canal`, `metodo_pago`, `pedidos`.
+```pista
+Primero las combinaciones posibles: `CROSS JOIN` entre los canales distintos y los métodos distintos.
+```
+```pista
+Después `LEFT JOIN` con `pedidos` por las dos columnas y `COUNT(p.pedido_id)`.
+```
+```sql solucion
+SELECT c.canal, m.metodo_pago, COUNT(p.pedido_id) AS pedidos
+FROM (SELECT DISTINCT canal FROM pedidos) c
+CROSS JOIN (SELECT DISTINCT metodo_pago FROM pedidos) m
+LEFT JOIN pedidos p ON p.canal = c.canal AND p.metodo_pago = m.metodo_pago
+GROUP BY c.canal, m.metodo_pago;
+```
+:::

@@ -300,3 +300,50 @@ SELECT registro_id, LOWER(TRIM(nombre)) AS nombre_limpio, LOWER(email) AS email_
 Ambos operandos son enteros, así que la división es entera. Usa `1.0 / 4` para obtener 0.25.
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra el `nombre` de cada producto en **mayúsculas**, en una columna `nombre_mayus`.
+```sql solucion
+SELECT UPPER(nombre) AS nombre_mayus FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre` y la cantidad de caracteres del nombre en una columna `largo`, para todos los productos.
+```sql solucion
+SELECT nombre, LENGTH(nombre) AS largo FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra el `email` de los empleados y, en una columna `usuario`, lo que está **antes** de la `@` (por ejemplo `camila.rios`).
+```pista
+`INSTR(email, '@')` dice en qué posición está la arroba.
+```
+```pista
+`SUBSTR(email, 1, posición - 1)` corta desde el principio hasta antes de la arroba.
+```
+```sql solucion
+SELECT email, SUBSTR(email, 1, INSTR(email, '@') - 1) AS usuario FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre` y el `precio` redondeado **hacia el entero más cercano** en una columna `precio_redondo`, solo para los productos de la marca `Sony`.
+```pista
+`ROUND(x)` sin segundo argumento redondea a entero (en SQLite devuelve un número con .0).
+```
+```sql solucion
+SELECT nombre, ROUND(precio) AS precio_redondo FROM productos WHERE marca = 'Sony';
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+En `clientes_crudo` los nombres vienen con mayúsculas mezcladas y espacios de más. Muestra `registro_id` y una columna `nombre_limpio` con el nombre **sin espacios a los costados y en minúsculas**.
+```pista
+Las funciones se anidan: primero `TRIM`, después `LOWER` (el orden aquí no cambia el resultado).
+```
+```sql solucion
+SELECT registro_id, LOWER(TRIM(nombre)) AS nombre_limpio FROM clientes_crudo;
+```
+:::

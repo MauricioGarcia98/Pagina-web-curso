@@ -157,7 +157,8 @@ function parseExercise(header, body, file, idx, lessonId) {
     if (!role) continue;
     if (info.includes('ordenado')) throw new Error(`"ordenado" debe ir en la línea :::ejercicio, no en el bloque de código (${file} #${idx + 1})`);
     const content = f[2].replace(/\n$/, '');
-    if (role === 'pista' || role === 'explicacion') ex[role] = (ex[role] ? ex[role] + '\n' : '') + content;
+    if (role === 'pista') (ex.pistas = ex.pistas || []).push(content); // varias pistas: se abren de a una
+    else if (role === 'explicacion') ex[role] = (ex[role] ? ex[role] + '\n' : '') + content;
     else if (role === 'respuesta') (ex.respuesta = ex.respuesta || []).push(...content.split('\n').map((s) => s.trim()).filter(Boolean).map(cliPattern));
     else ex[role] = content;
     if (role === 'solucion' || role === 'inicial') ex.lang = info.find((w) => !ROLES.includes(w)) || ex.lang;
@@ -170,7 +171,7 @@ function parseExercise(header, body, file, idx, lessonId) {
     if (opts.filter((o) => o.ok).length !== 1) throw new Error(`Quiz sin exactamente una respuesta correcta en ${file} (#${idx + 1})`);
   }
   ex.enunciado = md(prompt.trim());
-  if (ex.pista) ex.pista = md(ex.pista);
+  if (ex.pistas) { ex.pistas = ex.pistas.map((x) => md(x)); ex.pista = ex.pistas[0]; }
   if (ex.explicacion) ex.explicacion = md(ex.explicacion);
   if (['sql', 'python', 'pyspark', 'airflow', 'dbt'].includes(type) && ex.solucion === undefined) throw new Error(`Ejercicio sin solución en ${file} (#${idx + 1})`);
   if (type === 'cli' && !ex.respuesta) throw new Error(`Ejercicio cli sin respuesta en ${file} (#${idx + 1})`);

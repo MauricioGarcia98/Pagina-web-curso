@@ -296,3 +296,60 @@ SELECT nombre, stock, costo, stock * costo AS valor_inventario
 FROM productos;
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre`, `precio` y `costo` de los productos, y una columna `margen` con la diferencia entre precio y costo.
+```sql solucion
+SELECT nombre, precio, costo, precio - costo AS margen FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra el `nombre` de cada producto y su precio con IVA del 21 % en una columna `precio_con_iva`, redondeado a 2 decimales.
+```pista
+El precio con IVA es `precio * 1.21`. Para redondear: `ROUND(valor, 2)`.
+```
+```sql solucion
+SELECT nombre, ROUND(precio * 1.21, 2) AS precio_con_iva FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra una sola columna `empleado` con el nombre y el apellido de cada empleado separados por un espacio (por ejemplo, `Camila Ríos`).
+```sql solucion
+SELECT nombre || ' ' || apellido AS empleado FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Para cada línea de `detalle_pedidos`, muestra `detalle_id` y el `importe` de la línea: cantidad por precio unitario, aplicando el descuento (que es una fracción, por ejemplo 0.1 = 10 %). Redondea a 2 decimales.
+```pista
+Un descuento de 0.1 significa pagar el 90 %: `(1 - descuento)`.
+```
+```pista
+`cantidad * precio_unitario * (1 - descuento)`, todo dentro de `ROUND(…, 2)`.
+```
+```sql solucion
+SELECT detalle_id, ROUND(cantidad * precio_unitario * (1 - descuento), 2) AS importe FROM detalle_pedidos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre` y una columna `margen_pct` con el margen de cada producto como porcentaje del precio (`(precio - costo) / precio * 100`), redondeado a 1 decimal.
+```pista
+Ojo con el orden de las operaciones: la resta va entre paréntesis.
+```
+```sql solucion
+SELECT nombre, ROUND((precio - costo) / precio * 100, 1) AS margen_pct FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Arma una etiqueta para cada cliente en una columna `etiqueta`, con el formato `apellido, nombre (ciudad)`. Por ejemplo: `Aguilar, Lucía (Madrid)`.
+```pista
+Concatena varias piezas con `||`: columnas y textos entre comillas simples.
+```
+```sql solucion
+SELECT apellido || ', ' || nombre || ' (' || ciudad || ')' AS etiqueta FROM clientes;
+```
+:::

@@ -222,3 +222,61 @@ SQL es un lenguaje **declarativo**. ¿Qué significa eso?
 - [ ] Que solo sirve para declarar tablas
 - [ ] Que distingue mayúsculas de minúsculas
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra todas las columnas de la tabla `pagos`.
+```sql solucion
+SELECT * FROM pagos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra todas las columnas de la tabla `categorias`.
+```sql solucion
+SELECT * FROM categorias;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra solo las columnas `nombre` y `precio` de la tabla `productos`.
+```sql solucion
+SELECT nombre, precio FROM productos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra `pedido_id`, `fecha_pedido` y `estado` de todos los pedidos.
+```sql solucion
+SELECT pedido_id, fecha_pedido, estado FROM pedidos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra el `nombre`, la `ciudad` y el `presupuesto` de cada departamento.
+```sql solucion
+SELECT nombre, ciudad, presupuesto FROM departamentos;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra las primeras **10 filas** de `eventos_web` (todas las columnas). Es lo primero que se hace con una tabla nueva: mirar una muestra.
+```pista
+Para limitar la cantidad de filas se agrega `LIMIT` al final.
+```
+```sql solucion
+SELECT * FROM eventos_web LIMIT 10;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Cuántas filas tiene la tabla `detalle_pedidos`? Devuelve una sola columna llamada `filas`.
+```pista
+`COUNT(*)` cuenta filas. Lo verás a fondo en la lección de agregaciones.
+```
+```pista
+Ponle nombre a la columna con `AS filas`.
+```
+```sql solucion
+SELECT COUNT(*) AS filas FROM detalle_pedidos;
+```
+:::

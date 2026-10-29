@@ -346,3 +346,53 @@ SELECT COUNT(*) AS pedidos_fin_de_semana FROM pedidos WHERE strftime('%w', fecha
 `strftime('%w', fecha)` devuelve `'0'` para domingo y `'6'` para sábado.
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra `pedido_id` y `fecha_pedido` de los pedidos hechos el **25 de diciembre de 2023**.
+```sql solucion
+SELECT pedido_id, fecha_pedido FROM pedidos WHERE fecha_pedido = '2023-12-25';
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+¿Cuántos pedidos hubo en **marzo de 2024**? Usa un rango semiabierto. Columna: `pedidos`.
+```pista
+Desde el primer día del mes (incluido) hasta el primer día del mes siguiente (excluido).
+```
+```sql solucion
+SELECT COUNT(*) AS pedidos FROM pedidos WHERE fecha_pedido >= '2024-03-01' AND fecha_pedido < '2024-04-01';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre`, `fecha_contratacion` y una columna `anio` (número entero) con el año de contratación de cada empleado.
+```pista
+`strftime('%Y', fecha)` devuelve el año como texto; conviértelo con `CAST(... AS INTEGER)`.
+```
+```sql solucion
+SELECT nombre, fecha_contratacion, CAST(strftime('%Y', fecha_contratacion) AS INTEGER) AS anio FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Cuántos eventos web ocurrieron un **fin de semana**? Columna: `eventos`.
+```pista
+`strftime('%w', fecha)` devuelve el día de la semana: `'0'` es domingo y `'6'` es sábado (como texto).
+```
+```sql solucion
+SELECT COUNT(*) AS eventos FROM eventos_web WHERE strftime('%w', fecha_hora) IN ('0', '6');
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Para cada empleado que dejó la empresa, muestra `nombre`, `fecha_contratacion`, `fecha_salida` y los **días trabajados** (`dias`, entero).
+```pista
+`julianday(b) - julianday(a)` da la diferencia en días (con decimales).
+```
+```pista
+Filtra `fecha_salida IS NOT NULL` y convierte con `CAST(... AS INTEGER)`.
+```
+```sql solucion
+SELECT nombre, fecha_contratacion, fecha_salida, CAST(julianday(fecha_salida) - julianday(fecha_contratacion) AS INTEGER) AS dias FROM empleados WHERE fecha_salida IS NOT NULL;
+```
+:::

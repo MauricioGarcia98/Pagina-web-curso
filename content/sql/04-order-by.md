@@ -308,3 +308,50 @@ Muestra `producto_id` y `nombre` de los productos de la **segunda página** de 1
 SELECT producto_id, nombre FROM productos ORDER BY producto_id LIMIT 15 OFFSET 15;
 ```
 :::
+
+:::ejercicio sql ordenado dificultad=Básico
+Muestra `nombre` y `fecha_registro` de los **10 clientes más antiguos** (los que se registraron primero).
+```sql solucion
+SELECT nombre, fecha_registro FROM clientes ORDER BY fecha_registro LIMIT 10;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Básico
+Muestra los países distintos donde hay clientes, ordenados alfabéticamente (una columna `pais`).
+```sql solucion
+SELECT DISTINCT pais FROM clientes ORDER BY pais;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Muestra `nombre`, `marca` y `precio` de los productos ordenados por `marca` (A→Z) y, dentro de cada marca, del **más caro al más barato**.
+```pista
+Cada columna del `ORDER BY` puede llevar su propia dirección.
+```
+```sql solucion
+SELECT nombre, marca, precio FROM productos ORDER BY marca, precio DESC;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Muestra `nombre`, `precio`, `costo` y la columna `margen` (precio − costo) de los **5 productos con mayor margen**.
+```pista
+Puedes ordenar por el alias de una columna calculada.
+```
+```sql solucion
+SELECT nombre, precio, costo, precio - costo AS margen FROM productos ORDER BY margen DESC LIMIT 5;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Muestra `empleado_id`, `nombre` y `salario` del empleado que ocupa el **puesto 3** del ranking de salarios (de mayor a menor). Si hay empates, desempata por `empleado_id`.
+```pista
+`LIMIT 1` con `OFFSET` te deja elegir “la fila número N”.
+```
+```pista
+El puesto 3 se salta 2 filas: `OFFSET 2`. Agrega `empleado_id` al `ORDER BY` para desempatar.
+```
+```sql solucion
+SELECT empleado_id, nombre, salario FROM empleados ORDER BY salario DESC, empleado_id LIMIT 1 OFFSET 2;
+```
+:::

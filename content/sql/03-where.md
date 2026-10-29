@@ -299,3 +299,50 @@ Muestra `nombre`, `cargo` y `salario` de los empleados que **no** son del depart
 SELECT nombre, cargo, salario FROM empleados WHERE departamento_id <> 2 AND salario > 4000;
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre` y `stock` de los productos **sin stock** (stock igual a 0).
+```sql solucion
+SELECT nombre, stock FROM productos WHERE stock = 0;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+Muestra los pedidos (todas las columnas) hechos por `telefono` y pagados con `efectivo`.
+```sql solucion
+SELECT * FROM pedidos WHERE canal = 'telefono' AND metodo_pago = 'efectivo';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre`, `apellido` y `pais` de los clientes de **Uruguay, Paraguay o Bolivia** que sean del segmento `Pyme`.
+```pista
+Combina `IN (...)` para los países con `AND` para el segmento.
+```
+```sql solucion
+SELECT nombre, apellido, pais FROM clientes WHERE pais IN ('Uruguay', 'Paraguay', 'Bolivia') AND segmento = 'Pyme';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre` y `precio` de los productos cuyo nombre **empieza con** `Notebook` y cuestan **menos de 1500**.
+```pista
+“Empieza con” es `LIKE 'Notebook%'`: el `%` va solo al final.
+```
+```sql solucion
+SELECT nombre, precio FROM productos WHERE nombre LIKE 'Notebook%' AND precio < 1500;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Muestra `detalle_id`, `cantidad` y `precio_unitario` de las líneas de `detalle_pedidos` cuyo importe sin descuento (`cantidad * precio_unitario`) **supera 3000**, o que tengan un descuento **de 20 % o más**.
+```pista
+Puedes filtrar por un cálculo directamente en el `WHERE`.
+```
+```pista
+Dos condiciones unidas por `OR`; el descuento del 20 % es `descuento >= 0.2`.
+```
+```sql solucion
+SELECT detalle_id, cantidad, precio_unitario FROM detalle_pedidos WHERE cantidad * precio_unitario > 3000 OR descuento >= 0.2;
+```
+:::

@@ -275,3 +275,94 @@ GROUP BY d.dia
 ORDER BY d.dia;
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Con una CTE recursiva, genera los números del **1 al 12** en una columna `mes`.
+```sql solucion
+WITH RECURSIVE serie(mes) AS (SELECT 1 UNION ALL SELECT mes + 1 FROM serie WHERE mes < 12)
+SELECT mes FROM serie;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Intermedio
+Genera todas las fechas de **enero de 2024** (columna `dia`) con una CTE recursiva, ordenadas.
+```pista
+Empieza en `'2024-01-01'` y suma un día con `date(dia, '+1 day')` mientras sea menor a `'2024-01-31'`.
+```
+```sql solucion
+WITH RECURSIVE dias(dia) AS (
+  SELECT '2024-01-01'
+  UNION ALL
+  SELECT date(dia, '+1 day') FROM dias WHERE dia < '2024-01-31'
+)
+SELECT dia FROM dias ORDER BY dia;
+```
+:::
+
+:::ejercicio sql ordenado dificultad=Avanzado
+Cuenta los pedidos de **cada día de enero de 2024**, incluidos los días sin pedidos (con 0). Columnas: `dia`, `pedidos`. Ordena por día.
+```pista
+El calendario sale de una CTE recursiva; después `LEFT JOIN pedidos`.
+```
+```pista
+Cuenta `p.pedido_id` (no `*`) para que los días vacíos den 0.
+```
+```sql solucion
+WITH RECURSIVE dias(dia) AS (
+  SELECT '2024-01-01'
+  UNION ALL
+  SELECT date(dia, '+1 day') FROM dias WHERE dia < '2024-01-31'
+)
+SELECT d.dia, COUNT(p.pedido_id) AS pedidos
+FROM dias d
+LEFT JOIN pedidos p ON p.fecha_pedido = d.dia
+GROUP BY d.dia
+ORDER BY d.dia;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Muestra todas las categorías con su **ruta completa** desde la raíz (columna `ruta`, por ejemplo `Tecnología > Computadoras > Laptops`) y su `nivel` (0 para las principales). Columnas: `categoria_id`, `ruta`, `nivel`.
+```pista
+El caso base son las categorías sin padre, con `ruta = nombre` y `nivel = 0`.
+```
+```pista
+El paso recursivo une `categorias c` con la CTE por `c.categoria_padre_id = r.categoria_id` y arma `r.ruta || ' > ' || c.nombre`.
+```
+```sql solucion
+WITH RECURSIVE r(categoria_id, ruta, nivel) AS (
+  SELECT categoria_id, nombre, 0 FROM categorias WHERE categoria_padre_id IS NULL
+  UNION ALL
+  SELECT c.categoria_id, r.ruta || ' > ' || c.nombre, r.nivel + 1
+  FROM categorias c JOIN r ON c.categoria_padre_id = r.categoria_id
+)
+SELECT categoria_id, ruta, nivel FROM r;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+¿Cuántas personas tiene **a cargo**, directa o indirectamente, la directora de Ventas (`empleado_id = 2`)? Columna: `a_cargo`.
+```pista
+Recorre el organigrama hacia abajo empezando por los subordinados directos del empleado 2.
+```
+```pista
+Caso base: `WHERE jefe_id = 2`. Paso: empleados cuyo `jefe_id` está en la CTE. Al final, `COUNT(*)`.
+```
+```sql solucion
+WITH RECURSIVE equipo(empleado_id) AS (
+  SELECT empleado_id FROM empleados WHERE jefe_id = 2
+  UNION ALL
+  SELECT e.empleado_id FROM empleados e JOIN equipo q ON e.jefe_id = q.empleado_id
+)
+SELECT COUNT(*) AS a_cargo FROM equipo;
+```
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+¿Qué pasa si en una CTE recursiva olvidas la condición que la detiene (por ejemplo, `WHERE n < 10`)?
+
+- [ ] El motor la detiene sola después de 100 filas en todos los casos
+- [x] La recursión no termina (o el motor la corta con un error por límite de recursión)
+- [ ] Devuelve solo el caso base
+- [ ] Da un error de sintaxis antes de ejecutarse
+:::

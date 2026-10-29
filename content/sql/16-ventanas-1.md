@@ -303,3 +303,51 @@ SELECT categoria_id, producto_id, ROUND(ventas, 2) AS ventas,
 FROM v;
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre`, `salario` y una columna `ranking` con la posición de cada empleado por salario (de mayor a menor), usando `RANK()`.
+```sql solucion
+SELECT nombre, salario, RANK() OVER (ORDER BY salario DESC) AS ranking FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre`, `departamento_id`, `salario` y `salario_promedio_depto` (2 decimales): el promedio de su departamento al lado de cada empleado, sin perder filas.
+```pista
+`AVG(salario) OVER (PARTITION BY departamento_id)`.
+```
+```sql solucion
+SELECT nombre, departamento_id, salario, ROUND(AVG(salario) OVER (PARTITION BY departamento_id), 2) AS salario_promedio_depto FROM empleados;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Para cada **país**, muestra los **3 clientes con más pedidos**. Columnas: `pais`, `cliente_id`, `pedidos`, `puesto`. Si hay empates, desempata por `cliente_id` (usa `ROW_NUMBER`).
+```pista
+Primero cuenta pedidos por cliente (con su país); después numera dentro de cada país.
+```
+```pista
+`ROW_NUMBER() OVER (PARTITION BY pais ORDER BY pedidos DESC, cliente_id)` y filtra `puesto <= 3` en una consulta externa.
+```
+```sql solucion
+WITH por_cliente AS (
+  SELECT c.pais, c.cliente_id, COUNT(*) AS pedidos
+  FROM pedidos p JOIN clientes c ON c.cliente_id = p.cliente_id
+  GROUP BY c.pais, c.cliente_id
+), numerados AS (
+  SELECT pais, cliente_id, pedidos, ROW_NUMBER() OVER (PARTITION BY pais ORDER BY pedidos DESC, cliente_id) AS puesto
+  FROM por_cliente
+)
+SELECT pais, cliente_id, pedidos, puesto FROM numerados WHERE puesto <= 3;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Muestra `nombre`, `marca`, `precio` y `pct_marca`: qué porcentaje representa el precio de cada producto sobre la **suma de precios de su marca** (2 decimales).
+```pista
+`SUM(precio) OVER (PARTITION BY marca)` da el total de la marca en cada fila.
+```
+```sql solucion
+SELECT nombre, marca, precio, ROUND(100.0 * precio / SUM(precio) OVER (PARTITION BY marca), 2) AS pct_marca FROM productos;
+```
+:::

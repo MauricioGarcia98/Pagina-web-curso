@@ -207,3 +207,87 @@ INTERSECT
 SELECT cliente_id FROM pedidos WHERE canal = 'tienda';
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Arma una sola lista de ciudades (columna `ciudad`, sin repetir) donde hay **clientes o departamentos**.
+```sql solucion
+SELECT ciudad FROM clientes UNION SELECT ciudad FROM departamentos;
+```
+:::
+
+:::ejercicio sql dificultad=Básico
+¿Qué `cliente_id` hicieron pedidos tanto por `web` como por `app`? Usa `INTERSECT`.
+```sql solucion
+SELECT cliente_id FROM pedidos WHERE canal = 'web'
+INTERSECT
+SELECT cliente_id FROM pedidos WHERE canal = 'app';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+¿Qué `cliente_id` compraron en 2023 pero **no** en 2024? Usa `EXCEPT`.
+```pista
+Dos consultas con rangos de fechas distintos y `EXCEPT` en el medio.
+```
+```sql solucion
+SELECT cliente_id FROM pedidos WHERE fecha_pedido >= '2023-01-01' AND fecha_pedido < '2024-01-01'
+EXCEPT
+SELECT cliente_id FROM pedidos WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < '2025-01-01';
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Arma una lista de “personas” con dos columnas: `tipo` (`'cliente'` o `'empleado'`) y `email`, con los clientes y empleados que tienen email. Usa `UNION ALL`.
+```pista
+Cada `SELECT` agrega una columna constante con el tipo.
+```
+```sql solucion
+SELECT 'cliente' AS tipo, email FROM clientes WHERE email IS NOT NULL
+UNION ALL
+SELECT 'empleado' AS tipo, email FROM empleados WHERE email IS NOT NULL;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Cuenta cuántas personas hay de cada tipo en la lista anterior (clientes con email y empleados con email). Columnas: `tipo`, `personas`.
+```pista
+Pon el `UNION ALL` en una subconsulta (o CTE) y agrupa encima.
+```
+```sql solucion
+SELECT tipo, COUNT(*) AS personas
+FROM (
+  SELECT 'cliente' AS tipo, email FROM clientes WHERE email IS NOT NULL
+  UNION ALL
+  SELECT 'empleado' AS tipo, email FROM empleados WHERE email IS NOT NULL
+) AS t
+GROUP BY tipo;
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+¿Cuántos clientes compraron en **los tres años** (2022, 2023 y 2024)? Columna: `clientes`.
+```pista
+Tres conjuntos de `cliente_id`, uno por año, unidos con `INTERSECT`.
+```
+```pista
+Envuelve el resultado en `SELECT COUNT(*) FROM (…)`.
+```
+```sql solucion
+SELECT COUNT(*) AS clientes FROM (
+  SELECT cliente_id FROM pedidos WHERE strftime('%Y', fecha_pedido) = '2022'
+  INTERSECT
+  SELECT cliente_id FROM pedidos WHERE strftime('%Y', fecha_pedido) = '2023'
+  INTERSECT
+  SELECT cliente_id FROM pedidos WHERE strftime('%Y', fecha_pedido) = '2024'
+) AS t;
+```
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+`SELECT ciudad FROM clientes UNION ALL SELECT ciudad FROM departamentos` devuelve 2.009 filas y con `UNION` devuelve 24. ¿Por qué?
+
+- [ ] `UNION ALL` incluye los NULL y `UNION` no
+- [x] `UNION` quita las filas repetidas; `UNION ALL` las conserva
+- [ ] `UNION` ordena el resultado y descarta filas
+- [ ] Es un error: los dos deberían devolver lo mismo
+:::

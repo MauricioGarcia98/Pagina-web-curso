@@ -319,6 +319,15 @@
       $('[data-run]', tools)?.addEventListener('click', () => turnIntoRunner(box, lang, code));
     }
   }
+  // pistas progresivas: cada clic muestra una pista más
+  function mostrarPista(ex, showExtra, btn) {
+    const todas = ex.pistas || [ex.pista];
+    const n = Math.min(Number(btn.dataset.vistas || 0) + 1, todas.length);
+    btn.dataset.vistas = n;
+    showExtra(todas.length > 1 ? `Pistas (${n} de ${todas.length})` : 'Pista', todas.slice(0, n).map((p, i) => (todas.length > 1 ? `<div class="pista-n"><b>Pista ${i + 1}</b>${p}</div>` : p)).join(''));
+    if (todas.length > 1) btn.innerHTML = n < todas.length ? `💡 Otra pista <span class="muted">${n + 1}/${todas.length}</span>` : '💡 Pistas';
+  }
+
   // ---------------------------------------------------------------- la misma consulta en varios motores
   const NOMBRE_MOTOR = { sqlite: 'SQLite', postgres: 'PostgreSQL', mysql: 'MySQL', sqlserver: 'SQL Server', bigquery: 'BigQuery', databricks: 'Databricks SQL', snowflake: 'Snowflake', oracle: 'Oracle' };
   function enhanceMotores(root) {
@@ -501,7 +510,7 @@
     const tools = h(`<div class="ex-tools">
       <button class="btn btn-primary btn-sm" data-act="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button>
       <button class="btn btn-ok btn-sm" data-act="check">✓ Comprobar</button>
-      ${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}
+      ${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}
       <button class="btn btn-sm" data-act="sol">👁 Solución</button>
       ${ex.type === 'sql' || ex.type === 'dbt' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}
       <span class="spacer"></span>
@@ -514,7 +523,7 @@
       const a = b.dataset.act;
       if (a === 'run') run();
       if (a === 'check') check();
-      if (a === 'hint') showExtra('Pista', ex.pista);
+      if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
       if (a === 'sol') showSolution();
       if (a === 'reset') { ed.setValue(starter); fb.hidden = true; out.innerHTML = ''; }
       if (a === 'schema') showSchemaModal();
@@ -605,7 +614,7 @@
 
   function mountCli(card, ex, markPassed, fb, feedback, extra, showExtra) {
     const box = h('<div class="ex-term"></div>');
-    const tools = h(`<div class="ex-tools">${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
+    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
     card.append(box, tools, fb, extra);
     const tool = (ex.respuesta[0].replace(/^todos:\s*/, '').match(/^[\w-]+/) || [''])[0];
     const termOpts = {
@@ -637,7 +646,7 @@
     if (ex.setup) { term.input.addEventListener('focus', prep, { once: true }); termOpts.beforeRun = prep; }
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
-      if (a === 'hint') showExtra('Pista', ex.pista);
+      if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
       if (a === 'sol') {
         const sol = ex.solucion || ex.respuesta[0].replace(/\\/g, '');
         showExtra('Solución', `<pre data-lang="bash"><code>${esc(sol)}</code></pre>${ex.explicacion || ''}<button class="btn btn-sm" data-type>⌨ Escribirla en la terminal</button>`);
@@ -651,11 +660,11 @@
     const ta = $('textarea', box);
     ta.value = Store.code(ex.id) || ex.inicial || '';
     ta.addEventListener('input', () => Store.setCode(ex.id, ta.value));
-    const tools = h(`<div class="ex-tools">${ex.pista ? '<button class="btn btn-sm" data-act="hint">💡 Pista</button>' : ''}<button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
+    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
     card.append(box, tools, extra);
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
-      if (a === 'hint') showExtra('Pista', ex.pista);
+      if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
       if (a === 'sol') showExtra('Respuesta modelo', (ex.solucion ? `<pre data-lang="${esc(ex.lang || 'text')}"><code>${esc(ex.solucion)}</code></pre>` : '') + (ex.explicacion || ''));
       if (a === 'done') { markPassed(); toast('¡Bien! Marcado como hecho.'); }
     });

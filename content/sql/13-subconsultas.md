@@ -254,3 +254,56 @@ WHERE t.total = (SELECT MAX(total) FROM (SELECT SUM(cantidad * precio_unitario *
 Calcula el total por pedido en una tabla derivada, y compáralo con el máximo de esos totales (otra subconsulta).
 ```
 :::
+
+:::ejercicio sql dificultad=Básico
+Muestra `nombre` y `precio` de los productos **más caros que el precio promedio** de todos los productos.
+```sql solucion
+SELECT nombre, precio FROM productos WHERE precio > (SELECT AVG(precio) FROM productos);
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `nombre` y `apellido` de los clientes que hicieron **al menos un pedido con `billetera_virtual`**. Usa `IN` con una subconsulta.
+```pista
+La subconsulta devuelve la lista de `cliente_id` que cumplen la condición.
+```
+```sql solucion
+SELECT nombre, apellido FROM clientes WHERE cliente_id IN (SELECT cliente_id FROM pedidos WHERE metodo_pago = 'billetera_virtual');
+```
+:::
+
+:::ejercicio sql dificultad=Intermedio
+Muestra `pedido_id` de los pedidos que **no tienen ningún pago aprobado**. Usa `NOT EXISTS`.
+```pista
+`NOT EXISTS (SELECT 1 FROM pagos pg WHERE pg.pedido_id = p.pedido_id AND …)`.
+```
+```sql solucion
+SELECT p.pedido_id FROM pedidos p WHERE NOT EXISTS (SELECT 1 FROM pagos pg WHERE pg.pedido_id = p.pedido_id AND pg.estado = 'aprobado');
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+Muestra `nombre`, `marca` y `precio` de los productos que son **los más caros de su marca** (puede haber más de uno por marca si empatan). Usa una subconsulta correlacionada.
+```pista
+Para cada producto, compara su precio con el máximo de **su** marca.
+```
+```pista
+`WHERE precio = (SELECT MAX(p2.precio) FROM productos p2 WHERE p2.marca = p.marca)`.
+```
+```sql solucion
+SELECT nombre, marca, precio FROM productos p WHERE precio = (SELECT MAX(p2.precio) FROM productos p2 WHERE p2.marca = p.marca);
+```
+:::
+
+:::ejercicio sql dificultad=Avanzado
+¿Cuál es el **promedio de pedidos por cliente**, contando solo a los clientes que compraron? Redondea a 2 decimales. Columna: `promedio`.
+```pista
+Primero una tabla derivada con los pedidos de cada cliente (`GROUP BY cliente_id`).
+```
+```pista
+Después el promedio sobre esa tabla: `SELECT AVG(n) FROM (…) AS t`.
+```
+```sql solucion
+SELECT ROUND(AVG(n), 2) AS promedio FROM (SELECT cliente_id, COUNT(*) AS n FROM pedidos GROUP BY cliente_id) AS t;
+```
+:::
