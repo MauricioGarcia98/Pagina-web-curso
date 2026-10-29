@@ -236,6 +236,22 @@
     ]
   },
   {
+    "id": "laboratorios",
+    "titulo": "Laboratorios guiados en la nube",
+    "icono": "🧪",
+    "color": "#0891b2",
+    "descripcion": "Construye de punta a punta lo que piden las certificaciones: data lake con calidad en AWS, RAG con Bedrock y Guardrails, SageMaker con Spot y endpoints, operación y seguridad, BigQuery con particiones y BQML, Pub/Sub, Workflows y Vertex AI, Foundry y Azure ML con despliegue blue/green, y Databricks con bundles, pipelines y Unity Catalog. Primero en la terminal del curso, después en tu cuenta con costo controlado y limpieza.",
+    "objetivos": [
+      "Trabajar en la nube con presupuesto, alertas y limpieza obligatoria",
+      "Montar un data lake en AWS con catálogo, tope de costo y compuerta de calidad",
+      "Construir un RAG con Bedrock Knowledge Bases, Guardrails e inferencia por lotes",
+      "Entrenar con Spot, desplegar y borrar endpoints en SageMaker, Vertex AI y Azure ML",
+      "Particionar, estimar costo y entrenar modelos con BigQuery ML",
+      "Orquestar ingesta y procesos con Pub/Sub, Workflows, Scheduler y EventBridge",
+      "Desplegar con Databricks Asset Bundles y gobernar con Unity Catalog"
+    ]
+  },
+  {
     "id": "cert-databricks",
     "titulo": "Certificaciones Databricks: Data Engineer e IA",
     "icono": "🏅",
