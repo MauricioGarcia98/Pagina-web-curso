@@ -151,7 +151,7 @@ nodo e: Evaluar | icono=check | col=1 | fila=0 | sub=mlflow.genai.evaluate | col
 nodo p: Desplegar | icono=nube | col=2 | fila=0 | sub=Model Serving + AI Gateway | color=azul
 nodo m: Monitorear | icono=grafico | col=2 | fila=1 | sub=trazas + scorers | color=violeta
 nodo f: Feedback | icono=usuario | col=1 | fila=1 | sub=revisión humana
-nodo ds: Conjunto de evaluación | icono=tabla | col=0 | fila=1 | sub=Unity Catalog | color=naranja
+nodo ds: Conjunto de evaluación | icono=mlflow | col=0 | fila=1 | sub=Unity Catalog | color=naranja
 flecha d -> e
 flecha e -> p
 flecha p -> m

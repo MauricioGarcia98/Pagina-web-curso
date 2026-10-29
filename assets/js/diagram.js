@@ -1,9 +1,12 @@
 /* Diagramas con estilo dibujado a mano (rough.js, la librería de trazo de Excalidraw).
  * El build convierte cada bloque ```diagrama en <figure class="diagrama" data-spec="{…}">.
- * Este archivo los dibuja como SVG: nodos con ícono, grupos y flechas con etiqueta.
+ * Este archivo los dibuja como SVG: nodos con ícono (Lucide, logos de Simple Icons o siglas propias),
+ * grupos, flechas con codos que esquivan los nodos, animación del flujo, modo paso a paso,
+ * resaltado al pasar el mouse y descarga en PNG o SVG.
  * El trazo usa currentColor, así funciona en tema claro y oscuro. */
 (function () {
   const NS = 'http://www.w3.org/2000/svg';
+  const LIB = window.ICONOS_LIB || { lucide: {}, trazos: {}, alias: {}, marcas: {}, siglas: {} };
 
   // Paleta de Excalidraw: [trazo, relleno]
   const COLORES = {
@@ -12,66 +15,16 @@
     gris: ['#868e96', '#dee2e6'], cian: ['#0c8599', '#99e9f2'], rosa: ['#c2255c', '#fcc2d7']
   };
 
-  // Biblioteca de íconos: trazos en una grilla de 24×24 (stroke, sin relleno)
-  const ICONOS = {
-    base: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6 M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
-    bucket: 'M3 6h18l-2.2 14.2a1 1 0 0 1-1 .8H6.2a1 1 0 0 1-1-.8z M3 6c0-1.4 4-2.5 9-2.5S21 4.6 21 6 M7 11h10',
-    archivo: 'M6 2h8l4 4v16H6z M14 2v4h4 M9 12h6 M9 16h6',
-    archivos: 'M8 5h7l3 3v13H8z M15 5v3h3 M5 3h7 M5 3v15 M11 13h4 M11 16h4',
-    csv: 'M6 2h8l4 4v16H6z M14 2v4h4 M8 11h8 M8 14h8 M8 17h8 M11 11v6 M14 11v6',
-    json: 'M9 4c-2 0-3 1-3 3v2c0 1.5-1 2.5-2 3 1 .5 2 1.5 2 3v2c0 2 1 3 3 3 M15 4c2 0 3 1 3 3v2c0 1.5 1 2.5 2 3-1 .5-2 1.5-2 3v2c0 2-1 3-3 3',
-    nube: 'M7 19h10.5a4.5 4.5 0 0 0 .6-9 6.5 6.5 0 0 0-12.6 1.6A3.7 3.7 0 0 0 7 19z',
-    servidor: 'M4 3h16v7H4z M4 14h16v7H4z M8 6.5h.01 M8 17.5h.01 M12 6.5h5 M12 17.5h5',
-    usuario: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5',
-    equipo: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5 M16 4.3a3.5 3.5 0 0 1 0 6.4 M18 14.8c2.4.6 4 2.3 4 5.2',
-    movil: 'M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z M11 18h2',
-    web: 'M3 4h18v16H3z M3 8h18 M6 6h.01 M8.5 6h.01 M7 12h6 M7 15h10',
-    api: 'M9 4c-2 0-3 1-3 3v2c0 1.5-1 2.5-2 3 1 .5 2 1.5 2 3v2c0 2 1 3 3 3 M15 4c2 0 3 1 3 3v2c0 1.5 1 2.5 2 3-1 .5-2 1.5-2 3v2c0 2-1 3-3 3 M10 12h.01 M14 12h.01',
-    engranaje: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9l2.1 2.1 M17 17l2.1 2.1 M4.9 19.1L7 17 M17 7l2.1-2.1',
-    spark: 'M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z M19 3v4 M17 5h4',
-    reloj: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 7v5l3 2',
-    orquestador: 'M12 12c0-4 1.5-8 5-9-0.5 4-2 7-5 9z M12 12c4 0 8 1.5 9 5-4-.5-7-2-9-5z M12 12c0 4-1.5 8-5 9 .5-4 2-7 5-9z M12 12c-4 0-8-1.5-9-5 4 .5 7 2 9 5z',
-    transformar: 'M3 4h18l-7 8.5V19l-4 2v-8.5z',
-    grafico: 'M3 3v18h18 M7 16v-4 M11 16V8 M15 16v-6 M19 16V6',
-    dashboard: 'M3 4h18v16H3z M7 16v-3 M10 16v-6 M13 16v-4 M15.5 9l2-2 2 2',
-    stream: 'M2 7c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0 M2 12c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0 M2 17c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0',
-    lambda: 'M5 21l6.5-11 M7 3h3l9 18',
-    candado: 'M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4 M12 15v2',
-    llave: 'M7.5 15.5a4 4 0 1 0 0-.1 M10.4 12.6L21 2 M17 6l3 3 M15 8l2 2',
-    tabla: 'M3 4h18v16H3z M3 9h18 M3 14h18 M9 9v11 M15 9v11',
-    notebook: 'M6 3h13v18H6z M6 3v18 M3 7h5 M3 12h5 M3 17h5 M10 8h6 M10 12h6',
-    codigo: 'M8 7l-5 5 5 5 M16 7l5 5-5 5 M14 4l-4 16',
-    git: 'M6 3v12 M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M18 9c0 6-6 6-12 9',
-    cubo: 'M12 2l9 5v10l-9 5-9-5V7z M12 12l9-5 M12 12v10 M12 12L3 7',
-    capas: 'M12 3l10 5-10 5L2 8z M2 13l10 5 10-5 M2 17.5l10 5 10-5',
-    almacen: 'M3 21V8l9-5 9 5v13 M7 21v-8h10v8 M7 16h10',
-    alerta: 'M6 9a6 6 0 1 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9z M10 21h4',
-    correo: 'M3 5h18v14H3z M3 6l9 7 9-7',
-    lupa: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z M15.5 15.5L21 21',
-    ml: 'M7 7h10v10H7z M10 2v5 M14 2v5 M10 17v5 M14 17v5 M2 10h5 M2 14h5 M17 10h5 M17 14h5',
-    dinero: 'M12 2v20 M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
-    carrito: 'M2 3h3l2.5 12h11L21 7H6.2 M9 20a1 1 0 1 0 0-.1 M18 20a1 1 0 1 0 0-.1',
-    camion: 'M2 6h12v10H2z M14 10h4l3 3v3h-7 M6 18.5a1.5 1.5 0 1 0 0-.1 M17 18.5a1.5 1.5 0 1 0 0-.1',
-    avion: 'M10 21l2-7-6-2 1.5-1.5L13 11l4-6c1-1.5 3-1 3 0l-5 6 2.5 5.5L16 18l-3-4-2 7z',
-    hospital: 'M3 21V7h18v14 M9 21v-5h6v5 M12 9v6 M9 12h6',
-    banco: 'M3 9l9-6 9 6 M5 9v9 M10 9v9 M14 9v9 M19 9v9 M3 21h18 M3 18h18',
-    musica: 'M9 18V5l11-2v13 M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M17 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
-    auto: 'M5 16H3v-4l2-5h14l2 5v4h-2 M3 12h18 M7.5 18a2 2 0 1 0 0-.1 M16.5 18a2 2 0 1 0 0-.1',
-    telefono: 'M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z',
-    energia: 'M13 2L4 14h7l-1 8 9-12h-7z',
-    hotel: 'M3 21V4h12v17 M15 9h6v12 M6 8h2 M10 8h2 M6 12h2 M10 12h2 M6 16h2 M10 16h2 M2 21h20',
-    escudo: 'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z M9 12l2 2 4-4',
-    comida: 'M6 2v8a2 2 0 0 0 4 0V2 M8 10v12 M17 2c-2 2-3 5-3 8h4V2 M17 10v12',
-    check: 'M4 12l5 5L20 6',
-    x: 'M5 5l14 14 M19 5L5 19',
-    docker: 'M3 12h17c1 0 2-1 2-2-1 0-2-.5-2.5-1.5C18 11 17 12 3 12z M3 12c0 5 4 8 9 8 6 0 9-3.5 10-8 M5 10h3V7H5z M9 10h3V7H9z M13 10h3V7h-3z M9 6h3V3H9z',
-    terraform: 'M3 3l6 3.5v7L3 10z M10 7l6 3.5v7L10 14z M17 10.5l4-2.3v7l-4 2.3z M10 15.5l6 3.5v3l-6-3.5z',
-    kafka: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M12 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z M12 17.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z M19 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z M19 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z M12 6.5V9 M12 15v2.5 M14.6 10.5l2.6-1.5 M14.6 13.5l2.6 1.5'
+  const CELDA_W = 250, CELDA_H = 195, NODO_W = 176, NODO_H = 112, MARGEN = 30, ICONO = 36;
+  const FUENTE = "'Kalam', 'Segoe Print', 'Comic Sans MS', cursive";
+  const SANS = "Inter, system-ui, sans-serif";
+
+  const luminancia = (hex) => {
+    const n = parseInt(hex.replace('#', ''), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   };
 
-  const CELDA_W = 250, CELDA_H = 195, NODO_W = 176, NODO_H = 112, MARGEN = 30;
-  const FUENTE = "'Kalam', 'Segoe Print', 'Comic Sans MS', cursive";
-
+  // ---------------------------------------------------------------- ubicación en la grilla
   // Si un nodo no tiene col/fila, se ubica por capas: col = largo del camino más largo desde una raíz
   function ubicar(spec) {
     const nodos = spec.nodos;
@@ -101,10 +54,12 @@
     const vertical = spec.direccion === 'abajo';
     for (const n of nodos) {
       const w = n.ancho ? Number(n.ancho) : NODO_W;
-      n.lineas = envolver(n.label, Math.floor(w / 11));
-      n.sublineas = n.sub ? envolver(n.sub, Math.floor(w / 7.6)) : [];
-      const conIcono = n.icono && ICONOS[n.icono];
-      n.w = w; n.h = Math.max(NODO_H, (conIcono ? 52 : 18) + n.lineas.length * 21 + n.sublineas.length * 17 + 12 + (n.forma === 'cilindro' ? 14 : 0));
+      const util = n.forma === 'rombo' || n.forma === 'hexagono' || n.forma === 'circulo' ? w * 0.68 : w;
+      n.lineas = envolver(n.label, Math.floor(util / 11));
+      n.sublineas = n.sub ? envolver(n.sub, Math.floor(util / 7.6)) : [];
+      const conIcono = !!resolverIcono(n.icono);
+      const extra = n.forma === 'cilindro' ? 14 : n.forma === 'rombo' ? 40 : n.forma === 'documento' ? 10 : n.forma === 'circulo' ? 26 : 0;
+      n.w = w; n.h = Math.max(NODO_H, (conIcono ? 54 : 18) + n.lineas.length * 21 + n.sublineas.length * 17 + 12 + extra);
       n._c = vertical ? n.fila : n.col; n._f = vertical ? n.col : n.fila;
     }
     // alto de cada fila: crece con el nodo más alto, y deja aire extra donde termina un grupo y empieza otro
@@ -122,18 +77,9 @@
     for (const n of nodos) {
       n.x = MARGEN + n._c * CELDA_W + (CELDA_W - n.w) / 2;
       n.y = y0[n._f] + (altoFila[n._f] - n.h) / 2;
+      n.cx = n.x + n.w / 2; n.cy = n.y + n.h / 2;
     }
     return porId;
-  }
-
-  // Punto donde la recta centro→destino corta el borde del rectángulo del nodo
-  function borde(n, hacia) {
-    const cx = n.x + n.w / 2, cy = n.y + n.h / 2;
-    const dx = hacia.x - cx, dy = hacia.y - cy;
-    if (!dx && !dy) return { x: cx, y: cy };
-    const sx = (n.w / 2 + 6) / Math.abs(dx || 1e-9), sy = (n.h / 2 + 6) / Math.abs(dy || 1e-9);
-    const t = Math.min(sx, sy);
-    return { x: cx + dx * t, y: cy + dy * t };
   }
 
   // parte un texto en líneas de hasta `max` caracteres, respetando los \n puestos a mano
@@ -152,20 +98,139 @@
     return out;
   }
 
+  // ---------------------------------------------------------------- rutas de las flechas
+  // Cada flecha prueba varias rutas ortogonales (recta, en L, en Z por el hueco entre filas o
+  // columnas, o rodeando) y se queda con la que no atraviesa otros nodos, con menos codos y más corta.
+  const HUECO_X = (CELDA_W - NODO_W) / 2, HUECO_Y = 34;
+  const puerto = (n, lado) => ({ r: { x: n.x + n.w + 4, y: n.cy }, l: { x: n.x - 4, y: n.cy }, t: { x: n.cx, y: n.y - 4 }, b: { x: n.cx, y: n.y + n.h + 4 } }[lado]);
+
+  function candidatas(a, b) {
+    const rutas = [];
+    const h = b.cx >= a.cx ? 'r' : 'l', hb = h === 'r' ? 'l' : 'r';
+    const v = b.cy >= a.cy ? 'b' : 't', vb = v === 'b' ? 't' : 'b';
+    const solapaY = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y), solapaX = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+    if (solapaY > 24) { const y = (Math.max(a.y, b.y) + Math.min(a.y + a.h, b.y + b.h)) / 2; rutas.push([{ ...puerto(a, h), y }, { ...puerto(b, hb), y }]); }
+    if (solapaX > 24) { const x = (Math.max(a.x, b.x) + Math.min(a.x + a.w, b.x + b.w)) / 2; rutas.push([{ ...puerto(a, v), x }, { ...puerto(b, vb), x }]); }
+    // en Z horizontal: sale por el costado, baja o sube por un hueco entre columnas y entra por el costado
+    const pa = puerto(a, h), pb = puerto(b, hb);
+    for (const xm of [h === 'r' ? a.x + a.w + HUECO_X : a.x - HUECO_X, h === 'r' ? b.x - HUECO_X : b.x + b.w + HUECO_X, (pa.x + pb.x) / 2]) {
+      if ((xm - pa.x) * (pb.x - xm) >= 0) rutas.push([pa, { x: xm, y: pa.y }, { x: xm, y: pb.y }, pb]);
+    }
+    // en Z vertical: sale por arriba o abajo, cruza por un hueco entre filas y entra por arriba o abajo
+    const qa = puerto(a, v), qb = puerto(b, vb);
+    for (const ym of [v === 'b' ? a.y + a.h + HUECO_Y : a.y - HUECO_Y, v === 'b' ? b.y - HUECO_Y : b.y + b.h + HUECO_Y, (qa.y + qb.y) / 2]) {
+      if ((ym - qa.y) * (qb.y - ym) >= 0) rutas.push([qa, { x: qa.x, y: ym }, { x: qb.x, y: ym }, qb]);
+    }
+    // en L
+    if ((b.cx - pa.x) * (h === 'r' ? 1 : -1) > 20 && (b.cy < a.y || b.cy > a.y + a.h)) rutas.push([pa, { x: b.cx, y: pa.y }, puerto(b, v === 'b' ? 't' : 'b')]);
+    if ((b.cy - qa.y) * (v === 'b' ? 1 : -1) > 20 && (b.cx < a.x || b.cx > a.x + a.w)) rutas.push([qa, { x: qa.x, y: b.cy }, puerto(b, h === 'r' ? 'l' : 'r')]);
+    // rodeando por un costado, por arriba o por abajo
+    const xr = Math.max(a.x + a.w, b.x + b.w) + HUECO_X, xl = Math.min(a.x, b.x) - HUECO_X;
+    rutas.push([puerto(a, 'r'), { x: xr, y: a.cy }, { x: xr, y: b.cy }, puerto(b, 'r')]);
+    rutas.push([puerto(a, 'l'), { x: xl, y: a.cy }, { x: xl, y: b.cy }, puerto(b, 'l')]);
+    const yt = Math.min(a.y, b.y) - HUECO_Y, yb = Math.max(a.y + a.h, b.y + b.h) + HUECO_Y;
+    rutas.push([puerto(a, 't'), { x: a.cx, y: yt }, { x: b.cx, y: yt }, puerto(b, 't')]);
+    rutas.push([puerto(a, 'b'), { x: a.cx, y: yb }, { x: b.cx, y: yb }, puerto(b, 'b')]);
+    return rutas;
+  }
+
+  const cortaRect = (p, q, r) => {
+    const m = 8, x0 = r.x - m, x1 = r.x + r.w + m, y0 = r.y - m, y1 = r.y + r.h + m;
+    if (Math.abs(p.y - q.y) < 0.5) return p.y > y0 && p.y < y1 && Math.max(p.x, q.x) > x0 && Math.min(p.x, q.x) < x1;
+    return p.x > x0 && p.x < x1 && Math.max(p.y, q.y) > y0 && Math.min(p.y, q.y) < y1;
+  };
+
+  function elegirRuta(a, b, nodos, usados) {
+    let mejor = null, puntaje = Infinity;
+    for (const r of candidatas(a, b)) {
+      let s = 0, largo = 0;
+      for (let i = 0; i < r.length - 1; i++) {
+        const p = r[i], q = r[i + 1];
+        largo += Math.abs(p.x - q.x) + Math.abs(p.y - q.y);
+        for (const n of nodos) {
+          const extremo = (n === a && i === 0) || (n === b && i === r.length - 2);
+          if (!extremo && cortaRect(p, q, n)) s += 1000;
+        }
+        // tramos que se superponen con otras flechas ya dibujadas
+        for (const [u, w] of usados) {
+          const hz = Math.abs(p.y - q.y) < 0.5 && Math.abs(u.y - w.y) < 0.5 && Math.abs(p.y - u.y) < 6;
+          const vt = Math.abs(p.x - q.x) < 0.5 && Math.abs(u.x - w.x) < 0.5 && Math.abs(p.x - u.x) < 6;
+          if (hz && Math.min(Math.max(p.x, q.x), Math.max(u.x, w.x)) - Math.max(Math.min(p.x, q.x), Math.min(u.x, w.x)) > 10) s += 150;
+          if (vt && Math.min(Math.max(p.y, q.y), Math.max(u.y, w.y)) - Math.max(Math.min(p.y, q.y), Math.min(u.y, w.y)) > 10) s += 150;
+        }
+      }
+      s += (r.length - 2) * 14 + largo * 0.04;
+      if (s < puntaje) { puntaje = s; mejor = r; }
+    }
+    return mejor;
+  }
+
+  // polilínea con esquinas redondeadas
+  function trazo(pts, radio = 14) {
+    let d = `M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const p = pts[i - 1], c = pts[i], n = pts[i + 1];
+      const l1 = Math.hypot(c.x - p.x, c.y - p.y), l2 = Math.hypot(n.x - c.x, n.y - c.y);
+      const r = Math.min(radio, l1 / 2, l2 / 2);
+      const a = { x: c.x - ((c.x - p.x) / l1) * r, y: c.y - ((c.y - p.y) / l1) * r };
+      const z = { x: c.x + ((n.x - c.x) / l2) * r, y: c.y + ((n.y - c.y) / l2) * r };
+      d += ` L${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${c.x.toFixed(1)} ${c.y.toFixed(1)} ${z.x.toFixed(1)} ${z.y.toFixed(1)}`;
+    }
+    const u = pts[pts.length - 1];
+    return d + ` L${u.x.toFixed(1)} ${u.y.toFixed(1)}`;
+  }
+
+  // ---------------------------------------------------------------- SVG
   function el(tag, attrs, parent) {
     const e = document.createElementNS(NS, tag);
-    for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+    for (const [k, v] of Object.entries(attrs || {})) if (v !== undefined) e.setAttribute(k, v);
     if (parent) parent.appendChild(e);
     return e;
   }
 
-  function texto(g, str, x, y, { size = 15, bold = false, anchor = 'middle', color = 'currentColor', lh = 1.15 } = {}) {
+  function texto(g, str, x, y, { size = 15, bold = false, anchor = 'middle', color = 'currentColor', lh = 1.15, fuente = FUENTE } = {}) {
     const lineas = String(str).split('\n');
-    const t = el('text', { x, y, 'text-anchor': anchor, 'font-family': FUENTE, 'font-size': size, 'font-weight': bold ? 700 : 400, fill: color }, g);
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-family': fuente, 'font-size': size, 'font-weight': bold ? 700 : 400, fill: color }, g);
     lineas.forEach((l, i) => { const ts = el('tspan', { x, dy: i ? size * lh : 0 }, t); ts.textContent = l; });
     return t;
   }
 
+  // ---------------------------------------------------------------- íconos
+  // Orden: logo de marca → sigla propia → "sigla:TEXTO:color" → trazo propio → alias en español → Lucide
+  function resolverIcono(nombre) {
+    if (!nombre) return null;
+    if (LIB.marcas[nombre]) return { tipo: 'marca', ...LIB.marcas[nombre] };
+    if (LIB.siglas[nombre]) return { tipo: 'sigla', sigla: LIB.siglas[nombre][0], color: LIB.siglas[nombre][1] };
+    const m = /^sigla:([^:]+)(?::(\w+))?$/.exec(nombre);
+    if (m) return { tipo: 'sigla', sigla: m[1], color: (COLORES[m[2]] || COLORES.gris)[0] };
+    if (LIB.trazos[nombre]) return { tipo: 'trazo', d: LIB.trazos[nombre] };
+    const l = LIB.lucide[LIB.alias[nombre] || nombre];
+    return l ? { tipo: 'lucide', svg: l } : null;
+  }
+
+  function dibujarIcono(g, nombre, x, y, color) {
+    const ic = resolverIcono(nombre);
+    if (!ic) return;
+    const s = ICONO;
+    if (ic.tipo === 'marca') {
+      // logo dentro de una placa: clara, u oscura si el color de la marca es muy claro
+      const clara = luminancia(ic.hex) < 0.72;
+      el('rect', { x, y, width: s, height: s, rx: 9, fill: clara ? '#ffffff' : '#1f2430', stroke: clara ? '#d5d9e3' : '#1f2430', class: 'dg-placa' }, g);
+      const p = el('g', { transform: `translate(${x + s * 0.18} ${y + s * 0.18}) scale(${(s * 0.64) / 24})` }, g);
+      el('path', { d: ic.path, fill: ic.hex }, p);
+      el('title', {}, g).textContent = ic.titulo;
+    } else if (ic.tipo === 'sigla') {
+      const largo = ic.sigla.length, fs = largo <= 2 ? 17 : largo === 3 ? 14 : 11.5;
+      el('rect', { x, y, width: s, height: s, rx: 9, fill: ic.color, class: 'dg-placa' }, g);
+      const t = el('text', { x: x + s / 2, y: y + s / 2 + fs * 0.36, 'text-anchor': 'middle', 'font-family': SANS, 'font-weight': 800, 'font-size': fs, fill: luminancia(ic.color) > 0.62 ? '#1a1a1a' : '#ffffff', class: 'dg-sigla' }, g);
+      t.textContent = ic.sigla;
+    } else {
+      const p = el('g', { transform: `translate(${x} ${y}) scale(${s / 24})`, fill: 'none', stroke: color, 'stroke-width': 1.7, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+      if (ic.tipo === 'trazo') el('path', { d: ic.d }, p); else p.innerHTML = ic.svg;
+    }
+  }
+
+  // ---------------------------------------------------------------- dibujo
   function dibujar(fig) {
     if (fig.dataset.listo || typeof rough === 'undefined') return;
     let spec;
@@ -179,86 +244,126 @@
       const x1 = Math.max(...ns.map((n) => n.x + n.w)) + 18, y1 = Math.max(...ns.map((n) => n.y + n.h)) + 18;
       return { ...g, x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
     });
-    const W = Math.max(...spec.nodos.map((n) => n.x + n.w), ...grupos.map((g) => g.x + g.w)) + MARGEN;
-    const H = Math.max(...spec.nodos.map((n) => n.y + n.h), ...grupos.map((g) => g.y + g.h)) + MARGEN + 10;
-    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, role: 'img', 'aria-label': spec.titulo || 'Diagrama', class: 'dg-svg' });
+
+    // rutas (antes de medir el lienzo, porque las que rodean pueden salirse de la grilla)
+    const usados = [];
+    const flechas = spec.flechas.map((f, i) => {
+      const a = porId[f.de], b = porId[f.a];
+      const pts = elegirRuta(a, b, spec.nodos, usados);
+      for (let k = 0; k < pts.length - 1; k++) usados.push([pts[k], pts[k + 1]]);
+      return { ...f, i, pts };
+    });
+    const xs = [...spec.nodos.flatMap((n) => [n.x, n.x + n.w]), ...grupos.flatMap((g) => [g.x, g.x + g.w]), ...flechas.flatMap((f) => f.pts.map((p) => p.x))];
+    const ys = [...spec.nodos.flatMap((n) => [n.y, n.y + n.h]), ...grupos.flatMap((g) => [g.y, g.y + g.h]), ...flechas.flatMap((f) => f.pts.map((p) => p.y))];
+    const minX = Math.min(0, Math.min(...xs) - MARGEN), minY = Math.min(0, Math.min(...ys) - MARGEN);
+    const W = Math.max(...xs) + MARGEN - minX, H = Math.max(...ys) + MARGEN + 10 - minY;
+
+    const svg = el('svg', { viewBox: `${minX} ${minY} ${W} ${H}`, width: W, role: 'img', 'aria-label': spec.titulo || 'Diagrama', class: 'dg-svg' });
     svg.style.maxWidth = W + 'px';
     svg.style.minWidth = Math.round(Math.min(W, Math.max(520, W * 0.72))) + 'px';   // muy ancho: se desplaza en vez de achicarse de más
     const rc = rough.svg(svg);
     let semilla = 7;
     const base = () => ({ seed: semilla++, roughness: 1.1, bowing: 0.9, strokeWidth: 1.6 });
+    const capa = (c) => el('g', { class: c }, svg);
+    const capaGrupos = capa('dg-capa-grupos'), capaFlechas = capa('dg-capa-flechas'), capaNodos = capa('dg-capa-nodos'), capaEtiquetas = capa('dg-capa-etiquetas');
 
     for (const g of grupos) {
       const [st, fi] = COLORES[g.color] || COLORES.gris;
-      svg.appendChild(rc.rectangle(g.x, g.y, g.w, g.h, { ...base(), stroke: st, strokeLineDash: [8, 6], fill: fi, fillStyle: 'solid', roughness: 0.8 }));
-      svg.lastChild.setAttribute('class', 'dg-grupo');
-      texto(svg, g.label, g.x + 12, g.y + 23, { size: 18, bold: true, anchor: 'start', color: st });
+      const gg = el('g', { class: 'dg-g' }, capaGrupos);
+      gg.appendChild(rc.rectangle(g.x, g.y, g.w, g.h, { ...base(), stroke: st, strokeLineDash: [8, 6], fill: fi, fillStyle: 'solid', roughness: 0.8 }));
+      gg.lastChild.setAttribute('class', 'dg-grupo');
+      texto(gg, g.label, g.x + 12, g.y + 23, { size: 18, bold: true, anchor: 'start', color: st });
     }
 
-    // flechas debajo de los nodos
-    for (const f of spec.flechas) {
-      const a = porId[f.de], b = porId[f.a];
-      const ca = { x: a.x + a.w / 2, y: a.y + a.h / 2 }, cb = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
-      const p1 = borde(a, cb), p2 = borde(b, ca);
+    // flechas, con su recorrido animable
+    for (const f of flechas) {
       const st = f.color ? COLORES[f.color][0] : 'currentColor';
-      const op = { ...base(), stroke: st, strokeWidth: 1.7 };
+      const gf = el('g', { class: 'dg-f', 'data-i': f.i, 'data-de': f.de, 'data-a': f.a }, capaFlechas);
+      const d = trazo(f.pts);
+      const op = { ...base(), stroke: st, strokeWidth: 1.7, roughness: 0.9 };
       if (f.estilo === 'punteada') op.strokeLineDash = [6, 6];
-      svg.appendChild(rc.line(p1.x, p1.y, p2.x, p2.y, op));
+      gf.appendChild(rc.path(d, op));
+      el('path', { d, class: 'dg-flujo', stroke: f.color ? COLORES[f.color][0] : 'var(--brand, #4f46e5)' }, gf);
+      if (f.doble) el('path', { d: trazo([...f.pts].reverse()), class: 'dg-flujo', stroke: f.color ? COLORES[f.color][0] : 'var(--brand, #4f46e5)' }, gf);
       const punta = (from, to) => {
         const ang = Math.atan2(to.y - from.y, to.x - from.x), L = 13, A = 0.45;
-        svg.appendChild(rc.line(to.x, to.y, to.x - L * Math.cos(ang - A), to.y - L * Math.sin(ang - A), { ...op, strokeLineDash: undefined }));
-        svg.appendChild(rc.line(to.x, to.y, to.x - L * Math.cos(ang + A), to.y - L * Math.sin(ang + A), { ...op, strokeLineDash: undefined }));
+        gf.appendChild(rc.line(to.x, to.y, to.x - L * Math.cos(ang - A), to.y - L * Math.sin(ang - A), { ...op, strokeLineDash: undefined }));
+        gf.appendChild(rc.line(to.x, to.y, to.x - L * Math.cos(ang + A), to.y - L * Math.sin(ang + A), { ...op, strokeLineDash: undefined }));
       };
-      if (!f.sinpunta) punta(p1, p2);
-      if (f.doble) punta(p2, p1);
+      const n = f.pts.length;
+      if (!f.sinpunta) punta(f.pts[n - 2], f.pts[n - 1]);
+      if (f.doble) punta(f.pts[1], f.pts[0]);
+
+      // etiqueta y número de paso, en el tramo más largo
+      let k = 0, mayor = -1;
+      for (let j = 0; j < n - 1; j++) { const l = Math.abs(f.pts[j].x - f.pts[j + 1].x) + Math.abs(f.pts[j].y - f.pts[j + 1].y); if (l > mayor) { mayor = l; k = j; } }
+      const p1 = f.pts[k], p2 = f.pts[k + 1];
+      const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2, horizontal = Math.abs(p2.y - p1.y) < 0.5;
+      const ge = el('g', { class: 'dg-e', 'data-i': f.i }, capaEtiquetas);
+      let corrimiento = 0;
+      if (f.paso) {
+        el('circle', { cx: mx, cy: my, r: 12, class: 'dg-paso', fill: f.color ? COLORES[f.color][0] : 'var(--brand, #4f46e5)' }, ge);
+        texto(ge, String(f.paso), mx, my + 5, { size: 14, bold: true, color: '#fff', fuente: SANS }).setAttribute('class', 'dg-paso-num');
+        corrimiento = 10;
+      }
       if (f.label) {
-        const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
-        const horizontal = Math.abs(p2.x - p1.x) >= Math.abs(p2.y - p1.y);
-        // entre dos cajas vecinas hay poco espacio: la etiqueta se parte en líneas que entren en el hueco
         let etiqueta = f.label;
-        const hueco = Math.abs(p2.x - p1.x);
-        if (horizontal && Math.max(...etiqueta.split('\n').map((l) => l.length)) * 8.4 + 14 > hueco + 16) etiqueta = envolver(etiqueta, Math.max(5, Math.floor((hueco + 2) / 8.4))).join('\n');
+        const hueco = horizontal ? Math.abs(p2.x - p1.x) : 150;
+        if (Math.max(...etiqueta.split('\n').map((l) => l.length)) * 8.4 + 14 > hueco + 16) etiqueta = envolver(etiqueta, Math.max(5, Math.floor((hueco + 2) / 8.4))).join('\n');
         const lineas = etiqueta.split('\n');
         const ancho = Math.max(...lineas.map((l) => l.length)) * 8.4 + 14, alto = lineas.length * 18 + 6;
         // horizontal: la etiqueta va arriba de la línea; vertical: a la derecha
-        const cx = horizontal ? mx : mx + ancho / 2 + 8, cy = horizontal ? my - alto / 2 - 6 : my;
-        el('rect', { x: cx - ancho / 2, y: cy - alto / 2, width: ancho, height: alto, rx: 6, class: 'dg-fondo-etiqueta' }, svg);
-        texto(svg, etiqueta, cx, cy - alto / 2 + 16, { size: 16, color: st, lh: 1.1 });
+        const cx = horizontal ? mx : mx + ancho / 2 + 8 + corrimiento, cy = horizontal ? my - alto / 2 - 6 - corrimiento : my;
+        el('rect', { x: cx - ancho / 2, y: cy - alto / 2, width: ancho, height: alto, rx: 6, class: 'dg-fondo-etiqueta' }, ge);
+        texto(ge, etiqueta, cx, cy - alto / 2 + 16, { size: 16, color: st, lh: 1.1 });
       }
     }
 
     for (const n of spec.nodos) {
       const [st, fi] = COLORES[n.color] || ['currentColor', null];
+      const gn = el('g', { class: 'dg-n', 'data-id': n.id }, capaNodos);
       const op = { ...base(), stroke: st };
       if (fi) Object.assign(op, { fill: fi, fillStyle: 'hachure', hachureGap: 7, fillWeight: 1.2, hachureAngle: -41 });
       const forma = n.forma || 'caja';
+      const { x, y, w, h } = n;
+      const formas = [];
       if (forma === 'cilindro') {
-        const rx = n.w / 2, ry = 10;
-        svg.appendChild(rc.path(`M${n.x} ${n.y + ry} L${n.x} ${n.y + n.h - ry} A${rx} ${ry} 0 0 0 ${n.x + n.w} ${n.y + n.h - ry} L${n.x + n.w} ${n.y + ry}`, op));
-        svg.appendChild(rc.ellipse(n.x + rx, n.y + ry, n.w, ry * 2, { ...op, seed: semilla++ }));
+        const rx = w / 2, ry = 10;
+        formas.push(rc.path(`M${x} ${y + ry} L${x} ${y + h - ry} A${rx} ${ry} 0 0 0 ${x + w} ${y + h - ry} L${x + w} ${y + ry}`, op));
+        formas.push(rc.ellipse(x + rx, y + ry, w, ry * 2, { ...op, seed: semilla++ }));
       } else if (forma === 'nube') {
-        svg.appendChild(rc.ellipse(n.x + n.w / 2, n.y + n.h / 2, n.w + 14, n.h + 8, op));
+        formas.push(rc.ellipse(x + w / 2, y + h / 2, w + 14, h + 8, op));
       } else if (forma === 'nota') {
-        svg.appendChild(rc.rectangle(n.x, n.y, n.w, n.h, { ...op, fill: '#ffec99', fillStyle: 'solid', stroke: '#f08c00' }));
+        formas.push(rc.rectangle(x, y, w, h, { ...op, fill: '#ffec99', fillStyle: 'solid', stroke: '#f08c00' }));
+      } else if (forma === 'rombo') {
+        formas.push(rc.polygon([[x + w / 2, y], [x + w, y + h / 2], [x + w / 2, y + h], [x, y + h / 2]], op));
+      } else if (forma === 'circulo') {
+        formas.push(rc.ellipse(x + w / 2, y + h / 2, w, h, op));
+      } else if (forma === 'hexagono') {
+        const i = 22;
+        formas.push(rc.polygon([[x + i, y], [x + w - i, y], [x + w, y + h / 2], [x + w - i, y + h], [x + i, y + h], [x, y + h / 2]], op));
+      } else if (forma === 'documento') {
+        const o = 10;
+        formas.push(rc.path(`M${x} ${y} L${x + w} ${y} L${x + w} ${y + h - o} Q${x + w * 0.75} ${y + h - 2 * o} ${x + w / 2} ${y + h - o} Q${x + w * 0.25} ${y + h} ${x} ${y + h - o} Z`, op));
       } else {
-        const r = 14, x = n.x, y = n.y, w = n.w, h = n.h;
-        svg.appendChild(rc.path(`M${x + r} ${y} L${x + w - r} ${y} Q${x + w} ${y} ${x + w} ${y + r} L${x + w} ${y + h - r} Q${x + w} ${y + h} ${x + w - r} ${y + h} L${x + r} ${y + h} Q${x} ${y + h} ${x} ${y + h - r} L${x} ${y + r} Q${x} ${y} ${x + r} ${y}`, op));
+        const r = 14;
+        formas.push(rc.path(`M${x + r} ${y} L${x + w - r} ${y} Q${x + w} ${y} ${x + w} ${y + r} L${x + w} ${y + h - r} Q${x + w} ${y + h} ${x + w - r} ${y + h} L${x + r} ${y + h} Q${x} ${y + h} ${x} ${y + h - r} L${x} ${y + r} Q${x} ${y} ${x + r} ${y}`, op));
       }
-      // el primer trazo de una figura con relleno es el rayado: se marca para atenuarlo en tema oscuro
-      if (fi && forma !== 'nota') svg.querySelectorAll(':scope > g:last-of-type > path:first-child').forEach((p) => p.classList.add('dg-relleno'));
-      if (forma === 'cilindro') svg.querySelectorAll(':scope > g:nth-last-of-type(2) > path:first-child').forEach((p) => fi && p.classList.add('dg-relleno'));
-      const tieneIcono = n.icono && ICONOS[n.icono];
-      if (tieneIcono) {
-        const dy = forma === 'cilindro' ? 16 : 0;
-        const g = el('g', { transform: `translate(${n.x + n.w / 2 - 17} ${n.y + 10 + dy}) scale(1.4)`, fill: 'none', stroke: fi ? st : 'currentColor', 'stroke-width': 1.7, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
-        el('path', { d: ICONOS[n.icono] }, g);
+      for (const f of formas) {
+        gn.appendChild(f);
+        // el primer trazo de una figura con relleno es el rayado: se marca para atenuarlo en tema oscuro
+        if (fi && forma !== 'nota') f.querySelector('path')?.classList.add('dg-relleno');
       }
+      const tieneIcono = !!resolverIcono(n.icono);
+      const dy = forma === 'cilindro' ? 16 : forma === 'rombo' ? 18 : forma === 'circulo' ? 12 : 0;
+      if (tieneIcono) dibujarIcono(gn, n.icono, x + w / 2 - ICONO / 2, y + 9 + dy, fi ? st : 'currentColor');
       const total = n.lineas.length * 21 + n.sublineas.length * 17;
-      const y0 = (tieneIcono ? n.y + 66 : n.y + (n.h - total) / 2 + 16) + (forma === 'cilindro' ? 12 : 0);
-      texto(svg, n.lineas.join('\n'), n.x + n.w / 2, y0, { size: 19, bold: true, color: 'currentColor', lh: 1.1 });
-      if (n.sublineas.length) texto(svg, n.sublineas.join('\n'), n.x + n.w / 2, y0 + n.lineas.length * 21, { size: 15, color: 'currentColor', lh: 1.12 }).setAttribute('class', 'dg-sub');
+      const ty = (tieneIcono ? y + 68 + dy : y + (h - total) / 2 + 16) + (forma === 'cilindro' ? -2 : 0);
+      texto(gn, n.lineas.join('\n'), x + w / 2, ty, { size: 19, bold: true, color: 'currentColor', lh: 1.1 });
+      if (n.sublineas.length) texto(gn, n.sublineas.join('\n'), x + w / 2, ty + n.lineas.length * 21, { size: 15, color: 'currentColor', lh: 1.12 }).setAttribute('class', 'dg-sub');
     }
 
+    // ---------------------------------------------------------------- interacción
     const marco = document.createElement('div');
     marco.className = 'dg-marco';
     marco.appendChild(svg);
@@ -266,7 +371,156 @@
     zoom.type = 'button'; zoom.className = 'dg-zoom'; zoom.title = 'Ampliar'; zoom.textContent = '⤢';
     zoom.addEventListener('click', () => ampliar(svg, spec.titulo));
     marco.appendChild(zoom);
+
+    // resaltar un nodo y sus flechas al pasar el mouse
+    svg.addEventListener('mouseover', (e) => {
+      const n = e.target.closest('.dg-n');
+      if (!n || marco.classList.contains('dg-pasos')) return;
+      const id = n.dataset.id;
+      svg.classList.add('dg-foco');
+      svg.querySelectorAll('.dg-on').forEach((x) => x.classList.remove('dg-on'));
+      n.classList.add('dg-on');
+      for (const f of flechas) {
+        if (f.de !== id && f.a !== id) continue;
+        svg.querySelectorAll(`[data-i="${f.i}"]`).forEach((x) => x.classList.add('dg-on'));
+        svg.querySelector(`.dg-n[data-id="${f.de === id ? f.a : f.de}"]`)?.classList.add('dg-on');
+      }
+    });
+    svg.addEventListener('mouseleave', () => { svg.classList.remove('dg-foco'); svg.querySelectorAll('.dg-on').forEach((x) => x.classList.remove('dg-on')); });
+
+    // barra: flujo animado, paso a paso y descargas
+    const barra = document.createElement('div');
+    barra.className = 'dg-barra';
+    const boton = (txt, titulo) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'dg-btn'; b.textContent = txt; b.title = titulo; barra.appendChild(b); return b; };
+    const bFlujo = flechas.length ? boton('▶ Ver el flujo', 'Animar cómo viajan los datos por las flechas') : null;
+    const bPasos = flechas.length > 1 ? boton('👣 Paso a paso', 'Recorrer el diagrama de a una flecha') : null;
+    const espacio = document.createElement('span'); espacio.className = 'dg-espacio'; barra.appendChild(espacio);
+    const bPng = boton('⬇ PNG', 'Descargar como imagen'), bSvg = boton('⬇ SVG', 'Descargar como SVG');
+    marco.appendChild(barra);
+
+    const panel = document.createElement('div');
+    panel.className = 'dg-panel'; panel.hidden = true;
+    panel.innerHTML = '<button type="button" class="dg-btn" data-p="-1">◀</button><div class="dg-panel-txt"></div><button type="button" class="dg-btn" data-p="1">▶</button><button type="button" class="dg-btn" data-p="x" title="Salir del paso a paso">✕</button>';
+    marco.appendChild(panel);
+
+    bFlujo?.addEventListener('click', () => {
+      const on = marco.classList.toggle('dg-anima');
+      bFlujo.textContent = on ? '⏸ Detener' : '▶ Ver el flujo';
+    });
+
+    // orden de los pasos: el atributo paso= si existe; si no, orden topológico (un nodo se presenta
+    // cuando ya llegaron todas sus entradas) y, entre los disponibles, se sigue la misma fila
+    const orden = flechas.some((f) => f.paso) ? [...flechas].sort((f, g) => (Number(f.paso) || 1e9) - (Number(g.paso) || 1e9) || f.i - g.i) : (() => {
+      const pendientes = Object.fromEntries(spec.nodos.map((n) => [n.id, flechas.filter((f) => f.a === n.id && f.de !== n.id).length]));
+      const hechos = new Set(), res = [];
+      const clave = (n) => n._f * 1000 + n._c;
+      while (hechos.size < spec.nodos.length) {
+        let libres = spec.nodos.filter((n) => !hechos.has(n.id) && pendientes[n.id] === 0);
+        if (!libres.length) libres = spec.nodos.filter((n) => !hechos.has(n.id));   // hay un ciclo: se rompe por posición
+        const n = libres.sort((a, b) => clave(a) - clave(b))[0];
+        hechos.add(n.id);
+        res.push(...flechas.filter((f) => f.a === n.id && !res.includes(f)).sort((f, g) => clave(porId[f.de]) - clave(porId[g.de])));
+        for (const f of flechas) if (f.de === n.id) pendientes[f.a]--;
+      }
+      return res;
+    })();
+    let paso = 0;
+    const etiquetaNodo = (id) => porId[id].label.replace(/\n/g, ' ');
+    const mostrarPaso = () => {
+      const vistos = new Set(), flechasVistas = new Set(orden.slice(0, paso + 1).map((f) => f.i));
+      orden.slice(0, paso + 1).forEach((f) => { vistos.add(f.de); vistos.add(f.a); });
+      svg.querySelectorAll('.dg-n').forEach((x) => x.classList.toggle('dg-visto', vistos.has(x.dataset.id)));
+      svg.querySelectorAll('.dg-f, .dg-e').forEach((x) => { x.classList.toggle('dg-visto', flechasVistas.has(Number(x.dataset.i))); x.classList.toggle('dg-actual', Number(x.dataset.i) === orden[paso].i); });
+      const f = orden[paso];
+      const desc = f.explica || f.label || '';
+      panel.querySelector('.dg-panel-txt').innerHTML = `<b>Paso ${paso + 1} de ${orden.length}:</b> ${esc(etiquetaNodo(f.de))} → ${esc(etiquetaNodo(f.a))}${desc ? `<span>${esc(desc.replace(/\n/g, ' '))}</span>` : ''}`;
+      panel.querySelector('[data-p="-1"]').disabled = paso === 0;
+      panel.querySelector('[data-p="1"]').disabled = paso === orden.length - 1;
+    };
+    const salirPasos = () => { marco.classList.remove('dg-pasos'); panel.hidden = true; bPasos.classList.remove('activo'); };
+    bPasos?.addEventListener('click', () => {
+      if (marco.classList.contains('dg-pasos')) return salirPasos();
+      paso = 0; marco.classList.add('dg-pasos'); panel.hidden = false; bPasos.classList.add('activo');
+      svg.classList.remove('dg-foco'); mostrarPaso();
+    });
+    panel.addEventListener('click', (e) => {
+      const p = e.target.closest('[data-p]')?.dataset.p;
+      if (p === 'x') salirPasos();
+      else if (p) { paso = Math.max(0, Math.min(orden.length - 1, paso + Number(p))); mostrarPaso(); }
+    });
+    marco.tabIndex = -1;
+    marco.addEventListener('keydown', (e) => {
+      if (!marco.classList.contains('dg-pasos')) return;
+      if (e.key === 'ArrowRight' && paso < orden.length - 1) { paso++; mostrarPaso(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && paso > 0) { paso--; mostrarPaso(); e.preventDefault(); }
+      if (e.key === 'Escape') salirPasos();
+    });
+
+    bPng.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'png'));
+    bSvg.addEventListener('click', () => exportar(svg, marco, spec.titulo, 'svg'));
     fig.insertBefore(marco, fig.firstChild);
+  }
+
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // ---------------------------------------------------------------- descargar
+  // Copia el SVG con los colores del tema resueltos y los estilos necesarios incluidos.
+  function exportar(svg, marco, titulo, tipo) {
+    const cs = getComputedStyle(marco), tinta = cs.color, fondo = cs.backgroundColor;
+    const oscuro = luminancia('#' + (fondo.match(/\d+/g) || [255, 255, 255]).slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('')) < 0.5;
+    const copia = svg.cloneNode(true);
+    copia.removeAttribute('class'); copia.removeAttribute('style');
+    copia.querySelectorAll('.dg-flujo').forEach((x) => x.remove());
+    copia.querySelectorAll('[class]').forEach((x) => x.classList.remove('dg-on', 'dg-visto', 'dg-actual'));
+    copia.querySelectorAll('[stroke="currentColor"]').forEach((x) => x.setAttribute('stroke', tinta));
+    copia.querySelectorAll('[fill="currentColor"]').forEach((x) => x.setAttribute('fill', tinta));
+    const [vx, vy, vw, vh] = copia.getAttribute('viewBox').split(' ').map(Number);
+    copia.setAttribute('xmlns', NS); copia.setAttribute('width', vw); copia.setAttribute('height', vh);
+    const estilo = el('style', {});
+    estilo.textContent = `text{paint-order:stroke;stroke:${fondo};stroke-width:4px;stroke-linejoin:round}.dg-sigla{stroke:none}.dg-fondo-etiqueta{fill:${fondo};opacity:.92}.dg-sub{opacity:.8}.dg-relleno{opacity:${oscuro ? 0.3 : 0.75}}.dg-grupo path[fill]:not([fill="none"]){fill-opacity:.22}`;
+    copia.insertBefore(estilo, copia.firstChild);
+    copia.insertBefore(el('rect', { x: vx, y: vy, width: vw, height: vh, fill: fondo }), estilo.nextSibling);
+    const generar = (fuente) => {
+      if (fuente) estilo.textContent = fuente + estilo.textContent;
+      return new XMLSerializer().serializeToString(copia);
+    };
+    fuenteIncrustada().then((f) => terminar(generar(f)), () => terminar(generar('')));
+    const terminar = (xml) => {
+    const nombre = (titulo || 'diagrama').toLowerCase().normalize('NFD').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 60) || 'diagrama';
+    const bajar = (url, ext) => { const a = document.createElement('a'); a.href = url; a.download = `${nombre}.${ext}`; a.click(); };
+    if (tipo === 'svg') { bajar(URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml' })), 'svg'); return; }
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'), k = 2;
+      c.width = vw * k; c.height = vh * k;
+      const ctx = c.getContext('2d');
+      ctx.scale(k, k); ctx.drawImage(img, 0, 0, vw, vh);
+      bajar(c.toDataURL('image/png'), 'png');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+    };
+  }
+
+  // La letra a mano (Kalam) se incrusta en el archivo exportado para que la imagen se vea igual que en la página.
+  let fuenteCache = null;
+  function fuenteIncrustada() {
+    if (fuenteCache) return fuenteCache;
+    const aBase64 = (buf) => { let b = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) b += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(b); };
+    fuenteCache = fetch('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap').then((r) => r.text()).then(async (css) => {
+      // de cada peso, el bloque del subconjunto latino (incluye tildes y ñ)
+      const bloques = css.split('@font-face').filter((b) => /latin \*\//.test(b) || /U\+0000-00FF/.test(b));
+      const caras = [];
+      for (const b of bloques) {
+        const url = (b.match(/url\(([^)]+)\)/) || [])[1], peso = (b.match(/font-weight:\s*(\d+)/) || [])[1];
+        if (!url) continue;
+        const datos = aBase64(await (await fetch(url)).arrayBuffer());
+        caras.push(`@font-face{font-family:'Kalam';font-weight:${peso};src:url(data:font/woff2;base64,${datos}) format('woff2')}`);
+      }
+      if (!caras.length) throw new Error('sin fuente');
+      return caras.join('');
+    });
+    fuenteCache.catch(() => { fuenteCache = null; });
+    return fuenteCache;
   }
 
   function ampliar(svg, titulo) {
@@ -275,7 +529,7 @@
     capa.innerHTML = `<div class="dg-capa-in"><button type="button" class="dg-cerrar" title="Cerrar">✕</button>${titulo ? `<div class="dg-capa-tit"></div>` : ''}</div>`;
     if (titulo) capa.querySelector('.dg-capa-tit').textContent = titulo;
     const copia = svg.cloneNode(true);
-    copia.removeAttribute('width'); copia.style.maxWidth = 'none';
+    copia.removeAttribute('width'); copia.style.maxWidth = 'none'; copia.style.minWidth = '0';
     capa.firstChild.appendChild(copia);
     const cerrar = () => { capa.remove(); document.removeEventListener('keydown', esc); };
     const esc = (e) => { if (e.key === 'Escape') cerrar(); };
@@ -284,5 +538,5 @@
     document.body.appendChild(capa);
   }
 
-  window.Diagramas = { dibujar: (root) => (root || document).querySelectorAll('figure.diagrama').forEach(dibujar), ICONOS, COLORES };
+  window.Diagramas = { dibujar: (root) => (root || document).querySelectorAll('figure.diagrama').forEach(dibujar), resolverIcono, COLORES };
 })();

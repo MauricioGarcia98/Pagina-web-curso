@@ -591,3 +591,26 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .cert-temas { margin: 8px 0 4px; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
 .cert-temas li { margin: 2px 0; }
 .cert-lecs { margin-top: 6px; line-height: 1.7; }
+
+/* ---------- diagramas: interacción (flujo animado, paso a paso, resaltado) */
+.dg-svg .dg-sigla, .dg-svg .dg-paso-num { stroke: none; }
+.dg-placa { filter: drop-shadow(0 1px 1px rgba(20, 22, 40, .12)); }
+.dg-flujo { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1 15; opacity: 0; pointer-events: none; }
+.dg-anima .dg-flujo, .dg-pasos .dg-f.dg-actual .dg-flujo { opacity: .95; animation: dg-flujo .9s linear infinite; }
+@keyframes dg-flujo { from { stroke-dashoffset: 16; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .dg-anima .dg-flujo, .dg-pasos .dg-f.dg-actual .dg-flujo { animation: none; stroke-dasharray: 6 8; } }
+.dg-n, .dg-f, .dg-e, .dg-g { transition: opacity .25s; }
+.dg-n { cursor: default; }
+.dg-foco .dg-n:not(.dg-on), .dg-foco .dg-f:not(.dg-on), .dg-foco .dg-e:not(.dg-on) { opacity: .22; }
+.dg-pasos .dg-n:not(.dg-visto), .dg-pasos .dg-f:not(.dg-visto), .dg-pasos .dg-e:not(.dg-visto) { opacity: .07; }
+.dg-pasos .dg-g { opacity: .5; }
+.dg-pasos .dg-f.dg-visto:not(.dg-actual), .dg-pasos .dg-e.dg-visto:not(.dg-actual) { opacity: .45; }
+.dg-barra { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 4px 2px; border-top: 1px dashed var(--line); margin-top: 6px; }
+.dg-espacio { flex: 1; }
+.dg-btn { border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); border-radius: 8px; padding: 5px 10px; font: 600 13px var(--font); cursor: pointer; }
+.dg-btn:hover:not(:disabled), .dg-btn.activo { color: var(--brand); border-color: var(--brand); }
+.dg-btn:disabled { opacity: .4; cursor: default; }
+.dg-panel { display: flex; gap: 8px; align-items: center; padding: 10px 6px 4px; }
+.dg-panel[hidden] { display: none; }
+.dg-panel-txt { flex: 1; font-size: 14px; color: var(--ink); line-height: 1.45; }
+.dg-panel-txt span { display: block; color: var(--ink-2); }

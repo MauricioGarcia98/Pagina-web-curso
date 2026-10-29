@@ -1497,7 +1497,7 @@
           ${c.notas ? `<div class="prose cert-notas">${c.notas}</div>` : ''}
           <h4>Dominios del examen</h4>
           ${c.dominios.map((d) => `<div class="cert-dom">
-            <div class="cert-dom-head"><b>${esc(d.nombre)}</b><span>${d.peso}%</span></div>
+            <div class="cert-dom-head"><b>${esc(d.nombre)}</b><span>${esc(d.rango || d.peso + '%')}</span></div>
             <div class="bar"><i style="width:${d.peso * 2.5}%;max-width:100%;background:var(--brand)"></i></div>
             ${d.temas ? `<ul class="cert-temas">${d.temas.map((t) => `<li>${t}</li>`).join('')}</ul>` : ''}
             ${d.lecciones.length ? `<div class="cert-lecs small">📚 ${d.lecciones.map((l) => `<a href="#/l/${l.id}">${hechas.has(l.id) ? '✓ ' : ''}${esc(l.titulo)}</a>`).join(' · ')}</div>` : ''}

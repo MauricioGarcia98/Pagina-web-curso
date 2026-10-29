@@ -16,7 +16,7 @@ Rápido firmó un acuerdo con una cadena de restaurantes: les va a compartir sus
 
 ```diagrama
 titulo: La jerarquía de Unity Catalog
-nodo ms: Metastore | icono=almacen | col=0 | fila=0 | sub=uno por región | color=violeta
+nodo ms: Metastore | icono=unity | col=0 | fila=0 | sub=uno por región | color=violeta
 nodo cat: Catálogo | icono=capas | col=1 | fila=0 | sub=prod, dev, ventas_pg (foráneo)
 nodo sch: Esquema | icono=capas | col=2 | fila=0 | sub=silver, gold
 nodo t: Tablas y vistas | icono=tabla | col=3 | fila=0 | color=azul

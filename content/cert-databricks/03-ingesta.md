@@ -27,12 +27,12 @@ Rápido, la app de delivery, tiene tres fuentes: (1) el sistema de pedidos deja 
 ```diagrama
 titulo: Rápido: cada fuente con su forma de ingesta hacia bronze
 nodo json: Pedidos JSON | icono=archivos | col=0 | fila=0 | sub=cada minuto al bucket
-nodo sf: Salesforce | icono=nube | col=0 | fila=1 | sub=CRM
-nodo sql: SQL Server | icono=base | col=0 | fila=2 | forma=cilindro | sub=facturación
+nodo sf: Salesforce | icono=salesforce | col=0 | fila=1 | sub=CRM
+nodo sql: SQL Server | icono=sqlserver | col=0 | fila=2 | forma=cilindro | sub=facturación
 nodo al: Auto Loader | icono=engranaje | col=1 | fila=0 | color=verde
-nodo lc: Lakeflow Connect | icono=engranaje | col=1 | fila=1 | sub=conector gestionado | color=violeta
-nodo cdc: Lakeflow Connect | icono=engranaje | col=1 | fila=2 | sub=gateway + CDC | color=violeta
-nodo br: Bronze (Delta) | icono=capas | col=2 | fila=1 | forma=cilindro | color=naranja
+nodo lc: Lakeflow Connect | icono=lakeflow | col=1 | fila=1 | sub=conector gestionado | color=violeta
+nodo cdc: Lakeflow Connect | icono=lakeflow | col=1 | fila=2 | sub=gateway + CDC | color=violeta
+nodo br: Bronze (Delta) | icono=delta | col=2 | fila=1 | forma=cilindro | color=naranja
 flecha json -> al
 flecha sf -> lc
 flecha sql -> cdc

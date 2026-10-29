@@ -70,8 +70,8 @@ Las técnicas que contiene:
 titulo: RAG: preparación (arriba) y consulta (abajo)
 nodo pdf: PDFs y políticas | icono=archivos | col=0 | fila=0
 nodo parse: Parsear y limpiar | icono=transformar | col=1 | fila=0 | sub=ai_parse_document
-nodo chunk: Chunks + metadatos | icono=tabla | col=2 | fila=0 | sub=tabla Delta con CDF | color=naranja
-nodo idx: Índice vectorial | icono=lupa | col=3 | fila=0 | sub=Delta Sync | color=violeta
+nodo chunk: Chunks + metadatos | icono=delta | col=2 | fila=0 | sub=tabla Delta con CDF | color=naranja
+nodo idx: Índice vectorial | icono=vectorsearch | col=3 | fila=0 | sub=Delta Sync | color=violeta
 nodo q: Pregunta | icono=usuario | col=0 | fila=1
 nodo ret: Recuperar top-k | icono=lupa | col=1 | fila=1 | sub=híbrida + filtros | color=violeta
 nodo llm: LLM | icono=ml | col=2 | fila=1 | sub=prompt + contexto | color=verde

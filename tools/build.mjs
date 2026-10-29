@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Marked } from 'marked';
+import { generarIconos } from './iconos.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT = path.join(ROOT, 'content');
@@ -36,6 +37,8 @@ const CALLOUTS = { tip: '💡 Consejo', nota: '📝 Nota', cuidado: '⚠️ Cuid
 // flecha a -> b: etiqueta | estilo=punteada | color=rojo | doble
 // ```
 const DG_COLORES = ['azul', 'verde', 'naranja', 'rojo', 'violeta', 'amarillo', 'gris', 'cian', 'rosa'];
+const DG_FORMAS = ['caja', 'cilindro', 'nube', 'nota', 'rombo', 'documento', 'circulo', 'hexagono'];
+let ICONOS_VALIDOS = null;   // lo llena build() con la biblioteca generada
 function parseDiagrama(src, file) {
   const spec = { titulo: '', direccion: 'derecha', nodos: [], grupos: [], flechas: [] };
   const opts = (parts) => Object.fromEntries(parts.map((x) => x.trim()).filter(Boolean).map((x) => { const i = x.indexOf('='); return i < 0 ? [x, true] : [x.slice(0, i).trim(), x.slice(i + 1).trim()]; }));
@@ -47,6 +50,8 @@ function parseDiagrama(src, file) {
     if ((m = line.match(/^nodo\s+([\w-]+)\s*:\s*(.*)$/))) {
       const [label, ...rest] = m[2].split('|'); const o = opts(rest);
       if (o.color && !DG_COLORES.includes(o.color)) throw new Error(`Diagrama en ${file}: color desconocido "${o.color}"`);
+      if (o.forma && !DG_FORMAS.includes(o.forma)) throw new Error(`Diagrama en ${file}: forma desconocida "${o.forma}" (usa ${DG_FORMAS.join(', ')})`);
+      if (o.icono && ICONOS_VALIDOS && !ICONOS_VALIDOS.has(o.icono) && !/^sigla:[^:]+(:\w+)?$/.test(o.icono)) throw new Error(`Diagrama en ${file}: ícono desconocido "${o.icono}" (alias en español, nombre de Lucide, marca o sigla:TEXTO:color)`);
       if (typeof o.sub === 'string') o.sub = o.sub.replace(/\\n/g, '\n');
       spec.nodos.push({ id: m[1], label: label.trim().replace(/\\n/g, '\n'), ...o, col: o.col !== undefined ? Number(o.col) : undefined, fila: o.fila !== undefined ? Number(o.fila) : undefined });
       continue;
@@ -304,8 +309,10 @@ function buildCertificaciones(modules, examenes) {
     if (ids.has(c.id)) throw new Error(`${donde}: id repetido`);
     ids.add(c.id);
     if (c.examen && !examenes.some((e) => e.id === c.examen)) throw new Error(`${donde}: el examen "${c.examen}" no existe`);
+    // con rangos oficiales ("30–35 %"), "peso" es el punto medio aproximado y solo dibuja la barra
     const total = c.dominios.reduce((s, d) => s + d.peso, 0);
-    if (Math.abs(total - 100) > 2) throw new Error(`${donde}: los pesos de los dominios suman ${total}, no 100`);
+    const tolerancia = c.dominios.some((d) => d.rango) ? 12 : 2;
+    if (Math.abs(total - 100) > tolerancia) throw new Error(`${donde}: los pesos de los dominios suman ${total}, no 100`);
     for (const d of c.dominios) {
       for (const l of d.lecciones || []) if (!lecciones.has(l)) throw new Error(`${donde}: la lección "${l}" del dominio "${d.nombre}" no existe`);
       d.lecciones = (d.lecciones || []).map((l) => ({ id: l, titulo: lecciones.get(l) }));
@@ -317,6 +324,11 @@ function buildCertificaciones(modules, examenes) {
 }
 
 function build() {
+  // íconos de los diagramas: la selección de Lucide más todo lo que usan las lecciones
+  const usados = new Set();
+  const recorrer = (d) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) recorrer(p); else if (f.endsWith('.md')) for (const m of fs.readFileSync(p, 'utf8').matchAll(/icono=([\w:-]+)/g)) usados.add(m[1]); } };
+  recorrer(CONTENT);
+  ICONOS_VALIDOS = generarIconos(ROOT, [...usados]);
   const modules = JSON.parse(fs.readFileSync(path.join(CONTENT, 'modules.json'), 'utf8'));
   let nLessons = 0, nEx = 0;
   for (const mod of modules) {

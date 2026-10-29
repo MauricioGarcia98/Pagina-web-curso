@@ -66,22 +66,27 @@ El problema de negocio concreto que motiva la lección (quién pide qué y por q
 
 ## Diagramas
 
-Los diagramas se escriben dentro de la lección en un bloque `diagrama`. El sitio los dibuja con trazo a mano (rough.js, la librería de Excalidraw), con íconos, y se pueden ampliar a pantalla completa.
+Los diagramas se escriben dentro de la lección en un bloque `diagrama`. El sitio los dibuja con trazo a mano (rough.js, la librería de Excalidraw), con íconos y logos, y cada diagrama trae una barra con **▶ Ver el flujo** (anima cómo viajan los datos por las flechas), **👣 Paso a paso** (recorre el diagrama de a una flecha, con su explicación), descarga en **PNG** y **SVG**, y ampliación a pantalla completa. Al pasar el mouse por un nodo se resaltan sus conexiones.
 
 ```text
 ```diagrama
 titulo: Texto que va debajo del diagrama
 nodo app: App y web | icono=movil | col=0 | fila=0 | sub=texto chico
-nodo db: Base de datos | icono=base | col=1 | fila=0 | forma=cilindro | color=azul
+nodo db: Base de datos | icono=postgres | col=1 | fila=0 | forma=cilindro | color=azul
+nodo ok: ¿Datos válidos? | forma=rombo | col=2 | fila=0 | color=amarillo
 grupo nube: AWS | nodos=db | color=naranja
-flecha app -> db: guarda el pedido | estilo=punteada
+flecha app -> db: guarda el pedido | estilo=punteada | paso=1 | explica=La app escribe cada pedido en la base.
 ```
 ```
 
-- **Hasta 4 columnas** (`col` 0 a 3). Si el recorrido es más largo, sigue en la fila de abajo.
-- `forma`: `caja` (por defecto), `cilindro`, `nube`, `nota`.
-- `color`: azul, verde, naranja, rojo, violeta, amarillo, gris, cian, rosa.
-- Flechas: `a -> b`, `a <-> b` (doble) o `a -- b` (sin punta); `estilo=punteada`.
+- **Hasta 4 columnas** (`col` 0 a 3). Si el recorrido es más largo, sigue en la fila de abajo. Si un nodo no tiene `col`/`fila`, se ubica solo según las flechas.
+- `forma`: `caja` (por defecto), `cilindro`, `nube`, `nota`, `rombo` (decisiones), `documento`, `circulo`, `hexagono`.
+- `color`: azul, verde, naranja, rojo, violeta, amarillo, gris, cian, rosa. `ancho=` cambia el ancho del nodo.
+- **Flechas**: `a -> b`, `a <-> b` (doble) o `a -- b` (sin punta); `estilo=punteada`. Se dibujan con codos y eligen solas la ruta que no atraviesa otros nodos. `paso=N` numera la flecha y fija su orden en el modo paso a paso (sin `paso`, el orden se calcula siguiendo el flujo); `explica=` es el texto que aparece en ese paso.
 - Saltos de línea en textos: `\n`.
-- Íconos disponibles: `base`, `bucket`, `archivo`, `archivos`, `csv`, `json`, `nube`, `servidor`, `usuario`, `equipo`, `movil`, `web`, `api`, `engranaje`, `spark`, `reloj`, `orquestador`, `transformar`, `grafico`, `dashboard`, `stream`, `lambda`, `candado`, `llave`, `tabla`, `notebook`, `codigo`, `git`, `cubo`, `capas`, `almacen`, `alerta`, `correo`, `lupa`, `ml`, `dinero`, `carrito`, `camion`, `avion`, `hospital`, `banco`, `musica`, `auto`, `telefono`, `energia`, `hotel`, `escudo`, `comida`, `check`, `x`, `docker`, `terraform`, `kafka`.
-- Si un nodo no tiene `col`/`fila`, se ubica solo según las flechas.
+- **Íconos** (`icono=`), en este orden de búsqueda:
+  1. **Logos** (Simple Icons, CC0): `databricks`, `spark`, `kafka`, `airflow`, `snowflake`, `bigquery`, `gcp`, `postgres`, `mysql`, `mongodb`, `redis`, `python`, `pandas`, `polars`, `duckdb`, `jupyter`, `docker`, `kubernetes`, `terraform`, `github`, `githubactions`, `gitlab`, `mlflow`, `huggingface`, `langchain`, `anthropic`, `claude`, `gemini`, `ollama`, `flink`, `trino`, `clickhouse`, `airbyte`, `metabase`, `superset`, `looker`, `grafana`, `prometheus`, `parquet`, `pubsub`, `dataproc`, `hadoop`, `hive`, `cassandra`, `elasticsearch`, `streamlit`, `fastapi`, `prefect`, `jenkins`, `jira`, `sqlite`, `linux`, `stripe`.
+  2. **Distintivos propios** (sigla en el color de la marca, para lo que no está en Simple Icons): `aws`, `s3`, `glue`, `athena`, `redshift`, `kinesis`, `emr`, `lambdaaws`, `stepfunctions`, `iam`, `bedrock`, `sagemaker`, `azure`, `adls`, `adf`, `synapse`, `eventhubs`, `keyvault`, `entra`, `foundry`, `aisearch`, `fabric`, `onelake`, `powerbi`, `gcs`, `dataflow`, `vertex`, `composer`, `dataform`, `spanner`, `bigtable`, `dbt`, `iceberg`, `delta`, `unity`, `lakeflow`, `genie`, `vectorsearch`, `openai`, `tableau`, `salesforce`, `sqlserver`, `fivetran`, `slack`. También `sigla:TEXTO:color` para uno a medida (por ejemplo `sigla:CRM:azul`).
+  3. **Nombres en español**: `base`, `bucket`, `archivo`, `archivos`, `csv`, `json`, `nube`, `servidor`, `usuario`, `equipo`, `movil`, `web`, `api`, `engranaje`, `spark`, `reloj`, `orquestador`, `transformar`, `grafico`, `dashboard`, `stream`, `lambda`, `candado`, `llave`, `tabla`, `notebook`, `codigo`, `git`, `cubo`, `capas`, `almacen`, `alerta`, `correo`, `lupa`, `ml`, `robot`, `cerebro`, `chispa`, `mensaje`, `documento`, `carpeta`, `vector`, `cola`, `monitor`, `cache`, `reglas`, `calendario`, `webhook`, `internet`, `red`, `flujo`, `etiqueta`, `libro`, `terminal`, `prueba`, `bug`, `costo`, `velocidad`, `fabrica`, `tienda`, `dinero`, `carrito`, `camion`, `avion`, `hospital`, `banco`, `musica`, `auto`, `telefono`, `energia`, `hotel`, `escudo`, `comida`, `check`, `x`.
+  4. **Cualquier ícono de Lucide** por su nombre (ISC, lucide.dev): `bot`, `brain-circuit`, `shield-check`, `workflow`, `scan-search`…
+- El build falla si un diagrama usa un ícono, color o forma que no existe. La biblioteca se genera en `assets/js/iconos-lib.js` desde `tools/iconos.mjs` (solo con los íconos de Lucide seleccionados y los que usan las lecciones).

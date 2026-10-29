@@ -21,9 +21,9 @@ El pipeline de Rápido tiene tres pasos: ingerir (Declarative Pipeline), validar
 ```diagrama
 titulo: El job diario de Rápido
 nodo t: Disparador | icono=reloj | col=0 | fila=0 | sub=llegada de archivos
-nodo i: ingesta | icono=engranaje | col=1 | fila=0 | sub=tarea pipeline | color=verde
+nodo i: ingesta | icono=lakeflow | col=1 | fila=0 | sub=tarea pipeline | color=verde
 nodo v: validar | icono=notebook | col=2 | fila=0 | sub=fija task value filas | color=azul
-nodo c: ¿filas > 1000? | icono=check | col=2 | fila=1 | sub=tarea If/else | color=amarillo
+nodo c: ¿filas > 1000? | col=2 | fila=1 | sub=tarea If/else | color=amarillo | forma=rombo | ancho=200
 nodo f: por_ciudad | icono=capas | col=3 | fila=0 | sub=For each (12 ciudades) | color=violeta
 nodo d: refrescar_dashboard | icono=dashboard | col=3 | fila=1 | sub=Run if: all succeeded | color=cian
 nodo a: alerta | icono=alerta | col=1 | fila=1 | sub=Run if: at least one failed | color=rojo

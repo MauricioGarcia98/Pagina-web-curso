@@ -21,10 +21,10 @@ Databricks separa **dónde se coordina** el trabajo (el *plano de control*, que 
 ```diagrama
 titulo: Arquitectura de Databricks: plano de control, plano de cómputo y tu almacenamiento
 nodo usr: Usuarios y CI/CD | icono=usuario | col=0 | fila=0 | sub=web, CLI, API
-nodo ctl: Plano de control | icono=engranaje | col=1 | fila=0 | sub=web app, notebooks,\nscheduler de jobs, Unity Catalog | color=violeta
+nodo ctl: Plano de control | icono=databricks | col=1 | fila=0 | sub=web app, notebooks,\nscheduler de jobs, Unity Catalog | color=violeta
 nodo srv: Cómputo serverless | icono=nube | col=2 | fila=0 | sub=en la cuenta de Databricks | color=verde
 nodo cls: Cómputo clásico | icono=servidor | col=2 | fila=1 | sub=VMs en TU cuenta de nube | color=naranja
-nodo lake: Tu almacenamiento | icono=bucket | col=3 | fila=0 | forma=cilindro | sub=S3, ADLS, GCS: tablas Delta | color=azul
+nodo lake: Tu almacenamiento | icono=delta | col=3 | fila=0 | forma=cilindro | sub=S3, ADLS, GCS: tablas Delta | color=azul
 grupo cdb: Administrado por Databricks | nodos=ctl,srv | color=violeta
 flecha usr -> ctl
 flecha ctl -> srv: lanza
