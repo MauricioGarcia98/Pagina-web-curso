@@ -61,6 +61,10 @@ flecha gold -> bi: consulta
 flecha orq -> silver: orquesta | estilo=punteada | color=violeta
 ```
 
+:::tip Lo vas a ver en movimiento
+En la lección siguiente, **El viaje de una compra**, sigues una compra real paso a paso con un recorrido animado que muestra cómo se ve el dato en cada estación, y después lo compruebas con SQL.
+:::
+
 Un ingeniero o ingeniera de datos diseña, construye y mantiene ese recorrido. Un día normal puede incluir conectar una fuente nueva (la API de un proveedor), escribir una transformación en SQL o PySpark, revisar por qué el job de anoche falló, optimizar una consulta que tardaba una hora o agregar un test de calidad.
 
 ### ETL y ELT
@@ -110,7 +114,7 @@ Todos usan SQL. Por eso es lo primero que vas a aprender después de estos funda
 
 Los módulos están pensados para hacerse **en orden**, porque cada uno usa lo anterior:
 
-1. 🧱 **Fundamentos** (estás aquí): datos, formatos, terminal y Git.
+1. 🧱 **Fundamentos** (estás aquí): el viaje de un dato de punta a punta (dónde vive, cómo se mueve, quién lo usa y cómo se cuida), formatos, terminal y Git.
 2. 🗄️ **SQL** y 💼 **Casos de negocio con SQL**: la base de todo, de tu primer `SELECT` a problemas de entrevista, y cómo traducir una pregunta del negocio a una consulta.
 3. 🐍 **Python**: programar y automatizar.
 4. ⚡ **Spark** y 🔥 **PySpark**: procesar datos que no caben en una computadora.

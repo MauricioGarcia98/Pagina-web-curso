@@ -125,6 +125,31 @@ Cada certificación declara en `certificaciones.json` el bloque `simulacro: { pr
 
 `content/claves/<id-certificación>.md` contiene las tarjetas de cada certificación: el título `##` es la situación del examen y el cuerpo, la respuesta. `dominio: N` es opcional. Se repasan con el mismo repaso espaciado que el glosario (`#/claves/<id>`), y el plan de estudio (`#/plan/<id>`) las asigna por dominio.
 
+## Recorridos animados
+
+Para contar un proceso paso a paso (el viaje de un dato, una noche de un pipeline, un incidente), usa un bloque `recorrido`. Se dibuja como una línea de estaciones por la que viaja un paquete de datos; en cada paso se ve el texto y **el dato en ese momento**. Tiene botones de reproducir, anterior y siguiente, y se maneja con las flechas del teclado.
+
+````
+```recorrido
+titulo: La compra 10729, del celular al tablero
+estacion app: Web y app | icono=movil
+estacion db: Base de la tienda | icono=postgres
+paso app: Toca "Comprar"
+Texto del paso, en Markdown.
+>>> json
+{"cliente_id": 1722}
+paso db: El pedido queda guardado
+>>> tabla
+pedido_id,cliente_id,estado
+10729,1722,pendiente
+```
+````
+
+- `estacion id: Etiqueta | icono=…` define las paradas (mismos íconos que los diagramas).
+- `paso id-estación: Título` abre un paso; varios pasos pueden usar la misma estación.
+- `>>> tipo` empieza el dato del paso: `json`, `sql`, `python`, `bash`, `yaml`, `log`, `texto`, `csv` o `tabla` (CSV que se dibuja como tabla, con las filas entrando de a una).
+- Los datos de un recorrido deben ser reales (consultables en la base del curso) o estar marcados como ilustrativos en una nota.
+
 ## La misma consulta en varios motores
 
 Para mostrar cómo se escribe algo en cada motor, usa un bloque `motores`. Cada variante empieza con `[motor]`; los motores posibles son `sqlite`, `postgres`, `mysql`, `sqlserver` (se ejecutan en el navegador: PostgreSQL real con PGlite, MySQL y SQL Server en modo compatible) y `bigquery`, `databricks`, `snowflake`, `oracle` (solo se muestran). Agrega `norun` para mostrar una variante sin botón de ejecutar.

@@ -538,5 +538,15 @@
     document.body.appendChild(capa);
   }
 
-  window.Diagramas = { dibujar: (root) => (root || document).querySelectorAll('figure.diagrama').forEach(dibujar), resolverIcono, COLORES };
+  // un ícono suelto como SVG (lo usan otros componentes, como los recorridos animados)
+  function iconoSVG(nombre, color = 'currentColor') {
+    if (!resolverIcono(nombre)) return '';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${ICONO} ${ICONO}`);
+    svg.setAttribute('aria-hidden', 'true');
+    dibujarIcono(svg, nombre, 0, 0, color);
+    return svg.outerHTML;
+  }
+
+  window.Diagramas = { dibujar: (root) => (root || document).querySelectorAll('figure.diagrama').forEach(dibujar), resolverIcono, iconoSVG, COLORES };
 })();
