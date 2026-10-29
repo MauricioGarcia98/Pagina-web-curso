@@ -78,7 +78,7 @@ Si un cliente cambia de ciudad dos veces entre una ejecución y la siguiente, el
 ## dbt en producción
 
 - **CI** (en cada Pull Request): `dbt build -s state:modified+ --defer --state ./prod-manifest` construye solo lo que cambió, en un esquema temporal, reutilizando producción para el resto.
-- **CD / producción**: un job programado (dbt Cloud, **Databricks Workflows** con una tarea de tipo dbt, o **Airflow** con `BashOperator` / Cosmos) ejecuta `dbt build --target prod`.
+- **CD / producción**: un job programado (dbt Cloud, **Lakeflow Jobs** (antes Databricks Workflows) con una tarea de tipo dbt, o **Airflow** con `BashOperator` / Cosmos) ejecuta `dbt build --target prod`.
 - **Databricks**: el adaptador `dbt-databricks` usa un SQL Warehouse o un cluster; los modelos son tablas Delta en Unity Catalog.
 
 ## Ejercicios

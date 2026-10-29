@@ -66,7 +66,7 @@ Cada task instance pasa por **estados**: `scheduled` → `queued` → `running` 
 Formas de usarlo: instalarlo tú (`pip install apache-airflow`, Docker Compose, Helm en Kubernetes) o un servicio administrado: **Astronomer**, **Google Cloud Composer**, **Amazon MWAA**, o **Azure Data Factory Workflow Orchestration Manager**.
 
 :::nota Alternativas
-**Databricks Workflows (Lakeflow Jobs)** orquesta tareas dentro de Databricks (notebooks, dbt, SQL) y muchas empresas lo usan en lugar de Airflow si todo vive en Databricks. Otras: **Dagster**, **Prefect**, **Azure Data Factory**. Los conceptos (tareas, dependencias, reintentos, programación) son los mismos.
+**Lakeflow Jobs** (antes Databricks Workflows) orquesta tareas dentro de Databricks (notebooks, dbt, SQL) y muchas empresas lo usan en lugar de Airflow si todo vive en Databricks. Otras: **Dagster**, **Prefect**, **Azure Data Factory**. Los conceptos (tareas, dependencias, reintentos, programación) son los mismos.
 :::
 
 :::nota Cómo practicamos Airflow aquí

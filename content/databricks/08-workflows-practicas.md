@@ -17,7 +17,7 @@ Un **job** de Databricks es un DAG de **tareas**, igual que un DAG de Airflow, p
 | Python script / wheel | Un archivo `.py` o un paquete instalado |
 | SQL | Una consulta o un archivo `.sql` en un SQL warehouse |
 | dbt | `dbt build` sobre el proyecto, en un SQL warehouse |
-| Pipeline | Un pipeline declarativo (Lakeflow Declarative Pipelines, antes DLT) |
+| Pipeline | Un pipeline declarativo (Lakeflow Spark Declarative Pipelines, antes DLT) |
 | Run Job | Otro job completo |
 | If/else, For each | Condiciones y bucles sobre parámetros o resultados |
 
@@ -119,7 +119,7 @@ En `run-now` vas a ver las tareas en el orden del DAG: bronze, silver y después
 
 Prueba también romperlo a propósito: cambia en `job.json` la dependencia de `gold_ventas` a `"silverr"` y vuelve a ejecutar `databricks jobs create --json @job.json`. Databricks rechaza el job porque la tarea de la que depende no existe.
 
-## ¿Airflow o Databricks Workflows?
+## ¿Airflow o Lakeflow Jobs (antes Databricks Workflows)?
 
 | Si… | Usa |
 |---|---|
@@ -155,7 +155,7 @@ Es el resumen de todo el módulo. Si tu proyecto cumple estos puntos, está al n
 
 - [ ] Medallón: bronze (crudo, append), silver (limpio, deduplicado, MERGE), gold (negocio).
 - [ ] Todo en **Unity Catalog**, con catálogos por entorno (`dev`, `prod`) y permisos por grupos.
-- [ ] Código en **Git** + **Asset Bundles** + CI/CD; nada se edita a mano en producción.
+- [ ] Código en **Git** + **Declarative Automation Bundles** (antes Asset Bundles) + CI/CD; nada se edita a mano en producción.
 - [ ] Jobs con job clusters o serverless, reintentos, timeouts y alertas.
 - [ ] Ingesta incremental (Auto Loader, `MERGE`, CDF) e idempotente.
 - [ ] Tests: unitarios (pytest) de transformaciones, tests de datos (dbt / expectations).
@@ -175,7 +175,7 @@ En un job, la tarea `bronze` calcula cuántas filas ingirió y la tarea `silver`
 :::ejercicio quiz
 Todo tu pipeline (ingesta con Auto Loader, transformaciones, dbt y tableros) vive en Databricks. ¿Qué orquestador es la opción más simple?
 
-- [x] Databricks Workflows (Lakeflow Jobs)
+- [x] Lakeflow Jobs (antes Databricks Workflows)
 - [ ] Un cron en la laptop de alguien
 - [ ] Airflow obligatoriamente
 - [ ] Ninguno: se ejecuta todo a mano

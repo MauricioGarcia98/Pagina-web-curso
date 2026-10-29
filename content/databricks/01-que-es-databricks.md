@@ -37,7 +37,7 @@ El lago era un depósito enorme y barato donde se tiraba todo en cajas. El wareh
 | **Catalog (Unity Catalog)** | Tablas, vistas, volúmenes, funciones y modelos, con permisos y linaje |
 | **Jobs / Workflows (Lakeflow Jobs)** | Programar y orquestar notebooks, scripts, dbt y SQL |
 | **SQL Editor / Dashboards** | SQL para analistas y tableros |
-| **Lakeflow Declarative Pipelines** | Pipelines declarativos batch/streaming (antes Delta Live Tables) |
+| **Lakeflow Spark Declarative Pipelines** | Pipelines declarativos batch/streaming (antes Delta Live Tables, DLT) |
 
 <!-- dg:dbx01-planos -->
 ```diagrama

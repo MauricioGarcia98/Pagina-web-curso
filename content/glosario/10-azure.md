@@ -99,3 +99,27 @@ ejemplo: `az vm list --query "[?location=='brazilsouth'].name" -o tsv` · `aws s
 para: Sacar justo el dato que necesitas en scripts sin herramientas extra.
 cuidado: Los textos literales van entre comillas simples dentro de la consulta: `"[?name=='x']"`.
 ver: az, JSON, CLI
+
+## Microsoft Fabric
+alias: fabric, ms fabric
+nino: Es un **centro comercial de datos bajo un mismo techo**: ingeniería, warehouse, tiempo real y Power BI comparten el mismo depósito (OneLake) y la misma caja de cobro (capacidad).
+que: Plataforma de analítica SaaS de Microsoft: lakehouse (Spark), warehouse (T-SQL), eventhouse (KQL), pipelines, Dataflow Gen2, notebooks, Real-Time Intelligence y Power BI, todos sobre **OneLake** y pagados con una **capacidad** (SKU F). Es la base del examen DP-700.
+ejemplo: Un pipeline copia ventas a un lakehouse, un notebook las limpia en Delta y un modelo semántico de Power BI las lee con Direct Lake.
+para: Unificar ingeniería de datos y BI en Azure sin administrar infraestructura.
+ver: OneLake, Lakehouse, Data Factory
+
+## OneLake
+alias: one lake
+nino: Es **un solo disco compartido para toda la empresa**: cada equipo tiene su carpeta, y lo que guarda uno lo puede leer otro sin copiarlo.
+que: El lago único de cada tenant de Fabric, compatible con la API de ADLS Gen2. Todas las tablas se guardan en **Delta Parquet**; los **shortcuts** muestran datos de otros lugares (ADLS, S3, GCS) sin copiarlos y el **mirroring** replica bases externas casi en tiempo real.
+ejemplo: Un shortcut a un ADLS de otro equipo aparece como una tabla más del lakehouse.
+para: Evitar copias y silos entre los motores de Fabric.
+ver: Microsoft Fabric, ADLS Gen2, Delta Lake
+
+## Microsoft Foundry
+alias: azure ai foundry, foundry, ai foundry
+nino: Es el **taller de IA de Microsoft**: ahí eliges modelos, armas agentes, los pruebas y los pones a trabajar con seguridad.
+que: La plataforma de Azure (antes Azure AI Foundry) para desplegar modelos (OpenAI, Llama, Mistral, DeepSeek y otros), construir **agentes** con herramientas (AI Search, Bing, code interpreter, funciones), evaluar calidad y seguridad, aplicar filtros de contenido y operar con observabilidad. Es el centro de los exámenes AI-103 y AI-300.
+ejemplo: Un agente de Foundry responde con documentos indexados en Azure AI Search y pide aprobación humana antes de emitir un reembolso.
+para: Construir y operar aplicaciones de IA generativa en Azure.
+ver: RAG, LLM, Managed identity

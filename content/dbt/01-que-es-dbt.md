@@ -61,7 +61,7 @@ Fíjate en la salida de `dbt compile`: el modelo tiene `from {{ ref('stg_ventas'
 | dbt SÍ | dbt NO |
 |---|---|
 | Transforma datos que **ya están** en tu warehouse/lakehouse | Extraer de APIs o bases de origen (eso es Fivetran, Airbyte, ADF, código propio) |
-| Ordena las dependencias entre modelos (un DAG) | Programar horarios complejos de todo el pipeline (eso es Airflow, Databricks Workflows, dbt Cloud jobs) |
+| Ordena las dependencias entre modelos (un DAG) | Programar horarios complejos de todo el pipeline (eso es Airflow, Lakeflow Jobs (Databricks), dbt Cloud jobs) |
 | Prueba la calidad de los datos | Procesar en Python a gran escala (para eso, Spark; aunque dbt soporta modelos Python en algunos motores) |
 | Genera documentación y linaje | Visualizar datos (eso es Power BI, Tableau, Looker) |
 
@@ -73,7 +73,7 @@ Fíjate en la salida de `dbt compile`: el modelo tiene `from {{ ref('stg_ventas'
                                      dbt (T): staging ─▶ intermediate ─▶ marts (gold)
                                                        │
                                      BI / ML / reverse ETL
- Orquestación de todo: Airflow / Databricks Workflows / dbt Cloud
+ Orquestación de todo: Airflow / Lakeflow Jobs / dbt Cloud
 ```
 
 ## Analytics engineering

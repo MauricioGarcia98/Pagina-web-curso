@@ -3,7 +3,7 @@
 ## Databricks
 alias: databricks lakehouse platform
 nino: Databricks es un **taller completo para trabajar con datos**: trae las máquinas (Spark), la mesa de trabajo (notebooks), los cajones ordenados (Delta y Unity Catalog) y el reloj que dice cuándo trabajar (Workflows), todo en el mismo lugar y en cualquier nube.
-que: Plataforma de datos y analítica sobre AWS, Azure y GCP, creada por los autores de Spark. Ofrece clústeres y cómputo serverless de Spark, notebooks, **Delta Lake**, **Unity Catalog** (gobierno), SQL Warehouses, Workflows (orquestación), Auto Loader, DLT/Lakeflow (pipelines declarativos), ML y Asset Bundles. Es la plataforma lakehouse más usada.
+que: Plataforma de datos y analítica sobre AWS, Azure y GCP, creada por los autores de Spark. Ofrece clústeres y cómputo serverless de Spark, notebooks, **Delta Lake**, **Unity Catalog** (gobierno), SQL Warehouses, Lakeflow Jobs (orquestación, antes Workflows), Auto Loader, Lakeflow Connect (ingesta), Lakeflow Spark Declarative Pipelines (antes DLT), IA y ML (Mosaic AI, MLflow) y Declarative Automation Bundles (antes Asset Bundles). Es la plataforma lakehouse más usada.
 ejemplo: Un pipeline que lee archivos nuevos con Auto Loader a una tabla Delta bronze, la limpia a silver con PySpark y crea marts gold que consulta Power BI vía SQL Warehouse.
 para: Ingeniería de datos, analítica y ML sobre el lago con una sola plataforma.
 cuidado: Los clústeres prendidos cuestan DBUs más las máquinas de la nube: configura autoapagado y usa job clusters para producción.
@@ -108,9 +108,9 @@ para: Ingesta incremental de archivos sin llevar la cuenta a mano.
 ver: Structured Streaming, Ingesta, Incremental
 
 ## Asset Bundles
-alias: databricks asset bundles, dab, databricks.yml
+alias: databricks asset bundles, dab, dabs, declarative automation bundles, databricks.yml
 nino: Es una **caja de mudanza con etiqueta**: guardas juntos el código, los jobs y su configuración, y con un comando instalas todo igualito en desarrollo o en producción.
-que: La forma de Databricks de definir proyectos como código: un `databricks.yml` con recursos (jobs, pipelines, clústeres, permisos) y *targets* (dev, prod). Se valida, despliega y ejecuta con la CLI (`databricks bundle validate|deploy|run`) desde tu máquina o CI/CD.
+que: La forma de Databricks de definir proyectos como código: un `databricks.yml` con recursos (jobs, pipelines, clústeres, permisos) y *targets* (dev, prod). Se valida, despliega y ejecuta con la CLI (`databricks bundle validate|deploy|run`) desde tu máquina o CI/CD. En marzo de 2026 pasaron a llamarse **Declarative Automation Bundles**; el archivo y los comandos no cambiaron.
 ejemplo:
 ```yaml
 bundle: {name: ventas}
@@ -157,3 +157,37 @@ que: En Unity Catalog, un objeto que une una ruta de almacenamiento (`abfss://�
 ejemplo: `CREATE EXTERNAL LOCATION lago_bronze URL 'abfss://bronze@stlago.dfs.core.windows.net/' WITH (STORAGE CREDENTIAL mi_identidad);`
 para: Acceder al almacenamiento sin repartir claves y con permisos auditables.
 ver: Unity Catalog, Managed identity, Rol
+
+## Lakeflow Spark Declarative Pipelines
+alias: lakeflow declarative pipelines, sdp, dlt, delta live tables, pipelines declarativos
+nino: Es como **darle a la cocina la receta final** en vez de explicar cada paso: dices qué tablas quieres y de dónde salen, y Databricks decide el orden, reintenta si algo falla y vigila la calidad.
+que: El framework declarativo de Databricks para pipelines batch y streaming (antes **Delta Live Tables**, DLT). Se escriben con `from pyspark import pipelines as dp`: `@dp.table` crea una **streaming table**, `@dp.materialized_view` una **vista materializada**, y `dp.create_auto_cdc_flow` aplica CDC (SCD tipo 1 o 2). Las **expectations** validan calidad (registrar, descartar o fallar).
+ejemplo:
+```python
+from pyspark import pipelines as dp
+
+@dp.table
+@dp.expect_or_drop("monto_valido", "monto > 0")
+def ventas_silver():
+    return spark.readStream.table("bronze.ventas")
+```
+para: Construir pipelines confiables sin programar a mano el orden, los reintentos ni los checkpoints.
+cuidado: Las vistas materializadas se recalculan (de forma incremental si se puede); para datos que solo se agregan, usa streaming tables.
+ver: Databricks, Auto Loader, CDC, Delta Lake
+
+## Lakeflow Jobs
+alias: databricks workflows, workflows, jobs de databricks
+nino: Es el **reloj y el capataz** de Databricks: decide a qué hora arranca cada tarea, en qué orden, y qué hacer si una falla.
+que: El orquestador de Databricks (antes **Databricks Workflows**): jobs con tareas (notebooks, scripts, SQL, dbt, pipelines, otros jobs), dependencias, condiciones `if/else`, bucles `for each`, disparadores por horario, llegada de archivos o cambios en tablas, reintentos, alertas y cómputo serverless.
+ejemplo: Un job diario con tres tareas: ingesta con Lakeflow Connect → pipeline declarativo silver → tarea SQL que refresca el tablero, con alerta por correo si falla.
+para: Orquestar todo lo que vive dentro de Databricks sin un Airflow aparte.
+ver: Databricks, Orquestación, Asset Bundles
+
+## Lakeflow Connect
+alias: conectores administrados de databricks
+nino: Son **mangueras ya armadas** que traen datos de otros sistemas (Salesforce, SQL Server, SharePoint) hasta tu lago sin que tengas que fabricarlas.
+que: Los conectores de ingesta administrados de Databricks: conectores para aplicaciones SaaS (Salesforce, Workday, ServiceNow, Google Analytics) y bases de datos (SQL Server, MySQL, PostgreSQL) con **CDC**, que escriben en tablas gobernadas por Unity Catalog. Para archivos se usa Auto Loader.
+ejemplo: Un conector de SQL Server lee el change tracking de la base de pedidos y mantiene actualizada `bronze.pedidos` cada 15 minutos.
+para: Ingerir de fuentes comunes sin escribir ni mantener código de extracción.
+ver: Databricks, CDC, Auto Loader
+

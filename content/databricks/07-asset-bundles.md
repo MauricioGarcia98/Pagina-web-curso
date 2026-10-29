@@ -1,9 +1,13 @@
 ---
-titulo: Databricks Asset Bundles y CI/CD
+titulo: Declarative Automation Bundles (antes Asset Bundles) y CI/CD
 nivel: Experto
 duracion: 40
 resumen: Proyectos como código con databricks.yml, targets dev/prod, validate/deploy/run y despliegue con GitHub Actions.
 ---
+
+:::nota Nombre nuevo
+En marzo de 2026, Databricks renombró **Databricks Asset Bundles** como **Declarative Automation Bundles**. El archivo `databricks.yml` y los comandos `databricks bundle …` no cambiaron, y en documentación, foros y entrevistas vas a seguir viendo el nombre viejo y la sigla DABs.
+:::
 
 **Databricks Asset Bundles (DABs)** son la forma oficial de tratar jobs, pipelines, notebooks y configuraciones como **código**: se versionan en Git, se revisan en Pull Requests y se despliegan a dev/test/prod con la CLI.
 

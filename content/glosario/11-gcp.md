@@ -88,3 +88,52 @@ python -c "from google.cloud import bigquery; print(list(bigquery.Client().query
 ```
 para: Código sin credenciales embebidas que funciona igual en local y en producción.
 ver: Cuenta de servicio, Credenciales temporales
+
+## Bigtable
+alias: cloud bigtable
+nino: Es una **planilla gigantesca ordenada por una sola columna**: si sabes dónde empieza tu fila, la encuentras en milisegundos aunque haya billones.
+que: Base NoSQL de columnas anchas de Google Cloud para cargas de altísimo volumen y latencia de un dígito de milisegundos (IoT, series de tiempo, personalización). Se accede por **clave de fila** o rangos de claves; escala agregando nodos y replica entre clústeres.
+ejemplo: Clave `sensor_id#timestamp_invertido` para leer las últimas lecturas de un sensor.
+para: Millones de lecturas y escrituras por segundo con baja latencia.
+cuidado: Una clave que empieza con la fecha o un id creciente concentra las escrituras en un nodo (*hotspot*).
+ver: BigQuery, Latencia
+
+## Spanner
+alias: cloud spanner
+nino: Es una **base de datos que vive en varios continentes a la vez** y nunca se contradice: lo que se escribe en Tokio se ve igual en Buenos Aires.
+que: Base relacional de Google Cloud con SQL, **transacciones con consistencia fuerte** y **escala horizontal global**; disponibilidad de hasta 99,999 % en configuración multirregional.
+ejemplo: El inventario global de una cadena de tiendas, actualizado con transacciones desde cualquier región.
+para: Sistemas transaccionales que superan lo que soporta una base tradicional.
+ver: ACID, OLTP
+
+## Datastream
+alias: google datastream
+nino: Es un **espía amable** que mira el diario de cambios de una base y copia cada cambio al lago o a BigQuery apenas ocurre.
+que: Servicio serverless de **CDC** de Google Cloud: replica cambios de MySQL, PostgreSQL, Oracle y SQL Server hacia BigQuery o Cloud Storage con baja latencia.
+ejemplo: La base de stock en Cloud SQL se refleja en BigQuery con segundos de retraso.
+para: Analítica casi en tiempo real sobre bases operacionales.
+ver: CDC, BigQuery
+
+## Gemini Enterprise Agent Platform
+alias: vertex ai, vertex, agent platform
+nino: Es la **fábrica de IA de Google Cloud**: ahí se entrenan, prueban, sirven y vigilan modelos y agentes.
+que: La plataforma de IA de Google Cloud (antes **Vertex AI**, renombrada en 2026): Model Garden y Gemini, entrenamiento personalizado y AutoML, Feature Store, Pipelines, Model Registry, endpoints, Model Monitoring, evaluación de IA generativa, y desarrollo y despliegue de agentes (ADK, Agent Engine). Es el centro del examen PMLE.
+ejemplo: Un pipeline semanal entrena un modelo, lo registra y lo despliega a un endpoint con el 10 % del tráfico.
+para: Hacer ML y agentes en Google Cloud de punta a punta.
+ver: BigQuery, RAG, LLM
+
+## Sensitive Data Protection
+alias: cloud dlp, dlp, data loss prevention
+nino: Es un **detector de metales para datos personales**: revisa tablas y archivos, encuentra tarjetas, documentos y correos, y los tapa.
+que: Servicio de Google Cloud (antes Cloud DLP) que **descubre**, **clasifica** y **desidentifica** datos sensibles en BigQuery, Cloud Storage y otros: enmascarado, tokenización con cifrado que preserva el formato, generalización y *date shifting*.
+ejemplo: Un perfil de descubrimiento marca las columnas de BigQuery con números de tarjeta y una plantilla las tokeniza al copiar a desarrollo.
+para: Cumplir normas de privacidad y reducir el riesgo de exponer PII.
+ver: PII, Gobierno de datos
+
+## VPC Service Controls
+alias: vpc-sc, perímetro de servicio
+nino: Es un **cerco alrededor de tus datos**: aunque alguien tenga la llave, no puede sacar nada por encima del cerco.
+que: Perímetros de seguridad de Google Cloud alrededor de proyectos y servicios (BigQuery, Cloud Storage y otros) que impiden la **exfiltración** de datos fuera del perímetro, incluso con credenciales válidas.
+ejemplo: Nadie puede copiar tablas del proyecto de datos de clientes a un proyecto personal.
+para: Proteger datos sensibles contra fugas por credenciales robadas o errores.
+ver: IAM, Gobierno de datos

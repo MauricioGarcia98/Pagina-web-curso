@@ -107,7 +107,7 @@ Un modelo de machine learning necesita **features** (variables calculadas: "cant
 - Se calculan **igual** para entrenar el modelo (con historia) y para usarlo en producción (en línea, en milisegundos).
 - Se puede pedir el valor de una feature **como era en una fecha pasada** (*point-in-time*), para no entrenar con información del futuro.
 
-Herramientas: Databricks Feature Store, Vertex AI Feature Store, SageMaker Feature Store, Feast.
+Herramientas: Databricks Feature Store, Feature Store de Gemini Enterprise Agent Platform (antes Vertex AI), SageMaker Feature Store, Feast.
 
 ## Zero-ETL y HTAP: menos pipelines de copia
 

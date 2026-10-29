@@ -27,7 +27,7 @@ Tienda Andina quiere:
                                          │   dbt         → gold (estrella)     │
                                          │   SQL Warehouse → Power BI          │
                                          └─────────────────────────────────────┘
- Orquestación: Airflow (o Databricks Workflows)   Secretos: Key Vault   IaC: Bicep + Asset Bundles
+ Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Asset Bundles
  CI/CD: GitHub Actions   Calidad: tests dbt + expectations   Observabilidad: alertas + system tables
 ```
 

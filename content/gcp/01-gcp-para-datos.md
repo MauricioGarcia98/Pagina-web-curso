@@ -33,7 +33,7 @@ Organización (tuempresa.com)                 ← la empresa, ligada a su domini
  FUENTES          INGESTA                    ALMACENAMIENTO            PROCESO                  CONSUMO
  apps, APIs ──►  Pub/Sub (eventos)    ──►    Cloud Storage (lago) ──►  Dataflow (Beam)    ──►   BigQuery (SQL)
  bases      ──►  Datastream (CDC)            BigQuery (warehouse)      Dataproc (Spark)         Looker / Looker Studio
- SaaS       ──►  Data Transfer Service       BigLake (tablas abiertas) Dataform / dbt (SQL)     Vertex AI (ML)
+ SaaS       ──►  Data Transfer Service       BigLake (tablas abiertas) Dataform / dbt (SQL)     Agent Platform (ML, antes Vertex AI)
                        ORQUESTACIÓN: Cloud Composer (Airflow) · Workflows · Cloud Scheduler
                        GOBIERNO: IAM · Dataplex · Policy tags · Cloud Audit Logs
 ```

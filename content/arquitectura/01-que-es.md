@@ -52,7 +52,7 @@ flecha orq -> proc | estilo=punteada | color=violeta
 | 2 | **Almacenamiento** | Guardarlos de forma barata, segura y consultable | S3, ADLS, GCS con Parquet/Delta/Iceberg; BigQuery, Snowflake, Redshift |
 | 3 | **Procesamiento** | Limpiarlos, unirlos y calcular lo que el negocio necesita | Spark, dbt + SQL, Dataflow, Flink |
 | 4 | **Servicio** (*serving*) | Entregarlos a quien los usa, en la forma que los necesita | Power BI, Looker, APIs, feature stores, reverse ETL |
-| 5 | **Orquestación** | Decidir qué corre, en qué orden y qué pasa si algo falla | Airflow, Databricks Workflows, Step Functions, Dagster |
+| 5 | **Orquestación** | Decidir qué corre, en qué orden y qué pasa si algo falla | Airflow, Lakeflow Jobs (Databricks), Step Functions, Dagster |
 | 6 | **Gobierno y seguridad** | Quién puede ver qué, qué significa cada dato, cumplir la ley | Unity Catalog, Lake Formation, Dataplex, Purview, IAM |
 | 7 | **Calidad y observabilidad** | Enterarse antes que el negocio de que algo está mal | Tests de dbt, Great Expectations, alertas, monitoreo de frescura |
 

@@ -94,3 +94,53 @@ que: Servicio de AWS para **gobernar el acceso** a las tablas del Glue Catalog c
 ejemplo: El equipo de marketing puede leer `gold.clientes` pero no las columnas `email` y `telefono`.
 para: Gobierno y seguridad fina del data lake.
 ver: Gobierno de datos, Glue, PII, Unity Catalog
+
+## Firehose
+alias: amazon data firehose, kinesis data firehose, kinesis firehose
+nino: Es una **cinta transportadora con balanza**: junta los eventos que llegan, los empaqueta cuando hay suficientes (o pasó un rato) y los deja en el depósito ya ordenados.
+que: Servicio de **entrega** administrado de AWS: recibe streams y los escribe en S3, Redshift, OpenSearch, Splunk, tablas Iceberg o endpoints HTTP, con **buffer** por tamaño o tiempo, conversión a Parquet u ORC usando el Glue Data Catalog, compresión, particionado dinámico y transformación con Lambda. No hay shards ni consumidores que programar.
+ejemplo: Una app envía clics a Firehose, que cada 60 segundos escribe Parquet en `s3://lago/bronze/clics/fecha=…/`.
+para: Llevar eventos al lago o al warehouse con el menor esfuerzo operativo.
+cuidado: Es casi en tiempo real (segundos de buffer) y no permite releer datos: si necesitas orden por clave, varios consumidores o replay, usa Kinesis Data Streams.
+ver: Kinesis, S3, Streaming
+
+## DMS
+alias: aws dms, database migration service
+nino: Es una **mudanza que no cierra el negocio**: copia todos los muebles de una base a otra y, mientras tanto, va trasladando también lo que se compra y se vende en el camino.
+que: AWS Database Migration Service: migra y replica bases de datos con **carga completa** y **CDC** continuo entre motores (Oracle, SQL Server, MySQL, PostgreSQL, Aurora) o hacia S3, Redshift y Kinesis. **Schema Conversion** convierte esquemas entre motores distintos.
+ejemplo: Una base Oracle on-premises se replica a S3 en Parquet con todas sus inserciones, actualizaciones y borrados.
+para: Migrar bases y alimentar el lago con cambios de sistemas transaccionales.
+ver: CDC, S3, Ingesta
+
+## DynamoDB
+alias: amazon dynamodb
+nino: Es un **fichero gigante con etiquetas**: si sabes la etiqueta, encuentras la ficha en un instante, aunque haya miles de millones.
+que: Base NoSQL clave-valor y de documentos de AWS, serverless, con latencia de milisegundos a cualquier escala. Las consultas eficientes usan la **clave de partición** (y la de ordenamiento); los **GSI** permiten otros patrones de acceso. Tiene TTL, Streams (CDC), PITR, DAX (caché) y exportación a S3.
+ejemplo: Tabla `envios` con clave `envio_id` y ordenamiento `EVT#<fecha>` para leer el historial de un envío.
+para: Aplicaciones con acceso por clave y muchísimas lecturas y escrituras.
+cuidado: No es para analítica: un `Scan` lee toda la tabla y es caro. Para analizar, exporta a S3 o usa zero-ETL a Redshift.
+ver: S3, Latencia
+
+## S3 Tables
+alias: amazon s3 tables, table buckets
+nino: Es un **estante del depósito que se ordena solo**: guardas tablas Iceberg y AWS las compacta y limpia sin que se lo pidas.
+que: Buckets especiales (*table buckets*) para **tablas Apache Iceberg administradas**: AWS ejecuta automáticamente la compactación, la expiración de snapshots y el borrado de archivos huérfanos. Se consultan desde Athena, Redshift, EMR, Glue y Spark, y se integran con el catálogo y Lake Formation.
+ejemplo: Firehose escribe eventos en una tabla de S3 Tables y Athena los consulta con `MERGE` y viaje en el tiempo.
+para: Tener un lago con tablas Iceberg sin programar el mantenimiento.
+ver: Iceberg, S3, Athena
+
+## Amazon Bedrock
+alias: bedrock, aws bedrock
+nino: Es una **agencia de expertos de alquiler**: eliges qué experto (modelo) contratar, le das tus documentos y reglas, y lo usas por una sola ventanilla.
+que: Servicio de AWS para usar **modelos fundacionales** (Anthropic, Amazon Nova, Meta, Mistral, Cohere y otros) por API, con **Knowledge Bases** (RAG administrado), **Agents** y **AgentCore** (agentes), **Guardrails** (filtros de seguridad y PII), evaluación, personalización (fine-tuning, destilación) e inferencia por lotes. Los prompts no se usan para entrenar los modelos.
+ejemplo: Un asistente que responde sobre políticas internas con una Knowledge Base sobre S3 y un guardrail que oculta datos personales.
+para: Construir aplicaciones de IA generativa en AWS sin administrar modelos.
+ver: RAG, LLM, Guardrails
+
+## SageMaker AI
+alias: amazon sagemaker, sagemaker
+nino: Es un **laboratorio completo de ML**: mesas para preparar datos, hornos para entrenar modelos, vitrinas para servirlos y alarmas que avisan si se echan a perder.
+que: Servicio de AWS para construir, entrenar, desplegar y operar modelos de ML: Data Wrangler, Feature Store, training jobs (con Spot), ajuste automático, Model Registry, endpoints (tiempo real, serverless, asíncronos, por lotes), Pipelines, Model Monitor y Clarify. **SageMaker Unified Studio** reúne datos, analítica e IA en un solo entorno.
+ejemplo: Un pipeline semanal entrena un XGBoost, lo registra si supera el AUC del actual y lo despliega con canary.
+para: Hacer MLOps completo en AWS.
+ver: Pipeline, CI/CD

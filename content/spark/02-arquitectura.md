@@ -141,7 +141,7 @@ En un clúster de 100 máquinas, que alguna falle es algo normal. Spark no copia
 Si un executor muere, el driver vuelve a mandar **solo las tareas de las particiones perdidas** a otro executor, que las recalcula a partir del linaje. El job sigue como si nada, solo un poco más lento.
 
 :::nota ¿Y si muere el driver?
-Ahí se pierde la aplicación completa, porque el driver es quien tiene el plan. Por eso, en producción, los jobs se lanzan con un orquestador (Databricks Workflows o Airflow) que **reintenta** el job entero.
+Ahí se pierde la aplicación completa, porque el driver es quien tiene el plan. Por eso, en producción, los jobs se lanzan con un orquestador (Lakeflow Jobs o Airflow) que **reintenta** el job entero.
 :::
 
 ## Resumen

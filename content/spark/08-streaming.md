@@ -76,7 +76,7 @@ Muchísimas veces, "tiempo real" en una reunión significa "actualizado cada hor
    .toTable("main.bronze.pedidos"))
 ```
 
-:::nota Lakeflow Declarative Pipelines (antes Delta Live Tables)
+:::nota Lakeflow Spark Declarative Pipelines (antes Delta Live Tables)
 Databricks ofrece una forma **declarativa** de construir pipelines batch y streaming: declaras las tablas y sus reglas de calidad (*expectations*) y la plataforma se encarga del orden, los reintentos y la infraestructura.
 :::
 
