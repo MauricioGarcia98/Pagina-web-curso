@@ -52,7 +52,7 @@ Si un grupo recibió más tráfico de un segmento que convierte menos (por ejemp
 titulo: Simpson - el total esconde lo que pasa en cada segmento
 nodo a: Control | icono=usuario | col=0 | fila=0 | sub=60 % escritorio
 nodo b: Nuevo checkout | icono=usuario | col=0 | fila=2 | sub=70 % móvil | color=naranja
-nodo e: Escritorio | icono=monitor | col=1 | fila=0 | sub=convierte más
+nodo e: Escritorio | icono=laptop | col=1 | fila=0 | sub=convierte más
 nodo m: Móvil | icono=movil | col=1 | fila=2 | sub=convierte menos
 nodo t: Total | icono=grafico | col=2 | fila=1 | sub=parece un empate | color=rojo
 flecha a -> e
