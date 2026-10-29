@@ -643,3 +643,18 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .sim-hist th, .sim-hist td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
 .sim-hist td.ok { color: var(--ok); } .sim-hist td.mal { color: var(--bad); }
 @media (max-width: 640px) { .sim-barra { gap: 8px; } .sim-barra .btn { margin-left: 0; width: 100%; } .sim-hist { font-size: .8rem; } }
+
+/* ---------------------------------------------------------------- tarjetas de certificación y plan de estudio */
+.rep-situacion { font-size: 1.35rem; line-height: 1.35; }
+.clave-lista { display: grid; gap: 8px; }
+.clave { padding: 10px 16px; }
+.clave > summary { cursor: pointer; font-weight: 600; }
+.clave[open] > summary { margin-bottom: 6px; }
+.plan-semana { padding: 14px 18px; margin: 12px 0; }
+.plan-semana.actual { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+.plan-semana h3 { margin: 0 0 8px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.plan-tarea { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; border-top: 1px solid var(--line); }
+.plan-tarea:first-of-type { border-top: 0; }
+.plan-tarea input { margin-top: 4px; }
+.plan-tarea.hecha > span > a, .plan-tarea.hecha > span { color: var(--ink-3); text-decoration: line-through; }
+.plan-tarea.hecha .small { text-decoration: none; }

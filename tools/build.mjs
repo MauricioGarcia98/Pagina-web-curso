@@ -351,6 +351,19 @@ function buildCertificaciones(modules, examenes) {
         p.dominio = cand[0];
       }
     }
+    // tarjetas de palabras clave: content/claves/<id>.md con "## situación" + respuesta (y "dominio: N" opcional)
+    const fc = path.join(CONTENT, 'claves', c.id + '.md');
+    c.claves = [];
+    if (fs.existsSync(fc)) {
+      for (const [i, b] of fs.readFileSync(fc, 'utf8').split(/^## /m).slice(1).entries()) {
+        const [cab, ...resto] = b.split('\n');
+        let dom = null;
+        const cuerpo = resto.filter((l) => { const m = l.match(/^dominio:\s*(\d+)\s*$/); if (m) { dom = Number(m[1]); return false; } return true; }).join('\n').trim();
+        if (!cuerpo) throw new Error(`claves/${c.id}.md: la tarjeta "${cab.trim()}" no tiene respuesta`);
+        if (dom !== null && (dom < 1 || dom > c.dominios.length)) throw new Error(`claves/${c.id}.md: la tarjeta "${cab.trim()}" tiene dominio ${dom}`);
+        c.claves.push({ id: `${c.id}-k${i + 1}`, frente: marked.parseInline(cab.trim()), dorso: md(cuerpo, fc), dominio: dom === null ? null : dom - 1 });
+      }
+    }
     if (c.simulacro) for (const k of ['preguntas', 'minutos', 'aprobar']) if (typeof c.simulacro[k] !== 'number') throw new Error(`${donde}: "simulacro.${k}" debe ser un número`);
     for (const d of c.dominios) {
       for (const l of d.lecciones || []) if (!lecciones.has(l)) throw new Error(`${donde}: la lección "${l}" del dominio "${d.nombre}" no existe`);
@@ -403,7 +416,7 @@ function build() {
   walk(pyRoot);
   fs.writeFileSync(path.join(ROOT, 'assets/js/pysrc.js'),
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
-  console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${certificaciones.length} certificaciones · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
+  console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${certificaciones.length} certificaciones (${certificaciones.reduce((n, c) => n + c.claves.length, 0)} tarjetas) · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
   return course;
 }
 

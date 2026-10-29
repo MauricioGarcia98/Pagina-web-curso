@@ -90,3 +90,37 @@ flecha app -> db: guarda el pedido | estilo=punteada | paso=1 | explica=La app e
   3. **Nombres en español**: `base`, `bucket`, `archivo`, `archivos`, `csv`, `json`, `nube`, `servidor`, `usuario`, `equipo`, `movil`, `web`, `api`, `engranaje`, `spark`, `reloj`, `orquestador`, `transformar`, `grafico`, `dashboard`, `stream`, `lambda`, `candado`, `llave`, `tabla`, `notebook`, `codigo`, `git`, `cubo`, `capas`, `almacen`, `alerta`, `correo`, `lupa`, `ml`, `robot`, `cerebro`, `chispa`, `mensaje`, `documento`, `carpeta`, `vector`, `cola`, `monitor`, `cache`, `reglas`, `calendario`, `webhook`, `internet`, `red`, `flujo`, `etiqueta`, `libro`, `terminal`, `prueba`, `bug`, `costo`, `velocidad`, `fabrica`, `tienda`, `dinero`, `carrito`, `camion`, `avion`, `hospital`, `banco`, `musica`, `auto`, `telefono`, `energia`, `hotel`, `escudo`, `comida`, `check`, `x`.
   4. **Cualquier ícono de Lucide** por su nombre (ISC, lucide.dev): `bot`, `brain-circuit`, `shield-check`, `workflow`, `scan-search`…
 - El build falla si un diagrama usa un ícono, color o forma que no existe. La biblioteca se genera en `assets/js/iconos-lib.js` desde `tools/iconos.mjs` (solo con los íconos de Lucide seleccionados y los que usan las lecciones).
+
+## Exámenes de práctica de certificaciones
+
+Los exámenes viven en `content/examenes/*.md`. Además del formato común (`## Tema`, `leccion:`, opciones y `porque:`), los de certificaciones admiten:
+
+- **Dominio**: `dominio: N` (1 = primer dominio de la certificación en `certificaciones.json`). Si se omite, el build lo deduce de la lección cuando solo un dominio la cubre; si es ambiguo, el build falla y pide el dominio.
+- **Respuesta múltiple**: varias opciones `- [x]`. La pregunta muestra "Elige N" y se puntúa todo o nada, como en los exámenes oficiales. Necesita al menos N + 2 opciones.
+- **Casos de estudio**: un bloque `## @caso id: Título` con el escenario (Markdown libre) y, en cada pregunta del caso, `caso: id`. Las preguntas de un caso se muestran juntas y el escenario se puede releer desde cada una.
+
+```text
+## @caso retail: Mercado Austral
+Descripción del escenario…
+
+## Factura de Athena
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+caso: retail
+¿Qué dos cambios reducen el costo de Athena?
+- [x] Convertir los JSON a Parquet particionado por fecha.
+- [x] Crear workgroups con límites de datos escaneados.
+- [ ] Mover la capa silver a Glacier Deep Archive.
+- [ ] Desactivar el Glue Data Catalog.
+porque: Athena cobra por datos escaneados…
+```
+
+El build rechaza un examen si en más del 40 % de las preguntas la opción correcta es la más larga (en las de respuesta múltiple, si las correctas son justamente las más largas): hay que emparejar el largo de las opciones.
+
+### Simulacro
+
+Cada certificación declara en `certificaciones.json` el bloque `simulacro: { preguntas, minutos, aprobar }` con la cantidad de preguntas, el tiempo y el corte del examen oficial. El simulacro (`#/simulacro/<id>`) elige preguntas del banco repartidas según el peso de cada dominio, muestra una por pantalla con reloj y marcas para revisar, y termina con el resultado por dominio. Conviene que el banco tenga al menos tantas preguntas como el examen oficial; si tiene menos, el tiempo se ajusta en proporción.
+
+### Tarjetas de palabras clave
+
+`content/claves/<id-certificación>.md` contiene las tarjetas de cada certificación: el título `##` es la situación del examen y el cuerpo, la respuesta. `dominio: N` es opcional. Se repasan con el mismo repaso espaciado que el glosario (`#/claves/<id>`), y el plan de estudio (`#/plan/<id>`) las asigna por dominio.

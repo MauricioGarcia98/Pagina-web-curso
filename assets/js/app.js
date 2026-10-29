@@ -677,7 +677,7 @@
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
-    if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro');
+    if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
@@ -1238,11 +1238,24 @@
     pintarInicio();
   }
 
-  function sesionRepaso(mazo, modo) {
+  // cfg permite reutilizar la sesión con otros mazos (por ejemplo, las tarjetas de una certificación)
+  const CFG_GLOSARIO = {
+    clave: (g) => g.termino,
+    volver: { href: '#/repaso', texto: 'Tarjetas de repaso' },
+    frente: (g, modo) => (modo === 'adivinar'
+      ? `<div class="rep-pista">👶 ${taparTermino(g.nino, g)}</div><p class="rep-preg">¿Qué término es? <span class="badge tag">${esc(g.area)}</span></p>`
+      : `<div class="rep-term">${esc(g.termino)}</div><p class="rep-preg"><span class="badge tag">${esc(g.area)}</span> Explícalo con tus palabras: qué es, para qué sirve y un ejemplo.</p>`),
+    dorso: (g, modo) => (modo === 'adivinar'
+      ? `<div class="rep-term">${esc(g.termino)}</div><div class="rep-def">${g.que}</div>`
+      : `<div class="rep-def"><h4>👶 Como a un niño</h4>${g.nino}<h4>📘 Con precisión</h4>${g.que}<h4>🎯 Para qué sirve</h4>${g.para}</div>`)
+      + `<p class="small"><a href="#/glosario?q=${encodeURIComponent(g.termino)}" target="_blank" rel="noopener">Ver la ficha completa en el glosario ↗</a></p>`
+  };
+
+  function sesionRepaso(mazo, modo, cfg = CFG_GLOSARIO) {
     const total = mazo.length, res = { 1: 0, 2: 0, 3: 0 };
     let actual = null, volteada = false, hechas = 0;
     main.innerHTML = `<div class="container">
-      <div class="crumbs"><a href="#/repaso">Tarjetas de repaso</a><span>/</span><span>Sesión</span></div>
+      <div class="crumbs"><a href="${cfg.volver.href}">${esc(cfg.volver.texto)}</a><span>/</span><span>Sesión</span></div>
       <div class="bar" style="margin:6px 0 4px"><i id="rbar" style="width:0%;background:var(--brand)"></i></div>
       <p class="small muted" id="rcont"></p>
       <div id="rcarta"></div>
@@ -1257,22 +1270,17 @@
     };
     const pintar = () => {
       const g = actual;
-      const frente = modo === 'adivinar'
-        ? `<div class="rep-pista">👶 ${taparTermino(g.nino, g)}</div><p class="rep-preg">¿Qué término es? <span class="badge tag">${esc(g.area)}</span></p>`
-        : `<div class="rep-term">${esc(g.termino)}</div><p class="rep-preg"><span class="badge tag">${esc(g.area)}</span> Explícalo con tus palabras: qué es, para qué sirve y un ejemplo.</p>`;
-      const dorso = modo === 'adivinar'
-        ? `<div class="rep-term">${esc(g.termino)}</div><div class="rep-def">${g.que}</div>`
-        : `<div class="rep-def"><h4>👶 Como a un niño</h4>${g.nino}<h4>📘 Con precisión</h4>${g.que}<h4>🎯 Para qué sirve</h4>${g.para}</div>`;
+      const frente = cfg.frente(g, modo), dorso = cfg.dorso(g, modo);
       $('#rcarta').innerHTML = `<div class="card rep-carta ${volteada ? 'volteada' : ''}">
         <div class="rep-frente">${frente}</div>
-        ${volteada ? `<div class="rep-dorso">${dorso}<p class="small"><a href="#/glosario?q=${encodeURIComponent(g.termino)}" target="_blank" rel="noopener">Ver la ficha completa en el glosario ↗</a></p></div>
+        ${volteada ? `<div class="rep-dorso">${dorso}</div>
           <div class="rep-botones"><button class="btn rep-mal" data-r="1">✗ No lo sabía</button><button class="btn rep-medio" data-r="2">~ Más o menos</button><button class="btn rep-bien" data-r="3">✓ Lo sabía</button></div>`
         : '<div class="rep-botones"><button class="btn btn-primary" data-flip>Dar vuelta</button></div>'}
       </div>`;
       $$('#rcarta pre').forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } });
     };
     const calificar = (r) => {
-      const c = tarjetas(), t = actual.termino, ahora = Date.now();
+      const c = tarjetas(), t = cfg.clave(actual), ahora = Date.now();
       const prev = c[t] || { b: 0 };
       if (r === 1) { c[t] = { b: 1, due: ahora }; mazo.push(actual); }
       else if (r === 2) { const b = Math.max(1, prev.b); c[t] = { b, due: ahora + DIA }; hechas++; }
@@ -1289,7 +1297,7 @@
       $('#rcarta').innerHTML = `<div class="card rep-carta"><h2 style="margin-top:0">🎉 ¡Sesión terminada!</h2>
         <p>Repasaste <b>${total}</b> tarjetas: <b>${res[3]}</b> las sabías, <b>${res[2]}</b> más o menos y <b>${res[1]}</b> veces tuviste que repetir alguna.</p>
         <p class="muted">Las que sabías vuelven en unos días; las que te costaron, mañana. Volver un poco cada día funciona mucho mejor que repasar todo de una vez.</p>
-        <div class="row"><a class="btn btn-primary" href="#/repaso">Volver a las tarjetas</a><a class="btn" href="#/examenes">📝 Ir a los exámenes</a></div></div>`;
+        <div class="row"><a class="btn btn-primary" href="${cfg.volver.href}">Volver a las tarjetas</a><a class="btn" href="${cfg.examen || '#/examenes'}">📝 Ir a ${cfg.examen ? 'la práctica' : 'los exámenes'}</a></div></div>`;
     };
     $('#rcarta').addEventListener('click', (e) => {
       if (e.target.closest('[data-flip]')) { volteada = true; pintar(); return; }
@@ -1464,15 +1472,17 @@
     </div>`).join('')}</div>`;
   }
 
-  function viewExamen(id) {
+  function viewExamen(id, dom = null) {
     const esFinal = id === 'final';
     const base = esFinal ? null : EXAMENES.get(id);
     if (!esFinal && !base) { main.innerHTML = '<div class="container prose"><h1>Examen no encontrado</h1><p><a href="#/examenes">Ver los exámenes</a></p></div>'; return; }
     const m = esFinal ? null : MODULE_BY_ID.get(base.modulo);
     const cert = base && base.cert ? CERT_BY_ID.get(base.cert) : null;
-    const titulo = esFinal ? '🎓 Examen final' : base.titulo ? `🏅 ${base.titulo}` : `${m.icono} Examen: ${m.titulo}`;
+    if (!cert || !cert.dominios[dom]) dom = null; // práctica de un solo dominio: #/examen/<id>?d=<n>
+    const clave = dom === null ? id : `${id}@${dom}`;
+    const titulo = esFinal ? '🎓 Examen final' : base.titulo ? `🏅 ${base.titulo}${dom === null ? '' : ' · ' + cert.dominios[dom].nombre}` : `${m.icono} Examen: ${m.titulo}`;
     const minimo = esFinal ? NOTA_FINAL : NOTA_MODULO;
-    const preguntas = agruparCasos(esFinal ? preguntasFinal() : barajar(base.preguntas)).map((p) => ({ ...p, opciones: barajar(p.opciones) }));
+    const preguntas = agruparCasos(esFinal ? preguntasFinal() : barajar(base.preguntas.filter((p) => dom === null || p.dominio === dom))).map((p) => ({ ...p, opciones: barajar(p.opciones) }));
     const modDe = (p) => MODULE_BY_ID.get(p.modulo);
     const vistos = new Set();
     main.innerHTML = `<div class="container">
@@ -1497,8 +1507,8 @@
       const oks = preguntas.map((p, i) => { const ok = corregirTarjeta($(`.exam-q[data-i="${i}"]`), p, elegidasDe(i)); if (!ok) repasar.set(p.leccion.id, p.leccion.titulo); return ok; });
       const bien = oks.filter(Boolean).length;
       const pct = Math.round((bien / preguntas.length) * 100), aprobo = pct >= minimo;
-      const N = notas(), prev = N[id] || { best: 0, intentos: 0 };
-      N[id] = { best: Math.max(prev.best, pct), last: pct, intentos: prev.intentos + 1, at: pct > prev.best ? Date.now() : prev.at || Date.now() };
+      const N = notas(), prev = N[clave] || { best: 0, intentos: 0 };
+      N[clave] = { best: Math.max(prev.best, pct), last: pct, intentos: prev.intentos + 1, at: pct > prev.best ? Date.now() : prev.at || Date.now() };
       Store.save();
       $('.exam-barra').remove();
       const otraVez = `<button class="btn" id="exOtra">↻ Rendir de nuevo</button>`;
@@ -1509,7 +1519,7 @@
         ${cert ? `<p style="margin:10px 0 4px"><b>Resultado por dominio:</b></p>${htmlDominios(porDominio(cert, preguntas, oks), minimo)}` : repasar.size ? `<p style="margin:10px 0 4px"><b>Para repasar:</b></p><ul class="exam-repasar">${[...repasar].map(([lid, t]) => `<li><a href="#/l/${lid}">${esc(t)}</a></li>`).join('')}</ul>` : '<p>¡Sin errores! 🎉</p>'}
         <div class="row" style="margin-top:10px">${aprobo && esFinal ? '<a class="btn btn-primary" href="#/examenes">📜 Descargar el certificado</a>' : ''}${otraVez}<a class="btn btn-ghost" href="#/examenes">Volver a los exámenes</a></div>
         <p class="small muted" style="margin:10px 0 0">Abajo tienes cada pregunta corregida con su explicación.</p></div></div>`;
-      $('#exOtra').addEventListener('click', () => viewExamen(id));
+      $('#exOtra').addEventListener('click', () => viewExamen(id, dom));
       $('#exRes').scrollIntoView({ behavior: 'smooth', block: 'start' });
       updateProgressPill();
     });
@@ -1697,7 +1707,7 @@
     let prov = '';
     main.innerHTML = `<div class="container">
       <h1 style="margin-bottom:4px">🏅 Certificaciones</h1>
-      <p class="muted" style="margin-top:0">Las certificaciones de datos e IA de Databricks, Azure, AWS y Google Cloud, con su temario completo: cada dominio del examen, cuánto pesa, qué lecciones del curso lo cubren y un examen de práctica con preguntas de escenario.</p>
+      <p class="muted" style="margin-top:0">Las certificaciones de datos e IA de Databricks, Azure, AWS y Google Cloud, con su temario completo: cada dominio del examen, cuánto pesa y qué lecciones del curso lo cubren. Para cada una tienes un <b>plan de estudio</b> que se arma con la fecha de tu examen, <b>tarjetas</b> de las situaciones típicas, <b>práctica por dominio</b> y un <b>simulacro</b> con la cantidad de preguntas y el tiempo del examen real.</p>
       <div class="callout callout-cuidado"><div class="callout-title">⚠️ Los temarios cambian seguido</div><p>Los dominios y porcentajes vienen de las guías oficiales vigentes en la fecha que indica cada certificación. Los proveedores los actualizan varias veces al año y cambian nombres de productos: <b>antes de rendir, confirma el temario en la guía oficial</b> (el enlace está en cada tarjeta).</p></div>
       <div class="gloss-filter" id="cprov"><button class="chip active" data-p="">Todas</button>${provs.map((p) => `<button class="chip" data-p="${esc(p)}">${esc(p)} <span class="muted">${CERTS.filter((c) => c.proveedor === p).length}</span></button>`).join('')}</div>
       <div id="clist"></div>
@@ -1721,15 +1731,18 @@
           <div class="cert-datos">${dato('preguntas', f.preguntas)}${dato('minutos', f.minutos)}${dato('costo', f.costo)}${dato('para aprobar', f.aprobacion)}${dato('vigencia', f.vigencia)}</div>
           ${c.notas ? `<div class="prose cert-notas">${c.notas}</div>` : ''}
           <h4>Dominios del examen</h4>
-          ${c.dominios.map((d) => `<div class="cert-dom">
+          ${c.dominios.map((d, j) => `<div class="cert-dom">
             <div class="cert-dom-head"><b>${esc(d.nombre)}</b><span>${esc(d.rango || d.peso + '%')}</span></div>
             <div class="bar"><i style="width:${d.peso * 2.5}%;max-width:100%;background:var(--brand)"></i></div>
             ${d.temas ? `<ul class="cert-temas">${d.temas.map((t) => `<li>${t}</li>`).join('')}</ul>` : ''}
             ${d.lecciones.length ? `<div class="cert-lecs small">📚 ${d.lecciones.map((l) => `<a href="#/l/${l.id}">${hechas.has(l.id) ? '✓ ' : ''}${esc(l.titulo)}</a>`).join(' · ')}</div>` : ''}
+            ${ex ? `<div class="cert-lecs small">🎯 <a href="#/examen/${ex.id}?d=${j}">Practicar este dominio (${ex.preguntas.filter((p) => p.dominio === j).length} preguntas)</a>${N[`${ex.id}@${j}`] ? ` · mejor nota ${N[`${ex.id}@${j}`].best}%` : ''}${c.claves.some((k) => k.dominio === j) ? ` · <a href="#/claves/${c.id}?d=${j}">🃏 tarjetas</a>` : ''}</div>` : ''}
           </div>`).join('')}
           <div class="row" style="margin-top:14px">
             ${ex ? `<a class="btn" href="#/examen/${ex.id}">🏅 Examen de práctica (${ex.preguntas.length} preguntas)${n ? ` · mejor nota ${n.best}%` : ''}</a>` : ''}
             ${ex && c.simulacro ? `<a class="btn btn-primary" href="#/simulacro/${c.id}">⏱ Simulacro (${Math.min(c.simulacro.preguntas, ex.preguntas.length)} preguntas)${ultimo(c.id) ? ` · último ${ultimo(c.id).pct}%` : ''}</a>` : ''}
+            ${c.claves.length ? `<a class="btn" href="#/claves/${c.id}">🃏 Tarjetas (${c.claves.length})</a>` : ''}
+            <a class="btn" href="#/plan/${c.id}">📅 Plan de estudio${planDe(c.id).fecha ? ' · ' + diasHasta(planDe(c.id).fecha) + ' días' : ''}</a>
             <a class="btn" href="${esc(c.fuente)}" target="_blank" rel="noopener">Guía oficial ↗</a>
             <span class="small muted">Temario según la guía vigente en ${esc(c.actualizado)}</span>
           </div>
@@ -1743,6 +1756,157 @@
     $('#cprov').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (!b) return; prov = b.dataset.p; $$('#cprov .chip').forEach((x) => x.classList.toggle('active', x === b)); paint(); });
     paint();
     if (abrir) setTimeout(() => document.getElementById('cert-' + abrir)?.scrollIntoView({ block: 'start' }), 50);
+  }
+
+
+  // ---------------------------------------------------------------- tarjetas de una certificación
+  function viewClaves(certId, dom = null) {
+    const cert = CERT_BY_ID.get(certId);
+    if (!cert || !cert.claves.length) { main.innerHTML = '<div class="container prose"><h1>Tarjetas no encontradas</h1><p><a href="#/certificaciones">Ver las certificaciones</a></p></div>'; return; }
+    if (!cert.dominios[dom]) dom = null;
+    const clave = (k) => 'cert:' + k.id;
+    const cfg = {
+      clave,
+      volver: { href: `#/claves/${cert.id}`, texto: `Tarjetas ${cert.codigo}` },
+      examen: cert.examen ? `#/examen/${cert.examen}${dom === null ? '' : '?d=' + dom}` : null,
+      frente: (k) => `<div class="rep-term rep-situacion">${k.frente}</div><p class="rep-preg">${k.dominio === null ? '' : `<span class="badge tag">${esc(cert.dominios[k.dominio].nombre)}</span> `}¿Qué servicio, opción o concepto es la respuesta? Dilo antes de dar vuelta.</p>`,
+      dorso: (k) => `<div class="rep-def">${k.dorso}</div>`
+    };
+    main.innerHTML = `<div class="container">
+      <div class="crumbs"><a href="#/certificaciones?c=${esc(cert.id)}">Certificaciones</a><span>/</span><span>Tarjetas ${esc(cert.codigo)}</span></div>
+      <h1 style="margin-bottom:4px">🃏 Tarjetas: ${esc(cert.nombre)}</h1>
+      <p class="muted" style="margin-top:0">Las situaciones que más se repiten en el examen y su respuesta: "si la pregunta dice esto, la respuesta suele ser aquello". Usan el mismo repaso espaciado que las tarjetas del glosario.</p>
+      <div class="stats" id="kstats"></div>
+      <div class="gloss-filter" id="kdoms"><button class="chip ${dom === null ? 'active' : ''}" data-d="">Todos los dominios</button>${cert.dominios.map((d, j) => cert.claves.some((k) => k.dominio === j) ? `<button class="chip ${dom === j ? 'active' : ''}" data-d="${j}">${esc(d.nombre)}</button>` : '').join('')}</div>
+      <div class="row"><button class="btn btn-primary btn-lg" id="kstart"></button><a class="btn" href="#/plan/${esc(cert.id)}">📅 Plan de estudio</a></div>
+      <h2 class="section-title">Todas las tarjetas</h2>
+      <div id="klista" class="clave-lista"></div>
+    </div>`;
+    const lista = () => cert.claves.filter((k) => dom === null || k.dominio === dom);
+    const pintar = () => {
+      const c = tarjetas(), ahora = Date.now(), L = lista();
+      const vistas = L.filter((k) => c[clave(k)]), dominadas = vistas.filter((k) => c[clave(k)].b >= 4).length;
+      const pend = vistas.filter((k) => c[clave(k)].due <= ahora).length, nuevas = L.length - vistas.length;
+      $('#kstats').innerHTML = `<div class="stat"><b>${pend}</b><span>para repasar hoy</span></div><div class="stat"><b>${nuevas}</b><span>sin ver</span></div><div class="stat"><b>${vistas.length - dominadas}</b><span>aprendiendo</span></div><div class="stat"><b>${dominadas}</b><span>dominadas</span></div>`;
+      const n = Math.min(POR_SESION, pend + Math.min(nuevas, NUEVAS_POR_SESION));
+      $('#kstart').textContent = n ? `Empezar: ${n} tarjetas →` : 'Practicar igual →';
+      $('#klista').innerHTML = L.map((k) => `<details class="card clave"><summary>${c[clave(k)] && c[clave(k)].b >= 4 ? '✓ ' : ''}${k.frente}</summary><div class="prose">${k.dorso}</div></details>`).join('');
+    };
+    $('#kdoms').addEventListener('click', (e) => { const b = e.target.closest('[data-d]'); if (!b) return; location.hash = `#/claves/${cert.id}${b.dataset.d === '' ? '' : '?d=' + b.dataset.d}`; });
+    $('#kstart').addEventListener('click', () => {
+      const c = tarjetas(), ahora = Date.now(), L = lista();
+      const pend = L.filter((k) => c[clave(k)] && c[clave(k)].due <= ahora).sort((a, b) => c[clave(a)].due - c[clave(b)].due);
+      const nuevas = barajar(L.filter((k) => !c[clave(k)])).slice(0, NUEVAS_POR_SESION);
+      let mazo = [...pend, ...nuevas].slice(0, POR_SESION);
+      if (!mazo.length) mazo = barajar(L).slice(0, POR_SESION);
+      sesionRepaso(barajar(mazo), 'explicar', cfg);
+    });
+    pintar();
+  }
+
+  // ---------------------------------------------------------------- plan de estudio
+  // Se arma solo a partir de la fecha del examen: cada dominio recibe semanas según su peso, con sus
+  // lecciones, tarjetas y práctica; la última semana es de simulacros. Las tareas que el sitio puede
+  // comprobar (lecciones, prácticas, simulacros) se marcan solas; el resto se marca a mano.
+  const planes = () => (Store.data.planes = Store.data.planes || {});
+  const planDe = (id) => planes()[id] || {};
+  const hoyISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const diasHasta = (iso) => Math.ceil((new Date(iso + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / DIA);
+
+  function armarPlan(cert, fecha) {
+    const ex = cert.examen ? EXAMENES.get(cert.examen) : null;
+    const dias = fecha ? Math.max(7, diasHasta(fecha)) : 42;
+    const semanas = Math.min(16, Math.max(2, Math.ceil(dias / 7)));
+    const W = semanas - 1, total = cert.dominios.reduce((a, d) => a + d.peso, 0);
+    const S = Array.from({ length: semanas }, () => []);
+    const vistas = new Set();
+    let acum = 0;
+    if (cert.simulacro && ex) S[0].push({ id: 'diag', tipo: 'simulacro', texto: 'Simulacro diagnóstico: mide tu punto de partida (no importa la nota)', href: `#/simulacro/${cert.id}`, auto: 'sim1' });
+    cert.dominios.forEach((d, j) => {
+      const ini = Math.min(W - 1, Math.floor((acum / total) * W)); acum += d.peso;
+      const fin = Math.min(W - 1, Math.max(ini, Math.ceil((acum / total) * W) - 1));
+      for (const l of d.lecciones) if (!vistas.has(l.id)) { vistas.add(l.id); S[ini].push({ id: 'l:' + l.id, tipo: 'leccion', texto: `Estudiar «${l.titulo}» y hacer sus ejercicios`, href: `#/l/${l.id}`, auto: 'leccion', leccion: l.id, dom: j }); }
+      if (cert.claves.some((k) => k.dominio === j)) S[fin].push({ id: 'k:' + j, tipo: 'tarjetas', texto: `Tarjetas del dominio «${d.nombre}»`, href: `#/claves/${cert.id}?d=${j}`, auto: 'claves', dom: j });
+      if (ex && ex.preguntas.some((p) => p.dominio === j)) S[fin].push({ id: 'p:' + j, tipo: 'practica', texto: `Práctica del dominio «${d.nombre}» (${ex.preguntas.filter((p) => p.dominio === j).length} preguntas, objetivo ${cert.simulacro ? cert.simulacro.aprobar + 10 : 80}%)`, href: `#/examen/${ex.id}?d=${j}`, auto: 'practica', dom: j });
+    });
+    const F = S[semanas - 1];
+    if (cert.simulacro && ex) {
+      F.push({ id: 'sim-a', tipo: 'simulacro', texto: 'Simulacro completo con reloj', href: `#/simulacro/${cert.id}`, auto: 'sim2' });
+      F.push({ id: 'errores', tipo: 'manual', texto: 'Revisar cada pregunta fallada del simulacro y releer la lección indicada' });
+      F.push({ id: 'flojos', tipo: 'manual', texto: 'Repetir la práctica de los dominios por debajo del corte' });
+      F.push({ id: 'sim-b', tipo: 'simulacro', texto: `Segundo simulacro: apunta a ${Math.min(90, cert.simulacro.aprobar + 10)}% o más`, href: `#/simulacro/${cert.id}`, auto: 'sim3' });
+    }
+    if (cert.claves.length) F.push({ id: 'k-todas', tipo: 'tarjetas', texto: 'Repasar todas las tarjetas pendientes', href: `#/claves/${cert.id}`, auto: 'claves-todas' });
+    F.push({ id: 'guia', tipo: 'manual', texto: 'Confirmar el temario en la guía oficial y leer las reglas del examen (identificación, entorno, pausas)', href: cert.fuente, externo: true });
+    return { semanas: S, dias, fecha };
+  }
+
+  function tareaHecha(cert, t, manual) {
+    if (manual[t.id]) return true;
+    const ex = cert.examen ? EXAMENES.get(cert.examen) : null, N = notas(), H = sims()[cert.id] || [], c = tarjetas();
+    const meta = cert.simulacro ? cert.simulacro.aprobar : 70;
+    if (t.auto === 'leccion') return Store.lessonDone(LESSON_BY_ID.get(t.leccion));
+    if (t.auto === 'practica') { const n = N[`${ex.id}@${t.dom}`]; return !!n && n.best >= meta; }
+    if (t.auto === 'sim1') return H.length >= 1;
+    if (t.auto === 'sim2') return H.length >= 2;
+    if (t.auto === 'sim3') return H.some((h) => h.pct >= Math.min(90, meta + 10));
+    if (t.auto === 'claves') return cert.claves.filter((k) => k.dominio === t.dom).every((k) => c['cert:' + k.id]);
+    if (t.auto === 'claves-todas') return cert.claves.every((k) => c['cert:' + k.id] && c['cert:' + k.id].due > Date.now());
+    return false;
+  }
+
+  function viewPlan(certId) {
+    const cert = CERT_BY_ID.get(certId);
+    if (!cert) { main.innerHTML = '<div class="container prose"><h1>Certificación no encontrada</h1><p><a href="#/certificaciones">Ver las certificaciones</a></p></div>'; return; }
+    const guardado = planDe(certId);
+    const dibujar = () => {
+      const st = planDe(certId), manual = st.hechos || {};
+      const plan = armarPlan(cert, st.fecha);
+      const todas = plan.semanas.flat(), hechas = todas.filter((t) => tareaHecha(cert, t, manual)).length;
+      const pct = todas.length ? Math.round((hechas / todas.length) * 100) : 0;
+      const semanaActual = st.fecha ? Math.max(0, Math.min(plan.semanas.length - 1, plan.semanas.length - Math.ceil(Math.max(1, diasHasta(st.fecha)) / 7))) : 0;
+      const esperado = plan.semanas.slice(0, semanaActual).flat().filter((t) => !tareaHecha(cert, t, manual)).length;
+      const H = (sims()[certId] || []).slice(-3), prom = H.length ? Math.round(H.reduce((a, h) => a + h.pct, 0) / H.length) : null;
+      const meta = cert.simulacro ? cert.simulacro.aprobar : 70;
+      const inicio = st.fecha ? new Date(new Date(st.fecha + 'T12:00:00') - plan.semanas.length * 7 * DIA) : null;
+      const rango = (i) => { if (!inicio) return ''; const a = new Date(+inicio + i * 7 * DIA), b = new Date(+a + 6 * DIA); const f = (d) => d.toLocaleDateString('es', { day: 'numeric', month: 'short' }); return ` · ${f(a)} – ${f(b)}`; };
+      const ico = { leccion: '📚', tarjetas: '🃏', practica: '🎯', simulacro: '⏱', manual: '✍️' };
+      $('#planCuerpo').innerHTML = `
+        <div class="stats">
+          <div class="stat"><b>${st.fecha ? Math.max(0, diasHasta(st.fecha)) : '—'}</b><span>días hasta el examen</span></div>
+          <div class="stat"><b>${pct}%</b><span>del plan completado</span></div>
+          <div class="stat"><b>${prom === null ? '—' : prom + '%'}</b><span>promedio de tus últimos simulacros</span></div>
+          <div class="stat"><b>${meta}%</b><span>corte de referencia</span></div>
+        </div>
+        ${st.fecha && esperado ? `<div class="callout callout-cuidado"><p>Vas con <b>${esperado}</b> tareas atrasadas de semanas anteriores. Prioriza las de práctica de los dominios con más peso.</p></div>` : ''}
+        ${prom !== null ? `<div class="callout ${prom >= meta + 10 ? 'callout-tip' : 'callout-nota'}"><p>${prom >= meta + 10 ? '✓ Tus simulacros están por encima del corte con margen: buena señal para rendir.' : prom >= meta ? 'Tus simulacros están apenas por encima del corte: apunta a un margen de 10 puntos antes de rendir.' : 'Tus simulacros todavía están por debajo del corte: sigue el plan y repite la práctica de los dominios flojos.'}</p></div>` : ''}
+        <div class="bar" style="margin:10px 0 18px"><i style="width:${pct}%"></i></div>
+        ${plan.semanas.map((tareas, i) => `<div class="card plan-semana ${st.fecha && i === semanaActual ? 'actual' : ''}">
+          <h3>${i === plan.semanas.length - 1 ? '🏁 Semana final: simulacros y repaso' : `Semana ${i + 1}`}<span class="small muted">${rango(i)}</span>${st.fecha && i === semanaActual ? '<span class="badge b-type">esta semana</span>' : ''}</h3>
+          ${tareas.length ? tareas.map((t) => { const ok = tareaHecha(cert, t, manual); return `<label class="plan-tarea ${ok ? 'hecha' : ''}"><input type="checkbox" data-t="${esc(t.id)}" ${ok ? 'checked' : ''} ${t.auto && !manual[t.id] && ok ? 'disabled title="Se marcó solo"' : ''}><span>${ico[t.tipo] || '•'} ${t.href ? `<a href="${esc(t.href)}" ${t.externo ? 'target="_blank" rel="noopener"' : ''}>${esc(t.texto)}${t.externo ? ' ↗' : ''}</a>` : esc(t.texto)}${t.auto ? ' <span class="small muted">(se marca solo)</span>' : ''}</span></label>`; }).join('') : '<p class="small muted">Semana de margen: repasa tarjetas pendientes y rehace las prácticas con nota más baja.</p>'}
+        </div>`).join('')}`;
+    };
+    main.innerHTML = `<div class="container">
+      <div class="crumbs"><a href="#/certificaciones?c=${esc(cert.id)}">Certificaciones</a><span>/</span><span>Plan ${esc(cert.codigo)}</span></div>
+      <h1 style="margin-bottom:4px">📅 Plan de estudio: ${esc(cert.nombre)}</h1>
+      <p class="muted" style="margin-top:0">Indica la fecha del examen y el plan reparte los dominios en semanas según su peso: primero las lecciones, después las tarjetas y la práctica de cada dominio, y una semana final de simulacros. Lo que el sitio puede comprobar se marca solo.</p>
+      <div class="card row" style="padding:14px 18px;align-items:center;gap:12px">
+        <label for="planFecha"><b>Fecha del examen</b></label>
+        <input type="date" id="planFecha" class="gloss-search" style="max-width:200px;margin:0" min="${hoyISO()}" value="${esc(guardado.fecha || '')}">
+        <span class="small muted">${guardado.fecha ? '' : 'Sin fecha, el plan se arma para 6 semanas.'}</span>
+        ${guardado.fecha ? '<button class="btn btn-ghost" id="planBorrar">Quitar la fecha</button>' : ''}
+      </div>
+      <div id="planCuerpo"></div>
+    </div>`;
+    $('#planFecha').addEventListener('change', () => { const v = $('#planFecha').value; planes()[certId] = { ...planDe(certId), fecha: v || undefined }; Store.save(); viewPlan(certId); });
+    $('#planBorrar')?.addEventListener('click', () => { const p = planDe(certId); delete p.fecha; planes()[certId] = p; Store.save(); viewPlan(certId); });
+    $('#planCuerpo').addEventListener('change', (e) => {
+      const cb = e.target.closest('[data-t]'); if (!cb) return;
+      const p = planDe(certId); p.hechos = p.hechos || {};
+      if (cb.checked) p.hechos[cb.dataset.t] = Date.now(); else delete p.hechos[cb.dataset.t];
+      planes()[certId] = p; Store.save(); dibujar();
+    });
+    dibujar();
   }
 
   // ---------------------------------------------------------------- búsqueda
@@ -1781,7 +1945,9 @@
     if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]) };
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
     if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal'].includes(parts[1])) return { name: 'lab-' + parts[1] };
-    if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMENES.has(parts[1]))) return { name: 'examen', examen: parts[1] };
+    if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMENES.has(parts[1]))) return { name: 'examen', examen: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
+    if (parts[0] === 'claves' && parts[1]) return { name: 'claves', cert: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
+    if (parts[0] === 'plan' && parts[1]) return { name: 'plan', cert: parts[1] };
     if (parts[0] === 'simulacro' && parts[1]) return { name: 'simulacro', cert: parts[1] };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
@@ -1792,7 +1958,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -1806,7 +1972,9 @@
     else if (r.name === 'progreso') viewProgreso();
     else if (r.name === 'repaso') viewRepaso();
     else if (r.name === 'examenes') viewExamenes();
-    else if (r.name === 'examen') viewExamen(r.examen);
+    else if (r.name === 'examen') viewExamen(r.examen, r.dom);
+    else if (r.name === 'claves') viewClaves(r.cert, r.dom);
+    else if (r.name === 'plan') viewPlan(r.cert);
     else if (r.name === 'simulacro') viewSimulacro(r.cert);
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
