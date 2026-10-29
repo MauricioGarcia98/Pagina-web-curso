@@ -1202,6 +1202,95 @@ for _n, _fn in list(_ns.items()):
     resumenTests(lines, acc);
     return { out: lines.join('\n'), code: acc.fail || acc.err ? 1 : 0 };
   }
+  // dbt snapshot: SCD tipo 2 real sobre SQLite. Lee snapshots/*.yml (sintaxis 1.9+) y los bloques
+  // {% snapshot %} clásicos. Estrategias timestamp y check; hard_deletes ignore | invalidate | new_record.
+  function dbtSnapshots(root) {
+    const out = [];
+    for (const k of Object.keys(Machine.fs).sort()) {
+      if (!k.startsWith(root + '/snapshots/') && !(k.startsWith(root + '/models/') && /\.ya?ml$/.test(k))) continue;
+      if (/\.ya?ml$/.test(k)) {
+        let y; try { y = miniYaml(readFile(k)); } catch (e) { y = null; }
+        for (const s of (y && y.snapshots) || []) {
+          const rel = String(s.relation || '');
+          const tabla = (rel.match(/ref\(\s*['"](\w+)['"]\s*\)/) || rel.match(/source\(\s*['"]\w+['"]\s*,\s*['"](\w+)['"]\s*\)/) || [])[1];
+          if (s.name && tabla) out.push({ name: s.name, sql: `select * from main.${tabla}`, cfg: s.config || {}, jinja: false });
+        }
+      } else if (k.endsWith('.sql')) {
+        const src = readFile(k);
+        for (const m of src.matchAll(/\{%-?\s*snapshot\s+(\w+)\s*-?%\}([\s\S]*?)\{%-?\s*endsnapshot\s*-?%\}/g)) {
+          const cfg = {};
+          const c = (m[2].match(/config\(([\s\S]*?)\)\s*\}\}/) || [])[1] || '';
+          for (const kv of c.matchAll(/(\w+)\s*=\s*(\[[^\]]*\]|'[^']*'|"[^"]*"|\w+)/g)) cfg[kv[1]] = kv[2].startsWith('[') ? [...kv[2].matchAll(/['"]([^'"]+)['"]/g)].map((x) => x[1]) : kv[2].replace(/^['"]|['"]$/g, '');
+          out.push({ name: m[1], sql: m[2].replace(/\{\{\s*config\([\s\S]*?\)\s*\}\}/, ''), cfg, jinja: true });
+        }
+      }
+    }
+    return out;
+  }
+  async function dbtSnapshot(root, sel) {
+    const E = window.Engines.SQL; if (!E._bytes) await E.init();
+    const db = E.playground();
+    let snaps = dbtSnapshots(root);
+    if (sel) { const ns = String(sel).split(/[ ,]+/); snaps = snaps.filter((s) => ns.includes(s.name)); }
+    const lines = [`${hhmmss()}  Running with dbt=1.9.0 (simulado sobre SQLite)`, `${hhmmss()}  Found ${snaps.length} snapshots`, ''];
+    if (!snaps.length) lines.push(col.dim('  (no hay snapshots: crea snapshots/<nombre>.yml con snapshots: - name / relation / config)'));
+    let okN = 0, errN = 0;
+    const q = (s) => `"${s}"`;
+    for (let i = 0; i < snaps.length; i++) {
+      const s = snaps[i], cfg = s.cfg;
+      try {
+        const key = cfg.unique_key, estr = cfg.strategy;
+        if (!key) throw new Error('falta unique_key');
+        if (estr !== 'timestamp' && estr !== 'check') throw new Error("strategy debe ser 'timestamp' o 'check'");
+        if (estr === 'timestamp' && !cfg.updated_at) throw new Error('la estrategia timestamp necesita updated_at');
+        if (estr === 'check' && !cfg.check_cols) throw new Error('la estrategia check necesita check_cols');
+        let sql = s.sql;
+        if (s.jinja) { const c = await window.Engines.PY.dbt(sql, { macros: dbtMacros() }); if (!c.ok) throw new Error('Compilation Error: ' + c.error); sql = c.sql; }
+        sql = sql.replace(/;\s*$/, '');
+        const ahora = "strftime('%Y-%m-%d %H:%M:%S', 'now')";
+        const vf = estr === 'timestamp' ? `src.${q(cfg.updated_at)}` : ahora;
+        db.exec(`DROP TABLE IF EXISTS __snap_src; CREATE TEMP TABLE __snap_src AS ${sql}`);
+        const cols = db.exec('SELECT * FROM __snap_src LIMIT 0')[0]?.columns || db.exec("SELECT name FROM pragma_table_info('__snap_src')")[0].values.map((v) => v[0]);
+        if (!cols.includes(key)) throw new Error(`la columna unique_key "${key}" no está en el resultado`);
+        const existe = db.exec(`SELECT 1 FROM sqlite_master WHERE name = '${s.name}'`).length;
+        const insertar = (filtro) => `INSERT INTO ${q(s.name)} SELECT ${cols.map((c) => 'src.' + q(c)).join(', ')}, src.${q(key)} || '-' || ${vf} AS dbt_scd_id, ${vf} AS dbt_updated_at, ${vf} AS dbt_valid_from, NULL AS dbt_valid_to FROM __snap_src src ${filtro}`;
+        if (!existe) {
+          db.exec(`CREATE TABLE ${q(s.name)} AS SELECT ${cols.map((c) => 'src.' + q(c)).join(', ')}, '' AS dbt_scd_id, '' AS dbt_updated_at, '' AS dbt_valid_from, '' AS dbt_valid_to FROM __snap_src src WHERE 0`);
+          db.exec(insertar(''));
+          const n = db.exec(`SELECT COUNT(*) FROM ${q(s.name)}`)[0].values[0][0];
+          lines.push(`${hhmmss()}  ${i + 1} of ${snaps.length} ${col.ok('OK')} snapshot main.${s.name} [${col.ok('INSERT ' + n)}] (primera vez: todas las filas vigentes)`);
+        } else {
+          const vigente = `cur.dbt_valid_to IS NULL`;
+          const cambio = estr === 'timestamp'
+            ? `src.${q(cfg.updated_at)} > cur.dbt_updated_at`
+            : (cfg.check_cols === 'all' ? cols : [].concat(cfg.check_cols)).map((c) => `src.${q(c)} IS NOT cur.${q(c)}`).join(' OR ');
+          db.exec('DROP TABLE IF EXISTS __snap_cambios');
+          db.exec(`CREATE TEMP TABLE __snap_cambios AS SELECT src.${q(key)} AS k FROM __snap_src src JOIN ${q(s.name)} cur ON cur.${q(key)} = src.${q(key)} AND ${vigente} WHERE ${cambio}`);
+          const nC = db.exec('SELECT COUNT(*) FROM __snap_cambios')[0].values[0][0];
+          // 1. cerrar la versión vigente de las filas que cambiaron
+          db.exec(`UPDATE ${q(s.name)} SET dbt_valid_to = (SELECT ${vf.replace('src.', 's2.')} FROM __snap_src s2 WHERE s2.${q(key)} = ${q(s.name)}.${q(key)}) WHERE dbt_valid_to IS NULL AND ${q(key)} IN (SELECT k FROM __snap_cambios)`);
+          // 2. insertar la versión nueva de las que cambiaron y las filas nuevas
+          const nNuevas = db.exec(`SELECT COUNT(*) FROM __snap_src src WHERE src.${q(key)} NOT IN (SELECT ${q(key)} FROM ${q(s.name)})`)[0].values[0][0];
+          db.exec(insertar(`WHERE src.${q(key)} IN (SELECT k FROM __snap_cambios) OR src.${q(key)} NOT IN (SELECT ${q(key)} FROM ${q(s.name)})`));
+          // 3. borrados en el origen
+          let nB = 0;
+          const hd = cfg.hard_deletes || (String(cfg.invalidate_hard_deletes) === 'true' ? 'invalidate' : 'ignore');
+          if (hd !== 'ignore') {
+            nB = db.exec(`SELECT COUNT(*) FROM ${q(s.name)} WHERE dbt_valid_to IS NULL AND ${q(key)} NOT IN (SELECT ${q(key)} FROM __snap_src)`)[0].values[0][0];
+            if (nB) {
+              if (hd === 'new_record') db.exec(`INSERT INTO ${q(s.name)} SELECT ${cols.map((c) => q(c)).join(', ')}, ${q(key)} || '-borrado', ${ahora}, ${ahora}, NULL FROM ${q(s.name)} WHERE dbt_valid_to IS NULL AND ${q(key)} NOT IN (SELECT ${q(key)} FROM __snap_src)`);
+              db.exec(`UPDATE ${q(s.name)} SET dbt_valid_to = ${ahora} WHERE dbt_valid_to IS NULL AND ${q(key)} NOT IN (SELECT ${q(key)} FROM __snap_src) AND dbt_scd_id NOT LIKE '%-borrado'`);
+            }
+          }
+          lines.push(`${hhmmss()}  ${i + 1} of ${snaps.length} ${col.ok('OK')} snapshot main.${s.name} [${nC} cambiadas, ${nNuevas} nuevas${hd !== 'ignore' ? `, ${nB} borradas en el origen` : ''}]`);
+        }
+        okN++;
+      } catch (e) { errN++; lines.push(`${hhmmss()}  ${i + 1} of ${snaps.length} ${col.err('ERROR')} snapshot ${s.name}: ${e.message}`); }
+    }
+    db.exec('DROP TABLE IF EXISTS __snap_src; DROP TABLE IF EXISTS __snap_cambios');
+    lines.push('', `${hhmmss()}  Done. PASS=${okN} WARN=0 ERROR=${errN} SKIP=0 TOTAL=${snaps.length}`);
+    return { out: lines.join('\n'), code: errN ? 1 : 0 };
+  }
   // dbt seed: carga cada seeds/*.csv como tabla (tipos inferidos: entero, decimal o texto)
   async function dbtSeed(root) {
     const E = window.Engines.SQL;
@@ -1284,7 +1373,7 @@ for _n, _fn in list(_ns.items()):
       case 'test': return dbtTest(root, sel, { storeFailures: flags['--store-failures'] });
       case 'build': return dbtBuild(root, selectModels(models, sel), sel, { full: flags['--full-refresh'], storeFailures: flags['--store-failures'] });
       case 'docs': return ok(pos[1] === 'serve' ? col.dim('(simulado) Sirviendo documentación en http://localhost:8080') : `${hhmmss()}  Catalog written to target/catalog.json`);
-      case 'snapshot': return ok(`${hhmmss()}  Found 0 snapshots`);
+      case 'snapshot': return dbtSnapshot(root, sel);
       case 'source': return ok(`${hhmmss()}  Pulling freshness from warehouse metadata tables\n${hhmmss()}  1 of 1 ${col.ok('PASS')} freshness of tienda.pedidos`);
       default: return ok('Uso: dbt [init|debug|run|test|build|compile|ls|seed|deps|snapshot|docs] [-s SELECTOR]');
     }
