@@ -201,3 +201,418 @@ Un equipo quiere identificar personas por su rostro en un sistema de acceso. ¿Q
 - [ ] Debe entrenar un modelo de clasificación de imágenes con fotos de los empleados.
 - [ ] Debe usar el OCR para leer el documento de identidad en su lugar.
 porque: Las capacidades de identificación facial requieren una solicitud de acceso y cumplir las políticas de IA responsable.
+
+## @caso clinica: Clínica Horizonte
+Clínica Horizonte quiere tres soluciones en Azure:
+1. Un asistente para el personal administrativo que responda sobre 2.500 protocolos internos (PDF y Word) y pueda agendar turnos llamando a la API del sistema de turnos.
+2. La extracción automática de datos de órdenes médicas escaneadas, que llegan con decenas de formatos distintos según el médico.
+3. La transcripción de las llamadas del call center, con los datos personales ocultos antes de guardarlas.
+
+Requisitos generales: el tráfico no puede pasar por internet, ninguna aplicación puede guardar claves y los datos deben procesarse dentro de la Unión Europea.
+
+## Agendar turnos
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+caso: clinica
+¿Qué herramienta del agente permite agendar turnos con la API existente, descrita con una especificación OpenAPI?
+- [ ] File search, cargando la especificación OpenAPI como documento en el almacén de vectores del agente.
+- [x] La herramienta OpenAPI con la especificación de la API de turnos.
+- [ ] Grounding con Bing Search.
+- [ ] Code interpreter.
+porque: La herramienta OpenAPI permite al agente llamar operaciones de una API REST descritas con su especificación.
+
+## Órdenes con muchos formatos
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+caso: clinica
+¿Qué modelo de Document Intelligence usas para las órdenes médicas con decenas de formatos?
+- [ ] Un modelo personalizado de plantilla entrenado con una única orden de ejemplo de cada médico.
+- [x] Un modelo personalizado neuronal entrenado con ejemplos de los distintos formatos.
+- [ ] El modelo precompilado de facturas.
+- [ ] El modelo Read sin entrenamiento.
+porque: El modelo neuronal maneja documentos semiestructurados con estructura variable; el de plantilla es para diseños fijos.
+
+## Llamadas sin datos personales
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+caso: clinica
+¿Qué combinación cumple el requisito de las llamadas?
+- [ ] Translator de documentos seguido de un resumen abstractivo para quitar los nombres propios.
+- [x] Speech to text (transcripción por lotes) y detección de PII de Azure AI Language sobre el texto.
+- [ ] Prompt Shields sobre el audio.
+- [ ] Content Understanding con el analizador de facturas.
+porque: Speech convierte el audio en texto y la detección de PII devuelve el texto con los datos personales redactados.
+
+## Sin claves y sin internet
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+caso: clinica
+¿Qué dos configuraciones cumplen los requisitos de red y de claves?
+- [x] Identidad administrada con roles RBAC para que las aplicaciones accedan a los recursos.
+- [x] Private endpoints y acceso de red público deshabilitado en los recursos.
+- [ ] Claves de API rotadas cada semana y guardadas en la configuración de la aplicación.
+- [ ] Un despliegue Global Standard para mejorar la disponibilidad.
+- [ ] Filtros de contenido con severidad mínima.
+porque: La identidad administrada evita secretos y los private endpoints mantienen el tráfico en la red privada.
+
+## Proyecto de Foundry
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿Qué agrupa un proyecto de Microsoft Foundry?
+- [ ] Una suscripción completa de Azure con todos sus grupos de recursos y redes.
+- [x] Agentes, despliegues, evaluaciones, archivos y conexiones de un equipo, dentro de un recurso de Foundry.
+- [ ] Solo los modelos de OpenAI desplegados.
+- [ ] Las bases de datos de Azure SQL de la empresa.
+porque: El proyecto es el espacio de trabajo donde se construyen y operan las aplicaciones de IA; el recurso de Foundry contiene los proyectos.
+
+## Global Batch
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Hay que clasificar 2 millones de documentos en las próximas 24 horas al menor costo. ¿Qué tipo de despliegue usas?
+- [ ] Provisioned con unidades reservadas durante un mes para no sufrir límites de tasa.
+- [x] Global Batch (o Data Zone Batch si hay residencia).
+- [ ] Standard regional con muchos reintentos.
+- [ ] Developer.
+porque: Los despliegues batch procesan archivos de solicitudes de forma asíncrona con descuento, con resultado en hasta 24 horas.
+
+## Cuota
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿En qué unidad se asigna la cuota de un despliegue estándar de un modelo de chat?
+- [ ] En número de usuarios concurrentes que pueden conectarse a la aplicación.
+- [x] En tokens por minuto (TPM), que también fija las solicitudes por minuto.
+- [ ] En gigabytes de almacenamiento.
+- [ ] En horas de cómputo por mes.
+porque: La cuota se expresa en TPM por modelo y región; las RPM se derivan de ella.
+
+## Filtros de contenido
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Una aplicación médica necesita discutir síntomas que el filtro de violencia bloquea por error. ¿Qué haces?
+- [ ] Desactivar todos los filtros de contenido del recurso para todas las aplicaciones.
+- [x] Crear una configuración de filtros personalizada con un umbral ajustado para esa categoría y asignarla al despliegue.
+- [ ] Cambiar el modelo por uno sin filtros.
+- [ ] Usar Prompt Shields.
+porque: Los filtros se configuran por categoría y severidad y se asignan por despliegue; desactivarlos por completo requiere aprobación.
+
+## Groundedness en producción
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿Qué función de Azure AI Content Safety detecta en tiempo real si una respuesta no está respaldada por los documentos de origen?
+- [ ] Prompt Shields, que analiza el prompt del usuario en busca de jailbreaks.
+- [x] La detección de groundedness.
+- [ ] La detección de material protegido.
+- [ ] El filtro de odio.
+porque: Groundedness detection compara la respuesta con las fuentes y marca afirmaciones no fundamentadas.
+
+## Costos
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿Qué dos acciones ayudan a controlar el costo de una aplicación de IA generativa en Azure?
+- [x] Elegir el modelo más chico que cumpla y limitar los tokens de salida.
+- [x] Configurar presupuestos y alertas en Azure Cost Management.
+- [ ] Usar siempre Provisioned para cualquier volumen de tráfico.
+- [ ] Desactivar el registro de uso.
+- [ ] Duplicar los despliegues en todas las regiones.
+porque: El tamaño del modelo y los tokens determinan el costo; los presupuestos avisan antes de excederse.
+
+## Rol para usar el modelo
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Una aplicación con identidad administrada solo debe llamar a los modelos desplegados, sin administrar el recurso. ¿Qué rol le asignas?
+- [ ] Owner sobre el grupo de recursos donde está el recurso de Foundry.
+- [x] Un rol de usuario de datos, como Azure AI User o Cognitive Services OpenAI User.
+- [ ] Contributor sobre la suscripción.
+- [ ] Reader sobre el recurso.
+porque: Los roles de usuario permiten invocar modelos sin permisos de administración; Reader no permite llamadas de inferencia.
+
+## Supervisión de uso
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+¿Dónde ves cuántos tokens y solicitudes consume cada despliegue y cuántas fueron limitadas?
+- [ ] En el historial de versiones del índice de Azure AI Search asociado al agente.
+- [x] En las métricas de Azure Monitor del recurso (y paneles de Foundry).
+- [ ] En los filtros de contenido.
+- [ ] En Document Intelligence Studio.
+porque: Azure Monitor registra métricas de tokens, solicitudes, latencia y errores 429 por despliegue.
+
+## Campos de AI Search
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+En un índice de AI Search, el campo `departamento` debe usarse para filtrar resultados por usuario. ¿Qué atributo necesita?
+- [ ] `searchable`, para que se busque por texto completo en cada consulta del usuario.
+- [x] `filterable`.
+- [ ] `sortable` solamente.
+- [ ] Ninguno: todos los campos se pueden filtrar.
+porque: Solo los campos marcados como filterable pueden usarse en expresiones `$filter`.
+
+## Skillset de enriquecimiento
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Al indexar imágenes escaneadas, hay que extraer su texto para que sea buscable. ¿Qué agregas al indexador?
+- [ ] Un analizador de idioma español en el campo de contenido del índice.
+- [x] Un skillset con la habilidad de OCR.
+- [ ] Un perfil de puntuación.
+- [ ] Un sinónimo.
+porque: Los skillsets enriquecen el contenido durante la indexación; la habilidad OCR extrae texto de imágenes.
+
+## Perfil vectorial
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+¿Qué algoritmo de búsqueda vectorial de AI Search prioriza velocidad con resultados aproximados en índices grandes?
+- [ ] KNN exhaustivo, que compara la consulta contra cada vector del índice.
+- [x] HNSW.
+- [ ] BM25.
+- [ ] Ranker semántico.
+porque: HNSW es aproximado y rápido; KNN exhaustivo es exacto pero más lento.
+
+## Agentes conectados
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+¿Qué ventaja tiene dividir un asistente en un agente principal y agentes conectados especializados?
+- [ ] Que no hace falta describir las herramientas porque el agente principal las adivina.
+- [x] Que cada especialista tiene instrucciones y herramientas acotadas, y el principal delega.
+- [ ] Que se elimina la necesidad de evaluar el sistema.
+- [ ] Que todos los agentes comparten la misma identidad administrada.
+porque: Los agentes conectados reducen la complejidad de cada agente y mejoran la selección de herramientas.
+
+## Hilo y ejecución
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+En Foundry Agent Service, ¿qué representa un hilo (thread)?
+- [ ] Un despliegue de modelo con su propia cuota de tokens por minuto.
+- [x] Una conversación: los mensajes entre el usuario y el agente, que se procesan con ejecuciones (runs).
+- [ ] Un índice de AI Search.
+- [ ] Un conjunto de evaluación.
+porque: El hilo guarda el historial de la conversación; cada run procesa el hilo con el agente.
+
+## Herramienta MCP
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Un agente debe usar herramientas que otro equipo expone mediante un servidor MCP remoto. ¿Qué haces?
+- [ ] Reescribir cada herramienta del otro equipo como función local dentro del código del agente.
+- [x] Agregar la herramienta MCP con la URL del servidor y su autenticación.
+- [ ] Copiar el servidor dentro del índice de AI Search.
+- [ ] Usar Bing grounding.
+porque: Foundry Agent Service admite servidores MCP remotos como herramientas.
+
+## Funciones locales
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Con function calling, ¿quién ejecuta la función cuando el modelo decide llamarla?
+- [ ] El modelo, que ejecuta el código de la función dentro del servicio de Azure OpenAI.
+- [x] La aplicación: recibe el nombre y los argumentos, ejecuta la función y devuelve el resultado al modelo.
+- [ ] Azure AI Search.
+- [ ] Content Safety.
+porque: El modelo solo propone la llamada; la aplicación la ejecuta y envía el resultado para continuar.
+
+## Fine-tuning o RAG
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+El asistente debe responder con el tono y la estructura de las respuestas de la clínica, y los contenidos ya están en el índice. ¿Qué técnica agrega ese estilo de forma consistente si el prompt no alcanza?
+- [ ] Más documentos en el índice de AI Search, con ejemplos de respuestas de la clínica.
+- [x] Fine-tuning supervisado con ejemplos de preguntas y respuestas con ese estilo.
+- [ ] Grounding con Bing.
+- [ ] Un filtro de contenido.
+porque: El ajuste fino cambia el comportamiento y el estilo; RAG aporta conocimiento.
+
+## Trazas del agente
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Una respuesta del agente fue incorrecta. ¿Qué te permite ver qué herramientas llamó, con qué argumentos y qué devolvieron?
+- [ ] Las métricas de Azure Monitor del despliegue, agrupadas por hora.
+- [x] El tracing del agente (OpenTelemetry, visible en Foundry y Application Insights).
+- [ ] La configuración de filtros de contenido.
+- [ ] El historial de cuotas.
+porque: Las trazas registran cada paso de la ejecución con entradas, salidas y latencia.
+
+## Evaluación sin respuesta esperada
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+¿Qué dos evaluadores de Foundry funcionan sin una respuesta de referencia?
+- [x] Groundedness.
+- [x] Relevance.
+- [ ] F1 score.
+- [ ] Similarity.
+- [ ] BLEU.
+porque: Groundedness y Relevance juzgan la respuesta con la pregunta y el contexto; F1, Similarity y BLEU comparan con una respuesta esperada.
+
+## Descripción de imágenes
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Hay que generar automáticamente un texto alternativo para las fotos de la web. ¿Qué función usas?
+- [ ] OCR (Read), que lee el texto que aparece escrito dentro de cada foto de la web.
+- [x] La generación de descripciones (captions) de Image Analysis.
+- [ ] La detección de rostros.
+- [ ] Custom Vision de clasificación.
+porque: Image Analysis genera una oración descriptiva de la imagen, útil como texto alternativo.
+
+## Clasificar o detectar
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Hay que encontrar y ubicar cada medicamento en fotos de estanterías. ¿Qué tipo de modelo personalizado entrenas?
+- [ ] Clasificación de imágenes multiclase, que asigna una etiqueta a cada foto completa.
+- [x] Detección de objetos, que devuelve la etiqueta y la ubicación de cada objeto.
+- [ ] Análisis de sentimiento.
+- [ ] Un modelo de plantilla de Document Intelligence.
+porque: La detección de objetos devuelve recuadros con la posición de cada instancia; la clasificación etiqueta la imagen entera.
+
+## Multietiqueta
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Una misma foto puede mostrar varios tipos de daño a la vez y no importa su ubicación. ¿Qué tipo de clasificación usas?
+- [ ] Multiclase, que elige una sola etiqueta para cada foto que se analiza.
+- [x] Multietiqueta.
+- [ ] Detección de objetos.
+- [ ] OCR.
+porque: La clasificación multietiqueta permite asignar varias etiquetas a una imagen.
+
+## Modelo multimodal
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Hay que responder preguntas abiertas sobre radiografías anotadas ("¿qué indica la flecha roja?"). ¿Qué usas?
+- [ ] Image Analysis con etiquetas predefinidas devueltas para cada radiografía anotada.
+- [x] Un modelo multimodal (por ejemplo, GPT con visión) con la imagen en el prompt.
+- [ ] Custom Vision de detección.
+- [ ] Document Intelligence Layout.
+porque: Los modelos multimodales razonan sobre imágenes y texto para responder preguntas abiertas.
+
+## Video
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Hay que buscar en horas de video de capacitación los momentos en que aparece una máquina y lo que se dice. ¿Qué servicio ayuda?
+- [ ] Translator de documentos con los archivos de video adjuntos a cada solicitud.
+- [x] Azure AI Video Indexer (o Content Understanding para video).
+- [ ] Custom Vision de clasificación.
+- [ ] Language con CLU.
+porque: Video Indexer y Content Understanding extraen transcripciones, objetos y escenas con marcas de tiempo.
+
+## Entidades
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Hay que extraer de notas clínicas los nombres de medicamentos, dosis y diagnósticos. ¿Qué función usas?
+- [ ] Extracción de frases clave, que devuelve los temas principales sin tipo de entidad.
+- [x] Text Analytics for health (reconocimiento de entidades médicas).
+- [ ] Detección de idioma.
+- [ ] Sentimiento.
+porque: Text Analytics for health reconoce entidades médicas y sus relaciones (por ejemplo, dosis de un medicamento).
+
+## Intenciones
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Un bot debe entender si el usuario quiere "pedir turno", "cancelar turno" o "consultar resultado", y extraer la fecha. ¿Qué entrenas?
+- [ ] Un modelo de traducción personalizado con frases de ejemplo de cada intención.
+- [x] Un modelo de Conversational Language Understanding (CLU) con intenciones y entidades.
+- [ ] Un índice de AI Search.
+- [ ] Un modelo de Document Intelligence.
+porque: CLU clasifica intenciones y extrae entidades de enunciados del usuario.
+
+## Preguntas frecuentes
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Hay que responder preguntas frecuentes a partir de una página de FAQ existente, con respuestas exactas y controladas. ¿Qué usas?
+- [ ] Un modelo de chat sin datos propios, con temperatura alta para variar las respuestas.
+- [x] Custom question answering de Azure AI Language.
+- [ ] Detección de PII.
+- [ ] Custom Vision.
+porque: Custom question answering crea una base de conocimiento de pares pregunta-respuesta a partir de FAQ y documentos.
+
+## Voz natural
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+El sistema telefónico debe leer los turnos con pausas y pronunciación correcta de nombres. ¿Qué usas?
+- [ ] Speech to text con un modelo personalizado entrenado con grabaciones de pacientes.
+- [x] Text to speech con SSML para controlar pausas, ritmo y pronunciación.
+- [ ] Translator.
+- [ ] CLU.
+porque: SSML permite ajustar la síntesis de voz: pausas, énfasis, velocidad y pronunciación.
+
+## Vocabulario médico
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+La transcripción confunde nombres de medicamentos. ¿Qué mejora la precisión?
+- [ ] Text to speech con una voz neuronal personalizada entrenada con los médicos de la clínica.
+- [x] Custom speech (o listas de frases) con el vocabulario médico.
+- [ ] Detección de idioma.
+- [ ] Resumen.
+porque: Los modelos de voz personalizados y las listas de frases adaptan el reconocimiento a términos específicos.
+
+## Traducción de documentos
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Hay que traducir al portugués 300 protocolos en Word conservando el formato. ¿Qué usas?
+- [ ] La traducción de texto, enviando el contenido de cada párrafo por separado y rearmando el archivo.
+- [x] La traducción de documentos de Translator.
+- [ ] Speech translation.
+- [ ] CLU.
+porque: La traducción de documentos procesa archivos completos y conserva su formato.
+
+## Layout
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Hay que extraer tablas, títulos y párrafos de informes PDF variados para alimentar un RAG, sin campos fijos. ¿Qué modelo usas?
+- [ ] Un modelo personalizado de plantilla con todos los campos de cada informe etiquetados.
+- [x] El modelo Layout de Document Intelligence (con salida en Markdown).
+- [ ] El precompilado de recibos.
+- [ ] Custom Vision.
+porque: Layout extrae la estructura del documento (tablas, secciones, párrafos) y puede devolver Markdown para chunking.
+
+## Documento de identidad
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+En la admisión hay que extraer nombre, número y fecha de nacimiento de documentos de identidad. ¿Qué usas?
+- [ ] Un modelo neuronal personalizado entrenado con documentos de identidad de los empleados.
+- [x] El modelo precompilado de documentos de identidad.
+- [ ] Layout sin campos.
+- [ ] CLU.
+porque: El modelo precompilado de ID extrae los campos comunes de documentos de identidad sin entrenar.
+
+## Modelo compuesto
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Hay tres modelos personalizados (órdenes, consentimientos y recetas) y los documentos llegan mezclados. ¿Qué haces?
+- [ ] Llamar a los tres modelos para cada documento y quedarte con el resultado más largo.
+- [x] Un modelo de clasificación (o compuesto) que identifique el tipo y lo derive al modelo correcto.
+- [ ] Entrenar un único modelo de plantilla con los tres tipos.
+- [ ] Usar Read.
+porque: La clasificación de documentos y los modelos compuestos enrutan cada documento al extractor adecuado.
+
+## Confianza
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+¿Qué haces con los campos extraídos con baja confianza en un proceso de admisión?
+- [ ] Guardarlos igual, porque Document Intelligence nunca se equivoca en los campos que devuelve.
+- [x] Enviarlos a revisión humana según un umbral de confianza.
+- [ ] Borrarlos sin avisar.
+- [ ] Reentrenar el modelo con cada documento.
+porque: Cada campo trae una puntuación de confianza que permite definir un umbral para revisión manual.
+
+## Content Understanding
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Hay que extraer un esquema propio de campos a partir de documentos, imágenes y grabaciones de audio con un mismo servicio. ¿Qué usas?
+- [ ] Tres servicios separados con código propio que unifica los resultados de cada formato.
+- [x] Azure AI Content Understanding con un analizador personalizado.
+- [ ] Translator.
+- [ ] Prompt Shields.
+porque: Content Understanding analiza contenido multimodal y extrae campos definidos por el usuario.
+
+## Tags de imagen
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Un catálogo de 100.000 fotos debe poder buscarse por su contenido ("ambulancia", "camilla") sin entrenar modelos. ¿Qué usas?
+- [ ] Custom Vision de detección, entrenado con fotos etiquetadas de cada objeto posible.
+- [x] Las etiquetas (tags) y la búsqueda de imágenes de Image Analysis.
+- [ ] Detección de PII.
+- [ ] Document Intelligence Read.
+porque: Image Analysis genera etiquetas y descripciones de contenido de forma general, sin entrenamiento.
+
+## Resumen de conversaciones
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Al terminar cada llamada, hay que generar un resumen con el problema y la resolución. ¿Qué función usas?
+- [ ] Detección de idioma aplicada a la transcripción completa de cada llamada atendida.
+- [x] El resumen de conversaciones de Azure AI Language (o un modelo de chat).
+- [ ] Custom Vision.
+- [ ] Translator de documentos.
+porque: El resumen de conversaciones extrae el problema y la resolución de transcripciones de soporte.
