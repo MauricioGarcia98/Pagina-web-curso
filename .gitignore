@@ -1,0 +1,10 @@
+node_modules
+.DS_Store
+__pycache__/
+*.pyc
+
+# Archivos que generan las pruebas locales de la terminal
+/*.csv
+/*.txt
+/*.db
+/datos/

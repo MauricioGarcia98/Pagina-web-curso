@@ -1,0 +1,17 @@
+{
+  "name": "pagina-web-curso",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Academia de Datos: SQL, Python, Spark, PySpark, Airflow, dbt, Databricks CLI y Azure CLI desde cero.",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "validate": "for m in fundamentos sql python spark pyspark dbt airflow azure databricks proyecto; do node tools/validate.mjs $m || exit 1; done",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "lucide-static": "1.63.0",
+    "marked": "12.0.2",
+    "simple-icons": "16.36.0",
+    "sql.js": "1.10.3"
+  }
+}

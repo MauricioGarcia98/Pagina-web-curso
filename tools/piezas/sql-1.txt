@@ -1,0 +1,239 @@
+@@ 01-introduccion
+objetivos: Explicar qué es una base de datos relacional con tus palabras: tablas, filas, columnas y claves | Distinguir una clave primaria de una clave foránea en una tabla real | Escribir y ejecutar tu primera consulta con `SELECT * FROM` | Explorar una tabla desconocida de forma segura con `LIMIT`
+prerrequisitos: fundamentos-datos-y-formatos
+autoevaluacion: ¿Puedes explicar, sin mirar, qué es una fila, una columna y una clave primaria? | ¿Sabes por qué `categoria_id` en `productos` es una clave foránea y a qué tabla apunta? | ¿Puedes escribir de memoria una consulta que muestre las 5 primeras filas de `pedidos`? | ¿Sabes qué significa que SQL sea un lenguaje declarativo? | ¿Sabes qué hacer si aparece el error `no such table`?
+>> escenario Tu primer día en Tienda Andina
+Hoy empiezas como **data engineer junior** en **Tienda Andina**, un e-commerce de tecnología que vende en Latinoamérica y España. Martín, el líder del equipo de datos, te da la bienvenida con un pedido sencillo:
+
+> "Antes de tocar nada, quiero que conozcas los datos. Entra a la base, mira qué tablas hay y qué tiene cada una. Mañana me cuentas qué entendiste."
+
+Eso es exactamente lo que vas a aprender en esta lección: qué es una base de datos, cómo está organizada y cómo hacerle tu primera pregunta. A lo largo del curso vas a recibir pedidos de distintas personas de la empresa: Valentina (gerente comercial), Camila (marketing), Diego (finanzas), Sofía (operaciones) y Tomás (personas). Cada lección resuelve uno.
+>> trabajo
+- En una empresa, lo primero que hace alguien nuevo en datos es justamente esto: **explorar**. Abre las tablas principales con `LIMIT`, lee la documentación (si existe) y pregunta qué significa cada columna rara. Nadie espera que lo sepas todo el primer día.
+- En bases grandes (BigQuery, Snowflake, Databricks), un `SELECT *` sin `LIMIT` sobre una tabla de miles de millones de filas puede tardar minutos y **costar dinero**, porque esas plataformas cobran por datos leídos. Muchas incluso muestran una vista previa gratuita de la tabla: úsala.
+- Los equipos suelen tener un **catálogo de datos** (Unity Catalog, Dataplex, un wiki) con la descripción de cada tabla. Si no existe, los ingenieros de datos son quienes lo construyen.
+>> entrevista "¿Qué es una clave primaria y para qué sirve?"
+Respuesta modelo: "Es una columna (o combinación de columnas) cuyo valor identifica de forma **única** cada fila y nunca es nulo, como `cliente_id` en `clientes`. Sirve para referirse a una fila sin ambigüedad y es lo que usan las claves foráneas de otras tablas para relacionarse con ella, como `pedidos.cliente_id`." Si puedes, menciona que la base la usa además para crear un índice y que no debería cambiar con el tiempo.
+
+@@ 02-select
+objetivos: Elegir solo las columnas que necesitas, en el orden que quieras | Calcular columnas nuevas con operaciones aritméticas | Ponerles nombres claros a los resultados con `AS` | Combinar textos con `||` para armar columnas como el nombre completo
+prerrequisitos: sql-introduccion
+autoevaluacion: ¿Puedes mostrar tres columnas concretas de una tabla en el orden que te pidan? | ¿Sabes calcular el precio con IVA de cada producto y llamarlo `precio_con_iva`? | ¿Sabes por qué `SELECT nombre precio FROM productos` no da error pero está mal? | ¿Puedes armar `apellido, nombre` en una sola columna? | ¿Sabes por qué en producción se evita `SELECT *`?
+>> escenario El listado de precios para Comercial
+Valentina, la gerente comercial, te escribe:
+
+> "Necesito un listado de productos para revisar precios con los proveedores: nombre, marca y precio, y una columna con el precio con IVA, que es lo que ve el cliente. No me mandes las 9 columnas de la tabla, que me pierdo."
+
+Ya sabes ver una tabla completa con `SELECT *`. Ahora vas a aprender a **elegir** columnas, **calcular** columnas nuevas y **ponerles nombre**, para entregar exactamente lo que te pidieron.
+>> errores
+- **Olvidar una coma**: `SELECT nombre precio FROM productos` no da error, pero muestra **una sola columna** llamada `precio` con el contenido de `nombre` (SQL entiende que `precio` es un alias). Si un resultado tiene menos columnas de las esperadas, busca la coma que falta.
+- **Una coma de más** antes del `FROM` (`SELECT nombre, precio, FROM ...`): error de sintaxis "near FROM".
+- **Comillas dobles para textos**: en SQL estándar, `"Apple"` es el nombre de una columna, no un texto. Los textos van con comillas simples: `'Apple'`.
+- **Dividir enteros**: `SELECT 7 / 2` da `3` en SQLite, PostgreSQL y SQL Server. Si quieres decimales, multiplica por `1.0` o usa `CAST`.
+- **Alias con espacios sin comillas**: `AS precio final` da error. Usa `precio_final` (recomendado) o `"precio final"`.
+>> trabajo
+- En producción se evita `SELECT *`: si mañana alguien agrega una columna a la tabla, tu consulta cambia sin avisar, y en plataformas columnares (BigQuery, Snowflake, Databricks) **pagas por cada columna leída**. Se nombran explícitamente las columnas necesarias.
+- Los alias se escriben en `snake_case` (minúsculas con guiones bajos: `precio_con_iva`). Es la convención de casi todos los equipos de datos y de herramientas como dbt.
+- Los cálculos de negocio (como el IVA) no se escriben "a mano" en cada consulta: se definen **una vez** en un modelo o una macro (lo verás en dbt), para que todos usen el mismo número. Si el IVA cambia, se corrige en un solo lugar.
+
+@@ 03-where
+objetivos: Filtrar filas con `WHERE` usando comparaciones de números, textos y fechas | Combinar condiciones con `AND`, `OR` y `NOT` usando paréntesis cuando hace falta | Usar `IN`, `BETWEEN` y `LIKE` para filtros comunes | Detectar filtros que dejan afuera filas por mayúsculas o espacios
+prerrequisitos: sql-select
+autoevaluacion: ¿Puedes filtrar los clientes de un país concreto? | ¿Sabes por qué `canal = 'web' OR canal = 'app' AND metodo_pago = 'efectivo'` puede dar un resultado distinto al esperado? | ¿Puedes reescribir varios `OR` sobre la misma columna con `IN`? | ¿Sabes si `BETWEEN 10 AND 20` incluye el 10 y el 20? | ¿Puedes buscar los productos cuyo nombre contiene una palabra?
+>> escenario Los clientes de Argentina
+Camila, de marketing, prepara una campaña para Argentina:
+
+> "Necesito la lista de clientes de Argentina con su ciudad. Ah, y aparte, los pedidos cancelados o devueltos del último mes, que quiero entender qué pasó."
+
+Para eso no sirve ver toda la tabla: necesitas **filtrar** filas. Esta lección es sobre `WHERE`, la cláusula que más vas a escribir en tu vida.
+>> errores
+- **Precedencia de AND y OR**: `AND` se evalúa antes que `OR`. `WHERE canal = 'web' OR canal = 'app' AND metodo_pago = 'efectivo'` significa "web (con cualquier pago) **o** app en efectivo". Pon paréntesis siempre que mezcles los dos: `(canal = 'web' OR canal = 'app') AND metodo_pago = 'efectivo'`.
+- **Comparar con NULL usando `=`**: `WHERE telefono = NULL` nunca devuelve filas. Se usa `IS NULL` (lo verás en la lección de NULL).
+- **Textos con distinta escritura**: `WHERE pais = 'argentina'` no encuentra `'Argentina'` en muchas bases. Si los datos están sucios, normaliza con `LOWER(TRIM(pais))`.
+- **Fechas con hora y BETWEEN**: `BETWEEN '2024-12-01' AND '2024-12-31'` deja afuera todo lo que pasó el 31 después de las 00:00 si la columna tiene hora. Usa el rango semiabierto `>= '2024-12-01' AND < '2025-01-01'`.
+>> trabajo
+- Casi todas las consultas en producción filtran por **fecha**: "los pedidos de ayer", "el último mes". En tablas grandes, filtrar por la columna de partición (normalmente la fecha) es lo que hace que una consulta tarde segundos en vez de horas.
+- Los filtros que vienen "del negocio" (qué cuenta como venta, qué estados se excluyen) se documentan y se acuerdan con el área. Un error típico de un junior es excluir `devuelto` cuando finanzas sí lo quiere ver, o al revés. Ante la duda, **pregunta y anota la definición**.
+- `LIKE '%texto%'` no puede usar índices: en tablas grandes es lento. Para búsquedas de texto en serio se usan índices de texto completo u otras herramientas.
+>> entrevista "¿Qué diferencia hay entre WHERE y HAVING?"
+`WHERE` filtra **filas** antes de agrupar y no puede usar funciones de agregación. `HAVING` filtra **grupos** después del `GROUP BY` y sí puede usar `COUNT`, `SUM`, etc. Lo verás a fondo en la lección de GROUP BY; ya puedes dar la primera mitad de la respuesta.
+
+@@ 04-order-by
+objetivos: Ordenar resultados por una o varias columnas, ascendente o descendente | Obtener un "top N" correcto combinando `ORDER BY` y `LIMIT` | Paginar resultados con `LIMIT` y `OFFSET` | Quitar filas repetidas con `DISTINCT` y saber cuándo no es la solución
+prerrequisitos: sql-where
+autoevaluacion: ¿Puedes mostrar los 10 productos más caros, del más caro al más barato? | ¿Sabes por qué `LIMIT` sin `ORDER BY` no devuelve "los primeros"? | ¿Sabes desempatar un ranking agregando una segunda columna al `ORDER BY`? | ¿Puedes mostrar la segunda página de 15 resultados? | ¿Sabes qué hace `DISTINCT` cuando le das dos columnas?
+>> escenario El top 5 de sueldos
+Tomás, del área de personas, prepara la revisión salarial anual:
+
+> "¿Me pasas los 5 empleados que más ganan, con su cargo? Y aparte, la lista de marcas que vendemos, sin repetidos, que la necesito para un formulario."
+
+Las tablas no tienen un orden propio. Para un ranking necesitas **ordenar** y **cortar**, y para una lista de valores únicos, **quitar repetidos**.
+>> errores
+- **`LIMIT` sin `ORDER BY`**: devuelve filas en el orden que la base las encuentre, que puede cambiar entre ejecuciones. Un "top 10" siempre necesita `ORDER BY`.
+- **Empates en el corte**: si el producto 10 y el 11 cuestan lo mismo, `LIMIT 10` elige uno al azar. Agrega una columna de desempate (`ORDER BY precio DESC, producto_id`) para que el resultado sea siempre el mismo.
+- **`DESC` solo afecta a la columna que lo tiene**: `ORDER BY pais, ventas DESC` ordena país de A a Z y ventas de mayor a menor dentro de cada país.
+- **`DISTINCT` para "arreglar" duplicados de un JOIN**: si aparecen filas repetidas, casi siempre el problema es el JOIN. `DISTINCT` lo esconde y puede dar totales incorrectos.
+>> trabajo
+- Ordenar es caro en tablas grandes: la base tiene que ver **todas** las filas antes de saber cuál es la primera. Por eso en un pipeline no se ordena "por si acaso": se ordena solo el resultado final que alguien va a mirar.
+- La paginación con `OFFSET` se vuelve lenta en páginas altas (`OFFSET 100000` lee y descarta cien mil filas). Las APIs y aplicaciones usan *keyset pagination*: `WHERE id > ultimo_id_visto ORDER BY id LIMIT 50`.
+- Para rankings por grupo ("el top 3 de cada categoría") no alcanza con `ORDER BY` + `LIMIT`: se usan funciones de ventana, que verás más adelante.
+>> entrevista "¿En qué orden ejecuta SQL las cláusulas de un SELECT?"
+`FROM` → `WHERE` → `GROUP BY` → `HAVING` → `SELECT` → `DISTINCT` → `ORDER BY` → `LIMIT`. Por eso en `ORDER BY` sí puedes usar un alias definido en el `SELECT`, pero en `WHERE` no (todavía no existe cuando se filtra).
+
+@@ 05-null
+objetivos: Explicar qué significa NULL y en qué se diferencia de 0 y de un texto vacío | Filtrar valores nulos y no nulos con `IS NULL` e `IS NOT NULL` | Predecir cómo afecta NULL a comparaciones, cálculos, `COUNT` y `AVG` | Reemplazar nulos con `COALESCE` y crear nulos a propósito con `NULLIF`
+prerrequisitos: sql-where
+autoevaluacion: ¿Sabes por qué `WHERE telefono = NULL` no devuelve nada? | ¿Puedes predecir qué devuelve `NULL + 5`? | ¿Sabes la diferencia entre `COUNT(*)` y `COUNT(telefono)`? | ¿Puedes mostrar el email o, si no hay, el teléfono, en una sola columna? | ¿Sabes por qué `NOT IN` con un NULL en la lista no devuelve filas? | ¿Sabes evitar una división por cero con `NULLIF`?
+>> escenario Los clientes sin teléfono
+Sofía, de operaciones, quiere llamar a los clientes cuyos pedidos se demoran:
+
+> "El call center dice que a muchos clientes no los pueden contactar. ¿Cuántos no tienen teléfono? Y para los que no tienen, ¿me das al menos el email?"
+
+Parece fácil: buscar los que tienen el teléfono vacío. Pero en SQL "vacío" tiene un nombre especial, `NULL`, y se comporta distinto que cualquier otro valor. Es la fuente número uno de resultados incorrectos que **no dan error**.
+>> trabajo
+- En los pipelines, los NULL se tratan a propósito en la capa **silver**: se decide, columna por columna, si un nulo significa "no se sabe", "no aplica" o "cero", y se documenta. Nunca se reemplaza un nulo por `0` sin preguntar: el promedio de ventas cambia por completo.
+- Los tests de calidad más comunes en dbt y en cualquier pipeline son `not_null` sobre las claves (un pedido sin `cliente_id` es un bug en el origen) y el porcentaje de nulos por columna, con una alerta si sube de golpe.
+- Un salto en los nulos suele ser la primera señal de que **cambió el sistema de origen**: alguien renombró un campo en la API y ahora llega vacío.
+>> entrevista "¿Por qué NOT IN puede no devolver ninguna fila?"
+Porque si la lista (o la subconsulta) contiene un `NULL`, la comparación `x <> NULL` da "desconocido" para todas las filas, y `NOT IN` necesita que todas sean verdaderas. La solución es filtrar los nulos en la subconsulta (`WHERE col IS NOT NULL`) o usar `NOT EXISTS`, que no tiene ese problema.
+
+@@ 06-funciones
+objetivos: Limpiar y transformar textos con `UPPER`, `LOWER`, `TRIM`, `SUBSTR`, `INSTR` y `REPLACE` | Redondear y calcular porcentajes sin caer en la división entera | Convertir tipos con `CAST` y anticipar lo que puede salir mal | Leer y escribir funciones anidadas de adentro hacia afuera
+prerrequisitos: sql-select | sql-null
+autoevaluacion: ¿Puedes extraer el dominio de un email (lo que va después de la @)? | ¿Sabes por qué `SELECT 1 / 4` da 0 en SQLite y cómo obtener 0.25? | ¿Puedes calcular un margen en porcentaje redondeado a 1 decimal? | ¿Puedes normalizar un nombre con espacios y mayúsculas mezcladas? | ¿Sabes por qué poner una función sobre una columna en el `WHERE` puede hacer lenta una consulta?
+>> escenario Los emails de los clientes
+Camila, de marketing, quiere saber con qué proveedores de correo trabajan sus clientes:
+
+> "¿Cuántos clientes usan Gmail, Hotmail, Outlook…? Quiero ajustar el diseño del newsletter. Y de paso, en la tabla de carga de clientes los nombres vienen con espacios y mayúsculas mezcladas: ¿se pueden limpiar?"
+
+La información está, pero no en la forma en que la necesitas: hay que **cortar**, **limpiar** y **convertir**. Para eso están las funciones.
+>> errores
+- **División entera**: `cantidad / total` con dos enteros da 0 en vez de 0,25. Multiplica por `1.0` o convierte con `CAST(x AS REAL)` antes de dividir.
+- **`ROUND` en el lugar equivocado**: redondear cada línea y después sumar no da lo mismo que sumar y después redondear. En dinero, redondea **al final**.
+- **`SUBSTR` empieza en 1**, no en 0 como en Python. `SUBSTR('hola', 1, 2)` es `'ho'`.
+- **Funciones distintas en cada motor**: `INSTR` en SQLite es `POSITION` en PostgreSQL y `CHARINDEX` en SQL Server. Revisa la lección de dialectos cuando cambies de base.
+- **`CAST` de texto sucio**: `CAST('12,5' AS REAL)` da `12` en SQLite (se detiene en la coma) sin avisar. Limpia antes con `REPLACE`.
+>> trabajo
+- La limpieza de textos (`TRIM`, `LOWER`, quitar acentos, normalizar teléfonos) se hace **una sola vez**, en la capa silver o en el modelo de staging de dbt, y todos leen de ahí. Si cada analista limpia a su manera, cada dashboard muestra un número distinto.
+- Una función sobre la columna en el `WHERE` (`WHERE LOWER(email) = ...`, `WHERE strftime('%Y', fecha) = '2024'`) impide usar índices y el *partition pruning*. En tablas grandes se reescribe para dejar la columna "limpia": `WHERE fecha >= '2024-01-01' AND fecha < '2025-01-01'`.
+- Para dinero, en producción se usa `DECIMAL(12,2)` (exacto) en vez de `REAL` (aproximado).
+
+@@ 07-fechas
+objetivos: Filtrar periodos con rangos semiabiertos que no pierden datos | Extraer año, mes y día de la semana con `strftime` | Calcular diferencias entre fechas en días con `julianday` | Sumar y restar intervalos con `date(..., '+N days')` y reconocer la trampa de fin de mes
+prerrequisitos: sql-where | sql-funciones
+autoevaluacion: ¿Puedes filtrar los pedidos de diciembre de 2024 sin usar `BETWEEN`? | ¿Sabes por qué el formato `2024-03-15` es el único que conviene guardar? | ¿Puedes calcular cuántos días pasaron entre un pedido y su pago? | ¿Puedes contar los pedidos hechos en fin de semana? | ¿Sabes por qué usar "la fecha de hoy" en una consulta de un pipeline es peligroso?
+>> escenario El cierre de diciembre
+Diego, de finanzas, está cerrando el año:
+
+> "Necesito los pedidos de diciembre de 2024, y cuántos días tardamos en cobrar cada uno. También me piden saber si los fines de semana se vende más. Ojo, que el año pasado alguien me pasó un número que no incluía el 31 de diciembre."
+
+Las fechas parecen simples hasta que aparecen los rangos, las horas, los meses de distinto largo y las zonas horarias. Esta lección te enseña a no perder ni duplicar un día.
+>> errores
+- **`BETWEEN` con fechas y horas**: `fecha BETWEEN '2024-12-01' AND '2024-12-31'` excluye todo el 31 después de la medianoche. Usa `fecha >= '2024-12-01' AND fecha < '2025-01-01'`.
+- **Fechas guardadas en otro formato**: `'15/03/2024'` se ordena y compara como texto, mal. Conviértelas a ISO (`2024-03-15`) en la capa de limpieza.
+- **Restar fechas como texto**: `'2024-03-15' - '2024-03-01'` da `0` en SQLite (resta los primeros números). Usa `julianday(a) - julianday(b)`.
+- **"Hoy" en el código**: `date('now')` hace que el resultado dependa del día en que corre. En un pipeline se usa la fecha lógica que recibe (por ejemplo `{{ ds }}` en Airflow), para poder reprocesar cualquier día.
+- **Zonas horarias**: un pedido de las 23:30 en México es del día siguiente en UTC. Decide (y documenta) en qué zona se reporta.
+>> trabajo
+- Casi todas las tablas grandes están **particionadas por fecha**. Un filtro de rango sobre esa columna hace que la base lea solo los días necesarios; una función sobre la columna (`strftime('%Y', fecha) = '2024'`) puede obligarla a leer todo.
+- Los equipos guardan las marcas de tiempo en **UTC** y convierten a la hora local solo al mostrar. Es la forma de evitar errores con el cambio de horario.
+- Para reportes con días sin ventas se usa una **tabla calendario** (una fila por día) y se une con los datos. Lo verás con CTE recursivas y en dbt (`date_spine`).
+
+@@ 08-agregaciones
+objetivos: Resumir una tabla con `COUNT`, `SUM`, `AVG`, `MIN` y `MAX` | Elegir entre `COUNT(*)`, `COUNT(columna)` y `COUNT(DISTINCT columna)` según la pregunta | Calcular importes netos agregando expresiones | Evitar los errores clásicos: promedio de promedios y nulos ignorados
+prerrequisitos: sql-where | sql-null
+autoevaluacion: ¿Puedes calcular el total de unidades vendidas y el importe neto de todas las líneas de pedido? | ¿Sabes qué pregunta responde cada una de las tres versiones de `COUNT`? | ¿Sabes por qué `AVG(columna)` puede no ser el promedio que esperabas cuando hay nulos? | ¿Puedes contar dos cosas distintas en una sola consulta sin `WHERE`? | ¿Sabes por qué no se puede mostrar una columna suelta junto a un `SUM` sin `GROUP BY`?
+>> escenario Los números del trimestre
+Valentina, la gerente comercial, prepara la reunión de directorio:
+
+> "Necesito tres números para mañana: cuántos clientes distintos nos compraron, cuántas unidades vendimos y cuánto facturamos en neto. Nada de listados, solo los totales."
+
+Hasta ahora tus consultas devolvían filas. Ahora vas a **resumir** muchas filas en un número: es el corazón de cualquier reporte.
+>> errores
+- **`COUNT(*)` cuando querías clientes distintos**: `COUNT(*)` sobre `pedidos` cuenta pedidos, no clientes. Para clientes, `COUNT(DISTINCT cliente_id)`.
+- **El promedio de promedios**: promediar el ticket promedio de cada país no da el ticket promedio total, porque cada país tiene distinta cantidad de pedidos. Calcula `SUM(total) / COUNT(*)` sobre todas las filas.
+- **Nulos que desaparecen**: `AVG(descuento)` ignora los nulos. Si un nulo significa "sin descuento" (0), usa `AVG(COALESCE(descuento, 0))`. Si significa "no se sabe", déjalo y aclara la base del cálculo.
+- **`SUM` de una tabla que se multiplicó en un JOIN**: si unes pedidos con su detalle y sumas el total del pedido, lo sumas una vez por línea. Agrega al nivel correcto antes de unir.
+>> trabajo
+- Las definiciones de las métricas ("venta neta", "cliente activo") son acuerdos con el negocio y se escriben **una sola vez**: en un modelo de dbt, una capa semántica o una vista. Así, el número del dashboard de comercial coincide con el de finanzas.
+- `COUNT(DISTINCT ...)` es caro en tablas enormes, porque hay que recordar cada valor visto. Plataformas como BigQuery y Databricks ofrecen `APPROX_COUNT_DISTINCT`, que es mucho más rápido con un error de alrededor del 1 %: suficiente para un dashboard, no para facturar.
+- Antes de entregar un total, compáralo con una fuente conocida (el sistema contable, el reporte del mes anterior). Un número que "parece razonable" no está necesariamente bien.
+>> entrevista "¿Qué diferencia hay entre COUNT(*), COUNT(col) y COUNT(DISTINCT col)?"
+`COUNT(*)` cuenta filas, incluidas las que tienen nulos. `COUNT(col)` cuenta las filas donde `col` **no es nula**. `COUNT(DISTINCT col)` cuenta los **valores distintos** no nulos. Un buen ejemplo para dar: en `clientes`, `COUNT(*)` es el total de clientes, `COUNT(telefono)` los que tienen teléfono y `COUNT(DISTINCT pais)` cuántos países hay.
+
+@@ 09-group-by
+objetivos: Calcular métricas "por cada…" con `GROUP BY` | Agrupar por varias columnas y por expresiones (año, mes) | Filtrar grupos con `HAVING` y saber cuándo usar `WHERE` | Aplicar la regla de oro: toda columna del `SELECT` está en el `GROUP BY` o dentro de una agregación
+prerrequisitos: sql-agregaciones
+autoevaluacion: ¿Puedes contar los pedidos de cada estado? | ¿Puedes contar los pedidos por año y canal? | ¿Sabes por qué `WHERE COUNT(*) >= 10` da error y cómo se escribe bien? | ¿Puedes explicar el orden lógico FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY? | ¿Sabes por qué un grupo sin filas no aparece en el resultado?
+>> escenario Las ventas por canal
+Valentina vuelve con otra pregunta, la más común de todas:
+
+> "Los totales estuvieron bien, pero en el directorio me preguntaron: ¿y por canal? ¿Y por año? ¿Y qué clientes nos compran más de 10 veces?"
+
+Un total sirve poco. Lo que el negocio quiere casi siempre es **un total por cada algo**: por canal, por país, por mes. Eso es `GROUP BY`, y vas a usarlo en casi todas tus consultas.
+>> trabajo
+- Los dashboards de negocio son, en el fondo, `GROUP BY` sobre una tabla de hechos: ventas por día, por país, por canal. En los pipelines, esas agregaciones se **precalculan** en la capa gold para que el dashboard no tenga que recalcular millones de filas cada vez que alguien lo abre.
+- Agrupar por una columna con muchísimos valores distintos (el id de usuario en una tabla de mil millones de eventos) genera un *shuffle* enorme en Spark o BigQuery. Antes de agrupar, pregúntate si realmente necesitas ese nivel de detalle.
+- Cuando el resultado es un reporte, los grupos sin datos (un día sin ventas) desaparecen. Si el negocio necesita ver el cero, se parte de una tabla calendario o de una lista de todos los grupos y se hace un `LEFT JOIN`.
+>> entrevista "¿Se puede usar un alias del SELECT en el GROUP BY o en el HAVING?"
+Según el estándar, no, porque `GROUP BY` y `HAVING` se evalúan antes que el `SELECT`. En la práctica, SQLite, PostgreSQL (en GROUP BY), MySQL, BigQuery y Spark lo permiten por comodidad; SQL Server y Oracle (antes de la versión 23ai) no. Lo seguro y portable es repetir la expresión o calcularla antes en una CTE.
+
+@@ 10-case
+objetivos: Clasificar filas en categorías con `CASE WHEN … THEN … ELSE … END` | Ordenar las condiciones para que cada fila caiga en el grupo correcto | Combinar `CASE` con `GROUP BY` para contar por categoría | Hacer un pivot con agregación condicional (`SUM(CASE WHEN …)`)
+prerrequisitos: sql-group-by
+autoevaluacion: ¿Puedes clasificar los productos en gamas de precio y contar cuántos hay en cada una? | ¿Sabes qué pasa con una fila que no cumple ninguna condición y no hay `ELSE`? | ¿Sabes por qué el orden de los `WHEN` importa? | ¿Puedes contar, por canal, el total de pedidos y cuántos fueron entregados en la misma consulta? | ¿Puedes convertir los valores de una columna en columnas (pivot)?
+>> escenario Las gamas de precio
+Valentina quiere reorganizar el catálogo:
+
+> "Quiero clasificar los productos en económico, medio, premium y lujo según el precio, y saber cuántos hay de cada uno. Y una tabla por canal con el total de pedidos, los entregados y los cancelados, todo en una fila por canal."
+
+Ninguna columna de la tabla dice "premium". Tienes que **crear la categoría** con una regla. Para eso está `CASE`: el "si… entonces…" de SQL.
+>> errores
+- **Condiciones en el orden equivocado**: `CASE WHEN precio < 300 THEN 'medio' WHEN precio < 50 THEN 'económico' ...` nunca devuelve `'económico'`, porque un precio de 20 ya cumplió la primera condición. Escribe las condiciones de la más restrictiva a la más general.
+- **Olvidar el `ELSE`**: las filas que no cumplen ninguna condición quedan en `NULL`. Pon un `ELSE 'sin clasificar'` para verlas.
+- **NULL en la condición**: `WHEN telefono <> '' THEN ...` no se cumple cuando `telefono` es NULL. Trata el nulo primero: `WHEN telefono IS NULL THEN ...`.
+- **Tipos mezclados en los THEN**: un `THEN 1` y otro `THEN 'alto'` dan un resultado de tipo confuso o error según el motor. Todas las ramas deben devolver el mismo tipo.
+>> trabajo
+- Las reglas de clasificación (gamas de precio, tramos de edad, segmentos de clientes) son reglas de negocio: cambian. En vez de repetir el `CASE` en diez consultas, se guardan en **una** tabla de referencia (un *seed* en dbt) o en un solo modelo.
+- La agregación condicional (`SUM(CASE WHEN estado = 'entregado' THEN 1 ELSE 0 END)`) es una de las técnicas más usadas en reportes, porque calcula varias métricas **en una sola pasada** sobre la tabla. En PostgreSQL y otros motores existe el atajo `COUNT(*) FILTER (WHERE ...)`.
+>> entrevista "Calcula la tasa de cancelación por canal en una sola consulta"
+`SELECT canal, ROUND(100.0 * SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) / COUNT(*), 2) AS tasa_cancelacion FROM pedidos GROUP BY canal;` Explica el `100.0` (evita la división entera) y que el `CASE` dentro del `SUM` cuenta solo las filas que cumplen la condición.
+
+@@ 11-joins
+objetivos: Explicar por qué los datos están repartidos en varias tablas y cómo se conectan con claves | Unir dos o más tablas con `INNER JOIN … ON` | Anticipar cuántas filas devuelve un JOIN en relaciones uno a muchos | Agregar después de unir sin duplicar importes
+prerrequisitos: sql-group-by
+autoevaluacion: ¿Puedes mostrar cada pedido con el nombre de su cliente? | ¿Sabes qué filas quedan afuera de un `INNER JOIN`? | ¿Puedes calcular las ventas netas por categoría uniendo tres o cuatro tablas? | ¿Sabes por qué un JOIN puede multiplicar filas y cómo detectarlo? | ¿Sabes cuándo usar alias de tabla y por qué conviene siempre?
+>> escenario Las ventas por categoría
+Valentina necesita saber qué categorías venden más:
+
+> "¿Cuánto vendimos por categoría? Celulares, notebooks, audio… Y por país del cliente."
+
+El problema es que esa información está **repartida**: la categoría está en `categorias`, el producto en `productos`, las cantidades en `detalle_pedidos` y el país en `clientes`. Para responder tienes que **unir** tablas. Es el paso que separa a quien "sabe un poco de SQL" de quien lo usa en el trabajo.
+>> errores
+- **Unir por la columna equivocada**: `ON p.pedido_id = c.cliente_id` no da error, pero mezcla datos que no tienen nada que ver. Une siempre la clave foránea con la clave primaria que le corresponde.
+- **Filas multiplicadas**: si unes `pedidos` con `detalle_pedidos` y sumas el total del pedido, lo cuentas una vez por línea. Antes de sumar, pregúntate: ¿cuál es el **grano** de mi resultado (una fila por qué cosa)?
+- **Columnas ambiguas**: si dos tablas tienen una columna `nombre`, `SELECT nombre` da error "ambiguous column". Usa alias (`c.nombre`, `pr.nombre`).
+- **Perder filas sin darte cuenta**: el `INNER JOIN` descarta los pedidos cuyo cliente no existe en `clientes`. Si el total da menos de lo esperado, compara `COUNT(*)` antes y después del JOIN.
+>> trabajo
+- Antes de un JOIN importante, los ingenieros revisan las claves: ¿la del lado "uno" es realmente única? (`SELECT id, COUNT(*) ... GROUP BY id HAVING COUNT(*) > 1`). Un duplicado en una tabla de dimensión multiplica silenciosamente todas las ventas.
+- En tablas de hechos grandes, unir con dimensiones chicas (productos, países) es barato: los motores distribuidos copian la tabla chica a todas las máquinas (*broadcast join*). Unir dos tablas enormes es lo que hace lentos los pipelines.
+- Los modelos de datos analíticos (esquema estrella, en la lección de modelado) están pensados justamente para que los JOIN sean simples: una tabla de hechos en el centro y dimensiones alrededor.
+>> entrevista "¿Qué pasa si haces un JOIN y la clave tiene duplicados en las dos tablas?"
+Cada fila de un lado se combina con **todas** las filas del otro que tienen la misma clave: si una clave aparece 3 veces a la izquierda y 4 a la derecha, salen 12 filas. Es la causa más común de totales inflados. Se detecta comparando el conteo de filas antes y después, y se soluciona agregando o deduplicando antes de unir.
+
+@@ 12-joins-avanzados
+objetivos: Elegir entre `INNER`, `LEFT`, `FULL`, `SELF` y `CROSS JOIN` según la pregunta | Encontrar lo que falta con un anti-join (`LEFT JOIN … WHERE … IS NULL`) | Evitar que un filtro en el `WHERE` convierta un `LEFT JOIN` en un `INNER JOIN` | Recorrer relaciones dentro de una misma tabla con un self join
+prerrequisitos: sql-joins
+autoevaluacion: ¿Puedes listar los clientes que nunca compraron? | ¿Sabes por qué un filtro sobre la tabla derecha en el `WHERE` hace desaparecer las filas sin pareja, y dónde ponerlo? | ¿Puedes mostrar cada empleado con el nombre de su jefe, incluido el CEO? | ¿Puedes armar una grilla de canales por años con ceros donde no hubo pedidos? | ¿Sabes cuántas filas devuelve un `CROSS JOIN` de 4 canales y 3 años?
+>> escenario Los clientes que nunca compraron
+Camila, de marketing, quiere reactivar clientes:
+
+> "Hay gente que se registró y nunca compró nada. ¿Cuántos son? Y aparte, Diego me dice que hay pedidos sin pagos aprobados: ¿me los pasas?"
+
+Con `INNER JOIN` solo ves lo que **tiene** pareja. Las preguntas más valiosas del negocio suelen ser sobre lo que **falta**: clientes sin pedidos, pedidos sin pago, productos sin ventas. Para eso hacen falta los otros tipos de JOIN.
+>> trabajo
+- El anti-join es una herramienta clave para la **calidad de datos**: "pedidos cuyo cliente no existe", "pagos sin pedido". En dbt existe un test listo para eso (`relationships`), que por dentro es un `LEFT JOIN … WHERE … IS NULL`.
+- `FULL OUTER JOIN` se usa mucho para **conciliar** dos fuentes: lo que dice el sistema de pagos frente a lo que dice el banco. Las filas que solo están de un lado son exactamente las diferencias a investigar.
+- Los `CROSS JOIN` con una tabla calendario son el truco estándar para que un reporte muestre ceros en lugar de huecos.
+>> entrevista "¿LEFT JOIN … WHERE b.id IS NULL o NOT EXISTS?"
+Las dos encuentran filas de A sin pareja en B y, en los motores modernos, suelen generar el mismo plan (un *anti join*). `NOT EXISTS` se lee mejor y no tiene la trampa de `NOT IN` con nulos. Lo importante en la respuesta es mencionar que `NOT IN` puede fallar si la subconsulta devuelve un NULL.

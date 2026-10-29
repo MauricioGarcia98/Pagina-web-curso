@@ -1,0 +1,75 @@
+@@ 01-bienvenida
+objetivos: Explicar con tus palabras qué hace un ingeniero o ingeniera de datos y en qué se diferencia de un analista o un científico de datos | Describir las etapas de un pipeline (extraer, transformar, cargar) con un ejemplo | Ubicar cada herramienta del curso en el recorrido de un dato | Usar el sitio: ejecutar ejemplos, comprobar ejercicios y abrir la terminal
+autoevaluacion: ¿Puedes contarle a alguien que no sabe nada qué hace un data engineer, usando el ejemplo de una compra? | ¿Sabes qué diferencia hay entre ETL y ELT y cuál es más común hoy? | ¿Sabes cuándo conviene batch y cuándo streaming? | ¿Puedes nombrar para qué sirve SQL, Spark, dbt y Airflow en una frase cada uno? | ¿Ejecutaste el ejemplo de SQL de esta lección y cambiaste el número del LIMIT?
+>> escenario Tu nuevo trabajo
+Imagina que acabas de conseguir tu primer trabajo como **data engineer junior** en **Tienda Andina**, un e-commerce de tecnología que vende en Latinoamérica y España. Tiene una app, una web, tiendas físicas y un call center, y cada día genera miles de pedidos, pagos y clics.
+
+En este curso vas a vivir ese trabajo: cada lección empieza con un pedido real de alguien de la empresa (la gerente comercial, finanzas, marketing, operaciones o tu líder técnico) y termina con lo que necesitas saber para resolverlo como lo haría un profesional. Esta primera lección es tu inducción: qué hace el equipo de datos y con qué herramientas.
+>> trabajo
+- Las ofertas de trabajo de data engineer piden casi siempre lo mismo: **SQL** (siempre), **Python**, una herramienta de procesamiento (**Spark**), una de orquestación (**Airflow**), una de transformación (**dbt**), una **nube** y **Git**. Es exactamente el recorrido de este curso.
+- Un junior no necesita saberlo todo: necesita SQL muy sólido, Python básico, Git y saber aprender rápido. Lo demás se aprende en el trabajo, pero llegar sabiéndolo te pone muy por delante.
+- La habilidad que más se valora y menos se enseña: **entender el negocio**. Saber qué es una venta neta, por qué importa la tasa de cancelación o qué espera finanzas de un cierre de mes. Por eso cada lección parte de un pedido del negocio.
+
+@@ 02-datos-y-formatos
+objetivos: Identificar filas, columnas, claves primarias y claves foráneas en una tabla | Elegir el tipo de dato adecuado para cada columna y explicar por qué importa | Comparar CSV, JSON, Parquet y Delta y decidir cuál usar en cada caso | Distinguir una base transaccional (OLTP) de un warehouse (OLAP), un data lake y un lakehouse
+prerrequisitos: fundamentos-bienvenida
+autoevaluacion: ¿Puedes señalar la clave primaria y una clave foránea en las tablas `clientes` y `pedidos`? | ¿Sabes por qué el dinero se guarda como `DECIMAL` y no como `REAL`? | ¿Sabes por qué `NULL` no es lo mismo que 0 o que un texto vacío? | ¿Puedes nombrar tres problemas de los archivos CSV? | ¿Puedes explicar por qué Parquet es más rápido que CSV para analizar? | ¿Sabes por qué no se analiza directamente en la base de datos de la app?
+>> escenario El archivo que llegó por mail
+En tu primera semana, Diego, de finanzas, te manda un archivo:
+
+> "Te paso el export de ventas del sistema viejo, `ventas.csv`. Cuando lo abro en Excel, los montos salen raros y algunas fechas no se entienden. ¿Lo podemos cargar al warehouse?"
+
+Antes de cargar nada, necesitas entender cómo están organizados los datos: tablas, tipos y formatos. Esta lección te da ese vocabulario, y vas a ver por qué "un CSV" puede esconder muchos problemas.
+>> errores
+- **Guardar números como texto**: un código de producto `0012` guardado como número se convierte en `12`, y un monto `1.234,50` guardado como texto no se puede sumar. Decide el tipo de cada columna a propósito.
+- **Fechas en formato local**: `03/04/2024` es 3 de abril en Latinoamérica y 4 de marzo en EE. UU. Convierte todo a ISO (`2024-04-03`) al cargar.
+- **Abrir un CSV con la codificación equivocada**: aparecen caracteres como `PerÃº`. Usa UTF-8 siempre que puedas, y pregunta con qué codificación se generó el archivo.
+- **Confundir vacío con nulo**: un campo `""` y un campo ausente no significan lo mismo. Al cargar, decide cómo tratar cada caso.
+>> trabajo
+- En las empresas, los datos que llegan de afuera (exports, archivos de proveedores, APIs) aterrizan primero **tal cual** en una zona de "landing" o "bronze". Se limpian y tipan después, en un paso separado. Así siempre puedes volver al original.
+- La conversión de CSV o JSON a Parquet/Delta es uno de los primeros pasos de casi todos los pipelines: reduce el tamaño, guarda los tipos y acelera todo lo que viene después.
+- Cuando recibas un archivo nuevo, antes de procesarlo, revisa: cuántas filas tiene, qué columnas, qué separador, qué codificación, cuántos nulos y si hay duplicados. Lo vas a practicar en la terminal, en Python y en SQL.
+
+@@ 03-terminal
+objetivos: Moverte entre carpetas usando rutas absolutas y relativas | Crear, copiar, mover y borrar archivos y carpetas desde la terminal | Inspeccionar un archivo de datos con `head`, `wc`, `grep`, `cut`, `sort` y `uniq` | Encadenar comandos con tuberías y guardar resultados con redirecciones | Usar variables de entorno y guardar la salida de un comando en una variable
+prerrequisitos: fundamentos-datos-y-formatos
+autoevaluacion: ¿Sabes en qué carpeta estás y cómo volver a tu carpeta personal? | ¿Puedes contar las filas de un CSV sin contar el encabezado? | ¿Puedes contar los pedidos por canal solo con comandos de terminal? | ¿Puedes buscar los errores de un log y ver en qué línea están? | ¿Sabes la diferencia entre `>` y `>>`? | ¿Sabes por qué `rm -rf` es peligroso?
+>> escenario El pipeline falló anoche
+Son las 8:30 de la mañana y Martín, tu líder, te escribe:
+
+> "El dashboard de ventas no se actualizó. El log del pipeline está en `logs/pipeline.log` del servidor. ¿Puedes ver qué falló? Y de paso fíjate si el archivo de ventas de diciembre llegó completo."
+
+El servidor no tiene ventanas ni mouse: solo una terminal. En esta lección aprendes a moverte, mirar archivos y encontrar lo que buscas escribiendo comandos, que es lo que hace un data engineer cuando algo se rompe.
+>> errores
+- **"No existe el archivo o el directorio"**: casi siempre estás en otra carpeta. Ejecuta `pwd` y `ls` para ver dónde estás, o usa la ruta completa.
+- **Espacios en los nombres**: `cat mis ventas.csv` busca dos archivos (`mis` y `ventas.csv`). Usa comillas: `cat "mis ventas.csv"`, o mejor, no uses espacios en nombres de archivos.
+- **`>` en lugar de `>>`**: `>` **reemplaza** el contenido del archivo. Si querías agregar líneas al final, perdiste lo que había.
+- **`uniq -c` sin `sort` antes**: `uniq` solo junta repetidos que están **seguidos**. Sin ordenar, cuenta mal.
+- **Contar el encabezado**: `wc -l` en un CSV incluye la línea de títulos. Resta 1 o usa `tail -n +2`.
+>> trabajo
+- Cuando un pipeline falla, lo primero es **leer el log**: `tail -n 50` para ver el final, `grep -n ERROR` para encontrar el error y su línea. Es una habilidad que se usa todas las semanas.
+- Antes de procesar un archivo grande, se inspecciona con `head`, `wc -l` y `cut | sort | uniq -c`. En segundos sabes si el archivo llegó completo y si tiene valores raros, sin cargarlo en ninguna herramienta.
+- Los comandos que repites se guardan en un **script** (`.sh`) dentro del repositorio, para que cualquiera del equipo los pueda ejecutar igual.
+>> entrevista "¿Cómo verías las 10 IPs que más aparecen en un archivo de log enorme?"
+Con una tubería: `cut -d' ' -f1 acceso.log | sort | uniq -c | sort -rn | head -10`. Explica cada paso: extraer la columna, ordenar para juntar los iguales, contar, ordenar por cantidad de mayor a menor y quedarse con 10. Mencionar que funciona con archivos de gigabytes sin cargarlos en memoria suma puntos.
+
+@@ 04-git
+objetivos: Crear un repositorio y registrar cambios con `git add` y `git commit` | Leer el estado y el historial con `git status`, `git diff` y `git log` | Trabajar en una rama y unirla con `merge` | Evitar subir secretos con `.gitignore` | Describir el flujo de un pull request con revisión y pruebas automáticas
+prerrequisitos: fundamentos-terminal
+autoevaluacion: ¿Puedes crear un repositorio, hacer dos commits y ver el historial? | ¿Sabes para qué sirve el staging y por qué no se hace commit de todo junto? | ¿Puedes crear una rama, hacer un cambio y volver a `main`? | ¿Sabes qué hacer si subiste una contraseña por error? | ¿Puedes explicar qué pasa desde que abres un pull request hasta que el cambio llega a producción?
+>> escenario Tu primer pull request
+Martín te asigna tu primera tarea de código:
+
+> "Agrega la consulta de ventas por canal al repositorio del equipo. Hazlo en una rama, abre un pull request y yo lo reviso. Ojo: nada de contraseñas en el código, que el repo lo ve toda la empresa."
+
+En un equipo, nadie edita el código de producción directamente. Todo pasa por **Git**: ramas, commits, revisión y pruebas automáticas. Esta lección te enseña el flujo que vas a usar todos los días.
+>> errores
+- **Trabajar directo en `main`**: si tu cambio rompe algo, rompe lo de todos. Crea una rama para cada cambio.
+- **Commits gigantes con mensaje "cambios"**: nadie puede revisarlos ni entender después qué pasó. Un commit = un cambio con sentido, con un mensaje que explique qué y por qué.
+- **Subir un secreto**: borrar el archivo en el siguiente commit **no** lo saca del historial. Cambia la contraseña de inmediato y avisa.
+- **Olvidar `git pull` antes de empezar**: trabajas sobre una versión vieja y después aparecen conflictos al unir.
+- **Conflictos de merge**: aparecen cuando dos personas cambiaron las mismas líneas. Git marca el archivo con `<<<<<<<` y `>>>>>>>`; tienes que elegir qué queda, borrar las marcas y hacer commit.
+>> trabajo
+- La revisión de código (*code review*) es donde más se aprende en los primeros meses. Lee los comentarios como consejos, no como críticas, y revisa también el código de otros: es la forma más rápida de aprender cómo trabaja el equipo.
+- En equipos de datos, el CI de un pull request suele ejecutar los tests de dbt, `pytest` de las transformaciones de Python y un chequeo de estilo de SQL (por ejemplo, con sqlfluff).
+- Las herramientas de datos modernas se despliegan desde Git: dbt Cloud, Databricks Asset Bundles y Airflow leen el código de la rama `main`. Lo que no está en Git, no existe.

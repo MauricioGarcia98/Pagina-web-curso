@@ -1,0 +1,138 @@
+@@ 01-metodo
+objetivos: Aplicar un método de 6 pasos para pasar de una pregunta vaga a una consulta correcta | Definir el grano del resultado y cada métrica como fórmula antes de escribir SQL | Reconocer las trampas lógicas más comunes (denominador, doble conteo, promedio de promedios) | Validar un resultado y comunicarlo como una recomendación de negocio
+prerrequisitos: sql-cte | sql-case
+autoevaluacion: ¿Puedes convertir "¿cómo vienen las cancelaciones?" en una frase precisa con métrica, grano y período? | ¿Sabes por qué filtrar `estado = 'completado'` arruina una tasa de cancelación? | ¿Puedes explicar con un ejemplo el doble conteo por JOIN? | ¿Sabes al menos dos formas de validar un resultado antes de entregarlo? | ¿Puedes escribir la conclusión de un análisis en dos frases para alguien que no sabe SQL?
+>> escenario El Grupo Andino
+Tienda Andina pertenece a un grupo inversor, el **Grupo Andino**, que tiene otras siete empresas: un banco, una app de música, una app de viajes, una clínica, un software para pymes, una aerolínea y una empresa de logística. El grupo decidió que el equipo de datos de Tienda Andina sea también el equipo **central** de todas.
+
+Martín te avisa:
+
+> "Desde ahora vas a recibir pedidos de las ocho empresas. Cada una habla su propio idioma: el banco habla de mora, la app de música de churn, la aerolínea de ocupación. No te preocupes por la sintaxis, que ya la sabes: lo difícil es entender qué te están preguntando."
+
+Este módulo entrena exactamente eso: **la lógica de negocio**. Empieza por el método que vas a usar en todos los casos.
+>> trabajo
+- En el trabajo real, el paso 1 (traducir la pregunta) suele ser una conversación de 10 minutos con quien pidió el análisis. Ahorra días: la mayoría de los "números que no cuadran" vienen de definiciones distintas, no de errores de SQL.
+- Las definiciones acordadas ("cliente activo = compró en los últimos 90 días") se escriben en un documento o en la descripción del modelo en dbt. La próxima vez que alguien pregunte, la respuesta ya está.
+- Entregar una tabla sin conclusión obliga al otro a interpretarla, y puede interpretarla mal. Acompaña siempre los números con dos o tres frases: qué encontraste, qué tan seguro es y qué recomiendas.
+>> entrevista "Te piden la tasa de conversión del sitio. ¿Qué preguntas haces antes de calcularla?"
+¿Conversión de qué a qué (visita a compra, carrito a compra)? ¿Por sesión o por usuario? ¿En qué período? ¿Se excluyen bots, empleados o pedidos cancelados? ¿Cómo se trata a un usuario que compra dos veces? Mostrar que el número depende de esas decisiones es exactamente lo que buscan con esta pregunta.
+
+@@ 02-banco
+objetivos: Calcular saldos y extractos con montos con signo y totales acumulados | Detectar patrones de fraude con ventanas de tiempo y medir una regla con precisión y cobertura | Calcular la mora de una cartera de préstamos a una fecha de corte | Evaluar si un score crediticio separa bien a los buenos y malos pagadores
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes armar el extracto de una cuenta con el saldo después de cada movimiento? | ¿Sabes por qué en esta base los montos ya vienen con signo y qué cambia eso al sumar? | ¿Puedes explicar la diferencia entre precisión y cobertura de una regla de fraude? | ¿Puedes calcular la deuda vencida de cada préstamo a una fecha de corte? | ¿Sabes cómo comprobar si un score predice la morosidad?
+>> escenario Banco Austral
+La gerente de riesgos de **Banco Austral** pide reunión con el equipo de datos:
+
+> "Tenemos tres frentes. Seguridad propone una regla nueva para detectar fraude y quiero saber si sirve antes de activarla. Cobranzas necesita la deuda vencida al cierre del año. Y el directorio pregunta si nuestro score crediticio funciona o si estamos prestando a ciegas."
+
+Un banco vive de prestar dinero y cobrarlo, y pierde por fraude y por morosidad. Cada error en estos números es dinero real.
+>> trabajo
+- En un banco, los saldos nunca se recalculan sumando todo el historial cada vez: se guardan **saldos diarios** (una foto por cuenta y día) y se concilian contra el sistema contable. Si no coinciden, se detiene todo hasta encontrar la diferencia.
+- Las reglas de fraude se evalúan siempre con dos números: cuántos fraudes atrapa (cobertura) y cuántas alertas son falsas (precisión). Una regla con muchas falsas alarmas bloquea tarjetas de clientes honestos, y eso también cuesta.
+- Los datos bancarios están muy regulados: acceso por roles, enmascaramiento de datos personales y auditoría de quién consultó qué. Lo verás en Unity Catalog, Lake Formation y BigQuery.
+
+@@ 03-streaming
+objetivos: Calcular usuarios activos mensuales (MAU) y métricas de consumo | Calcular el MRR a una fecha a partir de suscripciones vigentes | Medir churn y conversión de plan gratis a pago sin contar mal los cambios de plan | Identificar usuarios en riesgo de baja con reglas de inactividad
+prerrequisitos: casos-metodo | sql-fechas
+autoevaluacion: ¿Puedes calcular el MAU por mes? | ¿Sabes qué suscripciones cuentan como "vigentes" en una fecha dada? | ¿Sabes por qué un cambio de plan no es una baja y cómo excluirlo? | ¿Puedes calcular qué porcentaje de usuarios gratis pasó a pago después? | ¿Puedes definir y listar usuarios en riesgo?
+>> escenario Ritmo
+El director de producto de **Ritmo**, la app de música, está preocupado:
+
+> "Los inversores nos preguntan por el MRR y el churn de cada mes. Y quiero saber cuántos usuarios gratis terminan pagando, porque ahí está el negocio. Ah, y los que pagan pero no escuchan nada hace un mes: esos se van a ir, quiero mandarles algo."
+
+Un negocio de suscripciones vive de **retener**: conseguir un usuario cuesta mucho más que conservarlo. Estas métricas son las que miran todos los días.
+>> trabajo
+- En las empresas de suscripción, el MRR y el churn se calculan en tablas gold "por mes y por usuario" que guardan el estado de cada suscripción en cada mes. Los dashboards leen de ahí, y finanzas e inversores usan exactamente la misma definición.
+- Los eventos de reproducción son enormes (miles de millones de filas). Se procesan con Spark o en BigQuery, particionados por fecha, y se resumen por día y usuario apenas entran.
+- Las listas de "usuarios en riesgo" alimentan campañas automáticas. Por eso se miden después: ¿los que recibieron el mensaje se fueron menos que los que no?
+
+@@ 04-viajes
+objetivos: Calcular tasas de completitud y de viajes sin conductor por ciudad y por hora | Medir tiempos de espera y duración con diferencias entre marcas de tiempo | Separar el ingreso base del ingreso por tarifa dinámica | Rankear conductores con un mínimo de viajes y medir la retención de pasajeros
+prerrequisitos: casos-metodo | sql-ventanas-1
+autoevaluacion: ¿Puedes calcular el porcentaje de viajes sin conductor por hora del día? | ¿Puedes calcular el tiempo de espera en minutos entre la solicitud y el inicio? | ¿Sabes cuánto del ingreso viene del recargo dinámico y cómo se calcula? | ¿Sabes por qué un ranking de calificación necesita un mínimo de viajes? | ¿Puedes seguir mes a mes a una cohorte de pasajeros?
+>> escenario Ruta
+La gerente de operaciones de **Ruta**, la app de viajes, tiene la reunión mensual con las ciudades:
+
+> "Cada ciudad dice que le va bien, pero los números de quejas dicen otra cosa. Quiero ver por ciudad cuántas solicitudes se completan, cuánto espera la gente y qué conductores son los mejores. Y finanzas quiere saber cuánto ganamos por la tarifa dinámica."
+
+Una app de viajes es un **mercado de dos lados**: pasajeros que piden y conductores que ofrecen. Si falta oferta, se pierden viajes; si sobra, los conductores ganan poco y se van.
+>> trabajo
+- Las apps de movilidad usan **streaming**: los precios dinámicos se calculan cada pocos segundos con la oferta y la demanda de cada zona. Lo verás con Kinesis, Pub/Sub y Spark Streaming.
+- Los rankings de calificación siempre usan un mínimo de viajes (o promedios bayesianos), porque un conductor con un solo viaje de 5 estrellas no es mejor que uno con 2.000 viajes de 4,9.
+- Las marcas de tiempo se guardan en UTC y se convierten a la hora local de cada ciudad. Con ciudades en distintos husos horarios, un error de zona horaria mueve los picos de demanda.
+
+@@ 05-clinica
+objetivos: Calcular el ausentismo con el denominador correcto (turnos que debían atenderse) | Relacionar el ausentismo con la anticipación de la reserva y el día de la semana | Medir la productividad de los médicos por día trabajado | Separar lo facturado, lo cubierto y el copago por cobertura
+prerrequisitos: casos-metodo | sql-case
+autoevaluacion: ¿Sabes por qué los turnos cancelados no entran en la tasa de ausentismo? | ¿Puedes agrupar turnos por días de anticipación de la reserva? | ¿Puedes calcular pacientes atendidos por día trabajado de cada médico? | ¿Puedes detectar pacientes que vuelven a la misma especialidad dentro de 30 días? | ¿Puedes calcular el porcentaje cubierto por cada obra social o seguro?
+>> escenario Clínica del Sur
+El director médico de **Clínica del Sur** está preocupado:
+
+> "Casi uno de cada ocho pacientes no viene al turno y nadie avisa. Es tiempo de médico perdido y otro paciente que no consiguió turno. ¿En qué especialidades pasa más? ¿Tiene que ver con cuánto antes reservan? Si confirmamos por mensaje los turnos de mayor riesgo, ¿cuáles serían?"
+
+En salud, cada turno vacío es un costo fijo que no se recupera. Y los datos de salud son de los más sensibles que existen.
+>> trabajo
+- Los datos de salud tienen leyes específicas de privacidad. En los entornos de análisis, los pacientes se identifican con ids seudónimos, los datos de diagnóstico tienen acceso restringido y cada consulta queda auditada.
+- Las clínicas usan modelos de predicción de ausentismo para decidir a quién confirmar o a quién sobreagendar. La base de esos modelos son exactamente las variables de este caso: anticipación, día, especialidad e historial del paciente.
+
+@@ 06-saas
+objetivos: Calcular MRR, empresas activas y ARPA por mes | Descomponer la variación del MRR en nuevo, expansión, contracción y churn | Calcular la retención neta de ingresos (NRR) | Medir el cumplimiento de SLA de soporte y relacionarlo con el churn
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes calcular el ARPA de un mes? | ¿Puedes clasificar el cambio de MRR de cada empresa entre un mes y el siguiente en nuevo, expansión, contracción o churn? | ¿Sabes qué significa un NRR mayor a 100 %? | ¿Puedes calcular el porcentaje de tickets críticos que incumplieron el SLA? | ¿Sabes por qué correlación entre satisfacción y churn no prueba causalidad?
+>> escenario Nube Pyme
+El CEO de **Nube Pyme**, un software de gestión para pequeñas empresas, prepara una ronda de inversión:
+
+> "Los inversores van a mirar tres cosas: cómo crece el MRR, de dónde viene ese crecimiento y cuánto retenemos de los clientes que ya tenemos. Si el NRR está arriba de 100 %, crecemos aunque no consigamos clientes nuevos. Necesito esos números bien calculados, sin maquillaje."
+
+En un SaaS B2B, el crecimiento sano viene tanto de vender a clientes nuevos como de que los actuales paguen más con el tiempo.
+>> trabajo
+- Las métricas SaaS (MRR, NRR, churn) se calculan en un modelo "MRR por empresa y mes" que es la fuente de verdad para finanzas, ventas y el directorio. Un error ahí se repite en todas las presentaciones.
+- Los datos de facturación suelen venir de herramientas externas (Stripe, Chargebee) y los de soporte de otras (Zendesk). Unirlos exige un id común de cliente, y conciliar esos ids es parte importante del trabajo.
+
+@@ 07-vuelos
+objetivos: Calcular la puntualidad (OTP) por ruta con la tolerancia estándar de 15 minutos | Medir demoras promedio por aeropuerto sin incluir vuelos cancelados | Estimar ocupación ponderada por asientos | Analizar precio según anticipación y la propagación de demoras entre vuelos encadenados
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes calcular el porcentaje de vuelos puntuales por ruta? | ¿Sabes por qué la ocupación promedio de los vuelos no es lo mismo que pasajeros totales sobre asientos totales? | ¿Puedes agrupar reservas por días de anticipación y comparar precios? | ¿Puedes encontrar el vuelo siguiente del mismo avión con una función de ventana? | ¿Sabes qué vuelos excluir al calcular demoras?
+>> escenario Cóndor Air
+El gerente de operaciones de **Cóndor Air** recibió una queja del regulador:
+
+> "Dicen que nuestra puntualidad está por debajo del promedio. Necesito saber en qué rutas y aeropuertos fallamos. Y comercial quiere entender la ocupación y si los que compran tarde realmente pagan más."
+
+Una aerolínea vive de llenar aviones al mejor precio y de cumplir horarios. Un avión que sale tarde arrastra la demora a todos los vuelos que hace ese día.
+>> trabajo
+- La puntualidad se mide con un estándar de la industria: un vuelo es puntual si llega dentro de los 15 minutos de lo programado. Usar otra definición hace que tus números no se puedan comparar con nadie.
+- Las aerolíneas combinan datos de muchas fuentes (reservas, operaciones, mantenimiento, clima). Integrarlas por vuelo y fecha es un trabajo típico de data engineering, y los datos de operación llegan en tiempo casi real.
+
+@@ 08-logistica
+objetivos: Calcular stock a una fecha sumando movimientos con signo | Detectar quiebres de stock día por día con acumulados | Medir entregas a tiempo (OTD) y retraso por transportista | Calcular el costo real por envío exitoso incluyendo devoluciones y pérdidas
+prerrequisitos: casos-metodo | sql-ventanas-2
+autoevaluacion: ¿Puedes calcular el stock de cada SKU y almacén a una fecha? | ¿Puedes contar cuántos días terminó un SKU con stock negativo? | ¿Puedes calcular el porcentaje de envíos entregados a tiempo por transportista? | ¿Sabes por qué el costo por envío exitoso es más justo que el costo por envío? | ¿Sabes qué significa un stock negativo en los datos y qué hacer con él?
+>> escenario Mercurio
+La jefa de operaciones de **Mercurio**, la empresa de logística, tiene que renegociar contratos:
+
+> "Tenemos tres transportistas y cada uno dice que es el mejor. Quiero ver cuántos envíos entrega cada uno a tiempo y cuánto nos cuestan de verdad, contando los que se pierden. Y en los depósitos, hay productos que se quedan sin stock y nadie se entera hasta que un cliente se queja."
+
+En logística, el inventario se calcula a partir de movimientos (entradas y salidas), y un error en un signo hace que el sistema diga que hay stock cuando no lo hay.
+>> trabajo
+- Los sistemas de inventario guardan **movimientos**, y el stock se calcula acumulándolos. En los pipelines se guarda además una foto diaria del stock por SKU y almacén, para no recalcular años de movimientos en cada consulta.
+- Un stock negativo en los datos casi siempre es un error de registro: una salida cargada antes que la entrada, o una entrada que nunca se registró. Detectarlos es una tarea típica de calidad de datos.
+
+@@ 09-tienda-avanzado
+objetivos: Encontrar pares de productos que se compran juntos sin contar cada par dos veces | Separar ventas de clientes nuevos y recurrentes usando la primera compra | Calcular el LTV por cohorte de registro | Calcular la mediana del tiempo hasta la segunda compra sin funciones de mediana
+prerrequisitos: casos-metodo | sql-patrones
+autoevaluacion: ¿Puedes listar los pares de productos más comprados juntos? | ¿Sabes cómo evitar contar el par (A, B) y el par (B, A) por separado? | ¿Puedes marcar si cada pedido fue el primero de su cliente? | ¿Puedes calcular el LTV promedio por año de registro? | ¿Puedes calcular una mediana con funciones de ventana?
+>> escenario El directorio de Tienda Andina
+Valentina vuelve a presentar en el directorio y esta vez las preguntas son de estrategia:
+
+> "Me van a preguntar: ¿crecemos porque conseguimos clientes nuevos o porque los que tenemos vuelven? ¿Con qué productos entra la gente? ¿Cuánto vale un cliente en toda su vida? ¿Y cuánto tarda en volver a comprar? Con eso decidimos el presupuesto de marketing del año."
+
+Son las preguntas que hace cualquier directorio de un e-commerce. Todas dependen de identificar bien la **primera** compra de cada cliente y de no mezclar granos.
+>> errores
+- **Pares duplicados en la canasta**: un self join de las líneas del mismo pedido devuelve (A, B) y (B, A), y también (A, A). Usa `a.producto_id < b.producto_id`.
+- **"Nuevo" por año en vez de por cliente**: un cliente nuevo es el que hace su **primer** pedido, no el que se registró ese año.
+- **Primera compra con pedidos cancelados**: si el primer pedido se canceló, ¿cuenta? Decide y aplica la misma regla en todas las métricas.
+- **LTV de cohortes recientes**: los clientes de 2024 tuvieron menos tiempo para comprar. Compara cohortes con el mismo tiempo de antigüedad, o acláralo.
+>> trabajo
+- Estas métricas (nuevos vs. recurrentes, LTV, tiempo a la recompra) son la base de las decisiones de marketing: cuánto invertir para conseguir un cliente (que tiene que ser menos que su LTV) y cuándo mandar un recordatorio.
+- El análisis de canasta con millones de pedidos genera una explosión de pares. En producción se limita a los productos más vendidos o se usan algoritmos específicos en Spark.

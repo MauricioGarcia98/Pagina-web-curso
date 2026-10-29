@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Academia de Datos</title>
+  <meta name="description" content="Curso gratuito e interactivo de ingeniería de datos desde cero: SQL (de básico a súper avanzado), Python, Spark, PySpark, Airflow, dbt, Databricks, Azure, AWS y Google Cloud, con 8 casos de negocio. Practica en el navegador con un editor profesional, una terminal con las CLIs de la nube y más de 200.000 filas de datos.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <header class="topbar">
+    <button class="icon-btn menu-btn" id="menuBtn" aria-label="Abrir menú">☰</button>
+    <a class="brand" href="#/">
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="28" height="28"><rect width="64" height="64" rx="14" fill="currentColor"/><g fill="var(--brand-ink)"><ellipse cx="32" cy="18" rx="16" ry="6"/><path d="M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z"/><path d="M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z"/></g></svg>
+      </span>
+      <span class="brand-text">Academia <b>de Datos</b></span>
+    </a>
+    <div class="search">
+      <input id="search" type="search" placeholder="Buscar lecciones, comandos, conceptos…" autocomplete="off" aria-label="Buscar">
+      <div id="searchResults" class="search-results" hidden></div>
+    </div>
+    <div class="topbar-right">
+      <span id="pyStatus" class="py-status" hidden></span>
+      <button class="btn btn-sm term-btn" id="termBtn" title="Abrir la terminal (Ctrl+`)">⌨ Terminal</button>
+      <a class="progress-pill" href="#/progreso" title="Tu progreso"><span id="progressPct">0%</span></a>
+      <button class="icon-btn" id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema claro/oscuro">◐</button>
+    </div>
+  </header>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Navegación del curso"></nav>
+    <div class="scrim" id="scrim"></div>
+    <main id="main" class="main" tabindex="-1"></main>
+  </div>
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <button class="icon-btn modal-close" id="modalClose" aria-label="Cerrar">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <noscript><p style="padding:24px">Este curso necesita JavaScript para funcionar.</p></noscript>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/sql-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="assets/vendor/rough.min.js"></script>
+  <script src="assets/js/iconos-lib.js"></script>
+  <script src="assets/js/diagram.js"></script>
+  <script src="assets/js/data-casos.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/content.js"></script>
+  <script src="assets/js/pysrc.js"></script>
+  <script src="assets/js/engines.js"></script>
+  <script src="assets/js/terminal.js"></script>
+  <script src="assets/js/terminal-cloud.js"></script>
+  <script src="assets/js/terminal-iac.js"></script>
+  <script src="assets/js/terminal-local.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

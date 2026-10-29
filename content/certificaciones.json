@@ -1,0 +1,1297 @@
+[
+ {
+  "id": "dbx-de-associate",
+  "proveedor": "Databricks",
+  "nombre": "Data Engineer Associate",
+  "codigo": "DE Associate",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "45",
+   "minutos": "90",
+   "costo": "USD 200",
+   "aprobacion": "no publicado (≈70 %)",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/data-engineer-associate",
+  "actualizado": "la guía del 4 de mayo de 2026",
+  "examen": "dbx-de-associate",
+  "notas": "La guía de mayo de 2026 reorganizó el examen en siete dominios y le dio a CI/CD un dominio propio. Ingesta, transformación y jobs suman el 59 %.",
+  "dominios": [
+   {
+    "nombre": "Databricks Intelligence Platform",
+    "peso": 6,
+    "temas": [
+     "Plano de control y de cómputo",
+     "Tipos de cómputo y modelo de costos (DBU)",
+     "Delta Lake y Unity Catalog, conceptos básicos"
+    ],
+    "lecciones": [
+     "cert-databricks-plataforma-computo"
+    ]
+   },
+   {
+    "nombre": "Ingesta y carga de datos",
+    "peso": 21,
+    "temas": [
+     "Auto Loader y `COPY INTO`",
+     "Lakeflow Connect: conectores gestionados y estándar",
+     "JSON y datos semiestructurados; evolución de esquema"
+    ],
+    "lecciones": [
+     "cert-databricks-ingesta"
+    ]
+   },
+   {
+    "nombre": "Transformación y modelado",
+    "peso": 22,
+    "temas": [
+     "Transformaciones en Spark SQL y PySpark: joins, deduplicación, agregaciones",
+     "Lakeflow Spark Declarative Pipelines, expectativas y AUTO CDC",
+     "Objetos de la capa gold"
+    ],
+    "lecciones": [
+     "cert-databricks-transformacion-pipelines"
+    ]
+   },
+   {
+    "nombre": "Trabajar con Lakeflow Jobs",
+    "peso": 16,
+    "temas": [
+     "Tareas, dependencias y condiciones Run if",
+     "Disparadores, parámetros y task values",
+     "Reintentos, notificaciones y repair run"
+    ],
+    "lecciones": [
+     "cert-databricks-lakeflow-jobs"
+    ]
+   },
+   {
+    "nombre": "Implementar CI/CD",
+    "peso": 10,
+    "temas": [
+     "Git folders",
+     "Declarative Automation Bundles",
+     "CLI de Databricks"
+    ],
+    "lecciones": [
+     "cert-databricks-cicd-bundles"
+    ]
+   },
+   {
+    "nombre": "Troubleshooting, monitoreo y optimización",
+    "peso": 10,
+    "temas": [
+     "Spark UI y Query Profile",
+     "Liquid Clustering, OPTIMIZE y Predictive Optimization",
+     "Tablas de sistema"
+    ],
+    "lecciones": [
+     "cert-databricks-optimizacion-monitoreo"
+    ]
+   },
+   {
+    "nombre": "Gobierno y seguridad",
+    "peso": 15,
+    "temas": [
+     "Tablas administradas y externas, permisos",
+     "Row filters, column masks y ABAC",
+     "Delta Sharing y linaje"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 45,
+   "minutos": 90,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "dbx-de-professional",
+  "proveedor": "Databricks",
+  "nombre": "Data Engineer Professional",
+  "codigo": "DE Professional",
+  "nivel": "Avanzado",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "60",
+   "minutos": "120",
+   "costo": "USD 200",
+   "aprobacion": "no publicado",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/data-engineer-professional",
+  "actualizado": "la guía de noviembre de 2025 (con los cambios del 9 de octubre de 2026 en las notas)",
+  "examen": "dbx-de-professional",
+  "notas": "Desde el 9 de octubre de 2026 rige una guía de **nueve secciones** y 60 preguntas puntuadas. Según los análisis publicados: *Compartir y federar* se integra en **Ingesta** (≈12 %, que suma CDC con Lakeflow Connect, Iceberg y Clean Rooms), *Transformación y calidad* pasa a llamarse **Manipulación de datos** (≈12 %, con `VARIANT` y funciones de IA), **Desarrollar código** queda en ≈23 % y **Costo y rendimiento** sube a ≈15 %. Abajo están los pesos de la guía de noviembre de 2025.",
+  "dominios": [
+   {
+    "nombre": "Desarrollar código de procesamiento con Python y SQL",
+    "peso": 22,
+    "temas": [
+     "Structured Streaming con estado y watermarks",
+     "`foreachBatch` y MERGE idempotente",
+     "Tipos de UDF"
+    ],
+    "lecciones": [
+     "cert-databricks-nivel-professional",
+     "cert-databricks-transformacion-pipelines"
+    ]
+   },
+   {
+    "nombre": "Ingesta y adquisición de datos",
+    "peso": 7,
+    "temas": [
+     "Auto Loader y Lakeflow Connect con CDC"
+    ],
+    "lecciones": [
+     "cert-databricks-ingesta"
+    ]
+   },
+   {
+    "nombre": "Transformación, limpieza y calidad",
+    "peso": 10,
+    "temas": [
+     "Expectativas, cuarentena, AUTO CDC",
+     "`VARIANT` y funciones de IA"
+    ],
+    "lecciones": [
+     "cert-databricks-transformacion-pipelines",
+     "cert-databricks-nivel-professional"
+    ]
+   },
+   {
+    "nombre": "Compartir y federar datos",
+    "peso": 5,
+    "temas": [
+     "Delta Sharing",
+     "Lakehouse Federation",
+     "Clean Rooms"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad",
+     "cert-databricks-ingesta"
+    ]
+   },
+   {
+    "nombre": "Monitoreo y alertas",
+    "peso": 10,
+    "temas": [
+     "Tablas de sistema, alertas de SQL",
+     "Monitoreo de calidad de datos",
+     "Métricas de streaming"
+    ],
+    "lecciones": [
+     "cert-databricks-optimizacion-monitoreo",
+     "cert-databricks-nivel-professional"
+    ]
+   },
+   {
+    "nombre": "Optimización de costo y rendimiento",
+    "peso": 13,
+    "temas": [
+     "Liquid Clustering, Predictive Optimization",
+     "Skew, spill, Photon y AQE",
+     "Costos con `system.billing`"
+    ],
+    "lecciones": [
+     "cert-databricks-optimizacion-monitoreo",
+     "cert-databricks-plataforma-computo"
+    ]
+   },
+   {
+    "nombre": "Seguridad y cumplimiento",
+    "peso": 10,
+    "temas": [
+     "Row filters, column masks, ABAC",
+     "Secretos y service principals",
+     "Borrado de datos personales"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad"
+    ]
+   },
+   {
+    "nombre": "Gobierno de datos",
+    "peso": 7,
+    "temas": [
+     "Unity Catalog, linaje y auditoría"
+    ],
+    "lecciones": [
+     "cert-databricks-gobierno-seguridad"
+    ]
+   },
+   {
+    "nombre": "Depuración y despliegue",
+    "peso": 10,
+    "temas": [
+     "Bundles y CI/CD",
+     "Pruebas con pytest y Databricks Connect",
+     "Logs y Spark UI"
+    ],
+    "lecciones": [
+     "cert-databricks-cicd-bundles",
+     "cert-databricks-nivel-professional"
+    ]
+   },
+   {
+    "nombre": "Modelado de datos",
+    "peso": 6,
+    "temas": [
+     "Identity, constraints y columnas generadas",
+     "SCD y star schema en el lakehouse"
+    ],
+    "lecciones": [
+     "cert-databricks-nivel-professional"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 60,
+   "minutos": 120,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "dbx-genai",
+  "proveedor": "Databricks",
+  "nombre": "Generative AI Engineer Associate",
+  "codigo": "GenAI Associate",
+  "nivel": "Intermedio",
+  "rol": "IA generativa",
+  "formato": {
+   "preguntas": "45",
+   "minutos": "90",
+   "costo": "USD 200",
+   "aprobacion": "no publicado",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/genai-engineer-associate",
+  "actualizado": "la guía de marzo de 2026",
+  "examen": "dbx-genai",
+  "notas": "El dominio más pesado es **desarrollar aplicaciones** (30 %): agentes, herramientas, MCP y Agent Bricks. La guía de 2026 incorpora MLflow 3 para trazas y evaluación.",
+  "dominios": [
+   {
+    "nombre": "Diseñar aplicaciones",
+    "peso": 14,
+    "temas": [
+     "Prompt, RAG, agente o multiagente",
+     "Descomponer un caso de uso en componentes"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-diseno-datos"
+    ]
+   },
+   {
+    "nombre": "Preparar datos",
+    "peso": 14,
+    "temas": [
+     "Parseo y chunking",
+     "Embeddings",
+     "Índices de Vector Search"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-diseno-datos"
+    ]
+   },
+   {
+    "nombre": "Desarrollar aplicaciones",
+    "peso": 30,
+    "temas": [
+     "Herramientas como funciones de Unity Catalog",
+     "Agent Framework, `ResponsesAgent`, LangGraph",
+     "MCP, Genie y Agent Bricks"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-agentes"
+    ]
+   },
+   {
+    "nombre": "Ensamblar y desplegar",
+    "peso": 22,
+    "temas": [
+     "Registrar con MLflow en Unity Catalog",
+     "Model Serving: pay-per-token, provisioned throughput, external models",
+     "`ai_query` y Databricks Apps"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-despliegue-evaluacion"
+    ]
+   },
+   {
+    "nombre": "Gobierno",
+    "peso": 8,
+    "temas": [
+     "Permisos y AI Gateway",
+     "Guardrails y datos sensibles"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-despliegue-evaluacion",
+     "cert-databricks-gobierno-seguridad"
+    ]
+   },
+   {
+    "nombre": "Evaluar y monitorear",
+    "peso": 12,
+    "temas": [
+     "`mlflow.genai.evaluate` y scorers",
+     "Feedback humano y monitoreo en producción"
+    ],
+    "lecciones": [
+     "cert-databricks-genai-despliegue-evaluacion"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 45,
+   "minutos": 90,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "dbx-ml",
+  "proveedor": "Databricks",
+  "nombre": "Machine Learning Associate",
+  "codigo": "ML Associate",
+  "nivel": "Intermedio",
+  "rol": "Machine learning",
+  "formato": {
+   "preguntas": "48",
+   "minutos": "90",
+   "costo": "USD 200",
+   "aprobacion": "no publicado",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://www.databricks.com/learn/certification/machine-learning-associate",
+  "actualizado": "la guía de marzo de 2025 (la de agosto de 2026 reagrupa los dominios)",
+  "examen": "dbx-ml",
+  "notas": "La guía de agosto de 2026 reagrupa los dominios e integra el monitoreo dentro de MLOps; los temas son los mismos.",
+  "dominios": [
+   {
+    "nombre": "Databricks Machine Learning",
+    "peso": 38,
+    "temas": [
+     "Runtime ML, AutoML",
+     "Features en Unity Catalog",
+     "MLflow: experimentos y registro"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   },
+   {
+    "nombre": "Flujos de ML",
+    "peso": 19,
+    "temas": [
+     "Exploración, separación y preprocesamiento",
+     "Ajuste de hiperparámetros"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   },
+   {
+    "nombre": "Desarrollo de modelos",
+    "peso": 31,
+    "temas": [
+     "Spark ML y pandas API on Spark",
+     "Métricas y validación"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   },
+   {
+    "nombre": "Despliegue de modelos",
+    "peso": 12,
+    "temas": [
+     "Batch, streaming y Model Serving",
+     "Alias y monitoreo"
+    ],
+    "lecciones": [
+     "cert-databricks-ml-associate"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 48,
+   "minutos": 90,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "az-dp700",
+  "proveedor": "Microsoft Azure",
+  "nombre": "Fabric Data Engineer Associate",
+  "codigo": "DP-700",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "40–60 (variable)",
+   "minutos": "100",
+   "costo": "USD 165 (según país)",
+   "aprobacion": "700 / 1000",
+   "vigencia": "1 año, renovación gratis"
+  },
+  "fuente": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-700",
+  "actualizado": "el temario del 21 de julio de 2026",
+  "examen": "az-dp700",
+  "notas": "Reemplaza a DP-203 (retirado el 31 de marzo de 2025). Los tres dominios pesan lo mismo: no hay un dominio que se pueda dejar de lado. Incluye casos de estudio.",
+  "dominios": [
+   {
+    "nombre": "Implementar y administrar una solución de analítica",
+    "peso": 33,
+    "rango": "30–35 %",
+    "temas": [
+     "Configuración del workspace: Spark, dominios, OneLake, Apache Airflow",
+     "Ciclo de vida: Git, canalizaciones de despliegue, proyectos de base de datos",
+     "Seguridad: roles, permisos de ítem, RLS, CLS, enmascaramiento, etiquetas",
+     "Orquestación: pipeline, notebook, Dataflow Gen2, disparadores"
+    ],
+    "lecciones": [
+     "cert-azure-fabric-plataforma"
+    ]
+   },
+   {
+    "nombre": "Ingerir y transformar datos",
+    "peso": 34,
+    "rango": "30–35 %",
+    "temas": [
+     "Cargas completas e incrementales, SCD, miembro inferido",
+     "Lotes: copy activity, Copy job, Dataflow Gen2, notebooks, T-SQL, shortcuts, mirroring",
+     "Tiempo real: Eventstream, Spark Structured Streaming, KQL y ventanas"
+    ],
+    "lecciones": [
+     "cert-azure-fabric-ingesta-transformacion"
+    ]
+   },
+   {
+    "nombre": "Monitorear y optimizar una solución de analítica",
+    "peso": 33,
+    "rango": "30–35 %",
+    "temas": [
+     "Monitoring hub, Capacity Metrics, alertas con Activator",
+     "Errores de pipelines, dataflows, notebooks, eventstreams y T-SQL",
+     "V-Order, OPTIMIZE, VACUUM, Spark, warehouse, eventhouse"
+    ],
+    "lecciones": [
+     "cert-azure-fabric-monitoreo-optimizacion"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 100,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "az-ai103",
+  "proveedor": "Microsoft Azure",
+  "nombre": "Azure AI Apps and Agents Developer Associate",
+  "codigo": "AI-103",
+  "nivel": "Intermedio",
+  "rol": "IA generativa y agentes",
+  "formato": {
+   "preguntas": "40–60 (variable)",
+   "minutos": "100",
+   "costo": "USD 165 (según país)",
+   "aprobacion": "700 / 1000",
+   "vigencia": "1 año, renovación gratis"
+  },
+  "fuente": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-103",
+  "actualizado": "el temario del 16 de abril de 2026",
+  "examen": "az-ai103",
+  "notas": "Reemplaza a AI-102 (retirado el 30 de junio de 2026). La IA generativa y los agentes en Microsoft Foundry son el centro del examen.",
+  "dominios": [
+   {
+    "nombre": "Planificar y administrar una solución de IA en Azure",
+    "peso": 27,
+    "rango": "25–30 %",
+    "temas": [
+     "Recursos y proyectos de Foundry",
+     "Tipos de despliegue y cuotas",
+     "Autenticación sin claves, red privada, filtros de contenido, costos"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-foundry-agentes"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de IA generativa y agentes",
+    "peso": 32,
+    "rango": "30–35 %",
+    "temas": [
+     "RAG con Azure AI Search (híbrida y semántica)",
+     "Foundry Agent Service: herramientas, multiagente, aprobaciones",
+     "Evaluación, trazas y ajuste fino"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-foundry-agentes"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de visión por computadora",
+    "peso": 13,
+    "rango": "10–15 %",
+    "temas": [
+     "Análisis de imágenes y OCR",
+     "Modelos personalizados y multimodales"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-vision-lenguaje-extraccion"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de análisis de texto",
+    "peso": 14,
+    "rango": "10–15 %",
+    "temas": [
+     "Sentimiento, entidades, PII, CLU",
+     "Voz y traducción"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-vision-lenguaje-extraccion"
+    ]
+   },
+   {
+    "nombre": "Implementar soluciones de extracción de información",
+    "peso": 14,
+    "rango": "10–15 %",
+    "temas": [
+     "Document Intelligence: precompilados y personalizados",
+     "Content Understanding"
+    ],
+    "lecciones": [
+     "cert-azure-ai103-vision-lenguaje-extraccion"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 100,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "az-ai300",
+  "proveedor": "Microsoft Azure",
+  "nombre": "Machine Learning Operations (MLOps) Engineer Associate",
+  "codigo": "AI-300",
+  "nivel": "Avanzado",
+  "rol": "MLOps y GenAIOps",
+  "formato": {
+   "preguntas": "40–60 (variable)",
+   "minutos": "120",
+   "costo": "USD 165 (según país)",
+   "aprobacion": "700 / 1000",
+   "vigencia": "1 año, renovación gratis"
+  },
+  "fuente": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-300",
+  "actualizado": "el temario publicado en 2026",
+  "examen": "az-ai300",
+  "notas": "Reemplaza a DP-100 (retirado en junio de 2026), con mucho más peso en automatización, infraestructura como código, CI/CD, observabilidad, deriva y costo.",
+  "dominios": [
+   {
+    "nombre": "Diseñar e implementar una infraestructura de MLOps",
+    "peso": 17,
+    "rango": "15–20 %",
+    "temas": [
+     "Workspace, cómputo, datos, entornos y registros como código"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   },
+   {
+    "nombre": "Implementar el ciclo de vida y la operación de modelos de ML",
+    "peso": 27,
+    "rango": "25–30 %",
+    "temas": [
+     "Jobs, pipelines, MLflow, registro",
+     "Endpoints online y batch, azul-verde, deriva"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   },
+   {
+    "nombre": "Diseñar e implementar una infraestructura de GenAIOps",
+    "peso": 22,
+    "rango": "20–25 %",
+    "temas": [
+     "Proyectos de Foundry por entorno, versionado de prompts y agentes"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops",
+     "cert-azure-ai103-foundry-agentes"
+    ]
+   },
+   {
+    "nombre": "Calidad y observabilidad de IA generativa",
+    "peso": 13,
+    "rango": "10–15 %",
+    "temas": [
+     "Evaluación en CI, red teaming, trazas y monitoreo"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   },
+   {
+    "nombre": "Optimizar sistemas de IA generativa y el rendimiento de modelos",
+    "peso": 13,
+    "rango": "10–15 %",
+    "temas": [
+     "Costo, latencia, cuota, destilación y ajuste fino"
+    ],
+    "lecciones": [
+     "cert-azure-ai300-mlops-genaiops"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "aws-dea",
+  "proveedor": "AWS",
+  "nombre": "Data Engineer – Associate",
+  "codigo": "DEA-C01",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "65 (50 puntuadas)",
+   "minutos": "130",
+   "costo": "USD 150",
+   "aprobacion": "720 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.html",
+  "actualizado": "la guía versión 1.1 del 12 de diciembre de 2025",
+  "examen": "aws-dea",
+  "notas": "La versión 1.1 agrega Apache Iceberg y S3 Tables, procesamiento asistido por LLM, vectorización con Bedrock Knowledge Bases, índices HNSW e IVF y gobierno con SageMaker Unified Studio y Catalog. Las preguntas premian la solución administrada que cumple el criterio pedido (costo, esfuerzo operativo, latencia).",
+  "dominios": [
+   {
+    "nombre": "Ingesta y transformación de datos",
+    "peso": 34,
+    "temas": [
+     "Streaming: Kinesis Data Streams, Firehose, MSK, Flink",
+     "Lotes: DMS con CDC, AppFlow, DataSync, zero-ETL",
+     "Transformación: Glue (bookmarks, DynamicFrame), EMR, Lambda, procesamiento con LLM",
+     "Orquestación: Step Functions, MWAA, EventBridge, Glue Workflows"
+    ],
+    "lecciones": [
+     "cert-aws-dea-ingesta-transformacion"
+    ]
+   },
+   {
+    "nombre": "Administración del almacén de datos",
+    "peso": 26,
+    "temas": [
+     "Elegir el almacén: S3, Redshift, DynamoDB, OpenSearch, vectores",
+     "Clases y ciclo de vida de S3, Iceberg y S3 Tables",
+     "Glue Data Catalog, crawlers, partition projection",
+     "Redshift: distribución, ordenamiento, Spectrum, Serverless; índices HNSW e IVF"
+    ],
+    "lecciones": [
+     "cert-aws-dea-almacenamiento"
+    ]
+   },
+   {
+    "nombre": "Operación y soporte de datos",
+    "peso": 22,
+    "temas": [
+     "Athena y workgroups, QuickSight, SageMaker Unified Studio",
+     "CloudWatch, EventBridge, SNS, CloudTrail",
+     "Calidad con Glue Data Quality y DataBrew"
+    ],
+    "lecciones": [
+     "cert-aws-dea-operacion-seguridad"
+    ]
+   },
+   {
+    "nombre": "Seguridad y gobierno de datos",
+    "peso": 18,
+    "temas": [
+     "IAM, Secrets Manager, VPC endpoints",
+     "Lake Formation: columna, fila, LF-Tags",
+     "KMS, Macie, CloudTrail, SageMaker Catalog"
+    ],
+    "lecciones": [
+     "cert-aws-dea-operacion-seguridad"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 65,
+   "minutos": 130,
+   "aprobar": 72
+  }
+ },
+ {
+  "id": "aws-aif",
+  "proveedor": "AWS",
+  "nombre": "AI Practitioner",
+  "codigo": "AIF-C01",
+  "nivel": "Fundamental",
+  "rol": "IA para cualquier rol",
+  "formato": {
+   "preguntas": "65 (50 puntuadas)",
+   "minutos": "90",
+   "costo": "USD 100",
+   "aprobacion": "700 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://aws.amazon.com/certification/certified-ai-practitioner/",
+  "actualizado": "la guía vigente de AIF-C01",
+  "examen": "aws-aif",
+  "notas": "No exige programar: evalúa conceptos, criterio para elegir técnicas y servicios de IA de AWS, IA responsable y seguridad.",
+  "dominios": [
+   {
+    "nombre": "Fundamentos de IA y ML",
+    "peso": 20,
+    "temas": [
+     "Tipos de aprendizaje, métricas, sobreajuste",
+     "Ciclo de vida de ML y cuándo no usar ML"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Fundamentos de IA generativa",
+    "peso": 24,
+    "temas": [
+     "Tokens, embeddings, transformers, difusión",
+     "Parámetros de inferencia, ventajas y limitaciones"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Aplicaciones de modelos fundacionales",
+    "peso": 28,
+    "temas": [
+     "Elegir modelos, ingeniería de prompts, RAG, fine-tuning",
+     "Agentes, evaluación, servicios de IA de AWS"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Lineamientos de IA responsable",
+    "peso": 14,
+    "temas": [
+     "Sesgo y explicabilidad con Clarify",
+     "Guardrails, Model Cards, A2I"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Seguridad, cumplimiento y gobierno",
+    "peso": 14,
+    "temas": [
+     "Responsabilidad compartida, IAM, KMS, PrivateLink",
+     "Artifact, Audit Manager, Config, linaje"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 65,
+   "minutos": 90,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "aws-mla",
+  "proveedor": "AWS",
+  "nombre": "Machine Learning Engineer – Associate",
+  "codigo": "MLA-C02",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de ML",
+  "formato": {
+   "preguntas": "65 (50 puntuadas)",
+   "minutos": "130",
+   "costo": "USD 150",
+   "aprobacion": "720 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://aws.amazon.com/blogs/training-and-certification/updates-to-aws-certified-machine-learning-engineer-associate-mla-c02/",
+  "actualizado": "el anuncio de MLA-C02 de septiembre de 2026",
+  "examen": "aws-mla",
+  "notas": "MLA-C02 reemplaza a MLA-C01 (último día: 28 de septiembre de 2026) con los mismos cuatro dominios y servicios actualizados. La ML Specialty (MLS-C01) se retiró el 31 de marzo de 2026.",
+  "dominios": [
+   {
+    "nombre": "Preparación de datos para ML",
+    "peso": 28,
+    "temas": [
+     "Formatos y modos de entrada, Data Wrangler, Processing",
+     "Feature Store online y offline, Ground Truth",
+     "Calidad, sesgo y fuga de datos"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   },
+   {
+    "nombre": "Desarrollo de modelos de ML",
+    "peso": 26,
+    "temas": [
+     "Algoritmos integrados, entrenamiento, Spot y checkpoints",
+     "Ajuste automático, Debugger, Clarify, Model Registry"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   },
+   {
+    "nombre": "Despliegue y orquestación de flujos de ML",
+    "peso": 22,
+    "temas": [
+     "Tiempo real, serverless, asíncrono, Batch Transform, multi-model",
+     "Canary y blue/green, SageMaker Pipelines, CI/CD"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   },
+   {
+    "nombre": "Monitoreo, mantenimiento y seguridad",
+    "peso": 24,
+    "temas": [
+     "Model Monitor: calidad, deriva, sesgo",
+     "Costos, CloudWatch, IAM, VPC y cifrado"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 65,
+   "minutos": 130,
+   "aprobar": 72
+  }
+ },
+ {
+  "id": "aws-aip",
+  "proveedor": "AWS",
+  "nombre": "Generative AI Developer – Professional",
+  "codigo": "AIP-C01",
+  "nivel": "Avanzado",
+  "rol": "Desarrollo de IA generativa",
+  "formato": {
+   "preguntas": "75 (65 puntuadas)",
+   "minutos": "180",
+   "costo": "USD 300",
+   "aprobacion": "750 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://aws.amazon.com/certification/certified-generative-ai-developer-professional/",
+  "actualizado": "la guía de lanzamiento de noviembre de 2025",
+  "examen": "aws-aip",
+  "notas": "Centrada en Amazon Bedrock: Knowledge Bases, Agents y AgentCore, Guardrails, optimización de costo y latencia y evaluación. Se recomienda experiencia previa construyendo en AWS.",
+  "dominios": [
+   {
+    "nombre": "Integración de modelos fundacionales, gestión de datos y cumplimiento",
+    "peso": 31,
+    "temas": [
+     "Converse, selección y personalización de modelos",
+     "Knowledge Bases: chunking, embeddings, almacenes vectoriales, híbrida"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Implementación e integración",
+    "peso": 26,
+    "temas": [
+     "Bedrock Agents, AgentCore, MCP",
+     "Prompt Management, Flows, integración con API Gateway y Lambda"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Seguridad y gobierno de IA",
+    "peso": 20,
+    "temas": [
+     "Guardrails y ApplyGuardrail, inyección de prompts",
+     "IAM, PrivateLink, KMS, invocation logging, multiinquilino"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Eficiencia operativa y optimización",
+    "peso": 12,
+    "temas": [
+     "Caché de prompts, inferencia entre regiones, lotes",
+     "Provisioned Throughput, enrutamiento de prompts"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Pruebas, validación y resolución de problemas",
+    "peso": 11,
+    "temas": [
+     "Bedrock Evaluations, modelo como juez",
+     "Diagnóstico de RAG y agentes, métricas de CloudWatch"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 75,
+   "minutos": 180,
+   "aprobar": 75
+  }
+ },
+ {
+  "id": "gcp-pde",
+  "proveedor": "Google Cloud",
+  "nombre": "Professional Data Engineer",
+  "codigo": "PDE",
+  "nivel": "Avanzado",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "120",
+   "costo": "USD 200",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/data-engineer",
+  "actualizado": "la guía vigente en 2026",
+  "examen": "gcp-pde",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. La versión 2026 da más peso a BigLake, Dataform, Knowledge Catalog e IA, y menos a Hadoop.",
+  "dominios": [
+   {
+    "nombre": "Diseñar sistemas de procesamiento de datos",
+    "peso": 22,
+    "rango": "≈22 %",
+    "temas": [
+     "Seguridad, cumplimiento, confiabilidad, portabilidad",
+     "Migración a Google Cloud"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Ingerir y procesar datos",
+    "peso": 25,
+    "rango": "≈25 %",
+    "temas": [
+     "Pub/Sub, Dataflow y Beam: ventanas, marcas de agua, datos tardíos",
+     "Datastream, Dataproc, Data Fusion, Dataform, Composer"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Almacenar los datos",
+    "peso": 20,
+    "rango": "≈20 %",
+    "temas": [
+     "Cloud Storage, BigQuery, Bigtable, Spanner, AlloyDB",
+     "BigLake e Iceberg, Dataplex y Knowledge Catalog"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-almacenamiento-analisis"
+    ]
+   },
+   {
+    "nombre": "Preparar y usar datos para el análisis",
+    "peso": 15,
+    "rango": "≈15 %",
+    "temas": [
+     "Seguridad por fila y columna, Analytics Hub",
+     "BigQuery ML, funciones de IA, BI Engine, Looker"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-almacenamiento-analisis"
+    ]
+   },
+   {
+    "nombre": "Mantener y automatizar cargas de datos",
+    "peso": 18,
+    "rango": "≈18 %",
+    "temas": [
+     "Costos, slots y reservas, monitoreo y alertas",
+     "Recuperación, IAM, CMEK, VPC Service Controls, auditoría"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-operacion-seguridad-adp"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "gcp-adp",
+  "proveedor": "Google Cloud",
+  "nombre": "Associate Data Practitioner",
+  "codigo": "ADP",
+  "nivel": "Fundamental",
+  "rol": "Datos (nivel inicial)",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "120",
+   "costo": "USD 125",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/data-practitioner",
+  "actualizado": "la guía vigente en 2026",
+  "examen": "gcp-adp",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. Cubre los mismos productos que el PDE con menos profundidad y foco en la ejecución.",
+  "dominios": [
+   {
+    "nombre": "Preparación e ingesta de datos",
+    "peso": 30,
+    "rango": "≈30 %",
+    "temas": [
+     "Limpieza y formatos",
+     "Storage Transfer, Data Transfer Service, Datastream, Dataflow"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Análisis y presentación de datos",
+    "peso": 27,
+    "rango": "≈27 %",
+    "temas": [
+     "SQL en BigQuery, BigQuery ML",
+     "Looker y Looker Studio"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-almacenamiento-analisis"
+    ]
+   },
+   {
+    "nombre": "Orquestación de pipelines de datos",
+    "peso": 18,
+    "rango": "≈18 %",
+    "temas": [
+     "Composer, Dataform, Workflows, consultas programadas"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-diseno-ingesta"
+    ]
+   },
+   {
+    "nombre": "Gestión de datos",
+    "peso": 25,
+    "rango": "≈25 %",
+    "temas": [
+     "IAM, ciclo de vida de Cloud Storage, time travel",
+     "Sensitive Data Protection, Dataplex"
+    ],
+    "lecciones": [
+     "cert-gcp-pde-operacion-seguridad-adp"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "gcp-pmle",
+  "proveedor": "Google Cloud",
+  "nombre": "Professional Machine Learning Engineer",
+  "codigo": "PMLE",
+  "nivel": "Avanzado",
+  "rol": "Ingeniería de ML",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "120",
+   "costo": "USD 200",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "2 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/machine-learning-engineer",
+  "actualizado": "la guía del 1 de junio de 2026",
+  "examen": "gcp-pmle",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. La plataforma Vertex AI ahora se llama Gemini Enterprise Agent Platform; el examen puede usar ambos nombres.",
+  "dominios": [
+   {
+    "nombre": "Diseñar soluciones de IA de bajo código",
+    "peso": 13,
+    "rango": "≈13 %",
+    "temas": [
+     "APIs preentrenadas, BigQuery ML, AutoML",
+     "Gemini, Model Garden, agentes"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Colaborar para gestionar datos y modelos",
+    "peso": 16,
+    "rango": "≈16 %",
+    "temas": [
+     "Feature Store, Workbench, Experiments, Metadata"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Escalar prototipos a modelos de ML",
+    "peso": 21,
+    "rango": "≈21 %",
+    "temas": [
+     "Entrenamiento personalizado y distribuido, GPU y TPU",
+     "Ajuste de hiperparámetros, Explainable AI, ajuste de Gemini"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Servir y escalar modelos",
+    "peso": 20,
+    "rango": "≈20 %",
+    "temas": [
+     "Endpoints, predicción por lotes, división de tráfico"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Automatizar y orquestar pipelines de ML",
+    "peso": 18,
+    "rango": "≈18 %",
+    "temas": [
+     "Pipelines (Kubeflow), Cloud Build, reentrenamiento"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   },
+   {
+    "nombre": "Monitorear soluciones de IA",
+    "peso": 13,
+    "rango": "≈13 %",
+    "temas": [
+     "Skew y deriva, IA responsable, Model Armor",
+     "Evaluación de IA generativa"
+    ],
+    "lecciones": [
+     "cert-gcp-pmle-agent-platform"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 120,
+   "aprobar": 70
+  }
+ },
+ {
+  "id": "gcp-genai-leader",
+  "proveedor": "Google Cloud",
+  "nombre": "Generative AI Leader",
+  "codigo": "GAIL",
+  "nivel": "Fundamental",
+  "rol": "Liderazgo y negocio",
+  "formato": {
+   "preguntas": "50–60",
+   "minutos": "90",
+   "costo": "USD 99",
+   "aprobacion": "No publicada (aprobado o no)",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://cloud.google.com/learn/certification/generative-ai-leader",
+  "actualizado": "la guía vigente en 2026",
+  "examen": "gcp-genai-leader",
+  "notas": "Google no publica el puntaje de aprobación. Los pesos de las secciones son aproximados: provienen de fuentes de preparación, no de una tabla oficial. No requiere experiencia técnica: evalúa conceptos, productos de Google y estrategia.",
+  "dominios": [
+   {
+    "nombre": "Fundamentos de la IA generativa",
+    "peso": 30,
+    "rango": "≈30 %",
+    "temas": [
+     "Modelos fundacionales, LLM, multimodales",
+     "Tipos de datos y aprendizaje, limitaciones"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   },
+   {
+    "nombre": "Oferta de IA generativa de Google Cloud",
+    "peso": 35,
+    "rango": "≈35 %",
+    "temas": [
+     "Gemini, Model Garden, Agent Platform",
+     "Gemini Enterprise, NotebookLM, agentes"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   },
+   {
+    "nombre": "Técnicas para mejorar la salida de los modelos",
+    "peso": 20,
+    "rango": "≈20 %",
+    "temas": [
+     "Prompts, grounding, RAG, ajuste, parámetros"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   },
+   {
+    "nombre": "Estrategias de negocio para una solución exitosa",
+    "peso": 15,
+    "rango": "≈15 %",
+    "temas": [
+     "Casos de uso, métricas, IA responsable, SAIF"
+    ],
+    "lecciones": [
+     "cert-gcp-genai-leader"
+    ]
+   }
+  ],
+  "simulacro": {
+   "preguntas": 50,
+   "minutos": 90,
+   "aprobar": 70
+  }
+ }
+]
