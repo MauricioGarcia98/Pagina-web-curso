@@ -231,3 +231,428 @@ Auditoría quiere saber qué buckets contienen números de tarjeta y documentos 
 - [ ] Amazon GuardDuty.
 - [ ] AWS Config con reglas de cifrado.
 porque: Macie descubre y clasifica datos sensibles en S3 y genera hallazgos.
+
+## @caso retail: Mercado Austral
+Mercado Austral es una cadena de supermercados con 450 tiendas. Su plataforma de datos en AWS tiene:
+- Ventas de las cajas que llegan como eventos JSON (unos 4.000 por segundo en hora pico).
+- Una base Aurora PostgreSQL con el catálogo de productos y precios.
+- Un lago en S3 con capas bronze, silver y gold, catalogado en AWS Glue.
+- Analistas que consultan con Athena y un data warehouse en Amazon Redshift para los tableros de gerencia.
+
+Problemas: los tableros de gerencia muestran datos de ayer, la factura de Athena se triplicó, un analista de marketing pudo ver el DNI de los clientes y nadie se entera cuando falla la carga nocturna.
+
+## Tableros casi en tiempo real
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+caso: retail
+Gerencia quiere ver las ventas en Redshift con menos de un minuto de retraso, con el menor esfuerzo operativo. ¿Qué haces?
+- [ ] Un job de Glue cada hora que lee los archivos de ventas de S3 y los carga en Redshift con `COPY`.
+- [x] Enviar las ventas a Kinesis Data Streams y usar streaming ingestion de Redshift con una vista materializada.
+- [ ] Un clúster de EMR con Spark Streaming escribiendo en Redshift fila por fila.
+- [ ] Exportar las ventas a CSV cada minuto y cargarlas con `INSERT`.
+porque: La ingesta de streaming de Redshift lee directamente de Kinesis o MSK en una vista materializada, con baja latencia y sin pipeline intermedio.
+
+## Factura de Athena
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+caso: retail
+¿Qué dos cambios reducen el costo de Athena sobre la capa silver?
+- [x] Convertir los JSON a Parquet particionado por fecha.
+- [x] Crear workgroups con límites de datos escaneados por consulta.
+- [ ] Mover la capa silver a S3 Glacier Deep Archive.
+- [ ] Desactivar el Glue Data Catalog.
+- [ ] Aumentar la retención de los resultados de consultas.
+porque: Athena cobra por datos escaneados: formatos columnares y particiones reducen lo leído, y los workgroups ponen límites.
+
+## DNI visible
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+caso: retail
+¿Cómo evitas que marketing vea la columna DNI en Athena sin crear copias de las tablas?
+- [ ] Una política de bucket que bloquee a marketing todos los objetos de la carpeta de clientes en S3.
+- [x] Permisos de columna en AWS Lake Formation que excluyan DNI para el rol de marketing.
+- [ ] Cifrar la columna con SSE-S3.
+- [ ] Un crawler que borre la columna.
+porque: Lake Formation concede permisos a nivel de columna sobre el catálogo y Athena los aplica.
+
+## Carga nocturna sin aviso
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+caso: retail
+La carga nocturna es una máquina de estados de Step Functions. ¿Cómo te enteras cuando falla?
+- [ ] Revisando cada mañana el historial de ejecuciones en la consola de Step Functions.
+- [x] Una regla de EventBridge para el estado `FAILED` de la ejecución que publique en SNS.
+- [ ] Un crawler que verifica la tabla.
+- [ ] Una consulta de Athena programada.
+porque: Step Functions emite eventos de cambio de estado; EventBridge los enruta a SNS para notificar.
+
+## Firehose a Iceberg
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Hay que escribir eventos de streaming directamente en tablas Apache Iceberg en S3 con inserciones y actualizaciones por clave, sin código. ¿Qué usas?
+- [ ] Kinesis Data Streams con un consumidor KCL que escribe archivos Parquet en la carpeta de la tabla.
+- [x] Amazon Data Firehose con destino de tablas Apache Iceberg.
+- [ ] AWS DataSync.
+- [ ] Amazon AppFlow.
+porque: Firehose puede entregar a tablas Iceberg y aplicar operaciones de inserción, actualización y borrado.
+
+## Transformación en Firehose
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Antes de llegar a S3, cada evento debe enriquecerse con un campo calculado simple. ¿Qué usas dentro de Firehose?
+- [ ] Un job de Glue en streaming que lee de Firehose y vuelve a escribir en otro Firehose.
+- [x] Una función Lambda de transformación de datos de Firehose.
+- [ ] Una vista materializada de Redshift.
+- [ ] Un crawler.
+porque: Firehose puede invocar una Lambda por lote de registros para transformarlos antes de entregarlos.
+
+## Flink administrado
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Hay que detectar en tiempo real tarjetas con más de 5 compras en 2 minutos y enviar una alerta. ¿Qué servicio usas?
+- [ ] Amazon Data Firehose con un buffer de 120 segundos y una Lambda que cuenta las compras de cada lote.
+- [x] Amazon Managed Service for Apache Flink con ventanas por tarjeta.
+- [ ] Athena con consultas programadas cada minuto.
+- [ ] AWS Glue con job bookmarks.
+porque: Flink procesa streams con estado y ventanas por clave, ideal para detección de patrones en tiempo real.
+
+## Consumidores de Kinesis
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Cinco aplicaciones leen el mismo stream de Kinesis y sufren límites de lectura. ¿Qué lo resuelve?
+- [ ] Aumentar el período de retención del stream a 7 días para que las aplicaciones lean más tarde.
+- [x] Enhanced fan-out, que da a cada consumidor su propio ancho de banda de lectura.
+- [ ] Usar una sola clave de partición.
+- [ ] Cambiar a Firehose.
+porque: Con enhanced fan-out cada consumidor registrado obtiene 2 MB/s por shard propios.
+
+## Lambda con SQS
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Una Lambda procesa mensajes de SQS y algunos fallan siempre por datos corruptos, bloqueando el reprocesamiento. ¿Qué configuras?
+- [ ] Aumentar el tiempo de espera de la Lambda al máximo de 15 minutos para que termine de procesarlos.
+- [x] Una dead-letter queue en la cola, con un máximo de recepciones.
+- [ ] Desactivar los reintentos de SQS.
+- [ ] Una cola FIFO.
+porque: Tras varios intentos fallidos, SQS mueve el mensaje a la DLQ para analizarlo sin bloquear el resto.
+
+## Glue Flex
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Un job de Glue no urgente puede tardar más en arrancar. ¿Qué opción reduce su costo?
+- [ ] Workers G.8X para que termine más rápido y cueste menos en total por la duración menor.
+- [x] La clase de ejecución Flex.
+- [ ] Job bookmarks deshabilitados.
+- [ ] Un crawler adicional.
+porque: Flex usa capacidad de reserva con menor precio para trabajos que toleran demoras de inicio.
+
+## Map distribuido
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Hay que procesar en paralelo 2 millones de objetos de S3 con una Lambda cada uno, orquestado y con reintentos. ¿Qué usas?
+- [ ] Un bucle `for` en una sola Lambda que procesa los objetos de a uno durante 15 minutos.
+- [x] Step Functions con el estado Map en modo distribuido.
+- [ ] Un crawler de Glue.
+- [ ] Amazon AppFlow.
+porque: Map distribuido ejecuta hasta miles de iteraciones en paralelo sobre objetos de S3 con manejo de errores.
+
+## Programación de EventBridge
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Un job de Glue debe correr cada día a las 3:00 hora local con el menor esfuerzo. ¿Qué usas?
+- [ ] Una instancia EC2 encendida todo el día con un cron que llama a la API de Glue.
+- [x] Un disparador programado de Glue o EventBridge Scheduler.
+- [ ] Un stream de Kinesis.
+- [ ] Un crawler.
+porque: Los disparadores programados de Glue y EventBridge Scheduler ejecutan tareas por horario sin servidores.
+
+## Procesamiento con LLM
+leccion: cert-aws-dea-ingesta-transformacion
+dominio: 1
+Hay que clasificar 10 millones de reseñas en categorías dentro de un pipeline nocturno, al menor costo. ¿Qué usas?
+- [ ] Llamadas síncronas a Amazon Bedrock desde una Lambda por cada reseña del archivo.
+- [x] Inferencia por lotes de Amazon Bedrock sobre un archivo en S3.
+- [ ] Amazon Comprehend en tiempo real por reseña.
+- [ ] Un crawler.
+porque: La inferencia por lotes de Bedrock procesa grandes volúmenes de forma asíncrona y con descuento.
+
+## Particionar en S3
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+Las consultas filtran casi siempre por fecha y a veces por región. ¿Qué esquema de prefijos en S3 conviene?
+- [ ] `s3://lago/ventas/<id_transaccion>.json`, un archivo por transacción.
+- [x] `s3://lago/ventas/fecha=AAAA-MM-DD/` (y región si hay pocas).
+- [ ] `s3://lago/ventas/<usuario>/`.
+- [ ] Todo en una sola carpeta.
+porque: Particionar por las columnas de filtro permite descartar particiones; demasiadas particiones chicas perjudican.
+
+## Redshift Serverless
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+Un equipo usa Redshift pocas horas al día con picos impredecibles y no quiere administrar nodos. ¿Qué usa?
+- [ ] Un clúster aprovisionado RA3 de 8 nodos encendido todo el día con concurrency scaling.
+- [x] Amazon Redshift Serverless.
+- [ ] Amazon RDS.
+- [ ] DynamoDB.
+porque: Redshift Serverless escala automáticamente y cobra por uso (RPU-hora).
+
+## Data sharing
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+Finanzas tiene su propio clúster de Redshift y necesita leer en vivo tablas del clúster de ventas, sin copias. ¿Qué usas?
+- [ ] `UNLOAD` diario a S3 y `COPY` desde el clúster de finanzas.
+- [x] Redshift data sharing.
+- [ ] AWS DMS.
+- [ ] Federated query.
+porque: Data sharing da acceso de solo lectura en vivo a datos de otro clúster o cuenta sin moverlos.
+
+## Sort key
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+Casi todas las consultas filtran la tabla de ventas por rango de fechas. ¿Qué defines en Redshift?
+- [ ] Una distribution key por fecha para que todas las filas de un día queden en el mismo nodo.
+- [x] Una sort key por fecha.
+- [ ] DISTSTYLE ALL.
+- [ ] Un índice secundario global.
+porque: Ordenar por fecha permite a Redshift saltar bloques que no cumplen el filtro (zone maps).
+
+## Clave de DynamoDB
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+Una tabla de DynamoDB con clave de partición `estado` (5 valores) tiene throttling aunque la capacidad total alcanza. ¿Qué cambias?
+- [ ] Aumentar la capacidad aprovisionada de la tabla al doble de lo que se necesita.
+- [x] Usar una clave de partición de alta cardinalidad (por ejemplo, el id del pedido).
+- [ ] Activar TTL.
+- [ ] Crear un LSI.
+porque: Pocas claves concentran el tráfico en pocas particiones físicas; una clave con muchos valores lo distribuye.
+
+## GSI
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+La tabla tiene clave `pedido_id`, pero ahora hay que consultar los pedidos de un cliente ordenados por fecha. ¿Qué agregas?
+- [ ] Un `Scan` con filtro por cliente en cada consulta de la aplicación.
+- [x] Un índice secundario global con partición `cliente_id` y ordenamiento `fecha`.
+- [ ] Un índice secundario local con partición `cliente_id`.
+- [ ] Una tabla nueva sin claves.
+porque: Un GSI permite otro patrón de acceso con claves distintas; un LSI debe compartir la clave de partición.
+
+## Exportar DynamoDB
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+Hay que analizar la tabla de DynamoDB con Athena cada semana sin consumir capacidad de lectura. ¿Qué haces?
+- [ ] Un `Scan` completo con una Lambda que escribe los ítems en S3.
+- [x] Export to S3 de DynamoDB (requiere PITR) y consultar el resultado.
+- [ ] Un crawler sobre DynamoDB.
+- [ ] Federated query de Redshift.
+porque: La exportación a S3 usa los backups continuos y no consume capacidad de la tabla.
+
+## Vectores en Aurora
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+El equipo ya usa Aurora PostgreSQL y quiere guardar embeddings junto a los datos relacionales con búsqueda por similitud. ¿Qué usa?
+- [ ] Amazon S3 Glacier con un índice manual de los vectores guardado en un archivo CSV.
+- [x] La extensión pgvector en Aurora PostgreSQL.
+- [ ] Amazon Redshift Spectrum.
+- [ ] DynamoDB con TTL.
+porque: pgvector agrega tipos e índices vectoriales (HNSW, IVFFlat) a PostgreSQL.
+
+## Versionado de S3
+leccion: cert-aws-dea-almacenamiento
+dominio: 2
+¿Qué dos medidas protegen los objetos de bronze contra borrados accidentales?
+- [x] Habilitar el versionado del bucket.
+- [x] Usar Object Lock o MFA Delete para impedir borrados.
+- [ ] Cambiar la clase a One Zone-IA.
+- [ ] Desactivar el cifrado.
+- [ ] Hacer el bucket público.
+porque: El versionado conserva versiones anteriores y Object Lock o MFA Delete impiden eliminar o sobrescribir.
+
+## Athena sobre Iceberg
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+Un analista necesita ver cómo estaba la tabla Iceberg de precios ayer a las 18:00. ¿Qué usa en Athena?
+- [ ] Una restauración del bucket de S3 con el versionado de objetos a esa hora.
+- [x] `FOR TIMESTAMP AS OF` (viaje en el tiempo de Iceberg).
+- [ ] `MSCK REPAIR TABLE`.
+- [ ] Un nuevo crawler.
+porque: Iceberg guarda snapshots y Athena permite consultar una versión anterior por fecha o id de snapshot.
+
+## Reutilizar resultados
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+Un tablero ejecuta la misma consulta de Athena cada 5 minutos sobre datos que cambian una vez por día. ¿Qué reduce el costo?
+- [ ] Aumentar el tamaño de los archivos de resultados de las consultas del workgroup.
+- [x] Habilitar la reutilización de resultados de consultas con una antigüedad máxima.
+- [ ] Usar CSV en vez de Parquet.
+- [ ] Desactivar el workgroup.
+porque: Athena puede devolver resultados previos de la misma consulta sin volver a escanear los datos.
+
+## QuickSight SPICE
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+Los tableros de QuickSight son lentos porque cada visual consulta Athena en directo. ¿Qué mejora el rendimiento?
+- [ ] Un clúster de EMR dedicado para procesar las consultas que hacen los tableros.
+- [x] Importar los datos a SPICE con actualizaciones programadas.
+- [ ] Más workgroups de Athena.
+- [ ] Un crawler más frecuente.
+porque: SPICE es el motor en memoria de QuickSight que acelera los tableros sin consultar la fuente en cada visual.
+
+## Logs Insights
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+Hay que encontrar cuántas veces apareció un error específico en los logs de los jobs de Glue la última semana. ¿Qué usas?
+- [ ] Descargar todos los archivos de log a una laptop y buscarlos con un editor de texto.
+- [x] CloudWatch Logs Insights con una consulta sobre el grupo de logs.
+- [ ] AWS Config.
+- [ ] Amazon Macie.
+porque: Logs Insights consulta y agrega logs de CloudWatch con un lenguaje propio.
+
+## Consumidor atrasado
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+¿Qué métrica de CloudWatch indica que una Lambda que consume Kinesis se está atrasando?
+- [ ] `Invocations`, que cuenta cuántas veces se ejecutó la función en el período.
+- [x] `IteratorAge`.
+- [ ] `Throttles` en S3.
+- [ ] `BucketSizeBytes`.
+porque: `IteratorAge` mide la antigüedad del último registro leído; si crece, el consumidor va atrasado.
+
+## Recomendar reglas de calidad
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+El equipo no sabe qué reglas de calidad escribir para 200 tablas nuevas. ¿Qué función ayuda?
+- [ ] Amazon Macie, que crea reglas de calidad a partir de los datos sensibles encontrados.
+- [x] Las recomendaciones de reglas de AWS Glue Data Quality, que analizan los datos y proponen reglas.
+- [ ] AWS CloudTrail.
+- [ ] Amazon QuickSight.
+porque: Glue Data Quality puede calcular estadísticas y recomendar reglas DQDL como punto de partida.
+
+## Anomalías de calidad
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+El número de filas diarias de una tabla suele ser estable, pero un día llega la mitad. ¿Qué lo detecta sin reglas fijas?
+- [ ] Una regla `RowCount > 0`, que verifica que la tabla no quede vacía después de cada carga.
+- [x] La detección de anomalías de Glue Data Quality.
+- [ ] Un crawler.
+- [ ] Un VPC endpoint.
+porque: La detección de anomalías aprende el comportamiento normal de las métricas y marca desvíos.
+
+## Perfilar datos
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+Un analista sin experiencia en código quiere ver la distribución, los nulos y los duplicados de un dataset nuevo. ¿Qué usa?
+- [ ] Un job de EMR con un script de PySpark escrito por el equipo de ingeniería.
+- [x] Un perfil de datos de AWS Glue DataBrew.
+- [ ] AWS Config.
+- [ ] Amazon Kinesis.
+porque: DataBrew genera perfiles con estadísticas y calidad de columnas de forma visual.
+
+## Auditar cambios de configuración
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+¿Qué servicio muestra el historial de configuración de un bucket (por ejemplo, cuándo se desactivó el cifrado) y evalúa reglas de cumplimiento?
+- [ ] Amazon CloudWatch Logs, con los logs de acceso del bucket guardados en otro bucket.
+- [x] AWS Config.
+- [ ] Amazon Macie.
+- [ ] AWS Glue.
+porque: Config registra cambios de configuración de recursos y evalúa reglas, como "buckets cifrados".
+
+## Notebook SQL
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 3
+Un equipo quiere en un solo entorno consultar el lago con SQL, crear jobs de Glue y usar Bedrock sobre los mismos datos catalogados. ¿Qué usa?
+- [ ] Una instancia EC2 con Jupyter y credenciales de administrador para cada analista.
+- [x] Amazon SageMaker Unified Studio.
+- [ ] AWS Config.
+- [ ] Amazon AppFlow.
+porque: SageMaker Unified Studio reúne analítica, ingeniería de datos e IA sobre el mismo catálogo.
+
+## Rol de Glue
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+Un job de Glue debe leer de `s3://lago/bronze/` y escribir en `s3://lago/silver/`. ¿Qué permisos le das?
+- [ ] La política administrada `AmazonS3FullAccess` para que no falle por permisos.
+- [x] Un rol de ejecución con lectura en bronze y escritura en silver (más permisos de Glue y del catálogo).
+- [ ] Claves de acceso de un usuario IAM en los parámetros del job.
+- [ ] Acceso público a los buckets.
+porque: El principio de permisos mínimos limita el rol a las rutas y acciones necesarias.
+
+## Endpoint de gateway
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+Los jobs en subredes privadas deben acceder a S3 sin pasar por internet ni una NAT gateway. ¿Qué agregas?
+- [ ] Una IP elástica para cada instancia de las subredes privadas del clúster.
+- [x] Un VPC gateway endpoint para S3.
+- [ ] Un bucket público.
+- [ ] AWS Direct Connect.
+porque: El gateway endpoint enruta el tráfico a S3 por la red de AWS desde la VPC, sin costo de NAT.
+
+## Política de bucket con HTTPS
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+Seguridad exige que el bucket rechace cualquier acceso que no use TLS. ¿Qué agregas a la política del bucket?
+- [ ] Una condición que permita solo las direcciones IP de la oficina central de la empresa.
+- [x] Un `Deny` con la condición `aws:SecureTransport` igual a `false`.
+- [ ] El cifrado SSE-S3.
+- [ ] Object Lock.
+porque: La condición `aws:SecureTransport` permite rechazar solicitudes sin HTTPS.
+
+## Clave KMS propia
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+Cumplimiento exige controlar quién puede descifrar los datos de silver y auditar cada uso de la clave. ¿Qué usas?
+- [ ] SSE-S3, que cifra con claves que administra AWS de forma transparente.
+- [x] SSE-KMS con una clave administrada por el cliente y su política de clave.
+- [ ] Cifrado del lado del cliente con una contraseña compartida.
+- [ ] Ningún cifrado, con permisos IAM estrictos.
+porque: Con una clave KMS propia se controla su política y cada uso queda registrado en CloudTrail.
+
+## Bucket Keys
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+Un bucket con SSE-KMS recibe millones de objetos por día y el costo de KMS es alto. ¿Qué lo reduce?
+- [ ] Cambiar a una clave KMS distinta para cada objeto que se escribe en el bucket.
+- [x] Habilitar S3 Bucket Keys.
+- [ ] Desactivar el versionado.
+- [ ] Usar One Zone-IA.
+porque: Bucket Keys reduce las llamadas a KMS usando una clave de bucket de corta duración.
+
+## LF-Tags
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+Hay 3.000 tablas y los permisos deben darse por nivel de confidencialidad, incluidas las tablas nuevas. ¿Qué usas en Lake Formation?
+- [ ] Permisos tabla por tabla con un script que se ejecuta cada vez que alguien crea una tabla.
+- [x] Control de acceso basado en LF-Tags (por ejemplo, `confidencialidad=alta`).
+- [ ] Una política de bucket por tabla.
+- [ ] Un rol IAM por tabla.
+porque: Los LF-Tags permiten conceder permisos por etiqueta, que escalan a muchas tablas.
+
+## Compartir entre cuentas
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+La cuenta de analítica debe consultar con Athena las tablas del lago de la cuenta de datos, sin copiar. ¿Qué usas?
+- [ ] Copiar los archivos de S3 a la cuenta de analítica todas las noches con DataSync.
+- [x] Compartir las tablas con Lake Formation entre cuentas (con AWS RAM).
+- [ ] Hacer público el bucket.
+- [ ] Usar AppFlow.
+porque: Lake Formation comparte bases y tablas del catálogo con otras cuentas manteniendo el control de permisos.
+
+## Residencia
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+La empresa debe garantizar que ninguna cuenta cree recursos fuera de dos regiones de la UE. ¿Qué usas?
+- [ ] Una política IAM en cada usuario que pida no usar otras regiones al crear recursos.
+- [x] Una SCP de AWS Organizations que deniegue acciones fuera de esas regiones.
+- [ ] Amazon Macie.
+- [ ] Un VPC endpoint.
+porque: Las SCP establecen límites para todas las cuentas de la organización, incluidas las regiones permitidas.
+
+## Datos sensibles en jobs
+leccion: cert-aws-dea-operacion-seguridad
+dominio: 4
+Un job de Glue debe detectar y enmascarar correos y teléfonos mientras transforma los datos. ¿Qué usa?
+- [ ] Amazon Macie dentro del job, llamado una vez por fila para clasificar cada valor.
+- [x] La transformación de detección de datos sensibles de AWS Glue.
+- [ ] AWS Config.
+- [ ] CloudTrail Lake.
+porque: Glue incluye detección de PII en los jobs con acciones como enmascarar o hacer hash.
