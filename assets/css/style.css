@@ -666,3 +666,24 @@ figure.diagrama figcaption { text-align: center; font-size: 14px; color: var(--i
 .plan-tarea input { margin-top: 4px; }
 .plan-tarea.hecha > span > a, .plan-tarea.hecha > span { color: var(--ink-3); text-decoration: line-through; }
 .plan-tarea.hecha .small { text-decoration: none; }
+
+/* Laboratorio SQL: selector de motor */
+.motor-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 8px; }
+.motor-tabs [data-motor] { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+.motor-tabs [data-motor] small { font-size: 11px; color: var(--ink-3); }
+.motor-tabs [data-motor]:hover { border-color: var(--brand); }
+.motor-tabs [data-motor].active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.motor-tabs [data-motor].active small { color: rgba(255, 255, 255, .8); }
+.motor-info { font-size: 13.5px; color: var(--ink-2); margin: 0 0 14px; line-height: 1.5; }
+.motor-info .badge { display: inline-block; font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; margin-right: 4px; }
+.motor-info .b-real { background: var(--ok-soft); color: var(--ok); }
+.motor-info .b-compat { background: var(--warn-soft); color: var(--warn); }
+.motor-aviso { background: var(--warn-soft); color: var(--ink); border-radius: var(--radius-sm); padding: 8px 12px; margin: 0 0 8px; font-size: 13.5px; }
+.motor-trad { margin-top: 10px; font-size: 13px; }
+.motor-trad summary { cursor: pointer; color: var(--ink-3); }
+.motor-trad pre { margin: 6px 0 0; white-space: pre-wrap; }
+.motor-comp-wrap { max-height: none; }
+table.result.motor-comp { width: 100%; min-width: 640px; }
+table.result.motor-comp td, table.result.motor-comp th { font-size: 12.5px; vertical-align: top; white-space: normal; overflow: visible; max-width: none; }
+.motor-comp code { white-space: normal; word-break: break-word; }
+@media (max-width: 640px) { .motor-tabs [data-motor] { padding: 5px 10px; font-size: 13px; } }
