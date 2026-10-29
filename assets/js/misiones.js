@@ -12,6 +12,7 @@
     dbt: { titulo: '🔧 Laboratorio dbt', lang: 'sql', intro: 'Escribe modelos de dbt de verdad: <code>{{ source() }}</code>, <code>{{ ref() }}</code>, CTEs y Jinja. Se compilan y se ejecutan sobre los datos de la tienda, y el resultado se compara con el modelo esperado.' },
     python: { titulo: '🐍 Laboratorio Python', lang: 'python', intro: 'Problemas de ingeniería de datos con Python real (Pyodide): limpiar, validar, deduplicar, procesar archivos y APIs. Guarda tu respuesta en la variable <code>resultado</code> y entrégala.' },
     pyspark: { titulo: '⚡ Laboratorio PySpark', lang: 'python', intro: 'Transformaciones con la API de PySpark sobre las tablas del curso (<code>spark.table("pedidos")</code>). Guarda el DataFrame final en <code>resultado</code> y entrégalo.' },
+    airflow: { titulo: '🌬️ Laboratorio Airflow', lang: 'python', intro: 'Escribe DAGs de Airflow con la misma API de Airflow 2 (operadores, dependencias, TaskFlow, trigger rules). El sitio inspecciona el DAG que creaste y lo ejecuta con <code>dag.test()</code> para comprobar que cumple el pedido.' },
     terminal: { titulo: '⌨️ Laboratorio de terminal', lang: null, intro: 'Tareas de trabajo real en una máquina Linux simulada que recuerda todo: archivos, Git, Docker, nubes y Databricks. Cuando creas que terminaste, <b>verifica</b>: el sitio revisa el estado de la máquina, no los comandos que escribiste.' },
   };
 
@@ -117,7 +118,7 @@
       const out = $('#misOut'); const code = ed.getValue();
       if (lab === 'sql') { if (!(await ensureSql(out))) return; renderSqlOutput(out, Engines.SQL.exec(code, Engines.SQL.playground())); }
       else if (lab === 'dbt') { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); const r = await Engines.DBT.run(exDe(actual), code); renderSqlOutput(out, r); }
-      else { loadingInto(out, pyLoadingMsg()); renderConsole(out, await Engines.PY.run(lab === 'pyspark' ? 'pyspark' : 'python', (actual.previo ? actual.previo + '\n' : '') + code)); }
+      else { loadingInto(out, pyLoadingMsg()); renderConsole(out, await Engines.PY.run(lab === 'pyspark' ? 'pyspark' : lab === 'airflow' ? 'airflow' : 'python', (actual.previo ? actual.previo + '\n' : '') + code)); }
     }
     async function entregar() {
       const m = actual, e = est(m.id);
@@ -135,7 +136,7 @@
           let r;
           if (lab === 'sql') { if (!(await ensureSql(out))) return; r = Engines.SQL.grade(exDe(m), code); if (r.ok) renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 }); }
           else if (lab === 'dbt') { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); r = await Engines.DBT.grade(exDe(m), code); if (r.ok) renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 }); }
-          else { loadingInto(out, pyLoadingMsg()); r = await Engines.PY.grade(lab === 'pyspark' ? 'pyspark' : 'python', exDe(m), (m.previo ? m.previo + '\n' : '') + code); renderConsole(out, r); }
+          else { loadingInto(out, pyLoadingMsg()); r = await Engines.PY.grade(lab === 'pyspark' ? 'pyspark' : lab === 'airflow' ? 'airflow' : 'python', exDe(m), (m.previo ? m.previo + '\n' : '') + code); renderConsole(out, r); }
           if (!r.ok) { fb('bad', `✗ Tu código dio un error: <code>${esc(String(r.error || '').split('\n').slice(-1)[0])}</code>`); if (lab === 'sql' || lab === 'dbt') $('#misOut').innerHTML = `<pre class="console"><span class="err">${esc(r.error)}</span></pre>`; e.intentos++; guardar(); habilitarSol(); pintarSide(); return; }
           pass = !!r.pass; msg = r.msg || '';
         }

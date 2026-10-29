@@ -718,6 +718,7 @@
     html += link('#/lab/python', '🐍', 'Laboratorio Python', route.name === 'lab-python');
     html += link('#/lab/pyspark', '⚡', 'Laboratorio PySpark', route.name === 'lab-pyspark');
     html += link('#/lab/dbt', '🔧', 'Laboratorio dbt', route.name === 'lab-dbt');
+    html += link('#/lab/airflow', '🌬️', 'Laboratorio Airflow', route.name === 'lab-airflow');
     html += '<div class="side-section">Recursos</div>';
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
@@ -2075,7 +2076,7 @@
     if (!parts.length) return { name: 'home' };
     if (parts[0] === 'l' && LESSON_BY_ID.has(parts[1])) return { name: 'lesson', lesson: LESSON_BY_ID.get(parts[1]) };
     if (parts[0] === 'm' && MODULE_BY_ID.has(parts[1])) return { name: 'module', module: MODULE_BY_ID.get(parts[1]) };
-    if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal', 'dbt'].includes(parts[1])) return { name: 'lab-' + parts[1], libre: params.get('modo') === 'libre' };
+    if (parts[0] === 'lab' && ['sql', 'python', 'pyspark', 'terminal', 'dbt', 'airflow'].includes(parts[1])) return { name: 'lab-' + parts[1], libre: params.get('modo') === 'libre' };
     if (parts[0] === 'examen' && (parts[1] === 'final' || EXAMENES.has(parts[1]))) return { name: 'examen', examen: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
     if (parts[0] === 'claves' && parts[1]) return { name: 'claves', cert: parts[1], dom: params.has('d') ? Number(params.get('d')) : null };
     if (parts[0] === 'plan' && parts[1]) return { name: 'plan', cert: parts[1] };
@@ -2093,7 +2094,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'module') viewModule(r.module);
@@ -2107,6 +2108,7 @@
     else if (r.name === 'lab-pyspark') { viewLabPython('pyspark'); tabsLabLibre('pyspark'); }
     else if (r.name === 'lab-terminal') { viewLabTerminal(); tabsLabLibre('terminal'); }
     else if (r.name === 'lab-dbt') { viewLabDbtLibre(); tabsLabLibre('dbt'); }
+    else if (r.name === 'lab-airflow') { viewLabPython('python'); tabsLabLibre('airflow'); }
     else if (r.name === 'datos') viewDatos(r.id);
     else if (r.name === 'modelado') window.Modelado.vista(main, { h, esc, createEditor, Store, toast, abrirEnLab, $, $$ });
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });

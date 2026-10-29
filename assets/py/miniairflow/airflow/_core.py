@@ -294,7 +294,8 @@ class BaseOperator:
         self.owner = owner or defaults.get("owner", "airflow")
         self.email = email or defaults.get("email")
         self.pool = pool
-        self.execution_timeout = execution_timeout
+        # como en Airflow: lo que no se pasa a la tarea se toma de default_args del DAG
+        self.execution_timeout = execution_timeout if execution_timeout is not None else defaults.get("execution_timeout")
         self.params = params or {}
         self.do_xcom_push = do_xcom_push
         self.on_failure_callback = on_failure_callback or defaults.get("on_failure_callback")
