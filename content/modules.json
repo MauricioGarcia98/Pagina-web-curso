@@ -40,6 +40,22 @@
     ]
   },
   {
+    "id": "analisis",
+    "titulo": "Análisis de datos con SQL: de cero a senior",
+    "icono": "📊",
+    "color": "#0d9488",
+    "descripcion": "La lógica del analista, de punta a punta: convertir una pregunta de negocio en una métrica bien definida, segmentar, medir cohortes y retención, embudos, unit economics, pruebas A/B, series de tiempo, encontrar la causa de una caída y resolver pedidos ambiguos como un senior. Más de 100 ejercicios con pistas progresivas sobre los datos de varias empresas.",
+    "objetivos": [
+      "Traducir una pregunta de negocio en grano, métrica, filtros y validaciones",
+      "Definir KPIs sin trampas de denominadores ni promedios de promedios",
+      "Segmentar clientes y productos (RFM, Pareto, rangos)",
+      "Medir cohortes, retención, embudos y unit economics",
+      "Analizar pruebas A/B y series de tiempo con SQL",
+      "Diagnosticar la causa de un cambio en una métrica",
+      "Resolver pedidos ambiguos explicitando supuestos, como un analista senior"
+    ]
+  },
+  {
     "id": "modelado",
     "titulo": "Modelado de datos",
     "icono": "📐",
