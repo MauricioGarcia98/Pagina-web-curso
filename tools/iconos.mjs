@@ -64,6 +64,19 @@ export const SIGLAS = {
   gcs: ['GCS', '#4285F4'], dataflow: ['DF', '#4285F4'], vertex: ['AI', '#4285F4'], composer: ['Cmp', '#4285F4'],
   dataform: ['Dfm', '#4285F4'], spanner: ['Spn', '#4285F4'], bigtable: ['BT', '#4285F4'], genie: ['Gen', '#FF3621'],
   vectorsearch: ['VS', '#FF3621'], lakeflow: ['LF', '#FF3621'], fivetran: ['5T', '#0073FF'], slack: ['#', '#4A154B'],
+  oracle: ['ORA', '#C74634'], dms: ['DMS', '#3F48CC'], appflow: ['AF', '#E7157B'], firehose: ['FH', '#8C4FFF'],
+  msk: ['MSK', '#8C4FFF'], flinkaws: ['MSF', '#8C4FFF'], mwaa: ['MWAA', '#E7157B'], eventbridge: ['EB', '#E7157B'],
+  cloudwatch: ['CW', '#E7157B'], cloudtrail: ['CT', '#E7157B'], lakeformation: ['LkF', '#8C4FFF'], kms: ['KMS', '#DD344C'],
+  dynamodb: ['DDB', '#3F48CC'], opensearch: ['OS', '#8C4FFF'], macie: ['Mac', '#DD344C'], quicksight: ['QS', '#8C4FFF'],
+  secretsmanager: ['SM', '#DD344C'], sqs: ['SQS', '#E7157B'], sns: ['SNS', '#E7157B'], aurora: ['Aur', '#3F48CC'],
+  s3tables: ['S3T', '#3F8624'], datazone: ['DZ', '#8C4FFF'], unifiedstudio: ['US', '#01A88D'], q: ['Q', '#7B3FE4'],
+  guardrails: ['GR', '#01A88D'], knowledgebases: ['KB', '#01A88D'], agentcore: ['AC', '#01A88D'], ec2: ['EC2', '#ED7100'],
+  ecr: ['ECR', '#ED7100'], codepipeline: ['CP', '#C925D1'], cloudformation: ['CFN', '#E7157B'], vpc: ['VPC', '#8C4FFF'],
+  bqml: ['BQML', '#4285F4'], dataplex: ['Dpx', '#4285F4'], datastream: ['DS', '#4285F4'],
+  cloudsql: ['SQL', '#4285F4'], alloydb: ['ADB', '#4285F4'], cloudrun: ['Run', '#4285F4'], cloudfunctions: ['Fn', '#4285F4'],
+  gke: ['GKE', '#4285F4'], agentplatform: ['GEA', '#4285F4'], geminient: ['GE', '#4285F4'], dlp: ['SDP', '#4285F4'],
+  kmsgcp: ['KMS', '#4285F4'], vpcsc: ['VPC-SC', '#4285F4'], bqomni: ['Omni', '#4285F4'], analyticshub: ['AH', '#4285F4'],
+  datafusion: ['CDF', '#4285F4'], workflowsgcp: ['Wf', '#4285F4'], scheduler: ['Sch', '#4285F4'], memorystore: ['MS', '#4285F4'],
 };
 
 // selección de Lucide para datos, nube, IA y negocio (las que no existan en la versión instalada se ignoran)

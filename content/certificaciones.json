@@ -623,5 +623,294 @@
     ]
    }
   ]
+ },
+ {
+  "id": "aws-dea",
+  "proveedor": "AWS",
+  "nombre": "Data Engineer – Associate",
+  "codigo": "DEA-C01",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de datos",
+  "formato": {
+   "preguntas": "65 (50 puntuadas)",
+   "minutos": "130",
+   "costo": "USD 150",
+   "aprobacion": "720 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.html",
+  "actualizado": "la guía versión 1.1 del 12 de diciembre de 2025",
+  "examen": "aws-dea",
+  "notas": "La versión 1.1 agrega Apache Iceberg y S3 Tables, procesamiento asistido por LLM, vectorización con Bedrock Knowledge Bases, índices HNSW e IVF y gobierno con SageMaker Unified Studio y Catalog. Las preguntas premian la solución administrada que cumple el criterio pedido (costo, esfuerzo operativo, latencia).",
+  "dominios": [
+   {
+    "nombre": "Ingesta y transformación de datos",
+    "peso": 34,
+    "temas": [
+     "Streaming: Kinesis Data Streams, Firehose, MSK, Flink",
+     "Lotes: DMS con CDC, AppFlow, DataSync, zero-ETL",
+     "Transformación: Glue (bookmarks, DynamicFrame), EMR, Lambda, procesamiento con LLM",
+     "Orquestación: Step Functions, MWAA, EventBridge, Glue Workflows"
+    ],
+    "lecciones": [
+     "cert-aws-dea-ingesta-transformacion"
+    ]
+   },
+   {
+    "nombre": "Administración del almacén de datos",
+    "peso": 26,
+    "temas": [
+     "Elegir el almacén: S3, Redshift, DynamoDB, OpenSearch, vectores",
+     "Clases y ciclo de vida de S3, Iceberg y S3 Tables",
+     "Glue Data Catalog, crawlers, partition projection",
+     "Redshift: distribución, ordenamiento, Spectrum, Serverless; índices HNSW e IVF"
+    ],
+    "lecciones": [
+     "cert-aws-dea-almacenamiento"
+    ]
+   },
+   {
+    "nombre": "Operación y soporte de datos",
+    "peso": 22,
+    "temas": [
+     "Athena y workgroups, QuickSight, SageMaker Unified Studio",
+     "CloudWatch, EventBridge, SNS, CloudTrail",
+     "Calidad con Glue Data Quality y DataBrew"
+    ],
+    "lecciones": [
+     "cert-aws-dea-operacion-seguridad"
+    ]
+   },
+   {
+    "nombre": "Seguridad y gobierno de datos",
+    "peso": 18,
+    "temas": [
+     "IAM, Secrets Manager, VPC endpoints",
+     "Lake Formation: columna, fila, LF-Tags",
+     "KMS, Macie, CloudTrail, SageMaker Catalog"
+    ],
+    "lecciones": [
+     "cert-aws-dea-operacion-seguridad"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aws-aif",
+  "proveedor": "AWS",
+  "nombre": "AI Practitioner",
+  "codigo": "AIF-C01",
+  "nivel": "Fundamental",
+  "rol": "IA para cualquier rol",
+  "formato": {
+   "preguntas": "65 (50 puntuadas)",
+   "minutos": "90",
+   "costo": "USD 100",
+   "aprobacion": "700 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://aws.amazon.com/certification/certified-ai-practitioner/",
+  "actualizado": "la guía vigente de AIF-C01",
+  "examen": "aws-aif",
+  "notas": "No exige programar: evalúa conceptos, criterio para elegir técnicas y servicios de IA de AWS, IA responsable y seguridad.",
+  "dominios": [
+   {
+    "nombre": "Fundamentos de IA y ML",
+    "peso": 20,
+    "temas": [
+     "Tipos de aprendizaje, métricas, sobreajuste",
+     "Ciclo de vida de ML y cuándo no usar ML"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Fundamentos de IA generativa",
+    "peso": 24,
+    "temas": [
+     "Tokens, embeddings, transformers, difusión",
+     "Parámetros de inferencia, ventajas y limitaciones"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Aplicaciones de modelos fundacionales",
+    "peso": 28,
+    "temas": [
+     "Elegir modelos, ingeniería de prompts, RAG, fine-tuning",
+     "Agentes, evaluación, servicios de IA de AWS"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Lineamientos de IA responsable",
+    "peso": 14,
+    "temas": [
+     "Sesgo y explicabilidad con Clarify",
+     "Guardrails, Model Cards, A2I"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   },
+   {
+    "nombre": "Seguridad, cumplimiento y gobierno",
+    "peso": 14,
+    "temas": [
+     "Responsabilidad compartida, IAM, KMS, PrivateLink",
+     "Artifact, Audit Manager, Config, linaje"
+    ],
+    "lecciones": [
+     "cert-aws-aif-fundamentos-ia"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aws-mla",
+  "proveedor": "AWS",
+  "nombre": "Machine Learning Engineer – Associate",
+  "codigo": "MLA-C02",
+  "nivel": "Intermedio",
+  "rol": "Ingeniería de ML",
+  "formato": {
+   "preguntas": "65 (50 puntuadas)",
+   "minutos": "130",
+   "costo": "USD 150",
+   "aprobacion": "720 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://aws.amazon.com/blogs/training-and-certification/updates-to-aws-certified-machine-learning-engineer-associate-mla-c02/",
+  "actualizado": "el anuncio de MLA-C02 de septiembre de 2026",
+  "examen": "aws-mla",
+  "notas": "MLA-C02 reemplaza a MLA-C01 (último día: 28 de septiembre de 2026) con los mismos cuatro dominios y servicios actualizados. La ML Specialty (MLS-C01) se retiró el 31 de marzo de 2026.",
+  "dominios": [
+   {
+    "nombre": "Preparación de datos para ML",
+    "peso": 28,
+    "temas": [
+     "Formatos y modos de entrada, Data Wrangler, Processing",
+     "Feature Store online y offline, Ground Truth",
+     "Calidad, sesgo y fuga de datos"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   },
+   {
+    "nombre": "Desarrollo de modelos de ML",
+    "peso": 26,
+    "temas": [
+     "Algoritmos integrados, entrenamiento, Spot y checkpoints",
+     "Ajuste automático, Debugger, Clarify, Model Registry"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   },
+   {
+    "nombre": "Despliegue y orquestación de flujos de ML",
+    "peso": 22,
+    "temas": [
+     "Tiempo real, serverless, asíncrono, Batch Transform, multi-model",
+     "Canary y blue/green, SageMaker Pipelines, CI/CD"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   },
+   {
+    "nombre": "Monitoreo, mantenimiento y seguridad",
+    "peso": 24,
+    "temas": [
+     "Model Monitor: calidad, deriva, sesgo",
+     "Costos, CloudWatch, IAM, VPC y cifrado"
+    ],
+    "lecciones": [
+     "cert-aws-mla-sagemaker"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "aws-aip",
+  "proveedor": "AWS",
+  "nombre": "Generative AI Developer – Professional",
+  "codigo": "AIP-C01",
+  "nivel": "Avanzado",
+  "rol": "Desarrollo de IA generativa",
+  "formato": {
+   "preguntas": "75 (65 puntuadas)",
+   "minutos": "180",
+   "costo": "USD 300",
+   "aprobacion": "750 / 1000",
+   "vigencia": "3 años"
+  },
+  "fuente": "https://aws.amazon.com/certification/certified-generative-ai-developer-professional/",
+  "actualizado": "la guía de lanzamiento de noviembre de 2025",
+  "examen": "aws-aip",
+  "notas": "Centrada en Amazon Bedrock: Knowledge Bases, Agents y AgentCore, Guardrails, optimización de costo y latencia y evaluación. Se recomienda experiencia previa construyendo en AWS.",
+  "dominios": [
+   {
+    "nombre": "Integración de modelos fundacionales, gestión de datos y cumplimiento",
+    "peso": 31,
+    "temas": [
+     "Converse, selección y personalización de modelos",
+     "Knowledge Bases: chunking, embeddings, almacenes vectoriales, híbrida"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Implementación e integración",
+    "peso": 26,
+    "temas": [
+     "Bedrock Agents, AgentCore, MCP",
+     "Prompt Management, Flows, integración con API Gateway y Lambda"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Seguridad y gobierno de IA",
+    "peso": 20,
+    "temas": [
+     "Guardrails y ApplyGuardrail, inyección de prompts",
+     "IAM, PrivateLink, KMS, invocation logging, multiinquilino"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Eficiencia operativa y optimización",
+    "peso": 12,
+    "temas": [
+     "Caché de prompts, inferencia entre regiones, lotes",
+     "Provisioned Throughput, enrutamiento de prompts"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   },
+   {
+    "nombre": "Pruebas, validación y resolución de problemas",
+    "peso": 11,
+    "temas": [
+     "Bedrock Evaluations, modelo como juez",
+     "Diagnóstico de RAG y agentes, métricas de CloudWatch"
+    ],
+    "lecciones": [
+     "cert-aws-aip-bedrock-profesional"
+    ]
+   }
+  ]
  }
 ]
