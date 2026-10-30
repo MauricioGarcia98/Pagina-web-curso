@@ -137,6 +137,52 @@ La regla:
 
 Condiciones sobre la tabla **izquierda** (por ejemplo `c.pais = 'Chile'`) van en el `WHERE` sin problema.
 
+```recorrido
+titulo: La condición en el ON o en el WHERE: dos resultados distintos
+estacion left: LEFT JOIN | icono=capas
+estacion on: Condición en ON | icono=check
+estacion where: Condición en WHERE | icono=x
+estacion regla: La regla | icono=reglas
+paso left: Queremos todos los clientes y sus pedidos web
+Seis clientes (20 al 25) y, para cada uno, **cuántos pedidos web** tiene. Todos los clientes deben aparecer, aunque tengan 0.
+>>> tabla
+cliente_id,nombre,pedidos_totales
+20,Valeria,2
+21,Mateo,14
+22,Elena,1
+23,Mateo,2
+24,Camila,14
+25,Miguel,0
+paso on: AND p.canal = 'web' dentro del ON
+La condición decide **qué pedidos se emparejan**. Un cliente sin pedidos web sigue apareciendo, con 0. Es lo que se pidió.
+>>> tabla
+cliente_id,nombre,pedidos_web
+20,Valeria,1
+21,Mateo,8
+22,Elena,0
+23,Mateo,1
+24,Camila,6
+25,Miguel,0
+paso where: WHERE p.canal = 'web'
+El `WHERE` se aplica **después** del join. Los clientes sin pedidos web tienen `p.canal` en `NULL`, la condición da desconocido y la fila desaparece: el LEFT JOIN se convirtió en un INNER JOIN sin que lo notes.
+>>> tabla
+cliente_id,nombre,pedidos_web
+20,Valeria,1
+21,Mateo,8
+23,Mateo,1
+24,Camila,6
+paso regla: La regla
+En un LEFT JOIN, las condiciones sobre la tabla **derecha** van en el `ON`. Las condiciones sobre la tabla izquierda pueden ir en el `WHERE`.
+>>> sql
+SELECT c.cliente_id, COUNT(p.pedido_id) AS pedidos_web
+FROM clientes c
+LEFT JOIN pedidos p
+       ON p.cliente_id = c.cliente_id
+      AND p.canal = 'web'        -- derecha: en el ON
+WHERE c.pais = 'Chile'           -- izquierda: en el WHERE
+GROUP BY c.cliente_id;
+```
+
 ## RIGHT y FULL OUTER JOIN
 
 - `RIGHT JOIN` es un `LEFT JOIN` con las tablas al revés. `A RIGHT JOIN B` = `B LEFT JOIN A`. Casi nadie lo usa: es más fácil leer siempre de izquierda a derecha y poner la tabla "principal" primero.

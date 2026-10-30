@@ -30,6 +30,52 @@ Casi siempre tiene esta forma: te dan 2 a 4 tablas (muy parecidas a las de este 
 | **Casos borde** | NULL, empates, clientes sin pedidos, divisiones por cero, días sin datos |
 | **Comunicación** | Piensa en voz alta. Un silencio de 10 minutos y una respuesta perfecta vale menos que un razonamiento claro con un detalle a corregir |
 
+```recorrido
+titulo: Cómo resolver una pregunta en voz alta
+estacion preg: La pregunta | icono=usuario
+estacion aclarar: Aclarar | icono=documento
+estacion grano: Grano | icono=reglas
+estacion pasos: Por pasos | icono=capas
+estacion check: Verificar | icono=check
+paso preg: La pregunta del entrevistador
+Una pregunta típica, con ambigüedades a propósito.
+>>> texto
+"Dame los 3 clientes que más gastaron."
+paso aclarar: Preguntar antes de escribir
+Se valora que preguntes. Cada respuesta cambia el SQL.
+>>> texto
+¿Gasto = suma de líneas con descuento?   → sí
+¿Incluyo pedidos cancelados?              → no
+¿En qué período?                          → todo el historial
+¿Y si hay empate en el 3er puesto?        → desempatar por cliente_id
+paso grano: Decir el grano en voz alta
+"El resultado tiene **una fila por cliente**, ordenado por gasto, 3 filas."
+>>> texto
+grano: 1 fila por cliente
+métrica: SUM(cantidad * precio_unitario * (1 - descuento))
+filtro: estado <> 'cancelado'
+paso pasos: Escribir por pasos, con CTE
+Primero las líneas con su importe, después la suma por cliente. Se lee y se corrige más fácil.
+>>> sql
+WITH lineas AS (
+  SELECT p.cliente_id, d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
+  FROM detalle_pedidos d JOIN pedidos p USING (pedido_id)
+  WHERE p.estado <> 'cancelado'
+)
+SELECT cliente_id, ROUND(SUM(importe), 2) AS gasto
+FROM lineas
+GROUP BY cliente_id
+ORDER BY gasto DESC, cliente_id
+LIMIT 3;
+paso check: Verificar el resultado
+Antes de decir "listo": ¿son 3 filas? ¿un cliente aparece una sola vez? ¿los montos son razonables?
+>>> tabla
+cliente_id,gasto
+1882,54091.1
+1630,51444.4
+365,50034.9
+```
+
 ## Las familias de preguntas que más aparecen
 
 | Familia | Ejemplo | Técnica (lección) |

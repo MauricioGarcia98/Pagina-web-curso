@@ -134,6 +134,41 @@ FROM clientes     -- de la tabla de clientes
 LIMIT 5;          -- solo 5 filas
 ```
 
+```recorrido
+titulo: Qué pasa cuando presionas "Ejecutar"
+estacion tu: Tu consulta | icono=codigo
+estacion motor: El motor | icono=engranaje
+estacion tabla: La tabla | icono=tabla
+estacion res: El resultado | icono=check
+paso tu: Escribes una pregunta en SQL
+"Mostrame el id, el nombre y la ciudad de los clientes." En SQL se escribe así. Todavía no pasó nada: es solo texto.
+>>> sql
+SELECT cliente_id, nombre, ciudad
+FROM clientes;
+paso motor: El motor la lee y la revisa
+Al presionar **Ejecutar**, el programa que maneja la base (el *motor*: SQLite en este curso) revisa que esté bien escrita y que existan la tabla y las columnas. Si algo está mal, responde con un **error** que dice qué.
+>>> log
+¿la tabla "clientes" existe?      sí
+¿cliente_id, nombre, ciudad?     sí
+→ ejecutar
+paso tabla: Busca los datos en la tabla
+La tabla `clientes` tiene 2.000 filas y 10 columnas. El motor recorre las filas y toma **solo las 3 columnas** pedidas.
+>>> tabla
+cliente_id,nombre,apellido,email,telefono,ciudad,pais,segmento,fecha_nacimiento,fecha_registro
+1,Lucía,Aguilar,lucia.aguilar@correo.com,+82 814 8116,Madrid,España,Corporativo,1985-07-21,2024-04-07
+2,Juan,Flores,juan.flores@yahoo.com,+49 143 2651,Guadalajara,México,Corporativo,1959-10-15,2021-01-15
+3,Andrés,Pérez,andres.perez@gmail.com,+24 793 7906,Bogotá,Colombia,Corporativo,1997-05-22,2024-07-10
+paso res: Te devuelve una tabla nueva
+El resultado siempre es **otra tabla** (aquí, las primeras 5 filas). La tabla original no cambió: un `SELECT` solo lee.
+>>> tabla
+cliente_id,nombre,ciudad
+1,Lucía,Madrid
+2,Juan,Guadalajara
+3,Andrés,Bogotá
+4,Gabriel,Lima
+5,Emiliano,Barcelona
+```
+
 ## Ver solo algunas filas: LIMIT
 
 Las tablas reales pueden tener **millones** de filas. Pedirlas todas para "echar un vistazo" es lento y, en la nube, puede costar dinero. Para explorar usa `LIMIT`, que corta el resultado a la cantidad de filas que indiques:

@@ -130,6 +130,40 @@ WHERE NOT EXISTS (SELECT 1 FROM empleados e WHERE e.jefe_id = c.cliente_id);
 Para "lo que no está", usa **`NOT EXISTS`** o el anti-join (`LEFT JOIN … WHERE … IS NULL`). Si usas `NOT IN`, agrega `WHERE columna IS NOT NULL` dentro de la subconsulta.
 :::
 
+```recorrido
+titulo: NOT IN con un NULL en la lista, paso a paso
+estacion lista: La lista | icono=tabla
+estacion null: El NULL | icono=alerta
+estacion eval: La evaluación | icono=reglas
+estacion exists: NOT EXISTS | icono=check
+paso lista: La subconsulta devuelve una lista
+`SELECT jefe_id FROM empleados` devuelve el jefe de cada empleado. Estos son algunos valores distintos de esa lista:
+>>> tabla
+jefe_id
+NULL
+1
+2
+3
+4
+paso null: Uno de ellos es NULL
+El CEO no tiene jefe: su `jefe_id` es `NULL`. Ese único valor alcanza para romper el `NOT IN`.
+>>> tabla
+empleado_id,nombre,cargo,jefe_id
+1,Camila,CEO,NULL
+paso eval: Cómo se evalúa para un cliente
+`NOT IN (1, 2, …, NULL)` es una cadena de `<>` unidos con `AND`. La comparación con `NULL` da **desconocido**, y `verdadero AND desconocido` es desconocido: el `WHERE` descarta la fila. Pasa con **todos** los clientes.
+>>> texto
+cliente 300 NOT IN (1, 2, 5, 19, …, NULL)
+= 300<>1 AND 300<>2 AND … AND 300<>NULL
+= verdadero AND … AND desconocido
+= desconocido → la fila no pasa
+paso exists: NOT EXISTS no tiene el problema
+`NOT EXISTS` pregunta "¿hay alguna fila que coincida?", y eso siempre es verdadero o falso. Resultado de los dos enfoques:
+>>> tabla
+con_not_in,con_not_exists
+0,1973
+```
+
 ## 4. Subconsultas correlacionadas
 
 Una subconsulta es **correlacionada** cuando usa columnas de la consulta de afuera (como el `EXISTS` de arriba). Conceptualmente se ejecuta **una vez por cada fila** de afuera:

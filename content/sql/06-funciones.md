@@ -209,6 +209,55 @@ LIMIT 5;
 
 Si una expresión anidada te confunde, pruébala por partes en el laboratorio: primero `TRIM(nombre)`, luego agrega `SUBSTR`, y así.
 
+```recorrido
+titulo: Funciones anidadas, de adentro hacia afuera
+estacion orig: El valor original | icono=archivo
+estacion trim: TRIM | icono=transformar
+estacion sub: SUBSTR | icono=transformar
+estacion up: UPPER | icono=transformar
+estacion res: || '.' | icono=check
+paso orig: Nombres "sucios"
+En `clientes_crudo` algunos nombres tienen espacios de más y mayúsculas mezcladas. Los corchetes muestran dónde empiezan y terminan.
+>>> tabla
+registro_id,nombre
+2,[Benjamín]
+3,[BENJAMÍN]
+8,[  DIEGO ]
+13,[  BENJAMÍN ]
+paso trim: 1. TRIM(nombre): lo de más adentro primero
+`TRIM` quita los espacios del principio y del final.
+>>> tabla
+registro_id,paso1
+2,[Benjamín]
+3,[BENJAMÍN]
+8,[DIEGO]
+13,[BENJAMÍN]
+paso sub: 2. SUBSTR(…, 1, 1): la primera letra
+Sobre el resultado anterior, toma 1 carácter desde la posición 1. Sin el `TRIM` previo, la "primera letra" de `  DIEGO ` sería un espacio.
+>>> tabla
+registro_id,paso2
+2,B
+3,B
+8,D
+13,B
+paso up: 3. UPPER(…): a mayúscula
+Si ya era mayúscula, queda igual.
+>>> tabla
+registro_id,paso3
+2,B
+3,B
+8,D
+13,B
+paso res: 4. || '.': agregar el punto
+El resultado final. Cada función recibe lo que devolvió la de adentro: por eso se lee **de adentro hacia afuera**.
+>>> tabla
+registro_id,original,inicial
+2,Benjamín,B.
+3,BENJAMÍN,B.
+8,  DIEGO ,D.
+13,  BENJAMÍN ,B.
+```
+
 ## Funciones en el WHERE y en el ORDER BY
 
 ```sql

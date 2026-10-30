@@ -66,6 +66,37 @@ WHERE fecha_pedido >= '2024-12-01' AND fecha_pedido < '2025-01-01';
 Para fechas, usa `>=` inicio y `<` inicio-del-siguiente. Es correcto con fechas y con fecha-hora, no tienes que saber cuántos días tiene el mes, y es eficiente.
 :::
 
+```recorrido
+titulo: BETWEEN contra el rango semiabierto: dónde se pierden filas
+estacion dato: Fechas con hora | icono=reloj
+estacion between: BETWEEN | icono=x
+estacion falta: Lo que falta | icono=alerta
+estacion semi: >= y < | icono=check
+paso dato: fecha_hora tiene hora
+En `eventos_web`, cada evento tiene fecha **y hora**. Queremos todos los eventos de **octubre de 2024**. Estos son algunos del 31 de octubre:
+>>> tabla
+evento_id,fecha_hora,tipo_evento
+16479,2024-10-31 07:21:58,busqueda
+16480,2024-10-31 07:26:28,vista
+16481,2024-10-31 07:29:32,vista
+16482,2024-10-31 07:31:34,vista
+paso between: BETWEEN '2024-10-01' AND '2024-10-31'
+Parece correcto, pero `'2024-10-31'` se compara como texto con `'2024-10-31 09:15:00'`, que es **mayor**. Todo lo del 31 después de medianoche queda afuera.
+>>> tabla
+eventos
+1720
+paso falta: Faltan 44 eventos
+Exactamente los del último día. Sin error, sin aviso: un reporte de octubre que da menos de lo real.
+>>> tabla
+dia,eventos
+2024-10-31,44
+paso semi: Desde el 1 (incluido) hasta el 1 del mes siguiente (excluido)
+El **rango semiabierto** funciona tenga o no hora la columna, y nunca deja huecos ni cuenta dos veces el límite entre meses.
+>>> tabla
+eventos
+1764
+```
+
 ## Las funciones de fecha de SQLite
 
 SQLite tiene unas pocas funciones muy potentes:

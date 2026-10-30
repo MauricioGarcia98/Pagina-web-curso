@@ -57,6 +57,36 @@ Un argentino, un mexicano y un español se entienden perfectamente, aunque uno d
 | Arrays / JSON | `json_extract` | `ARRAY`, `jsonb` | `OPENJSON` | `ARRAY`, `explode`, `from_json` | `ARRAY`, `UNNEST`, `JSON_VALUE` | `VARIANT`, `FLATTEN` |
 | Nombre raro de columna | `"col"` | `"col"` | `[col]` | `` `col` `` | `` `col` `` | `"col"` |
 
+```recorrido
+titulo: La misma división, cinco motores
+estacion q: La consulta | icono=codigo
+estacion ent: División entera | icono=x
+estacion dec: División decimal | icono=check
+estacion fix: La versión segura | icono=escudo
+paso q: Una cuenta simple
+¿Qué parte de 7 pedidos fueron devueltos, si se devolvieron 2? Escrito "a lo directo":
+>>> sql
+SELECT 2 / 7 AS tasa;
+paso ent: Motores que dividen enteros como enteros
+Si los dos números son enteros, el resultado es entero: se pierde la parte decimal **sin error**.
+>>> tabla
+motor,2 / 7
+SQLite,0
+PostgreSQL,0
+SQL Server,0
+paso dec: Motores que devuelven decimales
+Otros motores convierten a decimal al dividir con `/`. La misma consulta, migrada de un motor a otro, cambia de resultado.
+>>> tabla
+motor,2 / 7
+MySQL,0.2857
+Spark SQL / Databricks,0.2857142857142857
+BigQuery,0.2857142857142857
+paso fix: Escribirla para que funcione en todos
+Multiplicar por `1.0` (o usar `CAST(… AS DECIMAL)`) antes de dividir hace que el resultado sea decimal en cualquier motor.
+>>> sql
+SELECT 1.0 * 2 / 7 AS tasa;   -- 0.2857… en todos
+```
+
 ## Diferencias que causan errores silenciosos
 
 Las diferencias de sintaxis son fáciles: el motor da un error y lo corriges. Las peligrosas son las que **no dan error** pero cambian el resultado:

@@ -182,6 +182,48 @@ WHERE estado = 'cancelado' AND fecha_pedido < '2022-06-01';
 | `DELETE FROM t` / `TRUNCATE TABLE t` | **Todas** las filas | Sí, vacía | `TRUNCATE` es mucho más rápido (no existe en SQLite) |
 | `DROP TABLE t` | La tabla **completa** (estructura y datos) | No | Usa `DROP TABLE IF EXISTS t` para no fallar si no existe |
 
+```recorrido
+titulo: Una tabla de stock, de la creación al borrado
+estacion create: CREATE | icono=base
+estacion insert: INSERT | icono=capas
+estacion update: UPDATE | icono=transformar
+estacion check: CHECK | icono=escudo
+estacion delete: DELETE | icono=x
+paso create: Crear la tabla con reglas
+`PRIMARY KEY` impide dos filas con el mismo `sku`; `NOT NULL` obliga a tener valor; `CHECK` rechaza stock negativo. Las reglas viven en la tabla, no en la memoria de quien carga los datos.
+>>> sql
+CREATE TABLE stock (
+    sku      TEXT PRIMARY KEY,
+    nombre   TEXT NOT NULL,
+    cantidad INTEGER NOT NULL CHECK (cantidad >= 0)
+);
+paso insert: Insertar tres productos
+Un solo `INSERT` puede agregar varias filas.
+>>> tabla
+sku,nombre,cantidad
+SKU-1,Mouse,40
+SKU-2,Teclado,15
+SKU-3,Monitor,8
+paso update: UPDATE … WHERE sku = 'SKU-2'
+Se vendieron 5 teclados. El `WHERE` decide **qué filas** cambian; sin él, cambiarían **todas**.
+>>> tabla
+sku,nombre,cantidad
+SKU-1,Mouse,40
+SKU-2,Teclado,10
+SKU-3,Monitor,8
+paso check: Intentar dejar stock negativo
+Hay 8 monitores y se intenta restar 10. El `CHECK` rechaza el cambio y la tabla queda como estaba.
+>>> log
+UPDATE stock SET cantidad = cantidad - 10 WHERE sku = 'SKU-3';
+Error: CHECK constraint failed: cantidad >= 0
+paso delete: DELETE … WHERE sku = 'SKU-1'
+Borra la fila del mouse. Igual que con UPDATE: antes de un DELETE, ejecuta un `SELECT` con el mismo `WHERE` para ver qué vas a borrar.
+>>> tabla
+sku,nombre,cantidad
+SKU-2,Teclado,10
+SKU-3,Monitor,8
+```
+
 ## ALTER TABLE: cambiar la estructura
 
 ```sql norun

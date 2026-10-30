@@ -60,6 +60,35 @@ EXPLAIN QUERY PLAN SELECT * FROM pedidos WHERE metodo_pago = 'efectivo';
 
 Un índice en `(cliente_id, fecha_pedido)` sirve para filtrar por `cliente_id` o por `cliente_id` + `fecha_pedido`, pero **no** solo por `fecha_pedido` (igual que una guía telefónica ordenada por apellido y nombre no sirve para buscar solo por nombre).
 
+```recorrido
+titulo: Tres consultas y lo que el motor decide hacer
+estacion pk: Por clave | icono=check
+estacion idx: Por índice | icono=lupa
+estacion scan: Sin índice útil | icono=alerta
+estacion regla: La regla | icono=reglas
+paso pk: Buscar por la clave primaria
+`EXPLAIN QUERY PLAN` muestra el plan sin ejecutar la consulta. `SEARCH` significa que va **directo** a la fila, como buscar una palabra en el índice de un libro.
+>>> log
+EXPLAIN QUERY PLAN SELECT * FROM pedidos WHERE pedido_id = 101;
+SEARCH pedidos USING INTEGER PRIMARY KEY (rowid=?)
+paso idx: Buscar por una columna con índice
+La tabla tiene el índice `idx_pedidos_cliente`. Para un cliente, el motor salta a sus filas sin leer las 12.000.
+>>> log
+EXPLAIN QUERY PLAN SELECT * FROM pedidos WHERE cliente_id = 9;
+SEARCH pedidos USING INDEX idx_pedidos_cliente (cliente_id=?)
+paso scan: Una función sobre la columna
+`substr(fecha_pedido, 1, 4)` se calcula **fila por fila**, así que el motor tiene que recorrer la tabla entera (`SCAN`). Aunque hubiera un índice sobre `fecha_pedido`, no podría usarlo.
+>>> log
+EXPLAIN QUERY PLAN SELECT * FROM pedidos WHERE substr(fecha_pedido, 1, 4) = '2024';
+SCAN pedidos
+paso regla: Escribir la condición sobre la columna "pelada"
+Un rango sobre la columna sin funciones es **sargable**: un índice sobre `fecha_pedido` sí podría usarse.
+>>> sql
+-- en lugar de substr(fecha_pedido, 1, 4) = '2024'
+WHERE fecha_pedido >= '2024-01-01'
+  AND fecha_pedido <  '2025-01-01'
+```
+
 ## Consultas “sargables”
 
 Una condición es **sargable** (*Search ARGument ABLE*) si el motor puede usar un índice para resolverla. Envolver la columna en una función suele **impedirlo**:
