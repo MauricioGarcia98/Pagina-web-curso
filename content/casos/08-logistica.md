@@ -77,6 +77,59 @@ ORDER BY pct_ocupacion DESC;
 
 **Lectura de negocio:** todos los almacenes están **muy vacíos** al cierre del año (menos del 11 %). O se dimensionaron para picos de temporada, o la empresa está pagando espacio que no usa: una conversación concreta para el área de finanzas.
 
+```recorrido
+titulo: La ocupación de los almacenes al cierre del año, paso a paso
+estacion m: Movimientos | icono=archivo
+estacion signo: Con signo | icono=transformar
+estacion stock: Stock final | icono=capas
+estacion cap: Capacidad | icono=base
+estacion res: Ocupación | icono=check
+paso m: Entradas, salidas y ajustes
+`logistica_movimientos` registra cada movimiento de mercadería en cada almacén.
+>>> tabla
+movimiento_id,almacen_id,fecha,tipo,cantidad
+1,1,2024-01-01,entrada,52
+2,1,2024-01-01,entrada,136
+3,1,2024-01-01,entrada,250
+4,1,2024-01-01,salida,-5
+5,1,2024-01-01,entrada,238
+6,1,2024-01-01,salida,-20
+paso signo: Las salidas ya vienen en negativo
+Por eso el stock es simplemente la **suma** de todas las cantidades: no hace falta un `CASE` por tipo.
+>>> tabla
+tipo,minimo,maximo
+ajuste,-10,-1
+entrada,39,1083
+salida,-81,-1
+paso stock: El stock final de cada almacén
+`SUM(m.cantidad)` por almacén, sobre todo el año.
+>>> tabla
+almacen_id,stock_final
+1,2150
+2,1179
+3,2680
+4,2209
+5,2808
+paso cap: Traer la capacidad
+`JOIN logistica_almacenes` agrega la ciudad y cuántas unidades caben.
+>>> tabla
+almacen_id,ciudad,capacidad_unidades,stock_final
+1,Buenos Aires,50000,2150
+2,Córdoba,20000,1179
+3,Ciudad de México,60000,2680
+4,Monterrey,25000,2209
+5,Bogotá,40000,2808
+paso res: stock / capacidad
+Todos los almacenes están casi vacíos al cierre: una conversación concreta para finanzas.
+>>> tabla
+ciudad,capacidad_unidades,stock_final,pct_ocupacion
+Lima,30000,3150,10.5
+Monterrey,25000,2209,8.8
+Bogotá,40000,2808,7
+Córdoba,20000,1179,5.9
+Ciudad de México,60000,2680,4.5
+```
+
 :::cuidado Las trampas de este caso
 - **Las salidas y ajustes ya son negativos**: sumar `cantidad` directamente da el stock. Si además las restaras con un `CASE`, las contarías dos veces.
 - **Stock a una fecha = acumulado hasta esa fecha inclusive**: es una suma acumulada (`SUM(…) OVER (… ORDER BY fecha)`), no la suma del día.

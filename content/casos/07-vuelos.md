@@ -68,6 +68,60 @@ ORDER BY dia_semana;
 
 **Lectura de negocio:** las diferencias entre días son pequeñas (19 a 23 minutos). El día de la semana **no** explica las demoras; hay que buscar en otro lado: aeropuerto de origen y, sobre todo, la propagación desde el vuelo anterior (lo verás en los ejercicios). Un resultado "sin hallazgo" también es información: evita invertir en la solución equivocada.
 
+```recorrido
+titulo: Demora por día de la semana, paso a paso
+estacion v: Vuelos | icono=tabla
+estacion filtro: Sin cancelados | icono=lupa
+estacion demora: Minutos | icono=reloj
+estacion dia: Día de la semana | icono=etiqueta
+estacion res: Resultado | icono=check
+paso v: Los vuelos
+Cada vuelo tiene la salida programada y la real.
+>>> tabla
+vuelo_id,fecha,salida_programada,salida_real,estado
+1,2024-01-01,2024-01-01 06:00:00,2024-01-01 06:06:00,a_tiempo
+2,2024-01-01,2024-01-01 09:30:00,2024-01-01 09:27:00,a_tiempo
+3,2024-01-01,2024-01-01 12:00:00,2024-01-01 11:59:00,a_tiempo
+4,2024-01-01,2024-01-01 18:00:00,2024-01-01 18:30:00,demorado
+5,2024-01-01,2024-01-01 21:30:00,2024-01-01 21:43:00,a_tiempo
+paso filtro: Fuera los cancelados
+Un vuelo cancelado no tiene `salida_real`: no se puede medir su demora. Se excluye con `estado <> 'cancelado'`.
+>>> tabla
+estado,vuelos,sin_salida_real
+a_tiempo,3437,0
+cancelado,142,142
+demorado,1265,0
+paso demora: La demora en minutos
+`julianday` da días con decimales; la diferencia × 1.440 (minutos de un día) da minutos.
+>>> tabla
+vuelo_id,salida_programada,salida_real,demora_min
+1,2024-01-01 06:00:00,2024-01-01 06:06:00,6
+2,2024-01-01 09:30:00,2024-01-01 09:27:00,-3
+3,2024-01-01 12:00:00,2024-01-01 11:59:00,-1
+4,2024-01-01 18:00:00,2024-01-01 18:30:00,30
+5,2024-01-01 21:30:00,2024-01-01 21:43:00,13
+paso dia: El día de la semana
+`strftime('%w', fecha)` devuelve 0 para domingo, 1 para lunes… 6 para sábado.
+>>> tabla
+vuelo_id,fecha,dia_semana,demora_min
+1,2024-01-01,1,6
+2,2024-01-01,1,-3
+3,2024-01-01,1,-1
+4,2024-01-01,1,30
+5,2024-01-01,1,13
+paso res: Una fila por día
+Las diferencias son chicas: el día de la semana **no** explica las demoras. Un resultado "sin hallazgo" también es información.
+>>> tabla
+dia_semana,vuelos,demora_min
+0,650,20.6
+1,683,22.9
+2,674,22.5
+3,685,23.4
+4,673,20.6
+5,663,19.2
+6,674,20.8
+```
+
 :::cuidado Las trampas de este caso
 - **Muestra con factor de expansión**: `vuelos_reservas` es una muestra; cada reserva representa 40 pasajeros. Olvidar el ×40 da ocupaciones absurdas de 2 %.
 - **Doble conteo al unir vuelos con reservas**: si unes primero y después sumas la capacidad, la capacidad de cada vuelo se suma una vez **por reserva**. Agrega las reservas por vuelo antes de unir.

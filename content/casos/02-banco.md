@@ -100,6 +100,63 @@ ORDER BY gasto DESC;
 
 **Lectura de negocio:** la app tiene **más** compras pero tickets más chicos (compras cotidianas); el POS (las terminales de los comercios) tiene pocas compras pero el ticket más alto. Si el banco quiere aumentar el gasto, una campaña de cuotas sin interés en POS apunta a compras grandes; un cashback en la app apunta a frecuencia. Una consulta, una conversación con el área de marketing.
 
+```recorrido
+titulo: Gasto por canal, paso a paso
+estacion tx: Transacciones | icono=tabla
+estacion filtro: Solo compras | icono=lupa
+estacion signo: Invertir el signo | icono=transformar
+estacion agg: Por canal | icono=capas
+estacion res: Resultado | icono=check
+paso tx: Todo tipo de movimientos
+`banco_transacciones` mezcla compras, depósitos, retiros y transferencias. Las que **sacan** dinero tienen monto negativo.
+>>> tabla
+tx_id,tipo,monto,canal
+1,compra,-239.76,app
+2,transferencia,-836,app
+3,transferencia,-1493,app
+4,retiro,-320,sucursal
+5,deposito,1528,web
+6,compra,-5.33,web
+paso filtro: WHERE tipo = 'compra'
+La pregunta es sobre **gasto**: un depósito no es gasto. Quedan solo las compras.
+>>> tabla
+tx_id,tipo,monto,canal
+1,compra,-239.76,app
+6,compra,-5.33,web
+13,compra,-234.95,app
+15,compra,-25.27,pos
+16,compra,-22.53,pos
+17,compra,-73.31,pos
+paso signo: El gasto en positivo
+`-monto` cambia el signo para que el gasto se lea como un número positivo. Sin esto, el "gasto" saldría negativo.
+>>> tabla
+tx_id,canal,monto,gasto
+1,app,-239.76,239.76
+6,web,-5.33,5.33
+13,app,-234.95,234.95
+15,pos,-25.27,25.27
+16,pos,-22.53,22.53
+17,pos,-73.31,73.31
+paso agg: Agrupar por canal
+`GROUP BY canal`: cantidad de compras, gasto total (`-SUM(monto)`) y ticket promedio (`-AVG(monto)`).
+>>> sql
+SELECT canal,
+       COUNT(*)              AS compras,
+       ROUND(-SUM(monto), 2) AS gasto,
+       ROUND(-AVG(monto), 2) AS ticket_promedio
+FROM banco_transacciones
+WHERE tipo = 'compra'
+GROUP BY canal
+ORDER BY gasto DESC;
+paso res: Una fila por canal
+La app tiene más compras, pero el POS tiene el ticket más alto: dos tipos de cliente, dos campañas distintas.
+>>> tabla
+canal,compras,gasto,ticket_promedio
+web,2072,441392,213.03
+app,2663,331788,124.59
+pos,1263,321339,254.43
+```
+
 :::cuidado Las trampas de este caso
 - **El signo del monto**: si sumas compras sin invertir el signo, el "gasto" sale negativo; si sumas todos los tipos juntos, obtienes el saldo, no el gasto.
 - **El "hoy" del análisis**: para saber si una cuota está vencida necesitas una fecha de referencia. Aquí es `2024-12-31`; nunca uses `date('now')`, porque el resultado cambiaría según el día en que ejecutes.

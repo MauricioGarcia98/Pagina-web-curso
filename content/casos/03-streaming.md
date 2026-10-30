@@ -72,6 +72,54 @@ GROUP BY c.tipo;
 
 **Lectura de negocio:** los podcasts se escuchan mucho más tiempo por reproducción (casi 19 minutos), pero se **abandonan más** (solo se completa el 54 %). Una función "continuar donde lo dejaste" para podcasts tiene sentido; también recomendar episodios más cortos.
 
+```recorrido
+titulo: ¿Se termina lo que se empieza? Canciones contra podcasts, paso a paso
+estacion rep: Reproducciones | icono=tabla
+estacion join: JOIN contenidos | icono=capas
+estacion fila: Por fila | icono=engranaje
+estacion cociente: Cociente de sumas | icono=reglas
+estacion res: Resultado | icono=check
+paso rep: Cada reproducción
+`streaming_reproducciones` dice cuántos segundos se escuchó, pero **no** si era canción o podcast.
+>>> tabla
+repro_id,contenido_id,segundos_escuchados
+1,329,125
+2,42,1279
+3,203,60
+4,231,64
+5,335,38
+paso join: Traer el tipo y la duración
+Un `JOIN` con `streaming_contenidos` agrega el `tipo` y la duración total de cada contenido. Cada reproducción tiene un solo contenido: el join **no** multiplica filas.
+>>> tabla
+repro_id,tipo,segundos_escuchados,duracion_seg
+1,cancion,125,125
+2,podcast,1279,1279
+3,cancion,60,251
+4,cancion,64,145
+5,cancion,38,300
+paso fila: El porcentaje de cada una
+Fila por fila, qué parte del contenido se escuchó. Útil para mirar, pero **no** para promediar.
+>>> tabla
+repro_id,tipo,segundos_escuchados,duracion_seg,pct
+1,cancion,125,125,100
+2,podcast,1279,1279,100
+3,cancion,60,251,23.9
+4,cancion,64,145,44.1
+5,cancion,38,300,12.7
+paso cociente: Por qué el cociente de sumas
+Promediar los porcentajes le da el mismo peso a una canción de 2 minutos que a un podcast de 1 hora. El cociente de sumas pesa cada reproducción por su duración.
+>>> texto
+promedio de porcentajes : (100 % + 10 %) / 2               = 55 %
+cociente de sumas       : (120 s + 360 s) / (120 s + 3600 s) = 12,9 %
+(una canción de 2 min escuchada entera y 6 min de un podcast de 1 h)
+paso res: El resultado
+Los podcasts se escuchan mucho más tiempo, pero se completan menos.
+>>> tabla
+tipo,reproducciones,min_promedio,pct_completado
+cancion,16057,2.4,67
+podcast,1943,18.7,54.1
+```
+
 :::cuidado Las trampas de este caso
 - **"Activo" se define por reproducciones**, no por suscripciones: un suscriptor pago que no escucha nada en el mes no es un usuario activo (y es un candidato a darse de baja).
 - **Vigencia de una suscripción**: está vigente en la fecha F si empezó antes o ese día y no terminó (`fecha_fin` es NULL o posterior). Olvidar el `NULL` deja afuera a todos los suscriptores actuales.
