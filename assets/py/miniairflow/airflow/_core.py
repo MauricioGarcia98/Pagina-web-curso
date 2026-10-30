@@ -160,7 +160,12 @@ class DagRun:
             attempts = 1 + int(task.retries or 0)
             for attempt in range(1, attempts + 1):
                 try:
-                    result = task.execute(ti.get_template_context())
+                    _ctx = ti.get_template_context()
+                    _CURRENT_CONTEXT.append(_ctx)
+                    try:
+                        result = task.execute(_ctx)
+                    finally:
+                        _CURRENT_CONTEXT.pop()
                     if result is not None and task.do_xcom_push:
                         self.xcoms[(task.task_id, "return_value")] = result
                     self.states[task.task_id] = "success"
@@ -240,11 +245,20 @@ class TaskInstance:
 
     def get_template_context(self):
         ld = self.dag_run.logical_date
+        # Intervalo de datos como en Airflow 3: con un cron (CronTriggerTimetable) inicio = fin = disparo;
+        # si el timetable declara interval=, el intervalo termina en el disparo; con timedelta, el período siguiente.
+        sch = self.task.dag.schedule if self.task.dag else None
+        if getattr(sch, "interval", None) is not None:
+            di_start, di_end = ld - sch.interval, ld
+        elif isinstance(sch, _dt.timedelta):
+            di_start, di_end = ld, ld + sch
+        else:
+            di_start, di_end = ld, ld
         return {
             "ti": self, "task_instance": self, "task": self.task, "dag": self.task.dag,
             "ds": ld.strftime("%Y-%m-%d"), "ds_nodash": ld.strftime("%Y%m%d"),
             "ts": ld.isoformat(), "logical_date": ld, "execution_date": ld,
-            "data_interval_start": ld, "data_interval_end": ld + _dt.timedelta(days=1),
+            "data_interval_start": di_start, "data_interval_end": di_end,
             "params": dict(self.task.dag.params if self.task.dag else {}, **(self.task.params or {})),
             "dag_run": self.dag_run, "run_id": self.dag_run.run_id, "conf": self.dag_run.conf,
             "var": {"value": _VarAccessor()},
@@ -366,6 +380,14 @@ class BaseOperator:
 
     def execute(self, context):
         raise NotImplementedError
+
+
+def _output(self):
+    """op.output: el XCom return_value de un operador clásico, para pasarlo a una tarea @task."""
+    return XComArg(self)
+
+
+BaseOperator.output = property(_output)
 
 
 def _flatten(x):
@@ -813,6 +835,16 @@ def _xcom_deps(obj):
     return []
 
 
+_CURRENT_CONTEXT = []
+
+
+def get_current_context():
+    """Devuelve el contexto de la tarea que se está ejecutando (ds, logical_date, ti, params…)."""
+    if not _CURRENT_CONTEXT:
+        raise AirflowException("get_current_context() solo funciona dentro de una tarea en ejecución")
+    return _CURRENT_CONTEXT[-1]
+
+
 class _DecoratedOperator(BaseOperator):
     def __init__(self, task_id, fn, args, kwargs, multiple_outputs=False, branch=False, **kw):
         super().__init__(task_id, **kw)
@@ -859,6 +891,12 @@ class _TaskDecorator:
         op = _DecoratedOperator(tid, self.fn, args, kwargs, branch=self.branch, **opts)
         return XComArg(op)
 
+    def partial(self, **kwargs):
+        return _PartialTask(self, kwargs)
+
+    def expand(self, **mapped):
+        return _PartialTask(self, {}).expand(**mapped)
+
     def override(self, **opts):
         o = dict(self.opts)
         o.update(opts)
@@ -867,6 +905,51 @@ class _TaskDecorator:
     @property
     def __name__(self):
         return self.fn.__name__ if self.fn else "task"
+
+
+class _MappedDecoratedOperator(_DecoratedOperator):
+    """Mapeo dinámico (task.expand): una instancia de la tarea por cada valor (producto si hay varias listas)."""
+    def __init__(self, task_id, fn, fixed, mapped, **kw):
+        super().__init__(task_id, fn, [], dict(fixed, **mapped), **kw)
+        self.fixed = fixed
+        self.mapped = mapped
+
+    def execute(self, context):
+        import itertools
+        run = context["dag_run"]
+        fixed = _resolve_args(dict(self.fixed), run)
+        mapped = _resolve_args(dict(self.mapped), run)
+        claves = list(mapped)
+        for k in claves:
+            if not isinstance(mapped[k], (list, tuple)):
+                raise AirflowException("expand(%s=...) necesita una lista (o el resultado de una tarea que devuelva una lista)" % k)
+        resultados = []
+        combos = list(itertools.product(*[mapped[k] for k in claves]))
+        print("  ↳ %s: %d instancias mapeadas" % (self.task_id, len(combos)))
+        for i, combo in enumerate(combos):
+            kw = dict(fixed)
+            kw.update(dict(zip(claves, combo)))
+            resultados.append(_call_with_context(self.python_callable, [], kw, dict(context, map_index=i)))
+        return resultados
+
+
+class _PartialTask:
+    def __init__(self, deco, fixed):
+        self.deco = deco
+        self.fixed = fixed
+
+    def expand(self, **mapped):
+        dag = _CURRENT_DAG[-1] if _CURRENT_DAG else None
+        if dag is None:
+            raise AirflowException("expand() debe llamarse dentro de un DAG")
+        base_id = self.deco.opts.get("task_id") or self.deco.fn.__name__
+        tid, k = base_id, 1
+        prefix = _CURRENT_GROUP[-1].prefix if _CURRENT_GROUP else ""
+        while (prefix + tid) in dag.task_dict:
+            tid = "%s__%d" % (base_id, k)
+            k += 1
+        opts = {kk: v for kk, v in self.deco.opts.items() if kk != "task_id"}
+        return XComArg(_MappedDecoratedOperator(tid, self.deco.fn, self.fixed, mapped, **opts))
 
 
 class _TaskNamespace:

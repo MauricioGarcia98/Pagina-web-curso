@@ -12,7 +12,7 @@ ver: Airflow, DAG, Pipeline
 ## Airflow
 alias: apache airflow
 nino: Airflow es un **despertador muy inteligente con una lista de tareas**: suena a la hora indicada, hace las tareas en orden, se fija si alguna salió mal, la vuelve a intentar y te avisa.
-que: El orquestador de código abierto más usado. Los flujos se escriben en **Python** como DAGs. Componentes: **scheduler** (decide qué correr), **executor/workers** (corren las tareas), **webserver/API** (interfaz), **metadatabase** (estado de todo) y el procesador de DAGs.
+que: El orquestador de código abierto más usado. Los flujos se escriben en **Python** como DAGs. Componentes: **scheduler** (decide qué correr), **executor/workers** (corren las tareas), **API server** (interfaz web y API; en Airflow 2 se llamaba *webserver*), **metadatabase** (estado de todo) y el **Dag processor** (lee los archivos de DAGs). Desde Airflow 3 los DAGs se escriben importando de `airflow.sdk`.
 ejemplo: Un archivo `dags/ventas_diarias.py` que define un DAG `@daily` con las tareas `extraer >> cargar >> transformar >> avisar`.
 para: Programar y vigilar pipelines con dependencias complejas.
 ver: DAG, Operador, Scheduler, Orquestación
@@ -72,8 +72,8 @@ ver: Scheduler, Batch
 ## Logical date
 alias: fecha lógica, execution_date, ds, data_interval
 nino: Si el lunes a la noche **ordenas los juguetes del lunes**, la tarea es "del lunes" aunque la hagas a la medianoche del martes. La fecha lógica es el día **del que son los datos**, no el día en que trabajas.
-que: En Airflow, cada ejecución tiene un **intervalo de datos** (`data_interval_start` → `data_interval_end`); la *logical date* es el inicio. Un DAG `@daily` del intervalo del 1 de diciembre corre recién cuando termina ese día (el 2 a las 00:00). Las plantillas `{{ ds }}` (fecha `YYYY-MM-DD`) y `{{ data_interval_start }}` permiten procesar exactamente ese intervalo.
-ejemplo: `WHERE fecha = '{{ ds }}'` → en la ejecución del 1/12 procesa el 1/12, aunque corra el 2/12. Re-ejecutar el 1/12 dentro de un mes procesa otra vez el 1/12, no "hoy".
+que: La fecha que identifica cada ejecución de un DAG y que las tareas usan para saber qué período procesar (`{{ ds }}` en formato `YYYY-MM-DD`). En **Airflow 3**, con un horario cron, es el momento del disparo (el DAG de las 02:00 del 2/12 tiene `ds = 2024-12-02`) y no hay intervalo, salvo que el timetable declare `interval=`. En **Airflow 2** era el inicio del intervalo de datos: el run `@daily` "del 1/12" corría el 2/12 a las 00:00. En Airflow 3 ya no existe `execution_date`.
+ejemplo: Airflow 3, para las ventas de ayer: `WHERE fecha = '{{ macros.ds_add(ds, -1) }}'`, o `{{ data_interval_start | ds }}` con `CronTriggerTimetable("0 2 * * *", timezone="UTC", interval=timedelta(days=1))`. Re-ejecutar ese run dentro de un mes procesa el mismo día, no "hoy".
 para: Pipelines reproducibles y backfills correctos.
 cuidado: Nunca uses `datetime.now()` para decidir qué datos procesar: rompe los reintentos y backfills.
 ver: Backfill, catchup, Idempotencia
@@ -81,7 +81,7 @@ ver: Backfill, catchup, Idempotencia
 ## catchup
 alias: catch up, ponerse al día
 nino: Si te olvidas de regar las plantas una semana, *catchup* es decidir **si las riegas 7 veces seguidas para "ponerte al día"** o solo hoy.
-que: Opción de un DAG de Airflow: con `catchup=True`, el scheduler crea ejecuciones para **todos los intervalos pendientes** entre `start_date` (o la última ejecución) y hoy. Con `catchup=False` (lo habitual), solo la más reciente.
+que: Opción de un DAG de Airflow: con `catchup=True`, el scheduler crea ejecuciones para **todos los intervalos pendientes** entre `start_date` (o la última ejecución) y hoy. Con `catchup=False` (el valor por defecto desde Airflow 3; en Airflow 2 era `True`), solo la más reciente.
 ejemplo: `start_date=2024-01-01`, `@daily`, `catchup=True` y lo activas el 1/12: Airflow encola ~335 ejecuciones.
 para: Decidir si un pipeline nuevo o pausado debe recuperar el pasado automáticamente.
 ver: Backfill, Logical date

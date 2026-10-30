@@ -179,7 +179,7 @@ Una factura de noviembre puede pasar de `pendiente` a `pagada` en diciembre. Con
 
 ## 5. Airflow: el cierre de mes
 
-El cierre corre el **día 1 de cada mes** a las 06:00 y procesa el mes que terminó. En Airflow, con `schedule="0 6 1 * *"`, la ejecución que corre el 1 de julio tiene `data_interval_start` = 1 de junio: justo el mes a cerrar.
+El cierre corre el **día 1 de cada mes** a las 06:00 y procesa el mes que terminó. Ojo con la fecha: en Airflow 3, con `schedule="0 6 1 * *"`, la ejecución que corre el 1 de julio tiene `ds` = 1 de julio (la fecha del disparo). Para que el intervalo sea el mes cerrado se usa `CronTriggerTimetable("0 6 1 * *", timezone="UTC", interval=relativedelta(months=1))`, y entonces `data_interval_start` = 1 de junio. En Airflow 2 ese era el comportamiento por defecto.
 
 :::ejercicio airflow titulo="DAG saas_cierre_mensual"
 Crea el DAG `saas_cierre_mensual` con `schedule="0 6 1 * *"`, `start_date` 2024-01-01 y `catchup=True` (para poder reprocesar meses viejos con backfill), con estas tareas en orden:
