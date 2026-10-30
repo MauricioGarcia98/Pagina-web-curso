@@ -65,6 +65,46 @@ FROM bronze.ventas_crudas;
 Se puede volver al comportamiento anterior con `spark.conf.set("spark.sql.ansi.enabled", "false")`, y es tentador hacerlo el lunes del escenario para "que vuelva a andar". Es solo un parche temporal: esconde el problema de calidad que el error está mostrando. La solución es encontrar las filas malas y tratarlas con `try_cast` de forma explícita.
 :::
 
+```recorrido
+titulo: Un monto "N/A" en Spark 3 y en Spark 4
+estacion dato: El dato | icono=archivo
+estacion s3: Spark 3 | icono=x
+estacion s4: Spark 4 | icono=alerta
+estacion try: try_cast | icono=escudo
+estacion contar: Contar | icono=check
+paso dato: Una columna de texto con basura
+En bronze, el monto llega como texto. Una fila dice `N/A`.
+>>> tabla
+venta_id,monto_texto
+1,120.50
+2,N/A
+3,80
+paso s3: Spark 3 (sin ANSI): NULL en silencio
+`CAST(monto_texto AS DECIMAL(12,2))` convierte `N/A` en `NULL` sin avisar. La suma da 200,50 y nadie se entera de que faltó una venta.
+>>> tabla
+venta_id,monto
+1,120.50
+2,NULL
+3,80.00
+paso s4: Spark 4 (ANSI por defecto): el job falla
+La misma consulta lanza un error con el valor exacto que no se pudo convertir. Molesta, pero el problema **aparece**.
+>>> log
+[CAST_INVALID_INPUT] The value 'N/A' of the type "STRING" cannot be cast to
+"DECIMAL(12,2)" because it is malformed. Correct the value as per the syntax,
+or change its target type. Use `try_cast` to tolerate malformed input and return NULL instead.
+paso try: try_cast: NULL, pero a propósito
+En silver, `try_cast` deja `NULL` en los valores inválidos de forma **explícita**: quien lee el código sabe que esa columna puede traer basura.
+>>> sql
+SELECT venta_id,
+       try_cast(monto_texto AS DECIMAL(12, 2)) AS monto
+FROM bronze.ventas_crudas;
+paso contar: Y contar lo que no se pudo convertir
+El número de inválidos se registra en cada ejecución. Si un día salta de 1 a 30.000, alguien cambió el formato en el origen.
+>>> tabla
+filas,montos_invalidos
+3,1
+```
+
 ## 2. Spark Connect: Spark como un servicio
 
 En la lección de arquitectura viste que una aplicación de Spark tiene un **driver** (el proceso que planifica) y **executors** (los que procesan). Clásicamente, tu código Python corre **dentro** del mismo proceso que el driver. Spark Connect (desde 3.4, maduro en 4.0) separa las dos cosas, según la documentación oficial:

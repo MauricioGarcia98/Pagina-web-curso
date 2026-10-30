@@ -45,6 +45,49 @@ XCom se guarda en la base de metadatos: úsalo para **metadatos** (rutas, conteo
 Las tareas son empleados que trabajan en turnos distintos y quizás en edificios distintos: no pueden pasarse papeles en mano. XCom es un casillero compartido, rotulado con el nombre de la tarea y la fecha de la ejecución: una deja una nota ("el archivo quedó en /lake/bronze/…"), la siguiente la retira. Para notas, perfecto; para mudanzas (millones de filas), no entra.
 :::
 
+```recorrido
+titulo: Un valor que viaja de una tarea a otra por XCom
+estacion a: Tarea A | icono=engranaje
+estacion push: Guardar | icono=base
+estacion b: Tarea B | icono=engranaje
+estacion pull: Leer | icono=lupa
+estacion limite: El límite | icono=alerta
+paso a: La tarea A devuelve un valor
+`contar_filas` cuenta las filas del archivo del día y hace `return 1250`. Las tareas pueden correr en **máquinas distintas**: no comparten variables de Python.
+>>> python
+def contar_filas():
+    return 1250          # lo que devuelve se guarda como XCom
+paso push: Airflow lo guarda en su base de datos
+El valor devuelto queda registrado con su DAG, su ejecución y la tarea que lo produjo, bajo la clave `return_value`.
+>>> tabla
+dag_id,run_id,task_id,key,value
+ventas,scheduled__2024-03-15T00:00:00+00:00,contar_filas,return_value,1250
+paso b: La tarea B lo necesita
+`validar` corre después (y quizás en otro worker). Pide el valor por el id de la tarea que lo produjo.
+>>> python
+def validar(ti):
+    n = ti.xcom_pull(task_ids="contar_filas")
+    if n == 0:
+        raise ValueError("Llegó un archivo vacío")
+paso pull: Con TaskFlow, el paso es automático
+Con `@task`, pasar el resultado de una función a otra **es** un XCom: Airflow arma la dependencia y el traspaso por ti.
+>>> python
+@task
+def contar_filas() -> int:
+    return 1250
+
+@task
+def validar(n: int):
+    ...
+
+validar(contar_filas())
+paso limite: XCom es para mensajes chicos
+Pasa **referencias** (una ruta, un conteo, un id), no los datos. Un DataFrame de millones de filas no va por XCom: se escribe en el lago y se pasa la ruta.
+>>> texto
+bien: 1250 · "s3://lake/bronze/ventas/2024-03-15/" · {"filas": 1250}
+mal:  el contenido entero del archivo, un DataFrame
+```
+
 ## TaskFlow API: Airflow “pythónico”
 
 Desde Airflow 2, los decoradores `@dag` y `@task` convierten funciones comunes en DAGs y tareas. Lo que una tarea **devuelve** pasa automáticamente por XCom a la siguiente, y las **dependencias se infieren** de cómo pasas los valores:

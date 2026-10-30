@@ -121,6 +121,43 @@ alerta = PythonOperator(task_id="avisar_slack", python_callable=avisar, trigger_
 
 `avisar_slack` solo corre si alguna de las tres falló. Si todo sale bien, queda skipped. Para alertas también existen los **callbacks** (`on_failure_callback`), que se ven en la lección de buenas prácticas.
 
+```recorrido
+titulo: Una rama y la tarea que la une, estado por estado
+estacion branch: La decisión | icono=reglas
+estacion elegida: Rama elegida | icono=check
+estacion skip: Rama omitida | icono=x
+estacion fin: La unión | icono=capas
+estacion estados: Estados finales | icono=dashboard
+paso branch: BranchPythonOperator decide
+La función devuelve el **task_id** del camino a seguir. Hoy llegaron 1.250 transacciones, así que elige `procesar`.
+>>> python
+def decidir():
+    return "procesar" if transacciones_del_dia > 0 else "avisar_sin_datos"
+paso elegida: La rama elegida corre
+`procesar` pasa a `running` y termina en `success`.
+>>> log
+validar_llegada   success
+procesar          success
+paso skip: La otra rama queda omitida
+`avisar_sin_datos` no falló: queda en **skipped** (omitida). Es un estado distinto de `failed`.
+>>> log
+avisar_sin_datos  skipped
+paso fin: ¿Corre la tarea que une las ramas?
+Con la regla por defecto (`all_success`) **no** correría: uno de sus padres está `skipped`, y en ese caso Airflow la omite también. Con `none_failed_min_one_success` sí: ningún padre falló y uno salió bien.
+>>> tabla
+trigger_rule,padres,¿corre fin?
+all_success,success + skipped,no (queda skipped)
+none_failed_min_one_success,success + skipped,sí
+paso estados: El resultado de la ejecución
+La ejecución termina en `success`. En la vista Grid se ve cada tarea con su color: verde, rosa (skipped) y verde.
+>>> log
+validar_llegada   success
+procesar          success
+avisar_sin_datos  skipped
+fin               success
+DAG run           success
+```
+
 ## Sensores: esperar a que algo pase
 
 Un **sensor** es una tarea que no procesa nada: **espera** a que se cumpla una condición. Por ejemplo, que llegue un archivo, que termine otro DAG o que una tabla tenga los datos del día. Cada cierto tiempo pregunta "¿ya está?". A cada pregunta se le llama *poke*.

@@ -45,6 +45,46 @@ top.show()
 
 `createOrReplaceTempView("pedidos")` no copia datos: solo le pone un **nombre** al DataFrame para que SQL pueda referirse a él. La vista existe mientras dure la sesión de Spark (en Databricks, mientras el notebook esté conectado).
 
+```recorrido
+titulo: De un DataFrame a una consulta SQL, y de vuelta
+estacion df: DataFrame | icono=tabla
+estacion vista: Vista temporal | icono=etiqueta
+estacion sql: spark.sql | icono=codigo
+estacion plan: El mismo motor | icono=engranaje
+estacion res: Resultado | icono=check
+paso df: Un DataFrame en Python
+Tienes los pedidos en un DataFrame. Una analista que solo sabe SQL quiere consultarlos.
+>>> python
+pedidos = spark.table("pedidos").filter("estado <> 'cancelado'")
+paso vista: Ponerle un nombre
+`createOrReplaceTempView` registra el DataFrame con un nombre que SQL puede usar. **No copia datos**: el nombre apunta a la misma "receta". Vive mientras dure tu sesión.
+>>> python
+pedidos.createOrReplaceTempView("v_pedidos")
+paso sql: Consultar con SQL
+`spark.sql(...)` devuelve **otro DataFrame**. Se puede seguir encadenando con métodos de Python.
+>>> python
+por_canal = spark.sql("""
+    SELECT canal, COUNT(*) AS pedidos
+    FROM v_pedidos
+    GROUP BY canal
+""")
+por_canal.orderBy("pedidos", ascending=False).show()
+paso plan: SQL y DataFrames son lo mismo por dentro
+Las dos formas pasan por el mismo optimizador (Catalyst) y producen el mismo plan. Elegir una u otra es cuestión de legibilidad, no de velocidad.
+>>> texto
+spark.sql("SELECT …")          ─┐
+                                 ├──▶ plan lógico ──▶ optimizador ──▶ plan físico
+df.groupBy(…).agg(…)            ─┘
+paso res: El resultado
+Pedidos no cancelados por canal, con los datos del curso.
+>>> tabla
+canal,pedidos
+web,4979
+app,2707
+tienda,2438
+telefono,909
+```
+
 ## El catálogo: dónde viven los nombres de las tablas
 
 Un **catálogo** (o *metastore*) es la "guía telefónica" de las tablas: para cada nombre (`main.ventas.pedidos`) guarda **dónde** están los archivos, en qué **formato**, con qué **esquema** y quién tiene **permiso**. Spark consulta el catálogo cada vez que escribes `spark.table("…")` o un `FROM` en SQL. Es el mismo papel que cumplen el Glue Data Catalog en AWS y el catálogo de BigQuery en Google Cloud.

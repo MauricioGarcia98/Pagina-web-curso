@@ -127,6 +127,48 @@ Esta regla ("el run del 1 de enero corre el 2") confundió a una generación ent
 
 Tu tarea no debe preguntar "¿qué día es hoy?" (`datetime.now()`), sino **recibir** el período a procesar (`{{ ds }}`, `{{ data_interval_start }}`). Así, volver a ejecutar dentro de un mes la ejecución del 2 de enero procesa exactamente el 2 de enero: el pipeline es **determinista** y **reprocesable**. Es la base de los backfills.
 
+```recorrido
+titulo: Tres noches del mismo DAG: qué fecha recibe cada ejecución
+estacion dag: El DAG | icono=codigo
+estacion a3: Airflow 3 | icono=reloj
+estacion int: Con interval | icono=capas
+estacion a2: Airflow 2 | icono=libro
+estacion regla: Qué usar | icono=check
+paso dag: Un DAG diario a las 02:00
+Procesa las ventas **del día anterior**. Miramos tres ejecuciones seguidas.
+>>> python
+with DAG("ventas_diarias", start_date=datetime(2024, 1, 1),
+         schedule="0 2 * * *", catchup=False):
+    ...
+paso a3: Airflow 3 por defecto: la fecha del disparo
+`logical_date` es el momento en que corre, y el intervalo empieza y termina ahí mismo. `{{ ds }}` es **hoy**: para procesar ayer hay que restar un día.
+>>> tabla
+corre el,ds,data_interval_start,data_interval_end
+2024-01-02 02:00,2024-01-02,2024-01-02 02:00,2024-01-02 02:00
+2024-01-03 02:00,2024-01-03,2024-01-03 02:00,2024-01-03 02:00
+2024-01-04 02:00,2024-01-04,2024-01-04 02:00,2024-01-04 02:00
+paso int: Airflow 3 con CronTriggerTimetable(…, interval=1 día)
+El intervalo **termina** en el disparo y empieza un día antes. Las tareas leen `{{ data_interval_start | ds }}`: el día que hay que procesar.
+>>> tabla
+corre el,data_interval_start,data_interval_end,día procesado
+2024-01-02 02:00,2024-01-01 02:00,2024-01-02 02:00,2024-01-01
+2024-01-03 02:00,2024-01-02 02:00,2024-01-03 02:00,2024-01-02
+2024-01-04 02:00,2024-01-03 02:00,2024-01-04 02:00,2024-01-03
+paso a2: Airflow 2: la fecha es el inicio del intervalo
+En Airflow 2 (y en Airflow 3 con `CronDataIntervalTimetable`), la ejecución que corre el 2 de enero tiene `ds = 2024-01-01`. Por eso el código viejo usa `{{ ds }}` directamente para "ayer". Al migrar, **esto cambia**.
+>>> tabla
+corre el,ds,data_interval_start,data_interval_end
+2024-01-02 02:00,2024-01-01,2024-01-01 02:00,2024-01-02 02:00
+2024-01-03 02:00,2024-01-02,2024-01-02 02:00,2024-01-03 02:00
+2024-01-04 02:00,2024-01-03,2024-01-03 02:00,2024-01-04 02:00
+paso regla: Qué usar
+Para pipelines por períodos, declara el intervalo y usa `data_interval_start` / `data_interval_end`: el período queda escrito en el DAG y no depende de la versión.
+>>> python
+schedule=CronTriggerTimetable("0 2 * * *", timezone="UTC", interval=timedelta(days=1))
+# en la tarea:
+# WHERE fecha >= '{{ data_interval_start | ds }}' AND fecha < '{{ data_interval_end | ds }}'
+```
+
 ## catchup y backfill
 
 Si el DAG tiene `start_date=2024-01-01`, `schedule="@daily"` y lo activas el 2024-03-01:

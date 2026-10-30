@@ -107,6 +107,41 @@ Usar `{{ ds }}` en lugar de "hoy" hace que cada ejecución procese **su** period
 `{{ ds }}` siempre llega como **string** (`"2024-03-15"`), no como fecha. Si necesitas operar con ella en Python, conviértela: `date.fromisoformat(ds)`.
 :::
 
+```recorrido
+titulo: Una plantilla renderizada en tres ejecuciones distintas
+estacion tpl: La plantilla | icono=codigo
+estacion ctx: El contexto | icono=base
+estacion render: Renderizar | icono=transformar
+estacion reproc: Reprocesar | icono=reloj
+estacion res: Idempotente | icono=check
+paso tpl: El texto con {{ }}
+En el archivo del DAG, el comando tiene marcadores. Airflow **no** los reemplaza al leer el archivo, sino justo antes de ejecutar cada tarea.
+>>> python
+bash_command="echo descargando ventas del {{ ds }} en /lake/bronze/ventas/{{ ds_nodash }}.json"
+paso ctx: Cada ejecución trae su propio contexto
+La ejecución del 15 de marzo conoce su fecha lógica y de ahí salen todas las variables.
+>>> tabla
+variable,valor
+ds,2024-03-15
+ds_nodash,20240315
+macros.ds_add(ds; -7),2024-03-08
+paso render: El comando que realmente se ejecuta
+Con `airflow tasks render plantillas descargar 2024-03-15` ves el resultado sin ejecutar nada.
+>>> log
+echo descargando ventas del 2024-03-15 en /lake/bronze/ventas/20240315.json
+paso reproc: Relanzar el 15 de marzo… el día 20
+Si esa ejecución falló y la relanzas días después, conserva **su** fecha lógica: vuelve a procesar el 15, no "hoy".
+>>> log
+[2024-03-20 09:12] relanzando ejecución del 2024-03-15
+echo descargando ventas del 2024-03-15 en /lake/bronze/ventas/20240315.json
+paso res: Por qué importa
+El mismo código, ejecutado para cualquier fecha, escribe en **el mismo lugar** para esa fecha. Es la base de la idempotencia: reprocesar un día reemplaza su archivo en lugar de duplicarlo.
+>>> texto
+2024-03-15 → /lake/bronze/ventas/20240315.json
+2024-03-16 → /lake/bronze/ventas/20240316.json
+2024-03-15 (relanzado) → /lake/bronze/ventas/20240315.json  (se pisa, no se duplica)
+```
+
 ## El contexto en funciones Python
 
 Además de plantillas, una función de `PythonOperator` puede recibir el **contexto** de ejecución. Es un diccionario con todo lo que Airflow sabe de esa ejecución: las fechas, la tarea, el DAG run y la instancia de tarea `ti` (que se usa para XCom).

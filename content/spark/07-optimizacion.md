@@ -84,6 +84,50 @@ r.write.mode("overwrite").saveAsTable("gold.ventas_por_cliente")
 
 De 90 a 2 minutos **sin agregar una sola máquina**. Es lo habitual: el código y los datos importan mucho más que el tamaño del clúster.
 
+```recorrido
+titulo: El caso real, mejora por mejora: de 90 a 2 minutos
+estacion orig: Original | icono=reloj
+estacion count: Sin count() | icono=x
+estacion fuente: Mejor fuente | icono=base
+estacion bcast: broadcast | icono=red
+estacion skew: Sin NULL | icono=check
+paso orig: 90 minutos
+El job lee 800 GB de JSON, une con clientes, agrupa y escribe. En la Spark UI aparece **dos veces**.
+>>> tabla
+paso,minutos
+original,90
+paso count: Quitar el count() "para ver que funciona"
+`count()` es una acción: dispara todo el cálculo. Después `write` lo dispara otra vez. Sin el `count()`, se calcula una sola vez.
+>>> tabla
+paso,minutos
+original,90
+sin count(),45
+paso fuente: Leer Delta particionado y filtrar antes
+JSON obliga a leer todo. La tabla silver en Delta, particionada por fecha, permite leer solo 4 columnas y el último año: de 800 GB a 35 GB.
+>>> tabla
+paso,minutos
+original,90
+sin count(),45
+silver Delta + filtro temprano,12
+paso bcast: broadcast de la tabla chica
+`clientes` pesa 40 MB: mandar una copia a cada máquina evita mover 30 GB de pedidos por la red (el plan pasa de `SortMergeJoin` a `BroadcastHashJoin`).
+>>> tabla
+paso,minutos
+original,90
+sin count(),45
+silver Delta + filtro temprano,12
+broadcast(clientes),6
+paso skew: Filtrar los NULL que causaban skew
+Una tarea tardaba 4 minutos porque `cliente_id = NULL` era el 30 % de las filas. En un inner join esas filas no sirven: filtrarlas antes elimina la rezagada. Sin agregar una sola máquina.
+>>> tabla
+paso,minutos
+original,90
+sin count(),45
+silver Delta + filtro temprano,12
+broadcast(clientes),6
+sin cliente_id NULL,2
+```
+
 ## Caché: cuándo sí y cuándo no
 
 `cache()` guarda un DataFrame en la memoria de los executors la primera vez que se calcula, y las acciones siguientes lo reutilizan en vez de recalcularlo desde el principio.

@@ -61,6 +61,41 @@ Muchísimas veces, "tiempo real" en una reunión significa "actualizado cada hor
 | **Output mode** | `append` (solo filas nuevas), `update` (filas cambiadas), `complete` (toda la tabla) |
 | **Watermark** | Cuánto tiempo esperar datos tardíos antes de cerrar una ventana de tiempo |
 
+```recorrido
+titulo: Micro-lotes y checkpoint: qué pasa si el job se cae
+estacion llegan: Llegan archivos | icono=archivo
+estacion b0: Lote 0 | icono=chispa
+estacion b1: Lote 1 | icono=chispa
+estacion caida: Se cae | icono=alerta
+estacion reinicio: Reinicio | icono=check
+paso llegan: Archivos que llegan solos
+Un sistema deja archivos JSON en una carpeta del lago a lo largo del día (ejemplo).
+>>> texto
+10:00  ventas_001.json
+10:00  ventas_002.json
+10:05  ventas_003.json
+paso b0: Lote 0: procesa lo que hay
+Spark procesa los archivos nuevos como un **micro-lote**, escribe el resultado en Delta y anota en el **checkpoint** qué archivos ya procesó.
+>>> log
+batch 0: ventas_001.json, ventas_002.json → 2.300 filas escritas
+checkpoint: procesados = {001, 002}
+paso b1: Lote 1: solo lo nuevo
+En el siguiente disparo del trigger, solo toma lo que no está en el checkpoint.
+>>> log
+batch 1: ventas_003.json → 1.150 filas escritas
+checkpoint: procesados = {001, 002, 003}
+paso caida: El job se cae a mitad del lote 2
+Llega `ventas_004.json` y el clúster se reinicia **antes** de confirmar la escritura. Delta no confirmó la transacción: no quedaron filas a medias.
+>>> log
+batch 2: ventas_004.json → ERROR (clúster reiniciado)
+checkpoint: procesados = {001, 002, 003}   ← el lote 2 no se registró
+paso reinicio: Al reiniciar, retoma exactamente ahí
+Con el **mismo** `checkpointLocation`, Spark relee el checkpoint, ve que el lote 2 no terminó y lo reprocesa. Ninguna fila se pierde y ninguna se duplica (*exactly-once* con Delta).
+>>> log
+batch 2 (reintento): ventas_004.json → 980 filas escritas
+checkpoint: procesados = {001, 002, 003, 004}
+```
+
 ## Auto Loader (Databricks)
 
 **Auto Loader** (`format("cloudFiles")`) es la forma recomendada de ingerir archivos que van llegando a un data lake: detecta archivos nuevos de manera eficiente, infiere y evoluciona el esquema y guarda los registros malformados aparte.
