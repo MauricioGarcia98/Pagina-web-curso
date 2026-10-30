@@ -710,6 +710,81 @@
     return out.filter((e) => e.modulos.length);
   }
 
+  // ritmo: lectura (duración de cada lección) + unos 3 minutos por ejercicio, a 1 hora por día
+  const MIN_POR_EJERCICIO = 3;
+  function horasEtapa(e) {
+    const min = e.modulos.reduce((s, m) => s + m.lecciones.reduce((t, l) => t + l.duracion + l.ejercicios.length * MIN_POR_EJERCICIO, 0), 0);
+    return Math.round(min / 60);
+  }
+  const semanas = (horas) => Math.max(1, Math.round(horas / 7));
+
+  // ---------------------------------------------------------------- prueba de diagnóstico
+  // Cuatro bloques en el orden de la ruta. Se recomienda empezar en la etapa del primer bloque que no se aprueba.
+  const DIAG = [
+    { etapa: 'e1', nombre: 'Terminal, archivos y Git', minimo: 2, preguntas: [
+      { q: 'En una terminal, ¿qué hace el comando <code>cd datos</code>?', o: ['Borra la carpeta <code>datos</code>', 'Entra a la carpeta <code>datos</code>', 'Crea un archivo llamado <code>datos</code>', 'Muestra el contenido de <code>datos</code>'], ok: 1 },
+      { q: '¿Qué es un archivo CSV?', o: ['Un programa que se ejecuta con doble clic', 'Una base de datos con contraseña', 'Un archivo de texto con una fila por línea y los valores separados por comas', 'Una imagen comprimida'], ok: 2 },
+      { q: 'En Git, ¿para qué sirve un <i>commit</i>?', o: ['Para guardar una "foto" de los cambios con un mensaje que explica qué cambió', 'Para borrar el historial', 'Para instalar programas', 'Para enviar un correo al equipo'], ok: 0 },
+    ] },
+    { etapa: 'e2', nombre: 'SQL', minimo: 3, preguntas: [
+      { q: '¿Qué devuelve <code>SELECT nombre FROM clientes WHERE pais = \'Chile\'</code>?', o: ['Todas las columnas de todos los clientes', 'Cuántos clientes hay en Chile', 'Los nombres de los clientes cuyo país es Chile', 'Un error: falta <code>ORDER BY</code>'], ok: 2 },
+      { q: 'Quieres la cantidad de pedidos de cada canal. ¿Qué consulta usas?', o: ['<code>SELECT canal, COUNT(*) FROM pedidos GROUP BY canal</code>', '<code>SELECT COUNT(canal) FROM pedidos</code>', '<code>SELECT canal FROM pedidos ORDER BY canal</code>', '<code>SELECT DISTINCT canal FROM pedidos</code>'], ok: 0 },
+      { q: 'Algunos clientes no tienen teléfono (está en <code>NULL</code>). ¿Qué pasa con <code>WHERE telefono = NULL</code>?', o: ['Devuelve los clientes sin teléfono', 'No devuelve ninguna fila: hay que escribir <code>IS NULL</code>', 'Devuelve todos los clientes', 'Da un error de sintaxis'], ok: 1 },
+      { q: '<code>clientes LEFT JOIN pedidos</code> devuelve…', o: ['Solo los clientes que tienen pedidos', 'Solo los pedidos sin cliente', 'Todos los clientes, tengan o no pedidos', 'Una fila por cliente, sin repetir'], ok: 2 },
+    ] },
+    { etapa: 'e3', nombre: 'Python', minimo: 2, preguntas: [
+      { q: '¿Qué resultado da <code>[x * 2 for x in [1, 2, 3] if x > 1]</code>?', o: ['<code>[2, 4, 6]</code>', '<code>[4, 6]</code>', '<code>[1, 2, 3]</code>', '<code>[2, 3]</code>'], ok: 1 },
+      { q: '¿Qué pasa al ejecutar <code>int("12.5")</code>?', o: ['Devuelve <code>12</code>', 'Devuelve <code>13</code>', 'Devuelve <code>12.5</code>', 'Lanza un <code>ValueError</code>'], ok: 3 },
+      { q: 'Con <code>d = {"a": 1}</code>, ¿qué devuelve <code>d.get("b", 0)</code>?', o: ['<code>0</code>', '<code>1</code>', '<code>None</code>', 'Lanza un <code>KeyError</code>'], ok: 0 },
+    ] },
+    { etapa: 'e4', nombre: 'Spark, dbt y Airflow', minimo: 2, preguntas: [
+      { q: 'En Spark, escribes <code>df2 = df.filter(df.monto > 100)</code> y nada más. ¿Qué pasó?', o: ['Se filtraron todas las filas en el clúster', 'Nada todavía: es una transformación y se ejecuta cuando pidas un resultado (una acción)', 'Se borraron las filas con monto menor a 100', 'Se guardó una tabla nueva'], ok: 1 },
+      { q: 'En un modelo de dbt, ¿para qué sirve <code>{{ ref(\'stg_pedidos\') }}</code>?', o: ['Para leer un archivo CSV', 'Para crear un usuario en la base', 'Para nombrar otro modelo: dbt pone el nombre real de la tabla y sabe que debe construirlo antes', 'Para ejecutar un test'], ok: 2 },
+      { q: 'En Airflow, ¿qué es un DAG?', o: ['Un tipo de base de datos', 'Un conjunto de tareas con sus dependencias, que se ejecutan en orden y según un horario', 'Un archivo de configuración de Spark', 'Un tablero de métricas'], ok: 1 },
+    ] },
+  ];
+  function viewDiagnostico() {
+    const resp = {};
+    const total = DIAG.reduce((s, b) => s + b.preguntas.length, 0);
+    let n = 0;
+    main.innerHTML = `<div class="container prose">
+      <div class="crumbs not-prose"><a href="#/">Inicio</a><span>/</span><a href="#/ruta">Ruta</a><span>/</span><span>Diagnóstico</span></div>
+      <h1>🧭 ¿Por dónde empiezo?</h1>
+      <p>Si ya sabes algo de SQL, Python o de las herramientas de datos, esta prueba de <b>${total} preguntas</b> (unos 5 minutos) te dice en qué etapa conviene empezar. Si no sabes la respuesta, elige <b>"No lo sé"</b>: adivinar solo hace que el resultado te mande a un lugar donde te vas a trabar.</p>
+      ${Store.data.diagnostico ? `<div class="callout"><b>Ya hiciste el diagnóstico</b> el ${new Date(Store.data.diagnostico.fecha).toLocaleDateString('es')}: te recomendó empezar en <b>${esc((ETAPAS.find((e) => e.id === Store.data.diagnostico.etapa) || {}).titulo || '')}</b>. Puedes repetirlo cuando quieras.</div>` : ''}
+      <form id="diag" class="not-prose">${DIAG.map((b, bi) => `<h2 class="etapa-title">Bloque ${bi + 1} · ${esc(b.nombre)}</h2>` + b.preguntas.map((p, pi) => { n++; const k = `${bi}-${pi}`; return `<div class="card" style="padding:14px 18px;margin:10px 0"><p style="margin:0 0 6px"><b>${n}.</b> ${p.q}</p><div class="quiz-opts">${[...p.o, 'No lo sé'].map((o, oi) => `<label class="quiz-opt"><input type="radio" name="d${k}" value="${oi}"><span>${o}</span></label>`).join('')}</div></div>`; }).join('')).join('')}
+      <p><button class="btn btn-primary btn-lg" type="submit">Ver mi resultado →</button></p></form>
+      <div id="diagRes"></div>
+    </div>`;
+    $('#diag').addEventListener('change', (e) => { if (e.target.name) resp[e.target.name.slice(1)] = Number(e.target.value); });
+    $('#diag').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const faltan = total - Object.keys(resp).length;
+      if (faltan) { toast(`Te ${faltan === 1 ? 'falta 1 pregunta' : `faltan ${faltan} preguntas`} (puedes elegir "No lo sé")`); return; }
+      const puntajes = DIAG.map((b, bi) => b.preguntas.filter((p, pi) => resp[`${bi}-${pi}`] === p.ok).length);
+      // se marca cada opción para que se vea qué estuvo bien
+      DIAG.forEach((b, bi) => b.preguntas.forEach((p, pi) => $$(`input[name="d${bi}-${pi}"]`).forEach((inp) => {
+        const lab = inp.closest('.quiz-opt'); const v = Number(inp.value);
+        if (v === p.ok) lab.classList.add('right'); else if (inp.checked) lab.classList.add('wrong');
+        inp.disabled = true;
+      })));
+      const fallo = DIAG.findIndex((b, bi) => puntajes[bi] < b.minimo);
+      const etapaId = fallo === -1 ? 'e5' : DIAG[fallo].etapa;
+      Store.data.diagnostico = { fecha: Date.now(), etapa: etapaId, puntajes };
+      Store.save();
+      const etapa = etapasConModulos().find((x) => x.id === etapaId);
+      const primerMod = etapa.modulos[0];
+      const primeraLec = primerMod.lecciones.find((l) => !Store.lessonDone(l)) || primerMod.lecciones[0];
+      const saltadas = etapasConModulos().filter((x) => ETAPAS.findIndex((y) => y.id === x.id) < ETAPAS.findIndex((y) => y.id === etapaId));
+      $('#diagRes').innerHTML = `<h2>Tu resultado</h2>
+        <table><thead><tr><th>Bloque</th><th>Correctas</th><th>Para aprobar</th><th></th></tr></thead><tbody>${DIAG.map((b, bi) => `<tr><td>${esc(b.nombre)}</td><td>${puntajes[bi]} de ${b.preguntas.length}</td><td>${b.minimo}</td><td>${puntajes[bi] >= b.minimo ? '✅' : '📚'}</td></tr>`).join('')}</tbody></table>
+        <div class="callout"><p style="margin-top:0"><b>Te recomendamos empezar en: ${esc(etapa.titulo)}</b></p><p>${esc(etapa.desc)}</p>
+        <p class="not-prose"><a class="btn btn-primary" href="#/l/${primeraLec.id}">Empezar: ${esc(primeraLec.titulo)} →</a> <a class="btn" href="#/ruta">Ver la ruta</a></p></div>
+        ${saltadas.length ? `<p>Las etapas anteriores las puedes saltear. Si quieres confirmarlo, rinde el <b>examen de cada módulo</b> sin hacer las lecciones: si lo apruebas, ese módulo ya lo dominas.</p><ul>${saltadas.map((x) => `<li>${esc(x.titulo)}: ${x.modulos.map((m) => `<a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a>`).join(', ')}</li>`).join('')}</ul>` : '<p>Empieza por el principio: el curso está pensado justamente para eso, y cada palabra nueva se explica cuando aparece.</p>'}`;
+      $('#diagRes').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
   // ---------------------------------------------------------------- sidebar
   function renderSidebar(route) {
     const sb = $('#sidebar');
@@ -717,6 +792,7 @@
     const link = (href, ico, text, active, meta = '') => `<a class="side-link ${active ? 'active' : ''}" href="${href}"><span class="ico">${ico}</span><span>${text}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</a>`;
     let html = link('#/', '🏠', 'Inicio', route.name === 'home');
     html += link('#/ruta', '🧭', 'Ruta de aprendizaje', route.name === 'ruta');
+    html += link('#/diagnostico', '🎯', '¿Por dónde empiezo?', route.name === 'diagnostico');
     for (const etapa of etapasConModulos()) {
     html += `<div class="side-section" title="${esc(etapa.desc)}">${esc(etapa.titulo)}</div>`;
     for (const m of etapa.modulos) {
@@ -776,6 +852,14 @@
   const main = $('#main');
   const totalEx = ALL_EX.length;
 
+  // aviso en la portada: tarjetas vencidas o, si avanzaste y hace una semana que no repasas, el repaso semanal
+  function avisoRepaso(tp) {
+    const c = Object.values(Store.data.cards || {}), hoy = c.filter((t) => t.due <= Date.now()).length;
+    const dias = Store.data.ultimoRepaso ? Math.floor((Date.now() - Store.data.ultimoRepaso) / 86400000) : null;
+    if (c.length && hoy) return `<div class="callout"><b>🃏 Tienes ${hoy} ${hoy === 1 ? 'tarjeta' : 'tarjetas'} para repasar hoy.</b> Son unos minutos y es lo que hace que lo aprendido no se olvide. <a href="#/repaso">Repasar ahora →</a></div>`;
+    if (tp.done >= 3 && (dias === null || dias >= 7)) return `<div class="callout"><b>🗓 Repaso semanal.</b> ${dias === null ? 'Todavía no usaste las tarjetas de repaso.' : `Hace ${dias} días que no repasas.`} Diez minutos de tarjetas fijan lo que aprendiste esta semana. <a href="#/repaso">Empezar el repaso →</a></div>`;
+    return '';
+  }
   function viewHome() {
     const tp = totalProgress();
     const nextLesson = LESSONS.find((l) => !Store.lessonDone(l)) || LESSONS[0];
@@ -789,6 +873,7 @@
         <div class="row">
           <a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">${started ? 'Continuar donde lo dejé →' : 'Empezar desde cero →'}</a>
           <a class="btn btn-lg" href="#/ruta">Ver la ruta completa</a>
+          ${started ? '' : '<a class="btn btn-lg" href="#/diagnostico">🎯 Ya sé algo: ¿por dónde empiezo?</a>'}
           <a class="btn btn-lg btn-ghost" href="#/lab/sql">🧪 Ir al laboratorio SQL</a>
         </div>
         <div class="stats">
@@ -799,6 +884,7 @@
           <div class="stat"><b>${tp.pct}%</b><span>tu avance</span></div>
         </div>
       </section>
+      ${avisoRepaso(tp)}
       <h2 class="section-title">Cómo funciona</h2>
       <div class="how">
         <div class="card"><h4>📚 1. Lee la lección</h4><p>Explicaciones en lenguaje simple, con analogías y ejemplos. Cada ejemplo tiene un botón <b>▶ Probar</b>.</p></div>
@@ -828,9 +914,12 @@
   function viewRuta() {
     main.innerHTML = `<div class="container prose">
       <h1>🧭 Ruta de aprendizaje</h1>
-      <p>Este es el camino recomendado si empiezas de cero, organizado en etapas. Cada paso se apoya en el anterior. Dedicando <b>1 hora al día</b>, las etapas 1 a 4 llevan unos 3 a 4 meses y el recorrido completo, de 8 a 10. No hay prisa: lo importante es <b>practicar</b>.</p>
+      ${(() => { const E = etapasConModulos(), hs = (ids) => E.filter((e) => ids.includes(e.id)).reduce((s, e) => s + horasEtapa(e), 0); const h14 = hs(['e1', 'e2', 'e3', 'e4']), h18 = hs(['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8']);
+        return `<p>Este es el camino recomendado si empiezas de cero, organizado en etapas. Cada paso se apoya en el anterior. Dedicando <b>1 hora al día</b>, las etapas 1 a 4 llevan unas <b>${semanas(h14)} semanas</b> (unos ${Math.round(semanas(h14) / 4.3)} meses) y las etapas 1 a 8, unas <b>${semanas(h18)} semanas</b>. Las cuentas suman el tiempo de lectura de cada lección y unos ${MIN_POR_EJERCICIO} minutos por ejercicio: tómalas como una guía, no como una meta. No hay prisa: lo importante es <b>practicar</b>.</p>`; })()}
+      <div class="callout"><p style="margin-top:0"><b>¿Ya sabes algo de SQL, Python o Spark?</b> ${Store.data.diagnostico ? `Tu diagnóstico recomendó empezar en <b>${esc((ETAPAS.find((e) => e.id === Store.data.diagnostico.etapa) || {}).titulo || '')}</b>.` : 'Haz la prueba de diagnóstico: 13 preguntas, unos 5 minutos, y te dice en qué etapa conviene empezar.'}</p><p class="not-prose"><a class="btn btn-sm" href="#/diagnostico">${Store.data.diagnostico ? 'Repetir el diagnóstico' : 'Hacer el diagnóstico →'}</a></p></div>
+      <div class="callout"><p style="margin-top:0"><b>Repaso semanal.</b> Una vez por semana, dedica 10 minutos a las <a href="#/repaso">tarjetas de repaso</a> y vuelve a resolver, sin mirar, dos ejercicios de la semana anterior. Lo que no se repasa se olvida en pocas semanas; con repasos cortos y espaciados queda.</p></div>
       <div class="path not-prose">${C.modulos.map((m, i) => `${i ? '<span class="arr">→</span>' : ''}<a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a>`).join('')}</div>
-      ${(() => { let i = 0; return etapasConModulos().map((e) => `<h2 class="etapa-title">${esc(e.titulo)}</h2>${e.desc ? `<p><i>${esc(e.desc)}</i></p>` : ''}` + e.modulos.map((m) => {
+      ${(() => { let i = 0; return etapasConModulos().map((e) => { const hr = horasEtapa(e); return `<h2 class="etapa-title">${esc(e.titulo)}</h2>${e.desc ? `<p><i>${esc(e.desc)}</i></p>` : ''}<p class="muted small">⏱ Unas ${hr} horas de lectura y práctica: <b>${semanas(hr)} ${semanas(hr) === 1 ? 'semana' : 'semanas'}</b> a 1 hora por día.${Store.data.diagnostico && Store.data.diagnostico.etapa === e.id ? ' · 📍 <b>Tu diagnóstico recomienda empezar aquí</b>' : ''}</p>` + e.modulos.map((m) => {
         const p = moduleProgress(m); i++;
         const levels = [...new Set(m.lecciones.map((l) => l.nivel))];
         return `<h3>Paso ${i}: ${m.icono} ${esc(m.titulo)} <span class="badge">${p.done}/${p.total}</span></h3>
@@ -838,7 +927,7 @@
         ${m.objetivos ? `<p><b>Al terminar podrás:</b></p><ul>${m.objetivos.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}
         <p class="muted small">Niveles: ${levels.map(esc).join(' → ')} · ${m.lecciones.reduce((s, l) => s + l.duracion, 0)} min aprox.</p>
         <p><a class="btn btn-sm" href="#/m/${m.id}">Ver lecciones →</a></p>`;
-      }).join('')).join(''); })()}
+      }).join(''); }).join(''); })()}
       <h2>Consejos para no abandonar</h2>
       <ul><li>Escribe el código tú mismo, no lo copies: la memoria muscular importa.</li><li>Si un ejercicio te frustra, pide una pista, descansa 5 minutos y vuelve.</li><li>Repasa: vuelve a resolver ejercicios viejos sin mirar la solución.</li><li>Usa los laboratorios para experimentar libremente: no puedes romper nada.</li><li>Cuando termines, arma un proyecto propio y súbelo a GitHub para tu portafolio.</li></ul>
     </div>`;
@@ -1522,6 +1611,7 @@
     const calificar = (r) => {
       const c = tarjetas(), t = cfg.clave(actual), ahora = Date.now();
       const prev = c[t] || { b: 0 };
+      Store.data.ultimoRepaso = ahora;
       if (r === 1) { c[t] = { b: 1, due: ahora }; mazo.push(actual); }
       else if (r === 2) { const b = Math.max(1, prev.b); c[t] = { b, due: ahora + DIA }; hechas++; }
       else { const b = Math.min(5, prev.b + 1); c[t] = { b, due: ahora + INTERVALO_CAJA[b] * DIA }; hechas++; }
@@ -2191,6 +2281,7 @@
     if (parts[0] === 'simulacro' && parts[1]) return { name: 'simulacro', cert: parts[1] };
     if (parts[0] === 'datos' && parts[1]) return { name: 'datos', id: parts[1] };
     if (parts[0] === 'modelado') return { name: 'modelado' };
+    if (parts[0] === 'diagnostico') return { name: 'diagnostico' };
     if (parts[0] === 'notas') return { name: 'notas', params };
     if (parts[0] === 'generador') return { name: 'generador', params };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
@@ -2202,9 +2293,10 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
+    else if (r.name === 'diagnostico') viewDiagnostico();
     else if (r.name === 'module') viewModule(r.module);
     else if (r.name === 'lesson') viewLesson(r.lesson);
     else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
