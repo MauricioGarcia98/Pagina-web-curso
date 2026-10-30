@@ -215,7 +215,7 @@ estacion orig: El valor original | icono=archivo
 estacion trim: TRIM | icono=transformar
 estacion sub: SUBSTR | icono=transformar
 estacion up: UPPER | icono=transformar
-estacion res: || '.' | icono=check
+estacion res: Concatenar | icono=check
 paso orig: Nombres "sucios"
 En `clientes_crudo` algunos nombres tienen espacios de más y mayúsculas mezcladas. Los corchetes muestran dónde empiezan y terminan.
 >>> tabla

@@ -138,7 +138,7 @@ grep "Chile" datos/clientes.csv > clientes_chile.csv
 titulo: Una tubería: cada comando le pasa su salida al siguiente
 estacion cat: cat | icono=archivo
 estacion grep: grep | icono=lupa
-estacion pipe: | wc -l | icono=flujo
+estacion pipe: Tubería | icono=flujo
 estacion redir: > archivo | icono=capas
 estacion ls: Verificar | icono=check
 paso cat: cat muestra el archivo entero

@@ -123,6 +123,7 @@ function parseRecorrido(body, file) {
     if (!paso && (m = raw.match(/^titulo:\s*(.*)$/))) { spec.titulo = m[1].trim(); continue; }
     if ((m = raw.match(/^estacion\s+([\w-]+)\s*:\s*(.*)$/))) {
       const [label, ...rest] = m[2].split('|');
+      if (!label.trim() || rest.some((x) => x.trim() && !x.includes('='))) throw new Error(`Recorrido en ${file}: la etiqueta de la estación "${m[1]}" está vacía o contiene "|" (es el separador de opciones)`);
       const o = Object.fromEntries(rest.map((x) => x.trim()).filter(Boolean).map((x) => { const i = x.indexOf('='); return [x.slice(0, i).trim(), x.slice(i + 1).trim()]; }));
       if (o.icono && ICONOS_VALIDOS && !ICONOS_VALIDOS.has(o.icono)) throw new Error(`Recorrido en ${file}: ícono desconocido "${o.icono}"`);
       spec.estaciones.push({ id: m[1], label: label.trim(), icono: o.icono || null });
