@@ -247,3 +247,39 @@ ejemplo: Un script de pandas procesa los pedidos de un mes en una laptop; con 5 
 para: Elegir herramientas que aguanten el crecimiento sin rehacer todo.
 cuidado: No hace falta Spark para todo: muchos datos "grandes" entran en una sola máquina con DuckDB. Escalar tiene costo.
 ver: Spark, Cluster
+
+## Job
+alias: jobs, trabajo programado
+nino: Un job es **una tarea que se deja programada para que la haga la computadora sola**, como el lavarropas con temporizador: lo dejas listo y a la hora indicada arranca, hace todo el ciclo y termina.
+que: Una ejecución de trabajo que corre **sin una persona delante**: un script, un notebook, un pipeline o una consulta que se lanza a una hora, cuando llega un archivo o a pedido, y termina con un resultado (éxito o falla) y un registro de lo que hizo. Cada plataforma tiene los suyos: Lakeflow Jobs en Databricks, jobs de Glue, jobs de Spark, un DAG de Airflow que dispara tareas.
+ejemplo: El job `ventas_diarias` corre todas las noches a las 3:00: lee los pedidos del día, actualiza la tabla silver y avisa por correo si falla.
+para: Que el trabajo con datos ocurra solo, a horario y de forma repetible.
+cuidado: Un job tiene que poder **ejecutarse dos veces sin duplicar** datos (idempotencia) y avisar cuando falla: un job que falla en silencio es peor que no tenerlo.
+ver: Pipeline, Orquestación, Lakeflow Jobs, Idempotencia
+
+## UTC
+alias: zona horaria, huso horario, tiempo universal coordinado
+nino: Es **la hora de referencia de todo el mundo**. Si cada país usa su reloj, para coordinarse se ponen de acuerdo en un reloj común, y cada uno sabe cuántas horas suma o resta.
+que: *Coordinated Universal Time*, la hora estándar sin horario de verano a partir de la cual se definen las zonas horarias (Lima es UTC−5, Madrid UTC+1 o UTC+2 en verano). En datos, la práctica recomendada es **guardar las fechas y horas en UTC** y convertir a la hora local solo al mostrarlas.
+ejemplo: Un pago hecho el 31 de diciembre a las 23:30 en Lima (UTC−5) se guarda como `2025-01-01 04:30:00` UTC: en UTC ya es el 1 de enero, y el reporte diario tiene que decidir en qué zona horaria se corta el día.
+para: Comparar y unir eventos de sistemas y países distintos sin errores de horas.
+cuidado: Las fechas **sin zona horaria** son ambiguas; y el horario de verano hace que algunos días tengan 23 o 25 horas. Define siempre en qué zona horaria se cortan los días de un reporte.
+ver: Timestamp, Logical date
+
+## UTF-8
+alias: encoding, codificación, codificación de caracteres, unicode
+nino: Las computadoras solo guardan números. Una **codificación** es el diccionario que dice qué número es cada letra; UTF-8 es el diccionario que tiene **todas** las letras de todos los idiomas, incluidas la ñ, las tildes y los emojis.
+que: La codificación de caracteres más usada: representa todos los caracteres de Unicode con 1 a 4 bytes y es compatible con ASCII. Otras codificaciones viejas (Latin-1, Windows-1252) solo cubren algunos idiomas. Si un archivo se escribe en una codificación y se lee en otra, aparecen caracteres rotos (`MÃ©xico` en vez de `México`).
+ejemplo: `open("clientes.csv", encoding="utf-8")` en Python; en Spark, `.option("encoding", "UTF-8")`.
+para: Que los textos con tildes, ñ y otros alfabetos lleguen intactos de un sistema a otro.
+cuidado: Indica siempre la codificación al leer y escribir archivos: el valor por defecto depende del sistema operativo. Excel en Windows suele guardar CSV en otra codificación.
+ver: CSV, Tipo de dato
+
+## Script
+alias: scripts, guion
+nino: Un script es **una receta escrita para la computadora**: una lista de instrucciones en orden que ejecuta de principio a fin sin que tú tengas que escribirlas cada vez.
+que: Un archivo de código (Python, Bash, SQL…) que se ejecuta de una vez para automatizar una tarea: descargar un archivo, limpiar datos, crear recursos en la nube. A diferencia de un notebook, se ejecuta completo y sin intervención.
+ejemplo: `python extraer.py --fecha 2024-12-31` descarga los pedidos de ese día y los guarda en el lago.
+para: Automatizar tareas repetitivas y poder ejecutarlas desde un job o un orquestador.
+cuidado: Un script de producción recibe sus parámetros (fechas, rutas) en lugar de tenerlos escritos adentro, no guarda contraseñas en el código y registra lo que hace con logs.
+ver: Job, Log, Variable de entorno

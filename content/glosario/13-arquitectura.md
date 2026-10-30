@@ -195,3 +195,12 @@ que: La capacidad de saber **qué está pasando** en los pipelines y los datos: 
 ejemplo: Alerta: "`silver.pedidos` recibió 1.200 filas hoy (promedio de los últimos 28 días: 48.000)": se rompió la ingesta aunque el pipeline terminó en verde.
 para: Detectar problemas antes que los usuarios.
 ver: Calidad de datos, SLA, Linaje
+
+## Offset
+alias: offsets, desplazamiento, posición en el topic
+nino: Es **el número de página** en un cuaderno donde se anotan mensajes uno detrás de otro: sabiendo el número, sabes qué mensajes ya leíste y desde dónde seguir.
+que: En Kafka (y servicios parecidos como Event Hubs o Kinesis, con el nombre de *sequence number*), el número de posición de cada mensaje dentro de una partición. Cada consumidor guarda hasta qué offset leyó; Spark lo guarda en su checkpoint.
+ejemplo: Un consumidor que procesó hasta el offset 1.250 de la partición 0 retoma en el 1.251 después de reiniciarse.
+para: Reanudar la lectura de un stream sin perder ni repetir mensajes, y reprocesar desde una posición.
+cuidado: Los mensajes se borran pasada la retención del topic: si un consumidor está caído más tiempo, los offsets que necesitaba ya no existen.
+ver: Kafka, Checkpoint, Streaming

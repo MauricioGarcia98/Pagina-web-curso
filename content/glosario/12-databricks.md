@@ -236,3 +236,12 @@ ejemplo: Tres variantes ("ventas del local en marzo", "facturación del canal ti
 para: Medir la calidad del agente y detectar regresiones después de cada cambio.
 cuidado: Usa varias formas de cada pregunta y un SQL Answer con exactamente las columnas esperadas.
 ver: Genie Agent
+
+## Databricks Runtime
+alias: runtime, dbr, databricks runtime ml
+nino: Es **el paquete de software que viene instalado en las máquinas de Databricks**: una versión de Spark con todas sus herramientas, probadas para que funcionen juntas.
+que: La imagen de software de los clústeres de Databricks: una versión de Apache Spark más Delta Lake, Photon, bibliotecas de Python y conectores, con un número de versión (por ejemplo, 15.4 LTS). Las versiones **LTS** tienen soporte largo; la variante **ML** agrega bibliotecas de machine learning. El cómputo serverless usa una versión que administra Databricks.
+ejemplo: Un job de producción fijado en una versión LTS para que una actualización no cambie el comportamiento sin aviso.
+para: Saber qué versión de Spark y de las bibliotecas corre tu código.
+cuidado: Al cambiar de versión mayor (por ejemplo, a una basada en Spark 4) pueden cambiar comportamientos, como el modo ANSI: prueba los jobs antes de migrarlos.
+ver: Databricks, Spark, Cluster
