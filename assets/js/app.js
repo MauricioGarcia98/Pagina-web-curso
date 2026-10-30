@@ -286,7 +286,7 @@
 
   async function ensureSql(out) {
     if (SQL._bytes) return true;
-    loadingInto(out, 'Cargando la base de datos SQLite con más de 200.000 filas (solo la primera vez)…');
+    loadingInto(out, 'Cargando la base de datos SQLite con más de 500.000 filas (solo la primera vez)…');
     try { await SQL.init(); return true; } catch (e) { out.innerHTML = `<pre class="console"><span class="err">${esc(e.message)}</span></pre>`; return false; }
   }
   const pyLoadingMsg = () => (PY.status === 'ready' ? 'Ejecutando…' : 'Cargando Python en tu navegador (≈10 MB, solo la primera vez; puede tardar 10-30 s)…');
@@ -688,6 +688,28 @@
     box.append(h('<p class="muted small">Vistas para dbt: stg_clientes, stg_productos, stg_pedidos, stg_detalle_pedidos (incluye la columna importe), stg_pagos.</p>'));
   }
 
+  // ---------------------------------------------------------------- etapas de la ruta
+  // Los módulos se agrupan en etapas para que quien empieza de cero sepa qué viene primero y qué es opcional.
+  const ETAPAS = [
+    { id: 'e1', titulo: 'Etapa 1 · Empieza aquí', desc: 'Qué es un dato, qué hace un ingeniero de datos, la terminal y Git. Si no sabes nada, arranca por acá.', mods: ['fundamentos'] },
+    { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, con casos de negocio reales.', mods: ['sql', 'casos', 'analisis', 'modelado'] },
+    { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, y Spark para cuando los datos no entran en una sola computadora.', mods: ['python', 'spark', 'pyspark'] },
+    { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
+    { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie'] },
+    { id: 'e6', titulo: 'Etapa 6 · Diseñar y automatizar', desc: 'Cómo se diseña una plataforma de datos y cómo se crea la infraestructura con código.', mods: ['arquitectura', 'terraform'] },
+    { id: 'e7', titulo: 'Etapa 7 · Pipelines reales y operación', desc: 'Juntar todo en pipelines de punta a punta, resolver incidentes, trabajar en tu computadora y en la nube real.', mods: ['pipelines', 'incidentes', 'local', 'laboratorios'] },
+    { id: 'e8', titulo: 'Etapa 8 · Tu portafolio y tu primer trabajo', desc: 'Proyectos para mostrar, el proyecto final y cómo prepararte para las entrevistas.', mods: ['portafolio', 'proyecto'] },
+    { id: 'e9', titulo: 'Opcional · Certificaciones', desc: 'Preparación para las certificaciones de Databricks, Azure, AWS y Google Cloud. Mejor después de la etapa 5.', mods: ['cert-databricks', 'cert-azure', 'cert-aws', 'cert-gcp'] },
+  ];
+  function etapasConModulos() {
+    const usados = new Set();
+    const out = ETAPAS.map((e) => ({ ...e, modulos: e.mods.map((id) => C.modulos.find((m) => m.id === id)).filter(Boolean) }));
+    out.forEach((e) => e.modulos.forEach((m) => usados.add(m.id)));
+    const resto = C.modulos.filter((m) => !usados.has(m.id));
+    if (resto.length) out.push({ id: 'otros', titulo: 'Más módulos', desc: '', modulos: resto });
+    return out.filter((e) => e.modulos.length);
+  }
+
   // ---------------------------------------------------------------- sidebar
   function renderSidebar(route) {
     const sb = $('#sidebar');
@@ -695,8 +717,9 @@
     const link = (href, ico, text, active, meta = '') => `<a class="side-link ${active ? 'active' : ''}" href="${href}"><span class="ico">${ico}</span><span>${text}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</a>`;
     let html = link('#/', '🏠', 'Inicio', route.name === 'home');
     html += link('#/ruta', '🧭', 'Ruta de aprendizaje', route.name === 'ruta');
-    html += '<div class="side-section">Módulos</div>';
-    for (const m of C.modulos) {
+    for (const etapa of etapasConModulos()) {
+    html += `<div class="side-section" title="${esc(etapa.desc)}">${esc(etapa.titulo)}</div>`;
+    for (const m of etapa.modulos) {
       const p = moduleProgress(m);
       const open = m.id === cur;
       html += `<div class="side-module ${open ? 'open' : ''}" data-mod="${m.id}">
@@ -709,6 +732,7 @@
         html += `<a href="#/l/${l.id}" data-lesson="${l.id}" class="${route.lesson === l ? 'active' : ''} ${d ? 'done' : ''}"><span class="dot">${d ? '✓' : '○'}</span><span>${esc(l.titulo)}</span></a>`;
       }
       html += '</div></div>';
+    }
     }
     html += '<div class="side-section">Practica libre</div>';
     html += link('#/lab/terminal', '⌨️', 'Laboratorio de terminal', route.name === 'lab-terminal');
@@ -760,7 +784,8 @@
       <section class="hero">
         <span class="badge b-type">Gratis · En español · Desde cero</span>
         <h1>De no saber nada a <span class="grad">ingeniero/a de datos</span>.</h1>
-        <p class="lead">Un curso práctico y completo: SQL de básico a súper avanzado, Python, Spark, PySpark, Airflow, dbt, Databricks, Azure, AWS y Google Cloud, con <b>8 empresas</b> y sus casos de negocio. Todo se practica <b>aquí mismo, en tu navegador</b>: un editor profesional, una terminal Linux con las CLIs de la nube y una base de datos con más de 200.000 filas. Sin instalar nada.</p>
+        <p class="lead">Un <b>ingeniero o ingeniera de datos</b> construye los caminos por los que viajan los datos de una empresa: desde una compra en una app hasta el tablero que mira la gerencia o el modelo de IA que recomienda productos. Este curso te enseña ese oficio <b>desde cero</b>, en español y gratis, practicando <b>aquí mismo, en tu navegador</b>: no tienes que instalar nada.</p>
+        <p class="lead small-lead">Vas a aprender, en orden: SQL (el idioma para consultar datos), Python (para automatizar), Spark (para datos enormes), dbt y Airflow (para organizar y programar el trabajo) y las plataformas donde corre todo en las empresas: Databricks, Azure, AWS y Google Cloud. Cada palabra nueva se explica cuando aparece.</p>
         <div class="row">
           <a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">${started ? 'Continuar donde lo dejé →' : 'Empezar desde cero →'}</a>
           <a class="btn btn-lg" href="#/ruta">Ver la ruta completa</a>
@@ -770,7 +795,7 @@
           <div class="stat"><b>${C.modulos.length}</b><span>módulos</span></div>
           <div class="stat"><b>${LESSONS.length}</b><span>lecciones</span></div>
           <div class="stat"><b>${totalEx}</b><span>ejercicios corregidos al instante</span></div>
-          <div class="stat"><b>+200.000</b><span>filas de 8 empresas para practicar</span></div>
+          <div class="stat"><b>+500.000</b><span>filas de 13 empresas ficticias para practicar</span></div>
           <div class="stat"><b>${tp.pct}%</b><span>tu avance</span></div>
         </div>
       </section>
@@ -780,20 +805,21 @@
         <div class="card"><h4>⌨️ 2. Resuelve ejercicios</h4><p>Escribes código real (SQL, Python, PySpark, dbt, DAGs de Airflow, comandos CLI) y el sitio lo corrige al instante.</p></div>
         <div class="card"><h4>💡 3. Usa pistas</h4><p>Si te trabas, pide una pista o mira la solución explicada. Equivocarse es parte de aprender.</p></div>
         <div class="card"><h4>🖥️ Terminal real</h4><p>Una terminal Linux simulada con <code>bash</code>, <code>git</code>, Python, <code>uv</code>, <code>sqlite3</code>, <code>duckdb</code>, <code>docker</code>, <code>psql</code>, <code>dbt</code>, <code>airflow</code>, <code>terraform</code> y las CLIs <code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code> y <code>databricks</code>. Botón <b>⌨ Terminal</b> arriba, o el <a href="#/lab/terminal">laboratorio con misiones</a>.</p></div>
-        <div class="card"><h4>💼 Casos de negocio</h4><p>Un banco, una app de música, una de viajes, una clínica, un SaaS, una aerolínea, una empresa de logística y una tienda: preguntas reales para entrenar la lógica, en SQL, Python, PySpark, dbt y Airflow.</p></div>
+        <div class="card"><h4>💼 Casos de negocio</h4><p>Una tienda online, un banco, una app de música, una de viajes, una clínica, un SaaS, una aerolínea, una logística, una telco, una aseguradora, hoteles, una distribuidora de energía y una app de delivery: preguntas reales para entrenar la lógica, en SQL, Python, PySpark, dbt y Airflow.</p></div>
         <div class="card"><h4>📝 Repasa y certifícate</h4><p>Tarjetas de repaso espaciado con los ${C.glosario.length} términos del glosario, un examen por módulo y un examen final que te da el <a href="#/examenes">certificado</a>.</p></div>
         <div class="card"><h4>📈 4. Avanza de nivel</h4><p>Básico → Intermedio → Avanzado → Experto. Tu progreso se guarda en este navegador.</p></div>
       </div>
-      <h2 class="section-title">Los módulos (en el orden recomendado)</h2>
-      <div class="grid grid-3">${C.modulos.map((m, i) => {
-        const p = moduleProgress(m);
+      <h2 class="section-title">El camino, por etapas</h2>
+      <p class="muted">Cada etapa se apoya en la anterior. Si empiezas de cero, sigue el orden; las certificaciones son opcionales.</p>
+      ${(() => { let n = 0; return etapasConModulos().map((e) => `<h3 class="etapa-title">${esc(e.titulo)}</h3>${e.desc ? `<p class="muted small etapa-desc">${esc(e.desc)}</p>` : ''}<div class="grid grid-3">${e.modulos.map((m) => {
+        const p = moduleProgress(m); n++;
         return `<a class="card module-card" href="#/m/${m.id}">
-          <div class="mc-top"><span class="mc-ico" style="background:color-mix(in srgb, ${m.color} 16%, var(--surface))">${m.icono}</span><div><div class="mc-step">Paso ${i + 1}</div><h3>${esc(m.titulo)}</h3></div></div>
+          <div class="mc-top"><span class="mc-ico" style="background:color-mix(in srgb, ${m.color} 16%, var(--surface))">${m.icono}</span><div><div class="mc-step">Paso ${n}</div><h3>${esc(m.titulo)}</h3></div></div>
           <p>${esc(m.descripcion)}</p>
           <div class="row small muted"><span>${m.lecciones.length} lecciones</span><span>·</span><span>${m.lecciones.reduce((s, l) => s + l.ejercicios.length, 0)} ejercicios</span><span class="spacer"></span><span>${p.pct}%</span></div>
           <div class="bar"><i style="width:${p.pct}%;background:${m.color}"></i></div>
         </a>`;
-      }).join('')}</div>
+      }).join('')}</div>`).join(''); })()}
       <h2 class="section-title">¿Por qué estas herramientas?</h2>
       <div class="prose"><p>Un <b>ingeniero de datos</b> construye “tuberías” (pipelines) que llevan los datos desde donde nacen (apps, ventas, sensores) hasta donde se usan (reportes, modelos de IA). <b>SQL</b> es el idioma universal de los datos; <b>Python</b> automatiza todo; <b>Spark/PySpark</b> procesa volúmenes enormes repartiendo el trabajo entre muchas máquinas; <b>Databricks</b> es la plataforma donde corre Spark en la nube; <b>dbt</b> organiza las transformaciones SQL como un proyecto de software; <b>Airflow</b> programa y coordina cuándo se ejecuta cada paso; y las tres grandes nubes (<b>Azure</b>, <b>AWS</b> y <b>Google Cloud</b>) ponen el almacenamiento, el cómputo y los servicios de datos, que se controlan desde la terminal con sus CLIs (<code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code>, <code>databricks</code>).</p><p>Los conceptos se repiten en todas las nubes con otros nombres: un lago de archivos (ADLS, S3, Cloud Storage), un catálogo de tablas, SQL sin servidores (Athena, BigQuery), Spark administrado (Databricks, Glue/EMR, Dataproc), streaming (Event Hubs, Kinesis, Pub/Sub) y Airflow administrado. Aprenderlos una vez te sirve para las tres.</p></div>
     </div>`;
@@ -802,17 +828,17 @@
   function viewRuta() {
     main.innerHTML = `<div class="container prose">
       <h1>🧭 Ruta de aprendizaje</h1>
-      <p>Este es el camino recomendado si empiezas de cero. Cada paso se apoya en el anterior. Dedicando <b>1 hora al día</b>, completarás el recorrido en unos 3–4 meses. No hay prisa: lo importante es <b>practicar</b>.</p>
+      <p>Este es el camino recomendado si empiezas de cero, organizado en etapas. Cada paso se apoya en el anterior. Dedicando <b>1 hora al día</b>, las etapas 1 a 4 llevan unos 3 a 4 meses y el recorrido completo, de 8 a 10. No hay prisa: lo importante es <b>practicar</b>.</p>
       <div class="path not-prose">${C.modulos.map((m, i) => `${i ? '<span class="arr">→</span>' : ''}<a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a>`).join('')}</div>
-      ${C.modulos.map((m, i) => {
-        const p = moduleProgress(m);
+      ${(() => { let i = 0; return etapasConModulos().map((e) => `<h2 class="etapa-title">${esc(e.titulo)}</h2>${e.desc ? `<p><i>${esc(e.desc)}</i></p>` : ''}` + e.modulos.map((m) => {
+        const p = moduleProgress(m); i++;
         const levels = [...new Set(m.lecciones.map((l) => l.nivel))];
-        return `<h2>Paso ${i + 1}: ${m.icono} ${esc(m.titulo)} <span class="badge">${p.done}/${p.total}</span></h2>
+        return `<h3>Paso ${i}: ${m.icono} ${esc(m.titulo)} <span class="badge">${p.done}/${p.total}</span></h3>
         <p>${esc(m.descripcion)}</p>
         ${m.objetivos ? `<p><b>Al terminar podrás:</b></p><ul>${m.objetivos.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}
         <p class="muted small">Niveles: ${levels.map(esc).join(' → ')} · ${m.lecciones.reduce((s, l) => s + l.duracion, 0)} min aprox.</p>
         <p><a class="btn btn-sm" href="#/m/${m.id}">Ver lecciones →</a></p>`;
-      }).join('')}
+      }).join('')).join(''); })()}
       <h2>Consejos para no abandonar</h2>
       <ul><li>Escribe el código tú mismo, no lo copies: la memoria muscular importa.</li><li>Si un ejercicio te frustra, pide una pista, descansa 5 minutos y vuelve.</li><li>Repasa: vuelve a resolver ejercicios viejos sin mirar la solución.</li><li>Usa los laboratorios para experimentar libremente: no puedes romper nada.</li><li>Cuando termines, arma un proyecto propio y súbelo a GitHub para tu portafolio.</li></ul>
     </div>`;
@@ -855,6 +881,87 @@
     </div>`;
   }
 
+  // ---------------------------------------------------------------- glosario en línea
+  // La primera vez que aparece un término del glosario en una lección, queda subrayado: al pasar el mouse
+  // (o tocarlo en el celular) muestra la explicación simple. Así nadie tiene que saber la palabra de antes.
+  const GL_EXCLUIR = new Set(['dato', 'tabla', 'fila', 'columna', 'lista', 'clase', 'tarea', 'nube', 'región', 'rol', 'secreto',
+    'estado', 'plan', 'módulo', 'rama', 'imagen', 'output', 'entidad', 'vista', 'índice', 'función', 'bucle', 'alias', 'métrica', 'consola', 'editor']);
+  let glRegex = null, glPorForma = null;
+  function prepararGlosarioEnLinea() {
+    if (glRegex) return;
+    glPorForma = new Map();
+    const formas = [];
+    for (const g of C.glosario || []) {
+      for (const parte of g.termino.split(' / ')) {
+        const f = parte.replace(/\s*\(.*?\)\s*/g, '').trim();
+        if (f.length < 2 || GL_EXCLUIR.has(f.toLowerCase())) continue;
+        if (!glPorForma.has(f.toLowerCase())) { glPorForma.set(f.toLowerCase(), g); formas.push(f); }
+      }
+    }
+    formas.sort((a, b) => b.length - a.length);
+    const escR = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // las siglas cortas (SQL, ETL, DAG) solo en mayúsculas; el resto sin distinguir mayúsculas
+    const largas = formas.filter((f) => f.length > 4 || /[a-záéíóúñ]/.test(f)).map(escR);
+    const siglas = formas.filter((f) => f.length <= 4 && !/[a-záéíóúñ]/.test(f)).map(escR);
+    glRegex = { largas: largas.length ? new RegExp(`(^|[^\\p{L}\\p{N}_])(${largas.join('|')})(?![\\p{L}\\p{N}_])`, 'iu') : null,
+                siglas: siglas.length ? new RegExp(`(^|[^\\p{L}\\p{N}_])(${siglas.join('|')})(?![\\p{L}\\p{N}_])`, 'u') : null };
+  }
+  function glosarioEnLinea(root) {
+    if (!(C.glosario || []).length) return;
+    prepararGlosarioEnLinea();
+    const vistos = new Set();
+    const SALTAR = 'pre, code, a, h1, h2, h3, h4, .callout-title, figure, .recorrido, .motores, .lesson-intro, .ex, .exercise, .autoeval, button, .gl, .tab-bar';
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (!n.nodeValue.trim() || n.parentElement.closest(SALTAR)) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+    const nodos = [];
+    while (walker.nextNode()) nodos.push(walker.currentNode);
+    let marcados = 0;
+    for (const nodo of nodos) {
+      if (marcados >= 25) break;
+      let texto = nodo.nodeValue, frag = null, pos = 0, guard = 0;
+      while (guard++ < 20) {
+        const resto = texto.slice(pos);
+        const cand = [glRegex.largas, glRegex.siglas].filter(Boolean).map((re) => re.exec(resto)).filter(Boolean)
+          .sort((a, b) => a.index - b.index);
+        const m = cand.find((x) => { const g = glPorForma.get(x[2].toLowerCase()); return g && !vistos.has(g.termino); });
+        if (!m) break;
+        const g = glPorForma.get(m[2].toLowerCase());
+        vistos.add(g.termino); marcados++;
+        frag = frag || document.createDocumentFragment();
+        const ini = pos + m.index + m[1].length;
+        frag.append(texto.slice(pos, ini));
+        const span = document.createElement('span');
+        span.className = 'gl'; span.tabIndex = 0; span.dataset.term = g.termino; span.textContent = m[2];
+        frag.append(span);
+        pos = ini + m[2].length;
+        if (marcados >= 25) break;
+      }
+      if (frag) { frag.append(texto.slice(pos)); nodo.replaceWith(frag); }
+    }
+    let pop = null;
+    const cerrar = () => { if (pop) { pop.remove(); pop = null; } };
+    const abrir = (el) => {
+      cerrar();
+      const g = (C.glosario || []).find((x) => x.termino === el.dataset.term); if (!g) return;
+      pop = document.createElement('div');
+      pop.className = 'gl-pop';
+      pop.innerHTML = `<div class="gl-pop-t">📖 ${esc(g.termino)}</div>${g.nino || g.que}<a href="#/glosario?q=${encodeURIComponent(g.termino)}">Ver la ficha completa en el glosario →</a>`;
+      document.body.append(pop);
+      const r = el.getBoundingClientRect(), w = Math.min(340, window.innerWidth - 24);
+      pop.style.width = w + 'px';
+      pop.style.left = Math.max(12, Math.min(r.left + window.scrollX, window.scrollX + window.innerWidth - w - 12)) + 'px';
+      pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+      pop.addEventListener('mouseleave', cerrar);
+    };
+    for (const el of root.querySelectorAll('.gl')) {
+      el.addEventListener('mouseenter', () => abrir(el));
+      el.addEventListener('focus', () => abrir(el));
+      el.addEventListener('click', (e) => { e.stopPropagation(); pop && pop.dataset.t === el.dataset.term ? cerrar() : (abrir(el), pop && (pop.dataset.t = el.dataset.term)); });
+      el.addEventListener('mouseleave', (e) => { if (!pop || !pop.contains(e.relatedTarget)) setTimeout(() => { if (pop && !pop.matches(':hover') && !el.matches(':hover')) cerrar(); }, 150); });
+    }
+    document.addEventListener('click', (e) => { if (pop && !pop.contains(e.target)) cerrar(); });
+    window.addEventListener('hashchange', cerrar, { once: true });
+  }
+
   function viewLesson(l) {
     const m = l.modulo;
     const idx = LESSONS.indexOf(l);
@@ -876,6 +983,7 @@
       </nav>
     </div>`;
     const body = $('#lessonBody');
+    glosarioEnLinea(body);
     enhanceCode(body);
     enhanceMotores(body);
     if (window.Diagramas) window.Diagramas.dibujar(body);

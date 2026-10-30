@@ -191,7 +191,7 @@ flecha wh -> ml
 | Cuántas operaciones | Miles por segundo | Pocas, pero pesadas |
 | Cómo guarda | Por filas | Por columnas |
 
-## Nuestros datos: 8 empresas
+## Nuestros datos: 13 empresas
 
 En todo el curso usamos empresas ficticias con datos realistas. La principal es **Tienda Andina**, un e-commerce con 19 tablas: clientes, productos, categorías, pedidos, detalle de pedidos, pagos, envíos, devoluciones, reseñas, proveedores, compras, cupones, empleados, eventos web y más. Además hay **12 empresas más** para los casos de negocio: un banco, una app de música, una app de viajes, una clínica, un SaaS, una aerolínea, una empresa de logística, una telco, una aseguradora, una cadena de hoteles, una distribuidora de energía y una app de delivery. En total son 97 tablas con más de 500.000 filas. En [Bases de datos](#/datos) puedes ver cada una con su diagrama y por qué está diseñada así.
 

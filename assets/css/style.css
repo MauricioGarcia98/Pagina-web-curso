@@ -1046,3 +1046,16 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .captura figcaption { font-size: 13px; color: var(--ink); opacity: .7; margin-top: 6px; }
 .captura-marco { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 22px 18px; border: 2px dashed var(--line); border-radius: 10px; background: var(--surface); font-size: 14px; }
 .captura-marco code { font-size: 12px; opacity: .75; }
+
+/* etapas de la ruta */
+.etapa-title { margin: 28px 0 4px; font-size: 18px; }
+.etapa-desc { margin: 0 0 12px; }
+.small-lead { font-size: 16px; opacity: .85; }
+
+/* glosario en línea: términos subrayados con una explicación simple */
+.gl { border-bottom: 1.5px dotted var(--brand); cursor: help; }
+.gl:hover, .gl:focus { background: var(--brand-soft); outline: none; border-radius: 3px; }
+.gl-pop { position: absolute; z-index: 60; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 14px; font-size: 14px; line-height: 1.5; }
+.gl-pop p { margin: 6px 0; }
+.gl-pop-t { font-weight: 700; }
+.gl-pop a { display: inline-block; margin-top: 4px; font-size: 13px; }
