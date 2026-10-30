@@ -51,6 +51,40 @@ La guía del 4 de mayo de 2026 reorganizó el examen en **siete dominios con pes
 
 Fíjate en la suma de **ingesta + transformación + jobs: 59 %**. Más de la mitad del examen es construir y orquestar pipelines. Si tienes poco tiempo, ahí va la mayor parte.
 
+```recorrido
+titulo: Una pregunta del Data Engineer Associate, con un distractor fuerte
+estacion preg: El escenario | icono=documento
+estacion claves: Palabras clave | icono=lupa
+estacion distractor: El distractor | icono=alerta
+estacion resp: Respuesta | icono=check
+paso preg: La pregunta (ejemplo de práctica)
+Databricks suele poner dos opciones que "funcionan" y premiar la recomendada por la documentación.
+>>> texto
+Cada día llegan millones de archivos JSON nuevos a un volumen de Unity Catalog,
+y el esquema cambia de vez en cuando. Hay que ingerir solo los archivos nuevos
+de forma incremental y escalable. ¿Qué usas?
+
+A. spark.read.json sobre toda la carpeta en cada ejecución
+B. Auto Loader (cloudFiles) con schemaLocation
+C. COPY INTO
+D. Un job que liste la carpeta con dbutils.fs.ls y compare nombres
+paso claves: Las palabras que deciden
+"Millones de archivos", "solo los nuevos" y "el esquema cambia".
+>>> texto
+millones de archivos · incremental · evolución de esquema
+paso distractor: Por qué C no es la mejor
+`COPY INTO` también es incremental e idempotente, pero la documentación lo recomienda para miles de archivos. Para millones y con esquema cambiante, recomienda **Auto Loader**.
+>>> tabla
+opción,problema
+A,relee todo cada vez
+C,pensado para miles de archivos
+D,código propio frágil y lento
+paso resp: Respuesta
+Auto Loader escala a millones de archivos, guarda qué procesó en el checkpoint e infiere y evoluciona el esquema con `schemaLocation`.
+>>> texto
+Respuesta: B
+```
+
 ## Data Engineer Professional
 
 El Professional asume que ya dominas el Associate y evalúa **decisiones de producción**: rendimiento, costo, seguridad, cómo depurar y cómo desplegar.

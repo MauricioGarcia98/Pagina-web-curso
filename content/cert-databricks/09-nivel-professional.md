@@ -94,6 +94,46 @@ cambios = (spark.readStream.option("readChangeFeed", "true").table("prod.silver.
 | Dónde | Cualquier tabla Delta | Pipelines declarativos |
 | Uso típico | Propagar cambios de silver a gold o a otro sistema | Construir silver (SCD 1 o 2) desde un CDC de origen |
 
+```recorrido
+titulo: Change Data Feed: tres versiones de una tabla y lo que devuelve table_changes
+estacion v1: Versión 1 | icono=capas
+estacion v2: Versión 2 | icono=transformar
+estacion v3: Versión 3 | icono=x
+estacion cdf: table_changes | icono=lupa
+estacion uso: Aplicar en gold | icono=check
+paso v1: Versión 1: se insertan dos clientes
+La tabla tiene `delta.enableChangeDataFeed = true` (ejemplo).
+>>> tabla
+cliente_id,ciudad
+7,Lima
+8,Quito
+paso v2: Versión 2: el cliente 7 se muda
+Un `UPDATE` cambia Lima por Cusco.
+>>> tabla
+cliente_id,ciudad
+7,Cusco
+8,Quito
+paso v3: Versión 3: se borra el cliente 8
+Un `DELETE` lo elimina.
+>>> tabla
+cliente_id,ciudad
+7,Cusco
+paso cdf: Lo que devuelve table_changes(…, 1, 3)
+Una fila por cambio, con columnas de control. Un update aparece **dos veces**: el valor anterior y el nuevo.
+>>> tabla
+cliente_id,ciudad,_change_type,_commit_version
+7,Lima,insert,1
+8,Quito,insert,1
+7,Lima,update_preimage,2
+7,Cusco,update_postimage,2
+8,Quito,delete,3
+paso uso: Aplicarlo en gold sin releer todo
+Se descartan los `update_preimage`, se queda el último cambio por clave y se aplica un `MERGE` (en un stream, dentro de `foreachBatch`).
+>>> sql
+SELECT * FROM table_changes('prod.silver.clientes', 1, 3)
+WHERE _change_type <> 'update_preimage';
+```
+
 ## Modelado en el lakehouse
 
 ```sql norun

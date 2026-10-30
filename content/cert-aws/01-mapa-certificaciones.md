@@ -72,6 +72,40 @@ Las preguntas describen un escenario y terminan con un **criterio**:
 
 Método: subraya el criterio y las restricciones, descarta lo que viola alguna, y entre lo que queda elige lo más gestionado. Si dos opciones cumplen, la que requiere menos piezas suele ser la correcta.
 
+```recorrido
+titulo: Una pregunta de AWS resuelta con el método
+estacion preg: El escenario | icono=documento
+estacion crit: El criterio | icono=lupa
+estacion desc: Descartar | icono=x
+estacion elegir: Elegir | icono=check
+paso preg: La pregunta (ejemplo de práctica)
+El estilo típico: un escenario corto y una frase final con el criterio.
+>>> texto
+Una empresa recibe archivos CSV en S3 cada hora. Los analistas necesitan
+consultarlos con SQL. ¿Qué solución cumple con el MENOR ESFUERZO OPERATIVO?
+
+A. Un clúster de EMR con Hive que lea S3
+B. Un crawler de Glue que catalogue los archivos y consultas en Athena
+C. Redshift aprovisionado con COPY cada hora
+D. Una instancia EC2 con PostgreSQL que cargue los archivos
+paso crit: Subrayar el criterio y las restricciones
+"Menor esfuerzo operativo" premia lo **administrado o serverless**. Restricciones: los datos ya están en S3 y hay que usar SQL.
+>>> texto
+criterio:      menor esfuerzo operativo
+restricciones: datos en S3 · SQL · llegan cada hora
+paso desc: Descartar lo que exige administrar
+Todas "funcionan", pero no con el mismo esfuerzo.
+>>> tabla
+opción,por qué no
+A,hay que crear, dimensionar y apagar un clúster
+C,hay que administrar un clúster y programar las cargas
+D,un servidor propio: parches, copias, escalado
+paso elegir: La más gestionada que cumple todo
+Glue descubre el esquema solo y Athena consulta S3 sin servidores: nada que encender ni apagar.
+>>> texto
+Respuesta: B
+```
+
 ## Plan de 6 semanas para DEA-C01
 
 | Semana | Tema | Práctica en una cuenta gratuita |

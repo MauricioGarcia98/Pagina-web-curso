@@ -45,6 +45,44 @@ Mucho material en internet sigue enseñando **Synapse Analytics** como centro de
 - **Costo**: depende del país (en Estados Unidos, USD 165 por examen de rol). Hay descuentos con los *Cloud Skills Challenges* y los eventos de Microsoft.
 - **Renovación**: las certificaciones de rol duran **1 año** y se renuevan **gratis** con una evaluación en línea, sin supervisión, en Microsoft Learn, disponible desde 6 meses antes del vencimiento.
 
+```recorrido
+titulo: Una pregunta de DP-700 resuelta paso a paso
+estacion preg: El escenario | icono=documento
+estacion req: Requisitos | icono=lupa
+estacion opc: Las opciones | icono=capas
+estacion resp: Respuesta | icono=check
+paso preg: La pregunta (ejemplo de práctica)
+Microsoft describe una empresa y pide la solución que cumpla **todos** los requisitos.
+>>> texto
+Tienes una base Azure SQL con una tabla de pedidos que crece cada día y una
+columna fecha_modificacion. Debes copiar los pedidos nuevos y modificados a un
+lakehouse de Fabric cada hora, ESCRIBIENDO LA MENOR CANTIDAD DE CÓDIGO.
+¿Qué usas?
+
+A. Un notebook de PySpark que guarde la última marca de agua en una tabla
+B. Un Copy job con copia incremental sobre fecha_modificacion
+C. Un Dataflow Gen2 que recargue la tabla completa cada hora
+D. Un Eventstream conectado a la base
+paso req: Leer los requisitos uno por uno
+Hay tres: **incremental** (nuevos y modificados), **cada hora**, **mínimo código**.
+>>> texto
+incremental  → no recargar todo
+cada hora    → programable
+menos código → preferir una herramienta sin código
+paso opc: Contrastar cada opción
+Una opción que cumple dos de tres requisitos es incorrecta.
+>>> tabla
+opción,incremental,sin código
+A,sí,no (hay que programarlo)
+B,sí,sí
+C,no (recarga todo),sí
+D,no aplica (es para eventos en tiempo real),sí
+paso resp: La que cumple todo
+El Copy job de Fabric hace la copia incremental con una columna de marca de agua, sin escribir código.
+>>> texto
+Respuesta: B
+```
+
 ## Los dominios y su peso
 
 **DP-700** (temario actualizado el 21 de julio de 2026):

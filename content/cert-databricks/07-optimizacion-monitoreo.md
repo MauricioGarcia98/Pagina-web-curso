@@ -31,6 +31,48 @@ En el Query Profile buscas:
 - **Spill**: datos que no entraron en memoria y se escribieron en disco. Indica memoria insuficiente o una partición demasiado grande.
 - **Tiempo en cola** antes de empezar: problema de concurrencia del warehouse, no de la consulta.
 
+```recorrido
+titulo: Un job que se volvió lento: dónde mirar, en orden
+estacion job: Historial del job | icono=reloj
+estacion sys: Tablas de sistema | icono=base
+estacion ui: Spark UI | icono=monitor
+estacion causa: La causa | icono=lupa
+estacion fix: Corregir | icono=check
+paso job: La tarea tarda el doble que hace un mes
+La vista de ejecuciones del job muestra que la tarea `silver_ventas` pasó de 12 a 25 minutos (ejemplo).
+>>> tabla
+semana,duracion_min
+1,12
+2,14
+3,19
+4,25
+paso sys: Confirmarlo con system.lakeflow
+Las tablas de sistema guardan la duración de cada tarea a lo largo del tiempo: sirven para ver la tendencia y comparar con otros jobs.
+>>> sql
+-- las ejecuciones largas se guardan en tramos: se suman por run_id
+SELECT run_id,
+       MIN(period_start_time) AS inicio,
+       SUM(timestampdiff(SECOND, period_start_time, period_end_time)) / 60 AS minutos
+FROM system.lakeflow.job_task_run_timeline
+WHERE task_key = 'silver_ventas'
+GROUP BY run_id
+ORDER BY inicio DESC;
+paso ui: Abrir la Spark UI de la última ejecución
+En el stage más lento: muchas tareas leyendo miles de archivos chicos y spill a disco en el join.
+>>> log
+Stage 7: 18.432 tareas · archivos leídos: 18.432 · tamaño medio: 2 MB
+spill (disco): 34 GB
+paso causa: La causa: archivos chicos
+La tabla bronze recibe pequeños `append` cada pocos minutos y nunca se compacta: cada mes hay más archivos chicos que leer.
+>>> texto
+archivos chicos → más tareas, más metadatos, más tiempo
+paso fix: Corregir el origen del problema
+Compactar con `OPTIMIZE` (o dejarlo a Predictive Optimization en tablas administradas) y agrupar los datos con Liquid Clustering por la columna de filtro.
+>>> sql
+ALTER TABLE main.bronze.ventas CLUSTER BY (fecha);
+OPTIMIZE main.bronze.ventas;
+```
+
 ## Organizar los datos: el factor más importante
 
 Delta guarda, por cada archivo, estadísticas de mínimo y máximo de las primeras **32 columnas**. Con un filtro como `WHERE fecha = '2026-10-28'`, el motor saltea los archivos cuyo rango no incluye esa fecha: eso es **data skipping**. Funciona bien si los datos de una misma fecha están **juntos** en pocos archivos. Las herramientas para lograrlo:

@@ -37,6 +37,40 @@ BigQuery le cuesta a la cadena de Valentina USD 40.000 por mes y los analistas s
 - **Clases** con duraciones mínimas, **reglas de ciclo de vida**, **Autoclass**, **versionado**, **retención con bloqueo** (*bucket lock*) para WORM.
 - Ubicaciones regional, dual-región y multirregión (con **turbo replication** para RPO de 15 minutos en dual-región).
 
+```recorrido
+titulo: Elegir el almacén de Google Cloud según cómo se usa el dato
+estacion bq: Análisis | icono=dashboard
+estacion bt: Escrituras masivas | icono=servidor
+estacion sp: Transacciones globales | icono=red
+estacion sql: Transaccional regional | icono=base
+estacion gcs: Archivos | icono=archivo
+paso bq: "Analizar terabytes con SQL, sin administrar"
+Data warehouse serverless, columnar → **BigQuery**.
+>>> texto
+patrón: OLAP · servicio: BigQuery
+paso bt: "Millones de escrituras por segundo, lectura por clave con baja latencia"
+Series de tiempo, IoT, perfiles por clave → **Bigtable**. No hace joins ni SQL analítico.
+>>> texto
+patrón: NoSQL de columnas anchas · servicio: Bigtable
+paso sp: "Transacciones con consistencia fuerte a escala global"
+Relacional, escala horizontal entre regiones → **Spanner**.
+>>> texto
+patrón: OLTP global · servicio: Spanner
+paso sql: "La app de la tienda, en una región, con PostgreSQL"
+Relacional tradicional, escala vertical → **Cloud SQL** (o AlloyDB si necesita más rendimiento).
+>>> texto
+patrón: OLTP regional · servicio: Cloud SQL / AlloyDB
+paso gcs: "Guardar archivos crudos, imágenes, respaldos"
+Objetos de cualquier tamaño, con clases de almacenamiento por frecuencia de acceso → **Cloud Storage**.
+>>> tabla
+cómo se usa,servicio
+SQL analítico,BigQuery
+escrituras masivas por clave,Bigtable
+transacciones globales,Spanner
+transacciones regionales,Cloud SQL / AlloyDB
+archivos,Cloud Storage
+```
+
 ## BigQuery en profundidad
 
 ### Diseño de tablas

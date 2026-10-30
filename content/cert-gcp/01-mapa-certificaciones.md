@@ -61,6 +61,40 @@ Durante la transición, las preguntas y la documentación pueden usar el nombre 
 
 **Método**: identifica la restricción principal (latencia, escala, costo, administración), descarta lo que no la cumple y elige lo más administrado. Google valora las soluciones nativas antes que armar piezas a mano.
 
+```recorrido
+titulo: Una pregunta del PDE resuelta con el método
+estacion preg: El escenario | icono=documento
+estacion restr: La restricción | icono=lupa
+estacion desc: Descartar | icono=x
+estacion elegir: Elegir | icono=check
+paso preg: La pregunta (ejemplo de práctica)
+Un escenario con volumen, latencia y una preferencia por lo administrado.
+>>> texto
+Millones de dispositivos envían eventos por segundo. El equipo de negocio
+quiere analizarlos con SQL a los pocos segundos de que ocurren, y la empresa
+NO QUIERE ADMINISTRAR INFRAESTRUCTURA. ¿Qué arquitectura eliges?
+
+A. Kafka en Compute Engine → Spark en Dataproc → Cloud SQL
+B. Pub/Sub → Dataflow → BigQuery
+C. Cloud Storage → carga diaria con bq load → BigQuery
+D. Pub/Sub → VMs con un consumidor propio → Bigtable
+paso restr: Identificar las restricciones
+Tres: **escala** (millones por segundo), **segundos** de latencia, **sin administrar**.
+>>> texto
+escala: alta · latencia: segundos · operación: administrada · consulta: SQL
+paso desc: Descartar
+Cada opción incorrecta viola al menos una restricción.
+>>> tabla
+opción,qué viola
+A,administrar Kafka y clústeres; Cloud SQL no escala para análisis
+C,carga diaria: horas de latencia
+D,VMs propias; Bigtable no es para SQL analítico
+paso elegir: La solución nativa y administrada
+Pub/Sub recibe los eventos, Dataflow los procesa en streaming y BigQuery los deja consultables con SQL en segundos. Todo serverless.
+>>> texto
+Respuesta: B
+```
+
 ## Plan de estudio para PDE (6 semanas)
 
 | Semana | Tema | Práctica (crédito gratuito o sandbox de BigQuery) |
