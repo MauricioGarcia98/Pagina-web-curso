@@ -234,3 +234,31 @@ Dentro del `with DAG`, un `for codigo in AEROPUERTOS:` que crea un `BashOperator
 :::cuidado Generar tareas: sí; leer una base para generarlas: no
 La lista `AEROPUERTOS` está escrita en el código o en un archivo de configuración. **No** la leas de una base de datos en el nivel superior del archivo: Airflow parsea el DAG cada pocos segundos y haría miles de consultas por día. Para cantidades que cambian en cada ejecución (por ejemplo, "una tarea por cada archivo que llegó hoy") existe el **mapeo dinámico de tareas** (`.expand()`), que crea las tareas recién al ejecutar.
 :::
+
+## Generar tareas con un bucle o con expand()
+
+El DAG de esta lección crea una tarea por aeropuerto con un `for` sobre una **lista fija** escrita en el código. Eso está bien cuando la lista cambia muy de vez en cuando (se agrega un aeropuerto por año), porque el `for` se ejecuta cada vez que Airflow **lee** el archivo y las tareas aparecen en la interfaz con nombre propio (`procesar_SCL`, `procesar_LIM`).
+
+Cuando la lista depende de **los datos del día** (los aeropuertos que tuvieron vuelos hoy, los archivos que llegaron), el `for` no sirve: se usa el **mapeo dinámico** (`.expand()`) que viste en la lección de XCom y TaskFlow, que crea las copias en tiempo de ejecución.
+
+| | `for` al nivel superior | `.expand()` |
+|---|---|---|
+| Cuándo se decide cuántas tareas | Al leer el archivo | Al ejecutar el DAG |
+| De dónde sale la lista | Una lista escrita en el código o un archivo de configuración del repositorio | El resultado de una tarea anterior |
+| Cómo se ven en la interfaz | Tareas separadas con nombre propio | Una tarea con instancias `[0]`, `[1]`… |
+
+:::errores
+- **Sobreventa calculada con la probabilidad de un solo pasajero**: lo que importa es la probabilidad de que se presenten **más** pasajeros que asientos, que sale de la distribución binomial.
+- **Demoras que se propagan sin tiempo mínimo de conexión**: si un avión llega 20 minutos tarde y necesita 45 en tierra, la demora del vuelo siguiente no es 20.
+- **Ocupación = pasajes vendidos / asientos**: cuenta las ausencias como asientos ocupados. Se usan los pasajeros que embarcaron.
+- **Leer una base de datos en el `for` que genera tareas**: se consulta en cada lectura del archivo, miles de veces por día.
+:::
+
+:::trabajo
+- Las aerolíneas trabajan con *revenue management*: la sobreventa se decide con modelos que usan el historial de ausencias por ruta, día y clase, y el costo de compensar a un pasajero que no puede viajar.
+- Los DAGs con "una tarea por aeropuerto, por país o por cliente" son muy comunes; la regla práctica es `for` con una lista versionada si cambia poco, `.expand()` si depende de los datos.
+:::
+
+:::entrevista "¿Cuándo usarías un bucle para crear tareas en Airflow y cuándo el mapeo dinámico?"
+Un bucle al nivel superior sirve cuando la lista es estable y está en el código o en un archivo de configuración del repositorio, porque se evalúa al leer el archivo y cada tarea tiene un nombre propio en la interfaz. Si la cantidad depende de los datos del día, uso mapeo dinámico con `.expand()` sobre el resultado de una tarea anterior, que crea las instancias en tiempo de ejecución. Nunca consultaría una base o una API en el nivel superior para generar tareas.
+:::

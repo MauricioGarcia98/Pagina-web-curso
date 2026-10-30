@@ -262,3 +262,27 @@ assert all(s == "success" for s in run.states.values()), f"Estados: {run.states}
 El cron `0 6 * * 1` se lee: minuto 0, hora 6, cualquier día del mes, cualquier mes, día de la semana 1 (lunes). Unir grupos con `>>` conecta **todas** las tareas del primero con **todas** las del segundo.
 ```
 :::
+
+## De las piezas al producto
+
+Las cinco piezas de esta lección forman un ciclo semanal: Airflow recalcula cada lunes las features de comportamiento; el equipo de ciencia de datos entrena o vuelve a puntuar el modelo de churn con esa tabla; el resultado (la probabilidad de baja de cada usuario) vuelve al warehouse, y el equipo de CRM ofrece descuentos a los de mayor riesgo. El **costo mínimo por hogar**, en cambio, es una función que se llama en tiempo real desde el sitio web: no pasa por el pipeline, pero usa la misma regla probada.
+
+La fórmula de churn en Python es la **definición oficial**: los tableros en SQL o dbt deben dar el mismo número para el mismo mes. La forma de asegurarlo es probar las dos implementaciones con los mismos ejemplos (un mes con altas, uno con bajas el primer día, uno sin bajas).
+
+:::errores
+- **Meter las altas del mes en el denominador del churn**: baja la tasa justo en los meses de campañas y esconde el problema.
+- **Features con datos del futuro** (eventos posteriores a la fecha de corte): el modelo parece excelente en pruebas y falla en producción.
+- **Greedy en vez de programación dinámica** para el costo mínimo: "siempre el plan más barato por persona" no da el mínimo para todos los tamaños de hogar.
+- **Empatar sin desempate** en el ranking de géneros: dos géneros con los mismos minutos cambian de lugar entre ejecuciones. Agrega un segundo criterio de orden.
+- **Un DAG semanal sin TaskGroups** con 40 tareas sueltas: nadie entiende qué falló en la interfaz.
+:::
+
+:::trabajo
+- Las tablas de features se versionan por fecha de corte (`features_usuario` del 2024-12-31, del 2025-01-07…) para poder reentrenar un modelo con exactamente los datos que vio.
+- En Databricks y otras plataformas existe la **feature store** (Unity Catalog permite registrar tablas de features) para que entrenamiento y predicción usen la misma definición.
+- La definición oficial de métricas como el churn se documenta y se publica en una capa semántica para que todos los tableros la reutilicen.
+:::
+
+:::entrevista "¿Qué cuidarías al construir la tabla de features para un modelo de churn?"
+Que sea una fila por usuario calculada a una fecha de corte, usando solo eventos anteriores a ese corte para no filtrar información del futuro. Que sea reproducible: la fecha de corte es un parámetro y la tabla se guarda versionada. Que las definiciones coincidan con las que se usarán al predecir, idealmente desde la misma tabla o feature store. Y controles de calidad: conteo de usuarios, nulos por feature y distribución comparada con la semana anterior.
+:::

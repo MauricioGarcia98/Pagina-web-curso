@@ -226,3 +226,26 @@ assert run.states["hay_turnos"] == "success", "El ShortCircuit en sí termina bi
 Lo que devuelve la función de un `PythonOperator` se guarda en XCom como `return_value`. En `hay(ti)`, `ti.xcom_pull(task_ids="turnos_manana")` lo recupera.
 ```
 :::
+
+## De las reglas a la operación diaria
+
+En la clínica, el pipeline tiene un efecto directo en personas: si los recordatorios no salen, los pacientes faltan y los turnos se pierden. Por eso el DAG de recordatorios usa un `ShortCircuitOperator`: si mañana no hay turnos (un feriado), se corta sin enviar nada y sin marcar error. Y el **puntaje de riesgo de ausencia** decide a quién llamar además de enviarle un mensaje: el equipo de recepción tiene tiempo para unas pocas llamadas, así que se priorizan los de mayor riesgo.
+
+Los datos de salud son **sensibles**: en las tablas de análisis no van nombres ni documentos, sino identificadores. Los datos de contacto viven en un sistema aparte, al que solo accede el proceso que envía los recordatorios.
+
+:::errores
+- **Turnos que se superponen** al calcular la agenda libre: un turno que termina a las 10:00 y otro que empieza a las 10:00 no se pisan; uno que termina a las 10:05, sí. Los límites (`<` o `<=`) van en los tests.
+- **Puntaje con información que no existe al momento de predecir** (por ejemplo, si el paciente vino o no): usa solo el historial anterior al turno.
+- **Facturación que mezcla meses de atención y de pago**: el mismo dato da totales distintos según qué fecha uses. Defínelo en el modelo de dbt.
+- **Enviar recordatorios dos veces** si el DAG se reintenta: registra qué mensajes se enviaron y no repitas.
+- **Copiar datos personales de pacientes** a tablas de análisis "por si acaso".
+:::
+
+:::trabajo
+- En salud, las leyes de protección de datos obligan a minimizar los datos personales, registrar quién accede y poder borrar los datos de un paciente si lo pide. Unity Catalog, Purview o Lake Formation se usan para enmascarar columnas y auditar accesos.
+- Un puntaje basado en reglas claras (cantidad de ausencias previas, anticipación del turno) suele ser la primera versión; un modelo de machine learning llega después, y se compara contra esa regla.
+:::
+
+:::entrevista "¿Cómo evitarías que un proceso de envío de mensajes mande duplicados si se reintenta?"
+Haciendo el envío idempotente: cada mensaje tiene un identificador derivado del turno y del tipo de recordatorio, y antes de enviar se consulta una tabla de envíos realizados; el envío y el registro se hacen juntos. Si la tarea se reintenta, los ya enviados se saltan. Además, el proveedor de mensajes suele aceptar una clave de idempotencia. Y separaría el cálculo de destinatarios (que se puede repetir sin problema) del envío.
+:::

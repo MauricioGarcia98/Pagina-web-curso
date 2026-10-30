@@ -231,3 +231,31 @@ El modelo dbt `mora_por_segmento` lee `banco_prestamos`, que en producción la e
 - [ ] Ejecutando dbt dos veces
 - [ ] Con un `sleep` de 10 minutos
 :::
+
+## Cómo corre esto en producción
+
+Lo que hiciste en ejercicios separados, en una empresa es **un solo flujo** que se ejecuta cada noche sin nadie mirando. Así se reparte el trabajo:
+
+1. A las 03:00 Airflow crea la ejecución del día. Su fecha lógica es la fecha de corte que reciben todas las tareas: nadie escribe `2024-12-31` en el código.
+2. La primera tarea solo **cuenta** las transacciones del día en bronze. Si son cero, la rama manda un aviso y el resto se salta: mejor un tablero con el dato de ayer que uno con mora en cero.
+3. Las dos tareas de PySpark no procesan dentro de Airflow: Airflow **dispara** un job de Spark (por ejemplo, un job de Databricks) y espera a que termine. Cada job escribe su tabla de forma idempotente (reemplaza la partición del día).
+4. dbt corre con `dbt build -s mora_por_segmento+`, que construye el modelo y ejecuta sus tests. Si un test falla, el modelo que alimenta el tablero no se publica.
+5. La tarea final informa conteos y tiempos (filas procesadas, préstamos en cada tramo), que quedan en un tablero de salud del pipeline.
+
+:::errores
+- **Contar cuotas en vez de préstamos** al unir préstamos con cuotas: un préstamo con 3 cuotas vencidas suma 3. Reduce a una fila por préstamo antes de unir.
+- **Olvidar el signo de las compras** (`monto` negativo en este caso): el "gasto total" sale negativo o se mezcla con los depósitos. Filtra por `tipo` y usa el valor absoluto donde corresponda.
+- **La regla de tramos copiada en tres lugares** (Python, PySpark y dbt) con límites distintos: el reporte regulatorio no coincide con el tablero.
+- **Procesar con pandas dentro de un `PythonOperator`**: con millones de transacciones el worker se queda sin memoria.
+- **Publicar aunque no hayan llegado datos**: el tablero muestra mora en cero y alguien toma una decisión con eso.
+:::
+
+:::trabajo
+- En bancos, la tabla de cartera en mora es la base de reportes que se envían al regulador: cada ejecución guarda la versión del código y la fecha de corte con la que se calculó, porque puede haber una auditoría años después.
+- Los límites de los tramos y los porcentajes de provisión suelen vivir en una **tabla de parámetros** (o un *seed* de dbt) que mantiene el área de riesgo, no en el código.
+- Las ramas de calidad ("¿llegaron datos?") son de lo primero que se agrega a un DAG después del primer incidente.
+:::
+
+:::entrevista "¿Cómo diseñarías el cierre diario de cartera de un banco?"
+Un DAG diario cuya fecha lógica es la fecha de corte. Primero una verificación de que llegaron los datos del día; si no, alerta y no publica. Después jobs de Spark idempotentes que calculan la cartera en mora por préstamo y el perfil de gasto, reemplazando la partición del día. Luego dbt construye y prueba los modelos de negocio, como la mora por segmento, y solo se publica si los tests pasan. Las reglas de tramos van en una tabla de parámetros versionada, y cada ejecución registra conteos para auditar.
+:::

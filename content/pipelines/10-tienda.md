@@ -252,6 +252,23 @@ Con TaskFlow, lo que devuelve cada función decorada con `@task` se pasa como ar
 ```
 :::
 
+:::errores
+- **RFM con la fecha de hoy** como referencia de recencia: el segmento de un cliente cambia según el día en que se corre. Usa una fecha de corte fija.
+- **Cohortes por fecha de registro** cuando la pregunta es por la **primera compra**: mezclan clientes que nunca compraron.
+- **Retención que suma meses incompletos**: el último mes de cada cohorte todavía no terminó y parece una caída.
+- **Tests de dbt solo al final del flujo**: si `dim_clientes` tiene duplicados, se detecta tarde. Prueba también las claves de staging.
+- **ETL diario sin verificación de calidad** antes de publicar: un día con la mitad de los pedidos llega igual al tablero.
+:::
+
+:::trabajo
+- Este es el esqueleto de casi cualquier pipeline de comercio: ingesta diaria, limpieza, una tabla de clientes con tests, segmentos y cohortes para marketing, y un DAG que no publica si la calidad falla.
+- Los segmentos RFM se recalculan de forma periódica (semanal o mensual) y se guarda el historial, para medir cuántos clientes pasaron de "campeones" a "en riesgo".
+:::
+
+:::entrevista "Describe un pipeline de punta a punta que hayas construido."
+Contaría el caso con la estructura situación, decisiones y resultado: los datos de pedidos y clientes llegan cada día a bronze; un job de PySpark limpia y deduplica a silver con una cuarentena de filas inválidas; dbt construye la tabla de clientes, los segmentos RFM y la retención por cohorte, con tests de unicidad, no nulos y relaciones; Airflow orquesta con TaskFlow y una tarea de verificación que corta la publicación si los conteos no son razonables. Mencionaría qué haría distinto con más volumen y cómo monitorearía la frescura.
+:::
+
 ## Lo que construiste en este módulo
 
 | Caso | Python | PySpark | dbt | Airflow |

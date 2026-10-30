@@ -226,3 +226,26 @@ assert run.states["disparar_reposicion"] == "success" and run.states["todo_ok"] 
 `TriggerDagRunOperator` está en `airflow.operators.trigger_dagrun`. El DAG disparado recibe `conf` y lo puede leer en sus tareas con `{{ dag_run.conf['quiebres'] }}`.
 ```
 :::
+
+## Por qué la logística exige tanto cuidado con el tiempo
+
+En logística casi todo depende de **cuándo** pasó algo: el costo de lo vendido depende de qué lote entró primero (FIFO), la fecha prometida depende de los días hábiles y los feriados, y el stock de cada día depende de todos los movimientos anteriores. Un error en el orden o en el calendario no da un error de programa: da un número plausible y equivocado.
+
+El DAG de esta lección **dispara otro DAG** (`TriggerDagRunOperator`) cuando detecta quiebres de stock: el DAG de reposición tiene su propio dueño, sus propios horarios y reintentos, y se puede ejecutar también a mano. Separar los dos procesos evita un DAG gigante en el que todo depende de todo. La alternativa moderna es que la tarea de alertas actualice un **Asset** (`outlets=[Asset("quiebres_stock")]`) y que el DAG de reposición se programe con ese asset.
+
+:::errores
+- **FIFO ordenando solo por fecha**: dos lotes del mismo día necesitan un segundo criterio (el número de lote), si no, el costo cambia entre ejecuciones.
+- **Días hábiles sin feriados**: la fecha prometida falla justo en las semanas que más importan.
+- **Acumular movimientos sin agregarlos antes por día**: con varios movimientos el mismo día, la suma acumulada muestra estados intermedios que no existieron al cierre.
+- **Puntualidad que ignora los envíos sin fecha de entrega**: los que todavía no llegaron y ya vencieron también son impuntuales.
+- **Disparar el DAG de reposición sin pasarle qué productos**: el otro DAG tiene que adivinar; se pasa por `conf` o por el asset.
+:::
+
+:::trabajo
+- Los calendarios de feriados se mantienen como una tabla (un seed de dbt o una tabla de referencia) que actualiza un área responsable, porque cambian por país y por año.
+- Los quiebres de stock suelen alimentar alertas operativas (correo, Slack) además del DAG de reposición; la alerta incluye el producto, el depósito y desde cuándo está en cero.
+:::
+
+:::entrevista "¿Cómo calcularías el stock diario a partir de una tabla de movimientos?"
+Primero agregaría los movimientos por producto, depósito y día, sumando entradas y salidas. Luego generaría la grilla completa de días para cada producto, para que los días sin movimientos también aparezcan, y aplicaría una suma acumulada con una función de ventana ordenada por fecha. Los días con stock menor o igual a cero son quiebres. Lo validaría contra un inventario físico conocido y usaría un desempate determinista si hay varios movimientos con la misma marca de tiempo.
+:::

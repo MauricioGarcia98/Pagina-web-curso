@@ -235,3 +235,29 @@ assert all(v == "success" for v in run.states.values()), f"Estados: {run.states}
 `default_args` es un diccionario que el DAG pasa a **todas** sus tareas: así no repites `retries=2` en cada una. `{{ ts_nodash }}` es la fecha y hora lógica de la ejecución sin separadores (por ejemplo `20240701T030000`).
 ```
 :::
+
+## Cómo encaja en un sistema que cambia cada hora
+
+La tarifa dinámica es el ejemplo clásico de una regla de negocio que se usa en **dos tiempos**:
+
+- **En tiempo real**: cuando un pasajero pide un viaje, la app calcula el multiplicador con la oferta y demanda de los últimos minutos. Esa función tiene que ser rápida y exactamente la misma que probaste en Python.
+- **En batch**: cada hora, el pipeline calcula en PySpark el balance de oferta y demanda por zona y hora del pasado, para que el equipo de precios ajuste las reglas y para auditar qué multiplicador se cobró.
+
+El DAG horario tiene un **sensor** porque los datos de la hora llegan con algunos minutos de demora: espera a que el archivo esté completo (con `mode="reschedule"` o `deferrable=True`, para no ocupar un worker) y tiene un `timeout` para no esperar para siempre.
+
+:::errores
+- **Multiplicador sin tope**: en un evento masivo la fórmula da 9x y la empresa sale en las noticias. Las reglas de precio siempre tienen límites, y van en los tests.
+- **Dividir por cero cuando no hay conductores**: el balance demanda/oferta necesita una regla explícita para oferta 0.
+- **Agregar por hora sin completar las horas vacías**: una zona sin viajes a las 4:00 no aparece y el promedio queda sesgado. Genera la grilla de horas y une.
+- **Sensor sin `timeout`** o en modo `poke`: si el archivo nunca llega, el DAG queda ocupando un worker horas.
+- **Reintentos que duplican**: si la carga horaria no es idempotente, cada reintento suma la hora otra vez.
+:::
+
+:::trabajo
+- Las empresas de movilidad guardan cada cotización con sus insumos (zona, hora, oferta, demanda, multiplicador) para poder explicar un precio cobrado y para recalcular qué habría pasado con otra regla.
+- Los procesos horarios son exigentes: un DAG que tarda 70 minutos en procesar una hora se atrasa para siempre. Se mide la duración de cada ejecución y se alerta si se acerca al intervalo.
+:::
+
+:::entrevista "¿Cómo armarías un proceso que corre cada hora con datos que llegan con atraso?"
+Un DAG horario cuya fecha lógica identifica la hora a procesar, con un sensor que espera a que los datos de esa hora estén completos, en modo diferible o reschedule y con timeout. La carga es idempotente: reemplaza la partición de esa hora, así los reintentos y reprocesos no duplican. Además reprocesaría las últimas horas en cada ejecución para capturar datos tardíos, y alertaría si la duración se acerca a una hora, porque el proceso no puede atrasarse.
+:::
