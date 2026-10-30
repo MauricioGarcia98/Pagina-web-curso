@@ -86,3 +86,20 @@ resultado = (spark.table("clientes")
 LEFT JOIN desde `clientes` hacia el agregado; `F.coalesce` para reemplazar los NULL por 0 / False.
 ```
 :::
+
+:::errores
+- **Deduplicar con `dropDuplicates(["clave"])`** cuando importa cuál fila queda: el resultado cambia entre ejecuciones. Usa `row_number()` con un orden explícito.
+- **`cast` sobre datos sucios sin `try_cast`**: en Spark 4 el job falla con `CAST_INVALID_INPUT`; con `try_cast` decides y cuentas los inválidos.
+- **Escribir silver con `mode("overwrite")` completo todos los días**: reprocesa todo y, si falla a mitad, deja la tabla vacía. Usa MERGE o reemplaza solo la partición del día.
+- **Gold que se calcula desde bronze** saltándose silver: la limpieza se repite en cada tabla y con diferencias.
+- **`collect()` o `toPandas()` sobre tablas grandes**: trae todo al driver y lo tumba.
+:::
+
+:::trabajo
+- En Databricks, este código vive en archivos `.py` con funciones que se prueban con datos chicos en CI, y un notebook o un job las llama con la fecha a procesar como parámetro.
+- Cada tabla de silver y gold tiene dueño, descripción y tests en Unity Catalog o en dbt; las métricas de cada ejecución (filas leídas, escritas, en cuarentena) se guardan.
+:::
+
+:::entrevista "¿Cómo construirías la capa silver de pedidos con PySpark?"
+Leería de bronze solo lo nuevo, con Auto Loader o un filtro por fecha de ingesta. Normalizaría tipos con `try_cast`, textos y fechas, aplicaría reglas de validación y enviaría las filas inválidas a una tabla de cuarentena con el motivo. Deduplicaría el lote con `row_number()` por `pedido_id` ordenando por la fecha de ingesta, y haría MERGE en la tabla Delta de silver para insertar los nuevos y actualizar los que cambiaron de estado. Agregaría columnas de auditoría y registraría las métricas de cada ejecución.
+:::

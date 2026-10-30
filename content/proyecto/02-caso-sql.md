@@ -119,3 +119,20 @@ UNION ALL
 SELECT 'pago_rechazado', COUNT(*) FROM pagos WHERE estado = 'rechazado';
 ```
 :::
+
+:::errores
+- **Mezclar granos** en una consulta: unir pedidos con líneas y contar pedidos con `COUNT(*)` cuenta líneas.
+- **Comparar un año incompleto** con años completos: 2025 "cae" solo porque no terminó.
+- **Porcentajes que no suman 100** por redondear cada fila: muestra los totales o ajusta la última fila.
+- **No validar**: entregar un informe sin comprobar que las partes suman el total.
+- **Llamar "ventas" a cosas distintas** en cuadros distintos: la definición va escrita en el informe.
+:::
+
+:::trabajo
+- Un informe ejecutivo se entrega con una nota de definiciones y de fuentes, y se versiona: si el mes que viene cambia un número del año pasado, hay que poder explicar por qué.
+- Las consultas de un informe recurrente terminan convirtiéndose en modelos de dbt para que el tablero y el informe den lo mismo.
+:::
+
+:::entrevista "La gerencia dice que tu número de ventas no coincide con el de finanzas. ¿Qué haces?"
+No discuto cuál está bien: comparo definiciones. Reviso numerador, filtros (cancelados, devoluciones, impuestos), período y fecha usada (de pedido, de pago o de facturación), y la moneda. Concilio con una tabla que muestre la diferencia por cada concepto hasta explicar el total. Después acordamos una definición oficial, la documento y la implemento en un solo lugar para que todos los reportes la usen.
+:::

@@ -78,3 +78,15 @@ Días 31-60: proyecto en Databricks Free Edition + GitHub: ingesta de datos abie
 Días 61-90: preparar Databricks Data Engineer Associate (guía oficial + exámenes de práctica); publicar 2 artículos sobre el proyecto; postular a 5 puestos por semana.
 ```
 :::
+
+:::errores
+- **Responder una pregunta de diseño nombrando herramientas** sin preguntar requisitos (volumen, frescura, usuarios, presupuesto).
+- **Contar un proyecto solo con lo que se usó** ("usé Spark y Airflow") sin decir qué problema resolvía, qué decidiste y qué resultado tuvo.
+- **Esconder lo que no sabes**: "no lo usé, pero lo resolvería así" es una buena respuesta; inventar no.
+- **Un portafolio sin README**: nadie va a clonar tu repositorio para entender qué hiciste.
+:::
+
+:::trabajo
+- Los equipos contratan juniors por fundamentos (SQL sólido, Python, entender un pipeline) y actitud para aprender; las herramientas específicas se aprenden en el trabajo.
+- Para pasar a semi senior, lo que más pesa es haber operado algo en producción: incidentes resueltos, costos reducidos, calidad mejorada. Anótalo con números mientras pasa.
+:::
