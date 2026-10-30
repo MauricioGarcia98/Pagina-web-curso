@@ -243,6 +243,41 @@ Las mismas operaciones en SQL, pandas y PySpark se parecen mucho. Si sabes una, 
 
 Para guardar el resultado en tu computadora: `resumen.to_parquet("resumen.parquet")` (necesita `pip install pyarrow`) o `resumen.to_csv("resumen.csv", index=False)`.
 
+### pandas 3: lo que cambió en 2026
+
+pandas 3.0 salió el 21 de enero de 2026 y, según sus notas de versión oficiales, trae tres cambios que vas a notar enseguida. Los ejercicios de este sitio corren con pandas 2.2 dentro del navegador, así que escribe código que funcione en las dos versiones (las recomendaciones de abajo lo hacen).
+
+**1. Un tipo de dato propio para el texto.** Antes, una columna de textos tenía el tipo genérico `object` (que acepta cualquier cosa). En pandas 3 se infiere el tipo `str`:
+
+```python norun
+import pandas as pd
+s = pd.Series(["Lima", "Quito"])
+s.dtype            # pandas 2: object   ·   pandas 3: str
+```
+
+Consecuencia: un código que pregunta `if df["ciudad"].dtype == object:` deja de funcionar. Para saber si una columna es de texto, usa `pd.api.types.is_string_dtype(df["ciudad"])`, que funciona en ambas versiones. Además, una columna `str` solo acepta textos o valores faltantes: asignarle un número da error.
+
+**2. Copy-on-Write: todo resultado se comporta como una copia.** Cualquier selección (`df[df.total > 100]`, `df["total"]`) se comporta como una copia **independiente** del original. La regla es simple: para cambiar un DataFrame, se lo cambia **directamente**, en una sola operación.
+
+```python norun
+# pandas 3: NO cambia df (el filtro devuelve una copia y se modifica esa copia); avisa con ChainedAssignmentError
+df[df["pais"] == "Chile"]["total"] = 0
+
+# en las dos versiones: una sola operación sobre df
+df.loc[df["pais"] == "Chile", "total"] = 0
+```
+
+Por eso desaparece el famoso aviso `SettingWithCopyWarning` y ya no hacen falta los `.copy()` "por las dudas". Por dentro pandas evita copiar hasta que hace falta, así que además es más rápido.
+
+**3. `pd.col()` para escribir expresiones sin `lambda`.**
+
+```python norun
+df.assign(total_con_iva=lambda d: d["total"] * 1.21)   # pandas 2 y 3
+df.assign(total_con_iva=pd.col("total") * 1.21)         # nuevo en pandas 3
+```
+
+También subió el mínimo de Python a la versión 3.11. La guía oficial recomienda migrar en dos pasos: primero a pandas 2.3, corregir todos los avisos (*warnings*) y recién después pasar a 3.0.
+
 :::nota ¿pandas, Polars, DuckDB o Spark?
 - **pandas**: el estándar para datos que entran en memoria. Enorme comunidad y documentación.
 - **Polars**: una alternativa moderna, mucho más rápida y con mejor manejo de memoria. Cada vez más usada en pipelines.
@@ -257,7 +292,7 @@ La regla práctica: empieza por lo más simple que alcance. Usar Spark para 50 M
 - **Rechazar sin contar ni guardar**: si un día el 40 % de las filas son inválidas y nadie lo sabe, el dashboard muestra ventas que bajaron "de golpe".
 - **Deduplicar por la fila completa**: dos registros del mismo pedido con distinta hora de carga no son idénticos, pero son el mismo pedido. Deduplica por la **clave** (`pedido_id`) y decide cuál versión conservar.
 - **pandas con datos enormes**: pandas carga todo en memoria y suele necesitar de 5 a 10 veces el tamaño del archivo en RAM. Con un CSV de 5 GB, tu computadora no alcanza.
-- **`SettingWithCopyWarning` en pandas**: modificaste una "vista" de un DataFrame filtrado. Usa `.copy()` después de filtrar si vas a modificar el resultado.
+- **Asignación encadenada en pandas** (`df[df.pais == "Chile"]["total"] = 0`): en pandas 2 daba el aviso `SettingWithCopyWarning`; en pandas 3 directamente **no modifica nada**. Usa una sola operación: `df.loc[df.pais == "Chile", "total"] = 0`.
 :::
 
 <!-- estandar:trabajo -->
@@ -368,4 +403,22 @@ lote = [
 assert validar_lote(lote) == {"id_nulo": 1, "id_duplicado": 2, "monto_negativo": 1}, f"validar_lote(lote) = {validar_lote(lote)}"
 assert validar_lote([]) == {"id_nulo": 0, "id_duplicado": 0, "monto_negativo": 0}
 ```
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+En pandas 3, ¿qué hace `df[df["pais"] == "Chile"]["total"] = 0`?
+
+- [ ] Pone en 0 el total de las filas de Chile
+- [x] No modifica `df`: el filtro devuelve un resultado que se comporta como copia; hay que usar `df.loc[df["pais"] == "Chile", "total"] = 0`
+- [ ] Da error de sintaxis
+- [ ] Borra las filas de Chile
+:::
+
+:::ejercicio quiz dificultad=Básico
+¿Cuál es la forma de saber si una columna es de texto que funciona en pandas 2 y en pandas 3?
+
+- [ ] `df["ciudad"].dtype == object`
+- [x] `pd.api.types.is_string_dtype(df["ciudad"])`
+- [ ] `type(df["ciudad"]) == str`
+- [ ] `df["ciudad"].is_text()`
 :::
