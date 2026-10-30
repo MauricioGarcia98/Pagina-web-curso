@@ -122,6 +122,54 @@ COMMIT;
 
 Correrla una, dos o diez veces deja el mismo resultado. En Delta Lake o Spark lo mismo se hace con `replaceWhere` o `MERGE`; en dbt, con un modelo incremental con `unique_key`.
 
+```recorrido
+titulo: Idempotencia: qué pasa cuando la carga del día se ejecuta dos veces
+estacion t1: Primera ejecución | icono=reloj
+estacion fallo: Reintento | icono=alerta
+estacion ins: INSERT ciego | icono=x
+estacion del: DELETE + INSERT | icono=check
+estacion res: Conclusión | icono=escudo
+paso t1: La carga del 31/12 corre una vez
+La tabla `gold.mora_diaria` guarda, por día, cuántos préstamos hay en cada tramo. Después de la primera ejecución del 31/12 queda así (números de ejemplo):
+>>> tabla
+fecha,tramo,prestamos
+2024-12-30,al_dia,410
+2024-12-30,90+,35
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+paso fallo: Algo obliga a correrla de nuevo
+La tarea siguiente falló y Airflow reintentó todo, o alguien la volvió a ejecutar para corregir un dato. **Pasa todas las semanas** en cualquier equipo.
+>>> log
+[03:12] cargar_mora_diaria  success
+[03:15] publicar_tablero    failed  (timeout)
+[03:20] reintento: cargar_mora_diaria → running
+paso ins: Con un INSERT ciego, el día se duplica
+El `INSERT` agrega las mismas filas otra vez. El tablero suma y muestra **el doble** de préstamos en mora el 31/12.
+>>> tabla
+fecha,tramo,prestamos
+2024-12-30,al_dia,410
+2024-12-30,90+,35
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+paso del: Con DELETE + INSERT, queda igual
+La versión idempotente **borra primero** lo del 31/12 y lo vuelve a escribir, en una transacción. Correrla 1 o 10 veces deja la misma tabla que la primera vez.
+>>> tabla
+fecha,tramo,prestamos
+2024-12-30,al_dia,410
+2024-12-30,90+,35
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+paso res: La pregunta que siempre hay que hacerse
+"¿Qué pasa si esto corre dos veces?" Si la respuesta es "se duplica", el pipeline no está listo. Las herramientas lo resuelven así:
+>>> texto
+SQL            → DELETE del período + INSERT, en una transacción
+Delta / Spark  → replaceWhere o MERGE
+dbt            → modelo incremental con unique_key
+Airflow        → la fecha lógica como parámetro, nunca datetime.now()
+```
+
 :::errores
 - **Programar primero y probar después** (o nunca): los casos borde aparecen en producción, con datos reales y un reporte equivocado.
 - **`datetime.now()` dentro de la lógica**: la función da distinto resultado según cuándo se ejecuta y no se puede reprocesar.

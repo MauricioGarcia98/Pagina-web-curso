@@ -155,6 +155,50 @@ Crea antes del `groupBy` una columna `fecha` (con `F.to_date`) y una columna `sk
 Si una feature usa datos **posteriores** al momento de la predicción (por ejemplo, reproducciones de enero para predecir quién se va en diciembre), el modelo parece genial en las pruebas y falla en producción. Por eso estas tablas siempre se calculan "al corte" de una fecha (`2024-12-31` aquí), con todos los eventos **anteriores** a ese corte. Es el mismo principio del *as-of join* de SQL.
 :::
 
+```recorrido
+titulo: Las features de un usuario, paso a paso
+estacion repros: Reproducciones | icono=tabla
+estacion cols: Columnas nuevas | icono=transformar
+estacion agg: groupBy | icono=capas
+estacion inact: Inactividad | icono=reloj
+estacion res: Fila de features | icono=check
+paso repros: Lo que escuchó el usuario 22
+Seis reproducciones en `streaming_reproducciones`. Cada fila es "escuchó tal contenido, tantos segundos".
+>>> tabla
+repro_id,fecha_hora,segundos_escuchados
+2476,2024-03-16 12:37:00,203
+3318,2024-04-08 23:56:00,39
+4364,2024-05-06 19:25:00,19
+5499,2024-06-02 09:04:00,84
+7635,2024-07-17 13:41:00,158
+12163,2024-10-04 20:34:00,14
+paso cols: fecha y skip
+`fecha` = solo el día (para contar días distintos). `skip` = 1 si escuchó menos de 30 segundos: saltó la canción.
+>>> tabla
+repro_id,fecha,segundos_escuchados,skip
+2476,2024-03-16,203,0
+3318,2024-04-08,39,0
+4364,2024-05-06,19,1
+5499,2024-06-02,84,0
+7635,2024-07-17,158,0
+12163,2024-10-04,14,1
+paso agg: Resumir por usuario
+`count` cuenta reproducciones, `countDistinct("fecha")` los días con actividad, y el **promedio** de una columna de 0 y 1 × 100 es un porcentaje.
+>>> tabla
+usuario_id,reproducciones,dias_activos,pct_skips,ultima_fecha
+22,6,6,33.33,2024-10-04
+paso inact: Días sin escuchar
+`F.datediff("2024-12-31", ultima_fecha)`: cuántos días pasaron desde la última vez. Es la señal de churn más fuerte.
+>>> python
+.withColumn("dias_inactivo",
+    F.datediff(F.to_date(F.lit("2024-12-31")), F.col("ultima_fecha")))
+paso res: La fila que recibe el modelo
+Una fila por usuario, con números que un modelo de churn puede usar. Así se ve la del usuario 22:
+>>> tabla
+usuario_id,reproducciones,dias_activos,pct_skips,ultima_fecha,dias_inactivo
+22,6,6,33.33,2024-10-04,88
+```
+
 ## 4. dbt: el género más escuchado de cada país
 
 El equipo de contenidos decide qué artistas promocionar en cada país. Quiere, por país, el género con más minutos escuchados. Es un **top-1 por grupo**: agregación + `row_number`, ideal para un modelo de dbt.

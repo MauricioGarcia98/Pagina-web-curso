@@ -124,6 +124,64 @@ Truncar ambas fechas al primer día del mes (`F.trunc(..., "month")`) hace que `
 ```
 :::
 
+```recorrido
+titulo: La retención de la cohorte de enero de 2024, paso a paso
+estacion pedidos: Compras | icono=tabla
+estacion cohorte: Cohorte | icono=etiqueta
+estacion mesn: mes_n | icono=reloj
+estacion contar: Clientes por mes | icono=capas
+estacion res: Retención | icono=dashboard
+paso pedidos: Las compras de cada cliente
+Partimos de `pedidos` sin los cancelados. Solo importa **quién** compró y en **qué mes**.
+>>> tabla
+cliente_id,mes
+128,2024-01
+128,2024-07
+128,2024-09
+128,2024-09
+128,2024-09
+129,2024-01
+paso cohorte: La cohorte: el mes de la primera compra
+`groupBy("cliente_id").agg(F.min("mes_compra"))`. Todos los clientes que compraron por primera vez en enero de 2024 forman la **cohorte 2024-01**.
+>>> tabla
+cliente_id,cohorte
+128,2024-01
+129,2024-01
+234,2024-01
+285,2024-01
+286,2024-01
+paso mesn: mes_n: cuántos meses después
+`F.months_between(mes_compra, mes_cohorte)`: 0 = el mes de la primera compra, 1 = el mes siguiente, etc.
+>>> tabla
+cliente_id,cohorte,mes,mes_n
+128,2024-01,2024-01,0
+128,2024-01,2024-07,6
+128,2024-01,2024-09,8
+128,2024-01,2024-09,8
+128,2024-01,2024-09,8
+129,2024-01,2024-01,0
+paso contar: Clientes distintos por mes relativo
+`countDistinct("cliente_id")` por `cohorte` y `mes_n`. El mes 0 son todos los de la cohorte: es la **base**.
+>>> tabla
+cohorte,mes_n,clientes
+2024-01,0,32
+2024-01,1,5
+2024-01,2,7
+2024-01,3,6
+2024-01,4,5
+2024-01,5,6
+paso res: Retención = clientes / base × 100
+La base del mes 0 se lleva a todas las filas con `F.max(F.when(mes_n == 0, clientes)).over(Window.partitionBy("cohorte"))`. Así se lee qué parte de la cohorte volvió a comprar cada mes:
+>>> tabla
+cohorte,mes_n,clientes,retencion_pct
+2024-01,0,32,100
+2024-01,1,5,15.63
+2024-01,2,7,21.88
+2024-01,3,6,18.75
+2024-01,4,5,15.63
+2024-01,5,6,18.75
+```
+
 ## 3. dbt: la tabla de clientes, con tests
 
 El segmento RFM se calcula en SQL para todos los clientes y se publica como `dim_clientes_rfm`, la tabla que usa el CRM. Es el lugar donde más importan los **tests**: si un cliente apareciera dos veces, recibiría dos correos.

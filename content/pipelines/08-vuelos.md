@@ -131,6 +131,56 @@ Marca cada vuelo como puntual (1) o no (0): `llegada_real` no nula y demora ≤ 
 ```
 :::
 
+```recorrido
+titulo: Las peores rutas de enero de 2024, paso a paso
+estacion vuelos: Vuelos | icono=tabla
+estacion punt: ¿Puntual? | icono=reloj
+estacion ruta: Por ruta | icono=capas
+estacion rank: row_number | icono=etiqueta
+estacion res: Top 3 peores | icono=alerta
+paso vuelos: Algunos vuelos de enero
+Cada fila de `vuelos_vuelos` tiene la llegada programada y la real.
+>>> tabla
+vuelo_id,origen,destino,llegada_programada,llegada_real
+1,EZE,SCL,2024-01-01 08:00:00,2024-01-01 07:53:00
+2,SCL,EZE,2024-01-01 11:30:00,2024-01-01 11:33:00
+3,EZE,LIM,2024-01-01 16:30:00,2024-01-01 16:33:00
+4,LIM,BOG,2024-01-01 21:10:00,2024-01-01 21:30:00
+5,BOG,LIM,2024-01-02 00:40:00,2024-01-02 00:50:00
+paso punt: Minutos de demora y marca de puntualidad
+Un vuelo es **puntual** si llegó (no se canceló) y con 15 minutos de demora o menos: es la definición estándar de OTP (*on-time performance*).
+>>> tabla
+vuelo_id,demora_llegada,puntual
+1,-7,1
+2,3,1
+3,3,1
+4,20,0
+5,10,1
+paso ruta: OTP por mes y ruta
+`groupBy("mes", "origen", "destino")`: vuelos y el promedio de la marca × 100. Algunas de enero:
+>>> tabla
+origen,destino,vuelos,otp_pct
+AEP,COR,22,86.36
+AEP,MVD,28,82.14
+BOG,LIM,26,53.85
+BOG,MDE,26,50
+BOG,MEX,9,88.89
+COR,AEP,27,77.78
+paso rank: Numerar de peor a mejor
+Ventana por mes ordenada por `otp_pct` ascendente, desempatando por `origen` y `destino` para que el resultado sea siempre el mismo.
+>>> python
+w = Window.partitionBy("mes").orderBy("otp_pct", "origen", "destino")
+resultado = (por_ruta.withColumn("puesto", F.row_number().over(w))
+                     .filter(F.col("puesto") <= 3))
+paso res: Las 3 peores de enero
+Estas son las rutas que operaciones revisa primero en el informe mensual.
+>>> tabla
+mes,origen,destino,vuelos,otp_pct,puesto
+2024-01,BOG,MDE,26,50,1
+2024-01,BOG,LIM,26,53.85,2
+2024-01,LIM,EZE,8,62.5,3
+```
+
 ## 4. dbt: ocupación e ingresos por ruta
 
 Comercial quiere la ocupación (*load factor*) e ingresos por ruta. Recuerda las reglas del caso: `vuelos_reservas` es una **muestra** y cada reserva representa **40** pasajeros; los vuelos cancelados no ofrecen asientos.

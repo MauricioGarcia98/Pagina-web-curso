@@ -60,6 +60,58 @@ Primero crea una columna booleana `vencida` y otra `dias` (0 si no está vencida
 ```
 :::
 
+```recorrido
+titulo: La cartera en mora, paso a paso, para el préstamo 51
+estacion cuotas: Las cuotas | icono=tabla
+estacion marca: vencida | icono=reglas
+estacion dias: Días al corte | icono=reloj
+estacion agg: groupBy | icono=capas
+estacion tramo: Tramo | icono=etiqueta
+paso cuotas: Las 6 cuotas del préstamo 51
+Un préstamo de 6 cuotas. Dos de ellas nunca se pagaron (`fecha_pago` vacía).
+>>> tabla
+numero,fecha_vencimiento,fecha_pago
+1,2022-06-22,2022-06-19
+2,2022-07-22,2022-07-19
+3,2022-08-21,NULL
+4,2022-09-20,2022-11-11
+5,2022-10-20,NULL
+6,2022-11-19,2023-02-04
+paso marca: Marcar las vencidas e impagas
+`vencida` es verdadera si no hay pago **y** el vencimiento es anterior al corte (`2024-12-31`).
+>>> tabla
+numero,fecha_vencimiento,fecha_pago,vencida
+1,2022-06-22,2022-06-19,false
+2,2022-07-22,2022-07-19,false
+3,2022-08-21,NULL,true
+4,2022-09-20,2022-11-11,false
+5,2022-10-20,NULL,true
+6,2022-11-19,2023-02-04,false
+paso dias: Días de atraso al corte
+`F.datediff(corte, fecha_vencimiento)` solo para las vencidas; las demás, 0.
+>>> tabla
+numero,fecha_vencimiento,dias
+1,2022-06-22,0
+2,2022-07-22,0
+3,2022-08-21,863
+4,2022-09-20,0
+5,2022-10-20,803
+6,2022-11-19,0
+paso agg: Una fila por préstamo
+`groupBy("prestamo_id")`: se **suman** las vencidas y se toma el **máximo** de días (la cuota más vieja manda).
+>>> tabla
+prestamo_id,cuotas_vencidas,dias_atraso
+51,2,863
+paso tramo: El tramo, y la cartera completa
+Más de 90 días → `90+`: se provisiona el 100 %. Hecho para **todos** los préstamos, la cartera queda así por tramo:
+>>> tabla
+tramo,prestamos
+al_dia,367
+31-60,1
+61-90,2
+90+,50
+```
+
 :::tip Fíjate en el diseño
 La regla de los tramos es **la misma** que la función `tramo(dias)` de Python. En un proyecto real, para no tener la regla escrita dos veces, se define una sola vez (por ejemplo, una tabla de parámetros con los límites, o una función que genera la expresión `F.when`) y se reutiliza. Si mañana el regulador cambia un límite, se cambia en un solo lugar.
 :::

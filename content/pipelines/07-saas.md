@@ -137,6 +137,53 @@ Crea `previo` con el mes **sumado en uno** (`F.add_months`): así el MRR de ener
 ```
 :::
 
+```recorrido
+titulo: Los movimientos de MRR de marzo de 2024, paso a paso
+estacion mrr: MRR por empresa | icono=tabla
+estacion ant: El mes anterior | icono=reloj
+estacion full: Join full | icono=capas
+estacion clasif: Clasificar | icono=reglas
+estacion res: Totales del mes | icono=dashboard
+paso mrr: El MRR de cada empresa en cada mes
+Se suman las facturas por empresa y mes. Ejemplo: una empresa de cada tipo de movimiento, en marzo de 2024.
+>>> tabla
+empresa_id,mes,mrr
+1,2024-03-01,149
+3,2024-03-01,49
+47,2024-03-01,499
+131,2024-03-01,0
+143,2024-03-01,149
+paso ant: Correr el mes anterior un mes hacia adelante
+`F.add_months("mes", 1)` sobre la copia: el MRR de **febrero** queda etiquetado como "marzo", listo para ponerlo al lado del MRR de marzo.
+>>> python
+previo = mrr.select("empresa_id",
+                    F.add_months("mes", 1).alias("mes"),
+                    F.col("mrr").alias("mrr_ant"))
+paso full: Unir con full outer join
+`full` conserva a las empresas que facturaron **solo** en uno de los dos meses: las nuevas (sin febrero) y las que se fueron (sin marzo). `fillna(0)` cambia los vacíos por 0.
+>>> tabla
+empresa_id,mrr_ant,mrr
+1,149,149
+3,0,49
+47,149,499
+131,49,0
+143,499,149
+paso clasif: Cada empresa, un movimiento
+Antes 0 y ahora más → nuevo. Antes algo y ahora 0 → churn. Subió → expansión. Bajó → contracción.
+>>> tabla
+empresa_id,mrr_ant,mrr,movimiento
+1,149,149,sin cambio
+3,0,49,nuevo
+47,149,499,expansion
+131,49,0,churn
+143,499,149,contraccion
+paso res: Los totales de marzo
+Sumando cada movimiento sobre **todas** las empresas se obtiene la fila de marzo del reporte. Es la que mira finanzas en el cierre de mes.
+>>> tabla
+mes,nuevo,expansion,contraccion,churn
+2024-03-01,3235,1050,1050,548
+```
+
 ## 4. dbt: la facturación mensual, incremental
 
 La tabla de facturación por empresa y mes crece todos los meses y nunca se modifican los meses cerrados. Recalcularla completa cada vez es un desperdicio: es el caso ideal para un modelo **incremental**.

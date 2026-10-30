@@ -140,6 +140,52 @@ resultado = (v.groupBy("ciudad", "hora")
 ```
 :::
 
+```recorrido
+titulo: Oferta y demanda por hora en Lima, paso a paso
+estacion viajes: Solicitudes | icono=tabla
+estacion hora: La hora | icono=reloj
+estacion agg: groupBy | icono=capas
+estacion cond: Promedio condicional | icono=reglas
+estacion res: Dónde falta oferta | icono=alerta
+paso viajes: Cada fila es una solicitud
+Algunas solicitudes de Lima en `viajes_viajes`. Cada una termina en un estado: `completado`, `cancelado_pasajero`, `cancelado_conductor` o `sin_conductor` (nadie la aceptó).
+>>> tabla
+viaje_id,fecha_hora_solicitud,multiplicador,estado
+3,2024-07-01 03:03:48,1,completado
+6,2024-07-01 06:17:21,1,completado
+24,2024-07-01 08:28:13,1.44,cancelado_pasajero
+39,2024-07-01 12:55:27,1.05,completado
+43,2024-07-01 13:47:46,1,completado
+49,2024-07-01 17:09:55,1.46,completado
+paso hora: Extraer la hora
+`F.hour("fecha_hora_solicitud")` da un entero de 0 a 23. Así se puede agrupar "todas las 8 de la mañana" juntas, de cualquier día.
+>>> tabla
+viaje_id,hora,estado
+3,3,completado
+6,6,completado
+24,8,cancelado_pasajero
+39,12,completado
+43,13,completado
+49,17,completado
+paso agg: Agrupar por ciudad y hora
+`groupBy("ciudad", "hora")` y contar solicitudes. El porcentaje sin conductor es el promedio de una marca 0/1 × 100.
+>>> python
+F.round(F.avg((F.col("estado") == "sin_conductor").cast("int")) * 100, 2)
+paso cond: El multiplicador, solo de los completados
+`F.avg(F.when(estado == "completado", multiplicador))`: el `when` sin `otherwise` deja `null` en los demás, y **`avg` ignora los null**. Así el promedio usa solo los viajes completados.
+>>> python
+F.round(F.avg(F.when(F.col("estado") == "completado", F.col("multiplicador"))), 2)
+paso res: Las 5 horas más difíciles de Lima
+Ordenado por porcentaje sin conductor. Donde falta oferta, el multiplicador promedio sube: es la tarifa dinámica funcionando.
+>>> tabla
+ciudad,hora,solicitudes,pct_sin_conductor,multiplicador_prom
+Lima,7,133,14.29,1.46
+Lima,17,145,11.03,1.37
+Lima,12,60,10,1.03
+Lima,19,118,9.32,1.41
+Lima,8,133,9.02,1.46
+```
+
 ## 4. dbt: conductores destacados
 
 Ruta tiene un programa de beneficios para conductores destacados: al menos **30 viajes completados** y calificación promedio de **4.4 o más** (solo cuentan los viajes calificados). El modelo alimenta el sistema de beneficios cada semana.

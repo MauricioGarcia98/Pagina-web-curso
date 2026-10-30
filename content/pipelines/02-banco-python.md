@@ -48,6 +48,47 @@ Para entender una fórmula financiera, lo mejor es hacer dos o tres filas a mano
 
 Fíjate que el interés baja y el capital sube mes a mes, con la misma cuota. Estas tres filas se convierten directamente en **tests**: si tu función de amortización no da 275,00 de interés en el mes 1, está mal, y lo sabes antes de que llegue a un reporte de riesgo.
 
+```recorrido
+titulo: La tabla de amortización del préstamo 1, mes a mes
+estacion dato: El préstamo | icono=base
+estacion cuota: La cuota | icono=engranaje
+estacion mes1: Mes 1 | icono=reloj
+estacion meses: Mes a mes | icono=flujo
+estacion fin: Último mes | icono=check
+paso dato: Los datos del préstamo
+El préstamo 1 de `banco_prestamos`: 11.000 al 30 % anual en 24 meses.
+>>> tabla
+prestamo_id,monto,tasa_anual,plazo_meses
+1,11000,0.3,24
+paso cuota: Se calcula la cuota fija
+Con r = 0,30 / 12 = 0,025 y n = 24, la fórmula da **615.04**. Esa cuota es la misma los 24 meses.
+>>> python
+P, r, n = 11000, 0.30 / 12, 24
+cuota = round(P * r / (1 - (1 + r) ** -n), 2)
+print(cuota)   # 615.04
+paso mes1: Mes 1: casi todo es interés
+Interés = saldo × r = 11.000 × 0,025. Lo que sobra de la cuota baja la deuda (capital).
+>>> tabla
+mes,interes,capital,saldo
+1,275.00,340.04,10659.96
+paso meses: Cada mes, menos interés y más capital
+Como el saldo baja, el interés baja, y una parte mayor de la misma cuota va a capital. Mira los meses 1, 2, 3, 12 y 13:
+>>> tabla
+mes,interes,capital,saldo
+1,275.00,340.04,10659.96
+2,266.50,348.54,10311.42
+3,257.79,357.25,9954.17
+12,168.88,446.16,6308.97
+13,157.72,457.32,5851.65
+paso fin: El último mes, el saldo llega a 0
+En el mes 24 casi toda la cuota es capital. Por el redondeo a centavos, la última cuota se ajusta para que el saldo quede **exactamente en 0**: un detalle que los tests deben cubrir.
+>>> tabla
+mes,interes,capital,saldo
+22,43.91,571.13,1185.47
+23,29.64,585.40,600.07
+24,15.00,600.07,0.00
+```
+
 ### Dinero y decimales: el detalle que separa a un junior de un senior
 
 Las computadoras guardan los números con decimales (`float`) en binario, y muchos valores no se pueden representar exactos. En Python, `0.1 + 0.2` da `0.30000000000000004`, y `round(2.675, 2)` da `2.67` (no `2.68`), porque `2.675` en realidad se guarda como 2,67499999…

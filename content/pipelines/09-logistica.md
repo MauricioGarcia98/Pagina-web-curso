@@ -139,6 +139,55 @@ Primero agrega por día (si no, la suma acumulada mostraría estados "a mitad de
 Si acumularas movimiento por movimiento, un día con una salida de 50 registrada **antes** que la entrada de 100 mostraría un stock negativo "a mitad del día" que en realidad no fue un quiebre (el orden de carga dentro del día no es el orden físico). Definir el **grano** (cierre diario) antes de calcular evita falsas alarmas. Es la misma lección de siempre: primero el grano, después la métrica.
 :::
 
+```recorrido
+titulo: El stock diario del SKU-006 en el almacén 3, paso a paso
+estacion mov: Movimientos | icono=archivo
+estacion neto: Neto del día | icono=capas
+estacion acum: Suma acumulada | icono=flujo
+estacion quiebre: Quiebre | icono=alerta
+estacion res: Resultado | icono=check
+paso mov: Entradas y salidas
+`logistica_movimientos` registra cada entrada (positiva), salida (negativa) o ajuste. No guarda el stock: hay que **calcularlo**.
+>>> tabla
+fecha,tipo,cantidad
+2024-02-09,salida,-21
+2024-02-10,salida,-11
+2024-02-13,salida,-29
+2024-02-14,salida,-17
+2024-02-15,entrada,215
+2024-02-16,salida,-7
+paso neto: Un número por día
+`groupBy("almacen_id", "sku", "fecha")` + `sum("cantidad")`: el movimiento neto de cada día.
+>>> tabla
+fecha,neto
+2024-02-09,-21
+2024-02-10,-11
+2024-02-13,-29
+2024-02-14,-17
+2024-02-15,215
+2024-02-16,-7
+paso acum: El stock es la suma acumulada
+Una ventana desde el primer día hasta el actual (`rowsBetween(unboundedPreceding, currentRow)`): el stock al cierre de cada día es la suma de todos los netos hasta ese día.
+>>> tabla
+fecha,neto,stock
+2024-02-09,-21,44
+2024-02-10,-11,33
+2024-02-13,-29,4
+2024-02-14,-17,-13
+2024-02-15,215,202
+2024-02-16,-7,195
+paso quiebre: Un día en negativo
+El 14/02 el stock calculado queda en **−13**: se despachó más de lo que había. En la realidad significa pedidos que no se pudieron cumplir (o un movimiento mal registrado). Al día siguiente entró mercadería.
+>>> tabla
+fecha,stock
+2024-02-14,-13
+paso res: Una fila por almacén y SKU
+Se cuentan los días con stock negativo y se toma el stock del último día del año.
+>>> tabla
+almacen_id,sku,dias_quiebre,stock_final
+3,SKU-006,1,169
+```
+
 ## 4. dbt: puntualidad mensual por transportista
 
 Compras renegocia los contratos con los transportistas cada trimestre, con datos de cumplimiento. El modelo calcula, por transportista y mes de despacho, la entrega a tiempo (**OTD**, *on-time delivery*) y el costo por envío exitoso.

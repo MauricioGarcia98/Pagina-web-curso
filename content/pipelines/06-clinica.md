@@ -124,6 +124,43 @@ Calcula en el `agg` una columna auxiliar con el denominador (atendidos + ausente
 ```
 :::
 
+```recorrido
+titulo: El historial de un paciente, paso a paso
+estacion turnos: Turnos | icono=reloj
+estacion cuentas: Contar por estado | icono=capas
+estacion tasa: Tasa | icono=engranaje
+estacion ult: Última visita | icono=lupa
+estacion res: Reincidente | icono=alerta
+paso turnos: Los turnos del paciente 31
+Cinco turnos en `clinica_turnos`: tres atendidos y dos en los que no vino.
+>>> tabla
+turno_id,fecha_hora,estado
+2009,2024-04-03 15:00:00,atendido
+2483,2024-04-24 17:00:00,atendido
+2777,2024-05-07 15:30:00,ausente
+6015,2024-10-08 12:00:00,atendido
+7084,2024-11-28 17:00:00,ausente
+paso cuentas: Contar con sumas de marcas
+`F.sum((estado == "ausente").cast("int"))` cuenta ausencias. La **base** de la tasa son solo los turnos atendidos o ausentes: un turno **cancelado** con anticipación no es una ausencia.
+>>> tabla
+paciente_id,turnos,ausencias,base
+31,5,2,5
+paso tasa: La tasa de ausentismo
+2 ausencias / 5 turnos con resultado × 100 = **40 %**. El `F.when(base > 0, base)` evita dividir por cero: si no hay base, la tasa queda `null`.
+>>> python
+F.round(F.col("ausencias") * 100 / F.when(F.col("base") > 0, F.col("base")), 2)
+paso ult: La última visita real
+`F.max(F.when(estado == "atendido", fecha_hora))`: el máximo solo entre los atendidos. El turno del 28/11 fue una ausencia, así que no cuenta.
+>>> tabla
+ultima_visita
+2024-10-08 12:00:00
+paso res: La fila del paciente
+Con 2 o más ausencias, es **reincidente**: la clínica le mandará un recordatorio extra antes de cada turno.
+>>> tabla
+paciente_id,turnos,ausencias,tasa_ausentismo,ultima_visita,reincidente
+31,5,2,40,2024-10-08 12:00:00,true
+```
+
 ## 4. dbt: facturación mensual por cobertura
 
 Finanzas negocia cada año con las prepagas y obras sociales. Necesita, por mes y cobertura, cuánto se facturó, cuánto pagó la cobertura y cuánto el paciente (copago).
