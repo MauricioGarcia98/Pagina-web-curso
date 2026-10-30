@@ -66,6 +66,40 @@ Los grupos siguen los servicios de Azure (`group`, `storage`, `keyvault`, `datab
 
 Todas las respuestas son **JSON**. Con `--output table` (o `-o table`) se ven como tabla, y con `--query` se filtran (lección siguiente).
 
+```recorrido
+titulo: Antes del primer comando: ¿en qué suscripción estoy?
+estacion login: az login | icono=usuario
+estacion lista: Suscripciones | icono=capas
+estacion set: az account set | icono=etiqueta
+estacion show: Verificar | icono=lupa
+estacion cmd: Trabajar | icono=check
+paso login: Iniciar sesión
+`az login` abre el navegador para que entres con tu cuenta. Al volver, la CLI guarda un token y ya puede hablar con Azure en tu nombre.
+>>> bash
+az login
+paso lista: Tu cuenta puede ver varias suscripciones
+Una **suscripción** es la "cuenta de facturación" donde viven los recursos. Es común tener una de desarrollo y otra de producción (identificadores de ejemplo).
+>>> log
+$ az account list --output table
+Name            IsDefault  State    Id
+--------------  ---------  -------  ------------------------------------
+sub-datos-dev   true       Enabled  1111aaaa-1111-4111-8111-111111111111
+sub-datos-prod  false      Enabled  2222bbbb-2222-4222-8222-222222222222
+paso set: Elegir con cuál trabajar
+Todos los comandos siguientes usan la suscripción activa. Cambiarla es un comando, y olvidarlo es el error más caro: crear (o borrar) cosas en producción.
+>>> bash
+az account set --subscription sub-datos-dev
+paso show: Confirmar antes de actuar
+`--query name -o tsv` deja solo el nombre: rápido de leer y fácil de usar en un script que se niegue a seguir si no es la suscripción esperada.
+>>> log
+$ az account show --query name -o tsv
+sub-datos-dev
+paso cmd: Ahora sí, a trabajar
+Los comandos siguen siempre la misma forma: `az <grupo> <subgrupo> <acción> --parámetros`.
+>>> bash
+az group create --name rg-datos-dev --location eastus2
+```
+
 ## Ayuda y descubrimiento
 
 No hace falta memorizar parámetros:

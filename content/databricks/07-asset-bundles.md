@@ -116,6 +116,59 @@ databricks bundle deploy -t prod                # (normalmente desde CI)
 databricks bundle destroy -t dev                # borra lo desplegado en dev
 ```
 
+```recorrido
+titulo: El ciclo de un bundle: de la carpeta local al job desplegado
+estacion init: init | icono=archivo
+estacion valid: validate | icono=prueba
+estacion deploy: deploy | icono=transformar
+estacion summary: summary | icono=lupa
+estacion run: run | icono=check
+paso init: Crear el proyecto desde una plantilla
+`bundle init default-python` arma la carpeta con `databricks.yml` (la configuración), `resources/` (jobs y pipelines en YAML) y `src/` (el código).
+>>> log
+$ databricks bundle init default-python
+Unique name for this project [my_project]: mi_proyecto
+✨ Your new project has been created in the 'mi_proyecto' directory!
+
+$ cd mi_proyecto && ls
+README.md  databricks.yml  resources/  src/
+paso valid: validate: revisar sin desplegar
+Lee la configuración, resuelve el target (dev por defecto) y avisa si algo está mal escrito. Fíjate en el **Path**: en modo development, cada persona despliega en su propia carpeta.
+>>> log
+$ databricks bundle validate
+Name: mi_proyecto
+Target: dev
+Workspace:
+  Host: https://adb-1234567890123456.7.azuredatabricks.net
+  User: alumno@academia.dev
+  Path: /Workspace/Users/alumno@academia.dev/.bundle/mi_proyecto/dev
+
+Validation OK!
+paso deploy: deploy: subir código y crear recursos
+Sube los archivos y crea (o actualiza) el job en el workspace. Ejecutarlo de nuevo actualiza lo mismo, no duplica.
+>>> log
+$ databricks bundle deploy -t dev
+Uploading bundle files to /Workspace/Users/alumno@academia.dev/.bundle/mi_proyecto/dev/files...
+Deploying resources...
+Updating deployment state...
+Deployment complete!
+paso summary: summary: qué quedó desplegado
+En dev, el nombre del job lleva el prefijo `[dev alumno]`: así no se confunde con el de producción ni con el de un compañero.
+>>> log
+$ databricks bundle summary -t dev
+Resources:
+  Jobs:
+    mi_proyecto_job:
+      Name: [dev alumno] mi_proyecto_job
+      URL:  https://adb-1234567890123456.7.azuredatabricks.net/#job/851495
+paso run: run, y después prod desde CI
+`bundle run` ejecuta el job y muestra el progreso. Para producción no se despliega a mano: el pipeline de CI ejecuta `deploy -t prod` cuando se aprueba un pull request.
+>>> bash
+databricks bundle run -t dev mi_proyecto_job
+# en CI, al hacer merge:
+databricks bundle deploy -t prod
+```
+
 ## CI/CD con GitHub Actions
 
 ```yaml norun

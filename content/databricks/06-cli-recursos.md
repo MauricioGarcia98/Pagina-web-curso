@@ -51,6 +51,46 @@ databricks clusters create --json @cluster.json
 databricks clusters spark-versions                      # versiones de Databricks Runtime disponibles
 ```
 
+```recorrido
+titulo: La vida de un cluster desde la CLI
+estacion lista: Listar | icono=lupa
+estacion start: start | icono=chispa
+estacion get: get | icono=servidor
+estacion delete: delete | icono=reloj
+estacion perm: permanent-delete | icono=x
+paso lista: Los clusters del workspace
+Cada cluster tiene un **ID** (lo usan los comandos) y un nombre (lo usan las personas).
+>>> log
+$ databricks clusters list
+ID                    Name                  State
+--------------------  --------------------  ----------
+0123-456789-abcdef12  dev-ana               TERMINATED
+0456-111111-zzzz9999  compartido-analistas  RUNNING
+paso start: Encender
+`start` lo pasa a `PENDING` (pidiendo máquinas a la nube) y después a `RUNNING`. Desde ahí, **se cobra**.
+>>> bash
+databricks clusters start 0123-456789-abcdef12
+paso get: Ver su configuración
+`get` muestra versión de runtime, tipo de máquina, cantidad de workers y la autoterminación: se apaga solo tras 30 minutos sin uso.
+>>> json
+{
+  "cluster_id": "0123-456789-abcdef12",
+  "cluster_name": "dev-ana",
+  "state": "RUNNING",
+  "node_type_id": "Standard_D4ds_v5",
+  "num_workers": 2,
+  "autotermination_minutes": 30
+}
+paso delete: "delete" en realidad apaga
+Un nombre engañoso: `clusters delete` lo **termina** (`TERMINATED`). La configuración se conserva y se puede volver a encender con `start`.
+>>> bash
+databricks clusters delete 0123-456789-abcdef12   # → TERMINATED
+paso perm: permanent-delete sí lo borra
+Este sí elimina el cluster y su configuración: no hay vuelta atrás. Antes de usarlo, verifica el ID dos veces.
+>>> bash
+databricks clusters permanent-delete 0123-456789-abcdef12
+```
+
 ## Jobs
 
 ```bash norun

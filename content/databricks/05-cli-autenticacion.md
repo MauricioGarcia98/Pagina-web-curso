@@ -80,6 +80,45 @@ Consecuencia práctica, que la documentación pone como ejemplo: si tienes una v
 
 Un **token personal** (PAT) es como una contraseña que no vence (o vence en meses): si alguien lo copia de un archivo o de un repositorio, tiene acceso a todo lo que tú tienes. **OAuth** emite credenciales de **corta duración** (los tokens de OAuth vencen en menos de una hora) que la CLI renueva sola y se pueden revocar centralmente. Por eso la recomendación actual es `databricks auth login` para personas y *service principals* con OAuth M2M para automatizaciones.
 
+```recorrido
+titulo: Qué pasa cuando ejecutas databricks auth login
+estacion cmd: El comando | icono=terminal
+estacion nav: Navegador | icono=usuario
+estacion perfil: Perfil guardado | icono=archivo
+estacion prof: auth profiles | icono=lupa
+estacion me: current-user me | icono=check
+paso cmd: Le dices a qué workspace conectarte
+`--host` es la dirección de tu workspace (la que ves en el navegador al entrar a Databricks).
+>>> bash
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+paso nav: Inicias sesión en el navegador (OAuth)
+La CLI abre el navegador; entras con tu usuario y aceptas. La CLI recibe un **token temporal** que se renueva solo. No copias ni guardas ninguna contraseña.
+>>> log
+Opening https://adb-1234567890123456.7.azuredatabricks.net/oidc/v1/authorize in the browser
+Profile DEFAULT was successfully saved
+paso perfil: Se guarda un perfil
+En `~/.databrickscfg` queda el perfil con el host y el tipo de autenticación. El token **no** queda en ese archivo: va a una caché aparte.
+>>> texto
+[DEFAULT]
+host      = https://adb-1234567890123456.7.azuredatabricks.net
+auth_type = databricks-cli
+paso prof: Verificar los perfiles
+Con varios workspaces (dev y prod) tendrás varios perfiles; `-p prod` elige cuál usar en cada comando.
+>>> log
+$ databricks auth profiles
+Name     Host                                                 Valid
+DEFAULT  https://adb-1234567890123456.7.azuredatabricks.net   YES
+paso me: ¿Quién soy?
+Todos los comandos se ejecutan **con tus permisos**. `current-user me` confirma con qué usuario y en qué grupos estás.
+>>> json
+{
+  "userName": "alumno@academia.dev",
+  "displayName": "Alumno Academia",
+  "active": true,
+  "groups": [{"display": "users"}, {"display": "ingenieros-datos"}]
+}
+```
+
 ## Pruébalo en la terminal
 
 ```bash

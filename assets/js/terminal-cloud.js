@@ -373,6 +373,7 @@
       const f = A.get('--template-file', '-f');
       if (!f || f === true) return fail('the following arguments are required: --template-file/-f', 2);
       if (!Sh.exists(Sh.norm(f))) return fail(`unrecognized template file: no existe ${f} (crea uno con: code ${f})`);
+      A.ubicacionRg = azLoc(A, s, rg);
       const plantilla = leerBicep(Sh.readFile(Sh.norm(f)), A);
       if (plantilla.error) return fail(plantilla.error);
       const enPlantilla = new Set(plantilla.recursos.map((r) => r.id));
@@ -411,7 +412,8 @@
   // Bicep mínimo: param con valor por defecto, --parameters k=v, recursos con name: '...${param}...'
   function leerBicep(src, A) {
     const params = {};
-    for (const m of src.matchAll(/^\s*param\s+(\w+)\s+\w+(?:\s*=\s*'([^']*)')?/gm)) params[m[1]] = m[2] ?? null;
+    // el valor por defecto puede ser un texto ('dev') o una expresión (resourceGroup().location)
+    for (const m of src.matchAll(/^\s*param\s+(\w+)\s+\w+(?:\s*=\s*(?:'([^']*)'|([^\s/]+)))?/gm)) params[m[1]] = m[2] ?? (m[3] ? (/^resourceGroup\(\)\.location$/.test(m[3]) ? (A.ubicacionRg || 'eastus2') : m[3]) : null);
     const extra = A.get('--parameters', '-p');
     if (extra && extra !== true) for (const kv of String(extra).split(/\s+/)) { const [k, v] = kv.split('='); if (k && v !== undefined) params[k] = v; }
     const faltan = Object.entries(params).filter(([, v]) => v === null).map(([k]) => k);

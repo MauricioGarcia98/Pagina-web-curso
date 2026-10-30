@@ -62,6 +62,41 @@ aws firehose create-delivery-stream --delivery-stream-name tx-a-s3 \
   --extended-s3-destination-configuration file://destino-s3.json
 ```
 
+```recorrido
+titulo: El viaje de un evento: de la app al lago en minutos
+estacion app: App | icono=usuario
+estacion put: put-record | icono=api
+estacion shard: Shard | icono=capas
+estacion fh: Firehose | icono=flujo
+estacion s3: S3 | icono=base
+paso app: Ocurre una transacción
+El sistema del banco produce un evento por cada movimiento: un JSON chico.
+>>> json
+{"cuenta_id": 1042, "monto": 350.0}
+paso put: Se escribe en el stream
+`put-record` lo manda a Kinesis con una **clave de partición** (`cuenta-1042`). Kinesis responde en milisegundos con el shard y un número de secuencia.
+>>> json
+{
+  "ShardId": "shardId-000000000000",
+  "SequenceNumber": "179339415525150127"
+}
+paso shard: Misma clave, mismo shard, en orden
+Kinesis aplica un hash a la clave para elegir el shard. Todos los eventos de la cuenta 1042 caen en el **mismo** shard y se leen **en el orden** en que llegaron: clave para detectar fraude por secuencia.
+>>> texto
+cuenta-1042 → shardId-000000000000  secuencia …150127  monto 350.0
+cuenta-1042 → shardId-000000000000  secuencia …1708509 monto 12.5
+(los eventos se guardan 24 h por defecto)
+paso fh: Firehose junta y entrega
+Firehose lee el stream y **acumula** eventos hasta un tamaño o un tiempo (por ejemplo, 5 MB o 60 segundos). Escribir un archivo por evento sería lento y caro.
+>>> texto
+buffer: 5 MB o 60 s (lo que pase primero)
+→ un archivo con muchos eventos
+paso s3: El lago recibe archivos cada minuto
+Los archivos quedan en S3 con un prefijo por fecha y hora. Desde ahí, Athena o Glue los consultan como cualquier otra tabla.
+>>> log
+s3://lake-banco-dev/bronze/transacciones/2024/12/31/10/tx-a-s3-1-2024-12-31-10-01-00-…
+```
+
 ## Lambda: código que reacciona a eventos
 
 Una **función Lambda** es un pedazo de código (Python, por ejemplo) que AWS ejecuta **cuando pasa algo**: llega un archivo a S3, entra un lote de registros a Kinesis, se cumple un horario de EventBridge, alguien llama a una API. Escala sola, cobra por milisegundo y tiene un límite de **15 minutos** por ejecución.

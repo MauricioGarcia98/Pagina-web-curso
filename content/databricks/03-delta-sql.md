@@ -34,6 +34,46 @@ Cada operación (`INSERT`, `UPDATE`, `MERGE`, `DELETE`) **no modifica** los arch
 
 Apache **Iceberg** y **Hudi** funcionan con la misma idea (metadatos + archivos Parquet). Hoy Databricks puede leer y escribir también Iceberg (UniForm), así que los conceptos se transfieren.
 
+```recorrido
+titulo: El _delta_log, operación por operación
+estacion v0: CREATE | icono=archivo
+estacion v1: INSERT | icono=capas
+estacion v2: UPDATE | icono=transformar
+estacion tt: Time travel | icono=reloj
+estacion vac: VACUUM | icono=x
+paso v0: Versión 0: se crea la tabla
+La escritura deja dos archivos Parquet y el primer archivo del log, que dice "la tabla son estos dos archivos" (nombres simplificados).
+>>> texto
+_delta_log/00000000000000000000.json
+  add  part-a1b2.parquet   (clientes 1 a 500)
+  add  part-c3d4.parquet   (clientes 501 a 1000)
+paso v1: Versión 1: un INSERT
+No se toca ningún archivo existente: se escribe uno nuevo y el log suma una entrada.
+>>> texto
+_delta_log/00000000000000000001.json
+  add  part-e5f6.parquet   (clientes 1001 a 1200)
+paso v2: Versión 2: un UPDATE
+Cambia el email de un cliente que está en `c3d4`. Delta **reescribe ese archivo entero** en uno nuevo y anota: quitar el viejo, agregar el nuevo. El archivo viejo sigue en disco.
+>>> texto
+_delta_log/00000000000000000002.json
+  remove part-c3d4.parquet
+  add    part-g7h8.parquet   (clientes 501 a 1000, con el cambio)
+
+Tabla actual = a1b2 + e5f6 + g7h8
+paso tt: Leer una versión anterior
+Como el log describe cada versión y los archivos viejos siguen ahí, se puede consultar la tabla "como era". `DESCRIBE HISTORY` muestra las versiones (resumido).
+>>> tabla
+version,operation
+2,UPDATE
+1,WRITE
+0,CREATE TABLE AS SELECT
+paso vac: VACUUM borra lo que ya no se usa
+`VACUUM` borra del disco los archivos que la versión actual ya no usa y que dejaron de usarse hace más que la retención (7 días por defecto). Después de eso, ya no se puede viajar a las versiones que los usaban.
+>>> sql
+SELECT * FROM main.silver.clientes VERSION AS OF 1;   -- antes del UPDATE
+VACUUM main.silver.clientes;                          -- libera part-c3d4 pasada la retención
+```
+
 ## Crear tablas
 
 ```sql norun

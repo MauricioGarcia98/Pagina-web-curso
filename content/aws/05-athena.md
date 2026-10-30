@@ -55,6 +55,42 @@ TBLPROPERTIES (
 ```
 :::
 
+```recorrido
+titulo: La vida de una consulta de Athena
+estacion start: Enviar | icono=terminal
+estacion cat: Catálogo | icono=libro
+estacion scan: Leer S3 | icono=base
+estacion estado: Estado | icono=reloj
+estacion res: Resultado | icono=check
+paso start: Envías la consulta
+`start-query-execution` **no espera** el resultado: devuelve enseguida un identificador. La consulta corre en segundo plano.
+>>> json
+{
+  "QueryExecutionId": "f7657850-a4cf-42e7-4c44-aa498f1a9fd5"
+}
+paso cat: Athena busca la tabla en el catálogo
+`lake_bronze.ventas` es una entrada del Glue Data Catalog: ahí Athena encuentra las columnas y la ubicación en S3.
+>>> texto
+lake_bronze.ventas → s3://lake-tienda-dev/bronze/ventas/
+columnas: venta_id, fecha, producto, monto
+paso scan: Lee los archivos y cobra por lo leído
+Athena lee los archivos de esa ruta. **Cobra por bytes escaneados**: por eso convienen Parquet (lee solo las columnas pedidas) y particiones (lee solo las fechas pedidas).
+>>> texto
+CSV, sin particiones   → lee el archivo entero
+Parquet + fecha=…     → lee 1 columna de 1 partición
+paso estado: Preguntar si terminó
+Se consulta el estado con el identificador: `QUEUED` → `RUNNING` → `SUCCEEDED` (o `FAILED`).
+>>> log
+$ aws athena get-query-execution --query-execution-id $QID \
+    --query "QueryExecution.Status.State"
+"SUCCEEDED"
+paso res: Leer el resultado
+El resultado queda guardado como CSV en la `OutputLocation` y se lee con `get-query-results` (salida resumida).
+>>> tabla
+n
+3
+```
+
 ## CTAS: convertir CSV a Parquet con una consulta
 
 `CREATE TABLE AS SELECT` (CTAS) escribe el resultado como archivos nuevos en S3. Es la forma más simple de pasar de bronze (CSV) a silver (Parquet particionado) **sin Spark**:

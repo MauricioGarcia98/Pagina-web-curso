@@ -141,6 +141,64 @@ az deployment group what-if -g rg-datos-dev -f main.bicep -p entorno=dev
 
 El primer `what-if` muestra `+ Create`; después del `create`, el segundo muestra `= NoChange`. Cambia `Standard_LRS` por `Standard_ZRS` y vuelve a correrlo: verás `~ Modify`. Agrega un segundo recurso, despliégalo, bórralo del archivo y mira cómo aparece como `* Ignore`; después repite con `az stack group create ... --action-on-unmanage deleteResources` y verás que el stack sí lo borra.
 
+```recorrido
+titulo: Bicep: previsualizar, desplegar y volver a desplegar
+estacion bicep: main.bicep | icono=codigo
+estacion wi1: what-if | icono=lupa
+estacion create: create | icono=transformar
+estacion wi2: what-if otra vez | icono=check
+estacion prod: Otro parámetro | icono=etiqueta
+paso bicep: El archivo describe lo que quieres
+Una cuenta de almacenamiento cuyo nombre depende del parámetro `entorno`. No dice **cómo** crearla: dice **cómo debe quedar**.
+>>> texto
+param entorno string
+param ubicacion string = resourceGroup().location
+
+resource lake 'Microsoft.Storage/storageAccounts@2025-06-01' = {
+  name: 'stdatos${entorno}001'
+  …
+}
+paso wi1: what-if: qué cambiaría
+Compara el archivo con lo que hay en Azure **sin tocar nada**. `+` significa que se va a crear.
+>>> log
+$ az deployment group what-if -g rg-datos-dev -f main.bicep -p entorno=dev
+Resource and property changes are indicated with these symbols:
+  + Create
+  = NoChange
+  * Ignore
+
+Scope: /subscriptions/1111aaaa-1111-4111-8111-111111111111/resourceGroups/rg-datos-dev
+
+  + Microsoft.Storage/storageAccounts/stdatosdev001
+
+Resource changes: 1 to create, 0 to modify, 0 no change, 0 to ignore.
+paso create: Desplegar
+`create` aplica el archivo. Azure Resource Manager crea la cuenta y registra el despliegue en el grupo.
+>>> bash
+az deployment group create -g rg-datos-dev -f main.bicep -p entorno=dev -o none
+paso wi2: Repetir no cambia nada
+El mismo what-if ahora muestra `=` (sin cambios). Desplegar dos veces deja lo mismo: el despliegue es **idempotente**, por eso se puede correr en cada push.
+>>> log
+Resource and property changes are indicated with these symbols:
+  + Create
+  = NoChange
+  * Ignore
+
+Scope: /subscriptions/1111aaaa-1111-4111-8111-111111111111/resourceGroups/rg-datos-dev
+
+  = Microsoft.Storage/storageAccounts/stdatosdev001
+
+Resource changes: 0 to create, 0 to modify, 1 no change, 0 to ignore.
+paso prod: Mismo archivo, otro entorno
+Con `entorno=prod` el nombre cambia, así que se crearía otra cuenta. La de dev queda con `*` (*Ignore*): en el modo incremental, lo que no está en el archivo no se toca. En la práctica, prod va en su propio grupo de recursos (o suscripción).
+>>> log
+$ az deployment group what-if -g rg-datos-dev -f main.bicep -p entorno=prod
+  + Microsoft.Storage/storageAccounts/stdatosprod001
+  * Microsoft.Storage/storageAccounts/stdatosdev001
+
+Resource changes: 1 to create, 0 to modify, 0 no change, 1 to ignore.
+```
+
 ## CI/CD con GitHub Actions (OIDC, sin secretos)
 
 En un equipo, nadie despliega producción desde su computadora: lo hace un **pipeline** de CI/CD cuando se aprueba un *pull request*. Para que GitHub Actions pueda entrar a Azure sin guardar una contraseña, se usa **OpenID Connect (OIDC)**:

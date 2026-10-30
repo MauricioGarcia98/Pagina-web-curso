@@ -104,7 +104,7 @@ config {
 
 SELECT DATE_TRUNC(fecha, MONTH) AS mes, SUM(precio_mensual) AS mrr
 FROM ${ref("stg_suscripciones")}
-${when(incremental(), `WHERE fecha > (SELECT MAX(mes) FROM ${self()})`)}
+${when(incremental(), `WHERE fecha >= (SELECT MAX(mes) FROM ${self()})`)}
 GROUP BY 1
 ```
 
@@ -120,6 +120,51 @@ GROUP BY 1
 :::tip dbt también funciona perfecto en BigQuery
 Si ya sabes dbt (lo viste en su módulo), `dbt-bigquery` es igual de válido. Dataform tiene la ventaja de estar integrado en la consola de BigQuery sin infraestructura extra; dbt tiene un ecosistema y una comunidad más grandes.
 :::
+
+```recorrido
+titulo: Un modelo incremental de Dataform en dos ejecuciones
+estacion src: stg_suscripciones | icono=tabla
+estacion run1: Primera ejecución | icono=chispa
+estacion run2: Ejecución siguiente | icono=reloj
+estacion assert: Assertions | icono=prueba
+estacion res: Resultado | icono=check
+paso src: La tabla de origen
+`stg_suscripciones` tiene una fila por suscripción y día (números de ejemplo). Las dos últimas filas llegan **después** de la primera ejecución.
+>>> tabla
+fecha,precio_mensual,llega
+2024-10-05,9.99,antes
+2024-10-20,4.99,antes
+2024-11-03,9.99,antes
+2024-11-15,9.99,antes
+2024-12-02,9.99,después
+2024-12-10,14.98,después
+paso run1: Primera ejecución: tabla completa
+La tabla `ingresos_mensuales` todavía no existe, así que `incremental()` es **falso**: se ignora el `WHERE` y se calcula todo.
+>>> tabla
+mes,mrr
+2024-10-01,14.98
+2024-11-01,19.98
+paso run2: Al mes siguiente: solo lo nuevo
+Llegaron filas de diciembre. Ahora la tabla existe: `incremental()` es **verdadero** y se agrega `WHERE fecha >= (SELECT MAX(mes) FROM ${self()})`: se recalcula el último mes guardado (noviembre, por si recibió filas nuevas) y se agrega diciembre. Por `uniqueKey: ["mes"]`, noviembre se **reemplaza** en vez de duplicarse.
+>>> sql
+SELECT DATE_TRUNC(fecha, MONTH) AS mes, SUM(precio_mensual) AS mrr
+FROM stg_suscripciones
+WHERE fecha >= (SELECT MAX(mes) FROM streaming_gold.ingresos_mensuales)
+GROUP BY 1
+paso assert: Las assertions se ejecutan después
+`nonNull` y `uniqueKey` generan consultas que buscan filas que **rompen** la regla. Si encuentran alguna, la ejecución queda marcada como fallida, igual que un test de dbt.
+>>> log
+ingresos_mensuales                      OK
+assertion nonNull (mes, mrr)            OK
+assertion uniqueKey (mes)               OK
+paso res: La tabla, al día
+Diciembre se agregó y solo se recalculó noviembre, no toda la historia. Con tablas grandes, eso ahorra tiempo y bytes leídos.
+>>> tabla
+mes,mrr
+2024-10-01,14.98
+2024-11-01,19.98
+2024-12-01,24.97
+```
 
 ## Workflows y Scheduler
 

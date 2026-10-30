@@ -76,6 +76,43 @@ aws s3 ls s3://lake-tienda-dev/bronze/
 aws s3 ls s3://lake-tienda-dev --recursive --summarize
 ```
 
+```recorrido
+titulo: De un archivo en tu computadora al lago particionado
+estacion local: Archivo local | icono=archivo
+estacion mb: Bucket | icono=base
+estacion cp: aws s3 cp | icono=transformar
+estacion pre: Prefijos | icono=capas
+estacion ls: Verificar | icono=check
+paso local: Dos archivos de pedidos
+Cada día el sistema de la tienda deja un CSV. Queremos guardarlos en la capa **bronze** del lago, uno por fecha.
+>>> csv
+pedido_id,cliente_id,total
+2,11,120
+3,12,45
+paso mb: Crear el bucket
+Un bucket es el "disco" del lago. Su nombre es **único en todo AWS** (no solo en tu cuenta).
+>>> log
+$ aws s3 mb s3://lake-tienda-dev
+make_bucket: lake-tienda-dev
+paso cp: Subir a una ruta con la fecha
+S3 no tiene carpetas: la "ruta" es parte del nombre del objeto (la **clave**). Poner `fecha=AAAA-MM-DD/` en la clave es la convención Hive que entienden Glue, Athena y Spark.
+>>> log
+$ aws s3 cp pedidos_2024-12-31.csv s3://lake-tienda-dev/bronze/pedidos/fecha=2024-12-31/
+upload: pedidos_2024-12-31.csv to s3://lake-tienda-dev/bronze/pedidos/fecha=2024-12-31/pedidos_2024-12-31.csv
+paso pre: ls muestra los prefijos como carpetas
+`PRE` significa *prefix*: la consola y la CLI agrupan las claves que comparten un prefijo para que **parezcan** carpetas.
+>>> log
+$ aws s3 ls s3://lake-tienda-dev/bronze/pedidos/
+                           PRE fecha=2024-12-30/
+                           PRE fecha=2024-12-31/
+paso ls: --recursive: las claves completas
+Así se ve lo que S3 guarda de verdad: una lista plana de objetos, con fecha, tamaño en bytes y clave. Una consulta que filtre por `fecha` solo lee las particiones necesarias.
+>>> log
+$ aws s3 ls s3://lake-tienda-dev/ --recursive
+2026-10-30 21:01:49    37 bronze/pedidos/fecha=2024-12-30/pedidos_2024-12-30.csv
+2026-10-30 21:01:49    44 bronze/pedidos/fecha=2024-12-31/pedidos_2024-12-31.csv
+```
+
 ## La API de bajo nivel: `aws s3api`
 
 `aws s3` son atajos amigables. `aws s3api` expone cada operación de la API, con salida JSON y `--query`:

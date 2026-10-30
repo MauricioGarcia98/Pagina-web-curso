@@ -119,6 +119,48 @@ En `run-now` vas a ver las tareas en el orden del DAG: bronze, silver y después
 
 Prueba también romperlo a propósito: cambia en `job.json` la dependencia de `gold_ventas` a `"silverr"` y vuelve a ejecutar `databricks jobs create --json @job.json`. Databricks rechaza el job porque la tarea de la que depende no existe.
 
+```recorrido
+titulo: Una ejecución del job de cuatro tareas, y el reproceso de un día
+estacion crear: Crear | icono=codigo
+estacion run: run-now | icono=chispa
+estacion dag: El DAG | icono=flujo
+estacion param: Otro día | icono=reloj
+estacion hist: Historial | icono=check
+paso crear: El job, definido en JSON
+Cuatro tareas: `silver` depende de `bronze`, y las dos `gold` dependen de `silver`. El parámetro `fecha` vale `2024-12-31` por defecto.
+>>> log
+$ databricks jobs create --json @job.json
+{
+  "job_id": 528541
+}
+paso run: run-now: arranca la ejecución
+Cada ejecución tiene su **run_id** y su URL para seguirla en la interfaz.
+>>> log
+$ databricks jobs run-now $JOB
+Run URL: …#job/528541/run/610731061
+"lakehouse_diario" RUNNING
+parámetros: {"fecha":"2024-12-31"}
+paso dag: Las tareas, en el orden del DAG
+`bronze` → `silver` → las dos `gold`, que pueden correr **en paralelo** porque no dependen entre sí. Si `silver` fallara, las gold no se ejecutarían.
+>>> log
+tarea bronze: SUCCESS
+tarea silver (después de bronze): SUCCESS
+tarea gold_ventas (después de silver): SUCCESS
+tarea gold_clientes (después de silver): SUCCESS
+"lakehouse_diario" TERMINATED SUCCESS
+paso param: Reprocesar el 30 de diciembre
+Mismo job, otro valor del parámetro. No se cambia el código: el notebook lee la fecha con su widget.
+>>> bash
+databricks jobs run-now $JOB --json '{"job_parameters": {"fecha": "2024-12-30"}}'
+paso hist: El historial guarda las dos
+Cada ejecución queda registrada con su estado y sus parámetros: es la respuesta a "¿qué corrió, cuándo y con qué?".
+>>> json
+[
+  {"run_id": 795095879, "state": {"result_state": "SUCCESS"}, "fecha": "2024-12-30"},
+  {"run_id": 610731061, "state": {"result_state": "SUCCESS"}, "fecha": "2024-12-31"}
+]
+```
+
 ## ¿Airflow o Lakeflow Jobs (antes Databricks Workflows)?
 
 | Si… | Usa |

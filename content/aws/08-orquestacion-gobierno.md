@@ -67,6 +67,43 @@ aws stepfunctions start-execution \
   --input '{"fecha": "2024-12-31"}'
 ```
 
+```recorrido
+titulo: Una ejecución de la máquina de estados, con un error en el camino
+estacion inicio: start-execution | icono=terminal
+estacion silver: SilverTransacciones | icono=chispa
+estacion retry: Retry | icono=reloj
+estacion gold: GoldFraude | icono=dashboard
+estacion catch: Catch | icono=alerta
+paso inicio: Arranca con un input
+La ejecución recibe `{"fecha": "2024-12-31"}`. Ese JSON viaja de estado en estado: así el job sabe qué día procesar.
+>>> json
+{
+  "executionArn": "arn:aws:states:us-east-1:123456789012:execution:pipeline-banco:58c4a024",
+  "startDate": "2026-10-30T21:02:35Z"
+}
+paso silver: Primer estado: el job de Glue
+`glue:startJobRun.sync` lanza el job y **espera** a que termine. `"--fecha.$": "$.fecha"` toma la fecha del input.
+>>> log
+SilverTransacciones  TaskStateEntered
+SilverTransacciones  TaskFailed   (Glue: ConcurrentRunsExceededException)
+paso retry: Un error transitorio: Retry
+Falló porque había otra ejecución del mismo job. Es un error **pasajero**: `Retry` espera 60 s y lo vuelve a intentar (hasta 2 veces, con espera creciente).
+>>> log
+esperando 60 s (intento 1 de 2)…
+SilverTransacciones  TaskSucceeded
+paso gold: Siguiente estado: la consulta en Athena
+Con silver listo, `GoldFraude` ejecuta el `INSERT` en Athena. Si sale bien, la ejecución termina en `SUCCEEDED`.
+>>> log
+GoldFraude  TaskSucceeded
+Ejecución: SUCCEEDED
+paso catch: Si los reintentos se agotan: Catch
+Si el error persiste, `Catch` desvía a `AvisarFalla` (publica en SNS: correo o Slack) y termina en `Fail`. Nada falla en silencio.
+>>> log
+SilverTransacciones  TaskFailed (intento 3 de 3)
+AvisarFalla         → SNS: "Falló el pipeline del banco"
+Fallo               Ejecución: FAILED
+```
+
 ### EventBridge: disparar con horario
 
 ```bash norun

@@ -70,6 +70,43 @@ gcloud storage buckets list --filter="location=US" --format="value(name)"
 PROYECTO=$(gcloud config get-value project)
 ```
 
+```recorrido
+titulo: Qué proyecto usa cada comando, y cómo darle forma a la salida
+estacion login: Iniciar sesión | icono=usuario
+estacion proj: Proyecto por defecto | icono=etiqueta
+estacion conf: gcloud config list | icono=engranaje
+estacion cmd: Un comando | icono=terminal
+estacion fmt: --format | icono=check
+paso login: Dos inicios de sesión distintos
+`gcloud auth login` es para que **tú** uses gcloud. `gcloud auth application-default login` deja credenciales para **tus programas** (Python, dbt, Terraform). Son cosas separadas.
+>>> bash
+gcloud auth login                       # para la CLI
+gcloud auth application-default login   # para tus programas
+paso proj: Elegir el proyecto
+En Google Cloud todo recurso vive dentro de un **proyecto**. Fijarlo en la configuración evita escribir `--project` en cada comando.
+>>> log
+$ gcloud config set project academia-datos-dev
+Updated property [core/project].
+paso conf: Verificar antes de crear nada
+`gcloud config list` muestra el proyecto y la región activos. Mirarlo antes de crear o borrar algo evita el error clásico: hacerlo en **producción** creyendo que estabas en desarrollo.
+>>> log
+$ gcloud config list
+[core]
+project = academia-datos-dev
+[compute]
+region = us-central1
+paso cmd: El comando usa esa configuración
+`bq ls`, `gcloud storage ls`, etc. trabajan sobre `academia-datos-dev` sin que lo digas. Para un comando puntual en otro proyecto: `--project=academia-datos-prod`.
+>>> bash
+gcloud storage buckets list
+gcloud storage buckets list --project=academia-datos-prod
+paso fmt: --format y --filter
+`--filter` elige **qué** filas; `--format` elige **cómo** mostrarlas. `value(...)` deja solo los valores, ideal para scripts.
+>>> log
+$ gcloud storage buckets list --filter="location=US-CENTRAL1" --format="value(name)"
+lake-tienda-dev
+```
+
 ## IAM en Google Cloud
 
 La pregunta es la misma que en todas las nubes: **¿quién** puede hacer **qué** sobre **qué recurso?**

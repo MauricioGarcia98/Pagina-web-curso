@@ -92,6 +92,49 @@ az storage blob download --account-name stdatosdev001 --container-name bronze \
 - `upload-batch` sube una carpeta entera.
 - En la práctica, las cargas grandes las hace **azcopy** (otra herramienta de Microsoft, mucho más rápida) o un servicio como Data Factory; la CLI es para operaciones puntuales y scripts.
 
+```recorrido
+titulo: De la cuenta de almacenamiento a la ruta que usa Spark
+estacion cuenta: Cuenta | icono=base
+estacion cont: Contenedor | icono=cubo
+estacion subir: Subir | icono=transformar
+estacion lista: Listar | icono=lupa
+estacion ruta: Ruta abfss | icono=check
+paso cuenta: La cuenta, con espacio de nombres jerárquico
+`--hns true` convierte la cuenta en **ADLS Gen2**: carpetas de verdad (renombrar una carpeta es una operación, no miles). Fíjate en el endpoint `dfs`: es el que usa Spark.
+>>> json
+{
+  "nombre": "stdatosdev001",
+  "adls": true,
+  "dfs": "https://stdatosdev001.dfs.core.windows.net/"
+}
+paso cont: Un contenedor por capa
+El contenedor (en ADLS se llama *file system*) es el primer nivel: `bronze`, `silver`, `gold`.
+>>> log
+$ az storage fs create --name bronze --account-name stdatosdev001 --auth-mode login
+{
+  "created": true
+}
+paso subir: Subir un archivo
+`--name` es la ruta dentro del contenedor. `--auth-mode login` usa **tu** identidad (y tus roles), sin claves de la cuenta.
+>>> log
+$ az storage blob upload --account-name stdatosdev001 --container-name bronze \
+    --name ventas/2024/ventas_2024-12.csv --file ventas_2024-12.csv --auth-mode login
+Finished[#############################################################]  100.0000%
+paso lista: Verificar
+El archivo quedó en `bronze`, en la carpeta `ventas/2024/`.
+>>> log
+$ az storage blob list --account-name stdatosdev001 --container-name bronze --output table --auth-mode login
+Name
+------------------------------
+ventas/2024/ventas_2024-12.csv
+paso ruta: La misma ubicación, vista desde Spark
+Spark y Databricks leen con el protocolo `abfss`: **contenedor @ cuenta** . dfs.core.windows.net / ruta.
+>>> python
+df = spark.read.csv(
+    "abfss://bronze@stdatosdev001.dfs.core.windows.net/ventas/2024/",
+    header=True)
+```
+
 ## Autenticación: --auth-mode login
 
 Cada comando de datos necesita saber **con qué credencial** acceder. Hay tres opciones:

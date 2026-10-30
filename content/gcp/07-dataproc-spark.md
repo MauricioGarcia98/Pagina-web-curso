@@ -131,6 +131,42 @@ Con `gcloud dataproc batches submit` no creas ni borras nada. Envías el script 
 
 Para jobs nocturnos programados, **Serverless suele ser la opción por defecto** hoy.
 
+```recorrido
+titulo: Cluster o Serverless: qué pasa con las máquinas en cada caso
+estacion crear: Crear cluster | icono=servidor
+estacion job: Enviar el job | icono=chispa
+estacion borrar: Borrar | icono=x
+estacion batch: Batch serverless | icono=flujo
+estacion res: Cuál elegir | icono=check
+paso crear: Con un cluster: primero lo creas
+Eliges cantidad y tipo de máquinas. Desde que el cluster existe, **se cobra**, aunque no esté procesando nada.
+>>> bash
+gcloud dataproc clusters create spark-etl --region us-central1 \
+    --num-workers 2 --worker-machine-type n2-standard-4
+paso job: Envías el script
+El script de PySpark está en Cloud Storage; Dataproc lo ejecuta en el cluster.
+>>> bash
+gcloud dataproc jobs submit pyspark gs://lake-tienda-dev/scripts/silver.py \
+    --cluster spark-etl --region us-central1
+paso borrar: Y te acuerdas de borrarlo
+Si te olvidas, el cluster sigue cobrando toda la noche. (Existe la opción de borrado automático por inactividad, `--max-idle`, justamente por eso.)
+>>> bash
+gcloud dataproc clusters delete spark-etl --region us-central1
+paso batch: Serverless: un solo comando
+Con un *batch*, Google pone las máquinas, ejecuta el script y las saca. Pagas por los recursos que usó el job, nada más.
+>>> log
+$ gcloud dataproc batches submit pyspark gs://lake-tienda-dev/scripts/silver.py --region us-central1
+Batch [fa32ff7fc78d1d89] submitted.
+…
+state: SUCCEEDED
+paso res: Cuál elegir
+Jobs programados que corren y terminan → Serverless. Muchos jobs seguidos, notebooks interactivos o configuraciones especiales → un cluster (efímero si se puede).
+>>> texto
+job que corre y termina      → batches (Serverless)
+uso continuo / interactivo    → cluster
+cluster olvidado encendido    → la factura sorpresa
+```
+
 ## Spark + BigQuery
 
 El **conector de BigQuery** permite leer y escribir tablas de BigQuery desde Spark como si fueran archivos:

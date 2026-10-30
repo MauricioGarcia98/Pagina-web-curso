@@ -81,6 +81,43 @@ bq load --source_format=CSV --autodetect --skip_leading_rows=1 tienda_bronze.ven
 bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS total FROM `academia-datos-dev.tienda_bronze.ventas` GROUP BY canal ORDER BY total DESC'
 ```
 
+```recorrido
+titulo: De un CSV en Cloud Storage a una consulta en BigQuery
+estacion gcs: Cloud Storage | icono=archivo
+estacion ds: Dataset | icono=base
+estacion load: bq load | icono=transformar
+estacion dry: --dry_run | icono=lupa
+estacion query: bq query | icono=check
+paso gcs: El archivo en el lago
+Un CSV de ventas ya está en el bucket.
+>>> log
+$ gcloud storage ls --recursive gs://lake-tienda-dev
+gs://lake-tienda-dev/bronze/ventas/ventas_2024_12.csv
+paso ds: Crear el dataset
+En BigQuery las tablas viven en **datasets** (como un esquema), y los datasets en un proyecto: `proyecto.dataset.tabla`.
+>>> log
+$ bq mk --dataset tienda_bronze
+Dataset 'academia-datos-dev:tienda_bronze' successfully created.
+paso load: Cargar el archivo en una tabla
+`bq load` copia los datos **dentro** de BigQuery. `--autodetect` deduce las columnas y `--skip_leading_rows=1` saltea el encabezado.
+>>> log
+$ bq load --source_format=CSV --autodetect --skip_leading_rows=1 \
+    tienda_bronze.ventas gs://lake-tienda-dev/bronze/ventas/ventas_2024_12.csv
+Waiting on bqjob_r105e424d0242104d_61fd91480ee8c76e ... (1s) Current status: DONE
+paso dry: Antes de consultar: ¿cuánto va a leer?
+BigQuery cobra (en el modelo bajo demanda) por **bytes leídos**. `--dry_run` lo dice sin ejecutar ni cobrar. Úsalo siempre antes de consultar una tabla grande.
+>>> log
+$ bq query --use_legacy_sql=false --dry_run 'SELECT * FROM tienda_bronze.ventas'
+Query successfully validated. Assuming the tables are not modified,
+running this query will process 96 bytes of data.
+paso query: La consulta
+Con `--use_legacy_sql=false` se usa GoogleSQL, el dialecto estándar de BigQuery.
+>>> tabla
+canal,pedidos,total
+web,2,144.5
+app,1,120
+```
+
 ## GoogleSQL vs. lo que practicas aquí
 
 Las consultas de los ejercicios corren en SQLite. Las diferencias más comunes con BigQuery:

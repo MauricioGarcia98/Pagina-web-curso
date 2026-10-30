@@ -74,6 +74,47 @@ az keyvault secret list --vault-name kv-datos-dev -o table
 
 En Databricks, un **secret scope respaldado por Key Vault** permite leer esos secretos en notebooks con `dbutils.secrets.get(scope="kv", key="sql-password")`, sin que el valor aparezca nunca en pantalla. Airflow puede usar Key Vault como backend de Connections y Variables.
 
+```recorrido
+titulo: Cómo decide Azure si una identidad puede leer el lago
+estacion quien: Identidad | icono=usuario
+estacion rol: Rol | icono=etiqueta
+estacion scope: Alcance | icono=capas
+estacion pide: La petición | icono=api
+estacion kv: Key Vault | icono=escudo
+paso quien: ¿Quién pide?
+Puede ser una persona, un *service principal* (una aplicación) o una **identidad administrada** (la de un recurso de Azure, por ejemplo un clúster de Databricks o una Function). Para procesos automáticos se prefiere la identidad administrada: no tiene contraseña que guardar.
+>>> texto
+persona               → alumno@contoso.com
+service principal     → sp-ci-datos (GitHub Actions)
+identidad administrada → la de la Function func-ingesta
+paso rol: ¿Qué puede hacer? El rol
+Un rol es una lista de acciones permitidas. Para **leer datos** de un lago hace falta un rol de datos (`Storage Blob Data Reader`); `Reader` solo deja ver que la cuenta existe.
+>>> texto
+Reader                        → ver el recurso (plano de control)
+Storage Blob Data Reader      → leer archivos (plano de datos)
+Storage Blob Data Contributor → leer y escribir archivos
+paso scope: ¿Dónde? El alcance
+La asignación une identidad + rol + **alcance**. Se hereda hacia abajo: asignada al grupo de recursos, vale para todas las cuentas de ese grupo.
+>>> log
+$ az role assignment create --assignee alumno@contoso.com \
+    --role 'Storage Blob Data Reader' \
+    --scope /subscriptions/1111aaaa-1111-4111-8111-111111111111/resourceGroups/rg-datos-dev
+{
+  "rol": "Storage Blob Data Reader",
+  "scope": "/subscriptions/1111aaaa-1111-4111-8111-111111111111/resourceGroups/rg-datos-dev"
+}
+paso pide: La petición se evalúa
+Al leer un archivo, Azure busca una asignación cuyo rol incluya esa acción, en ese alcance o en uno superior. Si no la encuentra, responde `AuthorizationPermissionMismatch` (403). Las asignaciones nuevas pueden tardar unos minutos en aplicarse.
+>>> texto
+identidad: alumno@contoso.com
+acción:   leer bronze/ventas/2024/ventas_2024-12.csv
+→ ¿hay rol con esa acción en la cuenta, el grupo o la suscripción?  sí → 200 OK
+paso kv: Y los secretos, en Key Vault
+Contraseñas y tokens no van en el código: se guardan en Key Vault y se leen con la misma lógica de identidad + rol (`Key Vault Secrets User`).
+>>> bash
+az keyvault secret show --vault-name kv-datos --name token --query value -o tsv
+```
+
 ## Pruébalo en la terminal
 
 ```bash

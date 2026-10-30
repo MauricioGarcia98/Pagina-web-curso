@@ -102,6 +102,41 @@ echo "Trabajando en la cuenta $CUENTA"
 ```
 :::
 
+```recorrido
+titulo: Del comando a la respuesta: JSON, --query y --output
+estacion cmd: El comando | icono=terminal
+estacion api: La API de AWS | icono=api
+estacion json: La respuesta | icono=codigo
+estacion query: --query | icono=lupa
+estacion text: --output text | icono=check
+paso cmd: Escribes un comando
+`aws <servicio> <operación>`. Este pregunta "¿con qué identidad estoy conectado?". Es lo primero que conviene ejecutar en cualquier terminal nueva.
+>>> bash
+aws sts get-caller-identity
+paso api: La CLI llama a la API
+La CLI toma tus credenciales (del perfil o de SSO), **firma** la petición y la manda al servicio STS de AWS por internet. Cada comando de la CLI es una llamada a una API.
+>>> texto
+perfil "default"  →  credenciales  →  petición firmada
+                                   →  https://sts.amazonaws.com
+                                   ←  respuesta en JSON
+paso json: La respuesta llega en JSON
+Por defecto se muestra el JSON completo: tu número de cuenta, tu identificador y tu ARN (el "nombre completo" de cualquier recurso en AWS).
+>>> json
+{
+  "UserId": "AIDAC14D3913C3A110C7",
+  "Account": "123456789012",
+  "Arn": "arn:aws:iam::123456789012:user/alumno"
+}
+paso query: --query elige una parte
+`--query Account` usa JMESPath para quedarse **solo** con esa clave, antes de mostrar nada.
+>>> bash
+aws sts get-caller-identity --query Account --output text
+paso text: --output text: listo para un script
+Sin comillas ni llaves: el valor justo para guardarlo en una variable (`CUENTA=$(...)`) y usarlo en el comando siguiente.
+>>> log
+123456789012
+```
+
 ## IAM: identidades y permisos
 
 **IAM** (*Identity and Access Management*) responde a una sola pregunta: **¿quién puede hacer qué sobre qué recurso?**

@@ -90,6 +90,43 @@ Cuentas las cartas que te escribieron cada día. Una carta escrita el lunes pued
 - **Watermark**: la estimación del sistema de "ya llegó todo lo anterior a tal hora". Cuando el watermark pasa el final de una ventana, la ventana emite su resultado.
 - **Datos tardíos**: los que llegan después del watermark. Se aceptan si están dentro de la *allowed lateness* (y actualizan el resultado); si no, se descartan o van a una salida aparte.
 
+```recorrido
+titulo: Ventanas de 1 minuto, watermark y un evento que llega tarde
+estacion ev: Eventos | icono=reloj
+estacion vent: Ventanas fijas | icono=capas
+estacion wm: Watermark | icono=flujo
+estacion tarde: Llega tarde | icono=alerta
+estacion res: Resultado | icono=check
+paso ev: Cuatro compras (ejemplo)
+Cada evento tiene su **hora de evento** (cuándo ocurrió) y su **hora de llegada** al pipeline. La compra 3 se hizo a las 10:00:50, pero el celular estaba sin señal.
+>>> tabla
+compra,hora_evento,hora_llegada,monto
+1,10:00:10,10:00:11,20
+2,10:00:40,10:00:41,30
+3,10:00:50,10:01:30,50
+4,10:01:20,10:01:21,10
+paso vent: Cada evento va a la ventana de su hora de evento
+Con ventanas fijas de 1 minuto **por tiempo de evento**, la compra 3 pertenece a la ventana 10:00–10:01, aunque haya llegado a las 10:01:30.
+>>> texto
+ventana 10:00–10:01 → compras 1, 2, 3
+ventana 10:01–10:02 → compra 4
+paso wm: El watermark decide cuándo cerrar
+A las 10:01:05 el watermark pasa las 10:01 ("ya llegó todo lo anterior a 10:01", según la estimación del sistema). La ventana 10:00–10:01 emite su resultado **con lo que tiene**: compras 1 y 2.
+>>> log
+[10:01:05] ventana 10:00–10:01 → total = 50 (2 compras)   (primera emisión)
+paso tarde: La compra 3 llega después del watermark
+Es un **dato tardío**. Si está dentro de la *allowed lateness* (por ejemplo, 5 minutos), la ventana se **actualiza** y emite de nuevo. Si no, se descarta o va a una salida aparte.
+>>> log
+[10:01:30] dato tardío para 10:00–10:01 (dentro de la tolerancia)
+[10:01:30] ventana 10:00–10:01 → total = 100 (3 compras)   (actualización)
+paso res: Contado por cuándo ocurrió
+Si se contara por hora de llegada, la compra 3 habría quedado en el minuto equivocado. Por eso en streaming casi siempre se agrupa por **tiempo de evento**.
+>>> tabla
+ventana,compras,total
+10:00–10:01,3,100
+10:01–10:02,1,10
+```
+
 ## Ejercicios: programa la lógica de streaming
 
 :::ejercicio python titulo="Deduplicar mensajes de Pub/Sub"

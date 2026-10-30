@@ -86,6 +86,48 @@ SHOW TABLES IN IDENTIFIER(:esquema);   -- IDENTIFIER() convierte el texto en un 
 
 Los marcadores protegen contra la **inyección de SQL**: el valor del widget nunca se "pega" dentro del texto de la consulta, se pasa por separado. En código viejo verás `${fecha}` o `getArgument("fecha")`, la sintaxis anterior.
 
+```recorrido
+titulo: Un widget, dos ejecuciones: a mano y desde un job
+estacion def: Definir | icono=codigo
+estacion mano: Ejecución a mano | icono=usuario
+estacion job: Ejecución del job | icono=reloj
+estacion get: widgets.get | icono=lupa
+estacion res: Resultado | icono=check
+paso def: El notebook declara un parámetro
+`dbutils.widgets.text("fecha", "2024-03-15")` crea un cuadro de texto arriba del notebook, con un valor por defecto.
+>>> python
+dbutils.widgets.text("fecha", "2024-03-15", "Fecha a procesar")
+fecha = dbutils.widgets.get("fecha")
+df = spark.table("main.bronze.pedidos").filter(f"fecha_pedido = '{fecha}'")
+paso mano: Lo ejecutas tú: usa el valor del cuadro
+Sin tocar nada, `fecha` vale `2024-03-15` (o lo que escribas en el cuadro). Así se ven los pedidos de ese día por canal, con la tabla de pedidos del curso:
+>>> tabla
+fecha_pedido,canal,pedidos
+2024-03-15,app,1
+2024-03-15,telefono,1
+2024-03-15,tienda,1
+2024-03-15,web,8
+paso job: Lo ejecuta un job: el parámetro manda
+Si el job tiene un parámetro `fecha`, su valor **llena el widget**. El mismo notebook sirve para cualquier día sin cambiar una línea.
+>>> json
+{"job_parameters": {"fecha": "2024-12-30"}}
+paso get: widgets.get devuelve el valor recibido
+Ahora `dbutils.widgets.get("fecha")` devuelve `2024-12-30`. En una celda SQL, el mismo valor se lee con el marcador `:fecha`, que lo pasa por separado y evita la inyección de SQL.
+>>> sql
+SELECT canal, COUNT(*) AS pedidos
+FROM main.bronze.pedidos
+WHERE fecha_pedido = :fecha
+GROUP BY canal;
+paso res: Otro día, mismo código
+El resultado corresponde al día que pidió el job. Es la base para **reprocesar** un día que salió mal.
+>>> tabla
+fecha_pedido,canal,pedidos
+2024-12-30,app,1
+2024-12-30,telefono,2
+2024-12-30,tienda,2
+2024-12-30,web,15
+```
+
 ## dbutils.fs: archivos
 
 ```python norun

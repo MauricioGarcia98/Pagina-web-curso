@@ -136,6 +136,35 @@ gcloud storage buckets describe gs://lake-tienda-dev      # verifica que quedó 
 
 **Versionado** (`--versioning`): cuando sobrescribes o borras un objeto, GCS guarda la versión anterior en lugar de perderla. Te salva de un `rm` equivocado, pero **cada versión ocupa espacio y se cobra**. Combínalo con una regla de ciclo de vida que borre las versiones viejas (condición `numNewerVersions`).
 
+```recorrido
+titulo: Las reglas de ciclo de vida, día por día
+estacion d0: Día 0 | icono=archivo
+estacion d8: Día 8 | icono=x
+estacion d181: Día 181 | icono=capas
+estacion res: Resultado | icono=check
+paso d0: Llegan los archivos
+Hoy se suben dos archivos: uno a la zona de paso `landing/` y otro a `bronze/`. Ambos quedan en la clase **STANDARD** (ejemplo).
+>>> tabla
+objeto,edad_dias,clase
+landing/ventas_2024-12-31.csv,0,STANDARD
+bronze/ventas/fecha=2024-12-31/ventas.parquet,0,STANDARD
+paso d8: Día 8: se borra lo de landing
+GCS revisa los objetos una vez por día. El de `landing/` cumple `age > 7` y `matchesPrefix: landing/` → se **borra**. El de bronze no cumple ninguna regla todavía.
+>>> tabla
+objeto,edad_dias,clase
+bronze/ventas/fecha=2024-12-31/ventas.parquet,8,STANDARD
+paso d181: Día 181: bronze pasa a COLDLINE
+Con más de 180 días, el objeto de bronze cambia de clase. Sigue en el mismo lugar y se puede leer, pero el almacenamiento cuesta mucho menos (y leerlo cuesta un poco más).
+>>> tabla
+objeto,edad_dias,clase
+bronze/ventas/fecha=2024-12-31/ventas.parquet,181,COLDLINE
+paso res: Nadie tuvo que acordarse
+Las reglas se aplican solas todos los días. El costo del lago baja sin perder la posibilidad de reprocesar bronze.
+>>> bash
+gcloud storage buckets update gs://lake-tienda-dev --lifecycle-file=ciclo.json
+gcloud storage buckets describe gs://lake-tienda-dev   # verificar
+```
+
 ## Permisos
 
 Con *uniform bucket-level access*, los permisos se dan con **IAM**, a nivel de bucket (o de proyecto), igual que en el resto de Google Cloud. Los roles que más se usan:

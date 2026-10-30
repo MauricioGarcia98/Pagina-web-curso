@@ -44,6 +44,44 @@ bq query --use_legacy_sql=false --dry_run 'SELECT canal, COUNT(*) FROM tienda_si
 bq query --use_legacy_sql=false --dry_run "SELECT canal, COUNT(*) FROM tienda_silver.pedidos WHERE fecha_pedido = '2024-12-24' GROUP BY canal"
 ```
 
+```recorrido
+titulo: La misma consulta, con y sin particiones: cuántos bytes lee
+estacion sin: Tabla sin particionar | icono=tabla
+estacion con: Tabla particionada | icono=capas
+estacion dry1: Lee todo | icono=alerta
+estacion dry2: Lee un día | icono=lupa
+estacion res: Resultado | icono=check
+paso sin: Una tabla de 12.000 pedidos, sin particionar
+Todos los pedidos en un solo bloque. Para buscar un día, BigQuery tiene que mirar **toda** la columna de fechas.
+>>> sql
+CREATE OR REPLACE TABLE tienda_silver.pedidos_sin AS
+SELECT pedido_id, cliente_id, DATE(fecha_pedido) AS fecha_pedido, canal, estado
+FROM tienda.pedidos;
+paso con: La misma tabla, particionada por fecha
+`PARTITION BY fecha_pedido` guarda cada día en su propio "cajón"; `CLUSTER BY canal` ordena dentro de cada cajón.
+>>> sql
+CREATE OR REPLACE TABLE tienda_silver.pedidos
+PARTITION BY fecha_pedido
+CLUSTER BY canal AS
+SELECT pedido_id, cliente_id, DATE(fecha_pedido) AS fecha_pedido, canal, estado
+FROM tienda.pedidos;
+paso dry1: Consultar un día en la tabla sin particiones
+`--dry_run` de `WHERE fecha_pedido = '2024-12-24'` sobre `pedidos_sin`:
+>>> log
+running this query will process 192000 bytes of data.
+paso dry2: El mismo filtro en la tabla particionada
+BigQuery abre **solo** el cajón del 24/12 (*partition pruning*). Números del simulador del curso: lo que importa es la proporción. En BigQuery real, además, cada tabla consultada factura un mínimo de 10 MB.
+>>> log
+running this query will process 208 bytes of data.
+paso res: El resultado es el mismo
+Misma respuesta, una fracción del costo. Con tablas de terabytes, esta diferencia es la factura del mes.
+>>> tabla
+canal,pedidos
+app,3
+telefono,3
+web,7
+```
+
 ## Datos anidados: STRUCT y ARRAY
 
 BigQuery permite columnas que son **registros** (`STRUCT`) y **listas** (`ARRAY`). Así se evitan joins costosos: un pedido puede llevar adentro sus líneas.
