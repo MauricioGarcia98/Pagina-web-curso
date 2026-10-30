@@ -365,18 +365,68 @@
         if (p[1] === 'eventhub' && p[2] === 'create') { const ns = s.eh[A.get('--namespace-name')]; if (!ns) return fail('(NamespaceNotFound)'); ns.hubs[A.get('--name', '-n')] = { partitions: A.get('--partition-count') || 4 }; save(); return output({ name: A.get('--name', '-n'), partitionCount: Number(A.get('--partition-count') || 4), status: 'Active' }, A); }
       }
     }
-    // ---- deployment
-    if (p[0] === 'deployment' && p[1] === 'group') {
+    // ---- deployment / stack: lee el archivo Bicep (recursos, parámetros) y compara con lo ya desplegado
+    if ((p[0] === 'deployment' && p[1] === 'group') || (p[0] === 'stack' && p[1] === 'group')) {
       const rg = A.get('--resource-group', '-g'); const e = azNeedRg(s, rg); if (e) return fail(e, 3);
+      s.bicep = s.bicep || {}; const actual = (s.bicep[rg] = s.bicep[rg] || {});
+      if (p[0] === 'stack' && (p[2] === 'list' || p[2] === 'show')) return output(Object.entries(s.stacks || {}).filter(([, x]) => x.rg === rg).map(([k, x]) => ({ name: k, resourceGroup: rg, actionOnUnmanage: x.accion, resources: x.recursos.map((r) => ({ id: azRgId(rg) + '/providers/' + r })) })), A);
       const f = A.get('--template-file', '-f');
       if (!f || f === true) return fail('the following arguments are required: --template-file/-f', 2);
       if (!Sh.exists(Sh.norm(f))) return fail(`unrecognized template file: no existe ${f} (crea uno con: code ${f})`);
-      if (p[2] === 'what-if') return ok(`Note: The result may contain false positive predictions (noise).\n\nResource and property changes are indicated with this symbol:\n  ${col.ok('+')} Create\n\nThe deployment will update the following scope:\n\nScope: ${azRgId(rg)}\n\n  ${col.ok('+ Microsoft.Storage/storageAccounts/stdatos001')}\n\nResource changes: 1 to create.`);
-      if (p[2] === 'create') { s.deployments.push({ rg, f, at: now() }); save(); return output({ name: f.split('/').pop().replace(/\.\w+$/, ''), properties: { provisioningState: 'Succeeded', timestamp: now() }, resourceGroup: rg }, A); }
+      const plantilla = leerBicep(Sh.readFile(Sh.norm(f)), A);
+      if (plantilla.error) return fail(plantilla.error);
+      const enPlantilla = new Set(plantilla.recursos.map((r) => r.id));
+      const cambios = plantilla.recursos.map((r) => ({ r, tipo: !(r.id in actual) ? 'Create' : actual[r.id] === r.huella ? 'NoChange' : 'Modify' }));
+      const sobrantes = Object.keys(actual).filter((id) => !enPlantilla.has(id));
+      if (p[0] === 'deployment' && p[2] === 'what-if') {
+        const sim = { Create: col.ok('+'), Modify: col.warn('~'), NoChange: col.dim('='), Ignore: col.dim('*') };
+        const lineas = cambios.map((c) => `  ${sim[c.tipo]} ${c.r.id}${c.tipo === 'Modify' ? col.dim('   (cambian propiedades)') : ''}`)
+          .concat(sobrantes.map((id) => `  ${sim.Ignore} ${id}${col.dim('   (existe en Azure pero no está en el archivo: modo incremental, no se toca)')}`));
+        const cuenta = (t) => cambios.filter((c) => c.tipo === t).length;
+        return ok(`Note: The result may contain false positive predictions (noise).\n\nResource and property changes are indicated with these symbols:\n  ${sim.Create} Create\n  ${sim.Modify} Modify\n  ${sim.NoChange} NoChange\n  ${sim.Ignore} Ignore\n\nThe deployment will update the following scope:\n\nScope: ${azRgId(rg)}\n\n${lineas.join('\n') || '  (sin recursos)'}\n\nResource changes: ${cuenta('Create')} to create, ${cuenta('Modify')} to modify, ${cuenta('NoChange')} no change, ${sobrantes.length} to ignore.`);
+      }
+      if (p[2] === 'create') {
+        for (const c of cambios) actual[c.r.id] = c.r.huella;
+        let borrados = [];
+        if (p[0] === 'stack') {
+          const accion = A.get('--action-on-unmanage') || 'detachAll';
+          if (!['detachAll', 'deleteResources', 'deleteAll'].includes(accion)) return fail(`--action-on-unmanage: valor inválido '${accion}' (detachAll | deleteResources | deleteAll)`, 2);
+          s.stacks = s.stacks || {};
+          const nombre = A.get('--name', '-n'); if (!nombre || nombre === true) return fail('the following arguments are required: --name/-n', 2);
+          const previo = s.stacks[nombre];
+          const fuera = previo ? previo.recursos.filter((id) => !enPlantilla.has(id)) : [];
+          if (accion !== 'detachAll') { for (const id of fuera) delete actual[id]; borrados = fuera; }
+          s.stacks[nombre] = { rg, accion, recursos: [...enPlantilla] };
+        }
+        if (p[0] === 'deployment') s.deployments.push({ rg, f, at: now() });
+        save();
+        const res = { name: (A.get('--name', '-n') && A.get('--name', '-n') !== true ? A.get('--name', '-n') : f.split('/').pop().replace(/\.\w+$/, '')), properties: { provisioningState: 'Succeeded', timestamp: now(), outputResources: plantilla.recursos.map((r) => ({ id: azRgId(rg) + '/providers/' + r.id })) }, resourceGroup: rg };
+        if (p[0] === 'stack') res.deletedResources = borrados.map((id) => ({ id: azRgId(rg) + '/providers/' + id }));
+        return output(res, A);
+      }
     }
     if (p[0] === 'consumption') return output([{ instanceName: 'stdatosdev001', meterCategory: 'Storage', pretaxCost: '1.23', currency: 'USD' }, { instanceName: 'dbw-datos-dev', meterCategory: 'Azure Databricks', pretaxCost: '18.40', currency: 'USD' }], A);
     return fail(`'${p.join(' ')}' is misspelled or not recognized by the system (o no está simulado en esta terminal).\nPrueba: az --help`, 2);
   });
+  // Bicep mínimo: param con valor por defecto, --parameters k=v, recursos con name: '...${param}...'
+  function leerBicep(src, A) {
+    const params = {};
+    for (const m of src.matchAll(/^\s*param\s+(\w+)\s+\w+(?:\s*=\s*'([^']*)')?/gm)) params[m[1]] = m[2] ?? null;
+    const extra = A.get('--parameters', '-p');
+    if (extra && extra !== true) for (const kv of String(extra).split(/\s+/)) { const [k, v] = kv.split('='); if (k && v !== undefined) params[k] = v; }
+    const faltan = Object.entries(params).filter(([, v]) => v === null).map(([k]) => k);
+    if (faltan.length) return { error: `Deployment template validation failed: The value for the template parameter '${faltan[0]}' is not provided. Usa --parameters ${faltan[0]}=valor` };
+    const interp = (x) => x.replace(/\$\{(\w+)\}/g, (_, k) => (k in params ? params[k] : '${' + k + '}'));
+    const recursos = [];
+    for (const m of src.matchAll(/resource\s+(\w+)\s+'([^'@]+)@[^']+'\s*=\s*\{([\s\S]*?)\n\}/g)) {
+      const nombre = (m[3].match(/name:\s*'([^']*)'/) || [])[1];
+      if (!nombre) return { error: `El recurso '${m[1]}' no tiene name:` };
+      const cuerpo = interp(m[3]).replace(/\s+/g, ' ').trim();
+      recursos.push({ simbolo: m[1], tipo: m[2], id: `${m[2]}/${interp(nombre)}`, huella: cuerpo });
+    }
+    if (!recursos.length) return { error: 'El archivo no define recursos (resource nombre \'Tipo@versión\' = { ... })' };
+    return { recursos, params };
+  }
   function parseTags(t) { const o = {}; if (t && t !== true) for (const kv of String(t).split(/\s+/)) { const [k, v] = kv.split('='); if (k) o[k] = v ?? ''; } return o; }
 
   // ---- tablas del lago: CSV guardados en buckets simulados -> tabla real en la base del navegador
