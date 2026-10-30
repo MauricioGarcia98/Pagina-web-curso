@@ -9,7 +9,7 @@
   'use strict';
 
   const SQLJS_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/';
-  const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+  const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs';
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -185,7 +185,7 @@
 
   // ---------------------------------------------------------------- Python
   function workerMain() {
-    /* global importScripts, loadPyodide */
+    /* Pyodide se importa dentro de ensure() */
     let py = null;
     const loaded = new Set();
     const HARNESS = `
@@ -400,7 +400,8 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
 `;
     async function ensure(mode, msg) {
       if (!py) {
-        importScripts(msg.pyodideUrl);
+        // Pyodide 314+ solo funciona en workers de tipo módulo: se carga con import() dinámico
+        const { loadPyodide } = await import(msg.pyodideUrl);
         py = await loadPyodide();
         for (const [p, src] of Object.entries(msg.sources)) {
           const dir = '/mini/' + p.split('/').slice(0, -1).join('/');
@@ -410,7 +411,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         await py.runPythonAsync(HARNESS);
       }
       const need = [];
-      if (mode === 'pyspark' && !loaded.has('sqlite3')) need.push('sqlite3');
+      // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
       if (need.length) { await py.loadPackage(need); need.forEach((n) => loaded.add(n)); }
       if (mode === 'pyspark' && msg.tables && !loaded.has('tables')) {
@@ -465,7 +466,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     worker: null, seq: 0, pending: new Map(), status: 'idle', listeners: new Set(), _tablesJson: null, _sentTables: false,
     _spawn() {
       const blob = new Blob([`(${workerMain.toString()})();`], { type: 'application/javascript' });
-      this.worker = new Worker(URL.createObjectURL(blob));
+      this.worker = new Worker(URL.createObjectURL(blob), { type: 'module' });
       this._sentTables = false;
       this.worker.onmessage = (e) => {
         const p = this.pending.get(e.data.id);

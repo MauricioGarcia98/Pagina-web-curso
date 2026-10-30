@@ -42,7 +42,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 ## Cómo funciona por dentro
 
 - **SQL**: SQLite compilado a WebAssembly ([sql.js](https://github.com/sql-js/sql.js)). El dataset se genera en el navegador con una semilla fija (`assets/js/data.js`), así los resultados son siempre los mismos y se pueden corregir comparando con la solución.
-- **Python**: CPython en WebAssembly ([Pyodide](https://pyodide.org)) dentro de un Web Worker.
+- **Python**: CPython 3.14 en WebAssembly ([Pyodide](https://pyodide.org) 314.0.7, con pandas 3) dentro de un Web Worker de tipo módulo.
 - **PySpark**: *mini-Spark* (`assets/py/minispark`), un simulador en Python puro de gran parte de `pyspark.sql` (DataFrames, funciones, joins, ventanas, Spark SQL, lectura/escritura, RDDs básicos).
 - **Airflow**: *mini-Airflow* (`assets/py/miniairflow`), con `DAG`, operadores, `>>`, XCom, TaskFlow, ramas, trigger rules y `TaskGroup`; el corrector inspecciona y ejecuta el DAG.
 - **dbt**: los modelos se compilan con Jinja2 real (`ref`, `source`, `config`, `is_incremental`, macros) y se ejecutan en SQLite.

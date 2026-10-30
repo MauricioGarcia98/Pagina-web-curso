@@ -42,7 +42,7 @@ Un data engineer usa ambos todos los días.
 
 ## Dónde se ejecuta Python en este curso
 
-Normalmente Python se instala en tu computadora. Aquí corre **dentro de tu navegador** gracias a **Pyodide** (Python compilado para la web). La primera vez que ejecutas código tarda unos segundos en cargar; después es instantáneo. No puedes romper nada: cada ejecución es independiente.
+Normalmente Python se instala en tu computadora. Aquí corre **dentro de tu navegador** gracias a **Pyodide** (Python compilado para la web): es Python 3.14 de verdad, con pandas 3 y numpy 2. La primera vez que ejecutas código tarda unos segundos en cargar; después es instantáneo. No puedes romper nada: cada ejecución es independiente.
 
 ## Tu primer programa
 

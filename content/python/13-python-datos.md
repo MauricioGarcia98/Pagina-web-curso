@@ -245,14 +245,15 @@ Para guardar el resultado en tu computadora: `resumen.to_parquet("resumen.parque
 
 ### pandas 3: lo que cambió en 2026
 
-pandas 3.0 salió el 21 de enero de 2026 y, según sus notas de versión oficiales, trae tres cambios que vas a notar enseguida. Los ejercicios de este sitio corren con pandas 2.2 dentro del navegador, así que escribe código que funcione en las dos versiones (las recomendaciones de abajo lo hacen).
+pandas 3.0 salió el 21 de enero de 2026 y, según sus notas de versión oficiales, trae tres cambios que vas a notar enseguida. Los ejercicios de este sitio ya corren con **pandas 3** dentro del navegador (Pyodide 314, con Python 3.14), así que puedes probar cada cambio en el editor. Igual conviene escribir código que funcione en las dos versiones, porque muchos proyectos siguen en pandas 2: las recomendaciones de abajo lo hacen.
 
 **1. Un tipo de dato propio para el texto.** Antes, una columna de textos tenía el tipo genérico `object` (que acepta cualquier cosa). En pandas 3 se infiere el tipo `str`:
 
-```python norun
+```python
 import pandas as pd
 s = pd.Series(["Lima", "Quito"])
-s.dtype            # pandas 2: object   ·   pandas 3: str
+print(pd.__version__, s.dtype)     # pandas 2: object   ·   pandas 3: str
+print(pd.api.types.is_string_dtype(s))
 ```
 
 Consecuencia: un código que pregunta `if df["ciudad"].dtype == object:` deja de funcionar. Para saber si una columna es de texto, usa `pd.api.types.is_string_dtype(df["ciudad"])`, que funciona en ambas versiones. Además, una columna `str` solo acepta textos o valores faltantes: asignarle un número da error.
@@ -271,9 +272,11 @@ Por eso desaparece el famoso aviso `SettingWithCopyWarning` y ya no hacen falta 
 
 **3. `pd.col()` para escribir expresiones sin `lambda`.**
 
-```python norun
-df.assign(total_con_iva=lambda d: d["total"] * 1.21)   # pandas 2 y 3
-df.assign(total_con_iva=pd.col("total") * 1.21)         # nuevo en pandas 3
+```python
+import pandas as pd
+df = pd.DataFrame({"total": [100.0, 250.0]})
+print(df.assign(total_con_iva=lambda d: d["total"] * 1.21))   # pandas 2 y 3
+print(df.assign(total_con_iva=pd.col("total") * 1.21))         # nuevo en pandas 3
 ```
 
 También subió el mínimo de Python a la versión 3.11. La guía oficial recomienda migrar en dos pasos: primero a pandas 2.3, corregir todos los avisos (*warnings*) y recién después pasar a 3.0.
