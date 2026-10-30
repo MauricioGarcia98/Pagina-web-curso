@@ -158,6 +158,18 @@ function md(text, file = '') {
     const spec = parseMotores(body, file);
     return `<div class="motores" data-spec="${escapeHtml(JSON.stringify(spec))}"></div>\n`;
   });
+  // capturas de pantalla de las guías reales: si la imagen está en assets/img/guias/ se muestra;
+  // si no, un recuadro con lo que hay que capturar (para que el autor la suba después)
+  text = text.replace(/^```captura[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
+    const get = (k) => ((body.match(new RegExp(`^${k}:\\s*(.+)$`, 'm')) || [])[1] || '').trim();
+    const archivo = get('archivo'), texto = get('texto');
+    if (!/^[\w.-]+\.(png|jpe?g|webp)$/i.test(archivo)) throw new Error(`Captura en ${file}: "archivo:" debe ser un nombre como paso-01.png`);
+    const ruta = `assets/img/guias/${archivo}`;
+    if (fs.existsSync(path.join(ROOT, ruta))) {
+      return `<figure class="captura"><img src="${ruta}" alt="${escapeHtml(texto)}" loading="lazy"><figcaption>${escapeHtml(texto)}</figcaption></figure>\n`;
+    }
+    return `<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>${escapeHtml(texto)}</span><code>${escapeHtml(ruta)}</code></div></figure>\n`;
+  });
   // bloques :::tip ... ::: (no confundir con :::ejercicio)
   text = text.replace(/^:::(tip|nota|cuidado|analogia|experto|entrevista|escenario|trabajo|errores|examen)[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*$/gm, (_, kind, title, body) =>
     `<div class="callout callout-${kind}"><div class="callout-title">${escapeHtml(title ? CALLOUTS[kind].split(' ')[0] + ' ' + title : CALLOUTS[kind])}</div>\n\n${body}\n</div>\n`);
