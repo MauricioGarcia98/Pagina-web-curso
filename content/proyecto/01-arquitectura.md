@@ -27,7 +27,7 @@ Tienda Andina quiere:
                                          │   dbt         → gold (estrella)     │
                                          │   SQL Warehouse → Power BI          │
                                          └─────────────────────────────────────┘
- Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Asset Bundles
+ Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Declarative Automation Bundles
  CI/CD: GitHub Actions   Calidad: tests dbt + expectations   Observabilidad: alertas + system tables
 ```
 
@@ -41,7 +41,7 @@ Tienda Andina quiere:
 | 4 | Construir silver: limpieza, tipos, deduplicación, MERGE, reglas de calidad con cuarentena | PySpark |
 | 5 | Modelar gold con dbt: `fct_ventas`, `dim_clientes`, `dim_productos`, `mart_rfm`, tests y docs | dbt + SQL |
 | 6 | Orquestar con Airflow (sensor → job Databricks → dbt build → aviso) o con un job multi-tarea | Airflow / Databricks |
-| 7 | Empaquetar todo con Asset Bundles y desplegar con GitHub Actions | Databricks CLI + Git |
+| 7 | Empaquetar todo con Declarative Automation Bundles y desplegar con GitHub Actions | Databricks CLI + Git |
 | 8 | Responder las preguntas de negocio con SQL avanzado | SQL |
 
 :::tip Para tu portafolio

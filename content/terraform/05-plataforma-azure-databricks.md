@@ -348,8 +348,8 @@ resource "databricks_sql_endpoint" "bi" {
 - `file()` lee un archivo de tu repositorio; `base64encode()` lo codifica como pide la API. El notebook se versiona en Git junto al job que lo ejecuta.
 - En `databricks_job`, cada `task` tiene una clave, y `depends_on` arma el grafo: `silver` corre cuando `ingesta` termina bien.
 
-:::nota Terraform o Asset Bundles
-Para los **jobs y notebooks** de un proyecto de datos, muchos equipos usan **Databricks Asset Bundles** (que viste en el módulo de Databricks) en lugar de Terraform: están pensados para el ciclo de vida del código. Una división frecuente: Terraform para la plataforma (workspace, Unity Catalog, permisos, clústeres compartidos, warehouses) y Asset Bundles para los pipelines de cada equipo.
+:::nota Terraform o Declarative Automation Bundles
+Para los **jobs y notebooks** de un proyecto de datos, muchos equipos usan **Declarative Automation Bundles** (que viste en el módulo de Databricks) en lugar de Terraform: están pensados para el ciclo de vida del código. Una división frecuente: Terraform para la plataforma (workspace, Unity Catalog, permisos, clústeres compartidos, warehouses) y Declarative Automation Bundles para los pipelines de cada equipo.
 :::
 
 ## Laboratorio

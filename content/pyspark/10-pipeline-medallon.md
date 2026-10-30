@@ -72,7 +72,7 @@ spark.table("gold_ventas_diarias").orderBy(F.desc("ventas")).show(5)
 - **Idempotencia**: correrlo dos veces con los mismos datos deja el mismo resultado (sobrescribe por partición o usa `MERGE`; nunca `append` a ciegas).
 - **Incrementalidad**: procesar solo lo nuevo (por fecha de ingesta, Auto Loader, Change Data Feed o `MERGE`).
 - **Funciones puras + tests**: cada transformación se prueba con un DataFrame chiquito hecho a mano (`spark.createDataFrame`) y `pytest`.
-- **Parámetros, no constantes**: fechas, rutas y entornos llegan como parámetros del job (widgets en Databricks, variables en Asset Bundles).
+- **Parámetros, no constantes**: fechas, rutas y entornos llegan como parámetros del job (widgets en Databricks, variables en Declarative Automation Bundles).
 - **Observabilidad**: registra cuántas filas entran, salen y se descartan en cada paso.
 
 ## Un test de la transformación (estilo pytest)

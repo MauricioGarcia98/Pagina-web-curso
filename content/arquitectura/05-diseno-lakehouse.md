@@ -133,7 +133,7 @@ Todo lo anterior se junta en un flujo de CI/CD como el que viste en Git, ahora c
 1. Creas una rama y desarrollas contra **dev** (`dbt run --target dev`, notebooks en tu esquema).
 2. Abres un pull request. La **CI** construye solo los modelos que cambiaron y sus dependientes (`dbt build --select state:modified+`) en **staging**, corre los tests y valida contratos.
 3. Una compañera revisa el código y los resultados.
-4. Al hacer merge a `main`, el despliegue (Asset Bundles, Terraform, dbt Cloud) actualiza **prod**.
+4. Al hacer merge a `main`, el despliegue (Declarative Automation Bundles, Terraform, dbt Cloud) actualiza **prod**.
 5. El orquestador corre los pipelines con la versión nueva.
 
 <!-- estandar:errores -->

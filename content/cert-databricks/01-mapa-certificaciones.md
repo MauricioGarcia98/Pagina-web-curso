@@ -5,7 +5,7 @@ duracion: 35
 resumen: Qué certificaciones de datos e IA ofrece Databricks, cómo es cada examen, qué dominios evalúa y con qué peso, qué cambió en 2026 y un plan de estudio de 6 semanas.
 objetivos: Distinguir las certificaciones de Data Engineer, Generative AI Engineer y Machine Learning y elegir por cuál empezar | Explicar el formato de los exámenes (preguntas, tiempo, costo, vigencia) | Repartir el tiempo de estudio según el peso de cada dominio | Reconocer los nombres de productos que cambiaron en 2026 para no confundirte en el examen | Aplicar una estrategia para responder preguntas de escenario
 prerrequisitos: databricks-que-es-databricks | databricks-delta-sql
-autoevaluacion: ¿Sabes cuántas preguntas y cuántos minutos tiene el examen Data Engineer Associate? | ¿Puedes nombrar los siete dominios del Associate y cuál pesa más? | ¿Sabes qué nombre tienen hoy DLT, Asset Bundles y los modos de acceso Shared/Single User? | ¿Tienes un plan semanal con práctica en un workspace real? | ¿Sabes descartar opciones en una pregunta de escenario?
+autoevaluacion: ¿Sabes cuántas preguntas y cuántos minutos tiene el examen Data Engineer Associate? | ¿Puedes nombrar los siete dominios del Associate y cuál pesa más? | ¿Sabes qué nombre tienen hoy DLT, Declarative Automation Bundles y los modos de acceso Shared/Single User? | ¿Tienes un plan semanal con práctica en un workspace real? | ¿Sabes descartar opciones en una pregunta de escenario?
 ---
 
 :::escenario

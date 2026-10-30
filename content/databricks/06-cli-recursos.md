@@ -15,7 +15,7 @@ Una vez autenticado, la CLI organiza los comandos por **tipo de recurso**, con e
 | `jobs` | Jobs (Lakeflow Jobs) | `list`, `create`, `run-now`, `get-run` |
 | `secrets` | Secret scopes y secretos | `create-scope`, `put-secret`, `list-secrets` |
 | `catalogs`, `schemas`, `tables` | Unity Catalog | `list`, `get` |
-| `bundle` | Asset Bundles | `init`, `validate`, `deploy`, `run` |
+| `bundle` | Declarative Automation Bundles | `init`, `validate`, `deploy`, `run` |
 
 Agrega `--output json` a casi cualquier comando para procesar la respuesta con `jq` en un script.
 

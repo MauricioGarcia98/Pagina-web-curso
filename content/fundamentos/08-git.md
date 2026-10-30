@@ -209,7 +209,7 @@ flecha rev -> rama: pide cambios | estilo=punteada | color=rojo
 :::trabajo
 - La revisión de código (*code review*) es donde más se aprende en los primeros meses. Lee los comentarios como consejos, no como críticas, y revisa también el código de otros: es la forma más rápida de aprender cómo trabaja el equipo.
 - En equipos de datos, el CI de un pull request suele ejecutar los tests de dbt, `pytest` de las transformaciones de Python y un chequeo de estilo de SQL (por ejemplo, con sqlfluff).
-- Las herramientas de datos modernas se despliegan desde Git: dbt Cloud, Databricks Asset Bundles y Airflow leen el código de la rama `main`. Lo que no está en Git, no existe.
+- Las herramientas de datos modernas se despliegan desde Git: dbt Cloud, Declarative Automation Bundles y Airflow leen el código de la rama `main`. Lo que no está en Git, no existe.
 :::
 
 ## Ejercicios

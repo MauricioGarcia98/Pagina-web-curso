@@ -27,7 +27,7 @@ Método: revisar qué cambió (volumen, código, datos), mirar la **Spark UI** (
 Idempotencia: `MERGE` por clave, sobrescritura por partición/`replaceWhere`, checkpoints en streaming, claves de negocio con tests `unique`.
 :::
 
-Otras clásicas: diferencias entre ETL y ELT; OLTP vs OLAP; data lake vs warehouse vs lakehouse; SCD tipo 2; particionado vs clustering; narrow vs wide; broadcast join; cuándo usar streaming; cómo versionas y despliegas pipelines (Git + CI/CD + Asset Bundles).
+Otras clásicas: diferencias entre ETL y ELT; OLTP vs OLAP; data lake vs warehouse vs lakehouse; SCD tipo 2; particionado vs clustering; narrow vs wide; broadcast join; cuándo usar streaming; cómo versionas y despliegas pipelines (Git + CI/CD + Declarative Automation Bundles).
 
 ## Checklist: ¿estás listo para un puesto Junior / Semi Senior?
 
@@ -40,7 +40,7 @@ Otras clásicas: diferencias entre ETL y ELT; OLTP vs OLAP; data lake vs warehou
 | dbt | Proyecto con staging/marts, ref/source, incrementales, tests y docs |
 | Orquestación | DAGs de Airflow o jobs de Databricks con reintentos, parámetros y alertas |
 | Nube | Azure CLI, ADLS Gen2, identidades/RBAC, Key Vault |
-| Ingeniería | Git, PRs, CI/CD, Asset Bundles, buenas prácticas de código |
+| Ingeniería | Git, PRs, CI/CD, Declarative Automation Bundles, buenas prácticas de código |
 
 ## Certificaciones que suman
 

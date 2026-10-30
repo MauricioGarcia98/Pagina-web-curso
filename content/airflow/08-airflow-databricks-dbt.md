@@ -43,7 +43,7 @@ with DAG(
 
     inicio = EmptyOperator(task_id="inicio")
 
-    # 1) Ingesta a bronze: un job de Databricks ya existente (creado con Asset Bundles)
+    # 1) Ingesta a bronze: un job de Databricks ya existente (creado con Declarative Automation Bundles)
     ingesta = DatabricksRunNowOperator(
         task_id="ingesta_bronze",
         databricks_conn_id="databricks_default",
@@ -105,7 +105,7 @@ flecha af -> al: on_failure_callback | estilo=punteada | color=rojo
 
 ### `DatabricksRunNowOperator`: correr un job que ya existe
 
-El job (sus tareas, el clúster, las librerías) **ya está definido en Databricks**, normalmente con Asset Bundles y versionado en Git. Airflow solo dice "córrelo ahora con estos parámetros" y espera a que termine.
+El job (sus tareas, el clúster, las librerías) **ya está definido en Databricks**, normalmente con Declarative Automation Bundles y versionado en Git. Airflow solo dice "córrelo ahora con estos parámetros" y espera a que termine.
 
 - **Ventaja**: la definición del job vive en un solo lugar y se puede correr a mano desde Databricks para depurar.
 - **`job_parameters={"fecha": "{{ ds }}"}`**: el job recibe la fecha lógica. Así reprocesar el 15 de marzo es relanzar esa ejecución, sin tocar código.

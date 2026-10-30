@@ -72,7 +72,7 @@ leccion: databricks-cli-autenticacion
 - [ ] Escribir la contraseña de la consola en un script.
 porque: OAuth evita tokens personales de larga duración en archivos. Para CI se usa un service principal (idealmente con OIDC).
 
-## Asset Bundles
+## Declarative Automation Bundles
 leccion: databricks-asset-bundles
 ¿Qué comando despliega un bundle en el entorno de producción definido en `databricks.yml`?
 - [ ] `databricks bundle init -t prod`

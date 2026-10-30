@@ -30,7 +30,7 @@ Un proyecto de portafolio no demuestra que sabes usar una herramienta: demuestra
 | 8 | Clasificador de tickets con LLM | Soporte | Prompting, evaluación contra etiquetas, costos | `ai_classify` / Foundry |
 | 9 | Asistente RAG con citas | Soporte | Chunking, embeddings, búsqueda vectorial, evaluación | Vector Search / AI Search |
 | 10 | Agente que consulta datos | Tienda online | Text-to-SQL con guardrails, capa semántica | Genie / Foundry |
-| 11 | Plataforma con IaC y CI/CD | Cualquiera | Terraform, Asset Bundles, GitHub Actions, entornos | Azure + Databricks |
+| 11 | Plataforma con IaC y CI/CD | Cualquiera | Terraform, Declarative Automation Bundles, GitHub Actions, entornos | Azure + Databricks |
 | 12 | Observabilidad de datos | Banco (caótico) | Checks, alertas, SLO, costos, incidentes | Databricks |
 
 :::tip ¿Cuáles hago?

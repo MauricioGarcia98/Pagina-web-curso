@@ -2,7 +2,7 @@
 titulo: "Laboratorio Databricks: bundles, Lakeflow Declarative Pipelines, Unity Catalog y serving"
 nivel: Avanzado
 duracion: 55
-resumen: Crea un proyecto con Databricks Asset Bundles, valídalo, despliégalo en el target dev y ejecuta su job; crea un pipeline declarativo serverless con catálogo y esquema de Unity Catalog, ejecútalo y mira sus actualizaciones; otorga permisos con la jerarquía USE CATALOG, USE SCHEMA y SELECT; y consulta un modelo fundacional en Model Serving. Cubre las certificaciones Data Engineer Associate y Professional, y parte de la de IA generativa.
+resumen: Crea un proyecto con Declarative Automation Bundles, valídalo, despliégalo en el target dev y ejecuta su job; crea un pipeline declarativo serverless con catálogo y esquema de Unity Catalog, ejecútalo y mira sus actualizaciones; otorga permisos con la jerarquía USE CATALOG, USE SCHEMA y SELECT; y consulta un modelo fundacional en Model Serving. Cubre las certificaciones Data Engineer Associate y Professional, y parte de la de IA generativa.
 objetivos: Inicializar, validar, desplegar, ejecutar y destruir un bundle | Crear y ejecutar un pipeline declarativo serverless en Unity Catalog | Otorgar los tres permisos que necesita un analista para leer una tabla | Consultar un endpoint de modelo fundacional con la CLI
 autoevaluacion: ¿Sabes qué diferencia hay entre los targets dev y prod de un bundle? | ¿Sabes qué permisos necesita un grupo para hacer SELECT sobre catalogo.esquema.tabla? | ¿Sabes qué hace un full refresh en un pipeline? | ¿Sabes cómo consultar un modelo fundacional sin desplegar nada?
 ---
@@ -38,7 +38,7 @@ flecha an -> ms | estilo=punteada
 | Cuenta paga: job y pipeline serverless | DBU por minuto de ejecución: centavos |
 | Endpoints de modelos fundacionales (pago por token) | Centavos |
 
-## Práctica guiada: Asset Bundles
+## Práctica guiada: Declarative Automation Bundles
 
 :::ejercicio cli
 Paso 1. Inicializa un bundle con la plantilla `default-python`.

@@ -1,5 +1,5 @@
 ---
-titulo: "Proyecto 11: La plataforma con Terraform, Asset Bundles y CI/CD"
+titulo: "Proyecto 11: La plataforma con Terraform, Declarative Automation Bundles y CI/CD"
 nivel: Experto
 duracion: 120
 resumen: Lo que convierte proyectos sueltos en una plataforma profesional. Toda la infraestructura en código con Terraform (grupo de recursos, lago, Key Vault, workspace de Databricks), los pipelines y jobs en un Databricks Asset Bundle con entornos dev y prod, y GitHub Actions que validan cada cambio y despliegan al aprobar. Usas cualquiera de los proyectos anteriores como carga de trabajo. Valor - desplegar en minutos, igual en cada entorno y sin pasos manuales.

@@ -9,13 +9,13 @@ resumen: Proyectos como código con databricks.yml, targets dev/prod, validate/d
 En marzo de 2026, Databricks renombró **Databricks Asset Bundles** como **Declarative Automation Bundles**. El archivo `databricks.yml` y los comandos `databricks bundle …` no cambiaron, y en documentación, foros y entrevistas vas a seguir viendo el nombre viejo y la sigla DABs.
 :::
 
-**Databricks Asset Bundles (DABs)** son la forma oficial de tratar jobs, pipelines, notebooks y configuraciones como **código**: se versionan en Git, se revisan en Pull Requests y se despliegan a dev/test/prod con la CLI.
+**Declarative Automation Bundles (DABs)** son la forma oficial de tratar jobs, pipelines, notebooks y configuraciones como **código**: se versionan en Git, se revisan en Pull Requests y se despliegan a dev/test/prod con la CLI.
 
 ## El problema: "funciona en mi workspace"
 
 Sin bundles, un proyecto de Databricks se despliega a mano: alguien copia notebooks de su carpeta personal a la de producción, crea el job con clics, configura el cluster, los parámetros, los horarios… y nadie sabe exactamente qué versión está corriendo en producción ni cómo recrearla si se borra.
 
-Los **Databricks Asset Bundles** (DABs) aplican al proyecto de datos la misma idea que la infraestructura como código: **todo** (código, jobs, pipelines, clusters, permisos) se describe en archivos YAML dentro del repositorio Git, y un comando lo despliega idéntico en cada entorno.
+Los **Declarative Automation Bundles** (DABs) aplican al proyecto de datos la misma idea que la infraestructura como código: **todo** (código, jobs, pipelines, clusters, permisos) se describe en archivos YAML dentro del repositorio Git, y un comando lo despliega idéntico en cada entorno.
 
 | Sin bundles | Con bundles |
 |---|---|
