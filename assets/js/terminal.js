@@ -834,7 +834,7 @@ models:
   ['nano', 'vim', 'vi'].forEach((e) => def(e, e === 'nano' ? 'editor de texto (abre el editor visual)' : '', (a) => Commands.code(a)));
   def('pip', 'instala paquetes de Python (simulado)', (a) => {
     if (a[0] === 'install') return ok(a.slice(1).filter((x) => !x.startsWith('-')).map((p) => `Collecting ${p}\n  Downloading ${p}-latest-py3-none-any.whl\n`).join('') + col.ok(`Successfully installed ${a.slice(1).filter((x) => !x.startsWith('-')).join(' ')}`));
-    if (a[0] === 'list' || a[0] === 'freeze') return ok('pandas==2.2.2\npyspark==3.5.1\napache-airflow==3.3.2\ndbt-databricks==1.8.5\nrequests==2.32.3');
+    if (a[0] === 'list' || a[0] === 'freeze') return ok('pandas==2.2.2\npyspark==4.2.1\napache-airflow==3.3.2\ndbt-databricks==1.8.5\nrequests==2.32.3');
     return ok('Uso: pip install PAQUETE | pip list');
   });
   Commands.pip3 = Commands.pip;

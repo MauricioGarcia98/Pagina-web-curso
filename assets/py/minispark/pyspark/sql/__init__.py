@@ -2070,7 +2070,7 @@ class _Catalog:
 
 class SparkSession:
     _active = None
-    version = "3.5.0 (mini-Spark simulado)"
+    version = "4.2.1 (mini-Spark simulado)"
 
     class _BuilderDesc:
         def __get__(self, obj, cls):
