@@ -180,3 +180,21 @@ Los presupuestos de Google Cloud (y los de AWS por defecto) solo notifican. Para
 - [x] Porque al terminar borras el grupo y se borra todo lo que contiene
 - [ ] Porque así no necesitas permisos
 :::
+
+:::errores
+- **Usar la cuenta de trabajo para practicar**: un recurso olvidado o un permiso mal dado afecta a sistemas reales. Usa una cuenta o un proyecto aparte.
+- **Crear el presupuesto después del laboratorio**: las alertas llegan tarde. Es el primer paso, antes de crear cualquier recurso.
+- **Cambiar de región a mitad del laboratorio**: los recursos de la otra región no aparecen en la consola que estás mirando.
+- **Confiar en que "borré todo" sin listar**: el `list` final es el único que lo confirma.
+- **Creer que una alerta de presupuesto frena el gasto**: solo avisa. Para cortar hay que borrar recursos (o configurar acciones de presupuesto donde la nube lo permite).
+:::
+
+:::trabajo
+- En las empresas los entornos de prueba (*sandbox*) tienen presupuesto, etiquetas obligatorias y, muchas veces, un proceso automático que borra lo que tiene más de unos días.
+- Revisar la factura por etiqueta o por grupo de recursos es tarea habitual del equipo de plataforma; cada recurso sin etiqueta es una pregunta de "¿de quién es esto?".
+:::
+
+:::entrevista "¿Cómo controlarías los costos de un entorno de datos en la nube?"
+Con presupuestos y alertas por entorno, etiquetas obligatorias de proyecto y responsable, y reportes de costo por etiqueta. Apagado automático de lo que cobra por hora: auto-terminación de clústeres, auto-stop de warehouses, endpoints que escalan a cero o se borran. Límites de escaneo en motores que cobran por bytes leídos, como Athena o BigQuery. Y una revisión periódica de recursos sin uso.
+:::
+

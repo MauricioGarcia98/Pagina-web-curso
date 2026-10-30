@@ -218,6 +218,23 @@ aws sagemaker create-endpoint-config --endpoint-config-name demoras-cfg --produc
 aws s3 rb s3://ml-demoras-lab --force
 ```
 
+:::errores
+- **Entrenar con Spot sin checkpoints**: si AWS recupera la máquina, el entrenamiento vuelve a empezar de cero.
+- **Borrar solo el modelo y dejar el endpoint**: el endpoint es lo que cobra por hora. El orden es endpoint, configuración del endpoint y modelo.
+- **Enviar al endpoint columnas en otro orden** que el del entrenamiento (con CSV no hay nombres de columnas): el modelo predice sin errores, pero mal.
+- **Un endpoint en tiempo real para predicciones que se usan una vez por día**: una transformación por lotes (*batch transform*) o el cómputo serverless cuestan mucho menos.
+:::
+
+:::trabajo
+- En producción el modelo se registra en un *model registry* con su versión, métricas y datos de entrenamiento, y el despliegue pasa por aprobación.
+- El data engineer suele construir la tabla de entrenamiento y la de predicciones, y el pipeline que vuelve a entrenar; el endpoint lo opera el equipo de ML o de plataforma.
+- Las predicciones se monitorean: si la distribución de los datos de entrada cambia (*drift*), se reentrena.
+:::
+
+:::entrevista "¿Cuándo usarías un endpoint en tiempo real y cuándo predicciones por lotes?"
+Tiempo real cuando la respuesta se necesita en el momento de una interacción, por ejemplo al cotizar o al aprobar un pago, y la latencia importa. Por lotes cuando las predicciones se usan después, como un puntaje diario de riesgo de churn: se calculan para todos de una vez, se guardan en una tabla y no hay una máquina encendida todo el día. El costo de un endpoint es por hora, así que si se usa poco, lotes o serverless.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz

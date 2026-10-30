@@ -271,6 +271,23 @@ cd ~
 ```
 :::
 
+:::errores
+- **Desplegar a mano en el workspace** y además con el bundle: el próximo `bundle deploy` pisa los cambios manuales.
+- **Usar el target de producción desde tu computadora**: los despliegues a prod los hace el CI con un service principal.
+- **Pipeline declarativo sin catálogo y esquema definidos**: las tablas terminan en un lugar inesperado o el pipeline no arranca.
+- **Dar `ALL PRIVILEGES` a un grupo amplio** en Unity Catalog: se da lo mínimo (`USE CATALOG`, `USE SCHEMA`, `SELECT`) y a grupos, no a personas.
+- **Olvidar borrar el endpoint de Model Serving** o dejarlo sin escalar a cero.
+:::
+
+:::trabajo
+- Un proyecto de datos en Databricks se ve así en el repositorio: `databricks.yml` con targets dev y prod, carpetas con notebooks y código Python, y un workflow de CI que corre `bundle validate` en cada *pull request* y `bundle deploy -t prod` al aprobar.
+- Los permisos de Unity Catalog se definen como código (en Terraform o en el bundle) y se revisan como cualquier otro cambio.
+:::
+
+:::entrevista "¿Cómo llevarías un job de Databricks de desarrollo a producción?"
+Lo definiría en un bundle con targets dev y prod, versionado en Git. En desarrollo cada persona despliega a su propio entorno con `databricks bundle deploy -t dev`. Los cambios pasan por pull request, con CI que valida el bundle y corre tests. Al aprobar, el CI despliega a prod con un service principal y OAuth máquina a máquina, el job corre como ese service principal con permisos mínimos en Unity Catalog, y nadie edita producción a mano.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz

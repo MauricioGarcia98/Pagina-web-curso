@@ -328,6 +328,23 @@ Los recursos de Foundry quedan en estado *soft-deleted* 48 horas. Para liberar e
 ```
 :::
 
+:::errores
+- **Dejar habilitadas las claves de API** del recurso de Foundry: cualquiera que copie la clave tiene acceso. Desactivarlas obliga a usar identidades de Entra ID con permisos.
+- **Asignar el rol a la persona y no a la identidad de la aplicación**: funciona en la prueba y falla en producción.
+- **Cómputo de entrenamiento con mínimo de nodos mayor que cero**: cobra aunque no haya jobs.
+- **Pasar el tráfico al despliegue verde de golpe**: si falla, falla para todos. Se pasa de a poco y se compara.
+- **Olvidar borrar el online endpoint**: es de lo más caro del laboratorio.
+:::
+
+:::trabajo
+- En Azure, las empresas desactivan las claves locales de los servicios de IA y usan identidades administradas con roles mínimos, auditados con Entra ID.
+- El despliegue blue/green de modelos se automatiza en el pipeline de CI/CD: crear el despliegue nuevo, probarlo con tráfico espejado o parcial, y cambiar el tráfico.
+:::
+
+:::entrevista "¿Por qué desactivarías las claves de un servicio de IA y usarías Entra ID?"
+Porque una clave es un secreto compartido de larga duración que cualquiera que la tenga puede usar, y no identifica quién hizo cada llamada. Con Entra ID cada aplicación usa su propia identidad, idealmente una identidad administrada, con un rol que limita qué puede hacer; los tokens son de corta duración, los accesos quedan auditados y se pueden revocar sin cambiar el código de las demás aplicaciones.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz
