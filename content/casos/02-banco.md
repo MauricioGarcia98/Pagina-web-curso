@@ -248,3 +248,14 @@ HAVING MAX(t.fecha_hora) IS NULL OR MAX(t.fecha_hora) < '2024-10-03';
 LEFT JOIN para no perder cuentas sin movimientos, `MAX(fecha_hora)` por cuenta y la condición en el `HAVING`.
 ```
 :::
+
+:::errores
+- **Sumar montos sin mirar el signo**: si las compras son negativas y los depósitos positivos, "gasto total" sin filtrar el tipo da cualquier cosa.
+- **Saldo acumulado sin desempate** en el orden de la ventana: dos movimientos con la misma hora intercambian el orden y el saldo intermedio cambia.
+- **Reglas de fraude evaluadas sin la tasa de falsos positivos**: una regla que marca el 20 % de las compras como sospechosas no se puede revisar.
+- **Mora contada por cuotas** cuando la pregunta es por préstamos.
+:::
+
+:::entrevista "¿Cómo calcularías el saldo de cada cuenta después de cada movimiento?"
+Con una suma acumulada como función de ventana: `SUM(monto) OVER (PARTITION BY cuenta_id ORDER BY fecha_hora, tx_id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)`. El `tx_id` en el orden desempata movimientos con la misma hora para que el resultado sea determinista, y el marco explícito evita que filas empatadas se sumen juntas. Validaría que el último saldo coincida con el saldo informado por el sistema de origen.
+:::

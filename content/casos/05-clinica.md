@@ -185,3 +185,14 @@ SELECT CASE dw WHEN 1 THEN 'lunes' WHEN 2 THEN 'martes' WHEN 3 THEN 'miércoles'
 FROM t GROUP BY dw ORDER BY dw;
 ```
 :::
+
+:::errores
+- **Ausentismo calculado sobre turnos futuros**: todavía no se sabe si el paciente va a venir.
+- **Productividad de médicos sin considerar sus horas disponibles**: más turnos atendidos puede ser solo más horas.
+- **Facturación sumando turnos cancelados**.
+- **Datos personales de pacientes en los resultados** cuando bastan los identificadores.
+:::
+
+:::entrevista "¿Cómo medirías el efecto de la anticipación del turno en el ausentismo?"
+Calcularía para cada turno pasado los días entre la reserva y la cita, lo agruparía en tramos (mismo día, 1 a 7, 8 a 30, más de 30) y mediría la tasa de ausencias por tramo sobre los turnos que ya ocurrieron. Controlaría por especialidad y tipo de paciente, porque pueden explicar la diferencia, y mostraría la cantidad de turnos por tramo para no sacar conclusiones de grupos chicos.
+:::

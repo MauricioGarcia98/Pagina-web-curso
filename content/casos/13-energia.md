@@ -239,3 +239,9 @@ Escribe el informe en cuatro partes: (1) el plan de inspecciones de las próxima
 4. Datos: curva de carga cada 15 minutos (inteligentes), resultados de inspecciones anteriores, cambios de titular y bajas, balance de energía por transformador (energía que entra al transformador vs. la suma de sus clientes: la diferencia localiza la pérdida), y temperatura diaria por zona para separar efectos de clima.
 ```
 :::
+
+:::errores
+- **Comparar consumos de períodos con distinta cantidad de días**: una "caída" puede ser solo un mes más corto. Normaliza por día.
+- **Marcar hurto por cualquier caída**: un cliente que se mudó o una casa vacía también bajan el consumo. Las reglas generan candidatos a inspeccionar, no acusaciones.
+- **Deuda por zona sin separar la deuda vencida** de la que todavía no vence.
+:::

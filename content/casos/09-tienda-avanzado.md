@@ -141,3 +141,7 @@ FROM o;
 Unos pocos clientes que tardan muchísimo en volver “tiran” el promedio hacia arriba. La **mediana** representa mejor al cliente típico cuando la distribución tiene cola larga.
 ```
 :::
+
+:::entrevista "¿Cómo calcularías el tiempo hasta la recompra de los clientes?"
+Para cada cliente ordenaría sus pedidos no cancelados por fecha y usaría `LEAD` para obtener la fecha del siguiente pedido; la diferencia en días es el tiempo hasta la recompra. Tomaría la mediana además del promedio, porque hay valores muy largos, y la separaría por la categoría de la primera compra. Los clientes con un solo pedido no tienen recompra todavía: los informaría aparte, no como cero.
+:::

@@ -173,3 +173,14 @@ ORDER BY ingreso DESC
 LIMIT 5;
 ```
 :::
+
+:::errores
+- **Puntualidad que excluye los vuelos cancelados**: se ve mejor de lo que es; los cancelados se reportan aparte.
+- **Demora de llegada y de salida mezcladas**.
+- **Factor de ocupación con pasajes vendidos** en vez de pasajeros embarcados.
+- **Comparar precios sin la anticipación de la compra**: el mismo asiento cuesta distinto según cuándo se compra.
+:::
+
+:::entrevista "¿Cómo calcularías cuánto se propaga una demora en la red de vuelos?"
+Uniría cada vuelo con el siguiente que opera el mismo avión ordenando por hora de salida, con `LEAD` por matrícula. La demora que se transmite es la demora de llegada del primero menos el margen entre la llegada programada y la salida del siguiente, menos el tiempo mínimo en tierra, si da positivo. Compararía esa demora heredada con la demora real del segundo vuelo para separar la propagada de la propia.
+:::

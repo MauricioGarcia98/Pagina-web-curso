@@ -198,3 +198,14 @@ FROM vig v LEFT JOIN ult u ON u.usuario_id = v.usuario_id
 WHERE u.ultima IS NULL OR u.ultima < '2024-12-01';
 ```
 :::
+
+:::errores
+- **Usuarios activos contados por reproducciones** en vez de usuarios distintos.
+- **Churn con las altas del mes en el denominador**: se esconde la pérdida en los meses de campañas.
+- **MRR sumando planes gratuitos o pruebas**: infla el ingreso.
+- **Skip rate promediando tasas por usuario** en lugar de skips totales sobre reproducciones totales (o al revés): son preguntas distintas; elige una y escríbela.
+:::
+
+:::entrevista "¿Cómo definirías y calcularías el churn mensual de una app de suscripción?"
+Acordaría la definición: bajas en el mes sobre suscriptores pagos activos al inicio del mes, sin las altas del mes en el denominador. Calcularía los activos al inicio con las fechas de inicio y fin de cada suscripción, las bajas como los que terminan dentro del mes, y presentaría también el churn por cohorte y por plan. Validaría que activos al inicio más altas menos bajas dé los activos al final.
+:::

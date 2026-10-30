@@ -261,3 +261,9 @@ Escribe la respuesta en cinco puntos: qué pasa en hogar (con números), por qu�
 5. Faltan datos: inspección previa del inmueble, historial del cliente en otras aseguradoras, quién vendió la póliza (algunos fraudes se repiten por intermediario), fotos y documentación del siniestro. Con eso, pasar de una regla a un modelo.
 ```
 :::
+
+:::errores
+- **Siniestralidad con primas emitidas** cuando la pregunta es por primas devengadas (la parte del año ya transcurrida).
+- **Severidad promedio con siniestros en curso** sin monto final.
+- **Reglas de fraude sin medir cuántos casos marcan**: una regla que marca la mitad no es útil.
+:::

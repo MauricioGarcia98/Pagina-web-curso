@@ -195,3 +195,14 @@ WHERE v.estado = 'completado' AND v.fecha_hora_solicitud >= '2024-08-01'
 GROUP BY mes ORDER BY mes;
 ```
 :::
+
+:::errores
+- **Tasa de cancelación sobre los viajes completados**: el denominador son todas las solicitudes.
+- **Tiempo de espera promedio con valores nulos** de viajes cancelados: el promedio queda sesgado; decide si se excluyen y dilo.
+- **Horas pico en la zona horaria del servidor** (UTC) en vez de la local.
+- **Ranking de conductores sin mínimo de viajes**: un conductor con un viaje de 5 estrellas queda primero.
+:::
+
+:::entrevista "¿Cómo armarías un ranking justo de conductores por calificación?"
+Exigiría un mínimo de viajes en el período para que el promedio sea estable, y consideraría un promedio ajustado (bayesiano) que acerca a la media general a quienes tienen pocos viajes. Rankearía con `DENSE_RANK` por ciudad para comparar en el mismo contexto, y desempataría por cantidad de viajes. Mostraría además la tasa de cancelación del conductor, porque una buena nota con muchas cancelaciones no es un buen servicio.
+:::

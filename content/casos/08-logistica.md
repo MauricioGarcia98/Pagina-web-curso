@@ -176,3 +176,14 @@ r AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY almacen_id ORDER BY prom DESC, d
 SELECT almacen_id, dia_semana, ROUND(prom, 2) AS promedio_envios FROM r WHERE rn = 1 ORDER BY almacen_id;
 ```
 :::
+
+:::errores
+- **Stock calculado sin agregar los movimientos por día** antes de acumular.
+- **Días de quiebre que no cuentan los días sin movimientos**: hay que generar la grilla de días.
+- **Rotación con el stock final** en vez del stock promedio del período.
+- **Costo por envío promediando costos por transportista** sin ponderar por la cantidad de envíos.
+:::
+
+:::entrevista "¿Cómo medirías la puntualidad de los transportistas?"
+Definiría entrega a tiempo como entregada en o antes de la fecha prometida, contando los envíos vencidos y sin entregar como impuntuales, para no premiar a quien no entrega. Lo calcularía por transportista y mes sobre los envíos cuya fecha prometida ya pasó, mostraría la cantidad de envíos y la demora promedio de los atrasados, y compararía por región porque las rutas no son iguales.
+:::

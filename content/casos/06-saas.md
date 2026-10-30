@@ -190,3 +190,14 @@ GROUP BY churn;
 Una diferencia aquí es una **correlación**, no prueba causalidad. Pero es el tipo de hallazgo que justifica investigar más (por ejemplo, entrevistando a los clientes perdidos).
 ```
 :::
+
+:::errores
+- **MRR con facturas anuales sin dividir por 12**: un mes salta y los otros once caen.
+- **NRR que incluye clientes nuevos**: el NRR mide solo la base de clientes del inicio del período.
+- **Movimientos de MRR que no cumplen la identidad** (inicial + nuevo + expansión − contracción − churn = final).
+- **SLA medido en horas corridas** cuando el contrato dice horas hábiles.
+:::
+
+:::entrevista "¿Qué diferencia hay entre el NRR y el churn de clientes?"
+El churn de clientes cuenta cuántos clientes se van; el NRR (retención neta de ingresos) mide cuánto ingreso conserva la base de clientes del inicio del período, sumando las expansiones y restando contracciones y bajas, sin contar clientes nuevos. Un NRR mayor a 100 % significa que lo que crecen los clientes existentes compensa lo que se pierde, aunque se vayan clientes. Se calculan sobre la misma cohorte inicial.
+:::
