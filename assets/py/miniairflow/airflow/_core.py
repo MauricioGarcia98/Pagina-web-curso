@@ -45,6 +45,12 @@ class DAG:
                  max_active_tasks=16, dagrun_timeout=None, params=None, doc_md=None, **kwargs):
         if not isinstance(dag_id, str) or not dag_id:
             raise AirflowException("dag_id debe ser un texto no vacío")
+        if schedule_interval is not None:
+            raise TypeError("DAG.__init__() got an unexpected keyword argument 'schedule_interval' "
+                            "(en Airflow 3 se eliminó: usa schedule=...)")
+        for viejo, nuevo in (("sla_miss_callback", "deadline=DeadlineAlert(...)"), ("concurrency", "max_active_tasks"), ("timetable", "schedule")):
+            if viejo in kwargs:
+                raise TypeError("DAG.__init__() got an unexpected keyword argument '%s' (en Airflow 3: %s)" % (viejo, nuevo))
         self.dag_id = dag_id
         self.description = description
         self.schedule = schedule if schedule is not None else schedule_interval
@@ -271,7 +277,7 @@ class TaskInstance:
         return {
             "ti": self, "task_instance": self, "task": self.task, "dag": self.task.dag,
             "ds": ld.strftime("%Y-%m-%d"), "ds_nodash": ld.strftime("%Y%m%d"),
-            "ts": ld.isoformat(), "logical_date": ld, "execution_date": ld,
+            "ts": ld.isoformat(), "logical_date": ld,
             "data_interval_start": di_start, "data_interval_end": di_end,
             "params": dict(self.task.dag.params if self.task.dag else {}, **(self.task.params or {})),
             "dag_run": self.dag_run, "run_id": self.dag_run.run_id, "conf": self.dag_run.conf,
@@ -309,6 +315,9 @@ class BaseOperator:
                  on_success_callback=None, priority_weight=1, queue=None, doc_md=None, **kwargs):
         if not isinstance(task_id, str) or not task_id:
             raise AirflowException("task_id debe ser un texto no vacío")
+        if sla is not None:
+            raise TypeError("Invalid arguments were passed to %s (task_id: %s). Invalid arguments were: 'sla'. "
+                            "Los SLA se eliminaron en Airflow 3: usa Deadline Alerts" % (type(self).__name__, task_id))
         dag = dag or (_CURRENT_DAG[-1] if _CURRENT_DAG else None)
         if _CURRENT_GROUP:
             task_id = _CURRENT_GROUP[-1].prefix + task_id
@@ -387,7 +396,12 @@ class BaseOperator:
         if isinstance(value, str) and "{{" in value:
             try:
                 import jinja2
-                return jinja2.Template(value).render(**context)
+                try:
+                    return jinja2.Template(value, undefined=jinja2.StrictUndefined).render(**context)
+                except jinja2.UndefinedError as e:
+                    n = str(e).split("'")[1] if "'" in str(e) else str(e)
+                    extra = " En Airflow 3 se eliminó: usa {{ logical_date }} o {{ ds }}." if n in _CONTEXTO_ELIMINADO else ""
+                    raise AirflowException("UndefinedError al renderizar la plantilla: '%s' is undefined.%s" % (n, extra))
             except ImportError:
                 return value.replace("{{ ds }}", context["ds"]).replace("{{ds}}", context["ds"])
         return value
@@ -1123,7 +1137,30 @@ class Dataset(Asset):
         return "Dataset(%r)" % self.uri
 
 
+_CONTEXTO_ELIMINADO = {"execution_date", "next_execution_date", "prev_execution_date", "prev_execution_date_success",
+                       "tomorrow_ds", "tomorrow_ds_nodash", "yesterday_ds", "yesterday_ds_nodash", "prev_ds", "prev_ds_nodash",
+                       "next_ds", "next_ds_nodash"}
+
+
+class AirflowDeprecationWarning(UserWarning):
+    pass
+
+
+IMPORTS_VIEJOS = []
+
+
+def _ruta_vieja(vieja, nueva):
+    """Las rutas de Airflow 2 siguen funcionando en Airflow 3, con un aviso de obsoleto."""
+    import warnings
+    IMPORTS_VIEJOS.append((vieja, nueva))
+    warnings.warn("%s está obsoleto en Airflow 3; importa desde %s" % (vieja, nueva), AirflowDeprecationWarning, stacklevel=3)
+
+
 def days_ago(n, hour=0):
+    raise AirflowException("days_ago() se eliminó en Airflow 3 (airflow.utils.dates). Usa una fecha fija: start_date=datetime(2024, 1, 1)")
+
+
+def _days_ago_legacy(n, hour=0):
     today = _dt.datetime.now().replace(hour=hour, minute=0, second=0, microsecond=0)
     return today - _dt.timedelta(days=n)
 

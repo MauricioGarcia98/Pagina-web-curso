@@ -365,19 +365,19 @@
     for (let k = 0; k < 6; k++) add('INFO', 'erp.py:77', `Esperando erp/ventas/2026-10-28.csv (intento ${k + 1}/6, espera 60 s)`);
     add('WARNING', 'erp.py:83', 'Archivo erp/ventas/2026-10-28.csv no encontrado después de 6 intentos; allow_empty=True: se continúa con un lote vacío');
     add('INFO', 'erp.py:95', 'Escribiendo 0 filas en s3://lago/raw/erp/ventas/ds=2026-10-28/part-0000.parquet');
-    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=ventas_diarias, task_id=erp_extract, execution_date=20261028T030000, start_date=20261029T030002, end_date=20261029T030614');
+    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=ventas_diarias, task_id=erp_extract, logical_date=20261028T030000, start_date=20261029T030002, end_date=20261029T030614');
     s += 20;
     add('INFO', 'taskinstance.py:1359', 'Starting attempt 1 of 3');
     add('INFO', 'taskinstance.py:1380', 'Executing <Task(SQLExecuteQueryOperator): cargar_staging> on 2026-10-28 03:00:00+00:00');
     add('INFO', 'sql.py:418', 'Running statement: INSERT OVERWRITE staging.ventas PARTITION (ds=\'2026-10-28\') SELECT * FROM raw.erp_ventas WHERE ds = \'2026-10-28\'');
     add('INFO', 'sql.py:427', 'Rows affected: 0');
-    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=ventas_diarias, task_id=cargar_staging, execution_date=20261028T030000');
+    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=ventas_diarias, task_id=cargar_staging, logical_date=20261028T030000');
     add('INFO', 'taskinstance.py:1359', 'Starting attempt 1 of 3');
     add('INFO', 'taskinstance.py:1380', 'Executing <Task(SQLExecuteQueryOperator): fct_ventas_diarias> on 2026-10-28 03:00:00+00:00');
     add('INFO', 'sql.py:418', 'Running statement: MERGE INTO ventas.fct_ventas_diarias t USING (SELECT ds, tienda_id, sum(monto) monto FROM staging.ventas WHERE ds=\'2026-10-28\' GROUP BY 1,2) s ON ...');
     add('WARNING', 'calidad.py:22', 'check_volumen deshabilitado para esta tarea (enabled: false en checks.yml)');
     add('INFO', 'sql.py:427', 'Rows affected: 0');
-    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=ventas_diarias, task_id=fct_ventas_diarias, execution_date=20261028T030000, start_date=20261029T030655, end_date=20261029T030702');
+    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=ventas_diarias, task_id=fct_ventas_diarias, logical_date=20261028T030000, start_date=20261029T030655, end_date=20261029T030702');
     add('INFO', 'local_task_job.py:212', 'Task exited with return code 0');
     f['logs/ventas_diarias_2026-10-28.log'] = L.join('\n') + '\n';
     const cargas = ['ds,filas,monto_total'];
@@ -454,12 +454,12 @@
     add('INFO', 'sql.py:430', 'COMMIT enviado; esperando confirmación del servidor...', 1795);
     add('ERROR', 'taskinstance.py:2905', 'Task failed with exception');
     L.push('airflow.exceptions.AirflowTaskTimeout: Timeout, PID: 48812 (execution_timeout=0:30:00)');
-    add('INFO', 'taskinstance.py:1206', 'Marking task as UP_FOR_RETRY. dag_id=pedidos, task_id=cargar_fct_pedidos, execution_date=20261028T020000', 300);
+    add('INFO', 'taskinstance.py:1206', 'Marking task as UP_FOR_RETRY. dag_id=pedidos, task_id=cargar_fct_pedidos, logical_date=20261028T020000', 300);
     add('INFO', 'taskinstance.py:1359', 'Starting attempt 2 of 3');
     add('INFO', 'sql.py:418', "Running statement: INSERT INTO dw.fct_pedidos SELECT *, 'L-7732' AS load_id FROM staging.pedidos WHERE fecha = '2026-10-28'", 3);
     add('INFO', 'sql.py:427', 'Rows affected: 18432');
     add('INFO', 'sql.py:430', 'COMMIT confirmado en 0.4 s');
-    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=pedidos, task_id=cargar_fct_pedidos, execution_date=20261028T020000');
+    add('INFO', 'taskinstance.py:1400', 'Marking task as SUCCESS. dag_id=pedidos, task_id=cargar_fct_pedidos, logical_date=20261028T020000');
     f['logs/cargar_fct_pedidos.log'] = L.join('\n') + '\n';
     f['logs/postgres.log'] = [
       '2026-10-29 02:00:09 UTC [48813] LOG:  duration: 3.912 s  statement: INSERT INTO dw.fct_pedidos SELECT ... (L-7731)',
