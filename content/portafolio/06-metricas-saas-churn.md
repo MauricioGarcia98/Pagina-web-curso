@@ -80,6 +80,21 @@ Cada vez que corre, si una empresa cambió de plan, cierra la fila anterior (`db
 
 Uso de los últimos 30 días contra el promedio de los 90 anteriores. Una caída fuerte, sumada a tickets abiertos con satisfacción baja, pone a la cuenta en la lista semanal. Antes de cualquier modelo de machine learning, mide cuántas de las bajas reales habría anticipado esta regla: ese número va al README.
 
+:::errores
+- **MRR que no cumple la identidad** de los movimientos.
+- **Un modelo de riesgo de baja sin comparar contra una regla simple**: quizás "no usó el producto en 30 días" predice igual de bien.
+- **Features con información posterior a la fecha de corte**.
+- **Métricas sin definición escrita**: el lector no sabe si el churn es de clientes o de ingresos.
+:::
+
+:::trabajo
+- Las empresas SaaS revisan cada mes MRR, NRR y churn; un proyecto que muestre esas métricas bien definidas, con tests, es exactamente lo que piden en una entrevista para ese sector.
+:::
+
+:::entrevista "¿Cómo validarías que tus métricas de MRR son correctas?"
+Con la identidad contable: MRR inicial más nuevo y expansión, menos contracción y churn, tiene que dar el MRR final, y un test de dbt falla si no cuadra. Compararía el total con la facturación del sistema de cobro, revisaría casos borde como upgrades a mitad de mes y planes anuales, y documentaría cada definición.
+:::
+
 ## Entregables
 
 - [ ] `mrr_mensual` y `movimientos_mrr` con tests (el MRR de un mes = MRR anterior + nuevo + expansión − contracción − churn).

@@ -224,6 +224,21 @@ st.line_chart(df, x="fecha", y="ventas", color="canal")
 4. **dbt en Databricks**: cambia el adaptador (`uv add dbt-databricks`) y el `profiles.yml` (host, `http_path` de un SQL warehouse, token o OAuth). Los modelos casi no cambian: `qualify`, `try_strptime` → `try_to_timestamp` y `exclude` → `except` son las diferencias de dialecto que vas a encontrar. Documéntalas: es un gran tema de entrevista.
 5. **Tablero**: un tablero de AI/BI sobre `fct_ventas` y un **Job** programado a las 06:00 con una tarea de dbt (o un Asset Bundle, como en el proyecto 11).
 
+:::errores
+- **Subir el proyecto con credenciales** en `profiles.yml` o en un notebook: lo primero que mira un revisor (y un bot) es eso.
+- **Que funcione solo en tu máquina**: sin `requirements.txt` fijo y sin instrucciones, nadie lo puede correr.
+- **Modelos sin tests**: un lakehouse "de portafolio" sin `unique` y `not_null` en las claves parece un ejercicio, no un sistema.
+- **Cambiar de DuckDB a Databricks reescribiendo los modelos**: la gracia es que solo cambia el perfil y el origen.
+:::
+
+:::trabajo
+- En el trabajo real, el camino "probar local con DuckDB y desplegar en Databricks" es cada vez más común porque abarata el desarrollo: se itera en segundos y sin cómputo en la nube.
+:::
+
+:::entrevista "Cuéntame un proyecto de datos que hayas construido."
+Lo contaría con situación, decisiones y resultado: armé un lakehouse de ventas con capas bronze, silver y gold modeladas en dbt, con tests de claves y relaciones y documentación. Lo desarrollé localmente con DuckDB para iterar rápido y lo desplegué en Databricks cambiando solo el perfil y las fuentes, con un job que ejecuta `dbt build`. Explicaría por qué elegí incremental para los hechos, cómo manejé los duplicados y qué mediría para monitorear frescura y calidad.
+:::
+
 ## Entregables
 
 - [ ] README con problema, resultado ("tablero diario en lugar de 2 días de Excel"), diagrama y cómo correrlo.

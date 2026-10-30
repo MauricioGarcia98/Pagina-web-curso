@@ -70,6 +70,21 @@ flecha ev -> ag: mide | estilo=punteada
 
 Un archivo con 40 preguntas reales y su **respuesta correcta calculada a mano** (con SQL revisado). Para cada versión del contexto: % correctas, tipos de error (fan-out, filtro de fecha, métrica equivocada, columna inventada) y qué cambio del contexto corrigió cada uno.
 
+:::errores
+- **Dejar que el agente ejecute cualquier SQL**: tiene que usar un usuario de solo lectura y, mejor, un conjunto acotado de vistas.
+- **No mostrar la consulta que ejecutó**: el usuario no puede verificar el número.
+- **Sin límites de filas ni de tiempo**: una consulta mal armada recorre toda la base.
+- **No evaluar con preguntas reales y respuestas conocidas**.
+:::
+
+:::trabajo
+- Los asistentes que consultan datos funcionan mucho mejor sobre una capa semántica bien documentada (métricas y dimensiones con descripción) que sobre las tablas crudas; el trabajo de datos de base es el que los hace confiables.
+:::
+
+:::entrevista "¿Qué controles pondrías a un agente que consulta una base de datos?"
+Acceso de solo lectura con un usuario propio y permisos sobre vistas aprobadas, no sobre todas las tablas. Límites de filas y de tiempo de ejecución, validación de la consulta antes de correrla, y mostrar siempre la consulta y la fuente junto con la respuesta. Registro de todo para auditar y un conjunto de preguntas de evaluación con respuestas conocidas.
+:::
+
 ## Entregables
 
 - [ ] Descripciones de tablas y columnas, métricas definidas y ejemplos pregunta→SQL.

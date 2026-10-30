@@ -71,6 +71,21 @@ GRANT SELECT ON TABLE workspace.clinica.gold_ausentismo TO `analistas`;
 Los datos de salud son una **categoría especial** en la mayoría de las leyes de protección de datos: requieren una base legal, finalidad clara, acceso mínimo y registro de quién los consulta. En el proyecto, los datos son sintéticos, pero diseña como si fueran reales: es lo que se evalúa.
 :::
 
+:::errores
+- **Datos personales en tablas de análisis** "porque era más fácil".
+- **Seudonimizar con un hash sin sal** de un dato conocido (el documento): se puede revertir probando todos los documentos posibles.
+- **Dar acceso a toda la tabla** cuando el analista solo necesita columnas agregadas.
+- **No documentar qué datos personales hay y para qué se usan**.
+:::
+
+:::trabajo
+- En salud y en cualquier sector regulado, poder mostrar cómo protegiste los datos personales (enmascaramiento, permisos por columna, auditoría) vale tanto como el resultado del análisis.
+:::
+
+:::entrevista "¿Cómo protegerías datos personales en un proyecto de análisis?"
+Minimizando: solo los datos necesarios, con identificadores seudonimizados con un hash con sal o un token guardado aparte. Permisos por columna y por fila en el catálogo, con máscaras para datos sensibles, acceso por grupos con lo mínimo necesario y auditoría de quién consultó qué. Documentaría qué datos personales hay, su finalidad y su plazo de conservación.
+:::
+
 ## Entregables
 
 - [ ] Tabla de ausentismo por anticipación, día y especialidad, con la conclusión.

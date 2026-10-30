@@ -57,6 +57,21 @@ Para no recomendar siempre lo más popular, se normaliza (por ejemplo, dividir p
 
 Entrena (calcula co-ocurrencias) con los datos **hasta septiembre**; recomienda a cada usuario 5 contenidos que no vio; y mide en **octubre-diciembre** cuántos de esos 5 vio. Compara contra la línea base "los 5 más populares". Si no le ganas a lo popular, no tienes un recomendador: tienes complejidad.
 
+:::errores
+- **Evaluar recomendaciones con los mismos datos del entrenamiento**.
+- **Recomendar solo lo más popular** y llamarlo personalización.
+- **No separar por fecha** los datos de entrenamiento y evaluación.
+- **Ignorar el arranque en frío**: usuarios y contenidos nuevos sin historial.
+:::
+
+:::trabajo
+- En plataformas de contenido, el data engineer construye las tablas de interacción, las features y el pipeline que actualiza las recomendaciones; la calidad de esos datos limita a cualquier modelo.
+:::
+
+:::entrevista "¿Cómo evaluarías un sistema de recomendaciones antes de ponerlo en producción?"
+Fuera de línea, con una partición temporal: entreno con el historial hasta una fecha y mido si recomiendo lo que el usuario consumió después, con métricas como precisión en los primeros K y cobertura del catálogo, comparando contra una línea base de populares. Después, una prueba A/B con métricas de negocio como tiempo de escucha y retención.
+:::
+
 ## Entregables
 
 - [ ] Tablero de engagement: DAU, MAU, DAU/MAU, finalización por género.

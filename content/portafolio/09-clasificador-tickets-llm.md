@@ -100,6 +100,21 @@ FROM workspace.soporte.tickets;
 
 Y una sección de **errores analizados**: 10 casos mal clasificados con por qué (ambiguos, ironía, dos temas en un mensaje).
 
+:::errores
+- **No tener un conjunto de evaluación** con tickets etiquetados: no sabes si el clasificador mejora o empeora.
+- **Mandar datos personales del cliente al modelo** sin necesidad.
+- **Confiar en la salida sin validar el formato**: pide JSON con un esquema y valida.
+- **No medir costo ni latencia** por ticket.
+:::
+
+:::trabajo
+- Los clasificadores con modelos de lenguaje se usan mucho en soporte; lo que distingue un buen proyecto es la evaluación con datos reales, el manejo de los casos dudosos (derivar a una persona) y el costo por ticket.
+:::
+
+:::entrevista "¿Cómo pondrías en producción un clasificador hecho con un modelo de lenguaje?"
+Con un conjunto de evaluación etiquetado y una métrica por categoría, comparando contra una regla simple. Salida estructurada validada contra un esquema y una categoría de "no seguro" que deriva a una persona. Sin datos personales innecesarios en el prompt, registro de entradas y salidas para auditar, y monitoreo de costo, latencia y distribución de categorías.
+:::
+
 ## Entregables
 
 - [ ] Prompt versionado y la tabla de resultados por versión.

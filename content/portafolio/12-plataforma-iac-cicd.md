@@ -139,6 +139,21 @@ jobs:
 
 La autenticación de la CI usa **identidades federadas** (OIDC): GitHub presenta un token firmado y Azure o Databricks confían en él según el repositorio y la rama. No hay claves guardadas que puedan filtrarse.
 
+:::errores
+- **Un estado de Terraform local** en un proyecto de equipo: se pierde o dos personas lo pisan. Usa un backend remoto con bloqueo.
+- **Secretos en el repositorio** o en variables sin marcar como secretas en el CI.
+- **Desplegar a producción desde tu computadora**.
+- **Sin `plan`/`what-if` en el pull request**: el revisor no ve qué va a cambiar en la nube.
+:::
+
+:::trabajo
+- Un proyecto que muestra infraestructura como código, entornos separados y despliegue automático con aprobación es justamente lo que piden los puestos de plataforma de datos y los semi senior.
+:::
+
+:::entrevista "¿Cómo organizarías el despliegue de una plataforma de datos con varios entornos?"
+Infraestructura en Terraform o Bicep con estado remoto y un archivo de variables por entorno; jobs y pipelines en bundles con targets dev y prod. Cada cambio por pull request, con CI que corre validaciones, tests y el plan o what-if publicado en el PR. Al aprobar, el CI despliega a prod con una identidad de servicio vía OIDC, con aprobación manual para producción, y nadie cambia producción a mano.
+:::
+
 ## Entregables
 
 - [ ] Terraform con estado remoto y dos entornos.

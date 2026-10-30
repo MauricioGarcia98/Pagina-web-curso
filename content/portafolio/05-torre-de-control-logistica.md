@@ -75,6 +75,21 @@ az storage fs create -n curated --account-name <cuenta> --auth-mode login
 Todo vive en `rg-torre-lab`: al terminar, `az group delete -n rg-torre-lab --yes --no-wait` y verifica con `az group list -o table`.
 :::
 
+:::errores
+- **Recursos creados a mano en el portal**: el proyecto no se puede recrear. Usa Bicep o Terraform aunque sea simple.
+- **Event Hubs sin grupo de consumidores propio**: dos lectores se pisan.
+- **Tablero sin la hora de la última actualización**: nadie sabe si está viendo datos de ahora o de ayer.
+- **Olvidar borrar los recursos** al terminar la demo.
+:::
+
+:::trabajo
+- Las "torres de control" logísticas combinan eventos en tiempo real (posición, estado del envío) con datos batch (pedidos, promesas de entrega); el valor está en alertar a tiempo los envíos en riesgo.
+:::
+
+:::entrevista "¿Cómo mostrarías a un usuario de negocio que un tablero está actualizado?"
+Mostrando en el tablero la hora de la última actualización de los datos y un indicador de frescura que cambia de color si se pasó el plazo acordado. Por detrás, un control de frescura sobre las tablas que alerta al equipo antes que al usuario. Y una definición escrita de cada indicador, para que no haya dudas sobre qué significa.
+:::
+
 ## Entregables
 
 - [ ] Diccionario de KPIs con sus definiciones y decisiones (qué cuenta como "tarde").

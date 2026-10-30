@@ -61,6 +61,21 @@ Cada resultado se escribe en `obs.checks` con la misma forma: así el tablero y 
 
 En Databricks, la tabla de sistema `system.billing.usage` tiene el consumo (DBU) por día y por job; multiplicado por el precio de lista da el costo por pipeline. En Azure, el análisis de costos se exporta a una cuenta de almacenamiento. Lo importante es la **tendencia**: un pipeline que pasó de 3 a 9 USD por día sin que creciera el volumen es una regresión.
 
+:::errores
+- **Alertas para todo**: el equipo deja de leerlas. Alerta solo lo que requiere una acción.
+- **Checks que no guardan su historial**: no se ve la tendencia ni cuándo empezó el problema.
+- **Medir solo si el job terminó**: un job puede terminar bien con cero filas.
+- **No medir costos por pipeline**: la factura sube y nadie sabe por qué.
+:::
+
+:::trabajo
+- La observabilidad de datos (frescura, volumen, esquema, calidad y costo) es una de las áreas que más crece; herramientas como Elementary, Monte Carlo o las *system tables* de Databricks se basan en las mismas ideas de este proyecto.
+:::
+
+:::entrevista "¿Qué monitorearías en una plataforma de datos?"
+Frescura de las tablas clave contra lo acordado, volumen de filas por carga comparado con el histórico, cambios de esquema, resultados de los tests de calidad y duración y costo de cada pipeline. Guardaría los resultados con su historial, alertaría solo lo que requiere acción con un responsable y un runbook, y registraría cada incidente con su causa para prevenir repeticiones.
+:::
+
 ## Entregables
 
 - [ ] Esquema `obs` y el job de checks genéricos configurado para al menos 4 tablas.

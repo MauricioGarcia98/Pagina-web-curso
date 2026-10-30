@@ -121,6 +121,19 @@ con 0,4 % de falsas alarmas sobre 38.000 transacciones sintéticas.
 
 Lo que más pesa: el **resultado con un número** al principio, las **decisiones** (por qué streaming y no batch, por qué esta clave de partición) y la sección de **calidad de datos**: muestra que trabajaste con datos reales, no con un CSV perfecto.
 
+## Errores comunes y cómo contarlo
+
+:::errores
+- **Diez proyectos a medias** en lugar de dos o tres completos, con README, tests y un diagrama.
+- **Tutoriales copiados**: un revisor reconoce el dataset del Titanic o el ejemplo oficial de una herramienta. Usa un problema propio, aunque sea con datos generados.
+- **Repositorios sin instrucciones**: si no se puede correr en 10 minutos siguiendo el README, no se va a correr.
+- **Credenciales en el historial de Git**: aunque las borres en el último commit, siguen en el historial.
+:::
+
+:::entrevista "¿Qué aprendiste del proyecto que más te costó?"
+Elegiría un problema concreto del proyecto, por ejemplo duplicados que inflaban las ventas o un job que se quedaba sin memoria, y lo contaría en orden: cómo lo detecté, qué hipótesis descarté, qué cambié y cómo comprobé que se resolvió, con un número si es posible. Terminaría con qué haría distinto desde el inicio. Lo que se evalúa es el razonamiento y la honestidad, no que todo haya salido bien.
+:::
+
 ## La rúbrica
 
 | Aspecto | Junior | Semi senior | Senior |

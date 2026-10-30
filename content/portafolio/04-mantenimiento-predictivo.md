@@ -95,6 +95,21 @@ with mlflow.start_run(run_name="hgb_v1"):
 
 En Databricks, el modelo queda en Unity Catalog; el job horario carga la versión con alias `campeon`, puntúa la última hora y escribe en `predicciones`. En local, MLflow corre con `uv run mlflow ui` y guarda todo en una carpeta.
 
+:::errores
+- **Mezclar datos de entrenamiento y prueba en el tiempo**: con series de sensores, la prueba tiene que ser posterior al entrenamiento.
+- **No registrar el experimento en MLflow**: después no sabes qué parámetros dieron el mejor modelo.
+- **Features calculadas con datos del futuro** (la ventana incluye la falla que querés predecir).
+- **Medir solo la exactitud** cuando las fallas son raras: un modelo que nunca predice falla tiene 99 % de exactitud.
+:::
+
+:::trabajo
+- En mantenimiento predictivo el costo de una falla no detectada es mucho mayor que el de una inspección de más, así que el umbral del modelo se elige con el área de operaciones, no solo por métricas.
+:::
+
+:::entrevista "¿Qué métricas usarías para un modelo que predice fallas poco frecuentes?"
+No la exactitud, porque con fallas raras engaña. Usaría precisión y recall, o el área bajo la curva de precisión y recall, y elegiría el umbral según el costo de cada error con el área de operaciones: una falla no detectada cuesta mucho más que una inspección innecesaria. Evaluaría con una partición temporal, entrenando con el pasado y probando con el futuro, y registraría todo en MLflow.
+:::
+
 ## Entregables
 
 - [ ] Análisis de la serie: huecos, ciclo diario y deriva antes de las fallas (con gráfico).

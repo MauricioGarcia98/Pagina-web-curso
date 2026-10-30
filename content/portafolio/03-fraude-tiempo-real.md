@@ -111,6 +111,21 @@ WHERE abs(s.monto) > 8 * h.monto_habitual AND (hour(s.ts) < 6 OR s.pais_tx <> h.
 - Las **expectativas** registran cuántas filas violaron cada regla: el pipeline trae su propio tablero de calidad.
 - Modo **disparado** (triggered) cada 5 minutos en lugar de continuo: casi la misma latencia para el negocio y una fracción del costo. Explícalo en el README.
 
+:::errores
+- **Llamarlo "tiempo real" cuando corre cada hora**: di "tiempo casi real" y la latencia medida.
+- **Sin checkpoint en el streaming**: al reiniciar, procesa todo de nuevo o pierde eventos.
+- **Reglas de fraude sin medir falsos positivos**: una alerta que nadie puede revisar no sirve.
+- **Sin watermark** en agregaciones por ventana: el estado crece sin límite.
+:::
+
+:::trabajo
+- Los sistemas de fraude combinan reglas simples (rápidas y explicables) con modelos; el data engineer arma el flujo de eventos, las features y la tabla de alertas que revisa un equipo.
+:::
+
+:::entrevista "¿Cómo manejarías eventos que llegan tarde en un streaming de transacciones?"
+Con una watermark que define cuánto atraso acepto, por ejemplo 10 minutos sobre la hora del evento, de modo que las ventanas se cierran después de ese margen y el estado no crece sin límite. Los eventos que llegan más tarde se envían a una tabla aparte para revisar o reprocesar en batch. Usaría checkpoints para no perder ni duplicar al reiniciar, y una escritura idempotente en Delta.
+:::
+
 ## Entregables
 
 - [ ] Tabla de versiones de reglas con recall, precisión y alertas por día; la elegida y por qué.

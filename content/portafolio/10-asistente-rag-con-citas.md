@@ -86,6 +86,21 @@ Compara tres recuperadores (palabras, embeddings, híbrido) con el **mismo** con
 - **Databricks**: los fragmentos en una tabla Delta con *Change Data Feed*, un índice de **Vector Search** sincronizado con esa tabla (si cambia un artículo, se reindexa solo) y un endpoint de modelo para generar. Si tu edición no incluye Vector Search, mantén el índice local y usa Databricks para la ingesta y la evaluación.
 - **Azure**: **Azure AI Search** con búsqueda híbrida (palabras + vectores) y reranking semántico, y un modelo desplegado en **Microsoft Foundry**.
 
+:::errores
+- **Responder sin citas**: no se puede verificar.
+- **Chunks sin metadatos** (producto, versión, fecha): el asistente mezcla documentación vieja y nueva.
+- **No evaluar la recuperación**: si el documento correcto no aparece entre los recuperados, ningún modelo va a responder bien.
+- **No contemplar "no lo sé"**: el asistente inventa cuando no tiene contexto.
+:::
+
+:::trabajo
+- En las empresas, un RAG se mide con un conjunto de preguntas reales y respuestas esperadas, y se vuelve a evaluar cada vez que cambian los documentos, el chunking o el modelo.
+:::
+
+:::entrevista "¿Cómo evaluarías un asistente RAG?"
+En dos partes. La recuperación: para un conjunto de preguntas sé qué documento contiene la respuesta y mido si aparece entre los primeros recuperados. La generación: si la respuesta es fiel al contexto, si cita las fuentes correctas y si dice no saber cuando corresponde, con revisión humana de una muestra o con un modelo evaluador calibrado. Lo corro en cada cambio.
+:::
+
 ## Entregables
 
 - [ ] Pipeline de ingesta (fragmentos con metadatos) y su actualización.
