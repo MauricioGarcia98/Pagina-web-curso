@@ -64,6 +64,61 @@ source(tienda.detalle) ─▶ stg_detalle_pedidos ─┼─▶ ventas_por_canal
 
 La regla de oro: **ningún modelo escribe el nombre de una tabla a mano**. Los modelos de staging leen con `source()`; todos los demás, con `ref()`. Si escribes `from pedidos` directamente, dbt no sabe que dependes de esa tabla, el DAG queda incompleto y el modelo puede ejecutarse antes de que sus datos estén listos.
 
+```recorrido
+titulo: Lo que escribes, lo que compila dbt y en qué orden lo ejecuta
+estacion modelo: Tu modelo | icono=codigo
+estacion compila: Compilar | icono=transformar
+estacion dag: El DAG | icono=flujo
+estacion run: dbt run | icono=chispa
+estacion res: Las tablas | icono=check
+paso modelo: Un modelo con ref()
+`models/marts/top_clientes.sql` del proyecto de la terminal. No dice en qué esquema está `stg_ventas`: usa `ref()`.
+>>> sql
+{{ config(materialized='table') }}
+
+select
+    cliente_id,
+    count(distinct pedido_id) as pedidos,
+    round(sum(importe), 2)    as gasto
+from {{ ref('stg_ventas') }}
+group by cliente_id
+order by gasto desc
+limit 50
+paso compila: dbt reemplaza ref() por el nombre real
+`dbt compile` muestra el SQL que se va a ejecutar. `{{ ref('stg_ventas') }}` se convirtió en `main.stg_ventas`. En otro entorno (prod) sería otro esquema, **sin cambiar el archivo**.
+>>> sql
+-- dbt compile -s top_clientes
+select
+    cliente_id,
+    count(distinct pedido_id) as pedidos,
+    round(sum(importe), 2)    as gasto
+from main.stg_ventas
+group by cliente_id
+order by gasto desc
+limit 50
+paso dag: Cada ref() es una flecha
+Leyendo los `ref()` de todos los modelos, dbt arma el grafo de dependencias: sabe que `stg_ventas` tiene que existir **antes** que los dos marts.
+>>> texto
+stg_ventas ──▶ ventas_por_canal
+           └─▶ top_clientes
+paso run: dbt run respeta ese orden
+Primero la vista de staging; después las dos tablas (que podrían construirse en paralelo).
+>>> log
+$ dbt run
+Found 3 models
+1 of 3 OK created sql view model main.stg_ventas
+2 of 3 OK created sql table model main.ventas_por_canal [SELECT 4]
+3 of 3 OK created sql table model main.top_clientes [SELECT 50]
+Done. PASS=3 WARN=0 ERROR=0 SKIP=0 TOTAL=3
+paso res: Tablas reales en la base
+`top_clientes` ya es una tabla que cualquiera puede consultar. Sus primeras filas:
+>>> tabla
+cliente_id,pedidos,gasto
+1882,32,54091.1
+1630,25,51444.4
+365,30,50034.9
+```
+
 ## Qué es el DAG y por qué te importa
 
 **DAG** significa *Directed Acyclic Graph* (grafo dirigido acíclico): un dibujo de cajas (modelos) unidas por flechas (dependencias), donde las flechas van siempre "hacia adelante" y **nunca forman un círculo**. dbt lo construye solo, leyendo los `ref()` de cada archivo. Te importa por tres razones:

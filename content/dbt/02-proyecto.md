@@ -94,6 +94,54 @@ La convención de dbt Labs, usada en casi todos los proyectos:
 
 Es la misma idea que bronze → silver → gold, aplicada dentro del warehouse.
 
+```recorrido
+titulo: De dbt init a la primera conexión
+estacion venv: Entorno | icono=terminal
+estacion init: dbt init | icono=archivo
+estacion carpetas: Carpetas | icono=capas
+estacion perfil: profiles.yml | icono=escudo
+estacion debug: dbt debug | icono=check
+paso venv: Instalar dbt en un entorno virtual
+dbt Core es un paquete de Python. Se instala el núcleo **más el adaptador** de tu base (aquí, DuckDB para practicar en tu computadora).
+>>> bash
+python -m venv .venv
+source .venv/bin/activate
+pip install dbt-core dbt-duckdb
+paso init: Crear el proyecto
+`dbt init` pregunta el nombre y la base, y arma la carpeta con un ejemplo.
+>>> bash
+dbt init tienda_dbt
+cd tienda_dbt
+paso carpetas: Lo que queda creado
+Lo que importa al empezar: `dbt_project.yml` (la configuración del proyecto) y `models/` (tus consultas). El resto se usa más adelante.
+>>> texto
+tienda_dbt/
+├── dbt_project.yml   ← nombre, perfil y configuración por carpeta
+├── models/           ← un .sql por tabla o vista
+├── seeds/            ← CSV chicos que se cargan como tablas
+├── snapshots/        ← historial de cambios (SCD2)
+├── tests/            ← tests singulares
+└── macros/           ← funciones de Jinja
+paso perfil: La conexión vive fuera del repositorio
+`~/.dbt/profiles.yml` dice **dónde** conectarse. Está en tu carpeta personal, no en el proyecto, para que usuarios y contraseñas nunca terminen en Git.
+>>> yaml
+tienda:              # el mismo nombre que "profile:" en dbt_project.yml
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: tienda.duckdb
+paso debug: dbt debug: probar antes de trabajar
+Revisa que encuentre el proyecto, el perfil y que la conexión responda. Si algo falla, el mensaje dice cuál de las tres partes (salida resumida).
+>>> log
+$ dbt debug
+  profiles.yml file [OK found and valid]
+  dbt_project.yml file [OK found and valid]
+Connection:
+  Connection test: [OK connection ok]
+All checks passed!
+```
+
 ## dbt_project.yml
 
 ```yaml norun

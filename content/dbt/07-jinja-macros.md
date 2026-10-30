@@ -87,6 +87,56 @@ Dentro de un `for`, Jinja te da una variable especial `loop`:
 
 Un **filtro** transforma un valor con `|`: `{{ 'Pyme' | lower }}` imprime `pyme`. Los más útiles: `lower`, `upper`, `replace('a', 'b')`, `join(', ')` (une una lista) y `default('x')` (valor si no hay ninguno).
 
+```recorrido
+titulo: Un bucle de Jinja, compilado línea por línea
+estacion plantilla: La plantilla | icono=codigo
+estacion set: set | icono=etiqueta
+estacion for: for | icono=flujo
+estacion sql: SQL compilado | icono=transformar
+estacion res: Resultado | icono=check
+paso plantilla: Lo que escribes
+En vez de copiar la misma línea cuatro veces, un bucle la genera por cada canal.
+>>> sql
+{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+select
+    strftime('%Y', fecha_pedido) as anio,
+    {% for c in canales %}
+    sum(case when canal = '{{ c }}' then 1 else 0 end) as pedidos_{{ c }}
+    {%- if not loop.last %},{% endif %}
+    {% endfor %}
+from {{ ref('stg_pedidos') }}
+group by anio
+paso set: {% set %} define una lista
+Las marcas `{% %}` son **instrucciones** de Jinja: no aparecen en el SQL final.
+>>> texto
+canales = ['web', 'app', 'tienda', 'telefono']
+paso for: {% for %} repite el bloque
+En cada vuelta, `{{ c }}` se reemplaza por el canal de esa vuelta. `loop.last` evita la coma después de la última columna.
+>>> texto
+vuelta 1: c = 'web'      → … as pedidos_web,
+vuelta 2: c = 'app'      → … as pedidos_app,
+vuelta 3: c = 'tienda'   → … as pedidos_tienda,
+vuelta 4: c = 'telefono' → … as pedidos_telefono
+paso sql: El SQL que llega a la base
+La base nunca ve Jinja: recibe este SQL común. Lo ves con `dbt compile` o en `target/compiled/`.
+>>> sql
+select
+    strftime('%Y', fecha_pedido) as anio,
+    sum(case when canal = 'web' then 1 else 0 end) as pedidos_web,
+    sum(case when canal = 'app' then 1 else 0 end) as pedidos_app,
+    sum(case when canal = 'tienda' then 1 else 0 end) as pedidos_tienda,
+    sum(case when canal = 'telefono' then 1 else 0 end) as pedidos_telefono
+from main.stg_pedidos
+group by anio
+paso res: El resultado
+Una columna por canal. Si mañana se agrega un canal, se cambia **una lista**, no cuatro líneas.
+>>> tabla
+anio,pedidos_web,pedidos_app,pedidos_tienda,pedidos_telefono
+2022,1521,827,748,250
+2023,1818,1004,885,314
+2024,2061,1142,1012,418
+```
+
 ## Condicionales
 
 `{% if %}` incluye o saca pedazos de SQL según una condición:

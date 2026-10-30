@@ -127,6 +127,40 @@ Supón una tabla de eventos con 500 millones de filas que crece 2 millones por d
 
 Con `materialized='table'`, **cada** ejecución procesaría los 500 millones. Con incremental, solo los nuevos: la diferencia es de horas y de mucho dinero en la nube.
 
+```recorrido
+titulo: Un modelo incremental en dos ejecuciones, con eventos reales
+estacion r1: Primera ejecución | icono=chispa
+estacion this: {{ this }} | icono=base
+estacion filtro: El filtro | icono=lupa
+estacion merge: merge | icono=capas
+estacion res: Resultado | icono=check
+paso r1: Primera vez: is_incremental() es falso
+Supongamos que el 30/12 a la noche se ejecuta por primera vez. La tabla no existe, el `if` no se aplica y se cargan **todos** los eventos hasta ese momento.
+>>> tabla
+eventos_cargados,ultimo
+19719,2024-12-30 23:08:25
+paso this: Al día siguiente: ¿hasta dónde cargué?
+Ahora la tabla existe: `is_incremental()` es verdadero. `select max(fecha_hora) from {{ this }}` lee la tabla del modelo y responde con el último evento ya guardado.
+>>> sql
+select max(fecha_hora) from main.eventos_incremental
+-- '2024-12-30 23:08:25'
+paso filtro: Solo lo posterior
+El `where` agregado deja pasar solo los eventos nuevos: los del 31 de diciembre.
+>>> tabla
+eventos_nuevos,desde,hasta
+63,2024-12-31 09:27:18,2024-12-31 22:16:45
+paso merge: merge con unique_key
+Los nuevos se guardan en una tabla temporal y se combinan con la existente usando `evento_id`: si el id ya estaba, se **actualiza**; si no, se **inserta**. Así, reprocesar no duplica.
+>>> texto
+evento_id ya existe → UPDATE
+evento_id nuevo     → INSERT
+paso res: Mismo resultado, mucho menos trabajo
+La tabla final tiene todos los eventos, pero la segunda ejecución procesó solo los del último día.
+>>> tabla
+primera_ejecucion,segunda_ejecucion,total_en_tabla
+19719,63,19782
+```
+
 ## Estrategias: cómo se combinan lo nuevo y lo viejo
 
 La `incremental_strategy` decide qué SQL usa dbt para juntar las filas nuevas con la tabla existente. No todos los motores tienen todas (la documentación oficial tiene una tabla por adaptador: Databricks y Snowflake tienen todas; BigQuery no tiene `append` ni `delete+insert`).

@@ -116,6 +116,44 @@ Si un cliente cambia de ciudad dos veces entre una ejecución y la siguiente, el
 Un modelo se puede borrar y volver a crear con `dbt run`; un snapshot **no**, porque la historia ya no existe en el origen. La documentación recomienda ponerlos en un esquema aparte, con permisos más estrictos, para que nadie los borre por accidente.
 :::
 
+```recorrido
+titulo: Un snapshot en tres ejecuciones: el cliente que se mudó
+estacion d1: Día 1 | icono=reloj
+estacion cambio: Cambia el origen | icono=alerta
+estacion d2: Día 2 | icono=capas
+estacion d3: Sin cambios | icono=check
+estacion consulta: Consultar | icono=lupa
+paso d1: Primera ejecución: la foto inicial
+El cliente 7 vive en Lima. `dbt snapshot` copia la fila y le agrega las columnas de control. `dbt_valid_to` vacío significa **vigente** (fechas de ejemplo).
+>>> tabla
+cliente_id,ciudad,segmento,dbt_valid_from,dbt_valid_to
+7,Lima,Pyme,2024-11-01,NULL
+paso cambio: En el sistema de origen, el cliente se muda
+La tabla de clientes **pisa** el valor: ahora dice Cusco, y no queda rastro de que antes era Lima.
+>>> tabla
+cliente_id,ciudad,segmento
+7,Cusco,Pyme
+paso d2: Segunda ejecución: se cierra la versión vieja
+dbt detecta el cambio (con `check` en `ciudad`): pone fecha de fin a la fila de Lima e inserta una nueva vigente para Cusco.
+>>> tabla
+cliente_id,ciudad,segmento,dbt_valid_from,dbt_valid_to
+7,Lima,Pyme,2024-11-01,2024-12-15
+7,Cusco,Pyme,2024-12-15,NULL
+paso d3: Tercera ejecución sin cambios: no pasa nada
+Si el origen no cambió, el snapshot no agrega filas. Se puede correr todos los días sin duplicar.
+>>> log
+$ dbt snapshot
+1 of 1 OK snapshotted snapshots.clientes_snapshot
+paso consulta: Responder "¿dónde vivía el 1 de diciembre?"
+La versión válida en una fecha es la que la contiene entre `dbt_valid_from` y `dbt_valid_to`.
+>>> sql
+select cliente_id, ciudad
+from snapshots.clientes_snapshot
+where '2024-12-01' >= dbt_valid_from
+  and ('2024-12-01' < dbt_valid_to or dbt_valid_to is null);
+-- 7 | Lima
+```
+
 ## Comandos esenciales
 
 | Comando | Qué hace |

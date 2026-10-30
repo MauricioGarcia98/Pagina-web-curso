@@ -54,6 +54,51 @@ Línea por línea:
 
 Ejecútala: devuelve 0 filas, así que el test pasaría.
 
+```recorrido
+titulo: Un test que falla: de la línea en YAML a las filas culpables
+estacion yml: El YAML | icono=documento
+estacion sql: SQL generado | icono=codigo
+estacion run: dbt test | icono=prueba
+estacion fail: FAIL 2 | icono=x
+estacion filas: Las filas | icono=lupa
+paso yml: Declaras la regla
+"El canal solo puede ser web o app". Es una línea de configuración, no código.
+>>> yaml
+  - name: ventas_por_canal
+    columns:
+      - name: canal
+        data_tests:
+          - unique
+          - not_null
+          - accepted_values:
+              values: ['web', 'app']
+paso sql: dbt la convierte en una consulta
+Cada test es un `SELECT` que busca las filas que **rompen** la regla. Cero filas = el test pasa.
+>>> sql
+select canal as valor, count(*) as n
+from main.ventas_por_canal
+where canal not in ('web', 'app')
+group by canal
+paso run: dbt test ejecuta las tres
+`unique` y `not_null` pasan.
+>>> log
+$ dbt test -s ventas_por_canal
+Found 3 data tests
+1 of 3 PASS unique_ventas_por_canal_canal
+2 of 3 PASS not_null_ventas_por_canal_canal
+3 of 3 FAIL 2 accepted_values_ventas_por_canal_canal__web__app
+paso fail: FAIL 2: dos valores no permitidos
+El número después de FAIL es la cantidad de filas que devolvió la consulta. El comando termina con error: en un pipeline, eso **detiene** lo que viene después.
+>>> log
+Done. PASS=2 WARN=0 ERROR=0 FAIL=1 SKIP=0 TOTAL=3
+paso filas: Mirar las filas culpables
+Copias la consulta y la ejecutas: los valores que rompen la regla son `tienda` y `telefono`. Ahora toca decidir: ¿la regla estaba mal o los datos?
+>>> tabla
+valor,n
+telefono,1
+tienda,1
+```
+
 ## Dos formas de escribir tests
 
 dbt tiene dos tipos de tests de datos (en la documentación se llaman *data tests*, para distinguirlos de los *unit tests* que veremos al final):
