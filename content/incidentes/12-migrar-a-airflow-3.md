@@ -73,6 +73,41 @@ Cómo se arregla, de más simple a más explícito:
 Antes de migrar, guarda para cada DAG qué fecha procesa una ejecución conocida (por ejemplo, con `airflow dags test mi_dag 2024-03-15` en Airflow 2). Después de migrar, repite la misma prueba y compara. Si el día procesado cambió, el DAG necesita corrección aunque no haya fallado.
 :::
 
+```recorrido
+titulo: El mismo DAG antes y después de migrar: el día que procesa
+estacion a2: En Airflow 2 | icono=libro
+estacion a3: En Airflow 3 | icono=alerta
+estacion dif: Comparar | icono=lupa
+estacion fix: Corregir | icono=transformar
+estacion ok: Verificar | icono=check
+paso a2: La prueba de referencia, antes de migrar
+Ejecución del 15/03 a las 02:00. La tarea extrae `{{ ds }}`, que en Airflow 2 es el **inicio** del intervalo (salidas resumidas).
+>>> log
+$ airflow dags test ventas_diarias 2024-03-15   # Airflow 2
+extraer: python extraer.py --fecha 2024-03-14
+paso a3: La misma prueba en Airflow 3
+El DAG carga y corre sin errores… pero `{{ ds }}` ahora es el momento del disparo.
+>>> log
+$ airflow dags test ventas_diarias 2024-03-15   # Airflow 3
+extraer: python extraer.py --fecha 2024-03-15
+paso dif: Comparar: cambió el día procesado
+Ningún analizador lo marca: no es un error de código. Solo comparando las dos pruebas se ve que ahora extraería **hoy**, un día incompleto.
+>>> tabla
+versión,fecha extraída,correcto
+Airflow 2,2024-03-14,sí
+Airflow 3 (sin cambios),2024-03-15,no
+paso fix: Declarar el intervalo
+La corrección más explícita: un timetable con `interval` y la plantilla leyendo el inicio del intervalo.
+>>> python
+schedule=CronTriggerTimetable("0 2 * * *", timezone="UTC", interval=timedelta(days=1))
+bash_command="python extraer.py --fecha {{ data_interval_start | ds }}"
+paso ok: Repetir la prueba
+Vuelve a procesar el mismo día que en Airflow 2. Recién ahora se puede activar el DAG migrado.
+>>> log
+$ airflow dags test ventas_diarias 2024-03-15   # Airflow 3, corregido
+extraer: python extraer.py --fecha 2024-03-14
+```
+
 ## Practica: la migración completa
 
 El DAG del ejercicio es el `ventas_diarias` del equipo, tal como estaba en Airflow 2. Al cargarlo en el simulador (que se comporta como Airflow 3) verás los errores en el orden en que aparecen. Corrígelos uno por uno, como en el trabajo real: lee el error, corrige, vuelve a ejecutar.

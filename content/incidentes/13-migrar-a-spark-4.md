@@ -46,6 +46,50 @@ bronze = spark.createDataFrame(
 
 El resultado lista cada valor inválido y cuántas veces aparece. En Spark 3.5 esas filas se convertían en `NULL` y desaparecían de los promedios. Ahora sabes que no es una fila rara: es un patrón ("sin lectura", "N/A") que hay que tratar con una regla.
 
+```recorrido
+titulo: Medir antes de corregir: los valores que Spark 4 ya no acepta
+estacion bronze: Bronze | icono=archivo
+estacion try: try_cast | icono=escudo
+estacion filtro: Los que fallan | icono=lupa
+estacion agrupar: Agrupar | icono=capas
+estacion regla: La regla | icono=check
+paso bronze: Lecturas de medidores
+Cinco filas de ejemplo de la lección: el consumo llega como texto.
+>>> tabla
+medidor,kwh_txt,dias_txt
+M1,12.5,2
+M2,sin lectura,1
+M3,8,0
+M4,N/A,4
+M5,3.25,1
+paso try: try_cast nunca falla
+Convierte lo que puede y deja `NULL` en el resto. Sirve para **medir** sin que el job se caiga.
+>>> tabla
+medidor,kwh_txt,kwh
+M1,12.5,12.5
+M2,sin lectura,NULL
+M3,8,8.0
+M4,N/A,NULL
+M5,3.25,3.25
+paso filtro: Las filas que se habrían perdido
+Texto presente **y** número nulo: esas son las filas que Spark 3.5 convertía en `NULL` en silencio.
+>>> tabla
+medidor,kwh_txt
+M2,sin lectura
+M4,N/A
+paso agrupar: Agrupar por valor inválido
+`groupBy("kwh_txt").count()` muestra que no son filas raras: son **patrones** con nombre.
+>>> tabla
+kwh_txt,count
+sin lectura,1
+N/A,1
+paso regla: Decidir una regla con el negocio
+"sin lectura" y "N/A" significan "no hubo medición": se guardan como `NULL` **a propósito**, se cuentan en cada ejecución, y cualquier otro valor inválido hace fallar el job.
+>>> python
+conocidos = ["sin lectura", "N/A"]
+kwh = F.when(F.col("kwh_txt").isin(conocidos), F.lit(None)).otherwise(F.col("kwh_txt").cast("double"))
+```
+
 ## Practica
 
 :::ejercicio pyspark dificultad=Avanzado titulo="silver_lecturas en Spark 4"

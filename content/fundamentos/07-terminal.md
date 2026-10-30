@@ -134,6 +134,46 @@ grep "Chile" datos/clientes.csv > clientes_chile.csv
 | `a >> archivo` | Agrega la salida al final del archivo |
 | `a && b` | Ejecuta `b` solo si `a` funcionó |
 
+```recorrido
+titulo: Una tubería: cada comando le pasa su salida al siguiente
+estacion cat: cat | icono=archivo
+estacion grep: grep | icono=lupa
+estacion pipe: | wc -l | icono=flujo
+estacion redir: > archivo | icono=capas
+estacion ls: Verificar | icono=check
+paso cat: cat muestra el archivo entero
+Un CSV chico de ventas. `cat` (de *concatenate*) imprime su contenido en la pantalla.
+>>> log
+$ cat ventas.csv
+fecha,canal,total
+2024-12-30,web,99.5
+2024-12-30,app,120
+2024-12-31,web,45
+2024-12-31,tienda,80
+2024-12-31,web,15.25
+paso grep: grep se queda con las líneas que contienen un texto
+`grep web ventas.csv` imprime solo las líneas donde aparece "web".
+>>> log
+$ grep web ventas.csv
+2024-12-30,web,99.5
+2024-12-31,web,45
+2024-12-31,web,15.25
+paso pipe: La barra | conecta dos comandos
+La salida de `grep` no va a la pantalla: entra como entrada de `wc -l`, que **cuenta líneas**. Cada comando hace una cosa; la tubería los combina.
+>>> log
+$ grep web ventas.csv | wc -l
+3
+paso redir: > guarda la salida en un archivo
+En lugar de mostrar el resultado, `>` lo escribe en un archivo (si existe, lo **reemplaza**; `>>` agrega al final).
+>>> log
+$ grep web ventas.csv > solo_web.csv
+paso ls: Comprobar que se creó
+`ls` lista la carpeta: el archivo nuevo está ahí.
+>>> log
+$ ls
+README.md  dags/  datos/  logs/  scripts/  solo_web.csv  tienda_dbt/  ventas.csv
+```
+
 ## Una sesión real, paso a paso
 
 Abre la terminal (⌨ Terminal) y haz esta sesión. Es exactamente lo que hace un ingeniero de datos cuando recibe un archivo nuevo: **mirarlo antes de procesarlo**.

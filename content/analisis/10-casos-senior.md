@@ -73,7 +73,7 @@ paso clientes: Subir a una fila por cliente
 Desde el grano de pedido sí tiene sentido contar pedidos y promediar el ticket.
 >>> tabla
 cliente_id,pedidos,gasto,ticket
-9,17,24666.7,1450.98
+9,17,24666.73,1450.98
 paso trampa: Saltarse el grano intermedio
 Si promedias directo sobre las líneas, obtienes el importe promedio **por línea**, no el ticket; y `COUNT(*)` cuenta líneas, no pedidos.
 >>> tabla

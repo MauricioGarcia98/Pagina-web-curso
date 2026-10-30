@@ -152,9 +152,9 @@ paso res: Una fila por canal
 La app tiene más compras, pero el POS tiene el ticket más alto: dos tipos de cliente, dos campañas distintas.
 >>> tabla
 canal,compras,gasto,ticket_promedio
-web,2072,441392,213.03
-app,2663,331788,124.59
-pos,1263,321339,254.43
+web,2072,441391.64,213.03
+app,2663,331787.9,124.59
+pos,1263,321339.38,254.43
 ```
 
 :::cuidado Las trampas de este caso

@@ -41,6 +41,43 @@ Spark lee JSON y CSV en modo **PERMISSIVE** por defecto: si un campo no existe o
 
 Dos warnings por archivo, catorce archivos y un **Fin OK**. Nadie lee los warnings de un job que termina bien. Por eso el check de nulos de la lección anterior es la red de seguridad.
 
+```recorrido
+titulo: Un campo renombrado en el origen, de la API al tablero
+estacion antes: Antes | icono=archivo
+estacion cambio: El cambio | icono=alerta
+estacion job: El job | icono=chispa
+estacion silver: Silver | icono=tabla
+estacion tablero: Tablero | icono=dashboard
+paso antes: El JSON de siempre
+La API de pagos mandaba el importe en `amount`, en pesos (ejemplo).
+>>> json
+{"pago_id": 9001, "amount": 1250.0, "estado": "aprobado"}
+paso cambio: El proveedor cambia el formato
+Sin avisar, ahora manda el importe **en centavos** en `amount_cents`, y agrega `currency`.
+>>> json
+{"pago_id": 9002, "amount_cents": 98000, "currency": "ARS", "estado": "aprobado"}
+paso job: El job no falla: avisa y sigue
+Con el esquema fijo y modo `PERMISSIVE`, la columna que falta se completa con `NULL` y las nuevas se ignoran. Dos warnings por archivo y **Fin OK**.
+>>> log
+WARN  ingesta_pagos  part-0000.json: columna "amount" no existe; se completa con NULL (modo PERMISSIVE)
+WARN  ingesta_pagos  part-0000.json: columnas desconocidas ignoradas: amount_cents, currency
+INFO  ingesta_pagos  Fin OK
+paso silver: En silver aparecen los NULL
+Los pagos de ayer en adelante no tienen importe.
+>>> tabla
+pago_id,amount,estado
+9001,1250.0,aprobado
+9002,NULL,aprobado
+9003,NULL,aprobado
+paso tablero: El tablero muestra una caída que no existió
+`SUM(amount)` ignora los NULL: la recaudación de hoy "cae" casi a cero. La defensa: un check de nulos que **falle** el pipeline y un contrato de datos con el proveedor.
+>>> tabla
+fecha,recaudacion
+2026-10-27,1840000
+2026-10-28,1795000
+2026-10-29,12500
+```
+
 ## Evolución de esquema en las herramientas
 
 | Herramienta | Opción | Qué hace |

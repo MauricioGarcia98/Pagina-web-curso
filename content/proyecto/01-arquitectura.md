@@ -31,6 +31,41 @@ Tienda Andina quiere:
  CI/CD: GitHub Actions   Calidad: tests dbt + expectations   Observabilidad: alertas + system tables
 ```
 
+```recorrido
+titulo: Un pedido recorre la arquitectura del proyecto
+estacion erp: ERP | icono=servidor
+estacion bronze: Bronze | icono=archivo
+estacion silver: Silver | icono=escudo
+estacion gold: Gold | icono=capas
+estacion bi: Power BI | icono=dashboard
+paso erp: El pedido nace en el sistema de la tienda
+Un cliente compra. El ERP guarda la fila en su base SQL, que es del sistema de ventas: el equipo de datos **no** consulta ahí directamente.
+>>> tabla
+pedido_id,cliente_id,fecha_pedido,estado,canal
+101,73,2022-01-14,entregado,web
+paso bronze: ADF lo copia a bronze cada noche
+Azure Data Factory copia los pedidos del día a ADLS Gen2, tal cual llegan. Auto Loader los registra como tabla Delta en bronze, con metadatos de carga.
+>>> texto
+abfss://bronze@stdatos…/pedidos/fecha=2022-01-10/part-0001.json
+→ bronze.pedidos (+ _origen, _fecha_ingesta)
+paso silver: PySpark limpia y hace MERGE en silver
+Tipos correctos, textos normalizados, una fila por pedido. El `MERGE` actualiza el pedido si cambió de estado (por ejemplo, de enviado a entregado).
+>>> tabla
+pedido_id,producto_id,cantidad,precio_unitario,descuento,importe
+101,119,2,882.89,0.15,1500.91
+101,146,1,1532.69,0,1532.69
+paso gold: dbt arma el modelo estrella en gold
+Una tabla de hechos de ventas y dimensiones de cliente, producto y fecha, con tests de dbt en cada una.
+>>> texto
+gold.fct_ventas ──▶ gold.dim_cliente
+                ──▶ gold.dim_producto
+                ──▶ gold.dim_fecha
+paso bi: Power BI lee del SQL Warehouse
+El tablero consulta gold. Airflow (o Lakeflow Jobs) ordena todo, Key Vault guarda los secretos y GitHub Actions despliega los cambios.
+>>> texto
+cada noche: ADF → Auto Loader → PySpark (silver) → dbt build (gold) → refresco del tablero
+```
+
 ## Plan de trabajo (cada paso usa un módulo del curso)
 
 | Paso | Qué haces | Módulo |

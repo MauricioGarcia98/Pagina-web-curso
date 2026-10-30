@@ -22,6 +22,45 @@ La guía de buenas prácticas de Databricks resume la preparación en tres ideas
 
 Fíjate que las tres son tareas de ingeniería de datos, no de "IA". El modelo de lenguaje es tan bueno como el contexto que le preparas.
 
+```recorrido
+titulo: Cómo cambia la respuesta de Genie al preparar los datos
+estacion crudo: Tablas crudas | icono=tabla
+estacion desc: Descripciones | icono=documento
+estacion vista: Vista con joins | icono=capas
+estacion metrica: Vista de métricas | icono=dashboard
+estacion resp: Respuesta | icono=genie
+paso crudo: Sin preparar: 12 tablas y nombres crípticos
+La pregunta es "¿cuánto vendimos en marzo?". Con tablas como `tbl_ped_h` y columnas `imp_n`, Genie tiene que **adivinar** qué es una venta y cómo se unen las tablas (ejemplo).
+>>> texto
+Pregunta: "¿Cuánto vendimos en marzo?"
+Genie ve: tbl_ped_h(id, cli, f_alta, est, imp_n), tbl_det(…), …
+→ ¿imp_n es con impuestos? ¿cuenta los cancelados?
+paso desc: Paso 2: descripciones en Unity Catalog
+Una descripción por tabla y por columna, en lenguaje de negocio. Genie las lee como contexto.
+>>> sql
+COMMENT ON COLUMN ventas.pedidos.imp_n IS
+  'Importe neto del pedido, sin impuestos, en pesos. Los cancelados tienen estado = ''cancelado''.';
+paso vista: Paso 3: una vista que ya trae los joins
+En vez de que Genie decida cómo unir cinco tablas, una vista deja listo el grano y las columnas con nombres claros.
+>>> sql
+CREATE VIEW ventas.v_ventas AS
+SELECT p.pedido_id, p.fecha_pedido, c.pais, d.importe_neto
+FROM …
+paso metrica: Paso 5: definir "ventas" una sola vez
+La vista de métricas fija la fórmula oficial: todos los que pregunten obtienen el mismo número.
+>>> yaml
+measures:
+  - name: ventas_netas
+    expr: SUM(importe_neto) FILTER (WHERE estado <> 'cancelado')
+paso resp: La misma pregunta, otra respuesta
+Ahora Genie usa la medida definida, y el SQL que genera se puede revisar y coincide con el del tablero.
+>>> sql
+-- SQL generado por Genie (resumido)
+SELECT MEASURE(ventas_netas)
+FROM ventas.mv_ventas
+WHERE fecha_pedido >= '2024-03-01' AND fecha_pedido < '2024-04-01';
+```
+
 ## Paso 1: elegir las tablas según el tema
 
 Un agente responde preguntas de **un tema para un público**: "ventas para el área comercial", no "todo para todos". Para el agente de ventas de la tienda:

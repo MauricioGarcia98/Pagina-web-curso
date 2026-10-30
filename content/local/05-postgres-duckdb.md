@@ -173,6 +173,42 @@ DuckDB puede consultar un DataFrame de pandas **por su nombre de variable**. Es 
 - Para mover datos de Postgres a un lago, la práctica es leer de una **réplica de lectura**, no de la base principal de la app.
 :::
 
+```recorrido
+titulo: La misma pregunta en PostgreSQL y en DuckDB
+estacion csv: El CSV | icono=archivo
+estacion pg: PostgreSQL | icono=servidor
+estacion duck: DuckDB | icono=base
+estacion cuando: Cuándo cada uno | icono=check
+paso csv: Un archivo de pedidos
+Queremos saber cuántos pedidos hay por canal en `pedidos.csv`.
+>>> csv
+pedido_id,cliente_id,fecha_pedido,estado,canal
+101,57,2022-01-10,entregado,web
+102,812,2022-01-10,entregado,app
+…
+paso pg: PostgreSQL: primero crear y cargar
+PostgreSQL es un **servidor**: hay que crear la tabla con sus tipos y cargar el archivo (`\copy` desde `psql`). Después, muchos usuarios y aplicaciones pueden leer y escribir a la vez.
+>>> sql
+CREATE TABLE pedidos (pedido_id INT PRIMARY KEY, cliente_id INT,
+                      fecha_pedido DATE, estado TEXT, canal TEXT);
+\copy pedidos FROM 'pedidos.csv' WITH (FORMAT csv, HEADER true)
+SELECT canal, COUNT(*) FROM pedidos GROUP BY canal;
+paso duck: DuckDB: consultar el archivo directamente
+DuckDB es una base **dentro de tu programa** (sin servidor), pensada para análisis. Lee el CSV (o Parquet) en la misma consulta, deduciendo los tipos.
+>>> sql
+SELECT canal, COUNT(*) AS pedidos
+FROM read_csv('pedidos.csv')
+GROUP BY canal;
+paso cuando: Cuándo usar cada uno
+El resultado es el mismo; cambia el trabajo que hacen. Con los datos del curso:
+>>> tabla
+canal,pedidos
+web,5400
+app,2973
+tienda,2645
+telefono,982
+```
+
 ## Ejercicios
 
 :::ejercicio quiz

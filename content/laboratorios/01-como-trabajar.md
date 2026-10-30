@@ -53,6 +53,39 @@ La terminal del curso simula AWS, Google Cloud, Azure y Databricks: guarda estad
 Todo lo que **sirve predicciones en tiempo real** (SageMaker, Vertex AI, Azure ML) cobra por hora de máquina, no por petición. Termina cada laboratorio de endpoints borrándolo y verificando con un `list` que no queda ninguno.
 :::
 
+```recorrido
+titulo: La vida de un laboratorio en tu cuenta real, sin sorpresas en la factura
+estacion antes: Antes | icono=escudo
+estacion crear: Crear | icono=chispa
+estacion usar: Practicar | icono=codigo
+estacion limpiar: Limpiar | icono=x
+estacion verificar: Verificar | icono=check
+paso antes: Antes de empezar: presupuesto y alertas
+Un presupuesto con alertas al 50 %, 80 % y 100 % te avisa por correo antes de que la factura crezca. Se configura **una vez**.
+>>> texto
+presupuesto mensual: USD 10
+alertas: 5 USD (50 %) · 8 USD (80 %) · 10 USD (100 %)
+paso crear: Crear todo junto y con etiqueta
+Un grupo de recursos (o proyecto) solo para el laboratorio, una región y la etiqueta `proyecto=lab`.
+>>> bash
+az group create -n rg-lab-hoy -l eastus2 --tags proyecto=lab
+paso usar: Practicar
+Cada recurso va **dentro** del grupo del laboratorio. Lo que cobra por hora (endpoints, clusters) se apaga apenas termina el ejercicio.
+>>> texto
+endpoint ML     → se borra al terminar el ejercicio
+cluster Spark   → autoterminación de 30 minutos
+almacenamiento  → centavos, se borra con el grupo
+paso limpiar: Limpiar el mismo día
+Borrar el grupo borra todo lo que tiene adentro. Un endpoint olvidado un mes cuesta más que todos los laboratorios juntos.
+>>> bash
+az group delete -n rg-lab-hoy --yes --no-wait
+paso verificar: Comprobar que no quedó nada
+Buscar por la etiqueta: la lista tiene que estar vacía. Al día siguiente, revisar el costo en la consola.
+>>> log
+$ az resource list --tag proyecto=lab -o table
+(sin resultados)
+```
+
 ## Práctica guiada: prepara la terminal
 
 :::ejercicio cli

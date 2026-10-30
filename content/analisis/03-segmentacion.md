@@ -59,28 +59,28 @@ paso ventas: Cuánto vendió cada producto
 Una fila por producto con su venta total.
 >>> tabla
 producto_id,ventas
-1,191736
-2,56232.8
-3,226982
+1,191735.75
+2,56232.76
+3,226982.17
 4,5125.77
 paso orden: Ordenar de mayor a menor
 El producto que más vende queda primero.
 >>> tabla
 puesto,producto_id,ventas
 1,146,834980
-2,144,466219
-3,124,453047
-4,119,440746
-5,212,436208
+2,144,466219.37
+3,124,453047.07
+4,119,440746.34
+5,212,436208.41
 paso acum: El porcentaje acumulado
 `SUM(ventas) OVER (ORDER BY ventas DESC)` / total: qué parte de las ventas suman los productos desde el primero hasta este.
 >>> tabla
 puesto,producto_id,ventas,pct_acum
 1,146,834980,5.8
-2,144,466219,9
-3,124,453047,12.2
-4,119,440746,15.2
-5,212,436208,18.2
+2,144,466219.37,9
+3,124,453047.07,12.2
+4,119,440746.34,15.2
+5,212,436208.41,18.2
 paso clase: Cortar en A, B y C
 Hasta el 80 % acumulado → A; hasta el 95 % → B; el resto → C.
 >>> tabla

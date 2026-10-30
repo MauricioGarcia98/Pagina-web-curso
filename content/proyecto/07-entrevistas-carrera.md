@@ -13,6 +13,41 @@ resumen: Cómo son las entrevistas de Data Engineer, preguntas de diseño, check
 4. **Diseño de sistemas de datos**: “diseña el pipeline para…”.
 5. **Conductual**: proyectos pasados, trabajo en equipo, cómo manejas un incidente.
 
+```recorrido
+titulo: Una pregunta de diseño, respondida en cinco movimientos
+estacion preg: La pregunta | icono=usuario
+estacion req: Requisitos | icono=documento
+estacion flujo: El flujo | icono=flujo
+estacion calidad: Calidad y fallas | icono=escudo
+estacion cierre: Cierre | icono=check
+paso preg: "Diseña el pipeline de ventas diarias"
+Una pregunta abierta a propósito: quieren ver cómo piensas, no una respuesta única.
+>>> texto
+"Tenemos un ERP y una app. Queremos un tablero de ventas diarias. ¿Cómo lo armarías?"
+paso req: 1. Preguntar requisitos
+Volumen, frecuencia y quién lo usa cambian el diseño. Preguntar **suma** puntos.
+>>> texto
+¿Cuántos pedidos por día?  ¿Tiempo real o al día siguiente?
+¿Quién mira el tablero?     ¿Qué pasa si un día llega tarde?
+paso flujo: 2. Dibujar el flujo de punta a punta
+De la fuente al tablero, nombrando una herramienta por paso y **por qué** esa.
+>>> texto
+ERP ─▶ ingesta diaria ─▶ bronze ─▶ silver (limpio, MERGE) ─▶ gold (estrella) ─▶ tablero
+          orquestado con Airflow · idempotente por fecha
+paso calidad: 3. Calidad y qué pasa cuando falla
+Lo que separa a un junior de un semi senior: tests, reintentos, reprocesos y alertas.
+>>> texto
+tests: unique y not_null en claves, conteos vs. día anterior
+fallas: reintentos, alerta, reproceso de un día con el mismo código
+costos: particionar por fecha, procesar solo lo nuevo
+paso cierre: 4 y 5. Trade-offs y resumen
+Nombrar qué cambiarías si los requisitos fueran otros, y cerrar en dos frases.
+>>> texto
+"Si pidieran tiempo real, cambiaría la ingesta diaria por streaming;
+el resto del diseño se mantiene. En resumen: medallón, idempotente por fecha,
+con tests en cada capa y alertas si los números se desvían."
+```
+
 ## Preguntas de diseño frecuentes (y qué esperan oír)
 
 :::entrevista “Diseña un pipeline que ingiera 50 GB diarios de eventos de una app y alimente un tablero”

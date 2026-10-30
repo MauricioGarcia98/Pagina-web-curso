@@ -107,9 +107,9 @@ Solo la última línea escribe (`saveAsTable`). Estos son los 5 días y canales 
 >>> tabla
 fecha_pedido,canal,ventas,pedidos,clientes
 2024-07-15,web,32072.1,12,12
-2024-09-13,web,27415.1,5,5
-2024-07-11,web,26682.4,13,13
-2024-12-21,web,24399.4,10,9
+2024-09-13,web,27415.13,5,5
+2024-07-11,web,26682.43,13,13
+2024-12-21,web,24399.43,10,9
 2024-12-22,web,21524.8,8,8
 ```
 

@@ -39,6 +39,48 @@ Esperar siempre lo mismo (o nada) hace que todos los clientes reintenten a la ve
 - **Límite de intentos** y, al agotarse, **fallar** (nunca saltear la página).
 - Respetar `Retry-After` cuando la API lo manda: es la API diciéndote exactamente cuánto esperar.
 
+```recorrido
+titulo: Reintentos con backoff exponencial y jitter, intento por intento
+estacion 429: 429 | icono=alerta
+estacion formula: La espera | icono=reloj
+estacion jitter: Jitter | icono=engranaje
+estacion tabla: La secuencia | icono=capas
+estacion fin: El límite | icono=check
+paso 429: La API dice "más despacio"
+Un `429 Too Many Requests` no es un error del código: la API pide que esperes. Reintentar de inmediato empeora la saturación.
+>>> log
+GET /v1/pagos?pagina=12  →  429 Too Many Requests
+paso formula: Esperar cada vez el doble, con un tope
+Espera = `base × 2^(intento − 1)`, con base 2 s y tope 60 s.
+>>> texto
+intento 1 → 2 s
+intento 2 → 4 s
+intento 3 → 8 s
+intento 4 → 16 s
+intento 5 → 32 s
+intento 6 → 60 s (tope)
+paso jitter: Sumar un poco de azar
+Si mil clientes fallan al mismo tiempo y todos esperan exactamente 2, 4, 8 s, vuelven a chocar juntos. El **jitter** (un valor aleatorio) los desparrama.
+>>> python
+import random, time
+espera = min(2 * 2 ** (intento - 1), 60) + random.uniform(0, 1)
+time.sleep(espera)
+paso tabla: Una secuencia real del código
+Si la API manda `Retry-After`, se usa ese valor en lugar del cálculo (simulación con semilla fija).
+>>> tabla
+intento,respuesta,espera_base_s,jitter_s,espera_total_s
+1,429 Too Many Requests,2,0.32,2.32
+2,429 Too Many Requests,4,0.15,4.15
+3,429 Too Many Requests,8,0.65,8.65
+4,429 Too Many Requests,16,0.07,16.07
+5,429 Too Many Requests,32,0.54,32.54
+6,200 OK,-,-,-
+paso fin: Y un límite de intentos
+Si se agotan los intentos, la tarea **falla** con un error claro: nunca se saltea la página, porque faltarían datos sin que nadie lo sepa.
+>>> log
+ERROR página 12: 429 después de 8 intentos; se aborta la extracción (no se publica el día)
+```
+
 ## Credenciales: el problema de las personas
 
 Muchos pipelines empiezan con el token personal de quien los construyó. Cuando esa persona se va o su contraseña cambia, el pipeline falla a las 2 de la mañana. Las reglas:

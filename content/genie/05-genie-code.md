@@ -47,6 +47,40 @@ Escribir `/` muestra los comandos frecuentes. Según la documentación:
 
 Con `/fix` y `/doc` ves el cambio propuesto y eliges **Accept** o **Reject**. Aunque aceptes, **el código no se ejecuta solo**: lo revisas y lo ejecutas tú.
 
+```recorrido
+titulo: Una celda que falla y /fix, paso a paso
+estacion celda: La celda | icono=codigo
+estacion error: El error | icono=x
+estacion fix: /fix | icono=genie
+estacion revisar: Revisar | icono=lupa
+estacion ok: Ejecutar | icono=check
+paso celda: Convertir una columna de texto
+En la capa silver, una celda convierte el monto a número.
+>>> python
+silver = bronze.withColumn("monto", F.col("monto_texto").cast("double"))
+silver.write.mode("overwrite").saveAsTable("main.silver.ventas")
+paso error: Falla con un error de Spark 4
+Con ANSI activo, un valor `N/A` hace fallar la conversión.
+>>> log
+[CAST_INVALID_INPUT] The value 'N/A' of the type "STRING" cannot be cast to "DOUBLE"
+because it is malformed.
+paso fix: Pedirle a Genie Code que lo arregle
+Escribes `/fix` (o usas **Diagnose Error**). Genie Code ve el código, el error y el esquema de la tabla, y propone el cambio en una **vista de diferencias**.
+>>> texto
+- silver = bronze.withColumn("monto", F.col("monto_texto").cast("double"))
++ silver = bronze.withColumn("monto", F.col("monto_texto").try_cast("double"))
+paso revisar: Revisar antes de aceptar
+La propuesta evita el error, pero `try_cast` convierte `N/A` en `NULL` **en silencio**. Falta contar cuántos valores se pierden: eso lo decides tú, no el asistente.
+>>> python
+invalidos = silver.filter(F.col("monto_texto").isNotNull() & F.col("monto").isNull()).count()
+print(f"montos no convertibles: {invalidos}")
+paso ok: Aceptar, completar y ejecutar
+**Accept** pone el cambio en la celda, pero no la ejecuta: la ejecutas tú, ya con el conteo agregado.
+>>> log
+montos no convertibles: 1
+(tabla main.silver.ventas escrita)
+```
+
 ## Cómo pedir bien
 
 Genie Code usa la metadata de Unity Catalog (nombres, descripciones, tablas populares) para dar respuestas personalizadas. Igual que con Genie Agents, **cuanto mejor documentadas tus tablas, mejores respuestas**. Algunos ejemplos de pedidos concretos:

@@ -27,6 +27,42 @@ clientes ───────────────────────�
 
 Fíjate en el principio de la arquitectura medallón: las reglas de negocio (qué es una venta, cómo se calcula el importe) se aplican **en silver**, y las tablas gold **reutilizan** silver. Si mañana cambia la regla del importe, se corrige en un solo lugar y todo lo de gold se recalcula coherente.
 
+```recorrido
+titulo: Un pedido, de bronze a las dos tablas gold
+estacion bronze: Bronze | icono=archivo
+estacion silver: silver.fct_ventas | icono=escudo
+estacion mensual: ventas_mensuales_pais | icono=dashboard
+estacion dim: dim_clientes | icono=usuario
+estacion regla: La regla | icono=check
+paso bronze: Las tablas de origen
+El pedido 101 en `pedidos`, con su cliente.
+>>> tabla
+pedido_id,cliente_id,pais,fecha_pedido,estado
+101,73,México,2022-01-14,entregado
+paso silver: silver.fct_ventas: una fila por línea
+Se excluyen los cancelados y se calcula el `importe` neto **aquí, una sola vez**.
+>>> tabla
+pedido_id,producto_id,pais,mes,importe
+101,119,México,2022-01,1500.91
+101,146,México,2022-01,1532.69
+paso mensual: gold.ventas_mensuales_pais: mes × país
+Ese pedido suma en la fila de su mes y su país, junto con todos los demás.
+>>> tabla
+mes,pais,ventas
+2022-01,México,53082.63
+paso dim: gold.dim_clientes: una fila por cliente
+El mismo pedido también suma en la fila de su cliente. Los clientes **sin** compras aparecen igual (left join), con 0.
+>>> tabla
+cliente_id,nombre,pedidos
+1,Lucía,0
+73,Emilio,23
+paso regla: Por qué gold lee de silver
+Si mañana cambia la regla del importe, se corrige en `fct_ventas` y las dos tablas gold se recalculan coherentes.
+>>> texto
+bronze ──▶ silver.fct_ventas ──┬──▶ gold.ventas_mensuales_pais
+                                └──▶ gold.dim_clientes
+```
+
 :::tip Cómo resolver cada ejercicio
 1. Escribe el grano en un comentario (`# grano: mes x país`).
 2. Construye el resultado en variables con nombre (`ped`, `lineas`, `mensual`), revisando cada una con `show(5)`.

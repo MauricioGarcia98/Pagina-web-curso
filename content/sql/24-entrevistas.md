@@ -71,9 +71,9 @@ paso check: Verificar el resultado
 Antes de decir "listo": ¿son 3 filas? ¿un cliente aparece una sola vez? ¿los montos son razonables?
 >>> tabla
 cliente_id,gasto
-1882,54091.1
-1630,51444.4
-365,50034.9
+1882,54091.07
+1630,51444.43
+365,50034.86
 ```
 
 ## Las familias de preguntas que más aparecen

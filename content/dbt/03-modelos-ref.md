@@ -114,9 +114,9 @@ paso res: Tablas reales en la base
 `top_clientes` ya es una tabla que cualquiera puede consultar. Sus primeras filas:
 >>> tabla
 cliente_id,pedidos,gasto
-1882,32,54091.1
-1630,25,51444.4
-365,30,50034.9
+1882,32,54091.07
+1630,25,51444.43
+365,30,50034.86
 ```
 
 ## Qué es el DAG y por qué te importa
