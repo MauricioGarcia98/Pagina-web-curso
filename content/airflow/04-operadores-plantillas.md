@@ -30,8 +30,8 @@ Los de bases de datos y nubes vienen en paquetes aparte llamados **providers** (
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 
 def cargar_pais(pais, minimo=0):
     print(f"Cargando ventas de {pais} con mínimo {minimo}")
@@ -75,8 +75,8 @@ Las variables más usadas, para una ejecución cuya fecha lógica es el 15 de ma
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 
 with DAG("plantillas", start_date=datetime(2024, 3, 15), schedule="@daily", catchup=False) as dag:
     BashOperator(
@@ -115,8 +115,8 @@ Airflow mira **los nombres de los parámetros** de tu función y le pasa los que
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 
 def procesar(ds, **context):
     print("Procesando el día", ds)
@@ -173,13 +173,13 @@ with DAG("etl", default_args=default_args, ...) as dag:
 Crea el DAG `export_diario` (`schedule="@daily"`, `start_date=datetime(2024, 1, 1)`, `catchup=False`) con un `BashOperator` `exportar` cuyo comando use la plantilla para escribir en la ruta `/lake/export/{{ ds_nodash }}.csv`. Por ejemplo: `echo exportando /lake/export/{{ ds_nodash }}.csv`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 
 with DAG("export_diario", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False) as dag:
     exportar = BashOperator(task_id="exportar", bash_command="echo exportando /lake/export/{{ ds_nodash }}.csv")
@@ -199,9 +199,9 @@ assert "/lake/export/20240704.csv" in run.xcoms.get(("exportar", "return_value")
 Crea el DAG `por_region` y genera con un **bucle** una tarea `PythonOperator` por cada región de la lista `regiones`, con `task_id` `procesar_<region>`, que llame a `procesar(region)` usando `op_kwargs`. Todas deben ir **después** de una tarea `EmptyOperator` llamada `inicio`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 regiones = ["norte", "centro", "sur"]
 
@@ -210,9 +210,9 @@ def procesar(region):
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 regiones = ["norte", "centro", "sur"]
 

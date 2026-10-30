@@ -35,9 +35,9 @@ Ejemplo: la carga completa solo el día 1 del mes, el resto de los días la carg
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 def elegir(ds):
     from datetime import date
@@ -65,7 +65,7 @@ Paso a paso:
 La versión moderna con TaskFlow hace lo mismo con un decorador:
 
 ```python norun
-from airflow.decorators import task
+from airflow.sdk import task
 
 @task.branch
 def decidir(ds=None):
@@ -126,7 +126,7 @@ alerta = PythonOperator(task_id="avisar_slack", python_callable=avisar, trigger_
 Un **sensor** es una tarea que no procesa nada: **espera** a que se cumpla una condición. Por ejemplo, que llegue un archivo, que termine otro DAG o que una tabla tenga los datos del día. Cada cierto tiempo pregunta "¿ya está?". A cada pregunta se le llama *poke*.
 
 ```python norun
-from airflow.sensors.filesystem import FileSensor
+from airflow.providers.standard.sensors.filesystem import FileSensor
 
 esperar = FileSensor(
     task_id="esperar_archivo",
@@ -159,9 +159,9 @@ Un DAG real puede tener 80 tareas. En la interfaz se vuelve un plato de fideos. 
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sdk import TaskGroup
 
 with DAG("con_grupos", start_date=datetime(2024, 1, 1), schedule=None) as dag:
     inicio = EmptyOperator(task_id="inicio")
@@ -203,17 +203,17 @@ En tutoriales viejos vas a ver `SubDagOperator`. Está obsoleto y se eliminó en
 Crea el DAG `calidad` con: `validar` (un `BranchPythonOperator` cuya función devuelve `"publicar"` si `filas_invalidas` es 0, o `"alertar"` si no), dos `EmptyOperator` `publicar` y `alertar`, y una tarea `fin` que **una ambas ramas** con la trigger rule correcta. Usa la variable `filas_invalidas = 5`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 filas_invalidas = 5
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 filas_invalidas = 5
 
@@ -242,18 +242,18 @@ assert run.states["fin"] == "success", "La tarea 'fin' debe ejecutarse aunque un
 Crea el DAG `limpieza` con: `procesar` (un `PythonOperator` que **falla** lanzando `RuntimeError("boom")`) y `cerrar_conexiones` (un `EmptyOperator` que debe ejecutarse **siempre**, haya fallado o no `procesar`).
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 def falla():
     raise RuntimeError("boom")
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 def falla():
     raise RuntimeError("boom")
@@ -276,15 +276,15 @@ assert run.states["cerrar_conexiones"] == "success", "cerrar_conexiones debe cor
 Crea el DAG `medallon` con dos `TaskGroup`: `bronze` (tareas `ingestar_ventas` e `ingestar_clientes`, en paralelo) y `gold` (tarea `ventas_diarias`). Todo `bronze` debe ir antes que `gold`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sdk import TaskGroup
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sdk import TaskGroup
 
 with DAG("medallon", start_date=datetime(2024, 1, 1), schedule=None) as dag:
     with TaskGroup("bronze") as bronze:

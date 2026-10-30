@@ -36,14 +36,14 @@ Crea el DAG `streaming_diario` (`schedule="@daily"`, `start_date` 2024-01-01, `c
 Encadénalas en ese orden.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
+from airflow.sdk import DAG
 from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator, BigQueryCheckOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
+from airflow.sdk import DAG
 from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator, BigQueryCheckOperator

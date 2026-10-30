@@ -11,8 +11,8 @@ Las tareas pueden correr en máquinas distintas, así que no comparten variables
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 
 def extraer(ti):
     ti.xcom_push(key="ruta", value="/lake/bronze/ventas/2024-03-15.json")
@@ -51,7 +51,7 @@ Desde Airflow 2, los decoradores `@dag` y `@task` convierten funciones comunes e
 
 ```python
 from datetime import datetime
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 
 @dag(schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False, tags=["taskflow"])
 def etl_taskflow():
@@ -88,7 +88,7 @@ Por dentro es **exactamente lo mismo**: TaskFlow usa XCom. Por eso las mismas re
 
 ```python
 from datetime import datetime
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 
 @dag(schedule=None, start_date=datetime(2024, 1, 1))
 def resumen():
@@ -112,7 +112,7 @@ resumen().test()
 Con la **TaskFlow API**, crea el DAG `pipeline_numeros` (la función decorada debe llamarse `pipeline_numeros`) con tres tareas: `generar` (devuelve `[1, 2, 3, 4]`), `duplicar` (recibe la lista y devuelve cada número × 2) y `sumar` (recibe la lista y devuelve la suma). Encadénalas pasando los valores y crea el DAG llamando a la función.
 ```python inicial
 from datetime import datetime
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 
 @dag(schedule=None, start_date=datetime(2024, 1, 1))
 def pipeline_numeros():
@@ -122,7 +122,7 @@ pipeline_numeros()
 ```
 ```python solucion
 from datetime import datetime
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 
 @dag(schedule=None, start_date=datetime(2024, 1, 1))
 def pipeline_numeros():
@@ -156,13 +156,13 @@ assert run.xcoms.get(("sumar", "return_value")) == 20, "sumar debería devolver 
 Con operadores clásicos y XCom: crea el DAG `conteo` con `contar` (un `PythonOperator` que **devuelve** `42`) y `validar` (un `PythonOperator` que hace `xcom_pull` del valor de `contar` y lanza `ValueError` si es menor a 10; si no, devuelve `"ok"`).
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 
 def contar():
     return 42

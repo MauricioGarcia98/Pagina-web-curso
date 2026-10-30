@@ -223,17 +223,17 @@ Crea el DAG `streaming_semanal` con `schedule="0 6 * * 1"` (lunes 06:00), `start
 Orden: `inicio >> features >> marts >> fin`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.sdk import TaskGroup
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.sdk import TaskGroup
 
 with DAG("streaming_semanal", schedule="0 6 * * 1", start_date=datetime(2024, 1, 1), catchup=False) as dag:
     inicio = EmptyOperator(task_id="inicio")

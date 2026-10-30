@@ -186,19 +186,19 @@ Crea el DAG `logistica_inventario` (`schedule="@daily"`, `start_date` 2024-01-01
 4. `todo_ok`: `EmptyOperator`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
 QUIEBRES = 3
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
 QUIEBRES = 3
 

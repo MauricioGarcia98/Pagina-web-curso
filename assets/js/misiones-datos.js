@@ -439,7 +439,7 @@
   ];
 
   // ================================================================== Airflow (se inspecciona el DAG y se ejecuta con dag.test())
-  const IMP = 'from datetime import datetime, timedelta\nfrom airflow import DAG\nfrom airflow.operators.empty import EmptyOperator\nfrom airflow.operators.python import PythonOperator\n';
+  const IMP = 'from datetime import datetime, timedelta\nfrom airflow.sdk import DAG\nfrom airflow.providers.standard.operators.empty import EmptyOperator\nfrom airflow.providers.standard.operators.python import PythonOperator\n';
   M.airflow = [
     { id: 'af-1', campana: '🌬️ Orquestar la tienda', titulo: 'El DAG de la ingesta diaria', nivel: 'Básico', de: 'Tu líder técnico',
       pedido: 'Crea el DAG <code>ingesta_ventas</code> que corra <b>todos los días a las 03:00</b>, desde el 1/1/2024, <b>sin catchup</b>, con tres tareas en cadena: <code>extraer</code> → <code>transformar</code> → <code>cargar</code>.',
@@ -465,10 +465,10 @@
     { id: 'af-4', campana: '🌬️ Orquestar la tienda', titulo: 'TaskFlow: datos entre tareas', nivel: 'Avanzado', de: 'Tu líder técnico',
       pedido: 'Con la API <b>TaskFlow</b> (<code>@dag</code> y <code>@task</code>), crea <code>taskflow_ventas</code>: <code>extraer</code> devuelve <code>[10, 20, 30, 40]</code>, <code>filtrar</code> se queda con los mayores a 15 y <code>sumar</code> devuelve la suma. Ejecútalo y guarda el resultado en <code>run</code>.',
       criterios: ['Tres tareas: <code>extraer</code> → <code>filtrar</code> → <code>sumar</code>', 'Los datos pasan por XCom (valores de retorno)', '<code>sumar</code> devuelve 90'],
-      inicial: 'from datetime import datetime\nfrom airflow.decorators import dag, task\n', practica: ['airflow-xcom-taskflow'],
+      inicial: 'from datetime import datetime\nfrom airflow.sdk import dag, task\n', practica: ['airflow-xcom-taskflow'],
       pistas: ['Cada función decorada con <code>@task</code> es una tarea; lo que devuelve va a XCom.', 'Llamar <code>filtrar(extraer())</code> dentro de la función del DAG crea la dependencia.', 'Instancia el DAG (<code>d = taskflow_ventas()</code>) y ejecuta <code>run = d.test()</code>.'],
       test: 'd = dags.get("taskflow_ventas")\nassert d is not None, "No encontré el DAG taskflow_ventas"\nassert d.get_task("extraer").downstream_task_ids == {"filtrar"}, "extraer debe ir antes de filtrar"\nassert d.get_task("filtrar").downstream_task_ids == {"sumar"}, "filtrar debe ir antes de sumar"\nassert run.xcoms.get(("sumar", "return_value")) == 90, "sumar debería devolver 90"',
-      solucion: 'from datetime import datetime\nfrom airflow.decorators import dag, task\n\n@dag(dag_id="taskflow_ventas", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False)\ndef taskflow_ventas():\n    @task\n    def extraer():\n        return [10, 20, 30, 40]\n\n    @task\n    def filtrar(xs):\n        return [x for x in xs if x > 15]\n\n    @task\n    def sumar(xs):\n        return sum(xs)\n\n    sumar(filtrar(extraer()))\n\nd = taskflow_ventas()\nrun = d.test()' },
+      solucion: 'from datetime import datetime\nfrom airflow.sdk import dag, task\n\n@dag(dag_id="taskflow_ventas", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False)\ndef taskflow_ventas():\n    @task\n    def extraer():\n        return [10, 20, 30, 40]\n\n    @task\n    def filtrar(xs):\n        return [x for x in xs if x > 15]\n\n    @task\n    def sumar(xs):\n        return sum(xs)\n\n    sumar(filtrar(extraer()))\n\nd = taskflow_ventas()\nrun = d.test()' },
     { id: 'af-5', campana: '🌬️ Orquestar la tienda', titulo: 'Avisar cuando algo falla', nivel: 'Avanzado', de: 'Guardia de datos',
       pedido: 'En <code>carga_con_alerta</code>: <code>cargar</code> → <code>validar</code>. Agrega <code>alertar</code>, que corra <b>solo si alguna</b> de las dos falla, y <code>limpiar</code>, que corra <b>siempre</b> al final, haya fallado o no.',
       criterios: ['<code>alertar</code> depende de <code>cargar</code> y <code>validar</code> con <code>trigger_rule="one_failed"</code>', '<code>limpiar</code> depende de <code>validar</code> con <code>trigger_rule="all_done"</code>'],

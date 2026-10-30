@@ -114,9 +114,9 @@ with open("datos/resumen_canales.csv", "w", encoding="utf-8") as f:
 print("\\n✔ Escribí datos/resumen_canales.csv")
 `);
     w(HOME + '/dags/etl_ventas.py', `from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 
 def validar(ti):
@@ -834,7 +834,7 @@ models:
   ['nano', 'vim', 'vi'].forEach((e) => def(e, e === 'nano' ? 'editor de texto (abre el editor visual)' : '', (a) => Commands.code(a)));
   def('pip', 'instala paquetes de Python (simulado)', (a) => {
     if (a[0] === 'install') return ok(a.slice(1).filter((x) => !x.startsWith('-')).map((p) => `Collecting ${p}\n  Downloading ${p}-latest-py3-none-any.whl\n`).join('') + col.ok(`Successfully installed ${a.slice(1).filter((x) => !x.startsWith('-')).join(' ')}`));
-    if (a[0] === 'list' || a[0] === 'freeze') return ok('pandas==2.2.2\npyspark==3.5.1\napache-airflow==2.9.3\ndbt-databricks==1.8.5\nrequests==2.32.3');
+    if (a[0] === 'list' || a[0] === 'freeze') return ok('pandas==2.2.2\npyspark==3.5.1\napache-airflow==3.3.2\ndbt-databricks==1.8.5\nrequests==2.32.3');
     return ok('Uso: pip install PAQUETE | pip list');
   });
   Commands.pip3 = Commands.pip;
@@ -1395,7 +1395,7 @@ for _n, _fn in list(_ns.items()):
   }
   def('airflow', 'Airflow (mini-Airflow real): dags list, dags test, tasks list, dags trigger…', async (a) => {
     const [g, s, ...rest] = a;
-    if (g === 'version' || g === '--version') return ok('2.9.3 (mini-Airflow del curso)');
+    if (g === 'version' || g === '--version') return ok('3.3.2 (mini-Airflow del curso)');
     if (g === 'dags' && s === 'list') {
       const ds = dagIds();
       if (!ds.length) return ok('No hay DAGs en ~/dags');

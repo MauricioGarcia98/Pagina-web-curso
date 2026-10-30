@@ -41,7 +41,7 @@ class TriggerRule:
 # ------------------------------------------------------------------ DAG
 class DAG:
     def __init__(self, dag_id, description=None, schedule=None, schedule_interval=None, start_date=None,
-                 end_date=None, catchup=True, default_args=None, tags=None, max_active_runs=16,
+                 end_date=None, catchup=False, default_args=None, tags=None, max_active_runs=16,
                  max_active_tasks=16, dagrun_timeout=None, params=None, doc_md=None, **kwargs):
         if not isinstance(dag_id, str) or not dag_id:
             raise AirflowException("dag_id debe ser un texto no vacío")
@@ -298,6 +298,9 @@ class BaseOperator:
         self.execution_timeout = execution_timeout if execution_timeout is not None else defaults.get("execution_timeout")
         self.params = params or {}
         self.do_xcom_push = do_xcom_push
+        # Assets que esta tarea produce (outlets) o lee (inlets): base de la programación por datos
+        self.outlets = list(kwargs.get('outlets') or [])
+        self.inlets = list(kwargs.get('inlets') or [])
         self.on_failure_callback = on_failure_callback or defaults.get("on_failure_callback")
         self.on_success_callback = on_success_callback
         self.doc_md = doc_md
@@ -977,9 +980,47 @@ class Connection:
         _CONNECTIONS[conn_id] = self
 
 
-class Dataset:
+class Asset:
+    """Airflow 3: un dato (tabla, archivo, carpeta) que una tarea produce y otros DAGs esperan.
+    Asset("s3://lago/ventas") o Asset(name="ventas", uri="s3://lago/ventas")."""
+    def __init__(self, name=None, uri=None, group="asset", extra=None, watchers=None):
+        if name is None and uri is None:
+            raise AirflowException("Asset necesita name o uri")
+        self.name = name if name is not None else uri
+        self.uri = uri if uri is not None else name
+        self.group = group
+        self.extra = dict(extra or {})
+
+    def __eq__(self, other):
+        return isinstance(other, Asset) and other.uri == self.uri
+
+    def __hash__(self):
+        return hash(self.uri)
+
+    def __or__(self, other):
+        return AssetAny(self, other)
+
+    def __and__(self, other):
+        return AssetAll(self, other)
+
+    def __repr__(self):
+        return "Asset(name=%r, uri=%r)" % (self.name, self.uri)
+
+
+class AssetAll(list):
+    def __init__(self, *assets):
+        super().__init__(assets)
+
+
+class AssetAny(list):
+    def __init__(self, *assets):
+        super().__init__(assets)
+
+
+class Dataset(Asset):
+    """Nombre de Airflow 2 (2.4 a 2.11); en Airflow 3 se llama Asset."""
     def __init__(self, uri, extra=None):
-        self.uri = uri
+        super().__init__(uri=uri, extra=extra)
 
     def __repr__(self):
         return "Dataset(%r)" % self.uri

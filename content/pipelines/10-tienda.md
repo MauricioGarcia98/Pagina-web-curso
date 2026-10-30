@@ -206,11 +206,11 @@ Con la TaskFlow API, crea el DAG `tienda_etl_diario` (función decorada con el m
 Encadénalas pasando los valores y crea el DAG llamando a la función.
 ```python inicial
 from datetime import datetime
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 ```
 ```python solucion
 from datetime import datetime
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 
 @dag(schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False)
 def tienda_etl_diario():

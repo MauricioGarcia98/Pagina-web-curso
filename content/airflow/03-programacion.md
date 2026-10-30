@@ -85,8 +85,8 @@ Parámetros comunes a todas las tareas del DAG:
 
 ```python
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 default_args = {
     "owner": "equipo-datos",
@@ -108,13 +108,13 @@ print(dag.get_task("tarea").retries)
 Crea el DAG `ventas_diarias` que corra **todos los días a las 6:30** (cron), con `start_date=datetime(2024, 1, 1)`, **sin catchup**, y `default_args` con `retries=3`. Agrega una tarea `EmptyOperator` llamada `procesar`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 with DAG("ventas_diarias", start_date=datetime(2024, 1, 1), schedule="30 6 * * *",
          catchup=False, default_args={"retries": 3}) as dag:

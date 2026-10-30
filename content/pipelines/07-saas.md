@@ -190,19 +190,19 @@ Crea el DAG `saas_cierre_mensual` con `schedule="0 6 1 * *"`, `start_date` 2024-
 4. `publicar`: `EmptyOperator`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 CIERRE = {"inicial": 846, "nuevo": 49, "expansion": 100, "contraccion": 350, "churn": 149, "final": 496}
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 CIERRE = {"inicial": 846, "nuevo": 49, "expansion": 100, "contraccion": 350, "churn": 149, "final": 496}
 

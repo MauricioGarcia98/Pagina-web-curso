@@ -161,19 +161,19 @@ Crea el DAG `banco_cierre_diario` (`schedule="@daily"`, `start_date` 2024-01-01,
 5. `reportar`: `EmptyOperator` que depende de `perfil_gasto`, `dbt_mora_segmento` y `avisar_sin_datos`, y se ejecuta siempre que **no haya fallas y al menos una tarea anterior haya terminado bien** (elige la trigger rule correcta).
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 transacciones_del_dia = 1250
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 transacciones_del_dia = 1250
 

@@ -108,8 +108,8 @@ Crea el DAG `pipeline_banco` (diario, `schedule="@daily"`, `start_date` 2024-01-
 5. `avisar`: un `EmptyOperator` que corre cuando **ambas** tareas gold terminan.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.amazon.aws.operators.glue_crawler import GlueCrawlerOperator
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
@@ -117,8 +117,8 @@ from airflow.providers.amazon.aws.operators.athena import AthenaOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.amazon.aws.operators.glue_crawler import GlueCrawlerOperator
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator

@@ -186,17 +186,17 @@ Crea el DAG `clinica_recordatorios` (`schedule="0 18 * * *"`, `start_date` 2024-
 Orden: `turnos_manana >> hay_turnos >> enviar_recordatorios`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 cantidad_turnos = 0
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 cantidad_turnos = 0
 

@@ -194,17 +194,17 @@ Crea el DAG `vuelos_puntualidad` (`schedule="@daily"`, `start_date` 2024-01-01, 
 - `consolidar`: `EmptyOperator` después de **todas** las `otp_…`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 AEROPUERTOS = ["EZE", "SCL", "LIM", "BOG", "MEX", "GRU"]
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 AEROPUERTOS = ["EZE", "SCL", "LIM", "BOG", "MEX", "GRU"]
 

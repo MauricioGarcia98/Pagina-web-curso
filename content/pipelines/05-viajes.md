@@ -200,15 +200,15 @@ Crea el DAG `viajes_horario` (`schedule="@hourly"`, `start_date` 2024-07-01, `ca
 2. `cargar_bronze` y `balance_oferta`: dos `EmptyOperator`, en ese orden, después del sensor.
 ```python inicial
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.sensors.filesystem import FileSensor
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.sensors.filesystem import FileSensor
+from airflow.providers.standard.operators.empty import EmptyOperator
 ```
 ```python solucion
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.sensors.filesystem import FileSensor
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.sensors.filesystem import FileSensor
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 with DAG("viajes_horario", schedule="@hourly", start_date=datetime(2024, 7, 1), catchup=False,
          default_args={"retries": 2, "retry_delay": timedelta(minutes=5)}) as dag:

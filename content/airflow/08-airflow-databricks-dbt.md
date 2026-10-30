@@ -24,9 +24,9 @@ Airflow es quien dispara cada paso **en orden**, reintenta si algo falla por un 
 
 ```python
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator, DatabricksSubmitRunOperator
 
 default_args = {"owner": "datos", "retries": 2, "retry_delay": timedelta(minutes=10)}
@@ -178,18 +178,18 @@ Supón que el notebook de silver falla porque llegó una columna nueva:
 Crea el DAG `pipeline_prod` con: `schedule="0 4 * * *"`, `start_date=datetime(2024, 1, 1)`, `catchup=False`, `max_active_runs=1` y `default_args` con `retries=2`. Tareas: `esperar_archivo` (un `FileSensor` con `filepath="/datos/ventas_{{ ds_nodash }}.csv"`), `ingesta` (un `DatabricksRunNowOperator` con `job_id=111` y `job_parameters={"fecha": "{{ ds }}"}`), `dbt_build` (`BashOperator` con un comando que contenga `dbt build`) y `notificar` (`EmptyOperator` con `trigger_rule="all_done"`). Orden: `esperar_archivo >> ingesta >> dbt_build >> notificar`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
-from airflow.sensors.filesystem import FileSensor
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.sensors.filesystem import FileSensor
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
-from airflow.sensors.filesystem import FileSensor
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.sensors.filesystem import FileSensor
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 
 with DAG("pipeline_prod", start_date=datetime(2024, 1, 1), schedule="0 4 * * *", catchup=False,
