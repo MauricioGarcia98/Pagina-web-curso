@@ -93,6 +93,45 @@ def descargar_clientes():
     return requests.get("https://api.tienda.com/clientes").json()
 ```
 
+```recorrido
+titulo: La vida de una ejecución de Airflow, del archivo a las tareas en verde
+estacion file: Tu archivo | icono=codigo
+estacion proc: Dag processor | icono=engranaje
+estacion sch: Scheduler | icono=reloj
+estacion worker: Worker | icono=servidor
+estacion ui: Interfaz | icono=dashboard
+paso file: Guardas el DAG
+Subes `etl_ventas.py` a la carpeta de DAGs (en la empresa, con un *pull request* que lo despliega).
+>>> python
+extraer >> limpiar >> cargar
+paso proc: El Dag processor lo lee
+Ejecuta el código de nivel superior, encuentra el DAG y lo registra. Si hay un error de Python, el DAG no aparece y queda un *import error*.
+>>> log
+Processing file dags/etl_ventas.py
+Found 1 DAG: etl_ventas (3 tasks)
+paso sch: Llega la hora: se crea un DAG run
+Con `schedule="@daily"`, el scheduler crea una ejecución y marca como lista la tarea sin dependencias.
+>>> tabla
+tarea,estado
+extraer,queued
+transformar,none
+cargar,none
+paso worker: Los workers ejecutan en orden
+Cuando `extraer` termina bien, se libera `transformar`, y así. Si una tarea falla y tiene reintentos, vuelve a intentarlo.
+>>> tabla
+tarea,estado
+extraer,success
+transformar,running
+cargar,none
+paso ui: Todo en verde
+En la interfaz ves la grilla: cada cuadrado es una tarea de una ejecución. Verde es éxito, rojo falla, amarillo reintentando.
+>>> tabla
+tarea,estado
+extraer,success
+transformar,success
+cargar,success
+```
+
 ## Las piezas
 
 - `with DAG(...) as dag:` todo lo que crees adentro pertenece a ese DAG.

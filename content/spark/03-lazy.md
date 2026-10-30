@@ -77,6 +77,42 @@ Como nada se ejecuta hasta la acción, un error en un paso del medio (por ejempl
 Si haces `df3.count()` y después `df3.show()`, Spark **lee y calcula todo dos veces**. Si vas a usar el mismo resultado varias veces, guárdalo en memoria con `df3.cache()` (se ve en la lección de optimización) o escríbelo a una tabla.
 :::
 
+```recorrido
+titulo: La receta y el plato: Spark no hace nada hasta que pides un resultado
+estacion read: read | icono=archivo
+estacion filter: filter | icono=lupa
+estacion group: groupBy | icono=cubo
+estacion action: show() | icono=chispa
+estacion exec: Ejecución | icono=servidor
+paso read: Leer: todavía nada
+`spark.read` no lee los datos todavía: anota **de dónde** se van a leer. La celda termina al instante aunque el archivo pese 100 GB.
+>>> python
+df = spark.read.parquet("/lago/silver/pedidos")
+# plan: leer pedidos
+paso filter: Filtrar: se agrega a la receta
+Cada transformación agrega un paso al **plan**. Sigue sin procesar ni una fila.
+>>> python
+entregados = df.filter(F.col("estado") == "entregado")
+# plan: leer pedidos → filtrar estado
+paso group: Agrupar: otro paso más
+También es una transformación: el plan crece, el trabajo no empieza.
+>>> python
+por_canal = entregados.groupBy("canal").count()
+# plan: leer → filtrar → agrupar y contar
+paso action: show(): la acción dispara todo
+Una **acción** (`show`, `count`, `collect`, `write`) pide un resultado. Recién ahí Spark optimiza el plan completo y lo ejecuta.
+>>> python
+por_canal.show()
+paso exec: Optimizar y repartir
+Catalyst reordena el plan (por ejemplo, lee solo las columnas `estado` y `canal` del Parquet y aplica el filtro al leer) y reparte el trabajo entre los executors. Ejemplo ilustrativo de un plan.
+>>> log
+== Physical Plan ==
+HashAggregate(keys=[canal], functions=[count(1)])
++- Exchange hashpartitioning(canal, 200)
+   +- Filter (estado = entregado)
+      +- FileScan parquet [estado,canal] PushedFilters: [EqualTo(estado,entregado)]
+```
+
 ## Por qué la pereza es buena: Catalyst
 
 Como Spark ve el plan completo antes de ejecutar, su optimizador **Catalyst** puede reescribirlo para que sea más eficiente. El plan pasa por cuatro etapas:
