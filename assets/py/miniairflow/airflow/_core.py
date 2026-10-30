@@ -139,6 +139,7 @@ class DagRun:
         self.conf = conf
         self.run_id = "manual__%s" % logical_date.isoformat()
         self.xcoms = {}
+        self.asset_events = []
         self.states = {}
 
     def get_task_instance(self, task_id):
@@ -170,6 +171,10 @@ class DagRun:
                         self.xcoms[(task.task_id, "return_value")] = result
                     self.states[task.task_id] = "success"
                     print("  ✅ %-22s success%s" % (task.task_id, "" if result is None else "  (XCom: %r)" % (result,)))
+                    for asset in getattr(task, "outlets", []) or []:
+                        if isinstance(asset, Asset):
+                            self.asset_events.append(asset)
+                            print("     📦 asset actualizado: %s" % asset.uri)
                     if getattr(task, "_is_short_circuit", False) and not result:
                         print("     condición falsa: se saltean las tareas siguientes")
                         pend = list(task.downstream_task_ids)
@@ -200,6 +205,15 @@ class DagRun:
         ok = all(v in ("success", "skipped") for v in self.states.values())
         self.state = "success" if ok else "failed"
         print("■ DAG run %s" % self.state)
+        if self.asset_events:
+            # qué DAGs programados por assets se dispararían (los que esperan alguno de estos assets)
+            uris = {a.uri for a in self.asset_events}
+            for d in _DAG_REGISTRY.values():
+                sch = d.schedule if isinstance(d.schedule, (list, tuple)) else ([d.schedule] if isinstance(d.schedule, Asset) else [])
+                esperados = {a.uri for a in _flatten(list(sch)) if isinstance(a, Asset)}
+                if esperados & uris:
+                    faltan = esperados - uris
+                    print("  → %s %s" % (d.dag_id, "se dispararía ahora" if not faltan else "espera además: " + ", ".join(sorted(faltan))))
         return self
 
 

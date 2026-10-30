@@ -20,7 +20,7 @@ Hasta ahora, para probar un DAG había que subirlo al Airflow compartido de desa
 |---|---|---|---|
 | Qué es | Airflow instalado en tu entorno de Python, todo en un proceso | Herramienta de Astronomer que levanta Airflow en Docker con un comando | El `docker-compose.yaml` publicado por Apache Airflow |
 | Requiere Docker | No | Sí | Sí |
-| Parecido a producción | Bajo (SQLite, un solo proceso) | Alto (Postgres, scheduler, webserver, triggerer separados) | Alto (incluye Celery y Redis) |
+| Parecido a producción | Bajo (SQLite, un solo proceso) | Alto (Postgres, scheduler, Dag processor, API server y triggerer separados) | Alto (incluye Celery y Redis) |
 | Ideal para | Aprender, probar DAGs rápido | El día a día en un equipo | Entender la arquitectura completa |
 
 ```diagrama
@@ -42,7 +42,7 @@ Airflow tiene muchas dependencias y se instala con un archivo de **constraints**
 
 ```bash norun
 uv venv --python 3.12 && source .venv/bin/activate
-AIRFLOW_VERSION=2.10.3
+AIRFLOW_VERSION=3.3.2
 PYTHON_VERSION=3.12
 uv pip install "apache-airflow==${AIRFLOW_VERSION}" \
   --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
@@ -51,7 +51,7 @@ export AIRFLOW_HOME=~/airflow          # dónde guarda su configuración, su bas
 airflow standalone
 ```
 
-`standalone` inicializa la base, crea un usuario `admin` (la contraseña aparece en la salida y en `$AIRFLOW_HOME/standalone_admin_password.txt`) y arranca todo. Abre `http://localhost:8080`. Los DAGs van en `$AIRFLOW_HOME/dags/`.
+`standalone` inicializa la base, crea un usuario `admin` y arranca todos los componentes (scheduler, Dag processor, triggerer y API server). En Airflow 3 el usuario lo maneja el *Simple auth manager*: la contraseña aparece en la salida y queda guardada en `$AIRFLOW_HOME/simple_auth_manager_passwords.json.generated` (en Airflow 2 era `standalone_admin_password.txt`). Abre `http://localhost:8080`. Los DAGs van en `$AIRFLOW_HOME/dags/`.
 
 :::nota Windows
 Airflow no corre nativo en Windows: usa WSL (lección 1) o una de las opciones con Docker.
@@ -65,7 +65,7 @@ curl -sSL install.astronomer.io | sudo bash -s       # Linux y WSL
 
 mkdir rapido-airflow && cd rapido-airflow
 astro dev init          # crea la estructura del proyecto
-astro dev start         # construye la imagen y levanta Postgres, scheduler, webserver y triggerer
+astro dev start         # construye la imagen y levanta Postgres, scheduler, Dag processor, API server y triggerer
 ```
 
 ```text
@@ -131,7 +131,7 @@ La prueba más valiosa y simple: que **todos** los DAGs importen sin errores y c
 
 ```python norun
 # tests/dags/test_dags.py
-from airflow.models import DagBag
+from airflow.dag_processing.dagbag import DagBag   # en Airflow 2: from airflow.models import DagBag
 
 def test_sin_errores_de_importacion():
     bag = DagBag(dag_folder="dags", include_examples=False)
@@ -152,7 +152,7 @@ astro dev pytest         # con Astro CLI
 <!-- estandar:errores -->
 :::errores
 - **El DAG no aparece en la UI**: está en otra carpeta (`airflow config get-value core dags_folder` dice cuál), tiene un error de importación (`airflow dags list-import-errors`) o el archivo no contiene las palabras `airflow` y `dag` (Airflow los ignora por defecto).
-- **Instalar Airflow sin constraints** y que el webserver no arranque por versiones incompatibles: reinstala en un entorno limpio con el archivo de constraints.
+- **Instalar Airflow sin constraints** y que el API server (el webserver en Airflow 2) no arranque por versiones incompatibles: reinstala en un entorno limpio con el archivo de constraints.
 - **`ModuleNotFoundError` en un DAG con Astro**: falta el paquete en `requirements.txt`; agrégalo y `astro dev restart`.
 - **Docker se queda sin memoria** con el compose oficial: dale 4–8 GB en Docker Desktop → Settings → Resources, o usa Astro CLI.
 - **Contraseñas en el DAG** (`password="…"`): van en conexiones, nunca en el código.
