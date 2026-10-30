@@ -26,6 +26,6 @@ Revisión hecha recorriendo el sitio como una persona que no sabe nada de datos 
 1. ~~Recorridos o diagramas en las 129 lecciones sin visual~~ (hecho: hallazgo 7).
 2. **Capturas reales** en las guías de Databricks Free Edition, Azure y el proyecto de Genie (los recuadros "captura pendiente" ya indican qué capturar y con qué nombre).
 3. ~~Prueba de diagnóstico inicial~~ (hecho: `#/diagnostico`, 13 preguntas en 4 bloques; recomienda la etapa y guarda el resultado, que se marca en la ruta).
-4. **Pistas para los 79 ejercicios de terminal** que no tienen solución escrita (agregar el bloque `solucion` permite generarlas solas).
+4. ~~Pistas para los ejercicios que no tenían~~ (hecho: los 79 de terminal, desde la respuesta aceptada; los 64 de respuesta libre, con cómo organizar la respuesta o el esqueleto del código o YAML; y los 2 de SQL con DDL. Ya no queda ningún ejercicio sin pista).
 5. **Glosario**: sumar los términos que hoy no tienen entrada y aparecen seguido (por ejemplo, "warehouse" a secas, "job", "endpoint"), para que también se expliquen en línea.
 6. ~~Ritmo~~ (hecho: cada etapa muestra horas y semanas a 1 h/día, calculadas con la duración de las lecciones y 3 min por ejercicio; la portada avisa cuando hay tarjetas vencidas o pasó una semana sin repasar).

@@ -319,13 +319,62 @@ function pistasCli(sol) {
   const p2 = flags.length ? `**Opciones que vas a usar:** ${flags.map((f) => '`' + f + '`').join(', ')}. Si no recuerdas cómo se escriben, prueba \`${cabeza(cmds[0]).split(' ')[0]} --help\` en la terminal.` : '';
   return [p1, p2].filter(Boolean);
 }
+// ejercicios de terminal sin bloque solucion: se parte de la primera respuesta aceptada que sea texto literal
+const tapar = (w) => w[0] + '_'.repeat(Math.max(1, w.length - 1));
+function pistasRespuestaCli(respuestas) {
+  const r = (respuestas || []).find((x) => !/[()|?\\[\]*+^$]/.test(x));
+  if (!r) return [];
+  const w = r.split(/\s+/);
+  if (w.length === 1) return [`**Por dónde empezar:** es un solo comando, sin opciones. Empieza con \`${w[0][0]}\` y tiene ${w[0].length} letras.`];
+  const esqueleto = [w[0], ...w.slice(1).map((x) => (x.startsWith('-') ? x.replace(/=(.+)$/, (m, v) => '=' + tapar(v)) : tapar(x)))].join(' ');
+  return [
+    `**Por dónde empezar:** el comando empieza con \`${w[0]}\` y tiene ${w.length} palabras en total.${/^(az|aws|gcloud|databricks|dbt|airflow|terraform|docker|bq|git|uv|pip)$/.test(w[0]) ? ` Si no recuerdas el resto, \`${w[0]} --help\` lista lo que puede hacer.` : ''}`,
+    `**El esqueleto** (cada \`_\` es una letra que falta): \`${esqueleto}\``,
+  ];
+}
+// respuestas abiertas: cómo organizar la respuesta, sin dar el contenido
+function pistasAbierto(sol) {
+  const s = sol.trim();
+  const lineas = s.split('\n').filter((l) => l.trim());
+  const esClave = (l) => /^\s*-?\s*[\w.]+:(\s|$)/.test(l) && l.length < 80;   // "clave: valor" corto, como en YAML
+  const pareceYaml = lineas.length && esClave(lineas[0]) && lineas.filter(esClave).length >= lineas.length * 0.6;
+  if (pareceYaml || /^(CREATE|ALTER|SELECT|WITH|GRANT|INSERT|MERGE|UPDATE|DELETE|resource|terraform|module|variable|provider|from |import |\{|#|--|bundle:|targets:|\[)/i.test(s)) return pistasCodigo(s);
+  const items = s.match(/^(?:\d+[.)]|-)\s+.+$/gm) || [];   // solo los puntos de primer nivel
+  const etiqueta = (l) => { const e = (l.replace(/^(?:\d+[.)]|-)\s+/, '').match(/^\**([^:*\n]{2,45})\**:/) || [])[1]; return e && !/[._/→`"'=]/.test(e) ? e : null; };
+  let etiquetas = (items.length >= 2 ? items : s.split('\n')).map(etiqueta);
+  etiquetas = etiquetas.every(Boolean) ? etiquetas : [];
+  const p1 = etiquetas.length >= 2 ? `**Cómo organizar tu respuesta:** la respuesta modelo tiene ${etiquetas.length} partes: ${etiquetas.map((e) => `*${e.trim()}*`).join(', ')}. Escribe una o dos frases para cada una.`
+    : items.length >= 2 ? `**Cómo organizar tu respuesta:** la respuesta modelo tiene ${items.length} puntos. Escribe una idea concreta por punto.`
+      : '**Cómo organizar tu respuesta:** en 3 o 4 frases, di **qué** harías, **con qué** herramienta o técnica y **por qué** esa y no otra.';
+  return [p1, '**Antes de mirar la solución:** escribe tu respuesta completa (aunque no estés seguro) y después compárala punto por punto. Lo que te faltó es justo lo que conviene repasar en la lección.'];
+}
+// código sin corrector automático: qué bloques escribir y el esqueleto con nombres y valores tapados
+const PALABRA_CLAVE = /^(CREATE|OR|REPLACE|TABLE|VIEW|FUNCTION|ALTER|COLUMN|SET|MASK|ROW|FILTER|ON|TO|GRANT|REVOKE|SELECT|FROM|WHERE|AND|OR|NOT|NULL|INSERT|INTO|VALUES|UPDATE|DELETE|MERGE|USING|WHEN|MATCHED|THEN|ELSE|END|CASE|RETURN|RETURNS|AS|PRIMARY|KEY|DEFAULT|WITH|GROUP|BY|ORDER|resource|module|variable|output|provider|terraform|source|for_each|count|bundle|targets|resources|jobs|tasks|import|from|def|return|[(){}[\],;=:.<>*'"]+)$/;
+function pistasCodigo(sol) {
+  const lineas = sol.split('\n').filter((l) => l.trim() && !/^\s*(--|#|\/\/)/.test(l));
+  const bloques = unicos(lineas.map((l) => (l.match(/^(?:CREATE(?: OR REPLACE)? \w+|ALTER \w+|GRANT|REVOKE|INSERT INTO|UPDATE|DELETE FROM|MERGE INTO|SELECT|WITH|resource "[\w-]+"|module|variable|output|provider "[\w-]+"|[\w-]+:$)/i) || [])[0]).filter(Boolean));
+  const taparValor = (v) => v.replace(/[^\s(),;={}[\]]+/g, (t) => (PALABRA_CLAVE.test(t) || t.length <= 1 ? t : '___'));
+  // en YAML las claves son la estructura: se dejan a la vista y se tapan solo los valores
+  const yaml = /^\s*-?\s*[\w.]+:(\s|$)/;
+  const esq = lineas.slice(0, 12).map((l) => { const m = l.match(/^(\s*-?\s*[\w.]+:)(.*)$/); return yaml.test(l) && m ? m[1] + (m[2].trim() ? ' ___' : '') : taparValor(l); }).join('\n');
+  const claves = lineas.filter((l) => yaml.test(l) && !/^\s{2,}/.test(l)).map((l) => l.match(/^\s*-?\s*([\w.]+):/)[1]);
+  const esYaml = claves.length > 0 && bloques.every((b) => b.endsWith(':'));
+  return [
+    esYaml ? `**Qué vas a escribir:** un bloque de YAML (configuración por claves y sangría) que empieza con ${unicos(claves).map((c) => '`' + c + ':`').join(', ')}.` : bloques.length ? `**Qué vas a escribir:** ${bloques.map((b) => '`' + b + '`').join(', ')}${lineas.length > 12 ? ' (y algo más)' : ''}.` : `**Qué vas a escribir:** unas ${lineas.length} líneas de código.`,
+    `**El esqueleto** (los nombres y valores van donde dice \`___\`):\n\n\`\`\`text\n${esq}${lineas.length > 12 ? '\n…' : ''}\n\`\`\``,
+  ];
+}
 function pistasAutomaticas(ex) {
-  if (ex.pistas || !ex.solucion) return;
+  if (ex.pistas) return;
+  if (ex.type === 'cli' && !ex.solucion) { const ps = pistasRespuestaCli(ex.respuesta); if (ps.length) { ex.pistas = ps.map((x) => md(x)); ex.pista = ex.pistas[0]; ex.pistasAuto = true; } return; }
+  if (!ex.solucion) return;
   let ps = [];
   try {
     if (ex.type === 'sql' || ex.type === 'dbt') ps = pistasSql(ex.solucion);
     else if (['python', 'pyspark', 'airflow'].includes(ex.type)) ps = pistasPython(ex.solucion, ex.type);
     else if (ex.type === 'cli') ps = pistasCli(ex.solucion);
+    else if (ex.type === 'abierto') ps = pistasAbierto(ex.solucion);
+    if (!ps.length && ex.type === 'sql') ps = pistasCodigo(ex.solucion);
   } catch (e) { ps = []; }
   if (ps.length) { ex.pistas = ps.map((x) => md(x)); ex.pista = ex.pistas[0]; ex.pistasAuto = true; }
 }
