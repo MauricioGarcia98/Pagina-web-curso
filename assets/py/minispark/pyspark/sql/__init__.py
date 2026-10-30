@@ -38,6 +38,21 @@ class AnalysisException(Exception):
     pass
 
 
+class NumberFormatException(Exception):
+    """Spark 4 con modo ANSI: un texto que no se puede convertir (error CAST_INVALID_INPUT)."""
+
+
+class ArithmeticException(Exception):
+    """Spark 4 con modo ANSI: división por cero (DIVIDE_BY_ZERO) o desbordamiento."""
+
+
+def _ansi():
+    """spark.sql.ansi.enabled: true por defecto desde Spark 4.0."""
+    s = SparkSession._active if "SparkSession" in globals() else None
+    v = s.conf.get("spark.sql.ansi.enabled", "true") if s is not None else "true"
+    return str(v).lower() == "true"
+
+
 # --------------------------------------------------------------------------- Row
 class Row(tuple):
     def __new__(cls, *args, **kwargs):
@@ -101,7 +116,24 @@ def _infer_type(v):
     return T.StringType()
 
 
-def _cast(v, typ):
+def _cast(v, typ, lenient=False):
+    """CAST de Spark. Con el modo ANSI (Spark 4) un valor inválido es un error; con try_cast o sin ANSI, NULL."""
+    r = _cast_raw(v, typ)
+    if r is _CAST_FALLA:
+        if lenient or not _ansi():
+            return None
+        from . import types as T
+        tn = typ if isinstance(typ, str) else typ.simpleString()
+        raise NumberFormatException("[CAST_INVALID_INPUT] The value '%s' of the type \"STRING\" cannot be cast to \"%s\" "
+                                    "because it is malformed. Use `try_cast` to tolerate malformed input and return NULL instead. "
+                                    "(modo ANSI de Spark 4: spark.sql.ansi.enabled=true)" % (v, str(tn).upper()))
+    return r
+
+
+_CAST_FALLA = object()
+
+
+def _cast_raw(v, typ):
     from . import types as T
     if v is None:
         return None
@@ -111,7 +143,9 @@ def _cast(v, typ):
         if isinstance(typ, (T.IntegerType, T.LongType, T.ShortType)):
             if isinstance(v, str):
                 v = v.strip()
-                return int(float(v)) if v else None
+                if not v:
+                    return _CAST_FALLA
+                return int(float(v))
             return int(v)
         if isinstance(typ, (T.DoubleType, T.FloatType, T.DecimalType)):
             r = float(v)
@@ -126,14 +160,21 @@ def _cast(v, typ):
             return str(v)
         if isinstance(typ, T.BooleanType):
             if isinstance(v, str):
-                return v.strip().lower() in ("true", "1", "t", "yes", "y")
+                s = v.strip().lower()
+                if s in ("true", "1", "t", "yes", "y"):
+                    return True
+                if s in ("false", "0", "f", "no", "n"):
+                    return False
+                return _CAST_FALLA
             return bool(v)
         if isinstance(typ, T.DateType):
-            return _to_date(v)
+            r = _to_date(v)
+            return _CAST_FALLA if r is None and str(v).strip() else r
         if isinstance(typ, T.TimestampType):
-            return _to_ts(v)
+            r = _to_ts(v)
+            return _CAST_FALLA if r is None and str(v).strip() else r
     except (ValueError, TypeError):
-        return None
+        return _CAST_FALLA
     return v
 
 
@@ -297,6 +338,9 @@ class Column:
             try:
                 return op(x, y)
             except ZeroDivisionError:
+                if _ansi():
+                    raise ArithmeticException("[DIVIDE_BY_ZERO] Division by zero. Use `try_divide` to tolerate divisor being 0 and return NULL instead. "
+                                              "(modo ANSI de Spark 4: spark.sql.ansi.enabled=true)")
                 return None
             except TypeError:
                 raise AnalysisException("No se puede aplicar '%s' entre %r y %r" % (sym, x, y))
@@ -402,6 +446,10 @@ class Column:
         return Column("fn", "CAST(%s AS %s)" % (self._name, tname.upper()), [self], lambda x: _cast(x, typ))
 
     astype = cast
+
+    def try_cast(self, typ):
+        tname = typ if isinstance(typ, str) else typ.simpleString()
+        return Column("fn", "TRY_CAST(%s AS %s)" % (self._name, tname.upper()), [self], lambda x: _cast(x, typ, lenient=True))
 
     def desc(self):
         return Column("sort", self._name, [self], asc=False, nulls_first=False)
@@ -2208,15 +2256,23 @@ class SparkSession:
                 if df is not None:
                     _load_sqlite(conn, nm, df)
         q2 = _translate_sql(q)
+        del _SQL_ERR[:]
         try:
             cur = conn.execute(q2)
         except _sqlite3.Error as e:
+            if _SQL_ERR:
+                raise _SQL_ERR[-1]
             msg = str(e)
             if "no such table" in msg:
                 msg += ". ¿Registraste la vista con df.createOrReplaceTempView('nombre')?"
             raise AnalysisException("[SQL] " + msg)
         names = [d[0] for d in cur.description] if cur.description else []
-        rows = cur.fetchall()
+        try:
+            rows = cur.fetchall()
+        except _sqlite3.Error as e:
+            if _SQL_ERR:
+                raise _SQL_ERR[-1]
+            raise AnalysisException("[SQL] " + str(e))
         conn.close()
         return DataFrame(names, rows, self)
 
@@ -2256,8 +2312,38 @@ def _load_sqlite(conn, name, df):
     conn.executemany('INSERT INTO "%s" VALUES (%s)' % (name, ph), [tuple(conv(v) for v in r) for r in df._rows])
 
 
+def _translate_casts(q):
+    """CAST(x AS t) y TRY_CAST(x AS t) -> funciones que respetan el modo ANSI de Spark 4."""
+    out, i = [], 0
+    pat = _re.compile(r"(?i)\b(try_cast|cast)\s*\(")
+    while True:
+        m = pat.search(q, i)
+        if not m:
+            out.append(q[i:])
+            break
+        out.append(q[i:m.start()])
+        j, prof, ini = m.end(), 1, m.end()
+        while j < len(q) and prof:
+            if q[j] == "(":
+                prof += 1
+            elif q[j] == ")":
+                prof -= 1
+            j += 1
+        dentro = q[ini:j - 1]
+        partes = list(_re.finditer(r"(?i)\s+as\s+", dentro))
+        if not partes:
+            out.append(q[m.start():j])
+        else:
+            k = partes[-1]
+            expr, tipo = dentro[:k.start()], dentro[k.end():].strip()
+            out.append("_scast(%s, '%s', %d)" % (_translate_casts(expr), tipo.replace("'", ""), 1 if m.group(1).lower() == "try_cast" else 0))
+        i = j
+    return "".join(out)
+
+
 def _translate_sql(q):
     """Traduce algunas funciones de Spark SQL a SQLite."""
+    q = _translate_casts(q)
     rep = [
         (r"(?i)\byear\s*\(", "_year("), (r"(?i)\bmonth\s*\(", "_month("), (r"(?i)\bday(ofmonth)?\s*\(", "_day("),
         (r"(?i)\bdate_format\s*\(", "_date_format("), (r"(?i)\bdatediff\s*\(", "_datediff("),
@@ -2273,9 +2359,26 @@ def _translate_sql(q):
     return q
 
 
+_SQL_ERR = []
+
+
 def _register_functions(conn):
     def d(v):
         return _to_date(v)
+
+    def scast(v, tipo, lenient):
+        try:
+            r = _cast(v, tipo, lenient=bool(lenient))
+        except Exception as e:  # noqa: BLE001 - se re-lanza fuera de SQLite con su mensaje
+            _SQL_ERR.append(e)
+            raise
+        if isinstance(r, bool):
+            return int(r)
+        if isinstance(r, (_dt.date, _dt.datetime)):
+            return r.isoformat(" ") if isinstance(r, _dt.datetime) else r.isoformat()
+        return r
+    conn.create_function("_scast", 3, scast)
+    conn.create_function("try_divide", 2, lambda a, b: None if a is None or b in (None, 0) else a / b)
     conn.create_function("_year", 1, lambda v: d(v).year if d(v) else None)
     conn.create_function("_month", 1, lambda v: d(v).month if d(v) else None)
     conn.create_function("_day", 1, lambda v: d(v).day if d(v) else None)
