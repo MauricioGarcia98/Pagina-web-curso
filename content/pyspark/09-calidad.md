@@ -52,6 +52,67 @@ print(ultimo.count())
 En Spark real, cuál fila sobrevive con `dropDuplicates(["clave"])` **no está garantizado**. Si importa cuál queda (casi siempre importa), usa `row_number()` con un orden explícito.
 :::
 
+```recorrido
+titulo: Deduplicar con row_number: quedarse con la carga más reciente
+estacion crudo: clientes_crudo | icono=archivo
+estacion norm: Normalizar | icono=transformar
+estacion rn: row_number | icono=etiqueta
+estacion filtro: rn = 1 | icono=lupa
+estacion res: Resultado | icono=check
+paso crudo: El mismo cliente, varias veces
+En `clientes_crudo` el cliente 795 llegó 3 veces y el 1638, 5 veces, con mayúsculas y espacios distintos. Queremos **una fila por cliente**: la más reciente.
+>>> tabla
+registro_id,cliente_id,nombre,ciudad,fecha_carga
+6,795,[Diego],Santiago,2024-08-07 07:05:08
+7,795,[DIEGO],santiago,2024-05-28 18:27:08
+8,795,[  DIEGO ],Santiago,2024-06-21 13:58:09
+2,1638,[Benjamín],Bogotá,2024-03-01 06:35:23
+3,1638,[BENJAMÍN],Bogotá,2024-02-13 12:29:25
+4,1638,[Benjamín],bogotá,2024-01-12 10:20:54
+12,1638,[Benjamín],Bogotá,2024-02-05 17:22:22
+13,1638,[  BENJAMÍN ],Bogotá,2024-02-17 14:05:31
+paso norm: Primero, normalizar
+`F.initcap(F.trim("nombre"))` y lo mismo con la ciudad: ahora "  DIEGO " y "Diego" se ven iguales. Los corchetes solo muestran dónde había espacios.
+>>> tabla
+registro_id,cliente_id,nombre,ciudad,fecha_carga
+6,795,[Diego],Santiago,2024-08-07 07:05:08
+7,795,[Diego],Santiago,2024-05-28 18:27:08
+8,795,[Diego],Santiago,2024-06-21 13:58:09
+2,1638,[Benjamín],Bogotá,2024-03-01 06:35:23
+3,1638,[Benjamín],Bogotá,2024-02-13 12:29:25
+4,1638,[Benjamín],Bogotá,2024-01-12 10:20:54
+12,1638,[Benjamín],Bogotá,2024-02-05 17:22:22
+13,1638,[Benjamín],Bogotá,2024-02-17 14:05:31
+paso rn: Numerar de la más nueva a la más vieja
+Una ventana por `cliente_id` ordenada por `fecha_carga` **descendente**: la carga más reciente recibe `rn = 1`.
+>>> tabla
+registro_id,cliente_id,fecha_carga,rn
+6,795,2024-08-07 07:05:08,1
+8,795,2024-06-21 13:58:09,2
+7,795,2024-05-28 18:27:08,3
+2,1638,2024-03-01 06:35:23,1
+13,1638,2024-02-17 14:05:31,2
+3,1638,2024-02-13 12:29:25,3
+12,1638,2024-02-05 17:22:22,4
+4,1638,2024-01-12 10:20:54,5
+paso filtro: Quedarse con rn = 1
+A diferencia de `dropDuplicates(["cliente_id"])`, que se queda con **cualquiera**, esto elige siempre la misma fila: la más reciente.
+>>> python
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.partitionBy("cliente_id").orderBy(F.col("fecha_carga").desc())
+resultado = (spark.table("clientes_crudo")
+    .withColumn("rn", F.row_number().over(w))
+    .filter("rn = 1").drop("rn"))
+paso res: Una fila por cliente
+De 8 filas a 2. Las otras 6 no se perdieron "en silencio": puedes contarlas (`total - resultado.count()`) y registrarlas.
+>>> tabla
+registro_id,cliente_id,nombre,ciudad,fecha_carga
+6,795,Diego,Santiago,2024-08-07 07:05:08
+2,1638,Benjamín,Bogotá,2024-03-01 06:35:23
+```
+
 ## Nulos
 
 ```python

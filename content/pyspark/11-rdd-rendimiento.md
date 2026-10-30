@@ -64,6 +64,48 @@ En Spark real, en el plan físico busca:
 - `PushedFilters: [...]` en el `Scan` → filtros empujados a la lectura.
 - `PartitionFilters: [...]` → partition pruning.
 
+```recorrido
+titulo: Leer un plan físico de abajo hacia arriba
+estacion scan: Scan | icono=base
+estacion bcast: Broadcast | icono=red
+estacion join: Join | icono=capas
+estacion exch: Exchange | icono=alerta
+estacion agg: Agregación | icono=check
+paso scan: Abajo de todo: leer
+El plan de la consulta de arriba, **simplificado** (el real tiene más detalle y números de identificación). La última línea es lo primero que ocurre: leer `detalle_pedidos`.
+>>> texto
+HashAggregate(keys=[marca], functions=[sum(cantidad)])
++- Exchange hashpartitioning(marca, 200)
+   +- HashAggregate(keys=[marca], functions=[partial_sum(cantidad)])
+      +- BroadcastHashJoin [producto_id], [producto_id]
+         :- Scan detalle_pedidos [producto_id, cantidad]   ◀ empieza aquí
+         +- BroadcastExchange
+            +- Scan productos [producto_id, marca]
+paso bcast: BroadcastExchange: copiar la tabla chica
+`F.broadcast(productos)` pidió mandar **una copia entera** de `productos` (es chica) a cada máquina. Así nadie tiene que mover las 25.524 líneas de detalle.
+>>> texto
+BroadcastExchange
++- Scan productos [producto_id, marca]
+paso join: BroadcastHashJoin
+Cada máquina une sus líneas de detalle con su copia local de productos. **No hay shuffle** para el join: es la estrategia más rápida cuando un lado es chico.
+>>> texto
+BroadcastHashJoin [producto_id], [producto_id]
+paso exch: Exchange: aquí hay un shuffle
+Primero cada máquina suma su parte (`partial_sum`). Después, `Exchange hashpartitioning(marca)` **mueve filas por la red** para que cada marca quede en una sola máquina. Es la parte cara.
+>>> texto
++- Exchange hashpartitioning(marca, 200)
+   +- HashAggregate(... partial_sum(cantidad))
+paso agg: Arriba: el resultado
+El `HashAggregate` final suma los parciales de cada marca. Regla práctica: cuenta los `Exchange`; cada uno es un shuffle.
+>>> tabla
+marca,u
+Apple,2867
+Adidas,2741
+Shimano,2324
+Puma,2259
+Ikea,2244
+```
+
 ## Antipatrones de PySpark
 
 ```python norun

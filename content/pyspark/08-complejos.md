@@ -82,6 +82,41 @@ tags = spark.createDataFrame([(1, "oferta,verano,remeras"), (2, "invierno")], ["
 tags.withColumn("tag", F.explode(F.split("tags", ","))).select("producto_id", "tag").show()
 ```
 
+```recorrido
+titulo: explode y explode_outer paso a paso
+estacion df: Un array por fila | icono=cubo
+estacion exp: explode | icono=transformar
+estacion out: explode_outer | icono=escudo
+estacion res: Cuál usar | icono=check
+paso df: Tres alumnos, tres arrays
+Cada fila tiene un **array** con los cursos del alumno. El alumno 3 tiene un array vacío.
+>>> tabla
+alumno_id,cursos
+1,[sql; python]
+2,[spark]
+3,[]
+paso exp: explode: un elemento, una fila
+`F.explode("cursos")` crea **una fila por cada elemento**; el `alumno_id` se repite. El alumno 1 queda en 2 filas.
+>>> tabla
+alumno_id,curso
+1,sql
+1,python
+2,spark
+paso out: ¿Y el alumno 3?
+Con `explode`, un array vacío (o `null`) **no produce filas**: el alumno 3 desapareció sin aviso. `F.explode_outer` lo conserva con `null`.
+>>> tabla
+alumno_id,curso
+1,sql
+1,python
+2,spark
+3,NULL
+paso res: Cuál usar
+Si necesitas que **todas** las filas originales sigan estando (por ejemplo, para contar alumnos), usa `explode_outer`.
+>>> python
+df.select("alumno_id", F.explode("cursos").alias("curso"))        # 3 filas
+df.select("alumno_id", F.explode_outer("cursos").alias("curso"))  # 4 filas
+```
+
 ## Structs: registros dentro de una columna
 
 ```python

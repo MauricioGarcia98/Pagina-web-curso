@@ -27,6 +27,68 @@ El método:
 4. **Casos borde**: nulos, empates (¡desempata en los `orderBy`!), el primer evento sin anterior.
 5. Al final, deja solo las columnas pedidas y con los nombres pedidos.
 
+```recorrido
+titulo: Sesionizar paso a paso: los eventos del cliente 3
+estacion ev: Eventos | icono=reloj
+estacion lag: lag | icono=flujo
+estacion gap: Minutos | icono=engranaje
+estacion nueva: ¿Sesión nueva? | icono=reglas
+estacion res: Sesiones | icono=check
+paso ev: Los eventos de un cliente
+Siguiendo el método, miramos **un solo cliente**: el 3 tiene 8 eventos en `eventos_web`, ordenados por hora.
+>>> tabla
+evento_id,fecha_hora,tipo_evento
+15302,2024-10-11 20:11:50,vista
+15304,2024-10-11 20:20:00,vista
+15306,2024-10-11 20:28:51,agregar_carrito
+15309,2024-10-11 20:38:36,vista
+16243,2024-10-27 17:12:02,vista
+16246,2024-10-27 17:21:24,agregar_carrito
+16247,2024-10-27 17:27:20,vista
+16250,2024-10-27 17:33:03,compra
+paso lag: lag: la hora del evento anterior
+`F.lag("fecha_hora").over(w)` trae la hora del evento anterior **del mismo cliente**. El primero no tiene anterior: `null`.
+>>> tabla
+evento_id,fecha_hora,anterior
+15302,2024-10-11 20:11:50,NULL
+15304,2024-10-11 20:20:00,2024-10-11 20:11:50
+15306,2024-10-11 20:28:51,2024-10-11 20:20:00
+15309,2024-10-11 20:38:36,2024-10-11 20:28:51
+16243,2024-10-27 17:12:02,2024-10-11 20:38:36
+16246,2024-10-27 17:21:24,2024-10-27 17:12:02
+16247,2024-10-27 17:27:20,2024-10-27 17:21:24
+16250,2024-10-27 17:33:03,2024-10-27 17:27:20
+paso gap: Minutos desde el anterior
+Restar los `unix_timestamp` da segundos; dividido por 60, minutos.
+>>> tabla
+evento_id,fecha_hora,gap_min
+15302,2024-10-11 20:11:50,NULL
+15304,2024-10-11 20:20:00,8.2
+15306,2024-10-11 20:28:51,8.9
+15309,2024-10-11 20:38:36,9.8
+16243,2024-10-27 17:12:02,22833.4
+16246,2024-10-27 17:21:24,9.4
+16247,2024-10-27 17:27:20,5.9
+16250,2024-10-27 17:33:03,5.7
+paso nueva: Marcar dónde empieza una sesión
+Una sesión nueva empieza si **no hay anterior** o si pasaron **más de 30 minutos**. Marcamos 1 o 0.
+>>> tabla
+evento_id,fecha_hora,gap_min,nueva
+15302,2024-10-11 20:11:50,NULL,1
+15304,2024-10-11 20:20:00,8.2,0
+15306,2024-10-11 20:28:51,8.9,0
+15309,2024-10-11 20:38:36,9.8,0
+16243,2024-10-27 17:12:02,22833.4,1
+16246,2024-10-27 17:21:24,9.4,0
+16247,2024-10-27 17:27:20,5.9,0
+16250,2024-10-27 17:33:03,5.7,0
+paso res: Contar las sesiones
+Sumar la marca `nueva` por cliente da la cantidad de sesiones. El cliente 3 tuvo **2**: una el 11 de octubre y otra el 27. Ahora generaliza a todos los clientes.
+>>> texto
+cliente_id | sesiones
+         3 |        2
+```
+
 :::ejercicio pyspark dificultad=Experto titulo="Sesionización"
 Sesioniza `eventos_web` (solo eventos con `cliente_id`): una nueva sesión empieza si pasaron **más de 30 minutos** desde el evento anterior del mismo cliente. Devuelve, por cliente, la cantidad de sesiones. Columnas: `cliente_id`, `sesiones`.
 ```python solucion

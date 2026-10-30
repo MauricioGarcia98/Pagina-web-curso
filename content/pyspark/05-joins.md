@@ -115,6 +115,68 @@ print("left_anti:", clientes.join(pedidos, "cliente_id", "left_anti").count())  
 Igual que en SQL, si la clave **no es única** en ninguno de los dos lados, el join multiplica filas (si una fecha aparece 1.000 veces a cada lado, salen 1.000.000 de filas). En un cluster eso no solo da un resultado equivocado: puede dejar el job corriendo horas. Antes de unir, pregúntate si la clave es única en al menos un lado, y verifica con `count()` antes y después.
 :::
 
+```recorrido
+titulo: inner, left, left_semi y left_anti con los mismos 10 clientes
+estacion izq: clientes | icono=usuario
+estacion der: pedidos | icono=tabla
+estacion inner: inner | icono=capas
+estacion semi: left_semi | icono=check
+estacion anti: left_anti | icono=x
+paso izq: Los 10 primeros clientes
+Tomamos los clientes 1 a 10 y contamos cuántos pedidos tiene cada uno (columna solo para que veas el dato: no es parte del join).
+>>> tabla
+cliente_id,nombre,sus_pedidos
+1,Lucía,0
+2,Juan,0
+3,Andrés,4
+4,Gabriel,5
+5,Emiliano,4
+6,Nicolás,4
+7,Antonella,8
+8,Carlos,4
+9,María,18
+10,Miguel,0
+paso der: La otra tabla
+`pedidos` tiene una fila por pedido; un cliente puede aparecer muchas veces o ninguna.
+>>> tabla
+pedido_id,cliente_id,canal
+10386,3,telefono
+10727,3,tienda
+11506,3,app
+11915,3,web
+1905,4,web
+4805,4,telefono
+paso inner: inner: una fila por cada pareja
+`clientes.join(pedidos, "cliente_id")` repite al cliente **una vez por pedido** y descarta a los que no tienen pedidos. Por cliente queda:
+>>> tabla
+cliente_id,nombre,filas_en_inner
+3,Andrés,4
+4,Gabriel,5
+5,Emiliano,4
+6,Nicolás,4
+7,Antonella,8
+8,Carlos,4
+9,María,18
+paso semi: left_semi: los que tienen pareja, una vez
+`how="left_semi"` deja a cada cliente que tiene **al menos un** pedido, **sin repetirlo** y solo con las columnas de `clientes`.
+>>> tabla
+cliente_id,nombre
+3,Andrés
+4,Gabriel
+5,Emiliano
+6,Nicolás
+7,Antonella
+8,Carlos
+9,María
+paso anti: left_anti: los que NO tienen pareja
+`how="left_anti"` es lo contrario: los clientes **sin** pedidos. Es la forma más clara de responder "¿quiénes nunca…?".
+>>> tabla
+cliente_id,nombre
+1,Lucía
+2,Juan
+10,Miguel
+```
+
 ## Self join
 
 Unir una tabla consigo misma requiere **alias**, porque las dos "copias" tienen exactamente las mismas columnas:

@@ -171,6 +171,50 @@ Por eso `spark.table("pedidos").filter(...)` responde al instante aunque la tabl
 `collect()` trae **todas** las filas desde las máquinas del cluster a **una sola** (el *driver*, la que ejecuta tu código Python). Con una tabla de 500 millones de filas, el driver se queda sin memoria y el job falla. Usa `show()`, `take(n)` o `limit(n)` para mirar, y deja que los resultados grandes se **escriban** a tablas o archivos.
 :::
 
+```recorrido
+titulo: Transformaciones y acciones: nada pasa hasta que pides un resultado
+estacion codigo: Tu código | icono=codigo
+estacion plan: El plan | icono=flujo
+estacion accion: La acción | icono=chispa
+estacion cluster: El cluster | icono=servidor
+estacion res: Resultado | icono=check
+paso codigo: Tres líneas de transformaciones
+Escribes un `filter` y un `select`. Spark responde **al instante**, aunque la tabla tuviera mil millones de filas: todavía no leyó nada.
+>>> python
+from pyspark.sql import functions as F
+
+web = spark.table("pedidos").filter(F.col("canal") == "web")
+chico = web.select("pedido_id", "estado")
+paso plan: Solo se anotó una receta
+`web` y `chico` no contienen filas: contienen un **plan** ("leer pedidos → quedarse con web → elegir 2 columnas"). Cada transformación agrega un paso al plan.
+>>> texto
+Plan de "chico":
+  1. leer la tabla pedidos
+  2. filtrar canal = web
+  3. elegir pedido_id, estado
+(nada se ejecutó todavía)
+paso accion: show() es una acción
+Al llamar una **acción** (`show`, `count`, `collect`, `write`), Spark mira el plan completo, lo optimiza (por ejemplo, lee solo las 3 columnas necesarias) y recién ahí lo ejecuta.
+>>> python
+chico.show(5)      # acción: ahora sí se ejecuta todo
+print(web.count()) # otra acción: vuelve a ejecutar su plan
+paso cluster: El trabajo se reparte
+El plan se divide en **tareas** que corren en paralelo en las máquinas del cluster (en esta página, en tu navegador). Cada una procesa un pedazo de la tabla.
+>>> texto
+driver (tu código) ── envía tareas ──▶ ejecutor 1: filas 1–4000
+                                    ▶ ejecutor 2: filas 4001–8000
+                                    ▶ ejecutor 3: filas 8001–12000
+paso res: El resultado
+Estas son las primeras 5 filas reales de `chico`. `web.count()` devuelve **5400**: los pedidos del canal web.
+>>> tabla
+pedido_id,estado
+2,entregado
+7,pendiente
+10,pendiente
+14,cancelado
+15,entregado
+```
+
 ## Row: las filas de Spark
 
 Cuando traes filas a Python (`first()`, `take`, `collect`), cada una es un objeto `Row`, parecido a una tupla con nombres:

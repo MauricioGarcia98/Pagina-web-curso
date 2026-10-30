@@ -73,6 +73,64 @@ print(ultimo_pedido.count())   # una fila por cliente con pedidos: 1453
 
 El `pedido_id` en el `orderBy` **desempata**: si un cliente tiene dos pedidos el mismo día, siempre elige el mismo. Sin desempate, `row_number` puede elegir distinto en cada ejecución (el pipeline deja de ser determinista).
 
+```recorrido
+titulo: row_number por marca paso a paso: los 2 más caros de Apple
+estacion tabla: Los productos | icono=tabla
+estacion part: partitionBy | icono=capas
+estacion orden: orderBy | icono=flujo
+estacion rn: row_number | icono=etiqueta
+estacion res: filter rn <= 2 | icono=check
+paso tabla: Productos de Apple
+Para seguirlo fácil, miramos solo la marca Apple (en el código real se hace con todas las marcas a la vez).
+>>> tabla
+nombre,marca,precio
+Smartphone Apple Mini 300,Apple,484.99
+Notebook Apple X,Apple,1044.99
+Notebook Apple Plus,Apple,535.99
+Celular Apple X 700,Apple,156.99
+Laptop Apple Mini 200,Apple,639.99
+Smartphone Apple Plus,Apple,159.99
+Ultrabook Apple Max,Apple,450.99
+Laptop Apple Neo 700,Apple,2039.99
+paso part: partitionBy("marca")
+La ventana separa las filas en grupos, uno por marca, **pero sin juntarlas en una**: cada producto sigue siendo una fila.
+>>> python
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.partitionBy("marca").orderBy(F.col("precio").desc())
+paso orden: orderBy(precio desc)
+Dentro de cada marca, las filas se ordenan de la más cara a la más barata.
+>>> tabla
+nombre,marca,precio
+Notebook Apple Sport,Apple,2374.99
+Laptop Apple Neo 700,Apple,2039.99
+Notebook Apple X,Apple,1044.99
+Ultrabook Apple Air,Apple,821.99
+Teléfono Apple Max,Apple,820.99
+Ultrabook Apple Lite 800,Apple,668.99
+Laptop Apple Mini 200,Apple,639.99
+Celular Apple Max 600,Apple,605.99
+paso rn: row_number() numera
+`F.row_number().over(w)` le da a cada fila su puesto **dentro de su marca**: 1, 2, 3… La numeración vuelve a empezar en 1 con cada marca.
+>>> tabla
+nombre,precio,rn
+Notebook Apple Sport,2374.99,1
+Laptop Apple Neo 700,2039.99,2
+Notebook Apple X,1044.99,3
+Ultrabook Apple Air,821.99,4
+Teléfono Apple Max,820.99,5
+Ultrabook Apple Lite 800,668.99,6
+Laptop Apple Mini 200,639.99,7
+Celular Apple Max 600,605.99,8
+paso res: filter(rn <= 2)
+Como `rn` ya es una columna, se filtra directamente. Quedan los 2 más caros de Apple (y, en el código real, de cada marca).
+>>> tabla
+nombre,precio,rn
+Notebook Apple Sport,2374.99,1
+Laptop Apple Neo 700,2039.99,2
+```
+
 ## lag y lead: comparar con la fila vecina
 
 ```python
