@@ -32,6 +32,56 @@ Los ejercicios de esta lección son los que aparecen en una reunión de director
 
 Todas comparten dos dificultades: el **orden temporal** (qué pasó primero: hay que identificar la *primera* compra de cada cliente con `MIN` o `ROW_NUMBER`) y el **grano** (pedidos, líneas, clientes y pares de productos son niveles distintos; mezclarlos multiplica o pierde filas).
 
+```recorrido
+titulo: Análisis de canasta: de un pedido a los pares de productos
+estacion ped: Un pedido | icono=tabla
+estacion self: Self join | icono=capas
+estacion dup: Pares repetidos | icono=x
+estacion menor: a < b | icono=reglas
+estacion res: Todos los pedidos | icono=check
+paso ped: El pedido 2 tiene 3 productos
+Cada línea de `detalle_pedidos` es un producto del pedido.
+>>> tabla
+pedido_id,producto_id
+2,20
+2,62
+2,164
+paso self: Unir la tabla consigo misma
+`detalle_pedidos a JOIN detalle_pedidos b` por `pedido_id`: cada producto del pedido se combina con **cada** producto del mismo pedido. 3 × 3 = 9 filas.
+>>> tabla
+producto_a,producto_b
+20,20
+20,62
+20,164
+62,20
+62,62
+62,164
+164,20
+164,62
+164,164
+paso dup: Sobran filas
+Hay pares de un producto **consigo mismo** (A, A) y cada par aparece **dos veces**: (A, B) y (B, A). Contarlos así inflaría todo.
+>>> texto
+(A, A)  → un producto no "se compra junto" consigo mismo
+(A, B) y (B, A) → es el mismo par, contado dos veces
+paso menor: La condición a.producto_id < b.producto_id
+Una sola condición resuelve los dos problemas: descarta (A, A) y deja solo una de las dos versiones de cada par. De 9 filas quedan 3.
+>>> tabla
+producto_a,producto_b
+20,62
+20,164
+62,164
+paso res: Contar en todos los pedidos
+Con `GROUP BY` el par y `COUNT(*)`, cada fila dice en cuántos pedidos aparecieron juntos. Los 5 pares más frecuentes:
+>>> tabla
+producto_a,producto_b,pedidos_juntos
+135,146,14
+65,88,13
+118,161,13
+10,185,12
+50,135,12
+```
+
 :::tip ¿Por qué la mediana y no el promedio?
 Si 9 clientes vuelven a los 20 días y uno a los 700, el promedio da 88 días, que no describe a nadie. La **mediana** (el valor del medio) da 20: lo que le pasa al cliente típico. Para tiempos, montos de compra y salarios, que tienen valores extremos, la mediana es casi siempre más honesta.
 :::
@@ -140,4 +190,8 @@ FROM o;
 ```explicacion
 Unos pocos clientes que tardan muchísimo en volver “tiran” el promedio hacia arriba. La **mediana** representa mejor al cliente típico cuando la distribución tiene cola larga.
 ```
+:::
+
+:::entrevista "¿Cómo calcularías el tiempo hasta la recompra de los clientes?"
+Para cada cliente ordenaría sus pedidos no cancelados por fecha y usaría `LEAD` para obtener la fecha del siguiente pedido; la diferencia en días es el tiempo hasta la recompra. Tomaría la mediana además del promedio, porque hay valores muy largos, y la separaría por la categoría de la primera compra. Los clientes con un solo pedido no tienen recompra todavía: los informaría aparte, no como cero.
 :::

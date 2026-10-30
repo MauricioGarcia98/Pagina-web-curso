@@ -13,6 +13,41 @@ resumen: Cómo son las entrevistas de Data Engineer, preguntas de diseño, check
 4. **Diseño de sistemas de datos**: “diseña el pipeline para…”.
 5. **Conductual**: proyectos pasados, trabajo en equipo, cómo manejas un incidente.
 
+```recorrido
+titulo: Una pregunta de diseño, respondida en cinco movimientos
+estacion preg: La pregunta | icono=usuario
+estacion req: Requisitos | icono=documento
+estacion flujo: El flujo | icono=flujo
+estacion calidad: Calidad y fallas | icono=escudo
+estacion cierre: Cierre | icono=check
+paso preg: "Diseña el pipeline de ventas diarias"
+Una pregunta abierta a propósito: quieren ver cómo piensas, no una respuesta única.
+>>> texto
+"Tenemos un ERP y una app. Queremos un tablero de ventas diarias. ¿Cómo lo armarías?"
+paso req: 1. Preguntar requisitos
+Volumen, frecuencia y quién lo usa cambian el diseño. Preguntar **suma** puntos.
+>>> texto
+¿Cuántos pedidos por día?  ¿Tiempo real o al día siguiente?
+¿Quién mira el tablero?     ¿Qué pasa si un día llega tarde?
+paso flujo: 2. Dibujar el flujo de punta a punta
+De la fuente al tablero, nombrando una herramienta por paso y **por qué** esa.
+>>> texto
+ERP ─▶ ingesta diaria ─▶ bronze ─▶ silver (limpio, MERGE) ─▶ gold (estrella) ─▶ tablero
+          orquestado con Airflow · idempotente por fecha
+paso calidad: 3. Calidad y qué pasa cuando falla
+Lo que separa a un junior de un semi senior: tests, reintentos, reprocesos y alertas.
+>>> texto
+tests: unique y not_null en claves, conteos vs. día anterior
+fallas: reintentos, alerta, reproceso de un día con el mismo código
+costos: particionar por fecha, procesar solo lo nuevo
+paso cierre: 4 y 5. Trade-offs y resumen
+Nombrar qué cambiarías si los requisitos fueran otros, y cerrar en dos frases.
+>>> texto
+"Si pidieran tiempo real, cambiaría la ingesta diaria por streaming;
+el resto del diseño se mantiene. En resumen: medallón, idempotente por fecha,
+con tests en cada capa y alertas si los números se desvían."
+```
+
 ## Preguntas de diseño frecuentes (y qué esperan oír)
 
 :::entrevista “Diseña un pipeline que ingiera 50 GB diarios de eventos de una app y alimente un tablero”
@@ -27,7 +62,7 @@ Método: revisar qué cambió (volumen, código, datos), mirar la **Spark UI** (
 Idempotencia: `MERGE` por clave, sobrescritura por partición/`replaceWhere`, checkpoints en streaming, claves de negocio con tests `unique`.
 :::
 
-Otras clásicas: diferencias entre ETL y ELT; OLTP vs OLAP; data lake vs warehouse vs lakehouse; SCD tipo 2; particionado vs clustering; narrow vs wide; broadcast join; cuándo usar streaming; cómo versionas y despliegas pipelines (Git + CI/CD + Asset Bundles).
+Otras clásicas: diferencias entre ETL y ELT; OLTP vs OLAP; data lake vs warehouse vs lakehouse; SCD tipo 2; particionado vs clustering; narrow vs wide; broadcast join; cuándo usar streaming; cómo versionas y despliegas pipelines (Git + CI/CD + Declarative Automation Bundles).
 
 ## Checklist: ¿estás listo para un puesto Junior / Semi Senior?
 
@@ -40,7 +75,7 @@ Otras clásicas: diferencias entre ETL y ELT; OLTP vs OLAP; data lake vs warehou
 | dbt | Proyecto con staging/marts, ref/source, incrementales, tests y docs |
 | Orquestación | DAGs de Airflow o jobs de Databricks con reintentos, parámetros y alertas |
 | Nube | Azure CLI, ADLS Gen2, identidades/RBAC, Key Vault |
-| Ingeniería | Git, PRs, CI/CD, Asset Bundles, buenas prácticas de código |
+| Ingeniería | Git, PRs, CI/CD, Declarative Automation Bundles, buenas prácticas de código |
 
 ## Certificaciones que suman
 
@@ -77,4 +112,16 @@ Días 1-30: repasar SQL avanzado (ventanas, gaps & islands) 20 min diarios; reha
 Días 31-60: proyecto en Databricks Free Edition + GitHub: ingesta de datos abiertos de transporte, medallón con PySpark, gold con dbt, job programado, README con arquitectura.
 Días 61-90: preparar Databricks Data Engineer Associate (guía oficial + exámenes de práctica); publicar 2 artículos sobre el proyecto; postular a 5 puestos por semana.
 ```
+:::
+
+:::errores
+- **Responder una pregunta de diseño nombrando herramientas** sin preguntar requisitos (volumen, frescura, usuarios, presupuesto).
+- **Contar un proyecto solo con lo que se usó** ("usé Spark y Airflow") sin decir qué problema resolvía, qué decidiste y qué resultado tuvo.
+- **Esconder lo que no sabes**: "no lo usé, pero lo resolvería así" es una buena respuesta; inventar no.
+- **Un portafolio sin README**: nadie va a clonar tu repositorio para entender qué hiciste.
+:::
+
+:::trabajo
+- Los equipos contratan juniors por fundamentos (SQL sólido, Python, entender un pipeline) y actitud para aprender; las herramientas específicas se aprenden en el trabajo.
+- Para pasar a semi senior, lo que más pesa es haber operado algo en producción: incidentes resueltos, costos reducidos, calidad mejorada. Anótalo con números mientras pasa.
 :::

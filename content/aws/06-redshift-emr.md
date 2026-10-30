@@ -132,6 +132,33 @@ El error más caro con EMR es un cluster encendido sin trabajo. El patrón recom
 └─ Transformaciones SQL versionadas sobre Redshift/Athena ► dbt (dbt-redshift, dbt-athena)
 ```
 
+```recorrido
+titulo: Tres pedidos, tres servicios distintos
+estacion p1: SQL esporádico | icono=lupa
+estacion p2: BI diario | icono=dashboard
+estacion p3: Spark enorme | icono=chispa
+estacion regla: La regla | icono=check
+paso p1: "Necesito revisar un archivo del lago una vez por semana"
+Pocas consultas, sin servidores que mantener encendidos, sobre datos que ya están en S3 → **Athena**: pagas solo por lo que escanea cada consulta.
+>>> texto
+frecuencia: baja · datos: en S3 · usuarios: 1-2
+→ Athena
+paso p2: "El tablero de ventas lo abren 200 personas cada mañana"
+Muchas consultas repetidas que deben responder en segundos → **Redshift**. Con carga irregular (picos a la mañana), Redshift Serverless escala solo.
+>>> texto
+frecuencia: alta · latencia: segundos · usuarios: 200
+→ Redshift (Serverless)
+paso p3: "Procesar 5 TB de logs cada noche con Spark"
+Si el equipo es chico y no quiere administrar nada → **Glue**. Si necesita control fino (versiones, instancias spot, tunning) → **EMR** o EMR Serverless.
+>>> texto
+volumen: enorme · motor: Spark
+→ Glue (simple)  ·  EMR (control y costo)
+paso regla: La pregunta que ordena todo
+No hay "el mejor" servicio: depende de **cuántas veces**, **qué tan rápido**, **cuántos datos** y **cuánto quieres administrar**. En la mayoría de las empresas conviven varios.
+>>> texto
+¿cuántas consultas?  ¿qué latencia?  ¿qué volumen?  ¿quién administra?
+```
+
 ## Ejercicios
 
 :::ejercicio sql ordenado titulo="Consulta de dashboard en el warehouse"

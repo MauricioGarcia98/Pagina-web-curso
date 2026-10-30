@@ -109,6 +109,46 @@ print(a, c)    # a no cambia
 
 Recuerda la analogía de las etiquetas: `b = a` pega una **segunda etiqueta** sobre la misma lista, no fabrica una lista nueva. Con números o textos no lo notas porque son inmutables (no se pueden modificar "en el lugar"), pero con listas y diccionarios sí. Por eso, si una función recibe una lista y la modifica, **modifica la del que la llamó**: un error difícil de encontrar.
 
+```recorrido
+titulo: Dos nombres, una sola lista: la trampa de las referencias
+estacion crear: Crear | icono=cubo
+estacion asignar: b = a | icono=flujo
+estacion cambiar: Cambiar b | icono=transformar
+estacion sorpresa: La sorpresa | icono=alerta
+estacion copia: .copy() | icono=check
+paso crear: Se crea una lista
+`a` es un **nombre** que apunta a una lista guardada en memoria.
+>>> texto
+a ──▶ ["sql", "python"]
+paso asignar: b = a no copia
+Asignar no crea otra lista: `b` es **otro nombre para la misma lista**.
+>>> texto
+a ──┐
+    ├──▶ ["sql", "python"]
+b ──┘
+paso cambiar: Se modifica "b"
+`b.append("spark")` modifica la lista a la que apunta `b`… que es la misma de `a`.
+>>> python
+a = ["sql", "python"]
+b = a
+b.append("spark")
+print(a)
+print(b)
+print(a is b)
+paso sorpresa: "a" también cambió
+`a is b` confirma que son el mismo objeto. En un pipeline, esto hace que una función "modifique sin querer" los datos de quien la llamó.
+>>> log
+['sql', 'python', 'spark']
+['sql', 'python', 'spark']
+True
+paso copia: .copy() crea una lista nueva
+Con una copia, cada nombre tiene su propia lista y cambiar una no toca la otra.
+>>> log
+['sql', 'python']
+['sql', 'python', 'spark']
+False
+```
+
 ## Listas de listas: tablas en memoria
 
 Una lista puede contener otras listas. Así se representa una tabla: una lista de filas.

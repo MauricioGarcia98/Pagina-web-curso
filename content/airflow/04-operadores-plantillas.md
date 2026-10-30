@@ -30,8 +30,8 @@ Los de bases de datos y nubes vienen en paquetes aparte llamados **providers** (
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 
 def cargar_pais(pais, minimo=0):
     print(f"Cargando ventas de {pais} con mínimo {minimo}")
@@ -75,8 +75,8 @@ Las variables más usadas, para una ejecución cuya fecha lógica es el 15 de ma
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 
 with DAG("plantillas", start_date=datetime(2024, 3, 15), schedule="@daily", catchup=False) as dag:
     BashOperator(
@@ -107,6 +107,41 @@ Usar `{{ ds }}` en lugar de "hoy" hace que cada ejecución procese **su** period
 `{{ ds }}` siempre llega como **string** (`"2024-03-15"`), no como fecha. Si necesitas operar con ella en Python, conviértela: `date.fromisoformat(ds)`.
 :::
 
+```recorrido
+titulo: Una plantilla renderizada en tres ejecuciones distintas
+estacion tpl: La plantilla | icono=codigo
+estacion ctx: El contexto | icono=base
+estacion render: Renderizar | icono=transformar
+estacion reproc: Reprocesar | icono=reloj
+estacion res: Idempotente | icono=check
+paso tpl: El texto con {{ }}
+En el archivo del DAG, el comando tiene marcadores. Airflow **no** los reemplaza al leer el archivo, sino justo antes de ejecutar cada tarea.
+>>> python
+bash_command="echo descargando ventas del {{ ds }} en /lake/bronze/ventas/{{ ds_nodash }}.json"
+paso ctx: Cada ejecución trae su propio contexto
+La ejecución del 15 de marzo conoce su fecha lógica y de ahí salen todas las variables.
+>>> tabla
+variable,valor
+ds,2024-03-15
+ds_nodash,20240315
+macros.ds_add(ds; -7),2024-03-08
+paso render: El comando que realmente se ejecuta
+Con `airflow tasks render plantillas descargar 2024-03-15` ves el resultado sin ejecutar nada.
+>>> log
+echo descargando ventas del 2024-03-15 en /lake/bronze/ventas/20240315.json
+paso reproc: Relanzar el 15 de marzo… el día 20
+Si esa ejecución falló y la relanzas días después, conserva **su** fecha lógica: vuelve a procesar el 15, no "hoy".
+>>> log
+[2024-03-20 09:12] relanzando ejecución del 2024-03-15
+echo descargando ventas del 2024-03-15 en /lake/bronze/ventas/20240315.json
+paso res: Por qué importa
+El mismo código, ejecutado para cualquier fecha, escribe en **el mismo lugar** para esa fecha. Es la base de la idempotencia: reprocesar un día reemplaza su archivo en lugar de duplicarlo.
+>>> texto
+2024-03-15 → /lake/bronze/ventas/20240315.json
+2024-03-16 → /lake/bronze/ventas/20240316.json
+2024-03-15 (relanzado) → /lake/bronze/ventas/20240315.json  (se pisa, no se duplica)
+```
+
 ## El contexto en funciones Python
 
 Además de plantillas, una función de `PythonOperator` puede recibir el **contexto** de ejecución. Es un diccionario con todo lo que Airflow sabe de esa ejecución: las fechas, la tarea, el DAG run y la instancia de tarea `ti` (que se usa para XCom).
@@ -115,8 +150,8 @@ Airflow mira **los nombres de los parámetros** de tu función y le pasa los que
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
 
 def procesar(ds, **context):
     print("Procesando el día", ds)
@@ -173,13 +208,13 @@ with DAG("etl", default_args=default_args, ...) as dag:
 Crea el DAG `export_diario` (`schedule="@daily"`, `start_date=datetime(2024, 1, 1)`, `catchup=False`) con un `BashOperator` `exportar` cuyo comando use la plantilla para escribir en la ruta `/lake/export/{{ ds_nodash }}.csv`. Por ejemplo: `echo exportando /lake/export/{{ ds_nodash }}.csv`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 
 with DAG("export_diario", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False) as dag:
     exportar = BashOperator(task_id="exportar", bash_command="echo exportando /lake/export/{{ ds_nodash }}.csv")
@@ -199,9 +234,9 @@ assert "/lake/export/20240704.csv" in run.xcoms.get(("exportar", "return_value")
 Crea el DAG `por_region` y genera con un **bucle** una tarea `PythonOperator` por cada región de la lista `regiones`, con `task_id` `procesar_<region>`, que llame a `procesar(region)` usando `op_kwargs`. Todas deben ir **después** de una tarea `EmptyOperator` llamada `inicio`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 regiones = ["norte", "centro", "sur"]
 
@@ -210,9 +245,9 @@ def procesar(region):
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 regiones = ["norte", "centro", "sur"]
 

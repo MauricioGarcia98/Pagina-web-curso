@@ -24,6 +24,47 @@ GROUP BY mes
 ORDER BY mes;
 ```
 
+```recorrido
+titulo: DAU, MAU y stickiness de diciembre, paso a paso
+estacion ev: Eventos | icono=reloj
+estacion dau: DAU | icono=usuario
+estacion mau: MAU | icono=capas
+estacion ratio: DAU / MAU | icono=engranaje
+estacion lectura: Lectura | icono=check
+paso ev: Cada evento tiene un cliente y un día
+"Activo" se define por **haber hecho algo**: aquí, cualquier evento en la web con cliente identificado.
+>>> tabla
+cliente_id,fecha_hora,tipo_evento
+1146,2024-12-01 07:29:48,vista
+1146,2024-12-01 07:38:01,vista
+1146,2024-12-01 07:38:14,agregar_carrito
+1146,2024-12-01 07:42:51,vista
+paso dau: DAU: clientes distintos por día
+`COUNT(DISTINCT cliente_id)` por día. Un cliente con 10 eventos en el día cuenta **una** vez.
+>>> tabla
+dia,dau
+2024-12-01,10
+2024-12-02,15
+2024-12-03,4
+2024-12-04,6
+2024-12-05,5
+paso mau: MAU: clientes distintos en el mes
+No es la suma de los DAU: un cliente activo varios días se cuenta una sola vez en el mes.
+>>> tabla
+mau,suma_de_dau_incorrecta
+255,296
+paso ratio: Stickiness = DAU promedio / MAU
+Qué parte de los clientes del mes vuelve un día cualquiera.
+>>> tabla
+dau_promedio,mau,stickiness_pct
+9.5,255,3.7
+paso lectura: Cómo se lee
+Una tienda online tiene stickiness baja por naturaleza: la gente no compra todos los días. Una red social o una app de mensajería apunta a valores mucho más altos. Compara siempre contra tu propio historial y tu rubro.
+>>> texto
+stickiness = 100 %  → todos los del mes entran todos los días
+stickiness ≈ 3,7 %  → un cliente típico entra ~1 día al mes (diciembre, arriba)
+```
+
 ## Cohortes
 
 Una **cohorte** es un grupo de clientes que empezó en el mismo período (por ejemplo, el mes de su primera compra). Se sigue a cada cohorte en el tiempo: ¿qué porcentaje sigue comprando 1, 2, 3 meses después?

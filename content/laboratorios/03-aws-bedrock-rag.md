@@ -351,6 +351,24 @@ GR=$(aws bedrock list-guardrails --query "guardrails[?name=='gr-atencion'].id" -
 ```
 :::
 
+:::errores
+- **Chunks demasiado grandes o demasiado chicos**: muy grandes y la búsqueda trae texto irrelevante; muy chicos y se pierde el contexto. Se ajusta probando preguntas reales.
+- **No cargar metadatos** con los documentos: después no se puede filtrar por país, producto o fecha, y el asistente mezcla políticas de distintos lugares.
+- **Olvidar volver a ingerir** después de cambiar documentos en S3: la Knowledge Base responde con la versión vieja.
+- **Respuestas sin citas**: nadie puede verificar de dónde salió una respuesta, y los errores no se detectan.
+- **Guardrails solo en la entrada**: también hay que revisar la salida (por ejemplo, para anonimizar datos personales en la respuesta).
+- **Elegir un almacén vectorial con costo mínimo por hora** para un laboratorio: OpenSearch Serverless cobra aunque no se use.
+:::
+
+:::trabajo
+- Un asistente RAG en producción se evalúa con un conjunto de preguntas y respuestas esperadas, y se mide si recupera el documento correcto y si la respuesta es fiel a él, antes y después de cada cambio.
+- Los documentos fuente tienen dueño y fecha de vigencia; un pipeline los sincroniza con la base de conocimiento y avisa si un documento venció.
+:::
+
+:::entrevista "¿Cómo evitarías que un asistente RAG responda con información equivocada?"
+Trabajaría la recuperación: buenos metadatos para filtrar, un tamaño de chunk probado con preguntas reales y, si hace falta, reordenamiento de resultados. Obligaría a responder con citas de los fragmentos recuperados y a decir "no lo sé" cuando no hay contexto suficiente. Agregaría guardrails en entrada y salida, y un conjunto de evaluación con preguntas reales que corra en cada cambio de documentos, chunking o modelo.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz

@@ -72,6 +72,51 @@ from pyspark.sql import functions as F
    .show(5))
 ```
 
+```recorrido
+titulo: groupBy + agg paso a paso: pedidos por canal
+estacion tabla: Las filas | icono=tabla
+estacion grupos: groupBy | icono=capas
+estacion agg: agg | icono=engranaje
+estacion res: Resultado | icono=check
+paso tabla: Muchas filas sueltas
+`pedidos` tiene 12.000 filas, una por pedido. Estas son 8 de ellas.
+>>> tabla
+pedido_id,cliente_id,canal
+101,73,web
+102,361,web
+103,1229,web
+104,751,web
+105,303,web
+106,637,web
+107,837,app
+108,904,web
+paso grupos: groupBy("canal") arma los grupos
+Spark reparte las filas en **un grupo por cada canal distinto**. En un cluster, esto mueve las filas entre máquinas para que cada canal quede junto (un *shuffle*).
+>>> texto
+grupo "web"      → 5400 filas
+grupo "app"      → 2973 filas
+grupo "tienda"   → 2645 filas
+grupo "telefono" →  982 filas
+paso agg: agg resume cada grupo en una fila
+Cada agregación se calcula **dentro de cada grupo**. Ponle `.alias` a cada una para que la columna tenga un nombre claro.
+>>> python
+from pyspark.sql import functions as F
+
+resultado = (spark.table("pedidos")
+    .groupBy("canal")
+    .agg(F.count("*").alias("pedidos"),
+         F.countDistinct("cliente_id").alias("clientes"))
+    .orderBy(F.desc("pedidos")))
+paso res: Una fila por canal
+De 12.000 filas a 4: una por grupo, con la columna de agrupación más una columna por agregación.
+>>> tabla
+canal,pedidos,clientes
+web,5400,1229
+app,2973,1032
+tienda,2645,961
+telefono,982,596
+```
+
 ## Agregaciones condicionales
 
 Igual que en SQL, puedes contar o sumar **solo** lo que cumple una condición, combinando `F.when` dentro de la agregación:

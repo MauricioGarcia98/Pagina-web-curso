@@ -27,8 +27,43 @@ Tienda Andina quiere:
                                          │   dbt         → gold (estrella)     │
                                          │   SQL Warehouse → Power BI          │
                                          └─────────────────────────────────────┘
- Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Asset Bundles
+ Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Declarative Automation Bundles
  CI/CD: GitHub Actions   Calidad: tests dbt + expectations   Observabilidad: alertas + system tables
+```
+
+```recorrido
+titulo: Un pedido recorre la arquitectura del proyecto
+estacion erp: ERP | icono=servidor
+estacion bronze: Bronze | icono=archivo
+estacion silver: Silver | icono=escudo
+estacion gold: Gold | icono=capas
+estacion bi: Power BI | icono=dashboard
+paso erp: El pedido nace en el sistema de la tienda
+Un cliente compra. El ERP guarda la fila en su base SQL, que es del sistema de ventas: el equipo de datos **no** consulta ahí directamente.
+>>> tabla
+pedido_id,cliente_id,fecha_pedido,estado,canal
+101,73,2022-01-14,entregado,web
+paso bronze: ADF lo copia a bronze cada noche
+Azure Data Factory copia los pedidos del día a ADLS Gen2, tal cual llegan. Auto Loader los registra como tabla Delta en bronze, con metadatos de carga.
+>>> texto
+abfss://bronze@stdatos…/pedidos/fecha=2022-01-10/part-0001.json
+→ bronze.pedidos (+ _origen, _fecha_ingesta)
+paso silver: PySpark limpia y hace MERGE en silver
+Tipos correctos, textos normalizados, una fila por pedido. El `MERGE` actualiza el pedido si cambió de estado (por ejemplo, de enviado a entregado).
+>>> tabla
+pedido_id,producto_id,cantidad,precio_unitario,descuento,importe
+101,119,2,882.89,0.15,1500.91
+101,146,1,1532.69,0,1532.69
+paso gold: dbt arma el modelo estrella en gold
+Una tabla de hechos de ventas y dimensiones de cliente, producto y fecha, con tests de dbt en cada una.
+>>> texto
+gold.fct_ventas ──▶ gold.dim_cliente
+                ──▶ gold.dim_producto
+                ──▶ gold.dim_fecha
+paso bi: Power BI lee del SQL Warehouse
+El tablero consulta gold. Airflow (o Lakeflow Jobs) ordena todo, Key Vault guarda los secretos y GitHub Actions despliega los cambios.
+>>> texto
+cada noche: ADF → Auto Loader → PySpark (silver) → dbt build (gold) → refresco del tablero
 ```
 
 ## Plan de trabajo (cada paso usa un módulo del curso)
@@ -41,11 +76,49 @@ Tienda Andina quiere:
 | 4 | Construir silver: limpieza, tipos, deduplicación, MERGE, reglas de calidad con cuarentena | PySpark |
 | 5 | Modelar gold con dbt: `fct_ventas`, `dim_clientes`, `dim_productos`, `mart_rfm`, tests y docs | dbt + SQL |
 | 6 | Orquestar con Airflow (sensor → job Databricks → dbt build → aviso) o con un job multi-tarea | Airflow / Databricks |
-| 7 | Empaquetar todo con Asset Bundles y desplegar con GitHub Actions | Databricks CLI + Git |
+| 7 | Empaquetar todo con Declarative Automation Bundles y desplegar con GitHub Actions | Databricks CLI + Git |
 | 8 | Responder las preguntas de negocio con SQL avanzado | SQL |
 
 :::tip Para tu portafolio
 Sube el proyecto a GitHub con un README que tenga: el diagrama de arquitectura, cómo correrlo, decisiones de diseño (¿por qué incremental?, ¿por qué esa partición?), y capturas del tablero y del linaje. Eso vale más que cualquier certificado.
+:::
+
+## Por qué cada pieza, en una frase
+
+Una arquitectura no es una lista de herramientas: es una decisión por cada necesidad. Si en una entrevista te preguntan "¿por qué usaste X?", la respuesta tiene que ser la necesidad, no la moda.
+
+| Pieza | Necesidad que resuelve | Alternativa razonable |
+|---|---|---|
+| **Data Factory** para el ERP | Copiar tablas de una base SQL por lotes, sin programar conectores, incluso desde una red privada | Lakeflow Connect o un script de Python propio |
+| **Python** para la API de pagos | La API tiene paginación y límites de solicitudes: hace falta lógica | Una función en la nube (Azure Functions) |
+| **Event Hubs** para los clics | Llegan miles de eventos por segundo, todo el día | Kafka administrado |
+| **ADLS Gen2** | Guardar todo barato y para siempre, en carpetas con permisos | — (es el lago) |
+| **Auto Loader** a bronze | Procesar solo los archivos nuevos, sin listar millones de archivos cada vez | `COPY INTO` |
+| **PySpark** a silver | Limpiar y deduplicar millones de filas con reglas en código | SQL en Databricks |
+| **dbt** a gold | Métricas de negocio en SQL, con tests, documentación y linaje | Vistas en Databricks SQL (sin tests ni versiones) |
+| **Unity Catalog** | Un solo lugar para permisos, linaje y auditoría | — |
+| **Airflow / Lakeflow Jobs** | Orden, horarios, reintentos y alertas | Uno u otro: Lakeflow Jobs si todo vive en Databricks |
+| **Bicep + bundles + GitHub Actions** | Que todo se pueda recrear y que nada se cambie a mano en producción | Terraform |
+
+### Cuánto puede costar
+
+Para el volumen del caso (algunos GB por día), un entorno así cuesta en Azure del orden de cientos de dólares por mes, casi todo en cómputo de Databricks. Las decisiones que más lo bajan: cómputo *serverless* o clústeres de jobs que se apagan al terminar, auto-stop del SQL warehouse, incremental en lugar de reconstruir todo, y almacenamiento con ciclo de vida para bronze viejo. Estimar el costo antes de construir (y medirlo después con las *system tables*) es parte del diseño.
+
+:::errores
+- **Elegir herramientas antes que necesidades**: un proyecto con Kafka, Spark y Airflow para 10.000 filas por día es caro y difícil de mantener.
+- **Saltarse bronze** y escribir directo a silver: cuando una regla de limpieza estaba mal, no hay datos originales para reprocesar.
+- **Un solo entorno**: probar en producción. Desde el paso 2, catálogos `dev` y `prod` separados.
+- **Secretos en notebooks o en el repositorio**: todo va a Key Vault, leído con *secret scopes* o identidades administradas.
+- **Sin alertas**: el tablero de las 7:00 vacío lo descubre la gerencia, no el equipo.
+:::
+
+:::trabajo
+- Este diseño (lago en la nube, Databricks con Unity Catalog, dbt, un orquestador e IaC) es uno de los más comunes en empresas medianas y grandes de Latinoamérica.
+- En un equipo real, el paso 1 y el 7 suelen ser de un equipo de plataforma; el data engineer se concentra en los pasos 3 a 6, y el analista en el 8.
+:::
+
+:::entrevista "Diseña la plataforma de datos de una tienda online que quiere un tablero diario a las 7:00."
+Empezaría por los requisitos: fuentes, volumen, frescura, quién consume y presupuesto. Propondría un lakehouse: ingesta a bronze sin transformar (por lotes del ERP, la API con un proceso en Python, eventos por streaming), silver con limpieza, deduplicación y cuarentena en Spark con MERGE, y gold con dbt y tests, servido por un SQL warehouse a Power BI. Unity Catalog para permisos y linaje, un orquestador con reintentos y alertas que no publica si fallan los tests, y todo como código con CI/CD. Terminaría con costos y monitoreo de frescura.
 :::
 
 :::ejercicio abierto

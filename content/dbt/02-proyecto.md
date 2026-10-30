@@ -1,17 +1,38 @@
 ---
 titulo: Instalación y estructura de un proyecto
 nivel: Básico
-duracion: 25
-resumen: pip install, dbt init, dbt_project.yml, profiles.yml, dbt debug y la estructura de carpetas.
+duracion: 40
+resumen: Desde cero - terminal, Python, entorno virtual y adaptador; instalar dbt, dbt init y dbt debug, la estructura de carpetas, las tres capas, dbt_project.yml, profiles.yml y cómo se arma el nombre del esquema.
 ---
 
-## Instalar dbt Core
+## Antes de empezar: las palabras que vas a ver
+
+Si nunca instalaste una herramienta de programación, estas son las piezas que aparecen en esta lección. No hace falta memorizarlas; vuelve a esta tabla cuando una palabra no se entienda.
+
+| Palabra | Qué es, en simple |
+|---|---|
+| **Terminal** | Una ventana donde le das órdenes a la computadora escribiendo, en vez de hacer clic. Cada línea es un **comando**. |
+| **Python** | Un lenguaje de programación. dbt está escrito en Python, por eso se instala con las herramientas de Python. |
+| **pip** | El "instalador de programas" de Python: `pip install algo` descarga e instala `algo`. |
+| **Entorno virtual** (`.venv`) | Una carpeta aislada donde se instalan los programas de **un** proyecto, para que no choquen con los de otro. Se "activa" con `source .venv/bin/activate`. |
+| **Adaptador** | El conector entre dbt y tu base de datos. dbt no sabe hablar con Databricks o PostgreSQL por sí solo: el paquete `dbt-databricks` o `dbt-postgres` le enseña. |
+| **YAML** (`.yml`) | Un formato de texto para configuración: `clave: valor`, y la **sangría** (los espacios al principio) indica qué está dentro de qué. Un espacio de más o de menos cambia el significado. |
+| **Esquema** (*schema*) | Una "carpeta" dentro de la base de datos que agrupa tablas. En Databricks hay además un nivel encima, el **catálogo**: `catalogo.esquema.tabla`. |
+| **Git** | El programa que guarda la historia de cambios de los archivos de un proyecto, para trabajar en equipo y volver atrás. |
+
+## Instalar dbt Core, paso a paso
 
 ```bash norun
-python -m venv .venv && source .venv/bin/activate
-pip install dbt-databricks        # instala dbt-core + el adaptador de Databricks
-dbt --version
+python -m venv .venv               # 1. crea el entorno virtual en la carpeta .venv
+source .venv/bin/activate          # 2. lo activa (en Windows: .venv\Scripts\activate)
+pip install dbt-databricks         # 3. instala dbt-core + el adaptador de Databricks
+dbt --version                      # 4. comprueba qué se instaló
 ```
+
+1. `python -m venv .venv` le pide a Python que cree un entorno virtual llamado `.venv` (el punto inicial lo oculta en los listados).
+2. Al activarlo, el texto de la terminal empieza con `(.venv)`: a partir de ahí, lo que instales con `pip` queda dentro de esa carpeta.
+3. Instalas **el adaptador** de tu base, no `dbt-core` solo: el adaptador ya trae `dbt-core` como dependencia. Para practicar en tu computadora sin nube, `pip install dbt-duckdb` usa DuckDB, una base que vive en un archivo.
+4. `dbt --version` muestra la versión de `dbt-core` y de cada adaptador (*plugin*).
 
 ## Crear el proyecto
 
@@ -20,6 +41,11 @@ dbt init tienda_andina            # pregunta el adaptador y los datos de conexi�
 cd tienda_andina
 dbt debug                         # verifica la conexión y la configuración
 ```
+
+- `dbt init` crea la carpeta del proyecto con la estructura de la sección siguiente y, si no existe, te hace preguntas para armar `~/.dbt/profiles.yml` (qué base usas, a qué servidor te conectas, con qué usuario).
+- `dbt debug` es el primer comando que se corre siempre: revisa que `dbt_project.yml` sea válido, que encuentre `profiles.yml` y que **pueda conectarse** a la base. Si algo falla, el mensaje dice qué parte. Los errores más comunes son un token vencido, un `http_path` mal copiado o estar parado en otra carpeta.
+
+En la terminal del curso puedes probarlo: `dbt init mi_proyecto`, `cd mi_proyecto` y `dbt run` construyen un primer modelo de ejemplo.
 
 ## Qué es cada cosa
 
@@ -67,6 +93,54 @@ La convención de dbt Labs, usada en casi todos los proyectos:
 | **marts** | `fct_` / `dim_` | Las tablas finales: hechos y dimensiones listos para BI | Nombres y métricas de negocio |
 
 Es la misma idea que bronze → silver → gold, aplicada dentro del warehouse.
+
+```recorrido
+titulo: De dbt init a la primera conexión
+estacion venv: Entorno | icono=terminal
+estacion init: dbt init | icono=archivo
+estacion carpetas: Carpetas | icono=capas
+estacion perfil: profiles.yml | icono=escudo
+estacion debug: dbt debug | icono=check
+paso venv: Instalar dbt en un entorno virtual
+dbt Core es un paquete de Python. Se instala el núcleo **más el adaptador** de tu base (aquí, DuckDB para practicar en tu computadora).
+>>> bash
+python -m venv .venv
+source .venv/bin/activate
+pip install dbt-core dbt-duckdb
+paso init: Crear el proyecto
+`dbt init` pregunta el nombre y la base, y arma la carpeta con un ejemplo.
+>>> bash
+dbt init tienda_dbt
+cd tienda_dbt
+paso carpetas: Lo que queda creado
+Lo que importa al empezar: `dbt_project.yml` (la configuración del proyecto) y `models/` (tus consultas). El resto se usa más adelante.
+>>> texto
+tienda_dbt/
+├── dbt_project.yml   ← nombre, perfil y configuración por carpeta
+├── models/           ← un .sql por tabla o vista
+├── seeds/            ← CSV chicos que se cargan como tablas
+├── snapshots/        ← historial de cambios (SCD2)
+├── tests/            ← tests singulares
+└── macros/           ← funciones de Jinja
+paso perfil: La conexión vive fuera del repositorio
+`~/.dbt/profiles.yml` dice **dónde** conectarse. Está en tu carpeta personal, no en el proyecto, para que usuarios y contraseñas nunca terminen en Git.
+>>> yaml
+tienda:              # el mismo nombre que "profile:" en dbt_project.yml
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: tienda.duckdb
+paso debug: dbt debug: probar antes de trabajar
+Revisa que encuentre el proyecto, el perfil y que la conexión responda. Si algo falla, el mensaje dice cuál de las tres partes (salida resumida).
+>>> log
+$ dbt debug
+  profiles.yml file [OK found and valid]
+  dbt_project.yml file [OK found and valid]
+Connection:
+  Connection test: [OK connection ok]
+All checks passed!
+```
 
 ## dbt_project.yml
 
@@ -127,6 +201,37 @@ cat models/schema.yml
 ```
 
 Con `code models/marts/top_clientes.sql` puedes abrir un modelo en el editor, cambiarlo, guardarlo (Ctrl+S) y volver a ejecutar `dbt run -s top_clientes`.
+
+## El detalle que confunde a todos: `+schema`
+
+Con `+schema: staging` uno espera que los modelos queden en un esquema llamado `staging`. **No es así**. La documentación oficial explica que dbt **concatena** el esquema del perfil (el *target schema*) con el que pusiste:
+
+| Esquema del perfil (`schema:` en profiles.yml) | `+schema` del modelo | Esquema donde se crea |
+|---|---|---|
+| `dbt_ana` (dev) | ninguno | `dbt_ana` |
+| `dbt_ana` (dev) | `staging` | `dbt_ana_staging` |
+| `analytics` (prod) | `marts` | `analytics_marts` |
+
+¿Por qué? Porque si cada desarrollador escribiera directamente en `staging`, todos pisarían las tablas de todos. Al anteponer el esquema personal, Ana trabaja en `dbt_ana_staging` y Luis en `dbt_luis_staging`, sin chocar.
+
+Esa lógica vive en una macro llamada `generate_schema_name`. Si en producción quieres los nombres "limpios" (`staging`, `marts`), se sobrescribe esa macro en `macros/` para que en el target `prod` use solo el esquema personalizado. Es una de las primeras cosas que se configuran en un proyecto real.
+
+:::errores
+- **Subir `profiles.yml` a Git**: expone el token de la base. Va en `~/.dbt/` y en el repositorio solo se usa `env_var('...')`.
+- **Instalar `dbt-core` sin adaptador**: `dbt debug` dice que no encuentra el tipo de conexión.
+- **Correr dbt desde la carpeta equivocada**: el error `No dbt_project.yml found` significa que no estás dentro del proyecto.
+- **Sangría de YAML con tabulaciones**: YAML exige espacios; un tab rompe el archivo.
+- **Sorprenderse por `dbt_ana_staging`**: es el comportamiento normal de `+schema` (ver arriba).
+:::
+
+:::trabajo
+- El primer día en un equipo de datos suele ser: clonar el repositorio con Git, crear el entorno virtual, instalar las dependencias (`pip install -r requirements.txt` y `dbt deps`), pedir un token y armar tu `profiles.yml` con **tu** esquema de desarrollo, y correr `dbt debug` y `dbt build -s staging`.
+- En dbt Cloud (la plataforma de dbt Labs) la conexión se configura en la web y no hay `profiles.yml`, pero el resto del proyecto es idéntico.
+:::
+
+:::entrevista "¿Qué diferencia hay entre dbt_project.yml y profiles.yml?"
+`dbt_project.yml` define qué se construye y cómo: nombre del proyecto, carpetas y configuraciones por defecto como la materialización; se versiona en Git. `profiles.yml` define dónde se construye: la conexión a la base y las credenciales para cada entorno (dev, prod); vive fuera del repositorio porque tiene secretos. El campo `profile:` del primero dice qué perfil del segundo usar, y `--target` elige el entorno.
+:::
 
 ## Ejercicios
 

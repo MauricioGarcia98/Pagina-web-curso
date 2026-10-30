@@ -41,10 +41,16 @@ class TriggerRule:
 # ------------------------------------------------------------------ DAG
 class DAG:
     def __init__(self, dag_id, description=None, schedule=None, schedule_interval=None, start_date=None,
-                 end_date=None, catchup=True, default_args=None, tags=None, max_active_runs=16,
+                 end_date=None, catchup=False, default_args=None, tags=None, max_active_runs=16,
                  max_active_tasks=16, dagrun_timeout=None, params=None, doc_md=None, **kwargs):
         if not isinstance(dag_id, str) or not dag_id:
             raise AirflowException("dag_id debe ser un texto no vacío")
+        if schedule_interval is not None:
+            raise TypeError("DAG.__init__() got an unexpected keyword argument 'schedule_interval' "
+                            "(en Airflow 3 se eliminó: usa schedule=...)")
+        for viejo, nuevo in (("sla_miss_callback", "deadline=DeadlineAlert(...)"), ("concurrency", "max_active_tasks"), ("timetable", "schedule")):
+            if viejo in kwargs:
+                raise TypeError("DAG.__init__() got an unexpected keyword argument '%s' (en Airflow 3: %s)" % (viejo, nuevo))
         self.dag_id = dag_id
         self.description = description
         self.schedule = schedule if schedule is not None else schedule_interval
@@ -139,6 +145,7 @@ class DagRun:
         self.conf = conf
         self.run_id = "manual__%s" % logical_date.isoformat()
         self.xcoms = {}
+        self.asset_events = []
         self.states = {}
 
     def get_task_instance(self, task_id):
@@ -160,11 +167,20 @@ class DagRun:
             attempts = 1 + int(task.retries or 0)
             for attempt in range(1, attempts + 1):
                 try:
-                    result = task.execute(ti.get_template_context())
+                    _ctx = ti.get_template_context()
+                    _CURRENT_CONTEXT.append(_ctx)
+                    try:
+                        result = task.execute(_ctx)
+                    finally:
+                        _CURRENT_CONTEXT.pop()
                     if result is not None and task.do_xcom_push:
                         self.xcoms[(task.task_id, "return_value")] = result
                     self.states[task.task_id] = "success"
                     print("  ✅ %-22s success%s" % (task.task_id, "" if result is None else "  (XCom: %r)" % (result,)))
+                    for asset in getattr(task, "outlets", []) or []:
+                        if isinstance(asset, Asset):
+                            self.asset_events.append(asset)
+                            print("     📦 asset actualizado: %s" % asset.uri)
                     if getattr(task, "_is_short_circuit", False) and not result:
                         print("     condición falsa: se saltean las tareas siguientes")
                         pend = list(task.downstream_task_ids)
@@ -195,6 +211,15 @@ class DagRun:
         ok = all(v in ("success", "skipped") for v in self.states.values())
         self.state = "success" if ok else "failed"
         print("■ DAG run %s" % self.state)
+        if self.asset_events:
+            # qué DAGs programados por assets se dispararían (los que esperan alguno de estos assets)
+            uris = {a.uri for a in self.asset_events}
+            for d in _DAG_REGISTRY.values():
+                sch = d.schedule if isinstance(d.schedule, (list, tuple)) else ([d.schedule] if isinstance(d.schedule, Asset) else [])
+                esperados = {a.uri for a in _flatten(list(sch)) if isinstance(a, Asset)}
+                if esperados & uris:
+                    faltan = esperados - uris
+                    print("  → %s %s" % (d.dag_id, "se dispararía ahora" if not faltan else "espera además: " + ", ".join(sorted(faltan))))
         return self
 
 
@@ -240,11 +265,20 @@ class TaskInstance:
 
     def get_template_context(self):
         ld = self.dag_run.logical_date
+        # Intervalo de datos como en Airflow 3: con un cron (CronTriggerTimetable) inicio = fin = disparo;
+        # si el timetable declara interval=, el intervalo termina en el disparo; con timedelta, el período siguiente.
+        sch = self.task.dag.schedule if self.task.dag else None
+        if getattr(sch, "interval", None) is not None:
+            di_start, di_end = ld - sch.interval, ld
+        elif isinstance(sch, _dt.timedelta):
+            di_start, di_end = ld, ld + sch
+        else:
+            di_start, di_end = ld, ld
         return {
             "ti": self, "task_instance": self, "task": self.task, "dag": self.task.dag,
             "ds": ld.strftime("%Y-%m-%d"), "ds_nodash": ld.strftime("%Y%m%d"),
-            "ts": ld.isoformat(), "logical_date": ld, "execution_date": ld,
-            "data_interval_start": ld, "data_interval_end": ld + _dt.timedelta(days=1),
+            "ts": ld.isoformat(), "logical_date": ld,
+            "data_interval_start": di_start, "data_interval_end": di_end,
             "params": dict(self.task.dag.params if self.task.dag else {}, **(self.task.params or {})),
             "dag_run": self.dag_run, "run_id": self.dag_run.run_id, "conf": self.dag_run.conf,
             "var": {"value": _VarAccessor()},
@@ -281,6 +315,9 @@ class BaseOperator:
                  on_success_callback=None, priority_weight=1, queue=None, doc_md=None, **kwargs):
         if not isinstance(task_id, str) or not task_id:
             raise AirflowException("task_id debe ser un texto no vacío")
+        if sla is not None:
+            raise TypeError("Invalid arguments were passed to %s (task_id: %s). Invalid arguments were: 'sla'. "
+                            "Los SLA se eliminaron en Airflow 3: usa Deadline Alerts" % (type(self).__name__, task_id))
         dag = dag or (_CURRENT_DAG[-1] if _CURRENT_DAG else None)
         if _CURRENT_GROUP:
             task_id = _CURRENT_GROUP[-1].prefix + task_id
@@ -294,9 +331,13 @@ class BaseOperator:
         self.owner = owner or defaults.get("owner", "airflow")
         self.email = email or defaults.get("email")
         self.pool = pool
-        self.execution_timeout = execution_timeout
+        # como en Airflow: lo que no se pasa a la tarea se toma de default_args del DAG
+        self.execution_timeout = execution_timeout if execution_timeout is not None else defaults.get("execution_timeout")
         self.params = params or {}
         self.do_xcom_push = do_xcom_push
+        # Assets que esta tarea produce (outlets) o lee (inlets): base de la programación por datos
+        self.outlets = list(kwargs.get('outlets') or [])
+        self.inlets = list(kwargs.get('inlets') or [])
         self.on_failure_callback = on_failure_callback or defaults.get("on_failure_callback")
         self.on_success_callback = on_success_callback
         self.doc_md = doc_md
@@ -355,13 +396,26 @@ class BaseOperator:
         if isinstance(value, str) and "{{" in value:
             try:
                 import jinja2
-                return jinja2.Template(value).render(**context)
+                try:
+                    return jinja2.Template(value, undefined=jinja2.StrictUndefined).render(**context)
+                except jinja2.UndefinedError as e:
+                    n = str(e).split("'")[1] if "'" in str(e) else str(e)
+                    extra = " En Airflow 3 se eliminó: usa {{ logical_date }} o {{ ds }}." if n in _CONTEXTO_ELIMINADO else ""
+                    raise AirflowException("UndefinedError al renderizar la plantilla: '%s' is undefined.%s" % (n, extra))
             except ImportError:
                 return value.replace("{{ ds }}", context["ds"]).replace("{{ds}}", context["ds"])
         return value
 
     def execute(self, context):
         raise NotImplementedError
+
+
+def _output(self):
+    """op.output: el XCom return_value de un operador clásico, para pasarlo a una tarea @task."""
+    return XComArg(self)
+
+
+BaseOperator.output = property(_output)
 
 
 def _flatten(x):
@@ -809,6 +863,16 @@ def _xcom_deps(obj):
     return []
 
 
+_CURRENT_CONTEXT = []
+
+
+def get_current_context():
+    """Devuelve el contexto de la tarea que se está ejecutando (ds, logical_date, ti, params…)."""
+    if not _CURRENT_CONTEXT:
+        raise AirflowException("get_current_context() solo funciona dentro de una tarea en ejecución")
+    return _CURRENT_CONTEXT[-1]
+
+
 class _DecoratedOperator(BaseOperator):
     def __init__(self, task_id, fn, args, kwargs, multiple_outputs=False, branch=False, **kw):
         super().__init__(task_id, **kw)
@@ -855,6 +919,12 @@ class _TaskDecorator:
         op = _DecoratedOperator(tid, self.fn, args, kwargs, branch=self.branch, **opts)
         return XComArg(op)
 
+    def partial(self, **kwargs):
+        return _PartialTask(self, kwargs)
+
+    def expand(self, **mapped):
+        return _PartialTask(self, {}).expand(**mapped)
+
     def override(self, **opts):
         o = dict(self.opts)
         o.update(opts)
@@ -863,6 +933,51 @@ class _TaskDecorator:
     @property
     def __name__(self):
         return self.fn.__name__ if self.fn else "task"
+
+
+class _MappedDecoratedOperator(_DecoratedOperator):
+    """Mapeo dinámico (task.expand): una instancia de la tarea por cada valor (producto si hay varias listas)."""
+    def __init__(self, task_id, fn, fixed, mapped, **kw):
+        super().__init__(task_id, fn, [], dict(fixed, **mapped), **kw)
+        self.fixed = fixed
+        self.mapped = mapped
+
+    def execute(self, context):
+        import itertools
+        run = context["dag_run"]
+        fixed = _resolve_args(dict(self.fixed), run)
+        mapped = _resolve_args(dict(self.mapped), run)
+        claves = list(mapped)
+        for k in claves:
+            if not isinstance(mapped[k], (list, tuple)):
+                raise AirflowException("expand(%s=...) necesita una lista (o el resultado de una tarea que devuelva una lista)" % k)
+        resultados = []
+        combos = list(itertools.product(*[mapped[k] for k in claves]))
+        print("  ↳ %s: %d instancias mapeadas" % (self.task_id, len(combos)))
+        for i, combo in enumerate(combos):
+            kw = dict(fixed)
+            kw.update(dict(zip(claves, combo)))
+            resultados.append(_call_with_context(self.python_callable, [], kw, dict(context, map_index=i)))
+        return resultados
+
+
+class _PartialTask:
+    def __init__(self, deco, fixed):
+        self.deco = deco
+        self.fixed = fixed
+
+    def expand(self, **mapped):
+        dag = _CURRENT_DAG[-1] if _CURRENT_DAG else None
+        if dag is None:
+            raise AirflowException("expand() debe llamarse dentro de un DAG")
+        base_id = self.deco.opts.get("task_id") or self.deco.fn.__name__
+        tid, k = base_id, 1
+        prefix = _CURRENT_GROUP[-1].prefix if _CURRENT_GROUP else ""
+        while (prefix + tid) in dag.task_dict:
+            tid = "%s__%d" % (base_id, k)
+            k += 1
+        opts = {kk: v for kk, v in self.deco.opts.items() if kk != "task_id"}
+        return XComArg(_MappedDecoratedOperator(tid, self.deco.fn, self.fixed, mapped, **opts))
 
 
 class _TaskNamespace:
@@ -976,15 +1091,76 @@ class Connection:
         _CONNECTIONS[conn_id] = self
 
 
-class Dataset:
+class Asset:
+    """Airflow 3: un dato (tabla, archivo, carpeta) que una tarea produce y otros DAGs esperan.
+    Asset("s3://lago/ventas") o Asset(name="ventas", uri="s3://lago/ventas")."""
+    def __init__(self, name=None, uri=None, group="asset", extra=None, watchers=None):
+        if name is None and uri is None:
+            raise AirflowException("Asset necesita name o uri")
+        self.name = name if name is not None else uri
+        self.uri = uri if uri is not None else name
+        self.group = group
+        self.extra = dict(extra or {})
+
+    def __eq__(self, other):
+        return isinstance(other, Asset) and other.uri == self.uri
+
+    def __hash__(self):
+        return hash(self.uri)
+
+    def __or__(self, other):
+        return AssetAny(self, other)
+
+    def __and__(self, other):
+        return AssetAll(self, other)
+
+    def __repr__(self):
+        return "Asset(name=%r, uri=%r)" % (self.name, self.uri)
+
+
+class AssetAll(list):
+    def __init__(self, *assets):
+        super().__init__(assets)
+
+
+class AssetAny(list):
+    def __init__(self, *assets):
+        super().__init__(assets)
+
+
+class Dataset(Asset):
+    """Nombre de Airflow 2 (2.4 a 2.11); en Airflow 3 se llama Asset."""
     def __init__(self, uri, extra=None):
-        self.uri = uri
+        super().__init__(uri=uri, extra=extra)
 
     def __repr__(self):
         return "Dataset(%r)" % self.uri
 
 
+_CONTEXTO_ELIMINADO = {"execution_date", "next_execution_date", "prev_execution_date", "prev_execution_date_success",
+                       "tomorrow_ds", "tomorrow_ds_nodash", "yesterday_ds", "yesterday_ds_nodash", "prev_ds", "prev_ds_nodash",
+                       "next_ds", "next_ds_nodash"}
+
+
+class AirflowDeprecationWarning(UserWarning):
+    pass
+
+
+IMPORTS_VIEJOS = []
+
+
+def _ruta_vieja(vieja, nueva):
+    """Las rutas de Airflow 2 siguen funcionando en Airflow 3, con un aviso de obsoleto."""
+    import warnings
+    IMPORTS_VIEJOS.append((vieja, nueva))
+    warnings.warn("%s está obsoleto en Airflow 3; importa desde %s" % (vieja, nueva), AirflowDeprecationWarning, stacklevel=3)
+
+
 def days_ago(n, hour=0):
+    raise AirflowException("days_ago() se eliminó en Airflow 3 (airflow.utils.dates). Usa una fecha fija: start_date=datetime(2024, 1, 1)")
+
+
+def _days_ago_legacy(n, hour=0):
     today = _dt.datetime.now().replace(hour=hour, minute=0, second=0, microsecond=0)
     return today - _dt.timedelta(days=n)
 

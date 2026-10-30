@@ -90,7 +90,7 @@ En este curso vas a ver Azure, AWS y Google Cloud. Los conceptos son **los mismo
 | Spark administrado | Glue, EMR | Databricks, Synapse Spark | Dataproc |
 | Streaming | Kinesis, MSK | Event Hubs | Pub/Sub |
 | Funciones por evento | Lambda | Functions | Cloud Functions / Run |
-| Airflow administrado | MWAA | Data Factory (Airflow) | Composer |
+| Airflow administrado | MWAA | Apache Airflow job (Microsoft Fabric) | Composer |
 | Identidad | IAM | Entra ID + RBAC | IAM |
 | CLI | `aws` | `az` | `gcloud`, `bq`, `gsutil` |
 

@@ -67,6 +67,42 @@ entrenamiento = conjunto.load_df()
 
 Soporta **clasificación**, **regresión** y **pronóstico** (*forecasting*). Es un excelente **punto de partida** (*baseline*): en minutos sabes qué nivel de calidad es razonable y tienes código para mejorar.
 
+```recorrido
+titulo: Un modelo de churn, del experimento al endpoint
+estacion exp: Experimento | icono=prueba
+estacion reg: Registrar | icono=libro
+estacion alias: Alias | icono=etiqueta
+estacion serve: Servir | icono=api
+estacion nuevo: Versión nueva | icono=check
+paso exp: Cada entrenamiento queda registrado
+Con MLflow, cada corrida guarda parámetros, métricas y el modelo con su firma. Comparar corridas es elegir la mejor con datos (valores de ejemplo).
+>>> tabla
+run,max_depth,auc
+run_a,4,0.81
+run_b,6,0.84
+run_c,8,0.83
+paso reg: Registrar en Unity Catalog
+El modelo elegido se registra con un nombre de tres partes y obtiene una **versión**.
+>>> python
+mlflow.set_registry_uri("databricks-uc")
+mlflow.register_model("runs:/<run_b>/model", "prod.ml.churn")   # → versión 3
+paso alias: Promover con un alias
+El código de producción no usa números de versión: usa el alias `champion`.
+>>> python
+MlflowClient().set_registered_model_alias("prod.ml.churn", "champion", 3)
+modelo = mlflow.pyfunc.load_model("models:/prod.ml.churn@champion")
+paso serve: Inferencia batch o en tiempo real
+Batch: un job aplica el modelo a la tabla de clientes cada noche. Tiempo real: un endpoint de Model Serving responde por HTTP.
+>>> texto
+batch     → job nocturno: scores en una tabla
+streaming → sobre un stream de eventos
+real time → Model Serving (endpoint REST)
+paso nuevo: Cambiar de modelo sin tocar el código
+Cuando la versión 4 mejora, se mueve el alias. Los jobs que cargan `@champion` usan la nueva en la próxima ejecución; volver atrás es mover el alias otra vez.
+>>> python
+MlflowClient().set_registered_model_alias("prod.ml.churn", "champion", 4)
+```
+
 ## Entrenar y registrar con MLflow
 
 **MLflow** organiza el trabajo en **experimentos**, que contienen **ejecuciones** (*runs*); cada ejecución guarda parámetros, métricas, artefactos y el modelo.

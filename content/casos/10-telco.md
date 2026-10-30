@@ -250,3 +250,9 @@ Con lo que encontraste, escribe una propuesta de una página para la gerenta: (1
 4. Andina: el motivo dominante es portabilidad con reclamos de cobertura; pedir el detalle de antenas con más caídas y saturación, y priorizar inversión allí. Sin red, la retención comercial solo compra tiempo.
 ```
 :::
+
+:::errores
+- **Tasa de bajas con la base de líneas del final del mes**: las líneas que se dieron de baja ya no están en el denominador.
+- **Relacionar reclamos con bajas sin mirar el orden en el tiempo**: un reclamo posterior a la baja no la explica.
+- **ARPU dividiendo por todas las líneas** incluidas las suspendidas, o al revés, sin decir cuál.
+:::

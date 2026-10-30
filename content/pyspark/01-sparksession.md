@@ -33,6 +33,29 @@ print(spark.version)
 - `SparkSession.builder` usa el patrón "constructor": vas encadenando configuraciones (`.appName(…)`, `.config("spark.sql.shuffle.partitions", 200)`) y terminas con `.getOrCreate()`.
 - En **Databricks** y en este sitio, `spark` **ya viene creada**: no hace falta escribir esto. En tu computadora o en un script que corre en un cluster, sí.
 
+### Instalar PySpark en tu computadora
+
+Según la documentación oficial, Spark 4.2 necesita **Java 17, 21 o 25** y **Python 3.10 o más nuevo**. Java es necesario porque el motor de Spark corre en la máquina virtual de Java (JVM); PySpark es la capa de Python que le habla.
+
+```bash norun
+java -version                       # debe decir 17, 21 o 25; si no, instala un JDK (por ejemplo, Temurin)
+python -m venv .venv && source .venv/bin/activate
+pip install pyspark==4.2.1          # trae el motor completo (unos 400 MB)
+pyspark                             # abre una consola interactiva con `spark` ya creada
+```
+
+En tu computadora Spark corre en **modo local**: el driver y los executors son hilos del mismo proceso, y usa todos los núcleos del procesador (`local[*]`). Es la misma API que en un clúster, solo que en una máquina.
+
+Si en vez de correr Spark en tu máquina quieres **conectarte** a uno que ya existe (un clúster o Databricks), usa el cliente liviano de **Spark Connect**, que no necesita Java:
+
+```python norun
+# pip install pyspark-client
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.remote("sc://mi-servidor:15002").getOrCreate()
+```
+
+La lección "Spark 4: qué cambió" del módulo de Spark explica Spark Connect y el modo ANSI, que cambia cómo se comportan las conversiones de tipos.
+
 ## Qué es un DataFrame
 
 Un **DataFrame** es una tabla: filas y columnas con nombre y tipo, como una tabla de SQL o una hoja de Excel. La diferencia está en lo que no ves:
@@ -147,6 +170,50 @@ Por eso `spark.table("pedidos").filter(...)` responde al instante aunque la tabl
 :::cuidado collect() puede tumbar el programa
 `collect()` trae **todas** las filas desde las máquinas del cluster a **una sola** (el *driver*, la que ejecuta tu código Python). Con una tabla de 500 millones de filas, el driver se queda sin memoria y el job falla. Usa `show()`, `take(n)` o `limit(n)` para mirar, y deja que los resultados grandes se **escriban** a tablas o archivos.
 :::
+
+```recorrido
+titulo: Transformaciones y acciones: nada pasa hasta que pides un resultado
+estacion codigo: Tu código | icono=codigo
+estacion plan: El plan | icono=flujo
+estacion accion: La acción | icono=chispa
+estacion cluster: El cluster | icono=servidor
+estacion res: Resultado | icono=check
+paso codigo: Tres líneas de transformaciones
+Escribes un `filter` y un `select`. Spark responde **al instante**, aunque la tabla tuviera mil millones de filas: todavía no leyó nada.
+>>> python
+from pyspark.sql import functions as F
+
+web = spark.table("pedidos").filter(F.col("canal") == "web")
+chico = web.select("pedido_id", "estado")
+paso plan: Solo se anotó una receta
+`web` y `chico` no contienen filas: contienen un **plan** ("leer pedidos → quedarse con web → elegir 2 columnas"). Cada transformación agrega un paso al plan.
+>>> texto
+Plan de "chico":
+  1. leer la tabla pedidos
+  2. filtrar canal = web
+  3. elegir pedido_id, estado
+(nada se ejecutó todavía)
+paso accion: show() es una acción
+Al llamar una **acción** (`show`, `count`, `collect`, `write`), Spark mira el plan completo, lo optimiza (por ejemplo, lee solo las 3 columnas necesarias) y recién ahí lo ejecuta.
+>>> python
+chico.show(5)      # acción: ahora sí se ejecuta todo
+print(web.count()) # otra acción: vuelve a ejecutar su plan
+paso cluster: El trabajo se reparte
+El plan se divide en **tareas** que corren en paralelo en las máquinas del cluster (en esta página, en tu navegador). Cada una procesa un pedazo de la tabla.
+>>> texto
+driver (tu código) ── envía tareas ──▶ ejecutor 1: filas 1–4000
+                                    ▶ ejecutor 2: filas 4001–8000
+                                    ▶ ejecutor 3: filas 8001–12000
+paso res: El resultado
+Estas son las primeras 5 filas reales de `chico`. `web.count()` devuelve **5400**: los pedidos del canal web.
+>>> tabla
+pedido_id,estado
+2,entregado
+7,pendiente
+10,pendiente
+14,cancelado
+15,entregado
+```
 
 ## Row: las filas de Spark
 

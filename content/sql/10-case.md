@@ -64,6 +64,43 @@ Tres reglas que hay que tener claras:
 Si `precio` fuera `NULL`, todas las comparaciones darían UNKNOWN (lección de NULL) y caería en el `ELSE`: un producto sin precio quedaría como "lujo". Si los nulos son posibles, trátalos primero: `WHEN precio IS NULL THEN 'sin precio'`.
 :::
 
+```recorrido
+titulo: CASE paso a paso: clasificar productos por precio
+estacion tabla: La tabla | icono=tabla
+estacion regla: Las reglas | icono=reglas
+estacion res: Resultado | icono=check
+paso tabla: Seis productos
+Queremos una etiqueta de precio para cada producto: barato, medio o caro.
+>>> tabla
+nombre,precio
+Smartphone Apple Mini 300,484.99
+Parlante Xiaomi Sport 900,425.99
+Notebook Apple X,1044.99
+Teclado Kingston Ultra 200,458.99
+Juego de ollas Philips Plus 400,42.99
+Mesa Muebles Sur Mini 500,40.99
+paso regla: CASE prueba las condiciones en orden
+Para cada fila, CASE revisa los `WHEN` **de arriba hacia abajo** y usa el primero que se cumple. Si ninguno se cumple, usa el `ELSE`.
+>>> sql
+SELECT nombre, precio,
+       CASE
+         WHEN precio < 100 THEN 'barato'
+         WHEN precio < 500 THEN 'medio'
+         ELSE 'caro'
+       END AS rango
+FROM productos;
+paso res: Una columna nueva con la etiqueta
+Un producto de 458,99 cumple `precio < 500`, así que es "medio"; nunca llega a evaluar el `ELSE`. El orden de los WHEN importa.
+>>> tabla
+nombre,precio,rango
+Smartphone Apple Mini 300,484.99,medio
+Parlante Xiaomi Sport 900,425.99,medio
+Notebook Apple X,1044.99,caro
+Teclado Kingston Ultra 200,458.99,medio
+Juego de ollas Philips Plus 400,42.99,barato
+Mesa Muebles Sur Mini 500,40.99,barato
+```
+
 ## La forma corta: comparar un valor contra opciones
 
 Cuando todas las condiciones son "esta columna es igual a…", hay una sintaxis abreviada:

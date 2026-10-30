@@ -169,3 +169,19 @@ SELECT TOP (5) nombre, precio FROM productos ORDER BY precio DESC;
 - Todas las variantes deben devolver lo mismo; agrega `ORDER BY` para que el orden coincida.
 - Si el bloque muestra un error a propósito, el título empieza con `Error típico:` (en SQLite debe funcionar y en los demás motores debe fallar).
 - La pestaña elegida se recuerda y cambia todos los bloques de la página.
+
+## Capturas de pantalla (guías reales)
+
+Las guías que se hacen en una cuenta real (por ejemplo `laboratorios/10-guia-databricks-free-edition.md`) marcan dónde va cada captura con un bloque:
+
+````text
+```captura
+archivo: az-01-cuenta.png
+texto: La página de inicio del portal de Azure después de crear la cuenta
+```
+````
+
+- Si existe `assets/img/guias/<archivo>`, se muestra la imagen con el texto como pie.
+- Si no existe, se muestra un recuadro **Captura pendiente** con el texto y la ruta donde hay que guardarla.
+- Para agregar una captura: guarda la imagen (PNG, JPG o WebP) con ese nombre en `assets/img/guias/` y ejecuta `node tools/build.mjs`.
+- Antes de subirla, tapa correos, IDs de suscripción o de inquilino, claves y cualquier dato personal.

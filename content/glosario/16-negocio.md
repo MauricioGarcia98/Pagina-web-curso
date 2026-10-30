@@ -157,3 +157,21 @@ SELECT SUM(ventas) / SUM(pedidos) AS ticket_promedio_total FROM ventas_por_ciuda
 ```
 para: No publicar números incorrectos: por eso las medidas no aditivas se guardan como sus componentes (suma y conteo).
 ver: Medidas aditivas, Agregación, ARPU
+
+## Tablero
+alias: dashboard, dashboards, tableros, reporte interactivo
+nino: Un tablero es **el tablero de un auto, pero de una empresa**: en una sola pantalla ves los números importantes y te das cuenta enseguida si algo anda mal.
+que: Una página con gráficos y cifras (KPIs) que se actualiza a partir de las tablas de datos, hecha en Power BI, Tableau, Looker, los tableros de Databricks o similares. Normalmente lee tablas **gold** preparadas para eso.
+ejemplo: El tablero de ventas muestra ventas del día, ticket promedio y pedidos por canal, comparados con la semana anterior.
+para: Que las personas de negocio sigan los indicadores sin escribir consultas.
+cuidado: Si dos tableros calculan "ventas" distinto, nadie confía en ninguno: las definiciones se centralizan en una capa semántica o en las tablas gold.
+ver: KPI, Capa semántica, Arquitectura medallón
+
+## Mediana
+alias: percentil, percentiles, p50, p90, p95
+nino: Si ordenas a todos tus compañeros por altura, **la mediana es la altura del que queda justo en el medio**. Si entra un jugador de básquet, el promedio sube mucho, pero la mediana casi no cambia.
+que: El valor que deja la mitad de los datos por debajo y la mitad por encima (el percentil 50). Los **percentiles** generalizan la idea: p90 es el valor por debajo del cual está el 90 %. Son más robustos que el promedio cuando hay valores extremos (montos, tiempos, salarios).
+ejemplo: Tiempos de entrega de 20, 22, 25 y 400 minutos: el promedio es 116,75; la mediana, 23,5. La mediana describe mejor al pedido típico.
+para: Describir lo típico y medir colas (por ejemplo, el p95 de latencia) sin que lo distorsionen unos pocos casos.
+cuidado: En SQL no todos los motores tienen `MEDIAN`; se usa `PERCENTILE_CONT(0.5)` o `percentile_approx` en Spark. Y la mediana de medianas **no** es la mediana total.
+ver: Promedio de promedios, KPI

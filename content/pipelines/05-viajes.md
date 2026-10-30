@@ -140,6 +140,52 @@ resultado = (v.groupBy("ciudad", "hora")
 ```
 :::
 
+```recorrido
+titulo: Oferta y demanda por hora en Lima, paso a paso
+estacion viajes: Solicitudes | icono=tabla
+estacion hora: La hora | icono=reloj
+estacion agg: groupBy | icono=capas
+estacion cond: Promedio condicional | icono=reglas
+estacion res: Dónde falta oferta | icono=alerta
+paso viajes: Cada fila es una solicitud
+Algunas solicitudes de Lima en `viajes_viajes`. Cada una termina en un estado: `completado`, `cancelado_pasajero`, `cancelado_conductor` o `sin_conductor` (nadie la aceptó).
+>>> tabla
+viaje_id,fecha_hora_solicitud,multiplicador,estado
+3,2024-07-01 03:03:48,1,completado
+6,2024-07-01 06:17:21,1,completado
+24,2024-07-01 08:28:13,1.44,cancelado_pasajero
+39,2024-07-01 12:55:27,1.05,completado
+43,2024-07-01 13:47:46,1,completado
+49,2024-07-01 17:09:55,1.46,completado
+paso hora: Extraer la hora
+`F.hour("fecha_hora_solicitud")` da un entero de 0 a 23. Así se puede agrupar "todas las 8 de la mañana" juntas, de cualquier día.
+>>> tabla
+viaje_id,hora,estado
+3,3,completado
+6,6,completado
+24,8,cancelado_pasajero
+39,12,completado
+43,13,completado
+49,17,completado
+paso agg: Agrupar por ciudad y hora
+`groupBy("ciudad", "hora")` y contar solicitudes. El porcentaje sin conductor es el promedio de una marca 0/1 × 100.
+>>> python
+F.round(F.avg((F.col("estado") == "sin_conductor").cast("int")) * 100, 2)
+paso cond: El multiplicador, solo de los completados
+`F.avg(F.when(estado == "completado", multiplicador))`: el `when` sin `otherwise` deja `null` en los demás, y **`avg` ignora los null**. Así el promedio usa solo los viajes completados.
+>>> python
+F.round(F.avg(F.when(F.col("estado") == "completado", F.col("multiplicador"))), 2)
+paso res: Las 5 horas más difíciles de Lima
+Ordenado por porcentaje sin conductor. Donde falta oferta, el multiplicador promedio sube: es la tarifa dinámica funcionando.
+>>> tabla
+ciudad,hora,solicitudes,pct_sin_conductor,multiplicador_prom
+Lima,7,133,14.29,1.46
+Lima,17,145,11.03,1.37
+Lima,12,60,10,1.03
+Lima,19,118,9.32,1.41
+Lima,8,133,9.02,1.46
+```
+
 ## 4. dbt: conductores destacados
 
 Ruta tiene un programa de beneficios para conductores destacados: al menos **30 viajes completados** y calificación promedio de **4.4 o más** (solo cuentan los viajes calificados). El modelo alimenta el sistema de beneficios cada semana.
@@ -200,15 +246,15 @@ Crea el DAG `viajes_horario` (`schedule="@hourly"`, `start_date` 2024-07-01, `ca
 2. `cargar_bronze` y `balance_oferta`: dos `EmptyOperator`, en ese orden, después del sensor.
 ```python inicial
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.sensors.filesystem import FileSensor
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.sensors.filesystem import FileSensor
+from airflow.providers.standard.operators.empty import EmptyOperator
 ```
 ```python solucion
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.sensors.filesystem import FileSensor
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.sensors.filesystem import FileSensor
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 with DAG("viajes_horario", schedule="@hourly", start_date=datetime(2024, 7, 1), catchup=False,
          default_args={"retries": 2, "retry_delay": timedelta(minutes=5)}) as dag:
@@ -234,4 +280,30 @@ assert all(v == "success" for v in run.states.values()), f"Estados: {run.states}
 ```pista
 `default_args` es un diccionario que el DAG pasa a **todas** sus tareas: así no repites `retries=2` en cada una. `{{ ts_nodash }}` es la fecha y hora lógica de la ejecución sin separadores (por ejemplo `20240701T030000`).
 ```
+:::
+
+## Cómo encaja en un sistema que cambia cada hora
+
+La tarifa dinámica es el ejemplo clásico de una regla de negocio que se usa en **dos tiempos**:
+
+- **En tiempo real**: cuando un pasajero pide un viaje, la app calcula el multiplicador con la oferta y demanda de los últimos minutos. Esa función tiene que ser rápida y exactamente la misma que probaste en Python.
+- **En batch**: cada hora, el pipeline calcula en PySpark el balance de oferta y demanda por zona y hora del pasado, para que el equipo de precios ajuste las reglas y para auditar qué multiplicador se cobró.
+
+El DAG horario tiene un **sensor** porque los datos de la hora llegan con algunos minutos de demora: espera a que el archivo esté completo (con `mode="reschedule"` o `deferrable=True`, para no ocupar un worker) y tiene un `timeout` para no esperar para siempre.
+
+:::errores
+- **Multiplicador sin tope**: en un evento masivo la fórmula da 9x y la empresa sale en las noticias. Las reglas de precio siempre tienen límites, y van en los tests.
+- **Dividir por cero cuando no hay conductores**: el balance demanda/oferta necesita una regla explícita para oferta 0.
+- **Agregar por hora sin completar las horas vacías**: una zona sin viajes a las 4:00 no aparece y el promedio queda sesgado. Genera la grilla de horas y une.
+- **Sensor sin `timeout`** o en modo `poke`: si el archivo nunca llega, el DAG queda ocupando un worker horas.
+- **Reintentos que duplican**: si la carga horaria no es idempotente, cada reintento suma la hora otra vez.
+:::
+
+:::trabajo
+- Las empresas de movilidad guardan cada cotización con sus insumos (zona, hora, oferta, demanda, multiplicador) para poder explicar un precio cobrado y para recalcular qué habría pasado con otra regla.
+- Los procesos horarios son exigentes: un DAG que tarda 70 minutos en procesar una hora se atrasa para siempre. Se mide la duración de cada ejecución y se alerta si se acerca al intervalo.
+:::
+
+:::entrevista "¿Cómo armarías un proceso que corre cada hora con datos que llegan con atraso?"
+Un DAG horario cuya fecha lógica identifica la hora a procesar, con un sensor que espera a que los datos de esa hora estén completos, en modo diferible o reschedule y con timeout. La carga es idempotente: reemplaza la partición de esa hora, así los reintentos y reprocesos no duplican. Además reprocesaría las últimas horas en cada ejecución para capturar datos tardíos, y alertaría si la duración se acerca a una hora, porque el proceso no puede atrasarse.
 :::

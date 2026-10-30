@@ -61,6 +61,44 @@ Mezclarlos es el error más común con comprensiones.
 
 Fíjate en el paralelo con SQL: una comprensión hace en una línea lo que `SELECT expresión FROM colección WHERE condición` hace en una consulta. Es la misma idea, en Python.
 
+```recorrido
+titulo: Una list comprehension, elemento por elemento
+estacion lista: La lista | icono=tabla
+estacion for: for | icono=flujo
+estacion if: if | icono=lupa
+estacion expr: Expresión | icono=transformar
+estacion res: Resultado | icono=check
+paso lista: Montos de pedidos
+Queremos los montos **mayores a 50**, con 21 % de impuesto.
+>>> python
+montos = [120.5, 30, 80, 15.25, 99.9]
+con_iva = [round(m * 1.21, 2) for m in montos if m > 50]
+paso for: for m in montos: recorre
+Toma cada elemento, uno por uno, y lo llama `m`.
+>>> texto
+m = 120.5 → m = 30 → m = 80 → m = 15.25 → m = 99.9
+paso if: if m > 50: filtra
+Solo los que cumplen siguen al paso siguiente.
+>>> tabla
+m,m > 50
+120.5,True
+30,False
+80,True
+15.25,False
+99.9,True
+paso expr: round(m * 1.21, 2): transforma
+La expresión del **principio** se calcula para cada elemento que pasó el filtro.
+>>> tabla
+m,round(m * 1.21; 2)
+120.5,145.81
+80,96.8
+99.9,120.88
+paso res: Una lista nueva
+Se lee en el orden **expresión – for – if**, pero se ejecuta for → if → expresión. La lista original no cambia.
+>>> log
+[145.81, 96.8, 120.88]
+```
+
 ## Dict y set comprehensions
 
 La misma sintaxis, con llaves:

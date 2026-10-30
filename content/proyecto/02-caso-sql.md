@@ -19,6 +19,51 @@ Un directorio no quiere tablas de 500 filas: quiere **pocas cifras, bien definid
 
 Y después de calcular, **valida**: ¿la suma de las ventas por categoría da el total anual? ¿Los porcentajes suman 100? ¿El número de clientes es menor o igual al de pedidos? Un informe con una cifra incoherente pierde toda credibilidad.
 
+```recorrido
+titulo: Una cifra de directorio, de la definición a la validación
+estacion def: Definir | icono=documento
+estacion calc: Calcular | icono=codigo
+estacion tabla: KPIs anuales | icono=tabla
+estacion valid: Validar | icono=prueba
+estacion mensaje: El mensaje | icono=check
+paso def: Acordar qué es "ventas"
+Antes de escribir SQL: ventas **netas de descuento**, **sin cancelados**, por **año calendario**.
+>>> texto
+ventas = SUM(cantidad × precio_unitario × (1 − descuento))
+filtro = estado <> 'cancelado'
+periodo = año calendario
+paso calc: Una CTE con la regla, una sola vez
+Todas las cifras del informe salen de la misma base: así no se contradicen entre sí.
+>>> sql
+WITH v AS (
+  SELECT strftime('%Y', p.fecha_pedido) AS anio, p.pedido_id, p.cliente_id,
+         d.cantidad * d.precio_unitario * (1 - d.descuento) AS importe
+  FROM pedidos p JOIN detalle_pedidos d USING (pedido_id)
+  WHERE p.estado <> 'cancelado'
+)
+SELECT anio, COUNT(DISTINCT pedido_id) AS pedidos, COUNT(DISTINCT cliente_id) AS clientes,
+       ROUND(SUM(importe), 2) AS ventas, ROUND(SUM(importe) / COUNT(DISTINCT pedido_id), 2) AS ticket
+FROM v GROUP BY anio ORDER BY anio;
+paso tabla: Los KPIs año por año
+Pocas cifras, comparables en el tiempo.
+>>> tabla
+anio,pedidos,clientes,ventas,ticket
+2022,3082,655,3514333.88,1140.28
+2023,3689,959,4332682.11,1174.49
+2024,4262,1255,5351271.08,1255.58
+paso valid: Validar antes de mandar
+La suma de los años tiene que dar el total; los clientes no pueden superar a los pedidos.
+>>> tabla
+suma_de_anios,total_directo
+13198287.06,13198287.06
+paso mensaje: La cifra con su explicación
+El directorio no lee la tabla: lee la frase. La tabla está para respaldarla.
+>>> texto
+"Las ventas netas crecieron todos los años: de 3,5 millones en 2022 a 5,4 millones
+en 2024 (+52 %). Crecieron a la vez los pedidos (+38 %) y el ticket promedio (+10 %)."
+(cada cifra de la frase sale de la tabla anterior)
+```
+
 ### Las preguntas de este informe
 
 | Ejercicio | Pregunta de negocio | Técnicas que usa |
@@ -118,4 +163,21 @@ SELECT 'cliente_sin_email', COUNT(*) FROM clientes WHERE email IS NULL
 UNION ALL
 SELECT 'pago_rechazado', COUNT(*) FROM pagos WHERE estado = 'rechazado';
 ```
+:::
+
+:::errores
+- **Mezclar granos** en una consulta: unir pedidos con líneas y contar pedidos con `COUNT(*)` cuenta líneas.
+- **Comparar un año incompleto** con años completos: 2025 "cae" solo porque no terminó.
+- **Porcentajes que no suman 100** por redondear cada fila: muestra los totales o ajusta la última fila.
+- **No validar**: entregar un informe sin comprobar que las partes suman el total.
+- **Llamar "ventas" a cosas distintas** en cuadros distintos: la definición va escrita en el informe.
+:::
+
+:::trabajo
+- Un informe ejecutivo se entrega con una nota de definiciones y de fuentes, y se versiona: si el mes que viene cambia un número del año pasado, hay que poder explicar por qué.
+- Las consultas de un informe recurrente terminan convirtiéndose en modelos de dbt para que el tablero y el informe den lo mismo.
+:::
+
+:::entrevista "La gerencia dice que tu número de ventas no coincide con el de finanzas. ¿Qué haces?"
+No discuto cuál está bien: comparo definiciones. Reviso numerador, filtros (cancelados, devoluciones, impuestos), período y fecha usada (de pedido, de pago o de facturación), y la moneda. Concilio con una tabla que muestre la diferencia por cada concepto hasta explicar el total. Después acordamos una definición oficial, la documento y la implemento en un solo lugar para que todos los reportes la usen.
 :::

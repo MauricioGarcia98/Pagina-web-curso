@@ -139,6 +139,55 @@ Primero agrega por día (si no, la suma acumulada mostraría estados "a mitad de
 Si acumularas movimiento por movimiento, un día con una salida de 50 registrada **antes** que la entrada de 100 mostraría un stock negativo "a mitad del día" que en realidad no fue un quiebre (el orden de carga dentro del día no es el orden físico). Definir el **grano** (cierre diario) antes de calcular evita falsas alarmas. Es la misma lección de siempre: primero el grano, después la métrica.
 :::
 
+```recorrido
+titulo: El stock diario del SKU-006 en el almacén 3, paso a paso
+estacion mov: Movimientos | icono=archivo
+estacion neto: Neto del día | icono=capas
+estacion acum: Suma acumulada | icono=flujo
+estacion quiebre: Quiebre | icono=alerta
+estacion res: Resultado | icono=check
+paso mov: Entradas y salidas
+`logistica_movimientos` registra cada entrada (positiva), salida (negativa) o ajuste. No guarda el stock: hay que **calcularlo**.
+>>> tabla
+fecha,tipo,cantidad
+2024-02-09,salida,-21
+2024-02-10,salida,-11
+2024-02-13,salida,-29
+2024-02-14,salida,-17
+2024-02-15,entrada,215
+2024-02-16,salida,-7
+paso neto: Un número por día
+`groupBy("almacen_id", "sku", "fecha")` + `sum("cantidad")`: el movimiento neto de cada día.
+>>> tabla
+fecha,neto
+2024-02-09,-21
+2024-02-10,-11
+2024-02-13,-29
+2024-02-14,-17
+2024-02-15,215
+2024-02-16,-7
+paso acum: El stock es la suma acumulada
+Una ventana desde el primer día hasta el actual (`rowsBetween(unboundedPreceding, currentRow)`): el stock al cierre de cada día es la suma de todos los netos hasta ese día.
+>>> tabla
+fecha,neto,stock
+2024-02-09,-21,44
+2024-02-10,-11,33
+2024-02-13,-29,4
+2024-02-14,-17,-13
+2024-02-15,215,202
+2024-02-16,-7,195
+paso quiebre: Un día en negativo
+El 14/02 el stock calculado queda en **−13**: se despachó más de lo que había. En la realidad significa pedidos que no se pudieron cumplir (o un movimiento mal registrado). Al día siguiente entró mercadería.
+>>> tabla
+fecha,stock
+2024-02-14,-13
+paso res: Una fila por almacén y SKU
+Se cuentan los días con stock negativo y se toma el stock del último día del año.
+>>> tabla
+almacen_id,sku,dias_quiebre,stock_final
+3,SKU-006,1,169
+```
+
 ## 4. dbt: puntualidad mensual por transportista
 
 Compras renegocia los contratos con los transportistas cada trimestre, con datos de cumplimiento. El modelo calcula, por transportista y mes de despacho, la entrega a tiempo (**OTD**, *on-time delivery*) y el costo por envío exitoso.
@@ -186,19 +235,19 @@ Crea el DAG `logistica_inventario` (`schedule="@daily"`, `start_date` 2024-01-01
 4. `todo_ok`: `EmptyOperator`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
 QUIEBRES = 3
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
 QUIEBRES = 3
 
@@ -225,4 +274,27 @@ assert run.states["disparar_reposicion"] == "success" and run.states["todo_ok"] 
 ```pista
 `TriggerDagRunOperator` está en `airflow.operators.trigger_dagrun`. El DAG disparado recibe `conf` y lo puede leer en sus tareas con `{{ dag_run.conf['quiebres'] }}`.
 ```
+:::
+
+## Por qué la logística exige tanto cuidado con el tiempo
+
+En logística casi todo depende de **cuándo** pasó algo: el costo de lo vendido depende de qué lote entró primero (FIFO), la fecha prometida depende de los días hábiles y los feriados, y el stock de cada día depende de todos los movimientos anteriores. Un error en el orden o en el calendario no da un error de programa: da un número plausible y equivocado.
+
+El DAG de esta lección **dispara otro DAG** (`TriggerDagRunOperator`) cuando detecta quiebres de stock: el DAG de reposición tiene su propio dueño, sus propios horarios y reintentos, y se puede ejecutar también a mano. Separar los dos procesos evita un DAG gigante en el que todo depende de todo. La alternativa moderna es que la tarea de alertas actualice un **Asset** (`outlets=[Asset("quiebres_stock")]`) y que el DAG de reposición se programe con ese asset.
+
+:::errores
+- **FIFO ordenando solo por fecha**: dos lotes del mismo día necesitan un segundo criterio (el número de lote), si no, el costo cambia entre ejecuciones.
+- **Días hábiles sin feriados**: la fecha prometida falla justo en las semanas que más importan.
+- **Acumular movimientos sin agregarlos antes por día**: con varios movimientos el mismo día, la suma acumulada muestra estados intermedios que no existieron al cierre.
+- **Puntualidad que ignora los envíos sin fecha de entrega**: los que todavía no llegaron y ya vencieron también son impuntuales.
+- **Disparar el DAG de reposición sin pasarle qué productos**: el otro DAG tiene que adivinar; se pasa por `conf` o por el asset.
+:::
+
+:::trabajo
+- Los calendarios de feriados se mantienen como una tabla (un seed de dbt o una tabla de referencia) que actualiza un área responsable, porque cambian por país y por año.
+- Los quiebres de stock suelen alimentar alertas operativas (correo, Slack) además del DAG de reposición; la alerta incluye el producto, el depósito y desde cuándo está en cero.
+:::
+
+:::entrevista "¿Cómo calcularías el stock diario a partir de una tabla de movimientos?"
+Primero agregaría los movimientos por producto, depósito y día, sumando entradas y salidas. Luego generaría la grilla completa de días para cada producto, para que los días sin movimientos también aparezcan, y aplicaría una suma acumulada con una función de ventana ordenada por fecha. Los días con stock menor o igual a cero son quiebres. Lo validaría contra un inventario físico conocido y usaría un desempate determinista si hay varios movimientos con la misma marca de tiempo.
 :::

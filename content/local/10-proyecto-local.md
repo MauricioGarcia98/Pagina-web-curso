@@ -166,8 +166,8 @@ Los modelos son los de la lección de dbt (`stg_rapido_pedidos`, `mart_tiempos_c
 ```python norun
 # dags/rapido_diario.py
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
 
 PROYECTO = "/usr/local/airflow/include/rapido"   # con Astro, el repo se copia en include/
 

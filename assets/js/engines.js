@@ -9,7 +9,7 @@
   'use strict';
 
   const SQLJS_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/';
-  const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+  const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs';
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -148,7 +148,17 @@
         const gs = got.values.map(rowKey).sort(), es = exp.values.map(rowKey).sort();
         if (gs.every((x, k) => x === es[k])) return { pass: false, msg: 'Las filas son correctas pero el ORDEN no. Revisa tu ORDER BY (y los desempates).' };
       }
-      return { pass: false, msg: `Los datos no coinciden${ordered ? ` a partir de la fila ${bad + 1}` : ''}. Compara tu resultado con lo que pide el enunciado (cálculos, redondeos, filtros).` };
+      // qué columna difiere: con orden, la primera celda distinta; sin orden, la primera columna cuyos valores no coinciden
+      let detalle = '';
+      if (ordered) {
+        const j = got.values[bad].findIndex((v, k) => JSON.stringify(norm(v)) !== JSON.stringify(norm(exp.values[bad][k])));
+        if (j >= 0) detalle = ` En la fila ${bad + 1}, la columna <${exp.columns[j]}> vale ${JSON.stringify(norm(got.values[bad][j]))} y se esperaba ${JSON.stringify(norm(exp.values[bad][j]))}.`;
+      } else {
+        const sig = (vals, j) => JSON.stringify(vals.map((r) => norm(r[j])).map(String).sort());
+        const j = exp.columns.findIndex((_, k) => sig(got.values, k) !== sig(exp.values, k));
+        if (j >= 0) detalle = ` La columna <${exp.columns[j]}> no tiene los valores esperados.`;
+      }
+      return { pass: false, msg: `Los datos no coinciden${ordered ? ` a partir de la fila ${bad + 1}` : ''}.${detalle} Revisa cálculos, redondeos, filtros y JOIN.` };
     }
     if (note) return { pass: true, msg: '¡Correcto!' + note };
     const names = got.columns.map((c) => c.toLowerCase()), en = exp.columns.map((c) => c.toLowerCase());
@@ -175,7 +185,7 @@
 
   // ---------------------------------------------------------------- Python
   function workerMain() {
-    /* global importScripts, loadPyodide */
+    /* Pyodide se importa dentro de ensure() */
     let py = null;
     const loaded = new Set();
     const HARNESS = `
@@ -242,6 +252,13 @@ def _norm(v):
     return v
 
 def _as_rows(x):
+    # DataFrame o Series de pandas: el índice con nombre (por ejemplo, el de un pivot) cuenta como columna
+    if type(x).__module__.split(".")[0] == "pandas" and hasattr(x, "reset_index"):
+        d = x.to_frame() if not hasattr(x, "columns") else x
+        if not (d.index.name is None and list(d.index) == list(range(len(d)))):
+            d = d.reset_index()
+        cols = [str(c) for c in d.columns]
+        return cols, [tuple(None if (isinstance(v, float) and v != v) else _norm(v.item() if hasattr(v, "item") else v) for v in r) for r in d.itertuples(index=False)]
     if hasattr(x, "_rows") and hasattr(x, "columns"):
         return list(x.columns), [tuple(_norm(v) for v in r) for r in x._rows]
     if isinstance(x, list) and x and hasattr(x[0], "__fields__"):
@@ -383,7 +400,8 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
 `;
     async function ensure(mode, msg) {
       if (!py) {
-        importScripts(msg.pyodideUrl);
+        // Pyodide 314+ solo funciona en workers de tipo módulo: se carga con import() dinámico
+        const { loadPyodide } = await import(msg.pyodideUrl);
         py = await loadPyodide();
         for (const [p, src] of Object.entries(msg.sources)) {
           const dir = '/mini/' + p.split('/').slice(0, -1).join('/');
@@ -393,7 +411,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         await py.runPythonAsync(HARNESS);
       }
       const need = [];
-      if (mode === 'pyspark' && !loaded.has('sqlite3')) need.push('sqlite3');
+      // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
       if (need.length) { await py.loadPackage(need); need.forEach((n) => loaded.add(n)); }
       if (mode === 'pyspark' && msg.tables && !loaded.has('tables')) {
@@ -448,7 +466,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     worker: null, seq: 0, pending: new Map(), status: 'idle', listeners: new Set(), _tablesJson: null, _sentTables: false,
     _spawn() {
       const blob = new Blob([`(${workerMain.toString()})();`], { type: 'application/javascript' });
-      this.worker = new Worker(URL.createObjectURL(blob));
+      this.worker = new Worker(URL.createObjectURL(blob), { type: 'module' });
       this._sentTables = false;
       this.worker.onmessage = (e) => {
         const p = this.pending.get(e.data.id);

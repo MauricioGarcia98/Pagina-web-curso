@@ -34,6 +34,53 @@ Un promedio móvil de 7 días suaviza el efecto del día de la semana y deja ver
 -- AVG(pedidos) OVER (ORDER BY dia ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
 ```
 
+```recorrido
+titulo: Un promedio móvil de 7 días, paso a paso
+estacion diario: Serie diaria | icono=reloj
+estacion ventana: La ventana | icono=capas
+estacion media: La media | icono=engranaje
+estacion lectura: Lectura | icono=check
+paso diario: Pedidos por día
+La serie diaria salta mucho de un día a otro: es difícil ver la tendencia.
+>>> tabla
+dia,pedidos
+2024-12-01,14
+2024-12-02,23
+2024-12-03,18
+2024-12-04,13
+2024-12-05,20
+2024-12-06,22
+2024-12-07,20
+2024-12-08,16
+paso ventana: ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+Para cada día, la ventana toma ese día y los **6 anteriores**: siempre 7 filas. Por eso la serie arranca unos días antes (25/11): para que el 1/12 ya tenga su semana completa. Si hubiera días sin pedidos, primero habría que completar el calendario.
+>>> texto
+2024-12-07 → del 2024-12-01 al 2024-12-07
+2024-12-08 → del 2024-12-02 al 2024-12-08
+…
+paso media: La media de esas 7 filas
+`AVG(pedidos) OVER (...)` suaviza los saltos.
+>>> tabla
+dia,pedidos,media_7d
+2024-12-01,14,16.7
+2024-12-02,23,17.4
+2024-12-03,18,18
+2024-12-04,13,17.9
+2024-12-05,20,17.9
+2024-12-06,22,18.6
+2024-12-07,20,18.6
+2024-12-08,16,18.9
+paso lectura: La tendencia de fin de año
+Las últimas semanas del año, con la media móvil: se ve si diciembre sube por las fiestas sin dejarse engañar por un día puntual.
+>>> tabla
+dia,pedidos,media_7d
+2024-12-07,20,18.6
+2024-12-14,18,15.6
+2024-12-21,24,21.6
+2024-12-28,18,21
+2024-12-31,16,21.7
+```
+
 ## Comparar contra el año anterior
 
 El crecimiento interanual (YoY) compara cada mes con **el mismo mes del año anterior**: elimina la estacionalidad de la comparación.

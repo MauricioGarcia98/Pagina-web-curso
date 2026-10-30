@@ -65,6 +65,46 @@ Pieza por pieza:
 
 La gran ventaja: **datos y comportamiento viajan juntos**. El objeto `mouse` sabe su stock y sabe cómo venderse, incluida la regla "no vender más de lo que hay". Nadie puede olvidarse de esa validación porque está **dentro** del método.
 
+```recorrido
+titulo: De la clase a dos objetos independientes
+estacion clase: La clase | icono=libro
+estacion init: __init__ | icono=engranaje
+estacion objs: Dos objetos | icono=cubo
+estacion metodo: Un método | icono=transformar
+estacion error: Una regla | icono=escudo
+paso clase: La clase es el molde
+`class Producto` describe **qué datos** tiene un producto (nombre, precio, stock) y **qué sabe hacer** (vender, calcular su inventario). Todavía no existe ningún producto.
+>>> python
+class Producto:
+    def __init__(self, nombre, precio, stock=0): ...
+    def valor_inventario(self): ...
+    def vender(self, unidades): ...
+paso init: __init__ arma cada objeto
+Al escribir `Producto("Mouse", 25.0, stock=40)`, Python crea un objeto vacío y llama a `__init__` con él como `self`. Cada `self.algo = …` guarda un dato **en ese objeto**.
+>>> python
+mouse = Producto("Mouse", 25.0, stock=40)
+# self.nombre = "Mouse", self.precio = 25.0, self.stock = 40
+paso objs: Dos objetos, cada uno con sus datos
+Del mismo molde salen objetos **independientes**.
+>>> tabla
+objeto,nombre,precio,stock
+mouse,Mouse,25.0,40
+teclado,Teclado,49.9,5
+paso metodo: Un método cambia solo su objeto
+`mouse.vender(3)` ejecuta `vender` con `self = mouse`. El teclado no se entera.
+>>> log
+» mouse.vender(3)
+» print(mouse.nombre, mouse.stock, mouse.valor_inventario())
+Mouse 37 925.0
+» print(teclado.nombre, teclado.stock)
+Teclado 5
+paso error: La clase protege sus reglas
+Vender más de lo que hay lanza un error con un mensaje claro, en lugar de dejar stock negativo.
+>>> log
+» teclado.vender(10)
+ValueError: Stock insuficiente de Teclado
+```
+
 ## Métodos especiales (dunder)
 
 Los métodos con doble guion bajo al principio y al final (*double underscore*, "dunder") definen cómo se comporta el objeto con las operaciones de Python: cómo se muestra, qué hace el `+`, cómo se compara.

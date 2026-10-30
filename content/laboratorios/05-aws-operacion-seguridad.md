@@ -222,6 +222,23 @@ aws secretsmanager create-secret --name lab/rds/ventas --secret-string '{"usuari
 ```
 :::
 
+:::errores
+- **Credenciales en variables de entorno o en el código** en lugar de Secrets Manager: quedan en el historial de Git y en los logs.
+- **Rotar la contraseña sin que la aplicación la vuelva a leer**: la rotación funciona y el pipeline falla al día siguiente. El código debe leer el secreto en cada ejecución (o con un caché corto).
+- **Alarmas que nadie recibe**: un tópico de SNS sin suscripción confirmada no avisa a nadie.
+- **Permisos con `*`** en la política de IAM del pipeline: si la credencial se filtra, da acceso a todo.
+- **Programar con EventBridge en hora local** sin revisar la zona: las expresiones `cron` de EventBridge son en UTC salvo que uses EventBridge Scheduler con zona horaria.
+:::
+
+:::trabajo
+- Estas piezas (secretos, cifrado, alertas, programación, alarmas) rodean a casi todo pipeline en AWS y suelen definirse con infraestructura como código (CloudFormation, CDK o Terraform), no a mano.
+- Las alarmas tienen un responsable y un *runbook*: qué mirar y qué hacer cuando suena.
+:::
+
+:::entrevista "¿Cómo manejarías las credenciales de una base de datos que usa un pipeline en AWS?"
+Las guardaría en Secrets Manager, cifradas con una clave de KMS, con rotación automática. El pipeline correría con un rol de IAM que solo puede leer ese secreto, y lo leería en cada ejecución en lugar de copiarlo a variables o archivos. Ninguna credencial en el código ni en el repositorio, y CloudTrail para auditar quién accedió al secreto.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz

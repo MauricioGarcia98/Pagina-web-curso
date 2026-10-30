@@ -31,6 +31,47 @@ Para eso existen las **funciones de agregación**: toman **muchas filas** y devu
 Pasas 40 productos por la caja (40 filas). Al final la boleta te muestra: cantidad de artículos (`COUNT`), total a pagar (`SUM`), el producto más caro (`MAX`). Cuarenta filas se resumieron en unas pocas cifras. Eso hace una agregación.
 :::
 
+```recorrido
+titulo: De muchas filas a un número, paso a paso
+estacion tabla: Las filas | icono=tabla
+estacion calc: Por fila | icono=transformar
+estacion agg: Agregación | icono=cubo
+estacion res: Resultado | icono=check
+paso tabla: Seis líneas de pedidos
+Cada fila de `detalle_pedidos` es un producto dentro de un pedido.
+>>> tabla
+detalle_id,pedido_id,cantidad,precio_unitario
+1,1,1,178.19
+2,2,1,30.59
+3,2,2,61.19
+4,2,3,8.99
+5,3,2,940.49
+6,4,1,882.89
+paso calc: Primero, el importe de cada fila
+`cantidad * precio_unitario` se calcula fila por fila.
+>>> tabla
+detalle_id,cantidad,precio_unitario,importe
+1,1,178.19,178.19
+2,1,30.59,30.59
+3,2,61.19,122.38
+4,3,8.99,26.97
+5,2,940.49,1880.98
+6,1,882.89,882.89
+paso agg: Después, las funciones de agregación
+`SUM`, `COUNT`, `AVG`, `MIN` y `MAX` **juntan todas las filas en una sola**. Es como la fila de totales de una planilla.
+>>> sql
+SELECT COUNT(*) AS lineas,
+       SUM(cantidad * precio_unitario) AS total,
+       AVG(cantidad * precio_unitario) AS promedio,
+       MAX(precio_unitario) AS precio_maximo
+FROM detalle_pedidos;
+paso res: Una sola fila
+Seis filas entraron y salió **una**. Por eso no se pueden mezclar columnas sueltas (como `detalle_id`) con agregaciones sin GROUP BY, que es el tema de la próxima lección.
+>>> tabla
+lineas,total,promedio,precio_maximo
+6,3122,520.33,940.49
+```
+
 ## Las cinco funciones básicas
 
 | Función | Qué calcula | Funciona con |

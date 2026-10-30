@@ -49,6 +49,145 @@ Un error muy común es meter el procesamiento pesado *dentro* de una tarea de Ai
 | **Calidad en la puerta** | Los datos malos se detectan antes de llegar al reporte | Tests (dbt, asserts), cuarentena de filas inválidas |
 | **Reprocesable** | Poder recalcular un día o un mes | Guardar bronze inmutable, parametrizar por fecha, *backfill* |
 
+## El método aplicado, de punta a punta
+
+Tomemos la regla del principio y recorramos los cinco pasos.
+
+**Paso 1: la regla en palabras y con ejemplos.** "Los días de atraso de una cuota son la diferencia entre la fecha de pago y la de vencimiento. Si no se pagó, se cuenta hasta la fecha de corte. Pagar antes o el mismo día es 0 días de atraso."
+
+**Paso 2: los casos borde**, que casi siempre son los que rompen un pipeline:
+
+| Caso | Vencimiento | Pago | Corte | Atraso esperado |
+|---|---|---|---|---|
+| Pagó tarde | 2024-03-10 | 2024-03-15 | 2024-12-31 | 5 |
+| Pagó el mismo día | 2024-03-10 | 2024-03-10 | 2024-12-31 | 0 |
+| Pagó antes | 2024-03-10 | 2024-03-01 | 2024-12-31 | 0 (no −9) |
+| No pagó | 2024-03-10 | (vacío) | 2024-12-31 | 296 |
+| Vence después del corte | 2025-01-10 | (vacío) | 2024-12-31 | 0 |
+
+**Paso 3: los tests**, escritos antes que la función. **Paso 4: la función** más simple que los pase:
+
+```python
+from datetime import date
+
+def dias_atraso(vencimiento, pago, corte):
+    """Días de atraso de una cuota a la fecha de corte (nunca negativo)."""
+    hasta = pago if pago is not None else corte
+    return max(0, (hasta - vencimiento).days)
+
+assert dias_atraso(date(2024, 3, 10), date(2024, 3, 15), date(2024, 12, 31)) == 5
+assert dias_atraso(date(2024, 3, 10), date(2024, 3, 10), date(2024, 12, 31)) == 0
+assert dias_atraso(date(2024, 3, 10), date(2024, 3, 1), date(2024, 12, 31)) == 0
+assert dias_atraso(date(2024, 3, 10), None, date(2024, 12, 31)) == 296
+assert dias_atraso(date(2025, 1, 10), None, date(2024, 12, 31)) == 0
+print("los 5 casos pasan")
+```
+
+Línea por línea:
+
+- `hasta = pago if pago is not None else corte`: si hay fecha de pago, se cuenta hasta ella; si no, hasta el corte. Se escribe `is not None` (y no `if pago`) para que quede claro que lo que se pregunta es "¿existe el dato?".
+- `(hasta - vencimiento).days`: restar dos fechas da una duración (`timedelta`), y `.days` son sus días.
+- `max(0, ...)`: el atraso nunca es negativo; pagar antes no da "días a favor".
+- La **fecha de corte es un parámetro**: la función no mira la fecha de hoy. Por eso se puede probar, y por eso reprocesar el cierre de marzo dentro de un año da exactamente lo mismo.
+
+**Paso 5: dónde vive.** La misma regla en SQL, para calcularla sobre millones de cuotas en el warehouse (o como modelo de dbt):
+
+```sql
+SELECT cuota_id,
+       MAX(0, CAST(julianday(COALESCE(fecha_pago, '2024-12-31')) - julianday(fecha_vencimiento) AS INTEGER)) AS dias_atraso
+FROM banco_cuotas
+LIMIT 5;
+```
+
+`COALESCE(fecha_pago, '2024-12-31')` es el mismo "si no hay pago, el corte"; en dbt la fecha de corte sería una variable (`{{ var('fecha_corte') }}`) y en Airflow llegaría desde la fecha lógica de la ejecución. Los mismos cinco casos del paso 2 se convierten en un **unit test** de dbt. La lógica es una sola, escrita en dos lenguajes, y probada con los mismos ejemplos.
+
+## Idempotencia, con un ejemplo
+
+El principio que más problemas evita es la idempotencia. Imagina que la carga diaria hace esto:
+
+```sql norun
+INSERT INTO gold.mora_diaria
+SELECT '2024-12-31' AS fecha, tramo, COUNT(*) FROM ... GROUP BY tramo;
+```
+
+Si la tarea falla a mitad de camino y Airflow la reintenta, o si alguien la vuelve a correr para corregir un dato, el 31 de diciembre queda **dos veces** y el reporte muestra el doble de mora. La versión idempotente borra primero lo del día y vuelve a escribirlo, todo en una transacción:
+
+```sql norun
+BEGIN;
+DELETE FROM gold.mora_diaria WHERE fecha = '2024-12-31';
+INSERT INTO gold.mora_diaria
+SELECT '2024-12-31' AS fecha, tramo, COUNT(*) FROM ... GROUP BY tramo;
+COMMIT;
+```
+
+Correrla una, dos o diez veces deja el mismo resultado. En Delta Lake o Spark lo mismo se hace con `replaceWhere` o `MERGE`; en dbt, con un modelo incremental con `unique_key`.
+
+```recorrido
+titulo: Idempotencia: qué pasa cuando la carga del día se ejecuta dos veces
+estacion t1: Primera ejecución | icono=reloj
+estacion fallo: Reintento | icono=alerta
+estacion ins: INSERT ciego | icono=x
+estacion del: DELETE + INSERT | icono=check
+estacion res: Conclusión | icono=escudo
+paso t1: La carga del 31/12 corre una vez
+La tabla `gold.mora_diaria` guarda, por día, cuántos préstamos hay en cada tramo. Después de la primera ejecución del 31/12 queda así (números de ejemplo):
+>>> tabla
+fecha,tramo,prestamos
+2024-12-30,al_dia,410
+2024-12-30,90+,35
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+paso fallo: Algo obliga a correrla de nuevo
+La tarea siguiente falló y Airflow reintentó todo, o alguien la volvió a ejecutar para corregir un dato. **Pasa todas las semanas** en cualquier equipo.
+>>> log
+[03:12] cargar_mora_diaria  success
+[03:15] publicar_tablero    failed  (timeout)
+[03:20] reintento: cargar_mora_diaria → running
+paso ins: Con un INSERT ciego, el día se duplica
+El `INSERT` agrega las mismas filas otra vez. El tablero suma y muestra **el doble** de préstamos en mora el 31/12.
+>>> tabla
+fecha,tramo,prestamos
+2024-12-30,al_dia,410
+2024-12-30,90+,35
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+paso del: Con DELETE + INSERT, queda igual
+La versión idempotente **borra primero** lo del 31/12 y lo vuelve a escribir, en una transacción. Correrla 1 o 10 veces deja la misma tabla que la primera vez.
+>>> tabla
+fecha,tramo,prestamos
+2024-12-30,al_dia,410
+2024-12-30,90+,35
+2024-12-31,al_dia,408
+2024-12-31,90+,36
+paso res: La pregunta que siempre hay que hacerse
+"¿Qué pasa si esto corre dos veces?" Si la respuesta es "se duplica", el pipeline no está listo. Las herramientas lo resuelven así:
+>>> texto
+SQL            → DELETE del período + INSERT, en una transacción
+Delta / Spark  → replaceWhere o MERGE
+dbt            → modelo incremental con unique_key
+Airflow        → la fecha lógica como parámetro, nunca datetime.now()
+```
+
+:::errores
+- **Programar primero y probar después** (o nunca): los casos borde aparecen en producción, con datos reales y un reporte equivocado.
+- **`datetime.now()` dentro de la lógica**: la función da distinto resultado según cuándo se ejecuta y no se puede reprocesar.
+- **`INSERT` ciego en una carga diaria**: cada reintento duplica datos.
+- **La misma regla escrita distinta en dos lugares** (una versión en Python y otra en SQL que no coinciden en un caso borde): los números de dos tableros no cuadran. Pruébalas con los mismos ejemplos.
+- **Procesar dentro de Airflow**: el worker se queda sin memoria y la tarea falla de forma intermitente.
+:::
+
+:::trabajo
+- Los "requerimientos" llegan casi siempre como un mensaje, una reunión o una planilla con ejemplos. El primer entregable de un data engineer no es código: es la tabla de casos (como la del paso 2), validada con quien pidió el dato.
+- Esa tabla de casos se guarda junto al código como tests: cuando dentro de un año alguien pregunte "¿por qué la mora de marzo dio 4,2 %?", la respuesta está en el repositorio.
+- En las revisiones de código se pregunta siempre: ¿es idempotente?, ¿qué pasa si corre dos veces?, ¿qué pasa si llega un dato vacío?
+:::
+
+:::entrevista "Te piden calcular una métrica nueva a partir de una regla de negocio. ¿Cómo lo encaras?"
+Primero reescribo la regla con ejemplos concretos y busco los casos borde con quien la pidió: valores vacíos, fechas límite, ceros, datos tardíos. Convierto esos ejemplos en tests antes de programar y escribo una función pura, con la fecha de proceso como parámetro. Después decido dónde vive: si es una agregación sobre muchas filas, en SQL o dbt con los mismos casos como unit test; si es lógica compleja o una API, en Python. El pipeline que la publica es idempotente, con tests de calidad en la entrada, y Airflow solo orquesta.
+:::
+
 ## Ejercicios
 
 :::ejercicio python titulo="Porcentaje seguro"

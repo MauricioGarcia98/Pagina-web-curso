@@ -71,6 +71,36 @@ Python revisa de arriba hacia abajo y ejecuta **solo el primer bloque** cuya con
 El portero tiene una lista de reglas en orden: "¿Estás en la lista VIP? Pasa por la puerta dorada. ¿Si no, tienes entrada? Pasa por la puerta común. ¿Si no? No entras". Aplica la primera regla que te corresponde y no sigue preguntando.
 :::
 
+```recorrido
+titulo: Cómo decide un if / elif / else
+estacion dato: El dato | icono=codigo
+estacion if: if | icono=reglas
+estacion elif: elif | icono=reglas
+estacion fin: Resultado | icono=check
+paso dato: Un pedido de 350
+Clasificamos un pedido por su monto.
+>>> python
+monto = 350
+if monto >= 1000:
+    tamaño = 'grande'
+elif monto >= 100:
+    tamaño = 'mediano'
+else:
+    tamaño = 'chico'
+paso if: ¿350 >= 1000?
+Falso. Python **salta** el bloque del `if` y pasa a la siguiente condición.
+>>> texto
+350 >= 1000  →  False
+paso elif: ¿350 >= 100?
+Verdadero. Ejecuta este bloque y **ya no mira** el `else`: solo se ejecuta una de las ramas.
+>>> texto
+350 >= 100  →  True   →   tamaño = 'mediano'
+paso fin: Una sola rama
+Las condiciones se revisan en orden. Si pusieras `monto >= 100` primero, un pedido de 5000 también sería "mediano".
+>>> python
+tamaño = 'mediano'
+```
+
 ## Comparaciones
 
 | Operador | Significa | Ejemplo | Resultado |

@@ -237,3 +237,9 @@ Con los resultados, prepara la recomendación para el director: (1) cuánto gana
 4. gold.fct_hotel_dia: una fila por hotel y noche (grano día-hotel), con noches_disponibles, noches_vendidas, ingreso_habitaciones, ingreso_neto, comisiones por canal y cancelaciones del día. De ahí salen ocupación, ADR y RevPAR por cualquier período sumando y dividiendo, sin errores de promedio de promedios.
 ```
 :::
+
+:::errores
+- **Ocupación con habitaciones totales** incluyendo las que estaban fuera de servicio, o sin decirlo.
+- **ADR con ingresos de otros servicios** (restaurante, spa): el ADR es solo por habitaciones.
+- **Ingreso por canal sin descontar comisiones**: las agencias online parecen más rentables de lo que son.
+:::

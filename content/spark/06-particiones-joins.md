@@ -156,6 +156,49 @@ clientes_s = clientes.crossJoin(sales)
 unido = ventas_s.join(clientes_s, ["cliente_id", "sal"]).drop("sal")
 ```
 
+```recorrido
+titulo: Skew en un groupBy: una tarea con mucho más trabajo que las demás
+estacion datos: Las filas | icono=tabla
+estacion shuffle: Shuffle por clave | icono=red
+estacion tareas: Una tarea por clave | icono=servidor
+estacion lenta: La rezagada | icono=alerta
+estacion arreglo: Arreglos | icono=check
+paso datos: 12.000 pedidos repartidos al azar
+Antes del `groupBy("canal")`, las filas están en varias particiones, mezcladas.
+>>> texto
+partición 1: web, app, web, tienda, web, …
+partición 2: telefono, web, web, app, …
+partición 3: app, web, tienda, web, …
+paso shuffle: El shuffle junta cada canal en un solo lugar
+Para contar por canal, todas las filas de un mismo canal tienen que terminar en la **misma** partición. Spark las mueve según un hash de la clave.
+>>> texto
+hash("web")      → partición A
+hash("app")      → partición B
+hash("tienda")   → partición C
+hash("telefono") → partición D
+paso tareas: Cuántas filas recibe cada tarea
+Con los datos reales del curso, las particiones quedan así:
+>>> tabla
+canal,filas,porcentaje
+web,5400,45
+app,2973,24.8
+tienda,2645,22
+telefono,982,8.2
+paso lenta: La etapa dura lo que dura la más lenta
+La tarea de `web` procesa 5,5 veces más filas que la de `telefono`. Mientras tanto, las otras terminan y quedan **esperando**. Con miles de millones de filas y una clave muy dominante (por ejemplo, `NULL`), eso puede ser una tarea de horas.
+>>> log
+tarea D (telefono)  ██          terminó
+tarea C (tienda)    █████       terminó
+tarea B (app)       ██████      terminó
+tarea A (web)       ███████████ todavía corriendo…
+paso arreglo: Cómo se arregla
+Filtrar la clave problemática si no sirve (los `NULL` en un join), dejar que **AQE** divida las particiones gigantes en joins, o "salar" la clave (agregarle un número al azar) para repartirla en varias tareas.
+>>> texto
+NULL dominante        → filtrar antes del join
+join con skew         → spark.sql.adaptive.skewJoin.enabled (activo por defecto)
+agregación con skew   → salting: clave + rand(0..N), agregar dos veces
+```
+
 ## Adaptive Query Execution (AQE)
 
 Sin AQE, Spark decide **todo el plan antes de empezar**, con estimaciones que pueden estar muy equivocadas. Con AQE, Spark **reoptimiza el plan durante la ejecución**, usando estadísticas reales de cada stage que termina:

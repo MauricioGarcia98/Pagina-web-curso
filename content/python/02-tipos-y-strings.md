@@ -63,6 +63,46 @@ Python **no** mezcla texto y números por su cuenta: `"29" + 1` lanza `TypeError
 
 Si el texto no representa un número válido, la conversión **falla** con un error: `int("abc")` → `ValueError: invalid literal for int()`. En la lección de errores aprenderás a manejar estos casos sin que se detenga el programa (muy común al limpiar datos).
 
+```recorrido
+titulo: Un monto que llega como texto, paso a paso
+estacion txt: Es texto | icono=archivo
+estacion suma: El problema | icono=alerta
+estacion float: float() | icono=transformar
+estacion int: int() | icono=x
+estacion ok: Resultado | icono=check
+paso txt: Lo que llega de un archivo es texto
+Todo lo que se lee de un CSV o de un formulario llega como `str`, aunque *parezca* un número.
+>>> python
+monto = "120.50"
+print(type(monto))
+print(type(monto))
+paso suma: Sumar textos los pega
+Con textos, `+` **concatena**: no da error, da un resultado absurdo. Por eso hay que convertir.
+>>> log
+<class 'str'>
+120.50120.50
+paso float: float() lo convierte en número decimal
+Ahora `+` suma de verdad. (Las líneas que empiezan con `»` son lo que escribes; las demás, lo que responde Python.)
+>>> log
+» monto = float("120.50")
+» print(type(monto))
+» print(monto + monto)
+<class 'float'>
+241.0
+paso int: int() no acepta decimales en un texto
+`int("120.50")` falla: el texto no representa un entero. El error dice exactamente qué valor no pudo convertir.
+>>> log
+» print(int("120.50"))
+ValueError: invalid literal for int() with base 10: '120.50'
+paso ok: Primero a float, después a int
+`int()` **corta** los decimales (no redondea); `round()` redondea. Elige según la regla de negocio.
+>>> log
+» print(int(float("99.90")))
+» print(round(float("99.90")))
+99
+100
+```
+
 ## Strings: trabajar con texto
 
 ```python

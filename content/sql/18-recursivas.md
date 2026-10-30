@@ -217,6 +217,50 @@ Con este resultado puedes responder preguntas como "¿cuántas personas tiene a 
 - Spark SQL no tuvo CTE recursivas durante muchos años (llegaron en versiones muy recientes). Muchos equipos todavía resuelven las jerarquías con bucles en PySpark.
 :::
 
+```recorrido
+titulo: La recursión del organigrama, vuelta por vuelta
+estacion ancla: Ancla | icono=usuario
+estacion v1: Vuelta 1 | icono=flujo
+estacion v2: Vuelta 2 | icono=flujo
+estacion v3: Vuelta 3 | icono=flujo
+estacion fin: Fin | icono=check
+paso ancla: El ancla: el punto de partida
+La primera parte del `UNION ALL` se ejecuta **una sola vez**: el empleado sin jefe.
+>>> tabla
+nivel,empleado_id,nombre,cargo
+0,1,Camila,CEO
+paso v1: Vuelta 1: quienes reportan al CEO
+La parte recursiva busca empleados cuyo `jefe_id` está entre las filas **de la vuelta anterior**. Aparecen los 8 directores (se muestran 4).
+>>> tabla
+nivel,empleado_id,nombre,cargo
+1,2,Camila,Director de Ventas
+1,3,Daniela,Director de Marketing
+1,4,Santiago,Director de Tecnología
+1,5,Florencia,Director de Datos
+paso v2: Vuelta 2: quienes reportan a los directores
+Ahora la entrada son los 8 directores: salen los 18 gerentes. Por ejemplo, los de Datos:
+>>> tabla
+nivel,empleado_id,nombre,cargo,jefe_id
+2,19,Felipe,Gerente,5
+2,20,Isabella,Gerente,5
+paso v3: Vuelta 3: los equipos
+Con los gerentes como entrada salen 96 empleados. Algunos del equipo de Isabella (gerente 20):
+>>> tabla
+nivel,empleado_id,nombre,cargo,jefe_id
+3,92,Ana,Ingeniero de Datos,20
+3,95,Benjamín,Ingeniero de Datos,20
+3,100,Felipe,Científico de Datos,20
+3,93,Fernanda,Analista de Datos,20
+paso fin: Vuelta 4: nadie más → se detiene
+Nadie reporta a esos 96, la vuelta no agrega filas y la recursión termina. El resultado es la unión de todas las vueltas.
+>>> tabla
+nivel,empleados
+0,1
+1,8
+2,18
+3,96
+```
+
 ## Resumen
 
 - Una CTE recursiva tiene **ancla** + `UNION ALL` + **paso recursivo** que se refiere a la propia CTE.

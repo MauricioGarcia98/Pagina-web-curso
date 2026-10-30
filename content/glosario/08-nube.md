@@ -132,3 +132,66 @@ que: Pares clave-valor asignados a los recursos (`equipo=datos`, `entorno=dev`, 
 ejemplo: El reporte de costos agrupado por la etiqueta `proyecto` muestra que `poc-streaming` gastó US$900 este mes.
 para: Saber cuánto cuesta cada cosa y de quién es.
 ver: Presupuesto, Terraform
+
+## Endpoint
+alias: endpoints, punto de conexión, extremo
+nino: Un endpoint es **la ventanilla exacta a la que vas a pedir algo**: no alcanza con saber el edificio (el servicio), tienes que ir a la ventanilla correcta, con la dirección exacta.
+que: Una dirección (URL) a la que un programa envía peticiones para usar un servicio: una API (`https://api.ejemplo.com/v1/pagos`), un modelo de ML desplegado (*serving endpoint*) o un servicio de la nube en una región (`https://s3.us-east-1.amazonaws.com`). En ML, "endpoint" suele ser un modelo encendido que responde predicciones por HTTP.
+ejemplo: Un endpoint de Model Serving recibe `{"cliente_id": 7}` y devuelve `{"probabilidad_churn": 0.81}`.
+para: Saber a dónde conectarse para usar un servicio o un modelo.
+cuidado: Un endpoint de ML encendido **cobra por hora aunque nadie lo use**: en laboratorios, bórralo apenas termines.
+ver: API, Serverless, Presupuesto
+
+## Token
+alias: tokens, token de acceso, access token, PAT, personal access token
+nino: Un token es **una pulsera de acceso de un evento**: te la dan cuando muestras tu entrada, te deja pasar por un tiempo y no tiene tu contraseña escrita.
+que: Una cadena de texto que un programa presenta para demostrar que tiene permiso de usar un servicio. Puede ser de corta duración (OAuth, se renueva sola) o un *personal access token* (PAT) que crea una persona. Quien tenga el token puede actuar con esos permisos.
+ejemplo: `curl -H "Authorization: Bearer $TOKEN" https://…/api/2.1/jobs/list`
+para: Autenticar scripts, CLIs y herramientas sin usar la contraseña de una persona.
+cuidado: Un token es tan sensible como una contraseña: nunca en el código ni en Git, sino en un gestor de secretos. Prefiere tokens de corta duración o identidades de servicio a PAT personales sin vencimiento.
+ver: Secreto, OAuth, Credenciales temporales
+
+## OAuth
+alias: oauth 2.0, oauth2, oidc, openid connect
+nino: Es como cuando una app te dice **"entrar con Google"**: no le das tu contraseña a la app; Google te pregunta si la autorizas y le entrega a la app un permiso temporal.
+que: Estándar para **delegar acceso**: una aplicación obtiene un token con permisos limitados y de corta duración, emitido por un proveedor de identidad, en lugar de guardar una contraseña. OpenID Connect (OIDC) agrega la identificación del usuario. Las CLIs de la nube (`databricks auth login`, `az login`, `gcloud auth login`) y las integraciones de CI/CD sin secretos lo usan.
+ejemplo: `databricks auth login --host https://…` abre el navegador, inicias sesión y la CLI recibe un token que se renueva solo.
+para: Dar acceso a programas y personas sin compartir contraseñas ni guardar claves de larga duración.
+cuidado: Los permisos que se aprueban (*scopes*) deben ser los mínimos necesarios.
+ver: Token, OIDC, SSO
+
+## SDK
+alias: sdks, kit de desarrollo, boto3, client library
+nino: Un SDK es **una caja de herramientas ya armada** para hablar con un servicio desde tu programa: en lugar de fabricar cada herramienta, usas las que vienen en la caja.
+que: *Software Development Kit*: una biblioteca para un lenguaje (Python, Java…) que envuelve la API de un servicio en funciones fáciles de usar, y se encarga de la autenticación, los reintentos y la paginación. Ejemplos: `boto3` (AWS), `google-cloud-bigquery`, `azure-storage-blob`, `databricks-sdk`.
+ejemplo: `boto3.client("s3").upload_file("ventas.csv", "lake-tienda-dev", "bronze/ventas.csv")`
+para: Automatizar la nube desde código sin armar a mano las peticiones HTTP.
+cuidado: El SDK usa las credenciales del entorno donde corre: verifica con qué identidad y en qué cuenta o proyecto está trabajando.
+ver: API, CLI, ADC
+
+## Instancia spot
+alias: spot, spot instances, spot vm, vm preemptible, instancias interrumpibles
+nino: Es como **un asiento de avión de último momento**: es mucho más barato, pero si aparece alguien que paga el precio completo, te pueden bajar.
+que: Máquinas de la nube que usan capacidad sobrante con un gran descuento (a menudo 60-90 %), a cambio de que el proveedor pueda **recuperarlas** con poco aviso. AWS las llama Spot Instances; Google Cloud, Spot VMs; Azure, Spot Virtual Machines.
+ejemplo: Un clúster de Spark con el driver en una máquina normal y los workers en spot: si se pierde un worker, Spark reintenta sus tareas en otro.
+para: Bajar mucho el costo de cargas que toleran interrupciones, como jobs batch de Spark.
+cuidado: No uses spot para el driver de Spark, bases de datos ni endpoints que deben estar siempre disponibles.
+ver: Worker, Presupuesto, Cluster
+
+## Cifrado
+alias: encriptación, encryption, cifrado en reposo, cifrado en tránsito, kms, cmek
+nino: Cifrar es **escribir un mensaje en un código secreto**: aunque alguien lo robe, sin la llave no entiende nada.
+que: Transformar los datos para que solo quien tenga la clave pueda leerlos. **En reposo**: los archivos y discos se guardan cifrados (todas las nubes lo hacen por defecto). **En tránsito**: las conexiones usan TLS (HTTPS). Las claves se administran en un servicio como AWS KMS, Azure Key Vault o Cloud KMS; con claves propias (CMEK) la empresa controla y puede revocar la llave.
+ejemplo: Un bucket con cifrado SSE-KMS: para leer un archivo hace falta permiso sobre el bucket **y** sobre la clave de KMS.
+para: Proteger datos sensibles y cumplir regulaciones.
+cuidado: El cifrado no reemplaza los permisos: quien tiene acceso a los datos y a la clave los lee en claro. Para datos personales, combina cifrado, permisos mínimos y enmascaramiento.
+ver: PII, Key Vault, IAM
+
+## VPC
+alias: virtual private cloud, red virtual, vnet, subred
+nino: Una VPC es **un barrio cerrado dentro de la ciudad de la nube**: tus máquinas viven adentro, con sus calles propias, y tú decides qué portones se abren hacia afuera.
+que: Una red privada y aislada dentro de un proveedor de nube (en Azure se llama VNet), dividida en **subredes**, con reglas de tráfico (grupos de seguridad, firewalls) y conexiones privadas a servicios (*private endpoints*, *VPC endpoints*) para que los datos no pasen por internet.
+ejemplo: Un clúster de Databricks desplegado en la VNet de la empresa lee el lago a través de un private endpoint del Storage Account.
+para: Controlar por dónde viajan los datos y quién puede llegar a cada recurso.
+cuidado: Un error en las reglas de red suele verse como un *timeout* sin mensaje claro: cuando una conexión "se cuelga", revisa la red además de los permisos.
+ver: VPC Service Controls, Región, IAM

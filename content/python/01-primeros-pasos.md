@@ -42,7 +42,7 @@ Un data engineer usa ambos todos los días.
 
 ## Dónde se ejecuta Python en este curso
 
-Normalmente Python se instala en tu computadora. Aquí corre **dentro de tu navegador** gracias a **Pyodide** (Python compilado para la web). La primera vez que ejecutas código tarda unos segundos en cargar; después es instantáneo. No puedes romper nada: cada ejecución es independiente.
+Normalmente Python se instala en tu computadora. Aquí corre **dentro de tu navegador** gracias a **Pyodide** (Python compilado para la web): es Python 3.14 de verdad, con pandas 3 y numpy 2. La primera vez que ejecutas código tarda unos segundos en cargar; después es instantáneo. No puedes romper nada: cada ejecución es independiente.
 
 ## Tu primer programa
 
@@ -132,6 +132,33 @@ print("Después de un depósito:", saldo)
 - No uses palabras reservadas de Python como nombre (`if`, `for`, `class`, `print`…).
 - Convención: **`snake_case`** (minúsculas y guiones bajos): `precio_total`, `fecha_pedido`, `es_cliente`. Las tildes funcionan pero conviene evitarlas.
 - Usa **nombres que expliquen** el contenido: `total_ventas` y no `x` o `tv`. Leer código es mucho más frecuente que escribirlo.
+
+```recorrido
+titulo: Qué pasa en la memoria cuando usas variables
+estacion l1: Línea 1 | icono=codigo
+estacion l2: Línea 2 | icono=codigo
+estacion l3: Línea 3 | icono=codigo
+estacion l4: Línea 4 | icono=terminal
+paso l1: precio = 1500
+Python crea una variable llamada `precio` y guarda adentro el número 1500. Una variable es una **caja con nombre**.
+>>> python
+precio = 1500
+# memoria: precio → 1500
+paso l2: iva = precio * 0.18
+Primero calcula lo de la **derecha** del `=` (1500 × 0,18) y después guarda el resultado en `iva`. Para calcularlo, **busca** el valor de `precio`.
+>>> python
+iva = precio * 0.18
+# memoria: precio → 1500 · iva → 270.0
+paso l3: precio = precio + iva
+Puede leer y reemplazar la misma variable: toma el valor actual (1500), le suma 270 y guarda 1770 en `precio`. El 1500 se pierde.
+>>> python
+precio = precio + iva
+# memoria: precio → 1770.0 · iva → 270.0
+paso l4: print(precio)
+`print` muestra el valor **actual** de la variable. Si intentas usar una variable antes de crearla, Python da `NameError`.
+>>> texto
+1770.0
+```
 
 ## Operaciones con números
 

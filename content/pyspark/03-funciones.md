@@ -141,6 +141,53 @@ from pyspark.sql import functions as F
 
 Funciona igual que en SQL: **gana la primera condición verdadera**, y sin `.otherwise` lo que no coincide queda `null`. Las condiciones se combinan con `&` y `|`, con paréntesis: `F.when((F.col("pais") == "Chile") & (F.col("total") > 1000), "VIP Chile")`.
 
+```recorrido
+titulo: when / otherwise paso a paso: clasificar productos por precio
+estacion tabla: Los productos | icono=tabla
+estacion w1: Primer when | icono=reglas
+estacion w2: Segundo when | icono=reglas
+estacion other: otherwise | icono=etiqueta
+estacion res: Resultado | icono=check
+paso tabla: Seis productos
+Queremos una columna `rango` con "caro", "medio" o "barato" según el precio.
+>>> tabla
+producto_id,nombre,precio
+1,Smartphone Apple Mini 300,484.99
+2,Parlante Xiaomi Sport 900,425.99
+3,Notebook Apple X,1044.99
+4,Teclado Kingston Ultra 200,458.99
+5,Juego de ollas Philips Plus 400,42.99
+6,Mesa Muebles Sur Mini 500,40.99
+paso w1: Se prueba la primera condición
+`F.when(F.col("precio") >= 500, "caro")`: las filas que cumplen reciben "caro" y **ya no se prueban** las condiciones siguientes.
+>>> python
+from pyspark.sql import functions as F
+
+rango = (F.when(F.col("precio") >= 500, "caro")
+          .when(F.col("precio") >= 100, "medio")
+          .otherwise("barato"))
+paso w2: Las que no cumplieron pasan a la segunda
+Solo las filas que **no** fueron "caro" se prueban con `precio >= 100`. Por eso el orden de los `when` importa: de la condición más exigente a la menos.
+>>> texto
+Notebook Apple X   1044.99 → ¿>= 500? sí → caro
+Smartphone Apple    484.99 → ¿>= 500? no → ¿>= 100? sí → medio
+Juego de ollas       42.99 → ¿>= 500? no → ¿>= 100? no → otherwise
+paso other: otherwise: lo que sobra
+`otherwise("barato")` es el valor para las filas que no cumplieron ninguna condición. **Sin `otherwise`, quedarían en `null`.**
+>>> python
+resultado = spark.table("productos").withColumn("rango", rango)
+paso res: El resultado
+Los mismos 6 productos con su rango calculado.
+>>> tabla
+producto_id,nombre,precio,rango
+1,Smartphone Apple Mini 300,484.99,medio
+2,Parlante Xiaomi Sport 900,425.99,medio
+3,Notebook Apple X,1044.99,caro
+4,Teclado Kingston Ultra 200,458.99,medio
+5,Juego de ollas Philips Plus 400,42.99,barato
+6,Mesa Muebles Sur Mini 500,40.99,barato
+```
+
 ## Nulos
 
 ```python

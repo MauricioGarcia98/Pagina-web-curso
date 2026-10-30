@@ -45,6 +45,44 @@ Un lunes, el panel de ventas de la cadena de Valentina amaneció vacío: un DAG 
 - Cloud Storage dual-región o multirregión; Bigtable con replicación; Spanner multirregional (99,999 %); Cloud SQL con alta disponibilidad y réplicas de lectura entre regiones.
 - Pub/Sub con **snapshots** y **seek** para reprocesar.
 
+```recorrido
+titulo: Recuperar una tabla de BigQuery borrada por error
+estacion error: El error | icono=alerta
+estacion tt: Time travel | icono=reloj
+estacion restaurar: Restaurar | icono=transformar
+estacion verificar: Verificar | icono=lupa
+estacion prevenir: Prevenir | icono=escudo
+paso error: Alguien borra filas por error
+Un `DELETE` con la condición al revés deja `ventas` con una fracción de sus filas (ejemplo).
+>>> sql
+DELETE FROM tienda.ventas
+WHERE fecha < '2024-12-31';   -- quería borrar solo el 31, no todo lo anterior
+paso tt: Time travel: la tabla "como era"
+BigQuery guarda el historial de cada tabla durante la ventana de time travel (7 días por defecto; configurable entre 2 y 7). Se consulta con `FOR SYSTEM_TIME AS OF`.
+>>> sql
+SELECT COUNT(*)
+FROM tienda.ventas
+  FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR);
+paso restaurar: Restaurar a una tabla nueva
+Se copia el estado anterior a otra tabla, se revisa y recién después se reemplaza la original.
+>>> sql
+CREATE TABLE tienda.ventas_restaurada AS
+SELECT * FROM tienda.ventas
+  FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR);
+paso verificar: Comparar antes de reemplazar
+Conteos y totales contra el último valor conocido (por ejemplo, el del tablero de ayer).
+>>> tabla
+tabla,filas
+ventas (después del error),63
+ventas_restaurada,11033
+paso prevenir: Prevenir la próxima vez
+Pasada la ventana de time travel queda el **fail-safe** de 7 días más, pero solo se recupera pidiéndolo a soporte. Para tablas críticas: **snapshots** programados y permisos que impidan reemplazar tablas de producción a mano.
+>>> texto
+0–7 días   → time travel (lo haces tú)
++7 días    → fail-safe (solo vía soporte)
+siempre    → snapshots programados de las tablas críticas
+```
+
 ## Seguridad y cumplimiento
 
 ### Identidad y acceso

@@ -46,6 +46,45 @@ Es una fila de supermercado con 20 cajas abiertas en la que todos los clientes c
 Cuando un executor muere, se pierden los archivos de shuffle que había escrito. El stage siguiente no los encuentra (`FetchFailed`) y Spark vuelve a correr las tareas del stage anterior que los generaron. Por eso un OOM en una tarea puede convertir un job de 25 minutos en uno de dos horas antes de fallar.
 :::
 
+```recorrido
+titulo: Cómo se ve el skew en la Spark UI, y qué cambia al corregirlo
+estacion stage: El stage | icono=servidor
+estacion tareas: Las tareas | icono=capas
+estacion causa: La causa | icono=lupa
+estacion fix: La corrección | icono=transformar
+estacion despues: Después | icono=check
+paso stage: Un stage que no termina
+El job lleva 40 minutos en el stage del join: 199 de 200 tareas terminaron y una sigue corriendo (ejemplo).
+>>> log
+Stage 12 (join): 199/200 tareas completas · 1 corriendo hace 38 min
+paso tareas: Las métricas de las tareas
+En la Spark UI, la tabla de resumen del stage muestra la distribución: la mediana y el máximo no se parecen en nada.
+>>> tabla
+métrica,mín,mediana,máx
+duración,8 s,12 s,38 min
+shuffle read,40 MB,55 MB,61 GB
+spill (disco),0,0,48 GB
+paso causa: Una clave con la mitad de las filas
+Contar por clave del join muestra el culpable: `cliente_id = NULL` (compras sin cuenta).
+>>> tabla
+cliente_id,filas
+NULL,412000000
+57,1200
+812,1150
+paso fix: Filtrar lo que no puede unirse
+En un inner join, las filas con `NULL` en la clave **nunca** encuentran pareja: filtrarlas antes no cambia el resultado y elimina el skew. Si la clave dominante fuera un valor real, se usaría AQE o *salting*.
+>>> python
+ventas = ventas.filter(F.col("cliente_id").isNotNull())
+r = ventas.join(clientes, "cliente_id")
+paso despues: Tareas parejas
+Sin la clave gigante, todas las tareas procesan volúmenes parecidos y el stage termina en minutos.
+>>> tabla
+métrica,mín,mediana,máx
+duración,7 s,10 s,21 s
+shuffle read,38 MB,50 MB,74 MB
+spill (disco),0,0,0
+```
+
 ## Las correcciones del skew
 
 | Técnica | Cómo funciona | Cuándo |

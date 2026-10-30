@@ -44,6 +44,53 @@ Solo las filas donde la condición da **verdadero** pasan al resultado. (En real
 `WHERE` es un colador: echas toda la tabla y solo quedan las filas que "no pasan por los agujeros". Filtrar **no borra nada** de la tabla: la próxima consulta vuelve a tener todas las filas.
 :::
 
+```recorrido
+titulo: WHERE paso a paso: cada fila se pone a prueba
+estacion tabla: La tabla | icono=tabla
+estacion prueba: La condición | icono=reglas
+estacion filtro: El filtro | icono=lupa
+estacion res: Resultado | icono=check
+paso tabla: Ocho pedidos
+Tomemos 8 pedidos reales de la tabla `pedidos`. La pregunta: ¿cuáles fueron **entregados**?
+>>> tabla
+pedido_id,cliente_id,canal,estado
+101,73,web,entregado
+102,361,web,entregado
+103,1229,web,enviado
+104,751,web,entregado
+105,303,web,cancelado
+106,637,web,entregado
+107,837,app,devuelto
+108,904,web,entregado
+paso prueba: La condición se evalúa en cada fila
+`WHERE estado = 'entregado'` se pregunta **fila por fila**: ¿esta fila cumple? La respuesta es verdadero o falso.
+>>> tabla
+pedido_id,estado,cumple
+101,entregado,sí
+102,entregado,sí
+103,enviado,no
+104,entregado,sí
+105,cancelado,no
+106,entregado,sí
+107,devuelto,no
+108,entregado,sí
+paso filtro: Solo pasan las que cumplen
+Las filas con "no" se descartan. WHERE **no cambia** ninguna fila: decide cuáles siguen.
+>>> sql
+SELECT pedido_id, cliente_id, canal, estado
+FROM pedidos
+WHERE estado = 'entregado';
+paso res: El resultado
+Quedan 5 de los 8 pedidos. El `enviado`, el `cancelado` y el `devuelto` quedaron afuera.
+>>> tabla
+pedido_id,cliente_id,canal,estado
+101,73,web,entregado
+102,361,web,entregado
+104,751,web,entregado
+106,637,web,entregado
+108,904,web,entregado
+```
+
 ## Operadores de comparación
 
 | Operador | Significa | Ejemplo |

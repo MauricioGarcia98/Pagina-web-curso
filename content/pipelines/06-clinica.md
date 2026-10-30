@@ -124,6 +124,43 @@ Calcula en el `agg` una columna auxiliar con el denominador (atendidos + ausente
 ```
 :::
 
+```recorrido
+titulo: El historial de un paciente, paso a paso
+estacion turnos: Turnos | icono=reloj
+estacion cuentas: Contar por estado | icono=capas
+estacion tasa: Tasa | icono=engranaje
+estacion ult: Última visita | icono=lupa
+estacion res: Reincidente | icono=alerta
+paso turnos: Los turnos del paciente 31
+Cinco turnos en `clinica_turnos`: tres atendidos y dos en los que no vino.
+>>> tabla
+turno_id,fecha_hora,estado
+2009,2024-04-03 15:00:00,atendido
+2483,2024-04-24 17:00:00,atendido
+2777,2024-05-07 15:30:00,ausente
+6015,2024-10-08 12:00:00,atendido
+7084,2024-11-28 17:00:00,ausente
+paso cuentas: Contar con sumas de marcas
+`F.sum((estado == "ausente").cast("int"))` cuenta ausencias. La **base** de la tasa son solo los turnos atendidos o ausentes: un turno **cancelado** con anticipación no es una ausencia.
+>>> tabla
+paciente_id,turnos,ausencias,base
+31,5,2,5
+paso tasa: La tasa de ausentismo
+2 ausencias / 5 turnos con resultado × 100 = **40 %**. El `F.when(base > 0, base)` evita dividir por cero: si no hay base, la tasa queda `null`.
+>>> python
+F.round(F.col("ausencias") * 100 / F.when(F.col("base") > 0, F.col("base")), 2)
+paso ult: La última visita real
+`F.max(F.when(estado == "atendido", fecha_hora))`: el máximo solo entre los atendidos. El turno del 28/11 fue una ausencia, así que no cuenta.
+>>> tabla
+ultima_visita
+2024-10-08 12:00:00
+paso res: La fila del paciente
+Con 2 o más ausencias, es **reincidente**: la clínica le mandará un recordatorio extra antes de cada turno.
+>>> tabla
+paciente_id,turnos,ausencias,tasa_ausentismo,ultima_visita,reincidente
+31,5,2,40,2024-10-08 12:00:00,true
+```
+
 ## 4. dbt: facturación mensual por cobertura
 
 Finanzas negocia cada año con las prepagas y obras sociales. Necesita, por mes y cobertura, cuánto se facturó, cuánto pagó la cobertura y cuánto el paciente (copago).
@@ -186,17 +223,17 @@ Crea el DAG `clinica_recordatorios` (`schedule="0 18 * * *"`, `start_date` 2024-
 Orden: `turnos_manana >> hay_turnos >> enviar_recordatorios`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 cantidad_turnos = 0
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 cantidad_turnos = 0
 
@@ -225,4 +262,27 @@ assert run.states["hay_turnos"] == "success", "El ShortCircuit en sí termina bi
 ```pista
 Lo que devuelve la función de un `PythonOperator` se guarda en XCom como `return_value`. En `hay(ti)`, `ti.xcom_pull(task_ids="turnos_manana")` lo recupera.
 ```
+:::
+
+## De las reglas a la operación diaria
+
+En la clínica, el pipeline tiene un efecto directo en personas: si los recordatorios no salen, los pacientes faltan y los turnos se pierden. Por eso el DAG de recordatorios usa un `ShortCircuitOperator`: si mañana no hay turnos (un feriado), se corta sin enviar nada y sin marcar error. Y el **puntaje de riesgo de ausencia** decide a quién llamar además de enviarle un mensaje: el equipo de recepción tiene tiempo para unas pocas llamadas, así que se priorizan los de mayor riesgo.
+
+Los datos de salud son **sensibles**: en las tablas de análisis no van nombres ni documentos, sino identificadores. Los datos de contacto viven en un sistema aparte, al que solo accede el proceso que envía los recordatorios.
+
+:::errores
+- **Turnos que se superponen** al calcular la agenda libre: un turno que termina a las 10:00 y otro que empieza a las 10:00 no se pisan; uno que termina a las 10:05, sí. Los límites (`<` o `<=`) van en los tests.
+- **Puntaje con información que no existe al momento de predecir** (por ejemplo, si el paciente vino o no): usa solo el historial anterior al turno.
+- **Facturación que mezcla meses de atención y de pago**: el mismo dato da totales distintos según qué fecha uses. Defínelo en el modelo de dbt.
+- **Enviar recordatorios dos veces** si el DAG se reintenta: registra qué mensajes se enviaron y no repitas.
+- **Copiar datos personales de pacientes** a tablas de análisis "por si acaso".
+:::
+
+:::trabajo
+- En salud, las leyes de protección de datos obligan a minimizar los datos personales, registrar quién accede y poder borrar los datos de un paciente si lo pide. Unity Catalog, Purview o Lake Formation se usan para enmascarar columnas y auditar accesos.
+- Un puntaje basado en reglas claras (cantidad de ausencias previas, anticipación del turno) suele ser la primera versión; un modelo de machine learning llega después, y se compara contra esa regla.
+:::
+
+:::entrevista "¿Cómo evitarías que un proceso de envío de mensajes mande duplicados si se reintenta?"
+Haciendo el envío idempotente: cada mensaje tiene un identificador derivado del turno y del tipo de recordatorio, y antes de enviar se consulta una tabla de envíos realizados; el envío y el registro se hacen juntos. Si la tarea se reintenta, los ya enviados se saltan. Además, el proveedor de mensajes suele aceptar una clave de idempotencia. Y separaría el cálculo de destinatarios (que se puede repetir sin problema) del envío.
 :::

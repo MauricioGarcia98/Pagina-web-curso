@@ -239,6 +239,23 @@ bq mk --dataset ml_lab
 ```
 :::
 
+:::errores
+- **Particionar y después no filtrar por la partición**: BigQuery escanea la tabla entera. Se puede exigir el filtro con `require_partition_filter`.
+- **`SELECT *` en BigQuery**: cobra por columnas leídas; `LIMIT` no reduce el costo.
+- **No usar el dry run** antes de una consulta grande: el costo se ve después.
+- **Evaluar el modelo con los mismos datos del entrenamiento**: las métricas salen infladas. BigQuery ML separa datos de evaluación; revisa cuáles usó.
+- **Clustering en columnas con pocos valores distintos** o que no se filtran: no reduce lo escaneado.
+:::
+
+:::trabajo
+- En empresas que usan BigQuery, revisar los bytes escaneados de las consultas más caras es una tarea semanal; las tablas grandes siempre se particionan por fecha.
+- BigQuery ML se usa para modelos rápidos cerca de los datos (clasificación, pronósticos) cuando no hace falta una plataforma de ML completa.
+:::
+
+:::entrevista "¿Qué diferencia hay entre particionar y agrupar (clustering) una tabla en BigQuery?"
+Particionar divide la tabla en segmentos, normalmente por fecha, y una consulta que filtra la partición solo lee esos segmentos, lo que se ve en el costo estimado. El clustering ordena los datos dentro de cada partición por hasta cuatro columnas, y el motor salta bloques que no cumplen el filtro; ayuda en columnas con muchos valores que se filtran o agrupan seguido. Se combinan: partición por fecha y clustering por cliente o canal.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz

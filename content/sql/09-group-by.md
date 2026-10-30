@@ -66,6 +66,62 @@ GROUP BY canal;
 
 Comprueba: 2.973 + 982 + 2.645 + 5.400 = 12.000. Los grupos **reparten** todas las filas sin repetir ni perder ninguna.
 
+```recorrido
+titulo: GROUP BY paso a paso: pedidos por canal
+estacion tabla: Las filas | icono=tabla
+estacion grupos: Agrupar | icono=capas
+estacion agg: Contar en cada grupo | icono=cubo
+estacion having: HAVING | icono=reglas
+estacion res: Resultado | icono=check
+paso tabla: Diez pedidos
+Diez pedidos reales. La pregunta: ¿cuántos pedidos hubo **por canal**?
+>>> tabla
+pedido_id,canal,estado
+1001,web,entregado
+1002,web,entregado
+1003,web,entregado
+1004,app,entregado
+1005,app,entregado
+1006,web,enviado
+1007,app,entregado
+1008,tienda,entregado
+1009,app,enviado
+1010,web,devuelto
+paso grupos: GROUP BY canal arma montones
+`GROUP BY canal` junta las filas que tienen el **mismo valor** de canal. Ordenadas así se ven los tres montones: app, tienda y web.
+>>> tabla
+canal,pedido_id,estado
+app,1004,entregado
+app,1005,entregado
+app,1007,entregado
+app,1009,enviado
+tienda,1008,entregado
+web,1001,entregado
+web,1002,entregado
+web,1003,entregado
+web,1006,enviado
+web,1010,devuelto
+paso agg: Una fila por montón
+`COUNT(*)` cuenta las filas **de cada montón**. Cada grupo se convierte en una fila del resultado.
+>>> sql
+SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal;
+paso having: HAVING filtra grupos
+WHERE filtra filas **antes** de agrupar; HAVING filtra **grupos** después. `HAVING COUNT(*) >= 2` descarta los canales con un solo pedido.
+>>> sql
+SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY canal
+HAVING COUNT(*) >= 2;
+paso res: El resultado
+Diez filas entraron; salen tantas filas como grupos que pasaron el HAVING. `tienda` quedó afuera porque tenía un solo pedido.
+>>> tabla
+canal,pedidos
+app,4
+web,5
+```
+
 ## La regla de oro
 
 > Toda columna del `SELECT` debe estar **en el `GROUP BY`** o **dentro de una función de agregación**.

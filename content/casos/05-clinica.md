@@ -74,6 +74,59 @@ ORDER BY pct_ausentismo DESC;
 
 **Lectura de negocio:** PAMI (la cobertura de jubilados) falta claramente menos. Las diferencias entre las demás son chicas: antes de lanzar una acción por cobertura, conviene mirar otras variables (anticipación, día de la semana), que son justamente los ejercicios.
 
+```recorrido
+titulo: Ausentismo por cobertura, paso a paso
+estacion t: Turnos | icono=reloj
+estacion join: JOIN pacientes | icono=capas
+estacion marcas: Marcas 0/1 | icono=reglas
+estacion den: El denominador | icono=engranaje
+estacion res: Resultado | icono=check
+paso t: Los turnos
+Cada turno termina `atendido`, `ausente` o `cancelado`. La cobertura no está aquí: es del paciente.
+>>> tabla
+turno_id,paciente_id,estado
+1,1000,atendido
+2,69,atendido
+3,1531,atendido
+4,939,atendido
+5,1235,atendido
+6,895,atendido
+paso join: Traer la cobertura
+`JOIN clinica_pacientes` agrega la cobertura de cada turno.
+>>> tabla
+turno_id,cobertura,estado
+1,Galeno,atendido
+2,OSDE,atendido
+3,OSDE,atendido
+4,PAMI,atendido
+5,Swiss Medical,atendido
+6,PAMI,atendido
+paso marcas: Dos marcas por turno
+`ausente` = 1 si faltó. `base` = 1 si el turno tuvo resultado (atendido o ausente). Un **cancelado** con anticipación no cuenta en ninguna de las dos.
+>>> tabla
+turno_id,cobertura,estado,ausente,base
+1,Galeno,atendido,0,1
+2,OSDE,atendido,0,1
+3,OSDE,atendido,0,1
+4,PAMI,atendido,0,1
+5,Swiss Medical,atendido,0,1
+6,PAMI,atendido,0,1
+paso den: Sumar y dividir
+Por cobertura: `SUM(ausente) / SUM(base) × 100`. Si dividieras por `COUNT(*)`, los cancelados bajarían la tasa sin que nadie haya venido más.
+>>> sql
+ROUND(100.0 * SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END)
+      / SUM(CASE WHEN t.estado IN ('atendido', 'ausente') THEN 1 ELSE 0 END), 2)
+paso res: Una fila por cobertura
+PAMI falta claramente menos; entre las demás, las diferencias son chicas.
+>>> tabla
+cobertura,turnos,pct_ausentismo
+Galeno,1950,12.41
+OSDE,1779,12.37
+Particular,1562,12.09
+Swiss Medical,1167,11.89
+PAMI,1296,9.82
+```
+
 :::cuidado Las trampas de este caso
 - **El denominador del ausentismo**: incluir los cancelados en el total baja artificialmente la tasa.
 - **Fecha vs. fecha-hora**: `fecha_hora` del turno tiene hora; `fecha_reserva` es solo fecha. Para calcular la anticipación en días, lleva el turno a fecha con `date(fecha_hora)`.
@@ -184,4 +237,15 @@ SELECT CASE dw WHEN 1 THEN 'lunes' WHEN 2 THEN 'martes' WHEN 3 THEN 'miércoles'
        ROUND(100.0 * SUM(CASE WHEN estado = 'ausente' THEN 1 ELSE 0 END) / COUNT(*), 2) AS ausentismo_pct
 FROM t GROUP BY dw ORDER BY dw;
 ```
+:::
+
+:::errores
+- **Ausentismo calculado sobre turnos futuros**: todavía no se sabe si el paciente va a venir.
+- **Productividad de médicos sin considerar sus horas disponibles**: más turnos atendidos puede ser solo más horas.
+- **Facturación sumando turnos cancelados**.
+- **Datos personales de pacientes en los resultados** cuando bastan los identificadores.
+:::
+
+:::entrevista "¿Cómo medirías el efecto de la anticipación del turno en el ausentismo?"
+Calcularía para cada turno pasado los días entre la reserva y la cita, lo agruparía en tramos (mismo día, 1 a 7, 8 a 30, más de 30) y mediría la tasa de ausencias por tramo sobre los turnos que ya ocurrieron. Controlaría por especialidad y tipo de paciente, porque pueden explicar la diferencia, y mostraría la cantidad de turnos por tramo para no sacar conclusiones de grupos chicos.
 :::

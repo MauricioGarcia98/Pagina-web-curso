@@ -67,12 +67,58 @@ gold.write.mode("overwrite").saveAsTable("gold_ventas_diarias")
 spark.table("gold_ventas_diarias").orderBy(F.desc("ventas")).show(5)
 ```
 
+```recorrido
+titulo: El pipeline medallón, capa por capa
+estacion src: Origen | icono=base
+estacion bronze: Bronze | icono=archivo
+estacion silver: Silver | icono=escudo
+estacion gold: Gold | icono=dashboard
+estacion write: Escritura | icono=check
+paso src: Los datos del sistema de origen
+El ERP tiene la tabla `pedidos` tal cual la usa la aplicación.
+>>> tabla
+pedido_id,cliente_id,fecha_pedido,estado,canal
+101,73,2022-01-14,entregado,web
+102,361,2022-01-15,entregado,web
+103,1229,2022-01-15,enviado,web
+104,751,2022-01-15,entregado,web
+paso bronze: Bronze: igual que el origen + metadatos
+`a_bronze` **no cambia** los datos: solo agrega de dónde vinieron y cuándo se cargaron. Si algo sale mal después, siempre puedes reprocesar desde aquí.
+>>> tabla
+pedido_id,estado,canal,_origen,_fecha_ingesta
+101,entregado,web,erp,2025-01-01 03:00:00
+102,entregado,web,erp,2025-01-01 03:00:00
+103,enviado,web,erp,2025-01-01 03:00:00
+104,entregado,web,erp,2025-01-01 03:00:00
+paso silver: Silver: limpio y sin duplicados
+`limpiar_pedidos` normaliza textos, descarta filas sin clave y deja una fila por `pedido_id`. `lineas_con_importe` calcula el importe de cada línea.
+>>> tabla
+pedido_id,producto_id,cantidad,precio_unitario,descuento,importe
+101,119,2,882.89,0.15,1500.91
+101,146,1,1532.69,0,1532.69
+102,282,1,112.49,0,112.49
+102,84,1,9.89,0.05,9.4
+paso gold: Gold: la métrica de negocio
+`ventas_diarias` une silver, excluye los cancelados y resume por día y canal. Es la tabla que lee el tablero.
+>>> python
+gold = ventas_diarias(silver_pedidos, silver_lineas)
+paso write: Se escribe al final
+Solo la última línea escribe (`saveAsTable`). Estos son los 5 días y canales con más ventas, calculados sobre los datos reales:
+>>> tabla
+fecha_pedido,canal,ventas,pedidos,clientes
+2024-07-15,web,32072.1,12,12
+2024-09-13,web,27415.13,5,5
+2024-07-11,web,26682.43,13,13
+2024-12-21,web,24399.43,10,9
+2024-12-22,web,21524.8,8,8
+```
+
 ## Principios que hacen un pipeline “de producción”
 
 - **Idempotencia**: correrlo dos veces con los mismos datos deja el mismo resultado (sobrescribe por partición o usa `MERGE`; nunca `append` a ciegas).
 - **Incrementalidad**: procesar solo lo nuevo (por fecha de ingesta, Auto Loader, Change Data Feed o `MERGE`).
 - **Funciones puras + tests**: cada transformación se prueba con un DataFrame chiquito hecho a mano (`spark.createDataFrame`) y `pytest`.
-- **Parámetros, no constantes**: fechas, rutas y entornos llegan como parámetros del job (widgets en Databricks, variables en Asset Bundles).
+- **Parámetros, no constantes**: fechas, rutas y entornos llegan como parámetros del job (widgets en Databricks, variables en Declarative Automation Bundles).
 - **Observabilidad**: registra cuántas filas entran, salen y se descartan en cada paso.
 
 ## Un test de la transformación (estilo pytest)

@@ -155,6 +155,50 @@ Crea antes del `groupBy` una columna `fecha` (con `F.to_date`) y una columna `sk
 Si una feature usa datos **posteriores** al momento de la predicción (por ejemplo, reproducciones de enero para predecir quién se va en diciembre), el modelo parece genial en las pruebas y falla en producción. Por eso estas tablas siempre se calculan "al corte" de una fecha (`2024-12-31` aquí), con todos los eventos **anteriores** a ese corte. Es el mismo principio del *as-of join* de SQL.
 :::
 
+```recorrido
+titulo: Las features de un usuario, paso a paso
+estacion repros: Reproducciones | icono=tabla
+estacion cols: Columnas nuevas | icono=transformar
+estacion agg: groupBy | icono=capas
+estacion inact: Inactividad | icono=reloj
+estacion res: Fila de features | icono=check
+paso repros: Lo que escuchó el usuario 22
+Seis reproducciones en `streaming_reproducciones`. Cada fila es "escuchó tal contenido, tantos segundos".
+>>> tabla
+repro_id,fecha_hora,segundos_escuchados
+2476,2024-03-16 12:37:00,203
+3318,2024-04-08 23:56:00,39
+4364,2024-05-06 19:25:00,19
+5499,2024-06-02 09:04:00,84
+7635,2024-07-17 13:41:00,158
+12163,2024-10-04 20:34:00,14
+paso cols: fecha y skip
+`fecha` = solo el día (para contar días distintos). `skip` = 1 si escuchó menos de 30 segundos: saltó la canción.
+>>> tabla
+repro_id,fecha,segundos_escuchados,skip
+2476,2024-03-16,203,0
+3318,2024-04-08,39,0
+4364,2024-05-06,19,1
+5499,2024-06-02,84,0
+7635,2024-07-17,158,0
+12163,2024-10-04,14,1
+paso agg: Resumir por usuario
+`count` cuenta reproducciones, `countDistinct("fecha")` los días con actividad, y el **promedio** de una columna de 0 y 1 × 100 es un porcentaje.
+>>> tabla
+usuario_id,reproducciones,dias_activos,pct_skips,ultima_fecha
+22,6,6,33.33,2024-10-04
+paso inact: Días sin escuchar
+`F.datediff("2024-12-31", ultima_fecha)`: cuántos días pasaron desde la última vez. Es la señal de churn más fuerte.
+>>> python
+.withColumn("dias_inactivo",
+    F.datediff(F.to_date(F.lit("2024-12-31")), F.col("ultima_fecha")))
+paso res: La fila que recibe el modelo
+Una fila por usuario, con números que un modelo de churn puede usar. Así se ve la del usuario 22:
+>>> tabla
+usuario_id,reproducciones,dias_activos,pct_skips,ultima_fecha,dias_inactivo
+22,6,6,33.33,2024-10-04,88
+```
+
 ## 4. dbt: el género más escuchado de cada país
 
 El equipo de contenidos decide qué artistas promocionar en cada país. Quiere, por país, el género con más minutos escuchados. Es un **top-1 por grupo**: agregación + `row_number`, ideal para un modelo de dbt.
@@ -223,17 +267,17 @@ Crea el DAG `streaming_semanal` con `schedule="0 6 * * 1"` (lunes 06:00), `start
 Orden: `inicio >> features >> marts >> fin`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.sdk import TaskGroup
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.sdk import TaskGroup
 
 with DAG("streaming_semanal", schedule="0 6 * * 1", start_date=datetime(2024, 1, 1), catchup=False) as dag:
     inicio = EmptyOperator(task_id="inicio")
@@ -261,4 +305,28 @@ assert all(s == "success" for s in run.states.values()), f"Estados: {run.states}
 ```pista
 El cron `0 6 * * 1` se lee: minuto 0, hora 6, cualquier día del mes, cualquier mes, día de la semana 1 (lunes). Unir grupos con `>>` conecta **todas** las tareas del primero con **todas** las del segundo.
 ```
+:::
+
+## De las piezas al producto
+
+Las cinco piezas de esta lección forman un ciclo semanal: Airflow recalcula cada lunes las features de comportamiento; el equipo de ciencia de datos entrena o vuelve a puntuar el modelo de churn con esa tabla; el resultado (la probabilidad de baja de cada usuario) vuelve al warehouse, y el equipo de CRM ofrece descuentos a los de mayor riesgo. El **costo mínimo por hogar**, en cambio, es una función que se llama en tiempo real desde el sitio web: no pasa por el pipeline, pero usa la misma regla probada.
+
+La fórmula de churn en Python es la **definición oficial**: los tableros en SQL o dbt deben dar el mismo número para el mismo mes. La forma de asegurarlo es probar las dos implementaciones con los mismos ejemplos (un mes con altas, uno con bajas el primer día, uno sin bajas).
+
+:::errores
+- **Meter las altas del mes en el denominador del churn**: baja la tasa justo en los meses de campañas y esconde el problema.
+- **Features con datos del futuro** (eventos posteriores a la fecha de corte): el modelo parece excelente en pruebas y falla en producción.
+- **Greedy en vez de programación dinámica** para el costo mínimo: "siempre el plan más barato por persona" no da el mínimo para todos los tamaños de hogar.
+- **Empatar sin desempate** en el ranking de géneros: dos géneros con los mismos minutos cambian de lugar entre ejecuciones. Agrega un segundo criterio de orden.
+- **Un DAG semanal sin TaskGroups** con 40 tareas sueltas: nadie entiende qué falló en la interfaz.
+:::
+
+:::trabajo
+- Las tablas de features se versionan por fecha de corte (`features_usuario` del 2024-12-31, del 2025-01-07…) para poder reentrenar un modelo con exactamente los datos que vio.
+- En Databricks y otras plataformas existe la **feature store** (Unity Catalog permite registrar tablas de features) para que entrenamiento y predicción usen la misma definición.
+- La definición oficial de métricas como el churn se documenta y se publica en una capa semántica para que todos los tableros la reutilicen.
+:::
+
+:::entrevista "¿Qué cuidarías al construir la tabla de features para un modelo de churn?"
+Que sea una fila por usuario calculada a una fecha de corte, usando solo eventos anteriores a ese corte para no filtrar información del futuro. Que sea reproducible: la fecha de corte es un parámetro y la tabla se guarda versionada. Que las definiciones coincidan con las que se usarán al predecir, idealmente desde la misma tabla o feature store. Y controles de calidad: conteo de usuarios, nulos por feature y distribución comparada con la semana anterior.
 :::

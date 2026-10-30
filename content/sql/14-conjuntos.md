@@ -86,6 +86,52 @@ SELECT (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION     SELECT ciuda
 `UNION` tiene que comparar todas las filas para eliminar duplicados (ordenar o "hashear" todo el resultado), lo cual es costoso con muchos datos. Y a veces los duplicados son **información válida** (dos ventas idénticas son dos ventas). Usa `UNION ALL` salvo que **quieras** eliminar repetidos.
 :::
 
+```recorrido
+titulo: UNION contra UNION ALL, con los mismos datos
+estacion a: Consulta A | icono=tabla
+estacion b: Consulta B | icono=tabla
+estacion all: UNION ALL | icono=capas
+estacion union: UNION | icono=check
+paso a: Primera consulta
+Los canales de los pedidos 101 a 104.
+>>> tabla
+pedido_id,canal
+101,web
+102,web
+103,web
+104,web
+paso b: Segunda consulta
+Los canales de los pedidos 103 a 106. Los pedidos 103 y 104 están en las dos.
+>>> tabla
+pedido_id,canal
+103,web
+104,web
+105,web
+106,web
+paso all: UNION ALL: apila todo
+Pone las filas de B debajo de las de A, **sin mirar** si se repiten. Es rápido: no tiene que comparar nada.
+>>> tabla
+pedido_id,canal
+101,web
+102,web
+103,web
+104,web
+103,web
+104,web
+105,web
+106,web
+paso union: UNION: apila y quita repetidas
+Además de apilar, elimina las filas **idénticas** (todas las columnas iguales). Para eso tiene que comparar, lo que cuesta más. Úsalo solo cuando de verdad quieras quitar duplicados.
+>>> tabla
+pedido_id,canal
+101,web
+102,web
+103,web
+104,web
+105,web
+106,web
+```
+
 ## INTERSECT y EXCEPT
 
 ```sql

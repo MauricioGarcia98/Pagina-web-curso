@@ -84,6 +84,48 @@ Aquí **sí** puedes usar el alias `ganancia`. ¿Por qué en `ORDER BY` sí y en
 Los valores vacíos (`NULL`) no son ni grandes ni chicos. Cada motor decide: en SQLite y MySQL van **primero** en orden ascendente; en PostgreSQL y Oracle, **al final**. Puedes forzarlo con `NULLS FIRST` o `NULLS LAST` (SQLite 3.30+, PostgreSQL, Spark, BigQuery): `ORDER BY fecha_entrega DESC NULLS LAST`.
 :::
 
+```recorrido
+titulo: ORDER BY y LIMIT paso a paso: los 3 productos más caros
+estacion tabla: La tabla | icono=tabla
+estacion orden: ORDER BY | icono=flujo
+estacion limit: LIMIT | icono=x
+estacion res: Resultado | icono=check
+paso tabla: Sin orden
+Las filas de una tabla no tienen un orden garantizado. Estos son 6 productos tal como salen.
+>>> tabla
+nombre,precio
+Smartphone Apple Mini 300,484.99
+Parlante Xiaomi Sport 900,425.99
+Notebook Apple X,1044.99
+Teclado Kingston Ultra 200,458.99
+Juego de ollas Philips Plus 400,42.99
+Mesa Muebles Sur Mini 500,40.99
+paso orden: ORDER BY precio DESC
+`ORDER BY precio DESC` ordena de mayor a menor (`DESC` = descendente; sin nada, o con `ASC`, sería de menor a mayor).
+>>> tabla
+nombre,precio
+Notebook Apple X,1044.99
+Smartphone Apple Mini 300,484.99
+Teclado Kingston Ultra 200,458.99
+Parlante Xiaomi Sport 900,425.99
+Juego de ollas Philips Plus 400,42.99
+Mesa Muebles Sur Mini 500,40.99
+paso limit: LIMIT 3 corta
+`LIMIT 3` se queda con las **primeras 3 filas del resultado ya ordenado**. Por eso el orden se aplica antes que el límite.
+>>> sql
+SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 3;
+paso res: El top 3
+Los 3 más caros de estos 6. Sin el ORDER BY, LIMIT 3 daría 3 productos cualquiera.
+>>> tabla
+nombre,precio
+Notebook Apple X,1044.99
+Smartphone Apple Mini 300,484.99
+Teclado Kingston Ultra 200,458.99
+```
+
 ## LIMIT: el "top N"
 
 Combinado con `ORDER BY`, `LIMIT` responde preguntas de tipo **ranking**: "los 5 productos más caros", "los 10 clientes más antiguos", "el último pedido".

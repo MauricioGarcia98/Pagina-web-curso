@@ -81,6 +81,54 @@ def test_invalidos(entrada):
     assert limpiar_email(entrada) is None
 ```
 
+```recorrido
+titulo: Un test que falla, se arregla y pasa
+estacion test: El test | icono=prueba
+estacion rojo: Falla | icono=x
+estacion leer: Leer el error | icono=lupa
+estacion fix: Arreglar | icono=transformar
+estacion verde: Pasa | icono=check
+paso test: Escribir lo que esperas
+Un test es una función que empieza con `test_` y usa `assert`. Describe el comportamiento esperado con ejemplos concretos.
+>>> python
+# tests/test_limpieza.py
+from limpieza import normalizar_nombre
+
+def test_quita_espacios_y_capitaliza():
+    assert normalizar_nombre("  ana ") == "Ana"
+
+def test_nombre_vacio_devuelve_none():
+    assert normalizar_nombre("   ") is None
+paso rojo: pytest: uno falla
+La primera versión de la función no contemplaba el nombre vacío.
+>>> log
+$ pytest -q
+.F                                                          [100%]
+=================================== FAILURES ===================================
+_______________________ test_nombre_vacio_devuelve_none ________________________
+>       assert normalizar_nombre("   ") is None
+E       AssertionError: assert '' is None
+E        +  where '' = normalizar_nombre('   ')
+1 failed, 1 passed in 0.03s
+paso leer: Leer el error
+pytest muestra **qué** se esperaba y **qué** llegó: la función devolvió `''` (texto vacío) en lugar de `None`.
+>>> texto
+esperado: None
+recibido: ''
+paso fix: Arreglar el código, no el test
+El test describe la regla de negocio; el código se adapta a ella.
+>>> python
+def normalizar_nombre(texto):
+    limpio = texto.strip().title()
+    return limpio or None
+paso verde: Todo en verde
+Desde ahora, si alguien rompe esta regla, el test lo avisa antes de que llegue a producción.
+>>> log
+$ pytest -q
+..                                                          [100%]
+2 passed in 0.02s
+```
+
 ## Logging en vez de print
 
 En producción nadie mira la pantalla: tu código corre a las 3 de la mañana en un servidor, dentro de Airflow o de un job de Databricks. Los mensajes van a **logs**, archivos o sistemas donde se guardan para revisarlos después (o para disparar alertas). El módulo `logging` agrega a cada mensaje la fecha, el **nivel** de importancia y de qué parte del código viene:

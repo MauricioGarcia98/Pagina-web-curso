@@ -69,7 +69,7 @@ Un **Glue job** es un script de PySpark (o Python puro, o Ray) que AWS ejecuta e
 
 | Parámetro | Qué significa |
 |---|---|
-| `--glue-version` | Versión de Spark (Glue 4.0 = Spark 3.3, Glue 5.0 = Spark 3.5) |
+| `--glue-version` | Qué versión de Spark y Python usa el job. Según las notas de versión de AWS: Glue 4.0 = Spark 3.3, Glue 5.0 = Spark 3.5.4, **Glue 5.1 = Spark 3.5.6 (la que se usa si no indicas versión)** y Glue 6.0 = Spark 4.1 (con el modo ANSI de Spark 4) |
 | `--worker-type` | `G.1X`, `G.2X`… tamaño de cada worker |
 | `--number-of-workers` | Cuántos workers (más = más rápido y más caro) |
 | `--job-bookmark-option` | `job-bookmark-enable` para procesar solo archivos nuevos |
@@ -109,7 +109,7 @@ job.commit()   # guarda el "bookmark": la próxima vez solo procesa lo nuevo
 ```bash norun
 aws glue create-job --name etl-ventas-silver --role GlueServiceRole-datos \
   --command '{"Name": "glueetl", "ScriptLocation": "s3://lake-tienda-dev/scripts/ventas_silver.py", "PythonVersion": "3"}' \
-  --glue-version 4.0 --worker-type G.1X --number-of-workers 5 \
+  --glue-version 5.1 --worker-type G.1X --number-of-workers 5 \
   --default-arguments '{"--job-bookmark-option": "job-bookmark-enable"}'
 
 aws glue start-job-run --job-name etl-ventas-silver --arguments '{"--fecha": "2024-12-31"}'
@@ -119,6 +119,45 @@ aws glue get-job-runs --job-name etl-ventas-silver --query "JobRuns[].{Id:Id, Es
 :::nota DynamicFrame vs DataFrame
 Glue trae su propio tipo, `DynamicFrame`, que tolera esquemas inconsistentes (una columna que a veces es número y a veces texto). En la práctica la mayoría de los equipos convierten enseguida a `DataFrame` (`dyf.toDF()`) y trabajan con PySpark estándar, que es lo que ya sabes.
 :::
+
+```recorrido
+titulo: Del archivo en S3 a una tabla que se puede consultar
+estacion s3: Archivos en S3 | icono=archivo
+estacion crawler: Crawler | icono=lupa
+estacion catalogo: Data Catalog | icono=libro
+estacion job: Job de Glue | icono=chispa
+estacion consulta: Consultar | icono=check
+paso s3: Solo hay archivos
+En S3 hay un CSV, pero ningún servicio sabe todavía qué columnas tiene ni de qué tipo. Sin esa información, nadie puede hacer `SELECT`.
+>>> csv
+venta_id,fecha,producto,monto
+1,2024-12-30,Notebook,1044.99
+2,2024-12-31,Mouse,25.5
+3,2024-12-31,Teclado,49.9
+paso crawler: El crawler lee y adivina el esquema
+El crawler recorre la ruta, lee una muestra de los archivos y deduce columnas, tipos y particiones. Mientras trabaja está en `RUNNING`; al terminar vuelve a `READY`.
+>>> bash
+aws glue start-crawler --name crawler-ventas
+aws glue get-crawler --name crawler-ventas --query Crawler.State   # RUNNING … READY
+paso catalogo: Queda registrada una tabla
+El resultado no son datos nuevos: es **metadata** en el Data Catalog (nombre, columnas, tipos y dónde están los archivos). Los datos siguen en S3.
+>>> log
+$ aws glue get-tables --database-name lake_bronze \
+    --query "TableList[].{Tabla:Name, Ubicacion:StorageDescriptor.Location}" --output table
+Tabla   Ubicacion
+------  -----------------------------------
+ventas  s3://lake-tienda-dev/bronze/ventas/
+paso job: Un job de Glue transforma
+El job (Spark sin servidores que administrar) lee la tabla bronze, limpia y escribe Parquet en silver. Se le pasa la fecha como argumento para que sea idempotente.
+>>> bash
+aws glue start-job-run --job-name etl-ventas-silver --arguments '{"--fecha": "2024-12-31"}'
+paso consulta: Cualquier servicio puede leerla
+Athena, EMR, Redshift Spectrum y los jobs de Glue usan el **mismo** catálogo: la tabla se define una vez y se consulta desde todos.
+>>> sql
+SELECT fecha, SUM(monto) AS ventas
+FROM lake_bronze.ventas
+GROUP BY fecha;
+```
 
 ## ¿Glue, EMR, EMR Serverless o Lambda?
 

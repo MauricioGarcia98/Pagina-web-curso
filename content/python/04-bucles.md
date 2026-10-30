@@ -120,6 +120,39 @@ print(maximo, baratos)
 
 Ese "recorro, filtro y acumulo" es exactamente lo que hacen `WHERE` + `SUM` en SQL, o `filter` + `agg` en PySpark: el motor hace el bucle por ti.
 
+```recorrido
+titulo: El patrón acumulador, vuelta por vuelta
+estacion ini: Antes del bucle | icono=codigo
+estacion v1: Vuelta 1 | icono=flujo
+estacion v2: Vuelta 2 | icono=flujo
+estacion v3: Vuelta 3 | icono=flujo
+estacion fin: Después | icono=terminal
+paso ini: Preparar el acumulador
+Antes de empezar, el total vale 0. Sin esta línea, la primera suma daría error.
+>>> python
+precios = [120.5, 80.0, 45.25]
+total = 0
+for p in precios:
+    total = total + p
+print(total)
+paso v1: p toma el primer valor
+En la primera vuelta, `p` vale 120.5. Se suma al total.
+>>> texto
+p = 120.5   →   total = 0 + 120.5 = 120.5
+paso v2: p toma el segundo valor
+El `for` avanza solo al siguiente elemento de la lista.
+>>> texto
+p = 80.0    →   total = 120.5 + 80.0 = 200.5
+paso v3: p toma el último valor
+Después de esta vuelta no quedan elementos y el bucle termina.
+>>> texto
+p = 45.25   →   total = 200.5 + 45.25 = 245.75
+paso fin: Fuera del bucle
+El `print` no tiene sangría, así que está **fuera** del `for` y se ejecuta una sola vez, al final.
+>>> texto
+245.75
+```
+
 ## while: repetir mientras se cumpla una condición
 
 ```python

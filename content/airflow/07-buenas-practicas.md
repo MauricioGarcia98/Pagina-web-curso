@@ -117,7 +117,7 @@ Un DAG con un error de sintaxis no aparece en la interfaz: Airflow lo registra c
 
 ```python norun
 # tests/test_dags.py — se corre en CI con pytest
-from airflow.models import DagBag
+from airflow.dag_processing.dagbag import DagBag   # en Airflow 2: from airflow.models import DagBag
 
 def test_sin_errores_de_importacion():
     bag = DagBag(dag_folder="dags/", include_examples=False)
@@ -130,7 +130,39 @@ def test_todas_las_tareas_tienen_reintentos():
             assert t.retries >= 1, f"{dag.dag_id}.{t.task_id} no tiene reintentos"
 ```
 
-`DagBag` lee la carpeta igual que el scheduler. El primer test atrapa errores de sintaxis e imports rotos. El segundo hace cumplir una regla del equipo.
+`DagBag` lee la carpeta igual que el Dag processor. El primer test atrapa errores de sintaxis e imports rotos. El segundo hace cumplir una regla del equipo.
+
+```recorrido
+titulo: Antes de subir un DAG: tres verificaciones de menos a más
+estacion imp: ¿Se importa? | icono=codigo
+estacion err: Import error | icono=x
+estacion tarea: Probar una tarea | icono=prueba
+estacion dag: Probar el DAG | icono=flujo
+estacion ok: Listo | icono=check
+paso imp: 1. ¿El archivo se puede leer?
+Si el archivo tiene un error, el DAG **no aparece** en la interfaz y nadie se entera. Primero hay que mirar los errores de importación.
+>>> bash
+airflow dags list-import-errors
+paso err: Un error típico de migración
+Un DAG escrito para Airflow 2 usa `schedule_interval`, que en Airflow 3 ya no existe. El mensaje dice el archivo y el problema (salida resumida).
+>>> log
+filepath                 | error
+/opt/airflow/dags/ventas.py | TypeError: DAG.__init__() got an unexpected keyword argument 'schedule_interval'
+paso tarea: 2. Probar una tarea sola
+`airflow tasks test` ejecuta **una** tarea para una fecha, sin registrar nada en el historial ni respetar dependencias. Ideal para depurar.
+>>> bash
+airflow tasks test ventas extraer 2024-03-15
+paso dag: 3. Probar el DAG entero
+`airflow dags test` (o `dag.test()` en el archivo) corre todas las tareas en orden, en un solo proceso. Si algo falla, ves el error completo en tu terminal.
+>>> bash
+airflow dags test ventas 2024-03-15
+paso ok: Y en CI, automáticamente
+El test con `DagBag` hace la verificación 1 en cada pull request: un DAG roto no llega a producción.
+>>> log
+$ pytest tests/test_dags.py -q
+..                                                          [100%]
+2 passed
+```
 
 ## La CLI de Airflow
 

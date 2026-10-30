@@ -67,6 +67,43 @@ aws stepfunctions start-execution \
   --input '{"fecha": "2024-12-31"}'
 ```
 
+```recorrido
+titulo: Una ejecución de la máquina de estados, con un error en el camino
+estacion inicio: start-execution | icono=terminal
+estacion silver: SilverTransacciones | icono=chispa
+estacion retry: Retry | icono=reloj
+estacion gold: GoldFraude | icono=dashboard
+estacion catch: Catch | icono=alerta
+paso inicio: Arranca con un input
+La ejecución recibe `{"fecha": "2024-12-31"}`. Ese JSON viaja de estado en estado: así el job sabe qué día procesar.
+>>> json
+{
+  "executionArn": "arn:aws:states:us-east-1:123456789012:execution:pipeline-banco:58c4a024",
+  "startDate": "2026-10-30T21:02:35Z"
+}
+paso silver: Primer estado: el job de Glue
+`glue:startJobRun.sync` lanza el job y **espera** a que termine. `"--fecha.$": "$.fecha"` toma la fecha del input.
+>>> log
+SilverTransacciones  TaskStateEntered
+SilverTransacciones  TaskFailed   (Glue: ConcurrentRunsExceededException)
+paso retry: Un error transitorio: Retry
+Falló porque había otra ejecución del mismo job. Es un error **pasajero**: `Retry` espera 60 s y lo vuelve a intentar (hasta 2 veces, con espera creciente).
+>>> log
+esperando 60 s (intento 1 de 2)…
+SilverTransacciones  TaskSucceeded
+paso gold: Siguiente estado: la consulta en Athena
+Con silver listo, `GoldFraude` ejecuta el `INSERT` en Athena. Si sale bien, la ejecución termina en `SUCCEEDED`.
+>>> log
+GoldFraude  TaskSucceeded
+Ejecución: SUCCEEDED
+paso catch: Si los reintentos se agotan: Catch
+Si el error persiste, `Catch` desvía a `AvisarFalla` (publica en SNS: correo o Slack) y termina en `Fail`. Nada falla en silencio.
+>>> log
+SilverTransacciones  TaskFailed (intento 3 de 3)
+AvisarFalla         → SNS: "Falló el pipeline del banco"
+Fallo               Ejecución: FAILED
+```
+
 ### EventBridge: disparar con horario
 
 ```bash norun
@@ -82,7 +119,7 @@ aws events list-rules --query "Rules[].{Nombre:Name, Horario:ScheduleExpression}
 
 ## MWAA: Airflow en AWS
 
-MWAA te da Airflow sin administrar servidores: subes tus DAGs a un bucket de S3 (`s3://…/dags/`) y aparecen en la interfaz. El proveedor `apache-airflow-providers-amazon` trae operadores para cada servicio:
+MWAA te da Airflow sin administrar servidores: subes tus DAGs a un bucket de S3 (`s3://…/dags/`) y aparecen en la interfaz. Al crear el entorno eliges la versión de Airflow; MWAA ya ofrece la línea 3 (3.0, 3.2 y 3.3), así que los DAGs se escriben con la sintaxis de Airflow 3 (`from airflow.sdk import ...`) que viste en el módulo de Airflow. Las dependencias de Python se declaran en un `requirements.txt` que debe incluir una línea `--constraint` con el archivo de restricciones de esa versión. El proveedor `apache-airflow-providers-amazon` trae operadores para cada servicio:
 
 | Operador / sensor | Hace |
 |---|---|
@@ -108,8 +145,8 @@ Crea el DAG `pipeline_banco` (diario, `schedule="@daily"`, `start_date` 2024-01-
 5. `avisar`: un `EmptyOperator` que corre cuando **ambas** tareas gold terminan.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.amazon.aws.operators.glue_crawler import GlueCrawlerOperator
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
@@ -117,8 +154,8 @@ from airflow.providers.amazon.aws.operators.athena import AthenaOperator
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.amazon.aws.operators.glue_crawler import GlueCrawlerOperator
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator

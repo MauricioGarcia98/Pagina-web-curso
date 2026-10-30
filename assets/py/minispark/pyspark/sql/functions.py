@@ -831,3 +831,48 @@ def filter(c, f):
 
 def aggregate(*a, **k):
     raise NotImplementedError("aggregate no está disponible en el simulador")
+
+
+# ---------------------------------------------------------------- Spark 4: funciones try_ (NULL en vez de error ANSI)
+def try_divide(a, b):
+    a, b = _col(a), _col(b)
+    return _fn("try_divide", [a, b], lambda x, y: None if x is None or y in (None, 0) else x / y)
+
+
+def try_add(a, b):
+    a, b = _col(a), _col(b)
+    return _fn("try_add", [a, b], lambda x, y: None if x is None or y is None else x + y)
+
+
+def try_multiply(a, b):
+    a, b = _col(a), _col(b)
+    return _fn("try_multiply", [a, b], lambda x, y: None if x is None or y is None else x * y)
+
+
+def try_to_number(c, fmt=None):
+    def f(x):
+        if x is None:
+            return None
+        s = _re.sub(r"[^0-9.\-]", "", str(x).replace(",", ""))
+        try:
+            return float(s) if s not in ("", "-", ".") else None
+        except ValueError:
+            return None
+    return _fn("try_to_number", [_col(c)], f)
+
+
+def try_element_at(c, idx):
+    def f(a):
+        if a is None:
+            return None
+        if isinstance(a, dict):
+            return a.get(idx)
+        try:
+            return a[idx - 1] if idx > 0 else a[idx]
+        except IndexError:
+            return None
+    return _fn("try_element_at", [_col(c)], f)
+
+
+def try_to_timestamp(c, fmt=None):
+    return _fn("try_to_timestamp", [_col(c)], lambda x: None if x is None else _to_ts(x))

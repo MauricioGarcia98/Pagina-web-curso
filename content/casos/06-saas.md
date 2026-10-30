@@ -77,6 +77,48 @@ ORDER BY facturado DESC;
 
 Fíjate en `COUNT(DISTINCT e.empresa_id)`: después del join hay **una fila por factura** (hasta 12 por empresa en el año). `COUNT(*)` contaría facturas, no empresas: el error de doble conteo más común en SaaS.
 
+```recorrido
+titulo: Facturación por industria, paso a paso (y el doble conteo)
+estacion e: Empresas | icono=usuario
+estacion join: JOIN facturas | icono=capas
+estacion filtro: 2024 y pagadas | icono=lupa
+estacion dist: COUNT DISTINCT | icono=reglas
+estacion res: Resultado | icono=check
+paso e: Una fila por empresa
+`saas_empresas` tiene la industria de cada cliente.
+>>> tabla
+empresa_id,industria
+1,Logística
+2,Educación
+3,Retail
+paso join: Después del join: una fila por factura
+Cada empresa tiene **una factura por mes**, así que el join repite la empresa muchas veces. Mira la empresa 1:
+>>> tabla
+empresa_id,industria,mes,monto,estado
+1,Logística,2024-01-01,149,pagada
+1,Logística,2024-02-01,149,pagada
+1,Logística,2024-03-01,149,pagada
+1,Logística,2024-04-01,149,pagada
+1,Logística,2024-05-01,149,pagada
+1,Logística,2024-06-01,149,pagada
+paso filtro: Solo 2024 y solo pagadas
+Lo facturado y no cobrado es otra métrica (cobranza). Aquí: `f.mes >= '2024-01-01' AND f.estado = 'pagada'`.
+>>> sql
+WHERE f.mes >= '2024-01-01' AND f.estado = 'pagada'
+paso dist: COUNT(*) contaría facturas
+Para la industria de la empresa 1, compara: `COUNT(*)` (columna `count_filas`) cuenta facturas; `COUNT(DISTINCT empresa_id)` cuenta empresas.
+>>> tabla
+industria,count_filas,empresas
+Logística,648,67
+paso res: Las 3 industrias que más facturan
+Con el conteo correcto de empresas y la suma de lo cobrado.
+>>> tabla
+industria,empresas,facturado
+Turismo,78,152379
+Logística,67,137402
+Salud,57,127887
+```
+
 :::cuidado Las trampas de este caso
 - **Facturas recientes todavía no vencidas**: el último mes siempre parece tener una cobranza peor (muchas facturas están `pendiente` porque recién se emitieron). Compara meses "maduros".
 - **MRR no es lo mismo que lo cobrado**: el MRR mide lo que el cliente **se comprometió** a pagar; la cobranza mide lo que efectivamente entró.
@@ -189,4 +231,15 @@ GROUP BY churn;
 ```explicacion
 Una diferencia aquí es una **correlación**, no prueba causalidad. Pero es el tipo de hallazgo que justifica investigar más (por ejemplo, entrevistando a los clientes perdidos).
 ```
+:::
+
+:::errores
+- **MRR con facturas anuales sin dividir por 12**: un mes salta y los otros once caen.
+- **NRR que incluye clientes nuevos**: el NRR mide solo la base de clientes del inicio del período.
+- **Movimientos de MRR que no cumplen la identidad** (inicial + nuevo + expansión − contracción − churn = final).
+- **SLA medido en horas corridas** cuando el contrato dice horas hábiles.
+:::
+
+:::entrevista "¿Qué diferencia hay entre el NRR y el churn de clientes?"
+El churn de clientes cuenta cuántos clientes se van; el NRR (retención neta de ingresos) mide cuánto ingreso conserva la base de clientes del inicio del período, sumando las expansiones y restando contracciones y bajas, sin contar clientes nuevos. Un NRR mayor a 100 % significa que lo que crecen los clientes existentes compensa lo que se pierde, aunque se vayan clientes. Se calculan sobre la misma cohorte inicial.
 :::

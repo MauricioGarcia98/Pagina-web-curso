@@ -2,7 +2,7 @@
 titulo: "Laboratorio Databricks: bundles, Lakeflow Declarative Pipelines, Unity Catalog y serving"
 nivel: Avanzado
 duracion: 55
-resumen: Crea un proyecto con Databricks Asset Bundles, valídalo, despliégalo en el target dev y ejecuta su job; crea un pipeline declarativo serverless con catálogo y esquema de Unity Catalog, ejecútalo y mira sus actualizaciones; otorga permisos con la jerarquía USE CATALOG, USE SCHEMA y SELECT; y consulta un modelo fundacional en Model Serving. Cubre las certificaciones Data Engineer Associate y Professional, y parte de la de IA generativa.
+resumen: Crea un proyecto con Declarative Automation Bundles, valídalo, despliégalo en el target dev y ejecuta su job; crea un pipeline declarativo serverless con catálogo y esquema de Unity Catalog, ejecútalo y mira sus actualizaciones; otorga permisos con la jerarquía USE CATALOG, USE SCHEMA y SELECT; y consulta un modelo fundacional en Model Serving. Cubre las certificaciones Data Engineer Associate y Professional, y parte de la de IA generativa.
 objetivos: Inicializar, validar, desplegar, ejecutar y destruir un bundle | Crear y ejecutar un pipeline declarativo serverless en Unity Catalog | Otorgar los tres permisos que necesita un analista para leer una tabla | Consultar un endpoint de modelo fundacional con la CLI
 autoevaluacion: ¿Sabes qué diferencia hay entre los targets dev y prod de un bundle? | ¿Sabes qué permisos necesita un grupo para hacer SELECT sobre catalogo.esquema.tabla? | ¿Sabes qué hace un full refresh en un pipeline? | ¿Sabes cómo consultar un modelo fundacional sin desplegar nada?
 ---
@@ -38,7 +38,7 @@ flecha an -> ms | estilo=punteada
 | Cuenta paga: job y pipeline serverless | DBU por minuto de ejecución: centavos |
 | Endpoints de modelos fundacionales (pago por token) | Centavos |
 
-## Práctica guiada: Asset Bundles
+## Práctica guiada: Declarative Automation Bundles
 
 :::ejercicio cli
 Paso 1. Inicializa un bundle con la plantilla `default-python`.
@@ -269,6 +269,23 @@ cd ~/mi_proyecto
 databricks bundle deploy -t dev
 cd ~
 ```
+:::
+
+:::errores
+- **Desplegar a mano en el workspace** y además con el bundle: el próximo `bundle deploy` pisa los cambios manuales.
+- **Usar el target de producción desde tu computadora**: los despliegues a prod los hace el CI con un service principal.
+- **Pipeline declarativo sin catálogo y esquema definidos**: las tablas terminan en un lugar inesperado o el pipeline no arranca.
+- **Dar `ALL PRIVILEGES` a un grupo amplio** en Unity Catalog: se da lo mínimo (`USE CATALOG`, `USE SCHEMA`, `SELECT`) y a grupos, no a personas.
+- **Olvidar borrar el endpoint de Model Serving** o dejarlo sin escalar a cero.
+:::
+
+:::trabajo
+- Un proyecto de datos en Databricks se ve así en el repositorio: `databricks.yml` con targets dev y prod, carpetas con notebooks y código Python, y un workflow de CI que corre `bundle validate` en cada *pull request* y `bundle deploy -t prod` al aprobar.
+- Los permisos de Unity Catalog se definen como código (en Terraform o en el bundle) y se revisan como cualquier otro cambio.
+:::
+
+:::entrevista "¿Cómo llevarías un job de Databricks de desarrollo a producción?"
+Lo definiría en un bundle con targets dev y prod, versionado en Git. En desarrollo cada persona despliega a su propio entorno con `databricks bundle deploy -t dev`. Los cambios pasan por pull request, con CI que valida el bundle y corre tests. Al aprobar, el CI despliega a prod con un service principal y OAuth máquina a máquina, el job corre como ese service principal con permisos mínimos en Unity Catalog, y nadie edita producción a mano.
 :::
 
 ## Preguntas de examen

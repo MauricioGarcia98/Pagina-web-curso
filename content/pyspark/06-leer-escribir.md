@@ -131,6 +131,51 @@ df.repartition("anio", "mes").write.partitionBy("anio", "mes").parquet(…)   # 
 Así un pipeline diario es **idempotente**: si reprocesas el 31 de diciembre, se reemplaza ese día y nada más, sin duplicar ni borrar el resto.
 :::
 
+```recorrido
+titulo: Qué pasa con la tabla destino en cada modo de escritura
+estacion df: El DataFrame | icono=tabla
+estacion error: error | icono=alerta
+estacion append: append | icono=capas
+estacion over: overwrite | icono=transformar
+estacion res: Conclusión | icono=check
+paso df: Tres filas para escribir
+Tenemos un DataFrame de 3 filas y la tabla `ventas_demo` **ya existe** con esas mismas 3 filas (la escribimos ayer).
+>>> tabla
+dia,ventas
+2025-01-01,100
+2025-01-02,120
+2025-01-03,90
+paso error: Modo error (por defecto)
+Sin `.mode(...)`, Spark **se niega** a escribir sobre algo que existe. Es una protección.
+>>> log
+df.write.saveAsTable("ventas_demo")
+AnalysisException: [TABLE_OR_VIEW_ALREADY_EXISTS] Cannot create table or view `ventas_demo` because it already exists.
+paso append: append: se agregan, aunque se repitan
+`mode("append")` suma las filas a las que ya estaban. Si reprocesas el mismo día, **quedan duplicadas**: ahora hay 6 filas.
+>>> tabla
+dia,ventas
+2025-01-01,100
+2025-01-02,120
+2025-01-03,90
+2025-01-01,100
+2025-01-02,120
+2025-01-03,90
+paso over: overwrite: se reemplaza todo
+`mode("overwrite")` borra el contenido anterior y deja solo el DataFrame nuevo. Ejecutarlo dos veces da lo mismo: es **idempotente**.
+>>> tabla
+dia,ventas
+2025-01-01,100
+2025-01-02,120
+2025-01-03,90
+paso res: Cuál elegir
+Tablas recalculadas completas → `overwrite`. Eventos que solo llegan una vez → `append`, con cuidado al reprocesar. Cargas incrementales con correcciones → `MERGE` de Delta (lo verás en Databricks).
+>>> texto
+error     → protege
+append    → suma (riesgo: duplicar)
+overwrite → reemplaza (idempotente)
+ignore    → no hace nada si existe
+```
+
 ## Resumen
 
 - `spark.read.format(…).option(…).schema(…).load(…)`; atajos `.csv`, `.json`, `.parquet`, `.table`.

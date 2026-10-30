@@ -138,6 +138,63 @@ df.show(5)
 Encadenar 5 o 10 `withColumn` está bien. Con **decenas** (por ejemplo, en un bucle que agrega 200 columnas), el plan de Spark crece mucho y se vuelve lento de analizar. En esos casos, construye todas las columnas en **un solo** `select` o usa `withColumns({…})` (Spark 3.3+).
 :::
 
+```recorrido
+titulo: select, filter y withColumn paso a paso
+estacion tabla: El DataFrame | icono=tabla
+estacion filter: filter | icono=lupa
+estacion select: select | icono=capas
+estacion with: withColumn | icono=transformar
+estacion res: Resultado | icono=check
+paso tabla: Ocho pedidos
+Partimos de 8 pedidos reales de `pedidos` (los `pedido_id` del 101 al 108).
+>>> tabla
+pedido_id,cliente_id,canal,estado,metodo_pago
+101,73,web,entregado,tarjeta_debito
+102,361,web,entregado,tarjeta_credito
+103,1229,web,enviado,tarjeta_debito
+104,751,web,entregado,tarjeta_credito
+105,303,web,cancelado,tarjeta_credito
+106,637,web,entregado,tarjeta_credito
+107,837,app,devuelto,transferencia
+108,904,web,entregado,tarjeta_credito
+paso filter: filter: elegir filas
+`filter(F.col("estado") == "entregado")` prueba la condición en **cada fila** y deja solo las que dan verdadero. Las columnas no cambian.
+>>> tabla
+pedido_id,cliente_id,canal,estado,metodo_pago
+101,73,web,entregado,tarjeta_debito
+102,361,web,entregado,tarjeta_credito
+104,751,web,entregado,tarjeta_credito
+106,637,web,entregado,tarjeta_credito
+108,904,web,entregado,tarjeta_credito
+paso select: select: elegir columnas
+`select("pedido_id", "canal")` se queda con esas columnas, en ese orden. Las filas no cambian.
+>>> tabla
+pedido_id,canal
+101,web
+102,web
+104,web
+106,web
+108,web
+paso with: withColumn: una columna nueva
+`withColumn("es_web", F.col("canal") == "web")` calcula un valor **fila por fila** y lo agrega como columna. Si el nombre ya existe, la reemplaza.
+>>> python
+from pyspark.sql import functions as F
+
+resultado = (spark.table("pedidos")
+    .filter(F.col("estado") == "entregado")
+    .select("pedido_id", "canal")
+    .withColumn("es_web", F.col("canal") == "web"))
+paso res: El resultado
+Cada paso devolvió un DataFrame **nuevo**; `pedidos` no cambió. Así se ve el resultado para estos 8 pedidos:
+>>> tabla
+pedido_id,canal,es_web
+101,web,true
+102,web,true
+104,web,true
+106,web,true
+108,web,true
+```
+
 ## Renombrar, borrar y convertir tipos
 
 ```python

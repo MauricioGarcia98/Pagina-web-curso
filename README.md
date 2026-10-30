@@ -26,7 +26,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 | 🧪 Laboratorios guiados en la nube | 9 | 139 | Data lake con calidad en AWS, RAG con Bedrock y Guardrails, SageMaker, operación y seguridad, BigQuery y BQML, Pub/Sub, Workflows y Vertex AI, Foundry y Azure ML blue/green, Databricks bundles y Unity Catalog, con costos y limpieza |
 | 🏆 Proyecto final y entrevistas | 6 | 23 | Arquitectura, el proyecto completo de Rápido (modelo, pipeline, calidad, Terraform, CI), retos de SQL y PySpark, plan de carrera |
 
-**240 lecciones y 1637 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 320.000 filas** en 61 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
+**240 lecciones y 1637 ejercicios corregidos automáticamente** (incluye los módulos de certificaciones de Databricks, Azure, AWS y Google Cloud), sobre una base de datos ficticia de **13 empresas**, con **más de 500.000 filas** en 97 tablas. Las lecciones traen diagramas dibujados a mano (estilo Excalidraw) con íconos, que se pueden ampliar a pantalla completa.
 
 ### Herramientas de práctica
 
@@ -42,7 +42,7 @@ Curso **gratuito, interactivo y en español** para pasar de no saber nada a trab
 ## Cómo funciona por dentro
 
 - **SQL**: SQLite compilado a WebAssembly ([sql.js](https://github.com/sql-js/sql.js)). El dataset se genera en el navegador con una semilla fija (`assets/js/data.js`), así los resultados son siempre los mismos y se pueden corregir comparando con la solución.
-- **Python**: CPython en WebAssembly ([Pyodide](https://pyodide.org)) dentro de un Web Worker.
+- **Python**: CPython 3.14 en WebAssembly ([Pyodide](https://pyodide.org) 314.0.7, con pandas 3) dentro de un Web Worker de tipo módulo.
 - **PySpark**: *mini-Spark* (`assets/py/minispark`), un simulador en Python puro de gran parte de `pyspark.sql` (DataFrames, funciones, joins, ventanas, Spark SQL, lectura/escritura, RDDs básicos).
 - **Airflow**: *mini-Airflow* (`assets/py/miniairflow`), con `DAG`, operadores, `>>`, XCom, TaskFlow, ramas, trigger rules y `TaskGroup`; el corrector inspecciona y ejecuta el DAG.
 - **dbt**: los modelos se compilan con Jinja2 real (`ref`, `source`, `config`, `is_incremental`, macros) y se ejecutan en SQLite.

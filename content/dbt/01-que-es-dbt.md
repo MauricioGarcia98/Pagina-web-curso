@@ -41,6 +41,44 @@ dbt resuelve cada uno de esos problemas con una idea simple: **cada transformaci
 
 El trabajo pesado lo hace tu **motor** (Databricks, Snowflake, BigQuery…): dbt solo genera y ordena el SQL.
 
+```recorrido
+titulo: dbt run paso a paso: del archivo .sql a la tabla
+estacion model: El modelo | icono=codigo
+estacion compile: Compilar | icono=engranaje
+estacion dag: Ordenar | icono=red
+estacion ddl: Envolver | icono=transformar
+estacion db: La base | icono=base
+paso model: Lo que tú escribes
+Un archivo `models/ventas_por_canal.sql` con un SELECT y una referencia a otro modelo.
+>>> sql
+select canal, count(*) as pedidos
+from {{ ref('stg_ventas') }}
+group by canal
+paso compile: dbt compila el Jinja
+`{{ ref(...) }}` se reemplaza por el nombre real de la tabla en tu base (en la terminal del curso, `main.stg_ventas`).
+>>> sql
+select canal, count(*) as pedidos
+from main.stg_ventas
+group by canal
+paso dag: Arma el orden con los ref()
+Como este modelo usa `stg_ventas`, dbt construye primero `stg_ventas` y después éste.
+>>> texto
+stg_ventas  →  ventas_por_canal
+paso ddl: Envuelve el SELECT en el DDL
+Según la materialización, agrega el `CREATE`. Tú nunca lo escribes.
+>>> sql
+create table main.ventas_por_canal as
+select canal, count(*) as pedidos
+from main.stg_ventas
+group by canal
+paso db: La base hace el trabajo
+dbt envía el SQL a tu motor (Databricks, Snowflake, BigQuery…) y reporta el resultado de cada modelo.
+>>> log
+1 of 2 OK created sql view model main.stg_ventas
+2 of 2 OK created sql table model main.ventas_por_canal [SELECT 4]
+Done. PASS=2 WARN=0 ERROR=0 SKIP=0 TOTAL=2
+```
+
 ## Pruébalo en la terminal
 
 La terminal del curso tiene un proyecto dbt de verdad en la carpeta `tienda_dbt` (los modelos se ejecutan sobre la base SQLite del curso). Ábrela con el botón **⌨ En la terminal** y ejecuta:

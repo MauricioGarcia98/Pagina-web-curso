@@ -201,10 +201,10 @@ Crea el DAG `rapido_operaciones` con `schedule="0 6 * * *"`, `start_date` 2024-0
 4. `publicar`: `EmptyOperator`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import ShortCircuitOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 # resultado de los controles de hoy: filas problemáticas que devolvió cada consulta
 CONTROLES = {
@@ -218,10 +218,10 @@ def pasa_calidad():
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import ShortCircuitOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 CONTROLES = {
     "frescura_ayer": {"severidad": "bloqueante", "filas": 0},

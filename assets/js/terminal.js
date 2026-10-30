@@ -15,22 +15,22 @@
 
   // ------------------------------------------------------------------ máquina
   const Machine = {
-    fs: {}, cwd: HOME, env: {}, history: [], cloud: {}, git: {}, ready: false,
+    fs: {}, cwd: HOME, env: {}, history: [], cloud: {}, git: {}, alias: {}, ready: false,
     load() {
       try {
         const d = JSON.parse(localStorage.getItem(KEY));
-        if (d && d.v === 1) { Object.assign(this, d); this.ready = true; return; }
+        if (d && d.v === 1) { Object.assign(this, d); this.alias = this.alias || {}; this.ready = true; return; }
       } catch (e) { /* sin almacenamiento */ }
       this.reset();
     },
     save() {
       clearTimeout(this._t);
       this._t = setTimeout(() => {
-        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git })); } catch (e) { /* lleno */ }
+        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias })); } catch (e) { /* lleno */ }
       }, 300);
     },
     reset() {
-      this.fs = {}; this.cwd = HOME; this.history = []; this.cloud = {}; this.git = {};
+      this.fs = {}; this.cwd = HOME; this.history = []; this.cloud = {}; this.git = {}; this.alias = { ll: 'ls -la', la: 'ls -a', '..': 'cd ..' };
       this.env = { HOME, USER: 'alumno', PATH: '/usr/local/bin:/usr/bin:/bin', SHELL: '/bin/bash', LANG: 'es_ES.UTF-8' };
       seedFiles();
       this.ready = true;
@@ -114,9 +114,9 @@ with open("datos/resumen_canales.csv", "w", encoding="utf-8") as f:
 print("\\n✔ Escribí datos/resumen_canales.csv")
 `);
     w(HOME + '/dags/etl_ventas.py', `from datetime import datetime
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 
 def validar(ti):
@@ -190,7 +190,7 @@ models:
       - name: cliente_id
         data_tests: [unique, not_null]
 `);
-    w(HOME + '/.bashrc', '# configuración de la terminal\nexport EDITOR=code\n');
+    w(HOME + '/.bashrc', '# ~/.bashrc: se ejecuta cada vez que abres la terminal\nexport EDITOR=code\nalias ll=\'ls -la\'\nalias gs=\'git status\'\n# tema dracula        # descomenta para cambiar el tema (o usa el botón ⚙)\n# export PS1=\'\\u@\\h \\W \\$ \'\n');
   }
 
   // --------------------------------------------------------------- utilidades FS
@@ -312,6 +312,10 @@ models:
 
   async function runSimple(text, stdin, opts) {
     const toks = tokenize(await expand(text, Machine.env, opts));
+    // alias: se expande la primera palabra (una sola vez, como bash)
+    if (typeof toks[0] === 'string' && Machine.alias && Object.prototype.hasOwnProperty.call(Machine.alias, toks[0])) {
+      toks.splice(0, 1, ...tokenize(await expand(Machine.alias[toks[0]], Machine.env, opts)));
+    }
     // asignaciones VAR=valor: solas quedan en la sesión; delante de un comando valen solo para ese comando
     const temporales = {};
     while (toks.length && typeof toks[0] === 'string' && /^[A-Za-z_]\w*=/.test(toks[0])) {
@@ -437,14 +441,15 @@ models:
     const groups = {
       'Archivos y carpetas': ['pwd', 'ls', 'cd', 'mkdir', 'touch', 'cat', 'head', 'tail', 'less', 'wc', 'cp', 'mv', 'rm', 'tree', 'find', 'code'],
       'Texto': ['echo', 'printf', 'grep', 'sed', 'sort', 'uniq', 'cut', 'tr', 'diff', 'jq'],
-      'Sistema y scripts': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'source', 'bash', 'chmod', 'make', 'sudo', 'reset-maquina'],
+      'Sistema y scripts': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'type', 'source', 'bash', 'chmod', 'make', 'sudo', 'reset-maquina'],
+      'Personalizar': ['alias', 'unalias', 'tema', 'neofetch'],
       'Instalar herramientas': ['apt', 'brew', 'winget', 'wsl'],
       'Python y Git': ['python', 'uv', 'pip', 'pytest', 'git', 'gh', 'ssh-keygen', 'ssh'],
       'Bases de datos y contenedores': ['sqlite3', 'duckdb', 'psql', 'docker', 'docker-compose'],
       'Pipelines': ['dbt', 'airflow', 'astro', 'java', 'spark-submit', 'curl'],
       'Nube e infraestructura': ['az', 'aws', 'gcloud', 'gsutil', 'bq', 'databricks', 'terraform'],
     };
-    return ok(Object.entries(groups).map(([g, cs]) => col.b(g) + '\n' + cs.filter((c) => Commands[c]).map((c) => `  ${col.info(c.padEnd(15))}${Help[c] || ''}`).join('\n')).join('\n\n') + `\n\n${col.dim('Atajos: ↑/↓ historial · Tab autocompleta · Ctrl+L limpia · Ctrl+C cancela la línea')}`);
+    return ok(Object.entries(groups).map(([g, cs]) => col.b(g) + '\n' + cs.filter((c) => Commands[c]).map((c) => `  ${col.info(c.padEnd(15))}${Help[c] || ''}`).join('\n')).join('\n\n') + `\n\n${col.dim('Atajos: ↑/↓ historial · Ctrl+R busca en el historial · !! repite el último · Tab autocompleta · Ctrl+A/E inicio/fin · Ctrl+U/K borra antes/después · Ctrl+W borra palabra · Ctrl+L limpia · Ctrl+C cancela · ⚙ apariencia')}`);
   });
   def('pwd', 'muestra la carpeta actual', () => ok(Machine.cwd));
   def('whoami', 'tu usuario', () => ok('alumno'));
@@ -454,7 +459,7 @@ models:
   def('false', '', () => ({ out: '', code: 1 }));
   def('sleep', '', () => ok(''));
   def('reset-maquina', 'vuelve la máquina a su estado inicial', () => { Machine.reset(); return { out: col.ok('✔ Máquina reiniciada'), code: 0, clear: true }; });
-  def('history', 'historial de comandos', () => ok(Machine.history.map((h, i) => `${String(i + 1).padStart(5)}  ${h}`).join('\n')));
+  def('history', 'historial de comandos (history -c lo borra; !! repite el último; !n el número n)', (a) => { if (a[0] === '-c') { Machine.history = []; Machine.save(); return ok(''); } const n = parseInt(a[0], 10); const hs = Machine.history.map((h, i) => `${String(i + 1).padStart(5)}  ${h}`); return ok((n > 0 ? hs.slice(-n) : hs).join('\n')); });
   def('which', 'dónde está un comando', (a) => ok(a.map((n) => (Commands[n] ? `/usr/bin/${n}` : '')).filter(Boolean).join('\n')));
   def('export', 'define una variable de entorno', (a) => {
     if (!a.length) return ok(Object.entries(Machine.env).filter(([k]) => k !== '?').map(([k, v]) => `declare -x ${k}="${v}"`).join('\n'));
@@ -829,7 +834,7 @@ models:
   ['nano', 'vim', 'vi'].forEach((e) => def(e, e === 'nano' ? 'editor de texto (abre el editor visual)' : '', (a) => Commands.code(a)));
   def('pip', 'instala paquetes de Python (simulado)', (a) => {
     if (a[0] === 'install') return ok(a.slice(1).filter((x) => !x.startsWith('-')).map((p) => `Collecting ${p}\n  Downloading ${p}-latest-py3-none-any.whl\n`).join('') + col.ok(`Successfully installed ${a.slice(1).filter((x) => !x.startsWith('-')).join(' ')}`));
-    if (a[0] === 'list' || a[0] === 'freeze') return ok('pandas==2.2.2\npyspark==3.5.1\napache-airflow==2.9.3\ndbt-databricks==1.8.5\nrequests==2.32.3');
+    if (a[0] === 'list' || a[0] === 'freeze') return ok('pandas==2.2.2\npyspark==4.2.1\napache-airflow==3.3.2\ndbt-databricks==1.8.5\nrequests==2.32.3');
     return ok('Uso: pip install PAQUETE | pip list');
   });
   Commands.pip3 = Commands.pip;
@@ -1010,44 +1015,281 @@ for _n, _fn in list(_ns.items()):
     lines.push('', `${hhmmss()}  ${errN ? col.err('Completed with errors') : col.ok('Completed successfully')}`, `${hhmmss()}  Done. PASS=${okN} WARN=0 ERROR=${errN} SKIP=0 TOTAL=${ord.length}`);
     return { out: lines.join('\n'), code: errN ? 1 : 0 };
   }
+  // YAML mínimo (mapas, listas, listas/mapas en línea, comillas): suficiente para schema.yml de dbt
+  function miniYaml(src) {
+    const escalar = (s) => {
+      s = s.trim();
+      if (s === '') return null;
+      if (/^\[.*\]$/.test(s)) return partir(s.slice(1, -1)).map(escalar);
+      if (/^\{.*\}$/.test(s)) { const o = {}; for (const kv of partir(s.slice(1, -1))) { const i = kv.indexOf(':'); if (i > 0) o[kv.slice(0, i).trim()] = escalar(kv.slice(i + 1)); } return o; }
+      if (/^(['"]).*\1$/.test(s)) return s.slice(1, -1);
+      if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+      if (s === 'true' || s === 'false') return s === 'true';
+      return s;
+    };
+    function partir(s) {   // separa por comas fuera de comillas, [] y {}
+      const out = []; let cur = '', prof = 0, q = null;
+      for (const ch of s) {
+        if (q) { cur += ch; if (ch === q) q = null; continue; }
+        if (ch === '"' || ch === "'") { q = ch; cur += ch; continue; }
+        if ('[{'.includes(ch)) prof++; if (']}'.includes(ch)) prof--;
+        if (ch === ',' && !prof) { out.push(cur); cur = ''; } else cur += ch;
+      }
+      if (cur.trim()) out.push(cur);
+      return out;
+    }
+    const lineas = src.split('\n').map((l) => l.replace(/\s+#.*$/, '').replace(/^\s*#.*$/, '')).filter((l) => l.trim())
+      .map((l) => ({ ind: l.search(/\S/), txt: l.trim() }));
+    let i = 0;
+    function bloque(ind) {
+      if (i >= lineas.length) return null;
+      if (lineas[i].txt.startsWith('- ') || lineas[i].txt === '-') {
+        const arr = [];
+        while (i < lineas.length && lineas[i].ind === ind && (lineas[i].txt.startsWith('- ') || lineas[i].txt === '-')) {
+          const resto = lineas[i].txt.slice(1).trim();
+          if (!resto) { i++; arr.push(bloque(lineas[i] ? lineas[i].ind : ind + 2)); continue; }
+          if (/^[\w.-]+\s*:(\s|$)/.test(resto) && !/^(['"])/.test(resto)) {
+            // elemento que es un mapa: la primera clave va en la línea del guion
+            lineas[i] = { ind: ind + 2, txt: resto };
+            arr.push(mapa(ind + 2));
+          } else { arr.push(escalar(resto)); i++; }
+        }
+        return arr;
+      }
+      return mapa(ind);
+    }
+    function mapa(ind) {
+      const o = {};
+      while (i < lineas.length && lineas[i].ind === ind && !lineas[i].txt.startsWith('- ')) {
+        const m = lineas[i].txt.match(/^([^:]+?)\s*:\s*(.*)$/);
+        if (!m) { i++; continue; }
+        i++;
+        if (m[2] === '' || m[2] === '|' || m[2] === '>') {
+          if (i < lineas.length && lineas[i].ind > ind) o[m[1]] = m[2] ? lineasCrudas(ind) : bloque(lineas[i].ind);
+          else if (i < lineas.length && lineas[i].ind === ind && lineas[i].txt.startsWith('- ')) o[m[1]] = bloque(ind);
+          else o[m[1]] = null;
+        } else o[m[1]] = escalar(m[2]);
+      }
+      return o;
+    }
+    function lineasCrudas(ind) { const out = []; while (i < lineas.length && lineas[i].ind > ind) out.push(lineas[i++].txt); return out.join('\n'); }
+    return lineas.length ? bloque(lineas[0].ind) : null;
+  }
+  // Lee los tests genéricos de models/**/*.yml (data_tests: o tests:) y los singulares de tests/*.sql
   function dbtTests(root, sel) {
     const tests = [];
-    for (const k of Object.keys(Machine.fs)) if (k.startsWith(root + '/models/') && /\.ya?ml$/.test(k)) {
-      const y = readFile(k);
-      let model = null, column = null;
-      for (const line of y.split('\n')) {
-        let m;
-        if ((m = line.match(/^\s*-\s*name:\s*(\w+)/))) {
-          const indent = line.search(/\S/);
-          if (indent <= 4) { model = m[1]; column = null; } else column = m[1];
-        }
-        const tl = line.match(/(?:data_)?tests:\s*\[(.*)\]/);
-        if (tl && model && column) for (const t of tl[1].split(',').map((x) => x.trim()).filter(Boolean)) tests.push({ model, column, test: t });
-        const single = line.match(/^\s*-\s*(unique|not_null)\s*$/);
-        if (single && model && column) tests.push({ model, column, test: single[1] });
+    const norm1 = (t) => {
+      if (typeof t === 'string') return { test: t, args: {}, config: {} };
+      const [nombre] = Object.keys(t); const v = t[nombre] || {};
+      const args = Object.assign({}, v, v.arguments || {}); delete args.arguments; delete args.config;
+      return { test: nombre, args, config: v.config || {} };
+    };
+    for (const k of Object.keys(Machine.fs).sort()) if (k.startsWith(root + '/models/') && /\.ya?ml$/.test(k)) {
+      let y; try { y = miniYaml(readFile(k)); } catch (e) { y = null; }
+      for (const m of (y && y.models) || []) {
+        if (!m || !m.name) continue;
+        for (const t of m.data_tests || m.tests || []) tests.push(Object.assign(norm1(t), { model: m.name }));
+        for (const c of m.columns || []) for (const t of (c && (c.data_tests || c.tests)) || []) tests.push(Object.assign(norm1(t), { model: m.name, column: c.name }));
       }
     }
-    return sel ? tests.filter((t) => String(sel).replace(/\+/g, '').split(/[ ,]+/).includes(t.model)) : tests;
+    for (const k of Object.keys(Machine.fs).sort()) if (k.startsWith(root + '/tests/') && k.endsWith('.sql')) {
+      const sql = readFile(k);
+      tests.push({ test: 'singular', name: base(k).replace(/\.sql$/, ''), sql, refs: [...sql.matchAll(/ref\(\s*['"](\w+)['"]\s*\)/g)].map((m) => m[1]), config: {} });
+    }
+    if (!sel) return tests;
+    const nombres = String(sel).replace(/\+/g, '').split(/[ ,]+/);
+    return tests.filter((t) => nombres.includes(t.model) || (t.refs || []).some((r) => nombres.includes(r)) || nombres.includes(t.name));
   }
-  async function dbtTest(root, sel) {
+  const sqlLista = (vals) => (Array.isArray(vals) ? vals : [vals]).map((v) => (typeof v === 'number' ? v : `'${String(v).replace(/'/g, "''")}'`)).join(', ');
+  async function consultaTest(t) {
+    const w = t.config.where ? ` WHERE ${t.config.where}` : '';
+    const desde = `(SELECT * FROM "${t.model}"${w})`;
+    switch (t.test) {
+      case 'unique': return `SELECT ${t.column} FROM ${desde} AS m WHERE ${t.column} IS NOT NULL GROUP BY ${t.column} HAVING COUNT(*) > 1`;
+      case 'not_null': return `SELECT * FROM ${desde} AS m WHERE ${t.column} IS NULL`;
+      case 'accepted_values': return `SELECT ${t.column} AS valor, COUNT(*) AS n FROM ${desde} AS m WHERE ${t.column} NOT IN (${sqlLista(t.args.values || [])}) GROUP BY ${t.column}`;
+      case 'relationships': {
+        const destino = (String(t.args.to || '').match(/ref\(\s*['"](\w+)['"]\s*\)|source\(\s*['"]\w+['"]\s*,\s*['"](\w+)['"]\s*\)/) || [])[1] || String(t.args.to || '').match(/source\(\s*['"]\w+['"]\s*,\s*['"](\w+)['"]/)?.[1];
+        if (!destino || !t.args.field) throw new Error('relationships necesita to: ref(\'modelo\') y field: columna');
+        return `SELECT h.${t.column} FROM ${desde} AS h LEFT JOIN "${destino}" AS p ON h.${t.column} = p.${t.args.field} WHERE h.${t.column} IS NOT NULL AND p.${t.args.field} IS NULL`;
+      }
+      case 'singular': {
+        const c = await window.Engines.PY.dbt(t.sql, { macros: dbtMacros() });
+        if (!c.ok) throw new Error('Compilation Error: ' + c.error);
+        return c.sql.replace(/;\s*$/, '');
+      }
+      default: throw new Error(`test genérico "${t.test}" no disponible en el simulador (sí: unique, not_null, accepted_values, relationships y tests singulares)`);
+    }
+  }
+  const nombreTest = (t) => t.test === 'singular' ? t.name : `${t.test}_${t.model}_${t.column || ''}`.replace(/_$/, '') + (t.test === 'accepted_values' ? '__' + [].concat(t.args.values || []).join('__') : '');
+  // Igual que dbt: severity error|warn; error_if y warn_if (por defecto "!=0") sobre la cantidad de fallas
+  function evaluarSeveridad(n, cfg) {
+    const cumple = (expr) => { const m = String(expr || '!=0').trim().match(/^(!=|>=|<=|=|==|>|<)\s*(\d+)$/); if (!m) return n !== 0; const x = Number(m[2]); return { '!=': n !== x, '>=': n >= x, '<=': n <= x, '=': n === x, '==': n === x, '>': n > x, '<': n < x }[m[1]]; };
+    if ((cfg.severity || 'error') === 'error' && cumple(cfg.error_if)) return 'error';
+    return cumple(cfg.warn_if) ? 'warn' : 'pass';
+  }
+  async function ejecutarTests(db, tests, lines, acc) {
+    for (const t of tests) {
+      const i = ++acc.i, name = nombreTest(t);
+      try {
+        const q = await consultaTest(t);
+        const r = db.exec(q);
+        const n = r.length ? r[0].values.length : 0;
+        const est = evaluarSeveridad(n, t.config);
+        if (est === 'error') { acc.fail++; t.fallo = true; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.err('FAIL ' + n)} ${name}`); }
+        else if (est === 'warn') { acc.warn++; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.warn ? col.warn('WARN ' + n) : 'WARN ' + n} ${name}`); }
+        else { acc.pass++; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.ok('PASS')} ${name}`); }
+        if (n && est !== 'pass') {
+          acc.detalles.push(`${col.b(name)}: ${n} fila(s) que no cumplen. SQL compilado:\n  ${col.dim(q.replace(/\s+/g, ' ').trim())}`);
+          if (t.config.store_failures || acc.storeFailures) {
+            const tabla = 'dbt_test__audit_' + name.replace(/\W+/g, '_').slice(0, 50);
+            db.exec(`DROP TABLE IF EXISTS "${tabla}"; CREATE TABLE "${tabla}" AS ${q}`);
+            acc.detalles.push(`  fallas guardadas en ${col.b(tabla)} (consulta: SELECT * FROM ${tabla})`);
+          }
+        }
+      } catch (e) { acc.err++; t.fallo = true; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.err('ERROR')} ${name}: ${/no such table/.test(e.message) ? 'el modelo no existe: ejecuta dbt run primero' : e.message}`); }
+    }
+  }
+  function resumenTests(lines, acc) {
+    if (acc.detalles.length) lines.push('', col.b('Detalle de los tests con fallas:'), ...acc.detalles);
+    lines.push('', `${hhmmss()}  Done. PASS=${acc.pass} WARN=${acc.warn} ERROR=${acc.err} FAIL=${acc.fail} SKIP=${acc.skip || 0} TOTAL=${acc.total}`);
+  }
+  async function dbtTest(root, sel, { storeFailures } = {}) {
     const E = window.Engines.SQL;
     if (!E._bytes) await E.init();
     const db = E.playground();
     const tests = dbtTests(root, sel);
     const lines = [`${hhmmss()}  Running with dbt=1.8.7`, `${hhmmss()}  Found ${tests.length} data tests`, ''];
-    let pass = 0, failN = 0, err = 0;
-    tests.forEach((t, i) => {
-      const q = t.test === 'unique' ? `SELECT ${t.column} FROM "${t.model}" GROUP BY ${t.column} HAVING COUNT(*) > 1` : `SELECT * FROM "${t.model}" WHERE ${t.column} IS NULL`;
-      const name = `${t.test}_${t.model}_${t.column}`;
+    const acc = { i: 0, total: tests.length, pass: 0, warn: 0, err: 0, fail: 0, detalles: [], storeFailures };
+    await ejecutarTests(db, tests, lines, acc);
+    resumenTests(lines, acc);
+    return { out: lines.join('\n'), code: acc.fail || acc.err ? 1 : 0 };
+  }
+  // dbt build: en orden del DAG, cada modelo y enseguida sus tests; si un test con severidad error falla,
+  // los modelos que dependen de él se saltan (SKIP), igual que en dbt real
+  async function dbtBuild(root, models, sel, opts = {}) {
+    const ord = topo(models);
+    const tests = dbtTests(root, null);
+    const lines = [`${hhmmss()}  Running with dbt=1.8.7 (simulado sobre SQLite)`, `${hhmmss()}  Found ${ord.length} models, ${tests.length} data tests`, ''];
+    const E = window.Engines.SQL; if (!E._bytes) await E.init();
+    const db = E.playground();
+    const acc = { i: 0, total: 0, pass: 0, warn: 0, err: 0, fail: 0, skip: 0, detalles: [], storeFailures: opts.storeFailures };
+    const roto = new Set();
+    const hechos = new Set();
+    const nodos = [];
+    for (const m of ord) {
+      nodos.push({ m });
+      for (const t of tests) if (!t.usado && (t.model === m.name || (t.refs && t.refs.length && t.refs.every((r) => hechos.has(r) || r === m.name)))) { t.usado = true; nodos.push({ t }); }
+      hechos.add(m.name);
+    }
+    acc.total = nodos.length;
+    for (const n of nodos) {
+      if (n.m) {
+        const m = n.m, i = ++acc.i;
+        if (m.refs.some((r) => roto.has(r))) { roto.add(m.name); acc.skip++; lines.push(`${hhmmss()}  ${i} of ${acc.total} ${col.dim('SKIP relation main.' + m.name + ' (un test o modelo anterior falló)')}`); continue; }
+        const r = await dbtRun([m], opts);
+        const okM = r.code === 0;
+        if (okM) acc.pass++; else { acc.err++; roto.add(m.name); }
+        lines.push(`${hhmmss()}  ${i} of ${acc.total} ${okM ? col.ok('OK') : col.err('ERROR')} ${m.mat} model main.${m.name}`);
+        if (!okM) lines.push(col.err('  ' + (r.out.split('\n').find((l) => /Error/.test(l)) || '').trim()));
+      } else {
+        const t = n.t;
+        if (roto.has(t.model) || (t.refs || []).some((r) => roto.has(r))) { acc.i++; acc.skip++; lines.push(`${hhmmss()}  ${acc.i} of ${acc.total} ${col.dim('SKIP test ' + nombreTest(t))}`); continue; }
+        await ejecutarTests(db, [t], lines, acc);
+        if (t.fallo && t.model) roto.add(t.model);
+      }
+    }
+    resumenTests(lines, acc);
+    return { out: lines.join('\n'), code: acc.fail || acc.err ? 1 : 0 };
+  }
+  // dbt snapshot: SCD tipo 2 real sobre SQLite. Lee snapshots/*.yml (sintaxis 1.9+) y los bloques
+  // {% snapshot %} clásicos. Estrategias timestamp y check; hard_deletes ignore | invalidate | new_record.
+  function dbtSnapshots(root) {
+    const out = [];
+    for (const k of Object.keys(Machine.fs).sort()) {
+      if (!k.startsWith(root + '/snapshots/') && !(k.startsWith(root + '/models/') && /\.ya?ml$/.test(k))) continue;
+      if (/\.ya?ml$/.test(k)) {
+        let y; try { y = miniYaml(readFile(k)); } catch (e) { y = null; }
+        for (const s of (y && y.snapshots) || []) {
+          const rel = String(s.relation || '');
+          const tabla = (rel.match(/ref\(\s*['"](\w+)['"]\s*\)/) || rel.match(/source\(\s*['"]\w+['"]\s*,\s*['"](\w+)['"]\s*\)/) || [])[1];
+          if (s.name && tabla) out.push({ name: s.name, sql: `select * from main.${tabla}`, cfg: s.config || {}, jinja: false });
+        }
+      } else if (k.endsWith('.sql')) {
+        const src = readFile(k);
+        for (const m of src.matchAll(/\{%-?\s*snapshot\s+(\w+)\s*-?%\}([\s\S]*?)\{%-?\s*endsnapshot\s*-?%\}/g)) {
+          const cfg = {};
+          const c = (m[2].match(/config\(([\s\S]*?)\)\s*\}\}/) || [])[1] || '';
+          for (const kv of c.matchAll(/(\w+)\s*=\s*(\[[^\]]*\]|'[^']*'|"[^"]*"|\w+)/g)) cfg[kv[1]] = kv[2].startsWith('[') ? [...kv[2].matchAll(/['"]([^'"]+)['"]/g)].map((x) => x[1]) : kv[2].replace(/^['"]|['"]$/g, '');
+          out.push({ name: m[1], sql: m[2].replace(/\{\{\s*config\([\s\S]*?\)\s*\}\}/, ''), cfg, jinja: true });
+        }
+      }
+    }
+    return out;
+  }
+  async function dbtSnapshot(root, sel) {
+    const E = window.Engines.SQL; if (!E._bytes) await E.init();
+    const db = E.playground();
+    let snaps = dbtSnapshots(root);
+    if (sel) { const ns = String(sel).split(/[ ,]+/); snaps = snaps.filter((s) => ns.includes(s.name)); }
+    const lines = [`${hhmmss()}  Running with dbt=1.9.0 (simulado sobre SQLite)`, `${hhmmss()}  Found ${snaps.length} snapshots`, ''];
+    if (!snaps.length) lines.push(col.dim('  (no hay snapshots: crea snapshots/<nombre>.yml con snapshots: - name / relation / config)'));
+    let okN = 0, errN = 0;
+    const q = (s) => `"${s}"`;
+    for (let i = 0; i < snaps.length; i++) {
+      const s = snaps[i], cfg = s.cfg;
       try {
-        const r = db.exec(q);
-        const n = r.length ? r[0].values.length : 0;
-        if (n) { failN++; lines.push(`${hhmmss()}  ${i + 1} of ${tests.length} ${col.err('FAIL ' + n)} ${name}`); }
-        else { pass++; lines.push(`${hhmmss()}  ${i + 1} of ${tests.length} ${col.ok('PASS')} ${name}`); }
-      } catch (e) { err++; lines.push(`${hhmmss()}  ${i + 1} of ${tests.length} ${col.err('ERROR')} ${name}: ${e.message.includes('no such table') ? 'el modelo no existe: ejecuta dbt run primero' : e.message}`); }
-    });
-    lines.push('', `${hhmmss()}  Done. PASS=${pass} WARN=0 ERROR=${err} FAIL=${failN} TOTAL=${tests.length}`);
-    return { out: lines.join('\n'), code: failN || err ? 1 : 0 };
+        const key = cfg.unique_key, estr = cfg.strategy;
+        if (!key) throw new Error('falta unique_key');
+        if (estr !== 'timestamp' && estr !== 'check') throw new Error("strategy debe ser 'timestamp' o 'check'");
+        if (estr === 'timestamp' && !cfg.updated_at) throw new Error('la estrategia timestamp necesita updated_at');
+        if (estr === 'check' && !cfg.check_cols) throw new Error('la estrategia check necesita check_cols');
+        let sql = s.sql;
+        if (s.jinja) { const c = await window.Engines.PY.dbt(sql, { macros: dbtMacros() }); if (!c.ok) throw new Error('Compilation Error: ' + c.error); sql = c.sql; }
+        sql = sql.replace(/;\s*$/, '');
+        const ahora = "strftime('%Y-%m-%d %H:%M:%S', 'now')";
+        const vf = estr === 'timestamp' ? `src.${q(cfg.updated_at)}` : ahora;
+        db.exec(`DROP TABLE IF EXISTS __snap_src; CREATE TEMP TABLE __snap_src AS ${sql}`);
+        const cols = db.exec('SELECT * FROM __snap_src LIMIT 0')[0]?.columns || db.exec("SELECT name FROM pragma_table_info('__snap_src')")[0].values.map((v) => v[0]);
+        if (!cols.includes(key)) throw new Error(`la columna unique_key "${key}" no está en el resultado`);
+        const existe = db.exec(`SELECT 1 FROM sqlite_master WHERE name = '${s.name}'`).length;
+        const insertar = (filtro) => `INSERT INTO ${q(s.name)} SELECT ${cols.map((c) => 'src.' + q(c)).join(', ')}, src.${q(key)} || '-' || ${vf} AS dbt_scd_id, ${vf} AS dbt_updated_at, ${vf} AS dbt_valid_from, NULL AS dbt_valid_to FROM __snap_src src ${filtro}`;
+        if (!existe) {
+          db.exec(`CREATE TABLE ${q(s.name)} AS SELECT ${cols.map((c) => 'src.' + q(c)).join(', ')}, '' AS dbt_scd_id, '' AS dbt_updated_at, '' AS dbt_valid_from, '' AS dbt_valid_to FROM __snap_src src WHERE 0`);
+          db.exec(insertar(''));
+          const n = db.exec(`SELECT COUNT(*) FROM ${q(s.name)}`)[0].values[0][0];
+          lines.push(`${hhmmss()}  ${i + 1} of ${snaps.length} ${col.ok('OK')} snapshot main.${s.name} [${col.ok('INSERT ' + n)}] (primera vez: todas las filas vigentes)`);
+        } else {
+          const vigente = `cur.dbt_valid_to IS NULL`;
+          const cambio = estr === 'timestamp'
+            ? `src.${q(cfg.updated_at)} > cur.dbt_updated_at`
+            : (cfg.check_cols === 'all' ? cols : [].concat(cfg.check_cols)).map((c) => `src.${q(c)} IS NOT cur.${q(c)}`).join(' OR ');
+          db.exec('DROP TABLE IF EXISTS __snap_cambios');
+          db.exec(`CREATE TEMP TABLE __snap_cambios AS SELECT src.${q(key)} AS k FROM __snap_src src JOIN ${q(s.name)} cur ON cur.${q(key)} = src.${q(key)} AND ${vigente} WHERE ${cambio}`);
+          const nC = db.exec('SELECT COUNT(*) FROM __snap_cambios')[0].values[0][0];
+          // 1. cerrar la versión vigente de las filas que cambiaron
+          db.exec(`UPDATE ${q(s.name)} SET dbt_valid_to = (SELECT ${vf.replace('src.', 's2.')} FROM __snap_src s2 WHERE s2.${q(key)} = ${q(s.name)}.${q(key)}) WHERE dbt_valid_to IS NULL AND ${q(key)} IN (SELECT k FROM __snap_cambios)`);
+          // 2. insertar la versión nueva de las que cambiaron y las filas nuevas
+          const nNuevas = db.exec(`SELECT COUNT(*) FROM __snap_src src WHERE src.${q(key)} NOT IN (SELECT ${q(key)} FROM ${q(s.name)})`)[0].values[0][0];
+          db.exec(insertar(`WHERE src.${q(key)} IN (SELECT k FROM __snap_cambios) OR src.${q(key)} NOT IN (SELECT ${q(key)} FROM ${q(s.name)})`));
+          // 3. borrados en el origen
+          let nB = 0;
+          const hd = cfg.hard_deletes || (String(cfg.invalidate_hard_deletes) === 'true' ? 'invalidate' : 'ignore');
+          if (hd !== 'ignore') {
+            nB = db.exec(`SELECT COUNT(*) FROM ${q(s.name)} WHERE dbt_valid_to IS NULL AND ${q(key)} NOT IN (SELECT ${q(key)} FROM __snap_src)`)[0].values[0][0];
+            if (nB) {
+              if (hd === 'new_record') db.exec(`INSERT INTO ${q(s.name)} SELECT ${cols.map((c) => q(c)).join(', ')}, ${q(key)} || '-borrado', ${ahora}, ${ahora}, NULL FROM ${q(s.name)} WHERE dbt_valid_to IS NULL AND ${q(key)} NOT IN (SELECT ${q(key)} FROM __snap_src)`);
+              db.exec(`UPDATE ${q(s.name)} SET dbt_valid_to = ${ahora} WHERE dbt_valid_to IS NULL AND ${q(key)} NOT IN (SELECT ${q(key)} FROM __snap_src) AND dbt_scd_id NOT LIKE '%-borrado'`);
+            }
+          }
+          lines.push(`${hhmmss()}  ${i + 1} of ${snaps.length} ${col.ok('OK')} snapshot main.${s.name} [${nC} cambiadas, ${nNuevas} nuevas${hd !== 'ignore' ? `, ${nB} borradas en el origen` : ''}]`);
+        }
+        okN++;
+      } catch (e) { errN++; lines.push(`${hhmmss()}  ${i + 1} of ${snaps.length} ${col.err('ERROR')} snapshot ${s.name}: ${e.message}`); }
+    }
+    db.exec('DROP TABLE IF EXISTS __snap_src; DROP TABLE IF EXISTS __snap_cambios');
+    lines.push('', `${hhmmss()}  Done. PASS=${okN} WARN=0 ERROR=${errN} SKIP=0 TOTAL=${snaps.length}`);
+    return { out: lines.join('\n'), code: errN ? 1 : 0 };
   }
   // dbt seed: carga cada seeds/*.csv como tabla (tipos inferidos: entero, decimal o texto)
   async function dbtSeed(root) {
@@ -1100,7 +1342,7 @@ for _n, _fn in list(_ns.items()):
       }
       a = out;
     }
-    const { flags, pos } = parseArgs(a, { alias: { '-s': '--select', '-m': '--select' }, bool: ['--full-refresh', '--version'] });
+    const { flags, pos } = parseArgs(a, { alias: { '-s': '--select', '-m': '--select' }, bool: ['--full-refresh', '--version', '--store-failures'] });
     const sub = pos[0];
     if (flags['--version'] || sub === '--version') return ok('Core:\n  - installed: 1.8.7\nPlugins:\n  - databricks: 1.8.5 (simulado: ejecuta sobre SQLite)');
     if (sub === 'init') {
@@ -1128,10 +1370,10 @@ for _n, _fn in list(_ns.items()):
         return ok(out.join('\n'));
       }
       case 'run': return dbtRun(selectModels(models, sel), { full: flags['--full-refresh'] });
-      case 'test': return dbtTest(root, sel);
-      case 'build': { const r = await dbtRun(selectModels(models, sel)); const t = await dbtTest(root, sel); return { out: r.out + '\n\n' + t.out, code: r.code || t.code }; }
+      case 'test': return dbtTest(root, sel, { storeFailures: flags['--store-failures'] });
+      case 'build': return dbtBuild(root, selectModels(models, sel), sel, { full: flags['--full-refresh'], storeFailures: flags['--store-failures'] });
       case 'docs': return ok(pos[1] === 'serve' ? col.dim('(simulado) Sirviendo documentación en http://localhost:8080') : `${hhmmss()}  Catalog written to target/catalog.json`);
-      case 'snapshot': return ok(`${hhmmss()}  Found 0 snapshots`);
+      case 'snapshot': return dbtSnapshot(root, sel);
       case 'source': return ok(`${hhmmss()}  Pulling freshness from warehouse metadata tables\n${hhmmss()}  1 of 1 ${col.ok('PASS')} freshness of tienda.pedidos`);
       default: return ok('Uso: dbt [init|debug|run|test|build|compile|ls|seed|deps|snapshot|docs] [-s SELECTOR]');
     }
@@ -1153,7 +1395,7 @@ for _n, _fn in list(_ns.items()):
   }
   def('airflow', 'Airflow (mini-Airflow real): dags list, dags test, tasks list, dags trigger…', async (a) => {
     const [g, s, ...rest] = a;
-    if (g === 'version' || g === '--version') return ok('2.9.3 (mini-Airflow del curso)');
+    if (g === 'version' || g === '--version') return ok('3.3.2 (mini-Airflow del curso)');
     if (g === 'dags' && s === 'list') {
       const ds = dagIds();
       if (!ds.length) return ok('No hay DAGs en ~/dags');
@@ -1411,20 +1653,93 @@ for _n, _fn in list(_ns.items()):
   function render(text) {
     return escHtml(text).replace(/\u0001([^\u0002]*)\u0002([\s\S]*?)\u0003/g, (_, c, t) => `<span class="${c}">${t}</span>`);
   }
-  const promptHtml = () => `${Machine.env.VIRTUAL_ENV ? `(${escHtml(Machine.env.VIRTUAL_ENV.split('/').pop())}) ` : ''}<span class="t-user">alumno@academia</span>:<span class="t-dir">${escHtml(display(Machine.cwd))}</span>$ `;
+  // ------------------------------------------------------------- apariencia (tema, fuente, cursor, prompt)
+  const TEMAS = {
+    academia: ['Academia', '#0d1017', '#c4a7ff'], dracula: ['Dracula', '#282a36', '#ff79c6'], monokai: ['Monokai', '#272822', '#a6e22e'],
+    nord: ['Nord', '#2e3440', '#88c0d0'], solarized: ['Solarized', '#002b36', '#b58900'], gruvbox: ['Gruvbox', '#282828', '#fe8019'],
+    claro: ['Claro', '#ffffff', '#0969da'], 'solarized-claro': ['Solar claro', '#fdf6e3', '#cb4b16'], retro: ['Retro CRT', '#050f05', '#33ff66'],
+  };
+  const FUENTES = { 'JetBrains Mono': "'JetBrains Mono', ui-monospace, monospace", 'Sistema': 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', 'Courier': "'Courier New', Courier, monospace" };
+  const PROMPTS = { clasico: 'Clásico (usuario@host:dir$)', git: 'Con rama de git', minimal: 'Minimalista (dir ❯)', powerline: 'Bloques de color' };
+  const TermCfg = {
+    KEY: 'academia-terminal-config',
+    def: { tema: 'academia', fuente: 'JetBrains Mono', tam: 13.5, cursor: 'linea', prompt: 'clasico', usuario: 'alumno', host: 'academia', hora: false },
+    v: null,
+    get() { if (!this.v) { let d = null; try { d = JSON.parse(localStorage.getItem(this.KEY)); } catch (e) { /* sin almacenamiento */ } this.v = Object.assign({}, this.def, d || {}); } return this.v; },
+    set(cambios) { Object.assign(this.get(), cambios); try { localStorage.setItem(this.KEY, JSON.stringify(this.v)); } catch (e) { /* sin almacenamiento */ } this.aplicar(); },
+    aplicar() {
+      const c = this.get(), r = document.documentElement;
+      if (c.tema === 'academia') delete r.dataset.termTema; else r.dataset.termTema = c.tema;
+      r.dataset.termCursor = c.cursor;
+      r.style.setProperty('--term-fs', `${c.tam}px`);
+      r.style.setProperty('--term-font', FUENTES[c.fuente] || FUENTES['JetBrains Mono']);
+      document.dispatchEvent(new CustomEvent('term-config'));
+    },
+  };
+  const ramaGit = () => { const r = gitRoot(); return r && Machine.git[r] ? Machine.git[r].branch : null; };
+  // PS1 al estilo bash: \u usuario, \h host, \w ruta, \W carpeta, \$ $, \t hora, \A hh:mm, \d fecha
+  function ps1(fmt, c) {
+    const d = new Date(), pad = (n) => String(n).padStart(2, '0');
+    return escHtml(fmt).replace(/\\([uhwW$tAd])/g, (_, k) => ({ u: `<span class="t-user">${escHtml(c.usuario)}</span>`, h: escHtml(c.host), w: `<span class="t-dir">${escHtml(display(Machine.cwd))}</span>`, W: `<span class="t-dir">${escHtml(display(Machine.cwd).split('/').pop() || '/')}</span>`, $: '$', t: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`, A: `${pad(d.getHours())}:${pad(d.getMinutes())}`, d: d.toDateString().slice(0, 10) }[k]));
+  }
+  const promptHtml = () => {
+    const c = TermCfg.get(), d = new Date();
+    const venv = Machine.env.VIRTUAL_ENV ? `(${escHtml(Machine.env.VIRTUAL_ENV.split('/').pop())}) ` : '';
+    const hora = c.hora ? `<span class="t-dim">[${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}]</span> ` : '';
+    if (Machine.env.PS1) return hora + venv + ps1(Machine.env.PS1, c);
+    const dir = escHtml(display(Machine.cwd)), rama = ramaGit(), u = escHtml(c.usuario), hst = escHtml(c.host);
+    if (c.prompt === 'minimal') return `${hora}${venv}<span class="t-dir">${escHtml(display(Machine.cwd).split('/').pop() || '/')}</span>${rama ? ` <span class="t-git">${escHtml(rama)}</span>` : ''} <span class="t-info">❯</span> `;
+    if (c.prompt === 'git') return `${hora}${venv}<span class="t-user">${u}@${hst}</span> <span class="t-dir">${dir}</span>${rama ? ` <span class="t-git">(${escHtml(rama)})</span>` : ''} $ `;
+    if (c.prompt === 'powerline') return `${hora}${venv}<span class="t-pl t-pl-u">${u}</span><span class="t-pl t-pl-d">${dir}</span>${rama ? `<span class="t-pl t-pl-g">⎇ ${escHtml(rama)}</span>` : ''} `;
+    return `${hora}${venv}<span class="t-user">${u}@${hst}</span>:<span class="t-dir">${dir}</span>$ `;
+  };
+  const tituloTerm = () => { const c = TermCfg.get(); return `${c.usuario}@${c.host}: ${display(Machine.cwd)}`; };
+
+  def('alias', "define atajos: alias ll='ls -la' · alias (lista)", (a) => {
+    if (!a.length) return ok(Object.entries(Machine.alias).sort().map(([k, v]) => `alias ${k}='${v}'`).join('\n'));
+    const out = [];
+    for (const x of a) {
+      const i = x.indexOf('=');
+      if (i < 0) { if (Machine.alias[x] === undefined) return fail(`bash: alias: ${x}: no se encontró`); out.push(`alias ${x}='${Machine.alias[x]}'`); continue; }
+      const k = x.slice(0, i);
+      if (!/^[\w.-]+$/.test(k)) return fail(`bash: alias: \`${k}': nombre de alias inválido`);
+      Machine.alias[k] = x.slice(i + 1);
+    }
+    Machine.save();
+    return ok(out.join('\n'));
+  });
+  def('unalias', 'borra un alias: unalias ll · unalias -a (todos)', (a) => {
+    if (a[0] === '-a') { Machine.alias = {}; Machine.save(); return ok(''); }
+    for (const x of a) { if (Machine.alias[x] === undefined) return fail(`bash: unalias: ${x}: no se encontró`); delete Machine.alias[x]; }
+    Machine.save(); return ok('');
+  });
+  def('type', 'dice qué es un comando: alias, programa o integrado', (a) => ok(a.map((n) => (Machine.alias[n] !== undefined ? `${n} es un alias de «${Machine.alias[n]}»` : ['cd', 'export', 'alias', 'unalias', 'history', 'source', 'type', 'echo', 'pwd'].includes(n) ? `${n} es una orden interna del shell` : Commands[n] ? `${n} es /usr/bin/${n}` : col.err(`bash: type: ${n}: no se encontró`))).join('\n')));
+  def('tema', 'cambia el tema de la terminal: tema dracula · tema (lista)', (a) => {
+    if (!a[0]) return ok('Temas: ' + Object.keys(TEMAS).map((t) => (t === TermCfg.get().tema ? col.ok(t + ' ✓') : t)).join(', ') + col.dim('\nTambién puedes usar el botón ⚙ de la barra de la terminal.'));
+    if (!TEMAS[a[0]]) return fail(`tema: no existe "${a[0]}". Opciones: ${Object.keys(TEMAS).join(', ')}`);
+    TermCfg.set({ tema: a[0] }); return ok(col.ok(`Tema ${TEMAS[a[0]][0]} aplicado.`));
+  });
+  def('neofetch', 'información del sistema, con estilo', () => {
+    const c = TermCfg.get();
+    const logo = ['    .--.    ', '   |o_o |   ', '   |:_/ |   ', '  //   \\ \\  ', ' (|     | ) ', "/'\\_   _/`\\ ", '\\___)=(___/ '];
+    const datos = [`${col.b(c.usuario + '@' + c.host)}`, '-'.repeat(c.usuario.length + c.host.length + 1), `${col.info('SO')}: Academia Linux (simulado en tu navegador)`, `${col.info('Shell')}: bash 5.2 · ${Object.keys(Machine.alias).length} alias`, `${col.info('Terminal')}: tema ${TEMAS[c.tema][0]}, ${c.fuente} ${c.tam}px`, `${col.info('Comandos')}: ${Object.keys(Commands).length}`, `${col.info('Historial')}: ${Machine.history.length} comandos`];
+    return ok(logo.map((l, i) => col.warn(l) + '  ' + (datos[i] || '')).join('\n'));
+  });
 
   function createTerminal(container, opts = {}) {
     if (!Machine.ready) Machine.load();
     const el = document.createElement('div');
     el.className = 'term' + (opts.compact ? ' term-compact' : '');
-    el.innerHTML = `<div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">${escHtml(opts.title || 'alumno@academia: ~')}</span><span class="term-actions"><button type="button" data-clear title="Limpiar (Ctrl+L)">limpiar</button></span></div><div class="term-body" tabindex="0"><div class="term-out"></div><div class="term-line"><span class="term-prompt"></span><span class="term-input-wrap"><input class="term-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Línea de comandos"></span></div></div>`;
+    el.innerHTML = `<div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">${escHtml(opts.title || tituloTerm())}</span><span class="term-actions"><button type="button" data-clear title="Limpiar (Ctrl+L)">limpiar</button> <button type="button" class="term-cfg-btn" data-cfg title="Apariencia: tema, fuente, cursor y prompt" aria-label="Ajustes de la terminal">⚙</button></span></div><div class="term-body" tabindex="0"><div class="term-out"></div><div class="term-line"><span class="term-prompt"></span><span class="term-input-wrap"><input class="term-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Línea de comandos"></span></div><div class="term-rsearch" hidden></div></div>`;
     container.appendChild(el);
     const out = el.querySelector('.term-out'), input = el.querySelector('.term-input'), promptEl = el.querySelector('.term-prompt'), body = el.querySelector('.term-body');
     let mode = null, buffer = '', hIdx = Machine.history.length, busy = false, draft = '', repl = null;
+    let busq = null;   // búsqueda en el historial (Ctrl+R): { q, i, antes }
+    const rsearch = el.querySelector('.term-rsearch');
     const setPrompt = () => {
-      if (mode === 'repl' || mode === 'repl-cont') { promptEl.innerHTML = `<span class="t-info">${escHtml(mode === 'repl' ? repl.prompt : repl.cont)}</span>`; el.querySelector('.term-title').textContent = 'alumno@academia: ' + display(Machine.cwd); return; }
+      if (mode === 'repl' || mode === 'repl-cont') { promptEl.innerHTML = `<span class="t-info">${escHtml(mode === 'repl' ? repl.prompt : repl.cont)}</span>`; el.querySelector('.term-title').textContent = tituloTerm(); return; }
       promptEl.innerHTML = mode === 'sqlite' ? '<span class="t-info">sqlite&gt;</span> ' : mode === 'sqlite-cont' ? '<span class="t-info">   ...&gt;</span> ' : mode === 'python' ? '<span class="t-warn">&gt;&gt;&gt;</span> ' : mode === 'python-cont' ? '<span class="t-warn">...</span> ' : promptHtml();
-      el.querySelector('.term-title').textContent = 'alumno@academia: ' + display(Machine.cwd);
+      el.querySelector('.term-title').textContent = tituloTerm();
     };
     const print = (html) => { const d = document.createElement('div'); d.className = 'term-chunk'; d.innerHTML = html; out.appendChild(d); body.scrollTop = body.scrollHeight; };
     const echoLine = (line) => print(promptEl.innerHTML + escHtml(line));
@@ -1475,6 +1790,18 @@ for _n, _fn in list(_ns.items()):
         return;
       }
       if (!line.trim()) return;
+      // expansión del historial, como bash: !! (último), !n (número n), !texto (el último que empieza así)
+      if (/(^|\s)!(!|\d+|[a-z][\w-]*)/i.test(line)) {
+        let error = null;
+        const exp = line.replace(/(^|\s)!(!|\d+|[a-z][\w-]*)/gi, (m, pre, k) => {
+          const hs = Machine.history;
+          const v = k === '!' ? hs[hs.length - 1] : /^\d+$/.test(k) ? hs[Number(k) - 1] : [...hs].reverse().find((x) => x.startsWith(k));
+          if (v === undefined) { error = `bash: !${k}: no se encontró el evento`; return m; }
+          return pre + v;
+        });
+        if (error) { print(render(col.err(error))); return; }
+        if (exp !== line) { print(render(col.dim(exp))); line = exp; }
+      }
       Machine.history.push(line); Machine.save();
       hIdx = Machine.history.length;
       busy = true; el.classList.add('busy');
@@ -1498,8 +1825,46 @@ for _n, _fn in list(_ns.items()):
       if (/^python3?\s*$/.test(t)) return 'python';
       return null;
     }
+    const coincidencia = () => {
+      const hs = Machine.history; const q = busq.q;
+      for (let i = Math.min(busq.i, hs.length - 1); i >= 0; i--) if (!q || hs[i].includes(q)) { busq.i = i; return hs[i]; }
+      return null;
+    };
+    const pintarBusq = () => {
+      const m = coincidencia(); busq.m = m;
+      const marcado = m ? escHtml(m).replace(escHtml(busq.q), (x) => `<b>${x}</b>`) : '';
+      rsearch.innerHTML = `${m || !busq.q ? '' : 'falló '}(reverse-i-search)\`${escHtml(busq.q)}': ${marcado}`;
+    };
     input.addEventListener('keydown', async (e) => {
       if (busy) { e.preventDefault(); return; }
+      // búsqueda inversa en el historial
+      if (e.key === 'r' && e.ctrlKey) {
+        e.preventDefault();
+        if (!busq) { busq = { q: '', i: Machine.history.length - 1, antes: input.value }; input.value = ''; rsearch.hidden = false; }
+        else busq.i = Math.max(0, busq.i - 1);
+        pintarBusq(); return;
+      }
+      if (busq) {
+        if (e.key === 'Escape' || (e.key === 'g' && e.ctrlKey) || (e.key === 'c' && e.ctrlKey)) { e.preventDefault(); input.value = busq.antes; busq = null; rsearch.hidden = true; return; }
+        if (e.key === 'Enter' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Tab') {
+          const m = busq.m; busq = null; rsearch.hidden = true; input.value = m || '';
+          if (e.key !== 'Enter') { e.preventDefault(); return; }
+        } else {
+          setTimeout(() => { if (busq) { busq.q = input.value; busq.i = Machine.history.length - 1; pintarBusq(); } }, 0);
+          return;
+        }
+      }
+      // atajos de edición de readline
+      if (e.ctrlKey && !e.altKey && ['a', 'e', 'u', 'k', 'w'].includes(e.key)) {
+        e.preventDefault();
+        const p = input.selectionStart, v = input.value;
+        if (e.key === 'a') input.setSelectionRange(0, 0);
+        if (e.key === 'e') input.setSelectionRange(v.length, v.length);
+        if (e.key === 'u') { input.value = v.slice(p); input.setSelectionRange(0, 0); }
+        if (e.key === 'k') input.value = v.slice(0, p);
+        if (e.key === 'w') { const ini = v.slice(0, p).replace(/\S+\s*$/, '').length; input.value = v.slice(0, ini) + v.slice(p); input.setSelectionRange(ini, ini); }
+        return;
+      }
       if (e.key === 'Enter') { const v = input.value; input.value = ''; await submit(v); input.focus(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); if (hIdx === Machine.history.length) draft = input.value; if (hIdx > 0) { hIdx--; input.value = Machine.history[hIdx]; } }
       else if (e.key === 'ArrowDown') { e.preventDefault(); if (hIdx < Machine.history.length) { hIdx++; input.value = hIdx === Machine.history.length ? draft : Machine.history[hIdx]; } }
@@ -1518,6 +1883,56 @@ for _n, _fn in list(_ns.items()):
       else if (e.key === 'c' && e.ctrlKey && !window.getSelection().toString()) { e.preventDefault(); echoLine(input.value + '^C'); input.value = ''; buffer = ''; if (mode === 'sqlite-cont') mode = 'sqlite'; if (mode === 'python-cont') mode = 'python'; if (mode === 'repl-cont') mode = 'repl'; setPrompt(); }
     });
     body.addEventListener('click', () => { if (!window.getSelection().toString()) input.focus(); });
+    // los cambios de apariencia hechos en otra terminal (o con el comando tema) se ven en todas
+    const alCambiar = () => { if (!document.body.contains(el)) return document.removeEventListener('term-config', alCambiar); if (!mode) setPrompt(); };
+    document.addEventListener('term-config', alCambiar);
+    // ~/.bashrc: se ejecuta una vez por sesión del navegador, como al abrir una terminal real
+    if (!Machine._rcHecho) {
+      Machine._rcHecho = true;
+      const rc = readFile(HOME + '/.bashrc');
+      if (rc) (async () => {
+        const errores = [];
+        for (const l of rc.split('\n')) { if (!l.trim() || l.trim().startsWith('#')) continue; try { const r = await runLine(l.trim()); if (r.code) errores.push(`~/.bashrc: ${l.trim()}: ${r.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '')}`); } catch (e) { errores.push(`~/.bashrc: ${e.message}`); } }
+        if (errores.length) print(render(col.warn(errores.join('\n'))));
+        setPrompt();
+      })();
+    }
+    // panel de apariencia
+    el.querySelector('[data-cfg]').addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const viejo = el.querySelector('.term-cfg'); if (viejo) { viejo.remove(); return; }
+      const c = TermCfg.get();
+      const p = document.createElement('div');
+      p.className = 'term-cfg'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', 'Apariencia de la terminal');
+      p.innerHTML = `<h5>🎨 Apariencia de la terminal</h5>
+        <div class="temas">${Object.entries(TEMAS).map(([k, [n, bg, fg]]) => `<button data-t="${k}" class="${c.tema === k ? 'on' : ''}" style="background:${bg};color:${fg}">${n}</button>`).join('')}</div>
+        <label>Prompt<select data-k="prompt">${Object.entries(PROMPTS).map(([k, n]) => `<option value="${k}" ${c.prompt === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>Usuario<input type="text" data-k="usuario" value="${escHtml(c.usuario)}" maxlength="20"></label>
+        <label>Host<input type="text" data-k="host" value="${escHtml(c.host)}" maxlength="24"></label>
+        <label>Fuente<select data-k="fuente">${Object.keys(FUENTES).map((f) => `<option ${c.fuente === f ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
+        <label>Tamaño<input type="range" data-k="tam" min="11" max="20" step="0.5" value="${c.tam}"></label>
+        <label>Cursor<select data-k="cursor">${[['linea', 'Línea'], ['bloque', 'Bloque'], ['subrayado', 'Subrayado']].map(([k, n]) => `<option value="${k}" ${c.cursor === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>Hora<span><input type="checkbox" data-k="hora" ${c.hora ? 'checked' : ''}> mostrar la hora en el prompt</span></label>
+        <div class="pie"><button class="btn btn-ghost btn-sm" data-reset>Restablecer</button><span class="small muted">También: <code>tema</code>, <code>alias</code>, <code>export PS1=…</code></span></div>`;
+      el.querySelector('.term-bar').appendChild(p);
+      p.addEventListener('click', (e2) => {
+        e2.stopPropagation();
+        const t = e2.target.closest('[data-t]');
+        if (t) { TermCfg.set({ tema: t.dataset.t }); p.querySelectorAll('[data-t]').forEach((b) => b.classList.toggle('on', b === t)); }
+        if (e2.target.closest('[data-reset]')) { TermCfg.set(Object.assign({}, TermCfg.def)); p.remove(); }
+      });
+      p.addEventListener('input', (e2) => {
+        const k = e2.target.dataset.k; if (!k) return;
+        const v = e2.target.type === 'checkbox' ? e2.target.checked : k === 'tam' ? Number(e2.target.value) : e2.target.value;
+        if ((k === 'usuario' || k === 'host') && !/^[\w.-]+$/.test(v)) return;
+        TermCfg.set({ [k]: v });
+      });
+      const fin = () => { p.remove(); document.removeEventListener('click', cerrar); document.removeEventListener('keydown', esc); input.focus(); };
+      const cerrar = (e3) => { if (!p.contains(e3.target)) fin(); };
+      const esc = (e3) => { if (e3.key === 'Escape') fin(); };
+      setTimeout(() => { document.addEventListener('click', cerrar); document.addEventListener('keydown', esc); }, 0);
+      p.querySelector('[data-t].on, [data-t]').focus();
+    });
     el.querySelector('[data-clear]').addEventListener('click', () => { out.innerHTML = ''; input.focus(); });
     return {
       el, input,
@@ -1529,7 +1944,9 @@ for _n, _fn in list(_ns.items()):
     };
   }
 
+  TermCfg.aplicar();
   window.Shell = {
+    TermCfg, TEMAS,
     Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, mkdirp, display, HOME,
     fail, ok, sqlExec, openEditor: null,
   };

@@ -26,6 +26,43 @@ El lago de Tomás ya recibe datos, pero los costos de S3 crecen 20 % por mes, la
 | Series de tiempo | **Amazon Timestream** |
 | Caché en memoria | **Amazon ElastiCache / MemoryDB** |
 
+```recorrido
+titulo: Elegir el almacén según la pregunta que tiene que responder
+estacion s3: Lago | icono=base
+estacion rs: Data warehouse | icono=dashboard
+estacion ddb: Clave-valor | icono=api
+estacion rds: Transaccional | icono=servidor
+estacion regla: La regla | icono=check
+paso s3: "Guardar todo, barato, en cualquier formato"
+Archivos crudos y procesados, de cualquier tamaño, consultables con Athena, Glue o EMR → **S3**.
+>>> texto
+patrón: lago de datos (bronze, silver, gold en Parquet/Iceberg)
+servicio: Amazon S3
+paso rs: "Tableros con muchas consultas SQL complejas, en segundos"
+Agregaciones sobre muchas filas y muchos usuarios concurrentes → **Redshift** (Serverless si la carga es irregular).
+>>> texto
+patrón: OLAP, columnar
+servicio: Amazon Redshift
+paso ddb: "Leer un ítem por su clave en milisegundos, a cualquier escala"
+Accesos por clave conocida, sin joins, con latencia de un dígito de milisegundos → **DynamoDB**. Diseñas la clave según las consultas.
+>>> texto
+patrón: clave-valor / documentos
+servicio: Amazon DynamoDB
+paso rds: "La aplicación registra pedidos con transacciones"
+Muchas escrituras chicas, con integridad referencial y transacciones → **RDS / Aurora** (OLTP).
+>>> texto
+patrón: OLTP relacional
+servicio: Amazon RDS / Aurora
+paso regla: La regla de examen
+Busca en el enunciado **cómo se lee** el dato (por clave, por agregación, por archivo) y **con qué latencia**. Eso decide el almacén, no el volumen solo.
+>>> tabla
+cómo se lee,servicio
+archivos y SQL esporádico,S3 + Athena
+agregaciones y BI,Redshift
+un ítem por clave,DynamoDB
+transacciones de la app,RDS / Aurora
+```
+
 ## Amazon S3 a fondo
 
 ### Clases de almacenamiento

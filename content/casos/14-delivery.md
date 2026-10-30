@@ -242,3 +242,9 @@ La directora y marketing discuten. Con tus resultados (y lo que no se puede conc
 4. fct_pedido con grano de un pedido: claves de cliente, restaurante, repartidor, ciudad y fecha; los cuatro timestamps de etapa (accumulating snapshot) y las duraciones ya calculadas; importes (subtotal, comisión, envío, cupón, propina), estado y calificación. De ahí salen todos los KPI de este caso con sumas y promedios simples, y un tablero diario por ciudad.
 ```
 :::
+
+:::errores
+- **Tiempo de entrega promedio con pedidos cancelados** o sin hora de entrega.
+- **Take rate sobre el total cobrado** incluyendo propinas o costo de envío, sin decirlo.
+- **Relacionar demora y calificación** sin agrupar en tramos: una nube de puntos no se lee en un tablero.
+:::

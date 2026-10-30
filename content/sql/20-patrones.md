@@ -82,6 +82,62 @@ rachas AS (
 SELECT * FROM rachas WHERE cliente_id = 1 ORDER BY desde;
 ```
 
+```recorrido
+titulo: Gaps & islands con los logins del cliente 1
+estacion dias: Los días | icono=reloj
+estacion rn: ROW_NUMBER | icono=etiqueta
+estacion resta: fecha − rn | icono=engranaje
+estacion islas: Agrupar | icono=capas
+paso dias: Los días en que entró
+Los primeros 9 logins del cliente 1. A simple vista hay bloques de días seguidos separados por huecos.
+>>> tabla
+fecha
+2024-01-19
+2024-02-01
+2024-02-02
+2024-02-12
+2024-02-13
+2024-02-16
+2024-02-17
+2024-02-18
+2024-02-19
+paso rn: Numerar las filas
+`ROW_NUMBER()` ordenado por fecha: 1, 2, 3… sin saltos, aunque las fechas sí tengan saltos.
+>>> tabla
+fecha,rn
+2024-01-19,1
+2024-02-01,2
+2024-02-02,3
+2024-02-12,4
+2024-02-13,5
+2024-02-16,6
+2024-02-17,7
+2024-02-18,8
+2024-02-19,9
+paso resta: Restar rn días a cada fecha
+Dentro de una racha, la fecha y el número avanzan **juntos** de a 1, así que la resta da siempre lo mismo. Cuando hay un hueco, la fecha salta y la resta cambia: empieza otra isla.
+>>> tabla
+fecha,rn,grupo
+2024-01-19,1,2024-01-18
+2024-02-01,2,2024-01-30
+2024-02-02,3,2024-01-30
+2024-02-12,4,2024-02-08
+2024-02-13,5,2024-02-08
+2024-02-16,6,2024-02-10
+2024-02-17,7,2024-02-10
+2024-02-18,8,2024-02-10
+2024-02-19,9,2024-02-10
+paso islas: Una fila por isla
+`GROUP BY grupo` con `MIN`, `MAX` y `COUNT` da cada racha con su inicio, su fin y su largo.
+>>> tabla
+grupo,desde,hasta,dias
+2024-01-18,2024-01-19,2024-01-19,1
+2024-01-30,2024-02-01,2024-02-02,2
+2024-02-08,2024-02-12,2024-02-13,2
+2024-02-10,2024-02-16,2024-02-29,14
+2024-02-18,2024-03-09,2024-03-22,14
+```
+
 ## 3. Sesionización: agrupar clics en visitas
 
 Las herramientas de analítica web (como Google Analytics) agrupan los eventos de un usuario en **sesiones** (visitas). La regla estándar: una sesión **termina** si pasan más de 30 minutos sin actividad; el próximo evento abre una sesión nueva. Los datos crudos solo traen eventos sueltos; las sesiones hay que construirlas.

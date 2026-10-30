@@ -85,6 +85,57 @@ ORDER BY tarifa_por_km DESC;
 
 Fíjate en `AVG(v.calificacion)`: 2.317 viajes completados **no** tienen calificación (`NULL`), y `AVG` los ignora. Es lo correcto aquí: un viaje sin calificar no es un viaje con nota 0.
 
+```recorrido
+titulo: La experiencia por tipo de vehículo, paso a paso
+estacion v: Viajes | icono=tabla
+estacion join: JOIN conductores | icono=capas
+estacion filtro: Solo completados | icono=lupa
+estacion km: Tarifa por km | icono=reglas
+estacion res: Resultado | icono=check
+paso v: Los viajes
+`viajes_viajes` tiene la tarifa y la distancia, pero el **vehículo** es un dato del conductor.
+>>> tabla
+viaje_id,conductor_id,estado,distancia_km,tarifa,calificacion
+1,202,completado,6.81,7.33,5
+2,162,completado,14.39,14.15,5
+3,6,completado,2.95,3.86,3
+4,91,completado,21.94,20.95,NULL
+5,236,completado,3.13,4.02,4
+6,242,completado,6.84,7.36,4
+paso join: Unir con el conductor
+`JOIN viajes_conductores` agrega el `vehiculo` de quien hizo cada viaje.
+>>> tabla
+viaje_id,vehiculo,estado,distancia_km,tarifa
+1,auto,completado,6.81,7.33
+2,moto,completado,14.39,14.15
+3,auto,completado,2.95,3.86
+4,auto,completado,21.94,20.95
+5,auto,completado,3.13,4.02
+6,auto,completado,6.84,7.36
+paso filtro: Solo los completados
+Un viaje cancelado no tiene tarifa ni distancia real: entra en otra métrica (cancelaciones), no en esta.
+>>> tabla
+viaje_id,vehiculo,distancia_km,tarifa,calificacion
+1,auto,6.81,7.33,5
+2,moto,14.39,14.15,5
+3,auto,2.95,3.86,3
+4,auto,21.94,20.95,NULL
+5,auto,3.13,4.02,4
+6,auto,6.84,7.36,4
+paso km: SUM(tarifa) / SUM(distancia)
+La tarifa por km es el **cociente de sumas**. Y `AVG(calificacion)` ignora los viajes sin calificar (`NULL`), que es lo correcto: sin nota no es nota 0.
+>>> sql
+ROUND(SUM(v.tarifa) / SUM(v.distancia_km), 2) AS tarifa_por_km,
+ROUND(AVG(v.calificacion), 2)                 AS calificacion
+paso res: Una fila por vehículo
+Las motos cobran un poco menos por km, pero tienen la mejor calificación.
+>>> tabla
+vehiculo,viajes,km_promedio,tarifa_por_km,calificacion
+van,647,10.1,1.29,4.21
+auto,6437,10.2,1.28,4.27
+moto,1839,10.2,1.26,4.34
+```
+
 :::cuidado Las trampas de este caso
 - **El denominador**: "tasa de cancelación" sobre **todas** las solicitudes o sobre las que tuvieron conductor asignado da números distintos. Decláralo siempre.
 - **Promedio de cocientes**: usa `SUM(a) / SUM(b)` para tasas como tarifa por km o ingreso por hora.
@@ -194,4 +245,15 @@ FROM viajes_viajes v JOIN cohorte c ON c.pasajero_id = v.pasajero_id
 WHERE v.estado = 'completado' AND v.fecha_hora_solicitud >= '2024-08-01'
 GROUP BY mes ORDER BY mes;
 ```
+:::
+
+:::errores
+- **Tasa de cancelación sobre los viajes completados**: el denominador son todas las solicitudes.
+- **Tiempo de espera promedio con valores nulos** de viajes cancelados: el promedio queda sesgado; decide si se excluyen y dilo.
+- **Horas pico en la zona horaria del servidor** (UTC) en vez de la local.
+- **Ranking de conductores sin mínimo de viajes**: un conductor con un viaje de 5 estrellas queda primero.
+:::
+
+:::entrevista "¿Cómo armarías un ranking justo de conductores por calificación?"
+Exigiría un mínimo de viajes en el período para que el promedio sea estable, y consideraría un promedio ajustado (bayesiano) que acerca a la media general a quienes tienen pocos viajes. Rankearía con `DENSE_RANK` por ciudad para comparar en el mismo contexto, y desempataría por cantidad de viajes. Mostraría además la tasa de cancelación del conductor, porque una buena nota con muchas cancelaciones no es un buen servicio.
 :::

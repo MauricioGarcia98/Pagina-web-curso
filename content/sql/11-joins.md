@@ -97,6 +97,52 @@ El `AS` es opcional (`FROM pedidos p` funciona igual). Usa alias cortos y con se
 Aunque una columna no sea ambigua, escribir `c.nombre` en lugar de `nombre` hace que cualquiera sepa de dónde viene cada dato sin abrir las tablas. Y evita errores el día que alguien agregue una columna `nombre` a otra tabla.
 :::
 
+```recorrido
+titulo: JOIN paso a paso: cada pedido busca a su cliente
+estacion ped: pedidos | icono=tabla
+estacion cli: clientes | icono=usuario
+estacion match: Emparejar | icono=red
+estacion res: Resultado | icono=check
+estacion left: LEFT JOIN | icono=lupa
+paso ped: La tabla pedidos
+Cada pedido guarda el **número** del cliente (`cliente_id`), no su nombre.
+>>> tabla
+pedido_id,cliente_id,canal
+1,528,app
+2,970,web
+3,631,app
+4,1643,tienda
+paso cli: La tabla clientes
+El nombre y el país están en otra tabla, identificados por el mismo `cliente_id`.
+>>> tabla
+cliente_id,nombre,pais
+528,Paula,Argentina
+631,Gabriel,Argentina
+970,Santiago,Costa Rica
+1643,Sara,Perú
+paso match: ON dice cómo emparejar
+`ON c.cliente_id = p.cliente_id`: para cada pedido, la base busca en clientes la fila con el **mismo número** y pega sus columnas al lado.
+>>> sql
+SELECT p.pedido_id, p.canal, c.nombre, c.pais
+FROM pedidos p
+JOIN clientes c ON c.cliente_id = p.cliente_id;
+paso res: Pedidos con el nombre del cliente
+Cada pedido ahora tiene el nombre y el país de su cliente. `p` y `c` son apodos (alias) de las tablas para escribir menos.
+>>> tabla
+pedido_id,canal,nombre,pais
+1,app,Paula,Argentina
+2,web,Santiago,Costa Rica
+3,app,Gabriel,Argentina
+4,tienda,Sara,Perú
+paso left: ¿Y los clientes sin pedidos?
+Un `JOIN` normal (INNER) solo deja las filas **con pareja**. Para conservar a todos los clientes, aunque no tengan pedidos, se usa `LEFT JOIN`: Lucía y Juan aparecen con 0 pedidos.
+>>> tabla
+cliente_id,nombre,pedidos
+1,Lucía,0
+2,Juan,0
+3,Andrés,4
+```
+
 ## INNER JOIN: solo las filas con pareja
 
 `JOIN` a secas significa `INNER JOIN`: solo quedan las combinaciones donde la condición `ON` se cumple. Una fila **sin pareja** en la otra tabla **desaparece** del resultado.

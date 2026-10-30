@@ -26,6 +26,51 @@ WHERE cliente_id IS NOT NULL;
 - **Conversión de un paso** = usuarios del paso ÷ usuarios del paso anterior.
 - **Conversión total** = usuarios del último paso ÷ usuarios del primero.
 
+```recorrido
+titulo: El embudo simple, paso a paso
+estacion ev: Eventos | icono=reloj
+estacion marcas: Marcas por cliente | icono=etiqueta
+estacion pasos: Contar cada paso | icono=capas
+estacion conv: Conversión | icono=engranaje
+estacion cuidado: Lo que no dice | icono=alerta
+paso ev: Los eventos de un cliente
+Cada fila es algo que hizo un cliente en la web.
+>>> tabla
+cliente_id,fecha_hora,tipo_evento
+3,2024-10-11 20:11:50,vista
+3,2024-10-11 20:20:00,vista
+3,2024-10-11 20:28:51,agregar_carrito
+3,2024-10-11 20:38:36,vista
+3,2024-10-27 17:12:02,vista
+3,2024-10-27 17:21:24,agregar_carrito
+3,2024-10-27 17:27:20,vista
+3,2024-10-27 17:33:03,compra
+paso marcas: Una fila por cliente con tres marcas
+`MAX(tipo_evento = 'vista')` vale 1 si el cliente hizo **al menos una** vista. Lo mismo para carrito y compra.
+>>> tabla
+cliente_id,vio,agrego,compro
+3,1,1,1
+4,1,1,1
+5,1,0,0
+7,1,1,0
+8,1,0,0
+paso pasos: Sumar las marcas
+Cuántos clientes llegaron a cada paso.
+>>> tabla
+vieron,agregaron,compraron
+1165,924,578
+paso conv: La conversión de cada paso
+Cada paso dividido por el anterior, y el total de punta a punta.
+>>> tabla
+vista_a_carrito,carrito_a_compra,total
+79.3,62.6,49.6
+paso cuidado: Lo que este embudo no controla
+El embudo simple no mira el **orden**: cuenta en "agregaron" a quien agregó algo al carrito **antes** de su primera vista registrada (por ejemplo, desde un enlace directo). Con los datos reales pasa con 61 de los 924 clientes que usaron el carrito. Por eso la sección siguiente arma el embudo ordenado.
+>>> tabla
+carrito_antes_de_la_vista,carrito_sin_ninguna_vista
+57,4
+```
+
 ## El embudo ordenado
 
 El simple no exige orden: alguien que compró en enero y miró un producto en diciembre cuenta en ambos pasos. El embudo **ordenado** exige que cada paso ocurra **después** del anterior.
@@ -53,6 +98,143 @@ Este embudo ordenado usa el **primer** evento de cada tipo. Un análisis más fi
 ## El embudo operativo
 
 En un delivery, cada pedido pasa por etapas: creado → aceptado por el restaurante → retirado por el repartidor → entregado. Cada etapa es una columna de tiempo; si es nula, el pedido no llegó a esa etapa.
+
+## Paso a paso: qué decide cada número del embudo
+
+Un embudo parece una consulta simple, pero cada número depende de **cuatro decisiones** que hay que escribir antes de mirar el resultado. Si dos personas toman decisiones distintas, obtienen embudos distintos con los mismos datos, y las dos pueden tener razón.
+
+| Decisión | Opciones | Qué cambia |
+|---|---|---|
+| **Unidad** | usuario, sesión, visita a un producto | "70 % agregó al carrito" puede significar 70 % de las personas o 70 % de las visitas |
+| **Orden** | sin orden, ordenado | El ordenado siempre da igual o menos que el simple |
+| **Ventana** | todo el año, 7 días, la misma sesión | Una ventana corta baja la conversión pero refleja mejor el efecto de la página |
+| **Población** | todos, solo identificados, solo nuevos | Los anónimos (`cliente_id` nulo) no se pueden seguir entre pasos |
+
+:::analogia La fila del cine
+Piensa en la fila para entrar a una función: 100 personas miran la cartelera, 60 hacen la fila y 45 compran la entrada. Si cuentas "personas que alguna vez compraron una entrada este año", vas a sumar gente que compró para otra película. El embudo ordenado y con ventana es contar solo a los que miraron **esta** cartelera y compraron **esta** función.
+:::
+
+### 1. La unidad: usuarios distintos
+
+`COUNT(DISTINCT CASE WHEN … THEN cliente_id END)` cuenta personas, no clics. Si un cliente vio 40 productos, cuenta una vez en "vieron". Es lo correcto para la pregunta "¿cuántas personas avanzan?". Si la pregunta fuera "¿qué página de producto convierte mejor?", la unidad sería la visita a cada producto y el embudo cambia de forma.
+
+### 2. Por segmento: el mismo embudo, partido en grupos
+
+El rediseño del escenario se probó primero en móvil. Para compararlo, se marca qué pasos hizo cada cliente **dentro de cada dispositivo** y después se suman:
+
+```sql
+WITH u AS (
+  SELECT dispositivo, cliente_id,
+         MAX(tipo_evento = 'vista') AS vio,
+         MAX(tipo_evento = 'agregar_carrito') AS agrego,
+         MAX(tipo_evento = 'compra') AS compro
+  FROM eventos_web
+  WHERE cliente_id IS NOT NULL
+  GROUP BY dispositivo, cliente_id
+)
+SELECT dispositivo,
+       SUM(vio) AS vieron,
+       SUM(vio AND agrego) AS agregaron,
+       SUM(vio AND agrego AND compro) AS compraron,
+       ROUND(100.0 * SUM(vio AND agrego) / SUM(vio), 1) AS pct_vista_a_carrito,
+       ROUND(100.0 * SUM(vio AND agrego AND compro) / SUM(vio AND agrego), 1) AS pct_carrito_a_compra
+FROM u
+GROUP BY dispositivo
+ORDER BY dispositivo;
+```
+
+Línea por línea:
+
+- `MAX(tipo_evento = 'vista')`: en SQLite una comparación vale 1 o 0; el `MAX` dice "hizo este paso al menos una vez". Es una **bandera por cliente**.
+- `SUM(vio AND agrego)`: exige haber hecho los dos pasos. Así el embudo es **anidado**: nadie cuenta en "agregaron" sin haber visto. En el embudo simple de arriba eso no estaba garantizado.
+- Las dos conversiones se calculan **sobre el paso anterior**, no sobre el total: así se ve en qué escalón se pierde la gente.
+
+En estos datos, la tablet pierde más en el primer paso (55 % contra 67-73 %). Esa es la pista: el problema no está en el pago, está en la página de producto en pantallas medianas.
+
+:::cuidado Un cliente, varios dispositivos
+Un cliente que mira en el móvil y compra en la computadora aparece en dos grupos y no completa el embudo en ninguno. Si es común, segmenta por el **dispositivo del primer evento** del cliente en lugar de por el dispositivo de cada evento. Escribe cuál elegiste.
+:::
+
+### 3. El tiempo hasta convertir
+
+Además de **cuántos** convierten, importa **cuánto tardan**. Se toma la primera vista y la primera compra de cada cliente y se agrupa la diferencia en tramos:
+
+```sql
+WITH p AS (
+  SELECT cliente_id,
+         MIN(CASE WHEN tipo_evento = 'vista' THEN fecha_hora END) AS t_vista,
+         MIN(CASE WHEN tipo_evento = 'compra' THEN fecha_hora END) AS t_compra
+  FROM eventos_web
+  WHERE cliente_id IS NOT NULL
+  GROUP BY cliente_id
+)
+SELECT CASE WHEN julianday(t_compra) - julianday(t_vista) < 1 THEN '1. el mismo día'
+            WHEN julianday(t_compra) - julianday(t_vista) < 7 THEN '2. de 1 a 7 días'
+            WHEN julianday(t_compra) - julianday(t_vista) < 30 THEN '3. de 7 a 30 días'
+            ELSE '4. más de 30 días' END AS tramo,
+       COUNT(*) AS clientes
+FROM p
+WHERE t_compra > t_vista
+GROUP BY tramo
+ORDER BY tramo;
+```
+
+- `julianday(b) - julianday(a)` da la diferencia en **días con decimales**; multiplicada por 24 son horas y por 1440, minutos.
+- El prefijo "1.", "2." en el nombre del tramo es un truco para que `ORDER BY` los ordene bien sin otra columna.
+- `WHERE t_compra > t_vista` deja afuera a los que nunca compraron (`t_compra` nulo) y a los que compraron antes de su primera vista registrada.
+
+El resultado tiene dos montañas: muchos compran el mismo día y muchos tardan más de un mes. La segunda montaña casi siempre es un artefacto: la "primera vista" fue una visita de hace meses que no tiene nada que ver con la compra. Por eso se usan **ventanas**: "compró dentro de los 7 días de una vista". Con una ventana, el embudo mide lo que la página puede influir.
+
+### 4. El embudo operativo, en detalle
+
+Los procesos internos también son embudos, y son más fáciles: cada etapa es una columna de tiempo de la misma fila.
+
+```sql
+SELECT COUNT(*) AS creados,
+       COUNT(aceptado) AS aceptados,
+       COUNT(retirado) AS retirados,
+       COUNT(entregado) AS entregados,
+       ROUND(100.0 * COUNT(entregado) / COUNT(*), 1) AS pct_entregados,
+       ROUND(AVG((julianday(aceptado) - julianday(creado)) * 1440), 1) AS min_hasta_aceptar,
+       ROUND(AVG((julianday(entregado) - julianday(retirado)) * 1440), 1) AS min_de_viaje
+FROM delivery_pedidos;
+```
+
+- `COUNT(columna)` cuenta solo los no nulos: es exactamente "cuántos llegaron a esta etapa".
+- Los tiempos entre etapas dicen **dónde** se espera: si `min_hasta_aceptar` sube, el problema está en el restaurante; si sube `min_de_viaje`, en el reparto.
+- Los que se cayeron tienen un `estado` que explica por qué (`cancelado_cliente`, `sin_repartidor`…): agrupar las caídas por estado es el paso siguiente.
+
+## Cómo se lee un embudo sin engañarse
+
+1. **Mira cada escalón, no solo el total.** Una conversión total igual puede esconder un paso que mejoró y otro que empeoró.
+2. **Compara contra el período anterior con la misma definición.** Si cambiaste la regla (ventana, población), recalcula también el período anterior.
+3. **Ojo con el volumen.** En el escenario, las visitas subieron 12 % y las compras 5 %: la conversión total **bajó**. Pero si las visitas nuevas vinieron de una campaña con público menos interesado, la página puede estar igual de bien. Segmenta por canal de llegada antes de culpar al rediseño.
+4. **Un paso con 100 % es sospechoso.** Suele ser un evento que se dispara solo (por ejemplo, "vista" registrado en cada carga de página del carrito).
+
+:::errores
+- **Contar eventos en lugar de usuarios**: un cliente que recarga la página 20 veces infla el primer paso y baja la conversión de forma artificial.
+- **Embudo no anidado**: contar en "compraron" a gente que no pasó por "agregaron" da conversiones de más del 100 % en algún segmento.
+- **Ignorar a los anónimos sin decirlo**: si el 40 % del tráfico no está identificado, el embudo describe solo al 60 % restante.
+- **Comparar embudos con ventanas distintas**: "7 días" contra "todo el mes" no es una mejora, es otra métrica.
+:::
+
+:::trabajo
+- Los equipos de producto revisan el embudo cada semana; el analista mantiene **una sola definición** escrita (unidad, orden, ventana, población) y la usa en todos los tableros.
+- En las herramientas de producto (Amplitude, Mixpanel, GA4) el embudo ya viene armado, pero cuando los números no coinciden con el warehouse, alguien tiene que reconstruirlo en SQL y explicar la diferencia. Ese alguien suele ser un data engineer o un analista senior.
+- Para que el embudo sea confiable, el **plan de eventos** (qué se registra, con qué nombre y cuándo) importa tanto como la consulta.
+:::
+
+:::entrevista "Las compras subieron 5 % y las visitas 12 %. ¿El rediseño funcionó?"
+Primero, la conversión total bajó (de compras/visitas), así que no se puede decir que funcionó solo con esos dos números. Luego separaría el embudo en pasos para ver en qué escalón cambió, compararía por segmento (dispositivo, canal de llegada, clientes nuevos o recurrentes) para descartar que el tráfico nuevo sea de menor calidad, y fijaría una ventana de conversión. Si se puede, lo ideal es una prueba A/B, porque compara a la vez y con la misma población.
+:::
+
+| Concepto | En una línea |
+|---|---|
+| Embudo simple | Usuarios distintos por paso, sin exigir orden |
+| Embudo anidado | Cada paso exige haber hecho los anteriores |
+| Embudo ordenado | Cada paso ocurre después del anterior en el tiempo |
+| Ventana | Plazo máximo entre pasos para que cuente |
+| Embudo operativo | Etapas de un proceso: `COUNT(columna_de_tiempo)` por etapa |
 
 ## Ejercicios
 

@@ -131,6 +131,56 @@ Marca cada vuelo como puntual (1) o no (0): `llegada_real` no nula y demora ≤ 
 ```
 :::
 
+```recorrido
+titulo: Las peores rutas de enero de 2024, paso a paso
+estacion vuelos: Vuelos | icono=tabla
+estacion punt: ¿Puntual? | icono=reloj
+estacion ruta: Por ruta | icono=capas
+estacion rank: row_number | icono=etiqueta
+estacion res: Top 3 peores | icono=alerta
+paso vuelos: Algunos vuelos de enero
+Cada fila de `vuelos_vuelos` tiene la llegada programada y la real.
+>>> tabla
+vuelo_id,origen,destino,llegada_programada,llegada_real
+1,EZE,SCL,2024-01-01 08:00:00,2024-01-01 07:53:00
+2,SCL,EZE,2024-01-01 11:30:00,2024-01-01 11:33:00
+3,EZE,LIM,2024-01-01 16:30:00,2024-01-01 16:33:00
+4,LIM,BOG,2024-01-01 21:10:00,2024-01-01 21:30:00
+5,BOG,LIM,2024-01-02 00:40:00,2024-01-02 00:50:00
+paso punt: Minutos de demora y marca de puntualidad
+Un vuelo es **puntual** si llegó (no se canceló) y con 15 minutos de demora o menos: es la definición estándar de OTP (*on-time performance*).
+>>> tabla
+vuelo_id,demora_llegada,puntual
+1,-7,1
+2,3,1
+3,3,1
+4,20,0
+5,10,1
+paso ruta: OTP por mes y ruta
+`groupBy("mes", "origen", "destino")`: vuelos y el promedio de la marca × 100. Algunas de enero:
+>>> tabla
+origen,destino,vuelos,otp_pct
+AEP,COR,22,86.36
+AEP,MVD,28,82.14
+BOG,LIM,26,53.85
+BOG,MDE,26,50
+BOG,MEX,9,88.89
+COR,AEP,27,77.78
+paso rank: Numerar de peor a mejor
+Ventana por mes ordenada por `otp_pct` ascendente, desempatando por `origen` y `destino` para que el resultado sea siempre el mismo.
+>>> python
+w = Window.partitionBy("mes").orderBy("otp_pct", "origen", "destino")
+resultado = (por_ruta.withColumn("puesto", F.row_number().over(w))
+                     .filter(F.col("puesto") <= 3))
+paso res: Las 3 peores de enero
+Estas son las rutas que operaciones revisa primero en el informe mensual.
+>>> tabla
+mes,origen,destino,vuelos,otp_pct,puesto
+2024-01,BOG,MDE,26,50,1
+2024-01,BOG,LIM,26,53.85,2
+2024-01,LIM,EZE,8,62.5,3
+```
+
 ## 4. dbt: ocupación e ingresos por ruta
 
 Comercial quiere la ocupación (*load factor*) e ingresos por ruta. Recuerda las reglas del caso: `vuelos_reservas` es una **muestra** y cada reserva representa **40** pasajeros; los vuelos cancelados no ofrecen asientos.
@@ -194,17 +244,17 @@ Crea el DAG `vuelos_puntualidad` (`schedule="@daily"`, `start_date` 2024-01-01, 
 - `consolidar`: `EmptyOperator` después de **todas** las `otp_…`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 AEROPUERTOS = ["EZE", "SCL", "LIM", "BOG", "MEX", "GRU"]
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.bash import BashOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 AEROPUERTOS = ["EZE", "SCL", "LIM", "BOG", "MEX", "GRU"]
 
@@ -233,4 +283,32 @@ Dentro del `with DAG`, un `for codigo in AEROPUERTOS:` que crea un `BashOperator
 
 :::cuidado Generar tareas: sí; leer una base para generarlas: no
 La lista `AEROPUERTOS` está escrita en el código o en un archivo de configuración. **No** la leas de una base de datos en el nivel superior del archivo: Airflow parsea el DAG cada pocos segundos y haría miles de consultas por día. Para cantidades que cambian en cada ejecución (por ejemplo, "una tarea por cada archivo que llegó hoy") existe el **mapeo dinámico de tareas** (`.expand()`), que crea las tareas recién al ejecutar.
+:::
+
+## Generar tareas con un bucle o con expand()
+
+El DAG de esta lección crea una tarea por aeropuerto con un `for` sobre una **lista fija** escrita en el código. Eso está bien cuando la lista cambia muy de vez en cuando (se agrega un aeropuerto por año), porque el `for` se ejecuta cada vez que Airflow **lee** el archivo y las tareas aparecen en la interfaz con nombre propio (`procesar_SCL`, `procesar_LIM`).
+
+Cuando la lista depende de **los datos del día** (los aeropuertos que tuvieron vuelos hoy, los archivos que llegaron), el `for` no sirve: se usa el **mapeo dinámico** (`.expand()`) que viste en la lección de XCom y TaskFlow, que crea las copias en tiempo de ejecución.
+
+| | `for` al nivel superior | `.expand()` |
+|---|---|---|
+| Cuándo se decide cuántas tareas | Al leer el archivo | Al ejecutar el DAG |
+| De dónde sale la lista | Una lista escrita en el código o un archivo de configuración del repositorio | El resultado de una tarea anterior |
+| Cómo se ven en la interfaz | Tareas separadas con nombre propio | Una tarea con instancias `[0]`, `[1]`… |
+
+:::errores
+- **Sobreventa calculada con la probabilidad de un solo pasajero**: lo que importa es la probabilidad de que se presenten **más** pasajeros que asientos, que sale de la distribución binomial.
+- **Demoras que se propagan sin tiempo mínimo de conexión**: si un avión llega 20 minutos tarde y necesita 45 en tierra, la demora del vuelo siguiente no es 20.
+- **Ocupación = pasajes vendidos / asientos**: cuenta las ausencias como asientos ocupados. Se usan los pasajeros que embarcaron.
+- **Leer una base de datos en el `for` que genera tareas**: se consulta en cada lectura del archivo, miles de veces por día.
+:::
+
+:::trabajo
+- Las aerolíneas trabajan con *revenue management*: la sobreventa se decide con modelos que usan el historial de ausencias por ruta, día y clase, y el costo de compensar a un pasajero que no puede viajar.
+- Los DAGs con "una tarea por aeropuerto, por país o por cliente" son muy comunes; la regla práctica es `for` con una lista versionada si cambia poco, `.expand()` si depende de los datos.
+:::
+
+:::entrevista "¿Cuándo usarías un bucle para crear tareas en Airflow y cuándo el mapeo dinámico?"
+Un bucle al nivel superior sirve cuando la lista es estable y está en el código o en un archivo de configuración del repositorio, porque se evalúa al leer el archivo y cada tarea tiene un nombre propio en la interfaz. Si la cantidad depende de los datos del día, uso mapeo dinámico con `.expand()` sobre el resultado de una tarea anterior, que crea las instancias en tiempo de ejecución. Nunca consultaría una base o una API en el nivel superior para generar tareas.
 :::

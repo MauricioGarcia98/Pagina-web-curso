@@ -125,6 +125,41 @@ databricks bundle deployment bind diario 123456 -t prod    # asocia el recurso d
 - **Desplegar a producción** → `databricks bundle deploy -t prod`, idealmente desde CI y no desde una laptop.
 :::
 
+```recorrido
+titulo: Un cambio, de la rama de Git a producción
+estacion git: Git folder | icono=codigo
+estacion pr: Pull request | icono=documento
+estacion ci: CI | icono=prueba
+estacion deploy: bundle deploy | icono=transformar
+estacion prod: Producción | icono=check
+paso git: Trabajas en una rama desde un Git folder
+El Git folder del workspace está conectado al repositorio. Creas una rama, cambias el notebook y haces commit y push desde la interfaz.
+>>> texto
+rama: feature/nueva-columna
+cambio: src/silver_ventas.py
+paso pr: Abres un pull request
+Otra persona revisa el cambio. Nada llega a producción sin revisión.
+>>> texto
+PR #42: agregar columna canal_normalizado a silver_ventas
+paso ci: CI valida y prueba
+GitHub Actions instala la CLI, corre los tests unitarios y `bundle validate` contra el target de staging.
+>>> bash
+pytest tests/
+databricks bundle validate -t staging
+paso deploy: Al hacer merge, CI despliega
+Con una identidad de servicio (no un usuario), `bundle deploy -t prod` sube el código y actualiza el job en el workspace de producción.
+>>> bash
+databricks bundle deploy -t prod
+paso prod: Producción usa siempre lo que está en Git
+En modo `production`, el bundle verifica que la rama de Git coincida con la configurada en el target (si la indicas), y el job corre con la identidad de servicio de `run_as`. Nadie edita a mano en producción.
+>>> texto
+targets:
+  prod:
+    mode: production
+    run_as:
+      service_principal_name: …
+```
+
 ## Autenticación de la CLI
 
 | Escenario | Método |

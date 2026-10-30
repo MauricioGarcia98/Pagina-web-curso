@@ -128,6 +128,47 @@ FROM t;
 Las dos filas del día `d2` muestran 22 con `RANGE` (ya incluyen a las dos). Con `ROWS`, se suma fila por fila. Ninguno está "mal", pero tienes que saber cuál quieres. Si el orden no tiene empates (una fila por mes), ambos dan lo mismo.
 :::
 
+```recorrido
+titulo: Un total acumulado, fila por fila
+estacion m: Por mes | icono=tabla
+estacion orden: ORDER BY mes | icono=flujo
+estacion marco: El marco | icono=capas
+estacion res: Acumulado | icono=check
+paso m: Pedidos por mes
+Los pedidos del primer semestre de 2024, uno por mes.
+>>> tabla
+mes,pedidos
+2024-01,376
+2024-02,322
+2024-03,354
+2024-04,313
+2024-05,374
+2024-06,346
+paso orden: SUM(pedidos) OVER (ORDER BY mes)
+Con `ORDER BY` dentro del `OVER`, la suma ya no es del grupo completo: es **desde la primera fila hasta la actual**.
+>>> sql
+SELECT mes, pedidos,
+       SUM(pedidos) OVER (ORDER BY mes) AS acumulado
+FROM m;
+paso marco: El marco de cada fila
+Para cada fila, el "marco" son las filas que entran en la suma. En marzo: enero, febrero y marzo.
+>>> texto
+enero   → [enero]
+febrero → [enero, febrero]
+marzo   → [enero, febrero, marzo]
+…
+paso res: El resultado
+Cada fila suma la anterior más la suya. El último valor es el total del semestre.
+>>> tabla
+mes,pedidos,acumulado
+2024-01,376,376
+2024-02,322,698
+2024-03,354,1052
+2024-04,313,1365
+2024-05,374,1739
+2024-06,346,2085
+```
+
 ## LAG y LEAD: mirar a los vecinos
 
 - `LAG(columna, n, valor_por_defecto)`: el valor de la fila que está `n` posiciones **antes** (por defecto, 1).

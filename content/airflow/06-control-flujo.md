@@ -35,9 +35,9 @@ Ejemplo: la carga completa solo el día 1 del mes, el resto de los días la carg
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 def elegir(ds):
     from datetime import date
@@ -65,7 +65,7 @@ Paso a paso:
 La versión moderna con TaskFlow hace lo mismo con un decorador:
 
 ```python norun
-from airflow.decorators import task
+from airflow.sdk import task
 
 @task.branch
 def decidir(ds=None):
@@ -121,12 +121,49 @@ alerta = PythonOperator(task_id="avisar_slack", python_callable=avisar, trigger_
 
 `avisar_slack` solo corre si alguna de las tres falló. Si todo sale bien, queda skipped. Para alertas también existen los **callbacks** (`on_failure_callback`), que se ven en la lección de buenas prácticas.
 
+```recorrido
+titulo: Una rama y la tarea que la une, estado por estado
+estacion branch: La decisión | icono=reglas
+estacion elegida: Rama elegida | icono=check
+estacion skip: Rama omitida | icono=x
+estacion fin: La unión | icono=capas
+estacion estados: Estados finales | icono=dashboard
+paso branch: BranchPythonOperator decide
+La función devuelve el **task_id** del camino a seguir. Hoy llegaron 1.250 transacciones, así que elige `procesar`.
+>>> python
+def decidir():
+    return "procesar" if transacciones_del_dia > 0 else "avisar_sin_datos"
+paso elegida: La rama elegida corre
+`procesar` pasa a `running` y termina en `success`.
+>>> log
+validar_llegada   success
+procesar          success
+paso skip: La otra rama queda omitida
+`avisar_sin_datos` no falló: queda en **skipped** (omitida). Es un estado distinto de `failed`.
+>>> log
+avisar_sin_datos  skipped
+paso fin: ¿Corre la tarea que une las ramas?
+Con la regla por defecto (`all_success`) **no** correría: uno de sus padres está `skipped`, y en ese caso Airflow la omite también. Con `none_failed_min_one_success` sí: ningún padre falló y uno salió bien.
+>>> tabla
+trigger_rule,padres,¿corre fin?
+all_success,success + skipped,no (queda skipped)
+none_failed_min_one_success,success + skipped,sí
+paso estados: El resultado de la ejecución
+La ejecución termina en `success`. En la vista Grid se ve cada tarea con su color: verde, rosa (skipped) y verde.
+>>> log
+validar_llegada   success
+procesar          success
+avisar_sin_datos  skipped
+fin               success
+DAG run           success
+```
+
 ## Sensores: esperar a que algo pase
 
 Un **sensor** es una tarea que no procesa nada: **espera** a que se cumpla una condición. Por ejemplo, que llegue un archivo, que termine otro DAG o que una tabla tenga los datos del día. Cada cierto tiempo pregunta "¿ya está?". A cada pregunta se le llama *poke*.
 
 ```python norun
-from airflow.sensors.filesystem import FileSensor
+from airflow.providers.standard.sensors.filesystem import FileSensor
 
 esperar = FileSensor(
     task_id="esperar_archivo",
@@ -148,9 +185,59 @@ Los tres parámetros que siempre tienes que pensar:
 
 Hay sensores para casi todo: `S3KeySensor` (AWS), `GCSObjectExistenceSensor` (Google Cloud), `WasbBlobSensor` (Azure), `ExternalTaskSensor` (esperar una tarea de otro DAG), `SqlSensor` (esperar a que una consulta devuelva filas).
 
-:::nota Alternativas modernas
-- **Deferrable operators** (`deferrable=True`): la espera la hace un proceso liviano llamado *triggerer*, sin ocupar ningún worker.
-- **Datasets** (Airflow 2.4+): en vez de que el DAG B pregunte si A terminó, A **avisa** que actualizó una tabla y B arranca solo (`schedule=[Dataset("s3://lake/ventas")]`).
+:::nota Esperar sin ocupar un worker: operadores diferibles
+Muchos sensores y operadores aceptan `deferrable=True`: en vez de esperar en un worker, la tarea se "suspende" y le pasa la espera al **triggerer**, un proceso liviano que puede vigilar miles de esperas a la vez. Cuando el evento ocurre (llegó el archivo, terminó el job), la tarea se reanuda en un worker. Es la forma recomendada para esperas largas.
+:::
+
+## Assets: que los datos disparen los DAGs
+
+Los sensores responden a la pregunta "¿ya llegó?" preguntando una y otra vez. Hay otra forma, más directa: que el DAG que **produce** un dato **avise** cuando lo actualizó, y que el DAG que lo **consume** arranque solo. En Airflow 3 eso se hace con **Assets** (en Airflow 2.4 a 2.11 se llamaban *Datasets*).
+
+Un `Asset` es simplemente un **nombre para un dato**: una tabla, un archivo o una carpeta del lago, identificado por un texto (su URI). Airflow no lee ese dato ni revisa que exista: solo lleva la cuenta de **quién lo actualiza** y **quién lo espera**.
+
+```python
+from datetime import datetime
+from airflow.sdk import DAG, Asset
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+ventas_silver = Asset("s3://lago/silver/ventas")
+
+# DAG productor: corre todos los días y actualiza la tabla de ventas
+with DAG("cargar_ventas", start_date=datetime(2024, 1, 1), schedule="@daily") as productor:
+    BashOperator(
+        task_id="cargar_silver",
+        bash_command="echo cargando ventas en silver",
+        outlets=[ventas_silver],          # "esta tarea actualiza este asset"
+    )
+
+# DAG consumidor: no tiene horario, corre cuando ventas_silver se actualiza
+with DAG("reporte_ventas", start_date=datetime(2024, 1, 1), schedule=[ventas_silver]) as consumidor:
+    EmptyOperator(task_id="armar_reporte")
+
+productor.test()
+```
+
+Línea por línea:
+
+1. `Asset("s3://lago/silver/ventas")` crea el nombre del dato. Se define una vez y se usa en los dos DAGs (lo ideal es tenerlo en un módulo compartido).
+2. `outlets=[ventas_silver]` en la tarea productora: cuando esa tarea termina **con éxito**, Airflow registra un *evento* "el asset se actualizó". Si la tarea falla o se salta, no hay evento.
+3. `schedule=[ventas_silver]` en el consumidor: en vez de un horario, una lista de assets. El DAG corre cuando se actualizan.
+
+Al ejecutarlo verás la línea "asset actualizado" y cuál DAG se dispararía.
+
+| Forma de `schedule` | Cuándo corre el consumidor |
+|---|---|
+| `[asset_a, asset_b]` | Cuando **los dos** se actualizaron al menos una vez desde su última ejecución |
+| `(asset_a \| asset_b)` | Cuando **cualquiera** de los dos se actualiza |
+| `(asset_a & (asset_b \| asset_c))` | Combinaciones de "y" y "o" |
+
+Si un asset se actualiza tres veces antes de que llegue el otro, el consumidor corre **una sola vez**, cuando llega el que faltaba. Y dentro del consumidor, la plantilla `triggering_asset_events` dice qué eventos lo dispararon (y desde qué ejecución del productor).
+
+Ventajas frente a un sensor: no hay esperas que ocupen recursos, el consumidor arranca apenas el dato está listo (ni antes ni dos horas después "por las dudas") y la interfaz dibuja el grafo de **qué DAG alimenta a cuál**, que es linaje a nivel de pipeline.
+
+:::cuidado Los assets solo ven a Airflow
+Si la tabla la actualiza otro sistema (un job de Databricks programado por su cuenta, una carga manual), Airflow no se entera y el consumidor no corre. Los assets funcionan cuando la actualización pasa por una tarea de Airflow con `outlets`. Para eventos externos, Airflow 3 agregó *watchers* sobre colas de mensajes, y también se pueden registrar eventos por la API REST.
 :::
 
 ## TaskGroups: ordenar DAGs grandes
@@ -159,9 +246,9 @@ Un DAG real puede tener 80 tareas. En la interfaz se vuelve un plato de fideos. 
 
 ```python
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sdk import TaskGroup
 
 with DAG("con_grupos", start_date=datetime(2024, 1, 1), schedule=None) as dag:
     inicio = EmptyOperator(task_id="inicio")
@@ -203,17 +290,17 @@ En tutoriales viejos vas a ver `SubDagOperator`. Está obsoleto y se eliminó en
 Crea el DAG `calidad` con: `validar` (un `BranchPythonOperator` cuya función devuelve `"publicar"` si `filas_invalidas` es 0, o `"alertar"` si no), dos `EmptyOperator` `publicar` y `alertar`, y una tarea `fin` que **una ambas ramas** con la trigger rule correcta. Usa la variable `filas_invalidas = 5`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 filas_invalidas = 5
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import BranchPythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import BranchPythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 filas_invalidas = 5
 
@@ -242,18 +329,18 @@ assert run.states["fin"] == "success", "La tarea 'fin' debe ejecutarse aunque un
 Crea el DAG `limpieza` con: `procesar` (un `PythonOperator` que **falla** lanzando `RuntimeError("boom")`) y `cerrar_conexiones` (un `EmptyOperator` que debe ejecutarse **siempre**, haya fallado o no `procesar`).
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 def falla():
     raise RuntimeError("boom")
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
 
 def falla():
     raise RuntimeError("boom")
@@ -276,15 +363,15 @@ assert run.states["cerrar_conexiones"] == "success", "cerrar_conexiones debe cor
 Crea el DAG `medallon` con dos `TaskGroup`: `bronze` (tareas `ingestar_ventas` e `ingestar_clientes`, en paralelo) y `gold` (tarea `ventas_diarias`). Todo `bronze` debe ir antes que `gold`.
 ```python inicial
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sdk import TaskGroup
 ```
 ```python solucion
 from datetime import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sdk import TaskGroup
 
 with DAG("medallon", start_date=datetime(2024, 1, 1), schedule=None) as dag:
     with TaskGroup("bronze") as bronze:
@@ -300,4 +387,51 @@ assert d is not None, "No encontré el DAG 'medallon'"
 assert set(d.task_ids) == {"bronze.ingestar_ventas", "bronze.ingestar_clientes", "gold.ventas_diarias"}, f"Tareas: {d.task_ids}"
 assert d.get_task("gold.ventas_diarias").upstream_task_ids == {"bronze.ingestar_ventas", "bronze.ingestar_clientes"}, "gold debe depender de todo bronze"
 ```
+:::
+
+:::ejercicio airflow dificultad=Intermedio titulo="Productor y consumidor con un Asset"
+Define el asset `clientes = Asset("s3://lago/silver/clientes")` y dos DAGs con `start_date=datetime(2024, 1, 1)`:
+
+1. `cargar_clientes` con `schedule="@daily"` y una tarea `EmptyOperator` llamada `cargar` que **actualiza** el asset (`outlets`).
+2. `segmentar_clientes` que **corre cuando se actualiza** el asset, con una tarea `EmptyOperator` llamada `segmentar`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG, Asset
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG, Asset
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+clientes = Asset("s3://lago/silver/clientes")
+
+with DAG("cargar_clientes", start_date=datetime(2024, 1, 1), schedule="@daily"):
+    EmptyOperator(task_id="cargar", outlets=[clientes])
+
+with DAG("segmentar_clientes", start_date=datetime(2024, 1, 1), schedule=[clientes]):
+    EmptyOperator(task_id="segmentar")
+```
+```pista
+El productor lleva `outlets=[clientes]` en la tarea; el consumidor, `schedule=[clientes]` en el DAG.
+```
+```python test
+from airflow.sdk import Asset
+p, c = dags.get("cargar_clientes"), dags.get("segmentar_clientes")
+assert p is not None and c is not None, "Faltan los DAGs cargar_clientes y segmentar_clientes"
+uris = [a.uri for a in p.get_task("cargar").outlets]
+assert uris == ["s3://lago/silver/clientes"], "La tarea cargar debe tener outlets=[clientes]"
+sch = c.schedule if isinstance(c.schedule, (list, tuple)) else [c.schedule]
+assert any(isinstance(a, Asset) and a.uri == "s3://lago/silver/clientes" for a in sch), "segmentar_clientes debe tener schedule=[clientes]"
+assert p.schedule == "@daily", "cargar_clientes debe correr @daily"
+```
+:::
+
+:::ejercicio quiz dificultad=Intermedio
+El DAG consumidor tiene `schedule=[ventas, clientes]`. `ventas` se actualizó tres veces hoy y `clientes` todavía no. ¿Cuántas veces corrió el consumidor?
+
+- [ ] Tres
+- [ ] Una por cada actualización de ventas
+- [x] Ninguna: con una lista, espera a que **todos** los assets se actualicen; cuando llegue `clientes`, corre una vez
+- [ ] Corre cada hora hasta que llegue clientes
 :::

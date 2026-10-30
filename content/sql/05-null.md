@@ -67,6 +67,44 @@ El resultado es **1.911**, no 2.000. Para los 89 clientes sin email, `NULL <> 'x
 SELECT COUNT(*) FROM clientes WHERE email <> 'x@x.com' OR email IS NULL;
 ```
 
+```recorrido
+titulo: Por qué = NULL no encuentra nada
+estacion tabla: La tabla | icono=tabla
+estacion igual: = NULL | icono=x
+estacion is: IS NULL | icono=check
+estacion res: Resultado | icono=lupa
+paso tabla: Clientes con y sin teléfono
+De estos 8 clientes, dos no tienen teléfono: la celda está **vacía** (NULL), que no es lo mismo que un texto vacío ni que cero.
+>>> tabla
+cliente_id,nombre,telefono
+1,Lucía,+82 814 8116
+2,Juan,+49 143 2651
+3,Andrés,+24 793 7906
+4,Gabriel,NULL
+5,Emiliano,+31 139 2081
+6,Nicolás,+92 377 9340
+7,Antonella,NULL
+8,Carlos,+48 377 2241
+paso igual: telefono = NULL
+Comparar algo con NULL no da verdadero ni falso: da **desconocido**. Y WHERE solo deja pasar lo verdadero. Por eso esta consulta **no devuelve ninguna fila**, aunque haya clientes sin teléfono.
+>>> sql
+SELECT cliente_id, nombre
+FROM clientes
+WHERE telefono = NULL;   -- 0 filas
+paso is: telefono IS NULL
+Para preguntar "¿está vacío?" existe `IS NULL` (y `IS NOT NULL` para lo contrario).
+>>> sql
+SELECT cliente_id, nombre
+FROM clientes
+WHERE telefono IS NULL;
+paso res: Ahora sí
+Aparecen los dos clientes sin teléfono de este grupo.
+>>> tabla
+cliente_id,nombre
+4,Gabriel
+7,Antonella
+```
+
 ## La lógica de tres valores
 
 En la mayoría de los lenguajes una condición es verdadera o falsa. En SQL hay un tercer resultado: **UNKNOWN** (desconocido), que aparece cada vez que hay un `NULL` en juego.

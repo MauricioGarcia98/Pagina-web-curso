@@ -349,7 +349,7 @@
     'hello-world': { tag: 'latest', mb: 0.02 },
     postgres: { tag: '16', mb: 432, puerto: 5432 },
     python: { tag: '3.12', mb: 1020 },
-    'apache/airflow': { tag: '2.9.3', mb: 1340, puerto: 8080 },
+    'apache/airflow': { tag: '3.3.2', mb: 1340, puerto: 8080 },
     'jupyter/pyspark-notebook': { tag: 'latest', mb: 4840, puerto: 8888 },
     'bitnami/spark': { tag: '3.5', mb: 1580, puerto: 8080 },
     'minio/minio': { tag: 'latest', mb: 158, puerto: 9000 },
@@ -384,7 +384,7 @@
   function logsIniciales(c) {
     const img = c.imagen;
     if (/^postgres/.test(img)) return ['The files belonging to this database system will be owned by user "postgres".', 'PostgreSQL init process complete; ready for start up.', `${ahora()}.123 UTC [1] LOG:  starting PostgreSQL 16.4 (Debian 16.4-1.pgdg120+1) on x86_64-pc-linux-gnu`, `${ahora()}.130 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432`, `${ahora()}.142 UTC [1] LOG:  database system is ready to accept connections`];
-    if (/^apache\/airflow/.test(img)) return ['standalone | Starting Airflow Standalone', 'webserver  | [INFO] Listening at: http://0.0.0.0:8080', 'standalone | Airflow is ready', `standalone | Login with username: admin  password: ${uid(16)}`];
+    if (/^apache\/airflow/.test(img)) return ['standalone | Starting Airflow Standalone', 'api-server | Uvicorn running on http://0.0.0.0:8080', 'standalone | Airflow is ready', `standalone | Login with username: admin  password: ${uid(16)}`];
     if (/jupyter/.test(img)) return ['[I ServerApp] Jupyter Server 2.14.2 is running at:', `[I ServerApp] http://127.0.0.1:8888/lab?token=${uid(48)}`];
     if (/minio/.test(img)) return ['MinIO Object Storage Server', 'API: http://172.17.0.2:9000  http://127.0.0.1:9000', 'WebUI: http://172.17.0.2:9001 http://127.0.0.1:9001'];
     if (/metabase/.test(img)) return ['Metabase Initialization COMPLETE in 32.4 s'];
@@ -823,11 +823,11 @@
     const [g, s] = a;
     if (g === 'standalone') {
       Machine.cloud.airflowLocal = true; save();
-      return ok(['standalone | Starting Airflow Standalone', 'standalone | Checking database is initialized', 'standalone | Database ready', 'standalone | Creating admin user', 'scheduler  | Starting the scheduler', 'triggerer  | Starting the triggerer', 'webserver  | Running the Gunicorn Server with: ... Listening at: http://0.0.0.0:8080', 'standalone |', 'standalone | Airflow is ready', `standalone | Login with username: admin  password: ${uid(16)}`, 'standalone | Airflow Standalone is for development purposes only. Do not use this in production!', col.dim('(abre http://localhost:8080; los DAGs se leen de $AIRFLOW_HOME/dags, en este simulador ~/dags)')].join('\n'));
+      return ok(['standalone | Starting Airflow Standalone', 'standalone | Checking database is initialized', 'standalone | Database ready', 'standalone | Creating admin user', 'scheduler  | Starting the scheduler', 'dag-processor | Starting the Dag processor', 'triggerer  | Starting the triggerer', 'api-server | Uvicorn running on http://0.0.0.0:8080 (API REST v2 + interfaz web)', 'standalone |', 'standalone | Airflow is ready', `standalone | Simple auth manager | Password for user 'admin': ${uid(16)}`, 'standalone | Airflow Standalone is for development purposes only. Do not use this in production!', col.dim('(abre http://localhost:8080; los DAGs se leen de $AIRFLOW_HOME/dags, en este simulador ~/dags)')].join('\n'));
     }
     if (g === 'db' && (s === 'migrate' || s === 'init')) return ok('DB: sqlite:////home/alumno/airflow/airflow.db\nPerforming upgrade to the metadata database sqlite:////home/alumno/airflow/airflow.db\nDatabase migrating done!');
     if (g === 'users' && s === 'create') return ok(`User "${a[a.indexOf('--username') + 1] || 'admin'}" created with role "${a[a.indexOf('--role') + 1] || 'Admin'}"`);
-    if (g === 'info') return ok('Apache Airflow\nversion                | 2.9.3\nexecutor               | SequentialExecutor\ndags_folder            | /home/alumno/dags\nsql_alchemy_conn       | sqlite:////home/alumno/airflow/airflow.db');
+    if (g === 'info') return ok('Apache Airflow\nversion                | 3.3.2\nexecutor               | LocalExecutor\ndags_folder            | /home/alumno/dags\nsql_alchemy_conn       | sqlite:////home/alumno/airflow/airflow.db');
     return airflowBase(a, ctx);
   });
   def('astro', 'Astro CLI: Airflow local en Docker (astro dev init | start | stop | pytest)', async (a, ctx) => {
@@ -841,7 +841,7 @@
       writeFile(d + '/packages.txt', '');
       writeFile(d + '/.env', '');
       writeFile(d + '/airflow_settings.yaml', 'airflow:\n  connections: []\n  variables: []\n');
-      writeFile(d + '/dags/exampledag.py', 'from datetime import datetime\nfrom airflow import DAG\nfrom airflow.operators.empty import EmptyOperator\n\nwith DAG("example_astronauts", schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False) as dag:\n    EmptyOperator(task_id="hola")\n');
+      writeFile(d + '/dags/exampledag.py', 'from datetime import datetime\nfrom airflow.sdk import DAG\nfrom airflow.providers.standard.operators.empty import EmptyOperator\n\nwith DAG("example_astronauts", schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False) as dag:\n    EmptyOperator(task_id="hola")\n');
       writeFile(d + '/tests/dags/test_dag_example.py', 'def test_hay_dags():\n    assert True\n');
       save();
       return ok(`Initializing Astro project\nPulling Airflow development files from Astro Runtime 12.1.1\nInitialized empty Astro project in ${display(d)}`);
@@ -852,7 +852,7 @@
       return ok(['Building image…', ' => [1/2] FROM quay.io/astronomer/astro-runtime:12.1.1', ' => [2/2] COPY . .', '✔ Project image has been updated', '✔ Project started', '➤ Airflow UI: http://localhost:8080', '➤ Postgres Database: postgresql://localhost:5432/postgres', '➤ The default Postgres DB credentials are: postgres:postgres', '➤ The default Airflow UI credentials are: admin:admin'].join('\n'));
     }
     if (a[1] === 'stop') return ok('✔ Project stopped');
-    if (a[1] === 'ps') return ok('Name                    State     Ports\nproyecto-scheduler-1    running\nproyecto-webserver-1    running   8080\nproyecto-postgres-1     running   5432\nproyecto-triggerer-1    running');
+    if (a[1] === 'ps') return ok('Name                    State     Ports\nproyecto-scheduler-1    running\nproyecto-api-server-1   running   8080\nproyecto-dag-processor-1 running\nproyecto-postgres-1     running   5432\nproyecto-triggerer-1    running');
     if (a[1] === 'restart') return ok('✔ Project stopped\n✔ Project started');
     if (a[1] === 'pytest') return Commands.pytest(['tests'], ctx);
     if (a[1] === 'run') return Commands.airflow(a.slice(2), ctx);

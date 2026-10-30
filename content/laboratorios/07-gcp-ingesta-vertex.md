@@ -261,6 +261,23 @@ gcloud scheduler jobs create http refresco-nocturno --schedule="30 3 * * *" --ur
 ```
 :::
 
+:::errores
+- **Esquema de la suscripción distinto del de la tabla**: la suscripción de Pub/Sub a BigQuery rechaza los mensajes. Hay que configurar la tabla de mensajes no entregados (*dead letter*) para no perderlos.
+- **Cloud Scheduler sin zona horaria** explícita: el proceso de "la noche" corre a otra hora.
+- **Workflows sin manejo de errores**: un paso que falla deja el proceso a medias sin aviso; se agregan reintentos y un paso de notificación.
+- **Dividir el tráfico de un endpoint y no comparar métricas** entre las dos versiones: la división no sirve si no se mide.
+- **Dejar el endpoint de Vertex AI con una réplica mínima encendida**: cobra por hora aunque no reciba tráfico.
+:::
+
+:::trabajo
+- La suscripción directa de Pub/Sub a BigQuery reemplaza muchos jobs de Dataflow simples: cuando no hay transformación, es la ingesta más barata y con menos mantenimiento.
+- Workflows y Cloud Scheduler se usan para procesos cortos de pocos pasos; para pipelines con muchas dependencias, Composer (Airflow).
+:::
+
+:::entrevista "¿Cómo publicarías una nueva versión de un modelo sin riesgo para los usuarios?"
+Desplegaría la nueva versión en el mismo endpoint con una división de tráfico pequeña, por ejemplo 10 %, compararía métricas de negocio y técnicas con la versión actual, y aumentaría el tráfico de a poco si todo va bien. Si algo empeora, vuelvo el tráfico a la versión anterior sin redesplegar. Antes, la evaluaría fuera de línea con datos recientes y la registraría con su versión.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz

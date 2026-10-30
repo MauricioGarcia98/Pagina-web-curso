@@ -16,7 +16,7 @@ cuidado: Cada motor tiene su **dialecto** (pequeñas diferencias en funciones de
 ver: SELECT, Base de datos, DDL, DML
 
 ## SELECT
-alias: consulta
+alias: consulta, query, queries
 nino: `SELECT` es la palabra mágica para **pedir ver cosas**. Como cuando le dices a alguien "muéstrame las fotos de las vacaciones": no cambias nada, solo miras.
 que: La sentencia que **lee** datos. Su forma completa, en el orden en que se escribe: `SELECT columnas FROM tabla WHERE filtro GROUP BY grupos HAVING filtro_de_grupos ORDER BY orden LIMIT n`. El motor la ejecuta en otro orden: primero `FROM` y los `JOIN`, después `WHERE`, `GROUP BY`, `HAVING`, `SELECT`, `ORDER BY` y `LIMIT`.
 ejemplo:
@@ -563,3 +563,12 @@ que: La estrategia que el optimizador elige para ejecutar una consulta: qué tab
 ejemplo: `EXPLAIN SELECT * FROM pedidos WHERE cliente_id = 77` muestra `Index Scan using idx_pedidos_cliente` (rápido) o `Seq Scan on pedidos` (recorre toda la tabla).
 para: Entender por qué una consulta es lenta y cómo arreglarla.
 ver: Índice, Catalyst, Predicate pushdown
+
+## Timestamp
+alias: marca de tiempo, fecha y hora, datetime
+nino: Un timestamp es **la fecha y la hora exactas en que pasó algo**, como el sello del correo que dice el día y la hora en que se mandó una carta.
+que: Tipo de dato que guarda fecha y hora (a veces con fracciones de segundo y zona horaria): `2024-12-31 23:59:59`. Se distingue de `DATE`, que guarda solo el día. Según el motor, puede guardar o no la zona horaria (`TIMESTAMP` y `TIMESTAMP_NTZ` en Spark, `TIMESTAMP WITH TIME ZONE` en PostgreSQL).
+ejemplo: `WHERE fecha_hora >= '2024-10-01' AND fecha_hora < '2024-11-01'` trae todo octubre, incluido el último día después de medianoche.
+para: Ordenar eventos, medir tiempos entre ellos y filtrar períodos.
+cuidado: `BETWEEN '2024-10-01' AND '2024-10-31'` sobre un timestamp **deja afuera** el 31 después de las 00:00. Usa rangos semiabiertos (`>=` y `<`) y define en qué zona horaria están los datos.
+ver: UTC, Tipo de dato

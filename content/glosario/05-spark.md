@@ -302,3 +302,39 @@ que: *Resilient Distributed Dataset*: la abstracción original de Spark, una col
 ejemplo: `sc.textFile("log.txt").flatMap(lambda l: l.split()).map(lambda w: (w, 1)).reduceByKey(lambda a, b: a + b)`.
 para: Entender la historia y algunas preguntas de entrevista; casi no se usa en código nuevo.
 ver: DataFrame, Spark
+
+## Worker
+alias: workers, nodo worker, nodo de trabajo
+nino: En un equipo de trabajo hay **un jefe que reparte las tareas (el driver) y varios trabajadores que las hacen (los workers)**. Cuantos más trabajadores, más rápido termina un trabajo grande.
+que: Cada máquina de un clúster que hace el trabajo de cómputo. En Spark, cada worker corre uno o más **executors**, que procesan las particiones de datos que les asigna el driver. Al configurar un clúster se elige el tipo de máquina de los workers y cuántos hay (fijo o con autoescalado).
+ejemplo: Un clúster con 1 driver y 4 workers de 16 GB procesa en paralelo las particiones de una tabla grande.
+para: Repartir el procesamiento de muchos datos entre varias máquinas.
+cuidado: Agregar workers no ayuda si el problema es skew (una partición enorme) o archivos chicos: primero mira la Spark UI. Y cada worker cuesta mientras está encendido.
+ver: Cluster, Driver, Executor, Partición
+
+## Spill
+alias: spill a disco, derrame a disco
+nino: Es como estudiar en un escritorio chico: cuando los papeles ya no entran, **tienes que dejar algunos en el piso** y agacharte a buscarlos cada vez. Todo funciona, pero mucho más lento.
+que: Cuando un executor de Spark no tiene memoria suficiente para una operación (un shuffle, un join, una agregación), escribe datos intermedios **en disco** y los vuelve a leer después. La Spark UI lo muestra como *Spill (Memory)* y *Spill (Disk)* en las tareas de un stage.
+ejemplo: Un join con una partición de 60 GB por skew muestra 48 GB de spill a disco en una sola tarea, que tarda 38 minutos mientras las demás tardan segundos.
+para: Diagnosticar por qué un stage es lento aunque no falle.
+cuidado: El spill suele ser un síntoma: la causa es skew, particiones muy grandes o pocas particiones de shuffle. Corregir eso es mejor que solo agregar memoria.
+ver: Skew, Shuffle, Spark UI
+
+## Checkpoint
+alias: checkpointLocation, punto de control
+nino: Es como **el señalador de un libro**: si cierras el libro y lo vuelves a abrir, sabes exactamente en qué página quedaste, sin releer todo ni saltearte nada.
+que: En Structured Streaming, la carpeta donde Spark guarda su progreso: qué datos de la fuente ya procesó (offsets o archivos), el estado de las agregaciones y qué lotes confirmó. Al reiniciar un stream con el **mismo** `checkpointLocation`, continúa donde quedó; con Delta como destino, sin perder ni duplicar datos.
+ejemplo: `df.writeStream.option("checkpointLocation", "/Volumes/main/chk/ventas").toTable("bronze.ventas")`
+para: Que un stream se pueda detener, reiniciar o recuperar de una falla sin reprocesar todo.
+cuidado: Cada stream necesita **su propio** checkpoint. Borrarlo o compartirlo entre streams hace que se reprocesen o se pierdan datos.
+ver: Structured Streaming, Offset, Auto Loader
+
+## Hive
+alias: estilo hive, particiones hive, hive metastore
+nino: Hive es un sistema viejo de Hadoop que dejó una **costumbre para ordenar carpetas** que hoy usa todo el mundo: una carpeta por cada valor, con el nombre `columna=valor`.
+que: Apache Hive fue el primer motor SQL sobre Hadoop. De él quedan dos ideas muy usadas: las **particiones estilo Hive** (`/ventas/anio=2024/mes=12/`), que Spark, Athena, BigQuery y Glue entienden para leer solo las carpetas necesarias; y el **Hive metastore**, un catálogo de tablas que muchas plataformas reemplazaron por catálogos más nuevos (como Unity Catalog o Glue Data Catalog).
+ejemplo: `df.write.partitionBy("anio", "mes").parquet("/lake/silver/ventas")` crea carpetas `anio=2024/mes=12/`.
+para: Organizar archivos en el lago para que las consultas lean solo lo que necesitan.
+cuidado: Particionar por una columna con muchísimos valores (por ejemplo, `cliente_id`) crea miles de carpetas con archivos chicos y empeora el rendimiento.
+ver: Partition pruning, Partición, Catálogo de datos

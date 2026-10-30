@@ -259,3 +259,37 @@ up:    ; docker compose up -d
 ```
 para: Que cualquiera del equipo use el proyecto con los mismos comandos.
 ver: Terminal, CI/CD
+
+## Log
+alias: logs, logging, registro de eventos
+nino: Un log es **el diario de un programa**: va anotando, con fecha y hora, qué hizo, qué le salió bien y qué le salió mal, para que después alguien pueda leer qué pasó.
+que: Mensajes con marca de tiempo y nivel (`DEBUG`, `INFO`, `WARNING`, `ERROR`) que escribe un programa mientras corre. En producción se centralizan (CloudWatch, Cloud Logging, Log Analytics, los logs de las tareas de Airflow) para buscarlos y crear alertas.
+ejemplo: `2026-10-29 01:10:02 WARN ingesta_pagos columna "amount" no existe; se completa con NULL`
+para: Entender qué pasó en una ejecución, sobre todo cuando falló.
+cuidado: Los warnings de un job que "termina bien" casi nadie los lee: lo crítico tiene que fallar o alertar. Y nunca escribas contraseñas ni datos personales en los logs.
+ver: Observabilidad, Script, Job
+
+## Despliegue
+alias: deploy, desplegar, deployment
+nino: Desplegar es **llevar la versión nueva del trabajo al lugar donde se usa de verdad**, como pasar una receta probada en casa a la cocina del restaurante.
+que: El proceso de publicar código o infraestructura en un entorno (desarrollo, prueba, producción). En datos: subir un DAG a Airflow, `databricks bundle deploy`, `terraform apply`, `dbt build` en producción. Lo ideal es que lo haga un pipeline de CI/CD después de una revisión, no una persona desde su computadora.
+ejemplo: Al aprobar el pull request, GitHub Actions ejecuta `databricks bundle deploy -t prod` y actualiza el job de producción.
+para: Que los cambios lleguen a producción de forma repetible y con control.
+cuidado: Un despliegue debe poder repetirse sin efectos raros y deshacerse (volver a la versión anterior) si algo sale mal.
+ver: CI/CD, GitHub Actions, IaC
+
+## YAML
+alias: yml, archivo yaml
+nino: YAML es **una forma ordenada de escribir una lista de ajustes** usando sangrías, como un índice de un libro con títulos y subtítulos.
+que: Formato de texto para configuración basado en `clave: valor`, listas con `-` y **sangría** para anidar. Se usa en dbt (`dbt_project.yml`, `schema.yml`), Databricks Asset Bundles (`databricks.yml`), GitHub Actions, Docker Compose y Kubernetes.
+ejemplo:
+```yaml
+targets:
+  dev:
+    mode: development
+  prod:
+    mode: production
+```
+para: Describir configuración que se lee fácil y se guarda en Git.
+cuidado: La sangría **es** la estructura: un espacio de más o un tabulador rompen el archivo. Algunos valores se interpretan solos (`no` puede leerse como falso, `010` como número): usa comillas cuando dudes.
+ver: Docker Compose, profiles.yml, Asset Bundles

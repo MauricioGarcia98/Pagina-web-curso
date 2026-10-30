@@ -258,6 +258,24 @@ aws s3 cp datos/clientes.csv s3://lake-tienda-lab/bronze/clientes/clientes.csv
 ```
 :::
 
+:::errores
+- **El crawler crea una tabla por archivo** en lugar de una por carpeta: la estructura de carpetas no es uniforme o hay archivos con distinto esquema mezclados.
+- **Consultar sin filtrar la partición**: Athena cobra por bytes escaneados; una consulta sobre todo el lago puede costar más que el laboratorio entero. El workgroup con límite lo evita.
+- **CSV en vez de Parquet** para lo que se consulta seguido: escanea todas las columnas y ocupa varias veces más.
+- **Reglas de calidad que nadie mira**: un resultado de Data Quality sin alerta asociada es solo un número.
+- **Dejar los resultados de Athena en un bucket sin ciclo de vida**: se acumulan para siempre.
+:::
+
+:::trabajo
+- El patrón "S3 + catálogo de Glue + Athena" es la forma más barata de tener SQL sobre un lago en AWS; se usa mucho para exploración y para tablas que se consultan poco.
+- Cada vez más equipos usan tablas Iceberg (con S3 Tables o Glue) en lugar de Parquet suelto, para tener transacciones, borrado de filas y evolución del esquema.
+- Los workgroups de Athena separan equipos y costos: cada área tiene el suyo, con su límite y su bucket de resultados.
+:::
+
+:::entrevista "¿Cómo reducirías el costo de las consultas de Athena sobre un data lake?"
+Convertiría los datos a un formato columnar como Parquet o a tablas Iceberg, particionaría por la columna que más se filtra, normalmente la fecha, y pediría a los usuarios filtrar por partición y elegir columnas en lugar de `SELECT *`. Pondría workgroups con límite de bytes escaneados por consulta, y compactaría archivos chicos. También revisaría las consultas más caras en el historial del workgroup.
+:::
+
 ## Preguntas de examen
 
 :::ejercicio quiz

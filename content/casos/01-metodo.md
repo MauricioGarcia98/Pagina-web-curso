@@ -118,6 +118,57 @@ ORDER BY franja;
 
 Fíjate en lo que hiciste: preguntaste qué significaba "perder", definiste el denominador antes de escribir SQL, validaste los totales y respondiste con una **recomendación**, no con una tabla. Eso es lo que distingue un análisis útil de una consulta que "corre".
 
+```recorrido
+titulo: El método de 6 pasos, de la pregunta a la recomendación
+estacion preg: Pregunta | icono=usuario
+estacion frase: Frase precisa | icono=documento
+estacion grano: Grano y fórmulas | icono=reglas
+estacion pasos: Resolver en pasos | icono=capas
+estacion valid: Validar | icono=prueba
+estacion resp: Responder | icono=check
+paso preg: Llega una pregunta vaga
+Un viernes, la gerente de operaciones de Ruta escribe esto. Todavía **no** se puede escribir SQL: no está claro qué es "perder".
+>>> texto
+"Siento que perdemos muchos viajes en las horas pico. ¿Es así?"
+paso frase: 1. Traducir a una frase precisa
+Preguntas y aclaras: "perder" = todo lo que no terminó completado, y aparte el `sin_conductor`. El denominador son **todas** las solicitudes.
+>>> texto
+Porcentaje de solicitudes que no terminaron en un viaje completado,
+y porcentaje sin conductor, por franja horaria del día,
+sobre todas las solicitudes.
+paso grano: 2 y 3. Grano y fórmulas
+Una fila por franja horaria. Las fórmulas se escriben **antes** del SQL.
+>>> texto
+grano: 1 fila por franja (madrugada, mañana, tarde, noche)
+pct_perdidos      = no completadas / todas
+pct_sin_conductor = sin_conductor  / todas
+paso pasos: 4 y 5. Las filas, paso a paso
+Todo está en `viajes_viajes`. La primera CTE saca la hora y la segunda asigna la franja. Así se ven algunas solicitudes después de esos dos pasos:
+>>> tabla
+viaje_id,estado,hora,franja
+1,completado,2,1 madrugada (0-5)
+2,completado,2,1 madrugada (0-5)
+3,completado,3,1 madrugada (0-5)
+4,completado,5,1 madrugada (0-5)
+5,completado,5,1 madrugada (0-5)
+6,completado,6,2 mañana (6-11)
+paso valid: 6. Validar antes de entregar
+El resultado final. Las solicitudes de las 4 franjas suman **11.000**, igual que `COUNT(*)` de la tabla: no se perdió ni se duplicó ninguna fila.
+>>> tabla
+franja,solicitudes,perdidos,pct_perdidos,pct_sin_conductor
+1 madrugada (0-5),977,159,16.3,3.3
+2 mañana (6-11),3767,742,19.7,7.5
+3 tarde (12-17),2789,496,17.8,4.5
+4 noche (18-23),3467,680,19.6,6.9
+paso resp: Responder con una recomendación
+No se manda la tabla sola: se manda **qué significa** y qué hacer.
+>>> texto
+"Sí: mañana y noche pierden casi el 20 % de las solicitudes.
+La diferencia viene de solicitudes sin conductor (7,5 % en la mañana
+contra 3,3 % en la madrugada). Faltan conductores en horas pico:
+propongo un incentivo para conectarse en esas franjas."
+```
+
 ## Trampas lógicas que vas a encontrar
 
 | Trampa | Ejemplo | Cómo evitarla |

@@ -133,6 +133,59 @@ Resumen de la sintaxis:
 Los textos dentro de JMESPath van entre **comillas simples** (`'eastus2'`), y toda la consulta entre **comillas dobles** para que bash no interprete `[`, `?` ni `@`. Si las mezclas al revés, bash corta la consulta y `az` responde con un error de sintaxis.
 :::
 
+```recorrido
+titulo: JMESPath paso a paso: del JSON completo a lo que necesitas
+estacion json: JSON completo | icono=codigo
+estacion lista: [] | icono=capas
+estacion filtro: [?…] | icono=lupa
+estacion proy: {…} | icono=transformar
+estacion salida: -o table / tsv | icono=check
+paso json: La respuesta completa
+`az group list` devuelve una **lista** de objetos, uno por grupo (resumido: el real tiene más campos, como `id` y `properties`).
+>>> json
+[
+  {
+    "name": "rg-datos-dev",
+    "location": "eastus2",
+    "tags": { "proyecto": "tienda", "entorno": "dev" }
+  },
+  {
+    "name": "rg-datos-prod",
+    "location": "eastus2",
+    "tags": {}
+  }
+]
+paso lista: [].name: un campo de cada elemento
+`[]` recorre la lista y `.name` toma ese campo de cada elemento.
+>>> log
+$ az group list --query "[].name"
+[
+  "rg-datos-dev",
+  "rg-datos-prod"
+]
+paso filtro: [?condición]: filtrar elementos
+`[?tags.entorno=='dev']` deja solo los elementos que cumplen. Los textos van entre comillas simples dentro de la consulta.
+>>> log
+$ az group list --query "[?tags.entorno=='dev'].name"
+[
+  "rg-datos-dev"
+]
+paso proy: {Alias:campo}: armar columnas
+Las llaves crean un objeto nuevo con los nombres que elijas. Ideal para una tabla legible.
+>>> log
+$ az group list --query "[].{Nombre:name, Region:location}" -o table
+Nombre         Region
+-------------  -------
+rg-datos-dev   eastus2
+rg-datos-prod  eastus2
+paso salida: -o tsv para scripts
+Sin comillas ni corchetes: un valor por línea, listo para un `for` o una variable.
+>>> log
+$ az group list --query "[?location=='eastus2'].name" -o tsv
+rg-datos-dev
+rg-datos-prod
+```
+
 ## Usar resultados en scripts
 
 Lo que hace útil a `--query` + `-o tsv` es guardar un valor en una **variable de shell** con `$( ... )` y usarlo en el siguiente comando:

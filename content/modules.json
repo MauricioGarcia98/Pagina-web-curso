@@ -186,13 +186,27 @@
     "titulo": "Databricks y Databricks CLI",
     "icono": "🧩",
     "color": "#ff3621",
-    "descripcion": "La plataforma lakehouse: workspace, clusters, notebooks, Delta Lake, Unity Catalog, jobs y la Databricks CLI con Asset Bundles para CI/CD.",
+    "descripcion": "La plataforma lakehouse: workspace, clusters, notebooks, Delta Lake, Unity Catalog, jobs y la Databricks CLI con Declarative Automation Bundles para CI/CD.",
     "objetivos": [
       "Moverte por un workspace de Databricks",
       "Usar notebooks, dbutils y Delta Lake (MERGE, time travel, OPTIMIZE)",
       "Autenticarte y operar con la Databricks CLI",
       "Gestionar clusters, jobs, archivos y secretos desde la terminal",
-      "Desplegar proyectos con Databricks Asset Bundles"
+      "Desplegar proyectos con Declarative Automation Bundles"
+    ]
+  },
+  {
+    "id": "genie",
+    "titulo": "Databricks Genie: preguntas en lenguaje natural",
+    "icono": "🧞",
+    "color": "#7c3aed",
+    "descripcion": "Genie, la IA de Databricks para preguntar a los datos en lenguaje natural: Genie One, Genie Agents (antes Genie Spaces) y Genie Code. Cómo preparar los datos, configurar y afinar un agente, evaluarlo con benchmarks, integrarlo por API y un proyecto completo paso a paso.",
+    "objetivos": [
+      "Explicar qué es cada producto de Genie y cómo convierte una pregunta en SQL",
+      "Preparar tablas, vistas y vistas de métricas para que Genie responda bien",
+      "Configurar un Genie Agent con instrucciones, ejemplos SQL y SQL expressions",
+      "Evaluar y mejorar un agente con benchmarks y monitoreo",
+      "Usar Genie Code y conectar Genie a una aplicación con la API"
     ]
   },
   {
@@ -279,6 +293,20 @@
       "Particionar, estimar costo y entrenar modelos con BigQuery ML",
       "Orquestar ingesta y procesos con Pub/Sub, Workflows, Scheduler y EventBridge",
       "Desplegar con Databricks Asset Bundles y gobernar con Unity Catalog"
+    ]
+  },
+  {
+    "id": "portafolio",
+    "titulo": "Proyectos de portafolio: de tu PC a Azure, Databricks e IA",
+    "icono": "🚀",
+    "color": "#0891b2",
+    "descripcion": "Doce proyectos completos, cada uno con un problema de negocio y un valor medible, para construir desde tu computadora y llevar a la nube: lakehouse de ventas, fraude en tiempo casi real, mantenimiento predictivo, torre de control logística, métricas SaaS, ausentismo con privacidad, recomendaciones, clasificador de tickets con LLM, asistente RAG con citas, agente que consulta datos, plataforma con Terraform y CI/CD, y observabilidad de datos. Cada proyecto trae sus datos (generador), la arquitectura, los pasos local → nube, los entregables y una rúbrica.",
+    "objetivos": [
+      "Construir proyectos de punta a punta con datos realistas y problemas de calidad reales",
+      "Trabajar primero en tu computadora (uv, DuckDB, dbt, Airflow) y después en Databricks Free Edition y Azure",
+      "Integrar IA generativa con criterio: clasificar, extraer, responder con fuentes y evaluar",
+      "Automatizar con orquestación, infraestructura como código y CI/CD",
+      "Presentar cada proyecto en GitHub con README, diagrama, métricas de valor y demo"
     ]
   },
   {
