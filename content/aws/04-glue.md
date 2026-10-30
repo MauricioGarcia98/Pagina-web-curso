@@ -69,7 +69,7 @@ Un **Glue job** es un script de PySpark (o Python puro, o Ray) que AWS ejecuta e
 
 | Parámetro | Qué significa |
 |---|---|
-| `--glue-version` | Versión de Spark (Glue 4.0 = Spark 3.3, Glue 5.0 = Spark 3.5) |
+| `--glue-version` | Qué versión de Spark y Python usa el job. Según las notas de versión de AWS: Glue 4.0 = Spark 3.3, Glue 5.0 = Spark 3.5.4, **Glue 5.1 = Spark 3.5.6 (la que se usa si no indicas versión)** y Glue 6.0 = Spark 4.1 (con el modo ANSI de Spark 4) |
 | `--worker-type` | `G.1X`, `G.2X`… tamaño de cada worker |
 | `--number-of-workers` | Cuántos workers (más = más rápido y más caro) |
 | `--job-bookmark-option` | `job-bookmark-enable` para procesar solo archivos nuevos |
@@ -109,7 +109,7 @@ job.commit()   # guarda el "bookmark": la próxima vez solo procesa lo nuevo
 ```bash norun
 aws glue create-job --name etl-ventas-silver --role GlueServiceRole-datos \
   --command '{"Name": "glueetl", "ScriptLocation": "s3://lake-tienda-dev/scripts/ventas_silver.py", "PythonVersion": "3"}' \
-  --glue-version 4.0 --worker-type G.1X --number-of-workers 5 \
+  --glue-version 5.1 --worker-type G.1X --number-of-workers 5 \
   --default-arguments '{"--job-bookmark-option": "job-bookmark-enable"}'
 
 aws glue start-job-run --job-name etl-ventas-silver --arguments '{"--fecha": "2024-12-31"}'

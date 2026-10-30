@@ -80,7 +80,7 @@ flecha cmp -> bq: orquesta | estilo=punteada
 | Warehouse sin servidor | **BigQuery** | Redshift Serverless / Athena | Synapse / Fabric |
 | Spark administrado | Dataproc | EMR / Glue | Databricks / Synapse Spark |
 | Streaming | Pub/Sub + Dataflow | Kinesis + Flink | Event Hubs + Stream Analytics |
-| Airflow administrado | Composer | MWAA | Data Factory (Airflow) |
+| Airflow administrado | Composer | MWAA | Apache Airflow job (Microsoft Fabric) |
 | SQL versionado | Dataform (o dbt) | dbt | dbt |
 | CLI | `gcloud`, `bq`, `gsutil` | `aws` | `az` |
 

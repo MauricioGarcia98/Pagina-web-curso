@@ -7,7 +7,7 @@ resumen: Cloud Composer (Airflow administrado) con operadores de Google, Datafor
 
 ## Cloud Composer: Airflow en Google Cloud
 
-**Composer** es Apache Airflow administrado. Tus DAGs viven en un bucket de GCS (`gs://<bucket-del-entorno>/dags/`) y el entorno los carga solo. El proveedor `apache-airflow-providers-google` trae operadores para todo GCP:
+**Composer** es Apache Airflow administrado. Tus DAGs viven en un bucket de GCS (`gs://<bucket-del-entorno>/dags/`) y el entorno los carga solo. La versión actual del servicio es **Composer 3**, y cada entorno se crea con una imagen que fija la versión de Airflow (por ejemplo `composer-3-airflow-3.2.2`); según la lista oficial de versiones, Composer 3 ya ofrece Airflow 3 además de las versiones 2.x, así que los DAGs nuevos se escriben con la sintaxis de Airflow 3. El proveedor `apache-airflow-providers-google` trae operadores para todo GCP:
 
 | Operador / sensor | Hace |
 |---|---|

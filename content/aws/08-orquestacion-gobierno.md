@@ -82,7 +82,7 @@ aws events list-rules --query "Rules[].{Nombre:Name, Horario:ScheduleExpression}
 
 ## MWAA: Airflow en AWS
 
-MWAA te da Airflow sin administrar servidores: subes tus DAGs a un bucket de S3 (`s3://…/dags/`) y aparecen en la interfaz. El proveedor `apache-airflow-providers-amazon` trae operadores para cada servicio:
+MWAA te da Airflow sin administrar servidores: subes tus DAGs a un bucket de S3 (`s3://…/dags/`) y aparecen en la interfaz. Al crear el entorno eliges la versión de Airflow; MWAA ya ofrece la línea 3 (3.0, 3.2 y 3.3), así que los DAGs se escriben con la sintaxis de Airflow 3 (`from airflow.sdk import ...`) que viste en el módulo de Airflow. Las dependencias de Python se declaran en un `requirements.txt` que debe incluir una línea `--constraint` con el archivo de restricciones de esa versión. El proveedor `apache-airflow-providers-amazon` trae operadores para cada servicio:
 
 | Operador / sensor | Hace |
 |---|---|
