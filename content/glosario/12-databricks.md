@@ -191,3 +191,48 @@ ejemplo: Un conector de SQL Server lee el change tracking de la base de pedidos 
 para: Ingerir de fuentes comunes sin escribir ni mantener código de extracción.
 ver: Databricks, CDC, Auto Loader
 
+
+## Genie Agent
+alias: genie space, genie spaces, genie agents, ai/bi genie, espacio de genie
+nino: Es como **un ayudante que conoce muy bien un solo tema** (por ejemplo, las ventas de la tienda): le preguntas en tu idioma y te responde mirando los datos de verdad, porque alguien del equipo le explicó qué significa cada cosa.
+que: En Databricks, un espacio de conversación en lenguaje natural sobre un conjunto de tablas, vistas o vistas de métricas de Unity Catalog (hasta 50), configurado por el equipo de datos con descripciones, sinónimos, SQL expressions, consultas de ejemplo e instrucciones. Genie convierte cada pregunta en SQL, la ejecuta en un SQL warehouse y devuelve tabla, resumen y gráfico. Los datos se leen con los permisos de Unity Catalog de quien pregunta. Hasta 2026 se llamaba Genie Space.
+ejemplo: El agente "Ventas de Tienda Andina" con la vista `ventas_lineas` y la vista de métricas `metricas_ventas` responde "¿cuánto vendió el local en marzo?" con `WHERE canal = 'tienda' AND mes = '2024-03'`.
+para: Que las personas de negocio respondan sus propias preguntas de datos con las definiciones oficiales.
+cuidado: La calidad depende del contexto: pocas tablas bien documentadas, definiciones estructuradas antes que instrucciones de texto, y benchmarks para medir.
+ver: Genie One, Genie Code, Vista de métricas, Benchmark de Genie, Unity Catalog
+
+## Genie One
+alias: databricks one, genie one
+nino: Es **la puerta de entrada fácil** a los datos para quien no es técnico: ve sus tableros y le pregunta cosas a Genie sin ver nada complicado.
+que: La interfaz simplificada de Databricks para personas de negocio: tableros de AI/BI, preguntas en lenguaje natural y Databricks Apps, sin notebooks, clústeres ni consultas a la vista. Existe a nivel de workspace (con el entitlement Consumer access) y a nivel de cuenta. Antes se llamaba Databricks One.
+ejemplo: Una gerente con permiso Consumer access entra al workspace y aterriza en Genie One, donde ve el tablero de ventas y el agente de ventas.
+para: Dar acceso a datos e IA a toda la empresa con el mínimo de complejidad.
+cuidado: Genie One muestra lo que se comparte con cada usuario: los tableros y agentes tienen que estar bien hechos y compartidos con los grupos correctos.
+ver: Genie Agent, Unity Catalog
+
+## Genie Code
+alias: databricks assistant, asistente de databricks
+nino: Es **un compañero que programa a tu lado**: le pides "limpia esta tabla" y te propone el código, pero tú lo revisas antes de usarlo.
+que: El asistente de código de Databricks para personas técnicas (antes Databricks Assistant). Genera, explica, optimiza y corrige código en notebooks, el editor de SQL, Lakeflow, tableros y archivos; comandos `/explain`, `/fix`, `/doc`, `/optimize`, `/findTables`; Quick Fix y Diagnose Error; instrucciones personales en `.assistant_instructions.md`. Usa los permisos de Unity Catalog del usuario. Se cobra por uso desde julio de 2026, con una cantidad gratuita mensual por usuario.
+ejemplo: En una celda con error, `/fix` muestra la corrección en una vista de diferencias; al aceptarla, el código queda en la celda sin ejecutarse.
+para: Escribir, entender y corregir código más rápido dentro de Databricks.
+cuidado: Revisa siempre el código antes de ejecutarlo; puede equivocarse en reglas de negocio, nulos o idempotencia.
+ver: Genie Agent, Notebook
+
+## Vista de métricas
+alias: metric view, metric views, vistas de métricas
+nino: Es **una receta oficial de cada número importante**: "ventas" se calcula siempre igual, y después puedes pedirlo por mes, por país o por lo que quieras.
+que: Un objeto de Unity Catalog que define, en YAML, medidas (cálculos como ventas netas o ticket promedio) por separado de los campos por los que se agrupa (mes, país, canal). Se crea con `CREATE VIEW ... WITH METRICS LANGUAGE YAML AS $$ ... $$` y se consulta con `MEASURE(nombre)`. Las medidas pueden reutilizar otras con `MEASURE()`. Es la base de la capa semántica de Databricks y la usan Genie, los tableros y herramientas de BI.
+ejemplo: `SELECT pais, MEASURE(ticket_promedio) FROM metricas_ventas GROUP BY pais` calcula ventas ÷ pedidos por país, aunque la vista no fue definida "por país".
+para: Tener una sola definición de cada indicador en toda la empresa.
+cuidado: Una vista común congela el grano y las agregaciones; una vista de métricas no. No dupliques las mismas medidas como SQL expressions en Genie.
+ver: Genie Agent, Capa semántica
+
+## Benchmark de Genie
+alias: benchmarks, benchmark genie
+nino: Es **el examen de práctica del ayudante**: le haces las mismas preguntas con sus respuestas correctas y ves cuántas acierta después de cada cambio.
+que: Una pregunta de prueba de un Genie Agent con su respuesta correcta en SQL (SQL Answer). Al correr los benchmarks, Genie compara el resultado de su consulta con el de la respuesta: es Good si coincide (aunque cambie el orden o redondeando a 4 cifras significativas) y Bad si está vacío, da error o tiene columnas de más; sin SQL Answer queda en revisión manual. Los benchmarks no se usan como contexto para responder.
+ejemplo: Tres variantes ("ventas del local en marzo", "facturación del canal tienda en 2024-03"...) con el mismo SQL Answer; la exactitud sube de 70 % a 95 % después de agregar sinónimos.
+para: Medir la calidad del agente y detectar regresiones después de cada cambio.
+cuidado: Usa varias formas de cada pregunta y un SQL Answer con exactamente las columnas esperadas.
+ver: Genie Agent
