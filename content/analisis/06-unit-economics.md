@@ -36,6 +36,40 @@ LIMIT 5;
 `LAG(mrr) OVER (PARTITION BY empresa_id ORDER BY mes)` trae la **última** factura anterior, aunque haya sido hace cinco meses. Para comparar con el mes calendario anterior, únelo por `mes = date(mes, '-1 month')`.
 :::
 
+```recorrido
+titulo: La cascada de MRR de marzo de 2024
+estacion ini: MRR inicial | icono=base
+estacion mas: Lo que suma | icono=check
+estacion menos: Lo que resta | icono=x
+estacion fin: MRR final | icono=dashboard
+estacion control: Cuadrar | icono=prueba
+paso ini: El MRR de febrero
+Lo que se facturaba por mes al cierre de febrero: el punto de partida.
+>>> tabla
+mrr_febrero
+66046
+paso mas: Lo que suma: nuevos y expansión
+Empresas que no facturaban y ahora sí (**nuevo**), y empresas que pagan más que antes (**expansión**).
+>>> tabla
+nuevo,expansion
+3235,1050
+paso menos: Lo que resta: contracción y churn
+Empresas que bajaron de plan (**contracción**) y las que dejaron de pagar (**churn**).
+>>> tabla
+contraccion,churn
+1050,548
+paso fin: El MRR de marzo
+La suma de lo que se factura al cierre de marzo.
+>>> tabla
+mrr_marzo
+68733
+paso control: La cascada tiene que cuadrar
+inicial + nuevo + expansión − contracción − churn = final. Si no cuadra, hay una empresa mal clasificada. Es el control que se hace **antes** de mandar el número a finanzas.
+>>> tabla
+cascada,mrr_marzo
+68733,68733
+```
+
 ## Retención neta de ingresos (NRR)
 
 NRR = MRR de hoy **de las empresas que ya pagaban hace 12 meses** ÷ MRR de esas empresas hace 12 meses. Incluye expansiones, contracciones y bajas; **no** incluye clientes nuevos.

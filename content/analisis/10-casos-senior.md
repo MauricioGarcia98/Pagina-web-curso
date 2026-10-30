@@ -44,6 +44,48 @@ LIMIT 7;
 Un número rápido sobre datos sucios es peor que ningún número. Antes de entregar: ¿hay duplicados en la clave?, ¿hay montos negativos o fechas imposibles?, ¿la cobertura del período está completa?
 :::
 
+```recorrido
+titulo: Cambiar el grano: de líneas a pedidos y de pedidos a clientes
+estacion lineas: Líneas | icono=tabla
+estacion pedidos: Pedidos | icono=capas
+estacion clientes: Clientes | icono=usuario
+estacion trampa: La trampa | icono=alerta
+estacion res: Resultado | icono=check
+paso lineas: Grano: una fila por línea de pedido
+El cliente 9 tiene muchas líneas: varias por pedido.
+>>> tabla
+cliente_id,pedido_id,producto_id,importe
+9,136,10,147.59
+9,136,53,555.73
+9,1161,202,44.99
+9,1278,185,488.69
+9,1278,129,592.19
+paso pedidos: Subir a una fila por pedido
+`GROUP BY pedido_id`: el importe del pedido es la suma de sus líneas.
+>>> tabla
+cliente_id,pedido_id,total
+9,136,703.32
+9,1161,44.99
+9,1278,1101.57
+9,1666,51.28
+9,1889,292.49
+paso clientes: Subir a una fila por cliente
+Desde el grano de pedido sí tiene sentido contar pedidos y promediar el ticket.
+>>> tabla
+cliente_id,pedidos,gasto,ticket
+9,17,24666.7,1450.98
+paso trampa: Saltarse el grano intermedio
+Si promedias directo sobre las líneas, obtienes el importe promedio **por línea**, no el ticket; y `COUNT(*)` cuenta líneas, no pedidos.
+>>> tabla
+cliente_id,cuenta_lineas_no_pedidos,promedio_por_linea
+9,37,666.67
+paso res: La regla
+Antes de cada agregación, escribe en una frase el grano de la tabla que estás leyendo y el del resultado. Si cambian, hay un `GROUP BY` intermedio que no puedes saltarte.
+>>> texto
+líneas  ──GROUP BY pedido_id──▶  pedidos  ──GROUP BY cliente_id──▶  clientes
+(importe)                     (total)                           (pedidos, gasto, ticket)
+```
+
 ## Ejercicios
 
 :::ejercicio sql dificultad=Avanzado

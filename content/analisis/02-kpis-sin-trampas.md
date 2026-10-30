@@ -59,6 +59,41 @@ JOIN productos pr ON pr.producto_id = d.producto_id;
 Para un KPI que es una razón (margen, conversión, ticket), calcula **suma del numerador ÷ suma del denominador** en el nivel que te piden. Promediar razones ya calculadas casi siempre da otro número.
 :::
 
+```recorrido
+titulo: El ticket promedio: promedio de promedios contra razón de sumas
+estacion pedidos: Por pedido | icono=tabla
+estacion canal: Por canal | icono=capas
+estacion mal: Promedio de promedios | icono=x
+estacion bien: Razón de sumas | icono=check
+paso pedidos: El total de cada pedido
+Primero, el importe de cada pedido no cancelado (suma de sus líneas con descuento).
+>>> tabla
+canal,pedido_id,total
+app,1,178.19
+web,2,167.7
+app,3,1880.98
+tienda,4,953.02
+telefono,5,108.97
+paso canal: El ticket promedio de cada canal
+Cada canal tiene su ticket y su **cantidad de pedidos**, muy distinta: web tiene más de cinco veces los pedidos de teléfono.
+>>> tabla
+canal,pedidos,ticket
+web,4979,1222.94
+app,2707,1217.85
+tienda,2438,1152.45
+telefono,909,1103.31
+paso mal: Promediar los 4 tickets
+Si promedias los cuatro números de la tabla anterior, teléfono pesa **lo mismo** que web, aunque tenga muchos menos pedidos.
+>>> tabla
+promedio_de_promedios
+1174.14
+paso bien: Total vendido / total de pedidos
+El ticket de la empresa es la suma de los importes dividida por la cantidad de pedidos. Cada pedido pesa lo mismo. Aquí la diferencia es de unos 22 por pedido; con otra mezcla de canales puede ser mucho mayor, y al comparar meses con mezclas distintas puede mostrar una suba donde hubo una baja.
+>>> tabla
+ticket_real,pedidos
+1196.26,11033
+```
+
 ## Trampa 3: la división entera
 
 En SQLite, PostgreSQL y SQL Server, `7 / 2` da `3`. Multiplica por `100.0` (o `1.0`) **antes** de dividir.

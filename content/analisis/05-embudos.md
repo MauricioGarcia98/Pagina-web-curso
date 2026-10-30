@@ -26,6 +26,51 @@ WHERE cliente_id IS NOT NULL;
 - **Conversión de un paso** = usuarios del paso ÷ usuarios del paso anterior.
 - **Conversión total** = usuarios del último paso ÷ usuarios del primero.
 
+```recorrido
+titulo: El embudo simple, paso a paso
+estacion ev: Eventos | icono=reloj
+estacion marcas: Marcas por cliente | icono=etiqueta
+estacion pasos: Contar cada paso | icono=capas
+estacion conv: Conversión | icono=engranaje
+estacion cuidado: Lo que no dice | icono=alerta
+paso ev: Los eventos de un cliente
+Cada fila es algo que hizo un cliente en la web.
+>>> tabla
+cliente_id,fecha_hora,tipo_evento
+3,2024-10-11 20:11:50,vista
+3,2024-10-11 20:20:00,vista
+3,2024-10-11 20:28:51,agregar_carrito
+3,2024-10-11 20:38:36,vista
+3,2024-10-27 17:12:02,vista
+3,2024-10-27 17:21:24,agregar_carrito
+3,2024-10-27 17:27:20,vista
+3,2024-10-27 17:33:03,compra
+paso marcas: Una fila por cliente con tres marcas
+`MAX(tipo_evento = 'vista')` vale 1 si el cliente hizo **al menos una** vista. Lo mismo para carrito y compra.
+>>> tabla
+cliente_id,vio,agrego,compro
+3,1,1,1
+4,1,1,1
+5,1,0,0
+7,1,1,0
+8,1,0,0
+paso pasos: Sumar las marcas
+Cuántos clientes llegaron a cada paso.
+>>> tabla
+vieron,agregaron,compraron
+1165,924,578
+paso conv: La conversión de cada paso
+Cada paso dividido por el anterior, y el total de punta a punta.
+>>> tabla
+vista_a_carrito,carrito_a_compra,total
+79.3,62.6,49.6
+paso cuidado: Lo que este embudo no controla
+El embudo simple no mira el **orden**: cuenta en "agregaron" a quien agregó algo al carrito **antes** de su primera vista registrada (por ejemplo, desde un enlace directo). Con los datos reales pasa con 61 de los 924 clientes que usaron el carrito. Por eso la sección siguiente arma el embudo ordenado.
+>>> tabla
+carrito_antes_de_la_vista,carrito_sin_ninguna_vista
+57,4
+```
+
 ## El embudo ordenado
 
 El simple no exige orden: alguien que compró en enero y miró un producto en diciembre cuenta en ambos pasos. El embudo **ordenado** exige que cada paso ocurra **después** del anterior.

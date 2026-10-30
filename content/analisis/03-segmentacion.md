@@ -48,6 +48,59 @@ FROM acumulado
 GROUP BY clase;
 ```
 
+```recorrido
+titulo: La clasificación ABC, paso a paso
+estacion ventas: Ventas por producto | icono=tabla
+estacion orden: Ordenar | icono=flujo
+estacion acum: % acumulado | icono=capas
+estacion clase: Clase | icono=etiqueta
+estacion res: Pareto | icono=check
+paso ventas: Cuánto vendió cada producto
+Una fila por producto con su venta total.
+>>> tabla
+producto_id,ventas
+1,191736
+2,56232.8
+3,226982
+4,5125.77
+paso orden: Ordenar de mayor a menor
+El producto que más vende queda primero.
+>>> tabla
+puesto,producto_id,ventas
+1,146,834980
+2,144,466219
+3,124,453047
+4,119,440746
+5,212,436208
+paso acum: El porcentaje acumulado
+`SUM(ventas) OVER (ORDER BY ventas DESC)` / total: qué parte de las ventas suman los productos desde el primero hasta este.
+>>> tabla
+puesto,producto_id,ventas,pct_acum
+1,146,834980,5.8
+2,144,466219,9
+3,124,453047,12.2
+4,119,440746,15.2
+5,212,436208,18.2
+paso clase: Cortar en A, B y C
+Hasta el 80 % acumulado → A; hasta el 95 % → B; el resto → C.
+>>> tabla
+puesto,producto_id,pct_acum,clase
+1,146,5.8,A
+2,144,9,A
+50,10,72.6,A
+51,23,73.1,A
+100,87,89,B
+150,263,95.2,C
+200,219,98.3,C
+paso res: Pocos productos, casi todas las ventas
+La clase A tiene una parte chica del catálogo y el 80 % de las ventas: son los productos que no pueden quedarse sin stock.
+>>> tabla
+clase,productos,pct_catalogo
+A,66,22
+B,81,27
+C,153,51
+```
+
 ## RFM: recencia, frecuencia y monto
 
 Para cada cliente:
