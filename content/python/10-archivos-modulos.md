@@ -105,6 +105,40 @@ with open("ventas.csv", encoding="utf-8") as f:
 - `newline=""` al escribir evita líneas en blanco de más en Windows.
 - Para otro separador (muy común en países que usan coma decimal): `csv.DictReader(f, delimiter=";")`.
 
+```recorrido
+titulo: Un CSV leído con DictReader, fila por fila
+estacion archivo: El archivo | icono=archivo
+estacion reader: DictReader | icono=transformar
+estacion dict: Cada fila, un dict | icono=codigo
+estacion tipos: Todo es texto | icono=alerta
+estacion total: Sumar | icono=check
+paso archivo: El archivo de texto
+Un CSV es texto: la primera línea tiene los nombres de las columnas y cada línea siguiente es una fila.
+>>> csv
+pedido_id,pais,monto
+1,Chile,120.50
+2,Perú,80
+3,Chile,99.90
+paso reader: DictReader usa el encabezado
+`csv.DictReader` lee la primera línea como nombres de columna y, por cada línea siguiente, arma un **diccionario**.
+>>> python
+import csv
+with open("pedidos.csv", encoding="utf-8", newline="") as f:
+    filas = list(csv.DictReader(f))
+paso dict: Cada fila se lee por nombre
+`fila["monto"]` en vez de `fila[2]`: si mañana agregan una columna en el medio, el código sigue funcionando.
+>>> log
+{'pedido_id': '1', 'pais': 'Chile', 'monto': '120.50'}
+paso tipos: Pero los valores son textos
+El módulo `csv` no adivina tipos: `"120.50"` es un `str`. Hay que convertir antes de sumar.
+>>> log
+<class 'str'>
+paso total: Convertir y acumular por país
+`float(...)` convierte; un `defaultdict(float)` arranca cada país en 0.0.
+>>> log
+{'Chile': 220.4, 'Perú': 80.0}
+```
+
 ## JSON: el formato de las APIs
 
 **JSON** representa diccionarios, listas, textos, números, `true/false` y `null`. Es el formato de casi todas las APIs y de muchos eventos. El módulo `json` convierte en ambas direcciones:

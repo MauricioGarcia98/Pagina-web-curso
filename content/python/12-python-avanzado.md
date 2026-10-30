@@ -66,6 +66,41 @@ Expresión generadora: como una list comprehension pero con paréntesis: `(x * 2
 Un generador no hace nada hasta que alguien pide un valor: es **perezoso** (*lazy*). Spark funciona igual a gran escala: `df.filter(...).select(...)` no procesa ningún dato, solo **anota** los pasos; recién cuando pides un resultado (`count()`, `show()`, `write`) ejecuta todo de una vez, optimizado. Si entiendes los generadores, entiendes la mitad de Spark.
 :::
 
+```recorrido
+titulo: Un generador, pedido a pedido
+estacion crear: Crear | icono=codigo
+estacion n1: 1er next | icono=flujo
+estacion n2: 2do next | icono=flujo
+estacion n3: 3er next | icono=flujo
+estacion fin: Se agota | icono=check
+paso crear: Llamarlo no ejecuta nada
+Una función con `yield` devuelve un **generador**: una "promesa" de valores. Al crearlo no se procesó ningún dato.
+>>> log
+» g = leer_en_lotes(range(1, 11), 4)
+» g
+<generator object leer_en_lotes at 0x…>
+paso n1: next(g): corre hasta el primer yield
+Ejecuta el cuerpo hasta llenar un lote de 4, lo **entrega** con `yield` y se **pausa** ahí, recordando dónde quedó.
+>>> log
+» next(g)
+[1, 2, 3, 4]
+paso n2: next(g): sigue desde la pausa
+Continúa con el 5, llena otro lote y vuelve a pausar. En memoria solo hubo **un lote** a la vez: con un archivo de millones de filas, eso es la diferencia entre funcionar y quedarse sin memoria.
+>>> log
+» next(g)
+[5, 6, 7, 8]
+paso n3: El último lote, incompleto
+Se terminan los datos con 2 elementos en el lote: el `if lote: yield lote` final lo entrega igual.
+>>> log
+» next(g)
+[9, 10]
+paso fin: No hay más: StopIteration
+Un `for` hace todos estos `next()` por ti y se detiene solo al recibir `StopIteration`.
+>>> log
+» next(g)
+StopIteration
+```
+
 ## Iteradores
 
 Todo lo que puedes recorrer con `for` es **iterable**. `iter()` crea un iterador y `next()` pide el siguiente valor:

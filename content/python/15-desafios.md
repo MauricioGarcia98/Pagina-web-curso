@@ -93,6 +93,45 @@ Una sola pasada: **O(n)** en tiempo y O(n) en memoria. Con un millón de pedidos
 - En una entrevista real, preguntar por los casos borde antes de escribir es tan importante como la solución. "¿La lista puede estar vacía? ¿Puede haber empates?" muestra criterio profesional.
 :::
 
+```recorrido
+titulo: O(n²) contra O(n): contar los pasos
+estacion lento: Dos for | icono=reloj
+estacion set: Un set | icono=check
+estacion escala: Con más datos | icono=capas
+estacion idea: La idea | icono=reglas
+paso lento: La versión lenta compara contra todo lo anterior
+Con `[7, 3, 5, 3, 7]`, para encontrar el 3 repetido hace **5 comparaciones**. En el peor caso (sin repetidos) compara cada par: n × (n − 1) / 2.
+>>> texto
+j=1 (3): ¿=7?
+j=2 (5): ¿=7? ¿=3?
+j=3 (3): ¿=7? ¿=3? ✓ → devolver 3
+paso set: La versión con set mira una sola vez cada elemento
+Para cada elemento, una pregunta: "¿ya está en `vistos`?". Un `set` responde eso de inmediato, sin recorrerlo.
+>>> tabla
+x,vistos antes,¿está?
+7,[],no → agregar
+3,[7],no → agregar
+5,[3 7],no → agregar
+3,[3 5 7],sí → devolver 3
+paso escala: La diferencia crece con los datos
+Cantidad de pasos en el peor caso, sin repetidos:
+>>> tabla
+pedidos,dos for (n²/2),con set (n)
+10,45,10
+1.000,499.500,1.000
+1.000.000,499.999.500.000,1.000.000
+paso idea: Cambiar tiempo por memoria
+El set ocupa memoria (guarda lo visto) a cambio de no repetir búsquedas. Es la misma idea que un *hash join* o un `DISTINCT` en una base de datos.
+>>> python
+def primer_repetido(ids):
+    vistos = set()
+    for x in ids:
+        if x in vistos:
+            return x
+        vistos.add(x)
+    return None
+```
+
 ## Ejercicios
 
 :::ejercicio python dificultad=Experto titulo="Dos que suman"

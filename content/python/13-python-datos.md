@@ -143,6 +143,44 @@ print("Cuarentena:", cuarentena)
 
 `{**f, "motivo": motivo}` crea un diccionario nuevo con todo lo que tenía `f` más la clave `motivo`. Es una forma muy común de "agregar una columna" a un registro.
 
+```recorrido
+titulo: El mini ETL, fila por fila
+estacion ext: Extraer | icono=archivo
+estacion limp: Limpiar | icono=transformar
+estacion rech: Rechazar | icono=x
+estacion dup: Deduplicar | icono=capas
+estacion agg: Agregar | icono=check
+paso ext: Extraer: el CSV se vuelve una lista de diccionarios
+`csv.DictReader` no limpia nada: los valores siguen siendo textos, con espacios y todo.
+>>> log
+{'pedido_id': '1', 'fecha': '2024-03-01', 'cliente': '  ana ', 'pais': 'chile', 'monto': '120.50'}
+paso limp: Limpiar cada fila
+`limpiar` convierte tipos y normaliza textos (`strip`, `title`). Cada fila termina en uno de tres destinos:
+>>> tabla
+pedido_id,cliente,pais,monto,resultado
+1,[  ana ],chile,120.50,ok → Ana; Chile; 120.5
+2,[LUIS],Perú,80,ok → Luis; Perú; 80.0
+3,[Eva],Chile,(vacío),rechazada: could not convert string to float: ''
+4,[ana],Chile,99.90,ok → Ana; Chile; 99.9
+4,[ana],Chile,99.90,duplicada: se descarta
+5,[Tom],México,40,rechazada: month must be in 1..12
+paso rech: Rechazar sin perder la cuenta
+El monto vacío y el mes 13 hacen fallar la conversión: `float("")` y `date.fromisoformat("2024-13-02")` lanzan `ValueError`. La fila se **cuenta** como rechazada, no desaparece en silencio.
+>>> log
+float("")                    → ValueError: could not convert string to float: ''
+date.fromisoformat("2024-13-02") → ValueError: month must be in 1..12
+paso dup: Deduplicar con un set
+El segundo pedido 4 ya estaba en `vistos`: se descarta. Quedan 3 filas válidas y 2 rechazadas.
+>>> texto
+vistos = {1, 2, 4}
+4 in vistos → True → se descarta
+paso agg: Agregar por país
+Las filas limpias se suman por país. "chile" y "Chile" ya son el mismo país gracias a la limpieza.
+>>> log
+3 filas válidas, 2 rechazadas
+{"Chile": 220.4, "Perú": 80.0}
+```
+
 ## Consumir una API (para tu computadora)
 
 Muchos datos no llegan en archivos: se piden a una **API**, un servicio web que responde en JSON. En tu máquina usarás la librería `requests` (`pip install requests`). Aquí no hay red, pero así se ve una extracción profesional:
