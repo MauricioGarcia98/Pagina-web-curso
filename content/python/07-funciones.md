@@ -78,6 +78,32 @@ def tasa_conversion(compras, visitas):
 print(tasa_conversion(5, 200), tasa_conversion(5, 0))
 ```
 
+```recorrido
+titulo: Qué pasa cuando llamas a una función
+estacion def: Definir | icono=codigo
+estacion call: Llamar | icono=flujo
+estacion dentro: Adentro | icono=engranaje
+estacion ret: return | icono=check
+paso def: def solo guarda la receta
+Al leer `def`, Python **guarda** la función pero no ejecuta nada todavía. `descuento=0.1` es un valor por defecto.
+>>> python
+def precio_final(precio, descuento=0.1):
+    return round(precio * (1 - descuento), 2)
+paso call: La llamada le pasa los valores
+`precio_final(250)` ejecuta la receta con `precio = 250`. Como no se pasó `descuento`, usa el valor por defecto 0.1.
+>>> python
+total = precio_final(250)
+paso dentro: Adentro, los parámetros son variables
+Dentro de la función existen `precio` y `descuento` solo mientras se ejecuta. Afuera no se ven.
+>>> texto
+precio = 250 · descuento = 0.1
+250 * (1 - 0.1) = 225.0
+paso ret: return devuelve el resultado
+El valor de `return` **reemplaza a la llamada**: `total` queda en 225.0. Con otro descuento, `precio_final(250, 0.25)` devuelve 187.5.
+>>> python
+total = 225.0
+```
+
 ## Devolver varios valores
 
 ```python

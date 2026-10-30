@@ -105,6 +105,37 @@ Puedes tener varios `except` para distintos errores: `except (ValueError, TypeEr
 `except:` o `except Exception:` sin más atrapa **cualquier** error, incluidos los tuyos de programación (`NameError` por un nombre mal escrito). El programa "funciona" pero hace cualquier cosa, y nadie se entera. Captura **solo** los errores que esperas y sabes manejar. En un pipeline de datos, es mucho mejor que el proceso **falle ruidosamente** (y Airflow te avise) a que cargue datos corruptos en silencio en el reporte del directorio.
 :::
 
+```recorrido
+titulo: try / except paso a paso: una fila con un dato inválido
+estacion try: try | icono=codigo
+estacion error: El error | icono=alerta
+estacion except: except | icono=escudo
+estacion sigue: El programa sigue | icono=check
+paso try: Intentar la conversión
+Convertimos textos de un CSV a números. El segundo valor está mal.
+>>> python
+for texto in ['12.5', 'N/A', '8']:
+    try:
+        valor = float(texto)
+        print('ok', valor)
+    except ValueError:
+        print('inválido:', texto)
+paso error: float('N/A') falla
+`float` no puede convertir "N/A" y **lanza** un `ValueError`. Sin `try`, el programa se detendría acá.
+>>> log
+ValueError: could not convert string to float: 'N/A'
+paso except: except atrapa ese error
+Como el error es un `ValueError`, Python salta al bloque `except` en lugar de detenerse.
+>>> texto
+inválido: N/A
+paso sigue: El bucle continúa
+El tercer valor se procesa normal. Atrapa solo los errores que **esperas** (aquí, `ValueError`): un `except` sin tipo escondería errores de verdad.
+>>> texto
+ok 12.5
+inválido: N/A
+ok 8.0
+```
+
 ## Reintentos: un uso real de try
 
 Las conexiones de red fallan a veces por motivos pasajeros. Un patrón común es reintentar unas pocas veces antes de rendirse:

@@ -112,6 +112,40 @@ La línea clave es `conteo.get(canal, 0) + 1`: "lo que había para este canal (o
 `from collections import Counter` cuenta en una línea: `Counter(c for c, _ in pedidos)`. Y `defaultdict(list)` crea listas automáticamente para agrupar: `grupos[canal].append(pedido)`. Los verás en la lección de Python avanzado; primero entiende el patrón a mano.
 :::
 
+```recorrido
+titulo: Contar y agrupar con un diccionario, vuelta por vuelta
+estacion ini: El punto de partida | icono=codigo
+estacion v1: Lima, 3 | icono=flujo
+estacion v2: Quito, 1 | icono=flujo
+estacion v3: Lima, 2 | icono=flujo
+estacion fin: Resultado | icono=check
+paso ini: Ventas por ciudad
+Queremos el total de unidades **por ciudad**. El diccionario `por_ciudad` empieza vacío.
+>>> python
+ventas = [('Lima', 3), ('Quito', 1), ('Lima', 2)]
+por_ciudad = {}
+for ciudad, unidades in ventas:
+    por_ciudad[ciudad] = por_ciudad.get(ciudad, 0) + unidades
+paso v1: Primera venta
+`get('Lima', 0)` devuelve 0 porque Lima todavía no está. Se guarda 0 + 3.
+>>> python
+por_ciudad = {'Lima': 3}
+paso v2: Segunda venta
+Quito tampoco existía: se agrega con 1.
+>>> python
+por_ciudad = {'Lima': 3, 'Quito': 1}
+paso v3: Tercera venta
+Ahora Lima **sí** existe: `get` devuelve 3, se suma 2 y se reemplaza el valor.
+>>> python
+por_ciudad = {'Lima': 5, 'Quito': 1}
+paso fin: Es un GROUP BY en Python
+Este patrón es exactamente lo que hace `GROUP BY ciudad` con `SUM(unidades)` en SQL.
+>>> tabla
+ciudad,unidades
+Lima,5
+Quito,1
+```
+
 ## Estructuras anidadas: así llegan los datos de las APIs
 
 El formato **JSON**, que usan casi todas las APIs, es exactamente "diccionarios y listas anidados". Leerlo es encadenar claves e índices:

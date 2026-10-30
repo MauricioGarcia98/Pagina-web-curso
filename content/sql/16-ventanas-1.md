@@ -32,6 +32,64 @@ Son, para muchos, la frontera entre un SQL intermedio y uno avanzado, y aparecen
 Imagina que cada fila es un pasajero sentado en un vagón (su grupo). Una función de ventana permite que cada pasajero mire **por la ventana a los demás de su mismo vagón**, en cierto orden, y anote algo en su boleto: "en mi vagón soy el 3.º más alto", "el promedio de edad de mi vagón es 34", "la persona sentada antes que yo tiene 20 años". Nadie se baja del tren: todos los pasajeros siguen ahí, cada uno con su anotación.
 :::
 
+```recorrido
+titulo: Función de ventana paso a paso: numerar los pedidos de cada cliente
+estacion tabla: Las filas | icono=tabla
+estacion part: PARTITION BY | icono=capas
+estacion orden: ORDER BY | icono=flujo
+estacion num: ROW_NUMBER | icono=etiqueta
+estacion res: Primer pedido | icono=check
+paso tabla: Los pedidos de dos clientes
+Queremos saber cuál fue el **primer** pedido de cada cliente, sin perder las filas (GROUP BY las juntaría en una).
+>>> tabla
+cliente_id,pedido_id,fecha_pedido
+4,1905,2022-08-12
+4,4805,2023-05-23
+4,7298,2023-12-27
+4,9738,2024-07-20
+3,10386,2024-09-17
+4,10441,2024-09-23
+3,10727,2024-10-18
+3,11506,2024-12-06
+3,11915,2024-12-27
+paso part: PARTITION BY separa en ventanas
+`PARTITION BY cliente_id` arma una "ventana" por cliente. A diferencia de GROUP BY, **las filas no se juntan**: cada una sigue existiendo.
+>>> tabla
+cliente_id,pedido_id,fecha_pedido
+3,10386,2024-09-17
+3,10727,2024-10-18
+3,11506,2024-12-06
+3,11915,2024-12-27
+4,1905,2022-08-12
+4,4805,2023-05-23
+4,7298,2023-12-27
+4,9738,2024-07-20
+4,10441,2024-09-23
+paso orden: ORDER BY ordena dentro de cada ventana
+Dentro de cada cliente, las filas se ordenan por fecha.
+>>> sql
+ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido)
+paso num: ROW_NUMBER numera
+Cada fila recibe su número **dentro de su ventana**: el contador vuelve a 1 al cambiar de cliente.
+>>> tabla
+cliente_id,pedido_id,fecha_pedido,n
+3,10386,2024-09-17,1
+3,10727,2024-10-18,2
+3,11506,2024-12-06,3
+3,11915,2024-12-27,4
+4,1905,2022-08-12,1
+4,4805,2023-05-23,2
+4,7298,2023-12-27,3
+4,9738,2024-07-20,4
+4,10441,2024-09-23,5
+paso res: Quedarse con n = 1
+Filtrando `n = 1` (en una CTE o subconsulta, porque WHERE se ejecuta antes que las ventanas) obtienes el primer pedido de cada cliente. Es el patrón "top-N por grupo".
+>>> tabla
+cliente_id,pedido_id,fecha_pedido
+3,10386,2024-09-17
+4,1905,2022-08-12
+```
+
 ## La sintaxis
 
 ```sql norun

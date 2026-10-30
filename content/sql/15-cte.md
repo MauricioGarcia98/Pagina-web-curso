@@ -100,6 +100,40 @@ Fíjate en la estructura: **filtrar → transformar → agregar → presentar**.
 - Terminar con la CTE sin un `SELECT` final: el `WITH` siempre va seguido de la consulta principal.
 :::
 
+```recorrido
+titulo: Una CTE paso a paso: el ticket promedio por canal
+estacion paso1: CTE 1: por pedido | icono=transformar
+estacion paso2: CTE 2: por canal | icono=cubo
+estacion final: SELECT final | icono=check
+paso paso1: Primer paso con nombre: el total de cada pedido
+`WITH pedido_total AS (...)` guarda el resultado intermedio con un nombre. Aquí: una fila por pedido con su total (de 2024).
+>>> sql
+WITH pedido_total AS (
+  SELECT p.pedido_id, p.canal,
+         SUM(d.cantidad * d.precio_unitario) AS total
+  FROM pedidos p
+  JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  WHERE p.fecha_pedido >= '2024-01-01'
+  GROUP BY p.pedido_id, p.canal
+),
+paso paso2: Segundo paso, que usa al primero
+La segunda CTE lee la primera **como si fuera una tabla**. Así el cálculo se lee de arriba hacia abajo, como una receta.
+>>> sql
+por_canal AS (
+  SELECT canal, COUNT(*) AS pedidos, AVG(total) AS ticket
+  FROM pedido_total
+  GROUP BY canal
+)
+paso final: La consulta final
+`SELECT * FROM por_canal` muestra el resultado. Para revisar un paso intermedio, basta con cambiar esta última línea por `SELECT * FROM pedido_total`.
+>>> tabla
+canal,pedidos,ticket
+app,1142,1345.64
+web,2061,1327.76
+tienda,1012,1256.14
+telefono,418,1156.61
+```
+
 ## Ventajas que hacen que todos los profesionales usen CTE
 
 | Ventaja | En la práctica |

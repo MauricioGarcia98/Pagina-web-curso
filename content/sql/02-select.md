@@ -43,6 +43,55 @@ El resultado tiene exactamente esas tres columnas, en ese orden. Si escribes `SE
 
 `SELECT *` está perfecto para **explorar** una tabla con `LIMIT`. Para consultas que quedan en un reporte o un pipeline, nombra las columnas.
 
+```recorrido
+titulo: SELECT paso a paso: de la tabla completa a las columnas que pediste
+estacion tabla: La tabla | icono=tabla
+estacion from: FROM | icono=base
+estacion select: SELECT | icono=lupa
+estacion calc: Columna calculada | icono=transformar
+estacion res: Resultado | icono=check
+paso tabla: La tabla productos
+Así se ven las primeras 6 filas de `productos` (tiene más columnas: categoría, marca, stock…). Queremos solo el nombre y el precio.
+>>> tabla
+producto_id,nombre,categoria_id,marca,precio,costo,stock
+1,Smartphone Apple Mini 300,6,Apple,484.99,310.41,38
+2,Parlante Xiaomi Sport 900,7,Xiaomi,425.99,242.21,0
+3,Notebook Apple X,8,Apple,1044.99,718.28,468
+4,Teclado Kingston Ultra 200,9,Kingston,458.99,291.39,124
+5,Juego de ollas Philips Plus 400,10,Philips,42.99,31.51,438
+6,Mesa Muebles Sur Mini 500,11,Muebles Sur,40.99,23.19,113
+paso from: FROM elige de dónde leer
+`FROM productos` le dice a la base **qué tabla** usar. Todavía no se eligió ninguna columna.
+>>> sql
+SELECT nombre, precio
+FROM productos;
+paso select: SELECT se queda con las columnas que nombras
+De todas las columnas, solo quedan `nombre` y `precio`, **en el orden en que las escribiste**. Las filas son las mismas.
+>>> tabla
+nombre,precio
+Smartphone Apple Mini 300,484.99
+Parlante Xiaomi Sport 900,425.99
+Notebook Apple X,1044.99
+Teclado Kingston Ultra 200,458.99
+Juego de ollas Philips Plus 400,42.99
+Mesa Muebles Sur Mini 500,40.99
+paso calc: También puedes calcular
+Una columna puede ser una **cuenta**: `precio - costo` se calcula fila por fila, y `AS margen` le pone nombre.
+>>> sql
+SELECT nombre, precio, precio - costo AS margen
+FROM productos;
+paso res: El resultado
+La base devuelve una **tabla nueva** con lo que pediste. La tabla `productos` no cambió: un SELECT solo lee.
+>>> tabla
+nombre,precio,margen
+Smartphone Apple Mini 300,484.99,174.58
+Parlante Xiaomi Sport 900,425.99,183.78
+Notebook Apple X,1044.99,326.71
+Teclado Kingston Ultra 200,458.99,167.6
+Juego de ollas Philips Plus 400,42.99,11.48
+Mesa Muebles Sur Mini 500,40.99,17.8
+```
+
 ## Calcular columnas nuevas
 
 Una columna del resultado no tiene que existir en la tabla: puede ser un **cálculo**. SQL entiende los operadores aritméticos de siempre:
