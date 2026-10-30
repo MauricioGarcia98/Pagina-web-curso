@@ -186,7 +186,7 @@ def ventas_por_dia():
 :::
 
 :::trabajo
-- Databricks Runtime 17 y posteriores usan Spark 4: si trabajas con Databricks, estas reglas ya te afectan.
+- Databricks Runtime 17.3 LTS usa Spark 4.0, el 18 LTS usa Spark 4.1 y el 19 usa Spark 4.2: si trabajas con Databricks, estas reglas ya te afectan.
 - En las migraciones, el trabajo típico de un data engineer es correr los jobs en un entorno con Spark 4, juntar los errores `CAST_INVALID_INPUT` y `DIVIDE_BY_ZERO`, y decidir caso por caso: corregir el origen, usar `try_` o agregar una regla de calidad.
 - VARIANT se volvió el estándar para ingerir eventos JSON en bronze, tanto en Spark como en Delta e Iceberg.
 :::
