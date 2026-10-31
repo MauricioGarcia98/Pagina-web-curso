@@ -665,6 +665,65 @@
     return '<p>Lee la última línea del mensaje: dice el <b>tipo de error</b> (NameError, TypeError…) y qué pasó. La línea indicada es donde Python se dio cuenta, que no siempre es donde está el error.</p>';
   }
 
+  // ---------------------------------------------------------------- SQL: los datos en cada paso
+  // Arma consultas parciales (solo FROM, FROM+WHERE, …) para mostrar cómo cambian las filas en cada etapa.
+  function pasosSQL(codigo) {
+    const { s, des } = enmascarar(codigo);
+    const sts = s.split(';').map((x) => x.trim()).filter(Boolean);
+    const st = sts[sts.length - 1];
+    if (!st || !/^\s*(WITH|SELECT)\b/i.test(st)) return { motivo: 'Solo se puede ver paso a paso una consulta SELECT.' };
+    if (partir(st, /\b(UNION\s+ALL|UNION|INTERSECT|EXCEPT)\b/).length > 1) return { motivo: 'Las consultas con UNION se ven mejor ejecutando cada parte por separado.' };
+    const k = clausulas(st);
+    if (!k.from) return { motivo: 'La consulta no tiene FROM: no hay tabla que recorrer.' };
+    // lo que va antes (sentencias previas, como CREATE o INSERT) y la parte WITH se repiten en cada paso
+    const previo = sts.slice(0, -1).map((x) => des(x) + ';\n').join('');
+    const withTxt = k.with != null ? des(st.slice(0, aplanar(st).search(/\bSELECT\b/i))) : '';
+    const F = des(k.from), Wh = k.where ? des(k.where) : '', G = k.group ? des(k.group) : '', H = k.having ? des(k.having) : '', Sel = des(k.select || '*'), O = k.order ? des(k.order) : '', L = k.limit ? des(k.limit) + (k.offset ? ' OFFSET ' + des(k.offset) : '') : '';
+    const base = (sel, extra = '') => `${previo}${withTxt} SELECT ${sel} FROM ${F}${Wh ? ' WHERE ' + Wh : ''}${extra}`;
+    const pasos = [];
+    const joins = /\bJOIN\b/i.test(F);
+    pasos.push({ c: 'FROM', t: joins ? 'FROM + JOIN: las tablas unidas' : 'FROM: la tabla de partida', d: joins ? 'Todas las combinaciones que cumplen el ON, con las columnas de las tablas unidas. Todavía no se filtró nada.' : 'Todas las filas de la tabla, tal cual están guardadas.', sql: [`${previo}${withTxt} SELECT * FROM ${F}`] });
+    if (Wh) pasos.push({ c: 'WHERE', t: 'WHERE: las filas que cumplen la condición', d: `Se revisó cada fila contra <code>${esc(corto(Wh, 80))}</code> y se descartaron las que no cumplen.`, sql: [base('*')] });
+    if (G) {
+      const gExpr = partir(G, /,/).map((x) => x.txt.trim()).join(', ');
+      pasos.push({ c: 'GROUP BY', t: 'GROUP BY: los grupos que se formaron', d: 'Cada fila de abajo es un grupo. La columna <code>filas_en_el_grupo</code> (agregada solo para que la veas) cuenta cuántas filas del paso anterior cayeron en ese grupo.', sql: [base(`${gExpr}, COUNT(*) AS filas_en_el_grupo`, ` GROUP BY ${G}`), base(`${Sel}, COUNT(*) AS filas_en_el_grupo`, ` GROUP BY ${G}`)] });
+      if (H) pasos.push({ c: 'HAVING', t: 'HAVING: los grupos que pasan el filtro', d: `Se descartaron los grupos que no cumplen <code>${esc(corto(H, 80))}</code>.`, sql: [base(`${gExpr}, COUNT(*) AS filas_en_el_grupo`, ` GROUP BY ${G} HAVING ${H}`), base(`${Sel}, COUNT(*) AS filas_en_el_grupo`, ` GROUP BY ${G} HAVING ${H}`)] });
+    }
+    const resto = `${G ? ' GROUP BY ' + G : ''}${H ? ' HAVING ' + H : ''}`;
+    pasos.push({ c: 'SELECT', t: 'SELECT: las columnas finales', d: 'Se calcularon las columnas que pediste' + (/^DISTINCT\b/i.test(Sel) ? ' y se eliminaron las filas repetidas (DISTINCT)' : '') + '. Todavía sin ordenar.', sql: [base(Sel, resto)] });
+    if (O) pasos.push({ c: 'ORDER BY', t: 'ORDER BY: el mismo resultado, ordenado', d: `Mismas filas, en el orden <code>${esc(corto(O, 60))}</code>.`, sql: [base(Sel, resto + ' ORDER BY ' + O)] });
+    if (L) pasos.push({ c: 'LIMIT', t: 'LIMIT: el corte final', d: 'Se quedan solo las primeras filas. Este es tu resultado.', sql: [base(Sel, resto + (O ? ' ORDER BY ' + O : '') + ' LIMIT ' + L)] });
+    return { pasos };
+  }
+  function tablaMini(res, max = 6, maxCols = 8, usadas = null) {
+    // las columnas que usa tu consulta van primero, para que no queden escondidas
+    let idx = res.columns.map((_, i) => i);
+    if (usadas) idx = [...idx.filter((i) => usadas.has(res.columns[i].toLowerCase())), ...idx.filter((i) => !usadas.has(res.columns[i].toLowerCase()))];
+    idx = idx.slice(0, maxCols);
+    res = { columns: res.columns, values: res.values.slice(0, max).map((r) => idx.map((i) => r[i])), cols: idx.map((i) => res.columns[i]) };
+    const cols = res.cols, filas = res.values;
+    const cel = (v) => v === null || v === undefined ? '<td class="null">NULL</td>' : `<td>${esc(typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 100) / 100 : v)}</td>`;
+    return `<div class="result-table-wrap exp-mini"><table class="result"><thead><tr>${cols.map((x) => `<th>${esc(x)}</th>`).join('')}${res.columns.length > maxCols ? `<th class="muted">+${res.columns.length - maxCols}</th>` : ''}</tr></thead><tbody>${filas.map((r) => `<tr>${r.map(cel).join('')}${res.columns.length > maxCols ? '<td class="muted">…</td>' : ''}</tr>`).join('')}</tbody></table></div>`;
+  }
+  // ejecuta los pasos con `ejecutar(sql)` → { ok, results } y devuelve el HTML
+  function datosEnCadaPaso(codigo, ejecutar) {
+    const r = pasosSQL(codigo);
+    if (r.motivo) return `<p class="small muted">${r.motivo}</p>`;
+    let html = '<p class="small muted">Cada caja es la tabla intermedia que la base tiene en memoria después de esa etapa. Muestro las primeras filas y cuántas hay en total.</p><ol class="exp-pasos-datos">';
+    let antes = null;
+    const usadas = new Set((enmascarar(codigo).s.match(/[a-z_][\w]*/gi) || []).map((x) => x.toLowerCase()));
+    for (const p of r.pasos) {
+      let res = null, err = '';
+      for (const q of p.sql) { const x = ejecutar(q); if (x.ok) { res = (x.results || []).filter(Boolean).pop() || { columns: [], values: [] }; break; } err = x.error; }
+      if (!res) { html += `<li><b>${p.t}</b><p class="small muted">Este paso no se puede mostrar por separado (${esc(corto(String(err).split('\n')[0], 120))}). Suele pasar cuando una etapa usa un alias que se define en el SELECT.</p></li>`; continue; }
+      const n = res.values.length;
+      const cambio = antes == null ? '' : n < antes ? ` <span class="exp-delta menos">${antes.toLocaleString('es')} → ${n.toLocaleString('es')} filas (−${(antes - n).toLocaleString('es')})</span>` : n > antes ? ` <span class="exp-delta mas">${antes.toLocaleString('es')} → ${n.toLocaleString('es')} filas</span>` : ` <span class="exp-delta">${n.toLocaleString('es')} filas (sin cambios en la cantidad)</span>`;
+      html += `<li><div class="exp-paso-cab"><span class="exp-paso-k">${p.c}</span><b>${p.t}</b>${antes == null ? ` <span class="exp-delta">${n.toLocaleString('es')} filas · ${res.columns.length} columnas</span>` : cambio}</div><p class="small">${p.d}</p>${n ? tablaMini(res, 6, 8, usadas) : '<p class="small">⚠️ No quedó ninguna fila: lo que sigue también va a estar vacío. Revisa la condición (mayúsculas, tildes, comillas).</p>'}${n > 6 ? `<p class="small muted">…y ${(n - 6).toLocaleString('es')} filas más.</p>` : ''}</li>`;
+      antes = n;
+    }
+    return html + '</ol>';
+  }
+
   // ---------------------------------------------------------------- panel
   function resumenResultado(lab, r) {
     if (!r) return '';
@@ -693,7 +752,16 @@
       actualizar(codigo, r, extra = {}) {
         let cuerpo;
         try { cuerpo = resumenResultado(lab, r) + `<details class="exp-det" open><summary>📖 Paso a paso</summary>${explicar(lab, codigo, r, extra)}</details>`; } catch (e) { cuerpo = '<p class="muted small">No pude analizar este código, pero se ejecutó normalmente.</p>'; }
+        const sqlPasos = lab === 'sql' ? codigo : lab === 'dbt' ? (extra.compilado || (r && r.compiled)) : null;
+        const puede = sqlPasos && extra.pasos !== false && r && r.ok !== false && window.Engines && window.Engines.SQL && window.Engines.SQL._bytes;
+        if (puede) cuerpo += '<details class="exp-det exp-datos"><summary>🔬 Ver los datos cambiar en cada paso</summary><div class="exp-datos-cuerpo"><p class="small muted">Calculando…</p></div></details>';
         el.querySelector('.exp-cuerpo').innerHTML = cuerpo;
+        const det = el.querySelector('.exp-datos');
+        if (det) det.addEventListener('toggle', () => {
+          if (!det.open || det.dataset.listo) return; det.dataset.listo = '1';
+          setTimeout(() => { let h; try { h = datosEnCadaPaso(sqlPasos, (q) => window.Engines.SQL.exec(q)); } catch (e) { h = `<p class="small muted">No se pudo calcular: ${esc(e.message)}</p>`; } det.querySelector('.exp-datos-cuerpo').innerHTML = h; }, 20);
+        });
+        if (det && extra.abrirDatos) det.open = true;
       },
     };
   }
@@ -766,5 +834,5 @@
     const v = ed.getValue(); ed.setValue((v.trim() ? v.replace(/\s*$/, '\n\n') : '') + texto + '\n');
   }
 
-  window.ExplicaCodigo = { panel, chuleta, explicar, insertar, cron, explicarErrorPy, explicarErrorSQL, CHULETAS: CH };
+  window.ExplicaCodigo = { pasosSQL, datosEnCadaPaso, panel, chuleta, explicar, insertar, cron, explicarErrorPy, explicarErrorSQL, CHULETAS: CH };
 })();

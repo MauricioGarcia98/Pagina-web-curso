@@ -309,9 +309,17 @@
       pre.replaceWith(box); box.append(pre);
       const tools = h(`<div class="code-tools"><span class="lang">${esc(lang === 'text' ? '' : lang)}</span><button type="button" data-copy title="Copiar">Copiar</button></div>`);
       if (RUNNABLE.has(lang) && !pre.hasAttribute('data-norun')) tools.append(h('<button type="button" data-run title="Ejecutar este ejemplo">▶ Probar</button>'));
-      if ((lang === 'bash' || lang === 'shell') && termRunnable(code)) {
+      if ((lang === 'bash' || lang === 'shell') && !pre.hasAttribute('data-norun') && termRunnable(code)) {
         const b = h('<button type="button" title="Ejecutar en la terminal de práctica">⌨ En la terminal</button>');
         b.addEventListener('click', () => Dock.runScript(code));
+        tools.append(b);
+      }
+      // un bloque que empieza con el nombre de su archivo (# compose.yaml, -- models/x.sql, // main.bicep)
+      // se puede crear en la terminal con un clic, en la carpeta donde estás parado
+      const arch = archivoDeBloque(lang, code);
+      if (arch && window.Shell) {
+        const b = h(`<button type="button" title="Crea ${esc(arch)} en la carpeta actual de la terminal">💾 Crear en la terminal</button>`);
+        b.addEventListener('click', () => crearArchivoDeBloque(arch, code));
         tools.append(b);
       }
       box.append(tools);
@@ -424,12 +432,39 @@
       out.push((cur + l).trim()); cur = '';
     }
     if (cur.trim()) out.push(cur.trim());
-    return out;
+    // un for, while, if o heredoc de varias líneas se ejecuta como una sola unidad, como en bash
+    if (!window.Shell || !window.Shell.faltaCerrar) return out;
+    const unidas = []; let acc = null;
+    for (const l of out) {
+      acc = acc === null ? l : acc + '\n' + l;
+      if (!window.Shell.faltaCerrar(acc)) { unidas.push(acc); acc = null; }
+    }
+    if (acc !== null) unidas.push(acc);
+    return unidas;
+  }
+  function archivoDeBloque(lang, code) {
+    if (!/^(yaml|yml|python|hcl|terraform|sql|dbt|bicep|dockerfile|toml|ini|sh|json|csv|text)$/.test(lang)) return null;
+    const m = code.split('\n')[0].match(/^\s*(?:#|\/\/|--)\s*((?:[\w.~-]+\/)*[\w.-]+\.(?:ya?ml|py|sql|tf|tftest\.hcl|hcl|bicep|json|toml|cfg|txt|csv|sh|md)|(?:[\w.-]+\/)*(?:Dockerfile|Makefile|\.env|\.gitignore))\b/);
+    return m ? m[1] : null;
+  }
+  function crearArchivoDeBloque(arch, code) {
+    const Sh = window.Shell; if (!Sh.Machine.ready) Sh.Machine.load();
+    const cwd = Sh.Machine.cwd;
+    const sugerido = arch.startsWith('~') || arch.startsWith('/') ? arch : (cwd === Sh.HOME ? '~' : Sh.display(cwd)) + '/' + arch;
+    const destino = prompt(`¿Dónde creo el archivo?\nPor defecto va en la carpeta donde está parada la terminal (${Sh.display(cwd)}). Puedes cambiar la ruta.`, sugerido);
+    if (!destino) return;
+    const p = Sh.norm(destino.trim());
+    if (Sh.exists(p) && !confirm(`${Sh.display(p)} ya existe. ¿Lo reemplazo?`)) return;
+    const carpeta = p.slice(0, p.lastIndexOf('/'));
+    if (carpeta) Sh.mkdirp(carpeta);
+    Sh.writeFile(p, code.replace(/\n?$/, '\n')); Sh.Machine.save();
+    toast(`💾 Creado ${Sh.display(p)}`);
+    Dock.open(); if (Dock.term && Dock.term.print) Dock.term.print(Sh.col.dim(`# archivo creado: ${Sh.display(p)} (${code.split('\n').length} líneas). Míralo con: cat ${Sh.display(p)}`));
   }
   function termRunnable(code) {
     if (!window.Shell) return false;
     const ls = scriptLines(code);
-    return ls.length > 0 && ls.length <= 12 && ls.every((l) => { const w = l.replace(/^\$\s*/, '').split(/\s+/)[0]; return /^[A-Z_]+=/.test(w) || !!window.Shell.Commands[w]; });
+    return ls.length > 0 && ls.length <= 12 && ls.every((l) => { const w = l.replace(/^\$\s*/, '').split(/\s+/)[0]; return /^\w+=/.test(w) || /^(for|while|until|if|case|function)$/.test(w) || /^\w+\(\)/.test(w) || !!window.Shell.Commands[w]; });
   }
 
   // ---------------------------------------------------------------- terminal acoplada (abajo)
@@ -1193,7 +1228,7 @@
         out.innerHTML = `<pre class="console"><span class="err">${esc(motor === 'postgres' ? 'No se pudo cargar PostgreSQL (PGlite) desde cdn.jsdelivr.net: ' + e.message + '\nRevisa tu conexión o prueba con otro motor.' : e.message)}</span></pre>`; return;
       }
       renderSqlOutput(out, r);
-      if (expl) expl.actualizar(ed.getValue(), r);
+      if (expl) expl.actualizar(ed.getValue(), r, { pasos: motor === 'sqlite' });
       if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`));
       if (r.traducido) out.append(h(`<details class="motor-trad"><summary>Ver cómo se tradujo a SQLite</summary><pre data-lang="sql"><code>${esc(r.traducido)}</code></pre></details>`));
     };

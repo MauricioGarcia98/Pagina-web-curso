@@ -565,6 +565,23 @@
     if (p[0] === 's3api') {
       if (p[1] === 'list-buckets') return out({ Buckets: Object.entries(s.buckets).map(([n, b]) => ({ Name: n, CreationDate: b.created })), Owner: { DisplayName: 'alumno' } });
       if (p[1] === 'put-bucket-versioning' || p[1] === 'put-public-access-block' || p[1] === 'put-bucket-lifecycle-configuration') return ok('');
+      if (p[1] === 'head-object' || p[1] === 'get-object' || p[1] === 'delete-object' || p[1] === 'put-object') {
+        const bn = A.get('--bucket'), key = A.get('--key'), b = s.buckets[bn];
+        const op = { 'head-object': 'HeadObject', 'get-object': 'GetObject', 'delete-object': 'DeleteObject', 'put-object': 'PutObject' }[p[1]];
+        if (!bn || !key) return fail('aws: error: the following arguments are required: --bucket, --key', 252);
+        if (!b) return fail(`An error occurred (NoSuchBucket) when calling the ${op} operation: The specified bucket does not exist`, 254);
+        const etag = (c) => '"' + Math.abs(hash(c)).toString(16).padStart(8, '0').repeat(4).slice(0, 32) + '"';
+        if (p[1] === 'put-object') { const body = A.get('--body'); const c = body ? Sh.readFile(Sh.norm(body)) : ''; if (body && c === null) return fail(`Error parsing parameter '--body': Unable to load paramfile ${body}`, 252); b.objects[key] = { c: c || '', m: now() }; save(); return out({ ETag: etag(c || ''), ServerSideEncryption: 'AES256' }); }
+        const o = b.objects[key];
+        if (p[1] === 'delete-object') { delete b.objects[key]; save(); return ok(''); }
+        if (!o) return fail(p[1] === 'head-object' ? `An error occurred (404) when calling the HeadObject operation: Not Found` : `An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.`, 254);
+        const meta = { AcceptRanges: 'bytes', LastModified: new Date(o.m).toUTCString(), ContentLength: o.c.length, ETag: etag(o.c), ContentType: /\.json$/.test(key) ? 'application/json' : /\.csv$/.test(key) ? 'text/csv' : 'binary/octet-stream', ServerSideEncryption: 'AES256', Metadata: {} };
+        if (p[1] === 'get-object') { const dst = p.slice(2).filter((x, i, arr) => !x.startsWith('--') && !(arr[i - 1] || '').startsWith('--')).pop(); if (!dst) return fail('aws: error: the following arguments are required: outfile', 252); Sh.writeFile(Sh.norm(dst), o.c); save(); }
+        return out(meta);
+      }
+      if (p[1] === 'create-bucket') { const bn = A.get('--bucket'); if (!bn) return fail('aws: error: the following arguments are required: --bucket', 252); if (!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(bn)) return fail('An error occurred (InvalidBucketName) when calling the CreateBucket operation: The specified bucket is not valid.', 254); if (s.buckets[bn]) return fail('An error occurred (BucketAlreadyOwnedByYou) when calling the CreateBucket operation: Your previous request to create the named bucket succeeded and you already own it.', 254); s.buckets[bn] = { objects: {}, created: now() }; save(); return out({ Location: '/' + bn }); }
+      if (p[1] === 'get-bucket-versioning') return out({ Status: 'Enabled' });
+      if (p[1] === 'get-bucket-location') return out({ LocationConstraint: s.region === 'us-east-1' ? null : s.region });
       if (p[1] === 'list-objects-v2') { const b = s.buckets[A.get('--bucket')]; if (!b) return fail('An error occurred (NoSuchBucket)'); return out({ Contents: Object.entries(b.objects).filter(([k]) => !A.get('--prefix') || k.startsWith(A.get('--prefix'))).map(([k, v]) => ({ Key: k, Size: v.c.length, LastModified: v.m, StorageClass: 'STANDARD' })) }); }
     }
     // ---- glue
@@ -574,6 +591,17 @@
         if (!m) return fail('aws: error: the following arguments are required: --database-input (ej. \'{"Name": "lake_bronze"}\')', 252);
         if (s.glueDbs[m[1]]) return fail(`An error occurred (AlreadyExistsException) when calling the CreateDatabase operation: Database already exists.`, 254);
         s.glueDbs[m[1]] = { tables: {} }; save(); return ok('');
+      }
+      if (p[1] === 'get-database') { const n = A.get('--name'); if (!s.glueDbs[n]) return fail(`An error occurred (EntityNotFoundException) when calling the GetDatabase operation: Database ${n} not found.`, 254); return out({ Database: { Name: n, CatalogId: s.account, CreateTime: now() } }); }
+      if (p[1] === 'get-table' || p[1] === 'delete-table' || p[1] === 'get-partitions') {
+        const dn = A.get('--database-name'), tn = A.get('--name') || A.get('--table-name'), d = s.glueDbs[dn];
+        const op = { 'get-table': 'GetTable', 'delete-table': 'DeleteTable', 'get-partitions': 'GetPartitions' }[p[1]];
+        if (!d) return fail(`An error occurred (EntityNotFoundException) when calling the ${op} operation: Database ${dn} not found.`, 254);
+        const t = d.tables[tn];
+        if (!t) return fail(`An error occurred (EntityNotFoundException) when calling the ${op} operation: Table ${tn} not found.`, 254);
+        if (p[1] === 'delete-table') { delete d.tables[tn]; save(); return ok(''); }
+        if (p[1] === 'get-partitions') { const tb = s3path(t.location || ''); const b = tb && s.buckets[tb.b]; const vals = new Set(); if (b) for (const k of Object.keys(b.objects).filter((x) => x.startsWith(tb.k))) { const v = k.slice(tb.k.length).split('/').slice(0, -1).filter((x) => /=/.test(x)).map((x) => x.split('=')[1]); if (v.length) vals.add(JSON.stringify(v)); } return out({ Partitions: [...vals].map((v) => ({ Values: JSON.parse(v), DatabaseName: dn, TableName: tn, StorageDescriptor: { Location: t.location + JSON.parse(v).map((x, i) => `${t.partitions[i]}=${x}`).join('/') + '/' } })) }); }
+        return out({ Table: { Name: tn, DatabaseName: dn, CreateTime: now(), StorageDescriptor: { Columns: t.columns || [], Location: t.location, InputFormat: 'org.apache.hadoop.mapred.TextInputFormat', SerdeInfo: { SerializationLibrary: t.format === 'parquet' ? 'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe' : 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe' } }, PartitionKeys: (t.partitions || []).map((n) => ({ Name: n, Type: 'string' })), TableType: 'EXTERNAL_TABLE', Parameters: { classification: t.format || 'csv' } } });
       }
       if (p[1] === 'get-databases') return out({ DatabaseList: Object.keys(s.glueDbs).map((n) => ({ Name: n, CatalogId: s.account, CreateTime: now() })) });
       if (p[1] === 'create-crawler') {
@@ -751,11 +779,31 @@
         save();
         return ok(`${warn}Updated property [${k.includes('/') ? k : 'core/' + k}].`);
       }
-      if (p[1] === 'list') return ok(`[core]\naccount = ${s.account || '(unset)'}\nproject = ${s.project || '(unset)'}\n[compute]\nregion = ${s.region}`);
+      if (p[1] === 'configurations') {
+        // configuraciones con nombre: cada una guarda su propio proyecto, cuenta y región
+        s.confs = s.confs || { default: { project: s.project, account: s.account, region: s.region } }; s.conf = s.conf || 'default';
+        const guardar = () => { s.confs[s.conf] = { project: s.project, account: s.account, region: s.region }; };
+        const n = p[3];
+        if (p[2] === 'list') { guardar(); save(); return output(Object.entries(s.confs).map(([k, v]) => ({ name: k, is_active: k === s.conf ? 'True' : 'False', account: v.account || '', project: v.project || '', compute_region: v.region || '' })), A, 'table'); }
+        if (p[2] === 'create') { if (!n) return fail('ERROR: (gcloud.config.configurations.create) argument CONFIGURATION_NAME: Must be specified.'); if (s.confs[n]) return fail(`ERROR: (gcloud.config.configurations.create) Cannot create configuration [${n}], it already exists.`); guardar(); s.confs[n] = { project: null, account: s.account, region: s.region }; s.conf = n; s.project = null; save(); return ok(`Created [${n}].\nActivated [${n}].`); }
+        if (p[2] === 'activate') { if (!s.confs[n]) return fail(`ERROR: (gcloud.config.configurations.activate) Cannot activate configuration [${n}], it does not exist.`); guardar(); s.conf = n; Object.assign(s, { project: s.confs[n].project, account: s.confs[n].account || s.account, region: s.confs[n].region || s.region }); save(); return ok(`Activated [${n}].`); }
+        if (p[2] === 'describe') { guardar(); const c = s.confs[n || s.conf]; if (!c) return fail(`ERROR: (gcloud.config.configurations.describe) Configuration [${n}] does not exist.`); return ok(`is_active: ${(n || s.conf) === s.conf}\nname: ${n || s.conf}\nproperties:\n  core:\n    account: ${c.account || ''}\n    project: ${c.project || ''}\n  compute:\n    region: ${c.region || ''}`); }
+        if (p[2] === 'delete') { if (n === s.conf) return fail(`ERROR: (gcloud.config.configurations.delete) Deleting configuration [${n}], which is currently active, is not permitted.`); delete s.confs[n]; save(); return ok(`Deleted [${n}].`); }
+      }
+      if (p[1] === 'unset') { if (p[2] === 'project') s.project = null; save(); return ok(`Unset property [core/${p[2]}].`); }
+      if (p[1] === 'list') return ok(`[core]\naccount = ${s.account || '(unset)'}\nproject = ${s.project || '(unset)'}\n[compute]\nregion = ${s.region}${s.conf ? `\n\nYour active configuration is: [${s.conf}]` : ''}`);
       if (p[1] === 'get-value' || p[1] === 'get') return ok(String({ project: s.project, account: s.account, 'compute/region': s.region }[p[2]] ?? ''));
     }
     const e = needGcp(s, ctx); if (e) return e;
     const proj = A.get('--project') || s.project;
+    if (p[0] === 'projects' && p[1] === 'create') {
+      const id = p[2]; if (!id) return fail('ERROR: (gcloud.projects.create) argument PROJECT_ID: Must be specified.');
+      if (!/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(id)) return fail(`ERROR: (gcloud.projects.create) argument PROJECT_ID: Bad value [${id}]: Project IDs must be between 6 and 30 characters, start with a lowercase letter and contain only lowercase letters, digits and hyphens.`);
+      if (s.projects.includes(id)) return fail(`ERROR: (gcloud.projects.create) Project creation failed. The project ID you specified is already in use by another project. Please try an alternative ID.`);
+      s.projects.push(id); save();
+      return ok(`Create in progress for [https://cloudresourcemanager.googleapis.com/v1/projects/${id}].\nWaiting for [operations/cp.${Math.abs(hash(id))}] to finish...done.\nEnabling service [cloudapis.googleapis.com] on project [${id}]...\nOperation "operations/acat.p2-${Math.abs(hash(id + 'x'))}" finished successfully.\n${col.dim('Recuerda: un proyecto nuevo necesita una cuenta de facturación (gcloud billing projects link ' + id + ' --billing-account=…) antes de crear recursos pagos.')}`);
+    }
+    if (p[0] === 'projects' && p[1] === 'describe') { const id = p[2] || s.project; if (!s.projects.includes(id)) return fail(`ERROR: (gcloud.projects.describe) NOT_FOUND: Project ${id} not found or permission denied.`); return ok(`createTime: '2024-01-15T12:00:00.000Z'\nlifecycleState: ACTIVE\nname: ${id}\nprojectId: ${id}\nprojectNumber: '${1000000000 + s.projects.indexOf(id)}'`); }
     if (p[0] === 'projects' && p[1] === 'list') return output(s.projects.map((x, i) => ({ projectId: x, name: x, projectNumber: String(1000000000 + i) })), A, 'table');
     if (p[0] === 'services') {
       if (p[1] === 'enable') { for (const x of p.slice(2)) if (!s.apis.includes(x)) s.apis.push(x); save(); return ok(`Operation "operations/acf.p2-${uid(12)}" finished successfully.`); }
@@ -1105,6 +1153,10 @@
         if (p[1] === 'ls') {
           const d = norm(p[2] || '/').replace(/\/$/, '');
           const keys = Object.keys(s.files).filter((k) => k.startsWith(d + '/'));
+          // la raíz de DBFS siempre tiene sus carpetas del sistema; /Volumes muestra los catálogos con archivos
+          if (d === '') { const tops = new Set(['Volumes/', 'databricks-datasets/', 'FileStore/', 'tmp/', ...Object.keys(s.files).map((k) => k.split('/')[1] + '/')]); return ok([...tops].sort().join('\n')); }
+          if (d === '/databricks-datasets') return ok(['COVID/', 'airlines/', 'iot/', 'learning-spark-v2/', 'nyctaxi/', 'retail-org/', 'tpch/', 'wine-quality/'].join('\n'));
+          if (d === '/FileStore' || d === '/tmp') return ok([...new Set(keys.map((k) => k.slice(d.length + 1).split('/')[0]))].join('\n'));
           if (!keys.length && !/^\/Volumes\/\w+\/\w+\/\w+$/.test(d)) return fail(`Error: no such directory: dbfs:${d}`);
           const names = [...new Set(keys.map((k) => k.slice(d.length + 1).split('/')[0] + (k.slice(d.length + 1).includes('/') ? '/' : '')))];
           return ok(names.join('\n'));

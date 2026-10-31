@@ -64,7 +64,7 @@ uv init --python 3.12
 uv add dbt-duckdb duckdb pandas streamlit
 uv run dbt init transform        # elige duckdb
 mkdir -p data/raw && echo "data/" >> .gitignore
-# descomprime aquí el .zip del generador: data/raw/pedidos.csv, ...
+cp ~/datos/generados/ecommerce/*.csv data/raw/   # los CSV del generador (o descomprime acá el .zip que bajaste)
 ```
 
 `transform/profiles.yml` (o `~/.dbt/profiles.yml`):

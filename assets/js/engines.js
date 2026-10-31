@@ -513,7 +513,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     dbt(template, opts = {}) { return this._send({ kind: 'dbt', mode: 'dbt', template, ...opts }); },
     warmup(mode) { return this._send({ kind: 'warmup', mode }); },
     shell({ code, argv, files, cwd, mode = 'python' }) { return this._send({ kind: 'shell', mode, code, argv, files, cwd }); },
-    repl(code) { return this._send({ kind: 'repl', mode: 'python', code }); }
+    repl(code, mode = 'python') { return this._send({ kind: 'repl', mode, code }); }
   };
 
   // --------------------------------------------------------------- dbt

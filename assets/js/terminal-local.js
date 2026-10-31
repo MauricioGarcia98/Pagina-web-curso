@@ -688,35 +688,32 @@
     const p = norm(a[0] || '');
     if (!exists(p)) return fail(`bash: ${a[0]}: No existe el archivo o el directorio`);
     if (/bin\/activate$/.test(p)) { Machine.env.VIRTUAL_ENV = p.replace(/\/bin\/activate$/, ''); save(); return ok(''); }
-    return Commands.bash([a[0]]);
+    const t = readFile(p); return window.Shell.runScript(t.replace(/^#!.*\n/, ''), { _script: true });
   });
   Commands['.'] = Commands.source;
   def('deactivate', 'sale del entorno virtual de Python', () => { delete Machine.env.VIRTUAL_ENV; save(); return ok(''); });
-  def('bash', 'ejecuta un script línea por línea: bash script.sh', async (a, ctx) => {
+  def('bash', 'ejecuta un script: bash script.sh arg1 · bash -c "comandos" · bash -n script.sh (revisa la sintaxis) · bash -x (muestra cada paso)', async (a, ctx) => {
+    if (!a.length && ctx && ctx.stdin && ctx.stdin.trim()) a = ['-s'];   // curl … | sh: ejecuta lo que llega por la tubería
     if (!a.length) return ok(col.dim('(ya estás en bash)'));
-    if (a[0] === '-c') return runLine(a[1] || '', ctx ? ctx.opts : {});
-    const t = readFile(norm(a[0]));
-    if (t === null) return fail(`bash: ${a[0]}: No existe el archivo o el directorio`, 127);
-    const salidas = [];
-    let code = 0;
-    const estricto = /set -e/.test(t);
-    // los argumentos del script: $1, $2… y $# (cuántos son); se restauran al terminar
-    const params = { '#': String(a.length - 1), '@': a.slice(1).join(' ') }; a.slice(1).forEach((v, i) => { params[String(i + 1)] = v; });
+    const Sx = window.Shell; let traza = false, soloRevisar = false;
+    while (a[0] && /^-[xnes]+$/.test(a[0]) && a[0] !== '-c') { if (a[0].includes('x')) traza = true; if (a[0].includes('n')) soloRevisar = true; if (a[0] === '-s') break; a = a.slice(1); }
+    let t, nombre = 'bash';
+    if (a[0] === '-c') { t = a[1] || ''; a = ['bash', ...a.slice(2)]; }
+    else if (a[0] === '-s' || a[0] === '-') { t = (ctx && ctx.stdin) || ''; a = ['bash', ...a.slice(1)]; }
+    else { t = readFile(norm(a[0])); nombre = a[0]; if (t === null) return fail(`bash: ${a[0]}: No existe el archivo o el directorio`, 127); }
+    if (soloRevisar) { const r = Sx.faltaCerrar(t); return r ? fail(`${nombre}: error de sintaxis: final inesperado del archivo (falta cerrar un if, for, while o case)`, 2) : ok(''); }
+    // los argumentos del script: $0, $1, $2…, $# y $@; se restauran al terminar, igual que las opciones (set -e…)
+    const params = { 0: nombre, '#': String(a.length - 1), '@': a.slice(1).join(' ') }; a.slice(1).forEach((v, i) => { params[String(i + 1)] = v; });
     for (let i = a.length; i <= 9; i++) params[String(i)] = '';
     const antes = Object.fromEntries(Object.keys(params).map((k) => [k, Machine.env[k]]));
+    const opcAntes = Object.assign({}, Sx.Shopt);
     Object.assign(Machine.env, params);
-    try {
-      for (const l of t.split('\n')) {
-        if (!l.trim() || l.trim().startsWith('#') || /^set -/.test(l.trim())) continue;
-        const r = await runLine(l, ctx ? ctx.opts : {});
-        if (r.out) salidas.push(r.out);
-        code = r.code;
-        if (code && estricto) break;
-      }
-    } finally { for (const [k, v] of Object.entries(antes)) { if (v === undefined) delete Machine.env[k]; else Machine.env[k] = v; } }
-    return { out: salidas.join('\n'), code };
+    if (traza) Sx.Shopt.x = true;
+    try { return await Sx.runScript(t.replace(/^#!.*\n/, ''), Object.assign({}, ctx ? ctx.opts : {}, { _script: true })); }
+    finally { Object.assign(Sx.Shopt, opcAntes); for (const [k, v] of Object.entries(antes)) { if (v === undefined) delete Machine.env[k]; else Machine.env[k] = v; } }
   });
   Commands.sh = Commands.bash;
+  Commands['/bin/bash'] = Commands.bash; Commands['/bin/sh'] = Commands.bash; Commands.zsh = Commands.bash;
   def('chmod', 'cambia permisos (chmod +x script.sh)', (a) => {
     const p = norm(a[a.length - 1] || '');
     if (!exists(p)) return fail(`chmod: no se puede acceder a '${a[a.length - 1]}': No existe el archivo o el directorio`);
@@ -757,12 +754,17 @@
     const sub = a[0];
     if (sub === '--version') return ok('uv 0.5.4');
     if (sub === 'init') {
-      const n = a[1] || Machine.cwd.split('/').pop();
-      const d = a[1] ? norm(a[1]) : Machine.cwd;
+      // uv init [carpeta] [--python 3.12] [--lib|--app|--package] [--name x]
+      const conValor = new Set(['--python', '-p', '--name', '--build-backend', '--vcs', '--author-from']);
+      const pos = []; let py = '3.12', nombre = null;
+      for (let i = 1; i < a.length; i++) { if (conValor.has(a[i])) { if (a[i] === '--python' || a[i] === '-p') py = a[i + 1]; if (a[i] === '--name') nombre = a[i + 1]; i++; continue; } if (/^--?\w/.test(a[i])) continue; pos.push(a[i]); }
+      const d = pos[0] ? norm(pos[0]) : Machine.cwd;
+      const n = nombre || d.split('/').pop();
+      if (readFile(d + '/pyproject.toml') !== null) return fail(`error: Project is already initialized in \`${display(d)}\` (\`pyproject.toml\` file exists)`, 2);
       mkdirp(d);
-      writeFile(d + '/pyproject.toml', `[project]\nname = "${n}"\nversion = "0.1.0"\ndescription = "Add your description here"\nreadme = "README.md"\nrequires-python = ">=3.12"\ndependencies = []\n`);
+      writeFile(d + '/pyproject.toml', `[project]\nname = "${n}"\nversion = "0.1.0"\ndescription = "Add your description here"\nreadme = "README.md"\nrequires-python = ">=${py}"\ndependencies = []\n`);
       writeFile(d + '/main.py', `def main():\n    print("Hello from ${n}!")\n\n\nif __name__ == "__main__":\n    main()\n`);
-      writeFile(d + '/.python-version', '3.12\n'); writeFile(d + '/README.md', ''); writeFile(d + '/.gitignore', '__pycache__/\n.venv/\n');
+      writeFile(d + '/.python-version', py + '\n'); writeFile(d + '/README.md', ''); writeFile(d + '/.gitignore', '__pycache__/\n.venv/\n');
       save();
       return ok(`Initialized project \`${n}\``);
     }

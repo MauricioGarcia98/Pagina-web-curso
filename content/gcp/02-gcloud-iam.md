@@ -55,7 +55,7 @@ Si trabajas con dev y prod, crea una configuración para cada uno y cambia con u
 gcloud config configurations create prod
 gcloud config set project academia-datos-prod
 gcloud config configurations activate default
-gcloud bq ls --project=academia-datos-prod      # o sobrescribe el proyecto en un solo comando
+gcloud storage ls --project=academia-datos-prod  # o sobrescribe el proyecto en un solo comando
 ```
 
 ## Formatos de salida y filtros

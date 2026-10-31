@@ -47,7 +47,7 @@
     alias: { que: 'crea un atajo: un nombre corto para un comando largo.', arg: '<code>nombre=\'comando\'</code>' },
     unalias: { que: 'borra un atajo creado con alias.' },
     whoami: { que: 'muestra tu nombre de usuario.' },
-    date: { que: 'muestra la fecha y la hora.' },
+    date: { que: 'muestra la fecha y la hora. Con un formato que empieza con <code>+</code> elige cómo: <code>date +%F</code> da <code>2024-12-31</code>.', arg: 'el formato: <code>%Y</code> año, <code>%m</code> mes, <code>%d</code> día, <code>%H:%M</code> hora y minuto, <code>%F</code> = AAAA-MM-DD, <code>%s</code> segundos desde 1970', op: { '-d': 'otra fecha en vez de hoy: <code>-d "2024-01-31 +1 day"</code>, <code>-d yesterday</code>', '-u': 'en hora UTC', '-I': 'formato ISO (AAAA-MM-DD)' } },
     curl: { que: 'hace una petición a una URL (descargar un archivo, llamar a una API).', arg: 'la URL', op: { '-o': 'guarda la respuesta en un archivo', '-s': 'sin barra de progreso', '-H': 'agrega un encabezado (como un token)', '-X': 'el método HTTP (GET, POST…)', '-d': 'los datos que se envían' } },
     code: { que: 'abre un archivo en el editor.', arg: 'el archivo' },
     make: { que: 'ejecuta una tarea definida en el <code>Makefile</code> del proyecto.', arg: 'el nombre de la tarea' },
@@ -75,7 +75,7 @@
     java: { que: 'Java, que Spark necesita para correr.', op: { '-version': 'muestra la versión instalada' } },
     awk: { que: 'procesa texto por columnas: filtra, calcula y suma. Un programa es <code>condición { acción }</code>.', arg: "el programa entre comillas simples (como <code>'{print $1}'</code>) y el archivo", op: { '-F': 'el separador de columnas (en un CSV, <code>-F,</code>)', '-v': 'define una variable para el programa' } },
     tee: { que: 'muestra lo que recibe y además lo guarda en un archivo (como una T en una cañería).', arg: 'el archivo donde guardar', op: { '-a': 'agrega al final en vez de reemplazar' } },
-    xargs: { que: 'toma lo que recibe por la tubería y lo pasa como argumentos a otro comando.', arg: 'el comando a ejecutar', op: { '-n': 'cuántos argumentos por ejecución' } },
+    xargs: { que: 'toma lo que recibe por la tubería y lo pasa como argumentos a otro comando.', arg: 'el comando a ejecutar', op: { '-n': 'cuántos argumentos por ejecución', '-I': 'un comando por línea, reemplazando la marca (por ejemplo <code>{}</code>) por la línea: <code>xargs -I{} cp {} copia/</code>' } },
     seq: { que: 'genera una secuencia de números.', arg: 'hasta dónde (o desde, paso y hasta)' },
     nl: { que: 'numera las líneas.' },
     rev: { que: 'invierte cada línea.' },
@@ -95,7 +95,30 @@
     gunzip: { que: 'descomprime un archivo .gz.' },
     zip: { que: 'comprime en un .zip (el formato más común para compartir).', op: { '-r': 'incluye carpetas con todo su contenido' } },
     unzip: { que: 'descomprime un .zip.', op: { '-l': 'solo lista el contenido', '-d': 'la carpeta destino' } },
-    bash: { que: 'ejecuta un script de comandos.', arg: 'el script y sus argumentos' },
+    bash: { que: 'ejecuta un script de comandos (un archivo con comandos, uno por línea, que puede tener for, if y funciones).', arg: 'el script y sus argumentos, que adentro se leen como <code>$1</code>, <code>$2</code>…', op: { '-c': 'ejecuta el texto que sigue como comandos', '-n': 'solo revisa la sintaxis, sin ejecutar', '-x': 'muestra cada comando antes de ejecutarlo (para depurar)', '-s': 'lee el script de la tubería (<code>curl … | bash -s</code>)' } },
+    test: { que: 'evalúa una condición y termina con código 0 (verdadero) o 1 (falso). Lo usan <code>if</code>, <code>while</code>, <code>&amp;&amp;</code> y <code>||</code>.', arg: 'la condición: <code>-f archivo</code> (existe y es archivo), <code>-d carpeta</code>, <code>-z "$x"</code> (texto vacío), <code>"$a" = "$b"</code> (textos iguales), <code>$n -gt 5</code> (número mayor; también -lt, -ge, -le, -eq, -ne)' },
+    '[': { que: 'es lo mismo que <code>test</code>: evalúa una condición. Necesita espacios adentro y cerrar con <code>]</code>: <code>[ -f datos.csv ]</code>.', arg: '<code>-f</code> archivo existe, <code>-d</code> carpeta existe, <code>-z</code> texto vacío, <code>-n</code> texto no vacío, <code>=</code> / <code>!=</code> para textos, <code>-eq -ne -lt -le -gt -ge</code> para números, <code>!</code> niega' },
+    '[[': { que: 'la versión de bash de <code>[ ]</code>: permite <code>&amp;&amp;</code>, <code>||</code> y patrones (<code>[[ $f == *.csv ]]</code>).', arg: 'la condición' },
+    set: { que: 'cambia opciones del shell. Las de cualquier script serio: <code>set -euo pipefail</code>.', op: { '-e': 'corta el script apenas un comando falla (sin esto, sigue como si nada)', '-u': 'error si usas una variable que no existe (atrapa errores de tipeo)', '-x': 'muestra cada comando antes de ejecutarlo', '-o': 'activa una opción por nombre: <code>-o pipefail</code> hace que una tubería falle si falla cualquier parte, no solo la última' } },
+    read: { que: 'lee una línea de la entrada y la guarda en una variable. Se usa en <code>while read linea; do …; done &lt; archivo</code> para recorrer un archivo.', arg: 'el nombre de la variable (o varias: la línea se reparte por espacios)', op: { '-r': 'no interpreta las barras invertidas (usa siempre -r)', '-p': 'muestra una pregunta antes de leer' } },
+    for: { que: 'un <b>bucle</b>: repite los comandos entre <code>do</code> y <code>done</code> una vez por cada elemento de la lista.', arg: '<code>for VARIABLE in LISTA; do COMANDOS; done</code>. La lista puede ser palabras, un comodín (<code>*.csv</code>), llaves (<code>{1..5}</code>) o <code>$(comando)</code>' },
+    while: { que: 'un <b>bucle</b> que repite <b>mientras</b> la condición termine bien (código 0).', arg: '<code>while CONDICIÓN; do COMANDOS; done</code>' },
+    until: { que: 'un bucle que repite <b>hasta que</b> la condición termine bien.', arg: '<code>until CONDICIÓN; do COMANDOS; done</code>' },
+    if: { que: 'ejecuta comandos <b>solo si</b> la condición termina bien (código 0).', arg: '<code>if CONDICIÓN; then …; elif OTRA; then …; else …; fi</code>. La condición suele ser <code>[ … ]</code>, pero puede ser cualquier comando: <code>if grep -q ERROR log; then …</code>' },
+    case: { que: 'elige qué hacer según el valor de una palabra, comparándola con patrones.', arg: '<code>case "$x" in dev) …;; prod) …;; *) …;; esac</code> (<code>*</code> = cualquier otro caso)' },
+    break: { que: 'sale del bucle de inmediato.' },
+    continue: { que: 'salta a la siguiente vuelta del bucle.' },
+    exit: { que: 'termina el script con un código: 0 = todo bien, cualquier otro = error.', arg: 'el código de salida' },
+    return: { que: 'termina una función con un código de salida.', arg: 'el código (0 = bien)' },
+    local: { que: 'crea una variable que solo existe dentro de la función.', arg: '<code>nombre=valor</code>' },
+    shift: { que: 'corre los argumentos del script: el <code>$2</code> pasa a ser <code>$1</code>.' },
+    unset: { que: 'borra una variable o una función.', arg: 'el nombre' },
+    let: { que: 'hace una cuenta con enteros y la guarda: <code>let "n = n + 1"</code>. Hoy se prefiere <code>n=$((n + 1))</code>.' },
+    id: { que: 'muestra tu usuario, tu número de usuario (uid) y los grupos a los que perteneces.' },
+    ln: { que: 'crea un enlace (un acceso directo a otro archivo o carpeta).', arg: 'primero a dónde apunta, después el nombre del enlace', op: { '-s': 'enlace simbólico (el que se usa casi siempre)', '-f': 'reemplaza el enlace si ya existe' } },
+    ruff: { que: 'el linter y formateador de Python más usado hoy: encuentra errores y estilo inconsistente.', sub: { check: 'revisa el código y lista los problemas (imports sin usar, comparaciones con None…)', format: 'reformatea el código con un estilo uniforme', rule: 'explica una regla (por ejemplo F401)' }, op: { '--fix': 'arregla solo lo que se puede arreglar sin riesgo', '--check': 'con format: solo avisa, no cambia nada (para CI)' } },
+    pyspark: { que: 'abre la consola interactiva de PySpark, con la variable <code>spark</code> lista para usar. Se sale con <code>exit()</code>.' },
+    'xcode-select': { que: 'en Mac, instala las herramientas de línea de comandos de Apple (git, make, compilador).', op: { '--install': 'abre el instalador', '-p': 'muestra dónde están instaladas' } },
     nano: { que: 'editor de texto dentro de la terminal (aquí abre el editor del curso).' },
     sudo: { que: 'ejecuta un comando como administrador.' },
     apt: { que: 'instala programas en Ubuntu o WSL.', sub: { install: 'instala', update: 'actualiza la lista de paquetes', upgrade: 'actualiza lo instalado' } },
@@ -149,12 +172,12 @@
         const [flag, valor] = x.split('=');
         let descr = d && d.op && d.op[flag];
         // valor pegado a la opción: -d, · -f6 · -n5 · -L2
-        if (!descr && d && d.op && /^-[a-zA-Z]./.test(flag) && d.op[flag.slice(0, 2)]) descr = `${d.op[flag.slice(0, 2)]} (valor: <code>${esc(flag.slice(2))}</code>)`;
-        // -la = -l + -a
+        // -la = -l + -a (primero: si todas las letras son opciones conocidas, son opciones juntas)
         if (!descr && /^-[a-zA-Z]{2,}$/.test(flag) && d && d.op) {
           const sueltas = flag.slice(1).split('').map((c) => '-' + c);
           if (sueltas.every((s) => d.op[s])) descr = sueltas.map((s) => `<code>${s}</code> ${d.op[s]}`).join('; ');
         }
+        if (!descr && d && d.op && /^-[a-zA-Z]./.test(flag) && d.op[flag.slice(0, 2)]) descr = `${d.op[flag.slice(0, 2)]} (valor: <code>${esc(flag.slice(2))}</code>)`;
         det.push(`<code>${esc(x)}</code>: ${descr || `opción de ${esc(nombre)}${valor ? '' : ''} (para saber qué hace: <code>${esc(nombre)} --help</code>)`}`);
         // el valor que sigue a una opción como -n 5, -m "mensaje", -d,
         if (!valor && w[i + 1] && !w[i + 1].startsWith('-') && /^-(n|m|d|f|k|t|g|l|o|e|p|u|L|U|h|c|s|name|type|size|mtime|-?(name|profile|region|output|query|select|format|filter|project|resource-group|location|var-file|json))$/.test(flag) && !(nombre === 'ls' || nombre === 'rm' || nombre === 'cp' || nombre === 'grep')) { det.push(`<code>${esc(w[i + 1])}</code>: el valor de <code>${esc(flag)}</code>`); i++; }
@@ -167,9 +190,25 @@
     return html + '</li>';
   }
 
+  // estructuras de control: se explica la estructura y después cada comando de adentro
+  function explicarEstructura(linea) {
+    const t = linea.replace(/\n+/g, '; ').replace(/;\s*;/g, ';').replace(/\s+/g, ' ');
+    const cmds = (txt) => `<ul>${String(txt).split(/\s*;\s*/).filter((x) => x.trim()).map((c) => explicar(c.trim()).replace(/^<ul class="exp-lista">|<\/ul>$/g, '')).join('')}</ul>`;
+    let m;
+    if ((m = t.match(/^for (\w+) in (.*?); ?do (.*?);? ?done(.*)$/))) return `<ul class="exp-lista"><li><b>Bucle <code>for</code></b>: para cada elemento de <code>${esc(m[2])}</code>, guarda el elemento en la variable <code>${esc(m[1])}</code> (se lee como <code>$${esc(m[1])}</code>) y ejecuta lo que está entre <code>do</code> y <code>done</code>. ${/[*?]/.test(m[2]) ? 'El comodín se reemplaza por los archivos que coinciden, así que hay una vuelta por archivo.' : /\{\d+\.\.\d+\}/.test(m[2]) ? 'Las llaves <code>{a..b}</code> generan la secuencia de números.' : /\$\(/.test(m[2]) ? 'La lista sale de ejecutar el comando entre <code>$( )</code>: una vuelta por palabra de su salida.' : ''}<br>En cada vuelta:${cmds(m[3])}</li>${m[4].trim() ? `<li>Lo que sigue a <code>done</code> (<code>${esc(m[4].trim())}</code>) se aplica al bucle completo.</li>` : ''}</ul>`;
+    if ((m = t.match(/^(?:(.*?) \| )?(while|until) (.*?); ?do (.*?);? ?done(.*)$/))) return `<ul class="exp-lista">${m[1] ? `<li>Primero <code>${esc(m[1])}</code>, y su salida entra por la tubería al bucle: cada <code>read</code> toma una línea.</li>` : ''}<li><b>Bucle <code>${m[2]}</code></b>: ${m[2] === 'while' ? 'repite <b>mientras</b>' : 'repite <b>hasta que</b>'} <code>${esc(m[3])}</code> termine bien.${/^read\b/.test(m[3]) ? ' <code>read</code> lee una línea por vuelta; cuando no quedan líneas, falla y el bucle termina. Es la forma de recorrer un archivo línea por línea.' : ' Algo adentro tiene que cambiar la condición, o el bucle no termina nunca.'}<br>En cada vuelta:${cmds(m[4])}</li>${/^\s*</.test(m[5]) ? `<li><code>${esc(m[5].trim())}</code>: el bucle lee las líneas de ese archivo.</li>` : ''}</ul>`;
+    if ((m = t.match(/^if (.*?); ?then (.*?)(?:; ?else (.*?))?;? ?fi$/))) return `<ul class="exp-lista"><li><b>Condicional <code>if</code></b>: ejecuta <code>${esc(m[1])}</code>; si termina bien (código 0), se cumple la condición.${/^\[/.test(m[1]) ? ` ${D['['].que}` : ''}</li><li><b>Si se cumple</b> (<code>then</code>):${cmds(m[2].replace(/; ?elif .*/, ''))}</li>${/; ?elif /.test(m[2]) ? '<li><code>elif</code>: si no se cumplió, prueba otra condición.</li>' : ''}${m[3] ? `<li><b>Si no se cumple</b> (<code>else</code>):${cmds(m[3])}</li>` : '<li>Sin <code>else</code>: si no se cumple, no hace nada.</li>'}</ul>`;
+    if ((m = t.match(/^case (.*?) in (.*) esac$/))) return `<ul class="exp-lista"><li><b><code>case</code></b>: compara <code>${esc(m[1])}</code> con cada patrón en orden y ejecuta el primero que coincide (<code>*</code> = cualquier otro valor). <code>;;</code> cierra cada caso.</li></ul>`;
+    if ((m = t.match(/^(?:function )?(\w+) ?\(\) ?\{ ?(.*?);? ?\}(.*)$/))) return `<ul class="exp-lista"><li><b>Define la función <code>${esc(m[1])}</code></b>: un nombre para un grupo de comandos. No se ejecuta todavía: se ejecuta cuando escribes <code>${esc(m[1])}</code>, y adentro los argumentos se leen como <code>$1</code>, <code>$2</code>…${cmds(m[2])}</li>${m[3].trim() ? `<li>Después:${cmds(m[3].replace(/^;\s*/, ''))}</li>` : ''}</ul>`;
+    return '';
+  }
   function explicar(linea, r) {
     linea = (linea || '').trim();
     if (!linea) return '';
+    if (/^(for|while|until|if|case|function)\b|^\w+\s*\(\)|\|\s*while\b|\n/.test(linea)) {
+      const e = explicarEstructura(linea);
+      if (e) return e + (r ? (r.code === 0 ? '<p class="exp-res ok">✓ Terminó bien (código de salida 0).</p>' : `<p class="exp-res bad">✗ Terminó con error (código ${r.code}).</p>`) : '');
+    }
     const partes = partir(linea);
     let html = '<ul class="exp-lista">';
     partes.forEach((p, i) => {
@@ -206,6 +245,7 @@
     { t: '📝 Crear, copiar y mover', cmds: [['mkdir -p proyecto/datos proyecto/src', 'crear carpetas (y las intermedias)'], ['touch proyecto/notas.txt', 'crear un archivo vacío'], ['echo "hola" > proyecto/saludo.txt', 'escribir un archivo (lo reemplaza)'], ['echo "otra línea" >> proyecto/saludo.txt', 'agregar al final'], ['cp proyecto/saludo.txt proyecto/copia.txt', 'copiar'], ['mv proyecto/copia.txt proyecto/final.txt', 'mover o renombrar'], ['rm proyecto/final.txt', 'borrar (sin papelera)']] },
     { t: '🔗 Tuberías y redirecciones', cmds: [['grep ERROR logs/pipeline.log > errores.txt', 'guardar el resultado en un archivo'], ['grep ERROR logs/pipeline.log | wc -l', 'contar sin crear archivos'], ['ls datos && echo "listo"', 'el segundo solo si el primero salió bien'], ['history | tail -5', 'tus últimos 5 comandos']] },
     { t: '🐍 Python y entornos', cmds: [['python --version', 'qué versión hay'], ['python -m venv .venv', 'crear un entorno virtual'], ['source .venv/bin/activate', 'activarlo (aparece (.venv) en el prompt)'], ['pip install pandas', 'instalar un paquete'], ['python scripts/resumen_ventas.py', 'ejecutar un script'], ['deactivate', 'salir del entorno']] },
+    { t: '🔁 Scripts: variables, bucles y condiciones', cmds: [['for f in datos/*.csv; do echo "$f: $(wc -l < $f) líneas"; done', 'repetir algo para cada archivo'], ['for capa in bronze silver gold; do mkdir -p lago/$capa; done', 'crear varias carpetas con un bucle'], ['if [ -f datos/clientes.csv ]; then echo "está"; else echo "falta"; fi', 'decidir según si existe un archivo'], ['head -4 datos/clientes.csv | while read -r linea; do echo "→ $linea"; done', 'recorrer líneas una por una'], ['n=$(grep -c ERROR logs/pipeline.log); [ "$n" -gt 0 ] && echo "hay $n errores"', 'guardar la salida de un comando y comparar números'], ['hoy=$(date +%F); echo "corrida del $hoy"', 'la fecha de hoy en una variable'], ['saludar() { echo "hola, $1"; }; saludar Ana', 'definir y usar una función'], ['printf \'#!/bin/bash\\nset -euo pipefail\\necho "procesando $1"\\n\' > tarea.sh && chmod +x tarea.sh && ./tarea.sh ventas', 'un script con argumentos']] },
     { t: '🌿 Git', cmds: [['git init proyecto', 'crear un repositorio'], ['git status', 'qué cambió'], ['git add .', 'preparar todos los cambios'], ['git commit -m "Primer commit"', 'guardar la foto con un mensaje'], ['git log --oneline', 'la historia, una línea por commit'], ['git switch -c feature/limpieza', 'crear una rama y pasarse a ella']] },
     { t: '🗃️ Bases de datos', cmds: [['sqlite3', 'abrir la base del curso (.tables, .quit)'], ['duckdb', 'abrir DuckDB'], ['docker run -d --name pg -e POSTGRES_PASSWORD=secreto -p 5432:5432 postgres:16', 'un Postgres en un contenedor'], ['docker ps', 'ver los contenedores']] },
     { t: '🔧 dbt y Airflow', cmds: [['cd ~/tienda_dbt', 'entrar al proyecto dbt'], ['dbt run', 'construir los modelos'], ['dbt test', 'ejecutar los tests'], ['airflow dags list', 'ver los DAGs'], ['airflow dags list-import-errors', 'DAGs que no cargan y por qué']] },
