@@ -189,11 +189,21 @@ Una tarea simple no necesita el modelo más grande. Un modelo más chico baja co
 :::
 
 :::ejercicio cli
-Reparte el tráfico del endpoint online `demanda-api` en 80 % para `azul` y 20 % para `verde`.
+Reparte el tráfico del endpoint online `demanda-api` en 80 % para `azul` y 20 % para `verde`. (El grupo de recursos y el workspace ya están configurados por defecto con `az configure --defaults`, así que no hace falta `-g` ni `-w`.)
 ```respuesta
 az ml online-endpoint update (--name|-n) demanda-api --traffic ['"]?azul=80 verde=20['"]?
 ```
 ```solucion
 az ml online-endpoint update --name demanda-api --traffic "azul=80 verde=20"
+```
+```setup
+az group create -n rg-ml -l eastus2 -o none
+az ml workspace create -n mlw-demanda -g rg-ml -o none
+az configure --defaults group=rg-ml workspace=mlw-demanda
+az ml online-endpoint create --name demanda-api -o none
+printf "name: azul\nendpoint_name: demanda-api\ninstance_type: Standard_DS3_v2\n" > azul.yml
+printf "name: verde\nendpoint_name: demanda-api\ninstance_type: Standard_DS3_v2\n" > verde.yml
+az ml online-deployment create -f azul.yml --all-traffic -o none
+az ml online-deployment create -f verde.yml -o none
 ```
 :::

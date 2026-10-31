@@ -1100,3 +1100,13 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .exp-lineas .exp-num { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 22px; text-align: right; }
 .exp-lineas ul { margin: 4px 0 0; padding-left: 30px; }
 .exp-lineas ul li { margin: 3px 0; line-height: 1.5; font-size: 14.5px; }
+.exp-pasos-datos { list-style: none; padding: 0; margin: 8px 0; counter-reset: paso; }
+.exp-pasos-datos > li { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 10px 0; position: relative; }
+.exp-pasos-datos > li + li::before { content: '↓'; position: absolute; top: -17px; left: 22px; color: var(--muted); font-size: 14px; }
+.exp-paso-cab { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.exp-paso-k { font-family: var(--mono); font-size: 11.5px; font-weight: 700; border: 1px solid var(--brand); color: var(--brand); border-radius: 6px; padding: 1px 6px; }
+.exp-delta { font-size: 12.5px; color: var(--muted); }
+.exp-delta.menos { color: var(--bad); }
+.exp-delta.mas { color: var(--ok); }
+.exp-mini table.result { font-size: 12.5px; }
+.exp-mini { max-height: 260px; overflow: auto; margin-top: 6px; }

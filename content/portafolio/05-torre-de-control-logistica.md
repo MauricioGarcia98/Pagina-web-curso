@@ -60,9 +60,11 @@ Antes de la nube, los KPIs en SQL sobre los CSV (DuckDB) y, si quieres, un DAG d
 
 ```bash
 az group create -n rg-torre-lab -l eastus2 --tags proyecto=lab
-az storage account create -n sttorrelab$RANDOM -g rg-torre-lab -l eastus2 --sku Standard_LRS --kind StorageV2 --hns true
-az storage fs create -n raw --account-name <cuenta> --auth-mode login
-az storage fs create -n curated --account-name <cuenta> --auth-mode login
+ST=sttorrelab$RANDOM                 # el nombre debe ser único en todo Azure: le agregamos un número al azar
+az storage account create -n $ST -g rg-torre-lab -l eastus2 --sku Standard_LRS --kind StorageV2 --hns true
+az storage fs create -n raw --account-name $ST --auth-mode login
+az storage fs create -n curated --account-name $ST --auth-mode login
+echo "Tu cuenta se llama: $ST"         # anótalo: lo vas a usar en los pasos siguientes
 ```
 
 - `--hns true` activa el **espacio de nombres jerárquico**: eso convierte una cuenta de almacenamiento en ADLS Gen2 (carpetas reales, permisos por carpeta).
