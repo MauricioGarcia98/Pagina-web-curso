@@ -417,7 +417,7 @@ models:
     let name = args[0];
     let fn = Commands[name];
     // ./script.sh o ruta a un script: se ejecuta con bash (si tiene permiso de ejecución)
-    if (!fn && /^\.{0,2}\//.test(name) && isFile(norm(name)) && Commands.bash) {
+    if (!fn && /^(\.{0,2}|~)\//.test(name) && isFile(norm(name)) && Commands.bash) {
       if (!Machine.fs[norm(name)].x) return fail(`bash: ${name}: Permiso denegado` + col.dim('\n(dale permiso de ejecución: chmod +x ' + name + ')'), 126);
       fn = Commands.bash; args.splice(1, 0, name); name = 'bash';
     }
@@ -648,13 +648,21 @@ models:
   // redirección al final de un bloque: done < archivo, done > archivo, } >> archivo
   async function conRedir(redir, opts, salida, fn) {
     if (!redir) return fn(salida);
-    const m = redir.match(/^(<|>>|>|\|)\s*(.+)$/); if (!m) return fn(salida);
-    if (m[1] === '<') { const c = readFile(norm((await expand(m[2].replace(/^["']|["']$/g, ''), Machine.env, { crudo: true })).trim())); if (c === null) { salida.push(col.err(`bash: ${m[2]}: No existe el archivo o el directorio`)); return 1; } const antes = opts._lineas; opts._lineas = c.replace(/\n$/, '').split('\n'); try { return await fn(salida); } finally { opts._lineas = antes; } }
-    const propia = []; const code = await fn(propia);
-    const texto = propia.join('\n').replace(/\u0001[^\u0002]*\u0002|\u0003/g, '');
-    if (m[1] === '|') { const r = await runLineSimple(m[2], Object.assign({}, opts, { _stdin: texto + '\n' })); if (r.out) salida.push(r.out); return r.code; }
-    writeFile(norm((await expand(m[2].replace(/^["']|["']$/g, ''), Machine.env, { crudo: true })).trim()), texto ? texto + '\n' : '', m[1] === '>>'); Machine.save();
-    return code;
+    // puede haber varias: done < entrada > salida, o una tubería: done | sort
+    const tub = redir.match(/^(.*?)\|\s*(.+)$/);
+    const ops = [...(tub ? tub[1] : redir).matchAll(/(<|>>|>)\s*("[^"]*"|'[^']*'|\S+)/g)].map((m) => ({ op: m[1], ruta: m[2].replace(/^["']|["']$/g, '') }));
+    const ruta = async (r) => norm((await expand(r, Machine.env, { crudo: true })).trim());
+    const ent = ops.find((o) => o.op === '<'), sal = ops.find((o) => o.op !== '<');
+    const antes = opts._lineas;
+    if (ent) { const c = readFile(await ruta(ent.ruta)); if (c === null) { salida.push(col.err(`bash: ${ent.ruta}: No existe el archivo o el directorio`)); return 1; } opts._lineas = c.replace(/\n$/, '').split('\n'); }
+    try {
+      if (!sal && !tub) return await fn(salida);
+      const propia = []; const code = await fn(propia);
+      const texto = propia.join('\n').replace(/\u0001[^\u0002]*\u0002|\u0003/g, '');
+      if (tub) { const r = await runLineSimple(tub[2], Object.assign({}, opts, { _stdin: texto + '\n' })); if (r.out) salida.push(r.out); return r.code; }
+      writeFile(await ruta(sal.ruta), texto ? texto + '\n' : '', sal.op === '>>'); Machine.save();
+      return code;
+    } finally { if (ent) opts._lineas = antes; }
   }
   async function ejecutarNodo(n, opts, salida) {
     if (n.t === 'cmd') {
