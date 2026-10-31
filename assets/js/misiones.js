@@ -52,7 +52,7 @@
     }
     $('#misSide').addEventListener('click', (e) => { const b = e.target.closest('[data-m]'); if (b) abrir(lista.find((m) => m.id === b.dataset.m)); });
 
-    let ed = null, term = null;
+    let ed = null, term = null, explicacion = null, hIni = 0;   // hIni: desde qué comando del historial cuenta esta misión
     function abrir(m) {
       actual = m; Store.setCode('mision-' + lab, m.id);
       const e = est(m.id);
@@ -74,9 +74,12 @@
         w.innerHTML = '<div id="misTerm"></div>';
         if (window.Shell) {
           const Sh = window.Shell; if (!Sh.Machine.ready) Sh.Machine.load();
-          term = Sh.createTerminal($('#misTerm'), { welcome: `Misión: ${m.titulo}. Cuando termines, presiona ✓ Verificar.` });
+          explicacion = window.ExplicaCmd ? window.ExplicaCmd.panel() : null;
+          term = Sh.createTerminal($('#misTerm'), { onCommand: (l, r, modo) => explicacion && explicacion.actualizar(l, r, modo), welcome: `Misión: ${m.titulo}. Cuando termines, presiona ✓ Verificar.\nSesión nueva: estás en tu carpeta personal (~), sin entornos activados. Tus archivos de antes siguen ahí; para empezar con la máquina limpia usa ↺ Empezar de cero.` });
           term.el.classList.add('term-big');
-          if (m.setup && !e.preparada) { (async () => { for (const l of m.setup) await Sh.runLine(l, { autoLogin: true }); e.preparada = true; guardar(); })(); }
+          // se vuelve a preparar si la máquina se reinició desde la última vez (cambia Machine.gen)
+          hIni = Sh.Machine.history.length;
+          if (m.setup && e.preparada !== Sh.Machine.gen) { (async () => { for (const l of m.setup) await Sh.runLine(l, { autoLogin: true }); e.preparada = Sh.Machine.gen; hIni = Sh.Machine.history.length; guardar(); })(); }
         }
       } else {
         w.innerHTML = '<div id="misEd"></div>';
@@ -87,6 +90,7 @@
         <div class="ex-tools mis-tools">
           ${lab === 'terminal' ? '' : '<button class="btn" data-a="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button>'}
           <button class="btn btn-primary" data-a="check">${lab === 'terminal' ? '✓ Verificar' : '✓ Entregar'}</button>
+          ${lab === 'terminal' ? '<button class="btn btn-ghost" data-a="cero" title="Borra los archivos de la máquina y vuelve a preparar esta misión">↺ Empezar de cero</button>' : ''}
           <button class="btn btn-ghost" data-a="pista">💡 Pista <span class="muted">${Math.min(e.pistas, (m.pistas || []).length)}/${(m.pistas || []).length}</span></button>
           <span class="spacer"></span>
           <button class="btn btn-ghost btn-sm" data-a="sol" ${e.intentos >= 2 || e.hecha ? '' : 'disabled title="Disponible después de dos entregas"'}>🏳 Ver solución</button>
@@ -95,6 +99,13 @@
         <div class="mis-pistas" id="misPistas"></div>
         ${lab === 'terminal' ? '' : '<div class="output" id="misOut"></div>'}
         <div id="misExtra"></div>`);
+      if (lab === 'terminal' && explicacion) {
+        w.append(explicacion.el);
+        const ch = document.createElement('details'); ch.className = 'card exp-chuleta-card';
+        ch.innerHTML = '<summary>📘 Chuleta: los comandos del día a día</summary>';
+        ch.append(window.ExplicaCmd.chuleta((c) => term.type(c)));
+        w.append(ch);
+      }
       pintarPistas();
       if (e.hecha && m.explicacion) $('#misExtra').innerHTML = `<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Para pensar</div><p>${m.explicacion}</p></div>`;
       w.querySelector('.mis-tools').addEventListener('click', (ev) => {
@@ -103,6 +114,7 @@
         if (a === 'check') entregar();
         if (a === 'pista') { if (e.pistas < (m.pistas || []).length) { e.pistas++; guardar(); pintarPistas(); ev.target.closest('[data-a]').querySelector('.muted').textContent = `${e.pistas}/${m.pistas.length}`; } else toast('Ya viste todas las pistas.'); }
         if (a === 'sol') verSolucion();
+        if (a === 'cero' && confirm('¿Empezar esta misión de cero? Se reinicia la máquina: se borran tus archivos, repos y recursos de nube simulados, y se vuelven a cargar los datos de la misión.')) { window.Shell.Machine.reset(); abrir(actual); toast('Máquina reiniciada: misión lista para empezar'); }
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -126,7 +138,9 @@
       try {
         if (lab === 'terminal') {
           const M = window.Shell.Machine;
-          const res = m.criterios.map((c) => { try { return !!c.check(M); } catch (err) { return false; } });
+          // los criterios pueden mirar la máquina y los comandos escritos en esta misión (ctx.hist)
+          const ctx = { hist: M.history.slice(hIni), cwd: M.cwd };
+          const res = m.criterios.map((c) => { try { return !!c.check(M, ctx); } catch (err) { return false; } });
           main.querySelectorAll('.mis-crit li').forEach((li, i) => { li.classList.toggle('ok', res[i]); li.classList.toggle('no', !res[i]); });
           pass = res.every(Boolean);
           msg = pass ? '¡Misión cumplida! Todos los criterios se verifican en la máquina.' : `Faltan ${res.filter((x) => !x).length} de ${res.length} criterios (marcados en rojo arriba). La verificación mira el estado de la máquina: archivos, repos y recursos.`;

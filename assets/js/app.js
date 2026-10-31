@@ -1308,14 +1308,20 @@
       <h1 style="margin:0 0 4px">⌨️ Laboratorio de terminal</h1>
       <p class="muted" style="margin:0 0 16px">Una máquina Linux simulada que <b>recuerda todo lo que haces</b>. Ejecuta <b>Python</b>, <b>SQLite</b>, <b>DuckDB</b>, <b>dbt</b> y <b>Airflow</b> de verdad, y simula con estado <b>git</b>, <b>Docker</b> y <b>Docker Compose</b> (con <code>psql</code> sobre los contenedores de Postgres), <b>Terraform</b>, <b>uv</b>, <b>Azure</b> (az), <b>AWS</b> (aws), <b>Google Cloud</b> (gcloud, gsutil, bq) y <b>Databricks</b>. Usa <code>code archivo</code> para editar archivos con el editor.</p>
       <div class="lab lab-term">
-        <div class="lab-main" id="termHost"></div>
-        <aside class="card lab-side missions"><h4>Misiones</h4><div id="mis"></div>
-          <h4 style="margin-top:16px">Atajos</h4><div class="small muted">↑/↓ historial · Tab autocompletar · Ctrl+L limpiar · Ctrl+C cancelar</div>
+        <div class="lab-main"><div id="termHost"></div><div id="expHost"></div></div>
+        <aside class="card lab-side missions">
+          <div class="exp-tabs" role="tablist"><button class="on" data-tab="chuleta">📘 Chuleta</button><button data-tab="retos">🎯 Retos</button></div>
+          <div data-panel="chuleta" id="chuletaHost"></div>
+          <div data-panel="retos" hidden><p class="small muted" style="margin-top:0">Retos rápidos: se marcan solos cuando la máquina queda como se pide.</p><div id="mis"></div></div>
+          <h4 style="margin-top:16px">Atajos</h4><div class="small muted">↑/↓ historial · Tab autocompletar · Ctrl+R buscar en el historial · Ctrl+L limpiar · Ctrl+C cancelar</div>
           <div style="margin-top:14px" class="row"><button class="btn btn-sm" id="resetM">↺ Reiniciar máquina</button></div>
         </aside>
       </div>
     </div>`;
-    const term = window.Shell.createTerminal($('#termHost'), { onCommand: () => paint() });
+    const exp = window.ExplicaCmd ? window.ExplicaCmd.panel() : null;
+    const term = window.Shell.createTerminal($('#termHost'), { onCommand: (l, r, modo) => { paint(); if (exp) exp.actualizar(l, r, modo); } });
+    if (exp) { $('#expHost').append(exp.el); $('#chuletaHost').append(window.ExplicaCmd.chuleta((c) => term.type(c))); }
+    $('.exp-tabs', main).addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; $$('.exp-tabs button', main).forEach((x) => x.classList.toggle('on', x === b)); $$('[data-panel]', main).forEach((p) => { p.hidden = p.dataset.panel !== b.dataset.tab; }); });
     term.el.classList.add('term-big');
     const paint = () => {
       const M = window.Shell.Machine;

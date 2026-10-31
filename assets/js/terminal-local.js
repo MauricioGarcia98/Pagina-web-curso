@@ -700,13 +700,20 @@
     const salidas = [];
     let code = 0;
     const estricto = /set -e/.test(t);
-    for (const l of t.split('\n')) {
-      if (!l.trim() || l.trim().startsWith('#') || /^set -/.test(l.trim())) continue;
-      const r = await runLine(l, ctx ? ctx.opts : {});
-      if (r.out) salidas.push(r.out);
-      code = r.code;
-      if (code && estricto) break;
-    }
+    // los argumentos del script: $1, $2… y $# (cuántos son); se restauran al terminar
+    const params = { '#': String(a.length - 1), '@': a.slice(1).join(' ') }; a.slice(1).forEach((v, i) => { params[String(i + 1)] = v; });
+    for (let i = a.length; i <= 9; i++) params[String(i)] = '';
+    const antes = Object.fromEntries(Object.keys(params).map((k) => [k, Machine.env[k]]));
+    Object.assign(Machine.env, params);
+    try {
+      for (const l of t.split('\n')) {
+        if (!l.trim() || l.trim().startsWith('#') || /^set -/.test(l.trim())) continue;
+        const r = await runLine(l, ctx ? ctx.opts : {});
+        if (r.out) salidas.push(r.out);
+        code = r.code;
+        if (code && estricto) break;
+      }
+    } finally { for (const [k, v] of Object.entries(antes)) { if (v === undefined) delete Machine.env[k]; else Machine.env[k] = v; } }
     return { out: salidas.join('\n'), code };
   });
   Commands.sh = Commands.bash;
