@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/ui.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Saltar al contenido</a>
@@ -29,9 +30,9 @@
     </div>
     <div class="topbar-right">
       <span id="pyStatus" class="py-status" hidden></span>
-      <button class="btn btn-sm term-btn" id="termBtn" title="Abrir la terminal (Ctrl+`)">⌨ Terminal</button>
-      <a class="progress-pill" href="#/progreso" title="Tu progreso"><span id="progressPct">0%</span></a>
-      <button class="icon-btn" id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema claro/oscuro">◐</button>
+      <button class="btn btn-sm term-btn" id="termBtn" title="Abrir la terminal (Ctrl+`)" aria-label="Abrir la terminal"><span aria-hidden="true">⌨</span><span class="term-lbl">Terminal</span></button>
+      <a class="progress-pill" href="#/progreso" title="Ver mi progreso: lecciones completadas del curso"><span class="pp-ring" id="progressRing" aria-hidden="true"></span><span class="pp-lbl">Mi avance</span> <b id="progressPct">0%</b></a>
+      <button class="btn btn-sm theme-btn" id="themeBtn" aria-label="Cambiar a tema oscuro" title="Cambiar entre tema claro y oscuro"><span id="themeIco" aria-hidden="true">🌙</span><span class="theme-lbl" id="themeLbl">Oscuro</span></button>
     </div>
   </header>
   <div class="layout">

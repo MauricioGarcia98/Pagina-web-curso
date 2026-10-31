@@ -47,17 +47,26 @@
     const done = LESSONS.filter((l) => Store.lessonDone(l)).length;
     return { done, total: LESSONS.length, pct: LESSONS.length ? Math.round((done / LESSONS.length) * 100) : 0 };
   }
-  function updateProgressPill() { $('#progressPct').textContent = totalProgress().pct + '%'; }
+  function updateProgressPill() {
+    const pct = totalProgress().pct;
+    $('#progressPct').textContent = pct + '%';
+    const ring = $('#progressRing'); if (ring) ring.style.setProperty('--p', pct);
+  }
 
   // ---------------------------------------------------------------- tema
+  const esOscuro = () => document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (!Store.data.theme && matchMedia('(prefers-color-scheme: dark)').matches);
   function applyTheme() {
     const t = Store.data.theme;
     if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme');
+    // el botón dice a qué tema te lleva, con texto (no solo un ícono que hay que adivinar)
+    const dark = esOscuro(), ico = $('#themeIco'), lbl = $('#themeLbl'), btn = $('#themeBtn');
+    if (ico) ico.textContent = dark ? '☀️' : '🌙';
+    if (lbl) lbl.textContent = dark ? 'Claro' : 'Oscuro';
+    if (btn) btn.setAttribute('aria-label', dark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
   }
   $('#themeBtn').addEventListener('click', () => {
-    const dark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-      (!Store.data.theme && matchMedia('(prefers-color-scheme: dark)').matches);
-    Store.data.theme = dark ? 'light' : 'dark'; Store.save(); applyTheme();
+    Store.data.theme = esOscuro() ? 'light' : 'dark'; Store.save(); applyTheme();
   });
   applyTheme();
 
@@ -823,40 +832,82 @@
   }
 
   // ---------------------------------------------------------------- sidebar
+  // etapa en la que está quien estudia: la de la primera lección sin terminar (o la que recomendó el diagnóstico)
+  function etapaDeModulo(id) { return etapasConModulos().find((e) => e.modulos.some((m) => m.id === id)); }
+  // retomar: la última lección que abriste si no la terminaste; si la terminaste, la próxima sin terminar después de ella
+  function siguienteLeccion() {
+    const vis = Object.entries(Store.data.visited || {}).filter(([id]) => LESSON_BY_ID.has(id)).sort((a, b) => b[1] - a[1]);
+    if (vis.length) {
+      const ult = LESSON_BY_ID.get(vis[0][0]);
+      if (!Store.lessonDone(ult)) return ult;
+      const sig = LESSONS.slice(LESSONS.indexOf(ult) + 1).find((l) => !Store.lessonDone(l));
+      if (sig) return sig;
+    }
+    return LESSONS.find((l) => !Store.lessonDone(l)) || LESSONS[0];
+  }
+  function etapaActual() {
+    const empezo = totalProgress().done > 0 || Object.keys(Store.data.ex).length > 0;
+    if (!empezo && Store.data.diagnostico) { const e = etapasConModulos().find((x) => x.id === Store.data.diagnostico.etapa); if (e) return e; }
+    return etapaDeModulo(siguienteLeccion().modulo.id) || etapasConModulos()[0];
+  }
+  function progresoEtapa(e) {
+    const ls = e.modulos.flatMap((m) => m.lecciones);
+    const done = ls.filter((l) => Store.lessonDone(l)).length;
+    return { done, total: ls.length, pct: ls.length ? Math.round((done / ls.length) * 100) : 0 };
+  }
+  // "Etapa 2 · SQL, el idioma de los datos" → { num: '2', nombre: 'SQL, el idioma de los datos' }
+  function partesEtapa(e) {
+    const m = /^Etapa\s+(\d+)\s*·\s*(.*)$/.exec(e.titulo);
+    if (m) return { num: m[1], nombre: m[2] };
+    const o = /^(.*?)\s*·\s*(.*)$/.exec(e.titulo);
+    return o ? { num: '★', nombre: o[2] + (o[1] ? ' (' + o[1].toLowerCase() + ')' : '') } : { num: '•', nombre: e.titulo };
+  }
+
+  // ---------------------------------------------------------------- sidebar
+  // Como en la documentación de MDN o Docusaurus: las etapas se pliegan y solo queda abierta la tuya,
+  // así el menú no es una lista eterna de 27 módulos.
+  const LABS_MENU = [
+    ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal'], ['#/lab/sql', '🧪', 'SQL', 'lab-sql'],
+    ['#/lab/python', '🐍', 'Python', 'lab-python'], ['#/lab/pyspark', '⚡', 'PySpark', 'lab-pyspark'],
+    ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
+    ['#/modelado', '📐', 'Modelado de datos', 'modelado'], ['#/generador', '🏭', 'Generador de datos', 'generador'],
+  ];
   function renderSidebar(route) {
     const sb = $('#sidebar');
     const cur = route.lesson ? route.lesson.modulo.id : route.module ? route.module.id : null;
+    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso'].includes(route.name);
+    const etapaAbierta = cur ? etapaDeModulo(cur) : fueraDelCurso ? null : etapaActual();
     const link = (href, ico, text, active, meta = '') => `<a class="side-link ${active ? 'active' : ''}" href="${href}"><span class="ico">${ico}</span><span>${text}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</a>`;
     let html = link('#/', '🏠', 'Inicio', route.name === 'home');
     html += link('#/ruta', '🧭', 'Ruta de aprendizaje', route.name === 'ruta');
     html += link('#/diagnostico', '🎯', '¿Por dónde empiezo?', route.name === 'diagnostico');
+    html += '<div class="side-section">El curso, por etapas</div>';
     for (const etapa of etapasConModulos()) {
-    html += `<div class="side-section" title="${esc(etapa.desc)}">${esc(etapa.titulo)}</div>`;
-    for (const m of etapa.modulos) {
-      const p = moduleProgress(m);
-      const open = m.id === cur;
-      html += `<div class="side-module ${open ? 'open' : ''}" data-mod="${m.id}">
-        <button class="side-link ${open && route.name === 'module' ? 'active' : ''}" data-toggle="${m.id}"><span class="ico">${m.icono}</span><span>${esc(m.titulo)}</span><span class="meta">${p.done}/${p.total}</span><span class="chev">▶</span></button>
-        <div class="side-lessons">`;
-      let lastLevel = null;
-      for (const l of m.lecciones) {
-        if (l.nivel !== lastLevel) { html += `<div class="side-level">${esc(l.nivel)}</div>`; lastLevel = l.nivel; }
-        const d = Store.lessonDone(l);
-        html += `<a href="#/l/${l.id}" data-lesson="${l.id}" class="${route.lesson === l ? 'active' : ''} ${d ? 'done' : ''}"><span class="dot">${d ? '✓' : '○'}</span><span>${esc(l.titulo)}</span></a>`;
+      const pe = progresoEtapa(etapa), pt = partesEtapa(etapa);
+      const abierta = etapaAbierta && etapa.id === etapaAbierta.id;
+      const hecha = pe.total && pe.done === pe.total;
+      html += `<details class="side-stage ${hecha ? 'hecha' : ''}" data-etapa="${etapa.id}" ${abierta ? 'open' : ''}>
+        <summary title="${esc(etapa.desc)}"><span class="st-num">${hecha ? '✓' : esc(pt.num)}</span><span class="st-name">${esc(pt.nombre)}</span><span class="meta">${pe.done}/${pe.total}</span><span class="chev">▶</span></summary>`;
+      for (const m of etapa.modulos) {
+        const p = moduleProgress(m);
+        const open = m.id === cur;
+        html += `<div class="side-module ${open ? 'open' : ''}" data-mod="${m.id}">
+          <button class="side-link ${open && route.name === 'module' ? 'active' : ''}" data-toggle="${m.id}"><span class="ico">${m.icono}</span><span>${esc(m.titulo)}</span><span class="meta">${p.done}/${p.total}</span><span class="chev">▶</span></button>
+          <div class="side-lessons">`;
+        let lastLevel = null;
+        for (const l of m.lecciones) {
+          if (l.nivel !== lastLevel) { html += `<div class="side-level">${esc(l.nivel)}</div>`; lastLevel = l.nivel; }
+          const d = Store.lessonDone(l);
+          html += `<a href="#/l/${l.id}" data-lesson="${l.id}" class="${route.lesson === l ? 'active' : ''} ${d ? 'done' : ''}"><span class="dot">${d ? '✓' : '○'}</span><span>${esc(l.titulo)}</span></a>`;
+        }
+        html += '</div></div>';
       }
-      html += '</div></div>';
+      html += '</details>';
     }
-    }
-    html += '<div class="side-section">Practica libre</div>';
-    html += link('#/lab/terminal', '⌨️', 'Laboratorio de terminal', route.name === 'lab-terminal');
-    html += link('#/lab/sql', '🧪', 'Laboratorio SQL', route.name === 'lab-sql');
-    html += link('#/modelado', '📐', 'Laboratorio de modelado', route.name === 'modelado');
-    html += link('#/generador', '🏭', 'Generador de datos', route.name === 'generador');
-    html += link('#/lab/python', '🐍', 'Laboratorio Python', route.name === 'lab-python');
-    html += link('#/lab/pyspark', '⚡', 'Laboratorio PySpark', route.name === 'lab-pyspark');
-    html += link('#/lab/dbt', '🔧', 'Laboratorio dbt', route.name === 'lab-dbt');
-    html += link('#/lab/airflow', '🌬️', 'Laboratorio Airflow', route.name === 'lab-airflow');
-    html += '<div class="side-section">Recursos</div>';
+    const enLab = LABS_MENU.some((x) => x[3] === route.name);
+    html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧪</span><span class="st-name">Laboratorios: practica libre</span><span class="chev">▶</span></summary>${LABS_MENU.map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
+    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso'];
+    html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
     html += link('#/glosario', '📖', 'Glosario', route.name === 'glosario');
@@ -864,14 +915,15 @@
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
     if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
+    html += '</details>';
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
       const mod = b.closest('.side-module');
       if (!mod.classList.contains('open')) location.hash = '#/m/' + b.dataset.toggle;
       else mod.classList.remove('open');
     }));
-    const act = $('.side-lessons a.active', sb);
-    if (act) act.scrollIntoView({ block: 'center' });
+    const act = $('.side-lessons a.active', sb) || $('.side-link.active', sb);
+    if (act && act.offsetParent) act.scrollIntoView({ block: 'center' });
   }
   function refreshSidebarState() {
     for (const a of $$('#sidebar [data-lesson]')) {
@@ -883,6 +935,11 @@
       const el = $(`#sidebar [data-mod="${m.id}"] .meta`);
       if (el) { const p = moduleProgress(m); el.textContent = `${p.done}/${p.total}`; }
     }
+    for (const e of etapasConModulos()) {
+      const el = $(`#sidebar [data-etapa="${e.id}"] > summary .meta`);
+      if (el) { const p = progresoEtapa(e); el.textContent = `${p.done}/${p.total}`; }
+    }
+    if (typeof repintarIndice === 'function') repintarIndice();
   }
 
   // ---------------------------------------------------------------- vistas
@@ -897,54 +954,82 @@
     if (tp.done >= 3 && (dias === null || dias >= 7)) return `<div class="callout"><b>🗓 Repaso semanal.</b> ${dias === null ? 'Todavía no usaste las tarjetas de repaso.' : `Hace ${dias} días que no repasas.`} Diez minutos de tarjetas fijan lo que aprendiste esta semana. <a href="#/repaso">Empezar el repaso →</a></div>`;
     return '';
   }
+  // Portada: una sola acción principal, "continúa donde quedaste" y la ruta en etapas plegables.
+  // Ideas tomadas de plataformas educativas: botón de retomar en un clic (Coursera, Codecademy, Alison),
+  // camino por etapas con tu posición marcada (Duolingo, roadmap.sh) y revelar el detalle solo cuando
+  // se pide (divulgación progresiva), para no mostrar 27 módulos de golpe.
+  const LABS_HOME = [
+    ['#/lab/terminal', '⌨️', 'Terminal', 'bash, git, docker y las CLIs de Azure, AWS y Google Cloud'],
+    ['#/lab/sql', '🧪', 'SQL', 'SQLite, PostgreSQL, MySQL y SQL Server con 13 empresas'],
+    ['#/lab/python', '🐍', 'Python', 'Python 3 real en tu navegador, con pandas'],
+    ['#/lab/pyspark', '⚡', 'PySpark', 'la API de Spark con las tablas del curso'],
+    ['#/lab/dbt', '🔧', 'dbt', 'modelos, ref() y Jinja compilado a SQL'],
+    ['#/lab/airflow', '🌬️', 'Airflow', 'DAGs, operadores y dependencias'],
+  ];
   function viewHome() {
     const tp = totalProgress();
-    const nextLesson = LESSONS.find((l) => !Store.lessonDone(l)) || LESSONS[0];
+    const nextLesson = siguienteLeccion();
     const started = tp.done > 0 || Object.keys(Store.data.ex).length > 0;
-    main.innerHTML = `<div class="container wide">
-      <section class="hero">
+    const actual = etapaActual();
+    const nm = nextLesson.modulo, pm = moduleProgress(nm);
+    const continuar = started ? `<section class="continuar card">
+        <div class="ct-ico" style="background:color-mix(in srgb, ${nm.color} 18%, var(--surface))">${nm.icono}</div>
+        <div class="ct-txt"><div class="ct-k">Continúa donde quedaste</div><div class="ct-t">${esc(nextLesson.titulo)}</div>
+          <div class="ct-m">${esc(nm.titulo)} · lección ${nm.lecciones.indexOf(nextLesson) + 1} de ${nm.lecciones.length}</div>
+          <div class="bar"><i style="width:${pm.pct}%;background:${nm.color}"></i></div></div>
+        <div class="ct-acc"><a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">Continuar →</a><span class="small muted">Llevas ${tp.done} de ${tp.total} lecciones (${tp.pct}%)</span></div>
+      </section>` : '';
+    let paso = 0;
+    const etapas = etapasConModulos().map((e) => {
+      const pe = progresoEtapa(e), pt = partesEtapa(e), es = actual && e.id === actual.id, hecha = pe.total && pe.done === pe.total;
+      const hr = horasEtapa(e);
+      const mods = e.modulos.map((m) => {
+        const p = moduleProgress(m); paso++;
+        return `<a class="mod-row" href="#/m/${m.id}"><span class="mr-ico" style="background:color-mix(in srgb, ${m.color} 16%, var(--surface))">${m.icono}</span>
+          <span class="mr-txt"><b>${esc(m.titulo)}</b><small>${esc(m.descripcion)}</small></span>
+          <span class="mr-meta"><span>${m.lecciones.length} lecciones</span><span class="bar"><i style="width:${p.pct}%;background:${m.color}"></i></span></span></a>`;
+      }).join('');
+      return `<li class="camino-paso ${es ? 'actual' : ''} ${hecha ? 'hecha' : ''}"><details ${es ? 'open' : ''}>
+        <summary><span class="cp-nodo">${hecha ? '✓' : esc(pt.num)}</span><span class="cp-txt"><b>${esc(pt.nombre)}</b>${es ? ' <span class="badge b-type">Estás aquí</span>' : ''}<small>${esc(e.desc)}</small></span>
+          <span class="cp-meta"><span>${e.modulos.length} ${e.modulos.length === 1 ? 'módulo' : 'módulos'} · ~${hr} h</span><span class="bar"><i style="width:${pe.pct}%"></i></span></span><span class="chev">▶</span></summary>
+        <div class="cp-mods">${mods}</div></details></li>`;
+    }).join('');
+    main.innerHTML = `<div class="container home">
+      <section class="hero hero-compacto">
         <span class="badge b-type">Gratis · En español · Desde cero</span>
         <h1>De no saber nada a <span class="grad">ingeniero/a de datos</span>.</h1>
-        <p class="lead">Un <b>ingeniero o ingeniera de datos</b> construye los caminos por los que viajan los datos de una empresa: desde una compra en una app hasta el tablero que mira la gerencia o el modelo de IA que recomienda productos. Este curso te enseña ese oficio <b>desde cero</b>, en español y gratis, practicando <b>aquí mismo, en tu navegador</b>: no tienes que instalar nada.</p>
-        <p class="lead small-lead">Vas a aprender, en orden: SQL (el idioma para consultar datos), Python (para automatizar), Spark (para datos enormes), dbt y Airflow (para organizar y programar el trabajo) y las plataformas donde corre todo en las empresas: Databricks, Azure, AWS y Google Cloud. Cada palabra nueva se explica cuando aparece.</p>
-        <div class="row">
-          <a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">${started ? 'Continuar donde lo dejé →' : 'Empezar desde cero →'}</a>
-          <a class="btn btn-lg" href="#/ruta">Ver la ruta completa</a>
-          ${started ? '' : '<a class="btn btn-lg" href="#/diagnostico">🎯 Ya sé algo: ¿por dónde empiezo?</a>'}
-          <a class="btn btn-lg btn-ghost" href="#/lab/sql">🧪 Ir al laboratorio SQL</a>
-        </div>
-        <div class="stats">
-          <div class="stat"><b>${C.modulos.length}</b><span>módulos</span></div>
-          <div class="stat"><b>${LESSONS.length}</b><span>lecciones</span></div>
-          <div class="stat"><b>${totalEx}</b><span>ejercicios corregidos al instante</span></div>
-          <div class="stat"><b>+500.000</b><span>filas de 13 empresas ficticias para practicar</span></div>
-          <div class="stat"><b>${tp.pct}%</b><span>tu avance</span></div>
-        </div>
+        <p class="lead">Aprende el oficio que mueve los datos de una empresa —desde una compra en una app hasta el tablero de la gerencia— practicando <b>aquí mismo, en tu navegador</b>, sin instalar nada. Cada palabra nueva se explica cuando aparece.</p>
+        ${started ? '' : `<div class="row">
+          <a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">Empezar desde cero →</a>
+          <a class="btn btn-lg" href="#/diagnostico">🎯 Ya sé algo: ¿por dónde empiezo?</a>
+        </div>`}
+        <p class="hero-cifras">${C.modulos.length} módulos · ${LESSONS.length} lecciones · ${totalEx.toLocaleString('es')} ejercicios corregidos al instante · +500.000 filas de 13 empresas ficticias</p>
       </section>
+      ${continuar}
       ${avisoRepaso(tp)}
-      <h2 class="section-title">Cómo funciona</h2>
-      <div class="how">
-        <div class="card"><h4>📚 1. Lee la lección</h4><p>Explicaciones en lenguaje simple, con analogías y ejemplos. Cada ejemplo tiene un botón <b>▶ Probar</b>.</p></div>
-        <div class="card"><h4>⌨️ 2. Resuelve ejercicios</h4><p>Escribes código real (SQL, Python, PySpark, dbt, DAGs de Airflow, comandos CLI) y el sitio lo corrige al instante.</p></div>
-        <div class="card"><h4>💡 3. Usa pistas</h4><p>Si te trabas, pide una pista o mira la solución explicada. Equivocarse es parte de aprender.</p></div>
-        <div class="card"><h4>🖥️ Terminal real</h4><p>Una terminal Linux simulada con <code>bash</code>, <code>git</code>, Python, <code>uv</code>, <code>sqlite3</code>, <code>duckdb</code>, <code>docker</code>, <code>psql</code>, <code>dbt</code>, <code>airflow</code>, <code>terraform</code> y las CLIs <code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code> y <code>databricks</code>. Botón <b>⌨ Terminal</b> arriba, o el <a href="#/lab/terminal">laboratorio con misiones</a>.</p></div>
-        <div class="card"><h4>💼 Casos de negocio</h4><p>Una tienda online, un banco, una app de música, una de viajes, una clínica, un SaaS, una aerolínea, una logística, una telco, una aseguradora, hoteles, una distribuidora de energía y una app de delivery: preguntas reales para entrenar la lógica, en SQL, Python, PySpark, dbt y Airflow.</p></div>
-        <div class="card"><h4>📝 Repasa y certifícate</h4><p>Tarjetas de repaso espaciado con los ${C.glosario.length} términos del glosario, un examen por módulo y un examen final que te da el <a href="#/examenes">certificado</a>.</p></div>
-        <div class="card"><h4>📈 4. Avanza de nivel</h4><p>Básico → Intermedio → Avanzado → Experto. Tu progreso se guarda en este navegador.</p></div>
-      </div>
-      <h2 class="section-title">El camino, por etapas</h2>
-      <p class="muted">Cada etapa se apoya en la anterior. Si empiezas de cero, sigue el orden; las certificaciones son opcionales.</p>
-      ${(() => { let n = 0; return etapasConModulos().map((e) => `<h3 class="etapa-title">${esc(e.titulo)}</h3>${e.desc ? `<p class="muted small etapa-desc">${esc(e.desc)}</p>` : ''}<div class="grid grid-3">${e.modulos.map((m) => {
-        const p = moduleProgress(m); n++;
-        return `<a class="card module-card" href="#/m/${m.id}">
-          <div class="mc-top"><span class="mc-ico" style="background:color-mix(in srgb, ${m.color} 16%, var(--surface))">${m.icono}</span><div><div class="mc-step">Paso ${n}</div><h3>${esc(m.titulo)}</h3></div></div>
-          <p>${esc(m.descripcion)}</p>
-          <div class="row small muted"><span>${m.lecciones.length} lecciones</span><span>·</span><span>${m.lecciones.reduce((s, l) => s + l.ejercicios.length, 0)} ejercicios</span><span class="spacer"></span><span>${p.pct}%</span></div>
-          <div class="bar"><i style="width:${p.pct}%;background:${m.color}"></i></div>
-        </a>`;
-      }).join('')}</div>`).join(''); })()}
-      <h2 class="section-title">¿Por qué estas herramientas?</h2>
-      <div class="prose"><p>Un <b>ingeniero de datos</b> construye “tuberías” (pipelines) que llevan los datos desde donde nacen (apps, ventas, sensores) hasta donde se usan (reportes, modelos de IA). <b>SQL</b> es el idioma universal de los datos; <b>Python</b> automatiza todo; <b>Spark/PySpark</b> procesa volúmenes enormes repartiendo el trabajo entre muchas máquinas; <b>Databricks</b> es la plataforma donde corre Spark en la nube; <b>dbt</b> organiza las transformaciones SQL como un proyecto de software; <b>Airflow</b> programa y coordina cuándo se ejecuta cada paso; y las tres grandes nubes (<b>Azure</b>, <b>AWS</b> y <b>Google Cloud</b>) ponen el almacenamiento, el cómputo y los servicios de datos, que se controlan desde la terminal con sus CLIs (<code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code>, <code>databricks</code>).</p><p>Los conceptos se repiten en todas las nubes con otros nombres: un lago de archivos (ADLS, S3, Cloud Storage), un catálogo de tablas, SQL sin servidores (Athena, BigQuery), Spark administrado (Databricks, Glue/EMR, Dataproc), streaming (Event Hubs, Kinesis, Pub/Sub) y Airflow administrado. Aprenderlos una vez te sirve para las tres.</p></div>
+      <section class="home-sec">
+        <div class="sec-cab"><h2>Tu camino, en ${etapasConModulos().length} etapas</h2><a class="small" href="#/ruta">Ver la ruta con tiempos y objetivos →</a></div>
+        <p class="muted sec-sub">Cada etapa se apoya en la anterior. Abre una etapa para ver sus módulos; la tuya ya está abierta.</p>
+        <ol class="camino">${etapas}</ol>
+      </section>
+      <section class="home-sec">
+        <div class="sec-cab"><h2>Practica sin instalar nada</h2></div>
+        <p class="muted sec-sub">Laboratorios con misiones guiadas de cero a experto, o práctica libre. Si rompes algo, un botón lo deja como nuevo.</p>
+        <div class="labs-grid">${LABS_HOME.map((x) => `<a class="lab-tile" href="${x[0]}"><span class="lt-ico">${x[1]}</span><b>${x[2]}</b><small>${esc(x[3])}</small></a>`).join('')}</div>
+      </section>
+      <section class="home-sec">
+        <div class="sec-cab"><h2>Cómo se aprende aquí</h2></div>
+        <ol class="pasos-como">
+          <li><b>Lee</b><span>Explicaciones simples con analogías, diagramas y un caso real de una empresa.</span></li>
+          <li><b>Prueba</b><span>Cada ejemplo tiene <b>▶ Probar</b>: lo ejecutas y ves qué pasa con los datos.</span></li>
+          <li><b>Resuelve</b><span>Ejercicios corregidos al instante, con pistas y la solución explicada.</span></li>
+          <li><b>Repasa</b><span>Tarjetas de repaso espaciado, exámenes por módulo y un certificado final.</span></li>
+        </ol>
+      </section>
+      <details class="home-mas card">
+        <summary>¿Por qué estas herramientas y en este orden?</summary>
+        <div class="prose"><p>Un <b>ingeniero de datos</b> construye “tuberías” (pipelines) que llevan los datos desde donde nacen (apps, ventas, sensores) hasta donde se usan (reportes, modelos de IA). <b>SQL</b> es el idioma universal de los datos; <b>Python</b> automatiza todo; <b>Spark/PySpark</b> procesa volúmenes enormes repartiendo el trabajo entre muchas máquinas; <b>Databricks</b> es la plataforma donde corre Spark en la nube; <b>dbt</b> organiza las transformaciones SQL como un proyecto de software; <b>Airflow</b> programa y coordina cuándo se ejecuta cada paso; y las tres grandes nubes (<b>Azure</b>, <b>AWS</b> y <b>Google Cloud</b>) ponen el almacenamiento, el cómputo y los servicios de datos, que se controlan desde la terminal con sus CLIs (<code>az</code>, <code>aws</code>, <code>gcloud</code>, <code>bq</code>, <code>databricks</code>).</p><p>Los conceptos se repiten en todas las nubes con otros nombres: un lago de archivos (ADLS, S3, Cloud Storage), un catálogo de tablas, SQL sin servidores (Athena, BigQuery), Spark administrado (Databricks, Glue/EMR, Dataproc), streaming (Event Hubs, Kinesis, Pub/Sub) y Airflow administrado. Aprenderlos una vez te sirve para las tres.</p></div>
+      </details>
     </div>`;
   }
 
@@ -1088,13 +1173,72 @@
     window.addEventListener('hashchange', cerrar, { once: true });
   }
 
+  // ---------------------------------------------------------------- índice de la lección
+  // Como MDN, Stripe Docs o Docusaurus: a la derecha, las secciones de la lección (la actual resaltada)
+  // y los ejercicios como casilleros numerados (verde = resuelto), estilo "checkpoints" de Codecademy
+  // o DataCamp. En pantallas angostas el mismo índice queda plegado arriba. Una barra fina bajo la
+  // cabecera muestra cuánto de la lección llevas leído.
+  let repintarIndice = null;
+  const slug = (t) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'seccion';
+  function montarIndice(l, body) {
+    const usados = new Set();
+    const secs = $$(':scope > h2', body).concat($$('#autoEval > h2', body)).map((h2) => {
+      if (!h2.id) { let id = slug(h2.textContent), k = 2; while (usados.has(id) || document.getElementById(id)) id = slug(h2.textContent) + '-' + k++; h2.id = id; }
+      usados.add(h2.id);
+      return { el: h2, id: h2.id, t: h2.textContent.replace(/^[^\p{L}\p{N}¿¡]+/u, '').trim() };
+    });
+    const ejs = $$('.exercise', body);
+    const cuerpo = () => `${secs.length ? `<ol class="ind-secs">${secs.map((x) => `<li><a href="#${x.id}" data-sec="${x.id}">${esc(x.t)}</a></li>`).join('')}</ol>` : ''}
+      ${ejs.length ? `<div class="indice-t ind-ej-t">Ejercicios <span class="muted" data-ej-cuenta></span></div><div class="ind-ejs">${ejs.map((e, i) => `<a href="#${esc(e.id)}" data-ej="${esc(e.id)}" title="${esc($('.ex-head h4', e)?.textContent || 'Ejercicio ' + (i + 1))}">${i + 1}</a>`).join('')}</div>` : ''}
+      <div class="ind-acc"><a class="small" href="#/notas?leccion=${l.id}">📝 Mis notas de esta lección</a></div>`;
+    const hosts = [$('#indiceLateral .indice-cuerpo'), $('#indiceMovil .indice-cuerpo')].filter(Boolean);
+    if (!secs.length && !ejs.length) { $('#indiceLateral')?.remove(); $('#indiceMovil')?.remove(); $('.leccion-layout')?.classList.add('sin-indice'); return; }
+    hosts.forEach((hst) => { hst.innerHTML = cuerpo(); });
+    // los enlaces del índice usan el ancla (#id), que en este sitio cambiaría la ruta: se desplaza a mano
+    $$('.indice a[data-sec], .indice a[data-ej]').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const dest = document.getElementById(a.dataset.sec || a.dataset.ej);
+      if (dest) dest.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      const mov = $('#indiceMovil'); if (mov && a.closest('#indiceMovil')) mov.open = false;
+    }));
+    repintarIndice = () => {
+      let n = 0;
+      for (const e of ejs) { const ok = Store.exDone(e.id); if (ok) n++; $$(`.indice [data-ej="${CSS.escape(e.id)}"]`).forEach((a) => a.classList.toggle('ok', ok)); }
+      $$('[data-ej-cuenta]').forEach((x) => { x.textContent = `${n}/${ejs.length}`; });
+    };
+    repintarIndice();
+    // sección actual: la última cuyo título ya pasó por arriba de la pantalla
+    const barra = $('#lecturaPct');
+    const alDesplazar = () => {
+      if (!body.isConnected) { window.removeEventListener('scroll', alDesplazar); return; }
+      const tope = 120;
+      let act = secs.length ? secs[0].id : null;
+      for (const x of secs) if (x.el.getBoundingClientRect().top - tope <= 0) act = x.id;
+      $$('.indice [data-sec]').forEach((a) => a.classList.toggle('activa', a.dataset.sec === act));
+      let ejAct = null;
+      for (const e of ejs) { const r = e.getBoundingClientRect(); if (r.top < window.innerHeight * 0.5 && r.bottom > 80) ejAct = e.id; }
+      $$('.indice [data-ej]').forEach((a) => a.classList.toggle('activa', a.dataset.ej === ejAct));
+      if (barra) {
+        const r = body.getBoundingClientRect(), total = r.height - window.innerHeight * 0.6;
+        barra.style.width = Math.max(0, Math.min(100, total > 0 ? (-r.top / total) * 100 : 100)) + '%';
+      }
+    };
+    window.addEventListener('scroll', alDesplazar, { passive: true });
+    alDesplazar();
+  }
+
   function viewLesson(l) {
     const m = l.modulo;
     const idx = LESSONS.indexOf(l);
     const prev = LESSONS[idx - 1], next = LESSONS[idx + 1];
     Store.data.visited[l.id] = Date.now(); Store.saveSoon();
-    main.innerHTML = `<div class="container">
-      <div class="crumbs"><a href="#/">Inicio</a><span>/</span><a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a><span>/</span><span>Lección ${m.lecciones.indexOf(l) + 1} de ${m.lecciones.length}</span></div>
+    const nLec = m.lecciones.indexOf(l) + 1, pmod = moduleProgress(m);
+    main.innerHTML = `<div class="lectura-barra" aria-hidden="true"><i id="lecturaPct"></i></div>
+    <div class="leccion-layout">
+    <div class="leccion-col">
+      <div class="crumbs"><a href="#/">Inicio</a><span>/</span><a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a><span>/</span><span>Lección ${nLec} de ${m.lecciones.length}</span></div>
+      <div class="mod-progreso" title="Avance del módulo ${esc(m.titulo)}"><span class="bar"><i style="width:${pmod.pct}%;background:${m.color}"></i></span><span class="small muted">${pmod.done} de ${pmod.total} lecciones del módulo</span></div>
+      <details class="indice indice-movil" id="indiceMovil"><summary>📑 En esta lección</summary><div class="indice-cuerpo"></div></details>
       <article class="prose" id="lessonBody">
         <h1>${esc(l.titulo)}</h1>
         <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a></div>
@@ -1107,6 +1251,8 @@
         ${prev ? `<a href="#/l/${prev.id}"><small>← Anterior</small>${esc(prev.titulo)}</a>` : '<span></span>'}
         ${next ? `<a class="next" href="#/l/${next.id}"><small>Siguiente →</small>${esc(next.titulo)}</a>` : '<a class="next" href="#/progreso"><small>¡Fin!</small>Ver mi progreso</a>'}
       </nav>
+    </div>
+    <aside class="indice indice-lateral" id="indiceLateral" aria-label="En esta lección"><div class="indice-t">En esta lección</div><div class="indice-cuerpo"></div></aside>
     </div>`;
     const body = $('#lessonBody');
     glosarioEnLinea(body);
@@ -1132,6 +1278,7 @@
       const k = Number(slot.dataset.ex);
       mountExercise(slot, l.ejercicios[k], k + 1);
     });
+    montarIndice(l, body);
     const ae = $('#autoEval');
     if (ae) {
       const marks = (Store.data.auto = Store.data.auto || {})[l.id] = Store.data.auto[l.id] || [];
