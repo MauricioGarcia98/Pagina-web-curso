@@ -8,11 +8,11 @@
   const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const NIVELES = ['Básico', 'Intermedio', 'Avanzado', 'Experto'];
   const LABS = {
-    sql: { titulo: '🧪 Laboratorio SQL', lang: 'sql', intro: 'Pedidos reales de las 13 empresas del curso. Escribe la consulta, ejecútala para mirar tu resultado y <b>entrégala</b>: el sitio la compara con la respuesta esperada y te dice qué no coincide.' },
-    dbt: { titulo: '🔧 Laboratorio dbt', lang: 'sql', intro: 'Escribe modelos de dbt de verdad: <code>{{ source() }}</code>, <code>{{ ref() }}</code>, CTEs y Jinja. Se compilan y se ejecutan sobre los datos de la tienda, y el resultado se compara con el modelo esperado.' },
-    python: { titulo: '🐍 Laboratorio Python', lang: 'python', intro: 'Problemas de ingeniería de datos con Python real (Pyodide): limpiar, validar, deduplicar, procesar archivos y APIs. Guarda tu respuesta en la variable <code>resultado</code> y entrégala.' },
-    pyspark: { titulo: '⚡ Laboratorio PySpark', lang: 'python', intro: 'Transformaciones con la API de PySpark sobre las tablas del curso (<code>spark.table("pedidos")</code>). Guarda el DataFrame final en <code>resultado</code> y entrégalo.' },
-    airflow: { titulo: '🌬️ Laboratorio Airflow', lang: 'python', intro: 'Escribe DAGs de Airflow con la misma API de Airflow 2 (operadores, dependencias, TaskFlow, trigger rules). El sitio inspecciona el DAG que creaste y lo ejecuta con <code>dag.test()</code> para comprobar que cumple el pedido.' },
+    sql: { titulo: '🧪 Laboratorio SQL', lang: 'sql', intro: 'Empieza de cero en la etapa 1 (tu primera consulta) y avanza hasta funciones de ventana; después vienen los pedidos reales de las 13 empresas del curso. Escribe la consulta, ejecútala para mirar tu resultado y <b>entrégala</b>: el sitio la compara con la respuesta esperada y te dice qué no coincide. Cada ejecución usa una copia limpia de la base.' },
+    dbt: { titulo: '🔧 Laboratorio dbt', lang: 'sql', intro: 'La etapa 1 te lleva de cero (qué es un modelo, source y ref) al Jinja; después, el proyecto completo de la tienda. Escribe modelos de dbt de verdad: <code>{{ source() }}</code>, <code>{{ ref() }}</code>, CTEs y Jinja. Se compilan y se ejecutan sobre los datos de la tienda, y el resultado se compara con el modelo esperado.' },
+    python: { titulo: '🐍 Laboratorio Python', lang: 'python', intro: 'Las etapas 1 a 4 te enseñan Python desde cero (variables, listas, diccionarios, funciones, errores); después vienen los problemas de ingeniería de datos con Python real (Pyodide): limpiar, validar, deduplicar, procesar archivos y APIs. Guarda tu respuesta en la variable <code>resultado</code> y entrégala. Cada ejecución arranca de cero, sin variables viejas.' },
+    pyspark: { titulo: '⚡ Laboratorio PySpark', lang: 'python', intro: 'Las etapas 1 y 2 enseñan los DataFrames desde cero (select, filter, withColumn, groupBy, join); después, problemas de negocio. Transformaciones con la API de PySpark sobre las tablas del curso (<code>spark.table("pedidos")</code>). Guarda el DataFrame final en <code>resultado</code> y entrégalo.' },
+    airflow: { titulo: '🌬️ Laboratorio Airflow', lang: 'python', intro: 'La etapa 1 enseña desde cero qué es un DAG, una tarea, un operador y un schedule. Escribe DAGs de Airflow con la misma API de Airflow 2 (operadores, dependencias, TaskFlow, trigger rules). El sitio inspecciona el DAG que creaste y lo ejecuta con <code>dag.test()</code> para comprobar que cumple el pedido.' },
     terminal: { titulo: '⌨️ Laboratorio de terminal', lang: null, intro: 'Tareas de trabajo real en una máquina Linux simulada que recuerda todo: archivos, Git, Docker, nubes y Databricks. Cuando creas que terminaste, <b>verifica</b>: el sitio revisa el estado de la máquina, no los comandos que escribiste.' },
   };
 
@@ -52,7 +52,7 @@
     }
     $('#misSide').addEventListener('click', (e) => { const b = e.target.closest('[data-m]'); if (b) abrir(lista.find((m) => m.id === b.dataset.m)); });
 
-    let ed = null, term = null, explicacion = null, hIni = 0;   // hIni: desde qué comando del historial cuenta esta misión
+    let ed = null, term = null, explicacion = null, expC = null, hIni = 0;   // hIni: desde qué comando del historial cuenta esta misión
     function abrir(m) {
       actual = m; Store.setCode('mision-' + lab, m.id);
       const e = est(m.id);
@@ -83,14 +83,14 @@
         }
       } else {
         w.innerHTML = '<div id="misEd"></div>';
-        const inicial = e.codigo ?? m.inicial ?? (L.lang === 'sql' ? (lab === 'dbt' ? '-- escribe tu modelo de dbt\nselect\n' : '-- escribe tu consulta\n') : '# escribe tu código; guarda el resultado en la variable resultado\n');
-        ed = createEditor($('#misEd'), { lang: L.lang, value: inicial, tall: true, onRun: () => ejecutar(), onChange: (v) => { e.codigo = v; guardar(); } });
+        ed = createEditor($('#misEd'), { lang: L.lang, value: e.codigo ?? inicialDe(m), tall: true, onRun: () => ejecutar(), onChange: (v) => { e.codigo = v; guardar(); } });
+        expC = window.ExplicaCodigo ? window.ExplicaCodigo.panel(lab) : null;
       }
       w.insertAdjacentHTML('beforeend', `
         <div class="ex-tools mis-tools">
           ${lab === 'terminal' ? '' : '<button class="btn" data-a="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button>'}
           <button class="btn btn-primary" data-a="check">${lab === 'terminal' ? '✓ Verificar' : '✓ Entregar'}</button>
-          ${lab === 'terminal' ? '<button class="btn btn-ghost" data-a="cero" title="Borra los archivos de la máquina y vuelve a preparar esta misión">↺ Empezar de cero</button>' : ''}
+          ${lab === 'terminal' ? '<button class="btn btn-ghost" data-a="cero" title="Borra los archivos de la máquina y vuelve a preparar esta misión">↺ Empezar de cero</button>' : '<button class="btn btn-ghost" data-a="cero" title="Vuelve el editor al código inicial de la misión y limpia la salida">↺ Empezar de cero</button>'}
           <button class="btn btn-ghost" data-a="pista">💡 Pista <span class="muted">${Math.min(e.pistas, (m.pistas || []).length)}/${(m.pistas || []).length}</span></button>
           <span class="spacer"></span>
           <button class="btn btn-ghost btn-sm" data-a="sol" ${e.intentos >= 2 || e.hecha ? '' : 'disabled title="Disponible después de dos entregas"'}>🏳 Ver solución</button>
@@ -106,6 +106,13 @@
         ch.append(window.ExplicaCmd.chuleta((c) => term.type(c)));
         w.append(ch);
       }
+      if (lab !== 'terminal' && expC) {
+        w.append(expC.el);
+        const ch = document.createElement('details'); ch.className = 'card exp-chuleta-card';
+        ch.innerHTML = '<summary>📘 Chuleta: ejemplos para copiar y adaptar</summary>';
+        ch.append(window.ExplicaCodigo.chuleta(lab, (cod) => window.ExplicaCodigo.insertar(ed, cod)));
+        w.append(ch);
+      }
       pintarPistas();
       if (e.hecha && m.explicacion) $('#misExtra').innerHTML = `<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Para pensar</div><p>${m.explicacion}</p></div>`;
       w.querySelector('.mis-tools').addEventListener('click', (ev) => {
@@ -114,10 +121,16 @@
         if (a === 'check') entregar();
         if (a === 'pista') { if (e.pistas < (m.pistas || []).length) { e.pistas++; guardar(); pintarPistas(); ev.target.closest('[data-a]').querySelector('.muted').textContent = `${e.pistas}/${m.pistas.length}`; } else toast('Ya viste todas las pistas.'); }
         if (a === 'sol') verSolucion();
-        if (a === 'cero' && confirm('¿Empezar esta misión de cero? Se reinicia la máquina: se borran tus archivos, repos y recursos de nube simulados, y se vuelven a cargar los datos de la misión.')) { window.Shell.Machine.reset(); abrir(actual); toast('Máquina reiniciada: misión lista para empezar'); }
+        if (a === 'cero' && lab !== 'terminal' && confirm('¿Empezar de cero? Tu código de esta misión se reemplaza por el código inicial. Las pistas que ya abriste siguen abiertas.')) {
+          e.codigo = undefined; guardar(); ed.setValue(inicialDe(m)); $('#misOut').innerHTML = ''; $('#misFb').innerHTML = ''; main.querySelectorAll('.mis-crit li').forEach((li) => li.classList.remove('ok', 'no'));
+          if (expC) expC.actualizar('', null); toast('Editor limpio: misión lista para empezar'); ed.focus();
+        }
+        if (a === 'cero' && lab === 'terminal' && confirm('¿Empezar esta misión de cero? Se reinicia la máquina: se borran tus archivos, repos y recursos de nube simulados, y se vuelven a cargar los datos de la misión.')) { window.Shell.Machine.reset(); abrir(actual); toast('Máquina reiniciada: misión lista para empezar'); }
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    // el código con el que arranca una misión (cuando nunca la tocaste o la reiniciaste)
+    function inicialDe(m) { return m.inicial ?? (L.lang === 'sql' ? (lab === 'dbt' ? '-- escribe tu modelo de dbt\nselect\n' : '-- escribe tu consulta\n') : '# escribe tu código; guarda el resultado en la variable resultado\n'); }
     function pintarPistas() {
       const e = est(actual.id);
       $('#misPistas').innerHTML = (actual.pistas || []).slice(0, e.pistas).map((p, i) => `<div class="mis-pista"><b>Pista ${i + 1}.</b> ${p}</div>`).join('');
@@ -128,9 +141,12 @@
     const exDe = (m) => ({ id: 'mision-' + m.id, solucion: (m.previo ? m.previo + '\n' : '') + m.solucion, ordenado: !!m.ordenado, variable: m.test ? '' : 'resultado', test: m.test || '', previo: m.previoSql || '', setup: lab === 'dbt' ? (m.setupMacros || '') : undefined });
     async function ejecutar() {
       const out = $('#misOut'); const code = ed.getValue();
-      if (lab === 'sql') { if (!(await ensureSql(out))) return; renderSqlOutput(out, Engines.SQL.exec(code, Engines.SQL.playground())); }
-      else if (lab === 'dbt') { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); const r = await Engines.DBT.run(exDe(actual), code); renderSqlOutput(out, r); }
-      else { loadingInto(out, pyLoadingMsg()); renderConsole(out, await Engines.PY.run(lab === 'pyspark' ? 'pyspark' : lab === 'airflow' ? 'airflow' : 'python', (actual.previo ? actual.previo + '\n' : '') + code)); }
+      let r;
+      // cada ejecución arranca de cero: SQL usa una copia nueva de la base y Python un intérprete sin variables viejas
+      if (lab === 'sql') { if (!(await ensureSql(out))) return; r = Engines.SQL.exec(code); renderSqlOutput(out, r); }
+      else if (lab === 'dbt') { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); r = await Engines.DBT.run(exDe(actual), code); renderSqlOutput(out, r); if (r.compiled && ctx.compiledBlock) out.append(ctx.compiledBlock(r.compiled)); }
+      else { loadingInto(out, pyLoadingMsg()); r = await Engines.PY.run(lab === 'pyspark' ? 'pyspark' : lab === 'airflow' ? 'airflow' : 'python', (actual.previo ? actual.previo + '\n' : '') + code); renderConsole(out, r); }
+      if (expC) expC.actualizar(code, r);
     }
     async function entregar() {
       const m = actual, e = est(m.id);
@@ -147,10 +163,15 @@
         } else {
           const out = $('#misOut'); const code = ed.getValue();
           if (!code.trim() || /^(--|#)[^\n]*\n?\s*(select\s*)?$/i.test(code.trim())) { fb('info', 'Escribe tu solución antes de entregar.'); return; }
+          // algunas misiones piden usar una herramienta concreta (JOIN, ref(), un for…): es lo que se está aprendiendo
+          const sinComent = code.replace(/--[^\n]*/g, '').replace(/^\s*#[^\n]*/gm, '');
+          const falta = (m.requiere || []).find(([re]) => !new RegExp(re, 'im').test(sinComent));
+          if (falta) { e.intentos++; guardar(); habilitarSol(); pintarSide(); fb('bad', `✗ ${falta[1]}`); return; }
           let r;
           if (lab === 'sql') { if (!(await ensureSql(out))) return; r = Engines.SQL.grade(exDe(m), code); if (r.ok) renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 }); }
           else if (lab === 'dbt') { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); r = await Engines.DBT.grade(exDe(m), code); if (r.ok) renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 }); }
           else { loadingInto(out, pyLoadingMsg()); r = await Engines.PY.grade(lab === 'pyspark' ? 'pyspark' : lab === 'airflow' ? 'airflow' : 'python', exDe(m), (m.previo ? m.previo + '\n' : '') + code); renderConsole(out, r); }
+          if (expC) expC.actualizar(code, lab === 'sql' || lab === 'dbt' ? (r.ok ? { ok: true, results: [r.result], compiled: r.compiled } : { ok: false, error: r.error, compiled: r.compiled }) : r);
           if (!r.ok) { fb('bad', `✗ Tu código dio un error: <code>${esc(String(r.error || '').split('\n').slice(-1)[0])}</code>`); if (lab === 'sql' || lab === 'dbt') $('#misOut').innerHTML = `<pre class="console"><span class="err">${esc(r.error)}</span></pre>`; e.intentos++; guardar(); habilitarSol(); pintarSide(); return; }
           pass = !!r.pass; msg = r.msg || '';
         }

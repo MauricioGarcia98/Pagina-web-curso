@@ -1087,3 +1087,16 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .mis-saber { margin: 12px 0 2px; padding: 10px 14px; border-left: 3px solid var(--brand); background: var(--brand-soft); border-radius: 8px; font-size: 14.5px; }
 .mis-saber ul { margin: 6px 0 0; padding-left: 18px; }
 .mis-saber li { margin: 4px 0; }
+/* explicador de código (SQL, Python, PySpark, dbt, Airflow) */
+.exp-codigo .exp-sub { font-weight: 700; margin: 14px 0 4px; }
+.exp-det > summary { cursor: pointer; font-weight: 600; margin: 8px 0; }
+.exp-orden { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 6px 0 4px; font-family: var(--mono); font-size: 12px; }
+.exp-orden span { border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; color: var(--muted); }
+.exp-orden span.on { border-color: var(--brand); color: var(--text, inherit); background: var(--brand-soft, transparent); font-weight: 700; }
+.exp-orden i { font-style: normal; color: var(--muted); }
+.exp-lineas { list-style: none; margin: 6px 0; padding: 0; }
+.exp-lineas > li { border-left: 3px solid var(--line); padding: 4px 0 4px 10px; margin: 8px 0; }
+.exp-lineas .exp-ln { display: flex; gap: 8px; align-items: baseline; overflow-wrap: anywhere; }
+.exp-lineas .exp-num { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 22px; text-align: right; }
+.exp-lineas ul { margin: 4px 0 0; padding-left: 30px; }
+.exp-lineas ul li { margin: 3px 0; line-height: 1.5; font-size: 14.5px; }

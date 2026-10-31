@@ -1143,6 +1143,17 @@
     ['Crear un DataFrame', 'from pyspark.sql import functions as F\n\ndatos = [("Ana", "Ventas", 3200), ("Luis", "Datos", 4100), ("Eva", "Datos", 3900), ("Leo", "Ventas", 2800)]\ndf = spark.createDataFrame(datos, ["nombre", "area", "salario"])\n\ndf.groupBy("area").agg(F.avg("salario").alias("promedio"), F.max("salario").alias("maximo")).show()']
   ];
 
+  // panel "¿Qué hace tu código?" + chuleta de ejemplos (en la práctica libre, un clic carga el ejemplo y lo ejecuta)
+  function montarExplicacion(host, lab, ed, run) {
+    const E = window.ExplicaCodigo; if (!E || !host) return null;
+    const p = E.panel(lab); host.append(p.el);
+    const ch = h('<details class="card exp-chuleta-card"><summary>📘 Chuleta: ejemplos para aprender</summary></details>');
+    ch.append(E.chuleta(lab, (cod) => { ed.setValue(cod); run(); }, { reemplaza: true }));
+    host.append(ch);
+    return p;
+  }
+  const AIRFLOW_SAMPLES = () => ((window.ExplicaCodigo && window.ExplicaCodigo.CHULETAS.airflow) || []).flatMap((s) => s.ej).filter(([c]) => /DAG|@dag/.test(c)).map(([c, d]) => [d.charAt(0).toUpperCase() + d.slice(1), c]);
+
   function viewLabSql() {
     const SM = window.SqlMotores;
     const MOT = SM.MOTORES;
@@ -1158,15 +1169,16 @@
       <div class="lab">
         <aside class="card lab-side"><h4>Bases de datos</h4><div id="schema"><div class="muted small">Cargando…</div></div></aside>
         <div class="lab-main"><div class="card">
-          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb">↺ Reiniciar base</button></div>
+          <div class="ex-tools" style="border-top:0"><span class="samples"><select id="samples"></select></span><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="resetDb" title="Deshace los cambios que hiciste a las tablas (INSERT, UPDATE, DELETE, CREATE)">↺ Reiniciar base</button><button class="btn btn-ghost btn-sm" id="cero" title="Base original y el primer ejemplo en el editor">↺ Empezar de cero</button></div>
           <div id="ed"></div>
           <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><span class="small muted">Se ejecutan todas las sentencias; se muestran los resultados de las últimas 3.</span></div>
           <div class="output" id="out"></div>
-        </div></div>
+        </div><div id="expHost"></div></div>
       </div>
     </div>`;
     const out = $('#out');
     const ed = createEditor($('#ed'), { lang: 'sql', value: Store.data.code[clave(motor)] ?? ejemplos(motor)[0][1], tall: true, onRun: () => run(), onChange: (v) => Store.setCode(clave(motor), v) });
+    const expl = montarExplicacion($('#expHost'), 'sql', ed, () => run());
     const pintarMotor = () => {
       $$('.motor-tabs [data-motor]').forEach((b) => b.classList.toggle('active', b.dataset.motor === motor));
       const m = MOT[motor];
@@ -1181,6 +1193,7 @@
         out.innerHTML = `<pre class="console"><span class="err">${esc(motor === 'postgres' ? 'No se pudo cargar PostgreSQL (PGlite) desde cdn.jsdelivr.net: ' + e.message + '\nRevisa tu conexión o prueba con otro motor.' : e.message)}</span></pre>`; return;
       }
       renderSqlOutput(out, r);
+      if (expl) expl.actualizar(ed.getValue(), r);
       if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`));
       if (r.traducido) out.append(h(`<details class="motor-trad"><summary>Ver cómo se tradujo a SQLite</summary><pre data-lang="sql"><code>${esc(r.traducido)}</code></pre></details>`));
     };
@@ -1189,6 +1202,11 @@
     $('#resetDb').addEventListener('click', async () => {
       if (motor === 'postgres') { if (SM.PG.estado !== 'listo') return; await SM.PG.reiniciar((msg) => loadingInto(out, msg)); out.innerHTML = ''; toast('PostgreSQL reiniciado a su estado original'); return; }
       SQL.resetPlayground(); toast('Base de datos reiniciada a su estado original');
+    });
+    $('#cero').addEventListener('click', async () => {
+      if (!confirm('¿Empezar de cero? La base vuelve a su estado original y el editor al primer ejemplo (tu consulta actual se reemplaza).')) return;
+      if (motor === 'postgres' && SM.PG.estado === 'listo') await SM.PG.reiniciar((msg) => loadingInto(out, msg)); else SQL.resetPlayground();
+      ed.setValue(ejemplos(motor)[0][1]); out.innerHTML = ''; if (expl) expl.actualizar('', null); toast('Todo limpio: base original y editor nuevo');
     });
     $$('.motor-tabs [data-motor]').forEach((b) => b.addEventListener('click', () => {
       if (b.dataset.motor === motor) return;
@@ -1230,29 +1248,33 @@
   }
 
   function viewLabPython(kind) {
-    const isSpark = kind === 'pyspark';
-    const samples = isSpark ? SPARK_SAMPLES : PY_SAMPLES;
+    const isSpark = kind === 'pyspark', isAf = kind === 'airflow';
+    const samples = isSpark ? SPARK_SAMPLES : isAf ? AIRFLOW_SAMPLES() : PY_SAMPLES;
     const key = 'lab-' + kind;
     main.innerHTML = `<div class="container wide">
-      <h1 style="margin:0 0 4px">${isSpark ? '⚡ Laboratorio PySpark' : '🐍 Laboratorio Python'}</h1>
+      <h1 style="margin:0 0 4px">${isSpark ? '⚡ Laboratorio PySpark' : isAf ? '🌬️ Laboratorio Airflow' : '🐍 Laboratorio Python'}</h1>
       <p class="muted" style="margin:0 0 16px">${isSpark
         ? 'Practica la API de PySpark con <b>mini-Spark</b>, un simulador que corre en tu navegador. La variable <code>spark</code> ya existe y las tablas del dataset están disponibles con <code>spark.table("pedidos")</code>. Para producción usarás Spark real (Databricks), pero la sintaxis es la misma.'
-        : 'Python 3 real (Pyodide) ejecutándose en tu navegador. Usa <code>print()</code> para ver resultados.'}</p>
+        : isAf ? 'Escribe DAGs con la misma API de Airflow (<code>from airflow.sdk import DAG</code>, operadores, <code>&gt;&gt;</code>, TaskFlow) y ejecútalos con <code>dag.test()</code>: verás en la consola cada tarea, en orden.'
+          : 'Python 3 real (Pyodide) ejecutándose en tu navegador. Usa <code>print()</code> para ver resultados.'} <b>Cada ejecución arranca de cero</b>: no quedan variables de la vez anterior, como al correr un script nuevo.</p>
       <div class="lab">
         <aside class="card lab-side"><h4>Ejemplos</h4>${samples.map((s, i) => `<div class="schema-table"><button data-s="${i}">▸ ${esc(s[0])}</button></div>`).join('')}
         ${isSpark ? `<h4 style="margin-top:16px">Tablas</h4>${['clientes', 'productos', 'categorias', 'pedidos', 'detalle_pedidos', 'pagos', 'empleados', 'departamentos', 'eventos_web'].map((t) => `<div class="small" style="font-family:var(--mono);padding:2px 6px">${t}</div>`).join('')}` : ''}</aside>
         <div class="lab-main"><div class="card">
           <div id="ed"></div>
-          <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="clear">Limpiar salida</button></div>
+          <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Ejecutar <span class="kbd">Ctrl+↵</span></button><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="clear">Limpiar salida</button><button class="btn btn-ghost btn-sm" id="cero" title="El editor vuelve al primer ejemplo y se limpia la salida">↺ Empezar de cero</button></div>
           <div class="output" id="out"></div>
-        </div></div>
+        </div><div id="expHost"></div></div>
       </div>
     </div>`;
     const out = $('#out');
     const ed = createEditor($('#ed'), { lang: 'python', value: Store.data.code[key] ?? samples[0][1], tall: true, onRun: () => run(), onChange: (v) => Store.setCode(key, v) });
-    const run = async () => { loadingInto(out, pyLoadingMsg()); renderConsole(out, await PY.run(isSpark ? 'pyspark' : pyMode(ed.getValue()), ed.getValue())); };
+    const labExp = isSpark ? 'pyspark' : isAf ? 'airflow' : 'python';
+    const expl = montarExplicacion($('#expHost'), labExp, ed, () => run());
+    const run = async () => { loadingInto(out, pyLoadingMsg()); const code = ed.getValue(); const r = await PY.run(isSpark ? 'pyspark' : pyMode(code), code); renderConsole(out, r); if (expl) expl.actualizar(code, r); };
     $('#run').addEventListener('click', run);
     $('#clear').addEventListener('click', () => { out.innerHTML = ''; });
+    $('#cero').addEventListener('click', () => { if (!confirm('¿Empezar de cero? Tu código actual se reemplaza por el primer ejemplo.')) return; ed.setValue(samples[0][1]); out.innerHTML = ''; if (expl) expl.actualizar('', null); toast('Editor limpio'); });
     $$('[data-s]').forEach((b) => b.addEventListener('click', () => { ed.setValue(samples[b.dataset.s][1]); run(); }));
   }
 
@@ -1295,13 +1317,17 @@
       <h1 style="margin:0 0 4px">🔧 Laboratorio dbt</h1>
       <p class="muted" style="margin:0 0 16px">Escribe un modelo de dbt con <code>{{ source('tienda', 'tabla') }}</code>, <code>{{ ref('stg_pedidos') }}</code> y Jinja: se compila y se ejecuta sobre la base de la tienda. Abajo ves el SQL compilado. Para el proyecto completo con <code>dbt build</code>, usa el <a href="#/lab/terminal?modo=libre">laboratorio de terminal</a> (<code>cd ~/tienda_dbt</code>).</p>
       <div class="card"><div id="ed"></div>
-        <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Compilar y ejecutar <span class="kbd">Ctrl+↵</span></button></div>
+        <div class="ex-tools"><button class="btn btn-primary" id="run">▶ Compilar y ejecutar <span class="kbd">Ctrl+↵</span></button><span class="spacer"></span><button class="btn btn-ghost btn-sm" id="cero">↺ Empezar de cero</button></div>
         <div class="output" id="out"></div></div>
+      <div id="expHost"></div>
     </div>`;
     const out = $('#out');
-    const ed = createEditor($('#ed'), { lang: 'sql', value: Store.data.code['lab-dbt'] ?? "-- un modelo de staging\nselect\n    pedido_id,\n    cliente_id,\n    lower(canal) as canal\nfrom {{ source('tienda', 'pedidos') }}\nwhere estado = 'entregado'\nlimit 20", tall: true, onRun: () => run(), onChange: (v) => Store.setCode('lab-dbt', v) });
-    const run = async () => { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); const r = await window.Engines.DBT.run({}, ed.getValue()); renderSqlOutput(out, r); if (r.compiled) out.append(compiledBlock(r.compiled)); };
+    const DBT_INICIAL = "-- un modelo de staging\nselect\n    pedido_id,\n    cliente_id,\n    lower(canal) as canal\nfrom {{ source('tienda', 'pedidos') }}\nwhere estado = 'entregado'\nlimit 20";
+    const ed = createEditor($('#ed'), { lang: 'sql', value: Store.data.code['lab-dbt'] ?? DBT_INICIAL, tall: true, onRun: () => run(), onChange: (v) => Store.setCode('lab-dbt', v) });
+    const expl = montarExplicacion($('#expHost'), 'dbt', ed, () => run());
+    const run = async () => { if (!(await ensureSql(out))) return; loadingInto(out, pyLoadingMsg()); const code = ed.getValue(); const r = await window.Engines.DBT.run({}, code); renderSqlOutput(out, r); if (r.compiled) out.append(compiledBlock(r.compiled)); if (expl) expl.actualizar(code, r); };
     $('#run').addEventListener('click', run);
+    $('#cero').addEventListener('click', () => { if (!confirm('¿Empezar de cero? Tu modelo actual se reemplaza por el ejemplo inicial.')) return; ed.setValue(DBT_INICIAL); out.innerHTML = ''; if (expl) expl.actualizar('', null); toast('Editor limpio'); });
   }
   function viewLabTerminal() {
     main.innerHTML = `<div class="container wide">
@@ -2307,14 +2333,14 @@
     else if (r.name === 'lesson') viewLesson(r.lesson);
     else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
       const lab = r.name.slice(4);
-      window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
+      window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, compiledBlock, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
     }
     else if (r.name === 'lab-sql') { viewLabSql(); tabsLabLibre('sql'); }
     else if (r.name === 'lab-python') { viewLabPython('python'); tabsLabLibre('python'); }
     else if (r.name === 'lab-pyspark') { viewLabPython('pyspark'); tabsLabLibre('pyspark'); }
     else if (r.name === 'lab-terminal') { viewLabTerminal(); tabsLabLibre('terminal'); }
     else if (r.name === 'lab-dbt') { viewLabDbtLibre(); tabsLabLibre('dbt'); }
-    else if (r.name === 'lab-airflow') { viewLabPython('python'); tabsLabLibre('airflow'); }
+    else if (r.name === 'lab-airflow') { viewLabPython('airflow'); tabsLabLibre('airflow'); }
     else if (r.name === 'datos') viewDatos(r.id);
     else if (r.name === 'modelado') window.Modelado.vista(main, { h, esc, createEditor, Store, toast, abrirEnLab, $, $$ });
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });
