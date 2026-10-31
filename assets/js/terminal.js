@@ -14,8 +14,9 @@
   const col = { dir: (t) => S('t-dir', t), ok: (t) => S('t-ok', t), err: (t) => S('t-err', t), warn: (t) => S('t-warn', t), dim: (t) => S('t-dim', t), b: (t) => S('t-b', t), info: (t) => S('t-info', t) };
 
   // ------------------------------------------------------------------ máquina
+  const envInicial = () => ({ HOME, USER: 'alumno', PATH: '/usr/local/bin:/usr/bin:/bin', SHELL: '/bin/bash', LANG: 'es_ES.UTF-8' });
   const Machine = {
-    fs: {}, cwd: HOME, env: {}, history: [], cloud: {}, git: {}, alias: {}, ready: false,
+    fs: {}, cwd: HOME, env: {}, history: [], cloud: {}, git: {}, alias: {}, ready: false, gen: 0,
     load() {
       try {
         const d = JSON.parse(localStorage.getItem(KEY));
@@ -26,12 +27,21 @@
     save() {
       clearTimeout(this._t);
       this._t = setTimeout(() => {
-        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias })); } catch (e) { /* lleno */ }
+        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, fs: this.fs, cwd: this.cwd, env: this.env, history: this.history.slice(-300), cloud: this.cloud, git: this.git, alias: this.alias, gen: this.gen })); } catch (e) { /* lleno */ }
       }, 300);
+    },
+    // como al abrir una terminal nueva en Linux: se empieza en ~, sin entorno virtual activo ni variables exportadas;
+    // los archivos, los repos, el historial y las sesiones de la nube se conservan (son "el disco")
+    nuevaSesion() {
+      if (!this.ready) this.load();
+      this.cwd = HOME;
+      this.env = envInicial();
+      this.save();
     },
     reset() {
       this.fs = {}; this.cwd = HOME; this.history = []; this.cloud = {}; this.git = {}; this.alias = { ll: 'ls -la', la: 'ls -a', '..': 'cd ..' };
-      this.env = { HOME, USER: 'alumno', PATH: '/usr/local/bin:/usr/bin:/bin', SHELL: '/bin/bash', LANG: 'es_ES.UTF-8' };
+      this.gen = (this.gen || 0) + 1;   // las misiones lo usan para saber si tienen que volver a preparar la máquina
+      this.env = envInicial();
       seedFiles();
       this.ready = true;
       this.save();
@@ -234,9 +244,22 @@ models:
   }
 
   // ------------------------------------------------------------------ parser
+  // llaves como en bash: a{1,2} → a1 a2 · {1..3} → 1 2 3 (solo fuera de comillas)
+  function llaves(w) {
+    const m = w.match(/^(.*?)\{([^{}]*)\}(.*)$/);
+    if (!m) return [w];
+    let ops;
+    const r = m[2].match(/^(-?\d+)\.\.(-?\d+)$/);
+    if (r) { const a = +r[1], b = +r[2], s = a <= b ? 1 : -1; ops = []; for (let i = a; s > 0 ? i <= b : i >= b; i += s) ops.push(String(i)); }
+    else if (m[2].includes(',')) ops = m[2].split(',');
+    else return [w];
+    return ops.flatMap((o) => llaves(m[1] + o + m[3]));
+  }
   function tokenize(src) {
     const toks = [];
     let cur = '', q = null, has = false;
+    // las palabras sin comillas se expanden (llaves y comodines); las que tienen comillas quedan tal cual
+    const push = () => { if (has) toks.push(cur); else toks.push(...llaves(cur).flatMap(glob)); };
     for (let i = 0; i < src.length; i++) {
       const ch = src[i];
       if (q) {
@@ -246,13 +269,13 @@ models:
       }
       if (ch === "'" || ch === '"') { q = ch; has = true; continue; }
       if (ch === '\\' && i + 1 < src.length) { cur += src[++i]; has = true; continue; }
-      if (/\s/.test(ch)) { if (cur || has) toks.push(cur); cur = ''; has = false; continue; }
-      if (ch === '>' ) { if (cur || has) toks.push(cur); cur = ''; has = false; if (src[i + 1] === '>') { toks.push({ op: '>>' }); i++; } else toks.push({ op: '>' }); continue; }
-      if (ch === '<') { if (cur || has) toks.push(cur); cur = ''; has = false; toks.push({ op: '<' }); continue; }
+      if (/\s/.test(ch)) { if (cur || has) push(); cur = ''; has = false; continue; }
+      if (ch === '>' ) { if (cur || has) push(); cur = ''; has = false; if (src[i + 1] === '>') { toks.push({ op: '>>' }); i++; } else toks.push({ op: '>' }); continue; }
+      if (ch === '<') { if (cur || has) push(); cur = ''; has = false; toks.push({ op: '<' }); continue; }
       cur += ch;
     }
     if (q) throw new Error('comillas sin cerrar');
-    if (cur || has) toks.push(cur);
+    if (cur || has) push();
     return toks;
   }
   // divide respetando comillas y $(...) en operadores de control
@@ -290,10 +313,12 @@ models:
         else out += r.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '').replace(/\n+$/, '');
         i = j; continue;
       }
-      if (src[i] === '$' && /[A-Za-z_{?]/.test(src[i + 1] || '')) {
+      if (src[i] === '$' && /[A-Za-z_{?#\d@]/.test(src[i + 1] || '')) {
         let j = i + 1, name;
         if (src[j] === '{') { const k = src.indexOf('}', j); name = src.slice(j + 1, k); j = k + 1; }
-        else if (src[j] === '?') { name = '?'; j++; }
+        else if (src[j] === '?' || src[j] === '#') { name = src[j]; j++; }
+        else if (/\d/.test(src[j])) { name = src[j]; j++; }   // $1…$9: argumentos de un script
+        else if (src[j] === '@') { name = '@'; j++; }
         else { while (j < src.length && /\w/.test(src[j])) j++; name = src.slice(i + 1, j); }
         out += env[name] !== undefined ? env[name] : '';
         i = j; continue;
@@ -340,7 +365,7 @@ models:
       if (typeof t === 'object') {
         if (t.op === '<') input = toks[++i];
         else redir = { op: t.op, file: toks[++i] };
-      } else args.push(...glob(t));
+      } else args.push(t);   // las llaves y los comodines ya se expandieron en tokenize
     }
     if (!args.length) return ok('');
     if (input) {
@@ -355,6 +380,8 @@ models:
       if (!Machine.fs[norm(name)].x) return fail(`bash: ${name}: Permiso denegado` + col.dim('\n(dale permiso de ejecución: chmod +x ' + name + ')'), 126);
       fn = Commands.bash; args.splice(1, 0, name); name = 'bash';
     }
+    // --help en los comandos básicos de Linux: muestra el manual (las CLIs grandes tienen su propia ayuda)
+    if (fn && args.includes('--help') && Commands.man && !/^(git|docker|docker-compose|dbt|airflow|az|aws|gcloud|gsutil|bq|databricks|terraform|uv|pip|python|python3|gh|psql|duckdb|sqlite3|curl|astro|spark-submit|jq|make|apt|brew|winget|wsl|sudo|java|pytest|ssh|ssh-keygen)$/.test(name)) return Commands.man([name], { stdin: '' });
     let res;
     if (!fn) res = { out: col.err(`bash: ${name}: comando no encontrado`) + (suggest(name) ? `\n¿Quisiste decir ${col.b(suggest(name))}?` : ''), code: 127 };
     else {
@@ -439,9 +466,10 @@ models:
   // ------------------------------------------------------------- comandos bash
   def('help', 'muestra esta ayuda', () => {
     const groups = {
-      'Archivos y carpetas': ['pwd', 'ls', 'cd', 'mkdir', 'touch', 'cat', 'head', 'tail', 'less', 'wc', 'cp', 'mv', 'rm', 'tree', 'find', 'code'],
-      'Texto': ['echo', 'printf', 'grep', 'sed', 'sort', 'uniq', 'cut', 'tr', 'diff', 'jq'],
-      'Sistema y scripts': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'type', 'source', 'bash', 'chmod', 'make', 'sudo', 'reset-maquina'],
+      'Archivos y carpetas': ['pwd', 'ls', 'cd', 'mkdir', 'touch', 'cat', 'head', 'tail', 'less', 'wc', 'cp', 'mv', 'rm', 'tree', 'find', 'du', 'df', 'stat', 'realpath', 'basename', 'dirname', 'chown', 'code', 'nano'],
+      'Comprimir y empaquetar': ['tar', 'gzip', 'gunzip', 'zip', 'unzip'],
+      'Texto': ['echo', 'printf', 'grep', 'sed', 'awk', 'sort', 'uniq', 'cut', 'tr', 'paste', 'column', 'nl', 'rev', 'tee', 'xargs', 'seq', 'diff', 'jq'],
+      'Sistema y scripts': ['clear', 'history', 'whoami', 'date', 'export', 'env', 'which', 'type', 'source', 'bash', 'chmod', 'ps', 'kill', 'man', 'make', 'sudo', 'reset-maquina'],
       'Personalizar': ['alias', 'unalias', 'tema', 'neofetch'],
       'Instalar herramientas': ['apt', 'brew', 'winget', 'wsl'],
       'Python y Git': ['python', 'uv', 'pip', 'pytest', 'git', 'gh', 'ssh-keygen', 'ssh'],
@@ -489,30 +517,37 @@ models:
     if (!isDir(p)) return fail(`bash: cd: ${a[0]}: No es un directorio`);
     Machine.env.OLDPWD = Machine.cwd; Machine.cwd = p; Machine.save(); return ok('');
   });
-  def('ls', 'lista archivos (-l detalle, -a ocultos)', (a) => {
-    const { flags, pos } = parseArgs(a, { bool: ['-l', '-a', '-la', '-al', '-h', '-R', '-1'] });
-    const long = flags['-l'] || flags['-la'] || flags['-al'];
-    const all = flags['-a'] || flags['-la'] || flags['-al'];
+  def('ls', 'lista archivos (-l detalle, -a ocultos, -h tamaños legibles, -t por fecha, -r invertido)', (a) => {
+    // opciones combinables como en Linux: -la, -lh, -ltr…
+    const letras = new Set(), pos = [];
+    for (const x of a) { if (/^-[a-zA-Z1]+$/.test(x)) x.slice(1).split('').forEach((c) => letras.add(c)); else pos.push(x); }
+    const long = letras.has('l'), all = letras.has('a'), human = letras.has('h'), porFecha = letras.has('t'), inv = letras.has('r');
+    const tam = (n) => { if (!human) return String(n); const u = ['', 'K', 'M', 'G']; let i = 0, v = n; while (v >= 1024 && i < 3) { v /= 1024; i++; } return (i ? v.toFixed(v < 10 ? 1 : 0) : String(v)) + u[i]; };
+    const fila = (ruta, nombre) => {
+      const f = Machine.fs[ruta];
+      const size = f.t === 'f' ? f.c.length : 4096;
+      const d = new Date(f.m || Date.now());
+      const fecha = d.toLocaleString('es', { month: 'short' }).slice(0, 3) + ' ' + String(d.getDate()).padStart(2) + ' ' + d.toTimeString().slice(0, 5);
+      const perm = f.t === 'd' ? 'drwxr-xr-x' : f.x ? '-rwxr-xr-x' : '-rw-r--r--';
+      const vis = f.t === 'd' ? col.dir(nombre) : f.x ? col.ok(nombre) : nombre;
+      return `${perm} 1 alumno alumno ${tam(size).padStart(7)} ${fecha} ${vis}`;
+    };
+    const ordenar = (rutas) => { let r = [...rutas]; if (porFecha) r.sort((x, y) => (Machine.fs[y[0]].m || 0) - (Machine.fs[x[0]].m || 0)); if (inv) r.reverse(); return r; };
+    const bloque = (pares) => long ? pares.map(([r, n]) => fila(r, n)).join('\n') : pares.map(([r, n]) => (isDir(r) ? col.dir(n + '/') : Machine.fs[r].x ? col.ok(n) : n)).join('  ');
     const targets = pos.length ? pos : ['.'];
-    const outs = [];
+    const outs = [], errores = [], archivos = [], carpetas = [];
     for (const t of targets) {
       const p = norm(t);
-      if (!exists(p)) { outs.push(col.err(`ls: no se puede acceder a '${t}': No existe el archivo o el directorio`)); continue; }
-      const names = isDir(p) ? children(p).filter((n) => all || !n.startsWith('.')) : [base(p)];
-      const full = (n) => (isDir(p) ? (p === '/' ? '' : p) + '/' + n : p);
-      if (targets.length > 1) outs.push(`${t}:`);
-      if (long) {
-        const rows = names.map((n) => {
-          const f = Machine.fs[full(n)];
-          const size = f.t === 'f' ? f.c.length : 4096;
-          const d = new Date(f.m || Date.now());
-          const fecha = d.toLocaleString('es', { month: 'short' }).slice(0, 3) + ' ' + String(d.getDate()).padStart(2) + ' ' + d.toTimeString().slice(0, 5);
-          return `${f.t === 'd' ? 'drwxr-xr-x' : '-rw-r--r--'} 1 alumno alumno ${String(size).padStart(7)} ${fecha} ${f.t === 'd' ? col.dir(n) : n}`;
-        });
-        outs.push(`total ${names.length}\n` + rows.join('\n'));
-      } else outs.push(names.map((n) => (isDir(full(n)) ? col.dir(n + '/') : n)).join('  '));
+      if (!exists(p)) errores.push(col.err(`ls: no se puede acceder a '${t}': No existe el archivo o el directorio`));
+      else if (isDir(p)) carpetas.push([t, p]); else archivos.push([p, t]);
     }
-    return ok(outs.join('\n'));
+    if (archivos.length) outs.push(bloque(ordenar(archivos)));
+    for (const [t, p] of carpetas) {
+      const pares = ordenar(children(p).filter((n) => all || !n.startsWith('.')).map((n) => [(p === '/' ? '' : p) + '/' + n, n]));
+      const cab = targets.length > 1 ? `${t}:\n` : '';
+      outs.push(cab + (long ? `total ${pares.length}\n` : '') + bloque(pares));
+    }
+    return { out: [...errores, ...outs].join('\n\n'), code: errores.length ? 2 : 0 };
   });
   def('mkdir', 'crea carpetas (-p crea las intermedias)', (a) => {
     const { flags, pos } = parseArgs(a, { bool: ['-p'] });
@@ -558,7 +593,17 @@ models:
   // ---- sed: s/a/b/[gip], d, p con direcciones (N, $, /re/, N,M); -n, -i, -e, -E
   function sedPrograma(texto) {
     const cmds = [];
-    for (let src of texto.split(/;\s*|\n/).map((x) => x.trim()).filter(Boolean)) {
+    // separa comandos por ; o salto de línea, pero no dentro de s/…/…/ (el ; puede ser parte del reemplazo)
+    const trozos = []; let cur = '', sep = null, vistos = 0;
+    for (let i = 0; i < texto.length; i++) {
+      const ch = texto[i];
+      if (sep) { cur += ch; if (ch === '\\') { cur += texto[++i] || ''; continue; } if (ch === sep && ++vistos === 3) sep = null; continue; }
+      if ((ch === ';' || ch === '\n')) { trozos.push(cur); cur = ''; continue; }
+      if (ch === 's' && !cur.trim().replace(/^(\d+|\$|\/(?:[^/\\]|\\.)*\/)(,(\d+|\$|\/(?:[^/\\]|\\.)*\/))?\s*/, '') && texto[i + 1] && !/[\w\s]/.test(texto[i + 1])) { sep = texto[i + 1]; vistos = 0; cur += ch + sep; vistos = 1; i++; continue; }
+      cur += ch;
+    }
+    trozos.push(cur);
+    for (let src of trozos.map((x) => x.trim()).filter(Boolean)) {
       let dir = null, m;
       const dirRe = /^(\d+|\$|\/(?:[^/\\]|\\.)*\/)(?:,(\d+|\$|\/(?:[^/\\]|\\.)*\/))?/;
       if ((m = src.match(dirRe)) && !src.startsWith('s/')) { dir = [m[1], m[2]]; src = src.slice(m[0].length).trim(); }
@@ -1728,6 +1773,7 @@ for _n, _fn in list(_ns.items()):
 
   function createTerminal(container, opts = {}) {
     if (!Machine.ready) Machine.load();
+    if (!opts.continuarSesion) Machine.nuevaSesion();
     const el = document.createElement('div');
     el.className = 'term' + (opts.compact ? ' term-compact' : '');
     el.innerHTML = `<div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">${escHtml(opts.title || tituloTerm())}</span><span class="term-actions"><button type="button" data-clear title="Limpiar (Ctrl+L)">limpiar</button> <button type="button" class="term-cfg-btn" data-cfg title="Apariencia: tema, fuente, cursor y prompt" aria-label="Ajustes de la terminal">⚙</button></span></div><div class="term-body" tabindex="0"><div class="term-out"></div><div class="term-line"><span class="term-prompt"></span><span class="term-input-wrap"><input class="term-input" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Línea de comandos"></span></div><div class="term-rsearch" hidden></div></div>`;
