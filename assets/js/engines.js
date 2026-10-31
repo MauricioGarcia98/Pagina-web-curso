@@ -15,10 +15,13 @@
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = src; s.async = true; s.crossOrigin = 'anonymous';
-      // el cargador AMD de Monaco define window.define; lo ocultamos mientras se evalúa una librería UMD
-      const amd = window.define;
-      window.define = undefined;
-      const restore = () => { if (amd) window.define = amd; };
+      // el cargador AMD de Monaco define window.define. Una librería UMD (como sql.js) que ve define.amd se
+      // registra como módulo AMD en vez de crear su variable global: ocultamos solo la marca .amd, no define
+      // entero, porque mientras tanto Monaco puede seguir cargando sus propios módulos con define()
+      const d = typeof window.define === 'function' ? window.define : null;
+      const amd = d ? d.amd : undefined;
+      if (d) d.amd = undefined;
+      const restore = () => { if (d) d.amd = amd; };
       s.onload = () => { restore(); resolve(); };
       s.onerror = () => { restore(); reject(new Error('No se pudo cargar ' + src + '. ¿Tienes conexión a internet?')); };
       document.head.appendChild(s);
