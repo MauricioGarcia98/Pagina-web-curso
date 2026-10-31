@@ -176,8 +176,10 @@
     const minH = tall ? 320 : 130, maxH = tall ? 720 : 520;
     const fit = () => { const hgt = Math.min(maxH, Math.max(minH, ed.getContentHeight())); wrap.style.height = hgt + 'px'; ed.layout(); };
     ed.onDidContentSizeChange(fit); fit();
-    ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRun && onRun());
-    ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => onCheck && onCheck());
+    // addAction (no addCommand): addCommand registra el atajo de forma global y, con varios editores
+    // en la página, Ctrl+Enter ejecutaba siempre el último editor creado. addAction lo ata a ESTE editor.
+    ed.addAction({ id: 'academia.run', label: 'Ejecutar', keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter], run: () => { onRun && onRun(); } });
+    ed.addAction({ id: 'academia.check', label: 'Comprobar', keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter], run: () => { onCheck && onCheck(); } });
     ed.onDidChangeModelContent(() => onChange && onChange(ed.getValue()));
     return ed;
   }
