@@ -2448,7 +2448,8 @@
       const vistas = preguntas.filter((e) => c[claveQ(e)]);
       const pend = vistas.filter((e) => c[claveQ(e)].due <= ahora).length, nuevas = preguntas.length - vistas.length;
       const dom = vistas.filter((e) => c[claveQ(e)].b >= 4).length;
-      $('#qstats').innerHTML = `<div class="stat"><b>${pend}</b><span>para repasar hoy</span></div><div class="stat"><b>${nuevas}</b><span>sin ver todavía</span></div><div class="stat"><b>${dom}</b><span>dominadas</span></div><div class="stat"><b>${preguntas.length}</b><span>de ${Object.keys(visitadas).length} lecciones abiertas</span></div>`;
+      const nLec = Object.keys(visitadas).filter((id) => LESSON_BY_ID.has(id)).length;
+      $('#qstats').innerHTML = `<div class="stat"><b>${pend}</b><span>para repasar hoy</span></div><div class="stat"><b>${nuevas}</b><span>sin ver todavía</span></div><div class="stat"><b>${dom}</b><span>dominadas</span></div><div class="stat"><b>${preguntas.length}</b><span>preguntas de ${nLec} ${nLec === 1 ? 'lección abierta' : 'lecciones abiertas'}</span></div>`;
       const n = Math.min(POR_SESION, pend + Math.min(nuevas, NUEVAS_POR_SESION));
       $('#qstart').disabled = !preguntas.length;
       $('#qstart').textContent = !preguntas.length ? 'Abre alguna lección para sumar preguntas' : n ? `Repasar ${n} preguntas →` : 'Practicar igual →';
