@@ -425,7 +425,12 @@ models:
     if (fn && args.includes('--help') && Commands.man && !/^(git|docker|docker-compose|dbt|airflow|az|aws|gcloud|gsutil|bq|databricks|terraform|uv|pip|python|python3|gh|psql|duckdb|sqlite3|curl|astro|spark-submit|jq|make|apt|brew|winget|wsl|sudo|java|pytest|ssh|ssh-keygen)$/.test(name)) return Commands.man([name], { stdin: '' });
     let res;
     if (!fn && Funciones[name]) res = await llamarFuncion(name, args.slice(1), stdin, opts);
-    else if (!fn) res = { out: col.err(`bash: ${name}: comando no encontrado`) + (suggest(name) ? `\n¿Quisiste decir ${col.b(suggest(name))}?` : ''), code: 127 };
+    else if (!fn) {
+      // un archivo escrito como si fuera un comando ("hola.py python"): el programa va primero, el archivo después
+      const ext = (/\.(py|sh|sql)$/.exec(name) || [])[1];
+      const pista = ext ? `\n${col.warn('pista')}: primero va el programa y después el archivo → ${col.b(ext === 'py' ? `python ${name}` : ext === 'sh' ? `bash ${name}` : `sqlite3 tienda.db < ${name}`)}` : suggest(name) ? `\n¿Quisiste decir ${col.b(suggest(name))}?` : '';
+      res = { out: col.err(`bash: ${name}: comando no encontrado`) + pista, code: 127 };
+    }
     else {
       try { res = await fn(args.slice(1), { stdin, opts, raw: text }); }
       catch (e) { res = fail(`${name}: ${e.message}`); }
@@ -1398,9 +1403,16 @@ for _n, _fn in list(_ns.items()):
     if (cmd === '.mode' || cmd === '.headers') return ok('');
     return fail(`Error: comando desconocido: ${cmd}. Escribe .help`);
   }
-  def('sqlite3', 'base de datos SQLite del curso: sqlite3 | sqlite3 tienda.db "SELECT …"', async (a) => {
+  def('sqlite3', 'base de datos SQLite del curso: sqlite3 | sqlite3 tienda.db "SELECT …" | sqlite3 tienda.db < consulta.sql', async (a, ctx) => {
     const q = a.find((x, i) => i > 0 && !x.startsWith('-')) || (a.length === 1 && !/\.db$/.test(a[0]) ? a[0] : null);
     if (q) return q.trim().startsWith('.') ? sqliteDot(q) : sqlExec(q);
+    // como sqlite3 real: si recibe SQL por la entrada (sqlite3 base.db < archivo.sql, o una tubería), lo ejecuta y sale
+    if (ctx && ctx.stdin && ctx.stdin.trim()) {
+      const partes = []; let sql = '';
+      for (const l of ctx.stdin.split('\n')) { if (!sql.trim() && l.trim().startsWith('.')) { partes.push(await sqliteDot(l.trim())); continue; } sql += l + '\n'; }
+      if (sql.trim()) partes.push(await sqlExec(sql));
+      return { out: partes.map((r) => r.out).filter(Boolean).join('\n'), code: partes.some((r) => r.code) ? 1 : 0 };
+    }
     if (!window.Engines.SQL._bytes) await window.Engines.SQL.init();
     return { out: `SQLite version 3.45 (sql.js) — base del curso con ${Object.keys(window.Engines.SQL.tables).length} tablas\nEscribe ${col.b('.tables')} para listarlas, ${col.b('.help')} para ayuda y ${col.b('.quit')} para salir. Termina cada consulta con ;`, code: 0, mode: 'sqlite' };
   });

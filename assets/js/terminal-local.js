@@ -292,7 +292,7 @@
     const archivo = pos.find((x) => /\.(duckdb|db)$/.test(x));
     const clave = archivo ? `duck:${norm(archivo)}` : `duck:memoria:${uid(6)}`;
     if (archivo && !exists(norm(archivo))) { writeFile(norm(archivo), '(base DuckDB simulada)'); save(); }
-    const sql = flags['-c'] || pos.find((x) => x !== archivo);
+    const sql = flags['-c'] || pos.find((x) => x !== archivo) || (ctx && ctx.stdin && ctx.stdin.trim() ? ctx.stdin : null);
     if (sql) return String(sql).trim().startsWith('.') ? duckMeta(clave, String(sql)) : duckSql(clave, String(sql));
     if (ctx && ctx.opts && ctx.opts.noInteractivo) return fail('duckdb: usa -c "SQL"');
     return {

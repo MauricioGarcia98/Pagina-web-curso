@@ -249,6 +249,16 @@ vim etl.py
 code .
 ```
 
+### Ejecutar lo que escribiste
+
+El orden siempre es **programa + archivo**: `python hola.py` (no `hola.py python`). Según el editor:
+
+| Dónde estás | Cómo ejecutas `hola.py` |
+|---|---|
+| En la terminal | `python hola.py` (los `.sh` con `bash script.sh`; los `.sql` con `sqlite3 tienda.db < consulta.sql`) |
+| Dentro de vim | `:w` para guardar y `:!python %` (el `%` es "este archivo"); Enter vuelve a vim |
+| En `code .` | El botón **▷** arriba a la derecha o **F5**: guarda y lo ejecuta en la terminal de abajo. Un DAG de Airflow se prueba con `airflow dags test`, un modelo de dbt con `dbt run --select` |
+
 :::tip Aprende vim en 10 minutos
 Escribe `vimtutor`: abre un texto en español para practicar los comandos de vim mientras lo lees. El chiste más viejo de la informática es "¿cómo salgo de vim?". Ahora sabes la respuesta: `Esc` y después `:q!`.
 :::
