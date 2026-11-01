@@ -231,6 +231,12 @@ def _display(df, n=20):
 
 def _env(mode):
     ns = {"__name__": "__main__"}
+    # cada ejecución empieza con la API de práctica "limpia": límite de pedidos, tokens y fallas reiniciados
+    try:
+        from js import ApiTienda
+        ApiTienda.reiniciar()
+    except Exception:
+        pass
     if mode == "pyspark":
         import pyspark.sql as ps
         global _SAMPLE
@@ -413,6 +419,8 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         }
         await py.runPythonAsync(HARNESS);
       }
+      // la API de práctica (api-practica.js) también vive en el worker, para que requests la use
+      if (msg.apiSrc && !self.ApiTienda) { try { new Function('g', 'return (' + msg.apiSrc + ')(g)')(self); } catch (e) { /* sin API */ } }
       const need = [];
       // desde Pyodide 314, sqlite3 viene incluido en la biblioteca estándar (no se instala aparte)
       if ((mode === 'dbt' || mode === 'airflow') && !loaded.has('jinja2')) need.push('jinja2');
@@ -495,7 +503,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       const id = ++this.seq;
       const first = this.status !== 'ready';
       if (first) this._setStatus('loading');
-      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES };
+      const full = { ...msg, id, pyodideUrl: PYODIDE_URL, sources: window.PY_SOURCES, apiSrc: window.API_TIENDA_SRC };
       if (msg.mode === 'pyspark' && !this._sentTables) { full.tables = this._tables(); this._sentTables = true; }
       return new Promise((resolve) => {
         const ms = first ? Math.max(timeoutMs, 180000) : timeoutMs;

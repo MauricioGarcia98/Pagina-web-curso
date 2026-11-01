@@ -1,5 +1,20 @@
 [
   {
+    "id": "cero",
+    "titulo": "Antes de empezar: desde cero absoluto",
+    "icono": "🌱",
+    "color": "#16a34a",
+    "descripcion": "Si nunca programaste ni usaste una terminal, empieza aquí. Cómo se organizan los archivos de tu computadora, cómo leer un error sin asustarte, la matemática justa para datos, el inglés técnico mínimo, cómo estudiar (y usar la IA como tutor) y qué es una API.",
+    "objetivos": [
+      "Entender archivos, carpetas, extensiones y rutas",
+      "Leer cualquier mensaje de error y saber qué hacer",
+      "Calcular porcentajes, tasas, promedios y medianas sin trampas",
+      "Reconocer las palabras en inglés que aparecen en errores y documentación",
+      "Estudiar con un método y pedir ayuda (a personas o a una IA) de forma efectiva",
+      "Entender qué es internet, una API, HTTP y JSON"
+    ]
+  },
+  {
     "id": "fundamentos",
     "titulo": "Fundamentos",
     "icono": "🧱",

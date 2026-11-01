@@ -13,7 +13,13 @@ Imagina que acabas de conseguir tu primer trabajo como **data engineer junior** 
 
 En este curso vas a vivir ese trabajo: cada lección empieza con un pedido real de alguien de la empresa (la gerente comercial, finanzas, marketing, operaciones o tu líder técnico) y termina con lo que necesitas saber para resolverlo como lo haría un profesional. Esta primera lección es tu inducción: qué hace el equipo de datos y con qué herramientas.
 :::
-¡Hola! Si llegaste hasta aquí sin saber nada de programación ni de datos, **este es exactamente tu lugar**. Vamos a ir paso a paso, sin dar nada por sabido. Al terminar el curso vas a poder hacer el trabajo diario de un ingeniero o ingeniera de datos: consultar y transformar datos con SQL y Python, procesar volúmenes enormes con Spark, ordenar las transformaciones con dbt, automatizarlas con Airflow y desplegar todo en Azure, AWS, Google Cloud o Databricks.
+¡Hola! Si llegaste hasta aquí sin saber nada de programación ni de datos, **este es exactamente tu lugar**. Vamos a ir paso a paso, sin dar nada por sabido. Al terminar el curso vas a poder hacer el trabajo diario de un ingeniero o ingeniera de datos: juntar los datos que una empresa tiene desparramados, limpiarlos, ordenarlos y dejarlos listos para que otros tomen decisiones con ellos.
+
+En esta lección vas a ver algunos nombres de herramientas (SQL, Spark, Airflow…). **No tienes que recordarlos ahora**: cada uno tiene su propia etapa más adelante, y los términos subrayados muestran una explicación si pasas el mouse por encima (o los tocas en el celular).
+
+:::nota ¿Nunca programaste ni usaste una terminal?
+Si palabras como *carpeta*, *ruta*, *extensión* o *error* te suenan lejanas, haz primero la etapa **🌱 Antes de empezar**: seis lecciones cortas sobre cómo funciona tu computadora, cómo leer un error, la matemática justa, el inglés técnico mínimo, cómo estudiar y qué es una API. [Ir a la primera lección →](#/l/cero-tu-computadora)
+:::
 
 ## ¿Qué es un dato?
 
@@ -38,10 +44,20 @@ La ingeniería de datos es lo mismo, pero con datos: construye las tuberías (*p
 Para que se vea concreto, sigamos una sola compra en **Tienda Andina**, la empresa ficticia que usamos en todo el curso:
 
 1. **10:22 de la mañana.** Lucía compra unos auriculares en la app. La app guarda el pedido en su base de datos, que está pensada para registrar ventas rápido, no para analizarlas.
-2. **3:00 de la madrugada.** Un **pipeline** programado (con Airflow) copia los pedidos del día a un **data lake** en la nube (S3, ADLS o Cloud Storage). Es la capa *bronze*: los datos tal como llegaron.
-3. **3:15.** Un job de **Spark** limpia esos pedidos: convierte el total de texto a número, normaliza el email, elimina duplicados. Es la capa *silver*.
-4. **3:40.** Unos modelos de **dbt** cruzan pedidos con clientes y productos, y calculan las ventas por día, país y categoría, con tests que verifican que no haya totales negativos. Es la capa *gold*.
-5. **8:00.** La gerente comercial abre su tablero y ve que ayer se vendieron 1.284 pedidos en Chile. No sabe que todo eso pasó, y **así tiene que ser**: si el pipeline funciona, nadie lo nota.
+2. **3:00 de la madrugada.** Un programa que arranca solo, todas las noches, copia los pedidos del día a un gran depósito de archivos en la nube. Esa primera parada guarda los datos **tal como llegaron**, con errores y todo (por si hay que volver a mirarlos).
+3. **3:15.** Otro programa **limpia** esos pedidos: convierte el total de texto a número, pone los emails en minúsculas, elimina los pedidos repetidos.
+4. **3:40.** Un tercer paso **cruza** pedidos con clientes y productos y calcula las ventas por día, país y categoría. Antes de publicar, revisa que no haya totales negativos ni días vacíos.
+5. **8:00.** La gerente comercial abre su tablero y ve que ayer se vendieron 1.284 pedidos en Chile. No sabe que todo eso pasó, y **así tiene que ser**: si todo funciona, nadie lo nota.
+
+Esa cadena de pasos automáticos se llama **pipeline** (tubería). Cada paso tiene una herramienta que lo hace bien, y las vas a aprender en orden:
+
+| Paso | En palabras simples | Nombre técnico | Herramienta (y en qué etapa la ves) |
+|---|---|---|---|
+| Arrancar todo a las 3:00, en orden | El despertador del pipeline | Orquestación | Airflow (etapa 4) |
+| Guardar lo que llegó, tal cual | El depósito de entrada | Capa *bronze* de un *data lake* | S3, ADLS o Cloud Storage (etapa 5) |
+| Limpiar | La planta de tratamiento | Capa *silver* | SQL (etapa 2), Python y Spark (etapa 3) |
+| Cruzar y calcular | La cocina | Capa *gold* | SQL y dbt (etapas 2 y 4) |
+| Mostrar | El grifo | Tablero (*dashboard*) | Power BI, Looker, Tableau |
 
 ```diagrama
 titulo: El recorrido de una compra en Tienda Andina, de la app al tablero de la gerente

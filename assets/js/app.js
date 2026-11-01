@@ -737,6 +737,7 @@
   // ---------------------------------------------------------------- etapas de la ruta
   // Los módulos se agrupan en etapas para que quien empieza de cero sepa qué viene primero y qué es opcional.
   const ETAPAS = [
+    { id: 'e0', titulo: 'Etapa 0 · Antes de empezar', desc: 'Si nunca programaste: tu computadora por dentro, leer errores, la matemática justa, inglés técnico, cómo estudiar y qué es una API.', mods: ['cero'] },
     { id: 'e1', titulo: 'Etapa 1 · Empieza aquí', desc: 'Qué es un dato, qué hace un ingeniero de datos, la terminal y Git. Si no sabes nada, arranca por acá.', mods: ['fundamentos'] },
     { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, con casos de negocio reales.', mods: ['sql', 'casos', 'analisis', 'modelado'] },
     { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, y Spark para cuando los datos no entran en una sola computadora.', mods: ['python', 'spark', 'pyspark'] },

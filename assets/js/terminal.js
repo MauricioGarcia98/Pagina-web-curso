@@ -1266,7 +1266,29 @@ models:
   });
   def('curl', 'peticiones HTTP (simuladas, sin red)', (a) => {
     const url = a.find((x) => /^https?:/.test(x)) || '';
-    if (/api\.tienda/.test(url)) return ok(JSON.stringify({ pedidos: [{ id: 1, total: 120.5 }, { id: 2, total: 80 }], pagina: 1 }, null, 2));
+    // la API de práctica (api-practica.js) responde de verdad: códigos, cabeceras, tokens, paginación y 429
+    if (window.ApiTienda && window.ApiTienda.esDeLaApi(url)) {
+      let metodo = 'GET', datos = null, incluir = false, soloCab = false, falla = false, salida = null;
+      const hs = {};
+      for (let i = 0; i < a.length; i++) {
+        const x = a[i];
+        if (x === '-X' || x === '--request') metodo = String(a[++i] || 'GET').toUpperCase();
+        else if (x === '-H' || x === '--header') { const hv = String(a[++i] || ''); const k = hv.indexOf(':'); if (k > 0) hs[hv.slice(0, k).trim()] = hv.slice(k + 1).trim(); }
+        else if (x === '-d' || x === '--data' || x === '--data-raw' || x === '--json') { datos = a[++i] || ''; if (metodo === 'GET') metodo = 'POST'; if (x === '--json') hs['Content-Type'] = 'application/json'; }
+        else if (x === '-i' || x === '--include') incluir = true;
+        else if (x === '-I' || x === '--head') { soloCab = true; incluir = true; }
+        else if (x === '-f' || x === '--fail') falla = true;
+        else if (x === '-o' || x === '--output') salida = a[++i];
+        else if (/^-[a-zA-Z]{2,}$/.test(x)) { if (x.includes('i')) incluir = true; if (x.includes('f')) falla = true; }
+      }
+      const r = window.ApiTienda.request(metodo, url, hs, datos);
+      const RAZON = { 200: 'OK', 400: 'Bad Request', 401: 'Unauthorized', 404: 'Not Found', 405: 'Method Not Allowed', 429: 'Too Many Requests', 503: 'Service Unavailable' };
+      const cab = `HTTP/2 ${r.status} ${RAZON[r.status] || ''}\n` + Object.entries(r.headers).map(([k, v]) => `${k}: ${v}`).join('\n') + '\n';
+      if (falla && r.status >= 400) return fail(`curl: (22) The requested URL returned error: ${r.status}`, 22);
+      const cuerpo = soloCab ? '' : r.body;
+      if (salida) { writeFile(norm(salida), cuerpo); Machine.save(); return ok(incluir ? cab : ''); }
+      return ok((incluir ? cab + '\n' : '') + cuerpo);
+    }
     // scripts de instalación conocidos: devuelven un script de bash que "instala" la herramienta (para curl … | bash)
     const INSTALADORES = [[/Homebrew\/install/, 'Homebrew', 'brew', '==> Checking for `sudo` access (which may request your password)...\n==> This script will install:\n/opt/homebrew/bin/brew\n==> Downloading and installing Homebrew...\n==> Installation successful!\n==> Next steps:\n- Run these commands in your terminal to add Homebrew to your PATH:\n    eval \\"\\$(/opt/homebrew/bin/brew shellenv)\\"'], [/astral\.sh\/uv/, 'uv', 'uv', 'downloading uv 0.9.5 x86_64-unknown-linux-gnu\nno checksums to verify\ninstalling to /home/alumno/.local/bin\n  uv\n  uvx\neverything is installed!'], [/astronomer/, 'Astro CLI', 'astro', 'Installing Astro CLI v1.31.0...\nAstro CLI v1.31.0 instalado en /usr/local/bin/astro'], [/get\.docker\.com/, 'Docker', 'docker', '# Executing docker install script\n+ sh -c apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin\nDocker instalado.'], [/sdk\.cloud\.google\.com|install\.sh.*gcloud/, 'Google Cloud CLI', 'gcloud', 'Welcome to the Google Cloud CLI!\nInstallation directory: /home/alumno/google-cloud-sdk\nGoogle Cloud CLI instalado.'], [/aka\.ms\/InstallAzureCLIDeb/, 'Azure CLI', 'az', 'Get:1 https://packages.microsoft.com/repos/azure-cli jammy InRelease\nSetting up azure-cli (2.79.0-1~jammy) ...'], [/databricks\/setup-cli/, 'Databricks CLI', 'databricks', 'Installed Databricks CLI v0.270.0 at /usr/local/bin/databricks.']];
     const inst = INSTALADORES.find(([re]) => re.test(url));

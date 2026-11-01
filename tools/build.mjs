@@ -188,7 +188,7 @@ function parseFrontMatter(src, file) {
   return { meta, body: src.slice(m[0].length) };
 }
 
-const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo'];
+const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo', 'rubrica'];
 
 // "todos: base || frag1 || frag2" => el comando debe empezar con base y contener todos los fragmentos, en cualquier orden
 function cliPattern(line) {
