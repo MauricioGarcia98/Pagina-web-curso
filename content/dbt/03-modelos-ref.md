@@ -296,3 +296,69 @@ left join por_cliente pc on pc.cliente_id = c.cliente_id
 LEFT JOIN desde clientes para no perder a los que no compraron, y `coalesce(total, 0)`.
 ```
 :::
+
+### Más práctica
+
+:::ejercicio dbt titulo="Importe por pedido"
+Modelo intermedio `int_pedidos_importe`: el importe total de cada pedido sumando `importe` de `stg_detalle_pedidos`. Columnas `pedido_id` e `importe` (redondeado a 2).
+```sql inicial
+select pedido_id
+from {{ ref('stg_detalle_pedidos') }}
+```
+```sql solucion
+select pedido_id, round(sum(importe), 2) as importe
+from {{ ref('stg_detalle_pedidos') }}
+group by pedido_id
+```
+:::
+
+:::ejercicio dbt titulo="Unir dos modelos"
+`fct_pedidos`: une `stg_pedidos` con el importe de cada pedido (calculado en una CTE desde `stg_detalle_pedidos`). Columnas `pedido_id`, `cliente_id`, `fecha_pedido`, `canal`, `importe`.
+```sql inicial
+with importes as (
+    select pedido_id, round(sum(importe), 2) as importe
+    from {{ ref('stg_detalle_pedidos') }}
+    group by pedido_id
+)
+select
+from {{ ref('stg_pedidos') }} p
+```
+```sql solucion
+with importes as (
+    select pedido_id, round(sum(importe), 2) as importe
+    from {{ ref('stg_detalle_pedidos') }}
+    group by pedido_id
+)
+select p.pedido_id, p.cliente_id, p.fecha_pedido, p.canal, i.importe
+from {{ ref('stg_pedidos') }} p
+join importes i on i.pedido_id = p.pedido_id
+```
+:::
+
+:::ejercicio dbt titulo="Una dimensión con métricas"
+`dim_clientes_valor`: cada cliente de `stg_clientes` con `cliente_id`, `pais` y `pedidos` (cantidad de pedidos en `stg_pedidos`, 0 si no tiene). Usa `left join`.
+```sql inicial
+select c.cliente_id, c.pais
+from {{ ref('stg_clientes') }} c
+```
+```sql solucion
+select c.cliente_id, c.pais, count(p.pedido_id) as pedidos
+from {{ ref('stg_clientes') }} c
+left join {{ ref('stg_pedidos') }} p on p.cliente_id = c.cliente_id
+group by c.cliente_id, c.pais
+```
+:::
+
+:::ejercicio dbt titulo="Agregado mensual"
+`agg_ventas_mes`: por mes (`strftime('%Y-%m', fecha_pedido)` como `mes`) la cantidad de pedidos no cancelados de `stg_pedidos`. Columnas `mes` y `pedidos`.
+```sql inicial
+select
+from {{ ref('stg_pedidos') }}
+```
+```sql solucion
+select strftime('%Y-%m', fecha_pedido) as mes, count(*) as pedidos
+from {{ ref('stg_pedidos') }}
+where estado <> 'cancelado'
+group by mes
+```
+:::

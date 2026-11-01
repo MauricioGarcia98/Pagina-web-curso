@@ -252,3 +252,69 @@ Tu archivo de DAG hace una consulta a la base de datos de producción en el nive
 - [x] En una Connection de Airflow (idealmente respaldada por un gestor de secretos como Key Vault)
 - [ ] En una variable global de Python
 :::
+
+### Más práctica
+
+:::ejercicio airflow titulo="Reintento con espera"
+DAG `api_externa` con un `PythonOperator` `traer` que tenga `retries=4` y `retry_delay=timedelta(minutes=5)`, y que llame a `traer_datos()`.
+```python inicial
+from datetime import datetime, timedelta
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def traer_datos():
+    return "ok"
+```
+```python solucion
+from datetime import datetime, timedelta
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def traer_datos():
+    return "ok"
+
+with DAG("api_externa", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    PythonOperator(task_id="traer", python_callable=traer_datos, retries=4, retry_delay=timedelta(minutes=5))
+```
+```python test
+from datetime import timedelta
+d = dags.get("api_externa")
+assert d is not None, "No encontré el DAG 'api_externa'"
+t = d.get_task("traer")
+assert t.retries == 4 and t.retry_delay == timedelta(minutes=5), f"retries={t.retries}, retry_delay={t.retry_delay}"
+```
+:::
+
+:::ejercicio airflow titulo="Una tarea idempotente"
+La tarea `cargar_dia` de `carga_idempotente` recibe la fecha de la corrida (`ds`) y devuelve el destino: la partición del día, `"lago/pedidos/fecha=<ds>"`. Así, correrla dos veces para el mismo día escribe en el mismo lugar (reemplaza, no duplica). Usa `@task` y el parámetro `ds`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False)
+def carga_idempotente():
+    ...
+
+carga_idempotente()
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(schedule="@daily", start_date=datetime(2024, 1, 1), catchup=False)
+def carga_idempotente():
+    @task
+    def cargar_dia(ds=None):
+        return f"lago/pedidos/fecha={ds}"
+
+    cargar_dia()
+
+carga_idempotente()
+```
+```python test
+d = dags.get("carga_idempotente")
+assert d is not None, "No encontré el DAG 'carga_idempotente'"
+run = d.test(logical_date=datetime(2024, 5, 2))
+assert run.xcoms.get(("cargar_dia", "return_value")) == "lago/pedidos/fecha=2024-05-02", f"Devolvió {run.xcoms.get(('cargar_dia', 'return_value'))!r}"
+```
+:::

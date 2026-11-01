@@ -435,3 +435,65 @@ El DAG consumidor tiene `schedule=[ventas, clientes]`. `ventas` se actualizó tr
 - [x] Ninguna: con una lista, espera a que **todos** los assets se actualicen; cuando llegue `clientes`, corre una vez
 - [ ] Corre cada hora hasta que llegue clientes
 :::
+
+### Más práctica
+
+:::ejercicio airflow titulo="Cortar si no hay datos"
+DAG `si_hay_datos`: un `ShortCircuitOperator` `hay_filas` que devuelve `filas > 0` (con `filas = 0`), seguido de `procesar` y `publicar` (`EmptyOperator`). Como no hay filas, las dos siguientes deben quedar saltadas.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+filas = 0
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import ShortCircuitOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+filas = 0
+
+with DAG("si_hay_datos", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    hay = ShortCircuitOperator(task_id="hay_filas", python_callable=lambda: filas > 0)
+    procesar = EmptyOperator(task_id="procesar")
+    publicar = EmptyOperator(task_id="publicar")
+    hay >> procesar >> publicar
+```
+```python test
+d = dags.get("si_hay_datos")
+assert d is not None, "No encontré el DAG 'si_hay_datos'"
+run = d.test()
+assert run.states["procesar"] == "skipped" and run.states["publicar"] == "skipped", f"Estados: {run.states}"
+```
+:::
+
+:::ejercicio airflow titulo="Agrupar con TaskGroup"
+DAG `capas`: un `TaskGroup` `silver` con dos `EmptyOperator` (`limpiar_clientes` y `limpiar_pedidos`), precedido por `bronze` y seguido por `gold`. Los ids de las tareas dentro del grupo quedan como `silver.limpiar_clientes`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG, TaskGroup
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG, TaskGroup
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("capas", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    bronze = EmptyOperator(task_id="bronze")
+    with TaskGroup("silver") as silver:
+        EmptyOperator(task_id="limpiar_clientes")
+        EmptyOperator(task_id="limpiar_pedidos")
+    gold = EmptyOperator(task_id="gold")
+    bronze >> silver >> gold
+```
+```python test
+d = dags.get("capas")
+assert d is not None, "No encontré el DAG 'capas'"
+assert d.has_task("silver.limpiar_clientes") and d.has_task("silver.limpiar_pedidos"), f"Tareas: {d.task_ids}"
+assert d.get_task("gold").upstream_task_ids == {"silver.limpiar_clientes", "silver.limpiar_pedidos"}
+```
+:::

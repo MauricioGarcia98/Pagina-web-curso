@@ -145,3 +145,33 @@ Tu empresa necesita copiar datos de Salesforce al lakehouse cada hora. ¿dbt sir
 - [ ] Notebooks de Spark
 - [ ] DAGs de Airflow
 :::
+
+### Practica con código
+
+En los ejercicios de dbt escribes el SQL de un **modelo**, con Jinja. El corrector lo compila como dbt (`ref()` y `source()` apuntan a las tablas del curso) y compara el resultado con el esperado. Los modelos de staging `stg_clientes`, `stg_productos`, `stg_pedidos`, `stg_detalle_pedidos` y `stg_pagos` ya existen.
+
+:::ejercicio dbt titulo="Tu primer modelo"
+Escribe un modelo que devuelva `pedido_id`, `fecha_pedido` y `estado` de los pedidos entregados, leyendo de `{{ ref('stg_pedidos') }}`.
+```sql inicial
+select
+from {{ ref('stg_pedidos') }}
+```
+```sql solucion
+select pedido_id, fecha_pedido, estado
+from {{ ref('stg_pedidos') }}
+where estado = 'entregado'
+```
+:::
+
+:::ejercicio dbt titulo="Un modelo que usa otro"
+Cuenta los pedidos por `canal` usando `ref('stg_pedidos')`. Columnas `canal` y `pedidos`.
+```sql inicial
+select canal
+from {{ ref('stg_pedidos') }}
+```
+```sql solucion
+select canal, count(*) as pedidos
+from {{ ref('stg_pedidos') }}
+group by canal
+```
+:::

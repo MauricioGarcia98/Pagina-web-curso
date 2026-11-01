@@ -268,3 +268,80 @@ assert d.get_task("inicio").downstream_task_ids == esperadas, f"inicio debe ir a
 assert d.get_task("procesar_sur").op_kwargs == {"region": "sur"}, "Pasa la región con op_kwargs={'region': r}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio airflow titulo="La fecha de la corrida en el comando"
+Crea el DAG `exportar` con un `BashOperator` `exportar_dia` cuyo comando sea `echo exportando {{ ds }}`, para que cada corrida exporte **su** día. Prueba con `dag.test(logical_date=datetime(2024, 3, 15))`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG("exportar", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False) as dag:
+    BashOperator(task_id="exportar_dia", bash_command="echo exportando {{ ds }}")
+```
+```python test
+d = dags.get("exportar")
+assert d is not None, "No encontré el DAG 'exportar'"
+run = d.test(logical_date=datetime(2024, 3, 15))
+assert run.xcoms.get(("exportar_dia", "return_value")) == "exportando 2024-03-15", f"Salida: {run.xcoms.get(('exportar_dia', 'return_value'))!r}. Usa la plantilla {{{{ ds }}}}"
+```
+:::
+
+:::ejercicio airflow titulo="Argumentos para la función"
+Crea el DAG `por_pais` con un `PythonOperator` `filtrar` que llame a `filtrar_pais(pais)` pasándole `pais="Chile"` con `op_kwargs`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def filtrar_pais(pais):
+    return f"filtrando {pais}"
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def filtrar_pais(pais):
+    return f"filtrando {pais}"
+
+with DAG("por_pais", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    PythonOperator(task_id="filtrar", python_callable=filtrar_pais, op_kwargs={"pais": "Chile"})
+```
+```python test
+d = dags.get("por_pais")
+assert d is not None, "No encontré el DAG 'por_pais'"
+assert d.test().xcoms.get(("filtrar", "return_value")) == "filtrando Chile"
+```
+:::
+
+:::ejercicio airflow titulo="Reintentos para todas las tareas"
+Crea el DAG `robusto` con `default_args={"retries": 3}` para que **todas** sus tareas tengan 3 reintentos, y dos `EmptyOperator`: `a` y `b` (a antes que b).
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("robusto", start_date=datetime(2024, 1, 1), schedule=None, default_args={"retries": 3}) as dag:
+    a = EmptyOperator(task_id="a")
+    b = EmptyOperator(task_id="b")
+    a >> b
+```
+```python test
+d = dags.get("robusto")
+assert d is not None, "No encontré el DAG 'robusto'"
+assert d.get_task("a").retries == 3 and d.get_task("b").retries == 3, "Pon retries en default_args del DAG"
+```
+:::

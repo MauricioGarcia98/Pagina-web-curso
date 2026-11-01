@@ -287,3 +287,85 @@ assert run.state == "success", "El DAG debería terminar bien"
 assert run.xcoms.get(("calcular", "return_value")) == 60, "La tarea 'calcular' debería devolver 60"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio airflow titulo="Un comando bash"
+Crea el DAG `saludo` con una sola tarea `BashOperator` llamada `decir_hola` que ejecute `echo hola equipo`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG("saludo", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    BashOperator(task_id="decir_hola", bash_command="echo hola equipo")
+```
+```python test
+d = dags.get("saludo")
+assert d is not None, "No encontré el DAG 'saludo'"
+run = d.test()
+assert run.xcoms.get(("decir_hola", "return_value")) == "hola equipo", "decir_hola debe ejecutar echo hola equipo"
+```
+:::
+
+:::ejercicio airflow titulo="Una función de Python"
+Crea el DAG `conteo` con un `PythonOperator` `contar_filas` que llame a la función `contar()` (ya escrita), que devuelve la cantidad de filas.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def contar():
+    filas = [1, 2, 3, 4, 5]
+    return len(filas)
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def contar():
+    filas = [1, 2, 3, 4, 5]
+    return len(filas)
+
+with DAG("conteo", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    PythonOperator(task_id="contar_filas", python_callable=contar)
+```
+```python test
+d = dags.get("conteo")
+assert d is not None, "No encontré el DAG 'conteo'"
+assert d.test().xcoms.get(("contar_filas", "return_value")) == 5
+```
+```pista
+Pasa la función **sin paréntesis**: `python_callable=contar`. Si escribes `contar()`, la ejecutas al definir el DAG.
+```
+:::
+
+:::ejercicio airflow titulo="Etiquetas y horario"
+Crea el DAG `reporte_diario` que corra todos los días (`schedule="@daily"`) desde el 1 de enero de 2024, **sin** catchup, con las etiquetas `ventas` y `diario`, y una tarea `EmptyOperator` llamada `generar`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("reporte_diario", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False, tags=["ventas", "diario"]) as dag:
+    EmptyOperator(task_id="generar")
+```
+```python test
+d = dags.get("reporte_diario")
+assert d is not None, "No encontré el DAG 'reporte_diario'"
+assert d.schedule == "@daily", f"schedule es {d.schedule!r}"
+assert d.catchup is False, "catchup debe ser False"
+assert set(d.tags) == {"ventas", "diario"}, f"tags es {d.tags}"
+```
+:::

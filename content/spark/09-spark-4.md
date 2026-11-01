@@ -299,3 +299,33 @@ En Spark Declarative Pipelines, ¿cómo sabe el motor en qué orden construir la
 - [ ] Hay que escribir las dependencias con `>>`
 - [ ] Por orden alfabético
 :::
+
+### Practica con código
+
+:::ejercicio pyspark titulo="Divisiones que no rompen el job"
+Con el modo ANSI de Spark 4, dividir por cero falla. Calcula el `ticket_medio` por cliente (gasto total ÷ cantidad de pedidos) usando `F.try_divide`, que devuelve nulo en vez de romper. Usa los datos de `datos`. `resultado` con `cliente` y `ticket_medio`.
+```python inicial
+from pyspark.sql import functions as F
+datos = [("ana", 300.0, 3), ("luis", 120.0, 0), ("eva", 90.0, 2)]
+df = spark.createDataFrame(datos, ["cliente", "gasto", "pedidos"])
+```
+```python solucion
+from pyspark.sql import functions as F
+datos = [("ana", 300.0, 3), ("luis", 120.0, 0), ("eva", 90.0, 2)]
+df = spark.createDataFrame(datos, ["cliente", "gasto", "pedidos"])
+resultado = df.select("cliente", F.try_divide(F.col("gasto"), F.col("pedidos")).alias("ticket_medio"))
+```
+:::
+
+:::ejercicio pyspark titulo="Convertir texto sin romper"
+Los montos llegaron como texto y algunos no son números. Con `F.try_to_number(col, F.lit("9999.99"))` conviértelos (los inválidos quedan nulos) y suma el total en una fila con la columna `total`.
+```python inicial
+from pyspark.sql import functions as F
+df = spark.createDataFrame([("10.50",), ("abc",), ("20.00",), ("",)], ["monto"])
+```
+```python solucion
+from pyspark.sql import functions as F
+df = spark.createDataFrame([("10.50",), ("abc",), ("20.00",), ("",)], ["monto"])
+resultado = df.select(F.try_to_number(F.col("monto"), F.lit("9999.99")).alias("m")).agg(F.sum("m").alias("total"))
+```
+:::

@@ -215,3 +215,62 @@ assert d.get_task("notificar").trigger_rule == "all_done"
 assert "{{ ds_nodash }}" in d.get_task("esperar_archivo").filepath
 ```
 :::
+
+### Más práctica
+
+:::ejercicio airflow titulo="dbt después de la ingesta"
+DAG `diario_dbt`: `ingestar` (`EmptyOperator`), después `dbt_build` (`BashOperator` con `dbt build --select tag:diario --target prod`) y al final `avisar` (`EmptyOperator`).
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("diario_dbt", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False) as dag:
+    ingestar = EmptyOperator(task_id="ingestar")
+    dbt_build = BashOperator(task_id="dbt_build", bash_command="dbt build --select tag:diario --target prod")
+    avisar = EmptyOperator(task_id="avisar")
+    ingestar >> dbt_build >> avisar
+```
+```python test
+d = dags.get("diario_dbt")
+assert d is not None, "No encontré el DAG 'diario_dbt'"
+assert "dbt build" in d.get_task("dbt_build").bash_command and "tag:diario" in d.get_task("dbt_build").bash_command
+assert d.get_task("ingestar").downstream_task_ids == {"dbt_build"} and d.get_task("dbt_build").downstream_task_ids == {"avisar"}
+```
+:::
+
+:::ejercicio airflow titulo="Un job de Databricks"
+DAG `databricks_diario`: un `DatabricksRunNowOperator` `correr_job` con `job_id=1234` y `databricks_conn_id="databricks_default"`, seguido de `EmptyOperator` `fin`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("databricks_diario", start_date=datetime(2024, 1, 1), schedule="@daily", catchup=False) as dag:
+    correr = DatabricksRunNowOperator(task_id="correr_job", job_id=1234, databricks_conn_id="databricks_default")
+    fin = EmptyOperator(task_id="fin")
+    correr >> fin
+```
+```python test
+d = dags.get("databricks_diario")
+assert d is not None, "No encontré el DAG 'databricks_diario'"
+t = d.get_task("correr_job")
+assert type(t).__name__ == "DatabricksRunNowOperator"
+assert d.get_task("fin").upstream_task_ids == {"correr_job"}
+assert d.test().states["fin"] == "success"
+```
+:::

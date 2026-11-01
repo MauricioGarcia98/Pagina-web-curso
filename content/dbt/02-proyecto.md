@@ -275,3 +275,33 @@ cd ~/tienda_dbt
 - [ ] Porque es muy grande
 - [ ] Porque se genera solo
 :::
+
+### Practica con código
+
+:::ejercicio dbt titulo="Staging de pagos"
+Escribe el modelo de staging de pagos a partir de `{{ source('tienda', 'pagos') }}`: renombra `monto` a `importe`, convierte `fecha_pago` a fecha con `date(...)` y deja solo los pagos `aprobado`. Columnas: `pago_id`, `pedido_id`, `fecha_pago`, `importe`.
+```sql inicial
+select
+from {{ source('tienda', 'pagos') }}
+```
+```sql solucion
+select pago_id, pedido_id, date(fecha_pago) as fecha_pago, monto as importe
+from {{ source('tienda', 'pagos') }}
+where estado = 'aprobado'
+```
+:::
+
+:::ejercicio dbt titulo="Nombres y tipos consistentes"
+Staging de empleados desde `{{ source('tienda', 'empleados') }}`: `empleado_id`, `nombre_completo` (nombre y apellido separados por un espacio), `email` en minúsculas y `fecha_contratacion` como fecha.
+```sql inicial
+select
+from {{ source('tienda', 'empleados') }}
+```
+```sql solucion
+select empleado_id,
+       nombre || ' ' || apellido as nombre_completo,
+       lower(email) as email,
+       date(fecha_contratacion) as fecha_contratacion
+from {{ source('tienda', 'empleados') }}
+```
+:::

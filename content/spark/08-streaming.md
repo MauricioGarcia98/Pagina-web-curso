@@ -141,3 +141,33 @@ Quieres un job que cada hora procese **todos los archivos nuevos y luego se apag
 - [ ] El tamaño de los archivos
 - [ ] La cantidad de executors
 :::
+
+### Practica con código
+
+El simulador no tiene streaming, pero la lógica de las ventanas de tiempo se practica igual sobre datos en lote: es la misma cuenta que haría Structured Streaming sobre cada micro-lote.
+
+:::ejercicio pyspark titulo="Ventanas de una hora"
+Agrupa los eventos de `eventos_web` en ventanas fijas de una hora (`F.date_trunc("hour", F.to_timestamp("fecha_hora"))`) y cuenta los eventos de tipo `compra` en cada una. `resultado` con `ventana` y `compras`.
+```python inicial
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+```
+```python solucion
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+resultado = (ev.filter(F.col("tipo_evento") == "compra")
+               .withColumn("ventana", F.date_trunc("hour", F.to_timestamp("fecha_hora")))
+               .groupBy("ventana").agg(F.count("*").alias("compras")))
+```
+:::
+
+:::ejercicio pyspark titulo="Deduplicar eventos repetidos"
+En streaming llegan eventos repetidos (el productor reintenta). Elimina duplicados por `cliente_id`, `fecha_hora` y `tipo_evento` con `dropDuplicates` y guarda en `resultado` cuántos eventos quedan.
+```python inicial
+ev = spark.table("eventos_web")
+```
+```python solucion
+ev = spark.table("eventos_web")
+resultado = ev.dropDuplicates(["cliente_id", "fecha_hora", "tipo_evento"]).count()
+```
+:::
