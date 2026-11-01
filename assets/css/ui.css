@@ -237,3 +237,67 @@
 .rv-ico { width: 20px; font-weight: 800; }
 .rv-item.ok .rv-ico { color: var(--ok); } .rv-item.mal .rv-ico { color: var(--bad); }
 .rv-item.mal { border-color: color-mix(in srgb, var(--bad) 30%, var(--line)); }
+
+/* ------------------------------------------------------------------ vim y nano dentro de la terminal */
+.term.con-pantalla .term-line, .term.con-pantalla .term-out { visibility: hidden; height: 0; overflow: hidden; }
+.term.con-pantalla .term-body { min-height: 420px; position: relative; }
+.ed-pantalla { position: absolute; inset: 0; display: flex; flex-direction: column; background: inherit; font-family: var(--mono); z-index: 2; cursor: text; }
+.term .ed-pantalla { background: var(--term-bg, #0d1117); color: var(--term-fg, #d6deeb); }
+.ed-texto { flex: 1; overflow: hidden; padding: 6px 10px 0; line-height: 1.45; white-space: pre; }
+.ed-l { min-height: 1.45em; }
+.ed-tilde { color: #5b6b8c; }
+.ed-nu { color: #7f8aa3; }
+.ed-cur { background: currentColor; color: inherit; outline: 1px solid currentColor; mix-blend-mode: difference; }
+.ed-cur-ins { background: transparent; box-shadow: inset 2px 0 0 currentColor; mix-blend-mode: normal; outline: none; }
+.ed-sel { background: rgba(120, 140, 255, .28); }
+.ed-estado { padding: 3px 10px 6px; display: flex; gap: 10px; white-space: pre; min-height: 1.6em; }
+.ed-izq { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.ed-der { color: #9aa4bd; }
+.ed-err { color: #fff; background: #c53030; padding: 0 4px; }
+.ed-captura { position: absolute; left: -9999px; top: 0; width: 1px; height: 1px; opacity: 0; }
+.ed-nano .ed-nano-cab { display: flex; justify-content: space-between; background: #d6deeb; color: #0d1117; padding: 0 6px; margin: -6px -10px 4px; }
+.ed-nano .ed-estado { display: block; }
+.ed-inv { background: #d6deeb; color: #0d1117; padding: 0 4px; }
+.ed-nano-msg { text-align: center; min-height: 1.45em; }
+.ed-nano-ayuda { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: #c3cadb; }
+.ed-nano-ayuda b { background: #d6deeb; color: #0d1117; padding: 0 2px; margin-right: 4px; font-weight: 600; }
+
+/* ------------------------------------------------------------------ "code ." (VS Code en la página) */
+body.vscode-abierto { overflow: hidden; }
+.vscode { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; background: #1e1e1e; color: #cccccc; font-size: 13px; }
+.vs-titulo { height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: #323233; border-bottom: 1px solid #2b2b2b; }
+.vs-logo { color: #3b9cff; font-weight: 800; }
+.vs-tit { color: #cccccc; }
+.vs-ayuda { color: #8b8b8b; }
+.vs-x { background: none; border: 0; color: #cccccc; font-size: 15px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+.vs-x:hover { background: #c42b1c; color: #fff; }
+.vs-cuerpo { flex: 1; display: flex; min-height: 0; }
+.vs-lateral { width: 240px; flex-shrink: 0; background: #252526; border-right: 1px solid #2b2b2b; overflow: auto; }
+.vs-lat-cab { display: flex; align-items: center; gap: 2px; padding: 8px 8px 6px 14px; font-size: 11px; letter-spacing: .06em; color: #bbbbbb; }
+.vs-lat-cab button { background: none; border: 0; color: #cccccc; cursor: pointer; font-size: 11px; padding: 2px 4px; border-radius: 3px; }
+.vs-lat-cab button:hover { background: #37373d; }
+.vs-n { padding: 3px 8px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-n:hover { background: #2a2d2e; }
+.vs-n.on { background: #37373d; color: #fff; }
+.vs-raiz { font-weight: 700; font-size: 11px; letter-spacing: .04em; cursor: default; }
+.vs-ic { display: inline-block; width: 20px; font-size: 12px; }
+.vs-punto { color: #e2c08d; }
+.vs-centro { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.vs-tabs { display: flex; background: #252526; overflow-x: auto; min-height: 35px; }
+.vs-tab { display: flex; align-items: center; gap: 8px; padding: 0 10px 0 14px; border-right: 1px solid #252526; background: #2d2d2d; color: #969696; cursor: pointer; white-space: nowrap; }
+.vs-tab.on { background: #1e1e1e; color: #ffffff; border-top: 1px solid #3b9cff; }
+.vs-tab button { background: none; border: 0; color: inherit; cursor: pointer; font-size: 14px; width: 20px; border-radius: 3px; }
+.vs-tab button:hover { background: #3c3c3c; }
+.vs-editor { flex: 1; min-height: 0; overflow: auto; background: #1e1e1e; }
+.vs-editor .editor-host, .vs-editor .monaco-host { height: 100% !important; border: 0; border-radius: 0; }
+.vs-editor .CodeMirror { height: 100%; }
+.vs-vacio { color: #8b8b8b; text-align: center; padding-top: 18vh; line-height: 2; }
+.vs-panel { height: 38%; min-height: 160px; border-top: 1px solid #3c3c3c; display: flex; flex-direction: column; background: #1e1e1e; }
+.vs-panel-cab { display: flex; align-items: center; padding: 4px 12px; font-size: 11px; letter-spacing: .06em; border-bottom: 1px solid #2b2b2b; }
+.vs-panel-cab button { background: none; border: 0; color: #cccccc; cursor: pointer; }
+.vs-panel-cuerpo { flex: 1; min-height: 0; overflow: auto; }
+.vs-panel-cuerpo .term { border: 0; border-radius: 0; box-shadow: none; height: 100%; }
+.vs-panel-cuerpo .term-bar { display: none; }
+.vs-estado { height: 24px; display: flex; align-items: center; gap: 14px; padding: 0 10px; background: #007acc; color: #fff; font-size: 12px; }
+.vs-estado button { background: none; border: 0; color: #fff; cursor: pointer; font-size: 12px; }
+@media (max-width: 760px) { .vs-lateral { width: 150px; } .vs-ayuda { display: none; } }

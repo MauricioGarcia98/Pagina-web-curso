@@ -488,7 +488,7 @@ models:
       else if (p.sep === '||') skip = last.code === 0;
       else skip = false;
     }
-    return { out: out.join('\n'), code: last.code, repl: last.repl, ctrl: last.ctrl };
+    return { out: out.join('\n'), code: last.code, repl: last.repl, pantalla: last.pantalla, ctrl: last.ctrl };
   }
 
   // ------------------------------------------------------------- intérprete de scripts
@@ -2299,6 +2299,12 @@ for _n, _fn in list(_ns.items()):
       const last = await lastMode(line);
       if (last) mode = last;
       if (r.repl) { repl = r.repl; mode = 'repl'; }
+      // programas de pantalla completa (vim, nano): ocupan la terminal hasta que sales, como en una real
+      if (r.pantalla && window.Shell.pantallas && window.Shell.pantallas[r.pantalla.tipo]) {
+        busy = true;
+        try { const fin = await window.Shell.pantallas[r.pantalla.tipo](el, r.pantalla); if (fin) print(render(fin)); } catch (e) { print(render(col.err(String(e.message || e)))); }
+        busy = false; body.scrollTop = body.scrollHeight; setTimeout(() => input.focus(), 0);
+      }
       setPrompt();
       opts.onCommand && opts.onCommand(line, r, null);
     }
@@ -2433,6 +2439,6 @@ for _n, _fn in list(_ns.items()):
     TermCfg, TEMAS,
     Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, mkdirp, display, HOME,
     fail, ok, sqlExec, openEditor: null, runScript, faltaCerrar, esCompuesto, Shopt, Funciones,
-    gitInt: { root: gitRoot, snapshot, ignored, hash: shortHash },
+    gitInt: { root: gitRoot, snapshot, ignored, hash: shortHash }, pantallas: {},
   };
 })();

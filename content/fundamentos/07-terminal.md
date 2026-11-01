@@ -233,6 +233,26 @@ $ grep -n ERROR logs/pipeline.log
 
 Dos errores, con su número de línea y la tarea que falló. Esto es lo primero que haces cuando te avisan "el dashboard no se actualizó".
 
+## Editar archivos sin salir de la terminal
+
+En un servidor no hay ventanas: para cambiar un archivo de configuración o un script usas un **editor de terminal**. Hay tres que vas a cruzarte, y los tres funcionan en la terminal del curso:
+
+| Editor | Cuándo | Lo mínimo para sobrevivir |
+|---|---|---|
+| `nano archivo` | El más fácil: escribes directo | **Ctrl+O** guarda (Enter para confirmar el nombre) · **Ctrl+X** sale · los atajos están abajo en pantalla |
+| `vim archivo` | Está en **todos** los servidores Linux | Arranca en modo *normal* (las teclas son órdenes). **i** para escribir, **Esc** para volver, **:wq** guarda y sale, **:q!** sale sin guardar |
+| `code .` | En tu computadora, con VS Code | Abre la carpeta en un editor completo con explorador, pestañas y terminal integrada |
+
+```bash
+nano notas.txt
+vim etl.py
+code .
+```
+
+:::tip Aprende vim en 10 minutos
+Escribe `vimtutor`: abre un texto en español para practicar los comandos de vim mientras lo lees. El chiste más viejo de la informática es "¿cómo salgo de vim?". Ahora sabes la respuesta: `Esc` y después `:q!`.
+:::
+
 ## Variables de entorno
 
 Son valores con nombre que el sistema guarda y que cualquier programa puede leer. Se usan muchísimo para **configuraciones** (en qué entorno estoy) y **secretos** (una contraseña que no debe quedar escrita en el código).
@@ -357,5 +377,27 @@ cd \.\./
 ```
 ```solucion
 cd ..
+```
+:::
+
+:::ejercicio quiz
+Abriste un archivo con `vim`, escribiste cosas sin querer y quieres salir **sin guardar nada**. ¿Qué tecleas?
+- [ ] `Ctrl+C`
+- [ ] `:wq`
+- [x] `Esc` y después `:q!`
+- [ ] `exit`
+```explicacion
+`Esc` te devuelve al modo normal; `:q!` sale descartando los cambios (el `!` fuerza). `:wq` guardaría lo que escribiste.
+```
+:::
+
+:::ejercicio quiz
+En `nano`, ¿cómo guardas el archivo?
+- [x] `Ctrl+O` y Enter
+- [ ] `:w`
+- [ ] `Ctrl+S` y después `Ctrl+X`
+- [ ] Se guarda solo
+```explicacion
+En nano, `^O` (Ctrl+O, de *write Out*) guarda y te pide confirmar el nombre con Enter. `^X` sale.
 ```
 :::

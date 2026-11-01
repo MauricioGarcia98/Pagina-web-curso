@@ -513,6 +513,118 @@
   }
   if (window.Shell) window.Shell.openEditor = openFileEditor;
 
+  // ---------------------------------------------------------------- "code ." : un VS Code dentro de la página
+  // Explorador de la carpeta, pestañas, el editor Monaco (el mismo de VS Code), barra de estado con la rama
+  // de Git y una terminal integrada abajo, todo sobre el mismo disco de la terminal del curso.
+  const LANG_EXT = { py: 'python', sql: 'sql', yml: 'yaml', yaml: 'yaml', sh: 'bash', json: 'json', md: 'text', toml: 'text', txt: 'text', csv: 'text', tf: 'text', cfg: 'text', ini: 'text' };
+  const ICONO_EXT = { py: '🐍', sql: '🗄️', yml: '⚙️', yaml: '⚙️', md: '📝', json: '{}', csv: '📊', sh: '⌨', toml: '⚙️', tf: '🏗️', txt: '📄', log: '📜', parquet: '📦', ipynb: '📓' };
+  const OCULTAS = /(^|\/)(\.git|\.venv|node_modules|__pycache__|target|\.pytest_cache)(\/|$)/;
+  function abrirCode(raiz, archivo) {
+    const Sh = window.Shell;
+    if (document.getElementById('vscode')) document.getElementById('vscode').remove();
+    const nombreRaiz = raiz === Sh.HOME ? '~' : raiz.split('/').pop();
+    const abiertos = [], sucios = new Map();
+    let actual = null, ed = null, abiertas = new Set(), term = null;
+    const box = h(`<div class="vscode" id="vscode" role="dialog" aria-label="Editor de código">
+      <div class="vs-titulo"><span class="vs-logo">⟨⟩</span><span class="vs-tit">${esc(nombreRaiz)} — Code</span><span class="spacer"></span><span class="small vs-ayuda">Ctrl+S guarda · Ctrl+\` terminal</span><button class="vs-x" data-cerrar title="Cerrar (vuelve a la terminal)">✕</button></div>
+      <div class="vs-cuerpo">
+        <aside class="vs-lateral"><div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo" data-nuevo>＋📄</button><button title="Carpeta nueva" data-nueva-carpeta>＋📁</button><button title="Actualizar" data-refrescar>↻</button></div><div class="vs-arbol"></div></aside>
+        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-editor"><div class="vs-vacio">Elige un archivo del explorador.<br><span class="small muted">Ctrl+S guarda · los cambios se ven al instante en la terminal</span></div></div><div class="vs-panel" hidden><div class="vs-panel-cab">TERMINAL<span class="spacer"></span><button data-panel-x title="Ocultar">✕</button></div><div class="vs-panel-cuerpo"></div></div></section>
+      </div>
+      <div class="vs-estado"><span data-rama></span><span class="spacer"></span><span data-pos></span><span data-lang></span><button data-toggle-term title="Mostrar u ocultar la terminal (Ctrl+\`)">⌨ Terminal</button></div>
+    </div>`);
+    document.body.appendChild(box); document.body.classList.add('vscode-abierto');
+    const arbolEl = $('.vs-arbol', box), tabsEl = $('.vs-tabs', box), edEl = $('.vs-editor', box);
+    const rel = (p) => p.slice(raiz.length + 1);
+    function pintarArbol() {
+      const rutas = Object.keys(Sh.Machine.fs).filter((k) => k.startsWith(raiz + '/') && !OCULTAS.test(rel(k))).sort();
+      const hijos = (dir) => rutas.filter((k) => k.slice(0, k.lastIndexOf('/')) === dir).sort((a, b) => (Sh.isDir(b) - Sh.isDir(a)) || a.localeCompare(b));
+      const nodo = (dir, nivel) => hijos(dir).map((k) => {
+        const n = k.split('/').pop();
+        if (Sh.isDir(k)) { const ab = abiertas.has(k); return `<div class="vs-n vs-dir" data-dir="${esc(k)}" style="padding-left:${8 + nivel * 12}px">${ab ? '▾' : '▸'} ${esc(n)}</div>${ab ? nodo(k, nivel + 1) : ''}`; }
+        const ext = n.split('.').pop();
+        return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''}" data-f="${esc(k)}" style="padding-left:${20 + nivel * 12}px"><span class="vs-ic">${ICONO_EXT[ext] || '📄'}</span>${esc(n)}${sucios.has(k) ? ' <b class="vs-punto">●</b>' : ''}</div>`;
+      }).join('');
+      arbolEl.innerHTML = `<div class="vs-n vs-raiz">▾ ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
+    }
+    function pintarTabs() {
+      tabsEl.innerHTML = abiertos.map((k) => `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span>${ICONO_EXT[k.split('.').pop()] || '📄'} ${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : '×'}</button></div>`).join('');
+    }
+    function pintarEstado() {
+      const g = (() => { for (let p = raiz; p; p = p === '/' ? '' : (p.slice(0, p.lastIndexOf('/')) || '/')) if (Sh.Machine.git[p]) return Sh.Machine.git[p]; return null; })();
+      $('[data-rama]', box).textContent = g ? `⎇ ${g.branch}${g.merge ? ' (FUSIONANDO)' : ''}` : '⎇ sin repositorio';
+      $('[data-lang]', box).textContent = actual ? ({ python: 'Python', sql: 'SQL', yaml: 'YAML', bash: 'Shell', json: 'JSON' }[LANG_EXT[actual.split('.').pop()]] || 'Texto plano') : '';
+    }
+    function abrir(k) {
+      if (actual && ed) sucios.has(actual) && sucios.set(actual, ed.getValue());
+      if (!abiertos.includes(k)) abiertos.push(k);
+      actual = k;
+      // abre las carpetas que lo contienen en el explorador
+      for (let d = k.slice(0, k.lastIndexOf('/')); d.length > raiz.length; d = d.slice(0, d.lastIndexOf('/'))) abiertas.add(d);
+      edEl.innerHTML = '';
+      const valor = sucios.has(k) ? sucios.get(k) : (Sh.readFile(k) ?? '');
+      ed = createEditor(edEl, { lang: LANG_EXT[k.split('.').pop()] || 'text', value: valor, tall: true, onChange: (v) => { const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); pintarArbol(); } });
+      setTimeout(() => ed && ed.focus(), 60);
+      pintarArbol(); pintarTabs(); pintarEstado();
+      $('[data-pos]', box).textContent = Sh.display(k);
+    }
+    function guardarActual() {
+      if (!actual || !ed) return;
+      Sh.writeFile(actual, ed.getValue()); Sh.Machine.save(); sucios.delete(actual);
+      pintarTabs(); pintarArbol(); toast(`Guardado ${Sh.display(actual)}`);
+    }
+    function cerrarTab(k) {
+      if (sucios.has(k) && !confirm(`${k.split('/').pop()} tiene cambios sin guardar. ¿Cerrar igual y perderlos?`)) return;
+      sucios.delete(k); abiertos.splice(abiertos.indexOf(k), 1);
+      if (actual === k) { actual = null; ed = null; if (abiertos.length) abrir(abiertos[abiertos.length - 1]); else { edEl.innerHTML = '<div class="vs-vacio">Elige un archivo del explorador.</div>'; pintarArbol(); pintarTabs(); pintarEstado(); } }
+      else pintarTabs();
+    }
+    function togglePanel(forzar) {
+      const panel = $('.vs-panel', box);
+      const mostrar = forzar !== undefined ? forzar : panel.hidden;
+      panel.hidden = !mostrar;
+      if (mostrar && !term) {
+        Sh.Machine.cwd = raiz;
+        term = Sh.createTerminal($('.vs-panel-cuerpo', panel), { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarArbol(); pintarEstado(); if (actual && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
+      }
+      if (mostrar && term) setTimeout(() => term.focus(), 30);
+    }
+    function cerrar() {
+      if (sucios.size && !confirm(`Hay ${sucios.size} archivo(s) sin guardar. ¿Cerrar igual?`)) return;
+      box.remove(); document.body.classList.remove('vscode-abierto'); document.removeEventListener('keydown', teclas, true);
+      document.dispatchEvent(new CustomEvent('term-config'));
+    }
+    function teclas(e) {
+      if (!box.isConnected) return;
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); guardarActual(); }
+      if ((e.ctrlKey || e.metaKey) && (e.key === '`' || e.key === 'ñ')) { e.preventDefault(); togglePanel(); }
+    }
+    document.addEventListener('keydown', teclas, true);
+    box.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.closest('[data-cerrar]')) return cerrar();
+      const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
+      const tab = t.closest('[data-tab]'); if (tab) return abrir(tab.dataset.tab);
+      const f = t.closest('[data-f]'); if (f) return abrir(f.dataset.f);
+      const d = t.closest('[data-dir]'); if (d) { abiertas.has(d.dataset.dir) ? abiertas.delete(d.dataset.dir) : abiertas.add(d.dataset.dir); return pintarArbol(); }
+      if (t.closest('[data-refrescar]')) return pintarArbol();
+      if (t.closest('[data-toggle-term]')) return togglePanel();
+      if (t.closest('[data-panel-x]')) return togglePanel(false);
+      if (t.closest('[data-nuevo]') || t.closest('[data-nueva-carpeta]')) {
+        const carpeta = !!t.closest('[data-nueva-carpeta]');
+        const n = prompt(carpeta ? 'Nombre de la carpeta nueva (puede incluir subcarpetas, ej. src/utils):' : 'Nombre del archivo nuevo (ej. pipelines/limpieza.py):');
+        if (!n || !n.trim()) return;
+        const p = Sh.norm(raiz + '/' + n.trim().replace(/^\/+/, ''));
+        if (carpeta) { Sh.mkdirp(p); abiertas.add(p); Sh.Machine.save(); pintarArbol(); return; }
+        if (!Sh.exists(p)) { Sh.mkdirp(p.slice(0, p.lastIndexOf('/'))); Sh.writeFile(p, ''); Sh.Machine.save(); }
+        abrir(p);
+      }
+    });
+    pintarArbol(); pintarTabs(); pintarEstado();
+    if (archivo) abrir(archivo);
+  }
+  if (window.Shell) window.Shell.abrirCode = abrirCode;
+
   function compiledBlock(sql) {
     const d = h('<details class="compiled"><summary>Ver SQL compilado (lo que dbt envía a la base)</summary><pre data-lang="sql"><code></code></pre></details>');
     $('code', d).textContent = sql; highlight($('pre', d));
