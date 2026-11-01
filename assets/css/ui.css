@@ -459,3 +459,39 @@ body.vscode-abierto { overflow: hidden; }
 .vscode .vs-aj input[type=number] { min-width: 90px; }
 .vscode .vs-aj-chk { display: inline-flex; gap: 6px; align-items: center; }
 .vscode .vs-actividad .spacer { flex: 1; }
+
+/* VS Code con los íconos oficiales (Codicons) y las medidas reales del workbench:
+   barra de título 35px, pestañas 35px, barra de actividad 48px con íconos de 24px, barra de estado 22px, UI a 13px */
+.vscode { font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, Ubuntu, 'Droid Sans', sans-serif; font-size: 13px; }
+.vscode .codicon { font-size: 16px; line-height: 1; vertical-align: middle; }
+.vscode .vs-titulo { height: 35px; padding: 0 0 0 8px; gap: 6px; font-size: 13px; }
+.vscode .vs-logo { display: inline-grid; place-items: center; width: 30px; color: #3b9cff; }
+.vscode .vs-logo .codicon { font-size: 18px; }
+.vscode .vs-buscar-tit { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 22px; margin-left: auto; margin-right: auto; flex: 0 1 600px; }
+.vscode .vs-buscar-tit .codicon { font-size: 14px; }
+.vscode .vs-titulo > .spacer { display: none; }
+.vs-layout { display: flex; gap: 2px; margin-right: 6px; }
+.vs-layout button { background: none; border: 0; color: inherit; opacity: .8; width: 26px; height: 24px; border-radius: 5px; cursor: pointer; display: grid; place-items: center; }
+.vs-layout button:hover { background: rgba(128,128,128,.25); opacity: 1; }
+.vs-ventana { display: flex; height: 35px; }
+.vs-ventana > span, .vs-ventana .vs-x { width: 46px; height: 35px; display: grid; place-items: center; border-radius: 0; padding: 0; opacity: .85; }
+.vs-ventana > span:hover { background: rgba(128,128,128,.2); }
+.vscode .vs-ventana .vs-x:hover { background: #e81123; color: #fff; opacity: 1; }
+.vscode .vs-actividad button { display: grid; place-items: center; height: 48px; font-size: 24px; }
+.vscode .vs-actividad .codicon { font-size: 24px; }
+.vscode .vs-badge { right: 8px; bottom: 8px; }
+.vscode .vs-tabs { min-height: 35px; }
+.vscode .vs-tab { height: 35px; font-size: 13px; }
+.vscode .vs-tab button { display: grid; place-items: center; width: 20px; height: 20px; padding: 0; opacity: 0; }
+.vscode .vs-tab.on button, .vscode .vs-tab:hover button { opacity: 1; }
+.vscode .vs-tab button .codicon { font-size: 14px; }
+.vscode .vs-run { display: grid; place-items: center; }
+.vscode .vs-estado { height: 22px; font-size: 12px; gap: 0; padding: 0; }
+.vscode .vs-estado > * { display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 7px; }
+.vscode .vs-estado > *:hover { background: rgba(255,255,255,.12); }
+.vscode .vs-estado .codicon { font-size: 14px; }
+.vscode .vs-estado > .spacer { padding: 0; } .vscode .vs-estado > .spacer:hover { background: none; }
+.vscode .vs-remoto { background: #16825d; padding: 0 9px; }
+.vscode .vs-panel-cab button .codicon { font-size: 14px; }
+@media (max-width: 760px) { .vs-layout, .vs-ventana > span { display: none; } .vscode .vs-titulo > .spacer { display: block; } .vscode .vs-actividad button { height: 44px; } .vscode .vs-actividad .codicon { font-size: 20px; } }
+.vscode .vs-lat-cab button { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; } .vscode .vs-raiz .codicon { font-size: 14px; }

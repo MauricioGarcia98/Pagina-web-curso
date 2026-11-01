@@ -203,6 +203,10 @@ GROUP BY grupo;
 
 El `LEFT JOIN` es clave: con un `JOIN` normal desaparecerían todos los pedidos sin cupón y no habría con qué comparar.
 
+:::tip Practica la ficha en Power BI
+Abre el [Power BI de práctica](#/powerbi), importa un CSV tuyo, un Excel o una tabla de las bases del curso, y escribe el KPI como **medida DAX**: `Ticket = DIVIDE([Ventas], DISTINCTCOUNT(Pedidos[pedido_id]))`. Es la misma idea de la ficha: la fórmula vive en un solo lugar y cada gráfico la reutiliza. Si en vez de `DISTINCTCOUNT` usas `COUNTROWS` sobre la tabla de detalle, vas a ver la trampa del fan-out en el número.
+:::
+
 :::errores
 - **Promediar porcentajes de cada mes** para sacar el del año: un mes con 10 pedidos pesa igual que uno con 1.000.
 - **`COUNT(*)` después de un join** uno a muchos: cuenta líneas, no pedidos.

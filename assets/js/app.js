@@ -597,14 +597,15 @@
     }
     const opcionesEditor = () => ({ fontSize: Number(AJ['editor.fontSize']) || 14, fontFamily: AJ['editor.fontFamily'], tabSize: Number(AJ['editor.tabSize']) || 4, wordWrap: AJ['editor.wordWrap'], minimap: { enabled: !!AJ['editor.minimap.enabled'], renderCharacters: false }, lineNumbers: AJ['editor.lineNumbers'], cursorStyle: AJ['editor.cursorStyle'], cursorBlinking: AJ['editor.cursorBlinking'], renderWhitespace: AJ['editor.renderWhitespace'], fontLigatures: !!AJ['editor.fontLigatures'], stickyScroll: { enabled: !!AJ['editor.stickyScroll.enabled'] } });
     const extOn = (id) => (AJ.extensiones || []).includes(id);
+    const ci = (n) => `<i class="codicon codicon-${n}" aria-hidden="true"></i>`;
     const box = h(`<div class="vscode" id="vscode" role="dialog" aria-label="Editor de código">
-      <div class="vs-titulo"><span class="vs-logo">⟨⟩</span><div class="vs-menu"><span>Archivo</span><span>Editar</span><span>Ver</span><span data-run-menu>Ejecutar</span><span data-term-menu>Terminal</span></div><button class="vs-buscar-tit" data-quick>🔍 ${esc(nombreRaiz)}</button><span class="spacer"></span><button class="vs-x" data-cerrar title="Cerrar (vuelve a la terminal)">✕</button></div>
+      <div class="vs-titulo"><span class="vs-logo">${ci('vscode')}</span><div class="vs-menu"><span>Archivo</span><span>Editar</span><span>Ver</span><span data-run-menu>Ejecutar</span><span data-term-menu>Terminal</span></div><button class="vs-buscar-tit" data-quick>${ci('search')} ${esc(nombreRaiz)}</button><span class="spacer"></span><span class="vs-layout"><button data-toggle-lat title="Alternar barra lateral principal (Ctrl+B)">${ci('layout-sidebar-left')}</button><button data-toggle-term title="Alternar panel (Ctrl+J)">${ci('layout-panel')}</button><button title="Barra lateral secundaria">${ci('layout-sidebar-right')}</button></span><span class="vs-ventana"><span>${ci('chrome-minimize')}</span><span>${ci('chrome-maximize')}</span><button class="vs-x" data-cerrar title="Cerrar (vuelve a la terminal)">${ci('chrome-close')}</button></span></div>
       <div class="vs-cuerpo">
-        <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">🗂</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">🔍</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">⑂<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar">▷</button><button data-vista="ext" title="Extensiones (Ctrl+Shift+X)">⧉</button><span class="spacer"></span><button data-ajustes title="Configuración (Ctrl+,)">⚙</button></nav>
+        <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">${ci('files')}</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">${ci('search')}</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">${ci('source-control')}<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar (Ctrl+Shift+D)">${ci('debug-alt')}</button><button data-vista="ext" title="Extensiones (Ctrl+Shift+X)">${ci('extensions')}</button><span class="spacer"></span><button title="Cuentas">${ci('account')}</button><button data-ajustes title="Administrar: Configuración (Ctrl+,)">${ci('settings-gear')}</button></nav>
         <aside class="vs-lateral"></aside>
-        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab">PROBLEMAS</span><span class="vs-ptab">SALIDA</span><span class="vs-ptab on">TERMINAL</span><span class="spacer"></span><span class="small" style="opacity:.7">bash</span><button data-panel-x title="Ocultar el panel">✕</button></div><div class="vs-panel-cuerpo"></div></div></section>
+        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab">PROBLEMAS</span><span class="vs-ptab">SALIDA</span><span class="vs-ptab on">TERMINAL</span><span class="spacer"></span><span class="small" style="opacity:.7">bash</span><button data-panel-x title="Ocultar el panel">${ci('close')}</button></div><div class="vs-panel-cuerpo"></div></div></section>
       </div>
-      <div class="vs-estado"><span data-rama></span><span data-errores>⊗ 0 ⚠ 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><span data-gitlens></span><button data-toggle-term title="Terminal (Ctrl+\`)">⌨</button></div>
+      <div class="vs-estado"><span data-rama></span><span class="vs-remoto">${ci('remote')}</span><span data-errores>${ci('error')} 0 ${ci('warning')} 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><span data-gitlens></span><button data-toggle-term title="Terminal (Ctrl+\`)">${ci('terminal')}</button><span>${ci('bell')}</span></div>
     </div>`);
     document.body.appendChild(box); document.body.classList.add('vscode-abierto');
     const latEl = $('.vs-lateral', box), tabsEl = $('.vs-tabs', box), edEl = $('.vs-editor', box), migasEl = $('.vs-migas', box);
@@ -673,7 +674,7 @@
         const g = cambios[k];
         return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''} ${g ? 'git-' + g : ''}" data-f="${esc(k)}" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic vs-ic-${ext(n) || 'txt'}">${icono(n)}</span><span class="vs-nom">${esc(n)}</span>${sucios.has(k) ? '<b class="vs-punto">●</b>' : g ? `<span class="vs-git">${g}</span>` : ''}</div>`;
       }).join('');
-      latEl.innerHTML = `<div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo" data-nuevo>📄＋</button><button title="Carpeta nueva" data-nueva-carpeta>📁＋</button><button title="Actualizar" data-refrescar>↻</button><button title="Contraer todo" data-contraer>⊟</button></div><div class="vs-n vs-raiz">⌄ ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
+      latEl.innerHTML = `<div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo..." data-nuevo>${ci('new-file')}</button><button title="Carpeta nueva..." data-nueva-carpeta>${ci('new-folder')}</button><button title="Actualizar el explorador" data-refrescar>${ci('refresh')}</button><button title="Contraer carpetas en el explorador" data-contraer>${ci('collapse-all')}</button></div><div class="vs-n vs-raiz">${ci('chevron-down')} ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
     }
     function buscarEnArchivos(q) {
       const res = $('.vs-res', latEl); if (!res) return;
@@ -722,14 +723,14 @@
     // ---------------------------------------------------------------- pestañas, migas y editor
     function pintarTabs() {
       tabsEl.innerHTML = abiertos.map((k) => k === BIENVENIDA || k === AJUSTES
-        ? `<div class="vs-tab ${actual === k ? 'on' : ''}" data-tab="${k}"><span>${k === AJUSTES ? '⚙ Configuración' : '⟨⟩ Bienvenida'}</span><button data-cerrar-tab="${k}">×</button></div>`
-        : `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span><span class="vs-ic">${icono(k.split('/').pop())}</span>${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : '×'}</button></div>`).join('')
-        + (actual && actual !== BIENVENIDA && actual !== AJUSTES && comandoPara(actual) ? `<span class="spacer"></span><button class="vs-run" data-run title="${esc(comandoPara(actual).titulo)} (F5)">▷</button>` : '');
+        ? `<div class="vs-tab ${actual === k ? 'on' : ''}" data-tab="${k}"><span>${k === AJUSTES ? '⚙ Configuración' : '⟨⟩ Bienvenida'}</span><button data-cerrar-tab="${k}">${ci('close')}</button></div>`
+        : `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span><span class="vs-ic">${icono(k.split('/').pop())}</span>${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : ci('close')}</button></div>`).join('')
+        + (actual && actual !== BIENVENIDA && actual !== AJUSTES && comandoPara(actual) ? `<span class="spacer"></span><button class="vs-run" data-run title="${esc(comandoPara(actual).titulo)} (F5)">${ci('play')}</button>` : '');
       migasEl.innerHTML = actual && actual !== BIENVENIDA && actual !== AJUSTES ? rel(actual).split('/').map(esc).join(' <span>›</span> ') : '';
     }
     function pintarEstado() {
       const r = repoDe(), g = r && Sh.Machine.git[r];
-      $('[data-rama]', box).textContent = g ? `⎇ ${g.branch}${g.merge ? ' (fusionando)' : ''}${g.rebase ? ' (rebase)' : ''}` : '⎇ sin repositorio';
+      $('[data-rama]', box).innerHTML = ci('git-branch') + ' ' + esc(g ? `${g.branch}${g.merge ? ' (fusionando)' : ''}${g.rebase ? ' (rebase)' : ''}` : 'sin repositorio') + (g ? ' ' + ci('sync') : '');
       const e = actual && actual !== BIENVENIDA && actual !== AJUSTES ? ext(actual) : '';
       $('[data-lang]', box).textContent = actual && actual !== BIENVENIDA && actual !== AJUSTES ? ({ py: 'Python', sql: 'SQL', yml: 'YAML', yaml: 'YAML', sh: 'Shell Script', json: 'JSON', md: 'Markdown', toml: 'TOML', csv: 'CSV' }[e] || 'Texto sin formato') : '';
       $('[data-esp]', box).textContent = actual && actual !== BIENVENIDA && actual !== AJUSTES ? 'Espacios: 4' : '';
@@ -925,6 +926,7 @@
       const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
       if (t.closest('[data-run]') || t.closest('[data-run-menu]')) return ejecutar();
       if (t.closest('[data-term-menu]') || t.closest('[data-toggle-term]')) return togglePanel();
+      if (t.closest('[data-toggle-lat]')) { lateralOculto = !lateralOculto; return pintarLateral(); }
       if (t.closest('[data-quick]')) return abrirRapido();
       const v = t.closest('[data-vista]'); if (v) { if (vistaLat === v.dataset.vista && !lateralOculto) lateralOculto = true; else { vistaLat = v.dataset.vista; lateralOculto = false; } return pintarLateral(); }
       const tab = t.closest('[data-tab]'); if (tab) return abrir(tab.dataset.tab);
@@ -1327,6 +1329,7 @@
     ['#/lab/python', '🐍', 'Python', 'lab-python'], ['#/lab/pyspark', '⚡', 'PySpark', 'lab-pyspark'],
     ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
     ['#/modelado', '📐', 'Modelado de datos', 'modelado'], ['#/generador', '🏭', 'Generador de datos', 'generador'],
+    ['#/powerbi', '📊', 'Power BI (práctica)', 'powerbi'],
     ['#/trabajo', '💼', 'Tu primer trabajo (simulación)', 'trabajo'],
   ];
   function renderSidebar(route) {
@@ -1423,6 +1426,7 @@
     ['#/lab/pyspark', '⚡', 'PySpark', 'la API de Spark con las tablas del curso'],
     ['#/lab/dbt', '🔧', 'dbt', 'modelos, ref() y Jinja compilado a SQL'],
     ['#/lab/airflow', '🌬️', 'Airflow', 'DAGs, operadores y dependencias'],
+    ['#/powerbi', '📊', 'Power BI', 'importa cualquier CSV, Excel o base, modela y arma un informe'],
     ['#/trabajo', '💼', 'Tu primer trabajo', 'una semana simulada: tickets, PR con revisión y una guardia'],
     ['#/revisar-repo', '🔎', 'Revisar mi proyecto', 'tu repositorio de GitHub evaluado como en una entrevista'],
   ];
@@ -3001,6 +3005,7 @@
     if (parts[0] === 'generador') return { name: 'generador', params };
     if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
     if (parts[0] === 'trabajo') return { name: 'trabajo', params };
+    if (parts[0] === 'powerbi') return { name: 'powerbi' };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -3010,7 +3015,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3031,6 +3036,7 @@
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
+    else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql });
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
