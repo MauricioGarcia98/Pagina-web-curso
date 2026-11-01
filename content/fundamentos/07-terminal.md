@@ -292,6 +292,20 @@ echo "El archivo tiene $TOTAL líneas"
 - `comando --help` o `man comando` muestran la ayuda.
 :::
 
+## Comandos para archivos de datos (cuando ya te sientas cómodo)
+
+No hace falta aprenderlos hoy, pero vas a encontrarlos en el trabajo y la terminal del curso los tiene todos:
+
+| Problema | Comando | Qué hace |
+|---|---|---|
+| ¿El archivo llegó entero? | `sha256sum ventas.csv` | Calcula una "huella". Si cambia un solo byte, cambia la huella. Los proveedores la publican junto al archivo; `sha256sum -c sumas.txt` las compara todas. |
+| El archivo es enorme | `split -l 100000 -d ventas.csv parte_` | Lo parte en pedazos de 100.000 líneas (`parte_00`, `parte_01`…) para cargarlo de a poco. |
+| Aparecen letras raras (`JosÃ©`) | `iconv -f LATIN1 -t UTF-8 clientes.csv -o clientes_utf8.csv` | Cambia la codificación del texto. Es el error más común con CSV que salen de Excel en Windows. |
+| Bajar un archivo | `wget https://…/datos.csv` | Lo descarga y lo guarda con su nombre (`-O` para otro nombre). |
+| ¿Cuánto tarda? | `time python etl.py` | Al final muestra el tiempo real que tardó. |
+| Correrlo todas las noches | `crontab -e` | Programa comandos a horario. `30 2 * * * python etl.py` = todos los días a las 2:30. Es el "Airflow" más simple que existe. |
+| Comparar dos listas | `comm -23 hoy.txt ayer.txt` | Muestra lo que está en `hoy.txt` y no en `ayer.txt` (los archivos tienen que estar ordenados con `sort`). |
+
 ## Practica
 
 Cada ejercicio trae su propia **terminal**: escribe el comando y presiona Enter. Se ejecuta de verdad sobre una máquina simulada (la misma del **Laboratorio → Terminal**), que ya tiene archivos en las carpetas `datos/` y `logs/`. Puedes explorar con `ls` antes de responder.
@@ -376,6 +390,33 @@ grep "ERROR" logs/pipeline.log | wc -l
 ```
 ```pista
 Primero `grep` filtra las líneas, luego `|` las pasa a `wc -l`.
+```
+:::
+
+:::ejercicio cli
+El archivo `datos/clientes.csv` hay que cargarlo en pedazos. Pártelo en archivos de **100 líneas** con sufijos numéricos y el prefijo `clientes_parte_`.
+```respuesta
+split -l ?100 -d (\./)?datos/clientes\.csv clientes_parte_
+split -d -l ?100 (\./)?datos/clientes\.csv clientes_parte_
+```
+```solucion
+split -l 100 -d datos/clientes.csv clientes_parte_
+```
+```pista
+`split -l CANTIDAD` indica cuántas líneas por archivo y `-d` usa números (`00`, `01`…) en vez de letras. Al final van el archivo y el prefijo.
+```
+:::
+
+:::ejercicio cli
+Antes de mandar `datos/ventas_2024_12.csv` a otro equipo, calcula su huella **SHA-256** para que puedan comprobar que les llegó entero.
+```respuesta
+sha256sum (\./)?datos/ventas_2024_12\.csv
+```
+```solucion
+sha256sum datos/ventas_2024_12.csv
+```
+```pista
+El comando se llama igual que el algoritmo, con `sum` al final.
 ```
 :::
 

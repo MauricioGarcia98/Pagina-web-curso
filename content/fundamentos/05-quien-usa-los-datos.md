@@ -150,6 +150,11 @@ SELECT COUNT(*) AS clientes_repetidos FROM (SELECT cliente_id FROM clientes_crud
 
 :::ejercicio sql dificultad=Básico titulo="Check de consistencia"
 Compara cuántas ciudades distintas hay tal como están escritas (`tal_cual`) y después de normalizar con `LOWER(TRIM(ciudad))` (`normalizadas`).
+```sql inicial
+SELECT COUNT(DISTINCT ciudad) AS tal_cual,
+       COUNT(DISTINCT ...) AS normalizadas
+FROM clientes_crudo;
+```
 ```sql solucion
 SELECT COUNT(DISTINCT ciudad) AS tal_cual, COUNT(DISTINCT LOWER(TRIM(ciudad))) AS normalizadas FROM clientes_crudo;
 ```
@@ -163,6 +168,11 @@ Dos `COUNT(DISTINCT …)` en la misma consulta: uno sobre `ciudad` y otro sobre 
 
 :::ejercicio sql dificultad=Básico titulo="Emails sin normalizar"
 Cuenta los emails que **no** están normalizados: los que cambian al aplicarles `LOWER(TRIM(email))`. Columna `sin_normalizar`.
+```sql inicial
+SELECT COUNT(*) AS sin_normalizar
+FROM clientes_crudo
+WHERE email <> ...;
+```
 ```sql solucion
 SELECT COUNT(*) AS sin_normalizar FROM clientes_crudo WHERE email <> LOWER(TRIM(email));
 ```

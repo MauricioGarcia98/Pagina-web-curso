@@ -237,6 +237,9 @@ duckdb -c ["'].*from ['"]?datos/clientes\.csv['"]?.*group by pais.*["']
 ```solucion
 duckdb -c "SELECT pais, COUNT(*) AS clientes FROM 'datos/clientes.csv' GROUP BY pais ORDER BY clientes DESC"
 ```
+```setup
+cd ~
+```
 :::
 
 :::ejercicio cli
@@ -246,6 +249,9 @@ duckdb -c ["']DESCRIBE (SELECT \* FROM )?(read_csv_auto\()?['"]datos/ventas_2024
 ```
 ```solucion
 duckdb -c "DESCRIBE SELECT * FROM 'datos/ventas_2024_12.csv'"
+```
+```setup
+cd ~
 ```
 :::
 
@@ -259,6 +265,8 @@ psql -d rapido -U postgres -c ["']\\copy clientes FROM 'datos/clientes\.csv' (WI
 psql -h localhost -U postgres -d rapido -c "\copy clientes FROM 'datos/clientes.csv' WITH (FORMAT csv, HEADER)"
 ```
 ```setup
+docker rm -f $(docker ps -aq)
+cd ~
 docker run -d --name pg -e POSTGRES_PASSWORD=secreto -e POSTGRES_DB=rapido -p 5432:5432 postgres:16
 psql -U postgres -d rapido -c "CREATE TABLE clientes (cliente_id INTEGER PRIMARY KEY, nombre TEXT, apellido TEXT, email TEXT, ciudad TEXT, pais TEXT, segmento TEXT)"
 ```
@@ -273,6 +281,7 @@ duckdb lago\.duckdb -c ["']COPY \(SELECT .*GROUP BY pais\) TO 'por_pais\.parquet
 duckdb lago.duckdb -c "COPY (SELECT pais, COUNT(*) AS n FROM clientes GROUP BY pais) TO 'por_pais.parquet' (FORMAT parquet)"
 ```
 ```setup
+cd ~
 duckdb lago.duckdb -c "CREATE TABLE clientes AS SELECT * FROM 'datos/clientes.csv'"
 ```
 :::

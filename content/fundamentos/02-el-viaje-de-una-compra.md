@@ -210,6 +210,11 @@ La condición es `pedido_id = 10729`.
 
 :::ejercicio sql dificultad=Básico titulo="El pago"
 Muestra el pago del pedido `10729` desde la tabla `pagos` (todas las columnas).
+```sql inicial
+SELECT *
+FROM pagos
+WHERE pedido_id = ...;
+```
 ```sql solucion
 SELECT * FROM pagos WHERE pedido_id = 10729;
 ```
