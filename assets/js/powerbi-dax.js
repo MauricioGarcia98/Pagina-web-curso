@@ -106,13 +106,14 @@
   const hijos = (n) => (n.k === 'bin' || n.k === 'in' ? [n.a, n.b] : n.k === 'un' ? [n.a] : n.k === 'fn' ? n.args : n.k === 'let' ? [...n.vars.map((v) => v[1]), n.body] : n.k === 'tablelit' ? n.filas.flat() : []);
   const recorrer = (n, fn) => { fn(n); hijos(n).forEach((h) => recorrer(h, fn)); };
 
-  const AGG = { SUM: 'SUM', AVERAGE: 'AVG', MIN: 'MIN', MAX: 'MAX', COUNT: 'COUNT', COUNTA: 'COUNT', DISTINCTCOUNT: 'COUNT', COUNTBLANK: 'COUNTBLANK' };
+  const AGG = { SUM: 'SUM', AVERAGE: 'AVG', MIN: 'MIN', MAX: 'MAX', COUNT: 'COUNT', COUNTA: 'COUNT', DISTINCTCOUNT: 'COUNT', DISTINCTCOUNTNOBLANK: 'COUNT', COUNTBLANK: 'COUNTBLANK', MINA: 'MIN', MAXA: 'MAX', AVERAGEA: 'AVG' };
+  const DISTINTO = new Set(['DISTINCTCOUNT', 'DISTINCTCOUNTNOBLANK']);
   const AGGX = { SUMX: 'SUM', AVERAGEX: 'AVG', MINX: 'MIN', MAXX: 'MAX', COUNTX: 'COUNT', COUNTAX: 'COUNT', PRODUCTX: 'PRODUCT', CONCATENATEX: 'GROUP_CONCAT' };
   const QUITAN = ['ALL', 'REMOVEFILTERS', 'ALLEXCEPT', 'ALLSELECTED', 'ALLNOBLANKROW'];
   const TIEMPO = ['DATESYTD', 'DATESMTD', 'DATESQTD', 'SAMEPERIODLASTYEAR', 'DATEADD', 'PREVIOUSMONTH', 'PREVIOUSYEAR', 'PREVIOUSQUARTER', 'PREVIOUSDAY', 'NEXTMONTH', 'NEXTYEAR', 'NEXTQUARTER', 'PARALLELPERIOD', 'DATESBETWEEN', 'DATESINPERIOD'];
   // funciones que solo se pueden calcular celda por celda (necesitan conocer y cambiar el contexto)
   const DE_CONTEXTO = new Set([...QUITAN, ...TIEMPO, 'TOTALYTD', 'TOTALMTD', 'TOTALQTD', 'SELECTEDVALUE', 'HASONEVALUE', 'ISFILTERED', 'ISCROSSFILTERED', 'RANKX', 'USERELATIONSHIP', 'VALUES', 'DISTINCT', 'ISINSCOPE', 'CROSSFILTER']);
-  const FUNCIONES = 'SUM AVERAGE MIN MAX COUNT COUNTA COUNTBLANK COUNTROWS DISTINCTCOUNT SUMX AVERAGEX MINX MAXX COUNTX CONCATENATEX CALCULATE CALCULATETABLE FILTER ALL ALLEXCEPT ALLSELECTED REMOVEFILTERS KEEPFILTERS USERELATIONSHIP VALUES DISTINCT RELATED SELECTEDVALUE HASONEVALUE ISFILTERED RANKX TOPN TOTALYTD TOTALMTD TOTALQTD DATESYTD DATESMTD DATESQTD SAMEPERIODLASTYEAR DATEADD PREVIOUSMONTH PREVIOUSYEAR PREVIOUSQUARTER NEXTMONTH NEXTYEAR PARALLELPERIOD DATESBETWEEN DATESINPERIOD DIVIDE IF IF.EAGER SWITCH AND OR NOT ISBLANK COALESCE BLANK ROUND ROUNDUP ROUNDDOWN INT ABS MOD POWER SQRT YEAR MONTH DAY QUARTER WEEKDAY WEEKNUM DATE TODAY NOW EOMONTH EDATE DATEDIFF FORMAT LEFT RIGHT MID LEN UPPER LOWER TRIM CONCATENATE SUBSTITUTE SEARCH FIND VALUE CONTAINSSTRING SUMMARIZECOLUMNS SUMMARIZE SELECTCOLUMNS ADDCOLUMNS ROW CALENDAR CALENDARAUTO GENERATESERIES UNION TRUE FALSE'.split(' ');
+  const FUNCIONES = 'SUM AVERAGE MIN MAX COUNT COUNTA COUNTBLANK COUNTROWS DISTINCTCOUNT SUMX AVERAGEX MINX MAXX COUNTX CONCATENATEX CALCULATE CALCULATETABLE FILTER ALL ALLEXCEPT ALLSELECTED REMOVEFILTERS KEEPFILTERS USERELATIONSHIP VALUES DISTINCT RELATED SELECTEDVALUE HASONEVALUE ISFILTERED RANKX TOPN TOTALYTD TOTALMTD TOTALQTD DATESYTD DATESMTD DATESQTD SAMEPERIODLASTYEAR DATEADD PREVIOUSMONTH PREVIOUSYEAR PREVIOUSQUARTER NEXTMONTH NEXTYEAR PARALLELPERIOD DATESBETWEEN DATESINPERIOD DIVIDE IF IF.EAGER SWITCH AND OR NOT ISBLANK COALESCE BLANK ROUND ROUNDUP ROUNDDOWN INT ABS MOD POWER SQRT YEAR MONTH DAY QUARTER WEEKDAY WEEKNUM DATE TODAY NOW EOMONTH EDATE DATEDIFF FORMAT LEFT RIGHT MID LEN UPPER LOWER TRIM CONCATENATE SUBSTITUTE SEARCH FIND VALUE CONTAINSSTRING LOOKUPVALUE CONTAINS TREATAS CROSSFILTER RELATEDTABLE PRODUCTX MEDIAN DISTINCTCOUNTNOBLANK MINA MAXA AVERAGEA IFERROR EXP LN LOG LOG10 SIGN TRUNC ISNUMBER ISTEXT ISERROR UNICHAR HOUR MINUTE SECOND TIME NETWORKDAYS YEARFRAC FIRSTDATE LASTDATE STARTOFMONTH ENDOFMONTH STARTOFYEAR ENDOFYEAR ISINSCOPE SUMMARIZECOLUMNS SUMMARIZE SELECTCOLUMNS ADDCOLUMNS ROW CALENDAR CALENDARAUTO GENERATESERIES UNION TRUE FALSE'.split(' ');
 
   // ------------------------------------------------------------------ el motor sobre un modelo
   function crear(api) {
@@ -150,7 +151,7 @@
     function aristas(usar) {
       const rs = api.rels().filter((r) => r.activa !== false);
       for (const u of usar || []) { for (const r of api.rels()) { const mismo = (r.de === u.de && r.a === u.a) || (r.de === u.a && r.a === u.de); if (mismo) { const i = rs.indexOf(r); if (i >= 0) rs.splice(i, 1); } } rs.push(u); }
-      return rs;
+      return rs.filter((r) => !r.ninguna);
     }
     // camino desde la tabla base hasta la tabla del filtro: cada salto dice cómo se conectan las columnas
     function camino(desde, hasta, usar) {
@@ -203,6 +204,7 @@
         }
         case 'col': {
           const { t, c } = resolverCol(n, env);
+          if (env.fijas && env.fijas[t + '|' + c] !== undefined) return env.fijas[t + '|' + c];
           if (env.fila && env.fila.t === t) return `${env.fila.alias ? env.fila.alias : q(t)}.${q(c)}`;
           if (env.libres && env.libres.includes(c)) return `${env.libres.alias}.${q(c)}`;
           if (env.fila) err(`La columna '${t}'[${c}] es de otra tabla. Usa RELATED('${t}'[${c}]) para traerla por la relación.`);
@@ -253,12 +255,16 @@
 
     // --- agregaciones: en modo grupo se escriben como AGG(CASE WHEN cond …) sobre la consulta agrupada;
     //     en modo celda, como subconsulta con los filtros del contexto aplicados a su tabla
-    function agregar(fn, base, expr, env, distinto = false, ali = null) {
+    // condFila: condiciones de fila (FILTER, RELATEDTABLE): en una subconsulta van al WHERE para aprovechar índices
+    function agregar(fn, base, expr, env, distinto = false, ali = null, condFila = null) {
       const a = fn === 'COUNTBLANK' ? 'SUM' : fn;
-      const x = fn === 'COUNTBLANK' ? `(CASE WHEN ${expr} IS NULL OR ${expr} = '' THEN 1 END)` : expr;
+      let x = fn === 'COUNTBLANK' ? `(CASE WHEN ${expr} IS NULL OR ${expr} = '' THEN 1 END)` : expr;
+      const enGrupo = !env.fila && !env.ctx;
+      if (condFila && condFila.length && enGrupo) { x = `(CASE WHEN ${condFila.join(' AND ')} THEN ${x} END)`; condFila = null; }
+      const extra = condFila && condFila.length ? condFila : [];
       if (env.fila && !env.ctx) {
         // en una columna calculada, SUM(T[c]) es el total de toda la tabla
-        return `(SELECT ${a}(${distinto ? 'DISTINCT ' : ''}${x}) FROM ${q(base)})`;
+        return `(SELECT ${a}(${distinto ? 'DISTINCT ' : ''}${x}) FROM ${q(base)}${extra.length ? ' WHERE ' + extra.join(' AND ') : ''})`;
       }
       if (!env.ctx) { // modo grupo
         if (env.base && env.base !== base) throw Object.assign(new ErrorDax('otra base'), { complejo: true });
@@ -268,6 +274,7 @@
       }
       let w = env.ctx.map((p) => aplicar(base, p, env.usar)).filter(Boolean);
       if (ali) w = w.map((s) => s.split(`${q(base)}.`).join(`${ali}.`));
+      w = [...w, ...extra];
       return `(SELECT ${a}(${distinto ? 'DISTINCT ' : ''}${x}) FROM ${q(base)}${ali ? ` AS ${ali}` : ''}${w.length ? ' WHERE ' + w.join(' AND ') : ''})`;
     }
     // una tabla que se recorre (SUMX, FILTER…): base + condiciones de fila + filtros que quita
@@ -278,11 +285,25 @@
         return { ...b, conds: [...b.conds, escalar(n.args[1], f)] };
       }
       if (n.k === 'fn' && (n.f === 'ALL' || n.f === 'REMOVEFILTERS') && n.args[0] && n.args[0].k === 'id') { const t = tablaReal(n.args[0].v); return { t, conds: [], quita: 'todo' }; }
-      if (n.k === 'fn' && n.f === 'RELATEDTABLE') { const t = tablaReal(n.args[0].v); return { t, conds: [], quita: null }; }
+      if (n.k === 'fn' && n.f === 'RELATEDTABLE') {
+        const t = n.args[0] && n.args[0].k === 'id' ? tablaReal(n.args[0].v) : null;
+        if (!t) err('RELATEDTABLE recibe el nombre de una tabla: RELATEDTABLE(Ventas)');
+        if (!env.fila) return { t, conds: [], quita: null };
+        // de la fila actual (lado 1) a sus filas del lado *: la cadena de relaciones al revés
+        const pasos = camino(t, env.fila.t, env.usar);
+        if (!pasos || !pasos.length) err(`RELATEDTABLE: no hay una relación de '${t}' (lado *) a '${env.fila.t}' (lado 1).`);
+        const afuera = env.fila.alias || q(env.fila.t), ult = pasos[pasos.length - 1];
+        const ref = (tt) => (tt === t ? ali || q(t) : q(tt));
+        let cond = `${ref(ult.de)}.${q(ult.colDe)} = ${afuera}.${q(ult.colA)}`;
+        for (let i = pasos.length - 2; i >= 0; i--) { const s2 = pasos[i]; cond = `${ref(s2.de)}.${q(s2.colDe)} IN (SELECT ${q(s2.a)}.${q(s2.colA)} FROM ${q(s2.a)} WHERE ${cond})`; }
+        return { t, conds: [cond], quita: null };
+      }
       if (n.k === 'fn' && (n.f === 'VALUES' || n.f === 'DISTINCT' || n.f === 'ALL') && n.args[0] && n.args[0].k === 'col') { const c = resolverCol(n.args[0], env); return { valores: c, quita: n.f === 'ALL' ? 'col' : null, conds: [] }; }
       err('Aquí va una tabla: el nombre de una tabla, FILTER(Tabla, condición), ALL(Tabla) o VALUES(Tabla[columna])');
     }
 
+    // producto con sumas: hay un cero → 0; si no, signo según los negativos × exp(Σ ln|x|)
+    const producto = (sumDe) => `(CASE WHEN ${sumDe((x) => `(CASE WHEN ${x} = 0 THEN 1 ELSE 0 END)`)} > 0 THEN 0 ELSE (CASE WHEN ${sumDe((x) => `(CASE WHEN ${x} < 0 THEN 1 ELSE 0 END)`)} % 2 = 1 THEN -1 ELSE 1 END) * exp(${sumDe((x) => `(log10(abs(${x})) / ${Math.LOG10E})`)}) END)`;
     function funcion(n, env) {
       const A = n.args, f = n.f;
       const e = (i, en = env) => escalar(A[i], en);
@@ -290,9 +311,9 @@
       // agregaciones simples
       if (AGG[f] && A.length === 1 && A[0].k === 'col') {
         const { t, c } = resolverCol(A[0], env);
-        return agregar(AGG[f], t, `${q(t)}.${q(c)}`, env, f === 'DISTINCTCOUNT');
+        return agregar(AGG[f], t, `${q(t)}.${q(c)}`, env, DISTINTO.has(f));
       }
-      if (AGG[f] && A.length === 1 && A[0].k === 'ref') { const r = resolverRef(A[0], env); if (r.col) return agregar(AGG[f], r.col.t, `${q(r.col.t)}.${q(r.col.c)}`, env, f === 'DISTINCTCOUNT'); }
+      if (AGG[f] && A.length === 1 && A[0].k === 'ref') { const r = resolverRef(A[0], env); if (r.col) return agregar(AGG[f], r.col.t, `${q(r.col.t)}.${q(r.col.c)}`, env, DISTINTO.has(f)); }
       if ((f === 'MIN' || f === 'MAX') && A.length === 2) return `${f}(${e(0)}, ${e(1)})`;
       if (AGG[f]) err(`${f} recibe una columna, por ejemplo ${f}('Tabla'[columna])`);
       if (f === 'COUNTROWS') {
@@ -300,7 +321,7 @@
         const it = tablaIter(A[0], env);
         if (it.valores) return agregar('COUNT', it.valores.t, `${q(it.valores.t)}.${q(it.valores.c)}`, it.quita ? { ...env, ctx: env.ctx && quitarCol(env.ctx, it.valores.t, it.valores.c) } : env, true);
         const en = it.quita && env.ctx ? { ...env, ctx: quitarTablas(env.ctx, expandida(it.t, env.usar)) } : env;
-        return agregar('SUM', it.t, it.conds.length ? `(CASE WHEN ${it.conds.join(' AND ')} THEN 1 END)` : '1', en);
+        return agregar('SUM', it.t, '1', en, false, null, it.conds);
       }
       if (AGGX[f]) {
         if (A.length < 2) err(`${f} recibe una tabla y una expresión: ${f}(Ventas, Ventas[Cantidad] * Ventas[Precio])`);
@@ -314,13 +335,16 @@
             const distintos = api.exec(`SELECT DISTINCT ${q(t)}.${q(c)} FROM ${q(t)}${donde(t, ctxV, env.usar)} LIMIT 3001`).map((f) => f[0]);
             if (distintos.length <= 3000) {
               const base = quitarCol(env.ctx, t, c);
-              const res = distintos.map((x) => valorYa(escalar(A[1], { ...env, ctx: [...base, { t, c, sql: `${q(t)}.${q(c)} IS ${lit(x)}`, origen: 'calc' }] }))).filter((x) => x !== null && x !== undefined);
+              const res = distintos.map((x) => valorYa(escalar(A[1], { ...env, fijas: { ...(env.fijas || {}), [t + '|' + c]: lit(x) }, ctx: [...base, { t, c, sql: `${q(t)}.${q(c)} IS ${lit(x)}`, origen: 'calc' }] }))).filter((x) => x !== null && x !== undefined);
               const fn = AGGX[f];
+              if (fn === 'PRODUCT') return res.length ? String(res.reduce((a, b) => a * Number(b), 1)) : 'NULL';
+              if (fn === 'GROUP_CONCAT' && A[2]) return lit(res.join(valorYa(escalar(A[2], env)) ?? ','));
               return `(SELECT ${fn === 'GROUP_CONCAT' ? 'GROUP_CONCAT(column1)' : `${fn}(column1)`} FROM ${valoresSql(res)})`;
             }
           }
           const ctxIn = [...quitarCol(env.ctx, t, c), { t, c, sql: `${q(t)}.${q(c)} IS ${v}.x`, origen: 'fila' }];
-          const cuerpo = escalar(A[1], { ...env, ctx: ctxIn });
+          const cuerpo = escalar(A[1], { ...env, ctx: ctxIn, fijas: { ...(env.fijas || {}), [t + '|' + c]: `${v}.x` } });
+          if (AGGX[f] === 'PRODUCT') return `(SELECT ${producto((m) => `SUM(${m(cuerpo)})`)} FROM (SELECT DISTINCT ${q(t)}.${q(c)} AS x FROM ${q(t)}${donde(t, ctxV, env.usar)}) ${v})`;
           return `(SELECT ${AGGX[f]}(${cuerpo}) FROM (SELECT DISTINCT ${q(t)}.${q(c)} AS x FROM ${q(t)}${donde(t, ctxV, env.usar)}) ${v})`;
         }
         const ali = env.ctx ? nuevoAlias('x') : null;
@@ -331,7 +355,8 @@
         const cuerpo = it.conds.length ? `(CASE WHEN ${it.conds.join(' AND ')} THEN ${x} END)` : x;
         const en = it.quita && env.ctx ? { ...env, ctx: quitarTablas(env.ctx, expandida(it.t, env.usar)) } : env;
         if (f === 'CONCATENATEX') return agregar('GROUP_CONCAT', it.t, cuerpo, en, false, ali);
-        return agregar(AGGX[f] === 'PRODUCT' ? 'SUM' : AGGX[f], it.t, cuerpo, en, false, ali);
+        if (AGGX[f] === 'PRODUCT') return producto((m) => agregar('SUM', it.t, m(cuerpo), en, false, ali));
+        return agregar(AGGX[f], it.t, cuerpo, en, false, ali);
       }
       if (f === 'RELATED') {
         if (!env.fila) err('RELATED se usa recorriendo fila por fila: dentro de SUMX, FILTER o en una columna calculada.');
@@ -396,14 +421,20 @@
         err('DATEDIFF(inicio, fin, DAY | WEEK | MONTH | QUARTER | YEAR | HOUR)');
       }
       if (f === 'FORMAT') {
-        const x = e(0), fm = A[1] && A[1].k === 'str' ? A[1].v : '';
+        const NOMBRADOS = { 'general number': '0.##', 'fixed': '0.00', 'standard': '#,##0.00', 'currency': '$#,##0.00', 'percent': '0.00%' };
+        const x = e(0), fm0 = A[1] && A[1].k === 'str' ? A[1].v : '';
+        const fm = Object.prototype.hasOwnProperty.call(NOMBRADOS, fm0.toLowerCase()) ? NOMBRADOS[fm0.toLowerCase()] : fm0;
         const MES = "CASE CAST(strftime('%m', X) AS INTEGER) WHEN 1 THEN 'enero' WHEN 2 THEN 'febrero' WHEN 3 THEN 'marzo' WHEN 4 THEN 'abril' WHEN 5 THEN 'mayo' WHEN 6 THEN 'junio' WHEN 7 THEN 'julio' WHEN 8 THEN 'agosto' WHEN 9 THEN 'septiembre' WHEN 10 THEN 'octubre' WHEN 11 THEN 'noviembre' WHEN 12 THEN 'diciembre' END".split('X').join(x);
         if (/^m{4}$/i.test(fm)) return `(${MES})`;
         if (/^m{3}$/i.test(fm)) return `substr(${MES}, 1, 3)`;
         if (/^(y{4}|y{2})$/i.test(fm)) return fm.length === 4 ? `strftime('%Y', ${x})` : `strftime('%y', ${x})`;
         if (/[ymd]/i.test(fm)) return `strftime('${fm.replace(/yyyy/i, '%Y').replace(/yy/i, '%y').replace(/MM/, '%m').replace(/dd/i, '%d')}', ${x})`;
-        if (/^0(\.0+)?$/.test(fm)) return `printf('%.${(fm.split('.')[1] || '').length}f', ${x})`;
-        if (/^#,0(\.0+)?$/.test(fm)) return `printf('%,.${(fm.split('.')[1] || '').length}f', ${x})`;
+        const mn = /^([^#0,.%]*)([#0,]+)(?:\.([0#]+))?(%?)([^#0,.%]*)$/.exec(fm);
+        if (mn) {
+          const dec = (mn[3] || '').length, coma = mn[2].includes(','), pct = mn[4] === '%';
+          const num = `printf('%${coma ? ',' : ''}.${dec}f', ${pct ? `100.0 * ${x}` : x})`;
+          return `(${lit(mn[1])} || ${num} || ${lit((pct ? '%' : '') + mn[5])})`;
+        }
         if (/%/.test(fm)) return `printf('%.${((fm.split('.')[1] || '').match(/0/g) || []).length}f%%', 100.0 * ${x})`;
         return `CAST(${x} AS TEXT)`;
       }
@@ -468,6 +499,45 @@
         const mn = `(SELECT MIN(${q(t)}.${q(c)}) FROM ${q(t)}${w})`, mx = `(SELECT MAX(${q(t)}.${q(c)}) FROM ${q(t)}${w})`;
         return { FIRSTDATE: mn, LASTDATE: mx, STARTOFMONTH: `date(${mn}, 'start of month')`, ENDOFMONTH: `date(${mx}, 'start of month', '+1 month', '-1 day')`, STARTOFYEAR: `date(${mn}, 'start of year')`, ENDOFYEAR: `date(${mx}, 'start of year', '+1 year', '-1 day')` }[f];
       }
+      // matemáticas (SQLite trae log10 y exp: el resto se arma con ellas)
+      if (f === 'EXP') return `exp(${e(0)})`;
+      if (f === 'LN') return `(log10(${e(0)}) / ${Math.LOG10E})`;
+      if (f === 'LOG10') return `log10(${e(0)})`;
+      if (f === 'LOG') return `(log10(${e(0)}) / log10(${A[1] ? e(1) : 10}))`;
+      if (f === 'SIGN') { const x = e(0); return `(CASE WHEN ${x} > 0 THEN 1 WHEN ${x} < 0 THEN -1 WHEN ${x} = 0 THEN 0 END)`; }
+      if (f === 'TRUNC') { const d = A[1] ? e(1) : '0'; return `(CAST(${e(0)} * power(10, ${d}) AS INTEGER) / power(10.0, ${d}))`; }
+      if (f === 'ISNUMBER') return `(typeof(${e(0)}) IN ('integer', 'real'))`;
+      if (f === 'ISTEXT') return `(typeof(${e(0)}) = 'text')`;
+      if (f === 'ISERROR') { e(0); return '0'; } // en esta práctica las divisiones por cero dan blanco, no error
+      if (f === 'UNICHAR') return `char(${e(0)})`;
+      if (f === 'HOUR') return `CAST(strftime('%H', ${e(0)}) AS INTEGER)`;
+      if (f === 'MINUTE') return `CAST(strftime('%M', ${e(0)}) AS INTEGER)`;
+      if (f === 'SECOND') return `CAST(strftime('%S', ${e(0)}) AS INTEGER)`;
+      if (f === 'TIME') return `printf('%02d:%02d:%02d', ${e(0)}, ${e(1)}, ${e(2)})`;
+      if (f === 'YEARFRAC') return `((julianday(${e(1)}) - julianday(${e(0)})) / 365.0)`;
+      if (f === 'NETWORKDAYS') { const d0 = e(0), d1 = e(1); return `(WITH RECURSIVE nd(x) AS (SELECT date(${d0}) UNION ALL SELECT date(x, '+1 day') FROM nd WHERE x < date(${d1})) SELECT COUNT(*) FROM nd WHERE strftime('%w', x) NOT IN ('0', '6'))`; }
+      if (f === 'LOOKUPVALUE') {
+        // LOOKUPVALUE(Tabla[resultado], Tabla[busqueda1], valor1, …, [alternativo]): un único valor o el alternativo
+        if (A.length < 3 || A[0].k !== 'col') err('LOOKUPVALUE(Tabla[columna_resultado], Tabla[columna_busqueda], valor, …)');
+        const r = resolverCol(A[0], env), lk = nuevoAlias('lk'), w = [];
+        let i = 1;
+        for (; i + 1 < A.length; i += 2) {
+          if (A[i].k !== 'col') err('LOOKUPVALUE: después del resultado van pares Tabla[columna], valor');
+          const b = resolverCol(A[i], env);
+          if (b.t !== r.t) err(`LOOKUPVALUE: en esta práctica la columna de búsqueda tiene que ser de '${r.t}', la misma tabla del resultado. Para otra tabla relacionada usa RELATED.`);
+          w.push(`${lk}.${q(b.c)} = ${e(i + 1)}`);
+        }
+        const alt = i < A.length ? e(i) : 'NULL';
+        return `(SELECT CASE WHEN COUNT(DISTINCT ${lk}.${q(r.c)}) = 1 THEN MIN(${lk}.${q(r.c)}) WHEN COUNT(*) = 0 THEN ${alt} ELSE ${alt} END FROM ${q(r.t)} AS ${lk} WHERE ${w.join(' AND ')})`;
+      }
+      if (f === 'CONTAINS') {
+        const t = A[0] && A[0].k === 'id' ? tablaReal(A[0].v) : null;
+        if (!t || A.length < 3) err('CONTAINS(Tabla, Tabla[columna], valor, …)');
+        const ck = nuevoAlias('ck'), w = [];
+        for (let i = 1; i + 1 < A.length; i += 2) { const b = resolverCol(A[i], env); w.push(`${ck}.${q(b.c)} = ${e(i + 1)}`); }
+        return `(EXISTS (SELECT 1 FROM ${q(t)} AS ${ck} WHERE ${w.join(' AND ')}))`;
+      }
+      if (f === 'TREATAS' || f === 'CROSSFILTER') err(`${f} cambia los filtros: se usa como argumento de CALCULATE.`);
       if (QUITAN.includes(f) || TIEMPO.includes(f) || f === 'USERELATIONSHIP' || f === 'KEEPFILTERS' || f === 'FILTER') err(`${f} cambia los filtros: se usa como argumento de CALCULATE (o como tabla en SUMX/COUNTROWS).`);
       if (['SUMMARIZECOLUMNS', 'SUMMARIZE', 'SELECTCOLUMNS', 'ADDCOLUMNS', 'TOPN', 'CALENDAR', 'CALENDARAUTO', 'ROW', 'UNION', 'GENERATESERIES', 'CALCULATETABLE'].includes(f)) err(`${f} devuelve una tabla: úsala en una tabla calculada, en la vista de consultas DAX (EVALUATE) o dentro de COUNTROWS/SUMX.`);
       err(`La función ${f} no está disponible en esta práctica.`);
@@ -503,6 +573,24 @@
       }
       let ctx = env.ctx.slice(); const usar = [...(env.usar || [])]; const nuevos = [];
       for (const a of A.slice(1)) {
+        if (a.k === 'fn' && a.f === 'CROSSFILTER') {
+          // CROSSFILTER(col1, col2, BOTH | ONEWAY | NONE): cambia la dirección de la relación solo para este cálculo
+          const x = resolverCol(a.args[0], env), y = resolverCol(a.args[1], env);
+          const r = api.rels().find((rr) => (rr.de === x.t && rr.cde === x.c && rr.a === y.t && rr.ca === y.c) || (rr.de === y.t && rr.cde === y.c && rr.a === x.t && rr.ca === x.c));
+          if (!r) err(`CROSSFILTER: no hay una relación entre '${x.t}'[${x.c}] y '${y.t}'[${y.c}].`);
+          const dir = a.args[2] && a.args[2].k === 'id' ? a.args[2].v.toUpperCase() : 'BOTH';
+          usar.push({ ...r, activa: true, direccion: dir === 'BOTH' ? 'ambas' : 'unica', ninguna: dir === 'NONE' }); continue;
+        }
+        if (a.k === 'fn' && a.f === 'TREATAS') {
+          // TREATAS({valores} | VALUES(T1[c]), T2[c2]): los valores pasan a filtrar la columna de destino (relación virtual)
+          if (a.args.length !== 2 || a.args[1].k !== 'col') err('En esta práctica TREATAS recibe una lista o VALUES(Tabla[col]) y una columna: TREATAS({"a", "b"}, Tabla[col])');
+          const d = resolverCol(a.args[1], env), src = a.args[0];
+          let lista;
+          if (src.k === 'tablelit') lista = src.filas.map((r) => escalar(r[0], env)).join(', ');
+          else if (src.k === 'fn' && ['VALUES', 'DISTINCT'].includes(src.f) && src.args[0] && src.args[0].k === 'col') { const o = resolverCol(src.args[0], env); lista = `SELECT DISTINCT ${q(o.t)}.${q(o.c)} FROM ${q(o.t)}${donde(o.t, ctx, usar)}`; }
+          else err('TREATAS: el primer argumento es una lista {…} o VALUES(Tabla[columna])');
+          nuevos.push({ t: d.t, c: d.c, sql: `${q(d.t)}.${q(d.c)} IN (${lista})`, origen: 'calc' }); continue;
+        }
         if (a.k === 'fn' && a.f === 'USERELATIONSHIP') {
           const x = resolverCol(a.args[0], env), y = resolverCol(a.args[1], env);
           const r = api.rels().find((rr) => (rr.de === x.t && rr.cde === x.c && rr.a === y.t && rr.ca === y.c) || (rr.de === y.t && rr.cde === y.c && rr.a === x.t && rr.ca === x.c));

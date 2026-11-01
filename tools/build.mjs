@@ -392,7 +392,10 @@ function buildLesson(file, moduleId, order) {
   const re = /^:::ejercicio[ \t]+([^\n]*)\n([\s\S]*?)^:::[ \t]*$/gm;
   let k = 0;
   const content = body.replace(re, (_, header, exBody) => {
-    exercises.push(parseExercise(header, exBody, file, k, id));
+    const ex = parseExercise(header, exBody, file, k, id);
+    // sin dificultad propia, el ejercicio toma el nivel de su lección (así todos muestran su etiqueta)
+    if (!ex.dificultad) { ex.dificultad = meta.nivel || 'Básico'; ex.dificultadLeccion = true; }
+    exercises.push(ex);
     return `\n<div class="exercise-slot" data-ex="${k++}"></div>\n`;
   });
   return {
