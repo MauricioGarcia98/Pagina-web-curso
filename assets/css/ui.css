@@ -340,3 +340,68 @@ body.vscode-abierto { overflow: hidden; }
 .tb-res-fila { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .tb-res-ico { font-size: 22px; }
 @media (max-width: 900px) { .tb-grid { grid-template-columns: 1fr; } .tb-chat { position: static; max-height: 320px; } }
+/* colores de sintaxis en vim y nano (paleta tipo One Dark) */
+.sx-kw { color: #c678dd; } .sx-str { color: #98c379; } .sx-com { color: #7f848e; font-style: italic; } .sx-num { color: #d19a66; } .sx-var { color: #e5c07b; }
+
+/* ---- VS Code: barra de actividades, ejecutar, migas, buscar, git, paleta, menú contextual ---- */
+.vs-menu { display: flex; gap: 2px; }
+.vs-menu span { padding: 3px 8px; border-radius: 4px; cursor: default; color: #cccccc; }
+.vs-menu span[data-run-menu], .vs-menu span[data-term-menu] { cursor: pointer; }
+.vs-menu span:hover { background: #3c3c3c; }
+.vs-buscar-tit { margin-left: 18px; flex: 0 1 420px; height: 24px; background: #2a2a2b; border: 1px solid #3c3c3c; border-radius: 6px; color: #9d9d9d; font-size: 12px; cursor: pointer; }
+.vs-buscar-tit:hover { border-color: #555; }
+.vs-actividad { width: 48px; flex-shrink: 0; background: #333333; display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+.vs-actividad button { position: relative; width: 48px; height: 46px; background: none; border: 0; border-left: 2px solid transparent; color: #858585; font-size: 20px; cursor: pointer; }
+.vs-actividad button:hover { color: #cccccc; }
+.vs-actividad button.on { color: #ffffff; border-left-color: #ffffff; }
+.vs-badge { position: absolute; right: 6px; bottom: 6px; min-width: 16px; height: 16px; border-radius: 8px; background: #007acc; color: #fff; font-size: 10px; line-height: 16px; font-weight: 600; }
+.vs-chev { display: inline-block; width: 14px; color: #c5c5c5; }
+.vs-nom { overflow: hidden; text-overflow: ellipsis; }
+.vs-arch { display: flex; align-items: center; gap: 2px; }
+.vs-arch .vs-punto, .vs-arch .vs-git { margin-left: auto; padding-right: 6px; }
+.vs-git { font-size: 11px; font-weight: 700; }
+.git-M { color: #e2c08d; } .git-U { color: #73c991; } .git-D { color: #c74e39; text-decoration: line-through; } .git-C { color: #e4676b; }
+.vs-ic { display: inline-block; width: 20px; font-size: 12px; text-align: center; }
+.vs-ic-sh, .vs-ic-bashrc { color: #89e051; font-family: var(--mono); font-size: 10px; font-weight: 700; }
+.vs-ic-md { color: #519aba; } .vs-ic-gitignore { color: #f14e32; }
+.vs-lat-sub { padding: 8px 14px 4px; font-size: 11px; font-weight: 700; color: #bbbbbb; display: flex; gap: 6px; }
+.vs-res-n { background: #4d4d4d; color: #fff; border-radius: 9px; padding: 0 6px; font-size: 11px; margin-left: auto; }
+.vs-res-ruta { color: #8b8b8b; font-size: 11.5px; margin-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vs-busq input, .vs-git-box textarea { width: calc(100% - 24px); margin: 0 12px 8px; background: #3c3c3c; border: 1px solid #3c3c3c; color: #cccccc; padding: 5px 8px; font: inherit; border-radius: 3px; resize: vertical; }
+.vs-busq input:focus, .vs-git-box textarea:focus { outline: 1px solid #007fd4; }
+.vs-res-arch { display: flex; align-items: center; gap: 4px; padding: 4px 12px; font-weight: 600; }
+.vs-res-l { padding: 2px 12px 2px 34px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #bbbbbb; font-family: var(--mono); font-size: 12px; }
+.vs-res-l:hover { background: #2a2d2e; }
+.vs-res-l mark { background: rgba(234, 92, 0, .35); color: inherit; }
+.vs-btn-azul { display: block; width: calc(100% - 24px); margin: 0 12px; padding: 5px; background: #0e639c; color: #fff; border: 0; border-radius: 2px; cursor: pointer; font: inherit; }
+.vs-btn-azul:hover { background: #1177bb; }
+.vs-run-info { padding: 6px 12px; color: #cccccc; }
+.vs-run-info .vs-btn-azul { width: 100%; margin: 6px 0; }
+.vs-run-info code { display: block; background: #1e1e1e; padding: 6px 8px; border-radius: 3px; font-size: 12px; word-break: break-all; }
+.vs-tabs { align-items: stretch; }
+.vs-run { align-self: center; margin: 0 10px; background: none; border: 0; color: #89d185; font-size: 18px; cursor: pointer; width: 28px; height: 26px; border-radius: 4px; }
+.vs-run:hover { background: #3c3c3c; }
+.vs-migas { min-height: 22px; padding: 2px 16px; color: #a9a9a9; font-size: 12.5px; background: #1e1e1e; }
+.vs-migas span { opacity: .6; margin: 0 3px; }
+.vs-ptab { padding: 4px 10px; color: #969696; font-size: 11px; letter-spacing: .04em; }
+.vs-ptab.on { color: #e7e7e7; border-bottom: 1px solid #e7e7e7; }
+.vs-estado > span { white-space: nowrap; }
+.vs-bienv { padding: 40px 6vw; color: #cccccc; }
+.vs-bienv h1 { font-weight: 300; font-size: 34px; margin: 0 0 20px; color: #e7e7e7; }
+.vs-bienv h1 span { font-size: 18px; color: #8b8b8b; }
+.vs-bienv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; }
+.vs-bienv h3 { font-weight: 400; color: #e7e7e7; margin: 0 0 10px; }
+.vs-bienv a { color: #3794ff; cursor: pointer; }
+.vs-bienv code { background: #2d2d2d; padding: 1px 5px; border-radius: 3px; }
+.vs-bienv kbd { background: #3c3c3c; border: 1px solid #555; border-bottom-width: 2px; border-radius: 3px; padding: 0 5px; font-size: 11px; color: #ddd; }
+.vs-atajos { padding-left: 0; list-style: none; } .vs-atajos li { margin: 5px 0; }
+.vs-quick { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: min(600px, 92vw); background: #252526; border: 1px solid #454545; box-shadow: 0 8px 24px rgba(0,0,0,.5); border-radius: 6px; z-index: 5; padding: 6px; }
+.vs-quick input { width: 100%; background: #3c3c3c; border: 1px solid #007fd4; color: #ccc; padding: 6px 8px; font: inherit; border-radius: 3px; }
+.vs-quick-item { display: flex; justify-content: space-between; gap: 12px; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+.vs-quick-item.on { background: #04395e; color: #fff; }
+.vs-quick-desc { color: #8b8b8b; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-ctx { position: fixed; z-index: 6; min-width: 230px; background: #252526; border: 1px solid #454545; border-radius: 5px; box-shadow: 0 6px 18px rgba(0,0,0,.5); padding: 4px 0; }
+.vs-ctx div { padding: 4px 18px; cursor: pointer; }
+.vs-ctx div:hover { background: #04395e; color: #fff; }
+.vs-ctx hr { border: 0; border-top: 1px solid #454545; margin: 4px 0; }
+@media (max-width: 760px) { .vs-menu, .vs-buscar-tit { display: none; } .vs-actividad { width: 40px; } .vs-actividad button { width: 40px; } }

@@ -40,6 +40,50 @@
     return { p, nuevo: contenido === null, lines };
   }
   const guardar = (p, lines) => { writeFile(p, lines.join('\n') + '\n'); Machine.save(); };
+
+  // resaltado de sintaxis simple por línea (como el vim de Ubuntu, que viene con "syntax on")
+  const KW = {
+    py: /\b(def|class|return|if|elif|else|for|while|in|not|and|or|import|from|as|with|try|except|finally|raise|lambda|yield|pass|break|continue|None|True|False|is|global|async|await)\b/y,
+    sql: /\b(select|from|where|group|by|order|having|join|left|right|inner|outer|on|as|and|or|not|in|is|null|case|when|then|else|end|with|limit|union|all|distinct|insert|into|values|update|set|delete|create|table|view|count|sum|avg|min|max|over|partition|desc|asc)\b/iy,
+    sh: /\b(if|then|else|elif|fi|for|in|do|done|while|until|case|esac|function|return|export|local|echo|cd)\b/y,
+    yml: /\b(true|false|null)\b/y,
+  };
+  const COM = { py: '#', sh: '#', yml: '#', sql: '--' };
+  function colorear(linea, lang) {
+    if (!lang) return [[linea, '']];
+    const out = []; let i = 0, txt = '';
+    const empujar = (t, c) => { if (txt) { out.push([txt, '']); txt = ''; } out.push([t, c]); };
+    if (lang === 'md') return [[linea, /^#{1,6}\s/.test(linea) ? 'sx-kw' : /^\s*[-*]\s/.test(linea) ? 'sx-num' : '']];
+    while (i < linea.length) {
+      const c = linea[i], resto = linea.slice(i);
+      if (COM[lang] && resto.startsWith(COM[lang])) { empujar(resto, 'sx-com'); i = linea.length; break; }
+      if (c === '"' || c === "'") { let j = i + 1; while (j < linea.length && linea[j] !== c) { if (linea[j] === '\\') j++; j++; } empujar(linea.slice(i, j + 1), 'sx-str'); i = j + 1; continue; }
+      if (/\d/.test(c) && !/[\w]/.test(linea[i - 1] || '')) { const m = /^\d[\d_.]*/.exec(resto); empujar(m[0], 'sx-num'); i += m[0].length; continue; }
+      if (lang === 'yml' && /^\s*[\w.-]+:/.test(linea) && i === 0) { const m = /^\s*[\w.-]+:/.exec(linea); empujar(m[0], 'sx-kw'); i += m[0].length; continue; }
+      if (lang === 'sh' && c === '$') { const m = /^\$\{?[\w]+\}?/.exec(resto); if (m) { empujar(m[0], 'sx-var'); i += m[0].length; continue; } }
+      const re = KW[lang]; if (re && !/[\w]/.test(linea[i - 1] || '')) { re.lastIndex = i; const m = re.exec(linea); if (m) { empujar(m[0], 'sx-kw'); i += m[0].length; continue; } }
+      if (lang === 'py' && c === '@') { const m = /^@[\w.]+/.exec(resto); if (m) { empujar(m[0], 'sx-var'); i += m[0].length; continue; } }
+      txt += c; i++;
+    }
+    if (txt) out.push([txt, '']);
+    return out;
+  }
+  // pinta una línea con colores y, si hace falta, el cursor en la columna cx
+  function lineaHtml(linea, lang, cx, claseCur) {
+    const toks = colorear(linea, lang);
+    if (cx === null) return toks.map(([t, c]) => (c ? `<span class="${c}">${escH(t)}</span>` : escH(t))).join('');
+    let pos = 0, html = '';
+    for (const [t, c] of toks) {
+      if (cx >= pos && cx < pos + t.length) {
+        const k = cx - pos, a = escH(t.slice(0, k)), b = escH(t[k]), d = escH(t.slice(k + 1));
+        html += (c ? `<span class="${c}">${a}</span>` : a) + `<span class="ed-cur ${claseCur}">${b}</span>` + (c ? `<span class="${c}">${d}</span>` : d);
+      } else html += c ? `<span class="${c}">${escH(t)}</span>` : escH(t);
+      pos += t.length;
+    }
+    if (cx >= linea.length) html += `<span class="ed-cur ${claseCur}"> </span>`;
+    return html;
+  }
+  const langDe = (p) => ({ py: 'py', sql: 'sql', sh: 'sh', bash: 'sh', yml: 'yml', yaml: 'yml', md: 'md', toml: 'yml', cfg: 'yml' }[String(p || '').split('.').pop()] || null);
   const bytes = (lines) => new TextEncoder().encode(lines.join('\n') + '\n').length;
 
   // ---------------------------------------------------------------- vim
@@ -49,8 +93,9 @@
     const ui = montar(termEl, 'ed-vim');
     const st = {
       lines: a.lines, y: 0, x: 0, top: 0, modo: 'normal', cmd: '', pend: '', cuenta: '', reg: null, msg: '', err: false,
-      mod: false, undo: [], redo: [], nu: false, busq: null, vy: 0, grab: null, ultimo: null, xDeseada: 0,
+      mod: false, undo: [], redo: [], nu: false, busq: null, vy: 0, grab: null, ultimo: null, xDeseada: 0, sintaxis: true, salida: null,
     };
+    const lang = () => (st.sintaxis ? langDe(a.p) : null);
     st.msg = a.nuevo ? `"${display(a.p)}" [Nuevo]` : `"${display(a.p)}" ${a.lines.length}L, ${bytes(a.lines)}B`;
     const L = () => st.lines[st.y];
     const clampX = (ins) => { const max = Math.max(0, L().length - (ins ? 0 : 1)); if (st.x > max) st.x = max; if (st.x < 0) st.x = 0; };
@@ -112,10 +157,21 @@
       if (c === 'q' || c === 'quit') { if (st.mod) { aviso('E37: No se escribió desde el último cambio (añade ! para forzar)', true); return; } return terminar(); }
       if (c === 'q!' || c === 'quit!' || c === 'qa!' || c === 'cq') return terminar();
       if (c === 'e!') { const b = abrirArchivo(ruta); st.lines = b.lines; st.mod = false; st.y = Math.min(st.y, st.lines.length - 1); clampX(); aviso(`"${display(a.p)}" ${st.lines.length}L, ${bytes(st.lines)}B`); return; }
+      if (/^(syntax|syn)\s+on$/.test(c)) { st.sintaxis = true; return; }
+      if (/^(syntax|syn)\s+off$/.test(c)) { st.sintaxis = false; return; }
+      if (c.startsWith('!')) {
+        // :!comando  ejecuta en la terminal (con % = este archivo) y muestra la salida, como vim real
+        const cmd = c.slice(1).trim().replace(/(^|\s)%(?=\s|$)/g, `$1${display(a.p)}`);
+        if (!cmd) return;
+        if (st.mod && /%/.test(c)) aviso('(ojo: el archivo tiene cambios sin guardar; :w antes de ejecutarlo)');
+        st.salida = { cmd, texto: 'ejecutando…' };
+        Promise.resolve(Sh.runLine(cmd, { autoLogin: true })).then((r) => { st.salida.texto = (r.out || '').replace(/\u0001[^\u0002]*\u0002|\u0003/g, '').replace(/\x1b\[[0-9;]*m/g, ''); st.salida.code = r.code; pintar(); });
+        return;
+      }
       if (/^set\s+(nu|number)$/.test(c)) { st.nu = true; return; }
       if (/^set\s+(nonu|nonumber)$/.test(c)) { st.nu = false; return; }
       if (/^(noh|nohlsearch)$/.test(c)) return;
-      if (/^(h|help)\b/.test(c)) { aviso('Ayuda: i escribir · Esc volver · :w guardar · :q salir · :wq guardar y salir · :q! salir sin guardar · u deshacer · dd borrar línea · / buscar · escribe vimtutor para practicar'); return; }
+      if (/^(h|help)\b/.test(c)) { aviso('Ayuda: i escribir · Esc volver · :w guardar · :q salir · :wq guardar y salir · :q! salir sin guardar · u deshacer · dd borrar línea · / buscar · :!python % ejecuta el archivo · escribe vimtutor para practicar'); return; }
       if ((m = /^(%|\d+(?:,\d+)?)?s\/((?:\\\/|[^/])*)\/((?:\\\/|[^/])*)\/?([gi]*)$/.exec(c))) {
         let ini = st.y, fin = st.y;
         if (m[1] === '%') { ini = 0; fin = st.lines.length - 1; } else if (m[1]) { const [x1, x2] = m[1].split(',').map(Number); ini = x1 - 1; fin = (x2 || x1) - 1; }
@@ -269,6 +325,12 @@
       if (k.length === 1 && !e.ctrlKey) st.cmd += k;
     }
     function pintar() {
+      if (st.salida) {
+        const lineas = String(st.salida.texto).split('\n');
+        ui.texto.innerHTML = `<div class="ed-l ed-tilde">:!${escH(st.salida.cmd)}</div>` + lineas.slice(-ui.filasVisibles() + 3).map((l) => `<div class="ed-l">${escH(l) || '&nbsp;'}</div>`).join('') + (st.salida.code !== undefined ? `<div class="ed-l">&nbsp;</div><div class="ed-l ${st.salida.code ? 'ed-err' : ''}">${st.salida.code ? `shell returned ${st.salida.code}` : ''}</div>` : '');
+        ui.estado.innerHTML = '<span class="ed-izq"><b>Presiona ENTER o escribe una orden para continuar</b></span>';
+        return;
+      }
       const filas = ui.filasVisibles();
       if (st.y < st.top) st.top = st.y;
       if (st.y >= st.top + filas) st.top = st.y - filas + 1;
@@ -278,11 +340,7 @@
       for (let i = st.top; i < st.top + filas; i++) {
         if (i >= st.lines.length) { html.push('<div class="ed-l ed-tilde">~</div>'); continue; }
         const s = st.lines[i];
-        let cuerpo;
-        if (i === st.y && st.modo !== 'command') {
-          const cx = Math.min(st.x, s.length);
-          cuerpo = escH(s.slice(0, cx)) + `<span class="ed-cur ${st.modo === 'insert' ? 'ed-cur-ins' : ''}">${escH(s[cx] || ' ')}</span>` + escH(s.slice(cx + 1));
-        } else cuerpo = escH(s) || '';
+        const cuerpo = i === st.y && st.modo !== 'command' ? lineaHtml(s, lang(), Math.min(st.x, s.length), st.modo === 'insert' ? 'ed-cur-ins' : '') : lineaHtml(s, lang(), null);
         const sel = st.modo === 'visual' && i >= vi && i <= vf ? ' ed-sel' : '';
         html.push(`<div class="ed-l${sel}">${st.nu ? `<span class="ed-nu">${String(i + 1).padStart(ancho - 1)} </span>` : ''}${cuerpo || (i === st.y ? '' : '&nbsp;')}</div>`);
       }
@@ -295,6 +353,7 @@
     function tecla(e) {
       if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
       e.preventDefault(); e.stopPropagation();
+      if (st.salida) { if (st.salida.code === undefined) return; st.salida = null; if (e.key === ':') { st.modo = 'command'; st.cmd = ':'; } pintar(); return; }
       if (st.modo === 'normal' && e.key !== ':' && e.key !== '/' && e.key !== '?') { st.msg = ''; st.err = false; }
       const r = st.modo === 'insert' ? insertar(e) : st.modo === 'visual' ? visual(e) : st.modo === 'command' ? comando(e) : normal(e);
       if (r === 'fin') return;
@@ -367,7 +426,7 @@
       for (let i = st.top; i < st.top + filas; i++) {
         if (i >= st.lines.length) { html.push('<div class="ed-l">&nbsp;</div>'); continue; }
         const s = st.lines[i];
-        html.push(`<div class="ed-l">${i === st.y && !st.prompt ? escH(s.slice(0, st.x)) + `<span class="ed-cur">${escH(s[st.x] || ' ')}</span>` + escH(s.slice(st.x + 1)) : escH(s) || '&nbsp;'}</div>`);
+        html.push(`<div class="ed-l">${i === st.y && !st.prompt ? lineaHtml(s, langDe(a.p), st.x, '') : lineaHtml(s, langDe(a.p), null) || '&nbsp;'}</div>`);
       }
       ui.texto.innerHTML = html.join('');
       const p = st.prompt;
@@ -436,6 +495,11 @@ Lección 7: guardar
    :w            guarda
    :w otro.txt   guarda con otro nombre
    :set nu       muestra los números de línea
+
+Lección 8: ejecutar sin salir
+   :!python %      ejecuta el archivo actual (% = este archivo); Enter vuelve
+   :!ls            cualquier comando de la terminal
+   :syntax off     apaga los colores (:syntax on los prende)
 
 Listo. En un servidor sin interfaz gráfica, esto es todo lo que necesitas para
 editar un archivo de configuración, un DAG o un script. Sal con  :q!

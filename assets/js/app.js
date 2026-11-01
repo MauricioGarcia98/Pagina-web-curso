@@ -517,78 +517,273 @@
   // Explorador de la carpeta, pestañas, el editor Monaco (el mismo de VS Code), barra de estado con la rama
   // de Git y una terminal integrada abajo, todo sobre el mismo disco de la terminal del curso.
   const LANG_EXT = { py: 'python', sql: 'sql', yml: 'yaml', yaml: 'yaml', sh: 'bash', json: 'json', md: 'text', toml: 'text', txt: 'text', csv: 'text', tf: 'text', cfg: 'text', ini: 'text' };
-  const ICONO_EXT = { py: '🐍', sql: '🗄️', yml: '⚙️', yaml: '⚙️', md: '📝', json: '{}', csv: '📊', sh: '⌨', toml: '⚙️', tf: '🏗️', txt: '📄', log: '📜', parquet: '📦', ipynb: '📓' };
+  const ICONO_EXT = { py: '🐍', sql: '🗄️', yml: '⚙️', yaml: '⚙️', md: 'Ⓜ', json: '{}', csv: '📊', sh: '$_', toml: '⚙️', tf: '🏗️', txt: '📄', log: '📜', parquet: '📦', ipynb: '📓', gitignore: '◆', bashrc: '$_', env: '🔑' };
   const OCULTAS = /(^|\/)(\.git|\.venv|node_modules|__pycache__|target|\.pytest_cache)(\/|$)/;
   function abrirCode(raiz, archivo) {
     const Sh = window.Shell;
     if (document.getElementById('vscode')) document.getElementById('vscode').remove();
     const nombreRaiz = raiz === Sh.HOME ? '~' : raiz.split('/').pop();
     const abiertos = [], sucios = new Map();
-    let actual = null, ed = null, abiertas = new Set(), term = null;
+    let actual = null, ed = null, term = null, vistaLat = 'explorador', lateralOculto = false;
+    const abiertas = new Set();
+    const BIENVENIDA = '\u0000bienvenida';
     const box = h(`<div class="vscode" id="vscode" role="dialog" aria-label="Editor de código">
-      <div class="vs-titulo"><span class="vs-logo">⟨⟩</span><span class="vs-tit">${esc(nombreRaiz)} — Code</span><span class="spacer"></span><span class="small vs-ayuda">Ctrl+S guarda · Ctrl+\` terminal</span><button class="vs-x" data-cerrar title="Cerrar (vuelve a la terminal)">✕</button></div>
+      <div class="vs-titulo"><span class="vs-logo">⟨⟩</span><div class="vs-menu"><span>Archivo</span><span>Editar</span><span>Ver</span><span data-run-menu>Ejecutar</span><span data-term-menu>Terminal</span></div><button class="vs-buscar-tit" data-quick>🔍 ${esc(nombreRaiz)}</button><span class="spacer"></span><button class="vs-x" data-cerrar title="Cerrar (vuelve a la terminal)">✕</button></div>
       <div class="vs-cuerpo">
-        <aside class="vs-lateral"><div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo" data-nuevo>＋📄</button><button title="Carpeta nueva" data-nueva-carpeta>＋📁</button><button title="Actualizar" data-refrescar>↻</button></div><div class="vs-arbol"></div></aside>
-        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-editor"><div class="vs-vacio">Elige un archivo del explorador.<br><span class="small muted">Ctrl+S guarda · los cambios se ven al instante en la terminal</span></div></div><div class="vs-panel" hidden><div class="vs-panel-cab">TERMINAL<span class="spacer"></span><button data-panel-x title="Ocultar">✕</button></div><div class="vs-panel-cuerpo"></div></div></section>
+        <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">🗂</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">🔍</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">⑂<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar">▷</button></nav>
+        <aside class="vs-lateral"></aside>
+        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab">PROBLEMAS</span><span class="vs-ptab">SALIDA</span><span class="vs-ptab on">TERMINAL</span><span class="spacer"></span><span class="small" style="opacity:.7">bash</span><button data-panel-x title="Ocultar el panel">✕</button></div><div class="vs-panel-cuerpo"></div></div></section>
       </div>
-      <div class="vs-estado"><span data-rama></span><span class="spacer"></span><span data-pos></span><span data-lang></span><button data-toggle-term title="Mostrar u ocultar la terminal (Ctrl+\`)">⌨ Terminal</button></div>
+      <div class="vs-estado"><span data-rama></span><span data-errores>⊗ 0 ⚠ 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><button data-toggle-term title="Terminal (Ctrl+\`)">⌨</button></div>
     </div>`);
     document.body.appendChild(box); document.body.classList.add('vscode-abierto');
-    const arbolEl = $('.vs-arbol', box), tabsEl = $('.vs-tabs', box), edEl = $('.vs-editor', box);
+    const latEl = $('.vs-lateral', box), tabsEl = $('.vs-tabs', box), edEl = $('.vs-editor', box), migasEl = $('.vs-migas', box);
     const rel = (p) => p.slice(raiz.length + 1);
+    const ext = (p) => (p.includes('.') ? p.split('.').pop() : '');
+    const repoDe = () => { for (let p = raiz; p; p = p === '/' ? '' : (p.slice(0, p.lastIndexOf('/')) || '/')) if (Sh.Machine.git[p]) return p; return null; };
+    const dbtRaiz = (p) => { for (let d = p.slice(0, p.lastIndexOf('/')); d && d.length >= Sh.HOME.length; d = d.slice(0, d.lastIndexOf('/'))) if (Sh.exists(d + '/dbt_project.yml')) return d; return null; };
+    const archivos = () => Object.keys(Sh.Machine.fs).filter((k) => k.startsWith(raiz + '/') && !OCULTAS.test(rel(k)) && !Sh.isDir(k)).sort();
+
+    // ¿con qué se ejecuta este archivo? (lo mismo que haría la extensión de VS Code)
+    function comandoPara(k) {
+      const e = ext(k), r = Sh.display(k);
+      const dbt = e === 'sql' ? dbtRaiz(k) : null;
+      if (dbt && k.includes('/models/')) return { cmd: `cd ${Sh.display(dbt)} && dbt run --select ${k.split('/').pop().replace(/\.sql$/, '')}`, titulo: 'Ejecutar el modelo de dbt' };
+      if (e === 'py') {
+        // un DAG de Airflow: "ejecutarlo" con python solo comprueba que se importa; lo útil es correr sus tareas
+        const txt = Sh.readFile(k) || '';
+        const id = (/dag_id\s*=\s*["']([\w.-]+)["']/.exec(txt) || /\bDAG\(\s*["']([\w.-]+)["']/.exec(txt) || [])[1] || (/@dag\b/.test(txt) ? (/@dag[\s\S]*?\ndef\s+(\w+)/.exec(txt) || [])[1] : null);
+        if (id && /\/dags\//.test(k)) return { cmd: `airflow dags test ${id} 2024-01-01`, titulo: `Probar el DAG ${id} (airflow dags test)` };
+        return { cmd: `python ${r}`, titulo: 'Ejecutar archivo de Python' };
+      }
+      if (e === 'sh') return { cmd: `bash ${r}`, titulo: 'Ejecutar script de bash' };
+      if (e === 'sql') return { cmd: `sqlite3 tienda.db < ${r}`, titulo: 'Ejecutar consulta (SQLite del curso)' };
+      return null;
+    }
+    // ---------------------------------------------------------------- barra lateral
+    function pintarLateral() {
+      $$('[data-vista]', box).forEach((b) => b.classList.toggle('on', b.dataset.vista === vistaLat && !lateralOculto));
+      latEl.hidden = lateralOculto;
+      if (vistaLat === 'explorador') return pintarArbol();
+      if (vistaLat === 'buscar') { latEl.innerHTML = `<div class="vs-lat-cab"><span>BUSCAR</span></div><div class="vs-busq"><input data-q placeholder="Buscar en los archivos" value="${esc(latEl.dataset.q || '')}"><div class="vs-res"></div></div>`; const inp = $('[data-q]', latEl); inp.addEventListener('input', () => { latEl.dataset.q = inp.value; buscarEnArchivos(inp.value); }); buscarEnArchivos(inp.value); setTimeout(() => inp.focus(), 20); return; }
+      if (vistaLat === 'git') return pintarGit();
+      latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR</span></div><div class="vs-run-info">${actual && actual !== BIENVENIDA && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada:</p><code>${esc(comandoPara(actual).cmd)}</code>` : '<p class="small">Abre un archivo .py, .sh o .sql para ejecutarlo con ▷ o con F5.</p>'}<p class="small" style="margin-top:14px">En VS Code real esto lo hacen las extensiones (Python, dbt Power User, SQLTools). Aquí se ejecuta en la terminal del curso, con el mismo comando que escribirías tú.</p></div>`;
+    }
     function pintarArbol() {
       const rutas = Object.keys(Sh.Machine.fs).filter((k) => k.startsWith(raiz + '/') && !OCULTAS.test(rel(k))).sort();
       const hijos = (dir) => rutas.filter((k) => k.slice(0, k.lastIndexOf('/')) === dir).sort((a, b) => (Sh.isDir(b) - Sh.isDir(a)) || a.localeCompare(b));
+      const cambios = estadoGit();
       const nodo = (dir, nivel) => hijos(dir).map((k) => {
         const n = k.split('/').pop();
-        if (Sh.isDir(k)) { const ab = abiertas.has(k); return `<div class="vs-n vs-dir" data-dir="${esc(k)}" style="padding-left:${8 + nivel * 12}px">${ab ? '▾' : '▸'} ${esc(n)}</div>${ab ? nodo(k, nivel + 1) : ''}`; }
-        const ext = n.split('.').pop();
-        return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''}" data-f="${esc(k)}" style="padding-left:${20 + nivel * 12}px"><span class="vs-ic">${ICONO_EXT[ext] || '📄'}</span>${esc(n)}${sucios.has(k) ? ' <b class="vs-punto">●</b>' : ''}</div>`;
+        if (Sh.isDir(k)) { const ab = abiertas.has(k); return `<div class="vs-n vs-dir" data-dir="${esc(k)}" style="padding-left:${8 + nivel * 12}px"><span class="vs-chev">${ab ? '⌄' : '›'}</span>${esc(n)}</div>${ab ? nodo(k, nivel + 1) : ''}`; }
+        const g = cambios[k];
+        return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''} ${g ? 'git-' + g : ''}" data-f="${esc(k)}" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic vs-ic-${ext(n) || 'txt'}">${ICONO_EXT[ext(n)] || '📄'}</span><span class="vs-nom">${esc(n)}</span>${sucios.has(k) ? '<b class="vs-punto">●</b>' : g ? `<span class="vs-git">${g}</span>` : ''}</div>`;
       }).join('');
-      arbolEl.innerHTML = `<div class="vs-n vs-raiz">▾ ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
+      latEl.innerHTML = `<div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo" data-nuevo>📄＋</button><button title="Carpeta nueva" data-nueva-carpeta>📁＋</button><button title="Actualizar" data-refrescar>↻</button><button title="Contraer todo" data-contraer>⊟</button></div><div class="vs-n vs-raiz">⌄ ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
     }
+    function buscarEnArchivos(q) {
+      const res = $('.vs-res', latEl); if (!res) return;
+      if (!q || q.length < 2) { res.innerHTML = '<p class="small" style="opacity:.7;padding:0 12px">Escribe al menos 2 letras.</p>'; return; }
+      const out = []; let n = 0;
+      for (const k of archivos()) {
+        const txt = Sh.readFile(k) || ''; if (txt.length > 300000) continue;
+        const hits = txt.split('\n').map((l, i) => [l, i]).filter(([l]) => l.toLowerCase().includes(q.toLowerCase())).slice(0, 20);
+        if (!hits.length) continue;
+        n += hits.length;
+        out.push(`<div class="vs-res-arch">${ICONO_EXT[ext(k)] || '📄'} ${esc(k.split('/').pop())} <span class="vs-res-n">${hits.length}</span><span class="vs-res-ruta">${esc(rel(k).split('/').slice(0, -1).join('/'))}</span></div>` + hits.map(([l, i]) => { const j = l.toLowerCase().indexOf(q.toLowerCase()); return `<div class="vs-res-l" data-f="${esc(k)}" data-linea="${i + 1}">${esc(l.slice(Math.max(0, j - 20), j)).trimStart()}<mark>${esc(l.slice(j, j + q.length))}</mark>${esc(l.slice(j + q.length, j + q.length + 40))}</div>`; }).join(''));
+      }
+      res.innerHTML = out.length ? `<p class="small" style="opacity:.7;padding:0 12px">${n} resultado(s) en ${out.length} archivo(s)</p>` + out.join('') : '<p class="small" style="opacity:.7;padding:0 12px">Sin resultados.</p>';
+    }
+    // ---------------------------------------------------------------- control de código fuente (git)
+    function estadoGit() {
+      const r = repoDe(); if (!r) return {};
+      const g = Sh.Machine.git[r], head = g.branches[g.branch], C = Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits);
+      const hs = head && C[head] ? C[head].snap : {}, work = Sh.gitInt.snapshot(r), out = {};
+      for (const k of new Set([...Object.keys(hs), ...Object.keys(work)])) {
+        if (Sh.gitInt.ignored(r, k) || hs[k] === work[k]) continue;
+        out[r + '/' + k] = (g.merge && g.merge.conflictos.includes(k)) ? 'C' : hs[k] === undefined ? 'U' : work[k] === undefined ? 'D' : 'M';
+      }
+      const badge = $('.vs-badge', box), n = Object.keys(out).length; badge.hidden = !n; badge.textContent = n;
+      return out;
+    }
+    function pintarGit() {
+      const r = repoDe();
+      if (!r) { latEl.innerHTML = `<div class="vs-lat-cab"><span>CONTROL DE CÓDIGO FUENTE</span></div><div class="vs-run-info"><p class="small">Esta carpeta no es un repositorio de Git.</p><button class="vs-btn-azul" data-git-init>Inicializar repositorio</button><p class="small" style="margin-top:10px">Es lo mismo que escribir <code>git init</code> en la terminal.</p></div>`; return; }
+      const g = Sh.Machine.git[r], cambios = estadoGit();
+      const nombres = { M: 'modificado', U: 'nuevo', D: 'eliminado', C: 'en conflicto' };
+      latEl.innerHTML = `<div class="vs-lat-cab"><span>CONTROL DE CÓDIGO FUENTE</span><span class="spacer"></span><button title="Traer cambios (git pull)" data-git-cmd="git pull">↓</button><button title="Subir (git push)" data-git-cmd="git push">↑</button></div>
+        <div class="vs-git-box"><textarea data-msg rows="2" placeholder="Mensaje (Ctrl+Enter para hacer commit en '${esc(g.branch)}')"></textarea><button class="vs-btn-azul" data-commit>✓ Commit</button></div>
+        <div class="vs-lat-sub">CAMBIOS <span class="vs-res-n">${Object.keys(cambios).length}</span></div>
+        ${Object.entries(cambios).map(([k, t]) => `<div class="vs-n vs-arch git-${t}" data-f="${esc(k)}" style="padding-left:16px" title="${nombres[t]}"><span class="vs-ic">${ICONO_EXT[ext(k)] || '📄'}</span><span class="vs-nom">${esc(k.split('/').pop())}</span><span class="vs-res-ruta">${esc(k.slice(r.length + 1).split('/').slice(0, -1).join('/'))}</span><span class="vs-git">${t}</span></div>`).join('') || '<p class="small" style="opacity:.7;padding:0 14px">No hay cambios. El árbol de trabajo está limpio.</p>'}
+        <p class="small" style="opacity:.7;padding:8px 14px">Cada botón ejecuta el comando de Git equivalente en la terminal integrada, para que veas qué hace.</p>`;
+      const msg = $('[data-msg]', latEl);
+      msg.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); hacerCommit(); } });
+    }
+    async function hacerCommit() {
+      const msg = ($('[data-msg]', latEl) || {}).value || '';
+      if (!msg.trim()) { toast('Escribe un mensaje de commit: qué cambiaste y por qué.'); return; }
+      await correrEnTerminal(`cd ${Sh.display(repoDe())} && git add -A && git commit -m "${msg.replace(/"/g, '\\"')}"`);
+      pintarLateral();
+    }
+    // ---------------------------------------------------------------- pestañas, migas y editor
     function pintarTabs() {
-      tabsEl.innerHTML = abiertos.map((k) => `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span>${ICONO_EXT[k.split('.').pop()] || '📄'} ${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : '×'}</button></div>`).join('');
+      tabsEl.innerHTML = abiertos.map((k) => k === BIENVENIDA
+        ? `<div class="vs-tab ${actual === k ? 'on' : ''}" data-tab="${BIENVENIDA}"><span>⟨⟩ Bienvenida</span><button data-cerrar-tab="${BIENVENIDA}">×</button></div>`
+        : `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span><span class="vs-ic">${ICONO_EXT[ext(k)] || '📄'}</span>${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : '×'}</button></div>`).join('')
+        + (actual && actual !== BIENVENIDA && comandoPara(actual) ? `<span class="spacer"></span><button class="vs-run" data-run title="${esc(comandoPara(actual).titulo)} (F5)">▷</button>` : '');
+      migasEl.innerHTML = actual && actual !== BIENVENIDA ? rel(actual).split('/').map(esc).join(' <span>›</span> ') : '';
     }
     function pintarEstado() {
-      const g = (() => { for (let p = raiz; p; p = p === '/' ? '' : (p.slice(0, p.lastIndexOf('/')) || '/')) if (Sh.Machine.git[p]) return Sh.Machine.git[p]; return null; })();
-      $('[data-rama]', box).textContent = g ? `⎇ ${g.branch}${g.merge ? ' (FUSIONANDO)' : ''}` : '⎇ sin repositorio';
-      $('[data-lang]', box).textContent = actual ? ({ python: 'Python', sql: 'SQL', yaml: 'YAML', bash: 'Shell', json: 'JSON' }[LANG_EXT[actual.split('.').pop()]] || 'Texto plano') : '';
+      const r = repoDe(), g = r && Sh.Machine.git[r];
+      $('[data-rama]', box).textContent = g ? `⎇ ${g.branch}${g.merge ? ' (fusionando)' : ''}${g.rebase ? ' (rebase)' : ''}` : '⎇ sin repositorio';
+      const e = actual && actual !== BIENVENIDA ? ext(actual) : '';
+      $('[data-lang]', box).textContent = actual && actual !== BIENVENIDA ? ({ py: 'Python', sql: 'SQL', yml: 'YAML', yaml: 'YAML', sh: 'Shell Script', json: 'JSON', md: 'Markdown', toml: 'TOML', csv: 'CSV' }[e] || 'Texto sin formato') : '';
+      $('[data-esp]', box).textContent = actual && actual !== BIENVENIDA ? 'Espacios: 4' : '';
+      $('[data-py]', box).textContent = e === 'py' ? `🐍 3.12${Sh.Machine.env && Sh.Machine.env.VIRTUAL_ENV ? " ('.venv')" : ''}` : '';
+      if (!actual || actual === BIENVENIDA) $('[data-pos]', box).textContent = '';
     }
-    function abrir(k) {
-      if (actual && ed) sucios.has(actual) && sucios.set(actual, ed.getValue());
+    function bienvenida() {
+      edEl.innerHTML = `<div class="vs-bienv"><h1>Code <span>· editor del curso</span></h1><div class="vs-bienv-grid"><div><h3>Empezar</h3><p><a data-nuevo>📄 Archivo nuevo…</a></p><p><a data-quick>📂 Abrir archivo… <kbd>Ctrl+P</kbd></a></p><p><a data-toggle-term>⌨ Abrir la terminal <kbd>Ctrl+\`</kbd></a></p></div>
+        <div><h3>Ejecutar tu código</h3><p>Abre un archivo y presiona <b>▷</b> (arriba a la derecha) o <kbd>F5</kbd>. Se guarda y se ejecuta en la terminal de abajo:</p><ul><li><code>.py</code> → <code>python archivo.py</code></li><li><code>.sh</code> → <code>bash archivo.sh</code></li><li><code>.sql</code> → <code>sqlite3 tienda.db &lt; archivo.sql</code></li><li>modelo de dbt → <code>dbt run --select modelo</code></li></ul></div>
+        <div><h3>Atajos</h3><ul class="vs-atajos"><li><kbd>Ctrl+S</kbd> guardar</li><li><kbd>Ctrl+P</kbd> abrir un archivo por nombre</li><li><kbd>Ctrl+Shift+P</kbd> paleta de comandos</li><li><kbd>Ctrl+B</kbd> mostrar/ocultar la barra lateral</li><li><kbd>Ctrl+\`</kbd> terminal</li><li><kbd>F5</kbd> ejecutar</li><li><kbd>Ctrl+/</kbd> comentar líneas</li><li><kbd>Alt+↑/↓</kbd> mover una línea</li><li>Clic derecho en un archivo: renombrar, eliminar, copiar ruta</li></ul></div></div></div>`;
+    }
+    function abrir(k, linea) {
+      if (actual && actual !== BIENVENIDA && ed && sucios.has(actual)) sucios.set(actual, ed.getValue());
       if (!abiertos.includes(k)) abiertos.push(k);
       actual = k;
-      // abre las carpetas que lo contienen en el explorador
+      if (k === BIENVENIDA) { ed = null; bienvenida(); pintarLateral(); pintarTabs(); pintarEstado(); return; }
       for (let d = k.slice(0, k.lastIndexOf('/')); d.length > raiz.length; d = d.slice(0, d.lastIndexOf('/'))) abiertas.add(d);
       edEl.innerHTML = '';
       const valor = sucios.has(k) ? sucios.get(k) : (Sh.readFile(k) ?? '');
-      ed = createEditor(edEl, { lang: LANG_EXT[k.split('.').pop()] || 'text', value: valor, tall: true, onChange: (v) => { const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); pintarArbol(); } });
-      setTimeout(() => ed && ed.focus(), 60);
-      pintarArbol(); pintarTabs(); pintarEstado();
-      $('[data-pos]', box).textContent = Sh.display(k);
+      const api = ed = createEditor(edEl, { lang: LANG_EXT[ext(k)] || 'text', value: valor, tall: true, onRun: () => ejecutar(), onChange: (v) => { const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); if (vistaLat === 'explorador') pintarArbol(); } });
+      // Monaco puede llegar un poco después que el editor simple: se configura cuando está
+      const configurar = (n = 0) => {
+        if (ed !== api) return;
+        if (api.monaco) {
+          api.monaco.updateOptions({ minimap: { enabled: true, scale: 1, renderCharacters: false }, renderWhitespace: 'selection', stickyScroll: { enabled: true } });
+          const pos = () => { const p = api.monaco.getPosition(); $('[data-pos]', box).textContent = p ? `Lín. ${p.lineNumber}, col. ${p.column}` : ''; };
+          api.monaco.onDidChangeCursorPosition(pos); pos();
+          if (linea) { api.monaco.revealLineInCenter(linea); api.monaco.setPosition({ lineNumber: linea, column: 1 }); }
+          api.monaco.focus();
+        } else if (n < 40) setTimeout(() => configurar(n + 1), 150);
+        else if (api.cm && linea) { api.cm.setCursor(linea - 1, 0); api.cm.focus(); }
+      };
+      configurar();
+      pintarLateral(); pintarTabs(); pintarEstado();
     }
-    function guardarActual() {
-      if (!actual || !ed) return;
-      Sh.writeFile(actual, ed.getValue()); Sh.Machine.save(); sucios.delete(actual);
-      pintarTabs(); pintarArbol(); toast(`Guardado ${Sh.display(actual)}`);
+    function guardar(k = actual) {
+      if (!k || k === BIENVENIDA) return;
+      const v = k === actual && ed ? ed.getValue() : sucios.get(k);
+      if (v === undefined) return;
+      Sh.writeFile(k, v); Sh.Machine.save(); sucios.delete(k);
+      pintarTabs(); pintarLateral();
     }
+    function guardarTodo() { [...sucios.keys()].forEach((k) => guardar(k)); toast('Todo guardado'); }
     function cerrarTab(k) {
       if (sucios.has(k) && !confirm(`${k.split('/').pop()} tiene cambios sin guardar. ¿Cerrar igual y perderlos?`)) return;
       sucios.delete(k); abiertos.splice(abiertos.indexOf(k), 1);
-      if (actual === k) { actual = null; ed = null; if (abiertos.length) abrir(abiertos[abiertos.length - 1]); else { edEl.innerHTML = '<div class="vs-vacio">Elige un archivo del explorador.</div>'; pintarArbol(); pintarTabs(); pintarEstado(); } }
+      if (actual === k) { actual = null; ed = null; if (abiertos.length) abrir(abiertos[abiertos.length - 1]); else { edEl.innerHTML = '<div class="vs-vacio">⟨⟩</div>'; pintarTabs(); pintarEstado(); pintarLateral(); } }
       else pintarTabs();
     }
+    // ---------------------------------------------------------------- terminal y ejecución
     function togglePanel(forzar) {
       const panel = $('.vs-panel', box);
       const mostrar = forzar !== undefined ? forzar : panel.hidden;
       panel.hidden = !mostrar;
       if (mostrar && !term) {
         Sh.Machine.cwd = raiz;
-        term = Sh.createTerminal($('.vs-panel-cuerpo', panel), { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarArbol(); pintarEstado(); if (actual && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
+        term = Sh.createTerminal($('.vs-panel-cuerpo', panel), { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarLateral(); pintarEstado(); if (actual && actual !== BIENVENIDA && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
       }
       if (mostrar && term) setTimeout(() => term.focus(), 30);
     }
+    async function correrEnTerminal(cmd) { togglePanel(true); await term.run(cmd); pintarLateral(); pintarEstado(); }
+    async function ejecutar() {
+      if (!actual || actual === BIENVENIDA) { toast('Abre un archivo para ejecutarlo.'); return; }
+      const c = comandoPara(actual);
+      if (!c) { toast(`Los archivos .${ext(actual)} no se ejecutan: son datos o configuración.`); return; }
+      guardar(actual);
+      await correrEnTerminal(c.cmd);
+    }
+    // ---------------------------------------------------------------- abrir rápido (Ctrl+P) y paleta (Ctrl+Shift+P)
+    function selector(placeholder, items, alElegir) {
+      const prev = $('.vs-quick', box); if (prev) prev.remove();
+      const q = h(`<div class="vs-quick"><input placeholder="${esc(placeholder)}"><div class="vs-quick-lista"></div></div>`);
+      box.appendChild(q);
+      const inp = $('input', q), lista = $('.vs-quick-lista', q); let sel = 0, vis = [];
+      const pintar = () => { const t = inp.value.toLowerCase(); vis = items.filter((x) => (x.label + ' ' + (x.desc || '')).toLowerCase().includes(t)).slice(0, 14); sel = Math.min(sel, Math.max(0, vis.length - 1)); lista.innerHTML = vis.map((x, i) => `<div class="vs-quick-item ${i === sel ? 'on' : ''}" data-i="${i}"><span>${x.icono || ''} ${esc(x.label)}</span><span class="vs-quick-desc">${esc(x.desc || '')}</span></div>`).join('') || '<div class="vs-quick-item">Sin resultados</div>'; };
+      inp.addEventListener('input', () => { sel = 0; pintar(); });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(sel + 1, vis.length - 1); pintar(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(sel - 1, 0); pintar(); }
+        if (e.key === 'Enter' && vis[sel]) { e.preventDefault(); q.remove(); alElegir(vis[sel]); }
+        if (e.key === 'Escape') q.remove();
+      });
+      lista.addEventListener('mousedown', (e) => { const it = e.target.closest('[data-i]'); if (it) { e.preventDefault(); q.remove(); alElegir(vis[Number(it.dataset.i)]); } });
+      inp.addEventListener('blur', () => setTimeout(() => q.remove(), 150));
+      pintar(); setTimeout(() => inp.focus(), 10);
+    }
+    const abrirRapido = () => selector('Busca un archivo por nombre…', archivos().map((k) => ({ label: k.split('/').pop(), desc: rel(k).split('/').slice(0, -1).join('/'), icono: ICONO_EXT[ext(k)] || '📄', k })), (x) => abrir(x.k));
+    const COMANDOS = [
+      ['Ejecutar: ejecutar el archivo actual', 'F5', () => ejecutar()],
+      ['Archivo: guardar', 'Ctrl+S', () => { guardar(); toast('Guardado'); }],
+      ['Archivo: guardar todo', '', () => guardarTodo()],
+      ['Archivo: nuevo archivo…', '', () => nuevo(false)],
+      ['Archivo: nueva carpeta…', '', () => nuevo(true)],
+      ['Ver: mostrar/ocultar la terminal', 'Ctrl+`', () => togglePanel()],
+      ['Ver: mostrar/ocultar la barra lateral', 'Ctrl+B', () => { lateralOculto = !lateralOculto; pintarLateral(); }],
+      ['Ver: explorador', 'Ctrl+Shift+E', () => { vistaLat = 'explorador'; lateralOculto = false; pintarLateral(); }],
+      ['Ver: buscar en los archivos', 'Ctrl+Shift+F', () => { vistaLat = 'buscar'; lateralOculto = false; pintarLateral(); }],
+      ['Git: control de código fuente', 'Ctrl+Shift+G', () => { vistaLat = 'git'; lateralOculto = false; pintarLateral(); }],
+      ['Git: pull', '', () => correrEnTerminal('git pull')],
+      ['Git: push', '', () => correrEnTerminal('git push')],
+      ['Git: ver el historial (log)', '', () => correrEnTerminal('git log --oneline --all')],
+      ['Python: ejecutar ruff (revisar el estilo)', '', () => correrEnTerminal(`ruff check ${actual && actual !== BIENVENIDA ? Sh.display(actual) : '.'}`)],
+      ['Python: ejecutar los tests (pytest)', '', () => correrEnTerminal('pytest')],
+      ['Ayuda: bienvenida', '', () => abrir(BIENVENIDA)],
+      ['Editor: cerrar el editor actual', '', () => actual && cerrarTab(actual)],
+    ];
+    const paleta = () => selector('> Escribe un comando', COMANDOS.map(([l, d, f]) => ({ label: l, desc: d, f })), (x) => x.f());
+    function nuevo(carpeta, base = raiz) {
+      const n = prompt(carpeta ? 'Nombre de la carpeta nueva (puede incluir subcarpetas, ej. src/utils):' : 'Nombre del archivo nuevo (ej. pipelines/limpieza.py):');
+      if (!n || !n.trim()) return;
+      const p = Sh.norm(base + '/' + n.trim().replace(/^\/+/, ''));
+      if (carpeta) { Sh.mkdirp(p); abiertas.add(p); Sh.Machine.save(); pintarLateral(); return; }
+      if (!Sh.exists(p)) { Sh.mkdirp(p.slice(0, p.lastIndexOf('/'))); Sh.writeFile(p, ''); Sh.Machine.save(); }
+      abrir(p);
+    }
+    // ---------------------------------------------------------------- menú contextual del explorador
+    function menuContextual(x, y, k) {
+      const prev = $('.vs-ctx', box); if (prev) prev.remove();
+      const esDir = Sh.isDir(k);
+      const m = h(`<div class="vs-ctx" style="left:${x}px;top:${y}px">${esDir ? '<div data-c="nuevo">Archivo nuevo aquí…</div><div data-c="carpeta">Carpeta nueva aquí…</div><hr>' : '<div data-c="abrir">Abrir</div>' + (comandoPara(k) ? '<div data-c="run">▷ Ejecutar</div>' : '') + '<hr>'}<div data-c="term">Abrir en la terminal integrada</div><div data-c="ruta">Copiar ruta</div><hr><div data-c="renombrar">Renombrar…</div><div data-c="eliminar">Eliminar</div></div>`);
+      box.appendChild(m);
+      const cerrarM = () => m.remove();
+      setTimeout(() => document.addEventListener('mousedown', function f(e) { if (!m.contains(e.target)) { cerrarM(); document.removeEventListener('mousedown', f); } }), 0);
+      m.addEventListener('click', async (e) => {
+        const c = e.target.closest('[data-c]')?.dataset.c; if (!c) return; cerrarM();
+        if (c === 'abrir') abrir(k);
+        if (c === 'run') { abrir(k); setTimeout(ejecutar, 50); }
+        if (c === 'nuevo') nuevo(false, k);
+        if (c === 'carpeta') nuevo(true, k);
+        if (c === 'term') correrEnTerminal(`cd ${Sh.display(esDir ? k : k.slice(0, k.lastIndexOf('/')))}`);
+        if (c === 'ruta') { try { await navigator.clipboard.writeText(Sh.display(k)); toast('Ruta copiada: ' + Sh.display(k)); } catch (err) { prompt('Ruta:', Sh.display(k)); } }
+        if (c === 'renombrar') {
+          const n = prompt('Nuevo nombre:', k.split('/').pop()); if (!n || !n.trim() || n.includes('/')) return;
+          const destino = k.slice(0, k.lastIndexOf('/')) + '/' + n.trim();
+          if (Sh.exists(destino)) { toast('Ya existe un archivo con ese nombre.'); return; }
+          for (const p of Object.keys(Sh.Machine.fs)) if (p === k || p.startsWith(k + '/')) { Sh.Machine.fs[destino + p.slice(k.length)] = Sh.Machine.fs[p]; delete Sh.Machine.fs[p]; }
+          const i = abiertos.indexOf(k); if (i >= 0) abiertos[i] = destino; if (actual === k) actual = destino;
+          Sh.Machine.save(); pintarLateral(); pintarTabs();
+        }
+        if (c === 'eliminar') {
+          if (!confirm(`¿Eliminar ${esDir ? 'la carpeta' : 'el archivo'} ${Sh.display(k)}? (como rm${esDir ? ' -r' : ''}: no hay papelera)`)) return;
+          for (const p of Object.keys(Sh.Machine.fs)) if (p === k || p.startsWith(k + '/')) delete Sh.Machine.fs[p];
+          if (abiertos.includes(k)) { sucios.delete(k); cerrarTab(k); }
+          Sh.Machine.save(); pintarLateral();
+        }
+      });
+    }
+    // ---------------------------------------------------------------- cerrar y atajos
     function cerrar() {
       if (sucios.size && !confirm(`Hay ${sucios.size} archivo(s) sin guardar. ¿Cerrar igual?`)) return;
       box.remove(); document.body.classList.remove('vscode-abierto'); document.removeEventListener('keydown', teclas, true);
@@ -596,32 +791,41 @@
     }
     function teclas(e) {
       if (!box.isConnected) return;
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); guardarActual(); }
-      if ((e.ctrlKey || e.metaKey) && (e.key === '`' || e.key === 'ñ')) { e.preventDefault(); togglePanel(); }
+      const c = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
+      if (c && k === 's') { e.preventDefault(); if (e.altKey) guardarTodo(); else { guardar(); toast('Guardado ' + (actual && actual !== BIENVENIDA ? Sh.display(actual) : '')); } }
+      else if (c && (e.key === '`' || k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(); }
+      else if (e.key === 'F5') { e.preventDefault(); ejecutar(); }
+      else if (c && e.shiftKey && k === 'p') { e.preventDefault(); paleta(); }
+      else if (c && !e.shiftKey && k === 'p') { e.preventDefault(); abrirRapido(); }
+      else if (c && !e.shiftKey && k === 'b') { e.preventDefault(); lateralOculto = !lateralOculto; pintarLateral(); }
+      else if (c && e.shiftKey && k === 'e') { e.preventDefault(); vistaLat = 'explorador'; lateralOculto = false; pintarLateral(); }
+      else if (c && e.shiftKey && k === 'f') { e.preventDefault(); vistaLat = 'buscar'; lateralOculto = false; pintarLateral(); }
+      else if (c && e.shiftKey && k === 'g') { e.preventDefault(); vistaLat = 'git'; lateralOculto = false; pintarLateral(); }
     }
     document.addEventListener('keydown', teclas, true);
+    box.addEventListener('contextmenu', (e) => { const it = e.target.closest('[data-f], [data-dir]'); if (!it) return; e.preventDefault(); menuContextual(e.clientX, e.clientY, it.dataset.f || it.dataset.dir); });
     box.addEventListener('click', (e) => {
       const t = e.target;
       if (t.closest('[data-cerrar]')) return cerrar();
       const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
+      if (t.closest('[data-run]') || t.closest('[data-run-menu]')) return ejecutar();
+      if (t.closest('[data-term-menu]') || t.closest('[data-toggle-term]')) return togglePanel();
+      if (t.closest('[data-quick]')) return abrirRapido();
+      const v = t.closest('[data-vista]'); if (v) { if (vistaLat === v.dataset.vista && !lateralOculto) lateralOculto = true; else { vistaLat = v.dataset.vista; lateralOculto = false; } return pintarLateral(); }
       const tab = t.closest('[data-tab]'); if (tab) return abrir(tab.dataset.tab);
-      const f = t.closest('[data-f]'); if (f) return abrir(f.dataset.f);
+      const f = t.closest('[data-f]'); if (f) return abrir(f.dataset.f, f.dataset.linea ? Number(f.dataset.linea) : undefined);
       const d = t.closest('[data-dir]'); if (d) { abiertas.has(d.dataset.dir) ? abiertas.delete(d.dataset.dir) : abiertas.add(d.dataset.dir); return pintarArbol(); }
-      if (t.closest('[data-refrescar]')) return pintarArbol();
-      if (t.closest('[data-toggle-term]')) return togglePanel();
+      if (t.closest('[data-refrescar]')) return pintarLateral();
+      if (t.closest('[data-contraer]')) { abiertas.clear(); return pintarArbol(); }
       if (t.closest('[data-panel-x]')) return togglePanel(false);
-      if (t.closest('[data-nuevo]') || t.closest('[data-nueva-carpeta]')) {
-        const carpeta = !!t.closest('[data-nueva-carpeta]');
-        const n = prompt(carpeta ? 'Nombre de la carpeta nueva (puede incluir subcarpetas, ej. src/utils):' : 'Nombre del archivo nuevo (ej. pipelines/limpieza.py):');
-        if (!n || !n.trim()) return;
-        const p = Sh.norm(raiz + '/' + n.trim().replace(/^\/+/, ''));
-        if (carpeta) { Sh.mkdirp(p); abiertas.add(p); Sh.Machine.save(); pintarArbol(); return; }
-        if (!Sh.exists(p)) { Sh.mkdirp(p.slice(0, p.lastIndexOf('/'))); Sh.writeFile(p, ''); Sh.Machine.save(); }
-        abrir(p);
-      }
+      if (t.closest('[data-git-init]')) return correrEnTerminal(`cd ${Sh.display(raiz)} && git init`);
+      const gc = t.closest('[data-git-cmd]'); if (gc) return correrEnTerminal(`cd ${Sh.display(repoDe())} && ${gc.dataset.gitCmd}`);
+      if (t.closest('[data-commit]')) return hacerCommit();
+      if (t.closest('[data-nuevo]')) return nuevo(false);
+      if (t.closest('[data-nueva-carpeta]')) return nuevo(true);
     });
-    pintarArbol(); pintarTabs(); pintarEstado();
-    if (archivo) abrir(archivo);
+    pintarLateral(); pintarEstado();
+    if (archivo) abrir(archivo); else abrir(BIENVENIDA);
   }
   if (window.Shell) window.Shell.abrirCode = abrirCode;
 
