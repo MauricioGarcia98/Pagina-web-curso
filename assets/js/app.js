@@ -519,6 +519,61 @@
   const LANG_EXT = { py: 'python', sql: 'sql', yml: 'yaml', yaml: 'yaml', sh: 'bash', json: 'json', md: 'text', toml: 'text', txt: 'text', csv: 'text', tf: 'text', cfg: 'text', ini: 'text' };
   const ICONO_EXT = { py: '🐍', sql: '🗄️', yml: '⚙️', yaml: '⚙️', md: 'Ⓜ', json: '{}', csv: '📊', sh: '$_', toml: '⚙️', tf: '🏗️', txt: '📄', log: '📜', parquet: '📦', ipynb: '📓', gitignore: '◆', bashrc: '$_', env: '🔑' };
   const OCULTAS = /(^|\/)(\.git|\.venv|node_modules|__pycache__|target|\.pytest_cache)(\/|$)/;
+  // ---------------------------------------------------------------- ajustes de "code" (settings.json real)
+  // Como VS Code: los ajustes viven en ~/.config/Code/User/settings.json. La pantalla de Configuración
+  // escribe en ese archivo, y si lo editas a mano y guardas, se aplica.
+  const VS_TEMAS = {
+    'Dark Modern': { base: 'vs-dark', w: { bg: '#1f1f1f', side: '#181818', act: '#181818', title: '#181818', tabbar: '#181818', tab: '#181818', tabon: '#1f1f1f', text: '#cccccc', dim: '#9d9d9d', status: '#181818', stext: '#cccccc', border: '#2b2b2b', hover: '#2a2d2e', sel: '#37373d', accent: '#0078d4', input: '#313131' }, e: { bg: '#1f1f1f', kw: 'c586c0', str: 'ce9178', com: '6a9955', num: 'b5cea8', fn: 'dcdcaa' } },
+    'Dark+ (clásico)': { base: 'vs-dark', w: { bg: '#1e1e1e', side: '#252526', act: '#333333', title: '#323233', tabbar: '#252526', tab: '#2d2d2d', tabon: '#1e1e1e', text: '#cccccc', dim: '#969696', status: '#007acc', stext: '#ffffff', border: '#2b2b2b', hover: '#2a2d2e', sel: '#37373d', accent: '#007acc', input: '#3c3c3c' }, e: { bg: '#1e1e1e', kw: '569cd6', str: 'ce9178', com: '6a9955', num: 'b5cea8', fn: 'dcdcaa' } },
+    'Light Modern': { base: 'vs', w: { bg: '#ffffff', side: '#f8f8f8', act: '#f8f8f8', title: '#f8f8f8', tabbar: '#f8f8f8', tab: '#f8f8f8', tabon: '#ffffff', text: '#3b3b3b', dim: '#6e6e6e', status: '#f8f8f8', stext: '#3b3b3b', border: '#e5e5e5', hover: '#f2f2f2', sel: '#e4e6f1', accent: '#005fb8', input: '#ffffff' }, e: { bg: '#ffffff', kw: 'af00db', str: 'a31515', com: '008000', num: '098658', fn: '795e26' } },
+    Monokai: { base: 'vs-dark', w: { bg: '#272822', side: '#1e1f1c', act: '#272822', title: '#1e1f1c', tabbar: '#1e1f1c', tab: '#34352f', tabon: '#272822', text: '#f8f8f2', dim: '#a59f85', status: '#414339', stext: '#ffffff', border: '#1e1f1c', hover: '#3e3d32', sel: '#414339', accent: '#f92672', input: '#414339' }, e: { bg: '#272822', kw: 'f92672', str: 'e6db74', com: '88846f', num: 'ae81ff', fn: 'a6e22e' } },
+    Dracula: { base: 'vs-dark', w: { bg: '#282a36', side: '#21222c', act: '#343746', title: '#21222c', tabbar: '#191a21', tab: '#21222c', tabon: '#282a36', text: '#f8f8f2', dim: '#6272a4', status: '#191a21', stext: '#f8f8f2', border: '#191a21', hover: '#44475a', sel: '#44475a', accent: '#bd93f9', input: '#21222c' }, e: { bg: '#282a36', kw: 'ff79c6', str: 'f1fa8c', com: '6272a4', num: 'bd93f9', fn: '50fa7b' } },
+    'GitHub Dark': { base: 'vs-dark', w: { bg: '#0d1117', side: '#010409', act: '#0d1117', title: '#010409', tabbar: '#010409', tab: '#010409', tabon: '#0d1117', text: '#e6edf3', dim: '#7d8590', status: '#0d1117', stext: '#7d8590', border: '#30363d', hover: '#161b22', sel: '#1f6feb33', accent: '#f78166', input: '#0d1117' }, e: { bg: '#0d1117', kw: 'ff7b72', str: 'a5d6ff', com: '8b949e', num: '79c0ff', fn: 'd2a8ff' } },
+    'One Dark Pro': { base: 'vs-dark', w: { bg: '#282c34', side: '#21252b', act: '#282c34', title: '#21252b', tabbar: '#21252b', tab: '#21252b', tabon: '#282c34', text: '#abb2bf', dim: '#7f848e', status: '#21252b', stext: '#9da5b4', border: '#181a1f', hover: '#2c313a', sel: '#2c313a', accent: '#528bff', input: '#1d1f23' }, e: { bg: '#282c34', kw: 'c678dd', str: '98c379', com: '7f848e', num: 'd19a66', fn: '61afef' } },
+    'Solarized Light': { base: 'vs', w: { bg: '#fdf6e3', side: '#eee8d5', act: '#ddd6c1', title: '#eee8d5', tabbar: '#d9d2c2', tab: '#d3cbb7', tabon: '#fdf6e3', text: '#586e75', dim: '#93a1a1', status: '#eee8d5', stext: '#586e75', border: '#ddd6c1', hover: '#dfca8844', sel: '#dfca88', accent: '#b58900', input: '#ddd6c1' }, e: { bg: '#fdf6e3', kw: '859900', str: '2aa198', com: '93a1a1', num: 'd33682', fn: '268bd2' } },
+  };
+  const VS_DEF = {
+    'workbench.colorTheme': 'Dark Modern', 'workbench.iconTheme': 'emojis', 'editor.fontSize': 14, 'editor.fontFamily': "'JetBrains Mono', Consolas, monospace",
+    'editor.tabSize': 4, 'editor.wordWrap': 'off', 'editor.minimap.enabled': true, 'editor.lineNumbers': 'on', 'editor.cursorStyle': 'line',
+    'editor.cursorBlinking': 'blink', 'editor.renderWhitespace': 'selection', 'editor.fontLigatures': false, 'editor.stickyScroll.enabled': true,
+    'files.autoSave': 'off', 'terminal.integrated.fontSize': 13, 'extensiones': ['ms-python.python'],
+  };
+  const VS_RUTA = () => window.Shell.HOME + '/.config/Code/User/settings.json';
+  function vsAjustes() {
+    const Sh = window.Shell; let x = {};
+    try { x = JSON.parse((Sh.readFile(VS_RUTA()) || '{}').replace(/^\s*\/\/.*$/gm, '').replace(/,(\s*[}\]])/g, '$1')); } catch (e) { x = { __error: e.message }; }
+    return Object.assign({}, VS_DEF, x);
+  }
+  function vsGuardarAjustes(a) {
+    const Sh = window.Shell, limpio = {};
+    for (const [k, v] of Object.entries(a)) if (k !== '__error' && JSON.stringify(v) !== JSON.stringify(VS_DEF[k])) limpio[k] = v;
+    Sh.mkdirp(VS_RUTA().slice(0, VS_RUTA().lastIndexOf('/')));
+    Sh.writeFile(VS_RUTA(), JSON.stringify(limpio, null, 4) + '\n'); Sh.Machine.save();
+  }
+  let vsTemasListos = false;
+  function vsDefinirTemas() {
+    if (vsTemasListos || !window.monaco) return;
+    for (const [n, t] of Object.entries(VS_TEMAS)) {
+      window.monaco.editor.defineTheme('vs-' + n.replace(/\W+/g, '-'), { base: t.base, inherit: true,
+        rules: [{ token: 'keyword', foreground: t.e.kw }, { token: 'string', foreground: t.e.str }, { token: 'comment', foreground: t.e.com, fontStyle: 'italic' }, { token: 'number', foreground: t.e.num }, { token: 'type', foreground: t.e.fn }, { token: 'identifier', foreground: t.base === 'vs' ? '001080' : t.w.text.slice(1) }],
+        colors: { 'editor.background': t.e.bg, 'editor.lineHighlightBackground': t.w.hover, 'editorLineNumber.foreground': t.w.dim, 'editorGutter.background': t.e.bg, 'minimap.background': t.e.bg } });
+    }
+    vsTemasListos = true;
+  }
+  const VS_EXT = [
+    ['ms-python.python', 'Python', 'Microsoft', 'IntelliSense, ejecutar y depurar Python. Aquí: el botón ▷ y F5 para .py.', '🐍'],
+    ['ms-python.vscode-pylance', 'Pylance', 'Microsoft', 'Autocompletado y chequeo de tipos rápido para Python.', '⚡'],
+    ['innoverio.vscode-dbt-power-user', 'dbt Power User', 'AltimateAI', 'Ejecutar modelos, ver el linaje y el SQL compilado de dbt. Aquí: ▷ en un modelo corre dbt run --select.', '🔧'],
+    ['eamodio.gitlens', 'GitLens', 'GitKraken', 'Quién cambió cada línea y cuándo. Aquí: muestra el último commit del archivo en la barra de estado.', '🔍'],
+    ['pkief.material-icon-theme', 'Material Icon Theme', 'Philipp Kief', 'Íconos de archivos y carpetas al estilo Material. Aquí: cambia los íconos del explorador.', '🎨'],
+    ['mechatroner.rainbow-csv', 'Rainbow CSV', 'mechatroner', 'Colorea cada columna de los CSV para leerlos sin abrir Excel.', '🌈'],
+    ['ms-azuretools.vscode-docker', 'Docker', 'Microsoft', 'Ver contenedores e imágenes, y ayuda para Dockerfile y Compose.', '🐳'],
+    ['hashicorp.terraform', 'HashiCorp Terraform', 'HashiCorp', 'Resaltado, autocompletado y formato de archivos .tf.', '🏗️'],
+    ['redhat.vscode-yaml', 'YAML', 'Red Hat', 'Validación de YAML (dbt, GitHub Actions, Compose).', '📄'],
+    ['ms-toolsai.jupyter', 'Jupyter', 'Microsoft', 'Notebooks .ipynb dentro del editor.', '📓'],
+  ];
+  const MATERIAL = { py: '🟦', sql: '🟪', yml: '🟥', yaml: '🟥', md: '🟦', json: '🟨', csv: '🟩', sh: '🟫', toml: '⬛', txt: '⬜', log: '⬜' };
+
   function abrirCode(raiz, archivo) {
     const Sh = window.Shell;
     if (document.getElementById('vscode')) document.getElementById('vscode').remove();
@@ -526,15 +581,30 @@
     const abiertos = [], sucios = new Map();
     let actual = null, ed = null, term = null, vistaLat = 'explorador', lateralOculto = false;
     const abiertas = new Set();
-    const BIENVENIDA = '\u0000bienvenida';
+    const BIENVENIDA = '\u0000bienvenida', AJUSTES = '\u0000ajustes';
+    let AJ = vsAjustes(), autoGuardado = null;
+    const icono = (nombre) => { const e = nombre.includes('.') ? nombre.split('.').pop() : nombre.replace(/^\./, ''); return AJ['workbench.iconTheme'] === 'ninguno' ? '' : AJ['workbench.iconTheme'] === 'material' ? (MATERIAL[e] || '▫️') : (ICONO_EXT[e] || '📄'); };
+    function aplicar() {
+      AJ = vsAjustes();
+      const t = VS_TEMAS[AJ['workbench.colorTheme']] || VS_TEMAS['Dark Modern'];
+      for (const [k, v] of Object.entries(t.w)) box.style.setProperty('--vs-' + k, v);
+      box.classList.toggle('vs-claro', t.base === 'vs');
+      box.style.setProperty('--vs-term-font', AJ['terminal.integrated.fontSize'] + 'px');
+      if (window.monaco) { vsDefinirTemas(); window.monaco.editor.setTheme('vs-' + AJ['workbench.colorTheme'].replace(/\W+/g, '-')); }
+      if (ed && ed.monaco) ed.monaco.updateOptions(opcionesEditor());
+      if (ed && ed.cm) { ed.cm.getWrapperElement().style.fontSize = AJ['editor.fontSize'] + 'px'; ed.cm.refresh(); }
+      if (AJ.__error) toast('settings.json tiene un error de JSON: ' + AJ.__error);
+    }
+    const opcionesEditor = () => ({ fontSize: Number(AJ['editor.fontSize']) || 14, fontFamily: AJ['editor.fontFamily'], tabSize: Number(AJ['editor.tabSize']) || 4, wordWrap: AJ['editor.wordWrap'], minimap: { enabled: !!AJ['editor.minimap.enabled'], renderCharacters: false }, lineNumbers: AJ['editor.lineNumbers'], cursorStyle: AJ['editor.cursorStyle'], cursorBlinking: AJ['editor.cursorBlinking'], renderWhitespace: AJ['editor.renderWhitespace'], fontLigatures: !!AJ['editor.fontLigatures'], stickyScroll: { enabled: !!AJ['editor.stickyScroll.enabled'] } });
+    const extOn = (id) => (AJ.extensiones || []).includes(id);
     const box = h(`<div class="vscode" id="vscode" role="dialog" aria-label="Editor de código">
       <div class="vs-titulo"><span class="vs-logo">⟨⟩</span><div class="vs-menu"><span>Archivo</span><span>Editar</span><span>Ver</span><span data-run-menu>Ejecutar</span><span data-term-menu>Terminal</span></div><button class="vs-buscar-tit" data-quick>🔍 ${esc(nombreRaiz)}</button><span class="spacer"></span><button class="vs-x" data-cerrar title="Cerrar (vuelve a la terminal)">✕</button></div>
       <div class="vs-cuerpo">
-        <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">🗂</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">🔍</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">⑂<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar">▷</button></nav>
+        <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">🗂</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">🔍</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">⑂<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar">▷</button><button data-vista="ext" title="Extensiones (Ctrl+Shift+X)">⧉</button><span class="spacer"></span><button data-ajustes title="Configuración (Ctrl+,)">⚙</button></nav>
         <aside class="vs-lateral"></aside>
         <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab">PROBLEMAS</span><span class="vs-ptab">SALIDA</span><span class="vs-ptab on">TERMINAL</span><span class="spacer"></span><span class="small" style="opacity:.7">bash</span><button data-panel-x title="Ocultar el panel">✕</button></div><div class="vs-panel-cuerpo"></div></div></section>
       </div>
-      <div class="vs-estado"><span data-rama></span><span data-errores>⊗ 0 ⚠ 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><button data-toggle-term title="Terminal (Ctrl+\`)">⌨</button></div>
+      <div class="vs-estado"><span data-rama></span><span data-errores>⊗ 0 ⚠ 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><span data-gitlens></span><button data-toggle-term title="Terminal (Ctrl+\`)">⌨</button></div>
     </div>`);
     document.body.appendChild(box); document.body.classList.add('vscode-abierto');
     const latEl = $('.vs-lateral', box), tabsEl = $('.vs-tabs', box), edEl = $('.vs-editor', box), migasEl = $('.vs-migas', box);
@@ -567,7 +637,31 @@
       if (vistaLat === 'explorador') return pintarArbol();
       if (vistaLat === 'buscar') { latEl.innerHTML = `<div class="vs-lat-cab"><span>BUSCAR</span></div><div class="vs-busq"><input data-q placeholder="Buscar en los archivos" value="${esc(latEl.dataset.q || '')}"><div class="vs-res"></div></div>`; const inp = $('[data-q]', latEl); inp.addEventListener('input', () => { latEl.dataset.q = inp.value; buscarEnArchivos(inp.value); }); buscarEnArchivos(inp.value); setTimeout(() => inp.focus(), 20); return; }
       if (vistaLat === 'git') return pintarGit();
-      latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR</span></div><div class="vs-run-info">${actual && actual !== BIENVENIDA && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada:</p><code>${esc(comandoPara(actual).cmd)}</code>` : '<p class="small">Abre un archivo .py, .sh o .sql para ejecutarlo con ▷ o con F5.</p>'}<p class="small" style="margin-top:14px">En VS Code real esto lo hacen las extensiones (Python, dbt Power User, SQLTools). Aquí se ejecuta en la terminal del curso, con el mismo comando que escribirías tú.</p></div>`;
+      if (vistaLat === 'ext') {
+        latEl.innerHTML = `<div class="vs-lat-cab"><span>EXTENSIONES</span></div><div class="vs-lat-sub">INSTALADAS</div>${VS_EXT.filter((x) => extOn(x[0])).map(extHtml).join('') || '<p class="small" style="opacity:.7;padding:0 14px">Ninguna</p>'}<div class="vs-lat-sub">RECOMENDADAS PARA DATOS</div>${VS_EXT.filter((x) => !extOn(x[0])).map(extHtml).join('')}`;
+        return;
+      }
+      latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR</span></div><div class="vs-run-info">${actual && actual !== BIENVENIDA && actual !== AJUSTES && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada:</p><code>${esc(comandoPara(actual).cmd)}</code>` : '<p class="small">Abre un archivo .py, .sh o .sql para ejecutarlo con ▷ o con F5.</p>'}<p class="small" style="margin-top:14px">En VS Code real esto lo hacen las extensiones (Python, dbt Power User, SQLTools). Aquí se ejecuta en la terminal del curso, con el mismo comando que escribirías tú.</p></div>`;
+    }
+    const extHtml = ([id, n, autor, desc, ic]) => `<div class="vs-ext"><span class="vs-ext-ic">${ic}</span><div class="vs-ext-txt"><b>${esc(n)}</b><small>${esc(desc)}</small><span class="vs-ext-autor">${esc(autor)}</span></div><button class="vs-ext-btn ${extOn(id) ? 'on' : ''}" data-ext="${esc(id)}">${extOn(id) ? 'Desinstalar' : 'Instalar'}</button></div>`;
+    function pintarAjustes() {
+      const sel = (k, ops) => `<select data-aj="${k}">${ops.map((o) => { const [v, l] = Array.isArray(o) ? o : [o, o]; return `<option ${String(AJ[k]) === String(v) ? 'selected' : ''} value="${esc(v)}">${esc(l)}</option>`; }).join('')}</select>`;
+      const fila = (k, titulo, desc, control) => `<div class="vs-aj"><div class="vs-aj-k">${esc(titulo)} <span>${esc(k)}</span></div><div class="vs-aj-d">${esc(desc)}</div>${control}</div>`;
+      const num = (k, min, max) => `<input type="number" data-aj="${k}" min="${min}" max="${max}" value="${esc(AJ[k])}">`;
+      const chk = (k) => `<label class="vs-aj-chk"><input type="checkbox" data-aj="${k}" ${AJ[k] ? 'checked' : ''}> Activado</label>`;
+      edEl.innerHTML = `<div class="vs-ajustes"><div class="vs-aj-cab"><input class="vs-aj-buscar" placeholder="Buscar configuración" data-aj-buscar><button class="vs-btn-link" data-abrir-json>{ } Abrir settings.json</button></div><div class="vs-aj-tabs"><span class="on">Usuario</span></div>
+        <h2>Apariencia</h2>${fila('workbench.colorTheme', 'Tema de color', 'Los colores del editor y de toda la ventana.', sel('workbench.colorTheme', Object.keys(VS_TEMAS)))}${fila('workbench.iconTheme', 'Tema de íconos de archivos', 'Los íconos del explorador y de las pestañas.', sel('workbench.iconTheme', [['emojis', 'Íconos del curso'], ['material', 'Material (requiere Material Icon Theme)'], ['ninguno', 'Ninguno']]))}
+        <h2>Editor</h2>${fila('editor.fontSize', 'Tamaño de fuente', 'En píxeles.', num('editor.fontSize', 8, 32))}${fila('editor.fontFamily', 'Familia de fuente', 'Fuentes separadas por comas, como en CSS.', sel('editor.fontFamily', [["'JetBrains Mono', Consolas, monospace", 'JetBrains Mono'], ["Consolas, 'Courier New', monospace", 'Consolas'], ["'Fira Code', monospace", 'Fira Code'], ["'Courier New', monospace", 'Courier New'], ['monospace', 'Monoespaciada del sistema']]))}${fila('editor.tabSize', 'Tamaño de tabulación', 'Cuántos espacios equivale una tabulación (en Python se usan 4).', num('editor.tabSize', 1, 8))}${fila('editor.wordWrap', 'Ajuste de línea', 'Si las líneas largas se cortan para entrar en la pantalla.', sel('editor.wordWrap', [['off', 'off (no)'], ['on', 'on (sí)'], ['bounded', 'bounded']]))}${fila('editor.minimap.enabled', 'Minimapa', 'La vista en miniatura del archivo, a la derecha.', chk('editor.minimap.enabled'))}${fila('editor.lineNumbers', 'Números de línea', '', sel('editor.lineNumbers', [['on', 'on'], ['off', 'off'], ['relative', 'relative (como en vim)']]))}${fila('editor.cursorStyle', 'Estilo del cursor', '', sel('editor.cursorStyle', ['line', 'block', 'underline', 'line-thin', 'block-outline']))}${fila('editor.cursorBlinking', 'Parpadeo del cursor', '', sel('editor.cursorBlinking', ['blink', 'smooth', 'phase', 'expand', 'solid']))}${fila('editor.renderWhitespace', 'Mostrar espacios en blanco', 'Útil en Python y YAML, donde la sangría importa.', sel('editor.renderWhitespace', ['none', 'selection', 'boundary', 'all']))}${fila('editor.fontLigatures', 'Ligaduras de fuente', 'Une símbolos como != o => en un solo glifo (si la fuente lo permite).', chk('editor.fontLigatures'))}${fila('editor.stickyScroll.enabled', 'Desplazamiento fijo', 'Deja fijo arriba el def o la clase en la que estás.', chk('editor.stickyScroll.enabled'))}
+        <h2>Archivos</h2>${fila('files.autoSave', 'Guardado automático', 'afterDelay guarda solo un segundo después de dejar de escribir.', sel('files.autoSave', [['off', 'off'], ['afterDelay', 'afterDelay']]))}
+        <h2>Terminal</h2>${fila('terminal.integrated.fontSize', 'Tamaño de fuente de la terminal', '', num('terminal.integrated.fontSize', 9, 24))}
+        <p class="vs-aj-d" style="margin-top:20px">Todo se guarda en <code>~/.config/Code/User/settings.json</code>, igual que en VS Code: puedes verlo con <code>cat</code> en la terminal o editarlo a mano.</p></div>`;
+      const b = $('[data-aj-buscar]', edEl);
+      b.addEventListener('input', () => { const q = b.value.toLowerCase(); $$('.vs-aj', edEl).forEach((x) => { x.hidden = q && !x.textContent.toLowerCase().includes(q); }); });
+      edEl.addEventListener('change', (e) => {
+        const el = e.target.closest('[data-aj]'); if (!el) return;
+        const k = el.dataset.aj, v = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value;
+        const a = vsAjustes(); delete a.__error; a[k] = v; vsGuardarAjustes(a); aplicar(); pintarLateral();
+      });
     }
     function pintarArbol() {
       const rutas = Object.keys(Sh.Machine.fs).filter((k) => k.startsWith(raiz + '/') && !OCULTAS.test(rel(k))).sort();
@@ -577,7 +671,7 @@
         const n = k.split('/').pop();
         if (Sh.isDir(k)) { const ab = abiertas.has(k); return `<div class="vs-n vs-dir" data-dir="${esc(k)}" style="padding-left:${8 + nivel * 12}px"><span class="vs-chev">${ab ? '⌄' : '›'}</span>${esc(n)}</div>${ab ? nodo(k, nivel + 1) : ''}`; }
         const g = cambios[k];
-        return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''} ${g ? 'git-' + g : ''}" data-f="${esc(k)}" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic vs-ic-${ext(n) || 'txt'}">${ICONO_EXT[ext(n)] || '📄'}</span><span class="vs-nom">${esc(n)}</span>${sucios.has(k) ? '<b class="vs-punto">●</b>' : g ? `<span class="vs-git">${g}</span>` : ''}</div>`;
+        return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''} ${g ? 'git-' + g : ''}" data-f="${esc(k)}" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic vs-ic-${ext(n) || 'txt'}">${icono(n)}</span><span class="vs-nom">${esc(n)}</span>${sucios.has(k) ? '<b class="vs-punto">●</b>' : g ? `<span class="vs-git">${g}</span>` : ''}</div>`;
       }).join('');
       latEl.innerHTML = `<div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo" data-nuevo>📄＋</button><button title="Carpeta nueva" data-nueva-carpeta>📁＋</button><button title="Actualizar" data-refrescar>↻</button><button title="Contraer todo" data-contraer>⊟</button></div><div class="vs-n vs-raiz">⌄ ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
     }
@@ -590,7 +684,7 @@
         const hits = txt.split('\n').map((l, i) => [l, i]).filter(([l]) => l.toLowerCase().includes(q.toLowerCase())).slice(0, 20);
         if (!hits.length) continue;
         n += hits.length;
-        out.push(`<div class="vs-res-arch">${ICONO_EXT[ext(k)] || '📄'} ${esc(k.split('/').pop())} <span class="vs-res-n">${hits.length}</span><span class="vs-res-ruta">${esc(rel(k).split('/').slice(0, -1).join('/'))}</span></div>` + hits.map(([l, i]) => { const j = l.toLowerCase().indexOf(q.toLowerCase()); return `<div class="vs-res-l" data-f="${esc(k)}" data-linea="${i + 1}">${esc(l.slice(Math.max(0, j - 20), j)).trimStart()}<mark>${esc(l.slice(j, j + q.length))}</mark>${esc(l.slice(j + q.length, j + q.length + 40))}</div>`; }).join(''));
+        out.push(`<div class="vs-res-arch">${icono(k.split('/').pop())} ${esc(k.split('/').pop())} <span class="vs-res-n">${hits.length}</span><span class="vs-res-ruta">${esc(rel(k).split('/').slice(0, -1).join('/'))}</span></div>` + hits.map(([l, i]) => { const j = l.toLowerCase().indexOf(q.toLowerCase()); return `<div class="vs-res-l" data-f="${esc(k)}" data-linea="${i + 1}">${esc(l.slice(Math.max(0, j - 20), j)).trimStart()}<mark>${esc(l.slice(j, j + q.length))}</mark>${esc(l.slice(j + q.length, j + q.length + 40))}</div>`; }).join(''));
       }
       res.innerHTML = out.length ? `<p class="small" style="opacity:.7;padding:0 12px">${n} resultado(s) en ${out.length} archivo(s)</p>` + out.join('') : '<p class="small" style="opacity:.7;padding:0 12px">Sin resultados.</p>';
     }
@@ -614,7 +708,7 @@
       latEl.innerHTML = `<div class="vs-lat-cab"><span>CONTROL DE CÓDIGO FUENTE</span><span class="spacer"></span><button title="Traer cambios (git pull)" data-git-cmd="git pull">↓</button><button title="Subir (git push)" data-git-cmd="git push">↑</button></div>
         <div class="vs-git-box"><textarea data-msg rows="2" placeholder="Mensaje (Ctrl+Enter para hacer commit en '${esc(g.branch)}')"></textarea><button class="vs-btn-azul" data-commit>✓ Commit</button></div>
         <div class="vs-lat-sub">CAMBIOS <span class="vs-res-n">${Object.keys(cambios).length}</span></div>
-        ${Object.entries(cambios).map(([k, t]) => `<div class="vs-n vs-arch git-${t}" data-f="${esc(k)}" style="padding-left:16px" title="${nombres[t]}"><span class="vs-ic">${ICONO_EXT[ext(k)] || '📄'}</span><span class="vs-nom">${esc(k.split('/').pop())}</span><span class="vs-res-ruta">${esc(k.slice(r.length + 1).split('/').slice(0, -1).join('/'))}</span><span class="vs-git">${t}</span></div>`).join('') || '<p class="small" style="opacity:.7;padding:0 14px">No hay cambios. El árbol de trabajo está limpio.</p>'}
+        ${Object.entries(cambios).map(([k, t]) => `<div class="vs-n vs-arch git-${t}" data-f="${esc(k)}" style="padding-left:16px" title="${nombres[t]}"><span class="vs-ic">${icono(k.split('/').pop())}</span><span class="vs-nom">${esc(k.split('/').pop())}</span><span class="vs-res-ruta">${esc(k.slice(r.length + 1).split('/').slice(0, -1).join('/'))}</span><span class="vs-git">${t}</span></div>`).join('') || '<p class="small" style="opacity:.7;padding:0 14px">No hay cambios. El árbol de trabajo está limpio.</p>'}
         <p class="small" style="opacity:.7;padding:8px 14px">Cada botón ejecuta el comando de Git equivalente en la terminal integrada, para que veas qué hace.</p>`;
       const msg = $('[data-msg]', latEl);
       msg.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); hacerCommit(); } });
@@ -627,20 +721,28 @@
     }
     // ---------------------------------------------------------------- pestañas, migas y editor
     function pintarTabs() {
-      tabsEl.innerHTML = abiertos.map((k) => k === BIENVENIDA
-        ? `<div class="vs-tab ${actual === k ? 'on' : ''}" data-tab="${BIENVENIDA}"><span>⟨⟩ Bienvenida</span><button data-cerrar-tab="${BIENVENIDA}">×</button></div>`
-        : `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span><span class="vs-ic">${ICONO_EXT[ext(k)] || '📄'}</span>${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : '×'}</button></div>`).join('')
-        + (actual && actual !== BIENVENIDA && comandoPara(actual) ? `<span class="spacer"></span><button class="vs-run" data-run title="${esc(comandoPara(actual).titulo)} (F5)">▷</button>` : '');
-      migasEl.innerHTML = actual && actual !== BIENVENIDA ? rel(actual).split('/').map(esc).join(' <span>›</span> ') : '';
+      tabsEl.innerHTML = abiertos.map((k) => k === BIENVENIDA || k === AJUSTES
+        ? `<div class="vs-tab ${actual === k ? 'on' : ''}" data-tab="${k}"><span>${k === AJUSTES ? '⚙ Configuración' : '⟨⟩ Bienvenida'}</span><button data-cerrar-tab="${k}">×</button></div>`
+        : `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span><span class="vs-ic">${icono(k.split('/').pop())}</span>${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : '×'}</button></div>`).join('')
+        + (actual && actual !== BIENVENIDA && actual !== AJUSTES && comandoPara(actual) ? `<span class="spacer"></span><button class="vs-run" data-run title="${esc(comandoPara(actual).titulo)} (F5)">▷</button>` : '');
+      migasEl.innerHTML = actual && actual !== BIENVENIDA && actual !== AJUSTES ? rel(actual).split('/').map(esc).join(' <span>›</span> ') : '';
     }
     function pintarEstado() {
       const r = repoDe(), g = r && Sh.Machine.git[r];
       $('[data-rama]', box).textContent = g ? `⎇ ${g.branch}${g.merge ? ' (fusionando)' : ''}${g.rebase ? ' (rebase)' : ''}` : '⎇ sin repositorio';
-      const e = actual && actual !== BIENVENIDA ? ext(actual) : '';
-      $('[data-lang]', box).textContent = actual && actual !== BIENVENIDA ? ({ py: 'Python', sql: 'SQL', yml: 'YAML', yaml: 'YAML', sh: 'Shell Script', json: 'JSON', md: 'Markdown', toml: 'TOML', csv: 'CSV' }[e] || 'Texto sin formato') : '';
-      $('[data-esp]', box).textContent = actual && actual !== BIENVENIDA ? 'Espacios: 4' : '';
+      const e = actual && actual !== BIENVENIDA && actual !== AJUSTES ? ext(actual) : '';
+      $('[data-lang]', box).textContent = actual && actual !== BIENVENIDA && actual !== AJUSTES ? ({ py: 'Python', sql: 'SQL', yml: 'YAML', yaml: 'YAML', sh: 'Shell Script', json: 'JSON', md: 'Markdown', toml: 'TOML', csv: 'CSV' }[e] || 'Texto sin formato') : '';
+      $('[data-esp]', box).textContent = actual && actual !== BIENVENIDA && actual !== AJUSTES ? 'Espacios: 4' : '';
       $('[data-py]', box).textContent = e === 'py' ? `🐍 3.12${Sh.Machine.env && Sh.Machine.env.VIRTUAL_ENV ? " ('.venv')" : ''}` : '';
-      if (!actual || actual === BIENVENIDA) $('[data-pos]', box).textContent = '';
+      // GitLens: el último commit que tocó este archivo
+      let gl = '';
+      if (extOn('eamodio.gitlens') && r && actual && actual !== BIENVENIDA && actual !== AJUSTES) {
+        const C = Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits), relp = actual.slice(r.length + 1);
+        for (let hsh = g.branches[g.branch]; hsh && C[hsh]; hsh = C[hsh].parent) { const c = C[hsh], ps = c.parent && C[c.parent] ? C[c.parent].snap : {}; if (c.snap[relp] !== ps[relp]) { gl = `👤 ${c.author}, ${new Date(c.date).toLocaleDateString('es')} · ${c.msg.slice(0, 40)}`; break; } }
+        if (!gl) gl = '👤 sin commits todavía';
+      }
+      $('[data-gitlens]', box).textContent = gl;
+      if (!actual || actual === BIENVENIDA || actual === AJUSTES) $('[data-pos]', box).textContent = '';
     }
     function bienvenida() {
       edEl.innerHTML = `<div class="vs-bienv"><h1>Code <span>· editor del curso</span></h1><div class="vs-bienv-grid"><div><h3>Empezar</h3><p><a data-nuevo>📄 Archivo nuevo…</a></p><p><a data-quick>📂 Abrir archivo… <kbd>Ctrl+P</kbd></a></p><p><a data-toggle-term>⌨ Abrir la terminal <kbd>Ctrl+\`</kbd></a></p></div>
@@ -648,19 +750,21 @@
         <div><h3>Atajos</h3><ul class="vs-atajos"><li><kbd>Ctrl+S</kbd> guardar</li><li><kbd>Ctrl+P</kbd> abrir un archivo por nombre</li><li><kbd>Ctrl+Shift+P</kbd> paleta de comandos</li><li><kbd>Ctrl+B</kbd> mostrar/ocultar la barra lateral</li><li><kbd>Ctrl+\`</kbd> terminal</li><li><kbd>F5</kbd> ejecutar</li><li><kbd>Ctrl+/</kbd> comentar líneas</li><li><kbd>Alt+↑/↓</kbd> mover una línea</li><li>Clic derecho en un archivo: renombrar, eliminar, copiar ruta</li></ul></div></div></div>`;
     }
     function abrir(k, linea) {
-      if (actual && actual !== BIENVENIDA && ed && sucios.has(actual)) sucios.set(actual, ed.getValue());
+      if (actual && actual !== BIENVENIDA && actual !== AJUSTES && ed && sucios.has(actual)) sucios.set(actual, ed.getValue());
       if (!abiertos.includes(k)) abiertos.push(k);
       actual = k;
       if (k === BIENVENIDA) { ed = null; bienvenida(); pintarLateral(); pintarTabs(); pintarEstado(); return; }
+      if (k === AJUSTES) { ed = null; pintarAjustes(); pintarLateral(); pintarTabs(); pintarEstado(); return; }
       for (let d = k.slice(0, k.lastIndexOf('/')); d.length > raiz.length; d = d.slice(0, d.lastIndexOf('/'))) abiertas.add(d);
       edEl.innerHTML = '';
       const valor = sucios.has(k) ? sucios.get(k) : (Sh.readFile(k) ?? '');
-      const api = ed = createEditor(edEl, { lang: LANG_EXT[ext(k)] || 'text', value: valor, tall: true, onRun: () => ejecutar(), onChange: (v) => { const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); if (vistaLat === 'explorador') pintarArbol(); } });
+      const api = ed = createEditor(edEl, { lang: LANG_EXT[ext(k)] || 'text', value: valor, tall: true, onRun: () => ejecutar(), onChange: (v) => { const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); if (vistaLat === 'explorador') pintarArbol(); if (AJ['files.autoSave'] === 'afterDelay') { clearTimeout(autoGuardado); autoGuardado = setTimeout(() => { if (sucios.has(k)) guardar(k); }, 1000); } } });
       // Monaco puede llegar un poco después que el editor simple: se configura cuando está
       const configurar = (n = 0) => {
         if (ed !== api) return;
         if (api.monaco) {
-          api.monaco.updateOptions({ minimap: { enabled: true, scale: 1, renderCharacters: false }, renderWhitespace: 'selection', stickyScroll: { enabled: true } });
+          vsDefinirTemas(); window.monaco.editor.setTheme('vs-' + AJ['workbench.colorTheme'].replace(/\W+/g, '-'));
+          api.monaco.updateOptions(opcionesEditor());
           const pos = () => { const p = api.monaco.getPosition(); $('[data-pos]', box).textContent = p ? `Lín. ${p.lineNumber}, col. ${p.column}` : ''; };
           api.monaco.onDidChangeCursorPosition(pos); pos();
           if (linea) { api.monaco.revealLineInCenter(linea); api.monaco.setPosition({ lineNumber: linea, column: 1 }); }
@@ -672,10 +776,11 @@
       pintarLateral(); pintarTabs(); pintarEstado();
     }
     function guardar(k = actual) {
-      if (!k || k === BIENVENIDA) return;
+      if (!k || k === BIENVENIDA || k === AJUSTES) return;
       const v = k === actual && ed ? ed.getValue() : sucios.get(k);
       if (v === undefined) return;
       Sh.writeFile(k, v); Sh.Machine.save(); sucios.delete(k);
+      if (k === VS_RUTA()) { aplicar(); toast('Configuración aplicada'); }
       pintarTabs(); pintarLateral();
     }
     function guardarTodo() { [...sucios.keys()].forEach((k) => guardar(k)); toast('Todo guardado'); }
@@ -692,13 +797,13 @@
       panel.hidden = !mostrar;
       if (mostrar && !term) {
         Sh.Machine.cwd = raiz;
-        term = Sh.createTerminal($('.vs-panel-cuerpo', panel), { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarLateral(); pintarEstado(); if (actual && actual !== BIENVENIDA && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
+        term = Sh.createTerminal($('.vs-panel-cuerpo', panel), { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarLateral(); pintarEstado(); if (actual && actual !== BIENVENIDA && actual !== AJUSTES && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
       }
       if (mostrar && term) setTimeout(() => term.focus(), 30);
     }
     async function correrEnTerminal(cmd) { togglePanel(true); await term.run(cmd); pintarLateral(); pintarEstado(); }
     async function ejecutar() {
-      if (!actual || actual === BIENVENIDA) { toast('Abre un archivo para ejecutarlo.'); return; }
+      if (!actual || actual === BIENVENIDA || actual === AJUSTES) { toast('Abre un archivo para ejecutarlo.'); return; }
       const c = comandoPara(actual);
       if (!c) { toast(`Los archivos .${ext(actual)} no se ejecutan: son datos o configuración.`); return; }
       guardar(actual);
@@ -737,9 +842,13 @@
       ['Git: pull', '', () => correrEnTerminal('git pull')],
       ['Git: push', '', () => correrEnTerminal('git push')],
       ['Git: ver el historial (log)', '', () => correrEnTerminal('git log --oneline --all')],
-      ['Python: ejecutar ruff (revisar el estilo)', '', () => correrEnTerminal(`ruff check ${actual && actual !== BIENVENIDA ? Sh.display(actual) : '.'}`)],
+      ['Python: ejecutar ruff (revisar el estilo)', '', () => correrEnTerminal(`ruff check ${actual && actual !== BIENVENIDA && actual !== AJUSTES ? Sh.display(actual) : '.'}`)],
       ['Python: ejecutar los tests (pytest)', '', () => correrEnTerminal('pytest')],
       ['Ayuda: bienvenida', '', () => abrir(BIENVENIDA)],
+      ['Preferencias: abrir la configuración', 'Ctrl+,', () => abrir(AJUSTES)],
+      ['Preferencias: abrir la configuración de usuario (JSON)', '', () => { if (!Sh.exists(VS_RUTA())) vsGuardarAjustes(vsAjustes()); abrir(VS_RUTA()); }],
+      ['Preferencias: tema de color', 'Ctrl+K Ctrl+T', () => selector('Elige un tema de color', Object.keys(VS_TEMAS).map((n) => ({ label: n, desc: n === AJ['workbench.colorTheme'] ? 'actual' : '' })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.colorTheme'] = x.label; vsGuardarAjustes(a); aplicar(); })],
+      ['Ver: extensiones', 'Ctrl+Shift+X', () => { vistaLat = 'ext'; lateralOculto = false; pintarLateral(); }],
       ['Editor: cerrar el editor actual', '', () => actual && cerrarTab(actual)],
     ];
     const paleta = () => selector('> Escribe un comando', COMANDOS.map(([l, d, f]) => ({ label: l, desc: d, f })), (x) => x.f());
@@ -787,14 +896,17 @@
     function cerrar() {
       if (sucios.size && !confirm(`Hay ${sucios.size} archivo(s) sin guardar. ¿Cerrar igual?`)) return;
       box.remove(); document.body.classList.remove('vscode-abierto'); document.removeEventListener('keydown', teclas, true);
+      if (window.monaco) window.monaco.editor.setTheme('academia');
       document.dispatchEvent(new CustomEvent('term-config'));
     }
     function teclas(e) {
       if (!box.isConnected) return;
       const c = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
-      if (c && k === 's') { e.preventDefault(); if (e.altKey) guardarTodo(); else { guardar(); toast('Guardado ' + (actual && actual !== BIENVENIDA ? Sh.display(actual) : '')); } }
+      if (c && k === 's') { e.preventDefault(); if (e.altKey) guardarTodo(); else { guardar(); toast('Guardado ' + (actual && actual !== BIENVENIDA && actual !== AJUSTES ? Sh.display(actual) : '')); } }
       else if (c && (e.key === '`' || k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(); }
       else if (e.key === 'F5') { e.preventDefault(); ejecutar(); }
+      else if (c && e.key === ',') { e.preventDefault(); abrir(AJUSTES); }
+      else if (c && e.shiftKey && k === 'x') { e.preventDefault(); vistaLat = 'ext'; lateralOculto = false; pintarLateral(); }
       else if (c && e.shiftKey && k === 'p') { e.preventDefault(); paleta(); }
       else if (c && !e.shiftKey && k === 'p') { e.preventDefault(); abrirRapido(); }
       else if (c && !e.shiftKey && k === 'b') { e.preventDefault(); lateralOculto = !lateralOculto; pintarLateral(); }
@@ -807,6 +919,9 @@
     box.addEventListener('click', (e) => {
       const t = e.target;
       if (t.closest('[data-cerrar]')) return cerrar();
+      if (t.closest('[data-ajustes]')) return abrir(AJUSTES);
+      if (t.closest('[data-abrir-json]')) { if (!Sh.exists(VS_RUTA())) vsGuardarAjustes(vsAjustes()); return abrir(VS_RUTA()); }
+      const ex = t.closest('[data-ext]'); if (ex) { const a = vsAjustes(); delete a.__error; const l = new Set(a.extensiones || []); if (l.has(ex.dataset.ext)) l.delete(ex.dataset.ext); else { l.add(ex.dataset.ext); toast('Extensión instalada'); if (ex.dataset.ext === 'pkief.material-icon-theme') a['workbench.iconTheme'] = 'material'; } if (!l.has('pkief.material-icon-theme') && a['workbench.iconTheme'] === 'material') a['workbench.iconTheme'] = 'emojis'; a.extensiones = [...l]; vsGuardarAjustes(a); aplicar(); pintarLateral(); pintarEstado(); return; }
       const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
       if (t.closest('[data-run]') || t.closest('[data-run-menu]')) return ejecutar();
       if (t.closest('[data-term-menu]') || t.closest('[data-toggle-term]')) return togglePanel();
@@ -824,7 +939,7 @@
       if (t.closest('[data-nuevo]')) return nuevo(false);
       if (t.closest('[data-nueva-carpeta]')) return nuevo(true);
     });
-    pintarLateral(); pintarEstado();
+    aplicar(); pintarLateral(); pintarEstado();
     if (archivo) abrir(archivo); else abrir(BIENVENIDA);
   }
   if (window.Shell) window.Shell.abrirCode = abrirCode;
