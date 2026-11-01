@@ -1145,7 +1145,10 @@ models:
     const pat = pos.shift();
     if (pat === undefined) return fail('Uso: grep [OPCIÓN]... PATRÓN [ARCHIVO]...');
     let re;
-    try { re = new RegExp(flags['-w'] ? `\\b${pat}\\b` : pat, flags['-i'] ? 'i' : ''); } catch (e) { re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags['-i'] ? 'i' : ''); }
+    // sin -E, grep usa expresiones "básicas" (BRE): \| \( \) \+ \? son operadores y | ( ) + ? son literales
+    const bre = (p) => { let o = ''; for (let i = 0; i < p.length; i++) { const c = p[i]; if (c === '\\' && '|()+?{}'.includes(p[i + 1])) { o += p[++i]; } else if ('|()+?{}'.includes(c)) o += '\\' + c; else o += c; } return o; };
+    const patRe = flags['-E'] ? pat : bre(pat);
+    try { re = new RegExp(flags['-w'] ? `\\b${patRe}\\b` : patRe, flags['-i'] ? 'i' : ''); } catch (e) { re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags['-i'] ? 'i' : ''); }
     const files = pos.length ? pos : [null];
     const out = [];
     let total = 0;
@@ -2016,7 +2019,9 @@ for _n, _fn in list(_ns.items()):
         if (am >= 0) for (const [k, v] of Object.entries(work)) if (headSnap[k] !== undefined && headSnap[k] !== v) g.staged[k] = v;
         if (!msg) return fail('Abortando commit debido a que el mensaje del commit está vacío. Usa: git commit -m "mensaje"');
         if (!Object.keys(g.staged).length) return { out: `En la rama ${g.branch}\nnada para hacer commit` + (Object.keys(work).some((k) => indexSnap[k] !== work[k] && !ignored(root, k)) ? ' (usa "git add" para preparar cambios)' : ', el árbol de trabajo está limpio'), code: 1 };
-        const snap = { ...indexSnap };
+        // el índice se recalcula aquí: con -am se acaban de agregar archivos a g.staged
+        const snap = { ...headSnap, ...g.staged };
+        for (const k of Object.keys(g.staged)) if (g.staged[k] === null) delete snap[k];
         const h = shortHash();
         const n = Object.keys(g.staged).length;
         g.commits[h] = { msg, parent: head, snap, author: 'alumno', date: new Date().toISOString() };
@@ -2428,5 +2433,6 @@ for _n, _fn in list(_ns.items()):
     TermCfg, TEMAS,
     Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, mkdirp, display, HOME,
     fail, ok, sqlExec, openEditor: null, runScript, faltaCerrar, esCompuesto, Shopt, Funciones,
+    gitInt: { root: gitRoot, snapshot, ignored, hash: shortHash },
   };
 })();
