@@ -495,3 +495,46 @@ body.vscode-abierto { overflow: hidden; }
 .vscode .vs-panel-cab button .codicon { font-size: 14px; }
 @media (max-width: 760px) { .vs-layout, .vs-ventana > span { display: none; } .vscode .vs-titulo > .spacer { display: block; } .vscode .vs-actividad button { height: 44px; } .vscode .vs-actividad .codicon { font-size: 20px; } }
 .vscode .vs-lat-cab button { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; } .vscode .vs-raiz .codicon { font-size: 14px; }
+
+/* VS Code con los temas reales del repositorio microsoft/vscode: variables extra del workbench */
+.vscode .vs-actividad button { color: var(--vs-actdim, var(--vs-dim)); }
+.vscode .vs-actividad button:hover, .vscode .vs-actividad button.on { color: var(--vs-actfg, var(--vs-text)); }
+.vscode .vs-actividad button.on { border-left-color: var(--vs-actborde, var(--vs-accent)); }
+.vscode .vs-badge { background: var(--vs-badge, var(--vs-accent)); }
+.vscode .vs-titulo, .vscode .vs-menu span { color: var(--vs-titlefg, var(--vs-text)); }
+.vscode .vs-lateral { color: var(--vs-sidefg, var(--vs-text)); }
+.vscode .vs-tab { color: var(--vs-tabdim, var(--vs-dim)); }
+.vscode .vs-tab.on { color: var(--vs-tabfg, var(--vs-text)); border-top-color: var(--vs-tabtop, var(--vs-accent)); }
+.vscode .vs-panel { background: var(--vs-panel, var(--vs-bg)); }
+.vscode .vs-panel-cuerpo .term, .vscode .vs-panel-cuerpo .term-body { background: var(--vs-term, var(--vs-bg)) !important; color: var(--vs-termfg, inherit); }
+.vscode .vs-btn-azul { background: var(--vs-boton, var(--vs-accent)); color: var(--vs-botonfg, #fff); }
+.vscode.vs-hc .vs-tab.on, .vscode.vs-hc .vs-n.on { outline: 1px dashed #f38518; outline-offset: -1px; }
+.vscode .vs-seti { width: 18px; }
+.vs-ptab { cursor: pointer; }
+.vs-ptab-n { display: inline-block; min-width: 16px; padding: 0 4px; border-radius: 8px; background: var(--vs-badge, #4d4d4d); color: #fff; font-size: 10px; text-align: center; margin-left: 4px; }
+.vs-term-lista select { background: var(--vs-input, #3c3c3c); color: var(--vs-text); border: 1px solid var(--vs-border); font: inherit; font-size: 12px; height: 22px; }
+.vs-term-inst[hidden] { display: none; }
+.vs-panel-prob, .vs-panel-salida { flex: 1; overflow: auto; padding: 4px 0; font-size: 13px; }
+.vs-panel-salida pre { margin: 0; padding: 6px 14px; font: 12px/1.5 var(--mono); color: var(--vs-text); white-space: pre-wrap; }
+.vs-prob-arch { padding: 3px 12px; display: flex; align-items: center; gap: 6px; color: var(--vs-text); }
+.vs-prob { display: flex; align-items: center; gap: 6px; padding: 2px 12px 2px 30px; cursor: pointer; color: var(--vs-text); }
+.vs-prob:hover { background: var(--vs-hover); }
+.vs-prob .codicon-error { color: #f14c4c; } .vs-prob .codicon-warning { color: #cca700; }
+.vs-prob-f { color: var(--vs-dim); font-size: 12px; margin-left: 4px; }
+.vs-esquema { border-top: 1px solid var(--vs-border); margin-top: 8px; }
+.vs-esq-t { cursor: pointer; align-items: center; }
+.vs-esq-i .codicon { font-size: 14px; color: #b180d7; }
+.vs-esq-i .codicon-symbol-class { color: #ee9d28; } .vs-esq-i .codicon-symbol-constant, .vs-esq-i .codicon-symbol-key { color: #75beff; }
+.vscode .vs-editor.vs-mitad { display: flex; }
+.vscode .vs-editor.vs-mitad > * { flex: 1 1 50%; min-width: 0; }
+.vscode .vs-editor.vs-mitad > .vs-editor2 { border-left: 1px solid var(--vs-border); height: 100%; }
+.vs-dividir { margin-left: 0 !important; color: var(--vs-text) !important; }
+.vs-diff-txt { margin: 0; padding: 10px 16px; font: 13px/1.5 var(--mono); color: var(--vs-text); overflow: auto; height: 100%; }
+.vs-diff-mas { background: rgba(155, 185, 85, .2); display: inline-block; width: 100%; } .vs-diff-menos { background: rgba(255, 0, 0, .2); display: inline-block; width: 100%; }
+.vscode.vs-zen .vs-actividad, .vscode.vs-zen .vs-lateral, .vscode.vs-zen .vs-estado, .vscode.vs-zen .vs-titulo, .vscode.vs-zen .vs-panel, .vscode.vs-zen .vs-migas { display: none !important; }
+.vscode.vs-zen .vs-centro { max-width: 900px; margin: 0 auto; width: 100%; }
+.vscode.vs-panel-max .vs-editor, .vscode.vs-panel-max .vs-tabs, .vscode.vs-panel-max .vs-migas { display: none; }
+.vscode.vs-panel-max .vs-panel { flex: 1; max-height: none; height: auto; }
+.vscode .git-M { color: var(--vs-gitM, #e2c08d); } .vscode .git-U { color: var(--vs-gitU, #73c991); } .vscode .git-D { color: var(--vs-gitD, #c74e39); } .vscode .git-C { color: var(--vs-gitC, #e4676b); }
+.vscode .vs-panel-prob, .vscode .vs-panel-salida { background: var(--vs-panel, var(--vs-bg)); color: var(--vs-text); }
+.vscode.vs-claro .vs-panel-cab button, .vscode.vs-claro .vs-ptab { color: var(--vs-text); }

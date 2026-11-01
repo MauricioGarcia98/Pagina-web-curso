@@ -134,6 +134,7 @@
     },
   };
   function setupMonaco(monaco) {
+    if (window.Engines && window.Engines.DAX) window.Engines.DAX.registrarMonaco(monaco);
     monaco.editor.defineTheme('academia', {
       base: 'vs-dark', inherit: true,
       rules: [
@@ -169,7 +170,7 @@
       },
     });
   }
-  function monacoLang(lang) { return { sql: 'sql', dbt: 'sql', jinja: 'sql', python: 'python', pyspark: 'python', airflow: 'python', bash: 'shell', shell: 'shell', yaml: 'yaml', json: 'json' }[lang] || 'plaintext'; }
+  function monacoLang(lang) { return { dax: 'dax', sql: 'sql', dbt: 'sql', jinja: 'sql', python: 'python', pyspark: 'python', airflow: 'python', bash: 'shell', shell: 'shell', yaml: 'yaml', json: 'json' }[lang] || 'plaintext'; }
 
   function mountMonaco(wrap, { lang, value, onRun, onCheck, onChange, tall }) {
     const monaco = window.monaco;
@@ -533,7 +534,7 @@
     'Solarized Light': { base: 'vs', w: { bg: '#fdf6e3', side: '#eee8d5', act: '#ddd6c1', title: '#eee8d5', tabbar: '#d9d2c2', tab: '#d3cbb7', tabon: '#fdf6e3', text: '#586e75', dim: '#93a1a1', status: '#eee8d5', stext: '#586e75', border: '#ddd6c1', hover: '#dfca8844', sel: '#dfca88', accent: '#b58900', input: '#ddd6c1' }, e: { bg: '#fdf6e3', kw: '859900', str: '2aa198', com: '93a1a1', num: 'd33682', fn: '268bd2' } },
   };
   const VS_DEF = {
-    'workbench.colorTheme': 'Dark Modern', 'workbench.iconTheme': 'emojis', 'editor.fontSize': 14, 'editor.fontFamily': "'JetBrains Mono', Consolas, monospace",
+    'workbench.colorTheme': 'Dark Modern', 'workbench.iconTheme': 'vs-seti', 'editor.fontSize': 14, 'editor.fontFamily': "'JetBrains Mono', Consolas, monospace",
     'editor.tabSize': 4, 'editor.wordWrap': 'off', 'editor.minimap.enabled': true, 'editor.lineNumbers': 'on', 'editor.cursorStyle': 'line',
     'editor.cursorBlinking': 'blink', 'editor.renderWhitespace': 'selection', 'editor.fontLigatures': false, 'editor.stickyScroll.enabled': true,
     'files.autoSave': 'off', 'terminal.integrated.fontSize': 13, 'extensiones': ['ms-python.python'],
@@ -550,6 +551,8 @@
     Sh.mkdirp(VS_RUTA().slice(0, VS_RUTA().lastIndexOf('/')));
     Sh.writeFile(VS_RUTA(), JSON.stringify(limpio, null, 4) + '\n'); Sh.Machine.save();
   }
+  // temas oficiales de VS Code (vscode-real.js) primero, después los del curso que no existen en el repo
+  const temasDisponibles = () => { const R = (window.VSReal || {}).TEMAS || {}; return [...Object.keys(R), ...Object.keys(VS_TEMAS).filter((k) => !R[k] && k !== 'Dark+ (clásico)')]; };
   let vsTemasListos = false;
   function vsDefinirTemas() {
     if (vsTemasListos || !window.monaco) return;
@@ -581,16 +584,38 @@
     const abiertos = [], sucios = new Map();
     let actual = null, ed = null, term = null, vistaLat = 'explorador', lateralOculto = false;
     const abiertas = new Set();
-    const BIENVENIDA = '\u0000bienvenida', AJUSTES = '\u0000ajustes';
+    const BIENVENIDA = '\u0000bienvenida', AJUSTES = '\u0000ajustes', DIFF = '\u0000diff:';
+    const esArchivo = (k) => !!k && !String(k).startsWith('\u0000');
+    let temaReal = null, problemas = [], diagT = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
+    const terms = []; let tActiva = 0; const salida = [];
     let AJ = vsAjustes(), autoGuardado = null;
-    const icono = (nombre) => { const e = nombre.includes('.') ? nombre.split('.').pop() : nombre.replace(/^\./, ''); return AJ['workbench.iconTheme'] === 'ninguno' ? '' : AJ['workbench.iconTheme'] === 'material' ? (MATERIAL[e] || '▫️') : (ICONO_EXT[e] || '📄'); };
+    const icono = (nombre) => {
+      const it = AJ['workbench.iconTheme'];
+      if (it === 'ninguno') return '';
+      if (it === 'vs-seti' && window.VSReal) { const x = window.VSReal.iconoSeti(nombre, typeof box !== 'undefined' && box.classList.contains('vs-claro')); if (x) return x; }
+      if (it === 'vs-minimal') return '<i class="codicon codicon-file" aria-hidden="true"></i>';
+      const e = nombre.includes('.') ? nombre.split('.').pop() : nombre.replace(/^\./, '');
+      return it === 'material' ? (MATERIAL[e] || '▫️') : (ICONO_EXT[e] || '📄');
+    };
+    const CLAVES_TEMA = ['bg', 'side', 'act', 'title', 'tabbar', 'tab', 'tabon', 'text', 'dim', 'status', 'stext', 'border', 'hover', 'sel', 'accent', 'input', 'actfg', 'actdim', 'actborde', 'tabfg', 'tabdim', 'tabtop', 'titlefg', 'sidefg', 'panel', 'term', 'termfg', 'boton', 'botonfg', 'badge', 'gitM', 'gitU', 'gitD', 'gitC'];
+    function ponerTemaMonaco() {
+      if (!window.monaco) return;
+      if (temaReal) { const id = 'vsr-' + temaReal.nombre.replace(/\W+/g, '-'); window.monaco.editor.defineTheme(id, temaReal.monaco); window.monaco.editor.setTheme(id); return; }
+      vsDefinirTemas(); const n = AJ['workbench.colorTheme']; window.monaco.editor.setTheme('vs-' + (VS_TEMAS[n] ? n : n === 'Dark+' ? 'Dark+ (clásico)' : 'Dark Modern').replace(/\W+/g, '-'));
+    }
     function aplicar() {
       AJ = vsAjustes();
-      const t = VS_TEMAS[AJ['workbench.colorTheme']] || VS_TEMAS['Dark Modern'];
-      for (const [k, v] of Object.entries(t.w)) box.style.setProperty('--vs-' + k, v);
-      box.classList.toggle('vs-claro', t.base === 'vs');
+      let nom = AJ['workbench.colorTheme']; if (nom === 'Dark+ (clásico)') nom = 'Dark+';
+      const t = VS_TEMAS[nom] || VS_TEMAS[nom === 'Dark+' ? 'Dark+ (clásico)' : ''] || (/light|quiet|solarized light/i.test(nom) ? VS_TEMAS['Light Modern'] : VS_TEMAS['Dark Modern']);
+      if (!temaReal || temaReal.nombre !== nom) { temaReal = null; for (const k of CLAVES_TEMA) box.style.removeProperty('--vs-' + k); for (const [k, v] of Object.entries(t.w)) box.style.setProperty('--vs-' + k, v); box.classList.toggle('vs-claro', t.base === 'vs'); box.classList.remove('vs-hc'); }
+      if (window.VSReal && window.VSReal.TEMAS[nom] && (!temaReal || temaReal.nombre !== nom)) window.VSReal.cargarTema(nom).then((r) => {
+        if (!box.isConnected || !r) return; let ahora = vsAjustes()['workbench.colorTheme']; if (ahora === 'Dark+ (clásico)') ahora = 'Dark+'; if (ahora !== nom) return;
+        temaReal = r; for (const k of CLAVES_TEMA) box.style.removeProperty('--vs-' + k); for (const [k, v] of Object.entries(r.w)) box.style.setProperty('--vs-' + k, v);
+        box.classList.toggle('vs-claro', r.base === 'vs'); box.classList.toggle('vs-hc', r.base === 'hc-black'); ponerTemaMonaco(); pintarLateral(); pintarTabs();
+      }).catch(() => {});
+      if (AJ['workbench.iconTheme'] === 'vs-seti' && window.VSReal && !window.VSReal.setiListo()) window.VSReal.cargarSeti().then(() => { if (box.isConnected) { pintarLateral(); pintarTabs(); } }).catch(() => {});
       box.style.setProperty('--vs-term-font', AJ['terminal.integrated.fontSize'] + 'px');
-      if (window.monaco) { vsDefinirTemas(); window.monaco.editor.setTheme('vs-' + AJ['workbench.colorTheme'].replace(/\W+/g, '-')); }
+      ponerTemaMonaco();
       if (ed && ed.monaco) ed.monaco.updateOptions(opcionesEditor());
       if (ed && ed.cm) { ed.cm.getWrapperElement().style.fontSize = AJ['editor.fontSize'] + 'px'; ed.cm.refresh(); }
       if (AJ.__error) toast('settings.json tiene un error de JSON: ' + AJ.__error);
@@ -603,7 +628,7 @@
       <div class="vs-cuerpo">
         <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">${ci('files')}</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">${ci('search')}</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">${ci('source-control')}<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar (Ctrl+Shift+D)">${ci('debug-alt')}</button><button data-vista="ext" title="Extensiones (Ctrl+Shift+X)">${ci('extensions')}</button><span class="spacer"></span><button title="Cuentas">${ci('account')}</button><button data-ajustes title="Administrar: Configuración (Ctrl+,)">${ci('settings-gear')}</button></nav>
         <aside class="vs-lateral"></aside>
-        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab">PROBLEMAS</span><span class="vs-ptab">SALIDA</span><span class="vs-ptab on">TERMINAL</span><span class="spacer"></span><span class="small" style="opacity:.7">bash</span><button data-panel-x title="Ocultar el panel">${ci('close')}</button></div><div class="vs-panel-cuerpo"></div></div></section>
+        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab" data-ptab="problemas">PROBLEMAS <b class="vs-ptab-n" data-prob-n hidden></b></span><span class="vs-ptab" data-ptab="salida">SALIDA</span><span class="vs-ptab on" data-ptab="terminal">TERMINAL</span><span class="spacer"></span><span class="vs-term-lista"></span><button data-term-nuevo title="Nueva terminal (Ctrl+Shift+ñ)">${ci('add')}</button><button data-term-borrar title="Eliminar la terminal">${ci('trash')}</button><button data-panel-max title="Maximizar el tamaño del panel">${ci('chevron-up')}</button><button data-panel-x title="Ocultar el panel">${ci('close')}</button></div><div class="vs-panel-cuerpo"></div><div class="vs-panel-prob" hidden></div><div class="vs-panel-salida" hidden></div></div></section>
       </div>
       <div class="vs-estado"><span data-rama></span><span class="vs-remoto">${ci('remote')}</span><span data-errores>${ci('error')} 0 ${ci('warning')} 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><span data-gitlens></span><button data-toggle-term title="Terminal (Ctrl+\`)">${ci('terminal')}</button><span>${ci('bell')}</span></div>
     </div>`);
@@ -642,7 +667,7 @@
         latEl.innerHTML = `<div class="vs-lat-cab"><span>EXTENSIONES</span></div><div class="vs-lat-sub">INSTALADAS</div>${VS_EXT.filter((x) => extOn(x[0])).map(extHtml).join('') || '<p class="small" style="opacity:.7;padding:0 14px">Ninguna</p>'}<div class="vs-lat-sub">RECOMENDADAS PARA DATOS</div>${VS_EXT.filter((x) => !extOn(x[0])).map(extHtml).join('')}`;
         return;
       }
-      latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR</span></div><div class="vs-run-info">${actual && actual !== BIENVENIDA && actual !== AJUSTES && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada:</p><code>${esc(comandoPara(actual).cmd)}</code>` : '<p class="small">Abre un archivo .py, .sh o .sql para ejecutarlo con ▷ o con F5.</p>'}<p class="small" style="margin-top:14px">En VS Code real esto lo hacen las extensiones (Python, dbt Power User, SQLTools). Aquí se ejecuta en la terminal del curso, con el mismo comando que escribirías tú.</p></div>`;
+      latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR</span></div><div class="vs-run-info">${esArchivo(actual) && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada:</p><code>${esc(comandoPara(actual).cmd)}</code>` : '<p class="small">Abre un archivo .py, .sh o .sql para ejecutarlo con ▷ o con F5.</p>'}<p class="small" style="margin-top:14px">En VS Code real esto lo hacen las extensiones (Python, dbt Power User, SQLTools). Aquí se ejecuta en la terminal del curso, con el mismo comando que escribirías tú.</p></div>`;
     }
     const extHtml = ([id, n, autor, desc, ic]) => `<div class="vs-ext"><span class="vs-ext-ic">${ic}</span><div class="vs-ext-txt"><b>${esc(n)}</b><small>${esc(desc)}</small><span class="vs-ext-autor">${esc(autor)}</span></div><button class="vs-ext-btn ${extOn(id) ? 'on' : ''}" data-ext="${esc(id)}">${extOn(id) ? 'Desinstalar' : 'Instalar'}</button></div>`;
     function pintarAjustes() {
@@ -651,7 +676,7 @@
       const num = (k, min, max) => `<input type="number" data-aj="${k}" min="${min}" max="${max}" value="${esc(AJ[k])}">`;
       const chk = (k) => `<label class="vs-aj-chk"><input type="checkbox" data-aj="${k}" ${AJ[k] ? 'checked' : ''}> Activado</label>`;
       edEl.innerHTML = `<div class="vs-ajustes"><div class="vs-aj-cab"><input class="vs-aj-buscar" placeholder="Buscar configuración" data-aj-buscar><button class="vs-btn-link" data-abrir-json>{ } Abrir settings.json</button></div><div class="vs-aj-tabs"><span class="on">Usuario</span></div>
-        <h2>Apariencia</h2>${fila('workbench.colorTheme', 'Tema de color', 'Los colores del editor y de toda la ventana.', sel('workbench.colorTheme', Object.keys(VS_TEMAS)))}${fila('workbench.iconTheme', 'Tema de íconos de archivos', 'Los íconos del explorador y de las pestañas.', sel('workbench.iconTheme', [['emojis', 'Íconos del curso'], ['material', 'Material (requiere Material Icon Theme)'], ['ninguno', 'Ninguno']]))}
+        <h2>Apariencia</h2>${fila('workbench.colorTheme', 'Tema de color', 'Los colores del editor y de toda la ventana.', sel('workbench.colorTheme', temasDisponibles()))}${fila('workbench.iconTheme', 'Tema de íconos de archivos', 'Los íconos del explorador y de las pestañas.', sel('workbench.iconTheme', [['vs-seti', 'Seti (Visual Studio Code)'], ['vs-minimal', 'Minimal (Visual Studio Code)'], ['emojis', 'Íconos del curso'], ['material', 'Material (requiere Material Icon Theme)'], ['ninguno', 'Ninguno']]))}
         <h2>Editor</h2>${fila('editor.fontSize', 'Tamaño de fuente', 'En píxeles.', num('editor.fontSize', 8, 32))}${fila('editor.fontFamily', 'Familia de fuente', 'Fuentes separadas por comas, como en CSS.', sel('editor.fontFamily', [["'JetBrains Mono', Consolas, monospace", 'JetBrains Mono'], ["Consolas, 'Courier New', monospace", 'Consolas'], ["'Fira Code', monospace", 'Fira Code'], ["'Courier New', monospace", 'Courier New'], ['monospace', 'Monoespaciada del sistema']]))}${fila('editor.tabSize', 'Tamaño de tabulación', 'Cuántos espacios equivale una tabulación (en Python se usan 4).', num('editor.tabSize', 1, 8))}${fila('editor.wordWrap', 'Ajuste de línea', 'Si las líneas largas se cortan para entrar en la pantalla.', sel('editor.wordWrap', [['off', 'off (no)'], ['on', 'on (sí)'], ['bounded', 'bounded']]))}${fila('editor.minimap.enabled', 'Minimapa', 'La vista en miniatura del archivo, a la derecha.', chk('editor.minimap.enabled'))}${fila('editor.lineNumbers', 'Números de línea', '', sel('editor.lineNumbers', [['on', 'on'], ['off', 'off'], ['relative', 'relative (como en vim)']]))}${fila('editor.cursorStyle', 'Estilo del cursor', '', sel('editor.cursorStyle', ['line', 'block', 'underline', 'line-thin', 'block-outline']))}${fila('editor.cursorBlinking', 'Parpadeo del cursor', '', sel('editor.cursorBlinking', ['blink', 'smooth', 'phase', 'expand', 'solid']))}${fila('editor.renderWhitespace', 'Mostrar espacios en blanco', 'Útil en Python y YAML, donde la sangría importa.', sel('editor.renderWhitespace', ['none', 'selection', 'boundary', 'all']))}${fila('editor.fontLigatures', 'Ligaduras de fuente', 'Une símbolos como != o => en un solo glifo (si la fuente lo permite).', chk('editor.fontLigatures'))}${fila('editor.stickyScroll.enabled', 'Desplazamiento fijo', 'Deja fijo arriba el def o la clase en la que estás.', chk('editor.stickyScroll.enabled'))}
         <h2>Archivos</h2>${fila('files.autoSave', 'Guardado automático', 'afterDelay guarda solo un segundo después de dejar de escribir.', sel('files.autoSave', [['off', 'off'], ['afterDelay', 'afterDelay']]))}
         <h2>Terminal</h2>${fila('terminal.integrated.fontSize', 'Tamaño de fuente de la terminal', '', num('terminal.integrated.fontSize', 9, 24))}
@@ -675,6 +700,7 @@
         return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''} ${g ? 'git-' + g : ''}" data-f="${esc(k)}" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic vs-ic-${ext(n) || 'txt'}">${icono(n)}</span><span class="vs-nom">${esc(n)}</span>${sucios.has(k) ? '<b class="vs-punto">●</b>' : g ? `<span class="vs-git">${g}</span>` : ''}</div>`;
       }).join('');
       latEl.innerHTML = `<div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo..." data-nuevo>${ci('new-file')}</button><button title="Carpeta nueva..." data-nueva-carpeta>${ci('new-folder')}</button><button title="Actualizar el explorador" data-refrescar>${ci('refresh')}</button><button title="Contraer carpetas en el explorador" data-contraer>${ci('collapse-all')}</button></div><div class="vs-n vs-raiz">${ci('chevron-down')} ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
+      latEl.insertAdjacentHTML('beforeend', esquemaHtml());
     }
     function buscarEnArchivos(q) {
       const res = $('.vs-res', latEl); if (!res) return;
@@ -709,7 +735,7 @@
       latEl.innerHTML = `<div class="vs-lat-cab"><span>CONTROL DE CÓDIGO FUENTE</span><span class="spacer"></span><button title="Traer cambios (git pull)" data-git-cmd="git pull">↓</button><button title="Subir (git push)" data-git-cmd="git push">↑</button></div>
         <div class="vs-git-box"><textarea data-msg rows="2" placeholder="Mensaje (Ctrl+Enter para hacer commit en '${esc(g.branch)}')"></textarea><button class="vs-btn-azul" data-commit>✓ Commit</button></div>
         <div class="vs-lat-sub">CAMBIOS <span class="vs-res-n">${Object.keys(cambios).length}</span></div>
-        ${Object.entries(cambios).map(([k, t]) => `<div class="vs-n vs-arch git-${t}" data-f="${esc(k)}" style="padding-left:16px" title="${nombres[t]}"><span class="vs-ic">${icono(k.split('/').pop())}</span><span class="vs-nom">${esc(k.split('/').pop())}</span><span class="vs-res-ruta">${esc(k.slice(r.length + 1).split('/').slice(0, -1).join('/'))}</span><span class="vs-git">${t}</span></div>`).join('') || '<p class="small" style="opacity:.7;padding:0 14px">No hay cambios. El árbol de trabajo está limpio.</p>'}
+        ${Object.entries(cambios).map(([k, t]) => `<div class="vs-n vs-arch git-${t}" data-diff="${esc(k)}" style="padding-left:16px" title="${nombres[t]}"><span class="vs-ic">${icono(k.split('/').pop())}</span><span class="vs-nom">${esc(k.split('/').pop())}</span><span class="vs-res-ruta">${esc(k.slice(r.length + 1).split('/').slice(0, -1).join('/'))}</span><span class="vs-git">${t}</span></div>`).join('') || '<p class="small" style="opacity:.7;padding:0 14px">No hay cambios. El árbol de trabajo está limpio.</p>'}
         <p class="small" style="opacity:.7;padding:8px 14px">Cada botón ejecuta el comando de Git equivalente en la terminal integrada, para que veas qué hace.</p>`;
       const msg = $('[data-msg]', latEl);
       msg.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); hacerCommit(); } });
@@ -722,28 +748,28 @@
     }
     // ---------------------------------------------------------------- pestañas, migas y editor
     function pintarTabs() {
-      tabsEl.innerHTML = abiertos.map((k) => k === BIENVENIDA || k === AJUSTES
+      tabsEl.innerHTML = abiertos.map((k) => k.startsWith(DIFF) ? `<div class="vs-tab ${actual === k ? 'on' : ''}" data-tab="${esc(k)}"><span><span class="vs-ic">${ci('diff')}</span>${esc(k.slice(DIFF.length).split('/').pop())} (árbol de trabajo)</span><button data-cerrar-tab="${esc(k)}">${ci('close')}</button></div>` : k === BIENVENIDA || k === AJUSTES
         ? `<div class="vs-tab ${actual === k ? 'on' : ''}" data-tab="${k}"><span>${k === AJUSTES ? '⚙ Configuración' : '⟨⟩ Bienvenida'}</span><button data-cerrar-tab="${k}">${ci('close')}</button></div>`
         : `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span><span class="vs-ic">${icono(k.split('/').pop())}</span>${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : ci('close')}</button></div>`).join('')
-        + (actual && actual !== BIENVENIDA && actual !== AJUSTES && comandoPara(actual) ? `<span class="spacer"></span><button class="vs-run" data-run title="${esc(comandoPara(actual).titulo)} (F5)">${ci('play')}</button>` : '');
-      migasEl.innerHTML = actual && actual !== BIENVENIDA && actual !== AJUSTES ? rel(actual).split('/').map(esc).join(' <span>›</span> ') : '';
+        + (esArchivo(actual) && comandoPara(actual) ? `<span class="spacer"></span><button class="vs-run" data-run title="${esc(comandoPara(actual).titulo)} (F5)">${ci('play')}</button>` : '') + (esArchivo(actual) ? `${comandoPara(actual) ? '' : '<span class="spacer"></span>'}<button class="vs-run vs-dividir" data-dividir title="Dividir editor (Ctrl+\\)">${ci('split-horizontal')}</button>` : '');
+      migasEl.innerHTML = esArchivo(actual) ? rel(actual).split('/').map(esc).join(' <span>›</span> ') : '';
     }
     function pintarEstado() {
       const r = repoDe(), g = r && Sh.Machine.git[r];
       $('[data-rama]', box).innerHTML = ci('git-branch') + ' ' + esc(g ? `${g.branch}${g.merge ? ' (fusionando)' : ''}${g.rebase ? ' (rebase)' : ''}` : 'sin repositorio') + (g ? ' ' + ci('sync') : '');
-      const e = actual && actual !== BIENVENIDA && actual !== AJUSTES ? ext(actual) : '';
-      $('[data-lang]', box).textContent = actual && actual !== BIENVENIDA && actual !== AJUSTES ? ({ py: 'Python', sql: 'SQL', yml: 'YAML', yaml: 'YAML', sh: 'Shell Script', json: 'JSON', md: 'Markdown', toml: 'TOML', csv: 'CSV' }[e] || 'Texto sin formato') : '';
-      $('[data-esp]', box).textContent = actual && actual !== BIENVENIDA && actual !== AJUSTES ? 'Espacios: 4' : '';
+      const e = esArchivo(actual) ? ext(actual) : '';
+      $('[data-lang]', box).textContent = esArchivo(actual) ? ({ py: 'Python', sql: 'SQL', yml: 'YAML', yaml: 'YAML', sh: 'Shell Script', json: 'JSON', md: 'Markdown', toml: 'TOML', csv: 'CSV' }[e] || 'Texto sin formato') : '';
+      $('[data-esp]', box).textContent = esArchivo(actual) ? 'Espacios: 4' : '';
       $('[data-py]', box).textContent = e === 'py' ? `🐍 3.12${Sh.Machine.env && Sh.Machine.env.VIRTUAL_ENV ? " ('.venv')" : ''}` : '';
       // GitLens: el último commit que tocó este archivo
       let gl = '';
-      if (extOn('eamodio.gitlens') && r && actual && actual !== BIENVENIDA && actual !== AJUSTES) {
+      if (extOn('eamodio.gitlens') && r && esArchivo(actual)) {
         const C = Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits), relp = actual.slice(r.length + 1);
         for (let hsh = g.branches[g.branch]; hsh && C[hsh]; hsh = C[hsh].parent) { const c = C[hsh], ps = c.parent && C[c.parent] ? C[c.parent].snap : {}; if (c.snap[relp] !== ps[relp]) { gl = `👤 ${c.author}, ${new Date(c.date).toLocaleDateString('es')} · ${c.msg.slice(0, 40)}`; break; } }
         if (!gl) gl = '👤 sin commits todavía';
       }
       $('[data-gitlens]', box).textContent = gl;
-      if (!actual || actual === BIENVENIDA || actual === AJUSTES) $('[data-pos]', box).textContent = '';
+      if (!esArchivo(actual)) $('[data-pos]', box).textContent = '';
     }
     function bienvenida() {
       edEl.innerHTML = `<div class="vs-bienv"><h1>Code <span>· editor del curso</span></h1><div class="vs-bienv-grid"><div><h3>Empezar</h3><p><a data-nuevo>📄 Archivo nuevo…</a></p><p><a data-quick>📂 Abrir archivo… <kbd>Ctrl+P</kbd></a></p><p><a data-toggle-term>⌨ Abrir la terminal <kbd>Ctrl+\`</kbd></a></p></div>
@@ -751,33 +777,34 @@
         <div><h3>Atajos</h3><ul class="vs-atajos"><li><kbd>Ctrl+S</kbd> guardar</li><li><kbd>Ctrl+P</kbd> abrir un archivo por nombre</li><li><kbd>Ctrl+Shift+P</kbd> paleta de comandos</li><li><kbd>Ctrl+B</kbd> mostrar/ocultar la barra lateral</li><li><kbd>Ctrl+\`</kbd> terminal</li><li><kbd>F5</kbd> ejecutar</li><li><kbd>Ctrl+/</kbd> comentar líneas</li><li><kbd>Alt+↑/↓</kbd> mover una línea</li><li>Clic derecho en un archivo: renombrar, eliminar, copiar ruta</li></ul></div></div></div>`;
     }
     function abrir(k, linea) {
-      if (actual && actual !== BIENVENIDA && actual !== AJUSTES && ed && sucios.has(actual)) sucios.set(actual, ed.getValue());
+      if (esArchivo(actual) && ed && sucios.has(actual)) sucios.set(actual, ed.getValue());
       if (!abiertos.includes(k)) abiertos.push(k);
-      actual = k;
+      actual = k; cerrarDiff(); if (ed2) { ed2.dispose(); ed2 = null; } edEl.classList.remove('vs-mitad');
       if (k === BIENVENIDA) { ed = null; bienvenida(); pintarLateral(); pintarTabs(); pintarEstado(); return; }
-      if (k === AJUSTES) { ed = null; pintarAjustes(); pintarLateral(); pintarTabs(); pintarEstado(); return; }
+      if (k === AJUSTES) { ed = null; pintarAjustes(); pintarLateral(); pintarTabs(); pintarEstado(); diagnosticar(); return; }
+      if (k.startsWith(DIFF)) { ed = null; abrirDiff(k.slice(DIFF.length)); pintarLateral(); pintarTabs(); pintarEstado(); diagnosticar(); return; }
       for (let d = k.slice(0, k.lastIndexOf('/')); d.length > raiz.length; d = d.slice(0, d.lastIndexOf('/'))) abiertas.add(d);
       edEl.innerHTML = '';
       const valor = sucios.has(k) ? sucios.get(k) : (Sh.readFile(k) ?? '');
-      const api = ed = createEditor(edEl, { lang: LANG_EXT[ext(k)] || 'text', value: valor, tall: true, onRun: () => ejecutar(), onChange: (v) => { const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); if (vistaLat === 'explorador') pintarArbol(); if (AJ['files.autoSave'] === 'afterDelay') { clearTimeout(autoGuardado); autoGuardado = setTimeout(() => { if (sucios.has(k)) guardar(k); }, 1000); } } });
+      const api = ed = createEditor(edEl, { lang: LANG_EXT[ext(k)] || 'text', value: valor, tall: true, onRun: () => ejecutar(), onChange: (v) => { clearTimeout(diagT); diagT = setTimeout(diagnosticar, 350);  const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); if (vistaLat === 'explorador') pintarArbol(); if (AJ['files.autoSave'] === 'afterDelay') { clearTimeout(autoGuardado); autoGuardado = setTimeout(() => { if (sucios.has(k)) guardar(k); }, 1000); } } });
       // Monaco puede llegar un poco después que el editor simple: se configura cuando está
       const configurar = (n = 0) => {
         if (ed !== api) return;
         if (api.monaco) {
-          vsDefinirTemas(); window.monaco.editor.setTheme('vs-' + AJ['workbench.colorTheme'].replace(/\W+/g, '-'));
+          ponerTemaMonaco();
           api.monaco.updateOptions(opcionesEditor());
           const pos = () => { const p = api.monaco.getPosition(); $('[data-pos]', box).textContent = p ? `Lín. ${p.lineNumber}, col. ${p.column}` : ''; };
           api.monaco.onDidChangeCursorPosition(pos); pos();
           if (linea) { api.monaco.revealLineInCenter(linea); api.monaco.setPosition({ lineNumber: linea, column: 1 }); }
-          api.monaco.focus();
+          api.monaco.focus(); diagnosticar(); if (dividido) dividir(true);
         } else if (n < 40) setTimeout(() => configurar(n + 1), 150);
         else if (api.cm && linea) { api.cm.setCursor(linea - 1, 0); api.cm.focus(); }
       };
       configurar();
-      pintarLateral(); pintarTabs(); pintarEstado();
+      pintarLateral(); pintarTabs(); pintarEstado(); setTimeout(diagnosticar, 60);
     }
     function guardar(k = actual) {
-      if (!k || k === BIENVENIDA || k === AJUSTES) return;
+      if (!esArchivo(k)) return;
       const v = k === actual && ed ? ed.getValue() : sucios.get(k);
       if (v === undefined) return;
       Sh.writeFile(k, v); Sh.Machine.save(); sucios.delete(k);
@@ -796,15 +823,81 @@
       const panel = $('.vs-panel', box);
       const mostrar = forzar !== undefined ? forzar : panel.hidden;
       panel.hidden = !mostrar;
-      if (mostrar && !term) {
-        Sh.Machine.cwd = raiz;
-        term = Sh.createTerminal($('.vs-panel-cuerpo', panel), { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarLateral(); pintarEstado(); if (actual && actual !== BIENVENIDA && actual !== AJUSTES && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
-      }
-      if (mostrar && term) setTimeout(() => term.focus(), 30);
+      if (mostrar && !terms.length) nuevaTerminal();
+      if (mostrar && term && ptab === 'terminal') setTimeout(() => term.focus(), 30);
     }
-    async function correrEnTerminal(cmd) { togglePanel(true); await term.run(cmd); pintarLateral(); pintarEstado(); }
+    function nuevaTerminal() {
+      const cont = $('.vs-panel-cuerpo', box), el = document.createElement('div'); el.className = 'vs-term-inst'; cont.appendChild(el);
+      Sh.Machine.cwd = raiz;
+      const t = Sh.createTerminal(el, { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarLateral(); pintarEstado(); if (esArchivo(actual) && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
+      terms.push({ t, el, n: 'bash' }); activarTerm(terms.length - 1); mostrarPtab('terminal');
+    }
+    function activarTerm(i) { tActiva = i; terms.forEach((x, j) => { x.el.hidden = j !== i; }); term = terms[i] ? terms[i].t : null; pintarTermLista(); if (term) setTimeout(() => term.focus(), 30); }
+    function borrarTerm() { const x = terms[tActiva]; if (!x) return; x.el.remove(); terms.splice(tActiva, 1); if (!terms.length) { term = null; togglePanel(false); pintarTermLista(); return; } activarTerm(Math.max(0, tActiva - 1)); }
+    function pintarTermLista() { const l = $('.vs-term-lista', box); if (!l) return; l.innerHTML = terms.length > 1 ? `<select data-term-sel>${terms.map((x, j) => `<option value="${j}" ${j === tActiva ? 'selected' : ''}>${j + 1}: ${x.n}</option>`).join('')}</select>` : `<span class="small" style="opacity:.75">${ci('terminal')} bash</span>`; }
+    function mostrarPtab(cual) {
+      ptab = cual;
+      $$('.vs-ptab', box).forEach((x) => x.classList.toggle('on', x.dataset.ptab === cual));
+      $('.vs-panel-cuerpo', box).hidden = cual !== 'terminal'; $('.vs-panel-prob', box).hidden = cual !== 'problemas'; $('.vs-panel-salida', box).hidden = cual !== 'salida';
+      ['[data-term-nuevo]', '[data-term-borrar]', '.vs-term-lista'].forEach((s2) => { const el = $(s2, box); if (el) el.style.display = cual === 'terminal' ? '' : 'none'; });
+      if (cual === 'problemas') pintarProblemas();
+      if (cual === 'salida') $('.vs-panel-salida', box).innerHTML = `<pre>${esc(salida.join('\n') || 'Aquí aparece la salida de las tareas que ejecuta el editor (ejecutar, git, tests).')}</pre>`;
+    }
+    // ---------------------------------------------------------------- Problemas (diagnósticos) y Esquema
+    const LANG_DIAG = { py: 'python', json: 'json', yml: 'yaml', yaml: 'yaml', sql: 'sql', md: 'markdown', sh: 'shell' };
+    function diagnosticar() {
+      if (!window.VSReal) return;
+      problemas = esArchivo(actual) && ed ? window.VSReal.diagnosticos(ed.getValue(), LANG_DIAG[ext(actual)] || '').map((x) => ({ ...x, archivo: actual })) : [];
+      const nE = problemas.filter((x) => x.sev === 'error').length, nW = problemas.length - nE;
+      const el = $('[data-errores]', box); if (el) el.innerHTML = `${ci('error')} ${nE} ${ci('warning')} ${nW}`;
+      const pn = $('[data-prob-n]', box); if (pn) { pn.hidden = !problemas.length; pn.textContent = problemas.length; }
+      if (ed && ed.monaco && window.monaco) { const m = ed.monaco.getModel(); window.monaco.editor.setModelMarkers(m, 'academia', problemas.filter((x) => x.linea <= m.getLineCount()).map((x) => ({ startLineNumber: x.linea, startColumn: x.col, endLineNumber: x.linea, endColumn: Math.max(x.col + 1, m.getLineMaxColumn(x.linea)), message: x.msg, severity: x.sev === 'error' ? 8 : 4, source: x.fuente }))); }
+      if (ptab === 'problemas') pintarProblemas();
+      const esq = $('.vs-esquema', latEl); if (esq) esq.outerHTML = esquemaHtml();
+    }
+    function pintarProblemas() {
+      const el = $('.vs-panel-prob', box); if (!el) return;
+      el.innerHTML = problemas.length ? `<div class="vs-prob-arch">${icono(problemas[0].archivo.split('/').pop())} ${esc(problemas[0].archivo.split('/').pop())} <span class="vs-res-ruta">${esc(rel(problemas[0].archivo).split('/').slice(0, -1).join('/'))}</span><span class="vs-res-n">${problemas.length}</span></div>${problemas.map((x) => `<div class="vs-prob" data-ir-linea="${x.linea}" data-ir-col="${x.col}">${ci(x.sev === 'error' ? 'error' : 'warning')} <span>${esc(x.msg)}</span> <span class="vs-prob-f">${esc(x.fuente)} [Ln ${x.linea}, Col ${x.col}]</span></div>`).join('')}` : '<p class="small" style="opacity:.7;padding:6px 12px">No se han detectado problemas en el área de trabajo.</p>';
+    }
+    function esquemaHtml() {
+      if (!window.VSReal) return '';
+      const items = esArchivo(actual) && ed ? window.VSReal.esquema(ed.getValue(), LANG_DIAG[ext(actual)] || '') : [];
+      return `<div class="vs-esquema"><div class="vs-lat-sub vs-esq-t" data-esq-toggle><span class="vs-chev">${esqAbierto ? '⌄' : '›'}</span> ESQUEMA</div>${esqAbierto ? (items.length ? items.map((x) => `<div class="vs-n vs-esq-i" data-ir-linea="${x.linea}" style="padding-left:${18 + x.nivel * 12}px">${ci(x.tipo)} <span class="vs-nom">${esc(x.nombre)}</span></div>`).join('') : `<p class="small" style="opacity:.7;padding:0 18px">${esArchivo(actual) ? 'El editor activo no tiene símbolos (funciones, clases, títulos…).' : 'Abre un archivo para ver su esquema.'}</p>`) : ''}</div>`;
+    }
+    function irALinea(l, c = 1) { if (ed && ed.monaco) { ed.monaco.revealLineInCenter(l); ed.monaco.setPosition({ lineNumber: l, column: c }); ed.monaco.focus(); } else if (ed && ed.cm) { ed.cm.setCursor(l - 1, c - 1); ed.cm.focus(); } }
+    // ---------------------------------------------------------------- vista de cambios (diff) y editor dividido
+    function cerrarDiff() { if (diffEd) { diffEd.dispose(); diffEd = null; } if (diffModelos) { diffModelos.forEach((m) => m.dispose()); diffModelos = null; } }
+    function abrirDiff(k) {
+      const r = repoDe(), g = r && Sh.Machine.git[r];
+      const C = g ? Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits) : {};
+      const head = g && g.branches[g.branch], relp = r ? k.slice(r.length + 1) : k;
+      const orig = head && C[head] ? (C[head].snap[relp] ?? '') : '', mod = Sh.readFile(k) ?? '';
+      edEl.innerHTML = '';
+      if (window.monaco) {
+        const lng = monacoLang(LANG_EXT[ext(k)] || 'text');
+        diffModelos = [window.monaco.editor.createModel(orig, lng), window.monaco.editor.createModel(mod, lng)];
+        diffEd = window.monaco.editor.createDiffEditor(edEl, { ...opcionesEditor(), automaticLayout: true, readOnly: true, originalEditable: false, renderSideBySide: edEl.clientWidth > 700 });
+        diffEd.setModel({ original: diffModelos[0], modified: diffModelos[1] }); ponerTemaMonaco();
+        return;
+      }
+      const a = orig.split('\n'), b = mod.split('\n');
+      edEl.innerHTML = `<pre class="vs-diff-txt">${b.map((l, i) => (a[i] === l ? `  ${esc(l)}` : `${a[i] !== undefined ? `<span class="vs-diff-menos">- ${esc(a[i])}</span>\n` : ''}<span class="vs-diff-mas">+ ${esc(l)}</span>`)).join('\n')}${a.slice(b.length).map((l) => `\n<span class="vs-diff-menos">- ${esc(l)}</span>`).join('')}</pre>`;
+      Monaco.load().then(() => { if (actual === DIFF + k && box.isConnected) abrirDiff(k); }).catch(() => {});
+    }
+    function dividir(on = !dividido) {
+      dividido = on; if (ed2) { ed2.dispose(); ed2 = null; } const prev = $('.vs-editor2', box); if (prev) prev.remove();
+      edEl.classList.toggle('vs-mitad', on && !!(ed && ed.monaco));
+      if (!on) return;
+      if (!ed || !ed.monaco) { dividido = false; toast('Abre un archivo (y espera a que cargue el editor) para dividirlo.'); return; }
+      const d = document.createElement('div'); d.className = 'vs-editor2'; edEl.appendChild(d);
+      ed2 = window.monaco.editor.create(d, { ...opcionesEditor(), model: ed.monaco.getModel(), automaticLayout: true });
+    }
+    function zen(on = !zenOn) { zenOn = on; box.classList.toggle('vs-zen', on); if (on) toast('Modo zen: pulsa Esc dos veces para salir'); }
+    function elegirTema() { selector('Seleccionar tema de color', temasDisponibles().map((n) => ({ label: n, desc: (window.VSReal && window.VSReal.TEMAS[n] ? 'tema de VS Code' : 'tema del curso') + (n === AJ['workbench.colorTheme'] ? ' · actual' : '') })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.colorTheme'] = x.label; vsGuardarAjustes(a); aplicar(); }); }
+    function elegirIconos() { selector('Seleccionar tema de íconos de archivo', [['vs-seti', 'Seti (Visual Studio Code)'], ['vs-minimal', 'Minimal (Visual Studio Code)'], ['emojis', 'Íconos del curso'], ['material', 'Material Icon Theme'], ['ninguno', 'Ninguno']].map(([v, l]) => ({ label: l, desc: v === AJ['workbench.iconTheme'] ? 'actual' : '', v })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.iconTheme'] = x.v; vsGuardarAjustes(a); aplicar(); pintarLateral(); pintarTabs(); }); }
+    async function correrEnTerminal(cmd) { togglePanel(true); mostrarPtab('terminal'); salida.push(`[${new Date().toLocaleTimeString('es')}] > ${cmd}`); await term.run(cmd); pintarLateral(); pintarEstado(); }
     async function ejecutar() {
-      if (!actual || actual === BIENVENIDA || actual === AJUSTES) { toast('Abre un archivo para ejecutarlo.'); return; }
+      if (!esArchivo(actual)) { toast('Abre un archivo para ejecutarlo.'); return; }
       const c = comandoPara(actual);
       if (!c) { toast(`Los archivos .${ext(actual)} no se ejecutan: son datos o configuración.`); return; }
       guardar(actual);
@@ -843,12 +936,20 @@
       ['Git: pull', '', () => correrEnTerminal('git pull')],
       ['Git: push', '', () => correrEnTerminal('git push')],
       ['Git: ver el historial (log)', '', () => correrEnTerminal('git log --oneline --all')],
-      ['Python: ejecutar ruff (revisar el estilo)', '', () => correrEnTerminal(`ruff check ${actual && actual !== BIENVENIDA && actual !== AJUSTES ? Sh.display(actual) : '.'}`)],
+      ['Python: ejecutar ruff (revisar el estilo)', '', () => correrEnTerminal(`ruff check ${esArchivo(actual) ? Sh.display(actual) : '.'}`)],
       ['Python: ejecutar los tests (pytest)', '', () => correrEnTerminal('pytest')],
       ['Ayuda: bienvenida', '', () => abrir(BIENVENIDA)],
       ['Preferencias: abrir la configuración', 'Ctrl+,', () => abrir(AJUSTES)],
       ['Preferencias: abrir la configuración de usuario (JSON)', '', () => { if (!Sh.exists(VS_RUTA())) vsGuardarAjustes(vsAjustes()); abrir(VS_RUTA()); }],
-      ['Preferencias: tema de color', 'Ctrl+K Ctrl+T', () => selector('Elige un tema de color', Object.keys(VS_TEMAS).map((n) => ({ label: n, desc: n === AJ['workbench.colorTheme'] ? 'actual' : '' })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.colorTheme'] = x.label; vsGuardarAjustes(a); aplicar(); })],
+      ['Preferencias: tema de color', 'Ctrl+K Ctrl+T', () => elegirTema()],
+      ['Preferencias: tema de íconos de archivo', '', () => elegirIconos()],
+      ['Ver: alternar el modo zen', 'Ctrl+K Z', () => zen()],
+      ['Ver: dividir el editor', 'Ctrl+\\', () => dividir()],
+      ['Ver: mostrar/ocultar el panel', 'Ctrl+J', () => togglePanel()],
+      ['Ver: problemas', 'Ctrl+Shift+M', () => { togglePanel(true); mostrarPtab('problemas'); }],
+      ['Ver: salida', '', () => { togglePanel(true); mostrarPtab('salida'); }],
+      ['Terminal: crear una terminal nueva', 'Ctrl+Shift+ñ', () => { togglePanel(true); nuevaTerminal(); }],
+      ['Git: abrir los cambios del archivo actual', '', () => { if (esArchivo(actual)) abrir(DIFF + actual); else toast('Abre un archivo de un repositorio.'); }],
       ['Ver: extensiones', 'Ctrl+Shift+X', () => { vistaLat = 'ext'; lateralOculto = false; pintarLateral(); }],
       ['Editor: cerrar el editor actual', '', () => actual && cerrarTab(actual)],
     ];
@@ -896,14 +997,21 @@
     // ---------------------------------------------------------------- cerrar y atajos
     function cerrar() {
       if (sucios.size && !confirm(`Hay ${sucios.size} archivo(s) sin guardar. ¿Cerrar igual?`)) return;
-      box.remove(); document.body.classList.remove('vscode-abierto'); document.removeEventListener('keydown', teclas, true);
+      cerrarDiff(); if (ed2) ed2.dispose(); box.remove(); document.body.classList.remove('vscode-abierto'); document.removeEventListener('keydown', teclas, true);
       if (window.monaco) window.monaco.editor.setTheme('academia');
       document.dispatchEvent(new CustomEvent('term-config'));
     }
     function teclas(e) {
       if (!box.isConnected) return;
       const c = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
-      if (c && k === 's') { e.preventDefault(); if (e.altKey) guardarTodo(); else { guardar(); toast('Guardado ' + (actual && actual !== BIENVENIDA && actual !== AJUSTES ? Sh.display(actual) : '')); } }
+      if (acorde && Date.now() - acorde < 1500 && !['control', 'meta', 'shift'].includes(k)) { acorde = 0; if (k === 'z' && !c) { e.preventDefault(); e.stopPropagation(); zen(); return; } if (c && k === 't') { e.preventDefault(); e.stopPropagation(); elegirTema(); return; } }
+      if (c && k === 'k' && !e.shiftKey) { acorde = Date.now(); return; }
+      if (e.key === 'Escape' && zenOn) { if (escPrev && Date.now() - escPrev < 700) { zen(false); escPrev = 0; } else escPrev = Date.now(); }
+      if (c && k === 'j') { e.preventDefault(); togglePanel(); return; }
+      if (c && e.key === '\\') { e.preventDefault(); dividir(); return; }
+      if (c && e.shiftKey && k === 'm') { e.preventDefault(); togglePanel(true); mostrarPtab('problemas'); return; }
+      if (c && e.shiftKey && (k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(true); nuevaTerminal(); return; }
+      if (c && k === 's') { e.preventDefault(); if (e.altKey) guardarTodo(); else { guardar(); toast('Guardado ' + (esArchivo(actual) ? Sh.display(actual) : '')); } }
       else if (c && (e.key === '`' || k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(); }
       else if (e.key === 'F5') { e.preventDefault(); ejecutar(); }
       else if (c && e.key === ',') { e.preventDefault(); abrir(AJUSTES); }
@@ -916,6 +1024,7 @@
       else if (c && e.shiftKey && k === 'g') { e.preventDefault(); vistaLat = 'git'; lateralOculto = false; pintarLateral(); }
     }
     document.addEventListener('keydown', teclas, true);
+    box.addEventListener('change', (e) => { const sl = e.target.closest('[data-term-sel]'); if (sl) activarTerm(Number(sl.value)); });
     box.addEventListener('contextmenu', (e) => { const it = e.target.closest('[data-f], [data-dir]'); if (!it) return; e.preventDefault(); menuContextual(e.clientX, e.clientY, it.dataset.f || it.dataset.dir); });
     box.addEventListener('click', (e) => {
       const t = e.target;
@@ -924,6 +1033,14 @@
       if (t.closest('[data-abrir-json]')) { if (!Sh.exists(VS_RUTA())) vsGuardarAjustes(vsAjustes()); return abrir(VS_RUTA()); }
       const ex = t.closest('[data-ext]'); if (ex) { const a = vsAjustes(); delete a.__error; const l = new Set(a.extensiones || []); if (l.has(ex.dataset.ext)) l.delete(ex.dataset.ext); else { l.add(ex.dataset.ext); toast('Extensión instalada'); if (ex.dataset.ext === 'pkief.material-icon-theme') a['workbench.iconTheme'] = 'material'; } if (!l.has('pkief.material-icon-theme') && a['workbench.iconTheme'] === 'material') a['workbench.iconTheme'] = 'emojis'; a.extensiones = [...l]; vsGuardarAjustes(a); aplicar(); pintarLateral(); pintarEstado(); return; }
       const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
+      const df = t.closest('[data-diff]'); if (df) return abrir(DIFF + df.dataset.diff);
+      const il = t.closest('[data-ir-linea]'); if (il) { if (!ed && il.closest('.vs-panel-prob') && problemas[0]) abrir(problemas[0].archivo); return irALinea(Number(il.dataset.irLinea), Number(il.dataset.irCol || 1)); }
+      if (t.closest('[data-esq-toggle]')) { esqAbierto = !esqAbierto; const esq = $('.vs-esquema', latEl); if (esq) esq.outerHTML = esquemaHtml(); return; }
+      const pt = t.closest('[data-ptab]'); if (pt) return mostrarPtab(pt.dataset.ptab);
+      if (t.closest('[data-term-nuevo]')) return nuevaTerminal();
+      if (t.closest('[data-term-borrar]')) return borrarTerm();
+      if (t.closest('[data-panel-max]')) { box.classList.toggle('vs-panel-max'); return; }
+      if (t.closest('[data-dividir]')) return dividir();
       if (t.closest('[data-run]') || t.closest('[data-run-menu]')) return ejecutar();
       if (t.closest('[data-term-menu]') || t.closest('[data-toggle-term]')) return togglePanel();
       if (t.closest('[data-toggle-lat]')) { lateralOculto = !lateralOculto; return pintarLateral(); }
@@ -980,8 +1097,9 @@
     if (ex.type === 'cli') return mountCli(card, ex, markPassed, fb, feedback, extra, showExtra);
     if (ex.type === 'abierto') return mountOpen(card, ex, markPassed, extra, showExtra);
 
-    const lang = ex.type === 'sql' ? 'sql' : ex.type === 'dbt' ? 'dbt' : 'python';
-    const starter = ex.inicial ?? (ex.type === 'sql' ? '-- Escribe tu consulta aquí\n' : ex.type === 'dbt' ? '-- Escribe tu modelo dbt aquí\n' : '# Escribe tu código aquí\n');
+    const lang = ex.type === 'sql' ? 'sql' : ex.type === 'dbt' ? 'dbt' : ex.type === 'dax' ? 'dax' : 'python';
+    const starter = ex.inicial ?? (ex.type === 'sql' ? '-- Escribe tu consulta aquí\n' : ex.type === 'dbt' ? '-- Escribe tu modelo dbt aquí\n' : ex.type === 'dax' ? (ex.prueba ? 'Medida = ' : '// Escribe tu consulta DAX\nEVALUATE\n    ') : '# Escribe tu código aquí\n');
+    if (ex.type === 'dax' && ex.prueba) card.append(h(`<details class="dax-prueba"><summary>Tu medida se llama <code>[?]</code> y se evalúa con esta consulta DAX (como un objeto visual)</summary><pre data-lang="dax"><code>${esc(ex.prueba)}</code></pre>${ex.medidas ? `<p class="small muted">Medidas que ya existen en el modelo:</p><pre data-lang="dax"><code>${esc(ex.medidas)}</code></pre>` : ''}</details>`));
     const edBox = h('<div class="ex-editor"></div>');
     card.append(edBox);
     const ed = createEditor(edBox, { lang, value: Store.code(ex.id) ?? starter, onRun: () => run(), onCheck: () => check(), onChange: (v) => Store.setCode(ex.id, v) });
@@ -991,7 +1109,7 @@
       <button class="btn btn-ok btn-sm" data-act="check">✓ Comprobar</button>
       ${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}
       <button class="btn btn-sm" data-act="sol">👁 Solución</button>
-      ${ex.type === 'sql' || ex.type === 'dbt' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}
+      ${ex.type === 'sql' || ex.type === 'dbt' || ex.type === 'dax' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}${ex.type === 'dax' ? '<a class="btn btn-ghost btn-sm" href="#/powerbi" title="El Power BI de práctica: importa las mismas tablas y prueba la medida en un objeto visual">📊 Power BI</a>' : ''}
       <span class="spacer"></span>
       <button class="btn btn-ghost btn-sm" data-act="reset" title="Volver al código inicial">↺ Reiniciar</button>
     </div>`);
@@ -1022,6 +1140,9 @@
           const db = SQL.fresh();
           if (ex.setup) db.exec(ex.setup);
           renderSqlOutput(out, SQL.exec(code, db)); db.close();
+        } else if (ex.type === 'dax') {
+          if (!(await ensureSql(out))) return;
+          renderSqlOutput(out, await window.Engines.DAX.run(ex, code));
         } else if (ex.type === 'dbt') {
           if (!(await ensureSql(out))) return;
           loadingInto(out, pyLoadingMsg());
@@ -1041,6 +1162,12 @@
         if (ex.type === 'sql') {
           if (!(await ensureSql(out))) return;
           const r = SQL.grade(ex, code);
+          if (!r.ok) { feedback('bad', '✗ Error: ' + r.error); out.innerHTML = ''; return; }
+          renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 });
+          if (r.pass) { feedback('ok', '✓ ' + r.msg); markPassed(); } else feedback('bad', '✗ ' + r.msg);
+        } else if (ex.type === 'dax') {
+          if (!(await ensureSql(out))) return;
+          const r = await window.Engines.DAX.grade(ex, code);
           if (!r.ok) { feedback('bad', '✗ Error: ' + r.error); out.innerHTML = ''; return; }
           renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 });
           if (r.pass) { feedback('ok', '✓ ' + r.msg); markPassed(); } else feedback('bad', '✗ ' + r.msg);
@@ -1196,7 +1323,7 @@
   const ETAPAS = [
     { id: 'e0', titulo: 'Etapa 0 · Antes de empezar', desc: 'Si nunca programaste: tu computadora por dentro, leer errores, la matemática justa, inglés técnico, cómo estudiar y qué es una API.', mods: ['cero'] },
     { id: 'e1', titulo: 'Etapa 1 · Empieza aquí', desc: 'Qué es un dato, qué hace un ingeniero de datos, la terminal y Git. Si no sabes nada, arranca por acá.', mods: ['fundamentos'] },
-    { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, con casos de negocio reales.', mods: ['sql', 'casos', 'analisis', 'modelado'] },
+    { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, con casos de negocio reales, y llevar los números a un tablero de Power BI.', mods: ['sql', 'casos', 'analisis', 'modelado', 'powerbi'] },
     { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, y Spark para cuando los datos no entran en una sola computadora.', mods: ['python', 'spark', 'pyspark'] },
     { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
     { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie'] },

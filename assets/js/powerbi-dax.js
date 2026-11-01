@@ -118,8 +118,13 @@
   function crear(api) {
     // api: tablas() → nombres · meta(t) → [{n,t}] · rels() → [{de,cde,a,ca,activa,direccion}] · medidas() → [{nombre,expr,tabla}]
     //      exec(sql) → filas · run(sql)
-    let alias = 0;
+    let alias = 0, cacheEval = new Map();
     const nuevoAlias = (p) => `${p}${++alias}`;
+    const limpiar = () => { alias = 0; cacheEval = new Map(); };
+    // ¿el contexto se puede evaluar solo (sin referencias a filas de afuera)? entonces se calcula ya, con constantes
+    const autonomo = (ctx) => !ctx.some((p) => p.origen === 'fila');
+    const valorYa = (sql) => { const r = api.exec(`SELECT ${sql}`); return r.length ? r[0][0] : null; };
+    const valoresSql = (vals) => (vals.length ? `(VALUES ${vals.map((v) => `(${lit(v)})`).join(', ')})` : '(SELECT NULL AS column1 WHERE 0)');
     const tablaReal = (n) => { const x = api.tablas().find((t) => t.toLowerCase() === String(n).toLowerCase()); return x || null; };
     const colReal = (t, c) => (api.meta(t).find((x) => x.n.toLowerCase() === String(c).toLowerCase()) || {}).n;
     const tipo = (t, c) => (api.meta(t).find((x) => x.n === c) || {}).t;
@@ -305,6 +310,15 @@
           if (!env.ctx) throw Object.assign(new ErrorDax('celda'), { complejo: true });
           const v = nuevoAlias('v'), { t, c } = it.valores;
           const ctxV = it.quita ? quitarCol(env.ctx, t, c) : env.ctx;
+          if (autonomo(env.ctx)) {
+            const distintos = api.exec(`SELECT DISTINCT ${q(t)}.${q(c)} FROM ${q(t)}${donde(t, ctxV, env.usar)} LIMIT 3001`).map((f) => f[0]);
+            if (distintos.length <= 3000) {
+              const base = quitarCol(env.ctx, t, c);
+              const res = distintos.map((x) => valorYa(escalar(A[1], { ...env, ctx: [...base, { t, c, sql: `${q(t)}.${q(c)} IS ${lit(x)}`, origen: 'calc' }] }))).filter((x) => x !== null && x !== undefined);
+              const fn = AGGX[f];
+              return `(SELECT ${fn === 'GROUP_CONCAT' ? 'GROUP_CONCAT(column1)' : `${fn}(column1)`} FROM ${valoresSql(res)})`;
+            }
+          }
           const ctxIn = [...quitarCol(env.ctx, t, c), { t, c, sql: `${q(t)}.${q(c)} IS ${v}.x`, origen: 'fila' }];
           const cuerpo = escalar(A[1], { ...env, ctx: ctxIn });
           return `(SELECT ${AGGX[f]}(${cuerpo}) FROM (SELECT DISTINCT ${q(t)}.${q(c)} AS x FROM ${q(t)}${donde(t, ctxV, env.usar)}) ${v})`;
@@ -430,6 +444,16 @@
         const { t, c } = it.valores, r = nuevoAlias('r');
         const desc = !(A[3] && A[3].k === 'id' && A[3].v.toUpperCase() === 'ASC');
         const actual = escalar(A[1], env);
+        if (autonomo(env.ctx)) {
+          const universo0 = it.quita ? quitarCol(env.ctx, t, c).filter((p) => p.origen !== 'visual') : env.ctx;
+          const base = quitarCol(env.ctx, t, c);
+          const clave = JSON.stringify([A[1], base.map((p) => p.sql), universo0.map((p) => p.sql)]);
+          if (!cacheEval.has(clave)) {
+            const distintos = api.exec(`SELECT DISTINCT ${q(t)}.${q(c)} FROM ${q(t)}${donde(t, universo0, env.usar)} LIMIT 5000`).map((f) => f[0]);
+            cacheEval.set(clave, distintos.map((x) => valorYa(escalar(A[1], { ...env, ctx: [...base, { t, c, sql: `${q(t)}.${q(c)} IS ${lit(x)}`, origen: 'calc' }] }))).filter((x) => x !== null && x !== undefined));
+          }
+          return `(CASE WHEN ${actual} IS NULL THEN NULL ELSE 1 + (SELECT COUNT(*) FROM ${valoresSql(cacheEval.get(clave))} WHERE column1 ${desc ? '>' : '<'} ${actual}) END)`;
+        }
         const ctxR = [...quitarCol(env.ctx, t, c), { t, c, sql: `${q(t)}.${q(c)} IS ${r}.x`, origen: 'fila' }];
         const otro = escalar(A[1], { ...env, ctx: ctxR });
         const universo = it.quita ? quitarCol(env.ctx, t, c).filter((p) => p.origen !== 'visual') : env.ctx;
@@ -528,7 +552,9 @@
       const col = `${q(t)}.${q(c)}`, w = donde(t, env.ctx, env.usar);
       const mn = `(SELECT MIN(${col}) FROM ${q(t)}${w})`, mx = `(SELECT MAX(${col}) FROM ${q(t)}${w})`;
       // una tabla de fechas aparte se libera entera (como marcar tabla de fechas); si la fecha está en la tabla de hechos, solo esa columna
-      const esDim = api.rels().some((r) => r.a === t && r.ca !== c) || api.rels().some((r) => r.a === t);
+      // una tabla de fechas (su columna es la clave del lado 1 de una relación) se libera entera, como al marcarla
+      // como tabla de fechas; si la fecha es una columna de la tabla de hechos, solo se reemplaza el filtro de esa columna
+      const esDim = api.rels().some((r) => r.a === t && r.ca === c);
       let ctx = esDim ? env.ctx.filter((p) => p.t !== t) : quitarCol(env.ctx, t, c);
       const rango = (d, h) => ({ t, c, sql: `${col} BETWEEN ${d} AND ${h}`, origen: 'calc' });
       const unidad = (x) => (x && x.k === 'id' ? x.v.toUpperCase() : 'DAY');
@@ -576,7 +602,7 @@
       return { t: f.campo.t, c: f.campo.c, parte: f.campo.parte, sql: `(${sql})`, origen };
     };
     function consultar(cats, valores, filtros, opciones = {}) {
-      alias = 0;
+      limpiar();
       const ctx0 = filtros.map((f) => predFiltro(f, f.origen || 'pagina'));
       const arboles = valores.map(arbolValor);
       // ¿se puede resolver con un GROUP BY? (una sola tabla base y sin funciones de contexto)
@@ -637,7 +663,7 @@
 
     // --------------------------------------------- columnas y tablas calculadas
     function columnaCalculada(t, expr) {
-      alias = 0;
+      limpiar();
       try { return escalar(parsear(expr), { ctx: null, fila: { t }, vars: {}, pila: [], usar: [] }); } catch (e) { if (e.complejo) err('En una columna calculada de esta práctica no se puede usar CALCULATE ni funciones que cambian filtros (ALL, fechas, SELECTEDVALUE…). Usa una medida para eso.'); throw e; }
     }
     function validarMedida(expr, extra) {
@@ -645,7 +671,7 @@
       const prev = api.medidas;
       if (extra) api.medidas = () => [...prev().filter((m) => m.nombre.toLowerCase() !== extra.nombre.toLowerCase()), extra];
       try {
-        alias = 0;
+        limpiar();
         const sql = escalar(arbol, { ctx: [], vars: {}, pila: extra ? [] : [], usar: [] });
         return api.exec(`SELECT ${sql}`)[0][0];
       } finally { api.medidas = prev; }
@@ -756,13 +782,13 @@
     }
     function joinsDe(t0, cats) { const joins = [], vistos = new Set([t0]); for (const c of cats) { if (vistos.has(c.t)) continue; for (const s of camino(t0, c.t) || []) if (!vistos.has(s.a)) { vistos.add(s.a); joins.push(` LEFT JOIN ${q(s.a)} ON ${q(s.a)}.${q(s.colA)} = ${q(s.de)}.${q(s.colDe)}`); } } return joins.join(''); }
     function tablaCalculada(expr) {
-      alias = 0; const r = tabla(parsear(expr), { ctx: [], vars: {}, pila: [], usar: [] });
+      limpiar(); const r = tabla(parsear(expr), { ctx: [], vars: {}, pila: [], usar: [] });
       const filas = api.exec(r.sql); return { cols: r.cols, filas };
     }
 
     // --------------------------------------------- consultas DAX (DEFINE / EVALUATE / ORDER BY)
     function consulta(texto) {
-      alias = 0;
+      limpiar();
       const partes = []; const re = /\b(DEFINE|EVALUATE)\b/gi; let m, ult = 0, ultK = null;
       const limpio = texto.replace(/\/\/[^\n]*|--[^\n]*/g, (x) => ' '.repeat(x.length));
       while ((m = re.exec(limpio))) { if (ultK) partes.push([ultK, texto.slice(ult, m.index)]); ultK = m[1].toUpperCase(); ult = re.lastIndex; }
