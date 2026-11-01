@@ -513,6 +513,118 @@
   }
   if (window.Shell) window.Shell.openEditor = openFileEditor;
 
+  // ---------------------------------------------------------------- "code ." : un VS Code dentro de la página
+  // Explorador de la carpeta, pestañas, el editor Monaco (el mismo de VS Code), barra de estado con la rama
+  // de Git y una terminal integrada abajo, todo sobre el mismo disco de la terminal del curso.
+  const LANG_EXT = { py: 'python', sql: 'sql', yml: 'yaml', yaml: 'yaml', sh: 'bash', json: 'json', md: 'text', toml: 'text', txt: 'text', csv: 'text', tf: 'text', cfg: 'text', ini: 'text' };
+  const ICONO_EXT = { py: '🐍', sql: '🗄️', yml: '⚙️', yaml: '⚙️', md: '📝', json: '{}', csv: '📊', sh: '⌨', toml: '⚙️', tf: '🏗️', txt: '📄', log: '📜', parquet: '📦', ipynb: '📓' };
+  const OCULTAS = /(^|\/)(\.git|\.venv|node_modules|__pycache__|target|\.pytest_cache)(\/|$)/;
+  function abrirCode(raiz, archivo) {
+    const Sh = window.Shell;
+    if (document.getElementById('vscode')) document.getElementById('vscode').remove();
+    const nombreRaiz = raiz === Sh.HOME ? '~' : raiz.split('/').pop();
+    const abiertos = [], sucios = new Map();
+    let actual = null, ed = null, abiertas = new Set(), term = null;
+    const box = h(`<div class="vscode" id="vscode" role="dialog" aria-label="Editor de código">
+      <div class="vs-titulo"><span class="vs-logo">⟨⟩</span><span class="vs-tit">${esc(nombreRaiz)} — Code</span><span class="spacer"></span><span class="small vs-ayuda">Ctrl+S guarda · Ctrl+\` terminal</span><button class="vs-x" data-cerrar title="Cerrar (vuelve a la terminal)">✕</button></div>
+      <div class="vs-cuerpo">
+        <aside class="vs-lateral"><div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo" data-nuevo>＋📄</button><button title="Carpeta nueva" data-nueva-carpeta>＋📁</button><button title="Actualizar" data-refrescar>↻</button></div><div class="vs-arbol"></div></aside>
+        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-editor"><div class="vs-vacio">Elige un archivo del explorador.<br><span class="small muted">Ctrl+S guarda · los cambios se ven al instante en la terminal</span></div></div><div class="vs-panel" hidden><div class="vs-panel-cab">TERMINAL<span class="spacer"></span><button data-panel-x title="Ocultar">✕</button></div><div class="vs-panel-cuerpo"></div></div></section>
+      </div>
+      <div class="vs-estado"><span data-rama></span><span class="spacer"></span><span data-pos></span><span data-lang></span><button data-toggle-term title="Mostrar u ocultar la terminal (Ctrl+\`)">⌨ Terminal</button></div>
+    </div>`);
+    document.body.appendChild(box); document.body.classList.add('vscode-abierto');
+    const arbolEl = $('.vs-arbol', box), tabsEl = $('.vs-tabs', box), edEl = $('.vs-editor', box);
+    const rel = (p) => p.slice(raiz.length + 1);
+    function pintarArbol() {
+      const rutas = Object.keys(Sh.Machine.fs).filter((k) => k.startsWith(raiz + '/') && !OCULTAS.test(rel(k))).sort();
+      const hijos = (dir) => rutas.filter((k) => k.slice(0, k.lastIndexOf('/')) === dir).sort((a, b) => (Sh.isDir(b) - Sh.isDir(a)) || a.localeCompare(b));
+      const nodo = (dir, nivel) => hijos(dir).map((k) => {
+        const n = k.split('/').pop();
+        if (Sh.isDir(k)) { const ab = abiertas.has(k); return `<div class="vs-n vs-dir" data-dir="${esc(k)}" style="padding-left:${8 + nivel * 12}px">${ab ? '▾' : '▸'} ${esc(n)}</div>${ab ? nodo(k, nivel + 1) : ''}`; }
+        const ext = n.split('.').pop();
+        return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''}" data-f="${esc(k)}" style="padding-left:${20 + nivel * 12}px"><span class="vs-ic">${ICONO_EXT[ext] || '📄'}</span>${esc(n)}${sucios.has(k) ? ' <b class="vs-punto">●</b>' : ''}</div>`;
+      }).join('');
+      arbolEl.innerHTML = `<div class="vs-n vs-raiz">▾ ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
+    }
+    function pintarTabs() {
+      tabsEl.innerHTML = abiertos.map((k) => `<div class="vs-tab ${k === actual ? 'on' : ''}" data-tab="${esc(k)}"><span>${ICONO_EXT[k.split('.').pop()] || '📄'} ${esc(k.split('/').pop())}</span><button data-cerrar-tab="${esc(k)}" title="Cerrar">${sucios.has(k) ? '●' : '×'}</button></div>`).join('');
+    }
+    function pintarEstado() {
+      const g = (() => { for (let p = raiz; p; p = p === '/' ? '' : (p.slice(0, p.lastIndexOf('/')) || '/')) if (Sh.Machine.git[p]) return Sh.Machine.git[p]; return null; })();
+      $('[data-rama]', box).textContent = g ? `⎇ ${g.branch}${g.merge ? ' (FUSIONANDO)' : ''}` : '⎇ sin repositorio';
+      $('[data-lang]', box).textContent = actual ? ({ python: 'Python', sql: 'SQL', yaml: 'YAML', bash: 'Shell', json: 'JSON' }[LANG_EXT[actual.split('.').pop()]] || 'Texto plano') : '';
+    }
+    function abrir(k) {
+      if (actual && ed) sucios.has(actual) && sucios.set(actual, ed.getValue());
+      if (!abiertos.includes(k)) abiertos.push(k);
+      actual = k;
+      // abre las carpetas que lo contienen en el explorador
+      for (let d = k.slice(0, k.lastIndexOf('/')); d.length > raiz.length; d = d.slice(0, d.lastIndexOf('/'))) abiertas.add(d);
+      edEl.innerHTML = '';
+      const valor = sucios.has(k) ? sucios.get(k) : (Sh.readFile(k) ?? '');
+      ed = createEditor(edEl, { lang: LANG_EXT[k.split('.').pop()] || 'text', value: valor, tall: true, onChange: (v) => { const disco = Sh.readFile(k) ?? ''; if (v !== disco) sucios.set(k, v); else sucios.delete(k); pintarTabs(); pintarArbol(); } });
+      setTimeout(() => ed && ed.focus(), 60);
+      pintarArbol(); pintarTabs(); pintarEstado();
+      $('[data-pos]', box).textContent = Sh.display(k);
+    }
+    function guardarActual() {
+      if (!actual || !ed) return;
+      Sh.writeFile(actual, ed.getValue()); Sh.Machine.save(); sucios.delete(actual);
+      pintarTabs(); pintarArbol(); toast(`Guardado ${Sh.display(actual)}`);
+    }
+    function cerrarTab(k) {
+      if (sucios.has(k) && !confirm(`${k.split('/').pop()} tiene cambios sin guardar. ¿Cerrar igual y perderlos?`)) return;
+      sucios.delete(k); abiertos.splice(abiertos.indexOf(k), 1);
+      if (actual === k) { actual = null; ed = null; if (abiertos.length) abrir(abiertos[abiertos.length - 1]); else { edEl.innerHTML = '<div class="vs-vacio">Elige un archivo del explorador.</div>'; pintarArbol(); pintarTabs(); pintarEstado(); } }
+      else pintarTabs();
+    }
+    function togglePanel(forzar) {
+      const panel = $('.vs-panel', box);
+      const mostrar = forzar !== undefined ? forzar : panel.hidden;
+      panel.hidden = !mostrar;
+      if (mostrar && !term) {
+        Sh.Machine.cwd = raiz;
+        term = Sh.createTerminal($('.vs-panel-cuerpo', panel), { compact: true, continuarSesion: true, welcome: false, onCommand: () => { pintarArbol(); pintarEstado(); if (actual && !sucios.has(actual) && ed && ed.getValue() !== (Sh.readFile(actual) ?? '')) { const k = actual; actual = null; abrir(k); } } });
+      }
+      if (mostrar && term) setTimeout(() => term.focus(), 30);
+    }
+    function cerrar() {
+      if (sucios.size && !confirm(`Hay ${sucios.size} archivo(s) sin guardar. ¿Cerrar igual?`)) return;
+      box.remove(); document.body.classList.remove('vscode-abierto'); document.removeEventListener('keydown', teclas, true);
+      document.dispatchEvent(new CustomEvent('term-config'));
+    }
+    function teclas(e) {
+      if (!box.isConnected) return;
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); guardarActual(); }
+      if ((e.ctrlKey || e.metaKey) && (e.key === '`' || e.key === 'ñ')) { e.preventDefault(); togglePanel(); }
+    }
+    document.addEventListener('keydown', teclas, true);
+    box.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.closest('[data-cerrar]')) return cerrar();
+      const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
+      const tab = t.closest('[data-tab]'); if (tab) return abrir(tab.dataset.tab);
+      const f = t.closest('[data-f]'); if (f) return abrir(f.dataset.f);
+      const d = t.closest('[data-dir]'); if (d) { abiertas.has(d.dataset.dir) ? abiertas.delete(d.dataset.dir) : abiertas.add(d.dataset.dir); return pintarArbol(); }
+      if (t.closest('[data-refrescar]')) return pintarArbol();
+      if (t.closest('[data-toggle-term]')) return togglePanel();
+      if (t.closest('[data-panel-x]')) return togglePanel(false);
+      if (t.closest('[data-nuevo]') || t.closest('[data-nueva-carpeta]')) {
+        const carpeta = !!t.closest('[data-nueva-carpeta]');
+        const n = prompt(carpeta ? 'Nombre de la carpeta nueva (puede incluir subcarpetas, ej. src/utils):' : 'Nombre del archivo nuevo (ej. pipelines/limpieza.py):');
+        if (!n || !n.trim()) return;
+        const p = Sh.norm(raiz + '/' + n.trim().replace(/^\/+/, ''));
+        if (carpeta) { Sh.mkdirp(p); abiertas.add(p); Sh.Machine.save(); pintarArbol(); return; }
+        if (!Sh.exists(p)) { Sh.mkdirp(p.slice(0, p.lastIndexOf('/'))); Sh.writeFile(p, ''); Sh.Machine.save(); }
+        abrir(p);
+      }
+    });
+    pintarArbol(); pintarTabs(); pintarEstado();
+    if (archivo) abrir(archivo);
+  }
+  if (window.Shell) window.Shell.abrirCode = abrirCode;
+
   function compiledBlock(sql) {
     const d = h('<details class="compiled"><summary>Ver SQL compilado (lo que dbt envía a la base)</summary><pre data-lang="sql"><code></code></pre></details>');
     $('code', d).textContent = sql; highlight($('pre', d));
@@ -701,18 +813,42 @@
     });
   }
 
+  // Rúbrica de autoevaluación para las respuestas libres: antes de marcar "Lo hice", la persona compara su
+  // respuesta con criterios concretos. Si el ejercicio no trae rúbrica, se arma una a partir de los temas
+  // de la respuesta modelo (las líneas "Tema: …") y se completa con criterios generales.
+  function rubricaDe(ex) {
+    if (ex.rubrica) return String(ex.rubrica).split('\n').map((x) => x.trim()).filter(Boolean);
+    const temas = (ex.solucion || '').split('\n').map((l) => (/^\s*(?:[-*\d.)]+\s*)?([A-ZÁÉÍÓÚÑ][^:.]{2,38}):\s+\S/.exec(l) || [])[1]).filter(Boolean);
+    const r = temas.slice(0, 7).map((t) => `Cubre ${t.toLowerCase()}`);
+    r.push('Justifica las decisiones (dice por qué, no solo qué)');
+    if (r.length < 4) r.push('Nombra herramientas, tablas o números concretos', 'Menciona al menos un riesgo o una alternativa');
+    return r;
+  }
   function mountOpen(card, ex, markPassed, extra, showExtra) {
     const box = h('<div class="open-answer"><textarea spellcheck="false" placeholder="Escribe tu respuesta o tu código aquí…"></textarea></div>');
     const ta = $('textarea', box);
     ta.value = Store.code(ex.id) || ex.inicial || '';
     ta.addEventListener('input', () => Store.setCode(ex.id, ta.value));
-    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
-    card.append(box, tools, extra);
+    const rub = rubricaDe(ex);
+    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="rub">📋 Revisar con la rúbrica</button><button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
+    const rubBox = h(`<div class="rubrica" hidden><h5>¿Tu respuesta cumple con esto?</h5><p class="small muted" style="margin:0 0 6px">Marca solo lo que tu respuesta realmente tiene. Lo que falte, agrégalo antes de seguir: así se entrena lo que se evalúa en una entrevista.</p>${rub.map((r, i) => `<label class="auto-item"><input type="checkbox" data-r="${i}"><span>${esc(r)}</span></label>`).join('')}<div class="small" data-rcuenta></div></div>`);
+    card.append(box, rubBox, tools, extra);
+    const marcas = () => $$('[data-r]', rubBox).filter((c) => c.checked).length;
+    const pintarCuenta = () => {
+      const n = marcas(), min = Math.ceil(rub.length * 0.7);
+      $('[data-rcuenta]', rubBox).innerHTML = n >= min ? `<span class="ok-mark">✓</span> ${n} de ${rub.length}: ¡bien! Ya puedes marcarlo como hecho.` : `${n} de ${rub.length}. Para darlo por hecho, apunta a cumplir al menos ${min}.`;
+    };
+    rubBox.addEventListener('change', pintarCuenta); pintarCuenta();
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
       if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
+      if (a === 'rub') { rubBox.hidden = !rubBox.hidden; if (!rubBox.hidden) rubBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
       if (a === 'sol') showExtra('Respuesta modelo', (ex.solucion ? `<pre data-lang="${esc(ex.lang || 'text')}"><code>${esc(ex.solucion)}</code></pre>` : '') + (ex.explicacion || ''));
-      if (a === 'done') { markPassed(); toast('¡Bien! Marcado como hecho.'); }
+      if (a === 'done') {
+        if (!ta.value.trim()) { toast('Primero escribe tu respuesta: es la única forma de que se te quede.'); ta.focus(); return; }
+        if (marcas() < Math.ceil(rub.length * 0.7)) { rubBox.hidden = false; rubBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); toast('Antes, revisa tu respuesta con la rúbrica.'); return; }
+        markPassed(); toast('¡Bien! Marcado como hecho.');
+      }
     });
   }
 
@@ -737,6 +873,7 @@
   // ---------------------------------------------------------------- etapas de la ruta
   // Los módulos se agrupan en etapas para que quien empieza de cero sepa qué viene primero y qué es opcional.
   const ETAPAS = [
+    { id: 'e0', titulo: 'Etapa 0 · Antes de empezar', desc: 'Si nunca programaste: tu computadora por dentro, leer errores, la matemática justa, inglés técnico, cómo estudiar y qué es una API.', mods: ['cero'] },
     { id: 'e1', titulo: 'Etapa 1 · Empieza aquí', desc: 'Qué es un dato, qué hace un ingeniero de datos, la terminal y Git. Si no sabes nada, arranca por acá.', mods: ['fundamentos'] },
     { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, con casos de negocio reales.', mods: ['sql', 'casos', 'analisis', 'modelado'] },
     { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, y Spark para cuando los datos no entran en una sola computadora.', mods: ['python', 'spark', 'pyspark'] },
@@ -871,11 +1008,12 @@
     ['#/lab/python', '🐍', 'Python', 'lab-python'], ['#/lab/pyspark', '⚡', 'PySpark', 'lab-pyspark'],
     ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
     ['#/modelado', '📐', 'Modelado de datos', 'modelado'], ['#/generador', '🏭', 'Generador de datos', 'generador'],
+    ['#/trabajo', '💼', 'Tu primer trabajo (simulación)', 'trabajo'],
   ];
   function renderSidebar(route) {
     const sb = $('#sidebar');
     const cur = route.lesson ? route.lesson.modulo.id : route.module ? route.module.id : null;
-    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso'].includes(route.name);
+    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo', 'trabajo'].includes(route.name);
     const etapaAbierta = cur ? etapaDeModulo(cur) : fueraDelCurso ? null : etapaActual();
     const link = (href, ico, text, active, meta = '') => `<a class="side-link ${active ? 'active' : ''}" href="${href}"><span class="ico">${ico}</span><span>${text}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</a>`;
     let html = link('#/', '🏠', 'Inicio', route.name === 'home');
@@ -906,7 +1044,7 @@
     }
     const enLab = LABS_MENU.some((x) => x[3] === route.name);
     html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧪</span><span class="st-name">Laboratorios: practica libre</span><span class="chev">▶</span></summary>${LABS_MENU.map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
-    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso'];
+    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo'];
     html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
@@ -914,6 +1052,7 @@
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
     if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
+    html += link('#/revisar-repo', '🔎', 'Revisar mi proyecto en GitHub', route.name === 'revisar-repo');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     html += '</details>';
     sb.innerHTML = html;
@@ -965,6 +1104,8 @@
     ['#/lab/pyspark', '⚡', 'PySpark', 'la API de Spark con las tablas del curso'],
     ['#/lab/dbt', '🔧', 'dbt', 'modelos, ref() y Jinja compilado a SQL'],
     ['#/lab/airflow', '🌬️', 'Airflow', 'DAGs, operadores y dependencias'],
+    ['#/trabajo', '💼', 'Tu primer trabajo', 'una semana simulada: tickets, PR con revisión y una guardia'],
+    ['#/revisar-repo', '🔎', 'Revisar mi proyecto', 'tu repositorio de GitHub evaluado como en una entrevista'],
   ];
   function viewHome() {
     const tp = totalProgress();
@@ -1338,6 +1479,44 @@
   }
   const AIRFLOW_SAMPLES = () => ((window.ExplicaCodigo && window.ExplicaCodigo.CHULETAS.airflow) || []).flatMap((s) => s.ej).filter(([c]) => /DAG|@dag/.test(c)).map(([c, d]) => [d.charAt(0).toUpperCase() + d.slice(1), c]);
 
+  // ---------------------------------------------------------------- medidor de costo (laboratorio SQL)
+  // Estima cuántos bytes leería la consulta en un warehouse columnar (se paga por las columnas que lees de
+  // cada tabla) y cuánto costaría en BigQuery a demanda si las tablas tuvieran tamaño de producción.
+  // Precio y mínimos de la página oficial de BigQuery: 6,25 US$ por TiB, mínimo 10 MB por tabla referenciada.
+  const BQ_USD_TIB = 6.25, ESCALA_PROD = 10000, MB = 1048576;
+  const fmtBytes = (b) => fmtBytesPunto(b).replace('.', ',');
+  const fmtBytesPunto = (b) => (b >= 1099511627776 ? (b / 1099511627776).toFixed(2) + ' TiB' : b >= 1073741824 ? (b / 1073741824).toFixed(1) + ' GB' : b >= MB ? (b / MB).toFixed(1) + ' MB' : b >= 1024 ? (b / 1024).toFixed(0) + ' KB' : Math.round(b) + ' B');
+  const tamCols = new Map();
+  function estimarLectura(sql) {
+    const T = SQL.tables; if (!T) return null;
+    const limpio = sql.replace(/--[^\n]*/g, ' ').replace(/'[^']*'/g, "''");
+    const tablas = [...new Set([...limpio.matchAll(/\b(?:from|join)\s+([a-z_]\w*)/gi)].map((m) => m[1].toLowerCase()).filter((n) => T[n]))];
+    if (!tablas.length) return null;
+    const tokens = new Set(limpio.toLowerCase().match(/[a-z_][a-z0-9_]*/g) || []);
+    const estrella = /select\s+(?:distinct\s+)?\*|\w\.\*/i.test(limpio);
+    let bytes = 0, todas = 0, prod = 0;
+    for (const n of tablas) {
+      const t = T[n];
+      if (!tamCols.has(n)) { const m = t.rows.slice(0, 300); tamCols.set(n, t.columns.map((c, i) => m.reduce((x, r) => x + (r[i] == null ? 1 : typeof r[i] === 'number' ? 8 : String(r[i]).length + 2), 0) / Math.max(1, m.length))); }
+      const tam = tamCols.get(n);
+      const usadas = estrella ? tam.map((_, i) => i) : t.columns.map((c, i) => (tokens.has(c.toLowerCase()) ? i : -1)).filter((i) => i >= 0);
+      const b = t.rows.length * usadas.reduce((x, i) => x + tam[i], 0);
+      bytes += b; todas += t.rows.length * tam.reduce((x, y) => x + y, 0);
+      prod += Math.max(10 * MB, b * ESCALA_PROD);
+    }
+    prod = Math.max(10 * MB, prod);
+    return { bytes, todas, prod, usd: (prod / 1099511627776) * BQ_USD_TIB, tablas, estrella, where: /\bwhere\b/i.test(limpio), limit: /\blimit\b/i.test(limpio) };
+  }
+  function costoHtml(sql) {
+    const e = estimarLectura(sql); if (!e) return '';
+    const consejos = [];
+    if (e.estrella) consejos.push('<b>Evita <code>SELECT *</code></b>: en un warehouse columnar pagas por cada columna que lees, la uses o no.');
+    if (e.estrella && e.limit) consejos.push('<b><code>LIMIT</code> no abarata</b> en BigQuery: igual se leen las columnas completas. Para mirar datos gratis, usa la vista previa de la tabla.');
+    if (!e.where) consejos.push('Sin <code>WHERE</code> se lee la tabla entera. En producción las tablas grandes se <b>particionan por fecha</b>: filtrar por esa columna lee solo los días que pides.');
+    return `<details class="costo"><summary>💸 Esta consulta leería <b>${fmtBytes(e.bytes)}</b>${e.bytes < e.todas * 0.98 ? ` (de ${fmtBytes(e.todas)} si leyera todas las columnas)` : ''} · en producción ≈ <b>${fmtBytes(e.prod)}</b> → <b>US$ ${(e.usd < 0.01 ? e.usd.toFixed(4) : e.usd.toFixed(2)).replace('.', ',')}</b> por ejecución</summary>
+      <div class="small"><p style="margin:6px 0">Cómo se calcula: tamaño promedio de cada columna que usa la consulta × filas de ${e.tablas.map((t) => `<code>${esc(t)}</code>`).join(', ')}. "En producción" supone tablas ${ESCALA_PROD.toLocaleString('es')} veces más grandes y el precio a demanda de BigQuery (US$ ${BQ_USD_TIB} por TiB, mínimo 10 MB por tabla). Si este tablero la ejecuta cada 5 minutos, son unas ${(12 * 24 * 30).toLocaleString('es')} ejecuciones al mes: <b>US$ ${(e.usd * 8640).toFixed(2).replace('.', ',')}</b>.</p>${consejos.length ? `<ul style="margin:4px 0 2px">${consejos.map((c) => `<li>${c}</li>`).join('')}</ul>` : '<p style="margin:4px 0">✓ Lee solo las columnas que necesita y filtra: buena práctica.</p>'}</div></details>`;
+  }
+
   function viewLabSql() {
     const SM = window.SqlMotores;
     const MOT = SM.MOTORES;
@@ -1377,6 +1556,7 @@
         out.innerHTML = `<pre class="console"><span class="err">${esc(motor === 'postgres' ? 'No se pudo cargar PostgreSQL (PGlite) desde cdn.jsdelivr.net: ' + e.message + '\nRevisa tu conexión o prueba con otro motor.' : e.message)}</span></pre>`; return;
       }
       renderSqlOutput(out, r);
+      if (r.ok !== false) { const c = costoHtml(ed.getValue()); if (c) out.append(h(c)); }
       if (expl) expl.actualizar(ed.getValue(), r, { pasos: motor === 'sqlite' });
       if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`));
       if (r.traducido) out.append(h(`<details class="motor-trad"><summary>Ver cómo se tradujo a SQLite</summary><pre data-lang="sql"><code>${esc(r.traducido)}</code></pre></details>`));
@@ -2500,6 +2680,8 @@
     if (parts[0] === 'diagnostico') return { name: 'diagnostico' };
     if (parts[0] === 'notas') return { name: 'notas', params };
     if (parts[0] === 'generador') return { name: 'generador', params };
+    if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
+    if (parts[0] === 'trabajo') return { name: 'trabajo', params };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -2529,6 +2711,8 @@
     else if (r.name === 'modelado') window.Modelado.vista(main, { h, esc, createEditor, Store, toast, abrirEnLab, $, $$ });
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
+    else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
+    else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
     else if (r.name === 'repaso') viewRepaso();

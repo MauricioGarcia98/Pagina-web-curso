@@ -185,3 +185,46 @@ Una partición = una tarea = un core. Con 8 particiones solo hay 8 tareas en par
 - [x] Un shuffle (redistribución de datos), por ejemplo en `groupBy` o `join`
 - [ ] Un `print`
 :::
+
+### Practica con código
+
+:::ejercicio pyspark titulo="Más particiones"
+Reparte la tabla `pedidos` en **8 particiones** con `repartition` y guarda en `resultado` el número de particiones del DataFrame resultante (usa `.rdd.getNumPartitions()`).
+```python inicial
+pedidos = spark.table("pedidos")
+```
+```python solucion
+pedidos = spark.table("pedidos")
+resultado = pedidos.repartition(8).rdd.getNumPartitions()
+```
+:::
+
+:::ejercicio pyspark titulo="Menos particiones sin shuffle"
+Después de filtrar los pedidos `cancelado` quedan pocas filas repartidas en muchas particiones. Junta el resultado en **2 particiones sin shuffle** (con `coalesce`) y guarda en `resultado` cuántas particiones quedaron.
+```python inicial
+from pyspark.sql import functions as F
+canc = spark.table("pedidos").repartition(16).filter(F.col("estado") == "cancelado")
+```
+```python solucion
+from pyspark.sql import functions as F
+canc = spark.table("pedidos").repartition(16).filter(F.col("estado") == "cancelado")
+resultado = canc.coalesce(2).rdd.getNumPartitions()
+```
+```pista
+`repartition(n)` mezcla todos los datos (shuffle) y puede subir o bajar el número; `coalesce(n)` solo junta particiones existentes, sin shuffle.
+```
+:::
+
+:::ejercicio pyspark titulo="Una acción dispara el trabajo"
+Arma el plan (transformaciones) que deja los pedidos del canal `app` con estado `entregado`, y al final ejecuta una **acción** que cuente las filas. Guarda el número en `resultado`.
+```python inicial
+from pyspark.sql import functions as F
+pedidos = spark.table("pedidos")
+```
+```python solucion
+from pyspark.sql import functions as F
+pedidos = spark.table("pedidos")
+plan = pedidos.filter(F.col("canal") == "app").filter(F.col("estado") == "entregado")
+resultado = plan.count()
+```
+:::

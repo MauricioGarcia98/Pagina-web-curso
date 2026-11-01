@@ -356,3 +356,78 @@ where email is not null
 La macro es: `{% macro limpiar_texto(col) -%} lower(trim({{ col }})) {%- endmacro %}`. Úsala así: `{{ limpiar_texto('nombre') }} as nombre`.
 ```
 :::
+
+### Más práctica
+
+:::ejercicio dbt titulo="Variables del proyecto"
+Usa `{{ var('pais_foco', 'Chile') }}` para filtrar `stg_clientes` por país (el valor por defecto es Chile). Devuelve `cliente_id` y `segmento`.
+```sql inicial
+select cliente_id, segmento
+from {{ ref('stg_clientes') }}
+```
+```sql solucion
+select cliente_id, segmento
+from {{ ref('stg_clientes') }}
+where pais = '{{ var("pais_foco", "Chile") }}'
+```
+```pista
+`var()` devuelve texto: va entre comillas simples dentro del SQL.
+```
+:::
+
+:::ejercicio dbt titulo="Columnas generadas con un bucle"
+Con `{% for %}` sobre la lista de canales `['web', 'app', 'tienda', 'telefono']`, cuenta los pedidos de cada canal por mes en columnas `pedidos_web`, `pedidos_app`, `pedidos_tienda`, `pedidos_telefono`. Columnas: `mes` y las cuatro de canal.
+```sql inicial
+{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+select strftime('%Y-%m', fecha_pedido) as mes
+from {{ ref('stg_pedidos') }}
+group by mes
+```
+```sql solucion
+{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+select strftime('%Y-%m', fecha_pedido) as mes
+{% for c in canales %}
+    , sum(case when canal = '{{ c }}' then 1 else 0 end) as pedidos_{{ c }}
+{% endfor %}
+from {{ ref('stg_pedidos') }}
+group by mes
+```
+:::
+
+:::ejercicio dbt titulo="Una macro para limpiar texto"
+Escribe la macro `limpiar(col)` que genere `lower(trim(col))` y úsala para devolver `registro_id` y `email` limpio desde `{{ source('tienda', 'bronze_pedidos') }}`.
+```sql inicial
+{% macro limpiar(col) -%}
+{%- endmacro %}
+
+select registro_id, {{ limpiar('cliente_email') }} as email
+from {{ source('tienda', 'bronze_pedidos') }}
+```
+```sql solucion
+{% macro limpiar(col) -%}
+    lower(trim({{ col }}))
+{%- endmacro %}
+
+select registro_id, {{ limpiar('cliente_email') }} as email
+from {{ source('tienda', 'bronze_pedidos') }}
+```
+:::
+
+:::ejercicio dbt titulo="if en Jinja"
+Usa `{% set incluir_cancelados = false %}` y un `{% if %}` para que el modelo filtre los pedidos cancelados **solo** cuando la variable sea falsa. Devuelve `estado` y `pedidos` (cantidad) desde `stg_pedidos`.
+```sql inicial
+{% set incluir_cancelados = false %}
+select estado, count(*) as pedidos
+from {{ ref('stg_pedidos') }}
+group by estado
+```
+```sql solucion
+{% set incluir_cancelados = false %}
+select estado, count(*) as pedidos
+from {{ ref('stg_pedidos') }}
+{% if not incluir_cancelados %}
+where estado <> 'cancelado'
+{% endif %}
+group by estado
+```
+:::

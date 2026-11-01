@@ -262,3 +262,124 @@ assert abs(facturacion - 1314.5) < 1e-6, f"facturacion debería ser 1314.5 y es 
 assert mas_vendido == "Cable", f"mas_vendido debería ser 'Cable' y es {mas_vendido!r}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Primero, último y cuántos"
+De `pedidos = [5001, 5002, 5003, 5004, 5005]` guarda en `primero` el primero, en `ultimo` el último (con índice negativo) y en `cuantos` la cantidad.
+```python inicial
+pedidos = [5001, 5002, 5003, 5004, 5005]
+primero = ultimo = cuantos = None
+```
+```python solucion
+pedidos = [5001, 5002, 5003, 5004, 5005]
+primero = pedidos[0]
+ultimo = pedidos[-1]
+cuantos = len(pedidos)
+```
+```python test
+assert (primero, ultimo, cuantos) == (5001, 5005, 5), f"Obtuviste {primero}, {ultimo}, {cuantos}"
+assert "[-1]" in _codigo, "Usa el índice -1 para el último"
+```
+:::
+
+:::ejercicio python titulo="Rebanadas (slicing)"
+De `meses = ["ene", "feb", "mar", "abr", "may", "jun"]` guarda en `trimestre` los tres primeros y en `ultimos_dos` los dos últimos, usando rebanadas `[a:b]`.
+```python inicial
+meses = ["ene", "feb", "mar", "abr", "may", "jun"]
+trimestre = ultimos_dos = None
+```
+```python solucion
+meses = ["ene", "feb", "mar", "abr", "may", "jun"]
+trimestre = meses[:3]
+ultimos_dos = meses[-2:]
+```
+```python test
+assert trimestre == ["ene", "feb", "mar"] and ultimos_dos == ["may", "jun"], f"{trimestre} {ultimos_dos}"
+```
+:::
+
+:::ejercicio python titulo="Agregar, quitar, insertar"
+Partiendo de `cola = ["ana", "luis"]`: agrega `"eva"` al final, inserta `"tomás"` al principio y quita `"luis"`. `cola` debe terminar como `["tomás", "ana", "eva"]`.
+```python inicial
+cola = ["ana", "luis"]
+```
+```python solucion
+cola = ["ana", "luis"]
+cola.append("eva")
+cola.insert(0, "tomás")
+cola.remove("luis")
+```
+```python test
+assert cola == ["tomás", "ana", "eva"], f"cola es {cola}"
+```
+:::
+
+:::ejercicio python titulo="Ordenar sin romper el original"
+Con `precios = [300, 120, 990, 45]`, guarda en `ordenados` los precios de menor a mayor **sin modificar** `precios`, y en `top2` los dos más caros.
+```python inicial
+precios = [300, 120, 990, 45]
+ordenados = top2 = None
+```
+```python solucion
+precios = [300, 120, 990, 45]
+ordenados = sorted(precios)
+top2 = sorted(precios, reverse=True)[:2]
+```
+```python test
+assert precios == [300, 120, 990, 45], "Modificaste la lista original: usa sorted(), no .sort()"
+assert ordenados == [45, 120, 300, 990] and top2 == [990, 300], f"{ordenados} {top2}"
+```
+:::
+
+:::ejercicio python titulo="La trampa de la copia"
+`base = [1, 2, 3]`. Crea `copia` como una **copia independiente** de `base` y agrégale un 4: `base` debe seguir siendo `[1, 2, 3]`.
+```python inicial
+base = [1, 2, 3]
+copia = base
+copia.append(4)
+```
+```python solucion
+base = [1, 2, 3]
+copia = base.copy()
+copia.append(4)
+```
+```python test
+assert base == [1, 2, 3], f"base cambió: {base}. 'copia = base' no copia, solo pone otro nombre a la misma lista"
+assert copia == [1, 2, 3, 4], f"copia es {copia}"
+```
+:::
+
+:::ejercicio python titulo="Tabla en memoria"
+`filas` es una tabla: cada fila es `[producto, cantidad, precio]`. Calcula en `total` la suma de cantidad × precio de todas las filas.
+```python inicial
+filas = [["mouse", 2, 12990], ["teclado", 1, 54990], ["cable", 3, 6990]]
+total = 0
+```
+```python solucion
+filas = [["mouse", 2, 12990], ["teclado", 1, 54990], ["cable", 3, 6990]]
+total = 0
+for producto, cantidad, precio in filas:
+    total += cantidad * precio
+```
+```python test
+assert total == 2 * 12990 + 54990 + 3 * 6990, f"total es {total}"
+```
+```pista
+Puedes "desarmar" cada fila en el for: `for producto, cantidad, precio in filas:`.
+```
+:::
+
+:::ejercicio python titulo="Tuplas como registros"
+`registro = ("CL", "Santiago", 7112000)` es (código de país, ciudad, habitantes). Desármalo en `pais`, `ciudad` y `habitantes` en una sola línea.
+```python inicial
+registro = ("CL", "Santiago", 7112000)
+```
+```python solucion
+registro = ("CL", "Santiago", 7112000)
+pais, ciudad, habitantes = registro
+```
+```python test
+assert (pais, ciudad, habitantes) == ("CL", "Santiago", 7112000)
+```
+:::

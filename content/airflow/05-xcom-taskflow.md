@@ -396,3 +396,79 @@ assert run.xcoms.get(("total", "return_value")) == 130, "total debe devolver 130
 - [ ] Porque los `for` son lentos
 - [ ] Porque Airflow solo acepta 10 tareas
 :::
+
+### Más práctica
+
+:::ejercicio airflow titulo="TaskFlow: extraer y validar"
+Con `@dag` y `@task`, crea `validar_carga` (la función decorada se llama así) con `extraer` (devuelve `[10, -3, 25, 0]`) y `contar_negativos` (recibe la lista y devuelve cuántos valores son negativos). Crea el DAG llamando a la función.
+```python inicial
+from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(schedule=None, start_date=datetime(2024, 1, 1))
+def validar_carga():
+    ...
+
+validar_carga()
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(schedule=None, start_date=datetime(2024, 1, 1))
+def validar_carga():
+    @task
+    def extraer():
+        return [10, -3, 25, 0]
+
+    @task
+    def contar_negativos(valores):
+        return sum(1 for v in valores if v < 0)
+
+    contar_negativos(extraer())
+
+validar_carga()
+```
+```python test
+d = dags.get("validar_carga")
+assert d is not None, "No encontré el DAG 'validar_carga' (¿llamaste a la función al final?)"
+assert d.test().xcoms.get(("contar_negativos", "return_value")) == 1
+```
+:::
+
+:::ejercicio airflow titulo="xcom_pull a mano"
+Sin TaskFlow: `PythonOperator` `calcular` devuelve `42` y `PythonOperator` `informar` lee ese valor con `ti.xcom_pull(task_ids="calcular")` y devuelve `"resultado: 42"`. DAG `xcom_manual`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def calcular():
+    return 42
+
+def informar(ti):
+    ...
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def calcular():
+    return 42
+
+def informar(ti):
+    valor = ti.xcom_pull(task_ids="calcular")
+    return f"resultado: {valor}"
+
+with DAG("xcom_manual", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    c = PythonOperator(task_id="calcular", python_callable=calcular)
+    i = PythonOperator(task_id="informar", python_callable=informar)
+    c >> i
+```
+```python test
+d = dags.get("xcom_manual")
+assert d is not None, "No encontré el DAG 'xcom_manual'"
+assert d.test().xcoms.get(("informar", "return_value")) == "resultado: 42"
+```
+:::

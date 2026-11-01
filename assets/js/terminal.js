@@ -488,7 +488,7 @@ models:
       else if (p.sep === '||') skip = last.code === 0;
       else skip = false;
     }
-    return { out: out.join('\n'), code: last.code, repl: last.repl, ctrl: last.ctrl };
+    return { out: out.join('\n'), code: last.code, repl: last.repl, pantalla: last.pantalla, ctrl: last.ctrl };
   }
 
   // ------------------------------------------------------------- intérprete de scripts
@@ -1145,7 +1145,10 @@ models:
     const pat = pos.shift();
     if (pat === undefined) return fail('Uso: grep [OPCIÓN]... PATRÓN [ARCHIVO]...');
     let re;
-    try { re = new RegExp(flags['-w'] ? `\\b${pat}\\b` : pat, flags['-i'] ? 'i' : ''); } catch (e) { re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags['-i'] ? 'i' : ''); }
+    // sin -E, grep usa expresiones "básicas" (BRE): \| \( \) \+ \? son operadores y | ( ) + ? son literales
+    const bre = (p) => { let o = ''; for (let i = 0; i < p.length; i++) { const c = p[i]; if (c === '\\' && '|()+?{}'.includes(p[i + 1])) { o += p[++i]; } else if ('|()+?{}'.includes(c)) o += '\\' + c; else o += c; } return o; };
+    const patRe = flags['-E'] ? pat : bre(pat);
+    try { re = new RegExp(flags['-w'] ? `\\b${patRe}\\b` : patRe, flags['-i'] ? 'i' : ''); } catch (e) { re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags['-i'] ? 'i' : ''); }
     const files = pos.length ? pos : [null];
     const out = [];
     let total = 0;
@@ -1266,7 +1269,29 @@ models:
   });
   def('curl', 'peticiones HTTP (simuladas, sin red)', (a) => {
     const url = a.find((x) => /^https?:/.test(x)) || '';
-    if (/api\.tienda/.test(url)) return ok(JSON.stringify({ pedidos: [{ id: 1, total: 120.5 }, { id: 2, total: 80 }], pagina: 1 }, null, 2));
+    // la API de práctica (api-practica.js) responde de verdad: códigos, cabeceras, tokens, paginación y 429
+    if (window.ApiTienda && window.ApiTienda.esDeLaApi(url)) {
+      let metodo = 'GET', datos = null, incluir = false, soloCab = false, falla = false, salida = null;
+      const hs = {};
+      for (let i = 0; i < a.length; i++) {
+        const x = a[i];
+        if (x === '-X' || x === '--request') metodo = String(a[++i] || 'GET').toUpperCase();
+        else if (x === '-H' || x === '--header') { const hv = String(a[++i] || ''); const k = hv.indexOf(':'); if (k > 0) hs[hv.slice(0, k).trim()] = hv.slice(k + 1).trim(); }
+        else if (x === '-d' || x === '--data' || x === '--data-raw' || x === '--json') { datos = a[++i] || ''; if (metodo === 'GET') metodo = 'POST'; if (x === '--json') hs['Content-Type'] = 'application/json'; }
+        else if (x === '-i' || x === '--include') incluir = true;
+        else if (x === '-I' || x === '--head') { soloCab = true; incluir = true; }
+        else if (x === '-f' || x === '--fail') falla = true;
+        else if (x === '-o' || x === '--output') salida = a[++i];
+        else if (/^-[a-zA-Z]{2,}$/.test(x)) { if (x.includes('i')) incluir = true; if (x.includes('f')) falla = true; }
+      }
+      const r = window.ApiTienda.request(metodo, url, hs, datos);
+      const RAZON = { 200: 'OK', 400: 'Bad Request', 401: 'Unauthorized', 404: 'Not Found', 405: 'Method Not Allowed', 429: 'Too Many Requests', 503: 'Service Unavailable' };
+      const cab = `HTTP/2 ${r.status} ${RAZON[r.status] || ''}\n` + Object.entries(r.headers).map(([k, v]) => `${k}: ${v}`).join('\n') + '\n';
+      if (falla && r.status >= 400) return fail(`curl: (22) The requested URL returned error: ${r.status}`, 22);
+      const cuerpo = soloCab ? '' : r.body;
+      if (salida) { writeFile(norm(salida), cuerpo); Machine.save(); return ok(incluir ? cab : ''); }
+      return ok((incluir ? cab + '\n' : '') + cuerpo);
+    }
     // scripts de instalación conocidos: devuelven un script de bash que "instala" la herramienta (para curl … | bash)
     const INSTALADORES = [[/Homebrew\/install/, 'Homebrew', 'brew', '==> Checking for `sudo` access (which may request your password)...\n==> This script will install:\n/opt/homebrew/bin/brew\n==> Downloading and installing Homebrew...\n==> Installation successful!\n==> Next steps:\n- Run these commands in your terminal to add Homebrew to your PATH:\n    eval \\"\\$(/opt/homebrew/bin/brew shellenv)\\"'], [/astral\.sh\/uv/, 'uv', 'uv', 'downloading uv 0.9.5 x86_64-unknown-linux-gnu\nno checksums to verify\ninstalling to /home/alumno/.local/bin\n  uv\n  uvx\neverything is installed!'], [/astronomer/, 'Astro CLI', 'astro', 'Installing Astro CLI v1.31.0...\nAstro CLI v1.31.0 instalado en /usr/local/bin/astro'], [/get\.docker\.com/, 'Docker', 'docker', '# Executing docker install script\n+ sh -c apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin\nDocker instalado.'], [/sdk\.cloud\.google\.com|install\.sh.*gcloud/, 'Google Cloud CLI', 'gcloud', 'Welcome to the Google Cloud CLI!\nInstallation directory: /home/alumno/google-cloud-sdk\nGoogle Cloud CLI instalado.'], [/aka\.ms\/InstallAzureCLIDeb/, 'Azure CLI', 'az', 'Get:1 https://packages.microsoft.com/repos/azure-cli jammy InRelease\nSetting up azure-cli (2.79.0-1~jammy) ...'], [/databricks\/setup-cli/, 'Databricks CLI', 'databricks', 'Installed Databricks CLI v0.270.0 at /usr/local/bin/databricks.']];
     const inst = INSTALADORES.find(([re]) => re.test(url));
@@ -1994,7 +2019,9 @@ for _n, _fn in list(_ns.items()):
         if (am >= 0) for (const [k, v] of Object.entries(work)) if (headSnap[k] !== undefined && headSnap[k] !== v) g.staged[k] = v;
         if (!msg) return fail('Abortando commit debido a que el mensaje del commit está vacío. Usa: git commit -m "mensaje"');
         if (!Object.keys(g.staged).length) return { out: `En la rama ${g.branch}\nnada para hacer commit` + (Object.keys(work).some((k) => indexSnap[k] !== work[k] && !ignored(root, k)) ? ' (usa "git add" para preparar cambios)' : ', el árbol de trabajo está limpio'), code: 1 };
-        const snap = { ...indexSnap };
+        // el índice se recalcula aquí: con -am se acaban de agregar archivos a g.staged
+        const snap = { ...headSnap, ...g.staged };
+        for (const k of Object.keys(g.staged)) if (g.staged[k] === null) delete snap[k];
         const h = shortHash();
         const n = Object.keys(g.staged).length;
         g.commits[h] = { msg, parent: head, snap, author: 'alumno', date: new Date().toISOString() };
@@ -2272,6 +2299,12 @@ for _n, _fn in list(_ns.items()):
       const last = await lastMode(line);
       if (last) mode = last;
       if (r.repl) { repl = r.repl; mode = 'repl'; }
+      // programas de pantalla completa (vim, nano): ocupan la terminal hasta que sales, como en una real
+      if (r.pantalla && window.Shell.pantallas && window.Shell.pantallas[r.pantalla.tipo]) {
+        busy = true;
+        try { const fin = await window.Shell.pantallas[r.pantalla.tipo](el, r.pantalla); if (fin) print(render(fin)); } catch (e) { print(render(col.err(String(e.message || e)))); }
+        busy = false; body.scrollTop = body.scrollHeight; setTimeout(() => input.focus(), 0);
+      }
       setPrompt();
       opts.onCommand && opts.onCommand(line, r, null);
     }
@@ -2406,5 +2439,6 @@ for _n, _fn in list(_ns.items()):
     TermCfg, TEMAS,
     Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, mkdirp, display, HOME,
     fail, ok, sqlExec, openEditor: null, runScript, faltaCerrar, esCompuesto, Shopt, Funciones,
+    gitInt: { root: gitRoot, snapshot, ignored, hash: shortHash }, pantallas: {},
   };
 })();

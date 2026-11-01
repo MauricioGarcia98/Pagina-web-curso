@@ -319,3 +319,31 @@ Migraste a Airflow 3 un DAG diario que extraía "las ventas de `{{ ds }}`" pensa
 - [ ] El día 30 de cada mes a las 6:00
 - [ ] A las 6:30 los sábados y domingos
 :::
+
+### Más práctica
+
+:::ejercicio airflow titulo="Días hábiles a las 3:30"
+Crea el DAG `cierre` que corra de **lunes a viernes a las 3:30** (cron `30 3 * * 1-5`), desde el 1 de enero de 2024, sin catchup, con un `EmptyOperator` `cerrar`.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("cierre", start_date=datetime(2024, 1, 1), schedule="30 3 * * 1-5", catchup=False) as dag:
+    EmptyOperator(task_id="cerrar")
+```
+```python test
+d = dags.get("cierre")
+assert d is not None, "No encontré el DAG 'cierre'"
+assert str(d.schedule).split() == ["30", "3", "*", "*", "1-5"], f"schedule es {d.schedule!r}: minuto 30, hora 3, cualquier día del mes, cualquier mes, lunes a viernes"
+assert d.catchup is False
+```
+```pista
+Un cron tiene cinco campos: minuto, hora, día del mes, mes y día de la semana. `1-5` es de lunes a viernes.
+```
+:::

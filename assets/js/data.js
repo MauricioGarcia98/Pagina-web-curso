@@ -334,6 +334,70 @@
     }
     T.experimento_checkout = { columns: ['cliente_id', 'grupo', 'fecha_asignacion', 'dispositivo', 'convirtio', 'ingreso'], rows: ab };
 
+    // ---------- capa bronze: así llegan los datos de verdad ----------
+    // Generador propio (no altera el resto). Los pedidos del 2.º semestre de 2024 tal como los manda la
+    // app en archivos: duplicados por reenvíos (con el estado actualizado), tres formatos de fecha,
+    // montos como texto con coma decimal o símbolo, estados en dos idiomas y con mayúsculas, emails sucios,
+    // pedidos de prueba de QA, clientes desconocidos y un cambio de esquema en julio (aparece "cupon")
+    // y otro en octubre (aparece el estado "en_disputa").
+    const rb = mulberry32(20241101);
+    const pickB = (arr) => arr[Math.floor(rb() * arr.length)];
+    const pad = (n) => String(n).padStart(2, '0');
+    const emailDe = new Map(T.clientes.rows.map((c) => [c[0], c[3]]));
+    const importe = new Map();
+    for (const d of T.detalle_pedidos.rows) importe.set(d[1], (importe.get(d[1]) || 0) + d[3] * d[4] * (1 - d[5]));
+    const ESTADO_VAR = { entregado: ['entregado', 'Entregado', 'ENTREGADO', 'delivered'], enviado: ['enviado', 'Enviado', 'shipped'], pendiente: ['pendiente', 'PENDIENTE', 'pending'], cancelado: ['cancelado', 'Cancelado', 'canceled'], devuelto: ['devuelto', 'DEVUELTO', 'returned'] };
+    const bronze = [];
+    let rid = 1;
+    const sem2 = T.pedidos.rows.filter((r) => r[3] >= '2024-07-01' && r[3] < '2025-01-01');
+    for (const r of sem2) {
+      const [pid, cid, , fecha, estado, canal] = r;
+      const d = new Date(fecha.replace(' ', 'T') + 'Z');
+      const u = rb();
+      const fTxt = u < 0.7 ? fecha : u < 0.85 ? `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}` : d.toISOString().replace(/\.\d+Z$/, 'Z');
+      const m = Math.round((importe.get(pid) || 0) * 100) / 100;
+      const v = rb();
+      const mTxt = v < 0.03 ? null : v < 0.7 ? m.toFixed(2) : v < 0.85 ? m.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '$' + m.toFixed(2);
+      let email = emailDe.get(cid) || null;
+      if (email && rb() < 0.15) email = (rb() < 0.5 ? '  ' : '') + email.toUpperCase() + (rb() < 0.5 ? ' ' : '');
+      if (rb() < 0.01) email = `desconocido${Math.floor(rb() * 900) + 100}@correo.com`;
+      let est = pickB(ESTADO_VAR[estado] || [estado]);
+      if (fecha >= '2024-10-01' && estado === 'entregado' && rb() < 0.04) est = 'en_disputa';
+      const cupon = fecha >= '2024-07-15' && rb() < 0.25 ? pickB(['VERANO10', 'BLACK24', 'CYBER15', 'BIENVENIDA']) : null;
+      const archivo = `pedidos_${fecha.slice(0, 10).replace(/-/g, '')}.json`;
+      const carga = new Date(d.getTime() + 86400000 + Math.floor(rb() * 7200) * 1000).toISOString().slice(0, 19).replace('T', ' ');
+      bronze.push([rid++, archivo, carga, pid, email, fTxt, mTxt, rb() < 0.9 ? 'USD' : pickB(['usd', ' USD']), est, canal, cupon]);
+      // reenvío: el mismo pedido llega otra vez días después, a veces con el estado ya actualizado
+      if (rb() < 0.04) {
+        const carga2 = new Date(d.getTime() + (2 + Math.floor(rb() * 5)) * 86400000).toISOString().slice(0, 19).replace('T', ' ');
+        const est2 = estado === 'enviado' ? 'entregado' : est;
+        bronze.push([rid++, `pedidos_${carga2.slice(0, 10).replace(/-/g, '')}_reenvio.json`, carga2, pid, email, fTxt, mTxt, 'USD', est2, canal, cupon]);
+      }
+    }
+    // pedidos de prueba del equipo de QA (nunca deberían llegar a producción, pero llegan)
+    for (let k = 1; k <= 12; k++) bronze.push([rid++, 'pedidos_qa.json', `2024-${pad(7 + (k % 6))}-${pad(1 + k)} 10:00:00`, 900000 + k, `qa+${k}@tiendaandina.com`, `2024-${pad(7 + (k % 6))}-${pad(1 + k)} 09:30:00`, k % 2 ? '0.01' : '1.00', 'USD', 'entregado', 'web', null]);
+    bronze.sort((a, b) => (a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : a[0] - b[0]));
+    bronze.forEach((f, i) => { f[0] = i + 1; });
+    T.bronze_pedidos = { columns: ['registro_id', 'archivo', 'cargado_en', 'pedido_id', 'cliente_email', 'fecha', 'monto', 'moneda', 'estado', 'canal', 'cupon'], rows: bronze };
+
+    // eventos de la app como JSON crudo: en septiembre la app cambió el formato (v1 → v2) y algunos llegan cortados
+    const ev = [];
+    const prods = T.productos.rows;
+    for (let i = 1; i <= 2500; i++) {
+      const dia = Math.floor((i / 2500) * 184);
+      const t = new Date(Date.UTC(2024, 6, 1) + dia * 86400000 + Math.floor(rb() * 86400) * 1000);
+      const iso = t.toISOString().replace(/\.\d+Z$/, 'Z');
+      const cli = T.clientes.rows[Math.floor(rb() * T.clientes.rows.length)][0];
+      const pr = prods[Math.floor(rb() * prods.length)];
+      const tipo = pickB(['vista', 'vista', 'vista', 'carrito', 'compra']);
+      let payload = t < new Date(Date.UTC(2024, 8, 1))
+        ? JSON.stringify({ v: 1, tipo, cliente: cli, producto: pr[0], ts: iso })
+        : JSON.stringify({ v: 2, evento: { tipo, ts: iso }, usuario: { id: cli, logueado: rb() < 0.7 }, producto: { id: pr[0], precio: pr[4] } });
+      if (rb() < 0.006) payload = payload.slice(0, Math.floor(payload.length / 2));
+      ev.push([i, iso.replace('T', ' ').replace('Z', ''), payload]);
+    }
+    T.bronze_eventos_app = { columns: ['evento_id', 'recibido_en', 'payload'], rows: ev };
+
     return T;
   }
 
@@ -351,6 +415,8 @@ CREATE TABLE logins (cliente_id INTEGER, fecha TEXT);
 CREATE TABLE clientes_crudo (registro_id INTEGER PRIMARY KEY, cliente_id INTEGER, nombre TEXT, apellido TEXT, email TEXT, ciudad TEXT, fecha_carga TEXT);
 CREATE TABLE tipos_cambio (fecha TEXT, moneda TEXT, valor_usd REAL);
 CREATE TABLE experimento_checkout (cliente_id INTEGER PRIMARY KEY REFERENCES clientes(cliente_id), grupo TEXT, fecha_asignacion TEXT, dispositivo TEXT, convirtio INTEGER, ingreso REAL);
+CREATE TABLE bronze_pedidos (registro_id INTEGER PRIMARY KEY, archivo TEXT, cargado_en TEXT, pedido_id INTEGER, cliente_email TEXT, fecha TEXT, monto TEXT, moneda TEXT, estado TEXT, canal TEXT, cupon TEXT);
+CREATE TABLE bronze_eventos_app (evento_id INTEGER PRIMARY KEY, recibido_en TEXT, payload TEXT);
 CREATE INDEX idx_pedidos_cliente ON pedidos(cliente_id);
 CREATE INDEX idx_detalle_pedido ON detalle_pedidos(pedido_id);
 CREATE INDEX idx_detalle_producto ON detalle_pedidos(producto_id);
@@ -379,7 +445,9 @@ CREATE VIEW stg_pagos AS SELECT pago_id, pedido_id, date(fecha_pago) AS fecha_pa
     logins: 'Días en que los clientes iniciaron sesión (rachas).',
     clientes_crudo: 'Carga “sucia” de clientes con duplicados y formatos mezclados.',
     tipos_cambio: 'Cotización diaria de monedas vs USD (sin fines de semana).',
-    experimento_checkout: 'Prueba A/B del checkout nuevo en septiembre de 2024: grupo, dispositivo y si compró.'
+    experimento_checkout: 'Prueba A/B del checkout nuevo en septiembre de 2024: grupo, dispositivo y si compró.',
+    bronze_pedidos: 'Capa bronze: los pedidos del 2.º semestre de 2024 tal como llegaron de la app (duplicados, fechas y montos como texto, estados mezclados, pruebas de QA).',
+    bronze_eventos_app: 'Capa bronze: eventos de la app como JSON crudo; en septiembre cambió el formato (v1 → v2) y algunos llegaron cortados.'
   };
 
   // casos de negocio adicionales (data-casos.js)

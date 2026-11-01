@@ -286,3 +286,126 @@ assert [e[0] for e in ordenados] == ["Sol", "Eva", "Ana", "Leo", "Luis"], f"Orde
 `key=lambda e: (e[1], -e[2])` ordena por área y luego por salario negativo (o sea, de mayor a menor).
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Tu primera función"
+Escribe `con_iva(neto)` que devuelva el precio con 19 % de IVA, redondeado a entero.
+```python inicial
+def con_iva(neto):
+    pass
+```
+```python solucion
+def con_iva(neto):
+    return round(neto * 1.19)
+```
+```python test
+assert con_iva(1000) == 1190 and con_iva(0) == 0 and con_iva(12990) == 15458, f"con_iva(1000)={con_iva(1000)}"
+```
+:::
+
+:::ejercicio python titulo="Parámetro con valor por defecto"
+Escribe `descuento(precio, porcentaje=10)` que devuelva el precio con el descuento aplicado. Si no se pasa porcentaje, usa 10.
+```python inicial
+def descuento(precio, porcentaje=10):
+    pass
+```
+```python solucion
+def descuento(precio, porcentaje=10):
+    return precio * (1 - porcentaje / 100)
+```
+```python test
+assert abs(descuento(1000) - 900) < 1e-9 and abs(descuento(1000, 25) - 750) < 1e-9, f"descuento(1000)={descuento(1000)}, descuento(1000, 25)={descuento(1000, 25)}"
+```
+:::
+
+:::ejercicio python titulo="Devolver dos valores"
+Escribe `minimo_y_maximo(valores)` que devuelva una tupla `(mínimo, máximo)` de la lista.
+```python inicial
+def minimo_y_maximo(valores):
+    pass
+```
+```python solucion
+def minimo_y_maximo(valores):
+    return min(valores), max(valores)
+```
+```python test
+assert minimo_y_maximo([5, 2, 9, 4]) == (2, 9), f"Obtuviste {minimo_y_maximo([5, 2, 9, 4])}"
+```
+:::
+
+:::ejercicio python titulo="Validar un email"
+Escribe `email_valido(texto)` que devuelva `True` si el texto, sin espacios a los costados, tiene exactamente una `@` y al menos un `.` después de ella.
+```python inicial
+def email_valido(texto):
+    pass
+```
+```python solucion
+def email_valido(texto):
+    t = texto.strip()
+    if t.count("@") != 1:
+        return False
+    usuario, dominio = t.split("@")
+    return bool(usuario) and "." in dominio
+```
+```python test
+assert email_valido("ana@correo.com") is True
+assert email_valido("  ana@correo.com ") is True, "Quita los espacios antes de validar"
+assert email_valido("ana.correo.com") is False, "Sin @ no es válido"
+assert email_valido("ana@@correo.com") is False, "Con dos @ no es válido"
+assert email_valido("ana@correo") is False, "Sin punto en el dominio no es válido"
+```
+:::
+
+:::ejercicio python titulo="Una función que usa otra"
+Usando `normalizar(texto)` (ya escrita), escribe `mismos_clientes(a, b)` que devuelva `True` si dos nombres son el mismo cliente aunque cambien mayúsculas o espacios.
+```python inicial
+def normalizar(texto):
+    return " ".join(texto.split()).lower()
+
+def mismos_clientes(a, b):
+    pass
+```
+```python solucion
+def normalizar(texto):
+    return " ".join(texto.split()).lower()
+
+def mismos_clientes(a, b):
+    return normalizar(a) == normalizar(b)
+```
+```python test
+assert mismos_clientes("Ana  Pérez", " ana pérez") is True
+assert mismos_clientes("Ana Pérez", "Ana Perez") is False, "Las tildes cuentan: son textos distintos"
+```
+:::
+
+:::ejercicio python titulo="Ordenar con lambda"
+Ordena `productos` por precio de mayor a menor usando `sorted` con `key=lambda ...` y guarda el resultado en `por_precio`.
+```python inicial
+productos = [{"n": "mouse", "p": 12990}, {"n": "monitor", "p": 189990}, {"n": "cable", "p": 6990}]
+por_precio = []
+```
+```python solucion
+productos = [{"n": "mouse", "p": 12990}, {"n": "monitor", "p": 189990}, {"n": "cable", "p": 6990}]
+por_precio = sorted(productos, key=lambda x: x["p"], reverse=True)
+```
+```python test
+assert [x["n"] for x in por_precio] == ["monitor", "mouse", "cable"], f"Orden obtenido: {[x['n'] for x in por_precio]}"
+assert "lambda" in _codigo, "Usa una lambda como key"
+```
+:::
+
+:::ejercicio python titulo="*args: sumar lo que venga"
+Escribe `total(*montos)` que sume cualquier cantidad de montos (y devuelva 0 si no recibe ninguno).
+```python inicial
+def total(*montos):
+    pass
+```
+```python solucion
+def total(*montos):
+    return sum(montos)
+```
+```python test
+assert total() == 0 and total(5) == 5 and total(1, 2, 3, 4) == 10
+```
+:::

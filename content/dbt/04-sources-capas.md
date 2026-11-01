@@ -247,3 +247,63 @@ select pedido_id, fecha_pago, monto from numerados where rn = 1
 - [ ] Solo en marts
 - [ ] En los tests
 :::
+
+### Más práctica
+
+:::ejercicio dbt titulo="Staging de la capa bronze"
+La capa bronze también se declara como source. Escribe el staging de `{{ source('tienda', 'bronze_pedidos') }}`: una fila por `pedido_id` (la de mayor `cargado_en`), con `pedido_id`, `email` (minúsculas y sin espacios) y `estado` en minúsculas sin espacios.
+```sql inicial
+with ranqueado as (
+    select *
+    from {{ source('tienda', 'bronze_pedidos') }}
+)
+select
+from ranqueado
+```
+```sql solucion
+with ranqueado as (
+    select *, row_number() over (partition by pedido_id order by cargado_en desc) as rn
+    from {{ source('tienda', 'bronze_pedidos') }}
+)
+select pedido_id, lower(trim(cliente_email)) as email, lower(trim(estado)) as estado
+from ranqueado
+where rn = 1
+```
+:::
+
+:::ejercicio dbt titulo="Tabla de mapeo (seed)"
+Un *seed* es un CSV versionado en el proyecto. Simúlalo con una CTE `mapeo_estados` (`valor_origen`, `estado`) con las filas `delivered→entregado`, `shipped→enviado`, `pending→pendiente`, `canceled→cancelado`, `returned→devuelto`. Úsala para normalizar el estado de `{{ source('tienda', 'bronze_pedidos') }}`: devuelve `registro_id` y `estado` (si no está en el mapeo, el valor en minúsculas sin espacios).
+```sql inicial
+with mapeo_estados as (
+    select 'delivered' as valor_origen, 'entregado' as estado
+    -- completa las demás filas con union all
+)
+select b.registro_id
+from {{ source('tienda', 'bronze_pedidos') }} b
+```
+```sql solucion
+with mapeo_estados as (
+    select 'delivered' as valor_origen, 'entregado' as estado
+    union all select 'shipped', 'enviado'
+    union all select 'pending', 'pendiente'
+    union all select 'canceled', 'cancelado'
+    union all select 'returned', 'devuelto'
+)
+select b.registro_id, coalesce(m.estado, lower(trim(b.estado))) as estado
+from {{ source('tienda', 'bronze_pedidos') }} b
+left join mapeo_estados m on m.valor_origen = lower(trim(b.estado))
+```
+:::
+
+:::ejercicio dbt titulo="Fuente con filtro de frescura"
+Los datos de más de un año no interesan en staging. Desde `{{ source('tienda', 'pedidos') }}`, devuelve `pedido_id` y `fecha_pedido` de los pedidos de **2024** (desde `2024-01-01`).
+```sql inicial
+select pedido_id, fecha_pedido
+from {{ source('tienda', 'pedidos') }}
+```
+```sql solucion
+select pedido_id, fecha_pedido
+from {{ source('tienda', 'pedidos') }}
+where fecha_pedido >= '2024-01-01'
+```
+:::

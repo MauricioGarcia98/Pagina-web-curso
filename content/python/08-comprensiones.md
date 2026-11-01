@@ -246,3 +246,122 @@ precio_por_sku = {p["sku"]: p["precio"] for p in catalogo if p["activo"]}
 assert precio_por_sku == {"A1": 10.0, "C3": 7.25}, f"precio_por_sku = {precio_por_sku}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Precios con IVA en una línea"
+Con una list comprehension, guarda en `con_iva` los precios de `netos = [100, 250, 990]` multiplicados por 1.19 y redondeados a entero.
+```python inicial
+netos = [100, 250, 990]
+con_iva = []
+```
+```python solucion
+netos = [100, 250, 990]
+con_iva = [round(n * 1.19) for n in netos]
+```
+```python test
+assert con_iva == [119, 298, 1178], f"con_iva es {con_iva}"
+assert "for" in _codigo and "[" in _codigo and ".append" not in _codigo, "Hazlo con una list comprehension (sin append)"
+```
+:::
+
+:::ejercicio python titulo="Filtrar en la comprensión"
+Guarda en `caros` solo los nombres de los productos con precio mayor a 50000.
+```python inicial
+productos = [("mouse", 12990), ("notebook", 749990), ("cable", 6990), ("monitor", 189990)]
+caros = []
+```
+```python solucion
+productos = [("mouse", 12990), ("notebook", 749990), ("cable", 6990), ("monitor", 189990)]
+caros = [n for n, p in productos if p > 50000]
+```
+```python test
+assert caros == ["notebook", "monitor"], f"caros es {caros}"
+```
+:::
+
+:::ejercicio python titulo="Diccionario por id"
+Con una dict comprehension, arma `por_id` que vaya del `id` al `nombre` de cada cliente.
+```python inicial
+clientes = [{"id": 1, "nombre": "Ana"}, {"id": 2, "nombre": "Luis"}, {"id": 3, "nombre": "Eva"}]
+por_id = {}
+```
+```python solucion
+clientes = [{"id": 1, "nombre": "Ana"}, {"id": 2, "nombre": "Luis"}, {"id": 3, "nombre": "Eva"}]
+por_id = {c["id"]: c["nombre"] for c in clientes}
+```
+```python test
+assert por_id == {1: "Ana", 2: "Luis", 3: "Eva"}, f"por_id es {por_id}"
+```
+:::
+
+:::ejercicio python titulo="Dominios únicos"
+Con una set comprehension, guarda en `dominios` los dominios distintos (en minúsculas) de los emails.
+```python inicial
+emails = ["ana@Gmail.com", "luis@empresa.cl", "eva@gmail.com", "tom@EMPRESA.cl"]
+dominios = set()
+```
+```python solucion
+emails = ["ana@Gmail.com", "luis@empresa.cl", "eva@gmail.com", "tom@EMPRESA.cl"]
+dominios = {e.split("@")[1].lower() for e in emails}
+```
+```python test
+assert dominios == {"gmail.com", "empresa.cl"}, f"dominios es {dominios}"
+```
+:::
+
+:::ejercicio python titulo="Sumar sin crear la lista"
+Suma los cuadrados de los números del 1 al 1000 con una **expresión generadora** dentro de `sum(...)` (sin corchetes) y guarda el resultado en `suma`.
+```python inicial
+suma = 0
+```
+```python solucion
+suma = sum(n * n for n in range(1, 1001))
+```
+```python test
+assert suma == 333833500, f"suma es {suma}"
+assert "sum(" in _codigo and "[" not in _codigo, "Usa una expresión generadora: sum(x for x in ...), sin corchetes"
+```
+:::
+
+:::ejercicio python titulo="map con una función propia"
+Escribe `limpiar(t)` que quite espacios y pase a título (`.title()`), y aplícala a `nombres` con `map`. Guarda la lista en `limpios`.
+```python inicial
+nombres = ["  ana ", "LUIS", "eva  maría"]
+
+def limpiar(t):
+    pass
+
+limpios = []
+```
+```python solucion
+nombres = ["  ana ", "LUIS", "eva  maría"]
+
+def limpiar(t):
+    return " ".join(t.split()).title()
+
+limpios = list(map(limpiar, nombres))
+```
+```python test
+assert limpios == ["Ana", "Luis", "Eva María"], f"limpios es {limpios}"
+assert "map(" in _codigo, "Usa map"
+```
+:::
+
+:::ejercicio python titulo="Aplanar una lista de listas"
+`lotes` tiene los pedidos agrupados por lote. Con una comprensión anidada, guarda en `todos` todos los pedidos en una sola lista.
+```python inicial
+lotes = [[101, 102], [103], [104, 105, 106]]
+todos = []
+```
+```python solucion
+lotes = [[101, 102], [103], [104, 105, 106]]
+todos = [p for lote in lotes for p in lote]
+```
+```python test
+assert todos == [101, 102, 103, 104, 105, 106], f"todos es {todos}"
+```
+```pista
+El orden de los `for` es el mismo que si los escribieras anidados: primero `for lote in lotes`, después `for p in lote`.
+```
+:::

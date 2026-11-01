@@ -227,3 +227,52 @@ Escribes `df.select("a").filter("a > 5")` y nunca llamas a ninguna acción. ¿Cu
 - [ ] Solo la columna `a`
 - [ ] Las primeras 20 filas
 :::
+
+### Practica con código
+
+:::ejercicio pyspark titulo="Encadenar transformaciones" ordenado
+En una sola cadena: de `productos`, deja los activos (`activo == 1`), calcula `margen = precio - costo`, quédate con `nombre` y `margen` y ordena de mayor a menor margen. Guarda los 10 primeros en `resultado`.
+```python inicial
+from pyspark.sql import functions as F
+productos = spark.table("productos")
+```
+```python solucion
+from pyspark.sql import functions as F
+productos = spark.table("productos")
+resultado = (productos.filter(F.col("activo") == 1)
+                      .withColumn("margen", F.round(F.col("precio") - F.col("costo"), 2))
+                      .select("nombre", "margen")
+                      .orderBy(F.desc("margen"), "nombre")
+                      .limit(10))
+```
+:::
+
+:::ejercicio pyspark titulo="cache cuando se reusa"
+Vas a usar dos veces los pedidos entregados: guárdalos en caché con `.cache()` y calcula con ese mismo DataFrame cuántos pedidos (`pedidos`) y cuántos clientes distintos (`clientes`) hay. `resultado` es un DataFrame de una fila con esas dos columnas.
+```python inicial
+from pyspark.sql import functions as F
+entregados = spark.table("pedidos").filter(F.col("estado") == "entregado")
+```
+```python solucion
+from pyspark.sql import functions as F
+entregados = spark.table("pedidos").filter(F.col("estado") == "entregado").cache()
+resultado = entregados.agg(F.count("*").alias("pedidos"), F.countDistinct("cliente_id").alias("clientes"))
+```
+```python test
+assert ".cache()" in _codigo or ".persist(" in _codigo, "Usa .cache() (o .persist()) en el DataFrame que se reusa"
+```
+:::
+
+:::ejercicio pyspark titulo="De RDD a DataFrame"
+A veces llegan datos como una lista de tuplas. Con `spark.createDataFrame(datos, ["pais", "ventas"])` crea un DataFrame y suma las ventas por país. `resultado` con columnas `pais` y `ventas`.
+```python inicial
+from pyspark.sql import functions as F
+datos = [("Chile", 120), ("Perú", 80), ("Chile", 50), ("México", 200), ("Perú", 20)]
+```
+```python solucion
+from pyspark.sql import functions as F
+datos = [("Chile", 120), ("Perú", 80), ("Chile", 50), ("México", 200), ("Perú", 20)]
+df = spark.createDataFrame(datos, ["pais", "ventas"])
+resultado = df.groupBy("pais").agg(F.sum("ventas").alias("ventas"))
+```
+:::

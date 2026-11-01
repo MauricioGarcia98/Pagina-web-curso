@@ -166,3 +166,45 @@ Borras con `DROP TABLE` una tabla **externa**. ¿Qué pasa con sus archivos en e
 - [ ] Se mueven a la papelera
 - [ ] Se convierten en una vista
 :::
+
+### Practica con código
+
+:::ejercicio pyspark titulo="Una vista temporal y SQL"
+Registra `pedidos` como vista temporal `v_pedidos` y con `spark.sql` cuenta los pedidos por `metodo_pago`. `resultado` con columnas `metodo_pago` y `pedidos`.
+```python inicial
+spark.table("pedidos").createOrReplaceTempView("v_pedidos")
+# resultado = spark.sql("...")
+```
+```python solucion
+spark.table("pedidos").createOrReplaceTempView("v_pedidos")
+resultado = spark.sql("SELECT metodo_pago, COUNT(*) AS pedidos FROM v_pedidos GROUP BY metodo_pago")
+```
+:::
+
+:::ejercicio pyspark titulo="SQL con JOIN"
+Con `spark.sql` y las tablas `detalle_pedidos` y `productos` (ya están en el catálogo), calcula las unidades vendidas por `marca`. Columnas `marca` y `unidades`.
+```python inicial
+# resultado = spark.sql("""
+# ...
+# """)
+```
+```python solucion
+resultado = spark.sql("""
+SELECT p.marca, SUM(d.cantidad) AS unidades
+FROM detalle_pedidos d
+JOIN productos p ON p.producto_id = d.producto_id
+GROUP BY p.marca
+""")
+```
+:::
+
+:::ejercicio pyspark titulo="selectExpr"
+Usa `selectExpr` sobre `productos` para obtener `nombre` y `precio_con_iva` (precio × 1.19 redondeado a 2 decimales). Guarda en `resultado`.
+```python inicial
+productos = spark.table("productos")
+```
+```python solucion
+productos = spark.table("productos")
+resultado = productos.selectExpr("nombre", "round(precio * 1.19, 2) AS precio_con_iva")
+```
+:::

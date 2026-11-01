@@ -283,3 +283,214 @@ assert saludar.llamadas - inicial == 2, f"llamadas debería aumentar en 2"
 assert saludar.__name__ == "saludar", "Usa functools.wraps para conservar el nombre"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Un generador de lotes"
+Escribe el generador `en_lotes(items, n)` que entregue (con `yield`) listas de a `n` elementos; el último lote puede ser más chico.
+```python inicial
+def en_lotes(items, n):
+    pass
+```
+```python solucion
+def en_lotes(items, n):
+    for i in range(0, len(items), n):
+        yield items[i:i + n]
+```
+```python test
+assert list(en_lotes([1, 2, 3, 4, 5], 2)) == [[1, 2], [3, 4], [5]]
+assert "yield" in _codigo, "Usa yield"
+```
+:::
+
+:::ejercicio python titulo="Leer línea por línea sin cargar todo"
+Escribe el generador `lineas_con_error(lineas)` que entregue solo las líneas que contienen `"ERROR"`, sin el salto de línea. Úsalo para contar en `n` cuántas hay.
+```python inicial
+log = ["INFO inicio\n", "ERROR sin conexión\n", "INFO reintento\n", "ERROR timeout\n"]
+
+def lineas_con_error(lineas):
+    pass
+
+n = 0
+```
+```python solucion
+log = ["INFO inicio\n", "ERROR sin conexión\n", "INFO reintento\n", "ERROR timeout\n"]
+
+def lineas_con_error(lineas):
+    for l in lineas:
+        if "ERROR" in l:
+            yield l.rstrip("\n")
+
+n = sum(1 for _ in lineas_con_error(log))
+```
+```python test
+assert list(lineas_con_error(log)) == ["ERROR sin conexión", "ERROR timeout"]
+assert n == 2
+```
+:::
+
+:::ejercicio python titulo="Un generador infinito"
+Escribe `ids(inicio)` que genere ids consecutivos sin fin, y toma los primeros 3 desde 1000 con `next` (guárdalos en `primeros`).
+```python inicial
+def ids(inicio):
+    pass
+
+primeros = []
+```
+```python solucion
+def ids(inicio):
+    n = inicio
+    while True:
+        yield n
+        n += 1
+
+g = ids(1000)
+primeros = [next(g), next(g), next(g)]
+```
+```python test
+assert primeros == [1000, 1001, 1002], f"primeros es {primeros}"
+```
+:::
+
+:::ejercicio python titulo="Decorador que cuenta llamadas"
+Escribe el decorador `contar` que guarde en el atributo `llamadas` de la función envuelta cuántas veces se llamó.
+```python inicial
+import functools
+
+def contar(f):
+    pass
+
+@contar
+def saludar(n):
+    return f"hola {n}"
+```
+```python solucion
+import functools
+
+def contar(f):
+    @functools.wraps(f)
+    def envoltura(*args, **kwargs):
+        envoltura.llamadas += 1
+        return f(*args, **kwargs)
+    envoltura.llamadas = 0
+    return envoltura
+
+@contar
+def saludar(n):
+    return f"hola {n}"
+```
+```python test
+saludar("a"); saludar("b")
+assert saludar("c") == "hola c" and saludar.llamadas == 3, f"llamadas = {getattr(saludar, 'llamadas', None)}"
+assert saludar.__name__ == "saludar", "Usa functools.wraps para conservar el nombre"
+```
+:::
+
+:::ejercicio python titulo="Decorador que mide el tiempo"
+Escribe `cronometrar` que, al llamar la función, agregue a la lista `tiempos` una tupla `(nombre_de_la_funcion, segundos)` y devuelva el resultado original.
+```python inicial
+import time, functools
+tiempos = []
+
+def cronometrar(f):
+    pass
+
+@cronometrar
+def sumar(a, b):
+    return a + b
+```
+```python solucion
+import time, functools
+tiempos = []
+
+def cronometrar(f):
+    @functools.wraps(f)
+    def env(*args, **kwargs):
+        t0 = time.perf_counter()
+        r = f(*args, **kwargs)
+        tiempos.append((f.__name__, time.perf_counter() - t0))
+        return r
+    return env
+
+@cronometrar
+def sumar(a, b):
+    return a + b
+```
+```python test
+assert sumar(2, 3) == 5
+assert len(tiempos) == 1 and tiempos[0][0] == "sumar" and tiempos[0][1] >= 0, f"tiempos es {tiempos}"
+```
+:::
+
+:::ejercicio python titulo="Tu propio context manager"
+Con `contextlib.contextmanager`, escribe `registro(log, nombre)` que agregue `"inicio <nombre>"` a `log` al entrar y `"fin <nombre>"` al salir, **aunque haya un error** adentro.
+```python inicial
+from contextlib import contextmanager
+
+@contextmanager
+def registro(log, nombre):
+    pass
+```
+```python solucion
+from contextlib import contextmanager
+
+@contextmanager
+def registro(log, nombre):
+    log.append(f"inicio {nombre}")
+    try:
+        yield
+    finally:
+        log.append(f"fin {nombre}")
+```
+```python test
+log = []
+with registro(log, "carga"):
+    pass
+try:
+    with registro(log, "rota"):
+        raise ValueError("x")
+except ValueError:
+    pass
+assert log == ["inicio carga", "fin carga", "inicio rota", "fin rota"], f"log es {log}"
+```
+:::
+
+:::ejercicio python titulo="Encadenar generadores"
+Arma un mini pipeline con generadores: `leer` entrega los textos, `limpiar` los pasa a minúsculas sin espacios y `sin_vacios` descarta los vacíos. Guarda en `resultado` la lista final de `sin_vacios(limpiar(leer(datos)))`.
+```python inicial
+datos = ["  Ana ", "", "LUIS", "   ", "Eva"]
+
+def leer(xs):
+    for x in xs:
+        yield x
+
+def limpiar(xs):
+    pass
+
+def sin_vacios(xs):
+    pass
+
+resultado = []
+```
+```python solucion
+datos = ["  Ana ", "", "LUIS", "   ", "Eva"]
+
+def leer(xs):
+    for x in xs:
+        yield x
+
+def limpiar(xs):
+    for x in xs:
+        yield x.strip().lower()
+
+def sin_vacios(xs):
+    for x in xs:
+        if x:
+            yield x
+
+resultado = list(sin_vacios(limpiar(leer(datos))))
+```
+```python test
+assert resultado == ["ana", "luis", "eva"], f"resultado es {resultado}"
+```
+:::

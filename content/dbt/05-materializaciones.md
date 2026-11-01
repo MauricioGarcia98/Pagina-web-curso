@@ -348,3 +348,35 @@ Los eventos pueden llegar hasta 2 días tarde y nunca cambian una vez llegados, 
 - [ ] `table`
 - [ ] `ephemeral`
 :::
+
+### Más práctica
+
+:::ejercicio dbt incremental this=fct_pagos_diarios titulo="Incremental con margen de días tardíos"
+`fct_pagos_diarios` ya tiene cargados los días hasta el `2024-12-20`. Los pagos pueden llegar con hasta **3 días de atraso**, así que el filtro incremental reprocesa desde 3 días antes del máximo de `{{ this }}`: `fecha_pago >= date((select max(fecha_pago) from {{ this }}), '-3 days')`. Columnas `fecha_pago` y `pagos` (cantidad de pagos aprobados), desde `stg_pagos`.
+```sql previo
+CREATE TABLE fct_pagos_diarios AS
+SELECT date(fecha_pago) AS fecha_pago, COUNT(*) AS pagos FROM pagos WHERE estado = 'aprobado' AND date(fecha_pago) <= '2024-12-20' GROUP BY 1
+```
+```sql inicial
+{{ config(materialized='incremental', unique_key='fecha_pago') }}
+
+select fecha_pago, count(*) as pagos
+from {{ ref('stg_pagos') }}
+where estado = 'aprobado'
+group by fecha_pago
+```
+```sql solucion
+{{ config(materialized='incremental', unique_key='fecha_pago') }}
+
+select fecha_pago, count(*) as pagos
+from {{ ref('stg_pagos') }}
+where estado = 'aprobado'
+{% if is_incremental() %}
+  and fecha_pago >= date((select max(fecha_pago) from {{ this }}), '-3 days')
+{% endif %}
+group by fecha_pago
+```
+```pista
+Agrega el filtro dentro de `{% if is_incremental() %} … {% endif %}`, unido con `and` al `where` que ya existe.
+```
+:::

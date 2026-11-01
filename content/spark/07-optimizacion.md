@@ -239,3 +239,46 @@ resultado = (spark.table("clientes")
 assert "udf" not in _codigo.lower(), "¡Todavía usas una UDF! Reemplázala por F.split / F.lower"
 ```
 :::
+
+### Practica con código
+
+:::ejercicio pyspark titulo="Filtrar y podar columnas antes del join" variable=resultado
+Calcula las ventas (`cantidad * precio_unitario`) del canal `web` por `categoria_id`. Optimiza: **filtra** `pedidos` por canal y **selecciona** solo las columnas necesarias de cada tabla **antes** de unir, y usa `broadcast` para `productos`. Columnas `categoria_id` y `ventas` (redondeado a 2).
+```python inicial
+from pyspark.sql import functions as F
+ped = spark.table("pedidos")
+det = spark.table("detalle_pedidos")
+prod = spark.table("productos")
+```
+```python solucion
+from pyspark.sql import functions as F
+ped = spark.table("pedidos").filter(F.col("canal") == "web").select("pedido_id")
+det = spark.table("detalle_pedidos").select("pedido_id", "producto_id", "cantidad", "precio_unitario")
+prod = spark.table("productos").select("producto_id", "categoria_id")
+resultado = (det.join(ped, "pedido_id")
+                .join(F.broadcast(prod), "producto_id")
+                .groupBy("categoria_id")
+                .agg(F.round(F.sum(F.col("cantidad") * F.col("precio_unitario")), 2).alias("ventas")))
+```
+```python test
+assert "broadcast" in _codigo, "Usa F.broadcast para la tabla chica (productos)"
+assert ".select(" in _codigo, "Selecciona solo las columnas necesarias antes de unir"
+```
+:::
+
+:::ejercicio pyspark titulo="Leer el plan"
+Une `pedidos` con `clientes` por `cliente_id` usando `broadcast` de clientes. Ejecuta `df.explain()` y mira en la salida que aparezca **BroadcastHashJoin** (Spark no va a mover la tabla grande). Después guarda en `resultado` la cantidad de filas con `.count()`.
+```python inicial
+from pyspark.sql import functions as F
+df = spark.table("pedidos").join(F.broadcast(spark.table("clientes")), "cliente_id")
+```
+```python solucion
+from pyspark.sql import functions as F
+df = spark.table("pedidos").join(F.broadcast(spark.table("clientes")), "cliente_id")
+df.explain()
+resultado = df.count()
+```
+```python test
+assert "explain(" in _codigo, "Ejecuta df.explain() para ver el plan"
+```
+:::

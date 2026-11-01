@@ -276,3 +276,136 @@ else:
 assert salida.strip() == "PROBLEMA", f"Con estado 'devuelto' se esperaba PROBLEMA y se imprimió {salida.strip()!r}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Par o impar"
+Dado `n = 17`, guarda en `tipo` el texto `"par"` o `"impar"`. Debe funcionar con cualquier número.
+```python inicial
+n = 17
+tipo = ""
+```
+```python solucion
+n = 17
+if n % 2 == 0:
+    tipo = "par"
+else:
+    tipo = "impar"
+```
+```python test
+assert tipo == "impar", f"tipo es {tipo!r}"
+assert "%" in _codigo, "Usa el resto de la división (%) por 2"
+```
+:::
+
+:::ejercicio python titulo="Segmento del cliente"
+Según lo que compró en el año (`compras = 850000`), el cliente es `"oro"` si supera 1.000.000, `"plata"` si supera 500.000 y `"bronce"` en otro caso. Guarda el segmento en `segmento`.
+```python inicial
+compras = 850000
+segmento = ""
+```
+```python solucion
+compras = 850000
+if compras > 1000000:
+    segmento = "oro"
+elif compras > 500000:
+    segmento = "plata"
+else:
+    segmento = "bronce"
+```
+```python test
+assert segmento == "plata", f"segmento es {segmento!r}"
+```
+:::
+
+:::ejercicio python titulo="Validar una fila"
+Una fila es válida si `cantidad` es mayor que 0 **y** `precio` no es `None`. Con `cantidad = 3` y `precio = None`, guarda en `valida` `True` o `False`.
+```python inicial
+cantidad = 3
+precio = None
+valida = None
+```
+```python solucion
+cantidad = 3
+precio = None
+valida = cantidad > 0 and precio is not None
+```
+```python test
+assert valida is False, f"valida es {valida!r}"
+```
+```pista
+Para preguntar si algo es `None` se usa `is None` / `is not None`.
+```
+:::
+
+:::ejercicio python titulo="Año bisiesto"
+Un año es bisiesto si es divisible por 4, salvo los divisibles por 100, que solo lo son si también son divisibles por 400. Con `anio = 2024`, guarda en `bisiesto` `True` o `False`.
+```python inicial
+anio = 2024
+bisiesto = None
+```
+```python solucion
+anio = 2024
+bisiesto = (anio % 4 == 0 and anio % 100 != 0) or anio % 400 == 0
+```
+```python test
+assert bisiesto is True, f"2024 es bisiesto y obtuviste {bisiesto!r}"
+```
+:::
+
+:::ejercicio python titulo="Envío según país"
+El costo de envío (`envio`) es 0 si `pais` es `"Chile"` y el total supera 30000; 2990 si es `"Chile"` y no lo supera; y 9990 para cualquier otro país. Con `pais = "Perú"` y `total = 50000`, calcula `envio`.
+```python inicial
+pais = "Perú"
+total = 50000
+envio = None
+```
+```python solucion
+pais = "Perú"
+total = 50000
+if pais == "Chile":
+    if total > 30000:
+        envio = 0
+    else:
+        envio = 2990
+else:
+    envio = 9990
+```
+```python test
+assert envio == 9990, f"envio es {envio!r}"
+```
+:::
+
+:::ejercicio python titulo="if en una línea"
+Con `stock = 0`, guarda en `estado` `"agotado"` si el stock es 0 y `"disponible"` si no, usando la expresión condicional de una línea (`x if condición else y`).
+```python inicial
+stock = 0
+estado = ""
+```
+```python solucion
+stock = 0
+estado = "agotado" if stock == 0 else "disponible"
+```
+```python test
+assert estado == "agotado", f"estado es {estado!r}"
+assert " if " in _codigo and " else " in _codigo and "\nif " not in "\n" + _codigo.split("estado")[1], "Usa la forma de una línea: 'agotado' if stock == 0 else 'disponible'"
+```
+:::
+
+:::ejercicio python titulo="Texto vacío"
+Un campo `comentario = ""` llegó vacío. Usando que un texto vacío es "falso", guarda en `tiene_comentario` `True` si el comentario tiene algo y `False` si está vacío.
+```python inicial
+comentario = ""
+tiene_comentario = None
+```
+```python solucion
+comentario = ""
+tiene_comentario = bool(comentario)
+```
+```python test
+assert tiene_comentario is False, f"tiene_comentario es {tiene_comentario!r}"
+```
+```pista
+`bool("")` es `False` y `bool("hola")` es `True`.
+```
+:::

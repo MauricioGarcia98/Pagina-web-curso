@@ -186,3 +186,50 @@ En MapReduce, ¿qué hace la fase **reduce**?
 - [ ] Borra los datos duplicados
 - [ ] Comprime los archivos
 :::
+
+### Practica con código
+
+Estos ejercicios corren en **mini-Spark**, el simulador del curso: la variable `spark` ya existe y las tablas de la tienda están disponibles con `spark.table("...")`. Guarda tu resultado en la variable `resultado`.
+
+:::ejercicio pyspark titulo="Eventos por tipo"
+Cuenta los eventos de `eventos_web` por `tipo_evento`. `resultado` debe tener las columnas `tipo_evento` y `eventos`.
+```python inicial
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+# resultado = ...
+```
+```python solucion
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+resultado = ev.groupBy("tipo_evento").agg(F.count("*").alias("eventos"))
+```
+:::
+
+:::ejercicio pyspark titulo="Clientes que navegaron"
+Calcula cuántos clientes **distintos** (sin contar los anónimos, con `cliente_id` nulo) tienen eventos. `resultado` es un DataFrame de una fila con la columna `clientes`.
+```python inicial
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+```
+```python solucion
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+resultado = ev.filter(F.col("cliente_id").isNotNull()).agg(F.countDistinct("cliente_id").alias("clientes"))
+```
+:::
+
+:::ejercicio pyspark titulo="Las 5 páginas más vistas" ordenado
+Las 5 `pagina` con más eventos de tipo `vista`, de mayor a menor. Columnas `pagina` y `vistas`.
+```python inicial
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+```
+```python solucion
+from pyspark.sql import functions as F
+ev = spark.table("eventos_web")
+resultado = (ev.filter(F.col("tipo_evento") == "vista")
+               .groupBy("pagina").agg(F.count("*").alias("vistas"))
+               .orderBy(F.desc("vistas"), "pagina")
+               .limit(5))
+```
+:::

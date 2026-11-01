@@ -442,3 +442,29 @@ Quieres comprobar que tu `case when` de 12 ramas clasifica bien un caso que toda
 - [ ] Porque es más lento
 - [ ] Porque los tests no son SQL
 :::
+
+### Más práctica
+
+:::ejercicio dbt titulo="Un test singular"
+Un test singular de dbt es una consulta que devuelve las filas que **rompen** una regla (si devuelve 0 filas, el test pasa). Escribe el test que encuentra los pagos `aprobado` cuyo importe no coincide con el importe del pedido (diferencia mayor a 0.01). Devuelve `pedido_id`, `pagado` e `importe_pedido`.
+```sql inicial
+with importes as (
+    select pedido_id, round(sum(importe), 2) as importe_pedido
+    from {{ ref('stg_detalle_pedidos') }}
+    group by pedido_id
+)
+select
+from {{ ref('stg_pagos') }} p
+```
+```sql solucion
+with importes as (
+    select pedido_id, round(sum(importe), 2) as importe_pedido
+    from {{ ref('stg_detalle_pedidos') }}
+    group by pedido_id
+)
+select p.pedido_id, p.monto as pagado, i.importe_pedido
+from {{ ref('stg_pagos') }} p
+join importes i on i.pedido_id = p.pedido_id
+where p.estado = 'aprobado' and abs(p.monto - i.importe_pedido) > 0.01
+```
+:::

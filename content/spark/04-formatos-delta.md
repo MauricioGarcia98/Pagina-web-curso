@@ -218,3 +218,51 @@ Quieres particionar una tabla de 50 GB de eventos. ¿Qué columna es mejor candi
 - [x] `fecha` (365 valores por año)
 - [ ] `timestamp` con segundos
 :::
+
+### Practica con código
+
+:::ejercicio pyspark titulo="Escribir particionado y leer"
+Escribe los pedidos en Parquet **particionados por `canal`** en la ruta `/lago/pedidos` (modo `overwrite`) y vuelve a leerlos. Guarda en `resultado` la cantidad de filas leídas del canal `web` (con un `filter` sobre lo leído).
+```python inicial
+from pyspark.sql import functions as F
+pedidos = spark.table("pedidos")
+```
+```python solucion
+from pyspark.sql import functions as F
+pedidos = spark.table("pedidos")
+pedidos.write.mode("overwrite").partitionBy("canal").parquet("/lago/pedidos")
+leidos = spark.read.parquet("/lago/pedidos")
+resultado = leidos.filter(F.col("canal") == "web").count()
+```
+```pista
+`df.write.mode("overwrite").partitionBy("canal").parquet(ruta)` y después `spark.read.parquet(ruta)`.
+```
+:::
+
+:::ejercicio pyspark titulo="CSV con encabezado"
+Escribe `clientes` como CSV **con encabezado** en `/crudo/clientes` y léelo de vuelta con `header=True` e `inferSchema=True`. Guarda en `resultado` las columnas del DataFrame leído (`df.columns`).
+```python inicial
+clientes = spark.table("clientes")
+```
+```python solucion
+clientes = spark.table("clientes")
+clientes.write.mode("overwrite").option("header", True).csv("/crudo/clientes")
+df = spark.read.option("header", True).option("inferSchema", True).csv("/crudo/clientes")
+resultado = df.columns
+```
+:::
+
+:::ejercicio pyspark titulo="Bronze, silver y gold"
+Arma las tres capas en memoria: `bronze` = `pedidos` tal cual; `silver` = sin los `cancelado` y con `fecha` (tipo fecha, desde `fecha_pedido`); `gold` = pedidos por mes (`mes` con `date_format(fecha, "yyyy-MM")`) y `canal`. Guarda `gold` en `resultado` (columnas `mes`, `canal`, `pedidos`).
+```python inicial
+from pyspark.sql import functions as F
+bronze = spark.table("pedidos")
+```
+```python solucion
+from pyspark.sql import functions as F
+bronze = spark.table("pedidos")
+silver = bronze.filter(F.col("estado") != "cancelado").withColumn("fecha", F.to_date("fecha_pedido"))
+resultado = (silver.withColumn("mes", F.date_format("fecha", "yyyy-MM"))
+                   .groupBy("mes", "canal").agg(F.count("*").alias("pedidos")))
+```
+:::

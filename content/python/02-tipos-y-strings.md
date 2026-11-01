@@ -293,3 +293,126 @@ assert anio == "2024", f"anio debería ser '2024' y es {anio!r}"
 assert mes == 3, f"mes debería ser el entero 3 y es {mes!r}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="¿Qué tipo es?"
+Guarda en `t1`, `t2` y `t3` el **tipo** (usa `type(...)`) de `"42"`, `42` y `42.0`.
+```python inicial
+t1 = None
+t2 = None
+t3 = None
+```
+```python solucion
+t1 = type("42")
+t2 = type(42)
+t3 = type(42.0)
+```
+```python test
+assert t1 is str and t2 is int and t3 is float, f"Obtuviste {t1}, {t2}, {t3}"
+```
+:::
+
+:::ejercicio python titulo="Texto que es número"
+Desde un CSV llegó `cantidad = "7"` (texto) y `precio = "1500.5"` (texto). Guarda en `total` el precio por la cantidad, como número.
+```python inicial
+cantidad = "7"
+precio = "1500.5"
+total = 0
+```
+```python solucion
+cantidad = "7"
+precio = "1500.5"
+total = int(cantidad) * float(precio)
+```
+```python test
+assert abs(total - 10503.5) < 1e-9, f"total debería ser 10503.5 y es {total!r}"
+```
+```pista
+`int("7")` convierte a entero y `float("1500.5")` a decimal.
+```
+:::
+
+:::ejercicio python titulo="Limpiar un email"
+El email llegó así: `"  Ana.Perez@Correo.COM  "`. Guarda en `limpio` el email sin espacios a los costados y en minúsculas.
+```python inicial
+email = "  Ana.Perez@Correo.COM  "
+limpio = ""
+```
+```python solucion
+email = "  Ana.Perez@Correo.COM  "
+limpio = email.strip().lower()
+```
+```python test
+assert limpio == "ana.perez@correo.com", f"limpio es {limpio!r}"
+```
+:::
+
+:::ejercicio python titulo="Dominio del email"
+Del email `"lucia@tiendaandina.com"` guarda en `dominio` la parte después de la `@`.
+```python inicial
+email = "lucia@tiendaandina.com"
+dominio = ""
+```
+```python solucion
+email = "lucia@tiendaandina.com"
+dominio = email.split("@")[1]
+```
+```python test
+assert dominio == "tiendaandina.com", f"dominio es {dominio!r}"
+```
+```pista
+`texto.split("@")` corta el texto en una lista de partes; la segunda parte es la `[1]`.
+```
+:::
+
+:::ejercicio python titulo="Un mensaje con f-string"
+Con `cliente = "Lucía"` y `total = 45990`, guarda en `mensaje` el texto `Hola Lucía, tu compra de $45990 fue confirmada.` usando una f-string.
+```python inicial
+cliente = "Lucía"
+total = 45990
+mensaje = ""
+```
+```python solucion
+cliente = "Lucía"
+total = 45990
+mensaje = f"Hola {cliente}, tu compra de ${total} fue confirmada."
+```
+```python test
+assert mensaje == "Hola Lucía, tu compra de $45990 fue confirmada.", f"mensaje es {mensaje!r}"
+assert 'f"' in _codigo or "f'" in _codigo, "Usa una f-string"
+```
+:::
+
+:::ejercicio python titulo="Formato de dinero"
+Con `monto = 1234567.891`, guarda en `texto` el monto con separador de miles y 2 decimales: `1,234,567.89`. Usa el formato `:,.2f` dentro de una f-string.
+```python inicial
+monto = 1234567.891
+texto = ""
+```
+```python solucion
+monto = 1234567.891
+texto = f"{monto:,.2f}"
+```
+```python test
+assert texto == "1,234,567.89", f"texto es {texto!r}"
+```
+:::
+
+:::ejercicio python titulo="Código de producto"
+Los códigos llegan como `"sku-00042"`. Guarda en `numero` el número como entero (`42`): quita el prefijo `"sku-"` y convierte.
+```python inicial
+codigo = "sku-00042"
+numero = 0
+```
+```python solucion
+codigo = "sku-00042"
+numero = int(codigo.replace("sku-", ""))
+```
+```python test
+assert numero == 42 and isinstance(numero, int), f"numero es {numero!r}"
+```
+```pista
+`.replace("sku-", "")` deja `"00042"`, e `int("00042")` da `42`.
+```
+:::

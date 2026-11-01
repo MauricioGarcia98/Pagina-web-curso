@@ -169,3 +169,61 @@ En Airflow 3, ¿de dónde se importan `DAG`, `dag` y `task`?
 - [ ] Qué usuario puede ver la interfaz
 - [ ] El orden de las tareas
 :::
+
+### Practica con código
+
+En los ejercicios de Airflow escribes un DAG con la misma API de Airflow 3. El corrector lo carga, revisa las dependencias y lo ejecuta con `dag.test()`.
+
+:::ejercicio airflow titulo="Extraer, transformar, cargar"
+Crea el DAG `etl_ventas` con tres `EmptyOperator`: `extraer`, `transformar` y `cargar`, en ese orden.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("etl_ventas", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    extraer = EmptyOperator(task_id="extraer")
+    transformar = EmptyOperator(task_id="transformar")
+    cargar = EmptyOperator(task_id="cargar")
+    extraer >> transformar >> cargar
+```
+```python test
+d = dags.get("etl_ventas")
+assert d is not None, "No encontré el DAG 'etl_ventas'"
+assert d.get_task("extraer").downstream_task_ids == {"transformar"}, "extraer debe ir antes que transformar"
+assert d.get_task("transformar").downstream_task_ids == {"cargar"}, "transformar debe ir antes que cargar"
+assert d.test().states == {"extraer": "success", "transformar": "success", "cargar": "success"}
+```
+:::
+
+:::ejercicio airflow titulo="Tareas en paralelo"
+El DAG `fuentes`: `inicio`, después `ventas` y `clientes` **en paralelo**, y al final `unir`, que espera a las dos.
+```python inicial
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+```
+```python solucion
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG("fuentes", start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    inicio = EmptyOperator(task_id="inicio")
+    ventas = EmptyOperator(task_id="ventas")
+    clientes = EmptyOperator(task_id="clientes")
+    unir = EmptyOperator(task_id="unir")
+    inicio >> [ventas, clientes] >> unir
+```
+```python test
+d = dags.get("fuentes")
+assert d is not None, "No encontré el DAG 'fuentes'"
+assert d.get_task("inicio").downstream_task_ids == {"ventas", "clientes"}
+assert d.get_task("unir").upstream_task_ids == {"ventas", "clientes"}, "unir debe esperar a ventas y clientes"
+```
+:::

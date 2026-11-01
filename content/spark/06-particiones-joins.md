@@ -267,3 +267,36 @@ resultado = (det.join(F.broadcast(prod), "producto_id")
                 .agg(F.sum("cantidad").alias("unidades")))
 ```
 :::
+
+### Practica con código
+
+:::ejercicio pyspark titulo="Agregar antes de unir"
+Calcula el total gastado por cliente en dos pasos que reducen el shuffle: primero suma `cantidad * precio_unitario` por `pedido_id` en `detalle_pedidos`, después une con `pedidos` y suma por `cliente_id`. `resultado` con `cliente_id` y `gastado` (redondeado a 2).
+```python inicial
+from pyspark.sql import functions as F
+det = spark.table("detalle_pedidos")
+ped = spark.table("pedidos")
+```
+```python solucion
+from pyspark.sql import functions as F
+det = spark.table("detalle_pedidos")
+ped = spark.table("pedidos")
+por_pedido = det.groupBy("pedido_id").agg(F.sum(F.col("cantidad") * F.col("precio_unitario")).alias("total"))
+resultado = (por_pedido.join(ped, "pedido_id")
+                       .groupBy("cliente_id")
+                       .agg(F.round(F.sum("total"), 2).alias("gastado")))
+```
+:::
+
+:::ejercicio pyspark titulo="Detectar el sesgo (skew)"
+Antes de un join por `cliente_id`, mide si hay sesgo: cuenta los pedidos por cliente y quédate con los 3 clientes con más pedidos. `resultado` con `cliente_id` y `pedidos`, de mayor a menor.
+```python inicial
+from pyspark.sql import functions as F
+ped = spark.table("pedidos")
+```
+```python solucion
+from pyspark.sql import functions as F
+ped = spark.table("pedidos")
+resultado = ped.groupBy("cliente_id").agg(F.count("*").alias("pedidos")).orderBy(F.desc("pedidos"), "cliente_id").limit(3)
+```
+:::
