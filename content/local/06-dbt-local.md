@@ -210,6 +210,7 @@ En el proyecto `~/rapido_dbt` hay un modelo staging y un mart. Construye los mod
 dbt build
 ```
 ```setup
+cd ~
 dbt init rapido_dbt
 cd ~/rapido_dbt
 mkdir -p models/staging models/marts
@@ -229,6 +230,7 @@ dbt build (-s|--select) stg_rapido_pedidos\+
 dbt run -s stg_rapido_pedidos+
 ```
 ```setup
+cd ~
 dbt init rapido_dbt2
 cd ~/rapido_dbt2
 mkdir -p models/staging models/marts

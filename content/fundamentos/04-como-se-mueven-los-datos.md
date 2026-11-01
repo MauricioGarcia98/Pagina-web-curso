@@ -154,6 +154,10 @@ flecha p -> r
 
 :::ejercicio sql dificultad=Básico titulo="Extracción completa"
 Una extracción completa copia toda la tabla. Cuenta cuántos pedidos tendría que mover.
+```sql inicial
+SELECT COUNT(*) AS pedidos
+FROM ...;
+```
 ```sql solucion
 SELECT COUNT(*) AS pedidos FROM pedidos;
 ```
@@ -182,6 +186,13 @@ Las fechas van entre comillas simples: `'2024-12-30'`.
 
 :::ejercicio sql ordenado dificultad=Intermedio titulo="Lo que movería cada noche"
 Para planificar el pipeline, cuenta los pedidos por **día** de la última semana de 2024 (desde el `2024-12-25`). Columnas `fecha_pedido` y `pedidos`, ordenado por fecha.
+```sql inicial
+SELECT fecha_pedido, COUNT(*) AS pedidos
+FROM pedidos
+WHERE fecha_pedido >= ...
+GROUP BY fecha_pedido
+ORDER BY fecha_pedido;
+```
 ```sql solucion
 SELECT fecha_pedido, COUNT(*) AS pedidos
 FROM pedidos

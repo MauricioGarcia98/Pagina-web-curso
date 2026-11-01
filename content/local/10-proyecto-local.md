@@ -307,6 +307,7 @@ En `~/rapido-local` hay un `Makefile`. Levanta la base de la app usando el objet
 make up
 ```
 ```setup
+docker rm -f $(docker ps -aq)
 mkdir -p ~/rapido-local
 cd ~/rapido-local
 printf 'services:\n  app-db:\n    image: postgres:16\n    environment:\n      POSTGRES_USER: rapido\n      POSTGRES_PASSWORD: rapido\n      POSTGRES_DB: app\n    ports:\n      - "5432:5432"\n    volumes:\n      - appdata:/var/lib/postgresql/data\nvolumes:\n  appdata:\n' > compose.yaml
@@ -324,6 +325,7 @@ psql -d app -U rapido -f sql/crear_tablas\.sql
 psql -h localhost -U rapido -d app -f sql/crear_tablas.sql
 ```
 ```setup
+docker rm -f $(docker ps -aq)
 mkdir -p ~/rapido-local2/sql
 cd ~/rapido-local2
 printf 'services:\n  app-db:\n    image: postgres:16\n    environment:\n      POSTGRES_USER: rapido\n      POSTGRES_PASSWORD: rapido\n      POSTGRES_DB: app\n    ports:\n      - "5432:5432"\n' > compose.yaml

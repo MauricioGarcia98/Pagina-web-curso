@@ -134,6 +134,110 @@ def primer_repetido(ids):
 
 ## Ejercicios
 
+:::ejercicio python dificultad=Avanzado titulo="Promedio móvil"
+Escribe `promedio_movil(valores, k)` que devuelva el promedio de cada ventana de `k` valores seguidos, redondeado a 2 decimales. Si hay menos de `k` valores, devuelve una lista vacía. Es lo que hace un tablero cuando muestra "ventas de los últimos 7 días".
+```python inicial
+def promedio_movil(valores, k):
+    pass
+```
+```python solucion
+def promedio_movil(valores, k):
+    res = []
+    suma = 0
+    for i, v in enumerate(valores):
+        suma += v
+        if i >= k:
+            suma -= valores[i - k]
+        if i >= k - 1:
+            res.append(round(suma / k, 2))
+    return res
+```
+```pista
+Recorre la lista una vez llevando la suma de la ventana: sumas el valor que entra y restas el que sale (`valores[i - k]`).
+```
+```python test
+assert promedio_movil([10, 20, 30, 40, 50], 3) == [20.0, 30.0, 40.0], f"Obtuviste {promedio_movil([10, 20, 30, 40, 50], 3)}"
+assert promedio_movil([1, 2], 3) == []
+assert promedio_movil([5, 5, 6], 2) == [5.0, 5.5]
+```
+:::
+
+:::ejercicio python dificultad=Avanzado titulo="Quedarse con la última versión"
+Una tabla de clientes llega con varias versiones de cada registro. Escribe `ultima_version(registros)` que reciba diccionarios con `id`, `actualizado` (texto `AAAA-MM-DD`) y `email`, y devuelva **una versión por id**: la de `actualizado` más reciente, ordenadas por `id`. Es la deduplicación que hace la capa silver (como `ROW_NUMBER() OVER (PARTITION BY id ORDER BY actualizado DESC)`).
+```python inicial
+def ultima_version(registros):
+    pass
+```
+```python solucion
+def ultima_version(registros):
+    ultimo = {}
+    for r in registros:
+        if r["id"] not in ultimo or r["actualizado"] > ultimo[r["id"]]["actualizado"]:
+            ultimo[r["id"]] = r
+    return [ultimo[k] for k in sorted(ultimo)]
+```
+```pista
+Guarda en un diccionario `id → registro` y reemplázalo solo si el nuevo tiene una fecha mayor. Las fechas `AAAA-MM-DD` se pueden comparar como texto.
+```
+```python test
+regs = [
+    {"id": 2, "actualizado": "2024-01-05", "email": "b@x.com"},
+    {"id": 1, "actualizado": "2024-03-01", "email": "a2@x.com"},
+    {"id": 1, "actualizado": "2024-01-10", "email": "a1@x.com"},
+    {"id": 2, "actualizado": "2024-02-01", "email": "b2@x.com"},
+]
+r = ultima_version(regs)
+assert [x["email"] for x in r] == ["a2@x.com", "b2@x.com"], f"Obtuviste {r}"
+assert ultima_version([]) == []
+```
+:::
+
+:::ejercicio python dificultad=Avanzado titulo="Sesiones de navegación"
+Escribe `contar_sesiones(minutos)` que reciba los minutos (ordenados) en que un usuario hizo clic y cuente las sesiones: una sesión nueva empieza cuando pasan **más de 30 minutos** desde el clic anterior.
+```python inicial
+def contar_sesiones(minutos):
+    pass
+```
+```python solucion
+def contar_sesiones(minutos):
+    if not minutos:
+        return 0
+    sesiones = 1
+    for antes, ahora in zip(minutos, minutos[1:]):
+        if ahora - antes > 30:
+            sesiones += 1
+    return sesiones
+```
+```python test
+assert contar_sesiones([0, 10, 25, 70, 80, 200]) == 3
+assert contar_sesiones([]) == 0 and contar_sesiones([5]) == 1
+assert contar_sesiones([0, 30, 60]) == 1, "Exactamente 30 minutos no corta la sesión"
+```
+:::
+
+:::ejercicio python dificultad=Avanzado titulo="Fusionar rangos de fechas"
+Escribe `fusionar(rangos)` que reciba pares `(inicio, fin)` (números de día, desordenados) y devuelva los rangos fusionados donde se superponen o se tocan, ordenados.
+```python inicial
+def fusionar(rangos):
+    pass
+```
+```python solucion
+def fusionar(rangos):
+    res = []
+    for ini, fin in sorted(rangos):
+        if res and ini <= res[-1][1] + 1:
+            res[-1] = (res[-1][0], max(res[-1][1], fin))
+        else:
+            res.append((ini, fin))
+    return res
+```
+```python test
+assert fusionar([(6, 8), (1, 3), (2, 4), (11, 12), (9, 9)]) == [(1, 4), (6, 9), (11, 12)], f"Obtuviste {fusionar([(6, 8), (1, 3), (2, 4), (11, 12), (9, 9)])}"
+assert fusionar([(1, 2), (3, 5)]) == [(1, 5)], "(1, 2) y (3, 5) se tocan: el día 2 y el 3 son seguidos"
+assert fusionar([]) == []
+```
+:::
+
 :::ejercicio python dificultad=Experto titulo="Dos que suman"
 Escribe `dos_suman(numeros, objetivo)` que devuelva una tupla con los **índices** `(i, j)`, con `i < j`, de los dos números que suman `objetivo`, o `None` si no existen. Debe ser O(n) (usa un diccionario).
 ```python inicial
@@ -289,90 +393,3 @@ assert left_join(clientes, pedidos, "id") == [
 
 ### Más práctica
 
-:::ejercicio python titulo="Dos que suman el objetivo"
-Escribe `par_que_suma(nums, objetivo)` que devuelva una tupla con los **índices** de dos números distintos que suman `objetivo` (o `None`), en O(n) usando un diccionario.
-```python inicial
-def par_que_suma(nums, objetivo):
-    pass
-```
-```python solucion
-def par_que_suma(nums, objetivo):
-    vistos = {}
-    for i, n in enumerate(nums):
-        if objetivo - n in vistos:
-            return (vistos[objetivo - n], i)
-        vistos[n] = i
-    return None
-```
-```python test
-assert par_que_suma([2, 7, 11, 15], 9) == (0, 1)
-assert par_que_suma([3, 2, 4], 6) == (1, 2)
-assert par_que_suma([1, 2], 10) is None
-```
-:::
-
-:::ejercicio python titulo="La racha más larga"
-Escribe `racha_mas_larga(dias)` que, dada una lista de 0 y 1 (1 = el cliente compró ese día), devuelva la cantidad máxima de días seguidos con compra.
-```python inicial
-def racha_mas_larga(dias):
-    pass
-```
-```python solucion
-def racha_mas_larga(dias):
-    mejor = actual = 0
-    for d in dias:
-        actual = actual + 1 if d == 1 else 0
-        mejor = max(mejor, actual)
-    return mejor
-```
-```python test
-assert racha_mas_larga([1, 1, 0, 1, 1, 1, 0, 1]) == 3
-assert racha_mas_larga([]) == 0 and racha_mas_larga([0, 0]) == 0
-```
-:::
-
-:::ejercicio python titulo="Sesiones de navegación"
-Escribe `contar_sesiones(minutos)` que reciba los minutos (ordenados) en que un usuario hizo clic y cuente las sesiones: una sesión nueva empieza cuando pasan **más de 30 minutos** desde el clic anterior.
-```python inicial
-def contar_sesiones(minutos):
-    pass
-```
-```python solucion
-def contar_sesiones(minutos):
-    if not minutos:
-        return 0
-    sesiones = 1
-    for antes, ahora in zip(minutos, minutos[1:]):
-        if ahora - antes > 30:
-            sesiones += 1
-    return sesiones
-```
-```python test
-assert contar_sesiones([0, 10, 25, 70, 80, 200]) == 3
-assert contar_sesiones([]) == 0 and contar_sesiones([5]) == 1
-assert contar_sesiones([0, 30, 60]) == 1, "Exactamente 30 minutos no corta la sesión"
-```
-:::
-
-:::ejercicio python titulo="Fusionar rangos de fechas"
-Escribe `fusionar(rangos)` que reciba pares `(inicio, fin)` (números de día, desordenados) y devuelva los rangos fusionados donde se superponen o se tocan, ordenados.
-```python inicial
-def fusionar(rangos):
-    pass
-```
-```python solucion
-def fusionar(rangos):
-    res = []
-    for ini, fin in sorted(rangos):
-        if res and ini <= res[-1][1] + 1:
-            res[-1] = (res[-1][0], max(res[-1][1], fin))
-        else:
-            res.append((ini, fin))
-    return res
-```
-```python test
-assert fusionar([(6, 8), (1, 3), (2, 4), (11, 12), (9, 9)]) == [(1, 4), (6, 9), (11, 12)], f"Obtuviste {fusionar([(6, 8), (1, 3), (2, 4), (11, 12), (9, 9)])}"
-assert fusionar([(1, 2), (3, 5)]) == [(1, 5)], "(1, 2) y (3, 5) se tocan: el día 2 y el 3 son seguidos"
-assert fusionar([]) == []
-```
-:::

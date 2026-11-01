@@ -255,6 +255,10 @@ Un producto bajó su precio 20 % en enero y lo subió 20 % en febrero. ¿Cómo q
 
 :::ejercicio sql titulo="El promedio con SQL"
 SQL también sabe hacer estas cuentas. Muestra el **promedio** de la columna `precio` de la tabla `productos`, con el nombre `precio_promedio`.
+```sql inicial
+SELECT AVG(...) AS precio_promedio
+FROM productos;
+```
 ```sql solucion
 SELECT AVG(precio) AS precio_promedio FROM productos;
 ```

@@ -1283,7 +1283,7 @@
       $('#diagRes').innerHTML = `<h2>Tu resultado</h2>
         <table><thead><tr><th>Bloque</th><th>Correctas</th><th>Para aprobar</th><th></th></tr></thead><tbody>${DIAG.map((b, bi) => `<tr><td>${esc(b.nombre)}</td><td>${puntajes[bi]} de ${b.preguntas.length}</td><td>${b.minimo}</td><td>${puntajes[bi] >= b.minimo ? '✅' : '📚'}</td></tr>`).join('')}</tbody></table>
         <div class="callout"><p style="margin-top:0"><b>Te recomendamos empezar en: ${esc(etapa.titulo)}</b></p><p>${esc(etapa.desc)}</p>
-        <p class="not-prose"><a class="btn btn-primary" href="#/l/${primeraLec.id}">Empezar: ${esc(primeraLec.titulo)} →</a> <a class="btn" href="#/ruta">Ver la ruta</a></p></div>
+        <p class="not-prose"><a class="btn btn-primary btn-largo" href="#/l/${primeraLec.id}">Empezar: ${esc(primeraLec.titulo)} →</a> <a class="btn" href="#/ruta">Ver la ruta</a></p></div>
         ${saltadas.length ? `<p>Las etapas anteriores las puedes saltear. Si quieres confirmarlo, rinde el <b>examen de cada módulo</b> sin hacer las lecciones: si lo apruebas, ese módulo ya lo dominas.</p><ul>${saltadas.map((x) => `<li>${esc(x.titulo)}: ${x.modulos.map((m) => `<a href="#/m/${m.id}">${m.icono} ${esc(m.titulo)}</a>`).join(', ')}</li>`).join('')}</ul>` : '<p>Empieza por el principio: el curso está pensado justamente para eso, y cada palabra nueva se explica cuando aparece.</p>'}`;
       $('#diagRes').scrollIntoView({ behavior: 'smooth' });
     });
@@ -1533,7 +1533,7 @@
       <div class="module-head"><span class="mc-ico">${m.icono}</span><div><h1 style="margin:0">${esc(m.titulo)}</h1><div class="muted">${m.lecciones.length} lecciones · ${p.pct}% completado</div></div></div>
       <div class="prose"><p>${esc(m.descripcion)}</p>${m.intro || ''}</div>
       <div class="bar" style="margin:10px 0 6px"><i style="width:${p.pct}%;background:${m.color}"></i></div>
-      ${first ? `<p><a class="btn btn-primary" href="#/l/${first.id}">${p.done ? 'Continuar' : 'Empezar'}: ${esc(first.titulo)} →</a></p>` : '<p class="muted">Contenido en preparación.</p>'}
+      ${first ? `<p><a class="btn btn-primary btn-largo" href="#/l/${first.id}">${p.done ? 'Continuar' : 'Empezar'}: ${esc(first.titulo)} →</a></p>` : '<p class="muted">Contenido en preparación.</p>'}
       <div class="lesson-list">${html}</div>
       ${examenModulo(m)}
     </div>`;

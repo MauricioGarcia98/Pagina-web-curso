@@ -290,6 +290,11 @@ databricks bundle deploy (-t|--target) prod
 ```solucion
 databricks bundle deploy -t prod
 ```
+```setup
+cd ~
+databricks bundle init
+cd ~/mi_proyecto
+```
 :::
 
 :::ejercicio cli
@@ -299,6 +304,13 @@ databricks bundle run (-t|--target) dev diario
 ```
 ```solucion
 databricks bundle run -t dev diario
+```
+```setup
+cd ~
+databricks bundle init
+cd ~/mi_proyecto
+printf 'resources:\n  jobs:\n    diario:\n      name: diario\n      tasks:\n        - task_key: ingesta\n          notebook_task:\n            notebook_path: ../src/notebook.ipynb\n' > resources/diario.yml
+databricks bundle deploy -t dev
 ```
 :::
 

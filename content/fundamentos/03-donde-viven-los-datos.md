@@ -120,6 +120,11 @@ La mayoría de las empresas medianas y grandes usan una arquitectura **medallón
 
 :::ejercicio sql dificultad=Básico titulo="Una consulta OLTP"
 Una consulta operativa típica: trae el cliente `1722` completo de la tabla `clientes`.
+```sql inicial
+SELECT *
+FROM clientes
+WHERE cliente_id = ...;
+```
 ```sql solucion
 SELECT * FROM clientes WHERE cliente_id = 1722;
 ```
@@ -178,6 +183,13 @@ SELECT COUNT(*) AS columnas FROM pragma_table_info('pedidos');
 
 :::ejercicio sql ordenado dificultad=Intermedio titulo="Solo lo que hace falta"
 Escribe la consulta "por columnas": pedidos por `canal` en 2024, leyendo solo las columnas `canal` y `fecha_pedido`. Devuelve `canal` y `pedidos`, de más a menos.
+```sql inicial
+SELECT canal, COUNT(*) AS pedidos
+FROM pedidos
+WHERE fecha_pedido >= '2024-01-01' AND fecha_pedido < ...
+GROUP BY canal
+ORDER BY pedidos DESC;
+```
 ```sql solucion
 SELECT canal, COUNT(*) AS pedidos
 FROM pedidos

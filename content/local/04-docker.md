@@ -236,6 +236,9 @@ docker run -d --name pg -e POSTGRES_PASSWORD=secreto -p 5432:5432 postgres:16.\d
 ```solucion
 docker run -d --name pg -e POSTGRES_PASSWORD=secreto -p 5432:5432 postgres:16
 ```
+```setup
+docker rm -f $(docker ps -aq)
+```
 :::
 
 :::ejercicio cli
@@ -257,6 +260,7 @@ docker logs pg
 docker container logs pg
 ```
 ```setup
+docker rm -f $(docker ps -aq)
 docker run -d --name pg -e POSTGRES_PASSWORD=secreto -p 5432:5432 postgres:16
 ```
 :::
@@ -289,6 +293,8 @@ docker compose up --detach
 docker-compose up -d
 ```
 ```setup
+docker rm -f $(docker ps -aq)
+cd ~
 mkdir -p ~/stack
 cd ~/stack
 printf 'services:\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_USER: rapido\n      POSTGRES_PASSWORD: rapido\n      POSTGRES_DB: operaciones\n    ports:\n      - "5432:5432"\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n  pgadmin:\n    image: dpage/pgadmin4\n    ports:\n      - "8081:80"\n    depends_on:\n      - db\nvolumes:\n  pgdata:\n' > compose.yaml

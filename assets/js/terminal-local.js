@@ -457,8 +457,10 @@
 
   function docker_ps(a) {
     const s = dk();
-    const todos = a.includes('-a') || a.includes('--all');
-    const soloId = a.includes('-q');
+    // banderas cortas juntas, como en Docker: -aq = -a -q
+    const cortas = new Set(a.filter((x) => /^-[a-z]+$/.test(x)).join('').replace(/-/g, '').split(''));
+    const todos = cortas.has('a') || a.includes('--all');
+    const soloId = cortas.has('q') || a.includes('--quiet');
     const lista = Object.values(s.containers).filter((c) => todos || c.estado === 'running');
     if (soloId) return ok(lista.map((c) => c.id).join('\n'));
     const filas = lista.map((c) => [c.id, c.imagen, `"${(c.cmd || 'docker-entrypoint').slice(0, 20)}"`, 'hace unos minutos', c.estado === 'running' ? 'Up unos minutos' : `Exited (${c.codigo || 0}) hace unos segundos`, c.estado === 'running' ? (c.puertos || []).map((p) => `0.0.0.0:${p.host}->${p.cont}/tcp`).join(', ') : '', c.nombre]);

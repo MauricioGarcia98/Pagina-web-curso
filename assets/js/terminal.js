@@ -441,7 +441,7 @@ models:
       const p = norm(redir.file);
       if (isDir(p)) return fail(`bash: ${redir.file}: Es un directorio`);
       const plain = res.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '');
-      writeFile(p, plain && !plain.endsWith('\n') ? plain + '\n' : plain, redir.op === '>>');
+      writeFile(p, plain && !plain.endsWith('\n') && !res.sinSalto ? plain + '\n' : plain, redir.op === '>>');
       Machine.save();
       return { out: '', code: res.code };
     }
@@ -468,7 +468,7 @@ models:
       if (Shopt.x) (opts._err = opts._err || []).push(col.dim('+ ' + st.trim()));
       res = await runSimple(st.trim(), stdin, opts);
       stdin = res.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '');
-      if (stdin && !stdin.endsWith('\n')) stdin += '\n';
+      if (stdin && !stdin.endsWith('\n') && !res.sinSalto) stdin += '\n';
     }
     return res;
   }
@@ -904,7 +904,8 @@ models:
     let n = false;
     if (a[0] === '-n') { n = true; a = a.slice(1); }
     if (a[0] === '-e') a = a.slice(1);
-    return ok(a.join(' ').replace(/\\n/g, '\n') + (n ? '' : ''));
+    // echo -n no agrega el salto de línea final: importa en tuberías (wc -c, md5sum, base64) y al redirigir
+    return Object.assign(ok(a.join(' ').replace(/\\n/g, '\n')), n ? { sinSalto: true } : {});
   });
   def('printf', 'imprime con formato: printf "a,b\\n1,2\\n" > archivo.csv', (a) => {
     if (!a.length) return fail('printf: uso: printf FORMATO [ARGUMENTOS...]');
@@ -914,7 +915,7 @@ models:
     do {
       out += esc(fmt).replace(/%[sdf%]/g, (m) => (m === '%%' ? '%' : args[i++] ?? ''));
     } while (i > 0 && i < args.length);
-    return ok(out.replace(/\n$/, ''));
+    return Object.assign(ok(out.replace(/\n$/, '')), out.endsWith('\n') ? {} : { sinSalto: true });
   });
   def('cd', 'cambia de carpeta', (a) => {
     const p = norm(a[0] === '-' ? Machine.env.OLDPWD || HOME : a[0] || HOME);
