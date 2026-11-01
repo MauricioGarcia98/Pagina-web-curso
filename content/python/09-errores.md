@@ -301,3 +301,182 @@ for malo, err in [("30", TypeError), (3.5, TypeError), (-1, ValueError), (130, V
         pass
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Convertir sin romper"
+Escribe `a_numero(texto)` que devuelva el texto convertido a `float`, o `None` si no se puede convertir (atrapa el `ValueError`).
+```python inicial
+def a_numero(texto):
+    pass
+```
+```python solucion
+def a_numero(texto):
+    try:
+        return float(texto)
+    except ValueError:
+        return None
+```
+```python test
+assert a_numero("12.5") == 12.5 and a_numero("abc") is None and a_numero("") is None
+assert "except ValueError" in _codigo, "Atrapa específicamente ValueError (no un except vacío)"
+```
+:::
+
+:::ejercicio python titulo="Separar buenos y malos"
+Recorre `crudos` y convierte cada valor a entero. Los que se pueden van a `buenos`; los que no, a `rechazados` (el texto original). Usa `try/except`.
+```python inicial
+crudos = ["10", "7", "x", "3", "", "12"]
+buenos = []
+rechazados = []
+```
+```python solucion
+crudos = ["10", "7", "x", "3", "", "12"]
+buenos = []
+rechazados = []
+for c in crudos:
+    try:
+        buenos.append(int(c))
+    except ValueError:
+        rechazados.append(c)
+```
+```python test
+assert buenos == [10, 7, 3, 12] and rechazados == ["x", ""], f"buenos={buenos}, rechazados={rechazados}"
+```
+:::
+
+:::ejercicio python titulo="KeyError controlado"
+Escribe `precio_de(catalogo, sku)` que devuelva el precio del sku o lance `ValueError` con el mensaje `sku desconocido: <sku>` si no está. Usa `try/except KeyError` y `raise`.
+```python inicial
+def precio_de(catalogo, sku):
+    pass
+```
+```python solucion
+def precio_de(catalogo, sku):
+    try:
+        return catalogo[sku]
+    except KeyError:
+        raise ValueError(f"sku desconocido: {sku}")
+```
+```python test
+cat = {"A1": 100}
+assert precio_de(cat, "A1") == 100
+try:
+    precio_de(cat, "Z9")
+    assert False, "Debería lanzar ValueError"
+except ValueError as e:
+    assert str(e) == "sku desconocido: Z9", f"El mensaje es {str(e)!r}"
+```
+:::
+
+:::ejercicio python titulo="finally siempre se ejecuta"
+Completa `procesar(lote, log)`: suma los valores del lote y lo devuelve; pase lo que pase (aunque haya error), agrega `"fin"` a la lista `log` usando `finally`.
+```python inicial
+def procesar(lote, log):
+    pass
+```
+```python solucion
+def procesar(lote, log):
+    try:
+        return sum(lote)
+    finally:
+        log.append("fin")
+```
+```python test
+log = []
+assert procesar([1, 2], log) == 3 and log == ["fin"]
+try:
+    procesar([1, "x"], log)
+except TypeError:
+    pass
+assert log == ["fin", "fin"], "finally debe ejecutarse también cuando hay un error"
+```
+:::
+
+:::ejercicio python titulo="Validar y avisar"
+Escribe `validar_pedido(p)` que lance `ValueError` si `p["cantidad"]` es menor o igual a 0 (mensaje `cantidad inválida`) o si `p["precio"]` es negativo (mensaje `precio negativo`). Si está bien, devuelve `True`.
+```python inicial
+def validar_pedido(p):
+    pass
+```
+```python solucion
+def validar_pedido(p):
+    if p["cantidad"] <= 0:
+        raise ValueError("cantidad inválida")
+    if p["precio"] < 0:
+        raise ValueError("precio negativo")
+    return True
+```
+```python test
+assert validar_pedido({"cantidad": 1, "precio": 10}) is True
+for p, m in [({"cantidad": 0, "precio": 10}, "cantidad inválida"), ({"cantidad": 2, "precio": -1}, "precio negativo")]:
+    try:
+        validar_pedido(p); assert False, f"Debería fallar con {m}"
+    except ValueError as e:
+        assert str(e) == m, f"Mensaje {str(e)!r}, esperaba {m!r}"
+```
+:::
+
+:::ejercicio python titulo="Reintentar una función inestable"
+`conectar()` falla con `ConnectionError` las dos primeras veces y a la tercera devuelve `"ok"`. Escribe un bucle de hasta 5 intentos que la llame, atrape el error y reintente. Guarda el resultado en `resultado` y los intentos usados en `intentos`.
+```python inicial
+_n = {"v": 0}
+def conectar():
+    _n["v"] += 1
+    if _n["v"] < 3:
+        raise ConnectionError("sin conexión")
+    return "ok"
+
+resultado = None
+intentos = 0
+```
+```python solucion
+_n = {"v": 0}
+def conectar():
+    _n["v"] += 1
+    if _n["v"] < 3:
+        raise ConnectionError("sin conexión")
+    return "ok"
+
+resultado = None
+intentos = 0
+for i in range(5):
+    intentos += 1
+    try:
+        resultado = conectar()
+        break
+    except ConnectionError:
+        continue
+```
+```python test
+assert resultado == "ok" and intentos == 3, f"resultado={resultado!r}, intentos={intentos}"
+```
+:::
+
+:::ejercicio python titulo="Tu propio tipo de error"
+Define la clase `ErrorDeCalidad(Exception)` y una función `revisar(filas)` que la lance con el mensaje `hay N filas sin id` si alguna fila tiene `id` en `None` (N = cuántas). Si no hay problemas, devuelve `len(filas)`.
+```python inicial
+class ErrorDeCalidad(Exception):
+    pass
+
+def revisar(filas):
+    pass
+```
+```python solucion
+class ErrorDeCalidad(Exception):
+    pass
+
+def revisar(filas):
+    sin_id = sum(1 for f in filas if f.get("id") is None)
+    if sin_id:
+        raise ErrorDeCalidad(f"hay {sin_id} filas sin id")
+    return len(filas)
+```
+```python test
+assert revisar([{"id": 1}, {"id": 2}]) == 2
+try:
+    revisar([{"id": 1}, {"id": None}, {"id": None}]); assert False, "Debería lanzar ErrorDeCalidad"
+except ErrorDeCalidad as e:
+    assert str(e) == "hay 2 filas sin id", f"mensaje {str(e)!r}"
+```
+:::

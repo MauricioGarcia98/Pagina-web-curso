@@ -308,3 +308,138 @@ while poblacion <= 5000:
 assert anios == 15, f"anios debería ser 15 y es {anios}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Sumar una lista"
+Suma las ventas de `ventas = [120, 80, 45, 300, 15]` con un bucle `for` (sin usar `sum`) y guarda el total en `total`.
+```python inicial
+ventas = [120, 80, 45, 300, 15]
+total = 0
+```
+```python solucion
+ventas = [120, 80, 45, 300, 15]
+total = 0
+for v in ventas:
+    total += v
+```
+```python test
+assert total == 560, f"total es {total}"
+assert "sum(" not in _codigo, "Hazlo con un for (sin sum) para practicar el acumulador"
+```
+:::
+
+:::ejercicio python titulo="Contar los grandes"
+Cuenta cuántos pedidos de `montos = [5000, 120000, 80000, 250000, 15000, 99000]` superan 90000 y guarda la cuenta en `grandes`.
+```python inicial
+montos = [5000, 120000, 80000, 250000, 15000, 99000]
+grandes = 0
+```
+```python solucion
+montos = [5000, 120000, 80000, 250000, 15000, 99000]
+grandes = 0
+for m in montos:
+    if m > 90000:
+        grandes += 1
+```
+```python test
+assert grandes == 3, f"grandes es {grandes}"
+```
+:::
+
+:::ejercicio python titulo="El máximo a mano"
+Encuentra el mayor valor de `temperaturas = [18, 23, 31, 27, 19]` con un `for` (sin `max`) y guárdalo en `maxima`.
+```python inicial
+temperaturas = [18, 23, 31, 27, 19]
+maxima = None
+```
+```python solucion
+temperaturas = [18, 23, 31, 27, 19]
+maxima = temperaturas[0]
+for t in temperaturas:
+    if t > maxima:
+        maxima = t
+```
+```python test
+assert maxima == 31, f"maxima es {maxima}"
+assert "max(" not in _codigo, "Hazlo sin max()"
+```
+```pista
+Empieza suponiendo que el máximo es el primero y recorre: si encuentras uno mayor, ese pasa a ser el máximo.
+```
+:::
+
+:::ejercicio python titulo="Tabla de multiplicar"
+Usa `range` para armar en `tabla` la lista de los múltiplos de 7 del 7 al 70 (7, 14, …, 70).
+```python inicial
+tabla = []
+```
+```python solucion
+tabla = []
+for i in range(1, 11):
+    tabla.append(7 * i)
+```
+```python test
+assert tabla == [7, 14, 21, 28, 35, 42, 49, 56, 63, 70], f"tabla es {tabla}"
+```
+:::
+
+:::ejercicio python titulo="Hasta llenar el camión"
+Un camión carga hasta 1000 kg. Las cajas de `cajas = [300, 250, 200, 180, 150, 120]` se cargan en orden; con `while` (o `for` + `break`), carga cajas mientras entren. Guarda en `cargadas` cuántas cajas entraron y en `peso` el peso total cargado.
+```python inicial
+cajas = [300, 250, 200, 180, 150, 120]
+cargadas = 0
+peso = 0
+```
+```python solucion
+cajas = [300, 250, 200, 180, 150, 120]
+cargadas = 0
+peso = 0
+for c in cajas:
+    if peso + c > 1000:
+        break
+    peso += c
+    cargadas += 1
+```
+```python test
+assert cargadas == 4 and peso == 930, f"cargadas={cargadas}, peso={peso} (deberían ser 4 y 930)"
+```
+:::
+
+:::ejercicio python titulo="Saltar los vacíos"
+Recorre `nombres = ["Ana", "", "Luis", None, "Eva"]` y arma `validos` solo con los nombres que no estén vacíos ni sean `None`, usando `continue`.
+```python inicial
+nombres = ["Ana", "", "Luis", None, "Eva"]
+validos = []
+```
+```python solucion
+nombres = ["Ana", "", "Luis", None, "Eva"]
+validos = []
+for n in nombres:
+    if not n:
+        continue
+    validos.append(n)
+```
+```python test
+assert validos == ["Ana", "Luis", "Eva"], f"validos es {validos}"
+assert "continue" in _codigo, "Usa continue para saltar los vacíos"
+```
+:::
+
+:::ejercicio python titulo="enumerate: el ranking"
+Con `top = ["Notebook", "Celular", "Monitor"]`, arma en `lineas` la lista `["1. Notebook", "2. Celular", "3. Monitor"]` usando `enumerate` (empezando en 1).
+```python inicial
+top = ["Notebook", "Celular", "Monitor"]
+lineas = []
+```
+```python solucion
+top = ["Notebook", "Celular", "Monitor"]
+lineas = []
+for i, p in enumerate(top, start=1):
+    lineas.append(f"{i}. {p}")
+```
+```python test
+assert lineas == ["1. Notebook", "2. Celular", "3. Monitor"], f"lineas es {lineas}"
+assert "enumerate" in _codigo, "Usa enumerate"
+```
+:::

@@ -183,7 +183,7 @@ Las filas limpias se suman por país. "chile" y "Chile" ya son el mismo país gr
 
 ## Consumir una API (para tu computadora)
 
-Muchos datos no llegan en archivos: se piden a una **API**, un servicio web que responde en JSON. En tu máquina usarás la librería `requests` (`pip install requests`). Aquí no hay red, pero así se ve una extracción profesional:
+Muchos datos no llegan en archivos: se piden a una **API**, un servicio web que responde en JSON. En tu máquina usarás la librería `requests` (`pip install requests`). Así se ve una extracción profesional (la practicas de verdad, contra la API de práctica del curso, en la lección siguiente: **Extraer datos de una API**):
 
 ```python norun
 import time
@@ -462,4 +462,111 @@ En pandas 3, ¿qué hace `df[df["pais"] == "Chile"]["total"] = 0`?
 - [x] `pd.api.types.is_string_dtype(df["ciudad"])`
 - [ ] `type(df["ciudad"]) == str`
 - [ ] `df["ciudad"].is_text()`
+:::
+
+### Más práctica
+
+:::ejercicio python titulo="Rechazados con motivo"
+Valida cada fila de `filas`: si `monto` no se puede convertir a número, o es negativo, va a `rechazadas` como `(fila, motivo)` con motivo `"monto no numérico"` o `"monto negativo"`. Las demás van a `validas` con `monto` convertido a `float`.
+```python inicial
+filas = [{"id": 1, "monto": "100"}, {"id": 2, "monto": "abc"}, {"id": 3, "monto": "-5"}, {"id": 4, "monto": "20.5"}]
+validas = []
+rechazadas = []
+```
+```python solucion
+filas = [{"id": 1, "monto": "100"}, {"id": 2, "monto": "abc"}, {"id": 3, "monto": "-5"}, {"id": 4, "monto": "20.5"}]
+validas = []
+rechazadas = []
+for f in filas:
+    try:
+        m = float(f["monto"])
+    except ValueError:
+        rechazadas.append((f, "monto no numérico"))
+        continue
+    if m < 0:
+        rechazadas.append((f, "monto negativo"))
+        continue
+    validas.append({**f, "monto": m})
+```
+```python test
+assert [v["id"] for v in validas] == [1, 4] and validas[1]["monto"] == 20.5
+assert [(r[0]["id"], r[1]) for r in rechazadas] == [(2, "monto no numérico"), (3, "monto negativo")], f"rechazadas: {rechazadas}"
+```
+:::
+
+:::ejercicio python titulo="pandas: leer y filtrar"
+Con pandas, crea un DataFrame `df` a partir de `datos` y guarda en `chile` las filas de Chile (otro DataFrame) y en `total_chile` la suma de su columna `monto`.
+```python inicial
+import pandas as pd
+datos = {"pais": ["Chile", "Perú", "Chile", "México"], "monto": [100, 80, 50, 120]}
+df = pd.DataFrame(datos)
+chile = None
+total_chile = 0
+```
+```python solucion
+import pandas as pd
+datos = {"pais": ["Chile", "Perú", "Chile", "México"], "monto": [100, 80, 50, 120]}
+df = pd.DataFrame(datos)
+chile = df[df["pais"] == "Chile"]
+total_chile = chile["monto"].sum()
+```
+```python test
+assert len(chile) == 2 and total_chile == 150, f"len(chile)={len(chile)}, total_chile={total_chile}"
+```
+:::
+
+:::ejercicio python titulo="pandas: agrupar"
+Guarda en `por_pais` un DataFrame con una fila por país y la suma de `monto`, ordenado de mayor a menor (columnas `pais` y `monto`).
+```python inicial
+import pandas as pd
+df = pd.DataFrame({"pais": ["Chile", "Perú", "Chile", "México"], "monto": [100, 80, 50, 120]})
+por_pais = None
+```
+```python solucion
+import pandas as pd
+df = pd.DataFrame({"pais": ["Chile", "Perú", "Chile", "México"], "monto": [100, 80, 50, 120]})
+por_pais = df.groupby("pais", as_index=False)["monto"].sum().sort_values("monto", ascending=False)
+```
+```python test
+assert list(por_pais["pais"]) == ["Chile", "México", "Perú"] and list(por_pais["monto"]) == [150, 120, 80], f"{por_pais}"
+```
+:::
+
+:::ejercicio python titulo="pandas: limpiar"
+Limpia `df`: quita las filas duplicadas, pasa `email` a minúsculas sin espacios y elimina las filas sin `email`. Guarda el resultado en `limpio` (con el índice reiniciado).
+```python inicial
+import pandas as pd
+df = pd.DataFrame({"id": [1, 2, 2, 3, 4], "email": [" Ana@X.com", "luis@x.com", "luis@x.com", None, "EVA@x.com "]})
+limpio = None
+```
+```python solucion
+import pandas as pd
+df = pd.DataFrame({"id": [1, 2, 2, 3, 4], "email": [" Ana@X.com", "luis@x.com", "luis@x.com", None, "EVA@x.com "]})
+limpio = df.drop_duplicates().dropna(subset=["email"]).copy()
+limpio["email"] = limpio["email"].str.strip().str.lower()
+limpio = limpio.reset_index(drop=True)
+```
+```python test
+assert list(limpio["id"]) == [1, 2, 4] and list(limpio["email"]) == ["ana@x.com", "luis@x.com", "eva@x.com"], f"{limpio}"
+```
+:::
+
+:::ejercicio python titulo="pandas: cruzar dos tablas"
+Une `pedidos` con `clientes` por `cliente_id` (un *join* con `merge`) y guarda en `ventas_pais` la suma de `monto` por `pais` como diccionario (`{país: total}`).
+```python inicial
+import pandas as pd
+pedidos = pd.DataFrame({"cliente_id": [1, 2, 1, 3], "monto": [100, 50, 25, 70]})
+clientes = pd.DataFrame({"cliente_id": [1, 2, 3], "pais": ["Chile", "Perú", "Chile"]})
+ventas_pais = {}
+```
+```python solucion
+import pandas as pd
+pedidos = pd.DataFrame({"cliente_id": [1, 2, 1, 3], "monto": [100, 50, 25, 70]})
+clientes = pd.DataFrame({"cliente_id": [1, 2, 3], "pais": ["Chile", "Perú", "Chile"]})
+unido = pedidos.merge(clientes, on="cliente_id", how="left")
+ventas_pais = unido.groupby("pais")["monto"].sum().to_dict()
+```
+```python test
+assert {k: int(v) for k, v in ventas_pais.items()} == {"Chile": 195, "Perú": 50}, f"ventas_pais es {ventas_pais}"
+```
 :::

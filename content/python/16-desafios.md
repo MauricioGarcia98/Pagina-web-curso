@@ -286,3 +286,93 @@ assert left_join(clientes, pedidos, "id") == [
 ], f"left_join = {left_join(clientes, pedidos, 'id')}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Dos que suman el objetivo"
+Escribe `par_que_suma(nums, objetivo)` que devuelva una tupla con los **índices** de dos números distintos que suman `objetivo` (o `None`), en O(n) usando un diccionario.
+```python inicial
+def par_que_suma(nums, objetivo):
+    pass
+```
+```python solucion
+def par_que_suma(nums, objetivo):
+    vistos = {}
+    for i, n in enumerate(nums):
+        if objetivo - n in vistos:
+            return (vistos[objetivo - n], i)
+        vistos[n] = i
+    return None
+```
+```python test
+assert par_que_suma([2, 7, 11, 15], 9) == (0, 1)
+assert par_que_suma([3, 2, 4], 6) == (1, 2)
+assert par_que_suma([1, 2], 10) is None
+```
+:::
+
+:::ejercicio python titulo="La racha más larga"
+Escribe `racha_mas_larga(dias)` que, dada una lista de 0 y 1 (1 = el cliente compró ese día), devuelva la cantidad máxima de días seguidos con compra.
+```python inicial
+def racha_mas_larga(dias):
+    pass
+```
+```python solucion
+def racha_mas_larga(dias):
+    mejor = actual = 0
+    for d in dias:
+        actual = actual + 1 if d == 1 else 0
+        mejor = max(mejor, actual)
+    return mejor
+```
+```python test
+assert racha_mas_larga([1, 1, 0, 1, 1, 1, 0, 1]) == 3
+assert racha_mas_larga([]) == 0 and racha_mas_larga([0, 0]) == 0
+```
+:::
+
+:::ejercicio python titulo="Sesiones de navegación"
+Escribe `contar_sesiones(minutos)` que reciba los minutos (ordenados) en que un usuario hizo clic y cuente las sesiones: una sesión nueva empieza cuando pasan **más de 30 minutos** desde el clic anterior.
+```python inicial
+def contar_sesiones(minutos):
+    pass
+```
+```python solucion
+def contar_sesiones(minutos):
+    if not minutos:
+        return 0
+    sesiones = 1
+    for antes, ahora in zip(minutos, minutos[1:]):
+        if ahora - antes > 30:
+            sesiones += 1
+    return sesiones
+```
+```python test
+assert contar_sesiones([0, 10, 25, 70, 80, 200]) == 3
+assert contar_sesiones([]) == 0 and contar_sesiones([5]) == 1
+assert contar_sesiones([0, 30, 60]) == 1, "Exactamente 30 minutos no corta la sesión"
+```
+:::
+
+:::ejercicio python titulo="Fusionar rangos de fechas"
+Escribe `fusionar(rangos)` que reciba pares `(inicio, fin)` (números de día, desordenados) y devuelva los rangos fusionados donde se superponen o se tocan, ordenados.
+```python inicial
+def fusionar(rangos):
+    pass
+```
+```python solucion
+def fusionar(rangos):
+    res = []
+    for ini, fin in sorted(rangos):
+        if res and ini <= res[-1][1] + 1:
+            res[-1] = (res[-1][0], max(res[-1][1], fin))
+        else:
+            res.append((ini, fin))
+    return res
+```
+```python test
+assert fusionar([(6, 8), (1, 3), (2, 4), (11, 12), (9, 9)]) == [(1, 4), (6, 9), (11, 12)], f"Obtuviste {fusionar([(6, 8), (1, 3), (2, 4), (11, 12), (9, 9)])}"
+assert fusionar([(1, 2), (3, 5)]) == [(1, 5)], "(1, 2) y (3, 5) se tocan: el día 2 y el 3 son seguidos"
+assert fusionar([]) == []
+```
+:::

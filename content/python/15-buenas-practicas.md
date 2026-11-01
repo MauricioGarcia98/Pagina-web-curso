@@ -311,3 +311,186 @@ except AssertionError as e:
         raise
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Tu primer test"
+Escribe la función `test_con_iva()` que verifique con `assert` que `con_iva(1000)` da `1190` y que `con_iva(0)` da `0`. (pytest ejecuta solo las funciones que empiezan con `test_`).
+```python inicial
+def con_iva(neto):
+    return round(neto * 1.19)
+
+def test_con_iva():
+    pass
+```
+```python solucion
+def con_iva(neto):
+    return round(neto * 1.19)
+
+def test_con_iva():
+    assert con_iva(1000) == 1190
+    assert con_iva(0) == 0
+```
+```python test
+test_con_iva()
+import inspect
+src = inspect.getsource(test_con_iva)
+assert src.count("assert") >= 2, "El test debe tener al menos dos assert"
+_orig = con_iva
+con_iva = lambda n: 0
+try:
+    test_con_iva(); _paso = True
+except AssertionError:
+    _paso = False
+con_iva = _orig
+assert not _paso, "Tu test no detecta una función rota: debe comparar contra los valores esperados"
+```
+:::
+
+:::ejercicio python titulo="Probar el caso borde"
+`promedio(valores)` falla con una lista vacía. Arréglala para que devuelva `None` en ese caso, y escribe `test_promedio()` que pruebe una lista normal y la vacía.
+```python inicial
+def promedio(valores):
+    return sum(valores) / len(valores)
+
+def test_promedio():
+    pass
+```
+```python solucion
+def promedio(valores):
+    if not valores:
+        return None
+    return sum(valores) / len(valores)
+
+def test_promedio():
+    assert promedio([2, 4]) == 3
+    assert promedio([]) is None
+```
+```python test
+test_promedio()
+assert promedio([]) is None and promedio([1, 2, 3]) == 2
+```
+:::
+
+:::ejercicio python titulo="logging en vez de print"
+Configura un logger llamado `etl` y registra con `logger.info` el mensaje `cargadas 120 filas` y con `logger.warning` el mensaje `3 filas rechazadas`. Usa `logging.getLogger("etl")`.
+```python inicial
+import logging
+logger = None
+```
+```python solucion
+import logging
+logger = logging.getLogger("etl")
+logger.info("cargadas %d filas", 120)
+logger.warning("%d filas rechazadas", 3)
+```
+```python test
+import logging
+assert isinstance(logger, logging.Logger) and logger.name == "etl"
+assert "print(" not in _codigo, "No uses print: usa el logger"
+assert "logger.info" in _codigo and "logger.warning" in _codigo
+```
+:::
+
+:::ejercicio python titulo="Configuración por entorno"
+Escribe `leer_config(env)` que reciba un diccionario de variables de entorno y devuelva un diccionario con `tabla` (variable `TABLA`, por defecto `"pedidos"`), `lote` (variable `LOTE` como entero, por defecto `500`) y `debug` (`True` solo si `DEBUG` vale `"1"`).
+```python inicial
+def leer_config(env):
+    pass
+```
+```python solucion
+def leer_config(env):
+    return {
+        "tabla": env.get("TABLA", "pedidos"),
+        "lote": int(env.get("LOTE", "500")),
+        "debug": env.get("DEBUG") == "1",
+    }
+```
+```python test
+assert leer_config({}) == {"tabla": "pedidos", "lote": 500, "debug": False}
+assert leer_config({"TABLA": "clientes", "LOTE": "50", "DEBUG": "1"}) == {"tabla": "clientes", "lote": 50, "debug": True}
+```
+:::
+
+:::ejercicio python titulo="El secreto fuera del código"
+Este código tiene la contraseña escrita adentro. Cámbialo para que la lea de `os.environ["DB_PASSWORD"]` y que, si no está definida, lance `RuntimeError("falta DB_PASSWORD")`. Guarda la función en `obtener_password()`.
+```python inicial
+import os
+
+def obtener_password():
+    return "Sup3rS3cr3t0!"
+```
+```python solucion
+import os
+
+def obtener_password():
+    valor = os.environ.get("DB_PASSWORD")
+    if not valor:
+        raise RuntimeError("falta DB_PASSWORD")
+    return valor
+```
+```python test
+import os
+assert "Sup3rS3cr3t0" not in _codigo, "La contraseña no puede quedar escrita en el código"
+os.environ["DB_PASSWORD"] = "abc"
+assert obtener_password() == "abc"
+del os.environ["DB_PASSWORD"]
+try:
+    obtener_password(); assert False, "Sin la variable debería lanzar RuntimeError"
+except RuntimeError as e:
+    assert "DB_PASSWORD" in str(e)
+```
+:::
+
+:::ejercicio python titulo="Refactorizar: funciones chicas"
+El script hace todo junto. Sepáralo en `limpiar(filas)` (quita espacios y pasa a minúsculas el campo `email`), `validar(filas)` (deja las filas con `@` en el email) y `resumir(filas)` (devuelve la cantidad). Al final, `resultado = resumir(validar(limpiar(datos)))`.
+```python inicial
+datos = [{"email": " A@X.COM"}, {"email": "malo"}, {"email": "b@x.com "}]
+n = 0
+for f in datos:
+    e = f["email"].strip().lower()
+    if "@" in e:
+        n += 1
+resultado = n
+```
+```python solucion
+datos = [{"email": " A@X.COM"}, {"email": "malo"}, {"email": "b@x.com "}]
+
+def limpiar(filas):
+    return [{**f, "email": f["email"].strip().lower()} for f in filas]
+
+def validar(filas):
+    return [f for f in filas if "@" in f["email"]]
+
+def resumir(filas):
+    return len(filas)
+
+resultado = resumir(validar(limpiar(datos)))
+```
+```python test
+assert resultado == 2
+assert limpiar([{"email": " X@Y.Z "}]) == [{"email": "x@y.z"}]
+assert validar([{"email": "a"}, {"email": "a@b"}]) == [{"email": "a@b"}]
+assert resumir([1, 2, 3]) == 3
+```
+:::
+
+:::ejercicio python titulo="Type hints"
+Agrega type hints a `total_por_pais`: recibe una lista de tuplas `(str, float)` y devuelve `dict[str, float]`. Completa también el cuerpo.
+```python inicial
+def total_por_pais(ventas):
+    pass
+```
+```python solucion
+def total_por_pais(ventas: list[tuple[str, float]]) -> dict[str, float]:
+    totales: dict[str, float] = {}
+    for pais, monto in ventas:
+        totales[pais] = totales.get(pais, 0.0) + monto
+    return totales
+```
+```python test
+assert total_por_pais([("CL", 10.0), ("PE", 5.0), ("CL", 2.5)]) == {"CL": 12.5, "PE": 5.0}
+assert total_por_pais.__annotations__.get("return") is not None, "Falta la anotación del tipo de retorno (-> ...)"
+assert "ventas" in total_por_pais.__annotations__, "Falta la anotación del parámetro ventas"
+```
+:::

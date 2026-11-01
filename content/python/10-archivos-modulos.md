@@ -326,3 +326,156 @@ top2 = Counter(e.split("@")[1] for e in emails).most_common(2)
 assert top2 == [("gmail.com", 3), ("hotmail.com", 2)], f"top2 = {top2}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Escribir y leer un archivo"
+Escribe en `notas.txt` las líneas `uno`, `dos` y `tres` (una por línea) y después léelo y guarda en `lineas` la lista de líneas sin el salto de línea.
+```python inicial
+lineas = []
+```
+```python solucion
+with open("notas.txt", "w", encoding="utf-8") as f:
+    f.write("uno\ndos\ntres\n")
+with open("notas.txt", encoding="utf-8") as f:
+    lineas = [l.rstrip("\n") for l in f]
+```
+```python test
+assert lineas == ["uno", "dos", "tres"], f"lineas es {lineas}"
+```
+:::
+
+:::ejercicio python titulo="Leer un CSV con DictReader"
+El CSV ya está escrito en `ventas.csv`. Léelo con `csv.DictReader` y guarda en `total` la suma de la columna `monto` (convierte a `float`).
+```python inicial
+import csv
+with open("ventas.csv", "w", encoding="utf-8") as f:
+    f.write("fecha,producto,monto\n2024-10-01,mouse,12990\n2024-10-01,cable,6990.5\n2024-10-02,monitor,189990\n")
+total = 0
+```
+```python solucion
+import csv
+with open("ventas.csv", "w", encoding="utf-8") as f:
+    f.write("fecha,producto,monto\n2024-10-01,mouse,12990\n2024-10-01,cable,6990.5\n2024-10-02,monitor,189990\n")
+total = 0
+with open("ventas.csv", encoding="utf-8") as f:
+    for fila in csv.DictReader(f):
+        total += float(fila["monto"])
+```
+```python test
+assert abs(total - 209970.5) < 1e-6, f"total es {total}"
+```
+:::
+
+:::ejercicio python titulo="Escribir un CSV"
+Escribe `resumen.csv` con encabezado `pais,ventas` y una fila por cada par de `datos`, usando `csv.writer`. Después guarda en `contenido` el texto del archivo.
+```python inicial
+import csv
+datos = [("Chile", 120), ("Perú", 80)]
+contenido = ""
+```
+```python solucion
+import csv
+datos = [("Chile", 120), ("Perú", 80)]
+with open("resumen.csv", "w", newline="", encoding="utf-8") as f:
+    w = csv.writer(f)
+    w.writerow(["pais", "ventas"])
+    w.writerows(datos)
+with open("resumen.csv", encoding="utf-8") as f:
+    contenido = f.read()
+```
+```python test
+assert contenido.replace("\r\n", "\n") == "pais,ventas\nChile,120\nPerú,80\n", f"contenido es {contenido!r}"
+```
+:::
+
+:::ejercicio python titulo="JSON de ida y vuelta"
+Convierte `config` a texto JSON con `json.dumps` (guárdalo en `texto`) y vuelve a convertirlo en diccionario con `json.loads` (guárdalo en `de_vuelta`).
+```python inicial
+import json
+config = {"tabla": "pedidos", "particiones": 12, "activo": True, "dueño": None}
+texto = ""
+de_vuelta = {}
+```
+```python solucion
+import json
+config = {"tabla": "pedidos", "particiones": 12, "activo": True, "dueño": None}
+texto = json.dumps(config, ensure_ascii=False)
+de_vuelta = json.loads(texto)
+```
+```python test
+assert isinstance(texto, str) and "true" in texto and "null" in texto, "En JSON, True se escribe true y None se escribe null"
+assert de_vuelta == config
+```
+:::
+
+:::ejercicio python titulo="Días entre fechas"
+Con `datetime.date`, guarda en `dias` cuántos días pasaron entre `"2024-10-03"` y `"2024-11-15"` (convierte los textos con `date.fromisoformat`).
+```python inicial
+from datetime import date
+dias = 0
+```
+```python solucion
+from datetime import date
+dias = (date.fromisoformat("2024-11-15") - date.fromisoformat("2024-10-03")).days
+```
+```python test
+assert dias == 43, f"dias es {dias}"
+```
+:::
+
+:::ejercicio python titulo="Formatos de fecha distintos"
+Las fechas llegaron como `"31/10/2024"`. Conviértela a `datetime` con `strptime` y guarda en `iso` el texto en formato ISO `"2024-10-31"`.
+```python inicial
+from datetime import datetime
+texto = "31/10/2024"
+iso = ""
+```
+```python solucion
+from datetime import datetime
+texto = "31/10/2024"
+iso = datetime.strptime(texto, "%d/%m/%Y").strftime("%Y-%m-%d")
+```
+```python test
+assert iso == "2024-10-31", f"iso es {iso!r}"
+```
+```pista
+`%d` es el día, `%m` el mes y `%Y` el año con cuatro dígitos.
+```
+:::
+
+:::ejercicio python titulo="Counter: los más vendidos"
+Con `collections.Counter`, guarda en `top2` los 2 productos más vendidos como lista de tuplas `(producto, veces)`.
+```python inicial
+from collections import Counter
+vendidos = ["mouse", "cable", "mouse", "monitor", "cable", "mouse"]
+top2 = []
+```
+```python solucion
+from collections import Counter
+vendidos = ["mouse", "cable", "mouse", "monitor", "cable", "mouse"]
+top2 = Counter(vendidos).most_common(2)
+```
+```python test
+assert top2 == [("mouse", 3), ("cable", 2)], f"top2 es {top2}"
+```
+:::
+
+:::ejercicio python titulo="pathlib: nombre y extensión"
+Con `Path`, guarda en `nombre` el nombre del archivo sin extensión, en `ext` la extensión y en `carpeta` el nombre de la carpeta que lo contiene, para la ruta `datos/2024/octubre/ventas.parquet`.
+```python inicial
+from pathlib import Path
+p = Path("datos/2024/octubre/ventas.parquet")
+nombre = ext = carpeta = None
+```
+```python solucion
+from pathlib import Path
+p = Path("datos/2024/octubre/ventas.parquet")
+nombre = p.stem
+ext = p.suffix
+carpeta = p.parent.name
+```
+```python test
+assert (nombre, ext, carpeta) == ("ventas", ".parquet", "octubre"), f"{nombre}, {ext}, {carpeta}"
+```
+:::

@@ -281,3 +281,116 @@ assert cajas_llenas == 3, "cajas_llenas debería ser 3 (usa //)"
 assert sobrantes == 11, "sobrantes debería ser 11 (usa %)"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Tu nombre en pantalla"
+Imprime exactamente: `Me llamo Ana y estoy aprendiendo Python`.
+```python inicial
+# escribe tu print aquí
+```
+```python solucion
+print("Me llamo Ana y estoy aprendiendo Python")
+```
+```python test
+assert salida.strip() == "Me llamo Ana y estoy aprendiendo Python", f"Se imprimió {salida.strip()!r}"
+```
+:::
+
+:::ejercicio python titulo="Variables que cambian"
+Crea `stock = 50`. Después se venden 12 unidades: actualiza `stock` restándole 12 (usa la misma variable). Al final `stock` debe valer 38.
+```python inicial
+stock = 50
+```
+```python solucion
+stock = 50
+stock = stock - 12
+```
+```python test
+assert stock == 38, f"stock debería ser 38 y es {stock}"
+assert "38" not in _codigo, "No escribas 38 a mano: réstale 12 a stock"
+```
+```pista
+Una variable puede usarse para calcular su propio nuevo valor: `stock = stock - 12` (o `stock -= 12`).
+```
+:::
+
+:::ejercicio python titulo="El total con IVA"
+Un producto cuesta `neto = 1000` y el IVA es del 19 %. Guarda en `iva` el impuesto y en `total` el precio final.
+```python inicial
+neto = 1000
+iva = 0
+total = 0
+```
+```python solucion
+neto = 1000
+iva = neto * 0.19
+total = neto + iva
+```
+```python test
+assert abs(iva - 190) < 1e-9, f"iva debería ser 190 y es {iva}"
+assert abs(total - 1190) < 1e-9, f"total debería ser 1190 y es {total}"
+```
+:::
+
+:::ejercicio python titulo="Minutos a horas"
+Un proceso tardó `minutos = 135`. Guarda en `horas` las horas completas y en `resto` los minutos que sobran (usa `//` y `%`).
+```python inicial
+minutos = 135
+horas = 0
+resto = 0
+```
+```python solucion
+minutos = 135
+horas = minutos // 60
+resto = minutos % 60
+```
+```python test
+assert horas == 2 and resto == 15, f"Deberían ser 2 horas y 15 minutos; obtuviste {horas} y {resto}"
+```
+```pista
+`//` divide y se queda con la parte entera; `%` da lo que sobra de la división.
+```
+:::
+
+:::ejercicio python titulo="Promedio de tres ventas"
+Calcula en `promedio` el promedio de `v1 = 120`, `v2 = 80` y `v3 = 100`, y redondéalo a 1 decimal con `round`.
+```python inicial
+v1 = 120
+v2 = 80
+v3 = 100
+promedio = 0
+```
+```python solucion
+v1 = 120
+v2 = 80
+v3 = 100
+promedio = round((v1 + v2 + v3) / 3, 1)
+```
+```python test
+assert promedio == 100.0, f"promedio debería ser 100.0 y es {promedio}"
+```
+```pista
+Ojo con el orden de las operaciones: suma entre paréntesis y después divide.
+```
+:::
+
+:::ejercicio python titulo="Intercambiar valores"
+Las variables `a = "mañana"` y `b = "tarde"` quedaron al revés. Intercámbialas para que `a` valga `"tarde"` y `b` valga `"mañana"`, sin escribir esos textos de nuevo.
+```python inicial
+a = "mañana"
+b = "tarde"
+```
+```python solucion
+a = "mañana"
+b = "tarde"
+a, b = b, a
+```
+```python test
+assert a == "tarde" and b == "mañana", f"a={a!r}, b={b!r}"
+assert _codigo.count('"tarde"') + _codigo.count("'tarde'") == 1, "No vuelvas a escribir los textos: intercambia las variables"
+```
+```pista
+Python permite asignar dos variables a la vez: `a, b = b, a`. Otra forma es usar una variable auxiliar.
+```
+:::

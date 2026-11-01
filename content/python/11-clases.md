@@ -348,3 +348,180 @@ except NotImplementedError:
     pass
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Una clase Producto"
+Define la clase `Producto` con `nombre` y `precio` (en `__init__`) y un método `con_descuento(pct)` que devuelva el precio con ese porcentaje de descuento.
+```python inicial
+class Producto:
+    pass
+```
+```python solucion
+class Producto:
+    def __init__(self, nombre, precio):
+        self.nombre = nombre
+        self.precio = precio
+
+    def con_descuento(self, pct):
+        return self.precio * (1 - pct / 100)
+```
+```python test
+p = Producto("Mouse", 10000)
+assert p.nombre == "Mouse" and p.precio == 10000
+assert abs(p.con_descuento(15) - 8500) < 1e-9
+```
+:::
+
+:::ejercicio python titulo="Un objeto que se imprime bien"
+Agrega a `Cliente` el método `__repr__` para que `repr(Cliente("Ana", "CL"))` devuelva `Cliente(Ana, CL)`.
+```python inicial
+class Cliente:
+    def __init__(self, nombre, pais):
+        self.nombre = nombre
+        self.pais = pais
+```
+```python solucion
+class Cliente:
+    def __init__(self, nombre, pais):
+        self.nombre = nombre
+        self.pais = pais
+
+    def __repr__(self):
+        return f"Cliente({self.nombre}, {self.pais})"
+```
+```python test
+assert repr(Cliente("Ana", "CL")) == "Cliente(Ana, CL)", f"repr es {repr(Cliente('Ana', 'CL'))!r}"
+```
+:::
+
+:::ejercicio python titulo="Estado dentro del objeto"
+Crea `Carrito` con una lista `items` vacía, un método `agregar(nombre, precio, cantidad=1)` y un método `total()`.
+```python inicial
+class Carrito:
+    pass
+```
+```python solucion
+class Carrito:
+    def __init__(self):
+        self.items = []
+
+    def agregar(self, nombre, precio, cantidad=1):
+        self.items.append((nombre, precio, cantidad))
+
+    def total(self):
+        return sum(p * c for _, p, c in self.items)
+```
+```python test
+c = Carrito(); c.agregar("mouse", 12990, 2); c.agregar("cable", 6990)
+assert c.total() == 32970 and len(c.items) == 2
+c2 = Carrito()
+assert c2.total() == 0, "Cada carrito debe tener su propia lista (créala en __init__)"
+```
+:::
+
+:::ejercicio python titulo="Herencia"
+`Fuente` tiene un método `leer()` que devuelve `[]`. Crea `FuenteCSV(Fuente)` que reciba un texto CSV y cuyo `leer()` devuelva la lista de filas como diccionarios (usa `csv.DictReader` con `io.StringIO`).
+```python inicial
+import csv, io
+
+class Fuente:
+    def leer(self):
+        return []
+
+class FuenteCSV(Fuente):
+    pass
+```
+```python solucion
+import csv, io
+
+class Fuente:
+    def leer(self):
+        return []
+
+class FuenteCSV(Fuente):
+    def __init__(self, texto):
+        self.texto = texto
+
+    def leer(self):
+        return list(csv.DictReader(io.StringIO(self.texto)))
+```
+```python test
+f = FuenteCSV("id,pais\n1,CL\n2,PE\n")
+assert isinstance(f, Fuente)
+assert f.leer() == [{"id": "1", "pais": "CL"}, {"id": "2", "pais": "PE"}], f"leer() devolvió {f.leer()}"
+```
+:::
+
+:::ejercicio python titulo="dataclass"
+Define con `@dataclass` la clase `Pedido` con `id: int`, `monto: float` y `estado: str = "pendiente"`. Crea `p = Pedido(1, 2500.0)`.
+```python inicial
+from dataclasses import dataclass
+```
+```python solucion
+from dataclasses import dataclass
+
+@dataclass
+class Pedido:
+    id: int
+    monto: float
+    estado: str = "pendiente"
+
+p = Pedido(1, 2500.0)
+```
+```python test
+assert p == Pedido(1, 2500.0, "pendiente"), "Dos dataclasses con los mismos datos son iguales"
+assert p.estado == "pendiente"
+```
+:::
+
+:::ejercicio python titulo="Una propiedad calculada"
+Agrega a `Rectangulo` una `@property` llamada `area` (ancho × alto), que se lea sin paréntesis: `r.area`.
+```python inicial
+class Rectangulo:
+    def __init__(self, ancho, alto):
+        self.ancho = ancho
+        self.alto = alto
+```
+```python solucion
+class Rectangulo:
+    def __init__(self, ancho, alto):
+        self.ancho = ancho
+        self.alto = alto
+
+    @property
+    def area(self):
+        return self.ancho * self.alto
+```
+```python test
+r = Rectangulo(3, 4)
+assert r.area == 12
+r.ancho = 5
+assert r.area == 20, "area debe recalcularse cuando cambia el ancho"
+```
+:::
+
+:::ejercicio python titulo="Método de clase como constructor"
+Agrega a `Moneda` un `@classmethod` `desde_texto(cls, texto)` que reciba `"USD 950.5"` y devuelva `Moneda("USD", 950.5)`.
+```python inicial
+class Moneda:
+    def __init__(self, codigo, valor):
+        self.codigo = codigo
+        self.valor = valor
+```
+```python solucion
+class Moneda:
+    def __init__(self, codigo, valor):
+        self.codigo = codigo
+        self.valor = valor
+
+    @classmethod
+    def desde_texto(cls, texto):
+        codigo, valor = texto.split()
+        return cls(codigo, float(valor))
+```
+```python test
+m = Moneda.desde_texto("USD 950.5")
+assert isinstance(m, Moneda) and m.codigo == "USD" and m.valor == 950.5
+```
+:::

@@ -315,3 +315,125 @@ assert total == 144.0, f"total debería ser 144.0 y es {total}"
 assert skus == ["A1", "M4", "Z9"], f"skus = {skus}"
 ```
 :::
+
+### Más práctica
+
+:::ejercicio python titulo="Leer y cambiar un diccionario"
+Con `producto = {"nombre": "Mouse", "precio": 12990}`: sube el precio un 10 % (redondeado a entero con `round`) y agrega la clave `"stock"` con valor `40`.
+```python inicial
+producto = {"nombre": "Mouse", "precio": 12990}
+```
+```python solucion
+producto = {"nombre": "Mouse", "precio": 12990}
+producto["precio"] = round(producto["precio"] * 1.1)
+producto["stock"] = 40
+```
+```python test
+assert producto == {"nombre": "Mouse", "precio": 14289, "stock": 40}, f"producto es {producto}"
+```
+:::
+
+:::ejercicio python titulo="get con valor por defecto"
+Algunos clientes no tienen `"telefono"`. Con `cliente = {"nombre": "Eva"}`, guarda en `tel` el teléfono o el texto `"sin dato"` si no existe, usando `.get`.
+```python inicial
+cliente = {"nombre": "Eva"}
+tel = None
+```
+```python solucion
+cliente = {"nombre": "Eva"}
+tel = cliente.get("telefono", "sin dato")
+```
+```python test
+assert tel == "sin dato", f"tel es {tel!r}"
+assert ".get(" in _codigo, "Usa .get con un valor por defecto"
+```
+:::
+
+:::ejercicio python titulo="Contar por país"
+Cuenta cuántos pedidos hay de cada país en `paises = ["Chile", "Perú", "Chile", "México", "Chile", "Perú"]` y guarda el resultado en el diccionario `conteo`.
+```python inicial
+paises = ["Chile", "Perú", "Chile", "México", "Chile", "Perú"]
+conteo = {}
+```
+```python solucion
+paises = ["Chile", "Perú", "Chile", "México", "Chile", "Perú"]
+conteo = {}
+for p in paises:
+    conteo[p] = conteo.get(p, 0) + 1
+```
+```python test
+assert conteo == {"Chile": 3, "Perú": 2, "México": 1}, f"conteo es {conteo}"
+```
+:::
+
+:::ejercicio python titulo="Sumar por categoría"
+Con `ventas = [("audio", 45990), ("monitores", 189990), ("audio", 39990), ("accesorios", 12990)]`, arma `por_categoria` con el total vendido de cada categoría.
+```python inicial
+ventas = [("audio", 45990), ("monitores", 189990), ("audio", 39990), ("accesorios", 12990)]
+por_categoria = {}
+```
+```python solucion
+ventas = [("audio", 45990), ("monitores", 189990), ("audio", 39990), ("accesorios", 12990)]
+por_categoria = {}
+for cat, monto in ventas:
+    por_categoria[cat] = por_categoria.get(cat, 0) + monto
+```
+```python test
+assert por_categoria == {"audio": 85980, "monitores": 189990, "accesorios": 12990}, f"por_categoria es {por_categoria}"
+```
+:::
+
+:::ejercicio python titulo="Navegar un JSON anidado"
+`pedido` llegó de una API. Guarda en `ciudad` la ciudad de envío y en `skus` la lista de los `sku` de los ítems.
+```python inicial
+pedido = {"id": 77, "envio": {"direccion": {"ciudad": "Lima", "pais": "Perú"}}, "items": [{"sku": "A1", "cant": 2}, {"sku": "B7", "cant": 1}]}
+ciudad = None
+skus = []
+```
+```python solucion
+pedido = {"id": 77, "envio": {"direccion": {"ciudad": "Lima", "pais": "Perú"}}, "items": [{"sku": "A1", "cant": 2}, {"sku": "B7", "cant": 1}]}
+ciudad = pedido["envio"]["direccion"]["ciudad"]
+skus = []
+for item in pedido["items"]:
+    skus.append(item["sku"])
+```
+```python test
+assert ciudad == "Lima" and skus == ["A1", "B7"], f"ciudad={ciudad!r}, skus={skus}"
+```
+:::
+
+:::ejercicio python titulo="Únicos con set"
+Guarda en `unicos` cuántos clientes **distintos** compraron, de `clientes = [10, 22, 10, 35, 22, 10, 41]`.
+```python inicial
+clientes = [10, 22, 10, 35, 22, 10, 41]
+unicos = 0
+```
+```python solucion
+clientes = [10, 22, 10, 35, 22, 10, 41]
+unicos = len(set(clientes))
+```
+```python test
+assert unicos == 4, f"unicos es {unicos}"
+```
+:::
+
+:::ejercicio python titulo="Qué cambió entre dos cargas"
+Con los ids de ayer `ayer = {1, 2, 3, 4}` y los de hoy `hoy = {3, 4, 5}`, guarda en `nuevos` los que aparecieron hoy y en `borrados` los que ya no están, con operaciones de conjuntos.
+```python inicial
+ayer = {1, 2, 3, 4}
+hoy = {3, 4, 5}
+nuevos = borrados = None
+```
+```python solucion
+ayer = {1, 2, 3, 4}
+hoy = {3, 4, 5}
+nuevos = hoy - ayer
+borrados = ayer - hoy
+```
+```python test
+assert nuevos == {5} and borrados == {1, 2}, f"nuevos={nuevos}, borrados={borrados}"
+```
+```pista
+La resta de conjuntos `a - b` da lo que está en `a` y no en `b`.
+```
+:::
