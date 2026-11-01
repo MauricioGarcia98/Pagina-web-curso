@@ -15,6 +15,10 @@ except Exception:  # fuera del navegador
 
 __version__ = "2.32.3-curso"
 
+# como si el entorno (o una Connection de Airflow) ya tuviera el secreto de la API de práctica
+import os as _os
+_os.environ.setdefault("TIENDA_SECRETO", "s3cr3t0-de-practica")
+
 # time.sleep también avanza el reloj de la API: así "esperar" funciona aunque el navegador no se detenga
 if _api is not None and not getattr(_time.sleep, "_curso", False):
     _sleep_real = _time.sleep
