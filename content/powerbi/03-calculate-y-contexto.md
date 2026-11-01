@@ -66,6 +66,15 @@ Un filtro booleano como `pedidos[canal] = "web"` trabaja sobre **una columna**. 
 Ventas de líneas grandes = CALCULATE([Ventas], FILTER(detalle_pedidos, detalle_pedidos[cantidad] >= 3))
 ```
 
+## Una lista de valores como filtro: TREATAS
+
+`TREATAS({lista}, Tabla[columna])` toma una lista de valores y la aplica como filtro de una columna. Dentro de CALCULATE funciona como `Tabla[columna] IN {…}`. También sirve para que los valores de **otra** tabla filtren esta columna sin crear una relación (una "relación virtual"):
+
+```dax
+Ventas digitales = CALCULATE([Ventas], TREATAS({"web", "app"}, pedidos[canal]))
+Ventas de los presupuestados = CALCULATE([Ventas], TREATAS(VALUES(Presupuesto[categoria]), categorias[nombre]))
+```
+
 :::experto Contexto de fila contra contexto de filtro
 `FILTER` recorre la tabla fila por fila (**contexto de fila**). Dentro de la condición, `detalle_pedidos[cantidad]` es el valor de **esa fila**. `CALCULATE` convierte el resultado en un **contexto de filtro**. Esta diferencia es lo que más cuesta de DAX. Si la entiendes, entiendes DAX.
 :::
@@ -195,6 +204,25 @@ Ventas del segmento = CALCULATE([Ventas], ALLEXCEPT(clientes, clientes[segmento]
 ```
 ```pista
 Hay que quitar todos los filtros de `clientes` menos el de `segmento`: `ALLEXCEPT(clientes, clientes[segmento])`.
+```
+:::
+
+:::ejercicio dax dificultad=Avanzado titulo="Una lista como filtro con TREATAS"
+Escribe **Ventas web y app**: las ventas de los canales `"web"` y `"app"`, aplicando la lista con `TREATAS`. Se evalúa por país.
+```dax medidas
+Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
+```
+```dax prueba
+EVALUATE SUMMARIZECOLUMNS(clientes[pais], "Web y app", [?])
+```
+```dax inicial
+Ventas web y app = CALCULATE([Ventas], TREATAS(...))
+```
+```dax solucion
+Ventas web y app = CALCULATE([Ventas], TREATAS({"web", "app"}, pedidos[canal]))
+```
+```pista
+`TREATAS({"web", "app"}, pedidos[canal])`: primero la lista entre llaves, después la columna que filtra.
 ```
 :::
 

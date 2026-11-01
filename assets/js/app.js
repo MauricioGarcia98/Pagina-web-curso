@@ -82,7 +82,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
   const levelClass = (n) => 'b-' + (n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
-  const TYPE_LABEL = { sql: 'SQL', python: 'Python', pyspark: 'PySpark', airflow: 'Airflow', dbt: 'dbt', quiz: 'Test', cli: 'Terminal', abierto: 'Respuesta libre' };
+  const TYPE_LABEL = { sql: 'SQL', python: 'Python', pyspark: 'PySpark', airflow: 'Airflow', dbt: 'dbt', quiz: 'Test', cli: 'Terminal', abierto: 'Respuesta libre', dax: 'DAX' };
 
   PY.listeners.add((s) => {
     const el = $('#pyStatus');
@@ -1073,7 +1073,7 @@
   function mountExercise(slot, ex, num) {
     const done = Store.exDone(ex.id);
     const card = h(`<section class="exercise ${done ? 'passed' : ''}" id="${esc(ex.id)}">
-      <div class="ex-head"><span class="badge b-type">${TYPE_LABEL[ex.type] || ex.type}</span><h4>Ejercicio ${num}${ex.titulo ? ' · ' + esc(ex.titulo) : ''}</h4>${ex.dificultad ? `<span class="badge ${levelClass(ex.dificultad)}">${esc(ex.dificultad)}</span>` : ''}<span class="status">${done ? '✓ Resuelto' : 'Pendiente'}</span></div>
+      <div class="ex-head"><span class="badge b-type">${TYPE_LABEL[ex.type] || ex.type}</span><h4>Ejercicio ${num}${ex.titulo ? ' · ' + esc(ex.titulo) : ''}</h4>${ex.dificultad ? `<span class="badge ${levelClass(ex.dificultad)}"${ex.dificultadLeccion ? ' title="Dificultad: el nivel de la lección"' : ''}>${esc(ex.dificultad)}</span>` : ''}<span class="status">${done ? '✓ Resuelto' : 'Pendiente'}</span></div>
       <div class="ex-body"><div class="ex-prompt prose">${ex.enunciado}</div></div>
     </section>`);
     slot.replaceWith(card);
@@ -1220,7 +1220,7 @@
 
   function mountCli(card, ex, markPassed, fb, feedback, extra, showExtra) {
     const box = h('<div class="ex-term"></div>');
-    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
+    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Solución</button><button class="btn btn-sm btn-ghost" data-act="reset" title="Limpia la pantalla, vuelve a la carpeta de inicio y repite la preparación del ejercicio. Tus archivos no se borran.">↺ Reiniciar terminal</button><span class="spacer"></span><span class="small muted">Terminal compartida con el <a href="#/lab/terminal">laboratorio</a> · ↑ historial · Tab autocompleta</span></div>`);
     card.append(box, tools, fb, extra);
     const tool = (ex.respuesta[0].replace(/^todos:\s*/, '').match(/^[\w-]+/) || [''])[0];
     const termOpts = {
@@ -1253,6 +1253,16 @@
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
       if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
+      if (a === 'reset') {
+        // sesión limpia para este ejercicio: pantalla vacía, carpeta de inicio, sin entorno virtual y la preparación otra vez
+        const Sh = window.Shell;
+        Sh.Machine.cwd = Sh.HOME; delete Sh.Machine.env.VIRTUAL_ENV; Sh.Machine.save();
+        const outEl = term.el.querySelector('.term-out'); if (outEl) outEl.innerHTML = '';
+        term.print(termOpts.welcome); term.input.value = ''; term.refreshPrompt();
+        prepared = null; if (ex.setup) prep();
+        document.dispatchEvent(new CustomEvent('term-config'));
+        fb.hidden = true; term.focus();
+      }
       if (a === 'sol') {
         const sol = ex.solucion || ex.respuesta[0].replace(/\\/g, '');
         showExtra('Solución', `<pre data-lang="bash"><code>${esc(sol)}</code></pre>${ex.explicacion || ''}<button class="btn btn-sm" data-type>⌨ Escribirla en la terminal</button>`);
@@ -2298,7 +2308,8 @@
 
   function resumenPractica() {
     const N = Store.data.exams || {}, c = Store.data.cards || {};
-    const vistas = Object.values(c), dominadas = vistas.filter((t) => t.b >= 4).length, hoy = vistas.filter((t) => t.due <= Date.now()).length;
+    const glos = new Set(C.glosario.map((g) => g.termino));
+    const vistas = Object.entries(c).filter(([k]) => glos.has(k)).map(([, v]) => v), dominadas = vistas.filter((t) => t.b >= 4).length, hoy = vistas.filter((t) => t.due <= Date.now()).length;
     const propios = (C.examenes || []).filter((x) => x.id === x.modulo);
     const aprob = propios.filter((x) => N[x.id] && N[x.id].best >= 70).length;
     return `<h2 class="section-title">Repaso y exámenes</h2>
@@ -2307,6 +2318,35 @@
         <a class="card module-card" href="#/examenes"><h3>📝 Exámenes de módulo</h3><div class="small muted">${aprob}/${propios.length} aprobados</div><div class="bar" style="margin-top:8px"><i style="width:${Math.round((aprob / Math.max(1, propios.length)) * 100)}%;background:var(--ok)"></i></div></a>
         <a class="card module-card" href="#/examenes"><h3>🎓 Examen final</h3><div class="small muted">${N.final ? `Mejor nota ${N.final.best}% · ${N.final.best >= 75 ? 'certificado disponible' : 'se aprueba con 75%'}` : 'Sin rendir'}</div></a>
       </div>`;
+  }
+
+  // ejercicios resueltos por dificultad (los que no la declaran toman el nivel de su lección)
+  function resumenDificultad() {
+    const NIV = ['Básico', 'Intermedio', 'Avanzado', 'Experto'];
+    const filas = NIV.map((n) => { const e = ALL_EX.filter((x) => (x.dificultad || 'Básico') === n); return { n, total: e.length, done: e.filter((x) => Store.exDone(x.id)).length }; }).filter((f) => f.total);
+    return `<h2 class="section-title">Ejercicios por dificultad</h2>
+      <div class="grid grid-4">${filas.map((f) => `<div class="card" style="padding:14px 16px"><span class="badge ${levelClass(f.n)}">${esc(f.n)}</span><div style="margin-top:8px"><b>${f.done}/${f.total}</b> <span class="small muted">resueltos</span></div><div class="bar" style="margin-top:8px"><i style="width:${Math.round((100 * f.done) / f.total)}%"></i></div></div>`).join('')}</div>`;
+  }
+
+  // laboratorios y herramientas de práctica: misiones, Power BI y la simulación de trabajo
+  function resumenLabs() {
+    const M = window.MISIONES || {}, est = Store.data.misiones || {};
+    const ico = Object.fromEntries(LABS_MENU.map((x) => [x[3], x]));
+    const tarjeta = (href, titulo, detalle, pct) => `<a class="card module-card" href="${href}"><h3>${titulo}</h3><div class="small muted">${detalle}</div>${pct == null ? '' : `<div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div>`}</a>`;
+    const labs = Object.entries(M).map(([k, lista]) => {
+      const hechas = lista.filter((m) => est[m.id] && est[m.id].hecha).length;
+      const x = ico['lab-' + k] || ['#/lab/' + k, '🧪', k];
+      return tarjeta(x[0], `${x[1]} ${esc(x[2])}`, `${hechas}/${lista.length} misiones`, Math.round((100 * hechas) / Math.max(1, lista.length)));
+    });
+    const pb = Store.data.powerbi;
+    if (pb && pb.tablas) {
+      const vis = (pb.paginas || []).reduce((a, p) => a + (p.visuales || []).length, 0);
+      labs.push(tarjeta('#/powerbi', '📊 Power BI (práctica)', `${Object.keys(pb.tablas).length} tablas · ${(pb.rels || []).length} relaciones · ${(pb.medidas || []).length} medidas · ${vis} objetos visuales${pb.publicado ? ' · publicado' : ''}`, null));
+    } else labs.push(tarjeta('#/powerbi', '📊 Power BI (práctica)', 'Todavía no armaste un informe', null));
+    const tb = Store.data.trabajo;
+    const etapas = tb ? Math.min(4, tb.paso || 0) : 0;
+    labs.push(tarjeta('#/trabajo', '💼 Tu primer trabajo', etapas >= 4 ? 'Semana completa ✓' : `${etapas}/4 etapas de la semana`, etapas * 25));
+    return `<h2 class="section-title">Laboratorios y herramientas</h2><div class="grid grid-3">${labs.join('')}</div>`;
   }
 
   function viewProgreso() {
@@ -2321,6 +2361,8 @@
         const ed = e.filter((x) => Store.exDone(x.id)).length;
         return `<a class="card module-card" href="#/m/${m.id}" style="flex-direction:row;align-items:center;gap:16px"><span class="mc-ico">${m.icono}</span><div style="flex:1"><h3>${esc(m.titulo)}</h3><div class="small muted">${p.done}/${p.total} lecciones · ${ed}/${e.length} ejercicios</div><div class="bar" style="margin-top:8px"><i style="width:${p.pct}%;background:${m.color}"></i></div></div><b>${p.pct}%</b></a>`;
       }).join('')}</div>
+      ${resumenDificultad()}
+      ${resumenLabs()}
       ${resumenPractica()}
       <h2 class="section-title">Tus datos</h2>
       <p class="muted">El progreso se guarda solo en este navegador. Puedes exportarlo para llevarlo a otra computadora.</p>
@@ -2385,7 +2427,42 @@
         <div class="gloss-filter" id="rareas"><button class="chip active" data-a="">Todas las áreas</button>${areas.map((a) => `<button class="chip" data-a="${esc(a)}">${esc(a)}</button>`).join('')}</div>
         <div class="row"><button class="btn btn-primary btn-lg" id="rstart"></button><span class="small muted" id="rinfo"></span></div>
       </div>
+      <h2 class="section-title">❓ Preguntas de tus lecciones</h2>
+      <p class="muted" style="margin-top:0">Las preguntas de opción múltiple de las lecciones que ya abriste, con el mismo repaso espaciado. Así lo que estudiaste hace semanas vuelve justo antes de olvidarlo.</p>
+      <div class="stats" id="qstats"></div>
+      <div class="row"><button class="btn btn-lg" id="qstart"></button><span class="small muted" id="qinfo"></span></div>
     </div>`;
+    // preguntas de las lecciones visitadas: la clave lleva el prefijo "q:" para no mezclarse con el glosario
+    const visitadas = Store.data.visited || {};
+    const preguntas = ALL_EX.filter((e) => e.type === 'quiz' && visitadas[e.id.replace(/-ej\d+$/, '')]);
+    const claveQ = (e) => 'q:' + e.id;
+    const LETRA = 'ABCDEFGH';
+    const CFG_PREG = {
+      clave: claveQ,
+      volver: { href: '#/repaso', texto: 'Tarjetas de repaso' },
+      frente: (e) => { const l = LESSON_BY_ID.get(e.id.replace(/-ej\d+$/, '')); return `<p class="small muted" style="margin:0 0 6px">${l ? esc(l.titulo.split(' - ')[0]) : ''}</p><div class="prose rep-enun">${e.enunciado}</div><ol class="rep-opts" type="A">${e.opciones.map((o) => `<li>${o.text}</li>`).join('')}</ol><p class="rep-preg">Piensa la respuesta antes de dar vuelta la tarjeta.</p>`; },
+      dorso: (e) => { const i = e.opciones.findIndex((o) => o.ok); return `<div class="rep-def"><h4>✓ Respuesta ${LETRA[i]}</h4><p>${e.opciones[i].text}</p>${e.explicacion ? `<h4>Por qué</h4>${e.explicacion}` : ''}<p class="small"><a href="#/l/${e.id.replace(/-ej\d+$/, '')}">Volver a la lección ↗</a></p></div>`; },
+    };
+    const pintarPreg = () => {
+      const c = tarjetas(), ahora = Date.now();
+      const vistas = preguntas.filter((e) => c[claveQ(e)]);
+      const pend = vistas.filter((e) => c[claveQ(e)].due <= ahora).length, nuevas = preguntas.length - vistas.length;
+      const dom = vistas.filter((e) => c[claveQ(e)].b >= 4).length;
+      $('#qstats').innerHTML = `<div class="stat"><b>${pend}</b><span>para repasar hoy</span></div><div class="stat"><b>${nuevas}</b><span>sin ver todavía</span></div><div class="stat"><b>${dom}</b><span>dominadas</span></div><div class="stat"><b>${preguntas.length}</b><span>de ${Object.keys(visitadas).length} lecciones abiertas</span></div>`;
+      const n = Math.min(POR_SESION, pend + Math.min(nuevas, NUEVAS_POR_SESION));
+      $('#qstart').disabled = !preguntas.length;
+      $('#qstart').textContent = !preguntas.length ? 'Abre alguna lección para sumar preguntas' : n ? `Repasar ${n} preguntas →` : 'Practicar igual →';
+      $('#qinfo').textContent = preguntas.length && !n ? '¡Al día! Puedes practicar con preguntas al azar.' : '';
+    };
+    $('#qstart').addEventListener('click', () => {
+      const c = tarjetas(), ahora = Date.now();
+      const pend = preguntas.filter((e) => c[claveQ(e)] && c[claveQ(e)].due <= ahora).sort((a, b) => c[claveQ(a)].due - c[claveQ(b)].due);
+      const nuevas = barajar(preguntas.filter((e) => !c[claveQ(e)])).slice(0, NUEVAS_POR_SESION);
+      let mazo = [...pend, ...nuevas].slice(0, POR_SESION);
+      if (!mazo.length) mazo = barajar(preguntas).slice(0, POR_SESION);
+      sesionRepaso(barajar(mazo), 'explicar', CFG_PREG);
+    });
+    pintarPreg();
     const deArea = () => G.filter((g) => !area || g.area === area);
     const pintarInicio = () => {
       const c = tarjetas(), ahora = Date.now(), lista = deArea();

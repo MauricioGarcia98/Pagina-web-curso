@@ -38,6 +38,16 @@ Margen % = DIVIDE([Ventas] - [Costo], [Ventas])
 `RELATED` va del lado varios al lado uno (de la línea a su producto): devuelve **un** valor. Para ir al revés, de un producto a todas sus líneas, se usa `RELATEDTABLE`, que devuelve una tabla.
 :::
 
+Con `RELATEDTABLE` puedes contar, desde cada cliente, sus pedidos. Por ejemplo, para saber cuántos clientes compraron 3 veces o más:
+
+```dax
+Clientes frecuentes = COUNTROWS(FILTER(clientes, COUNTROWS(RELATEDTABLE(pedidos)) >= 3))
+```
+
+:::tip LOOKUPVALUE cuando no hay relación
+`LOOKUPVALUE(productos[nombre], productos[producto_id], 25)` busca un valor por clave, como un BUSCARV de Excel. Úsalo solo cuando **no** hay relación entre las tablas: si la hay, `RELATED` es más simple y más rápido.
+:::
+
 ## Iterar sobre los valores de una columna
 
 `AVERAGEX(VALUES(clientes[segmento]), [Ventas])` calcula las ventas de **cada** segmento y después las promedia. Es distinto de `AVERAGE`, que promedia filas.
@@ -154,6 +164,25 @@ Venta promedio por segmento = AVERAGEX(VALUES(clientes[segmento]), [Ventas])
 ```
 ```pista
 Recorre los valores distintos del segmento con `VALUES(clientes[segmento])` y promedia `[Ventas]` con `AVERAGEX`.
+```
+:::
+
+:::ejercicio dax dificultad=Avanzado titulo="Clientes frecuentes con RELATEDTABLE"
+Escribe **Clientes frecuentes**: cuántos clientes hicieron **3 pedidos o más**. Recorre los clientes con `FILTER` y cuenta los pedidos de cada uno con `RELATEDTABLE`. Se evalúa por segmento.
+```dax prueba
+EVALUATE SUMMARIZECOLUMNS(clientes[segmento], "Frecuentes", [?])
+```
+```dax inicial
+Clientes frecuentes = COUNTROWS(FILTER(clientes, ...))
+```
+```dax solucion
+Clientes frecuentes = COUNTROWS(FILTER(clientes, COUNTROWS(RELATEDTABLE(pedidos)) >= 3))
+```
+```pista
+Dentro de `FILTER(clientes, …)` estás parado en un cliente: `RELATEDTABLE(pedidos)` son **sus** pedidos.
+```
+```pista
+La condición completa es `COUNTROWS(RELATEDTABLE(pedidos)) >= 3`.
 ```
 :::
 
