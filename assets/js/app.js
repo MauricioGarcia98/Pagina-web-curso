@@ -701,18 +701,42 @@
     });
   }
 
+  // Rúbrica de autoevaluación para las respuestas libres: antes de marcar "Lo hice", la persona compara su
+  // respuesta con criterios concretos. Si el ejercicio no trae rúbrica, se arma una a partir de los temas
+  // de la respuesta modelo (las líneas "Tema: …") y se completa con criterios generales.
+  function rubricaDe(ex) {
+    if (ex.rubrica) return String(ex.rubrica).split('\n').map((x) => x.trim()).filter(Boolean);
+    const temas = (ex.solucion || '').split('\n').map((l) => (/^\s*(?:[-*\d.)]+\s*)?([A-ZÁÉÍÓÚÑ][^:.]{2,38}):\s+\S/.exec(l) || [])[1]).filter(Boolean);
+    const r = temas.slice(0, 7).map((t) => `Cubre ${t.toLowerCase()}`);
+    r.push('Justifica las decisiones (dice por qué, no solo qué)');
+    if (r.length < 4) r.push('Nombra herramientas, tablas o números concretos', 'Menciona al menos un riesgo o una alternativa');
+    return r;
+  }
   function mountOpen(card, ex, markPassed, extra, showExtra) {
     const box = h('<div class="open-answer"><textarea spellcheck="false" placeholder="Escribe tu respuesta o tu código aquí…"></textarea></div>');
     const ta = $('textarea', box);
     ta.value = Store.code(ex.id) || ex.inicial || '';
     ta.addEventListener('input', () => Store.setCode(ex.id, ta.value));
-    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
-    card.append(box, tools, extra);
+    const rub = rubricaDe(ex);
+    const tools = h(`<div class="ex-tools">${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}<button class="btn btn-sm" data-act="rub">📋 Revisar con la rúbrica</button><button class="btn btn-sm" data-act="sol">👁 Ver respuesta modelo</button><span class="spacer"></span><button class="btn btn-ok btn-sm" data-act="done">✓ Lo hice</button></div>`);
+    const rubBox = h(`<div class="rubrica" hidden><h5>¿Tu respuesta cumple con esto?</h5><p class="small muted" style="margin:0 0 6px">Marca solo lo que tu respuesta realmente tiene. Lo que falte, agrégalo antes de seguir: así se entrena lo que se evalúa en una entrevista.</p>${rub.map((r, i) => `<label class="auto-item"><input type="checkbox" data-r="${i}"><span>${esc(r)}</span></label>`).join('')}<div class="small" data-rcuenta></div></div>`);
+    card.append(box, rubBox, tools, extra);
+    const marcas = () => $$('[data-r]', rubBox).filter((c) => c.checked).length;
+    const pintarCuenta = () => {
+      const n = marcas(), min = Math.ceil(rub.length * 0.7);
+      $('[data-rcuenta]', rubBox).innerHTML = n >= min ? `<span class="ok-mark">✓</span> ${n} de ${rub.length}: ¡bien! Ya puedes marcarlo como hecho.` : `${n} de ${rub.length}. Para darlo por hecho, apunta a cumplir al menos ${min}.`;
+    };
+    rubBox.addEventListener('change', pintarCuenta); pintarCuenta();
     tools.addEventListener('click', (e) => {
       const a = e.target.closest('[data-act]')?.dataset.act;
       if (a === 'hint') mostrarPista(ex, showExtra, e.target.closest('[data-act]'));
+      if (a === 'rub') { rubBox.hidden = !rubBox.hidden; if (!rubBox.hidden) rubBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
       if (a === 'sol') showExtra('Respuesta modelo', (ex.solucion ? `<pre data-lang="${esc(ex.lang || 'text')}"><code>${esc(ex.solucion)}</code></pre>` : '') + (ex.explicacion || ''));
-      if (a === 'done') { markPassed(); toast('¡Bien! Marcado como hecho.'); }
+      if (a === 'done') {
+        if (!ta.value.trim()) { toast('Primero escribe tu respuesta: es la única forma de que se te quede.'); ta.focus(); return; }
+        if (marcas() < Math.ceil(rub.length * 0.7)) { rubBox.hidden = false; rubBox.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); toast('Antes, revisa tu respuesta con la rúbrica.'); return; }
+        markPassed(); toast('¡Bien! Marcado como hecho.');
+      }
     });
   }
 
@@ -872,11 +896,12 @@
     ['#/lab/python', '🐍', 'Python', 'lab-python'], ['#/lab/pyspark', '⚡', 'PySpark', 'lab-pyspark'],
     ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
     ['#/modelado', '📐', 'Modelado de datos', 'modelado'], ['#/generador', '🏭', 'Generador de datos', 'generador'],
+    ['#/trabajo', '💼', 'Tu primer trabajo (simulación)', 'trabajo'],
   ];
   function renderSidebar(route) {
     const sb = $('#sidebar');
     const cur = route.lesson ? route.lesson.modulo.id : route.module ? route.module.id : null;
-    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso'].includes(route.name);
+    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo', 'trabajo'].includes(route.name);
     const etapaAbierta = cur ? etapaDeModulo(cur) : fueraDelCurso ? null : etapaActual();
     const link = (href, ico, text, active, meta = '') => `<a class="side-link ${active ? 'active' : ''}" href="${href}"><span class="ico">${ico}</span><span>${text}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</a>`;
     let html = link('#/', '🏠', 'Inicio', route.name === 'home');
@@ -907,7 +932,7 @@
     }
     const enLab = LABS_MENU.some((x) => x[3] === route.name);
     html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧪</span><span class="st-name">Laboratorios: practica libre</span><span class="chev">▶</span></summary>${LABS_MENU.map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
-    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso'];
+    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo'];
     html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
@@ -915,6 +940,7 @@
     html += link('#/repaso', '🃏', 'Tarjetas de repaso', route.name === 'repaso');
     html += link('#/examenes', '📝', 'Exámenes y certificado', route.name === 'examenes' || route.name === 'examen');
     if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
+    html += link('#/revisar-repo', '🔎', 'Revisar mi proyecto en GitHub', route.name === 'revisar-repo');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     html += '</details>';
     sb.innerHTML = html;
@@ -966,6 +992,8 @@
     ['#/lab/pyspark', '⚡', 'PySpark', 'la API de Spark con las tablas del curso'],
     ['#/lab/dbt', '🔧', 'dbt', 'modelos, ref() y Jinja compilado a SQL'],
     ['#/lab/airflow', '🌬️', 'Airflow', 'DAGs, operadores y dependencias'],
+    ['#/trabajo', '💼', 'Tu primer trabajo', 'una semana simulada: tickets, PR con revisión y una guardia'],
+    ['#/revisar-repo', '🔎', 'Revisar mi proyecto', 'tu repositorio de GitHub evaluado como en una entrevista'],
   ];
   function viewHome() {
     const tp = totalProgress();
@@ -1339,6 +1367,44 @@
   }
   const AIRFLOW_SAMPLES = () => ((window.ExplicaCodigo && window.ExplicaCodigo.CHULETAS.airflow) || []).flatMap((s) => s.ej).filter(([c]) => /DAG|@dag/.test(c)).map(([c, d]) => [d.charAt(0).toUpperCase() + d.slice(1), c]);
 
+  // ---------------------------------------------------------------- medidor de costo (laboratorio SQL)
+  // Estima cuántos bytes leería la consulta en un warehouse columnar (se paga por las columnas que lees de
+  // cada tabla) y cuánto costaría en BigQuery a demanda si las tablas tuvieran tamaño de producción.
+  // Precio y mínimos de la página oficial de BigQuery: 6,25 US$ por TiB, mínimo 10 MB por tabla referenciada.
+  const BQ_USD_TIB = 6.25, ESCALA_PROD = 10000, MB = 1048576;
+  const fmtBytes = (b) => fmtBytesPunto(b).replace('.', ',');
+  const fmtBytesPunto = (b) => (b >= 1099511627776 ? (b / 1099511627776).toFixed(2) + ' TiB' : b >= 1073741824 ? (b / 1073741824).toFixed(1) + ' GB' : b >= MB ? (b / MB).toFixed(1) + ' MB' : b >= 1024 ? (b / 1024).toFixed(0) + ' KB' : Math.round(b) + ' B');
+  const tamCols = new Map();
+  function estimarLectura(sql) {
+    const T = SQL.tables; if (!T) return null;
+    const limpio = sql.replace(/--[^\n]*/g, ' ').replace(/'[^']*'/g, "''");
+    const tablas = [...new Set([...limpio.matchAll(/\b(?:from|join)\s+([a-z_]\w*)/gi)].map((m) => m[1].toLowerCase()).filter((n) => T[n]))];
+    if (!tablas.length) return null;
+    const tokens = new Set(limpio.toLowerCase().match(/[a-z_][a-z0-9_]*/g) || []);
+    const estrella = /select\s+(?:distinct\s+)?\*|\w\.\*/i.test(limpio);
+    let bytes = 0, todas = 0, prod = 0;
+    for (const n of tablas) {
+      const t = T[n];
+      if (!tamCols.has(n)) { const m = t.rows.slice(0, 300); tamCols.set(n, t.columns.map((c, i) => m.reduce((x, r) => x + (r[i] == null ? 1 : typeof r[i] === 'number' ? 8 : String(r[i]).length + 2), 0) / Math.max(1, m.length))); }
+      const tam = tamCols.get(n);
+      const usadas = estrella ? tam.map((_, i) => i) : t.columns.map((c, i) => (tokens.has(c.toLowerCase()) ? i : -1)).filter((i) => i >= 0);
+      const b = t.rows.length * usadas.reduce((x, i) => x + tam[i], 0);
+      bytes += b; todas += t.rows.length * tam.reduce((x, y) => x + y, 0);
+      prod += Math.max(10 * MB, b * ESCALA_PROD);
+    }
+    prod = Math.max(10 * MB, prod);
+    return { bytes, todas, prod, usd: (prod / 1099511627776) * BQ_USD_TIB, tablas, estrella, where: /\bwhere\b/i.test(limpio), limit: /\blimit\b/i.test(limpio) };
+  }
+  function costoHtml(sql) {
+    const e = estimarLectura(sql); if (!e) return '';
+    const consejos = [];
+    if (e.estrella) consejos.push('<b>Evita <code>SELECT *</code></b>: en un warehouse columnar pagas por cada columna que lees, la uses o no.');
+    if (e.estrella && e.limit) consejos.push('<b><code>LIMIT</code> no abarata</b> en BigQuery: igual se leen las columnas completas. Para mirar datos gratis, usa la vista previa de la tabla.');
+    if (!e.where) consejos.push('Sin <code>WHERE</code> se lee la tabla entera. En producción las tablas grandes se <b>particionan por fecha</b>: filtrar por esa columna lee solo los días que pides.');
+    return `<details class="costo"><summary>💸 Esta consulta leería <b>${fmtBytes(e.bytes)}</b>${e.bytes < e.todas * 0.98 ? ` (de ${fmtBytes(e.todas)} si leyera todas las columnas)` : ''} · en producción ≈ <b>${fmtBytes(e.prod)}</b> → <b>US$ ${(e.usd < 0.01 ? e.usd.toFixed(4) : e.usd.toFixed(2)).replace('.', ',')}</b> por ejecución</summary>
+      <div class="small"><p style="margin:6px 0">Cómo se calcula: tamaño promedio de cada columna que usa la consulta × filas de ${e.tablas.map((t) => `<code>${esc(t)}</code>`).join(', ')}. "En producción" supone tablas ${ESCALA_PROD.toLocaleString('es')} veces más grandes y el precio a demanda de BigQuery (US$ ${BQ_USD_TIB} por TiB, mínimo 10 MB por tabla). Si este tablero la ejecuta cada 5 minutos, son unas ${(12 * 24 * 30).toLocaleString('es')} ejecuciones al mes: <b>US$ ${(e.usd * 8640).toFixed(2).replace('.', ',')}</b>.</p>${consejos.length ? `<ul style="margin:4px 0 2px">${consejos.map((c) => `<li>${c}</li>`).join('')}</ul>` : '<p style="margin:4px 0">✓ Lee solo las columnas que necesita y filtra: buena práctica.</p>'}</div></details>`;
+  }
+
   function viewLabSql() {
     const SM = window.SqlMotores;
     const MOT = SM.MOTORES;
@@ -1378,6 +1444,7 @@
         out.innerHTML = `<pre class="console"><span class="err">${esc(motor === 'postgres' ? 'No se pudo cargar PostgreSQL (PGlite) desde cdn.jsdelivr.net: ' + e.message + '\nRevisa tu conexión o prueba con otro motor.' : e.message)}</span></pre>`; return;
       }
       renderSqlOutput(out, r);
+      if (r.ok !== false) { const c = costoHtml(ed.getValue()); if (c) out.append(h(c)); }
       if (expl) expl.actualizar(ed.getValue(), r, { pasos: motor === 'sqlite' });
       if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`));
       if (r.traducido) out.append(h(`<details class="motor-trad"><summary>Ver cómo se tradujo a SQLite</summary><pre data-lang="sql"><code>${esc(r.traducido)}</code></pre></details>`));
@@ -2501,6 +2568,8 @@
     if (parts[0] === 'diagnostico') return { name: 'diagnostico' };
     if (parts[0] === 'notas') return { name: 'notas', params };
     if (parts[0] === 'generador') return { name: 'generador', params };
+    if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
+    if (parts[0] === 'trabajo') return { name: 'trabajo', params };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -2530,6 +2599,8 @@
     else if (r.name === 'modelado') window.Modelado.vista(main, { h, esc, createEditor, Store, toast, abrirEnLab, $, $$ });
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
+    else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
+    else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
     else if (r.name === 'repaso') viewRepaso();
