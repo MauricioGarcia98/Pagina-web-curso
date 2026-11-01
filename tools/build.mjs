@@ -188,7 +188,7 @@ function parseFrontMatter(src, file) {
   return { meta, body: src.slice(m[0].length) };
 }
 
-const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo', 'rubrica'];
+const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo', 'rubrica', 'prueba', 'medidas'];
 
 // "todos: base || frag1 || frag2" => el comando debe empezar con base y contener todos los fragmentos, en cualquier orden
 function cliPattern(line) {
@@ -232,7 +232,7 @@ function parseExercise(header, body, file, idx, lessonId) {
   if (ex.pistas) { ex.pistas = ex.pistas.map((x) => md(x)); ex.pista = ex.pistas[0]; }
   if (ex.explicacion) ex.explicacion = md(ex.explicacion);
   pistasAutomaticas(ex);
-  if (['sql', 'python', 'pyspark', 'airflow', 'dbt'].includes(type) && ex.solucion === undefined) throw new Error(`Ejercicio sin solución en ${file} (#${idx + 1})`);
+  if (['sql', 'python', 'pyspark', 'airflow', 'dbt', 'dax'].includes(type) && ex.solucion === undefined) throw new Error(`Ejercicio sin solución en ${file} (#${idx + 1})`);
   if (type === 'cli' && !ex.respuesta) throw new Error(`Ejercicio cli sin respuesta en ${file} (#${idx + 1})`);
   return ex;
 }

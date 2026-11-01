@@ -85,6 +85,22 @@
     ]
   },
   {
+    "id": "powerbi",
+    "titulo": "Power BI y DAX",
+    "icono": "📊",
+    "color": "#d9a400",
+    "descripcion": "Del modelo al tablero: Power BI Desktop y Service, el modelo semántico en estrella, las medidas DAX con su contexto de filtro, CALCULATE, iteradores, inteligencia de tiempo, consultas DAX y TMDL. Los ejercicios se corrigen solos sobre las tablas de la tienda y el proyecto se arma en el Power BI de práctica con cualquier dataset.",
+    "objetivos": [
+      "Explicar el recorrido Obtener datos → Power Query → Modelo → DAX → Informe → Publicar",
+      "Diseñar un modelo en estrella y entender cómo viajan los filtros",
+      "Escribir medidas con SUM, COUNTROWS, DISTINCTCOUNT y DIVIDE",
+      "Modificar el contexto de filtro con CALCULATE, ALL y KEEPFILTERS",
+      "Calcular fila por fila con SUMX, RELATED y RANKX",
+      "Comparar períodos con TOTALYTD, SAMEPERIODLASTYEAR y DATEADD",
+      "Consultar el modelo con EVALUATE y versionarlo en TMDL"
+    ]
+  },
+  {
     "id": "python",
     "titulo": "Python",
     "icono": "🐍",
