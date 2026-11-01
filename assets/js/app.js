@@ -3036,7 +3036,7 @@
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
-    else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql });
+    else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
