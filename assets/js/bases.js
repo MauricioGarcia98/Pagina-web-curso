@@ -9,7 +9,7 @@
   // rel: [tabla_hija, columna, tabla_padre, columna_padre, nota opcional]
   const BASES = [
     {
-      id: 'tienda', orden: ['clientes', 'productos', 'categorias', 'empleados', 'departamentos', 'pedidos', 'detalle_pedidos', 'pagos', 'eventos_web', 'logins', 'clientes_crudo', 'tipos_cambio', 'experimento_checkout'],
+      id: 'tienda', orden: ['clientes', 'productos', 'categorias', 'empleados', 'departamentos', 'pedidos', 'detalle_pedidos', 'pagos', 'eventos_web', 'logins', 'clientes_crudo', 'bronze_pedidos', 'bronze_eventos_app', 'tipos_cambio', 'experimento_checkout'],
       tablas: {
         clientes: { grano: 'un cliente', pk: ['cliente_id'] },
         productos: { grano: 'un producto del catálogo, con su precio vigente', pk: ['producto_id'] },
@@ -24,6 +24,8 @@
         clientes_crudo: { grano: 'un registro tal como llegó en la carga (puede repetir clientes)', pk: ['registro_id'] },
         tipos_cambio: { grano: 'una moneda en un día hábil', pk: ['fecha', 'moneda'] },
         experimento_checkout: { grano: 'un cliente asignado a la prueba A/B del checkout', pk: ['cliente_id'] },
+        bronze_pedidos: { grano: 'un registro tal como llegó en un archivo de la app (un pedido puede llegar más de una vez)', pk: ['registro_id'] },
+        bronze_eventos_app: { grano: 'un evento de la app, con su JSON original', pk: ['evento_id'] },
       },
       rels: [
         ['pedidos', 'cliente_id', 'clientes', 'cliente_id'], ['pedidos', 'empleado_id', 'empleados', 'empleado_id'],
@@ -33,6 +35,7 @@
         ['empleados', 'jefe_id', 'empleados', 'empleado_id'], ['eventos_web', 'cliente_id', 'clientes', 'cliente_id', 'opcional: los visitantes anónimos no tienen cliente'],
         ['logins', 'cliente_id', 'clientes', 'cliente_id'], ['clientes_crudo', 'cliente_id', 'clientes', 'cliente_id', 'lógica: es una tabla de aterrizaje sin restricciones'],
         ['experimento_checkout', 'cliente_id', 'clientes', 'cliente_id', 'de 1 a 0..1: cada cliente, como mucho una asignación'],
+        ['bronze_pedidos', 'pedido_id', 'pedidos', 'pedido_id', 'lógica y sin garantías: hay pedidos de prueba que no existen'],
       ],
       porQue: [
         ['Cabecera y detalle separados', 'Un pedido tiene varios productos. Si cada fila de <code>pedidos</code> llevara un producto, repetiríamos cliente, fecha y canal en cada línea, y cambiar uno obligaría a tocar muchas filas. Por eso <code>pedidos</code> guarda lo que es del pedido y <code>detalle_pedidos</code> lo que es de cada línea (tercera forma normal).'],
@@ -41,6 +44,7 @@
         ['Jerarquías con auto-referencia', 'Las categorías y el organigrama tienen profundidad variable. Una columna que apunta a la misma tabla (<code>categoria_padre_id</code>, <code>jefe_id</code>) permite cualquier cantidad de niveles; se recorren con CTE recursivas.'],
         ['Comportamiento separado de las transacciones', '<code>eventos_web</code> y <code>logins</code> son de alto volumen y solo se agregan filas (append-only). El <code>cliente_id</code> es opcional porque hay visitantes sin cuenta: por eso no conviene una restricción de clave foránea estricta.'],
         ['Una tabla de aterrizaje', '<code>clientes_crudo</code> es la capa bronze: guarda lo que llegó, con duplicados y formatos mezclados, para limpiarlo después sin perder el original.'],
+        ['Bronze: todo como texto', '<code>bronze_pedidos</code> y <code>bronze_eventos_app</code> guardan lo que mandó la app sin tocarlo: fechas, montos y estados como texto (porque llegan en varios formatos), el archivo de origen y cuándo se cargó. Tipar y limpiar es trabajo de la capa silver; si la limpieza tiene un error, se vuelve a correr desde aquí sin pedirle nada a nadie.'],
         ['Claves compuestas cuando el grano lo pide', 'En <code>logins</code> lo que identifica una fila es cliente + día, y en <code>tipos_cambio</code>, fecha + moneda. Agregar un id artificial no aporta nada y permitiría duplicados.'],
       ],
       estrella: {

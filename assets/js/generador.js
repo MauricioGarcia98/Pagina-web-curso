@@ -56,8 +56,18 @@
     if (sem === 1) w *= 0.85; if (sem === 6) w *= 1.08;
     return w;
   }
+  // Además de la estacionalidad: el negocio crece con el tiempo (+60 % entre el primer y el último día)
+  // y hay un día de caída del sistema con casi nada de actividad. Los dos son señales que un buen
+  // análisis de series de tiempo debería encontrar. CTX lo fija generar() antes de cada escenario.
+  const CTX = { t0: 0, t1: 1, caida: null };
+  function pesoTotal(t) {
+    const frac = CTX.t1 > CTX.t0 ? Math.min(1, Math.max(0, (t - CTX.t0) / (CTX.t1 - CTX.t0))) : 0;
+    let w = pesoDia(t) * (0.75 + 0.6 * frac);
+    if (CTX.caida !== null && Math.floor(t / DIA) === CTX.caida) w *= 0.04;
+    return w;
+  }
   function fechaPonderada(R, t0, t1) {
-    for (let k = 0; k < 30; k++) { const t = t0 + R.r() * (t1 - t0); if (R.r() * 2.2 < pesoDia(t)) return t; }
+    for (let k = 0; k < 30; k++) { const t = t0 + R.r() * (t1 - t0); if (R.r() * 3.2 < pesoTotal(t)) return t; }
     return t0 + R.r() * (t1 - t0);
   }
   const horaDelDia = (R) => R.pickW([0, 3, 6, 8, 10, 12, 14, 16, 18, 20, 21, 22, 23], [1, 0.3, 0.6, 2, 4, 5, 4, 4, 5, 6, 6, 4, 2]) * 3600000 + R.int(0, 3599) * 1000;
@@ -345,11 +355,16 @@
     huerfanos: ['Claves huérfanas', 'Claves foráneas que apuntan a filas que no existen.'],
     tardios: ['Datos tardíos', 'Agrega la columna cargado_en; algunas filas llegan días después del evento.'],
     mojibake: ['Mojibake', 'Textos con tildes rotas por una mala codificación (BogotÃ¡).'],
+    zonas: ['Zonas horarias mezcladas', 'Fechas de eventos en UTC, en hora local sin zona y con offset -03:00, mezcladas en la misma columna.'],
+    decimales: ['Números como texto', 'Montos con coma decimal y punto de miles (1.234,56) o con símbolo ($), como los exporta Excel.'],
+    esquema: ['Cambio de esquema', 'A mitad del período aparece una columna nueva (vacía antes) y un valor nuevo en el estado que nadie documentó.'],
+    pruebas: ['Registros de prueba', 'Filas del equipo de QA en producción: emails qa+N@, nombres TEST y montos de 1 centavo.'],
   };
   const MOJI = { á: 'Ã¡', é: 'Ã©', í: 'Ã­', ó: 'Ã³', ú: 'Ãº', ñ: 'Ã±', Á: 'Ã\u0081', É: 'Ã‰', Ó: 'Ã“' };
   function sembrar(R, tablas, prob) {
     const log = [];
     const nota = (tabla, problema, n, detalle) => { if (n) log.push({ tabla, problema, n, detalle }); };
+    let yaEsquema = false;
     for (const t of tablas) {
       const idx = (pred) => t.cols.map((c, i) => (pred(c) ? i : -1)).filter((i) => i >= 0);
       const n0 = t.filas.length;
@@ -385,6 +400,59 @@
         for (const f of t.filas) for (const i of cols) if (typeof f[i] === 'string' && /[áéíóúñÁÉÓ]/.test(f[i]) && R.chance(prob.mojibake / 100)) { f[i] = f[i].replace(/[áéíóúñÁÉÓ]/g, (x) => MOJI[x]); k++; }
         nota(t.nombre, 'mojibake', k, `textos con tildes rotas en ${cols.map((i) => t.cols[i].n).join(', ')}`);
       }
+      if (prob.zonas > 0 && t.hechos && iev >= 0 && t.cols[iev].t === 'ts') {
+        let k = 0;
+        for (const f of t.filas) {
+          if (typeof f[iev] !== 'string' || !R.chance(prob.zonas / 100)) continue;
+          const base = Date.parse(f[iev].replace(' ', 'T') + 'Z');
+          // misma hora real, escrita de otra forma: con offset de Argentina/Chile o en hora local sin zona
+          f[iev] = R.chance(0.5) ? new Date(base - 3 * 3600000).toISOString().slice(0, 19) + '-03:00' : new Date(base - 3 * 3600000).toISOString().slice(0, 19).replace('T', ' ');
+          k++;
+        }
+        if (k) t.cols[iev].sucio = 1;
+        nota(t.nombre, 'zonas', k, `fechas de ${t.cols[iev].n} con offset -03:00 o en hora local sin zona (las demás están en UTC)`);
+      }
+      if (prob.decimales > 0) {
+        let k = 0; const cols = idx((c) => c.num && c.t === 'dec');
+        for (const f of t.filas) for (const i of cols) if (typeof f[i] === 'number' && R.chance(prob.decimales / 100)) {
+          const x = f[i].toFixed(2);
+          f[i] = R.chance(0.6) ? x.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '$' + x; k++;
+        }
+        if (k) cols.forEach((i) => { t.cols[i].sucio = 1; });
+        nota(t.nombre, 'decimales', k, `montos como texto (1.234,56 o $1234.56) en ${cols.map((i) => t.cols[i].n).join(', ')}`);
+      }
+      if (prob.esquema > 0 && t.hechos && iev >= 0 && !yaEsquema) {
+        yaEsquema = true;
+        // columna nueva desde la mitad del período y un estado nuevo
+        const mitad = (CTX.t0 + CTX.t1) / 2;
+        const fechaDe = (v) => { const x = String(v).replace(' ', 'T').slice(0, 19); return Date.parse((x.length === 10 ? x + 'T00:00:00' : x) + 'Z'); };
+        t.cols.push({ n: 'canal_origen_v2', t: 'text' }); let kc = 0;
+        for (const f of t.filas) { const nuevo = fechaDe(f[iev]) >= mitad; f.push(nuevo ? R.pick(['ios', 'android', 'web_v2', 'partner']) : null); if (nuevo) kc++; }
+        nota(t.nombre, 'esquema', kc, `filas con la columna nueva canal_origen_v2 (no existe antes de ${ymd(mitad)})`);
+        const ie = t.cols.findIndex((c) => c.n === 'estado');
+        if (ie >= 0) { let ke = 0; for (const f of t.filas) if (fechaDe(f[iev]) >= mitad && R.chance(prob.esquema / 200)) { f[ie] = 'en_revision'; ke++; } nota(t.nombre, 'esquema', ke, 'filas con el estado nuevo "en_revision" (aparece a mitad del período)'); }
+      }
+      if (prob.pruebas > 0 && !t.hechos) {
+        const ie = t.cols.findIndex((c) => c.n === 'email');
+        if (ie >= 0) {
+          const n = Math.max(1, Math.round(t.filas.length * prob.pruebas / 400)); const pk = t.cols.findIndex((c) => c.n === t.pk);
+          let max = t.filas.reduce((m, f) => (typeof f[pk] === 'number' && f[pk] > m ? f[pk] : m), 0);
+          for (let k = 1; k <= n; k++) {
+            const g = t.filas[R.int(0, t.filas.length - 1)].slice();
+            if (pk >= 0 && typeof g[pk] === 'number') g[pk] = ++max;
+            g[ie] = `qa+${k}@empresa-pruebas.com`;
+            t.cols.forEach((c, i) => { if (/^(nombre|apellido|nombre_completo)$/.test(c.n)) g[i] = 'TEST'; });
+            t.filas.push(g);
+          }
+          nota(t.nombre, 'pruebas', n, 'filas de prueba (email qa+N@empresa-pruebas.com, nombre TEST)');
+        }
+      }
+      if (prob.pruebas > 0 && t.hechos) {
+        const cols = t.cols.map((c, i) => (c.num && c.t === 'dec' ? i : -1)).filter((i) => i >= 0);
+        let k = 0;
+        if (cols.length) for (const f of t.filas) if (R.chance(prob.pruebas / 300)) { cols.forEach((i) => { if (typeof f[i] === 'number') f[i] = 0.01; }); k++; }
+        nota(t.nombre, 'pruebas', k, `filas de prueba con montos de 0.01 en ${cols.map((i) => t.cols[i].n).join(', ')}`);
+      }
       if (prob.duplicados > 0 && t.hechos) {
         let k = 0; const extra = [];
         for (const f of t.filas) if (R.chance(prob.duplicados / 100)) { const g = f.slice(); const icl = t.cols.findIndex((c) => c.n === 'cargado_en'); if (icl >= 0 && R.chance(0.6)) g[icl] = ts(Date.parse(String(g[icl]).replace(' ', 'T') + 'Z') + R.int(5, 120) * 60000); extra.push([R.int(0, t.filas.length), g]); k++; }
@@ -401,9 +469,29 @@
     const esq = ESCENARIOS[cfg.escenario];
     const R = crearAzar(cfg.semilla);
     const c = { n: cfg.n, paises: cfg.paises.length ? cfg.paises : Object.keys(PAISES), t0: Date.parse(cfg.desde + 'T00:00:00Z'), t1: Date.parse(cfg.hasta + 'T23:59:59Z') };
+    const dias = Math.max(1, Math.floor((c.t1 - c.t0) / DIA));
+    CTX.t0 = c.t0; CTX.t1 = c.t1;
+    CTX.caida = dias >= 20 ? Math.floor(c.t0 / DIA) + crearAzar(cfg.semilla + 7).int(Math.floor(dias * 0.3), Math.floor(dias * 0.8)) : null;
     const tablas = esq.generar(R, c);
+    // el día de la caída casi no se registra nada: lo que entró ese día se procesa al día siguiente
+    // (como cuando un sistema vuelve y procesa la cola atrasada: un hueco y después un pico)
+    if (CTX.caida !== null) {
+      const dia = ymd(CTX.caida * DIA), sig = ymd((CTX.caida + 1) * DIA), Rc = crearAzar(cfg.semilla + 11);
+      for (const t of tablas) {
+        if (!t.hechos) continue;
+        const ie = t.cols.findIndex((x) => x.evento); if (ie < 0) continue;
+        for (const f of t.filas) if (typeof f[ie] === 'string' && f[ie].startsWith(dia) && Rc.chance(0.95)) f[ie] = sig + f[ie].slice(10);
+        t.filas.sort((a, b) => (String(a[ie]) < String(b[ie]) ? -1 : String(a[ie]) > String(b[ie]) ? 1 : 0));
+      }
+    }
     const log = sembrar(crearAzar(cfg.semilla + 1), tablas, cfg.problemas);
-    return { cfg, esq, tablas, log };
+    const patrones = [
+      'Estacionalidad: más actividad en noviembre y diciembre (Black Friday y Navidad), menos los lunes y más los sábados.',
+      'Crecimiento: el último mes del período tiene alrededor de un 60 % más de actividad que el primero.',
+      'Clientes frecuentes: pocos clientes concentran muchas compras (distribución de Pareto).',
+    ];
+    if (CTX.caida !== null) patrones.push(`Caída del sistema: el ${ymd(CTX.caida * DIA)} casi no se registró actividad y al día siguiente hay un pico (se procesó lo atrasado). Búscalo con una serie diaria.`);
+    return { cfg, esq, tablas, log, patrones };
   }
 
   // ---------------------------------------------------------------- formatos de salida
@@ -418,7 +506,7 @@
   };
   const DIALECTOS = { postgres: 'PostgreSQL / DuckDB', mysql: 'MySQL', sqlserver: 'SQL Server', sqlite: 'SQLite' };
   // con problemas de formato, una columna de fecha puede traer texto: se declara como texto (así se carga como en la vida real)
-  const tipoCol = (c, d, sucio) => TIPOS_SQL[d][(sucio && (c.t === 'date' || c.t === 'ts') && !c.evento) ? 'text' : c.t];
+  const tipoCol = (c, d, sucio) => TIPOS_SQL[d][(c.sucio || (sucio && (c.t === 'date' || c.t === 'ts') && !c.evento)) ? 'text' : c.t];
   function ddl(t, d, sucio) {
     const q = (n) => (d === 'mysql' ? `\`${n}\`` : d === 'sqlserver' ? `[${n}]` : `"${n}"`);
     // sin PRIMARY KEY si hay duplicados sembrados: la tabla tiene que poder cargarlos
@@ -464,6 +552,10 @@ ${esq.rels.map(([a, b]) => `- \`${a}\` → \`${b}\``).join('\n')}
 ## Problemas de calidad sembrados
 
 ${log.length ? (cfg.soluciones ? Object.entries(porProb).map(([p, ls]) => `### ${PROBLEMAS[p][0]}\n${ls.map((l) => `- \`${l.tabla}\`: ${l.n.toLocaleString('es')} ${l.detalle}`).join('\n')}`).join('\n\n') : `Este dataset tiene problemas sembrados (${Object.keys(porProb).map((p) => PROBLEMAS[p][0].toLowerCase()).join(', ')}). La cantidad exacta no se incluye: encontrarlos es parte del ejercicio.`) : 'Ninguno: es un dataset limpio.'}
+
+## Patrones de negocio (lo que el análisis debería encontrar)
+
+${cfg.soluciones ? (res.patrones || []).map((x) => `- ${x}`).join('\n') : 'Los datos tienen estacionalidad, crecimiento, clientes frecuentes y un día con un incidente. Encuéntralos (activa "Incluir en el README cuántos problemas se sembraron" para ver las respuestas).'}
 
 ## Ideas de preguntas para tu proyecto
 
@@ -533,7 +625,7 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
   }
 
   // ---------------------------------------------------------------- configuración <-> URL
-  const DEF = { escenario: 'ecommerce', n: 2000, semilla: 42, desde: '2024-01-01', hasta: '2024-12-31', paises: [], problemas: { duplicados: 0, nulos: 0, formatos: 0, atipicos: 0, huerfanos: 0, tardios: 0, mojibake: 0 }, formato: 'csv', dialecto: 'postgres', soluciones: true };
+  const DEF = { escenario: 'ecommerce', n: 2000, semilla: 42, desde: '2024-01-01', hasta: '2024-12-31', paises: [], problemas: { duplicados: 0, nulos: 0, formatos: 0, atipicos: 0, huerfanos: 0, tardios: 0, mojibake: 0, zonas: 0, decimales: 0, esquema: 0, pruebas: 0 }, formato: 'csv', dialecto: 'postgres', soluciones: true };
   function aParams(c) {
     const p = new URLSearchParams({ esc: c.escenario, n: c.n, semilla: c.semilla, desde: c.desde, hasta: c.hasta });
     if (c.paises.length) p.set('paises', c.paises.map((x) => PAISES[x].cod).join(','));
@@ -610,7 +702,7 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
     $('#genDado').addEventListener('click', () => { F.semilla.value = Math.floor(Math.random() * 999998) + 1; leerCfg(); });
     main.querySelector('.gen-presets').addEventListener('click', (e) => {
       const b = e.target.closest('[data-pp]'); if (!b) return;
-      const P = [{}, { duplicados: 2, nulos: 4, formatos: 5, atipicos: 1, huerfanos: 1, tardios: 3, mojibake: 1 }, { duplicados: 8, nulos: 12, formatos: 15, atipicos: 5, huerfanos: 6, tardios: 10, mojibake: 5 }][Number(b.dataset.pp)];
+      const P = [{}, { duplicados: 2, nulos: 4, formatos: 5, atipicos: 1, huerfanos: 1, tardios: 3, mojibake: 1, zonas: 3, decimales: 2, esquema: 4, pruebas: 1 }, { duplicados: 8, nulos: 12, formatos: 15, atipicos: 5, huerfanos: 6, tardios: 10, mojibake: 5, zonas: 12, decimales: 10, esquema: 12, pruebas: 5 }][Number(b.dataset.pp)];
       for (const k of Object.keys(PROBLEMAS)) cfg.problemas[k] = P[k] || 0; pintarCfg();
     });
 
@@ -622,6 +714,7 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
         <div class="gen-res-cab"><div><h3 style="margin:0">${res.esq.icono} ${esc(res.esq.titulo)}</h3><span class="small muted">${res.tablas.length} tablas · ${total.toLocaleString('es')} filas · semilla ${res.cfg.semilla} · generado en ${res.ms} ms</span></div>
           <div class="gen-acc"><button class="btn btn-primary" id="genZip">⬇ Descargar .zip</button><button class="btn" id="genTerm" title="Copia los CSV a ~/datos/generados en la terminal del curso">⌨ Enviar a la terminal</button><button class="btn btn-ghost" id="genLink" title="Copiar un enlace que regenera exactamente estos datos">🔗 Enlace</button></div></div>
         ${res.log.length ? `<details class="gen-log"><summary>🐞 Problemas sembrados: ${res.log.reduce((s, l) => s + l.n, 0).toLocaleString('es')} en ${new Set(res.log.map((l) => l.tabla)).size} tablas</summary><ul>${res.log.map((l) => `<li><b>${esc(l.tabla)}</b> · ${esc(PROBLEMAS[l.problema][0])}: ${l.n.toLocaleString('es')} ${esc(l.detalle)}</li>`).join('')}</ul></details>` : '<p class="small muted">Dataset limpio: sin problemas sembrados.</p>'}
+        ${res.patrones ? `<details class="gen-log"><summary>📈 Patrones de negocio escondidos en los datos (${res.patrones.length})</summary><ul>${res.patrones.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></details>` : ''}
         <div class="gen-tabs">${res.tablas.map((x, i) => `<button class="${i === tablaAct ? 'on' : ''}" data-t="${i}">${esc(x.nombre)} <small>${x.filas.length.toLocaleString('es')}</small></button>`).join('')}</div>
         <p class="small muted" style="margin:6px 0">${esc(t.desc)}. ${t.pk ? `Clave: <code>${esc(t.pk)}</code>.` : ''} Columnas con nulos: ${t.cols.map((c, i) => (nulos[i] ? `<code>${esc(c.n)}</code> ${((100 * nulos[i]) / Math.max(1, t.filas.length)).toFixed(1)}%` : '')).filter(Boolean).join(', ') || 'ninguna'}.
           <button class="btn btn-ghost btn-sm" data-dl="${tablaAct}">⬇ Solo esta tabla</button></p>
@@ -666,7 +759,7 @@ az storage fs directory upload --account-name <cuenta> -f crudo -s "./*.csv" -d 
   // ---------------------------------------------------------------- comando de terminal: generar-datos
   const Sh = window.Shell;
   if (Sh && Sh.def) {
-    const NIVELES = { limpio: {}, realista: { duplicados: 2, nulos: 4, formatos: 5, atipicos: 1, huerfanos: 1, tardios: 3, mojibake: 1 }, caotico: { duplicados: 8, nulos: 12, formatos: 15, atipicos: 5, huerfanos: 6, tardios: 10, mojibake: 5 } };
+    const NIVELES = { limpio: {}, realista: { duplicados: 2, nulos: 4, formatos: 5, atipicos: 1, huerfanos: 1, tardios: 3, mojibake: 1, zonas: 3, decimales: 2, esquema: 4, pruebas: 1 }, caotico: { duplicados: 8, nulos: 12, formatos: 15, atipicos: 5, huerfanos: 6, tardios: 10, mojibake: 5, zonas: 12, decimales: 10, esquema: 12, pruebas: 5 } };
     Sh.def('generar-datos', 'crea un dataset de proyecto: generar-datos ecommerce --filas 500 --semilla 42 --problemas realista', (a) => {
       const { flags, pos } = Sh.parseArgs(a, {});
       const esc = pos[0];

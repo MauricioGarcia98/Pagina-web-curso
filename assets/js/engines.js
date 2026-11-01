@@ -493,7 +493,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     _tables() {
       if (!this._tablesJson) {
         const T = SQL.tables || window.DataGen.build();
-        const pick = Object.keys(T).filter((k) => !['logins', 'tipos_cambio', 'clientes_crudo'].includes(k));
+        const pick = Object.keys(T).filter((k) => !['logins', 'tipos_cambio', 'clientes_crudo', 'bronze_pedidos', 'bronze_eventos_app'].includes(k));
         this._tablesJson = JSON.stringify(Object.fromEntries(pick.map((k) => [k, T[k]])));
       }
       return this._tablesJson;
