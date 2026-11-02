@@ -509,3 +509,7 @@ a.gh-label-rama:hover { text-decoration: underline; }
   .gh-tl-com > .gh-av, .gh-tl-nuevo > .gh-av, .gh-com-nueva > .gh-av { display: none; }
   .gh-menu-code, .gh-menu-review { position: fixed; left: 16px !important; right: 16px !important; top: 120px; width: auto; }
 }
+
+/* con la terminal abierta, el botón de retos sube */
+body.gh-term-on .rh-btn { bottom: calc(38vh + 18px); }
+body.gh-term-on .rh-panel { bottom: calc(38vh + 70px); max-height: calc(62vh - 120px); }

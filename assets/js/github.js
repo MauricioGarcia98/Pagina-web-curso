@@ -332,6 +332,7 @@
     if (!mismaRuta) pag.scrollTop = 0;
     g.classList.toggle('gh-con-term', termAbierta);
     g.querySelector('#ghTerm').hidden = !termAbierta;
+    document.body.classList.toggle('gh-term-on', termAbierta);
     enlazarMenus(pag);
     const q = g.querySelector('#ghQ');
     q.addEventListener('keydown', (e) => {
@@ -350,6 +351,7 @@
     const g = document.getElementById('ghp'); if (!g) return;
     g.classList.toggle('gh-con-term', termAbierta);
     g.querySelector('#ghTerm').hidden = !termAbierta;
+    document.body.classList.toggle('gh-term-on', termAbierta);
     if (termAbierta) montarTerminal(true);
   }
   function montarTerminal(foco) {
@@ -838,7 +840,7 @@
     document.body.classList.add('gh-abierto');
     render();
   }
-  window.addEventListener('hashchange', () => { if (!/^#\/github/.test(location.hash)) document.body.classList.remove('gh-abierto'); });
+  window.addEventListener('hashchange', () => { if (!/^#\/github/.test(location.hash)) document.body.classList.remove('gh-abierto', 'gh-term-on'); });
   document.addEventListener('keydown', (e) => {
     if (!document.getElementById('ghp') || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.closest('.term')) return;
     if (e.key === '/') { e.preventDefault(); const q = document.getElementById('ghQ'); if (q) q.focus(); }

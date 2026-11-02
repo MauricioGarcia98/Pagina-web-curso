@@ -82,6 +82,34 @@
     ] },
   };
 
+  // GitHub: mira los remotos de la terminal (los mismos que la réplica de github.com)
+  const ghRepos = () => { const A = window.Shell && window.Shell.github; return A ? Object.entries(A.remotos()).filter(([u]) => /github\.com/.test(u)).map(([u, r]) => ({ u, r })) : []; };
+  const ghPRs = () => ghRepos().flatMap(({ r }) => (r.prs || []).map((p) => ({ r, p })));
+  const ghRuns = () => ghRepos().flatMap(({ r }) => r.runs || []);
+  const ghSnap = (r) => ((r.commits || {})[(r.branches || {}).main] || {}).snap || {};
+  RETOS.github = { titulo: 'Retos de GitHub', niveles: [
+    ['Básico', [
+      ['gh-repo', 'Crea un repositorio tuyo', 'New repository (o gh repo create en la terminal).', () => ghRepos().some(({ u }) => /github\.com\/alumno\//.test(u))],
+      ['gh-push', 'Sube commits desde la terminal a un repositorio tuyo', 'git remote add origin … y git push -u origin main (la página del repo vacío te muestra los comandos).', () => ghRepos().some(({ u, r }) => /\/alumno\//.test(u) && Object.values(r.commits || {}).some((c) => c.author === 'alumno' && c.msg !== 'Initial commit'))],
+      ['gh-issue', 'Abre un issue', 'Issues → New issue (o gh issue create --title …).', () => ghRepos().some(({ r }) => (r.issues || []).some((i) => i.autor === 'alumno'))],
+      ['gh-web', 'Edita un archivo desde el navegador y haz commit', 'Abre un archivo → lápiz → Commit changes.', () => ghRepos().some(({ r }) => Object.values(r.commits || {}).some((c) => /^(Update|Create|Delete) /.test(c.msg || '')))],
+    ]],
+    ['Intermedio', [
+      ['gh-pr', 'Abre un pull request desde una rama', 'git switch -c mi-rama, commit, git push -u origin mi-rama y Compare & pull request (o gh pr create).', () => ghPRs().some(({ p }) => p.autor === 'alumno')],
+      ['gh-rev', 'Consigue una aprobación de Camila o Martín', 'En el PR: Reviewers → engranaje → camila. Revisa que los checks estén en verde.', () => ghPRs().some(({ p }) => (p.revisiones || []).some((v) => v.estado === 'APPROVED'))],
+      ['gh-merge', 'Fusiona un pull request', 'Botón Merge pull request (o gh pr merge N).', () => ghPRs().some(({ p }) => p.estado === 'fusionado')],
+      ['gh-closes', 'Cierra un issue automáticamente con un PR (Closes #N)', 'Escribe Closes #2 en la descripción del PR y fusiónalo.', () => ghRepos().some(({ r }) => (r.issues || []).some((i) => (i.eventos || []).some((e) => e.tipo === 'cerrado' && e.pr)))],
+    ]],
+    ['Avanzado', [
+      ['gh-ci', 'Agrega un workflow de Actions que termine en verde', 'Actions → New workflow → Python application, o crea .github/workflows/ci.yml con pytest.', () => ghRuns().some((k) => k.conclusion === 'success' && !String(k.archivo).startsWith('dynamic/'))],
+      ['gh-rojo', 'Rompe un test a propósito y mira el check en rojo en el PR', 'Cambia una función para que el test falle, haz push a la rama del PR y abre la pestaña Checks.', () => ghRuns().some((k) => k.evento === 'pull_request' && k.conclusion === 'failure')],
+      ['gh-prot', 'Protege main: PR obligatorio con el check de tests requerido', 'Settings → Branches → Add rule: Require a pull request + Require status checks (el nombre del job).', () => ghRepos().some(({ r }) => { const P = (r.config || {}).proteccion || {}; return Object.values(P).some((x) => x.requierePR && (x.checks || []).length); })],
+      ['gh-conf', 'Resuelve un conflicto de un PR', 'Haz que main y tu rama cambien la misma línea; luego Resolve conflicts en el PR (o git pull origin main en la terminal).', () => ghRepos().some(({ r }) => Object.values(r.commits || {}).some((c) => c.parent2 && /^Merge (branch|remote-tracking branch) /.test(c.msg || '')))],
+      ['gh-secret', 'Usa un secreto en un workflow (aparece como *** en el log)', 'Settings → Secrets → New repository secret, y en el YAML: ${{ secrets.NOMBRE }}.', () => ghRuns().some((k) => (k.jobs || []).some((j) => (j.pasos || []).some((p) => (p.log || []).some((l) => String(l).includes('***')))))],
+      ['gh-pages', 'Publica un sitio con GitHub Pages', 'Sube un index.html y en Settings → Pages elige Deploy from a branch.', () => ghRepos().some(({ r }) => r.config && r.config.pages && r.config.pages.sitio)],
+    ]],
+  ] };
+
   let Store = null;
   const hechos = () => { if (!Store) return {}; Store.data.retosHerr = Store.data.retosHerr || {}; return Store.data.retosHerr; };
   function revisar(id) {
@@ -115,7 +143,7 @@
   function desmontar() { clearInterval(timer); timer = null; actual = null; abierto = false; ['retosHerrBtn', 'retosHerrPanel'].forEach((x) => { const e = document.getElementById(x); if (e) e.remove(); }); }
   window.addEventListener('hashchange', () => {
     const h = location.hash;
-    const id = /^#\/azure\/studio\//.test(h) ? 'adf' : /^#\/azure/.test(h) ? 'azure' : /^#\/databricks/.test(h) ? 'databricks' : null;
+    const id = /^#\/azure\/studio\//.test(h) ? 'adf' : /^#\/azure/.test(h) ? 'azure' : /^#\/databricks/.test(h) ? 'databricks' : /^#\/github/.test(h) ? 'github' : null;
     if (!id) desmontar(); else if (id !== actual && Store) montar(id);
   });
   window.RetosHerramientas = { montar, desmontar, RETOS, resumen: () => Object.keys(RETOS).map((id) => ({ id, titulo: RETOS[id].titulo, hechos: hechosDe(id), total: total(id) })), _revisar: revisar };
