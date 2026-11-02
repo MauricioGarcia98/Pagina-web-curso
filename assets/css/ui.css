@@ -591,3 +591,10 @@ body.vscode-abierto { overflow: hidden; }
   .labs-grid-chica { grid-template-columns: 1fr 1fr; gap: 8px; }
   .labs-grid-chica .lab-tile small { display: none; }
 }
+.vs-timeline { border-top: 1px solid var(--vs-border); }
+.vs-tl-arch { text-transform: none; font-weight: 400; opacity: .75; margin-left: 4px; }
+.vs-tl-i { display: flex; align-items: center; gap: 6px; padding-left: 18px !important; cursor: pointer; }
+.vs-tl-i .codicon { font-size: 14px; opacity: .85; }
+.vs-tl-i .vs-nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vs-tl-t { opacity: .6; font-size: 11px; white-space: nowrap; padding-right: 8px; }
+.vs-tl-vacio { padding: 4px 18px 8px; font-size: 12px; opacity: .7; }

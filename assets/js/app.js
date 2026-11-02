@@ -577,6 +577,57 @@
   ];
   const MATERIAL = { py: '🟦', sql: '🟪', yml: '🟥', yaml: '🟥', md: '🟦', json: '🟨', csv: '🟩', sh: '🟫', toml: '⬛', txt: '⬜', log: '⬜' };
 
+  // Diagnóstico de Python con el intérprete real (Pyodide), solo si ya está cargado (no descarga nada al
+  // escribir): errores de sintaxis de ast.parse, nombres sin definir e imports sin usar, como Pylance/pyflakes.
+  const diagCache = new Map();
+  const PY_DIAG = `import ast, json, builtins
+out = []
+try:
+    t = ast.parse(SRC)
+except SyntaxError as e:
+    out.append([e.lineno or 1, e.offset or 1, 'error', e.msg, 'SyntaxError'])
+else:
+    defs = set(dir(builtins)) | {'__name__', '__file__', 'spark', 'dbutils', 'display', 'displayHTML', 'sc', 'sqlContext'}
+    imports = {}
+    star = False
+    for n in ast.walk(t):
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)): defs.add(n.name)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            a = n.args
+            for x in a.args + a.kwonlyargs + list(getattr(a, 'posonlyargs', [])): defs.add(x.arg)
+            if a.vararg: defs.add(a.vararg.arg)
+            if a.kwarg: defs.add(a.kwarg.arg)
+        if isinstance(n, ast.Name) and isinstance(n.ctx, (ast.Store, ast.Del)): defs.add(n.id)
+        if isinstance(n, (ast.Import, ast.ImportFrom)):
+            for al in n.names:
+                if al.name == '*': star = True; continue
+                nm = (al.asname or al.name).split('.')[0]
+                defs.add(nm); imports.setdefault(nm, (n.lineno, n.col_offset))
+        if isinstance(n, ast.ExceptHandler) and n.name: defs.add(n.name)
+        if isinstance(n, (ast.Global, ast.Nonlocal)): defs.update(n.names)
+        if getattr(ast, 'MatchAs', None) and isinstance(n, ast.MatchAs) and n.name: defs.add(n.name)
+    usados = set()
+    for n in ast.walk(t):
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load):
+            usados.add(n.id)
+            if n.id not in defs and not star: out.append([n.lineno, n.col_offset + 1, 'error', '"%s" is not defined' % n.id, 'Pylance(reportUndefinedVariable)'])
+    if '__all__' not in defs:
+        for nm, (l, c) in imports.items():
+            if nm not in usados: out.append([l, c + 1, 'warning', 'Import "%s" is not accessed' % nm, 'Pylance(reportUnusedImport)'])
+print(json.dumps(out))`;
+  async function diagPython(src) {
+    const PY = window.Engines && window.Engines.PY;
+    if (!PY || PY.status !== 'ready') return null;
+    if (diagCache.has(src)) return diagCache.get(src);
+    try {
+      const r = await PY.run('python', `SRC = ${JSON.stringify(src)}\n${PY_DIAG}`);
+      const linea = String(r.stdout || '').trim().split('\n').pop();
+      const res = JSON.parse(linea).map(([l, c, sev, msg, fuente]) => ({ linea: l, col: c, sev, msg, fuente }));
+      diagCache.set(src, res); if (diagCache.size > 50) diagCache.delete(diagCache.keys().next().value);
+      return res;
+    } catch (e) { return null; }
+  }
+
   function abrirCode(raiz, archivo) {
     const Sh = window.Shell;
     if (document.getElementById('vscode')) document.getElementById('vscode').remove();
@@ -586,7 +637,7 @@
     const abiertas = new Set();
     const BIENVENIDA = '\u0000bienvenida', AJUSTES = '\u0000ajustes', DIFF = '\u0000diff:';
     const esArchivo = (k) => !!k && !String(k).startsWith('\u0000');
-    let temaReal = null, problemas = [], diagT = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
+    let temaReal = null, problemas = [], diagT = null, tlAbierto = true, diffOrig = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
     const terms = []; let tActiva = 0; const salida = [];
     let AJ = vsAjustes(), autoGuardado = null;
     const icono = (nombre) => {
@@ -700,7 +751,7 @@
         return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''} ${g ? 'git-' + g : ''}" data-f="${esc(k)}" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic vs-ic-${ext(n) || 'txt'}">${icono(n)}</span><span class="vs-nom">${esc(n)}</span>${sucios.has(k) ? '<b class="vs-punto">●</b>' : g ? `<span class="vs-git">${g}</span>` : ''}</div>`;
       }).join('');
       latEl.innerHTML = `<div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo..." data-nuevo>${ci('new-file')}</button><button title="Carpeta nueva..." data-nueva-carpeta>${ci('new-folder')}</button><button title="Actualizar el explorador" data-refrescar>${ci('refresh')}</button><button title="Contraer carpetas en el explorador" data-contraer>${ci('collapse-all')}</button></div><div class="vs-n vs-raiz">${ci('chevron-down')} ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
-      latEl.insertAdjacentHTML('beforeend', esquemaHtml());
+      latEl.insertAdjacentHTML('beforeend', esquemaHtml() + timelineHtml());
     }
     function buscarEnArchivos(q) {
       const res = $('.vs-res', latEl); if (!res) return;
@@ -807,7 +858,7 @@
       if (!esArchivo(k)) return;
       const v = k === actual && ed ? ed.getValue() : sucios.get(k);
       if (v === undefined) return;
-      Sh.writeFile(k, v); Sh.Machine.save(); sucios.delete(k);
+      historialLocal(k, Sh.readFile(k)); Sh.writeFile(k, v); Sh.Machine.save(); sucios.delete(k); historialLocal(k, v);
       if (k === VS_RUTA()) { aplicar(); toast('Configuración aplicada'); }
       pintarTabs(); pintarLateral();
     }
@@ -848,16 +899,47 @@
     function diagnosticar() {
       if (!window.VSReal) return;
       problemas = esArchivo(actual) && ed ? window.VSReal.diagnosticos(ed.getValue(), LANG_DIAG[ext(actual)] || '').map((x) => ({ ...x, archivo: actual })) : [];
+      aplicarProblemas();
+      // Python real (Pyodide): si ya está cargado, el análisis con ast reemplaza al heurístico
+      if (esArchivo(actual) && ed && ext(actual) === 'py') {
+        const src = ed.getValue(), arch = actual;
+        diagPython(src).then((res) => { if (!res || arch !== actual || !ed || ed.getValue() !== src) return; problemas = res.map((x) => ({ ...x, archivo: arch })); aplicarProblemas(); });
+      }
+    }
+    function aplicarProblemas() {
       const nE = problemas.filter((x) => x.sev === 'error').length, nW = problemas.length - nE;
       const el = $('[data-errores]', box); if (el) el.innerHTML = `${ci('error')} ${nE} ${ci('warning')} ${nW}`;
       const pn = $('[data-prob-n]', box); if (pn) { pn.hidden = !problemas.length; pn.textContent = problemas.length; }
       if (ed && ed.monaco && window.monaco) { const m = ed.monaco.getModel(); window.monaco.editor.setModelMarkers(m, 'academia', problemas.filter((x) => x.linea <= m.getLineCount()).map((x) => ({ startLineNumber: x.linea, startColumn: x.col, endLineNumber: x.linea, endColumn: Math.max(x.col + 1, m.getLineMaxColumn(x.linea)), message: x.msg, severity: x.sev === 'error' ? 8 : 4, source: x.fuente }))); }
       if (ptab === 'problemas') pintarProblemas();
       const esq = $('.vs-esquema', latEl); if (esq) esq.outerHTML = esquemaHtml();
+      const tl = $('.vs-timeline', latEl); if (tl) tl.outerHTML = timelineHtml();
     }
     function pintarProblemas() {
       const el = $('.vs-panel-prob', box); if (!el) return;
       el.innerHTML = problemas.length ? `<div class="vs-prob-arch">${icono(problemas[0].archivo.split('/').pop())} ${esc(problemas[0].archivo.split('/').pop())} <span class="vs-res-ruta">${esc(rel(problemas[0].archivo).split('/').slice(0, -1).join('/'))}</span><span class="vs-res-n">${problemas.length}</span></div>${problemas.map((x) => `<div class="vs-prob" data-ir-linea="${x.linea}" data-ir-col="${x.col}">${ci(x.sev === 'error' ? 'error' : 'warning')} <span>${esc(x.msg)}</span> <span class="vs-prob-f">${esc(x.fuente)} [Ln ${x.linea}, Col ${x.col}]</span></div>`).join('')}` : '<p class="small" style="opacity:.7;padding:6px 12px">No se han detectado problemas en el área de trabajo.</p>';
+    }
+    // ---------------------------------------------------------------- Timeline: historial local (cada guardado) y commits de git del archivo
+    function historialLocal(k, v) {
+      if (v == null) return;
+      try { const H = JSON.parse(localStorage.getItem('vs-historial') || '{}'); const l = H[k] = H[k] || []; if (l.length && l[l.length - 1].v === v) return; l.push({ t: Date.now(), v }); if (l.length > 15) l.splice(0, l.length - 15); const claves = Object.keys(H); if (claves.length > 60) delete H[claves[0]]; localStorage.setItem('vs-historial', JSON.stringify(H)); } catch (e) { /* sin almacenamiento */ }
+    }
+    function entradasTimeline(k) {
+      const out = [];
+      try { (JSON.parse(localStorage.getItem('vs-historial') || '{}')[k] || []).forEach((x, i) => out.push({ id: 'l' + i, t: x.t, tipo: 'local', titulo: 'Archivo guardado', det: 'Historial local', v: x.v })); } catch (e) { /* sin almacenamiento */ }
+      const r = repoDe(), g = r && Sh.Machine.git[r];
+      if (g && k.startsWith(r + '/')) {
+        const relp = k.slice(r.length + 1), C = Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits);
+        let h = g.branches[g.branch], n = 0;
+        while (h && C[h] && n < 200) { const c = C[h], pa = c.parent && C[c.parent]; const antes = pa ? pa.snap[relp] : undefined; if (c.snap[relp] !== antes) out.push({ id: 'g' + h, t: Date.parse(c.date) || 0, tipo: 'git', titulo: c.msg, det: `${c.author || 'alumno'} · ${h.slice(0, 7)}`, v: c.snap[relp] ?? '' }); h = c.parent; n++; }
+      }
+      return out.sort((a, b) => b.t - a.t);
+    }
+    const haceCuanto = (t) => { const s0 = (Date.now() - t) / 1000; return s0 < 60 ? 'ahora' : s0 < 3600 ? `hace ${Math.floor(s0 / 60)} min` : s0 < 86400 ? `hace ${Math.floor(s0 / 3600)} h` : s0 < 86400 * 30 ? `hace ${Math.floor(s0 / 86400)} d` : new Date(t).toLocaleDateString('es'); };
+    function timelineHtml() {
+      const k = esArchivo(actual) ? actual : actual && String(actual).startsWith(DIFF) ? String(actual).slice(DIFF.length) : null;
+      const es = k ? entradasTimeline(k) : [];
+      return `<div class="vs-timeline"><div class="vs-lat-sub vs-esq-t" data-tl-toggle><span class="vs-chev">${tlAbierto ? '⌄' : '›'}</span> LÍNEA DE TIEMPO${k ? ` <span class="vs-tl-arch">${esc(k.split('/').pop())}</span>` : ''}</div>${tlAbierto ? (es.length ? es.map((x) => `<div class="vs-n vs-tl-i" data-tl="${esc(x.id)}" title="${esc(x.titulo)}\n${esc(x.det)}"><span class="codicon codicon-${x.tipo === 'git' ? 'git-commit' : 'history'}"></span><span class="vs-nom">${esc(x.titulo)}</span><span class="vs-tl-t">${esc(haceCuanto(x.t))}</span></div>`).join('') : `<div class="vs-dim vs-tl-vacio">${k ? 'Sin historial todavía: guarda (Ctrl+S) o haz un commit.' : 'Abre un archivo para ver su historial.'}</div>`) : ''}</div>`;
     }
     function esquemaHtml() {
       if (!window.VSReal) return '';
@@ -871,7 +953,7 @@
       const r = repoDe(), g = r && Sh.Machine.git[r];
       const C = g ? Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits) : {};
       const head = g && g.branches[g.branch], relp = r ? k.slice(r.length + 1) : k;
-      const orig = head && C[head] ? (C[head].snap[relp] ?? '') : '', mod = Sh.readFile(k) ?? '';
+      const orig = diffOrig && diffOrig.k === k ? diffOrig.v : head && C[head] ? (C[head].snap[relp] ?? '') : '', mod = Sh.readFile(k) ?? '';
       edEl.innerHTML = '';
       if (window.monaco) {
         const lng = monacoLang(LANG_EXT[ext(k)] || 'text');
@@ -1033,8 +1115,10 @@
       if (t.closest('[data-abrir-json]')) { if (!Sh.exists(VS_RUTA())) vsGuardarAjustes(vsAjustes()); return abrir(VS_RUTA()); }
       const ex = t.closest('[data-ext]'); if (ex) { const a = vsAjustes(); delete a.__error; const l = new Set(a.extensiones || []); if (l.has(ex.dataset.ext)) l.delete(ex.dataset.ext); else { l.add(ex.dataset.ext); toast('Extensión instalada'); if (ex.dataset.ext === 'pkief.material-icon-theme') a['workbench.iconTheme'] = 'material'; } if (!l.has('pkief.material-icon-theme') && a['workbench.iconTheme'] === 'material') a['workbench.iconTheme'] = 'emojis'; a.extensiones = [...l]; vsGuardarAjustes(a); aplicar(); pintarLateral(); pintarEstado(); return; }
       const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
-      const df = t.closest('[data-diff]'); if (df) return abrir(DIFF + df.dataset.diff);
+      const df = t.closest('[data-diff]'); if (df) { diffOrig = null; return abrir(DIFF + df.dataset.diff); }
       const il = t.closest('[data-ir-linea]'); if (il) { if (!ed && il.closest('.vs-panel-prob') && problemas[0]) abrir(problemas[0].archivo); return irALinea(Number(il.dataset.irLinea), Number(il.dataset.irCol || 1)); }
+      if (t.closest('[data-tl-toggle]')) { tlAbierto = !tlAbierto; const tl = $('.vs-timeline', latEl); if (tl) tl.outerHTML = timelineHtml(); return; }
+      const tli = t.closest('[data-tl]'); if (tli) { const k = esArchivo(actual) ? actual : String(actual).slice(DIFF.length); const x = entradasTimeline(k).find((y) => y.id === tli.dataset.tl); if (x) { diffOrig = { k, v: x.v }; if (actual === DIFF + k) abrirDiff(k); else abrir(DIFF + k); toast(`Comparando "${x.titulo}" (${haceCuanto(x.t)}) ↔ el archivo actual`); } return; }
       if (t.closest('[data-esq-toggle]')) { esqAbierto = !esqAbierto; const esq = $('.vs-esquema', latEl); if (esq) esq.outerHTML = esquemaHtml(); return; }
       const pt = t.closest('[data-ptab]'); if (pt) return mostrarPtab(pt.dataset.ptab);
       if (t.closest('[data-term-nuevo]')) return nuevaTerminal();
