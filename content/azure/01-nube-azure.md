@@ -5,6 +5,10 @@ duracion: 35
 resumen: Qué es la nube, la jerarquía de Azure (tenant, suscripción, grupo de recursos, recurso), regiones y costos.
 ---
 
+:::tip Practícalo en el navegador
+Abre el [portal de Azure de práctica](#/azure): grupos de recursos, cuentas de almacenamiento, Key Vault, Azure Databricks y Cloud Shell, sin cuenta real ni costo.
+:::
+
 ## ¿Qué es "la nube"?
 
 "La nube" es usar **computadoras, almacenamiento y servicios de otra empresa** (Microsoft, Amazon o Google) a través de internet, **pagando solo por lo que usas**, en lugar de comprar y mantener servidores propios.

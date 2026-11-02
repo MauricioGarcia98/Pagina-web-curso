@@ -8,6 +8,10 @@ prerrequisitos: cert-databricks-lakeflow-jobs | spark-optimizacion | databricks-
 autoevaluacion: ¿Sabes dónde mirar primero cuando una consulta SQL tarda? | ¿Sabes cuándo usar Liquid Clustering en vez de particionar? | ¿Sabes qué tablas optimiza solo Predictive Optimization? | ¿Puedes reconocer skew y spill en la Spark UI? | ¿Sabes consultar las consultas más caras en system.query.history?
 ---
 
+:::tip Practícalo en el navegador
+En el [editor SQL de práctica](#/databricks/sql) prueba `OPTIMIZE … ZORDER BY`, `VACUUM … RETAIN 0 HOURS` (fíjate en el error de seguridad), `EXPLAIN` y `SELECT * FROM system.query.history`.
+:::
+
 :::escenario
 El dashboard de ventas de Rápido tarda 90 segundos en abrir, el job nocturno pasó de 20 a 70 minutos en un mes y nadie sabe por qué. El examen pregunta exactamente esto: **dónde mirar**, **qué síntoma corresponde a qué problema** y **qué palanca mover**. En el trabajo, esta habilidad es la que separa a un ingeniero que "agranda el clúster" de uno que encuentra la causa.
 :::

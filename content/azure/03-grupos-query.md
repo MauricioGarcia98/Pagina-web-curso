@@ -5,6 +5,10 @@ duracion: 40
 resumen: Crear y listar recursos, --output (json, table, tsv), consultas JMESPath con --query y uso en scripts.
 ---
 
+:::tip Practícalo en el navegador
+Crea un grupo de recursos con el [asistente del portal de práctica](#/azure/crear/grupo), agrégale etiquetas y un bloqueo **Delete**, y después intenta borrarlo para ver el error `ScopeLocked`.
+:::
+
 En la lección anterior iniciaste sesión con `az`. Ahora vas a crear tus primeros recursos y, sobre todo, a aprender a **leer y filtrar** lo que `az` responde. Eso se usa todo el tiempo: en scripts de despliegue, en pipelines de CI y cada vez que necesitas un dato puntual ("¿cuál es el id de esta cuenta de almacenamiento?").
 
 Abre la terminal del curso (⌨ Terminal) y escribe cada comando a medida que lees. Antes, ejecuta `az login`.

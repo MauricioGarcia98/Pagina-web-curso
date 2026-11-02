@@ -8,6 +8,10 @@ prerrequisitos: cert-databricks-transformacion-pipelines | airflow-control-flujo
 autoevaluacion: ¿Sabes qué tipos de tarea existen y cuándo usar cada uno? | ¿Puedes explicar las condiciones Run if? | ¿Sabes cuándo usar un disparador de llegada de archivos y cuándo uno de actualización de tablas? | ¿Sabes pasar un valor de una tarea a otra? | ¿Sabes qué hace un repair run?
 ---
 
+:::tip Practícalo en el navegador
+En los [jobs de práctica](#/databricks/jobs/nuevo) prueba cada condición *Run if*, las tareas If/else, `dbutils.jobs.taskValues` y **Repair run**. El estado de la corrida lo deciden las tareas hoja, igual que en Databricks.
+:::
+
 :::escenario
 El pipeline de Rápido tiene tres pasos: ingerir (Declarative Pipeline), validar con un notebook que cuenta filas, y refrescar un dashboard. Hoy alguien los ejecuta a mano cada mañana. El jefe pide: que corra solo cuando lleguen los archivos del día, que reintente si falla la red, que avise a Slack si algo sale mal, que si la validación encuentra pocas filas **no** se actualice el dashboard, y que procese en paralelo las 12 ciudades. Todo eso se hace con **Lakeflow Jobs**, el orquestador integrado de Databricks (antes *Workflows*).
 :::

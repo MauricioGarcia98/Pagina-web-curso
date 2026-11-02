@@ -8,6 +8,10 @@ prerrequisitos: cert-databricks-optimizacion-monitoreo | databricks-unity-catalo
 autoevaluacion: ¿Sabes qué permisos hacen falta para leer una tabla? | ¿Sabes qué pasa con los datos al borrar una tabla administrada y una externa? | ¿Puedes escribir un row filter y una column mask? | ¿Sabes qué es una política ABAC y para qué sirven las etiquetas gobernadas? | ¿Sabes cuándo usar Delta Sharing y cuándo Clean Rooms?
 ---
 
+:::tip Practícalo en el navegador
+En el [Catalog Explorer de práctica](#/databricks/catalogo) usa `GRANT`, `SHOW GRANTS`, `DESCRIBE HISTORY` y las tablas `system.access.audit` y `system.access.table_lineage`.
+:::
+
 :::escenario
 Rápido firmó un acuerdo con una cadena de restaurantes: les va a compartir sus ventas diarias. Al mismo tiempo, el área legal exige que solo el equipo de fraude vea el email y el teléfono de los clientes, que cada gerente regional vea solo los pedidos de su región, y que se pueda demostrar quién consultó datos personales. Todo esto se resuelve con **Unity Catalog** y **Delta Sharing**, y representa el 15 % del Associate y buena parte del Professional.
 :::

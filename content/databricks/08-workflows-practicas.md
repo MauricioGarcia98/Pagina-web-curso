@@ -5,6 +5,10 @@ duracion: 45
 resumen: Jobs multi-tarea, parámetros, reintentos, alertas, costos y la checklist de un lakehouse bien hecho.
 ---
 
+:::tip Practícalo en el navegador
+Arma un [job de práctica](#/databricks/jobs/nuevo) con varias tareas, dependencias, condiciones *Run if*, reintentos y parámetros, hazlo fallar y usa **Repair run**. También puedes crear un [pipeline declarativo](#/databricks/pipelines/nuevo) con tablas de streaming y expectativas.
+:::
+
 Ya tienes notebooks que leen bronze, limpian a silver y calculan gold. Falta que corran **solos**, todas las noches, en el orden correcto, con reintentos y con alguien que se entere si algo falla. Eso son los **Jobs** de Databricks (hoy llamados **Lakeflow Jobs**, y antes **Workflows**). Esta lección explica cómo se arman, cómo se pasan datos entre tareas, cómo se monitorean y cierra el módulo con la checklist de un lakehouse profesional.
 
 ## Lakeflow Jobs (Workflows)

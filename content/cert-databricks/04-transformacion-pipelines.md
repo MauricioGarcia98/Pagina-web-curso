@@ -8,6 +8,10 @@ prerrequisitos: cert-databricks-ingesta | pyspark-ventanas | modelado-scd
 autoevaluacion: ¿Sabes deduplicar quedándote con la versión más reciente de cada clave? | ¿Sabes cuándo una streaming table y cuándo una materialized view? | ¿Sabes qué hace cada acción de una expectativa? | ¿Sabes qué columnas agrega AUTO CDC en SCD tipo 2? | ¿Sabes la diferencia entre el modo desarrollo y producción de un pipeline?
 ---
 
+:::tip Practícalo en el navegador
+Crea un [pipeline declarativo de práctica](#/databricks/pipelines/nuevo) y compara las tres acciones de las expectativas: `EXPECT` (warn), `ON VIOLATION DROP ROW` y `ON VIOLATION FAIL UPDATE`. La pestaña de calidad muestra cuántas filas pasaron y cuántas fallaron.
+:::
+
 :::escenario
 En Rápido, el equipo tiene la capa bronze cargada (lección anterior). Ahora necesita: pedidos limpios y sin duplicados en silver, la tabla de clientes con **historia** de sus cambios de ciudad (SCD tipo 2) a partir del CDC de la base, y métricas diarias por ciudad en gold que se actualicen solas. Quieren declararlo una vez y que la plataforma se ocupe del orden, los reintentos, el incremental y la calidad. Eso es **Lakeflow Spark Declarative Pipelines**.
 :::

@@ -5,6 +5,10 @@ duracion: 30
 resumen: Instalar az, iniciar sesión, elegir suscripción, ayuda, extensiones y configuración por defecto.
 ---
 
+:::tip Practícalo en el navegador
+En el [portal de práctica](#/azure) abre **Cloud Shell** (ícono `>_` arriba a la derecha): los recursos que creas con `az` aparecen en el portal y al revés.
+:::
+
 ## Por qué la terminal y no el portal
 
 Azure tiene una web muy completa, el **portal** (portal.azure.com), donde todo se hace con clics. Para aprender a "ver" los servicios es ideal. Pero en el trabajo de datos casi todo se hace con la **Azure CLI** (el comando `az`), por tres motivos:

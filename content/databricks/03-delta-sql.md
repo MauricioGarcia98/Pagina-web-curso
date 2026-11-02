@@ -5,6 +5,10 @@ duracion: 40
 resumen: Crear tablas Delta, MERGE, time travel, RESTORE, OPTIMIZE, VACUUM, Liquid Clustering, constraints y Change Data Feed.
 ---
 
+:::tip Practícalo en el navegador
+Ejecuta estas sentencias en el [editor SQL de práctica](#/databricks/sql): `CREATE TABLE`, `MERGE INTO`, `DESCRIBE HISTORY`, `VERSION AS OF`, `RESTORE`, `OPTIMIZE`, `VACUUM` y las restricciones `CHECK` funcionan, y los errores tienen el mismo formato que en Databricks (`[TABLE_OR_VIEW_NOT_FOUND]`, `[DELTA_VACUUM_RETENTION_PERIOD_TOO_SHORT]`…).
+:::
+
 Todo lo que sigue se ejecuta en Databricks (SQL warehouse o notebook con `%sql`). Los ejercicios te piden **escribir** las sentencias y compararlas con una respuesta modelo.
 
 ## Cómo funciona Delta Lake por dentro
