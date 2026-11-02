@@ -423,6 +423,12 @@
     ['Crea un rol de seguridad (RLS) con una regla', () => (S.roles || []).some((r) => r.reglas.length)],
     ['Prueba el rol con "Ver como"', () => !!(S.verComo && S.verComo.rol) || !!S.vioComo],
     ['Crea un grupo de cálculo y úsalo en un visual', () => Object.entries(S.tablas).some(([n, t]) => t.fuente.tipo === 'calcgroup' && todos().some((v) => Object.values(v.pozos || {}).flat().some((f) => f.t === n)))],
+    ['Crea una jerarquía y explora en profundidad con ella (clic derecho en una columna → Crear jerarquía)', () => Object.values(S.jerarquias || {}).some((l) => l.some((h) => h.niveles.length > 1)) && todos().some((v) => (v.pozos.x || []).length > 1 && ((v.nivel || 0) > 0 || (v.drillPath || []).length))],
+    ['Arma una página de Obtener detalles y llega a ella con clic derecho en un dato', () => S.paginas.some((p) => p.tipo === 'detalles' && (p.detalles || []).length) && !!S.drill],
+    ['Crea un marcador y un botón que lo aplique (Insertar → Botones → Marcador)', () => (S.marcadores || []).length > 0 && todos().some((v) => v.tipo === 'boton' && ((v.formato || {}).accion || {}).tipo === 'Marcador' && ((v.formato || {}).accion || {}).destino)],
+    ['Agrega una línea de promedio o un objetivo en el panel Análisis', () => todos().some((v) => (v.analisis || []).length > 0)],
+    ['Usa formato condicional (fx) en una tabla o una matriz', () => todos().some((v) => v.formatoCond && Object.keys(v.formatoCond).some((k) => k !== '__datos'))],
+    ['Publica en el servicio y logra una actualización correcta (puerta de enlace + credenciales)', () => { const d = Store.data.pbiServicio; return !!d && d.ws.some((w) => w.items.some((x) => x.tipo === 'modelo' && (x.historial || []).some((h) => h.estado === 'Completado'))); }],
   ];
 
   // ---------------------------------------------------------------- arranque

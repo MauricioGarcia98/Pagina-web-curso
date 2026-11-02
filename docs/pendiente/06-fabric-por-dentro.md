@@ -81,7 +81,7 @@ Muchos proyectos usan los dos: lakehouse para bronze y silver, warehouse (o lake
 
 Un notebook de Fabric corre **Spark** en celdas de **PySpark**, **Spark SQL** (`%%sql`), Scala o R. Se le adjunta un **lakehouse por defecto**, que permite rutas relativas:
 
-```python
+```python norun
 df = spark.read.format("csv").option("header", "true").load("Files/raw/pedidos_2024.csv")
 limpio = df.dropna(subset=["cliente_id"])
 limpio.write.mode("overwrite").saveAsTable("pedidos_limpios")   # aparece en Tables
