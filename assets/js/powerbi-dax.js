@@ -184,8 +184,9 @@
     const donde = (base, ctx, usar) => { const c = ctx.map((p) => aplicar(base, p, usar)).filter(Boolean); return c.length ? ' WHERE ' + c.join(' AND ') : ''; };
     // columna con parte de fecha (Año, Trimestre, Mes), como la jerarquía automática de fechas
     const colSql = (f) => (f.parte === 'anio' ? `CAST(substr(${q(f.t)}.${q(f.c)}, 1, 4) AS INTEGER)` : f.parte === 'trim' ? `('T' || ((CAST(substr(${q(f.t)}.${q(f.c)}, 6, 2) AS INTEGER) + 2) / 3))` : f.parte === 'mes' ? `substr(${q(f.t)}.${q(f.c)}, 1, 7)` : `${q(f.t)}.${q(f.c)}`);
-    const quitarCol = (ctx, t, c) => ctx.filter((p) => !(p.t === t && p.c === c));
-    const quitarTablas = (ctx, set, salvo = []) => ctx.filter((p) => !(set.has(p.t) && !salvo.some((s) => s.t === p.t && s.c === p.c)));
+    // los filtros de seguridad por filas (origen 'rls') no los quita CALCULATE / ALL / REMOVEFILTERS
+    const quitarCol = (ctx, t, c) => ctx.filter((p) => p.origen === 'rls' || !(p.t === t && p.c === c));
+    const quitarTablas = (ctx, set, salvo = []) => ctx.filter((p) => p.origen === 'rls' || !(set.has(p.t) && !salvo.some((s) => s.t === p.t && s.c === p.c)));
 
     // --------------------------------------------- compilar expresiones escalares
     // env: { ctx: filtros (modo celda) | null (modo grupo), cond: condición CASE (modo grupo), fila: {t} contexto de fila,
@@ -643,7 +644,7 @@
       // una tabla de fechas (su columna es la clave del lado 1 de una relación) se libera entera, como al marcarla
       // como tabla de fechas; si la fecha es una columna de la tabla de hechos, solo se reemplaza el filtro de esa columna
       const esDim = api.rels().some((r) => r.a === t && r.ca === c);
-      let ctx = esDim ? env.ctx.filter((p) => p.t !== t) : quitarCol(env.ctx, t, c);
+      let ctx = esDim ? env.ctx.filter((p) => p.t !== t || p.origen === 'rls') : quitarCol(env.ctx, t, c);
       const rango = (d, h) => ({ t, c, sql: `${col} BETWEEN ${d} AND ${h}`, origen: 'calc' });
       const unidad = (x) => (x && x.k === 'id' ? x.v.toUpperCase() : 'DAY');
       const mover = (x, n, u) => (u === 'YEAR' ? `date(${x}, '${n >= 0 ? '+' : ''}${n} years')` : u === 'QUARTER' ? `date(${x}, '${n * 3 >= 0 ? '+' : ''}${n * 3} months')` : u === 'MONTH' ? `date(${x}, '${n >= 0 ? '+' : ''}${n} months')` : `date(${x}, '${n >= 0 ? '+' : ''}${n} days')`);
@@ -713,7 +714,7 @@
         if (!pasos || pasos.some((s) => api.rels().some((r) => r.direccion === 'ambas' && r.a === s.de && r.de === s.a))) throw Object.assign(new ErrorDax('cat'), { complejo: true });
         for (const s of pasos) if (!vistos.has(s.a)) { vistos.add(s.a); joins.push(`LEFT JOIN ${q(s.a)} ON ${q(s.a)}.${q(s.colA)} = ${q(s.de)}.${q(s.colDe)}`); }
       }
-      const ctx = ctx0.filter((p) => !env.pisadas.includes(`${p.t}|${p.c}`) || p.parte);
+      const ctx = ctx0.filter((p) => !env.pisadas.includes(`${p.t}|${p.c}`) || p.parte || p.origen === 'rls');
       const w = ctx.map((p) => aplicar(base, p)).filter(Boolean);
       const sql = `SELECT ${[...cats.map((c, i) => `${colSql(c)} AS c${i}`), `${expr} AS v0`].join(', ')}\nFROM ${q(base)}${joins.length ? '\n' + joins.join('\n') : ''}${w.length ? '\nWHERE ' + w.join('\n  AND ') : ''}${cats.length ? `\nGROUP BY ${cats.map((_, i) => `c${i}`).join(', ')}` : ''}`;
       return { filas: api.exec(sql).filter((f) => !cats.length || f[f.length - 1] !== null), sql, modo: 'grupo' };

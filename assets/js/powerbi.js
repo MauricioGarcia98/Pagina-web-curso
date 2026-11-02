@@ -27,7 +27,7 @@
   const PARTES = { anio: 'Año', trim: 'Trimestre', mes: 'Mes' };
 
   // ---------------------------------------------------------------- estado
-  const NUEVO = () => ({ version: 2, vista: 'informe', cinta: 'inicio', pagina: 0, paginas: [{ nombre: 'Página 1', visuales: [], filtros: [] }], filtrosTodas: [], medidas: [], tablas: {}, rels: [], sel: null, cruz: null, publicado: false, reto: true, tablaDatos: null, nombreArchivo: 'Sin título', tema: 'predeterminado', panelVis: 'crear', paneles: { filtros: true, vis: true, datos: true }, daxTabs: [{ nombre: 'Consulta 1', texto: '// Escribe una consulta DAX y pulsa Ejecutar (Ctrl+Enter)\nEVALUATE\n' }], daxTab: 0, tmdlTabs: [{ nombre: 'Script 1', texto: '' }], tmdlTab: 0 });
+  const NUEVO = () => ({ version: 2, vista: 'informe', cinta: 'inicio', pagina: 0, paginas: [{ nombre: 'Página 1', visuales: [], filtros: [] }], filtrosTodas: [], medidas: [], tablas: {}, rels: [], sel: null, cruz: null, publicado: false, reto: true, tablaDatos: null, nombreArchivo: 'Sin título', tema: 'predeterminado', panelVis: 'crear', paneles: { filtros: true, vis: true, datos: true }, daxTabs: [{ nombre: 'Consulta 1', texto: '// Escribe una consulta DAX y pulsa Ejecutar (Ctrl+Enter)\nEVALUATE\n' }], daxTab: 0, tmdlTabs: [{ nombre: 'Script 1', texto: '' }], tmdlTab: 0, roles: [], verComo: null });
   function migrar(s) {
     const n = NUEVO();
     for (const k of Object.keys(n)) if (s[k] === undefined) s[k] = n[k];
@@ -72,6 +72,7 @@
   // ---------------------------------------------------------------- base SQLite del informe
   function crudo(nombre) {
     const t = S.tablas[nombre]; if (!t) return { cols: [], rows: [] };
+    if (t.fuente.tipo === 'calcgroup') return { cols: [t.fuente.columna, 'Ordinal'], rows: t.fuente.items.map((it, i) => [it.nombre, i]), yaTipado: true };
     if (t.fuente.tipo === 'curso') { const T = SQLc.tables[t.fuente.ref]; return T ? { cols: T.columns.slice(), rows: T.rows, yaTipado: true } : { cols: [], rows: [] }; }
     const d = DATOS[t.fuente.clave]; if (!d) return { cols: [], rows: [] };
     return { cols: d.filas[0] ? d.filas[0].map((x, i) => `Column${i + 1}`) : [], rows: d.filas };
@@ -154,6 +155,142 @@
     return nuevas;
   }
 
+
+  // ---------------------------------------------------------------- grupos de cálculo
+  // Un grupo de cálculo es una tabla con una columna de ítems; cada ítem es una expresión con
+  // SELECTEDMEASURE() que reemplaza a la medida del objeto visual (por ejemplo "Año anterior" o "% del total").
+  // Si la columna está en el visual, se evalúa la medida una vez por ítem; si una segmentación elige un
+  // solo ítem, ese ítem se aplica a todas las medidas. Solo afecta medidas explícitas, como en Power BI.
+  const esCG = (t) => !!(S.tablas[t] && S.tablas[t].fuente.tipo === 'calcgroup');
+  function conItem(it, cats, valores, filtros, opciones) {
+    const tmp = [];
+    const vals = valores.map((v, j) => {
+      if (!v.medida) return v;
+      const m = S.medidas.find((x) => x.nombre === v.medida);
+      const nombre = `__cg${j}_${tmp.length}`;
+      tmp.push({ nombre, expr: it.expr.replace(/SELECTEDMEASURE\s*\(\s*\)/gi, `[${v.medida}]`).replace(/SELECTEDMEASURENAME\s*\(\s*\)/gi, `"${v.medida}"`), tabla: m ? m.tabla : '' });
+      return { medida: nombre };
+    });
+    S.medidas.push(...tmp);
+    try { return motor.consultar(cats, vals, filtros, opciones); } finally { S.medidas.splice(S.medidas.length - tmp.length, tmp.length); }
+  }
+  function consultar(cats, valores, filtros, opciones) {
+    const i = cats.findIndex((c) => esCG(c.t));
+    const fcg = filtros.filter((f) => f.campo && esCG(f.campo.t)), resto = filtros.filter((f) => !(f.campo && esCG(f.campo.t)));
+    if (i < 0 && !fcg.length) return motor.consultar(cats, valores, filtros, opciones);
+    const t = i >= 0 ? cats[i].t : fcg[0].campo.t; const G = S.tablas[t].fuente;
+    let items = G.items.slice();
+    for (const f of fcg) if (f.valores) items = items.filter((it) => f.valores.includes(it.nombre));
+    if (i < 0) return items.length === 1 ? conItem(items[0], cats, valores, resto, opciones) : motor.consultar(cats, valores, resto, opciones);
+    if (cats[i].c !== G.columna) return motor.consultar(cats.filter((_, j) => j !== i), valores, resto, opciones);
+    const otros = cats.filter((_, j) => j !== i); const filas = []; let sql = '';
+    for (const it of items) { const r = conItem(it, otros, valores, resto, opciones); sql = sql || r.sql; for (const f of r.filas) { const nf = f.slice(); nf.splice(i, 0, it.nombre); filas.push(nf); } }
+    return { filas, sql };
+  }
+  const PLANTILLAS_CG = {
+    'Inteligencia de tiempo': [['Actual', 'SELECTEDMEASURE()'], ['Año anterior', 'CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR(Calendario[Date]))'], ['Acumulado del año', 'CALCULATE(SELECTEDMEASURE(), DATESYTD(Calendario[Date]))']],
+    'Participación': [['Valor', 'SELECTEDMEASURE()'], ['% del total', 'DIVIDE(SELECTEDMEASURE(), CALCULATE(SELECTEDMEASURE(), ALLSELECTED()))']],
+  };
+  function dialogoGrupoCalculo(nombreEdit) {
+    const T0 = nombreEdit && S.tablas[nombreEdit];
+    const g = T0 ? JSON.parse(JSON.stringify(T0.fuente)) : { tipo: 'calcgroup', columna: 'Cálculo', items: [{ nombre: 'Actual', expr: 'SELECTEDMEASURE()' }] };
+    let nombre = nombreEdit || 'Grupo de cálculo';
+    const m = modal('<div class="pb-cg"></div>', 'pb-modal-ancho');
+    const pintar = () => {
+      m.querySelector('.pb-cg').innerHTML = `<div class="pb-m-cab">${T0 ? 'Editar' : 'Nuevo'} grupo de cálculo<button data-cerrar-modal>✕</button></div><div class="pb-form">
+        <label>Nombre del grupo (tabla)<input data-cg-n value="${esc(nombre)}"></label><label>Nombre de la columna<input data-cg-c value="${esc(g.columna)}"></label>
+        <div class="pb-dim small">Plantillas: ${Object.keys(PLANTILLAS_CG).map((k) => `<button class="pb-btn" data-cg-pl="${esc(k)}">${esc(k)}</button>`).join(' ')}</div>
+        <div class="pb-cg-items">${g.items.map((it, i) => `<div class="pb-cg-item"><input data-cg-in="${i}" value="${esc(it.nombre)}" placeholder="Nombre del ítem"><textarea data-cg-ie="${i}" rows="2" placeholder="SELECTEDMEASURE()">${esc(it.expr)}</textarea><button data-cg-del="${i}" title="Quitar">✕</button></div>`).join('')}</div>
+        <button class="pb-btn" data-cg-add>+ Nuevo elemento de cálculo</button>
+        <small>Usa <code>SELECTEDMEASURE()</code> donde iría la medida y <code>SELECTEDMEASURENAME()</code> para su nombre. Pon la columna <b>${esc(g.columna)}</b> en un objeto visual (Columnas de una matriz, Leyenda o Eje) junto con tus medidas, o en una segmentación para elegir un ítem. "Año anterior" y "Acumulado" necesitan la tabla Calendario (Modelado → Nueva tabla).</small></div>
+        <div class="pb-m-pie"><button class="pb-btn pb-btn-am" data-cg-ok>Guardar</button>${T0 ? '<button class="pb-btn" data-cg-borrar>Eliminar grupo</button>' : ''}<button class="pb-btn" data-cerrar-modal>Cancelar</button></div>`;
+    };
+    pintar();
+    m.addEventListener('input', (e) => { const t = e.target; if (t.matches('[data-cg-n]')) nombre = t.value; if (t.matches('[data-cg-c]')) g.columna = t.value; if (t.matches('[data-cg-in]')) g.items[+t.dataset.cgIn].nombre = t.value; if (t.matches('[data-cg-ie]')) g.items[+t.dataset.cgIe].expr = t.value; });
+    m.addEventListener('click', (e) => {
+      const t = e.target;
+      const pl = t.closest('[data-cg-pl]'); if (pl) { g.items = PLANTILLAS_CG[pl.dataset.cgPl].map(([n, x]) => ({ nombre: n, expr: x })); if (!T0) nombre = pl.dataset.cgPl; pintar(); return; }
+      if (t.closest('[data-cg-add]')) { g.items.push({ nombre: `Elemento ${g.items.length + 1}`, expr: 'SELECTEDMEASURE()' }); pintar(); return; }
+      const d = t.closest('[data-cg-del]'); if (d) { g.items.splice(+d.dataset.cgDel, 1); pintar(); return; }
+      if (t.closest('[data-cg-borrar]')) { delete S.tablas[nombreEdit]; cambioModelo(); guardar(); m.parentElement.remove(); render(); toast('Grupo de cálculo eliminado.'); return; }
+      if (t.closest('[data-cg-ok]')) {
+        nombre = nombre.trim(); g.columna = g.columna.trim() || 'Cálculo'; g.items = g.items.filter((it) => it.nombre.trim());
+        if (!nombre) return toast('El grupo necesita un nombre.');
+        if (!g.items.length) return toast('Agrega al menos un elemento de cálculo.');
+        if (new Set(g.items.map((it) => it.nombre)).size !== g.items.length) return toast('Los nombres de los elementos tienen que ser únicos.');
+        const malo = g.items.find((it) => !/SELECTEDMEASURE/i.test(it.expr)); if (malo) return toast(`"${malo.nombre}" no usa SELECTEDMEASURE(): un elemento de cálculo modifica la medida del visual.`);
+        if (nombreEdit && nombreEdit !== nombre) delete S.tablas[nombreEdit];
+        if (!nombreEdit && S.tablas[nombre]) return toast('Ya existe una tabla con ese nombre.');
+        S.tablas[nombre] = { fuente: { tipo: 'calcgroup', columna: g.columna, items: g.items }, pasos: [], calc: [], resumen: {} };
+        cambioModelo(); guardar(); m.parentElement.remove(); render(); toast(`Grupo de cálculo "${nombre}" guardado: arrastra la columna ${g.columna} a un objeto visual.`);
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- seguridad de nivel de fila (RLS)
+  // Cada rol tiene reglas por tabla (columna, operador, valor) como el editor de "Administrar roles" de
+  // Power BI Desktop; el valor puede ser USERPRINCIPALNAME() (RLS dinámica). "Ver como" aplica el rol al
+  // informe: el filtro se propaga por las relaciones y CALCULATE/ALL no lo quitan (origen 'rls').
+  const OPS_RLS = { '=': '=', '<>': '<>', '>': '>', '<': '<', '>=': '>=', '<=': '<=' };
+  const daxRegla = (g) => { const v = /^USERPRINCIPALNAME\(\)$/i.test(g.val) ? 'USERPRINCIPALNAME()' : g.val !== '' && !isNaN(Number(g.val)) ? g.val : `"${String(g.val).replace(/"/g, '""')}"`; return `[${g.c}] ${g.op === '=' ? '==' : g.op} ${v}`; };
+  const daxRol = (rol, t) => rol.reglas.filter((g) => g.t === t).map(daxRegla).join(' && ');
+  function filtrosRls() {
+    if (!S.verComo || !S.verComo.rol) return [];
+    const rol = (S.roles || []).find((r) => r.nombre === S.verComo.rol); if (!rol) return [];
+    return rol.reglas.filter((g) => S.tablas[g.t] && meta(g.t).some((c) => c.n === g.c)).map((g) => ({ campo: { t: g.t, c: g.c }, cond: { op: g.op, val: /^USERPRINCIPALNAME\(\)$/i.test(g.val) ? (S.verComo.usuario || 'alumno@academia.dev') : g.val }, origen: 'rls' }));
+  }
+  function dialogoRoles() {
+    construir();
+    let sel = S.roles.length ? 0 : -1, tablaSel = tablas()[0];
+    const m = modal('<div class="pb-roles"></div>', 'pb-modal-ancho');
+    const pintarRoles = () => {
+      const R = S.roles[sel];
+      m.querySelector('.pb-roles').innerHTML = `<div class="pb-m-cab">Administrar roles de seguridad<button data-cerrar-modal>✕</button></div>
+        <div class="pb-roles-cuerpo">
+          <div class="pb-roles-col"><div class="pb-roles-t">Roles <button class="pb-btn" data-nuevo-rol>+ Nuevo</button></div>${S.roles.map((r, i) => `<div class="pb-rol ${i === sel ? 'on' : ''}" data-rol="${i}"><span>${esc(r.nombre)}</span><button data-borrar-rol="${i}" title="Eliminar">✕</button></div>`).join('') || '<p class="pb-dim small">Todavía no hay roles.</p>'}</div>
+          <div class="pb-roles-col"><div class="pb-roles-t">Seleccionar tablas</div>${R ? tablas().map((t) => `<div class="pb-rol ${t === tablaSel ? 'on' : ''}" data-tabla-rol="${esc(t)}"><span>${esc(t)}</span>${R.reglas.some((g) => g.t === t) ? '<i class="pb-rls-ok">●</i>' : ''}</div>`).join('') : ''}</div>
+          <div class="pb-roles-col pb-roles-reglas">${R ? `<label class="pb-roles-nom">Nombre del rol <input data-nom-rol value="${esc(R.nombre)}"></label><div class="pb-roles-t">Filtrar datos de ${esc(tablaSel)}</div>
+            ${R.reglas.map((g, i) => (g.t === tablaSel ? `<div class="pb-regla"><select data-rc="${i}">${meta(tablaSel).map((c) => `<option ${c.n === g.c ? 'selected' : ''}>${esc(c.n)}</option>`).join('')}</select><select data-rop="${i}">${Object.keys(OPS_RLS).map((o) => `<option value="${o}" ${o === g.op ? 'selected' : ''}>${o === '=' ? 'Es igual a' : o === '<>' ? 'No es igual a' : o}</option>`).join('')}</select><input data-rv="${i}" value="${esc(g.val)}" placeholder="Valor o USERPRINCIPALNAME()"><button data-rdel="${i}" title="Quitar">✕</button></div>` : '')).join('')}
+            <button class="pb-btn" data-nueva-regla>+ Nueva regla</button>
+            <div class="pb-roles-dax"><b>DAX equivalente</b><code>${esc(daxRol(R, tablaSel) || '(sin filtro: el rol ve todas las filas de esta tabla)')}</code></div>
+            <p class="pb-dim small">El filtro de una tabla se propaga a las tablas relacionadas del lado "varios" (por ejemplo, filtrar <i>clientes</i> filtra sus <i>pedidos</i>). Pruébalo con <b>Ver como</b>. Al publicar, en el servicio se asignan personas o grupos a cada rol.</p>` : '<p class="pb-dim">Crea un rol para empezar.</p>'}</div>
+        </div>
+        <div class="pb-m-pie"><button class="pb-btn pb-btn-am" data-guardar-roles>Guardar</button></div>`;
+    };
+    pintarRoles();
+    m.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.closest('[data-nuevo-rol]')) { let i = 1; while (S.roles.some((r) => r.nombre === 'Rol ' + i)) i++; S.roles.push({ nombre: 'Rol ' + i, reglas: [] }); sel = S.roles.length - 1; pintarRoles(); return; }
+      const br = t.closest('[data-borrar-rol]'); if (br) { S.roles.splice(Number(br.dataset.borrarRol), 1); sel = Math.min(sel, S.roles.length - 1); if (S.verComo && !S.roles.some((r) => r.nombre === S.verComo.rol)) S.verComo = null; pintarRoles(); return; }
+      const r = t.closest('[data-rol]'); if (r) { sel = Number(r.dataset.rol); pintarRoles(); return; }
+      const tr = t.closest('[data-tabla-rol]'); if (tr) { tablaSel = tr.dataset.tablaRol; pintarRoles(); return; }
+      if (t.closest('[data-nueva-regla]')) { S.roles[sel].reglas.push({ t: tablaSel, c: (meta(tablaSel)[0] || {}).n, op: '=', val: '' }); pintarRoles(); return; }
+      const rd = t.closest('[data-rdel]'); if (rd) { S.roles[sel].reglas.splice(Number(rd.dataset.rdel), 1); pintarRoles(); return; }
+      if (t.closest('[data-guardar-roles]')) { S.roles.forEach((R) => { R.reglas = R.reglas.filter((g) => g.c); }); guardar(); m.parentElement.remove(); render(); toast(`Roles guardados (${S.roles.length}). Usa "Ver como" para probarlos.`); }
+    });
+    m.addEventListener('change', (e) => {
+      const t = e.target, R = S.roles[sel]; if (!R) return;
+      if (t.matches('[data-nom-rol]')) { const v = t.value.trim(); if (!v || S.roles.some((x) => x !== R && x.nombre === v)) { t.value = R.nombre; toast('El nombre del rol tiene que ser único.'); return; } if (S.verComo && S.verComo.rol === R.nombre) S.verComo.rol = v; R.nombre = v; pintarRoles(); return; }
+      if (t.matches('[data-rc]')) R.reglas[Number(t.dataset.rc)].c = t.value;
+      if (t.matches('[data-rop]')) R.reglas[Number(t.dataset.rop)].op = t.value;
+      if (t.matches('[data-rv]')) R.reglas[Number(t.dataset.rv)].val = t.value.trim();
+      pintarRoles();
+    });
+  }
+  function dialogoVerComo() {
+    if (!S.roles.length) { toast('Primero crea un rol en Modelado → Administrar roles.'); return; }
+    const vc = S.verComo || {};
+    const m = modal(`<div class="pb-m-cab">Ver como roles<button data-cerrar-modal>✕</button></div><div class="pb-form">
+      <label class="pb-check"><input type="checkbox" data-otro ${vc.usuario ? 'checked' : ''}> Otro usuario <input data-usuario value="${esc(vc.usuario || 'ana.datos@academia.dev')}" placeholder="usuario@empresa.com"></label>
+      ${S.roles.map((r) => `<label class="pb-check"><input type="radio" name="vcrol" value="${esc(r.nombre)}" ${vc.rol === r.nombre ? 'checked' : ''}> ${esc(r.nombre)} <span class="pb-dim small">${esc(r.reglas.map(daxRegla).join(' · ') || 'sin reglas')}</span></label>`).join('')}
+      <p class="pb-dim small">"Otro usuario" reemplaza <code>USERPRINCIPALNAME()</code> en las reglas, para probar la seguridad dinámica.</p></div>
+      <div class="pb-m-pie"><button class="pb-btn pb-btn-am" data-ok-vc>Aceptar</button><button class="pb-btn" data-cerrar-modal>Cancelar</button></div>`);
+    m.querySelector('[data-ok-vc]').addEventListener('click', () => {
+      const r = m.querySelector('[name=vcrol]:checked'); if (!r) { toast('Elige un rol.'); return; }
+      S.verComo = { rol: r.value, usuario: m.querySelector('[data-otro]').checked ? m.querySelector('[data-usuario]').value.trim() : '' };
+      guardar(); m.parentElement.remove(); render();
+    });
+  }
   // ---------------------------------------------------------------- campos y consultas de los visuales
   const nomCampo = (f) => (f.medida ? f.medida : f.agg && f.agg !== 'none' ? `${AGG[f.agg]} de ${f.c}` : f.parte ? `${f.c} (${PARTES[f.parte]})` : f.c);
   const formatoDe = (f) => (f.medida ? (S.medidas.find((m) => m.nombre === f.medida) || {}).formato : null);
@@ -166,6 +303,7 @@
     for (const f of v.filtros || []) agregar(f, 'pagina');
     for (const o of pag().visuales) if (o.tipo === 'segmentacion' && o.id !== v.id && o.pozos.x && o.pozos.x[0] && (o.slicerSel || []).length) out.push({ campo: o.pozos.x[0], valores: o.slicerSel, origen: 'pagina' });
     if (S.cruz && S.cruz.visual !== v.id && pag().visuales.some((o) => o.id === S.cruz.visual)) out.push({ campo: S.cruz.campo, valores: [S.cruz.valor], origen: 'pagina' });
+    out.push(...filtrosRls());
     return out;
   }
   // convierte un filtro del panel en el filtro que entiende el motor (básico, avanzado o N superior)
@@ -173,12 +311,12 @@
     if (f.tipo === 'avanzado') return f.cond && f.cond.op && (f.cond.val !== '' || /blanco/.test(f.cond.op)) ? { campo: f.campo, cond: f.cond } : null;
     if (f.tipo === 'topn') {
       if (!f.topn || !f.topn.por || !f.topn.n) return null;
-      try { const r = motor.consultar([f.campo], [f.topn.por], []); const orden = r.filas.filter((x) => x[1] != null).sort((a, b) => (f.topn.dir === 'Inferior' ? a[1] - b[1] : b[1] - a[1])).slice(0, Number(f.topn.n)); return { campo: f.campo, valores: orden.map((x) => x[0]) }; } catch (e) { return null; }
+      try { const r = consultar([f.campo], [f.topn.por], []); const orden = r.filas.filter((x) => x[1] != null).sort((a, b) => (f.topn.dir === 'Inferior' ? a[1] - b[1] : b[1] - a[1])).slice(0, Number(f.topn.n)); return { campo: f.campo, valores: orden.map((x) => x[0]) }; } catch (e) { return null; }
     }
     return f.valores && f.valores.length ? { campo: f.campo, valores: f.valores } : null;
   }
   const valorDe = (f) => (f.medida ? { medida: f.medida } : { t: f.t, c: f.c, agg: f.agg && f.agg !== 'none' ? f.agg : 'count' });
-  function serieDe(cats, campo, filtros) { const r = motor.consultar(cats, [valorDe(campo)], filtros); return { r, vals: Object.fromEntries(r.filas.map((f) => [f[0], f[f.length - 1]])) }; }
+  function serieDe(cats, campo, filtros) { const r = consultar(cats, [valorDe(campo)], filtros); return { r, vals: Object.fromEntries(r.filas.map((f) => [f[0], f[f.length - 1]])) }; }
   function ordenarCats(v, cats, series, x) {
     const o = v.orden;
     if (o && o.por !== undefined) { const s = o.por === 'cat' ? null : series[Number(o.por)] || series[0]; return cats.sort((a, b) => { const d = s ? (s.vals[a] ?? -Infinity) - (s.vals[b] ?? -Infinity) : a < b ? -1 : a > b ? 1 : 0; return o.desc ? -d : d; }); }
@@ -188,7 +326,7 @@
   }
   function datosVisual(v) {
     const T = V().TIPOS[v.tipo], P = v.pozos, filtros = filtrosDe(v); let sql = '';
-    const card = (f) => { if (!f) return null; const r = motor.consultar([], [valorDe(f)], filtros); sql = sql || r.sql; return r.filas[0] ? r.filas[0][0] : null; };
+    const card = (f) => { if (!f) return null; const r = consultar([], [valorDe(f)], filtros); sql = sql || r.sql; return r.filas[0] ? r.filas[0][0] : null; };
     if (T.g === 'texto') return {};
     if (T.g === 'seg') { const c = P.x && P.x[0]; if (!c) return null; const pred = filtros.filter((f) => f.campo.t === c.t && !(f.campo.c === c.c)); void pred; return { valores: ejecutar(`SELECT DISTINCT ${motor.colSql(c)} FROM ${q(c.t)} ORDER BY 1 LIMIT 1000`).map((x) => x[0]) }; }
     if (v.tipo === 'tarjeta') { const f = P.valores && P.valores[0]; if (!f) return null; return { valor: card(f), nombre: nomCampo(f), formato: formatoDe(f), sql }; }
@@ -199,15 +337,15 @@
       const det = P.detalle && P.detalle[0], ex = P.ex && P.ex[0], ey = P.ey && P.ey[0]; if (!det || !ex || !ey) return null;
       const ley = P.leyenda && P.leyenda[0], tam = P.tam && P.tam[0];
       const cats = ley ? [det, ley] : [det];
-      const r = motor.consultar(cats, [valorDe(ex), valorDe(ey), ...(tam ? [valorDe(tam)] : [])], filtros);
+      const r = consultar(cats, [valorDe(ex), valorDe(ey), ...(tam ? [valorDe(tam)] : [])], filtros);
       return { puntos: r.filas.slice(0, 1500).map((f) => ({ d: f[0], ley: ley ? f[1] : null, x: f[cats.length], y: f[cats.length + 1], tam: tam ? f[cats.length + 2] : null })), nx: nomCampo(ex), ny: nomCampo(ey), nt: tam ? nomCampo(tam) : '', sql: r.sql };
     }
     if (v.tipo === 'tabla') {
       const cols = P.cols || []; if (!cols.length) return null;
       const cats = cols.filter((x) => !x.medida && (!x.agg || x.agg === 'none')), vals = cols.filter((x) => x.medida || (x.agg && x.agg !== 'none'));
-      if (!vals.length) { const r = motor.consultar(cats, [], filtros, {}); void r; const filas = ejecutar(`SELECT DISTINCT ${cats.map((c, i) => `${motor.colSql(c)} AS c${i}`).join(', ')} FROM ${q(cats[0].t)} ${joinsSql(cats[0].t, cats)} ORDER BY 1 LIMIT 2000`); return ordenTabla(v, { cab: cats.map(nomCampo), filas, ncat: cats.length }); }
+      if (!vals.length) { const r = consultar(cats, [], filtros, {}); void r; const filas = ejecutar(`SELECT DISTINCT ${cats.map((c, i) => `${motor.colSql(c)} AS c${i}`).join(', ')} FROM ${q(cats[0].t)} ${joinsSql(cats[0].t, cats)} ORDER BY 1 LIMIT 2000`); return ordenTabla(v, { cab: cats.map(nomCampo), filas, ncat: cats.length }); }
       const mapa = new Map(); let s1 = '';
-      vals.forEach((val, k) => { const r = motor.consultar(cats, [valorDe(val)], filtros); s1 = s1 || r.sql; for (const f of r.filas) { const key = JSON.stringify(f.slice(0, cats.length)); if (!mapa.has(key)) mapa.set(key, [...f.slice(0, cats.length), ...vals.map(() => null)]); mapa.get(key)[cats.length + k] = f[cats.length]; } });
+      vals.forEach((val, k) => { const r = consultar(cats, [valorDe(val)], filtros); s1 = s1 || r.sql; for (const f of r.filas) { const key = JSON.stringify(f.slice(0, cats.length)); if (!mapa.has(key)) mapa.set(key, [...f.slice(0, cats.length), ...vals.map(() => null)]); mapa.get(key)[cats.length + k] = f[cats.length]; } });
       let filas = [...mapa.values()];
       filas = filas.sort((a, b) => (b[cats.length] ?? -Infinity) - (a[cats.length] ?? -Infinity)).slice(0, 2000);
       return ordenTabla(v, { cab: [...cats.map(nomCampo), ...vals.map(nomCampo)], filas, total: cats.length ? vals.map((val) => card(val)) : null, ncat: cats.length, formatos: [...cats.map(() => null), ...vals.map(formatoDe)], sql: s1 });
@@ -217,16 +355,16 @@
       const colsK = col ? ejecutar(`SELECT DISTINCT ${motor.colSql(col)} FROM ${q(col.t)} ORDER BY 1 LIMIT 12`).map((x) => x[0]) : [null];
       const cab = [...xs.map(nomCampo), ...colsK.flatMap((ck) => ys.map((y) => (col ? `${ck ?? '(En blanco)'}${ys.length > 1 ? ` · ${nomCampo(y)}` : ''}` : nomCampo(y)))), ...(col ? ys.map((y) => `Total${ys.length > 1 ? ` · ${nomCampo(y)}` : ''}`) : [])];
       const filasMap = new Map();
-      const llenar = (cats, fila0) => ys.forEach((y, k) => { const r = motor.consultar(cats, [valorDe(y)], filtros); sql = sql || r.sql; for (const f of r.filas) { const key = JSON.stringify(f.slice(0, xs.length)); if (!filasMap.has(key)) filasMap.set(key, [...f.slice(0, xs.length), ...Array(cab.length - xs.length).fill(null)]); const fila = filasMap.get(key); const ci = col ? colsK.findIndex((z) => z === f[xs.length]) : 0; if (ci >= 0 && (col ? f.length > xs.length + 1 : true)) fila[xs.length + ci * ys.length + k] = f[f.length - 1]; } void fila0; });
+      const llenar = (cats, fila0) => ys.forEach((y, k) => { const r = consultar(cats, [valorDe(y)], filtros); sql = sql || r.sql; for (const f of r.filas) { const key = JSON.stringify(f.slice(0, xs.length)); if (!filasMap.has(key)) filasMap.set(key, [...f.slice(0, xs.length), ...Array(cab.length - xs.length).fill(null)]); const fila = filasMap.get(key); const ci = col ? colsK.findIndex((z) => z === f[xs.length]) : 0; if (ci >= 0 && (col ? f.length > xs.length + 1 : true)) fila[xs.length + ci * ys.length + k] = f[f.length - 1]; } void fila0; });
       llenar(col ? [...xs, col] : xs);
-      if (col) ys.forEach((y, k) => { const r = motor.consultar(xs, [valorDe(y)], filtros); for (const f of r.filas) { const key = JSON.stringify(f.slice(0, xs.length)); if (filasMap.has(key)) filasMap.get(key)[xs.length + colsK.length * ys.length + k] = f[f.length - 1]; } });
+      if (col) ys.forEach((y, k) => { const r = consultar(xs, [valorDe(y)], filtros); for (const f of r.filas) { const key = JSON.stringify(f.slice(0, xs.length)); if (filasMap.has(key)) filasMap.get(key)[xs.length + colsK.length * ys.length + k] = f[f.length - 1]; } });
       let filas = [...filasMap.values()].sort((a, b) => { for (let i = 0; i < xs.length; i++) { if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; } return 0; }).slice(0, 1000);
       // subtotales del primer nivel cuando hay más de un campo en Filas
       if (xs.length > 1) {
-        const sub = new Map(); ys.forEach((y, k) => { for (const f of motor.consultar([xs[0], ...(col ? [col] : [])], [valorDe(y)], filtros).filas) { const key = String(f[0]); if (!sub.has(key)) sub.set(key, Array(cab.length - xs.length).fill(null)); const ci = col ? colsK.findIndex((z) => z === f[1]) : 0; if (ci >= 0) sub.get(key)[ci * ys.length + k] = f[f.length - 1]; } });
+        const sub = new Map(); ys.forEach((y, k) => { for (const f of consultar([xs[0], ...(col ? [col] : [])], [valorDe(y)], filtros).filas) { const key = String(f[0]); if (!sub.has(key)) sub.set(key, Array(cab.length - xs.length).fill(null)); const ci = col ? colsK.findIndex((z) => z === f[1]) : 0; if (ci >= 0) sub.get(key)[ci * ys.length + k] = f[f.length - 1]; } });
         const res = []; let prev; for (const f of filas) { if (prev !== undefined && f[0] !== prev) { const t = Object.assign([`Total ${prev}`, ...xs.slice(1).map(() => ''), ...(sub.get(String(prev)) || [])], { subtotal: true }); res.push(t); } res.push(f); prev = f[0]; } if (prev !== undefined) res.push(Object.assign([`Total ${prev}`, ...xs.slice(1).map(() => ''), ...(sub.get(String(prev)) || [])], { subtotal: true })); filas = res;
       }
-      const total = [...colsK.flatMap((ck) => ys.map((y) => { if (!col) return card(y); const r = motor.consultar([], [valorDe(y)], [...filtros, { campo: col, valores: [ck], origen: 'visual' }]); return r.filas[0] ? r.filas[0][0] : null; })), ...(col ? ys.map((y) => card(y)) : [])];
+      const total = [...colsK.flatMap((ck) => ys.map((y) => { if (!col) return card(y); const r = consultar([], [valorDe(y)], [...filtros, { campo: col, valores: [ck], origen: 'visual' }]); return r.filas[0] ? r.filas[0][0] : null; })), ...(col ? ys.map((y) => card(y)) : [])];
       return ordenTabla(v, { cab, filas, total, ncat: xs.length, formatos: [...xs.map(() => null), ...colsK.flatMap(() => ys.map(formatoDe)), ...(col ? ys.map(formatoDe) : [])], sql });
     }
     // categorías: columnas, barras, líneas, áreas, combinado, cascada, embudo, circular, anillo, rectángulos
@@ -234,7 +372,7 @@
     if (!x || !(ys.length || lineas.length)) return null;
     let series;
     if (ley && ys[0]) {
-      const r = motor.consultar([x, ley], [valorDe(ys[0])], filtros); sql = r.sql;
+      const r = consultar([x, ley], [valorDe(ys[0])], filtros); sql = r.sql;
       const nombres = [...new Set(r.filas.map((f) => f[1]))].slice(0, 12);
       series = nombres.map((s) => ({ nombre: String(s ?? '(En blanco)'), formato: formatoDe(ys[0]), vals: Object.fromEntries(r.filas.filter((f) => f[1] === s).map((f) => [f[0], f[2]])) }));
     } else series = [...ys.map((y) => ({ y, tipo: 'col' })), ...lineas.map((y) => ({ y, tipo: 'linea' }))].map(({ y, tipo }) => { const s = serieDe([x], y, filtros); sql = sql || s.r.sql; return { nombre: nomCampo(y), formato: formatoDe(y), vals: s.vals, tipo }; });
@@ -303,7 +441,7 @@
       return GRUPO('Estructura', `<label class="pb-cinta-campo">Nombre<input value="${esc(colSel.n)}" readonly title="Cámbialo en Power Query (Transformar datos)"></label><label class="pb-cinta-campo">Tipo de datos<select data-col-tipo>${Object.entries(TIPO_N).map(([k, n]) => `<option value="${k}" ${colSel.t === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`) + GRUPO('Propiedades', `<label class="pb-cinta-campo">Resumen<select data-col-resumen>${Object.entries(AGG).map(([k, n]) => `<option value="${k}" ${r === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`) + GRUPO('Cálculos', BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + (colSel.calc ? BOTON('borrar-columna', fl('dismiss'), 'Eliminar<br>columna') : ''));
     }
     if (c === 'insertar') return GRUPO('Páginas', BOTON('nueva-pagina', fl('document_one_page_add'), 'Nueva<br>página')) + GRUPO('Objetos visuales', BOTON('nuevo-visual', fl('data_bar_vertical_add'), 'Nuevo objeto<br>visual') + BOTON('mas-visuales', fl('apps_add_in'), 'Más objetos<br>visuales')) + GRUPO('Elementos', BOTON('cuadro-texto', fl('textbox'), 'Cuadro de<br>texto') + BOTON('imagen', fl('image'), 'Imagen'));
-    if (c === 'modelado') return GRUPO('Relaciones', BOTON('relaciones', fl('organization_horizontal'), 'Administrar<br>relaciones')) + GRUPO('Cálculos', BOTON('nueva-medida', fl('calculator'), 'Nueva<br>medida') + BOTON('medida-rapida', fl('flash'), 'Medida<br>rápida') + BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + BOTON('nueva-tabla', fl('table_add'), 'Nueva<br>tabla')) + GRUPO('Vistas de código', BOTON('ir-dax', fl('code'), 'Vista de<br>consultas DAX') + BOTON('ir-tmdl', fl('document'), 'Vista<br>TMDL'));
+    if (c === 'modelado') return GRUPO('Relaciones', BOTON('relaciones', fl('organization_horizontal'), 'Administrar<br>relaciones')) + GRUPO('Cálculos', BOTON('nueva-medida', fl('calculator'), 'Nueva<br>medida') + BOTON('medida-rapida', fl('flash'), 'Medida<br>rápida') + BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + BOTON('nueva-tabla', fl('table_add'), 'Nueva<br>tabla')) + GRUPO('Grupos de cálculo', BOTON('grupo-calculo', fl('table_switch'), 'Grupo de<br>cálculo')) + GRUPO('Seguridad', BOTON('roles', fl('filter'), 'Administrar<br>roles') + BOTON('ver-como', fl('eye'), 'Ver<br>como')) + GRUPO('Vistas de código', BOTON('ir-dax', fl('code'), 'Vista de<br>consultas DAX') + BOTON('ir-tmdl', fl('document'), 'Vista<br>TMDL'));
     if (c === 'vista') return GRUPO('Temas', `<div class="pb-temas">${Object.entries(PALETAS).map(([k, p]) => `<button data-tema="${k}" class="${S.tema === k ? 'on' : ''}" title="${esc(p.n)}">${p.c.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>`).join('')}${S.temaCustom ? `<button data-tema="custom" class="${S.tema === 'custom' ? 'on' : ''}" title="${esc(S.temaCustom.name || 'Personalizado')}">${S.temaCustom.dataColors.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>` : ''}</div>` + CHICO('tema-importar', fl('folder_open'), 'Examinar temas') + CHICO('tema-exportar', fl('save'), 'Guardar tema actual')) + GRUPO('Opciones de página', BOTON('cuadricula', fl('grid'), `Líneas de<br>cuadrícula ${S.cuadricula ? '✓' : ''}`)) + GRUPO('Mostrar paneles', BOTON('panel-filtros', fl('filter'), `Filtros ${S.paneles.filtros ? '✓' : ''}`) + BOTON('panel-vis', fl('data_bar_vertical'), `Visualiza-<br>ciones ${S.paneles.vis ? '✓' : ''}`) + BOTON('panel-datos', fl('table'), `Datos ${S.paneles.datos ? '✓' : ''}`) + BOTON('analizador', fl('top_speed'), `Analizador de<br>rendimiento ${S.analizador ? '✓' : ''}`));
     if (c === 'optimizar') return GRUPO('Rendimiento', BOTON('analizador', fl('top_speed'), `Analizador de<br>rendimiento ${S.analizador ? '✓' : ''}`) + BOTON('actualizar', fl('arrow_sync'), 'Actualizar<br>objetos visuales'));
     if (c === 'ayuda') return GRUPO('Ayuda', BOTON('doc-pbi', fl('question_circle'), 'Documentación<br>de Power BI') + BOTON('doc-dax', fl('code'), 'Referencia<br>de DAX') + BOTON('doc-m', fl('table'), 'Referencia<br>de Power Query M')) + GRUPO('Práctica', BOTON('reto', fl('target_arrow'), S.reto ? 'Ocultar<br>reto' : 'Ver<br>reto') + BOTON('reiniciar', fl('document_add'), 'Informe<br>nuevo'));
@@ -392,6 +530,10 @@
       case 'borrar-columna': { const { t, c } = S.colSel; if (confirm(`¿Eliminar la columna calculada ${c}?`)) { S.tablas[t].calc = S.tablas[t].calc.filter((x) => x.nombre !== c); S.colSel = null; S.cinta = 'inicio'; cambioModelo(); guardar(); pintar(); } return; }
       case 'nueva-tabla': if (sinDatos()) return; return barraFormula({ tipo: 'tabla' });
       case 'relaciones': return dialogoRelaciones();
+      case 'roles': if (sinDatos()) return; return dialogoRoles();
+      case 'grupo-calculo': if (sinDatos()) return; return dialogoGrupoCalculo();
+      case 'ver-como': if (sinDatos()) return; return dialogoVerComo();
+      case 'dejar-ver-como': S.verComo = null; guardar(); render(); toast('Volviste a ver el informe con todos los datos.'); return;
       case 'ir-dax': S.vista = 'dax'; guardar(true); render(); return;
       case 'ir-tmdl': S.vista = 'tmdl'; guardar(true); render(); return;
       case 'publicar': {
@@ -550,7 +692,7 @@
 
   // ---------------------------------------------------------------- Power Query
   function powerQuery(inicial) {
-    const consultas = () => tablas().filter((n) => S.tablas[n].fuente.tipo !== 'dax');
+    const consultas = () => tablas().filter((n) => !['dax', 'calcgroup'].includes(S.tablas[n].fuente.tipo));
     let actual = inicial && S.tablas[inicial] && S.tablas[inicial].fuente.tipo !== 'dax' ? inicial : consultas()[0], pasoSel = null, pest = 'inicio', colSelPQ = null;
     if (!actual) { toast('No hay consultas de Power Query (las tablas calculadas con DAX no pasan por Power Query).'); return; }
     const m = modal(`<div class="pq"><div class="pq-titulo"><span class="pq-logo">${fl('table')}</span>Editor de Power Query<span class="spacer"></span><button data-cerrar-pq title="Cerrar">✕</button></div>
@@ -767,7 +909,7 @@
       renderPaneles(); renderPie(); return;
     }
     const enf = S.enfoque && vis(S.enfoque);
-    centro.innerHTML = `<div class="pb-lienzo-wrap">${enf ? `<div class="pb-volver"><button data-salir-enfoque>← Volver al informe</button></div>` : ''}<div class="pb-lienzo ${S.cuadricula ? 'pb-con-cuadricula' : ''} ${enf ? 'pb-enfoque' : ''}" id="pbLienzo"></div></div>`;
+    centro.innerHTML = `<div class="pb-lienzo-wrap ${S.verComo && S.verComo.rol ? 'pb-con-vercomo' : ''}">${S.verComo && S.verComo.rol ? `<div class="pb-ver-como">${fl('eye')} Ahora está viendo el informe como: <b>${esc(S.verComo.rol)}</b>${S.verComo.usuario ? ` · usuario <b>${esc(S.verComo.usuario)}</b>` : ''}<button class="pb-btn" data-acc="dejar-ver-como">Detener la vista</button></div>` : ''}${enf ? `<div class="pb-volver"><button data-salir-enfoque>← Volver al informe</button></div>` : ''}<div class="pb-lienzo ${S.cuadricula ? 'pb-con-cuadricula' : ''} ${enf ? 'pb-enfoque' : ''}" id="pbLienzo"></div></div>`;
     const lienzo = main.querySelector('#pbLienzo');
     lienzo.style.background = (S.tema === 'custom' && S.temaCustom && S.temaCustom.background) || '';
     const lista = enf ? [enf] : pag().visuales;
@@ -1362,6 +1504,12 @@
   const guid = (s) => { let x = ''; for (let k = 0; x.length < 32; k++) { let h = 2166136261 ^ k; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; x += h.toString(16).padStart(8, '0'); } return `${x.slice(0, 8)}-${x.slice(8, 12)}-4${x.slice(13, 16)}-a${x.slice(17, 20)}-${x.slice(20, 32)}`; };
   function tmdlTabla(t, i) {
     const tb = S.tablas[t], out = [`${i}table ${nomTmdl(t)}`, `${i}\tlineageTag: ${guid(t)}`, ''];
+    if (tb.fuente.tipo === 'calcgroup') {
+      out.push(`${i}\tcalculationGroup`, `${i}\t\tprecedence: 0`, '');
+      for (const it of tb.fuente.items) out.push(`${i}\t\tcalculationItem ${nomTmdl(it.nombre)} = ${it.expr}`, '');
+      out.push(`${i}\tcolumn ${nomTmdl(tb.fuente.columna)}`, `${i}\t\tdataType: string`, `${i}\t\tlineageTag: ${guid(t + '.c')}`, `${i}\t\tsummarizeBy: none`, `${i}\t\tsourceColumn: Name`, `${i}\t\tsortByColumn: Ordinal`, '', `${i}\tcolumn Ordinal`, `${i}\t\tdataType: int64`, `${i}\t\tisHidden`, `${i}\t\tsummarizeBy: sum`, `${i}\t\tsourceColumn: Ordinal`, '');
+      return out.join('\n');
+    }
     for (const m of S.medidas.filter((x) => (x.tabla || tablas()[0]) === t)) { const ex = m.expr.includes('\n') ? `\n${m.expr.split('\n').map((l) => `${i}\t\t\t${l}`).join('\n')}` : ` ${m.expr}`; out.push(`${i}\tmeasure ${nomTmdl(m.nombre)} =${ex}`); const f = fmtTmdl(m.formato); if (f) out.push(`${i}\t\tformatString: ${f}`); out.push(`${i}\t\tlineageTag: ${guid(t + m.nombre)}`, ''); }
     for (const c of meta(t)) {
       const cc = tb.calc.find((x) => x.nombre === c.n);
@@ -1377,7 +1525,8 @@
   }
   function tmdlModelo() {
     const rel = S.rels.map((r) => [`relationship ${guid(r.de + r.cde + r.a + r.ca)}`, ...(r.activa ? [] : ['\tisActive: false']), ...(r.direccion === 'ambas' ? ['\tcrossFilteringBehavior: bothDirections'] : []), `\tfromColumn: ${nomTmdl(r.de)}.${nomTmdl(r.cde)}`, `\ttoColumn: ${nomTmdl(r.a)}.${nomTmdl(r.ca)}`, ''].join('\n'));
-    return `model Model\n\tculture: es-ES\n\tdefaultPowerBIDataSourceVersion: powerBI_V3\n\tsourceQueryCulture: es-AR\n\n${tablas().map((t) => `ref table ${nomTmdl(t)}`).join('\n')}\n\n${rel.join('\n')}\n${tablas().map((t) => tmdlTabla(t, '')).join('\n')}`;
+    const roles = (S.roles || []).map((r) => `role ${nomTmdl(r.nombre)}\n\tmodelPermission: read\n${[...new Set(r.reglas.map((g) => g.t))].map((t) => `\n\ttablePermission ${nomTmdl(t)} = ${daxRol(r, t)}`).join('\n')}\n`).join('\n');
+    return `model Model\n\tculture: es-ES\n\tdefaultPowerBIDataSourceVersion: powerBI_V3\n\tsourceQueryCulture: es-AR\n\n${tablas().map((t) => `ref table ${nomTmdl(t)}`).join('\n')}\n${(S.roles || []).map((r) => `ref role ${nomTmdl(r.nombre)}`).join('\n')}\n\n${rel.join('\n')}\n${tablas().map((t) => tmdlTabla(t, '')).join('\n')}${roles ? '\n' + roles : ''}`;
   }
   // aplica un script TMDL (subconjunto: medidas, columnas calculadas, tablas calculadas, relaciones y formatString)
   function aplicarTmdl(texto) {
@@ -1456,5 +1605,5 @@
   }
 
   window.addEventListener('hashchange', () => { if (!/^#\/powerbi/.test(location.hash)) document.body.classList.remove('pb-abierto'); });
-  window.PowerBI = { vista, NUEVO, _estado: () => S, _motor: () => (construir(), motor) };
+  window.PowerBI = { vista, NUEVO, _estado: () => S, _motor: () => (construir(), motor), _tmdl: () => (construir(), tmdlModelo()) };
 })();

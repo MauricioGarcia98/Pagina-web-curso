@@ -2450,7 +2450,7 @@ for _n, _fn in list(_ns.items()):
   TermCfg.aplicar();
   window.Shell = {
     TermCfg, TEMAS,
-    Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, mkdirp, display, HOME,
+    Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, children, mkdirp, display, HOME,
     fail, ok, sqlExec, openEditor: null, runScript, faltaCerrar, esCompuesto, Shopt, Funciones,
     gitInt: { root: gitRoot, snapshot, ignored, hash: shortHash }, pantallas: {},
   };

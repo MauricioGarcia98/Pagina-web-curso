@@ -191,6 +191,10 @@ dp.create_auto_cdc_flow(
 - **SCD tipo 2**: cada cambio cierra la versión anterior y abre una nueva. AUTO CDC agrega las columnas **`__START_AT`** y **`__END_AT`** (la vigente tiene `__END_AT` nulo). Con `TRACK HISTORY ON ciudad, segmento` limitas qué columnas generan una versión nueva.
 - **`SEQUENCE BY`** resuelve los cambios desordenados: si llega tarde un cambio con secuencia menor, no pisa uno más nuevo.
 
+:::tip Practícalo
+En la [práctica autocorregida de Databricks SQL](#/l/databricks-practica-sql) hay ejercicios de expectativas y de AUTO CDC con SCD tipo 1 y 2 que se corrigen solos. También puedes pegar este flujo en un pipeline del [Databricks de práctica](#/databricks/pipelines) y ver las versiones en el catálogo.
+:::
+
 ## Cómo se ejecuta un pipeline
 
 | Concepto | Opciones |

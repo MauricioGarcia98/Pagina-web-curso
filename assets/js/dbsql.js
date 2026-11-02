@@ -49,8 +49,9 @@
   const fq = (c, s, t) => [c, s, t].filter(Boolean).map((x) => '`' + x + '`').join('.');
 
   // ------------------------------------------------------------------ arranque
+  let enAislado = false;
   async function init(ctx) {
-    Store = ctx.Store;
+    if (!enAislado) Store = ctx.Store;
     if (listo) return listo;
     listo = (async () => {
       await window.Engines.SQL.init();
@@ -279,7 +280,9 @@
     const T = tokenizar(sql), out = []; let cur = [];
     for (const tk of T) { if (tk.t === 'p' && tk.v === ';') { out.push(cur); cur = []; } else cur.push(tk); }
     out.push(cur);
-    return out.map((x) => ({ T: x, texto: unirOriginal(x).trim() })).filter((x) => x.T.some((t) => t.t !== 'ws'));
+    // sin los espacios y comentarios de los bordes: así cada sentencia empieza en su primera palabra
+    const recortar = (x) => { let a = 0, b = x.length; while (a < b && x[a].t === 'ws') a++; while (b > a && x[b - 1].t === 'ws') b--; return x.slice(a, b); };
+    return out.map(recortar).filter((x) => x.length).map((x) => ({ T: x, texto: unirOriginal(x).trim() }));
   }
   function unirOriginal(T) { return T.map((tk) => (tk.t === 's' ? `'${tk.v.replace(/'/g, "\\'")}'` : tk.t === 'b' ? '`' + tk.v + '`' : tk.v)).join(''); }
 
@@ -519,7 +522,8 @@
   const existeFisica = (nom) => !!db.exec(`SELECT 1 FROM sqlite_master WHERE name = ${lit(nom)}`).length;
 
   // ------------------------------------------------------------------ archivos en volúmenes (read_files)
-  function archivos() { return window.CloudSim ? window.CloudSim.dbx().files : {}; }
+  let archivosAislados = null; // los ejercicios corren con sus propios archivos
+  function archivos() { return archivosAislados || (window.CloudSim ? window.CloudSim.dbx().files : {}); }
   function leerArchivos(args) {
     const ruta = args[0] && args[0].find((x) => x.t === 's');
     if (!ruta) err('INVALID_PARAMETER_VALUE', "read_files necesita la ruta entre comillas: read_files('/Volumes/main/default/raw/archivo.csv', format => 'csv', header => true)");
@@ -883,14 +887,51 @@
       if (/^TABLE\s/i.test(txt)) T2 = tokenizar('SELECT * FROM ' + txt.replace(/^TABLE\s+/i, ''));
       const lecturas = [];
       const sql = expandirExcept(unir(reescribir(T2, { lecturas })));
-      const qualify = /\bQUALIFY\b/i.test(sql);
-      if (qualify) err('UNSUPPORTED_FEATURE', 'En esta práctica QUALIFY no está soportado: escribe la función de ventana en una subconsulta (o un CTE) y filtra afuera con WHERE.');
-      const r = db.exec(sql);
+      const q2 = /\bQUALIFY\b/i.test(sql) ? conQualify(sql) : null;
+      const r = db.exec(q2 ? q2.sql : sql);
       const ult = r[r.length - 1];
-      const cols = ult ? ult.columns : [], filas = ult ? ult.values : [];
+      let cols = ult ? ult.columns : [], filas = ult ? ult.values : [];
+      if (q2) { const vis = cols.map((c, i) => (/^__q\d+$/.test(c) ? -1 : i)).filter((i) => i >= 0); cols = vis.map((i) => cols[i]); filas = filas.map((f) => vis.map((i) => f[i])); }
       return R(cols, filas, { tipos: tiposDe(cols, filas), lecturas: lecturas.filter((l) => !l.sistema).map((l) => `${l.c}.${l.s}.${l.t}`) });
     }
     err('PARSE_SYNTAX_ERROR', `Syntax error at or near '${txt.split(/\s+/)[0]}'. SQLSTATE: 42601`);
+  }
+
+  // QUALIFY (filtra por el resultado de una función de ventana, como WHERE filtra filas): SQLite no lo
+  // tiene, así que la consulta se envuelve: adentro se calculan las ventanas del QUALIFY como columnas
+  // ocultas (__q0, __q1…) y afuera se filtra con la condición y se aplica el LIMIT.
+  function conQualify(sql) {
+    const nivel0 = (re) => { const out = []; let d = 0, comilla = null; for (let i = 0; i < sql.length; i++) { const ch = sql[i]; if (comilla) { if (ch === comilla) comilla = null; continue; } if (ch === "'" || ch === '"' || ch === '`') { comilla = ch; continue; } if (ch === '(') d++; else if (ch === ')') d--; else if (d === 0) { re.lastIndex = i; const m = re.exec(sql); if (m && m.index === i && (i === 0 || /\W/.test(sql[i - 1]))) out.push({ i, n: m[0].length, k: m[0].toUpperCase().replace(/\s+/g, ' ') }); } } return out; };
+    const marcas = nivel0(/QUALIFY\b|ORDER\s+BY\b|LIMIT\b/iy);
+    const qm = marcas.find((m) => m.k === 'QUALIFY');
+    if (!qm) return null; // la palabra estaba dentro de un texto o de una subconsulta
+    const despues = marcas.filter((m) => m.i > qm.i);
+    const fin = despues.length ? despues[0].i : sql.length;
+    let cond = sql.slice(qm.i + qm.n, fin).trim();
+    const lim = despues.find((m) => m.k === 'LIMIT');
+    const orden = despues.find((m) => m.k === 'ORDER BY');
+    const cabeza = sql.slice(0, qm.i).trimEnd();
+    const ordenTxt = orden ? sql.slice(orden.i, lim ? lim.i : sql.length).trim() : '';
+    const limTxt = lim ? sql.slice(lim.i).trim() : '';
+    // ventanas dentro de la condición: f(...) OVER (...) | f(...) OVER nombre
+    const ventanas = []; let salida = '', k = 0;
+    const re = /\b([A-Za-z_]\w*)\s*\(/g; let m;
+    while ((m = re.exec(cond))) {
+      let d = 1, j = m.index + m[0].length; while (j < cond.length && d) { if (cond[j] === '(') d++; else if (cond[j] === ')') d--; j++; }
+      const ov = /^\s*OVER\s*(\(|[A-Za-z_]\w*)/i.exec(cond.slice(j)); if (!ov) continue;
+      let e = j + ov[0].length;
+      if (ov[1] === '(') { let d2 = 1; while (e < cond.length && d2) { if (cond[e] === '(') d2++; else if (cond[e] === ')') d2--; e++; } }
+      salida += cond.slice(k, m.index) + `__q${ventanas.length}`; ventanas.push(cond.slice(m.index, e)); k = e; re.lastIndex = e;
+    }
+    cond = salida + cond.slice(k);
+    if (!ventanas.length && !/\w/.test(cond)) err('PARSE_SYNTAX_ERROR', "Syntax error at or near 'QUALIFY': falta la condición. SQLSTATE: 42601");
+    // las columnas ocultas se agregan a la lista del SELECT principal (antes de su FROM de nivel 0)
+    const fromM = nivel0(/FROM\b/iy).filter((x) => x.i < qm.i).pop();
+    const sel = nivel0(/SELECT\b/iy).filter((x) => !fromM || x.i < fromM.i).pop();
+    if (!fromM || !sel) err('UNSUPPORTED_FEATURE', 'QUALIFY necesita un SELECT … FROM … en la consulta principal.');
+    const extra = ventanas.map((w, i) => `, ${w} AS __q${i}`).join('');
+    const interna = cabeza.slice(0, fromM.i).trimEnd() + extra + ' ' + cabeza.slice(fromM.i) + (ordenTxt ? ' ' + ordenTxt : '');
+    return { sql: `SELECT * FROM (${interna}) AS __qualify WHERE ${cond}${limTxt ? ' ' + limTxt : ''}` };
   }
   const patron = (like) => new RegExp('^' + like.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/%/g, '.*').replace(/_/g, '.') + '$', 'i');
   function nombreObj(tipo, nombre) {
@@ -906,7 +947,9 @@
   }
   let enPipeline = false;
   function escribible(ref) {
-    if (ref.meta && ref.meta.pipeline && !enPipeline) err('STREAMING_TABLE_OPERATION_NOT_ALLOWED.REQUIRES_REFRESH', `${ref.c}.${ref.s}.${ref.t} es un${ref.meta.tipo === 'MATERIALIZED_VIEW' ? 'a vista materializada' : 'a tabla de streaming'} que administra el pipeline "${ref.meta.pipelineNombre || ref.meta.pipeline}". Solo se modifica ejecutando ese pipeline (Start o Full refresh).`);
+    // las vistas materializadas solo cambian al actualizar el pipeline; las tablas de streaming admiten
+    // INSERT / UPDATE / DELETE / MERGE (por ejemplo, para borrar datos personales), como en Unity Catalog
+    if (ref.meta && ref.meta.pipeline && !enPipeline && ref.meta.tipo === 'MATERIALIZED_VIEW') err('MATERIALIZED_VIEW_OPERATION_NOT_ALLOWED', `${ref.c}.${ref.s}.${ref.t} es una vista materializada que administra el pipeline "${ref.meta.pipelineNombre || ref.meta.pipeline}". Su contenido sale de su consulta: se actualiza ejecutando el pipeline (Start o Full refresh), no con DML.`);
     if (ref.solo) err('PERMISSION_DENIED', `User does not have MODIFY on Table '${ref.c}.${ref.s}.${ref.t}'. El catálogo ${ref.c} es de solo lectura: crea tus tablas en main (o en tu propio catálogo).`);
     if (ref.temp) err('UNSUPPORTED_FEATURE', 'No se puede escribir en una vista temporal.');
     if (ref.meta && ref.meta.tipo === 'VIEW') err('EXPECT_TABLE_NOT_VIEW.NO_ALTERNATIVE', `'${ref.c}.${ref.s}.${ref.t}' is a view. Las vistas no se modifican: escribe en la tabla de origen.`);
@@ -1402,7 +1445,21 @@
     if (!T) return; T.tipo = tipo; T.pipeline = id; T.pipelineNombre = nombre; guardar();
   }
   function filasDe(full) { const ref = resolver(full); const r = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0]; return r ? r.values[0][0] : 0; }
+  // corre fn en un metastore propio y vacío (los ejercicios autocorregidos): no toca el catálogo del alumno
+  let colaAislada = Promise.resolve();
+  function aislado(fn, archivosIniciales) {
+    const tarea = colaAislada.then(async () => {
+      await window.Engines.SQL.init();
+      if (listo) { try { await listo; } catch (e) { /* sin estado previo */ } }
+      const prev = { Store, db, listo, temp: sesion.temp, arch: archivosAislados };
+      Store = { data: {}, save() {} }; db = window.Engines.SQL.fresh(); funciones(db); listo = Promise.resolve(true); sesion.temp = {};
+      archivosAislados = JSON.parse(JSON.stringify(archivosIniciales || {})); enAislado = true;
+      try { return await fn(); } finally { enAislado = false; try { db.close(); } catch (e) { /* ya cerrada */ } Store = prev.Store; db = prev.db; listo = prev.listo; sesion.temp = prev.temp; archivosAislados = prev.arch; }
+    });
+    colaAislada = tarea.catch(() => {});
+    return tarea;
+  }
   function reiniciar() { Store.data.dbxUC = NUEVO_UC(); sesion.temp = {}; listo = null; db = null; guardar(); }
 
-  window.DBSQL = { comoPipeline, marcarPipeline, filasDe, init, ejecutar, arbol, infoTabla, registrarDesdeDatos, tablasAlumno, uc: () => uc(), samples, sentencias, tokenizar, reiniciar, parseCsv, archivos, ErrorDbx, _db: () => db };
+  window.DBSQL = { aislado, comoPipeline, marcarPipeline, filasDe, init, ejecutar, arbol, infoTabla, registrarDesdeDatos, tablasAlumno, uc: () => uc(), samples, sentencias, tokenizar, reiniciar, parseCsv, archivos, ErrorDbx, _db: () => db };
 })();

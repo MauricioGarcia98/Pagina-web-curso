@@ -82,7 +82,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
   const levelClass = (n) => 'b-' + (n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
-  const TYPE_LABEL = { sql: 'SQL', python: 'Python', pyspark: 'PySpark', airflow: 'Airflow', dbt: 'dbt', quiz: 'Test', cli: 'Terminal', abierto: 'Respuesta libre', dax: 'DAX' };
+  const TYPE_LABEL = { sql: 'SQL', python: 'Python', pyspark: 'PySpark', airflow: 'Airflow', dbt: 'dbt', quiz: 'Test', cli: 'Terminal', abierto: 'Respuesta libre', dax: 'DAX', dbsql: 'Databricks SQL' };
 
   PY.listeners.add((s) => {
     const el = $('#pyStatus');
@@ -577,6 +577,57 @@
   ];
   const MATERIAL = { py: '🟦', sql: '🟪', yml: '🟥', yaml: '🟥', md: '🟦', json: '🟨', csv: '🟩', sh: '🟫', toml: '⬛', txt: '⬜', log: '⬜' };
 
+  // Diagnóstico de Python con el intérprete real (Pyodide), solo si ya está cargado (no descarga nada al
+  // escribir): errores de sintaxis de ast.parse, nombres sin definir e imports sin usar, como Pylance/pyflakes.
+  const diagCache = new Map();
+  const PY_DIAG = `import ast, json, builtins
+out = []
+try:
+    t = ast.parse(SRC)
+except SyntaxError as e:
+    out.append([e.lineno or 1, e.offset or 1, 'error', e.msg, 'SyntaxError'])
+else:
+    defs = set(dir(builtins)) | {'__name__', '__file__', 'spark', 'dbutils', 'display', 'displayHTML', 'sc', 'sqlContext'}
+    imports = {}
+    star = False
+    for n in ast.walk(t):
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)): defs.add(n.name)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            a = n.args
+            for x in a.args + a.kwonlyargs + list(getattr(a, 'posonlyargs', [])): defs.add(x.arg)
+            if a.vararg: defs.add(a.vararg.arg)
+            if a.kwarg: defs.add(a.kwarg.arg)
+        if isinstance(n, ast.Name) and isinstance(n.ctx, (ast.Store, ast.Del)): defs.add(n.id)
+        if isinstance(n, (ast.Import, ast.ImportFrom)):
+            for al in n.names:
+                if al.name == '*': star = True; continue
+                nm = (al.asname or al.name).split('.')[0]
+                defs.add(nm); imports.setdefault(nm, (n.lineno, n.col_offset))
+        if isinstance(n, ast.ExceptHandler) and n.name: defs.add(n.name)
+        if isinstance(n, (ast.Global, ast.Nonlocal)): defs.update(n.names)
+        if getattr(ast, 'MatchAs', None) and isinstance(n, ast.MatchAs) and n.name: defs.add(n.name)
+    usados = set()
+    for n in ast.walk(t):
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load):
+            usados.add(n.id)
+            if n.id not in defs and not star: out.append([n.lineno, n.col_offset + 1, 'error', '"%s" is not defined' % n.id, 'Pylance(reportUndefinedVariable)'])
+    if '__all__' not in defs:
+        for nm, (l, c) in imports.items():
+            if nm not in usados: out.append([l, c + 1, 'warning', 'Import "%s" is not accessed' % nm, 'Pylance(reportUnusedImport)'])
+print(json.dumps(out))`;
+  async function diagPython(src) {
+    const PY = window.Engines && window.Engines.PY;
+    if (!PY || PY.status !== 'ready') return null;
+    if (diagCache.has(src)) return diagCache.get(src);
+    try {
+      const r = await PY.run('python', `SRC = ${JSON.stringify(src)}\n${PY_DIAG}`);
+      const linea = String(r.stdout || '').trim().split('\n').pop();
+      const res = JSON.parse(linea).map(([l, c, sev, msg, fuente]) => ({ linea: l, col: c, sev, msg, fuente }));
+      diagCache.set(src, res); if (diagCache.size > 50) diagCache.delete(diagCache.keys().next().value);
+      return res;
+    } catch (e) { return null; }
+  }
+
   function abrirCode(raiz, archivo) {
     const Sh = window.Shell;
     if (document.getElementById('vscode')) document.getElementById('vscode').remove();
@@ -586,7 +637,7 @@
     const abiertas = new Set();
     const BIENVENIDA = '\u0000bienvenida', AJUSTES = '\u0000ajustes', DIFF = '\u0000diff:';
     const esArchivo = (k) => !!k && !String(k).startsWith('\u0000');
-    let temaReal = null, problemas = [], diagT = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
+    let temaReal = null, problemas = [], diagT = null, tlAbierto = true, diffOrig = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
     const terms = []; let tActiva = 0; const salida = [];
     let AJ = vsAjustes(), autoGuardado = null;
     const icono = (nombre) => {
@@ -700,7 +751,7 @@
         return `<div class="vs-n vs-arch ${k === actual ? 'on' : ''} ${g ? 'git-' + g : ''}" data-f="${esc(k)}" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic vs-ic-${ext(n) || 'txt'}">${icono(n)}</span><span class="vs-nom">${esc(n)}</span>${sucios.has(k) ? '<b class="vs-punto">●</b>' : g ? `<span class="vs-git">${g}</span>` : ''}</div>`;
       }).join('');
       latEl.innerHTML = `<div class="vs-lat-cab"><span>EXPLORADOR</span><span class="spacer"></span><button title="Archivo nuevo..." data-nuevo>${ci('new-file')}</button><button title="Carpeta nueva..." data-nueva-carpeta>${ci('new-folder')}</button><button title="Actualizar el explorador" data-refrescar>${ci('refresh')}</button><button title="Contraer carpetas en el explorador" data-contraer>${ci('collapse-all')}</button></div><div class="vs-n vs-raiz">${ci('chevron-down')} ${esc(nombreRaiz.toUpperCase())}</div>${nodo(raiz, 0) || '<div class="vs-n muted small" style="padding-left:20px">(carpeta vacía)</div>'}`;
-      latEl.insertAdjacentHTML('beforeend', esquemaHtml());
+      latEl.insertAdjacentHTML('beforeend', esquemaHtml() + timelineHtml());
     }
     function buscarEnArchivos(q) {
       const res = $('.vs-res', latEl); if (!res) return;
@@ -807,7 +858,7 @@
       if (!esArchivo(k)) return;
       const v = k === actual && ed ? ed.getValue() : sucios.get(k);
       if (v === undefined) return;
-      Sh.writeFile(k, v); Sh.Machine.save(); sucios.delete(k);
+      historialLocal(k, Sh.readFile(k)); Sh.writeFile(k, v); Sh.Machine.save(); sucios.delete(k); historialLocal(k, v);
       if (k === VS_RUTA()) { aplicar(); toast('Configuración aplicada'); }
       pintarTabs(); pintarLateral();
     }
@@ -848,16 +899,47 @@
     function diagnosticar() {
       if (!window.VSReal) return;
       problemas = esArchivo(actual) && ed ? window.VSReal.diagnosticos(ed.getValue(), LANG_DIAG[ext(actual)] || '').map((x) => ({ ...x, archivo: actual })) : [];
+      aplicarProblemas();
+      // Python real (Pyodide): si ya está cargado, el análisis con ast reemplaza al heurístico
+      if (esArchivo(actual) && ed && ext(actual) === 'py') {
+        const src = ed.getValue(), arch = actual;
+        diagPython(src).then((res) => { if (!res || arch !== actual || !ed || ed.getValue() !== src) return; problemas = res.map((x) => ({ ...x, archivo: arch })); aplicarProblemas(); });
+      }
+    }
+    function aplicarProblemas() {
       const nE = problemas.filter((x) => x.sev === 'error').length, nW = problemas.length - nE;
       const el = $('[data-errores]', box); if (el) el.innerHTML = `${ci('error')} ${nE} ${ci('warning')} ${nW}`;
       const pn = $('[data-prob-n]', box); if (pn) { pn.hidden = !problemas.length; pn.textContent = problemas.length; }
       if (ed && ed.monaco && window.monaco) { const m = ed.monaco.getModel(); window.monaco.editor.setModelMarkers(m, 'academia', problemas.filter((x) => x.linea <= m.getLineCount()).map((x) => ({ startLineNumber: x.linea, startColumn: x.col, endLineNumber: x.linea, endColumn: Math.max(x.col + 1, m.getLineMaxColumn(x.linea)), message: x.msg, severity: x.sev === 'error' ? 8 : 4, source: x.fuente }))); }
       if (ptab === 'problemas') pintarProblemas();
       const esq = $('.vs-esquema', latEl); if (esq) esq.outerHTML = esquemaHtml();
+      const tl = $('.vs-timeline', latEl); if (tl) tl.outerHTML = timelineHtml();
     }
     function pintarProblemas() {
       const el = $('.vs-panel-prob', box); if (!el) return;
       el.innerHTML = problemas.length ? `<div class="vs-prob-arch">${icono(problemas[0].archivo.split('/').pop())} ${esc(problemas[0].archivo.split('/').pop())} <span class="vs-res-ruta">${esc(rel(problemas[0].archivo).split('/').slice(0, -1).join('/'))}</span><span class="vs-res-n">${problemas.length}</span></div>${problemas.map((x) => `<div class="vs-prob" data-ir-linea="${x.linea}" data-ir-col="${x.col}">${ci(x.sev === 'error' ? 'error' : 'warning')} <span>${esc(x.msg)}</span> <span class="vs-prob-f">${esc(x.fuente)} [Ln ${x.linea}, Col ${x.col}]</span></div>`).join('')}` : '<p class="small" style="opacity:.7;padding:6px 12px">No se han detectado problemas en el área de trabajo.</p>';
+    }
+    // ---------------------------------------------------------------- Timeline: historial local (cada guardado) y commits de git del archivo
+    function historialLocal(k, v) {
+      if (v == null) return;
+      try { const H = JSON.parse(localStorage.getItem('vs-historial') || '{}'); const l = H[k] = H[k] || []; if (l.length && l[l.length - 1].v === v) return; l.push({ t: Date.now(), v }); if (l.length > 15) l.splice(0, l.length - 15); const claves = Object.keys(H); if (claves.length > 60) delete H[claves[0]]; localStorage.setItem('vs-historial', JSON.stringify(H)); } catch (e) { /* sin almacenamiento */ }
+    }
+    function entradasTimeline(k) {
+      const out = [];
+      try { (JSON.parse(localStorage.getItem('vs-historial') || '{}')[k] || []).forEach((x, i) => out.push({ id: 'l' + i, t: x.t, tipo: 'local', titulo: 'Archivo guardado', det: 'Historial local', v: x.v })); } catch (e) { /* sin almacenamiento */ }
+      const r = repoDe(), g = r && Sh.Machine.git[r];
+      if (g && k.startsWith(r + '/')) {
+        const relp = k.slice(r.length + 1), C = Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits);
+        let h = g.branches[g.branch], n = 0;
+        while (h && C[h] && n < 200) { const c = C[h], pa = c.parent && C[c.parent]; const antes = pa ? pa.snap[relp] : undefined; if (c.snap[relp] !== antes) out.push({ id: 'g' + h, t: Date.parse(c.date) || 0, tipo: 'git', titulo: c.msg, det: `${c.author || 'alumno'} · ${h.slice(0, 7)}`, v: c.snap[relp] ?? '' }); h = c.parent; n++; }
+      }
+      return out.sort((a, b) => b.t - a.t);
+    }
+    const haceCuanto = (t) => { const s0 = (Date.now() - t) / 1000; return s0 < 60 ? 'ahora' : s0 < 3600 ? `hace ${Math.floor(s0 / 60)} min` : s0 < 86400 ? `hace ${Math.floor(s0 / 3600)} h` : s0 < 86400 * 30 ? `hace ${Math.floor(s0 / 86400)} d` : new Date(t).toLocaleDateString('es'); };
+    function timelineHtml() {
+      const k = esArchivo(actual) ? actual : actual && String(actual).startsWith(DIFF) ? String(actual).slice(DIFF.length) : null;
+      const es = k ? entradasTimeline(k) : [];
+      return `<div class="vs-timeline"><div class="vs-lat-sub vs-esq-t" data-tl-toggle><span class="vs-chev">${tlAbierto ? '⌄' : '›'}</span> LÍNEA DE TIEMPO${k ? ` <span class="vs-tl-arch">${esc(k.split('/').pop())}</span>` : ''}</div>${tlAbierto ? (es.length ? es.map((x) => `<div class="vs-n vs-tl-i" data-tl="${esc(x.id)}" title="${esc(x.titulo)}\n${esc(x.det)}"><span class="codicon codicon-${x.tipo === 'git' ? 'git-commit' : 'history'}"></span><span class="vs-nom">${esc(x.titulo)}</span><span class="vs-tl-t">${esc(haceCuanto(x.t))}</span></div>`).join('') : `<div class="vs-dim vs-tl-vacio">${k ? 'Sin historial todavía: guarda (Ctrl+S) o haz un commit.' : 'Abre un archivo para ver su historial.'}</div>`) : ''}</div>`;
     }
     function esquemaHtml() {
       if (!window.VSReal) return '';
@@ -871,7 +953,7 @@
       const r = repoDe(), g = r && Sh.Machine.git[r];
       const C = g ? Object.assign({}, ...Object.values(Sh.Machine.git.__remotos || {}).map((x) => x.commits), g.commits) : {};
       const head = g && g.branches[g.branch], relp = r ? k.slice(r.length + 1) : k;
-      const orig = head && C[head] ? (C[head].snap[relp] ?? '') : '', mod = Sh.readFile(k) ?? '';
+      const orig = diffOrig && diffOrig.k === k ? diffOrig.v : head && C[head] ? (C[head].snap[relp] ?? '') : '', mod = Sh.readFile(k) ?? '';
       edEl.innerHTML = '';
       if (window.monaco) {
         const lng = monacoLang(LANG_EXT[ext(k)] || 'text');
@@ -1033,8 +1115,10 @@
       if (t.closest('[data-abrir-json]')) { if (!Sh.exists(VS_RUTA())) vsGuardarAjustes(vsAjustes()); return abrir(VS_RUTA()); }
       const ex = t.closest('[data-ext]'); if (ex) { const a = vsAjustes(); delete a.__error; const l = new Set(a.extensiones || []); if (l.has(ex.dataset.ext)) l.delete(ex.dataset.ext); else { l.add(ex.dataset.ext); toast('Extensión instalada'); if (ex.dataset.ext === 'pkief.material-icon-theme') a['workbench.iconTheme'] = 'material'; } if (!l.has('pkief.material-icon-theme') && a['workbench.iconTheme'] === 'material') a['workbench.iconTheme'] = 'emojis'; a.extensiones = [...l]; vsGuardarAjustes(a); aplicar(); pintarLateral(); pintarEstado(); return; }
       const ct = t.closest('[data-cerrar-tab]'); if (ct) { e.stopPropagation(); return cerrarTab(ct.dataset.cerrarTab); }
-      const df = t.closest('[data-diff]'); if (df) return abrir(DIFF + df.dataset.diff);
+      const df = t.closest('[data-diff]'); if (df) { diffOrig = null; return abrir(DIFF + df.dataset.diff); }
       const il = t.closest('[data-ir-linea]'); if (il) { if (!ed && il.closest('.vs-panel-prob') && problemas[0]) abrir(problemas[0].archivo); return irALinea(Number(il.dataset.irLinea), Number(il.dataset.irCol || 1)); }
+      if (t.closest('[data-tl-toggle]')) { tlAbierto = !tlAbierto; const tl = $('.vs-timeline', latEl); if (tl) tl.outerHTML = timelineHtml(); return; }
+      const tli = t.closest('[data-tl]'); if (tli) { const k = esArchivo(actual) ? actual : String(actual).slice(DIFF.length); const x = entradasTimeline(k).find((y) => y.id === tli.dataset.tl); if (x) { diffOrig = { k, v: x.v }; if (actual === DIFF + k) abrirDiff(k); else abrir(DIFF + k); toast(`Comparando "${x.titulo}" (${haceCuanto(x.t)}) ↔ el archivo actual`); } return; }
       if (t.closest('[data-esq-toggle]')) { esqAbierto = !esqAbierto; const esq = $('.vs-esquema', latEl); if (esq) esq.outerHTML = esquemaHtml(); return; }
       const pt = t.closest('[data-ptab]'); if (pt) return mostrarPtab(pt.dataset.ptab);
       if (t.closest('[data-term-nuevo]')) return nuevaTerminal();
@@ -1097,8 +1181,9 @@
     if (ex.type === 'cli') return mountCli(card, ex, markPassed, fb, feedback, extra, showExtra);
     if (ex.type === 'abierto') return mountOpen(card, ex, markPassed, extra, showExtra);
 
-    const lang = ex.type === 'sql' ? 'sql' : ex.type === 'dbt' ? 'dbt' : ex.type === 'dax' ? 'dax' : 'python';
-    const starter = ex.inicial ?? (ex.type === 'sql' ? '-- Escribe tu consulta aquí\n' : ex.type === 'dbt' ? '-- Escribe tu modelo dbt aquí\n' : ex.type === 'dax' ? (ex.prueba ? 'Medida = ' : '// Escribe tu consulta DAX\nEVALUATE\n    ') : '# Escribe tu código aquí\n');
+    const lang = ex.type === 'sql' || ex.type === 'dbsql' ? 'sql' : ex.type === 'dbt' ? 'dbt' : ex.type === 'dax' ? 'dax' : 'python';
+    const starter = ex.inicial ?? (ex.type === 'dbsql' ? (ex.modo === 'pipeline' ? '-- Código del pipeline (destino: main.default)\nCREATE OR REFRESH STREAMING TABLE …\n' : '-- Databricks SQL (catálogo main, esquema default)\n') : ex.type === 'sql' ? '-- Escribe tu consulta aquí\n' : ex.type === 'dbt' ? '-- Escribe tu modelo dbt aquí\n' : ex.type === 'dax' ? (ex.prueba ? 'Medida = ' : '// Escribe tu consulta DAX\nEVALUATE\n    ') : '# Escribe tu código aquí\n');
+    if (ex.type === 'dbsql' && (ex.setup || ex.check)) card.append(h(`<details class="dax-prueba"><summary>${ex.modo === 'pipeline' ? 'Cómo se corrige: se ejecuta tu pipeline (destino <code>main.default</code>) y después la consulta de control' : 'Cómo se corrige: se corre en un catálogo limpio con estas tablas; después de tu código se ejecuta la consulta de control'}</summary>${ex.setup ? `<p class="small muted">Tablas que ya existen (setup):</p><pre data-lang="sql"><code>${esc(ex.setup)}</code></pre>` : ''}${ex.archivos ? `<p class="small muted">Archivos en el volumen:</p><pre data-lang="texto"><code>${esc(ex.archivos)}</code></pre>` : ''}${ex.check ? `<p class="small muted">Consulta de control (tu resultado se compara con el de la solución):</p><pre data-lang="sql"><code>${esc(ex.check)}</code></pre>` : ''}</details>`));
     if (ex.type === 'dax' && ex.prueba) card.append(h(`<details class="dax-prueba"><summary>Tu medida se llama <code>[?]</code> y se evalúa con esta consulta DAX (como un objeto visual)</summary><pre data-lang="dax"><code>${esc(ex.prueba)}</code></pre>${ex.medidas ? `<p class="small muted">Medidas que ya existen en el modelo:</p><pre data-lang="dax"><code>${esc(ex.medidas)}</code></pre>` : ''}</details>`));
     const edBox = h('<div class="ex-editor"></div>');
     card.append(edBox);
@@ -1109,7 +1194,7 @@
       <button class="btn btn-ok btn-sm" data-act="check">✓ Comprobar</button>
       ${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}
       <button class="btn btn-sm" data-act="sol">👁 Solución</button>
-      ${ex.type === 'sql' || ex.type === 'dbt' || ex.type === 'dax' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}${ex.type === 'dax' ? '<a class="btn btn-ghost btn-sm" href="#/powerbi" title="El Power BI de práctica: importa las mismas tablas y prueba la medida en un objeto visual">📊 Power BI</a>' : ''}
+      ${ex.type === 'sql' || ex.type === 'dbt' || ex.type === 'dax' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}${ex.type === 'dax' ? '<a class="btn btn-ghost btn-sm" href="#/powerbi" title="El Power BI de práctica: importa las mismas tablas y prueba la medida en un objeto visual">📊 Power BI</a>' : ''}${ex.type === 'dbsql' ? `<a class="btn btn-ghost btn-sm" href="#/databricks/${ex.modo === 'pipeline' ? 'pipelines' : 'sql'}" title="Prueba lo mismo en el Databricks de práctica (con tu propio catálogo)">🧱 Databricks</a>` : ''}
       <span class="spacer"></span>
       <button class="btn btn-ghost btn-sm" data-act="reset" title="Volver al código inicial">↺ Reiniciar</button>
     </div>`);
@@ -1143,6 +1228,12 @@
         } else if (ex.type === 'dax') {
           if (!(await ensureSql(out))) return;
           renderSqlOutput(out, await window.Engines.DAX.run(ex, code));
+        } else if (ex.type === 'dbsql') {
+          if (!(await ensureSql(out))) return;
+          loadingInto(out, ex.modo === 'pipeline' ? 'Ejecutando el pipeline…' : 'Ejecutando en Databricks SQL…');
+          const r = await window.Engines.DBSQL.run(ex, code);
+          renderSqlOutput(out, r);
+          if (r.ok && r.log) out.prepend(h(`<pre class="console small">${esc(r.log)}</pre>`));
         } else if (ex.type === 'dbt') {
           if (!(await ensureSql(out))) return;
           loadingInto(out, pyLoadingMsg());
@@ -1164,6 +1255,14 @@
           const r = SQL.grade(ex, code);
           if (!r.ok) { feedback('bad', '✗ Error: ' + r.error); out.innerHTML = ''; return; }
           renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 });
+          if (r.pass) { feedback('ok', '✓ ' + r.msg); markPassed(); } else feedback('bad', '✗ ' + r.msg);
+        } else if (ex.type === 'dbsql') {
+          if (!(await ensureSql(out))) return;
+          loadingInto(out, 'Comprobando…');
+          const r = await window.Engines.DBSQL.grade(ex, code);
+          if (!r.ok) { feedback('bad', '✗ Error: ' + r.error.split('\n').pop()); renderSqlOutput(out, r); return; }
+          renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 });
+          if (r.log) out.prepend(h(`<pre class="console small">${esc(r.log)}</pre>`));
           if (r.pass) { feedback('ok', '✓ ' + r.msg); markPassed(); } else feedback('bad', '✗ ' + r.msg);
         } else if (ex.type === 'dax') {
           if (!(await ensureSql(out))) return;
@@ -1462,19 +1561,21 @@
   // Como en la documentación de MDN o Docusaurus: las etapas se pliegan y solo queda abierta la tuya,
   // así el menú no es una lista eterna de 27 módulos.
   const LABS_MENU = [
-    ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal'], ['#/lab/sql', '🧪', 'SQL', 'lab-sql'],
+    ['#/databricks', '🧱', 'Databricks', 'databricks', 'apps'],
+    ['#/azure', '☁️', 'Portal de Azure', 'azure', 'apps'],
+    ['#/powerbi', '📊', 'Power BI Desktop', 'powerbi', 'apps'],
+    ['#/vscode', '🟦', 'VS Code', 'vscode', 'apps'],
+    ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal', 'apps'],
+    ['#/lab/sql', '🧪', 'SQL', 'lab-sql'],
     ['#/lab/python', '🐍', 'Python', 'lab-python'], ['#/lab/pyspark', '⚡', 'PySpark', 'lab-pyspark'],
     ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
     ['#/modelado', '📐', 'Modelado de datos', 'modelado'], ['#/generador', '🏭', 'Generador de datos', 'generador'],
-    ['#/powerbi', '📊', 'Power BI (práctica)', 'powerbi'],
-    ['#/databricks', '🧱', 'Databricks (práctica)', 'databricks'],
-    ['#/azure', '☁️', 'Portal de Azure (práctica)', 'azure'],
     ['#/trabajo', '💼', 'Tu primer trabajo (simulación)', 'trabajo'],
   ];
   function renderSidebar(route) {
     const sb = $('#sidebar');
     const cur = route.lesson ? route.lesson.modulo.id : route.module ? route.module.id : null;
-    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo', 'trabajo'].includes(route.name);
+    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['herramientas', 'notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo', 'trabajo'].includes(route.name);
     const etapaAbierta = cur ? etapaDeModulo(cur) : fueraDelCurso ? null : etapaActual();
     const link = (href, ico, text, active, meta = '') => `<a class="side-link ${active ? 'active' : ''}" href="${href}"><span class="ico">${ico}</span><span>${text}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</a>`;
     let html = link('#/', '🏠', 'Inicio', route.name === 'home');
@@ -1503,8 +1604,8 @@
       }
       html += '</details>';
     }
-    const enLab = LABS_MENU.some((x) => x[3] === route.name);
-    html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧪</span><span class="st-name">Laboratorios: practica libre</span><span class="chev">▶</span></summary>${LABS_MENU.map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
+    const enLab = LABS_MENU.some((x) => x[3] === route.name) || route.name === 'herramientas';
+    html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧰</span><span class="st-name">Herramientas de práctica</span><span class="chev">▶</span></summary>${link('#/herramientas', '🧰', 'Todas las herramientas', route.name === 'herramientas')}<div class="side-sub">Réplicas de las reales</div>${LABS_MENU.filter((x) => x[4] === 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}<div class="side-sub">Laboratorios y simulaciones</div>${LABS_MENU.filter((x) => x[4] !== 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
     const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo'];
     html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
@@ -1554,23 +1655,58 @@
     if (tp.done >= 3 && (dias === null || dias >= 7)) return `<div class="callout"><b>🗓 Repaso semanal.</b> ${dias === null ? 'Todavía no usaste las tarjetas de repaso.' : `Hace ${dias} días que no repasas.`} Diez minutos de tarjetas fijan lo que aprendiste esta semana. <a href="#/repaso">Empezar el repaso →</a></div>`;
     return '';
   }
+  // Herramientas de práctica: las réplicas de las aplicaciones reales, los laboratorios y las simulaciones.
+  // modulos: dónde se usa cada una (para mostrarla en el módulo y en sus lecciones).
+  const HERRAMIENTAS = [
+    { id: 'databricks', g: 'apps', href: '#/databricks', ico: '🧱', nombre: 'Databricks', real: 'Databricks (workspace en Azure, AWS o GCP)', desc: 'El workspace completo: notebooks con SQL y PySpark reales, Unity Catalog, editor SQL, compute, jobs y pipelines declarativos.', puedes: ['Notebooks con %sql y Python (Spark en tu navegador), display() y dbutils', 'Tablas Delta con historial, MERGE, time travel, COPY INTO y QUALIFY', 'Jobs con tareas, dependencias y reparación; pipelines con expectativas y AUTO CDC'], modulos: ['databricks', 'genie', 'cert-databricks', 'portafolio', 'laboratorios', 'spark', 'pyspark'], rutas: ['databricks'] },
+    { id: 'azure', g: 'apps', href: '#/azure', ico: '☁️', nombre: 'Portal de Azure', real: 'portal.azure.com', desc: 'Suscripción de práctica con grupos de recursos, asistentes de creación, Storage, Key Vault, Databricks, Data Factory, costos y Cloud Shell.', puedes: ['Crear recursos con el asistente (Basics → Review + create) y ver el despliegue', 'Contenedores y blobs, secretos con RBAC, bloqueos, etiquetas y registro de actividad', 'Cloud Shell con la CLI az conectada al mismo estado'], modulos: ['azure', 'cert-azure', 'terraform', 'portafolio', 'laboratorios', 'arquitectura'], rutas: ['azure'] },
+    { id: 'powerbi', g: 'apps', href: '#/powerbi', ico: '📊', nombre: 'Power BI Desktop', real: 'Power BI Desktop', desc: 'Importa CSV, Excel o las bases del curso, transforma con Power Query, modela relaciones, escribe DAX y arma el informe.', puedes: ['Power Query con pasos aplicados y M', 'Modelo con relaciones, medidas y columnas calculadas (motor DAX con contexto de filtro)', '23 objetos visuales, formato, vista de consultas DAX y TMDL'], modulos: ['powerbi', 'analisis', 'casos'], rutas: ['powerbi'] },
+    { id: 'vscode', g: 'apps', href: '#/vscode', ico: '🟦', nombre: 'VS Code', real: 'Visual Studio Code', desc: 'El editor con temas e íconos del repositorio oficial, terminal integrada, Git, problemas, esquema, editor dividido y diff.', puedes: ['Abrir carpetas del disco de práctica (o code . desde la terminal)', 'Editar con Monaco, el mismo editor de VS Code, y ejecutar Python o SQL', 'Control de código fuente, extensiones y ajustes'], modulos: ['local', 'python', 'dbt', 'airflow', 'fundamentos', 'proyecto'], rutas: ['vscode'] },
+    { id: 'terminal', g: 'apps', href: '#/lab/terminal', ico: '⌨️', nombre: 'Terminal', real: 'bash en Linux/macOS', desc: 'Una terminal con disco propio: bash, git, docker, vim y las CLIs de Azure, AWS, Google Cloud, Databricks y Terraform.', puedes: ['Misiones guiadas de cero a experto', 'git con ramas, conflictos y un remoto de práctica', 'az, aws, gcloud, databricks y terraform con estado compartido con los portales'], modulos: ['cero', 'fundamentos', 'local', 'azure', 'aws', 'gcp', 'terraform', 'incidentes'], rutas: ['lab-terminal'] },
+    { id: 'notas', g: 'apps', href: '#/notas', ico: '📝', nombre: 'Notas', real: 'Notion / Obsidian', desc: 'Tus apuntes en Markdown con enlaces entre notas, una nota por lección y búsqueda.', puedes: ['Una nota por lección, enlazada desde cada lección', 'Markdown con vista previa, enlaces [[entre notas]] y etiquetas', 'Exportar todo como archivos .md'], modulos: [], rutas: ['notas'] },
+    { id: 'lab-sql', g: 'labs', href: '#/lab/sql', ico: '🧪', nombre: 'SQL', desc: 'SQLite, PostgreSQL, MySQL y SQL Server sobre las 13 empresas del curso.', modulos: ['sql', 'casos', 'analisis', 'modelado'], rutas: ['lab-sql'] },
+    { id: 'lab-python', g: 'labs', href: '#/lab/python', ico: '🐍', nombre: 'Python', desc: 'Python 3 real (Pyodide) con pandas.', modulos: ['python'], rutas: ['lab-python'] },
+    { id: 'lab-pyspark', g: 'labs', href: '#/lab/pyspark', ico: '⚡', nombre: 'PySpark', desc: 'La API de DataFrames de Spark con las tablas del curso.', modulos: ['spark', 'pyspark'], rutas: ['lab-pyspark'] },
+    { id: 'lab-dbt', g: 'labs', href: '#/lab/dbt', ico: '🔧', nombre: 'dbt', desc: 'Modelos, ref() y Jinja compilado a SQL.', modulos: ['dbt'], rutas: ['lab-dbt'] },
+    { id: 'lab-airflow', g: 'labs', href: '#/lab/airflow', ico: '🌬️', nombre: 'Airflow', desc: 'DAGs, operadores y dependencias.', modulos: ['airflow'], rutas: ['lab-airflow'] },
+    { id: 'modelado', g: 'sim', href: '#/modelado', ico: '📐', nombre: 'Modelado de datos', desc: 'Del requerimiento al modelo, la validación y el DDL.', modulos: ['modelado', 'arquitectura'], rutas: ['modelado'] },
+    { id: 'generador', g: 'sim', href: '#/generador', ico: '🏭', nombre: 'Generador de datos', desc: 'Datasets realistas (y sucios) para tus proyectos, en CSV, JSON o SQL.', modulos: ['portafolio', 'proyecto'], rutas: ['generador'] },
+    { id: 'trabajo', g: 'sim', href: '#/trabajo', ico: '💼', nombre: 'Tu primer trabajo', desc: 'Una semana simulada: tickets, PR con revisión y una guardia.', modulos: ['proyecto', 'incidentes'], rutas: ['trabajo'] },
+    { id: 'revisar-repo', g: 'sim', href: '#/revisar-repo', ico: '🔎', nombre: 'Revisar mi proyecto', desc: 'Tu repositorio de GitHub evaluado como en una entrevista.', modulos: ['proyecto', 'portafolio'], rutas: ['revisar-repo'] },
+  ];
+  const GRUPOS_H = { apps: ['Réplicas de las herramientas del trabajo', 'Se ven y se usan como las reales, pero corren en tu navegador: no necesitas cuenta, tarjeta ni instalar nada.'], labs: ['Laboratorios de código', 'Misiones guiadas de cero a experto, o práctica libre.'], sim: ['Diseño y simulaciones', 'Para pensar como en el trabajo: modelar, generar datos y resolver tickets.'] };
+  // herramientas que una lección usa: las que enlaza en su texto y las de su módulo
+  const herrLeccionCache = new Map();
+  function herramientasDe(l) {
+    if (herrLeccionCache.has(l.id)) return herrLeccionCache.get(l.id);
+    const r = HERRAMIENTAS.filter((x) => x.g === 'apps' && (l.html.includes(`href="${x.href}`) || (x.modulos.includes(l.modulo.id) && x.id !== 'notas' && (x.id !== 'terminal' || l.ejercicios.some((e) => e.type === 'cli')))));
+    herrLeccionCache.set(l.id, r); return r;
+  }
+  function viewHerramientas() {
+    const usos = (x) => LESSONS.filter((l) => l.html.includes(`href="${x.href}`)).length;
+    const card = (x) => {
+      const mods = x.modulos.map((id) => MODULE_BY_ID.get(id)).filter(Boolean);
+      const n = usos(x);
+      return `<article class="herr-card herr-${x.g}">
+        <a class="hc-cab" href="${x.href}"><span class="hc-ico">${x.ico}</span><span><b>${esc(x.nombre)}</b>${x.real ? `<small>Réplica de ${esc(x.real)}</small>` : ''}</span></a>
+        <p>${esc(x.desc)}</p>
+        ${x.puedes ? `<ul class="hc-puedes">${x.puedes.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+        ${mods.length || n ? `<div class="hc-usos">${mods.length ? `<span class="small muted">Se usa en:</span> ${mods.slice(0, 5).map((m) => `<a class="chip" href="#/m/${m.id}">${m.icono} ${esc(m.titulo.split(':')[0])}</a>`).join('')}` : ''}${n ? ` <span class="small muted">· ${n} ${n === 1 ? 'lección la enlaza' : 'lecciones la enlazan'}</span>` : ''}</div>` : ''}
+        <a class="btn btn-primary btn-sm hc-abrir" href="${x.href}">Abrir ${esc(x.nombre)} →</a>
+      </article>`;
+    };
+    main.innerHTML = `<div class="container herramientas">
+      <div class="crumbs"><a href="#/">Inicio</a><span>/</span><span>Herramientas de práctica</span></div>
+      <h1>🧰 Herramientas de práctica</h1>
+      <p class="lead muted">Todo lo que usa un ingeniero de datos, para practicar sin cuentas ni costos. Lo que hagas queda guardado <b>en este navegador</b> y cada herramienta tiene un botón para empezar de cero. Las lecciones te mandan a la herramienta justa en el momento justo.</p>
+      ${Object.entries(GRUPOS_H).map(([g, [t, d]]) => `<section class="home-sec"><div class="sec-cab"><h2>${esc(t)}</h2></div><p class="muted sec-sub">${esc(d)}</p><div class="herr-grid ${g === 'apps' ? '' : 'herr-grid-chica'}">${HERRAMIENTAS.filter((x) => x.g === g).map(card).join('')}</div></section>`).join('')}
+      <div class="callout"><p style="margin:0"><b>¿Y las herramientas de verdad?</b> Cuando quieras pasar a las reales, el módulo <a href="#/m/local">Desde tu computadora</a> te guía para instalar VS Code, Python y Git, y <a href="#/m/laboratorios">Laboratorios guiados en la nube</a> para usar Azure, AWS, Google Cloud y Databricks con cuentas gratuitas, cuidando el costo.</p></div>
+    </div>`;
+  }
   // Portada: una sola acción principal, "continúa donde quedaste" y la ruta en etapas plegables.
   // Ideas tomadas de plataformas educativas: botón de retomar en un clic (Coursera, Codecademy, Alison),
   // camino por etapas con tu posición marcada (Duolingo, roadmap.sh) y revelar el detalle solo cuando
   // se pide (divulgación progresiva), para no mostrar 27 módulos de golpe.
-  const LABS_HOME = [
-    ['#/lab/terminal', '⌨️', 'Terminal', 'bash, git, docker y las CLIs de Azure, AWS y Google Cloud'],
-    ['#/lab/sql', '🧪', 'SQL', 'SQLite, PostgreSQL, MySQL y SQL Server con 13 empresas'],
-    ['#/lab/python', '🐍', 'Python', 'Python 3 real en tu navegador, con pandas'],
-    ['#/lab/pyspark', '⚡', 'PySpark', 'la API de Spark con las tablas del curso'],
-    ['#/lab/dbt', '🔧', 'dbt', 'modelos, ref() y Jinja compilado a SQL'],
-    ['#/lab/airflow', '🌬️', 'Airflow', 'DAGs, operadores y dependencias'],
-    ['#/powerbi', '📊', 'Power BI', 'importa cualquier CSV, Excel o base, modela y arma un informe'],
-    ['#/databricks', '🧱', 'Databricks', 'notebooks, Unity Catalog, Delta, SQL, clusters, jobs y pipelines'],
-    ['#/azure', '☁️', 'Portal de Azure', 'grupos de recursos, storage, Key Vault, Databricks y Cloud Shell'],
-    ['#/trabajo', '💼', 'Tu primer trabajo', 'una semana simulada: tickets, PR con revisión y una guardia'],
-    ['#/revisar-repo', '🔎', 'Revisar mi proyecto', 'tu repositorio de GitHub evaluado como en una entrevista'],
-  ];
   function viewHome() {
     const tp = totalProgress();
     const nextLesson = siguienteLeccion();
@@ -1618,9 +1754,10 @@
         <ol class="camino">${etapas}</ol>
       </section>
       <section class="home-sec">
-        <div class="sec-cab"><h2>Practica sin instalar nada</h2></div>
-        <p class="muted sec-sub">Laboratorios con misiones guiadas de cero a experto, o práctica libre. Si rompes algo, un botón lo deja como nuevo.</p>
-        <div class="labs-grid">${LABS_HOME.map((x) => `<a class="lab-tile" href="${x[0]}"><span class="lt-ico">${x[1]}</span><b>${x[2]}</b><small>${esc(x[3])}</small></a>`).join('')}</div>
+        <div class="sec-cab"><h2>Las herramientas del trabajo, en tu navegador</h2><a class="small" href="#/herramientas">Ver todas las herramientas →</a></div>
+        <p class="muted sec-sub">Réplicas de Databricks, el portal de Azure, Power BI, VS Code y la terminal para practicar sin cuentas ni costos. Si rompes algo, un botón lo deja como nuevo.</p>
+        <div class="herr-home">${HERRAMIENTAS.filter((x) => x.g === 'apps' && x.id !== 'notas').map((x) => `<a class="herr-tile" href="${x.href}"><span class="ht-ico">${x.ico}</span><b>${esc(x.nombre)}</b><small>${esc(x.desc)}</small></a>`).join('')}</div>
+        <div class="labs-grid labs-grid-chica">${HERRAMIENTAS.filter((x) => x.g !== 'apps').map((x) => `<a class="lab-tile" href="${x.href}"><span class="lt-ico">${x.ico}</span><b>${esc(x.nombre)}</b><small>${esc(x.desc)}</small></a>`).join('')}</div>
       </section>
       <section class="home-sec">
         <div class="sec-cab"><h2>Cómo se aprende aquí</h2></div>
@@ -1673,6 +1810,7 @@
       <div class="crumbs"><a href="#/">Inicio</a><span>/</span><span>${esc(m.titulo)}</span></div>
       <div class="module-head"><span class="mc-ico">${m.icono}</span><div><h1 style="margin:0">${esc(m.titulo)}</h1><div class="muted">${m.lecciones.length} lecciones · ${p.pct}% completado</div></div></div>
       <div class="prose"><p>${esc(m.descripcion)}</p>${m.intro || ''}</div>
+      ${(() => { const hs = HERRAMIENTAS.filter((x) => x.modulos.includes(m.id) && x.g === 'apps' && x.id !== 'notas'); return hs.length ? `<div class="mod-herr"><span class="small muted">🧰 En este módulo practicas con:</span> ${hs.map((x) => `<a class="chip chip-herr" href="${x.href}">${x.ico} ${esc(x.nombre)}</a>`).join('')}</div>` : ''; })()}
       <div class="bar" style="margin:10px 0 6px"><i style="width:${p.pct}%;background:${m.color}"></i></div>
       ${first ? `<p><a class="btn btn-primary btn-largo" href="#/l/${first.id}">${p.done ? 'Continuar' : 'Empezar'}: ${esc(first.titulo)} →</a></p>` : '<p class="muted">Contenido en preparación.</p>'}
       <div class="lesson-list">${html}</div>
@@ -1787,7 +1925,7 @@
   const slug = (t) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'seccion';
   function montarIndice(l, body) {
     const usados = new Set();
-    const secs = $$(':scope > h2', body).concat($$('#autoEval > h2', body)).map((h2) => {
+    const secs = $$(':scope > h2', body).concat($$('#resumenFinal > h2, #autoEval > h2', body)).map((h2) => {
       if (!h2.id) { let id = slug(h2.textContent), k = 2; while (usados.has(id) || document.getElementById(id)) id = slug(h2.textContent) + '-' + k++; h2.id = id; }
       usados.add(h2.id);
       return { el: h2, id: h2.id, t: h2.textContent.replace(/^[^\p{L}\p{N}¿¡]+/u, '').trim() };
@@ -1832,6 +1970,28 @@
     alDesplazar();
   }
 
+  // Resumen al final de las lecciones largas que no traen uno propio: qué secciones recorriste (con
+  // enlaces para volver), qué deberías poder hacer ahora y cuánta práctica te queda.
+  function resumenFinal(l, body, next) {
+    const h2s = $$(':scope > h2', body);
+    if (l.html.length < 14000 || h2s.length < 3) return;
+    if (h2s.some((x) => /resumen|para llevar|repaso final|qu[eé] aprendiste|cierre/i.test(x.textContent))) return;
+    const usados = new Set();
+    for (const x of h2s) { if (!x.id) { let id = slug(x.textContent), k = 2; while (usados.has(id) || document.getElementById(id)) id = slug(x.textContent) + '-' + k++; x.id = id; } usados.add(x.id); }
+    const secs = h2s.filter((x) => !/^\W*ejercicios\b/i.test(x.textContent.trim()));
+    const ejs = l.ejercicios.filter((e) => e.type !== 'abierto'), hechos = ejs.filter((e) => Store.exDone(e.id)).length;
+    const sec = h(`<section class="resumen-final" id="resumenFinal"><h2>🧭 Resumen de la lección</h2>
+      <div class="rf-grid">
+        <div><h3>Lo que recorriste</h3><ol>${secs.map((x) => `<li><a href="#${x.id}" data-rf="${x.id}">${esc(x.textContent.replace(/^[^\p{L}\p{N}¿¡]+/u, '').trim())}</a></li>`).join('')}</ol></div>
+        ${(l.objetivos || []).length ? `<div><h3>Ahora deberías poder</h3><ul class="rf-obj">${l.objetivos.map((o) => `<li>${o}</li>`).join('')}</ul></div>` : ''}
+      </div>
+      <p class="rf-pie">${ejs.length ? (hechos === ejs.length ? `✅ Resolviste los ${ejs.length} ejercicios.` : `✍️ Resolviste <b>${hechos} de ${ejs.length}</b> ejercicios: <a href="#${esc((ejs.find((e) => !Store.exDone(e.id)) || ejs[0]).id)}" data-rf-ej>ir al primero pendiente</a>.`) : ''} ${next ? `Sigue con <a href="#/l/${next.id}">${esc(next.titulo)}</a>.` : ''}</p>
+    </section>`);
+    sec.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#"]'); if (!a || a.getAttribute('href').startsWith('#/')) return; e.preventDefault(); const el = document.getElementById(a.getAttribute('href').slice(1)); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    const ae = $('#autoEval', body);
+    if (ae) body.insertBefore(sec, ae); else body.append(sec);
+  }
+
   function viewLesson(l) {
     const m = l.modulo;
     const idx = LESSONS.indexOf(l);
@@ -1846,7 +2006,7 @@
       <details class="indice indice-movil" id="indiceMovil"><summary>📑 En esta lección</summary><div class="indice-cuerpo"></div></details>
       <article class="prose" id="lessonBody">
         <h1>${esc(l.titulo)}</h1>
-        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a></div>
+        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a>${herramientasDe(l).slice(0, 3).map((x) => `<a class="badge badge-link badge-herr" href="${x.href}" title="Practica esta lección en ${esc(x.nombre)} (réplica en tu navegador)">${x.ico} ${esc(x.nombre)}</a>`).join('')}</div>
         ${lessonIntro(l)}
         ${l.html}
         ${l.autoevaluacion.length ? `<section class="autoeval" id="autoEval"><h2>✅ Autoevaluación</h2><p class="muted">Marca solo lo que puedas hacer <b>sin mirar la lección</b>. Si dudas en algo, vuelve a esa parte: esto es lo que se pregunta en una entrevista o se usa el primer día de trabajo.</p>${l.autoevaluacion.map((q, i) => `<label class="auto-item"><input type="checkbox" data-auto="${i}"><span>${q}</span></label>`).join('')}<div class="small muted" id="autoCount"></div></section>` : ''}
@@ -1883,6 +2043,7 @@
       const k = Number(slot.dataset.ex);
       mountExercise(slot, l.ejercicios[k], k + 1);
     });
+    resumenFinal(l, body, next);
     montarIndice(l, body);
     const ae = $('#autoEval');
     if (ae) {
@@ -2157,6 +2318,38 @@
     $('#run').addEventListener('click', run);
     $('#cero').addEventListener('click', () => { if (!confirm('¿Empezar de cero? Tu modelo actual se reemplaza por el ejemplo inicial.')) return; ed.setValue(DBT_INICIAL); out.innerHTML = ''; if (expl) expl.actualizar('', null); toast('Editor limpio'); });
   }
+  // VS Code de práctica como herramienta propia: elige una carpeta del disco de práctica y se abre el editor
+  function viewVSCode() {
+    const Sh = window.Shell;
+    if (!Sh) { main.innerHTML = '<div class="container prose"><p>La terminal de práctica no está cargada.</p></div>'; return; }
+    if (!Sh.Machine.ready) Sh.Machine.load();
+    const hijos = (d) => (Sh.children ? Sh.children(d) : []).filter((n) => !n.startsWith('.') && Sh.isDir(d + '/' + n));
+    const carpetas = hijos(Sh.HOME).map((n) => ({ n, ruta: Sh.HOME + '/' + n, cuantos: (Sh.children ? Sh.children(Sh.HOME + '/' + n) : []).filter((x) => !x.startsWith('.')).length }));
+    const recientes = (() => { try { return JSON.parse(localStorage.getItem('vs-recientes') || '[]'); } catch (e) { return []; } })().filter((r) => Sh.isDir(r));
+    main.innerHTML = `<div class="container vs-lanzador">
+      <div class="crumbs"><a href="#/">Inicio</a><span>/</span><a href="#/herramientas">Herramientas</a><span>/</span><span>VS Code</span></div>
+      <div class="vsl-cab"><span class="vsl-logo">🟦</span><div><h1>Visual Studio Code</h1><p class="muted">Réplica de VS Code con los temas e íconos del repositorio oficial (microsoft/vscode, licencia MIT) y el mismo editor (Monaco). Trabaja sobre el disco de la <a href="#/lab/terminal">terminal de práctica</a>: lo que guardas aquí lo ves con <code>cat</code> y <code>git status</code>.</p></div></div>
+      <div class="vsl-grid">
+        <section class="card"><h2>Inicio</h2>
+          <button class="btn btn-primary" data-abrir="${esc(Sh.HOME)}">📂 Abrir la carpeta personal (~)</button>
+          <p class="small muted">También desde la terminal: <code>code .</code> abre la carpeta actual y <code>code archivo.py</code> un archivo.</p>
+          ${recientes.length ? `<h3>Recientes</h3><ul class="vsl-lista">${recientes.slice(0, 6).map((r) => `<li><a href="#/vscode" data-abrir="${esc(r)}">${esc(r.split('/').pop() || '~')}</a> <span class="small muted">${esc(Sh.display(r))}</span></li>`).join('')}</ul>` : ''}
+        </section>
+        <section class="card"><h2>Carpetas en ~</h2>${carpetas.length ? `<ul class="vsl-lista">${carpetas.map((c) => `<li><a href="#/vscode" data-abrir="${esc(c.ruta)}">📁 ${esc(c.n)}</a> <span class="small muted">${c.cuantos} elemento${c.cuantos === 1 ? '' : 's'}</span></li>`).join('')}</ul>` : '<p class="muted">Todavía no hay carpetas. Crea una en la terminal con <code>mkdir proyecto</code> o abre la carpeta personal.</p>'}</section>
+        <section class="card"><h2>Para practicar</h2><ul class="vsl-lista">
+          <li><a href="#/m/local">Desde tu computadora</a>: el entorno local paso a paso (VS Code, Python, Git).</li>
+          <li><a href="#/l/fundamentos-git">Git</a>: commits, ramas y el panel de control de código fuente.</li>
+          <li><a href="#/m/dbt">dbt</a>: proyectos con modelos y tests para abrir en el editor.</li></ul></section>
+      </div>
+    </div>`;
+    $('.vs-lanzador', main).addEventListener('click', (e) => {
+      const a = e.target.closest('[data-abrir]'); if (!a) return; e.preventDefault();
+      const r = a.dataset.abrir;
+      try { const lst = [r, ...JSON.parse(localStorage.getItem('vs-recientes') || '[]').filter((x) => x !== r)].slice(0, 8); localStorage.setItem('vs-recientes', JSON.stringify(lst)); } catch (err) { /* sin almacenamiento */ }
+      abrirCode(r, null);
+    });
+  }
+
   function viewLabTerminal() {
     main.innerHTML = `<div class="container wide">
       <h1 style="margin:0 0 4px">⌨️ Laboratorio de terminal</h1>
@@ -3225,6 +3418,8 @@
     if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
     if (parts[0] === 'trabajo') return { name: 'trabajo', params };
     if (parts[0] === 'powerbi') return { name: 'powerbi' };
+    if (parts[0] === 'herramientas') return { name: 'herramientas' };
+    if (parts[0] === 'vscode') return { name: 'vscode' };
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
     if (parts[0] === 'azure') return { name: 'azure', sub: parts.slice(1) };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
@@ -3236,7 +3431,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3257,6 +3452,8 @@
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
+    else if (r.name === 'herramientas') viewHerramientas();
+    else if (r.name === 'vscode') viewVSCode();
     else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });
     else if (r.name === 'databricks' && window.Databricks) window.Databricks.vista(main, { Store, toast, ensureSql }, r.sub);
     else if (r.name === 'azure' && window.AzurePortal) window.AzurePortal.vista(main, { Store, toast, ensureSql }, r.sub);

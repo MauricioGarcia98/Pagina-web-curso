@@ -28,6 +28,8 @@
   D.registrar = (nombre, fn) => { VISTAS[nombre] = fn; };
   D.ir = (ruta) => { location.hash = '#/databricks/' + ruta; };
   D.ruta = (...p) => p.map((x) => encodeURIComponent(x)).join('/');
+  // los ejercicios autocorregidos corren pipelines sin haber abierto el Databricks de práctica
+  D.asegurarStore = (s) => { if (!Store) { Store = s; D.Store = s; } return Store; };
   D.guardar = () => { try { Store.saveSoon ? Store.saveSoon() : Store.save(); } catch (e) { /* sin almacenamiento */ } };
   D.cli = () => (window.CloudSim ? window.CloudSim.dbx() : { clusters: {}, jobs: {}, files: {}, scopes: {}, workspace: {} });
   D.cliGuardar = () => { try { window.CloudSim && window.CloudSim.save(); } catch (e) { /* sin terminal */ } };

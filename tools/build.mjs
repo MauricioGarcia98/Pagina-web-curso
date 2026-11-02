@@ -188,7 +188,7 @@ function parseFrontMatter(src, file) {
   return { meta, body: src.slice(m[0].length) };
 }
 
-const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo', 'rubrica', 'prueba', 'medidas'];
+const ROLES = ['inicial', 'solucion', 'pista', 'test', 'check', 'respuesta', 'salida', 'explicacion', 'setup', 'previo', 'rubrica', 'prueba', 'medidas', 'archivos'];
 
 // "todos: base || frag1 || frag2" => el comando debe empezar con base y contener todos los fragmentos, en cualquier orden
 function cliPattern(line) {
@@ -232,7 +232,7 @@ function parseExercise(header, body, file, idx, lessonId) {
   if (ex.pistas) { ex.pistas = ex.pistas.map((x) => md(x)); ex.pista = ex.pistas[0]; }
   if (ex.explicacion) ex.explicacion = md(ex.explicacion);
   pistasAutomaticas(ex);
-  if (['sql', 'python', 'pyspark', 'airflow', 'dbt', 'dax'].includes(type) && ex.solucion === undefined) throw new Error(`Ejercicio sin solución en ${file} (#${idx + 1})`);
+  if (['sql', 'python', 'pyspark', 'airflow', 'dbt', 'dax', 'dbsql'].includes(type) && ex.solucion === undefined) throw new Error(`Ejercicio sin solución en ${file} (#${idx + 1})`);
   if (type === 'cli' && !ex.respuesta) throw new Error(`Ejercicio cli sin respuesta en ${file} (#${idx + 1})`);
   return ex;
 }
@@ -370,7 +370,8 @@ function pistasAutomaticas(ex) {
   if (!ex.solucion) return;
   let ps = [];
   try {
-    if (ex.type === 'sql' || ex.type === 'dbt') ps = pistasSql(ex.solucion);
+    if (ex.type === 'sql' || ex.type === 'dbt' || (ex.type === 'dbsql' && ex.modo !== 'pipeline')) ps = pistasSql(ex.solucion);
+    else if (ex.type === 'dbsql') ps = pistasCodigo(ex.solucion);
     else if (['python', 'pyspark', 'airflow'].includes(ex.type)) ps = pistasPython(ex.solucion, ex.type);
     else if (ex.type === 'cli') ps = pistasCli(ex.solucion);
     else if (ex.type === 'abierto') ps = pistasAbierto(ex.solucion);
