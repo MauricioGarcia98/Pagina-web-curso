@@ -84,6 +84,45 @@
     return out;
   }
 
+  // ------------------------------------------------------------------ exportar (ARM template y repositorio Git)
+  function triggerJson(n, T) { return { name: n, properties: { annotations: [], runtimeState: T.runtimeState, pipelines: (T.pipelines || []).map((x) => ({ pipelineReference: { referenceName: x, type: 'PipelineReference' }, parameters: {} })), type: T.type, typeProperties: T.type === 'ScheduleTrigger' ? { recurrence: { frequency: T.frequency, interval: T.interval, startTime: T.startTime, timeZone: 'UTC' } } : { blobPathBeginsWith: '/raw/blobs/', ignoreEmptyBlobs: true, scope: '', events: ['Microsoft.Storage.BlobCreated'] } } }; }
+  function plantillaArm() {
+    const S = st(); const params = { factoryName: { type: 'string', metadata: 'Data Factory name', defaultValue: fabrica } };
+    const nom = (x) => `[concat(parameters('factoryName'), '/${x}')]`, dep = (tipo, x) => `[concat(variables('factoryId'), '/${tipo}/${x}')]`;
+    const res = [];
+    for (const [n, L] of Object.entries(S.linked)) {
+      const j = JSON.parse(JSON.stringify(linkedJson(n, L).properties));
+      for (const k of ['url', 'serviceEndpoint', 'domain', 'baseUrl']) if (j.typeProperties[k]) { const pn = `${n}_properties_typeProperties_${k}`; params[pn] = { type: 'string', defaultValue: j.typeProperties[k] }; j.typeProperties[k] = `[parameters('${pn}')]`; }
+      res.push({ name: nom(n), type: 'Microsoft.DataFactory/factories/linkedServices', apiVersion: '2018-06-01', properties: j, dependsOn: [] });
+    }
+    for (const [n, D] of Object.entries(S.datasets)) res.push({ name: nom(n), type: 'Microsoft.DataFactory/factories/datasets', apiVersion: '2018-06-01', properties: datasetJson(n, D).properties, dependsOn: [dep('linkedServices', D.linked)] });
+    for (const [n, P] of Object.entries(S.pipelines)) {
+      const acts = todasLasActividades(P.activities);
+      const ds = [...new Set(acts.flatMap((a) => [a.source, a.sink, a.dataset]).filter((x) => x && S.datasets[x]))], ls = [...new Set(acts.map((a) => a.linked).filter((x) => x && S.linked[x]))];
+      res.push({ name: nom(n), type: 'Microsoft.DataFactory/factories/pipelines', apiVersion: '2018-06-01', properties: pipelineJson(n, P).properties, dependsOn: [...ds.map((x) => dep('datasets', x)), ...ls.map((x) => dep('linkedServices', x))] });
+    }
+    for (const [n, T] of Object.entries(S.triggers)) res.push({ name: nom(n), type: 'Microsoft.DataFactory/factories/triggers', apiVersion: '2018-06-01', properties: triggerJson(n, T).properties, dependsOn: (T.pipelines || []).filter((x) => S.pipelines[x]).map((x) => dep('pipelines', x)) });
+    const tpl = { $schema: 'http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#', contentVersion: '1.0.0.0', parameters: params, variables: { factoryId: "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]" }, resources: res };
+    const prm = { $schema: 'https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#', contentVersion: '1.0.0.0', parameters: Object.fromEntries(Object.entries(params).map(([k, v]) => [k, { value: v.defaultValue }])) };
+    return { tpl, prm };
+  }
+  function descargarZip(nombre, archivos) {
+    if (!window.Generador || !window.Generador.zip) { ctx.toast && ctx.toast('No se pudo armar el .zip.'); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(window.Generador.zip(archivos)); a.download = nombre; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  function exportarArm() { const { tpl, prm } = plantillaArm(); descargarZip(`arm_template_${fabrica}.zip`, [['arm_template.json', JSON.stringify(tpl, null, 4)], ['arm_template_parameters.json', JSON.stringify(prm, null, 4)]]); }
+  function exportarRepo() {
+    const S = st(); const J = (o) => JSON.stringify(o, null, 4);
+    const archivos = [[`factory/${fabrica}.json`, J({ name: fabrica, location: (F() || {}).location || 'eastus', identity: { type: 'SystemAssigned' } })]];
+    for (const [n, L] of Object.entries(S.linked)) archivos.push([`linkedService/${n}.json`, J(linkedJson(n, L))]);
+    for (const [n, D] of Object.entries(S.datasets)) archivos.push([`dataset/${n}.json`, J(datasetJson(n, D))]);
+    for (const [n, P] of Object.entries(S.pipelines)) archivos.push([`pipeline/${n}.json`, J(pipelineJson(n, P))]);
+    for (const [n, T] of Object.entries(S.triggers)) archivos.push([`trigger/${n}.json`, J(triggerJson(n, T))]);
+    archivos.push(['README.md', `# ${fabrica}\n\nArchivos de Azure Data Factory con la misma estructura que guarda la integración con Git del Studio (pipeline/, dataset/, linkedService/, trigger/).\n\nPara usarlos en Azure: crea un data factory, conéctalo a un repositorio (Manage → Git configuration), copia estas carpetas en la rama de colaboración y publica. O despliega arm_template.json con:\n\n    az deployment group create --resource-group <grupo> --template-file arm_template.json --parameters arm_template_parameters.json\n\nRevisa las URLs de los linked services: apuntan a las cuentas de la práctica.\n`]);
+    const { tpl, prm } = plantillaArm(); archivos.push(['arm_template.json', J(tpl)], ['arm_template_parameters.json', J(prm)]);
+    descargarZip(`${fabrica}-repo.zip`, archivos);
+  }
+
   // ------------------------------------------------------------------ validación
   function validar(nombre) {
     const S = st(), P = S.pipelines[nombre], err = [];
@@ -698,10 +737,15 @@
   // ---- Manage
   function manage(M) {
     const S = st();
-    M.innerHTML = `<div class="adf-manage"><nav class="adf-man-nav"><div class="adf-dim">Connections</div><a data-g="linked" class="${gestion === 'linked' ? 'on' : ''}">${ic('plug')} Linked services</a><a data-g="ir" class="${gestion === 'ir' ? 'on' : ''}">${ic('server-environment')} Integration runtimes</a><div class="adf-dim">Author</div><a data-g="triggers" class="${gestion === 'triggers' ? 'on' : ''}">${ic('zap')} Triggers</a><div class="adf-dim">Source control</div><a data-g="git" class="${gestion === 'git' ? 'on' : ''}">${ic('git-branch')} Git configuration</a></nav><section class="adf-man-c" id="manC"></section></div>`;
+    M.innerHTML = `<div class="adf-manage"><nav class="adf-man-nav"><div class="adf-dim">Connections</div><a data-g="linked" class="${gestion === 'linked' ? 'on' : ''}">${ic('plug')} Linked services</a><a data-g="ir" class="${gestion === 'ir' ? 'on' : ''}">${ic('server-environment')} Integration runtimes</a><div class="adf-dim">Author</div><a data-g="triggers" class="${gestion === 'triggers' ? 'on' : ''}">${ic('zap')} Triggers</a><div class="adf-dim">Source control</div><a data-g="git" class="${gestion === 'git' ? 'on' : ''}">${ic('git-branch')} Git configuration</a><a data-g="arm" class="${gestion === 'arm' ? 'on' : ''}">${ic('file-code')} ARM template</a></nav><section class="adf-man-c" id="manC"></section></div>`;
     M.querySelectorAll('[data-g]').forEach((a) => { a.onclick = () => { gestion = a.dataset.g; manage(M); }; });
     const C = M.querySelector('#manC');
     if (gestion === 'ir') { C.innerHTML = '<h2>Integration runtimes</h2><table class="adf-tabla"><thead><tr><th>Name</th><th>Type</th><th>Sub-type</th><th>Status</th><th>Region</th></tr></thead><tbody><tr><td>AutoResolveIntegrationRuntime</td><td>Azure</td><td>Public</td><td><span class="adf-estado e-Succeeded">Running</span></td><td>Auto Resolve</td></tr></tbody></table><p class="adf-dim">El integration runtime es el cómputo que mueve los datos. El de Azure lo administra Microsoft; para orígenes dentro de una red privada u on-premises se instala un <b>self-hosted IR</b>.</p>'; return; }
+    if (gestion === 'arm') {
+      C.innerHTML = `<h2>ARM template</h2><p>Exporta el factory como plantilla de Azure Resource Manager (lo mismo que genera Publish en la rama <code>adf_publish</code>) para desplegarlo en otro entorno con CI/CD, o como los archivos JSON que guarda la integración con Git.</p><div class="adf-tb"><button data-a="arm">${ic('cloud-download')} Export ARM template</button><button data-a="repo">${ic('repo')} Exportar como repositorio Git (.zip)</button></div><p class="adf-dim">Los valores que cambian entre entornos (por ejemplo, la URL de cada cuenta de almacenamiento) quedan como parámetros: <code>${esc(Object.keys(plantillaArm().prm.parameters).slice(0, 3).join(', '))}</code>… En Azure se despliega con <code>az deployment group create --template-file arm_template.json --parameters arm_template_parameters.json</code>.</p><details><summary>Ver arm_template.json</summary><pre class="adf-json">${esc(JSON.stringify(plantillaArm().tpl, null, 2))}</pre></details>`;
+      C.querySelector('[data-a=arm]').onclick = exportarArm; C.querySelector('[data-a=repo]').onclick = exportarRepo;
+      return;
+    }
     if (gestion === 'git') { C.innerHTML = '<h2>Git configuration</h2><p>No hay un repositorio configurado (live mode): los cambios se guardan directamente en el servicio al publicar.</p><p class="adf-dim">En equipos se conecta Azure DevOps o GitHub: cada uno trabaja en su rama, se hace un pull request a la <i>collaboration branch</i> y al publicar se generan las plantillas ARM en <code>adf_publish</code> para desplegar a otros entornos con CI/CD.</p>'; return; }
     if (gestion === 'triggers') {
       C.innerHTML = `<h2>Triggers</h2><table class="adf-tabla"><thead><tr><th>Name</th><th>Type</th><th>Recurrence</th><th>Status</th><th>Related</th><th></th></tr></thead><tbody>${Object.entries(S.triggers).map(([t, T]) => `<tr><td>${esc(t)}</td><td>${T.type === 'ScheduleTrigger' ? 'Schedule' : 'Storage events'}</td><td>Every ${T.interval} ${esc(T.frequency)}(s)</td><td><button class="adf-btn" data-tog="${esc(t)}">${T.runtimeState === 'Started' ? `${ic('debug-pause')} Started` : `${ic('play')} Stopped`}</button></td><td>${esc((T.pipelines || []).join(', '))}</td><td><button class="adf-ib" data-tdel="${esc(t)}">${ic('trash')}</button></td></tr>`).join('') || '<tr><td colspan="6" class="adf-dim">Crea triggers desde un pipeline: Add trigger → New/Edit.</td></tr>'}</tbody></table>`;
@@ -746,5 +790,5 @@
     render(sub.slice(1));
   }
   window.addEventListener('hashchange', () => { if (!/^#\/azure\/studio\//.test(location.hash)) document.body.classList.remove('adf-abierto'); });
-  window.ADFStudio = { vista: vistaPublica, _correr: (n, o) => correrPipeline(n, o), _validar: (n) => validar(n) };
+  window.ADFStudio = { vista: vistaPublica, _arm: () => plantillaArm(), _correr: (n, o) => correrPipeline(n, o), _validar: (n) => validar(n) };
 })();

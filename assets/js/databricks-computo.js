@@ -344,14 +344,65 @@
 
   // ------------------------------------------------------------------ Jobs: lista
   const colorRes = (r) => (r === 'SUCCESS' ? 'ok' : r === 'FAILED' || r === 'UPSTREAM_FAILED' || r === 'TIMEDOUT' ? 'mal' : r === 'SUCCESS_WITH_FAILURES' ? 'medio' : r === 'RUNNING' || r === 'PENDING' || r === 'WAITING_FOR_RETRY' ? 'corre' : 'gris');
+
+  // Databricks Asset Bundle: databricks.yml con los jobs y pipelines + los notebooks en formato fuente (src/)
+  const clave = (n) => String(n).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'recurso';
+  const yq = (v) => (/^[A-Za-z_./][\w./-]*$/.test(String(v)) && !/^(true|false|null|yes|no|on|off|y|n)$/i.test(String(v)) ? String(v) : JSON.stringify(String(v)));
+  function bundle() {
+    const W = D.ws(), J = jobs(), P = pipelines(), archivos = [], usados = new Map();
+    const ruta = (p) => { if (usados.has(p)) return usados.get(p); const it = W.items[p]; const base = clave(p.split('/').pop()); let n = base, k = 2; while ([...usados.values()].includes(`src/${n}.${it && it.lang === 'sql' ? 'sql' : 'py'}`)) n = base + '_' + k++; const r = `src/${n}.${it && it.lang === 'sql' ? 'sql' : 'py'}`; usados.set(p, r); if (it) archivos.push([r, D.fuenteNotebook(it)]); return r; };
+    const y = ['# Databricks Asset Bundle exportado desde el Databricks de práctica de la Academia de Datos.', '# Despliegue: databricks bundle validate && databricks bundle deploy -t dev', '# Después: databricks bundle run <job>', 'bundle:', '  name: academia_datos', '', 'targets:', '  dev:', '    mode: development', '    default: true', '    # workspace:', '    #   host: https://<tu-workspace>.azuredatabricks.net', '', 'resources:'];
+    const js = Object.entries(J).map(([, j0]) => normJob(j0)).filter((j) => j.settings.tasks.length);
+    if (js.length) {
+      y.push('  jobs:');
+      const claves = new Set();
+      for (const j of js) {
+        if (!j.settings.tasks.length) continue;
+        let kj = clave(j.name), n2 = 2; while (claves.has(kj)) kj = clave(j.name) + '_' + n2++; claves.add(kj);
+        y.push(`    ${kj}:`, `      name: ${yq(j.name)}`);
+        const sc = j.settings.schedule; if (sc) y.push('      schedule:', `        quartz_cron_expression: ${yq(cron(sc))}`, '        timezone_id: America/Argentina/Buenos_Aires', `        pause_status: ${sc.pausa ? 'PAUSED' : 'UNPAUSED'}`);
+        if (j.settings.parameters.length) { y.push('      parameters:'); for (const pr of j.settings.parameters) y.push(`        - name: ${yq(pr.name)}`, `          default: ${yq(pr.default ?? '')}`); }
+        y.push('      tasks:');
+        for (const t of j.settings.tasks) {
+          y.push(`        - task_key: ${yq(t.task_key)}`);
+          if (t.depends_on.length) { y.push('          depends_on:'); for (const d of t.depends_on) y.push(`            - task_key: ${yq(d.task_key)}`); }
+          if (t.run_if && t.run_if !== 'ALL_SUCCESS') y.push(`          run_if: ${t.run_if}`);
+          if (t.tipo === 'notebook') { y.push('          notebook_task:', `            notebook_path: ../${ruta(t.notebook_path)}`); const bp = Object.entries(t.base_parameters || {}); if (bp.length) { y.push('            base_parameters:'); for (const [k, v] of bp) y.push(`              ${k}: ${yq(v)}`); } }
+          else if (t.tipo === 'sql') { const f = `src/${clave(j.name)}_${clave(t.task_key)}.sql`; archivos.push([f, t.sql || '']); y.push('          sql_task:', '            file:', `              path: ../${f}`, '            warehouse_id: ${var.warehouse_id}'); }
+          else if (t.tipo === 'condicion') y.push('          condition_task:', `            left: ${yq(t.izq)}`, `            op: ${{ '==': 'EQUAL_TO', '!=': 'NOT_EQUAL', '>': 'GREATER_THAN', '>=': 'GREATER_THAN_OR_EQUAL', '<': 'LESS_THAN', '<=': 'LESS_THAN_OR_EQUAL' }[t.op] || 'EQUAL_TO'}`, `            right: ${yq(t.der)}`);
+          else if (t.tipo === 'pipeline' && P[t.pipeline_id]) y.push('          pipeline_task:', `            pipeline_id: \${resources.pipelines.${clave(P[t.pipeline_id].nombre)}.id}`, ...(t.full_refresh ? ['            full_refresh: true'] : []));
+          if (t.max_retries) y.push(`          max_retries: ${t.max_retries}`);
+        }
+      }
+    }
+    const ps = Object.values(P);
+    if (ps.length) {
+      y.push('  pipelines:');
+      for (const x of ps) { const f = `src/pipeline_${clave(x.nombre)}.sql`; archivos.push([f, x.fuente || '']); y.push(`    ${clave(x.nombre)}:`, `      name: ${yq(x.nombre)}`, `      catalog: ${yq(x.catalogo || 'main')}`, `      schema: ${yq(x.esquema || 'default')}`, '      serverless: true', `      continuous: ${x.modo === 'continuous' ? 'true' : 'false'}`, '      libraries:', '        - file:', `            path: ../${f}`); }
+    }
+    if (!js.length && !ps.length) y.push('  {}  # todavía no hay jobs ni pipelines: créalos en Jobs & Pipelines');
+    if (js.some((j) => j.settings.tasks.some((t) => t.tipo === 'sql'))) y.splice(y.indexOf('targets:'), 0, 'variables:', '  warehouse_id:', '    description: ID del SQL warehouse para las tareas SQL', '');
+    const yml = y.join('\n').replace(/notebook_path: \.\.\//g, 'notebook_path: ./').replace(/path: \.\.\//g, 'path: ./') + '\n';
+    archivos.unshift(['databricks.yml', yml]);
+    archivos.push(['README.md', '# academia_datos (Databricks Asset Bundle)\n\nExportado desde el Databricks de práctica.\n\n1. Instala la CLI de Databricks y autentícate: `databricks auth login --host <url del workspace>` (sirve Databricks Free Edition).\n2. `databricks bundle validate`\n3. `databricks bundle deploy -t dev` (en modo development los recursos se crean con el prefijo [dev tu_usuario] y los schedules quedan en pausa).\n4. `databricks bundle run <nombre_del_job>`\n\nLas tablas de `samples` del curso no existen en un workspace real: cambia las consultas a tus tablas o a `samples.tpch` / `samples.nyctaxi`.\n']);
+    return archivos;
+  }
+  function exportarBundle() {
+    const archivos = bundle();
+    if (!window.Generador || !window.Generador.zip) { D.toast('No se pudo armar el .zip.'); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(window.Generador.zip(archivos)); a.download = 'academia_datos_bundle.zip'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    D.toast(`Bundle exportado: databricks.yml + ${archivos.length - 2} archivos en src/`);
+  }
+  D.bundle = bundle;
   D.registrar('jobs', (cont, p) => {
     if (p[0] === 'nuevo') return nuevoJob();
     const J = jobs(); const P = pipelines(); const pest = p[0] === 'pipelines' ? 'pipelines' : 'jobs';
-    cont.innerHTML = `<div class="dbx-pag"><div class="dbx-pag-cab"><h1>Jobs &amp; Pipelines</h1><div class="dbx-acciones"><button class="dbx-btn primario" id="jCrear">Create ${ic('chevron-down')}</button></div></div>
+    cont.innerHTML = `<div class="dbx-pag"><div class="dbx-pag-cab"><h1>Jobs &amp; Pipelines</h1><div class="dbx-acciones"><button class="dbx-btn" id="jBundle" title="Descarga databricks.yml + src/ para desplegar con databricks bundle deploy">${ic('package')} Exportar como bundle</button><button class="dbx-btn primario" id="jCrear">Create ${ic('chevron-down')}</button></div></div>
       <div class="dbx-pest"><a class="${pest === 'jobs' ? 'on' : ''}" href="#/databricks/jobs">Jobs</a><a class="${pest === 'pipelines' ? 'on' : ''}" href="#/databricks/jobs/pipelines">Pipelines</a><a href="#/databricks/runs">Runs</a></div>
       ${pest === 'jobs' ? (Object.keys(J).length ? `<table class="dbx-tabla"><thead><tr><th>Name</th><th>Trigger</th><th>Recent runs</th><th>Tasks</th><th></th></tr></thead><tbody>${Object.entries(J).map(([id, j0]) => { const j = normJob(j0); const sc = j.settings.schedule; return `<tr data-id="${id}"><td><a href="#/databricks/job/${id}">${ic('type-hierarchy')} ${esc(j.name)}</a></td><td>${sc ? (sc.pausa ? 'Paused' : `Scheduled · ${esc(cron(sc))}`) : j.settings.trigger ? 'File arrival' : 'None'}</td><td><span class="jr-mini">${j.runs.slice(0, 10).reverse().map((r) => `<a class="jr-b ${colorRes(r.result || r.state)}" href="#/databricks/run/${id}/${r.run_id}" title="${esc(r.result || r.state)} · ${esc(r.at)}"></a>`).join('')}</span></td><td>${j.settings.tasks.length}</td><td class="der"><button class="dbx-ib" data-a="run" title="Run now">${ic('play')}</button></td></tr>`; }).join('')}</tbody></table>` : `<div class="dbx-vacio">${ic('type-hierarchy')}<p>No hay jobs. Un job ejecuta notebooks, consultas SQL o pipelines en orden, con horario y avisos.</p><button class="dbx-btn primario" onclick="location.hash='#/databricks/jobs/nuevo'">Create job</button></div>`)
       : (Object.keys(P).length ? `<table class="dbx-tabla"><thead><tr><th>Name</th><th>Target</th><th>Last update</th><th>Mode</th></tr></thead><tbody>${Object.entries(P).map(([id, x]) => `<tr><td><a href="#/databricks/pipeline/${id}">${ic('combine')} ${esc(x.nombre)}</a></td><td>${esc(x.catalogo)}.${esc(x.esquema)}</td><td>${x.updates && x.updates[0] ? `<span class="jr-b ${x.updates[0].estado === 'COMPLETED' ? 'ok' : x.updates[0].estado === 'FAILED' ? 'mal' : 'corre'}"></span> ${esc(x.updates[0].estado)} · ${D.hora(x.updates[0].inicio)}` : 'Never run'}</td><td>${x.modo === 'continuous' ? 'Continuous' : 'Triggered'}</td></tr>`).join('')}</tbody></table>` : `<div class="dbx-vacio">${ic('combine')}<p>No hay pipelines. Un pipeline declarativo define tablas de streaming y vistas materializadas con SQL y Databricks las mantiene actualizadas en orden.</p><button class="dbx-btn primario" onclick="location.hash='#/databricks/pipelines/nuevo'">Create ETL pipeline</button></div>`)}
       </div>`;
+    cont.querySelector('#jBundle').onclick = () => exportarBundle();
     cont.querySelector('#jCrear').onclick = (e) => D.menu(e.currentTarget, [{ ic: 'type-hierarchy', txt: 'Job', fn: () => D.ir('jobs/nuevo') }, { ic: 'combine', txt: 'ETL pipeline', fn: () => D.ir('pipelines/nuevo') }], 'der');
     cont.querySelectorAll('tr[data-id] [data-a=run]').forEach((b) => b.onclick = async () => { const id = b.closest('tr').dataset.id; D.toast('Run started'); const pr = D.correrJob(id, { alCambiar: () => {} }); setTimeout(() => D.ir('jobs'), 200); await pr; if (location.hash === '#/databricks/jobs') D.ir('jobs'); });
   });

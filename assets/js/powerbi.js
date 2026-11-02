@@ -580,18 +580,39 @@
     } catch (e) { toast('No se pudo abrir: ' + e.message, 5000); }
   }
   function menuArchivo() {
-    const m = modal(`<div class="pb-back"><div class="pb-back-l"><button data-cerrar-modal class="pb-back-x">←</button><button data-b="nuevo">${fl('document_add')} Nuevo</button><button data-b="abrir">${fl('folder_open')} Abrir</button><button data-b="guardar">${fl('save')} Guardar como</button><button data-b="tmdl">${fl('arrow_download')} Exportar el modelo (TMDL)</button><button data-b="pdf">${fl('document')} Exportar a PDF</button><button data-b="publicar">${fl('cloud_arrow_up')} Publicar</button><button data-b="acerca">${fl('question_circle')} Acerca de</button></div><div class="pb-back-r"><h2>Archivo</h2><p class="pb-dim">Tu informe se guarda solo en este navegador. Para llevarlo a otra computadora, usa <b>Guardar como</b> (descarga un archivo .pbia.json) y luego <b>Abrir</b>.</p><p class="pb-dim"><b>Exportar el modelo (TMDL)</b> descarga la definición del modelo semántico en Tabular Model Definition Language, el mismo formato de texto que usa la carpeta <code>definition/</code> de un proyecto de Power BI (.pbip). Se puede abrir en VS Code y versionar con Git.</p></div></div>`, 'pb-modal-back');
+    const m = modal(`<div class="pb-back"><div class="pb-back-l"><button data-cerrar-modal class="pb-back-x">←</button><button data-b="nuevo">${fl('document_add')} Nuevo</button><button data-b="abrir">${fl('folder_open')} Abrir</button><button data-b="guardar">${fl('save')} Guardar como</button><button data-b="tmdl">${fl('arrow_download')} Exportar el modelo (carpeta .pbip en TMDL)</button><button data-b="pdf">${fl('document')} Exportar a PDF</button><button data-b="publicar">${fl('cloud_arrow_up')} Publicar</button><button data-b="acerca">${fl('question_circle')} Acerca de</button></div><div class="pb-back-r"><h2>Archivo</h2><p class="pb-dim">Tu informe se guarda solo en este navegador. Para llevarlo a otra computadora, usa <b>Guardar como</b> (descarga un archivo .pbia.json) y luego <b>Abrir</b>.</p><p class="pb-dim"><b>Exportar el modelo (TMDL)</b> descarga la definición del modelo semántico en Tabular Model Definition Language, el mismo formato de texto que usa la carpeta <code>definition/</code> de un proyecto de Power BI (.pbip). Se puede abrir en VS Code y versionar con Git.</p></div></div>`, 'pb-modal-back');
     m.addEventListener('click', (e) => {
       const b = e.target.closest('[data-b]'); if (!b) return; m.parentElement.remove();
       const k = b.dataset.b;
       if (k === 'nuevo') accion('reiniciar'); else if (k === 'abrir') main.querySelector('#pbAbrir').click(); else if (k === 'guardar') guardarComo();
-      else if (k === 'tmdl') { construir(); descargar('model.tmdl', tmdlModelo(), 'text/plain'); }
+      else if (k === 'tmdl') exportarModeloTmdl();
       else if (k === 'pdf') { S.vista = 'informe'; render(); setTimeout(() => window.print(), 300); }
       else if (k === 'publicar') accion('publicar');
       else if (k === 'acerca') toast('Power BI Desktop de práctica de la Academia de Datos. No es un producto de Microsoft: reproduce su funcionamiento con la documentación pública (learn.microsoft.com), SQLite en el navegador y los íconos Fluent UI (MIT).', 8000);
     });
   }
 
+
+  // carpeta del modelo semántico de un proyecto de Power BI (.pbip, formato TMDL) + script para la vista TMDL
+  function exportarModeloTmdl() {
+    construir();
+    const base = (S.nombreArchivo && S.nombreArchivo !== 'Sin título' ? S.nombreArchivo : 'Informe').replace(/[^\w .-]+/g, '_');
+    const dir = `${base}.SemanticModel/definition/`;
+    const rel = S.rels.map((r) => [`relationship ${guid(r.de + r.cde + r.a + r.ca)}`, ...(r.activa ? [] : ['\tisActive: false']), ...(r.direccion === 'ambas' ? ['\tcrossFilteringBehavior: bothDirections'] : []), `\tfromColumn: ${nomTmdl(r.de)}.${nomTmdl(r.cde)}`, `\ttoColumn: ${nomTmdl(r.a)}.${nomTmdl(r.ca)}`, ''].join('\n'));
+    const archivos = [
+      [`${base}.SemanticModel/definition.pbism`, JSON.stringify({ version: '4.2', settings: {} }, null, 2)],
+      [`${dir}database.tmdl`, 'database\n\tcompatibilityLevel: 1600\n'],
+      [`${dir}model.tmdl`, `model Model\n\tculture: es-ES\n\tdefaultPowerBIDataSourceVersion: powerBI_V3\n\tsourceQueryCulture: es-AR\n\n${tablas().map((t) => `ref table ${nomTmdl(t)}`).join('\n')}\n${(S.roles || []).map((r) => `ref role ${nomTmdl(r.nombre)}`).join('\n')}\n`],
+      ...(rel.length ? [[`${dir}relationships.tmdl`, rel.join('\n')]] : []),
+      ...tablas().map((t) => [`${dir}tables/${t.replace(/[\\/:*?"<>|]/g, '_')}.tmdl`, tmdlTabla(t, '') + '\n']),
+      ...(S.roles || []).map((r) => [`${dir}roles/${r.nombre.replace(/[\\/:*?"<>|]/g, '_')}.tmdl`, `role ${nomTmdl(r.nombre)}\n\tmodelPermission: read\n${[...new Set(r.reglas.map((g) => g.t))].map((t) => `\n\ttablePermission ${nomTmdl(t)} = ${daxRol(r, t)}`).join('\n')}\n`]),
+      ['script_vista_TMDL.tmdl', `createOrReplace\n\n${tmdlModelo().split('\n').map((l) => (l ? '\t' + l : l)).join('\n')}\n`],
+      ['LEEME.md', `# ${base}: modelo semántico exportado\n\nExportado desde el Power BI de práctica de la Academia de Datos, en TMDL (Tabular Model Definition Language), el formato de texto de los proyectos de Power BI (.pbip).\n\n## Cómo usarlo en Power BI Desktop\n\n1. Abre Power BI Desktop (gratis, Windows) y activa la vista TMDL (en versiones recientes ya viene activa).\n2. Carga tus datos con los mismos nombres de tabla (las particiones apuntan a los archivos de la práctica: cambia la ruta en Power Query si hace falta).\n3. En la vista TMDL pega **script_vista_TMDL.tmdl** y pulsa Aplicar: crea o reemplaza medidas, relaciones, roles y grupos de cálculo.\n\nLa carpeta **${base}.SemanticModel** sigue la estructura de un proyecto .pbip (definition/tables, relationships.tmdl, roles): sirve para versionar el modelo en Git y revisarlo en pull requests.\n`],
+    ];
+    if (!window.Generador || !window.Generador.zip) { descargar('model.tmdl', tmdlModelo(), 'text/plain'); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(window.Generador.zip(archivos)); a.download = `${base}-modelo-tmdl.zip`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast(`Modelo exportado: ${tablas().length} tablas, ${S.medidas.length} medidas, ${S.rels.length} relaciones${(S.roles || []).length ? `, ${S.roles.length} roles` : ''}.`);
+  }
   // ---------------------------------------------------------------- diálogos genéricos y obtener datos
   function modal(html, clase = '') {
     const prev = main.querySelector('.pb-modal-fondo'); if (prev) prev.remove();
