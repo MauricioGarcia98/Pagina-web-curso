@@ -605,3 +605,10 @@ body.pb-abierto { overflow: hidden; }
 @media (max-width: 860px) { .pb-roles-cuerpo { grid-template-columns: 1fr; } .pb-roles-col { border-right: 0; border-bottom: 1px solid var(--pb-borde); max-height: none; } .pb-regla { grid-template-columns: 1fr 1fr; } }
 .pb-lienzo-wrap.pb-con-vercomo { position: relative; padding-top: 52px; }
 .pb-con-vercomo > .pb-ver-como { position: absolute; top: 0; left: 0; right: 0; z-index: 6; }
+/* grupos de cálculo */
+.pb-cg-items { display: flex; flex-direction: column; gap: 8px; }
+.pb-cg-item { display: grid; grid-template-columns: 180px 1fr 28px; gap: 6px; align-items: start; }
+.pb-cg-item input, .pb-cg-item textarea { border: 1px solid var(--pb-borde2); border-radius: 2px; padding: 5px 8px; font: inherit; font-size: 13px; color: var(--pb-txt); background: #fff; }
+.pb-cg-item textarea { font-family: Consolas, monospace; font-size: 12px; resize: vertical; }
+.pb-cg-item button { border: 0; background: transparent; cursor: pointer; margin-top: 6px; }
+@media (max-width: 600px) { .pb-cg-item { grid-template-columns: 1fr 28px; } .pb-cg-item textarea { grid-column: 1; } }
