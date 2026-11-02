@@ -575,3 +575,33 @@ body.pb-abierto { overflow: hidden; }
   .pb-m-cab { padding: 12px 14px 8px; font-size: 17px; }
 }
 @media (max-width: 860px) { .pb-cinta-botones { min-height: 0; } .pb-cb.grande { min-width: 46px; padding: 2px 4px; font-size: 10.5px; } .pb-cb-ic { width: 26px; height: 26px; } .pb-cb-ic .fl, .pb-cb-ic svg { width: 22px; height: 22px; } }
+/* visual de mapa */
+.pb-mapa-agua { fill: #cfe3ef; }
+.pb-mapa-tierra { fill: #f2efe9; stroke: #c9c3b6; stroke-width: .8; stroke-linejoin: round; }
+.pb-mapa-cred { font-size: 8px; fill: #8a8886; }
+.pb-mapa circle { cursor: pointer; }
+.pb-mapa-aviso { position: absolute; left: 6px; bottom: 4px; font-size: 10px; background: rgba(255, 255, 255, .85); padding: 1px 5px; border-radius: 2px; color: #a4262c; }
+/* seguridad de nivel de fila */
+.pb-modal.pb-modal-ancho { width: min(980px, 96vw); max-width: none; }
+.pb-roles-cuerpo { display: grid; grid-template-columns: 200px 200px 1fr; min-height: 340px; border-top: 1px solid var(--pb-borde); }
+.pb-roles-col { border-right: 1px solid var(--pb-borde); padding: 10px; overflow: auto; max-height: 60vh; }
+.pb-roles-col:last-child { border-right: 0; }
+.pb-roles-t { display: flex; align-items: center; justify-content: space-between; font-weight: 600; margin: 2px 0 8px; gap: 8px; }
+.pb-rol { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 2px; cursor: pointer; }
+.pb-rol:hover { background: var(--pb-hover, #f3f2f1); }
+.pb-rol.on { background: #e6e6e6; font-weight: 600; }
+.pb-rol button { border: 0; background: transparent; cursor: pointer; color: var(--pb-dim); }
+.pb-rls-ok { color: #117865; font-style: normal; font-size: 10px; }
+.pb-roles-nom { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.pb-roles-nom input, .pb-regla input, .pb-regla select { height: 30px; border: 1px solid var(--pb-borde2); border-radius: 2px; padding: 0 8px; font: inherit; font-size: 13px; background: #fff; color: var(--pb-txt); }
+.pb-regla { display: grid; grid-template-columns: 1fr 120px 1.3fr 28px; gap: 6px; margin: 6px 0; }
+.pb-regla button { border: 0; background: transparent; cursor: pointer; }
+.pb-roles-dax { margin: 12px 0 6px; display: flex; flex-direction: column; gap: 4px; }
+.pb-roles-dax code { background: var(--pb-bg, #f3f2f1); padding: 6px 8px; font: 12px Consolas, monospace; word-break: break-word; }
+.pb-check { flex-direction: row !important; align-items: center; gap: 8px !important; color: var(--pb-txt) !important; font-size: 13px !important; }
+.pb-check input[type=text], .pb-check input:not([type]) { flex: 1; }
+.pb-ver-como { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #fff4ce; border-bottom: 1px solid #f1d27a; font-size: 13px; color: #323130; flex-wrap: wrap; }
+.pb-ver-como .pb-btn { margin-left: auto; }
+@media (max-width: 860px) { .pb-roles-cuerpo { grid-template-columns: 1fr; } .pb-roles-col { border-right: 0; border-bottom: 1px solid var(--pb-borde); max-height: none; } .pb-regla { grid-template-columns: 1fr 1fr; } }
+.pb-lienzo-wrap.pb-con-vercomo { position: relative; padding-top: 52px; }
+.pb-con-vercomo > .pb-ver-como { position: absolute; top: 0; left: 0; right: 0; z-index: 6; }

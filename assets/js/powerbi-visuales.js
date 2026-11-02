@@ -20,6 +20,7 @@
     cascada: SVG(20, 20, R(2, 8, 3, 7) + R(6, 5, 3, 3, 0.6) + R(10, 5, 3, 5, 0.4) + R(14, 6, 3, 9)),
     embudo: SVG(20, 20, R(2, 3, 16, 3) + R(4, 8, 12, 3, 0.75) + R(6.5, 13, 7, 3, 0.5)),
     dispersion: SVG(20, 20, '<circle cx="5" cy="13" r="1.6" fill="currentColor"/><circle cx="9" cy="8" r="2.4" fill="currentColor" opacity=".6"/><circle cx="14" cy="11" r="1.4" fill="currentColor"/><circle cx="15" cy="5" r="2" fill="currentColor" opacity=".6"/><path d="M2 2v16h16" fill="none" stroke="currentColor"/>'),
+    mapa: SVG(20, 20, '<path d="M2 4l5-2 6 2 5-2v14l-5 2-6-2-5 2z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="9" r="2.2" fill="currentColor"/><circle cx="13" cy="12" r="1.4" fill="currentColor" opacity=".6"/>'),
     circular: SVG(20, 20, '<circle cx="10" cy="10" r="7.5" fill="currentColor" opacity=".45"/><path d="M10 10V2.5A7.5 7.5 0 0 1 17.2 12z" fill="currentColor"/>'),
     anillo: SVG(20, 20, '<circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="26 15"/>'),
     treemap: SVG(20, 20, R(2, 2, 9, 16) + R(12, 2, 6, 9, 0.6) + R(12, 12, 6, 6, 0.4)),
@@ -48,6 +49,7 @@
     cascada: { n: 'Gráfico de cascada', pozos: [['x', 'Categoría', 1, 'cat'], ['y', 'Eje Y', 1, 'valor']], g: 'cart' },
     embudo: { n: 'Embudo', pozos: [['x', 'Categoría', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
     dispersion: { n: 'Gráfico de dispersión', pozos: [['detalle', 'Valores', 1, 'cat'], ['ex', 'Eje X', 1, 'valor'], ['ey', 'Eje Y', 1, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['tam', 'Tamaño', 1, 'valor']], g: 'disp' },
+    mapa: { n: 'Mapa', pozos: [['x', 'Ubicación', 1, 'cat'], ['y', 'Tamaño de burbuja', 1, 'valor']], g: 'parte', mapa: true },
     circular: { n: 'Gráfico circular', pozos: [['x', 'Leyenda', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
     anillo: { n: 'Gráfico de anillos', pozos: [['x', 'Leyenda', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
     treemap: { n: 'Gráfico de rectángulos', pozos: [['x', 'Categoría', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
@@ -114,6 +116,44 @@
 
   // ------------------------------------------------------------------ dibujo
   // ctx: { paleta, nom(campo), formatoDe(campo), sel(cat), aten(cat), ancho, alto }
+
+  // ------------------------------------------------------------------ mapa de burbujas
+  // Power BI geocodifica con Bing; aquí, coordenadas fijas de los países y ciudades de las bases del curso
+  // y un mapa base simplificado (contornos aproximados, proyección equirectangular).
+  const GEO = {
+    argentina: [-64, -34], chile: [-71, -33], peru: [-75, -10], colombia: [-74, 4.5], mexico: [-102, 23.5], espana: [-3.7, 40.2], bolivia: [-64.7, -16.5], uruguay: [-56, -32.8], 'costa rica': [-84, 10], ecuador: [-78.4, -1.5], paraguay: [-58, -23.4], brasil: [-51, -10], 'estados unidos': [-98, 39], alemania: [10.4, 51], francia: [2.3, 46.6], 'puerto rico': [-66.5, 18.2], china: [104, 35], venezuela: [-66, 7], italia: [12.5, 42.8], 'reino unido': [-2, 54], canada: [-100, 56], cuba: [-79, 21.7], guatemala: [-90.3, 15.6], panama: [-80.2, 8.5],
+    'buenos aires': [-58.4, -34.6], cordoba: [-64.2, -31.4], rosario: [-60.6, -32.95], mendoza: [-68.8, -32.9], 'la plata': [-57.95, -34.9], salta: [-65.4, -24.8], bariloche: [-71.3, -41.1], moron: [-58.62, -34.65], 'mar del plata': [-57.55, -38],
+    santiago: [-70.65, -33.45], valparaiso: [-71.6, -33.05], lima: [-77.03, -12.05], arequipa: [-71.54, -16.4], cusco: [-71.97, -13.53], bogota: [-74.08, 4.6], medellin: [-75.57, 6.25], cali: [-76.53, 3.45], cartagena: [-75.5, 10.4],
+    'ciudad de mexico': [-99.13, 19.43], guadalajara: [-103.35, 20.67], monterrey: [-100.3, 25.67], puebla: [-98.2, 19.04], cancun: [-86.85, 21.16], montevideo: [-56.17, -34.9], 'sao paulo': [-46.63, -23.55], madrid: [-3.7, 40.42], barcelona: [2.17, 41.39], quito: [-78.5, -0.2], 'la paz': [-68.15, -16.5], asuncion: [-57.6, -25.3],
+  };
+  const TIERRA = [
+    [[-77, 8.5], [-72, 12], [-63, 10.7], [-60, 8.5], [-52, 5], [-50, 0], [-44, -2.5], [-35, -5], [-35, -9], [-39, -15], [-41, -22], [-48, -26], [-53, -34], [-58, -38], [-62, -39], [-65, -42], [-67, -46], [-66, -50], [-69, -52], [-68.5, -55], [-73, -53], [-75, -47], [-73.5, -40], [-73.5, -33], [-71.5, -28], [-70.3, -18], [-75, -15], [-77, -12], [-81, -6], [-80, -2], [-80, 1], [-78, 3], [-77.5, 7]],
+    [[-77.4, 8.7], [-81.5, 9], [-83.7, 11], [-83.4, 15], [-88, 16], [-88, 21.5], [-90.5, 21], [-91, 18.7], [-94.5, 18.3], [-96.5, 19.5], [-97.7, 22], [-97.2, 26], [-97.4, 27.8], [-93.5, 29.7], [-89.5, 29.5], [-85, 29.8], [-82.8, 27.5], [-81, 25.2], [-80, 27], [-81.4, 30.5], [-77, 34.5], [-76, 37], [-74, 40.5], [-70, 41.5], [-70.5, 43.5], [-66, 44.7], [-61, 45.5], [-60, 47], [-56, 52], [-61, 56], [-65, 60], [-70, 62], [-78, 62], [-82, 57], [-92, 57], [-95, 60], [-90, 65], [-100, 68], [-120, 69], [-141, 69.6], [-156, 71], [-166, 68], [-162, 60], [-152, 58.5], [-140, 59.8], [-135, 57], [-130, 54.5], [-124.5, 49], [-124, 46], [-124.4, 42], [-122.5, 37.5], [-120.6, 34.5], [-117.2, 32.6], [-115.7, 30], [-114, 27.5], [-110, 23], [-109.5, 23.2], [-105.5, 20.5], [-105, 19], [-101, 17.5], [-96, 15.7], [-92, 14.5], [-89.5, 13.4], [-87.5, 13], [-85.7, 11], [-85.6, 9.9], [-83.7, 8.4], [-80.5, 7.3], [-78, 7.5]],
+    [[-9.3, 43.2], [-8.9, 42], [-8.9, 38.7], [-8.8, 37], [-6, 36.2], [-5.3, 36], [-2, 36.7], [0.2, 38.8], [-0.3, 39.5], [0.9, 41], [3.2, 41.9], [4.5, 43.4], [7.5, 43.8], [8.8, 44.4], [10.5, 42.9], [13, 41.2], [16, 38], [18.5, 40.2], [13.5, 45.6], [19.5, 42], [22, 37], [24, 40.5], [28, 45], [30, 50], [28, 56], [24, 57], [20, 54.5], [14, 54], [12, 55.4], [9.5, 57], [8.6, 53.9], [4.5, 51.7], [1.5, 50.9], [-1.6, 48.7], [-4.5, 48.5], [-1.3, 46], [-1.8, 43.4], [-8, 43.7]],
+    [[-6, 35.8], [10, 37], [11, 33], [20, 31], [25, 31.5], [32, 31.3], [35, 28], [43, 12.5], [51, 11.8], [40, -2], [40, -16], [35, -24], [32, -29], [27, -33.8], [18.5, -34.3], [17, -29], [11.8, -17], [13, -8], [9, -1], [9.5, 4], [3, 6.3], [-4, 5.2], [-8, 4.4], [-13, 8.5], [-17, 14.6], [-16.5, 20], [-13, 27.5], [-9.7, 30]],
+    [[-5.5, 50], [1.5, 51], [0, 53.5], [-3, 56], [-5, 58.5], [-6, 56], [-3, 54], [-4.5, 52]],
+    [[-84.9, 21.9], [-82, 23.1], [-77, 21.5], [-74.2, 20.2], [-77.5, 19.9], [-80, 21.6]],
+  ];
+  const sinAcento = (x) => String(x ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+  function dibujarMapa(v, cuerpo, d, ctx, colSerie, tip, fE) {
+    const W = Math.max(80, ctx.ancho), H = Math.max(50, ctx.alto);
+    const s = d.series[0] || { vals: {} };
+    const pts = d.cats.map((c) => ({ c, g: GEO[sinAcento(c)], v: s.vals[c] })).filter((p) => p.v != null);
+    const ok = pts.filter((p) => p.g), sinUbicar = pts.filter((p) => !p.g).map((p) => p.c);
+    if (!ok.length) { cuerpo.innerHTML = `<div class="pb-v-vacio">No se pudo ubicar ninguna ubicación en el mapa.${sinUbicar.length ? `<br><small>Valores: ${esc(sinUbicar.slice(0, 5).join(', '))}…</small>` : ''}<br><small>Usa una columna de países o ciudades (categoría de datos: País o Ciudad).</small></div>`; return; }
+    let lon0 = Math.min(...ok.map((p) => p.g[0])), lon1 = Math.max(...ok.map((p) => p.g[0])), lat0 = Math.min(...ok.map((p) => p.g[1])), lat1 = Math.max(...ok.map((p) => p.g[1]));
+    const padLon = Math.max(6, (lon1 - lon0) * 0.18), padLat = Math.max(5, (lat1 - lat0) * 0.18);
+    lon0 -= padLon; lon1 += padLon; lat0 -= padLat; lat1 += padLat;
+    // misma escala en x e y (sin deformar)
+    const esc0 = Math.min(W / (lon1 - lon0), H / (lat1 - lat0));
+    const cx = (lon0 + lon1) / 2, cy = (lat0 + lat1) / 2;
+    const X = (lon) => W / 2 + (lon - cx) * esc0, Y = (lat) => H / 2 - (lat - cy) * esc0;
+    const tierra = TIERRA.map((poly) => `<path d="M${poly.map(([a, b]) => `${X(a).toFixed(1)} ${Y(b).toFixed(1)}`).join('L')}Z" class="pb-mapa-tierra"/>`).join('');
+    const mx = Math.max(...ok.map((p) => Math.abs(p.v))) || 1, rmax = Math.max(10, Math.min(W, H) / 9);
+    const col = colSerie(0, s.nombre);
+    const burbujas = ok.sort((a, b) => Math.abs(b.v) - Math.abs(a.v)).map((p) => `<circle cx="${X(p.g[0]).toFixed(1)}" cy="${Y(p.g[1]).toFixed(1)}" r="${(4 + (rmax - 4) * Math.sqrt(Math.abs(p.v) / mx)).toFixed(1)}" fill="${col}" fill-opacity=".72" stroke="#fff" stroke-width="1" data-cat="${esc(p.c)}" opacity="${ctx.aten(p.c) ? 0.25 : 1}">${tip(p.c, [[s.nombre, fE(p.v, s.formato)]])}</circle>`).join('');
+    cuerpo.innerHTML = `<svg width="${W}" height="${H}" class="pb-mapa"><rect width="${W}" height="${H}" class="pb-mapa-agua"/>${tierra}${burbujas}<text x="${W - 6}" y="${H - 5}" text-anchor="end" class="pb-mapa-cred">Mapa base simplificado · Academia</text></svg>${sinUbicar.length ? `<div class="pb-mapa-aviso" title="${esc(sinUbicar.join(', '))}">⚠ ${sinUbicar.length} sin ubicar</div>` : ''}`;
+  }
   function dibujar(v, cuerpo, d, ctx) {
     const W = Math.max(80, ctx.ancho), H = Math.max(50, ctx.alto);
     const T = TIPOS[v.tipo]; const pal = ctx.paleta;
@@ -174,6 +214,7 @@
       cuerpo.innerHTML = ley + `<svg width="${W}" height="${H - hl}">${grid}${pts.map((p) => `<circle cx="${X(p.x || 0)}" cy="${Y(p.y || 0)}" r="${p.tam != null ? 4 + 14 * Math.sqrt(Math.max(0, p.tam) / tmx) : 5}" fill="${colSerie(grupos.indexOf(p.ley ?? ''), p.ley ?? '')}" fill-opacity=".75" stroke="#fff" data-cat="${esc(p.d)}" opacity="${ctx.aten(p.d) ? 0.25 : 1}">${tip(p.d, [[d.nx, fmtNum(p.x)], [d.ny, fmtNum(p.y)], ...(p.tam != null ? [[d.nt, fmtNum(p.tam)]] : [])])}</circle>`).join('')}${fmtGet(v, 'ejeX', 'titulo') ? `<text x="${izq + an / 2}" y="${H - hl - 2}" text-anchor="middle" class="pb-eje-t">${esc(d.nx)}</text>` : ''}</svg>`;
       return;
     }
+    if (T.mapa) return dibujarMapa(v, cuerpo, d, ctx, colSerie, tip, fE);
     const series = d.series, cats = d.cats;
     if (T.g === 'parte') {
       const s = series[0]; const vals = cats.map((c) => Math.max(0, s.vals[c] || 0)); const tot = vals.reduce((a, b) => a + b, 0) || 1;

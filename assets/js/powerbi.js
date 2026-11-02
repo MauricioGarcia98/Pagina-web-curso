@@ -27,7 +27,7 @@
   const PARTES = { anio: 'Año', trim: 'Trimestre', mes: 'Mes' };
 
   // ---------------------------------------------------------------- estado
-  const NUEVO = () => ({ version: 2, vista: 'informe', cinta: 'inicio', pagina: 0, paginas: [{ nombre: 'Página 1', visuales: [], filtros: [] }], filtrosTodas: [], medidas: [], tablas: {}, rels: [], sel: null, cruz: null, publicado: false, reto: true, tablaDatos: null, nombreArchivo: 'Sin título', tema: 'predeterminado', panelVis: 'crear', paneles: { filtros: true, vis: true, datos: true }, daxTabs: [{ nombre: 'Consulta 1', texto: '// Escribe una consulta DAX y pulsa Ejecutar (Ctrl+Enter)\nEVALUATE\n' }], daxTab: 0, tmdlTabs: [{ nombre: 'Script 1', texto: '' }], tmdlTab: 0 });
+  const NUEVO = () => ({ version: 2, vista: 'informe', cinta: 'inicio', pagina: 0, paginas: [{ nombre: 'Página 1', visuales: [], filtros: [] }], filtrosTodas: [], medidas: [], tablas: {}, rels: [], sel: null, cruz: null, publicado: false, reto: true, tablaDatos: null, nombreArchivo: 'Sin título', tema: 'predeterminado', panelVis: 'crear', paneles: { filtros: true, vis: true, datos: true }, daxTabs: [{ nombre: 'Consulta 1', texto: '// Escribe una consulta DAX y pulsa Ejecutar (Ctrl+Enter)\nEVALUATE\n' }], daxTab: 0, tmdlTabs: [{ nombre: 'Script 1', texto: '' }], tmdlTab: 0, roles: [], verComo: null });
   function migrar(s) {
     const n = NUEVO();
     for (const k of Object.keys(n)) if (s[k] === undefined) s[k] = n[k];
@@ -154,6 +154,71 @@
     return nuevas;
   }
 
+
+  // ---------------------------------------------------------------- seguridad de nivel de fila (RLS)
+  // Cada rol tiene reglas por tabla (columna, operador, valor) como el editor de "Administrar roles" de
+  // Power BI Desktop; el valor puede ser USERPRINCIPALNAME() (RLS dinámica). "Ver como" aplica el rol al
+  // informe: el filtro se propaga por las relaciones y CALCULATE/ALL no lo quitan (origen 'rls').
+  const OPS_RLS = { '=': '=', '<>': '<>', '>': '>', '<': '<', '>=': '>=', '<=': '<=' };
+  const daxRegla = (g) => { const v = /^USERPRINCIPALNAME\(\)$/i.test(g.val) ? 'USERPRINCIPALNAME()' : g.val !== '' && !isNaN(Number(g.val)) ? g.val : `"${String(g.val).replace(/"/g, '""')}"`; return `[${g.c}] ${g.op === '=' ? '==' : g.op} ${v}`; };
+  const daxRol = (rol, t) => rol.reglas.filter((g) => g.t === t).map(daxRegla).join(' && ');
+  function filtrosRls() {
+    if (!S.verComo || !S.verComo.rol) return [];
+    const rol = (S.roles || []).find((r) => r.nombre === S.verComo.rol); if (!rol) return [];
+    return rol.reglas.filter((g) => S.tablas[g.t] && meta(g.t).some((c) => c.n === g.c)).map((g) => ({ campo: { t: g.t, c: g.c }, cond: { op: g.op, val: /^USERPRINCIPALNAME\(\)$/i.test(g.val) ? (S.verComo.usuario || 'alumno@academia.dev') : g.val }, origen: 'rls' }));
+  }
+  function dialogoRoles() {
+    construir();
+    let sel = S.roles.length ? 0 : -1, tablaSel = tablas()[0];
+    const m = modal('<div class="pb-roles"></div>', 'pb-modal-ancho');
+    const pintarRoles = () => {
+      const R = S.roles[sel];
+      m.querySelector('.pb-roles').innerHTML = `<div class="pb-m-cab">Administrar roles de seguridad<button data-cerrar-modal>✕</button></div>
+        <div class="pb-roles-cuerpo">
+          <div class="pb-roles-col"><div class="pb-roles-t">Roles <button class="pb-btn" data-nuevo-rol>+ Nuevo</button></div>${S.roles.map((r, i) => `<div class="pb-rol ${i === sel ? 'on' : ''}" data-rol="${i}"><span>${esc(r.nombre)}</span><button data-borrar-rol="${i}" title="Eliminar">✕</button></div>`).join('') || '<p class="pb-dim small">Todavía no hay roles.</p>'}</div>
+          <div class="pb-roles-col"><div class="pb-roles-t">Seleccionar tablas</div>${R ? tablas().map((t) => `<div class="pb-rol ${t === tablaSel ? 'on' : ''}" data-tabla-rol="${esc(t)}"><span>${esc(t)}</span>${R.reglas.some((g) => g.t === t) ? '<i class="pb-rls-ok">●</i>' : ''}</div>`).join('') : ''}</div>
+          <div class="pb-roles-col pb-roles-reglas">${R ? `<label class="pb-roles-nom">Nombre del rol <input data-nom-rol value="${esc(R.nombre)}"></label><div class="pb-roles-t">Filtrar datos de ${esc(tablaSel)}</div>
+            ${R.reglas.map((g, i) => (g.t === tablaSel ? `<div class="pb-regla"><select data-rc="${i}">${meta(tablaSel).map((c) => `<option ${c.n === g.c ? 'selected' : ''}>${esc(c.n)}</option>`).join('')}</select><select data-rop="${i}">${Object.keys(OPS_RLS).map((o) => `<option value="${o}" ${o === g.op ? 'selected' : ''}>${o === '=' ? 'Es igual a' : o === '<>' ? 'No es igual a' : o}</option>`).join('')}</select><input data-rv="${i}" value="${esc(g.val)}" placeholder="Valor o USERPRINCIPALNAME()"><button data-rdel="${i}" title="Quitar">✕</button></div>` : '')).join('')}
+            <button class="pb-btn" data-nueva-regla>+ Nueva regla</button>
+            <div class="pb-roles-dax"><b>DAX equivalente</b><code>${esc(daxRol(R, tablaSel) || '(sin filtro: el rol ve todas las filas de esta tabla)')}</code></div>
+            <p class="pb-dim small">El filtro de una tabla se propaga a las tablas relacionadas del lado "varios" (por ejemplo, filtrar <i>clientes</i> filtra sus <i>pedidos</i>). Pruébalo con <b>Ver como</b>. Al publicar, en el servicio se asignan personas o grupos a cada rol.</p>` : '<p class="pb-dim">Crea un rol para empezar.</p>'}</div>
+        </div>
+        <div class="pb-m-pie"><button class="pb-btn pb-btn-am" data-guardar-roles>Guardar</button></div>`;
+    };
+    pintarRoles();
+    m.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.closest('[data-nuevo-rol]')) { let i = 1; while (S.roles.some((r) => r.nombre === 'Rol ' + i)) i++; S.roles.push({ nombre: 'Rol ' + i, reglas: [] }); sel = S.roles.length - 1; pintarRoles(); return; }
+      const br = t.closest('[data-borrar-rol]'); if (br) { S.roles.splice(Number(br.dataset.borrarRol), 1); sel = Math.min(sel, S.roles.length - 1); if (S.verComo && !S.roles.some((r) => r.nombre === S.verComo.rol)) S.verComo = null; pintarRoles(); return; }
+      const r = t.closest('[data-rol]'); if (r) { sel = Number(r.dataset.rol); pintarRoles(); return; }
+      const tr = t.closest('[data-tabla-rol]'); if (tr) { tablaSel = tr.dataset.tablaRol; pintarRoles(); return; }
+      if (t.closest('[data-nueva-regla]')) { S.roles[sel].reglas.push({ t: tablaSel, c: (meta(tablaSel)[0] || {}).n, op: '=', val: '' }); pintarRoles(); return; }
+      const rd = t.closest('[data-rdel]'); if (rd) { S.roles[sel].reglas.splice(Number(rd.dataset.rdel), 1); pintarRoles(); return; }
+      if (t.closest('[data-guardar-roles]')) { S.roles.forEach((R) => { R.reglas = R.reglas.filter((g) => g.c); }); guardar(); m.parentElement.remove(); render(); toast(`Roles guardados (${S.roles.length}). Usa "Ver como" para probarlos.`); }
+    });
+    m.addEventListener('change', (e) => {
+      const t = e.target, R = S.roles[sel]; if (!R) return;
+      if (t.matches('[data-nom-rol]')) { const v = t.value.trim(); if (!v || S.roles.some((x) => x !== R && x.nombre === v)) { t.value = R.nombre; toast('El nombre del rol tiene que ser único.'); return; } if (S.verComo && S.verComo.rol === R.nombre) S.verComo.rol = v; R.nombre = v; pintarRoles(); return; }
+      if (t.matches('[data-rc]')) R.reglas[Number(t.dataset.rc)].c = t.value;
+      if (t.matches('[data-rop]')) R.reglas[Number(t.dataset.rop)].op = t.value;
+      if (t.matches('[data-rv]')) R.reglas[Number(t.dataset.rv)].val = t.value.trim();
+      pintarRoles();
+    });
+  }
+  function dialogoVerComo() {
+    if (!S.roles.length) { toast('Primero crea un rol en Modelado → Administrar roles.'); return; }
+    const vc = S.verComo || {};
+    const m = modal(`<div class="pb-m-cab">Ver como roles<button data-cerrar-modal>✕</button></div><div class="pb-form">
+      <label class="pb-check"><input type="checkbox" data-otro ${vc.usuario ? 'checked' : ''}> Otro usuario <input data-usuario value="${esc(vc.usuario || 'ana.datos@academia.dev')}" placeholder="usuario@empresa.com"></label>
+      ${S.roles.map((r) => `<label class="pb-check"><input type="radio" name="vcrol" value="${esc(r.nombre)}" ${vc.rol === r.nombre ? 'checked' : ''}> ${esc(r.nombre)} <span class="pb-dim small">${esc(r.reglas.map(daxRegla).join(' · ') || 'sin reglas')}</span></label>`).join('')}
+      <p class="pb-dim small">"Otro usuario" reemplaza <code>USERPRINCIPALNAME()</code> en las reglas, para probar la seguridad dinámica.</p></div>
+      <div class="pb-m-pie"><button class="pb-btn pb-btn-am" data-ok-vc>Aceptar</button><button class="pb-btn" data-cerrar-modal>Cancelar</button></div>`);
+    m.querySelector('[data-ok-vc]').addEventListener('click', () => {
+      const r = m.querySelector('[name=vcrol]:checked'); if (!r) { toast('Elige un rol.'); return; }
+      S.verComo = { rol: r.value, usuario: m.querySelector('[data-otro]').checked ? m.querySelector('[data-usuario]').value.trim() : '' };
+      guardar(); m.parentElement.remove(); render();
+    });
+  }
   // ---------------------------------------------------------------- campos y consultas de los visuales
   const nomCampo = (f) => (f.medida ? f.medida : f.agg && f.agg !== 'none' ? `${AGG[f.agg]} de ${f.c}` : f.parte ? `${f.c} (${PARTES[f.parte]})` : f.c);
   const formatoDe = (f) => (f.medida ? (S.medidas.find((m) => m.nombre === f.medida) || {}).formato : null);
@@ -166,6 +231,7 @@
     for (const f of v.filtros || []) agregar(f, 'pagina');
     for (const o of pag().visuales) if (o.tipo === 'segmentacion' && o.id !== v.id && o.pozos.x && o.pozos.x[0] && (o.slicerSel || []).length) out.push({ campo: o.pozos.x[0], valores: o.slicerSel, origen: 'pagina' });
     if (S.cruz && S.cruz.visual !== v.id && pag().visuales.some((o) => o.id === S.cruz.visual)) out.push({ campo: S.cruz.campo, valores: [S.cruz.valor], origen: 'pagina' });
+    out.push(...filtrosRls());
     return out;
   }
   // convierte un filtro del panel en el filtro que entiende el motor (básico, avanzado o N superior)
@@ -303,7 +369,7 @@
       return GRUPO('Estructura', `<label class="pb-cinta-campo">Nombre<input value="${esc(colSel.n)}" readonly title="Cámbialo en Power Query (Transformar datos)"></label><label class="pb-cinta-campo">Tipo de datos<select data-col-tipo>${Object.entries(TIPO_N).map(([k, n]) => `<option value="${k}" ${colSel.t === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`) + GRUPO('Propiedades', `<label class="pb-cinta-campo">Resumen<select data-col-resumen>${Object.entries(AGG).map(([k, n]) => `<option value="${k}" ${r === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`) + GRUPO('Cálculos', BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + (colSel.calc ? BOTON('borrar-columna', fl('dismiss'), 'Eliminar<br>columna') : ''));
     }
     if (c === 'insertar') return GRUPO('Páginas', BOTON('nueva-pagina', fl('document_one_page_add'), 'Nueva<br>página')) + GRUPO('Objetos visuales', BOTON('nuevo-visual', fl('data_bar_vertical_add'), 'Nuevo objeto<br>visual') + BOTON('mas-visuales', fl('apps_add_in'), 'Más objetos<br>visuales')) + GRUPO('Elementos', BOTON('cuadro-texto', fl('textbox'), 'Cuadro de<br>texto') + BOTON('imagen', fl('image'), 'Imagen'));
-    if (c === 'modelado') return GRUPO('Relaciones', BOTON('relaciones', fl('organization_horizontal'), 'Administrar<br>relaciones')) + GRUPO('Cálculos', BOTON('nueva-medida', fl('calculator'), 'Nueva<br>medida') + BOTON('medida-rapida', fl('flash'), 'Medida<br>rápida') + BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + BOTON('nueva-tabla', fl('table_add'), 'Nueva<br>tabla')) + GRUPO('Vistas de código', BOTON('ir-dax', fl('code'), 'Vista de<br>consultas DAX') + BOTON('ir-tmdl', fl('document'), 'Vista<br>TMDL'));
+    if (c === 'modelado') return GRUPO('Relaciones', BOTON('relaciones', fl('organization_horizontal'), 'Administrar<br>relaciones')) + GRUPO('Cálculos', BOTON('nueva-medida', fl('calculator'), 'Nueva<br>medida') + BOTON('medida-rapida', fl('flash'), 'Medida<br>rápida') + BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + BOTON('nueva-tabla', fl('table_add'), 'Nueva<br>tabla')) + GRUPO('Seguridad', BOTON('roles', fl('filter'), 'Administrar<br>roles') + BOTON('ver-como', fl('eye'), 'Ver<br>como')) + GRUPO('Vistas de código', BOTON('ir-dax', fl('code'), 'Vista de<br>consultas DAX') + BOTON('ir-tmdl', fl('document'), 'Vista<br>TMDL'));
     if (c === 'vista') return GRUPO('Temas', `<div class="pb-temas">${Object.entries(PALETAS).map(([k, p]) => `<button data-tema="${k}" class="${S.tema === k ? 'on' : ''}" title="${esc(p.n)}">${p.c.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>`).join('')}${S.temaCustom ? `<button data-tema="custom" class="${S.tema === 'custom' ? 'on' : ''}" title="${esc(S.temaCustom.name || 'Personalizado')}">${S.temaCustom.dataColors.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>` : ''}</div>` + CHICO('tema-importar', fl('folder_open'), 'Examinar temas') + CHICO('tema-exportar', fl('save'), 'Guardar tema actual')) + GRUPO('Opciones de página', BOTON('cuadricula', fl('grid'), `Líneas de<br>cuadrícula ${S.cuadricula ? '✓' : ''}`)) + GRUPO('Mostrar paneles', BOTON('panel-filtros', fl('filter'), `Filtros ${S.paneles.filtros ? '✓' : ''}`) + BOTON('panel-vis', fl('data_bar_vertical'), `Visualiza-<br>ciones ${S.paneles.vis ? '✓' : ''}`) + BOTON('panel-datos', fl('table'), `Datos ${S.paneles.datos ? '✓' : ''}`) + BOTON('analizador', fl('top_speed'), `Analizador de<br>rendimiento ${S.analizador ? '✓' : ''}`));
     if (c === 'optimizar') return GRUPO('Rendimiento', BOTON('analizador', fl('top_speed'), `Analizador de<br>rendimiento ${S.analizador ? '✓' : ''}`) + BOTON('actualizar', fl('arrow_sync'), 'Actualizar<br>objetos visuales'));
     if (c === 'ayuda') return GRUPO('Ayuda', BOTON('doc-pbi', fl('question_circle'), 'Documentación<br>de Power BI') + BOTON('doc-dax', fl('code'), 'Referencia<br>de DAX') + BOTON('doc-m', fl('table'), 'Referencia<br>de Power Query M')) + GRUPO('Práctica', BOTON('reto', fl('target_arrow'), S.reto ? 'Ocultar<br>reto' : 'Ver<br>reto') + BOTON('reiniciar', fl('document_add'), 'Informe<br>nuevo'));
@@ -392,6 +458,9 @@
       case 'borrar-columna': { const { t, c } = S.colSel; if (confirm(`¿Eliminar la columna calculada ${c}?`)) { S.tablas[t].calc = S.tablas[t].calc.filter((x) => x.nombre !== c); S.colSel = null; S.cinta = 'inicio'; cambioModelo(); guardar(); pintar(); } return; }
       case 'nueva-tabla': if (sinDatos()) return; return barraFormula({ tipo: 'tabla' });
       case 'relaciones': return dialogoRelaciones();
+      case 'roles': if (sinDatos()) return; return dialogoRoles();
+      case 'ver-como': if (sinDatos()) return; return dialogoVerComo();
+      case 'dejar-ver-como': S.verComo = null; guardar(); render(); toast('Volviste a ver el informe con todos los datos.'); return;
       case 'ir-dax': S.vista = 'dax'; guardar(true); render(); return;
       case 'ir-tmdl': S.vista = 'tmdl'; guardar(true); render(); return;
       case 'publicar': {
@@ -767,7 +836,7 @@
       renderPaneles(); renderPie(); return;
     }
     const enf = S.enfoque && vis(S.enfoque);
-    centro.innerHTML = `<div class="pb-lienzo-wrap">${enf ? `<div class="pb-volver"><button data-salir-enfoque>← Volver al informe</button></div>` : ''}<div class="pb-lienzo ${S.cuadricula ? 'pb-con-cuadricula' : ''} ${enf ? 'pb-enfoque' : ''}" id="pbLienzo"></div></div>`;
+    centro.innerHTML = `<div class="pb-lienzo-wrap ${S.verComo && S.verComo.rol ? 'pb-con-vercomo' : ''}">${S.verComo && S.verComo.rol ? `<div class="pb-ver-como">${fl('eye')} Ahora está viendo el informe como: <b>${esc(S.verComo.rol)}</b>${S.verComo.usuario ? ` · usuario <b>${esc(S.verComo.usuario)}</b>` : ''}<button class="pb-btn" data-acc="dejar-ver-como">Detener la vista</button></div>` : ''}${enf ? `<div class="pb-volver"><button data-salir-enfoque>← Volver al informe</button></div>` : ''}<div class="pb-lienzo ${S.cuadricula ? 'pb-con-cuadricula' : ''} ${enf ? 'pb-enfoque' : ''}" id="pbLienzo"></div></div>`;
     const lienzo = main.querySelector('#pbLienzo');
     lienzo.style.background = (S.tema === 'custom' && S.temaCustom && S.temaCustom.background) || '';
     const lista = enf ? [enf] : pag().visuales;
@@ -1377,7 +1446,8 @@
   }
   function tmdlModelo() {
     const rel = S.rels.map((r) => [`relationship ${guid(r.de + r.cde + r.a + r.ca)}`, ...(r.activa ? [] : ['\tisActive: false']), ...(r.direccion === 'ambas' ? ['\tcrossFilteringBehavior: bothDirections'] : []), `\tfromColumn: ${nomTmdl(r.de)}.${nomTmdl(r.cde)}`, `\ttoColumn: ${nomTmdl(r.a)}.${nomTmdl(r.ca)}`, ''].join('\n'));
-    return `model Model\n\tculture: es-ES\n\tdefaultPowerBIDataSourceVersion: powerBI_V3\n\tsourceQueryCulture: es-AR\n\n${tablas().map((t) => `ref table ${nomTmdl(t)}`).join('\n')}\n\n${rel.join('\n')}\n${tablas().map((t) => tmdlTabla(t, '')).join('\n')}`;
+    const roles = (S.roles || []).map((r) => `role ${nomTmdl(r.nombre)}\n\tmodelPermission: read\n${[...new Set(r.reglas.map((g) => g.t))].map((t) => `\n\ttablePermission ${nomTmdl(t)} = ${daxRol(r, t)}`).join('\n')}\n`).join('\n');
+    return `model Model\n\tculture: es-ES\n\tdefaultPowerBIDataSourceVersion: powerBI_V3\n\tsourceQueryCulture: es-AR\n\n${tablas().map((t) => `ref table ${nomTmdl(t)}`).join('\n')}\n${(S.roles || []).map((r) => `ref role ${nomTmdl(r.nombre)}`).join('\n')}\n\n${rel.join('\n')}\n${tablas().map((t) => tmdlTabla(t, '')).join('\n')}${roles ? '\n' + roles : ''}`;
   }
   // aplica un script TMDL (subconjunto: medidas, columnas calculadas, tablas calculadas, relaciones y formatString)
   function aplicarTmdl(texto) {
@@ -1456,5 +1526,5 @@
   }
 
   window.addEventListener('hashchange', () => { if (!/^#\/powerbi/.test(location.hash)) document.body.classList.remove('pb-abierto'); });
-  window.PowerBI = { vista, NUEVO, _estado: () => S, _motor: () => (construir(), motor) };
+  window.PowerBI = { vista, NUEVO, _estado: () => S, _motor: () => (construir(), motor), _tmdl: () => (construir(), tmdlModelo()) };
 })();
