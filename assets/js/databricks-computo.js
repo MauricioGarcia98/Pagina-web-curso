@@ -288,6 +288,7 @@
     }
     return { estado: 'FAILED', error: 'Tipo de tarea no soportado', salidas: [] };
   }
+  D.correrTarea = correrTarea;
   D.correrJob = async (jobId, { trigger = 'ONE_TIME', params = {}, reparar = null, alCambiar = () => {} } = {}) => {
     const J = jobs(); const j = normJob(J[jobId]); const s = j.settings;
     const enCurso = j.runs.filter((r) => r.state === 'RUNNING').length;

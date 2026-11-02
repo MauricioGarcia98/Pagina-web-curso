@@ -76,6 +76,20 @@ az datafactory pipeline create-run --resource-group rg-datos-dev --factory-name 
 
 ADF es ideal para **copiar** datos de cientos de conectores (SQL Server on-premises, SAP, APIs, SFTP…) al data lake, con un Integration Runtime que puede vivir dentro de tu red.
 
+Las piezas de ADF, en el orden en que se arman:
+
+| Pieza | Qué es | Ejemplo |
+|---|---|---|
+| **Linked service** | La conexión: a dónde y con qué credencial | ADLS Gen2 con la **identidad administrada** del factory |
+| **Dataset** | Qué datos dentro de esa conexión | `raw/ventas/*.csv` como DelimitedText |
+| **Pipeline** | Las actividades y sus dependencias | Copy data → Notebook de Databricks |
+| **Trigger** | Cuándo corre la versión **publicada** | Todos los días a las 6:00, o al llegar un archivo |
+| **Integration runtime** | El cómputo que mueve los datos | Azure (administrado) o self-hosted dentro de tu red |
+
+:::tip Practícalo en el Studio
+En el [portal de Azure de práctica](#/azure) crea un data factory y pulsa **Launch studio**. Arma el recorrido completo: dale al factory el rol *Storage Blob Data Contributor* en tu cuenta (IAM), crea los linked services, dos datasets, un pipeline con **Copy data** y un **Notebook**, prueba con **Debug**, publica con **Publish all**, lánzalo con **Trigger now** y míralo en **Monitor**. Si sacas el rol, vas a ver el mismo error `AuthorizationPermissionMismatch` que en Azure.
+:::
+
 ## Event Hubs (streaming)
 
 ```bash norun
