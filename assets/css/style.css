@@ -1121,3 +1121,14 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .exercise > .dax-prueba[open] > summary { border-bottom: 1px solid var(--line); }
 .exercise > .dax-prueba > :not(summary) { margin-left: 12px; margin-right: 12px; }
 .exercise > .dax-prueba pre { margin-bottom: 10px; }
+
+/* resumen automático al final de las lecciones largas */
+.resumen-final { margin: 2.2em 0 1.4em; padding: 18px 20px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
+.resumen-final > h2 { margin-top: 0; }
+.resumen-final .rf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 28px; }
+.resumen-final h3 { font-size: .95rem; margin: .4em 0 .5em; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.resumen-final ol, .resumen-final ul { margin: 0 0 .6em; padding-left: 1.3em; }
+.resumen-final li { margin: .25em 0; }
+.resumen-final .rf-obj li::marker { content: '☐  '; }
+.resumen-final .rf-pie { margin: .6em 0 0; font-size: .95rem; }
+@media (max-width: 600px) { .resumen-final { padding: 14px 14px 8px; } }

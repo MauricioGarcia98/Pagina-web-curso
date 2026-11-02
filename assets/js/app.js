@@ -1802,7 +1802,7 @@
   const slug = (t) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'seccion';
   function montarIndice(l, body) {
     const usados = new Set();
-    const secs = $$(':scope > h2', body).concat($$('#autoEval > h2', body)).map((h2) => {
+    const secs = $$(':scope > h2', body).concat($$('#resumenFinal > h2, #autoEval > h2', body)).map((h2) => {
       if (!h2.id) { let id = slug(h2.textContent), k = 2; while (usados.has(id) || document.getElementById(id)) id = slug(h2.textContent) + '-' + k++; h2.id = id; }
       usados.add(h2.id);
       return { el: h2, id: h2.id, t: h2.textContent.replace(/^[^\p{L}\p{N}¿¡]+/u, '').trim() };
@@ -1845,6 +1845,28 @@
     };
     window.addEventListener('scroll', alDesplazar, { passive: true });
     alDesplazar();
+  }
+
+  // Resumen al final de las lecciones largas que no traen uno propio: qué secciones recorriste (con
+  // enlaces para volver), qué deberías poder hacer ahora y cuánta práctica te queda.
+  function resumenFinal(l, body, next) {
+    const h2s = $$(':scope > h2', body);
+    if (l.html.length < 14000 || h2s.length < 3) return;
+    if (h2s.some((x) => /resumen|para llevar|repaso final|qu[eé] aprendiste|cierre/i.test(x.textContent))) return;
+    const usados = new Set();
+    for (const x of h2s) { if (!x.id) { let id = slug(x.textContent), k = 2; while (usados.has(id) || document.getElementById(id)) id = slug(x.textContent) + '-' + k++; x.id = id; } usados.add(x.id); }
+    const secs = h2s.filter((x) => !/^\W*ejercicios\b/i.test(x.textContent.trim()));
+    const ejs = l.ejercicios.filter((e) => e.type !== 'abierto'), hechos = ejs.filter((e) => Store.exDone(e.id)).length;
+    const sec = h(`<section class="resumen-final" id="resumenFinal"><h2>🧭 Resumen de la lección</h2>
+      <div class="rf-grid">
+        <div><h3>Lo que recorriste</h3><ol>${secs.map((x) => `<li><a href="#${x.id}" data-rf="${x.id}">${esc(x.textContent.replace(/^[^\p{L}\p{N}¿¡]+/u, '').trim())}</a></li>`).join('')}</ol></div>
+        ${(l.objetivos || []).length ? `<div><h3>Ahora deberías poder</h3><ul class="rf-obj">${l.objetivos.map((o) => `<li>${o}</li>`).join('')}</ul></div>` : ''}
+      </div>
+      <p class="rf-pie">${ejs.length ? (hechos === ejs.length ? `✅ Resolviste los ${ejs.length} ejercicios.` : `✍️ Resolviste <b>${hechos} de ${ejs.length}</b> ejercicios: <a href="#${esc((ejs.find((e) => !Store.exDone(e.id)) || ejs[0]).id)}" data-rf-ej>ir al primero pendiente</a>.`) : ''} ${next ? `Sigue con <a href="#/l/${next.id}">${esc(next.titulo)}</a>.` : ''}</p>
+    </section>`);
+    sec.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#"]'); if (!a || a.getAttribute('href').startsWith('#/')) return; e.preventDefault(); const el = document.getElementById(a.getAttribute('href').slice(1)); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    const ae = $('#autoEval', body);
+    if (ae) body.insertBefore(sec, ae); else body.append(sec);
   }
 
   function viewLesson(l) {
@@ -1898,6 +1920,7 @@
       const k = Number(slot.dataset.ex);
       mountExercise(slot, l.ejercicios[k], k + 1);
     });
+    resumenFinal(l, body, next);
     montarIndice(l, body);
     const ae = $('#autoEval');
     if (ae) {
