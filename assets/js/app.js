@@ -3584,7 +3584,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'generador') return { name: 'generador', params };
     if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
     if (parts[0] === 'trabajo') return { name: 'trabajo', params };
-    if (parts[0] === 'powerbi') return { name: 'powerbi' };
+    if (parts[0] === 'powerbi') return { name: 'powerbi', sub: parts.slice(1) };
     if (parts[0] === 'herramientas') return { name: 'herramientas' };
     if (parts[0] === 'vscode') return { name: 'vscode' };
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
@@ -3598,6 +3598,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   // Esta barra fina queda siempre arriba para volver al curso, abrir la lección de la herramienta o ir al lanzador.
   const HERR_BARRA = {
     powerbi: { ico: '📊', nombre: 'Power BI Desktop', leccion: 'interfaces-power-bi-por-dentro' },
+    pbiservicio: { ico: '☁️', nombre: 'Servicio de Power BI', leccion: 'interfaces-power-bi-por-dentro' },
     databricks: { ico: '🧱', nombre: 'Databricks', leccion: 'interfaces-databricks-por-dentro' },
     azure: { ico: '☁️', nombre: 'Portal de Azure', leccion: 'interfaces-portal-azure-por-dentro' },
     adf: { ico: '🏭', nombre: 'Azure Data Factory', leccion: 'interfaces-data-factory-por-dentro' },
@@ -3606,7 +3607,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     airflow: { ico: '🌀', nombre: 'Airflow', leccion: 'interfaces-airflow-por-dentro' },
   };
   let rutaCurso = null;   // la última página del curso (no de una herramienta) para el botón Volver
-  function claveHerramienta(r) { if (r.name === 'azure' && r.sub && r.sub[0] === 'studio') return 'adf'; return HERR_BARRA[r.name] ? r.name : null; }
+  function claveHerramienta(r) { if (r.name === 'azure' && r.sub && r.sub[0] === 'studio') return 'adf'; if (r.name === 'powerbi' && r.sub && r.sub[0] === 'servicio') return 'pbiservicio'; return HERR_BARRA[r.name] ? r.name : null; }
   function barraHerramienta(r) {
     const k = claveHerramienta(r);
     let bar = document.getElementById('herrBar');
@@ -3657,6 +3658,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
     else if (r.name === 'herramientas') viewHerramientas();
     else if (r.name === 'vscode') viewVSCode();
+    else if (r.name === 'powerbi' && r.sub && r.sub[0] === 'servicio' && window.PBIServicio) window.PBIServicio.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() }, r.sub.slice(1));
     else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });
     else if (r.name === 'databricks' && window.Databricks) window.Databricks.vista(main, { Store, toast, ensureSql }, r.sub);
     else if (r.name === 'azure' && window.AzurePortal) window.AzurePortal.vista(main, { Store, toast, ensureSql }, r.sub);

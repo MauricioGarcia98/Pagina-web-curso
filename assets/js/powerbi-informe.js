@@ -267,6 +267,8 @@
   // ---------------------------------------------------------------- lienzo: clics, menú contextual, tooltips
   function clicVisual(v, e) {
     const s = S();
+    if (I().lectura() && (v.tipo === 'boton' || v.tipo === 'navPaginas')) { const b = e.target.closest('[data-nav]'); e.preventDefault(); accionBoton(v, b && b.dataset.nav); return true; }
+    if (I().lectura()) return false;
     if (e.ctrlKey || e.metaKey) {
       if (v.tipo === 'boton') { e.preventDefault(); accionBoton(v); return true; }
       if (v.tipo === 'navPaginas') { const b = e.target.closest('[data-nav]'); e.preventDefault(); accionBoton(v, b && b.dataset.nav); return true; }

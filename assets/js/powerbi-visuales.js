@@ -32,6 +32,10 @@
     tabla: SVG(20, 20, '<rect x="2.5" y="3.5" width="15" height="13" fill="none" stroke="currentColor"/><path d="M2.5 7.5h15M2.5 11.5h15M8 3.5v13" stroke="currentColor"/>'),
     matriz: SVG(20, 20, '<rect x="2.5" y="3.5" width="15" height="13" fill="none" stroke="currentColor"/><path d="M2.5 7.5h15M7 3.5v13M12 7.5v9" stroke="currentColor"/>' + R(2.5, 3.5, 4.5, 13, 0.25)),
     texto: SVG(20, 20, '<rect x="2.5" y="4.5" width="15" height="11" fill="none" stroke="currentColor"/><path d="M6 8h8M10 8v5" stroke="currentColor" stroke-width="1.4"/>'),
+    qa: SVG(20, 20, '<path d="M3 4h14v9H9l-4 3v-3H3z" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="10" y="11" font-size="7" text-anchor="middle" fill="currentColor" font-weight="700">?</text>'),
+    arbol: SVG(20, 20, R(2, 8, 4, 4) + R(9, 3, 3, 3, 0.8) + R(9, 8.5, 3, 3, 0.8) + R(9, 14, 3, 3, 0.8) + R(15, 3, 3, 3, 0.5) + R(15, 8.5, 3, 3, 0.5) + '<path d="M6 10h3M7.5 4.5v11M7.5 4.5H9M7.5 15.5H9M12 4.5h3M12 10h3" stroke="currentColor" stroke-width=".8" fill="none"/>'),
+    influencias: SVG(20, 20, '<circle cx="7" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="1.3"/>' + R(13, 4, 5, 2) + R(13, 9, 3.5, 2, 0.7) + R(13, 14, 2, 2, 0.45)),
+    narrativa: SVG(20, 20, '<path d="M3 5h14M3 9h14M3 13h9" stroke="currentColor" stroke-width="1.4"/><path d="M15 12l1 2 2 .5-2 .5-1 2-1-2-2-.5 2-.5z" fill="currentColor"/>'),
   };
   const CART_COL = [['x', 'Eje X', 6, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']];
   const CART_BAR = [['x', 'Eje Y', 6, 'cat'], ['y', 'Eje X', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']];
@@ -64,6 +68,10 @@
     forma: { n: 'Forma', pozos: [], g: 'forma', oculto: true },
     boton: { n: 'Botón', pozos: [], g: 'boton', oculto: true },
     navPaginas: { n: 'Navegador de páginas', pozos: [], g: 'navpag', oculto: true },
+    qa: { n: 'Preguntas y respuestas', pozos: [], g: 'ia' },
+    arbol: { n: 'Árbol de descomposición', pozos: [['y', 'Analizar', 1, 'valor'], ['x', 'Explicar por', 6, 'cat']], g: 'ia' },
+    influencias: { n: 'Influenciadores clave', pozos: [['y', 'Analizar', 1, 'valor'], ['x', 'Explicar por', 6, 'cat']], g: 'ia' },
+    narrativa: { n: 'Narración inteligente', pozos: [], g: 'ia' },
   };
   // compatibilidad con informes guardados antes de esta versión
   const ALIAS = { card: 'tarjeta', column: 'columnaAgrupada', bar: 'barAgrupada', line: 'linea', donut: 'anillo', table: 'tabla', matrix: 'matriz', slicer: 'segmentacion' };
@@ -98,7 +106,7 @@
   const SECC_GRUPO = {
     cart: ['ejeX', 'ejeY', 'leyenda', 'colores', 'etiquetas'], parte: ['leyenda', 'colores', 'etiquetas'], disp: ['ejeX', 'ejeY', 'leyenda', 'colores'],
     medidor: ['medidor', 'etiquetas'], tarjeta: ['valorLlamada', 'etiquetaCat'], kpi: ['valorLlamada', 'kpiColores'], seg: ['segmentacion'], tabla: ['cuadricula'], texto: ['texto'],
-    forma: ['forma'], boton: ['boton', 'accion'], navpag: ['navpag'],
+    forma: ['forma'], boton: ['boton', 'accion'], navpag: ['navpag'], ia: [],
   };
   const seccionesDe = (tipo) => {
     const g = TIPOS[tipo].g; const s = [...SECC_GRUPO[g]];
