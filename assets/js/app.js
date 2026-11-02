@@ -2553,6 +2553,7 @@ print(json.dumps(out))`;
     const tb = Store.data.trabajo;
     const etapas = tb ? Math.min(4, tb.paso || 0) : 0;
     labs.push(tarjeta('#/trabajo', '💼 Tu primer trabajo', etapas >= 4 ? 'Semana completa ✓' : `${etapas}/4 etapas de la semana`, etapas * 25));
+    if (window.RetosHerramientas) for (const x of window.RetosHerramientas.resumen()) labs.push(tarjeta(x.id === 'adf' ? '#/azure/servicio/adf' : '#/' + x.id, `🎯 ${esc(x.titulo)}`, `${x.hechos}/${x.total} retos resueltos`, Math.round((100 * x.hechos) / Math.max(1, x.total))));
     return `<h2 class="section-title">Laboratorios y herramientas</h2><div class="grid grid-3">${labs.join('')}</div>`;
   }
 
@@ -3468,6 +3469,7 @@ print(json.dumps(out))`;
     else if (r.name === 'simulacro') viewSimulacro(r.cert);
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
+    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();

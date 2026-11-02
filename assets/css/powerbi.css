@@ -612,3 +612,4 @@ body.pb-abierto { overflow: hidden; }
 .pb-cg-item textarea { font-family: Consolas, monospace; font-size: 12px; resize: vertical; }
 .pb-cg-item button { border: 0; background: transparent; cursor: pointer; margin-top: 6px; }
 @media (max-width: 600px) { .pb-cg-item { grid-template-columns: 1fr 28px; } .pb-cg-item textarea { grid-column: 1; } }
+.pb-reto-av { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0, 0, 0, .08); }

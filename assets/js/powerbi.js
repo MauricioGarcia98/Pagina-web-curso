@@ -287,7 +287,7 @@
       <div class="pb-m-pie"><button class="pb-btn pb-btn-am" data-ok-vc>Aceptar</button><button class="pb-btn" data-cerrar-modal>Cancelar</button></div>`);
     m.querySelector('[data-ok-vc]').addEventListener('click', () => {
       const r = m.querySelector('[name=vcrol]:checked'); if (!r) { toast('Elige un rol.'); return; }
-      S.verComo = { rol: r.value, usuario: m.querySelector('[data-otro]').checked ? m.querySelector('[data-usuario]').value.trim() : '' };
+      S.verComo = { rol: r.value, usuario: m.querySelector('[data-otro]').checked ? m.querySelector('[data-usuario]').value.trim() : '' }; S.vioComo = true;
       guardar(); m.parentElement.remove(); render();
     });
   }
@@ -404,6 +404,14 @@
     ['Agrega una segmentación de datos y una tarjeta', () => todos().some((v) => v.tipo === 'segmentacion' && v.pozos.x && v.pozos.x[0]) && todos().some((v) => v.tipo === 'tarjeta' && v.pozos.valores && v.pozos.valores[0])],
     ['Ejecuta una consulta en la vista de consultas DAX', () => !!S.daxEjecutada],
     ['Publica el informe', () => S.publicado],
+  ];
+  const RETO_AV = [
+    ['Usa CALCULATE en una medida (por ejemplo, ventas de un canal)', () => S.medidas.some((m) => /CALCULATE\s*\(/i.test(m.expr))],
+    ['Crea una medida de inteligencia de tiempo (TOTALYTD, SAMEPERIODLASTYEAR o DATEADD)', () => S.medidas.some((m) => /TOTALYTD|SAMEPERIODLASTYEAR|DATEADD|DATESYTD/i.test(m.expr))],
+    ['Agrega un visual de mapa por país o ciudad', () => todos().some((v) => v.tipo === 'mapa' && v.pozos.x && v.pozos.x[0])],
+    ['Crea un rol de seguridad (RLS) con una regla', () => (S.roles || []).some((r) => r.reglas.length)],
+    ['Prueba el rol con "Ver como"', () => !!(S.verComo && S.verComo.rol) || !!S.vioComo],
+    ['Crea un grupo de cálculo y úsalo en un visual', () => Object.entries(S.tablas).some(([n, t]) => t.fuente.tipo === 'calcgroup' && todos().some((v) => Object.values(v.pozos || {}).flat().some((f) => f.t === n)))],
   ];
 
   // ---------------------------------------------------------------- arranque
@@ -1096,7 +1104,7 @@
       <div class="pb-pozo-t">Filtros en esta página</div><div class="pb-pozo pb-pozo-f" data-pozo="__filtro" data-clase="cat">${tarjetasFiltro(pag().filtros, 'pag')}<span class="pb-pozo-vacio">Agregar campos de datos aquí</span></div>
       <div class="pb-pozo-t">Filtros en todas las páginas</div><div class="pb-pozo pb-pozo-f" data-pozo="__todas" data-clase="cat">${tarjetasFiltro(S.filtrosTodas, 'todas')}<span class="pb-pozo-vacio">Agregar campos de datos aquí</span></div>
       ${S.cruz ? `<div class="pb-cruz">Filtrado cruzado: <b>${esc(nomCampo(S.cruz.campo))} = ${esc(S.cruz.valor ?? '(En blanco)')}</b> <button data-limpiar-cruz>Quitar</button></div>` : ''}</div>`;
-    const reto = S.reto ? `<div class="pb-pan pb-reto"><div class="pb-pan-t">🎯 Reto: tu primer informe <button data-acc="reto" title="Ocultar">✕</button></div>${RETO.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<p class="pb-ayuda">Con cualquier dataset: un CSV tuyo, un Excel o las bases del curso.</p></div>` : '';
+    const reto = S.reto ? `<div class="pb-pan pb-reto"><div class="pb-pan-t">🎯 Reto: tu primer informe <button data-acc="reto" title="Ocultar">✕</button></div>${RETO.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<div class="pb-pan-t pb-reto-av">🏆 Retos avanzados</div>${RETO_AV.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<p class="pb-ayuda">Con cualquier dataset: un CSV tuyo, un Excel o las bases del curso.</p></div>` : '';
     const analizador = S.analizador ? `<div class="pb-pan pb-analizador"><div class="pb-pan-t">Analizador de rendimiento <button data-acc="analizador">✕</button></div><div class="row" style="padding:0 12px"><button class="pb-btn" data-acc="actualizar">Actualizar objetos visuales</button></div>${pag().visuales.map((x) => { const t = tiempos[x.id]; if (!t) return ''; return `<div class="pb-an-i"><b>${esc(tituloDe(x) || V().TIPOS[x.tipo].n)}</b>${t.error ? `<span class="pb-err">${esc(t.error)}</span>` : `<span>Consulta DAX: ${t.consulta.toFixed(0)} ms</span><span>Objeto visual: ${t.visual.toFixed(0)} ms</span><button data-copiar-dax="${esc(x.id)}">Copiar consulta</button>`}</div>`; }).join('') || '<p class="pb-ayuda">Interactúa con el informe o pulsa Actualizar.</p>'}</div>` : '';
     const col = (k, html) => (S.paneles[k] ? `<div class="pb-pan-col pb-col-${k}">${html}</div>` : `<div class="pb-pan-col pb-col-plegada" data-despliega="${k}" title="Mostrar panel">${{ filtros: 'Filtros', vis: 'Visualizaciones', datos: 'Datos' }[k]}</div>`);
     pan.innerHTML = col('filtros', reto + analizador + filtros) + col('vis', viz) + col('datos', datos);

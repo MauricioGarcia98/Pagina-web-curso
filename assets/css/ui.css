@@ -598,3 +598,24 @@ body.vscode-abierto { overflow: hidden; }
 .vs-tl-i .vs-nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vs-tl-t { opacity: .6; font-size: 11px; white-space: nowrap; padding-right: 8px; }
 .vs-tl-vacio { padding: 4px 18px 8px; font-size: 12px; opacity: .7; }
+
+/* retos autocorregidos dentro de las herramientas (Azure, Data Factory, Databricks) */
+.rh-btn { position: fixed; right: 18px; bottom: 18px; z-index: 1200; display: inline-flex; gap: 6px; align-items: center; padding: 9px 14px; border-radius: 999px; border: 0; background: #1b1a19; color: #fff; font: 600 13px/1 'Segoe UI', -apple-system, Roboto, sans-serif; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); cursor: pointer; }
+.rh-btn b { background: #ffd335; color: #1b1a19; border-radius: 999px; padding: 2px 7px; font-size: 11.5px; }
+.rh-btn.rh-pulso { animation: rhpulso .9s ease 2; }
+@keyframes rhpulso { 50% { transform: scale(1.12); box-shadow: 0 0 0 8px rgba(255, 211, 53, .35); } }
+.rh-panel { position: fixed; right: 18px; bottom: 66px; z-index: 1200; width: min(380px, calc(100vw - 24px)); max-height: min(70vh, 620px); overflow: auto; background: #fff; color: #242424; border-radius: 10px; box-shadow: 0 16px 48px rgba(0, 0, 0, .28); padding: 12px 14px; font: 13px/1.45 'Segoe UI', -apple-system, Roboto, sans-serif; }
+.rh-cab { display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
+.rh-cab button { border: 0; background: transparent; cursor: pointer; font-size: 15px; }
+.rh-dim { color: #616161; margin: 4px 0 8px; font-size: 12px; }
+.rh-nivel { margin: 10px 0 4px; }
+.rh-nivel-t { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #616161; display: flex; justify-content: space-between; margin-bottom: 4px; }
+.rh-reto { border-radius: 6px; margin: 2px 0; }
+.rh-reto summary { cursor: pointer; padding: 6px 6px; list-style: none; display: flex; gap: 8px; align-items: flex-start; border-radius: 6px; }
+.rh-reto summary::-webkit-details-marker { display: none; }
+.rh-reto summary:hover { background: #f5f5f5; }
+.rh-reto p { margin: 0 6px 8px 30px; color: #424242; font-size: 12.5px; }
+.rh-check { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #bdbdbd; display: grid; place-items: center; font-size: 11px; color: transparent; margin-top: 1px; }
+.rh-reto.ok .rh-check { background: #107c10; border-color: #107c10; color: #fff; }
+.rh-reto.ok summary { color: #616161; }
+@media (max-width: 600px) { .rh-btn { right: 10px; bottom: 10px; padding: 8px 12px; } .rh-panel { right: 12px; bottom: 56px; } }
