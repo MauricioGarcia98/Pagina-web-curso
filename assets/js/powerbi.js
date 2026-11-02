@@ -62,7 +62,8 @@
     const j = hist.i + dir; if (j < 0 || j >= hist.pila.length) { toast(dir < 0 ? 'No hay nada para deshacer' : 'No hay nada para rehacer'); return; }
     hist.i = j; S = migrar(JSON.parse(hist.pila[j])); Store.data.powerbi = S; Store.saveSoon(); cambioModelo(); pintar();
   }
-  const pag = () => S.paginas[S.pagina];
+  let pagForzada = null;
+  const pag = () => pagForzada || S.paginas[S.pagina];
   const vis = (id) => pag().visuales.find((v) => v.id === id);
   const todos = () => S.paginas.flatMap((p) => p.visuales);
   const cambioModelo = () => { version++; };
@@ -301,8 +302,10 @@
     for (const f of S.filtrosTodas) agregar(f, 'pagina');
     for (const f of pag().filtros) agregar(f, 'pagina');
     for (const f of v.filtros || []) agregar(f, 'pagina');
-    for (const o of pag().visuales) if (o.tipo === 'segmentacion' && o.id !== v.id && o.pozos.x && o.pozos.x[0] && (o.slicerSel || []).length) out.push({ campo: o.pozos.x[0], valores: o.slicerSel, origen: 'pagina' });
-    if (S.cruz && S.cruz.visual !== v.id && pag().visuales.some((o) => o.id === S.cruz.visual)) out.push({ campo: S.cruz.campo, valores: [S.cruz.valor], origen: 'pagina' });
+    const X = window.PBIInforme, inter = (src) => (X ? X.interaccion(src, v.id) : 'filtro');
+    for (const o of pag().visuales) if (o.tipo === 'segmentacion' && o.id !== v.id && o.pozos.x && o.pozos.x[0] && (o.slicerSel || []).length && inter(o.id) !== 'ninguno') out.push({ campo: o.pozos.x[0], valores: o.slicerSel, origen: 'pagina' });
+    if (S.cruz && S.cruz.visual !== v.id && pag().visuales.some((o) => o.id === S.cruz.visual) && inter(S.cruz.visual) !== 'ninguno') out.push({ campo: S.cruz.campo, valores: [S.cruz.valor], origen: 'pagina' });
+    if (X) out.push(...X.filtrosExtra(v));
     out.push(...filtrosRls());
     return out;
   }
@@ -327,7 +330,7 @@
     return cats;
   }
   function datosVisual(v) {
-    const T = V().TIPOS[v.tipo], P = v.pozos, filtros = filtrosDe(v); let sql = '';
+    const T = V().TIPOS[v.tipo], P = window.PBIInforme ? window.PBIInforme.resolverPozos(v) : v.pozos, filtros = filtrosDe(v); let sql = '';
     const card = (f) => { if (!f) return null; const r = consultar([], [valorDe(f)], filtros); sql = sql || r.sql; return r.filas[0] ? r.filas[0][0] : null; };
     if (T.g === 'texto') return {};
     if (T.g === 'seg') { const c = P.x && P.x[0]; if (!c) return null; const pred = filtros.filter((f) => f.campo.t === c.t && !(f.campo.c === c.c)); void pred; return { valores: ejecutar(`SELECT DISTINCT ${motor.colSql(c)} FROM ${q(c.t)} ORDER BY 1 LIMIT 1000`).map((x) => x[0]) }; }
@@ -370,10 +373,14 @@
       return ordenTabla(v, { cab, filas, total, ncat: xs.length, formatos: [...xs.map(() => null), ...colsK.flatMap(() => ys.map(formatoDe)), ...(col ? ys.map(formatoDe) : [])], sql });
     }
     // categorías: columnas, barras, líneas, áreas, combinado, cascada, embudo, circular, anillo, rectángulos
-    const x = P.x && P.x[0]; const ys = (P.y || []), lineas = v.tipo === 'lineaColumna' ? P.linea || [] : [], ley = T.g === 'cart' && P.leyenda && P.leyenda[0];
+    const nivel = Math.min(v.nivel || 0, Math.max(0, (P.x || []).length - 1));
+    const x = P.x && P.x[nivel]; const ys = (P.y || []), lineas = v.tipo === 'lineaColumna' ? P.linea || [] : [], ley = T.g === 'cart' && P.leyenda && P.leyenda[0];
     if (!x || !(ys.length || lineas.length)) return null;
     let series;
-    if (ley && ys[0]) {
+    if (v.expandido && nivel > 0 && !ley) {
+      const niv = P.x.slice(0, nivel + 1);
+      series = [...ys.map((y) => ({ y, tipo: 'col' })), ...lineas.map((y) => ({ y, tipo: 'linea' }))].map(({ y, tipo }) => { const r = consultar(niv, [valorDe(y)], filtros); sql = sql || r.sql; return { nombre: nomCampo(y), formato: formatoDe(y), tipo, vals: Object.fromEntries(r.filas.map((f) => [f.slice(0, niv.length).map((z) => z ?? '(En blanco)').join(' · '), f[f.length - 1]])) }; });
+    } else if (ley && ys[0]) {
       const r = consultar([x, ley], [valorDe(ys[0])], filtros); sql = r.sql;
       const nombres = [...new Set(r.filas.map((f) => f[1]))].slice(0, 12);
       series = nombres.map((s) => ({ nombre: String(s ?? '(En blanco)'), formato: formatoDe(ys[0]), vals: Object.fromEntries(r.filas.filter((f) => f[1] === s).map((f) => [f[0], f[2]])) }));
@@ -432,6 +439,7 @@
     if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); deshacer(-1); }
     else if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); deshacer(1); }
     else if ((e.ctrlKey || e.metaKey) && k === 's') { e.preventDefault(); guardarComo(); }
+    else if (window.PBIInforme && S.vista === 'informe' && window.PBIInforme.tecla(e)) { e.preventDefault(); }
     else if (k === 'delete' && S.sel && S.vista === 'informe') { e.preventDefault(); quitarVisual(S.sel); }
     else if (k === 'escape' && S.enfoque) { S.enfoque = null; render(); }
   }
@@ -450,9 +458,10 @@
       const r = (S.tablas[S.colSel.t].resumen || {})[S.colSel.c] || (esNum(S.colSel.t, S.colSel.c) ? 'sum' : 'none');
       return GRUPO('Estructura', `<label class="pb-cinta-campo">Nombre<input value="${esc(colSel.n)}" readonly title="Cámbialo en Power Query (Transformar datos)"></label><label class="pb-cinta-campo">Tipo de datos<select data-col-tipo>${Object.entries(TIPO_N).map(([k, n]) => `<option value="${k}" ${colSel.t === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`) + GRUPO('Propiedades', `<label class="pb-cinta-campo">Resumen<select data-col-resumen>${Object.entries(AGG).map(([k, n]) => `<option value="${k}" ${r === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`) + GRUPO('Cálculos', BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + (colSel.calc ? BOTON('borrar-columna', fl('dismiss'), 'Eliminar<br>columna') : ''));
     }
-    if (c === 'insertar') return GRUPO('Páginas', BOTON('nueva-pagina', fl('document_one_page_add'), 'Nueva<br>página')) + GRUPO('Objetos visuales', BOTON('nuevo-visual', fl('data_bar_vertical_add'), 'Nuevo objeto<br>visual') + BOTON('mas-visuales', fl('apps_add_in'), 'Más objetos<br>visuales')) + GRUPO('Elementos', BOTON('cuadro-texto', fl('textbox'), 'Cuadro de<br>texto') + BOTON('imagen', fl('image'), 'Imagen'));
-    if (c === 'modelado') return GRUPO('Relaciones', BOTON('relaciones', fl('organization_horizontal'), 'Administrar<br>relaciones')) + GRUPO('Cálculos', BOTON('nueva-medida', fl('calculator'), 'Nueva<br>medida') + BOTON('medida-rapida', fl('flash'), 'Medida<br>rápida') + BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + BOTON('nueva-tabla', fl('table_add'), 'Nueva<br>tabla')) + GRUPO('Grupos de cálculo', BOTON('grupo-calculo', fl('table_switch'), 'Grupo de<br>cálculo')) + GRUPO('Seguridad', BOTON('roles', fl('filter'), 'Administrar<br>roles') + BOTON('ver-como', fl('eye'), 'Ver<br>como')) + GRUPO('Vistas de código', BOTON('ir-dax', fl('code'), 'Vista de<br>consultas DAX') + BOTON('ir-tmdl', fl('document'), 'Vista<br>TMDL'));
-    if (c === 'vista') return GRUPO('Temas', `<div class="pb-temas">${Object.entries(PALETAS).map(([k, p]) => `<button data-tema="${k}" class="${S.tema === k ? 'on' : ''}" title="${esc(p.n)}">${p.c.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>`).join('')}${S.temaCustom ? `<button data-tema="custom" class="${S.tema === 'custom' ? 'on' : ''}" title="${esc(S.temaCustom.name || 'Personalizado')}">${S.temaCustom.dataColors.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>` : ''}</div>` + CHICO('tema-importar', fl('folder_open'), 'Examinar temas') + CHICO('tema-exportar', fl('save'), 'Guardar tema actual')) + GRUPO('Opciones de página', BOTON('cuadricula', fl('grid'), `Líneas de<br>cuadrícula ${S.cuadricula ? '✓' : ''}`)) + GRUPO('Mostrar paneles', BOTON('panel-filtros', fl('filter'), `Filtros ${S.paneles.filtros ? '✓' : ''}`) + BOTON('panel-vis', fl('data_bar_vertical'), `Visualiza-<br>ciones ${S.paneles.vis ? '✓' : ''}`) + BOTON('panel-datos', fl('table'), `Datos ${S.paneles.datos ? '✓' : ''}`) + BOTON('analizador', fl('top_speed'), `Analizador de<br>rendimiento ${S.analizador ? '✓' : ''}`));
+    if (c === 'insertar') return GRUPO('Páginas', BOTON('nueva-pagina', fl('document_one_page_add'), 'Nueva<br>página')) + GRUPO('Objetos visuales', BOTON('nuevo-visual', fl('data_bar_vertical_add'), 'Nuevo objeto<br>visual') + BOTON('mas-visuales', fl('apps_add_in'), 'Más objetos<br>visuales')) + GRUPO('Elementos', BOTON('cuadro-texto', fl('textbox'), 'Cuadro de<br>texto') + BOTON('imagen', fl('image'), 'Imagen')) + (window.PBIInforme ? window.PBIInforme.cintaInsertar() : '');
+    if (c === 'modelado') return GRUPO('Relaciones', BOTON('relaciones', fl('organization_horizontal'), 'Administrar<br>relaciones')) + GRUPO('Cálculos', BOTON('nueva-medida', fl('calculator'), 'Nueva<br>medida') + BOTON('medida-rapida', fl('flash'), 'Medida<br>rápida') + BOTON('nueva-columna', fl('table_column_top_bottom'), 'Nueva<br>columna') + BOTON('nueva-tabla', fl('table_add'), 'Nueva<br>tabla')) + GRUPO('Grupos de cálculo', BOTON('grupo-calculo', fl('table_switch'), 'Grupo de<br>cálculo')) + GRUPO('Seguridad', BOTON('roles', fl('filter'), 'Administrar<br>roles') + BOTON('ver-como', fl('eye'), 'Ver<br>como')) + GRUPO('Vistas de código', BOTON('ir-dax', fl('code'), 'Vista de<br>consultas DAX') + BOTON('ir-tmdl', fl('document'), 'Vista<br>TMDL')) + (window.PBIInforme ? window.PBIInforme.cintaModelado() : '');
+    if (c === 'vista') return GRUPO('Temas', `<div class="pb-temas">${Object.entries(PALETAS).map(([k, p]) => `<button data-tema="${k}" class="${S.tema === k ? 'on' : ''}" title="${esc(p.n)}">${p.c.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>`).join('')}${S.temaCustom ? `<button data-tema="custom" class="${S.tema === 'custom' ? 'on' : ''}" title="${esc(S.temaCustom.name || 'Personalizado')}">${S.temaCustom.dataColors.slice(0, 4).map((x) => `<i style="background:${x}"></i>`).join('')}</button>` : ''}</div>` + CHICO('tema-importar', fl('folder_open'), 'Examinar temas') + CHICO('tema-exportar', fl('save'), 'Guardar tema actual')) + GRUPO('Opciones de página', BOTON('cuadricula', fl('grid'), `Líneas de<br>cuadrícula ${S.cuadricula ? '✓' : ''}`)) + GRUPO('Mostrar paneles', BOTON('panel-filtros', fl('filter'), `Filtros ${S.paneles.filtros ? '✓' : ''}`) + BOTON('panel-vis', fl('data_bar_vertical'), `Visualiza-<br>ciones ${S.paneles.vis ? '✓' : ''}`) + BOTON('panel-datos', fl('table'), `Datos ${S.paneles.datos ? '✓' : ''}`) + BOTON('analizador', fl('top_speed'), `Analizador de<br>rendimiento ${S.analizador ? '✓' : ''}`)) + (window.PBIInforme ? window.PBIInforme.cintaVista() : '');
+    if (c === 'formato' && window.PBIInforme) return window.PBIInforme.cintaFormato();
     if (c === 'optimizar') return GRUPO('Rendimiento', BOTON('analizador', fl('top_speed'), `Analizador de<br>rendimiento ${S.analizador ? '✓' : ''}`) + BOTON('actualizar', fl('arrow_sync'), 'Actualizar<br>objetos visuales'));
     if (c === 'ayuda') return GRUPO('Ayuda', BOTON('doc-pbi', fl('question_circle'), 'Documentación<br>de Power BI') + BOTON('doc-dax', fl('code'), 'Referencia<br>de DAX') + BOTON('doc-m', fl('table'), 'Referencia<br>de Power Query M')) + GRUPO('Práctica', BOTON('reto', fl('target_arrow'), S.reto ? 'Ocultar<br>reto' : 'Ver<br>reto') + BOTON('reiniciar', fl('document_add'), 'Informe<br>nuevo'));
     return GRUPO('Datos', BOTON('obtener', fl('database'), 'Obtener<br>datos') + BOTON('excel', '<b class="pb-x">X</b>', 'Libro de<br>Excel') + BOTON('curso', fl('document_table'), 'Bases del<br>curso') + BOTON('escribir', fl('table_edit'), 'Escribir<br>datos'))
@@ -465,8 +474,9 @@
     const pest = [['inicio', 'Inicio'], ['insertar', 'Insertar'], ['modelado', 'Modelado'], ['vista', 'Vista'], ['optimizar', 'Optimizar'], ['ayuda', 'Ayuda']];
     if (S.medidaSel && S.medidas.some((m) => m.nombre === S.medidaSel)) pest.push(['medida', 'Herramientas de medición']);
     if (S.colSel && S.tablas[S.colSel.t]) pest.push(['columna', 'Herramientas de columnas']);
+    if (S.vista === 'informe' && (S.sel || (S.selMulti || []).length) && window.PBIInforme) pest.push(['formato', 'Formato']);
     if (!pest.some((x) => x[0] === S.cinta)) S.cinta = 'inicio';
-    return `<div class="pb-cinta-tabs"><span class="pb-archivo" data-acc="archivo">Archivo</span>${pest.map(([k, n]) => `<span data-cinta="${k}" class="${S.cinta === k ? 'on' : ''} ${['medida', 'columna'].includes(k) ? 'pb-contextual' : ''}">${n}</span>`).join('')}</div><div class="pb-cinta-botones">${cintaHtml()}</div>`;
+    return `<div class="pb-cinta-tabs"><span class="pb-archivo" data-acc="archivo">Archivo</span>${pest.map(([k, n]) => `<span data-cinta="${k}" class="${S.cinta === k ? 'on' : ''} ${['medida', 'columna', 'formato'].includes(k) ? 'pb-contextual' : ''}">${n}</span>`).join('')}</div><div class="pb-cinta-botones">${cintaHtml()}</div>`;
   }
   function refrescarCinta() { const c = main.querySelector('.pb-cinta'); if (!c) return; c.innerHTML = cintaCompleta(); enlazarCinta(); }
   function pintar() {
@@ -564,7 +574,7 @@
       case 'doc-pbi': window.open('https://learn.microsoft.com/power-bi/', '_blank', 'noopener'); return;
       case 'doc-dax': window.open('https://learn.microsoft.com/dax/', '_blank', 'noopener'); return;
       case 'doc-m': window.open('https://learn.microsoft.com/powerquery-m/', '_blank', 'noopener'); return;
-      default: return;
+      default: if (window.PBIInforme) window.PBIInforme.accion(a, el); return;
     }
   }
   function descargar(nombre, texto, tipo = 'application/json') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto], { type: tipo })); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
@@ -736,7 +746,7 @@
     const sep = '<i></i>';
     const CINTAS = {
       inicio: B('aplicar', fl('checkmark'), 'Cerrar y<br>aplicar') + sep + B('elegir', fl('table_switch'), 'Elegir<br>columnas') + B('quitarCols', fl('table_dismiss'), 'Quitar<br>columnas') + sep + B('mantenerArriba', fl('arrow_up'), 'Mantener filas<br>superiores') + B('quitarArriba', fl('arrow_down'), 'Quitar filas<br>superiores') + B('duplicados', fl('table_dismiss'), 'Quitar<br>duplicados') + B('vacios', fl('filter'), 'Quitar filas<br>vacías') + sep + B('dividir', fl('table_column_top_bottom'), 'Dividir<br>columna') + B('agrupar', fl('data_bar_horizontal'), 'Agrupar<br>por') + B('encabezados', fl('arrow_up'), 'Usar la primera fila<br>como encabezado') + sep + B('combinar', fl('link'), 'Combinar<br>consultas') + B('anexar', fl('table_add'), 'Anexar<br>consultas'),
-      transformar: B('agrupar', fl('data_bar_horizontal'), 'Agrupar<br>por') + B('encabezados', fl('arrow_up'), 'Usar la primera fila<br>como encabezado') + sep + B('tipo', fl('table_edit'), 'Tipo de<br>datos') + B('renombrar', fl('textbox'), 'Cambiar<br>nombre') + B('reemplazar', fl('arrow_sync'), 'Reemplazar<br>valores') + B('rellenar', fl('arrow_down'), 'Rellenar<br>hacia abajo') + sep + B('anular', fl('table_switch'), 'Anular dinamización<br>de columnas') + B('anularOtras', fl('table_switch'), 'Anular dinamización<br>de otras columnas') + sep + B('may', fl('text_field'), 'MAYÚSCULAS') + B('min', fl('text_field'), 'minúsculas') + B('recortar', fl('text_field'), 'Recortar') + B('nombre', fl('text_field'), 'Poner en<br>mayúsculas cada palabra'),
+      transformar: B('agrupar', fl('data_bar_horizontal'), 'Agrupar<br>por') + B('encabezados', fl('arrow_up'), 'Usar la primera fila<br>como encabezado') + sep + B('detectar', fl('search'), 'Detectar tipo<br>de datos') + B('tipo', fl('table_edit'), 'Tipo de<br>datos') + B('renombrar', fl('textbox'), 'Cambiar<br>nombre') + B('reemplazar', fl('arrow_sync'), 'Reemplazar<br>valores') + B('rellenar', fl('arrow_down'), 'Rellenar<br>hacia abajo') + sep + B('anular', fl('table_switch'), 'Anular dinamización<br>de columnas') + B('anularOtras', fl('table_switch'), 'Anular dinamización<br>de otras columnas') + sep + B('may', fl('text_field'), 'MAYÚSCULAS') + B('min', fl('text_field'), 'minúsculas') + B('recortar', fl('text_field'), 'Recortar') + B('nombre', fl('text_field'), 'Poner en<br>mayúsculas cada palabra'),
       agregar: B('personalizada', fl('code'), 'Columna<br>personalizada') + B('condicional', fl('flash'), 'Columna<br>condicional') + B('indice', fl('table_column_top_bottom'), 'Columna<br>de índice') + B('duplicar', fl('table_add'), 'Duplicar<br>columna'),
       vista: B('avanzado', fl('code'), 'Editor<br>avanzado') + B('perfil', fl('data_bar_vertical'), `Perfil de<br>columna`),
     };
@@ -775,6 +785,7 @@
         case 'agrupar': return dialogoAgrupar();
         case 'combinar': return dialogoCombinar();
         case 'anexar': { const otras = consultas().filter((x) => x !== actual); if (!otras.length) { toast('Necesitas otra consulta para anexar.'); return; } const r = await pedir('Anexar consultas', [{ n: 'Tabla que se anexa (se agregan sus filas debajo)', opts: otras }]); if (r) agregarPaso({ tipo: 'anexar', con: r[0] }); return; }
+        case 'detectar': { const r = m._r; if (!r) return; const idx = colSelPQ ? [r.cols.findIndex((c) => c.n === colSelPQ)] : r.cols.map((_, i) => i); const mapa = {}; for (const i of idx) if (i >= 0) mapa[r.cols[i].n] = D().detectarTipo(r.rows.slice(0, 300).map((f) => f[i])); agregarPaso({ tipo: 'tipos', mapa }); toast(`Tipo detectado ${colSelPQ ? `para ${colSelPQ}` : 'para todas las columnas'}: Power Query mira las primeras filas y elige número entero, decimal, fecha o texto.`, 5000); return; }
         case 'tipo': { const c = necesitaCol(); if (!c) return; const r = await pedir(`Tipo de datos de ${c}`, [{ n: 'Tipo', opts: Object.entries(TIPO_N) }]); if (r) agregarPaso({ tipo: 'tipos', mapa: { [c]: r[0] } }); return; }
         case 'renombrar': { const c = necesitaCol(); if (!c) return; const r = await pedir('Cambiar nombre', [{ n: 'Nuevo nombre', v: c }]); if (r && r[0].trim() && r[0] !== c) agregarPaso({ tipo: 'renombrar', col: c, a: r[0].trim() }); return; }
         case 'reemplazar': { const c = necesitaCol(); if (!c) return; const r = await pedir('Reemplazar valores', [{ n: 'Valor que se busca' }, { n: 'Reemplazar con' }]); if (r) agregarPaso({ tipo: 'reemplazar', col: c, de: r[0], a: r[1] }); return; }
@@ -874,7 +885,43 @@
     S.medidas.forEach((m) => { m.expr = cambiar(m.expr); if (m.tabla === viejo) m.tabla = nuevo; });
     Object.values(S.tablas).forEach((t) => t.calc.forEach((c) => { c.expr = cambiar(c.expr); }));
     for (const t of Object.values(S.tablas)) for (const p of t.pasos) if (p.con === viejo) p.con = nuevo;
+    if (S.jerarquias && S.jerarquias[viejo]) { S.jerarquias[nuevo] = S.jerarquias[viejo]; delete S.jerarquias[viejo]; }
+    if (S.props) for (const k of Object.keys(S.props)) { if (k === `T:${viejo}`) { S.props[`T:${nuevo}`] = S.props[k]; delete S.props[k]; } else if (k.startsWith(viejo + '|')) { S.props[nuevo + k.slice(viejo.length)] = S.props[k]; delete S.props[k]; } }
+    if (S.tablaFechas && S.tablaFechas.t === viejo) S.tablaFechas.t = nuevo;
+    if (S.posModelo && S.posModelo[viejo]) { S.posModelo[nuevo] = S.posModelo[viejo]; delete S.posModelo[viejo]; }
+    for (const r of S.roles || []) for (const g of r.reglas || []) { if (g.tabla === viejo) g.tabla = nuevo; if (g.expr) g.expr = cambiar(g.expr); }
+    for (const v of todos()) recorrerCampos(v, (f) => { if (f.t === viejo) f.t = nuevo; });
+    for (const p of S.paginas) recorrerCampos(p, (f) => { if (f.t === viejo) f.t = nuevo; });
+    recorrerCampos(S.filtrosTodas, (f) => { if (f.t === viejo) f.t = nuevo; });
+    if (S.selModelo && S.selModelo.t === viejo) S.selModelo.t = nuevo;
     cambioModelo(); guardar();
+  }
+  // recorre cualquier objeto (objeto visual, página, filtros) y llama a fn con cada referencia a una columna {t, c}
+  function recorrerCampos(o, fn, vistos = new Set()) {
+    if (!o || typeof o !== 'object' || vistos.has(o)) return; vistos.add(o);
+    if (Array.isArray(o)) { o.forEach((x) => recorrerCampos(x, fn, vistos)); return; }
+    if (typeof o.t === 'string' && typeof o.c === 'string') fn(o);
+    for (const k of Object.keys(o)) if (k !== 'formato' && k !== 'imagen') recorrerCampos(o[k], fn, vistos);
+  }
+  // cambiar el nombre de una columna desde el modelo: en Power BI agrega el paso "Columnas con nombre cambiado"
+  function renombrarColumna(t, viejo, nuevo) {
+    const tb = S.tablas[t]; if (!tb || !nuevo || viejo === nuevo) return false;
+    if (meta(t).some((c) => c.n.toLowerCase() === nuevo.toLowerCase())) { toast(`Ya hay una columna "${nuevo}" en ${t}.`); return false; }
+    const calc = tb.calc.find((c) => c.nombre === viejo);
+    if (calc) calc.nombre = nuevo; else if (tb.fuente.tipo === 'dax') { toast('En una tabla calculada el nombre de la columna sale de su fórmula: cámbialo ahí.'); return false; } else tb.pasos.push({ tipo: 'renombrar', col: viejo, a: nuevo });
+    const ref = (x) => x.split(`[${viejo}]`).join(`[${nuevo}]`);
+    S.medidas.forEach((m) => { m.expr = ref(m.expr); });
+    Object.values(S.tablas).forEach((x) => x.calc.forEach((c) => { c.expr = ref(c.expr); }));
+    S.rels.forEach((r) => { if (r.de === t && r.cde === viejo) r.cde = nuevo; if (r.a === t && r.ca === viejo) r.ca = nuevo; });
+    for (const h of (S.jerarquias || {})[t] || []) h.niveles = h.niveles.map((n) => (n === viejo ? nuevo : n));
+    if (S.props && S.props[`${t}|${viejo}`]) { S.props[`${t}|${nuevo}`] = S.props[`${t}|${viejo}`]; delete S.props[`${t}|${viejo}`]; }
+    if (tb.resumen && viejo in tb.resumen) { tb.resumen[nuevo] = tb.resumen[viejo]; delete tb.resumen[viejo]; }
+    if (S.tablaFechas && S.tablaFechas.t === t && S.tablaFechas.c === viejo) S.tablaFechas.c = nuevo;
+    const fn = (f) => { if (f.t === t && f.c === viejo) f.c = nuevo; };
+    for (const v of todos()) recorrerCampos(v, fn); for (const p of S.paginas) recorrerCampos(p, fn); recorrerCampos(S.filtrosTodas, fn); recorrerCampos(S.sincro, fn); recorrerCampos(S.drill, fn);
+    if (S.selModelo && S.selModelo.t === t && S.selModelo.c === viejo) S.selModelo.c = nuevo;
+    if (S.colSel && S.colSel.t === t && S.colSel.c === viejo) S.colSel.c = nuevo;
+    cambioModelo(); guardar(); return true;
   }
 
   // ---------------------------------------------------------------- relaciones
@@ -943,11 +990,12 @@
     centro.innerHTML = `<div class="pb-lienzo-wrap ${S.verComo && S.verComo.rol ? 'pb-con-vercomo' : ''}">${S.verComo && S.verComo.rol ? `<div class="pb-ver-como">${fl('eye')} Ahora está viendo el informe como: <b>${esc(S.verComo.rol)}</b>${S.verComo.usuario ? ` · usuario <b>${esc(S.verComo.usuario)}</b>` : ''}<button class="pb-btn" data-acc="dejar-ver-como">Detener la vista</button></div>` : ''}${enf ? `<div class="pb-volver"><button data-salir-enfoque>← Volver al informe</button></div>` : ''}<div class="pb-lienzo ${S.cuadricula ? 'pb-con-cuadricula' : ''} ${enf ? 'pb-enfoque' : ''}" id="pbLienzo"></div></div>`;
     const lienzo = main.querySelector('#pbLienzo');
     lienzo.style.background = (S.tema === 'custom' && S.temaCustom && S.temaCustom.background) || '';
-    const lista = enf ? [enf] : pag().visuales;
+    const lista = enf ? [enf] : pag().visuales.filter((x) => !x.oculto);
+    if (window.PBIInforme) window.PBIInforme.estiloPagina(lienzo);
     for (const v of lista) {
       const el = document.createElement('div');
       const ef = (k) => V().fmtGet(v, 'efectos', k);
-      el.className = 'pb-v' + (S.sel === v.id ? ' sel' : '') + (v.tipo === 'texto' ? ' pb-v-texto' : '');
+      el.className = 'pb-v' + (S.sel === v.id || (S.selMulti || []).includes(v.id) ? ' sel' : '') + (v.tipo === 'texto' ? ' pb-v-texto' : '') + (['forma', 'boton', 'navPaginas'].includes(v.tipo) ? ' pb-v-forma' : '');
       el.dataset.id = v.id;
       if (!enf) Object.assign(el.style, { left: v.x + '%', top: v.y + '%', width: v.w + '%', height: v.h + '%' }); else Object.assign(el.style, { left: '1%', top: '2%', width: '98%', height: v.verTabla ? '55%' : '96%' });
       el.style.background = ef('fondo') ? hexA(ef('colorFondo'), 1 - (Number(ef('transparencia')) || 0) / 100) : 'transparent';
@@ -955,11 +1003,12 @@
       const tit = tituloDe(v); const al = { Izquierda: 'left', Centro: 'center', Derecha: 'right' }[V().fmtGet(v, 'titulo', 'alineacion')];
       const nFiltros = (v.filtros || []).filter((f) => filtroEfectivo(f)).length + pag().filtros.filter((f) => filtroEfectivo(f)).length + S.filtrosTodas.filter((f) => filtroEfectivo(f)).length;
       const x = v.pozos.x && v.pozos.x[0];
-      const drill = x && esFecha(x) && V().TIPOS[v.tipo].g === 'cart' ? `<button data-drill="arriba" title="Explorar en profundidad: subir un nivel">${fl('arrow_up')}</button><button data-drill="abajo" title="Ir al siguiente nivel de la jerarquía">${fl('arrow_down')}</button>` : '';
+      const drill = window.PBIInforme && (v.pozos.x || []).length > 1 ? window.PBIInforme.botonesDrill(v) : x && esFecha(x) && V().TIPOS[v.tipo].g === 'cart' ? `<button data-drill="arriba" title="Explorar en profundidad: subir un nivel">${fl('arrow_up')}</button><button data-drill="abajo" title="Ir al siguiente nivel de la jerarquía">${fl('arrow_down')}</button>` : '';
       el.innerHTML = `${tit ? `<div class="pb-v-tit" style="font-size:${V().fmtGet(v, 'titulo', 'tam')}px;color:${V().fmtGet(v, 'titulo', 'color')};font-weight:${V().fmtGet(v, 'titulo', 'negrita') ? 600 : 400};text-align:${al}">${esc(tit)}</div>` : ''}${V().fmtGet(v, 'encabezado', 'mostrar') ? `<div class="pb-v-cab">${drill}${nFiltros ? `<button title="${nFiltros} filtro(s) aplicados a este objeto visual">${fl('filter')}</button>` : ''}<button data-enfoque title="Modo de enfoque">${fl('arrow_maximize')}</button><button data-mas title="Más opciones">${fl('more_horizontal')}</button></div>` : ''}<div class="pb-v-cuerpo"></div>${enf ? '' : '<span class="pb-v-res"></span>'}`;
       lienzo.appendChild(el);
     }
     if (enf && enf.verTabla) { const t = document.createElement('div'); t.className = 'pb-vertabla'; t.style.top = '59%'; lienzo.appendChild(t); }
+    if (window.PBIInforme) window.PBIInforme.despuesRender(lienzo);
     requestAnimationFrame(() => {
       tiempos = {};
       for (const v of lista) { const el = lienzo.querySelector(`[data-id="${v.id}"]`); if (el) dibujarVisual(v, el); }
@@ -967,12 +1016,13 @@
       if (S.analizador) renderPaneles();
     });
     interaccionLienzo(lienzo);
+    if (window.PBIInforme) refrescarCinta();
     const se = main.querySelector('[data-salir-enfoque]'); if (se) se.addEventListener('click', () => { S.enfoque = null; render(); });
     renderPaneles(); renderPie();
   }
   const hexA = (hex, a) => { const h = String(hex || '#FFFFFF').replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map((x) => x + x).join('') : h, 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.max(0, Math.min(1, a))})`; };
   function tituloDe(v) {
-    if (v.tipo === 'texto' || !V().fmtGet(v, 'titulo', 'mostrar')) return '';
+    if (['texto', 'forma', 'boton', 'navPaginas'].includes(v.tipo) || !V().fmtGet(v, 'titulo', 'mostrar')) return '';
     const t = V().fmtGet(v, 'titulo', 'texto'); if (t) return t;
     const P = v.pozos;
     if (v.tipo === 'tarjeta' || v.tipo === 'tabla' || v.tipo === 'tarjetaFilas' || v.tipo === 'matriz') return '';
@@ -984,6 +1034,7 @@
   }
   function dibujarVisual(v, el) {
     const cuerpo = el.querySelector('.pb-v-cuerpo');
+    if (window.PBIInforme && window.PBIInforme.dibuja(v)) { window.PBIInforme.dibujar(v, cuerpo, el); return; }
     const t0 = performance.now(); let d, t1;
     try { d = datosVisual(v); t1 = performance.now(); } catch (e) { cuerpo.innerHTML = `<div class="pb-v-error"><b>No se puede mostrar este objeto visual.</b><br>${esc(e.message)}<br><button data-ver-detalle>Ver detalles</button></div>`; tiempos[v.id] = { error: e.message }; return; }
     if (!d) {
@@ -1044,6 +1095,7 @@
     if (tipo === 'segmentacion') { v.w = 16; v.h = 30; }
     pag().visuales.push(v); S.sel = v.id; guardar(); render(); return v;
   }
+  const slicerCambio = (v) => { if (window.PBIInforme) window.PBIInforme.slicerCambio(v); };
   function interaccionLienzo(lienzo) {
     lienzo.addEventListener('dblclick', (e) => {
       const el = e.target.closest('.pb-v'); if (!el) return; const v = vis(el.dataset.id); if (!v || v.tipo !== 'texto' || v.imagen) return;
@@ -1052,21 +1104,26 @@
       box.addEventListener('blur', () => { v.texto = box.innerText; guardar(); render(); }, { once: true });
     });
     lienzo.addEventListener('pointerdown', (e) => {
+      if (e.button === 2) return; // el clic derecho abre el menú contextual: no filtra ni mueve
       const el = e.target.closest('.pb-v');
       if (!el) { if (S.sel || S.cruz) { S.sel = null; S.cruz = null; guardar(true); render(); } return; }
       const v = vis(el.dataset.id); if (!v) return;
       if (e.target.closest('[contenteditable="true"]')) return;
       const mas = e.target.closest('[data-mas]'); if (mas) { e.preventDefault(); menuVisual(v, mas); return; }
       if (e.target.closest('[data-enfoque]')) { S.enfoque = S.enfoque ? null : v.id; v.verTabla = false; render(); return; }
-      const dr = e.target.closest('[data-drill]'); if (dr) { const x = v.pozos.x[0]; const niveles = ['anio', 'trim', 'mes', undefined]; let i = niveles.indexOf(x.parte); if (dr.dataset.drill === 'abajo') i = Math.min(3, i + 1); else i = Math.max(0, i === -1 ? 2 : i - 1); x.parte = niveles[i]; if (!x.parte) delete x.parte; v.orden = null; guardar(); render(); return; }
+      const dr = e.target.closest('[data-drill]'); if (dr && window.PBIInforme && (v.pozos.x || []).length > 1) { window.PBIInforme.drill(v, dr.dataset.drill); return; }
+      if (dr) { const x = v.pozos.x[0]; const niveles = ['anio', 'trim', 'mes', undefined]; let i = niveles.indexOf(x.parte); if (dr.dataset.drill === 'abajo') i = Math.min(3, i + 1); else i = Math.max(0, i === -1 ? 2 : i - 1); x.parte = niveles[i]; if (!x.parte) delete x.parte; v.orden = null; guardar(); render(); return; }
       if (e.target.closest('.pb-v-cab')) return;
+      if (e.target.closest('[data-inter]')) { window.PBIInforme.cambiarInteraccion(v, e.target.closest('[data-inter]').dataset.inter); return; }
+      if (window.PBIInforme && window.PBIInforme.clicVisual(v, e)) return;
       if (e.target.closest('input, label, select, button')) return;
       const dato = e.target.closest('[data-cat]');
       if (dato && v.tipo !== 'segmentacion') {
-        const campo = v.tipo === 'tabla' ? (v.pozos.cols || []).find((c) => !c.medida && (!c.agg || c.agg === 'none')) : v.tipo === 'dispersion' ? v.pozos.detalle && v.pozos.detalle[0] : v.pozos.x && v.pozos.x[0];
+        if (window.PBIInforme && v.modoDrill && (v.pozos.x || []).length > 1 && window.PBIInforme.drillValor(v, dato.dataset.cat)) return;
+        const campo = v.tipo === 'tabla' ? (v.pozos.cols || []).find((c) => !c.medida && (!c.agg || c.agg === 'none')) : v.tipo === 'dispersion' ? v.pozos.detalle && v.pozos.detalle[0] : v.pozos.x && v.pozos.x[Math.min(v.nivel || 0, v.pozos.x.length - 1)];
         if (campo) { const raw = dato.dataset.cat; const valor = !campo.parte && ['num', 'int'].includes(tipoDe(campo.t, campo.c)) && raw !== '' ? Number(raw) : campo.parte === 'anio' && raw !== '' ? Number(raw) : raw === '' ? null : raw; S.cruz = S.cruz && S.cruz.visual === v.id && String(S.cruz.valor) === String(valor) ? null : { visual: v.id, campo, valor }; S.sel = v.id; guardar(true); render(); return; }
       }
-      if (S.sel !== v.id) { S.sel = v.id; guardar(true); main.querySelectorAll('.pb-v').forEach((x) => x.classList.toggle('sel', x.dataset.id === v.id)); renderPaneles(); }
+      if (S.sel !== v.id) { S.sel = v.id; guardar(true); main.querySelectorAll('.pb-v').forEach((x) => x.classList.toggle('sel', x.dataset.id === v.id)); renderPaneles(); refrescarCinta(); }
       if (S.enfoque) return;
       const r = lienzo.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY, ini = { x: v.x, y: v.y, w: v.w, h: v.h }, redim = !!e.target.closest('.pb-v-res');
       el.setPointerCapture(e.pointerId);
@@ -1079,17 +1136,18 @@
     const valorSl = (v, raw) => { const campo = v.pozos.x[0]; return raw === '' ? null : !campo.parte && ['num', 'int'].includes(tipoDe(campo.t, campo.c)) ? Number(raw) : campo.parte === 'anio' ? Number(raw) : raw; };
     lienzo.addEventListener('change', (e) => {
       const elV = e.target.closest('.pb-v'); if (!elV) return; const v = vis(elV.dataset.id); if (!v) return;
-      if (e.target.matches('[data-sl-todo]')) { v.slicerSel = []; guardar(); render(); return; }
-      if (e.target.matches('[data-sl-drop]')) { const sel = [...e.target.selectedOptions].map((o) => o.value).filter((x) => x !== '__todos'); v.slicerSel = sel.map((x) => valorSl(v, x)); guardar(); render(); return; }
+      if (e.target.matches('[data-sl-todo]')) { v.slicerSel = []; slicerCambio(v); guardar(); render(); return; }
+      if (e.target.matches('[data-sl-drop]')) { const sel = [...e.target.selectedOptions].map((o) => o.value).filter((x) => x !== '__todos'); v.slicerSel = sel.map((x) => valorSl(v, x)); slicerCambio(v); guardar(); render(); return; }
       const cb = e.target.closest('[data-sl]'); if (!cb) return;
       const val = valorSl(v, cb.dataset.sl), unica = V().fmtGet(v, 'segmentacion', 'unica');
-      const set = new Set(unica ? [] : v.slicerSel || []); cb.checked ? set.add(val) : set.delete(val); v.slicerSel = [...set]; guardar(); render();
+      const set = new Set(unica ? [] : v.slicerSel || []); cb.checked ? set.add(val) : set.delete(val); v.slicerSel = [...set]; slicerCambio(v); guardar(); render();
     });
     lienzo.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-sl-btn]'); if (b) { const v = vis(b.closest('.pb-v').dataset.id); const val = valorSl(v, b.dataset.slBtn); const unica = V().fmtGet(v, 'segmentacion', 'unica'); const set = new Set(unica ? [] : v.slicerSel || []); set.has(val) ? set.delete(val) : set.add(val); if (unica && (v.slicerSel || []).includes(val)) set.clear(); v.slicerSel = [...set]; guardar(); render(); return; }
+      const b = e.target.closest('[data-sl-btn]'); if (b) { const v = vis(b.closest('.pb-v').dataset.id); const val = valorSl(v, b.dataset.slBtn); const unica = V().fmtGet(v, 'segmentacion', 'unica'); const set = new Set(unica ? [] : v.slicerSel || []); set.has(val) ? set.delete(val) : set.add(val); if (unica && (v.slicerSel || []).includes(val)) set.clear(); v.slicerSel = [...set]; slicerCambio(v); guardar(); render(); return; }
       const th = e.target.closest('th[data-ord]'); if (th) { const v = vis(th.closest('.pb-v').dataset.id); const j = Number(th.dataset.ord); v.orden = { col: j, desc: v.orden && v.orden.col === j ? !v.orden.desc : true }; guardar(); render(); return; }
       const det = e.target.closest('[data-ver-detalle]'); if (det) { const v = vis(det.closest('.pb-v').dataset.id); toast(tiempos[v.id] && tiempos[v.id].error ? tiempos[v.id].error : 'Sin detalles', 8000); }
     });
+    if (window.PBIInforme) window.PBIInforme.enlazarLienzo(lienzo);
     lienzo.addEventListener('input', (e) => { const b = e.target.closest('[data-sl-buscar]'); if (!b) return; const t = b.value.toLowerCase(); b.closest('.pb-slicer').querySelectorAll('[data-sl-l]').forEach((l) => { l.style.display = l.dataset.slL.includes(t) ? '' : 'none'; }); });
     if (!lienzo.dataset.drop) { lienzo.dataset.drop = 1; lienzo.addEventListener('dragover', (e) => e.preventDefault()); lienzo.addEventListener('drop', (e) => { e.preventDefault(); let f; try { f = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { return; } const el = e.target.closest('.pb-v'); if (el) agregarCampo(vis(el.dataset.id), f); else agregarVisualCon(f); }); }
   }
@@ -1114,7 +1172,8 @@
       const cols = meta(t).filter((c) => (!b || c.n.toLowerCase().includes(b)) && visible(propKey(t, c.n)));
       const abierta = abiertas.has(t) || !!b;
       const icoT = tb.fuente.tipo === 'dax' ? fl('table_add') : fl('table');
-      return `<div class="pb-tabla-n ${S.tablaDatos === t && opts.tablaSel ? 'abierta' : ''}" data-tabla="${esc(t)}"><span class="pb-chev">${abierta ? '⌄' : '›'}</span><span class="pb-tabla-ic">${icoT}</span><span class="pb-nombre">${esc(t)}</span>${errores[t] ? `<span class="pb-err-ic" title="${esc(errores[t])}">⚠</span>` : ''}<button class="pb-mas-t" data-menu-tabla="${esc(t)}" title="Más opciones">⋯</button></div>${abierta ? carpetas(t, med, cols).map((g) => (g.carpeta ? `<div class="pb-carpeta">${fl('folder_open')} ${esc(g.carpeta)}</div>` : '') + g.med.map((m) => `<div class="pb-campo pb-medida ${g.carpeta ? 'pb-en-carpeta' : ''} ${S.medidaSel === m.nombre ? 'pb-sel' : ''} ${propsDe('m:' + m.nombre).oculto ? 'pb-oculto' : ''}" draggable="true" data-medida="${esc(m.nombre)}" title="${esc(propsDe('m:' + m.nombre).descripcion || '')}"><input type="checkbox" tabindex="-1" ${usados.has('m:' + m.nombre) ? 'checked' : ''}><span class="pb-ic">${fl('calculator')}</span><span class="pb-nombre">${esc(m.nombre)}</span></div>`).join('') + g.cols.map((c) => { const k = `${t}|${c.n}|`; const fecha = c.t === 'fecha' && !(S.tablaFechas && S.tablaFechas.t === t); const P0 = propsDe(propKey(t, c.n)); return `<div class="pb-campo ${g.carpeta ? 'pb-en-carpeta' : ''} ${S.colSel && S.colSel.t === t && S.colSel.c === c.n ? 'pb-sel' : ''} ${P0.oculto ? 'pb-oculto' : ''}" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}" title="${esc(P0.descripcion || '')}"><input type="checkbox" tabindex="-1" ${usados.has(k) ? 'checked' : ''}><span class="pb-ic">${c.calc ? '<i class="pb-fx">fx</i>' : P0.categoria && /País|Ciudad|Estado|Continente|Condado|Código postal|Lugar|Latitud|Longitud|Dirección$/.test(P0.categoria) ? fl('globe') : esNum(t, c.n) ? 'Σ' : c.t === 'fecha' ? fl('calendar_ltr') : ''}</span><span class="pb-nombre">${esc(c.n)}</span>${(tb.calc.find((x) => x.nombre === c.n) || {}).error ? '<span class="pb-err-ic">⚠</span>' : ''}</div>${fecha ? `<div class="pb-jerarquia">${['anio', 'trim', 'mes'].map((p) => `<div class="pb-campo pb-sub" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}" data-parte="${p}"><input type="checkbox" tabindex="-1" ${usados.has(`${t}|${c.n}|${p}`) ? 'checked' : ''}><span class="pb-ic"></span>${PARTES[p]}</div>`).join('')}</div>` : ''}`; }).join('')).join('') + jerarquias(t).map((h) => `<div class="pb-campo pb-jer-n"><span class="pb-ic">⋮</span><span class="pb-nombre">${esc(h.nombre)}</span></div><div class="pb-jerarquia">${h.niveles.map((n) => `<div class="pb-campo pb-sub" draggable="true" data-t="${esc(t)}" data-c="${esc(n)}"><input type="checkbox" tabindex="-1" ${usados.has(`${t}|${n}|`) ? 'checked' : ''}><span class="pb-ic"></span>${esc(n)}</div>`).join('')}</div>`).join('') + tb.calc.filter((cc) => cc.error).map((cc) => `<div class="pb-campo pb-campo-error" title="${esc(cc.error)}"><span class="pb-ic">⚠</span>${esc(cc.nombre)} (error)</div>`).join('') : ''}`;
+      const jerHtml = '';
+      return `<div class="pb-tabla-n ${S.tablaDatos === t && opts.tablaSel ? 'abierta' : ''}" data-tabla="${esc(t)}"><span class="pb-chev">${abierta ? '⌄' : '›'}</span><span class="pb-tabla-ic">${icoT}</span><span class="pb-nombre">${esc(t)}</span>${errores[t] ? `<span class="pb-err-ic" title="${esc(errores[t])}">⚠</span>` : ''}<button class="pb-mas-t" data-menu-tabla="${esc(t)}" title="Más opciones">⋯</button></div>${abierta ? carpetas(t, med, cols).map((g) => (g.carpeta ? `<div class="pb-carpeta">${fl('folder_open')} ${esc(g.carpeta)}</div>` : '') + g.med.map((m) => `<div class="pb-campo pb-medida ${g.carpeta ? 'pb-en-carpeta' : ''} ${S.medidaSel === m.nombre ? 'pb-sel' : ''} ${propsDe('m:' + m.nombre).oculto ? 'pb-oculto' : ''}" draggable="true" data-medida="${esc(m.nombre)}" title="${esc(propsDe('m:' + m.nombre).descripcion || '')}"><input type="checkbox" tabindex="-1" ${usados.has('m:' + m.nombre) ? 'checked' : ''}><span class="pb-ic">${fl('calculator')}</span><span class="pb-nombre">${esc(m.nombre)}</span></div>`).join('') + g.cols.map((c) => { const k = `${t}|${c.n}|`; const fecha = c.t === 'fecha' && !(S.tablaFechas && S.tablaFechas.t === t); const P0 = propsDe(propKey(t, c.n)); return `<div class="pb-campo ${g.carpeta ? 'pb-en-carpeta' : ''} ${S.colSel && S.colSel.t === t && S.colSel.c === c.n ? 'pb-sel' : ''} ${P0.oculto ? 'pb-oculto' : ''}" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}" title="${esc(P0.descripcion || '')}"><input type="checkbox" tabindex="-1" ${usados.has(k) ? 'checked' : ''}><span class="pb-ic">${c.calc ? '<i class="pb-fx">fx</i>' : P0.categoria && /País|Ciudad|Estado|Continente|Condado|Código postal|Lugar|Latitud|Longitud|Dirección$/.test(P0.categoria) ? fl('globe') : esNum(t, c.n) ? 'Σ' : c.t === 'fecha' ? fl('calendar_ltr') : ''}</span><span class="pb-nombre">${esc(c.n)}</span>${(tb.calc.find((x) => x.nombre === c.n) || {}).error ? '<span class="pb-err-ic">⚠</span>' : ''}</div>${fecha ? `<div class="pb-jerarquia">${['anio', 'trim', 'mes'].map((p) => `<div class="pb-campo pb-sub" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}" data-parte="${p}"><input type="checkbox" tabindex="-1" ${usados.has(`${t}|${c.n}|${p}`) ? 'checked' : ''}><span class="pb-ic"></span>${PARTES[p]}</div>`).join('')}</div>` : ''}`; }).join('')).join('') + jerarquias(t).map((h) => `<div class="pb-campo pb-jer" draggable="true" data-jer="${esc(t)}" data-jern="${esc(h.nombre)}" title="Jerarquía: ${esc(h.niveles.join(' › '))}. Arrástrala (o haz clic) para usar todos sus niveles y explorar en profundidad."><input type="checkbox" tabindex="-1"><span class="pb-ic">${fl('text_bullet_list_tree')}</span><span class="pb-nombre">${esc(h.nombre)}</span></div><div class="pb-jerarquia">${h.niveles.map((n) => `<div class="pb-campo pb-sub" draggable="true" data-t="${esc(t)}" data-c="${esc(n)}"><input type="checkbox" tabindex="-1" ${usados.has(`${t}|${n}|`) ? 'checked' : ''}><span class="pb-ic"></span>${esc(n)}</div>`).join('')}</div>`).join('') + tb.calc.filter((cc) => cc.error).map((cc) => `<div class="pb-campo pb-campo-error" title="${esc(cc.error)}"><span class="pb-ic">⚠</span>${esc(cc.nombre)} (error)</div>`).join('') : ''}` + jerHtml;
     }).join('');
   }
   function renderPaneles() {
@@ -1122,16 +1181,20 @@
     const v = S.sel && vis(S.sel);
     const usados = new Set(v ? Object.values(v.pozos).flat().map(campoKey) : []);
     const datos = `<div class="pb-pan"><div class="pb-pan-t">Datos <span class="spacer"></span><button data-ver-ocultos title="${S.verOcultos ? 'Ocultar los campos ocultos' : 'Ver ocultos'}" class="${S.verOcultos ? 'on' : ''}">${fl('eye')}</button><button data-pliega="datos">⟩</button></div><input class="pb-buscar" placeholder="Buscar" data-buscar value="${esc(S.buscar || '')}"><div class="pb-arbol">${tablas().length ? arbolDatos(usados) : '<p class="pb-ayuda">Todavía no hay datos. Usa <b>Obtener datos</b>.</p>'}</div></div>`;
-    let viz = `<div class="pb-pan"><div class="pb-pan-t">Visualizaciones <button data-pliega="vis">⟩</button></div><div class="pb-viz-tabs"><span data-panelvis="crear" class="${S.panelVis !== 'formato' ? 'on' : ''}">${fl('data_bar_vertical_add')} Crear objeto visual</span><span data-panelvis="formato" class="${S.panelVis === 'formato' ? 'on' : ''}">${fl('color')} Formato</span></div>`;
-    if (S.panelVis !== 'formato' || !v) {
+    let viz = `<div class="pb-pan"><div class="pb-pan-t">Visualizaciones <button data-pliega="vis">⟩</button></div><div class="pb-viz-tabs"><span data-panelvis="crear" class="${S.panelVis !== 'formato' ? 'on' : ''}">${fl('data_bar_vertical_add')} Crear objeto visual</span><span data-panelvis="formato" class="${S.panelVis === 'formato' ? 'on' : ''}">${fl('color')} Formato</span>${v && window.PBIInforme && window.PBIInforme.tieneAnalisis(v) ? `<span data-panelvis="analisis" class="${S.panelVis === 'analisis' ? 'on' : ''}" title="Análisis">${fl('search')} Análisis</span>` : ''}</div>`;
+    const XI = window.PBIInforme;
+    if (S.panelVis === 'analisis' && v && XI && XI.tieneAnalisis(v)) viz += XI.panelAnalisis(v);
+    else if (S.panelVis === 'formato' && !v && XI) viz += XI.panelPagina();
+    else if (S.panelVis !== 'formato' || !v) {
       viz += `<div class="pb-galeria">${Object.entries(V().TIPOS).filter(([, x]) => !x.oculto).map(([k, x]) => `<button data-tipo="${k}" class="${v && v.tipo === k ? 'on' : ''}" title="${esc(x.n)}">${V().ICO[k]}</button>`).join('')}</div>`;
-      if (v && v.tipo !== 'texto') viz += V().TIPOS[v.tipo].pozos.map(([k, nombre, , clase]) => `<div class="pb-pozo-t">${esc(nombre)}</div><div class="pb-pozo" data-pozo="${k}" data-clase="${clase}">${(v.pozos[k] || []).map((f, i) => `<div class="pb-chip" draggable="true" data-chip="${k}:${i}"><span>${esc(nomCampo(f))}</span>${!f.medida && (clase !== 'cat' || f.agg) ? `<select data-agg="${k}:${i}" title="Resumen">${Object.entries(AGG).filter(([a]) => clase === 'mixto' || a !== 'none').map(([a, n]) => `<option value="${a}" ${f.agg === a ? 'selected' : ''}>${n}</option>`).join('')}</select>` : ''}<button data-quitar="${k}:${i}" title="Quitar">✕</button></div>`).join('') || '<span class="pb-pozo-vacio">Agregar campos de datos aquí</span>'}</div>`).join('');
+      if (v && v.tipo !== 'texto' && !(XI && XI.dibuja(v))) viz += V().TIPOS[v.tipo].pozos.map(([k, nombre, , clase]) => `<div class="pb-pozo-t">${esc(nombre)}</div><div class="pb-pozo" data-pozo="${k}" data-clase="${clase}">${(v.pozos[k] || []).map((f, i) => `<div class="pb-chip" draggable="true" data-chip="${k}:${i}"><span>${esc(nomCampo(f))}</span>${!f.medida && (clase !== 'cat' || f.agg) ? `<select data-agg="${k}:${i}" title="Resumen">${Object.entries(AGG).filter(([a]) => clase === 'mixto' || a !== 'none').map(([a, n]) => `<option value="${a}" ${f.agg === a ? 'selected' : ''}>${n}</option>`).join('')}</select>` : ''}<button data-quitar="${k}:${i}" title="Quitar">✕</button></div>`).join('') || '<span class="pb-pozo-vacio">Agregar campos de datos aquí</span>'}</div>`).join('');
       else if (v && v.tipo === 'texto') viz += '<p class="pb-ayuda">Cuadro de texto: haz doble clic sobre él en el lienzo para escribir. Su formato está en la pestaña Formato.</p>';
-      else viz += '<p class="pb-ayuda">Selecciona un objeto visual en el lienzo para ver sus campos y su formato, o elige un tipo de arriba para crear uno. También puedes arrastrar un campo del panel Datos al lienzo.</p>';
-    } else viz += panelFormato(v);
+      else if (v && XI && XI.dibuja(v)) viz += '<p class="pb-ayuda">Este elemento no usa campos de datos. Su estilo y su acción están en la pestaña Formato.</p>';
+      else viz += '<p class="pb-ayuda">Selecciona un objeto visual en el lienzo para ver sus campos y su formato, o elige un tipo de arriba para crear uno. También puedes arrastrar un campo del panel Datos al lienzo.</p>' + (XI ? XI.pozosPagina() : '');
+    } else viz += panelFormato(v) + (XI && !S.fmtGeneral ? XI.panelCond(v) : '');
     viz += '</div>';
     const tarjetasFiltro = (lista, nivel) => lista.map((f, i) => tarjetaFiltro(f, nivel, i)).join('');
-    const filtrosVis = v && v.tipo !== 'texto' ? Object.values(v.pozos).flat().filter((f) => !f.medida && !(v.filtros || []).some((x) => campoKey(x.campo) === campoKey(f))).map((f) => `<div class="pb-filtro pb-filtro-auto"><div class="pb-filtro-cab" data-agregar-filtro-vis="${esc(JSON.stringify(f))}"><b>${esc(nomCampo(f))}</b><span class="pb-dim">es (Todos)</span></div></div>`).join('') : '';
+    const filtrosVis = v && v.tipo !== 'texto' && !(XI && XI.dibuja(v)) ? Object.values(v.pozos).flat().filter((f) => !f.medida && !(v.filtros || []).some((x) => campoKey(x.campo) === campoKey(f))).map((f) => `<div class="pb-filtro pb-filtro-auto"><div class="pb-filtro-cab" data-agregar-filtro-vis="${esc(JSON.stringify(f))}"><b>${esc(nomCampo(f))}</b><span class="pb-dim">es (Todos)</span></div></div>`).join('') : '';
     const filtros = `<div class="pb-pan pb-pan-filtros"><div class="pb-pan-t">Filtros <button data-pliega="filtros">⟩</button></div>
       ${v ? `<div class="pb-pozo-t">Filtros en este objeto visual</div><div class="pb-pozo pb-pozo-f" data-pozo="__fvis" data-clase="cat">${filtrosVis}${tarjetasFiltro(v.filtros || [], 'vis')}<span class="pb-pozo-vacio">Agregar campos de datos aquí</span></div>` : ''}
       <div class="pb-pozo-t">Filtros en esta página</div><div class="pb-pozo pb-pozo-f" data-pozo="__filtro" data-clase="cat">${tarjetasFiltro(pag().filtros, 'pag')}<span class="pb-pozo-vacio">Agregar campos de datos aquí</span></div>
@@ -1140,8 +1203,9 @@
     const reto = S.reto ? `<div class="pb-pan pb-reto"><div class="pb-pan-t">🎯 Reto: tu primer informe <button data-acc="reto" title="Ocultar">✕</button></div>${RETO.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<div class="pb-pan-t pb-reto-av">🏆 Retos avanzados</div>${RETO_AV.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<p class="pb-ayuda">Con cualquier dataset: un CSV tuyo, un Excel o las bases del curso.</p></div>` : '';
     const analizador = S.analizador ? `<div class="pb-pan pb-analizador"><div class="pb-pan-t">Analizador de rendimiento <button data-acc="analizador">✕</button></div><div class="row" style="padding:0 12px"><button class="pb-btn" data-acc="actualizar">Actualizar objetos visuales</button></div>${pag().visuales.map((x) => { const t = tiempos[x.id]; if (!t) return ''; return `<div class="pb-an-i"><b>${esc(tituloDe(x) || V().TIPOS[x.tipo].n)}</b>${t.error ? `<span class="pb-err">${esc(t.error)}</span>` : `<span>Consulta DAX: ${t.consulta.toFixed(0)} ms</span><span>Objeto visual: ${t.visual.toFixed(0)} ms</span><button data-copiar-dax="${esc(x.id)}">Copiar consulta</button>`}</div>`; }).join('') || '<p class="pb-ayuda">Interactúa con el informe o pulsa Actualizar.</p>'}</div>` : '';
     const col = (k, html) => (S.paneles[k] ? `<div class="pb-pan-col pb-col-${k}">${html}</div>` : `<div class="pb-pan-col pb-col-plegada" data-despliega="${k}" title="Mostrar panel">${{ filtros: 'Filtros', vis: 'Visualizaciones', datos: 'Datos' }[k]}</div>`);
-    pan.innerHTML = col('filtros', reto + analizador + filtros) + col('vis', viz) + col('datos', datos);
+    pan.innerHTML = (XI ? XI.panelesExtra() : '') + col('filtros', reto + analizador + filtros) + col('vis', viz) + col('datos', datos);
     enlazarPaneles(pan, v);
+    if (XI) XI.enlazarPaneles(pan, v);
   }
   function tarjetaFiltro(f, nivel, i) {
     const efect = filtroEfectivo(f);
@@ -1164,7 +1228,7 @@
       const val = V().fmtGet(v, sec, p.k), id = `${sec}.${p.k}`;
       if (p.tipo === 'bool') return `<label class="pb-fmt pb-fmt-chk"><span>${esc(p.n)}</span><input type="checkbox" class="pb-switch" data-fmt="${id}" ${val ? 'checked' : ''}></label>`;
       if (p.tipo === 'color') return `<label class="pb-fmt"><span>${esc(p.n)}</span><input type="color" data-fmt="${id}" value="${esc(val || paleta()[0])}"></label>`;
-      if (p.tipo === 'sel') return `<label class="pb-fmt"><span>${esc(p.n)}</span><select data-fmt="${id}">${p.opts.map((o) => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`;
+      if (p.tipo === 'sel') return `<label class="pb-fmt"><span>${esc(p.n)}</span><select data-fmt="${id}">${(typeof p.opts === 'function' ? p.opts(v) : p.opts).map((o) => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`;
       return `<label class="pb-fmt"><span>${esc(p.n)}</span><input ${p.tipo === 'num' ? 'type="number"' : ''} data-fmt="${id}" value="${esc(val ?? '')}" placeholder="${p.k === 'texto' && sec === 'titulo' ? esc(tituloDe({ ...v, formato: { ...v.formato, titulo: { ...(v.formato.titulo || {}), texto: '' } } }) || 'Automático') : ''}"></label>`;
     };
     const abiertas = new Set(S.fmtAbiertas || ['titulo']);
@@ -1219,10 +1283,11 @@
         // como en Power BI: con un objeto visual seleccionado, el campo se agrega (o se quita si ya estaba);
         // sin selección, se crea un objeto visual nuevo con ese campo
         if (!v) { agregarVisualCon(f); return; }
+        if (f.jer) { agregarCampo(v, f); return; }
         const enUso = Object.values(v.pozos).flat().some((x) => campoKey(x) === campoKey(f));
         if (enUso) quitarCampo(v, f); else agregarCampo(v, f);
       });
-      x.addEventListener('contextmenu', (e) => { e.preventDefault(); menuCampo(campoDe(x), x); });
+      x.addEventListener('contextmenu', (e) => { e.preventDefault(); if (window.PBIInforme) window.PBIInforme.menuCampo(campoDe(x), e); else menuCampo(campoDe(x), x); });
       x.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', JSON.stringify(campoDe(x))));
     });
     pan.querySelectorAll('.pb-pozo').forEach((z) => {
@@ -1256,8 +1321,9 @@
     else { pozos.x = cats.slice(0, 1); pozos.y = vals.slice(0, T.g === 'parte' || tipo === 'cascada' ? 1 : 5); if (T.pozos.some((p) => p[0] === 'leyenda') && T.g === 'cart') pozos.leyenda = cats.slice(1, 2); }
     v.pozos = pozos; v.orden = null;
   }
-  const campoDe = (x) => (x.dataset.medida ? { medida: x.dataset.medida } : { t: x.dataset.t, c: x.dataset.c, ...(x.dataset.parte ? { parte: x.dataset.parte } : {}) });
+  const campoDe = (x) => (x.dataset.jer ? { jer: { t: x.dataset.jer, nombre: x.dataset.jern } } : x.dataset.medida ? { medida: x.dataset.medida } : { t: x.dataset.t, c: x.dataset.c, ...(x.dataset.parte ? { parte: x.dataset.parte } : {}) });
   function agregarVisualCon(f) {
+    if (f.jer) { const v = agregarVisual('columnaAgrupada'); agregarCampo(v, f); return; }
     const esValor = !!f.medida || (!f.parte && esNum(f.t, f.c));
     const v = agregarVisual(esValor ? 'columnaAgrupada' : 'tabla');
     agregarCampo(v, f);
@@ -1265,6 +1331,7 @@
   function quitarCampo(v, f) { for (const k in v.pozos) v.pozos[k] = v.pozos[k].filter((x) => campoKey(x) !== campoKey(f)); guardar(); render(); }
   function agregarCampo(v, f, pozo) {
     if (!v) return;
+    if (f.jer) { const h = jerarquias(f.jer.t).find((x) => x.nombre === f.jer.nombre); if (!h) return; const destino = pozo || ((V().TIPOS[v.tipo].pozos.find(([, , max, clase]) => clase === 'cat' && max > 1) || V().TIPOS[v.tipo].pozos.find(([, , , clase]) => clase === 'cat' || clase === 'mixto') || [])[0]); for (const c of h.niveles) agregarCampo(v, { t: f.jer.t, c }, destino); v.nivel = 0; return; }
     const pozos = V().TIPOS[v.tipo].pozos, esValor = !!f.medida || (!f.parte && esNum(f.t, f.c));
     if (!pozo) pozo = (pozos.find(([k, , max, clase]) => (clase === 'mixto' || (esValor ? clase === 'valor' : clase === 'cat')) && (v.pozos[k] || []).length < max) || pozos.find(([, , , clase]) => clase === 'mixto' || (esValor ? clase === 'valor' : clase === 'cat')) || pozos[0] || [])[0];
     const def = pozos.find((p) => p[0] === pozo); if (!def) return;
@@ -1451,21 +1518,21 @@
       const P = propsDe(propKey(t)), tf = S.tablaFechas && S.tablaFechas.t === t ? S.tablaFechas : null;
       const fechas = meta(t).filter((c) => c.t === 'fecha');
       return `<div class="pb-pp-t">Propiedades</div><div class="pb-pp-sec">General</div>
-        <label class="pb-pp">Nombre<input value="${esc(t)}" disabled></label>
+        <label class="pb-pp">Nombre<input value="${esc(t)}" data-pp-nombre></label>
         <label class="pb-pp">Descripción<textarea data-pp="descripcion" rows="2">${esc(P.descripcion || '')}</textarea></label>
         <label class="pb-pp">Sinónimos<input data-pp="sinonimos" value="${esc(P.sinonimos || '')}" placeholder="ventas, facturación"></label>
         <label class="pb-pp-sw"><input type="checkbox" data-pp="oculto" ${P.oculto ? 'checked' : ''}> Está oculto</label>
         <div class="pb-pp-sec">Tabla de fechas</div>
         ${tf ? `<p class="pb-pp-ok">✓ Marcada como tabla de fechas (columna <b>${esc(tf.c)}</b>)</p><button class="pb-btn" data-desmarcar-fechas>Desmarcar</button>` : fechas.length ? `<label class="pb-pp">Columna de fecha<select data-col-fechas>${fechas.map((c) => `<option>${esc(c.n)}</option>`).join('')}</select></label><button class="pb-btn" data-marcar-fechas>Marcar como tabla de fechas</button>` : '<p class="pb-ayuda">Esta tabla no tiene columnas de fecha.</p>'}
         <div class="pb-pp-sec">Jerarquías</div>
-        ${jerarquias(t).map((h, i) => `<div class="pb-pp-jer"><b>${esc(h.nombre)}</b><small>${h.niveles.map(esc).join(' › ')}</small><button data-borrar-jer="${i}" title="Eliminar">✕</button></div>`).join('') || '<p class="pb-ayuda">Sin jerarquías.</p>'}
+        ${jerarquias(t).map((h, i) => `<div class="pb-pp-jer"><div class="pb-pp-jer-t"><b>${esc(h.nombre)}</b><button data-ren-jer="${i}" title="Cambiar nombre">✎</button><button data-borrar-jer="${i}" title="Eliminar la jerarquía">✕</button></div>${h.niveles.map((n, j) => `<div class="pb-pp-niv"><span>${j + 1}. ${esc(n)}</span><button data-niv-sub="${i}:${j}" title="Subir un lugar" ${j ? '' : 'disabled'}>↑</button><button data-niv-quitar="${i}:${j}" title="Quitar este nivel">✕</button></div>`).join('')}<select data-niv-add="${i}"><option value="">+ Agregar nivel…</option>${meta(t).filter((c) => !h.niveles.includes(c.n)).map((c) => `<option>${esc(c.n)}</option>`).join('')}</select></div>`).join('') || '<p class="pb-ayuda">Sin jerarquías. También puedes hacer clic derecho en una columna → Crear jerarquía.</p>'}
         <button class="pb-btn" data-nueva-jer>+ Nueva jerarquía</button>`;
     }
     if (sel.tipo === 'medida') {
       const m = S.medidas.find((x) => x.nombre === sel.n); if (!m) return '';
       const P = propsDe('m:' + m.nombre);
       return `<div class="pb-pp-t">Propiedades</div><div class="pb-pp-sec">General</div>
-        <label class="pb-pp">Nombre<input value="${esc(m.nombre)}" disabled></label>
+        <label class="pb-pp">Nombre<input value="${esc(m.nombre)}" data-pp-nombre></label>
         <label class="pb-pp">Descripción<textarea data-pp="descripcion" rows="2">${esc(P.descripcion || '')}</textarea></label>
         <label class="pb-pp">Carpeta para mostrar<input data-pp="carpeta" value="${esc(P.carpeta || '')}" placeholder="Ventas\\Tiempo"></label>
         <label class="pb-pp-sw"><input type="checkbox" data-pp="oculto" ${P.oculto ? 'checked' : ''}> Está oculto</label>
@@ -1475,7 +1542,7 @@
     const { t, c } = sel; const col = meta(t).find((x) => x.n === c); if (!col) return '';
     const P = propsDe(propKey(t, c)), tb = S.tablas[t];
     return `<div class="pb-pp-t">Propiedades</div><div class="pb-pp-sec">General</div>
-      <label class="pb-pp">Nombre<input value="${esc(c)}" disabled></label>
+      <label class="pb-pp">Nombre<input value="${esc(c)}" data-pp-nombre></label>
       <label class="pb-pp">Descripción<textarea data-pp="descripcion" rows="2">${esc(P.descripcion || '')}</textarea></label>
       <label class="pb-pp">Sinónimos<input data-pp="sinonimos" value="${esc(P.sinonimos || '')}"></label>
       <label class="pb-pp">Carpeta para mostrar<input data-pp="carpeta" value="${esc(P.carpeta || '')}"></label>
@@ -1495,6 +1562,13 @@
       if (campo === 'ordenarPor' && v) { const dup = ejecutar(`SELECT COUNT(*) FROM (SELECT ${q(sel.c)} FROM ${q(sel.t)} GROUP BY 1 HAVING COUNT(DISTINCT ${q(v)}) > 1)`)[0][0]; if (dup) { toast(`No se puede ordenar la columna "${sel.c}" por "${v}": hay más de un valor de "${v}" para el mismo valor de "${sel.c}". Cada valor tiene que tener un solo valor de orden.`, 7000); el.value = propsDe(k).ordenarPor || ''; return; } }
       setProp(k, campo, v); cambioModelo(); guardar(); setTimeout(() => render(), 0);
     }));
+    const pn = box.querySelector('[data-pp-nombre]'); if (pn) pn.addEventListener('change', () => {
+      const n = pn.value.trim(); if (!n) { pn.value = sel.tipo === 'tabla' ? sel.t : sel.tipo === 'medida' ? sel.n : sel.c; return; }
+      if (sel.tipo === 'tabla') { if (n !== sel.t && !S.tablas[n]) { renombrarTabla(sel.t, n); S.selModelo = { tipo: 'tabla', t: n }; } }
+      else if (sel.tipo === 'medida') { const m = S.medidas.find((x) => x.nombre === sel.n); if (m && n !== m.nombre && !S.medidas.some((x) => x.nombre.toLowerCase() === n.toLowerCase())) { const prev = S.vista; renombrarMedida(m, n); S.vista = prev; S.selModelo = { tipo: 'medida', n }; } }
+      else renombrarColumna(sel.t, sel.c, n);
+      setTimeout(() => render(), 0);
+    });
     const hm = box.querySelector('[data-med-home]'); if (hm) hm.addEventListener('change', () => { const m = S.medidas.find((x) => x.nombre === sel.n); m.tabla = hm.value; cambioModelo(); guardar(); setTimeout(() => render(), 0); });
     const rs = box.querySelector('[data-col-resumen-m]'); if (rs) rs.addEventListener('change', () => { S.tablas[sel.t].resumen[sel.c] = rs.value; guardar(); setTimeout(() => render(), 0); });
     const mf = box.querySelector('[data-marcar-fechas]'); if (mf) mf.addEventListener('click', () => { const c = box.querySelector('[data-col-fechas]').value; const e = validarTablaFechas(sel.t, c); if (e) { toast('No se pudo marcar como tabla de fechas. ' + e, 8000); return; } S.tablaFechas = { t: sel.t, c }; cambioModelo(); guardar(); setTimeout(() => render(), 0); toast(`${sel.t} quedó marcada como tabla de fechas. Power BI quita la jerarquía automática de fecha de esta tabla.`); });
@@ -1506,11 +1580,16 @@
       S.jerarquias = S.jerarquias || {}; (S.jerarquias[sel.t] = S.jerarquias[sel.t] || []).push({ nombre: r[0].trim() || 'Jerarquía', niveles }); cambioModelo(); guardar(); setTimeout(() => render(), 0);
     });
     box.querySelectorAll('[data-borrar-jer]').forEach((b) => b.addEventListener('click', () => { S.jerarquias[sel.t].splice(Number(b.dataset.borrarJer), 1); cambioModelo(); guardar(); setTimeout(() => render(), 0); }));
+    const H = () => S.jerarquias[sel.t];
+    box.querySelectorAll('[data-ren-jer]').forEach((b) => b.addEventListener('click', async () => { const h = H()[Number(b.dataset.renJer)]; const r = await pedir('Cambiar nombre de la jerarquía', [{ n: 'Nombre', v: h.nombre }]); if (r && r[0].trim()) { h.nombre = r[0].trim(); cambioModelo(); guardar(); render(); } }));
+    box.querySelectorAll('[data-niv-sub]').forEach((b) => b.addEventListener('click', () => { const [i, j] = b.dataset.nivSub.split(':').map(Number); const n = H()[i].niveles; [n[j - 1], n[j]] = [n[j], n[j - 1]]; cambioModelo(); guardar(); setTimeout(() => render(), 0); }));
+    box.querySelectorAll('[data-niv-quitar]').forEach((b) => b.addEventListener('click', () => { const [i, j] = b.dataset.nivQuitar.split(':').map(Number); H()[i].niveles.splice(j, 1); if (!H()[i].niveles.length) H().splice(i, 1); cambioModelo(); guardar(); setTimeout(() => render(), 0); }));
+    box.querySelectorAll('[data-niv-add]').forEach((x) => x.addEventListener('change', () => { if (!x.value) return; H()[Number(x.dataset.nivAdd)].niveles.push(x.value); cambioModelo(); guardar(); setTimeout(() => render(), 0); }));
   }
   function renderModelo() {
     const nombres = tablas(); S.posModelo = S.posModelo || {};
     nombres.forEach((t, i) => { if (!S.posModelo[t]) S.posModelo[t] = [4 + (i % 4) * 24, 6 + Math.floor(i / 4) * 44]; });
-    const caja = (t) => { const [x, y] = S.posModelo[t]; return `<div class="pb-mt ${S.tablas[t].fuente.tipo === 'dax' ? 'pb-mt-calc' : ''}" data-mt="${esc(t)}" style="left:${x}%;top:${y}%"><div class="pb-mt-t">${esc(t)}</div><div class="pb-mt-cols">${S.medidas.filter((m) => (m.tabla || nombres[0]) === t).map((m) => `<div data-mmed="${esc(m.nombre)}" class="${propsDe('m:' + m.nombre).oculto ? 'pb-oculto' : ''} ${S.selModelo && S.selModelo.tipo === 'medida' && S.selModelo.n === m.nombre ? 'pb-msel' : ''}">${fl('calculator')} ${esc(m.nombre)}</div>`).join('')}${meta(t).map((c) => `<div draggable="true" data-mcol="${esc(c.n)}" class="${propsDe(propKey(t, c.n)).oculto ? 'pb-oculto' : ''} ${S.selModelo && S.selModelo.tipo === 'col' && S.selModelo.t === t && S.selModelo.c === c.n ? 'pb-msel' : ''}" title="Clic: propiedades · Arrastra sobre la columna de otra tabla para crear una relación">${c.calc ? '<i class="pb-fx">fx</i> ' : esNum(t, c.n) ? 'Σ ' : ''}${esc(c.n)}${propsDe(propKey(t, c.n)).oculto ? ' <span class="pb-ojo" title="Oculto en la vista de informe">⊘</span>' : ''}</div>`).join('')}${jerarquias(t).map((h) => `<div class="pb-mjer" data-mt-jer>⋮ ${esc(h.nombre)}</div>`).join('')}</div></div>`; };
+    const caja = (t) => { const [x, y] = S.posModelo[t]; return `<div class="pb-mt ${S.tablas[t].fuente.tipo === 'dax' ? 'pb-mt-calc' : ''}" data-mt="${esc(t)}" style="left:${x}%;top:${y}%"><div class="pb-mt-t">${esc(t)}</div><div class="pb-mt-cols">${S.medidas.filter((m) => (m.tabla || nombres[0]) === t).map((m) => `<div data-mmed="${esc(m.nombre)}" class="${propsDe('m:' + m.nombre).oculto ? 'pb-oculto' : ''} ${S.selModelo && S.selModelo.tipo === 'medida' && S.selModelo.n === m.nombre ? 'pb-msel' : ''}">${fl('calculator')} ${esc(m.nombre)}</div>`).join('')}${meta(t).map((c) => `<div draggable="true" data-mcol="${esc(c.n)}" class="${propsDe(propKey(t, c.n)).oculto ? 'pb-oculto' : ''} ${S.selModelo && S.selModelo.tipo === 'col' && S.selModelo.t === t && S.selModelo.c === c.n ? 'pb-msel' : ''}" title="Clic: propiedades · Arrastra sobre la columna de otra tabla para crear una relación">${c.calc ? '<i class="pb-fx">fx</i> ' : esNum(t, c.n) ? 'Σ ' : ''}${esc(c.n)}<button class="pb-mojo ${propsDe(propKey(t, c.n)).oculto ? 'on' : ''}" data-mojo="${esc(c.n)}" title="${propsDe(propKey(t, c.n)).oculto ? 'Mostrar en la vista de informe' : 'Ocultar en la vista de informe'}">${fl(propsDe(propKey(t, c.n)).oculto ? 'eye_off' : 'eye')}</button></div>`).join('')}${jerarquias(t).map((h) => `<div class="pb-mjer" data-mt-jer>⋮ ${esc(h.nombre)}</div>`).join('')}</div></div>`; };
     main.querySelector('#pbCentro').innerHTML = `<div class="pb-modelo-wrap"><div class="pb-modelo" id="pbModelo"><svg class="pb-modelo-svg"></svg>${nombres.map(caja).join('')}<div class="pb-modelo-ayuda">Clic en una tabla, columna o medida para ver sus propiedades · Arrastra una columna sobre la de otra tabla para relacionarlas · Clic en una línea para editarla</div></div><aside class="pb-propiedades" id="pbProps">${panelPropiedades()}</aside></div>`;
     enlazarPropiedades(main.querySelector('#pbProps'));
     const cont = main.querySelector('#pbModelo'), svg = cont.querySelector('svg');
@@ -1530,6 +1609,7 @@
     requestAnimationFrame(lineas);
     svg.addEventListener('click', (e) => { const g = e.target.closest('[data-rel]'); if (g) editarRelacion(S.rels[Number(g.dataset.rel)]); });
     cont.addEventListener('click', (e) => {
+      const ojo = e.target.closest('[data-mojo]'); if (ojo) { const t = ojo.closest('[data-mt]').dataset.mt, k = propKey(t, ojo.dataset.mojo); setProp(k, 'oculto', !propsDe(k).oculto); cambioModelo(); guardar(); renderModelo(); return; }
       const col = e.target.closest('[data-mcol]'), med = e.target.closest('[data-mmed]'), mt = e.target.closest('[data-mt]');
       if (col) S.selModelo = { tipo: 'col', t: mt.dataset.mt, c: col.dataset.mcol };
       else if (med) S.selModelo = { tipo: 'medida', n: med.dataset.mmed };
@@ -1546,6 +1626,7 @@
       el.addEventListener('pointermove', mover); el.addEventListener('pointerup', soltar);
     });
     cont.querySelectorAll('[data-mcol]').forEach((c) => {
+      c.addEventListener('contextmenu', (e) => { if (!window.PBIInforme) return; e.preventDefault(); window.PBIInforme.menuCampo({ t: c.closest('[data-mt]').dataset.mt, c: c.dataset.mcol }, e); });
       c.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', JSON.stringify({ t: c.closest('[data-mt]').dataset.mt, c: c.dataset.mcol })));
       c.addEventListener('dragover', (e) => { e.preventDefault(); c.classList.add('sobre'); });
       c.addEventListener('dragleave', () => c.classList.remove('sobre'));
@@ -1742,16 +1823,24 @@
     const pie = main.querySelector('#pbPie');
     const resumen = `${tablas().length} tablas · ${S.rels.length} relaciones · ${S.medidas.length} medidas`;
     if (S.vista !== 'informe') { pie.innerHTML = `<div class="pb-estado"><span>${{ tabla: 'Vista de tabla', modelo: 'Vista de modelo', dax: 'Vista de consultas DAX', tmdl: 'Vista TMDL' }[S.vista]}</span><span class="spacer"></span><span>${resumen}</span></div>`; return; }
-    pie.innerHTML = `<div class="pb-pags">${S.paginas.map((p, i) => `<button class="pb-pag ${i === S.pagina ? 'on' : ''}" data-pag="${i}" title="Doble clic para cambiar el nombre · clic derecho para más opciones">${esc(p.nombre)}</button>`).join('')}<button class="pb-pag pb-pag-nueva" data-pag-nueva title="Nueva página">+</button></div><div class="pb-estado"><span>Página ${S.pagina + 1} de ${S.paginas.length}</span><span class="spacer"></span><span>${resumen}</span><span class="pb-zoom">− ━━━●━━━ + 100 %</span></div>`;
+    pie.innerHTML = `<div class="pb-pags">${S.paginas.map((p, i) => `<button class="pb-pag ${i === S.pagina ? 'on' : ''} ${p.oculta ? 'pb-pag-oculta' : ''}" data-pag="${i}" title="Doble clic para cambiar el nombre · clic derecho para más opciones">${p.oculta ? fl('eye_off') + ' ' : ''}${p.tipo === 'tooltip' ? fl('tooltip_quote') + ' ' : p.tipo === 'detalles' ? fl('arrow_step_in') + ' ' : ''}${esc(p.nombre)}</button>`).join('')}<button class="pb-pag pb-pag-nueva" data-pag-nueva title="Nueva página">+</button></div><div class="pb-estado"><span>Página ${S.pagina + 1} de ${S.paginas.length}</span><span class="spacer"></span><span>${resumen}</span><span class="pb-zoom">− ━━━●━━━ + 100 %</span></div>`;
     pie.querySelectorAll('[data-pag]').forEach((b) => {
       const i = Number(b.dataset.pag);
-      b.addEventListener('click', () => { S.pagina = i; S.sel = null; S.cruz = null; S.enfoque = null; guardar(true); render(); });
+      b.addEventListener('click', () => { if (window.PBIInforme) window.PBIInforme.irPagina(i); else { S.pagina = i; S.sel = null; S.cruz = null; S.enfoque = null; guardar(true); render(); } });
       b.addEventListener('dblclick', () => { const n = prompt('Nombre de la página:', S.paginas[i].nombre); if (n) { S.paginas[i].nombre = n; guardar(); renderPie(); } });
-      b.addEventListener('contextmenu', (e) => { e.preventDefault(); const op = prompt(`Página "${S.paginas[i].nombre}". Escribe: duplicar, eliminar o un nombre nuevo`); if (!op) return; if (op === 'duplicar') { const c = JSON.parse(JSON.stringify(S.paginas[i])); c.nombre += ' (copia)'; c.visuales.forEach((v, k) => { v.id = 'v' + Date.now().toString(36) + k; }); S.paginas.splice(i + 1, 0, c); } else if (op === 'eliminar') { if (S.paginas.length > 1) { S.paginas.splice(i, 1); S.pagina = 0; } } else S.paginas[i].nombre = op; guardar(); render(); });
+      b.addEventListener('contextmenu', (e) => { e.preventDefault(); if (window.PBIInforme) window.PBIInforme.menuPagina(i, e); });
     });
     pie.querySelector('[data-pag-nueva]').addEventListener('click', () => accion('nueva-pagina'));
   }
 
   window.addEventListener('hashchange', () => { if (!/^#\/powerbi/.test(location.hash)) document.body.classList.remove('pb-abierto'); });
   window.PowerBI = { vista, NUEVO, _estado: () => S, _motor: () => (construir(), motor), _tmdl: () => (construir(), tmdlModelo()) };
+  // funciones internas para los módulos que amplían la práctica (powerbi-informe.js)
+  window.PowerBI._i = {
+    S: () => S, main: () => main, toast: (...a) => toast(...a), pag, vis, todos, tablas, meta, tipoDe, esNum, esFecha, nomCampo, campoKey, paleta, fl, esc,
+    guardar, render, renderPaneles, renderPie, pintar, refrescarCinta, cambioModelo, construir, consultar, ejecutar: (...a) => ejecutar(...a), filtrosDe, filtroEfectivo, datosVisual, dibujarVisual,
+    agregarVisual, agregarCampo, quitarVisual, modal, pedir, descargar, jerarquias, tituloDe, exportarDatos, verComoTabla, barraFormula: (o) => barraFormula(o),
+    conPagina: (p, fn) => { const prev = pagForzada; pagForzada = p; try { return fn(); } finally { pagForzada = prev; } }, propsDe: (k) => propsDe(k), setProp: (k, c, v) => setProp(k, c, v), propKey: (...a) => propKey(...a),
+    registrarTabla: (n, f, p) => registrarTabla(n, f, p), DATOS: () => DATOS, guardarDatos: () => guardarDatos(), renombrarTabla: (a, b) => renombrarTabla(a, b), renombrarColumna: (t, a, b) => renombrarColumna(t, a, b), renombrarMedida: (m, n) => renombrarMedida(m, n), menuCampoViejo: (f, el) => menuCampo(f, el), powerQuery: (t) => powerQuery(t), D: () => D(), V: () => V(),
+  };
 })();
