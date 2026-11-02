@@ -628,6 +628,73 @@ print(json.dumps(out))`;
     } catch (e) { return null; }
   }
 
+  // Depurador de Python de VS Code: el programa corre una vez en Pyodide con sys.settrace y se guarda cada
+  // paso (línea, pila de llamadas, variables locales y globales, salida). Los botones Continuar, Paso a paso
+  // por procedimientos, por instrucciones y Salir recorren esa grabación como lo haría debugpy.
+  const PY_TRAZA = `import sys, json, io, contextlib, traceback, types
+pasos = []
+salida = io.StringIO()
+MAX = 2500
+def rep(v):
+    try:
+        r = repr(v)
+    except Exception:
+        r = '<sin repr>'
+    return r if len(r) < 160 else r[:157] + '...'
+def snap(d, glob):
+    out = {}
+    for k, v in list(d.items())[:60]:
+        if k.startswith('__'): continue
+        if glob and (isinstance(v, types.ModuleType) or isinstance(v, type) or callable(v)): continue
+        out[k] = [rep(v), type(v).__name__, len(v) if isinstance(v, (list, dict, tuple, set, str)) else None]
+    return out
+class _Limite(Exception): pass
+def tracer(frame, event, arg):
+    if frame.f_code.co_filename != '<app>':
+        return None
+    if len(pasos) >= MAX:
+        raise _Limite('Se alcanzó el límite de pasos de la depuración')
+    if event in ('line', 'exception', 'return', 'call'):
+        pila = []
+        f = frame
+        while f is not None and f.f_code.co_filename == '<app>':
+            pila.append([f.f_code.co_name, f.f_lineno])
+            f = f.f_back
+        exc = None
+        if event == 'exception':
+            exc = arg[0].__name__ + ': ' + str(arg[1])
+        pasos.append({'l': frame.f_lineno, 'e': event, 'pila': pila,
+                      'loc': snap(frame.f_locals, False) if frame.f_code.co_name != '<module>' else {},
+                      'glob': snap(frame.f_globals, True), 'out': len(salida.getvalue()), 'exc': exc,
+                      'ret': rep(arg) if event == 'return' else None})
+    return tracer
+error = None
+try:
+    codigo = compile(SRC, '<app>', 'exec')
+except SyntaxError as e:
+    error = 'SyntaxError: ' + str(e.msg) + ' (línea ' + str(e.lineno) + ')'
+    codigo = None
+if codigo is not None:
+    g = {'__name__': '__main__'}
+    with contextlib.redirect_stdout(salida):
+        sys.settrace(tracer)
+        try:
+            exec(codigo, g)
+        except _Limite as e:
+            error = str(e)
+        except Exception as e:
+            error = ''.join(traceback.format_exception_only(type(e), e)).strip()
+        finally:
+            sys.settrace(None)
+print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 'error': error}))`;
+  async function trazarPython(src) {
+    const PY = window.Engines && window.Engines.PY; if (!PY) throw new Error('Python no está disponible.');
+    const r = await PY.run('python', `SRC = ${JSON.stringify(src)}\n${PY_TRAZA}`);
+    const txt = String(r.stdout || ''); const i = txt.lastIndexOf('\u0001TRAZA');
+    if (i < 0) throw new Error(r.error || 'No se pudo depurar el programa.');
+    return JSON.parse(txt.slice(i + 6));
+  }
+
   function abrirCode(raiz, archivo) {
     const Sh = window.Shell;
     if (document.getElementById('vscode')) document.getElementById('vscode').remove();
@@ -637,7 +704,7 @@ print(json.dumps(out))`;
     const abiertas = new Set();
     const BIENVENIDA = '\u0000bienvenida', AJUSTES = '\u0000ajustes', DIFF = '\u0000diff:';
     const esArchivo = (k) => !!k && !String(k).startsWith('\u0000');
-    let temaReal = null, problemas = [], diagT = null, tlAbierto = true, diffOrig = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
+    let temaReal = null, problemas = [], diagT = null, tlAbierto = true, diffOrig = null, dbg = null, bpDecos = [], dbgDecos = [], vigilar = [], bpTimer = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
     const terms = []; let tActiva = 0; const salida = [];
     let AJ = vsAjustes(), autoGuardado = null;
     const icono = (nombre) => {
@@ -679,7 +746,7 @@ print(json.dumps(out))`;
       <div class="vs-cuerpo">
         <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">${ci('files')}</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">${ci('search')}</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">${ci('source-control')}<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar (Ctrl+Shift+D)">${ci('debug-alt')}</button><button data-vista="ext" title="Extensiones (Ctrl+Shift+X)">${ci('extensions')}</button><span class="spacer"></span><button title="Cuentas">${ci('account')}</button><button data-ajustes title="Administrar: Configuración (Ctrl+,)">${ci('settings-gear')}</button></nav>
         <aside class="vs-lateral"></aside>
-        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab" data-ptab="problemas">PROBLEMAS <b class="vs-ptab-n" data-prob-n hidden></b></span><span class="vs-ptab" data-ptab="salida">SALIDA</span><span class="vs-ptab on" data-ptab="terminal">TERMINAL</span><span class="spacer"></span><span class="vs-term-lista"></span><button data-term-nuevo title="Nueva terminal (Ctrl+Shift+ñ)">${ci('add')}</button><button data-term-borrar title="Eliminar la terminal">${ci('trash')}</button><button data-panel-max title="Maximizar el tamaño del panel">${ci('chevron-up')}</button><button data-panel-x title="Ocultar el panel">${ci('close')}</button></div><div class="vs-panel-cuerpo"></div><div class="vs-panel-prob" hidden></div><div class="vs-panel-salida" hidden></div></div></section>
+        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab" data-ptab="problemas">PROBLEMAS <b class="vs-ptab-n" data-prob-n hidden></b></span><span class="vs-ptab" data-ptab="salida">SALIDA</span><span class="vs-ptab" data-ptab="depuracion">CONSOLA DE DEPURACIÓN</span><span class="vs-ptab on" data-ptab="terminal">TERMINAL</span><span class="spacer"></span><span class="vs-term-lista"></span><button data-term-nuevo title="Nueva terminal (Ctrl+Shift+ñ)">${ci('add')}</button><button data-term-borrar title="Eliminar la terminal">${ci('trash')}</button><button data-panel-max title="Maximizar el tamaño del panel">${ci('chevron-up')}</button><button data-panel-x title="Ocultar el panel">${ci('close')}</button></div><div class="vs-panel-cuerpo"></div><div class="vs-panel-prob" hidden></div><div class="vs-panel-salida" hidden></div><div class="vs-panel-dbg" hidden></div></div></section>
       </div>
       <div class="vs-estado"><span data-rama></span><span class="vs-remoto">${ci('remote')}</span><span data-errores>${ci('error')} 0 ${ci('warning')} 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><span data-gitlens></span><button data-toggle-term title="Terminal (Ctrl+\`)">${ci('terminal')}</button><span>${ci('bell')}</span></div>
     </div>`);
@@ -718,7 +785,7 @@ print(json.dumps(out))`;
         latEl.innerHTML = `<div class="vs-lat-cab"><span>EXTENSIONES</span></div><div class="vs-lat-sub">INSTALADAS</div>${VS_EXT.filter((x) => extOn(x[0])).map(extHtml).join('') || '<p class="small" style="opacity:.7;padding:0 14px">Ninguna</p>'}<div class="vs-lat-sub">RECOMENDADAS PARA DATOS</div>${VS_EXT.filter((x) => !extOn(x[0])).map(extHtml).join('')}`;
         return;
       }
-      latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR</span></div><div class="vs-run-info">${esArchivo(actual) && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada:</p><code>${esc(comandoPara(actual).cmd)}</code>` : '<p class="small">Abre un archivo .py, .sh o .sql para ejecutarlo con ▷ o con F5.</p>'}<p class="small" style="margin-top:14px">En VS Code real esto lo hacen las extensiones (Python, dbt Power User, SQLTools). Aquí se ejecuta en la terminal del curso, con el mismo comando que escribirías tú.</p></div>`;
+      return pintarDepurar();
     }
     const extHtml = ([id, n, autor, desc, ic]) => `<div class="vs-ext"><span class="vs-ext-ic">${ic}</span><div class="vs-ext-txt"><b>${esc(n)}</b><small>${esc(desc)}</small><span class="vs-ext-autor">${esc(autor)}</span></div><button class="vs-ext-btn ${extOn(id) ? 'on' : ''}" data-ext="${esc(id)}">${extOn(id) ? 'Desinstalar' : 'Instalar'}</button></div>`;
     function pintarAjustes() {
@@ -889,7 +956,7 @@ print(json.dumps(out))`;
     function mostrarPtab(cual) {
       ptab = cual;
       $$('.vs-ptab', box).forEach((x) => x.classList.toggle('on', x.dataset.ptab === cual));
-      $('.vs-panel-cuerpo', box).hidden = cual !== 'terminal'; $('.vs-panel-prob', box).hidden = cual !== 'problemas'; $('.vs-panel-salida', box).hidden = cual !== 'salida';
+      $('.vs-panel-cuerpo', box).hidden = cual !== 'terminal'; $('.vs-panel-prob', box).hidden = cual !== 'problemas'; $('.vs-panel-salida', box).hidden = cual !== 'salida'; $('.vs-panel-dbg', box).hidden = cual !== 'depuracion'; if (cual === 'depuracion') pintarConsolaDbg();
       ['[data-term-nuevo]', '[data-term-borrar]', '.vs-term-lista'].forEach((s2) => { const el = $(s2, box); if (el) el.style.display = cual === 'terminal' ? '' : 'none'; });
       if (cual === 'problemas') pintarProblemas();
       if (cual === 'salida') $('.vs-panel-salida', box).innerHTML = `<pre>${esc(salida.join('\n') || 'Aquí aparece la salida de las tareas que ejecuta el editor (ejecutar, git, tests).')}</pre>`;
@@ -978,6 +1045,95 @@ print(json.dumps(out))`;
     function elegirTema() { selector('Seleccionar tema de color', temasDisponibles().map((n) => ({ label: n, desc: (window.VSReal && window.VSReal.TEMAS[n] ? 'tema de VS Code' : 'tema del curso') + (n === AJ['workbench.colorTheme'] ? ' · actual' : '') })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.colorTheme'] = x.label; vsGuardarAjustes(a); aplicar(); }); }
     function elegirIconos() { selector('Seleccionar tema de íconos de archivo', [['vs-seti', 'Seti (Visual Studio Code)'], ['vs-minimal', 'Minimal (Visual Studio Code)'], ['emojis', 'Íconos del curso'], ['material', 'Material Icon Theme'], ['ninguno', 'Ninguno']].map(([v, l]) => ({ label: l, desc: v === AJ['workbench.iconTheme'] ? 'actual' : '', v })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.iconTheme'] = x.v; vsGuardarAjustes(a); aplicar(); pintarLateral(); pintarTabs(); }); }
     async function correrEnTerminal(cmd) { togglePanel(true); mostrarPtab('terminal'); salida.push(`[${new Date().toLocaleTimeString('es')}] > ${cmd}`); await term.run(cmd); pintarLateral(); pintarEstado(); }
+    // ---------------------------------------------------------------- Ejecutar y depurar (Python)
+    const bpsDe = (k) => { const B = vsBps(); return new Set(B[k] || []); };
+    function vsBps() { try { return JSON.parse(localStorage.getItem('vs-breakpoints') || '{}'); } catch (e) { return {}; } }
+    function guardarBps(k, set) { const B = vsBps(); if (set.size) B[k] = [...set].sort((a, b) => a - b); else delete B[k]; try { localStorage.setItem('vs-breakpoints', JSON.stringify(B)); } catch (e) { /* sin almacenamiento */ } }
+    function alternarBp(l) { if (!esArchivo(actual)) return; const set = bpsDe(actual); set.has(l) ? set.delete(l) : set.add(l); guardarBps(actual, set); pintarBps(); if (vistaLat === 'ejecutar') pintarLateral(); }
+    function pintarBps() {
+      if (!ed || !ed.monaco || !window.monaco || !esArchivo(actual)) return;
+      const set = bpsDe(actual); const m = ed.monaco;
+      bpDecos = m.deltaDecorations(bpDecos, [...set].map((l) => ({ range: new window.monaco.Range(l, 1, l, 1), options: { glyphMarginClassName: 'vs-bp', glyphMarginHoverMessage: { value: 'Punto de interrupción' }, stickiness: 1 } })));
+      const p = dbg && dbg.archivo === actual && dbg.i != null ? dbg.pasos[dbg.i] : null;
+      dbgDecos = m.deltaDecorations(dbgDecos, p ? [{ range: new window.monaco.Range(p.l, 1, p.l, 1), options: { isWholeLine: true, className: p.e === 'exception' ? 'vs-dbg-linea-exc' : 'vs-dbg-linea', glyphMarginClassName: 'vs-dbg-flecha' } }] : []);
+      if (p) m.revealLineInCenterIfOutsideViewport(p.l);
+    }
+    function prepararGutter() {
+      if (!ed || !ed.monaco || !window.monaco || ed.monaco.__bp) return;
+      const m = ed.monaco; m.__bp = true; m.updateOptions({ glyphMargin: true });
+      m.onMouseDown((e) => { const T = window.monaco.editor.MouseTargetType; if (e.target && (e.target.type === T.GUTTER_GLYPH_MARGIN || e.target.type === T.GUTTER_LINE_DECORATIONS) && e.target.position) alternarBp(e.target.position.lineNumber); });
+      pintarBps();
+    }
+    async function depurar() {
+      if (!esArchivo(actual) || ext(actual) !== 'py') { toast('El depurador de esta práctica funciona con archivos .py. Para otros archivos usa Ctrl+F5 (ejecutar sin depurar).'); return; }
+      guardar(actual);
+      const archivo = actual, src = Sh.readFile(archivo) || '';
+      dbg = { archivo, pasos: [], i: null, cargando: true, salida: '', error: null }; pintarDbgUI(); togglePanel(true); mostrarPtab('depuracion');
+      let tr; try { tr = await trazarPython(src); } catch (e) { dbg = null; pintarDbgUI(); toast(e.message); return; }
+      if (!dbg || dbg.archivo !== archivo) return;
+      dbg = { archivo, pasos: tr.pasos, salidaTotal: tr.salida, error: tr.error, i: -1, cargando: false };
+      dbg.iExc = tr.error ? (() => { for (let k = dbg.pasos.length - 1; k >= 0; k--) if (dbg.pasos[k].e === 'exception') return k; return null; })() : null;
+      pasoDbg('continuar');
+    }
+    function pasoDbg(modo) {
+      if (!dbg || dbg.cargando) return;
+      const P = dbg.pasos, bps = bpsDe(dbg.archivo); const cur = dbg.i >= 0 ? P[dbg.i] : null; const d = cur ? cur.pila.length : 0;
+      let j = -1;
+      for (let k = dbg.i + 1; k < P.length; k++) {
+        const x = P[k]; if (x.e !== 'line') { if (dbg.iExc === k) { j = k; break; } continue; }
+        if (modo === 'continuar' && bps.has(x.l)) { j = k; break; }
+        if (modo === 'dentro') { j = k; break; }
+        if (modo === 'sobre' && x.pila.length <= d) { j = k; break; }
+        if (modo === 'salir' && x.pila.length < d) { j = k; break; }
+      }
+      if (j < 0 && dbg.iExc != null && dbg.iExc > dbg.i) j = dbg.iExc;
+      if (j < 0) { terminarDbg(true); return; }
+      dbg.i = j; dbg.salida = (dbg.salidaTotal || '').slice(0, P[j].out);
+      if (actual !== dbg.archivo) abrir(dbg.archivo);
+      pintarDbgUI();
+    }
+    function terminarDbg(natural) {
+      if (!dbg) return;
+      const fin = natural ? { salida: dbg.salidaTotal || '', error: dbg.error } : null; const archivo = dbg.archivo;
+      dbg = null; pintarDbgUI();
+      if (fin) { dbgFinal = { archivo, ...fin }; pintarConsolaDbg(); } else dbgFinal = null;
+    }
+    let dbgFinal = null;
+    function pintarConsolaDbg() {
+      const el = $('.vs-panel-dbg', box); if (!el) return;
+      if (dbg && dbg.cargando) { el.innerHTML = '<pre class="vs-dbg-con">Iniciando el depurador (Python en el navegador)…</pre>'; return; }
+      const out = dbg ? dbg.salida : dbgFinal ? dbgFinal.salida : '';
+      const p = dbg && dbg.i >= 0 ? dbg.pasos[dbg.i] : null;
+      const err = p && p.e === 'exception' ? p.exc : !dbg && dbgFinal ? dbgFinal.error : null;
+      el.innerHTML = `<pre class="vs-dbg-con">${esc(out)}${err ? `<span class="vs-dbg-err">${esc(err)}</span>\n` : ''}${!dbg && dbgFinal ? `<span class="vs-dbg-dim">El programa terminó${dbgFinal.error ? ' con un error' : ''}.</span>` : ''}</pre><div class="vs-dbg-eval"><span>›</span><input data-dbg-eval placeholder="${dbg ? 'Escribe el nombre de una variable para ver su valor' : 'Inicia la depuración (F5) para inspeccionar variables'}"></div>`;
+      const inp = $('[data-dbg-eval]', el); inp.addEventListener('keydown', (e) => { if (e.key !== 'Enter' || !dbg || !p) return; const n = inp.value.trim(); const v = (p.loc[n] || p.glob[n]); const pre = $('.vs-dbg-con', el); pre.insertAdjacentHTML('beforeend', `<span class="vs-dbg-dim">› ${esc(n)}</span>\n${v ? esc(v[0]) : `<span class="vs-dbg-err">NameError: name '${esc(n)}' is not defined</span>`}\n`); inp.value = ''; });
+    }
+    function pintarDbgUI() {
+      box.classList.toggle('vs-depurando', !!dbg);
+      let tb = $('.vs-dbg-barra', box);
+      if (dbg && !tb) { tb = h(`<div class="vs-dbg-barra"><span class="vs-dbg-asa">⠿</span><button data-dbg="continuar" title="Continuar (F5)">${ci('debug-continue')}</button><button data-dbg="sobre" title="Depurar paso a paso por procedimientos (F10)">${ci('debug-step-over')}</button><button data-dbg="dentro" title="Depurar paso a paso por instrucciones (F11)">${ci('debug-step-into')}</button><button data-dbg="salir" title="Salir de la depuración (Mayús+F11)">${ci('debug-step-out')}</button><button data-dbg="reiniciar" title="Reiniciar (Ctrl+Mayús+F5)">${ci('debug-restart')}</button><button data-dbg="detener" title="Detener (Mayús+F5)">${ci('debug-stop')}</button></div>`); box.append(tb); tb.addEventListener('click', (e) => { const b = e.target.closest('[data-dbg]'); if (!b) return; const a = b.dataset.dbg; if (a === 'detener') terminarDbg(); else if (a === 'reiniciar') depurar(); else pasoDbg(a); }); }
+      if (!dbg && tb) tb.remove();
+      if (tb) tb.classList.toggle('cargando', !!(dbg && dbg.cargando));
+      pintarBps(); if (vistaLat === 'ejecutar') pintarLateral(); if (ptab === 'depuracion') pintarConsolaDbg();
+    }
+    function pintarDepurar() {
+      const bpLista = Object.entries(vsBps()).flatMap(([k, ls]) => ls.map((l) => [k, l]));
+      const p = dbg && dbg.i >= 0 ? dbg.pasos[dbg.i] : null;
+      const vars = (o) => Object.entries(o || {}).map(([k, [v, t, n]]) => `<div class="vs-var" title="${esc(t)}"><span class="vs-var-n">${esc(k)}</span>: <span class="vs-var-v vs-var-${/^(int|float|bool)$/.test(t) ? 'num' : t === 'str' ? 'str' : 'obj'}">${esc(v)}</span>${n != null && t !== 'str' ? ` <small>(${n})</small>` : ''}</div>`).join('') || '<div class="vs-dim vs-var">sin variables</div>';
+      const seccion = (id, titulo, cuerpo, extra = '') => `<details class="vs-dbg-sec" open><summary>${titulo}${extra}</summary>${cuerpo}</details>`;
+      if (!dbg) {
+        latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR Y DEPURAR</span></div><div class="vs-run-info">${esArchivo(actual) && ext(actual) === 'py' ? `<button class="vs-btn-azul" data-dbg-ini>Ejecutar y depurar</button><p class="small">Pon puntos de interrupción con clic a la izquierda del número de línea (o F9) y pulsa F5. Ctrl+F5 ejecuta sin depurar.</p>` : esArchivo(actual) && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada.</p>` : '<p class="small">Abre un archivo .py para depurarlo, o un archivo que se pueda ejecutar.</p>'}${dbgFinal ? `<p class="small">Última sesión: ${dbgFinal.error ? `terminó con <b>${esc(dbgFinal.error.split(':')[0])}</b>` : 'terminó bien'}. Mira la CONSOLA DE DEPURACIÓN.</p>` : ''}</div>${seccion('bp', 'PUNTOS DE INTERRUPCIÓN', bpLista.map(([k, l]) => `<div class="vs-var vs-bp-item" data-ir-bp="${esc(k)}|${l}"><span class="vs-bp-dot"></span>${esc(k.split('/').pop())} <small>${l}</small></div>`).join('') || '<div class="vs-dim vs-var">Ninguno</div>')}`;
+      } else if (dbg.cargando) latEl.innerHTML = '<div class="vs-lat-cab"><span>EJECUTAR Y DEPURAR</span></div><p class="small" style="padding:0 14px">Iniciando Python…</p>';
+      else {
+        latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR Y DEPURAR</span></div>${p && p.e === 'exception' ? `<div class="vs-dbg-excbox">Se produjo una excepción: <b>${esc(p.exc)}</b></div>` : ''}${seccion('vars', 'VARIABLES', `${p && p.pila.length > 1 ? `<div class="vs-var-g">Locals</div>${vars(p.loc)}` : ''}<div class="vs-var-g">${p && p.pila.length > 1 ? 'Globals' : 'Locals'}</div>${vars(p && p.glob)}`)}${seccion('watch', 'INSPECCIÓN', vigilar.map((n, i) => { const v = p && (p.loc[n] || p.glob[n]); return `<div class="vs-var"><span class="vs-var-n">${esc(n)}</span>: <span class="vs-var-v">${v ? esc(v[0]) : '<i>no disponible</i>'}</span> <button class="vs-mini" data-quitar-watch="${i}">✕</button></div>`; }).join('') + '<input class="vs-watch-in" data-watch placeholder="+ Agregar expresión (nombre de variable)">')}${seccion('pila', 'PILA DE LLAMADAS', p ? p.pila.map(([fn, l], i) => `<div class="vs-var ${i === 0 ? 'on' : ''}">${ci('debug-stackframe')} <span class="vs-var-n">${esc(fn === '<module>' ? '<module>' : fn)}</span> <small>${esc(dbg.archivo.split('/').pop())} ${l}</small></div>`).join('') : '')}${seccion('bp', 'PUNTOS DE INTERRUPCIÓN', bpLista.map(([k, l]) => `<div class="vs-var vs-bp-item" data-ir-bp="${esc(k)}|${l}"><span class="vs-bp-dot"></span>${esc(k.split('/').pop())} <small>${l}</small></div>`).join('') || '<div class="vs-dim vs-var">Ninguno</div>')}`;
+      }
+      const ini = $('[data-dbg-ini]', latEl); if (ini) ini.onclick = () => depurar();
+      const run = $('[data-run]', latEl); if (run) run.onclick = () => ejecutar();
+      const w = $('[data-watch]', latEl); if (w) w.onkeydown = (e) => { if (e.key === 'Enter' && w.value.trim()) { vigilar.push(w.value.trim()); pintarLateral(); } };
+      $$('[data-quitar-watch]', latEl).forEach((b) => { b.onclick = () => { vigilar.splice(Number(b.dataset.quitarWatch), 1); pintarLateral(); }; });
+      $$('[data-ir-bp]', latEl).forEach((b) => { b.onclick = () => { const [k, l] = b.dataset.irBp.split('|'); if (actual !== k) abrir(k); setTimeout(() => irALinea(Number(l)), 200); }; });
+    }
+    if (!bpTimer) bpTimer = setInterval(() => { if (!box.isConnected) { clearInterval(bpTimer); bpTimer = null; return; } prepararGutter(); }, 500);
     async function ejecutar() {
       if (!esArchivo(actual)) { toast('Abre un archivo para ejecutarlo.'); return; }
       const c = comandoPara(actual);
@@ -1005,7 +1161,9 @@ print(json.dumps(out))`;
     }
     const abrirRapido = () => selector('Busca un archivo por nombre…', archivos().map((k) => ({ label: k.split('/').pop(), desc: rel(k).split('/').slice(0, -1).join('/'), icono: ICONO_EXT[ext(k)] || '📄', k })), (x) => abrir(x.k));
     const COMANDOS = [
-      ['Ejecutar: ejecutar el archivo actual', 'F5', () => ejecutar()],
+      ['Depurar: iniciar la depuración', 'F5', () => depurar()],
+      ['Ejecutar: ejecutar sin depurar', 'Ctrl+F5', () => ejecutar()],
+      ['Depurar: alternar punto de interrupción', 'F9', () => { if (ed && ed.monaco) alternarBp(ed.monaco.getPosition().lineNumber); }],
       ['Archivo: guardar', 'Ctrl+S', () => { guardar(); toast('Guardado'); }],
       ['Archivo: guardar todo', '', () => guardarTodo()],
       ['Archivo: nuevo archivo…', '', () => nuevo(false)],
@@ -1095,7 +1253,13 @@ print(json.dumps(out))`;
       if (c && e.shiftKey && (k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(true); nuevaTerminal(); return; }
       if (c && k === 's') { e.preventDefault(); if (e.altKey) guardarTodo(); else { guardar(); toast('Guardado ' + (esArchivo(actual) ? Sh.display(actual) : '')); } }
       else if (c && (e.key === '`' || k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(); }
-      else if (e.key === 'F5') { e.preventDefault(); ejecutar(); }
+      else if (e.key === 'F5' && e.shiftKey && c) { e.preventDefault(); if (dbg) depurar(); }
+      else if (e.key === 'F5' && e.shiftKey) { e.preventDefault(); if (dbg) terminarDbg(); }
+      else if (e.key === 'F5' && c) { e.preventDefault(); ejecutar(); }
+      else if (e.key === 'F5') { e.preventDefault(); if (dbg) pasoDbg('continuar'); else if (esArchivo(actual) && ext(actual) === 'py') depurar(); else ejecutar(); }
+      else if (e.key === 'F9') { e.preventDefault(); if (ed && ed.monaco) alternarBp(ed.monaco.getPosition().lineNumber); }
+      else if (e.key === 'F10' && dbg) { e.preventDefault(); pasoDbg('sobre'); }
+      else if (e.key === 'F11' && dbg) { e.preventDefault(); pasoDbg(e.shiftKey ? 'salir' : 'dentro'); }
       else if (c && e.key === ',') { e.preventDefault(); abrir(AJUSTES); }
       else if (c && e.shiftKey && k === 'x') { e.preventDefault(); vistaLat = 'ext'; lateralOculto = false; pintarLateral(); }
       else if (c && e.shiftKey && k === 'p') { e.preventDefault(); paleta(); }
