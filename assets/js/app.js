@@ -1477,19 +1477,21 @@
   // Como en la documentación de MDN o Docusaurus: las etapas se pliegan y solo queda abierta la tuya,
   // así el menú no es una lista eterna de 27 módulos.
   const LABS_MENU = [
-    ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal'], ['#/lab/sql', '🧪', 'SQL', 'lab-sql'],
+    ['#/databricks', '🧱', 'Databricks', 'databricks', 'apps'],
+    ['#/azure', '☁️', 'Portal de Azure', 'azure', 'apps'],
+    ['#/powerbi', '📊', 'Power BI Desktop', 'powerbi', 'apps'],
+    ['#/vscode', '🟦', 'VS Code', 'vscode', 'apps'],
+    ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal', 'apps'],
+    ['#/lab/sql', '🧪', 'SQL', 'lab-sql'],
     ['#/lab/python', '🐍', 'Python', 'lab-python'], ['#/lab/pyspark', '⚡', 'PySpark', 'lab-pyspark'],
     ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
     ['#/modelado', '📐', 'Modelado de datos', 'modelado'], ['#/generador', '🏭', 'Generador de datos', 'generador'],
-    ['#/powerbi', '📊', 'Power BI (práctica)', 'powerbi'],
-    ['#/databricks', '🧱', 'Databricks (práctica)', 'databricks'],
-    ['#/azure', '☁️', 'Portal de Azure (práctica)', 'azure'],
     ['#/trabajo', '💼', 'Tu primer trabajo (simulación)', 'trabajo'],
   ];
   function renderSidebar(route) {
     const sb = $('#sidebar');
     const cur = route.lesson ? route.lesson.modulo.id : route.module ? route.module.id : null;
-    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo', 'trabajo'].includes(route.name);
+    const fueraDelCurso = LABS_MENU.some((x) => x[3] === route.name) || ['herramientas', 'notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo', 'trabajo'].includes(route.name);
     const etapaAbierta = cur ? etapaDeModulo(cur) : fueraDelCurso ? null : etapaActual();
     const link = (href, ico, text, active, meta = '') => `<a class="side-link ${active ? 'active' : ''}" href="${href}"><span class="ico">${ico}</span><span>${text}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</a>`;
     let html = link('#/', '🏠', 'Inicio', route.name === 'home');
@@ -1518,8 +1520,8 @@
       }
       html += '</details>';
     }
-    const enLab = LABS_MENU.some((x) => x[3] === route.name);
-    html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧪</span><span class="st-name">Laboratorios: practica libre</span><span class="chev">▶</span></summary>${LABS_MENU.map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
+    const enLab = LABS_MENU.some((x) => x[3] === route.name) || route.name === 'herramientas';
+    html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧰</span><span class="st-name">Herramientas de práctica</span><span class="chev">▶</span></summary>${link('#/herramientas', '🧰', 'Todas las herramientas', route.name === 'herramientas')}<div class="side-sub">Réplicas de las reales</div>${LABS_MENU.filter((x) => x[4] === 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}<div class="side-sub">Laboratorios y simulaciones</div>${LABS_MENU.filter((x) => x[4] !== 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
     const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo'];
     html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
@@ -1569,23 +1571,58 @@
     if (tp.done >= 3 && (dias === null || dias >= 7)) return `<div class="callout"><b>🗓 Repaso semanal.</b> ${dias === null ? 'Todavía no usaste las tarjetas de repaso.' : `Hace ${dias} días que no repasas.`} Diez minutos de tarjetas fijan lo que aprendiste esta semana. <a href="#/repaso">Empezar el repaso →</a></div>`;
     return '';
   }
+  // Herramientas de práctica: las réplicas de las aplicaciones reales, los laboratorios y las simulaciones.
+  // modulos: dónde se usa cada una (para mostrarla en el módulo y en sus lecciones).
+  const HERRAMIENTAS = [
+    { id: 'databricks', g: 'apps', href: '#/databricks', ico: '🧱', nombre: 'Databricks', real: 'Databricks (workspace en Azure, AWS o GCP)', desc: 'El workspace completo: notebooks con SQL y PySpark reales, Unity Catalog, editor SQL, compute, jobs y pipelines declarativos.', puedes: ['Notebooks con %sql y Python (Spark en tu navegador), display() y dbutils', 'Tablas Delta con historial, MERGE, time travel, COPY INTO y QUALIFY', 'Jobs con tareas, dependencias y reparación; pipelines con expectativas y AUTO CDC'], modulos: ['databricks', 'genie', 'cert-databricks', 'portafolio', 'laboratorios', 'spark', 'pyspark'], rutas: ['databricks'] },
+    { id: 'azure', g: 'apps', href: '#/azure', ico: '☁️', nombre: 'Portal de Azure', real: 'portal.azure.com', desc: 'Suscripción de práctica con grupos de recursos, asistentes de creación, Storage, Key Vault, Databricks, Data Factory, costos y Cloud Shell.', puedes: ['Crear recursos con el asistente (Basics → Review + create) y ver el despliegue', 'Contenedores y blobs, secretos con RBAC, bloqueos, etiquetas y registro de actividad', 'Cloud Shell con la CLI az conectada al mismo estado'], modulos: ['azure', 'cert-azure', 'terraform', 'portafolio', 'laboratorios', 'arquitectura'], rutas: ['azure'] },
+    { id: 'powerbi', g: 'apps', href: '#/powerbi', ico: '📊', nombre: 'Power BI Desktop', real: 'Power BI Desktop', desc: 'Importa CSV, Excel o las bases del curso, transforma con Power Query, modela relaciones, escribe DAX y arma el informe.', puedes: ['Power Query con pasos aplicados y M', 'Modelo con relaciones, medidas y columnas calculadas (motor DAX con contexto de filtro)', '23 objetos visuales, formato, vista de consultas DAX y TMDL'], modulos: ['powerbi', 'analisis', 'casos'], rutas: ['powerbi'] },
+    { id: 'vscode', g: 'apps', href: '#/vscode', ico: '🟦', nombre: 'VS Code', real: 'Visual Studio Code', desc: 'El editor con temas e íconos del repositorio oficial, terminal integrada, Git, problemas, esquema, editor dividido y diff.', puedes: ['Abrir carpetas del disco de práctica (o code . desde la terminal)', 'Editar con Monaco, el mismo editor de VS Code, y ejecutar Python o SQL', 'Control de código fuente, extensiones y ajustes'], modulos: ['local', 'python', 'dbt', 'airflow', 'fundamentos', 'proyecto'], rutas: ['vscode'] },
+    { id: 'terminal', g: 'apps', href: '#/lab/terminal', ico: '⌨️', nombre: 'Terminal', real: 'bash en Linux/macOS', desc: 'Una terminal con disco propio: bash, git, docker, vim y las CLIs de Azure, AWS, Google Cloud, Databricks y Terraform.', puedes: ['Misiones guiadas de cero a experto', 'git con ramas, conflictos y un remoto de práctica', 'az, aws, gcloud, databricks y terraform con estado compartido con los portales'], modulos: ['cero', 'fundamentos', 'local', 'azure', 'aws', 'gcp', 'terraform', 'incidentes'], rutas: ['lab-terminal'] },
+    { id: 'notas', g: 'apps', href: '#/notas', ico: '📝', nombre: 'Notas', real: 'Notion / Obsidian', desc: 'Tus apuntes en Markdown con enlaces entre notas, una nota por lección y búsqueda.', puedes: ['Una nota por lección, enlazada desde cada lección', 'Markdown con vista previa, enlaces [[entre notas]] y etiquetas', 'Exportar todo como archivos .md'], modulos: [], rutas: ['notas'] },
+    { id: 'lab-sql', g: 'labs', href: '#/lab/sql', ico: '🧪', nombre: 'SQL', desc: 'SQLite, PostgreSQL, MySQL y SQL Server sobre las 13 empresas del curso.', modulos: ['sql', 'casos', 'analisis', 'modelado'], rutas: ['lab-sql'] },
+    { id: 'lab-python', g: 'labs', href: '#/lab/python', ico: '🐍', nombre: 'Python', desc: 'Python 3 real (Pyodide) con pandas.', modulos: ['python'], rutas: ['lab-python'] },
+    { id: 'lab-pyspark', g: 'labs', href: '#/lab/pyspark', ico: '⚡', nombre: 'PySpark', desc: 'La API de DataFrames de Spark con las tablas del curso.', modulos: ['spark', 'pyspark'], rutas: ['lab-pyspark'] },
+    { id: 'lab-dbt', g: 'labs', href: '#/lab/dbt', ico: '🔧', nombre: 'dbt', desc: 'Modelos, ref() y Jinja compilado a SQL.', modulos: ['dbt'], rutas: ['lab-dbt'] },
+    { id: 'lab-airflow', g: 'labs', href: '#/lab/airflow', ico: '🌬️', nombre: 'Airflow', desc: 'DAGs, operadores y dependencias.', modulos: ['airflow'], rutas: ['lab-airflow'] },
+    { id: 'modelado', g: 'sim', href: '#/modelado', ico: '📐', nombre: 'Modelado de datos', desc: 'Del requerimiento al modelo, la validación y el DDL.', modulos: ['modelado', 'arquitectura'], rutas: ['modelado'] },
+    { id: 'generador', g: 'sim', href: '#/generador', ico: '🏭', nombre: 'Generador de datos', desc: 'Datasets realistas (y sucios) para tus proyectos, en CSV, JSON o SQL.', modulos: ['portafolio', 'proyecto'], rutas: ['generador'] },
+    { id: 'trabajo', g: 'sim', href: '#/trabajo', ico: '💼', nombre: 'Tu primer trabajo', desc: 'Una semana simulada: tickets, PR con revisión y una guardia.', modulos: ['proyecto', 'incidentes'], rutas: ['trabajo'] },
+    { id: 'revisar-repo', g: 'sim', href: '#/revisar-repo', ico: '🔎', nombre: 'Revisar mi proyecto', desc: 'Tu repositorio de GitHub evaluado como en una entrevista.', modulos: ['proyecto', 'portafolio'], rutas: ['revisar-repo'] },
+  ];
+  const GRUPOS_H = { apps: ['Réplicas de las herramientas del trabajo', 'Se ven y se usan como las reales, pero corren en tu navegador: no necesitas cuenta, tarjeta ni instalar nada.'], labs: ['Laboratorios de código', 'Misiones guiadas de cero a experto, o práctica libre.'], sim: ['Diseño y simulaciones', 'Para pensar como en el trabajo: modelar, generar datos y resolver tickets.'] };
+  // herramientas que una lección usa: las que enlaza en su texto y las de su módulo
+  const herrLeccionCache = new Map();
+  function herramientasDe(l) {
+    if (herrLeccionCache.has(l.id)) return herrLeccionCache.get(l.id);
+    const r = HERRAMIENTAS.filter((x) => x.g === 'apps' && (l.html.includes(`href="${x.href}`) || (x.modulos.includes(l.modulo.id) && x.id !== 'notas' && (x.id !== 'terminal' || l.ejercicios.some((e) => e.type === 'cli')))));
+    herrLeccionCache.set(l.id, r); return r;
+  }
+  function viewHerramientas() {
+    const usos = (x) => LESSONS.filter((l) => l.html.includes(`href="${x.href}`)).length;
+    const card = (x) => {
+      const mods = x.modulos.map((id) => MODULE_BY_ID.get(id)).filter(Boolean);
+      const n = usos(x);
+      return `<article class="herr-card herr-${x.g}">
+        <a class="hc-cab" href="${x.href}"><span class="hc-ico">${x.ico}</span><span><b>${esc(x.nombre)}</b>${x.real ? `<small>Réplica de ${esc(x.real)}</small>` : ''}</span></a>
+        <p>${esc(x.desc)}</p>
+        ${x.puedes ? `<ul class="hc-puedes">${x.puedes.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+        ${mods.length || n ? `<div class="hc-usos">${mods.length ? `<span class="small muted">Se usa en:</span> ${mods.slice(0, 5).map((m) => `<a class="chip" href="#/m/${m.id}">${m.icono} ${esc(m.titulo.split(':')[0])}</a>`).join('')}` : ''}${n ? ` <span class="small muted">· ${n} ${n === 1 ? 'lección la enlaza' : 'lecciones la enlazan'}</span>` : ''}</div>` : ''}
+        <a class="btn btn-primary btn-sm hc-abrir" href="${x.href}">Abrir ${esc(x.nombre)} →</a>
+      </article>`;
+    };
+    main.innerHTML = `<div class="container herramientas">
+      <div class="crumbs"><a href="#/">Inicio</a><span>/</span><span>Herramientas de práctica</span></div>
+      <h1>🧰 Herramientas de práctica</h1>
+      <p class="lead muted">Todo lo que usa un ingeniero de datos, para practicar sin cuentas ni costos. Lo que hagas queda guardado <b>en este navegador</b> y cada herramienta tiene un botón para empezar de cero. Las lecciones te mandan a la herramienta justa en el momento justo.</p>
+      ${Object.entries(GRUPOS_H).map(([g, [t, d]]) => `<section class="home-sec"><div class="sec-cab"><h2>${esc(t)}</h2></div><p class="muted sec-sub">${esc(d)}</p><div class="herr-grid ${g === 'apps' ? '' : 'herr-grid-chica'}">${HERRAMIENTAS.filter((x) => x.g === g).map(card).join('')}</div></section>`).join('')}
+      <div class="callout"><p style="margin:0"><b>¿Y las herramientas de verdad?</b> Cuando quieras pasar a las reales, el módulo <a href="#/m/local">Desde tu computadora</a> te guía para instalar VS Code, Python y Git, y <a href="#/m/laboratorios">Laboratorios guiados en la nube</a> para usar Azure, AWS, Google Cloud y Databricks con cuentas gratuitas, cuidando el costo.</p></div>
+    </div>`;
+  }
   // Portada: una sola acción principal, "continúa donde quedaste" y la ruta en etapas plegables.
   // Ideas tomadas de plataformas educativas: botón de retomar en un clic (Coursera, Codecademy, Alison),
   // camino por etapas con tu posición marcada (Duolingo, roadmap.sh) y revelar el detalle solo cuando
   // se pide (divulgación progresiva), para no mostrar 27 módulos de golpe.
-  const LABS_HOME = [
-    ['#/lab/terminal', '⌨️', 'Terminal', 'bash, git, docker y las CLIs de Azure, AWS y Google Cloud'],
-    ['#/lab/sql', '🧪', 'SQL', 'SQLite, PostgreSQL, MySQL y SQL Server con 13 empresas'],
-    ['#/lab/python', '🐍', 'Python', 'Python 3 real en tu navegador, con pandas'],
-    ['#/lab/pyspark', '⚡', 'PySpark', 'la API de Spark con las tablas del curso'],
-    ['#/lab/dbt', '🔧', 'dbt', 'modelos, ref() y Jinja compilado a SQL'],
-    ['#/lab/airflow', '🌬️', 'Airflow', 'DAGs, operadores y dependencias'],
-    ['#/powerbi', '📊', 'Power BI', 'importa cualquier CSV, Excel o base, modela y arma un informe'],
-    ['#/databricks', '🧱', 'Databricks', 'notebooks, Unity Catalog, Delta, SQL, clusters, jobs y pipelines'],
-    ['#/azure', '☁️', 'Portal de Azure', 'grupos de recursos, storage, Key Vault, Databricks y Cloud Shell'],
-    ['#/trabajo', '💼', 'Tu primer trabajo', 'una semana simulada: tickets, PR con revisión y una guardia'],
-    ['#/revisar-repo', '🔎', 'Revisar mi proyecto', 'tu repositorio de GitHub evaluado como en una entrevista'],
-  ];
   function viewHome() {
     const tp = totalProgress();
     const nextLesson = siguienteLeccion();
@@ -1633,9 +1670,10 @@
         <ol class="camino">${etapas}</ol>
       </section>
       <section class="home-sec">
-        <div class="sec-cab"><h2>Practica sin instalar nada</h2></div>
-        <p class="muted sec-sub">Laboratorios con misiones guiadas de cero a experto, o práctica libre. Si rompes algo, un botón lo deja como nuevo.</p>
-        <div class="labs-grid">${LABS_HOME.map((x) => `<a class="lab-tile" href="${x[0]}"><span class="lt-ico">${x[1]}</span><b>${x[2]}</b><small>${esc(x[3])}</small></a>`).join('')}</div>
+        <div class="sec-cab"><h2>Las herramientas del trabajo, en tu navegador</h2><a class="small" href="#/herramientas">Ver todas las herramientas →</a></div>
+        <p class="muted sec-sub">Réplicas de Databricks, el portal de Azure, Power BI, VS Code y la terminal para practicar sin cuentas ni costos. Si rompes algo, un botón lo deja como nuevo.</p>
+        <div class="herr-home">${HERRAMIENTAS.filter((x) => x.g === 'apps' && x.id !== 'notas').map((x) => `<a class="herr-tile" href="${x.href}"><span class="ht-ico">${x.ico}</span><b>${esc(x.nombre)}</b><small>${esc(x.desc)}</small></a>`).join('')}</div>
+        <div class="labs-grid labs-grid-chica">${HERRAMIENTAS.filter((x) => x.g !== 'apps').map((x) => `<a class="lab-tile" href="${x.href}"><span class="lt-ico">${x.ico}</span><b>${esc(x.nombre)}</b><small>${esc(x.desc)}</small></a>`).join('')}</div>
       </section>
       <section class="home-sec">
         <div class="sec-cab"><h2>Cómo se aprende aquí</h2></div>
@@ -1688,6 +1726,7 @@
       <div class="crumbs"><a href="#/">Inicio</a><span>/</span><span>${esc(m.titulo)}</span></div>
       <div class="module-head"><span class="mc-ico">${m.icono}</span><div><h1 style="margin:0">${esc(m.titulo)}</h1><div class="muted">${m.lecciones.length} lecciones · ${p.pct}% completado</div></div></div>
       <div class="prose"><p>${esc(m.descripcion)}</p>${m.intro || ''}</div>
+      ${(() => { const hs = HERRAMIENTAS.filter((x) => x.modulos.includes(m.id) && x.g === 'apps' && x.id !== 'notas'); return hs.length ? `<div class="mod-herr"><span class="small muted">🧰 En este módulo practicas con:</span> ${hs.map((x) => `<a class="chip chip-herr" href="${x.href}">${x.ico} ${esc(x.nombre)}</a>`).join('')}</div>` : ''; })()}
       <div class="bar" style="margin:10px 0 6px"><i style="width:${p.pct}%;background:${m.color}"></i></div>
       ${first ? `<p><a class="btn btn-primary btn-largo" href="#/l/${first.id}">${p.done ? 'Continuar' : 'Empezar'}: ${esc(first.titulo)} →</a></p>` : '<p class="muted">Contenido en preparación.</p>'}
       <div class="lesson-list">${html}</div>
@@ -1883,7 +1922,7 @@
       <details class="indice indice-movil" id="indiceMovil"><summary>📑 En esta lección</summary><div class="indice-cuerpo"></div></details>
       <article class="prose" id="lessonBody">
         <h1>${esc(l.titulo)}</h1>
-        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a></div>
+        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a>${herramientasDe(l).slice(0, 3).map((x) => `<a class="badge badge-link badge-herr" href="${x.href}" title="Practica esta lección en ${esc(x.nombre)} (réplica en tu navegador)">${x.ico} ${esc(x.nombre)}</a>`).join('')}</div>
         ${lessonIntro(l)}
         ${l.html}
         ${l.autoevaluacion.length ? `<section class="autoeval" id="autoEval"><h2>✅ Autoevaluación</h2><p class="muted">Marca solo lo que puedas hacer <b>sin mirar la lección</b>. Si dudas en algo, vuelve a esa parte: esto es lo que se pregunta en una entrevista o se usa el primer día de trabajo.</p>${l.autoevaluacion.map((q, i) => `<label class="auto-item"><input type="checkbox" data-auto="${i}"><span>${q}</span></label>`).join('')}<div class="small muted" id="autoCount"></div></section>` : ''}
@@ -2195,6 +2234,38 @@
     $('#run').addEventListener('click', run);
     $('#cero').addEventListener('click', () => { if (!confirm('¿Empezar de cero? Tu modelo actual se reemplaza por el ejemplo inicial.')) return; ed.setValue(DBT_INICIAL); out.innerHTML = ''; if (expl) expl.actualizar('', null); toast('Editor limpio'); });
   }
+  // VS Code de práctica como herramienta propia: elige una carpeta del disco de práctica y se abre el editor
+  function viewVSCode() {
+    const Sh = window.Shell;
+    if (!Sh) { main.innerHTML = '<div class="container prose"><p>La terminal de práctica no está cargada.</p></div>'; return; }
+    if (!Sh.Machine.ready) Sh.Machine.load();
+    const hijos = (d) => (Sh.children ? Sh.children(d) : []).filter((n) => !n.startsWith('.') && Sh.isDir(d + '/' + n));
+    const carpetas = hijos(Sh.HOME).map((n) => ({ n, ruta: Sh.HOME + '/' + n, cuantos: (Sh.children ? Sh.children(Sh.HOME + '/' + n) : []).filter((x) => !x.startsWith('.')).length }));
+    const recientes = (() => { try { return JSON.parse(localStorage.getItem('vs-recientes') || '[]'); } catch (e) { return []; } })().filter((r) => Sh.isDir(r));
+    main.innerHTML = `<div class="container vs-lanzador">
+      <div class="crumbs"><a href="#/">Inicio</a><span>/</span><a href="#/herramientas">Herramientas</a><span>/</span><span>VS Code</span></div>
+      <div class="vsl-cab"><span class="vsl-logo">🟦</span><div><h1>Visual Studio Code</h1><p class="muted">Réplica de VS Code con los temas e íconos del repositorio oficial (microsoft/vscode, licencia MIT) y el mismo editor (Monaco). Trabaja sobre el disco de la <a href="#/lab/terminal">terminal de práctica</a>: lo que guardas aquí lo ves con <code>cat</code> y <code>git status</code>.</p></div></div>
+      <div class="vsl-grid">
+        <section class="card"><h2>Inicio</h2>
+          <button class="btn btn-primary" data-abrir="${esc(Sh.HOME)}">📂 Abrir la carpeta personal (~)</button>
+          <p class="small muted">También desde la terminal: <code>code .</code> abre la carpeta actual y <code>code archivo.py</code> un archivo.</p>
+          ${recientes.length ? `<h3>Recientes</h3><ul class="vsl-lista">${recientes.slice(0, 6).map((r) => `<li><a href="#/vscode" data-abrir="${esc(r)}">${esc(r.split('/').pop() || '~')}</a> <span class="small muted">${esc(Sh.display(r))}</span></li>`).join('')}</ul>` : ''}
+        </section>
+        <section class="card"><h2>Carpetas en ~</h2>${carpetas.length ? `<ul class="vsl-lista">${carpetas.map((c) => `<li><a href="#/vscode" data-abrir="${esc(c.ruta)}">📁 ${esc(c.n)}</a> <span class="small muted">${c.cuantos} elemento${c.cuantos === 1 ? '' : 's'}</span></li>`).join('')}</ul>` : '<p class="muted">Todavía no hay carpetas. Crea una en la terminal con <code>mkdir proyecto</code> o abre la carpeta personal.</p>'}</section>
+        <section class="card"><h2>Para practicar</h2><ul class="vsl-lista">
+          <li><a href="#/m/local">Desde tu computadora</a>: el entorno local paso a paso (VS Code, Python, Git).</li>
+          <li><a href="#/l/fundamentos-git">Git</a>: commits, ramas y el panel de control de código fuente.</li>
+          <li><a href="#/m/dbt">dbt</a>: proyectos con modelos y tests para abrir en el editor.</li></ul></section>
+      </div>
+    </div>`;
+    $('.vs-lanzador', main).addEventListener('click', (e) => {
+      const a = e.target.closest('[data-abrir]'); if (!a) return; e.preventDefault();
+      const r = a.dataset.abrir;
+      try { const lst = [r, ...JSON.parse(localStorage.getItem('vs-recientes') || '[]').filter((x) => x !== r)].slice(0, 8); localStorage.setItem('vs-recientes', JSON.stringify(lst)); } catch (err) { /* sin almacenamiento */ }
+      abrirCode(r, null);
+    });
+  }
+
   function viewLabTerminal() {
     main.innerHTML = `<div class="container wide">
       <h1 style="margin:0 0 4px">⌨️ Laboratorio de terminal</h1>
@@ -3263,6 +3334,8 @@
     if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
     if (parts[0] === 'trabajo') return { name: 'trabajo', params };
     if (parts[0] === 'powerbi') return { name: 'powerbi' };
+    if (parts[0] === 'herramientas') return { name: 'herramientas' };
+    if (parts[0] === 'vscode') return { name: 'vscode' };
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
     if (parts[0] === 'azure') return { name: 'azure', sub: parts.slice(1) };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
@@ -3274,7 +3347,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3295,6 +3368,8 @@
     else if (r.name === 'notas') window.Notas.vista(main, { toast, LESSONS, params: r.params });
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
+    else if (r.name === 'herramientas') viewHerramientas();
+    else if (r.name === 'vscode') viewVSCode();
     else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });
     else if (r.name === 'databricks' && window.Databricks) window.Databricks.vista(main, { Store, toast, ensureSql }, r.sub);
     else if (r.name === 'azure' && window.AzurePortal) window.AzurePortal.vista(main, { Store, toast, ensureSql }, r.sub);

@@ -538,3 +538,56 @@ body.vscode-abierto { overflow: hidden; }
 .vscode .git-M { color: var(--vs-gitM, #e2c08d); } .vscode .git-U { color: var(--vs-gitU, #73c991); } .vscode .git-D { color: var(--vs-gitD, #c74e39); } .vscode .git-C { color: var(--vs-gitC, #e4676b); }
 .vscode .vs-panel-prob, .vscode .vs-panel-salida { background: var(--vs-panel, var(--vs-bg)); color: var(--vs-text); }
 .vscode.vs-claro .vs-panel-cab button, .vscode.vs-claro .vs-ptab { color: var(--vs-text); }
+
+/* ---------- Herramientas de práctica ---------- */
+.herr-home { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.herr-tile { display: flex; flex-direction: column; gap: 6px; padding: 18px 18px 16px; border-radius: var(--radius); border: 1px solid var(--line); background: linear-gradient(160deg, color-mix(in srgb, var(--brand) 9%, var(--surface)), var(--surface) 60%); box-shadow: var(--shadow); color: var(--ink); transition: transform .12s, box-shadow .12s, border-color .12s; }
+.herr-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); border-color: var(--brand); text-decoration: none; }
+.herr-tile .ht-ico { font-size: 28px; line-height: 1; }
+.herr-tile b { font-size: 16.5px; }
+.herr-tile small { color: var(--ink-3); font-size: 13px; line-height: 1.45; }
+.labs-grid-chica { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.labs-grid-chica .lab-tile { padding: 12px 14px; }
+.herramientas h1 { margin-bottom: 4px; }
+.herr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+.herr-grid-chica { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.herr-card { display: flex; flex-direction: column; gap: 8px; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.herr-card p { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.herr-card .hc-cab { display: flex; gap: 12px; align-items: center; color: var(--ink); }
+.herr-card .hc-cab:hover { text-decoration: none; }
+.herr-card .hc-cab b { display: block; font-size: 17px; }
+.herr-card .hc-cab small { color: var(--ink-3); font-size: 12.5px; }
+.herr-card .hc-ico { flex: none; width: 44px; height: 44px; display: grid; place-items: center; font-size: 24px; border-radius: 12px; background: color-mix(in srgb, var(--brand) 12%, var(--surface)); }
+.herr-sim .hc-ico, .herr-labs .hc-ico { width: 36px; height: 36px; font-size: 19px; }
+.herr-card .hc-puedes { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+.herr-card .hc-puedes li { margin: 3px 0; }
+.herr-card .hc-usos { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.herr-card .hc-usos .chip { font-size: 12px; padding: 2px 10px; color: var(--ink-2); }
+.herr-card .hc-abrir { align-self: flex-start; margin-top: 4px; }
+.side-sub { margin: 8px 12px 2px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); font-weight: 700; }
+.mod-herr { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 8px; }
+.chip-herr { text-decoration: none; color: var(--ink); }
+.chip-herr:hover { border-color: var(--brand); text-decoration: none; }
+.badge-herr { background: color-mix(in srgb, #0ea5e9 14%, var(--surface)); color: var(--ink); }
+/* lanzador de VS Code */
+.vs-lanzador .vsl-cab { display: flex; gap: 16px; align-items: flex-start; margin: 6px 0 16px; }
+.vs-lanzador .vsl-cab h1 { margin: 0 0 4px; }
+.vs-lanzador .vsl-cab p { margin: 0; max-width: 760px; }
+.vs-lanzador .vsl-logo { font-size: 44px; line-height: 1; }
+.vs-lanzador .vsl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; align-items: start; }
+.vs-lanzador .card { padding: 18px; }
+.vs-lanzador h2 { font-size: 17px; margin: 0 0 10px; }
+.vs-lanzador h3 { font-size: 14px; margin: 14px 0 6px; color: var(--ink-2); }
+.vsl-lista { list-style: none; padding: 0; margin: 0; }
+.vsl-lista li { padding: 5px 0; border-bottom: 1px solid var(--line); }
+.vsl-lista li:last-child { border-bottom: 0; }
+@media (max-width: 600px) { .herr-grid, .herr-grid-chica { grid-template-columns: 1fr; } .vs-lanzador .vsl-logo { font-size: 34px; } }
+@media (max-width: 600px) {
+  .herr-home { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .herr-tile { padding: 12px; gap: 4px; }
+  .herr-tile .ht-ico { font-size: 22px; }
+  .herr-tile b { font-size: 14.5px; }
+  .herr-tile small { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; }
+  .labs-grid-chica { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .labs-grid-chica .lab-tile small { display: none; }
+}
