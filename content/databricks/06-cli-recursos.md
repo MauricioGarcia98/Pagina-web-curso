@@ -5,6 +5,10 @@ duracion: 35
 resumen: Los comandos que usarás a diario para operar un workspace desde la terminal.
 ---
 
+:::tip Practícalo en el navegador
+Prueba `databricks fs cp ventas.csv dbfs:/Volumes/main/default/raw/` en la terminal y después léelo en el [editor SQL de práctica](#/databricks/sql) con `SELECT * FROM read_files('/Volumes/main/default/raw/ventas.csv', format => 'csv', header => true)` (antes crea el volumen con `CREATE VOLUME main.default.raw`).
+:::
+
 Una vez autenticado, la CLI organiza los comandos por **tipo de recurso**, con el mismo patrón que `az` o `aws`: `databricks <grupo> <acción> [argumentos]`.
 
 | Grupo | Administra | Ejemplos de acciones |

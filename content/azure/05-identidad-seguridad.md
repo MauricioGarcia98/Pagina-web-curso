@@ -5,6 +5,10 @@ duracion: 35
 resumen: Usuarios, service principals, managed identities, roles RBAC, alcance y secretos con Key Vault.
 ---
 
+:::tip Practícalo en el navegador
+En el [portal de práctica](#/azure/crear/kv) crea un Key Vault con Azure RBAC: aunque eres Owner, **Secrets** te va a decir *The operation is not allowed by RBAC* hasta que te asignes **Key Vault Secrets Officer** en Access control (IAM).
+:::
+
 ## Las dos preguntas de la seguridad
 
 Toda la seguridad en la nube se reduce a dos preguntas:

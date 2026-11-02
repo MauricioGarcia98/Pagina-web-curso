@@ -5,6 +5,10 @@ duracion: 40
 resumen: Proyectos como código con databricks.yml, targets dev/prod, validate/deploy/run y despliegue con GitHub Actions.
 ---
 
+:::tip Practícalo en el navegador
+En cualquier [job de práctica](#/databricks/jobs) el botón **View as code** muestra el YAML del bundle y el JSON de la API de ese job.
+:::
+
 :::nota Nombre nuevo
 En marzo de 2026, Databricks renombró **Databricks Asset Bundles** como **Declarative Automation Bundles**. El archivo `databricks.yml` y los comandos `databricks bundle …` no cambiaron, y en documentación, foros y entrevistas vas a seguir viendo el nombre viejo y la sigla DABs.
 :::

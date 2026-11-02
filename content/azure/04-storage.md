@@ -5,6 +5,10 @@ duracion: 40
 resumen: Crear el data lake, contenedores, subir y listar archivos, autenticación con --auth-mode login y rutas abfss://.
 ---
 
+:::tip Practícalo en el navegador
+Crea una cuenta con el [asistente de Storage](#/azure/crear/storage) (prueba un nombre con mayúsculas para ver la validación), sube un blob a un contenedor, genera una SAS y agrega una regla de ciclo de vida que pase los blobs a Cool.
+:::
+
 ## El data lake de Azure
 
 En AWS el lago es S3 y en Google Cloud es Cloud Storage. En Azure es **Azure Data Lake Storage Gen2 (ADLS Gen2)**: una **Storage Account** (cuenta de almacenamiento) con una opción activada, el **espacio de nombres jerárquico** (*hierarchical namespace*, HNS). Esa opción es la que la convierte en un data lake de verdad:

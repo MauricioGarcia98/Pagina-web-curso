@@ -1467,6 +1467,8 @@
     ['#/lab/dbt', '🔧', 'dbt', 'lab-dbt'], ['#/lab/airflow', '🌬️', 'Airflow', 'lab-airflow'],
     ['#/modelado', '📐', 'Modelado de datos', 'modelado'], ['#/generador', '🏭', 'Generador de datos', 'generador'],
     ['#/powerbi', '📊', 'Power BI (práctica)', 'powerbi'],
+    ['#/databricks', '🧱', 'Databricks (práctica)', 'databricks'],
+    ['#/azure', '☁️', 'Portal de Azure (práctica)', 'azure'],
     ['#/trabajo', '💼', 'Tu primer trabajo (simulación)', 'trabajo'],
   ];
   function renderSidebar(route) {
@@ -1564,6 +1566,8 @@
     ['#/lab/dbt', '🔧', 'dbt', 'modelos, ref() y Jinja compilado a SQL'],
     ['#/lab/airflow', '🌬️', 'Airflow', 'DAGs, operadores y dependencias'],
     ['#/powerbi', '📊', 'Power BI', 'importa cualquier CSV, Excel o base, modela y arma un informe'],
+    ['#/databricks', '🧱', 'Databricks', 'notebooks, Unity Catalog, Delta, SQL, clusters, jobs y pipelines'],
+    ['#/azure', '☁️', 'Portal de Azure', 'grupos de recursos, storage, Key Vault, Databricks y Cloud Shell'],
     ['#/trabajo', '💼', 'Tu primer trabajo', 'una semana simulada: tickets, PR con revisión y una guardia'],
     ['#/revisar-repo', '🔎', 'Revisar mi proyecto', 'tu repositorio de GitHub evaluado como en una entrevista'],
   ];
@@ -2343,6 +2347,16 @@
       const vis = (pb.paginas || []).reduce((a, p) => a + (p.visuales || []).length, 0);
       labs.push(tarjeta('#/powerbi', '📊 Power BI (práctica)', `${Object.keys(pb.tablas).length} tablas · ${(pb.rels || []).length} relaciones · ${(pb.medidas || []).length} medidas · ${vis} objetos visuales${pb.publicado ? ' · publicado' : ''}`, null));
     } else labs.push(tarjeta('#/powerbi', '📊 Power BI (práctica)', 'Todavía no armaste un informe', null));
+    const W = Store.data.dbxWs, U = Store.data.dbxUC;
+    if (W || U) {
+      const nbs = W ? Object.values(W.items || {}).filter((it) => it.tipo === 'notebook').length : 0;
+      const tablas = U ? Object.values(U.catalogs || {}).reduce((acc, c) => acc + Object.values(c.schemas || {}).reduce((x, sch) => x + Object.keys(sch.tables || {}).length, 0), 0) : 0;
+      const cs = window.CloudSim ? window.CloudSim.dbx() : { jobs: {} };
+      labs.push(tarjeta('#/databricks', '🧱 Databricks (práctica)', `${nbs} notebooks · ${tablas} tablas en Unity Catalog · ${Object.keys(cs.jobs || {}).length} jobs · ${(U && U.historial ? U.historial.length : 0)} consultas`, null));
+    } else labs.push(tarjeta('#/databricks', '🧱 Databricks (práctica)', 'Todavía no abriste el workspace', null));
+    const azs = window.CloudSim && window.Shell && window.Shell.Machine && window.Shell.Machine.cloud && window.Shell.Machine.cloud.az;
+    if (azs) { const n = ['storage', 'kv', 'dbw', 'adf', 'eh'].reduce((acc, k) => acc + Object.keys(azs[k] || {}).length, 0); labs.push(tarjeta('#/azure', '☁️ Portal de Azure (práctica)', `${Object.keys(azs.groups || {}).length} grupos de recursos · ${n} recursos · ${(azs.roles || []).length} roles asignados`, null)); }
+    else labs.push(tarjeta('#/azure', '☁️ Portal de Azure (práctica)', 'Todavía no creaste recursos', null));
     const tb = Store.data.trabajo;
     const etapas = tb ? Math.min(4, tb.paso || 0) : 0;
     labs.push(tarjeta('#/trabajo', '💼 Tu primer trabajo', etapas >= 4 ? 'Semana completa ✓' : `${etapas}/4 etapas de la semana`, etapas * 25));
@@ -3211,6 +3225,8 @@
     if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
     if (parts[0] === 'trabajo') return { name: 'trabajo', params };
     if (parts[0] === 'powerbi') return { name: 'powerbi' };
+    if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
+    if (parts[0] === 'azure') return { name: 'azure', sub: parts.slice(1) };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -3220,7 +3236,7 @@
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3242,6 +3258,8 @@
     else if (r.name === 'generador') window.Generador.vista(main, { toast, params: r.params });
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
     else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });
+    else if (r.name === 'databricks' && window.Databricks) window.Databricks.vista(main, { Store, toast, ensureSql }, r.sub);
+    else if (r.name === 'azure' && window.AzurePortal) window.AzurePortal.vista(main, { Store, toast, ensureSql }, r.sub);
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();

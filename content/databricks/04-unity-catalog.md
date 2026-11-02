@@ -5,6 +5,10 @@ duracion: 25
 resumen: Jerarquía de objetos, GRANT/REVOKE, grupos, external locations, volúmenes y tablas de sistema.
 ---
 
+:::tip Practícalo en el navegador
+En el [Catalog Explorer de práctica](#/databricks/catalogo) crea un catálogo, un esquema y un volumen, sube un archivo, dale `GRANT SELECT` a un grupo y mira el linaje que se arma cuando creas una tabla a partir de otra. Las tablas del sistema están en `system` (por ejemplo `system.query.history`).
+:::
+
 ## Por qué existe Unity Catalog
 
 Antes de Unity Catalog, cada workspace de Databricks tenía su propio catálogo (el *Hive metastore*) y los permisos se manejaban por separado en cada uno, muchas veces con llaves de almacenamiento compartidas. En una empresa con 10 workspaces, nadie podía responder con certeza "¿quién puede ver la tabla de salarios?".

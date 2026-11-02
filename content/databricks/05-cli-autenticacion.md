@@ -5,6 +5,10 @@ duracion: 25
 resumen: Instalar la CLI, autenticarse con OAuth o token, perfiles en .databrickscfg y comandos de diagnóstico.
 ---
 
+:::tip Practícalo en el navegador
+La CLI `databricks` de la terminal y el [workspace de práctica](#/databricks) comparten el estado: un cluster o un job que creas en un lado aparece en el otro.
+:::
+
 La **Databricks CLI** controla tu workspace desde la terminal: archivos, clústeres, jobs, secretos, catálogos y, sobre todo, el despliegue con **Declarative Automation Bundles** (antes *Asset Bundles*). La CLI actual es un programa escrito en Go (versión 0.205 en adelante, hoy en la línea 1.x) que reemplazó a la antigua `databricks-cli` de Python: si ves instrucciones con `pip install databricks-cli`, son de la versión vieja.
 
 ## ¿Para qué una CLI si existe la interfaz web?

@@ -8,6 +8,10 @@ prerrequisitos: cert-databricks-plataforma-computo | databricks-delta-sql | spar
 autoevaluacion: ¿Sabes cuándo conviene Auto Loader y cuándo COPY INTO? | ¿Sabes qué pasa con una columna nueva en cada modo de evolución de esquema? | ¿Sabes para qué sirve la columna _rescued_data? | ¿Sabes qué hace trigger(availableNow=True)? | ¿Sabes cuándo usar un conector gestionado de Lakeflow Connect?
 ---
 
+:::tip Practícalo en el navegador
+Practica `COPY INTO` y `read_files` en el [editor SQL de práctica](#/databricks/sql): `COPY INTO` es idempotente y la segunda vez carga 0 filas. Las tablas de streaming de un [pipeline](#/databricks/pipelines/nuevo) solo procesan los archivos nuevos.
+:::
+
 :::escenario
 Rápido, la app de delivery, tiene tres fuentes: (1) el sistema de pedidos deja cada minuto archivos JSON en un bucket; (2) el CRM es Salesforce; (3) la facturación vive en una base SQL Server. El equipo quiere todo en tablas Delta bronze, **sin reprocesar** lo ya cargado, sin perder datos cuando cambie el formato, y con el menor código posible. Cada fuente pide una herramienta distinta, y saber elegir es exactamente lo que evalúa este dominio.
 :::

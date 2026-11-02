@@ -5,6 +5,10 @@ duracion: 25
 resumen: Workspace, cómputo (clusters, SQL warehouses, serverless), Unity Catalog, notebooks, jobs y costos (DBUs).
 ---
 
+:::tip Practícalo en el navegador
+Abre el [Databricks de práctica](#/databricks): es una copia del workspace que corre en tu navegador. Recorre el menú (Workspace, Catalog, Jobs & Pipelines, Compute, SQL Editor) y ejecuta el notebook *Introducción a Databricks* con **Shift + Enter**.
+:::
+
 **Databricks** es una plataforma de datos en la nube (Azure, AWS y GCP) creada por los autores de Spark. Reúne en un solo lugar el **lakehouse**: almacenamiento barato en el data lake + tablas Delta confiables + Spark + SQL + orquestación + gobierno + machine learning.
 
 ## El problema que resolvió: lago vs. warehouse

@@ -5,6 +5,10 @@ duracion: 50
 resumen: Qué es un notebook y dónde corre (serverless, clúster, SQL warehouse), celdas multilenguaje y magic commands, _sqldf, display, widgets y marcadores de parámetro en SQL, dbutils.fs, secretos, %run frente a dbutils.notebook.run y task values entre tareas de un job.
 ---
 
+:::tip Practícalo en el navegador
+En un [notebook de práctica](#/databricks/workspace) puedes usar `%sql`, `%md`, `%fs ls /Volumes/...`, `%run ./otro_notebook`, `dbutils.widgets.text(...)`, `dbutils.fs.put(...)` y `dbutils.secrets.get(...)` (la salida muestra `[REDACTED]`).
+:::
+
 ## Qué es un notebook
 
 Un **notebook** es un documento interactivo formado por **celdas**. Cada celda tiene código (Python, SQL, Scala o R) o texto (Markdown), y se ejecuta por separado mostrando su resultado justo debajo: una tabla, un gráfico, un mensaje. Todas las celdas comparten el mismo **contexto**: una variable creada en la celda 1 existe en la celda 5.

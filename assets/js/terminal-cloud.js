@@ -1179,10 +1179,23 @@
         break;
       }
       case 'secrets': {
-        if (p[1] === 'create-scope') { if (!p[2]) return fail('Error: accepts 1 arg(s), received 0'); if (s.scopes[p[2]]) return fail(`Error: Scope ${p[2]} already exists!`); s.scopes[p[2]] = { secrets: {}, acls: {} }; save(); return ok(''); }
-        if (p[1] === 'list-scopes') return asText(Object.keys(s.scopes).map((k) => ({ Scope: k, 'Backend Type': 'DATABRICKS' })), ['Scope', 'Backend Type']);
+        if (p[1] === 'create-scope') { if (!p[2]) return fail('Error: accepts 1 arg(s), received 0'); if (s.scopes[p[2]]) return fail(`Error: Scope ${p[2]} already exists!`);
+          if (String(A.get('--scope-backend-type') || '').toUpperCase() === 'AZURE_KEYVAULT') {
+            const rid = A.get('--resource-id'), dns = A.get('--dns-name');
+            if (!rid || !dns || rid === true || dns === true) return fail('Error: un scope de Azure Key Vault necesita --resource-id y --dns-name');
+            const m = /^https:\/\/([a-zA-Z0-9-]{3,24})\.vault\.azure\.net\/?$/.exec(dns); if (!m || !(az().kv || {})[m[1]]) return fail(`Error: no se encontró el key vault de ${dns} (créalo con az keyvault create o en el portal)`);
+            s.scopes[p[2]] = { backend: 'AZURE_KEYVAULT', kv: m[1], secrets: {}, acls: {} }; save(); return ok('');
+          }
+          s.scopes[p[2]] = { secrets: {}, acls: {} }; save(); return ok(''); }
+        if (p[1] === 'list-scopes') return asText(Object.entries(s.scopes).map(([k, x]) => ({ Scope: k, 'Backend Type': x.backend === 'AZURE_KEYVAULT' ? 'AZURE_KEYVAULT' : 'DATABRICKS' })), ['Scope', 'Backend Type']);
         const sc = s.scopes[p[2]];
         if (!sc) return fail(`Error: Scope ${p[2]} does not exist!`);
+        if (sc.backend === 'AZURE_KEYVAULT') {
+          const kv = (az().kv || {})[sc.kv] || { secrets: {} };
+          if (p[1] === 'list-secrets') return asText(Object.keys(kv.secrets).map((k) => ({ Key: k, 'Last Updated Timestamp': Date.now() })), ['Key', 'Last Updated Timestamp']);
+          if (p[1] === 'put-secret' || p[1] === 'delete-secret') return fail(`Error: ${p[1]} is not supported for Azure Key Vault-backed scopes: cambia los secretos en el Key Vault (portal de Azure o az keyvault secret set).`);
+          if (p[1] === 'get-secret') return out({ key: p[3], value: btoa(unescape(encodeURIComponent(kv.secrets[p[3]] || ''))) });
+        }
         if (p[1] === 'put-secret') { if (!p[3]) return fail('Error: accepts 2 arg(s)'); sc.secrets[p[3]] = A.get('--string-value') || '***'; save(); return ok(A.get('--string-value') ? '' : col.dim('Please enter your secret value: ******** (simulado)')); }
         if (p[1] === 'list-secrets') return asText(Object.keys(sc.secrets).map((k) => ({ Key: k, 'Last Updated Timestamp': Date.now() })), ['Key', 'Last Updated Timestamp']);
         if (p[1] === 'get-secret') return out({ key: p[3], value: btoa(unescape(encodeURIComponent(sc.secrets[p[3]] || ''))) });
@@ -1228,15 +1241,19 @@
         if (p[1] === 'destroy') { if (s.bundle) delete s.bundle[name + ':' + t]; for (const [k, j] of Object.entries(s.jobs)) if (j.target === t && jobsIn.includes(j.bundleKey)) delete s.jobs[k]; save(); return ok(`The following resources will be deleted:\n${jobsIn.map((j) => '  delete job ' + j).join('\n')}\n\n${col.ok('Destroy complete!')}`); }
         break;
       }
-      case 'catalogs': if (p[1] === 'list') return asText(Object.keys(s.catalogs).map((c) => ({ Name: c, Type: c === 'system' ? 'SYSTEM_CATALOG' : 'MANAGED_CATALOG' })), ['Name', 'Type']); break;
-      case 'schemas': if (p[1] === 'list') { const c = s.catalogs[p[2]]; if (!c) return fail(`Error: Catalog '${p[2]}' does not exist.`); return asText(Object.keys(c).map((x) => ({ Name: x, 'Full Name': `${p[2]}.${x}` })), ['Name', 'Full Name']); } break;
-      case 'tables': if (p[1] === 'list') { const c = s.catalogs[p[2]] || {}; const t = c[p[3]]; if (!t) return fail(`Error: Schema '${p[2]}.${p[3]}' does not exist.`); return asText(t.map((x) => ({ Name: x, 'Full Name': `${p[2]}.${p[3]}.${x}`, Type: 'MANAGED' })), ['Name', 'Full Name', 'Type']); } break;
+      // si el workspace de práctica ya cargó Unity Catalog, la CLI muestra ese mismo catálogo
+      case 'catalogs': if (p[1] === 'list') { const A = ucPractica(); if (A) return asText(A.map((c) => ({ Name: c.nombre, Type: c.nombre === 'system' ? 'SYSTEM_CATALOG' : c.soloLectura ? 'DELTASHARING_CATALOG' : 'MANAGED_CATALOG' })), ['Name', 'Type']); return asText(Object.keys(s.catalogs).map((c) => ({ Name: c, Type: c === 'system' ? 'SYSTEM_CATALOG' : 'MANAGED_CATALOG' })), ['Name', 'Type']); } break;
+      case 'schemas': if (p[1] === 'list' && ucPractica()) { const c = ucPractica().find((x) => x.nombre === p[2]); if (!c) return fail(`Error: Catalog '${p[2]}' does not exist.`); return asText(c.schemas.filter((x) => !x.sistema).map((x) => ({ Name: x.nombre, 'Full Name': `${p[2]}.${x.nombre}` })), ['Name', 'Full Name']); }
+        if (p[1] === 'list') { const c = s.catalogs[p[2]]; if (!c) return fail(`Error: Catalog '${p[2]}' does not exist.`); return asText(Object.keys(c).map((x) => ({ Name: x, 'Full Name': `${p[2]}.${x}` })), ['Name', 'Full Name']); } break;
+      case 'tables': if (p[1] === 'list' && ucPractica()) { const c = ucPractica().find((x) => x.nombre === p[2]); const sc = c && c.schemas.find((x) => x.nombre === p[3]); if (!sc) return fail(`Error: Schema '${p[2]}.${p[3]}' does not exist.`); return asText(sc.tablas.map((x) => ({ Name: x.nombre, 'Full Name': `${p[2]}.${p[3]}.${x.nombre}`, 'Table Type': x.tipo || 'MANAGED' })), ['Name', 'Full Name', 'Table Type']); }
+        if (p[1] === 'list') { const c = s.catalogs[p[2]] || {}; const t = c[p[3]]; if (!t) return fail(`Error: Schema '${p[2]}.${p[3]}' does not exist.`); return asText(t.map((x) => ({ Name: x, 'Full Name': `${p[2]}.${p[3]}.${x}`, Type: 'MANAGED' })), ['Name', 'Full Name', 'Type']); } break;
       case 'warehouses': if (p[1] === 'list') return asText([{ ID: '1a2b3c4d5e6f7a8b', Name: 'Serverless Starter Warehouse', Size: 'Small', State: 'RUNNING' }], ['ID', 'Name', 'Size', 'State']); break;
       case 'repos': if (p[1] === 'create') return out({ id: Math.floor(Math.random() * 1e15), url: p[2], provider: p[3] || 'gitHub', path: `/Repos/alumno@academia.dev/${String(p[2] || '').split('/').pop().replace(/\.git$/, '')}`, branch: 'main' }); if (p[1] === 'list') return ok('ID  Path'); break;
       default: break;
     }
     return fail(`Error: unknown command "${p.slice(0, 2).join(' ')}" for "databricks" (o no está simulado en esta terminal)\nRun 'databricks --help' for usage.`);
   });
+  function ucPractica() { try { return window.DBSQL && window.DBSQL._db() ? window.DBSQL.arbol() : null; } catch (e) { return null; } }
   function hash(s) { let h = 0; for (const ch of String(s)) h = (Math.imul(31, h) + ch.charCodeAt(0)) | 0; return h; }
 
   window.CloudSim = { jmes, asTable, aws, gcp, az, dbx, args, output, fail, uid, now, save, st, s3path, gsPath, parseCsvLine, materialize };

@@ -8,6 +8,10 @@ prerrequisitos: cert-databricks-mapa-certificaciones | databricks-que-es-databri
 autoevaluacion: ¿Sabes dónde se procesan los datos en serverless y en cómputo clásico? | ¿Puedes elegir entre all-purpose, job cluster, serverless y SQL warehouse para un caso dado? | ¿Sabes qué no se puede hacer en modo Standard? | ¿Sabes consultar el gasto por producto en system.billing.usage? | ¿Sabes para qué sirve una política de clúster?
 ---
 
+:::tip Practícalo en el navegador
+Configura un cluster en el [formulario de compute de práctica](#/databricks/compute/nuevo): el resumen muestra cómo cambian los DBU por hora con Photon, autoescalado, el modo de acceso y la autoterminación (entre 10 y 10.000 minutos).
+:::
+
 :::escenario
 La factura de Databricks de la empresa de Valentina subió 40 % en dos meses. El gerente pregunta qué pasó. Al revisar, aparecen tres clústeres *all-purpose* encendidos todo el día que ejecutan jobs nocturnos, y un SQL warehouse clásico sin autoapagado. Entender **qué tipo de cómputo existe, cuánto cuesta cada uno y cuándo usarlo** es el primer dominio del examen y, en el trabajo, la forma más rápida de ahorrar dinero.
 :::

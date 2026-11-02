@@ -5,6 +5,10 @@ duracion: 55
 resumen: La arquitectura de referencia de un lakehouse en Azure, crear Databricks, Data Factory y Event Hubs desde la CLI, y llevar un proyecto dbt de tu terminal a Azure Databricks (profiles.yml, SQL warehouse, job con tarea dbt).
 ---
 
+:::tip Practícalo en el navegador
+Crea un [workspace de Azure Databricks](#/azure/crear/dbw) en el portal de práctica: vas a ver el grupo de recursos administrado que crea Azure y el botón **Launch Workspace**, que abre el Databricks de práctica.
+:::
+
 ## Arquitectura de referencia (lakehouse en Azure)
 
 ```text

@@ -7,6 +7,10 @@ objetivos: Escribir un script de aprovisionamiento con az que se pueda correr do
 autoevaluacion: ¿Sabes qué pasa en Azure si borras un recurso de tu archivo Bicep? | ¿Sabes qué hace set -euo pipefail? | ¿Sabes por qué OIDC es mejor que guardar un secreto en GitHub?
 ---
 
+:::tip Practícalo en el navegador
+Antes de crear cualquier recurso en el [portal de práctica](#/azure/crear), abre **Download a template for automation** en *Review + create*: ahí está la plantilla ARM, el Bicep y el comando `az` equivalente.
+:::
+
 :::escenario
 El entorno de desarrollo se armó a mano en el portal hace un año. Ahora hay que crear el de producción "igual", y nadie recuerda qué opciones se marcaron: qué redundancia tenía la cuenta de almacenamiento, qué etiquetas, qué permisos. Dos semanas después, producción tiene diferencias sutiles con desarrollo que causan errores que no se pueden reproducir. Esto es lo que evita la automatización.
 :::
