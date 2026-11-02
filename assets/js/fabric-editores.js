@@ -234,7 +234,7 @@
   // PySpark: el mini-Spark del curso (el mismo de Databricks). Las tablas de los lakehouses del workspace
   // se cargan como fabric.<lakehouse>.<tabla>; las que escribe saveAsTable vuelven al lakehouse.
   async function correrPython(c, nb, src, aviso) {
-    const D = window.Databricks && window.Databricks.Py;
+    const D = window.DBX && window.DBX.Py;
     if (!D) return { salidas: [{ tipo: 'error', v: 'El motor de Spark no está disponible.' }], ok: false };
     const lh = nb.lh && c.itemDe(c.wid, nb.lh);
     await D.preparar(aviso);
@@ -334,7 +334,7 @@
     m.querySelectorAll('[data-add]').forEach((b) => b.addEventListener('click', () => add(b.dataset.add)));
     m.querySelector('#nbAddC').addEventListener('click', () => add('code')); m.querySelector('#nbAddM').addEventListener('click', () => add('md'));
     m.querySelector('#nbLh').addEventListener('change', (e) => { it.lh = e.target.value || null; c.guardar(); re(); });
-    m.querySelector('#nbStop').addEventListener('click', () => { if (window.Databricks && window.Databricks.Py) window.Databricks.Py.limpiarEstado(); c.toast('Session stopped: las variables de Python se borraron'); });
+    m.querySelector('#nbStop').addEventListener('click', () => { if (window.DBX && window.DBX.Py) window.DBX.Py.limpiarEstado(); c.toast('Session stopped: las variables de Python se borraron'); });
     const insertar = (txt) => { const ult = it.celdas.filter((x) => x.tipo === 'code').pop(); if (ult && !ult.src.trim()) ult.src = txt; else it.celdas.push({ id: c.uid(), tipo: 'code', lang: 'pyspark', src: txt }); c.guardar(); re(); };
     m.querySelectorAll('[data-ins]').forEach((a) => a.addEventListener('click', () => insertar(`df = spark.sql("SELECT * FROM ${lh.nombre}.dbo.${a.dataset.ins} LIMIT 1000")\ndisplay(df)`)));
     m.querySelectorAll('[data-insf]').forEach((a) => a.addEventListener('click', () => insertar(`df = spark.read.format("csv").option("header", "true").load("Files/${a.dataset.insf}")\n# df now is a Spark DataFrame containing CSV data from "Files/${a.dataset.insf}".\ndisplay(df)`)));
