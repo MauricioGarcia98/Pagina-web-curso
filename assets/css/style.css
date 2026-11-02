@@ -1114,3 +1114,10 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .exp-mini { max-height: 260px; overflow: auto; margin-top: 6px; }
 /* un botón con el título de la lección puede ser más largo que la pantalla del celular: que el texto baje de línea */
 .btn-largo { white-space: normal; max-width: 100%; text-align: left; line-height: 1.35; }
+
+/* ejercicios DAX y Databricks SQL: qué se evalúa y cómo */
+.exercise > .dax-prueba { margin: 0 18px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); font-size: .92rem; }
+.exercise > .dax-prueba > summary { cursor: pointer; padding: 9px 12px; color: var(--ink-2); list-style-position: inside; }
+.exercise > .dax-prueba[open] > summary { border-bottom: 1px solid var(--line); }
+.exercise > .dax-prueba > :not(summary) { margin-left: 12px; margin-right: 12px; }
+.exercise > .dax-prueba pre { margin-bottom: 10px; }

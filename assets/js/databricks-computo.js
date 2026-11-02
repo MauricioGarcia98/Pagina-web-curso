@@ -531,13 +531,48 @@ AS SELECT fecha, canal, COUNT(*) AS pedidos
 FROM pedidos_silver
 GROUP BY fecha, canal;
 `;
+  // AUTO CDC … INTO (y el nombre anterior, APPLY CHANGES INTO), según la referencia de Lakeflow pipelines:
+  // CREATE FLOW f AS AUTO CDC [ONCE] INTO destino FROM fuente KEYS (…) [IGNORE NULL UPDATES]
+  // [APPLY AS DELETE WHEN …] [APPLY AS TRUNCATE WHEN …] SEQUENCE BY … [COLUMNS …] [STORED AS SCD TYPE 1|2] [TRACK HISTORY ON …]
+  function parsearCdc(t) {
+    const m = /^(?:CREATE FLOW\s+(\w+)\s+AS\s+)?(?:AUTO CDC(\s+ONCE)?|APPLY CHANGES)\s+INTO\s+(?:LIVE\.)?([\w.`]+)\s+FROM\s+([\s\S]+?)\s+KEYS\s*\(([^)]*)\)\s*([\s\S]*)$/i.exec(t);
+    if (!m) return null;
+    const lista = (x) => x.split(',').map((y) => y.trim().replace(/`/g, '').toLowerCase()).filter(Boolean);
+    const sel = (x) => { x = (x || '').trim(); if (!x || x === '*') return { todas: true, menos: [] }; const ex = /^\*\s*EXCEPT\s*\(([^)]*)\)$/i.exec(x); if (ex) return { todas: true, menos: lista(ex[1]) }; return { todas: false, cols: lista(x.replace(/^\(|\)$/g, '')) }; };
+    const C = { flujo: m[1] || null, once: !!m[2], destino: m[3].replace(/`/g, '').split('.').pop().toLowerCase(), fuente: m[4].trim(), keys: lista(m[5]), ignorarNulos: false, del: null, trunc: null, seq: null, columnas: sel('*'), scd: 1, historia: sel('*') };
+    const KW = /\b(IGNORE NULL UPDATES(?:\s+ON\s+(?:\*\s*EXCEPT\s*\([^)]*\)|\([^)]*\)|\*))?|APPLY AS DELETE WHEN|APPLY AS TRUNCATE WHEN|SEQUENCE BY|COLUMNS(?!\s+TO\b)|STORED AS|TRACK HISTORY ON)\b/gi;
+    const marcas = [...m[6].matchAll(KW)];
+    if (m[6].trim() && (!marcas.length || marcas[0].index > 0 && m[6].slice(0, marcas[0].index).trim())) throw new Error(`AUTO CDC: no entiendo "${m[6].slice(0, marcas.length ? marcas[0].index : 60).trim()}". Después de KEYS (…) van IGNORE NULL UPDATES, APPLY AS DELETE WHEN, APPLY AS TRUNCATE WHEN, SEQUENCE BY, COLUMNS, STORED AS y TRACK HISTORY ON.`);
+    marcas.forEach((mk, i) => {
+      const v = m[6].slice(mk.index + mk[0].length, i + 1 < marcas.length ? marcas[i + 1].index : undefined).trim();
+      const k = mk[0].toUpperCase().replace(/\s+/g, ' ');
+      if (k.startsWith('IGNORE NULL UPDATES')) C.ignorarNulos = true;
+      else if (k === 'APPLY AS DELETE WHEN') C.del = v;
+      else if (k === 'APPLY AS TRUNCATE WHEN') C.trunc = v;
+      else if (k === 'SEQUENCE BY') C.seq = v;
+      else if (k === 'COLUMNS') C.columnas = sel(v);
+      else if (k === 'STORED AS') { const x = /^SCD\s+TYPE\s+([12])$/i.exec(v); if (!x) throw new Error(`STORED AS ${v}: en esta práctica se simulan SCD TYPE 1 y SCD TYPE 2.`); C.scd = Number(x[1]); }
+      else if (k === 'TRACK HISTORY ON') C.historia = sel(v);
+    });
+    if (!C.keys.length) throw new Error('AUTO CDC: KEYS es obligatorio (las columnas que identifican cada fila).');
+    if (!C.seq) throw new Error('AUTO CDC: SEQUENCE BY es obligatorio (la columna que ordena los cambios, para resolver los que llegan desordenados).');
+    if (C.trunc && C.scd === 2) throw new Error('APPLY AS TRUNCATE WHEN solo se admite con SCD TYPE 1 (SCD TYPE 2 no admite TRUNCATE).');
+    if (!/^STREAM\s*\(|^STREAM\s+/i.test(C.fuente)) throw new Error(`AUTO CDC lee de una fuente de streaming: escribe FROM STREAM(${C.fuente.replace(/^LIVE\./i, '')}).`);
+    if (/WHEN/i.test(C.fuente)) throw new Error('AUTO CDC: falta KEYS (…) después de FROM.');
+    return C;
+  }
   function parsearPipeline(src) {
     const sts = SQLX().sentencias(src);
-    const ds = [];
+    const ds = []; const cdcs = [];
     for (const st of sts) {
       const t = st.texto.replace(/\s+/g, ' ').trim();
+      const cdc = /^(CREATE FLOW|AUTO CDC|APPLY CHANGES)\b/i.test(t) ? parsearCdc(t) : null;
+      if (cdc) { cdcs.push(cdc); continue; }
+      // destino de un flujo: CREATE OR REFRESH STREAMING TABLE nombre [(esquema)] [COMMENT …] (sin AS)
+      const dec = /\bAS\s+(SELECT|WITH|FROM|TABLE)\b/i.test(t) ? null : /^CREATE (?:OR REFRESH )?STREAMING (?:LIVE )?TABLE\s+(?:IF NOT EXISTS\s+)?([\w.`]+)\s*(\(.*\))?\s*(COMMENT '((?:[^'\\]|\\.)*)')?\s*$/i.exec(t);
+      if (dec) { ds.push({ nombre: dec[1].replace(/`/g, '').split('.').pop().toLowerCase(), tipo: 'STREAMING_TABLE', cons: [], comment: dec[4] || null, cuerpo: '', declarada: true }); continue; }
       const m = /^CREATE (?:OR REFRESH |OR REPLACE )?(STREAMING TABLE|STREAMING LIVE TABLE|MATERIALIZED VIEW|LIVE TABLE|TEMPORARY VIEW|TEMPORARY LIVE VIEW|VIEW)\s+(?:IF NOT EXISTS\s+)?([\w.`]+)\s*(\(.*?\))?\s*((?:COMMENT '(?:[^'\\]|\\.)*'\s*|PARTITIONED BY \([^)]*\)\s*|CLUSTER BY \([^)]*\)\s*|TBLPROPERTIES \([^)]*\)\s*)*)AS\s+([\s\S]+)$/i.exec(t);
-      if (!m) { if (/^(APPLY CHANGES|AUTO CDC|CREATE FLOW)/i.test(t)) throw new Error(`En esta práctica no está simulado: ${t.slice(0, 60)}… (AUTO CDC / APPLY CHANGES).`); throw new Error(`No reconozco esta sentencia del pipeline:\n${t.slice(0, 160)}\nUsa CREATE OR REFRESH STREAMING TABLE … AS SELECT … o CREATE OR REFRESH MATERIALIZED VIEW … AS SELECT …`); }
+      if (!m) { if (/^(APPLY CHANGES|AUTO CDC|CREATE FLOW)/i.test(t)) throw new Error(`No entiendo este flujo:\n${t.slice(0, 160)}\nLa forma es: CREATE FLOW nombre AS AUTO CDC INTO destino FROM STREAM(fuente) KEYS (id) SEQUENCE BY columna [STORED AS SCD TYPE 2]`); throw new Error(`No reconozco esta sentencia del pipeline:\n${t.slice(0, 160)}\nUsa CREATE OR REFRESH STREAMING TABLE … AS SELECT …, CREATE OR REFRESH MATERIALIZED VIEW … AS SELECT … o un flujo AUTO CDC.`); }
       const tipo = /STREAMING/i.test(m[1]) ? 'STREAMING_TABLE' : /TEMPORARY|^VIEW$/i.test(m[1]) ? 'VIEW' : 'MATERIALIZED_VIEW';
       const nombre = m[2].replace(/`/g, '').split('.').pop().toLowerCase();
       const cons = []; const dentro = (m[3] || '').slice(1, -1);
@@ -545,17 +580,84 @@ GROUP BY fecha, canal;
       const comment = (/COMMENT '((?:[^'\\]|\\.)*)'/i.exec(m[4] || '') || [])[1] || null;
       ds.push({ nombre, tipo, cons, comment, cuerpo: m[5] });
     }
+    for (const c of cdcs) {
+      const d = ds.find((x) => x.nombre === c.destino);
+      if (!d || !d.declarada) throw new Error(`El flujo AUTO CDC escribe en ${c.destino}, pero esa tabla no está declarada (o tiene su propio AS SELECT). Declárala antes: CREATE OR REFRESH STREAMING TABLE ${c.destino};`);
+      if (d.cdc) throw new Error(`En esta práctica cada tabla destino recibe un solo flujo AUTO CDC (${c.destino} tiene dos).`);
+      d.cdc = c; d.cuerpo = `SELECT * FROM ${c.fuente}`;
+    }
+    for (const d of ds) if (d.declarada && !d.cdc) throw new Error(`La tabla de streaming ${d.nombre} está declarada pero ningún flujo escribe en ella. Agrega CREATE FLOW … AS AUTO CDC INTO ${d.nombre} … o defínela con AS SELECT.`);
     if (!ds.length) throw new Error('El pipeline no define ningún dataset.');
     const nombres = new Set(ds.map((d) => d.nombre));
     for (const d of ds) {
       d.deps = [...new Set([...d.cuerpo.matchAll(/\b(?:FROM|JOIN)\s+(?:STREAM\s*\(\s*)?(?:LIVE\.)?`?(\w+)`?(?!\s*\.)/gi)].map((x) => x[1].toLowerCase()).filter((n) => nombres.has(n) && n !== d.nombre))];
       d.streamDe = /\bSTREAM\s*\(/i.test(d.cuerpo) || /\bSTREAM\s+read_files/i.test(d.cuerpo);
-      if (d.tipo === 'STREAMING_TABLE' && !d.streamDe) throw new Error(`La tabla de streaming ${d.nombre} tiene que leer de una fuente de streaming: usa FROM STREAM(tabla) o FROM STREAM read_files(…).`);
+      if (d.tipo === 'STREAMING_TABLE' && !d.streamDe && !d.cdc) throw new Error(`La tabla de streaming ${d.nombre} tiene que leer de una fuente de streaming: usa FROM STREAM(tabla) o FROM STREAM read_files(…).`);
     }
     // orden topológico
     const orden = []; const hecho = new Set(); const pend = ds.slice();
     while (pend.length) { const i = pend.findIndex((d) => d.deps.every((x) => hecho.has(x))); if (i < 0) throw new Error('El pipeline tiene un ciclo de dependencias: ' + pend.map((d) => d.nombre).join(', ')); const [d] = pend.splice(i, 1); hecho.add(d.nombre); orden.push(d); }
     return orden;
+  }
+
+  // aplica los cambios de una fuente CDC al destino (SCD tipo 1: el último valor; tipo 2: historial con
+  // __START_AT / __END_AT). Los eventos se ordenan por SEQUENCE BY, así los que llegan desordenados se
+  // resuelven igual que en Databricks. En la práctica se recalcula desde todos los eventos de la fuente,
+  // que da el mismo resultado que procesar solo los nuevos.
+  async function aplicarCdc(d, F, traducir, full, validar, pid, P, ev) {
+    const C = d.cdc;
+    const base = traducir(`SELECT * FROM ${C.fuente}`);
+    const sql = `SELECT src.*, (${C.seq}) AS __cdc_seq, ${C.del ? `CASE WHEN ${C.del} THEN 1 ELSE 0 END` : '0'} AS __cdc_del, ${C.trunc ? `CASE WHEN ${C.trunc} THEN 1 ELSE 0 END` : '0'} AS __cdc_trunc FROM (${base}) AS src`;
+    const r = (await SQLX().ejecutar(sql, { origen: 'Pipeline', limite: 1e7 }))[0];
+    if (!r.ok) throw new Error(`Flujo AUTO CDC hacia ${d.nombre}: ${r.error}`);
+    const n = r.cols.length - 3, colsFuente = r.cols.slice(0, n).map((c) => c.toLowerCase());
+    for (const k of C.keys) if (!colsFuente.includes(k)) throw new Error(`[UNRESOLVED_COLUMN] KEYS (${k}): la fuente no tiene esa columna. Columnas: ${colsFuente.join(', ')}.`);
+    const salida = C.columnas.todas ? colsFuente.filter((c) => !C.columnas.menos.includes(c)) : C.columnas.cols;
+    for (const c of salida) if (!colsFuente.includes(c)) throw new Error(`[UNRESOLVED_COLUMN] COLUMNS (${c}): la fuente no tiene esa columna.`);
+    const idx = salida.map((c) => colsFuente.indexOf(c)), idxK = C.keys.map((k) => colsFuente.indexOf(k));
+    const seguidas = C.historia.todas ? salida.filter((c) => !C.historia.menos.includes(c) && !C.keys.includes(c)) : C.historia.cols;
+    const idxH = seguidas.map((c) => salida.indexOf(c)).filter((i) => i >= 0);
+    const evs = r.filas.map((f, i) => ({ f, i, seq: f[n], del: f[n + 1] === 1, trunc: f[n + 2] === 1 }));
+    if (evs.some((e) => e.seq == null)) throw new Error('[AUTO_CDC_NULL_SEQUENCE] SEQUENCE BY no admite valores NULL: cada cambio tiene que tener su orden.');
+    const cmp = (a, b) => (a.seq < b.seq ? -1 : a.seq > b.seq ? 1 : a.i - b.i);
+    evs.sort(cmp);
+    const clave = (f) => JSON.stringify(idxK.map((i) => f[i]));
+    const mezclar = (nuevo, previo) => (C.ignorarNulos && previo ? nuevo.map((v, i) => (v == null ? previo[i] : v)) : nuevo);
+    const M = { ins: 0, upd: 0, del: 0, trunc: 0 };
+    let cols, filas;
+    if (C.scd === 1) {
+      let estado = new Map();
+      for (const e of evs) {
+        if (e.trunc) { estado = new Map(); M.trunc++; continue; }
+        const k = clave(e.f); const previo = estado.get(k);
+        if (e.del) { if (previo) { estado.delete(k); M.del++; } continue; }
+        estado.set(k, mezclar(idx.map((i) => e.f[i]), previo)); previo ? M.upd++ : M.ins++;
+      }
+      cols = salida; filas = [...estado.values()];
+    } else {
+      const hist = new Map();
+      for (const e of evs) {
+        const k = clave(e.f); const vs = hist.get(k) || []; hist.set(k, vs);
+        const cur = vs.find((v) => v.fin == null);
+        if (e.del) { if (cur) { cur.fin = e.seq; M.del++; } continue; }
+        const vals = mezclar(idx.map((i) => e.f[i]), cur && cur.vals);
+        if (!cur) { vs.push({ vals, ini: e.seq, fin: null }); M.ins++; continue; }
+        const cambio = idxH.some((i) => cur.vals[i] !== vals[i]);
+        if (cambio) { cur.fin = e.seq; vs.push({ vals, ini: e.seq, fin: null }); M.upd++; } else if (vals.some((v, i) => v !== cur.vals[i])) { cur.vals = vals; M.upd++; }
+      }
+      cols = [...salida, '__START_AT', '__END_AT'];
+      filas = [...hist.values()].flatMap((vs) => vs.map((v) => [...v.vals, v.ini, v.fin]));
+    }
+    const ik = C.keys.map((k) => salida.indexOf(k));
+    filas.sort((a, b) => { for (const i of ik) { if (a[i] < b[i]) return -1; if (a[i] > b[i]) return 1; } return C.scd === 2 ? (a[a.length - 2] < b[b.length - 2] ? -1 : 1) : 0; });
+    F.cdc = { ...M, eventos: evs.length, scd: C.scd };
+    if (validar) { F.estado = 'COMPLETED'; ev('INFO', `Flow '${C.flujo || d.nombre}' validated (AUTO CDC, SCD TYPE ${C.scd}).`, d.nombre); return; }
+    const destino = full(d.nombre);
+    await SQLX().comoPipeline(() => SQLX().registrarDesdeDatos(destino, cols, filas, 'overwrite', 'MERGE'));
+    SQLX().marcarPipeline(destino, 'STREAMING_TABLE', pid, P.nombre);
+    P.estado[d.nombre] = { tipo: d.tipo, filas: filas.length, actualizado: ahora() };
+    F.escritas = M.ins + M.upd; F.estado = 'COMPLETED';
+    ev('INFO', `Flow '${C.flujo || d.nombre}' (AUTO CDC → ${d.nombre}, SCD TYPE ${C.scd}) has COMPLETED: ${evs.length} cambios leídos · ${M.ins} insertados · ${M.upd} actualizados · ${M.del} borrados${M.trunc ? ` · ${M.trunc} TRUNCATE` : ''}. La tabla quedó con ${filas.length} filas${C.scd === 2 ? ' (versiones)' : ''}.`, d.nombre);
   }
   async function correrPipeline(pid, { completo = false, validar = false, origen = 'USER_ACTION', alCambiar = () => {} } = {}) {
     const P = pipelines()[pid];
@@ -577,6 +679,7 @@ GROUP BY fecha, canal;
       for (const d of orden) {
         const F = up.flujos[d.nombre] = { estado: 'RUNNING', escritas: 0, quitadas: 0, exp: [] }; ev('INFO', `Flow '${d.nombre}' is RUNNING.`, d.nombre); alCambiar(up);
         await espera(250);
+        if (d.cdc) { await aplicarCdc(d, F, traducir, full, validar, pid, P, ev); continue; }
         let cuerpo = traducir(d.cuerpo);
         // tabla de streaming: solo lo nuevo desde la última actualización (offset o archivos ya leídos)
         const previo = P.procesado[d.nombre] || { filas: 0, archivos: [] };
@@ -651,7 +754,7 @@ GROUP BY fecha, canal;
         <div class="dbx-pag-cab"><h1>${ic('combine')} ${esc(P.nombre)} ${up ? `<span class="jr-est ${up.estado === 'COMPLETED' ? 'ok' : up.estado === 'FAILED' ? 'mal' : 'corre'}">${esc(up.estado)}</span>` : ''}</h1><div class="dbx-acciones"><button class="dbx-btn" data-a="validar">${ic('check')} Dry run</button><button class="dbx-btn" data-a="full">${ic('debug-restart')} Full refresh all</button><button class="dbx-btn primario" data-a="start">${ic('play')} Run pipeline</button><button class="dbx-ib" data-a="mas">${ic('ellipsis')}</button></div></div>
         <div class="cx-meta"><span>Target: ${esc(P.catalogo)}.${esc(P.esquema)}</span><span>Mode: ${P.modo === 'continuous' ? 'Continuous' : 'Triggered'}</span><span>Compute: Serverless</span>${up ? `<span>Last update: ${D.hora(up.inicio)}</span>` : ''}</div>
         <div class="pl-lay"><section class="pl-ed"><div class="pl-ed-cab">${ic('file-code')} transformations/pipeline.sql <button class="dbx-btn chico" data-a="guardar">Save</button></div><textarea id="plSrc">${esc(P.fuente)}</textarea>${errParse ? `<div class="nb-error"><pre>${esc(errParse)}</pre></div>` : ''}</section>
-        <section class="pl-graf"><h3>Pipeline graph</h3><div class="pl-nodos">${orden.map((d) => { const f = up && up.flujos[d.nombre]; const e = P.estado && P.estado[d.nombre]; return `<div class="pl-n ${sel === d.nombre ? 'sel' : ''} ${f ? (f.estado === 'COMPLETED' ? 'ok' : f.estado === 'FAILED' ? 'mal' : 'corre') : ''}" data-ds="${esc(d.nombre)}"><div class="pl-n-t">${ic(d.tipo === 'STREAMING_TABLE' ? 'pulse' : d.tipo === 'VIEW' ? 'eye' : 'table')} <b>${esc(d.nombre)}</b></div><small>${{ STREAMING_TABLE: 'Streaming table', MATERIALIZED_VIEW: 'Materialized view', VIEW: 'View' }[d.tipo]}${d.deps.length ? ' · ← ' + esc(d.deps.join(', ')) : ''}</small>${f ? `<div class="pl-n-m">${f.estado === 'RUNNING' ? '<span class="dbx-gira"></span> Running' : `${(f.escritas || 0).toLocaleString('es')} escritas${f.quitadas ? ` · <span class="dbx-mal">${f.quitadas} descartadas</span>` : ''}`}${f.exp.length ? ` · ${ic('shield')} ${f.exp.length} exp.` : ''}</div>` : e ? `<div class="pl-n-m">${(e.filas || 0).toLocaleString('es')} filas</div>` : ''}</div>`; }).join('<div class="pl-fl">↓</div>')}</div>
+        <section class="pl-graf"><h3>Pipeline graph</h3><div class="pl-nodos">${orden.map((d) => { const f = up && up.flujos[d.nombre]; const e = P.estado && P.estado[d.nombre]; return `<div class="pl-n ${sel === d.nombre ? 'sel' : ''} ${f ? (f.estado === 'COMPLETED' ? 'ok' : f.estado === 'FAILED' ? 'mal' : 'corre') : ''}" data-ds="${esc(d.nombre)}"><div class="pl-n-t">${ic(d.tipo === 'STREAMING_TABLE' ? 'pulse' : d.tipo === 'VIEW' ? 'eye' : 'table')} <b>${esc(d.nombre)}</b></div><small>${{ STREAMING_TABLE: 'Streaming table', MATERIALIZED_VIEW: 'Materialized view', VIEW: 'View' }[d.tipo]}${d.cdc ? ` · AUTO CDC (SCD ${d.cdc.scd})` : ''}${d.deps.length ? ' · ← ' + esc(d.deps.join(', ')) : ''}</small>${f ? `<div class="pl-n-m">${f.estado === 'RUNNING' ? '<span class="dbx-gira"></span> Running' : `${(f.escritas || 0).toLocaleString('es')} escritas${f.quitadas ? ` · <span class="dbx-mal">${f.quitadas} descartadas</span>` : ''}`}${f.exp.length ? ` · ${ic('shield')} ${f.exp.length} exp.` : ''}</div>` : e ? `<div class="pl-n-m">${(e.filas || 0).toLocaleString('es')} filas</div>` : ''}</div>`; }).join('<div class="pl-fl">↓</div>')}</div>
         <div id="plDet"></div></section></div>
         <h3>Event log</h3><div class="pl-log">${up ? up.eventos.slice().reverse().map((e) => `<div class="${e.nivel === 'ERROR' ? 'mal' : ''}"><span>${esc(e.t.slice(11, 19))}</span><b>${esc(e.nivel)}</b><span>${esc(e.msg)}</span></div>`).join('') : '<p class="dbx-dim">Todavía no se ejecutó. Pulsa <b>Run pipeline</b>.</p>'}</div>
         <h3>Update history</h3><table class="dbx-tabla"><tbody>${(P.updates || []).map((u) => `<tr><td><span class="jr-b ${u.estado === 'COMPLETED' ? 'ok' : u.estado === 'FAILED' ? 'mal' : 'corre'}"></span> ${esc(u.estado)}</td><td>${D.hora(u.inicio)}</td><td>${u.completo ? 'Full refresh' : u.validar ? 'Dry run' : 'Incremental'}</td><td>${esc(u.origen)}</td></tr>`).join('') || '<tr><td class="dbx-dim">Sin actualizaciones</td></tr>'}</tbody></table></div>`;

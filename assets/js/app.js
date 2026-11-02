@@ -82,7 +82,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
   const levelClass = (n) => 'b-' + (n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
-  const TYPE_LABEL = { sql: 'SQL', python: 'Python', pyspark: 'PySpark', airflow: 'Airflow', dbt: 'dbt', quiz: 'Test', cli: 'Terminal', abierto: 'Respuesta libre', dax: 'DAX' };
+  const TYPE_LABEL = { sql: 'SQL', python: 'Python', pyspark: 'PySpark', airflow: 'Airflow', dbt: 'dbt', quiz: 'Test', cli: 'Terminal', abierto: 'Respuesta libre', dax: 'DAX', dbsql: 'Databricks SQL' };
 
   PY.listeners.add((s) => {
     const el = $('#pyStatus');
@@ -1097,8 +1097,9 @@
     if (ex.type === 'cli') return mountCli(card, ex, markPassed, fb, feedback, extra, showExtra);
     if (ex.type === 'abierto') return mountOpen(card, ex, markPassed, extra, showExtra);
 
-    const lang = ex.type === 'sql' ? 'sql' : ex.type === 'dbt' ? 'dbt' : ex.type === 'dax' ? 'dax' : 'python';
-    const starter = ex.inicial ?? (ex.type === 'sql' ? '-- Escribe tu consulta aquí\n' : ex.type === 'dbt' ? '-- Escribe tu modelo dbt aquí\n' : ex.type === 'dax' ? (ex.prueba ? 'Medida = ' : '// Escribe tu consulta DAX\nEVALUATE\n    ') : '# Escribe tu código aquí\n');
+    const lang = ex.type === 'sql' || ex.type === 'dbsql' ? 'sql' : ex.type === 'dbt' ? 'dbt' : ex.type === 'dax' ? 'dax' : 'python';
+    const starter = ex.inicial ?? (ex.type === 'dbsql' ? (ex.modo === 'pipeline' ? '-- Código del pipeline (destino: main.default)\nCREATE OR REFRESH STREAMING TABLE …\n' : '-- Databricks SQL (catálogo main, esquema default)\n') : ex.type === 'sql' ? '-- Escribe tu consulta aquí\n' : ex.type === 'dbt' ? '-- Escribe tu modelo dbt aquí\n' : ex.type === 'dax' ? (ex.prueba ? 'Medida = ' : '// Escribe tu consulta DAX\nEVALUATE\n    ') : '# Escribe tu código aquí\n');
+    if (ex.type === 'dbsql' && (ex.setup || ex.check)) card.append(h(`<details class="dax-prueba"><summary>${ex.modo === 'pipeline' ? 'Cómo se corrige: se ejecuta tu pipeline (destino <code>main.default</code>) y después la consulta de control' : 'Cómo se corrige: se corre en un catálogo limpio con estas tablas; después de tu código se ejecuta la consulta de control'}</summary>${ex.setup ? `<p class="small muted">Tablas que ya existen (setup):</p><pre data-lang="sql"><code>${esc(ex.setup)}</code></pre>` : ''}${ex.archivos ? `<p class="small muted">Archivos en el volumen:</p><pre data-lang="texto"><code>${esc(ex.archivos)}</code></pre>` : ''}${ex.check ? `<p class="small muted">Consulta de control (tu resultado se compara con el de la solución):</p><pre data-lang="sql"><code>${esc(ex.check)}</code></pre>` : ''}</details>`));
     if (ex.type === 'dax' && ex.prueba) card.append(h(`<details class="dax-prueba"><summary>Tu medida se llama <code>[?]</code> y se evalúa con esta consulta DAX (como un objeto visual)</summary><pre data-lang="dax"><code>${esc(ex.prueba)}</code></pre>${ex.medidas ? `<p class="small muted">Medidas que ya existen en el modelo:</p><pre data-lang="dax"><code>${esc(ex.medidas)}</code></pre>` : ''}</details>`));
     const edBox = h('<div class="ex-editor"></div>');
     card.append(edBox);
@@ -1109,7 +1110,7 @@
       <button class="btn btn-ok btn-sm" data-act="check">✓ Comprobar</button>
       ${ex.pista ? `<button class="btn btn-sm" data-act="hint">💡 Pista${(ex.pistas || []).length > 1 ? ` <span class="muted">1/${ex.pistas.length}</span>` : ''}</button>` : ''}
       <button class="btn btn-sm" data-act="sol">👁 Solución</button>
-      ${ex.type === 'sql' || ex.type === 'dbt' || ex.type === 'dax' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}${ex.type === 'dax' ? '<a class="btn btn-ghost btn-sm" href="#/powerbi" title="El Power BI de práctica: importa las mismas tablas y prueba la medida en un objeto visual">📊 Power BI</a>' : ''}
+      ${ex.type === 'sql' || ex.type === 'dbt' || ex.type === 'dax' ? '<button class="btn btn-ghost btn-sm" data-act="schema">📋 Tablas</button>' : ''}${ex.type === 'dax' ? '<a class="btn btn-ghost btn-sm" href="#/powerbi" title="El Power BI de práctica: importa las mismas tablas y prueba la medida en un objeto visual">📊 Power BI</a>' : ''}${ex.type === 'dbsql' ? `<a class="btn btn-ghost btn-sm" href="#/databricks/${ex.modo === 'pipeline' ? 'pipelines' : 'sql'}" title="Prueba lo mismo en el Databricks de práctica (con tu propio catálogo)">🧱 Databricks</a>` : ''}
       <span class="spacer"></span>
       <button class="btn btn-ghost btn-sm" data-act="reset" title="Volver al código inicial">↺ Reiniciar</button>
     </div>`);
@@ -1143,6 +1144,12 @@
         } else if (ex.type === 'dax') {
           if (!(await ensureSql(out))) return;
           renderSqlOutput(out, await window.Engines.DAX.run(ex, code));
+        } else if (ex.type === 'dbsql') {
+          if (!(await ensureSql(out))) return;
+          loadingInto(out, ex.modo === 'pipeline' ? 'Ejecutando el pipeline…' : 'Ejecutando en Databricks SQL…');
+          const r = await window.Engines.DBSQL.run(ex, code);
+          renderSqlOutput(out, r);
+          if (r.ok && r.log) out.prepend(h(`<pre class="console small">${esc(r.log)}</pre>`));
         } else if (ex.type === 'dbt') {
           if (!(await ensureSql(out))) return;
           loadingInto(out, pyLoadingMsg());
@@ -1164,6 +1171,14 @@
           const r = SQL.grade(ex, code);
           if (!r.ok) { feedback('bad', '✗ Error: ' + r.error); out.innerHTML = ''; return; }
           renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 });
+          if (r.pass) { feedback('ok', '✓ ' + r.msg); markPassed(); } else feedback('bad', '✗ ' + r.msg);
+        } else if (ex.type === 'dbsql') {
+          if (!(await ensureSql(out))) return;
+          loadingInto(out, 'Comprobando…');
+          const r = await window.Engines.DBSQL.grade(ex, code);
+          if (!r.ok) { feedback('bad', '✗ Error: ' + r.error.split('\n').pop()); renderSqlOutput(out, r); return; }
+          renderSqlOutput(out, { ok: true, results: [r.result], ms: 0 });
+          if (r.log) out.prepend(h(`<pre class="console small">${esc(r.log)}</pre>`));
           if (r.pass) { feedback('ok', '✓ ' + r.msg); markPassed(); } else feedback('bad', '✗ ' + r.msg);
         } else if (ex.type === 'dax') {
           if (!(await ensureSql(out))) return;
