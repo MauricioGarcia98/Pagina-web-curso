@@ -19,6 +19,13 @@
 
   // ---------------------------------------------------------------- remotos
   const remotos = () => (Machine.git.__remotos = Machine.git.__remotos || {});
+  // https://github.com/o/r, https://github.com/o/r.git y git@github.com:o/r.git son el mismo repositorio
+  const clave = (url) => { const u = String(url || '').trim().replace(/\/+$/, ''); const m = /^git@([^:]+):(.+?)(\.git)?$/.exec(u); return (m ? `https://${m[1]}/${m[2]}` : u.replace(/\.git$/, '')); };
+  function remoto(url) {
+    const R = remotos(), k = clave(url);
+    if (!R[k] && R[url] && url !== k) { R[k] = R[url]; delete R[url]; }   // guardado con la URL vieja
+    return R[k];
+  }
   const ahora = () => new Date().toISOString();
   const nombreRepo = (url) => String(url || 'repo').replace(/\/+$/, '').split('/').pop().replace(/\.git$/, '') || 'repo';
   const ETL = `import csv
@@ -42,9 +49,10 @@ if __name__ == "__main__":
 `;
   function crearRemoto(url, semilla) {
     const R = remotos();
-    if (R[url]) return R[url];
-    const r = R[url] = { branches: {}, commits: {}, pendientes: [], prs: [], nombre: nombreRepo(url) };
+    const ya = remoto(url); if (ya) return ya;
+    const r = R[clave(url)] = { branches: {}, commits: {}, pendientes: [], prs: [], issues: [], nombre: nombreRepo(url) };
     if (!semilla) return r;
+    r.semilla = true;
     const snap0 = {
       'README.md': `# ${r.nombre}\n\nPipelines de datos de Tienda Andina.\n\n## Cómo correrlo\n\n    python pipelines/etl.py\n`,
       'pipelines/etl.py': ETL,
@@ -59,6 +67,12 @@ if __name__ == "__main__":
       'pipelines/etl.py': (t) => t.replace('PAISES = ["Chile", "Perú"]', 'PAISES = ["Chile", "Perú", "México"]'),
       'README.md': (t) => t + '\nPaíses incluidos: Chile, Perú y México.\n',
     } });
+    // issues del equipo (se ven en la réplica de GitHub y con gh issue list)
+    r.issues = [
+      { n: 1, titulo: 'El ETL no incluye a México', cuerpo: 'Desde octubre también vendemos en México y el reporte de ventas no lo muestra.\n\nHay que agregarlo a `PAISES` en `pipelines/etl.py`.', estado: 'abierto', autor: 'camila', fecha: '2024-10-03T09:12:00Z', etiquetas: ['enhancement'], asignados: ['camila'], comentarios: [], eventos: [] },
+      { n: 2, titulo: 'Agregar tests al ETL', cuerpo: 'No tenemos ningún test. Propuesta: `tests/test_etl.py` con pytest que pruebe `filtrar()`:\n\n- [ ] filas de un país que no está en la lista se descartan\n- [ ] filas anteriores a `FECHA_INICIO` se descartan\n\nBuen primer issue para quien llega al equipo.', estado: 'abierto', autor: 'martin', fecha: '2024-10-04T14:30:00Z', etiquetas: ['good first issue'], asignados: [], comentarios: [{ autor: 'camila', texto: '+1, y que corran en cada PR 🙏', fecha: '2024-10-04T15:02:00Z' }], eventos: [] },
+      { n: 3, titulo: 'CI: correr los tests en cada pull request', cuerpo: 'Cuando existan los tests (#2), agreguemos un workflow de GitHub Actions en `.github/workflows/ci.yml` que corra `pytest` en cada PR hacia `main`.\n\nDespués protegemos `main` para que no se pueda fusionar con el check en rojo.', estado: 'abierto', autor: 'martin', fecha: '2024-10-05T10:00:00Z', etiquetas: ['enhancement', 'help wanted'], asignados: [], comentarios: [], eventos: [] },
+    ];
     return r;
   }
   // las funciones de los cambios pendientes no se pueden guardar en localStorage: se recrean al cargar
@@ -72,7 +86,7 @@ if __name__ == "__main__":
     return r.pendientes || [];
   }
   function aterrizarCompas(url, g) {
-    const r = remotos()[url]; if (!r) return;
+    const r = remoto(url); if (!r) return;
     const pend = pendientesDe(url, r);
     if (!pend.length) return;
     // la compañera sube su cambio cuando ya hiciste algún commit propio (así hay algo que fusionar)
@@ -87,6 +101,10 @@ if __name__ == "__main__":
     }
     r.pendientes = [];
   }
+
+  // la réplica de GitHub escucha los push (Actions, pull requests, Pages)
+  const oyentesPush = [];
+  function avisarPush(url, rama, antes, despues) { for (const f of oyentesPush) { try { f(clave(url), rama, antes, despues); } catch (e) { console.error(e); } } }
 
   // ---------------------------------------------------------------- historia
   function todos(g) { return Object.assign({}, ...Object.values(remotos()).map((r) => r.commits), g.commits); }
@@ -260,7 +278,12 @@ if __name__ == "__main__":
       const r0 = norm(dir);
       if (exists(r0) && Object.keys(Machine.fs).some((k) => k.startsWith(r0 + '/'))) return fail(`fatal: la ruta de destino '${dir}' ya existe y no es un directorio vacío.`, 128);
       const rem = crearRemoto(url, true);
-      const tip = rem.branches.main;
+      const tip = rem.branches.main || Object.values(rem.branches)[0];
+      if (!tip) {
+        Machine.git[r0] = { branch: 'main', branches: {}, commits: {}, staged: {}, remotes: { origin: url }, tracking: {}, upstream: {} };
+        mkdirp(r0 + '/.git'); Machine.save();
+        return ok(`Clonando en '${dir}'...\nwarning: Pareces haber clonado un repositorio vacío.`);
+      }
       const g = Machine.git[r0] = { branch: 'main', branches: { main: tip }, commits: {}, staged: {}, remotes: { origin: url }, tracking: { 'origin/main': tip }, upstream: { main: 'origin/main' } };
       asegurarCommits(g, rem.commits, tip);
       mkdirp(r0 + '/.git');
@@ -289,7 +312,7 @@ if __name__ == "__main__":
         const url = g.remotes[rem];
         if (!url) return fail(`fatal: '${rem}' no parece ser un repositorio git\nfatal: No se pudo leer del repositorio remoto.`, 128);
         aterrizarCompas(url, g);
-        const R = remotos()[url] || crearRemoto(url, false);
+        const R = remoto(url) || crearRemoto(url, false);
         const lineas = [];
         for (const [b, h] of Object.entries(R.branches)) {
           const antes = g.tracking[`${rem}/${b}`];
@@ -312,10 +335,24 @@ if __name__ == "__main__":
         const local = g.branches[rama];
         if (!local) return fail(`error: src refspec ${rama} no concuerda con ninguno\nerror: falló el push de algunas referencias a '${url}'`, 1);
         aterrizarCompas(url, g);
-        const R = remotos()[url] || crearRemoto(url, false);
+        const R = remoto(url) || crearRemoto(url, false);
         const remotoTip = R.branches[rama];
         const Ct = C();
-        if (remotoTip && remotoTip !== local && !ancestros(Ct, local).has(remotoTip)) {
+        const forzar = a.includes('-f') || a.includes('--force') || a.includes('--force-with-lease');
+        const noFF = remotoTip && remotoTip !== local && !ancestros(Ct, local).has(remotoTip);
+        // reglas de protección de la rama (Settings → Branches en la réplica de GitHub)
+        const regla = Sh.github && Sh.github.reglaDe ? Sh.github.reglaDe(R, rama) : null;
+        if (regla && remotoTip !== local) {
+          const motivo = noFF && forzar && !regla.force ? 'Cannot force-push to this branch' : regla.requierePR ? 'Changes must be made through a pull request.' : regla.checks && regla.checks.length ? `${regla.checks.length} of ${regla.checks.length} required status check${regla.checks.length > 1 ? 's are' : ' is'} expected.` : null;
+          if (motivo) return fail(`remote: error: GH006: Protected branch update failed for refs/heads/${rama}.\nremote: \nremote: - ${motivo}\nTo ${url}\n ${col.err('! [remote rejected]')} ${rama} -> ${rama} (protected branch hook declined)\nerror: falló el push de algunas referencias a '${url}'` + col.dim(`\n(la rama ${rama} está protegida: sube tu trabajo a otra rama y abre un pull request)`), 1);
+        }
+        if (noFF && forzar) {
+          for (const x of ancestros(Ct, local)) if (!R.commits[x]) R.commits[x] = Ct[x];
+          R.branches[rama] = local; g.tracking[`${rem}/${rama}`] = local; Machine.save();
+          avisarPush(url, rama, remotoTip, local);
+          return ok(`Enumerando objetos: 3, listo.\nTo ${url}\n + ${corto(remotoTip)}...${corto(local)} ${rama} -> ${rama} (forced update)` + col.dim('\n(ojo: reescribiste la historia del remoto; quien ya tenía los commits viejos va a tener problemas al hacer pull)'));
+        }
+        if (noFF) {
           return fail(`To ${url}\n ${col.err('! [rejected]')}        ${rama} -> ${rama} (fetch first)\nerror: falló el push de algunas referencias a '${url}'\nayuda: Las actualizaciones fueron rechazadas porque el remoto contiene trabajo que\nayuda: no tienes localmente. Esto suele pasar cuando otra persona subió cambios\nayuda: a la misma rama. Primero integra los cambios remotos (por ejemplo,\nayuda: 'git pull ...') antes de volver a hacer push.`, 1);
         }
         if (remotoTip === local) return ok('Everything up-to-date');
@@ -323,8 +360,11 @@ if __name__ == "__main__":
         R.branches[rama] = local; g.tracking[`${rem}/${rama}`] = local;
         if (a.includes('-u') || a.includes('--set-upstream') || !g.upstream[rama]) g.upstream[rama] = `${rem}/${rama}`;
         Machine.save();
+        avisarPush(url, rama, remotoTip, local);
+        const sugerencia = !remotoTip && rama !== 'main' && rama !== 'master' && /github\.com/.test(url) && !(R.prs || []).some((p) => p.rama === rama && p.estado === 'abierto')
+          ? `\nremote: \nremote: Create a pull request for '${rama}' on GitHub by visiting:\nremote:      ${clave(url)}/pull/new/${rama}\nremote: ` : '';
         const n = [...ancestros(Ct, local)].filter((x) => !remotoTip || !ancestros(Ct, remotoTip).has(x)).length;
-        return ok(`Enumerando objetos: ${n * 3}, listo.\nEscribiendo objetos: 100% (${n * 3}/${n * 3}), listo.\nTo ${url}\n ${remotoTip ? `  ${corto(remotoTip)}..${corto(local)}  ${rama} -> ${rama}` : `* [new branch]      ${rama} -> ${rama}`}${a.includes('-u') ? `\nrama '${rama}' configurada para rastrear '${rem}/${rama}'.` : ''}${!remotoTip && rama !== 'main' ? `\nremote:\nremote: Crea un pull request para '${rama}' en GitHub:\nremote:   gh pr create --base main --head ${rama}\nremote:` : ''}`);
+        return ok(`Enumerando objetos: ${n * 3}, listo.\nEscribiendo objetos: 100% (${n * 3}/${n * 3}), listo.${sugerencia}\nTo ${url}\n ${remotoTip ? `  ${corto(remotoTip)}..${corto(local)}  ${rama} -> ${rama}` : `* [new branch]      ${rama} -> ${rama}`}${a.includes('-u') ? `\nrama '${rama}' configurada para rastrear '${rem}/${rama}'.` : ''}`);
       }
       case 'merge': {
         if (a[1] === '--abort') {
@@ -486,67 +526,180 @@ if __name__ == "__main__":
     }
   });
 
-  // ---------------------------------------------------------------- gh: pull requests en el remoto
+  // ---------------------------------------------------------------- gh: pull requests, issues y Actions en el remoto
   const ghViejo = Sh.Commands.gh;
-  Sh.def('gh', 'GitHub CLI (simulada): gh auth login, gh repo create, gh pr create | list | view N | merge N', (a, ctx) => {
-    if (a[0] !== 'pr') return ghViejo ? ghViejo(a, ctx) : ok('Uso: gh pr create --title "..." | gh pr list | gh pr view N | gh pr merge N');
+  const sigNumero = (R) => Math.max(0, ...(R.prs || []).map((p) => p.n), ...(R.issues || []).map((i) => i.n)) + 1;
+  const AYUDA_GH = 'Uso: gh pr create | list | view N | checks N | merge N | checkout N · gh issue create | list | view N | close N · gh run list | view ID · gh repo create · gh browse';
+  // lee --flag valor, --flag=valor y -f valor
+  const flagDe = (a, ...ns) => { for (const n of ns) { const i = a.indexOf(n); if (i >= 0) return a[i + 1]; const c = a.find((x) => x.startsWith(n + '=')); if (c) return c.slice(n.length + 1); } return undefined; };
+  Sh.def('gh', 'GitHub CLI (simulada): gh auth login · gh repo create · gh pr create|list|view|checks|merge · gh issue … · gh run list · gh browse', (a, ctx) => {
+    if (!['pr', 'issue', 'run', 'browse', 'repo'].includes(a[0]) || (a[0] === 'repo' && a[1] !== 'create' && a[1] !== 'view')) return ghViejo ? ghViejo(a, ctx) : ok(AYUDA_GH);
     if (!(Machine.cloud && Machine.cloud.gh)) return fail('To get started with GitHub CLI, please run:  gh auth login');
+    const flag = (...ns) => flagDe(a, ...ns);
+    // gh repo create NOMBRE [--public|--private] [--source=. --push]
+    if (a[0] === 'repo' && a[1] === 'create') {
+      const nombre = (a[2] && !a[2].startsWith('-') ? a[2] : null) || (gitRoot() || '').split('/').pop();
+      if (!nombre) return fail('X un nombre es obligatorio: gh repo create mi-repo --public');
+      const [owner, rep] = nombre.includes('/') ? nombre.split('/') : ['alumno', nombre];
+      const u = `https://github.com/${owner}/${rep}`;
+      if (remoto(u)) return fail(`GraphQL: Name already exists on this account (createRepository)`);
+      const R = crearRemoto(u, false);
+      R.meta = { desc: flag('--description', '-d') || '', privado: a.includes('--private'), creado: new Date().toISOString(), estrellas: 0, temas: [] };
+      let extra = '';
+      if (a.some((x) => x === '--source' || x.startsWith('--source'))) {
+        const root = gitRoot();
+        if (!root) return fail('X la carpeta --source no es un repositorio git (git init primero)');
+        Machine.git[root].remotes.origin = `${u}.git`;
+        extra = `\n✓ Added remote ${u}.git`;
+        if (a.includes('--push')) { const r = Sh.Commands.git(['push', '-u', 'origin', Machine.git[root].branch], ctx); extra += r.code ? '\n' + r.out : `\n✓ Pushed commits to ${u}.git`; }
+      }
+      Machine.save();
+      return ok(`✓ Created repository ${owner}/${rep} on GitHub\n  ${u}${extra}`);
+    }
     const root = gitRoot();
-    if (!root) return fail('fatal: no es un repositorio git');
-    const g = Machine.git[root], url = g.remotes.origin;
-    if (!url) return fail('no hay un remoto origin: agrega uno con git remote add origin URL');
-    const R = remotos()[url] || crearRemoto(url, false);
-    const repo = String(url).replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '');
-    const flag = (n) => { const i = a.indexOf(n); return i >= 0 ? a[i + 1] : undefined; };
+    const g = root ? Machine.git[root] : null;
+    const urlRepo = flag('--repo', '-R') ? `https://github.com/${flag('--repo', '-R')}` : g && g.remotes.origin;
+    if (!urlRepo) return fail(root ? 'no hay un remoto origin: agrega uno con git remote add origin URL' : 'fatal: no es un repositorio git (o usa --repo dueño/nombre)');
+    const R = remoto(urlRepo) || crearRemoto(urlRepo, false);
+    R.prs = R.prs || []; R.issues = R.issues || []; R.runs = R.runs || [];
+    const repo = clave(urlRepo).replace(/^https?:\/\/github\.com\//, '');
+    const web = (ruta) => `https://github.com/${repo}${ruta || ''}`;
+    if (a[0] === 'browse' || (a[0] === 'repo' && a[1] === 'view' && a.includes('--web'))) {
+      const n = a[1] && /^\d+$/.test(a[1]) ? a[1] : null;
+      const destino = `#/github/${repo}${n ? (R.prs.some((p) => p.n === Number(n)) ? '/pull/' : '/issues/') + n : ''}`;
+      setTimeout(() => { location.hash = destino; }, 300);
+      return ok(`Opening ${web(n ? '/issues/' + n : '')} in your browser.` + col.dim('\n(práctica: se abre la réplica de GitHub del curso)'));
+    }
+    if (a[0] === 'repo' && a[1] === 'view') return ok(`${col.b(repo)}\n${(R.meta && R.meta.desc) || 'No description provided'}\n\n${(R.commits[R.branches.main] || {}).snap && R.commits[R.branches.main].snap['README.md'] || ''}`);
+    // ---- issues
+    if (a[0] === 'issue') {
+      const sub = a[1];
+      if (sub === 'create') {
+        const t = flag('--title', '-t'); if (!t) return fail('must provide `--title` and `--body` when not running interactively');
+        const n = sigNumero(R);
+        R.issues.push({ n, titulo: t, cuerpo: flag('--body', '-b') || '', estado: 'abierto', autor: 'alumno', fecha: new Date().toISOString(), etiquetas: (flag('--label', '-l') || '').split(',').map((x) => x.trim()).filter(Boolean), asignados: flag('--assignee', '-a') ? [flag('--assignee', '-a').replace('@me', 'alumno')] : [], comentarios: [], eventos: [] });
+        Machine.save();
+        return ok(`\nCreating issue in ${repo}\n\n${web('/issues/' + n)}`);
+      }
+      if (sub === 'list' || !sub) {
+        const est = flag('--state', '-s') || 'open';
+        const ls = R.issues.filter((i) => est === 'all' || (est === 'closed' ? i.estado === 'cerrado' : i.estado === 'abierto')).sort((x, y) => y.n - x.n);
+        if (!ls.length) return ok(`no ${est === 'all' ? '' : est + ' '}issues match your search in ${repo}`);
+        return ok(`\nShowing ${ls.length} of ${ls.length} ${est === 'all' ? '' : est + ' '}issues in ${repo}\n\n` + ls.map((i) => `${col.ok('#' + i.n).padEnd(6)}  ${i.titulo.padEnd(44)}  ${col.dim((i.etiquetas || []).join(', '))}`).join('\n'));
+      }
+      const n = Number(a[2]); const is = R.issues.find((i) => i.n === n);
+      if (!is) return fail(`GraphQL: Could not resolve to an issue or pull request with the number of ${a[2] || '?'}. (repository.issue)`);
+      if (sub === 'view') return ok(`${col.b(is.titulo)} #${is.n}\n${is.estado === 'abierto' ? col.ok('Open') : col.info('Closed')} • ${is.autor} opened • ${(is.comentarios || []).length} comments\nLabels: ${(is.etiquetas || []).join(', ') || '—'}\n\n${is.cuerpo || col.dim('No description provided')}\n\n${col.dim('View this issue on GitHub: ' + web('/issues/' + n))}`);
+      if (sub === 'close') { if (is.estado !== 'abierto') return fail(`! Issue ${repo}#${n} (${is.titulo}) is already closed`); is.estado = 'cerrado'; is.razon = a.includes('not planned') || flag('--reason', '-r') === 'not planned' ? 'not_planned' : 'completed'; (is.eventos = is.eventos || []).push({ tipo: 'cerrado', por: 'alumno', fecha: new Date().toISOString() }); Machine.save(); return ok(`${col.ok('✓')} Closed issue ${repo}#${n} (${is.titulo})`); }
+      if (sub === 'reopen') { is.estado = 'abierto'; (is.eventos = is.eventos || []).push({ tipo: 'reabierto', por: 'alumno', fecha: new Date().toISOString() }); Machine.save(); return ok(`${col.ok('✓')} Reopened issue ${repo}#${n} (${is.titulo})`); }
+      if (sub === 'comment') { const b = flag('--body', '-b'); if (!b) return fail('--body es obligatorio'); (is.comentarios = is.comentarios || []).push({ autor: 'alumno', texto: b, fecha: new Date().toISOString() }); Machine.save(); return ok(web(`/issues/${n}#issuecomment`)); }
+      return ok(AYUDA_GH);
+    }
+    // ---- Actions
+    if (a[0] === 'run') {
+      const icono = (k) => (k.estado !== 'completed' ? col.warn('*') : k.conclusion === 'success' ? col.ok('✓') : k.conclusion === 'skipped' ? col.dim('-') : col.err('X'));
+      if (a[1] === 'list' || !a[1]) {
+        if (!R.runs.length) return ok('no runs found');
+        return ok(`STATUS  TITLE                                     WORKFLOW         BRANCH          EVENT         ID\n` + R.runs.slice(0, 20).map((k) => `${icono(k)}       ${String(k.msg || k.workflow).slice(0, 40).padEnd(42)}${String(k.workflow).slice(0, 15).padEnd(17)}${String(k.rama).slice(0, 14).padEnd(16)}${String(k.evento).padEnd(14)}${k.id}`).join('\n'));
+      }
+      if (a[1] === 'view') {
+        const id = a.slice(2).find((x) => !x.startsWith('-'));
+        const k = id ? R.runs.find((x) => String(x.id) === id) : (a.includes('--log-failed') ? R.runs.find((x) => x.conclusion === 'failure') : null) || R.runs[0];
+        if (!k) return fail(`could not find any workflow run with ID ${id}`);
+        const log = a.includes('--log') || a.includes('--log-failed');
+        const jobs = k.jobs.map((j) => `${icono(j)} ${j.nombre}` + (log && (a.includes('--log') || j.conclusion === 'failure') ? '\n' + j.pasos.filter((p) => a.includes('--log') || p.conclusion === 'failure').map((p) => p.log.map((l) => `${j.nombre}\t${p.nombre}\t${String(l).replace(/\u0001[^\u0002]*\u0002|\u0003/g, '')}`).join('\n')).join('\n') : '')).join('\n');
+        return ok(`\n${icono(k)} ${k.rama} ${k.workflow} · ${k.id}\nTriggered via ${k.evento}\n\nJOBS\n${jobs || col.dim('(sin jobs)')}\n\n${col.dim('For more information about a job, try: gh run view --log-failed · View this run on GitHub: ' + web('/actions/runs/' + k.id))}`);
+      }
+      if (a[1] === 'watch') return ok(col.dim('(práctica) mira la ejecución en vivo en la réplica: gh browse'));
+      return ok(AYUDA_GH);
+    }
+    // ---- pull requests
+    if (!g) return fail('fatal: no es un repositorio git');
     if (a[1] === 'create') {
-      const rama = flag('--head') || g.branch, base = flag('--base') || 'main', titulo = flag('--title') || flag('-t');
+      const rama = flag('--head', '-H') || g.branch, base = flag('--base', '-B') || 'main';
+      let titulo = flag('--title', '-t'), cuerpo = flag('--body', '-b') || '';
+      if (a.includes('--fill') || a.includes('-f')) { const c = todos(g)[g.branches[rama]]; if (c) { titulo = titulo || c.msg.split('\n')[0]; cuerpo = cuerpo || c.msg.split('\n').slice(1).join('\n').trim(); } }
       if (!titulo) return fail('--title es obligatorio (o usa --fill)');
       if (rama === base) return fail(`no puedes abrir un pull request de ${rama} hacia sí misma: crea una rama (git switch -c mi-rama)`);
-      if (!R.branches[rama]) return fail(`aborted: la rama '${rama}' no está en el remoto. Súbela primero: git push -u origin ${rama}`);
-      if (R.prs.some((p) => p.rama === rama && p.estado === 'abierto')) return fail(`ya existe un pull request abierto para ${rama}`);
-      const n = R.prs.length + 1;
-      R.prs.push({ n, titulo, cuerpo: flag('--body') || flag('-b') || '', rama, base, estado: 'abierto', autor: 'alumno', fecha: ahora() });
+      if (!R.branches[rama]) return fail(`aborted: you must first push the current branch to a remote, or use the --head flag\n${col.dim(`(súbela con: git push -u origin ${rama})`)}`);
+      if (!R.branches[base]) return fail(`la rama base '${base}' no existe en el remoto`);
+      if (R.prs.some((p) => p.rama === rama && p.estado === 'abierto')) return fail(`a pull request for branch "${rama}" into branch "${base}" already exists:\n${web('/pull/' + R.prs.find((p) => p.rama === rama && p.estado === 'abierto').n)}`);
+      const n = sigNumero(R);
+      const revisores = (flag('--reviewer', '-r') || '').split(',').map((x) => x.trim()).filter((x) => x && x !== 'alumno');
+      const pr = { n, titulo, cuerpo, rama, base, estado: 'abierto', autor: 'alumno', fecha: new Date().toISOString(), borrador: a.includes('--draft') || a.includes('-d'), revisores, etiquetas: (flag('--label', '-l') || '').split(',').map((x) => x.trim()).filter(Boolean), asignados: flag('--assignee', '-a') ? ['alumno'] : [], comentarios: [], revisiones: [], lineas: [], eventos: revisores.map((u) => ({ tipo: 'revision-pedida', por: 'alumno', a: u, fecha: new Date().toISOString() })) };
+      R.prs.push(pr);
       Machine.save();
-      return ok(`\nCreando pull request para ${rama} en ${base} en ${repo}\n\nhttps://github.com/${repo}/pull/${n}`);
+      if (Sh.github.alCrearPR) Sh.github.alCrearPR(clave(urlRepo), pr);
+      return ok(`\nCreating ${pr.borrador ? 'draft ' : ''}pull request for ${rama} into ${base} in ${repo}\n\n${web('/pull/' + n)}` + col.dim('\n(ábrelo en la réplica con: gh browse ' + n + ')'));
     }
     if (a[1] === 'list') {
       const ab = R.prs.filter((p) => p.estado === 'abierto');
-      return ok(ab.length ? `\nMostrando ${ab.length} pull request(s) abiertos en ${repo}\n\n` + ab.map((p) => `#${p.n}  ${p.titulo.padEnd(40)}  ${p.rama}  ${col.dim('abierto')}`).join('\n') : `No hay pull requests abiertos en ${repo}`);
+      return ok(ab.length ? `\nShowing ${ab.length} of ${ab.length} open pull request${ab.length > 1 ? 's' : ''} in ${repo}\n\n` + ab.map((p) => `${col.ok('#' + p.n).padEnd(6)}  ${p.titulo.padEnd(40)}  ${p.rama}${p.borrador ? col.dim('  DRAFT') : ''}`).join('\n') : `no open pull requests in ${repo}`);
     }
     const n = Number(a[2]) || (R.prs.find((p) => p.rama === g.branch && p.estado === 'abierto') || {}).n;
     const pr = R.prs.find((p) => p.n === n);
-    if (!pr) return fail(`no se encontró el pull request ${a[2] || ''} en ${repo}`);
+    if (!pr) return fail(a[2] ? `GraphQL: Could not resolve to a PullRequest with the number of ${a[2]}. (repository.pullRequest)` : `no pull requests found for branch "${g.branch}"`);
+    const est = Sh.github.estadoPR ? Sh.github.estadoPR(clave(urlRepo), pr) : null;
     const C = todos(g), tip = R.branches[pr.rama], baseTip = R.branches[pr.base];
-    const conflicto = (() => { if (!baseTip || ancestros(C, tip).has(baseTip)) return []; const b = baseComun(C, tip, baseTip); return fusionarSnaps(b ? C[b].snap : {}, C[baseTip].snap, C[tip].snap, pr.rama).conflictos; })();
-    const marcas = Object.entries(C[tip].snap).filter(([, v]) => tieneMarcas(v)).map(([k]) => k);
-    if (a[1] === 'view') {
-      const commits = [...ancestros(C, tip)].filter((x) => !baseTip || !ancestros(C, baseTip).has(x));
-      return ok(`${col.b(pr.titulo)} #${pr.n}\n${pr.estado === 'abierto' ? col.ok('Abierto') : col.info('Fusionado')} • alumno quiere fusionar ${commits.length} commit(s) en ${pr.base} desde ${pr.rama}\n\n${pr.cuerpo || col.dim('Sin descripción. Un buen PR explica qué cambia, por qué y cómo se probó.')}\n\nChecks:\n  ${marcas.length ? col.err('✗ lint') + `  marcas de conflicto en ${marcas.join(', ')}` : col.ok('✓ lint')}\n  ${marcas.length ? col.err('✗ tests') : col.ok('✓ tests')}\n\nFusión: ${conflicto.length ? col.err(`hay conflictos con ${pr.base} en ${conflicto.join(', ')}: trae ${pr.base} a tu rama (git pull origin ${pr.base}), resuélvelos y vuelve a hacer push`) : col.ok('sin conflictos, se puede fusionar')}\n\nVer este pull request en GitHub: https://github.com/${repo}/pull/${pr.n}`);
+    if (a[1] === 'checkout') {
+      if (!tip) return fail(`la rama ${pr.rama} ya no existe en el remoto`);
+      const r = Sh.Commands.git(['fetch', 'origin'], ctx);
+      const sw = Sh.Commands.git(['switch', pr.rama], ctx);
+      return { out: [r.out, sw.out].filter(Boolean).join('\n'), code: sw.code };
     }
+    if (a[1] === 'checks') {
+      const cs = est ? est.checks : [];
+      if (!cs.length) return fail(`no checks reported on the '${pr.rama}' branch`, 1);
+      const ic = (c) => (c.estado !== 'completed' ? col.warn('*') : c.conclusion === 'success' ? col.ok('✓') : c.conclusion === 'skipped' ? col.dim('-') : col.err('X'));
+      const malos = cs.filter((c) => c.conclusion === 'failure').length, pend = cs.filter((c) => c.estado !== 'completed').length;
+      return { out: `${malos ? 'Some checks were not successful' : pend ? 'Some checks are still pending' : 'All checks were successful'}\n${malos} failing, ${cs.length - malos - pend} successful, ${pend} pending\n\n` + cs.map((c) => `${ic(c)}  ${c.wf}/${c.nombre} (${c.evento})`).join('\n'), code: malos ? 1 : pend ? 8 : 0 };
+    }
+    if (a[1] === 'view') {
+      const commits = tip ? [...ancestros(C, tip)].filter((x) => !baseTip || !ancestros(C, baseTip).has(x)) : [];
+      const rev = est ? (est.cambios.length ? col.err('Changes requested') : est.aprobaciones ? col.ok('Approved') : est.P && est.P.aprobaciones ? col.warn('Review required') : '') : '';
+      const chk = est && est.checks.length ? `\nChecks: ${est.checks.filter((c) => c.conclusion === 'success').length}/${est.checks.length} ✓` : '';
+      return ok(`${col.b(pr.titulo)} #${pr.n}\n${pr.estado === 'abierto' ? (pr.borrador ? col.dim('Draft') : col.ok('Open')) : pr.estado === 'fusionado' ? col.info('Merged') : col.err('Closed')} • alumno wants to merge ${commits.length} commit(s) into ${pr.base} from ${pr.rama}${rev ? ' • ' + rev : ''}${chk}\n\n${pr.cuerpo || col.dim('No description provided')}\n\n${col.dim('View this pull request on GitHub: ' + web('/pull/' + pr.n))}`);
+    }
+    if (a[1] === 'ready') { pr.borrador = false; Machine.save(); return ok(`${col.ok('✓')} Pull request ${repo}#${pr.n} is marked as "ready for review"`); }
+    if (a[1] === 'close') { if (pr.estado !== 'abierto') return fail(`! Pull request ${repo}#${pr.n} is already closed`); pr.estado = 'cerrado'; Machine.save(); return ok(`${col.err('✓')} Closed pull request ${repo}#${pr.n} (${pr.titulo})`); }
     if (a[1] === 'merge') {
-      if (pr.estado !== 'abierto') return fail(`el pull request #${pr.n} ya está ${pr.estado}`);
+      if (pr.estado !== 'abierto') return fail(`X Pull request ${repo}#${pr.n} (${pr.titulo}) is not mergeable: it is ${pr.estado === 'fusionado' ? 'already merged' : 'closed'}`);
+      const metodo = a.includes('--squash') || a.includes('-s') ? 'squash' : a.includes('--rebase') || a.includes('-r') ? 'rebase' : 'merge';
+      const borrar = a.includes('--delete-branch') || a.includes('-d');
+      if (Sh.github.fusionarPR) {
+        const res = Sh.github.fusionarPR(clave(urlRepo), pr, metodo);
+        if (res && res.error) return fail(`X Pull request ${repo}#${pr.n} is not mergeable: ${res.error}` + (res.bloqueos ? col.dim('\n(la rama base está protegida: revisa los checks y las aprobaciones con gh pr view ' + pr.n + ')') : ''));
+        if (res && res.ok) {
+          if (borrar && R.branches[pr.rama] && !(Sh.github.reglaDe && Sh.github.reglaDe(R, pr.rama))) delete R.branches[pr.rama];
+          Machine.save();
+          return ok(`${col.ok('✓')} ${metodo === 'squash' ? 'Squashed and merged' : metodo === 'rebase' ? 'Rebased and merged' : 'Merged'} pull request ${repo}#${pr.n} (${pr.titulo})${borrar ? `\n${col.ok('✓')} Deleted remote branch ${pr.rama}` : ''}\n${col.dim(`Para tener el resultado en tu computadora: git switch ${pr.base} && git pull`)}`);
+        }
+      }
+      // sin la réplica cargada: fusión simple
+      const marcas = Object.entries(C[tip].snap).filter(([, v]) => tieneMarcas(v)).map(([k]) => k);
       if (marcas.length) return fail(`X Los checks fallaron: ${marcas.join(', ')} tiene marcas de conflicto. Corrígelo y vuelve a hacer push.`);
-      if (conflicto.length) return fail(`X El pull request #${pr.n} no se puede fusionar: tiene conflictos con ${pr.base} (${conflicto.join(', ')}).`);
       let nuevo;
       if (!baseTip || ancestros(C, tip).has(baseTip)) nuevo = tip;
       else {
         const b = baseComun(C, tip, baseTip), r = fusionarSnaps(b ? C[b].snap : {}, C[baseTip].snap, C[tip].snap, pr.rama);
+        if (r.conflictos.length) return fail(`X El pull request #${pr.n} no se puede fusionar: tiene conflictos con ${pr.base} (${r.conflictos.join(', ')}).`);
         nuevo = nuevoHash();
-        R.commits[nuevo] = a.includes('--squash')
-          ? { msg: `${pr.titulo} (#${pr.n})`, parent: baseTip, snap: r.snap, author: 'alumno', date: ahora() }
-          : { msg: `Merge pull request #${pr.n} from ${pr.rama}`, parent: baseTip, parent2: tip, snap: r.snap, author: 'alumno', date: ahora() };
+        R.commits[nuevo] = metodo === 'squash' ? { msg: `${pr.titulo} (#${pr.n})`, parent: baseTip, snap: r.snap, author: 'alumno', date: ahora() } : { msg: `Merge pull request #${pr.n} from ${pr.rama}`, parent: baseTip, parent2: tip, snap: r.snap, author: 'alumno', date: ahora() };
       }
       R.branches[pr.base] = nuevo; pr.estado = 'fusionado'; Machine.save();
       return ok(`${col.ok('✓')} Pull request #${pr.n} fusionado (${pr.titulo})\n${col.dim(`Para tener el resultado en tu computadora: git switch ${pr.base} && git pull`)}`);
     }
-    return ok('Uso: gh pr create --title "..." | gh pr list | gh pr view N | gh pr merge N');
+    return ok(AYUDA_GH);
   });
+
+  // lo que usa la réplica de GitHub (github.js): los mismos remotos que la terminal
+  Sh.github = Object.assign(Sh.github || {}, { remotos, remoto, clave, crearRemoto, nuevoHash, ancestros, baseComun, fusionarSnaps, tieneMarcas, oyentesPush });
 
   // comando del curso (no existe en una computadora real): deja un remoto de práctica como recién creado,
   // para que cada ejercicio empiece igual
   Sh.def('reiniciar-remoto', 'comando del curso: deja como nuevo un repositorio remoto de práctica (reiniciar-remoto URL)', (a) => {
     const url = a[0] || 'https://github.com/tienda-andina/pipelines';
-    delete remotos()[url]; crearRemoto(url, true); Machine.save();
+    delete remotos()[clave(url)]; delete remotos()[url]; crearRemoto(url, true); Machine.save();
     return ok(col.dim(`(curso) el remoto ${url} quedó como recién creado: dos commits de Martín y un cambio de Camila por llegar`));
   });
   Sh.gitInt.fusion3 = fusion3;

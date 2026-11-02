@@ -79,7 +79,6 @@ ${col.dim('(En una terminal real, top se actualiza cada 3 segundos: sales con q.
     writeFile(norm('nohup.out'), (r.out || '').replace(/\u0001[^\u0002]*\u0002|\u0003/g, '') + '\n', true); save();
     return { out: col.dim("nohup: se ignora la entrada y se agrega la salida a 'nohup.out'"), code: r.code };
   });
-  def('jobs', 'trabajos en segundo plano de esta terminal (los que lanzaste con &)', () => ok(''));
   def('watch', 'repite un comando cada 2 segundos (-n segundos); en la terminal real se sale con Ctrl+C', async (a, ctx) => {
     const resto = [...a]; let n = 2; if (resto[0] === '-n') { n = Number(resto[1]) || 2; resto.splice(0, 2); }
     if (!resto.length) return fail('Uso: watch [-n SEGUNDOS] COMANDO');

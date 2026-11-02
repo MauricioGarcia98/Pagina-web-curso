@@ -628,6 +628,73 @@ print(json.dumps(out))`;
     } catch (e) { return null; }
   }
 
+  // Depurador de Python de VS Code: el programa corre una vez en Pyodide con sys.settrace y se guarda cada
+  // paso (línea, pila de llamadas, variables locales y globales, salida). Los botones Continuar, Paso a paso
+  // por procedimientos, por instrucciones y Salir recorren esa grabación como lo haría debugpy.
+  const PY_TRAZA = `import sys, json, io, contextlib, traceback, types
+pasos = []
+salida = io.StringIO()
+MAX = 2500
+def rep(v):
+    try:
+        r = repr(v)
+    except Exception:
+        r = '<sin repr>'
+    return r if len(r) < 160 else r[:157] + '...'
+def snap(d, glob):
+    out = {}
+    for k, v in list(d.items())[:60]:
+        if k.startswith('__'): continue
+        if glob and (isinstance(v, types.ModuleType) or isinstance(v, type) or callable(v)): continue
+        out[k] = [rep(v), type(v).__name__, len(v) if isinstance(v, (list, dict, tuple, set, str)) else None]
+    return out
+class _Limite(Exception): pass
+def tracer(frame, event, arg):
+    if frame.f_code.co_filename != '<app>':
+        return None
+    if len(pasos) >= MAX:
+        raise _Limite('Se alcanzó el límite de pasos de la depuración')
+    if event in ('line', 'exception', 'return', 'call'):
+        pila = []
+        f = frame
+        while f is not None and f.f_code.co_filename == '<app>':
+            pila.append([f.f_code.co_name, f.f_lineno])
+            f = f.f_back
+        exc = None
+        if event == 'exception':
+            exc = arg[0].__name__ + ': ' + str(arg[1])
+        pasos.append({'l': frame.f_lineno, 'e': event, 'pila': pila,
+                      'loc': snap(frame.f_locals, False) if frame.f_code.co_name != '<module>' else {},
+                      'glob': snap(frame.f_globals, True), 'out': len(salida.getvalue()), 'exc': exc,
+                      'ret': rep(arg) if event == 'return' else None})
+    return tracer
+error = None
+try:
+    codigo = compile(SRC, '<app>', 'exec')
+except SyntaxError as e:
+    error = 'SyntaxError: ' + str(e.msg) + ' (línea ' + str(e.lineno) + ')'
+    codigo = None
+if codigo is not None:
+    g = {'__name__': '__main__'}
+    with contextlib.redirect_stdout(salida):
+        sys.settrace(tracer)
+        try:
+            exec(codigo, g)
+        except _Limite as e:
+            error = str(e)
+        except Exception as e:
+            error = ''.join(traceback.format_exception_only(type(e), e)).strip()
+        finally:
+            sys.settrace(None)
+print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 'error': error}))`;
+  async function trazarPython(src) {
+    const PY = window.Engines && window.Engines.PY; if (!PY) throw new Error('Python no está disponible.');
+    const r = await PY.run('python', `SRC = ${JSON.stringify(src)}\n${PY_TRAZA}`);
+    const txt = String(r.stdout || ''); const i = txt.lastIndexOf('\u0001TRAZA');
+    if (i < 0) throw new Error(r.error || 'No se pudo depurar el programa.');
+    return JSON.parse(txt.slice(i + 6));
+  }
+
   function abrirCode(raiz, archivo) {
     const Sh = window.Shell;
     if (document.getElementById('vscode')) document.getElementById('vscode').remove();
@@ -637,7 +704,7 @@ print(json.dumps(out))`;
     const abiertas = new Set();
     const BIENVENIDA = '\u0000bienvenida', AJUSTES = '\u0000ajustes', DIFF = '\u0000diff:';
     const esArchivo = (k) => !!k && !String(k).startsWith('\u0000');
-    let temaReal = null, problemas = [], diagT = null, tlAbierto = true, diffOrig = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
+    let temaReal = null, problemas = [], diagT = null, tlAbierto = true, diffOrig = null, dbg = null, bpDecos = [], dbgDecos = [], vigilar = [], bpTimer = null, ptab = 'terminal', esqAbierto = true, dividido = false, ed2 = null, diffEd = null, diffModelos = null, zenOn = false, acorde = 0, escPrev = 0;
     const terms = []; let tActiva = 0; const salida = [];
     let AJ = vsAjustes(), autoGuardado = null;
     const icono = (nombre) => {
@@ -679,7 +746,7 @@ print(json.dumps(out))`;
       <div class="vs-cuerpo">
         <nav class="vs-actividad"><button data-vista="explorador" title="Explorador (Ctrl+Shift+E)">${ci('files')}</button><button data-vista="buscar" title="Buscar (Ctrl+Shift+F)">${ci('search')}</button><button data-vista="git" title="Control de código fuente (Ctrl+Shift+G)">${ci('source-control')}<b class="vs-badge" hidden></b></button><button data-vista="ejecutar" title="Ejecutar y depurar (Ctrl+Shift+D)">${ci('debug-alt')}</button><button data-vista="ext" title="Extensiones (Ctrl+Shift+X)">${ci('extensions')}</button><span class="spacer"></span><button title="Cuentas">${ci('account')}</button><button data-ajustes title="Administrar: Configuración (Ctrl+,)">${ci('settings-gear')}</button></nav>
         <aside class="vs-lateral"></aside>
-        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab" data-ptab="problemas">PROBLEMAS <b class="vs-ptab-n" data-prob-n hidden></b></span><span class="vs-ptab" data-ptab="salida">SALIDA</span><span class="vs-ptab on" data-ptab="terminal">TERMINAL</span><span class="spacer"></span><span class="vs-term-lista"></span><button data-term-nuevo title="Nueva terminal (Ctrl+Shift+ñ)">${ci('add')}</button><button data-term-borrar title="Eliminar la terminal">${ci('trash')}</button><button data-panel-max title="Maximizar el tamaño del panel">${ci('chevron-up')}</button><button data-panel-x title="Ocultar el panel">${ci('close')}</button></div><div class="vs-panel-cuerpo"></div><div class="vs-panel-prob" hidden></div><div class="vs-panel-salida" hidden></div></div></section>
+        <section class="vs-centro"><div class="vs-tabs"></div><div class="vs-migas"></div><div class="vs-editor"></div><div class="vs-panel" hidden><div class="vs-panel-cab"><span class="vs-ptab" data-ptab="problemas">PROBLEMAS <b class="vs-ptab-n" data-prob-n hidden></b></span><span class="vs-ptab" data-ptab="salida">SALIDA</span><span class="vs-ptab" data-ptab="depuracion">CONSOLA DE DEPURACIÓN</span><span class="vs-ptab on" data-ptab="terminal">TERMINAL</span><span class="spacer"></span><span class="vs-term-lista"></span><button data-term-nuevo title="Nueva terminal (Ctrl+Shift+ñ)">${ci('add')}</button><button data-term-borrar title="Eliminar la terminal">${ci('trash')}</button><button data-panel-max title="Maximizar el tamaño del panel">${ci('chevron-up')}</button><button data-panel-x title="Ocultar el panel">${ci('close')}</button></div><div class="vs-panel-cuerpo"></div><div class="vs-panel-prob" hidden></div><div class="vs-panel-salida" hidden></div><div class="vs-panel-dbg" hidden></div></div></section>
       </div>
       <div class="vs-estado"><span data-rama></span><span class="vs-remoto">${ci('remote')}</span><span data-errores>${ci('error')} 0 ${ci('warning')} 0</span><span class="spacer"></span><span data-pos></span><span data-esp></span><span>UTF-8</span><span>LF</span><span data-lang></span><span data-py></span><span data-gitlens></span><button data-toggle-term title="Terminal (Ctrl+\`)">${ci('terminal')}</button><span>${ci('bell')}</span></div>
     </div>`);
@@ -718,7 +785,7 @@ print(json.dumps(out))`;
         latEl.innerHTML = `<div class="vs-lat-cab"><span>EXTENSIONES</span></div><div class="vs-lat-sub">INSTALADAS</div>${VS_EXT.filter((x) => extOn(x[0])).map(extHtml).join('') || '<p class="small" style="opacity:.7;padding:0 14px">Ninguna</p>'}<div class="vs-lat-sub">RECOMENDADAS PARA DATOS</div>${VS_EXT.filter((x) => !extOn(x[0])).map(extHtml).join('')}`;
         return;
       }
-      latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR</span></div><div class="vs-run-info">${esArchivo(actual) && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada:</p><code>${esc(comandoPara(actual).cmd)}</code>` : '<p class="small">Abre un archivo .py, .sh o .sql para ejecutarlo con ▷ o con F5.</p>'}<p class="small" style="margin-top:14px">En VS Code real esto lo hacen las extensiones (Python, dbt Power User, SQLTools). Aquí se ejecuta en la terminal del curso, con el mismo comando que escribirías tú.</p></div>`;
+      return pintarDepurar();
     }
     const extHtml = ([id, n, autor, desc, ic]) => `<div class="vs-ext"><span class="vs-ext-ic">${ic}</span><div class="vs-ext-txt"><b>${esc(n)}</b><small>${esc(desc)}</small><span class="vs-ext-autor">${esc(autor)}</span></div><button class="vs-ext-btn ${extOn(id) ? 'on' : ''}" data-ext="${esc(id)}">${extOn(id) ? 'Desinstalar' : 'Instalar'}</button></div>`;
     function pintarAjustes() {
@@ -889,7 +956,7 @@ print(json.dumps(out))`;
     function mostrarPtab(cual) {
       ptab = cual;
       $$('.vs-ptab', box).forEach((x) => x.classList.toggle('on', x.dataset.ptab === cual));
-      $('.vs-panel-cuerpo', box).hidden = cual !== 'terminal'; $('.vs-panel-prob', box).hidden = cual !== 'problemas'; $('.vs-panel-salida', box).hidden = cual !== 'salida';
+      $('.vs-panel-cuerpo', box).hidden = cual !== 'terminal'; $('.vs-panel-prob', box).hidden = cual !== 'problemas'; $('.vs-panel-salida', box).hidden = cual !== 'salida'; $('.vs-panel-dbg', box).hidden = cual !== 'depuracion'; if (cual === 'depuracion') pintarConsolaDbg();
       ['[data-term-nuevo]', '[data-term-borrar]', '.vs-term-lista'].forEach((s2) => { const el = $(s2, box); if (el) el.style.display = cual === 'terminal' ? '' : 'none'; });
       if (cual === 'problemas') pintarProblemas();
       if (cual === 'salida') $('.vs-panel-salida', box).innerHTML = `<pre>${esc(salida.join('\n') || 'Aquí aparece la salida de las tareas que ejecuta el editor (ejecutar, git, tests).')}</pre>`;
@@ -978,6 +1045,95 @@ print(json.dumps(out))`;
     function elegirTema() { selector('Seleccionar tema de color', temasDisponibles().map((n) => ({ label: n, desc: (window.VSReal && window.VSReal.TEMAS[n] ? 'tema de VS Code' : 'tema del curso') + (n === AJ['workbench.colorTheme'] ? ' · actual' : '') })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.colorTheme'] = x.label; vsGuardarAjustes(a); aplicar(); }); }
     function elegirIconos() { selector('Seleccionar tema de íconos de archivo', [['vs-seti', 'Seti (Visual Studio Code)'], ['vs-minimal', 'Minimal (Visual Studio Code)'], ['emojis', 'Íconos del curso'], ['material', 'Material Icon Theme'], ['ninguno', 'Ninguno']].map(([v, l]) => ({ label: l, desc: v === AJ['workbench.iconTheme'] ? 'actual' : '', v })), (x) => { const a = vsAjustes(); delete a.__error; a['workbench.iconTheme'] = x.v; vsGuardarAjustes(a); aplicar(); pintarLateral(); pintarTabs(); }); }
     async function correrEnTerminal(cmd) { togglePanel(true); mostrarPtab('terminal'); salida.push(`[${new Date().toLocaleTimeString('es')}] > ${cmd}`); await term.run(cmd); pintarLateral(); pintarEstado(); }
+    // ---------------------------------------------------------------- Ejecutar y depurar (Python)
+    const bpsDe = (k) => { const B = vsBps(); return new Set(B[k] || []); };
+    function vsBps() { try { return JSON.parse(localStorage.getItem('vs-breakpoints') || '{}'); } catch (e) { return {}; } }
+    function guardarBps(k, set) { const B = vsBps(); if (set.size) B[k] = [...set].sort((a, b) => a - b); else delete B[k]; try { localStorage.setItem('vs-breakpoints', JSON.stringify(B)); } catch (e) { /* sin almacenamiento */ } }
+    function alternarBp(l) { if (!esArchivo(actual)) return; const set = bpsDe(actual); set.has(l) ? set.delete(l) : set.add(l); guardarBps(actual, set); pintarBps(); if (vistaLat === 'ejecutar') pintarLateral(); }
+    function pintarBps() {
+      if (!ed || !ed.monaco || !window.monaco || !esArchivo(actual)) return;
+      const set = bpsDe(actual); const m = ed.monaco;
+      bpDecos = m.deltaDecorations(bpDecos, [...set].map((l) => ({ range: new window.monaco.Range(l, 1, l, 1), options: { glyphMarginClassName: 'vs-bp', glyphMarginHoverMessage: { value: 'Punto de interrupción' }, stickiness: 1 } })));
+      const p = dbg && dbg.archivo === actual && dbg.i != null ? dbg.pasos[dbg.i] : null;
+      dbgDecos = m.deltaDecorations(dbgDecos, p ? [{ range: new window.monaco.Range(p.l, 1, p.l, 1), options: { isWholeLine: true, className: p.e === 'exception' ? 'vs-dbg-linea-exc' : 'vs-dbg-linea', glyphMarginClassName: 'vs-dbg-flecha' } }] : []);
+      if (p) m.revealLineInCenterIfOutsideViewport(p.l);
+    }
+    function prepararGutter() {
+      if (!ed || !ed.monaco || !window.monaco || ed.monaco.__bp) return;
+      const m = ed.monaco; m.__bp = true; m.updateOptions({ glyphMargin: true });
+      m.onMouseDown((e) => { const T = window.monaco.editor.MouseTargetType; if (e.target && (e.target.type === T.GUTTER_GLYPH_MARGIN || e.target.type === T.GUTTER_LINE_DECORATIONS) && e.target.position) alternarBp(e.target.position.lineNumber); });
+      pintarBps();
+    }
+    async function depurar() {
+      if (!esArchivo(actual) || ext(actual) !== 'py') { toast('El depurador de esta práctica funciona con archivos .py. Para otros archivos usa Ctrl+F5 (ejecutar sin depurar).'); return; }
+      guardar(actual);
+      const archivo = actual, src = Sh.readFile(archivo) || '';
+      dbg = { archivo, pasos: [], i: null, cargando: true, salida: '', error: null }; pintarDbgUI(); togglePanel(true); mostrarPtab('depuracion');
+      let tr; try { tr = await trazarPython(src); } catch (e) { dbg = null; pintarDbgUI(); toast(e.message); return; }
+      if (!dbg || dbg.archivo !== archivo) return;
+      dbg = { archivo, pasos: tr.pasos, salidaTotal: tr.salida, error: tr.error, i: -1, cargando: false };
+      dbg.iExc = tr.error ? (() => { for (let k = dbg.pasos.length - 1; k >= 0; k--) if (dbg.pasos[k].e === 'exception') return k; return null; })() : null;
+      pasoDbg('continuar');
+    }
+    function pasoDbg(modo) {
+      if (!dbg || dbg.cargando) return;
+      const P = dbg.pasos, bps = bpsDe(dbg.archivo); const cur = dbg.i >= 0 ? P[dbg.i] : null; const d = cur ? cur.pila.length : 0;
+      let j = -1;
+      for (let k = dbg.i + 1; k < P.length; k++) {
+        const x = P[k]; if (x.e !== 'line') { if (dbg.iExc === k) { j = k; break; } continue; }
+        if (modo === 'continuar' && bps.has(x.l)) { j = k; break; }
+        if (modo === 'dentro') { j = k; break; }
+        if (modo === 'sobre' && x.pila.length <= d) { j = k; break; }
+        if (modo === 'salir' && x.pila.length < d) { j = k; break; }
+      }
+      if (j < 0 && dbg.iExc != null && dbg.iExc > dbg.i) j = dbg.iExc;
+      if (j < 0) { terminarDbg(true); return; }
+      dbg.i = j; dbg.salida = (dbg.salidaTotal || '').slice(0, P[j].out);
+      if (actual !== dbg.archivo) abrir(dbg.archivo);
+      pintarDbgUI();
+    }
+    function terminarDbg(natural) {
+      if (!dbg) return;
+      const fin = natural ? { salida: dbg.salidaTotal || '', error: dbg.error } : null; const archivo = dbg.archivo;
+      dbg = null; pintarDbgUI();
+      if (fin) { dbgFinal = { archivo, ...fin }; pintarConsolaDbg(); } else dbgFinal = null;
+    }
+    let dbgFinal = null;
+    function pintarConsolaDbg() {
+      const el = $('.vs-panel-dbg', box); if (!el) return;
+      if (dbg && dbg.cargando) { el.innerHTML = '<pre class="vs-dbg-con">Iniciando el depurador (Python en el navegador)…</pre>'; return; }
+      const out = dbg ? dbg.salida : dbgFinal ? dbgFinal.salida : '';
+      const p = dbg && dbg.i >= 0 ? dbg.pasos[dbg.i] : null;
+      const err = p && p.e === 'exception' ? p.exc : !dbg && dbgFinal ? dbgFinal.error : null;
+      el.innerHTML = `<pre class="vs-dbg-con">${esc(out)}${err ? `<span class="vs-dbg-err">${esc(err)}</span>\n` : ''}${!dbg && dbgFinal ? `<span class="vs-dbg-dim">El programa terminó${dbgFinal.error ? ' con un error' : ''}.</span>` : ''}</pre><div class="vs-dbg-eval"><span>›</span><input data-dbg-eval placeholder="${dbg ? 'Escribe el nombre de una variable para ver su valor' : 'Inicia la depuración (F5) para inspeccionar variables'}"></div>`;
+      const inp = $('[data-dbg-eval]', el); inp.addEventListener('keydown', (e) => { if (e.key !== 'Enter' || !dbg || !p) return; const n = inp.value.trim(); const v = (p.loc[n] || p.glob[n]); const pre = $('.vs-dbg-con', el); pre.insertAdjacentHTML('beforeend', `<span class="vs-dbg-dim">› ${esc(n)}</span>\n${v ? esc(v[0]) : `<span class="vs-dbg-err">NameError: name '${esc(n)}' is not defined</span>`}\n`); inp.value = ''; });
+    }
+    function pintarDbgUI() {
+      box.classList.toggle('vs-depurando', !!dbg);
+      let tb = $('.vs-dbg-barra', box);
+      if (dbg && !tb) { tb = h(`<div class="vs-dbg-barra"><span class="vs-dbg-asa">⠿</span><button data-dbg="continuar" title="Continuar (F5)">${ci('debug-continue')}</button><button data-dbg="sobre" title="Depurar paso a paso por procedimientos (F10)">${ci('debug-step-over')}</button><button data-dbg="dentro" title="Depurar paso a paso por instrucciones (F11)">${ci('debug-step-into')}</button><button data-dbg="salir" title="Salir de la depuración (Mayús+F11)">${ci('debug-step-out')}</button><button data-dbg="reiniciar" title="Reiniciar (Ctrl+Mayús+F5)">${ci('debug-restart')}</button><button data-dbg="detener" title="Detener (Mayús+F5)">${ci('debug-stop')}</button></div>`); box.append(tb); tb.addEventListener('click', (e) => { const b = e.target.closest('[data-dbg]'); if (!b) return; const a = b.dataset.dbg; if (a === 'detener') terminarDbg(); else if (a === 'reiniciar') depurar(); else pasoDbg(a); }); }
+      if (!dbg && tb) tb.remove();
+      if (tb) tb.classList.toggle('cargando', !!(dbg && dbg.cargando));
+      pintarBps(); if (vistaLat === 'ejecutar') pintarLateral(); if (ptab === 'depuracion') pintarConsolaDbg();
+    }
+    function pintarDepurar() {
+      const bpLista = Object.entries(vsBps()).flatMap(([k, ls]) => ls.map((l) => [k, l]));
+      const p = dbg && dbg.i >= 0 ? dbg.pasos[dbg.i] : null;
+      const vars = (o) => Object.entries(o || {}).map(([k, [v, t, n]]) => `<div class="vs-var" title="${esc(t)}"><span class="vs-var-n">${esc(k)}</span>: <span class="vs-var-v vs-var-${/^(int|float|bool)$/.test(t) ? 'num' : t === 'str' ? 'str' : 'obj'}">${esc(v)}</span>${n != null && t !== 'str' ? ` <small>(${n})</small>` : ''}</div>`).join('') || '<div class="vs-dim vs-var">sin variables</div>';
+      const seccion = (id, titulo, cuerpo, extra = '') => `<details class="vs-dbg-sec" open><summary>${titulo}${extra}</summary>${cuerpo}</details>`;
+      if (!dbg) {
+        latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR Y DEPURAR</span></div><div class="vs-run-info">${esArchivo(actual) && ext(actual) === 'py' ? `<button class="vs-btn-azul" data-dbg-ini>Ejecutar y depurar</button><p class="small">Pon puntos de interrupción con clic a la izquierda del número de línea (o F9) y pulsa F5. Ctrl+F5 ejecuta sin depurar.</p>` : esArchivo(actual) && comandoPara(actual) ? `<button class="vs-btn-azul" data-run>▷ ${esc(comandoPara(actual).titulo)}</button><p class="small">Se guarda el archivo y se ejecuta en la terminal integrada.</p>` : '<p class="small">Abre un archivo .py para depurarlo, o un archivo que se pueda ejecutar.</p>'}${dbgFinal ? `<p class="small">Última sesión: ${dbgFinal.error ? `terminó con <b>${esc(dbgFinal.error.split(':')[0])}</b>` : 'terminó bien'}. Mira la CONSOLA DE DEPURACIÓN.</p>` : ''}</div>${seccion('bp', 'PUNTOS DE INTERRUPCIÓN', bpLista.map(([k, l]) => `<div class="vs-var vs-bp-item" data-ir-bp="${esc(k)}|${l}"><span class="vs-bp-dot"></span>${esc(k.split('/').pop())} <small>${l}</small></div>`).join('') || '<div class="vs-dim vs-var">Ninguno</div>')}`;
+      } else if (dbg.cargando) latEl.innerHTML = '<div class="vs-lat-cab"><span>EJECUTAR Y DEPURAR</span></div><p class="small" style="padding:0 14px">Iniciando Python…</p>';
+      else {
+        latEl.innerHTML = `<div class="vs-lat-cab"><span>EJECUTAR Y DEPURAR</span></div>${p && p.e === 'exception' ? `<div class="vs-dbg-excbox">Se produjo una excepción: <b>${esc(p.exc)}</b></div>` : ''}${seccion('vars', 'VARIABLES', `${p && p.pila.length > 1 ? `<div class="vs-var-g">Locals</div>${vars(p.loc)}` : ''}<div class="vs-var-g">${p && p.pila.length > 1 ? 'Globals' : 'Locals'}</div>${vars(p && p.glob)}`)}${seccion('watch', 'INSPECCIÓN', vigilar.map((n, i) => { const v = p && (p.loc[n] || p.glob[n]); return `<div class="vs-var"><span class="vs-var-n">${esc(n)}</span>: <span class="vs-var-v">${v ? esc(v[0]) : '<i>no disponible</i>'}</span> <button class="vs-mini" data-quitar-watch="${i}">✕</button></div>`; }).join('') + '<input class="vs-watch-in" data-watch placeholder="+ Agregar expresión (nombre de variable)">')}${seccion('pila', 'PILA DE LLAMADAS', p ? p.pila.map(([fn, l], i) => `<div class="vs-var ${i === 0 ? 'on' : ''}">${ci('debug-stackframe')} <span class="vs-var-n">${esc(fn === '<module>' ? '<module>' : fn)}</span> <small>${esc(dbg.archivo.split('/').pop())} ${l}</small></div>`).join('') : '')}${seccion('bp', 'PUNTOS DE INTERRUPCIÓN', bpLista.map(([k, l]) => `<div class="vs-var vs-bp-item" data-ir-bp="${esc(k)}|${l}"><span class="vs-bp-dot"></span>${esc(k.split('/').pop())} <small>${l}</small></div>`).join('') || '<div class="vs-dim vs-var">Ninguno</div>')}`;
+      }
+      const ini = $('[data-dbg-ini]', latEl); if (ini) ini.onclick = () => depurar();
+      const run = $('[data-run]', latEl); if (run) run.onclick = () => ejecutar();
+      const w = $('[data-watch]', latEl); if (w) w.onkeydown = (e) => { if (e.key === 'Enter' && w.value.trim()) { vigilar.push(w.value.trim()); pintarLateral(); } };
+      $$('[data-quitar-watch]', latEl).forEach((b) => { b.onclick = () => { vigilar.splice(Number(b.dataset.quitarWatch), 1); pintarLateral(); }; });
+      $$('[data-ir-bp]', latEl).forEach((b) => { b.onclick = () => { const [k, l] = b.dataset.irBp.split('|'); if (actual !== k) abrir(k); setTimeout(() => irALinea(Number(l)), 200); }; });
+    }
+    if (!bpTimer) bpTimer = setInterval(() => { if (!box.isConnected) { clearInterval(bpTimer); bpTimer = null; return; } prepararGutter(); }, 500);
     async function ejecutar() {
       if (!esArchivo(actual)) { toast('Abre un archivo para ejecutarlo.'); return; }
       const c = comandoPara(actual);
@@ -1005,7 +1161,9 @@ print(json.dumps(out))`;
     }
     const abrirRapido = () => selector('Busca un archivo por nombre…', archivos().map((k) => ({ label: k.split('/').pop(), desc: rel(k).split('/').slice(0, -1).join('/'), icono: ICONO_EXT[ext(k)] || '📄', k })), (x) => abrir(x.k));
     const COMANDOS = [
-      ['Ejecutar: ejecutar el archivo actual', 'F5', () => ejecutar()],
+      ['Depurar: iniciar la depuración', 'F5', () => depurar()],
+      ['Ejecutar: ejecutar sin depurar', 'Ctrl+F5', () => ejecutar()],
+      ['Depurar: alternar punto de interrupción', 'F9', () => { if (ed && ed.monaco) alternarBp(ed.monaco.getPosition().lineNumber); }],
       ['Archivo: guardar', 'Ctrl+S', () => { guardar(); toast('Guardado'); }],
       ['Archivo: guardar todo', '', () => guardarTodo()],
       ['Archivo: nuevo archivo…', '', () => nuevo(false)],
@@ -1095,7 +1253,13 @@ print(json.dumps(out))`;
       if (c && e.shiftKey && (k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(true); nuevaTerminal(); return; }
       if (c && k === 's') { e.preventDefault(); if (e.altKey) guardarTodo(); else { guardar(); toast('Guardado ' + (esArchivo(actual) ? Sh.display(actual) : '')); } }
       else if (c && (e.key === '`' || k === 'ñ' || e.code === 'Backquote')) { e.preventDefault(); togglePanel(); }
-      else if (e.key === 'F5') { e.preventDefault(); ejecutar(); }
+      else if (e.key === 'F5' && e.shiftKey && c) { e.preventDefault(); if (dbg) depurar(); }
+      else if (e.key === 'F5' && e.shiftKey) { e.preventDefault(); if (dbg) terminarDbg(); }
+      else if (e.key === 'F5' && c) { e.preventDefault(); ejecutar(); }
+      else if (e.key === 'F5') { e.preventDefault(); if (dbg) pasoDbg('continuar'); else if (esArchivo(actual) && ext(actual) === 'py') depurar(); else ejecutar(); }
+      else if (e.key === 'F9') { e.preventDefault(); if (ed && ed.monaco) alternarBp(ed.monaco.getPosition().lineNumber); }
+      else if (e.key === 'F10' && dbg) { e.preventDefault(); pasoDbg('sobre'); }
+      else if (e.key === 'F11' && dbg) { e.preventDefault(); pasoDbg(e.shiftKey ? 'salir' : 'dentro'); }
       else if (c && e.key === ',') { e.preventDefault(); abrir(AJUSTES); }
       else if (c && e.shiftKey && k === 'x') { e.preventDefault(); vistaLat = 'ext'; lateralOculto = false; pintarLateral(); }
       else if (c && e.shiftKey && k === 'p') { e.preventDefault(); paleta(); }
@@ -1435,7 +1599,7 @@ print(json.dumps(out))`;
     { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, con casos de negocio reales, y llevar los números a un tablero de Power BI.', mods: ['sql', 'casos', 'analisis', 'modelado', 'powerbi'] },
     { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, y Spark para cuando los datos no entran en una sola computadora.', mods: ['python', 'spark', 'pyspark'] },
     { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
-    { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie'] },
+    { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces'] },
     { id: 'e6', titulo: 'Etapa 6 · Diseñar y automatizar', desc: 'Cómo se diseña una plataforma de datos y cómo se crea la infraestructura con código.', mods: ['arquitectura', 'terraform'] },
     { id: 'e7', titulo: 'Etapa 7 · Pipelines reales y operación', desc: 'Juntar todo en pipelines de punta a punta, resolver incidentes, trabajar en tu computadora y en la nube real.', mods: ['pipelines', 'incidentes', 'local', 'laboratorios'] },
     { id: 'e8', titulo: 'Etapa 8 · Tu portafolio y tu primer trabajo', desc: 'Proyectos para mostrar, el proyecto final y cómo prepararte para las entrevistas.', mods: ['portafolio', 'proyecto'] },
@@ -1563,6 +1727,7 @@ print(json.dumps(out))`;
   const LABS_MENU = [
     ['#/databricks', '🧱', 'Databricks', 'databricks', 'apps'],
     ['#/azure', '☁️', 'Portal de Azure', 'azure', 'apps'],
+    ['#/github', '🐙', 'GitHub', 'github', 'apps'],
     ['#/powerbi', '📊', 'Power BI Desktop', 'powerbi', 'apps'],
     ['#/vscode', '🟦', 'VS Code', 'vscode', 'apps'],
     ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal', 'apps'],
@@ -1658,9 +1823,10 @@ print(json.dumps(out))`;
   // Herramientas de práctica: las réplicas de las aplicaciones reales, los laboratorios y las simulaciones.
   // modulos: dónde se usa cada una (para mostrarla en el módulo y en sus lecciones).
   const HERRAMIENTAS = [
-    { id: 'databricks', g: 'apps', href: '#/databricks', ico: '🧱', nombre: 'Databricks', real: 'Databricks (workspace en Azure, AWS o GCP)', desc: 'El workspace completo: notebooks con SQL y PySpark reales, Unity Catalog, editor SQL, compute, jobs y pipelines declarativos.', puedes: ['Notebooks con %sql y Python (Spark en tu navegador), display() y dbutils', 'Tablas Delta con historial, MERGE, time travel, COPY INTO y QUALIFY', 'Jobs con tareas, dependencias y reparación; pipelines con expectativas y AUTO CDC'], modulos: ['databricks', 'genie', 'cert-databricks', 'portafolio', 'laboratorios', 'spark', 'pyspark'], rutas: ['databricks'] },
-    { id: 'azure', g: 'apps', href: '#/azure', ico: '☁️', nombre: 'Portal de Azure', real: 'portal.azure.com', desc: 'Suscripción de práctica con grupos de recursos, asistentes de creación, Storage, Key Vault, Databricks, Data Factory, costos y Cloud Shell.', puedes: ['Crear recursos con el asistente (Basics → Review + create) y ver el despliegue', 'Contenedores y blobs, secretos con RBAC, bloqueos, etiquetas y registro de actividad', 'Cloud Shell con la CLI az conectada al mismo estado'], modulos: ['azure', 'cert-azure', 'terraform', 'portafolio', 'laboratorios', 'arquitectura'], rutas: ['azure'] },
-    { id: 'powerbi', g: 'apps', href: '#/powerbi', ico: '📊', nombre: 'Power BI Desktop', real: 'Power BI Desktop', desc: 'Importa CSV, Excel o las bases del curso, transforma con Power Query, modela relaciones, escribe DAX y arma el informe.', puedes: ['Power Query con pasos aplicados y M', 'Modelo con relaciones, medidas y columnas calculadas (motor DAX con contexto de filtro)', '23 objetos visuales, formato, vista de consultas DAX y TMDL'], modulos: ['powerbi', 'analisis', 'casos'], rutas: ['powerbi'] },
+    { id: 'databricks', g: 'apps', href: '#/databricks', ico: '🧱', nombre: 'Databricks', real: 'Databricks (workspace en Azure, AWS o GCP)', desc: 'El workspace completo: notebooks con SQL y PySpark reales, Unity Catalog, editor SQL, compute, jobs y pipelines declarativos.', puedes: ['Notebooks con %sql y Python (Spark en tu navegador), display() y dbutils', 'Tablas Delta con historial, MERGE, time travel, COPY INTO y QUALIFY', 'Jobs con tareas, dependencias y reparación; pipelines con expectativas y AUTO CDC', 'Exportar todo como Asset Bundle (databricks.yml) para desplegarlo en un workspace real'], modulos: ['databricks', 'genie', 'interfaces', 'cert-databricks', 'portafolio', 'laboratorios', 'spark', 'pyspark'], rutas: ['databricks'] },
+    { id: 'azure', g: 'apps', href: '#/azure', ico: '☁️', nombre: 'Portal de Azure', real: 'portal.azure.com', desc: 'Suscripción de práctica con grupos de recursos, asistentes de creación, Storage, Key Vault, Databricks, Data Factory, costos y Cloud Shell.', puedes: ['Crear recursos con el asistente (Basics → Review + create) y ver el despliegue', 'Contenedores y blobs, secretos con RBAC, bloqueos, etiquetas y registro de actividad', 'Data Factory Studio: Copy, Notebook, Get Metadata, Lookup, ForEach, If, expresiones y exportación a ARM template', 'Cloud Shell con la CLI az conectada al mismo estado'], modulos: ['azure', 'interfaces', 'cert-azure', 'terraform', 'portafolio', 'laboratorios', 'arquitectura'], rutas: ['azure'] },
+    { id: 'github', g: 'apps', href: '#/github', ico: '🐙', nombre: 'GitHub', real: 'github.com', desc: 'Repositorios, issues, pull requests con revisión, GitHub Actions que corre de verdad, protección de ramas, secretos y Pages, conectado a la terminal: lo que subes con git push aparece al instante.', puedes: ['Código, commits, blame, ramas y editar archivos en el navegador', 'Pull requests: Files changed, comentarios por línea, revisiones de compañeros, merge/squash/rebase y conflictos', 'Actions: workflows YAML que corren pytest y ruff en un runner, checks que bloquean el merge', 'Protección de main, secretos enmascarados, Pages y gh pr / gh issue / gh run en la terminal'], modulos: ['fundamentos', 'local', 'dbt', 'terraform', 'airflow', 'portafolio', 'proyecto', 'pipelines', 'interfaces'], rutas: ['github'] },
+    { id: 'powerbi', g: 'apps', href: '#/powerbi', ico: '📊', nombre: 'Power BI Desktop', real: 'Power BI Desktop', desc: 'Importa CSV, Excel o las bases del curso, transforma con Power Query, modela relaciones, escribe DAX y arma el informe.', puedes: ['Power Query con pasos aplicados y M', 'Modelo con relaciones, medidas y columnas calculadas (motor DAX con contexto de filtro)', '23 objetos visuales, mapa, seguridad por filas (RLS) y grupos de cálculo', 'Exportar el modelo en TMDL (carpeta de proyecto .pbip) para Power BI Desktop'], modulos: ['powerbi', 'interfaces', 'analisis', 'casos'], rutas: ['powerbi'] },
     { id: 'vscode', g: 'apps', href: '#/vscode', ico: '🟦', nombre: 'VS Code', real: 'Visual Studio Code', desc: 'El editor con temas e íconos del repositorio oficial, terminal integrada, Git, problemas, esquema, editor dividido y diff.', puedes: ['Abrir carpetas del disco de práctica (o code . desde la terminal)', 'Editar con Monaco, el mismo editor de VS Code, y ejecutar Python o SQL', 'Control de código fuente, extensiones y ajustes'], modulos: ['local', 'python', 'dbt', 'airflow', 'fundamentos', 'proyecto'], rutas: ['vscode'] },
     { id: 'terminal', g: 'apps', href: '#/lab/terminal', ico: '⌨️', nombre: 'Terminal', real: 'bash en Linux/macOS', desc: 'Una terminal con disco propio: bash, git, docker, vim y las CLIs de Azure, AWS, Google Cloud, Databricks y Terraform.', puedes: ['Misiones guiadas de cero a experto', 'git con ramas, conflictos y un remoto de práctica', 'az, aws, gcloud, databricks y terraform con estado compartido con los portales'], modulos: ['cero', 'fundamentos', 'local', 'azure', 'aws', 'gcp', 'terraform', 'incidentes'], rutas: ['lab-terminal'] },
     { id: 'notas', g: 'apps', href: '#/notas', ico: '📝', nombre: 'Notas', real: 'Notion / Obsidian', desc: 'Tus apuntes en Markdown con enlaces entre notas, una nota por lección y búsqueda.', puedes: ['Una nota por lección, enlazada desde cada lección', 'Markdown con vista previa, enlaces [[entre notas]] y etiquetas', 'Exportar todo como archivos .md'], modulos: [], rutas: ['notas'] },
@@ -2553,6 +2719,7 @@ print(json.dumps(out))`;
     const tb = Store.data.trabajo;
     const etapas = tb ? Math.min(4, tb.paso || 0) : 0;
     labs.push(tarjeta('#/trabajo', '💼 Tu primer trabajo', etapas >= 4 ? 'Semana completa ✓' : `${etapas}/4 etapas de la semana`, etapas * 25));
+    if (window.RetosHerramientas) for (const x of window.RetosHerramientas.resumen()) labs.push(tarjeta(x.id === 'adf' ? '#/azure/servicio/adf' : '#/' + x.id, `🎯 ${esc(x.titulo)}`, `${x.hechos}/${x.total} retos resueltos`, Math.round((100 * x.hechos) / Math.max(1, x.total))));
     return `<h2 class="section-title">Laboratorios y herramientas</h2><div class="grid grid-3">${labs.join('')}</div>`;
   }
 
@@ -3422,6 +3589,7 @@ print(json.dumps(out))`;
     if (parts[0] === 'vscode') return { name: 'vscode' };
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
     if (parts[0] === 'azure') return { name: 'azure', sub: parts.slice(1) };
+    if (parts[0] === 'github') return { name: 'github', sub: parts.slice(1) };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -3431,7 +3599,7 @@ print(json.dumps(out))`;
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3457,6 +3625,7 @@ print(json.dumps(out))`;
     else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });
     else if (r.name === 'databricks' && window.Databricks) window.Databricks.vista(main, { Store, toast, ensureSql }, r.sub);
     else if (r.name === 'azure' && window.AzurePortal) window.AzurePortal.vista(main, { Store, toast, ensureSql }, r.sub);
+    else if (r.name === 'github' && window.GitHubPractica) window.GitHubPractica.vista(main, { Store, toast });
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
@@ -3468,6 +3637,7 @@ print(json.dumps(out))`;
     else if (r.name === 'simulacro') viewSimulacro(r.cert);
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
+    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();

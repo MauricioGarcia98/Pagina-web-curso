@@ -133,6 +133,27 @@ grep "Chile" datos/clientes.csv > clientes_chile.csv
 | `a > archivo` | Guarda la salida en el archivo (lo **reemplaza**) |
 | `a >> archivo` | Agrega la salida al final del archivo |
 | `a && b` | Ejecuta `b` solo si `a` funcionó |
+| `a 2> errores.txt` | Guarda **solo los errores** (el descriptor 2) en un archivo |
+| `a > todo.txt 2>&1` | Guarda la salida **y** los errores en el mismo archivo (`&> todo.txt` es lo mismo) |
+| `a 2> /dev/null` | Descarta los errores: `/dev/null` es un "agujero negro" |
+| `a &` | Ejecuta `a` **en segundo plano**: la terminal queda libre mientras corre |
+
+Un comando tiene dos salidas: la **normal** (descriptor 1) y la de **errores** (descriptor 2). `>` solo redirige la normal: por eso `ls /noexiste > salida.txt` sigue mostrando el error en pantalla y deja el archivo vacío.
+
+### Procesos en segundo plano
+
+Algo que tarda (un script de carga, un servidor local) se puede lanzar con `&` al final y seguir trabajando:
+
+```bash norun
+sleep 30 &          # [1] 4123 → número de trabajo y PID
+jobs                # [1]+  Ejecutando   sleep 30 &
+fg %1               # lo trae al frente y esperas que termine (Ctrl+C lo corta)
+kill %1             # o lo terminas sin traerlo
+echo $!             # el PID del último trabajo lanzado con &
+wait                # espera a que terminen todos
+```
+
+Cuando un trabajo termina, bash avisa `[1]+  Hecho  sleep 30` antes del siguiente prompt. Ojo: si cierras la terminal, los trabajos mueren con ella; para que sigan, se usa `nohup comando &` (o un servicio de verdad, como un scheduler).
 
 ```recorrido
 titulo: Una tubería: cada comando le pasa su salida al siguiente

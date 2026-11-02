@@ -287,7 +287,7 @@
       <div class="pb-m-pie"><button class="pb-btn pb-btn-am" data-ok-vc>Aceptar</button><button class="pb-btn" data-cerrar-modal>Cancelar</button></div>`);
     m.querySelector('[data-ok-vc]').addEventListener('click', () => {
       const r = m.querySelector('[name=vcrol]:checked'); if (!r) { toast('Elige un rol.'); return; }
-      S.verComo = { rol: r.value, usuario: m.querySelector('[data-otro]').checked ? m.querySelector('[data-usuario]').value.trim() : '' };
+      S.verComo = { rol: r.value, usuario: m.querySelector('[data-otro]').checked ? m.querySelector('[data-usuario]').value.trim() : '' }; S.vioComo = true;
       guardar(); m.parentElement.remove(); render();
     });
   }
@@ -319,6 +319,8 @@
   function serieDe(cats, campo, filtros) { const r = consultar(cats, [valorDe(campo)], filtros); return { r, vals: Object.fromEntries(r.filas.map((f) => [f[0], f[f.length - 1]])) }; }
   function ordenarCats(v, cats, series, x) {
     const o = v.orden;
+    const mo = claveOrden(x);
+    if (mo && (!o || o.por === 'cat')) { const d = o && o.desc ? -1 : 1; return cats.sort((a, b) => { const ka = mo.get(a), kb = mo.get(b); return (ka < kb ? -1 : ka > kb ? 1 : 0) * d; }); }
     if (o && o.por !== undefined) { const s = o.por === 'cat' ? null : series[Number(o.por)] || series[0]; return cats.sort((a, b) => { const d = s ? (s.vals[a] ?? -Infinity) - (s.vals[b] ?? -Infinity) : a < b ? -1 : a > b ? 1 : 0; return o.desc ? -d : d; }); }
     if (x && (esFecha(x) || ['linea', 'area', 'areaApilada', 'kpi', 'cascada'].includes(v.tipo) && !['embudo'].includes(v.tipo))) return cats.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     if (series[0]) return cats.sort((a, b) => (series[0].vals[b] ?? -Infinity) - (series[0].vals[a] ?? -Infinity));
@@ -404,6 +406,14 @@
     ['Agrega una segmentación de datos y una tarjeta', () => todos().some((v) => v.tipo === 'segmentacion' && v.pozos.x && v.pozos.x[0]) && todos().some((v) => v.tipo === 'tarjeta' && v.pozos.valores && v.pozos.valores[0])],
     ['Ejecuta una consulta en la vista de consultas DAX', () => !!S.daxEjecutada],
     ['Publica el informe', () => S.publicado],
+  ];
+  const RETO_AV = [
+    ['Usa CALCULATE en una medida (por ejemplo, ventas de un canal)', () => S.medidas.some((m) => /CALCULATE\s*\(/i.test(m.expr))],
+    ['Crea una medida de inteligencia de tiempo (TOTALYTD, SAMEPERIODLASTYEAR o DATEADD)', () => S.medidas.some((m) => /TOTALYTD|SAMEPERIODLASTYEAR|DATEADD|DATESYTD/i.test(m.expr))],
+    ['Agrega un visual de mapa por país o ciudad', () => todos().some((v) => v.tipo === 'mapa' && v.pozos.x && v.pozos.x[0])],
+    ['Crea un rol de seguridad (RLS) con una regla', () => (S.roles || []).some((r) => r.reglas.length)],
+    ['Prueba el rol con "Ver como"', () => !!(S.verComo && S.verComo.rol) || !!S.vioComo],
+    ['Crea un grupo de cálculo y úsalo en un visual', () => Object.entries(S.tablas).some(([n, t]) => t.fuente.tipo === 'calcgroup' && todos().some((v) => Object.values(v.pozos || {}).flat().some((f) => f.t === n)))],
   ];
 
   // ---------------------------------------------------------------- arranque
@@ -572,18 +582,39 @@
     } catch (e) { toast('No se pudo abrir: ' + e.message, 5000); }
   }
   function menuArchivo() {
-    const m = modal(`<div class="pb-back"><div class="pb-back-l"><button data-cerrar-modal class="pb-back-x">←</button><button data-b="nuevo">${fl('document_add')} Nuevo</button><button data-b="abrir">${fl('folder_open')} Abrir</button><button data-b="guardar">${fl('save')} Guardar como</button><button data-b="tmdl">${fl('arrow_download')} Exportar el modelo (TMDL)</button><button data-b="pdf">${fl('document')} Exportar a PDF</button><button data-b="publicar">${fl('cloud_arrow_up')} Publicar</button><button data-b="acerca">${fl('question_circle')} Acerca de</button></div><div class="pb-back-r"><h2>Archivo</h2><p class="pb-dim">Tu informe se guarda solo en este navegador. Para llevarlo a otra computadora, usa <b>Guardar como</b> (descarga un archivo .pbia.json) y luego <b>Abrir</b>.</p><p class="pb-dim"><b>Exportar el modelo (TMDL)</b> descarga la definición del modelo semántico en Tabular Model Definition Language, el mismo formato de texto que usa la carpeta <code>definition/</code> de un proyecto de Power BI (.pbip). Se puede abrir en VS Code y versionar con Git.</p></div></div>`, 'pb-modal-back');
+    const m = modal(`<div class="pb-back"><div class="pb-back-l"><button data-cerrar-modal class="pb-back-x">←</button><button data-b="nuevo">${fl('document_add')} Nuevo</button><button data-b="abrir">${fl('folder_open')} Abrir</button><button data-b="guardar">${fl('save')} Guardar como</button><button data-b="tmdl">${fl('arrow_download')} Exportar el modelo (carpeta .pbip en TMDL)</button><button data-b="pdf">${fl('document')} Exportar a PDF</button><button data-b="publicar">${fl('cloud_arrow_up')} Publicar</button><button data-b="acerca">${fl('question_circle')} Acerca de</button></div><div class="pb-back-r"><h2>Archivo</h2><p class="pb-dim">Tu informe se guarda solo en este navegador. Para llevarlo a otra computadora, usa <b>Guardar como</b> (descarga un archivo .pbia.json) y luego <b>Abrir</b>.</p><p class="pb-dim"><b>Exportar el modelo (TMDL)</b> descarga la definición del modelo semántico en Tabular Model Definition Language, el mismo formato de texto que usa la carpeta <code>definition/</code> de un proyecto de Power BI (.pbip). Se puede abrir en VS Code y versionar con Git.</p></div></div>`, 'pb-modal-back');
     m.addEventListener('click', (e) => {
       const b = e.target.closest('[data-b]'); if (!b) return; m.parentElement.remove();
       const k = b.dataset.b;
       if (k === 'nuevo') accion('reiniciar'); else if (k === 'abrir') main.querySelector('#pbAbrir').click(); else if (k === 'guardar') guardarComo();
-      else if (k === 'tmdl') { construir(); descargar('model.tmdl', tmdlModelo(), 'text/plain'); }
+      else if (k === 'tmdl') exportarModeloTmdl();
       else if (k === 'pdf') { S.vista = 'informe'; render(); setTimeout(() => window.print(), 300); }
       else if (k === 'publicar') accion('publicar');
       else if (k === 'acerca') toast('Power BI Desktop de práctica de la Academia de Datos. No es un producto de Microsoft: reproduce su funcionamiento con la documentación pública (learn.microsoft.com), SQLite en el navegador y los íconos Fluent UI (MIT).', 8000);
     });
   }
 
+
+  // carpeta del modelo semántico de un proyecto de Power BI (.pbip, formato TMDL) + script para la vista TMDL
+  function exportarModeloTmdl() {
+    construir();
+    const base = (S.nombreArchivo && S.nombreArchivo !== 'Sin título' ? S.nombreArchivo : 'Informe').replace(/[^\w .-]+/g, '_');
+    const dir = `${base}.SemanticModel/definition/`;
+    const rel = S.rels.map((r) => [`relationship ${guid(r.de + r.cde + r.a + r.ca)}`, ...(r.activa ? [] : ['\tisActive: false']), ...(r.direccion === 'ambas' ? ['\tcrossFilteringBehavior: bothDirections'] : []), `\tfromColumn: ${nomTmdl(r.de)}.${nomTmdl(r.cde)}`, `\ttoColumn: ${nomTmdl(r.a)}.${nomTmdl(r.ca)}`, ''].join('\n'));
+    const archivos = [
+      [`${base}.SemanticModel/definition.pbism`, JSON.stringify({ version: '4.2', settings: {} }, null, 2)],
+      [`${dir}database.tmdl`, 'database\n\tcompatibilityLevel: 1600\n'],
+      [`${dir}model.tmdl`, `model Model\n\tculture: es-ES\n\tdefaultPowerBIDataSourceVersion: powerBI_V3\n\tsourceQueryCulture: es-AR\n\n${tablas().map((t) => `ref table ${nomTmdl(t)}`).join('\n')}\n${(S.roles || []).map((r) => `ref role ${nomTmdl(r.nombre)}`).join('\n')}\n`],
+      ...(rel.length ? [[`${dir}relationships.tmdl`, rel.join('\n')]] : []),
+      ...tablas().map((t) => [`${dir}tables/${t.replace(/[\\/:*?"<>|]/g, '_')}.tmdl`, tmdlTabla(t, '') + '\n']),
+      ...(S.roles || []).map((r) => [`${dir}roles/${r.nombre.replace(/[\\/:*?"<>|]/g, '_')}.tmdl`, `role ${nomTmdl(r.nombre)}\n\tmodelPermission: read\n${[...new Set(r.reglas.map((g) => g.t))].map((t) => `\n\ttablePermission ${nomTmdl(t)} = ${daxRol(r, t)}`).join('\n')}\n`]),
+      ['script_vista_TMDL.tmdl', `createOrReplace\n\n${tmdlModelo().split('\n').map((l) => (l ? '\t' + l : l)).join('\n')}\n`],
+      ['LEEME.md', `# ${base}: modelo semántico exportado\n\nExportado desde el Power BI de práctica de la Academia de Datos, en TMDL (Tabular Model Definition Language), el formato de texto de los proyectos de Power BI (.pbip).\n\n## Cómo usarlo en Power BI Desktop\n\n1. Abre Power BI Desktop (gratis, Windows) y activa la vista TMDL (en versiones recientes ya viene activa).\n2. Carga tus datos con los mismos nombres de tabla (las particiones apuntan a los archivos de la práctica: cambia la ruta en Power Query si hace falta).\n3. En la vista TMDL pega **script_vista_TMDL.tmdl** y pulsa Aplicar: crea o reemplaza medidas, relaciones, roles y grupos de cálculo.\n\nLa carpeta **${base}.SemanticModel** sigue la estructura de un proyecto .pbip (definition/tables, relationships.tmdl, roles): sirve para versionar el modelo en Git y revisarlo en pull requests.\n`],
+    ];
+    if (!window.Generador || !window.Generador.zip) { descargar('model.tmdl', tmdlModelo(), 'text/plain'); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(window.Generador.zip(archivos)); a.download = `${base}-modelo-tmdl.zip`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast(`Modelo exportado: ${tablas().length} tablas, ${S.medidas.length} medidas, ${S.rels.length} relaciones${(S.roles || []).length ? `, ${S.roles.length} roles` : ''}.`);
+  }
   // ---------------------------------------------------------------- diálogos genéricos y obtener datos
   function modal(html, clase = '') {
     const prev = main.querySelector('.pb-modal-fondo'); if (prev) prev.remove();
@@ -1065,22 +1096,32 @@
 
   // ---------------------------------------------------------------- paneles (Filtros, Visualizaciones, Datos)
   const campoKey = (f) => (f.medida ? 'm:' + f.medida : `${f.t}|${f.c}|${f.parte || ''}`);
+  // agrupa medidas y columnas por "carpeta para mostrar" (las sin carpeta van primero, como en Power BI)
+  function carpetas(t, med, cols) {
+    const g = new Map([['', { carpeta: '', med: [], cols: [] }]]);
+    const de = (k) => (propsDe(k).carpeta || '');
+    for (const m of med) { const c = de('m:' + m.nombre); if (!g.has(c)) g.set(c, { carpeta: c, med: [], cols: [] }); g.get(c).med.push(m); }
+    for (const x of cols) { const c = de(propKey(t, x.n)); if (!g.has(c)) g.set(c, { carpeta: c, med: [], cols: [] }); g.get(c).cols.push(x); }
+    return [...g.values()].sort((a, b) => (a.carpeta === '' ? 1 : b.carpeta === '' ? -1 : a.carpeta.localeCompare(b.carpeta)));
+  }
   function arbolDatos(usados, opts = {}) {
     const abiertas = new Set(S.tablasAbiertas || tablas().slice(0, 2)); const b = (S.buscar || '').toLowerCase();
     return tablas().map((t) => {
       const tb = S.tablas[t];
-      const med = S.medidas.filter((m) => (m.tabla || tablas()[0]) === t && (!b || m.nombre.toLowerCase().includes(b)));
-      const cols = meta(t).filter((c) => !b || c.n.toLowerCase().includes(b));
+      const visible = (k) => S.verOcultos || !propsDe(k).oculto;
+      if (!visible(propKey(t))) return '';
+      const med = S.medidas.filter((m) => (m.tabla || tablas()[0]) === t && (!b || m.nombre.toLowerCase().includes(b)) && visible('m:' + m.nombre));
+      const cols = meta(t).filter((c) => (!b || c.n.toLowerCase().includes(b)) && visible(propKey(t, c.n)));
       const abierta = abiertas.has(t) || !!b;
       const icoT = tb.fuente.tipo === 'dax' ? fl('table_add') : fl('table');
-      return `<div class="pb-tabla-n ${S.tablaDatos === t && opts.tablaSel ? 'abierta' : ''}" data-tabla="${esc(t)}"><span class="pb-chev">${abierta ? '⌄' : '›'}</span><span class="pb-tabla-ic">${icoT}</span><span class="pb-nombre">${esc(t)}</span>${errores[t] ? `<span class="pb-err-ic" title="${esc(errores[t])}">⚠</span>` : ''}<button class="pb-mas-t" data-menu-tabla="${esc(t)}" title="Más opciones">⋯</button></div>${abierta ? med.map((m) => `<div class="pb-campo pb-medida ${S.medidaSel === m.nombre ? 'pb-sel' : ''}" draggable="true" data-medida="${esc(m.nombre)}"><input type="checkbox" tabindex="-1" ${usados.has('m:' + m.nombre) ? 'checked' : ''}><span class="pb-ic">${fl('calculator')}</span><span class="pb-nombre">${esc(m.nombre)}</span></div>`).join('') + cols.map((c) => { const k = `${t}|${c.n}|`; const fecha = c.t === 'fecha'; return `<div class="pb-campo ${S.colSel && S.colSel.t === t && S.colSel.c === c.n ? 'pb-sel' : ''}" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}"><input type="checkbox" tabindex="-1" ${usados.has(k) ? 'checked' : ''}><span class="pb-ic">${c.calc ? '<i class="pb-fx">fx</i>' : esNum(t, c.n) ? 'Σ' : fecha ? fl('calendar_ltr') : ''}</span><span class="pb-nombre">${esc(c.n)}</span>${(tb.calc.find((x) => x.nombre === c.n) || {}).error ? '<span class="pb-err-ic">⚠</span>' : ''}</div>${fecha ? `<div class="pb-jerarquia">${['anio', 'trim', 'mes'].map((p) => `<div class="pb-campo pb-sub" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}" data-parte="${p}"><input type="checkbox" tabindex="-1" ${usados.has(`${t}|${c.n}|${p}`) ? 'checked' : ''}><span class="pb-ic"></span>${PARTES[p]}</div>`).join('')}</div>` : ''}`; }).join('') + tb.calc.filter((cc) => cc.error).map((cc) => `<div class="pb-campo pb-campo-error" title="${esc(cc.error)}"><span class="pb-ic">⚠</span>${esc(cc.nombre)} (error)</div>`).join('') : ''}`;
+      return `<div class="pb-tabla-n ${S.tablaDatos === t && opts.tablaSel ? 'abierta' : ''}" data-tabla="${esc(t)}"><span class="pb-chev">${abierta ? '⌄' : '›'}</span><span class="pb-tabla-ic">${icoT}</span><span class="pb-nombre">${esc(t)}</span>${errores[t] ? `<span class="pb-err-ic" title="${esc(errores[t])}">⚠</span>` : ''}<button class="pb-mas-t" data-menu-tabla="${esc(t)}" title="Más opciones">⋯</button></div>${abierta ? carpetas(t, med, cols).map((g) => (g.carpeta ? `<div class="pb-carpeta">${fl('folder_open')} ${esc(g.carpeta)}</div>` : '') + g.med.map((m) => `<div class="pb-campo pb-medida ${g.carpeta ? 'pb-en-carpeta' : ''} ${S.medidaSel === m.nombre ? 'pb-sel' : ''} ${propsDe('m:' + m.nombre).oculto ? 'pb-oculto' : ''}" draggable="true" data-medida="${esc(m.nombre)}" title="${esc(propsDe('m:' + m.nombre).descripcion || '')}"><input type="checkbox" tabindex="-1" ${usados.has('m:' + m.nombre) ? 'checked' : ''}><span class="pb-ic">${fl('calculator')}</span><span class="pb-nombre">${esc(m.nombre)}</span></div>`).join('') + g.cols.map((c) => { const k = `${t}|${c.n}|`; const fecha = c.t === 'fecha' && !(S.tablaFechas && S.tablaFechas.t === t); const P0 = propsDe(propKey(t, c.n)); return `<div class="pb-campo ${g.carpeta ? 'pb-en-carpeta' : ''} ${S.colSel && S.colSel.t === t && S.colSel.c === c.n ? 'pb-sel' : ''} ${P0.oculto ? 'pb-oculto' : ''}" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}" title="${esc(P0.descripcion || '')}"><input type="checkbox" tabindex="-1" ${usados.has(k) ? 'checked' : ''}><span class="pb-ic">${c.calc ? '<i class="pb-fx">fx</i>' : P0.categoria && /País|Ciudad|Estado|Continente|Condado|Código postal|Lugar|Latitud|Longitud|Dirección$/.test(P0.categoria) ? fl('globe') : esNum(t, c.n) ? 'Σ' : c.t === 'fecha' ? fl('calendar_ltr') : ''}</span><span class="pb-nombre">${esc(c.n)}</span>${(tb.calc.find((x) => x.nombre === c.n) || {}).error ? '<span class="pb-err-ic">⚠</span>' : ''}</div>${fecha ? `<div class="pb-jerarquia">${['anio', 'trim', 'mes'].map((p) => `<div class="pb-campo pb-sub" draggable="true" data-t="${esc(t)}" data-c="${esc(c.n)}" data-parte="${p}"><input type="checkbox" tabindex="-1" ${usados.has(`${t}|${c.n}|${p}`) ? 'checked' : ''}><span class="pb-ic"></span>${PARTES[p]}</div>`).join('')}</div>` : ''}`; }).join('')).join('') + jerarquias(t).map((h) => `<div class="pb-campo pb-jer-n"><span class="pb-ic">⋮</span><span class="pb-nombre">${esc(h.nombre)}</span></div><div class="pb-jerarquia">${h.niveles.map((n) => `<div class="pb-campo pb-sub" draggable="true" data-t="${esc(t)}" data-c="${esc(n)}"><input type="checkbox" tabindex="-1" ${usados.has(`${t}|${n}|`) ? 'checked' : ''}><span class="pb-ic"></span>${esc(n)}</div>`).join('')}</div>`).join('') + tb.calc.filter((cc) => cc.error).map((cc) => `<div class="pb-campo pb-campo-error" title="${esc(cc.error)}"><span class="pb-ic">⚠</span>${esc(cc.nombre)} (error)</div>`).join('') : ''}`;
     }).join('');
   }
   function renderPaneles() {
     const pan = main.querySelector('#pbPaneles'); if (!pan || S.vista !== 'informe') return;
     const v = S.sel && vis(S.sel);
     const usados = new Set(v ? Object.values(v.pozos).flat().map(campoKey) : []);
-    const datos = `<div class="pb-pan"><div class="pb-pan-t">Datos <button data-pliega="datos">⟩</button></div><input class="pb-buscar" placeholder="Buscar" data-buscar value="${esc(S.buscar || '')}"><div class="pb-arbol">${tablas().length ? arbolDatos(usados) : '<p class="pb-ayuda">Todavía no hay datos. Usa <b>Obtener datos</b>.</p>'}</div></div>`;
+    const datos = `<div class="pb-pan"><div class="pb-pan-t">Datos <span class="spacer"></span><button data-ver-ocultos title="${S.verOcultos ? 'Ocultar los campos ocultos' : 'Ver ocultos'}" class="${S.verOcultos ? 'on' : ''}">${fl('eye')}</button><button data-pliega="datos">⟩</button></div><input class="pb-buscar" placeholder="Buscar" data-buscar value="${esc(S.buscar || '')}"><div class="pb-arbol">${tablas().length ? arbolDatos(usados) : '<p class="pb-ayuda">Todavía no hay datos. Usa <b>Obtener datos</b>.</p>'}</div></div>`;
     let viz = `<div class="pb-pan"><div class="pb-pan-t">Visualizaciones <button data-pliega="vis">⟩</button></div><div class="pb-viz-tabs"><span data-panelvis="crear" class="${S.panelVis !== 'formato' ? 'on' : ''}">${fl('data_bar_vertical_add')} Crear objeto visual</span><span data-panelvis="formato" class="${S.panelVis === 'formato' ? 'on' : ''}">${fl('color')} Formato</span></div>`;
     if (S.panelVis !== 'formato' || !v) {
       viz += `<div class="pb-galeria">${Object.entries(V().TIPOS).filter(([, x]) => !x.oculto).map(([k, x]) => `<button data-tipo="${k}" class="${v && v.tipo === k ? 'on' : ''}" title="${esc(x.n)}">${V().ICO[k]}</button>`).join('')}</div>`;
@@ -1096,7 +1137,7 @@
       <div class="pb-pozo-t">Filtros en esta página</div><div class="pb-pozo pb-pozo-f" data-pozo="__filtro" data-clase="cat">${tarjetasFiltro(pag().filtros, 'pag')}<span class="pb-pozo-vacio">Agregar campos de datos aquí</span></div>
       <div class="pb-pozo-t">Filtros en todas las páginas</div><div class="pb-pozo pb-pozo-f" data-pozo="__todas" data-clase="cat">${tarjetasFiltro(S.filtrosTodas, 'todas')}<span class="pb-pozo-vacio">Agregar campos de datos aquí</span></div>
       ${S.cruz ? `<div class="pb-cruz">Filtrado cruzado: <b>${esc(nomCampo(S.cruz.campo))} = ${esc(S.cruz.valor ?? '(En blanco)')}</b> <button data-limpiar-cruz>Quitar</button></div>` : ''}</div>`;
-    const reto = S.reto ? `<div class="pb-pan pb-reto"><div class="pb-pan-t">🎯 Reto: tu primer informe <button data-acc="reto" title="Ocultar">✕</button></div>${RETO.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<p class="pb-ayuda">Con cualquier dataset: un CSV tuyo, un Excel o las bases del curso.</p></div>` : '';
+    const reto = S.reto ? `<div class="pb-pan pb-reto"><div class="pb-pan-t">🎯 Reto: tu primer informe <button data-acc="reto" title="Ocultar">✕</button></div>${RETO.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<div class="pb-pan-t pb-reto-av">🏆 Retos avanzados</div>${RETO_AV.map(([t, f]) => { let ok = false; try { ok = f(); } catch (e) { ok = false; } return `<div class="pb-reto-i ${ok ? 'ok' : ''}">${ok ? '✅' : '⬜'} ${esc(t)}</div>`; }).join('')}<p class="pb-ayuda">Con cualquier dataset: un CSV tuyo, un Excel o las bases del curso.</p></div>` : '';
     const analizador = S.analizador ? `<div class="pb-pan pb-analizador"><div class="pb-pan-t">Analizador de rendimiento <button data-acc="analizador">✕</button></div><div class="row" style="padding:0 12px"><button class="pb-btn" data-acc="actualizar">Actualizar objetos visuales</button></div>${pag().visuales.map((x) => { const t = tiempos[x.id]; if (!t) return ''; return `<div class="pb-an-i"><b>${esc(tituloDe(x) || V().TIPOS[x.tipo].n)}</b>${t.error ? `<span class="pb-err">${esc(t.error)}</span>` : `<span>Consulta DAX: ${t.consulta.toFixed(0)} ms</span><span>Objeto visual: ${t.visual.toFixed(0)} ms</span><button data-copiar-dax="${esc(x.id)}">Copiar consulta</button>`}</div>`; }).join('') || '<p class="pb-ayuda">Interactúa con el informe o pulsa Actualizar.</p>'}</div>` : '';
     const col = (k, html) => (S.paneles[k] ? `<div class="pb-pan-col pb-col-${k}">${html}</div>` : `<div class="pb-pan-col pb-col-plegada" data-despliega="${k}" title="Mostrar panel">${{ filtros: 'Filtros', vis: 'Visualizaciones', datos: 'Datos' }[k]}</div>`);
     pan.innerHTML = col('filtros', reto + analizador + filtros) + col('vis', viz) + col('datos', datos);
@@ -1138,6 +1179,7 @@
   }
   function enlazarPaneles(pan, v) {
     pan.querySelectorAll('[data-pliega]').forEach((x) => x.addEventListener('click', () => { S.paneles[x.dataset.pliega] = false; guardar(true); renderPaneles(); }));
+    pan.querySelectorAll('[data-ver-ocultos]').forEach((x) => x.addEventListener('click', () => { S.verOcultos = !S.verOcultos; guardar(true); renderPaneles(); }));
     pan.querySelectorAll('[data-despliega]').forEach((x) => x.addEventListener('click', () => { S.paneles[x.dataset.despliega] = true; guardar(true); renderPaneles(); }));
     pan.querySelectorAll('[data-tabla]').forEach((x) => x.addEventListener('click', (e) => { if (e.target.closest('[data-menu-tabla]')) return; const s = new Set(S.tablasAbiertas || tablas().slice(0, 2)); s.has(x.dataset.tabla) ? s.delete(x.dataset.tabla) : s.add(x.dataset.tabla); S.tablasAbiertas = [...s]; guardar(true); renderPaneles(); }));
     pan.querySelectorAll('[data-menu-tabla]').forEach((x) => x.addEventListener('click', (e) => { e.stopPropagation(); menuTabla(x.dataset.menuTabla, x); }));
@@ -1375,11 +1417,102 @@
     main.querySelectorAll('[data-ver]').forEach((x) => x.addEventListener('click', () => { S.tablaDatos = x.dataset.ver; guardar(true); renderTabla(); }));
     renderPie();
   }
+
+  // ---------------------------------------------------------------- propiedades del modelo (panel Propiedades de la vista de modelo)
+  const propKey = (t, c) => (c == null ? `T:${t}` : `${t}|${c}`);
+  const propsDe = (k) => ((S.props || {})[k]) || {};
+  const setProp = (k, campo, v) => { S.props = S.props || {}; S.props[k] = { ...(S.props[k] || {}), [campo]: v }; if (v === '' || v === false || v == null) delete S.props[k][campo]; };
+  const CATEGORIAS = ['', 'Dirección', 'Ciudad', 'Continente', 'País o región', 'Condado', 'Estado o provincia', 'Código postal', 'Lugar', 'Latitud', 'Longitud', 'Dirección web', 'URL de imagen', 'Código de barras'];
+  const CAT_TMDL = { Dirección: 'Address', Ciudad: 'City', Continente: 'Continent', 'País o región': 'Country', Condado: 'County', 'Estado o provincia': 'StateOrProvince', 'Código postal': 'PostalCode', Lugar: 'Place', Latitud: 'Latitude', Longitud: 'Longitude', 'Dirección web': 'WebUrl', 'URL de imagen': 'ImageUrl', 'Código de barras': 'Barcode' };
+  const jerarquias = (t) => ((S.jerarquias || {})[t]) || [];
+  // "ordenar por columna": mapa valor → clave de orden, calculado con la tabla del modelo
+  const cacheOrden = {};
+  function claveOrden(x) {
+    if (!x || x.parte || x.medida) return null;
+    const ob = propsDe(propKey(x.t, x.c)).ordenarPor; if (!ob) return null;
+    const k = `${version}|${x.t}|${x.c}|${ob}`;
+    if (!cacheOrden[k]) { try { cacheOrden[k] = new Map(ejecutar(`SELECT ${q(x.c)}, MIN(${q(ob)}) FROM ${q(x.t)} GROUP BY 1`).map((f) => [f[0], f[1]])); } catch (e) { cacheOrden[k] = new Map(); } }
+    return cacheOrden[k];
+  }
+  function validarTablaFechas(t, c) {
+    const filas = ejecutar(`SELECT COUNT(*), COUNT(DISTINCT ${q(c)}), SUM(CASE WHEN ${q(c)} IS NULL THEN 1 ELSE 0 END), MIN(${q(c)}), MAX(${q(c)}) FROM ${q(t)}`)[0];
+    const [n, dist, nulos, min, max] = filas;
+    if (nulos) return `La columna ${c} tiene ${nulos} valores en blanco. Una tabla de fechas no puede tener fechas vacías.`;
+    if (dist !== n) return `La columna ${c} tiene ${n - dist} valores duplicados. Una tabla de fechas necesita una fila por día.`;
+    const dias = Math.round((Date.parse(String(max).slice(0, 10)) - Date.parse(String(min).slice(0, 10))) / 864e5) + 1;
+    if (!isFinite(dias)) return `La columna ${c} no tiene fechas válidas.`;
+    if (dias !== n) return `Faltan fechas entre ${String(min).slice(0, 10)} y ${String(max).slice(0, 10)}: hay ${n} días de ${dias}. Las fechas tienen que ser contiguas (sin huecos).`;
+    return null;
+  }
+  function panelPropiedades() {
+    const sel = S.selModelo; if (!sel) return `<div class="pb-pp-t">Propiedades</div><p class="pb-ayuda">Selecciona una tabla, una columna o una medida en el diagrama para ver y cambiar sus propiedades.</p>`;
+    if (sel.tipo === 'tabla') {
+      const t = sel.t; if (!S.tablas[t]) return '';
+      const P = propsDe(propKey(t)), tf = S.tablaFechas && S.tablaFechas.t === t ? S.tablaFechas : null;
+      const fechas = meta(t).filter((c) => c.t === 'fecha');
+      return `<div class="pb-pp-t">Propiedades</div><div class="pb-pp-sec">General</div>
+        <label class="pb-pp">Nombre<input value="${esc(t)}" disabled></label>
+        <label class="pb-pp">Descripción<textarea data-pp="descripcion" rows="2">${esc(P.descripcion || '')}</textarea></label>
+        <label class="pb-pp">Sinónimos<input data-pp="sinonimos" value="${esc(P.sinonimos || '')}" placeholder="ventas, facturación"></label>
+        <label class="pb-pp-sw"><input type="checkbox" data-pp="oculto" ${P.oculto ? 'checked' : ''}> Está oculto</label>
+        <div class="pb-pp-sec">Tabla de fechas</div>
+        ${tf ? `<p class="pb-pp-ok">✓ Marcada como tabla de fechas (columna <b>${esc(tf.c)}</b>)</p><button class="pb-btn" data-desmarcar-fechas>Desmarcar</button>` : fechas.length ? `<label class="pb-pp">Columna de fecha<select data-col-fechas>${fechas.map((c) => `<option>${esc(c.n)}</option>`).join('')}</select></label><button class="pb-btn" data-marcar-fechas>Marcar como tabla de fechas</button>` : '<p class="pb-ayuda">Esta tabla no tiene columnas de fecha.</p>'}
+        <div class="pb-pp-sec">Jerarquías</div>
+        ${jerarquias(t).map((h, i) => `<div class="pb-pp-jer"><b>${esc(h.nombre)}</b><small>${h.niveles.map(esc).join(' › ')}</small><button data-borrar-jer="${i}" title="Eliminar">✕</button></div>`).join('') || '<p class="pb-ayuda">Sin jerarquías.</p>'}
+        <button class="pb-btn" data-nueva-jer>+ Nueva jerarquía</button>`;
+    }
+    if (sel.tipo === 'medida') {
+      const m = S.medidas.find((x) => x.nombre === sel.n); if (!m) return '';
+      const P = propsDe('m:' + m.nombre);
+      return `<div class="pb-pp-t">Propiedades</div><div class="pb-pp-sec">General</div>
+        <label class="pb-pp">Nombre<input value="${esc(m.nombre)}" disabled></label>
+        <label class="pb-pp">Descripción<textarea data-pp="descripcion" rows="2">${esc(P.descripcion || '')}</textarea></label>
+        <label class="pb-pp">Carpeta para mostrar<input data-pp="carpeta" value="${esc(P.carpeta || '')}" placeholder="Ventas\\Tiempo"></label>
+        <label class="pb-pp-sw"><input type="checkbox" data-pp="oculto" ${P.oculto ? 'checked' : ''}> Está oculto</label>
+        <label class="pb-pp">Tabla principal<select data-med-home>${tablas().filter((x) => S.tablas[x].fuente.tipo !== 'calcgroup').map((x) => `<option ${(m.tabla || tablas()[0]) === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
+        <div class="pb-pp-sec">Fórmula</div><pre class="pb-pp-dax">${esc(m.expr)}</pre>`;
+    }
+    const { t, c } = sel; const col = meta(t).find((x) => x.n === c); if (!col) return '';
+    const P = propsDe(propKey(t, c)), tb = S.tablas[t];
+    return `<div class="pb-pp-t">Propiedades</div><div class="pb-pp-sec">General</div>
+      <label class="pb-pp">Nombre<input value="${esc(c)}" disabled></label>
+      <label class="pb-pp">Descripción<textarea data-pp="descripcion" rows="2">${esc(P.descripcion || '')}</textarea></label>
+      <label class="pb-pp">Sinónimos<input data-pp="sinonimos" value="${esc(P.sinonimos || '')}"></label>
+      <label class="pb-pp">Carpeta para mostrar<input data-pp="carpeta" value="${esc(P.carpeta || '')}"></label>
+      <label class="pb-pp-sw"><input type="checkbox" data-pp="oculto" ${P.oculto ? 'checked' : ''}> Está oculto</label>
+      <div class="pb-pp-sec">Formato</div>
+      <label class="pb-pp">Tipo de datos<input value="${esc(TIPO_N[col.t] || col.t)}" disabled></label>
+      <div class="pb-pp-sec">Avanzado</div>
+      <label class="pb-pp">Ordenar por columna<select data-pp="ordenarPor"><option value="">${esc(c)} (predeterminado)</option>${meta(t).filter((x) => x.n !== c).map((x) => `<option ${P.ordenarPor === x.n ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</select></label>
+      <label class="pb-pp">Categoría de datos<select data-pp="categoria">${CATEGORIAS.map((x) => `<option value="${esc(x)}" ${(P.categoria || '') === x ? 'selected' : ''}>${x || 'Sin categorizar'}</option>`).join('')}</select></label>
+      <label class="pb-pp">Resumir por<select data-col-resumen-m>${Object.entries(AGG).filter(([k]) => k !== 'median').map(([k, n]) => `<option value="${k}" ${((tb.resumen || {})[c] || (esNum(t, c) ? 'sum' : 'none')) === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+  }
+  function enlazarPropiedades(box) {
+    const sel = S.selModelo; if (!sel) return;
+    const k = sel.tipo === 'tabla' ? propKey(sel.t) : sel.tipo === 'medida' ? 'm:' + sel.n : propKey(sel.t, sel.c);
+    box.querySelectorAll('[data-pp]').forEach((el) => el.addEventListener('change', () => {
+      const campo = el.dataset.pp, v = el.type === 'checkbox' ? el.checked : el.value.trim();
+      if (campo === 'ordenarPor' && v) { const dup = ejecutar(`SELECT COUNT(*) FROM (SELECT ${q(sel.c)} FROM ${q(sel.t)} GROUP BY 1 HAVING COUNT(DISTINCT ${q(v)}) > 1)`)[0][0]; if (dup) { toast(`No se puede ordenar la columna "${sel.c}" por "${v}": hay más de un valor de "${v}" para el mismo valor de "${sel.c}". Cada valor tiene que tener un solo valor de orden.`, 7000); el.value = propsDe(k).ordenarPor || ''; return; } }
+      setProp(k, campo, v); cambioModelo(); guardar(); setTimeout(() => render(), 0);
+    }));
+    const hm = box.querySelector('[data-med-home]'); if (hm) hm.addEventListener('change', () => { const m = S.medidas.find((x) => x.nombre === sel.n); m.tabla = hm.value; cambioModelo(); guardar(); setTimeout(() => render(), 0); });
+    const rs = box.querySelector('[data-col-resumen-m]'); if (rs) rs.addEventListener('change', () => { S.tablas[sel.t].resumen[sel.c] = rs.value; guardar(); setTimeout(() => render(), 0); });
+    const mf = box.querySelector('[data-marcar-fechas]'); if (mf) mf.addEventListener('click', () => { const c = box.querySelector('[data-col-fechas]').value; const e = validarTablaFechas(sel.t, c); if (e) { toast('No se pudo marcar como tabla de fechas. ' + e, 8000); return; } S.tablaFechas = { t: sel.t, c }; cambioModelo(); guardar(); setTimeout(() => render(), 0); toast(`${sel.t} quedó marcada como tabla de fechas. Power BI quita la jerarquía automática de fecha de esta tabla.`); });
+    const df = box.querySelector('[data-desmarcar-fechas]'); if (df) df.addEventListener('click', () => { S.tablaFechas = null; cambioModelo(); guardar(); setTimeout(() => render(), 0); });
+    const nj = box.querySelector('[data-nueva-jer]'); if (nj) nj.addEventListener('click', async () => {
+      const cols = meta(sel.t).map((x) => x.n);
+      const r = await pedir('Nueva jerarquía', [{ n: 'Nombre', v: 'Jerarquía' }, { n: 'Nivel 1', opts: cols }, { n: 'Nivel 2', opts: ['', ...cols] }, { n: 'Nivel 3', opts: ['', ...cols] }, { n: 'Nivel 4', opts: ['', ...cols] }]);
+      if (!r) return; const niveles = r.slice(1).filter(Boolean); if (new Set(niveles).size !== niveles.length) { toast('Cada columna puede estar una sola vez en la jerarquía.'); return; }
+      S.jerarquias = S.jerarquias || {}; (S.jerarquias[sel.t] = S.jerarquias[sel.t] || []).push({ nombre: r[0].trim() || 'Jerarquía', niveles }); cambioModelo(); guardar(); setTimeout(() => render(), 0);
+    });
+    box.querySelectorAll('[data-borrar-jer]').forEach((b) => b.addEventListener('click', () => { S.jerarquias[sel.t].splice(Number(b.dataset.borrarJer), 1); cambioModelo(); guardar(); setTimeout(() => render(), 0); }));
+  }
   function renderModelo() {
     const nombres = tablas(); S.posModelo = S.posModelo || {};
     nombres.forEach((t, i) => { if (!S.posModelo[t]) S.posModelo[t] = [4 + (i % 4) * 24, 6 + Math.floor(i / 4) * 44]; });
-    const caja = (t) => { const [x, y] = S.posModelo[t]; return `<div class="pb-mt ${S.tablas[t].fuente.tipo === 'dax' ? 'pb-mt-calc' : ''}" data-mt="${esc(t)}" style="left:${x}%;top:${y}%"><div class="pb-mt-t">${esc(t)}</div><div class="pb-mt-cols">${S.medidas.filter((m) => (m.tabla || nombres[0]) === t).map((m) => `<div>${fl('calculator')} ${esc(m.nombre)}</div>`).join('')}${meta(t).map((c) => `<div draggable="true" data-mcol="${esc(c.n)}" title="Arrastra esta columna sobre la columna de otra tabla para crear una relación">${c.calc ? '<i class="pb-fx">fx</i> ' : esNum(t, c.n) ? 'Σ ' : ''}${esc(c.n)}</div>`).join('')}</div></div>`; };
-    main.querySelector('#pbCentro').innerHTML = `<div class="pb-modelo" id="pbModelo"><svg class="pb-modelo-svg"></svg>${nombres.map(caja).join('')}<div class="pb-modelo-ayuda">Arrastra una columna sobre la columna de otra tabla para relacionarlas · Clic en una línea para editarla</div></div>`;
+    const caja = (t) => { const [x, y] = S.posModelo[t]; return `<div class="pb-mt ${S.tablas[t].fuente.tipo === 'dax' ? 'pb-mt-calc' : ''}" data-mt="${esc(t)}" style="left:${x}%;top:${y}%"><div class="pb-mt-t">${esc(t)}</div><div class="pb-mt-cols">${S.medidas.filter((m) => (m.tabla || nombres[0]) === t).map((m) => `<div data-mmed="${esc(m.nombre)}" class="${propsDe('m:' + m.nombre).oculto ? 'pb-oculto' : ''} ${S.selModelo && S.selModelo.tipo === 'medida' && S.selModelo.n === m.nombre ? 'pb-msel' : ''}">${fl('calculator')} ${esc(m.nombre)}</div>`).join('')}${meta(t).map((c) => `<div draggable="true" data-mcol="${esc(c.n)}" class="${propsDe(propKey(t, c.n)).oculto ? 'pb-oculto' : ''} ${S.selModelo && S.selModelo.tipo === 'col' && S.selModelo.t === t && S.selModelo.c === c.n ? 'pb-msel' : ''}" title="Clic: propiedades · Arrastra sobre la columna de otra tabla para crear una relación">${c.calc ? '<i class="pb-fx">fx</i> ' : esNum(t, c.n) ? 'Σ ' : ''}${esc(c.n)}${propsDe(propKey(t, c.n)).oculto ? ' <span class="pb-ojo" title="Oculto en la vista de informe">⊘</span>' : ''}</div>`).join('')}${jerarquias(t).map((h) => `<div class="pb-mjer" data-mt-jer>⋮ ${esc(h.nombre)}</div>`).join('')}</div></div>`; };
+    main.querySelector('#pbCentro').innerHTML = `<div class="pb-modelo-wrap"><div class="pb-modelo" id="pbModelo"><svg class="pb-modelo-svg"></svg>${nombres.map(caja).join('')}<div class="pb-modelo-ayuda">Clic en una tabla, columna o medida para ver sus propiedades · Arrastra una columna sobre la de otra tabla para relacionarlas · Clic en una línea para editarla</div></div><aside class="pb-propiedades" id="pbProps">${panelPropiedades()}</aside></div>`;
+    enlazarPropiedades(main.querySelector('#pbProps'));
     const cont = main.querySelector('#pbModelo'), svg = cont.querySelector('svg');
     const lineas = () => {
       const R = cont.getBoundingClientRect();
@@ -1396,11 +1529,19 @@
     };
     requestAnimationFrame(lineas);
     svg.addEventListener('click', (e) => { const g = e.target.closest('[data-rel]'); if (g) editarRelacion(S.rels[Number(g.dataset.rel)]); });
+    cont.addEventListener('click', (e) => {
+      const col = e.target.closest('[data-mcol]'), med = e.target.closest('[data-mmed]'), mt = e.target.closest('[data-mt]');
+      if (col) S.selModelo = { tipo: 'col', t: mt.dataset.mt, c: col.dataset.mcol };
+      else if (med) S.selModelo = { tipo: 'medida', n: med.dataset.mmed };
+      else if (mt) { if (cont.dataset.arrastro === '1') { cont.dataset.arrastro = ''; return; } S.selModelo = { tipo: 'tabla', t: mt.dataset.mt }; }
+      else return;
+      renderModelo();
+    });
     cont.addEventListener('pointerdown', (e) => {
       const el = e.target.closest('[data-mt]'); if (!el || !e.target.closest('.pb-mt-t')) return;
       const t = el.dataset.mt, R = cont.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY, ini = S.posModelo[t].slice();
       el.setPointerCapture(e.pointerId);
-      const mover = (ev) => { S.posModelo[t] = [Math.max(0, Math.min(88, ini[0] + ((ev.clientX - x0) / R.width) * 100)), Math.max(0, Math.min(85, ini[1] + ((ev.clientY - y0) / R.height) * 100))]; el.style.left = S.posModelo[t][0] + '%'; el.style.top = S.posModelo[t][1] + '%'; lineas(); };
+      const mover = (ev) => { if (Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) > 4) cont.dataset.arrastro = '1'; S.posModelo[t] = [Math.max(0, Math.min(88, ini[0] + ((ev.clientX - x0) / R.width) * 100)), Math.max(0, Math.min(85, ini[1] + ((ev.clientY - y0) / R.height) * 100))]; el.style.left = S.posModelo[t][0] + '%'; el.style.top = S.posModelo[t][1] + '%'; lineas(); };
       const soltar = () => { el.removeEventListener('pointermove', mover); el.removeEventListener('pointerup', soltar); guardar(); };
       el.addEventListener('pointermove', mover); el.addEventListener('pointerup', soltar);
     });
@@ -1417,7 +1558,7 @@
         S.rels.push(rel); cambioModelo(); guardar(); renderModelo(); toast(`Relación creada: ${rel.de}[${rel.cde}] * → 1 ${rel.a}[${rel.ca}]${rel.activa ? '' : ' (inactiva: ya había otra activa)'}`);
       });
     });
-    main.querySelector('#pbPaneles').innerHTML = `<div class="pb-pan-col pb-col-datos"><div class="pb-pan"><div class="pb-pan-t">Propiedades del modelo</div><div class="row" style="padding:0 12px"><button class="pb-btn pb-btn-am" data-rel-adm>Administrar relaciones</button></div>${S.rels.map((r, i) => `<div class="pb-rel-i" data-edit-rel="${i}"><b>${esc(r.de)}</b>[${esc(r.cde)}] <span>* → 1</span> <b>${esc(r.a)}</b>[${esc(r.ca)}]${r.activa ? '' : ' <i class="pb-dim">(inactiva)</i>'}${r.direccion === 'ambas' ? ' <i class="pb-dim">(ambas)</i>' : ''}</div>`).join('') || '<p class="pb-ayuda">No hay relaciones. Power BI las detecta cuando dos tablas comparten una columna clave (por ejemplo cliente_id); si no, arrastra una columna sobre otra o usa Administrar relaciones.</p>'}<p class="pb-ayuda">El filtro viaja del lado <b>1</b> al lado <b>*</b>: así funciona un esquema estrella. Solo puede haber una relación <b>activa</b> entre dos tablas; las inactivas (línea punteada) se usan con <code>USERELATIONSHIP</code>.</p></div></div>`;
+    main.querySelector('#pbPaneles').innerHTML = `<div class="pb-pan-col pb-col-datos"><div class="pb-pan"><div class="pb-pan-t">Modelo</div><div class="row" style="padding:0 12px"><button class="pb-btn pb-btn-am" data-rel-adm>Administrar relaciones</button></div>${S.rels.map((r, i) => `<div class="pb-rel-i" data-edit-rel="${i}"><b>${esc(r.de)}</b>[${esc(r.cde)}] <span>* → 1</span> <b>${esc(r.a)}</b>[${esc(r.ca)}]${r.activa ? '' : ' <i class="pb-dim">(inactiva)</i>'}${r.direccion === 'ambas' ? ' <i class="pb-dim">(ambas)</i>' : ''}</div>`).join('') || '<p class="pb-ayuda">No hay relaciones. Power BI las detecta cuando dos tablas comparten una columna clave (por ejemplo cliente_id); si no, arrastra una columna sobre otra o usa Administrar relaciones.</p>'}<p class="pb-ayuda">El filtro viaja del lado <b>1</b> al lado <b>*</b>: así funciona un esquema estrella. Solo puede haber una relación <b>activa</b> entre dos tablas; las inactivas (línea punteada) se usan con <code>USERELATIONSHIP</code>.</p></div></div>`;
     main.querySelector('[data-rel-adm]').addEventListener('click', dialogoRelaciones);
     main.querySelectorAll('[data-edit-rel]').forEach((x) => x.addEventListener('click', () => editarRelacion(S.rels[Number(x.dataset.editRel)])));
     renderPie();
@@ -1510,15 +1651,22 @@
       out.push(`${i}\tcolumn ${nomTmdl(tb.fuente.columna)}`, `${i}\t\tdataType: string`, `${i}\t\tlineageTag: ${guid(t + '.c')}`, `${i}\t\tsummarizeBy: none`, `${i}\t\tsourceColumn: Name`, `${i}\t\tsortByColumn: Ordinal`, '', `${i}\tcolumn Ordinal`, `${i}\t\tdataType: int64`, `${i}\t\tisHidden`, `${i}\t\tsummarizeBy: sum`, `${i}\t\tsourceColumn: Ordinal`, '');
       return out.join('\n');
     }
-    for (const m of S.medidas.filter((x) => (x.tabla || tablas()[0]) === t)) { const ex = m.expr.includes('\n') ? `\n${m.expr.split('\n').map((l) => `${i}\t\t\t${l}`).join('\n')}` : ` ${m.expr}`; out.push(`${i}\tmeasure ${nomTmdl(m.nombre)} =${ex}`); const f = fmtTmdl(m.formato); if (f) out.push(`${i}\t\tformatString: ${f}`); out.push(`${i}\t\tlineageTag: ${guid(t + m.nombre)}`, ''); }
+    const desc = (k) => { const d = propsDe(k).descripcion; if (d) out.push(...d.split('\n').map((l) => `${i}\t/// ${l}`)); };
+    if (propsDe(propKey(t)).descripcion) { out.splice(0, 0, ...propsDe(propKey(t)).descripcion.split('\n').map((l) => `${i}/// ${l}`)); }
+    if (S.tablaFechas && S.tablaFechas.t === t) out.splice(out.length - 1, 0, `${i}\tdataCategory: Time`);
+    if (propsDe(propKey(t)).oculto) out.splice(out.length - 1, 0, `${i}\tisHidden`);
+    for (const m of S.medidas.filter((x) => (x.tabla || tablas()[0]) === t)) { const P = propsDe('m:' + m.nombre); desc('m:' + m.nombre); const ex = m.expr.includes('\n') ? `\n${m.expr.split('\n').map((l) => `${i}\t\t\t${l}`).join('\n')}` : ` ${m.expr}`; out.push(`${i}\tmeasure ${nomTmdl(m.nombre)} =${ex}`); const f = fmtTmdl(m.formato); if (f) out.push(`${i}\t\tformatString: ${f}`); if (P.oculto) out.push(`${i}\t\tisHidden`); if (P.carpeta) out.push(`${i}\t\tdisplayFolder: ${P.carpeta}`); out.push(`${i}\t\tlineageTag: ${guid(t + m.nombre)}`, ''); }
     for (const c of meta(t)) {
-      const cc = tb.calc.find((x) => x.nombre === c.n);
+      const cc = tb.calc.find((x) => x.nombre === c.n); const P = propsDe(propKey(t, c.n));
+      desc(propKey(t, c.n));
       out.push(cc ? `${i}\tcolumn ${nomTmdl(c.n)} = ${cc.expr}` : `${i}\tcolumn ${nomTmdl(c.n)}`);
+      if (P.oculto) out.push(`${i}\t\tisHidden`); if (P.carpeta) out.push(`${i}\t\tdisplayFolder: ${P.carpeta}`); if (P.categoria) out.push(`${i}\t\tdataCategory: ${CAT_TMDL[P.categoria] || P.categoria}`); if (P.ordenarPor) out.push(`${i}\t\tsortByColumn: ${nomTmdl(P.ordenarPor)}`); if (S.tablaFechas && S.tablaFechas.t === t && S.tablaFechas.c === c.n) out.push(`${i}\t\tisKey`);
       out.push(`${i}\t\tdataType: ${TIPO_TMDL[c.t] || 'string'}`); if (c.t === 'fecha') out.push(`${i}\t\tformatString: Short Date`);
       out.push(`${i}\t\tlineageTag: ${guid(t + '.' + c.n)}`, `${i}\t\tsummarizeBy: ${esNum(t, c.n) ? ({ sum: 'sum', avg: 'average', min: 'min', max: 'max', count: 'count', distinct: 'distinctCount' }[(tb.resumen || {})[c.n] || 'sum'] || 'sum') : 'none'}`);
       if (!cc) out.push(`${i}\t\tsourceColumn: ${c.n}`);
       out.push('');
     }
+    for (const h of jerarquias(t)) { out.push(`${i}\thierarchy ${nomTmdl(h.nombre)}`, `${i}\t\tlineageTag: ${guid(t + '.h.' + h.nombre)}`, ''); for (const n of h.niveles) out.push(`${i}\t\tlevel ${nomTmdl(n)}`, `${i}\t\t\tlineageTag: ${guid(t + '.h.' + h.nombre + n)}`, `${i}\t\t\tcolumn: ${nomTmdl(n)}`, ''); }
     if (tb.fuente.tipo === 'dax') out.push(`${i}\tpartition ${nomTmdl(t)} = calculated`, `${i}\t\tmode: import`, `${i}\t\tsource = ${tb.fuente.expr}`, '');
     else { const m = D().scriptM(tb.pasos).split('\n'); out.push(`${i}\tpartition ${nomTmdl(t)} = m`, `${i}\t\tmode: import`, `${i}\t\tsource =`, ...m.map((l) => `${i}\t\t\t\t${l}`), ''); }
     return out.join('\n');

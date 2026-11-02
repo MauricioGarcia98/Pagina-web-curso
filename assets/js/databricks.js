@@ -70,14 +70,16 @@
   D.reciente = (tipo, nombre, ruta) => { const W = D.ws(); W.recientes = [{ tipo, nombre, ruta, t: ahora() }, ...W.recientes.filter((r) => r.ruta !== ruta)].slice(0, 30); D.guardar(); };
 
   // ------------------------------------------------------------------ marco: barra superior y menú lateral
+  // organización de la barra lateral vigente desde el 21 de mayo de 2026 (secciones Lakehouse y Analytics)
   const NAV = [
-    ['workspace', 'folder', 'Workspace'], ['recientes', 'history', 'Recents'], ['catalogo', 'database', 'Catalog'], ['jobs', 'type-hierarchy', 'Jobs & Pipelines'], ['compute', 'cloud', 'Compute'], ['marketplace', 'library', 'Marketplace'],
-    ['#SQL'], ['sql', 'code', 'SQL Editor'], ['consultas', 'file-code', 'Queries'], ['dashboards', 'dashboard', 'Dashboards'], ['genie', 'sparkle', 'Genie'], ['alertas', 'bell', 'Alerts'], ['historial', 'history', 'Query History'], ['warehouses', 'server', 'SQL Warehouses'],
-    ['#Data Engineering'], ['runs', 'checklist', 'Job Runs'], ['ingesta', 'cloud-upload', 'Data Ingestion'],
-    ['#AI/ML'], ['playground', 'sparkle', 'Playground'], ['experimentos', 'beaker', 'Experiments'], ['modelos', 'package', 'Models'], ['serving', 'rocket', 'Serving'],
+    ['workspace', 'folder', 'Workspace'], ['recientes', 'history', 'Recents'], ['catalogo', 'database', 'Catalog'], ['jobs', 'type-hierarchy', 'Jobs & Pipelines'], ['compute', 'cloud', 'Compute'], ['discover', 'compass', 'Discover'], ['marketplace', 'library', 'Marketplace'],
+    ['#Lakehouse'], ['sql', 'code', 'SQL Editor'], ['consultas', 'file-code', 'Queries'], ['historial', 'history', 'Query History'], ['warehouses', 'server', 'SQL Warehouses'],
+    ['#Analytics'], ['dashboards', 'dashboard', 'Dashboards'], ['genie', 'sparkle', 'Genie Agents'], ['alertas', 'bell', 'Alerts'],
+    ['#Data Engineering'], ['runs', 'checklist', 'Runs'], ['ingesta', 'cloud-upload', 'Data Ingestion'],
+    ['#AI/ML'], ['playground', 'sparkle', 'Playground'], ['agentes', 'person', 'Agents'], ['gateway', 'shield', 'AI Gateway'], ['experimentos', 'beaker', 'Experiments'], ['features', 'layers', 'Features'], ['modelos', 'package', 'Models'], ['serving', 'rocket', 'Serving'],
   ];
   const NUEVO = [
-    ['notebook', 'notebook', 'Notebook'], ['consulta', 'file-code', 'Query'], ['dashboards', 'dashboard', 'Dashboard'], ['genie', 'sparkle', 'Genie space'], ['alertas', 'bell', 'Alert'], ['-'],
+    ['notebook', 'notebook', 'Notebook'], ['consulta', 'file-code', 'Query'], ['dashboards', 'dashboard', 'Dashboard'], ['genie', 'sparkle', 'Genie Agent'], ['alertas', 'bell', 'Alert'], ['-'],
     ['job', 'type-hierarchy', 'Job'], ['pipeline', 'combine', 'ETL pipeline'], ['-'],
     ['cluster', 'cloud', 'Compute'], ['warehouse', 'server', 'SQL warehouse'], ['-'],
     ['datos', 'cloud-upload', 'Add or upload data'], ['catalogo-nuevo', 'database', 'Catalog'],
@@ -262,7 +264,11 @@
   const STUBS = {
     marketplace: ['Marketplace', 'Databricks Marketplace es un catálogo de datasets, notebooks y modelos de terceros que se comparten con Delta Sharing. En esta práctica no hay proveedores externos.'],
     dashboards: ['Dashboards', 'Los dashboards de AI/BI se arman con consultas SQL y visualizaciones. En esta práctica puedes crear visualizaciones en el editor SQL y en los resultados de los notebooks, y armar tableros completos en el Power BI de práctica.', [['Abrir el Power BI de práctica', '#/powerbi'], ['Editor SQL', '#/databricks/sql']]],
-    genie: ['Genie', 'Genie responde preguntas en lenguaje natural sobre tus tablas generando SQL. El curso tiene una lección completa sobre cómo armar y evaluar un Genie space.', [['Ir al módulo de Genie', '#/ruta'], ['Documentación', 'https://learn.microsoft.com/azure/databricks/genie/']]],
+    genie: ['Genie Agents', 'Los Genie Agents (antes llamados Genie spaces) responden preguntas en lenguaje natural sobre un conjunto de tablas curadas: el equipo de datos define las tablas, instrucciones, consultas de ejemplo y métricas, y Genie genera el SQL. El curso tiene un módulo completo sobre cómo armarlos y evaluarlos.', [['Ir al módulo de Genie', '#/m/genie'], ['Documentación', 'https://learn.microsoft.com/azure/databricks/genie-agents/']]],
+    discover: ['Discover', 'Discover muestra los activos curados de la organización (tablas, dashboards, Genie Agents) agrupados por dominios de negocio, por ejemplo Ventas o Finanzas, para encontrar datos confiables sin conocer el catálogo de memoria.', [['Documentación', 'https://learn.microsoft.com/azure/databricks/discover/discover-page']]],
+    agentes: ['Agents', 'Agents (Mosaic AI Agent Framework) sirve para construir, evaluar y desplegar agentes de IA que usan herramientas y datos de Unity Catalog, con trazas en MLflow.'],
+    gateway: ['AI Gateway', 'AI Gateway centraliza el acceso a modelos de lenguaje (propios o externos): permisos, límites de uso, registro de pedidos y respuestas, y filtros de seguridad.'],
+    features: ['Features', 'El Feature Store guarda variables (features) calculadas para entrenar y servir modelos, como tablas de Unity Catalog con clave primaria.'],
     alertas: ['Alerts', 'Una alerta ejecuta una consulta con un horario y avisa (correo, Slack) cuando el resultado cumple una condición, por ejemplo "pedidos fallidos > 10".', [['Documentación', 'https://learn.microsoft.com/azure/databricks/sql/user/alerts/']]],
     playground: ['Playground', 'El AI Playground sirve para probar modelos de lenguaje servidos en Databricks y comparar respuestas. Necesita endpoints de Model Serving reales.'],
     experimentos: ['Experiments', 'Los experimentos de MLflow guardan parámetros, métricas y artefactos de cada entrenamiento. El laboratorio de Python del curso usa la misma idea con scikit-learn.'],

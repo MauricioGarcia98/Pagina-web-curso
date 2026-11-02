@@ -343,9 +343,19 @@ _REPL_NS = {"__name__": "__main__"}
 def _shell(mode, code, argv_json, files_json, cwd):
     import os, shutil
     home = "/home/alumno"
-    if os.path.isdir(home):
-        shutil.rmtree(home)
+    runner = "/home/runner"
+    for d in (home, runner):
+        if os.path.isdir(d):
+            shutil.rmtree(d)
     os.makedirs(home, exist_ok=True)
+    # los módulos del alumno se vuelven a importar en cada ejecución (si no, Python usa la versión vieja)
+    for _m in list(sys.modules):
+        _f = getattr(sys.modules[_m], "__file__", None) or ""
+        if _f.startswith("/home/"):
+            del sys.modules[_m]
+    import importlib
+    importlib.invalidate_caches()
+    sys.path[:] = [x for x in sys.path if not str(x).startswith("/home/")]
     for path, content in json.loads(files_json).items():
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
@@ -354,12 +364,16 @@ def _shell(mode, code, argv_json, files_json, cwd):
     os.chdir(cwd)
     argv = json.loads(argv_json)
     sys.argv = argv or [""]
+    # como python archivo.py: la carpeta del script (y la actual) están en sys.path
+    if argv and argv[0].endswith(".py"):
+        sys.path.insert(0, os.path.dirname(os.path.abspath(argv[0])))
+    sys.path.insert(0, cwd)
     ns = _env(mode)
     fname = argv[0] if argv and argv[0].endswith(".py") else "<stdin>"
     stdout, err = _exec(code, ns, fname)
     os.chdir("/")
     out_files = {}
-    for root, dirs, fs in os.walk(home):
+    for root, dirs, fs in [w for d in (home, runner) for w in os.walk(d)]:
         for name in fs:
             full = os.path.join(root, name)
             try:
