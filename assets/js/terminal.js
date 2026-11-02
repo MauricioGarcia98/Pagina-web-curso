@@ -270,7 +270,17 @@ models:
       if (ch === "'" || ch === '"') { q = ch; has = true; continue; }
       if (ch === '\\' && i + 1 < src.length) { cur += src[++i]; has = true; continue; }
       if (/\s/.test(ch)) { if (cur || has) push(); cur = ''; has = false; continue; }
-      if (ch === '>' ) { if (cur || has) push(); cur = ''; has = false; if (src[i + 1] === '>') { toks.push({ op: '>>' }); i++; } else toks.push({ op: '>' }); continue; }
+      // redirecciones: > >> 2> 2>> &> &>> 2>&1 1>&2 (el número de delante es el descriptor: 1 salida, 2 errores)
+      if (ch === '>' || (ch === '&' && src[i + 1] === '>')) {
+        let fd = '1';
+        if (ch === '&') { fd = '&'; i++; }
+        else if (!has && /^[012]$/.test(cur)) { fd = cur; cur = ''; }
+        if (cur || has) push(); cur = ''; has = false;
+        let op = '>';
+        if (src[i + 1] === '>') { op = '>>'; i++; }
+        if (fd !== '&' && op === '>' && src[i + 1] === '&' && /[012-]/.test(src[i + 2] || '')) { toks.push({ op: 'dup', fd, a: src[i + 2] }); i += 2; continue; }
+        toks.push({ op, fd }); continue;
+      }
       if (ch === '<') { if (cur || has) push(); cur = ''; has = false; toks.push({ op: '<' }); continue; }
       cur += ch;
     }
@@ -325,10 +335,11 @@ models:
         else out += lit(r.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '').replace(/\n+$/, ''));
         i = j; continue;
       }
-      if (src[i] === '$' && /[A-Za-z_{?#\d@]/.test(src[i + 1] || '')) {
+      if (src[i] === '$' && /[A-Za-z_{?#\d@!$]/.test(src[i + 1] || '')) {
         let j = i + 1, name;
         if (src[j] === '{') { const k = src.indexOf('}', j); out += lit(parametro(src.slice(j + 1, k), env)); i = k + 1; continue; }
-        else if (src[j] === '?' || src[j] === '#') { name = src[j]; j++; }
+        else if (src[j] === '$') { out += '812'; i = j + 1; continue; }   // $$: el PID de esta bash
+        else if (src[j] === '?' || src[j] === '#' || src[j] === '!') { name = src[j]; j++; }   // $!: el PID del último trabajo con &
         else if (/\d/.test(src[j])) { name = src[j]; j++; }   // $1…$9: argumentos de un script
         else if (src[j] === '@') { name = '@'; j++; }
         else { while (j < src.length && /\w/.test(src[j])) j++; name = src.slice(i + 1, j); }
@@ -399,18 +410,19 @@ models:
 
   async function runTokens(toks, stdin, opts, text) {
     // redirecciones
-    let redir = null, input = null;
-    const args = [];
+    let input = null;
+    const args = [], redirs = [];
     for (let i = 0; i < toks.length; i++) {
       const t = toks[i];
       if (typeof t === 'object') {
         if (t.op === '<') input = toks[++i];
-        else redir = { op: t.op, file: toks[++i] };
+        else if (t.op === 'dup') redirs.push(t);
+        else redirs.push({ op: t.op, fd: t.fd || '1', file: toks[++i] });
       } else args.push(t);   // las llaves y los comodines ya se expandieron en tokenize
     }
     if (!args.length) return ok('');
     if (input) {
-      const c = readFile(norm(input));
+      const c = input === '/dev/null' ? '' : readFile(norm(input));
       if (c === null) return fail(`bash: ${input}: No existe el archivo o el directorio`);
       stdin = c;
     }
@@ -436,16 +448,42 @@ models:
       catch (e) { res = fail(`${name}: ${e.message}`); }
     }
     res = res || ok('');
-    if (redir) {
-      if (!redir.file) return fail('bash: error de sintaxis cerca de la redirección');
-      const p = norm(redir.file);
-      if (isDir(p)) return fail(`bash: ${redir.file}: Es un directorio`);
-      const plain = res.out.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '');
-      writeFile(p, plain && !plain.endsWith('\n') && !res.sinSalto ? plain + '\n' : plain, redir.op === '>>');
-      Machine.save();
-      return { out: '', code: res.code };
-    }
+    if (redirs.length) return redirigir(res, redirs);
     return res;
+  }
+  // aplica las redirecciones en orden, como bash: `>f 2>&1` manda las dos salidas a f; `2>&1 >f` solo la normal
+  function redirigir(res, redirs) {
+    let stdout = res.out || '', stderr = '';
+    // los comandos de la práctica devuelven el error como texto rojo con código distinto de 0: eso es la salida de errores
+    if (res.err != null) stderr = res.err;
+    else if (res.code && /^\u0001t-err\u0002/.test(stdout)) { stderr = stdout; stdout = ''; }
+    const dest = { 1: 'tty', 2: 'tty' };
+    for (const r of redirs) {
+      if (r.op === 'dup') { dest[r.fd] = r.a === '-' ? 'null' : dest[r.a] || 'tty'; continue; }
+      if (!r.file) return fail('bash: error de sintaxis cerca del elemento inesperado `newline\'', 2);
+      const t = r.file === '/dev/null' ? 'null' : { file: r.file, append: r.op === '>>' };
+      if (r.fd === '&') { dest[1] = t; dest[2] = t; } else dest[r.fd] = t;
+    }
+    const plano = (x) => x.replace(/\u0001[^\u0002]*\u0002|\u0003/g, '');
+    const conSalto = (x) => (x && !x.endsWith('\n') && !res.sinSalto ? x + '\n' : x);
+    const archivos = new Map(), pantalla = [];
+    for (const r of redirs) if (r.op !== 'dup' && r.file && r.file !== '/dev/null') {
+      const t = [dest[1], dest[2]].find((d) => d && d.file === r.file) || { file: r.file, append: r.op === '>>' };
+      if (!archivos.has(t)) archivos.set(t, '');
+    }
+    for (const [fd, texto] of [[1, stdout], [2, stderr]]) {
+      const d = dest[fd];
+      if (!texto || d === 'null') continue;
+      if (d === 'tty') pantalla.push(texto.replace(/\n$/, ''));
+      else archivos.set(d, (archivos.get(d) || '') + conSalto(plano(texto)));
+    }
+    for (const [t, contenido] of archivos) {
+      const p = norm(t.file);
+      if (isDir(p)) return fail(`bash: ${t.file}: Es un directorio`);
+      writeFile(p, contenido, t.append);
+    }
+    if (archivos.size) Machine.save();
+    return Object.assign({}, res, { out: pantalla.join('\n'), code: res.code });
   }
   function suggest(name) {
     const names = Object.keys(Commands);
@@ -476,7 +514,24 @@ models:
     if (/\n/.test(line.trim()) || esCompuesto(line)) return runScript(line, opts);
     return runLineSimple(line, opts);
   }
+  // una línea es una lista de comandos separados por ; o & (con & no se espera: va a segundo plano);
+  // cada elemento puede encadenar con && y ||, que unen más fuerte: `a && b &` manda "a && b" entero al fondo
   async function runLineSimple(line, opts = {}) {
+    const lista = partirFondo(line);
+    if (lista.length === 1 && !lista[0].fondo) return runAndOr(lista[0].text, opts);
+    let out = [], last = ok('');
+    for (const it of lista) {
+      if (!it.text.trim()) continue;
+      if (it.fondo) { const j = lanzarTrabajo(it.text, opts); out.push(`[${j.n}] ${j.pid}`); last = ok(''); Machine.env['?'] = '0'; continue; }
+      last = await runAndOr(it.text, opts);
+      if (last.out && last.out.startsWith('\u0000CLEAR')) out = [];
+      if (last.out) out.push(last.out);
+      if (last.ctrl) break;
+      if (Shopt.e && last.code !== 0 && !opts._enCondicion) break;
+    }
+    return { out: out.join('\n'), code: last.code, repl: last.repl, pantalla: last.pantalla, ctrl: last.ctrl };
+  }
+  async function runAndOr(line, opts = {}) {
     const parts = splitTop(line, ['&&', '||', ';']);
     let out = [], last = ok(''), skip = false;
     for (const p of parts) {
@@ -495,6 +550,144 @@ models:
     }
     return { out: out.join('\n'), code: last.code, repl: last.repl, pantalla: last.pantalla, ctrl: last.ctrl };
   }
+
+  // ------------------------------------------------------------- trabajos en segundo plano
+  // `cmd &` corre el comando sin esperar; jobs, fg, bg, wait, kill %n y $! como en bash.
+  // La salida de un trabajo aparece cuando termina (aquí los comandos no escriben de a poco).
+  const Trabajos = { lista: [], oyentes: new Set(), avisos: [], primerPlano: null };
+  // parte la línea en ; y en los & sueltos de nivel superior (no && ni 2>&1 ni &> ni dentro de comillas o $( ))
+  function partirFondo(src) {
+    const segs = []; let cur = '', q = null, depth = 0;
+    const cortar = (fondo) => { segs.push({ text: cur, fondo }); cur = ''; };
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (q) { cur += ch; if (ch === q) q = null; continue; }
+      if (ch === "'" || ch === '"') { q = ch; cur += ch; continue; }
+      if (ch === '\\') { cur += ch + (src[i + 1] || ''); i++; continue; }
+      if (ch === '$' && src[i + 1] === '(') { depth++; cur += '$('; i++; continue; }
+      if (ch === ')' && depth) { depth--; cur += ch; continue; }
+      if (ch === '&' && !depth && src[i - 1] !== '>' && src[i - 1] !== '<' && src[i - 1] !== '&' && src[i + 1] !== '&' && src[i + 1] !== '>') { cortar(true); continue; }
+      if (ch === ';' && !depth) { cortar(false); continue; }
+      cur += ch;
+    }
+    cortar(false);
+    return segs.filter((x, i) => x.text.trim() || (i === segs.length - 1 && segs.length === 1));
+  }
+  const limpiarSalida = (t) => String(t || '').replace(/\u0000CLEAR\n?/g, '').replace(/\n$/, '');
+  const ESTADO_TXT = { run: 'Ejecutando', done: 'Hecho', kill: 'Terminado', exit: 'Salida' };
+  function lineaTrabajo(j, marca, largo) {
+    const est = j.estado === 'exit' ? `Salida ${j.code}` : ESTADO_TXT[j.estado];
+    return `[${j.n}]${marca}  ${largo ? j.pid + ' ' : ''}${est.padEnd(24)}${j.cmd}${j.estado === 'run' ? ' &' : ''}`;
+  }
+  // + es el trabajo actual (el último), - el anterior
+  const marcaDe = (j) => { const vivos = Trabajos.lista; const i = vivos.indexOf(j); return i === vivos.length - 1 ? '+' : i === vivos.length - 2 ? '-' : ' '; };
+  function avisar(j) {
+    if (j.fg) return;
+    const texto = [limpiarSalida(j.salida), lineaTrabajo(j, marcaDe(j))].filter(Boolean).join('\n');
+    const vivos = [...Trabajos.oyentes].filter((f) => f(texto) !== false);
+    if (!vivos.length) Trabajos.avisos.push(texto);
+    j.avisado = true;
+  }
+  function lanzarTrabajo(cmd, opts) {
+    const usados = Trabajos.lista.map((j) => j.n);
+    let n = 1; while (usados.includes(n)) n++;
+    const pid = 4000 + Math.floor(Math.random() * 5000);
+    const j = { n, pid, cmd: cmd.trim(), estado: 'run', salida: '', code: null, cancelar: null };
+    Trabajos.lista.push(j); Trabajos.lista.sort((a, b) => a.n - b.n);
+    Machine.env['!'] = String(pid);
+    const o = Object.assign({}, opts, { _fondo: j, _err: [], _stdin: null, capture: true });
+    j.promesa = runAndOr(j.cmd, o).catch((e) => ({ out: col.err(e.message || String(e)), code: 1 })).then((r) => {
+      if (j.estado !== 'run') return j;   // lo terminó kill
+      j.salida = [...(o._err || []), r.out || ''].filter(Boolean).join('\n');
+      j.code = r.code; j.estado = r.code ? 'exit' : 'done';
+      avisar(j); quitarTrabajo(j);
+      return j;
+    });
+    return j;
+  }
+  function quitarTrabajo(j) { if (!j.fg) { const i = Trabajos.lista.indexOf(j); if (i >= 0) Trabajos.lista.splice(i, 1); } }
+  function buscarTrabajo(spec) {
+    const L = Trabajos.lista;
+    if (spec == null || spec === '%' || spec === '%%' || spec === '%+') return L[L.length - 1];
+    if (spec === '%-') return L[L.length - 2];
+    const m = String(spec).match(/^%(\d+)$/); if (m) return L.find((j) => j.n === Number(m[1]));
+    if (/^%\?/.test(spec)) return L.find((j) => j.cmd.includes(spec.slice(2)));
+    if (/^%/.test(spec)) return L.find((j) => j.cmd.startsWith(spec.slice(1)));
+    return L.find((j) => String(j.pid) === String(spec));
+  }
+  function terminarTrabajo(j) {
+    if (j.estado !== 'run') return;
+    j.estado = 'kill'; j.code = 143;
+    if (j.cancelar) j.cancelar();
+    if (!j.fg) { avisar(j); quitarTrabajo(j); }
+  }
+  // Ctrl+C mientras corre un comando en primer plano
+  function interrumpir() { const f = Trabajos.primerPlano; Trabajos.primerPlano = null; if (f) { f(); return true; } return false; }
+  // espera real que kill o Ctrl+C pueden cortar
+  function esperar(ms, opts) {
+    return new Promise((res) => {
+      let t = null;
+      const fin = (cortado) => { clearTimeout(t); if (job) job.cancelar = null; else if (Trabajos.primerPlano === corte) Trabajos.primerPlano = null; res(cortado); };
+      const corte = () => fin(true);
+      const job = opts && opts._fondo;
+      if (job) job.cancelar = corte; else Trabajos.primerPlano = corte;
+      t = setTimeout(() => fin(false), ms);
+    });
+  }
+  def('sleep', 'espera N segundos (sleep 2, sleep 0.5, sleep 1m); Ctrl+C la corta', async (a, ctx) => {
+    if (!a.length) return fail('sleep: falta un operando');
+    let ms = 0;
+    for (const x of a) {
+      const m = String(x).match(/^(\d+(?:\.\d+)?)([smhd]?)$/);
+      if (!m) return fail(`sleep: intervalo de tiempo «${x}» inválido`);
+      ms += Number(m[1]) * { '': 1, s: 1, m: 60, h: 3600, d: 86400 }[m[2]] * 1000;
+    }
+    const fondo = ctx.opts && ctx.opts._fondo;
+    // en primer plano la práctica no te deja esperando más de 15 s; en segundo plano espera de verdad (hasta 1 hora)
+    const cortado = await esperar(Math.min(ms, fondo ? 3600e3 : 15e3), ctx.opts);
+    if (cortado) return { out: fondo ? '' : '^C', code: 130 };
+    return ok('');
+  });
+  def('jobs', 'trabajos en segundo plano de esta terminal (los que lanzaste con &); -l muestra el PID', (a) => {
+    const largo = a.includes('-l'), soloPid = a.includes('-p');
+    const L = Trabajos.lista.filter((j) => !j.fg);
+    if (soloPid) return ok(L.map((j) => j.pid).join('\n'));
+    return ok(L.map((j) => lineaTrabajo(j, marcaDe(j), largo)).join('\n'));
+  });
+  def('fg', 'trae un trabajo al primer plano y espera que termine: fg %1 (Ctrl+C lo termina)', async (a) => {
+    const j = buscarTrabajo(a[0]);
+    if (!j) return fail(`bash: fg: ${a[0] || 'actual'}: no existe ese trabajo`);
+    j.fg = true;
+    const salida = [j.cmd];
+    const corte = () => terminarTrabajo(j);
+    Trabajos.primerPlano = corte;
+    await Promise.race([j.promesa, new Promise((res) => { const iv = setInterval(() => { if (j.estado !== 'run') { clearInterval(iv); res(); } }, 50); })]);
+    if (Trabajos.primerPlano === corte) Trabajos.primerPlano = null;
+    const i = Trabajos.lista.indexOf(j); if (i >= 0) Trabajos.lista.splice(i, 1);
+    if (j.estado === 'kill') return { out: salida.concat('^C').join('\n'), code: 130 };
+    if (j.salida) salida.push(limpiarSalida(j.salida));
+    return { out: salida.join('\n'), code: j.code || 0 };
+  });
+  def('bg', 'reanuda en segundo plano un trabajo detenido', (a) => {
+    const j = buscarTrabajo(a[0]);
+    if (!j) return fail(`bash: bg: ${a[0] || 'actual'}: no existe ese trabajo`);
+    return fail(`bash: bg: el trabajo ${j.n} ya está en segundo plano`);
+  });
+  def('wait', 'espera a que terminen los trabajos en segundo plano (wait, wait %1, wait PID)', async (a) => {
+    const js = a.length ? a.map(buscarTrabajo) : Trabajos.lista.slice();
+    if (a.length && !js[0]) return fail(`bash: wait: ${a[0]}: no existe ese trabajo`, 127);
+    let code = 0;
+    for (const j of js.filter(Boolean)) { const r = await j.promesa; code = (r && r.code) || 0; }
+    return { out: '', code };
+  });
+  def('disown', 'quita un trabajo de la lista de jobs (sigue corriendo)', (a) => {
+    const j = buscarTrabajo(a[0]);
+    if (!j) return fail(`bash: disown: ${a[0] || 'actual'}: no existe ese trabajo`);
+    j.fg = true; quitarTrabajoForzado(j); return ok('');
+  });
+  function quitarTrabajoForzado(j) { const i = Trabajos.lista.indexOf(j); if (i >= 0) Trabajos.lista.splice(i, 1); }
+  // avisos de trabajos que terminaron mientras no había ninguna terminal escuchando
+  function tomarAvisos() { const a = Trabajos.avisos.splice(0); return a.join('\n'); }
 
   // ------------------------------------------------------------- intérprete de scripts
   // Estructuras de control de bash: for, while, until, if/elif/else, case, funciones, { … },
@@ -890,7 +1083,6 @@ models:
   def('clear', 'limpia la pantalla', () => ({ out: '', code: 0, clear: true }));
   def('true', '', () => ok(''));
   def('false', '', () => ({ out: '', code: 1 }));
-  def('sleep', '', () => ok(''));
   def('reset-maquina', 'vuelve la máquina a su estado inicial', () => { Machine.reset(); return { out: col.ok('✔ Máquina reiniciada'), code: 0, clear: true }; });
   def('history', 'historial de comandos (history -c lo borra; !! repite el último; !n el número n)', (a) => { if (a[0] === '-c') { Machine.history = []; Machine.save(); return ok(''); } const n = parseInt(a[0], 10); const hs = Machine.history.map((h, i) => `${String(i + 1).padStart(5)}  ${h}`); return ok((n > 0 ? hs.slice(-n) : hs).join('\n')); });
   def('which', 'dónde está un comando', (a) => ok(a.map((n) => (Commands[n] ? `/usr/bin/${n}` : '')).filter(Boolean).join('\n')));
@@ -2236,6 +2428,12 @@ for _n, _fn in list(_ns.items()):
     };
     const print = (html) => { const d = document.createElement('div'); d.className = 'term-chunk'; d.innerHTML = html; out.appendChild(d); body.scrollTop = body.scrollHeight; };
     const echoLine = (line) => print(promptEl.innerHTML + escHtml(line));
+    // los trabajos con & que terminan se anuncian en esta terminal mientras siga en la página
+    let colaTrabajos = [];
+    const oyente = (texto) => { if (!el.isConnected) { Trabajos.oyentes.delete(oyente); return false; } if (busy) colaTrabajos.push(texto); else print(render(texto)); return true; };
+    const soltarTrabajos = () => { const c = colaTrabajos; colaTrabajos = []; c.forEach((t) => print(render(t))); };
+    Trabajos.oyentes.add(oyente);
+    { const pend = tomarAvisos(); if (pend) setTimeout(() => print(render(pend)), 0); }
     if (opts.welcome !== false) print(render(opts.welcome || `${col.b('Terminal de práctica')} ${col.dim('— Linux simulado con Python, SQLite, dbt y Airflow reales, y nubes simuladas.')}\nEscribe ${col.info('help')} para ver los comandos o ${col.info('cat README.md')} para empezar.`));
     setPrompt();
     async function submit(line) {
@@ -2309,6 +2507,7 @@ for _n, _fn in list(_ns.items()):
       busy = false; el.classList.remove('busy');
       if (r.out.startsWith('\u0000CLEAR')) { out.innerHTML = ''; r.out = r.out.slice(6).replace(/^\n/, ''); }
       if (r.out) print(render(r.out));
+      soltarTrabajos();   // como bash: los "[1]+ Hecho" se anuncian después de la salida del comando
       const last = await lastMode(line);
       if (last) mode = last;
       if (r.repl) { repl = r.repl; mode = 'repl'; }
@@ -2339,7 +2538,7 @@ for _n, _fn in list(_ns.items()):
       rsearch.innerHTML = `${m || !busq.q ? '' : 'falló '}(reverse-i-search)\`${escHtml(busq.q)}': ${marcado}`;
     };
     input.addEventListener('keydown', async (e) => {
-      if (busy) { e.preventDefault(); return; }
+      if (busy) { e.preventDefault(); if (e.key === 'c' && e.ctrlKey) interrumpir(); return; }
       // búsqueda inversa en el historial
       if (e.key === 'r' && e.ctrlKey) {
         e.preventDefault();
@@ -2452,6 +2651,7 @@ for _n, _fn in list(_ns.items()):
     TermCfg, TEMAS,
     Machine, createTerminal, runLine, Commands, Help, def, col, fmtTable, parseArgs, norm, readFile, writeFile, exists, isDir, children, mkdirp, display, HOME,
     fail, ok, sqlExec, openEditor: null, runScript, faltaCerrar, esCompuesto, Shopt, Funciones,
+    trabajos: { Trabajos, buscar: buscarTrabajo, terminar: terminarTrabajo, interrumpir, tomarAvisos, partirFondo },
     gitInt: { root: gitRoot, snapshot, ignored, hash: shortHash }, pantallas: {},
   };
 })();

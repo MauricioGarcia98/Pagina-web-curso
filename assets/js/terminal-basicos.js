@@ -210,15 +210,32 @@
   });
   def('ps', 'procesos en ejecución (ps aux: todos)', (a) => {
     const todos = a.some((x) => /a/.test(x));
-    const procs = [['1', 'init'], ['812', 'bash'], ['1203', 'ps' + (a.length ? ' ' + a.join(' ') : '')]];
+    const procs = [['1', 'init'], ['812', 'bash']];
+    // los trabajos lanzados con & son procesos hijos de esta bash
+    ((Sh.trabajos && Sh.trabajos.Trabajos.lista) || []).filter((j) => j.estado === 'run').forEach((j) => procs.push([String(j.pid), j.cmd]));
+    procs.push(['1203', 'ps' + (a.length ? ' ' + a.join(' ') : '')]);
     const dk = (Machine.cloud.docker || {}).containers || {};
     Object.values(dk).filter((c) => c.estado === 'running' || c.status === 'running').forEach((c, i) => procs.splice(2, 0, [String(2000 + i), `containerd-shim (${c.nombre || c.name || 'contenedor'})`]));
     if (todos) return ok('USER       PID %CPU %MEM COMMAND\n' + procs.map(([p, c]) => `alumno ${p.padStart(8)}  0.0  0.1 ${c}`).join('\n'));
-    return ok('    PID TTY          TIME CMD\n' + procs.filter(([, c]) => /bash|ps/.test(c)).map(([p, c]) => `${p.padStart(7)} pts/0    00:00:00 ${c.split(' ')[0]}`).join('\n'));
+    return ok('    PID TTY          TIME CMD\n' + procs.filter(([p, c]) => p !== '1' && !/^containerd/.test(c)).map(([p, c]) => `${p.padStart(7)} pts/0    00:00:00 ${c.split(' ')[0]}`).join('\n'));
   });
-  def('kill', 'termina un proceso por su número (PID)', (a) => {
-    const pid = a.filter((x) => !x.startsWith('-'))[0];
-    if (!pid) return fail('kill: uso: kill [-9] PID');
+  def('kill', 'termina un proceso por su PID o un trabajo por su número: kill 4123, kill %1 (kill -l lista señales)', (a) => {
+    if (a[0] === '-l') return ok(' 1) SIGHUP\t 2) SIGINT\t 3) SIGQUIT\t 9) SIGKILL\n15) SIGTERM\t18) SIGCONT\t19) SIGSTOP\t20) SIGTSTP');
+    const objetivos = a.filter((x) => !/^-(\d+|[A-Z]+|s)$/.test(x) && x !== 'SIGTERM' && x !== 'SIGKILL' && x !== 'TERM' && x !== 'KILL');
+    const pid = objetivos[0];
+    if (!pid) return fail('kill: uso: kill [-s SEÑAL | -9] PID | %TRABAJO');
+    const T = Sh.trabajos;
+    if (T) {
+      const errores = [];
+      for (const o of objetivos) {
+        const j = T.buscar(o);
+        if (j && j.estado === 'run') T.terminar(j);
+        else if (o.startsWith('%')) errores.push(`bash: kill: ${o}: no existe ese trabajo`);
+        else if (o === '812' || o === '1') errores.push(`kill: (${o}) - Operación no permitida en la máquina de práctica`);
+        else errores.push(`kill: (${o}) - No existe el proceso`);
+      }
+      return errores.length ? fail(errores.join('\n')) : ok('');
+    }
     if (pid === '812' || pid === '1') return fail(`kill: (${pid}) - Operación no permitida en la máquina de práctica`);
     return fail(`kill: (${pid}) - No existe el proceso`);
   });
