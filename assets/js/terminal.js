@@ -1515,7 +1515,7 @@ models:
   // ------------------------------------------------------------- python real
   function homeFiles() {
     const files = {};
-    for (const [k, v] of Object.entries(Machine.fs)) if (v.t === 'f' && k.startsWith(HOME + '/') && v.c.length < 2e6) files[k] = v.c;
+    for (const [k, v] of Object.entries(Machine.fs)) if (v.t === 'f' && (k.startsWith(HOME + '/') || k.startsWith('/home/runner/')) && v.c.length < 2e6) files[k] = v.c;
     return files;
   }
   async function runPython(code, argv, mode = 'python') {
@@ -1554,8 +1554,13 @@ for _n, _fn in list(_ns.items()):
             _fn(); _ok += 1; print("PASSED  ${display(f)}::" + _n)
         except AssertionError as e:
             _fail += 1; print("FAILED  ${display(f)}::" + _n + "  AssertionError: " + str(e))
+        except Exception as e:
+            _fail += 1; print("FAILED  ${display(f)}::" + _n + "  " + type(e).__name__ + ": " + str(e))
 `).join('') + `print(("=" * 20) + f" {_ok} passed, {_fail} failed " + ("=" * 20))\n`;
-    return runPython(code, ['pytest']);
+    const r = await runPython(code, ['pytest']);
+    // como pytest: código 1 si algún test falló (así un paso de CI queda en rojo)
+    if (!r.code && / [1-9]\d* failed /.test(r.out)) r.code = 1;
+    return r;
   });
 
   // ------------------------------------------------------------- sqlite3 real
@@ -2238,7 +2243,7 @@ for _n, _fn in list(_ns.items()):
         const one = a.includes('--oneline');
         const out = [];
         let h = head;
-        while (h) { const c = g.commits[h]; out.push(one ? `${col.warn(h)} ${c.msg}` : `${col.warn('commit ' + h)}${h === head ? col.info(` (HEAD -> ${g.branch})`) : ''}\nAuthor: ${c.author} <${c.author}@academia.dev>\nDate:   ${new Date(c.date).toString()}\n\n    ${c.msg}\n`); h = c.parent; }
+        while (h) { const c = g.commits[h]; out.push(one ? `${col.warn(h)} ${String(c.msg).split('\n')[0]}` : `${col.warn('commit ' + h)}${h === head ? col.info(` (HEAD -> ${g.branch})`) : ''}\nAuthor: ${c.author} <${c.author}@academia.dev>\nDate:   ${new Date(c.date).toString()}\n\n    ${String(c.msg).split('\n').join('\n    ')}\n`); h = c.parent; }
         return out.length ? ok(out.join('\n')) : fail(`fatal: tu rama actual '${g.branch}' no tiene ningún commit todavía`, 128);
       }
       case 'branch': {
