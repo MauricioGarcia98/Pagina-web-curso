@@ -272,8 +272,9 @@
   };
   const TAB_N = { basics: 'Basics', advanced: 'Advanced', networking: 'Networking', dataprot: 'Data protection', encryption: 'Encryption', tags: 'Tags', review: 'Review + create', access: 'Access configuration', git: 'Git configuration' };
   function crearRecurso(cont, r) {
-    if (!r[0]) {
-      cont.innerHTML = `<div class="az-pag">${migas([['Home', ''], ['Create a resource', null]])}<h1>Create a resource</h1><div class="az-market">${[['grupo', 'Resource group', 'Microsoft', 'Contenedor lógico de recursos'], ['storage', 'Storage account', 'Microsoft', 'Blob, ADLS Gen2, archivos, colas y tablas'], ['dbw', 'Azure Databricks', 'Microsoft', 'Plataforma de datos y IA con Apache Spark'], ['kv', 'Key Vault', 'Microsoft', 'Secretos, claves y certificados'], ['adf', 'Data Factory', 'Microsoft', 'Integración de datos y orquestación (ETL)']].map(([k, t, p, d]) => `<div class="az-mk">${svg(k === 'grupo' ? 'grupo' : k, 40)}<div><b>${esc(t)}</b><small>${esc(p)}</small><p>${esc(d)}</p><a class="az-btn chico" href="#/azure/crear/${k}">Create</a></div></div>`).join('')}</div></div>`;
+    if (r[0] === 'plantilla') return plantillaPersonalizada(cont);
+    if (!r[0]) { tplEstado = null;
+      cont.innerHTML = `<div class="az-pag">${migas([['Home', ''], ['Create a resource', null]])}<h1>Create a resource</h1><div class="az-market">${[['grupo', 'Resource group', 'Microsoft', 'Contenedor lógico de recursos'], ['storage', 'Storage account', 'Microsoft', 'Blob, ADLS Gen2, archivos, colas y tablas'], ['dbw', 'Azure Databricks', 'Microsoft', 'Plataforma de datos y IA con Apache Spark'], ['kv', 'Key Vault', 'Microsoft', 'Secretos, claves y certificados'], ['adf', 'Data Factory', 'Microsoft', 'Integración de datos y orquestación (ETL)'], ['plantilla', 'Template deployment (deploy using custom templates)', 'Microsoft', 'Implementa una plantilla ARM propia o exportada']].map(([k, t, p, d]) => `<div class="az-mk">${svg(k === 'grupo' ? 'grupo' : k === 'plantilla' ? 'actividad' : k, 40)}<div><b>${esc(t)}</b><small>${esc(p)}</small><p>${esc(d)}</p><a class="az-btn chico" href="#/azure/crear/${k}">Create</a></div></div>`).join('')}</div></div>`;
       return;
     }
     const tipo = r[0]; const A = ASISTENTES[tipo]; if (!A) return noEncontrado(cont);
@@ -379,6 +380,148 @@
       p.querySelectorAll('[data-v]').forEach((a) => { a.onclick = () => pint(a.dataset.v); }); pint('arm');
     } });
   }
+
+  // ---- Implementación de plantilla personalizada (Template deployment): ARM JSON → recursos de la práctica
+  const TPL_EJEMPLO = { $schema: 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#', contentVersion: '1.0.0.0', parameters: { storageAccountName: { type: 'string', defaultValue: "[concat('stdatos', uniqueString(resourceGroup().id))]", metadata: { description: 'Nombre de la cuenta (único en Azure)' } }, location: { type: 'string', defaultValue: '[resourceGroup().location]' }, skuName: { type: 'string', defaultValue: 'Standard_LRS', allowedValues: ['Standard_LRS', 'Standard_ZRS', 'Standard_GRS'] } }, variables: { contenedor: 'raw' }, resources: [{ type: 'Microsoft.Storage/storageAccounts', apiVersion: '2023-05-01', name: "[parameters('storageAccountName')]", location: "[parameters('location')]", sku: { name: "[parameters('skuName')]" }, kind: 'StorageV2', properties: { isHnsEnabled: true, minimumTlsVersion: 'TLS1_2' } }, { type: 'Microsoft.Storage/storageAccounts/blobServices/containers', apiVersion: '2023-05-01', name: "[format('{0}/default/{1}', parameters('storageAccountName'), variables('contenedor'))]", dependsOn: ["[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"] }], outputs: { cuenta: { type: 'string', value: "[parameters('storageAccountName')]" } } };
+  function hashArm(s) { let h = 2166136261; for (const c of String(s)) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; let x = ''; let n = h; for (let i = 0; i < 13; i++) { x += 'abcdefghijklmnopqrstuvwxyz234567'[n % 32]; n = Math.floor(n / 32) || (h = Math.imul(h ^ i, 16777619) >>> 0); } return x; }
+  // expresiones de plantilla: "[función(...)]" con parameters, variables, concat, format, resourceGroup(), subscription(), uniqueString, resourceId…
+  function evalArm(v, C) {
+    if (Array.isArray(v)) return v.map((x) => evalArm(x, C));
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, evalArm(x, C)]));
+    if (typeof v !== 'string' || !/^\[.*\]$/s.test(v) || v.startsWith('[[')) return typeof v === 'string' && v.startsWith('[[') ? v.slice(1) : v;
+    const src = v.slice(1, -1); let i = 0;
+    const ws = () => { while (/\s/.test(src[i] || '')) i++; };
+    function expr() {
+      ws(); let val;
+      if (src[i] === "'") { let j = i + 1, t = ''; for (;;) { if (j >= src.length) throw new Error(`The template language expression '${src}' is not valid.`); if (src[j] === "'" && src[j + 1] === "'") { t += "'"; j += 2; continue; } if (src[j] === "'") break; t += src[j++]; } i = j + 1; val = t; }
+      else if (/[-\d]/.test(src[i])) { const m = /^-?\d+/.exec(src.slice(i)); i += m[0].length; val = Number(m[0]); }
+      else {
+        const m = /^[A-Za-z_]\w*/.exec(src.slice(i)); if (!m) throw new Error(`The template language expression '${src}' is not valid.`); i += m[0].length; ws();
+        const n = m[0]; const args = [];
+        if (src[i] === '(') { i++; ws(); if (src[i] !== ')') { args.push(expr()); ws(); while (src[i] === ',') { i++; args.push(expr()); ws(); } } if (src[i] !== ')') throw new Error(`The template language expression '${src}' is not valid: falta ')'.`); i++; }
+        val = llamarArm(n, args, C);
+      }
+      ws();
+      while (src[i] === '.' || src[i] === '[') { if (src[i] === '.') { i++; const m = /^\w+/.exec(src.slice(i)); i += m[0].length; if (val == null || !(m[0] in Object(val))) throw new Error(`The template language expression '${src}' is not valid: the property '${m[0]}' doesn't exist.`); val = val[m[0]]; } else { i++; const k = expr(); ws(); i++; val = val[k]; } ws(); }
+      return val;
+    }
+    const r = expr(); return r;
+  }
+  function llamarArm(n, a, C) {
+    const F = {
+      parameters: () => { if (!(a[0] in C.params)) throw new Error(`The template parameter '${a[0]}' is not found.`); return C.params[a[0]]; },
+      variables: () => { if (!(a[0] in C.vars)) throw new Error(`The template variable '${a[0]}' is not found.`); return C.vars[a[0]]; },
+      concat: () => (a.every(Array.isArray) ? [].concat(...a) : a.map((x) => (x == null ? '' : String(x))).join('')),
+      format: () => String(a[0]).replace(/\{(\d+)\}/g, (m, k) => String(a[Number(k) + 1] ?? '')),
+      resourceGroup: () => ({ name: C.rg, location: C.location, id: `/subscriptions/${C.sub}/resourceGroups/${C.rg}` }),
+      subscription: () => ({ subscriptionId: C.sub, id: `/subscriptions/${C.sub}` }),
+      uniqueString: () => hashArm(a.join('|')), toLower: () => String(a[0]).toLowerCase(), toUpper: () => String(a[0]).toUpperCase(),
+      string: () => (typeof a[0] === 'object' ? JSON.stringify(a[0]) : String(a[0])), int: () => parseInt(a[0], 10), bool: () => a[0] === true || String(a[0]).toLowerCase() === 'true',
+      if: () => (a[0] ? a[1] : a[2]), equals: () => a[0] === a[1], not: () => !a[0], and: () => a.every(Boolean), or: () => a.some(Boolean),
+      substring: () => String(a[0]).substr(a[1], a[2]), replace: () => String(a[0]).split(a[1]).join(a[2]), length: () => (a[0] || []).length, take: () => String(a[0]).slice(0, a[1]),
+      resourceId: () => `/subscriptions/${C.sub}/resourceGroups/${C.rg}/providers/${a[0]}/${a.slice(1).join('/')}`,
+    };
+    if (!F[n]) throw new Error(`The template function '${n}' is not valid. En esta práctica se admiten: ${Object.keys(F).join(', ')}.`);
+    return F[n]();
+  }
+  const TIPOS_TPL = ['Microsoft.Storage/storageAccounts', 'Microsoft.Storage/storageAccounts/blobServices/containers', 'Microsoft.KeyVault/vaults', 'Microsoft.KeyVault/vaults/secrets', 'Microsoft.Databricks/workspaces', 'Microsoft.DataFactory/factories', 'Microsoft.DataFactory/factories/linkedServices', 'Microsoft.DataFactory/factories/datasets', 'Microsoft.DataFactory/factories/pipelines', 'Microsoft.DataFactory/factories/triggers'];
+  const ORDEN_TPL = (t) => ({ 'Microsoft.Storage/storageAccounts': 0, 'Microsoft.KeyVault/vaults': 0, 'Microsoft.Databricks/workspaces': 0, 'Microsoft.DataFactory/factories': 0, 'Microsoft.Storage/storageAccounts/blobServices/containers': 1, 'Microsoft.KeyVault/vaults/secrets': 1, 'Microsoft.DataFactory/factories/linkedServices': 1, 'Microsoft.DataFactory/factories/datasets': 2, 'Microsoft.DataFactory/factories/pipelines': 3, 'Microsoft.DataFactory/factories/triggers': 4 }[t] ?? 9);
+  let tplEstado = null;
+  function plantillaPersonalizada(cont) {
+    if (!tplEstado) { let pre = null; try { pre = sessionStorage.getItem('az-plantilla'); sessionStorage.removeItem('az-plantilla'); } catch (e) { pre = null; } tplEstado = { paso: pre ? 'basics' : 'select', texto: pre || '', tpl: pre ? JSON.parse(pre) : null, valores: {}, rg: '', rgNuevo: '' }; }
+    const E = tplEstado, s = az();
+    const pest = [['select', 'Select a template'], ['basics', 'Basics'], ['review', 'Review + create']];
+    const cab = `<div class="az-pag">${migas([['Home', ''], ['Create a resource', 'crear'], ['Custom deployment', null]])}<div class="az-cab">${svg('actividad', 28)}<h1>Custom deployment</h1><small>Deploy from a custom template</small></div><div class="az-pest">${pest.map(([k, t]) => `<a class="${E.paso === k ? 'on' : ''}" data-tp="${k}">${t}</a>`).join('')}</div>`;
+    const params = () => Object.entries((E.tpl && E.tpl.parameters) || {});
+    if (E.paso === 'select' || E.paso === 'editor') {
+      if (E.paso === 'editor') {
+        cont.innerHTML = `${cab}<h3>Edit template</h3><p class="az-dim">Pega o escribe una plantilla ARM (JSON). Recursos admitidos en la práctica: ${TIPOS_TPL.map((t) => `<code>${esc(t.replace('Microsoft.', ''))}</code>`).join(', ')}.</p><div class="az-cmd"><label class="az-btn chico" style="cursor:pointer">${ic('cloud-upload')} Load file<input type="file" id="tFile" accept=".json" hidden></label><button id="tEj">${ic('file-code')} Ejemplo: storage + contenedor</button></div><textarea id="tTxt" class="az-tpl-ed" spellcheck="false">${esc(E.texto || JSON.stringify(TPL_EJEMPLO, null, 2))}</textarea><div class="az-banner error" id="tErr" hidden></div><div class="az-pie"><button class="az-btn primario" id="tSave">Save</button><button class="az-btn" id="tDisc">Discard</button></div></div>`;
+        cont.querySelector('#tEj').onclick = () => { cont.querySelector('#tTxt').value = JSON.stringify(TPL_EJEMPLO, null, 2); };
+        cont.querySelector('#tFile').onchange = async (e) => { const f = e.target.files[0]; if (f) cont.querySelector('#tTxt').value = await f.text(); };
+        cont.querySelector('#tDisc').onclick = () => { E.paso = 'select'; plantillaPersonalizada(cont); };
+        cont.querySelector('#tSave').onclick = () => {
+          const txt = cont.querySelector('#tTxt').value; let j;
+          try { j = JSON.parse(txt); } catch (e) { const er = cont.querySelector('#tErr'); er.hidden = false; er.textContent = `The template is not valid JSON: ${e.message}`; return; }
+          if (!Array.isArray(j.resources)) { const er = cont.querySelector('#tErr'); er.hidden = false; er.textContent = "The template must contain a 'resources' array."; return; }
+          E.texto = txt; E.tpl = j; E.valores = {}; E.paso = 'basics'; plantillaPersonalizada(cont);
+        };
+        return;
+      }
+      cont.innerHTML = `${cab}<p>Automate deploying resources with Azure Resource Manager templates in a single, coordinated operation. Create or select a template below to get started.</p><div class="az-tpl-opc"><button class="az-tpl-card" id="tPropia">${ic('edit')}<b>Build your own template in the editor</b><small>Escribe o pega JSON, o carga un archivo (por ejemplo, el arm_template.json que exporta Data Factory)</small></button><button class="az-tpl-card" id="tRapida">${ic('rocket')}<b>Quickstart: Storage account + contenedor</b><small>Plantilla de ejemplo con parámetros, variables y uniqueString</small></button></div></div>`;
+      cont.querySelector('#tPropia').onclick = () => { E.paso = 'editor'; plantillaPersonalizada(cont); };
+      cont.querySelector('#tRapida').onclick = () => { E.texto = JSON.stringify(TPL_EJEMPLO, null, 2); E.tpl = TPL_EJEMPLO; E.paso = 'basics'; plantillaPersonalizada(cont); };
+      cont.querySelectorAll('[data-tp]').forEach((a) => { a.onclick = () => { if (a.dataset.tp !== 'select' && !E.tpl) return toast('Primero elige o escribe una plantilla.'); E.paso = a.dataset.tp; plantillaPersonalizada(cont); }; });
+      return;
+    }
+    const grupos = Object.keys(s.groups || {}).filter((g) => !/^databricks-rg-/.test(g));
+    if (E.paso === 'basics') {
+      cont.innerHTML = `${cab}<p class="az-dim">Template: ${E.tpl.resources.length} recursos · <a data-editar>Edit template</a></p><h3>Project details</h3>
+        <label class="az-campo"><span>Subscription *</span><select disabled><option>${esc(sub().name)}</option></select></label>
+        <label class="az-campo"><span>Resource group *</span><select id="tRg"><option value="">Select a resource group</option>${grupos.map((g) => `<option ${E.rg === g ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select> <input id="tRgN" placeholder="o crea uno nuevo" value="${esc(E.rgNuevo)}"></label>
+        <h3>Instance details</h3>
+        ${params().map(([k, P]) => `<label class="az-campo"><span>${esc(k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase()))}${P.defaultValue === undefined ? ' *' : ''}</span>${P.allowedValues ? `<select data-tpar="${esc(k)}">${P.allowedValues.map((x) => `<option ${String(E.valores[k] ?? P.defaultValue) === String(x) ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>` : `<input data-tpar="${esc(k)}" value="${esc(E.valores[k] ?? (typeof P.defaultValue === 'object' ? JSON.stringify(P.defaultValue) : P.defaultValue ?? ''))}">`}${P.metadata && P.metadata.description ? `<small class="az-dim">${esc(P.metadata.description)}</small>` : ''}</label>`).join('') || '<p class="az-dim">La plantilla no tiene parámetros.</p>'}
+        <div class="az-pie"><button class="az-btn primario" id="tRev">Review + create</button><button class="az-btn" id="tPrev">&lt; Previous</button></div></div>`;
+      const leer = () => { E.rg = cont.querySelector('#tRg').value; E.rgNuevo = cont.querySelector('#tRgN').value.trim(); cont.querySelectorAll('[data-tpar]').forEach((x) => { E.valores[x.dataset.tpar] = x.value; }); };
+      cont.querySelector('[data-editar]').onclick = () => { leer(); E.paso = 'editor'; plantillaPersonalizada(cont); };
+      cont.querySelector('#tPrev').onclick = () => { leer(); E.paso = 'select'; plantillaPersonalizada(cont); };
+      cont.querySelector('#tRev').onclick = () => { leer(); E.paso = 'review'; plantillaPersonalizada(cont); };
+      cont.querySelectorAll('[data-tp]').forEach((a) => { a.onclick = () => { leer(); E.paso = a.dataset.tp; plantillaPersonalizada(cont); }; });
+      return;
+    }
+    // review: evaluar la plantilla y validar
+    const rg = E.rgNuevo || E.rg; const errores = [];
+    if (!rg) errores.push('Resource group: elige uno o escribe el nombre de uno nuevo.');
+    const location = (s.groups[rg] || {}).location || 'eastus';
+    const C = { params: {}, vars: {}, rg, location, sub: s.sub };
+    let recursos = [];
+    try {
+      for (const [k, P] of params()) { let v = E.valores[k]; if (v === undefined || v === '') v = P.defaultValue; if (v === undefined) { errores.push(`The value for the template parameter '${k}' is not provided.`); continue; } v = evalArm(v, C); if (P.type === 'int') v = Number(v); if (P.type === 'bool') v = String(v) === 'true' || v === true; if ((P.type === 'object' || P.type === 'array') && typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { errores.push(`The parameter '${k}' must be valid JSON.`); } } C.params[k] = v; }
+      for (const [k, v] of Object.entries(E.tpl.variables || {})) C.vars[k] = evalArm(v, C);
+      recursos = E.tpl.resources.map((r0) => { const r = evalArm(r0, C); return { tipo: r.type, nombre: String(r.name), r }; });
+    } catch (e) { errores.push(e.message); }
+    for (const x of recursos) {
+      if (!TIPOS_TPL.includes(x.tipo)) errores.push(`The resource type '${x.tipo}' (${x.nombre}) is not supported in this practice portal.`);
+      if (x.tipo === 'Microsoft.Storage/storageAccounts' && VALIDA.storage) { const e = VALIDA.storage(x.nombre); if (e && !/already taken|ya existe|not available/i.test(e)) errores.push(`${x.nombre}: ${e}`); }
+    }
+    E.evaluado = { rg, location, recursos, C };
+    cont.innerHTML = `${cab}${errores.length ? `<div class="az-banner error">${ic('error')} <div><b>Validation failed.</b> Click here for details.<ul>${errores.map((e) => `<li>${esc(e)}</li>`).join('')}</ul></div></div>` : `<div class="az-banner ok">${ic('pass-filled')} Validation Passed</div>`}
+      <h3>Basics</h3><table class="az-kv"><tr><th>Subscription</th><td>${esc(sub().name)}</td></tr><tr><th>Resource group</th><td>${esc(rg)}${E.rgNuevo && !s.groups[E.rgNuevo] ? ' (new)' : ''}</td></tr><tr><th>Region</th><td>${esc(location)}</td></tr>${Object.entries(C.params).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('')}</table>
+      <h3>Resources (${recursos.length})</h3><table class="az-tabla"><thead><tr><th>Name</th><th>Type</th></tr></thead><tbody>${recursos.map((x) => `<tr><td>${esc(x.nombre)}</td><td>${esc(x.tipo)}</td></tr>`).join('')}</tbody></table>
+      <div class="az-pie"><button class="az-btn primario" id="tCrear" ${errores.length ? 'disabled' : ''}>Create</button><button class="az-btn" id="tPrev">&lt; Previous</button></div></div>`;
+    cont.querySelector('#tPrev').onclick = () => { E.paso = 'basics'; plantillaPersonalizada(cont); };
+    cont.querySelectorAll('[data-tp]').forEach((a) => { a.onclick = () => { E.paso = a.dataset.tp; plantillaPersonalizada(cont); }; });
+    const cr = cont.querySelector('#tCrear'); if (cr) cr.onclick = () => { const ev = E.evaluado; tplEstado = null; desplegarPlantilla(ev); };
+  }
+  function desplegarPlantilla({ rg, location: ubic, recursos, C }) {
+    const s = az(); s.deployments = s.deployments || [];
+    const ts = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
+    const dep = { id: uid(10), nombre: 'Microsoft.Template-' + ts, rg, tipo: 'plantilla', recurso: rg, estado: 'Running', inicio: ahora(), sub: s.sub, recursos: recursos.map((x) => ({ tipo: x.tipo, nombre: x.nombre, estado: 'Running' })), plantilla: { resources: recursos.map((x) => x.r) } };
+    s.deployments.unshift(dep); s.deployments = s.deployments.slice(0, 100);
+    if (!s.groups[rg]) { s.groups[rg] = { location: ubic, tags: {} }; actividad('Create or Update Resource Group', rg); }
+    guardarAz(); notificar('Deployment in progress...', `Deployment to resource group '${rg}' is in progress.`, 'progreso', ['Go to deployment', 'despliegue/' + dep.id]);
+    ir('despliegue/' + dep.id);
+    setTimeout(() => {
+      const orden = recursos.map((x, i) => ({ ...x, i })).sort((a, b) => ORDEN_TPL(a.tipo) - ORDEN_TPL(b.tipo));
+      for (const x of orden) {
+        const row = dep.recursos[x.i]; const r = x.r; const p = r.properties || {}; const partes = x.nombre.split('/');
+        try {
+          if (x.tipo === 'Microsoft.Storage/storageAccounts') { const sku = (r.sku || {}).name || 'Standard_LRS'; s.storage[x.nombre] = { ...(s.storage[x.nombre] || {}), rg, location: r.location || ubic, sku, kind: r.kind || 'StorageV2', hns: !!p.isHnsEnabled, containers: (s.storage[x.nombre] || {}).containers || {}, tags: r.tags || {}, creado: ahora(), props: { tier: p.accessTier || 'Hot', tls: p.minimumTlsVersion || 'TLS1_2', secure: true, anonimo: !!p.allowBlobPublicAccess, red: 'all' } }; actividad('Create or Update Storage Account', x.nombre, 'Succeeded', { rg }); }
+          else if (x.tipo === 'Microsoft.Storage/storageAccounts/blobServices/containers') { const A = s.storage[partes[0]]; if (!A) throw new Error(`The Resource 'Microsoft.Storage/storageAccounts/${partes[0]}' under resource group '${rg}' was not found.`); A.containers[partes[2]] = A.containers[partes[2]] || { blobs: {} }; }
+          else if (x.tipo === 'Microsoft.KeyVault/vaults') { s.kv[x.nombre] = { ...(s.kv[x.nombre] || {}), rg, location: r.location || ubic, secrets: (s.kv[x.nombre] || {}).secrets || {}, tags: r.tags || {}, creado: ahora(), props: { sku: ((p.sku || {}).name) || 'standard', retencion: p.softDeleteRetentionInDays || 90, purga: !!p.enablePurgeProtection, permiso: p.enableRbacAuthorization === false ? 'policy' : 'rbac', red: 'all' } }; actividad('Create or Update Key Vault', x.nombre, 'Succeeded', { rg }); }
+          else if (x.tipo === 'Microsoft.KeyVault/vaults/secrets') { const V = s.kv[partes[0]]; if (!V) throw new Error(`The Resource 'Microsoft.KeyVault/vaults/${partes[0]}' was not found.`); V.secrets[partes[1]] = { value: String(p.value ?? ''), creado: ahora(), enabled: true }; }
+          else if (x.tipo === 'Microsoft.Databricks/workspaces') { const mrg = `databricks-rg-${x.nombre}-${uid(13)}`; s.dbw[x.nombre] = { rg, location: r.location || ubic, sku: ((r.sku || {}).name) || 'premium', url: `adb-${Math.floor(1e15 + Math.random() * 9e15)}.${Math.floor(Math.random() * 15) + 1}.azuredatabricks.net`, tags: r.tags || {}, creado: ahora(), rgAdministrado: mrg, props: {} }; s.groups[mrg] = { location: r.location || ubic, tags: {}, administradoPor: x.nombre }; actividad('Create or Update Databricks Workspace', x.nombre, 'Succeeded', { rg }); }
+          else if (x.tipo === 'Microsoft.DataFactory/factories') { s.adf[x.nombre] = { ...(s.adf[x.nombre] || {}), rg, location: r.location || ubic, tags: r.tags || {}, creado: ahora(), props: { version: 'V2', red: 'public' } }; actividad('Create or Update Data Factory', x.nombre, 'Succeeded', { rg }); }
+          else if (x.tipo.startsWith('Microsoft.DataFactory/factories/')) { if (!window.ADFStudio || !window.ADFStudio.importarObjeto) throw new Error('El Studio de Data Factory no está cargado.'); window.ADFStudio.importarObjeto(partes[0], x.tipo.split('/').pop(), partes[1], p); }
+          row.estado = 'OK';
+        } catch (e) { row.estado = 'Failed'; row.error = e.message; }
+      }
+      const malos = dep.recursos.filter((x) => x.estado === 'Failed');
+      dep.estado = malos.length ? 'Failed' : 'Succeeded'; dep.fin = ahora(); if (malos.length) dep.error = malos.map((x) => `${x.nombre}: ${x.error}`).join('\n');
+      guardarAz();
+      notificar(malos.length ? 'Deployment failed' : 'Deployment succeeded', malos.length ? `${malos.length} resource(s) failed.` : `Deployment '${dep.nombre}' to resource group '${rg}' was successful.`, malos.length ? 'error' : 'ok', ['Go to resource group', 'grupo/' + encodeURIComponent(rg)]);
+      if (location.hash === '#/azure/despliegue/' + dep.id) render(['despliegue', dep.id]);
+    }, 2600);
+  }
   // despliegue: queda "en progreso" unos segundos y después crea el recurso
   function desplegar(tipo, v) {
     const s = az(); s.deployments = s.deployments || [];
@@ -410,12 +553,12 @@
     const dep = (az().deployments || []).find((d) => d.id === r[0]);
     if (!dep) return noEncontrado(cont);
     const ok = dep.estado === 'Succeeded', fallo = dep.estado === 'Failed';
-    const destino = dep.tipo === 'grupo' ? 'grupo/' + encodeURIComponent(dep.recurso) : `recurso/${dep.tipo}/${encodeURIComponent(dep.recurso)}`;
+    const destino = dep.tipo === 'grupo' || dep.tipo === 'plantilla' ? 'grupo/' + encodeURIComponent(dep.recurso) : `recurso/${dep.tipo}/${encodeURIComponent(dep.recurso)}`;
     cont.innerHTML = `<div class="az-pag">${migas([['Home', ''], [dep.nombre, null]])}<div class="az-cab">${svg('actividad', 28)}<h1>${esc(dep.nombre)} | Overview</h1><small>Deployment</small></div>
       <div class="az-cmd"><button>${ic('trash')} Delete</button><button>${ic('circle-slash')} Cancel</button><button>${ic('refresh')} Redeploy</button><button id="dTpl">${ic('json')} Template</button><button onclick="location.reload()">${ic('refresh')} Refresh</button></div>
       <div class="az-dep ${ok ? 'ok' : fallo ? 'mal' : ''}">${ok ? ic('pass-filled') : fallo ? ic('error') : '<span class="az-gira grande"></span>'}<div><h2>${ok ? 'Your deployment is complete' : fallo ? 'Your deployment failed' : 'Deployment is in progress'}</h2><table class="az-kv"><tr><th>Deployment name</th><td>${esc(dep.nombre)}</td></tr><tr><th>Subscription</th><td>${esc((SUBS.find((s) => s.id === dep.sub) || sub()).name)}</td></tr><tr><th>Resource group</th><td><a href="#/azure/grupo/${encodeURIComponent(dep.rg)}">${esc(dep.rg)}</a></td></tr><tr><th>Start time</th><td>${hora(dep.inicio)}</td></tr></table></div></div>
-      ${ok ? `<a class="az-btn primario" href="#/azure/${destino}">Go to resource</a>` : ''}${fallo ? `<div class="az-banner error">${esc(dep.error || '')}</div>` : ''}
-      <h3>Deployment details</h3><table class="az-tabla"><thead><tr><th>Resource</th><th>Type</th><th>Status</th></tr></thead><tbody><tr><td>${esc(dep.recurso)}</td><td>${esc(dep.plantilla.resources[0].type)}</td><td>${ok ? `<span class="az-ok">${ic('pass-filled')} OK</span>` : fallo ? 'Failed' : 'Created'}</td></tr></tbody></table>
+      ${ok ? `<a class="az-btn primario" href="#/azure/${destino}">${dep.tipo === 'plantilla' ? 'Go to resource group' : 'Go to resource'}</a>` : ''}${fallo ? `<div class="az-banner error">${esc(dep.error || '')}</div>` : ''}
+      <h3>Deployment details</h3><table class="az-tabla"><thead><tr><th>Resource</th><th>Type</th><th>Status</th></tr></thead><tbody>${dep.recursos ? dep.recursos.map((x) => `<tr><td>${esc(x.nombre)}</td><td>${esc(x.tipo)}</td><td>${x.estado === 'OK' ? `<span class="az-ok">${ic('pass-filled')} OK</span>` : x.estado === 'Failed' ? `<span class="az-mal" title="${esc(x.error || '')}">${ic('error')} ${esc((x.error || 'Failed').slice(0, 90))}</span>` : 'Running'}</td></tr>`).join('') : `<tr><td>${esc(dep.recurso)}</td><td>${esc(dep.plantilla.resources[0].type)}</td><td>${ok ? `<span class="az-ok">${ic('pass-filled')} OK</span>` : fallo ? 'Failed' : 'Created'}</td></tr>`}</tbody></table>
       <div class="az-banner info">${ic('info')} <span>Un despliegue de Azure Resource Manager aplica una plantilla ARM. Si lo repites con la misma plantilla no duplica recursos: es idempotente.</span></div></div>`;
     cont.querySelector('#dTpl').onclick = () => panel({ titulo: 'Template', ok: null, cancelar: 'Close', ancho: 760, cuerpo: `<pre class="az-code">${esc(JSON.stringify(dep.plantilla, null, 2))}</pre>` });
   }

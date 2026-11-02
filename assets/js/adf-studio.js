@@ -84,6 +84,48 @@
     return out;
   }
 
+  // ------------------------------------------------------------------ importar desde JSON de ADF (ARM template o repositorio)
+  const valorDe = (v) => (v && typeof v === 'object' && 'value' in v ? v.value : v);
+  function actividadDesdeJson(j) {
+    const tp = j.typeProperties || {}, a = { name: j.name, type: j.type, dependsOn: (j.dependsOn || []).map((d) => ({ activity: d.activity, conditions: d.dependencyConditions || ['Succeeded'] })) };
+    if (j.policy && j.policy.retry) a.retry = j.policy.retry;
+    if (j.type === 'Copy') { a.source = ((j.inputs || [])[0] || {}).referenceName || ''; a.sink = ((j.outputs || [])[0] || {}).referenceName || ''; const ss = (tp.source || {}).storeSettings || {}; if (ss.wildcardFileName) a.wildcard = valorDe(ss.wildcardFileName); if (((tp.sink || {}).storeSettings || {}).copyBehavior === 'MergeFiles') a.merge = true; }
+    else if (j.type === 'DatabricksNotebook') { a.notebookPath = tp.notebookPath || ''; a.baseParameters = Object.fromEntries(Object.entries(tp.baseParameters || {}).map(([k, v]) => [k, valorDe(v)])); a.linked = (j.linkedServiceName || {}).referenceName || ''; }
+    else if (j.type === 'Wait') a.segundos = tp.waitTimeInSeconds ?? 1;
+    else if (j.type === 'GetMetadata') { a.dataset = (tp.dataset || {}).referenceName || ''; a.campos = tp.fieldList || ['childItems']; }
+    else if (j.type === 'Lookup') { a.dataset = (tp.dataset || {}).referenceName || ''; a.firstRowOnly = tp.firstRowOnly !== false; }
+    else if (j.type === 'SetVariable') { a.variable = tp.variableName || ''; a.valor = valorDe(tp.value) ?? ''; }
+    else if (j.type === 'Fail') { a.mensaje = valorDe(tp.message) || ''; a.codigo = valorDe(tp.errorCode) || '500'; }
+    else if (j.type === 'ForEach') { a.items = valorDe(tp.items) || ''; a.secuencial = tp.isSequential !== false; if (tp.batchCount) a.lote = tp.batchCount; a.activities = (tp.activities || []).map(actividadDesdeJson); }
+    else if (j.type === 'IfCondition') { a.expresion = valorDe(tp.expression) || ''; a.ifTrueActivities = (tp.ifTrueActivities || []).map(actividadDesdeJson); a.ifFalseActivities = (tp.ifFalseActivities || []).map(actividadDesdeJson); }
+    else throw new Error(`El tipo de actividad '${j.type}' no está simulado en esta práctica.`);
+    return a;
+  }
+  // tipo: linkedServices | datasets | pipelines | triggers; props: el objeto "properties" del JSON de ADF
+  function importarObjeto(factory, tipo, nombre, props) {
+    const R = window.CloudSim.az().adf[factory]; if (!R) throw new Error(`ParentResourceNotFound: Can not perform requested operation on nested resource. Parent resource '${factory}' not found. (La plantilla de ADF no crea el factory: créalo antes o agrega el recurso Microsoft.DataFactory/factories a la plantilla.)`);
+    const S = R.studio = R.studio || { linked: {}, datasets: {}, pipelines: {}, triggers: {}, runs: [], publicado: null };
+    const tp = props.typeProperties || {};
+    if (tipo === 'linkedServices') {
+      const L = { type: props.type };
+      if (props.type === 'AzureBlobFS' || props.type === 'AzureBlobStorage') { const u = String(tp.url || tp.serviceEndpoint || ''); L.account = (/https:\/\/([^.]+)\./.exec(u) || [])[1] || ''; L.auth = 'msi'; }
+      else if (props.type === 'AzureDatabricks') L.workspace = String(tp.workspaceResourceId || '').split('/').pop() || '';
+      else if (props.type === 'AzureKeyVault') L.vault = (/https:\/\/([^.]+)\./.exec(String(tp.baseUrl || '')) || [])[1] || '';
+      else throw new Error(`El tipo de linked service '${props.type}' no está simulado en esta práctica.`);
+      S.linked[nombre] = L;
+    } else if (tipo === 'datasets') {
+      const loc = tp.location || {};
+      S.datasets[nombre] = { type: props.type === 'Json' ? 'Json' : 'DelimitedText', linked: (props.linkedServiceName || {}).referenceName || '', container: loc.fileSystem || loc.container || '', folder: loc.folderPath || '', file: loc.fileName || '', header: tp.firstRowAsHeader !== false, ...(tp.columnDelimiter && tp.columnDelimiter !== ',' ? { sep: tp.columnDelimiter } : {}) };
+    } else if (tipo === 'pipelines') {
+      S.pipelines[nombre] = { activities: (props.activities || []).map(actividadDesdeJson), parameters: Object.fromEntries(Object.entries(props.parameters || {}).map(([k, v]) => [k, v.defaultValue ?? ''])), variables: Object.fromEntries(Object.entries(props.variables || {}).map(([k, v]) => [k, { type: v.type || 'String', defaultValue: v.defaultValue ?? (v.type === 'Array' ? [] : '') }])) };
+    } else if (tipo === 'triggers') {
+      const rec = (tp.recurrence || {});
+      S.triggers[nombre] = { type: props.type || 'ScheduleTrigger', frequency: rec.frequency || 'Day', interval: rec.interval || 1, startTime: rec.startTime || ahora(), runtimeState: props.runtimeState || 'Stopped', pipelines: (props.pipelines || []).map((x) => (x.pipelineReference || {}).referenceName).filter(Boolean) };
+    } else throw new Error(`El tipo de recurso 'Microsoft.DataFactory/factories/${tipo}' no está simulado en esta práctica.`);
+    // lo desplegado por ARM queda publicado (es lo que corre en el servicio)
+    S.publicado = JSON.stringify({ linked: S.linked, datasets: S.datasets, pipelines: S.pipelines, triggers: S.triggers });
+  }
+
   // ------------------------------------------------------------------ exportar (ARM template y repositorio Git)
   function triggerJson(n, T) { return { name: n, properties: { annotations: [], runtimeState: T.runtimeState, pipelines: (T.pipelines || []).map((x) => ({ pipelineReference: { referenceName: x, type: 'PipelineReference' }, parameters: {} })), type: T.type, typeProperties: T.type === 'ScheduleTrigger' ? { recurrence: { frequency: T.frequency, interval: T.interval, startTime: T.startTime, timeZone: 'UTC' } } : { blobPathBeginsWith: '/raw/blobs/', ignoreEmptyBlobs: true, scope: '', events: ['Microsoft.Storage.BlobCreated'] } } }; }
   function plantillaArm() {
@@ -742,8 +784,9 @@
     const C = M.querySelector('#manC');
     if (gestion === 'ir') { C.innerHTML = '<h2>Integration runtimes</h2><table class="adf-tabla"><thead><tr><th>Name</th><th>Type</th><th>Sub-type</th><th>Status</th><th>Region</th></tr></thead><tbody><tr><td>AutoResolveIntegrationRuntime</td><td>Azure</td><td>Public</td><td><span class="adf-estado e-Succeeded">Running</span></td><td>Auto Resolve</td></tr></tbody></table><p class="adf-dim">El integration runtime es el cómputo que mueve los datos. El de Azure lo administra Microsoft; para orígenes dentro de una red privada u on-premises se instala un <b>self-hosted IR</b>.</p>'; return; }
     if (gestion === 'arm') {
-      C.innerHTML = `<h2>ARM template</h2><p>Exporta el factory como plantilla de Azure Resource Manager (lo mismo que genera Publish en la rama <code>adf_publish</code>) para desplegarlo en otro entorno con CI/CD, o como los archivos JSON que guarda la integración con Git.</p><div class="adf-tb"><button data-a="arm">${ic('cloud-download')} Export ARM template</button><button data-a="repo">${ic('repo')} Exportar como repositorio Git (.zip)</button></div><p class="adf-dim">Los valores que cambian entre entornos (por ejemplo, la URL de cada cuenta de almacenamiento) quedan como parámetros: <code>${esc(Object.keys(plantillaArm().prm.parameters).slice(0, 3).join(', '))}</code>… En Azure se despliega con <code>az deployment group create --template-file arm_template.json --parameters arm_template_parameters.json</code>.</p><details><summary>Ver arm_template.json</summary><pre class="adf-json">${esc(JSON.stringify(plantillaArm().tpl, null, 2))}</pre></details>`;
+      C.innerHTML = `<h2>ARM template</h2><p>Exporta el factory como plantilla de Azure Resource Manager (lo mismo que genera Publish en la rama <code>adf_publish</code>) para desplegarlo en otro entorno con CI/CD, o como los archivos JSON que guarda la integración con Git.</p><div class="adf-tb"><button data-a="arm">${ic('cloud-download')} Export ARM template</button><button data-a="repo">${ic('repo')} Exportar como repositorio Git (.zip)</button><button data-a="importar">${ic('cloud-upload')} Import ARM template</button></div><p class="adf-dim">Los valores que cambian entre entornos (por ejemplo, la URL de cada cuenta de almacenamiento) quedan como parámetros: <code>${esc(Object.keys(plantillaArm().prm.parameters).slice(0, 3).join(', '))}</code>… En Azure se despliega con <code>az deployment group create --template-file arm_template.json --parameters arm_template_parameters.json</code>.</p><details><summary>Ver arm_template.json</summary><pre class="adf-json">${esc(JSON.stringify(plantillaArm().tpl, null, 2))}</pre></details>`;
       C.querySelector('[data-a=arm]').onclick = exportarArm; C.querySelector('[data-a=repo]').onclick = exportarRepo;
+      C.querySelector('[data-a=importar]').onclick = () => { try { sessionStorage.setItem('az-plantilla', JSON.stringify(plantillaArm().tpl, null, 2)); } catch (e) { /* sin almacenamiento */ } location.hash = '#/azure/crear/plantilla'; };
       return;
     }
     if (gestion === 'git') { C.innerHTML = '<h2>Git configuration</h2><p>No hay un repositorio configurado (live mode): los cambios se guardan directamente en el servicio al publicar.</p><p class="adf-dim">En equipos se conecta Azure DevOps o GitHub: cada uno trabaja en su rama, se hace un pull request a la <i>collaboration branch</i> y al publicar se generan las plantillas ARM en <code>adf_publish</code> para desplegar a otros entornos con CI/CD.</p>'; return; }
@@ -790,5 +833,5 @@
     render(sub.slice(1));
   }
   window.addEventListener('hashchange', () => { if (!/^#\/azure\/studio\//.test(location.hash)) document.body.classList.remove('adf-abierto'); });
-  window.ADFStudio = { vista: vistaPublica, _arm: () => plantillaArm(), _correr: (n, o) => correrPipeline(n, o), _validar: (n) => validar(n) };
+  window.ADFStudio = { vista: vistaPublica, importarObjeto, _arm: () => plantillaArm(), _correr: (n, o) => correrPipeline(n, o), _validar: (n) => validar(n) };
 })();

@@ -402,3 +402,11 @@ body.adf-abierto { overflow: hidden; }
 .adf-din { font-size: 12px; line-height: 1.5; margin-top: 8px; }
 .adf-din code { font-size: 11.5px; }
 .adf-param select { height: 28px; border: 1px solid #8a8886; border-radius: 2px; font: inherit; }
+/* implementación de plantilla personalizada */
+.azp .az-tpl-opc { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 16px 0; }
+.azp .az-tpl-card { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; padding: 14px; border: 1px solid var(--a-borde2); background: #fff; border-radius: 2px; cursor: pointer; font: inherit; color: var(--a-txt); }
+.azp .az-tpl-card:hover { border-color: var(--a-azul); background: #f3f9fd; }
+.azp .az-tpl-card .codicon { font-size: 22px; color: var(--a-azul); }
+.azp .az-tpl-card small { color: var(--a-dim); }
+.azp .az-tpl-ed { width: 100%; min-height: 380px; font: 12.5px/1.5 Consolas, 'Courier New', monospace; border: 1px solid var(--a-borde2); padding: 8px; resize: vertical; tab-size: 2; }
+.azp .az-mal { color: var(--a-rojo); }
