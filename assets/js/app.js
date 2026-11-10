@@ -3584,7 +3584,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'generador') return { name: 'generador', params };
     if (parts[0] === 'revisar-repo') return { name: 'revisar-repo' };
     if (parts[0] === 'trabajo') return { name: 'trabajo', params };
-    if (parts[0] === 'powerbi') return { name: 'powerbi' };
+    if (parts[0] === 'powerbi') return { name: 'powerbi', sub: parts.slice(1) };
     if (parts[0] === 'herramientas') return { name: 'herramientas' };
     if (parts[0] === 'vscode') return { name: 'vscode' };
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
@@ -3593,6 +3593,42 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
+  // ---------------------------------------------------------------- barra de las herramientas de práctica
+  // Las réplicas (Power BI, Databricks, Azure, GitHub…) ocupan toda la pantalla, como las aplicaciones reales.
+  // Esta barra fina queda siempre arriba para volver al curso, abrir la lección de la herramienta o ir al lanzador.
+  const HERR_BARRA = {
+    powerbi: { ico: '📊', nombre: 'Power BI Desktop', leccion: 'interfaces-power-bi-por-dentro' },
+    pbiservicio: { ico: '☁️', nombre: 'Servicio de Power BI', leccion: 'interfaces-power-bi-por-dentro' },
+    databricks: { ico: '🧱', nombre: 'Databricks', leccion: 'interfaces-databricks-por-dentro' },
+    azure: { ico: '☁️', nombre: 'Portal de Azure', leccion: 'interfaces-portal-azure-por-dentro' },
+    adf: { ico: '🏭', nombre: 'Azure Data Factory', leccion: 'interfaces-data-factory-por-dentro' },
+    github: { ico: '🐙', nombre: 'GitHub', leccion: 'interfaces-github-por-dentro' },
+    fabric: { ico: '🟩', nombre: 'Microsoft Fabric', leccion: 'interfaces-fabric-por-dentro' },
+    airflow: { ico: '🌀', nombre: 'Airflow', leccion: 'interfaces-airflow-por-dentro' },
+  };
+  let rutaCurso = null;   // la última página del curso (no de una herramienta) para el botón Volver
+  function claveHerramienta(r) { if (r.name === 'azure' && r.sub && r.sub[0] === 'studio') return 'adf'; if (r.name === 'powerbi' && r.sub && r.sub[0] === 'servicio') return 'pbiservicio'; return HERR_BARRA[r.name] ? r.name : null; }
+  function barraHerramienta(r) {
+    const k = claveHerramienta(r);
+    let bar = document.getElementById('herrBar');
+    if (!k) { if (bar) bar.hidden = true; document.body.classList.remove('herr-on'); rutaCurso = location.hash || '#/'; return; }
+    const H = HERR_BARRA[k];
+    if (!bar) { bar = document.createElement('div'); bar.id = 'herrBar'; bar.className = 'herr-bar'; bar.setAttribute('role', 'navigation'); bar.setAttribute('aria-label', 'Barra de la herramienta de práctica'); document.body.appendChild(bar); }
+    const destino = rutaCurso && rutaCurso !== '#/herramientas' ? rutaCurso : null;
+    const lec = H.leccion && LESSON_BY_ID.has(H.leccion) ? '#/l/' + H.leccion : null;
+    const donde = destino ? (destino.startsWith('#/l/') ? 'a la lección' : 'al curso') : 'a Herramientas';
+    bar.innerHTML = `<a class="hb-volver" href="${esc(destino || '#/herramientas')}" title="Volver ${donde} (Alt+←)"><span aria-hidden="true">←</span> Volver <span class="hb-donde">${donde}</span></a>
+      <span class="hb-tit"><span aria-hidden="true">${H.ico}</span> <b>${esc(H.nombre)}</b> <span class="hb-tag">práctica</span></span>
+      <span class="hb-sp"></span>
+      ${lec && lec !== destino ? `<a class="hb-l" href="${lec}" title="La lección que explica esta herramienta pantalla por pantalla"><span aria-hidden="true">📘</span><span class="hb-txt">Cómo se usa</span></a>` : ''}
+      <a class="hb-l" href="#/herramientas" title="Todas las herramientas de práctica"><span aria-hidden="true">🧰</span><span class="hb-txt">Herramientas</span></a>
+      <a class="hb-l" href="#/" title="Inicio del curso"><span aria-hidden="true">🏠</span><span class="hb-txt">Inicio</span></a>`;
+    bar.hidden = false;
+    document.body.classList.add('herr-on');
+  }
+  // Alt+← vuelve al curso desde una herramienta (además del botón atrás del navegador)
+  document.addEventListener('keydown', (e) => { if (e.altKey && e.key === 'ArrowLeft' && document.body.classList.contains('herr-on')) { const a = document.querySelector('#herrBar .hb-volver'); if (a) { e.preventDefault(); location.hash = a.getAttribute('href'); } } });
+
   function route() {
     const r = parse();
     document.body.classList.remove('nav-open');
@@ -3622,6 +3658,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'revisar-repo' && window.RevisarRepo) window.RevisarRepo.vista(main, { toast });
     else if (r.name === 'herramientas') viewHerramientas();
     else if (r.name === 'vscode') viewVSCode();
+    else if (r.name === 'powerbi' && r.sub && r.sub[0] === 'servicio' && window.PBIServicio) window.PBIServicio.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() }, r.sub.slice(1));
     else if (r.name === 'powerbi' && window.PowerBI) window.PowerBI.vista(main, { Store, toast, ensureSql, cargarMonaco: () => Monaco.load() });
     else if (r.name === 'databricks' && window.Databricks) window.Databricks.vista(main, { Store, toast, ensureSql }, r.sub);
     else if (r.name === 'azure' && window.AzurePortal) window.AzurePortal.vista(main, { Store, toast, ensureSql }, r.sub);
@@ -3637,6 +3674,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'simulacro') viewSimulacro(r.cert);
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
+    barraHerramienta(r);
     if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];

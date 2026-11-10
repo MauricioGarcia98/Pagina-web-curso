@@ -32,9 +32,13 @@
     tabla: SVG(20, 20, '<rect x="2.5" y="3.5" width="15" height="13" fill="none" stroke="currentColor"/><path d="M2.5 7.5h15M2.5 11.5h15M8 3.5v13" stroke="currentColor"/>'),
     matriz: SVG(20, 20, '<rect x="2.5" y="3.5" width="15" height="13" fill="none" stroke="currentColor"/><path d="M2.5 7.5h15M7 3.5v13M12 7.5v9" stroke="currentColor"/>' + R(2.5, 3.5, 4.5, 13, 0.25)),
     texto: SVG(20, 20, '<rect x="2.5" y="4.5" width="15" height="11" fill="none" stroke="currentColor"/><path d="M6 8h8M10 8v5" stroke="currentColor" stroke-width="1.4"/>'),
+    qa: SVG(20, 20, '<path d="M3 4h14v9H9l-4 3v-3H3z" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="10" y="11" font-size="7" text-anchor="middle" fill="currentColor" font-weight="700">?</text>'),
+    arbol: SVG(20, 20, R(2, 8, 4, 4) + R(9, 3, 3, 3, 0.8) + R(9, 8.5, 3, 3, 0.8) + R(9, 14, 3, 3, 0.8) + R(15, 3, 3, 3, 0.5) + R(15, 8.5, 3, 3, 0.5) + '<path d="M6 10h3M7.5 4.5v11M7.5 4.5H9M7.5 15.5H9M12 4.5h3M12 10h3" stroke="currentColor" stroke-width=".8" fill="none"/>'),
+    influencias: SVG(20, 20, '<circle cx="7" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="1.3"/>' + R(13, 4, 5, 2) + R(13, 9, 3.5, 2, 0.7) + R(13, 14, 2, 2, 0.45)),
+    narrativa: SVG(20, 20, '<path d="M3 5h14M3 9h14M3 13h9" stroke="currentColor" stroke-width="1.4"/><path d="M15 12l1 2 2 .5-2 .5-1 2-1-2-2-.5 2-.5z" fill="currentColor"/>'),
   };
-  const CART_COL = [['x', 'Eje X', 1, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']];
-  const CART_BAR = [['x', 'Eje Y', 1, 'cat'], ['y', 'Eje X', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']];
+  const CART_COL = [['x', 'Eje X', 6, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']];
+  const CART_BAR = [['x', 'Eje Y', 6, 'cat'], ['y', 'Eje X', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']];
   const TIPOS = {
     barApilada: { n: 'Gráfico de barras apiladas', pozos: CART_BAR, g: 'cart', horiz: true, apila: 1 },
     columnaApilada: { n: 'Gráfico de columnas apiladas', pozos: CART_COL, g: 'cart', apila: 1 },
@@ -42,17 +46,17 @@
     columnaAgrupada: { n: 'Gráfico de columnas agrupadas', pozos: CART_COL, g: 'cart' },
     bar100: { n: 'Gráfico de barras 100% apiladas', pozos: CART_BAR, g: 'cart', horiz: true, apila: 100 },
     columna100: { n: 'Gráfico de columnas 100% apiladas', pozos: CART_COL, g: 'cart', apila: 100 },
-    linea: { n: 'Gráfico de líneas', pozos: [['x', 'Eje X', 1, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']], g: 'cart', linea: true },
-    area: { n: 'Gráfico de áreas', pozos: [['x', 'Eje X', 1, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat']], g: 'cart', linea: true, area: true },
-    areaApilada: { n: 'Gráfico de áreas apiladas', pozos: [['x', 'Eje X', 1, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat']], g: 'cart', linea: true, area: true, apila: 1 },
-    lineaColumna: { n: 'Gráfico de líneas y columnas agrupadas', pozos: [['x', 'Eje X', 1, 'cat'], ['y', 'Eje Y de columna', 3, 'valor'], ['linea', 'Eje Y de línea', 3, 'valor']], g: 'cart' },
+    linea: { n: 'Gráfico de líneas', pozos: [['x', 'Eje X', 6, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['info', 'Información sobre herramientas', 3, 'valor']], g: 'cart', linea: true },
+    area: { n: 'Gráfico de áreas', pozos: [['x', 'Eje X', 6, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat']], g: 'cart', linea: true, area: true },
+    areaApilada: { n: 'Gráfico de áreas apiladas', pozos: [['x', 'Eje X', 6, 'cat'], ['y', 'Eje Y', 5, 'valor'], ['leyenda', 'Leyenda', 1, 'cat']], g: 'cart', linea: true, area: true, apila: 1 },
+    lineaColumna: { n: 'Gráfico de líneas y columnas agrupadas', pozos: [['x', 'Eje X', 6, 'cat'], ['y', 'Eje Y de columna', 3, 'valor'], ['linea', 'Eje Y de línea', 3, 'valor']], g: 'cart' },
     cascada: { n: 'Gráfico de cascada', pozos: [['x', 'Categoría', 1, 'cat'], ['y', 'Eje Y', 1, 'valor']], g: 'cart' },
-    embudo: { n: 'Embudo', pozos: [['x', 'Categoría', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
+    embudo: { n: 'Embudo', pozos: [['x', 'Categoría', 6, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
     dispersion: { n: 'Gráfico de dispersión', pozos: [['detalle', 'Valores', 1, 'cat'], ['ex', 'Eje X', 1, 'valor'], ['ey', 'Eje Y', 1, 'valor'], ['leyenda', 'Leyenda', 1, 'cat'], ['tam', 'Tamaño', 1, 'valor']], g: 'disp' },
-    mapa: { n: 'Mapa', pozos: [['x', 'Ubicación', 1, 'cat'], ['y', 'Tamaño de burbuja', 1, 'valor']], g: 'parte', mapa: true },
-    circular: { n: 'Gráfico circular', pozos: [['x', 'Leyenda', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
-    anillo: { n: 'Gráfico de anillos', pozos: [['x', 'Leyenda', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
-    treemap: { n: 'Gráfico de rectángulos', pozos: [['x', 'Categoría', 1, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
+    mapa: { n: 'Mapa', pozos: [['x', 'Ubicación', 4, 'cat'], ['y', 'Tamaño de burbuja', 1, 'valor']], g: 'parte', mapa: true },
+    circular: { n: 'Gráfico circular', pozos: [['x', 'Leyenda', 6, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
+    anillo: { n: 'Gráfico de anillos', pozos: [['x', 'Leyenda', 6, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
+    treemap: { n: 'Gráfico de rectángulos', pozos: [['x', 'Categoría', 6, 'cat'], ['y', 'Valores', 1, 'valor']], g: 'parte' },
     medidor: { n: 'Medidor', pozos: [['y', 'Valor', 1, 'valor'], ['min', 'Valor mínimo', 1, 'valor'], ['max', 'Valor máximo', 1, 'valor'], ['meta', 'Valor de destino', 1, 'valor']], g: 'medidor' },
     tarjeta: { n: 'Tarjeta', pozos: [['valores', 'Campos', 1, 'valor']], g: 'tarjeta' },
     tarjetaFilas: { n: 'Tarjeta de varias filas', pozos: [['valores', 'Campos', 8, 'valor']], g: 'tarjeta' },
@@ -61,6 +65,13 @@
     tabla: { n: 'Tabla', pozos: [['cols', 'Columnas', 20, 'mixto']], g: 'tabla' },
     matriz: { n: 'Matriz', pozos: [['x', 'Filas', 3, 'cat'], ['leyenda', 'Columnas', 1, 'cat'], ['y', 'Valores', 5, 'valor']], g: 'tabla' },
     texto: { n: 'Cuadro de texto', pozos: [], g: 'texto', oculto: true },
+    forma: { n: 'Forma', pozos: [], g: 'forma', oculto: true },
+    boton: { n: 'Botón', pozos: [], g: 'boton', oculto: true },
+    navPaginas: { n: 'Navegador de páginas', pozos: [], g: 'navpag', oculto: true },
+    qa: { n: 'Preguntas y respuestas', pozos: [], g: 'ia' },
+    arbol: { n: 'Árbol de descomposición', pozos: [['y', 'Analizar', 1, 'valor'], ['x', 'Explicar por', 6, 'cat']], g: 'ia' },
+    influencias: { n: 'Influenciadores clave', pozos: [['y', 'Analizar', 1, 'valor'], ['x', 'Explicar por', 6, 'cat']], g: 'ia' },
+    narrativa: { n: 'Narración inteligente', pozos: [], g: 'ia' },
   };
   // compatibilidad con informes guardados antes de esta versión
   const ALIAS = { card: 'tarjeta', column: 'columnaAgrupada', bar: 'barAgrupada', line: 'linea', donut: 'anillo', table: 'tabla', matrix: 'matriz', slicer: 'segmentacion' };
@@ -70,8 +81,8 @@
   const SECC = {
     ejeX: { n: 'Eje X', p: [P('mostrar', 'Mostrar', 'bool', true), P('titulo', 'Título', 'bool', true), P('tam', 'Tamaño de fuente', 'num', 9), P('color', 'Color', 'color', '#605E5C')] },
     ejeY: { n: 'Eje Y', p: [P('mostrar', 'Mostrar', 'bool', true), P('titulo', 'Título', 'bool', true), P('cuadricula', 'Líneas de cuadrícula', 'bool', true), P('tam', 'Tamaño de fuente', 'num', 9), P('color', 'Color', 'color', '#605E5C'), P('inicio', 'Inicio del rango', 'texto', ''), P('fin', 'Fin del rango', 'texto', '')] },
-    leyenda: { n: 'Leyenda', p: [P('mostrar', 'Mostrar', 'bool', true), P('pos', 'Posición', 'sel', 'Arriba', ['Arriba', 'Abajo', 'Derecha']), P('tam', 'Tamaño de fuente', 'num', 9)] },
-    colores: { n: 'Colores', p: [P('color', 'Color predeterminado', 'color', ''), P('aumento', 'Aumento (cascada)', 'color', '#1AAB40'), P('disminucion', 'Disminución (cascada)', 'color', '#D64554'), P('total', 'Total (cascada)', 'color', '#118DFF')] },
+    leyenda: { n: 'Leyenda', p: [P('mostrar', 'Mostrar', 'bool', true), P('pos', 'Posición', 'sel', 'Arriba', ['Arriba', 'Abajo', 'Derecha', 'Izquierda']), P('tam', 'Tamaño de fuente', 'num', 9)] },
+    colores: { n: 'Colores', p: [{ ...P('color', 'Color predeterminado', 'color', ''), si: (v) => v.tipo !== 'cascada' }, { ...P('aumento', 'Aumento', 'color', '#1AAB40'), si: (v) => v.tipo === 'cascada' }, { ...P('disminucion', 'Disminución', 'color', '#D64554'), si: (v) => v.tipo === 'cascada' }, { ...P('total', 'Total', 'color', '#118DFF'), si: (v) => v.tipo === 'cascada' }] },
     etiquetas: { n: 'Etiquetas de datos', p: [P('mostrar', 'Mostrar', 'bool', false), P('unidades', 'Unidades de visualización', 'sel', 'Automático', ['Automático', 'Ninguno', 'Miles', 'Millones', 'Miles de millones']), P('decimales', 'Posiciones decimales', 'num', ''), P('tam', 'Tamaño de fuente', 'num', 9), P('color', 'Color', 'color', '#252423')] },
     valorLlamada: { n: 'Valor de llamada', p: [P('tam', 'Tamaño de fuente (0 = automático)', 'num', 0), P('color', 'Color', 'color', '#252423'), P('unidades', 'Unidades de visualización', 'sel', 'Automático', ['Automático', 'Ninguno', 'Miles', 'Millones', 'Miles de millones']), P('decimales', 'Posiciones decimales', 'num', '')] },
     etiquetaCat: { n: 'Etiqueta de categoría', p: [P('mostrar', 'Mostrar', 'bool', true), P('tam', 'Tamaño de fuente', 'num', 12), P('color', 'Color', 'color', '#605E5C')] },
@@ -81,21 +92,32 @@
     kpiColores: { n: 'Objetivo', p: [P('bien', 'Color si cumple', 'color', '#1AAB40'), P('mal', 'Color si no cumple', 'color', '#D64554'), P('alto', 'Alto es bueno', 'bool', true)] },
     lineas: { n: 'Líneas', p: [P('grosor', 'Ancho del trazo', 'num', 2), P('marcadores', 'Marcadores', 'bool', true), P('suave', 'Suavizado', 'bool', false)] },
     texto: { n: 'Texto', p: [P('tam', 'Tamaño de fuente', 'num', 14), P('color', 'Color', 'color', '#252423'), P('negrita', 'Negrita', 'bool', false), P('alineacion', 'Alineación', 'sel', 'Izquierda', ['Izquierda', 'Centro', 'Derecha'])] },
+    forma: { n: 'Forma', p: [P('tipo', 'Forma', 'sel', 'Rectángulo', ['Rectángulo', 'Rectángulo redondeado', 'Óvalo', 'Triángulo', 'Línea', 'Flecha']), P('relleno', 'Color de relleno', 'color', '#6B91C9'), P('transp', 'Transparencia del relleno (%)', 'num', 0), P('borde', 'Borde', 'bool', false), P('colorBorde', 'Color del borde', 'color', '#252423'), P('grosor', 'Grosor del borde (px)', 'num', 1), P('rotacion', 'Rotación (°)', 'num', 0), P('texto', 'Texto', 'texto', ''), P('colorTexto', 'Color del texto', 'color', '#FFFFFF'), P('tamTexto', 'Tamaño del texto', 'num', 14)] },
+    boton: { n: 'Estilo del botón', p: [P('texto', 'Texto', 'texto', ''), P('tam', 'Tamaño del texto', 'num', 13), P('colorTexto', 'Color del texto', 'color', '#252423'), P('relleno', 'Relleno', 'color', '#FFFFFF'), P('borde', 'Borde', 'bool', true), P('colorBorde', 'Color del borde', 'color', '#C8C6C4'), P('radio', 'Esquinas redondeadas (px)', 'num', 4), P('icono', 'Ícono', 'sel', 'Automático', ['Automático', 'Ninguno'])] },
+    accion: { n: 'Acción', p: [P('activa', 'Acción', 'bool', true), P('tipo', 'Tipo', 'sel', 'Atrás', ['Atrás', 'Marcador', 'Navegación de páginas', 'Obtener detalles', 'Dirección URL']), P('destino', 'Destino', 'sel', '', (v) => (window.PBIInforme ? window.PBIInforme.destinos(v) : [''])), P('url', 'Dirección URL (si el tipo es URL)', 'texto', '')] },
+    navpag: { n: 'Páginas', p: [P('ocultas', 'Mostrar páginas ocultas', 'bool', false), P('relleno', 'Relleno', 'color', '#FFFFFF'), P('rellenoSel', 'Relleno de la página actual', 'color', '#118DFF'), P('colorTexto', 'Color del texto', 'color', '#252423')] },
+    mapaCfg: { n: 'Configuración de mapa', p: [P('estilo', 'Estilo', 'sel', 'Carretera', ['Carretera', 'Escala de grises', 'Oscuro', 'Aéreo']), P('burbuja', 'Tamaño de las burbujas (%)', 'num', 100)] },
     // generales
+    infoHerr: { n: 'Información sobre herramientas', general: true, p: [P('tipo', 'Tipo', 'sel', 'Predeterminado', ['Predeterminado', 'Página de informe']), P('pagina', 'Página', 'sel', '', () => (window.PBIInforme ? window.PBIInforme.paginasTooltip() : ['']))] },
     titulo: { n: 'Título', general: true, p: [P('mostrar', 'Mostrar', 'bool', true), P('texto', 'Texto (vacío = automático)', 'texto', ''), P('tam', 'Tamaño de fuente', 'num', 14), P('color', 'Color del texto', 'color', '#252423'), P('negrita', 'Negrita', 'bool', false), P('alineacion', 'Alineación horizontal', 'sel', 'Izquierda', ['Izquierda', 'Centro', 'Derecha'])] },
     efectos: { n: 'Efectos', general: true, p: [P('fondo', 'Fondo', 'bool', true), P('colorFondo', 'Color de fondo', 'color', '#FFFFFF'), P('transparencia', 'Transparencia del fondo (%)', 'num', 0), P('borde', 'Borde visual', 'bool', false), P('colorBorde', 'Color del borde', 'color', '#C8C6C4'), P('radio', 'Esquinas redondeadas (px)', 'num', 0), P('sombra', 'Sombra', 'bool', false)] },
     encabezado: { n: 'Encabezado del objeto visual', general: true, p: [P('mostrar', 'Mostrar', 'bool', true)] },
   };
   const SECC_GRUPO = {
     cart: ['ejeX', 'ejeY', 'leyenda', 'colores', 'etiquetas'], parte: ['leyenda', 'colores', 'etiquetas'], disp: ['ejeX', 'ejeY', 'leyenda', 'colores'],
-    medidor: ['medidor', 'etiquetas'], tarjeta: ['valorLlamada', 'etiquetaCat'], kpi: ['valorLlamada', 'kpiColores'], seg: ['segmentacion'], tabla: ['cuadricula'], texto: ['texto'],
+    medidor: ['medidor', 'valorLlamada'], tarjeta: ['valorLlamada', 'etiquetaCat'], kpi: ['valorLlamada', 'kpiColores'], seg: ['segmentacion'], tabla: ['cuadricula'], texto: ['texto'],
+    forma: ['forma'], boton: ['boton', 'accion'], navpag: ['navpag'], ia: [],
   };
   const seccionesDe = (tipo) => {
     const g = TIPOS[tipo].g; const s = [...SECC_GRUPO[g]];
     if (TIPOS[tipo].linea || tipo === 'lineaColumna') s.push('lineas');
     if (tipo === 'treemap' || tipo === 'embudo') s.splice(s.indexOf('leyenda'), 1);
-    return [...s, 'titulo', 'efectos', 'encabezado'];
+    if (TIPOS[tipo].mapa) { s.splice(s.indexOf('leyenda'), 1); s.unshift('mapaCfg'); }
+    if (tipo === 'cascada') s.splice(s.indexOf('leyenda'), 1);
+    if (['forma', 'boton', 'navpag', 'texto'].includes(g)) return [...s, 'efectos'];
+    return [...s, 'titulo', 'efectos', 'encabezado', ...(['cart', 'parte', 'disp'].includes(g) ? ['infoHerr'] : [])];
   };
+  const propsDe = (v, sec) => SECC[sec].p.filter((p) => !p.si || p.si(v));
   const fmtGet = (v, sec, k) => { const s = (v.formato || {})[sec] || {}; if (s[k] !== undefined && s[k] !== '') return s[k]; const d = SECC[sec].p.find((x) => x.k === k); return d ? d.def : undefined; };
 
   // ------------------------------------------------------------------ números
@@ -126,6 +148,18 @@
     santiago: [-70.65, -33.45], valparaiso: [-71.6, -33.05], lima: [-77.03, -12.05], arequipa: [-71.54, -16.4], cusco: [-71.97, -13.53], bogota: [-74.08, 4.6], medellin: [-75.57, 6.25], cali: [-76.53, 3.45], cartagena: [-75.5, 10.4],
     'ciudad de mexico': [-99.13, 19.43], guadalajara: [-103.35, 20.67], monterrey: [-100.3, 25.67], puebla: [-98.2, 19.04], cancun: [-86.85, 21.16], montevideo: [-56.17, -34.9], 'sao paulo': [-46.63, -23.55], madrid: [-3.7, 40.42], barcelona: [2.17, 41.39], quito: [-78.5, -0.2], 'la paz': [-68.15, -16.5], asuncion: [-57.6, -25.3],
   };
+  Object.assign(GEO, {
+    'united states': [-98, 39], usa: [-98, 39], 'estados unidos de america': [-98, 39], eeuu: [-98, 39], germany: [10.4, 51], france: [2.5, 46.6], 'united kingdom': [-2.5, 54], uk: [-2.5, 54], england: [-1.5, 52.5], inglaterra: [-1.5, 52.5],
+    australia: [134, -25.5], 'nueva zelanda': [172.5, -41.5], 'new zealand': [172.5, -41.5], spain: [-3.7, 40.2], italy: [12.5, 42.8], portugal: [-8.2, 39.6], netherlands: [5.3, 52.2], 'paises bajos': [5.3, 52.2], holanda: [5.3, 52.2],
+    belgium: [4.5, 50.6], belgica: [4.5, 50.6], switzerland: [8.2, 46.8], suiza: [8.2, 46.8], austria: [14.5, 47.6], suecia: [16, 62], sweden: [16, 62], noruega: [9, 61], norway: [9, 61], dinamarca: [9.5, 56], denmark: [9.5, 56],
+    finlandia: [26, 64], finland: [26, 64], polonia: [19.4, 52], poland: [19.4, 52], irlanda: [-8, 53.2], ireland: [-8, 53.2], grecia: [22, 39.3], greece: [22, 39.3], turquia: [35, 39], turkey: [35, 39], rusia: [60, 58], russia: [60, 58],
+    japon: [138, 36.5], japan: [138, 36.5], 'corea del sur': [127.8, 36.4], 'south korea': [127.8, 36.4], india: [79, 22], indonesia: [117, -2], filipinas: [122, 12], philippines: [122, 12], singapur: [103.8, 1.35], singapore: [103.8, 1.35],
+    'sudafrica': [24, -29], 'south africa': [24, -29], egipto: [30, 26.5], egypt: [30, 26.5], marruecos: [-6.5, 32], morocco: [-6.5, 32], nigeria: [8, 9.5], kenia: [38, 0.3], kenya: [38, 0.3], israel: [35, 31.4],
+    'arabia saudita': [45, 24], 'saudi arabia': [45, 24], 'emiratos arabes unidos': [54, 24], 'united arab emirates': [54, 24], brazil: [-51, -10], mexique: [-102, 23.5], peru: [-75, -10], 'el salvador': [-88.9, 13.8], honduras: [-86.5, 14.8], nicaragua: [-85, 12.9], 'republica dominicana': [-70.5, 18.8], 'dominican republic': [-70.5, 18.8],
+    'new york': [-74, 40.7], 'nueva york': [-74, 40.7], 'los angeles': [-118.2, 34], chicago: [-87.6, 41.9], seattle: [-122.3, 47.6], 'san diego': [-117.2, 32.7], 'san francisco': [-122.4, 37.8], miami: [-80.2, 25.8], toronto: [-79.4, 43.7], montreal: [-73.6, 45.5], vancouver: [-123.1, 49.3],
+    london: [-0.13, 51.5], londres: [-0.13, 51.5], paris: [2.35, 48.86], berlin: [13.4, 52.5], frankfurt: [8.7, 50.1], munich: [11.6, 48.1], roma: [12.5, 41.9], rome: [12.5, 41.9], milan: [9.2, 45.5], lisboa: [-9.14, 38.7], lisbon: [-9.14, 38.7], amsterdam: [4.9, 52.4],
+    melbourne: [145, -37.8], sydney: [151.2, -33.9], tokio: [139.7, 35.7], tokyo: [139.7, 35.7], 'rio de janeiro': [-43.2, -22.9], california: [-119.4, 36.8], texas: [-99.3, 31.2], florida: [-81.7, 28.1], washington: [-120.7, 47.4], ontario: [-85, 50], hessen: [9, 50.6], victoria: [144.3, -37], 'new south wales': [147, -32.5],
+  });
   const TIERRA = [
     [[-77, 8.5], [-72, 12], [-63, 10.7], [-60, 8.5], [-52, 5], [-50, 0], [-44, -2.5], [-35, -5], [-35, -9], [-39, -15], [-41, -22], [-48, -26], [-53, -34], [-58, -38], [-62, -39], [-65, -42], [-67, -46], [-66, -50], [-69, -52], [-68.5, -55], [-73, -53], [-75, -47], [-73.5, -40], [-73.5, -33], [-71.5, -28], [-70.3, -18], [-75, -15], [-77, -12], [-81, -6], [-80, -2], [-80, 1], [-78, 3], [-77.5, 7]],
     [[-77.4, 8.7], [-81.5, 9], [-83.7, 11], [-83.4, 15], [-88, 16], [-88, 21.5], [-90.5, 21], [-91, 18.7], [-94.5, 18.3], [-96.5, 19.5], [-97.7, 22], [-97.2, 26], [-97.4, 27.8], [-93.5, 29.7], [-89.5, 29.5], [-85, 29.8], [-82.8, 27.5], [-81, 25.2], [-80, 27], [-81.4, 30.5], [-77, 34.5], [-76, 37], [-74, 40.5], [-70, 41.5], [-70.5, 43.5], [-66, 44.7], [-61, 45.5], [-60, 47], [-56, 52], [-61, 56], [-65, 60], [-70, 62], [-78, 62], [-82, 57], [-92, 57], [-95, 60], [-90, 65], [-100, 68], [-120, 69], [-141, 69.6], [-156, 71], [-166, 68], [-162, 60], [-152, 58.5], [-140, 59.8], [-135, 57], [-130, 54.5], [-124.5, 49], [-124, 46], [-124.4, 42], [-122.5, 37.5], [-120.6, 34.5], [-117.2, 32.6], [-115.7, 30], [-114, 27.5], [-110, 23], [-109.5, 23.2], [-105.5, 20.5], [-105, 19], [-101, 17.5], [-96, 15.7], [-92, 14.5], [-89.5, 13.4], [-87.5, 13], [-85.7, 11], [-85.6, 9.9], [-83.7, 8.4], [-80.5, 7.3], [-78, 7.5]],
@@ -149,17 +183,20 @@
     const cx = (lon0 + lon1) / 2, cy = (lat0 + lat1) / 2;
     const X = (lon) => W / 2 + (lon - cx) * esc0, Y = (lat) => H / 2 - (lat - cy) * esc0;
     const tierra = TIERRA.map((poly) => `<path d="M${poly.map(([a, b]) => `${X(a).toFixed(1)} ${Y(b).toFixed(1)}`).join('L')}Z" class="pb-mapa-tierra"/>`).join('');
-    const mx = Math.max(...ok.map((p) => Math.abs(p.v))) || 1, rmax = Math.max(10, Math.min(W, H) / 9);
+    const mx = Math.max(...ok.map((p) => Math.abs(p.v))) || 1, rmax = Math.max(10, Math.min(W, H) / 9) * Math.max(0.2, (Number(fmtGet(v, 'mapaCfg', 'burbuja')) || 100) / 100);
+    const EST = { 'Escala de grises': ['#e4e4e4', '#f8f8f8', '#c4c4c4'], Oscuro: ['#1d2833', '#303c48', '#4a5866'], 'Aéreo': ['#2c5f7f', '#6f7f50', '#55653d'] }[fmtGet(v, 'mapaCfg', 'estilo')];
     const col = colSerie(0, s.nombre);
     const burbujas = ok.sort((a, b) => Math.abs(b.v) - Math.abs(a.v)).map((p) => `<circle cx="${X(p.g[0]).toFixed(1)}" cy="${Y(p.g[1]).toFixed(1)}" r="${(4 + (rmax - 4) * Math.sqrt(Math.abs(p.v) / mx)).toFixed(1)}" fill="${col}" fill-opacity=".72" stroke="#fff" stroke-width="1" data-cat="${esc(p.c)}" opacity="${ctx.aten(p.c) ? 0.25 : 1}">${tip(p.c, [[s.nombre, fE(p.v, s.formato)]])}</circle>`).join('');
-    cuerpo.innerHTML = `<svg width="${W}" height="${H}" class="pb-mapa"><rect width="${W}" height="${H}" class="pb-mapa-agua"/>${tierra}${burbujas}<text x="${W - 6}" y="${H - 5}" text-anchor="end" class="pb-mapa-cred">Mapa base simplificado · Academia</text></svg>${sinUbicar.length ? `<div class="pb-mapa-aviso" title="${esc(sinUbicar.join(', '))}">⚠ ${sinUbicar.length} sin ubicar</div>` : ''}`;
+    const etM = fmtGet(v, 'etiquetas', 'mostrar') ? ok.map((p) => `<text x="${X(p.g[0]).toFixed(1)}" y="${Math.max(11, Y(p.g[1]) - 4 - (4 + (rmax - 4) * Math.sqrt(Math.abs(p.v) / mx))).toFixed(1)}" text-anchor="middle" class="pb-et" style="font-size:${fmtGet(v, 'etiquetas', 'tam')}px;fill:${fmtGet(v, 'etiquetas', 'color')}">${esc(p.c)}: ${esc(fE(p.v, s.formato))}</text>`).join('') : '';
+    cuerpo.innerHTML = `<svg width="${W}" height="${H}" class="pb-mapa"><rect width="${W}" height="${H}" class="pb-mapa-agua" ${EST ? `style="fill:${EST[0]}"` : ''}/>${EST ? tierra.replace(/class="pb-mapa-tierra"/g, `class="pb-mapa-tierra" style="fill:${EST[1]};stroke:${EST[2]}"`) : tierra}${burbujas}${etM}<text x="${W - 6}" y="${H - 5}" text-anchor="end" class="pb-mapa-cred">Mapa base simplificado · Academia</text></svg>${sinUbicar.length ? `<div class="pb-mapa-aviso" title="${esc(sinUbicar.join(', '))}">⚠ ${sinUbicar.length} sin ubicar</div>` : ''}`;
   }
   function dibujar(v, cuerpo, d, ctx) {
-    const W = Math.max(80, ctx.ancho), H = Math.max(50, ctx.alto);
+    let W = Math.max(80, ctx.ancho); const H = Math.max(50, ctx.alto);
     const T = TIPOS[v.tipo]; const pal = ctx.paleta;
     const colSerie = (i, nombre) => { const s = ((v.formato || {}).series || {})[nombre]; if (s) return s; if (i === 0 && fmtGet(v, 'colores', 'color')) return fmtGet(v, 'colores', 'color'); return pal[i % pal.length]; };
     const et = { mostrar: fmtGet(v, 'etiquetas', 'mostrar'), unidades: fmtGet(v, 'etiquetas', 'unidades'), decimales: fmtGet(v, 'etiquetas', 'decimales'), tam: fmtGet(v, 'etiquetas', 'tam'), color: fmtGet(v, 'etiquetas', 'color') };
     const fE = (n, f) => fmtNum(n, { unidades: et.unidades, decimales: et.decimales, formato: f });
+    const etSt = `font-size:${et.tam}px;fill:${et.color}`, etDentro = `font-size:${et.tam}px;fill:${et.color && et.color.toLowerCase() !== '#252423' ? et.color : '#fff'}`;
     const tip = (titulo, filas) => `<title>${esc(titulo)}${filas.map(([a, b]) => `\n${esc(a)}: ${esc(b)}`).join('')}</title>`;
     if (T.g === 'texto') { const al = { Izquierda: 'left', Centro: 'center', Derecha: 'right' }[fmtGet(v, 'texto', 'alineacion')]; cuerpo.innerHTML = `<div class="pb-textbox" style="font-size:${fmtGet(v, 'texto', 'tam')}px;color:${fmtGet(v, 'texto', 'color')};font-weight:${fmtGet(v, 'texto', 'negrita') ? 600 : 400};text-align:${al}">${esc(v.texto || 'Escribe aquí (doble clic para editar)').replace(/\n/g, '<br>')}</div>`; return; }
     if (T.g === 'tarjeta' && v.tipo === 'tarjeta') {
@@ -167,14 +204,14 @@
       const val = fmtNum(d.valor, { unidades: fmtGet(v, 'valorLlamada', 'unidades'), decimales: fmtGet(v, 'valorLlamada', 'decimales'), formato: d.formato });
       cuerpo.innerHTML = `<div class="pb-card"><b style="font-size:${tam}px;color:${fmtGet(v, 'valorLlamada', 'color')}">${esc(val)}</b>${fmtGet(v, 'etiquetaCat', 'mostrar') ? `<span style="font-size:${fmtGet(v, 'etiquetaCat', 'tam')}px;color:${fmtGet(v, 'etiquetaCat', 'color')}">${esc(d.nombre)}</span>` : ''}</div>`; return;
     }
-    if (v.tipo === 'tarjetaFilas') { cuerpo.innerHTML = `<div class="pb-multi">${d.items.map((it) => `<div class="pb-multi-i" style="border-left-color:${pal[0]}"><b style="color:${fmtGet(v, 'valorLlamada', 'color')}">${esc(fmtNum(it.valor, { unidades: fmtGet(v, 'valorLlamada', 'unidades'), decimales: fmtGet(v, 'valorLlamada', 'decimales'), formato: it.formato }))}</b>${fmtGet(v, 'etiquetaCat', 'mostrar') ? `<span>${esc(it.nombre)}</span>` : ''}</div>`).join('')}</div>`; return; }
+    if (v.tipo === 'tarjetaFilas') { cuerpo.innerHTML = `<div class="pb-multi">${d.items.map((it) => `<div class="pb-multi-i" style="border-left-color:${pal[0]}"><b style="color:${fmtGet(v, 'valorLlamada', 'color')}${Number(fmtGet(v, 'valorLlamada', 'tam')) ? `;font-size:${Number(fmtGet(v, 'valorLlamada', 'tam'))}px` : ''}">${esc(fmtNum(it.valor, { unidades: fmtGet(v, 'valorLlamada', 'unidades'), decimales: fmtGet(v, 'valorLlamada', 'decimales'), formato: it.formato }))}</b>${fmtGet(v, 'etiquetaCat', 'mostrar') ? `<span style="font-size:${fmtGet(v, 'etiquetaCat', 'tam')}px;color:${fmtGet(v, 'etiquetaCat', 'color')}">${esc(it.nombre)}</span>` : ''}</div>`).join('')}</div>`; return; }
     if (T.g === 'kpi') {
       const alto = fmtGet(v, 'kpiColores', 'alto'); const ok = d.meta == null || d.valor == null ? null : alto ? d.valor >= d.meta : d.valor <= d.meta;
       const color = ok === null ? fmtGet(v, 'valorLlamada', 'color') : ok ? fmtGet(v, 'kpiColores', 'bien') : fmtGet(v, 'kpiColores', 'mal');
       const dif = d.meta ? (d.valor - d.meta) / Math.abs(d.meta) : null;
       let spark = '';
       if (d.tendencia && d.tendencia.length > 1) { const vals = d.tendencia.map((x) => x[1] || 0), mx = Math.max(...vals), mn = Math.min(0, ...vals); const pts = vals.map((y, i) => `${(i / (vals.length - 1)) * W},${H - 4 - ((y - mn) / (mx - mn || 1)) * (H * 0.45)}`).join(' '); spark = `<svg class="pb-kpi-spark" width="${W}" height="${H}"><polygon points="0,${H} ${pts} ${W},${H}" fill="${color}" opacity=".18"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" opacity=".6"/></svg>`; }
-      cuerpo.innerHTML = `<div class="pb-kpi">${spark}<b style="color:${color};font-size:${Number(fmtGet(v, 'valorLlamada', 'tam')) || Math.min(H * 0.32, 44)}px">${ok === null ? '' : ok ? '✓ ' : '! '}${esc(fmtNum(d.valor, { unidades: fmtGet(v, 'valorLlamada', 'unidades'), formato: d.formato }))}</b>${d.meta != null ? `<span>Objetivo: ${esc(fmtNum(d.meta, { formato: d.formato }))} (${dif >= 0 ? '+' : ''}${(dif * 100).toFixed(1)} %)</span>` : '<span>Agrega un destino para comparar</span>'}</div>`; return;
+      cuerpo.innerHTML = `<div class="pb-kpi">${spark}<b style="color:${color};font-size:${Number(fmtGet(v, 'valorLlamada', 'tam')) || Math.min(H * 0.32, 44)}px">${ok === null ? '' : ok ? '✓ ' : '! '}${esc(fmtNum(d.valor, { unidades: fmtGet(v, 'valorLlamada', 'unidades'), decimales: fmtGet(v, 'valorLlamada', 'decimales'), formato: d.formato }))}</b>${d.meta != null ? `<span>Objetivo: ${esc(fmtNum(d.meta, { formato: d.formato }))} (${dif >= 0 ? '+' : ''}${(dif * 100).toFixed(1)} %)</span>` : '<span>Agrega un destino para comparar</span>'}</div>`; return;
     }
     if (T.g === 'seg') {
       const sel = new Set((v.slicerSel || []).map(String)), estilo = fmtGet(v, 'segmentacion', 'estilo'), unica = fmtGet(v, 'segmentacion', 'unica');
@@ -186,7 +223,18 @@
     if (T.g === 'tabla') {
       const estilo = fmtGet(v, 'cuadricula', 'estilo'), tam = fmtGet(v, 'cuadricula', 'tam'), barras = fmtGet(v, 'cuadricula', 'barras');
       const maxCol = d.cab.map((_, j) => Math.max(0, ...d.filas.map((f) => (typeof f[j] === 'number' ? Math.abs(f[j]) : 0))));
-      const celda = (x, j) => `<td class="${typeof x === 'number' ? 'num' : ''}">${barras && typeof x === 'number' && j >= d.ncat ? `<i class="pb-barra" style="width:${(Math.abs(x) / (maxCol[j] || 1)) * 100}%;background:${pal[0]}"></i>` : ''}${esc(fmtCel(x, (d.formatos || [])[j]))}</td>`;
+      const FC = v.formatoCond || {};
+      const minCol = d.cab.map((_, j) => Math.min(0, ...d.filas.filter((f) => !f.subtotal).map((f) => (typeof f[j] === 'number' ? f[j] : 0))));
+      const rango = d.cab.map((_, j) => { const xs = d.filas.filter((f) => !f.subtotal).map((f) => f[j]).filter((x) => typeof x === 'number'); return xs.length ? [Math.min(...xs), Math.max(...xs)] : [0, 0]; });
+      const celda = (x, j) => {
+        const fc = FC[d.cab[j]] || {}; const num = typeof x === 'number' && j >= d.ncat; let st = '', pre = '';
+        if (num && fc.fondo) { const c = colorPorValor(fc.fondo, x, rango[j][0], rango[j][1]); if (c) st += `background:${c};`; }
+        if (num && fc.fuente) { const c = colorPorValor(fc.fuente, x, rango[j][0], rango[j][1]); if (c) st += `color:${c};`; }
+        if (num && fc.iconos) { const [a, b] = rango[j]; const f = b > a ? (x - a) / (b - a) : 1; pre += f >= 0.67 ? '<b class="pb-ico-c" style="color:#1AAB40">▲</b>' : f >= 0.33 ? '<b class="pb-ico-c" style="color:#D9B300">●</b>' : '<b class="pb-ico-c" style="color:#D64554">▼</b>'; }
+        const conBarras = num && (fc.barras || barras); const colB = fc.barras ? (x < 0 ? fc.barras.neg || '#D64554' : fc.barras.pos || pal[0]) : pal[0];
+        const ancho = (Math.abs(x) / (Math.max(maxCol[j], Math.abs(minCol[j])) || 1)) * 100;
+        return `<td class="${typeof x === 'number' ? 'num' : ''}" ${st ? `style="${st}"` : ''}>${conBarras ? `<i class="pb-barra" style="width:${ancho}%;background:${colB}"></i>` : ''}${pre}${fc.barras && fc.barras.solo ? '' : esc(fmtCel(x, (d.formatos || [])[j]))}</td>`;
+      };
       cuerpo.innerHTML = `<div class="pb-tabla pb-est-${estilo.replace(/\s+/g, '-').toLowerCase()}" style="font-size:${tam}px"><table><thead><tr>${d.cab.map((c, j) => `<th data-ord="${j}">${esc(c)}${v.orden && v.orden.col === j ? (v.orden.desc ? ' ▾' : ' ▴') : ''}</th>`).join('')}</tr></thead><tbody>${d.filas.map((f) => `<tr data-cat="${esc(f[0])}" class="${ctx.sel(f[0]) ? 'sel' : ''} ${f.subtotal ? 'pb-subtotal' : ''}">${f.map(celda).join('')}</tr>`).join('')}</tbody>${d.total && fmtGet(v, 'cuadricula', 'totales') ? `<tfoot><tr><td colspan="${Math.max(1, d.ncat)}">Total</td>${d.total.map((x, j) => `<td class="num">${esc(fmtCel(x, (d.formatos || [])[d.ncat + j]))}</td>`).join('')}</tr></tfoot>` : ''}</table></div>`; return;
     }
     if (T.g === 'medidor') {
@@ -197,21 +245,30 @@
       const arco = (f0, f1, rr) => { const [x0, y0] = pt(f0, rr), [x1, y1] = pt(f1, rr); return `M${x0},${y0} A${rr},${rr} 0 0 1 ${x1},${y1}`; };
       const g = r * 0.28;
       let meta = ''; if (d.meta != null) { const fm = Math.max(0, Math.min(1, (d.meta - mn) / (mx - mn || 1))); const [a1, b1] = pt(fm, r - g / 2 - 6), [a2, b2] = pt(fm, r + g / 2 + 6); meta = `<line x1="${a1}" y1="${b1}" x2="${a2}" y2="${b2}" stroke="${fmtGet(v, 'medidor', 'destino')}" stroke-width="2"><title>Destino: ${esc(fmtNum(d.meta))}</title></line>`; }
-      cuerpo.innerHTML = `<svg width="${W}" height="${H}"><path d="${arco(0, 1, r)}" fill="none" stroke="#E6E6E6" stroke-width="${g}"/><path d="${arco(0, Math.max(0.001, fr), r)}" fill="none" stroke="${fmtGet(v, 'medidor', 'relleno')}" stroke-width="${g}">${tip(d.nombre, [['Valor', fmtNum(d.valor)]])}</path>${meta}<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="pb-gauge-v" style="font-size:${Math.max(14, r * 0.38)}px">${esc(fmtNum(d.valor, { formato: d.formato }))}</text><text x="${cx - r}" y="${cy + 16}" text-anchor="middle" class="pb-eje">${esc(fmtNum(mn))}</text><text x="${cx + r}" y="${cy + 16}" text-anchor="middle" class="pb-eje">${esc(fmtNum(mx))}</text></svg>`;
+      cuerpo.innerHTML = `<svg width="${W}" height="${H}"><path d="${arco(0, 1, r)}" fill="none" stroke="#E6E6E6" stroke-width="${g}"/><path d="${arco(0, Math.max(0.001, fr), r)}" fill="none" stroke="${fmtGet(v, 'medidor', 'relleno')}" stroke-width="${g}">${tip(d.nombre, [['Valor', fmtNum(d.valor)]])}</path>${meta}<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="pb-gauge-v" style="font-size:${Number(fmtGet(v, 'valorLlamada', 'tam')) || Math.max(14, r * 0.38)}px;fill:${fmtGet(v, 'valorLlamada', 'color')}">${esc(fmtNum(d.valor, { unidades: fmtGet(v, 'valorLlamada', 'unidades'), decimales: fmtGet(v, 'valorLlamada', 'decimales'), formato: d.formato }))}</text><text x="${cx - r}" y="${cy + 16}" text-anchor="middle" class="pb-eje">${esc(fmtNum(mn))}</text><text x="${cx + r}" y="${cy + 16}" text-anchor="middle" class="pb-eje">${esc(fmtNum(mx))}</text></svg>`;
       return;
     }
     // leyenda
-    const verLey = fmtGet(v, 'leyenda', 'mostrar'), posLey = fmtGet(v, 'leyenda', 'pos');
+    const verLey = fmtGet(v, 'leyenda', 'mostrar'), posLey = fmtGet(v, 'leyenda', 'pos'), tamLey = fmtGet(v, 'leyenda', 'tam');
+    const leyLado = posLey === 'Derecha' || posLey === 'Izquierda';
+    // arma leyenda + gráfico según la posición elegida
+    const conLeyenda = (ley, svg) => (!ley ? svg : leyLado ? `<div class="pb-ley-fila">${posLey === 'Izquierda' ? ley + svg : svg + ley}</div>` : posLey === 'Abajo' ? svg + ley : ley + svg);
+    const leyHtml = (items) => `<div class="pb-ley ${leyLado ? 'pb-ley-v pb-ley-lado' : ''}" style="font-size:${tamLey}px">${items.map(([n, c]) => `<span><i style="background:${c}"></i>${esc(n)}</span>`).join('')}</div>`;
     if (T.g === 'disp') {
       const pts = d.puntos; if (!pts.length) { cuerpo.innerHTML = '<div class="pb-v-vacio">Sin datos</div>'; return; }
       const grupos = [...new Set(pts.map((p) => p.ley ?? ''))];
-      const ley = verLey && grupos.length > 1 ? `<div class="pb-ley">${grupos.map((g, i) => `<span><i style="background:${colSerie(i, g)}"></i>${esc(g)}</span>`).join('')}</div>` : '';
-      const hl = ley ? 22 : 0, izq = 50, abajo = 30, an = W - izq - 12, al = H - abajo - hl - 10;
+      const ley = verLey && grupos.length > 1 ? leyHtml(grupos.map((g, i) => [g, colSerie(i, g)])) : '';
+      if (ley && leyLado) W -= 118;
+      const dVerX = fmtGet(v, 'ejeX', 'mostrar'), dVerY = fmtGet(v, 'ejeY', 'mostrar'), dCuad = fmtGet(v, 'ejeY', 'cuadricula');
+      const stX = `font-size:${fmtGet(v, 'ejeX', 'tam')}px;fill:${fmtGet(v, 'ejeX', 'color')}`, stY = `font-size:${fmtGet(v, 'ejeY', 'tam')}px;fill:${fmtGet(v, 'ejeY', 'color')}`;
+      const dTitY = fmtGet(v, 'ejeY', 'titulo') ? d.ny : '';
+      const hl = ley && !leyLado ? 22 : 0, izq = (dVerY ? 50 : 10) + (dTitY ? 14 : 0), abajo = dVerX ? 30 : 14, an = W - izq - 12, al = H - abajo - hl - 10;
       const xs = pts.map((p) => p.x || 0), ys = pts.map((p) => p.y || 0), ts = pts.map((p) => p.tam || 0);
-      const [x0, x1] = [Math.min(0, ...xs), Math.max(...xs) || 1], [y0, y1] = [Math.min(0, ...ys), Math.max(...ys) || 1], tmx = Math.max(...ts) || 1;
+      const x0 = Math.min(0, ...xs), x1 = Math.max(...xs) || 1, tmx = Math.max(...ts) || 1; let y0 = Math.min(0, ...ys), y1 = Math.max(...ys) || 1;
+      { const a = fmtGet(v, 'ejeY', 'inicio'), b = fmtGet(v, 'ejeY', 'fin'); if (a !== '' && !isNaN(Number(a))) y0 = Number(a); if (b !== '' && !isNaN(Number(b))) y1 = Number(b); }
       const X = (x) => izq + ((x - x0) / (x1 - x0 || 1)) * an, Y = (y) => 8 + al - ((y - y0) / (y1 - y0 || 1)) * al;
-      const grid = [0, 0.5, 1].map((f) => `<line x1="${izq}" x2="${izq + an}" y1="${8 + al - f * al}" y2="${8 + al - f * al}" class="pb-grid"/><text x="${izq - 6}" y="${12 + al - f * al}" text-anchor="end" class="pb-eje">${esc(fmtNum(y0 + (y1 - y0) * f))}</text><text x="${izq + f * an}" y="${8 + al + 16}" text-anchor="middle" class="pb-eje">${esc(fmtNum(x0 + (x1 - x0) * f))}</text>`).join('');
-      cuerpo.innerHTML = ley + `<svg width="${W}" height="${H - hl}">${grid}${pts.map((p) => `<circle cx="${X(p.x || 0)}" cy="${Y(p.y || 0)}" r="${p.tam != null ? 4 + 14 * Math.sqrt(Math.max(0, p.tam) / tmx) : 5}" fill="${colSerie(grupos.indexOf(p.ley ?? ''), p.ley ?? '')}" fill-opacity=".75" stroke="#fff" data-cat="${esc(p.d)}" opacity="${ctx.aten(p.d) ? 0.25 : 1}">${tip(p.d, [[d.nx, fmtNum(p.x)], [d.ny, fmtNum(p.y)], ...(p.tam != null ? [[d.nt, fmtNum(p.tam)]] : [])])}</circle>`).join('')}${fmtGet(v, 'ejeX', 'titulo') ? `<text x="${izq + an / 2}" y="${H - hl - 2}" text-anchor="middle" class="pb-eje-t">${esc(d.nx)}</text>` : ''}</svg>`;
+      const grid = [0, 0.5, 1].map((f) => `${dCuad ? `<line x1="${izq}" x2="${izq + an}" y1="${8 + al - f * al}" y2="${8 + al - f * al}" class="pb-grid"/>` : ''}${dVerY ? `<text x="${izq - 6}" y="${12 + al - f * al}" text-anchor="end" class="pb-eje" style="${stY}">${esc(fmtNum(y0 + (y1 - y0) * f))}</text>` : ''}${dVerX ? `<text x="${izq + f * an}" y="${8 + al + 16}" text-anchor="middle" class="pb-eje" style="${stX}">${esc(fmtNum(x0 + (x1 - x0) * f))}</text>` : ''}`).join('') + (dTitY ? `<text transform="translate(11 ${8 + al / 2}) rotate(-90)" text-anchor="middle" class="pb-eje-t">${esc(dTitY)}</text>` : '');
+      cuerpo.innerHTML = conLeyenda(ley, `<svg width="${W}" height="${H - hl}">${grid}${pts.map((p) => `<circle cx="${X(p.x || 0)}" cy="${Y(p.y || 0)}" r="${p.tam != null ? 4 + 14 * Math.sqrt(Math.max(0, p.tam) / tmx) : 5}" fill="${colSerie(grupos.indexOf(p.ley ?? ''), p.ley ?? '')}" fill-opacity=".75" stroke="#fff" data-cat="${esc(p.d)}" opacity="${ctx.aten(p.d) ? 0.25 : 1}">${tip(p.d, [[d.nx, fmtNum(p.x)], [d.ny, fmtNum(p.y)], ...(p.tam != null ? [[d.nt, fmtNum(p.tam)]] : [])])}</circle>`).join('')}${fmtGet(v, 'ejeX', 'titulo') ? `<text x="${izq + an / 2}" y="${H - hl - 2}" text-anchor="middle" class="pb-eje-t">${esc(d.nx)}</text>` : ''}</svg>`);
       return;
     }
     if (T.mapa) return dibujarMapa(v, cuerpo, d, ctx, colSerie, tip, fE);
@@ -222,32 +279,35 @@
       if (v.tipo === 'treemap') {
         const items = cats.map((c, i) => ({ c, v: vals[i], i })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v).slice(0, 60);
         const rects = squarify(items, 0, 0, W, H);
-        cuerpo.innerHTML = `<svg width="${W}" height="${H}">${rects.map((r) => `<g data-cat="${esc(r.c)}" opacity="${ctx.aten(r.c) ? 0.3 : 1}"><rect x="${r.x}" y="${r.y}" width="${Math.max(0, r.w - 1)}" height="${Math.max(0, r.h - 1)}" fill="${colC(r.i)}">${tip(r.c, [[s.nombre, fmtNum(r.v, { formato: s.formato })]])}</rect>${r.w > 40 && r.h > 18 ? `<text x="${r.x + 5}" y="${r.y + 14}" class="pb-tm-t">${esc(String(r.c).slice(0, Math.floor(r.w / 7)))}</text>${et.mostrar && r.h > 32 ? `<text x="${r.x + 5}" y="${r.y + 28}" class="pb-tm-t">${esc(fE(r.v, s.formato))}</text>` : ''}` : ''}</g>`).join('')}</svg>`;
+        cuerpo.innerHTML = `<svg width="${W}" height="${H}">${rects.map((r) => `<g data-cat="${esc(r.c)}" opacity="${ctx.aten(r.c) ? 0.3 : 1}"><rect x="${r.x}" y="${r.y}" width="${Math.max(0, r.w - 1)}" height="${Math.max(0, r.h - 1)}" fill="${colC(r.i)}">${tip(r.c, [[s.nombre, fmtNum(r.v, { formato: s.formato })]])}</rect>${r.w > 40 && r.h > 18 ? `<text x="${r.x + 5}" y="${r.y + 14}" class="pb-tm-t">${esc(String(r.c).slice(0, Math.floor(r.w / 7)))}</text>${et.mostrar && r.h > 32 ? `<text x="${r.x + 5}" y="${r.y + 16 + Number(et.tam)}" class="pb-tm-t" style="${etDentro}">${esc(fE(r.v, s.formato))}</text>` : ''}` : ''}</g>`).join('')}</svg>`;
         return;
       }
       if (v.tipo === 'embudo') {
         const mx = Math.max(...vals, 1), bh = Math.min(34, (H - 8) / Math.max(1, cats.length)) - 3;
-        cuerpo.innerHTML = `<svg width="${W}" height="${H}">${cats.map((c, i) => { const w = (vals[i] / mx) * (W - 120), y = 4 + i * (bh + 3); return `<g data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}"><text x="94" y="${y + bh / 2 + 4}" text-anchor="end" class="pb-eje">${esc(String(c).slice(0, 14))}</text><rect x="${100 + (W - 120 - w) / 2}" y="${y}" width="${Math.max(1, w)}" height="${bh}" fill="${colSerie(0, s.nombre)}">${tip(c, [[s.nombre, fmtNum(vals[i], { formato: s.formato })], ['% del primero', ((vals[i] / (vals[0] || 1)) * 100).toFixed(1) + ' %']])}</rect><text x="${100 + (W - 120) / 2}" y="${y + bh / 2 + 4}" text-anchor="middle" class="pb-et-in">${esc(fE(vals[i], s.formato))}</text></g>`; }).join('')}</svg>`;
+        cuerpo.innerHTML = `<svg width="${W}" height="${H}">${cats.map((c, i) => { const w = (vals[i] / mx) * (W - 120), y = 4 + i * (bh + 3); return `<g data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}"><text x="94" y="${y + bh / 2 + 4}" text-anchor="end" class="pb-eje">${esc(String(c).slice(0, 14))}</text><rect x="${100 + (W - 120 - w) / 2}" y="${y}" width="${Math.max(1, w)}" height="${bh}" fill="${colSerie(0, s.nombre)}">${tip(c, [[s.nombre, fmtNum(vals[i], { formato: s.formato })], ['% del primero', ((vals[i] / (vals[0] || 1)) * 100).toFixed(1) + ' %']])}</rect>${et.mostrar || ((v.formato || {}).etiquetas || {}).mostrar === undefined ? `<text x="${100 + (W - 120) / 2}" y="${y + bh / 2 + 4}" text-anchor="middle" class="pb-et-in" style="${etDentro}">${esc(fE(vals[i], s.formato))}</text>` : ''}</g>`; }).join('')}</svg>`;
         return;
       }
-      const ley = verLey ? `<div class="pb-ley pb-ley-v">${cats.slice(0, 12).map((c, i) => `<span><i style="background:${colC(i)}"></i>${esc(c)}</span>`).join('')}</div>` : '';
-      const r = Math.max(20, Math.min((verLey ? W * 0.6 : W) / 2 - 16, H / 2 - 10)), cx = r + 14, cy = H / 2, hueco = v.tipo === 'anillo' ? r * 0.58 : 0;
+      const posP = ((v.formato || {}).leyenda || {}).pos || 'Derecha', leyV = posP === 'Derecha' || posP === 'Izquierda';
+      const ley = verLey ? `<div class="pb-ley ${leyV ? 'pb-ley-v' : ''}" style="font-size:${tamLey}px">${cats.slice(0, 12).map((c, i) => `<span><i style="background:${colC(i)}"></i>${esc(c)}</span>`).join('')}</div>` : '';
+      const Hp = verLey && !leyV ? H - 24 : H, extra = et.mostrar ? 60 : 0;
+      const r = Math.max(20, Math.min((verLey && leyV ? W * 0.6 : W) / 2 - 16 - extra, Hp / 2 - 10)), cx = r + 14 + extra, cy = Hp / 2, hueco = v.tipo === 'anillo' ? r * 0.58 : 0;
       let ang = -Math.PI / 2;
       const pt = (a, rr) => `${cx + rr * Math.cos(a)},${cy + rr * Math.sin(a)}`;
       const arcos = cats.slice(0, 30).map((c, i) => {
         const f = vals[i] / tot, a2 = ang + f * Math.PI * 2, gr = f > 0.5 ? 1 : 0, a1 = ang; ang = a2;
         const path = hueco ? `M${pt(a1, r)} A${r},${r} 0 ${gr} 1 ${pt(a2 - 1e-4, r)} L${pt(a2 - 1e-4, hueco)} A${hueco},${hueco} 0 ${gr} 0 ${pt(a1, hueco)} Z` : `M${cx},${cy} L${pt(a1, r)} A${r},${r} 0 ${gr} 1 ${pt(a2 - 1e-4, r)} Z`;
-        const mid = (a1 + a2) / 2, lbl = et.mostrar && f > 0.04 ? `<text x="${cx + (r + 4) * Math.cos(mid)}" y="${cy + (r + 4) * Math.sin(mid) + 3}" text-anchor="${Math.cos(mid) >= 0 ? 'start' : 'end'}" class="pb-et">${esc(fE(vals[i], s.formato))} (${(f * 100).toFixed(0)}%)</text>` : '';
+        const mid = (a1 + a2) / 2, lbl = et.mostrar && f > 0.04 ? `<text x="${cx + (r + 4) * Math.cos(mid)}" y="${cy + (r + 4) * Math.sin(mid) + 3}" text-anchor="${Math.cos(mid) >= 0 ? 'start' : 'end'}" class="pb-et" style="${etSt}">${esc(fE(vals[i], s.formato))} (${(f * 100).toFixed(0)}%)</text>` : '';
         return `<path d="${path}" fill="${colC(i)}" stroke="#fff" data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}">${tip(c, [[s.nombre, fmtNum(vals[i], { formato: s.formato })], ['Porcentaje', (f * 100).toFixed(1) + ' %']])}</path>${lbl}`;
       });
-      cuerpo.innerHTML = `<div class="pb-donut"><svg width="${2 * r + 28 + (et.mostrar ? 70 : 0)}" height="${H}" style="overflow:visible">${arcos.join('')}</svg>${ley}</div>`;
+      cuerpo.innerHTML = `<div class="pb-donut pb-donut-${{ Arriba: 'arriba', Abajo: 'abajo', Izquierda: 'izq', Derecha: 'der' }[posP]}"><svg width="${2 * r + 28 + 2 * extra}" height="${Hp}" style="overflow:visible;flex:none">${arcos.join('')}</svg>${ley}</div>`;
       return;
     }
     // ---- cartesianos
     const horiz = !!T.horiz, apila = T.apila || 0, esLinea = !!T.linea;
     const colSeries = series.filter((s) => s.tipo !== 'linea'), linSeries = v.tipo === 'lineaColumna' ? series.filter((s) => s.tipo === 'linea') : [];
-    const ley = verLey && (series.length > 1) ? `<div class="pb-ley">${series.map((s, i) => `<span><i style="background:${colSerie(i, s.nombre)}"></i>${esc(s.nombre)}</span>`).join('')}</div>` : '';
-    const hl = ley ? 22 : 0;
+    const ley = verLey && (series.length > 1) && v.tipo !== 'cascada' ? leyHtml(series.map((s, i) => [s.nombre, colSerie(i, s.nombre)])) : '';
+    if (ley && leyLado) W -= 118;
+    const hl = ley && !leyLado ? 22 : 0;
     // valores (apilado y 100%)
     const val = (s, c) => s.vals[c] || 0;
     let base = {};
@@ -255,15 +315,41 @@
     const valN = (s, c) => (apila === 100 ? val(s, c) / tot(c) : val(s, c));
     let maxV = 0, minV = 0;
     if (v.tipo === 'cascada') {
-      let acum = 0; for (const c of cats) { acum += val(colSeries[0], c); maxV = Math.max(maxV, acum); minV = Math.min(minV, acum); } maxV = Math.max(maxV, acum);
+      let acum = 0; for (const c of cats) { acum += val(colSeries[0], c); maxV = Math.max(maxV, acum); minV = Math.min(minV, acum); } maxV = Math.max(maxV, acum); if (et.mostrar) maxV *= 1.1;
     } else if (apila) { for (const c of cats) { let p = 0, n = 0; for (const s of colSeries) { const x = valN(s, c); if (x >= 0) p += x; else n += x; } maxV = Math.max(maxV, p); minV = Math.min(minV, n); } }
     else for (const s of colSeries) for (const c of cats) { maxV = Math.max(maxV, val(s, c)); minV = Math.min(minV, val(s, c)); }
     if (apila === 100) { maxV = 1; minV = Math.min(0, minV); }
+    if (apila !== 100) for (const a of (v.analisis || [])) if (a.activa !== false && a.tipo === 'constante' && a.valor !== '' && !isNaN(Number(a.valor))) { maxV = Math.max(maxV, Number(a.valor)); minV = Math.min(minV, Number(a.valor)); }
     const ini = fmtGet(v, 'ejeY', 'inicio'), fin = fmtGet(v, 'ejeY', 'fin');
+    // panel Análisis: líneas de referencia calculadas sobre la primera serie (como en Power BI)
+    const lineasAnalisis = (eje) => {
+      const A = (v.analisis || []).filter((a) => a.activa !== false); const s0 = colSeries[0] || linSeries[0]; if (!A.length || !s0) return '';
+      const nums = cats.map((c) => val(s0, c)).filter((n) => typeof n === 'number' && !isNaN(n)); let out = '';
+      for (const a of A) {
+        let valor = null, recta = null;
+        if (a.tipo === 'constante') valor = a.valor === '' || a.valor == null ? null : Number(a.valor);
+        else if (!nums.length) continue;
+        else if (a.tipo === 'promedio') valor = nums.reduce((p, q) => p + q, 0) / nums.length;
+        else if (a.tipo === 'min') valor = Math.min(...nums); else if (a.tipo === 'max') valor = Math.max(...nums);
+        else if (a.tipo === 'mediana') { const o = nums.slice().sort((p, q) => p - q); valor = o.length % 2 ? o[(o.length - 1) / 2] : (o[o.length / 2 - 1] + o[o.length / 2]) / 2; }
+        else if (a.tipo === 'percentil') { const o = nums.slice().sort((p, q) => p - q); const k = Math.min(o.length - 1, Math.max(0, Math.round(((Number(a.valor) || 50) / 100) * (o.length - 1)))); valor = o[k]; }
+        else if (a.tipo === 'tendencia' && !eje.horiz && cats.length > 1) { const ys = cats.map((c) => val(s0, c)); const n = ys.length, mx = (n - 1) / 2, my = ys.reduce((p, q) => p + q, 0) / n; let num = 0, den = 0; ys.forEach((y, i) => { num += (i - mx) * (y - my); den += (i - mx) * (i - mx); }); const b = den ? num / den : 0; recta = [my - b * mx, my - b * mx + b * (n - 1)]; }
+        const dash = a.estilo === 'Continua' ? '' : a.estilo === 'Punteada' ? '2 3' : '6 4', col = a.color || '#252423';
+        const nombre = a.nombre || { constante: 'Línea constante', promedio: 'Promedio', min: 'Mínimo', max: 'Máximo', mediana: 'Mediana', percentil: `Percentil ${a.valor || 50}`, tendencia: 'Línea de tendencia' }[a.tipo];
+        if (recta) { out += `<line x1="${eje.cx(0)}" y1="${eje.pos(recta[0])}" x2="${eje.cx(cats.length - 1)}" y2="${eje.pos(recta[1])}" stroke="${col}" stroke-width="1.6" stroke-dasharray="${dash}" class="pb-analisis"><title>${esc(nombre)}</title></line>`; continue; }
+        if (valor == null || isNaN(valor)) continue;
+        const etq = a.etiqueta === false ? '' : `${nombre}: ${fmtNum(valor, { formato: s0.formato })}`;
+        if (eje.horiz) { const x = eje.pos(valor); out += `<line x1="${x}" x2="${x}" y1="${eje.desde}" y2="${eje.hasta}" stroke="${col}" stroke-width="1.5" stroke-dasharray="${dash}" class="pb-analisis"><title>${esc(etq || nombre)}</title></line>${etq ? `<text x="${x + 4}" y="${eje.desde + 11}" class="pb-et" style="fill:${col};font-size:10px">${esc(etq)}</text>` : ''}`; }
+        else { const y = eje.pos(valor); out += `<line x1="${eje.desde}" x2="${eje.hasta}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="1.5" stroke-dasharray="${dash}" class="pb-analisis"><title>${esc(etq || nombre)}</title></line>${etq ? `<text x="${eje.hasta - 4}" y="${y - 4}" text-anchor="end" class="pb-et" style="fill:${col};font-size:10px">${esc(etq)}</text>` : ''}`; }
+      }
+      return out;
+    };
+    // formato condicional de los colores de datos (Colores → fx): degradado o reglas según el valor
+    const colorCond = (k, s, c) => { const fc = ((v.formatoCond || {}).__datos); if (!fc || k > 0) return colSerie(k, s.nombre); const xs = cats.map((z) => val(s, z)); return colorPorValor(fc, val(s, c), Math.min(...xs), Math.max(...xs)) || colSerie(k, s.nombre); };
     if (ini !== '' && !isNaN(Number(ini))) minV = Number(ini); if (fin !== '' && !isNaN(Number(fin))) maxV = Number(fin);
     if (maxV === minV) maxV = minV + 1;
     let max2 = 0; for (const s of linSeries) for (const c of cats) max2 = Math.max(max2, val(s, c)); max2 = max2 || 1;
-    const verX = fmtGet(v, 'ejeX', 'mostrar'), verY = fmtGet(v, 'ejeY', 'mostrar'), cuad = fmtGet(v, 'ejeY', 'cuadricula'), tamX = fmtGet(v, 'ejeX', 'tam'), tamY = fmtGet(v, 'ejeY', 'tam');
+    const verX = fmtGet(v, 'ejeX', 'mostrar'), verY = fmtGet(v, 'ejeY', 'mostrar'), cuad = fmtGet(v, 'ejeY', 'cuadricula'), tamX = `${fmtGet(v, 'ejeX', 'tam')}px;fill:${fmtGet(v, 'ejeX', 'color')}`, tamY = `${fmtGet(v, 'ejeY', 'tam')}px;fill:${fmtGet(v, 'ejeY', 'color')}`;
     const tituloX = fmtGet(v, 'ejeX', 'titulo') ? d.nx : '', tituloY = fmtGet(v, 'ejeY', 'titulo') ? d.ny : '';
     const fmtEje = (x) => (apila === 100 ? `${Math.round(x * 100)} %` : fmtNum(x, { formato: (colSeries[0] || {}).formato, unidades: 'Automático', decimales: 0 }));
     const pie = (verX ? 18 : 4) + (tituloX ? 14 : 0);
@@ -273,44 +359,47 @@
       const banda = al / Math.max(1, cats.length), n = apila ? 1 : colSeries.length, bw = Math.max(2, (banda * 0.7) / n);
       const X = (x) => izq + ((x - minV) / (maxV - minV)) * an;
       let g = '';
-      if (verY || cuad) for (const f of [0, 0.25, 0.5, 0.75, 1]) { const x = izq + f * an; g += (cuad ? `<line x1="${x}" x2="${x}" y1="0" y2="${al}" class="pb-grid"/>` : '') + (verY ? `<text x="${x}" y="${al + 14}" text-anchor="middle" class="pb-eje" style="font-size:${tamY}px">${esc(fmtEje(minV + (maxV - minV) * f))}</text>` : ''); }
+      if (verY || cuad) for (const f of [0, 0.25, 0.5, 0.75, 1]) { const x = izq + f * an; g += (cuad ? `<line x1="${x}" x2="${x}" y1="0" y2="${al}" class="pb-grid"/>` : '') + (verY ? `<text x="${x}" y="${al + 14}" text-anchor="middle" class="pb-eje" style="font-size:${tamY}">${esc(fmtEje(minV + (maxV - minV) * f))}</text>` : ''); }
       cats.forEach((c, i) => {
-        if (verX) g += `<text x="${izq - 6 - (tituloX ? 0 : 0)}" y="${i * banda + banda / 2 + 4}" text-anchor="end" class="pb-eje" style="font-size:${tamX}px">${esc(String(c).slice(0, 24))}</text>`;
+        if (verX) g += `<text x="${izq - 6 - (tituloX ? 0 : 0)}" y="${i * banda + banda / 2 + 4}" text-anchor="end" class="pb-eje" style="font-size:${tamX}">${esc(String(c).slice(0, 24))}</text>`;
         let acP = 0, acN = 0;
         colSeries.forEach((s, k) => {
           const x = valN(s, c); let x0, x1;
           if (apila) { if (x >= 0) { x0 = acP; acP += x; x1 = acP; } else { x0 = acN + x; acN += x; x1 = x0 - x; } } else { x0 = Math.min(0, x); x1 = Math.max(0, x); }
           const y0 = i * banda + banda * 0.15 + (apila ? 0 : k * bw), w = X(x1) - X(x0);
-          g += `<rect x="${X(x0)}" y="${y0}" width="${Math.max(0, w)}" height="${(apila ? banda * 0.7 : bw) - 1}" fill="${colSerie(k, s.nombre)}" data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}" ${ctx.sel(c) ? 'stroke="#252423"' : ''}>${tip(c, [[s.nombre, fmtNum(val(s, c), { formato: s.formato })]])}</rect>`;
-          if (et.mostrar && w > 0) g += `<text x="${apila ? X(x0) + w / 2 : X(x1) + 4}" y="${y0 + (apila ? banda * 0.35 : bw / 2) + 3}" text-anchor="${apila ? 'middle' : 'start'}" class="pb-et" style="font-size:${et.tam}px;fill:${apila ? '#fff' : et.color}">${esc(apila === 100 ? Math.round(x * 100) + ' %' : fE(val(s, c), s.formato))}</text>`;
+          g += `<rect x="${X(x0)}" y="${y0}" width="${Math.max(0, w)}" height="${(apila ? banda * 0.7 : bw) - 1}" fill="${colorCond(k, s, c)}" data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}" ${ctx.sel(c) ? 'stroke="#252423"' : ''}>${tip(c, [[s.nombre, fmtNum(val(s, c), { formato: s.formato })]])}</rect>`;
+          if (et.mostrar && w > 0) g += `<text x="${apila ? X(x0) + w / 2 : X(x1) + 4}" y="${y0 + (apila ? banda * 0.35 : bw / 2) + 3}" text-anchor="${apila ? 'middle' : 'start'}" class="pb-et" style="${apila ? etDentro : etSt}">${esc(apila === 100 ? Math.round(x * 100) + ' %' : fE(val(s, c), s.formato))}</text>`;
         });
       });
-      cuerpo.innerHTML = (posLey !== 'Abajo' ? ley : '') + `<svg width="${W}" height="${H - hl}">${g}${tituloY ? `<text x="${izq + an / 2}" y="${H - hl - 2}" text-anchor="middle" class="pb-eje-t">${esc(tituloY)}</text>` : ''}${tituloX ? `<text transform="translate(10 ${al / 2}) rotate(-90)" text-anchor="middle" class="pb-eje-t">${esc(tituloX)}</text>` : ''}</svg>` + (posLey === 'Abajo' ? ley : '');
+      g += lineasAnalisis({ horiz: true, pos: X, desde: 0, hasta: al });
+      cuerpo.innerHTML = conLeyenda(ley, `<svg width="${W}" height="${H - hl}">${g}${tituloY ? `<text x="${izq + an / 2}" y="${H - hl - 2}" text-anchor="middle" class="pb-eje-t">${esc(tituloY)}</text>` : ''}${tituloX ? `<text transform="translate(10 ${al / 2}) rotate(-90)" text-anchor="middle" class="pb-eje-t">${esc(tituloX)}</text>` : ''}</svg>`);
       return;
     }
     const izq = (verY ? 50 : 8) + (tituloY ? 14 : 0), der = linSeries.length ? 46 : 10, an = W - izq - der, al = H - hl - pie - 8;
     const Y = (y) => 8 + al - ((y - minV) / (maxV - minV)) * al, Y2 = (y) => 8 + al - (y / max2) * al;
-    const paso = an / Math.max(1, cats.length), cada = Math.ceil(cats.length / Math.max(1, Math.floor(an / 52)));
+    const nCol = cats.length + (v.tipo === 'cascada' ? 1 : 0);
+    const paso = an / Math.max(1, nCol), cada = Math.ceil(nCol / Math.max(1, Math.floor(an / 52)));
     let g = '';
-    for (const f of [0, 0.25, 0.5, 0.75, 1]) { const y = 8 + al - f * al; if (cuad) g += `<line x1="${izq}" x2="${izq + an}" y1="${y}" y2="${y}" class="pb-grid"/>`; if (verY) g += `<text x="${izq - 6}" y="${y + 4}" text-anchor="end" class="pb-eje" style="font-size:${tamY}px">${esc(fmtEje(minV + (maxV - minV) * f))}</text>`; if (linSeries.length) g += `<text x="${izq + an + 6}" y="${y + 4}" class="pb-eje" style="font-size:${tamY}px">${esc(fmtNum(max2 * f, { decimales: 0 }))}</text>`; }
+    for (const f of [0, 0.25, 0.5, 0.75, 1]) { const y = 8 + al - f * al; if (cuad) g += `<line x1="${izq}" x2="${izq + an}" y1="${y}" y2="${y}" class="pb-grid"/>`; if (verY) g += `<text x="${izq - 6}" y="${y + 4}" text-anchor="end" class="pb-eje" style="font-size:${tamY}">${esc(fmtEje(minV + (maxV - minV) * f))}</text>`; if (linSeries.length) g += `<text x="${izq + an + 6}" y="${y + 4}" class="pb-eje" style="font-size:${tamY}">${esc(fmtNum(max2 * f, { decimales: 0 }))}</text>`; }
     if (minV < 0) g += `<line x1="${izq}" x2="${izq + an}" y1="${Y(0)}" y2="${Y(0)}" class="pb-base"/>`;
-    if (verX) cats.forEach((c, i) => { if (!(i % cada)) g += `<text x="${izq + i * paso + paso / 2}" y="${8 + al + 15}" text-anchor="middle" class="pb-eje" style="font-size:${tamX}px">${esc(String(c).slice(0, Math.max(6, Math.floor((paso * cada) / 6.5))))}</text>`; });
+    if (verX) cats.forEach((c, i) => { if (!(i % cada)) g += `<text x="${izq + i * paso + paso / 2}" y="${8 + al + 15}" text-anchor="middle" class="pb-eje" style="font-size:${tamX}">${esc(String(c).slice(0, Math.max(6, Math.floor((paso * cada) / 6.5))))}</text>`; });
     g += `<line x1="${izq}" x2="${izq + an}" y1="${Y(Math.max(0, minV))}" y2="${Y(Math.max(0, minV))}" class="pb-base"/>`;
     if (v.tipo === 'cascada') {
       const s = colSeries[0]; let acum = 0; const bw = paso * 0.7;
-      cats.forEach((c, i) => { const x = val(s, c), a0 = acum; acum += x; const y0 = Y(Math.max(a0, acum)), h = Math.abs(Y(a0) - Y(acum)); g += `<rect x="${izq + i * paso + paso * 0.15}" y="${y0}" width="${bw}" height="${Math.max(1, h)}" fill="${x >= 0 ? fmtGet(v, 'colores', 'aumento') : fmtGet(v, 'colores', 'disminucion')}" data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}">${tip(c, [[s.nombre, fmtNum(x, { formato: s.formato })], ['Acumulado', fmtNum(acum, { formato: s.formato })]])}</rect>${et.mostrar ? `<text x="${izq + i * paso + paso / 2}" y="${y0 - 3}" text-anchor="middle" class="pb-et" style="font-size:${et.tam}px">${esc(fE(x, s.formato))}</text>` : ''}`; if (i < cats.length - 1) g += `<line x1="${izq + i * paso + paso * 0.85}" x2="${izq + (i + 1) * paso + paso * 0.15}" y1="${Y(acum)}" y2="${Y(acum)}" stroke="#A19F9D" stroke-dasharray="2 2"/>`; });
+      cats.forEach((c, i) => { const x = val(s, c), a0 = acum; acum += x; const y0 = Y(Math.max(a0, acum)), h = Math.abs(Y(a0) - Y(acum)); g += `<rect x="${izq + i * paso + paso * 0.15}" y="${y0}" width="${bw}" height="${Math.max(1, h)}" fill="${x >= 0 ? fmtGet(v, 'colores', 'aumento') : fmtGet(v, 'colores', 'disminucion')}" data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}">${tip(c, [[s.nombre, fmtNum(x, { formato: s.formato })], ['Acumulado', fmtNum(acum, { formato: s.formato })]])}</rect>${et.mostrar ? `<text x="${izq + i * paso + paso / 2}" y="${y0 - 3}" text-anchor="middle" class="pb-et" style="${etSt}">${esc(fE(x, s.formato))}</text>` : ''}`; g += `<line x1="${izq + i * paso + paso * 0.85}" x2="${izq + (i + 1) * paso + paso * 0.15}" y1="${Y(acum)}" y2="${Y(acum)}" stroke="#A19F9D" stroke-dasharray="2 2"/>`; });
+      { const i = cats.length, y0 = Y(Math.max(0, acum)), h = Math.abs(Y(0) - Y(acum)); g += `<rect x="${izq + i * paso + paso * 0.15}" y="${y0}" width="${bw}" height="${Math.max(1, h)}" fill="${fmtGet(v, 'colores', 'total')}">${tip('Total', [[s.nombre, fmtNum(acum, { formato: s.formato })]])}</rect>${et.mostrar ? `<text x="${izq + i * paso + paso / 2}" y="${y0 - 3}" text-anchor="middle" class="pb-et" style="${etSt}">${esc(fE(acum, s.formato))}</text>` : ''}${verX ? `<text x="${izq + i * paso + paso / 2}" y="${8 + al + 15}" text-anchor="middle" class="pb-eje" style="font-size:${tamX};font-weight:600">Total</text>` : ''}`; }
       void base;
     } else if (esLinea) {
-      const grosor = fmtGet(v, 'lineas', 'grosor'), marc = fmtGet(v, 'lineas', 'marcadores');
+      const grosor = fmtGet(v, 'lineas', 'grosor'), marc = fmtGet(v, 'lineas', 'marcadores'), suave = fmtGet(v, 'lineas', 'suave');
       const acum = {};
       colSeries.forEach((s, k) => {
         const pts = cats.map((c, i) => { let y = valN(s, c); if (apila) { acum[c] = (acum[c] || 0) + y; y = acum[c]; } return [izq + i * paso + paso / 2, Y(y), c, val(s, c)]; });
         const lin = pts.map((p) => `${p[0]},${p[1]}`).join(' ');
         const prev = apila && k ? cats.map((c, i) => [izq + i * paso + paso / 2, Y(acum[c] - valN(s, c))]) : null;
         if (T.area) g += `<polygon points="${prev ? lin + ' ' + prev.slice().reverse().map((p) => p.join(',')).join(' ') : `${pts[0][0]},${Y(Math.max(0, minV))} ${lin} ${pts[pts.length - 1][0]},${Y(Math.max(0, minV))}`}" fill="${colSerie(k, s.nombre)}" opacity="${apila ? 0.75 : 0.28}"/>`;
-        g += `<polyline points="${lin}" fill="none" stroke="${colSerie(k, s.nombre)}" stroke-width="${grosor}" stroke-linejoin="round"/>`;
+        g += suave ? `<path d="${curva(pts)}" fill="none" stroke="${colSerie(k, s.nombre)}" stroke-width="${grosor}" stroke-linejoin="round"/>` : `<polyline points="${lin}" fill="none" stroke="${colSerie(k, s.nombre)}" stroke-width="${grosor}" stroke-linejoin="round"/>`;
         if (marc && cats.length <= 80) g += pts.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="${cats.length <= 30 ? 3.5 : 2.2}" fill="${colSerie(k, s.nombre)}" data-cat="${esc(p[2])}" opacity="${ctx.aten(p[2]) ? 0.3 : 1}">${tip(p[2], [[s.nombre, fmtNum(p[3], { formato: s.formato })]])}</circle>`).join('');
-        if (et.mostrar && cats.length <= 31) g += pts.map((p) => `<text x="${p[0]}" y="${p[1] - 7}" text-anchor="middle" class="pb-et" style="font-size:${et.tam}px">${esc(fE(p[3], s.formato))}</text>`).join('');
+        if (et.mostrar && cats.length <= 31) g += pts.map((p) => `<text x="${p[0]}" y="${p[1] - 7}" text-anchor="middle" class="pb-et" style="${etSt}">${esc(fE(p[3], s.formato))}</text>`).join('');
       });
     } else {
       const n = apila ? 1 : colSeries.length, bw = (paso * 0.72) / n;
@@ -320,16 +409,34 @@
           const x = valN(s, c); let a, b;
           if (apila) { if (x >= 0) { a = acP; acP += x; b = acP; } else { b = acN; acN += x; a = acN; } } else { a = Math.min(0, x); b = Math.max(0, x); }
           const x0 = izq + i * paso + paso * 0.14 + (apila ? 0 : k * bw), h = Y(a) - Y(b), w = apila ? paso * 0.72 : bw;
-          g += `<rect x="${x0}" y="${Y(b)}" width="${Math.max(1, w - 1)}" height="${Math.max(0, h)}" fill="${colSerie(k, s.nombre)}" data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}" ${ctx.sel(c) ? 'stroke="#252423"' : ''}>${tip(c, [[s.nombre, fmtNum(val(s, c), { formato: s.formato })], ...((d.info || []).map((inf) => [inf.nombre, fmtNum((inf.vals || {})[c], { formato: inf.formato })]))])}</rect>`;
-          if (et.mostrar && cats.length <= 24 && h > 0) g += `<text x="${x0 + w / 2}" y="${apila ? Y(b) + h / 2 + 3 : Y(b) - 4}" text-anchor="middle" class="pb-et" style="font-size:${et.tam}px;fill:${apila ? '#fff' : et.color}">${esc(apila === 100 ? Math.round(x * 100) + ' %' : fE(val(s, c), s.formato))}</text>`;
+          g += `<rect x="${x0}" y="${Y(b)}" width="${Math.max(1, w - 1)}" height="${Math.max(0, h)}" fill="${colorCond(k, s, c)}" data-cat="${esc(c)}" opacity="${ctx.aten(c) ? 0.3 : 1}" ${ctx.sel(c) ? 'stroke="#252423"' : ''}>${tip(c, [[s.nombre, fmtNum(val(s, c), { formato: s.formato })], ...((d.info || []).map((inf) => [inf.nombre, fmtNum((inf.vals || {})[c], { formato: inf.formato })]))])}</rect>`;
+          if (et.mostrar && cats.length <= 24 && h > 0) g += `<text x="${x0 + w / 2}" y="${apila ? Y(b) + h / 2 + 3 : Y(b) - 4}" text-anchor="middle" class="pb-et" style="${apila ? etDentro : etSt}">${esc(apila === 100 ? Math.round(x * 100) + ' %' : fE(val(s, c), s.formato))}</text>`;
         });
       });
       linSeries.forEach((s, k) => {
         const kk = colSeries.length + k; const pts = cats.map((c, i) => [izq + i * paso + paso / 2, Y2(val(s, c)), c]);
-        g += `<polyline points="${pts.map((p) => `${p[0]},${p[1]}`).join(' ')}" fill="none" stroke="${colSerie(kk, s.nombre)}" stroke-width="2.2"/>` + pts.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="3.2" fill="${colSerie(kk, s.nombre)}" data-cat="${esc(p[2])}">${tip(p[2], [[s.nombre, fmtNum(val(s, p[2]), { formato: s.formato })]])}</circle>`).join('');
+        g += (fmtGet(v, 'lineas', 'suave') ? `<path d="${curva(pts)}" fill="none" stroke="${colSerie(kk, s.nombre)}" stroke-width="${fmtGet(v, 'lineas', 'grosor')}"/>` : `<polyline points="${pts.map((p) => `${p[0]},${p[1]}`).join(' ')}" fill="none" stroke="${colSerie(kk, s.nombre)}" stroke-width="${fmtGet(v, 'lineas', 'grosor')}"/>`) + (!fmtGet(v, 'lineas', 'marcadores') ? [] : pts).map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="3.2" fill="${colSerie(kk, s.nombre)}" data-cat="${esc(p[2])}">${tip(p[2], [[s.nombre, fmtNum(val(s, p[2]), { formato: s.formato })]])}</circle>`).join('');
       });
     }
-    cuerpo.innerHTML = (posLey !== 'Abajo' ? ley : '') + `<svg width="${W}" height="${H - hl}">${g}${tituloX ? `<text x="${izq + an / 2}" y="${H - hl - 3}" text-anchor="middle" class="pb-eje-t">${esc(tituloX)}</text>` : ''}${tituloY ? `<text transform="translate(11 ${8 + al / 2}) rotate(-90)" text-anchor="middle" class="pb-eje-t">${esc(tituloY)}</text>` : ''}</svg>` + (posLey === 'Abajo' ? ley : '');
+    g += lineasAnalisis({ pos: Y, desde: izq, hasta: izq + an, cx: (i) => izq + i * paso + paso / 2 });
+    cuerpo.innerHTML = conLeyenda(ley, `<svg width="${W}" height="${H - hl}">${g}${tituloX ? `<text x="${izq + an / 2}" y="${H - hl - 3}" text-anchor="middle" class="pb-eje-t">${esc(tituloX)}</text>` : ''}${tituloY ? `<text transform="translate(11 ${8 + al / 2}) rotate(-90)" text-anchor="middle" class="pb-eje-t">${esc(tituloY)}</text>` : ''}</svg>`);
+  }
+  // color de un valor según una regla de formato condicional: degradado (mín → máx) o reglas (si valor op x → color)
+  function curva(pts) {
+    if (pts.length < 3) return 'M' + pts.map((p) => `${p[0]},${p[1]}`).join(' L');
+    let d = `M${pts[0][0]},${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) { const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2; d += ` C${p1[0] + (p2[0] - p0[0]) / 6},${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6},${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]},${p2[1]}`; }
+    return d;
+  }
+  const hexRgb = (h) => { const n = parseInt(String(h || '#000').replace('#', '').padEnd(6, '0'), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  function colorPorValor(fc, x, mn, mx) {
+    if (fc == null || typeof x !== 'number') return null;
+    if (fc.modo === 'reglas') { for (const r of fc.reglas || []) { const y = Number(r.val); const ok = r.op === '>' ? x > y : r.op === '>=' ? x >= y : r.op === '<' ? x < y : r.op === '<=' ? x <= y : r.op === '=' ? x === y : r.op === '<>' ? x !== y : false; if (ok) return r.color; } return null; }
+    const a = fc.desde !== undefined && fc.desde !== '' ? Number(fc.desde) : mn, b = fc.hasta !== undefined && fc.hasta !== '' ? Number(fc.hasta) : mx;
+    let f = b > a ? (x - a) / (b - a) : 1; f = Math.max(0, Math.min(1, f));
+    const [c0, c1] = [hexRgb(fc.min || '#F2F2F2'), hexRgb(fc.max || '#118DFF')];
+    if (fc.medio) { const cm = hexRgb(fc.medio); const [p, q, g] = f < 0.5 ? [c0, cm, f * 2] : [cm, c1, (f - 0.5) * 2]; return `rgb(${p.map((z, i) => Math.round(z + (q[i] - z) * g)).join(',')})`; }
+    return `rgb(${c0.map((z, i) => Math.round(z + (c1[i] - z) * f)).join(',')})`;
   }
   // treemap "squarified" (Bruls, Huizing y van Wijk)
   function squarify(items, x, y, w, h) {
@@ -350,5 +457,5 @@
     return out;
   }
 
-  window.PBIVis = { TIPOS, ICO, ALIAS, SECC, seccionesDe, fmtGet, fmtNum, fmtCel, dibujar };
+  window.PBIVis = { TIPOS, ICO, ALIAS, SECC, seccionesDe, propsDe, fmtGet, fmtNum, fmtCel, dibujar, colorPorValor, GEO };
 })();

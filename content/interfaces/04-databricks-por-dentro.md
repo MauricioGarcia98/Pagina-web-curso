@@ -1,9 +1,9 @@
 ---
 titulo: Databricks por dentro - qué es cada parte y para qué sirve
 nivel: Intermedio
-duracion: 50
+duracion: 75
 resumen: Recorrido completo por un workspace de Databricks - cuenta y workspace, plano de control y de cómputo, la barra lateral actual, notebooks, Unity Catalog, Delta Lake, compute y SQL warehouses, jobs, pipelines declarativos, SQL, dashboards, Genie y despliegue con bundles.
-objetivos: Explicar cuenta, workspace, metastore, plano de control y plano de cómputo | Ubicar cada sección de la barra lateral y para qué sirve | Navegar Unity Catalog (catálogo, esquema, tabla, volumen) y dar permisos | Elegir el cómputo correcto - serverless, clúster de uso general, de jobs o SQL warehouse | Armar un job con tareas y un pipeline declarativo, y llevarlos a producción con bundles
+objetivos: Explicar cuenta, workspace, metastore, plano de control y plano de cómputo | Proteger filas y columnas con funciones, filtros de fila, máscaras y etiquetas | Crear tablas de streaming incrementales desde SQL | Armar un dashboard, una alerta y un Genie Agent que responda bien | Registrar modelos con MLflow y usar alias | Ubicar cada sección de la barra lateral y para qué sirve | Navegar Unity Catalog (catálogo, esquema, tabla, volumen) y dar permisos | Elegir el cómputo correcto - serverless, clúster de uso general, de jobs o SQL warehouse | Armar un job con tareas y un pipeline declarativo, y llevarlos a producción con bundles
 prerrequisitos: databricks-que-es-databricks | databricks-unity-catalog
 autoevaluacion: ¿Sabes qué diferencia hay entre la cuenta y un workspace? | ¿Sabes en qué orden se nombran las tablas en Unity Catalog? | ¿Sabes cuándo usar un SQL warehouse y cuándo un clúster? | ¿Sabes qué diferencia hay entre un job y un pipeline declarativo? | ¿Sabes qué hace VACUUM y qué te impide hacer después?
 ---
@@ -130,12 +130,129 @@ Describes **qué tablas quieres** y Databricks resuelve el orden, el estado y lo
 
 **Data Ingestion** (Lakeflow Connect) trae datos de SaaS y bases de datos con conectores administrados, y **Lakeflow Designer** permite armar transformaciones de forma visual.
 
-## Lakehouse y Analytics: SQL, dashboards y Genie
+## Lakehouse y Analytics: SQL, dashboards, alertas y Genie
 
-- **SQL Editor**: escribir y ejecutar SQL contra un SQL warehouse, con autocompletado, Genie Code, parámetros, visualizaciones y edición colaborativa. **Queries** guarda las consultas y **Query History** muestra cada ejecución con su plan y duración.
-- **Dashboards** (AI/BI): tableros con datasets en SQL, visualizaciones, filtros y programación por correo; se publican con permisos propios.
-- **Genie Agents** (antes *Genie spaces*): espacios donde el negocio pregunta en lenguaje natural sobre tablas curadas, con instrucciones y ejemplos que define el equipo de datos.
-- **Alerts**: una consulta que se evalúa a horario y avisa si cumple una condición.
+Piensa en esta parte como **el lugar donde los datos se convierten en respuestas** para gente que no programa.
+
+- **SQL Editor**: escribes SQL y lo ejecutas contra un SQL warehouse, con autocompletado, parámetros y gráficos. **Queries** guarda tus consultas y **Query History** muestra cada ejecución con su duración.
+- **Dashboards** (AI/BI): un tablero se arma en tres pasos:
+  1. **Datasets**: una o más consultas SQL que traen los datos (por ejemplo, ventas por categoría y país).
+  2. **Widgets**: cada gráfico (barras, líneas, contador, tabla) usa un dataset y dice qué va en cada eje.
+  3. **Filtros**: un desplegable (por ejemplo *país*) que cambia todos los gráficos a la vez.
+
+  Mientras lo editas es un **borrador** (*draft*). Al **publicarlo** se congela una versión que ven los demás: puedes seguir cambiando el borrador sin romper lo que ya están mirando.
+- **Alerts**: una consulta que se ejecuta con un horario y **avisa** (correo, Slack) cuando el resultado cumple una condición. Ejemplo: "si los pedidos cancelados de hoy son más de 50, avísale al equipo". La alerta mira **la primera fila** del resultado y compara una columna contra un umbral.
+- **Genie Agents** (antes *Genie spaces*): alguien del negocio pregunta en castellano ("¿cuánto vendimos por categoría?") y Genie escribe el SQL, lo ejecuta y muestra la tabla o el gráfico. **Siempre puedes ver el SQL** que generó (*Show code*) para revisar que tenga sentido.
+
+:::tip Cómo hacer que Genie responda bien
+Genie no "adivina" el negocio: aprende de lo que el equipo de datos le enseña.
+
+1. **Pocas tablas y bien documentadas** (comentarios en tablas y columnas). Con 5 tablas claras responde mejor que con 25 confusas.
+2. **Instrucciones** con el vocabulario de la empresa, una por línea: `ventas = cantidad * precio_unitario`. Así, cuando alguien dice "ventas", Genie sabe qué cuenta hacer.
+3. **Consultas de ejemplo** (*SQL queries*): preguntas frecuentes con su SQL correcto. Cuando alguien pregunta lo mismo, Genie usa ese SQL tal cual.
+4. **Feedback**: cada 👎 es una pista de qué instrucción o ejemplo falta.
+:::
+
+En la réplica, el Genie Agent une las tablas por sus columnas `_id`, entiende "por mes", "en 2023", "top 5", "más baratos" y valores reales como "cancelados" o "Argentina", y te dice qué supuso ("Uní pedidos con clientes por cliente_id"). Es mucho más simple que el Genie real (que usa un modelo de lenguaje), pero sirve para aprender lo importante: **revisar el SQL** y **mejorar el espacio con instrucciones y ejemplos**.
+
+## Gobierno fino: quién ve qué filas y qué columnas
+
+`GRANT SELECT` es todo o nada: o ves la tabla o no la ves. Pero muchas veces la regla es más fina: *"el equipo de Argentina solo ve los clientes de Argentina"* o *"solo soporte ve el email completo"*. Para eso Unity Catalog tiene tres piezas que se usan juntas.
+
+**1. Una función SQL propia** (*UDF*). Es como una fórmula de Excel con nombre: recibe valores y devuelve un resultado.
+
+```sql norun
+CREATE FUNCTION main.default.con_iva(precio DOUBLE)
+RETURNS DOUBLE
+RETURN precio * 1.21;
+
+SELECT nombre, main.default.con_iva(precio) AS precio_final
+FROM samples.tienda.productos;
+```
+
+**2. Un filtro de fila** (*row filter*): una función que devuelve **verdadero o falso** para cada fila. Las filas con falso desaparecen para quien consulta, como si no existieran.
+
+```sql norun
+CREATE FUNCTION main.default.solo_mi_pais(pais STRING)
+RETURNS BOOLEAN
+RETURN is_account_group_member('admins') OR pais = 'Argentina';
+
+ALTER TABLE main.default.clientes
+  SET ROW FILTER main.default.solo_mi_pais ON (pais);
+```
+
+`is_account_group_member('admins')` pregunta "¿la persona que está consultando está en el grupo admins?". Si está, ve todo; si no, solo Argentina.
+
+**3. Una máscara de columna** (*column mask*): una función que recibe el valor real y devuelve lo que se muestra.
+
+```sql norun
+CREATE FUNCTION main.default.ocultar_email(email STRING)
+RETURNS STRING
+RETURN CASE WHEN is_account_group_member('soporte') THEN email
+            ELSE concat('***@', split(email, '@')[1]) END;
+
+ALTER TABLE main.default.clientes
+  ALTER COLUMN email SET MASK main.default.ocultar_email;
+```
+
+Quien no está en `soporte` ve `***@gmail.com`; quien está, ve el email completo. **Los datos guardados no cambian**: la máscara se aplica cada vez que alguien lee.
+
+:::warning El orden importa al quitarlos
+Primero quita el filtro o la máscara (`ALTER TABLE … DROP ROW FILTER` o `ALTER COLUMN … DROP MASK`) y **después** borra la función. Si borras la función primero, la tabla queda inaccesible hasta que quites la referencia.
+:::
+
+**Etiquetas** (*tags*): marcan qué es sensible para poder encontrarlo y auditarlo.
+
+```sql norun
+ALTER TABLE main.default.clientes SET TAGS ('dominio' = 'ventas');
+ALTER TABLE main.default.clientes ALTER COLUMN email SET TAGS ('pii' = 'email');
+
+SELECT * FROM main.information_schema.column_tags;   -- ¿dónde hay datos personales?
+SELECT * FROM main.information_schema.row_filters;    -- ¿qué tablas tienen filtro?
+```
+
+Con muchas tablas, Databricks recomienda **políticas ABAC**: reglas que se aplican solas a todas las columnas que tengan cierta etiqueta (por ejemplo, "enmascarar todo lo etiquetado `pii`"). Los filtros y máscaras por tabla que acabas de ver son la base para entenderlas.
+
+:::tip Pruébalo en la réplica
+En **Settings → Identity and access → Groups** puedes entrar y salir de los grupos `admins` y `soporte`. Consulta la tabla, cambia de grupo y vuelve a consultarla: verás aparecer y desaparecer filas, y el email pasar de oculto a visible.
+:::
+
+## Tablas de streaming desde el editor SQL
+
+No hace falta armar un pipeline para ingerir archivos de forma incremental: desde el SQL Editor puedes crear una **tabla de streaming independiente** (Databricks crea por detrás un pipeline administrado).
+
+```sql norun
+CREATE OR REFRESH STREAMING TABLE main.default.pedidos_bronze
+AS SELECT * FROM STREAM read_files('/Volumes/main/default/crudos/', format => 'csv', header => true);
+
+-- llegan archivos nuevos al volumen…
+REFRESH STREAMING TABLE main.default.pedidos_bronze;        -- procesa SOLO los archivos nuevos
+REFRESH STREAMING TABLE main.default.pedidos_bronze FULL;   -- borra todo y procesa desde cero
+```
+
+La palabra **`STREAM`** es lo que la hace incremental: la tabla **recuerda qué archivos ya leyó** y no los vuelve a leer. También puede leer de otra tabla con `FROM STREAM(main.default.otra_tabla)`, pero solo si a esa tabla **se le agregan filas** (*append-only*): si alguien borra o cambia filas de la fuente, el siguiente `REFRESH` falla y tienes que decidir si haces `FULL`.
+
+## Machine learning: Experiments y Models
+
+**MLflow** es el cuaderno de laboratorio del machine learning: cada vez que entrenas un modelo anota **qué probaste** y **qué tan bien salió**.
+
+| Pieza | Qué guarda | Ejemplo |
+|---|---|---|
+| **Experimento** | Una carpeta de intentos sobre el mismo problema | `/Users/tu@empresa.com/precio-envios` |
+| **Corrida** (*run*) | Un intento: **parámetros** (lo que elegiste) y **métricas** (el resultado) | `max_depth = 5` → `rmse = 2.1` |
+| **Modelo registrado** | El modelo guardado en Unity Catalog con nombre de tres partes y **versiones** | `main.default.precio_envio` versión 3 |
+| **Alias** | Un apodo que apunta a una versión | `@champion` = la versión que usa producción |
+
+```python norun
+import mlflow
+mlflow.set_registry_uri("databricks-uc")      # los modelos van a Unity Catalog
+with mlflow.start_run():
+    mlflow.log_param("max_depth", 5)
+    mlflow.log_metric("rmse", 2.1)
+    mlflow.sklearn.log_model(modelo, "modelo", registered_model_name="main.default.precio_envio")
+```
+
+En **Experiments** comparas corridas lado a lado para elegir la mejor; en **Models** le pones el alias `champion` a esa versión. Las aplicaciones cargan `models:/main.default.precio_envio@champion`: para cambiar de modelo en producción **solo mueves el alias**, sin tocar el código.
 
 ## Llevar a producción
 
@@ -148,9 +265,12 @@ Describes **qué tablas quieres** y Databricks resuelve el orden, el estado y lo
 | En la réplica | Todavía no |
 |---|---|
 | Workspace con carpetas, notebooks SQL y Python (Spark en el navegador), widgets, dbutils, `%run`, importar y exportar | Scala y R, carpetas Git conectadas a un repositorio, Genie Code |
-| Unity Catalog con catálogos, esquemas, tablas, vistas, volúmenes, GRANT, historial, viaje en el tiempo, MERGE, COPY INTO, `system` y `samples` | Tablas externas reales, linaje completo, etiquetas, Delta Sharing |
+| Unity Catalog con catálogos, esquemas, tablas, vistas, volúmenes, GRANT, historial, viaje en el tiempo, MERGE, COPY INTO, `system` y `samples` | Tablas externas reales, Delta Sharing, políticas ABAC |
+| Funciones SQL propias, filtros de fila, máscaras de columna, etiquetas, grupos (Settings) e `information_schema` con todo eso | Funciones en Python y funciones de tabla (`RETURNS TABLE`) |
 | Compute (clústeres y SQL warehouses con estados y terminación automática), jobs con tareas, Run if, parámetros y Repair | Escalado y rendimiento reales, triggers por llegada de archivos que se disparen solos |
-| Pipelines declarativos con expectativas y AUTO CDC, SQL Editor, consultas, historial | Dashboards AI/BI completos, Genie Agents, Playground, MLflow y Serving |
+| Pipelines declarativos con expectativas y AUTO CDC, tablas de streaming desde SQL con `REFRESH`, Structured Streaming y Auto Loader en notebooks | Kafka y fuentes en tiempo real |
+| Dashboards con datasets, widgets, filtros y publicación; alertas; Genie Agents con instrucciones, ejemplos y feedback | Programar envíos por correo; el modelo de lenguaje real de Genie |
+| MLflow: experimentos, corridas, comparación, registro de modelos en Unity Catalog y alias | Model Serving, Playground y AI Gateway |
 | Exportar como Asset Bundle | Desplegar en un workspace real (para eso: Databricks Free Edition) |
 
 :::ejercicio quiz
@@ -183,4 +303,44 @@ Un job de 5 tareas falló en la tarea 4. ¿Qué haces para no volver a correr la
 - [x] La tabla de streaming procesa solo los datos nuevos que llegan; la vista materializada guarda el resultado de una consulta y lo actualiza
 - [ ] La vista materializada no guarda datos
 - [ ] La tabla de streaming solo funciona con Kafka
+:::
+
+:::ejercicio quiz
+Los vendedores de cada país solo deben ver los clientes de su país en la tabla `clientes`. ¿Qué usas?
+- [ ] Una máscara de columna sobre `pais`
+- [x] Un filtro de fila: una función que devuelva verdadero solo para las filas de su país, aplicada con `ALTER TABLE … SET ROW FILTER`
+- [ ] `GRANT SELECT` a cada vendedor
+- [ ] Copiar la tabla una vez por país
+:::
+
+:::ejercicio quiz
+Aplicaste una máscara al email y ahora quieres eliminarla para siempre. ¿Qué orden es el correcto?
+- [ ] Primero `DROP FUNCTION` y después `ALTER COLUMN … DROP MASK`
+- [x] Primero `ALTER COLUMN … DROP MASK` y después `DROP FUNCTION`
+- [ ] Solo `DROP FUNCTION`: la máscara se quita sola
+- [ ] Hay que borrar la tabla
+:::
+
+:::ejercicio quiz
+Una tabla de streaming lee archivos de un volumen con `STREAM read_files(…)`. Llegan 2 archivos nuevos y ejecutas `REFRESH STREAMING TABLE`. ¿Qué pasa?
+- [ ] Vuelve a leer todos los archivos y duplica los datos
+- [x] Lee solo los 2 archivos nuevos y agrega sus filas; los que ya había leído no se vuelven a procesar
+- [ ] No hace nada hasta que ejecutes `FULL`
+- [ ] Borra la tabla y la crea de nuevo
+:::
+
+:::ejercicio quiz
+Genie responde mal a "¿cuánto facturamos por país?" porque no sabe qué es "facturar". ¿Qué es lo primero que haces?
+- [ ] Agregar las 25 tablas de la empresa al espacio
+- [x] Agregar una instrucción como `facturación = cantidad * precio_unitario` y una consulta de ejemplo con el SQL correcto
+- [ ] Pedirle al usuario que escriba SQL
+- [ ] Cambiar el SQL warehouse por uno más grande
+:::
+
+:::ejercicio quiz
+En MLflow, ¿para qué sirve el alias `@champion` de un modelo registrado?
+- [ ] Para borrar las versiones viejas
+- [x] Para que las aplicaciones carguen "la versión buena" por su apodo: cambiar de modelo en producción es mover el alias, sin cambiar el código
+- [ ] Para entrenar más rápido
+- [ ] Para compartir el modelo fuera de Databricks
 :::

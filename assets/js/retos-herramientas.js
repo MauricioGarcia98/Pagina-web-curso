@@ -79,6 +79,17 @@
         ['dbx-grant', 'Da un permiso con GRANT', 'GRANT SELECT ON TABLE main.default.… TO `analistas`', () => (uc().grants || []).length > 0],
         ['dbx-kv', 'Crea un secret scope respaldado por Azure Key Vault', 'Settings → Secret scopes (o databricks secrets create-scope --scope-backend-type AZURE_KEYVAULT).', () => val(dbx().scopes).some((s) => s.backend === 'AZURE_KEYVAULT')],
       ]],
+      ['Gobierno y analítica', [
+        ['dbx-udf', 'Crea una función SQL propia', "CREATE FUNCTION main.default.con_iva(precio DOUBLE) RETURNS DOUBLE RETURN precio * 1.21", () => ent(uc().catalogs).some(([, C]) => val(C.schemas).some((S) => Object.keys(S.functions || {}).length))],
+        ['dbx-rf', 'Protege una tabla con un filtro de fila', 'Una función que devuelva true/false (por ejemplo con is_account_group_member) y ALTER TABLE … SET ROW FILTER función ON (columna). Mira el efecto en Settings → Groups.', () => tablasUC().some((x) => x.T.filtroFila)],
+        ['dbx-mask', 'Oculta una columna sensible con una máscara', 'ALTER TABLE … ALTER COLUMN email SET MASK función (la función recibe el valor y devuelve lo que se muestra).', () => tablasUC().some((x) => Object.keys(x.T.mascaras || {}).length)],
+        ['dbx-tags', 'Etiqueta una columna con datos personales', "ALTER TABLE … ALTER COLUMN email SET TAGS ('pii' = 'email'); después búscalo en information_schema.column_tags.", () => tablasUC().some((x) => (x.T.cols || []).some((c) => Object.keys(c.tags || {}).length))],
+        ['dbx-st', 'Crea una tabla de streaming y procesa archivos nuevos con REFRESH', "Sube un CSV a un volumen, CREATE OR REFRESH STREAMING TABLE … AS SELECT * FROM STREAM read_files('/Volumes/…'), sube otro archivo y ejecuta REFRESH STREAMING TABLE.", () => tablasUC().some((x) => x.T.st && x.T.st.refrescos.some((r) => r.modo === 'incremental' && r.filas > 0))],
+        ['dbx-dash', 'Publica un dashboard con un filtro', 'Dashboards → Create → agrega una visualización y un filtro → Publish.', () => { const W = window.DBX && window.DBX.ws ? window.DBX.ws() : {}; return (W.dashboards || []).some((d) => d.publicado && (d.filtros || []).length); }],
+        ['dbx-alerta', 'Crea una alerta y evalúala', 'Alerts → Create alert → Evaluate now.', () => { const W = window.DBX && window.DBX.ws ? window.DBX.ws() : {}; return (W.alertas || []).some((a) => (a.historial || []).length); }],
+        ['dbx-genie', 'Enseña a un Genie Agent con una consulta de ejemplo', 'Genie Agents → tu agente → Configure → SQL queries (o "Guardar como ejemplo" en una respuesta correcta).', () => { const W = window.DBX && window.DBX.ws ? window.DBX.ws() : {}; return (W.genie || []).some((g) => (g.ejemplos || []).length); }],
+        ['dbx-mlflow', 'Registra un modelo en Unity Catalog y ponle el alias champion', 'Experiments → "Crear notebook de ejemplo", ejecútalo y en Models → Set alias.', () => { const W = window.DBX && window.DBX.ws ? window.DBX.ws() : {}; return val((W.mlflow || {}).modelos).some((m) => Object.keys(m.alias || {}).some((k) => /champion/i.test(k))); }],
+      ]],
     ] },
   };
 

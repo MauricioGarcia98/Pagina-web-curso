@@ -862,7 +862,7 @@
       }
       if (f === 'GENERATESERIES') {
         const [a, b, s] = [0, 1, 2].map((k) => (A[k] ? api.exec(`SELECT ${escalar(A[k], { ...env, ctx: [] })}`)[0][0] : 1));
-        const filas = []; for (let x = a; x <= b && filas.length < 100000; x += s || 1) filas.push([x]);
+        const paso = s || 1, filas = []; for (let i = 0; filas.length < 100000; i++) { const x = Number((a + i * paso).toPrecision(12)); if (x > b + Math.abs(paso) * 1e-9) break; filas.push([x]); }
         return materializar(['Value'], filas);
       }
       if (f === 'UNION') { const ts = A.map((x) => tabla(x, env)); return { sql: ts.map((x) => x.sql).join(' UNION ALL '), cols: ts[0].cols }; }

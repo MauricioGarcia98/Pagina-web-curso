@@ -1,8 +1,8 @@
 ---
 titulo: Power BI por dentro - qué es cada parte y para qué sirve
 nivel: Intermedio
-duracion: 45
-resumen: Recorrido completo por Power BI Desktop y el servicio - la cinta, las cinco vistas, los paneles, Power Query, la vista de modelo (modelado de datos), DAX, seguridad, publicación y licencias.
+duracion: 70
+resumen: Recorrido completo por Power BI Desktop y el servicio - la cinta, las vistas, los paneles, Power Query, la vista de modelo, DAX, el diseño del informe (drill, obtener detalles, marcadores, botones, interacciones, análisis, parámetros, IA), seguridad, publicación, actualización y formas de compartir.
 objetivos: Ubicar cada zona de Power BI Desktop y saber para qué sirve | Entender qué se hace en Power Query, en la vista de modelo y en la vista de informe | Modelar un esquema en estrella con relaciones, propiedades, jerarquías y tabla de fechas | Distinguir medida, columna calculada, tabla calculada, rol y grupo de cálculo | Saber qué pasa al publicar y qué licencia hace falta para compartir
 prerrequisitos: powerbi-power-bi-y-el-modelo | modelado-kimball
 autoevaluacion: ¿Sabes en qué vista se crean las relaciones y qué es la cardinalidad? | ¿Sabes cuándo usar una medida y cuándo una columna calculada? | ¿Sabes para qué sirve marcar una tabla como tabla de fechas? | ¿Sabes qué ve un usuario con un rol de seguridad por filas? | ¿Sabes qué diferencia hay entre un informe, un modelo semántico y un panel en el servicio?
@@ -148,6 +148,66 @@ La función más importante es **`CALCULATE`**: evalúa una expresión **cambian
 - **Seguridad de nivel de objeto (OLS)**: oculta tablas o columnas enteras a un rol (se configura en TMDL o herramientas externas).
 - **Grupos de cálculo**: una tabla especial con **elementos de cálculo** que usan `SELECTEDMEASURE()`. Un grupo "Inteligencia de tiempo" con *Actual*, *Año anterior* y *Acumulado* sirve para **todas** las medidas, en vez de escribir tres versiones de cada una.
 
+## Diseñar el informe: de "gráficos sueltos" a una herramienta que la gente usa
+
+Un informe no es solo poner gráficos. Es como armar una **revista interactiva**: tiene portada, botones para pasar de página, un índice y notas al pie. Estas son las piezas, en el orden en que suelen aparecer en un proyecto real.
+
+### Explorar en profundidad (drill down): bajar de lo general a lo particular
+
+Imagina una muñeca rusa: adentro de "Año" está "Trimestre", adentro está "Mes", adentro está "Día". Si pones **varios campos en el mismo eje** (o arrastras una **jerarquía** entera), el gráfico muestra primero el nivel de arriba y te deja bajar.
+
+Los botones aparecen arriba del gráfico al pasar el mouse:
+
+| Botón | Qué hace | Ejemplo |
+|---|---|---|
+| ↑ Subir | Vuelve al nivel anterior | De "meses" a "trimestres" |
+| ↓ Modo explorar | Si está prendido, un clic en una barra **entra** en ese valor | Clic en "Bikes" → ves solo las subcategorías de Bikes |
+| ↘ Siguiente nivel | Muestra el nivel de abajo para **todos** los valores | Todas las subcategorías, de todas las categorías |
+| ⤓ Expandir | Muestra el nivel de abajo **pegado** al de arriba | "Bikes · Road Bikes", "Bikes · Mountain Bikes"… |
+
+> **Pruébalo**: crea una jerarquía con clic derecho en una columna → *Crear jerarquía*; agrega niveles con clic derecho → *Agregar a jerarquía*. Después haz clic en la jerarquía del panel Datos con el lienzo vacío.
+
+### Obtener detalles (drillthrough): una página "lupa"
+
+Es una página preparada para mostrar **el detalle de una sola cosa**: un cliente, un producto, un país. Se arma así:
+
+1. Crea una página nueva (por ejemplo, "Detalle de producto").
+2. Sin nada seleccionado, en *Crear objeto visual*, arrastra el campo (por ejemplo, *Categoría*) al pozo **Obtener detalles**. Power BI agrega solo un **botón Atrás**.
+3. En cualquier otra página, **clic derecho** en un dato de ese campo → *Obtener detalles* → la página. Llegas filtrado por ese valor.
+
+### Marcadores, panel Selección y botones: informes que parecen una app
+
+- Un **marcador** es una **foto** del estado del informe: qué página, qué filtros, qué está seleccionado en cada segmentación y qué objetos se ven. Vista → *Marcadores* → *Agregar*.
+- El **panel Selección** (Vista → *Selección*) lista todo lo que hay en la página, en capas: lo de arriba de la lista queda adelante. Con el ojo ocultas o muestras cada objeto.
+- Un **botón** (Insertar → *Botones*) hace una **acción**: ir atrás, aplicar un marcador, ir a una página o abrir una URL. En Desktop se usa con **Ctrl + clic** (con clic solo lo seleccionas para editarlo); en el servicio alcanza con un clic.
+
+La receta clásica de "pestañas": dos gráficos superpuestos, un marcador con uno oculto y otro marcador con el otro oculto, y dos botones que aplican cada marcador.
+
+### Que los gráficos se hablen (o no): interacciones y segmentaciones sincronizadas
+
+- Por defecto, al hacer clic en una barra **se filtran los demás objetos** de la página. Con **Formato → Editar interacciones** eliges, para cada par de objetos, si filtra, resalta o **no hace nada** (ícono "Ninguno"). Sirve, por ejemplo, para que un gráfico de "Total histórico" no cambie con la segmentación de año.
+- **Sincronizar segmentaciones** (Vista) hace que una misma segmentación (por ejemplo, Año) filtre **varias páginas**. *Sincronizar* = filtra esa página; *Visible* = además se ve ahí.
+
+### Análisis, formato condicional y tooltips: que el número "se explique solo"
+
+- **Panel Análisis** (la lupa al lado de Formato): agrega líneas de referencia sobre el gráfico, como el **promedio**, un **objetivo fijo** (línea constante) o la **tendencia**. Así se ve de un vistazo qué está por encima o por debajo.
+- **Formato condicional** (el botón **fx**): pinta cada celda o barra según su valor. *Degradado*: del rojo (bajo) al verde (alto). *Reglas*: "si es menor que 0, rojo". También hay **barras de datos** dentro de las celdas e **íconos** (▲ ● ▼).
+- **Información sobre herramientas de página**: una página chiquita (tipo *Información sobre herramientas*) que aparece **al pasar el mouse** por un dato de otro gráfico, ya filtrada por ese dato.
+
+### Parámetros: que la persona juegue con "¿y si…?"
+
+- **Rango numérico** (Modelado → *Nuevo parámetro*): crea una tabla con valores (por ejemplo, descuento de 0 % a 50 %) y una medida que lee el valor elegido. Así puedes mostrar "¿cuánto venderíamos con un 10 % de descuento?" sin escribir nada más.
+- **Campos**: una segmentación que cambia **qué campo** está en el eje (por ejemplo, ver ventas por País, por Categoría o por Canal con el mismo gráfico).
+
+### Objetos visuales de IA
+
+| Objeto | Para qué | Cuidado |
+|---|---|---|
+| **Preguntas y respuestas** | Escribes "ventas por país" y arma el gráfico | Los nombres de las columnas tienen que ser claros (y sus *sinónimos* ayudan) |
+| **Árbol de descomposición** | Abrir un total por distintos campos, nivel por nivel, para encontrar el porqué | Con muchos campos se vuelve difícil de leer |
+| **Influenciadores clave** | Qué valores hacen que un número suba | Muestra relación, **no** causa |
+| **Narración inteligente** | Un párrafo que resume la página y se actualiza al filtrar | Revisa que diga lo que importa |
+
 ## Publicar y compartir
 
 Al pulsar **Publicar** eliges un **área de trabajo** del servicio. Ahí aparecen:
@@ -165,15 +225,39 @@ Al pulsar **Publicar** eliges un **área de trabajo** del servicio. Ahí aparece
 
 Para equipos: **canalizaciones de implementación** (desarrollo → prueba → producción) e **integración con Git** del área de trabajo usando el formato .pbip.
 
+### La actualización: por qué "anda en mi compu" pero falla en el servicio
+
+Tu informe en Desktop lee los datos **desde tu computadora**. El servicio vive **en la nube**: no puede entrar a tu disco ni a un servidor de tu oficina. Por eso, para que se actualice solo:
+
+1. **Puerta de enlace de datos local**: un programa que se instala en una computadora de la red (que esté siempre prendida). El servicio le pide los datos y ella se los busca. Los orígenes que ya están en la nube (Azure SQL, SharePoint Online) no la necesitan.
+2. **Credenciales del origen**: con qué usuario se conecta y su **nivel de privacidad**.
+3. **Actualización programada**: los horarios. Con Pro, hasta **8 por día**; con Premium o Fabric, hasta **48**.
+
+Si falta alguno de los tres, la actualización **falla** y el historial te dice por qué.
+
+> **Pruébalo**: en Desktop pulsa **Publicar**, abre el informe en el servicio de práctica, ve a su **Modelo semántico** y pulsa *Actualizar ahora* sin puerta de enlace. Lee el error, instala la puerta de enlace (simulada) en *Configuración*, asígnala y completa las credenciales: ahora sí funciona.
+
+### Tres formas de compartir (y cuándo usar cada una)
+
+| Forma | Para quién | Ejemplo |
+|---|---|---|
+| **Rol en el área de trabajo** | Quienes **construyen** el contenido | El equipo de datos (Miembro o Colaborador) |
+| **Compartir** un informe | **Pocas** personas puntuales | Tu jefa y dos compañeros |
+| **App** | **Muchas** personas que solo consumen | Toda el área de ventas |
+
+Recuerda: la seguridad por filas (RLS) se aplica a los **Visores**. Quien es Administrador, Miembro o Colaborador ve todo.
+
 ## Qué tiene la réplica y qué no
 
 | En la réplica | Todavía no |
 |---|---|
 | Obtener datos (CSV, Excel, JSON, bases del curso), Power Query con pasos y M, vistas Informe/Tabla/Modelo/DAX/TMDL | Conectores a bases reales y servicios en línea, DirectQuery, Direct Lake |
-| Relaciones con cardinalidad, dirección y activa/inactiva; detección automática | Panel Propiedades completo (carpetas, sinónimos, categoría de datos), jerarquías manuales, marcar tabla de fechas, varios diseños del diagrama |
+| Relaciones con cardinalidad, dirección y activa/inactiva; detección automática; panel Propiedades (nombre, carpetas, sinónimos, categoría, ordenar por columna), jerarquías, marcar tabla de fechas | Varios diseños del diagrama, relaciones de varios a varios con tabla puente automática |
 | Motor DAX con contexto de filtro, CALCULATE, iteradores, inteligencia de tiempo | Todas las funciones DAX, depuración y análisis de rendimiento |
-| 24 objetos visuales, formato, filtros, segmentaciones, filtrado cruzado, mapa simplificado | Mapas de Bing/Azure Maps reales, visuales personalizados, marcadores, obtención de detalles, Copilot |
-| RLS con Ver como, grupos de cálculo, exportación a TMDL | OLS, perspectivas, publicación real al servicio |
+| 28 objetos visuales (incluidos Preguntas y respuestas, Árbol de descomposición, Influenciadores clave y Narración inteligente), formato, formato condicional, panel Análisis, filtros, segmentaciones, filtrado cruzado | Mapas de Bing/Azure Maps reales, visuales personalizados de AppSource, Copilot |
+| Formas, botones, marcadores, panel Selección, explorar en profundidad, obtener detalles, tooltips de página, editar interacciones, sincronizar segmentaciones, parámetros de rango y de campos | Agrupar objetos visuales, temas JSON completos, informes paginados |
+| RLS con Ver como, grupos de cálculo, exportación a TMDL | OLS, perspectivas |
+| Servicio de práctica: publicar, áreas de trabajo y roles, actualización programada, puerta de enlace, credenciales, miembros de RLS, compartir, paneles, apps, aval, confidencialidad, linaje y canalizaciones | Cuentas reales, suscripciones por correo, alertas de datos, métricas |
 
 :::ejercicio quiz
 Tienes una tabla `ventas` (una fila por venta) y una tabla `clientes` (una fila por cliente). ¿Qué relación creas?
@@ -205,4 +289,28 @@ Los meses aparecen en el eje como "abril, agosto, diciembre…". ¿Cómo lo arre
 - [ ] El panel
 - [x] El modelo semántico
 - [ ] La aplicación
+:::
+
+:::ejercicio quiz
+Quieres que al hacer clic derecho en un producto, la persona vea una página con todo el detalle de ese producto. ¿Qué usas?
+- [ ] Un marcador
+- [x] Una página de Obtener detalles (drillthrough) con el campo Producto en su pozo
+- [ ] Sincronizar segmentaciones
+- [ ] Una línea de tendencia
+:::
+
+:::ejercicio quiz
+El informe se actualiza bien en Power BI Desktop, pero en el servicio la actualización programada falla con "No se pudo conectar con el origen de datos local". ¿Qué falta?
+- [ ] Una licencia Premium
+- [ ] Volver a publicar el informe
+- [x] Una puerta de enlace de datos local (y sus credenciales) configurada para el modelo semántico
+- [ ] Un panel con mosaicos
+:::
+
+:::ejercicio quiz
+Toda el área comercial (300 personas) necesita ver tres informes, pero nadie debe ver los cambios a medio hacer del equipo de datos. ¿Cuál es la mejor forma de distribuirlos?
+- [ ] Darles el rol Miembro en el área de trabajo
+- [ ] Compartir cada informe con las 300 personas
+- [x] Publicar una app desde el área de trabajo
+- [ ] Exportar los informes a PDF
 :::

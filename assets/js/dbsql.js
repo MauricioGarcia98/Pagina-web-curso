@@ -29,6 +29,10 @@
     grants: [], papelera: {}, historial: [], audit: [],
   });
   const uc = () => (Store.data.dbxUC = Store.data.dbxUC && Store.data.dbxUC.v === 1 ? Store.data.dbxUC : NUEVO_UC());
+  // grupos de la cuenta (Settings → Identity and access): deciden qué ven los filtros de fila y las máscaras
+  const GRUPOS_BASE = () => ({ users: [USUARIO], 'data-engineers': [USUARIO], analistas: [], admins: [], soporte: [] });
+  const grupos = () => { const U = uc(); return (U.grupos = U.grupos || GRUPOS_BASE()); };
+  const enGrupo = (g) => (grupos()[String(g)] || []).includes(USUARIO);
   const guardar = () => { try { Store.saveSoon ? Store.saveSoon() : Store.save(); } catch (e) { /* sin almacenamiento */ } };
 
   // catálogo samples: las bases del curso, de solo lectura
@@ -40,7 +44,7 @@
     return out;
   }
   const esSistema = (c) => c === 'system' || c === 'samples';
-  const SISTEMA = { billing: ['usage', 'list_prices'], access: ['audit', 'table_lineage'], query: ['history'], compute: ['clusters', 'warehouses'], lakeflow: ['jobs', 'job_run_timeline'], information_schema: ['catalogs', 'schemata', 'tables', 'columns'] };
+  const SISTEMA = { billing: ['usage', 'list_prices'], access: ['audit', 'table_lineage'], query: ['history'], compute: ['clusters', 'warehouses'], lakeflow: ['jobs', 'job_run_timeline'], information_schema: ['catalogs', 'schemata', 'tables', 'columns', 'table_tags', 'column_tags', 'row_filters', 'column_masks', 'routines'] };
 
   // nombre SQLite de un objeto de Unity Catalog
   const sqlNombre = (c, s, t) => `${c}__${s}__${t}`.replace(/[^\w]/g, '_');
@@ -128,6 +132,8 @@
     f('current_timestamp', () => isoTs(new Date()));
     f('now', () => isoTs(new Date()));
     f('current_user', () => USUARIO);
+    f('is_account_group_member', (g) => (enGrupo(g) ? 1 : 0));
+    f('is_member', (g) => (enGrupo(g) ? 1 : 0));
     f('current_catalog', () => uc().cur.catalog);
     f('current_schema', () => uc().cur.schema);
     f('current_database', () => uc().cur.schema);
@@ -194,6 +200,8 @@
     f('__spark_typeof', (x) => (x == null ? 'void' : typeof x === 'number' ? (Number.isInteger(x) ? 'bigint' : 'double') : 'string'));
     f('array', (...xs) => JSON.stringify(xs));
     f('size', (x) => { if (x == null) return -1; try { const v = JSON.parse(x); return Array.isArray(v) ? v.length : Object.keys(v).length; } catch (e) { return -1; } });
+    f('__udf', (et, v) => v);
+    f('__idx', (a, i) => { if (a == null) return null; let v; try { v = JSON.parse(a); } catch (e) { return null; } const r = Array.isArray(v) ? v[Number(i)] : v[String(i)]; return r === undefined ? null : typeof r === 'object' && r !== null ? JSON.stringify(r) : r; });
     f('split', (x, p) => (x == null ? null : JSON.stringify(String(x).split(new RegExp(p)))));
     f('array_contains', (a, v) => { try { return JSON.parse(a).includes(v) ? 1 : 0; } catch (e) { return null; } });
     f('get_json_object', (j, p) => { try { let v = JSON.parse(j); for (const k of String(p).replace(/^\$\.?/, '').split('.').filter(Boolean)) v = v == null ? null : v[k]; return v == null ? null : typeof v === 'object' ? JSON.stringify(v) : v; } catch (e) { return null; } });
@@ -358,6 +366,11 @@
     if (t === 'catalogs') return tablaTemporal('is_cat', ['catalog_name', 'catalog_owner', 'comment'], [...Object.entries(uc().catalogs).map(([k, C]) => [k, C.owner || USUARIO, C.comment || null]), ['samples', 'System user', 'Datos de ejemplo del curso'], ['system', 'System user', 'Tablas del sistema']]);
     if (t === 'schemata') return tablaTemporal('is_sch', ['catalog_name', 'schema_name', 'schema_owner', 'comment'], [...Object.entries(uc().catalogs).flatMap(([k, C]) => Object.entries(C.schemas).map(([s, x]) => [k, s, x.owner || USUARIO, x.comment || null])), ...Object.keys(S).map((s) => ['samples', s, 'System user', null])]);
     if (t === 'tables') return tablaTemporal('is_tab', ['table_catalog', 'table_schema', 'table_name', 'table_type', 'table_owner', 'comment', 'created'], todos.map((o) => [o.c, o.s, o.t, o.T.tipo || 'MANAGED', USUARIO, o.T.comment || null, o.T.creado || null]));
+    if (t === 'table_tags') return tablaTemporal('is_ttag', ['catalog_name', 'schema_name', 'table_name', 'tag_name', 'tag_value'], objs.flatMap((o) => Object.entries(o.T.tags || {}).map(([k, v]) => [o.c, o.s, o.t, k, v])));
+    if (t === 'column_tags') return tablaTemporal('is_ctag', ['catalog_name', 'schema_name', 'table_name', 'column_name', 'tag_name', 'tag_value'], objs.flatMap((o) => (o.T.cols || []).flatMap((c) => Object.entries(c.tags || {}).map(([k, v]) => [o.c, o.s, o.t, c.n, k, v]))));
+    if (t === 'row_filters') return tablaTemporal('is_rf', ['table_catalog', 'table_schema', 'table_name', 'filter_name', 'target_columns'], objs.filter((o) => o.T.filtroFila).map((o) => [o.c, o.s, o.t, o.T.filtroFila.fn, o.T.filtroFila.cols.join(',')]));
+    if (t === 'column_masks') return tablaTemporal('is_cm', ['table_catalog', 'table_schema', 'table_name', 'column_name', 'mask_name', 'using_columns'], objs.flatMap((o) => Object.entries(o.T.mascaras || {}).map(([c, mk]) => [o.c, o.s, o.t, c, mk.fn, (mk.usando || []).join(',') || null])));
+    if (t === 'routines') return tablaTemporal('is_rt', ['specific_catalog', 'specific_schema', 'specific_name', 'routine_type', 'data_type', 'routine_definition', 'routine_owner', 'comment'], Object.entries(uc().catalogs).filter(([k]) => !cat || k === cat).flatMap(([k, C]) => Object.entries(C.schemas).flatMap(([sn, S]) => Object.entries(S.functions || {}).map(([fn, F]) => [k, sn, fn, 'FUNCTION', String(F.returns || '').toUpperCase(), F.body, F.owner, F.comment || null]))));
     if (t === 'columns') return tablaTemporal('is_col', ['table_catalog', 'table_schema', 'table_name', 'column_name', 'ordinal_position', 'data_type', 'is_nullable', 'comment'], todos.flatMap((o) => (o.T.cols || []).map((c, i) => [o.c, o.s, o.t, c.n, i, String(c.t).toUpperCase(), c.notNull ? 'NO' : 'YES', c.comment || null])));
     return tablaTemporal('vacia', ['x'], []);
   }
@@ -377,7 +390,75 @@
   // ------------------------------------------------------------------ reescritura de una consulta
   const FIN_FROM = new Set(['WHERE', 'GROUP', 'ORDER', 'HAVING', 'LIMIT', 'UNION', 'EXCEPT', 'INTERSECT', 'WINDOW', 'QUALIFY', 'ON', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'FULL', 'CROSS', 'NATURAL', 'SELECT', 'SET', 'VALUES', 'WHEN', 'USING', 'PIVOT', 'LATERAL', 'TABLESAMPLE', 'VERSION', 'TIMESTAMP', 'OFFSET', 'MINUS']);
   const RESERVADAS = new Set([...FIN_FROM, 'AS', 'FROM', 'AND', 'OR', 'NOT', 'IN', 'IS', 'NULL', 'BY', 'DESC', 'ASC', 'CASE', 'THEN', 'ELSE', 'END', 'WITH', 'DISTINCT', 'ALL', 'INTO', 'TABLE', 'MATCHED']);
+  // ------------------------------------------------------------------ funciones SQL del alumno (UDF)
+  // CREATE FUNCTION f(x STRING) RETURNS BOOLEAN RETURN x = 'web' → cada llamada f(col) se reemplaza por su cuerpo
+  sesion.funcs = sesion.funcs || {};
+  function funcionesDe(c, s) { const S = uc().catalogs[c] && uc().catalogs[c].schemas[s]; if (!S) return null; return (S.functions = S.functions || {}); }
+  function buscarUdf(ids) {
+    const U = uc(); const p = ids.map((x) => String(x).toLowerCase());
+    if (p.length === 1 && sesion.funcs[p[0]]) return { full: p[0], temp: true, ...sesion.funcs[p[0]] };
+    if (p.length > 3) return null;
+    const full = p.length === 3 ? p : p.length === 2 ? [U.cur.catalog, ...p] : [U.cur.catalog, U.cur.schema, p[0]];
+    const F = funcionesDe(full[0], full[1]); return F && F[full[2]] ? { full: full.join('.'), ...F[full[2]] } : null;
+  }
+  const antNoWs = (A, i) => { let k = i - 1; while (k >= 0 && A[k].t === 'ws') k--; return k >= 0 ? A[k] : null; };
+  function expandirUdfs(T, prof = 0) {
+    if (prof > 8) err('ROUTINE_RECURSION', 'Una función se llama a sí misma demasiadas veces.');
+    let cambio = false; const out = [];
+    for (let i = 0; i < T.length; i++) {
+      const tk = T[i];
+      const ant = antNoWs(T, i);
+      if (esId(tk) && !(ant && ant.t === 'p' && ant.v === '.')) {
+        const ids = [tk.v]; let j = i;
+        while (T[j + 1] && T[j + 1].v === '.' && esId(T[j + 2])) { ids.push(T[j + 2].v); j += 2; }
+        const k = sig(T, j + 1);
+        const def = T[k] && T[k].t === 'p' && T[k].v === '(' && !(ant && W(ant, 'FROM', 'JOIN', 'FUNCTION', 'TABLE')) ? buscarUdf(ids) : null;
+        if (def) {
+          const { fin, args } = argsFuncion(T, k);
+          if (args.length !== def.params.length) err('WRONG_NUM_ARGS.WITHOUT_SUGGESTION', `The \`${def.full}\` requires ${def.params.length} parameters but the actual number is ${args.length}. SQLSTATE: 42605`);
+          const cuerpo = tokenizar(def.body); const sust = [];
+          for (let x = 0; x < cuerpo.length; x++) {
+            const c = cuerpo[x]; const a = antNoWs(cuerpo, x);
+            const pi = esId(c) && !(a && a.t === 'p' && a.v === '.') ? def.params.findIndex((p) => p.n.toLowerCase() === c.v.toLowerCase()) : -1;
+            if (pi >= 0) sust.push({ t: 'p', v: '(' }, ...args[pi], { t: 'p', v: ')' }); else sust.push(c);
+          }
+          const etiqueta = `${def.full}(${args.map((a) => unirOriginal(a).trim()).join(', ')})`;
+          out.push({ t: 'w', v: '__udf' }, { t: 'p', v: '(' }, { t: 's', v: etiqueta }, { t: 'p', v: ',' }, { t: 'p', v: '(' }, ...sust, { t: 'p', v: ')' }, { t: 'p', v: ')' }); i = fin; cambio = true; continue;
+        }
+        for (let x = i; x <= j; x++) out.push(T[x]);
+        i = j; continue;
+      }
+      out.push(tk);
+    }
+    return cambio ? expandirUdfs(out, prof + 1) : out;
+  }
+  // el encabezado de una columna sin alias muestra la llamada (main.default.f(x)), no el cuerpo expandido
+  function limpiarCol(n) {
+    let s0 = String(n), k;
+    while ((k = s0.indexOf("__udf('")) >= 0) {
+      let j = k + 7, et = '';
+      while (j < s0.length) { if (s0[j] === "'" && s0[j + 1] === "'") { et += "'"; j += 2; continue; } if (s0[j] === "'") break; et += s0[j++]; }
+      let d = 1, x = j + 1; for (; x < s0.length && d > 0; x++) { if (s0[x] === '(') d++; else if (s0[x] === ')') d--; }
+      s0 = s0.slice(0, k) + et + s0.slice(x);
+    }
+    return s0;
+  }
+  // filtros de fila y máscaras de columna: al leer la tabla se lee una vista que los aplica
+  function llamadaUdf(fn, cols, para) {
+    const def = buscarUdf(partes(fn));
+    if (!def) err('ROUTINE_NOT_FOUND', `La tabla tiene ${para} con la función ${fn}, pero esa función ya no existe. Vuelve a crearla o quita ${para} (ALTER TABLE … DROP ${para === 'un filtro de fila' ? 'ROW FILTER' : 'MASK'}).`);
+    return unir(traducirExpr(expandirUdfs(tokenizar(`${fn}(${cols.map((c) => '`' + c + '`').join(', ')})`))));
+  }
+  function conSeguridad(M) { return M && (M.filtroFila || (M.mascaras && Object.keys(M.mascaras).length)); }
+  function vistaSegura(M, nomFisico) {
+    const cols = M.cols.map((c) => { const mk = M.mascaras && M.mascaras[c.n]; return mk ? `${llamadaUdf(mk.fn, [c.n, ...(mk.usando || [])], 'una máscara')} AS ${q(c.n)}` : q(c.n); });
+    const where = M.filtroFila ? ` WHERE COALESCE(${llamadaUdf(M.filtroFila.fn, M.filtroFila.cols, 'un filtro de fila')}, 0)` : '';
+    const nom = `__seg_${nomFisico}`;
+    db.run(`DROP VIEW IF EXISTS ${q(nom)}`); db.run(`CREATE TEMP VIEW ${q(nom)} AS SELECT ${cols.join(', ')} FROM ${q(nomFisico)}${where}`);
+    return nom;
+  }
   function reescribir(T, ctx = {}) {
+    T = expandirUdfs(T);
     const lecturas = ctx.lecturas || [];
     // nombres de CTE: no son tablas de Unity Catalog
     const ctes = new Set();
@@ -420,6 +501,7 @@
             j = vk;
           }
           lecturas.push(ref);
+          if (conSeguridad(ref.meta) && !ctx.sinSeguridad) nom = vistaSegura(ref.meta, nom);
           out.push({ t: 'w', v: q(nom) });
           i = j;
           continue;
@@ -456,6 +538,19 @@
         const tipo = normTipo(unirOriginal(cuerpo.slice(as + 1)).trim());
         out.push({ t: 'w', v: `${W(tk, 'TRY_CAST') ? '__try_cast' : '__cast'}(${unir(traducirExpr(cuerpo.slice(0, as)))}, '${tipo}')` });
         i = fin; continue;
+      }
+      // arreglo[i] (base 0) y mapa['clave']: split(email, '@')[1], tags['pii']
+      if (tk.t === 'p' && tk.v === '[') {
+        let k = out.length - 1; while (k >= 0 && out[k].t === 'ws') k--;
+        const j = sig(T, i + 1), cierra = sig(T, j + 1);
+        if (out[k] && (out[k].v === ')' || esId(out[k])) && T[j] && (T[j].t === 'n' || T[j].t === 's') && T[cierra] && T[cierra].v === ']') {
+          let ini = k;
+          if (out[k].v === ')') { let d = 0; for (ini = k; ini >= 0; ini--) { if (out[ini].v === ')') d++; else if (out[ini].v === '(') { d--; if (d === 0) break; } } if (ini > 0 && out[ini - 1].t === 'w') ini--; }
+          else while (ini > 1 && out[ini - 1].v === '.' && (out[ini - 2].t === 'w' || out[ini - 2].t === 'b')) ini -= 2;
+          const expr = out.splice(ini, k - ini + 1);
+          out.push({ t: 'w', v: `__idx(${unir(expr)}, ${T[j].t === 's' ? lit(T[j].v) : T[j].v})` });
+          i = cierra; continue;
+        }
       }
       // x::tipo
       if (tk.t === 'p' && tk.v === '::') {
@@ -524,6 +619,7 @@
   // ------------------------------------------------------------------ archivos en volúmenes (read_files)
   let archivosAislados = null; // los ejercicios corren con sus propios archivos
   function archivos() { return archivosAislados || (window.CloudSim ? window.CloudSim.dbx().files : {}); }
+  let excluirArchivos = null, archivosLeidos = null;
   function leerArchivos(args) {
     const ruta = args[0] && args[0].find((x) => x.t === 's');
     if (!ruta) err('INVALID_PARAMETER_VALUE', "read_files necesita la ruta entre comillas: read_files('/Volumes/main/default/raw/archivo.csv', format => 'csv', header => true)");
@@ -535,9 +631,11 @@
     const lista = Object.keys(F).filter((k) => k === r || k.startsWith(r + '/')).filter((k) => !k.split('/').pop().startsWith('_') && !k.split('/').pop().startsWith('.'));
     if (!lista.length) err('PATH_NOT_FOUND', `Path does not exist: dbfs:${r}. SQLSTATE: 42K03`);
     const formato = (op.format || lista[0].split('.').pop() || 'csv').toLowerCase();
-    let cols = null; const filas = [];
+    let cols = null; const filas0 = [];
     for (const k of lista) {
       const txt = F[k];
+      const filas = excluirArchivos && excluirArchivos.has(k) ? [] : filas0;
+      if (archivosLeidos) archivosLeidos.push(k);
       if (formato === 'json') {
         const objs = txt.trim().startsWith('[') ? JSON.parse(txt) : txt.split('\n').filter((l) => l.trim()).map((l) => { try { return JSON.parse(l); } catch (e) { return { _corrupt_record: l }; } });
         cols = cols || [...new Set(objs.flatMap((o) => Object.keys(o)))];
@@ -552,6 +650,7 @@
         for (const l of lineas) filas.push(cols.map((_, i) => (l[i] === undefined || l[i] === '' ? null : l[i])));
       } else err('UNSUPPORTED_FILE_FORMAT', `En esta práctica read_files lee csv, json y text (pediste ${formato}).`);
     }
+    const filas = filas0;
     // inferencia de tipos (como inferSchema), salvo que se pida todo como texto
     const conTipos = String(op.inferschema || op.inferColumnTypes || 'true').toLowerCase() !== 'false';
     if (conTipos && formato === 'csv') for (let c = 0; c < cols.length; c++) { const vs = filas.map((f) => f[c]).filter((x) => x != null); if (vs.length && vs.every((x) => /^-?\d+(\.\d+)?$/.test(x))) for (const f of filas) if (f[c] != null) f[c] = Number(f[c]); }
@@ -694,12 +793,12 @@
     if ((x = m(/^SHOW\s+COLUMNS\s+(?:IN|FROM)\s+(\S+)$/i))) { const ref = resolver(x[1]); return R(['col_name'], columnas(ref).map((c) => [c.n])); }
     if ((x = m(/^SHOW\s+TBLPROPERTIES\s+(\S+)$/i))) { const ref = resolver(x[1]); return R(['key', 'value'], Object.entries((ref.meta && ref.meta.props) || {})); }
     if ((x = m(/^SHOW\s+CREATE\s+TABLE\s+(\S+)$/i))) { const ref = resolver(x[1]); return R(['createtab_stmt'], [[ddlDe(ref)]]); }
-    if ((x = m(/^SHOW\s+GRANTS?(?:\s+(`[^`]+`|\S+))?\s+ON\s+(CATALOG|SCHEMA|TABLE|VOLUME)\s+(\S+)$/i))) {
+    if ((x = m(/^SHOW\s+GRANTS?(?:\s+(`[^`]+`|\S+))?\s+ON\s+(CATALOG|SCHEMA|TABLE|VOLUME|FUNCTION)\s+(\S+)$/i))) {
       const obj = `${x[2].toUpperCase()} ${nombreObj(x[2], x[3])}`;
       const quien = x[1] && x[1].replace(/`/g, '');
       return R(['Principal', 'ActionType', 'ObjectType', 'ObjectKey'], [[USUARIO, 'OWN', x[2].toUpperCase(), obj.split(' ')[1]], ...U.grants.filter((g) => g.obj === obj && (!quien || g.principal === quien)).map((g) => [g.principal, g.priv, x[2].toUpperCase(), obj.split(' ')[1]])]);
     }
-    if (/^SHOW\s+(FUNCTIONS|USER\s+FUNCTIONS)/i.test(txt)) return R(['function'], ['abs', 'avg', 'collect_list', 'concat_ws', 'count', 'current_date', 'date_add', 'date_format', 'date_trunc', 'datediff', 'max', 'median', 'min', 'read_files', 'regexp_replace', 'sum', 'try_cast', 'try_divide'].map((f) => [f]));
+    if (/^SHOW\s+FUNCTIONS/i.test(txt)) return R(['function'], [...Object.entries(funcionesDe(U.cur.catalog, U.cur.schema) || {}).map(([n]) => `${U.cur.catalog}.${U.cur.schema}.${n}`), ...Object.keys(sesion.funcs), 'abs', 'avg', 'collect_list', 'concat_ws', 'count', 'current_date', 'date_add', 'date_format', 'date_trunc', 'datediff', 'max', 'median', 'min', 'read_files', 'regexp_replace', 'sum', 'try_cast', 'try_divide'].map((f) => [f]));
     // ---- CATALOG / SCHEMA / VOLUME
     if ((x = m(/^CREATE\s+CATALOG\s+(IF\s+NOT\s+EXISTS\s+)?(`?\w+`?)(?:\s+MANAGED\s+LOCATION\s+'[^']*')?(?:\s+COMMENT\s+'([^']*)')?$/i))) {
       const c = x[2].replace(/`/g, '').toLowerCase();
@@ -764,7 +863,7 @@
     if ((x = m(/^(?:DESCRIBE|DESC)(?:\s+TABLE)?(\s+EXTENDED)?\s+(\S+)$/i)) && !/^(DESCRIBE|DESC)\s+(HISTORY|DETAIL|QUERY|FUNCTION|VOLUME)\b/i.test(txt)) {
       const ref = resolver(x[2]); const cols = columnas(ref);
       const filas = cols.map((c) => [c.n, c.t, c.comment || null]);
-      if (x[1]) { const M = ref.meta || {}; filas.push(['', '', ''], ['# Detailed Table Information', '', ''], ['Catalog', ref.c || '', ''], ['Database', ref.s || '', ''], ['Table', ref.t || '', ''], ['Owner', M.owner || 'System user', ''], ['Created Time', M.creado || '', ''], ['Type', M.tipo || 'MANAGED', ''], ['Provider', 'delta', ''], ['Comment', M.comment || '', ''], ['Table Properties', JSON.stringify(M.props || {}), '']); }
+      if (x[1]) { const M = ref.meta || {}; filas.push(['', '', ''], ['# Detailed Table Information', '', ''], ['Catalog', ref.c || '', ''], ['Database', ref.s || '', ''], ['Table', ref.t || '', ''], ['Owner', M.owner || 'System user', ''], ['Created Time', M.creado || '', ''], ['Type', M.tipo || 'MANAGED', ''], ['Provider', 'delta', ''], ['Comment', M.comment || '', ''], ['Table Properties', JSON.stringify(M.props || {}), '']); if (M.tags && Object.keys(M.tags).length) filas.push(['Tags', Object.entries(M.tags).map(([k, v]) => (v ? `${k}=${v}` : k)).join(', '), '']); if (M.filtroFila) filas.push(['', '', ''], ['# Row Filter', '', ''], ['Name', M.filtroFila.fn, ''], ['Input Columns', M.filtroFila.cols.join(', '), '']); if (M.mascaras && Object.keys(M.mascaras).length) { filas.push(['', '', ''], ['# Column Masks', '', '']); for (const [c, mk] of Object.entries(M.mascaras)) filas.push([c, mk.fn, (mk.usando || []).length ? 'USING COLUMNS (' + mk.usando.join(', ') + ')' : '']); } if (M.st) filas.push(['', '', ''], ['# Streaming', '', ''], ['Query', M.st.consulta, ''], ['Last refresh', (M.st.refrescos[M.st.refrescos.length - 1] || {}).t || '', '']); }
       return R(['col_name', 'data_type', 'comment'], filas);
     }
     if ((x = m(/^DESCRIBE\s+VOLUME\s+(\S+)$/i))) { const p = partes(x[1]); const full = p.length === 3 ? p : [U.cur.catalog, U.cur.schema, p[p.length - 1]]; return R(['name', 'catalog', 'database', 'storage_location', 'volume_type'], [[full[2], full[0], full[1], `/Volumes/${full.join('/')}`, 'MANAGED']]); }
@@ -777,17 +876,17 @@
       return R(['path', 'name', 'size', 'modification_time'], [...hijos].map(([n0, sz]) => [`dbfs:${r}/${n0}${sz == null ? '/' : ''}`, n0 + (sz == null ? '/' : ''), sz || 0, Date.now()]));
     }
     // ---- GRANT / REVOKE
-    if ((x = m(/^GRANT\s+(.+?)\s+ON\s+(CATALOG|SCHEMA|DATABASE|TABLE|VOLUME|VIEW)\s+(\S+)\s+TO\s+(`[^`]+`|\S+)$/i))) {
+    if ((x = m(/^GRANT\s+(.+?)\s+ON\s+(CATALOG|SCHEMA|DATABASE|TABLE|VOLUME|VIEW|FUNCTION)\s+(\S+)\s+TO\s+(`[^`]+`|\S+)$/i))) {
       const tipo = x[2].toUpperCase() === 'DATABASE' ? 'SCHEMA' : x[2].toUpperCase() === 'VIEW' ? 'TABLE' : x[2].toUpperCase();
       const obj = `${tipo} ${nombreObj(tipo, x[3])}`;
       const privs = x[1].split(',').map((y) => y.trim().toUpperCase().replace(/\s+/g, ' '));
-      const VALIDOS = { CATALOG: ['USE CATALOG', 'USE SCHEMA', 'CREATE SCHEMA', 'CREATE TABLE', 'SELECT', 'MODIFY', 'ALL PRIVILEGES', 'BROWSE', 'READ VOLUME', 'WRITE VOLUME', 'CREATE VOLUME', 'CREATE FUNCTION', 'EXECUTE', 'APPLY TAG', 'MANAGE'], SCHEMA: ['USE SCHEMA', 'CREATE TABLE', 'CREATE VOLUME', 'CREATE FUNCTION', 'CREATE MATERIALIZED VIEW', 'SELECT', 'MODIFY', 'ALL PRIVILEGES', 'READ VOLUME', 'WRITE VOLUME', 'EXECUTE', 'APPLY TAG', 'MANAGE'], TABLE: ['SELECT', 'MODIFY', 'ALL PRIVILEGES', 'APPLY TAG', 'MANAGE'], VOLUME: ['READ VOLUME', 'WRITE VOLUME', 'ALL PRIVILEGES', 'APPLY TAG', 'MANAGE'] };
+      const VALIDOS = { CATALOG: ['USE CATALOG', 'USE SCHEMA', 'CREATE SCHEMA', 'CREATE TABLE', 'SELECT', 'MODIFY', 'ALL PRIVILEGES', 'BROWSE', 'READ VOLUME', 'WRITE VOLUME', 'CREATE VOLUME', 'CREATE FUNCTION', 'EXECUTE', 'APPLY TAG', 'MANAGE'], SCHEMA: ['USE SCHEMA', 'CREATE TABLE', 'CREATE VOLUME', 'CREATE FUNCTION', 'CREATE MATERIALIZED VIEW', 'SELECT', 'MODIFY', 'ALL PRIVILEGES', 'READ VOLUME', 'WRITE VOLUME', 'EXECUTE', 'APPLY TAG', 'MANAGE'], TABLE: ['SELECT', 'MODIFY', 'ALL PRIVILEGES', 'APPLY TAG', 'MANAGE'], VOLUME: ['READ VOLUME', 'WRITE VOLUME', 'ALL PRIVILEGES', 'APPLY TAG', 'MANAGE'], FUNCTION: ['EXECUTE', 'ALL PRIVILEGES', 'MANAGE'] };
       for (const p of privs) if (!VALIDOS[tipo].includes(p)) err('INVALID_PRIVILEGE', `Privilege ${p} is not valid for ${tipo.toLowerCase()}. Privilegios válidos: ${VALIDOS[tipo].join(', ')}.`);
       const quien = x[4].replace(/`/g, '');
       for (const p of privs) if (!U.grants.some((g) => g.obj === obj && g.priv === p && g.principal === quien)) U.grants.push({ obj, priv: p, principal: quien });
       audit('updatePermissions', { securable: obj, changes: privs.map((p) => ({ principal: quien, add: p })) }); guardar(); return OK();
     }
-    if ((x = m(/^REVOKE\s+(.+?)\s+ON\s+(CATALOG|SCHEMA|DATABASE|TABLE|VOLUME|VIEW)\s+(\S+)\s+FROM\s+(`[^`]+`|\S+)$/i))) {
+    if ((x = m(/^REVOKE\s+(.+?)\s+ON\s+(CATALOG|SCHEMA|DATABASE|TABLE|VOLUME|VIEW|FUNCTION)\s+(\S+)\s+FROM\s+(`[^`]+`|\S+)$/i))) {
       const tipo = x[2].toUpperCase() === 'DATABASE' ? 'SCHEMA' : x[2].toUpperCase() === 'VIEW' ? 'TABLE' : x[2].toUpperCase();
       const obj = `${tipo} ${nombreObj(tipo, x[3])}`; const quien = x[4].replace(/`/g, ''); const privs = x[1].split(',').map((y) => y.trim().toUpperCase());
       U.grants = U.grants.filter((g) => !(g.obj === obj && g.principal === quien && (privs.includes(g.priv) || privs.includes('ALL PRIVILEGES'))));
@@ -802,6 +901,29 @@
       else { const p = partes(x[2]); const col = p.pop(); const ref = resolver(p); const c = ref.meta.cols.find((y) => y.n.toLowerCase() === col.toLowerCase()); if (!c) err('UNRESOLVED_COLUMN.WITHOUT_SUGGESTION', `A column with name \`${col}\` cannot be resolved.`); c.comment = x[3] || null; }
       guardar(); return OK();
     }
+    // ---- FUNCTIONS (UDF de SQL)
+    if (/^CREATE\s+(OR\s+REPLACE\s+)?(TEMP(ORARY)?\s+)?FUNCTION\b/i.test(txt)) return crearFuncion(st);
+    if ((x = m(/^DROP\s+(TEMP(?:ORARY)?\s+)?FUNCTION\s+(IF\s+EXISTS\s+)?(\S+)$/i))) {
+      const def = buscarUdf(partes(x[3]));
+      if (!def) { if (x[2]) return OK(); err('ROUTINE_NOT_FOUND', `The routine ${x[3]} cannot be found. Verify the spelling and correctness of the schema and catalog. SQLSTATE: 42883`); }
+      if (def.temp) delete sesion.funcs[def.full]; else { const p = def.full.split('.'); delete funcionesDe(p[0], p[1])[p[2]]; }
+      guardar(); return OK();
+    }
+    if ((x = m(/^(?:DESCRIBE|DESC)\s+FUNCTION(\s+EXTENDED)?\s+(\S+)$/i))) {
+      const def = buscarUdf(partes(x[2]));
+      if (!def) { if (/^[a-z_]+$/i.test(x[2])) return R(['function_desc'], [[`Function: ${x[2]}`], ['Class: org.apache.spark.sql.catalyst.expressions (función integrada)'], [`Usage: mira la referencia de funciones de Databricks SQL para ${x[2]}`]]); err('ROUTINE_NOT_FOUND', `The routine ${x[2]} cannot be found.`); }
+      const filas = [[`Function:    ${def.full}`], [`Type:        SCALAR`], [`Input:       ${def.params.map((p) => `${p.n} ${p.t.toUpperCase()}`).join(', ') || '()'}`], [`Returns:     ${String(def.returns || 'inferido').toUpperCase()}`]];
+      if (x[1]) filas.push([`Comment:     ${def.comment || ''}`], [`Owner:       ${def.owner || USUARIO}`], [`Language:    SQL`], [`Body:        ${def.body}`], [`Created:     ${def.creado || ''}`]);
+      return R(['function_desc'], filas);
+    }
+    if ((x = m(/^SHOW\s+USER\s+FUNCTIONS(?:\s+(?:IN|FROM)\s+(\S+))?(?:\s+LIKE\s+'([^']*)')?$/i))) {
+      const p = x[1] ? partes(x[1]).map((y) => y.toLowerCase()) : [U.cur.catalog, U.cur.schema]; const [c, s0] = p.length === 2 ? p : [U.cur.catalog, p[0]];
+      const F = funcionesDe(c, s0) || {}; const l = [...Object.keys(F).map((n) => `${c}.${s0}.${n}`), ...Object.keys(sesion.funcs)];
+      return R(['function'], l.filter((n) => !x[2] || patron(x[2]).test(n.split('.').pop())).map((n) => [n]));
+    }
+    // ---- STREAMING TABLES desde el editor SQL
+    if (/^CREATE\s+(OR\s+REFRESH\s+)?STREAMING\s+(LIVE\s+)?TABLE\b/i.test(txt)) return crearStreaming(st);
+    if ((x = m(/^REFRESH\s+(STREAMING\s+)?TABLE\s+(\S+)(\s+FULL)?(?:\s+(?:SYNC|ASYNC))?$/i))) { const ref = resolver(x[2]); if (x[1] || (ref.meta && ref.meta.st)) return refrescarStreaming(ref, !!x[3]); return OK(); }
     // ---- CREATE TABLE / CTAS / CLONE / VIEW
     if (/^CREATE\s+(OR\s+REPLACE\s+)?(TEMP(ORARY)?\s+|GLOBAL\s+TEMP(ORARY)?\s+)?(MATERIALIZED\s+)?VIEW\b/i.test(txt)) return crearVista(st);
     if (/^(CREATE\s+(OR\s+REPLACE\s+)?|REPLACE\s+)(EXTERNAL\s+)?TABLE\b/i.test(txt)) return crearTabla(st);
@@ -890,7 +1012,7 @@
       const q2 = /\bQUALIFY\b/i.test(sql) ? conQualify(sql) : null;
       const r = db.exec(q2 ? q2.sql : sql);
       const ult = r[r.length - 1];
-      let cols = ult ? ult.columns : [], filas = ult ? ult.values : [];
+      let cols = ult ? ult.columns.map(limpiarCol) : [], filas = ult ? ult.values : [];
       if (q2) { const vis = cols.map((c, i) => (/^__q\d+$/.test(c) ? -1 : i)).filter((i) => i >= 0); cols = vis.map((i) => cols[i]); filas = filas.map((f) => vis.map((i) => f[i])); }
       return R(cols, filas, { tipos: tiposDe(cols, filas), lecturas: lecturas.filter((l) => !l.sistema).map((l) => `${l.c}.${l.s}.${l.t}`) });
     }
@@ -938,6 +1060,7 @@
     const U = uc(); const p = partes(nombre).map((y) => y.toLowerCase()); const T = String(tipo).toUpperCase();
     if (T === 'CATALOG') { if (!U.catalogs[p[0]]) err('NO_SUCH_CATALOG_EXCEPTION', `Catalog '${p[0]}' was not found.`); return p[0]; }
     if (T === 'SCHEMA' || T === 'DATABASE') { const c = p.length === 2 ? p[0] : U.cur.catalog, s = p[p.length - 1]; if (!U.catalogs[c] || !U.catalogs[c].schemas[s]) err('SCHEMA_NOT_FOUND', `The schema ${fq(c, s)} cannot be found.`); return `${c}.${s}`; }
+    if (T === 'FUNCTION') { const def = buscarUdf(p); if (!def || def.temp) err('ROUTINE_NOT_FOUND', `The routine ${nombre} cannot be found.`); return def.full; }
     if (T === 'VOLUME') { const full = p.length === 3 ? p : p.length === 2 ? [U.cur.catalog, ...p] : [U.cur.catalog, U.cur.schema, p[0]]; return full.join('.'); }
     const ref = resolver(p); return `${ref.c}.${ref.s}.${ref.t}`;
   }
@@ -956,7 +1079,7 @@
   }
   function ddlDe(ref) {
     const cols = columnas(ref); const M = ref.meta || {};
-    return `CREATE TABLE ${ref.c}.${ref.s}.${ref.t} (\n${cols.map((c) => `  ${c.n} ${c.t.toUpperCase()}${c.notNull ? ' NOT NULL' : ''}${c.comment ? ` COMMENT '${c.comment}'` : ''}`).join(',\n')}${Object.entries(M.checks || {}).map(([n, e]) => `,\n  CONSTRAINT ${n} CHECK (${e})`).join('')})\nUSING delta${(M.particion || []).length ? `\nPARTITIONED BY (${M.particion.join(', ')})` : ''}${(M.cluster || []).length ? `\nCLUSTER BY (${M.cluster.join(', ')})` : ''}${M.comment ? `\nCOMMENT '${M.comment}'` : ''}\nTBLPROPERTIES (\n${Object.entries(M.props || {}).map(([k, v]) => `  '${k}' = '${v}'`).join(',\n')})\n`;
+    return `CREATE TABLE ${ref.c}.${ref.s}.${ref.t} (\n${cols.map((c) => `  ${c.n} ${c.t.toUpperCase()}${c.notNull ? ' NOT NULL' : ''}${c.comment ? ` COMMENT '${c.comment}'` : ''}${M.mascaras && M.mascaras[c.n] ? ` MASK ${M.mascaras[c.n].fn}${(M.mascaras[c.n].usando || []).length ? ` USING COLUMNS (${M.mascaras[c.n].usando.join(', ')})` : ''}` : ''}`).join(',\n')}${Object.entries(M.checks || {}).map(([n, e]) => `,\n  CONSTRAINT ${n} CHECK (${e})`).join('')})\nUSING delta${(M.particion || []).length ? `\nPARTITIONED BY (${M.particion.join(', ')})` : ''}${(M.cluster || []).length ? `\nCLUSTER BY (${M.cluster.join(', ')})` : ''}${M.comment ? `\nCOMMENT '${M.comment}'` : ''}${M.filtroFila ? `\nWITH ROW FILTER ${M.filtroFila.fn} ON (${M.filtroFila.cols.join(', ')})` : ''}\nTBLPROPERTIES (\n${Object.entries(M.props || {}).map(([k, v]) => `  '${k}' = '${v}'`).join(',\n')})\n`;
   }
 
   function crearTabla(st) {
@@ -1040,6 +1163,107 @@
   }
   function linaje(de, a) { const U = uc(); U.linaje = U.linaje || []; if (!U.linaje.some((l) => l.de === de && l.a === a)) U.linaje.push({ de, a, t: ahora() }); }
 
+  function crearFuncion(st) {
+    const T = st.T, txt = st.texto;
+    const temp = /^CREATE\s+(OR\s+REPLACE\s+)?TEMP(ORARY)?\s+FUNCTION/i.test(txt), reemplazar = /^CREATE\s+OR\s+REPLACE\b/i.test(txt);
+    let i = T.findIndex((tk) => W(tk, 'FUNCTION')); i = sig(T, i + 1);
+    const siNo = W(T[i], 'IF'); if (siNo) i = sig(T, sig(T, sig(T, i + 1) + 1) + 1);
+    const ids = [T[i].v]; let j = i; while (T[j + 1] && T[j + 1].v === '.' && esId(T[j + 2])) { ids.push(T[j + 2].v); j += 2; }
+    const abre = sig(T, j + 1);
+    if (!T[abre] || T[abre].v !== '(') err('PARSE_SYNTAX_ERROR', 'Syntax error: CREATE FUNCTION nombre(param TIPO, …) RETURNS TIPO RETURN expresión');
+    const { fin, args } = argsFuncion(T, abre);
+    const params = args.map((a) => { const s0 = unirOriginal(a).trim(); const mm = /^`?(\w+)`?\s+(\w+(?:\s*\(\s*\d+\s*(?:,\s*\d+\s*)?\))?)/i.exec(s0); if (!mm) err('PARSE_SYNTAX_ERROR', `Parámetro mal escrito: "${s0}". La forma es nombre TIPO, por ejemplo email STRING.`); return { n: mm[1], t: normTipo(mm[2]) }; });
+    const resto = T.slice(fin + 1); const ir = resto.findIndex((tk) => W(tk, 'RETURN'));
+    const cab = unirOriginal(ir >= 0 ? resto.slice(0, ir) : resto).replace(/\s+/g, ' ').trim();
+    if (/\bLANGUAGE\s+PYTHON\b/i.test(cab)) err('UNSUPPORTED_FEATURE', 'Las funciones en Python (LANGUAGE PYTHON AS $$ … $$) existen en Databricks, pero esta práctica solo ejecuta funciones SQL: escribe RETURN <expresión SQL>.');
+    if (/\bRETURNS\s+TABLE\b/i.test(cab)) err('UNSUPPORTED_FEATURE', 'Las funciones de tabla (RETURNS TABLE) no están en esta práctica: usa una función escalar (devuelve un valor) o una vista.');
+    if (ir < 0) err('PARSE_SYNTAX_ERROR', 'Falta RETURN: CREATE FUNCTION f(x INT) RETURNS INT RETURN x + 1');
+    const body = unirOriginal(resto.slice(ir + 1)).trim();
+    if (!body) err('PARSE_SYNTAX_ERROR', 'Falta la expresión después de RETURN.');
+    const returns = ((/\bRETURNS\s+(\w+(?:\s*\(\s*\d+\s*(?:,\s*\d+\s*)?\))?)/i.exec(cab) || [])[1] || '').toLowerCase() || null;
+    const comment = (/\bCOMMENT\s+'((?:[^'\\]|\\.)*)'/i.exec(cab) || [])[1] || null;
+    // valida el cuerpo: solo puede usar los parámetros (y funciones)
+    const prueba = { params, body }; const nombreT = '__probar_udf';
+    sesion.funcs[nombreT] = prueba;
+    try { db.exec('SELECT ' + unir(reescribir(tokenizar(`${nombreT}(${params.map(() => 'NULL').join(', ')})`)))); }
+    catch (e) { const msg = String(e.message || e); const col = /no such column: "?([^"\s]+)"?/.exec(msg); err(col ? 'UNRESOLVED_COLUMN.WITHOUT_SUGGESTION' : 'INVALID_SQL_FUNCTION', col ? `A column, variable, or function parameter with name \`${col[1]}\` cannot be resolved. Dentro de la función solo existen sus parámetros (${params.map((p) => p.n).join(', ') || 'ninguno'}).` : `El cuerpo de la función no es válido: ${msg}`); }
+    finally { delete sesion.funcs[nombreT]; }
+    const def = { params, body, returns, comment, owner: USUARIO, creado: ahora() };
+    if (temp) { const n = ids[ids.length - 1].toLowerCase(); if (sesion.funcs[n] && !reemplazar) err('ROUTINE_ALREADY_EXISTS', `Cannot create the function \`${n}\` because it already exists.`); sesion.funcs[n] = def; return { cols: [], filas: [], msg: 'OK' }; }
+    const p = ids.map((y) => y.toLowerCase()); const full = p.length === 3 ? p : p.length === 2 ? [uc().cur.catalog, ...p] : [uc().cur.catalog, uc().cur.schema, p[0]];
+    if (esSistema(full[0])) err('PERMISSION_DENIED', `User does not have CREATE FUNCTION on Schema '${full[0]}.${full[1]}'.`);
+    const F = funcionesDe(full[0], full[1]); if (!F) err('SCHEMA_NOT_FOUND', `The schema ${fq(full[0], full[1])} cannot be found.`);
+    if (F[full[2]] && !reemplazar) { if (siNo) return { cols: [], filas: [], msg: 'OK' }; err('ROUTINE_ALREADY_EXISTS', `Cannot create the routine ${fq(...full)} because it already exists. Choose a different name, drop or replace the existing routine, or add the IF NOT EXISTS clause to tolerate a pre-existing routine. SQLSTATE: 42723`); }
+    F[full[2]] = def;
+    uc().audit.push({ t: ahora(), servicio: 'unityCatalog', accion: 'createFunction', params: { full_name_arg: full.join('.') } });
+    guardar(); return { cols: [], filas: [], msg: 'OK' };
+  }
+  // CREATE [OR REFRESH] STREAMING TABLE t AS SELECT … FROM STREAM read_files(…) | STREAM(tabla)
+  // Guarda qué archivos (o cuántas filas de la tabla fuente) ya procesó: REFRESH solo agrega lo nuevo.
+  const sinStream = (sql) => sql.replace(/\bSTREAM\s*\(\s*([\w.`]+)\s*\)/gi, '$1').replace(/\bSTREAM\s+(read_files)/gi, '$1').replace(/\bSTREAM\s+([\w.`]+)/gi, '$1');
+  function crearStreaming(st) {
+    const T = st.T;
+    let i = T.findIndex((tk) => W(tk, 'TABLE')); i = sig(T, i + 1);
+    const siNo = W(T[i], 'IF'); if (siNo) i = sig(T, sig(T, sig(T, i + 1) + 1) + 1);
+    const ids = [T[i].v]; let j = i; while (T[j + 1] && T[j + 1].v === '.' && esId(T[j + 2])) { ids.push(T[j + 2].v); j += 2; }
+    let k = j + 1, d = 0; for (; k < T.length; k++) { if (T[k].v === '(') d++; else if (T[k].v === ')') d--; else if (d === 0 && W(T[k], 'AS')) break; }
+    if (k >= T.length) err('PARSE_SYNTAX_ERROR', 'Syntax error: CREATE OR REFRESH STREAMING TABLE nombre AS SELECT * FROM STREAM read_files(\'/Volumes/…\', format => \'csv\')');
+    const cuerpo = unirOriginal(T.slice(k + 1)).trim();
+    if (!/\bSTREAM\b/i.test(cuerpo)) err('INVALID_STREAMING_SOURCE', 'Una tabla de streaming lee de una fuente de streaming: escribe FROM STREAM read_files(…) para archivos o FROM STREAM(catálogo.esquema.tabla) para una tabla. Si quieres recalcular todo cada vez, usa una vista materializada.');
+    const ref = resolver(ids, { crear: true, permitirVista: false });
+    if (ref.meta) {
+      if (ref.meta.st && /\bOR\s+REFRESH\b/i.test(st.texto)) return refrescarStreaming(ref, false);
+      if (siNo) return { cols: [], filas: [], msg: 'OK' };
+      err('TABLE_OR_VIEW_ALREADY_EXISTS', `Cannot create table or view ${fq(ref.c, ref.s, ref.t)} because it already exists. Usa CREATE OR REFRESH STREAMING TABLE para actualizarla.`);
+    }
+    const consulta = sinStream(cuerpo);
+    archivosLeidos = [];
+    let leidos;
+    try { ejecutarUna(sentencias(`CREATE TABLE ${fq(ref.c, ref.s, ref.t)} AS ${consulta}`)[0], {}); leidos = archivosLeidos; } finally { archivosLeidos = null; }
+    const M = uc().catalogs[ref.c].schemas[ref.s].tables[ref.t];
+    const n = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
+    M.tipo = 'STREAMING_TABLE';
+    M.st = { consulta, deArchivos: /\bread_files\b/i.test(consulta), archivos: [...new Set(leidos)], filasFuente: n, refrescos: [{ t: ahora(), filas: n, modo: 'inicial' }] };
+    guardar();
+    return { cols: ['num_inserted_rows'], filas: [[n]], msg: `Tabla de streaming creada: procesó ${n} fila(s)${M.st.deArchivos ? ` de ${M.st.archivos.length} archivo(s)` : ''}. Cuando lleguen datos nuevos, ejecuta REFRESH STREAMING TABLE ${ref.c}.${ref.s}.${ref.t}.` };
+  }
+  function refrescarStreaming(ref, completo) {
+    const M = ref.meta;
+    if (!M || M.tipo !== 'STREAMING_TABLE') err('EXPECT_STREAMING_TABLE', `${fq(ref.c, ref.s, ref.t)} no es una tabla de streaming.`);
+    if (M.pipeline) err('STREAMING_TABLE_OPERATION_NOT_ALLOWED', `${fq(ref.c, ref.s, ref.t)} la administra el pipeline "${M.pipelineNombre || M.pipeline}": se actualiza ejecutando ese pipeline (Start), no con REFRESH.`);
+    if (!M.st) err('EXPECT_STREAMING_TABLE', `${fq(ref.c, ref.s, ref.t)} no guarda su consulta de origen.`);
+    const S = M.st; const nombre = fq(ref.c, ref.s, ref.t);
+    if (completo) {
+      archivosLeidos = []; let leidos;
+      try { transaccion(() => { db.run(`DELETE FROM ${q(ref.sql)}`); ejecutarUna(sentencias(`INSERT INTO ${nombre} ${S.consulta}`)[0], {}); }); leidos = archivosLeidos; } finally { archivosLeidos = null; }
+      const n = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
+      S.archivos = [...new Set(leidos)]; S.filasFuente = n; S.refrescos.push({ t: ahora(), filas: n, modo: 'completo' }); guardar();
+      return { cols: ['num_inserted_rows'], filas: [[n]], msg: `Actualización completa (FULL): se borró todo y se volvió a procesar desde el principio (${n} filas).` };
+    }
+    let nuevas = 0;
+    if (S.deArchivos) {
+      const antes = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
+      excluirArchivos = new Set(S.archivos); archivosLeidos = []; let leidos;
+      try {
+        // ¿hay archivos nuevos? (si no, no se escribe nada ni se crea una versión)
+        const r = ejecutarUna(sentencias(`SELECT COUNT(*) AS n FROM (${S.consulta})`)[0], {});
+        if (r.filas[0][0] > 0) ejecutarUna(sentencias(`INSERT INTO ${nombre} ${S.consulta}`)[0], {});
+        leidos = archivosLeidos;
+      } finally { excluirArchivos = null; archivosLeidos = null; }
+      nuevas = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0] - antes;
+      const nuevosArch = [...new Set(leidos)].filter((k) => !S.archivos.includes(k));
+      S.archivos.push(...nuevosArch);
+      S.refrescos.push({ t: ahora(), filas: nuevas, modo: 'incremental', archivos: nuevosArch.length }); guardar();
+      return { cols: ['num_inserted_rows'], filas: [[nuevas]], msg: nuevas ? `Se procesaron ${nuevosArch.length} archivo(s) nuevo(s): ${nuevas} fila(s) agregadas. Los archivos que ya había leído no se vuelven a leer.` : 'No hay archivos nuevos: no se agregó nada (los ya procesados no se vuelven a leer).' };
+    }
+    const r = ejecutarUna(sentencias(S.consulta)[0], {});
+    if (r.filas.length < S.filasFuente) err('DELTA_SOURCE_TABLE_IGNORE_CHANGES', `Detected a data update in the source table. This is currently not supported. La tabla de origen perdió o cambió filas: un streaming solo acepta datos agregados al final (append). Si fue a propósito, ejecuta REFRESH STREAMING TABLE ${nombre} FULL.`);
+    const filas = r.filas.slice(S.filasFuente);
+    if (filas.length) ejecutarUna(sentencias(`INSERT INTO ${nombre} VALUES ${filas.map((f) => '(' + f.map(lit).join(', ') + ')').join(', ')}`)[0], {});
+    S.filasFuente = r.filas.length; nuevas = filas.length;
+    S.refrescos.push({ t: ahora(), filas: nuevas, modo: 'incremental' }); guardar();
+    return { cols: ['num_inserted_rows'], filas: [[nuevas]], msg: nuevas ? `Se agregaron ${nuevas} fila(s) nuevas de la tabla de origen.` : 'La tabla de origen no tiene filas nuevas: no se agregó nada.' };
+  }
   function crearVista(st) {
     const txt = st.texto; const T = st.T;
     const temp = /\bTEMP(ORARY)?\s+VIEW\b/i.test(txt);
@@ -1124,7 +1348,27 @@
       for (const n of x[1].split(',').map((y) => y.trim().replace(/`/g, ''))) { const i = M.cols.findIndex((y) => y.n.toLowerCase() === n.toLowerCase()); if (i < 0) err('UNRESOLVED_COLUMN.WITHOUT_SUGGESTION', `A column with name \`${n}\` cannot be resolved.`); db.run(`ALTER TABLE ${q(ref.sql)} DROP COLUMN ${q(M.cols[i].n)}`); M.cols.splice(i, 1); }
       registrarVersion(ref, 'DROP COLUMNS', { columns: x[1] }, {}); return { cols: [], filas: [], msg: 'OK' };
     }
-    err('PARSE_SYNTAX_ERROR', 'ALTER TABLE soportado en esta práctica: RENAME TO, ADD COLUMNS, ALTER COLUMN … COMMENT / SET NOT NULL, ADD/DROP CONSTRAINT … CHECK, SET TBLPROPERTIES, CLUSTER BY, RENAME COLUMN, DROP COLUMN, OWNER TO.');
+    const OKA = () => { guardar(); return { cols: [], filas: [], msg: 'OK' }; };
+    const colDe = (n) => { const c = M.cols.find((y) => y.n.toLowerCase() === n.replace(/`/g, '').toLowerCase()); if (!c) err('UNRESOLVED_COLUMN.WITHOUT_SUGGESTION', `A column with name \`${n}\` cannot be resolved.`); return c; };
+    const udf = (n, nParams) => { const def = buscarUdf(partes(n)); if (!def) err('ROUTINE_NOT_FOUND', `The routine ${n} cannot be found. Créala antes: CREATE FUNCTION ${n}(…) RETURN …`); if (def.temp) err('INVALID_PARAMETER_VALUE', 'Un filtro de fila o una máscara necesita una función de Unity Catalog (catálogo.esquema.función), no una temporal.'); if (nParams != null && def.params.length !== nParams) err('WRONG_NUM_ARGS.WITHOUT_SUGGESTION', `La función ${def.full} recibe ${def.params.length} parámetro(s) y le pasas ${nParams}.`); return def; };
+    if ((x = /^ALTER TABLE \S+ SET ROW FILTER (\S+) ON \(([^)]*)\)$/i.exec(txt))) {
+      const cols = x[2].split(',').map((y) => y.trim()).filter(Boolean).map((y) => colDe(y).n);
+      const def = udf(x[1], cols.length); M.filtroFila = { fn: def.full, cols };
+      uc().audit.push({ t: ahora(), servicio: 'unityCatalog', accion: 'updateRowFilter', params: { table: `${ref.c}.${ref.s}.${ref.t}`, function: def.full } }); return OKA();
+    }
+    if (/^ALTER TABLE \S+ DROP ROW FILTER$/i.test(txt)) { delete M.filtroFila; return OKA(); }
+    if ((x = /^ALTER TABLE \S+ ALTER COLUMN (\S+) SET MASK (\S+?)(?: USING COLUMNS \(([^)]*)\))?$/i.exec(txt))) {
+      const c = colDe(x[1]); const usando = (x[3] || '').split(',').map((y) => y.trim()).filter(Boolean).map((y) => colDe(y).n);
+      const def = udf(x[2], 1 + usando.length); M.mascaras = M.mascaras || {}; M.mascaras[c.n] = { fn: def.full, usando };
+      uc().audit.push({ t: ahora(), servicio: 'unityCatalog', accion: 'updateColumnMask', params: { table: `${ref.c}.${ref.s}.${ref.t}`, column: c.n, function: def.full } }); return OKA();
+    }
+    if ((x = /^ALTER TABLE \S+ ALTER COLUMN (\S+) DROP MASK$/i.exec(txt))) { const c = colDe(x[1]); if (M.mascaras) delete M.mascaras[c.n]; return OKA(); }
+    const leerTags = (s0) => [...s0.matchAll(/'([^']+)'\s*(?:=\s*'([^']*)')?/g)].map((mm) => [mm[1], mm[2] ?? '']);
+    if ((x = /^ALTER TABLE \S+ SET TAGS \((.+)\)$/i.exec(txt))) { M.tags = M.tags || {}; for (const [k, v] of leerTags(x[1])) M.tags[k] = v; return OKA(); }
+    if ((x = /^ALTER TABLE \S+ UNSET TAGS \((.+)\)$/i.exec(txt))) { for (const [k] of leerTags(x[1])) if (M.tags) delete M.tags[k]; return OKA(); }
+    if ((x = /^ALTER TABLE \S+ ALTER COLUMN (\S+) SET TAGS \((.+)\)$/i.exec(txt))) { const c = colDe(x[1]); c.tags = c.tags || {}; for (const [k, v] of leerTags(x[2])) c.tags[k] = v; return OKA(); }
+    if ((x = /^ALTER TABLE \S+ ALTER COLUMN (\S+) UNSET TAGS \((.+)\)$/i.exec(txt))) { const c = colDe(x[1]); for (const [k] of leerTags(x[2])) if (c.tags) delete c.tags[k]; return OKA(); }
+    err('PARSE_SYNTAX_ERROR', 'ALTER TABLE soportado en esta práctica: RENAME TO, ADD COLUMNS, ALTER COLUMN … COMMENT / SET NOT NULL / SET MASK / DROP MASK / SET TAGS, ADD/DROP CONSTRAINT … CHECK, SET TBLPROPERTIES, SET ROW FILTER / DROP ROW FILTER, SET TAGS / UNSET TAGS, CLUSTER BY, RENAME COLUMN, DROP COLUMN, OWNER TO.');
   }
 
   // INSERT INTO|OVERWRITE [TABLE] t [(cols)] VALUES … | SELECT …
@@ -1409,8 +1653,9 @@
     await init({ Store });
     const ref = resolver(nombre);
     const cols = columnas(ref);
-    const n = db.exec(`SELECT COUNT(*) FROM ${q(ref.sql)}`)[0].values[0][0];
-    const muestra = db.exec(`SELECT * FROM ${q(ref.sql)} LIMIT 100`)[0];
+    const lectura = conSeguridad(ref.meta) ? vistaSegura(ref.meta, ref.sql) : ref.sql;
+    const n = db.exec(`SELECT COUNT(*) FROM ${q(lectura)}`)[0].values[0][0];
+    const muestra = db.exec(`SELECT * FROM ${q(lectura)} LIMIT 100`)[0];
     return { ref: { c: ref.c, s: ref.s, t: ref.t }, cols, filas: n, muestra: muestra ? { cols: muestra.columns, filas: muestra.values } : { cols: cols.map((c) => c.n), filas: [] }, meta: ref.meta || null, solo: !!ref.solo, ddl: ddlDe(ref), linaje: (uc().linaje || []).filter((l) => l.a === `${ref.c}.${ref.s}.${ref.t}` || l.de === `${ref.c}.${ref.s}.${ref.t}`), grants: uc().grants.filter((g) => g.obj === `TABLE ${ref.c}.${ref.s}.${ref.t}`) };
   }
   // tablas creadas o modificadas desde fuera (notebook con Python): se registran en Unity Catalog
@@ -1436,7 +1681,7 @@
   // datos de las tablas del alumno, para pasarlas a Spark (notebooks en Python)
   async function tablasAlumno() {
     await init({ Store });
-    return objetosUC().filter((o) => o.T.tipo !== 'VIEW').map((o) => { const r = db.exec(`SELECT * FROM ${q(sqlNombre(o.c, o.s, o.t))}`)[0]; return { nombre: `${o.c}.${o.s}.${o.t}`, cols: o.T.cols.map((c) => c.n), filas: r ? r.values : [], version: (o.T.versiones || []).length }; });
+    return objetosUC().filter((o) => o.T.tipo !== 'VIEW').map((o) => { const fis = sqlNombre(o.c, o.s, o.t); const r = db.exec(`SELECT * FROM ${q(conSeguridad(o.T) ? vistaSegura(o.T, fis) : fis)}`)[0]; return { nombre: `${o.c}.${o.s}.${o.t}`, cols: o.T.cols.map((c) => c.n), filas: r ? r.values : [], version: (o.T.versiones || []).length }; });
   }
   // el pipeline marca sus tablas (tipo STREAMING_TABLE / MATERIALIZED_VIEW) y puede escribirlas
   async function comoPipeline(fn) { enPipeline = true; try { return await fn(); } finally { enPipeline = false; } }
@@ -1461,5 +1706,5 @@
   }
   function reiniciar() { Store.data.dbxUC = NUEVO_UC(); sesion.temp = {}; listo = null; db = null; guardar(); }
 
-  window.DBSQL = { aislado, comoPipeline, marcarPipeline, filasDe, init, ejecutar, arbol, infoTabla, registrarDesdeDatos, tablasAlumno, uc: () => uc(), samples, sentencias, tokenizar, reiniciar, parseCsv, archivos, ErrorDbx, _db: () => db };
+  window.DBSQL = { aislado, comoPipeline, marcarPipeline, filasDe, init, ejecutar, arbol, infoTabla, registrarDesdeDatos, tablasAlumno, uc: () => uc(), grupos: () => grupos(), USUARIO, samples, sentencias, tokenizar, reiniciar, parseCsv, archivos, ErrorDbx, _db: () => db };
 })();
