@@ -537,6 +537,10 @@ def displayHTML(h):
 FileInfo = _col.namedtuple('FileInfo', 'path name size modificationTime')
 SecretScope = _col.namedtuple('SecretScope', 'name')
 SecretMetadata = _col.namedtuple('SecretMetadata', 'key')
+def _sync_fs():
+    # los archivos de los volúmenes (dbutils.fs, subidas, CLI) también los lee spark.read / readStream
+    for k in [k for k in _ps._FILES if k.startswith(('/Volumes/', '/FileStore/', '/dbfs/', '/Workspace/', '/tmp/')) and k not in _DBX['files']]: del _ps._FILES[k]
+    for k, v in _DBX['files'].items(): _ps._FILES[k] = v
 class _Fs:
     def _n(self, p):
         p = str(p)
@@ -560,7 +564,7 @@ class _Fs:
     def put(self, p, contents, overwrite=False):
         k = self._n(p)
         if k in _DBX['files'] and not overwrite: raise Exception("java.nio.file.FileAlreadyExistsException: %s (usa overwrite=True)" % p)
-        _DBX['files'][k] = str(contents); _DBX['fs'][k] = str(contents)
+        _DBX['files'][k] = str(contents); _DBX['fs'][k] = str(contents); _sync_fs()
         print('Wrote %d bytes.' % len(str(contents).encode('utf-8')))
         return True
     def rm(self, p, recurse=False):
@@ -568,18 +572,20 @@ class _Fs:
         for x in list(_DBX['files']):
             if x == k or (recurse and x.startswith(k + '/')):
                 del _DBX['files'][x]; _DBX['fs'][x] = None; hubo = True
+        _sync_fs()
         return hubo
     def mkdirs(self, p): return True
     def cp(self, a, b, recurse=False):
         a, b = self._n(a), self._n(b)
         if a in _DBX['files']:
             destino = b + a.split('/')[-1] if b.endswith('/') else b
-            _DBX['files'][destino] = _DBX['files'][a]; _DBX['fs'][destino] = _DBX['files'][a]; return True
+            _DBX['files'][destino] = _DBX['files'][a]; _DBX['fs'][destino] = _DBX['files'][a]; _sync_fs(); return True
         if not recurse: raise Exception("java.io.FileNotFoundException: %s (si es una carpeta usa recurse=True)" % a)
         for x in list(_DBX['files']):
             if x.startswith(a.rstrip('/') + '/'):
                 d2 = b.rstrip('/') + x[len(a.rstrip('/')):]
                 _DBX['files'][d2] = _DBX['files'][x]; _DBX['fs'][d2] = _DBX['files'][x]
+        _sync_fs()
         return True
     def mv(self, a, b, recurse=False):
         self.cp(a, b, recurse); self.rm(a, recurse); return True
@@ -637,6 +643,7 @@ def _dbx_run(payload):
     d = _json.loads(payload)
     _DBX['cur'] = d.get('cur') or _DBX['cur']
     _DBX['files'] = d.get('files') or {}
+    _sync_fs()
     _DBX['secrets'] = d.get('secrets') or {}
     _DBX['widgets'] = d.get('widgets') or {}
     _DBX['fs'] = {}; _DBX['wdefs'] = {}; _DBX['tvout'] = {}
@@ -679,7 +686,8 @@ def _dbx_run(payload):
         if '__' in k and _DBX['snap'].get(k) != id(v):
             r = _filas(v, 200000)
             if r: escritas.append({'nombre': '.'.join(k.split('__')), 'cols': r[0], 'filas': r[1]})
-    print('\x01POST' + _json.dumps({'escritas': escritas, 'fs': _DBX['fs'], 'wdefs': _DBX['wdefs'], 'exit': salida, 'error': error, 'tv': _DBX['tvout']}, default=str) + '\x02')
+    _mlf = __import__('sys').modules.get('mlflow')
+    print('\x01POST' + _json.dumps({'escritas': escritas, 'fs': _DBX['fs'], 'wdefs': _DBX['wdefs'], 'exit': salida, 'error': error, 'tv': _DBX['tvout'], 'mlflow': _mlf._exportar() if _mlf and hasattr(_mlf, '_exportar') else None}, default=str) + '\x02')
 _BASE = set(globals().keys()) | {'_BASE'}
 def _dbx_reset():
     g = globals()
@@ -735,6 +743,7 @@ def _dbx_reset():
       if (post) {
         if (post.error) salidas.push({ tipo: 'error', v: `${post.error.tipo}: ${post.error.msg}`, linea: post.error.linea, codigo: post.error.codigo });
         if (post.exit != null) salidas.push({ tipo: 'texto', v: `Notebook exited: ${post.exit}` });
+        if (post.mlflow && D.sincronizarMlflow) D.sincronizarMlflow(post.mlflow);
         for (const [k, v] of Object.entries(post.fs || {})) { if (v == null) delete C.files[k]; else C.files[k] = v; }
         if (Object.keys(post.fs || {}).length) D.cliGuardar();
         for (const t of post.escritas || []) { try { await window.DBSQL.registrarDesdeDatos(t.nombre, t.cols, t.filas, 'overwrite', 'WRITE'); } catch (e) { salidas.push({ tipo: 'error', v: e.message }); } }

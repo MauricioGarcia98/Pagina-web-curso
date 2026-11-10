@@ -1908,6 +1908,8 @@ class DataFrameReader:
             raise AnalysisException("[PATH_NOT_FOUND] La ruta no existe: %s. Rutas disponibles: %s"
                                     % (path, sorted(set(list(_FILES.keys()) + ["/datos/%s.csv" % k for k in _all_table_names()]))))
         if isinstance(df, str):
+            if self._fmt == "json":
+                return self._parse_json_text(df)
             return self._parse_csv_text(df)
         if self._fmt == "csv" and not _truthy(self._opts.get("inferSchema")) and self._schema is None:
             # como Spark: sin inferSchema todas las columnas son string
@@ -1921,6 +1923,19 @@ class DataFrameReader:
             sch = T._parse_schema(self._schema) if isinstance(self._schema, str) else self._schema
             out = out.select(*[F_col(c).cast(f.dataType).alias(f.name) for c, f in zip(out.columns, sch.fields)])
         return out
+
+    def _parse_json_text(self, text):
+        import json as _js
+        t = text.strip()
+        datos = _js.loads(t) if t.startswith("[") else [_js.loads(l) for l in t.splitlines() if l.strip()]
+        if isinstance(datos, dict):
+            datos = [datos]
+        cols = []
+        for r in datos:
+            for k in r:
+                if k not in cols:
+                    cols.append(k)
+        return self._s.createDataFrame([tuple(r.get(c) for c in cols) for r in datos], cols)
 
     def _parse_csv_text(self, text):
         import csv
@@ -2465,3 +2480,305 @@ def _load_sample_tables(tables):
                 types.append(T.StringType())
         out[name] = DataFrame(cols, [tuple(r) for r in rows], None, types)
     return out
+
+
+# --------------------------------------------------------------------- Structured Streaming y Auto Loader
+# Un DataFrame "streaming" no tiene datos todavía: guarda las transformaciones (el plan) y las aplica a cada
+# micro-lote. Cada consulta recuerda en su checkpoint qué archivos (o cuántas filas de una tabla) ya procesó,
+# así una segunda corrida solo lee lo nuevo. trigger(availableNow=True) procesa lo disponible y termina.
+_CHECKPOINTS = {}    # ruta del checkpoint -> {"archivos": set, "filas": int, "lotes": int, "todo": [DataFrame]}
+_STREAMS = []        # consultas activas
+
+
+def _archivos_bajo(ruta):
+    base = ruta.rstrip("/")
+    if base in _FILES:
+        return [base]
+    return sorted(k for k in _FILES if k.startswith(base + "/"))
+
+
+class DataStreamReader:
+    def __init__(self, session):
+        self._s = session
+        self._fmt = "parquet"
+        self._opts = {}
+        self._schema = None
+
+    def format(self, f):
+        self._fmt = f
+        return self
+
+    def option(self, k, v):
+        self._opts[k] = v
+        return self
+
+    def options(self, **kw):
+        self._opts.update(kw)
+        return self
+
+    def schema(self, s):
+        self._schema = s
+        return self
+
+    def load(self, path=None):
+        if path is None:
+            raise AnalysisException("load() necesita una ruta")
+        fmt = self._opts.get("cloudFiles.format") if self._fmt == "cloudFiles" else self._fmt
+        if self._fmt == "cloudFiles" and not fmt:
+            raise AnalysisException("[CF_MISSING_OPTION] Auto Loader necesita la opción cloudFiles.format (csv, json o parquet).")
+        return StreamingDataFrame(self._s, {"tipo": "archivos", "ruta": path.rstrip("/"), "fmt": fmt, "opts": dict(self._opts),
+                                            "schema": self._schema, "autoloader": self._fmt == "cloudFiles"}, [])
+
+    def csv(self, path, **kw):
+        self._fmt = "csv"
+        self._opts.update(kw)
+        return self.load(path)
+
+    def json(self, path, **kw):
+        self._fmt = "json"
+        return self.load(path)
+
+    def table(self, name):
+        self._s.table(name)   # valida que exista
+        return StreamingDataFrame(self._s, {"tipo": "tabla", "nombre": name.lower()}, [])
+
+
+class StreamingDataFrame:
+    """Un DataFrame de streaming: las transformaciones se guardan y se aplican a cada micro-lote."""
+    isStreaming = True
+
+    def __init__(self, session, fuente, plan):
+        self._s = session
+        self._fuente = fuente
+        self._plan = plan
+
+    def __getattr__(self, nombre):
+        if nombre.startswith("_"):
+            raise AttributeError(nombre)
+        agrupado = bool(self._plan) and self._plan[-1][0] in ("groupBy", "groupby", "rollup", "cube", "pivot")
+        if nombre in ("show", "collect", "count", "toPandas", "take", "first", "head") and not (agrupado and nombre == "count"):
+            def no(*a, **k):
+                raise AnalysisException("[QUERIES_WITH_STREAMING_SOURCES] Las consultas con fuentes de streaming se ejecutan con "
+                                        "writeStream.start() o .toTable(). Para ver los datos, escribe en una tabla y léela con spark.table(), "
+                                        "o usa display(df) en un notebook de Databricks.")
+            return no
+
+        def registrar(*a, **k):
+            return StreamingDataFrame(self._s, self._fuente, self._plan + [(nombre, a, k)])
+        return registrar
+
+    def _lote(self, nuevos):
+        """Arma el DataFrame de un micro-lote con las entradas nuevas y le aplica el plan."""
+        obj = nuevos
+        for nombre, a, k in self._plan:
+            obj = getattr(obj, nombre)(*a, **k)
+        return obj
+
+    def _leer_archivo(self, ruta):
+        f = self._fuente
+        r = DataFrameReader(self._s).format(f["fmt"] or "parquet").options(**{k: v for k, v in f["opts"].items() if not k.startswith("cloudFiles.")})
+        if f["fmt"] == "csv" and "header" not in f["opts"]:
+            r.option("header", "true")
+        if f["autoloader"] and f["fmt"] == "csv" and f["opts"].get("cloudFiles.inferColumnTypes") in (True, "true"):
+            r.option("inferSchema", "true")
+        if f["schema"] is not None:
+            r.schema(f["schema"])
+        df = r.load(ruta)
+        if f["autoloader"] and "_rescued_data" not in df.columns:
+            from . import functions as _F
+            df = df.withColumn("_rescued_data", _F.lit(None).cast("string"))
+        return df
+
+    @property
+    def columns(self):
+        return self._ejemplo().columns
+
+    @property
+    def schema(self):
+        return self._ejemplo().schema
+
+    def printSchema(self):
+        return self._ejemplo().printSchema()
+
+    def _ejemplo(self):
+        f = self._fuente
+        if f["tipo"] == "tabla":
+            return self._lote(self._s.table(f["nombre"]))
+        arch = _archivos_bajo(f["ruta"])
+        if not arch:
+            raise AnalysisException("[PATH_NOT_FOUND] No hay archivos en %s todavía." % f["ruta"])
+        return self._lote(self._leer_archivo(arch[0]))
+
+    @property
+    def writeStream(self):
+        return DataStreamWriter(self)
+
+
+class StreamingQuery:
+    def __init__(self, nombre, progreso, activa):
+        import uuid
+        self.id = str(uuid.uuid4())
+        self.runId = str(uuid.uuid4())
+        self.name = nombre
+        self.isActive = activa
+        self.lastProgress = progreso
+        self.recentProgress = [progreso] if progreso else []
+        self.status = {"message": "Waiting for data to arrive" if activa else "Stopped", "isDataAvailable": False, "isTriggerActive": False}
+
+    def awaitTermination(self, timeout=None):
+        return True
+
+    def stop(self):
+        self.isActive = False
+        self.status["message"] = "Stopped"
+
+    def explain(self):
+        print("== Physical Plan ==\nMicroBatchScan (mini-Spark)")
+
+    def __repr__(self):
+        return "<StreamingQuery id=%s name=%s isActive=%s>" % (self.id, self.name, self.isActive)
+
+
+class DataStreamWriter:
+    def __init__(self, sdf):
+        self._sdf = sdf
+        self._fmt = "delta"
+        self._modo = "append"
+        self._opts = {}
+        self._trigger = {}
+        self._nombre = None
+        self._foreach = None
+
+    def format(self, f):
+        self._fmt = f
+        return self
+
+    def outputMode(self, m):
+        m = m.lower()
+        if m not in ("append", "complete", "update"):
+            raise AnalysisException("outputMode tiene que ser append, complete o update")
+        self._modo = m
+        return self
+
+    def option(self, k, v):
+        self._opts[k] = v
+        return self
+
+    def options(self, **kw):
+        self._opts.update(kw)
+        return self
+
+    def trigger(self, availableNow=None, once=None, processingTime=None, continuous=None):
+        self._trigger = {"availableNow": availableNow, "once": once, "processingTime": processingTime}
+        return self
+
+    def queryName(self, n):
+        self._nombre = n
+        return self
+
+    def partitionBy(self, *cols):
+        return self
+
+    def foreachBatch(self, fn):
+        self._foreach = fn
+        return self
+
+    def toTable(self, nombre):
+        return self._correr(("tabla", nombre.lower()))
+
+    def start(self, path=None):
+        if self._foreach is None and path is None and self._fmt not in ("console", "memory"):
+            raise AnalysisException("start() necesita una ruta de destino, o usa .toTable('catalogo.esquema.tabla').")
+        return self._correr(("ruta", path.rstrip("/")) if path else (self._fmt, self._nombre))
+
+    def _correr(self, destino):
+        sdf = self._sdf
+        cp = self._opts.get("checkpointLocation") or sdf._s.conf.get("spark.sql.streaming.checkpointLocation", None)
+        if not cp and destino[0] not in ("console", "memory"):
+            raise AnalysisException('checkpointLocation must be specified either through option("checkpointLocation", ...) or '
+                                    'SparkSession.conf.set("spark.sql.streaming.checkpointLocation", ...). '
+                                    "El checkpoint es donde el stream recuerda qué ya procesó: sin él volvería a leer todo.")
+        agrega = any(n in ("groupBy", "groupby", "agg", "rollup", "cube") for n, _, _ in sdf._plan)
+        if agrega and self._modo == "append" and not any(n == "withWatermark" for n, _, _ in sdf._plan):
+            raise AnalysisException("[STREAMING_OUTPUT_MODE.UNSUPPORTED_OPERATION] Append output mode not supported when there are "
+                                    "streaming aggregations on streaming DataFrames/DataSets without watermark. "
+                                    "Usa .outputMode('complete') (reescribe el resultado entero) o agrega withWatermark.")
+        estado = _CHECKPOINTS.setdefault(cp or ("__" + str(destino)), {"archivos": set(), "filas": 0, "lotes": 0, "todo": []})
+        f = sdf._fuente
+        if f["tipo"] == "archivos":
+            todos = _archivos_bajo(f["ruta"])
+            nuevos = [a for a in todos if a not in estado["archivos"]]
+            partes = [sdf._leer_archivo(a) for a in nuevos]
+            entrada = None
+            for p in partes:
+                entrada = p if entrada is None else entrada.unionByName(p, allowMissingColumns=True)
+            desc = ("CloudFilesSource[%s]" if f["autoloader"] else "FileStreamSource[%s]") % f["ruta"]
+        else:
+            tabla = sdf._s.table(f["nombre"])
+            filas = tabla.collect()
+            nuevas = filas[estado["filas"]:]
+            entrada = sdf._s.createDataFrame([tuple(r) for r in nuevas], tabla.columns) if nuevas else None
+            nuevos = nuevas
+            desc = "DeltaSource[%s]" % f["nombre"]
+        n_in = entrada.count() if entrada is not None else 0
+        progreso = {"id": None, "batchId": estado["lotes"], "numInputRows": n_in, "sources": [{"description": desc, "numInputRows": n_in}],
+                    "sink": {"description": str(destino[1] if destino[0] != "console" else "console")}}
+        if entrada is not None and n_in:
+            if self._modo == "complete":
+                estado["todo"].append(entrada)
+                total = estado["todo"][0]
+                for x in estado["todo"][1:]:
+                    total = total.unionByName(x, allowMissingColumns=True)
+                lote = sdf._lote(total)
+            else:
+                lote = sdf._lote(entrada)
+            if self._foreach is not None:
+                self._foreach(lote, estado["lotes"])
+            elif destino[0] == "tabla":
+                try:
+                    sdf._s.table(destino[1])
+                    existe = True
+                except Exception:
+                    existe = False
+                w = lote.write.mode("overwrite" if self._modo == "complete" or not existe else "append")
+                w.saveAsTable(destino[1])
+            elif destino[0] == "ruta":
+                lote.write.mode("overwrite" if self._modo == "complete" or destino[1] not in _FILES else "append").save(destino[1])
+            elif destino[0] == "console":
+                print("-------------------------------------------\nBatch: %d\n-------------------------------------------" % estado["lotes"])
+                lote.show()
+            elif destino[0] == "memory":
+                _CATALOG[(destino[1] or "memoria").lower()] = lote
+            estado["lotes"] += 1
+        if f["tipo"] == "archivos":
+            estado["archivos"].update(nuevos)
+        else:
+            estado["filas"] += len(nuevos)
+        continua = not (self._trigger.get("availableNow") or self._trigger.get("once"))
+        if n_in:
+            print("✔ Stream: el lote %d procesó %d fila(s)%s (%s)" % (progreso["batchId"], n_in, " de %d archivo(s) nuevo(s)" % len(nuevos) if f["tipo"] == "archivos" else "", "modo " + self._modo))
+        else:
+            print("✔ Stream: no hay datos nuevos desde la última corrida (el checkpoint ya los tenía).")
+        if continua:
+            print("  (trigger continuo: en un cluster real seguiría esperando datos; aquí se procesó lo disponible. Detén la consulta con query.stop())")
+        q = StreamingQuery(self._nombre, progreso, continua)
+        if continua:
+            _STREAMS.append(q)
+        return q
+
+
+def _read_stream(self):
+    return DataStreamReader(self)
+
+
+SparkSession.readStream = property(_read_stream)
+DataFrame.isStreaming = False
+
+
+class _Streams:
+    @property
+    def active(self):
+        return [q for q in _STREAMS if q.isActive]
+
+
+SparkSession.streams = property(lambda self: _Streams())
