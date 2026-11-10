@@ -908,3 +908,14 @@ body:not(.herr-on) #pbsInforme .pbi.pb-lectura { top: 88px; }
 .pb-narr p { margin: 0 0 8px; }
 .pb-narr small { color: var(--pb-dim); display: flex; gap: 4px; align-items: center; }
 .pb-narr .fl { width: 12px; height: 12px; }
+
+/* leyenda a un costado y posiciones de la leyenda en circular/anillo */
+.pb-ley-fila { display: flex; align-items: flex-start; gap: 6px; }
+.pb-ley-lado { width: 112px; flex: none; max-height: 100%; }
+.pb-donut-izq { flex-direction: row-reverse; justify-content: flex-end; }
+.pb-donut-arriba { flex-direction: column-reverse; align-items: flex-start; gap: 2px; }
+.pb-donut-abajo { flex-direction: column; align-items: flex-start; gap: 2px; }
+.pb-donut-arriba .pb-ley, .pb-donut-abajo .pb-ley { height: 22px; flex: none; }
+/* pestañas del panel Visualizaciones: caben las tres sin partir el texto en 3 líneas */
+.pb-viz-tabs span { font-size: 12px; padding-left: 6px; padding-right: 6px; line-height: 1.25; }
+.pb-fsec-c > .pb-dim.small { padding-left: 12px; }
