@@ -14,6 +14,10 @@ Ahora que conoces las palabras que más se repiten, imagina esta situación de t
 No hace falta hablar inglés para entenderla: con el vocabulario de esta lección y un traductor al lado, alcanza para la mayoría de los casos. El resto se aprende de a poco, usándolo.
 :::
 
+:::analogia En palabras simples
+El inglés técnico es como el idioma de las señales de tránsito: son pocas, se repiten siempre y, una vez que las conoces, entiendes cualquier calle. "Error", "file", "not found", "run" o "missing" aparecen todo el tiempo. Con unas cincuenta palabras entiendes la mayoría de los mensajes.
+:::
+
 ## Por qué todo está en inglés
 
 Casi todos los lenguajes y herramientas se crearon pensando en una audiencia mundial, y el inglés quedó como idioma común. Los nombres de los comandos son palabras en inglés simplificadas: `list` (listar), `copy` → `cp`, `move` → `mv`, `make directory` → `mkdir`. Saber la palabra original te ayuda a **recordar** el comando.

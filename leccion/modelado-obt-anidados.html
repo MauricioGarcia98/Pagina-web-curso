@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Tablas anchas (OBT), datos anidados y agregados</h1><p class="resumen">Cuándo conviene juntar todo en una tabla ancha, cómo modelar con estructuras anidadas en plataformas columnares y cómo diseñar tablas agregadas para tableros rápidos.</p>
 <a class="cta" href="../index.html#/l/modelado-obt-anidados">▶ Abrir la lección interactiva (4 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir una tabla ancha (One Big Table) a partir de una estrella y explicar sus ventajas y riesgos</li><li>Modelar relaciones uno a muchos con estructuras anidadas (STRUCT/ARRAY o JSON)</li><li>Diseñar tablas agregadas para tableros y saber cuándo se justifican</li><li>Elegir entre estrella, OBT y anidados según el motor y el consumo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>A veces, en lugar de guardar las cosas en muchas cajas pequeñas, conviene una sola caja grande con todo junto: más fácil de llevar y de abrir, aunque se repitan cosas. Una tabla ancha (OBT) es eso: todas las columnas en una sola tabla, rápida de consultar y fácil de usar para quien no sabe hacer joins.</p>
+</div>
+
+
 <h2>One Big Table (OBT)</h2>
 <p>Una <strong>OBT</strong> (tabla ancha) es la tabla de hechos con <strong>todos los atributos de las dimensiones ya unidos</strong>: una sola tabla con 50 o 100 columnas. Se construye <strong>a partir</strong> de la estrella, no en lugar de ella:</p>
 <figure class="diagrama"><figcaption>La OBT se genera desde la estrella; la estrella sigue siendo la fuente de verdad</figcaption></figure>

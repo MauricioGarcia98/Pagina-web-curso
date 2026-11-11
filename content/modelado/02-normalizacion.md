@@ -22,6 +22,10 @@ La gerente de Posada Andina te comparte la planilla con la que manejan las reser
 Eso que "cada tanto pasa" tiene nombre: **anomalías**. La normalización es el método para eliminarlas.
 :::
 
+:::analogia En palabras simples
+Normalizar es como ordenar una agenda donde escribiste la dirección de tu amiga en cada cumpleaños, en cada cena y en cada mensaje. Si se muda, tienes que corregirla en veinte lugares. Normalizar es anotarla una sola vez y, en todos lados, poner solo "ver contacto de Ana".
+:::
+
 ## Las tres anomalías de una tabla plana
 
 Guardar todo en una sola tabla parece cómodo, pero provoca tres problemas:

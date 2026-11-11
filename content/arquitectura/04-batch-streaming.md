@@ -16,6 +16,10 @@ La gerente de producto de Ruta (la app de viajes) llega con un pedido distinto a
 Dos necesidades con latencias muy distintas sobre los mismos datos: segundos para la tarifa y un día para finanzas. Esta lección explica cómo se diseñan.
 :::
 
+:::analogia En palabras simples
+Procesar en batch es como un colectivo que pasa cada hora y lleva a todos los que esperan. Streaming es como un taxi que sale apenas llega cada pasajero. El micro-batch está en el medio: un colectivo que pasa cada pocos segundos. La elección depende de cuánto puede esperar quien usa el dato.
+:::
+
 ## El espectro de la latencia
 
 ```diagrama

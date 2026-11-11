@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Spark en tu máquina: PySpark local, Jupyter y spark-submit</h1><p class="resumen">Instala Java y PySpark, entiende qué significa correr Spark en modo local, desarrolla en notebooks de Jupyter dentro de VS Code, mira la Spark UI y ejecuta un job completo con spark-submit. Incluye la alternativa en Docker y cómo dimensionar la memoria.</p>
 <a class="cta" href="../index.html#/l/local-spark-local">▶ Abrir la lección interactiva (5 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Instalar Java 17 y PySpark y comprobar que Spark arranca</li><li>Explicar el modo local[*] y en qué se diferencia de un clúster</li><li>Desarrollar con PySpark en un notebook de Jupyter y leer la Spark UI</li><li>Ejecutar un script de PySpark con spark-submit y ajustar la memoria del driver</li><li>Leer y escribir Parquet particionado en tu disco</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Spark está pensado para trabajar con muchas computadoras, pero también corre en una sola, como un equipo de fútbol que entrena con un solo jugador para aprender las jugadas. En tu computadora practicas con datos chicos el mismo código que después corre con millones de filas.</p>
+</div>
+
+
 <h2>Spark en modo local</h2>
 <p>En un clúster, Spark tiene un <strong>driver</strong> (coordina) y varios <strong>executors</strong> en distintas máquinas (procesan). En <strong>modo local</strong>, todo corre en <strong>un proceso de tu computadora</strong>, y los &quot;executors&quot; son los núcleos de tu procesador.</p>
 <figure class="diagrama"><figcaption>El mismo código, dos lugares donde correr</figcaption></figure>

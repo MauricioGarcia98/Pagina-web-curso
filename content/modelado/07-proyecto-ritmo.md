@@ -16,6 +16,10 @@ El director de producto de **Ritmo** te asigna tu primer proyecto de modelado co
 Vas a hacerlo como en un proyecto real: requisitos, diseño, construcción y validación.
 :::
 
+:::analogia En palabras simples
+Este proyecto es como armar un mueble completo después de haber practicado cada tipo de unión por separado: juntas el modelo conceptual, la normalización, las estrellas y las dimensiones que cambian en un solo diseño para un negocio real.
+:::
+
 ## Paso 1: de las preguntas a los procesos
 
 Agrupa las preguntas del negocio por **proceso** (evento que se mide):

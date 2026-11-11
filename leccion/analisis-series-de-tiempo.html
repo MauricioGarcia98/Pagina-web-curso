@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Series de tiempo - tendencia, estacionalidad y anomalías</h1><p class="resumen">Analizar métricas a lo largo del tiempo con SQL - completar días sin datos con un calendario, agregar por semana y mes, suavizar con promedios móviles, comparar contra el año anterior, medir la estacionalidad con un índice y detectar días anómalos con la desviación respecto de la media.</p>
 <a class="cta" href="../index.html#/l/analisis-series-de-tiempo">▶ Abrir la lección interactiva (11 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir series diarias completas aunque falten días</li><li>Calcular promedios móviles y comparaciones interanuales</li><li>Medir la estacionalidad de cada mes</li><li>Marcar valores anómalos con un criterio explícito</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una serie de tiempo es como el registro de temperatura de todo un año: tiene una tendencia (cada año un poco más calor), ciclos que se repiten (frío en invierno, calor en verano) y días raros que se salen de lo normal. Separar esas tres cosas permite entender qué está pasando de verdad.</p>
+</div>
+
+
 <h2>Series completas: el calendario</h2>
 <p>Si un día no hubo pedidos, <code>GROUP BY fecha</code> simplemente no lo devuelve, y un promedio móvil de “7 filas” deja de ser de 7 días. Por eso se parte de un calendario y se une con <code>LEFT JOIN</code>.</p>
 <pre><code class="language-sql">WITH RECURSIVE cal(dia) AS (

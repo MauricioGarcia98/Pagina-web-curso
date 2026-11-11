@@ -25,6 +25,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 <p>En la lección anterior iniciaste sesión con <code>az</code>. Ahora vas a crear tus primeros recursos y, sobre todo, a aprender a <strong>leer y filtrar</strong> lo que <code>az</code> responde. Eso se usa todo el tiempo: en scripts de despliegue, en pipelines de CI y cada vez que necesitas un dato puntual (&quot;¿cuál es el id de esta cuenta de almacenamiento?&quot;).</p>
 <p>Abre la terminal del curso (⌨ Terminal) y escribe cada comando a medida que lees. Antes, ejecuta <code>az login</code>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un grupo de recursos es como una caja con etiqueta donde guardas todo lo de un proyecto: si el proyecto termina, tiras la caja entera. Y <code>--query</code> es como pedirle a Azure &quot;de toda esta respuesta larga, dame solo los nombres&quot;.</p>
+</div>
+
+
 <h2>Grupos de recursos</h2>
 <p>Un grupo de recursos es la carpeta donde viven los recursos de un proyecto y un entorno. Su ciclo de vida completo se maneja con cinco comandos:</p>
 <pre data-norun><code class="language-bash">az group create --name rg-datos-dev --location eastus2 --tags proyecto=tienda entorno=dev

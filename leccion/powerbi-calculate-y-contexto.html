@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>CALCULATE - cambiar el contexto de filtro</h1><p class="resumen">La función más importante de DAX. Cómo CALCULATE agrega, reemplaza y quita filtros (ALL, REMOVEFILTERS, ALLEXCEPT, KEEPFILTERS) para calcular ventas de un canal, porcentajes del total y comparaciones contra el total general.</p>
 <a class="cta" href="../index.html#/l/powerbi-calculate-y-contexto">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué hace CALCULATE con el contexto de filtro</li><li>Calcular un valor filtrado y un porcentaje del total</li><li>Quitar filtros con ALL y REMOVEFILTERS</li><li>Diferenciar un filtro que reemplaza de uno que se agrega con KEEPFILTERS</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El contexto de filtro es como mirar por unos anteojos de color: si el informe está filtrado por &quot;2024&quot; y &quot;Chile&quot;, todas las medidas ven solo eso. <code>CALCULATE</code> te deja cambiarte los anteojos por un momento, por ejemplo para calcular &quot;las ventas de todos los países&quot; aunque el informe esté mirando solo Chile.</p>
+</div>
+
+
 <h2>Qué hace CALCULATE</h2>
 <pre><code class="language-dax">CALCULATE(&lt;expresión&gt;, &lt;filtro1&gt;, &lt;filtro2&gt;, …)</code></pre>
 <ol>

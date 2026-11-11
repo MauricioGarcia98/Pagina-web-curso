@@ -14,6 +14,10 @@ Una estudiante dejó un clúster de prueba encendido "un ratito" un viernes. El 
 > "Antes de crear tu primer recurso en la nube: alerta de presupuesto, sesión con SSO y nada de claves fijas en archivos. Y al terminar cada práctica, `terraform destroy`."
 :::
 
+:::analogia En palabras simples
+Conectarte a la nube desde tu computadora es como tener las llaves de una oficina: muy útil, pero hay que cuidarlas. Esta lección muestra cómo abrir cuentas gratuitas, usar las CLIs y, sobre todo, guardar las credenciales de forma segura para no dejarlas a la vista.
+:::
+
 ## 1. Cuentas gratuitas, con red de seguridad
 
 | Nube | Qué ofrece para aprender | Cuidado con |

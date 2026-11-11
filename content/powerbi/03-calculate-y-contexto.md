@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes por qué CALCULATE([Ventas], pedidos[canal] = "web") da 
 El gerente comercial mira un gráfico de ventas por país y pregunta: "¿Qué parte del total es cada país?" y "¿Cuánto de eso vino por la web?". Las dos respuestas necesitan **cambiar los filtros** con los que se calcula una medida. Esa es la tarea de `CALCULATE`.
 :::
 
+:::analogia En palabras simples
+El contexto de filtro es como mirar por unos anteojos de color: si el informe está filtrado por "2024" y "Chile", todas las medidas ven solo eso. `CALCULATE` te deja cambiarte los anteojos por un momento, por ejemplo para calcular "las ventas de todos los países" aunque el informe esté mirando solo Chile.
+:::
+
 ## Qué hace CALCULATE
 
 ```dax

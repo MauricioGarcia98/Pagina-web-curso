@@ -16,6 +16,10 @@ Llegan tres vendedores a ofrecer su plataforma al Grupo Andino. Cada uno dice qu
 Esta lección es sobre las tres grandes familias de almacenamiento analítico y las ideas que hay detrás. Con ellas puedes evaluar cualquier producto, incluso los que todavía no existen.
 :::
 
+:::analogia En palabras simples
+Un warehouse es como una biblioteca con cada libro catalogado: rápida para buscar, pero solo acepta libros bien encuadernados. Un data lake es como un depósito donde entra cualquier cosa, barato pero desordenado. Un lakehouse intenta tener lo mejor de los dos: el depósito barato, con un catálogo encima.
+:::
+
 ## Tres generaciones
 
 ```diagrama

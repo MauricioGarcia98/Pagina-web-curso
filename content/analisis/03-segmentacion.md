@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes armar un histograma en SQL? | ¿Sabes qué es la clasifi
 El equipo de CRM tiene presupuesto para una sola campaña. Pregunta: “¿a quién le hablamos?”. Mandarle a todos lo mismo es caro y poco efectivo. Segmentar es agrupar clientes que se parecen para tratarlos distinto: a los que compran mucho y hace poco, a los que antes compraban y dejaron, a los nuevos.
 :::
 
+:::analogia En palabras simples
+Segmentar es como separar a los alumnos de una escuela por grado: no tiene sentido darles a todos la misma clase. Con los clientes pasa igual: los que compran mucho, los que compraron una vez y los que dejaron de venir necesitan cosas distintas. Agruparlos bien es el primer paso para entenderlos.
+:::
+
 ## Histogramas: cuántos hay en cada rango
 
 Un histograma cuenta cuántos casos caen en cada rango de un valor. En SQL, el rango se calcula dividiendo y truncando.

@@ -14,6 +14,10 @@ Esto le pasa a casi todo el que empieza, también a quienes después consiguen t
 La amiga le responde: *"A mí me pasó lo mismo. No es falta de talento: estás estudiando sin método. Nadie aprende a programar leyendo; se aprende practicando un poquito todos los días, equivocándose y repasando."* Es exactamente el método que acabas de ver.
 :::
 
+:::analogia En palabras simples
+Aprender a programar se parece más a aprender a andar en bicicleta que a estudiar historia: no alcanza con leer cómo se hace, hay que subirse, caerse y volver a intentar. Un poco todos los días rinde mucho más que muchas horas de golpe una vez por semana.
+:::
+
 ## 1. Poco y seguido le gana a mucho y de vez en cuando
 
 Una hora por día, cinco días por semana, rinde mucho más que diez horas un sábado. El cerebro consolida lo aprendido **entre** sesiones, mientras descansas y duermes. Elige un horario fijo (aunque sea 30 minutos) y cuídalo como una cita.

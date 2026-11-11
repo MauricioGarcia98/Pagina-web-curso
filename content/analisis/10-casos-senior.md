@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes escribir los supuestos de un análisis? | ¿Sabes calcul
 Ya no te dan enunciados prolijos. Te llegan mensajes como “¿cómo venimos con la ocupación?”, “¿qué tan rentable es el ramo autos?” o “¿hay gente robando luz?”. Tu trabajo es transformar eso en una pregunta precisa, decidir y escribir los supuestos, resolver la consulta (muchas veces con un cambio de grano difícil) y entregar el número con su letra chica. En estos ejercicios, los supuestos ya están acordados: practicás la parte técnica difícil.
 :::
 
+:::analogia En palabras simples
+Los pedidos reales casi nunca llegan claros: "necesito ver cómo vamos". Un analista senior no adivina: escribe qué entendió, qué supuso y qué no se puede saber con los datos que hay. Es como un arquitecto que, antes de construir, deja por escrito qué casa le pidieron.
+:::
+
 ## La plantilla de un análisis senior
 
 1. **Pedido original** (textual).

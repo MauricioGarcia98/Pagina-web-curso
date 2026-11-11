@@ -7,6 +7,10 @@ resumen: Buckets y objetos, ubicaciones, gcloud storage (create, cp, ls, rm, rsy
 
 En Google Cloud, el data lake vive en **Cloud Storage** (GCS). Es donde aterrizan los archivos que mandan los sistemas de origen, donde se guarda la capa bronze y de donde BigQuery, Dataproc y Dataflow leen. En esta lección vas a entender cómo se organiza, cuánto cuesta, cómo se protege y cómo se maneja desde la terminal.
 
+:::analogia En palabras simples
+Cloud Storage es el depósito de archivos de Google Cloud: guardas cualquier archivo en "baldes" (*buckets*) y lo recuperas cuando quieras. Es la base de un data lake: los datos crudos llegan acá antes de procesarse.
+:::
+
 ## Buckets y objetos
 
 GCS guarda **objetos** (archivos) dentro de **buckets** (contenedores). Funciona igual que S3 en AWS o que los contenedores de ADLS en Azure.

@@ -15,6 +15,10 @@ Antes de crear cualquier recurso en el [portal de práctica](#/azure/crear), abr
 El entorno de desarrollo se armó a mano en el portal hace un año. Ahora hay que crear el de producción "igual", y nadie recuerda qué opciones se marcaron: qué redundancia tenía la cuenta de almacenamiento, qué etiquetas, qué permisos. Dos semanas después, producción tiene diferencias sutiles con desarrollo que causan errores que no se pueden reproducir. Esto es lo que evita la automatización.
 :::
 
+:::analogia En palabras simples
+Crear la infraestructura a mano es como armar un mueble sin instrucciones: sale, pero nadie puede repetirlo igual. Automatizar es escribir las instrucciones (scripts o plantillas) para que cualquiera, o una máquina, arme exactamente lo mismo las veces que haga falta.
+:::
+
 ## Por qué automatizar
 
 Hacer clics en el portal no es **repetible** (nadie hace los mismos 40 clics dos veces igual) ni **auditable** (no queda escrito quién cambió qué ni por qué). En equipos profesionales la infraestructura se crea con **código**, guardado en Git como cualquier otro programa. Hay dos formas, de menor a mayor madurez:

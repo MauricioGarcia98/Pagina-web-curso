@@ -9,6 +9,10 @@ resumen: Crear el data lake, contenedores, subir y listar archivos, autenticaci�
 Crea una cuenta con el [asistente de Storage](#/azure/crear/storage) (prueba un nombre con mayúsculas para ver la validación), sube un blob a un contenedor, genera una SAS y agrega una regla de ciclo de vida que pase los blobs a Cool.
 :::
 
+:::analogia En palabras simples
+Una cuenta de almacenamiento es como un depósito enorme en la nube donde guardas archivos de cualquier tamaño. Si activas el espacio de nombres jerárquico se convierte en un **data lake**: el depósito pasa a tener estanterías y carpetas de verdad, que es lo que necesitan herramientas como Spark.
+:::
+
 ## El data lake de Azure
 
 En AWS el lago es S3 y en Google Cloud es Cloud Storage. En Azure es **Azure Data Lake Storage Gen2 (ADLS Gen2)**: una **Storage Account** (cuenta de almacenamiento) con una opción activada, el **espacio de nombres jerárquico** (*hierarchical namespace*, HNS). Esa opción es la que la convierte en un data lake de verdad:

@@ -16,6 +16,10 @@ Martín decide:
 > "El estado vive en un bucket, versionado y con bloqueo. Nadie más tiene un tfstate en su computadora. Y la base de producción no se puede destruir ni por error."
 :::
 
+:::analogia En palabras simples
+El estado de Terraform es su libreta de memoria: anota qué creó para saber qué cambiar la próxima vez. Si cada persona del equipo tiene su propia libreta, se contradicen. El estado remoto es una libreta compartida, con un candado para que dos personas no escriban a la vez.
+:::
+
 ## Qué guarda el estado y por qué importa
 
 El estado es la **tabla de correspondencias** entre tu código y la nube: "`aws_s3_bucket.bronze` es el bucket `andina-prod-bronze`, con estos atributos". Sin él, Terraform no sabe qué creó.

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Terraform en equipo: pruebas, CI/CD con GitHub Actions y buenas prácticas</h1><p class="resumen">Lleva Terraform a producción como lo hace un equipo de plataforma. Pruebas con terraform test, chequeos de formato, lint y seguridad, un pipeline de GitHub Actions con OIDC que publica el plan en el pull request y aplica con aprobación, detección de drift y la lista de convenciones que se revisan en cada cambio.</p>
 <a class="cta" href="../index.html#/l/terraform-cicd-buenas-practicas">▶ Abrir la lección interactiva (8 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir pruebas de Terraform con terraform test (run, assert, expect_failures)</li><li>Armar un pipeline de CI/CD que valide, planifique en cada pull request y aplique al hacer merge</li><li>Autenticar la CI en la nube con OIDC, sin secretos de larga duración</li><li>Detectar drift con un plan programado y explicar qué hacer con él</li><li>Revisar un pull request de Terraform con una checklist de buenas prácticas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Cambiar infraestructura sin revisión es como modificar los cimientos de un edificio sin avisar a nadie. En equipo, cada cambio pasa por un pull request, una revisión automática que muestra qué se va a modificar (<code>terraform plan</code>) y recién después se aplica.</p>
+</div>
+
+
 <h2>El flujo de un cambio</h2>
 <figure class="diagrama"><figcaption>Un cambio de infraestructura, de la rama a producción</figcaption></figure>
 

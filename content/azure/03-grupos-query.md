@@ -13,6 +13,10 @@ En la lección anterior iniciaste sesión con `az`. Ahora vas a crear tus primer
 
 Abre la terminal del curso (⌨ Terminal) y escribe cada comando a medida que lees. Antes, ejecuta `az login`.
 
+:::analogia En palabras simples
+Un grupo de recursos es como una caja con etiqueta donde guardas todo lo de un proyecto: si el proyecto termina, tiras la caja entera. Y `--query` es como pedirle a Azure "de toda esta respuesta larga, dame solo los nombres".
+:::
+
 ## Grupos de recursos
 
 Un grupo de recursos es la carpeta donde viven los recursos de un proyecto y un entorno. Su ciclo de vida completo se maneja con cinco comandos:

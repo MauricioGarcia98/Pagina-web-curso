@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes traducir un GROUP BY de SQL a SUMMARIZECOLUMNS? | ¿Sabe
 Un objeto visual muestra un número raro y nadie sabe por qué. Con la **vista de consultas DAX** puedes copiar la consulta que genera ese objeto visual (Analizador de rendimiento → Copiar consulta), ejecutarla, cambiarla y entender qué está calculando, sin tocar el informe.
 :::
 
+:::analogia En palabras simples
+Hasta ahora usaste DAX para hacer cálculos dentro de un informe. Las consultas DAX son como hacerle preguntas directas al modelo, igual que con SQL, para revisar que los números den lo que esperas. Y TMDL es el modelo escrito como texto, para guardarlo y revisarlo con Git.
+:::
+
 ## De SQL a DAX
 
 | SQL | DAX |

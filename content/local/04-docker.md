@@ -14,6 +14,10 @@ Para el proyecto necesitas PostgreSQL, y tu compañera además usa Airflow y Min
 > "No instales nada de eso. Levántalo con Docker: un comando y tienes Postgres 16; otro y lo borras sin rastro. Y el compose del repo levanta todo el stack igual que en mi máquina."
 :::
 
+:::analogia En palabras simples
+Docker es como una lonchera hermética: adentro va un programa con todo lo que necesita para funcionar, y funciona igual en cualquier computadora donde la abras. Así puedes tener una base de datos PostgreSQL andando en un minuto, sin instalarla de verdad.
+:::
+
 ## Qué es un contenedor
 
 Un **contenedor** es un proceso aislado que trae **todo lo que necesita para correr**: el programa, sus librerías y su configuración. Corre igual en tu laptop, en la de tu compañera y en el servidor.

@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes por qué una medida da un número distinto en cada barra
 Arrastras la columna `cantidad` a un gráfico y Power BI muestra "Suma de cantidad". Funciona, pero cuando el gerente pide "ticket promedio" o "% del total", arrastrar columnas ya no alcanza: hacen falta **medidas**.
 :::
 
+:::analogia En palabras simples
+Una medida de DAX es como una calculadora que se reacomoda sola: le dices "suma las ventas" una vez y, si después miras por país, por mes o por producto, recalcula el número para cada caso. No guarda un resultado fijo: calcula en el momento según lo que estés mirando.
+:::
+
 ## Medida o columna
 
 - Una **columna** (también una columna calculada) tiene un valor **por fila** y se guarda en la tabla.

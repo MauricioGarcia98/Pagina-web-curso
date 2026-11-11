@@ -14,6 +14,10 @@ El Grupo Andino compró dos empresas: **Ritmo** (la app de música) trabaja en A
 > "Repliquen el lakehouse de Azure en AWS para Ritmo y en Google Cloud para Rápido. Mismos nombres de capas, mismas etiquetas, mismo orden en el código. El que sepa leer uno tiene que poder leer los otros dos."
 :::
 
+:::analogia En palabras simples
+Es la misma casa, construida en otros terrenos: AWS y Google Cloud tienen piezas con otros nombres, pero la idea es igual. Ver la misma plataforma en tres nubes te ayuda a separar lo que es un concepto de lo que es solo el nombre que le pone cada proveedor.
+:::
+
 ## Las mismas piezas en tres nubes
 
 | Pieza | Azure | AWS | Google Cloud |

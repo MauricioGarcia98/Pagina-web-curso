@@ -14,6 +14,10 @@ Hasta ahora, para probar un DAG había que subirlo al Airflow compartido de desa
 > "Ningún DAG llega al Airflow compartido sin haberse probado en tu máquina: que importe sin errores, que `dags test` corra completo y que pasen las pruebas."
 :::
 
+:::analogia En palabras simples
+Tener Airflow en tu computadora es como tener un reloj despertador de práctica: programas tus DAGs, los ves correr en orden y aprendes a resolver los fallos sin depender de un servidor de la empresa.
+:::
+
 ## Tres maneras de correr Airflow
 
 | | `airflow standalone` | **Astro CLI** | docker-compose oficial |

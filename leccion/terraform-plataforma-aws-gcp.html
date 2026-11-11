@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Proyecto: la plataforma de datos en AWS y en Google Cloud</h1><p class="resumen">El mismo lakehouse en las otras dos nubes. En AWS, lago en S3, catálogo y crawler de Glue, job de Spark con su script, rol IAM de permisos mínimos y workgroup de Athena con límite de costo. En Google Cloud, buckets, datasets y una tabla particionada de BigQuery, cuenta de servicio con IAM y Pub/Sub para eventos.</p>
 <a class="cta" href="../index.html#/l/terraform-plataforma-aws-gcp">▶ Abrir la lección interactiva (7 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir con Terraform un lago en S3 con catálogo de Glue, crawler, job y Athena, con sus dependencias</li><li>Escribir políticas IAM con jsonencode y expresiones for, aplicando el principio de permisos mínimos</li><li>Construir en Google Cloud buckets, datasets, una tabla particionada y agrupada de BigQuery y una suscripción de Pub/Sub</li><li>Dar permisos a una cuenta de servicio a nivel de bucket, dataset y proyecto</li><li>Comparar las piezas equivalentes de Azure, AWS y Google Cloud en Terraform</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Es la misma casa, construida en otros terrenos: AWS y Google Cloud tienen piezas con otros nombres, pero la idea es igual. Ver la misma plataforma en tres nubes te ayuda a separar lo que es un concepto de lo que es solo el nombre que le pone cada proveedor.</p>
+</div>
+
+
 <h2>Las mismas piezas en tres nubes</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Pieza</th>

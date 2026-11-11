@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Crear y afinar un Genie Agent</h1><p class="resumen">Crear un agente paso a paso (datos, warehouse, descripción, preguntas comunes) y enseñarle el negocio con las herramientas en el orden que recomienda la documentación - el knowledge store (descripciones, sinónimos, coincidencia de valores, joins y SQL expressions de tipo filtro, medida y campo), las consultas SQL de ejemplo (y con parámetros, que se vuelven respuestas verificadas), las funciones de Unity Catalog y, como último recurso, las instrucciones de texto.</p>
 <a class="cta" href="../index.html#/l/genie-crear-y-afinar-un-agente">▶ Abrir la lección interactiva (6 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un Genie Agent y configurar sus datos y ajustes</li><li>Agregar descripciones, sinónimos y coincidencia de valores</li><li>Definir SQL expressions de tipo filtro, medida y campo</li><li>Escribir consultas de ejemplo, con y sin parámetros</li><li>Elegir el tipo de instrucción adecuado para cada necesidad</li><li>Escribir instrucciones de aclaración y de resumen</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Crear un Genie Agent es como entrenar a alguien nuevo en el equipo: le das las tablas con las que va a trabajar, le explicas el vocabulario del negocio (&quot;ventas&quot; significa esto) y le muestras ejemplos de preguntas bien respondidas. Cuanto mejor la explicación, mejores las respuestas.</p>
+</div>
+
+
 <h2>Crear el agente</h2>
 <p>Requisitos, según la documentación: que los datos estén en <strong>Unity Catalog</strong>, un <strong>SQL warehouse pro o serverless</strong> sobre el que tengas permiso <code>CAN USE</code>, permiso <code>SELECT</code> sobre las tablas y el <em>entitlement</em> de Databricks SQL. En Databricks Free Edition ya tienes todo eso.</p>
 <ol>

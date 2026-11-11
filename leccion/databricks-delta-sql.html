@@ -24,6 +24,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p>Todo lo que sigue se ejecuta en Databricks (SQL warehouse o notebook con <code>%sql</code>). Los ejercicios te piden <strong>escribir</strong> las sentencias y compararlas con una respuesta modelo.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una tabla Delta es como un documento con historial de cambios: cada vez que alguien la modifica, queda guardada una versión nueva, y puedes volver a ver cómo era antes. Además, si dos personas escriben al mismo tiempo, no se pisan.</p>
+</div>
+
+
 <h2>Cómo funciona Delta Lake por dentro</h2>
 <p>Una tabla Delta es una carpeta en el lago con dos cosas:</p>
 <pre><code class="language-text">/lake/silver/clientes/

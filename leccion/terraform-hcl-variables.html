@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>HCL a fondo: variables, locals, outputs, expresiones y for_each</h1><p class="resumen">El lenguaje de Terraform en detalle. Parametriza con variables y validaciones, calcula con locals y funciones, crea muchos recursos con count y for_each, y separa la configuración por entorno con archivos .tfvars.</p>
 <a class="cta" href="../index.html#/l/terraform-hcl-variables">▶ Abrir la lección interactiva (8 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Declarar variables con tipo, descripción, valor por defecto y validación</li><li>Darles valor con -var, archivos .tfvars y variables de entorno TF_VAR_</li><li>Calcular valores con locals, condicionales, plantillas de texto y funciones</li><li>Crear varias copias de un recurso con count y for_each y elegir entre los dos</li><li>Exponer resultados con outputs y leerlos con terraform output</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si un archivo de Terraform es la receta, las <strong>variables</strong> son los ingredientes que cambian según la ocasión (la región, el tamaño) y los <strong>outputs</strong> son lo que la receta te devuelve al final (por ejemplo, la dirección del recurso creado). Así la misma receta sirve para muchos casos.</p>
+</div>
+
+
 <h2>Los bloques de un proyecto</h2>
 <p>Un proyecto de Terraform es una <strong>carpeta</strong>. Terraform lee <strong>todos</strong> los archivos <code>.tf</code> de la carpeta como si fueran uno solo, así que se reparten por tema. Esta es la convención que vas a ver en casi todos los equipos:</p>
 <div class="table-wrap"><table><thead><tr>

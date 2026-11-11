@@ -15,6 +15,10 @@ En marzo de 2026, Databricks renombró **Databricks Asset Bundles** como **Decla
 
 **Declarative Automation Bundles (DABs)** son la forma oficial de tratar jobs, pipelines, notebooks y configuraciones como **código**: se versionan en Git, se revisan en Pull Requests y se despliegan a dev/test/prod con la CLI.
 
+:::analogia En palabras simples
+Un bundle es como una caja de mudanza bien etiquetada: adentro va todo lo de un proyecto (notebooks, jobs, pipelines) junto con una lista que dice cómo armarlo. Con un comando la despliegas igual en desarrollo, pruebas y producción.
+:::
+
 ## El problema: "funciona en mi workspace"
 
 Sin bundles, un proyecto de Databricks se despliega a mano: alguien copia notebooks de su carpeta personal a la de producción, crea el job con clics, configura el cluster, los parámetros, los horarios… y nadie sabe exactamente qué versión está corriendo en producción ni cómo recrearla si se borra.

@@ -16,6 +16,10 @@ Un lunes, Valentina llama furiosa:
 El pipeline no falló: terminó "en verde" todos los días. Lo que pasó es que la API de México devolvía una lista vacía, y nadie controlaba que llegaran datos. Esta lección es sobre cómo enterarse **antes** que el negocio, y sobre quién puede ver qué.
 :::
 
+:::analogia En palabras simples
+La calidad de datos es como el control de calidad de una fábrica: revisar que lo que sale esté bien antes de que llegue al cliente. El gobierno es el reglamento: quién puede usar qué, de dónde viene cada cosa y quién responde si algo sale mal.
+:::
+
 ## Las seis dimensiones de la calidad
 
 | Dimensión | Pregunta | Ejemplo de problema | Control típico |

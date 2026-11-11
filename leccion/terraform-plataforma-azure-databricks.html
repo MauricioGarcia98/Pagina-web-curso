@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Proyecto: el lakehouse completo en Azure y Databricks con Terraform</h1><p class="resumen">Construye de punta a punta la plataforma del Grupo Andino: grupo de recursos, Data Lake Gen2 con sus capas, Key Vault con secretos, Databricks con Unity Catalog (credencial, ubicaciones externas, catálogo, esquemas, permisos), un clúster, un job programado, un SQL Warehouse y Data Factory. En dos proyectos de Terraform conectados.</p>
 <a class="cta" href="../index.html#/l/terraform-plataforma-azure-databricks">▶ Abrir la lección interactiva (8 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar una plataforma de datos en Azure como un conjunto de recursos de Terraform con sus dependencias</li><li>Crear el Data Lake Gen2 con capas, el Key Vault y el workspace de Databricks con identidades y permisos</li><li>Configurar Unity Catalog con Terraform: credencial, ubicaciones externas, catálogo, esquemas y grants</li><li>Separar la infraestructura de nube y la del workspace en dos proyectos conectados con terraform_remote_state</li><li>Verificar con az y databricks que lo creado existe y funciona</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Este proyecto es como construir una casa completa con planos: en vez de crear a mano el grupo de recursos, el almacenamiento, el workspace de Databricks y los permisos, todo queda escrito en código y se construye con un comando, igual cada vez.</p>
+</div>
+
+
 <h2>La arquitectura</h2>
 <figure class="diagrama"><figcaption>La plataforma de datos del Grupo Andino en Azure (proyecto 1) y Databricks (proyecto 2)</figcaption></figure>
 

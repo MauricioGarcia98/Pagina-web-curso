@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Composer, Dataform, gobierno y arquitectura de referencia</h1><p class="resumen">Cloud Composer (Airflow administrado) con operadores de Google, Dataform para SQL versionado en BigQuery, Workflows y Scheduler, gobierno con Dataplex y policy tags, y una arquitectura completa para el caso de streaming.</p>
 <a class="cta" href="../index.html#/l/gcp-composer-dataform">▶ Abrir la lección interactiva (6 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Composer es Airflow administrado por Google: el director de orquesta que dice qué corre y cuándo. Dataform es para transformar datos con SQL dentro de BigQuery, parecido a dbt. Juntos arman un pipeline completo sin servidores propios.</p>
+</div>
+
+
 <h2>Cloud Composer: Airflow en Google Cloud</h2>
 <p><strong>Composer</strong> es Apache Airflow administrado. Tus DAGs viven en un bucket de GCS (<code>gs://&lt;bucket-del-entorno&gt;/dags/</code>) y el entorno los carga solo. La versión actual del servicio es <strong>Composer 3</strong>, y cada entorno se crea con una imagen que fija la versión de Airflow (por ejemplo <code>composer-3-airflow-3.2.2</code>); según la lista oficial de versiones, Composer 3 ya ofrece Airflow 3 además de las versiones 2.x, así que los DAGs nuevos se escriben con la sintaxis de Airflow 3. El proveedor <code>apache-airflow-providers-google</code> trae operadores para todo GCP:</p>
 <div class="table-wrap"><table><thead><tr>

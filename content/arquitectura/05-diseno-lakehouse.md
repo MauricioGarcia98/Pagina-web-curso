@@ -16,6 +16,10 @@ La arquitectura del Grupo Andino ya está decidida: un lakehouse. Ahora viene lo
 Una arquitectura no es solo el diagrama de cajas: son también las **reglas** que hacen que siga ordenada cuando crece.
 :::
 
+:::analogia En palabras simples
+Diseñar un lakehouse es como ordenar una cocina de restaurante: zonas separadas para lo crudo, lo preparado y lo listo para servir (las capas), una cocina de prueba aparte de la de verdad (los entornos) y etiquetas claras en cada frasco (los nombres y contratos).
+:::
+
 ## Qué va en cada capa (y qué no)
 
 Ya conoces bronze, silver y gold. La pregunta práctica es: ¿en qué capa va **cada** transformación? Esta tabla es la que usan la mayoría de los equipos:

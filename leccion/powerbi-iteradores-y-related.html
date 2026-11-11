@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Iteradores, RELATED y ranking - SUMX, AVERAGEX y RANKX</h1><p class="resumen">Cómo calcular fila por fila con las funciones X (SUMX, AVERAGEX, MAXX), traer columnas de otra tabla con RELATED, calcular márgenes, rankear categorías con RANKX y decidir entre columna calculada y medida.</p>
 <a class="cta" href="../index.html#/l/powerbi-iteradores-y-related">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular importes fila por fila con SUMX</li><li>Traer datos de la dimensión con RELATED</li><li>Calcular un margen porcentual correcto</li><li>Rankear con RANKX y ALL</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un iterador como <code>SUMX</code> es como un cajero que pasa los productos uno por uno: para cada fila hace una cuenta (cantidad por precio) y al final suma todo. <code>RELATED</code> es como mirar la etiqueta del producto para traer un dato de otra tabla, por ejemplo su categoría.</p>
+</div>
+
+
 <h2>Por qué hace falta iterar</h2>
 <p>Las ventas de una línea son <code>cantidad × precio_unitario</code>. Si sumas las dos columnas por separado y después multiplicas, el resultado está <strong>mal</strong>:</p>
 <pre><code class="language-dax">-- ✗ mal: (suma de cantidades) × (suma de precios)

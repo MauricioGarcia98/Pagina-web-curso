@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>El estado en equipo: backends remotos, workspaces, import y lifecycle</h1><p class="resumen">Por qué el estado local no sirve en un equipo, cómo moverlo a un bucket con bloqueo y versionado, cómo separar entornos, y las herramientas para operar el estado sin romper nada (import, moved, state mv, prevent_destroy).</p>
 <a class="cta" href="../index.html#/l/terraform-estado-remoto">▶ Abrir la lección interactiva (8 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar los riesgos del estado local en un equipo y qué resuelven el bloqueo y el versionado</li><li>Configurar un backend remoto en S3, GCS o Azure Storage y migrar el estado</li><li>Separar entornos con workspaces o con carpetas y elegir entre los dos</li><li>Traer recursos creados a mano con import y renombrar recursos sin destruirlos con moved</li><li>Proteger recursos críticos con lifecycle (prevent_destroy, ignore_changes, create_before_destroy)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El estado de Terraform es su libreta de memoria: anota qué creó para saber qué cambiar la próxima vez. Si cada persona del equipo tiene su propia libreta, se contradicen. El estado remoto es una libreta compartida, con un candado para que dos personas no escriban a la vez.</p>
+</div>
+
+
 <h2>Qué guarda el estado y por qué importa</h2>
 <p>El estado es la <strong>tabla de correspondencias</strong> entre tu código y la nube: &quot;<code>aws_s3_bucket.bronze</code> es el bucket <code>andina-prod-bronze</code>, con estos atributos&quot;. Sin él, Terraform no sabe qué creó.</p>
 <pre><code class="language-text">$ terraform state pull | jq '.resources[0]'

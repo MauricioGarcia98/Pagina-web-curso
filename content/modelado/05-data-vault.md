@@ -16,6 +16,10 @@ Martín te dice:
 > "Con un esquema estrella directo desde las fuentes, cada cambio de un sistema nos obliga a rehacer las dimensiones. Investiga Data Vault: lo usan muchos bancos justamente para esto."
 :::
 
+:::analogia En palabras simples
+Data Vault separa los datos como un archivo bien ordenado: una carpeta para cada cosa importante (clientes, productos: los **hubs**), hilos que conectan carpetas (las **links**) y fichas con detalles que se van agregando con fecha (los **satélites**). Así se pueden sumar fuentes nuevas sin desarmar lo que ya existe.
+:::
+
 ## La idea
 
 **Data Vault** (creado por Dan Linstedt) es una forma de modelar la capa **intermedia** (silver, o "raw vault") pensada para tres cosas:

@@ -30,6 +30,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 
 
 <p><strong>Declarative Automation Bundles (DABs)</strong> son la forma oficial de tratar jobs, pipelines, notebooks y configuraciones como <strong>código</strong>: se versionan en Git, se revisan en Pull Requests y se despliegan a dev/test/prod con la CLI.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un bundle es como una caja de mudanza bien etiquetada: adentro va todo lo de un proyecto (notebooks, jobs, pipelines) junto con una lista que dice cómo armarlo. Con un comando la despliegas igual en desarrollo, pruebas y producción.</p>
+</div>
+
+
 <h2>El problema: &quot;funciona en mi workspace&quot;</h2>
 <p>Sin bundles, un proyecto de Databricks se despliega a mano: alguien copia notebooks de su carpeta personal a la de producción, crea el job con clics, configura el cluster, los parámetros, los horarios… y nadie sabe exactamente qué versión está corriendo en producción ni cómo recrearla si se borra.</p>
 <p>Los <strong>Declarative Automation Bundles</strong> (DABs) aplican al proyecto de datos la misma idea que la infraestructura como código: <strong>todo</strong> (código, jobs, pipelines, clusters, permisos) se describe en archivos YAML dentro del repositorio Git, y un comando lo despliega idéntico en cada entorno.</p>

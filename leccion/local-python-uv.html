@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Python profesional en tu máquina: uv, entornos virtuales, ruff y pytest</h1><p class="resumen">Instala Python y gestiona tus proyectos con uv. Entiende por qué cada proyecto necesita su propio entorno virtual, cómo se declaran y bloquean las dependencias, cómo se organiza un proyecto de datos, y cómo se revisa y se prueba el código con ruff y pytest. También el camino clásico con venv y pip.</p>
 <a class="cta" href="../index.html#/l/local-python-uv">▶ Abrir la lección interactiva (7 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué problema resuelve un entorno virtual y qué es un archivo de bloqueo</li><li>Crear un proyecto con uv, agregar dependencias de ejecución y de desarrollo y ejecutar código con uv run</li><li>Crear y activar un entorno virtual con python -m venv y pip, en Linux, macOS y Windows</li><li>Organizar un proyecto de datos con src/, tests/ y configuración en .env</li><li>Revisar el código con ruff y probarlo con pytest</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Cada proyecto de Python necesita sus propias versiones de librerías, como cada receta necesita sus ingredientes. Un <strong>entorno virtual</strong> es una alacena separada para cada proyecto, así uno no le cambia los ingredientes al otro. <code>uv</code> es la herramienta que arma esas alacenas en segundos.</p>
+</div>
+
+
 <h2>El problema: un Python para todo</h2>
 <p>Si instalas paquetes en el Python del sistema, <strong>todos</strong> tus proyectos comparten las mismas versiones. El proyecto A necesita pandas 1.5, el B necesita pandas 2.2: imposible. Además, en Linux y macOS el sistema operativo usa su propio Python, y romperlo rompe herramientas del sistema (por eso las versiones nuevas de Ubuntu directamente prohíben <code>pip install</code> global).</p>
 <p>La solución es un <strong>entorno virtual</strong>: una carpeta (normalmente <code>.venv/</code> dentro del proyecto) con su propio Python y sus propios paquetes. Cada proyecto tiene el suyo.</p>

@@ -14,6 +14,10 @@ El lago del Grupo Andino ya se crea con Terraform, pero el código tiene los nom
 > "Un solo código para los tres entornos. Lo único que cambia entre ellos va en un archivo de variables. Y si alguien escribe `produccion` en lugar de `prod`, que Terraform lo frene antes de crear nada."
 :::
 
+:::analogia En palabras simples
+Si un archivo de Terraform es la receta, las **variables** son los ingredientes que cambian según la ocasión (la región, el tamaño) y los **outputs** son lo que la receta te devuelve al final (por ejemplo, la dirección del recurso creado). Así la misma receta sirve para muchos casos.
+:::
+
 ## Los bloques de un proyecto
 
 Un proyecto de Terraform es una **carpeta**. Terraform lee **todos** los archivos `.tf` de la carpeta como si fueran uno solo, así que se reparten por tema. Esta es la convención que vas a ver en casi todos los equipos:

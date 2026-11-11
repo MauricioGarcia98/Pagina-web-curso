@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Ingesta: carga completa, incremental, CDC y streaming</h1><p class="resumen">Las cuatro formas de traer datos, cuándo usar cada una, la marca de agua, el CDC con Debezium y cómo lograr que una carga sea idempotente.</p>
 <a class="cta" href="../index.html#/l/arquitectura-ingesta">▶ Abrir la lección interactiva (5 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre carga completa, incremental, CDC y streaming según la fuente y la latencia</li><li>Implementar una carga incremental con marca de agua (watermark) sin perder ni duplicar filas</li><li>Aplicar un flujo de cambios CDC (insert, update, delete) para reconstruir el estado de una tabla</li><li>Diseñar cargas idempotentes que se pueden repetir sin efectos secundarios</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Ingerir datos es como llenar una pileta. Puedes vaciarla y volver a llenarla entera cada día (<strong>carga completa</strong>), agregar solo el agua que falta (<strong>incremental</strong>), copiar cada gota que entra o sale de otra pileta (<strong>CDC</strong>) o tener una canilla que nunca se cierra (<strong>streaming</strong>). Cada forma tiene su costo y su uso.</p>
+</div>
+
+
 <h2>Las cuatro formas de traer datos</h2>
 <figure class="diagrama"><figcaption>Las cuatro estrategias de ingesta, de la más simple a la de menor latencia</figcaption></figure>
 

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Módulos: tu propia biblioteca de infraestructura</h1><p class="resumen">Empaqueta un patrón (una capa del lago con seguridad, versionado y retención) en un módulo con entradas y salidas, úsalo muchas veces con for_each, y organiza el repositorio en módulos y entornos como lo hacen los equipos de plataforma.</p>
 <a class="cta" href="../index.html#/l/terraform-modulos">▶ Abrir la lección interactiva (7 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un módulo y la diferencia entre módulo raíz y módulo hijo</li><li>Escribir un módulo con variables, recursos y outputs, y llamarlo desde otro proyecto</li><li>Crear varias copias de un módulo con for_each y leer sus outputs</li><li>Organizar un repositorio en modules/ y envs/ con un estado por entorno</li><li>Elegir entre un módulo propio y uno público del registro, y fijar su versión</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un módulo de Terraform es como un kit de muebles prearmado: en vez de describir cada tornillo de una cuenta de almacenamiento cada vez, creas un kit &quot;almacenamiento de datos&quot; y lo reutilizas en todos los proyectos con los ajustes de cada uno.</p>
+</div>
+
+
 <h2>Qué es un módulo</h2>
 <p>Un <strong>módulo</strong> es una carpeta con archivos <code>.tf</code>. Ya escribiste uno: la carpeta donde ejecutas <code>terraform</code> es el <strong>módulo raíz</strong>. Cuando ese módulo llama a otra carpeta con un bloque <code>module</code>, esa carpeta es un <strong>módulo hijo</strong>.</p>
 <p>Un módulo es como una <strong>función</strong>: recibe entradas (variables), hace algo (crea recursos) y devuelve salidas (outputs). El código que lo llama no necesita saber cómo está hecho por dentro.</p>

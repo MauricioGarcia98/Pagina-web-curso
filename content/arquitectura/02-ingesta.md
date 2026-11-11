@@ -16,6 +16,10 @@ Sofía, de operaciones, se queja:
 El problema no es la herramienta: es la **forma** de ingerir. Hoy copian la tabla completa todas las noches. En esta lección vas a ver las alternativas y cuándo conviene cada una.
 :::
 
+:::analogia En palabras simples
+Ingerir datos es como llenar una pileta. Puedes vaciarla y volver a llenarla entera cada día (**carga completa**), agregar solo el agua que falta (**incremental**), copiar cada gota que entra o sale de otra pileta (**CDC**) o tener una canilla que nunca se cierra (**streaming**). Cada forma tiene su costo y su uso.
+:::
+
 ## Las cuatro formas de traer datos
 
 ```diagrama

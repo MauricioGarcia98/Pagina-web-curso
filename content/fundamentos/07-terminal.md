@@ -32,6 +32,10 @@ La **terminal** (o consola, o línea de comandos) es una ventana donde le das ó
 En este curso usamos comandos de **bash**, el estándar en servidores y en la nube. Y no necesitas instalar nada todavía: el botón **⌨ Terminal** abre una terminal Linux simulada dentro del navegador.
 :::
 
+:::analogia En palabras simples
+La terminal es como hablarle a la computadora por escrito en lugar de señalar con el mouse. En vez de abrir carpetas con doble clic, escribes "entra a esta carpeta" o "muéstrame qué hay acá". Al principio parece más lento; después es mucho más rápido, y en los servidores es la única forma de trabajar.
+:::
+
 ## Anatomía de un comando
 
 ```bash norun

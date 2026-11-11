@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Procesamiento: batch, micro-batch y streaming (Lambda y Kappa)</h1><p class="resumen">Cuándo procesar por lotes y cuándo en flujo, las arquitecturas Lambda y Kappa, el tiempo del evento, las ventanas, las marcas de agua y las garantías de entrega.</p>
 <a class="cta" href="../index.html#/l/arquitectura-batch-streaming">▶ Abrir la lección interactiva (5 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre batch, micro-batch y streaming según la latencia y el costo</li><li>Comparar las arquitecturas Lambda y Kappa y explicar por qué Kappa ganó terreno</li><li>Distinguir tiempo del evento y tiempo de procesamiento, y manejar eventos tardíos con marcas de agua</li><li>Calcular agregaciones por ventanas y deduplicar eventos repetidos</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Procesar en batch es como un colectivo que pasa cada hora y lleva a todos los que esperan. Streaming es como un taxi que sale apenas llega cada pasajero. El micro-batch está en el medio: un colectivo que pasa cada pocos segundos. La elección depende de cuánto puede esperar quien usa el dato.</p>
+</div>
+
+
 <h2>El espectro de la latencia</h2>
 <figure class="diagrama"><figcaption>Cuanto menor la latencia, mayor la complejidad y el costo</figcaption></figure>
 

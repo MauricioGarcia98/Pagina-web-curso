@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Data Vault: hubs, links y satélites</h1><p class="resumen">Qué problema resuelve Data Vault, sus tres piezas, cómo se cargan y cuándo conviene frente a un modelo dimensional.</p>
 <a class="cta" href="../index.html#/l/modelado-data-vault">▶ Abrir la lección interactiva (3 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar el problema que resuelve Data Vault (integrar muchas fuentes que cambian)</li><li>Identificar hubs, links y satélites a partir de un modelo de origen</li><li>Construir un hub y un satélite con SQL a partir de dos fuentes</li><li>Decidir entre Data Vault y modelado dimensional según la empresa</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Data Vault separa los datos como un archivo bien ordenado: una carpeta para cada cosa importante (clientes, productos: los <strong>hubs</strong>), hilos que conectan carpetas (las <strong>links</strong>) y fichas con detalles que se van agregando con fecha (los <strong>satélites</strong>). Así se pueden sumar fuentes nuevas sin desarmar lo que ya existe.</p>
+</div>
+
+
 <h2>La idea</h2>
 <p><strong>Data Vault</strong> (creado por Dan Linstedt) es una forma de modelar la capa <strong>intermedia</strong> (silver, o &quot;raw vault&quot;) pensada para tres cosas:</p>
 <ol>

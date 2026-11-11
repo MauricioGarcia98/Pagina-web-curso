@@ -14,6 +14,10 @@ Tienes los CSV de pedidos de Rápido y quieres explorarlos, y además el equipo 
 > "Para explorar archivos, DuckDB: no instalas servidor, lee el CSV directo y es rapidísimo. Para simular la base de la app, un Postgres en Docker. Las dos cosas en tu laptop."
 :::
 
+:::analogia En palabras simples
+Tener una base de datos en tu computadora es como tener un laboratorio en casa: puedes probar, romper y volver a empezar sin miedo. PostgreSQL es la base que usan muchas aplicaciones; DuckDB es una base pequeña y muy rápida para analizar archivos sin instalar nada.
+:::
+
 ## Dos bases, dos propósitos
 
 | | PostgreSQL | DuckDB |

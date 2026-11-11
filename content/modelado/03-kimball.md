@@ -16,6 +16,10 @@ Martín te asigna el diseño del modelo gold de Tienda Andina:
 Ya viste la idea del esquema estrella en SQL. Ahora vas a aprender el **método** completo de Ralph Kimball, el estándar de la industria desde hace 30 años y la base de casi todos los modelos gold en dbt.
 :::
 
+:::analogia En palabras simples
+El modelado dimensional es como un ticket de supermercado bien organizado: en el centro, lo que pasó (qué se compró, cuánto y por cuánto: los **hechos**), y alrededor, las preguntas para entenderlo (quién, dónde, cuándo: las **dimensiones**). Esa forma de estrella hace que cualquier pregunta de negocio sea fácil de responder.
+:::
+
 ## Los 4 pasos de Kimball
 
 ```diagrama

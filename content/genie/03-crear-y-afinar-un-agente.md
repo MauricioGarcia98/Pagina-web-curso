@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes en qué orden conviene usar SQL expressions, ejemplos SQ
 Con la vista de ventas preparada, toca crear el agente. La primera prueba sale bien ("¿cuánto vendimos en 2024?"), pero las siguientes muestran huecos: "¿cuánto vendimos en el local?" no encuentra nada porque en los datos el canal se llama `tienda`; "pedidos grandes" se interpreta cada vez con un umbral distinto; y "¿cómo vamos este trimestre?" mezcla trimestres calendario con el año fiscal de la empresa. Cada hueco tiene una herramienta específica para cerrarlo.
 :::
 
+:::analogia En palabras simples
+Crear un Genie Agent es como entrenar a alguien nuevo en el equipo: le das las tablas con las que va a trabajar, le explicas el vocabulario del negocio ("ventas" significa esto) y le muestras ejemplos de preguntas bien respondidas. Cuanto mejor la explicación, mejores las respuestas.
+:::
+
 ## Crear el agente
 
 Requisitos, según la documentación: que los datos estén en **Unity Catalog**, un **SQL warehouse pro o serverless** sobre el que tengas permiso `CAN USE`, permiso `SELECT` sobre las tablas y el *entitlement* de Databricks SQL. En Databricks Free Edition ya tienes todo eso.

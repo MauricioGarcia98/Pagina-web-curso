@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Inteligencia de tiempo - acumulados, año anterior y variaciones</h1><p class="resumen">La tabla calendario, por qué Power BI la necesita y cómo calcular el acumulado del año (TOTALYTD), el mismo período del año anterior (SAMEPERIODLASTYEAR, DATEADD), el mes anterior y la variación interanual, con VAR y RETURN para que la fórmula se lea fácil.</p>
 <a class="cta" href="../index.html#/l/powerbi-inteligencia-de-tiempo">▶ Abrir la lección interactiva (7 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar para qué sirve una tabla calendario marcada como tabla de fechas</li><li>Calcular acumulados del año y del mes</li><li>Comparar contra el año anterior con SAMEPERIODLASTYEAR y DATEADD</li><li>Escribir medidas legibles con VAR y RETURN</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>La inteligencia de tiempo es como tener un calendario que entiende de comparaciones: &quot;lo que llevamos del año&quot;, &quot;lo mismo del año pasado&quot; o &quot;cuánto cambió&quot;. Para que funcione hace falta una tabla de fechas completa, como un calendario sin días faltantes.</p>
+</div>
+
+
 <h2>La tabla calendario</h2>
 <p>Las funciones de tiempo necesitan una columna de fechas <strong>sin huecos</strong> (todos los días, aunque no haya ventas). Por eso en Power BI se crea una <strong>tabla calendario</strong>:</p>
 <pre><code class="language-dax">Calendario = ADDCOLUMNS(

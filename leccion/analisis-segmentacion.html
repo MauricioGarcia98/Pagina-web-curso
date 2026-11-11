@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Segmentar - histogramas, Pareto y RFM</h1><p class="resumen">Cómo partir clientes y productos en grupos que sirvan para decidir - histogramas por rangos, la regla 80/20 con clasificación ABC, cuartiles con NTILE y el modelo RFM (recencia, frecuencia y monto) que usan los equipos de CRM.</p>
 <a class="cta" href="../index.html#/l/analisis-segmentacion">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Armar histogramas con rangos de ancho fijo</li><li>Calcular el aporte acumulado y clasificar productos en A, B y C</li><li>Repartir clientes en cuartiles con NTILE</li><li>Construir un puntaje RFM y nombrar segmentos accionables</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Segmentar es como separar a los alumnos de una escuela por grado: no tiene sentido darles a todos la misma clase. Con los clientes pasa igual: los que compran mucho, los que compraron una vez y los que dejaron de venir necesitan cosas distintas. Agruparlos bien es el primer paso para entenderlos.</p>
+</div>
+
+
 <h2>Histogramas: cuántos hay en cada rango</h2>
 <p>Un histograma cuenta cuántos casos caen en cada rango de un valor. En SQL, el rango se calcula dividiendo y truncando.</p>
 <pre><code class="language-sql">-- ¿Cuántos clientes hicieron 1, 2, 3… pedidos?

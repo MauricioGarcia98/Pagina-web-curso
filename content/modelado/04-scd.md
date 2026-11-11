@@ -16,6 +16,10 @@ Valentina pregunta en la reunión mensual:
 Hoy, la tabla `clientes` solo guarda el segmento **actual**. Si unes las ventas de 2023 con ella, todas las compras de esos clientes aparecen como Corporativas. Para responder bien hace falta guardar **la historia** de los atributos que cambian. Eso es una dimensión lentamente cambiante (*slowly changing dimension*, SCD).
 :::
 
+:::analogia En palabras simples
+Las dimensiones lentamente cambiantes son como un álbum de fotos familiar: cuando alguien se muda o cambia de trabajo, no se rompe la foto vieja, se agrega una nueva con la fecha. Así se puede saber dónde vivía cada uno en cada momento, y las ventas del pasado quedan asociadas a lo que era cierto entonces.
+:::
+
 ## Los tipos de SCD
 
 | Tipo | Qué hace cuando un atributo cambia | Historia | Ejemplo de uso |
