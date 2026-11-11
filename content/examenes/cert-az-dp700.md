@@ -591,3 +591,406 @@ El notebook de precios de los martes compite con los informes. ¿Qué solución 
 - [ ] Desactivar V-Order en las tablas.
 - [ ] Cambiar el rol de los usuarios a Viewer.
 porque: Separar cargas por horario o capacidad evita que una operación pesada consuma las CU de los informes.
+
+## OneLake
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+Una empresa nueva en Fabric pregunta cuántos data lakes tiene que crear para sus cinco workspaces. ¿Qué respondes?
+- [ ] Uno por workspace, cada uno con su propia cuenta de ADLS.
+- [x] Ninguno: el tenant tiene un único OneLake y cada workspace es una carpeta dentro de él.
+- [ ] Uno por capacidad, que se crea automáticamente al comprar la SKU F en Azure.
+- [ ] Uno por lakehouse, porque cada lakehouse guarda sus datos aparte de OneLake.
+porque: OneLake es un único lago lógico por tenant, basado en ADLS Gen2. Workspaces e ítems son carpetas dentro de él.
+
+## Integración con Git
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+El equipo quiere versionar notebooks, pipelines y el warehouse de su workspace de desarrollo. ¿Qué usan?
+- [ ] Exportar cada ítem a mano como archivo y subirlo por correo.
+- [ ] Los puntos de restauración del warehouse, que guardan cada versión de notebooks y pipelines.
+- [x] La integración de Git del workspace con Azure DevOps o GitHub, trabajando en ramas.
+- [ ] Una deployment pipeline con una sola etapa.
+porque: La integración de Git conecta el workspace a una rama; los cambios se confirman y se actualizan desde la interfaz de Fabric.
+
+## Etapas de despliegue
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+Los ítems probados en el workspace de pruebas deben pasar a producción sin recrearlos a mano. ¿Qué herramienta de Fabric usan?
+- [x] Deployment pipelines (desarrollo → pruebas → producción).
+- [ ] Shortcuts entre los workspaces.
+- [ ] Mirroring del workspace de pruebas.
+- [ ] Copiar y pegar cada ítem desde el explorador de OneLake.
+porque: Las deployment pipelines comparan etapas y despliegan los ítems de un workspace al siguiente, con reglas para cambiar conexiones por etapa.
+
+## Identidad del workspace
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+Un shortcut a una cuenta de ADLS con firewall debe autenticarse sin usar la cuenta de una persona. ¿Qué configuran?
+- [ ] La clave de la cuenta de almacenamiento pegada en el notebook.
+- [ ] La cuenta personal del administrador de Fabric.
+- [ ] Un token SAS que nunca vence, guardado en la configuración del shortcut.
+- [x] Una identidad del workspace (workspace identity) con permisos sobre la cuenta.
+porque: La workspace identity es una identidad administrada asociada al workspace; se le dan permisos en Azure y se usa para conectarse sin depender de una persona.
+
+## Roles de acceso a OneLake
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+Un grupo debe leer solo la carpeta `Tables/ventas` de un lakehouse, no el resto. ¿Qué usas?
+- [ ] El rol Viewer del workspace, que ya restringe por carpeta.
+- [x] La seguridad de OneLake (roles de acceso a datos) sobre esa carpeta.
+- [ ] Un shortcut en otro workspace sin permisos.
+- [ ] Cambiar el nombre de las demás carpetas para que no las encuentren.
+porque: Los roles de seguridad de OneLake dan acceso a carpetas o tablas concretas de un lakehouse. Los roles del workspace dan acceso a todo el workspace.
+
+## Bibliotecas de Spark
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+Varios notebooks necesitan la misma versión de una biblioteca de Python y la misma configuración de Spark. ¿Dónde se define una vez?
+- [ ] En la primera celda de cada notebook con `pip install`.
+- [ ] En la capacidad, desde el portal de Azure, donde se instalan bibliotecas para todos.
+- [x] En un ítem Environment, asociado a los notebooks o como predeterminado del workspace.
+- [ ] En el warehouse, con un procedimiento almacenado.
+porque: Un Environment agrupa bibliotecas, configuración de Spark y pool; se adjunta a notebooks y definiciones de trabajos de Spark.
+
+## Mascaramiento dinámico
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+En el warehouse, los analistas deben ver los correos como `aXXX@XXXX.com`, pero el equipo de soporte los ve completos. ¿Qué configuras?
+- [ ] Una vista distinta por equipo con `REPLACE`.
+- [ ] Un rol de OneLake que oculta la carpeta del warehouse.
+- [ ] Cifrar la columna con una clave que solo tiene el equipo de soporte en su computadora.
+- [x] Dynamic data masking con la función `email()` y el permiso `UNMASK` para soporte.
+porque: El enmascaramiento dinámico oculta el valor al consultar según los permisos; `UNMASK` permite ver el valor real.
+
+## Seguridad por columna
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+Los analistas no deben poder leer la columna `salario` de `dbo.empleados` en el warehouse, pero sí el resto. ¿Qué es lo más directo?
+- [x] `GRANT SELECT ON dbo.empleados (id, nombre, area) TO analistas`
+- [ ] Borrar la columna `salario`.
+- [ ] Poner a los analistas como Viewer del workspace.
+- [ ] Un filtro de seguridad de filas que oculte las filas con `salario` alto.
+porque: La seguridad a nivel de columna se define con `GRANT` sobre columnas específicas; quien no tiene permiso recibe error al pedir `salario`.
+
+## Promover y certificar
+leccion: cert-azure-fabric-plataforma
+dominio: 1
+Un modelo semántico revisado por el equipo central debe destacarse como fuente oficial frente a copias hechas por otros. ¿Qué haces?
+- [ ] Ponerle "OFICIAL" en el nombre.
+- [ ] Moverlo a un workspace con otro color y avisar por correo a todos los usuarios.
+- [x] Certificarlo (endoso), algo que solo hacen revisores autorizados.
+- [ ] Bloquear las copias desde la capacidad.
+porque: El endoso tiene dos niveles: promovido (cualquiera con permisos) y certificado (solo revisores autorizados en la configuración del tenant).
+
+## Load to tables
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Un analista subió un CSV a la sección Files de un lakehouse y quiere consultarlo con SQL en dos clics. ¿Qué usa?
+- [ ] Un shortcut del archivo a sí mismo.
+- [ ] Mirroring del lakehouse.
+- [ ] Una deployment pipeline.
+- [x] La opción "Load to Tables" sobre el archivo.
+porque: "Load to Tables" convierte archivos CSV o Parquet en tablas Delta, visibles en el SQL analytics endpoint.
+
+## Endpoint de solo lectura
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Desde el SQL analytics endpoint de un lakehouse alguien intenta `INSERT INTO ventas ...` y falla. ¿Por qué?
+- [x] El SQL analytics endpoint del lakehouse es de solo lectura.
+- [ ] Porque falta el permiso `INSERT` en el rol del workspace, que viene desactivado.
+- [ ] Porque las tablas del lakehouse no son Delta.
+- [ ] Porque el endpoint solo acepta KQL.
+porque: El endpoint SQL expone las tablas Delta del lakehouse para consultas T-SQL de lectura. Para DML con T-SQL se usa un warehouse.
+
+## Consulta entre bases
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+En el warehouse `wh_ventas` quieres unir con la tabla `clientes` del lakehouse `lh_crm` del mismo workspace. ¿Qué haces?
+- [ ] Copiar `clientes` al warehouse cada noche.
+- [ ] Crear un shortcut en el warehouse.
+- [x] Una consulta entre bases con nombre de tres partes: `lh_crm.dbo.clientes`.
+- [ ] Exportar las dos tablas a un modelo de Power BI y hacer la unión con una relación.
+porque: En Fabric, un warehouse puede consultar otros warehouses y endpoints SQL del mismo workspace con nombres de tres partes.
+
+## COPY INTO en el warehouse
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Hay que cargar 200 archivos Parquet desde ADLS a una tabla del warehouse con T-SQL, de la forma más eficiente. ¿Qué usas?
+- [ ] Un `INSERT ... VALUES` por cada fila.
+- [x] `COPY INTO dbo.ventas FROM 'https://.../*.parquet' WITH (FILE_TYPE = 'PARQUET')`
+- [ ] `BULK INSERT` desde el disco de tu computadora.
+- [ ] Un Dataflow Gen2 que lee un archivo por vez y lo agrega a la tabla.
+porque: `COPY INTO` es la forma de alto rendimiento para ingerir archivos externos en el warehouse.
+
+## CTAS
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Quieres crear `dbo.ventas_2025` en el warehouse con el resultado de una consulta, en un paso. ¿Qué sentencia usas?
+- [ ] `SELECT ... INTO OUTFILE`
+- [ ] `CREATE VIEW dbo.ventas_2025 AS ...`, que guarda los datos.
+- [ ] `MERGE dbo.ventas_2025 ...` sobre una tabla que no existe.
+- [x] `CREATE TABLE dbo.ventas_2025 AS SELECT ...` (CTAS).
+porque: CTAS crea la tabla y la carga con el resultado de la consulta. Una vista no guarda datos.
+
+## Shortcut a S3
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Los datos de un socio están en un bucket de Amazon S3. Quieres consultarlos desde un lakehouse sin copiarlos. ¿Qué usas?
+- [ ] Mirroring de Amazon S3.
+- [x] Un shortcut de OneLake a S3.
+- [ ] Un Copy job que corre cada minuto.
+- [ ] Eventstream con S3 como destino.
+porque: Los shortcuts apuntan a datos en ADLS, S3, Google Cloud Storage y otros sin moverlos. (Pueden usar caché para bajar costos de salida.)
+
+## Mirroring de Azure SQL
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Una base Azure SQL de producción debe estar replicada casi en tiempo real en OneLake como Delta, sin construir pipelines. ¿Qué usas?
+- [ ] Un shortcut a la base de datos.
+- [ ] Un dataflow programado cada hora.
+- [x] Mirroring de Azure SQL Database.
+- [ ] Exportar backups `.bacpac` a OneLake.
+porque: Mirroring replica de forma continua los cambios de la base en tablas Delta de OneLake, listas para consultar.
+
+## Carga incremental con marca
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Un pipeline debe copiar solo las filas nuevas de una tabla de origen con columna `modificado`. ¿Qué patrón usas?
+- [x] Lookup de la última marca, Copy con `modificado > marca` y guardar la nueva marca.
+- [ ] Copiar la tabla entera en cada corrida y borrar los duplicados después con un notebook.
+- [ ] Copy con `TOP 1000` ordenado al azar.
+- [ ] Un shortcut, que solo trae lo nuevo.
+porque: Es el patrón de marca de agua: se guarda el máximo procesado y la siguiente corrida filtra por encima de ese valor.
+
+## Parámetros del pipeline
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+El mismo pipeline debe copiar tablas distintas según quién lo invoque. ¿Cómo lo haces reutilizable?
+- [ ] Un pipeline por tabla.
+- [ ] Editar el pipeline antes de cada corrida.
+- [ ] Una variable de entorno de Windows en la máquina del gateway de datos.
+- [x] Parámetros del pipeline usados en expresiones como `@pipeline().parameters.tabla`.
+porque: Los parámetros se fijan al ejecutar o al invocar desde otro pipeline y se usan en expresiones dinámicas.
+
+## Orquestar notebooks
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Un notebook "maestro" debe ejecutar otros tres notebooks en paralelo, compartiendo la sesión de Spark. ¿Qué usas?
+- [ ] Tres pipelines programados a la misma hora.
+- [x] `notebookutils.notebook.runMultiple(...)` desde el notebook maestro.
+- [ ] Un Copy job.
+- [ ] `%run` de los tres notebooks en una sola celda, que los lanza en paralelo.
+porque: `runMultiple` ejecuta varios notebooks en paralelo (o con dependencias) dentro de la misma sesión. `%run` los ejecuta uno tras otro.
+
+## MERGE en el lakehouse
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+En un notebook, quieres actualizar la tabla Delta `clientes` con los cambios de `clientes_stage` (actualizar existentes, insertar nuevos). ¿Qué usas?
+- [ ] `df.write.mode("append")` con los cambios.
+- [ ] `df.write.mode("overwrite")` solo con los cambios, que conserva las filas que no cambiaron.
+- [x] `MERGE INTO clientes USING clientes_stage ON ...` en Spark SQL.
+- [ ] Un shortcut de `clientes_stage` a `clientes`.
+porque: MERGE hace el upsert de forma atómica. Append duplica y overwrite borra lo que no vino en los cambios.
+
+## Dataflow con staging
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Un Dataflow Gen2 transforma millones de filas y tarda mucho. ¿Qué opción ayuda a que las transformaciones se calculen con un motor escalable?
+- [ ] Desactivar todos los pasos de Power Query.
+- [ ] Cargar el resultado a un archivo de Excel.
+- [ ] Ejecutarlo desde Power BI Desktop.
+- [x] Activar el staging del Dataflow Gen2.
+porque: Con staging, Dataflow Gen2 escribe en un almacenamiento intermedio y puede usar el motor SQL para las transformaciones pesadas.
+
+## Destino de Eventstream
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Lecturas de sensores llegan a un Eventstream y deben quedar consultables con KQL en segundos. ¿Qué destino eliges?
+- [x] Una tabla de un eventhouse (base KQL).
+- [ ] Un archivo CSV en la sección Files.
+- [ ] Un Dataflow Gen2.
+- [ ] Un modelo semántico en modo Import.
+porque: El eventhouse está pensado para datos de series de tiempo y eventos, con ingesta continua y consultas KQL rápidas.
+
+## Vista materializada en KQL
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+Los tableros consultan siempre la última lectura de cada sensor sobre una tabla con miles de millones de filas. ¿Qué usas en el eventhouse?
+- [ ] Un `take 1` en cada consulta.
+- [ ] Copiar la tabla a un warehouse cada hora y consultar desde ahí con T-SQL.
+- [x] Una vista materializada con `arg_max(timestamp, *) by sensor_id`.
+- [ ] Un shortcut a la misma tabla.
+porque: Las vistas materializadas de KQL mantienen el resultado de una agregación actualizado a medida que llegan datos; la consulta lee el resultado ya calculado.
+
+## SCD tipo 1
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+En la dimensión `producto`, solo importa el valor actual de la categoría; no hace falta historial. ¿Qué tipo de dimensión lentamente cambiante implementas?
+- [ ] Tipo 2, con fechas de vigencia.
+- [x] Tipo 1: se sobrescribe el valor.
+- [ ] Tipo 3, con una columna por cada valor anterior.
+- [ ] Tipo 6, combinando todos los tipos.
+porque: El tipo 1 sobrescribe el atributo y no guarda historial; el tipo 2 agrega filas con vigencia.
+
+## Métricas de capacidad
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+El administrador quiere ver qué ítems consumen más CU de la capacidad y si hubo throttling. ¿Qué usa?
+- [ ] El monitoring hub del workspace.
+- [ ] Azure Cost Management, que muestra cada ítem.
+- [ ] El historial de ejecuciones del pipeline.
+- [x] La aplicación Microsoft Fabric Capacity Metrics.
+porque: La app Capacity Metrics muestra el consumo de CU por ítem y operación, el suavizado y los eventos de throttling.
+
+## Suavizado
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Un trabajo de Spark usó el doble de la capacidad durante 10 minutos y no hubo throttling. ¿Por qué?
+- [x] Porque Fabric suaviza el consumo de las operaciones de fondo en 24 horas.
+- [ ] Porque Spark no consume capacidad.
+- [ ] Porque la capacidad se agranda sola de forma permanente cuando detecta picos de uso.
+- [ ] Porque el throttling solo se aplica a Power BI.
+porque: El suavizado reparte el consumo (las operaciones de fondo, en 24 horas); el throttling aparece cuando el consumo acumulado supera lo que la capacidad puede absorber.
+
+## Falla de un notebook en un pipeline
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Un pipeline falló en la actividad Notebook. ¿Dónde ves el error de Python y en qué celda ocurrió?
+- [ ] En la app Capacity Metrics.
+- [x] En la ejecución de la actividad, que enlaza a la instantánea del notebook.
+- [ ] En el registro de auditoría del tenant, en el centro de administración de Microsoft 365.
+- [ ] En el SQL analytics endpoint.
+porque: Desde la ejecución del pipeline se abre la salida de la actividad y la instantánea del notebook con la celda que falló.
+
+## Consultas lentas en el warehouse
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Quieres saber cuáles fueron las consultas más largas de la última semana en el warehouse. ¿Qué consultas?
+- [x] Las vistas del esquema `queryinsights`.
+- [ ] `sys.tables`.
+- [ ] El log de Spark.
+- [ ] `DESCRIBE HISTORY` del warehouse.
+porque: Query insights guarda el historial de consultas con duración, usuario y texto, y vistas agregadas de las más frecuentes y las más largas.
+
+## Mantenimiento de tablas del lakehouse
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Una tabla Delta del lakehouse que recibe pequeñas cargas cada 5 minutos se volvió lenta. ¿Qué haces?
+- [ ] Recrear la tabla desde cero todos los días.
+- [ ] Pasarla a CSV.
+- [x] Ejecutar `OPTIMIZE` y `VACUUM` sobre la tabla.
+- [ ] Aumentar la SKU de la capacidad.
+porque: Las cargas frecuentes generan muchos archivos chicos. OPTIMIZE los compacta y VACUUM elimina los que ya no se usan.
+
+## Direct Lake y fallback
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Un informe en Direct Lake a veces se vuelve lento y el monitoreo indica consultas en DirectQuery. ¿Qué está pasando?
+- [ ] Direct Lake siempre usa DirectQuery.
+- [ ] El informe se pasó solo a modo Import y ahora espera la actualización programada.
+- [ ] Se borró el modelo semántico.
+- [x] El modelo hace fallback a DirectQuery, por ejemplo por superar los límites de la SKU.
+porque: Direct Lake lee los archivos Delta directamente; si no puede (vistas, seguridad del endpoint SQL o límites de la capacidad), recurre a DirectQuery, que es más lento.
+
+## Errores de ingesta en KQL
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Faltan eventos en una tabla del eventhouse y sospechas que algunos fallaron al ingerirse por un formato inválido. ¿Qué comando usas?
+- [ ] `.show tables`
+- [x] `.show ingestion failures`
+- [ ] `.drop table`
+- [ ] `.show version`
+porque: `.show ingestion failures` lista los errores de ingesta con el detalle de la causa.
+
+## Caché de resultados
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Un tablero ejecuta la misma consulta pesada en el warehouse decenas de veces por hora sin que cambien los datos. ¿Qué característica ayuda?
+- [ ] Desactivar las estadísticas.
+- [ ] Crear un índice clúster en cada columna que usa la consulta del tablero.
+- [x] La caché de conjuntos de resultados del warehouse.
+- [ ] Pasar la tabla a un lakehouse.
+porque: Con la caché de resultados, las consultas repetidas devuelven el resultado guardado si los datos subyacentes no cambiaron.
+
+## Alta concurrencia
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Varios notebooks de un pipeline arrancan cada uno su propia sesión de Spark y la espera suma minutos. ¿Qué opción reduce el arranque?
+- [x] El modo de alta concurrencia para pipelines.
+- [ ] Un Dataflow en lugar de notebooks.
+- [ ] Bajar el número de executors a 1 para que la sesión arranque más liviana.
+- [ ] Ejecutar los notebooks a mano.
+porque: En alta concurrencia, varios notebooks reutilizan una misma sesión de Spark (con el mismo usuario, entorno y lakehouse predeterminado).
+
+## Autotune
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+El equipo no sabe qué valores poner en `spark.sql.shuffle.partitions` y otros parámetros de sus consultas repetitivas. ¿Qué función de Fabric los ajusta automáticamente?
+- [ ] V-Order.
+- [ ] El Copy job.
+- [ ] La caché de OneLake.
+- [x] Autotune de Spark.
+porque: Autotune ajusta configuraciones de Spark (como particiones de shuffle o tamaño de broadcast) aprendiendo de ejecuciones anteriores.
+
+## Alerta con Activator
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+Si un Eventstream deja de recibir datos de una planta durante 10 minutos, alguien debe recibir un mensaje en Teams. ¿Qué usas?
+- [ ] Un informe de Power BI que se revisa cada hora.
+- [x] Activator, con una regla sobre el flujo de eventos y una acción de Teams.
+- [ ] Una vista materializada.
+- [ ] El historial de deployment pipelines.
+porque: Activator evalúa condiciones sobre datos en movimiento (incluida la ausencia de eventos) y dispara acciones como correo, Teams o un pipeline.
+
+## @caso energia: Eólica Patagonia
+Eólica Patagonia opera 300 aerogeneradores. Cada uno envía una lectura por segundo (velocidad del viento, potencia, temperatura del rotor) a Azure Event Hubs. Finanzas tiene la facturación en una base Azure SQL y los informes de gerencia están en Power BI.
+
+Problemas actuales:
+- Las lecturas se guardan en archivos y se analizan al día siguiente.
+- Para cruzar producción con facturación, alguien exporta la base a Excel cada semana.
+- Mantenimiento quiere enterarse en el momento si la temperatura del rotor supera 90 °C.
+- Los informes de gerencia tardan en cargar porque usan DirectQuery sobre tablas grandes.
+
+## Lecturas en tiempo real
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+caso: energia
+¿Qué arquitectura resuelve el primer problema?
+- [ ] Un pipeline con una actividad Copy que lee Event Hubs una vez por día.
+- [ ] Un Dataflow Gen2 conectado a Event Hubs.
+- [x] Eventstream desde Event Hubs hacia un eventhouse.
+- [ ] Un shortcut de OneLake a Event Hubs.
+porque: Eventstream recibe los eventos de forma continua y el eventhouse los deja consultables en segundos.
+
+## Facturación sin exportar
+leccion: cert-azure-fabric-ingesta-transformacion
+dominio: 2
+caso: energia
+¿Qué elimina la exportación semanal a Excel?
+- [x] Mirroring de la base Azure SQL en OneLake, para unirla con la producción.
+- [ ] Un correo semanal automatizado con el Excel.
+- [ ] Copiar la base a un eventhouse con Eventstream.
+- [ ] Una vista en Power BI Desktop.
+porque: Mirroring mantiene una réplica Delta casi en tiempo real, disponible para unir con otros datos de Fabric.
+
+## Rotor caliente
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+caso: energia
+¿Cómo avisas a mantenimiento en el momento?
+- [ ] Un informe de Power BI con un filtro de temperatura.
+- [ ] Una consulta KQL que alguien ejecuta cada mañana.
+- [ ] Un notebook que corre una vez por hora.
+- [x] Una regla de Activator sobre el Eventstream.
+porque: Activator evalúa cada evento a medida que llega y dispara la acción sin esperar un proceso programado.
+
+## Informes de gerencia
+leccion: cert-azure-fabric-monitoreo-optimizacion
+dominio: 3
+caso: energia
+Las tablas de producción agregada están en un lakehouse. ¿Qué modo de almacenamiento mejora los informes sin copias programadas?
+- [ ] DirectQuery con más visuales por página.
+- [x] Direct Lake sobre las tablas Delta del lakehouse.
+- [ ] Import con una actualización programada cada 5 minutos durante todo el día.
+- [ ] Exportar los informes a PDF.
+porque: Direct Lake carga en memoria los datos de los archivos Delta sin importarlos ni consultar la fuente en cada visual, con rendimiento cercano a Import.

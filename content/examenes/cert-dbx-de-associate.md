@@ -592,3 +592,466 @@ dominio: 6
 - [ ] Corre siempre en la cuenta de nube del cliente.
 - [ ] Es la única opción que soporta Unity Catalog.
 porque: Serverless elimina el arranque y la administración de máquinas; los init scripts y el control de instancias son del cómputo clásico.
+
+## Nombre de tres niveles
+leccion: cert-databricks-plataforma-computo
+dominio: 1
+Un analista escribe `SELECT * FROM ventas` y recibe "table not found", aunque la tabla existe en Unity Catalog. ¿Cuál es la forma completa de referirse a ella?
+- [ ] `workspace.ventas`, porque cada workspace tiene su propio espacio de nombres.
+- [x] `catalogo.esquema.ventas`, el espacio de nombres de tres niveles de Unity Catalog.
+- [ ] `dbfs:/user/hive/warehouse/ventas`, la ruta física de la tabla.
+- [ ] `hive_metastore.ventas`, porque Unity Catalog usa solo dos niveles de nombre.
+porque: En Unity Catalog toda tabla vive en `catálogo.esquema.tabla`. Sin calificar, Databricks busca en el catálogo y esquema actuales de la sesión.
+
+## Modo de acceso compartido
+leccion: cert-databricks-plataforma-computo
+dominio: 1
+Diez analistas quieren compartir un mismo clúster clásico y que Unity Catalog aplique a cada uno sus propios permisos. ¿Qué modo de acceso eligen?
+- [ ] Dedicated (single user), asignado al primero que lo crea.
+- [ ] No isolation shared, para que todos usen la misma identidad.
+- [x] Standard (antes llamado shared), con aislamiento entre usuarios.
+- [ ] Cualquiera: los permisos de Unity Catalog no dependen del modo de acceso.
+porque: El modo Standard permite que varios usuarios compartan el clúster con aislamiento, y Unity Catalog aplica los permisos de cada identidad. "No isolation shared" no es compatible con Unity Catalog.
+
+## Photon
+leccion: cert-databricks-plataforma-computo
+dominio: 1
+Un equipo tiene consultas SQL con muchos joins y agregaciones sobre tablas Delta grandes y quiere que corran más rápido sin cambiar código. ¿Qué activan?
+- [x] Photon, el motor vectorizado de Databricks compatible con las APIs de Spark.
+- [ ] Un clúster de un solo nodo con más memoria.
+- [ ] La caché de resultados del navegador.
+- [ ] El modo de alta concurrencia del notebook, que reparte las consultas entre usuarios.
+porque: Photon reemplaza partes de la ejecución de Spark por un motor vectorizado en C++; acelera SQL y DataFrames sin cambiar el código.
+
+## Volúmenes
+leccion: cert-databricks-ingesta
+dominio: 2
+Un proveedor deja archivos CSV que el equipo quiere gobernar con Unity Catalog (permisos y linaje), sin crear todavía una tabla. ¿Dónde los guardan?
+- [ ] En DBFS root, en `/FileStore/proveedor/`.
+- [ ] En el disco local del driver del clúster, que se conserva entre reinicios.
+- [x] En un volumen de Unity Catalog, en `/Volumes/catalogo/esquema/volumen/`.
+- [ ] En un notebook, como celda de texto.
+porque: Los volúmenes son el lugar gobernado por Unity Catalog para archivos no tabulares o crudos. DBFS root ya no se recomienda para datos de producción.
+
+## read_files con pistas de esquema
+leccion: cert-databricks-ingesta
+dominio: 2
+Al leer CSV con `read_files`, la columna `codigo_postal` se infiere como número y se pierden los ceros a la izquierda. ¿Qué haces sin declarar todas las columnas?
+- [ ] Cambiar la extensión de los archivos a `.txt`.
+- [x] Usar `schemaHints => 'codigo_postal STRING'` para fijar solo esa columna.
+- [ ] Leer con `inferSchema => false` y convertir todo a número después.
+- [ ] Agregar `LIMIT 1` a la consulta para que la inferencia de tipos sea más precisa.
+porque: Las pistas de esquema fijan el tipo de algunas columnas y dejan que el resto se infiera.
+
+## Ubicación del esquema
+leccion: cert-databricks-ingesta
+dominio: 2
+Un stream de Auto Loader reinicia y vuelve a inferir el esquema desde cero cada vez, con resultados distintos. ¿Qué opción falta?
+- [ ] `cloudFiles.maxFilesPerTrigger`
+- [ ] `cloudFiles.useNotifications`
+- [ ] `mergeSchema` en la escritura
+- [x] `cloudFiles.schemaLocation`
+porque: `schemaLocation` guarda el esquema inferido y su evolución; así los reinicios parten del mismo esquema.
+
+## Columnas nuevas
+leccion: cert-databricks-ingesta
+dominio: 2
+Los JSON empiezan a traer una columna `cupon`. Con el modo de evolución por defecto de Auto Loader (`addNewColumns`), ¿qué ocurre?
+- [ ] La columna se ignora para siempre.
+- [ ] Auto Loader convierte el archivo a CSV.
+- [x] El stream se detiene una vez, actualiza el esquema y al reiniciar incluye la columna.
+- [ ] Los datos de `cupon` se escriben automáticamente en otra tabla con el mismo nombre más `_nuevas`.
+porque: Con `addNewColumns`, el stream falla al detectar columnas nuevas, guarda el esquema actualizado y al reiniciarse (por ejemplo, con reintentos del job) sigue con la columna agregada.
+
+## Trigger availableNow
+leccion: cert-databricks-ingesta
+dominio: 2
+Quieren usar Auto Loader pero pagar cómputo solo una vez por hora: procesar lo nuevo y apagar. ¿Qué trigger usan en un job programado?
+- [ ] `processingTime='1 hour'` en un clúster encendido todo el día.
+- [x] `availableNow=True`
+- [ ] `continuous='1 second'`
+- [ ] Ningún trigger: Auto Loader solo funciona en modo continuo.
+porque: `availableNow` procesa todo lo pendiente en uno o varios lotes y termina; combinado con un job programado da ingesta incremental sin un clúster siempre encendido.
+
+## MERGE para upsert
+leccion: cert-databricks-ingesta
+dominio: 2
+Cada día llega un archivo con clientes nuevos y clientes que cambiaron de dirección. La tabla `clientes` debe quedar con una fila por cliente. ¿Qué sentencia usan?
+- [ ] `INSERT INTO clientes SELECT * FROM nuevos`
+- [ ] `INSERT OVERWRITE clientes SELECT * FROM nuevos`
+- [x] `MERGE INTO clientes USING nuevos ON ...` con `WHEN MATCHED` y `WHEN NOT MATCHED`
+- [ ] `CREATE OR REPLACE TABLE clientes AS SELECT * FROM nuevos`, que conserva las filas anteriores
+porque: MERGE actualiza los que ya existen e inserta los nuevos en una sola operación atómica. Las demás duplican o borran el historial de los que no vinieron.
+
+## Clon superficial
+leccion: cert-databricks-ingesta
+dominio: 2
+Quieren probar un cambio de transformación sobre una copia de `gold.ventas` (2 TB) sin copiar los archivos de datos. ¿Qué usan?
+- [ ] `CREATE TABLE prueba DEEP CLONE gold.ventas`
+- [x] `CREATE TABLE prueba SHALLOW CLONE gold.ventas`
+- [ ] `CREATE VIEW prueba AS SELECT * FROM gold.ventas` y escribir sobre la vista.
+- [ ] Exportar la tabla a CSV y volver a cargarla.
+porque: Un shallow clone copia solo los metadatos y apunta a los archivos originales; los cambios en el clon escriben archivos nuevos sin tocar la tabla fuente.
+
+## Time travel
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+Ayer a las 15:00 alguien ejecutó un `UPDATE` erróneo sobre `silver.pedidos`. ¿Cómo ves la tabla como estaba antes?
+- [ ] No se puede: Delta sobrescribe los archivos de datos en cada UPDATE y no guarda versiones anteriores.
+- [ ] Restaurando el backup nocturno del almacenamiento.
+- [ ] Con `SELECT * FROM silver.pedidos WHERE fecha < '15:00'`.
+- [x] Con `DESCRIBE HISTORY` para encontrar la versión y `SELECT ... VERSION AS OF n` (o `TIMESTAMP AS OF`).
+porque: Delta guarda versiones en su log de transacciones. Con time travel se consulta una versión anterior y con `RESTORE` se vuelve a ella.
+
+## VACUUM y time travel
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+Después de correr `VACUUM` con la retención por defecto, ¿qué pasa con el time travel?
+- [x] Ya no se puede volver a versiones que necesitan archivos con más de 7 días de borrados.
+- [ ] Se borra todo el historial de la tabla, incluida la versión actual.
+- [ ] Nada cambia: VACUUM solo compacta los archivos chicos y nunca borra archivos que use el historial.
+- [ ] Se puede volver a cualquier versión porque el log sigue completo.
+porque: VACUUM elimina los archivos que ya no usa la tabla y que superan la retención (7 días por defecto). Las versiones que dependían de esos archivos dejan de poder leerse.
+
+## RESTORE
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+Encontraste que la versión 41 de `silver.pedidos` es la última correcta. ¿Cómo dejas la tabla así?
+- [ ] `DROP TABLE` y recrearla desde los archivos crudos.
+- [x] `RESTORE TABLE silver.pedidos TO VERSION AS OF 41`
+- [ ] `DELETE FROM silver.pedidos WHERE _version > 41`
+- [ ] `ALTER TABLE silver.pedidos SET VERSION 41`
+porque: RESTORE crea una nueva versión cuyo contenido es igual al de la versión indicada; el historial se conserva.
+
+## Funciones de orden superior
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+La columna `items` es un array de structs con `precio` y `cantidad`. Quieres un array solo con los items de precio mayor a 100, sin explotar la tabla. ¿Qué usas?
+- [ ] `explode(items)` y luego `collect_list`.
+- [ ] Un UDF de Python fila por fila.
+- [ ] `PIVOT` sobre la columna `items`.
+- [x] `filter(items, i -> i.precio > 100)`
+porque: Las funciones de orden superior (`filter`, `transform`, `exists`, `aggregate`) trabajan sobre arrays sin explotar la tabla y sin el costo de un UDF.
+
+## JSON en texto
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+La columna `payload` es un texto con JSON y quieres acceder a `payload.cliente.id` sin definir un esquema completo. ¿Qué es lo más directo en Databricks SQL?
+- [x] `payload:cliente.id` (sintaxis de dos puntos para cadenas JSON).
+- [ ] `payload.cliente.id`, que funciona igual sobre columnas de texto.
+- [ ] `split(payload, ',')[3]`
+- [ ] Guardar el texto en un volumen y leerlo con `read_files`.
+porque: La sintaxis `columna:campo.subcampo` extrae valores de cadenas JSON. Para un tipo fuerte se usa `from_json` con un esquema.
+
+## Vista temporal
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+En un notebook creas `CREATE TEMP VIEW recientes AS ...`. Un compañero, en su propio notebook, intenta consultarla. ¿Qué pasa?
+- [ ] La ve, porque las vistas temporales se guardan en Unity Catalog.
+- [x] No la ve: una vista temporal existe solo en la sesión que la creó.
+- [ ] La ve solo si los dos notebooks están conectados al mismo clúster.
+- [ ] La ve durante 7 días y después desaparece.
+porque: Las vistas temporales son de la sesión de Spark. Para compartir, se crea una vista permanente en un esquema de Unity Catalog.
+
+## Streaming table en SQL
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+En un pipeline declarativo quieres ingerir de forma incremental los JSON de un volumen. ¿Qué definición es correcta?
+- [ ] `CREATE TABLE bronze USING STREAM AS SELECT * FROM '/Volumes/...'`
+- [ ] `CREATE VIEW bronze AS SELECT * FROM STREAM json.'/Volumes/...'`
+- [x] `CREATE OR REFRESH STREAMING TABLE bronze AS SELECT * FROM STREAM read_files('/Volumes/...', format => 'json')`
+- [ ] `CREATE MATERIALIZED VIEW bronze AS SELECT * FROM read_files('/Volumes/...', format => 'json')`
+porque: Una streaming table con `STREAM read_files(...)` usa Auto Loader por detrás y procesa solo los archivos nuevos en cada actualización.
+
+## Expectativa que detiene
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+Un pedido sin `pedido_id` indica un error grave en la fuente: el equipo prefiere que el pipeline se detenga antes que cargar datos incompletos. ¿Qué expectativa usan?
+- [ ] `CONSTRAINT id EXPECT (pedido_id IS NOT NULL)` (sin acción).
+- [ ] `CONSTRAINT id EXPECT (pedido_id IS NOT NULL) ON VIOLATION DROP ROW`
+- [ ] Un `WHERE pedido_id IS NOT NULL` en la consulta de la streaming table.
+- [x] `CONSTRAINT id EXPECT (pedido_id IS NOT NULL) ON VIOLATION FAIL UPDATE`
+porque: `FAIL UPDATE` detiene la actualización; `DROP ROW` descarta la fila y la cuenta en las métricas; sin acción, solo registra la violación y deja pasar la fila.
+
+## Refresco completo
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+Se corrigió la lógica de limpieza de una streaming table y hay que reprocesar todos los archivos desde el principio. ¿Qué haces?
+- [ ] Nada: la próxima actualización reprocesa todo sola.
+- [x] Ejecutar un full refresh de esa tabla en el pipeline.
+- [ ] Borrar los archivos de origen y volver a subirlos.
+- [ ] Cambiar el pipeline a modo development y volver a ejecutarlo.
+porque: Un full refresh borra el estado y los datos de la tabla y vuelve a leer toda la fuente con la lógica nueva. Una actualización normal solo procesa lo nuevo.
+
+## Modo development del pipeline
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+Mientras desarrollas un pipeline declarativo quieres que el cómputo quede encendido entre corridas y que no haya reintentos automáticos que escondan errores. ¿Qué modo usas?
+- [x] Development
+- [ ] Production
+- [ ] Continuous
+- [ ] Triggered con reintentos infinitos
+porque: En development el cómputo se reutiliza y no se reintenta automáticamente; production reinicia el cómputo y reintenta ante errores.
+
+## Dependencias entre tareas
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+Un job tiene `ingesta_ventas` e `ingesta_clientes`, y `gold` necesita ambas. ¿Cómo lo configuras para que las dos ingestas corran en paralelo?
+- [ ] Tres jobs separados programados a la misma hora.
+- [ ] Una sola tarea con un notebook que llama a los otros dos.
+- [x] Dos tareas sin dependencias y `gold` dependiendo de ambas.
+- [ ] `gold` primero y las ingestas después.
+porque: Las tareas sin dependencias entre sí corren en paralelo; `gold` espera a que terminen las dos de las que depende.
+
+## Reintentos de tarea
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+La API de un proveedor falla a veces por unos minutos. La tarea que la consulta debería intentarlo de nuevo antes de marcar el job como fallido. ¿Qué configuras?
+- [ ] Un clúster más grande para esa tarea.
+- [x] Reintentos en esa tarea, con un intervalo entre intentos.
+- [ ] Que el job corra cada 5 minutos.
+- [ ] Un `try/except` en el notebook que oculte el error y devuelva éxito.
+porque: Cada tarea admite reintentos con intervalo mínimo. Ocultar el error haría que el job parezca exitoso sin datos.
+
+## Una corrida a la vez
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+Un job programado cada 15 minutos a veces tarda 20, y dos corridas a la vez escriben la misma tabla. ¿Qué ajuste lo evita?
+- [ ] Bajar el cronograma a cada minuto.
+- [ ] Agregar `time.sleep(300)` al final del notebook para que la corrida siguiente espere a la anterior.
+- [ ] Usar un clúster all-purpose compartido.
+- [x] Máximo de corridas concurrentes = 1 (las corridas que se superponen se saltean o esperan).
+porque: Con `max_concurrent_runs = 1`, el job no inicia otra corrida mientras haya una activa.
+
+## Cómputo para jobs
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+Un job nocturno usa hoy un clúster all-purpose que queda encendido todo el día. ¿Qué cambio reduce el costo sin tocar el código?
+- [x] Usar cómputo serverless para jobs o un job cluster que se crea y destruye con cada corrida.
+- [ ] Reiniciar el clúster all-purpose cada mañana.
+- [ ] Ejecutar el notebook a mano para controlar el horario.
+- [ ] Un SQL warehouse Pro para ejecutar el notebook de Python, que se apaga solo cuando termina.
+porque: El cómputo de jobs (serverless o job cluster) existe solo durante la corrida y su tarifa es menor que la de all-purpose.
+
+## Parámetros del job
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+El mismo job debe correr para `pais = AR` o `pais = CL` según quién lo dispare. ¿Cómo lo resuelves sin duplicar el job?
+- [ ] Copiar el job y cambiar el código en cada copia.
+- [ ] Leer el país de un archivo que se edita a mano antes de cada corrida.
+- [x] Definir un parámetro de job `pais` y leerlo en las tareas.
+- [ ] Crear un clúster distinto por país.
+porque: Los parámetros de job se pasan a todas las tareas y se pueden sobrescribir al ejecutar con "Run now with different parameters" o desde la API.
+
+## If/else
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+Solo si la tarea `contar_nuevos` devuelve más de 0 filas debe correr `actualizar_gold`. ¿Qué tipo de tarea usas entre ambas?
+- [ ] Una tarea de notebook que siempre corre `actualizar_gold`.
+- [x] Una tarea If/else condition que compara el task value con 0.
+- [ ] Una tarea Run Job que llama a otro workspace.
+- [ ] Un SQL alert enviado por correo a quien aprueba.
+porque: La tarea If/else evalúa una condición (por ejemplo, sobre un task value) y define qué rama del job sigue.
+
+## Tiempo máximo
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+Una tarea que normalmente tarda 10 minutos a veces se cuelga y queda horas corriendo. ¿Qué configuras?
+- [ ] Más workers para esa tarea.
+- [ ] Desactivar las notificaciones de falla.
+- [ ] Un reintento infinito para que la tarea termine en algún momento.
+- [x] Un timeout en la tarea, más una notificación de duración.
+porque: El timeout corta la tarea si supera el tiempo y la marca como fallida; los avisos de duración alertan antes.
+
+## Archivo del bundle
+leccion: cert-databricks-cicd-bundles
+dominio: 5
+¿Qué archivo define un Databricks Asset Bundle (recursos, targets y variables)?
+- [ ] `requirements.txt`
+- [x] `databricks.yml` en la raíz del proyecto.
+- [ ] `job.json` exportado desde la interfaz.
+- [ ] `.databrickscfg` en la carpeta del usuario.
+porque: `databricks.yml` es la configuración principal del bundle; puede incluir otros archivos YAML con los recursos.
+
+## Desplegar a producción
+leccion: cert-databricks-cicd-bundles
+dominio: 5
+El bundle tiene targets `dev` y `prod`. ¿Qué comando despliega a producción?
+- [ ] `databricks jobs create --prod`
+- [ ] `databricks bundle run prod`
+- [x] `databricks bundle deploy -t prod`
+- [ ] `databricks workspace import prod`
+porque: `bundle deploy -t <target>` despliega los recursos del target; `bundle run` ejecuta un job o pipeline ya desplegado.
+
+## Variables por entorno
+leccion: cert-databricks-cicd-bundles
+dominio: 5
+El catálogo es `dev_ventas` en dev y `ventas` en prod. ¿Cómo lo maneja el bundle sin duplicar la definición del job?
+- [x] Con una variable `catalogo` que cambia de valor en cada target, usada como `${var.catalogo}`.
+- [ ] Con dos archivos `databricks.yml`, uno por entorno.
+- [ ] Editando el job en la interfaz después de cada despliegue.
+- [ ] Con una tarea previa que busca y reemplaza el nombre del catálogo en todos los notebooks.
+porque: Las variables del bundle se pueden sobrescribir por target y se referencian con `${var.nombre}`.
+
+## Identidad del CI
+leccion: cert-databricks-cicd-bundles
+dominio: 5
+GitHub Actions despliega el bundle a producción. ¿Con qué identidad debería autenticarse?
+- [ ] Con el token personal del líder del equipo.
+- [ ] Con el usuario y la contraseña de un administrador.
+- [ ] Sin autenticación, porque el bundle hereda los permisos de quien lo escribió.
+- [x] Con un service principal (OAuth M2M o federación de identidad).
+porque: Un service principal no depende de una persona y sus permisos se limitan a lo que necesita el despliegue.
+
+## Spill a disco
+leccion: cert-databricks-optimizacion-monitoreo
+dominio: 6
+En la Spark UI, un stage muestra mucho "spill (disk)". ¿Qué indica?
+- [ ] Que la tabla tiene archivos chicos.
+- [x] Que los datos de las tareas no entran en memoria y Spark escribe temporales en disco.
+- [ ] Que el clúster perdió un worker y Spark está copiando sus datos a otro nodo.
+- [ ] Que la consulta usa demasiadas columnas.
+porque: El spill ocurre cuando una tarea maneja más datos de los que caben en memoria (por ejemplo, por skew o particiones muy grandes).
+
+## Predictive optimization
+leccion: cert-databricks-optimizacion-monitoreo
+dominio: 6
+El equipo olvida correr `OPTIMIZE` y `VACUUM` en las tablas administradas. ¿Qué opción de Unity Catalog lo resuelve sola?
+- [ ] Un job manual por tabla que corra cada hora.
+- [ ] Desactivar el time travel.
+- [x] Predictive optimization.
+- [ ] Convertir las tablas en externas.
+porque: Predictive optimization decide cuándo correr OPTIMIZE, VACUUM y ANALYZE en las tablas administradas de Unity Catalog.
+
+## Historial de consultas
+leccion: cert-databricks-optimizacion-monitoreo
+dominio: 6
+Un tablero tarda 2 minutos en cargar. ¿Dónde ves cuánto tardó cada consulta del SQL warehouse y abres su perfil?
+- [ ] En el log del navegador, en la pestaña de red de las herramientas de desarrollo.
+- [x] En Query History, desde donde se abre el Query Profile de cada consulta.
+- [ ] En `DESCRIBE HISTORY` de la tabla.
+- [ ] En la pestaña de librerías del clúster.
+porque: Query History lista las consultas con duración, usuario y estado; el Query Profile muestra en qué operador se fue el tiempo.
+
+## Clave de clustering nueva
+leccion: cert-databricks-optimizacion-monitoreo
+dominio: 6
+La tabla `ventas` tiene Liquid Clustering por `fecha`, pero ahora casi todas las consultas filtran por `tienda_id`. ¿Qué haces?
+- [ ] Recrear la tabla particionada por `tienda_id`.
+- [ ] Nada: Liquid Clustering detecta el filtro solo, sin cambios.
+- [ ] Agregar `ZORDER BY tienda_id` en cada OPTIMIZE y mantener el Liquid Clustering por fecha.
+- [x] `ALTER TABLE ventas CLUSTER BY (tienda_id)` (o incluir ambas columnas) y correr `OPTIMIZE`.
+porque: Con Liquid Clustering las claves se cambian sin reescribir la tabla; OPTIMIZE reorganiza los datos con las claves nuevas. (Con `CLUSTER BY AUTO`, Databricks las elige solo.)
+
+## Dueño de la tabla
+leccion: cert-databricks-gobierno-seguridad
+dominio: 7
+La persona que creó `gold.ventas` dejó la empresa. ¿Qué conviene hacer?
+- [x] Transferir la propiedad a un grupo: `ALTER TABLE gold.ventas OWNER TO data_engineers`.
+- [ ] Borrar la tabla y recrearla.
+- [ ] Dejarla así: el dueño no importa en Unity Catalog.
+- [ ] Darle a todos los usuarios `ALL PRIVILEGES` sobre el catálogo para que nadie quede bloqueado.
+porque: El dueño puede administrar permisos del objeto. Que sea un grupo evita depender de una persona.
+
+## Escribir en una tabla
+leccion: cert-databricks-gobierno-seguridad
+dominio: 7
+El grupo `etl` ya tiene `USE CATALOG`, `USE SCHEMA` y `SELECT` sobre `silver.pedidos`, pero su `INSERT` falla. ¿Qué privilegio falta?
+- [ ] `CREATE TABLE`
+- [ ] `READ FILES`
+- [x] `MODIFY`
+- [ ] `EXECUTE`
+porque: `MODIFY` permite agregar, actualizar y borrar datos de la tabla. `CREATE TABLE` es para crear tablas nuevas en el esquema.
+
+## Vista dinámica
+leccion: cert-databricks-gobierno-seguridad
+dominio: 7
+Quieres que una vista muestre el salario completo solo a los miembros del grupo `rrhh`. ¿Qué función usas?
+- [ ] `current_date()`
+- [ ] `current_catalog()`
+- [ ] `has_role('rrhh', current_user())`
+- [x] `is_account_group_member('rrhh')`
+porque: En vistas dinámicas, `is_account_group_member` permite mostrar u ocultar columnas o filas según el grupo de quien consulta.
+
+## Credencial y ubicación externa
+leccion: cert-databricks-gobierno-seguridad
+dominio: 7
+Unity Catalog debe leer datos de un contenedor de ADLS que ya existe. ¿Qué objetos se crean?
+- [ ] Un secreto con la clave de la cuenta en cada notebook.
+- [ ] Un montaje en DBFS con `dbutils.fs.mount` y la clave de la cuenta en el código del notebook.
+- [x] Una storage credential (identidad administrada) y una external location que apunta a la ruta.
+- [ ] Una tabla administrada vacía.
+porque: La storage credential guarda cómo autenticarse; la external location asocia esa credencial a una ruta y se le dan permisos en Unity Catalog. Los montajes son el método antiguo.
+
+## Secretos en notebooks
+leccion: cert-databricks-gobierno-seguridad
+dominio: 7
+Un notebook necesita la contraseña de una base externa. ¿Cuál es la práctica correcta?
+- [ ] Escribirla en una celda y ocultar la celda.
+- [x] Leerla con `dbutils.secrets.get(scope, key)` desde un secret scope.
+- [ ] Guardarla en un archivo CSV dentro de un volumen.
+- [ ] Pasarla como parámetro del job en texto plano, visible solo para los dueños del job.
+porque: Los secretos se guardan en un scope (respaldado por Databricks o Key Vault) y Databricks oculta su valor en las salidas.
+
+## Auditoría
+leccion: cert-databricks-gobierno-seguridad
+dominio: 7
+Seguridad pide saber quién leyó la tabla `gold.clientes` el mes pasado. ¿Dónde lo buscas?
+- [ ] En `DESCRIBE HISTORY gold.clientes`, que registra cada lectura.
+- [ ] En el Query Profile de la última consulta.
+- [x] En la tabla de sistema `system.access.audit`.
+- [ ] En el log del driver del clúster.
+porque: Los logs de auditoría (tabla de sistema `system.access.audit`) registran accesos y acciones. `DESCRIBE HISTORY` solo registra escrituras.
+
+## @caso clinica: Clínica del Valle
+Clínica del Valle tiene 12 sedes. Cada noche, el sistema de turnos deja archivos JSON en un volumen de Unity Catalog. Hoy un analista los carga a mano con un notebook y los tableros se actualizan cuando puede.
+
+Requisitos nuevos:
+- Cargar solo los archivos nuevos cada noche, sin duplicar si se repite la corrida.
+- Descartar turnos sin `paciente_id`, pero saber cuántos se descartaron.
+- Los médicos ven solo los turnos de su sede; dirección ve todo.
+- Si la carga falla, avisar por correo al equipo de datos.
+
+## Carga nocturna de turnos
+leccion: cert-databricks-ingesta
+dominio: 2
+caso: clinica
+¿Qué solución de ingesta cumple el primer requisito con menos código?
+- [ ] Un notebook que lee todo el volumen y hace `INSERT INTO` cada noche.
+- [x] Una streaming table con `STREAM read_files(...)` que corre cada noche.
+- [ ] Un `CREATE OR REPLACE TABLE` que vuelve a leer todos los archivos del volumen cada noche.
+- [ ] Copiar los archivos a mano a otra carpeta después de cargarlos.
+porque: La streaming table usa Auto Loader: recuerda qué archivos procesó, así una corrida repetida no duplica.
+
+## Turnos sin paciente
+leccion: cert-databricks-transformacion-pipelines
+dominio: 3
+caso: clinica
+¿Cómo cumples el segundo requisito?
+- [ ] Un `WHERE paciente_id IS NOT NULL` y contar a mano los archivos.
+- [ ] `ON VIOLATION FAIL UPDATE`, para revisar cada caso.
+- [x] Una expectativa con `ON VIOLATION DROP ROW`.
+- [ ] Guardar los turnos sin paciente en otra columna.
+porque: `DROP ROW` descarta y registra cuántas filas violaron la regla; el `WHERE` también filtra, pero no deja registro.
+
+## Cada médico, su sede
+leccion: cert-databricks-gobierno-seguridad
+dominio: 7
+caso: clinica
+¿Qué cumple el tercer requisito sin duplicar la tabla por sede?
+- [x] Un row filter que compara la sede de la fila con el grupo de quien consulta.
+- [ ] Doce tablas, una por sede, con permisos distintos.
+- [ ] Pedir a los médicos que filtren por su sede en el tablero y confiar en que lo hagan.
+- [ ] Una column mask sobre la columna `sede`.
+porque: Un row filter aplica el filtro en cada consulta según la identidad. Una column mask oculta valores de una columna, no filas.
+
+## Aviso de falla
+leccion: cert-databricks-lakeflow-jobs
+dominio: 4
+caso: clinica
+¿Cómo cumples el cuarto requisito?
+- [ ] Revisar cada mañana si el tablero cambió.
+- [ ] Un `print` al final del pipeline.
+- [ ] Programar una alerta de SQL que cuente las filas de la tabla cada minuto y avise si no cambian.
+- [x] Correr el pipeline desde un job con notificación de falla por correo.
+porque: Los jobs envían notificaciones al iniciar, terminar con éxito o fallar (correo, Slack, webhooks).
