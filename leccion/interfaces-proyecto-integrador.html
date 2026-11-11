@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto integrador - un mismo dato cruzando Airflow, Databricks, Snowflake, Fabric y Power BI · Academia de Datos</title><meta name="description" content="Proyecto guiado que conecta las herramientas de práctica entre sí, como en un equipo real - Airflow dispara un job de Databricks que construye una tabla gold, Snowflake carga un archivo con COPY INTO, Fabric guarda una tabla en un lakehouse y Power BI importa las tres fuentes en un mismo modelo. Incluye qué revisar en cada herramienta cuando algo falla."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-proyecto-integrador.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto integrador - un mismo dato cruzando Airflow, Databricks, Snowflake, Fabric y Power BI · Academia de Datos"><meta property="og:description" content="Proyecto guiado que conecta las herramientas de práctica entre sí, como en un equipo real - Airflow dispara un job de Databricks que construye una tabla gold, Snowflake carga un archivo con COPY INTO, Fabric guarda una tabla en un lakehouse y Power BI importa las tres fuentes en un mismo modelo. Incluye qué revisar en cada herramienta cuando algo falla."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-proyecto-integrador.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Avanzado · 75 min</div>
+<h1>Proyecto integrador - un mismo dato cruzando Airflow, Databricks, Snowflake, Fabric y Power BI</h1><p class="resumen">Proyecto guiado que conecta las herramientas de práctica entre sí, como en un equipo real - Airflow dispara un job de Databricks que construye una tabla gold, Snowflake carga un archivo con COPY INTO, Fabric guarda una tabla en un lakehouse y Power BI importa las tres fuentes en un mismo modelo. Incluye qué revisar en cada herramienta cuando algo falla.</p>
+<a class="cta" href="../index.html#/l/interfaces-proyecto-integrador">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Orquestar un job de Databricks desde un DAG de Airflow usando una conexión</li><li>Seguir una corrida de punta a punta, del log de Airflow a la corrida del job</li><li>Importar en Power BI tablas de Snowflake, Databricks y Fabric</li><li>Saber en qué herramienta buscar cuando un paso de la cadena falla</li><li>Explicar por qué cada herramienta ocupa su lugar en la arquitectura</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo trabajar este proyecto</div>
+
+<p>Abre cada herramienta en una pestaña del navegador: <a href="#/airflow">Airflow</a>, <a href="#/databricks">Databricks</a>, <a href="#/snowflake">Snowflake</a>, <a href="#/fabric">Fabric</a> y <a href="#/powerbi">Power BI</a>. Todas comparten el mismo navegador: lo que haces en una lo ve la otra. Los <strong>🎯 Retos</strong> de Databricks y Snowflake tienen un nivel &quot;Con otras herramientas&quot; que se marca solo cuando completas cada conexión.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Hasta ahora practicaste cada herramienta por separado, como quien aprende a usar el horno, la heladera y la balanza. En una cocina de verdad se usan juntas: alguien decide el orden (el orquestador), alguien cocina (el motor de cómputo), alguien guarda (el warehouse) y alguien sirve el plato (el tablero). Este proyecto es cocinar un plato entero.</p>
+</div>
+
+
+<h2>Qué vas a construir</h2>
+<p>Tienda Andina quiere un tablero con las ventas por canal y por país, actualizado cada mañana. El equipo se reparte así:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Herramienta</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Orquestación</td>
+<td><strong>Airflow</strong></td>
+<td>Decide cuándo corre cada cosa y avisa si algo falla</td>
+</tr>
+<tr>
+<td>Transformación</td>
+<td><strong>Databricks</strong></td>
+<td>Un job construye la tabla gold <code>ventas_por_canal</code></td>
+</tr>
+<tr>
+<td>Warehouse</td>
+<td><strong>Snowflake</strong></td>
+<td>Guarda <code>ventas_pais</code>, cargada con <code>COPY INTO</code> o creada con SQL</td>
+</tr>
+<tr>
+<td>Lakehouse</td>
+<td><strong>Fabric</strong></td>
+<td>Guarda una tabla de clientes en un lakehouse</td>
+</tr>
+<tr>
+<td>Tablero</td>
+<td><strong>Power BI</strong></td>
+<td>Importa las tres fuentes y arma el informe</td>
+</tr>
+</tbody></table></div>
+<p>En una empresa real no se suelen usar Databricks, Snowflake y Fabric a la vez para lo mismo: se elige una plataforma. Aquí están las tres para que practiques cómo se conecta Power BI a cada una.</p>
+<h2>Paso 1 · El job en Databricks</h2>
+<p>Un <strong>job</strong> es una tarea programable de Databricks. Este crea la tabla gold a partir de los pedidos de muestra.</p>
+<p>Abre la terminal (la de <a href="#/airflow">Airflow</a> sirve: botón <strong>Terminal</strong>) y crea el job con la CLI:</p>
+<pre><code class="language-bash">databricks jobs create --json '{&quot;name&quot;:&quot;carga_gold&quot;,&quot;tasks&quot;:[{&quot;task_key&quot;:&quot;construir&quot;,&quot;sql_task&quot;:{&quot;query&quot;:{&quot;query_text&quot;:&quot;CREATE OR REPLACE TABLE main.default.ventas_por_canal AS SELECT canal, COUNT(*) AS pedidos FROM samples.tienda.pedidos GROUP BY canal&quot;}}}]}'</code></pre>
+<p>La respuesta trae el <strong><code>job_id</code></strong>: anótalo. También lo ves en <a href="#/databricks">Databricks</a> → <strong>Jobs &amp; Pipelines</strong> → el job → <em>Job details</em>.</p>
+<blockquote>
+<p>En Databricks real, una tarea SQL apunta a una consulta guardada o a un archivo <code>.sql</code> del repositorio, y necesita un SQL warehouse. La réplica acepta el texto de la consulta para que el ejemplo sea corto.</p>
+</blockquote>
+<h2>Paso 2 · La conexión en Airflow</h2>
+<p>Airflow no guarda direcciones ni tokens en el código del DAG: usa <strong>conexiones</strong>. El operador de Databricks busca por defecto una llamada <code>databricks_default</code>.</p>
+<pre><code class="language-bash">airflow connections add databricks_default --conn-type databricks --conn-host https://adb-1234567890123456.7.azuredatabricks.net</code></pre>
+<p>(O en la interfaz: <strong>Admin → Connections → +</strong>.) En un entorno real, la conexión lleva además un token o, mejor, un service principal.</p>
+<h2>Paso 3 · El DAG que orquesta</h2>
+<p>Crea el archivo <code>~/airflow/dags/orquesta_gold.py</code> (con <code>nano</code> o <code>vim</code>) y reemplaza <code>123</code> por tu <code>job_id</code>:</p>
+<pre data-norun><code class="language-python">from datetime import datetime
+
+from airflow.sdk import DAG
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+with DAG(
+    dag_id=&quot;orquesta_gold&quot;,
+    schedule=&quot;0 6 * * *&quot;,          # todos los días a las 6:00
+    start_date=datetime(2026, 1, 1),
+    catchup=False,
+    tags=[&quot;tienda&quot;, &quot;gold&quot;],
+):
+    construir = DatabricksRunNowOperator(task_id=&quot;construir_gold&quot;, job_id=123)
+    avisar = EmptyOperator(task_id=&quot;avisar_al_equipo&quot;)
+
+    construir &gt;&gt; avisar</code></pre>
+<p>En <a href="#/airflow">Airflow</a> → <strong>Dags</strong>, despausa <code>orquesta_gold</code> y pulsa <strong>Trigger</strong>. Mira la <strong>Grid</strong>: <code>construir_gold</code> pasa a verde y después <code>avisar_al_equipo</code>.</p>
+<p>Ahora sigue la corrida al otro lado:</p>
+<ul>
+<li>En el <strong>log</strong> de <code>construir_gold</code> verás <code>Run submitted with run_id: …</code> y el estado final del job.</li>
+<li>En <a href="#/databricks">Databricks</a> → <strong>Jobs &amp; Pipelines</strong> → <code>carga_gold</code> → <strong>Runs</strong>, la corrida aparece con <em>trigger</em> <strong>API</strong>: la disparó Airflow, no una persona.</li>
+<li>En <strong>Catalog</strong> → <code>main</code> → <code>default</code> está la tabla <code>ventas_por_canal</code>.</li>
+</ul>
+<p>Fíjate que Airflow <strong>no movió ni un dato</strong>: solo le pidió a Databricks que hiciera el trabajo y esperó el resultado. Esa es la regla del orquestador.</p>
+<h3>Rómpelo a propósito</h3>
+<p>Cambia el <code>job_id</code> del DAG por uno que no existe y dispara otra vez. La tarea falla con <code>Job 999 does not exist</code>, y <code>avisar_al_equipo</code> queda en naranja (<code>upstream_failed</code>). Corrige el archivo y usa <strong>Clear</strong> sobre la tarea para volver a correr solo desde ahí.</p>
+<h2>Paso 4 · Una tabla en Snowflake</h2>
+<p>En <a href="#/snowflake">Snowflake</a>, abre una hoja y ejecuta:</p>
+<pre data-norun><code class="language-sql">CREATE DATABASE analitica;
+CREATE SCHEMA gold;
+
+CREATE TABLE ventas_pais AS
+SELECT c.pais, COUNT(DISTINCT p.pedido_id) AS pedidos
+FROM tienda_andina.public.pedidos p
+JOIN tienda_andina.public.clientes c ON c.cliente_id = p.cliente_id
+GROUP BY c.pais;</code></pre>
+<p>Si quieres practicar la carga de archivos, crea un stage, agrega los archivos de ejemplo y usa <code>COPY INTO</code> como en la lección de Snowflake.</p>
+<h2>Paso 5 · Una tabla en Fabric</h2>
+<p>En <a href="#/fabric">Fabric</a>: crea un workspace, dentro un <strong>lakehouse</strong> (<code>lh_ventas</code>), sube o genera un archivo en <strong>Files</strong> y conviértelo con <strong>Load to Tables</strong>. Con eso ya hay una tabla Delta en OneLake.</p>
+<h2>Paso 6 · Power BI junta todo</h2>
+<p>En <a href="#/powerbi">Power BI</a> → <strong>Obtener datos</strong>:</p>
+<ol>
+<li><strong>Azure Databricks</strong> → acepta el host y la ruta HTTP → marca <code>default.ventas_por_canal</code> → <strong>Cargar</strong>.</li>
+<li><strong>Snowflake</strong> → servidor, warehouse y base <code>ANALITICA</code> → marca <code>GOLD.VENTAS_PAIS</code> → <strong>Cargar</strong>.</li>
+<li><strong>Lakehouses y warehouses de Fabric</strong> → marca tu tabla → <strong>Cargar</strong>.</li>
+</ol>
+<p>Arma un gráfico de columnas con <code>canal</code> y <code>pedidos</code>, y otro con <code>pais</code> y <code>pedidos</code>.</p>
+<p>Dos cosas para observar:</p>
+<ul>
+<li>En <strong>Transformar datos</strong>, el primer paso de cada consulta (<em>Origen</em>) muestra el conector que se usó: <code>Snowflake.Databases(...)</code>, <code>Databricks.Catalogs(...)</code> o <code>Lakehouse.Contents(...)</code>.</li>
+<li>En Snowflake → <strong>Query History</strong> aparece el <code>SELECT * FROM ANALITICA.GOLD.VENTAS_PAIS</code> que hizo Power BI, con el warehouse que usó. <strong>Importar</strong> copia los datos al modelo: cada actualización es una consulta que consume créditos. La alternativa, <strong>DirectQuery</strong>, no copia nada pero consulta en cada clic del informe.</li>
+</ul>
+<h2>Cuando algo falla: dónde mirar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Síntoma</th>
+<th>Dónde empezar</th>
+</tr>
+</thead><tbody><tr>
+<td>El tablero muestra datos viejos</td>
+<td>Power BI: ¿se actualizó el modelo? Después, ¿corrió el DAG?</td>
+</tr>
+<tr>
+<td>La tarea de Airflow está en rojo</td>
+<td>El <strong>log</strong> del último intento: dice si falló la conexión, el job no existe o el job terminó mal</td>
+</tr>
+<tr>
+<td>El job terminó en <code>FAILED</code></td>
+<td>Databricks → la corrida → la tarea que falló y su error</td>
+</tr>
+<tr>
+<td>Power BI no puede importar de Snowflake</td>
+<td>¿Existe el warehouse? ¿El rol tiene permisos? Query History muestra el error exacto</td>
+</tr>
+<tr>
+<td>Las tareas siguientes quedaron en naranja</td>
+<td>No fallaron: no corrieron porque falló una anterior (<code>upstream_failed</code>)</td>
+</tr>
+</tbody></table></div>
+<p>La idea que se repite: <strong>cada herramienta deja su propio registro</strong>, y se sigue la cadena de atrás hacia adelante hasta el primer eslabón que falló.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-proyecto-integrador">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-snowflake-por-dentro.html">← Snowflake por dentro - warehouses, bases, stages, Time Travel y costos</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

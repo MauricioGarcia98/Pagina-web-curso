@@ -414,7 +414,8 @@ ORDER BY ventas DESC;
       if (/^UPDATE/i.test(sql)) return { ...filas(['number of rows updated', 'number of multi-joined rows updated'], [[n, 0]]), persistir: true };
       if (/^(DELETE|TRUNCATE)/i.test(sql)) return { ...filas(['number of rows deleted'], [[n]]), persistir: true };
       if (/^MERGE/i.test(sql)) return { ...filas(['number of rows affected'], [[n]]), persistir: true };
-      return { estado: 'Statement executed successfully.', persistir: true };
+      const tc = /^CREATE\s+(?:OR\s+REPLACE\s+)?(?:TRANSIENT\s+|TEMPORARY\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)/i.exec(sql);
+      return { estado: tc ? `Table ${nombreCompleto(tc[1]).tabla} successfully created.` : 'Statement executed successfully.', persistir: true };
     }
     if (esDdl) {
       const t = /^CREATE\s+(?:OR\s+REPLACE\s+)?(?:TRANSIENT\s+|TEMPORARY\s+)?(TABLE|VIEW|SEQUENCE|FUNCTION)\s+(?:IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)/i.exec(sql);
@@ -484,6 +485,8 @@ ORDER BY ventas DESC;
     guardar(); avisar();
     return resultados;
   }
+  // lectura directa sin dejar registro en el historial (vistas previas de otras herramientas)
+  async function leer(sql) { await init(); const r = await con.query(sql); const D = window.SqlMotores.DUCK; const campos = r.schema.fields; return { columns: campos.map((f) => f.name.toUpperCase()), values: r.toArray().map((fila) => campos.map((f) => D._celda(fila[f.name], f.type))) }; }
   async function reiniciar() {
     const s = st();
     for (const d of await bases()) if (d !== 'TIENDA_ANDINA' && d !== 'SNOWFLAKE_SAMPLE_DATA') { try { await con.query(`DETACH ${ident(d)}`); } catch (e) { /* ya no está */ } }
@@ -497,7 +500,7 @@ ORDER BY ventas DESC;
   }
 
   window.SnowflakeMotor = {
-    init, ejecutar, partir, traducir, st, reiniciar, subirArchivo, tick, suspender: (n) => { const w = st().warehouses[n]; if (w) { suspender(w); avisar(); } }, reanudar: (n) => { const w = st().warehouses[n]; if (w) { reanudar(w); avisar(); } },
+    init, ejecutar, leer, partir, traducir, st, reiniciar, subirArchivo, tick, suspender: (n) => { const w = st().warehouses[n]; if (w) { suspender(w); avisar(); } }, reanudar: (n) => { const w = st().warehouses[n]; if (w) { reanudar(w); avisar(); } },
     bases, esquemas, tablas, columnas, CREDITOS_HORA, ROLES_SISTEMA, USUARIO, oyentes,
     conectar: (store) => { Store = store; st(); },
   };

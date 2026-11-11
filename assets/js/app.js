@@ -54,6 +54,7 @@
     return grupoCargas[g];
   }
   window.__cargarGrupo = cargarGrupo;
+  window.__almacen = () => Store; // para que una réplica use a otra sin haber pasado por su página
   // lo que se descarga con "Guardar todo el curso" (Mis datos): el contenido de cada módulo, el buscador,
   // las herramientas de práctica y los datos de ejemplo
   window.__urlsCurso = () => [

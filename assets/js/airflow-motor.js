@@ -605,6 +605,38 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     return L;
   }
 
+  // DatabricksRunNowOperator: la tarea dispara de verdad el job en el Databricks de práctica (el mismo estado que
+  // usa la réplica y el comando `databricks jobs` de la terminal). Necesita la conexión databricks_default.
+  async function enlazarDatabricks(datos, solo) {
+    const tareas = datos.dag.tasks.filter((t) => t.op === 'DatabricksRunNowOperator' && datos.states[t.id] === 'success' && (!solo || solo.includes(t.id)));
+    if (!tareas.length) return;
+    const fallar = (t, intento, msg) => {
+      intento.ok = false; intento.tipo = 'AirflowException'; intento.msg = msg; intento.err = `Traceback (most recent call last):\n  File "airflow/providers/databricks/operators/databricks.py", line 912, in execute\nairflow.exceptions.AirflowException: ${msg}`;
+      datos.states[t.id] = 'failed';
+      // lo que depende de esta tarea ya no corre
+      const cola = [...t.down];
+      while (cola.length) { const id = cola.shift(); const d = datos.dag.tasks.find((x) => x.id === id); if (!d || datos.states[id] === 'upstream_failed') continue; if (/all_success|none_failed/.test(d.tr)) { datos.states[id] = 'upstream_failed'; if (datos.tis[id]) datos.tis[id].tries = []; cola.push(...d.down); } }
+    };
+    for (const t of tareas) {
+      const rec = datos.tis[t.id]; const intento = rec && rec.tries[rec.tries.length - 1]; if (!intento) continue;
+      const rend = intento.rend || {}; const conn = rend.databricks_conn_id || 'databricks_default';
+      if (!st().conns[conn]) { fallar(t, intento, `The conn_id \`${conn}\` isn't defined. Créala en Admin → Connections (tipo databricks) o con: airflow connections add ${conn} --conn-type databricks --conn-host https://adb-1234567890123456.7.azuredatabricks.net`); continue; }
+      try { if (!(window.DBX && window.DBX.correrJob) && window.__cargarGrupo) await window.__cargarGrupo('databricks'); } catch (e) { /* sin red */ }
+      const D = window.DBX;
+      if (!D || !D.correrJob) { fallar(t, intento, 'No se pudo cargar el Databricks de práctica (revisa tu conexión).'); continue; }
+      const almacen = window.__almacen && window.__almacen();
+      if (almacen) { if (D.asegurarStore) D.asegurarStore(almacen); try { if (window.DBSQL) await window.DBSQL.init({ Store: almacen }); } catch (e) { /* se informa al correr */ } }
+      const J = D.cli().jobs || {};
+      let jobId = rend.job_id !== undefined && rend.job_id !== null ? String(rend.job_id) : null;
+      if (!jobId && rend.job_name) jobId = Object.keys(J).find((k) => ((J[k].settings || J[k]).name) === rend.job_name) || null;
+      if (!jobId || !J[jobId]) { fallar(t, intento, rend.job_name && !jobId ? `Job with name ${rend.job_name} does not exist. Créalo en Databricks → Jobs & Pipelines.` : `Job ${jobId} does not exist. Mira el Job ID en Databricks → Jobs & Pipelines (o con databricks jobs list).`); continue; }
+      const host = (st().conns[conn].host || 'https://adb-1234567890123456.7.azuredatabricks.net').replace(/\/$/, '');
+      const run = await D.correrJob(jobId, { trigger: 'API', params: rend.notebook_params || rend.job_parameters || {} });
+      intento.out = (intento.out || '').replace(/^.*\(simulado\).*\n?/m, '') + `     Run submitted with run_id: ${run.run_id}\n     View run status, Spark UI, and logs at ${host}/#job/${jobId}/run/${run.run_id}\n     ${t.id} in run state: {'life_cycle_state': 'RUNNING', 'result_state': '', 'state_message': 'In run'}\n     Sleeping for 30 seconds.\n     ${t.id} in run state: {'life_cycle_state': 'TERMINATED', 'result_state': '${run.result || run.state}', 'state_message': ''}\n`;
+      if (run.result === 'SUCCESS') { intento.out += `     ${t.id} completed successfully.\n`; intento.ret = String(run.run_id); const s = st(); s.cruces = s.cruces || {}; s.cruces.airflowDatabricks = Date.now(); }
+      else fallar(t, intento, `${t.id} failed with terminal state: {'life_cycle_state': 'TERMINATED', 'result_state': '${run.result || run.state}', 'state_message': 'Mira la corrida en Databricks → Jobs & Pipelines → Runs.'}`);
+    }
+  }
   async function ejecutar(id, r, o = {}) {
     await parsear();
     const d = dag(id);
@@ -613,6 +645,7 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     const prev = {}; const solo = o.solo || null;
     if (solo) for (const [tid, ti] of Object.entries(r.tis)) if (!solo.includes(tid)) prev[tid] = { state: ti.state, xcom: ti.xcom || {} };
     const { datos } = await py(CORRER, { files: { [d.file]: archivos().find((f) => f.ruta === d.file).codigo }, vars: st().vars, conns: conns(), dag_id: id, logical_date: r.logical.replace('Z', ''), conf: r.conf, run_id: r.run_id, prev, solo });
+    await enlazarDatabricks(datos, solo);
     // tiempos simulados: cada tarea empieza cuando terminan sus dependencias (en paralelo si se puede)
     const t0 = Date.now(); const fin = {}; const plan = [];
     for (const t of datos.dag.tasks) {

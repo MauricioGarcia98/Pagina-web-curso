@@ -154,6 +154,17 @@
     ]],
   ] };
 
+  // Retos que cruzan herramientas: cada réplica deja una marca cuando otra la usa de verdad
+  const cruce = (k) => !!(Store && Store.data.cruces && Store.data.cruces[k]);
+  const cruceAirflow = () => { const M = window.Shell && window.Shell.Machine; return !!(M && M.cloud && M.cloud.airflow && M.cloud.airflow.cruces && M.cloud.airflow.cruces.airflowDatabricks); };
+  RETOS.databricks.niveles.push(['Con otras herramientas', [
+    ['dbx-airflow', 'Dispara un job de Databricks desde un DAG de Airflow', 'En Airflow: conexión databricks_default y un DAG con DatabricksRunNowOperator(job_id=…). La corrida aparece en Jobs & Pipelines → Runs con trigger API.', cruceAirflow],
+    ['dbx-pbi', 'Importa en Power BI una tabla de tu Unity Catalog', 'En Power BI: Obtener datos → Azure Databricks → marca la tabla → Cargar.', () => cruce('pbiDatabricks')],
+  ]]);
+  RETOS.snowflake.niveles.push(['Con otras herramientas', [
+    ['sf-pbi', 'Importa en Power BI una tabla de Snowflake', 'En Power BI: Obtener datos → Snowflake → elige warehouse y base → Cargar. La consulta queda en Query History.', () => cruce('pbiSnowflake')],
+  ]]);
+
   let Store = null;
   const hechos = () => { if (!Store) return {}; Store.data.retosHerr = Store.data.retosHerr || {}; return Store.data.retosHerr; };
   function revisar(id) {
