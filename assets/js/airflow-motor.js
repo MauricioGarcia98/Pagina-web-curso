@@ -9,7 +9,7 @@
   const HOME = '/home/alumno';
   const AIRFLOW_HOME = HOME + '/airflow';
   const DAGS = AIRFLOW_HOME + '/dags';
-  const VERSION = '3.1.3';
+  const VERSION = '3.3.2'; // la misma que el resto del curso (imagen apache/airflow y mini-Airflow)
   const oyentes = new Set();
   const avisar = (q) => oyentes.forEach((f) => { try { f(q); } catch (e) { /* vista cerrada */ } });
 

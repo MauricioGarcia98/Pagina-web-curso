@@ -232,9 +232,9 @@
     "titulo": "Las herramientas por dentro: qué es cada cosa",
     "icono": "🧭",
     "color": "#0f766e",
-    "descripcion": "Un recorrido profundo por Power BI, el portal de Azure, Data Factory, Databricks y GitHub: qué es cada botón, panel y concepto, para qué sirve y cómo se conecta con lo demás. Con la réplica de cada herramienta para practicar mientras lees.",
+    "descripcion": "Un recorrido profundo por Power BI, el portal de Azure, Data Factory, Databricks, GitHub, Microsoft Fabric y Airflow: qué es cada botón, panel y concepto, para qué sirve y cómo se conecta con lo demás. Con la réplica de cada herramienta para practicar mientras lees.",
     "objetivos": [
-      "Ubicar cada zona de Power BI, el portal de Azure, Data Factory Studio, Databricks y GitHub",
+      "Ubicar cada zona de Power BI, el portal de Azure, Data Factory Studio, Databricks, GitHub, Fabric y Airflow",
       "Explicar los conceptos de cada herramienta con tus palabras",
       "Saber qué hace la réplica y qué tendrás que hacer en la herramienta real"
     ]

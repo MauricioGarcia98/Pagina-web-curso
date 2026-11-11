@@ -11,6 +11,9 @@ const PAGINAS = [
   ['laboratorio SQL', '#/lab/sql', '#out, textarea, .cm-editor'],
   ['exámenes', '#/examenes', 'main'],
   ['buscar', '#/buscar?q=join', 'main'],
+  ['Microsoft Fabric', '#/fabric', '.fbp'],
+  ['Airflow', '#/airflow', '#afp'],
+  ['GitHub', '#/github', '.ghp'],
 ];
 
 let fallas = 0;
