@@ -123,19 +123,68 @@ En el portal creas el **workspace**: nivel de precios (*Premium* para Unity Cata
 
 En el portal creas el factory (nombre único, región, Git ahora o después). Todo el diseño se hace en **Azure Data Factory Studio** (botón **Iniciar Studio**): ver la lección siguiente. El factory tiene su **identidad administrada**, a la que le das roles de datos sobre el almacenamiento.
 
+### Azure SQL Database
+
+Es **SQL Server ofrecido como servicio**: Microsoft cuida el servidor, los parches y las copias de seguridad, y tú solo creas la base y la consultas. Suele ser la base **operativa** (la que usa una aplicación) de la que después se copian datos al lago con Data Factory.
+
+- **Servidor lógico y base de datos.** El servidor (`sql-datos-dev.database.windows.net`) no es una máquina: es un nombre que agrupa bases y guarda lo que comparten, como el cortafuegos y el administrador. La base es donde están las tablas y lo que se paga.
+- **Cortafuegos.** Por defecto **nadie** puede conectarse. El primer error que ve casi todo el mundo es *"Client with IP address … is not allowed to access the server"*: se resuelve agregando tu IP en **Networking**. No abras `0.0.0.0 – 255.255.255.255` en un servidor real.
+- **Autenticación.** Lo recomendado es **solo Microsoft Entra**: sin usuario y contraseña de SQL que haya que guardar o rotar.
+- **Cadenas de conexión.** El portal las da listas para ADO.NET, JDBC (Spark y Databricks) y ODBC (Python).
+
+### Colas, tablas y archivos de una cuenta de almacenamiento
+
+Además de blobs, una cuenta de almacenamiento ofrece tres servicios más chicos:
+
+| Servicio | Qué guarda | Ejemplo de uso |
+|---|---|---|
+| **Queues** | Mensajes cortos, en orden de llegada | "Llegó `ventas.csv`, procésalo": una parte del sistema avisa y otra retira el mensaje cuando puede |
+| **Tables** | Filas sin esquema fijo, identificadas por `PartitionKey` y `RowKey` | Configuración o registros simples que se buscan por clave |
+| **File shares** | Carpetas compartidas que se montan como un disco de red | Aplicaciones que esperan una carpeta compartida |
+
+## Identidades: Microsoft Entra ID
+
+Todo permiso en Azure se le da a una **identidad**, y las identidades viven en Microsoft Entra ID. Hay cuatro tipos:
+
+| Tipo | Qué es | Cuándo se usa |
+|---|---|---|
+| **Usuario** | Una persona | Para entrar al portal y trabajar a mano |
+| **Grupo** | Un conjunto de usuarios | Para dar permisos a un equipo de una sola vez |
+| **Service principal** (registro de aplicación) | La identidad de un programa, con un secreto o un certificado | Para que algo que corre **fuera** de Azure (GitHub Actions, un script) pueda entrar |
+| **Identidad administrada** | Una identidad que Azure crea y cuida para un recurso | Para que un recurso de Azure (Data Factory, Databricks) acceda a otro **sin guardar ninguna clave** |
+
+Para que un programa entre con un service principal necesita tres datos: el **tenant ID**, el **client ID** y un **secreto**. Además hay que darle un **rol** en *Access control (IAM)* del recurso: sin rol, entra pero no puede hacer nada.
+
+:::cuidado Los secretos vencen
+Un secreto de aplicación dura como máximo 24 meses y **se muestra una sola vez** al crearlo. Si nadie lo rota antes de la fecha, lo que dependa de él deja de funcionar: es una causa frecuente de pipelines que "de repente" fallan. Guárdalo en Key Vault, nunca en el código. Y si el que necesita acceso es un recurso de Azure, usa su identidad administrada: no hay secreto que se filtre ni que venza.
+:::
+
 ## Costos y supervisión
 
 - **Cost Management**: **Análisis de costos** (por servicio, grupo de recursos o etiqueta), **Presupuestos** con alertas por correo al llegar a un porcentaje, recomendaciones de Advisor.
-- **Azure Monitor**: métricas, alertas, **Log Analytics** (consultas KQL sobre los logs) y el **registro de actividad** de toda la suscripción.
-- **Microsoft Entra ID**: usuarios, grupos, **registros de aplicaciones** (service principals) y aplicaciones empresariales.
+- **Registro de actividad**: quién creó, cambió o borró cada recurso, y cuándo.
+- **Azure Monitor** junta lo que pasa con tus recursos. Tiene tres piezas que se usan juntas:
+
+| Pieza | Qué es | Ejemplo |
+|---|---|---|
+| **Métricas** | Números que se miden cada minuto | Cuántas ejecuciones de un pipeline fallaron |
+| **Reglas de alerta** | "Si esta métrica pasa este umbral, avisa", con una **severidad** de 0 (crítico) a 4 | Si hay más de 0 pipelines fallidos, avisar |
+| **Grupos de acciones** | A quién y cómo se avisa (correo, SMS, webhook) | Un correo al equipo de guardia |
+
+Una regla de alerta **sin** grupo de acciones se dispara y queda registrada, pero nadie se entera. Es un error común.
+
+Los logs detallados se consultan en **Log Analytics** con el lenguaje **KQL**.
 
 ## Qué tiene la réplica y qué no
 
 | En la réplica | Todavía no |
 |---|---|
 | Suscripción, grupos de recursos, asistentes de creación con validación y plantilla ARM, implementaciones, notificaciones | Grupos de administración, Azure Policy, varias suscripciones con datos reales |
-| Storage (contenedores, blobs, redundancia, ADLS Gen2), Key Vault (secretos, RBAC), Databricks, Data Factory con Studio, Event Hubs básico | Máquinas virtuales, SQL Database, Synapse, Fabric, Functions, redes virtuales completas, Monitor con KQL |
-| IAM con roles de control y de datos, bloqueos, etiquetas, registro de actividad, costos y presupuestos estimados, Cloud Shell con `az` | Costos reales, métricas reales, PIM, Entra ID completo |
+| Storage (contenedores, blobs, colas, tablas, archivos compartidos, redundancia, ADLS Gen2), Key Vault (secretos, claves y certificados con RBAC), Databricks, Data Factory con Studio | Máquinas virtuales, Synapse, Fabric, Functions, redes virtuales completas |
+| Azure SQL Database: servidor, cortafuegos, editor de consultas con T-SQL real y cadenas de conexión | Copias de seguridad y restauración, réplicas, escalado real |
+| Microsoft Entra ID: usuarios, grupos y registros de aplicaciones con secretos, que después reciben roles en IAM | Acceso condicional, MFA, PIM |
+| Monitor: métricas, reglas de alerta y grupos de acciones | Log Analytics con KQL, métricas reales |
+| IAM con roles de control y de datos, bloqueos, etiquetas, registro de actividad, costos y presupuestos estimados, Cloud Shell con `az` | Costos reales |
 
 :::ejercicio quiz
 Eres Owner de la suscripción y, al abrir un contenedor, el portal dice que no tienes permiso para listar los blobs. ¿Qué falta?
@@ -167,4 +216,28 @@ Data Factory necesita leer tu almacenamiento sin guardar contraseñas en ningún
 - [ ] Un SAS sin vencimiento
 - [x] La identidad administrada del factory con un rol de datos sobre la cuenta
 - [ ] Hacer público el contenedor
+:::
+
+:::ejercicio quiz
+Un pipeline de GitHub Actions (corre fuera de Azure) debe subir archivos a tu cuenta de almacenamiento. ¿Qué identidad usa?
+- [ ] La identidad administrada de la cuenta de almacenamiento
+- [x] Un service principal (registro de aplicación) con un rol de datos sobre la cuenta
+- [ ] Tu usuario y tu contraseña guardados en el repositorio
+- [ ] La clave de acceso de la cuenta escrita en el archivo del workflow
+:::
+
+:::ejercicio quiz
+Creaste una base de Azure SQL y, al abrir el editor de consultas, aparece "Client with IP address … is not allowed to access the server". ¿Qué haces?
+- [ ] Borrar la base y crearla en otra región
+- [x] Agregar tu dirección IP en las reglas del cortafuegos del servidor (Networking)
+- [ ] Asignarte el rol Storage Blob Data Reader
+- [ ] Subir el nivel de precio de la base
+:::
+
+:::ejercicio quiz
+Una regla de alerta de Monitor se disparó anoche, pero nadie del equipo recibió nada. ¿Cuál es la causa más probable?
+- [ ] La severidad era 0 y las críticas no se notifican
+- [x] La regla no tiene un grupo de acciones asociado
+- [ ] La métrica usaba la agregación Sum
+- [ ] El registro de actividad estaba lleno
 :::

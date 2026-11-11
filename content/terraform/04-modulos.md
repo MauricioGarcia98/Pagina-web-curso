@@ -14,6 +14,10 @@ El lago del Grupo Andino ya tiene doce buckets en tres entornos. Una auditoría 
 > "Quiero **una** definición de cómo es una capa del lago en esta empresa: privada, cifrada, versionada si hace falta y con retención. Y que todos los buckets salgan de ahí."
 :::
 
+:::analogia En palabras simples
+Un módulo de Terraform es como un kit de muebles prearmado: en vez de describir cada tornillo de una cuenta de almacenamiento cada vez, creas un kit "almacenamiento de datos" y lo reutilizas en todos los proyectos con los ajustes de cada uno.
+:::
+
 ## Qué es un módulo
 
 Un **módulo** es una carpeta con archivos `.tf`. Ya escribiste uno: la carpeta donde ejecutas `terraform` es el **módulo raíz**. Cuando ese módulo llama a otra carpeta con un bloque `module`, esa carpeta es un **módulo hijo**.

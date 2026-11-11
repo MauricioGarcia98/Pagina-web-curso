@@ -123,6 +123,22 @@ SELECT * FROM main.ventas.pedidos VERSION AS OF 12;
 SELECT * FROM main.ventas.pedidos TIMESTAMP AS OF '2024-06-01';
 ```
 
+## DuckDB: SQL analítico sin servidor
+
+**DuckDB** es un motor gratuito y de código abierto pensado para **analizar**, no para atender una aplicación. Guarda cada columna junta (es *columnar*), así que sumar o promediar millones de filas le lleva milisegundos. No necesita servidor: corre dentro de tu programa, de tu notebook o, como en el laboratorio, de tu navegador. Lee archivos CSV y Parquet directamente (`SELECT * FROM 'ventas.parquet'`).
+
+Su SQL se parece mucho al de PostgreSQL y suma atajos muy cómodos para analizar:
+
+| Atajo | Qué hace |
+|---|---|
+| `GROUP BY ALL` | Agrupa por todas las columnas que no son agregaciones: no hay que repetirlas |
+| `QUALIFY` | Filtra por el resultado de una función de ventana, como en Databricks y Snowflake |
+| `PIVOT … ON … USING …` | Convierte valores de una columna en columnas |
+| `SUMMARIZE tabla` | Muestra, por columna, mínimo, máximo, nulos y valores distintos |
+| `SELECT * EXCLUDE (col)` | Todas las columnas menos algunas |
+
+Pruébalo en el [laboratorio SQL](#/lab/sql?modo=libre): elige la pestaña 🦆 **DuckDB**.
+
 ## Cómo aprender un dialecto nuevo en una tarde
 
 1. Busca la página de **funciones de fecha** y la de **funciones de texto** de su documentación: ahí están el 80 % de las diferencias.

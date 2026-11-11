@@ -1,0 +1,3 @@
+# solo para el validador de ejercicios (tools/validate.mjs) en GitHub Actions
+jinja2
+pandas

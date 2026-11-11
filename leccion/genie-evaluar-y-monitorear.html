@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probar, evaluar y monitorear un Genie Agent · Academia de Datos</title><meta name="description" content="Cómo saber si un agente responde bien antes y después de cada cambio - probar como usuario y revisar el SQL, corregir y guardar como ejemplo, armar benchmarks con varias formas de la misma pregunta y entender cómo los califica Genie, el modo agente para preguntas exploratorias, la pestaña de monitoreo y el ciclo de mejora con los usuarios."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-evaluar-y-monitorear.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Probar, evaluar y monitorear un Genie Agent · Academia de Datos"><meta property="og:description" content="Cómo saber si un agente responde bien antes y después de cada cambio - probar como usuario y revisar el SQL, corregir y guardar como ejemplo, armar benchmarks con varias formas de la misma pregunta y entender cómo los califica Genie, el modo agente para preguntas exploratorias, la pestaña de monitoreo y el ciclo de mejora con los usuarios."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-evaluar-y-monitorear.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#genie">🧞 Databricks Genie: preguntas en lenguaje natural</a> · Avanzado · 60 min</div>
+<h1>Probar, evaluar y monitorear un Genie Agent</h1><p class="resumen">Cómo saber si un agente responde bien antes y después de cada cambio - probar como usuario y revisar el SQL, corregir y guardar como ejemplo, armar benchmarks con varias formas de la misma pregunta y entender cómo los califica Genie, el modo agente para preguntas exploratorias, la pestaña de monitoreo y el ciclo de mejora con los usuarios.</p>
+<a class="cta" href="../index.html#/l/genie-evaluar-y-monitorear">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Revisar y corregir una respuesta de Genie y convertirla en ejemplo</li><li>Armar un conjunto de benchmarks con respuestas SQL</li><li>Explicar las reglas con que Genie califica un benchmark en modo chat</li><li>Distinguir el modo chat del modo agente</li><li>Usar el monitoreo y la opinión de los usuarios para mejorar el agente</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Antes de soltar un Genie Agent a toda la empresa hay que tomarle examen: una lista de preguntas con su respuesta correcta para ver cuántas acierta. Y después, como con un empleado nuevo, se revisa de vez en cuando qué le preguntan y dónde se equivoca.</p>
+</div>
+
+
+<h2>Paso 1: ser el primer usuario</h2>
+<p>La documentación insiste: <strong>el autor tiene que ser el primer usuario</strong> del agente. Hazle las preguntas que esperas de los usuarios, con distintas formas de escribirlas, y por cada respuesta:</p>
+<ol>
+<li>Haz clic en <strong>Show code</strong> y lee el SQL. ¿Usó la tabla correcta? ¿Filtró los cancelados? ¿Agrupó al grano correcto?</li>
+<li>Si está mal y tienes permiso de edición, <strong>corrige el SQL</strong> directamente y ejecútalo.</li>
+<li>Desde el menú de la respuesta, <strong>Add as instruction</strong> la guarda como consulta de ejemplo (con la pregunta y el SQL corregido), para que Genie aprenda a responder preguntas parecidas.</li>
+<li><strong>Add as benchmark</strong> la guarda como pregunta de prueba (paso 2).</li>
+</ol>
+<p>También puedes abrir <strong>Genie Code</strong> desde una respuesta equivocada y describirle el problema. Por ejemplo: &quot;el agente usa trimestres calendario y nosotros usamos el año fiscal que empieza en febrero; actualiza su contexto&quot;. Genie Code propone los cambios de contexto y tú aceptas los que correspondan.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Genie no es determinista</div>
+
+<p>Como cualquier modelo de lenguaje, la misma pregunta puede dar respuestas distintas en distintos momentos. Una prueba que salió bien una vez no garantiza que salga bien siempre. Por eso existen los benchmarks: correr las mismas preguntas muchas veces y medir.</p>
+</div>
+
+
+<h2>Paso 2: benchmarks, las pruebas automáticas del agente</h2>
+<p>Un <strong>benchmark</strong> es una pregunta de prueba con su <strong>respuesta correcta</strong>, escrita como una consulta SQL. Se agregan en la pestaña <strong>Benchmarks</strong> → <strong>Add benchmark</strong>: la pregunta, el SQL que la responde bien (<em>SQL Answer</em>, que puedes escribir o pedirle a Genie con <strong>Generate SQL</strong> y revisar) y, opcionalmente, una nota de evaluación.</p>
+<p>Recomendaciones de la documentación:</p>
+<ul>
+<li>Cubrir las <strong>preguntas más frecuentes</strong> de los usuarios.</li>
+<li>Agregar <strong>varias formas de la misma pregunta</strong> con la misma respuesta SQL: &quot;ventas de marzo por canal&quot;, &quot;¿cuánto facturó cada canal en marzo?&quot;, &quot;canal con más ventas en marzo de 2024&quot;. Así mides si el agente entiende la intención, no una frase exacta.</li>
+<li>Los benchmarks son <strong>solo para evaluar</strong>: Genie no los usa como contexto para responder (a diferencia de las consultas de ejemplo).</li>
+</ul>
+<p>Se ejecutan con <strong>Run benchmarks</strong> (todos) o <strong>Run selected</strong> (algunos). Cada pregunta corre como una conversación nueva, sin el contexto de otras preguntas.</p>
+<h3>Cómo califica Genie en modo chat</h3>
+<p>En modo chat, Genie compara el resultado de su SQL con el del <em>SQL Answer</em>. La documentación da reglas precisas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Calificación</th>
+</tr>
+</thead><tbody><tr>
+<td>El SQL generado es idéntico al de la respuesta</td>
+<td><strong>Good</strong></td>
+</tr>
+<tr>
+<td>El resultado es idéntico</td>
+<td><strong>Good</strong></td>
+</tr>
+<tr>
+<td>Los mismos datos, en otro orden</td>
+<td><strong>Good</strong></td>
+</tr>
+<tr>
+<td>Los números coinciden redondeados a 4 cifras significativas</td>
+<td><strong>Good</strong></td>
+</tr>
+<tr>
+<td>El resultado está vacío o la consulta da error</td>
+<td><strong>Bad</strong></td>
+</tr>
+<tr>
+<td>El resultado tiene columnas de más</td>
+<td><strong>Bad</strong></td>
+</tr>
+<tr>
+<td>Un resultado de una sola celda con un valor distinto</td>
+<td><strong>Bad</strong></td>
+</tr>
+<tr>
+<td>No hay SQL de respuesta, o los resultados no coinciden exactamente</td>
+<td><strong>Manual review</strong> (revisión manual)</td>
+</tr>
+</tbody></table></div>
+<p>Dos consecuencias prácticas:</p>
+<ul>
+<li>Escribe el <em>SQL Answer</em> con <strong>exactamente las columnas</strong> que esperas: si tu respuesta tiene 2 columnas y Genie devuelve 3, es <em>Bad</em>.</li>
+<li>La comparación usa hasta 5.000 filas; para resultados grandes, ordena explícitamente para evitar falsos <em>Bad</em>.</li>
+</ul>
+<p>El resultado de cada corrida queda en la pestaña <strong>Evaluations</strong> con su <strong>porcentaje de exactitud</strong>, y puedes abrir cada pregunta para comparar la salida del modelo con la respuesta correcta (<em>ground truth</em>). Corriendo los benchmarks <strong>antes y después de cada cambio</strong> sabes si el cambio ayudó o empeoró.</p>
+<h2>Paso 3: el modo agente, para preguntas exploratorias</h2>
+<p>El modo normal (chat) responde una pregunta con una consulta. El <strong>modo agente</strong> (<em>Agent mode</em>) está pensado para preguntas abiertas como &quot;investiga qué pasó con las ventas de marzo&quot;: divide la pregunta en subtareas, ejecuta <strong>varias</strong> consultas, puede pedir aclaraciones y entrega un <strong>informe</strong> con hallazgos, gráficos y citas, que se puede exportar a PDF.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Modo chat</th>
+<th>Modo agente</th>
+</tr>
+</thead><tbody><tr>
+<td>Para qué</td>
+<td>Preguntas concretas</td>
+<td>Preguntas exploratorias, de varios pasos</td>
+</tr>
+<tr>
+<td>Qué devuelve</td>
+<td>Una tabla, un resumen y un gráfico</td>
+<td>Un informe con hallazgos, gráficos y citas</td>
+</tr>
+<tr>
+<td>Velocidad</td>
+<td>Rápida</td>
+<td>Más lenta (hay una variante <strong>Flash</strong>, en beta, para respuestas rápidas)</td>
+</tr>
+<tr>
+<td>Cómo se evalúa en benchmarks</td>
+<td>Comparando resultados con el SQL de respuesta</td>
+<td>Un modelo juez (<em>LLM judge</em>) califica, guiado por la nota de evaluación</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4: monitorear y mejorar con los usuarios</h2>
+<p>Una vez compartido, el agente se mejora con el uso real:</p>
+<ul>
+<li>Cada respuesta pregunta <strong>Is this correct?</strong> El usuario puede responder <strong>Yes</strong>, <strong>Fix it</strong> (marca el error y puede pedir que Genie lo intente de nuevo con esa corrección) o <strong>Request review</strong> (pide que lo revise alguien del equipo).</li>
+<li>En la pestaña <strong>Monitor</strong>, quien tiene permiso <code>CAN MANAGE</code> ve todas las preguntas y respuestas, filtra por fecha, calificación o usuario, y responde las revisiones pedidas. El <strong>Weekly digest</strong> muestra mensajes, usuarios activos y opiniones de la semana, y <strong>Analyze Agent Usage</strong> le pide a Genie Code un análisis de tendencias y problemas.</li>
+<li>Importante: el agente <strong>no cambia solo</strong> por las opiniones de los usuarios. Las opiniones te dicen <strong>qué</strong> mejorar; el cambio lo haces tú (un ejemplo nuevo, una SQL expression, un sinónimo) y lo compruebas con los benchmarks.</li>
+</ul>
+<div class="recorrido"></div>
+
+
+<p>Los porcentajes del recorrido son ilustrativos.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Probar con una sola forma de cada pregunta</strong>: los usuarios escriben de mil maneras. Varias variantes por pregunta.</li>
+<li><strong>Benchmarks sin SQL de respuesta</strong>: no se califican solos; quedan en revisión manual.</li>
+<li><strong>SQL de respuesta con columnas de más o de menos</strong> respecto de lo que se pregunta: falsos <em>Bad</em> o <em>Good</em>.</li>
+<li><strong>Cambiar instrucciones sin volver a correr los benchmarks</strong>: el escenario de esta lección.</li>
+<li><strong>Esperar que el agente aprenda solo de los &quot;pulgares abajo&quot;</strong>: el feedback indica qué mejorar; el cambio lo hace el equipo.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El agente de ventas lleva una semana en uso y la gerente está contenta. Un viernes, alguien agrega una instrucción de texto para &quot;mejorar los resúmenes&quot;… y sin que nadie lo note, la pregunta &quot;ventas por país&quot; empieza a incluir los pedidos cancelados. ¿Cómo te enteras antes que la gerente? Igual que con el código: con <strong>pruebas automáticas</strong> que se corren después de cada cambio. En Genie se llaman <strong>benchmarks</strong>.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Un agente en producción tiene un conjunto de benchmarks (decenas de preguntas con variantes) y una meta de exactitud; se corre después de cada cambio de contexto y de los datos de origen.</li>
+<li>La revisión semanal de la pestaña Monitor es parte del trabajo del dueño del agente, igual que revisar los tests fallidos de un pipeline.</li>
+<li>Los benchmarks son la versión para IA de los tests de datos: la misma disciplina de &quot;probar antes de publicar&quot; que viste con dbt.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo medirías la calidad de un asistente que responde preguntas sobre datos?&quot;</div>
+
+<p>Con un conjunto de preguntas de prueba con su respuesta correcta en SQL, que cubra las preguntas frecuentes con varias formas de escribirlas, y lo correría después de cada cambio para medir la exactitud y detectar regresiones. En Genie eso son los benchmarks: comparan el resultado de la consulta generada con el de la respuesta. Además revisaría el uso real en el monitoreo, las respuestas marcadas como incorrectas y las revisiones pedidas, y convertiría cada error corregido en un nuevo ejemplo y un nuevo benchmark.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/genie-evaluar-y-monitorear">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="genie-crear-y-afinar-un-agente.html">← Crear y afinar un Genie Agent</a><a href="genie-genie-code.html">Genie Code: el asistente de código dentro de Databricks →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

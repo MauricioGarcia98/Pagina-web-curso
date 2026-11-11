@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diseñar el lakehouse: capas, entornos, nombres y contratos · Academia de Datos</title><meta name="description" content="Las decisiones concretas de un lakehouse profesional: qué va en cada capa, cómo separar dev y prod, convenciones de nombres, contratos de datos y el camino del código a producción."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-diseno-lakehouse.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Diseñar el lakehouse: capas, entornos, nombres y contratos · Academia de Datos"><meta property="og:description" content="Las decisiones concretas de un lakehouse profesional: qué va en cada capa, cómo separar dev y prod, convenciones de nombres, contratos de datos y el camino del código a producción."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-diseno-lakehouse.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Avanzado · 50 min</div>
+<h1>Diseñar el lakehouse: capas, entornos, nombres y contratos</h1><p class="resumen">Las decisiones concretas de un lakehouse profesional: qué va en cada capa, cómo separar dev y prod, convenciones de nombres, contratos de datos y el camino del código a producción.</p>
+<a class="cta" href="../index.html#/l/arquitectura-diseno-lakehouse">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Definir qué transformaciones van en bronze, silver y gold, y qué no va en cada una</li><li>Separar entornos de desarrollo, pruebas y producción sin duplicar costos</li><li>Proponer una convención de nombres para catálogos, esquemas, tablas y columnas</li><li>Escribir un contrato de datos con el equipo que produce la fuente</li><li>Describir el camino de un cambio desde la rama de Git hasta producción</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Diseñar un lakehouse es como ordenar una cocina de restaurante: zonas separadas para lo crudo, lo preparado y lo listo para servir (las capas), una cocina de prueba aparte de la de verdad (los entornos) y etiquetas claras en cada frasco (los nombres y contratos).</p>
+</div>
+
+
+<h2>Qué va en cada capa (y qué no)</h2>
+<p>Ya conoces bronze, silver y gold. La pregunta práctica es: ¿en qué capa va <strong>cada</strong> transformación? Esta tabla es la que usan la mayoría de los equipos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Bronze</th>
+<th>Silver</th>
+<th>Gold</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Pregunta que responde</strong></td>
+<td>¿Qué llegó?</td>
+<td>¿Qué pasó, de forma limpia y confiable?</td>
+<td>¿Qué necesita saber el negocio?</td>
+</tr>
+<tr>
+<td><strong>Grano</strong></td>
+<td>El de la fuente</td>
+<td>Una fila por entidad o evento real</td>
+<td>El que pide el consumo (por día, por cliente…)</td>
+</tr>
+<tr>
+<td><strong>Se hace</strong></td>
+<td>Agregar metadatos de carga</td>
+<td>Tipar, renombrar, deduplicar, normalizar textos, unir con referencias, aplicar CDC</td>
+<td>Agregar, calcular métricas, modelar hechos y dimensiones</td>
+</tr>
+<tr>
+<td><strong>No se hace</strong></td>
+<td>Ninguna transformación</td>
+<td>Reglas de negocio específicas de un área</td>
+<td>Limpieza (ya viene limpio)</td>
+</tr>
+<tr>
+<td><strong>Esquema</strong></td>
+<td>Flexible (puede cambiar)</td>
+<td>Estable y validado</td>
+<td>Estable, documentado, versionado</td>
+</tr>
+<tr>
+<td><strong>Quién lo lee</strong></td>
+<td>Solo los pipelines</td>
+<td>Ingenieros, científicos de datos</td>
+<td>Analistas, BI, aplicaciones</td>
+</tr>
+<tr>
+<td><strong>Retención</strong></td>
+<td>Larga, en capa fría</td>
+<td>Larga</td>
+<td>Lo que necesite el negocio</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Ejemplo: un pedido del banco y uno de la tienda, capa por capa</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Una regla que evita discusiones</div>
+
+<p>Si una transformación es <strong>verdad para toda la empresa</strong> (un email limpio, un pedido sin duplicar), va en silver. Si es una <strong>definición de un área</strong> (qué cuenta como &quot;venta neta&quot; para finanzas), va en gold, con un nombre que diga de quién es.</p>
+</div>
+
+
+<h2>Entornos: dev, staging y prod</h2>
+<p>Nadie prueba un cambio directamente en producción. Pero tener tres plataformas completas triplica el costo. Lo habitual en un lakehouse:</p>
+<figure class="diagrama"><figcaption>Tres entornos, una plataforma: se separan por catálogo y por permisos</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Entorno</th>
+<th>Para qué</th>
+<th>Quién escribe</th>
+<th>Datos</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>dev</strong></td>
+<td>Desarrollar y probar a mano</td>
+<td>Cada persona, en su propio esquema (<code>dev.ana_ventas</code>)</td>
+<td>Lee bronze de producción (o una muestra); escribe solo en dev</td>
+</tr>
+<tr>
+<td><strong>staging / CI</strong></td>
+<td>Probar automáticamente cada pull request</td>
+<td>La CI</td>
+<td>Muestra de datos reales o datos sintéticos</td>
+</tr>
+<tr>
+<td><strong>prod</strong></td>
+<td>Lo que usa el negocio</td>
+<td><strong>Solo</strong> las cuentas de servicio de los pipelines</td>
+<td>Todos</td>
+</tr>
+</tbody></table></div>
+<p>Dos ideas clave:</p>
+<ol>
+<li><strong>En producción no escriben personas.</strong> Todo cambio entra por Git, pasa la CI y lo despliega una cuenta de servicio. Si alguien &quot;arregla a mano&quot; una tabla de producción, el próximo pipeline la pisa y nadie sabe qué pasó.</li>
+<li><strong>Dev lee datos de producción, pero escribe en dev.</strong> Así pruebas con datos reales sin riesgo. Los datos sensibles se enmascaran para dev.</li>
+</ol>
+<h2>Convención de nombres</h2>
+<p>Un buen nombre dice <strong>dónde está, qué contiene y a qué nivel</strong>. Una convención típica para un lakehouse con Unity Catalog (catálogo.esquema.tabla):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Nivel</th>
+<th>Regla</th>
+<th>Ejemplos</th>
+</tr>
+</thead><tbody><tr>
+<td>Catálogo</td>
+<td>Entorno (+ dominio si hay muchos)</td>
+<td><code>prod</code>, <code>dev</code>, <code>prod_banco</code></td>
+</tr>
+<tr>
+<td>Esquema</td>
+<td>Capa + fuente o dominio</td>
+<td><code>bronze_tienda</code>, <code>silver_tienda</code>, <code>gold_finanzas</code></td>
+</tr>
+<tr>
+<td>Tabla bronze</td>
+<td><code>&lt;fuente&gt;_&lt;tabla&gt;_raw</code></td>
+<td><code>postgres_pedidos_raw</code></td>
+</tr>
+<tr>
+<td>Tabla silver</td>
+<td>La entidad, en plural</td>
+<td><code>pedidos</code>, <code>clientes</code></td>
+</tr>
+<tr>
+<td>Tabla gold</td>
+<td><code>fct_</code> / <code>dim_</code> / <code>agg_</code> + qué</td>
+<td><code>fct_ventas</code>, <code>dim_cliente</code>, <code>agg_ventas_diarias_pais</code></td>
+</tr>
+<tr>
+<td>Columnas</td>
+<td><code>snake_case</code>, sin abreviaturas raras</td>
+<td><code>fecha_pedido</code>, <code>importe_neto</code></td>
+</tr>
+<tr>
+<td>Booleanos</td>
+<td><code>es_</code> / <code>tiene_</code></td>
+<td><code>es_cancelado</code>, <code>tiene_descuento</code></td>
+</tr>
+<tr>
+<td>Fechas</td>
+<td><code>fecha_</code> (DATE) y <code>_ts</code> o <code>_en</code> (TIMESTAMP)</td>
+<td><code>fecha_alta</code>, <code>creado_en</code></td>
+</tr>
+<tr>
+<td>Importes</td>
+<td>Con la moneda si hay varias</td>
+<td><code>importe_usd</code>, <code>importe_local</code></td>
+</tr>
+<tr>
+<td>Claves</td>
+<td><code>&lt;entidad&gt;_id</code> y <code>&lt;entidad&gt;_sk</code> para claves sustitutas</td>
+<td><code>cliente_id</code>, <code>cliente_sk</code></td>
+</tr>
+</tbody></table></div>
+<p>Lo importante no es esta convención en particular, sino <strong>tener una, escrita, y hacerla cumplir en la revisión de código</strong> (incluso con un linter: sqlfluff, dbt-checkpoint).</p>
+<h2>Contratos de datos</h2>
+<p>El problema más frecuente de un pipeline no es un bug propio: es que <strong>el equipo que produce la fuente cambia algo sin avisar</strong>. La app renombra <code>total</code> a <code>monto_total</code>, y el pipeline de la noche falla o, peor, carga nulos.</p>
+<p>Un <strong>contrato de datos</strong> es un acuerdo escrito entre quien produce los datos y quien los consume, versionado en Git:</p>
+<pre data-norun><code class="language-yaml"># contratos/tienda_pedidos.yml
+dataset: tienda.pedidos
+dueno: equipo-checkout@tiendaandina.com
+version: 2.1.0
+esquema:
+  - {nombre: pedido_id,      tipo: bigint,        obligatorio: true, unico: true}
+  - {nombre: cliente_id,     tipo: bigint,        obligatorio: true}
+  - {nombre: total,          tipo: &quot;decimal(12,2)&quot;, obligatorio: true, minimo: 0}
+  - {nombre: estado,         tipo: string,        valores: [pendiente, pagado, enviado, entregado, cancelado, devuelto]}
+  - {nombre: actualizado_en, tipo: timestamp,     obligatorio: true}
+calidad:
+  frescura: &quot;datos de ayer disponibles antes de las 02:00&quot;
+  volumen: &quot;entre 5.000 y 40.000 filas por día&quot;
+cambios: &quot;agregar columnas es compatible; renombrar o borrar exige versión mayor y 30 días de aviso&quot;</code></pre>
+<p>Con un contrato:</p>
+<ul>
+<li>El productor sabe qué <strong>no</strong> puede cambiar sin avisar (y su CI puede verificarlo).</li>
+<li>El consumidor valida cada carga contra el contrato y, si no se cumple, la frena <strong>antes</strong> de contaminar silver.</li>
+<li>Cuando algo se rompe, se sabe a quién llamar.</li>
+</ul>
+<h2>El camino del código a producción</h2>
+<p>Todo lo anterior se junta en un flujo de CI/CD como el que viste en Git, ahora con la plataforma completa:</p>
+<ol>
+<li>Creas una rama y desarrollas contra <strong>dev</strong> (<code>dbt run --target dev</code>, notebooks en tu esquema).</li>
+<li>Abres un pull request. La <strong>CI</strong> construye solo los modelos que cambiaron y sus dependientes (<code>dbt build --select state:modified+</code>) en <strong>staging</strong>, corre los tests y valida contratos.</li>
+<li>Una compañera revisa el código y los resultados.</li>
+<li>Al hacer merge a <code>main</code>, el despliegue (Declarative Automation Bundles, Terraform, dbt Cloud) actualiza <strong>prod</strong>.</li>
+<li>El orquestador corre los pipelines con la versión nueva.</li>
+</ol>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Lógica de negocio en silver</strong>: cuando finanzas cambia su definición de venta neta, hay que reprocesar silver y se rompen otros consumidores.</li>
+<li><strong>Limpieza en gold</strong>: cada tabla gold limpia a su manera y los números no coinciden entre tableros.</li>
+<li><strong>Una sola base para todo</strong>: desarrollar en el mismo esquema que producción. Tarde o temprano alguien borra una tabla real.</li>
+<li><strong>Nombres que no dicen nada</strong>: <code>tabla_final</code>, <code>ventas2</code>, <code>tmp_juan</code>. Nadie sabe si se puede borrar o si alguien la usa.</li>
+<li><strong>Contratos solo en la wiki</strong>: si nadie los verifica automáticamente, se desactualizan en semanas.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Ocho empresas, una plataforma</div>
+
+<p>La arquitectura del Grupo Andino ya está decidida: un lakehouse. Ahora viene lo difícil. Martín te dice:</p>
+<blockquote>
+<p>&quot;Si no definimos reglas desde el día uno, en seis meses vamos a tener 2.000 tablas que se llaman <code>ventas_final_v2_ok</code> y nadie va a saber cuál usar. Necesito que propongas cómo organizamos capas, entornos y nombres, y cómo evitamos que un cambio en la app del banco nos rompa todo sin aviso.&quot;</p>
+</blockquote>
+<p>Una arquitectura no es solo el diagrama de cajas: son también las <strong>reglas</strong> que hacen que siga ordenada cuando crece.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las convenciones se escriben en un documento corto del equipo y se revisan en cada pull request. Las mejores son las que un linter puede verificar.</li>
+<li>Los contratos de datos se popularizaron en los últimos años y se implementan con herramientas como dbt (contratos de modelo, <code>contract: enforced: true</code>), Soda, Great Expectations o el estándar <em>Open Data Contract</em>.</li>
+<li>Muchas empresas tienen un &quot;catálogo de datos&quot; donde cada tabla gold tiene dueño, descripción y nivel de confianza (certificada, en desarrollo, deprecada).</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo organizarías los entornos de una plataforma de datos?&quot;</div>
+
+<p>Describe dev, staging/CI y prod separados por catálogo o proyecto y por permisos; que en prod solo escriben cuentas de servicio desplegadas desde Git; que dev lee datos de prod (enmascarados si son sensibles) y escribe en esquemas personales; y que la CI construye solo lo modificado y sus dependientes. Menciona el costo: compartir almacenamiento y separar por permisos es mucho más barato que tres plataformas completas.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-diseno-lakehouse">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-batch-streaming.html">← Procesamiento: batch, micro-batch y streaming (Lambda y Kappa)</a><a href="arquitectura-calidad-gobierno.html">Calidad, observabilidad y gobierno de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pub/Sub y Dataflow, streaming en Google Cloud · Academia de Datos</title><meta name="description" content="Temas y suscripciones de Pub/Sub, entrega al menos una vez y deduplicación; Apache Beam y Dataflow; tiempo de evento, ventanas, watermark y datos tardíos, programados en Python."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-pubsub-dataflow.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pub/Sub y Dataflow, streaming en Google Cloud · Academia de Datos"><meta property="og:description" content="Temas y suscripciones de Pub/Sub, entrega al menos una vez y deduplicación; Apache Beam y Dataflow; tiempo de evento, ventanas, watermark y datos tardíos, programados en Python."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-pubsub-dataflow.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#gcp">🔷 Google Cloud para Data Engineers</a> · Avanzado · 55 min</div>
+<h1>Pub/Sub y Dataflow, streaming en Google Cloud</h1><p class="resumen">Temas y suscripciones de Pub/Sub, entrega al menos una vez y deduplicación; Apache Beam y Dataflow; tiempo de evento, ventanas, watermark y datos tardíos, programados en Python.</p>
+<a class="cta" href="../index.html#/l/gcp-pubsub-dataflow">▶ Abrir la lección interactiva (9 ejercicios)</a>
+
+<h2>Pub/Sub: el correo instantáneo de los eventos</h2>
+<p><strong>Pub/Sub</strong> recibe mensajes de quienes <strong>publican</strong> y los entrega a quienes están <strong>suscritos</strong>. Desacopla a los sistemas: la app que vende no necesita saber quién usa sus eventos.</p>
+<pre><code class="language-text"> app de ventas ──publish──►  TEMA &quot;ventas&quot;  ──► suscripción &quot;ventas-a-bigquery&quot; ──► BigQuery (directo, sin código)
+                                           ├──► suscripción &quot;ventas-fraude&quot;     ──► Dataflow (regla de fraude)
+                                           └──► suscripción &quot;ventas-auditoria&quot;  ──► Cloud Storage (archivo)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tema</strong> (<em>topic</em>)</td>
+<td>El canal donde se publica</td>
+</tr>
+<tr>
+<td><strong>Suscripción</strong></td>
+<td>Una &quot;bandeja&quot; independiente: cada suscripción recibe <strong>todas</strong> las copias de los mensajes</td>
+</tr>
+<tr>
+<td><strong>Ack</strong></td>
+<td>El consumidor confirma &quot;ya lo procesé&quot;; si no confirma a tiempo, Pub/Sub lo <strong>reenvía</strong></td>
+</tr>
+<tr>
+<td><strong>Pull / Push</strong></td>
+<td>El consumidor pide mensajes (pull) o Pub/Sub los envía a una URL (push)</td>
+</tr>
+<tr>
+<td><strong>Dead letter topic</strong></td>
+<td>Donde terminan los mensajes que fallan una y otra vez</td>
+</tr>
+<tr>
+<td><strong>Suscripción a BigQuery</strong></td>
+<td>Escribe cada mensaje como fila en una tabla, sin código intermedio</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-bash">gcloud pubsub topics create ventas
+gcloud pubsub subscriptions create ventas-fraude --topic ventas
+gcloud pubsub topics publish ventas --message '{&quot;pedido_id&quot;: 1, &quot;cliente_id&quot;: 42, &quot;total&quot;: 350.0}'
+gcloud pubsub topics publish ventas --message '{&quot;pedido_id&quot;: 2, &quot;cliente_id&quot;: 42, &quot;total&quot;: 12.5}'
+gcloud pubsub subscriptions pull ventas-fraude --auto-ack --limit 10</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ &quot;Al menos una vez&quot; significa &quot;a veces dos&quot;</div>
+
+<p>Pub/Sub garantiza entrega <strong>al menos una vez</strong>: un mensaje puede llegar duplicado (por ejemplo, si tu consumidor tardó en hacer <em>ack</em>). Tu pipeline debe <strong>deduplicar</strong> por un identificador del evento, o ser idempotente. También existe la opción <em>exactly-once delivery</em> en suscripciones pull, con más latencia.</p>
+</div>
+
+
+<h2>Dataflow y Apache Beam</h2>
+<p><strong>Dataflow</strong> ejecuta pipelines escritos con <strong>Apache Beam</strong> (Python o Java) sin servidores: escala los workers solo. Lo mismo sirve para <strong>batch</strong> y para <strong>streaming</strong>.</p>
+<pre data-norun><code class="language-python">import apache_beam as beam
+from apache_beam.transforms.window import FixedWindows
+import json
+
+with beam.Pipeline(options=opciones) as p:
+    (p
+     | &quot;Leer&quot;       &gt;&gt; beam.io.ReadFromPubSub(subscription=&quot;projects/academia-datos-dev/subscriptions/ventas-fraude&quot;)
+     | &quot;Parsear&quot;    &gt;&gt; beam.Map(lambda m: json.loads(m.decode(&quot;utf-8&quot;)))
+     | &quot;Ventanas&quot;   &gt;&gt; beam.WindowInto(FixedWindows(60))                  # ventanas de 1 minuto
+     | &quot;Clave&quot;      &gt;&gt; beam.Map(lambda v: (v[&quot;cliente_id&quot;], v[&quot;total&quot;]))
+     | &quot;Sumar&quot;      &gt;&gt; beam.CombinePerKey(sum)
+     | &quot;A filas&quot;    &gt;&gt; beam.Map(lambda kv: {&quot;cliente_id&quot;: kv[0], &quot;total_minuto&quot;: kv[1]})
+     | &quot;BigQuery&quot;   &gt;&gt; beam.io.WriteToBigQuery(&quot;academia-datos-dev:tienda_rt.gasto_por_minuto&quot;))</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto de Beam</th>
+<th>Qué es</th>
+<th>Parecido en Spark</th>
+</tr>
+</thead><tbody><tr>
+<td><code>PCollection</code></td>
+<td>Colección de datos (acotada o infinita)</td>
+<td>DataFrame</td>
+</tr>
+<tr>
+<td><code>PTransform</code> (<code>Map</code>, <code>Filter</code>, <code>GroupByKey</code>, <code>CombinePerKey</code>)</td>
+<td>Transformación</td>
+<td><code>select</code>, <code>filter</code>, <code>groupBy</code></td>
+</tr>
+<tr>
+<td>`</td>
+<td><code>y</code>&gt;&gt;`</td>
+<td>Encadenar pasos con nombre</td>
+</tr>
+<tr>
+<td>Runner</td>
+<td>Quién ejecuta: <code>DirectRunner</code> (tu PC) o <code>DataflowRunner</code></td>
+<td>Local vs. cluster</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-bash">python pipeline.py --runner DataflowRunner --project academia-datos-dev --region us-central1 \
+  --temp_location gs://lake-tienda-dev/tmp --streaming
+gcloud dataflow flex-template run ventas-rt --template-file-gcs-location gs://…/plantilla.json --region us-central1
+gcloud dataflow jobs list --region us-central1</code></pre>
+<h2>El tiempo en streaming: lo más importante de esta lección</h2>
+<p>Un evento tiene <strong>dos</strong> horas:</p>
+<ul>
+<li><strong>Tiempo de evento</strong>: cuándo ocurrió (la compra fue a las 10:00:30).</li>
+<li><strong>Tiempo de procesamiento</strong>: cuándo llegó a tu pipeline (10:03:10, porque el celular estaba sin señal).</li>
+</ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Cartas que llegan tarde</div>
+
+<p>Cuentas las cartas que te escribieron cada día. Una carta escrita el lunes puede llegar el miércoles. Si cuentas por <strong>día de llegada</strong>, el lunes queda mal contado. Si cuentas por <strong>día en que se escribió</strong> (tiempo de evento), necesitas decidir cuánto esperar antes de &quot;cerrar&quot; el lunes: esa espera es el <strong>watermark</strong> y la tolerancia extra es la <strong>allowed lateness</strong>.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de ventana</th>
+<th>Cómo corta el tiempo</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Fija</strong> (<em>fixed / tumbling</em>)</td>
+<td>Bloques iguales sin solaparse</td>
+<td>Ventas por minuto</td>
+</tr>
+<tr>
+<td><strong>Deslizante</strong> (<em>sliding</em>)</td>
+<td>Bloques que se solapan</td>
+<td>Promedio de los últimos 10 min, cada 1 min</td>
+</tr>
+<tr>
+<td><strong>Sesión</strong></td>
+<td>Se cierra tras X minutos sin actividad</td>
+<td>Sesiones de navegación de un usuario</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><strong>Watermark</strong>: la estimación del sistema de &quot;ya llegó todo lo anterior a tal hora&quot;. Cuando el watermark pasa el final de una ventana, la ventana emite su resultado.</li>
+<li><strong>Datos tardíos</strong>: los que llegan después del watermark. Se aceptan si están dentro de la <em>allowed lateness</em> (y actualizan el resultado); si no, se descartan o van a una salida aparte.</li>
+</ul>
+<div class="recorrido"></div>
+
+
+<h2>Ejercicios: programa la lógica de streaming</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Ejercicios de terminal</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>9 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/gcp-pubsub-dataflow">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="gcp-bigquery-avanzado.html">← BigQuery avanzado, particiones, clustering, anidados y MERGE</a><a href="gcp-dataproc-spark.html">Dataproc, Spark en Google Cloud →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dataproc, Spark en Google Cloud · Academia de Datos</title><meta name="description" content="Clusters de Dataproc, jobs de PySpark, Dataproc Serverless, el conector de BigQuery, buenas prácticas de costo y ejercicios de PySpark con los casos de negocio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-dataproc-spark.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Dataproc, Spark en Google Cloud · Academia de Datos"><meta property="og:description" content="Clusters de Dataproc, jobs de PySpark, Dataproc Serverless, el conector de BigQuery, buenas prácticas de costo y ejercicios de PySpark con los casos de negocio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-dataproc-spark.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#gcp">🔷 Google Cloud para Data Engineers</a> · Avanzado · 50 min</div>
+<h1>Dataproc, Spark en Google Cloud</h1><p class="resumen">Clusters de Dataproc, jobs de PySpark, Dataproc Serverless, el conector de BigQuery, buenas prácticas de costo y ejercicios de PySpark con los casos de negocio.</p>
+<a class="cta" href="../index.html#/l/gcp-dataproc-spark">▶ Abrir la lección interactiva (8 ejercicios)</a>
+
+<p>Ya sabes escribir PySpark. La pregunta ahora es <strong>dónde corre</strong> cuando los datos están en Google Cloud. La respuesta es <strong>Dataproc</strong>: Spark administrado por Google. En esta lección vas a ver las tres formas de usarlo, cómo se ve un job real de punta a punta, cómo leer y escribir BigQuery desde Spark y, sobre todo, cómo no pagar de más.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Dataproc es como alquilar una cuadrilla de computadoras por un rato para que procesen datos con Spark: la armas, hace el trabajo y la desarmas para dejar de pagar. Es la forma de usar Spark en Google Cloud sin tener que mantener servidores propios.</p>
+</div>
+
+
+<h2>Qué es Dataproc</h2>
+<p><strong>Dataproc</strong> es Spark (y Hadoop, Hive, Presto y Flink) administrado en Google Cloud. Crea un clúster en unos 90 segundos, ejecuta tu job y se apaga. Es el equivalente de <strong>EMR</strong> en AWS y de los clústeres de <strong>Databricks</strong>.</p>
+<p>&quot;Administrado&quot; significa que no instalas Java, ni Spark, ni configuras la red entre máquinas: eliges cuántas máquinas y de qué tipo, y Google entrega un clúster listo, con el conector de Cloud Storage ya instalado (tu código lee <code>gs://...</code> como si fuera un disco).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modalidad</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cluster</strong> (en Compute Engine)</td>
+<td>Control total: tipo de máquina, workers <em>preemptible/spot</em>, librerías, inicialización</td>
+</tr>
+<tr>
+<td><strong>Dataproc Serverless</strong> (<em>batches</em>)</td>
+<td>Envías el script de PySpark y Google pone y saca los recursos</td>
+</tr>
+<tr>
+<td><strong>Dataproc on GKE</strong></td>
+<td>Spark sobre Kubernetes, para empresas que ya administran todo en Kubernetes</td>
+</tr>
+</tbody></table></div>
+<h3>Las piezas de un clúster</h3>
+<pre><code class="language-text">                ┌─────────────────────────┐
+                │  MASTER (1 máquina)     │  ← corre el driver de Spark y YARN
+                └───────────┬─────────────┘
+       ┌────────────────────┼────────────────────┐
+┌──────▼──────┐      ┌──────▼──────┐      ┌──────▼──────────────────┐
+│ WORKER 1    │      │ WORKER 2    │      │ SECONDARY WORKERS (spot)│ ← baratos, pueden
+│ (primario)  │      │ (primario)  │      │ ×4, solo cómputo        │   desaparecer
+└─────────────┘      └─────────────┘      └─────────────────────────┘</code></pre>
+<ul>
+<li><strong>Master</strong>: coordina. Ahí corre el driver de Spark (lo que viste en &quot;Arquitectura de Spark&quot;).</li>
+<li><strong>Workers primarios</strong>: máquinas normales. Corren executors y además guardan datos intermedios (shuffle) en su disco.</li>
+<li><strong>Workers secundarios</strong>: solo cómputo. Normalmente son <strong>spot</strong>: máquinas que Google te presta con un 60–90 % de descuento, a cambio de poder <strong>quitártelas</strong> en cualquier momento. Si Google se lleva una, Spark recalcula sus tareas en otra (gracias al linaje). Son ideales para sumar potencia barata en jobs batch.</li>
+</ul>
+<h2>Los comandos</h2>
+<pre data-norun><code class="language-bash">gcloud dataproc clusters create spark-etl --region us-central1 \
+  --num-workers 2 --worker-machine-type n2-standard-4 \
+  --secondary-worker-type spot --num-secondary-workers 4 \
+  --max-idle 30m                                         # se borra solo tras 30 minutos sin jobs
+
+gcloud dataproc jobs submit pyspark gs://lake-tienda-dev/scripts/silver.py \
+  --cluster spark-etl --region us-central1 -- --fecha 2024-12-31
+
+gcloud dataproc batches submit pyspark gs://lake-tienda-dev/scripts/silver.py \
+  --region us-central1 --deps-bucket gs://lake-tienda-dev/deps -- --fecha 2024-12-31
+
+gcloud dataproc clusters delete spark-etl --region us-central1</code></pre>
+<p>Qué hace cada parámetro de <code>clusters create</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parámetro</th>
+<th>Significado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>--region us-central1</code></td>
+<td>Dónde se crea. Que sea <strong>la misma región que tus buckets y BigQuery</strong></td>
+</tr>
+<tr>
+<td><code>--num-workers 2</code></td>
+<td>Workers primarios (el mínimo para un clúster estándar es 2)</td>
+</tr>
+<tr>
+<td><code>--worker-machine-type n2-standard-4</code></td>
+<td>Cada worker con 4 vCPU y 16 GB de RAM</td>
+</tr>
+<tr>
+<td><code>--secondary-worker-type spot</code> y <code>--num-secondary-workers 4</code></td>
+<td>4 workers extra, baratos e interrumpibles</td>
+</tr>
+<tr>
+<td><code>--max-idle 30m</code></td>
+<td>Si pasan 30 minutos sin jobs, el clúster <strong>se borra solo</strong></td>
+</tr>
+<tr>
+<td><code>--single-node</code></td>
+<td>Todo en una máquina: ideal para desarrollo y pruebas chicas</td>
+</tr>
+<tr>
+<td><code>--initialization-actions gs://.../instalar.sh</code></td>
+<td>Script que corre en cada máquina al crearse (instalar librerías)</td>
+</tr>
+</tbody></table></div>
+<p>En <code>jobs submit pyspark</code>, todo lo que va <strong>después de <code>--</code></strong> se le pasa a <strong>tu script</strong> como argumentos (<code>--fecha 2024-12-31</code>), no a gcloud.</p>
+<h3>Laboratorio en la terminal</h3>
+<pre><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud dataproc clusters create spark-etl --region us-central1 --num-workers 2
+gcloud dataproc clusters list --region us-central1
+gcloud dataproc jobs submit pyspark gs://lake-tienda-dev/scripts/silver.py --cluster spark-etl --region us-central1
+gcloud dataproc clusters delete spark-etl --region us-central1</code></pre>
+<p>Fíjate en el orden: <strong>crear → ejecutar → borrar</strong>. Ese es el patrón de <strong>clúster efímero</strong>, el más recomendado: el clúster existe solo mientras hay trabajo. Si intentas enviar el job después de borrar el clúster, el simulador responde <code>NOT_FOUND</code>, igual que Google Cloud.</p>
+<h2>Cómo se ve un job real</h2>
+<p>El script vive en un bucket. Recibe la fecha como argumento, lee de bronze en GCS y escribe silver. Es PySpark normal, el mismo que aprendiste en el módulo de PySpark:</p>
+<pre data-norun><code class="language-python"># gs://lake-tienda-dev/scripts/silver.py
+import argparse
+from pyspark.sql import SparkSession, functions as F
+
+parser = argparse.ArgumentParser()
+parser.add_argument(&quot;--fecha&quot;, required=True)          # llega desde: -- --fecha 2024-12-31
+args = parser.parse_args()
+
+spark = SparkSession.builder.appName(f&quot;silver_ventas_{args.fecha}&quot;).getOrCreate()
+
+crudo = (spark.read.option(&quot;header&quot;, True)
+         .csv(f&quot;gs://lake-tienda-dev/bronze/ventas/fecha={args.fecha}/&quot;))
+
+limpio = (crudo
+    .withColumn(&quot;total&quot;, F.col(&quot;total&quot;).cast(&quot;double&quot;))
+    .withColumn(&quot;fecha_pedido&quot;, F.to_date(&quot;fecha_pedido&quot;))
+    .filter(F.col(&quot;total&quot;) &gt; 0)
+    .dropDuplicates([&quot;pedido_id&quot;]))
+
+(limpio.write.mode(&quot;overwrite&quot;)
+   .parquet(f&quot;gs://lake-tienda-dev/silver/ventas/fecha={args.fecha}/&quot;))   # idempotente: sobrescribe el día</code></pre>
+<p>Tres detalles de producción en este script:</p>
+<ol>
+<li><strong>La fecha es un parámetro</strong>: así Composer (Airflow) puede relanzar cualquier día sin tocar el código.</li>
+<li><strong>Escribe en la carpeta del día con <code>overwrite</code></strong>: correrlo dos veces da el mismo resultado (idempotencia).</li>
+<li><strong>No hay rutas locales</strong>: todo es <code>gs://</code>. El disco de las máquinas del clúster desaparece al borrarlo.</li>
+</ol>
+<h2>Dataproc Serverless: sin clústeres</h2>
+<p>Con <code>gcloud dataproc batches submit</code> no creas ni borras nada. Envías el script y Google:</p>
+<ol>
+<li>Levanta los recursos necesarios (tarda unos 60 segundos en arrancar).</li>
+<li><strong>Escala solo</strong> según la carga del job.</li>
+<li>Los libera al terminar. Pagas por lo que usó el job, medido en <em>DCU-hora</em> (unidades de cómputo) y almacenamiento de shuffle.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Clúster</th>
+<th>Serverless</th>
+</tr>
+</thead><tbody><tr>
+<td>Arranque</td>
+<td>~90 s (o 0 si ya está encendido)</td>
+<td>~60 s cada vez</td>
+</tr>
+<tr>
+<td>Configuración</td>
+<td>Tú eliges máquinas, spot, librerías</td>
+<td>Casi nada que configurar</td>
+</tr>
+<tr>
+<td>Riesgo de pagar sin usar</td>
+<td>Sí, si te olvidas de apagarlo</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Ideal para</td>
+<td>Muchos jobs seguidos, notebooks interactivos, configuraciones especiales</td>
+<td>Jobs batch programados</td>
+</tr>
+</tbody></table></div>
+<p>Para jobs nocturnos programados, <strong>Serverless suele ser la opción por defecto</strong> hoy.</p>
+<div class="recorrido"></div>
+
+
+<h2>Spark + BigQuery</h2>
+<p>El <strong>conector de BigQuery</strong> permite leer y escribir tablas de BigQuery desde Spark como si fueran archivos:</p>
+<pre data-norun><code class="language-python">df = (spark.read.format(&quot;bigquery&quot;)
+      .option(&quot;table&quot;, &quot;academia-datos-dev.tienda_silver.pedidos&quot;)
+      .option(&quot;filter&quot;, &quot;fecha_pedido &gt;= '2024-12-01'&quot;)     # se empuja a BigQuery: lee menos
+      .load())
+
+resultado = df.groupBy(&quot;canal&quot;).count()
+
+(resultado.write.format(&quot;bigquery&quot;)
+   .option(&quot;table&quot;, &quot;academia-datos-dev.tienda_gold.pedidos_por_canal&quot;)
+   .option(&quot;temporaryGcsBucket&quot;, &quot;lake-tienda-dev-tmp&quot;)
+   .mode(&quot;overwrite&quot;)
+   .save())</code></pre>
+<p>Cómo funciona por dentro:</p>
+<ul>
+<li><strong>Leer</strong>: el conector usa la <em>BigQuery Storage Read API</em>, que manda los datos en paralelo, directo a los executors, y solo de las columnas que usas. El <code>filter</code> se aplica <strong>dentro de BigQuery</strong>, así que viaja menos información (y BigQuery cobra por bytes leídos).</li>
+<li><strong>Escribir</strong>: Spark escribe archivos temporales en <code>temporaryGcsBucket</code> y después le pide a BigQuery que los cargue en la tabla, en una sola operación. Por eso ese bucket es obligatorio (o usas el método <code>direct</code>, que escribe sin pasar por GCS).</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Dataproc o BigQuery?</div>
+
+<p>Si la transformación se puede escribir en SQL y los datos ya están en BigQuery, <strong>hazla en BigQuery</strong> (o con Dataform/dbt): menos piezas, nada que apagar. Usa Dataproc cuando necesitas Spark de verdad: librerías de Python/ML, lógica compleja que no cabe en SQL, procesar archivos enormes en GCS, o migrar jobs de Spark/Hadoop existentes sin reescribirlos.</p>
+</div>
+
+
+<h2>Costos: cuánto cuesta y cómo pagar menos</h2>
+<p>Un clúster de 1 master y 2 workers <code>n2-standard-4</code> cuesta, como referencia, alrededor de <strong>0,70 USD por hora</strong> (máquinas + recargo de Dataproc). Parece poco:</p>
+<ul>
+<li>Encendido solo durante un job nocturno de 1 hora: unos <strong>21 USD al mes</strong>.</li>
+<li>Encendido 24/7 &quot;por las dudas&quot;: unos <strong>510 USD al mes</strong>, por el mismo trabajo.</li>
+</ul>
+<p>Las palancas para pagar menos:</p>
+<ol>
+<li><strong>Clústeres efímeros</strong> creados y borrados por el orquestador, o <strong>Serverless</strong>.</li>
+<li><strong><code>--max-idle</code></strong> como red de seguridad en todo clúster manual.</li>
+<li><strong>Workers spot</strong> para la potencia extra.</li>
+<li><strong>Autoscaling</strong> (<code>--autoscaling-policy</code>): el clúster crece cuando hay mucho trabajo y se achica cuando no.</li>
+<li>Lo mismo que en cualquier Spark: <strong>leer menos</strong> (Parquet, particiones, filtros), porque menos datos = menos máquinas por menos tiempo.</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El cluster olvidado</div>
+
+<p>Igual que con EMR: un cluster encendido sin trabajo cuesta igual. Usa <code>--max-idle</code>, clusters efímeros creados por Composer, o Serverless.</p>
+</div>
+
+
+<h3>El patrón con Composer (Airflow)</h3>
+<p>En producción, nadie escribe estos comandos a mano: los ejecuta un DAG de Composer.</p>
+<pre data-norun><code class="language-python">from airflow.providers.google.cloud.operators.dataproc import (
+    DataprocCreateClusterOperator, DataprocSubmitJobOperator, DataprocDeleteClusterOperator)
+
+crear = DataprocCreateClusterOperator(task_id=&quot;crear_cluster&quot;, cluster_name=&quot;etl-{{ ds_nodash }}&quot;, ...)
+correr = DataprocSubmitJobOperator(task_id=&quot;silver&quot;, job={&quot;pyspark_job&quot;: {
+    &quot;main_python_file_uri&quot;: &quot;gs://lake-tienda-dev/scripts/silver.py&quot;, &quot;args&quot;: [&quot;--fecha&quot;, &quot;{{ ds }}&quot;]}}, ...)
+borrar = DataprocDeleteClusterOperator(task_id=&quot;borrar_cluster&quot;, trigger_rule=&quot;all_done&quot;, ...)
+crear &gt;&gt; correr &gt;&gt; borrar</code></pre>
+<p>Fíjate en <code>trigger_rule=&quot;all_done&quot;</code> en <code>borrar_cluster</code>: el clúster <strong>se borra aunque el job falle</strong>. Es exactamente lo que viste en la lección de control de flujo de Airflow.</p>
+<h2>Ejercicios de PySpark con los casos</h2>
+<p>Estos ejercicios corren en el simulador de Spark del curso, con las tablas de los casos de negocio.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Ejercicios de terminal</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/gcp-dataproc-spark">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="gcp-pubsub-dataflow.html">← Pub/Sub y Dataflow, streaming en Google Cloud</a><a href="gcp-composer-dataform.html">Composer, Dataform, gobierno y arquitectura de referencia →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

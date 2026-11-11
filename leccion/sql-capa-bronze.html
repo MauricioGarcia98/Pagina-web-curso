@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La capa bronze - limpiar datos como llegan de verdad · Academia de Datos</title><meta name="description" content="Duplicados por reenvíos, fechas y montos como texto, estados en dos idiomas, pruebas de QA, clientes desconocidos, JSON que cambia de formato. Todo junto, como en el trabajo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-capa-bronze.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La capa bronze - limpiar datos como llegan de verdad · Academia de Datos"><meta property="og:description" content="Duplicados por reenvíos, fechas y montos como texto, estados en dos idiomas, pruebas de QA, clientes desconocidos, JSON que cambia de formato. Todo junto, como en el trabajo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-capa-bronze.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Avanzado · 60 min</div>
+<h1>La capa bronze - limpiar datos como llegan de verdad</h1><p class="resumen">Duplicados por reenvíos, fechas y montos como texto, estados en dos idiomas, pruebas de QA, clientes desconocidos, JSON que cambia de formato. Todo junto, como en el trabajo.</p>
+<a class="cta" href="../index.html#/l/sql-capa-bronze">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Medir los problemas de una tabla antes de limpiarla</li><li>Deduplicar quedándote con la versión más reciente</li><li>Convertir textos a fechas y números aunque lleguen en varios formatos</li><li>Unificar valores de una categoría escritos de muchas formas</li><li>Separar datos de prueba y registros huérfanos</li><li>Leer JSON con dos versiones de formato</li><li>Armar la consulta silver completa</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Los datos llegan como la ropa del lavarropas: mezclados, algunos al revés, uno que otro calcetín sin par. La capa <strong>bronze</strong> es el canasto donde se deja todo tal como llegó, sin tirar nada. Después, con paciencia, se separa, se dobla y se ordena. Esta lección es aprender a doblar: sacar duplicados, convertir textos a números y fechas, y no perder nada en el camino.</p>
+</div>
+
+
+<h2>Por qué existe la capa bronze</h2>
+<p>En una arquitectura medallón, <strong>bronze</strong> guarda los datos <strong>exactamente como llegaron</strong>, con columnas extra que dicen de dónde vinieron (<code>archivo</code>) y cuándo se cargaron (<code>cargado_en</code>). Todo es texto, porque si declararas <code>fecha</code> como <code>DATE</code>, la fila con <code>&quot;31/10/2024&quot;</code> haría fallar la carga y perderías el dato.</p>
+<p>Tres razones para no limpiar &quot;en la entrada&quot;:</p>
+<ol>
+<li><strong>Si la limpieza tiene un error, se vuelve a correr desde bronze</strong>, sin pedirle a la app que reenvíe nada.</li>
+<li><strong>Auditoría</strong>: puedes mostrar qué llegó exactamente y cuándo.</li>
+<li><strong>Los formatos cambian sin aviso</strong>: lo que hoy es raro mañana es normal, y bronze lo absorbe sin romperse.</li>
+</ol>
+<p>Mira las dos tablas antes de empezar:</p>
+<pre><code class="language-sql">SELECT * FROM bronze_pedidos LIMIT 12;</code></pre>
+<pre><code class="language-sql">SELECT * FROM bronze_eventos_app WHERE evento_id IN (1, 2, 2000, 2001);</code></pre>
+<h2>Paso 1: medir antes de limpiar</h2>
+<p>Lo primero no es arreglar: es <strong>medir</strong>. Cuántas filas, cuántos pedidos distintos, cuántos nulos, cuántos formatos. Así sabes qué tan grave es cada problema y, después, puedes comprobar que la limpieza hizo lo que esperabas.</p>
+<pre><code class="language-sql">SELECT COUNT(*)                         AS filas,
+       COUNT(DISTINCT pedido_id)        AS pedidos,
+       COUNT(*) - COUNT(DISTINCT pedido_id) AS filas_repetidas,
+       SUM(monto IS NULL)               AS sin_monto,
+       SUM(fecha LIKE '__/__/____%')    AS fechas_dd_mm,
+       SUM(fecha LIKE '%T%Z')           AS fechas_iso_utc
+FROM bronze_pedidos;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 `SUM(condición)` cuenta</div>
+
+<p>En SQLite (y en PostgreSQL con <code>::int</code>), una condición vale 1 si es verdadera y 0 si no. <code>SUM(monto IS NULL)</code> cuenta cuántas filas no tienen monto. En otros motores se escribe <code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code> o <code>COUNT_IF</code>.</p>
+</div>
+
+
+<h2>Paso 2: duplicados por reenvío</h2>
+<p>Cuando la app no recibe confirmación, <strong>reenvía</strong> el archivo. Por eso el mismo <code>pedido_id</code> aparece en dos archivos, y a veces el reenvío trae el estado <strong>actualizado</strong> (el pedido pasó de enviado a entregado). La regla de negocio: <strong>quedarse con la versión más reciente</strong> de cada pedido, la de mayor <code>cargado_en</code>.</p>
+<pre><code class="language-sql">WITH ranqueado AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC) AS rn
+  FROM bronze_pedidos
+)
+SELECT pedido_id, estado, archivo, cargado_en
+FROM ranqueado
+WHERE rn = 1;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ DISTINCT no deduplica esto</div>
+
+<p><code>SELECT DISTINCT *</code> solo elimina filas <strong>idénticas en todas las columnas</strong>. Dos versiones del mismo pedido con distinto <code>archivo</code> o <code>estado</code> no son idénticas: hay que elegir cuál queda, y eso lo hace <code>ROW_NUMBER</code>.</p>
+</div>
+
+
+<h2>Paso 3: fechas en tres formatos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Ejemplo</th>
+<th>Formato</th>
+<th>Cómo llevarlo a <code>AAAA-MM-DD</code></th>
+</tr>
+</thead><tbody><tr>
+<td><code>2024-07-01</code></td>
+<td>ISO (el bueno)</td>
+<td><code>substr(fecha, 1, 10)</code></td>
+</tr>
+<tr>
+<td><code>2024-07-01T00:00:00Z</code></td>
+<td>ISO con hora UTC</td>
+<td><code>substr(fecha, 1, 10)</code></td>
+</tr>
+<tr>
+<td><code>01/07/2024 00:00</code></td>
+<td>día/mes/año</td>
+<td><code>substr(fecha, 7, 4) || &#39;-&#39; || substr(fecha, 4, 2) || &#39;-&#39; || substr(fecha, 1, 2)</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">SELECT fecha,
+       CASE WHEN fecha LIKE '__/__/____%'
+            THEN substr(fecha, 7, 4) || '-' || substr(fecha, 4, 2) || '-' || substr(fecha, 1, 2)
+            ELSE substr(fecha, 1, 10)
+       END AS fecha_iso
+FROM bronze_pedidos
+WHERE registro_id IN (1, 2, 3, 40, 41, 42, 80);</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ¿01/07 es 1 de julio o 7 de enero?</div>
+
+<p>El formato <code>DD/MM</code> es el de Latinoamérica y España; en Estados Unidos es <code>MM/DD</code>. Antes de convertir, <strong>confirma con la fuente</strong> cuál usan: un <code>13/01/2024</code> imposible como <code>MM/DD</code> es buena pista, pero no alcanza. En producción esto se documenta en el contrato de datos con la app.</p>
+</div>
+
+
+<h2>Paso 4: montos como texto</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Llega</th>
+<th>Qué es</th>
+<th>Cómo convertir</th>
+</tr>
+</thead><tbody><tr>
+<td><code>1234.50</code></td>
+<td>punto decimal</td>
+<td><code>CAST(monto AS REAL)</code></td>
+</tr>
+<tr>
+<td><code>1.234,50</code></td>
+<td>miles con punto, decimal con coma</td>
+<td>quitar los puntos, cambiar la coma por punto</td>
+</tr>
+<tr>
+<td><code>$1234.50</code></td>
+<td>con símbolo</td>
+<td>quitar el <code>$</code></td>
+</tr>
+<tr>
+<td><code>NULL</code></td>
+<td>no llegó</td>
+<td>dejarlo nulo y contarlo</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">SELECT monto,
+       CAST(CASE WHEN monto LIKE '%,%' THEN REPLACE(REPLACE(monto, '.', ''), ',', '.')
+                 WHEN monto LIKE '$%' THEN substr(monto, 2)
+                 ELSE monto END AS REAL) AS monto_num
+FROM bronze_pedidos
+WHERE registro_id &lt;= 12;</code></pre>
+<h2>Paso 5: una categoría escrita de muchas formas</h2>
+<p><code>estado</code> llega con mayúsculas distintas y, desde una versión de la app, <strong>en inglés</strong>. Primero normalizas (<code>LOWER(TRIM(...))</code>) y después traduces con un <code>CASE</code>. En un proyecto real, esa traducción vive en una <strong>tabla de mapeo</strong> (un <em>seed</em> de dbt) para que agregar un valor nuevo no requiera cambiar código.</p>
+<pre><code class="language-sql">SELECT estado, COUNT(*) AS filas
+FROM bronze_pedidos
+GROUP BY estado
+ORDER BY filas DESC;</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Un valor que nadie te avisó</div>
+
+<p>En octubre aparece <code>en_disputa</code>, un estado nuevo que la app agregó sin avisar. Un buen pipeline <strong>no lo descarta en silencio</strong>: lo deja pasar y avisa (un test de dbt <code>accepted_values</code> falla, y alguien decide qué hacer). Eso es un <em>cambio de esquema</em> de valores, tan común como una columna nueva (como <code>cupon</code>, que aparece desde julio).</p>
+</div>
+
+
+<h2>Paso 6: lo que no es real</h2>
+<ul>
+<li><strong>Pedidos de prueba</strong>: el equipo de QA prueba en producción con emails <code>qa+N@tiendaandina.com</code> y montos de 1 centavo. Se excluyen de las métricas (pero se cuentan, para avisar).</li>
+<li><strong>Clientes desconocidos</strong>: emails que no existen en <code>clientes</code>. No se borran: se marcan y se reportan, porque pueden ser clientes nuevos que todavía no llegaron a la tabla de clientes.</li>
+</ul>
+<h2>Paso 7: JSON que cambió de formato</h2>
+<p><code>bronze_eventos_app.payload</code> es JSON. En septiembre la app pasó de la versión 1 a la 2 y <strong>cambió dónde está cada dato</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dato</th>
+<th>v1</th>
+<th>v2</th>
+</tr>
+</thead><tbody><tr>
+<td>tipo de evento</td>
+<td><code>$.tipo</code></td>
+<td><code>$.evento.tipo</code></td>
+</tr>
+<tr>
+<td>cliente</td>
+<td><code>$.cliente</code></td>
+<td><code>$.usuario.id</code></td>
+</tr>
+<tr>
+<td>producto</td>
+<td><code>$.producto</code></td>
+<td><code>$.producto.id</code></td>
+</tr>
+</tbody></table></div>
+<p><code>json_extract(payload, &#39;$.ruta&#39;)</code> saca un valor; <code>COALESCE</code> toma el primero que no sea nulo, así una sola consulta lee las dos versiones. Y <code>json_valid(payload)</code> descarta los que llegaron cortados.</p>
+<pre><code class="language-sql">SELECT evento_id,
+       json_extract(payload, '$.v') AS version,
+       COALESCE(json_extract(payload, '$.tipo'), json_extract(payload, '$.evento.tipo')) AS tipo,
+       COALESCE(json_extract(payload, '$.cliente'), json_extract(payload, '$.usuario.id')) AS cliente_id
+FROM bronze_eventos_app
+WHERE json_valid(payload)
+LIMIT 10 OFFSET 1495;</code></pre>
+<div class="callout callout-experto"><div class="callout-title">🚀 En otros motores</div>
+
+<p>PostgreSQL usa <code>payload-&gt;&gt;&#39;tipo&#39;</code> y <code>payload#&gt;&gt;&#39;{evento,tipo}&#39;</code>; BigQuery, <code>JSON_VALUE(payload, &#39;$.evento.tipo&#39;)</code>; Spark y Databricks, <code>get_json_object</code> o <code>payload:evento.tipo</code>; SQL Server, <code>JSON_VALUE</code>. La idea (extraer por ruta y unificar versiones con <code>COALESCE</code>) es la misma.</p>
+</div>
+
+
+<h2>La consulta silver, completa</h2>
+<p>Todo junto, en pasos con CTE: cada uno hace una sola cosa y se puede probar por separado.</p>
+<pre><code class="language-sql">WITH ultimo AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY cargado_en DESC) AS rn
+  FROM bronze_pedidos
+),
+tipado AS (
+  SELECT pedido_id,
+         LOWER(TRIM(cliente_email)) AS email,
+         CASE WHEN fecha LIKE '__/__/____%'
+              THEN substr(fecha, 7, 4) || '-' || substr(fecha, 4, 2) || '-' || substr(fecha, 1, 2)
+              ELSE substr(fecha, 1, 10) END AS fecha,
+         CAST(CASE WHEN monto LIKE '%,%' THEN REPLACE(REPLACE(monto, '.', ''), ',', '.')
+                   WHEN monto LIKE '$%' THEN substr(monto, 2) ELSE monto END AS REAL) AS monto,
+         CASE LOWER(TRIM(estado))
+              WHEN 'delivered' THEN 'entregado' WHEN 'shipped' THEN 'enviado'
+              WHEN 'pending' THEN 'pendiente' WHEN 'canceled' THEN 'cancelado'
+              WHEN 'returned' THEN 'devuelto' ELSE LOWER(TRIM(estado)) END AS estado,
+         canal, cupon
+  FROM ultimo
+  WHERE rn = 1
+)
+SELECT * FROM tipado
+WHERE email NOT LIKE 'qa+%@tiendaandina.com'
+LIMIT 20;</code></pre>
+<p>En dbt, esa consulta sería el modelo <code>silver_pedidos</code>, con tests de que <code>pedido_id</code> es único y no nulo, que <code>estado</code> está en la lista conocida y que <code>monto</code> es positivo.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li>Limpiar sin medir antes: no sabes si arreglaste algo.</li>
+<li><code>DISTINCT</code> para deduplicar versiones distintas del mismo registro.</li>
+<li>Asumir un solo formato de fecha o de número.</li>
+<li>Borrar (en vez de marcar) los registros raros: después nadie sabe qué se perdió.</li>
+<li>Leer el JSON solo con la ruta de la versión nueva: los eventos viejos quedan en <code>NULL</code> sin aviso.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 &quot;Los números de la app no cierran&quot;</div>
+
+<p>Finanzas se queja: <em>&quot;El tablero dice que en el segundo semestre vendimos más de lo que cobramos, y hay pedidos de 1 centavo.&quot;</em> Martín te pide revisar la carga que viene de la app.</p>
+<p>La app manda los pedidos en archivos JSON que se cargan tal cual en <code>bronze_pedidos</code>. Abres la tabla y encuentras de todo: el mismo pedido dos veces, fechas en tres formatos, montos con coma, estados en inglés, pedidos de prueba del equipo de QA. Nadie hizo nada mal: <strong>así llegan los datos</strong>. Tu trabajo es convertir eso en una tabla confiable (la capa <em>silver</em>) sin perder nada en el camino.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p>En la vida real esto se hace una vez con cuidado, se convierte en un modelo (dbt, Lakeflow Declarative Pipelines, un job de Spark) con tests, y se monitorea: cuántos duplicados, cuántas fechas raras y cuántos valores nuevos llegan cada día. Cuando alguno se dispara, la app cambió algo y te enteras antes que finanzas.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Te llega una tabla con duplicados, formatos mezclados y nulos. ¿Por dónde empiezas?&quot;</div>
+
+<p>Primero mido: filas, claves distintas, nulos por columna, formatos por columna. Acuerdo con el negocio las reglas (qué versión de un duplicado vale, qué formato de fecha usa la fuente, qué es un registro de prueba). Después limpio en pasos (deduplicar, tipar, normalizar, marcar lo raro), sin borrar nada en bronze, y dejo tests que fallen si aparece algo nuevo.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-capa-bronze">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-ddl-dml.html">← Crear y modificar datos: DDL, DML y transacciones</a><a href="sql-patrones.html">Patrones avanzados de análisis →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

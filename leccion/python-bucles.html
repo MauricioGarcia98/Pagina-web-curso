@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bucles: for y while · Academia de Datos</title><meta name="description" content="Repetir acciones, range, acumuladores, break y continue."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-bucles.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Bucles: for y while · Academia de Datos"><meta property="og:description" content="Repetir acciones, range, acumuladores, break y continue."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-bucles.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Básico · 35 min</div>
+<h1>Bucles: for y while</h1><p class="resumen">Repetir acciones, range, acumuladores, break y continue.</p>
+<a class="cta" href="../index.html#/l/python-bucles">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Recorrer listas y textos con <code>for</code></li><li>Repetir un número de veces con <code>range</code></li><li>Acumular totales y contar con el patrón acumulador</li><li>Controlar un bucle con <code>while</code>, <code>break</code> y <code>continue</code></li><li>Recorrer con índice o dos listas a la vez con <code>enumerate</code> y <code>zip</code></li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si tienes que doblar cien camisetas, no piensas cien instrucciones distintas: piensas una sola (&quot;toma una, dóblala, déjala en la pila&quot;) y la repites hasta que se terminan. Un <strong>bucle</strong> es eso para la computadora: escribes los pasos una vez y Python los repite para cada elemento de una lista, o mientras se cumpla una condición.</p>
+</div>
+
+
+<h2>Repetir sin copiar y pegar</h2>
+<p>Imagina que tienes que imprimir el total de 12.000 pedidos. No vas a escribir 12.000 <code>print</code>. Un <strong>bucle</strong> repite un bloque de código tantas veces como haga falta: para cada pedido, para cada línea de un archivo, para cada día de un mes, hasta que se cumpla una condición. Es lo que hace a las computadoras útiles: hacer lo mismo un millón de veces sin cansarse ni equivocarse.</p>
+<p>Python tiene dos bucles:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Bucle</th>
+<th>Cuándo usarlo</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>for</code></td>
+<td>Cuando <strong>recorres</strong> una colección o sabes cuántas veces repetir</td>
+<td>Para cada fila del archivo…</td>
+</tr>
+<tr>
+<td><code>while</code></td>
+<td>Cuando repites <strong>mientras</strong> se cumpla una condición, sin saber cuántas veces</td>
+<td>Mientras queden páginas en la API…</td>
+</tr>
+</tbody></table></div>
+<h2>for: recorrer una colección</h2>
+<pre><code class="language-python">paises = [&quot;Argentina&quot;, &quot;Chile&quot;, &quot;México&quot;]
+for pais in paises:
+    print(&quot;Procesando&quot;, pais)
+print(&quot;Listo&quot;)</code></pre>
+<p>Qué pasa, vuelta por vuelta (cada vuelta se llama <strong>iteración</strong>):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Iteración</th>
+<th><code>pais</code> vale</th>
+<th>Se imprime</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td><code>&quot;Argentina&quot;</code></td>
+<td>Procesando Argentina</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>&quot;Chile&quot;</code></td>
+<td>Procesando Chile</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>&quot;México&quot;</code></td>
+<td>Procesando México</td>
+</tr>
+<tr>
+<td>(fin)</td>
+<td>—</td>
+<td>Listo</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><code>pais</code> es una variable que <strong>creas en el <code>for</code></strong>; en cada vuelta toma el siguiente elemento. El nombre lo eliges tú: usa el singular de la colección (<code>for cliente in clientes</code>, <code>for linea in lineas</code>).</li>
+<li>Igual que con <code>if</code>: dos puntos al final y bloque con sangría.</li>
+</ul>
+<p>Con <code>for</code> puedes recorrer cualquier cosa &quot;recorrible&quot; (<em>iterable</em>): listas, textos (letra por letra), diccionarios, líneas de un archivo, filas de una consulta.</p>
+<pre><code class="language-python">for letra in &quot;SQL&quot;:
+    print(letra)</code></pre>
+<h2>range: repetir un número de veces</h2>
+<p><code>range</code> genera una secuencia de números sin tener que escribirla:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Llamada</th>
+<th>Genera</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>range(5)</code></td>
+<td>0, 1, 2, 3, 4</td>
+<td>Repetir 5 veces (empieza en 0, <strong>no</strong> incluye el 5)</td>
+</tr>
+<tr>
+<td><code>range(1, 6)</code></td>
+<td>1, 2, 3, 4, 5</td>
+<td>Desde 1 hasta 5</td>
+</tr>
+<tr>
+<td><code>range(0, 10, 2)</code></td>
+<td>0, 2, 4, 6, 8</td>
+<td>De 2 en 2</td>
+</tr>
+<tr>
+<td><code>range(10, 0, -1)</code></td>
+<td>10, 9, … 1</td>
+<td>Cuenta regresiva</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python">for i in range(5):
+    print(&quot;Intento&quot;, i)
+
+for i in range(1, 11, 2):
+    print(i, end=&quot; &quot;)       # end=&quot; &quot; imprime en la misma línea, separado por espacios</code></pre>
+<h2>El patrón acumulador</h2>
+<p>Es <strong>el</strong> patrón más común en procesamiento de datos. Una variable empieza en un valor inicial (antes del bucle) y en cada vuelta se actualiza:</p>
+<pre><code class="language-python">ventas = [120, 340, 90, 560, 210]
+total = 0              # 1) inicializar ANTES del bucle
+mayores_a_200 = 0
+for v in ventas:
+    total += v         # 2) acumular en cada vuelta (total = total + v)
+    if v &gt; 200:
+        mayores_a_200 += 1
+print(&quot;Total:&quot;, total, &quot;| Ventas &gt; 200:&quot;, mayores_a_200)   # 3) usar DESPUÉS</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Vuelta</th>
+<th><code>v</code></th>
+<th><code>total</code> después</th>
+<th><code>mayores_a_200</code> después</th>
+</tr>
+</thead><tbody><tr>
+<td>inicio</td>
+<td>—</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1</td>
+<td>120</td>
+<td>120</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>340</td>
+<td>460</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>90</td>
+<td>550</td>
+<td>1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>560</td>
+<td>1110</td>
+<td>2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>210</td>
+<td>1320</td>
+<td>3</td>
+</tr>
+</tbody></table></div>
+<p>Hacer esta tabla a mano (una &quot;prueba de escritorio&quot;) es la mejor forma de entender o depurar un bucle.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Inicializar dentro del bucle</div>
+
+<p>Si escribes <code>total = 0</code> <strong>dentro</strong> del <code>for</code>, se reinicia en cada vuelta y al final solo tendrás la última venta. El acumulador se crea <strong>antes</strong> del bucle y se usa <strong>después</strong>.</p>
+</div>
+
+
+<p>El mismo patrón sirve para contar, buscar el máximo, armar una lista nueva:</p>
+<pre><code class="language-python">precios = [25.0, 120.5, 8.9, 64.0]
+maximo = precios[0]
+baratos = []
+for p in precios:
+    if p &gt; maximo:
+        maximo = p
+    if p &lt; 30:
+        baratos.append(p)      # agregar a una lista (lección siguiente)
+print(maximo, baratos)</code></pre>
+<p>Ese &quot;recorro, filtro y acumulo&quot; es exactamente lo que hacen <code>WHERE</code> + <code>SUM</code> en SQL, o <code>filter</code> + <code>agg</code> en PySpark: el motor hace el bucle por ti.</p>
+<div class="recorrido"></div>
+
+
+<h2>while: repetir mientras se cumpla una condición</h2>
+<pre><code class="language-python">saldo = 1000
+meses = 0
+while saldo &lt; 2000:
+    saldo = saldo * 1.05   # 5 % de interés mensual
+    meses += 1
+print(f&quot;Se duplica en {meses} meses (saldo: {saldo:.2f})&quot;)</code></pre>
+<p>Antes de cada vuelta, Python evalúa la condición: si es verdadera ejecuta el bloque y vuelve a preguntar; cuando es falsa, sigue con el código de abajo. No sabíamos de antemano cuántas vueltas haría (resultan 15): por eso <code>while</code>.</p>
+<p>Usos reales en ingeniería de datos: pedir páginas a una API <strong>mientras</strong> haya más resultados, reintentar una conexión <strong>mientras</strong> no se logre (y no se superen 5 intentos), esperar a que aparezca un archivo.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Bucles infinitos</div>
+
+<p>Si la condición del <code>while</code> nunca se vuelve falsa, el programa no termina nunca. Asegúrate de que <strong>algo dentro del bloque</strong> acerque la condición a su fin (aquí, <code>saldo</code> crece). En este sitio la ejecución se corta sola a los 45 segundos; en tu computadora tendrás que presionar <kbd>Ctrl</kbd>+<kbd>C</kbd>.</p>
+</div>
+
+
+<h2>break y continue: controlar el bucle desde adentro</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Instrucción</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>break</code></td>
+<td>Sale del bucle <strong>inmediatamente</strong> (no hace más vueltas)</td>
+</tr>
+<tr>
+<td><code>continue</code></td>
+<td>Abandona la vuelta actual y pasa a la <strong>siguiente</strong></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python">lecturas = [22, 23, -999, 24, 25, None, 26]
+for x in lecturas:
+    if x is None:          # marca de fin de datos
+        print(&quot;Fin de datos&quot;)
+        break
+    if x == -999:          # valor de error del sensor: ignorarlo
+        continue
+    print(&quot;Lectura válida:&quot;, x)</code></pre>
+<p>Resultado: 22, 23, (salta el −999), 24, 25, &quot;Fin de datos&quot; (el 26 nunca se procesa). <code>continue</code> es ideal para <strong>descartar</strong> registros inválidos sin anidar todo el resto en un <code>if</code>.</p>
+<h2>enumerate y zip</h2>
+<p>Dos ayudantes que evitan manejar índices a mano:</p>
+<pre><code class="language-python">productos = [&quot;Mouse&quot;, &quot;Teclado&quot;, &quot;Monitor&quot;]
+precios = [25, 49, 210]
+
+# enumerate: el elemento y su posición
+for i, p in enumerate(productos, start=1):
+    print(i, p)
+
+# zip: recorrer dos listas en paralelo
+for p, precio in zip(productos, precios):
+    print(f&quot;{p}: ${precio}&quot;)</code></pre>
+<p><code>enumerate</code> es útil para numerar líneas (&quot;error en la fila 37 del archivo&quot;). <code>zip</code> empareja elementos de igual posición; si las listas tienen distinto largo, se detiene en la más corta.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 ¿Bucles en big data?</div>
+
+<p>En Python puro, un bucle sobre 10 millones de filas es lento (segundos o minutos). Por eso en datos grandes se usan herramientas que ejecutan el bucle &quot;por dentro&quot; de forma optimizada: SQL, pandas, PySpark. Pero la <strong>lógica</strong> es la misma, y entender bucles te permite entender qué hacen esas herramientas.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>El acumulador dentro del bucle</strong>: si escribes <code>total = 0</code> dentro del <code>for</code>, se reinicia en cada vuelta y al final vale solo el último monto. Inicialízalo <strong>antes</strong> del bucle.</li>
+<li><strong><code>while</code> infinito</strong>: si la condición nunca se vuelve falsa (olvidaste actualizar la variable), el programa no termina. Detenlo con Ctrl + C y revisa qué cambia en cada vuelta.</li>
+<li><strong><code>range(1, 100)</code> no incluye el 100</strong>: el final es exclusivo. Para 1 a 100, <code>range(1, 101)</code>.</li>
+<li><strong>Modificar la lista mientras la recorres</strong>: borrar elementos dentro del <code>for</code> salta elementos. Construye una lista nueva con los que quieres conservar.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Sumar las ventas válidas</div>
+
+<p>Diego, de finanzas, recibe cada día un archivo con cientos de movimientos, algunos negativos (devoluciones) y algunos vacíos:</p>
+<blockquote>
+<p>&quot;Sumo a mano solo las ventas positivas. ¿Se puede automatizar? Y ya que estás, ¿cuántos movimientos había de cada tipo?&quot;</p>
+</blockquote>
+<p>Cuando hay que hacer lo mismo con cada elemento de una lista (sumar, revisar, contar), se usa un <strong>bucle</strong>. Es la herramienta que convierte una tarea manual de media hora en un programa de un segundo.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En datos, los bucles de Python sobre millones de filas son lentos. Para volúmenes grandes se usan herramientas que procesan columnas enteras de una vez (pandas, SQL, Spark). Pero para recorrer archivos, tablas, páginas de una API o días a reprocesar, el <code>for</code> está en todos lados.</li>
+<li>El patrón &quot;recorrer, validar, acumular, contar los rechazos&quot; es el esqueleto de muchísimos scripts de calidad de datos.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>for x in coleccion:</code> recorre elemento por elemento; <code>range(n)</code> genera números (sin incluir <code>n</code>).</li>
+<li>Patrón acumulador: inicializa antes, actualiza dentro, usa después.</li>
+<li><code>while condición:</code> repite mientras sea verdadera; asegúrate de que termine.</li>
+<li><code>break</code> sale del bucle; <code>continue</code> salta a la siguiente vuelta.</li>
+<li><code>enumerate</code> da posición + elemento; <code>zip</code> recorre listas en paralelo.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-bucles">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-condicionales.html">← Condicionales: if, elif, else</a><a href="python-listas.html">Listas y tuplas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programación: schedule, start_date, catchup e intervalos · Academia de Datos</title><meta name="description" content="Desde cero - start_date, schedule y catchup; expresiones cron y zona horaria; cómo calcula Airflow 3 la fecha lógica (y cómo lo hacía Airflow 2); procesar el día anterior; catchup, backfill y default_args."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-programacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Programación: schedule, start_date, catchup e intervalos · Academia de Datos"><meta property="og:description" content="Desde cero - start_date, schedule y catchup; expresiones cron y zona horaria; cómo calcula Airflow 3 la fecha lógica (y cómo lo hacía Airflow 2); procesar el día anterior; catchup, backfill y default_args."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-programacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Intermedio · 50 min</div>
+<h1>Programación: schedule, start_date, catchup e intervalos</h1><p class="resumen">Desde cero - start_date, schedule y catchup; expresiones cron y zona horaria; cómo calcula Airflow 3 la fecha lógica (y cómo lo hacía Airflow 2); procesar el día anterior; catchup, backfill y default_args.</p>
+<a class="cta" href="../index.html#/l/airflow-programacion">▶ Abrir la lección interactiva (8 ejercicios)</a>
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Programar un DAG es como poner una alarma que se repite: &quot;todos los días a las 6&quot;. Airflow además se pregunta &quot;¿qué día estoy procesando?&quot;: la corrida de hoy a las 6 suele trabajar con los datos de ayer. Entender esa idea evita la confusión más común de quienes empiezan con Airflow.</p>
+</div>
+
+
+<h2>Desde cero: ¿qué significa &quot;programar&quot; un DAG?</h2>
+<p>Programar un DAG es decirle a Airflow <strong>cuándo</strong> crear una ejecución (un <em>DAG run</em>). Para eso hay tres parámetros que siempre van juntos:</p>
+<ul>
+<li><code>start_date</code>: la fecha desde la que el DAG existe. Antes de esa fecha nunca corre.</li>
+<li><code>schedule</code>: cada cuánto corre (todos los días a las 2:00, cada hora, nunca solo…).</li>
+<li><code>catchup</code>: si al activar el DAG debe &quot;ponerse al día&quot; con las ejecuciones que se perdió desde el <code>start_date</code>.</li>
+</ul>
+<p>Cada DAG run tiene además una <strong>fecha lógica</strong> (<code>logical_date</code>): la fecha que identifica esa ejecución y que tus tareas usan para saber <strong>qué datos procesar</strong>. Entender cómo se calcula esa fecha es lo más importante de esta lección, y es justamente lo que cambió entre Airflow 2 y Airflow 3.</p>
+<h2>schedule</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Valor</th>
+<th>Significado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>None</code></td>
+<td>Solo se ejecuta manualmente o disparado por otro DAG</td>
+</tr>
+<tr>
+<td><code>&quot;@once&quot;</code></td>
+<td>Una sola vez</td>
+</tr>
+<tr>
+<td><code>&quot;@hourly&quot;</code></td>
+<td>Cada hora (<code>0 * * * *</code>)</td>
+</tr>
+<tr>
+<td><code>&quot;@daily&quot;</code></td>
+<td>Todos los días a medianoche (<code>0 0 * * *</code>)</td>
+</tr>
+<tr>
+<td><code>&quot;@weekly&quot;</code></td>
+<td>Domingos a medianoche</td>
+</tr>
+<tr>
+<td><code>&quot;@monthly&quot;</code></td>
+<td>El día 1 de cada mes</td>
+</tr>
+<tr>
+<td><code>&quot;30 6 * * 1-5&quot;</code></td>
+<td>Cron: a las 6:30, de lunes a viernes</td>
+</tr>
+<tr>
+<td><code>timedelta(hours=6)</code></td>
+<td>Cada 6 horas</td>
+</tr>
+<tr>
+<td><code>[Asset(&quot;s3://lago/ventas&quot;)]</code></td>
+<td>Cuando otro DAG actualiza ese dato (<em>programación por assets</em>; en Airflow 2 se llamaba <code>Dataset</code>)</td>
+</tr>
+<tr>
+<td>Un <em>timetable</em> (<code>CronTriggerTimetable(...)</code>)</td>
+<td>Control fino: zona horaria, intervalo de datos, varios horarios</td>
+</tr>
+</tbody></table></div>
+<h3>Expresiones cron</h3>
+<p><code>cron</code> es el programador de tareas clásico de Linux, y su forma de escribir horarios se usa en casi todas las herramientas. Son cinco campos separados por espacios; un <code>*</code> significa &quot;cualquiera&quot;:</p>
+<pre><code class="language-text">┌───────── minuto (0-59)
+│ ┌─────── hora (0-23)
+│ │ ┌───── día del mes (1-31)
+│ │ │ ┌─── mes (1-12)
+│ │ │ │ ┌─ día de la semana (0-6, 0 = domingo)
+│ │ │ │ │
+0 2 * * *      todos los días a las 2:00
+*/15 * * * *   cada 15 minutos
+0 8 1 * *      el día 1 de cada mes a las 8:00
+0 9 * * 1      los lunes a las 9:00
+30 6 * * 1-5   de lunes a viernes a las 6:30</code></pre>
+<p>Se lee de izquierda a derecha: <code>0 2 * * *</code> es &quot;en el minuto 0, de la hora 2, de cualquier día, de cualquier mes, cualquier día de la semana&quot;. Una página como <em>crontab.guru</em> traduce cualquier expresión a palabras.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La zona horaria</div>
+
+<p>Si no dices otra cosa, Airflow interpreta los horarios en <strong>UTC</strong> (la hora universal). <code>0 2 * * *</code> en UTC son las 23:00 del día anterior en Buenos Aires o Santiago. Para fijar una zona, usa un <code>start_date</code> con zona horaria (<code>pendulum.datetime(2024, 1, 1, tz=&quot;America/Lima&quot;)</code>) o un timetable con <code>timezone=</code>.</p>
+</div>
+
+
+<h2>La fecha lógica en Airflow 3</h2>
+<p>En Airflow 3, cuando <code>schedule</code> es una expresión cron o un preset (<code>@daily</code>), el DAG usa por defecto el timetable <code>CronTriggerTimetable</code>. Según la documentación oficial, eso significa:</p>
+<ul>
+<li>La <code>logical_date</code> es <strong>el momento en que se dispara</strong> la ejecución.</li>
+<li>No hay intervalo de datos: <code>data_interval_start</code> y <code>data_interval_end</code> valen <strong>lo mismo</strong> (el momento del disparo).</li>
+</ul>
+<pre><code class="language-text">DAG con schedule=&quot;0 2 * * *&quot; (Airflow 3, comportamiento por defecto)
+
+Ejecución que se dispara el 2024-01-02 a las 02:00
+  logical_date        = 2024-01-02 02:00   →  {{ ds }} = '2024-01-02'
+  data_interval_start = 2024-01-02 02:00
+  data_interval_end   = 2024-01-02 02:00</code></pre>
+<p>Es lo intuitivo: &quot;la ejecución del 2 de enero corre el 2 de enero&quot;. Pero cuidado: si la tarea procesa <strong>las ventas de ayer</strong>, <code>{{ ds }}</code> es <strong>hoy</strong>, y hay que pedir el día anterior explícitamente.</p>
+<h3>Procesar &quot;el día de ayer&quot; en Airflow 3: dos formas</h3>
+<p><strong>Forma 1: restar un día en la plantilla.</strong> <code>macros.ds_add(ds, -1)</code> devuelve la fecha <code>ds</code> menos un día:</p>
+<pre data-norun><code class="language-python">BashOperator(
+    task_id=&quot;extraer&quot;,
+    bash_command=&quot;python extraer.py --fecha {{ macros.ds_add(ds, -1) }}&quot;,
+)</code></pre>
+<p><strong>Forma 2: declarar el intervalo en el timetable.</strong> Con <code>interval=</code>, la ejecución tiene un intervalo de datos que <strong>termina</strong> en el momento del disparo:</p>
+<pre data-norun><code class="language-python">from datetime import datetime, timedelta
+from airflow.sdk import DAG
+from airflow.timetables.trigger import CronTriggerTimetable
+
+with DAG(
+    dag_id=&quot;ventas_diarias&quot;,
+    start_date=datetime(2024, 1, 1),
+    schedule=CronTriggerTimetable(&quot;0 2 * * *&quot;, timezone=&quot;UTC&quot;, interval=timedelta(days=1)),
+) as dag:
+    ...
+# Ejecución del 2024-01-02 02:00 → data_interval_start = 2024-01-01 02:00, data_interval_end = 2024-01-02 02:00
+# En las tareas: {{ data_interval_start | ds }} = '2024-01-01'</code></pre>
+<p>La segunda forma es la más clara para pipelines por períodos: las tareas leen <code>data_interval_start</code> y <code>data_interval_end</code>, y el período queda escrito en la definición del DAG.</p>
+<h2>La fecha lógica en Airflow 2 (la verás en muchos proyectos)</h2>
+<p>En Airflow 2, una expresión cron usaba <code>CronDataIntervalTimetable</code>: cada ejecución representa un <strong>período completo</strong> y se dispara <strong>al terminar</strong> ese período. La <code>logical_date</code> es el <strong>comienzo</strong> del período, no el momento en que corre:</p>
+<pre><code class="language-text">DAG @daily con start_date = 2024-01-01 (Airflow 2)
+
+Ejecución que corre el 2024-01-02 a las 00:00
+  data_interval_start = 2024-01-01 00:00   ← es la &quot;logical date&quot; ({{ ds }} = '2024-01-01')
+  data_interval_end   = 2024-01-02 00:00
+  → procesa los datos DEL 1 de enero</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>DAG run (logical date / <code>{{ ds }}</code>)</th>
+<th>Período que procesa</th>
+<th>Cuándo corre</th>
+</tr>
+</thead><tbody><tr>
+<td>2024-01-01</td>
+<td>1 de enero 00:00 → 2 de enero 00:00</td>
+<td>2 de enero 00:00</td>
+</tr>
+<tr>
+<td>2024-01-02</td>
+<td>2 de enero completo</td>
+<td>3 de enero 00:00</td>
+</tr>
+<tr>
+<td>2024-01-03</td>
+<td>3 de enero completo</td>
+<td>4 de enero 00:00</td>
+</tr>
+</tbody></table></div>
+<p>Esta regla (&quot;el run del 1 de enero corre el 2&quot;) confundió a una generación entera de data engineers, y por eso Airflow 3 cambió el valor por defecto. Si migras un DAG de Airflow 2 que usa <code>{{ ds }}</code> para &quot;ayer&quot;, en Airflow 3 va a procesar <strong>hoy</strong>: o restas un día, o agregas <code>interval=</code> al timetable, o se configura <code>[scheduler] create_cron_data_intervals = True</code> para mantener el comportamiento viejo. También desapareció la variable <code>execution_date</code>: se usa <code>logical_date</code>.</p>
+<h3>Por qué la fecha lógica importa tanto</h3>
+<p>Tu tarea no debe preguntar &quot;¿qué día es hoy?&quot; (<code>datetime.now()</code>), sino <strong>recibir</strong> el período a procesar (<code>{{ ds }}</code>, <code>{{ data_interval_start }}</code>). Así, volver a ejecutar dentro de un mes la ejecución del 2 de enero procesa exactamente el 2 de enero: el pipeline es <strong>determinista</strong> y <strong>reprocesable</strong>. Es la base de los backfills.</p>
+<div class="recorrido"></div>
+
+
+<h2>catchup y backfill</h2>
+<p>Si el DAG tiene <code>start_date=2024-01-01</code>, <code>schedule=&quot;@daily&quot;</code> y lo activas el 2024-03-01:</p>
+<ul>
+<li><code>catchup=False</code> (valor por defecto en Airflow 3): solo crea la ejecución más reciente y sigue desde ahí.</li>
+<li><code>catchup=True</code> (era el valor por defecto en Airflow 2): crea <strong>todas</strong> las ejecuciones pendientes desde enero, ¡60 de golpe! (limitadas por <code>max_active_runs</code>). Lo mismo pasa si pausas el DAG una semana y lo reactivas.</li>
+</ul>
+<p>Para reprocesar un rango a propósito se usa un <strong>backfill</strong>. En Airflow 3 se crea desde la interfaz (botón <em>Trigger</em> → <em>Backfill</em>) o con el comando:</p>
+<pre data-norun><code class="language-bash">airflow backfill create --dag-id etl_ventas \
+    --from-date 2024-01-01 --to-date 2024-01-31 \
+    --reprocess-behavior failed \
+    --max-active-runs 3</code></pre>
+<ul>
+<li><code>--reprocess-behavior</code> decide qué hacer con los días que ya corrieron: <code>none</code> (no repetirlos), <code>failed</code> (solo los que fallaron) o <code>completed</code> (todos).</li>
+<li><code>--max-active-runs</code> limita cuántos días corren a la vez, para no saturar la base de origen.</li>
+<li>En Airflow 2 el comando era <code>airflow dags backfill -s 2024-01-01 -e 2024-01-31 etl_ventas</code>.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ start_date dinámico</div>
+
+<p>Nunca uses <code>start_date=datetime.now()</code>: el valor cambia cada vez que se lee el archivo y el scheduler no puede calcular las ejecuciones. Usa una fecha fija.</p>
+</div>
+
+
+<h2>default_args</h2>
+<p>Parámetros comunes a todas las tareas del DAG:</p>
+<pre><code class="language-python">from datetime import datetime, timedelta
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+
+default_args = {
+    &quot;owner&quot;: &quot;equipo-datos&quot;,
+    &quot;retries&quot;: 2,
+    &quot;retry_delay&quot;: timedelta(minutes=5),
+    &quot;email_on_failure&quot;: True,
+}
+
+with DAG(&quot;con_defaults&quot;, start_date=datetime(2024, 1, 1), schedule=&quot;0 3 * * *&quot;,
+         catchup=False, default_args=default_args, max_active_runs=1) as dag:
+    t = EmptyOperator(task_id=&quot;tarea&quot;)
+
+print(dag.get_task(&quot;tarea&quot;).retries)</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Migrar de Airflow 2 a 3 sin revisar <code>{{ ds }}</code></strong>: el DAG pasa a procesar el día de hoy en vez del de ayer. Es el error de migración más común.</li>
+<li><strong>Olvidar la zona horaria</strong>: el DAG &quot;de las 6:00&quot; corre a las 3:00 hora local.</li>
+<li><strong><code>catchup=True</code> con un <code>start_date</code> viejo</strong>: cientos de ejecuciones de golpe al activar el DAG.</li>
+<li><strong>Tareas que usan <code>datetime.now()</code></strong>: reprocesar un día viejo vuelve a procesar hoy.</li>
+<li><strong>Cambiar el <code>start_date</code> de un DAG que ya corrió</strong>: el scheduler puede saltarse o repetir ejecuciones; es más seguro crear un DAG nuevo con otro <code>dag_id</code>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La pregunta que se hace en cada revisión de un DAG: &quot;si mañana tengo que reprocesar el 15 de marzo, ¿este DAG lo hace bien?&quot;. Si la respuesta depende de <code>now()</code>, se corrige.</li>
+<li>Los backfills grandes se hacen con <code>--max-active-runs</code> bajo y fuera del horario de carga, para no competir con las ejecuciones diarias.</li>
+<li>Muchos equipos fijan todos los horarios en UTC y documentan la hora local en la descripción del DAG.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué es la logical date de un DAG run?&quot;</div>
+
+<p>Es la fecha que identifica la ejecución y que las tareas usan para saber qué período procesar, por ejemplo con <code>{{ ds }}</code>. En Airflow 3, con un horario cron, es el momento en que se dispara la ejecución; en Airflow 2 era el comienzo del intervalo de datos, por eso la ejecución &quot;del 1 de enero&quot; corría el 2. Lo importante es que las tareas usen esa fecha y no la hora actual, para que se puedan reprocesar días pasados con un backfill y obtener siempre el mismo resultado.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-programacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-primer-dag.html">← Tu primer DAG</a><a href="airflow-operadores-plantillas.html">Operadores, plantillas Jinja y contexto →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

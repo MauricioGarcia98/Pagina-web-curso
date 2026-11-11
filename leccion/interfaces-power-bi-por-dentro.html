@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power BI por dentro - qué es cada parte y para qué sirve · Academia de Datos</title><meta name="description" content="Recorrido completo por Power BI Desktop y el servicio - la cinta, las vistas, los paneles, Power Query, la vista de modelo, DAX, el diseño del informe (drill, obtener detalles, marcadores, botones, interacciones, análisis, parámetros, IA), seguridad, publicación, actualización y formas de compartir."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-power-bi-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Power BI por dentro - qué es cada parte y para qué sirve · Academia de Datos"><meta property="og:description" content="Recorrido completo por Power BI Desktop y el servicio - la cinta, las vistas, los paneles, Power Query, la vista de modelo, DAX, el diseño del informe (drill, obtener detalles, marcadores, botones, interacciones, análisis, parámetros, IA), seguridad, publicación, actualización y formas de compartir."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-power-bi-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 70 min</div>
+<h1>Power BI por dentro - qué es cada parte y para qué sirve</h1><p class="resumen">Recorrido completo por Power BI Desktop y el servicio - la cinta, las vistas, los paneles, Power Query, la vista de modelo, DAX, el diseño del informe (drill, obtener detalles, marcadores, botones, interacciones, análisis, parámetros, IA), seguridad, publicación, actualización y formas de compartir.</p>
+<a class="cta" href="../index.html#/l/interfaces-power-bi-por-dentro">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ubicar cada zona de Power BI Desktop y saber para qué sirve</li><li>Entender qué se hace en Power Query, en la vista de modelo y en la vista de informe</li><li>Modelar un esquema en estrella con relaciones, propiedades, jerarquías y tabla de fechas</li><li>Distinguir medida, columna calculada, tabla calculada, rol y grupo de cálculo</li><li>Saber qué pasa al publicar y qué licencia hace falta para compartir</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre el <a href="#/powerbi">Power BI de práctica</a> en otra pestaña y busca cada zona a medida que aparece. La réplica copia la estructura de Power BI Desktop: lo que aprendas acá dónde está, lo vas a encontrar en el mismo lugar en el real.</p>
+</div>
+
+
+<h2>El mapa: Desktop, servicio y archivo</h2>
+<p>Power BI son <strong>dos aplicaciones</strong> que trabajan juntas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+<th>Dónde corre</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Power BI Desktop</strong></td>
+<td>La aplicación de escritorio (gratis, Windows)</td>
+<td>Tu computadora</td>
+<td><strong>Crear</strong>: traer datos, transformarlos, modelarlos, escribir DAX y diseñar el informe</td>
+</tr>
+<tr>
+<td><strong>Servicio de Power BI</strong></td>
+<td>El sitio web (app.powerbi.com, parte de Microsoft Fabric)</td>
+<td>La nube</td>
+<td><strong>Compartir y operar</strong>: publicar, actualizar los datos a horario, dar permisos, armar apps y paneles</td>
+</tr>
+<tr>
+<td><strong>Archivo .pbix</strong></td>
+<td>Un solo archivo binario con datos + modelo + informe</td>
+<td>Donde lo guardes</td>
+<td>Lo clásico: se abre con doble clic</td>
+</tr>
+<tr>
+<td><strong>Proyecto .pbip</strong></td>
+<td>El mismo contenido pero como <strong>carpeta de texto</strong> (TMDL para el modelo, JSON para el informe)</td>
+<td>Una carpeta, ideal en Git</td>
+<td>Trabajar en equipo: diferencias legibles, pull requests, CI/CD</td>
+</tr>
+</tbody></table></div>
+<p>Lo que haces en Desktop termina publicado como <strong>dos objetos</strong> en el servicio: un <strong>modelo semántico</strong> (antes llamado <em>dataset</em>: tablas, relaciones, medidas, seguridad) y un <strong>informe</strong> (las páginas con objetos visuales) que lee ese modelo.</p>
+<h2>La ventana de Power BI Desktop</h2>
+<pre><code class="language-text">┌──────────────────────────────────────────────────────────────────────┐
+│ Barra de título: guardar · deshacer · nombre del archivo · buscar    │
+├──────────────────────────────────────────────────────────────────────┤
+│ Cinta: Archivo | Inicio | Insertar | Modelado | Vista | Optimizar…   │
+├──┬───────────────────────────────────────┬─────────┬────────┬────────┤
+│▣ │                                       │ Filtros │ Visua- │ Datos  │
+│▦ │            LIENZO                     │         │ liza-  │        │
+│⧉ │      (las páginas del informe)        │         │ ciones │        │
+│&lt;/│                                       │         │        │        │
+│T │                                       │         │        │        │
+├──┴───────────────────────────────────────┴─────────┴────────┴────────┤
+│ Pestañas de página: Página 1 | + ·············· zoom · ajustar        │
+└──────────────────────────────────────────────────────────────────────┘</code></pre>
+<h3>La cinta</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Pestaña</th>
+<th>Lo más usado</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Archivo</strong></td>
+<td>Guardar, guardar como proyecto (.pbip), exportar a PDF, <strong>Opciones y configuración</strong> (vista previa de funciones, carga de datos, auto fecha/hora), publicar</td>
+</tr>
+<tr>
+<td><strong>Inicio</strong></td>
+<td><strong>Obtener datos</strong>, <strong>Transformar datos</strong> (abre Power Query), Actualizar, Nueva medida, Publicar</td>
+</tr>
+<tr>
+<td><strong>Insertar</strong></td>
+<td>Nuevo objeto visual, cuadro de texto, botones, formas, imágenes, preguntas y respuestas, narrativa inteligente</td>
+</tr>
+<tr>
+<td><strong>Modelado</strong></td>
+<td>Administrar relaciones, Nueva medida / columna / tabla, Nuevo parámetro, <strong>Administrar roles</strong> y <strong>Ver como</strong> (seguridad), grupos de cálculo</td>
+</tr>
+<tr>
+<td><strong>Vista</strong></td>
+<td>Temas, tamaño de página, cuadrícula, paneles visibles (marcadores, selección, rendimiento, sincronizar segmentaciones)</td>
+</tr>
+<tr>
+<td><strong>Optimizar</strong></td>
+<td>Analizador de rendimiento, pausar objetos visuales, ajustes preestablecidos para modelos grandes</td>
+</tr>
+<tr>
+<td><strong>Ayuda</strong></td>
+<td>Documentación, comunidad, novedades</td>
+</tr>
+<tr>
+<td><em>Pestañas contextuales</em></td>
+<td>Aparecen según lo que selecciones: <strong>Herramientas de tabla</strong>, <strong>Herramientas de columnas</strong> (tipo de datos, formato, categoría, ordenar por columna), <strong>Herramientas de medición</strong>, <strong>Formato</strong> del objeto visual</td>
+</tr>
+</tbody></table></div>
+<h3>Las cinco vistas (la barra vertical de la izquierda)</h3>
+<ol>
+<li><strong>Informe</strong>: el lienzo donde se arman las páginas con objetos visuales. Es lo que verá el usuario final.</li>
+<li><strong>Tabla</strong>: muestra las filas de cada tabla <strong>después</strong> de cargarlas al modelo. Sirve para revisar datos, tipos y columnas calculadas (no es Power Query: acá no se transforma el origen).</li>
+<li><strong>Modelo</strong>: el diagrama del <strong>modelo de datos</strong>: tablas, relaciones y propiedades. Es la respuesta a &quot;¿Power BI tiene modelado de datos?&quot;: sí, y es su corazón (ver abajo).</li>
+<li><strong>Consultas DAX</strong>: un editor para escribir <code>EVALUATE …</code> y ver el resultado como tabla. Ideal para probar medidas sin armar un visual.</li>
+<li><strong>TMDL</strong>: el modelo como <strong>texto</strong> (Tabular Model Definition Language). Puedes ver y editar tablas, medidas, relaciones y roles como código y aplicar los cambios con <code>createOrReplace</code>.</li>
+</ol>
+<h3>Los tres paneles de la derecha</h3>
+<ul>
+<li><strong>Filtros</strong>: tres niveles, de más chico a más grande: <em>en este objeto visual</em>, <em>en esta página</em>, <em>en todas las páginas</em>. Tipos de filtro: básico (marcar valores), avanzado (condiciones), N superior.</li>
+<li><strong>Visualizaciones</strong>: arriba la galería de tipos de objeto visual; abajo dos modos:<ul>
+<li><strong>Crear objeto visual</strong>: los <strong>pozos de campos</strong> (Eje X, Eje Y, Leyenda, Valores, Información sobre herramientas…). Arrastras campos del panel Datos a cada pozo.</li>
+<li><strong>Formato</strong>: todas las opciones de diseño, separadas en <em>Objeto visual</em> (ejes, etiquetas, colores) y <em>General</em> (título, fondo, borde, tamaño).</li>
+</ul>
+</li>
+<li><strong>Datos</strong>: las tablas del modelo con sus campos. Los íconos dicen qué es cada cosa: <strong>Σ</strong> columna numérica que se resume, <strong>calculadora</strong> medida, <strong>globo</strong> columna geográfica, <strong>calendario</strong> jerarquía de fechas, ojo tachado = oculto.</li>
+</ul>
+<h2>Power Query: preparar los datos antes de cargarlos</h2>
+<p><strong>Inicio → Transformar datos</strong> abre el <strong>Editor de Power Query</strong>, una ventana aparte. Es un <strong>ETL visual</strong>: cada clic se graba como un paso en lenguaje <strong>M</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Consultas</strong> (izquierda)</td>
+<td>Una consulta por tabla. Las que tienen la carga deshabilitada sirven de pasos intermedios</td>
+</tr>
+<tr>
+<td><strong>Vista previa</strong> (centro)</td>
+<td>Las primeras filas del resultado. Arriba de cada columna: tipo de datos y menú de filtro</td>
+</tr>
+<tr>
+<td><strong>Barra de fórmulas</strong></td>
+<td>El código M del paso seleccionado</td>
+</tr>
+<tr>
+<td><strong>Pasos aplicados</strong> (derecha)</td>
+<td>La receta: Origen → Encabezados promovidos → Tipo cambiado → … Puedes editar o borrar cualquier paso</td>
+</tr>
+<tr>
+<td><strong>Perfil de columna</strong> (pestaña Vista)</td>
+<td>Calidad (válido/error/vacío), distribución y estadísticas de cada columna</td>
+</tr>
+<tr>
+<td><strong>Editor avanzado</strong></td>
+<td>Toda la consulta en M para editarla a mano</td>
+</tr>
+<tr>
+<td><strong>Cerrar y aplicar</strong></td>
+<td>Ejecuta las consultas y carga el resultado en el modelo</td>
+</tr>
+</tbody></table></div>
+<p>Conceptos clave:</p>
+<ul>
+<li><strong>Modos de almacenamiento</strong>: <em>Importar</em> (los datos se copian al modelo, lo más rápido), <em>DirectQuery</em> (cada visual consulta el origen en vivo), <em>Direct Lake</em> (en Fabric: lee archivos Delta del lago sin importarlos) y <em>Dual</em>.</li>
+<li><strong>Plegado de consultas</strong> (<em>query folding</em>): cuando el origen es una base de datos, Power Query traduce los pasos a SQL y los ejecuta en el origen. Un paso que no se puede plegar obliga a traer todo y filtrar en Power BI: más lento.</li>
+<li><strong>Parámetros</strong>: valores reutilizables (por ejemplo, el servidor o una fecha de corte) que cambian sin tocar los pasos.</li>
+</ul>
+<h2>La vista de modelo: el modelado de datos</h2>
+<p>Esta vista es donde se decide <strong>cómo se relacionan las tablas</strong>, y de eso depende que todos los números sean correctos.</p>
+<h3>Esquema en estrella</h3>
+<p>La forma recomendada es el <strong>esquema en estrella</strong>: una <strong>tabla de hechos</strong> en el centro (ventas, pedidos: muchas filas, números y claves) rodeada de <strong>tablas de dimensión</strong> (clientes, productos, calendario: quién, qué, cuándo, dónde). Los filtros viajan desde las dimensiones hacia los hechos.</p>
+<h3>Relaciones</h3>
+<p>Para crear una relación, arrastras una columna de una tabla sobre la columna equivalente de otra, o usas <strong>Administrar relaciones</strong>. Cada relación tiene:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Propiedad</th>
+<th>Opciones</th>
+<th>Qué significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cardinalidad</strong></td>
+<td>Varios a uno (<em>:1), Uno a uno (1:1), Varios a varios (</em>:*)</td>
+<td>Cuántas filas de cada lado comparten un valor. Lo normal: muchos pedidos para un cliente (*:1)</td>
+</tr>
+<tr>
+<td><strong>Dirección del filtro cruzado</strong></td>
+<td>Única / Ambas</td>
+<td>Por dónde viaja el filtro. Única (de la dimensión a los hechos) es lo seguro; <em>Ambas</em> sirve en casos puntuales y puede crear ambigüedad</td>
+</tr>
+<tr>
+<td><strong>Activa / inactiva</strong></td>
+<td>Línea continua / punteada</td>
+<td>Entre dos tablas solo una relación puede estar activa. Las inactivas se usan en una medida con <code>USERELATIONSHIP</code> (por ejemplo, fecha de pedido vs fecha de envío)</td>
+</tr>
+<tr>
+<td><strong>Integridad referencial</strong></td>
+<td>Solo DirectQuery</td>
+<td>Permite usar INNER JOIN en vez de OUTER (más rápido) si sabes que no faltan claves</td>
+</tr>
+</tbody></table></div>
+<h3>El panel Propiedades</h3>
+<p>Al seleccionar una tabla, columna o medida en la vista de modelo aparece <strong>Propiedades</strong>:</p>
+<ul>
+<li><strong>Nombre, descripción y sinónimos</strong>: la descripción aparece al pasar el mouse; los sinónimos ayudan a Copilot y a preguntas y respuestas.</li>
+<li><strong>Carpeta de presentación</strong>: agrupa medidas o columnas en carpetas dentro del panel Datos.</li>
+<li><strong>Está oculto</strong>: oculta claves y columnas técnicas para que el usuario vea solo lo útil (siguen funcionando en las relaciones).</li>
+<li><strong>Tipo de datos y formato</strong>: entero, decimal, fecha, texto; formato de moneda, porcentaje o personalizado.</li>
+<li><strong>Categoría de datos</strong>: País/región, Ciudad, Latitud, URL de imagen… Le dice a los visuales cómo interpretar la columna (por ejemplo, para un mapa).</li>
+<li><strong>Resumir por</strong>: suma, promedio o <em>No resumir</em> (los IDs y años no se suman).</li>
+<li><strong>Ordenar por columna</strong>: para que <em>enero, febrero…</em> se ordenen por número de mes y no alfabéticamente.</li>
+</ul>
+<h3>Jerarquías y tabla de fechas</h3>
+<ul>
+<li><strong>Jerarquía</strong>: un camino de columnas para explorar en profundidad (Año → Trimestre → Mes → Día; Categoría → Subcategoría → Producto).</li>
+<li><strong>Tabla de fechas</strong>: una tabla con una fila por día sin huecos. Con <strong>Marcar como tabla de fechas</strong> las funciones de inteligencia de tiempo clásicas (<code>TOTALYTD</code>, <code>SAMEPERIODLASTYEAR</code>) funcionan bien. Si no la creas, la opción <em>Fecha/hora automática</em> genera tablas ocultas por cada columna de fecha (cómodo, pero pesado y limitado).</li>
+</ul>
+<h3>El explorador de modelo</h3>
+<p>En la vista de modelo, el panel <strong>Modelo</strong> lista todo lo que no se ve en el diagrama: <strong>relaciones</strong>, <strong>roles</strong> de seguridad, <strong>grupos de cálculo</strong>, <strong>perspectivas</strong> (subconjuntos del modelo), <strong>culturas</strong> (traducciones) y <strong>expresiones compartidas</strong> de Power Query.</p>
+<h2>DAX: medidas, columnas y tablas calculadas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Objeto</th>
+<th>Se calcula…</th>
+<th>Se guarda en el modelo</th>
+<th>Úsalo para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Medida</strong></td>
+<td>En el momento, según los filtros del visual (<strong>contexto de filtro</strong>)</td>
+<td>Solo la fórmula</td>
+<td>Totales, ratios, comparaciones: casi todo</td>
+</tr>
+<tr>
+<td><strong>Columna calculada</strong></td>
+<td>Una vez por fila al actualizar (<strong>contexto de fila</strong>)</td>
+<td>Sí, ocupa memoria</td>
+<td>Clasificar filas para usarlas como eje o filtro (por ejemplo, &quot;rango de edad&quot;)</td>
+</tr>
+<tr>
+<td><strong>Tabla calculada</strong></td>
+<td>Al actualizar</td>
+<td>Sí</td>
+<td>Tablas auxiliares: calendario, tablas de parámetros</td>
+</tr>
+</tbody></table></div>
+<p>La función más importante es <strong><code>CALCULATE</code></strong>: evalúa una expresión <strong>cambiando los filtros</strong> (agrega, reemplaza o quita filtros con <code>ALL</code>/<code>REMOVEFILTERS</code>). Las variables (<code>VAR … RETURN</code>) hacen las fórmulas legibles y más rápidas.</p>
+<h2>Seguridad y grupos de cálculo</h2>
+<ul>
+<li><strong>Seguridad de nivel de fila (RLS)</strong>: en <strong>Modelado → Administrar roles</strong> defines roles con un filtro DAX por tabla (por ejemplo, <code>[pais] = &quot;Argentina&quot;</code>). En <strong>Ver como</strong> pruebas cómo lo ve cada rol. La RLS <strong>dinámica</strong> usa <code>USERPRINCIPALNAME()</code> para filtrar según quién inició sesión. En el servicio se asignan personas o grupos a cada rol. Ojo: la RLS no aplica a quien tiene permiso de edición en el área de trabajo.</li>
+<li><strong>Seguridad de nivel de objeto (OLS)</strong>: oculta tablas o columnas enteras a un rol (se configura en TMDL o herramientas externas).</li>
+<li><strong>Grupos de cálculo</strong>: una tabla especial con <strong>elementos de cálculo</strong> que usan <code>SELECTEDMEASURE()</code>. Un grupo &quot;Inteligencia de tiempo&quot; con <em>Actual</em>, <em>Año anterior</em> y <em>Acumulado</em> sirve para <strong>todas</strong> las medidas, en vez de escribir tres versiones de cada una.</li>
+</ul>
+<h2>Diseñar el informe: de &quot;gráficos sueltos&quot; a una herramienta que la gente usa</h2>
+<p>Un informe no es solo poner gráficos. Es como armar una <strong>revista interactiva</strong>: tiene portada, botones para pasar de página, un índice y notas al pie. Estas son las piezas, en el orden en que suelen aparecer en un proyecto real.</p>
+<h3>Explorar en profundidad (drill down): bajar de lo general a lo particular</h3>
+<p>Imagina una muñeca rusa: adentro de &quot;Año&quot; está &quot;Trimestre&quot;, adentro está &quot;Mes&quot;, adentro está &quot;Día&quot;. Si pones <strong>varios campos en el mismo eje</strong> (o arrastras una <strong>jerarquía</strong> entera), el gráfico muestra primero el nivel de arriba y te deja bajar.</p>
+<p>Los botones aparecen arriba del gráfico al pasar el mouse:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Botón</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>↑ Subir</td>
+<td>Vuelve al nivel anterior</td>
+<td>De &quot;meses&quot; a &quot;trimestres&quot;</td>
+</tr>
+<tr>
+<td>↓ Modo explorar</td>
+<td>Si está prendido, un clic en una barra <strong>entra</strong> en ese valor</td>
+<td>Clic en &quot;Bikes&quot; → ves solo las subcategorías de Bikes</td>
+</tr>
+<tr>
+<td>↘ Siguiente nivel</td>
+<td>Muestra el nivel de abajo para <strong>todos</strong> los valores</td>
+<td>Todas las subcategorías, de todas las categorías</td>
+</tr>
+<tr>
+<td>⤓ Expandir</td>
+<td>Muestra el nivel de abajo <strong>pegado</strong> al de arriba</td>
+<td>&quot;Bikes · Road Bikes&quot;, &quot;Bikes · Mountain Bikes&quot;…</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>Pruébalo</strong>: crea una jerarquía con clic derecho en una columna → <em>Crear jerarquía</em>; agrega niveles con clic derecho → <em>Agregar a jerarquía</em>. Después haz clic en la jerarquía del panel Datos con el lienzo vacío.</p>
+</blockquote>
+<h3>Obtener detalles (drillthrough): una página &quot;lupa&quot;</h3>
+<p>Es una página preparada para mostrar <strong>el detalle de una sola cosa</strong>: un cliente, un producto, un país. Se arma así:</p>
+<ol>
+<li>Crea una página nueva (por ejemplo, &quot;Detalle de producto&quot;).</li>
+<li>Sin nada seleccionado, en <em>Crear objeto visual</em>, arrastra el campo (por ejemplo, <em>Categoría</em>) al pozo <strong>Obtener detalles</strong>. Power BI agrega solo un <strong>botón Atrás</strong>.</li>
+<li>En cualquier otra página, <strong>clic derecho</strong> en un dato de ese campo → <em>Obtener detalles</em> → la página. Llegas filtrado por ese valor.</li>
+</ol>
+<h3>Marcadores, panel Selección y botones: informes que parecen una app</h3>
+<ul>
+<li>Un <strong>marcador</strong> es una <strong>foto</strong> del estado del informe: qué página, qué filtros, qué está seleccionado en cada segmentación y qué objetos se ven. Vista → <em>Marcadores</em> → <em>Agregar</em>.</li>
+<li>El <strong>panel Selección</strong> (Vista → <em>Selección</em>) lista todo lo que hay en la página, en capas: lo de arriba de la lista queda adelante. Con el ojo ocultas o muestras cada objeto.</li>
+<li>Un <strong>botón</strong> (Insertar → <em>Botones</em>) hace una <strong>acción</strong>: ir atrás, aplicar un marcador, ir a una página o abrir una URL. En Desktop se usa con <strong>Ctrl + clic</strong> (con clic solo lo seleccionas para editarlo); en el servicio alcanza con un clic.</li>
+</ul>
+<p>La receta clásica de &quot;pestañas&quot;: dos gráficos superpuestos, un marcador con uno oculto y otro marcador con el otro oculto, y dos botones que aplican cada marcador.</p>
+<h3>Que los gráficos se hablen (o no): interacciones y segmentaciones sincronizadas</h3>
+<ul>
+<li>Por defecto, al hacer clic en una barra <strong>se filtran los demás objetos</strong> de la página. Con <strong>Formato → Editar interacciones</strong> eliges, para cada par de objetos, si filtra, resalta o <strong>no hace nada</strong> (ícono &quot;Ninguno&quot;). Sirve, por ejemplo, para que un gráfico de &quot;Total histórico&quot; no cambie con la segmentación de año.</li>
+<li><strong>Sincronizar segmentaciones</strong> (Vista) hace que una misma segmentación (por ejemplo, Año) filtre <strong>varias páginas</strong>. <em>Sincronizar</em> = filtra esa página; <em>Visible</em> = además se ve ahí.</li>
+</ul>
+<h3>Análisis, formato condicional y tooltips: que el número &quot;se explique solo&quot;</h3>
+<ul>
+<li><strong>Panel Análisis</strong> (la lupa al lado de Formato): agrega líneas de referencia sobre el gráfico, como el <strong>promedio</strong>, un <strong>objetivo fijo</strong> (línea constante) o la <strong>tendencia</strong>. Así se ve de un vistazo qué está por encima o por debajo.</li>
+<li><strong>Formato condicional</strong> (el botón <strong>fx</strong>): pinta cada celda o barra según su valor. <em>Degradado</em>: del rojo (bajo) al verde (alto). <em>Reglas</em>: &quot;si es menor que 0, rojo&quot;. También hay <strong>barras de datos</strong> dentro de las celdas e <strong>íconos</strong> (▲ ● ▼).</li>
+<li><strong>Información sobre herramientas de página</strong>: una página chiquita (tipo <em>Información sobre herramientas</em>) que aparece <strong>al pasar el mouse</strong> por un dato de otro gráfico, ya filtrada por ese dato.</li>
+</ul>
+<h3>Parámetros: que la persona juegue con &quot;¿y si…?&quot;</h3>
+<ul>
+<li><strong>Rango numérico</strong> (Modelado → <em>Nuevo parámetro</em>): crea una tabla con valores (por ejemplo, descuento de 0 % a 50 %) y una medida que lee el valor elegido. Así puedes mostrar &quot;¿cuánto venderíamos con un 10 % de descuento?&quot; sin escribir nada más.</li>
+<li><strong>Campos</strong>: una segmentación que cambia <strong>qué campo</strong> está en el eje (por ejemplo, ver ventas por País, por Categoría o por Canal con el mismo gráfico).</li>
+</ul>
+<h3>Objetos visuales de IA</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Objeto</th>
+<th>Para qué</th>
+<th>Cuidado</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Preguntas y respuestas</strong></td>
+<td>Escribes &quot;ventas por país&quot; y arma el gráfico</td>
+<td>Los nombres de las columnas tienen que ser claros (y sus <em>sinónimos</em> ayudan)</td>
+</tr>
+<tr>
+<td><strong>Árbol de descomposición</strong></td>
+<td>Abrir un total por distintos campos, nivel por nivel, para encontrar el porqué</td>
+<td>Con muchos campos se vuelve difícil de leer</td>
+</tr>
+<tr>
+<td><strong>Influenciadores clave</strong></td>
+<td>Qué valores hacen que un número suba</td>
+<td>Muestra relación, <strong>no</strong> causa</td>
+</tr>
+<tr>
+<td><strong>Narración inteligente</strong></td>
+<td>Un párrafo que resume la página y se actualiza al filtrar</td>
+<td>Revisa que diga lo que importa</td>
+</tr>
+</tbody></table></div>
+<h2>Publicar y compartir</h2>
+<p>Al pulsar <strong>Publicar</strong> eliges un <strong>área de trabajo</strong> del servicio. Ahí aparecen:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Objeto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Área de trabajo</strong></td>
+<td>Carpeta compartida de un equipo, con roles: Administrador, Miembro, Colaborador, Visor</td>
+</tr>
+<tr>
+<td><strong>Modelo semántico</strong></td>
+<td>Tus datos y cálculos. Se configura la <strong>actualización programada</strong> y las credenciales</td>
+</tr>
+<tr>
+<td><strong>Informe</strong></td>
+<td>Las páginas interactivas</td>
+</tr>
+<tr>
+<td><strong>Panel (dashboard)</strong></td>
+<td>Una sola página con mosaicos anclados desde varios informes</td>
+</tr>
+<tr>
+<td><strong>Aplicación</strong></td>
+<td>El paquete que se publica para los consumidores, con permisos propios</td>
+</tr>
+<tr>
+<td><strong>Puerta de enlace (gateway)</strong></td>
+<td>Software que permite al servicio leer datos de tu red local para actualizar</td>
+</tr>
+</tbody></table></div>
+<p><strong>Licencias</strong> (resumido): con <em>Free</em> creas solo para ti; para compartir hace falta <strong>Pro</strong> o <strong>Premium por usuario</strong> para cada persona, o que el contenido esté en una <strong>capacidad</strong> (Premium o Fabric F64 y superiores), donde los visores pueden ser gratuitos.</p>
+<p>Para equipos: <strong>canalizaciones de implementación</strong> (desarrollo → prueba → producción) e <strong>integración con Git</strong> del área de trabajo usando el formato .pbip.</p>
+<h3>La actualización: por qué &quot;anda en mi compu&quot; pero falla en el servicio</h3>
+<p>Tu informe en Desktop lee los datos <strong>desde tu computadora</strong>. El servicio vive <strong>en la nube</strong>: no puede entrar a tu disco ni a un servidor de tu oficina. Por eso, para que se actualice solo:</p>
+<ol>
+<li><strong>Puerta de enlace de datos local</strong>: un programa que se instala en una computadora de la red (que esté siempre prendida). El servicio le pide los datos y ella se los busca. Los orígenes que ya están en la nube (Azure SQL, SharePoint Online) no la necesitan.</li>
+<li><strong>Credenciales del origen</strong>: con qué usuario se conecta y su <strong>nivel de privacidad</strong>.</li>
+<li><strong>Actualización programada</strong>: los horarios. Con Pro, hasta <strong>8 por día</strong>; con Premium o Fabric, hasta <strong>48</strong>.</li>
+</ol>
+<p>Si falta alguno de los tres, la actualización <strong>falla</strong> y el historial te dice por qué.</p>
+<blockquote>
+<p><strong>Pruébalo</strong>: en Desktop pulsa <strong>Publicar</strong>, abre el informe en el servicio de práctica, ve a su <strong>Modelo semántico</strong> y pulsa <em>Actualizar ahora</em> sin puerta de enlace. Lee el error, instala la puerta de enlace (simulada) en <em>Configuración</em>, asígnala y completa las credenciales: ahora sí funciona.</p>
+</blockquote>
+<h3>Tres formas de compartir (y cuándo usar cada una)</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Para quién</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Rol en el área de trabajo</strong></td>
+<td>Quienes <strong>construyen</strong> el contenido</td>
+<td>El equipo de datos (Miembro o Colaborador)</td>
+</tr>
+<tr>
+<td><strong>Compartir</strong> un informe</td>
+<td><strong>Pocas</strong> personas puntuales</td>
+<td>Tu jefa y dos compañeros</td>
+</tr>
+<tr>
+<td><strong>App</strong></td>
+<td><strong>Muchas</strong> personas que solo consumen</td>
+<td>Toda el área de ventas</td>
+</tr>
+</tbody></table></div>
+<p>Recuerda: la seguridad por filas (RLS) se aplica a los <strong>Visores</strong>. Quien es Administrador, Miembro o Colaborador ve todo.</p>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Obtener datos (CSV, Excel, JSON, bases del curso), Power Query con pasos y M, vistas Informe/Tabla/Modelo/DAX/TMDL</td>
+<td>Conectores a bases reales y servicios en línea, DirectQuery, Direct Lake</td>
+</tr>
+<tr>
+<td>Relaciones con cardinalidad, dirección y activa/inactiva; detección automática; panel Propiedades (nombre, carpetas, sinónimos, categoría, ordenar por columna), jerarquías, marcar tabla de fechas</td>
+<td>Varios diseños del diagrama, relaciones de varios a varios con tabla puente automática</td>
+</tr>
+<tr>
+<td>Motor DAX con contexto de filtro, CALCULATE, iteradores, inteligencia de tiempo</td>
+<td>Todas las funciones DAX, depuración y análisis de rendimiento</td>
+</tr>
+<tr>
+<td>28 objetos visuales (incluidos Preguntas y respuestas, Árbol de descomposición, Influenciadores clave y Narración inteligente), formato, formato condicional, panel Análisis, filtros, segmentaciones, filtrado cruzado</td>
+<td>Mapas de Bing/Azure Maps reales, visuales personalizados de AppSource, Copilot</td>
+</tr>
+<tr>
+<td>Formas, botones, marcadores, panel Selección, explorar en profundidad, obtener detalles, tooltips de página, editar interacciones, sincronizar segmentaciones, parámetros de rango y de campos</td>
+<td>Agrupar objetos visuales, temas JSON completos, informes paginados</td>
+</tr>
+<tr>
+<td>RLS con Ver como, grupos de cálculo, exportación a TMDL</td>
+<td>OLS, perspectivas</td>
+</tr>
+<tr>
+<td>Servicio de práctica: publicar, áreas de trabajo y roles, actualización programada, puerta de enlace, credenciales, miembros de RLS, compartir, paneles, apps, aval, confidencialidad, linaje y canalizaciones</td>
+<td>Cuentas reales, suscripciones por correo, alertas de datos, métricas</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-power-bi-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="genie-proyecto-guiado.html">← Proyecto guiado: el asistente de ventas de Tienda Andina con Genie</a><a href="interfaces-portal-azure-por-dentro.html">El portal de Azure por dentro - qué es cada parte y para qué sirve →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

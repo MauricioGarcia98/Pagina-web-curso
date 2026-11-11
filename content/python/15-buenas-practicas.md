@@ -18,6 +18,10 @@ Que el código funcione en tu computadora es el primer paso. Que **otros** lo pu
 :::
 Escribir código que funciona en tu notebook es el primer paso. Escribir código que **otros pueden usar, probar y mantener** es lo que hace un profesional.
 
+:::analogia En palabras simples
+Escribir un programa que funciona en tu computadora es como cocinar en tu casa. Hacerlo de forma profesional es como cocinar en un restaurante: cada ingrediente etiquetado (dependencias), recetas probadas antes de servir (tests), un registro de lo que pasó en cada turno (logs) y la cocina siempre ordenada igual (estilo). Así cualquiera del equipo puede seguir tu trabajo.
+:::
+
 ## Instalar Python en tu computadora
 
 - Descarga Python 3.11 o superior desde python.org (en Windows marca “Add Python to PATH”), o usa el gestor de tu sistema.

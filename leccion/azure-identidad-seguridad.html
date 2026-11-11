@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Identidad, permisos (RBAC) y Key Vault · Academia de Datos</title><meta name="description" content="Usuarios, service principals, managed identities, roles RBAC, alcance y secretos con Key Vault."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-identidad-seguridad.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Identidad, permisos (RBAC) y Key Vault · Academia de Datos"><meta property="og:description" content="Usuarios, service principals, managed identities, roles RBAC, alcance y secretos con Key Vault."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-identidad-seguridad.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure">☁️ Azure y Azure CLI</a> · Avanzado · 35 min</div>
+<h1>Identidad, permisos (RBAC) y Key Vault</h1><p class="resumen">Usuarios, service principals, managed identities, roles RBAC, alcance y secretos con Key Vault.</p>
+<a class="cta" href="../index.html#/l/azure-identidad-seguridad">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>En el <a href="#/azure/crear/kv">portal de práctica</a> crea un Key Vault con Azure RBAC: aunque eres Owner, <strong>Secrets</strong> te va a decir <em>The operation is not allowed by RBAC</em> hasta que te asignes <strong>Key Vault Secrets Officer</strong> en Access control (IAM).</p>
+</div>
+
+
+<h2>Las dos preguntas de la seguridad</h2>
+<p>Toda la seguridad en la nube se reduce a dos preguntas:</p>
+<ol>
+<li><strong>Autenticación</strong>: ¿<strong>quién</strong> eres? (demuéstralo con una contraseña, un certificado, un token).</li>
+<li><strong>Autorización</strong>: ¿<strong>qué</strong> puedes hacer y <strong>dónde</strong>?</li>
+</ol>
+<p>En Azure, la primera la responde <strong>Microsoft Entra ID</strong> (antes Azure Active Directory), el directorio de identidades de la organización. La segunda, <strong>RBAC</strong> (<em>role-based access control</em>): permisos asignados por roles. Y un tercer servicio, <strong>Key Vault</strong>, guarda los secretos (contraseñas, tokens, llaves) para que nunca estén escritos en el código.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El edificio de oficinas</div>
+
+<p>Entra ID es la recepción que verifica tu DNI y te da una tarjeta. RBAC define qué puertas abre tu tarjeta: el piso 3 completo (un grupo de recursos), solo la sala de servidores (un recurso), o todo el edificio (la suscripción). Key Vault es la caja fuerte donde se guardan las llaves de los proveedores; quien tiene permiso puede pedirlas, pero nadie las lleva en el bolsillo.</p>
+</div>
+
+
+<h2>¿Quién accede? Tipos de identidad</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Identidad</th>
+<th>Qué es</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Usuario</strong></td>
+<td>Una persona en Entra ID</td>
+<td>Tú, trabajando en el portal o con <code>az login</code></td>
+</tr>
+<tr>
+<td><strong>Grupo</strong></td>
+<td>Conjunto de usuarios</td>
+<td>Dar permisos al “equipo de datos” y no persona por persona</td>
+</tr>
+<tr>
+<td><strong>Service principal</strong></td>
+<td>Identidad de una <strong>aplicación</strong> (con secreto o certificado)</td>
+<td>Pipelines de CI/CD (GitHub Actions), herramientas externas</td>
+</tr>
+<tr>
+<td><strong>Managed identity</strong></td>
+<td>Identidad que Azure gestiona <strong>sin secretos</strong> para un recurso</td>
+<td>Databricks, Data Factory o una VM accediendo al data lake o Key Vault</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Preferí managed identities</div>
+
+<p>No tienen contraseñas que rotar ni que se puedan filtrar. Úsalas siempre que el servicio lo permita. Para GitHub Actions, usa <strong>federated credentials (OIDC)</strong> en lugar de secretos.</p>
+</div>
+
+
+<h2>RBAC: quién puede hacer qué, dónde</h2>
+<p>Un <strong>role assignment</strong> = <strong>identidad</strong> + <strong>rol</strong> + <strong>alcance (scope)</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Rol</th>
+<th>Permite</th>
+</tr>
+</thead><tbody><tr>
+<td><code>Owner</code></td>
+<td>Todo, incluido dar permisos</td>
+</tr>
+<tr>
+<td><code>Contributor</code></td>
+<td>Crear y administrar recursos, pero no dar permisos</td>
+</tr>
+<tr>
+<td><code>Reader</code></td>
+<td>Solo ver</td>
+</tr>
+<tr>
+<td><code>Storage Blob Data Contributor</code></td>
+<td>Leer/escribir <strong>datos</strong> en blobs/ADLS</td>
+</tr>
+<tr>
+<td><code>Storage Blob Data Reader</code></td>
+<td>Solo leer datos</td>
+</tr>
+<tr>
+<td><code>Key Vault Secrets User</code></td>
+<td>Leer secretos</td>
+</tr>
+</tbody></table></div>
+<p>El <strong>alcance</strong> puede ser una suscripción, un grupo de recursos o un recurso concreto. Se hereda hacia abajo. Aplica el <strong>principio de mínimo privilegio</strong>: el rol más chico en el alcance más chico.</p>
+<pre data-norun><code class="language-bash"># Service principal para el pipeline de CI, con Contributor solo sobre un grupo de recursos
+az ad sp create-for-rbac --name sp-ci-datos --role Contributor \
+  --scopes /subscriptions/$SUB_ID/resourceGroups/rg-datos-dev
+
+# Dar permiso de datos sobre la cuenta de almacenamiento a un grupo de Entra ID
+ST_ID=$(az storage account show --name stdatosdev001 --resource-group rg-datos-dev --query id -o tsv)
+az role assignment create --assignee &quot;equipo-datos@empresa.com&quot; \
+  --role &quot;Storage Blob Data Contributor&quot; --scope $ST_ID
+
+az role assignment list --scope $ST_ID -o table</code></pre>
+<h3>Cómo se lee un role assignment</h3>
+<p><code>az role assignment create --assignee equipo-datos@empresa.com --role &quot;Storage Blob Data Contributor&quot; --scope $ST_ID</code> se lee: &quot;el grupo <strong>equipo-datos</strong> puede <strong>leer y escribir datos</strong> en <strong>esta cuenta de almacenamiento</strong> (y en todo lo que contiene)&quot;. Las tres partes son obligatorias, y equivocarse en el alcance es el error más peligroso: el mismo rol con <code>--scope /subscriptions/$SUB_ID</code> daría acceso a <strong>todas</strong> las cuentas de la suscripción.</p>
+<h2>Key Vault: el lugar de los secretos</h2>
+<pre data-norun><code class="language-bash">az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
+az keyvault secret set --vault-name kv-datos-dev --name sql-password --value &quot;S3cr3t0!&quot;
+az keyvault secret show --vault-name kv-datos-dev --name sql-password --query value -o tsv
+az keyvault secret list --vault-name kv-datos-dev -o table</code></pre>
+<p>En Databricks, un <strong>secret scope respaldado por Key Vault</strong> permite leer esos secretos en notebooks con <code>dbutils.secrets.get(scope=&quot;kv&quot;, key=&quot;sql-password&quot;)</code>, sin que el valor aparezca nunca en pantalla. Airflow puede usar Key Vault como backend de Connections y Variables.</p>
+<div class="recorrido"></div>
+
+
+<h2>Pruébalo en la terminal</h2>
+<pre><code class="language-bash">az login
+az group create --name rg-datos-dev --location eastus2
+az keyvault create --name kv-datos-dev --resource-group rg-datos-dev --location eastus2
+az keyvault secret set --vault-name kv-datos-dev --name databricks-token --value dapi-ejemplo-123
+az keyvault secret list --vault-name kv-datos-dev -o table
+az keyvault secret show --vault-name kv-datos-dev --name databricks-token --query value -o tsv</code></pre>
+<p>Fíjate en el último comando: <code>--query value -o tsv</code> devuelve <strong>solo</strong> el valor, listo para guardarlo en una variable (<code>TOKEN=$(az keyvault secret show … )</code>) sin que quede escrito en ningún archivo.</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-identidad-seguridad">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-storage.html">← Almacenamiento: Storage Accounts y ADLS Gen2</a><a href="azure-servicios-datos.html">Servicios de datos en Azure desde la CLI →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

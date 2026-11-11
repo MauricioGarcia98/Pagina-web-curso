@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 📦 Mercurio: stock, quiebres y entregas a tiempo · Academia de Datos</title><meta name="description" content="Stock a partir de movimientos, quiebres de stock, rotación, entregas a tiempo por transportista y costo por envío."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-logistica.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 📦 Mercurio: stock, quiebres y entregas a tiempo · Academia de Datos"><meta property="og:description" content="Stock a partir de movimientos, quiebres de stock, rotación, entregas a tiempo por transportista y costo por envío."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-logistica.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 55 min</div>
+<h1>Caso 📦 Mercurio: stock, quiebres y entregas a tiempo</h1><p class="resumen">Stock a partir de movimientos, quiebres de stock, rotación, entregas a tiempo por transportista y costo por envío.</p>
+<a class="cta" href="../index.html#/l/casos-logistica">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular stock a una fecha sumando movimientos con signo</li><li>Detectar quiebres de stock día por día con acumulados</li><li>Medir entregas a tiempo (OTD) y retraso por transportista</li><li>Calcular el costo real por envío exitoso incluyendo devoluciones y pérdidas</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Mercurio</div>
+
+<p>La jefa de operaciones de <strong>Mercurio</strong>, la empresa de logística, tiene que renegociar contratos:</p>
+<blockquote>
+<p>&quot;Tenemos tres transportistas y cada uno dice que es el mejor. Quiero ver cuántos envíos entrega cada uno a tiempo y cuánto nos cuestan de verdad, contando los que se pierden. Y en los depósitos, hay productos que se quedan sin stock y nadie se entera hasta que un cliente se queja.&quot;</p>
+</blockquote>
+<p>En logística, el inventario se calcula a partir de movimientos (entradas y salidas), y un error en un signo hace que el sistema diga que hay stock cuando no lo hay.</p>
+</div>
+
+<p><strong>Mercurio Logística</strong> gestiona seis almacenes y despacha envíos con cuatro transportistas. No guarda el stock en una tabla: guarda <strong>movimientos</strong> (como un extracto bancario) y el stock se <strong>calcula</strong>.</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">logistica_almacenes (almacen_id, ciudad, capacidad_unidades)
+logistica_movimientos (movimiento_id, almacen_id, sku, fecha, tipo, cantidad)   -- entrada (+), salida (-), ajuste (-)
+logistica_envios (envio_id, almacen_id, ciudad_destino, transportista,
+                  fecha_despacho, fecha_prometida, fecha_entrega, costo, estado)</code></pre>
+<ul>
+<li><strong>Stock</strong> de un SKU en un almacén a una fecha = suma de <code>cantidad</code> de sus movimientos hasta esa fecha (inclusive).</li>
+<li><strong>Quiebre de stock</strong>: días en que el stock quedó <strong>negativo</strong> (se registraron salidas sin mercadería: un error operativo grave).</li>
+<li>Un envío es <strong>a tiempo</strong> si se entregó el día prometido o antes: <code>date(fecha_entrega) &lt;= fecha_prometida</code>.</li>
+</ul>
+<h2>Cómo funciona una empresa de logística</h2>
+<p>Mercurio tiene dos negocios entrelazados:</p>
+<ol>
+<li><strong>Almacenamiento</strong>: guarda mercadería de sus clientes en seis almacenes. Debe saber en todo momento <strong>cuánto hay de cada producto (SKU)</strong> en cada almacén, para no vender lo que no tiene ni ocupar espacio con lo que no rota.</li>
+<li><strong>Distribución</strong>: despacha envíos con transportistas tercerizados y promete una fecha de entrega. Cumplir esa promesa (y a buen costo) es lo que el cliente final percibe.</li>
+</ol>
+<p>El detalle técnico clave del caso: el <strong>stock no se guarda</strong>, se <strong>calcula</strong>. La tabla <code>logistica_movimientos</code> es un registro de cada entrada (+), salida (−) y ajuste (−), como un extracto bancario. Esto es muy común en sistemas reales (contabilidad, inventarios, billeteras), porque permite reconstruir el stock de <strong>cualquier día</strong> del pasado y auditar cada cambio.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Fórmula</th>
+<th>Por qué importa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Stock a una fecha</strong></td>
+<td><code>SUM(cantidad)</code> de los movimientos hasta esa fecha</td>
+<td>Base de todo</td>
+</tr>
+<tr>
+<td><strong>Ocupación del almacén</strong></td>
+<td>stock / capacidad</td>
+<td>¿Hace falta otro almacén? ¿Sobra espacio pagado?</td>
+</tr>
+<tr>
+<td><strong>Rotación</strong></td>
+<td>unidades que salen / stock promedio</td>
+<td>SKUs que se mueven vs. mercadería &quot;dormida&quot;</td>
+</tr>
+<tr>
+<td><strong>Quiebre de stock</strong></td>
+<td>días con stock negativo</td>
+<td>Errores operativos: se despachó lo que no había</td>
+</tr>
+<tr>
+<td><strong>Entrega a tiempo (OTD)</strong></td>
+<td>entregados a tiempo / entregados</td>
+<td>Calidad del transportista</td>
+</tr>
+<tr>
+<td><strong>Costo por envío exitoso</strong></td>
+<td>costo total / envíos entregados</td>
+<td>Un transportista barato que pierde paquetes sale caro</td>
+</tr>
+</tbody></table></div>
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿Qué tan llenos están los almacenes al final del año?&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por almacén.</li>
+<li><strong>Stock final</strong>: la suma de <strong>todos</strong> los movimientos de cada almacén (las salidas ya vienen con signo negativo).</li>
+<li><strong>Ocupación</strong>: stock / capacidad.</li>
+</ol>
+<pre><code class="language-sql">SELECT a.ciudad,
+       a.capacidad_unidades,
+       SUM(m.cantidad)                                          AS stock_final,
+       ROUND(100.0 * SUM(m.cantidad) / a.capacidad_unidades, 1) AS pct_ocupacion
+FROM logistica_movimientos m
+JOIN logistica_almacenes a ON a.almacen_id = m.almacen_id
+GROUP BY a.ciudad, a.capacidad_unidades
+ORDER BY pct_ocupacion DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>ciudad</th>
+<th>capacidad_unidades</th>
+<th>stock_final</th>
+<th>pct_ocupacion</th>
+</tr>
+</thead><tbody><tr>
+<td>Lima</td>
+<td>30000</td>
+<td>3150</td>
+<td>10.5</td>
+</tr>
+<tr>
+<td>Monterrey</td>
+<td>25000</td>
+<td>2209</td>
+<td>8.8</td>
+</tr>
+<tr>
+<td>Bogotá</td>
+<td>40000</td>
+<td>2808</td>
+<td>7.0</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura de negocio:</strong> todos los almacenes están <strong>muy vacíos</strong> al cierre del año (menos del 11 %). O se dimensionaron para picos de temporada, o la empresa está pagando espacio que no usa: una conversación concreta para el área de finanzas.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>Las salidas y ajustes ya son negativos</strong>: sumar <code>cantidad</code> directamente da el stock. Si además las restaras con un <code>CASE</code>, las contarías dos veces.</li>
+<li><strong>Stock a una fecha = acumulado hasta esa fecha inclusive</strong>: es una suma acumulada (<code>SUM(…) OVER (… ORDER BY fecha)</code>), no la suma del día.</li>
+<li><strong>Días sin movimientos</strong>: el stock existe aunque ese día no hubiera movimientos; para series diarias completas necesitas un calendario.</li>
+<li><strong>A tiempo se compara contra la fecha prometida, en fecha</strong> (<code>date(fecha_entrega) &lt;= fecha_prometida</code>): la hora de entrega no importa.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los sistemas de inventario guardan <strong>movimientos</strong>, y el stock se calcula acumulándolos. En los pipelines se guarda además una foto diaria del stock por SKU y almacén, para no recalcular años de movimientos en cada consulta.</li>
+<li>Un stock negativo en los datos casi siempre es un error de registro: una salida cargada antes que la entrada, o una entrada que nunca se registró. Detectarlos es una tarea típica de calidad de datos.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Stock calculado sin agregar los movimientos por día</strong> antes de acumular.</li>
+<li><strong>Días de quiebre que no cuentan los días sin movimientos</strong>: hay que generar la grilla de días.</li>
+<li><strong>Rotación con el stock final</strong> en vez del stock promedio del período.</li>
+<li><strong>Costo por envío promediando costos por transportista</strong> sin ponderar por la cantidad de envíos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo medirías la puntualidad de los transportistas?&quot;</div>
+
+<p>Definiría entrega a tiempo como entregada en o antes de la fecha prometida, contando los envíos vencidos y sin entregar como impuntuales, para no premiar a quien no entrega. Lo calcularía por transportista y mes sobre los envíos cuya fecha prometida ya pasó, mostraría la cantidad de envíos y la demora promedio de los atrasados, y compararía por región porque las rutas no son iguales.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-logistica">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-vuelos.html">← Caso ✈️ Cóndor Air: puntualidad, ocupación y precios</a><a href="casos-tienda-avanzado.html">Caso 🛒 Tienda Andina: preguntas de directorio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Errores y excepciones · Academia de Datos</title><meta name="description" content="Leer un traceback, try/except/else/finally, lanzar tus propios errores y validar datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-errores.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Errores y excepciones · Academia de Datos"><meta property="og:description" content="Leer un traceback, try/except/else/finally, lanzar tus propios errores y validar datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-errores.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Intermedio · 35 min</div>
+<h1>Errores y excepciones</h1><p class="resumen">Leer un traceback, try/except/else/finally, lanzar tus propios errores y validar datos.</p>
+<a class="cta" href="../index.html#/l/python-errores">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer un traceback e identificar en qué línea y por qué falló el programa</li><li>Manejar errores esperables con <code>try/except</code> sin esconder los inesperados</li><li>Reintentar operaciones que fallan por causas pasajeras</li><li>Lanzar tus propios errores con <code>raise</code> y mensajes claros</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un error en Python es como la luz de &quot;falta nafta&quot; en el auto: no significa que el auto esté roto, te avisa qué pasa y dónde. Esta lección enseña a leer esos avisos y también a prepararte para ellos: decirle al programa &quot;si falla esto, haz esto otro&quot; en lugar de dejar que se detenga.</p>
+</div>
+
+
+<h2>Los errores son información</h2>
+<p>Cuando algo sale mal, Python no &quot;se rompe&quot; sin más: <strong>lanza una excepción</strong>, un objeto que describe qué pasó, y si nadie la maneja, detiene el programa y muestra un mensaje. Al principio esos mensajes en rojo asustan; con práctica se vuelven tu mejor herramienta, porque dicen <strong>exactamente</strong> qué falló y dónde.</p>
+<p>En ingeniería de datos los errores son parte del día a día: un archivo que llega con una columna de menos, un precio escrito &quot;N/A&quot;, una API que no responde, una fecha imposible. Esta lección te enseña a <strong>leer</strong> errores, <strong>manejarlos</strong> cuando corresponde y <strong>lanzarlos</strong> tú misma cuando los datos no tienen sentido.</p>
+<h2>Leer un error (traceback)</h2>
+<pre><code class="language-python">precios = {&quot;mouse&quot;: 25}
+print(precios[&quot;teclado&quot;])</code></pre>
+<p>El mensaje se llama <strong>traceback</strong> (&quot;rastro&quot;) y tiene tres partes:</p>
+<pre><code class="language-text">Traceback (most recent call last):
+  File &quot;main.py&quot;, line 2, in &lt;module&gt;      ← DÓNDE: archivo y número de línea
+    print(precios[&quot;teclado&quot;])               ← la línea que falló
+KeyError: 'teclado'                         ← QUÉ: tipo de error + detalle</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Lee el traceback de abajo hacia arriba</div>
+
+<p>La <strong>última línea</strong> es la más importante: el tipo de error y el detalle. Después sube para ver en qué línea ocurrió. Si el error pasó dentro de una función que llamaste desde otra, verás varias líneas <code>File …</code>: la de más abajo es donde explotó, las de arriba son el camino de llamadas que llevó hasta ahí.</p>
+</div>
+
+
+<h3>Los errores más frecuentes</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Error</th>
+<th>Qué significa</th>
+<th>Ejemplo típico</th>
+<th>Cómo se arregla</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SyntaxError</code></td>
+<td>El código está mal escrito</td>
+<td>Falta <code>:</code> o un paréntesis</td>
+<td>Revisa la línea indicada (o la anterior)</td>
+</tr>
+<tr>
+<td><code>IndentationError</code></td>
+<td>Sangría incorrecta</td>
+<td>Un bloque sin indentar</td>
+<td>4 espacios consistentes</td>
+</tr>
+<tr>
+<td><code>NameError</code></td>
+<td>Variable o función inexistente</td>
+<td><code>totl</code> en vez de <code>total</code></td>
+<td>Revisa el nombre y que esté definida antes</td>
+</tr>
+<tr>
+<td><code>TypeError</code></td>
+<td>Operación con tipos incompatibles</td>
+<td><code>&quot;3&quot; + 1</code>, llamar <code>len(5)</code></td>
+<td>Convierte tipos</td>
+</tr>
+<tr>
+<td><code>ValueError</code></td>
+<td>Tipo correcto, valor inválido</td>
+<td><code>int(&quot;hola&quot;)</code>, <code>int(&quot;&quot;)</code></td>
+<td>Valida o maneja el valor</td>
+</tr>
+<tr>
+<td><code>KeyError</code></td>
+<td>Clave inexistente en un diccionario</td>
+<td><code>d[&quot;telefono&quot;]</code></td>
+<td><code>d.get(&quot;telefono&quot;)</code></td>
+</tr>
+<tr>
+<td><code>IndexError</code></td>
+<td>Índice fuera de rango</td>
+<td><code>lista[10]</code> con 3 elementos</td>
+<td>Revisa el largo</td>
+</tr>
+<tr>
+<td><code>ZeroDivisionError</code></td>
+<td>División por cero</td>
+<td><code>total / 0</code></td>
+<td>Guarda: <code>if divisor:</code></td>
+</tr>
+<tr>
+<td><code>AttributeError</code></td>
+<td>El objeto no tiene ese atributo o método</td>
+<td><code>None.upper()</code></td>
+<td>Casi siempre: una variable es <code>None</code> cuando no debía</td>
+</tr>
+<tr>
+<td><code>FileNotFoundError</code></td>
+<td>No existe el archivo</td>
+<td>Ruta mal escrita</td>
+<td>Revisa la ruta y la carpeta actual</td>
+</tr>
+</tbody></table></div>
+<h2>try / except: manejar los errores esperables</h2>
+<p>A veces <strong>sabes</strong> que algo puede fallar y tienes un plan para ese caso. Por ejemplo, al convertir textos de un archivo a números: algunos vendrán vacíos o mal escritos. En vez de que el programa entero se detenga en la fila 5.000, quieres convertir lo que se pueda y marcar lo demás.</p>
+<pre><code class="language-python">def a_numero(texto):
+    try:
+        return float(texto)            # intenta esto…
+    except ValueError:                 # …si falla con ValueError, haz esto otro
+        print(f&quot;No se pudo convertir {texto!r}&quot;)
+        return None
+
+valores = [&quot;10.5&quot;, &quot;abc&quot;, &quot;7&quot;, &quot;&quot;]
+print([a_numero(v) for v in valores])  # [10.5, None, 7.0, None]</code></pre>
+<ol>
+<li>Python ejecuta el bloque <code>try</code>.</li>
+<li>Si <strong>no</strong> hay error, se saltea el <code>except</code> y sigue.</li>
+<li>Si ocurre un <code>ValueError</code>, abandona el <code>try</code> en ese punto y ejecuta el bloque <code>except</code>.</li>
+<li>Si ocurre un error de <strong>otro</strong> tipo (por ejemplo <code>TypeError</code>), el <code>except ValueError</code> no lo atrapa y el programa se detiene igual. Eso es bueno: no esperabas ese error.</li>
+</ol>
+<h3>La estructura completa</h3>
+<pre><code class="language-python">try:
+    resultado = 10 / 0
+except ZeroDivisionError as e:      # captura un tipo específico; e es el objeto error
+    print(&quot;Error:&quot;, e)
+    resultado = None
+else:                                # solo si NO hubo error
+    print(&quot;Todo bien&quot;)
+finally:                             # SIEMPRE se ejecuta, haya error o no
+    print(&quot;Fin&quot;)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Bloque</th>
+<th>Cuándo se ejecuta</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td><code>try</code></td>
+<td>Siempre (hasta que algo falle)</td>
+<td>La operación riesgosa</td>
+</tr>
+<tr>
+<td><code>except Tipo as e</code></td>
+<td>Si ocurre ese tipo de error</td>
+<td>El plan B</td>
+</tr>
+<tr>
+<td><code>else</code></td>
+<td>Si no hubo ningún error</td>
+<td>Lo que depende de que el <code>try</code> haya salido bien</td>
+</tr>
+<tr>
+<td><code>finally</code></td>
+<td>Siempre, al final</td>
+<td>Liberar recursos: cerrar conexiones, archivos</td>
+</tr>
+</tbody></table></div>
+<p>Puedes tener varios <code>except</code> para distintos errores: <code>except (ValueError, TypeError):</code> o uno debajo del otro.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ No atrapes todo a ciegas</div>
+
+<p><code>except:</code> o <code>except Exception:</code> sin más atrapa <strong>cualquier</strong> error, incluidos los tuyos de programación (<code>NameError</code> por un nombre mal escrito). El programa &quot;funciona&quot; pero hace cualquier cosa, y nadie se entera. Captura <strong>solo</strong> los errores que esperas y sabes manejar. En un pipeline de datos, es mucho mejor que el proceso <strong>falle ruidosamente</strong> (y Airflow te avise) a que cargue datos corruptos en silencio en el reporte del directorio.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Reintentos: un uso real de try</h2>
+<p>Las conexiones de red fallan a veces por motivos pasajeros. Un patrón común es reintentar unas pocas veces antes de rendirse:</p>
+<pre><code class="language-python">import random
+
+def llamar_api():
+    if random.random() &lt; 0.6:                       # simulamos una API inestable
+        raise ConnectionError(&quot;timeout&quot;)
+    return {&quot;pedidos&quot;: 42}
+
+def con_reintentos(funcion, intentos=5):
+    for n in range(1, intentos + 1):
+        try:
+            return funcion()
+        except ConnectionError as e:
+            print(f&quot;Intento {n} falló: {e}&quot;)
+    raise RuntimeError(f&quot;Falló después de {intentos} intentos&quot;)
+
+random.seed(3)
+print(con_reintentos(llamar_api))</code></pre>
+<p>Airflow tiene esto incorporado (<code>retries=3</code> en cada tarea), pero la lógica es la misma.</p>
+<h2>Lanzar tus propios errores: raise</h2>
+<p>A veces el código no falla, pero los <strong>datos no tienen sentido</strong>: una cantidad negativa, un estado desconocido, una fecha de entrega anterior a la de compra. Python no lo sabe; tú sí. Con <code>raise</code> detienes la ejecución con un mensaje claro. Es la base de la <strong>validación de datos</strong>:</p>
+<pre><code class="language-python">def validar_pedido(p):
+    if p[&quot;cantidad&quot;] &lt;= 0:
+        raise ValueError(f&quot;Cantidad inválida en el pedido {p['id']}: {p['cantidad']}&quot;)
+    if p[&quot;estado&quot;] not in {&quot;pendiente&quot;, &quot;enviado&quot;, &quot;entregado&quot;}:
+        raise ValueError(f&quot;Estado desconocido: {p['estado']}&quot;)
+    return True
+
+try:
+    validar_pedido({&quot;id&quot;: 9, &quot;cantidad&quot;: -2, &quot;estado&quot;: &quot;enviado&quot;})
+except ValueError as e:
+    print(&quot;Pedido rechazado →&quot;, e)</code></pre>
+<p>Un buen mensaje de error dice <strong>qué</strong> está mal, <strong>dónde</strong> (el id del registro) y <strong>qué valor</strong> tenía. Quien lo lea a las 3 de la mañana te lo agradecerá.</p>
+<h3>Tus propias clases de error</h3>
+<p>Puedes definir errores con nombre propio, para distinguirlos de los de Python:</p>
+<pre><code class="language-python">class DatosInvalidos(Exception):
+    &quot;&quot;&quot;Los datos de entrada no cumplen el contrato esperado.&quot;&quot;&quot;
+
+def leer_monto(texto):
+    try:
+        return float(texto)
+    except ValueError:
+        raise DatosInvalidos(f&quot;Monto no numérico: {texto!r}&quot;)
+
+try:
+    leer_monto(&quot;doce&quot;)
+except DatosInvalidos as e:
+    print(&quot;Validación:&quot;, e)</code></pre>
+<h2>¿Fallar o seguir? La decisión de diseño</h2>
+<p>Cuando un registro está mal, hay dos estrategias, y elegir bien es parte del trabajo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Cuándo</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Fallar todo</strong> (<em>fail fast</em>)</td>
+<td>Si el error indica que algo grave cambió</td>
+<td>Falta una columna entera, el archivo está vacío, el esquema cambió</td>
+</tr>
+<tr>
+<td><strong>Apartar el registro</strong> (cuarentena) y seguir</td>
+<td>Si son errores puntuales y aceptables</td>
+<td>3 filas con monto &quot;N/A&quot; en 1 millón</td>
+</tr>
+</tbody></table></div>
+<p>Lo profesional es combinar ambas: apartar las filas malas con su motivo, y <strong>fallar</strong> si superan un umbral (&quot;más del 1 % inválidas&quot;). Lo practicarás en el módulo de casos de punta a punta.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>except:</code> sin tipo</strong> (o <code>except Exception: pass</code>): atrapa <strong>todo</strong>, incluso errores de programación, y los esconde. El pipeline &quot;funciona&quot; pero con datos incorrectos. Atrapa solo lo que esperas (<code>except ValueError:</code>).</li>
+<li><strong>Reintentar errores que no son pasajeros</strong>: un <code>401</code> (credenciales inválidas) o un error de sintaxis no se arregla reintentando. Reintenta solo errores de red o del servidor.</li>
+<li><strong>Mensajes de error inútiles</strong>: <code>raise ValueError(&quot;error&quot;)</code> no ayuda a nadie a las 3 de la mañana. Incluye el valor y el contexto: <code>raise ValueError(f&quot;monto inválido en pedido {pid}: {valor!r}&quot;)</code>.</li>
+<li><strong>Tragarse el error y seguir con un valor inventado</strong>: reemplazar un monto inválido por 0 cambia los totales sin que nadie se entere.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pipeline que se cae por una fila</div>
+
+<p>El pipeline de ventas se cayó a las 3 de la mañana. Martín te muestra el log:</p>
+<blockquote>
+<p>&quot;<code>ValueError: could not convert string to float: &#39;N/A&#39;</code>. Una sola fila con &#39;N/A&#39; en el monto tiró abajo todo el proceso y el dashboard no se actualizó. Hay que manejar esto, pero sin esconder errores de verdad.&quot;</p>
+</blockquote>
+<p>Los errores no son el enemigo: son información. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La decisión clave en un pipeline: <strong>¿fallar o seguir?</strong> Si se rechazan unas pocas filas, se registran en cuarentena y el proceso sigue. Si se rechaza el 30 %, algo cambió en el origen y el pipeline <strong>debe fallar</strong> para que alguien lo mire antes de publicar datos malos.</li>
+<li>Los reintentos con espera exponencial (1, 2, 4, 8 segundos) son estándar para llamadas a APIs y bases. Librerías como <code>tenacity</code> lo hacen con un decorador, y Airflow lo ofrece con <code>retries</code>.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Un traceback dice qué error, en qué línea y por qué: léelo de abajo hacia arriba.</li>
+<li><code>try</code>/<code>except Tipo</code> maneja errores esperables; <code>else</code> si salió bien; <code>finally</code> siempre.</li>
+<li>Captura solo los errores que sabes manejar; nunca <code>except:</code> a ciegas.</li>
+<li><code>raise ValueError(&quot;mensaje claro&quot;)</code> para datos que no tienen sentido; puedes crear tus propias excepciones.</li>
+<li>En pipelines: apartar registros inválidos con su motivo, y fallar si son demasiados.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-errores">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-comprensiones.html">← Comprensiones y funciones de orden superior</a><a href="python-archivos-modulos.html">Módulos, archivos, CSV, JSON y fechas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

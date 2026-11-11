@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones de ventana en PySpark · Academia de Datos</title><meta name="description" content="Window.partitionBy().orderBy(), rankings, lag/lead, acumulados y marcos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-ventanas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones de ventana en PySpark · Academia de Datos"><meta property="og:description" content="Window.partitionBy().orderBy(), rankings, lag/lead, acumulados y marcos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-ventanas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Avanzado · 45 min</div>
+<h1>Funciones de ventana en PySpark</h1><p class="resumen">Window.partitionBy().orderBy(), rankings, lag/lead, acumulados y marcos.</p>
+<a class="cta" href="../index.html#/l/pyspark-ventanas">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una función de ventana es como mirar por una ventanita que se mueve fila por fila: en cada fila ves un grupo de filas cercanas (por ejemplo, los pedidos del mismo cliente) y calculas algo con ellas, como &quot;este es su tercer pedido&quot; o &quot;cuánto gastó el mes anterior&quot;, sin juntar las filas en una sola.</p>
+</div>
+
+
+<h2>Ventanas: SQL avanzado, ahora en PySpark</h2>
+<p>Las funciones de ventana te permitieron, en SQL, numerar filas dentro de un grupo, calcular acumulados y comparar con la fila anterior <strong>sin colapsar</strong> las filas. Todo eso funciona igual en PySpark. La diferencia es que la &quot;ventana&quot; (<code>OVER (PARTITION BY … ORDER BY …)</code>) se define como un <strong>objeto</strong> de la clase <code>Window</code>, que se guarda en una variable y se reutiliza:</p>
+<pre data-norun><code class="language-python">from pyspark.sql.window import Window
+
+w = Window.partitionBy(&quot;marca&quot;).orderBy(F.col(&quot;precio&quot;).desc())   # la definición de la ventana
+F.row_number().over(w)                                           # una función aplicada SOBRE esa ventana</code></pre>
+<p>Se lee: &quot;numera las filas <strong>sobre</strong> la ventana <code>w</code>: dentro de cada marca, del precio más alto al más bajo&quot;.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>SQL</th>
+<th>PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td><code>OVER (PARTITION BY a ORDER BY b DESC)</code></td>
+<td><code>Window.partitionBy(&quot;a&quot;).orderBy(F.col(&quot;b&quot;).desc())</code></td>
+</tr>
+<tr>
+<td><code>OVER ()</code></td>
+<td><code>Window.partitionBy()</code> (sin argumentos: toda la tabla)</td>
+</tr>
+<tr>
+<td><code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code></td>
+<td><code>.rowsBetween(-2, Window.currentRow)</code></td>
+</tr>
+<tr>
+<td><code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code></td>
+<td><code>.rowsBetween(Window.unboundedPreceding, Window.currentRow)</code></td>
+</tr>
+<tr>
+<td><code>ROW_NUMBER()</code>, <code>RANK()</code>, <code>DENSE_RANK()</code></td>
+<td><code>F.row_number()</code>, <code>F.rank()</code>, <code>F.dense_rank()</code></td>
+</tr>
+<tr>
+<td><code>LAG(x, 1)</code>, <code>LEAD(x, 1)</code></td>
+<td><code>F.lag(&quot;x&quot;, 1)</code>, <code>F.lead(&quot;x&quot;, 1)</code></td>
+</tr>
+<tr>
+<td><code>NTILE(4)</code></td>
+<td><code>F.ntile(4)</code></td>
+</tr>
+<tr>
+<td><code>SUM(x) OVER (…)</code></td>
+<td><code>F.sum(&quot;x&quot;).over(w)</code></td>
+</tr>
+</tbody></table></div>
+<h2>Rankings y top-N por grupo</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.partitionBy(&quot;marca&quot;).orderBy(F.col(&quot;precio&quot;).desc())
+
+(spark.table(&quot;productos&quot;)
+   .withColumn(&quot;rn&quot;, F.row_number().over(w))
+   .withColumn(&quot;rank&quot;, F.rank().over(w))
+   .withColumn(&quot;promedio_marca&quot;, F.round(F.avg(&quot;precio&quot;).over(Window.partitionBy(&quot;marca&quot;)), 2))
+   .filter(F.col(&quot;rn&quot;) &lt;= 2)
+   .select(&quot;marca&quot;, &quot;nombre&quot;, &quot;precio&quot;, &quot;rn&quot;, &quot;rank&quot;, &quot;promedio_marca&quot;)
+   .orderBy(&quot;marca&quot;, &quot;rn&quot;)
+   .show(10, truncate=False))</code></pre>
+<p>Paso a paso:</p>
+<ol>
+<li><code>withColumn(&quot;rn&quot;, F.row_number().over(w))</code> agrega a <strong>cada</strong> producto su puesto dentro de su marca (1 = el más caro).</li>
+<li><code>F.avg(&quot;precio&quot;).over(Window.partitionBy(&quot;marca&quot;))</code> agrega el promedio de su marca, sin agrupar: cada fila sigue siendo un producto.</li>
+<li><code>filter(F.col(&quot;rn&quot;) &lt;= 2)</code> se queda con los dos más caros de cada marca.</li>
+</ol>
+<p>Fíjate en una diferencia con SQL: como en PySpark cada paso es un método, <strong>sí</strong> puedes filtrar por la ventana directamente después del <code>withColumn</code>. No hace falta la CTE intermedia (ni <code>QUALIFY</code>): el DataFrame de la línea anterior ya tiene la columna <code>rn</code> calculada.</p>
+<h3>Deduplicar: el uso número uno en ingeniería de datos</h3>
+<p>&quot;Quedarse con la versión más reciente de cada registro&quot; es probablemente la ventana que más vas a escribir en la capa silver:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.partitionBy(&quot;cliente_id&quot;).orderBy(F.col(&quot;fecha_pedido&quot;).desc(), F.col(&quot;pedido_id&quot;).desc())
+ultimo_pedido = (spark.table(&quot;pedidos&quot;)
+                   .withColumn(&quot;rn&quot;, F.row_number().over(w))
+                   .filter(&quot;rn = 1&quot;)
+                   .drop(&quot;rn&quot;))
+print(ultimo_pedido.count())   # una fila por cliente con pedidos: 1453</code></pre>
+<p>El <code>pedido_id</code> en el <code>orderBy</code> <strong>desempata</strong>: si un cliente tiene dos pedidos el mismo día, siempre elige el mismo. Sin desempate, <code>row_number</code> puede elegir distinto en cada ejecución (el pipeline deja de ser determinista).</p>
+<div class="recorrido"></div>
+
+
+<h2>lag y lead: comparar con la fila vecina</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.partitionBy(&quot;cliente_id&quot;).orderBy(&quot;fecha_pedido&quot;)
+(spark.table(&quot;pedidos&quot;)
+   .filter(F.col(&quot;cliente_id&quot;) == 3)
+   .withColumn(&quot;pedido_anterior&quot;, F.lag(&quot;fecha_pedido&quot;, 1).over(w))
+   .withColumn(&quot;dias_entre_compras&quot;, F.datediff(&quot;fecha_pedido&quot;, &quot;pedido_anterior&quot;))
+   .select(&quot;cliente_id&quot;, &quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;pedido_anterior&quot;, &quot;dias_entre_compras&quot;)
+   .show())</code></pre>
+<p><code>F.lag(&quot;fecha_pedido&quot;, 1)</code> trae la fecha de la fila anterior <strong>del mismo cliente</strong> (por el <code>partitionBy</code>). La primera compra no tiene anterior: <code>null</code>. Es la base de la frecuencia de compra, las sesiones web y las reglas de fraude.</p>
+<h2>Acumulados y promedio móvil</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+diario = (spark.table(&quot;pedidos&quot;)
+            .filter(F.col(&quot;fecha_pedido&quot;) &gt;= &quot;2024-12-01&quot;)
+            .groupBy(&quot;fecha_pedido&quot;).agg(F.count(&quot;*&quot;).alias(&quot;pedidos&quot;)))
+
+w_acum = Window.orderBy(&quot;fecha_pedido&quot;).rowsBetween(Window.unboundedPreceding, Window.currentRow)
+w_movil = Window.orderBy(&quot;fecha_pedido&quot;).rowsBetween(-6, Window.currentRow)
+
+(diario
+   .withColumn(&quot;acumulado&quot;, F.sum(&quot;pedidos&quot;).over(w_acum))
+   .withColumn(&quot;movil_7d&quot;, F.round(F.avg(&quot;pedidos&quot;).over(w_movil), 1))
+   .orderBy(&quot;fecha_pedido&quot;)
+   .show(10))</code></pre>
+<ul>
+<li><code>rowsBetween(inicio, fin)</code> define el marco con números relativos a la fila actual: <code>-6</code> son &quot;6 filas antes&quot;, <code>0</code> (o <code>Window.currentRow</code>) es la actual, <code>Window.unboundedPreceding</code> es &quot;desde el principio&quot;.</li>
+<li><code>w_movil</code> = la fila actual y las 6 anteriores → promedio de 7 días.</li>
+<li>Primero se agrega por día (<code>groupBy</code>) y <strong>después</strong> se aplica la ventana: el mismo patrón &quot;agregar, luego ventana&quot; que en SQL.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Ventanas sin partitionBy</div>
+
+<p><code>Window.orderBy(...)</code> <strong>sin</strong> <code>partitionBy</code> obliga a Spark a llevar <strong>todas las filas a una sola partición</strong> (una sola máquina, un solo núcleo) para poder ordenarlas y recorrerlas en secuencia. Con millones de filas, se pierde todo el paralelismo y el job puede quedarse sin memoria (Spark avisa con el warning <em>No Partition Defined for Window operation</em>). Úsalo solo con datos ya agregados y chicos, como la serie diaria de arriba (31 filas).</p>
+</div>
+
+
+<div class="callout callout-experto"><div class="callout-title">🚀 El costo de las ventanas</div>
+
+<p>Una ventana con <code>partitionBy</code> necesita que todas las filas de cada grupo estén juntas: Spark hace un <strong>shuffle</strong> por la clave de partición y ordena dentro de cada grupo. Si un grupo es gigantesco (un &quot;cliente&quot; que en realidad es el usuario anónimo con 50 millones de eventos), esa partición tarda muchísimo más que las demás: es el problema de <strong>skew</strong>. Revisa siempre la distribución de tus claves.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Define la ventana con <code>Window.partitionBy(…).orderBy(…)</code> y aplícala con <code>F.funcion(…).over(w)</code>.</li>
+<li><code>row_number</code>/<code>rank</code>/<code>dense_rank</code> para rankings; filtra directamente después del <code>withColumn</code>.</li>
+<li>Deduplicar: <code>row_number</code> ordenado por fecha descendente (con desempate) y <code>rn = 1</code>.</li>
+<li><code>lag</code>/<code>lead</code> para comparar con filas vecinas; <code>rowsBetween</code> para acumulados y promedios móviles.</li>
+<li>Evita ventanas sin <code>partitionBy</code> sobre datos grandes.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pyspark-ventanas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-leer-escribir.html">← Leer y escribir datos</a><a href="pyspark-complejos.html">Arrays, structs, maps y JSON →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

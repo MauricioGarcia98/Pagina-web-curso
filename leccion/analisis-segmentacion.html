@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segmentar - histogramas, Pareto y RFM · Academia de Datos</title><meta name="description" content="Cómo partir clientes y productos en grupos que sirvan para decidir - histogramas por rangos, la regla 80/20 con clasificación ABC, cuartiles con NTILE y el modelo RFM (recencia, frecuencia y monto) que usan los equipos de CRM."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-segmentacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Segmentar - histogramas, Pareto y RFM · Academia de Datos"><meta property="og:description" content="Cómo partir clientes y productos en grupos que sirvan para decidir - histogramas por rangos, la regla 80/20 con clasificación ABC, cuartiles con NTILE y el modelo RFM (recencia, frecuencia y monto) que usan los equipos de CRM."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-segmentacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Intermedio · 50 min</div>
+<h1>Segmentar - histogramas, Pareto y RFM</h1><p class="resumen">Cómo partir clientes y productos en grupos que sirvan para decidir - histogramas por rangos, la regla 80/20 con clasificación ABC, cuartiles con NTILE y el modelo RFM (recencia, frecuencia y monto) que usan los equipos de CRM.</p>
+<a class="cta" href="../index.html#/l/analisis-segmentacion">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Armar histogramas con rangos de ancho fijo</li><li>Calcular el aporte acumulado y clasificar productos en A, B y C</li><li>Repartir clientes en cuartiles con NTILE</li><li>Construir un puntaje RFM y nombrar segmentos accionables</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Segmentar es como separar a los alumnos de una escuela por grado: no tiene sentido darles a todos la misma clase. Con los clientes pasa igual: los que compran mucho, los que compraron una vez y los que dejaron de venir necesitan cosas distintas. Agruparlos bien es el primer paso para entenderlos.</p>
+</div>
+
+
+<h2>Histogramas: cuántos hay en cada rango</h2>
+<p>Un histograma cuenta cuántos casos caen en cada rango de un valor. En SQL, el rango se calcula dividiendo y truncando.</p>
+<pre><code class="language-sql">-- ¿Cuántos clientes hicieron 1, 2, 3… pedidos?
+SELECT pedidos, COUNT(*) AS clientes
+FROM (SELECT cliente_id, COUNT(*) AS pedidos FROM pedidos GROUP BY cliente_id) AS t
+GROUP BY pedidos
+ORDER BY pedidos;
+
+-- Rangos de 100 en el precio de los productos: 0-99, 100-199…
+SELECT CAST(precio / 100 AS INTEGER) * 100 AS desde, COUNT(*) AS productos
+FROM productos
+GROUP BY desde
+ORDER BY desde;</code></pre>
+<h2>Pareto y la clasificación ABC</h2>
+<p>En casi todos los negocios, pocos productos (o clientes) explican la mayor parte de las ventas. La <strong>clasificación ABC</strong> ordena de mayor a menor, acumula el porcentaje y corta: <strong>A</strong> hasta el 80 %, <strong>B</strong> hasta el 95 %, <strong>C</strong> el resto.</p>
+<pre><code class="language-sql">WITH ventas AS (
+  SELECT producto_id, SUM(cantidad * precio_unitario * (1 - descuento)) AS ventas
+  FROM detalle_pedidos GROUP BY producto_id
+), acumulado AS (
+  SELECT producto_id, ventas,
+         SUM(ventas) OVER (ORDER BY ventas DESC, producto_id) / SUM(ventas) OVER () AS pct_acum
+  FROM ventas
+)
+SELECT CASE WHEN pct_acum &lt;= 0.80 THEN 'A' WHEN pct_acum &lt;= 0.95 THEN 'B' ELSE 'C' END AS clase,
+       COUNT(*) AS productos
+FROM acumulado
+GROUP BY clase;</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>RFM: recencia, frecuencia y monto</h2>
+<p>Para cada cliente:</p>
+<ul>
+<li><strong>R</strong>ecencia: días desde su última compra (menos es mejor).</li>
+<li><strong>F</strong>recuencia: cantidad de pedidos.</li>
+<li><strong>M</strong>onto: cuánto gastó.</li>
+</ul>
+<p>Cada dimensión se reparte en grupos con <code>NTILE</code> y se combinan en un puntaje. Los segmentos clásicos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Segmento</th>
+<th>Regla típica</th>
+<th>Acción</th>
+</tr>
+</thead><tbody><tr>
+<td>Campeones</td>
+<td>R alto, F alto, M alto</td>
+<td>Programa de fidelidad, lanzamientos</td>
+</tr>
+<tr>
+<td>En riesgo</td>
+<td>R bajo, F alto</td>
+<td>Campaña de reactivación</td>
+</tr>
+<tr>
+<td>Nuevos</td>
+<td>R alto, F = 1</td>
+<td>Bienvenida y segunda compra</td>
+</tr>
+<tr>
+<td>Perdidos</td>
+<td>R bajo, F bajo</td>
+<td>Solo si la campaña es barata</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">-- base RFM al 1 de enero de 2025
+SELECT cliente_id,
+       CAST(julianday('2025-01-01') - julianday(MAX(fecha_pedido)) AS INTEGER) AS recencia,
+       COUNT(*) AS frecuencia
+FROM pedidos
+WHERE estado &lt;&gt; 'cancelado'
+GROUP BY cliente_id
+LIMIT 5;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 NTILE y el orden</div>
+
+<p><code>NTILE(4) OVER (ORDER BY recencia DESC)</code> da 4 a los de recencia más baja (los que compraron hace poco). Elige el orden para que <strong>4 siempre sea “lo mejor”</strong>: así el puntaje se lee fácil.</p>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo de CRM tiene presupuesto para una sola campaña. Pregunta: “¿a quién le hablamos?”. Mandarle a todos lo mismo es caro y poco efectivo. Segmentar es agrupar clientes que se parecen para tratarlos distinto: a los que compran mucho y hace poco, a los que antes compraban y dejaron, a los nuevos.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-segmentacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="analisis-kpis-sin-trampas.html">← KPIs sin trampas - numeradores, denominadores y promedios</a><a href="analisis-cohortes-retencion.html">Cohortes, retención y churn →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

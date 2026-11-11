@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestación, gobierno y arquitectura de referencia · Academia de Datos</title><meta name="description" content="Step Functions, MWAA (Airflow administrado) y EventBridge; Lake Formation para permisos finos; infraestructura como código; y una arquitectura completa de punta a punta para el caso del banco."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-orquestacion-gobierno.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Orquestación, gobierno y arquitectura de referencia · Academia de Datos"><meta property="og:description" content="Step Functions, MWAA (Airflow administrado) y EventBridge; Lake Formation para permisos finos; infraestructura como código; y una arquitectura completa de punta a punta para el caso del banco."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-orquestacion-gobierno.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#aws">🟧 AWS para Data Engineers</a> · Experto · 55 min</div>
+<h1>Orquestación, gobierno y arquitectura de referencia</h1><p class="resumen">Step Functions, MWAA (Airflow administrado) y EventBridge; Lake Formation para permisos finos; infraestructura como código; y una arquitectura completa de punta a punta para el caso del banco.</p>
+<a class="cta" href="../index.html#/l/aws-orquestacion-gobierno">▶ Abrir la lección interactiva (8 ejercicios)</a>
+
+<h2>Orquestar: quién decide qué corre y cuándo</h2>
+<p>Un pipeline real tiene varios pasos que dependen unos de otros: esperar el archivo → catalogarlo → transformarlo → validarlo → publicar la tabla gold → avisar. En AWS hay tres herramientas para coordinarlos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Qué es</th>
+<th>Ideal para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>EventBridge</strong></td>
+<td>Reglas que reaccionan a eventos o a horarios (cron)</td>
+<td>&quot;Cada día a las 3:00&quot; o &quot;cuando llegue un archivo&quot;, disparar algo</td>
+</tr>
+<tr>
+<td><strong>Step Functions</strong></td>
+<td>Máquinas de estado en JSON, sin servidor, integradas con casi todos los servicios de AWS</td>
+<td>Flujos 100 % AWS (Glue, Athena, Lambda, EMR), con reintentos y ramas</td>
+</tr>
+<tr>
+<td><strong>MWAA</strong></td>
+<td>Apache Airflow administrado</td>
+<td>Equipos que ya usan Airflow, muchos DAGs, dependencias fuera de AWS (dbt, Databricks, APIs)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El despertador, el guion y el director</div>
+
+<p><strong>EventBridge</strong> es el despertador: suena a una hora o cuando pasa algo. <strong>Step Functions</strong> es un guion detallado que AWS sigue paso a paso. <strong>Airflow</strong> es un director de orquesta con muchos músicos (de AWS y de afuera) y una partitura en Python.</p>
+</div>
+
+
+<h2>Step Functions: el flujo como una máquina de estados</h2>
+<p>Se define en <strong>ASL</strong> (<em>Amazon States Language</em>), un JSON con estados. Cada estado <code>Task</code> llama a un servicio; <code>.sync</code> significa &quot;espera a que termine&quot;.</p>
+<pre><code class="language-json">{
+  &quot;Comment&quot;: &quot;Pipeline diario del banco&quot;,
+  &quot;StartAt&quot;: &quot;SilverTransacciones&quot;,
+  &quot;States&quot;: {
+    &quot;SilverTransacciones&quot;: {
+      &quot;Type&quot;: &quot;Task&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:states:::glue:startJobRun.sync&quot;,
+      &quot;Parameters&quot;: { &quot;JobName&quot;: &quot;banco-silver&quot;, &quot;Arguments&quot;: { &quot;--fecha.$&quot;: &quot;$.fecha&quot; } },
+      &quot;Retry&quot;: [ { &quot;ErrorEquals&quot;: [&quot;States.ALL&quot;], &quot;IntervalSeconds&quot;: 60, &quot;MaxAttempts&quot;: 2, &quot;BackoffRate&quot;: 2 } ],
+      &quot;Catch&quot;: [ { &quot;ErrorEquals&quot;: [&quot;States.ALL&quot;], &quot;Next&quot;: &quot;AvisarFalla&quot; } ],
+      &quot;Next&quot;: &quot;GoldFraude&quot;
+    },
+    &quot;GoldFraude&quot;: {
+      &quot;Type&quot;: &quot;Task&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:states:::athena:startQueryExecution.sync&quot;,
+      &quot;Parameters&quot;: { &quot;QueryString&quot;: &quot;INSERT INTO gold.alertas SELECT ...&quot;, &quot;WorkGroup&quot;: &quot;primary&quot; },
+      &quot;Catch&quot;: [ { &quot;ErrorEquals&quot;: [&quot;States.ALL&quot;], &quot;Next&quot;: &quot;AvisarFalla&quot; } ],
+      &quot;End&quot;: true
+    },
+    &quot;AvisarFalla&quot;: {
+      &quot;Type&quot;: &quot;Task&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:states:::sns:publish&quot;,
+      &quot;Parameters&quot;: { &quot;TopicArn&quot;: &quot;arn:aws:sns:us-east-1:123456789012:alertas-datos&quot;, &quot;Message&quot;: &quot;Falló el pipeline del banco&quot; },
+      &quot;Next&quot;: &quot;Fallo&quot;
+    },
+    &quot;Fallo&quot;: { &quot;Type&quot;: &quot;Fail&quot; }
+  }
+}</code></pre>
+<ul>
+<li><strong>Retry</strong>: reintenta ante errores transitorios, con espera creciente (<em>backoff</em>).</li>
+<li><strong>Catch</strong>: si se agotan los reintentos, va a otro estado (avisar) en lugar de morir en silencio.</li>
+<li>Otros estados útiles: <code>Choice</code> (if), <code>Parallel</code> (ramas simultáneas), <code>Map</code> (un paso por cada elemento de una lista), <code>Wait</code>.</li>
+</ul>
+<pre data-norun><code class="language-bash">aws stepfunctions create-state-machine --name pipeline-banco \
+  --definition file://pipeline-banco.json \
+  --role-arn arn:aws:iam::123456789012:role/StepFunctionsDatos
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:123456789012:stateMachine:pipeline-banco \
+  --input '{&quot;fecha&quot;: &quot;2024-12-31&quot;}'</code></pre>
+<div class="recorrido"></div>
+
+
+<h3>EventBridge: disparar con horario</h3>
+<pre data-norun><code class="language-bash">aws events put-rule --name diario-banco --schedule-expression &quot;cron(0 3 * * ? *)&quot;     # 03:00 UTC todos los días
+aws events put-targets --rule diario-banco \
+  --targets 'Id=1,Arn=arn:aws:states:us-east-1:123456789012:stateMachine:pipeline-banco,RoleArn=arn:aws:iam::123456789012:role/EventBridgeDatos'
+aws events list-rules --query &quot;Rules[].{Nombre:Name, Horario:ScheduleExpression}&quot; --output table</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El cron de EventBridge tiene 6 campos</div>
+
+<p><code>cron(minutos horas día-del-mes mes día-de-la-semana año)</code>, y uno de los dos &quot;día&quot; debe ser <code>?</code>. Además, el horario es <strong>UTC</strong>: las 3:00 UTC son las 0:00 en Buenos Aires o São Paulo.</p>
+</div>
+
+
+<h2>MWAA: Airflow en AWS</h2>
+<p>MWAA te da Airflow sin administrar servidores: subes tus DAGs a un bucket de S3 (<code>s3://…/dags/</code>) y aparecen en la interfaz. Al crear el entorno eliges la versión de Airflow; MWAA ya ofrece la línea 3 (3.0, 3.2 y 3.3), así que los DAGs se escriben con la sintaxis de Airflow 3 (<code>from airflow.sdk import ...</code>) que viste en el módulo de Airflow. Las dependencias de Python se declaran en un <code>requirements.txt</code> que debe incluir una línea <code>--constraint</code> con el archivo de restricciones de esa versión. El proveedor <code>apache-airflow-providers-amazon</code> trae operadores para cada servicio:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador / sensor</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>S3KeySensor</code></td>
+<td>Espera a que exista un archivo en S3</td>
+</tr>
+<tr>
+<td><code>GlueCrawlerOperator</code> / <code>GlueJobOperator</code></td>
+<td>Ejecuta un crawler o un job de Glue y espera</td>
+</tr>
+<tr>
+<td><code>AthenaOperator</code></td>
+<td>Lanza una consulta de Athena</td>
+</tr>
+<tr>
+<td><code>EmrServerlessStartJobOperator</code></td>
+<td>Ejecuta Spark en EMR Serverless</td>
+</tr>
+<tr>
+<td><code>RedshiftDataOperator</code></td>
+<td>SQL en Redshift vía Data API</td>
+</tr>
+<tr>
+<td><code>LambdaInvokeFunctionOperator</code></td>
+<td>Invoca una Lambda</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-bash">aws s3 cp dags/pipeline_banco.py s3://mwaa-datos-dev/dags/
+aws mwaa list-environments</code></pre>
+<div class="exercise-slot"></div>
+
+
+<h2>Gobierno: Lake Formation y permisos finos</h2>
+<p>Con IAM das permisos sobre <strong>rutas de S3</strong>. Pero los analistas piensan en <strong>tablas y columnas</strong>: &quot;Marketing puede ver <code>clientes</code> pero no la columna <code>email</code>&quot;. Para eso está <strong>AWS Lake Formation</strong>: permisos tipo base de datos (<code>SELECT</code>, <code>DESCRIBE</code>, <code>ALTER</code>) sobre bases, tablas, <strong>columnas</strong> y <strong>filas</strong> del Glue Data Catalog, que respetan Athena, Redshift Spectrum, Glue y EMR.</p>
+<pre data-norun><code class="language-bash">aws lakeformation grant-permissions \
+  --principal DataLakePrincipalIdentifier=arn:aws:iam::123456789012:role/Analistas \
+  --resource '{&quot;TableWithColumns&quot;: {&quot;DatabaseName&quot;: &quot;lake_silver&quot;, &quot;Name&quot;: &quot;clientes&quot;, &quot;ColumnNames&quot;: [&quot;cliente_id&quot;, &quot;pais&quot;, &quot;segmento&quot;]}}' \
+  --permissions SELECT
+aws lakeformation list-permissions</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica de gobierno</th>
+<th>Cómo en AWS</th>
+</tr>
+</thead><tbody><tr>
+<td>Permisos por tabla/columna/fila</td>
+<td>Lake Formation (y <em>LF-Tags</em> para gobernar por etiquetas: <code>sensibilidad=alta</code>)</td>
+</tr>
+<tr>
+<td>Datos personales (PII)</td>
+<td>Detectarlos con Macie; enmascarar o separar columnas sensibles</td>
+</tr>
+<tr>
+<td>Auditoría: quién hizo qué</td>
+<td>CloudTrail</td>
+</tr>
+<tr>
+<td>Linaje y catálogo de negocio</td>
+<td>DataZone / SageMaker Catalog, OpenLineage desde Airflow o dbt</td>
+</tr>
+<tr>
+<td>Calidad de datos</td>
+<td>Glue Data Quality, tests de dbt, Great Expectations</td>
+</tr>
+<tr>
+<td>Costos</td>
+<td>Tags por equipo, AWS Budgets, workgroups de Athena</td>
+</tr>
+</tbody></table></div>
+<h2>Infraestructura como código</h2>
+<p>Nada de crear recursos a mano en producción: todo va en código versionado en Git y se despliega con CI/CD.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Lenguaje</th>
+<th>Comentario</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Terraform</strong></td>
+<td>HCL</td>
+<td>La más usada y multi-nube (AWS, Azure, GCP, Databricks)</td>
+</tr>
+<tr>
+<td><strong>CloudFormation</strong></td>
+<td>YAML/JSON</td>
+<td>La nativa de AWS</td>
+</tr>
+<tr>
+<td><strong>CDK</strong></td>
+<td>Python, TypeScript…</td>
+<td>Genera CloudFormation desde código</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-hcl"># main.tf (Terraform)
+resource &quot;aws_s3_bucket&quot; &quot;lake&quot; {
+  bucket = &quot;lake-banco-${var.entorno}&quot;
+  tags   = { proyecto = &quot;banco&quot;, entorno = var.entorno }
+}
+
+resource &quot;aws_glue_catalog_database&quot; &quot;silver&quot; {
+  name = &quot;lake_silver&quot;
+}</code></pre>
+<pre data-norun><code class="language-bash">terraform init &amp;&amp; terraform plan -var entorno=dev &amp;&amp; terraform apply -var entorno=dev
+aws cloudformation deploy --template-file lake.yaml --stack-name lake-banco-dev --parameter-overrides Entorno=dev</code></pre>
+<h2>Arquitectura de referencia: el banco en AWS</h2>
+<pre><code class="language-text">         ┌─────────────── tiempo real ───────────────┐
+ app ──► Kinesis ──► Lambda (regla de ráfaga) ──► SNS alerta al analista de fraude
+             └────► Firehose ──► s3://lake-banco/bronze/transacciones/fecha=…/ (Parquet)
+ core bancario (Postgres) ──► DMS (CDC) ──► s3://lake-banco/bronze/cuentas, prestamos, cuotas
+                                   │
+               EventBridge 03:00 ─► Step Functions / MWAA
+                                   ├─ Glue job: bronze → silver (Iceberg, dedup, tipos)
+                                   ├─ Glue Data Quality: saldos no negativos, montos &gt; 0
+                                   ├─ dbt (dbt-athena): marts de mora, fraude y clientes
+                                   └─ Redshift Serverless: tablas gold para los dashboards
+ gobierno: Lake Formation (columnas PII ocultas), CloudTrail, Budgets · IaC: Terraform + GitHub Actions</code></pre>
+<div class="callout callout-experto"><div class="callout-title">🚀 Cómo contar esto en una entrevista</div>
+
+<p>Recorre la arquitectura <strong>de izquierda a derecha</strong> y justifica cada decisión con un requisito: &quot;Kinesis porque la alerta de fraude debe salir en segundos; Iceberg en silver porque las cuentas cambian y necesito <code>MERGE</code>; Redshift solo para la capa gold porque los dashboards consultan cientos de veces por día; Lake Formation porque riesgo puede ver montos pero no datos personales&quot;. Después menciona <strong>fallas</strong>: reintentos, idempotencia, alertas y cómo reprocesar un día.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/aws-orquestacion-gobierno">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="aws-streaming-serverless.html">← Streaming y eventos, Kinesis, Firehose y Lambda</a><a href="gcp-gcp-para-datos.html">Google Cloud para data engineers en 25 minutos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

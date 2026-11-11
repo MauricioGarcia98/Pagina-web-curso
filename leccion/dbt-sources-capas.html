@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sources, seeds y las capas del proyecto · Academia de Datos</title><meta name="description" content="Declarar fuentes con source(), freshness, seeds y cómo organizar staging, intermediate y marts."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-sources-capas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Sources, seeds y las capas del proyecto · Academia de Datos"><meta property="og:description" content="Declarar fuentes con source(), freshness, seeds y cómo organizar staging, intermediate y marts."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-sources-capas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Intermedio · 45 min</div>
+<h1>Sources, seeds y las capas del proyecto</h1><p class="resumen">Declarar fuentes con source(), freshness, seeds y cómo organizar staging, intermediate y marts.</p>
+<a class="cta" href="../index.html#/l/dbt-sources-capas">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>Un proyecto dbt real tiene decenas o cientos de modelos. Si cada uno lee las tablas crudas como quiere, el proyecto se vuelve inmanejable: cuando la fuente cambia una columna, hay que buscar y corregir 30 archivos. Esta lección explica las tres piezas que ponen orden: <strong>sources</strong> (de dónde vienen los datos), <strong>seeds</strong> (pequeñas tablas de referencia que tú mantienes) y las <strong>capas</strong> (staging, intermediate y marts).</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un proyecto de dbt se ordena como un supermercado: los productos llegan por la puerta de atrás (las <strong>sources</strong>), se acomodan en el depósito (<strong>staging</strong>), se arman combos (<strong>intermediate</strong>) y se ponen en la góndola listos para llevar (<strong>marts</strong>). Cada capa tiene una tarea y nadie toma productos del depósito para venderlos directo.</p>
+</div>
+
+
+<h2>source(): el punto de entrada</h2>
+<p>dbt <strong>no carga datos</strong>: solo transforma lo que ya está en el warehouse. Las tablas crudas las dejó otra herramienta (Fivetran, Airbyte, Data Factory, Auto Loader o un script de Python). A esas tablas que dbt no creó se las llama <strong>sources</strong>, y se declaran en un archivo YAML:</p>
+<pre data-norun><code class="language-yaml"># models/staging/_sources.yml
+version: 2
+sources:
+  - name: tienda              # nombre lógico que usarás en source('tienda', ...)
+    database: prod            # en Databricks: el catálogo
+    schema: bronze            # dónde están las tablas crudas
+    tables:
+      - name: pedidos
+        loaded_at_field: _fecha_ingesta
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+      - name: clientes
+      - name: detalle_pedidos</code></pre>
+<p>Después, en los modelos, en vez de escribir el nombre real de la tabla usas:</p>
+<pre data-norun><code class="language-sql">select * from {{ source('tienda', 'pedidos') }}
+-- dbt lo compila como:  select * from prod.bronze.pedidos</code></pre>
+<p>¿Por qué no escribir <code>prod.bronze.pedidos</code> directamente? Por cuatro razones:</p>
+<ol>
+<li><strong>Un solo lugar para cambiar</strong>: si mañana las tablas pasan a <code>prod.raw</code>, cambias una línea del YAML y no 30 modelos.</li>
+<li><strong>Linaje completo</strong>: en la documentación de dbt (<code>dbt docs</code>), el grafo empieza en las fuentes. Ves qué dashboards dependen de <code>bronze.pedidos</code>.</li>
+<li><strong>Tests sobre la fuente</strong>: puedes poner <code>unique</code> o <code>not_null</code> a las columnas de la fuente y detectar datos malos <strong>antes</strong> de transformarlos.</li>
+<li><strong>Frescura</strong>: <code>dbt source freshness</code> mira la columna <code>loaded_at_field</code> y responde &quot;¿llegaron datos nuevos en las últimas X horas?&quot;. Con la configuración de arriba avisa (warn) si los últimos datos tienen más de 12 horas y falla (error) si tienen más de 24. Así te enteras de que la ingesta se cayó <strong>antes</strong> de publicar un dashboard con datos de hace tres días.</li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Qué significa &quot;sin frescura&quot;?</div>
+
+<p>Si una fuente no tiene <code>freshness</code>, dbt no la revisa. Pónsela a las tablas que se cargan seguido (pedidos, eventos) y no a las que casi no cambian (países).</p>
+</div>
+
+
+<h2>Las tres capas</h2>
+<p>La convención que usa casi toda la comunidad dbt organiza los modelos en tres carpetas, cada una con una responsabilidad:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Materialización típica</th>
+<th>Qué hace</th>
+<th>Qué <strong>no</strong> hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>staging</strong></td>
+<td>view</td>
+<td>Limpieza 1 a 1 de cada tabla de origen: renombrar, convertir tipos, limpiar textos</td>
+<td>Joins, agregaciones, lógica de negocio</td>
+<td><code>stg_tienda__pedidos</code></td>
+</tr>
+<tr>
+<td><strong>intermediate</strong></td>
+<td>ephemeral o view</td>
+<td>Pasos reutilizables: joins, cálculos que usan varios marts</td>
+<td>Exponerse al usuario final</td>
+<td><code>int_pedidos_con_totales</code></td>
+</tr>
+<tr>
+<td><strong>marts</strong></td>
+<td>table o incremental</td>
+<td>Las tablas que consume el negocio: hechos y dimensiones</td>
+<td>Leer sources directamente</td>
+<td><code>fct_ventas</code>, <code>dim_clientes</code></td>
+</tr>
+</tbody></table></div>
+<p>El flujo siempre va en una dirección:</p>
+<pre><code class="language-text">sources ──► staging ──► intermediate ──► marts ──► dashboards, notebooks, ML
+(crudo)     (limpio)     (combinado)      (listo para el negocio)</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Regla de oro</div>
+
+<p><code>source()</code> solo aparece en <strong>staging</strong>. Todo lo demás usa <code>ref()</code>. Así, si una fuente cambia, solo tocas un modelo.</p>
+</div>
+
+
+<!-- dg:dbt04-capas -->
+<figure class="diagrama"><figcaption>El linaje de un proyecto dbt: source() solo en staging, ref() en todo lo demás</figcaption></figure>
+
+
+<h3>Convención de nombres</h3>
+<ul>
+<li><strong>Staging</strong>: <code>stg_&lt;fuente&gt;__&lt;tabla&gt;</code>, con <strong>doble guion bajo</strong> entre la fuente y la tabla: <code>stg_tienda__clientes</code>, <code>stg_stripe__pagos</code>. El doble guion permite que la fuente o la tabla tengan guiones bajos sin ambigüedad.</li>
+<li><strong>Intermediate</strong>: <code>int_&lt;qué hace&gt;</code>: <code>int_pedidos_con_totales</code>.</li>
+<li><strong>Marts</strong>: <code>fct_</code> para <strong>hechos</strong> (eventos que se cuentan o suman: ventas, pagos, visitas) y <code>dim_</code> para <strong>dimensiones</strong> (las cosas que describen esos eventos: clientes, productos, fechas).</li>
+</ul>
+<h2>Un modelo de staging típico</h2>
+<p>Staging es <strong>un modelo por tabla de origen</strong>, con transformaciones mínimas. Nada de joins ni de agregaciones:</p>
+<pre><code class="language-dbt">-- models/staging/stg_tienda__clientes.sql
+with fuente as (
+    select * from {{ source('tienda', 'clientes') }}
+),
+
+renombrado as (
+    select
+        cliente_id,
+        trim(nombre) || ' ' || trim(apellido)  as nombre_completo,
+        lower(trim(email))                     as email,
+        nullif(trim(telefono), '')             as telefono,
+        ciudad,
+        pais,
+        segmento,
+        date(fecha_registro)                   as fecha_registro
+    from fuente
+)
+
+select * from renombrado</code></pre>
+<p>Qué hace cada línea y por qué:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Transformación</th>
+<th>Problema que resuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>trim(nombre) || &#39; &#39; || trim(apellido)</code></td>
+<td>Los sistemas de origen suelen guardar espacios sobrantes (<code>&quot;Ana  &quot;</code>)</td>
+</tr>
+<tr>
+<td><code>lower(trim(email))</code></td>
+<td><code>Ana@Mail.com</code> y <code>ana@mail.com </code> son el mismo correo: sin normalizar, un join por email falla</td>
+</tr>
+<tr>
+<td><code>nullif(trim(telefono), &#39;&#39;)</code></td>
+<td>Un texto vacío no es un teléfono. Convertirlo en <code>NULL</code> hace que <code>count(telefono)</code> cuente bien</td>
+</tr>
+<tr>
+<td><code>date(fecha_registro)</code></td>
+<td>Asegura el tipo fecha, para poder filtrar y agrupar por día</td>
+</tr>
+</tbody></table></div>
+<p>El patrón <code>with fuente as (...), renombrado as (...) select * from renombrado</code> es una convención de estilo: cada CTE es un paso con nombre y el <code>select</code> final queda trivial. Al leer un modelo ajeno, sabes dónde buscar cada cosa.</p>
+<h2>Seeds: pequeños CSV versionados</h2>
+<p>A veces necesitas una tabla chica que <strong>no viene de ningún sistema</strong>: la región comercial de cada país, los feriados, las metas de ventas o la equivalencia entre códigos viejos y nuevos. La solución de dbt son los <strong>seeds</strong>: un CSV dentro de la carpeta <code>seeds/</code> del proyecto.</p>
+<pre><code class="language-text">seeds/regiones.csv
+pais,region
+Argentina,Cono Sur
+Chile,Cono Sur
+México,Norteamérica</code></pre>
+<ul>
+<li><code>dbt seed</code> lee cada CSV y lo carga como una tabla en el warehouse, con el nombre del archivo (<code>regiones</code>).</li>
+<li>Se usa con <code>ref(&#39;regiones&#39;)</code>, igual que un modelo, así que aparece en el linaje.</li>
+<li>Como el CSV está en Git, cada cambio queda revisado en un pull request.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los seeds no son para cargar datos</div>
+
+<p>Úsalos solo para tablas de <strong>referencia chicas</strong>, de cientos o pocos miles de filas, que cambian a mano. Para datos que llegan de un sistema (pedidos, clientes) usa una herramienta de ingesta y decláralos como source.</p>
+</div>
+
+
+<h2>Laboratorio: seed + source + ref en la terminal</h2>
+<p>Vas a construir un mart que cuente clientes por región comercial usando las tres piezas. Abre la terminal (⌨ Terminal) y ejecuta paso a paso. Los archivos se crean con <code>printf</code> para que puedas copiar y pegar; si prefieres, ábrelos con <code>code archivo</code>, que abre el editor visual, y pega el contenido.</p>
+<p><strong>1. Crea el seed</strong> con la región de cada país:</p>
+<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+mkdir -p seeds
+printf 'pais,region\nArgentina,Cono Sur\nChile,Cono Sur\nUruguay,Cono Sur\nParaguay,Cono Sur\nBolivia,Andina\nPerú,Andina\nEcuador,Andina\nColombia,Andina\nMéxico,Norteamérica\nCosta Rica,Centroamérica\nEspaña,Europa\n' &gt; seeds/regiones.csv
+dbt seed</code></pre>
+<p>Deberías ver <code>OK loaded seed file main.regiones [INSERT 11]</code>.</p>
+<p><strong>2. Crea el modelo de staging</strong>, que lee la fuente:</p>
+<pre data-norun><code class="language-bash">printf &quot;select\n    cliente_id,\n    trim(nombre) || ' ' || trim(apellido) as nombre_completo,\n    lower(trim(email)) as email,\n    pais,\n    segmento\nfrom {{ source('tienda', 'clientes') }}\n&quot; &gt; models/staging/stg_tienda__clientes.sql
+cat models/staging/stg_tienda__clientes.sql</code></pre>
+<p><strong>3. Crea el mart</strong>, que une el staging con el seed usando <code>ref</code>:</p>
+<pre data-norun><code class="language-bash">printf &quot;select\n    r.region,\n    count(*) as clientes\nfrom {{ ref('stg_tienda__clientes') }} c\njoin {{ ref('regiones') }} r on r.pais = c.pais\ngroup by r.region\norder by clientes desc\n&quot; &gt; models/marts/clientes_por_region.sql</code></pre>
+<p><strong>4. Construye y consulta:</strong></p>
+<pre data-norun><code class="language-bash">dbt run -s stg_tienda__clientes clientes_por_region
+sqlite3 &quot;SELECT * FROM clientes_por_region&quot;</code></pre>
+<p>Resultado esperado:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>region</th>
+<th>clientes</th>
+</tr>
+</thead><tbody><tr>
+<td>Cono Sur</td>
+<td>637</td>
+</tr>
+<tr>
+<td>Andina</td>
+<td>637</td>
+</tr>
+<tr>
+<td>Norteamérica</td>
+<td>387</td>
+</tr>
+<tr>
+<td>Europa</td>
+<td>300</td>
+</tr>
+<tr>
+<td>Centroamérica</td>
+<td>39</td>
+</tr>
+</tbody></table></div>
+<p>Prueba ahora a cambiar <code>Costa Rica,Centroamérica</code> por <code>Costa Rica,Norteamérica</code> en el CSV, y vuelve a correr <code>dbt seed</code> y <code>dbt run -s clientes_por_region</code>. El mart cambia sin tocar ningún SQL. Esa es la ventaja de tener la regla de negocio en un seed versionado.</p>
+<h2>Ejercicios</h2>
+<p>En estos ejercicios, las fuentes <code>tienda</code> apuntan a las tablas originales: <code>{{ source(&#39;tienda&#39;, &#39;pedidos&#39;) }}</code> se compila como <code>main.pedidos</code> (<code>main</code> es el esquema de SQLite; en Databricks verías algo como <code>prod.bronze.pedidos</code>).</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-sources-capas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-modelos-ref.html">← Modelos y ref(): el corazón de dbt</a><a href="dbt-materializaciones.html">Materializaciones e incrementales →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

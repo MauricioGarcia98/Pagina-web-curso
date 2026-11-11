@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cómo armar un portafolio que consigue entrevistas · Academia de Datos</title><meta name="description" content="El método para los 12 proyectos del módulo - elegir un problema con valor de negocio, generar datos realistas, construir primero en tu computadora y después en la nube (Databricks Free Edition y Azure) sin sorpresas en la factura, y presentar cada proyecto en GitHub con README, diagrama, métricas y demo. Incluye qué miran los reclutadores y una rúbrica de junior a senior."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-como-armar-tu-portafolio.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cómo armar un portafolio que consigue entrevistas · Academia de Datos"><meta property="og:description" content="El método para los 12 proyectos del módulo - elegir un problema con valor de negocio, generar datos realistas, construir primero en tu computadora y después en la nube (Databricks Free Edition y Azure) sin sorpresas en la factura, y presentar cada proyecto en GitHub con README, diagrama, métricas y demo. Incluye qué miran los reclutadores y una rúbrica de junior a senior."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-como-armar-tu-portafolio.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Intermedio · 45 min</div>
+<h1>Cómo armar un portafolio que consigue entrevistas</h1><p class="resumen">El método para los 12 proyectos del módulo - elegir un problema con valor de negocio, generar datos realistas, construir primero en tu computadora y después en la nube (Databricks Free Edition y Azure) sin sorpresas en la factura, y presentar cada proyecto en GitHub con README, diagrama, métricas y demo. Incluye qué miran los reclutadores y una rúbrica de junior a senior.</p>
+<a class="cta" href="../index.html#/l/portafolio-como-armar-tu-portafolio">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir 3 o 4 proyectos que cubran lo que piden las ofertas de trabajo</li><li>Generar los datos de un proyecto con el generador o con generar-datos</li><li>Preparar el entorno local y las cuentas gratuitas de Databricks y Azure</li><li>Escribir el README de un proyecto con problema, arquitectura, decisiones y resultados</li><li>Evaluar un proyecto con la rúbrica de junior, semi senior y senior</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Dos candidatos postulan al mismo puesto de data engineer. Uno tiene 15 repositorios de tutoriales (&quot;titanic&quot;, &quot;netflix-eda&quot;, &quot;airflow-hello-world&quot;). El otro tiene <strong>3 proyectos</strong>: cada uno empieza con un problema de negocio, muestra un diagrama, explica por qué eligió cada herramienta, tiene tests y un número de valor (&quot;detecta el 82 % del fraude con 0,4 % de falsas alarmas&quot;). El segundo consigue la entrevista. Este módulo te ayuda a ser el segundo.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Un proyecto de portafolio no demuestra que sabes usar una herramienta: demuestra que sabes <strong>resolver un problema de negocio con datos, de punta a punta, y explicarlo</strong>.</p>
+<h2>Los 12 proyectos del módulo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Proyecto</th>
+<th>Escenario de datos</th>
+<th>Lo que demuestra</th>
+<th>Nube e IA</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Lakehouse de ventas</td>
+<td>Tienda online</td>
+<td>Medallón, dbt, modelado estrella, tablero</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Fraude en tiempo casi real</td>
+<td>Banco</td>
+<td>Streaming, reglas, ventanas, alertas</td>
+<td>Databricks (Lakeflow)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Mantenimiento predictivo</td>
+<td>Sensores IoT</td>
+<td>Series de tiempo, features, modelo con MLflow</td>
+<td>Databricks + MLflow</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Torre de control logística</td>
+<td>Logística</td>
+<td>Ingesta orquestada, SLA, tablero operativo</td>
+<td>Azure (ADLS, Data Factory)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Métricas SaaS y churn</td>
+<td>SaaS</td>
+<td>dbt incremental, SCD2, MRR, NRR</td>
+<td>Databricks o Azure</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Ausentismo con privacidad</td>
+<td>Clínica</td>
+<td>Modelo de no-show, enmascarado, permisos</td>
+<td>Unity Catalog</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Recomendaciones</td>
+<td>Streaming</td>
+<td>Features de engagement, co-ocurrencia, A/B</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Clasificador de tickets con LLM</td>
+<td>Soporte</td>
+<td>Prompting, evaluación contra etiquetas, costos</td>
+<td><code>ai_classify</code> / Foundry</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Asistente RAG con citas</td>
+<td>Soporte</td>
+<td>Chunking, embeddings, búsqueda vectorial, evaluación</td>
+<td>Vector Search / AI Search</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Agente que consulta datos</td>
+<td>Tienda online</td>
+<td>Text-to-SQL con guardrails, capa semántica</td>
+<td>Genie / Foundry</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Plataforma con IaC y CI/CD</td>
+<td>Cualquiera</td>
+<td>Terraform, Declarative Automation Bundles, GitHub Actions, entornos</td>
+<td>Azure + Databricks</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Observabilidad de datos</td>
+<td>Banco (caótico)</td>
+<td>Checks, alertas, SLO, costos, incidentes</td>
+<td>Databricks</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Cuáles hago?</div>
+
+<p>No hagas los 12. Elige <strong>3 o 4</strong> según el puesto: para <strong>data engineer</strong>, 1 + 2 o 4 + 11 + 12; para <strong>analytics engineer</strong>, 1 + 5 + 10; para <strong>ML / IA</strong>, 3 + 8 + 9. Un proyecto profundo y bien explicado vale más que cinco a medias.</p>
+</div>
+
+
+<h2>El método de cada proyecto</h2>
+<figure class="diagrama"><figcaption>El recorrido de cada proyecto del módulo</figcaption></figure>
+
+
+<ol>
+<li><strong>Problema y valor</strong>: quién usa el resultado, qué decisión toma y qué número mejora (dinero, tiempo, riesgo).</li>
+<li><strong>Datos</strong>: cada proyecto trae un enlace al generador con la configuración exacta (escenario, escala, semilla y problemas). Mismos datos para todos: puedes comparar tus resultados.</li>
+<li><strong>Local primero</strong>: todo el pipeline corre en tu computadora con herramientas gratuitas. Iteras en segundos y sin costo.</li>
+<li><strong>Nube después</strong>: llevas lo mismo a Databricks Free Edition o a Azure. Ahí aparecen los temas reales: permisos, almacenamiento, cómputo, costos.</li>
+<li><strong>Automatizar</strong>: orquestación, tests en CI y despliegue reproducible.</li>
+<li><strong>Entregar</strong>: README, diagrama, decisiones, resultados y una demo corta.</li>
+</ol>
+<h2>Los datos: el generador</h2>
+<p>Cada proyecto empieza con un botón <strong>🏭 Generar los datos del proyecto</strong> que abre el <a href="#/generador">generador</a> con la configuración lista. También puedes hacerlo desde la terminal:</p>
+<pre><code class="language-bash">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista
+duckdb -c &quot;SELECT COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv'&quot;</code></pre>
+<p>En tu computadora, descarga el <code>.zip</code> del generador (incluye un <code>README.md</code> con el diccionario de datos y los problemas sembrados) y descomprímelo en <code>data/raw/</code> de tu proyecto.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué datos generados y no un dataset de Kaggle?</div>
+
+<p>Porque puedes elegir la escala, la semilla y <strong>los problemas de calidad</strong> (duplicados, nulos, datos tardíos…), que son lo que hace interesante un proyecto de ingeniería. Y porque nadie más tiene exactamente tu dataset: el proyecto es tuyo. En el README aclara que los datos son sintéticos y cómo regenerarlos.</p>
+</div>
+
+
+<h2>Las cuentas en la nube, sin sorpresas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Plataforma</th>
+<th>Qué usar</th>
+<th>Costo</th>
+<th>Cuidado con</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Databricks Free Edition</strong></td>
+<td>Cuenta gratuita con cómputo serverless, Unity Catalog, notebooks, Jobs, pipelines y tableros</td>
+<td>Gratis, con límites de cómputo y de uso diario</td>
+<td>Algunas funciones avanzadas pueden no estar disponibles o estar limitadas; cada proyecto indica la alternativa local</td>
+</tr>
+<tr>
+<td><strong>Azure</strong> (cuenta gratuita)</td>
+<td>Crédito inicial y servicios gratuitos por 12 meses</td>
+<td>Gratis dentro del crédito; después, pago por uso</td>
+<td>Presupuesto con alertas, un grupo de recursos por proyecto y borrarlo al terminar</td>
+</tr>
+<tr>
+<td><strong>Local</strong></td>
+<td>uv, DuckDB, dbt, Airflow en Docker, Ollama para modelos de lenguaje</td>
+<td>Gratis</td>
+<td>Memoria de tu computadora con datasets grandes</td>
+</tr>
+</tbody></table></div>
+<p>Las reglas del módulo de laboratorios siguen valiendo: presupuesto con alertas, una región, nombres con sufijo <code>-lab</code>, etiquetas y <strong>limpieza el mismo día</strong>.</p>
+<h2>La estructura de cada repositorio</h2>
+<pre><code class="language-text">proyecto-ventas-lakehouse/
+├── README.md            ← lo primero (y a veces lo único) que leen
+├── docs/arquitectura.png
+├── data/raw/            ← en .gitignore: los datos se regeneran con la semilla
+├── src/                 ← código de ingesta y utilidades (Python)
+├── transform/           ← proyecto dbt o notebooks/pipelines
+├── tests/               ← pytest y tests de datos
+├── orchestration/       ← DAG de Airflow o Asset Bundle de Databricks
+├── infra/               ← Terraform (si aplica)
+├── .github/workflows/   ← CI: lint, tests, validate
+└── pyproject.toml       ← dependencias con uv</code></pre>
+<h2>El README que funciona</h2>
+<pre><code class="language-markdown"># Detección de fraude en tiempo casi real
+
+**Problema**: el banco detecta el fraude con tarjeta al día siguiente; cada hora de demora cuesta dinero.
+**Resultado**: alertas en menos de 2 minutos; las reglas detectan el 82 % del fraude etiquetado
+con 0,4 % de falsas alarmas sobre 38.000 transacciones sintéticas.
+
+![Arquitectura](docs/arquitectura.png)
+
+## Cómo correrlo (5 minutos)
+## Decisiones y alternativas descartadas
+## Calidad de datos: qué problemas encontré y cómo los traté
+## Qué haría con más tiempo</code></pre>
+<p>Lo que más pesa: el <strong>resultado con un número</strong> al principio, las <strong>decisiones</strong> (por qué streaming y no batch, por qué esta clave de partición) y la sección de <strong>calidad de datos</strong>: muestra que trabajaste con datos reales, no con un CSV perfecto.</p>
+<h2>Errores comunes y cómo contarlo</h2>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Diez proyectos a medias</strong> en lugar de dos o tres completos, con README, tests y un diagrama.</li>
+<li><strong>Tutoriales copiados</strong>: un revisor reconoce el dataset del Titanic o el ejemplo oficial de una herramienta. Usa un problema propio, aunque sea con datos generados.</li>
+<li><strong>Repositorios sin instrucciones</strong>: si no se puede correr en 10 minutos siguiendo el README, no se va a correr.</li>
+<li><strong>Credenciales en el historial de Git</strong>: aunque las borres en el último commit, siguen en el historial.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué aprendiste del proyecto que más te costó?&quot;</div>
+
+<p>Elegiría un problema concreto del proyecto, por ejemplo duplicados que inflaban las ventas o un job que se quedaba sin memoria, y lo contaría en orden: cómo lo detecté, qué hipótesis descarté, qué cambié y cómo comprobé que se resolvió, con un número si es posible. Terminaría con qué haría distinto desde el inicio. Lo que se evalúa es el razonamiento y la honestidad, no que todo haya salido bien.</p>
+</div>
+
+
+<h2>La rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Aspecto</th>
+<th>Junior</th>
+<th>Semi senior</th>
+<th>Senior</th>
+</tr>
+</thead><tbody><tr>
+<td>Problema</td>
+<td>Describe qué hace el código</td>
+<td>Explica el problema de negocio</td>
+<td>Cuantifica el valor y los compromisos</td>
+</tr>
+<tr>
+<td>Datos</td>
+<td>Carga un CSV</td>
+<td>Trata los problemas de calidad</td>
+<td>Checks automáticos, contratos, datos tardíos</td>
+</tr>
+<tr>
+<td>Pipeline</td>
+<td>Un script</td>
+<td>Capas, idempotente, incremental</td>
+<td>Orquestado, observable, con backfills</td>
+</tr>
+<tr>
+<td>Calidad</td>
+<td>—</td>
+<td>Tests de dbt / pytest</td>
+<td>Tests en CI, alertas, runbook</td>
+</tr>
+<tr>
+<td>Nube</td>
+<td>Local</td>
+<td>Desplegado a mano en la nube</td>
+<td>IaC + CI/CD + entornos dev/prod</td>
+</tr>
+<tr>
+<td>IA (si aplica)</td>
+<td>Llama a un modelo</td>
+<td>Prompt + evaluación contra etiquetas</td>
+<td>Evaluación, costos, guardrails, monitoreo</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>README mínimo</td>
+<td>README con diagrama y decisiones</td>
+<td>Demo, métricas, qué haría distinto</td>
+</tr>
+</tbody></table></div>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Fija los proyectos en tu perfil de GitHub y enlázalos desde LinkedIn con una línea de valor cada uno.</li>
+<li>Graba una demo de 2 minutos (pantalla y voz): problema, arquitectura, resultado. Muchos reclutadores ven el video y no el código.</li>
+<li>En la entrevista, prepárate para &quot;¿qué harías distinto con 10 veces más datos?&quot; y &quot;¿qué falló y cómo lo resolviste?&quot;. Las secciones de decisiones y de calidad del README son tu guion.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué produce</th>
+</tr>
+</thead><tbody><tr>
+<td>Problema y valor</td>
+<td>Una frase con un número</td>
+</tr>
+<tr>
+<td>Datos</td>
+<td>Un dataset reproducible con semilla</td>
+</tr>
+<tr>
+<td>Local</td>
+<td>Un pipeline que corre en minutos y gratis</td>
+</tr>
+<tr>
+<td>Nube</td>
+<td>El mismo pipeline en Databricks o Azure</td>
+</tr>
+<tr>
+<td>Automatizar</td>
+<td>Orquestación, tests en CI, IaC</td>
+</tr>
+<tr>
+<td>Entregar</td>
+<td>README, diagrama, demo</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-como-armar-tu-portafolio">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-guia-azure-paso-a-paso.html">← Guía real: Azure paso a paso, de la cuenta gratuita a Azure Databricks</a><a href="portafolio-lakehouse-de-ventas.html">Proyecto 1: Lakehouse de ventas con dbt, de DuckDB a Databricks →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

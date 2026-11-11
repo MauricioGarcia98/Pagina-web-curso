@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power BI y el modelo semántico - de los datos al tablero · Academia de Datos</title><meta name="description" content="Qué es Power BI, cómo es el camino completo (obtener datos, Power Query, modelo, DAX, informe y publicar), qué es un esquema estrella y cómo viajan los filtros por las relaciones. Tus primeras consultas DAX sobre las tablas de la tienda."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-power-bi-y-el-modelo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Power BI y el modelo semántico - de los datos al tablero · Academia de Datos"><meta property="og:description" content="Qué es Power BI, cómo es el camino completo (obtener datos, Power Query, modelo, DAX, informe y publicar), qué es un esquema estrella y cómo viajan los filtros por las relaciones. Tus primeras consultas DAX sobre las tablas de la tienda."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-power-bi-y-el-modelo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi">📊 Power BI y DAX</a> · Básico · 40 min</div>
+<h1>Power BI y el modelo semántico - de los datos al tablero</h1><p class="resumen">Qué es Power BI, cómo es el camino completo (obtener datos, Power Query, modelo, DAX, informe y publicar), qué es un esquema estrella y cómo viajan los filtros por las relaciones. Tus primeras consultas DAX sobre las tablas de la tienda.</p>
+<a class="cta" href="../index.html#/l/powerbi-power-bi-y-el-modelo">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar el flujo completo de Power BI Desktop y Service</li><li>Distinguir tabla de hechos y tabla de dimensión</li><li>Leer una relación de varios a uno y saber hacia dónde filtra</li><li>Escribir consultas EVALUATE para mirar los datos del modelo</li></ul>
+<h2>El camino completo</h2>
+<p>Power BI es la herramienta de Microsoft para pasar de datos a tableros. Tiene dos partes:</p>
+<ul>
+<li><strong>Power BI Desktop</strong>: la aplicación donde se construye todo (en Windows). En el curso tienes una práctica en el navegador: el <a href="#/powerbi">laboratorio de Power BI</a>.</li>
+<li><strong>Power BI Service</strong> (app.powerbi.com): la web donde se <strong>publica</strong> el informe, se comparte, se programa la actualización y se arman paneles.</li>
+</ul>
+<figure class="diagrama"><figcaption>El recorrido de un informe en Power BI</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Etapa</th>
+<th>Herramienta</th>
+<th>Lenguaje</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Transformar</td>
+<td>Power Query</td>
+<td><strong>M</strong></td>
+<td>Quita columnas, cambia tipos, filtra, combina consultas. Cada clic es un &quot;paso aplicado&quot;.</td>
+</tr>
+<tr>
+<td>Modelar</td>
+<td>Vista de modelo</td>
+<td>—</td>
+<td>Relaciones entre tablas, cardinalidad y dirección del filtro.</td>
+</tr>
+<tr>
+<td>Calcular</td>
+<td>Medidas</td>
+<td><strong>DAX</strong></td>
+<td>Fórmulas como &quot;ventas&quot;, &quot;ticket promedio&quot;, &quot;% del total&quot;.</td>
+</tr>
+<tr>
+<td>Visualizar</td>
+<td>Vista de informe</td>
+<td>—</td>
+<td>Gráficos, tarjetas, segmentaciones y filtros.</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Regla práctica</div>
+
+<p>Limpia en <strong>Power Query</strong> (o mejor, antes: en el data warehouse con SQL o dbt). Calcula en <strong>DAX</strong>. Si una columna se puede calcular una vez al cargar, no la hagas medida.</p>
+</div>
+
+
+<h2>Hechos y dimensiones: el esquema estrella</h2>
+<p>Un modelo de Power BI funciona mejor como <strong>estrella</strong>: una tabla de <strong>hechos</strong> en el centro (lo que pasó: cada pedido, cada línea vendida) y <strong>dimensiones</strong> alrededor (quién, qué, dónde, cuándo).</p>
+<p>En la tienda del curso:</p>
+<ul>
+<li><strong>Hechos</strong>: <code>pedidos</code> (un pedido por fila) y <code>detalle_pedidos</code> (una línea de producto por fila).</li>
+<li><strong>Dimensiones</strong>: <code>clientes</code>, <code>productos</code>, <code>categorias</code>, <code>empleados</code>.</li>
+</ul>
+<p>Cada relación es de <strong>varios a uno</strong> (<code>*:1</code>): muchos pedidos tienen el mismo cliente. Se escribe <code>pedidos[cliente_id] * → 1 clientes[cliente_id]</code>.</p>
+<figure class="diagrama"><figcaption>Parte del modelo de la tienda (las flechas muestran hacia dónde viaja el filtro)</figcaption></figure>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 Analogía</div>
+
+<p>El filtro es como agua que baja: nace en el lado <strong>1</strong> (la dimensión) y cae hacia el lado <strong>*</strong> (los hechos). Si en un gráfico eliges &quot;Argentina&quot; en <code>clientes[pais]</code>, el filtro baja a <code>pedidos</code> (solo pedidos de clientes argentinos) y de ahí a <code>detalle_pedidos</code>. Al revés no sube, salvo que configures la relación en <strong>ambas direcciones</strong>.</p>
+</div>
+
+
+<h2>Modos de almacenamiento (en una frase cada uno)</h2>
+<ul>
+<li><strong>Import</strong>: copia los datos dentro del archivo. Es el más rápido y el más común. Se actualiza con una programación.</li>
+<li><strong>DirectQuery</strong>: no copia nada; cada gráfico consulta la base en vivo. Sirve para datos enormes o que cambian a cada minuto, pero es más lento.</li>
+<li><strong>Direct Lake</strong> (en Microsoft Fabric): lee tablas Delta del lakehouse sin copiarlas ni consultarlas por SQL.</li>
+</ul>
+<h2>DAX también sirve para mirar datos</h2>
+<p>En Power BI Desktop hay una <strong>vista de consultas DAX</strong> (el ícono <code>&lt;/&gt;</code> de la izquierda). Una consulta DAX siempre empieza con <code>EVALUATE</code> seguida de algo que devuelve una <strong>tabla</strong>:</p>
+<pre><code class="language-dax">EVALUATE categorias                                -- toda la tabla
+EVALUATE TOPN(10, productos, productos[precio])    -- los 10 productos más caros
+EVALUATE VALUES(pedidos[canal])                    -- los valores distintos de una columna
+EVALUATE ROW(&quot;Pedidos&quot;, COUNTROWS(pedidos))        -- un solo número, como tabla de una fila</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Cómo se escriben las columnas</div>
+
+<p>En DAX, una columna se escribe <strong><code>Tabla[columna]</code></strong>: <code>pedidos[canal]</code>. Si el nombre de la tabla tiene espacios, va entre comillas simples: <code>&#39;Detalle de pedidos&#39;[cantidad]</code>. Los textos van entre comillas dobles: <code>&quot;web&quot;</code>.</p>
+</div>
+
+
+<h2>Practica</h2>
+<p>Los ejercicios corren sobre el <strong>modelo de la tienda</strong>: las mismas tablas del laboratorio SQL, con sus relaciones. Escribe la consulta y pulsa <strong>Ejecutar</strong>. <strong>Comprobar</strong> la compara con la respuesta esperada.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En el trabajo</h2>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La gerencia quiere un tablero con las ventas por país y por canal, que se actualice solo cada mañana. Los datos ya están en la base de la tienda. Tu trabajo como persona de datos es dejar un <strong>modelo</strong> limpio (tablas, relaciones y medidas) para que cualquiera pueda armar gráficos sin escribir SQL.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El modelo semántico se <strong>publica una vez</strong> y lo usan muchos informes. Por eso el data engineer cuida los nombres de tablas y columnas, oculta las claves técnicas y deja las medidas listas.</li>
+<li>Los equipos guardan el informe como <strong>proyecto de Power BI (.pbip)</strong>: carpetas de texto (el modelo en TMDL, el informe en JSON) que se versionan con Git y se revisan en pull requests.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Por qué un esquema estrella y no una sola tabla gigante con todo?&quot;</div>
+
+<p>Porque las relaciones de varios a uno hacen que los filtros sean predecibles, las dimensiones se reutilizan entre tablas de hechos y el motor comprime mejor columnas con pocos valores distintos. Una tabla plana repite datos (el nombre del cliente en cada línea), ocupa más y complica las medidas que necesitan el grano de pedido y el de línea al mismo tiempo.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-power-bi-y-el-modelo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="modelado-proyecto-ritmo.html">← Proyecto: el modelo analítico completo de Ritmo</a><a href="powerbi-primeras-medidas.html">Tus primeras medidas DAX - SUM, COUNTROWS, DISTINCTCOUNT y DIVIDE →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

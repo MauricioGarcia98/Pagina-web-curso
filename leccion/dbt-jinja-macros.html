@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jinja y macros · Academia de Datos</title><meta name="description" content="Variables, bucles y condicionales en SQL, macros reutilizables, var() y dbt_utils."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-jinja-macros.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Jinja y macros · Academia de Datos"><meta property="og:description" content="Variables, bucles y condicionales en SQL, macros reutilizables, var() y dbt_utils."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-jinja-macros.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Avanzado · 50 min</div>
+<h1>Jinja y macros</h1><p class="resumen">Variables, bucles y condicionales en SQL, macros reutilizables, var() y dbt_utils.</p>
+<a class="cta" href="../index.html#/l/dbt-jinja-macros">▶ Abrir la lección interactiva (7 ejercicios)</a>
+
+<p>Hasta ahora tus modelos eran SQL casi puro, con algún <code>{{ ref() }}</code>. Pero ese <code>{{ }}</code> es la punta de algo mucho más potente: dbt pasa cada modelo por <strong>Jinja</strong>, un lenguaje de plantillas de Python, <strong>antes</strong> de mandarlo al warehouse. Con Jinja puedes generar SQL repetitivo con un bucle, cambiar el SQL según el entorno y escribir <strong>macros</strong>: funciones que devuelven pedazos de SQL y se reutilizan en todo el proyecto.</p>
+<h2>Cómo funciona: plantilla → SQL compilado</h2>
+<p>dbt trabaja en dos pasos:</p>
+<pre><code class="language-text">models/ventas.sql          ──(1) Jinja compila──►   target/compiled/.../ventas.sql   ──(2) se ejecuta──►  warehouse
+(SQL + {{ }} {% %})                                  (SQL puro, sin nada de Jinja)</code></pre>
+<p>El warehouse <strong>nunca ve Jinja</strong>: solo recibe el SQL ya compilado. Por eso, cuando algo falla, lo primero es mirar el SQL compilado (<code>dbt compile</code>, o el desplegable &quot;Ver SQL compilado&quot; que aparece al ejecutar un ejemplo en este curso). Ahí ves exactamente lo que se ejecutó.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Jinja es una combinación de correspondencia</div>
+
+<p>Es como el &quot;combinar correspondencia&quot; de Word: escribes una carta con huecos (<code>Estimado {{ nombre }}</code>) y el programa genera una carta por cada persona. dbt hace lo mismo con SQL: escribes una plantilla y Jinja genera el SQL final.</p>
+</div>
+
+
+<h2>Las tres marcas de Jinja</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Marca</th>
+<th>Para qué</th>
+<th>Ejemplo</th>
+<th>¿Deja algo en el SQL?</th>
+</tr>
+</thead><tbody><tr>
+<td><code>{{ ... }}</code></td>
+<td><strong>Imprime</strong> el resultado de una expresión</td>
+<td><code>{{ ref(&#39;stg_pedidos&#39;) }}</code></td>
+<td>Sí: el valor</td>
+</tr>
+<tr>
+<td><code>{% ... %}</code></td>
+<td><strong>Lógica</strong>: if, for, set, macro</td>
+<td><code>{% for c in canales %}</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>{# ... #}</code></td>
+<td>Comentario</td>
+<td><code>{# TODO: sacar el filtro #}</code></td>
+<td>No (a diferencia de <code>--</code>, no llega al warehouse)</td>
+</tr>
+</tbody></table></div>
+<p>Una forma de recordarlo: las <strong>llaves dobles</strong> &quot;dicen&quot; algo y el <strong>porcentaje</strong> &quot;hace&quot; algo.</p>
+<h2>Variables y bucles: generar SQL repetitivo</h2>
+<p>Un caso clásico es pivotar: convertir los valores de una columna (los canales) en columnas. En SQL a mano tendrías que escribir un <code>sum(case when ...)</code> por cada canal, y si mañana aparece un canal nuevo, agregar otra línea. Con Jinja escribes la lista <strong>una vez</strong>:</p>
+<pre><code class="language-dbt">{% set canales = ['web', 'app', 'tienda', 'telefono'] %}
+
+select
+    strftime('%Y', fecha_pedido) as anio,
+    {% for canal in canales %}
+    sum(case when canal = '{{ canal }}' then 1 else 0 end) as pedidos_{{ canal }}{{ &quot;,&quot; if not loop.last }}
+    {% endfor %}
+from {{ ref('stg_pedidos') }}
+group by anio
+order by anio</code></pre>
+<p>Ejecútalo y abre <strong>Ver SQL compilado</strong>. Jinja escribió esto por ti:</p>
+<pre data-norun><code class="language-sql">select
+    strftime('%Y', fecha_pedido) as anio,
+    sum(case when canal = 'web' then 1 else 0 end) as pedidos_web,
+    sum(case when canal = 'app' then 1 else 0 end) as pedidos_app,
+    sum(case when canal = 'tienda' then 1 else 0 end) as pedidos_tienda,
+    sum(case when canal = 'telefono' then 1 else 0 end) as pedidos_telefono
+from main.stg_pedidos
+group by anio
+order by anio</code></pre>
+<p>Las piezas, una por una:</p>
+<ul>
+<li><strong><code>{% set canales = [...] %}</code></strong> crea una variable de Jinja. La lista usa sintaxis de Python: corchetes y textos entre comillas.</li>
+<li><strong><code>{% for canal in canales %} ... {% endfor %}</code></strong> repite lo que está adentro una vez por elemento. En cada vuelta, <code>canal</code> vale <code>&#39;web&#39;</code>, después <code>&#39;app&#39;</code>, y así.</li>
+<li><strong><code>&#39;{{ canal }}&#39;</code></strong>: las comillas simples son del SQL (el valor es un texto) y <code>{{ canal }}</code> imprime el valor de la variable. El resultado es <code>&#39;web&#39;</code>.</li>
+<li><strong><code>pedidos_{{ canal }}</code></strong> arma el nombre de la columna: <code>pedidos_web</code>.</li>
+<li><strong><code>{{ &quot;,&quot; if not loop.last }}</code></strong> pone una coma después de cada columna <strong>salvo la última</strong>. Sin esto, el SQL terminaría con <code>pedidos_telefono,</code> seguido de <code>from</code>, y daría un error de sintaxis.</li>
+</ul>
+<h3>La variable <code>loop</code></h3>
+<p>Dentro de un <code>for</code>, Jinja te da una variable especial <code>loop</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Expresión</th>
+<th>Valor</th>
+</tr>
+</thead><tbody><tr>
+<td><code>loop.index</code></td>
+<td>Número de vuelta, empezando en 1</td>
+</tr>
+<tr>
+<td><code>loop.index0</code></td>
+<td>Número de vuelta, empezando en 0</td>
+</tr>
+<tr>
+<td><code>loop.first</code></td>
+<td><code>True</code> en la primera vuelta</td>
+</tr>
+<tr>
+<td><code>loop.last</code></td>
+<td><code>True</code> en la última vuelta</td>
+</tr>
+<tr>
+<td><code>loop.length</code></td>
+<td>Cantidad total de vueltas</td>
+</tr>
+</tbody></table></div>
+<h3>Filtros</h3>
+<p>Un <strong>filtro</strong> transforma un valor con <code>|</code>: <code>{{ &#39;Pyme&#39; | lower }}</code> imprime <code>pyme</code>. Los más útiles: <code>lower</code>, <code>upper</code>, <code>replace(&#39;a&#39;, &#39;b&#39;)</code>, <code>join(&#39;, &#39;)</code> (une una lista) y <code>default(&#39;x&#39;)</code> (valor si no hay ninguno).</p>
+<div class="recorrido"></div>
+
+
+<h2>Condicionales</h2>
+<p><code>{% if %}</code> incluye o saca pedazos de SQL según una condición:</p>
+<pre><code class="language-dbt">{% set incluir_cancelados = false %}
+
+select estado, count(*) as n
+from {{ ref('stg_pedidos') }}
+{% if not incluir_cancelados %}
+where estado &lt;&gt; 'cancelado'
+{% endif %}
+group by estado</code></pre>
+<p>Cambia <code>false</code> por <code>true</code> y mira cómo desaparece el <code>where</code> del SQL compilado.</p>
+<p>El uso más común en proyectos reales es comparar con el <strong>entorno</strong> en el que corre dbt, <code>target.name</code>. Por ejemplo, para trabajar con menos datos en desarrollo:</p>
+<pre data-norun><code class="language-sql">select * from {{ source('tienda', 'eventos') }}
+{% if target.name == 'dev' %}
+where fecha &gt;= current_date - 3      -- en dev, solo 3 días: más rápido y más barato
+{% endif %}</code></pre>
+<h2>var(): parámetros del proyecto</h2>
+<p>Las <strong>variables de proyecto</strong> son parámetros que defines una vez en <code>dbt_project.yml</code> y lees en cualquier modelo con <code>var()</code>:</p>
+<pre data-norun><code class="language-yaml"># dbt_project.yml
+vars:
+  fecha_inicio: '2024-01-01'
+  paises_activos: ['Chile', 'Perú', 'México']</code></pre>
+<pre data-norun><code class="language-sql">where fecha_pedido &gt;= '{{ var(&quot;fecha_inicio&quot;) }}'
+  and pais in ('{{ var(&quot;paises_activos&quot;) | join(&quot;', '&quot;) }}')</code></pre>
+<p>Se pueden sobrescribir al ejecutar, sin tocar código: <code>dbt run --vars &#39;{fecha_inicio: 2024-06-01}&#39;</code>. Así es como Airflow le pasa la fecha del día a dbt (<code>--vars &#39;{fecha: {{ ds }}}&#39;</code>).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ var() vs. set</div>
+
+<p><code>{% set %}</code> vive solo dentro de un archivo. <code>var()</code> es global para todo el proyecto y se puede cambiar desde la línea de comandos. Si un valor se repite en varios modelos o cambia entre ejecuciones, usa <code>var()</code>.</p>
+</div>
+
+
+<h2>Macros: funciones de SQL reutilizables</h2>
+<p>Una <strong>macro</strong> es una función de Jinja que <strong>devuelve SQL</strong>. Se guarda en un archivo dentro de la carpeta <code>macros/</code> y queda disponible en <strong>todos</strong> los modelos del proyecto, sin importar nada.</p>
+<p>¿Cuándo crear una? Cuando la misma fórmula aparece en dos o más modelos. Si mañana cambia la regla (por ejemplo, el importe neto tiene que restar también el impuesto), la cambias en un solo lugar.</p>
+<pre><code class="language-dbt">{% macro importe_neto(cantidad, precio, descuento) -%}
+    round({{ cantidad }} * {{ precio }} * (1 - {{ descuento }}), 2)
+{%- endmacro %}
+
+select detalle_id, {{ importe_neto('cantidad', 'precio_unitario', 'descuento') }} as importe
+from {{ source('tienda', 'detalle_pedidos') }}
+limit 5</code></pre>
+<p>(En un proyecto real la macro va en <code>macros/importe_neto.sql</code>. Aquí la ponemos arriba del modelo para que puedas probarla.)</p>
+<p>Cómo leerla:</p>
+<ol>
+<li><code>{% macro importe_neto(cantidad, precio, descuento) %}</code> define la macro y sus <strong>parámetros</strong>.</li>
+<li>El cuerpo es el SQL que devuelve. Adentro, <code>{{ cantidad }}</code> se reemplaza por lo que le pases.</li>
+<li>Al usarla, <code>{{ importe_neto(&#39;cantidad&#39;, &#39;precio_unitario&#39;, &#39;descuento&#39;) }}</code> le pasa <strong>textos con nombres de columnas</strong>. Por eso van entre comillas: la macro no recibe los datos, recibe pedazos de SQL. El resultado es <code>round(cantidad * precio_unitario * (1 - descuento), 2)</code>.</li>
+</ol>
+<h3>El guion: <code>{%-</code> y <code>-%}</code></h3>
+<p>El <code>-</code> junto al <code>%</code> <strong>borra los espacios y saltos de línea</strong> de ese lado. Sin él, la macro devolvería el SQL con saltos de línea alrededor, y el compilado quedaría desprolijo:</p>
+<pre><code class="language-text">select detalle_id,
+    round(cantidad * precio_unitario * (1 - descuento), 2)
+ as importe</code></pre>
+<p>No cambia el resultado, pero hace el SQL compilado más difícil de leer. En macros que se usan dentro de una línea, pon siempre <code>-%}</code> y <code>{%-</code>.</p>
+<h3>Parámetros con valor por defecto</h3>
+<pre data-norun><code class="language-sql">{% macro a_moneda(columna, decimales=2) -%}
+    round({{ columna }}, {{ decimales }})
+{%- endmacro %}
+
+{{ a_moneda('total') }}         -- round(total, 2)
+{{ a_moneda('total', 0) }}      -- round(total, 0)</code></pre>
+<h2>Paquetes: macros de la comunidad</h2>
+<p>No tienes que escribir todo desde cero. Los <strong>paquetes</strong> de dbt son proyectos con macros (y tests) listos para usar. Se declaran en <code>packages.yml</code> y se instalan con <code>dbt deps</code>:</p>
+<pre data-norun><code class="language-yaml"># packages.yml
+packages:
+  - package: dbt-labs/dbt_utils
+    version: 1.3.0</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 dbt_utils</div>
+
+<p>El paquete <strong>dbt_utils</strong> trae macros listas:</p>
+<ul>
+<li><code>generate_surrogate_key([&#39;pedido_id&#39;, &#39;linea&#39;])</code>: una clave única a partir de varias columnas.</li>
+<li><code>date_spine</code>: una tabla calendario, con una fila por día.</li>
+<li><code>pivot</code>: lo que hiciste con el bucle, en una línea.</li>
+<li><code>union_relations</code>: une tablas con columnas distintas.</li>
+<li><code>star(from=ref(&#39;x&#39;), except=[&#39;col&#39;])</code>: todas las columnas menos algunas.</li>
+</ul>
+</div>
+
+
+<p>Otros paquetes populares son <code>dbt_expectations</code> (tests de calidad al estilo Great Expectations) y <code>codegen</code> (genera el YAML de sources y staging por ti).</p>
+<h2>Laboratorio: una macro de verdad en la terminal</h2>
+<p>Abre la terminal (⌨ Terminal) y crea la macro <strong>en su propio archivo</strong>, como en un proyecto real:</p>
+<pre data-norun><code class="language-bash">cd ~/tienda_dbt
+mkdir -p macros
+code macros/importe_neto.sql</code></pre>
+<p><code>code</code> abre el editor. Pega la macro (las tres líneas de <code>{% macro importe_neto ... %}</code> hasta <code>{%- endmacro %}</code>) y guarda. Después crea un modelo que la use:</p>
+<pre data-norun><code class="language-bash">code models/staging/stg_importes.sql</code></pre>
+<pre data-norun><code class="language-sql">select detalle_id, {{ importe_neto('cantidad', 'precio_unitario', 'descuento') }} as importe
+from {{ source('tienda', 'detalle_pedidos') }}</code></pre>
+<p>Ahora compila, ejecuta y consulta:</p>
+<pre data-norun><code class="language-bash">dbt compile -s stg_importes      # mira el SQL que generó la macro
+dbt run -s stg_importes
+sqlite3 &quot;SELECT * FROM stg_importes LIMIT 3&quot;</code></pre>
+<p>En <code>dbt compile</code> vas a ver <code>round(cantidad * precio_unitario * (1 - descuento), 2)</code> en lugar de la llamada a la macro. Y el modelo no tuvo que importar nada: dbt lee todas las macros de <code>macros/</code> automáticamente.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 Cuándo NO usar Jinja</div>
+
+<p>Jinja es potente, pero un modelo lleno de <code>{% if %}</code> anidados se vuelve ilegible. La regla de la comunidad es: <strong>SQL primero, Jinja cuando ahorra repetición real</strong>. Si una macro se usa una sola vez, probablemente no hace falta.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-jinja-macros">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-tests-docs.html">← Tests y documentación</a><a href="dbt-snapshots-comandos.html">Snapshots, comandos, selección y CI/CD →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

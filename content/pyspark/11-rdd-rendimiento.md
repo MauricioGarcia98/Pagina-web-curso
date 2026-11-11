@@ -5,6 +5,10 @@ duracion: 30
 resumen: La API de bajo nivel, explain(), particiones, caché, broadcast y antipatrones en PySpark.
 ---
 
+:::analogia En palabras simples
+Los DataFrames son como manejar un auto automático: tú dices a dónde ir y el auto elige los cambios. Los **RDD** son el auto manual: más control, pero más trabajo y más fácil equivocarse. En esta lección ves cómo funciona el motor por dentro (particiones, caché, `explain`) para entender por qué algo es lento.
+:::
+
 ## RDDs: la base de todo
 
 Un **RDD** (*Resilient Distributed Dataset*, "conjunto de datos distribuido y resiliente") es la abstracción original de Spark: una colección de objetos de Python repartida entre las máquinas del cluster, **sin esquema** (Spark no sabe qué hay adentro de cada objeto).

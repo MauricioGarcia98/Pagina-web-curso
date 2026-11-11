@@ -11,6 +11,10 @@ La CLI `databricks` de la terminal y el [workspace de práctica](#/databricks) c
 
 La **Databricks CLI** controla tu workspace desde la terminal: archivos, clústeres, jobs, secretos, catálogos y, sobre todo, el despliegue con **Declarative Automation Bundles** (antes *Asset Bundles*). La CLI actual es un programa escrito en Go (versión 0.205 en adelante, hoy en la línea 1.x) que reemplazó a la antigua `databricks-cli` de Python: si ves instrucciones con `pip install databricks-cli`, son de la versión vieja.
 
+:::analogia En palabras simples
+La CLI de Databricks es el control remoto del workspace desde tu terminal. Antes de usarla hay que presentarse, como mostrar el carnet en la puerta: eso es la **autenticación**. Lo recomendado es iniciar sesión por el navegador, sin guardar contraseñas en archivos.
+:::
+
 ## ¿Para qué una CLI si existe la interfaz web?
 
 La interfaz web de Databricks es excelente para explorar y desarrollar. La CLI es para todo lo que tiene que ser **repetible**: subir archivos de un proceso, crear secretos en un script de instalación, reiniciar un cluster desde un job de monitoreo y, sobre todo, **desplegar** notebooks y jobs desde Git hacia dev y prod con CI/CD (Declarative Automation Bundles, lección 7). Es exactamente la misma idea que `az`, `aws` o `gcloud`, pero para el workspace de Databricks.

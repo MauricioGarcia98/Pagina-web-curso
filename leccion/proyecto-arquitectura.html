@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El proyecto final: arquitectura de punta a punta · Academia de Datos</title><meta name="description" content="Diseña la plataforma de datos de Tienda Andina con todo lo aprendido."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-arquitectura.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El proyecto final: arquitectura de punta a punta · Academia de Datos"><meta property="og:description" content="Diseña la plataforma de datos de Tienda Andina con todo lo aprendido."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-arquitectura.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto">🏆 Proyecto final y entrevistas</a> · Avanzado · 30 min</div>
+<h1>El proyecto final: arquitectura de punta a punta</h1><p class="resumen">Diseña la plataforma de datos de Tienda Andina con todo lo aprendido.</p>
+<a class="cta" href="../index.html#/l/proyecto-arquitectura">▶ Abrir la lección interactiva (1 ejercicios)</a>
+
+<p>¡Llegaste al final! Vamos a unir todas las piezas en un proyecto como los que se construyen en empresas reales. Este proyecto es ideal para tu <strong>portafolio</strong>.</p>
+<h2>El caso de negocio</h2>
+<p>Tienda Andina quiere:</p>
+<ol>
+<li>Un <strong>tablero diario</strong> de ventas por país, canal y categoría, actualizado a las 7:00.</li>
+<li>Un <strong>modelo de clientes</strong> (RFM y cohortes) para campañas de marketing.</li>
+<li>Detectar <strong>problemas de calidad</strong> (pedidos sin pago, duplicados) antes de que lleguen al tablero.</li>
+<li>Que todo sea <strong>reproducible, versionado y barato</strong>.</li>
+</ol>
+<h2>La arquitectura</h2>
+<pre><code class="language-text">                ┌──────────────────────── Azure ────────────────────────────┐
+ ERP (SQL) ──ADF──▶ ADLS Gen2 /bronze ──┐                                     │
+ API pagos ─Python─▶ ADLS Gen2 /bronze ──┤  Databricks (Unity Catalog)         │
+ Clics web ─Event Hubs────────────────── ┤   Auto Loader → bronze (Delta)      │
+                                         │   PySpark     → silver (MERGE)      │
+                                         │   dbt         → gold (estrella)     │
+                                         │   SQL Warehouse → Power BI          │
+                                         └─────────────────────────────────────┘
+ Orquestación: Airflow (o Lakeflow Jobs)          Secretos: Key Vault   IaC: Bicep + Declarative Automation Bundles
+ CI/CD: GitHub Actions   Calidad: tests dbt + expectations   Observabilidad: alertas + system tables</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Plan de trabajo (cada paso usa un módulo del curso)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué haces</th>
+<th>Módulo</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Crear grupo de recursos, ADLS Gen2 (bronze/silver/gold), Key Vault y workspace de Databricks con un script o Bicep</td>
+<td>Azure CLI</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Configurar Unity Catalog: catálogos <code>dev</code>/<code>prod</code>, esquemas, external locations, grupos y permisos</td>
+<td>Databricks</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Ingestar los datos crudos a bronze con Auto Loader</td>
+<td>Spark / PySpark</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Construir silver: limpieza, tipos, deduplicación, MERGE, reglas de calidad con cuarentena</td>
+<td>PySpark</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Modelar gold con dbt: <code>fct_ventas</code>, <code>dim_clientes</code>, <code>dim_productos</code>, <code>mart_rfm</code>, tests y docs</td>
+<td>dbt + SQL</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Orquestar con Airflow (sensor → job Databricks → dbt build → aviso) o con un job multi-tarea</td>
+<td>Airflow / Databricks</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Empaquetar todo con Declarative Automation Bundles y desplegar con GitHub Actions</td>
+<td>Databricks CLI + Git</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Responder las preguntas de negocio con SQL avanzado</td>
+<td>SQL</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Para tu portafolio</div>
+
+<p>Sube el proyecto a GitHub con un README que tenga: el diagrama de arquitectura, cómo correrlo, decisiones de diseño (¿por qué incremental?, ¿por qué esa partición?), y capturas del tablero y del linaje. Eso vale más que cualquier certificado.</p>
+</div>
+
+
+<h2>Por qué cada pieza, en una frase</h2>
+<p>Una arquitectura no es una lista de herramientas: es una decisión por cada necesidad. Si en una entrevista te preguntan &quot;¿por qué usaste X?&quot;, la respuesta tiene que ser la necesidad, no la moda.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Necesidad que resuelve</th>
+<th>Alternativa razonable</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Data Factory</strong> para el ERP</td>
+<td>Copiar tablas de una base SQL por lotes, sin programar conectores, incluso desde una red privada</td>
+<td>Lakeflow Connect o un script de Python propio</td>
+</tr>
+<tr>
+<td><strong>Python</strong> para la API de pagos</td>
+<td>La API tiene paginación y límites de solicitudes: hace falta lógica</td>
+<td>Una función en la nube (Azure Functions)</td>
+</tr>
+<tr>
+<td><strong>Event Hubs</strong> para los clics</td>
+<td>Llegan miles de eventos por segundo, todo el día</td>
+<td>Kafka administrado</td>
+</tr>
+<tr>
+<td><strong>ADLS Gen2</strong></td>
+<td>Guardar todo barato y para siempre, en carpetas con permisos</td>
+<td>— (es el lago)</td>
+</tr>
+<tr>
+<td><strong>Auto Loader</strong> a bronze</td>
+<td>Procesar solo los archivos nuevos, sin listar millones de archivos cada vez</td>
+<td><code>COPY INTO</code></td>
+</tr>
+<tr>
+<td><strong>PySpark</strong> a silver</td>
+<td>Limpiar y deduplicar millones de filas con reglas en código</td>
+<td>SQL en Databricks</td>
+</tr>
+<tr>
+<td><strong>dbt</strong> a gold</td>
+<td>Métricas de negocio en SQL, con tests, documentación y linaje</td>
+<td>Vistas en Databricks SQL (sin tests ni versiones)</td>
+</tr>
+<tr>
+<td><strong>Unity Catalog</strong></td>
+<td>Un solo lugar para permisos, linaje y auditoría</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Airflow / Lakeflow Jobs</strong></td>
+<td>Orden, horarios, reintentos y alertas</td>
+<td>Uno u otro: Lakeflow Jobs si todo vive en Databricks</td>
+</tr>
+<tr>
+<td><strong>Bicep + bundles + GitHub Actions</strong></td>
+<td>Que todo se pueda recrear y que nada se cambie a mano en producción</td>
+<td>Terraform</td>
+</tr>
+</tbody></table></div>
+<h3>Cuánto puede costar</h3>
+<p>Para el volumen del caso (algunos GB por día), un entorno así cuesta en Azure del orden de cientos de dólares por mes, casi todo en cómputo de Databricks. Las decisiones que más lo bajan: cómputo <em>serverless</em> o clústeres de jobs que se apagan al terminar, auto-stop del SQL warehouse, incremental en lugar de reconstruir todo, y almacenamiento con ciclo de vida para bronze viejo. Estimar el costo antes de construir (y medirlo después con las <em>system tables</em>) es parte del diseño.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Elegir herramientas antes que necesidades</strong>: un proyecto con Kafka, Spark y Airflow para 10.000 filas por día es caro y difícil de mantener.</li>
+<li><strong>Saltarse bronze</strong> y escribir directo a silver: cuando una regla de limpieza estaba mal, no hay datos originales para reprocesar.</li>
+<li><strong>Un solo entorno</strong>: probar en producción. Desde el paso 2, catálogos <code>dev</code> y <code>prod</code> separados.</li>
+<li><strong>Secretos en notebooks o en el repositorio</strong>: todo va a Key Vault, leído con <em>secret scopes</em> o identidades administradas.</li>
+<li><strong>Sin alertas</strong>: el tablero de las 7:00 vacío lo descubre la gerencia, no el equipo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Este diseño (lago en la nube, Databricks con Unity Catalog, dbt, un orquestador e IaC) es uno de los más comunes en empresas medianas y grandes de Latinoamérica.</li>
+<li>En un equipo real, el paso 1 y el 7 suelen ser de un equipo de plataforma; el data engineer se concentra en los pasos 3 a 6, y el analista en el 8.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Diseña la plataforma de datos de una tienda online que quiere un tablero diario a las 7:00.&quot;</div>
+
+<p>Empezaría por los requisitos: fuentes, volumen, frescura, quién consume y presupuesto. Propondría un lakehouse: ingesta a bronze sin transformar (por lotes del ERP, la API con un proceso en Python, eventos por streaming), silver con limpieza, deduplicación y cuarentena en Spark con MERGE, y gold con dbt y tests, servido por un SQL warehouse a Power BI. Unity Catalog para permisos y linaje, un orquestador con reintentos y alertas que no publica si fallan los tests, y todo como código con CI/CD. Terminaría con costos y monitoreo de frescura.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>1 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-arquitectura">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-observabilidad-de-datos.html">← Proyecto 12: Observabilidad de datos - salud, calidad y costos de la plataforma</a><a href="proyecto-caso-sql.html">Caso práctico I: el informe ejecutivo en SQL →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

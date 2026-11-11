@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio AWS: entrenar con Spot, desplegar y borrar un endpoint de SageMaker · Academia de Datos</title><meta name="description" content="Entrena un modelo XGBoost de demoras de envíos con Managed Spot Training y checkpoints, registra el modelo, crea la configuración y el endpoint en tiempo real, invócalo con un CSV y borra los tres recursos en el orden correcto. Es la práctica central del MLA-C01."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-sagemaker.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Laboratorio AWS: entrenar con Spot, desplegar y borrar un endpoint de SageMaker · Academia de Datos"><meta property="og:description" content="Entrena un modelo XGBoost de demoras de envíos con Managed Spot Training y checkpoints, registra el modelo, crea la configuración y el endpoint en tiempo real, invócalo con un CSV y borra los tres recursos en el orden correcto. Es la práctica central del MLA-C01."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-sagemaker.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Avanzado · 50 min</div>
+<h1>Laboratorio AWS: entrenar con Spot, desplegar y borrar un endpoint de SageMaker</h1><p class="resumen">Entrena un modelo XGBoost de demoras de envíos con Managed Spot Training y checkpoints, registra el modelo, crea la configuración y el endpoint en tiempo real, invócalo con un CSV y borra los tres recursos en el orden correcto. Es la práctica central del MLA-C01.</p>
+<a class="cta" href="../index.html#/l/laboratorios-aws-sagemaker">▶ Abrir la lección interactiva (13 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Lanzar un training job con Spot y entender MaxWaitTimeInSeconds y los checkpoints</li><li>Leer el tiempo facturado frente al tiempo total</li><li>Crear modelo, configuración de endpoint y endpoint</li><li>Invocar el endpoint con sagemaker-runtime</li><li>Borrar endpoint, configuración y modelo</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo de logística quiere predecir qué envíos van a llegar tarde. El científico de datos ya tiene el script; a ti te toca entrenarlo barato, publicarlo para que la app lo consulte y no dejar nada encendido el fin de semana.</p>
+</div>
+
+
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Entrenamiento y despliegue en SageMaker AI</figcaption></figure>
+
+
+<h2>Costo en una cuenta real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td>Entrenamiento <code>ml.m5.xlarge</code> bajo demanda, 30 min</td>
+<td>Unos USD 0,12</td>
+</tr>
+<tr>
+<td>El mismo con <strong>Spot</strong></td>
+<td>Hasta 70-90 % menos: unos USD 0,04</td>
+</tr>
+<tr>
+<td>Endpoint <code>ml.m5.large</code></td>
+<td>USD 0,115 por hora <strong>mientras exista</strong></td>
+</tr>
+<tr>
+<td>Artefactos en S3</td>
+<td>Centavos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El endpoint es lo único peligroso</div>
+
+<p>Si te vas a dormir con el endpoint creado, pagas toda la noche. Para cargas esporádicas existen <strong>Serverless Inference</strong> (cobra por invocación) y <strong>Asynchronous Inference</strong> con escalado a cero.</p>
+</div>
+
+
+<h2>Práctica guiada</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En tu cuenta real</h2>
+<ul>
+<li>El <strong>rol</strong> necesita la política <code>AmazonSageMakerFullAccess</code> (o una mínima) y acceso al bucket.</li>
+<li>El script de entrenamiento lee los datos de <code>/opt/ml/input/data/train/</code> y escribe el modelo en <code>/opt/ml/model/</code>. Con la imagen integrada de XGBoost alcanza con pasar un canal <code>train</code> con un CSV sin encabezado y la etiqueta en la primera columna.</li>
+<li>El endpoint tarda de 5 a 10 minutos en quedar <code>InService</code>: <code>aws sagemaker wait endpoint-in-service --endpoint-name demoras</code>.</li>
+</ul>
+<pre data-norun><code class="language-python">import sagemaker
+from sagemaker.estimator import Estimator
+
+sesion = sagemaker.Session()
+imagen = sagemaker.image_uris.retrieve(&quot;xgboost&quot;, sesion.boto_region_name, &quot;1.7-1&quot;)
+est = Estimator(
+    image_uri=imagen, role=&quot;arn:aws:iam::123456789012:role/rol-sagemaker&quot;,
+    instance_count=1, instance_type=&quot;ml.m5.xlarge&quot;,
+    use_spot_instances=True, max_run=3600, max_wait=7200,
+    checkpoint_s3_uri=&quot;s3://ml-demoras-lab/checkpoints/&quot;,
+    output_path=&quot;s3://ml-demoras-lab/modelos/&quot;,
+    hyperparameters={&quot;objective&quot;: &quot;binary:logistic&quot;, &quot;num_round&quot;: 200},
+)
+est.fit({&quot;train&quot;: &quot;s3://ml-demoras-lab/datos/train/&quot;})
+pred = est.deploy(initial_instance_count=1, instance_type=&quot;ml.m5.large&quot;)
+# … pruebas …
+pred.delete_endpoint()  # ¡no te olvides!</code></pre>
+<h2>Limpieza</h2>
+<p>El orden importa: primero el endpoint, después su configuración y por último el modelo.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<pre data-norun><code class="language-bash">aws s3 rb s3://ml-demoras-lab --force</code></pre>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Entrenar con Spot sin checkpoints</strong>: si AWS recupera la máquina, el entrenamiento vuelve a empezar de cero.</li>
+<li><strong>Borrar solo el modelo y dejar el endpoint</strong>: el endpoint es lo que cobra por hora. El orden es endpoint, configuración del endpoint y modelo.</li>
+<li><strong>Enviar al endpoint columnas en otro orden</strong> que el del entrenamiento (con CSV no hay nombres de columnas): el modelo predice sin errores, pero mal.</li>
+<li><strong>Un endpoint en tiempo real para predicciones que se usan una vez por día</strong>: una transformación por lotes (<em>batch transform</em>) o el cómputo serverless cuestan mucho menos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En producción el modelo se registra en un <em>model registry</em> con su versión, métricas y datos de entrenamiento, y el despliegue pasa por aprobación.</li>
+<li>El data engineer suele construir la tabla de entrenamiento y la de predicciones, y el pipeline que vuelve a entrenar; el endpoint lo opera el equipo de ML o de plataforma.</li>
+<li>Las predicciones se monitorean: si la distribución de los datos de entrada cambia (<em>drift</em>), se reentrena.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cuándo usarías un endpoint en tiempo real y cuándo predicciones por lotes?&quot;</div>
+
+<p>Tiempo real cuando la respuesta se necesita en el momento de una interacción, por ejemplo al cotizar o al aprobar un pago, y la latencia importa. Por lotes cuando las predicciones se usan después, como un puntaje diario de riesgo de churn: se calculan para todos de una vez, se guardan en una tabla y no hay una máquina encendida todo el día. El costo de un endpoint es por hora, así que si se usa poco, lotes o serverless.</p>
+</div>
+
+
+<h2>Preguntas de examen</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>13 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-aws-sagemaker">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-aws-bedrock-rag.html">← Laboratorio AWS: RAG con Bedrock Knowledge Bases, Guardrails y lotes</a><a href="laboratorios-aws-operacion-seguridad.html">Laboratorio AWS: operación y seguridad de un pipeline →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

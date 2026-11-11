@@ -16,6 +16,10 @@ Diego, de finanzas, recibe cada mañana un JSON con los pagos del día que manda
 
 Leer un archivo, procesarlo y escribir otro es el corazón de cualquier pipeline. Esta lección te da las herramientas de la librería estándar para hacerlo: archivos, CSV, JSON y fechas.
 :::
+:::analogia En palabras simples
+Python trae una caja de herramientas enorme lista para usar: leer y escribir archivos, trabajar con fechas, con CSV o con JSON. Un **módulo** es un cajón de esa caja; con `import` lo abres y tomas lo que necesitas. No hace falta construir un martillo cada vez que quieres clavar algo.
+:::
+
 ## Más allá de un solo archivo de código
 
 Hasta ahora todo tu código vivía en un solo lugar y los datos estaban escritos dentro del programa. En el trabajo real, los datos vienen de **archivos** (CSV, JSON, logs), y el código se organiza en **módulos** que se reutilizan. Además, Python trae una enorme **biblioteca estándar** con herramientas listas para usar. Esta lección cubre esas tres cosas: importar, leer y escribir archivos, y las herramientas más útiles para datos.

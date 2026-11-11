@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelado dimensional de Kimball, paso a paso · Academia de Datos</title><meta name="description" content="El método de 4 pasos, la matriz de bus, los tres tipos de tablas de hechos, medidas aditivas y semiaditivas, dimensiones conformadas y la dimensión de fecha."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-kimball.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Modelado dimensional de Kimball, paso a paso · Academia de Datos"><meta property="og:description" content="El método de 4 pasos, la matriz de bus, los tres tipos de tablas de hechos, medidas aditivas y semiaditivas, dimensiones conformadas y la dimensión de fecha."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-kimball.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#modelado">📐 Modelado de datos</a> · Avanzado · 60 min</div>
+<h1>Modelado dimensional de Kimball, paso a paso</h1><p class="resumen">El método de 4 pasos, la matriz de bus, los tres tipos de tablas de hechos, medidas aditivas y semiaditivas, dimensiones conformadas y la dimensión de fecha.</p>
+<a class="cta" href="../index.html#/l/modelado-kimball">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Aplicar los 4 pasos de Kimball: proceso de negocio, grano, dimensiones y hechos</li><li>Elegir entre hechos transaccionales, snapshots periódicos y snapshots acumulativos</li><li>Distinguir medidas aditivas, semiaditivas y no aditivas y agregarlas correctamente</li><li>Construir con SQL una tabla de hechos, una dimensión de fecha y un snapshot periódico</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El modelado dimensional es como un ticket de supermercado bien organizado: en el centro, lo que pasó (qué se compró, cuánto y por cuánto: los <strong>hechos</strong>), y alrededor, las preguntas para entenderlo (quién, dónde, cuándo: las <strong>dimensiones</strong>). Esa forma de estrella hace que cualquier pregunta de negocio sea fácil de responder.</p>
+</div>
+
+
+<h2>Los 4 pasos de Kimball</h2>
+<figure class="diagrama"><figcaption>El método de 4 pasos, siempre en este orden</figcaption></figure>
+
+
+<p><strong>1. Elegir el proceso de negocio.</strong> No &quot;las ventas&quot; en abstracto, sino un <strong>evento</strong> que ocurre y se registra: tomar un pedido, cobrar un pago, despachar un envío. Cada proceso será una tabla de hechos.</p>
+<p><strong>2. Declarar el grano.</strong> Una frase que dice <strong>qué representa exactamente una fila</strong>: <em>&quot;una fila por cada línea de producto de un pedido&quot;</em>. Es el paso más importante: todo lo demás se decide a partir de él. El grano más fino (el más detallado) es el más flexible: siempre se puede agregar hacia arriba, nunca desagregar.</p>
+<p><strong>3. Identificar las dimensiones.</strong> Las preguntas de contexto del evento: <strong>quién</strong> (cliente, vendedor), <strong>qué</strong> (producto), <strong>dónde</strong> (tienda, país), <strong>cuándo</strong> (fecha), <strong>cómo</strong> (canal, medio de pago). Cada una es una tabla de dimensión, con atributos descriptivos para filtrar y agrupar.</p>
+<p><strong>4. Identificar los hechos.</strong> Los <strong>números</strong> que se miden en ese evento, al grano declarado: unidades, importe bruto, descuento, importe neto, costo.</p>
+<h3>Aplicado a Tienda Andina</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Decisión</th>
+</tr>
+</thead><tbody><tr>
+<td>Proceso</td>
+<td>Venta (toma de pedidos)</td>
+</tr>
+<tr>
+<td>Grano</td>
+<td>Una fila por línea de pedido (<code>detalle_pedidos</code>)</td>
+</tr>
+<tr>
+<td>Dimensiones</td>
+<td>fecha, cliente, producto (con categoría), canal, medio de pago, vendedor</td>
+</tr>
+<tr>
+<td>Hechos</td>
+<td>cantidad, importe bruto, descuento, importe neto, costo, margen</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>fct_ventas al grano de línea de pedido, con sus dimensiones</figcaption></figure>
+
+
+<p>El <code>pedido_id</code> queda en la tabla de hechos sin tabla propia: se llama <strong>dimensión degenerada</strong>. Sirve para contar pedidos (<code>COUNT(DISTINCT pedido_id)</code>) o agrupar líneas del mismo pedido.</p>
+<h2>Los tres tipos de tablas de hechos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Grano</th>
+<th>Ejemplo</th>
+<th>Se actualiza</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Transaccional</strong></td>
+<td>Un evento</td>
+<td>Cada línea de pedido, cada pago, cada clic</td>
+<td>Solo se agregan filas</td>
+</tr>
+<tr>
+<td><strong>Snapshot periódico</strong></td>
+<td>El estado de algo al final de cada período</td>
+<td>Stock de cada producto en cada almacén <strong>al cierre de cada día</strong>; saldo de cada cuenta a fin de mes</td>
+<td>Se agrega una &quot;foto&quot; por período</td>
+</tr>
+<tr>
+<td><strong>Snapshot acumulativo</strong></td>
+<td>Un proceso con etapas, una fila que se va completando</td>
+<td>Cada pedido con sus fechas: creado, pagado, despachado, entregado</td>
+<td>La misma fila se actualiza a medida que avanza</td>
+</tr>
+</tbody></table></div>
+<p>Ejemplo de snapshot acumulativo para pedidos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>pedido_id</th>
+<th>fecha_creado</th>
+<th>fecha_pagado</th>
+<th>fecha_despachado</th>
+<th>fecha_entregado</th>
+<th>dias_a_pago</th>
+<th>dias_a_entrega</th>
+</tr>
+</thead><tbody><tr>
+<td>1001</td>
+<td>2024-12-01</td>
+<td>2024-12-01</td>
+<td>2024-12-02</td>
+<td>2024-12-05</td>
+<td>0</td>
+<td>4</td>
+</tr>
+<tr>
+<td>1002</td>
+<td>2024-12-01</td>
+<td>2024-12-03</td>
+<td>NULL</td>
+<td>NULL</td>
+<td>2</td>
+<td>NULL</td>
+</tr>
+</tbody></table></div>
+<p>Responde preguntas de <strong>eficiencia del proceso</strong>: ¿cuánto tardamos en promedio de pago a despacho? ¿Cuántos pedidos están &quot;trabados&quot; en una etapa?</p>
+<h2>Medidas aditivas, semiaditivas y no aditivas</h2>
+<p>No todos los números se pueden sumar en todas las dimensiones:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Se puede sumar…</th>
+<th>Ejemplo</th>
+<th>Cómo se agrega</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Aditiva</strong></td>
+<td>En todas las dimensiones</td>
+<td>Unidades vendidas, importe</td>
+<td><code>SUM</code></td>
+</tr>
+<tr>
+<td><strong>Semiaditiva</strong></td>
+<td>En algunas, <strong>no en el tiempo</strong></td>
+<td>Stock, saldo de una cuenta</td>
+<td>Sumar entre almacenes sí; entre días, <strong>no</strong>: se toma el último o el promedio</td>
+</tr>
+<tr>
+<td><strong>No aditiva</strong></td>
+<td>En ninguna</td>
+<td>Porcentajes, precios unitarios, ratios</td>
+<td>Se recalcula desde sus componentes: <code>SUM(margen) / SUM(importe)</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El error del stock sumado</div>
+
+<p>Si un producto tiene 100 unidades el lunes y 100 el martes, el stock de &quot;lunes y martes&quot; <strong>no</strong> es 200: sigue siendo 100. Sumar un snapshot periódico a través del tiempo es uno de los errores más comunes en los tableros. Y el margen promedio de dos categorías no es el promedio de sus porcentajes: se recalcula con los totales.</p>
+</div>
+
+
+<h2>Dimensiones conformadas y la matriz de bus</h2>
+<p>Una <strong>dimensión conformada</strong> es una dimensión <strong>compartida</strong> por varias tablas de hechos, con las mismas claves y atributos. Si <code>fct_ventas</code> y <code>fct_devoluciones</code> usan la misma <code>dim_producto</code>, puedes poner ventas y devoluciones lado a lado por categoría y los números cuadran.</p>
+<p>La <strong>matriz de bus</strong> es la herramienta de planificación de Kimball: procesos en las filas, dimensiones en las columnas. Cada ✔ es una dimensión que ese proceso usa:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Proceso \ Dimensión</th>
+<th>Fecha</th>
+<th>Cliente</th>
+<th>Producto</th>
+<th>Canal</th>
+<th>Almacén</th>
+<th>Transportista</th>
+</tr>
+</thead><tbody><tr>
+<td>Ventas</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Pagos</td>
+<td>✔</td>
+<td>✔</td>
+<td></td>
+<td>✔</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Stock diario</td>
+<td>✔</td>
+<td></td>
+<td>✔</td>
+<td></td>
+<td>✔</td>
+<td></td>
+</tr>
+<tr>
+<td>Envíos</td>
+<td>✔</td>
+<td>✔</td>
+<td></td>
+<td></td>
+<td>✔</td>
+<td>✔</td>
+</tr>
+</tbody></table></div>
+<p>Las columnas con varios ✔ (fecha, cliente, producto) son las dimensiones que <strong>hay que conformar primero</strong>: las comparten varios procesos. La matriz también es un plan de trabajo: cada fila es un entregable.</p>
+<h2>La dimensión de fecha</h2>
+<p>Casi todo análisis corta por tiempo, y las funciones de fecha de cada motor son distintas y lentas de escribir. Por eso se construye <strong>una tabla con una fila por día</strong> y todos los atributos útiles ya calculados:</p>
+<pre><code class="language-sql">WITH RECURSIVE dias(fecha) AS (
+    SELECT DATE('2024-12-20')
+    UNION ALL
+    SELECT DATE(fecha, '+1 day') FROM dias WHERE fecha &lt; '2025-01-05'
+)
+SELECT
+    CAST(strftime('%Y%m%d', fecha) AS INTEGER)              AS fecha_key,
+    fecha,
+    CAST(strftime('%Y', fecha) AS INTEGER)                  AS anio,
+    CAST(strftime('%m', fecha) AS INTEGER)                  AS mes,
+    (CAST(strftime('%m', fecha) AS INTEGER) + 2) / 3        AS trimestre,
+    CASE strftime('%w', fecha) WHEN '0' THEN 'domingo' WHEN '1' THEN 'lunes' WHEN '2' THEN 'martes'
+         WHEN '3' THEN 'miércoles' WHEN '4' THEN 'jueves' WHEN '5' THEN 'viernes' ELSE 'sábado' END AS dia_semana,
+    strftime('%w', fecha) IN ('0', '6')                     AS es_fin_de_semana,
+    fecha IN ('2024-12-25', '2025-01-01')                   AS es_feriado
+FROM dias;</code></pre>
+<p>En producción se genera para muchos años (en dbt, con <code>dbt_utils.date_spine</code>) y se le agregan feriados de cada país, semanas fiscales y temporadas comerciales. La clave <code>fecha_key</code> (<code>20241225</code>) es un entero legible: la usan las tablas de hechos.</p>
+<h2>Construir la tabla de hechos con SQL</h2>
+<p>Este es el núcleo de <code>fct_ventas</code>, al grano de línea de pedido, con las medidas calculadas:</p>
+<pre><code class="language-sql">SELECT
+    d.detalle_id                                           AS venta_id,
+    d.pedido_id,                                           -- dimensión degenerada
+    CAST(strftime('%Y%m%d', p.fecha_pedido) AS INTEGER)    AS fecha_key,
+    p.cliente_id,
+    d.producto_id,
+    p.canal,
+    d.cantidad,
+    ROUND(d.cantidad * d.precio_unitario, 2)                     AS importe_bruto,
+    ROUND(d.cantidad * d.precio_unitario * d.descuento, 2)       AS descuento,
+    ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe_neto,
+    ROUND(d.cantidad * pr.costo, 2)                              AS costo
+FROM detalle_pedidos d
+JOIN pedidos   p  ON p.pedido_id = d.pedido_id
+JOIN productos pr ON pr.producto_id = d.producto_id
+WHERE p.estado &lt;&gt; 'cancelado'
+LIMIT 10;</code></pre>
+<p>Fíjate en el <strong>costo</strong>: se guarda calculado en el hecho (con el costo del producto), no se recalcula en cada tablero. En un modelo más completo se usaría el costo <strong>vigente en la fecha</strong> de la venta, no el de hoy (lo resuelven las SCD de la próxima lección).</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mezclar granos</strong> en una tabla de hechos: líneas de pedido junto con el costo de envío (que es por pedido). Al sumar, el envío se multiplica por la cantidad de líneas.</li>
+<li><strong>Empezar por las dimensiones</strong> sin declarar el grano: terminas con hechos que no se sabe a qué nivel están.</li>
+<li><strong>Sumar medidas semiaditivas en el tiempo</strong> (stock, saldo) o promediar porcentajes.</li>
+<li><strong>Dimensiones distintas para lo mismo</strong>: <code>dim_cliente</code> de ventas y <code>dim_cliente</code> de marketing con atributos diferentes. Los números de los dos tableros nunca van a cuadrar.</li>
+<li><strong>Elegir un grano agregado &quot;porque ocupa menos&quot;</strong>: después alguien pide el detalle y no existe.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El modelo para el dashboard de ventas</div>
+
+<p>Martín te asigna el diseño del modelo gold de Tienda Andina:</p>
+<blockquote>
+<p>&quot;Hoy cada analista arma sus consultas desde las tablas de la app y cada uno llega a un número distinto. Quiero un modelo dimensional como corresponde: con el que cualquiera pueda responder &#39;ventas por categoría, país y mes&#39; con un JOIN simple, y que dé siempre lo mismo.&quot;</p>
+</blockquote>
+<p>Ya viste la idea del esquema estrella en SQL. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En dbt, los modelos gold siguen esta estructura: <code>fct_</code> para hechos y <code>dim_</code> para dimensiones, documentados con el grano en la descripción del modelo y un test de unicidad sobre la clave del grano.</li>
+<li>La matriz de bus se usa en la planificación de proyectos: cada fila es un &quot;épico&quot; que se entrega por separado, y las dimensiones compartidas se construyen primero.</li>
+<li>En plataformas columnares (BigQuery, Databricks, Snowflake) a veces se agrega a la estrella una tabla ancha (OBT) para el BI: lo verás en una lección próxima. La estrella sigue siendo la base.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Diseña el modelo dimensional para una cadena de cines&quot;</div>
+
+<p>Aplica los 4 pasos en voz alta. Proceso: venta de entradas. Grano: una fila por entrada vendida. Dimensiones: fecha y hora de la función, película, sala/cine, cliente (si hay programa de fidelidad), canal (taquilla, web, app), tipo de entrada (adulto, menor, promoción). Hechos: precio pagado, descuento, costo de comisión. Después menciona otros procesos con su propia tabla de hechos (ventas de la confitería, con dimensiones conformadas fecha y cine) y un snapshot periódico de ocupación por función.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/modelado-kimball">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="modelado-normalizacion.html">← Normalización: de la planilla a tablas sanas (1FN, 2FN, 3FN)</a><a href="modelado-scd.html">Dimensiones lentamente cambiantes (SCD) con SQL →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

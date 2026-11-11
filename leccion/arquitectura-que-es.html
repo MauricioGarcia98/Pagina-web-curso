@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qué es la arquitectura de datos · Academia de Datos</title><meta name="description" content="Los siete componentes de toda plataforma de datos, los requisitos que deciden su forma y cómo leer (y dibujar) una arquitectura."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-que-es.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Qué es la arquitectura de datos · Academia de Datos"><meta property="og:description" content="Los siete componentes de toda plataforma de datos, los requisitos que deciden su forma y cómo leer (y dibujar) una arquitectura."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-que-es.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Intermedio · 45 min</div>
+<h1>Qué es la arquitectura de datos</h1><p class="resumen">Los siete componentes de toda plataforma de datos, los requisitos que deciden su forma y cómo leer (y dibujar) una arquitectura.</p>
+<a class="cta" href="../index.html#/l/arquitectura-que-es">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Nombrar los siete componentes de una plataforma de datos y qué problema resuelve cada uno</li><li>Traducir requisitos del negocio (latencia, volumen, costo, regulación) en decisiones de arquitectura</li><li>Leer un diagrama de arquitectura y explicar el recorrido de un dato</li><li>Dibujar la arquitectura actual de una empresa a partir de una descripción</li></ul>
+<h2>La idea en una frase</h2>
+<p>Una arquitectura de datos es <strong>el conjunto de piezas, y las reglas para conectarlas</strong>, que lleva los datos desde donde nacen hasta donde se usan, cumpliendo requisitos de tiempo, costo, calidad y seguridad.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La red de agua de una ciudad</div>
+
+<p>Una ciudad no tiene &quot;un caño&quot;: tiene captación en el río, plantas potabilizadoras, tanques de reserva, una red de distribución, medidores, controles de calidad y un centro de control que abre y cierra válvulas. Si diseñas mal una pieza (un tanque muy chico, una planta lenta), toda la ciudad lo sufre. Una plataforma de datos es igual: muchas piezas que tienen que funcionar juntas.</p>
+</div>
+
+
+<h2>Los siete componentes</h2>
+<p>Toda plataforma de datos, desde una startup hasta un banco, tiene estas siete piezas. Cambian las herramientas, no las piezas.</p>
+<figure class="diagrama"><figcaption>Los siete componentes de una plataforma de datos</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Componente</th>
+<th>Qué resuelve</th>
+<th>Herramientas típicas</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td><strong>Ingesta</strong></td>
+<td>Traer los datos desde las fuentes, completos y sin duplicar</td>
+<td>Fivetran, Airbyte, Data Factory, Glue, Debezium, Kafka Connect, scripts de Python</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Almacenamiento</strong></td>
+<td>Guardarlos de forma barata, segura y consultable</td>
+<td>S3, ADLS, GCS con Parquet/Delta/Iceberg; BigQuery, Snowflake, Redshift</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Procesamiento</strong></td>
+<td>Limpiarlos, unirlos y calcular lo que el negocio necesita</td>
+<td>Spark, dbt + SQL, Dataflow, Flink</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Servicio</strong> (<em>serving</em>)</td>
+<td>Entregarlos a quien los usa, en la forma que los necesita</td>
+<td>Power BI, Looker, APIs, feature stores, reverse ETL</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Orquestación</strong></td>
+<td>Decidir qué corre, en qué orden y qué pasa si algo falla</td>
+<td>Airflow, Lakeflow Jobs (Databricks), Step Functions, Dagster</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Gobierno y seguridad</strong></td>
+<td>Quién puede ver qué, qué significa cada dato, cumplir la ley</td>
+<td>Unity Catalog, Lake Formation, Dataplex, Purview, IAM</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Calidad y observabilidad</strong></td>
+<td>Enterarse antes que el negocio de que algo está mal</td>
+<td>Tests de dbt, Great Expectations, alertas, monitoreo de frescura</td>
+</tr>
+</tbody></table></div>
+<p>Los componentes 1 a 4 son el <strong>camino</strong> del dato. Los componentes 5 a 7 son <strong>transversales</strong>: tocan todo el camino. Un error común al empezar es diseñar solo el camino y dejar para &quot;después&quot; la orquestación, el gobierno y la calidad. Ese &quot;después&quot; suele llegar como un incidente.</p>
+<h2>Los requisitos deciden la forma</h2>
+<p>No existe &quot;la mejor arquitectura&quot;. Existe la mejor arquitectura <strong>para unos requisitos</strong>. Antes de elegir herramientas, un arquitecto hace preguntas. Las más importantes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Ejemplo de respuesta</th>
+<th>Qué decide</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>¿Cada cuánto se necesita el dato?</strong> (latencia)</td>
+<td>&quot;El tablero se mira una vez por día&quot; vs. &quot;detectar fraude en menos de 2 segundos&quot;</td>
+<td>Batch o streaming. Es la decisión más cara de cambiar</td>
+</tr>
+<tr>
+<td><strong>¿Cuánto volumen hay y cómo crece?</strong></td>
+<td>5 GB en total vs. 2 TB por día</td>
+<td>Una base de datos o un motor distribuido</td>
+</tr>
+<tr>
+<td><strong>¿Quién lo usa y cómo?</strong></td>
+<td>Analistas con SQL, científicos con Python, una app vía API</td>
+<td>Warehouse, lakehouse, API, feature store</td>
+</tr>
+<tr>
+<td><strong>¿Qué tan correcto tiene que ser?</strong></td>
+<td>Un tablero de tendencias vs. la facturación</td>
+<td>Cuántos controles de calidad y conciliaciones</td>
+</tr>
+<tr>
+<td><strong>¿Hay regulación?</strong></td>
+<td>Datos de salud, bancarios, personales</td>
+<td>Región de los datos, cifrado, enmascaramiento, auditoría</td>
+</tr>
+<tr>
+<td><strong>¿Cuánto se puede gastar?</strong></td>
+<td>Presupuesto mensual</td>
+<td>Serverless vs. clústeres, retención de datos</td>
+</tr>
+<tr>
+<td><strong>¿Qué sabe hacer el equipo?</strong></td>
+<td>Un equipo de 2 personas con SQL vs. 20 ingenieros</td>
+<td>Herramientas administradas o a medida</td>
+</tr>
+</tbody></table></div>
+<p>A estos se los llama <strong>requisitos no funcionales</strong>: no dicen <em>qué</em> calcula la plataforma, sino <em>cómo</em> tiene que comportarse (rápido, barato, seguro, confiable).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La trampa del &quot;tiempo real&quot;</div>
+
+<p>Cuando le preguntas al negocio &quot;¿lo necesitas en tiempo real?&quot;, casi siempre dice que sí. Pregunta mejor: <strong>&quot;¿qué decisión vas a tomar con este dato, y qué pasa si llega una hora tarde?&quot;</strong>. Si la respuesta es &quot;lo miro en la reunión de los lunes&quot;, un batch diario alcanza y cuesta diez veces menos de construir y mantener.</p>
+</div>
+
+
+<h2>Cómo leer un diagrama de arquitectura</h2>
+<p>Los diagramas de arquitectura se leen <strong>de izquierda a derecha</strong>, siguiendo al dato:</p>
+<ol>
+<li><strong>A la izquierda, las fuentes</strong>: dónde nace el dato.</li>
+<li><strong>En el medio, el camino</strong>: cómo entra, dónde se guarda, cómo se transforma.</li>
+<li><strong>A la derecha, el consumo</strong>: quién lo usa.</li>
+<li><strong>Arriba o abajo, lo transversal</strong>: orquestación, seguridad, monitoreo.</li>
+</ol>
+<p>Este es el diagrama de la plataforma actual de Tienda Andina. Intenta contar, antes de leer la explicación, el recorrido de un pedido:</p>
+<figure class="diagrama"><figcaption>La plataforma de datos actual de Tienda Andina (batch diario en AWS)</figcaption></figure>
+
+
+<p>El recorrido: el pedido se guarda en PostgreSQL; a la noche, un export lo copia a S3 (bronze) en Parquet; Airflow dispara un job de Glue (Spark) que limpia y deja silver; un <code>COPY</code> lo carga en Redshift, donde dbt construye gold; Power BI lo muestra a la mañana. Los eventos web siguen otro camino de entrada (Firehose) pero se juntan en S3.</p>
+<p>Fíjate que este diagrama ya responde preguntas de requisitos: la latencia es de <strong>un día</strong> (todo depende del export nocturno), y la plataforma vive en <strong>AWS</strong>.</p>
+<h2>Las decisiones que vas a tomar como arquitecto</h2>
+<p>Las próximas lecciones de este módulo recorren las grandes decisiones, una por una:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Lección</th>
+<th>Decisión</th>
+</tr>
+</thead><tbody><tr>
+<td>Ingesta</td>
+<td>¿Cargo todo cada vez o solo lo nuevo? ¿Cómo capturo los cambios?</td>
+</tr>
+<tr>
+<td>Almacenamiento</td>
+<td>¿Warehouse, lake o lakehouse? ¿Qué formato de tabla?</td>
+</tr>
+<tr>
+<td>Batch y streaming</td>
+<td>¿Cada cuánto proceso? ¿Lambda o Kappa?</td>
+</tr>
+<tr>
+<td>Diseño del lakehouse</td>
+<td>¿Cómo organizo capas, entornos y nombres?</td>
+</tr>
+<tr>
+<td>Calidad y gobierno</td>
+<td>¿Cómo me entero de que algo está mal? ¿Quién ve qué?</td>
+</tr>
+<tr>
+<td>Patrones modernos</td>
+<td>¿Data mesh, capa semántica, reverse ETL?</td>
+</tr>
+<tr>
+<td>Arquitecturas de referencia</td>
+<td>¿Cómo junto todo en un diseño y lo defiendo?</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Empezar por la herramienta</strong>: &quot;usemos Kafka&quot; antes de saber si alguien necesita los datos en menos de un día. Primero los requisitos, después las herramientas.</li>
+<li><strong>Diseñar para un volumen imaginario</strong>: un clúster de Spark para 3 GB cuesta más y es más complejo que una base de datos. Diseña para el volumen de hoy y para el crecimiento esperado de 1 a 2 años, no para &quot;por si algún día somos Netflix&quot;.</li>
+<li><strong>Olvidar lo transversal</strong>: una plataforma sin orquestación, sin monitoreo y sin permisos funciona en la demo y falla en producción.</li>
+<li><strong>Un diagrama sin flechas claras</strong>: si no se entiende por dónde va el dato, el diagrama no sirve para tomar decisiones.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La primera reunión de arquitectura</div>
+
+<p>Martín te invita a una reunión con la gerencia de tecnología:</p>
+<blockquote>
+<p>&quot;El Grupo Andino quiere una plataforma de datos única para las ocho empresas. Hoy cada una tiene sus scripts, sus planillas y sus bases sueltas. Vamos a diseñar la arquitectura juntos y quiero que propongas una parte. Antes de hablar de herramientas, quiero que entiendas qué piezas tiene que tener y de qué depende cada decisión.&quot;</p>
+</blockquote>
+<p>Hasta ahora aprendiste herramientas: SQL, Spark, dbt, Airflow, las nubes. La <strong>arquitectura de datos</strong> es cómo se combinan esas herramientas para que los datos lleguen, correctos y a tiempo, a quien los necesita. Es lo que separa a quien &quot;sabe usar Spark&quot; de quien puede diseñar una plataforma.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas, las decisiones de arquitectura se documentan en <strong>ADRs</strong> (<em>Architecture Decision Records</em>): un documento corto por decisión con el contexto, las opciones evaluadas, la elegida y por qué. Dentro de dos años, alguien va a preguntar &quot;¿por qué usamos esto?&quot;, y la respuesta va a estar escrita.</li>
+<li>Los diagramas se mantienen como <strong>código</strong> (en Excalidraw, draw.io o Mermaid dentro del repositorio), para que cambien junto con la plataforma.</li>
+<li>La pregunta &quot;diseñá la plataforma de datos de X&quot; es la más común en las entrevistas de data engineer semi senior y senior. Este módulo te prepara para responderla.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Diseña la plataforma de datos para una empresa de e-commerce&quot;</div>
+
+<p>No empieces por las herramientas. Pregunta primero: ¿qué preguntas quieren responder?, ¿cada cuánto?, ¿cuánto volumen hay?, ¿quién consume los datos?, ¿en qué nube están? Después recorre los siete componentes en orden (fuentes → ingesta → almacenamiento → procesamiento → servicio, y luego orquestación, calidad y gobierno), nombrando una herramienta para cada uno y <strong>por qué</strong>. Termina con los riesgos: costos, puntos únicos de falla y cómo escalaría.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-que-es">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-snowflake-por-dentro.html">← Snowflake por dentro - warehouses, bases, stages, Time Travel y costos</a><a href="arquitectura-ingesta.html">Ingesta: carga completa, incremental, CDC y streaming →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

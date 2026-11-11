@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El portal de Azure por dentro - qué es cada parte y para qué sirve · Academia de Datos</title><meta name="description" content="Recorrido completo por el portal de Azure - la jerarquía tenant, suscripción, grupo de recursos y recurso; la barra superior, las hojas (blades), el asistente de creación, IAM, bloqueos, etiquetas, costos y los recursos de datos (Storage, Key Vault, Databricks, Data Factory)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-portal-azure-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El portal de Azure por dentro - qué es cada parte y para qué sirve · Academia de Datos"><meta property="og:description" content="Recorrido completo por el portal de Azure - la jerarquía tenant, suscripción, grupo de recursos y recurso; la barra superior, las hojas (blades), el asistente de creación, IAM, bloqueos, etiquetas, costos y los recursos de datos (Storage, Key Vault, Databricks, Data Factory)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-portal-azure-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 45 min</div>
+<h1>El portal de Azure por dentro - qué es cada parte y para qué sirve</h1><p class="resumen">Recorrido completo por el portal de Azure - la jerarquía tenant, suscripción, grupo de recursos y recurso; la barra superior, las hojas (blades), el asistente de creación, IAM, bloqueos, etiquetas, costos y los recursos de datos (Storage, Key Vault, Databricks, Data Factory).</p>
+<a class="cta" href="../index.html#/l/interfaces-portal-azure-por-dentro">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la jerarquía tenant → grupos de administración → suscripción → grupo de recursos → recurso</li><li>Ubicar cada zona del portal y de la hoja de un recurso</li><li>Crear recursos con el asistente y entender la implementación (deployment)</li><li>Dar permisos con RBAC distinguiendo plano de control y plano de datos</li><li>Configurar una cuenta de almacenamiento y un Key Vault para un proyecto de datos</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre el <a href="#/azure">portal de Azure de práctica</a> y busca cada parte. Usa el botón <strong>🎯 Retos</strong> de abajo a la derecha: los retos te llevan por casi todo lo que explica esta lección.</p>
+</div>
+
+
+<h2>La jerarquía: dónde vive cada cosa</h2>
+<pre><code class="language-text">Tenant de Microsoft Entra ID  (tu organización: usuarios, grupos, aplicaciones)
+└── Grupos de administración   (opcional: agrupar suscripciones para aplicar políticas)
+    └── Suscripción            (la &quot;cuenta de facturación&quot; y límite de permisos)
+        └── Grupo de recursos  (carpeta lógica: todo lo de un proyecto o entorno)
+            └── Recurso        (una cuenta de almacenamiento, un Key Vault, un workspace…)</code></pre>
+<ul>
+<li><strong>Tenant (inquilino)</strong>: la identidad de tu organización en Microsoft Entra ID (antes Azure Active Directory). Ahí viven los usuarios y grupos.</li>
+<li><strong>Suscripción</strong>: todo lo que se crea se cobra a una suscripción. Las empresas suelen separar <em>desarrollo</em> y <em>producción</em> en suscripciones distintas.</li>
+<li><strong>Grupo de recursos</strong>: agrupa recursos que nacen, se administran y se borran juntos. Borrar el grupo borra todo lo de adentro.</li>
+<li><strong>Región</strong>: dónde están físicamente los datos (East US, Brazil South…). Muchas regiones tienen <strong>zonas de disponibilidad</strong>: centros de datos separados dentro de la región.</li>
+</ul>
+<p>Los <strong>permisos, bloqueos, etiquetas y políticas se heredan</strong> hacia abajo: un rol dado en la suscripción vale para todos sus grupos y recursos.</p>
+<h2>La ventana del portal</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>☰ Menú del portal</strong></td>
+<td>Inicio, Panel, Todos los servicios, <strong>Favoritos</strong> (los servicios que fijas)</td>
+</tr>
+<tr>
+<td><strong>Buscar</strong> (atajo <code>G</code> + <code>/</code>)</td>
+<td>Busca recursos, servicios, grupos y documentación a la vez</td>
+</tr>
+<tr>
+<td><strong>Cloud Shell</strong> (ícono <code>&gt;_</code>)</td>
+<td>Una terminal con <strong>Azure CLI</strong> y PowerShell ya autenticadas en tu cuenta</td>
+</tr>
+<tr>
+<td><strong>Notificaciones</strong> (campana)</td>
+<td>El avance de las implementaciones y operaciones largas</td>
+</tr>
+<tr>
+<td><strong>Configuración</strong> (engranaje)</td>
+<td>Directorios y suscripciones, idioma, tema, filtro de suscripciones</td>
+</tr>
+<tr>
+<td><strong>Ayuda</strong> y <strong>cuenta</strong></td>
+<td>Soporte, comentarios; cambiar de directorio, cerrar sesión</td>
+</tr>
+<tr>
+<td><strong>Inicio</strong></td>
+<td>Servicios de Azure, recursos recientes, herramientas (Microsoft Learn, Cost Management)</td>
+</tr>
+</tbody></table></div>
+<h3>La hoja (blade) de un recurso</h3>
+<p>Cuando abres un recurso, se abre una <strong>hoja</strong>: un menú a la izquierda y el contenido a la derecha. Las hojas se apilan hacia la derecha y la <strong>ruta de navegación</strong> (<em>breadcrumb</em>) arriba te deja volver.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección del menú</th>
+<th>Qué hay</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Información general</strong> (<em>Overview</em>)</td>
+<td><strong>Essentials</strong>: grupo de recursos, ubicación, suscripción, etiquetas, estado. Arriba, la barra de comandos (Eliminar, Mover, Actualizar). <strong>Vista JSON</strong>: el recurso completo con su ID</td>
+</tr>
+<tr>
+<td><strong>Registro de actividad</strong></td>
+<td>Quién hizo qué y cuándo sobre el recurso (crear, cambiar, borrar, dar permisos)</td>
+</tr>
+<tr>
+<td><strong>Control de acceso (IAM)</strong></td>
+<td>Asignaciones de roles, comprobar acceso, roles disponibles</td>
+</tr>
+<tr>
+<td><strong>Etiquetas</strong></td>
+<td>Pares clave=valor (entorno=dev, equipo=datos) para organizar y repartir costos</td>
+</tr>
+<tr>
+<td><strong>Diagnosticar y solucionar problemas</strong></td>
+<td>Detectores automáticos de problemas comunes</td>
+</tr>
+<tr>
+<td><strong>Configuración</strong></td>
+<td>Lo propio de cada servicio, más <strong>Bloqueos</strong>, <strong>Propiedades</strong> y <strong>Exportar plantilla</strong> (el recurso como ARM/Bicep)</td>
+</tr>
+<tr>
+<td><strong>Supervisión</strong></td>
+<td><strong>Métricas</strong>, <strong>Alertas</strong>, <strong>Configuración de diagnóstico</strong> (enviar logs a Log Analytics), <strong>Registros</strong></td>
+</tr>
+<tr>
+<td><strong>Automatización</strong></td>
+<td>Tareas, exportar plantilla, CLI/PowerShell de ejemplo</td>
+</tr>
+</tbody></table></div>
+<h2>Crear un recurso: el asistente</h2>
+<p><strong>Crear un recurso</strong> abre un asistente con pestañas. En casi todos los servicios:</p>
+<ol>
+<li><strong>Aspectos básicos</strong> (<em>Basics</em>): suscripción, grupo de recursos, <strong>nombre</strong> (muchos deben ser únicos en todo Azure) y región.</li>
+<li>Pestañas propias del servicio: <em>Opciones avanzadas</em>, <em>Redes</em>, <em>Protección de datos</em>, <em>Cifrado</em>…</li>
+<li><strong>Etiquetas</strong>.</li>
+<li><strong>Revisar y crear</strong>: Azure <strong>valida</strong> la configuración. Desde ahí puedes <strong>descargar la plantilla para automatización</strong> (ARM).</li>
+<li><strong>Crear</strong> lanza una <strong>implementación</strong> (<em>deployment</em>): verás <em>La implementación está en curso</em> y después <em>Se completó</em>, con un botón <strong>Ir al recurso</strong>. El historial queda en <em>Grupo de recursos → Implementaciones</em>.</li>
+</ol>
+<p>Todo lo que haces en el portal es una llamada a <strong>Azure Resource Manager (ARM)</strong>, la misma API que usan la CLI, Bicep y Terraform. Por eso un recurso creado con clics se puede exportar como código.</p>
+<h2>Permisos: Azure RBAC</h2>
+<p>Una <strong>asignación de rol</strong> une tres cosas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Ejemplos</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Entidad de seguridad</strong> (quién)</td>
+<td>Usuario, grupo, <strong>service principal</strong> (una aplicación), <strong>identidad administrada</strong> (la identidad propia de un recurso, sin contraseñas)</td>
+</tr>
+<tr>
+<td><strong>Rol</strong> (qué puede hacer)</td>
+<td>Owner, Contributor, Reader, <em>Storage Blob Data Contributor</em>, <em>Key Vault Secrets User</em>…</td>
+</tr>
+<tr>
+<td><strong>Ámbito</strong> (dónde)</td>
+<td>Grupo de administración, suscripción, grupo de recursos o un recurso puntual</td>
+</tr>
+</tbody></table></div>
+<p>La diferencia que más confunde:</p>
+<ul>
+<li><strong>Plano de control</strong>: administrar el recurso (crearlo, configurarlo, borrarlo). Lo dan <strong>Owner</strong>, <strong>Contributor</strong> y <strong>Reader</strong>.</li>
+<li><strong>Plano de datos</strong>: el contenido (leer blobs, leer secretos). Lo dan los roles <strong>de datos</strong>: <em>Storage Blob Data Reader/Contributor</em>, <em>Key Vault Secrets User/Officer</em>.</li>
+</ul>
+<p>Por eso un <strong>Owner</strong> de la suscripción puede administrar una cuenta de almacenamiento y aun así recibir <em>&quot;This request is not authorized to perform this operation using this permission&quot;</em> al listar sus blobs: le falta el rol de datos. La regla de oro es el <strong>mínimo privilegio</strong>: el rol más chico, en el ámbito más chico. Para permisos temporales de administrador existe <strong>Privileged Identity Management (PIM)</strong>.</p>
+<h2>Bloqueos, etiquetas y políticas</h2>
+<ul>
+<li><strong>Bloqueos</strong> (<em>Locks</em>): <strong>No se puede eliminar</strong> (<em>CanNotDelete</em>) o <strong>Solo lectura</strong> (<em>ReadOnly</em>). Frenan <strong>incluso a un Owner</strong>. Se usan en producción para evitar borrados por error.</li>
+<li><strong>Etiquetas</strong>: no dan permisos; sirven para buscar, organizar y <strong>repartir costos</strong> (Cost Management agrupa por etiqueta).</li>
+<li><strong>Azure Policy</strong>: reglas que se evalúan al crear o cambiar recursos (&quot;solo estas regiones&quot;, &quot;toda cuenta de almacenamiento sin acceso público&quot;, &quot;etiqueta <em>entorno</em> obligatoria&quot;).</li>
+</ul>
+<h2>Los recursos de un proyecto de datos</h2>
+<h3>Cuenta de almacenamiento (Storage account)</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué decide</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Rendimiento</strong></td>
+<td><em>Standard</em> (discos HDD, lo normal para datos) o <em>Premium</em> (SSD, baja latencia)</td>
+</tr>
+<tr>
+<td><strong>Redundancia</strong></td>
+<td><strong>LRS</strong> (3 copias en un centro de datos), <strong>ZRS</strong> (3 zonas de la región), <strong>GRS</strong> (además, copia en otra región), <strong>RA-GRS</strong> (y lectura en la otra región), <strong>GZRS</strong></td>
+</tr>
+<tr>
+<td><strong>Espacio de nombres jerárquico</strong></td>
+<td>Activarlo la convierte en <strong>Azure Data Lake Storage Gen2</strong>: carpetas reales, permisos por carpeta (ACL) y la ruta <code>abfss://</code> que usan Spark y Databricks</td>
+</tr>
+<tr>
+<td><strong>Nivel de acceso</strong></td>
+<td><strong>Hot</strong> (acceso frecuente), <strong>Cool</strong> (30 días), <strong>Cold</strong> (90 días), <strong>Archive</strong> (horas para recuperar). Las reglas de <strong>administración del ciclo de vida</strong> mueven archivos viejos a niveles más baratos</td>
+</tr>
+<tr>
+<td><strong>Acceso a los datos</strong></td>
+<td>Con <strong>Entra ID + RBAC</strong> (recomendado), <strong>claves de acceso</strong> (dan control total: evitarlas) o <strong>SAS</strong> (un enlace con permisos y vencimiento)</td>
+</tr>
+<tr>
+<td><strong>Redes</strong></td>
+<td>Acceso público desde todas las redes, desde redes seleccionadas, o deshabilitado con <strong>puntos de conexión privados</strong></td>
+</tr>
+<tr>
+<td><strong>Protección de datos</strong></td>
+<td>Eliminación temporal (<em>soft delete</em>) de blobs y contenedores, versionado, inmutabilidad</td>
+</tr>
+</tbody></table></div>
+<p>Dentro de la cuenta: <strong>contenedores</strong> (en ADLS Gen2, <em>sistemas de archivos</em>) y dentro, <strong>blobs</strong> (archivos). El <strong>Explorador de almacenamiento</strong> del portal permite subir, descargar y borrar.</p>
+<h3>Key Vault</h3>
+<p>Guarda <strong>secretos</strong> (contraseñas, cadenas de conexión), <strong>claves</strong> de cifrado y <strong>certificados</strong>. Lo importante:</p>
+<ul>
+<li><strong>Modelo de permisos</strong>: <strong>RBAC de Azure</strong> (recomendado) o el antiguo <strong>directivas de acceso</strong>.</li>
+<li><strong>Eliminación temporal</strong> (obligatoria) y <strong>protección de purga</strong>: un secreto borrado se puede recuperar durante el período de retención, y con protección de purga ni un administrador puede borrarlo definitivamente antes de tiempo.</li>
+<li>Se usa desde Databricks (<em>secret scope</em> respaldado por Key Vault), Data Factory (linked service de Key Vault) y las aplicaciones, siempre con <strong>identidades administradas</strong>.</li>
+</ul>
+<h3>Azure Databricks (el recurso)</h3>
+<p>En el portal creas el <strong>workspace</strong>: nivel de precios (<em>Premium</em> para Unity Catalog), región y redes (<strong>inyección en tu VNet</strong>, <strong>conectividad segura de clúster</strong> sin IP públicas). Azure crea además un <strong>grupo de recursos administrado</strong> con las máquinas y discos de los clústeres: no lo toques a mano. Lo de adentro (notebooks, tablas, jobs) se administra en el workspace, con el botón <strong>Iniciar área de trabajo</strong>.</p>
+<h3>Data Factory</h3>
+<p>En el portal creas el factory (nombre único, región, Git ahora o después). Todo el diseño se hace en <strong>Azure Data Factory Studio</strong> (botón <strong>Iniciar Studio</strong>): ver la lección siguiente. El factory tiene su <strong>identidad administrada</strong>, a la que le das roles de datos sobre el almacenamiento.</p>
+<h3>Azure SQL Database</h3>
+<p>Es <strong>SQL Server ofrecido como servicio</strong>: Microsoft cuida el servidor, los parches y las copias de seguridad, y tú solo creas la base y la consultas. Suele ser la base <strong>operativa</strong> (la que usa una aplicación) de la que después se copian datos al lago con Data Factory.</p>
+<ul>
+<li><strong>Servidor lógico y base de datos.</strong> El servidor (<code>sql-datos-dev.database.windows.net</code>) no es una máquina: es un nombre que agrupa bases y guarda lo que comparten, como el cortafuegos y el administrador. La base es donde están las tablas y lo que se paga.</li>
+<li><strong>Cortafuegos.</strong> Por defecto <strong>nadie</strong> puede conectarse. El primer error que ve casi todo el mundo es <em>&quot;Client with IP address … is not allowed to access the server&quot;</em>: se resuelve agregando tu IP en <strong>Networking</strong>. No abras <code>0.0.0.0 – 255.255.255.255</code> en un servidor real.</li>
+<li><strong>Autenticación.</strong> Lo recomendado es <strong>solo Microsoft Entra</strong>: sin usuario y contraseña de SQL que haya que guardar o rotar.</li>
+<li><strong>Cadenas de conexión.</strong> El portal las da listas para ADO.NET, JDBC (Spark y Databricks) y ODBC (Python).</li>
+</ul>
+<h3>Colas, tablas y archivos de una cuenta de almacenamiento</h3>
+<p>Además de blobs, una cuenta de almacenamiento ofrece tres servicios más chicos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Qué guarda</th>
+<th>Ejemplo de uso</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Queues</strong></td>
+<td>Mensajes cortos, en orden de llegada</td>
+<td>&quot;Llegó <code>ventas.csv</code>, procésalo&quot;: una parte del sistema avisa y otra retira el mensaje cuando puede</td>
+</tr>
+<tr>
+<td><strong>Tables</strong></td>
+<td>Filas sin esquema fijo, identificadas por <code>PartitionKey</code> y <code>RowKey</code></td>
+<td>Configuración o registros simples que se buscan por clave</td>
+</tr>
+<tr>
+<td><strong>File shares</strong></td>
+<td>Carpetas compartidas que se montan como un disco de red</td>
+<td>Aplicaciones que esperan una carpeta compartida</td>
+</tr>
+</tbody></table></div>
+<h2>Identidades: Microsoft Entra ID</h2>
+<p>Todo permiso en Azure se le da a una <strong>identidad</strong>, y las identidades viven en Microsoft Entra ID. Hay cuatro tipos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué es</th>
+<th>Cuándo se usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Usuario</strong></td>
+<td>Una persona</td>
+<td>Para entrar al portal y trabajar a mano</td>
+</tr>
+<tr>
+<td><strong>Grupo</strong></td>
+<td>Un conjunto de usuarios</td>
+<td>Para dar permisos a un equipo de una sola vez</td>
+</tr>
+<tr>
+<td><strong>Service principal</strong> (registro de aplicación)</td>
+<td>La identidad de un programa, con un secreto o un certificado</td>
+<td>Para que algo que corre <strong>fuera</strong> de Azure (GitHub Actions, un script) pueda entrar</td>
+</tr>
+<tr>
+<td><strong>Identidad administrada</strong></td>
+<td>Una identidad que Azure crea y cuida para un recurso</td>
+<td>Para que un recurso de Azure (Data Factory, Databricks) acceda a otro <strong>sin guardar ninguna clave</strong></td>
+</tr>
+</tbody></table></div>
+<p>Para que un programa entre con un service principal necesita tres datos: el <strong>tenant ID</strong>, el <strong>client ID</strong> y un <strong>secreto</strong>. Además hay que darle un <strong>rol</strong> en <em>Access control (IAM)</em> del recurso: sin rol, entra pero no puede hacer nada.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los secretos vencen</div>
+
+<p>Un secreto de aplicación dura como máximo 24 meses y <strong>se muestra una sola vez</strong> al crearlo. Si nadie lo rota antes de la fecha, lo que dependa de él deja de funcionar: es una causa frecuente de pipelines que &quot;de repente&quot; fallan. Guárdalo en Key Vault, nunca en el código. Y si el que necesita acceso es un recurso de Azure, usa su identidad administrada: no hay secreto que se filtre ni que venza.</p>
+</div>
+
+
+<h2>Costos y supervisión</h2>
+<ul>
+<li><strong>Cost Management</strong>: <strong>Análisis de costos</strong> (por servicio, grupo de recursos o etiqueta), <strong>Presupuestos</strong> con alertas por correo al llegar a un porcentaje, recomendaciones de Advisor.</li>
+<li><strong>Registro de actividad</strong>: quién creó, cambió o borró cada recurso, y cuándo.</li>
+<li><strong>Azure Monitor</strong> junta lo que pasa con tus recursos. Tiene tres piezas que se usan juntas:</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Métricas</strong></td>
+<td>Números que se miden cada minuto</td>
+<td>Cuántas ejecuciones de un pipeline fallaron</td>
+</tr>
+<tr>
+<td><strong>Reglas de alerta</strong></td>
+<td>&quot;Si esta métrica pasa este umbral, avisa&quot;, con una <strong>severidad</strong> de 0 (crítico) a 4</td>
+<td>Si hay más de 0 pipelines fallidos, avisar</td>
+</tr>
+<tr>
+<td><strong>Grupos de acciones</strong></td>
+<td>A quién y cómo se avisa (correo, SMS, webhook)</td>
+<td>Un correo al equipo de guardia</td>
+</tr>
+</tbody></table></div>
+<p>Una regla de alerta <strong>sin</strong> grupo de acciones se dispara y queda registrada, pero nadie se entera. Es un error común.</p>
+<p>Los logs detallados se consultan en <strong>Log Analytics</strong> con el lenguaje <strong>KQL</strong>.</p>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Suscripción, grupos de recursos, asistentes de creación con validación y plantilla ARM, implementaciones, notificaciones</td>
+<td>Grupos de administración, Azure Policy, varias suscripciones con datos reales</td>
+</tr>
+<tr>
+<td>Storage (contenedores, blobs, colas, tablas, archivos compartidos, redundancia, ADLS Gen2), Key Vault (secretos, claves y certificados con RBAC), Databricks, Data Factory con Studio</td>
+<td>Máquinas virtuales, Synapse, Fabric, Functions, redes virtuales completas</td>
+</tr>
+<tr>
+<td>Azure SQL Database: servidor, cortafuegos, editor de consultas con T-SQL real y cadenas de conexión</td>
+<td>Copias de seguridad y restauración, réplicas, escalado real</td>
+</tr>
+<tr>
+<td>Microsoft Entra ID: usuarios, grupos y registros de aplicaciones con secretos, que después reciben roles en IAM</td>
+<td>Acceso condicional, MFA, PIM</td>
+</tr>
+<tr>
+<td>Monitor: métricas, reglas de alerta y grupos de acciones</td>
+<td>Log Analytics con KQL, métricas reales</td>
+</tr>
+<tr>
+<td>IAM con roles de control y de datos, bloqueos, etiquetas, registro de actividad, costos y presupuestos estimados, Cloud Shell con <code>az</code></td>
+<td>Costos reales</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-portal-azure-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-power-bi-por-dentro.html">← Power BI por dentro - qué es cada parte y para qué sirve</a><a href="interfaces-data-factory-por-dentro.html">Azure Data Factory por dentro - qué es cada parte y para qué sirve →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

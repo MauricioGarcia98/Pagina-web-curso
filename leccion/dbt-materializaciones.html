@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materializaciones e incrementales · Academia de Datos</title><meta name="description" content="Desde cero - qué es una vista y qué es una tabla, qué SQL escribe dbt para cada materialización (view, table, ephemeral, incremental), cómo funciona un modelo incremental paso a paso, las estrategias append, merge, delete+insert, insert_overwrite y microbatch, los datos que llegan tarde y los cambios de columnas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-materializaciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Materializaciones e incrementales · Academia de Datos"><meta property="og:description" content="Desde cero - qué es una vista y qué es una tabla, qué SQL escribe dbt para cada materialización (view, table, ephemeral, incremental), cómo funciona un modelo incremental paso a paso, las estrategias append, merge, delete+insert, insert_overwrite y microbatch, los datos que llegan tarde y los cambios de columnas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-materializaciones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Avanzado · 55 min</div>
+<h1>Materializaciones e incrementales</h1><p class="resumen">Desde cero - qué es una vista y qué es una tabla, qué SQL escribe dbt para cada materialización (view, table, ephemeral, incremental), cómo funciona un modelo incremental paso a paso, las estrategias append, merge, delete+insert, insert_overwrite y microbatch, los datos que llegan tarde y los cambios de columnas.</p>
+<a class="cta" href="../index.html#/l/dbt-materializaciones">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué guarda una vista y qué guarda una tabla</li><li>Elegir la materialización de cada modelo</li><li>Escribir un modelo incremental con is_incremental() y this</li><li>Elegir una estrategia incremental</li><li>Manejar datos tardíos y cambios de esquema</li></ul>
+<h2>Primero: vista y tabla, desde cero</h2>
+<p>Todo modelo de dbt es un <code>SELECT</code>. La pregunta es <strong>qué se guarda</strong> en la base de datos con el resultado de ese <code>SELECT</code>. Hay dos respuestas básicas:</p>
+<ul>
+<li>Una <strong>tabla</strong> guarda las <strong>filas</strong>. Es como una planilla ya escrita: leerla es rápido, pero si cambian los datos de origen, la planilla queda vieja hasta que alguien la vuelva a escribir.</li>
+<li>Una <strong>vista</strong> guarda solo la <strong>consulta</strong>. Cada vez que alguien la lee, la base ejecuta el <code>SELECT</code> en ese momento. Siempre está al día, pero cada lectura cuesta lo mismo que ejecutar la consulta.</li>
+</ul>
+<p>Puedes ver la diferencia en la base del curso: <code>stg_pedidos</code> es una vista. Su &quot;contenido&quot; es una consulta:</p>
+<pre><code class="language-sql">SELECT name, type, substr(sql, 1, 80) AS empieza_con
+FROM sqlite_master
+WHERE name IN ('stg_pedidos', 'pedidos');</code></pre>
+<p><code>pedidos</code> es de tipo <code>table</code> y su definición solo dice qué columnas tiene; <code>stg_pedidos</code> es de tipo <code>view</code> y su definición es un <code>SELECT</code>.</p>
+<h2>Qué es una materialización</h2>
+<p>La <strong>materialización</strong> es la instrucción que le das a dbt para decidir <strong>cómo</strong> guardar el resultado de un modelo. dbt toma tu <code>SELECT</code> y lo <strong>envuelve</strong> en el SQL necesario. Esto es lo que escribe por ti (simplificado):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Materialización</th>
+<th>SQL que dbt ejecuta en tu base</th>
+</tr>
+</thead><tbody><tr>
+<td><code>view</code></td>
+<td><code>create or replace view esquema.modelo as (tu select)</code></td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td><code>create table esquema.modelo__tmp as (tu select)</code>, luego reemplaza la tabla vieja por la nueva</td>
+</tr>
+<tr>
+<td><code>ephemeral</code></td>
+<td>Nada: tu <code>select</code> se copia como un CTE (<code>with modelo as (...)</code>) dentro de cada modelo que lo usa</td>
+</tr>
+<tr>
+<td><code>incremental</code></td>
+<td>La primera vez, como <code>table</code>; las siguientes, inserta o fusiona solo las filas nuevas</td>
+</tr>
+<tr>
+<td><code>materialized_view</code></td>
+<td><code>create materialized view ...</code> (solo en motores que lo soportan)</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Materialización</th>
+<th>Ventaja</th>
+<th>Desventaja</th>
+<th>Úsala para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>view</code></td>
+<td>Siempre actualizada, no ocupa espacio</td>
+<td>Se recalcula en cada consulta</td>
+<td>Staging, modelos livianos</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Consultas rápidas</td>
+<td>Se reconstruye completa en cada <code>dbt run</code></td>
+<td>Marts medianos que consultan los tableros</td>
+</tr>
+<tr>
+<td><code>incremental</code></td>
+<td>Procesa solo lo nuevo: rápida y barata con mucho volumen</td>
+<td>Más compleja; hay que pensar duplicados y datos tardíos</td>
+<td>Hechos grandes (eventos, transacciones)</td>
+</tr>
+<tr>
+<td><code>ephemeral</code></td>
+<td>No crea objetos</td>
+<td>No se puede consultar ni probar directamente</td>
+<td>Pasos intermedios simples reutilizados</td>
+</tr>
+<tr>
+<td><code>materialized_view</code></td>
+<td>El motor la mantiene actualizada</td>
+<td>Depende del motor y tiene limitaciones</td>
+<td>Agregados consultados muy seguido</td>
+</tr>
+</tbody></table></div>
+<p>Se configura en <code>dbt_project.yml</code> para una carpeta entera (el <code>+</code> indica que es una configuración que se hereda hacia adentro):</p>
+<pre data-norun><code class="language-yaml">models:
+  tienda_dbt:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table</code></pre>
+<p>o en el propio modelo con <code>config()</code>, que tiene prioridad sobre lo del proyecto:</p>
+<pre><code class="language-dbt">{{ config(materialized='table') }}
+
+select canal, count(*) as pedidos
+from {{ ref('stg_pedidos') }}
+group by canal</code></pre>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Fotocopia vs. libreta</div>
+
+<p>Una <strong>vista</strong> es una nota que dice &quot;para saber la respuesta, calcula esto&quot;: no guarda nada, se recalcula cada vez que alguien la lee. Una <strong>tabla</strong> es una fotocopia de la respuesta: rápida de leer, pero hay que volver a sacarla completa cada vez que cambian los datos. Un modelo <strong>incremental</strong> es una libreta: cada día solo <strong>agregas las páginas nuevas</strong> en vez de reescribir el cuaderno entero.</p>
+</div>
+
+
+<h3>Pruébalo en la terminal</h3>
+<pre><code class="language-bash">cd tienda_dbt
+cat dbt_project.yml                 # mira +materialized por carpeta
+dbt run
+dbt compile -s top_clientes         # el SELECT que dbt envuelve</code></pre>
+<p>En la salida de <code>dbt run</code> cada línea dice <code>created sql view model</code> o <code>created sql table model</code>, según la materialización.</p>
+<h2>Modelos incrementales, paso a paso</h2>
+<p>Un modelo incremental resuelve el problema del escenario: en vez de recalcular tres años, procesa <strong>solo lo nuevo</strong> y lo agrega a la tabla que ya existe. Para eso dbt te da dos herramientas:</p>
+<ul>
+<li><code>is_incremental()</code>: una función que vale <strong>verdadero</strong> solo si la tabla ya existe, es incremental y no pediste <code>--full-refresh</code>. La primera vez vale <strong>falso</strong>.</li>
+<li><code>{{ this }}</code>: el nombre de <strong>la propia tabla</strong> del modelo tal como está ahora en la base. Sirve para preguntar &quot;¿hasta dónde ya cargué?&quot;.</li>
+</ul>
+<pre data-norun><code class="language-dbt">{{ config(
+    materialized='incremental',
+    unique_key='evento_id',
+    incremental_strategy='merge'
+) }}
+
+select evento_id, cliente_id, fecha_hora, tipo_evento, pagina
+from {{ source('tienda', 'eventos_web') }}
+
+{% if is_incremental() %}
+  -- solo eventos posteriores al último que ya cargamos
+  where fecha_hora &gt; (select max(fecha_hora) from {{ this }})
+{% endif %}</code></pre>
+<p>Línea por línea:</p>
+<ol>
+<li><code>materialized=&#39;incremental&#39;</code>: este modelo es una tabla que crece.</li>
+<li><code>unique_key=&#39;evento_id&#39;</code>: la columna que identifica cada fila. Con ella dbt sabe si una fila que llega es <strong>nueva</strong> (se inserta) o <strong>ya existía</strong> (se actualiza).</li>
+<li><code>incremental_strategy=&#39;merge&#39;</code>: cómo combinar lo nuevo con lo viejo (ver la tabla de estrategias).</li>
+<li><code>{% if is_incremental() %} ... {% endif %}</code>: el filtro solo se agrega desde la segunda ejecución. La primera vez el <code>if</code> es falso y el <code>SELECT</code> trae <strong>todo</strong>.</li>
+<li><code>(select max(fecha_hora) from {{ this }})</code>: la fecha más nueva que ya está en la tabla. El filtro dice &quot;tráeme lo posterior a eso&quot;.</li>
+</ol>
+<h3>Cómo se comporta en el tiempo</h3>
+<p>Supón una tabla de eventos con 500 millones de filas que crece 2 millones por día:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ejecución</th>
+<th><code>is_incremental()</code></th>
+<th>Qué hace dbt</th>
+<th>Filas procesadas</th>
+</tr>
+</thead><tbody><tr>
+<td>Primera vez (la tabla no existe)</td>
+<td><code>false</code></td>
+<td>Crea la tabla con <strong>todo</strong> el <code>SELECT</code> (el <code>if</code> no se aplica)</td>
+<td>500 millones</td>
+</tr>
+<tr>
+<td>Día siguiente</td>
+<td><code>true</code></td>
+<td>Ejecuta el <code>SELECT</code> <strong>con</strong> el filtro, guarda el resultado en una tabla temporal y lo combina con <code>{{ this }}</code></td>
+<td>~2 millones</td>
+</tr>
+<tr>
+<td><code>dbt run --full-refresh</code></td>
+<td><code>false</code></td>
+<td>Borra y reconstruye desde cero</td>
+<td>500 millones</td>
+</tr>
+</tbody></table></div>
+<p>Con <code>materialized=&#39;table&#39;</code>, <strong>cada</strong> ejecución procesaría los 500 millones. Con incremental, solo los nuevos: la diferencia es de horas y de mucho dinero en la nube.</p>
+<div class="recorrido"></div>
+
+
+<h2>Estrategias: cómo se combinan lo nuevo y lo viejo</h2>
+<p>La <code>incremental_strategy</code> decide qué SQL usa dbt para juntar las filas nuevas con la tabla existente. No todos los motores tienen todas (la documentación oficial tiene una tabla por adaptador: Databricks y Snowflake tienen todas; BigQuery no tiene <code>append</code> ni <code>delete+insert</code>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Qué hace</th>
+<th>Necesita <code>unique_key</code></th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>append</code></td>
+<td>Inserta las filas nuevas, sin mirar si ya existían</td>
+<td>No</td>
+<td>Eventos que nunca cambian y no se repiten (logs, clics)</td>
+</tr>
+<tr>
+<td><code>merge</code></td>
+<td>Si la clave ya existe, <strong>actualiza</strong> la fila; si no, la <strong>inserta</strong></td>
+<td>Sí</td>
+<td>Registros que cambian (un pedido que pasa de <code>pendiente</code> a <code>entregado</code>)</td>
+</tr>
+<tr>
+<td><code>delete+insert</code></td>
+<td>Borra las filas cuyas claves llegan de nuevo y las vuelve a insertar</td>
+<td>Sí</td>
+<td>Motores donde <code>merge</code> es lento, o reemplazo por lotes</td>
+</tr>
+<tr>
+<td><code>insert_overwrite</code></td>
+<td>Reemplaza <strong>particiones completas</strong> (por ejemplo, todo un día)</td>
+<td>No (usa la partición)</td>
+<td>Reprocesar días enteros en Spark o BigQuery</td>
+</tr>
+<tr>
+<td><code>microbatch</code></td>
+<td>Divide el trabajo en lotes por tiempo (un día, una hora…) y procesa cada lote por separado</td>
+<td>Depende del motor</td>
+<td>Series de tiempo muy grandes (dbt 1.9 o más nuevo)</td>
+</tr>
+</tbody></table></div>
+<p>En Databricks existe además <code>replace_where</code>, que reemplaza las filas que cumplen una condición (por ejemplo, <code>fecha &gt;= &#39;2024-06-01&#39;</code>).</p>
+<p>Con <code>merge</code> puedes limitar qué columnas se actualizan: <code>merge_update_columns=[&#39;estado&#39;, &#39;actualizado_en&#39;]</code> actualiza solo esas y deja las demás como estaban.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ append con duplicados</div>
+
+<p><code>append</code> no revisa nada: si la misma fila llega dos veces (porque reintentaste una carga), queda <strong>dos veces</strong>. Si no tienes la garantía de que el origen nunca repite filas, usa <code>merge</code> con una <code>unique_key</code>, y ponle un test <code>unique</code> a esa columna.</p>
+</div>
+
+
+<h2>Datos que llegan tarde</h2>
+<p><code>where fecha_hora &gt; max(fecha_hora)</code> tiene un problema: si un evento de ayer llega hoy con atraso (un celular sin señal que sincroniza después), su fecha es <strong>menor</strong> que el máximo y el filtro lo deja afuera <strong>para siempre</strong>.</p>
+<p>La solución habitual es reprocesar una <strong>ventana</strong>: los últimos días, siempre, con una estrategia que no duplique (<code>merge</code>, <code>delete+insert</code> o <code>insert_overwrite</code>).</p>
+<pre data-norun><code class="language-dbt">{% if is_incremental() %}
+  where fecha_hora &gt;= (select datetime(max(fecha_hora), '-3 days') from {{ this }})
+{% endif %}</code></pre>
+<p>Así, cada día se vuelven a leer los últimos 3 días: lo que llegó tarde entra, y lo que ya estaba se actualiza sin duplicarse gracias a la <code>unique_key</code>.</p>
+<h3>Microbatch: la ventana hecha configuración</h3>
+<p>Desde dbt 1.9, la estrategia <code>microbatch</code> resuelve esto sin <code>is_incremental()</code>. Le dices qué columna es el tiempo del evento y el tamaño de cada lote, y dbt arma un filtro por cada lote:</p>
+<pre data-norun><code class="language-dbt">{{ config(
+    materialized='incremental',
+    incremental_strategy='microbatch',
+    event_time='fecha_hora',      -- la columna de tiempo
+    batch_size='day',             -- un lote por día (hour, day, month, year)
+    lookback=3,                   -- reprocesa también los 3 días anteriores
+    begin='2024-01-01'            -- desde cuándo construir la primera vez
+) }}
+
+select evento_id, cliente_id, fecha_hora, tipo_evento
+from {{ ref('stg_eventos') }}</code></pre>
+<p>Cada lote es <strong>independiente</strong>: si falla el del martes, <code>dbt retry</code> vuelve a correr solo ese. Para reconstruir un período: <code>dbt run --event-time-start &quot;2024-09-01&quot; --event-time-end &quot;2024-09-04&quot;</code>. Los modelos de origen también deben declarar su <code>event_time</code> para que dbt los filtre.</p>
+<h2>Cuando cambian las columnas</h2>
+<p>¿Qué pasa si agregas una columna nueva al <code>SELECT</code> de un modelo incremental que ya existe? La tabla vieja no la tiene. La configuración <code>on_schema_change</code> decide:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Valor</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ignore</code> (por defecto)</td>
+<td>No agrega la columna: la columna nueva no aparece en la tabla</td>
+</tr>
+<tr>
+<td><code>fail</code></td>
+<td>Detiene la ejecución con un error</td>
+</tr>
+<tr>
+<td><code>append_new_columns</code></td>
+<td>Agrega las columnas nuevas (no borra las que ya no están)</td>
+</tr>
+<tr>
+<td><code>sync_all_columns</code></td>
+<td>Agrega las nuevas y quita las que ya no están, incluidos cambios de tipo</td>
+</tr>
+</tbody></table></div>
+<p>Ninguna opción completa los valores de la columna nueva en las filas <strong>viejas</strong>: quedan en <code>NULL</code>. Si las necesitas, corre <code>dbt run --full-refresh -s modelo</code>.</p>
+<h2>Cómo elegir, en cuatro preguntas</h2>
+<ol>
+<li>¿El modelo es liviano o es un paso de limpieza? → <code>view</code>.</li>
+<li>¿Lo consulta un tablero muchas veces al día y tarda poco en construirse? → <code>table</code>.</li>
+<li>¿Tiene millones de filas y crece todos los días? → <code>incremental</code>. ¿Las filas cambian? → <code>merge</code>. ¿Nunca cambian ni se repiten? → <code>append</code>.</li>
+<li>¿Es un cálculo intermedio que nadie consulta directamente? → <code>ephemeral</code> (con moderación: si muchos modelos lo usan, se recalcula en cada uno).</li>
+</ol>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Hacer incremental todo</strong>: un modelo de 10.000 filas no necesita la complejidad. Empieza con <code>table</code> y pasa a incremental cuando el tiempo o el costo lo justifiquen.</li>
+<li><strong>Olvidar el <code>{% if is_incremental() %}</code></strong>: sin él, cada ejecución vuelve a traer todo y, con <code>append</code>, duplica la tabla entera.</li>
+<li><strong><code>unique_key</code> que no es única</strong>: <code>merge</code> falla o actualiza filas equivocadas. Prueba la clave con un test <code>unique</code>.</li>
+<li><strong>Filtrar con <code>&gt;</code> estricto sin ventana</strong>: los datos tardíos se pierden en silencio.</li>
+<li><strong>Cambiar la lógica de un incremental y no hacer <code>--full-refresh</code></strong>: las filas viejas quedan con la lógica anterior y las nuevas con la nueva.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El modelo <code>fct_eventos</code> tarda 40 minutos cada mañana porque recalcula <strong>tres años</strong> de clics para agregar los del último día. La factura de la nube crece todos los meses. La solución no es otra herramienta: es cambiar <strong>una línea</strong> de configuración, la materialización, y entender bien lo que eso implica.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En Databricks, los hechos grandes suelen ser incrementales con <code>merge</code> sobre Delta, y los marts que consulta Power BI, <code>table</code>.</li>
+<li>Muchos equipos programan un <code>--full-refresh</code> semanal o mensual de los incrementales críticos, para corregir cualquier deriva acumulada.</li>
+<li>En CI se construyen los incrementales con <code>--empty</code> o con una muestra, para validar el SQL sin procesar todo.</li>
+<li>Cuando un incremental &quot;pierde filas&quot;, lo primero que se revisa es el filtro de <code>is_incremental()</code> y los datos tardíos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo harías que un modelo de 3 años de eventos no tarde 40 minutos cada día?&quot;</div>
+
+<p>Lo convertiría en incremental: en la primera ejecución construye todo, y en las siguientes filtra con <code>is_incremental()</code> solo lo nuevo respecto de <code>{{ this }}</code>. Elegiría <code>merge</code> con una <code>unique_key</code> si las filas pueden cambiar o repetirse, y reprocesaría una ventana de algunos días para capturar los datos tardíos (o usaría <code>microbatch</code> con <code>lookback</code>). Agregaría un test <code>unique</code> a la clave y programaría un <code>--full-refresh</code> periódico. También revisaría si la tabla está particionada por fecha para que el filtro lea menos datos.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>En una línea</th>
+</tr>
+</thead><tbody><tr>
+<td><code>view</code></td>
+<td>Guarda la consulta; se calcula al leer</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Guarda las filas; se reconstruye completa</td>
+</tr>
+<tr>
+<td><code>ephemeral</code></td>
+<td>Se inserta como CTE en quien lo usa</td>
+</tr>
+<tr>
+<td><code>incremental</code></td>
+<td>Agrega o fusiona solo lo nuevo</td>
+</tr>
+<tr>
+<td><code>is_incremental()</code></td>
+<td>Falso la primera vez y con <code>--full-refresh</code></td>
+</tr>
+<tr>
+<td><code>{{ this }}</code></td>
+<td>La tabla actual del propio modelo</td>
+</tr>
+<tr>
+<td><code>on_schema_change</code></td>
+<td>Qué hacer si cambian las columnas de un incremental</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-materializaciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-sources-capas.html">← Sources, seeds y las capas del proyecto</a><a href="dbt-tests-docs.html">Tests y documentación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

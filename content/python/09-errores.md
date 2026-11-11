@@ -16,6 +16,10 @@ El pipeline de ventas se cayó a las 3 de la mañana. Martín te muestra el log:
 
 Los errores no son el enemigo: son información. Esta lección te enseña a leerlos, a manejar los esperables y a decidir cuándo un pipeline tiene que fallar.
 :::
+:::analogia En palabras simples
+Un error en Python es como la luz de "falta nafta" en el auto: no significa que el auto esté roto, te avisa qué pasa y dónde. Esta lección enseña a leer esos avisos y también a prepararte para ellos: decirle al programa "si falla esto, haz esto otro" en lugar de dejar que se detenga.
+:::
+
 ## Los errores son información
 
 Cuando algo sale mal, Python no "se rompe" sin más: **lanza una excepción**, un objeto que describe qué pasó, y si nadie la maneja, detiene el programa y muestra un mensaje. Al principio esos mensajes en rojo asustan; con práctica se vuelven tu mejor herramienta, porque dicen **exactamente** qué falló y dónde.

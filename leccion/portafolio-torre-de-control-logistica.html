@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4: Torre de control logística en Azure · Academia de Datos</title><meta name="description" content="Envíos y su seguimiento evento por evento, con transportistas de desempeño distinto, entregas tarde y paquetes perdidos. Ingesta orquestada a Azure Data Lake Storage con Data Factory (o Airflow en tu computadora), transformación en capas, KPIs operativos (entregas a tiempo, tiempo entre estados, envíos sin novedad) y alertas. Valor - que operaciones vea los problemas el mismo día y negocie con datos con los transportistas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-torre-de-control-logistica.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4: Torre de control logística en Azure · Academia de Datos"><meta property="og:description" content="Envíos y su seguimiento evento por evento, con transportistas de desempeño distinto, entregas tarde y paquetes perdidos. Ingesta orquestada a Azure Data Lake Storage con Data Factory (o Airflow en tu computadora), transformación en capas, KPIs operativos (entregas a tiempo, tiempo entre estados, envíos sin novedad) y alertas. Valor - que operaciones vea los problemas el mismo día y negocie con datos con los transportistas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-torre-de-control-logistica.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Avanzado · 110 min</div>
+<h1>Proyecto 4: Torre de control logística en Azure</h1><p class="resumen">Envíos y su seguimiento evento por evento, con transportistas de desempeño distinto, entregas tarde y paquetes perdidos. Ingesta orquestada a Azure Data Lake Storage con Data Factory (o Airflow en tu computadora), transformación en capas, KPIs operativos (entregas a tiempo, tiempo entre estados, envíos sin novedad) y alertas. Valor - que operaciones vea los problemas el mismo día y negocie con datos con los transportistas.</p>
+<a class="cta" href="../index.html#/l/portafolio-torre-de-control-logistica">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular entregas a tiempo (OTD) y tiempos entre estados con SQL</li><li>Detectar envíos estancados sin eventos recientes</li><li>Organizar un data lake en ADLS Gen2 con contenedores por capa</li><li>Orquestar la ingesta con Data Factory o Airflow con parámetros de fecha</li><li>Asegurar el acceso con identidades administradas y RBAC en lugar de claves</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La gerente de operaciones de un operador logístico se entera de los envíos atrasados cuando el cliente llama enojado. Tiene cuatro transportistas y la sensación de que &quot;Correo Nacional es el peor&quot;, pero no puede probarlo en la negociación del contrato. Quiere una torre de control: qué está atrasado hoy, qué transportista cumple y dónde se traban los paquetes.</p>
+</div>
+
+
+<h2>Valor</h2>
+<ul>
+<li><strong>OTD por transportista</strong> (entregas a tiempo) para negociar contratos con datos.</li>
+<li><strong>Envíos estancados</strong> detectados el mismo día, no cuando reclama el cliente.</li>
+<li><strong>Dónde se pierde el tiempo</strong>: entre &quot;retirado&quot; y &quot;en camino&quot;, o en el último tramo.</li>
+</ul>
+<h2>Los datos</h2>
+<p><a href="#/generador?esc=logistica&n=5000&semilla=21&desde=2024-01-01&hasta=2024-12-31&duplicados=2&nulos=3&formatos=4&tardios=5">🏭 Generar los datos del proyecto</a> · Escenario <strong>Logística</strong>: <code>almacenes</code>, <code>envios</code> (fecha prometida y real) y <code>eventos_envio</code> (creado, retirado, en camino, en reparto, entregado).</p>
+<pre><code class="language-bash">generar-datos logistica --filas 1500 --semilla 21
+duckdb -c &quot;SELECT transportista, COUNT(*) FROM '~/datos/generados/logistica/envios.csv' GROUP BY 1&quot;</code></pre>
+<h2>Arquitectura en Azure</h2>
+<figure class="diagrama"><figcaption>Torre de control logística en Azure</figcaption></figure>
+
+
+<h2>Fase 1: KPIs en tu computadora</h2>
+<p>Antes de la nube, los KPIs en SQL sobre los CSV (DuckDB) y, si quieres, un DAG de Airflow local que corre la carga por fecha (<code>{{ ds }}</code>), como en el módulo &quot;Desde tu computadora&quot;. Las definiciones son lo más importante:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Definición</th>
+<th>Cuidado</th>
+</tr>
+</thead><tbody><tr>
+<td>OTD</td>
+<td>Entregados con <code>fecha_entrega</code> ≤ fin del día de <code>fecha_promesa</code> ÷ entregados</td>
+<td>Los &quot;en camino&quot; vencidos también son tarde: inclúyelos en otro indicador</td>
+</tr>
+<tr>
+<td>Tiempo de tránsito</td>
+<td><code>fecha_entrega − fecha_creacion</code> en horas</td>
+<td>Mediana, no promedio (pocos envíos perdidos lo distorsionan)</td>
+</tr>
+<tr>
+<td>Estancado</td>
+<td>Envío no entregado sin eventos en las últimas 72 h</td>
+<td>Los eventos pueden llegar tarde: usa la hora del evento, no la de carga</td>
+</tr>
+</tbody></table></div>
+<h2>Fase 2: Azure paso a paso</h2>
+<pre><code class="language-bash">az group create -n rg-torre-lab -l eastus2 --tags proyecto=lab
+ST=sttorrelab$RANDOM                 # el nombre debe ser único en todo Azure: le agregamos un número al azar
+az storage account create -n $ST -g rg-torre-lab -l eastus2 --sku Standard_LRS --kind StorageV2 --hns true
+az storage fs create -n raw --account-name $ST --auth-mode login
+az storage fs create -n curated --account-name $ST --auth-mode login
+echo &quot;Tu cuenta se llama: $ST&quot;         # anótalo: lo vas a usar en los pasos siguientes</code></pre>
+<ul>
+<li><code>--hns true</code> activa el <strong>espacio de nombres jerárquico</strong>: eso convierte una cuenta de almacenamiento en ADLS Gen2 (carpetas reales, permisos por carpeta).</li>
+<li><strong>Data Factory</strong>: un pipeline con un parámetro <code>fecha</code> y una actividad de copia de la fuente a <code>raw/envios/fecha=@{pipeline().parameters.fecha}/</code>. Un trigger diario le pasa la fecha.</li>
+<li><strong>Identidad administrada</strong>: Data Factory y Databricks acceden al lago con su identidad y el rol <code>Storage Blob Data Contributor</code>, no con la clave de la cuenta.</li>
+<li><strong>Transformación</strong>: notebook de Databricks (o Synapse serverless) que lee raw, deduplica y escribe Parquet o Delta en curated.</li>
+<li><strong>Power BI</strong>: conectado a curated, con los KPIs de la tabla de arriba y un filtro por transportista.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Limpieza</div>
+
+<p>Todo vive en <code>rg-torre-lab</code>: al terminar, <code>az group delete -n rg-torre-lab --yes --no-wait</code> y verifica con <code>az group list -o table</code>.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Recursos creados a mano en el portal</strong>: el proyecto no se puede recrear. Usa Bicep o Terraform aunque sea simple.</li>
+<li><strong>Event Hubs sin grupo de consumidores propio</strong>: dos lectores se pisan.</li>
+<li><strong>Tablero sin la hora de la última actualización</strong>: nadie sabe si está viendo datos de ahora o de ayer.</li>
+<li><strong>Olvidar borrar los recursos</strong> al terminar la demo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las &quot;torres de control&quot; logísticas combinan eventos en tiempo real (posición, estado del envío) con datos batch (pedidos, promesas de entrega); el valor está en alertar a tiempo los envíos en riesgo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo mostrarías a un usuario de negocio que un tablero está actualizado?&quot;</div>
+
+<p>Mostrando en el tablero la hora de la última actualización de los datos y un indicador de frescura que cambia de color si se pasó el plazo acordado. Por detrás, un control de frescura sobre las tablas que alerta al equipo antes que al usuario. Y una definición escrita de cada indicador, para que no haya dudas sobre qué significa.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Diccionario de KPIs con sus definiciones y decisiones (qué cuenta como &quot;tarde&quot;).</li>
+<li><input disabled="" type="checkbox"> Ranking de transportistas por OTD y tiempo de tránsito, con la recomendación para la negociación.</li>
+<li><input disabled="" type="checkbox"> Pipeline de Data Factory (o DAG de Airflow) parametrizado por fecha, con una captura de una ejecución.</li>
+<li><input disabled="" type="checkbox"> Explicación de seguridad: identidades administradas y RBAC.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Alertas: un correo o mensaje de Teams cuando el OTD del día cae por debajo de 85 % (Logic Apps o una tarea del pipeline).</li>
+<li>Microsoft Fabric: la misma solución con OneLake, pipelines de Fabric y un modelo semántico de Power BI.</li>
+<li>Infraestructura con Terraform (proyecto 11).</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-torre-de-control-logistica">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-mantenimiento-predictivo.html">← Proyecto 3: Mantenimiento predictivo con sensores IoT y MLflow</a><a href="portafolio-metricas-saas-churn.html">Proyecto 5: Métricas SaaS y riesgo de baja con dbt →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

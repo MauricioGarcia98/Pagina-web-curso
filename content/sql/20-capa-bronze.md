@@ -14,6 +14,10 @@ Finanzas se queja: *"El tablero dice que en el segundo semestre vendimos más de
 La app manda los pedidos en archivos JSON que se cargan tal cual en `bronze_pedidos`. Abres la tabla y encuentras de todo: el mismo pedido dos veces, fechas en tres formatos, montos con coma, estados en inglés, pedidos de prueba del equipo de QA. Nadie hizo nada mal: **así llegan los datos**. Tu trabajo es convertir eso en una tabla confiable (la capa *silver*) sin perder nada en el camino.
 :::
 
+:::analogia En palabras simples
+Los datos llegan como la ropa del lavarropas: mezclados, algunos al revés, uno que otro calcetín sin par. La capa **bronze** es el canasto donde se deja todo tal como llegó, sin tirar nada. Después, con paciencia, se separa, se dobla y se ordena. Esta lección es aprender a doblar: sacar duplicados, convertir textos a números y fechas, y no perder nada en el camino.
+:::
+
 ## Por qué existe la capa bronze
 
 En una arquitectura medallón, **bronze** guarda los datos **exactamente como llegaron**, con columnas extra que dicen de dónde vinieron (`archivo`) y cuándo se cargaron (`cargado_en`). Todo es texto, porque si declararas `fecha` como `DATE`, la fila con `"31/10/2024"` haría fallar la carga y perderías el dato.

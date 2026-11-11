@@ -8,8 +8,10 @@ prerrequisitos: fundamentos-como-se-mueven-los-datos
 autoevaluacion: ¿Sabes qué necesita un analista y qué necesita un modelo de machine learning de los datos? | ¿Sabes nombrar cinco dimensiones de la calidad de datos? | ¿Sabes qué es el linaje y para qué sirve en un incidente? | ¿Sabes qué datos son personales y por qué se enmascaran? | ¿Escribiste un check de nulos y uno de duplicados?
 ---
 
-:::escenario
-Marketing reporta que el tablero dice **243 clientes nuevos** en el último trimestre, pero el CRM dice 230. Nadie confía en ninguno de los dos números. Tu tarea: encontrar cuál está bien y por qué difieren, sin adivinar.
+:::escenario Dos números que no coinciden
+Ahora que sabes por qué importan la calidad y el linaje, mira un caso que se repite en todas las empresas. Marketing reporta que el tablero dice **243 clientes nuevos** en el último trimestre, pero el CRM dice 230, y nadie confía en ninguno de los dos números.
+
+La tarea de un ingeniero de datos no es elegir uno al azar: es seguir el **linaje** de cada número hasta encontrar dónde se separan (una definición distinta de "cliente nuevo", duplicados, una zona horaria). Es la forma de trabajar que viste en esta lección.
 :::
 
 ## La idea en una frase

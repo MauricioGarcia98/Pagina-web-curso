@@ -16,6 +16,10 @@ El equipo web necesita un archivo con el precio de cada producto activo:
 
 Con un `for` son cinco líneas. Con una **comprensión** es una, y se lee casi como la frase del pedido: "el precio de cada producto, para cada producto activo".
 :::
+:::analogia En palabras simples
+Una comprensión es como pedir en una frase lo que antes pedías en un párrafo. En vez de "toma una lista vacía, recorre los precios, si el precio es mayor a 100 agrégalo con IVA", escribes "los precios con IVA, de los que pasan de 100". Hace lo mismo que un bucle, pero en una sola línea fácil de leer.
+:::
+
 ## Transformar colecciones en una línea
 
 Muchísimo código de datos tiene esta forma: "crea una lista vacía, recorre otra lista, transforma o filtra cada elemento y agrégalo". Python tiene una sintaxis compacta para eso: las **comprensiones** (*comprehensions*). Son uno de los rasgos más queridos del lenguaje porque se leen casi como una frase.

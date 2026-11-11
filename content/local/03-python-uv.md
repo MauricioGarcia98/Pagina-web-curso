@@ -14,6 +14,10 @@ Un compañero te pasa un script de ingesta. Lo ejecutas y falla: `AttributeError
 > "Por eso cada proyecto tiene su entorno y sus versiones bloqueadas. Te muestro cómo lo hacemos con uv."
 :::
 
+:::analogia En palabras simples
+Cada proyecto de Python necesita sus propias versiones de librerías, como cada receta necesita sus ingredientes. Un **entorno virtual** es una alacena separada para cada proyecto, así uno no le cambia los ingredientes al otro. `uv` es la herramienta que arma esas alacenas en segundos.
+:::
+
 ## El problema: un Python para todo
 
 Si instalas paquetes en el Python del sistema, **todos** tus proyectos comparten las mismas versiones. El proyecto A necesita pandas 1.5, el B necesita pandas 2.2: imposible. Además, en Linux y macOS el sistema operativo usa su propio Python, y romperlo rompe herramientas del sistema (por eso las versiones nuevas de Ubuntu directamente prohíben `pip install` global).

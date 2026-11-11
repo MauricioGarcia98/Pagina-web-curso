@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes cuándo un benchmark se califica como Good aunque las fi
 El agente de ventas lleva una semana en uso y la gerente está contenta. Un viernes, alguien agrega una instrucción de texto para "mejorar los resúmenes"… y sin que nadie lo note, la pregunta "ventas por país" empieza a incluir los pedidos cancelados. ¿Cómo te enteras antes que la gerente? Igual que con el código: con **pruebas automáticas** que se corren después de cada cambio. En Genie se llaman **benchmarks**.
 :::
 
+:::analogia En palabras simples
+Antes de soltar un Genie Agent a toda la empresa hay que tomarle examen: una lista de preguntas con su respuesta correcta para ver cuántas acierta. Y después, como con un empleado nuevo, se revisa de vez en cuando qué le preguntan y dónde se equivoca.
+:::
+
 ## Paso 1: ser el primer usuario
 
 La documentación insiste: **el autor tiene que ser el primer usuario** del agente. Hazle las preguntas que esperas de los usuarios, con distintas formas de escribirlas, y por cada respuesta:

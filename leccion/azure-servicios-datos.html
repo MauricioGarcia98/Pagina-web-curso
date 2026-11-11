@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servicios de datos en Azure desde la CLI · Academia de Datos</title><meta name="description" content="La arquitectura de referencia de un lakehouse en Azure, crear Databricks, Data Factory y Event Hubs desde la CLI, y llevar un proyecto dbt de tu terminal a Azure Databricks (profiles.yml, SQL warehouse, job con tarea dbt)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-servicios-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Servicios de datos en Azure desde la CLI · Academia de Datos"><meta property="og:description" content="La arquitectura de referencia de un lakehouse en Azure, crear Databricks, Data Factory y Event Hubs desde la CLI, y llevar un proyecto dbt de tu terminal a Azure Databricks (profiles.yml, SQL warehouse, job con tarea dbt)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-servicios-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure">☁️ Azure y Azure CLI</a> · Avanzado · 55 min</div>
+<h1>Servicios de datos en Azure desde la CLI</h1><p class="resumen">La arquitectura de referencia de un lakehouse en Azure, crear Databricks, Data Factory y Event Hubs desde la CLI, y llevar un proyecto dbt de tu terminal a Azure Databricks (profiles.yml, SQL warehouse, job con tarea dbt).</p>
+<a class="cta" href="../index.html#/l/azure-servicios-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Crea un <a href="#/azure/crear/dbw">workspace de Azure Databricks</a> en el portal de práctica: vas a ver el grupo de recursos administrado que crea Azure y el botón <strong>Launch Workspace</strong>, que abre el Databricks de práctica.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Azure tiene un servicio para cada tarea, como una ferretería con un pasillo por tipo de herramienta: Data Factory para mover datos, Databricks para procesarlos, Synapse y Fabric para analizarlos, Event Hubs para datos que llegan sin parar. Esta lección es el plano de la ferretería.</p>
+</div>
+
+
+<h2>Arquitectura de referencia (lakehouse en Azure)</h2>
+<pre><code class="language-text"> Fuentes (ERP, APIs, archivos, eventos)
+     │  Azure Data Factory (copia batch)     Event Hubs (streaming)
+     ▼                                        ▼
+ ADLS Gen2:  bronze  ──▶  silver  ──▶  gold        ← Azure Databricks (Spark + Delta + Unity Catalog)
+                                         │           dbt (modelos SQL)   Airflow / Workflows (orquestación)
+                                         ▼
+                        Power BI / Databricks SQL / ML
+ Transversal: Entra ID + RBAC, Key Vault, Azure Monitor, Cost Management</code></pre>
+<p>Cada servicio cumple un papel en ese recorrido:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Etapa</th>
+<th>Servicio</th>
+<th>Qué hace</th>
+<th>Equivalente en AWS / GCP</th>
+</tr>
+</thead><tbody><tr>
+<td>Ingesta batch</td>
+<td><strong>Data Factory (ADF)</strong></td>
+<td>Copia datos desde más de 100 conectores al lago, con orquestación visual</td>
+<td>Glue / DMS · Data Transfer / Datastream</td>
+</tr>
+<tr>
+<td>Ingesta streaming</td>
+<td><strong>Event Hubs</strong></td>
+<td>Recibe millones de eventos por segundo (compatible con Kafka)</td>
+<td>Kinesis / MSK · Pub/Sub</td>
+</tr>
+<tr>
+<td>Almacenamiento</td>
+<td><strong>ADLS Gen2</strong></td>
+<td>El lago: bronze, silver, gold</td>
+<td>S3 · Cloud Storage</td>
+</tr>
+<tr>
+<td>Proceso</td>
+<td><strong>Azure Databricks</strong></td>
+<td>Spark, Delta Lake, SQL, notebooks, jobs</td>
+<td>EMR / Glue · Dataproc</td>
+</tr>
+<tr>
+<td>Plataforma integrada</td>
+<td><strong>Microsoft Fabric</strong></td>
+<td>Lakehouse, warehouse y Power BI en un producto SaaS</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Consumo</td>
+<td><strong>Power BI</strong></td>
+<td>Dashboards y reportes</td>
+<td>QuickSight · Looker</td>
+</tr>
+<tr>
+<td>Secretos</td>
+<td><strong>Key Vault</strong></td>
+<td>Contraseñas y tokens</td>
+<td>Secrets Manager · Secret Manager</td>
+</tr>
+</tbody></table></div>
+<!-- dg:az06-ref -->
+<figure class="diagrama"><figcaption>Lakehouse de referencia en Azure</figcaption></figure>
+
+
+<h2>Azure Databricks</h2>
+<pre data-norun><code class="language-bash">az extension add --name databricks
+az databricks workspace create \
+  --resource-group rg-datos-dev --name dbw-datos-dev \
+  --location eastus2 --sku premium
+az databricks workspace show --resource-group rg-datos-dev --name dbw-datos-dev --query workspaceUrl -o tsv</code></pre>
+<p>El SKU <strong>premium</strong> es necesario para Unity Catalog, controles de acceso y la mayoría de las funciones empresariales.</p>
+<h2>Azure Data Factory</h2>
+<pre data-norun><code class="language-bash">az extension add --name datafactory
+az datafactory create --resource-group rg-datos-dev --factory-name adf-datos-dev --location eastus2
+az datafactory pipeline create-run --resource-group rg-datos-dev --factory-name adf-datos-dev --name pl_copiar_ventas</code></pre>
+<p>ADF es ideal para <strong>copiar</strong> datos de cientos de conectores (SQL Server on-premises, SAP, APIs, SFTP…) al data lake, con un Integration Runtime que puede vivir dentro de tu red.</p>
+<p>Las piezas de ADF, en el orden en que se arman:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Linked service</strong></td>
+<td>La conexión: a dónde y con qué credencial</td>
+<td>ADLS Gen2 con la <strong>identidad administrada</strong> del factory</td>
+</tr>
+<tr>
+<td><strong>Dataset</strong></td>
+<td>Qué datos dentro de esa conexión</td>
+<td><code>raw/ventas/*.csv</code> como DelimitedText</td>
+</tr>
+<tr>
+<td><strong>Pipeline</strong></td>
+<td>Las actividades y sus dependencias</td>
+<td>Copy data → Notebook de Databricks</td>
+</tr>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>Cuándo corre la versión <strong>publicada</strong></td>
+<td>Todos los días a las 6:00, o al llegar un archivo</td>
+</tr>
+<tr>
+<td><strong>Integration runtime</strong></td>
+<td>El cómputo que mueve los datos</td>
+<td>Azure (administrado) o self-hosted dentro de tu red</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el Studio</div>
+
+<p>En el <a href="#/azure">portal de Azure de práctica</a> crea un data factory y pulsa <strong>Launch studio</strong>. Arma el recorrido completo: dale al factory el rol <em>Storage Blob Data Contributor</em> en tu cuenta (IAM), crea los linked services, dos datasets, un pipeline con <strong>Copy data</strong> y un <strong>Notebook</strong>, prueba con <strong>Debug</strong>, publica con <strong>Publish all</strong>, lánzalo con <strong>Trigger now</strong> y míralo en <strong>Monitor</strong>. Si sacas el rol, vas a ver el mismo error <code>AuthorizationPermissionMismatch</code> que en Azure.</p>
+</div>
+
+
+<h2>Event Hubs (streaming)</h2>
+<pre data-norun><code class="language-bash">az eventhubs namespace create --resource-group rg-datos-dev --name evh-datos-dev --location eastus2 --sku Standard
+az eventhubs eventhub create --resource-group rg-datos-dev --namespace-name evh-datos-dev --name clics --partition-count 4</code></pre>
+<p>Spark Structured Streaming lo consume con el conector de Kafka (Event Hubs es compatible con el protocolo Kafka).</p>
+<h2>Etiquetas (tags) y costos</h2>
+<pre data-norun><code class="language-bash">az group update --name rg-datos-dev --set tags.centro_costos=analitica tags.entorno=dev
+az resource list --tag entorno=dev -o table
+az consumption usage list --start-date 2024-12-01 --end-date 2024-12-31 -o table</code></pre>
+<h2>Pruébalo en la terminal</h2>
+<pre><code class="language-bash">az login
+az group create --name rg-datos-dev --location eastus2
+az extension add --name databricks
+az databricks workspace create --resource-group rg-datos-dev --name dbw-datos-dev --location eastus2 --sku premium
+az databricks workspace show --resource-group rg-datos-dev --name dbw-datos-dev --query workspaceUrl -o tsv
+az resource list --resource-group rg-datos-dev -o table</code></pre>
+<p>Sin el <code>az extension add</code>, el comando <code>az databricks</code> responde que no existe: prueba quitarlo para ver el error real. La URL que devuelve el <code>show</code> es la dirección del workspace; con ella configurarás la <strong>Databricks CLI</strong> en el módulo de Databricks (<code>databricks auth login --host https://…</code>).</p>
+<h2>De dbt en tu terminal a Azure, paso a paso</h2>
+<p>En el módulo de dbt construiste un proyecto que corre en la terminal sobre una base local. Llevarlo a Azure no cambia los modelos: cambia <strong>dónde</strong> se ejecuta el SQL (un SQL warehouse de Azure Databricks) y <strong>quién</strong> lo ejecuta todos los días (un job). Estos son los pasos, según la documentación de Databricks.</p>
+<p><strong>1. Crear el workspace y un SQL warehouse.</strong> El workspace es el que creaste arriba con <code>az databricks workspace create</code>. Dentro de él, un <strong>SQL warehouse</strong> es el cómputo que va a ejecutar el SQL que genera dbt. Los workspaces nuevos traen un <em>Serverless Starter Warehouse</em>; su página <em>Connection details</em> muestra dos datos que vas a necesitar: el <strong>Server hostname</strong> (<code>adb-1234567890123456.7.azuredatabricks.net</code>) y el <strong>HTTP path</strong> (<code>/sql/1.0/warehouses/1a2b3c4d5e6f7a8b</code>).</p>
+<pre><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks warehouses list</code></pre>
+<p><strong>2. Instalar el adaptador de Databricks en tu proyecto.</strong> En el entorno virtual del proyecto (la documentación recomienda <code>dbt-databricks</code> 1.8 o más nuevo):</p>
+<pre data-norun><code class="language-bash">pip install &quot;dbt-databricks&gt;=1.8,&lt;2.0&quot;</code></pre>
+<p><strong>3. Agregar el destino en <code>profiles.yml</code>.</strong> Tu perfil ya tenía un destino local; se agrega uno para Azure. La documentación recomienda OAuth en vez de un token personal, y no escribir secretos en el archivo:</p>
+<pre data-norun><code class="language-yaml">tienda_dbt:
+  target: dev
+  outputs:
+    dev:                               # tu destino local de siempre
+      type: duckdb
+      path: tienda.duckdb
+    azure:
+      type: databricks
+      host: adb-1234567890123456.7.azuredatabricks.net
+      http_path: /sql/1.0/warehouses/1a2b3c4d5e6f7a8b
+      catalog: main                    # el catálogo de Unity Catalog donde dbt crea las tablas
+      schema: dbt_ana                  # tu esquema de desarrollo
+      auth_type: oauth                 # abre el navegador la primera vez
+      threads: 4                       # cuántos modelos construye en paralelo</code></pre>
+<p><strong>4. Probar la conexión y construir.</strong> Con el warehouse encendido:</p>
+<pre data-norun><code class="language-bash">dbt debug --target azure               # &quot;Connection test: OK connection ok&quot;
+dbt build --target azure               # los mismos modelos, ahora como tablas Delta en main.dbt_ana</code></pre>
+<p>Los datos de origen tienen que existir en Unity Catalog (por ejemplo, cargados en bronze por Data Factory o Auto Loader) y tu <code>sources.yml</code> debe apuntar a ese catálogo y esquema. Es el único archivo del proyecto que suele cambiar.</p>
+<p><strong>5. Programarlo con un job.</strong> En producción nadie corre <code>dbt build</code> desde su computadora. Un <strong>Lakeflow Job</strong> con una tarea de tipo <strong>dbt</strong> lo hace todos los días: toma el proyecto desde Git, ejecuta los comandos en orden sobre un SQL warehouse y usa como identidad el <em>Run as</em> del job (un <em>service principal</em>), que necesita permiso <code>CAN USE</code> sobre el warehouse y los privilegios de Unity Catalog sobre el catálogo. Definido como código en un bundle:</p>
+<pre data-norun><code class="language-yaml"># databricks.yml (fragmento)
+resources:
+  jobs:
+    dbt_diario:
+      name: dbt-diario
+      schedule:
+        quartz_cron_expression: &quot;0 30 5 * * ?&quot;     # todos los días a las 5:30
+        timezone_id: America/Argentina/Buenos_Aires
+      tasks:
+        - task_key: dbt_build
+          dbt_task:
+            project_directory: ./
+            commands: [&quot;dbt deps&quot;, &quot;dbt build --target prod&quot;]
+            warehouse_id: 1a2b3c4d5e6f7a8b
+            catalog: main
+            schema: analytics
+          environment_key: dbt
+      environments:
+        - environment_key: dbt
+          spec:
+            dependencies: [&quot;dbt-databricks&gt;=1.8,&lt;2.0&quot;]</code></pre>
+<pre data-norun><code class="language-bash">databricks bundle validate -t prod
+databricks bundle deploy -t prod
+databricks bundle run dbt_diario -t prod</code></pre>
+<p>La documentación recomienda <strong>fijar la versión</strong> de <code>dbt-databricks</code> para que desarrollo y producción usen la misma, y correr la parte de dbt en cómputo <em>serverless</em> o en un clúster de un solo nodo (el trabajo pesado lo hace el warehouse, no dbt).</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>En tu terminal</th>
+<th>En Azure</th>
+</tr>
+</thead><tbody><tr>
+<td>Dónde corre el SQL</td>
+<td>DuckDB o SQLite en tu máquina</td>
+<td>SQL warehouse de Azure Databricks</td>
+</tr>
+<tr>
+<td>Dónde quedan las tablas</td>
+<td>Un archivo local</td>
+<td>Tablas Delta en Unity Catalog (sobre ADLS Gen2)</td>
+</tr>
+<tr>
+<td>Quién lo ejecuta</td>
+<td>Tú, con <code>dbt build</code></td>
+<td>Un Lakeflow Job con tarea dbt, como service principal</td>
+</tr>
+<tr>
+<td>Credenciales</td>
+<td>Ninguna</td>
+<td>OAuth (U2M para ti, M2M para el job)</td>
+</tr>
+<tr>
+<td>Qué cambia en el proyecto</td>
+<td>—</td>
+<td><code>profiles.yml</code> (destino nuevo) y <code>sources.yml</code> (catálogo de origen)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>dbt debug</code> falla con timeout</strong>: el SQL warehouse está detenido; arráncalo o espera a que se encienda.</li>
+<li><strong>Copiar el host con <code>https://</code></strong> en <code>profiles.yml</code>: el adaptador espera solo el nombre (<code>adb-....azuredatabricks.net</code>).</li>
+<li><strong>El job falla con permiso denegado</strong> aunque a ti te funciona: el <em>Run as</em> del job es otra identidad y necesita sus propios permisos sobre el warehouse y el catálogo.</li>
+<li><strong>Crear el workspace con SKU standard</strong>: Unity Catalog y varias funciones de seguridad necesitan premium.</li>
+<li><strong>No fijar la versión del adaptador</strong>: una actualización automática cambia el comportamiento entre un día y otro.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El recorrido típico de un equipo: Data Factory o Lakeflow Connect cargan bronze, dbt transforma silver y gold en un SQL warehouse, un Lakeflow Job lo programa y Power BI lee gold. Todo definido en Git: Bicep o Terraform para la infraestructura, un bundle para los jobs.</li>
+<li>Los costos se controlan con etiquetas en el grupo de recursos y en los jobs, y con el apagado automático (<em>auto stop</em>) de los warehouses.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo llevarías a producción en Azure un proyecto dbt que hoy corre en tu computadora?&quot;</div>
+
+<p>Instalaría el adaptador dbt-databricks con una versión fija y agregaría un destino en profiles.yml apuntando al SQL warehouse de Azure Databricks con OAuth, con las tablas en un catálogo de Unity Catalog. Ajustaría los sources al catálogo donde está bronze y probaría con dbt debug y dbt build. Para producción crearía un Lakeflow Job con una tarea dbt que toma el proyecto desde Git y ejecuta dbt deps y dbt build, con un service principal como Run as con permisos mínimos, definido en un bundle y desplegado desde CI. También usaría dbt build, para que un test que falla impida publicar datos malos.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-servicios-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-identidad-seguridad.html">← Identidad, permisos (RBAC) y Key Vault</a><a href="azure-automatizacion.html">Automatización: scripts e infraestructura como código →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

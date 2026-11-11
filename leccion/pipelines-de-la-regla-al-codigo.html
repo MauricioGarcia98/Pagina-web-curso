@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la regla de negocio al código · Academia de Datos</title><meta name="description" content="Cómo convertir una regla escrita en palabras en una función probada, qué va en Python, qué va en SQL/dbt, qué va en Spark y qué va en Airflow, y los principios que hacen confiable un pipeline."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-de-la-regla-al-codigo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la regla de negocio al código · Academia de Datos"><meta property="og:description" content="Cómo convertir una regla escrita en palabras en una función probada, qué va en Python, qué va en SQL/dbt, qué va en Spark y qué va en Airflow, y los principios que hacen confiable un pipeline."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-de-la-regla-al-codigo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Intermedio · 35 min</div>
+<h1>De la regla de negocio al código</h1><p class="resumen">Cómo convertir una regla escrita en palabras en una función probada, qué va en Python, qué va en SQL/dbt, qué va en Spark y qué va en Airflow, y los principios que hacen confiable un pipeline.</p>
+<a class="cta" href="../index.html#/l/pipelines-de-la-regla-al-codigo">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<h2>El trabajo real de un data engineer</h2>
+<p>En las empresas casi nunca te piden &quot;haz un <code>GROUP BY</code>&quot;. Te dicen cosas como:</p>
+<blockquote>
+<p>&quot;Un préstamo está <strong>en mora</strong> si tiene alguna cuota vencida sin pagar. Si el atraso supera 90 días se considera <strong>incobrable</strong> y hay que provisionar el 100 %.&quot;</p>
+</blockquote>
+<p>Tu trabajo es convertir esa frase en <strong>código correcto, probado y que corra todos los días sin que nadie lo mire</strong>. Este módulo toma los ocho casos del curso (banco, streaming, movilidad, clínica, SaaS, aerolínea, logística y tienda) y los resuelve con <strong>todas</strong> las herramientas.</p>
+<h2>El método en 5 pasos</h2>
+<ol>
+<li><strong>Escribe la regla con tus palabras y con ejemplos.</strong> &quot;Cuota con vencimiento 10/03, pagada el 15/03 → 5 días de atraso. No pagada al 31/12 → atraso = 31/12 − 10/03.&quot;</li>
+<li><strong>Encuentra los casos borde.</strong> ¿Pagada el mismo día del vencimiento? ¿Sin fecha de pago? ¿Monto cero? ¿Fechas en el futuro?</li>
+<li><strong>Escribe primero los tests</strong> (los ejemplos del paso 1 y 2 como <code>assert</code>).</li>
+<li><strong>Programa la función más simple</strong> que pase los tests.</li>
+<li><strong>Decide dónde vive</strong> esa lógica en el pipeline (tabla de abajo).</li>
+</ol>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La receta antes de cocinar</div>
+
+<p>Un cocinero no improvisa con 200 comensales esperando: escribe la receta, la prueba con una porción y recién ahí cocina para todos. Los tests son la porción de prueba; el pipeline es cocinar para todos, todos los días.</p>
+</div>
+
+
+<h2>¿Dónde vive cada pieza?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Qué lógica le toca</th>
+<th>Ejemplo en el banco</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Python</strong> (funciones puras)</td>
+<td>Reglas con muchas condiciones, cálculos financieros, validaciones, llamadas a APIs</td>
+<td>Cuota francesa, decisión de aprobar un préstamo</td>
+</tr>
+<tr>
+<td><strong>SQL / dbt</strong></td>
+<td>Uniones, agregaciones, métricas de negocio, capas staging → marts, tests de datos</td>
+<td>Mora por cartera, saldo por cuenta</td>
+</tr>
+<tr>
+<td><strong>PySpark</strong></td>
+<td>Lo mismo que SQL pero a gran escala o con lógica que no cabe en SQL (UDF, ML, archivos crudos)</td>
+<td>Limpiar 500 millones de transacciones</td>
+</tr>
+<tr>
+<td><strong>Airflow</strong></td>
+<td><strong>Cuándo</strong> y <strong>en qué orden</strong> corre todo; reintentos, alertas, dependencias</td>
+<td>&quot;Cada día: cargar → limpiar → calcular mora → avisar&quot;</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Airflow orquesta, no procesa</div>
+
+<p>Un error muy común es meter el procesamiento pesado <em>dentro</em> de una tarea de Airflow (por ejemplo, leer millones de filas con pandas en un <code>PythonOperator</code>). Airflow debe <strong>disparar</strong> el trabajo (un job de Spark, un <code>dbt build</code>, una consulta en el warehouse) y esperar el resultado.</p>
+</div>
+
+
+<h2>Los 6 principios de un pipeline confiable</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Principio</th>
+<th>Qué significa</th>
+<th>Cómo se logra</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Idempotencia</strong></td>
+<td>Correr dos veces lo mismo da el mismo resultado (no duplica)</td>
+<td>Sobrescribir la partición del día, <code>MERGE</code> por clave, nunca <code>INSERT</code> ciego</td>
+</tr>
+<tr>
+<td><strong>Determinismo</strong></td>
+<td>Mismo input → mismo output</td>
+<td>Nada de <code>now()</code> escondido: la fecha de proceso entra como parámetro (<code>{{ ds }}</code>)</td>
+</tr>
+<tr>
+<td><strong>Atomicidad</strong></td>
+<td>O se publica todo, o nada</td>
+<td>Escribir en una tabla temporal y renombrar; formatos con transacciones (Delta, Iceberg)</td>
+</tr>
+<tr>
+<td><strong>Observabilidad</strong></td>
+<td>Saber qué pasó sin adivinar</td>
+<td>Logs, conteos por paso, alertas, métricas de frescura</td>
+</tr>
+<tr>
+<td><strong>Calidad en la puerta</strong></td>
+<td>Los datos malos se detectan antes de llegar al reporte</td>
+<td>Tests (dbt, asserts), cuarentena de filas inválidas</td>
+</tr>
+<tr>
+<td><strong>Reprocesable</strong></td>
+<td>Poder recalcular un día o un mes</td>
+<td>Guardar bronze inmutable, parametrizar por fecha, <em>backfill</em></td>
+</tr>
+</tbody></table></div>
+<h2>El método aplicado, de punta a punta</h2>
+<p>Tomemos la regla del principio y recorramos los cinco pasos.</p>
+<p><strong>Paso 1: la regla en palabras y con ejemplos.</strong> &quot;Los días de atraso de una cuota son la diferencia entre la fecha de pago y la de vencimiento. Si no se pagó, se cuenta hasta la fecha de corte. Pagar antes o el mismo día es 0 días de atraso.&quot;</p>
+<p><strong>Paso 2: los casos borde</strong>, que casi siempre son los que rompen un pipeline:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Caso</th>
+<th>Vencimiento</th>
+<th>Pago</th>
+<th>Corte</th>
+<th>Atraso esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Pagó tarde</td>
+<td>2024-03-10</td>
+<td>2024-03-15</td>
+<td>2024-12-31</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Pagó el mismo día</td>
+<td>2024-03-10</td>
+<td>2024-03-10</td>
+<td>2024-12-31</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Pagó antes</td>
+<td>2024-03-10</td>
+<td>2024-03-01</td>
+<td>2024-12-31</td>
+<td>0 (no −9)</td>
+</tr>
+<tr>
+<td>No pagó</td>
+<td>2024-03-10</td>
+<td>(vacío)</td>
+<td>2024-12-31</td>
+<td>296</td>
+</tr>
+<tr>
+<td>Vence después del corte</td>
+<td>2025-01-10</td>
+<td>(vacío)</td>
+<td>2024-12-31</td>
+<td>0</td>
+</tr>
+</tbody></table></div>
+<p><strong>Paso 3: los tests</strong>, escritos antes que la función. <strong>Paso 4: la función</strong> más simple que los pase:</p>
+<pre><code class="language-python">from datetime import date
+
+def dias_atraso(vencimiento, pago, corte):
+    &quot;&quot;&quot;Días de atraso de una cuota a la fecha de corte (nunca negativo).&quot;&quot;&quot;
+    hasta = pago if pago is not None else corte
+    return max(0, (hasta - vencimiento).days)
+
+assert dias_atraso(date(2024, 3, 10), date(2024, 3, 15), date(2024, 12, 31)) == 5
+assert dias_atraso(date(2024, 3, 10), date(2024, 3, 10), date(2024, 12, 31)) == 0
+assert dias_atraso(date(2024, 3, 10), date(2024, 3, 1), date(2024, 12, 31)) == 0
+assert dias_atraso(date(2024, 3, 10), None, date(2024, 12, 31)) == 296
+assert dias_atraso(date(2025, 1, 10), None, date(2024, 12, 31)) == 0
+print(&quot;los 5 casos pasan&quot;)</code></pre>
+<p>Línea por línea:</p>
+<ul>
+<li><code>hasta = pago if pago is not None else corte</code>: si hay fecha de pago, se cuenta hasta ella; si no, hasta el corte. Se escribe <code>is not None</code> (y no <code>if pago</code>) para que quede claro que lo que se pregunta es &quot;¿existe el dato?&quot;.</li>
+<li><code>(hasta - vencimiento).days</code>: restar dos fechas da una duración (<code>timedelta</code>), y <code>.days</code> son sus días.</li>
+<li><code>max(0, ...)</code>: el atraso nunca es negativo; pagar antes no da &quot;días a favor&quot;.</li>
+<li>La <strong>fecha de corte es un parámetro</strong>: la función no mira la fecha de hoy. Por eso se puede probar, y por eso reprocesar el cierre de marzo dentro de un año da exactamente lo mismo.</li>
+</ul>
+<p><strong>Paso 5: dónde vive.</strong> La misma regla en SQL, para calcularla sobre millones de cuotas en el warehouse (o como modelo de dbt):</p>
+<pre><code class="language-sql">SELECT cuota_id,
+       MAX(0, CAST(julianday(COALESCE(fecha_pago, '2024-12-31')) - julianday(fecha_vencimiento) AS INTEGER)) AS dias_atraso
+FROM banco_cuotas
+LIMIT 5;</code></pre>
+<p><code>COALESCE(fecha_pago, &#39;2024-12-31&#39;)</code> es el mismo &quot;si no hay pago, el corte&quot;; en dbt la fecha de corte sería una variable (<code>{{ var(&#39;fecha_corte&#39;) }}</code>) y en Airflow llegaría desde la fecha lógica de la ejecución. Los mismos cinco casos del paso 2 se convierten en un <strong>unit test</strong> de dbt. La lógica es una sola, escrita en dos lenguajes, y probada con los mismos ejemplos.</p>
+<h2>Idempotencia, con un ejemplo</h2>
+<p>El principio que más problemas evita es la idempotencia. Imagina que la carga diaria hace esto:</p>
+<pre data-norun><code class="language-sql">INSERT INTO gold.mora_diaria
+SELECT '2024-12-31' AS fecha, tramo, COUNT(*) FROM ... GROUP BY tramo;</code></pre>
+<p>Si la tarea falla a mitad de camino y Airflow la reintenta, o si alguien la vuelve a correr para corregir un dato, el 31 de diciembre queda <strong>dos veces</strong> y el reporte muestra el doble de mora. La versión idempotente borra primero lo del día y vuelve a escribirlo, todo en una transacción:</p>
+<pre data-norun><code class="language-sql">BEGIN;
+DELETE FROM gold.mora_diaria WHERE fecha = '2024-12-31';
+INSERT INTO gold.mora_diaria
+SELECT '2024-12-31' AS fecha, tramo, COUNT(*) FROM ... GROUP BY tramo;
+COMMIT;</code></pre>
+<p>Correrla una, dos o diez veces deja el mismo resultado. En Delta Lake o Spark lo mismo se hace con <code>replaceWhere</code> o <code>MERGE</code>; en dbt, con un modelo incremental con <code>unique_key</code>.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Programar primero y probar después</strong> (o nunca): los casos borde aparecen en producción, con datos reales y un reporte equivocado.</li>
+<li><strong><code>datetime.now()</code> dentro de la lógica</strong>: la función da distinto resultado según cuándo se ejecuta y no se puede reprocesar.</li>
+<li><strong><code>INSERT</code> ciego en una carga diaria</strong>: cada reintento duplica datos.</li>
+<li><strong>La misma regla escrita distinta en dos lugares</strong> (una versión en Python y otra en SQL que no coinciden en un caso borde): los números de dos tableros no cuadran. Pruébalas con los mismos ejemplos.</li>
+<li><strong>Procesar dentro de Airflow</strong>: el worker se queda sin memoria y la tarea falla de forma intermitente.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los &quot;requerimientos&quot; llegan casi siempre como un mensaje, una reunión o una planilla con ejemplos. El primer entregable de un data engineer no es código: es la tabla de casos (como la del paso 2), validada con quien pidió el dato.</li>
+<li>Esa tabla de casos se guarda junto al código como tests: cuando dentro de un año alguien pregunte &quot;¿por qué la mora de marzo dio 4,2 %?&quot;, la respuesta está en el repositorio.</li>
+<li>En las revisiones de código se pregunta siempre: ¿es idempotente?, ¿qué pasa si corre dos veces?, ¿qué pasa si llega un dato vacío?</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Te piden calcular una métrica nueva a partir de una regla de negocio. ¿Cómo lo encaras?&quot;</div>
+
+<p>Primero reescribo la regla con ejemplos concretos y busco los casos borde con quien la pidió: valores vacíos, fechas límite, ceros, datos tardíos. Convierto esos ejemplos en tests antes de programar y escribo una función pura, con la fecha de proceso como parámetro. Después decido dónde vive: si es una agregación sobre muchas filas, en SQL o dbt con los mismos casos como unit test; si es lógica compleja o una API, en Python. El pipeline que la publica es idempotente, con tests de calidad en la entrada, y Airflow solo orquesta.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-de-la-regla-al-codigo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-delivery.html">← Caso 🛵 Rápido: tiempos de entrega, take rate y retención en una app de delivery</a><a href="pipelines-banco-python.html">Banco 🏦: reglas financieras en Python →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit economics - MRR, retención neta y lo que deja cada pedido · Academia de Datos</title><meta name="description" content="Las métricas que miran los inversores y la dirección - MRR y su cascada (nuevo, expansión, contracción, bajas y reactivación) en un SaaS, retención neta de ingresos (NRR), ARPA, un LTV simple, y la economía de un pedido de delivery (ingreso, costo de cupones y contribución)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-unit-economics.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Unit economics - MRR, retención neta y lo que deja cada pedido · Academia de Datos"><meta property="og:description" content="Las métricas que miran los inversores y la dirección - MRR y su cascada (nuevo, expansión, contracción, bajas y reactivación) en un SaaS, retención neta de ingresos (NRR), ARPA, un LTV simple, y la economía de un pedido de delivery (ingreso, costo de cupones y contribución)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-unit-economics.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Avanzado · 55 min</div>
+<h1>Unit economics - MRR, retención neta y lo que deja cada pedido</h1><p class="resumen">Las métricas que miran los inversores y la dirección - MRR y su cascada (nuevo, expansión, contracción, bajas y reactivación) en un SaaS, retención neta de ingresos (NRR), ARPA, un LTV simple, y la economía de un pedido de delivery (ingreso, costo de cupones y contribución).</p>
+<a class="cta" href="../index.html#/l/analisis-unit-economics">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular el MRR y clasificar sus movimientos mes a mes</li><li>Calcular la retención neta de ingresos</li><li>Estimar un LTV simple a partir de ARPA y churn</li><li>Calcular la contribución por pedido en un marketplace</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Los <em>unit economics</em> responden una pregunta simple: ¿cuánto gano o pierdo con cada cliente o con cada pedido? Es como un puesto de limonada: si cada vaso cuesta más de hacer de lo que lo vendes, vender más te hace perder más. Esta lección enseña a hacer esa cuenta con datos reales.</p>
+</div>
+
+
+<h2>MRR y su cascada</h2>
+<p>El <strong>MRR</strong> (ingreso recurrente mensual) es la suma de las facturas del mes. Mes contra mes, cada empresa cae en un movimiento:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Movimiento</th>
+<th>Mes anterior</th>
+<th>Mes actual</th>
+</tr>
+</thead><tbody><tr>
+<td>Nuevo</td>
+<td>no facturó nunca</td>
+<td>factura</td>
+</tr>
+<tr>
+<td>Reactivación</td>
+<td>no facturó (pero sí antes)</td>
+<td>factura</td>
+</tr>
+<tr>
+<td>Expansión</td>
+<td>facturó X</td>
+<td>factura más de X</td>
+</tr>
+<tr>
+<td>Contracción</td>
+<td>facturó X</td>
+<td>factura menos de X (más de 0)</td>
+</tr>
+<tr>
+<td>Baja (churn)</td>
+<td>facturó X</td>
+<td>no factura</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">WITH f AS (SELECT empresa_id, mes, SUM(monto) AS mrr FROM saas_facturas GROUP BY empresa_id, mes)
+SELECT a.mes, a.empresa_id, b.mrr AS mrr_anterior, a.mrr AS mrr_actual
+FROM f a
+LEFT JOIN f b ON b.empresa_id = a.empresa_id AND b.mes = date(a.mes, '-1 month')
+WHERE a.mes = '2024-06-01'
+LIMIT 5;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ LAG no alcanza</div>
+
+<p><code>LAG(mrr) OVER (PARTITION BY empresa_id ORDER BY mes)</code> trae la <strong>última</strong> factura anterior, aunque haya sido hace cinco meses. Para comparar con el mes calendario anterior, únelo por <code>mes = date(mes, &#39;-1 month&#39;)</code>.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Retención neta de ingresos (NRR)</h2>
+<p>NRR = MRR de hoy <strong>de las empresas que ya pagaban hace 12 meses</strong> ÷ MRR de esas empresas hace 12 meses. Incluye expansiones, contracciones y bajas; <strong>no</strong> incluye clientes nuevos.</p>
+<h2>LTV simple</h2>
+<p>Un LTV de servilleta: <code>ARPA × margen bruto ÷ churn mensual</code>. Con ARPA de 200, margen de 80 % y churn de 2 % mensual, el LTV es 200 × 0,8 ÷ 0,02 = 8.000. Sirve para compararlo con el costo de conseguir un cliente (CAC).</p>
+<h2>La economía de un pedido de delivery</h2>
+<p>Para la plataforma, cada pedido entregado deja: comisión del restaurante + costo de envío − cupón que pagó la plataforma. Esa diferencia es la <strong>contribución</strong> (antes de pagarle al repartidor y de los costos fijos).</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Nube Pyme va a pedir inversión. El fondo no pregunta “¿cuánto facturan?”, pregunta “¿cuánto de lo que facturaban hace un año siguen facturando hoy, contando las mejoras de plan y las bajas?”. Esa es la retención neta. Si supera el 100 %, el negocio crece aunque no consiga ni un cliente nuevo.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-unit-economics">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="analisis-embudos.html">← Embudos de conversión - dónde se pierden los clientes</a><a href="analisis-pruebas-ab.html">Pruebas A/B - leer un experimento sin engañarse →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -7,6 +7,10 @@ resumen: Desde cero - qué es un modelo, qué es Jinja y qué significa compilar
 
 Un **modelo** es un archivo `.sql` con **un solo SELECT**. El nombre del archivo es el nombre del modelo: `models/marts/fct_ventas.sql` crea `fct_ventas`.
 
+:::analogia En palabras simples
+Un modelo de dbt es una receta escrita en SQL: "toma estos ingredientes y prepara esta tabla". `ref()` es la forma de decir "usa como ingrediente la tabla que sale de otra receta". Así dbt sabe en qué orden cocinar todo, como cuando sabes que la salsa tiene que estar lista antes de armar la pizza.
+:::
+
 ## Desde cero: qué escribes y qué ejecuta la base
 
 Un modelo **no** lleva `CREATE TABLE`, ni `INSERT`, ni punto y coma al final: solo la consulta que describe el resultado que quieres. dbt agrega el resto (según la materialización, que verás en otra lección). Esa es la gran simplificación: tú piensas en **qué datos** quieres; dbt se ocupa de **cómo** guardarlos.

@@ -7,6 +7,10 @@ resumen: Orquestar jobs de Databricks y dbt desde Airflow, sensores, alertas y e
 
 En la vida real, un DAG de Airflow casi nunca procesa datos. Lo que hace es **coordinar** a otros sistemas: le dice a Databricks que corra un job, espera a que termine, le dice a dbt que construya los modelos y avisa si algo sale mal. Esta lección arma ese pipeline completo, el que vas a encontrar en muchas empresas que usan Azure, Databricks y dbt.
 
+:::analogia En palabras simples
+En un proyecto real cada herramienta hace lo suyo, como en una cocina profesional: Databricks procesa los datos pesados, dbt transforma con SQL y Airflow es el jefe de cocina que dice quién empieza, quién sigue y qué hacer si algo sale mal. En esta lección los conectas en un solo pipeline.
+:::
+
 ## El escenario
 
 Tienda Andina recibe cada noche los pedidos del día. A las 7 de la mañana el equipo comercial abre su dashboard y espera ver las ventas de ayer. Entre medio pasa esto:

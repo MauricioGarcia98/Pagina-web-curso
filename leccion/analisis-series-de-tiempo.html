@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Series de tiempo - tendencia, estacionalidad y anomalías · Academia de Datos</title><meta name="description" content="Analizar métricas a lo largo del tiempo con SQL - completar días sin datos con un calendario, agregar por semana y mes, suavizar con promedios móviles, comparar contra el año anterior, medir la estacionalidad con un índice y detectar días anómalos con la desviación respecto de la media."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-series-de-tiempo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Series de tiempo - tendencia, estacionalidad y anomalías · Academia de Datos"><meta property="og:description" content="Analizar métricas a lo largo del tiempo con SQL - completar días sin datos con un calendario, agregar por semana y mes, suavizar con promedios móviles, comparar contra el año anterior, medir la estacionalidad con un índice y detectar días anómalos con la desviación respecto de la media."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-series-de-tiempo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Avanzado · 50 min</div>
+<h1>Series de tiempo - tendencia, estacionalidad y anomalías</h1><p class="resumen">Analizar métricas a lo largo del tiempo con SQL - completar días sin datos con un calendario, agregar por semana y mes, suavizar con promedios móviles, comparar contra el año anterior, medir la estacionalidad con un índice y detectar días anómalos con la desviación respecto de la media.</p>
+<a class="cta" href="../index.html#/l/analisis-series-de-tiempo">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir series diarias completas aunque falten días</li><li>Calcular promedios móviles y comparaciones interanuales</li><li>Medir la estacionalidad de cada mes</li><li>Marcar valores anómalos con un criterio explícito</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una serie de tiempo es como el registro de temperatura de todo un año: tiene una tendencia (cada año un poco más calor), ciclos que se repiten (frío en invierno, calor en verano) y días raros que se salen de lo normal. Separar esas tres cosas permite entender qué está pasando de verdad.</p>
+</div>
+
+
+<h2>Series completas: el calendario</h2>
+<p>Si un día no hubo pedidos, <code>GROUP BY fecha</code> simplemente no lo devuelve, y un promedio móvil de “7 filas” deja de ser de 7 días. Por eso se parte de un calendario y se une con <code>LEFT JOIN</code>.</p>
+<pre><code class="language-sql">WITH RECURSIVE cal(dia) AS (
+  SELECT '2024-12-01' UNION ALL SELECT date(dia, '+1 day') FROM cal WHERE dia &lt; '2024-12-31'
+)
+SELECT cal.dia, COUNT(p.pedido_id) AS pedidos
+FROM cal LEFT JOIN pedidos p ON p.fecha_pedido = cal.dia
+GROUP BY cal.dia
+ORDER BY cal.dia
+LIMIT 7;</code></pre>
+<h2>Tendencia: promedios móviles</h2>
+<p>Un promedio móvil de 7 días suaviza el efecto del día de la semana y deja ver la tendencia:</p>
+<pre><code class="language-sql">-- AVG(pedidos) OVER (ORDER BY dia ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Comparar contra el año anterior</h2>
+<p>El crecimiento interanual (YoY) compara cada mes con <strong>el mismo mes del año anterior</strong>: elimina la estacionalidad de la comparación.</p>
+<h2>Estacionalidad: el índice</h2>
+<p>Índice del mes = promedio de ese mes ÷ promedio de todos los meses. Un índice de 1,4 en diciembre significa que diciembre vende 40 % más que un mes típico.</p>
+<h2>Anomalías</h2>
+<p>Un criterio simple: un día es anómalo si se aleja de la media más de 2 desviaciones estándar. SQLite no trae <code>STDDEV</code>, pero la varianza es <code>AVG(x²) − AVG(x)²</code>, y comparar <code>(x − media)² &gt; 4 × varianza</code> evita la raíz cuadrada.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Siempre explicita la regla</div>
+
+<p>“Anómalo” no existe sin una regla. Escribe cuál usaste (2 desviaciones, ventana de 28 días, excluyendo feriados…) y qué hiciste con los datos atípicos.</p>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>En diciembre las ventas subieron un 11 % contra noviembre y en el directorio aplauden. El analista senior pregunta: “¿y contra diciembre del año pasado?”. Diciembre siempre sube: lo que importa es si subió <strong>más de lo habitual</strong>. Separar tendencia, estacionalidad y ruido evita festejos (y alarmas) equivocados.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-series-de-tiempo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="analisis-pruebas-ab.html">← Pruebas A/B - leer un experimento sin engañarse</a><a href="analisis-causa-raiz.html">Encontrar la causa de una caída →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 10: Un agente que responde preguntas sobre los datos · Academia de Datos</title><meta name="description" content="&quot;¿Cuánto vendimos en Colombia el mes pasado por canal?&quot; respondido en lenguaje natural, con la consulta SQL a la vista y números correctos. Construyes la capa que lo hace confiable - un modelo gold claro, métricas definidas una sola vez, descripciones de tablas y columnas, ejemplos de preguntas con su SQL y guardrails (solo lectura, solo gold, límites) - y lo evalúas con un conjunto de preguntas con respuesta conocida. Con Genie en Databricks, o con un agente propio y Microsoft Foundry."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-agente-que-consulta-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 10: Un agente que responde preguntas sobre los datos · Academia de Datos"><meta property="og:description" content="&quot;¿Cuánto vendimos en Colombia el mes pasado por canal?&quot; respondido en lenguaje natural, con la consulta SQL a la vista y números correctos. Construyes la capa que lo hace confiable - un modelo gold claro, métricas definidas una sola vez, descripciones de tablas y columnas, ejemplos de preguntas con su SQL y guardrails (solo lectura, solo gold, límites) - y lo evalúas con un conjunto de preguntas con respuesta conocida. Con Genie en Databricks, o con un agente propio y Microsoft Foundry."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-agente-que-consulta-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Experto · 110 min</div>
+<h1>Proyecto 10: Un agente que responde preguntas sobre los datos</h1><p class="resumen">&quot;¿Cuánto vendimos en Colombia el mes pasado por canal?&quot; respondido en lenguaje natural, con la consulta SQL a la vista y números correctos. Construyes la capa que lo hace confiable - un modelo gold claro, métricas definidas una sola vez, descripciones de tablas y columnas, ejemplos de preguntas con su SQL y guardrails (solo lectura, solo gold, límites) - y lo evalúas con un conjunto de preguntas con respuesta conocida. Con Genie en Databricks, o con un agente propio y Microsoft Foundry.</p>
+<a class="cta" href="../index.html#/l/portafolio-agente-que-consulta-datos">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Preparar un modelo gold para que un agente lo entienda (nombres, descripciones, métricas)</li><li>Definir métricas una sola vez para evitar respuestas distintas a la misma pregunta</li><li>Implementar guardrails de solo lectura, alcance y costo</li><li>Evaluar un agente de texto a SQL contra respuestas conocidas</li><li>Explicar por qué el agente falla y cómo se corrige</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La gerencia comercial pide &quot;un ChatGPT de nuestras ventas&quot;. Un primer prototipo conectado directo a las tablas de la base responde rápido… y mal: dice que en marzo se vendieron 2,4 millones cuando fueron 1,1. Sumó el monto del pedido una vez por cada línea de detalle. El problema no es el modelo: es que nadie le explicó los datos.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Un agente de datos es tan bueno como el <strong>contexto</strong> que le das: un modelo limpio, métricas definidas, descripciones y ejemplos. El proyecto 1 (lakehouse de ventas) es su base.</p>
+<h2>Valor y criterio de éxito</h2>
+<ul>
+<li>Preguntas frecuentes respondidas en segundos, con el SQL visible para auditarlas.</li>
+<li><strong>Criterio para publicarlo</strong>: 90 % de respuestas correctas en un conjunto de 40 preguntas reales con respuesta conocida, y 0 consultas fuera del alcance permitido.</li>
+</ul>
+<h2>Los datos</h2>
+<p>Los modelos gold del <strong>proyecto 1</strong> (<code>fct_ventas</code>, <code>dim_cliente</code>, <code>dim_producto</code>, <code>dim_fecha</code>), generados con <a href="#/generador?esc=ecommerce&n=2000&semilla=42&desde=2024-01-01&hasta=2024-12-31&duplicados=2&nulos=4&formatos=5&atipicos=1&huerfanos=1&tardios=3&mojibake=1">el mismo escenario</a>.</p>
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Agente de datos con contexto y guardrails</figcaption></figure>
+
+
+<h2>Fase 1: preparar el contexto</h2>
+<ol>
+<li><strong>Solo gold</strong>: el agente no ve bronze ni silver. Nombres claros (<code>venta_neta</code>, no <code>vn_amt2</code>).</li>
+<li><strong>Descripciones</strong> en cada tabla y columna (<code>COMMENT ON COLUMN</code>): grano, unidades, qué incluye y qué no (&quot;venta_neta excluye pedidos cancelados y devueltos&quot;).</li>
+<li><strong>Métricas definidas una vez</strong>: una vista o una métrica semántica <code>ventas_netas</code> que todos usan, en lugar de que el agente reinvente la fórmula.</li>
+<li><strong>Ejemplos</strong> de preguntas con su SQL correcto (10 a 20): son el mejor contexto.</li>
+<li><strong>Reglas de negocio</strong> escritas: &quot;el mes pasado = el mes calendario anterior completo&quot;; &quot;país = país del cliente&quot;.</li>
+</ol>
+<h2>Fase 2: guardrails</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Riesgo</th>
+<th>Guardrail</th>
+</tr>
+</thead><tbody><tr>
+<td>Modificar datos</td>
+<td>Usuario del warehouse con solo <code>SELECT</code>; validar que la consulta sea un único <code>SELECT</code></td>
+</tr>
+<tr>
+<td>Ver datos que no debe</td>
+<td>Permisos de Unity Catalog del usuario que pregunta (no de un superusuario)</td>
+</tr>
+<tr>
+<td>Consultas carísimas</td>
+<td><code>LIMIT</code> automático, tiempo máximo, warehouse chico con auto-stop</td>
+</tr>
+<tr>
+<td>Respuestas sin verificar</td>
+<td>Mostrar siempre el SQL y la tabla resultado, no solo el texto</td>
+</tr>
+</tbody></table></div>
+<h2>Fase 3: Genie o un agente propio</h2>
+<ul>
+<li><strong>Genie (Databricks)</strong>: un espacio de Genie con las tablas gold, sus descripciones, instrucciones y preguntas de ejemplo. Lo que mejora las respuestas es el contexto que le cargas, no un truco de prompt.</li>
+<li><strong>Agente propio</strong>: un modelo en Microsoft Foundry (o Ollama local) con dos herramientas: <code>listar_tablas_y_columnas</code> y <code>ejecutar_select(sql)</code>, este último con los guardrails de arriba. Ventaja: control total y mismo esquema de evaluación.</li>
+</ul>
+<h2>Fase 4: evaluar</h2>
+<p>Un archivo con 40 preguntas reales y su <strong>respuesta correcta calculada a mano</strong> (con SQL revisado). Para cada versión del contexto: % correctas, tipos de error (fan-out, filtro de fecha, métrica equivocada, columna inventada) y qué cambio del contexto corrigió cada uno.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Dejar que el agente ejecute cualquier SQL</strong>: tiene que usar un usuario de solo lectura y, mejor, un conjunto acotado de vistas.</li>
+<li><strong>No mostrar la consulta que ejecutó</strong>: el usuario no puede verificar el número.</li>
+<li><strong>Sin límites de filas ni de tiempo</strong>: una consulta mal armada recorre toda la base.</li>
+<li><strong>No evaluar con preguntas reales y respuestas conocidas</strong>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los asistentes que consultan datos funcionan mucho mejor sobre una capa semántica bien documentada (métricas y dimensiones con descripción) que sobre las tablas crudas; el trabajo de datos de base es el que los hace confiables.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué controles pondrías a un agente que consulta una base de datos?&quot;</div>
+
+<p>Acceso de solo lectura con un usuario propio y permisos sobre vistas aprobadas, no sobre todas las tablas. Límites de filas y de tiempo de ejecución, validación de la consulta antes de correrla, y mostrar siempre la consulta y la fuente junto con la respuesta. Registro de todo para auditar y un conjunto de preguntas de evaluación con respuestas conocidas.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Descripciones de tablas y columnas, métricas definidas y ejemplos pregunta→SQL.</li>
+<li><input disabled="" type="checkbox"> Guardrails implementados y probados (intentos de <code>DELETE</code>, consultas a bronze, consultas sin filtro).</li>
+<li><input disabled="" type="checkbox"> Conjunto de evaluación y resultados por versión.</li>
+<li><input disabled="" type="checkbox"> Demo de 2 minutos con preguntas bien y mal respondidas, y por qué.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Registro de todas las preguntas, el SQL generado y si el usuario marcó la respuesta como útil: tu próximo conjunto de evaluación.</li>
+<li>Combinar con el RAG del proyecto 9: un agente que decide si la pregunta es de datos (SQL) o de políticas (documentos).</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-agente-que-consulta-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-asistente-rag-con-citas.html">← Proyecto 9: Asistente de soporte con RAG que cita sus fuentes</a><a href="portafolio-plataforma-iac-cicd.html">Proyecto 11: La plataforma con Terraform, Declarative Automation Bundles y CI/CD →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microsoft Fabric por dentro - workspaces, lakehouse, warehouse, notebooks y pipelines · Academia de Datos</title><meta name="description" content="Recorrido por Microsoft Fabric - qué es OneLake, cómo se organiza un workspace, la diferencia entre lakehouse y warehouse, el SQL analytics endpoint de solo lectura, notebooks con Spark, pipelines, modelo semántico, Monitor e integración con Git. Con el flujo completo de una carga de punta a punta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-fabric-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Microsoft Fabric por dentro - workspaces, lakehouse, warehouse, notebooks y pipelines · Academia de Datos"><meta property="og:description" content="Recorrido por Microsoft Fabric - qué es OneLake, cómo se organiza un workspace, la diferencia entre lakehouse y warehouse, el SQL analytics endpoint de solo lectura, notebooks con Spark, pipelines, modelo semántico, Monitor e integración con Git. Con el flujo completo de una carga de punta a punta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-fabric-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 45 min</div>
+<h1>Microsoft Fabric por dentro - workspaces, lakehouse, warehouse, notebooks y pipelines</h1><p class="resumen">Recorrido por Microsoft Fabric - qué es OneLake, cómo se organiza un workspace, la diferencia entre lakehouse y warehouse, el SQL analytics endpoint de solo lectura, notebooks con Spark, pipelines, modelo semántico, Monitor e integración con Git. Con el flujo completo de una carga de punta a punta.</p>
+<a class="cta" href="../index.html#/l/interfaces-fabric-por-dentro">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es OneLake y por qué hay uno solo por organización</li><li>Distinguir lakehouse, warehouse y SQL analytics endpoint, y saber cuál escribe con T-SQL</li><li>Cargar un archivo a un lakehouse y convertirlo en tabla Delta</li><li>Transformar con un notebook de PySpark y orquestar con un pipeline</li><li>Conectar un workspace a Git y seguir una ejecución en Monitor</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/fabric">Microsoft Fabric de práctica</a>. Corre en tu navegador con las bases de ejemplo del curso: no necesitas cuenta de Microsoft ni capacidad paga. Las capturas y nombres siguen la documentación pública de Microsoft Learn.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Fabric es como un edificio de oficinas para los datos de una empresa: hay un solo depósito en el sótano (<strong>OneLake</strong>), cada equipo tiene su piso (<strong>workspace</strong>) y en cada piso hay distintas herramientas (<strong>ítems</strong>) que guardan, transforman o muestran los datos. Todas leen y escriben en el mismo depósito.</p>
+</div>
+
+
+<h2>Qué es Fabric</h2>
+<p><strong>Microsoft Fabric</strong> junta en un solo producto lo que en Azure son varios servicios separados: ingesta (Data Factory), almacenamiento (Data Lake), procesamiento con Spark (parecido a Databricks o Synapse), un warehouse SQL, tiempo real y Power BI. Se paga por <strong>capacidad</strong> (SKU F2, F4, F64…): una cantidad de cómputo que comparten todos los workspaces asignados a ella.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>En Azure &quot;clásico&quot;</th>
+<th>En Fabric</th>
+</tr>
+</thead><tbody><tr>
+<td>Una cuenta de ADLS por proyecto</td>
+<td><strong>OneLake</strong>, uno solo por organización</td>
+</tr>
+<tr>
+<td>Data Factory</td>
+<td><strong>Pipelines</strong> y <strong>Dataflow Gen2</strong></td>
+</tr>
+<tr>
+<td>Synapse Spark / Databricks</td>
+<td><strong>Notebooks</strong> y <strong>Spark job definitions</strong></td>
+</tr>
+<tr>
+<td>Synapse dedicated SQL pool</td>
+<td><strong>Warehouse</strong></td>
+</tr>
+<tr>
+<td>Power BI (servicio aparte)</td>
+<td><strong>Modelo semántico</strong> e <strong>informes</strong>, en el mismo lugar</td>
+</tr>
+</tbody></table></div>
+<h2>OneLake y los workspaces</h2>
+<p><strong>OneLake</strong> es un único data lake lógico por tenant (la organización), construido sobre ADLS Gen2. No se crea: ya existe. Cada <strong>workspace</strong> es una carpeta dentro de él y cada ítem (lakehouse, warehouse) es una subcarpeta. Todo se guarda en formato abierto <strong>Delta Parquet</strong>, así que el mismo archivo lo pueden leer Spark, el motor SQL y Power BI sin copiarlo.</p>
+<p>En la barra izquierda de la réplica:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ícono</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Home</strong></td>
+<td>Accesos rápidos para crear ítems y los recientes</td>
+</tr>
+<tr>
+<td><strong>Workspaces</strong></td>
+<td>La lista de espacios de trabajo y el botón <strong>New workspace</strong></td>
+</tr>
+<tr>
+<td><strong>OneLake</strong></td>
+<td>El catálogo: todos los ítems de datos a los que tienes acceso</td>
+</tr>
+<tr>
+<td><strong>Monitor</strong></td>
+<td>Las ejecuciones de pipelines, notebooks y actualizaciones</td>
+</tr>
+<tr>
+<td><strong>Real-Time</strong></td>
+<td>Eventos y flujos en tiempo real</td>
+</tr>
+<tr>
+<td><strong>Workloads</strong></td>
+<td>Las cargas de trabajo disponibles</td>
+</tr>
+</tbody></table></div>
+<p>Dentro de un workspace, <strong>+ New item</strong> crea lakehouses, warehouses, notebooks, pipelines y modelos semánticos. Los <strong>roles del workspace</strong> (Admin, Member, Contributor, Viewer) dan permiso sobre todo lo que hay adentro.</p>
+<h2>Lakehouse: Files y Tables</h2>
+<p>Un <strong>lakehouse</strong> tiene dos secciones:</p>
+<ul>
+<li><strong>Files</strong>: archivos crudos de cualquier formato (CSV, JSON, Parquet, imágenes). Es la zona de aterrizaje.</li>
+<li><strong>Tables</strong>: tablas <strong>Delta</strong> administradas, con esquema, listas para consultar.</li>
+</ul>
+<p>Para pasar de una a otra sin código, haz clic derecho en un CSV de Files y elige <strong>Load to Tables</strong>: crea una tabla Delta con las columnas del archivo. Con código, un notebook lee el archivo y lo guarda con <code>saveAsTable</code>.</p>
+<p>Un <strong>shortcut</strong> (atajo) es un puntero a datos que están en otro lugar (otro lakehouse, ADLS, Amazon S3, Google Cloud Storage). Se ve como una carpeta o tabla más, pero <strong>no copia</strong> los datos: si cambian en el origen, cambian en el atajo.</p>
+<h2>SQL analytics endpoint y warehouse</h2>
+<p>Cada lakehouse trae automáticamente un <strong>SQL analytics endpoint</strong>: una forma de consultar sus tablas con T-SQL. Es <strong>de solo lectura</strong>: sirve para <code>SELECT</code>, vistas y funciones, pero un <code>INSERT</code>, <code>UPDATE</code> o <code>CREATE TABLE</code> falla. Para escribir en un lakehouse se usa Spark, un pipeline o un dataflow.</p>
+<p>El <strong>warehouse</strong> es la otra opción: un almacén SQL completo donde sí se escribe con T-SQL (<code>CREATE TABLE</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>MERGE</code>, <code>COPY INTO</code>) y se usan transacciones. También guarda los datos en Delta dentro de OneLake.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas…</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Transformar con Python o Spark, datos semiestructurados</td>
+<td><strong>Lakehouse</strong> + notebook</td>
+</tr>
+<tr>
+<td>Un equipo que trabaja solo en SQL, con DML y transacciones</td>
+<td><strong>Warehouse</strong></td>
+</tr>
+<tr>
+<td>Consultar con SQL las tablas que dejó Spark</td>
+<td><strong>SQL analytics endpoint</strong> del lakehouse</td>
+</tr>
+</tbody></table></div>
+<p>Desde un warehouse puedes unir tablas de otro ítem del mismo workspace con un nombre de tres partes: <code>SELECT ... FROM lh_ventas.dbo.pedidos</code>.</p>
+<h2>Notebooks</h2>
+<p>Un <strong>notebook</strong> de Fabric se parece a uno de Databricks o Jupyter: celdas de PySpark, Spark SQL (<code>%%sql</code>) o Markdown. A la izquierda se elige el <strong>lakehouse predeterminado</strong>: sus tablas se leen por nombre (<code>spark.read.table(&quot;pedidos&quot;)</code>) y lo que guardas con <code>saveAsTable</code> queda en su sección Tables.</p>
+<p>En la réplica, las celdas de PySpark usan el mismo mini-Spark del Databricks de práctica, así que <code>df.groupBy(...).agg(...)</code>, <code>display(df)</code> y <code>saveAsTable</code> funcionan con las bases del curso.</p>
+<h2>Pipelines</h2>
+<p>Un <strong>pipeline</strong> orquesta pasos, igual que en Azure Data Factory: <strong>Copy data</strong> mueve datos de un origen a un destino, <strong>Notebook</strong> ejecuta un notebook, y hay actividades de control (Lookup, ForEach, If Condition, Set variable). Se programan con <strong>Schedule</strong> o se ejecutan con <strong>Run</strong>, y cada ejecución aparece en <strong>Monitor</strong> con el estado de cada actividad. Si una falla, ahí ves el mensaje de error y, en una actividad Notebook, la celda que falló.</p>
+<h2>Modelo semántico e informes</h2>
+<p>El <strong>modelo semántico</strong> es el modelo de Power BI: tablas, relaciones y medidas DAX. En Fabric puede usar el modo <strong>Direct Lake</strong>, que lee directamente los archivos Delta de OneLake: es casi tan rápido como importar los datos, pero sin tener que programar actualizaciones.</p>
+<h2>Git y despliegue</h2>
+<p>En <strong>Workspace settings → Git integration</strong> se conecta el workspace a una rama de un repositorio (Azure DevOps o GitHub). El panel <strong>Source control</strong> muestra qué ítems cambiaron; con <strong>Commit</strong> se guardan en el repositorio y con <strong>Update</strong> se traen los cambios de otros. Para pasar de desarrollo a producción se usan <strong>deployment pipelines</strong> (etapas Development → Test → Production).</p>
+<p>En la réplica, la integración de Git usa los repositorios del <a href="#/github">GitHub de práctica</a>: lo que confirmas desde Fabric aparece ahí como un commit.</p>
+<h2>Un flujo completo</h2>
+<ol>
+<li>Crea un workspace <code>ventas-dev</code> y dentro un lakehouse <code>lh_ventas</code>.</li>
+<li>Sube <code>ventas.csv</code> a <strong>Files</strong> y usa <strong>Load to Tables</strong>.</li>
+<li>Consulta la tabla desde el <strong>SQL analytics endpoint</strong> con un <code>SELECT ... GROUP BY</code>.</li>
+<li>Crea un notebook que lea la tabla, agregue por mes y guarde <code>ventas_mensuales</code> con <code>saveAsTable</code>.</li>
+<li>Crea un pipeline con una actividad <strong>Notebook</strong> que ejecute ese notebook y córrelo.</li>
+<li>Revisa la ejecución en <strong>Monitor</strong>.</li>
+<li>Conecta el workspace a Git y haz <strong>Commit</strong>.</li>
+</ol>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Workspaces, lakehouse con Files/Tables, Load to Tables y shortcuts</td>
+<td>Roles del workspace, capacidades reales, métricas de CU y throttling</td>
+</tr>
+<tr>
+<td>SQL analytics endpoint (solo lectura) y warehouse con T-SQL</td>
+<td>Eventhouse con KQL, Eventstream y Activator</td>
+</tr>
+<tr>
+<td>Notebooks con PySpark y Spark SQL sobre las bases del curso</td>
+<td>Dataflow Gen2 (Power Query) y Spark job definitions</td>
+</tr>
+<tr>
+<td>Pipelines con Copy data y Notebook, Run y Schedule, Monitor</td>
+<td>Lookup, ForEach e If (practícalos en el <a href="#/azure/studio">Data Factory del portal de Azure</a>); deployment pipelines</td>
+</tr>
+<tr>
+<td>Modelo semántico e integración con Git</td>
+<td>Seguridad de OneLake por carpeta y etiquetas de confidencialidad</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-fabric-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-github-por-dentro.html">← GitHub por dentro - qué es cada parte y para qué sirve</a><a href="interfaces-airflow-por-dentro.html">Airflow por dentro - la interfaz web de Airflow 3 pantalla por pantalla →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

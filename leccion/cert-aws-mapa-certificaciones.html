@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El mapa de las certificaciones de datos e IA de AWS · Academia de Datos</title><meta name="description" content="Las certificaciones de AWS para datos e IA en 2026 (DEA-C01, AIF-C01, MLA-C02 y AIP-C01), las que se retiraron, cómo es un examen de AWS, cómo se califica, cómo pensar las preguntas de &quot;el servicio correcto&quot; y un plan de estudio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-mapa-certificaciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El mapa de las certificaciones de datos e IA de AWS · Academia de Datos"><meta property="og:description" content="Las certificaciones de AWS para datos e IA en 2026 (DEA-C01, AIF-C01, MLA-C02 y AIP-C01), las que se retiraron, cómo es un examen de AWS, cómo se califica, cómo pensar las preguntas de &quot;el servicio correcto&quot; y un plan de estudio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-mapa-certificaciones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-aws">🥇 Certificaciones AWS: Data Engineer e IA</a> · Intermedio · 30 min</div>
+<h1>El mapa de las certificaciones de datos e IA de AWS</h1><p class="resumen">Las certificaciones de AWS para datos e IA en 2026 (DEA-C01, AIF-C01, MLA-C02 y AIP-C01), las que se retiraron, cómo es un examen de AWS, cómo se califica, cómo pensar las preguntas de &quot;el servicio correcto&quot; y un plan de estudio.</p>
+<a class="cta" href="../index.html#/l/cert-aws-mapa-certificaciones">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir la certificación de AWS adecuada para un rol de datos o de IA</li><li>Explicar el formato y la calificación de los exámenes de AWS</li><li>Repartir el estudio según el peso de cada dominio</li><li>Aplicar una estrategia para preguntas que piden la solución &quot;más rentable&quot; o &quot;con menos esfuerzo operativo&quot;</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Tomás es ingeniero de datos en una empresa de logística que corre todo en AWS: un lago en S3, Glue, Redshift y, desde este año, un asistente con Amazon Bedrock. Su empresa le paga la certificación que quiera. Este módulo le muestra cuál elegir y lo prepara dominio por dominio.</p>
+</div>
+
+
+<h2>Las certificaciones de datos e IA</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Certificación</th>
+<th>Código</th>
+<th>Nivel</th>
+<th>Para quién</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Data Engineer – Associate</strong></td>
+<td><strong>DEA-C01</strong></td>
+<td>Associate</td>
+<td>Ingenieros de datos: ingesta, almacenamiento, operación y gobierno en AWS</td>
+</tr>
+<tr>
+<td><strong>AI Practitioner</strong></td>
+<td><strong>AIF-C01</strong></td>
+<td>Fundamental</td>
+<td>Cualquier rol que trabaje con IA: conceptos de ML, IA generativa, IA responsable y servicios de AWS</td>
+</tr>
+<tr>
+<td><strong>Machine Learning Engineer – Associate</strong></td>
+<td><strong>MLA-C02</strong> (antes MLA-C01)</td>
+<td>Associate</td>
+<td>Ingenieros de ML: preparar datos, entrenar, desplegar y operar con SageMaker AI</td>
+</tr>
+<tr>
+<td><strong>Generative AI Developer – Professional</strong></td>
+<td><strong>AIP-C01</strong></td>
+<td>Professional</td>
+<td>Desarrolladores de aplicaciones de IA generativa con Amazon Bedrock</td>
+</tr>
+</tbody></table></div>
+<p>Cambios recientes:</p>
+<ul>
+<li><strong>Machine Learning – Specialty (MLS-C01)</strong> se retiró el <strong>31 de marzo de 2026</strong>. Su contenido se reparte entre MLA y AIP.</li>
+<li><strong>MLA-C01</strong> se pudo rendir hasta el <strong>28 de septiembre de 2026</strong>; lo reemplaza <strong>MLA-C02</strong>, en beta desde fines de septiembre de 2026, con <strong>los mismos dominios</strong> y servicios actualizados.</li>
+<li><strong>DEA-C01</strong> sigue vigente; su guía <strong>versión 1.1</strong> (12 de diciembre de 2025) unificó conocimientos y habilidades en una sola lista por tarea y agregó temas nuevos: tablas Apache Iceberg y S3 Tables, procesamiento de datos asistido por LLM, vectorización con Amazon Bedrock Knowledge Bases, tipos de índices vectoriales (HNSW e IVF) y gobierno con Amazon SageMaker Unified Studio y Catalog.</li>
+</ul>
+<h2>Cómo es un examen de AWS</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Associate (DEA, MLA)</th>
+<th>Fundamental (AIF)</th>
+<th>Professional (AIP)</th>
+</tr>
+</thead><tbody><tr>
+<td>Preguntas</td>
+<td>65 (50 puntuadas + 15 sin puntaje)</td>
+<td>65 (50 + 15)</td>
+<td>75 (65 + 10)</td>
+</tr>
+<tr>
+<td>Tiempo</td>
+<td>130 minutos</td>
+<td>90 minutos</td>
+<td>180 minutos</td>
+</tr>
+<tr>
+<td>Costo</td>
+<td>USD 150</td>
+<td>USD 100</td>
+<td>USD 300</td>
+</tr>
+<tr>
+<td>Para aprobar</td>
+<td>720 / 1000</td>
+<td>700 / 1000</td>
+<td>750 / 1000</td>
+</tr>
+<tr>
+<td>Vigencia</td>
+<td>3 años</td>
+<td>3 años</td>
+<td>3 años</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><strong>Tipos de pregunta</strong>: opción única, respuesta múltiple (elegir 2 o 3) y, en las versiones nuevas, <strong>ordenar</strong>, <strong>emparejar</strong> y <strong>casos de estudio</strong>.</li>
+<li><strong>Calificación compensatoria</strong>: no hay que aprobar cada dominio, sino el total escalado.</li>
+<li>Las preguntas sin puntaje no se distinguen: hay que responder todo.</li>
+<li>Al aprobar un examen de AWS se obtiene un <strong>cupón de 50 %</strong> para el siguiente.</li>
+</ul>
+<h2>Los dominios</h2>
+<p><strong>DEA-C01</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dominio</th>
+<th>Peso</th>
+<th>Lección</th>
+</tr>
+</thead><tbody><tr>
+<td>Ingesta y transformación de datos</td>
+<td>34 %</td>
+<td>Ingesta y transformación en AWS</td>
+</tr>
+<tr>
+<td>Administración del almacén de datos</td>
+<td>26 %</td>
+<td>Almacenamiento: S3, Redshift, DynamoDB y el catálogo</td>
+</tr>
+<tr>
+<td>Operación y soporte de datos</td>
+<td>22 %</td>
+<td>Operación, monitoreo, seguridad y gobierno</td>
+</tr>
+<tr>
+<td>Seguridad y gobierno de datos</td>
+<td>18 %</td>
+<td>Operación, monitoreo, seguridad y gobierno</td>
+</tr>
+</tbody></table></div>
+<p><strong>AIF-C01</strong>: fundamentos de IA y ML (20 %), fundamentos de IA generativa (24 %), aplicaciones de modelos fundacionales (28 %), IA responsable (14 %), seguridad, cumplimiento y gobierno (14 %).</p>
+<p><strong>MLA-C02</strong>: preparación de datos para ML (28 %), desarrollo de modelos (26 %), despliegue y orquestación de flujos de ML (22 %), monitoreo, mantenimiento y seguridad (24 %).</p>
+<p><strong>AIP-C01</strong>: integración de modelos fundacionales, gestión de datos y cumplimiento (31 %), implementación e integración (26 %), seguridad y gobierno de IA (20 %), eficiencia operativa y optimización (12 %), pruebas, validación y resolución de problemas (11 %).</p>
+<h2>La estrategia para preguntas de AWS</h2>
+<p>Las preguntas describen un escenario y terminan con un <strong>criterio</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Si la pregunta dice…</th>
+<th>Suele premiar</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;<strong>menor esfuerzo operativo</strong>&quot; (<em>least operational overhead</em>)</td>
+<td>El servicio <strong>administrado o serverless</strong> que resuelve sin código propio: Glue en vez de EMR, Athena en vez de un clúster, Firehose en vez de un consumidor propio</td>
+</tr>
+<tr>
+<td>&quot;<strong>más rentable</strong>&quot; (<em>most cost-effective</em>)</td>
+<td>Pagar por uso, clases de almacenamiento baratas, apagar lo que no se usa, Spot, formatos columnares</td>
+</tr>
+<tr>
+<td>&quot;<strong>menor latencia</strong>&quot; o &quot;<strong>en tiempo real</strong>&quot;</td>
+<td>Streaming (Kinesis Data Streams, MSK), DynamoDB, cachés</td>
+</tr>
+<tr>
+<td>&quot;<strong>más seguro</strong>&quot;</td>
+<td>Cifrado con KMS, permisos mínimos, endpoints de VPC, Lake Formation, Secrets Manager</td>
+</tr>
+</tbody></table></div>
+<p>Método: subraya el criterio y las restricciones, descarta lo que viola alguna, y entre lo que queda elige lo más gestionado. Si dos opciones cumplen, la que requiere menos piezas suele ser la correcta.</p>
+<div class="recorrido"></div>
+
+
+<h2>Plan de 6 semanas para DEA-C01</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Semana</th>
+<th>Tema</th>
+<th>Práctica en una cuenta gratuita</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Ingesta por lotes: Glue, DMS, AppFlow</td>
+<td>Crawler sobre S3, job de Glue que convierte CSV a Parquet</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Streaming y orquestación: Kinesis, Firehose, MSK, Step Functions, MWAA, EventBridge</td>
+<td>Firehose a S3 con conversión a Parquet</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Almacenamiento: S3, Redshift, DynamoDB, Iceberg</td>
+<td>Tabla Iceberg consultada desde Athena; claves de Redshift</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Operación: Athena, CloudWatch, calidad de datos</td>
+<td>Workgroup de Athena con límites; Glue Data Quality</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Seguridad y gobierno: IAM, KMS, Lake Formation, Macie</td>
+<td>Permisos por columna con Lake Formation</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Examen de práctica de este curso y el oficial de AWS Skill Builder</td>
+<td>Repaso de cada error</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Presupuesto de laboratorio</div>
+
+<p>Practica con <strong>AWS Budgets</strong> configurado (por ejemplo, USD 10) y borra todo al terminar cada sesión, sobre todo clústeres de Redshift aprovisionados, EMR y endpoints de SageMaker, que cobran por hora aunque no se usen.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-aws-mapa-certificaciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-azure-ai300-mlops-genaiops.html">← AI-300 - MLOps con Azure Machine Learning y GenAIOps con Foundry</a><a href="cert-aws-dea-ingesta-transformacion.html">DEA-C01 - Ingesta y transformación de datos en AWS →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

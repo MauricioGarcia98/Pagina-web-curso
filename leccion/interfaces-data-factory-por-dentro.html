@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure Data Factory por dentro - qué es cada parte y para qué sirve · Academia de Datos</title><meta name="description" content="Recorrido completo por Azure Data Factory Studio - Home, Author, Monitor y Manage; linked services, datasets, actividades, dependencias, parámetros, variables y expresiones; integration runtimes, triggers, depuración, publicación, Git y CI/CD."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-data-factory-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Azure Data Factory por dentro - qué es cada parte y para qué sirve · Academia de Datos"><meta property="og:description" content="Recorrido completo por Azure Data Factory Studio - Home, Author, Monitor y Manage; linked services, datasets, actividades, dependencias, parámetros, variables y expresiones; integration runtimes, triggers, depuración, publicación, Git y CI/CD."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-data-factory-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 45 min</div>
+<h1>Azure Data Factory por dentro - qué es cada parte y para qué sirve</h1><p class="resumen">Recorrido completo por Azure Data Factory Studio - Home, Author, Monitor y Manage; linked services, datasets, actividades, dependencias, parámetros, variables y expresiones; integration runtimes, triggers, depuración, publicación, Git y CI/CD.</p>
+<a class="cta" href="../index.html#/l/interfaces-data-factory-por-dentro">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un linked service, un dataset, una actividad, un pipeline, un trigger y un integration runtime</li><li>Ubicar cada zona de Data Factory Studio</li><li>Encadenar actividades con dependencias y manejar errores</li><li>Usar parámetros, variables y expresiones para pipelines dinámicos</li><li>Distinguir Debug, Trigger now, publicar y el modo Git</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>En el <a href="#/azure">portal de práctica</a> crea un data factory y pulsa <strong>Iniciar Studio</strong>. Los <strong>🎯 Retos</strong> de Data Factory siguen el mismo orden que esta lección.</p>
+</div>
+
+
+<h2>Qué es Data Factory</h2>
+<p><strong>Azure Data Factory (ADF)</strong> es el servicio de Azure para <strong>mover y orquestar datos</strong> sin administrar servidores: copia desde más de 90 conectores (bases de datos, archivos, SaaS, APIs) y coordina en orden y a horario otros trabajos (notebooks de Databricks, procedimientos almacenados, funciones). Hay dos parientes con la misma base: los <strong>pipelines de Synapse</strong> y <strong>Data Factory en Microsoft Fabric</strong>.</p>
+<p>El recurso se crea en el portal; el diseño se hace en <strong>Data Factory Studio</strong> (adf.azure.com).</p>
+<h2>Los conceptos, de abajo hacia arriba</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Linked service</strong></td>
+<td>La <strong>conexión</strong>: a qué sistema y con qué credencial (como una cadena de conexión)</td>
+<td>ADLS Gen2 <code>stdatos</code> con la identidad administrada del factory</td>
+</tr>
+<tr>
+<td><strong>Dataset</strong></td>
+<td><strong>Qué datos</strong> dentro de esa conexión, y en qué formato</td>
+<td><code>raw/ventas/*.csv</code> como DelimitedText</td>
+</tr>
+<tr>
+<td><strong>Actividad</strong></td>
+<td><strong>Un paso</strong> de trabajo</td>
+<td>Copy data, Notebook, Lookup, ForEach</td>
+</tr>
+<tr>
+<td><strong>Pipeline</strong></td>
+<td>Un <strong>conjunto de actividades</strong> con su orden y dependencias</td>
+<td>Copiar → transformar con Databricks → avisar</td>
+</tr>
+<tr>
+<td><strong>Trigger</strong></td>
+<td><strong>Cuándo</strong> se ejecuta un pipeline</td>
+<td>Todos los días a las 6:00, o al llegar un archivo</td>
+</tr>
+<tr>
+<td><strong>Integration runtime (IR)</strong></td>
+<td><strong>Dónde</strong> se ejecuta el trabajo (el cómputo)</td>
+<td>El de Azure, o uno instalado en tu red</td>
+</tr>
+</tbody></table></div>
+<h2>La ventana del Studio</h2>
+<p>A la izquierda, una barra con cuatro centros:</p>
+<h3>Home</h3>
+<p>Accesos rápidos: <strong>Ingest</strong> (herramienta Copy data), <strong>Orchestrate</strong> (pipeline nuevo), <strong>Transform data</strong> (data flow), plantillas y recursos de aprendizaje.</p>
+<h3>Author (el lápiz)</h3>
+<ul>
+<li><strong>Factory Resources</strong>: el árbol de <strong>pipelines</strong>, <strong>datasets</strong>, <strong>data flows</strong> y <strong>Power Query</strong>, con el botón <strong>+</strong> para crear.</li>
+<li><strong>Panel de actividades</strong>: las actividades agrupadas: <em>Move and transform</em> (Copy data, Data flow), <em>Azure Databricks</em> (Notebook, Jar, Python), <em>General</em> (Get Metadata, Lookup, Set variable, Wait, Fail, Web, Stored procedure, Script, Execute pipeline), <em>Iteration &amp; conditionals</em> (ForEach, If Condition, Switch, Until, Filter).</li>
+<li><strong>Lienzo</strong>: arrastras actividades y las unes con flechas de dependencia. ForEach, If Condition y Switch son <strong>contenedores</strong>: se abren para editar las actividades de adentro.</li>
+<li><strong>Barra del pipeline</strong>: <strong>Validate</strong> (revisar errores), <strong>Debug</strong> (ejecutar la versión que estás editando), <strong>Add trigger</strong> (<em>Trigger now</em> o <em>New/Edit</em>), y el botón <strong>{}</strong> para ver el JSON.</li>
+<li><strong>Panel inferior</strong>: con nada seleccionado muestra <em>Parameters</em>, <em>Variables</em>, <em>Settings</em> y <em>Output</em> (los resultados de Debug). Con una actividad seleccionada, sus pestañas: <em>General</em> (nombre, timeout, reintentos), y las propias (<em>Source</em>, <em>Sink</em>, <em>Mapping</em>, <em>Settings</em>…).</li>
+</ul>
+<h3>Monitor (el velocímetro)</h3>
+<ul>
+<li><strong>Pipeline runs</strong>: cada ejecución con inicio, duración, quién la disparó, estado y <strong>Run ID</strong>. Pestañas <em>Triggered</em> y <em>Debug</em>.</li>
+<li>Dentro de una ejecución: las <strong>activity runs</strong> con su <strong>Input</strong>, <strong>Output</strong> (por ejemplo, filas leídas y copiadas, DIUs usados) y <strong>Error</strong>; vista de Gantt; <strong>Rerun</strong> desde el principio o desde la actividad que falló.</li>
+<li><strong>Trigger runs</strong>, <strong>Integration runtimes</strong> (estado y uso) y <strong>Alerts &amp; metrics</strong>.</li>
+</ul>
+<h3>Manage (el maletín)</h3>
+<p><strong>Linked services</strong>, <strong>Integration runtimes</strong>, <strong>Git configuration</strong>, <strong>ARM template</strong> (exportar e importar), <strong>Triggers</strong>, <strong>Global parameters</strong>, <strong>Credentials</strong> y <strong>Managed private endpoints</strong>.</p>
+<h2>Actividades y dependencias</h2>
+<p>Cada flecha entre actividades tiene una <strong>condición</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Condición</th>
+<th>Color</th>
+<th>La siguiente actividad corre si la anterior…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Upon Success</strong></td>
+<td>Verde</td>
+<td>terminó bien</td>
+</tr>
+<tr>
+<td><strong>Upon Failure</strong></td>
+<td>Rojo</td>
+<td>falló (para avisar, limpiar o compensar)</td>
+</tr>
+<tr>
+<td><strong>Upon Completion</strong></td>
+<td>Azul</td>
+<td>terminó, bien o mal</td>
+</tr>
+<tr>
+<td><strong>Upon Skip</strong></td>
+<td>Gris</td>
+<td>no se ejecutó</td>
+</tr>
+</tbody></table></div>
+<p>Cómo decide el resultado del pipeline: si una actividad falla y <strong>ningún camino Upon Failure o Upon Completion la maneja</strong>, el pipeline termina en <strong>Failed</strong>. Si la falla está manejada (patrón <em>try-catch</em>), el pipeline puede terminar en <strong>Succeeded</strong>. Las actividades que no se ejecutan quedan <strong>Skipped</strong>.</p>
+<p>Las actividades más usadas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Actividad</th>
+<th>Para qué</th>
+<th>Salida que usarás después</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Copy data</strong></td>
+<td>Copiar de un origen a un destino, con mapeo de columnas, tolerancia a fallas y paralelismo (DIU)</td>
+<td><code>rowsRead</code>, <code>rowsCopied</code>, <code>filesWritten</code></td>
+</tr>
+<tr>
+<td><strong>Get Metadata</strong></td>
+<td>Leer información de un archivo o carpeta</td>
+<td><code>childItems</code> (lista de archivos), <code>exists</code>, <code>itemName</code>, <code>size</code></td>
+</tr>
+<tr>
+<td><strong>Lookup</strong></td>
+<td>Leer un valor o una tabla pequeña (máximo 5000 filas)</td>
+<td><code>firstRow</code> o <code>count</code> + <code>value</code></td>
+</tr>
+<tr>
+<td><strong>ForEach</strong></td>
+<td>Repetir actividades por cada elemento de un arreglo</td>
+<td><code>@item()</code> dentro del bucle</td>
+</tr>
+<tr>
+<td><strong>If Condition</strong></td>
+<td>Bifurcar según una condición verdadera o falsa</td>
+<td>Ramas <em>True</em> y <em>False</em></td>
+</tr>
+<tr>
+<td><strong>Set variable</strong></td>
+<td>Guardar un valor en una variable del pipeline</td>
+<td><code>@variables(&#39;x&#39;)</code></td>
+</tr>
+<tr>
+<td><strong>Fail</strong></td>
+<td>Terminar con un error propio y un código</td>
+<td>Mensaje en el monitor</td>
+</tr>
+<tr>
+<td><strong>Notebook (Databricks)</strong></td>
+<td>Ejecutar un notebook con parámetros</td>
+<td><code>runOutput</code> (lo que devuelve <code>dbutils.notebook.exit</code>)</td>
+</tr>
+<tr>
+<td><strong>Execute pipeline</strong></td>
+<td>Llamar a otro pipeline</td>
+<td>Reutilizar lógica</td>
+</tr>
+</tbody></table></div>
+<h2>Pipelines dinámicos: parámetros, variables y expresiones</h2>
+<ul>
+<li><strong>Parámetros del pipeline</strong>: valores de entrada <strong>fijos durante la ejecución</strong> (por ejemplo, <code>fecha</code>). Se leen con <code>@pipeline().parameters.fecha</code>.</li>
+<li><strong>Variables</strong>: valores que <strong>cambian durante la ejecución</strong> con <em>Set variable</em> o <em>Append variable</em>. Se leen con <code>@variables(&#39;resumen&#39;)</code>.</li>
+<li><strong>Parámetros globales</strong>: constantes de todo el factory (por ejemplo, el nombre del entorno).</li>
+<li><strong>Parámetros de dataset y linked service</strong>: un solo dataset sirve para muchos archivos si su ruta es un parámetro.</li>
+</ul>
+<p>Cualquier propiedad que diga <strong>Add dynamic content</strong> acepta el <strong>lenguaje de expresiones</strong>: si empieza con <code>@</code> es una expresión (<code>@concat(&#39;a&#39;, &#39;b&#39;)</code>) y dentro de un texto se interpola con <code>@{…}</code>: <code>ventas_@{formatDateTime(utcNow(), &#39;yyyyMMdd&#39;)}.csv</code>. Funciones frecuentes: <code>concat</code>, <code>equals</code>, <code>greater</code>, <code>length</code>, <code>contains</code>, <code>if</code>, <code>utcNow</code>, <code>formatDateTime</code>, <code>addDays</code>, <code>split</code>, <code>replace</code>, <code>activity(&#39;X&#39;).output</code>, <code>item()</code>.</p>
+<p>El patrón clásico de ingesta: <strong>Get Metadata</strong> (lista de archivos) → <strong>If Condition</strong> (¿hay archivos?) → <strong>ForEach</strong> sobre <code>childItems</code> → <strong>Copy data</strong> con <code>@item().name</code> → <strong>Notebook</strong> que transforma → <strong>Fail</strong> o un aviso si algo sale mal.</p>
+<h2>Integration runtimes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Dónde corre</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Azure (AutoResolve)</strong></td>
+<td>Infraestructura de Microsoft</td>
+<td>Orígenes accesibles desde internet o con puntos de conexión privados administrados</td>
+</tr>
+<tr>
+<td><strong>Self-hosted</strong></td>
+<td>Un servidor tuyo (Windows) con el software instalado</td>
+<td>Orígenes dentro de tu red: SQL Server de la oficina, archivos en un servidor</td>
+</tr>
+<tr>
+<td><strong>Azure-SSIS</strong></td>
+<td>Un clúster administrado</td>
+<td>Migrar paquetes SSIS existentes</td>
+</tr>
+</tbody></table></div>
+<h2>Triggers</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Se dispara…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Schedule</strong></td>
+<td>A horario (cada N minutos, horas, días, semanas)</td>
+</tr>
+<tr>
+<td><strong>Tumbling window</strong></td>
+<td>En ventanas de tiempo fijas que no se superponen, con reintentos y dependencias entre ventanas (útil para recargar períodos)</td>
+</tr>
+<tr>
+<td><strong>Storage events</strong></td>
+<td>Cuando se crea o borra un blob en una ruta</td>
+</tr>
+<tr>
+<td><strong>Custom events</strong></td>
+<td>Cuando llega un evento de Event Grid</td>
+</tr>
+</tbody></table></div>
+<p>Un trigger <strong>siempre ejecuta la versión publicada</strong> y tiene que estar <strong>iniciado</strong> (<em>Started</em>) para dispararse.</p>
+<h2>Debug, publicar y Git</h2>
+<ul>
+<li><strong>Debug</strong> ejecuta lo que estás editando, sin publicar. Las ejecuciones aparecen en la pestaña <em>Debug</em> del monitor.</li>
+<li><strong>Live mode</strong> (sin Git): los cambios se guardan en el navegador hasta que pulsas <strong>Publish all</strong>, que los manda al servicio.</li>
+<li><strong>Modo Git</strong> (Azure DevOps o GitHub): cada cambio se guarda como commit en tu rama; se hace <em>pull request</em> a la <strong>rama de colaboración</strong> (main) y al publicar, ADF genera las <strong>plantillas ARM</strong> en la rama <code>adf_publish</code>. Esas plantillas se despliegan a prueba y producción con una canalización de CI/CD (por ejemplo, <code>az deployment group create</code> con un archivo de parámetros por entorno).</li>
+</ul>
+<h2>Costos</h2>
+<p>Se paga por <strong>ejecuciones de actividades de orquestación</strong>, por <strong>horas de DIU</strong> en las copias (unidades de integración de datos), por <strong>horas de vCore</strong> de data flows y por las horas del integration runtime. Un pipeline con un ForEach de 100 archivos cuesta bastante más que uno que copia una carpeta entera en una sola actividad.</p>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Home, Author, Monitor y Manage; linked services ADLS/Blob, Databricks y Key Vault con prueba de conexión y permisos reales del portal</td>
+<td>Más de 90 conectores, data flows, Power Query, self-hosted IR</td>
+</tr>
+<tr>
+<td>Copy data, Notebook, Get Metadata, Lookup, ForEach, If Condition, Set variable, Wait, Fail; dependencias con las cuatro condiciones</td>
+<td>Switch, Until, Filter, Web, Execute pipeline, Script, Stored procedure</td>
+</tr>
+<tr>
+<td>Parámetros, variables y expresiones con los errores de ADF; Debug, Publish all, Trigger now, triggers de programación (disparo simulado)</td>
+<td>Triggers que se disparan solos a su hora, tumbling window, eventos</td>
+</tr>
+<tr>
+<td>Exportar ARM template y la estructura del repositorio Git</td>
+<td>Integración con Git en vivo, parámetros globales, alertas</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-data-factory-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-portal-azure-por-dentro.html">← El portal de Azure por dentro - qué es cada parte y para qué sirve</a><a href="interfaces-databricks-por-dentro.html">Databricks por dentro - qué es cada parte y para qué sirve →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

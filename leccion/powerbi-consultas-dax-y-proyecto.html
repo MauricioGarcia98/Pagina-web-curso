@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consultas DAX, TMDL y tu primer informe completo · Academia de Datos</title><meta name="description" content="La vista de consultas DAX (EVALUATE, SUMMARIZECOLUMNS, TOPN, FILTER, ORDER BY, DEFINE), la vista TMDL para versionar el modelo como código y un proyecto guiado - un informe completo en el Power BI de práctica con cualquier dataset."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-consultas-dax-y-proyecto.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Consultas DAX, TMDL y tu primer informe completo · Academia de Datos"><meta property="og:description" content="La vista de consultas DAX (EVALUATE, SUMMARIZECOLUMNS, TOPN, FILTER, ORDER BY, DEFINE), la vista TMDL para versionar el modelo como código y un proyecto guiado - un informe completo en el Power BI de práctica con cualquier dataset."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-consultas-dax-y-proyecto.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi">📊 Power BI y DAX</a> · Avanzado · 60 min</div>
+<h1>Consultas DAX, TMDL y tu primer informe completo</h1><p class="resumen">La vista de consultas DAX (EVALUATE, SUMMARIZECOLUMNS, TOPN, FILTER, ORDER BY, DEFINE), la vista TMDL para versionar el modelo como código y un proyecto guiado - un informe completo en el Power BI de práctica con cualquier dataset.</p>
+<a class="cta" href="../index.html#/l/powerbi-consultas-dax-y-proyecto">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir consultas con SUMMARIZECOLUMNS, TOPN y ORDER BY</li><li>Probar medidas con DEFINE MEASURE antes de agregarlas al modelo</li><li>Leer y editar un modelo en TMDL</li><li>Construir y publicar un informe de punta a punta</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Hasta ahora usaste DAX para hacer cálculos dentro de un informe. Las consultas DAX son como hacerle preguntas directas al modelo, igual que con SQL, para revisar que los números den lo que esperas. Y TMDL es el modelo escrito como texto, para guardarlo y revisarlo con Git.</p>
+</div>
+
+
+<h2>De SQL a DAX</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>SQL</th>
+<th>DAX</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SELECT * FROM ventas</code></td>
+<td><code>EVALUATE ventas</code></td>
+</tr>
+<tr>
+<td><code>SELECT pais, SUM(monto) FROM … GROUP BY pais</code></td>
+<td><code>EVALUATE SUMMARIZECOLUMNS(clientes[pais], &quot;Ventas&quot;, [Ventas])</code></td>
+</tr>
+<tr>
+<td><code>… HAVING SUM(monto) &gt; 1000</code></td>
+<td><code>EVALUATE FILTER(SUMMARIZECOLUMNS(…), [Ventas] &gt; 1000)</code></td>
+</tr>
+<tr>
+<td><code>… ORDER BY ventas DESC</code></td>
+<td><code>… ORDER BY [Ventas] DESC</code></td>
+</tr>
+<tr>
+<td><code>SELECT TOP 10 …</code></td>
+<td><code>EVALUATE TOPN(10, …, [Ventas], DESC)</code></td>
+</tr>
+</tbody></table></div>
+<p>La diferencia grande es que en DAX <strong>no escribes los JOIN</strong>: las relaciones ya están en el modelo y los filtros viajan solos.</p>
+<h2>DEFINE: probar antes de crear</h2>
+<pre><code class="language-dax">DEFINE
+    MEASURE pedidos[Ticket] = DIVIDE([Ventas], [Pedidos])
+EVALUATE
+    SUMMARIZECOLUMNS(pedidos[canal], &quot;Ticket&quot;, [Ticket])
+ORDER BY [Ticket] DESC</code></pre>
+<p>La medida existe solo mientras corre la consulta. En Power BI Desktop, encima del <code>DEFINE</code> aparece <strong>&quot;Actualizar el modelo: agregar una medida nueva&quot;</strong> para pasarla al modelo con un clic. El laboratorio también lo tiene.</p>
+<h2>TMDL: el modelo como código</h2>
+<p>La <strong>vista TMDL</strong> muestra el modelo semántico en <em>Tabular Model Definition Language</em>, un formato de texto:</p>
+<pre><code class="language-tmdl">createOrReplace
+
+    table pedidos
+
+        measure Ticket = DIVIDE([Ventas], [Pedidos])
+            formatString: \$#,0.00
+
+    relationship 7f3a…
+        fromColumn: pedidos.cliente_id
+        toColumn: clientes.cliente_id</code></pre>
+<p>Si guardas el informe como <strong>proyecto de Power BI (.pbip)</strong>, el modelo queda en archivos <code>.tmdl</code> dentro de <code>definition/</code>. Se versionan con Git, se revisan en pull requests y se despliegan con CI/CD, igual que el código de dbt.</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Un objeto visual muestra un número raro y nadie sabe por qué. Con la <strong>vista de consultas DAX</strong> puedes copiar la consulta que genera ese objeto visual (Analizador de rendimiento → Copiar consulta), ejecutarla, cambiarla y entender qué está calculando, sin tocar el informe.</p>
+</div>
+
+
+<h2>Practica: consultas</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Proyecto: tu primer informe completo</h2>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo depurarías un número que no cuadra en un informe de Power BI?&quot;</div>
+
+<p>Copiaría la consulta del objeto visual desde el Analizador de rendimiento y la ejecutaría en la vista de consultas DAX. Ahí reviso qué filtros llegan (segmentaciones, filtros de página, filtros cruzados) y calculo la medida por partes con DEFINE y VAR. Comparo contra una consulta SQL al origen para ver si el problema es de datos (Power Query, duplicados, relaciones) o de la fórmula (contexto de filtro, ALL de más o de menos).</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-consultas-dax-y-proyecto">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-inteligencia-de-tiempo.html">← Inteligencia de tiempo - acumulados, año anterior y variaciones</a><a href="python-primeros-pasos.html">Primeros pasos: print, comentarios y variables →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

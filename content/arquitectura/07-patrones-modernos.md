@@ -16,6 +16,10 @@ Martín te pide:
 > "Antes de que alguien compre algo, investigá qué son estos patrones de los que todos hablan, y decime cuáles nos sirven de verdad y cuáles son moda."
 :::
 
+:::analogia En palabras simples
+Las empresas grandes descubrieron que un único equipo de datos no da abasto, igual que una sola cocina no alcanza para un hotel enorme. Por eso aparecen ideas como **data mesh** (cada área cocina sus propios datos con reglas comunes) o la capa semántica (un menú único con las definiciones de cada número).
+:::
+
 ## Data mesh: los datos como producto de cada dominio
 
 En una plataforma **centralizada**, un solo equipo de datos construye todo para todos. Funciona bien hasta que el equipo no da abasto y no conoce el negocio de cada área tan bien como sus dueños.

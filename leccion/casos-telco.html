@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 📱 Conecta: bajas de clientes (churn), reclamos y ARPU en una telco · Academia de Datos</title><meta name="description" content="Una operadora móvil pierde clientes por portabilidad. Mide la tasa de bajas por región y plan, relaciona los reclamos con las bajas, calcula ingresos y ARPU por mes y encuentra líneas que necesitan un plan más grande."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-telco.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 📱 Conecta: bajas de clientes (churn), reclamos y ARPU en una telco · Academia de Datos"><meta property="og:description" content="Una operadora móvil pierde clientes por portabilidad. Mide la tasa de bajas por región y plan, relaciona los reclamos con las bajas, calcula ingresos y ARPU por mes y encuentra líneas que necesitan un plan más grande."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-telco.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 55 min</div>
+<h1>Caso 📱 Conecta: bajas de clientes (churn), reclamos y ARPU en una telco</h1><p class="resumen">Una operadora móvil pierde clientes por portabilidad. Mide la tasa de bajas por región y plan, relaciona los reclamos con las bajas, calcula ingresos y ARPU por mes y encuentra líneas que necesitan un plan más grande.</p>
+<a class="cta" href="../index.html#/l/casos-telco">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular la tasa de bajas (churn) por segmento con el denominador correcto</li><li>Relacionar los reclamos de una línea con su probabilidad de baja</li><li>Calcular ingresos y ARPU mensuales a partir del consumo</li><li>Detectar oportunidades de venta (líneas que superan su plan)</li><li>Construir una tabla mensual de churn: activas al inicio, bajas y tasa</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Conecta pierde líneas</div>
+
+<p>La gerenta comercial de <strong>Conecta</strong>, una operadora móvil, abre la reunión con un gráfico que baja:</p>
+<blockquote>
+<p>&quot;Cada mes se van más líneas, y casi todas se van a la competencia con su número (portabilidad). Necesito saber <strong>dónde</strong> se van, <strong>por qué</strong>, y a quién llamar <strong>antes</strong> de que se vaya. Ah, y finanzas quiere el ARPU mes a mes.&quot;</p>
+</blockquote>
+<p>En una telco, captar un cliente cuesta varias veces más que retenerlo. Un punto de churn menos al mes son millones al año.</p>
+</div>
+
+
+<h2>Cómo funciona una telco móvil</h2>
+<p>Conecta vende <strong>líneas</strong> (un número de teléfono con un plan). Un <strong>cliente</strong> (una persona o una empresa) puede tener varias líneas. Hay dos tipos de planes:</p>
+<ul>
+<li><strong>Prepago</strong>: el cliente recarga saldo cuando quiere. No hay contrato: se puede ir sin avisar, y el ingreso por línea es bajo e irregular.</li>
+<li><strong>Pospago</strong>: un abono mensual fijo con GB y minutos incluidos; si supera los GB, paga un excedente.</li>
+</ul>
+<p>Cuando un cliente se va, puede llevarse su número a otra compañía: eso es la <strong>portabilidad</strong>, y es el motivo de baja más doloroso, porque el cliente se fue <strong>a la competencia</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Fórmula</th>
+<th>Por qué importa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Churn (tasa de bajas)</strong></td>
+<td>líneas dadas de baja / líneas del grupo</td>
+<td>La métrica más vigilada de la industria</td>
+</tr>
+<tr>
+<td><strong>Churn mensual</strong></td>
+<td>bajas del mes / activas al inicio del mes</td>
+<td>Se compara mes a mes y con la competencia</td>
+</tr>
+<tr>
+<td><strong>ARPU</strong> (<em>average revenue per user</em>)</td>
+<td>ingresos del mes / líneas que facturaron ese mes</td>
+<td>Cuánto deja cada línea en promedio</td>
+</tr>
+<tr>
+<td><strong>Tasa de resolución</strong></td>
+<td>reclamos resueltos / reclamos</td>
+<td>Calidad de atención</td>
+</tr>
+<tr>
+<td><strong>Excedentes</strong></td>
+<td>meses en que una línea superó sus GB</td>
+<td>Oportunidad de vender un plan más grande</td>
+</tr>
+</tbody></table></div>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">telco_clientes (cliente_id, tipo, region, fecha_alta, edad)
+telco_planes   (plan_id, nombre, tipo, datos_gb, minutos, precio_mensual)
+telco_lineas   (linea_id, cliente_id, plan_id, numero, fecha_alta, fecha_baja, motivo_baja)
+telco_consumos (linea_id, mes, datos_gb, minutos, sms, monto_facturado)     ← una fila por línea y mes de 2024
+telco_reclamos (reclamo_id, linea_id, fecha_hora, categoria, horas_resolucion, resuelto)</code></pre>
+<figure class="diagrama"><figcaption>Modelo de Conecta: el grano de casi todo es la línea, no el cliente</figcaption></figure>
+
+
+<ul>
+<li><code>fecha_baja</code> en <code>NULL</code> = la línea sigue activa.</li>
+<li><code>plan_id</code> es el plan <strong>actual</strong> (el último): las líneas que mejoraron de plan durante el año aparecen con el nuevo.</li>
+<li><code>telco_consumos</code> tiene una fila por cada mes de 2024 en que la línea estuvo activa; el mes es texto <code>&#39;2024-03&#39;</code>.</li>
+<li>En prepago, <code>monto_facturado</code> son las recargas del mes.</li>
+</ul>
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿En qué región se dan más de baja?&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por región. La región es del <strong>cliente</strong>, y la baja es de la <strong>línea</strong>: unimos <code>telco_lineas</code> con <code>telco_clientes</code>.</li>
+<li><strong>Métrica</strong>: <code>AVG(fecha_baja IS NOT NULL)</code> da la proporción de líneas con baja (en SQLite, <code>fecha_baja IS NOT NULL</code> vale 1 o 0).</li>
+</ol>
+<pre><code class="language-sql">SELECT c.region,
+       COUNT(*) AS lineas,
+       SUM(l.fecha_baja IS NOT NULL) AS bajas,
+       ROUND(100.0 * AVG(l.fecha_baja IS NOT NULL), 1) AS pct_baja
+FROM telco_lineas l
+JOIN telco_clientes c ON c.cliente_id = l.cliente_id
+GROUP BY c.region
+ORDER BY pct_baja DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>region</th>
+<th>lineas</th>
+<th>bajas</th>
+<th>pct_baja</th>
+</tr>
+</thead><tbody><tr>
+<td>Andina</td>
+<td>234</td>
+<td>55</td>
+<td>23.5</td>
+</tr>
+<tr>
+<td>Sur</td>
+<td>379</td>
+<td>55</td>
+<td>14.5</td>
+</tr>
+<tr>
+<td>Norte</td>
+<td>395</td>
+<td>42</td>
+<td>10.6</td>
+</tr>
+<tr>
+<td>Centro</td>
+<td>656</td>
+<td>65</td>
+<td>9.9</td>
+</tr>
+<tr>
+<td>Costa</td>
+<td>254</td>
+<td>21</td>
+<td>8.3</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura de negocio:</strong> la región <strong>Andina</strong> pierde casi una de cada cuatro líneas, más del doble que Centro o Costa. Sur y Centro tienen la misma cantidad de bajas en números absolutos (55 y 65) pero tasas muy distintas: por eso se mira el <strong>porcentaje</strong>, no el conteo. La pregunta siguiente es <em>por qué</em>: los ejercicios cruzan las bajas con los reclamos (en Andina abundan los de <strong>cobertura</strong>).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>Contar clientes en lugar de líneas</strong>: una empresa con 6 líneas que da de baja una no &quot;se fue&quot;. El churn se mide por línea (y aparte, por cliente, con otra definición).</li>
+<li><strong>El denominador del churn mensual</strong>: son las líneas activas <strong>al inicio</strong> del mes, no las de fin de año ni el total histórico.</li>
+<li><strong>ARPU con el promedio de promedios</strong>: el ARPU del año no es el promedio de los 12 ARPU mensuales; es ingresos totales / líneas-mes.</li>
+<li><strong>Causalidad</strong>: que las líneas con reclamos se vayan más no prueba que el reclamo cause la baja (puede haber una causa común: la mala cobertura). Pero sí sirve para saber <strong>a quién llamar</strong>.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las telcos tienen modelos de <strong>propensión a la baja</strong> que se recalculan cada semana; las variables más fuertes suelen ser exactamente las de este caso: reclamos recientes, región/antena, tipo de plan, antigüedad y caída del consumo.</li>
+<li>Los resultados se cargan al CRM y el equipo de retención llama a las líneas con mayor riesgo con una oferta. Después se mide si funcionó con un <strong>grupo de control</strong> (líneas de riesgo a las que no se llamó).</li>
+<li>Los datos de consumo reales vienen de los <strong>CDR</strong> (<em>call detail records</em>): miles de millones de registros por mes, procesados con Spark y agregados por línea y día.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo calcularías el churn mensual de una empresa de suscripciones?&quot;</div>
+
+<p>Defino el grano (línea, cuenta o cliente) y el período. Para cada mes: activas al inicio = altas antes del primer día del mes y sin baja antes de ese día; bajas del mes = bajas con fecha dentro del mes. Churn = bajas del mes / activas al inicio. Excluyo las altas del propio mes del denominador (o las informo aparte), y reviso casos borde: reactivaciones, bajas el mismo día del alta, y cambios de plan que el sistema registra como baja y alta.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tasa de bajas con la base de líneas del final del mes</strong>: las líneas que se dieron de baja ya no están en el denominador.</li>
+<li><strong>Relacionar reclamos con bajas sin mirar el orden en el tiempo</strong>: un reclamo posterior a la baja no la explica.</li>
+<li><strong>ARPU dividiendo por todas las líneas</strong> incluidas las suspendidas, o al revés, sin decir cuál.</li>
+</ul>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-telco">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-tienda-avanzado.html">← Caso 🛒 Tienda Andina: preguntas de directorio</a><a href="casos-seguros.html">Caso 🛡️ Escudo Seguros: siniestralidad, frecuencia, severidad y fraude →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

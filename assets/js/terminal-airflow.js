@@ -39,7 +39,15 @@ ${col.dim('(simulado: los DAGs se leen de ~/airflow/dags y la interfaz está en 
   const esperarFin = (r) => new Promise((res) => { const iv = setInterval(() => { if (['success', 'failed'].includes(r.state)) { clearInterval(iv); res(); } }, 120); });
   const icono = (s) => s === 'success' ? col.ok('success') : s === 'failed' || s === 'upstream_failed' ? col.err(s) : s === 'skipped' ? col.warn(s) : s;
 
-  Sh.def('airflow', 'Apache Airflow CLI (simulada): airflow dags list · dags test · dags trigger · tasks test · variables · connections', async (a) => {
+  // Este archivo se carga recién al abrir la réplica (#/airflow). Antes, el comando `airflow` de la terminal es el
+  // mini-Airflow de las lecciones, que lee ~/dags. Si el alumno tiene DAGs en ~/dags
+  // y estás fuera de ~/airflow (la carpeta de la réplica) y de la página de la réplica, se sigue usando ese, para no
+  // cambiar los ejercicios de las lecciones.
+  const base = Sh.Commands && Sh.Commands.airflow;
+  const hayPy = (dir) => Object.keys(Sh.Machine.fs).some((k) => k.startsWith(dir + '/') && k.endsWith('.py'));
+  const enReplica = () => { const cwd = Sh.Machine.cwd || ''; return /^#\/airflow/.test(location.hash) || cwd === Sh.HOME + '/airflow' || cwd.startsWith(Sh.HOME + '/airflow/') || !hayPy(Sh.HOME + '/dags'); };
+  Sh.def('airflow', 'Apache Airflow CLI (simulada): airflow dags list · dags test · dags trigger · tasks test · variables · connections', async (a, ctx) => {
+    if (base && (!A() || !enReplica())) return base(a, ctx);
     if (!A()) return fail('Airflow no está disponible en esta página');
     const [g, c] = a; const p = posicionales(a.slice(2));
     if (!g || g === '-h' || g === '--help') return ok(AYUDA);

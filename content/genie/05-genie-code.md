@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué hace /fix y por qué no ejecuta el código solo? | 
 Estás armando el notebook de la capa silver y te aparece `[CAST_INVALID_INPUT] The value 'N/A' cannot be cast to "DOUBLE"`. Podrías buscar el error en internet, o podrías preguntarle a un asistente que **ya conoce tus tablas, tus columnas y el error exacto de la celda**. Eso es Genie Code. Pero como todo asistente, propone; la responsabilidad de revisar sigue siendo tuya.
 :::
 
+:::analogia En palabras simples
+Genie Code es como tener un compañero que programa sentado al lado: le pides "escribe la consulta que trae las ventas por país" o "explícame este error" y te propone código. Igual que con un compañero, revisas lo que propone antes de usarlo.
+:::
+
 ## Qué es y en qué se diferencia de Genie Agents
 
 **Genie Code** (antes *Databricks Assistant*) es el asistente para **personas técnicas**: genera y ejecuta código, explica, corrige errores, arma pipelines y tableros, y trabaja con las tablas y columnas de Unity Catalog. La documentación lo describe como un **agente autónomo**: planifica, busca contexto, ejecuta código, mira el resultado de las celdas y corrige errores.

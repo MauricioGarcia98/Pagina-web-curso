@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clínica 🏥: agenda, riesgo de ausencia, pacientes reincidentes y recordatorios · Academia de Datos</title><meta name="description" content="Turnos libres de una agenda y un puntaje de riesgo de ausencia en Python, pacientes reincidentes en PySpark, la facturación mensual por cobertura en dbt y un DAG de recordatorios con ShortCircuitOperator."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-clinica.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Clínica 🏥: agenda, riesgo de ausencia, pacientes reincidentes y recordatorios · Academia de Datos"><meta property="og:description" content="Turnos libres de una agenda y un puntaje de riesgo de ausencia en Python, pacientes reincidentes en PySpark, la facturación mensual por cobertura en dbt y un DAG de recordatorios con ShortCircuitOperator."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-clinica.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Avanzado · 60 min</div>
+<h1>Clínica 🏥: agenda, riesgo de ausencia, pacientes reincidentes y recordatorios</h1><p class="resumen">Turnos libres de una agenda y un puntaje de riesgo de ausencia en Python, pacientes reincidentes en PySpark, la facturación mensual por cobertura en dbt y un DAG de recordatorios con ShortCircuitOperator.</p>
+<a class="cta" href="../index.html#/l/pipelines-clinica">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<p>En <strong>Clínica del Sur</strong> (caso 🏥) el problema número uno es el <strong>ausentismo</strong>: turnos reservados a los que el paciente no viene. La estrategia del equipo: (1) mostrar bien los turnos libres para reasignar rápido, (2) estimar qué turnos tienen <strong>riesgo</strong> de ausencia, (3) identificar a los pacientes reincidentes, y (4) enviar <strong>recordatorios</strong> el día anterior.</p>
+<h2>1. Python: los turnos libres de una agenda</h2>
+<p>Un médico atiende de 08:00 a 12:00 en turnos de 20 minutos. Algunos turnos ya están tomados, y a veces hay bloqueos de distinta duración (una reunión de 08:30 a 09:10). El sistema de reservas tiene que mostrar los turnos <strong>libres</strong>: los que caben <strong>completos</strong> sin solaparse con nada ocupado.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>2. Python: el puntaje de riesgo de ausencia</h2>
+<p>Con los datos históricos, el equipo encontró los factores que más se asocian a las ausencias. Antes de tener un modelo de machine learning, se usa un <strong>puntaje por reglas</strong> (transparente y fácil de explicar a los médicos):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Factor</th>
+<th>Puntos</th>
+</tr>
+</thead><tbody><tr>
+<td>Anticipación de la reserva: más de 30 días</td>
+<td>+3</td>
+</tr>
+<tr>
+<td>Anticipación de 8 a 30 días</td>
+<td>+1</td>
+</tr>
+<tr>
+<td>Cada ausencia previa del paciente (máximo 3 ausencias contadas)</td>
+<td>+2 por ausencia</td>
+</tr>
+<tr>
+<td>Turno en lunes</td>
+<td>+1</td>
+</tr>
+<tr>
+<td>Paciente sin cobertura (<code>Particular</code>)</td>
+<td>+1</td>
+</tr>
+</tbody></table></div>
+<p>Nivel: <strong>alto</strong> con 5 o más puntos, <strong>medio</strong> con 2 a 4, <strong>bajo</strong> con menos de 2. A los de riesgo alto se los llama por teléfono; a los medios, se les manda un mensaje.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Reglas antes que modelos</div>
+
+<p>Un puntaje por reglas es un excelente primer paso: se implementa en un día, cualquiera lo entiende y sirve de <strong>línea de base</strong> para comparar. Si después un modelo de machine learning no le gana claramente, no vale la pena su complejidad.</p>
+</div>
+
+
+<h2>3. PySpark: pacientes reincidentes</h2>
+<p>Para el puntaje hace falta saber cuántas ausencias tuvo cada paciente. Esa tabla se calcula todas las noches sobre el historial completo de turnos.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>4. dbt: facturación mensual por cobertura</h2>
+<p>Finanzas negocia cada año con las prepagas y obras sociales. Necesita, por mes y cobertura, cuánto se facturó, cuánto pagó la cobertura y cuánto el paciente (copago).</p>
+<div class="exercise-slot"></div>
+
+
+<h2>5. Airflow: los recordatorios del día siguiente</h2>
+<p>Todos los días a las 18:00, el DAG busca los turnos de mañana, y si hay alguno, envía los recordatorios. Si mañana es feriado y no hay turnos, <strong>no tiene sentido</strong> ejecutar el envío: el <code>ShortCircuitOperator</code> corta el flujo cuando su función devuelve un valor falso, y todo lo que sigue queda <em>skipped</em> (sin contar como error).</p>
+<div class="exercise-slot"></div>
+
+
+<h2>De las reglas a la operación diaria</h2>
+<p>En la clínica, el pipeline tiene un efecto directo en personas: si los recordatorios no salen, los pacientes faltan y los turnos se pierden. Por eso el DAG de recordatorios usa un <code>ShortCircuitOperator</code>: si mañana no hay turnos (un feriado), se corta sin enviar nada y sin marcar error. Y el <strong>puntaje de riesgo de ausencia</strong> decide a quién llamar además de enviarle un mensaje: el equipo de recepción tiene tiempo para unas pocas llamadas, así que se priorizan los de mayor riesgo.</p>
+<p>Los datos de salud son <strong>sensibles</strong>: en las tablas de análisis no van nombres ni documentos, sino identificadores. Los datos de contacto viven en un sistema aparte, al que solo accede el proceso que envía los recordatorios.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Turnos que se superponen</strong> al calcular la agenda libre: un turno que termina a las 10:00 y otro que empieza a las 10:00 no se pisan; uno que termina a las 10:05, sí. Los límites (<code>&lt;</code> o <code>&lt;=</code>) van en los tests.</li>
+<li><strong>Puntaje con información que no existe al momento de predecir</strong> (por ejemplo, si el paciente vino o no): usa solo el historial anterior al turno.</li>
+<li><strong>Facturación que mezcla meses de atención y de pago</strong>: el mismo dato da totales distintos según qué fecha uses. Defínelo en el modelo de dbt.</li>
+<li><strong>Enviar recordatorios dos veces</strong> si el DAG se reintenta: registra qué mensajes se enviaron y no repitas.</li>
+<li><strong>Copiar datos personales de pacientes</strong> a tablas de análisis &quot;por si acaso&quot;.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En salud, las leyes de protección de datos obligan a minimizar los datos personales, registrar quién accede y poder borrar los datos de un paciente si lo pide. Unity Catalog, Purview o Lake Formation se usan para enmascarar columnas y auditar accesos.</li>
+<li>Un puntaje basado en reglas claras (cantidad de ausencias previas, anticipación del turno) suele ser la primera versión; un modelo de machine learning llega después, y se compara contra esa regla.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo evitarías que un proceso de envío de mensajes mande duplicados si se reintenta?&quot;</div>
+
+<p>Haciendo el envío idempotente: cada mensaje tiene un identificador derivado del turno y del tipo de recordatorio, y antes de enviar se consulta una tabla de envíos realizados; el envío y el registro se hacen juntos. Si la tarea se reintenta, los ya enviados se saltan. Además, el proveedor de mensajes suele aceptar una clave de idempotencia. Y separaría el cálculo de destinatarios (que se puede repetir sin problema) del envío.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-clinica">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-viajes.html">← Movilidad 🚕: precios, oferta y demanda, conductores destacados</a><a href="pipelines-saas.html">SaaS ☁️: prorrateos, movimientos de MRR, facturación incremental y cierre mensual →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

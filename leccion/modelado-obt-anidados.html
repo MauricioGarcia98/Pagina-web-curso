@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablas anchas (OBT), datos anidados y agregados · Academia de Datos</title><meta name="description" content="Cuándo conviene juntar todo en una tabla ancha, cómo modelar con estructuras anidadas en plataformas columnares y cómo diseñar tablas agregadas para tableros rápidos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-obt-anidados.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tablas anchas (OBT), datos anidados y agregados · Academia de Datos"><meta property="og:description" content="Cuándo conviene juntar todo en una tabla ancha, cómo modelar con estructuras anidadas en plataformas columnares y cómo diseñar tablas agregadas para tableros rápidos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-obt-anidados.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#modelado">📐 Modelado de datos</a> · Avanzado · 45 min</div>
+<h1>Tablas anchas (OBT), datos anidados y agregados</h1><p class="resumen">Cuándo conviene juntar todo en una tabla ancha, cómo modelar con estructuras anidadas en plataformas columnares y cómo diseñar tablas agregadas para tableros rápidos.</p>
+<a class="cta" href="../index.html#/l/modelado-obt-anidados">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir una tabla ancha (One Big Table) a partir de una estrella y explicar sus ventajas y riesgos</li><li>Modelar relaciones uno a muchos con estructuras anidadas (STRUCT/ARRAY o JSON)</li><li>Diseñar tablas agregadas para tableros y saber cuándo se justifican</li><li>Elegir entre estrella, OBT y anidados según el motor y el consumo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>A veces, en lugar de guardar las cosas en muchas cajas pequeñas, conviene una sola caja grande con todo junto: más fácil de llevar y de abrir, aunque se repitan cosas. Una tabla ancha (OBT) es eso: todas las columnas en una sola tabla, rápida de consultar y fácil de usar para quien no sabe hacer joins.</p>
+</div>
+
+
+<h2>One Big Table (OBT)</h2>
+<p>Una <strong>OBT</strong> (tabla ancha) es la tabla de hechos con <strong>todos los atributos de las dimensiones ya unidos</strong>: una sola tabla con 50 o 100 columnas. Se construye <strong>a partir</strong> de la estrella, no en lugar de ella:</p>
+<figure class="diagrama"><figcaption>La OBT se genera desde la estrella; la estrella sigue siendo la fuente de verdad</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Estrella</th>
+<th>OBT</th>
+</tr>
+</thead><tbody><tr>
+<td>JOINs al consultar</td>
+<td>Varios</td>
+<td>Ninguno</td>
+</tr>
+<tr>
+<td>Facilidad para analistas</td>
+<td>Media</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Espacio</td>
+<td>Menor</td>
+<td>Mayor (atributos repetidos en cada fila)</td>
+</tr>
+<tr>
+<td>Cambio en una dimensión</td>
+<td>Se actualiza una tabla</td>
+<td>Hay que regenerar la OBT completa</td>
+</tr>
+<tr>
+<td>Consistencia entre procesos</td>
+<td>Dimensiones conformadas compartidas</td>
+<td>Cada OBT tiene su copia</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué en los motores modernos la OBT no es tan cara como parece? Porque son <strong>columnares</strong>: si la consulta usa 4 de las 80 columnas, solo lee esas 4. Y la compresión hace que un atributo repetido millones de veces (&quot;Chile&quot;, &quot;Chile&quot;, &quot;Chile&quot;…) ocupe casi nada.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La OBT no reemplaza a la estrella</div>
+
+<p>Si construyes OBTs directamente desde las fuentes, sin estrella, cada una calcula &quot;cliente&quot; a su manera y los números dejan de cuadrar entre tableros. La regla: <strong>estrella como fuente de verdad, OBT como vista de consumo</strong> generada por el pipeline.</p>
+</div>
+
+
+<h2>Datos anidados: la relación 1:N dentro de la fila</h2>
+<p>Las plataformas columnares (BigQuery, Databricks, Snowflake, Athena) aceptan columnas con <strong>estructuras</strong>: un <code>STRUCT</code> (un objeto con campos) o un <code>ARRAY</code> (una lista). Así puedes guardar las líneas de un pedido <strong>dentro</strong> de la fila del pedido, sin tabla aparte:</p>
+<pre data-norun><code class="language-sql">-- BigQuery: una fila por pedido, con sus líneas adentro
+CREATE TABLE gold.pedidos_anidados AS
+SELECT
+  p.pedido_id, p.fecha_pedido, p.canal,
+  STRUCT(c.cliente_id, c.pais, c.segmento) AS cliente,
+  ARRAY_AGG(STRUCT(d.producto_id, d.cantidad, d.precio_unitario)) AS lineas
+FROM pedidos p
+JOIN clientes c USING (cliente_id)
+JOIN detalle_pedidos d USING (pedido_id)
+GROUP BY 1, 2, 3, 4;
+
+-- Consultar: UNNEST &quot;desarma&quot; el array en filas
+SELECT cliente.pais, SUM(l.cantidad * l.precio_unitario) AS ventas
+FROM gold.pedidos_anidados, UNNEST(lineas) AS l
+GROUP BY cliente.pais;</code></pre>
+<p>En SQLite no hay <code>STRUCT</code>, pero puedes ver la misma idea con JSON (<code>json_group_array</code> arma la lista de líneas de cada pedido):</p>
+<pre><code class="language-sql">SELECT
+    p.pedido_id,
+    p.fecha_pedido,
+    json_object('cliente_id', c.cliente_id, 'pais', c.pais) AS cliente,
+    json_group_array(json_object('producto_id', d.producto_id, 'cantidad', d.cantidad)) AS lineas
+FROM pedidos p
+JOIN clientes c ON c.cliente_id = p.cliente_id
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.pedido_id BETWEEN 1 AND 3
+GROUP BY p.pedido_id;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Ventajas de anidar</th>
+<th>Desventajas</th>
+</tr>
+</thead><tbody><tr>
+<td>Sin JOIN entre pedido y líneas: se leen juntos</td>
+<td>Las consultas con <code>UNNEST</code> son menos intuitivas</td>
+</tr>
+<tr>
+<td>Refleja la forma natural de los datos (como llegan de una API en JSON)</td>
+<td>No todas las herramientas de BI lo manejan bien</td>
+</tr>
+<tr>
+<td>Evita multiplicar filas al unir</td>
+<td>Actualizar una línea implica reescribir el pedido</td>
+</tr>
+</tbody></table></div>
+<p>Es muy usado en BigQuery (donde Google lo recomienda) y para eventos que llegan en JSON con listas adentro.</p>
+<h2>Tablas agregadas</h2>
+<p>Un tablero de ventas diarias no necesita leer 30 millones de líneas cada vez que alguien lo abre. Una <strong>tabla agregada</strong> precalcula el resultado al grano que pide el tablero:</p>
+<pre><code class="language-sql">SELECT
+    p.fecha_pedido                                                    AS fecha,
+    p.canal,
+    COUNT(DISTINCT p.pedido_id)                                       AS pedidos,
+    SUM(d.cantidad)                                                   AS unidades,
+    ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS importe_neto
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado &lt;&gt; 'cancelado' AND p.fecha_pedido &gt;= '2024-12-29'
+GROUP BY p.fecha_pedido, p.canal
+ORDER BY fecha, canal;</code></pre>
+<p>Las reglas para que una tabla agregada no se convierta en un problema:</p>
+<ol>
+<li><strong>Se genera desde la tabla de hechos</strong>, nunca desde las fuentes.</li>
+<li><strong>Las medidas no aditivas</strong> (como <code>COUNT(DISTINCT cliente)</code> o porcentajes) <strong>no se pueden re-agregar</strong>: los clientes distintos por día no se suman para obtener los clientes distintos del mes. Si el tablero necesita varios niveles, guarda los componentes o calcula cada nivel por separado.</li>
+<li>Se nombra con el grano: <code>agg_ventas_dia_canal</code>.</li>
+</ol>
+<p>Muchos motores lo hacen solos: las <strong>vistas materializadas</strong> (BigQuery, Databricks, Snowflake) mantienen el agregado actualizado y el motor las usa automáticamente cuando la consulta coincide.</p>
+<h2>¿Cuál elijo?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Recomendación</th>
+</tr>
+</thead><tbody><tr>
+<td>Fuente de verdad del modelo analítico</td>
+<td>Estrella (con SCD donde importe)</td>
+</tr>
+<tr>
+<td>Analistas sin experiencia en SQL, herramientas de autoservicio</td>
+<td>OBT generada desde la estrella</td>
+</tr>
+<tr>
+<td>Datos que llegan anidados (eventos, APIs), motor columnar</td>
+<td>Anidados (STRUCT/ARRAY)</td>
+</tr>
+<tr>
+<td>Tablero muy usado sobre millones de filas</td>
+<td>Tabla agregada o vista materializada</td>
+</tr>
+<tr>
+<td>Muchas fuentes, auditoría y cambios frecuentes</td>
+<td>Data Vault en el medio + estrella encima</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>OBT sin estrella detrás</strong>: cada tabla ancha define a su manera las mismas cosas.</li>
+<li><strong>Re-agregar medidas no aditivas</strong>: sumar &quot;clientes distintos por día&quot; para obtener los del mes.</li>
+<li><strong>Agregados que nadie actualiza</strong>: un agregado que se calcula a mano una vez y queda viejo.</li>
+<li><strong>Anidar todo</strong> en un motor o herramienta de BI que no lo maneja bien.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El tablero que tarda 40 segundos</div>
+
+<p>El equipo de BI se queja del modelo nuevo:</p>
+<blockquote>
+<p>&quot;La estrella está muy bien hecha, pero el tablero de ventas une seis tablas en cada filtro y tarda 40 segundos. Los analistas nuevos se pierden con tantos JOINs. ¿No podemos tener una sola tabla con todo?&quot;</p>
+</blockquote>
+<p>La respuesta no es &quot;sí&quot; ni &quot;no&quot;: depende del motor, del volumen y de quién consume. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En dbt es común tener la capa <code>marts</code> con <code>fct_</code> y <code>dim_</code>, y encima una capa de &quot;reporting&quot; con OBTs y agregados específicos para cada tablero.</li>
+<li>Antes de crear un agregado, mira qué consultas son lentas de verdad (las nubes guardan el historial de consultas). Crear agregados &quot;por si acaso&quot; llena la plataforma de tablas que nadie usa.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Estrella o una gran tabla ancha?&quot;</div>
+
+<p>Depende del motor y del consumidor. En motores columnares una OBT es eficiente (solo se leen las columnas usadas y la repetición se comprime bien) y simplifica el uso; pero no debe reemplazar a la estrella, que mantiene dimensiones conformadas y es la fuente de verdad. Lo habitual es generar la OBT desde la estrella en el pipeline, y regenerarla cuando cambian las dimensiones.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/modelado-obt-anidados">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="modelado-data-vault.html">← Data Vault: hubs, links y satélites</a><a href="modelado-proyecto-ritmo.html">Proyecto: el modelo analítico completo de Ritmo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

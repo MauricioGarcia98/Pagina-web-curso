@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks CLI: instalación y autenticación · Academia de Datos</title><meta name="description" content="Instalar la CLI, autenticarse con OAuth o token, perfiles en .databrickscfg y comandos de diagnóstico."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-cli-autenticacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Databricks CLI: instalación y autenticación · Academia de Datos"><meta property="og:description" content="Instalar la CLI, autenticarse con OAuth o token, perfiles en .databrickscfg y comandos de diagnóstico."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-cli-autenticacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Intermedio · 25 min</div>
+<h1>Databricks CLI: instalación y autenticación</h1><p class="resumen">Instalar la CLI, autenticarse con OAuth o token, perfiles en .databrickscfg y comandos de diagnóstico.</p>
+<a class="cta" href="../index.html#/l/databricks-cli-autenticacion">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>La CLI <code>databricks</code> de la terminal y el <a href="#/databricks">workspace de práctica</a> comparten el estado: un cluster o un job que creas en un lado aparece en el otro.</p>
+</div>
+
+
+<p>La <strong>Databricks CLI</strong> controla tu workspace desde la terminal: archivos, clústeres, jobs, secretos, catálogos y, sobre todo, el despliegue con <strong>Declarative Automation Bundles</strong> (antes <em>Asset Bundles</em>). La CLI actual es un programa escrito en Go (versión 0.205 en adelante, hoy en la línea 1.x) que reemplazó a la antigua <code>databricks-cli</code> de Python: si ves instrucciones con <code>pip install databricks-cli</code>, son de la versión vieja.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>La CLI de Databricks es el control remoto del workspace desde tu terminal. Antes de usarla hay que presentarse, como mostrar el carnet en la puerta: eso es la <strong>autenticación</strong>. Lo recomendado es iniciar sesión por el navegador, sin guardar contraseñas en archivos.</p>
+</div>
+
+
+<h2>¿Para qué una CLI si existe la interfaz web?</h2>
+<p>La interfaz web de Databricks es excelente para explorar y desarrollar. La CLI es para todo lo que tiene que ser <strong>repetible</strong>: subir archivos de un proceso, crear secretos en un script de instalación, reiniciar un cluster desde un job de monitoreo y, sobre todo, <strong>desplegar</strong> notebooks y jobs desde Git hacia dev y prod con CI/CD (Declarative Automation Bundles, lección 7). Es exactamente la misma idea que <code>az</code>, <code>aws</code> o <code>gcloud</code>, pero para el workspace de Databricks.</p>
+<p>La CLI habla con la <strong>API REST</strong> de Databricks: cada comando es una llamada HTTPS autenticada a tu workspace. Por eso lo primero es decirle <strong>a qué workspace</strong> hablar (el <em>host</em>) y <strong>con qué credencial</strong>.</p>
+<h2>Instalación</h2>
+<pre data-norun><code class="language-bash"># macOS / Linux con Homebrew (desde Homebrew 6 hay que &quot;confiar&quot; en el repositorio de terceros)
+brew tap databricks/tap
+brew trust databricks/tap
+brew install databricks
+
+# Linux / macOS con el script oficial
+curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+# Windows
+winget install Databricks.DatabricksCLI
+
+databricks -v                     # o: databricks version</code></pre>
+<p>Para actualizarla se usa el mismo método con el que la instalaste (<code>brew upgrade databricks</code>, <code>winget upgrade Databricks.DatabricksCLI</code> o volver a correr el script).</p>
+<h2>Autenticación</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Comando</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>OAuth usuario a máquina (U2M)</strong></td>
+<td><code>databricks auth login --host https://adb-123.azuredatabricks.net</code></td>
+<td>Recomendado para personas: abre el navegador</td>
+</tr>
+<tr>
+<td><strong>Token personal (PAT)</strong></td>
+<td><code>databricks configure --token</code></td>
+<td>Método heredado (<em>legacy</em>): simple, pero es un secreto de larga duración</td>
+</tr>
+<tr>
+<td><strong>OAuth máquina a máquina (M2M)</strong></td>
+<td>Variables <code>DATABRICKS_CLIENT_ID</code> / <code>DATABRICKS_CLIENT_SECRET</code></td>
+<td>CI/CD con un service principal</td>
+</tr>
+<tr>
+<td><strong>Azure CLI</strong></td>
+<td>(usa tu <code>az login</code>)</td>
+<td>En Azure, si ya iniciaste sesión con <code>az</code></td>
+</tr>
+</tbody></table></div>
+<p>La configuración queda en <code>~/.databrickscfg</code>, con <strong>perfiles</strong>:</p>
+<pre data-norun><code class="language-ini">[DEFAULT]
+host = https://adb-1111111111111111.1.azuredatabricks.net
+auth_type = databricks-cli
+
+[prod]
+host = https://adb-2222222222222222.2.azuredatabricks.net
+auth_type = databricks-cli</code></pre>
+<pre data-norun><code class="language-bash">databricks auth login --host https://adb-2222222222222222.2.azuredatabricks.net --profile prod
+databricks auth profiles                  # lista los perfiles y si son válidos
+databricks current-user me                # ¿quién soy?
+databricks clusters list --profile prod   # usar otro perfil (-p prod)</code></pre>
+<p>También puedes usar variables de entorno <code>DATABRICKS_HOST</code> y <code>DATABRICKS_TOKEN</code> (útil en CI).</p>
+<h3>Dónde se guardan las credenciales</h3>
+<p>Desde la versión 1.0 de la CLI, los tokens de <code>databricks auth login</code> <strong>no</strong> se guardan en <code>.databrickscfg</code>: van al almacén seguro del sistema operativo (el <em>Keychain</em> en macOS, el <em>Credential Manager</em> en Windows, el <em>Secret Service</em> en Linux). El archivo <code>.databrickscfg</code> solo tiene datos no secretos, como el host y el tipo de autenticación. En servidores sin ese almacén (un contenedor de CI) se puede usar un archivo de texto con <code>export DATABRICKS_AUTH_STORAGE=plaintext</code>.</p>
+<h3>En qué orden busca la CLI las credenciales</h3>
+<p>Cuando ejecutas un comando, la CLI busca la configuración en este orden y <strong>se detiene en la primera que encuentra</strong>:</p>
+<ol>
+<li>Los archivos de configuración del <em>bundle</em>, si estás dentro de la carpeta de uno.</li>
+<li>Las <strong>variables de entorno</strong> (<code>DATABRICKS_HOST</code>, <code>DATABRICKS_TOKEN</code>, <code>DATABRICKS_CLIENT_ID</code>…).</li>
+<li>Los <strong>perfiles</strong> de <code>~/.databrickscfg</code>.</li>
+</ol>
+<p>Consecuencia práctica, que la documentación pone como ejemplo: si tienes una variable <code>DATABRICKS_TOKEN</code> definida (de una prueba de ayer), la CLI la usa <strong>aunque</strong> pases <code>--profile prod</code>. Cuando &quot;la CLI se conecta al workspace equivocado&quot;, lo primero es mirar <code>env | grep DATABRICKS</code>.</p>
+<h3>¿Por qué OAuth y no un token?</h3>
+<p>Un <strong>token personal</strong> (PAT) es como una contraseña que no vence (o vence en meses): si alguien lo copia de un archivo o de un repositorio, tiene acceso a todo lo que tú tienes. <strong>OAuth</strong> emite credenciales de <strong>corta duración</strong> (los tokens de OAuth vencen en menos de una hora) que la CLI renueva sola y se pueden revocar centralmente. Por eso la recomendación actual es <code>databricks auth login</code> para personas y <em>service principals</em> con OAuth M2M para automatizaciones.</p>
+<div class="recorrido"></div>
+
+
+<h2>Pruébalo en la terminal</h2>
+<pre><code class="language-bash">databricks current-user me
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks auth profiles
+databricks current-user me
+databricks clusters list
+databricks catalogs list</code></pre>
+<p>El primer <code>current-user me</code> falla con el mismo mensaje que la CLI real cuando no hay credenciales configuradas; después del <code>auth login</code> funciona. Ese error (&quot;cannot configure default credentials&quot;) es el que más vas a ver al empezar: casi siempre significa que falta el login o que el perfil apunta a otro host.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>cannot configure default credentials</code></strong>: no hay login o el perfil no existe. Corre <code>databricks auth login --host ...</code> o revisa <code>databricks auth profiles</code>.</li>
+<li><strong>La CLI habla con el workspace equivocado</strong>: hay una variable <code>DATABRICKS_HOST</code> o <code>DATABRICKS_TOKEN</code> definida que tiene prioridad sobre el perfil.</li>
+<li><strong>Instalar <code>pip install databricks-cli</code></strong>: es la CLI vieja de Python, con otros comandos. La actual se instala con brew, winget o el script.</li>
+<li><strong>Subir un PAT a Git</strong> en un script de CI: queda en el historial para siempre. En CI se usa un <em>service principal</em> con OAuth M2M y el secreto en el gestor de secretos del CI.</li>
+<li><strong>Usar la misma credencial personal en producción</strong>: si te vas de la empresa, los jobs dejan de funcionar. Los jobs de producción corren como un <em>service principal</em>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El primer día con un workspace: instalar la CLI, <code>databricks auth login</code> con un perfil por entorno (<code>dev</code>, <code>prod</code>) y comprobar con <code>databricks current-user me -p dev</code>.</li>
+<li>En GitHub Actions o Azure DevOps se definen <code>DATABRICKS_HOST</code>, <code>DATABRICKS_CLIENT_ID</code> y <code>DATABRICKS_CLIENT_SECRET</code> como secretos del pipeline, y el paso de despliegue corre <code>databricks bundle deploy -t prod</code>.</li>
+<li>En Azure también existe la autenticación con la identidad de <code>az login</code> o con <em>managed identities</em>, muy usada en empresas que centralizan todo en Microsoft Entra ID.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo se autentica un pipeline de CI/CD contra Databricks?&quot;</div>
+
+<p>Con un service principal y OAuth máquina a máquina: se crea el service principal en la cuenta, se le da acceso al workspace con los permisos mínimos y se genera un secreto OAuth. En el CI se guardan como secretos el host, el client ID y el client secret, que la CLI lee de las variables de entorno. Así no hay tokens personales de larga duración, las credenciales se pueden rotar y revocar, y los despliegues no dependen de una persona.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-cli-autenticacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-unity-catalog.html">← Unity Catalog: permisos y gobierno</a><a href="databricks-cli-recursos.html">Databricks CLI: workspace, archivos, clusters, jobs y secretos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

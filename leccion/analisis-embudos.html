@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Embudos de conversión - dónde se pierden los clientes · Academia de Datos</title><meta name="description" content="Medir un proceso de varios pasos - el embudo vista, carrito y compra de la tienda online, con y sin orden entre los pasos, por dispositivo, el tiempo hasta convertir, y el embudo operativo de un pedido de delivery (aceptado, retirado, entregado)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-embudos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Embudos de conversión - dónde se pierden los clientes · Academia de Datos"><meta property="og:description" content="Medir un proceso de varios pasos - el embudo vista, carrito y compra de la tienda online, con y sin orden entre los pasos, por dispositivo, el tiempo hasta convertir, y el embudo operativo de un pedido de delivery (aceptado, retirado, entregado)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-embudos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Avanzado · 50 min</div>
+<h1>Embudos de conversión - dónde se pierden los clientes</h1><p class="resumen">Medir un proceso de varios pasos - el embudo vista, carrito y compra de la tienda online, con y sin orden entre los pasos, por dispositivo, el tiempo hasta convertir, y el embudo operativo de un pedido de delivery (aceptado, retirado, entregado).</p>
+<a class="cta" href="../index.html#/l/analisis-embudos">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular un embudo simple y uno ordenado en el tiempo</li><li>Comparar la conversión por segmento</li><li>Medir el tiempo entre pasos</li><li>Construir el embudo de un proceso operativo</li></ul>
+<h2>El embudo simple</h2>
+<p>Para cada paso, cuántos usuarios distintos lo hicieron al menos una vez:</p>
+<pre><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN tipo_evento = 'vista' THEN cliente_id END) AS vieron,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'agregar_carrito' THEN cliente_id END) AS agregaron,
+       COUNT(DISTINCT CASE WHEN tipo_evento = 'compra' THEN cliente_id END) AS compraron
+FROM eventos_web
+WHERE cliente_id IS NOT NULL;</code></pre>
+<ul>
+<li><strong>Conversión de un paso</strong> = usuarios del paso ÷ usuarios del paso anterior.</li>
+<li><strong>Conversión total</strong> = usuarios del último paso ÷ usuarios del primero.</li>
+</ul>
+<div class="recorrido"></div>
+
+
+<h2>El embudo ordenado</h2>
+<p>El simple no exige orden: alguien que compró en enero y miró un producto en diciembre cuenta en ambos pasos. El embudo <strong>ordenado</strong> exige que cada paso ocurra <strong>después</strong> del anterior.</p>
+<pre><code class="language-sql">WITH primeros AS (
+  SELECT cliente_id,
+         MIN(CASE WHEN tipo_evento = 'vista' THEN fecha_hora END) AS t_vista,
+         MIN(CASE WHEN tipo_evento = 'agregar_carrito' THEN fecha_hora END) AS t_carrito,
+         MIN(CASE WHEN tipo_evento = 'compra' THEN fecha_hora END) AS t_compra
+  FROM eventos_web
+  WHERE cliente_id IS NOT NULL
+  GROUP BY cliente_id
+)
+SELECT COUNT(t_vista) AS vieron,
+       SUM(t_carrito &gt; t_vista) AS carrito_despues_de_ver,
+       SUM(t_compra &gt; t_carrito AND t_carrito &gt; t_vista) AS compra_despues_del_carrito
+FROM primeros;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Una simplificación honesta</div>
+
+<p>Este embudo ordenado usa el <strong>primer</strong> evento de cada tipo. Un análisis más fino lo haría por sesión o permitiría ventanas de tiempo (por ejemplo, comprar dentro de los 7 días). Lo importante es escribir la regla que usaste.</p>
+</div>
+
+
+<h2>El embudo operativo</h2>
+<p>En un delivery, cada pedido pasa por etapas: creado → aceptado por el restaurante → retirado por el repartidor → entregado. Cada etapa es una columna de tiempo; si es nula, el pedido no llegó a esa etapa.</p>
+<h2>Paso a paso: qué decide cada número del embudo</h2>
+<p>Un embudo parece una consulta simple, pero cada número depende de <strong>cuatro decisiones</strong> que hay que escribir antes de mirar el resultado. Si dos personas toman decisiones distintas, obtienen embudos distintos con los mismos datos, y las dos pueden tener razón.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Decisión</th>
+<th>Opciones</th>
+<th>Qué cambia</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Unidad</strong></td>
+<td>usuario, sesión, visita a un producto</td>
+<td>&quot;70 % agregó al carrito&quot; puede significar 70 % de las personas o 70 % de las visitas</td>
+</tr>
+<tr>
+<td><strong>Orden</strong></td>
+<td>sin orden, ordenado</td>
+<td>El ordenado siempre da igual o menos que el simple</td>
+</tr>
+<tr>
+<td><strong>Ventana</strong></td>
+<td>todo el año, 7 días, la misma sesión</td>
+<td>Una ventana corta baja la conversión pero refleja mejor el efecto de la página</td>
+</tr>
+<tr>
+<td><strong>Población</strong></td>
+<td>todos, solo identificados, solo nuevos</td>
+<td>Los anónimos (<code>cliente_id</code> nulo) no se pueden seguir entre pasos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La fila del cine</div>
+
+<p>Piensa en la fila para entrar a una función: 100 personas miran la cartelera, 60 hacen la fila y 45 compran la entrada. Si cuentas &quot;personas que alguna vez compraron una entrada este año&quot;, vas a sumar gente que compró para otra película. El embudo ordenado y con ventana es contar solo a los que miraron <strong>esta</strong> cartelera y compraron <strong>esta</strong> función.</p>
+</div>
+
+
+<h3>1. La unidad: usuarios distintos</h3>
+<p><code>COUNT(DISTINCT CASE WHEN … THEN cliente_id END)</code> cuenta personas, no clics. Si un cliente vio 40 productos, cuenta una vez en &quot;vieron&quot;. Es lo correcto para la pregunta &quot;¿cuántas personas avanzan?&quot;. Si la pregunta fuera &quot;¿qué página de producto convierte mejor?&quot;, la unidad sería la visita a cada producto y el embudo cambia de forma.</p>
+<h3>2. Por segmento: el mismo embudo, partido en grupos</h3>
+<p>El rediseño del escenario se probó primero en móvil. Para compararlo, se marca qué pasos hizo cada cliente <strong>dentro de cada dispositivo</strong> y después se suman:</p>
+<pre><code class="language-sql">WITH u AS (
+  SELECT dispositivo, cliente_id,
+         MAX(tipo_evento = 'vista') AS vio,
+         MAX(tipo_evento = 'agregar_carrito') AS agrego,
+         MAX(tipo_evento = 'compra') AS compro
+  FROM eventos_web
+  WHERE cliente_id IS NOT NULL
+  GROUP BY dispositivo, cliente_id
+)
+SELECT dispositivo,
+       SUM(vio) AS vieron,
+       SUM(vio AND agrego) AS agregaron,
+       SUM(vio AND agrego AND compro) AS compraron,
+       ROUND(100.0 * SUM(vio AND agrego) / SUM(vio), 1) AS pct_vista_a_carrito,
+       ROUND(100.0 * SUM(vio AND agrego AND compro) / SUM(vio AND agrego), 1) AS pct_carrito_a_compra
+FROM u
+GROUP BY dispositivo
+ORDER BY dispositivo;</code></pre>
+<p>Línea por línea:</p>
+<ul>
+<li><code>MAX(tipo_evento = &#39;vista&#39;)</code>: en SQLite una comparación vale 1 o 0; el <code>MAX</code> dice &quot;hizo este paso al menos una vez&quot;. Es una <strong>bandera por cliente</strong>.</li>
+<li><code>SUM(vio AND agrego)</code>: exige haber hecho los dos pasos. Así el embudo es <strong>anidado</strong>: nadie cuenta en &quot;agregaron&quot; sin haber visto. En el embudo simple de arriba eso no estaba garantizado.</li>
+<li>Las dos conversiones se calculan <strong>sobre el paso anterior</strong>, no sobre el total: así se ve en qué escalón se pierde la gente.</li>
+</ul>
+<p>En estos datos, la tablet pierde más en el primer paso (55 % contra 67-73 %). Esa es la pista: el problema no está en el pago, está en la página de producto en pantallas medianas.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un cliente, varios dispositivos</div>
+
+<p>Un cliente que mira en el móvil y compra en la computadora aparece en dos grupos y no completa el embudo en ninguno. Si es común, segmenta por el <strong>dispositivo del primer evento</strong> del cliente en lugar de por el dispositivo de cada evento. Escribe cuál elegiste.</p>
+</div>
+
+
+<h3>3. El tiempo hasta convertir</h3>
+<p>Además de <strong>cuántos</strong> convierten, importa <strong>cuánto tardan</strong>. Se toma la primera vista y la primera compra de cada cliente y se agrupa la diferencia en tramos:</p>
+<pre><code class="language-sql">WITH p AS (
+  SELECT cliente_id,
+         MIN(CASE WHEN tipo_evento = 'vista' THEN fecha_hora END) AS t_vista,
+         MIN(CASE WHEN tipo_evento = 'compra' THEN fecha_hora END) AS t_compra
+  FROM eventos_web
+  WHERE cliente_id IS NOT NULL
+  GROUP BY cliente_id
+)
+SELECT CASE WHEN julianday(t_compra) - julianday(t_vista) &lt; 1 THEN '1. el mismo día'
+            WHEN julianday(t_compra) - julianday(t_vista) &lt; 7 THEN '2. de 1 a 7 días'
+            WHEN julianday(t_compra) - julianday(t_vista) &lt; 30 THEN '3. de 7 a 30 días'
+            ELSE '4. más de 30 días' END AS tramo,
+       COUNT(*) AS clientes
+FROM p
+WHERE t_compra &gt; t_vista
+GROUP BY tramo
+ORDER BY tramo;</code></pre>
+<ul>
+<li><code>julianday(b) - julianday(a)</code> da la diferencia en <strong>días con decimales</strong>; multiplicada por 24 son horas y por 1440, minutos.</li>
+<li>El prefijo &quot;1.&quot;, &quot;2.&quot; en el nombre del tramo es un truco para que <code>ORDER BY</code> los ordene bien sin otra columna.</li>
+<li><code>WHERE t_compra &gt; t_vista</code> deja afuera a los que nunca compraron (<code>t_compra</code> nulo) y a los que compraron antes de su primera vista registrada.</li>
+</ul>
+<p>El resultado tiene dos montañas: muchos compran el mismo día y muchos tardan más de un mes. La segunda montaña casi siempre es un artefacto: la &quot;primera vista&quot; fue una visita de hace meses que no tiene nada que ver con la compra. Por eso se usan <strong>ventanas</strong>: &quot;compró dentro de los 7 días de una vista&quot;. Con una ventana, el embudo mide lo que la página puede influir.</p>
+<h3>4. El embudo operativo, en detalle</h3>
+<p>Los procesos internos también son embudos, y son más fáciles: cada etapa es una columna de tiempo de la misma fila.</p>
+<pre><code class="language-sql">SELECT COUNT(*) AS creados,
+       COUNT(aceptado) AS aceptados,
+       COUNT(retirado) AS retirados,
+       COUNT(entregado) AS entregados,
+       ROUND(100.0 * COUNT(entregado) / COUNT(*), 1) AS pct_entregados,
+       ROUND(AVG((julianday(aceptado) - julianday(creado)) * 1440), 1) AS min_hasta_aceptar,
+       ROUND(AVG((julianday(entregado) - julianday(retirado)) * 1440), 1) AS min_de_viaje
+FROM delivery_pedidos;</code></pre>
+<ul>
+<li><code>COUNT(columna)</code> cuenta solo los no nulos: es exactamente &quot;cuántos llegaron a esta etapa&quot;.</li>
+<li>Los tiempos entre etapas dicen <strong>dónde</strong> se espera: si <code>min_hasta_aceptar</code> sube, el problema está en el restaurante; si sube <code>min_de_viaje</code>, en el reparto.</li>
+<li>Los que se cayeron tienen un <code>estado</code> que explica por qué (<code>cancelado_cliente</code>, <code>sin_repartidor</code>…): agrupar las caídas por estado es el paso siguiente.</li>
+</ul>
+<h2>Cómo se lee un embudo sin engañarse</h2>
+<ol>
+<li><strong>Mira cada escalón, no solo el total.</strong> Una conversión total igual puede esconder un paso que mejoró y otro que empeoró.</li>
+<li><strong>Compara contra el período anterior con la misma definición.</strong> Si cambiaste la regla (ventana, población), recalcula también el período anterior.</li>
+<li><strong>Ojo con el volumen.</strong> En el escenario, las visitas subieron 12 % y las compras 5 %: la conversión total <strong>bajó</strong>. Pero si las visitas nuevas vinieron de una campaña con público menos interesado, la página puede estar igual de bien. Segmenta por canal de llegada antes de culpar al rediseño.</li>
+<li><strong>Un paso con 100 % es sospechoso.</strong> Suele ser un evento que se dispara solo (por ejemplo, &quot;vista&quot; registrado en cada carga de página del carrito).</li>
+</ol>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contar eventos en lugar de usuarios</strong>: un cliente que recarga la página 20 veces infla el primer paso y baja la conversión de forma artificial.</li>
+<li><strong>Embudo no anidado</strong>: contar en &quot;compraron&quot; a gente que no pasó por &quot;agregaron&quot; da conversiones de más del 100 % en algún segmento.</li>
+<li><strong>Ignorar a los anónimos sin decirlo</strong>: si el 40 % del tráfico no está identificado, el embudo describe solo al 60 % restante.</li>
+<li><strong>Comparar embudos con ventanas distintas</strong>: &quot;7 días&quot; contra &quot;todo el mes&quot; no es una mejora, es otra métrica.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La tienda rediseñó la página de producto. El tablero dice que las compras subieron un 5 %, pero las visitas subieron un 12 %. ¿Mejoró o empeoró? El embudo separa el problema en pasos: cuántos ven, cuántos agregan al carrito y cuántos compran, y en cuál de esos pasos se perdió gente.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los equipos de producto revisan el embudo cada semana; el analista mantiene <strong>una sola definición</strong> escrita (unidad, orden, ventana, población) y la usa en todos los tableros.</li>
+<li>En las herramientas de producto (Amplitude, Mixpanel, GA4) el embudo ya viene armado, pero cuando los números no coinciden con el warehouse, alguien tiene que reconstruirlo en SQL y explicar la diferencia. Ese alguien suele ser un data engineer o un analista senior.</li>
+<li>Para que el embudo sea confiable, el <strong>plan de eventos</strong> (qué se registra, con qué nombre y cuándo) importa tanto como la consulta.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Las compras subieron 5 % y las visitas 12 %. ¿El rediseño funcionó?&quot;</div>
+
+<p>Primero, la conversión total bajó (de compras/visitas), así que no se puede decir que funcionó solo con esos dos números. Luego separaría el embudo en pasos para ver en qué escalón cambió, compararía por segmento (dispositivo, canal de llegada, clientes nuevos o recurrentes) para descartar que el tráfico nuevo sea de menor calidad, y fijaría una ventana de conversión. Si se puede, lo ideal es una prueba A/B, porque compara a la vez y con la misma población.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>En una línea</th>
+</tr>
+</thead><tbody><tr>
+<td>Embudo simple</td>
+<td>Usuarios distintos por paso, sin exigir orden</td>
+</tr>
+<tr>
+<td>Embudo anidado</td>
+<td>Cada paso exige haber hecho los anteriores</td>
+</tr>
+<tr>
+<td>Embudo ordenado</td>
+<td>Cada paso ocurre después del anterior en el tiempo</td>
+</tr>
+<tr>
+<td>Ventana</td>
+<td>Plazo máximo entre pasos para que cuente</td>
+</tr>
+<tr>
+<td>Embudo operativo</td>
+<td>Etapas de un proceso: <code>COUNT(columna_de_tiempo)</code> por etapa</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-embudos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="analisis-cohortes-retencion.html">← Cohortes, retención y churn</a><a href="analisis-unit-economics.html">Unit economics - MRR, retención neta y lo que deja cada pedido →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

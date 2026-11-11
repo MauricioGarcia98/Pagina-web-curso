@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iteradores, generadores, decoradores y context managers · Academia de Datos</title><meta name="description" content="Procesar datos sin cargarlos en memoria, envolver funciones y manejar recursos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-python-avanzado.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Iteradores, generadores, decoradores y context managers · Academia de Datos"><meta property="og:description" content="Procesar datos sin cargarlos en memoria, envolver funciones y manejar recursos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-python-avanzado.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Avanzado · 40 min</div>
+<h1>Iteradores, generadores, decoradores y context managers</h1><p class="resumen">Procesar datos sin cargarlos en memoria, envolver funciones y manejar recursos.</p>
+<a class="cta" href="../index.html#/l/python-python-avanzado">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir generadores con <code>yield</code> para procesar datos a demanda</li><li>Explicar el protocolo de iteración</li><li>Crear decoradores que agregan comportamiento a funciones (medir tiempo, contar llamadas, reintentar)</li><li>Usar y escribir context managers con <code>with</code></li></ul>
+<p>Esta lección cubre cuatro ideas que aparecen en todo el código profesional de datos, aunque al principio no las veas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Problema que resuelve</th>
+<th>Dónde lo vas a ver</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Generadores</strong></td>
+<td>Procesar datos más grandes que la memoria, de a poco</td>
+<td>Leer archivos enormes, paginar APIs; la &quot;evaluación perezosa&quot; de Spark es la misma idea</td>
+</tr>
+<tr>
+<td><strong>Iteradores</strong></td>
+<td>Recorrer cualquier cosa con <code>for</code> de forma uniforme</td>
+<td>Archivos, cursores de bases de datos, resultados de APIs</td>
+</tr>
+<tr>
+<td><strong>Decoradores</strong></td>
+<td>Agregar comportamiento a una función sin tocar su código</td>
+<td><code>@task</code> y <code>@dag</code> en Airflow, <code>@dataclass</code>, <code>@property</code></td>
+</tr>
+<tr>
+<td><strong>Context managers</strong></td>
+<td>Abrir y cerrar recursos de forma segura</td>
+<td><code>with open(...)</code>, conexiones a bases, transacciones, sesiones de Spark</td>
+</tr>
+</tbody></table></div>
+<p>No hace falta dominarlos para empezar, pero sí reconocerlos: cuando leas el código de un proyecto real, estarán por todos lados.</p>
+<h2>Generadores: datos “a demanda”</h2>
+<p>Imagina un archivo de 20 GB y una computadora con 8 GB de memoria. Si lo lees completo en una lista, el programa se cae. La solución es procesarlo <strong>de a pedazos</strong>: leer un poco, procesarlo, descartarlo y leer el siguiente. Los <strong>generadores</strong> hacen eso de forma natural.</p>
+<p>Una función con <code>yield</code> (en lugar de <code>return</code>) es un <strong>generador</strong>: no calcula todo de una vez, sino que <strong>produce valores de a uno</strong>, solo cuando se le piden, y &quot;se pausa&quot; entre valor y valor recordando dónde estaba.</p>
+<div class="table-wrap"><table><thead><tr>
+<th><code>return</code></th>
+<th><code>yield</code></th>
+</tr>
+</thead><tbody><tr>
+<td>Devuelve un valor y la función <strong>termina</strong></td>
+<td>Entrega un valor y la función queda <strong>pausada</strong></td>
+</tr>
+<tr>
+<td>Si devuelves una lista, toda la lista está en memoria</td>
+<td>Solo existe en memoria el valor actual</td>
+</tr>
+<tr>
+<td>Se ejecuta al llamarla</td>
+<td>No se ejecuta nada hasta que alguien pide el primer valor (con <code>for</code> o <code>next</code>)</td>
+</tr>
+</tbody></table></div>
+<p>Este ejemplo agrupa una secuencia en <strong>lotes</strong> de 4 (por ejemplo, para insertar en una base de a 1.000 filas, o enviar a una API de a 500 registros):</p>
+<pre><code class="language-python">def leer_en_lotes(datos, tamanio):
+    lote = []
+    for d in datos:
+        lote.append(d)
+        if len(lote) == tamanio:
+            yield lote
+            lote = []
+    if lote:
+        yield lote
+
+for lote in leer_en_lotes(range(1, 11), 4):
+    print(&quot;Procesando lote&quot;, lote)</code></pre>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Lista vs generador</div>
+
+<p>Una lista es una caja con todas las galletas horneadas de antemano. Un generador es un horno que te da una galleta recién hecha cada vez que pides una. Si son 10 millones de galletas, la diferencia es enorme.</p>
+</div>
+
+
+<p>Expresión generadora: como una list comprehension pero con paréntesis: <code>(x * 2 for x in datos)</code>. Ya la usaste dentro de <code>sum(...)</code>.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 La evaluación perezosa de Spark</div>
+
+<p>Un generador no hace nada hasta que alguien pide un valor: es <strong>perezoso</strong> (<em>lazy</em>). Spark funciona igual a gran escala: <code>df.filter(...).select(...)</code> no procesa ningún dato, solo <strong>anota</strong> los pasos; recién cuando pides un resultado (<code>count()</code>, <code>show()</code>, <code>write</code>) ejecuta todo de una vez, optimizado. Si entiendes los generadores, entiendes la mitad de Spark.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Iteradores</h2>
+<p>Todo lo que puedes recorrer con <code>for</code> es <strong>iterable</strong>. <code>iter()</code> crea un iterador y <code>next()</code> pide el siguiente valor:</p>
+<pre><code class="language-python">it = iter([&quot;a&quot;, &quot;b&quot;])
+print(next(it), next(it))
+# next(it) -&gt; StopIteration: no quedan más</code></pre>
+<p>El módulo <code>itertools</code> tiene herramientas muy útiles:</p>
+<pre><code class="language-python">from itertools import islice, groupby, chain
+print(list(islice(range(100), 5)))                       # los primeros 5
+datos = [(&quot;web&quot;, 1), (&quot;web&quot;, 2), (&quot;app&quot;, 3)]
+for canal, grupo in groupby(datos, key=lambda x: x[0]):   # agrupa consecutivos (¡ordena antes!)
+    print(canal, [g[1] for g in grupo])</code></pre>
+<h2>Decoradores: envolver funciones</h2>
+<p>Supón que quieres medir cuánto tarda cada función de tu pipeline, o reintentar automáticamente las que llaman a una API. Podrías copiar el código de medir o reintentar dentro de cada función, pero repetirías lo mismo diez veces. Un <strong>decorador</strong> es una función que <strong>recibe otra función</strong> y devuelve una versión &quot;envuelta&quot; con comportamiento extra, sin modificar su código original. Se aplica escribiendo <code>@nombre_decorador</code> encima de la definición.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El envoltorio de regalo</div>
+
+<p>El regalo (tu función) no cambia. El decorador lo envuelve: antes de abrirlo pasa algo (empieza el cronómetro), después de abrirlo pasa algo más (lo detiene e imprime el tiempo). Quien lo recibe usa el regalo igual que siempre.</p>
+</div>
+
+
+<p><code>@medir_tiempo</code> encima de <code>def suma_lenta</code> es exactamente lo mismo que escribir <code>suma_lenta = medir_tiempo(suma_lenta)</code> después de definirla. La función <code>envoltura</code> recibe cualquier argumento (<code>*args, **kwargs</code>), hace algo antes, llama a la original, hace algo después y devuelve el resultado. <code>functools.wraps</code> conserva el nombre y la documentación de la función original.</p>
+<pre><code class="language-python">import time
+import functools
+
+def medir_tiempo(func):
+    @functools.wraps(func)
+    def envoltura(*args, **kwargs):
+        inicio = time.perf_counter()
+        resultado = func(*args, **kwargs)
+        print(f&quot;{func.__name__} tardó {time.perf_counter() - inicio:.4f} s&quot;)
+        return resultado
+    return envoltura
+
+@medir_tiempo
+def suma_lenta(n):
+    return sum(range(n))
+
+print(suma_lenta(1_000_000))</code></pre>
+<p>En Airflow escribirás <code>@task</code> y <code>@dag</code>; en Python verás <code>@property</code>, <code>@dataclass</code>, <code>@functools.lru_cache</code>…</p>
+<pre><code class="language-python">def reintentar(veces):
+    &quot;&quot;&quot;Decorador con parámetros: reintenta la función si falla.&quot;&quot;&quot;
+    def decorador(func):
+        @functools.wraps(func)
+        def envoltura(*args, **kwargs):
+            for intento in range(1, veces + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    print(f&quot;Intento {intento} falló: {e}&quot;)
+            raise RuntimeError(f&quot;{func.__name__} falló {veces} veces&quot;)
+        return envoltura
+    return decorador</code></pre>
+<h2>Context managers: with</h2>
+<p>Muchos recursos deben <strong>abrirse y cerrarse</strong>: archivos, conexiones a bases de datos, sesiones, transacciones. Si el programa falla en el medio y nadie cierra el recurso, quedan conexiones colgadas o archivos a medio escribir. <code>with</code> garantiza que el &quot;cierre&quot; ocurra <strong>siempre</strong>, haya error o no. Ya lo usaste con <code>open</code>.</p>
+<p>Un objeto que funciona con <code>with</code> se llama <strong>context manager</strong>. Puedes crear los tuyos con <code>contextlib.contextmanager</code>: lo que va antes del <code>yield</code> se ejecuta al <strong>entrar</strong> al bloque <code>with</code>, y lo que va después, al <strong>salir</strong>. Este ejemplo simula una transacción: confirma si todo salió bien y &quot;deshace&quot; si hubo un error:</p>
+<pre><code class="language-python">from contextlib import contextmanager
+
+@contextmanager
+def transaccion(nombre):
+    print(f&quot;BEGIN {nombre}&quot;)
+    try:
+        yield
+        print(&quot;COMMIT&quot;)
+    except Exception as e:
+        print(f&quot;ROLLBACK por {e}&quot;)
+        raise
+
+with transaccion(&quot;carga_diaria&quot;):
+    print(&quot;insertando filas...&quot;)</code></pre>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Consumir un generador dos veces</strong>: la segunda vez está vacío. Si necesitas recorrerlo de nuevo, vuelve a crearlo.</li>
+<li><strong>Convertir el generador en lista &quot;para ver qué tiene&quot;</strong>: <code>list(gen)</code> con 8 GB de datos vuelve a llenar la memoria.</li>
+<li><strong>Decoradores que pierden el nombre de la función</strong>: sin <code>@functools.wraps</code>, la función decorada se llama <code>wrapper</code> en los logs y los tracebacks.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El archivo que no entra en memoria</div>
+
+<p>Sofía te pasa un archivo de 8 GB con todos los movimientos de inventario del año:</p>
+<blockquote>
+<p>&quot;Mi Excel no lo abre y tu script anterior se quedó sin memoria. Necesito el total por depósito.&quot;</p>
+</blockquote>
+<p>Cargar todo en una lista no sirve. Los <strong>generadores</strong> procesan los datos <strong>de a uno</strong> (o de a lotes), con muy poca memoria. Y los <strong>decoradores</strong> y <strong>context managers</strong> son las herramientas que hacen elegante el código profesional.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Leer archivos grandes por partes (<code>for linea in archivo:</code>), paginar APIs con un generador y enviar a la base en <strong>lotes</strong> de 1.000 filas son patrones de todos los días.</li>
+<li>Los decoradores están en todas las herramientas de datos: <code>@task</code> y <code>@dag</code> en Airflow, <code>@pytest.fixture</code> en tests, <code>@F.udf</code> en PySpark, <code>@retry</code> de tenacity.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-python-avanzado">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-clases.html">← Programación orientada a objetos</a><a href="python-python-datos.html">Python para ingeniería de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

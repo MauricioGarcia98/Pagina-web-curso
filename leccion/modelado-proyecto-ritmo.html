@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto: el modelo analítico completo de Ritmo · Academia de Datos</title><meta name="description" content="Un proyecto de modelado de punta a punta para la app de música: requisitos, matriz de bus, diagrama, construcción de dimensiones y hechos con SQL y validación con las preguntas del negocio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-proyecto-ritmo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto: el modelo analítico completo de Ritmo · Academia de Datos"><meta property="og:description" content="Un proyecto de modelado de punta a punta para la app de música: requisitos, matriz de bus, diagrama, construcción de dimensiones y hechos con SQL y validación con las preguntas del negocio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-proyecto-ritmo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#modelado">📐 Modelado de datos</a> · Experto · 75 min</div>
+<h1>Proyecto: el modelo analítico completo de Ritmo</h1><p class="resumen">Un proyecto de modelado de punta a punta para la app de música: requisitos, matriz de bus, diagrama, construcción de dimensiones y hechos con SQL y validación con las preguntas del negocio.</p>
+<a class="cta" href="../index.html#/l/modelado-proyecto-ritmo">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir las preguntas de un negocio en una matriz de bus y un modelo dimensional</li><li>Construir con SQL dimensiones, una tabla de hechos transaccional y un snapshot periódico mensual</li><li>Validar el modelo respondiendo las preguntas del negocio y comparando contra las tablas de origen</li><li>Documentar el grano, las claves y las decisiones del modelo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Este proyecto es como armar un mueble completo después de haber practicado cada tipo de unión por separado: juntas el modelo conceptual, la normalización, las estrellas y las dimensiones que cambian en un solo diseño para un negocio real.</p>
+</div>
+
+
+<h2>Paso 1: de las preguntas a los procesos</h2>
+<p>Agrupa las preguntas del negocio por <strong>proceso</strong> (evento que se mide):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Proceso</th>
+<th>Grano necesario</th>
+</tr>
+</thead><tbody><tr>
+<td>Horas escuchadas por género, dispositivo y país</td>
+<td>Reproducción</td>
+<td>Una fila por reproducción</td>
+</tr>
+<tr>
+<td>Skips (reproducciones de menos de 30 segundos)</td>
+<td>Reproducción</td>
+<td>Una fila por reproducción</td>
+</tr>
+<tr>
+<td>MRR y suscriptores pagos por mes</td>
+<td>Estado de las suscripciones</td>
+<td>Una fila por suscripción <strong>vigente</strong> y mes</td>
+</tr>
+<tr>
+<td>Altas y bajas por mes</td>
+<td>Estado de las suscripciones</td>
+<td>Igual (o una tabla de eventos de alta y baja)</td>
+</tr>
+<tr>
+<td>Qué escuchan antes de darse de baja</td>
+<td>Reproducción + suscripción</td>
+<td>Las dos tablas, unidas por usuario y fecha</td>
+</tr>
+</tbody></table></div>
+<p>Dos procesos, por lo tanto <strong>dos tablas de hechos</strong>.</p>
+<h2>Paso 2: la matriz de bus</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Proceso \ Dimensión</th>
+<th>Fecha</th>
+<th>Usuario</th>
+<th>Contenido</th>
+<th>Dispositivo</th>
+<th>Plan</th>
+</tr>
+</thead><tbody><tr>
+<td>Reproducciones (transaccional)</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td></td>
+</tr>
+<tr>
+<td>Suscripciones por mes (snapshot periódico)</td>
+<td>✔ (mes)</td>
+<td>✔</td>
+<td></td>
+<td></td>
+<td>✔</td>
+</tr>
+</tbody></table></div>
+<p>Fecha y usuario son <strong>dimensiones conformadas</strong>: las comparten las dos tablas de hechos. Así se puede cruzar consumo con suscripción.</p>
+<h2>Paso 3: el modelo</h2>
+<figure class="diagrama"><figcaption>El modelo dimensional de Ritmo: dos tablas de hechos con dimensiones conformadas</figcaption></figure>
+
+
+<p>Decisiones documentadas:</p>
+<ul>
+<li><strong><code>fct_reproducciones</code></strong> — grano: una fila por reproducción. Medidas: <code>segundos_escuchados</code> (aditiva), <code>es_skip</code> (1 si duró menos de 30 segundos; aditiva como conteo). El dispositivo queda como dimensión degenerada (son 4 valores, sin más atributos).</li>
+<li><strong><code>fct_suscripciones_mes</code></strong> — grano: una fila por suscripción <strong>vigente</strong> al primer día de cada mes. Medida: <code>precio_mensual</code>. Es un <strong>snapshot periódico</strong>: el MRR de un mes es la suma del precio de las suscripciones pagas de ese mes. No se suma entre meses.</li>
+<li><strong><code>dim_usuario</code></strong> — atributos estables (país, edad al registrarse, tramo de edad). Si el país pudiera cambiar, sería SCD tipo 2; en estos datos no cambia.</li>
+<li><strong><code>dim_contenido</code></strong> — tipo (canción o podcast), género, artista, duración.</li>
+</ul>
+<h2>Paso 4: construir las tablas</h2>
+<h3><code>dim_usuario</code></h3>
+<pre><code class="language-sql">SELECT
+    usuario_id,
+    pais,
+    edad,
+    CASE WHEN edad &lt; 25 THEN '18-24' WHEN edad &lt; 35 THEN '25-34'
+         WHEN edad &lt; 50 THEN '35-49' ELSE '50+' END AS tramo_edad,
+    fecha_registro,
+    dispositivo_principal
+FROM streaming_usuarios
+LIMIT 5;</code></pre>
+<h3><code>fct_reproducciones</code></h3>
+<pre><code class="language-sql">SELECT
+    r.repro_id,
+    DATE(r.fecha_hora)                                AS fecha,
+    r.usuario_id,
+    r.contenido_id,
+    r.dispositivo,
+    r.segundos_escuchados,
+    CASE WHEN r.segundos_escuchados &lt; 30 THEN 1 ELSE 0 END AS es_skip
+FROM streaming_reproducciones r
+LIMIT 5;</code></pre>
+<h3><code>fct_suscripciones_mes</code> (el snapshot)</h3>
+<p>La parte más interesante. Hay que &quot;expandir&quot; cada suscripción en una fila por cada mes en que estuvo vigente el día 1. Primero se generan los meses con una CTE recursiva, y después se cruza cada mes con las suscripciones vigentes ese día:</p>
+<pre><code class="language-sql">WITH RECURSIVE meses(mes) AS (
+    SELECT DATE('2024-01-01')
+    UNION ALL
+    SELECT DATE(mes, '+1 month') FROM meses WHERE mes &lt; '2024-12-01'
+)
+SELECT
+    m.mes,
+    s.suscripcion_id,
+    s.usuario_id,
+    s.plan,
+    s.precio_mensual
+FROM meses m
+JOIN streaming_suscripciones s
+  ON s.fecha_inicio &lt;= m.mes
+ AND (s.fecha_fin IS NULL OR s.fecha_fin &gt; m.mes)
+ORDER BY m.mes, s.suscripcion_id
+LIMIT 8;</code></pre>
+<p>Fíjate en la condición de vigencia: empezó <strong>en o antes</strong> del día 1 y terminó <strong>después</strong> del día 1 (o no terminó). Es el mismo rango semiabierto de las SCD.</p>
+<h2>Paso 5: validar con las preguntas del negocio</h2>
+<p>Un modelo se valida respondiendo las preguntas para las que se hizo, y comparando contra las tablas de origen. Por ejemplo, el MRR por mes desde el snapshot:</p>
+<pre><code class="language-sql">WITH RECURSIVE meses(mes) AS (
+    SELECT DATE('2024-01-01')
+    UNION ALL
+    SELECT DATE(mes, '+1 month') FROM meses WHERE mes &lt; '2024-12-01'
+),
+snapshot AS (
+    SELECT m.mes, s.suscripcion_id, s.precio_mensual
+    FROM meses m
+    JOIN streaming_suscripciones s
+      ON s.fecha_inicio &lt;= m.mes AND (s.fecha_fin IS NULL OR s.fecha_fin &gt; m.mes)
+)
+SELECT mes,
+       SUM(CASE WHEN precio_mensual &gt; 0 THEN 1 ELSE 0 END) AS suscriptores_pagos,
+       ROUND(SUM(precio_mensual), 2)                      AS mrr
+FROM snapshot
+GROUP BY mes
+ORDER BY mes;</code></pre>
+<p>Checklist de validación antes de publicar:</p>
+<ol>
+<li><strong>Unicidad del grano</strong>: en <code>fct_reproducciones</code>, <code>repro_id</code> es único; en el snapshot, (<code>mes</code>, <code>suscripcion_id</code>) es único.</li>
+<li><strong>Conteos contra el origen</strong>: la cantidad de filas de <code>fct_reproducciones</code> es igual a la de <code>streaming_reproducciones</code>.</li>
+<li><strong>Integridad</strong>: toda reproducción tiene un usuario y un contenido que existen en sus dimensiones.</li>
+<li><strong>Sentido de negocio</strong>: el MRR no salta de golpe sin explicación; las horas por mes son razonables.</li>
+<li><strong>Comparación con lo que ya existía</strong>: si finanzas tenía un MRR calculado a mano, se compara mes a mes y se explican las diferencias.</li>
+</ol>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Calcular el MRR desde las reproducciones</strong>: escuchar música no es pagar. El MRR sale del estado de las suscripciones.</li>
+<li><strong>Sumar el snapshot entre meses</strong>: el &quot;MRR del año&quot; no es la suma de los MRR mensuales (eso es otra métrica: los ingresos del año).</li>
+<li><strong>Vigencia mal definida</strong>: usar <code>fecha_fin &gt;= mes</code> incluye las suscripciones que terminaron justo el día 1. Define el criterio y documéntalo.</li>
+<li><strong>No conformar dimensiones</strong>: si el tablero de producto usa una <code>dim_usuario</code> y el financiero otra, cruzar consumo con bajas da resultados raros.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El modelo de Ritmo</div>
+
+<p>El director de producto de <strong>Ritmo</strong> te asigna tu primer proyecto de modelado completo:</p>
+<blockquote>
+<p>&quot;Necesitamos un modelo de datos para tres usos: (1) el tablero de producto, con horas escuchadas por género, dispositivo y país; (2) el tablero financiero, con MRR, suscriptores pagos y altas y bajas por mes; (3) los científicos de datos quieren un lugar confiable para estudiar qué escucha la gente antes de darse de baja. Tienes las tablas de la app: usuarios, contenidos, reproducciones y suscripciones.&quot;</p>
+</blockquote>
+<p>Vas a hacerlo como en un proyecto real: requisitos, diseño, construcción y validación.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En un proyecto real, este modelo se implementa en dbt: un modelo por tabla (<code>dim_usuario.sql</code>, <code>fct_reproducciones.sql</code>, <code>fct_suscripciones_mes.sql</code>), con tests de unicidad del grano, <code>relationships</code> y descripciones de cada columna. La documentación de dbt genera el diagrama de linaje solo.</li>
+<li>El proyecto se entrega en etapas: primero las dimensiones conformadas y una tabla de hechos con un tablero; después la segunda. Cada etapa se valida con el negocio antes de seguir.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/modelado-proyecto-ritmo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="modelado-obt-anidados.html">← Tablas anchas (OBT), datos anidados y agregados</a><a href="powerbi-power-bi-y-el-modelo.html">Power BI y el modelo semántico - de los datos al tablero →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

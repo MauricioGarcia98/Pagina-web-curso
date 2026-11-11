@@ -7,6 +7,10 @@ resumen: Clusters de Dataproc, jobs de PySpark, Dataproc Serverless, el conector
 
 Ya sabes escribir PySpark. La pregunta ahora es **dónde corre** cuando los datos están en Google Cloud. La respuesta es **Dataproc**: Spark administrado por Google. En esta lección vas a ver las tres formas de usarlo, cómo se ve un job real de punta a punta, cómo leer y escribir BigQuery desde Spark y, sobre todo, cómo no pagar de más.
 
+:::analogia En palabras simples
+Dataproc es como alquilar una cuadrilla de computadoras por un rato para que procesen datos con Spark: la armas, hace el trabajo y la desarmas para dejar de pagar. Es la forma de usar Spark en Google Cloud sin tener que mantener servidores propios.
+:::
+
 ## Qué es Dataproc
 
 **Dataproc** es Spark (y Hadoop, Hive, Presto y Flink) administrado en Google Cloud. Crea un clúster en unos 90 segundos, ejecuta tu job y se apaga. Es el equivalente de **EMR** en AWS y de los clústeres de **Databricks**.

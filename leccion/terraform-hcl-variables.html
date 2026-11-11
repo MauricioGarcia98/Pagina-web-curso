@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HCL a fondo: variables, locals, outputs, expresiones y for_each · Academia de Datos</title><meta name="description" content="El lenguaje de Terraform en detalle. Parametriza con variables y validaciones, calcula con locals y funciones, crea muchos recursos con count y for_each, y separa la configuración por entorno con archivos .tfvars."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-hcl-variables.html">
+<meta property="og:type" content="article"><meta property="og:title" content="HCL a fondo: variables, locals, outputs, expresiones y for_each · Academia de Datos"><meta property="og:description" content="El lenguaje de Terraform en detalle. Parametriza con variables y validaciones, calcula con locals y funciones, crea muchos recursos con count y for_each, y separa la configuración por entorno con archivos .tfvars."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-hcl-variables.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#terraform">🏗️ Terraform: infraestructura como código</a> · Intermedio · 70 min</div>
+<h1>HCL a fondo: variables, locals, outputs, expresiones y for_each</h1><p class="resumen">El lenguaje de Terraform en detalle. Parametriza con variables y validaciones, calcula con locals y funciones, crea muchos recursos con count y for_each, y separa la configuración por entorno con archivos .tfvars.</p>
+<a class="cta" href="../index.html#/l/terraform-hcl-variables">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Declarar variables con tipo, descripción, valor por defecto y validación</li><li>Darles valor con -var, archivos .tfvars y variables de entorno TF_VAR_</li><li>Calcular valores con locals, condicionales, plantillas de texto y funciones</li><li>Crear varias copias de un recurso con count y for_each y elegir entre los dos</li><li>Exponer resultados con outputs y leerlos con terraform output</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si un archivo de Terraform es la receta, las <strong>variables</strong> son los ingredientes que cambian según la ocasión (la región, el tamaño) y los <strong>outputs</strong> son lo que la receta te devuelve al final (por ejemplo, la dirección del recurso creado). Así la misma receta sirve para muchos casos.</p>
+</div>
+
+
+<h2>Los bloques de un proyecto</h2>
+<p>Un proyecto de Terraform es una <strong>carpeta</strong>. Terraform lee <strong>todos</strong> los archivos <code>.tf</code> de la carpeta como si fueran uno solo, así que se reparten por tema. Esta es la convención que vas a ver en casi todos los equipos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Archivo</th>
+<th>Contiene</th>
+</tr>
+</thead><tbody><tr>
+<td><code>versions.tf</code></td>
+<td>Bloque <code>terraform { }</code>: versión de Terraform y de los proveedores, backend</td>
+</tr>
+<tr>
+<td><code>providers.tf</code></td>
+<td>Bloques <code>provider</code></td>
+</tr>
+<tr>
+<td><code>variables.tf</code></td>
+<td>Todas las <code>variable</code> (las &quot;entradas&quot;)</td>
+</tr>
+<tr>
+<td><code>locals.tf</code></td>
+<td>Los <code>locals</code> (valores calculados)</td>
+</tr>
+<tr>
+<td><code>main.tf</code> (o <code>s3.tf</code>, <code>iam.tf</code>…)</td>
+<td>Los <code>resource</code> y <code>data</code></td>
+</tr>
+<tr>
+<td><code>outputs.tf</code></td>
+<td>Los <code>output</code> (las &quot;salidas&quot;)</td>
+</tr>
+<tr>
+<td><code>dev.tfvars</code>, <code>prod.tfvars</code></td>
+<td>Los valores de las variables para cada entorno</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Entradas, cálculos y salidas de un proyecto de Terraform</figcaption></figure>
+
+
+<h2>Tipos de datos en HCL</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Ejemplo</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>string</code></td>
+<td><code>&quot;us-east-1&quot;</code></td>
+<td>Nombres, regiones</td>
+</tr>
+<tr>
+<td><code>number</code></td>
+<td><code>90</code></td>
+<td>Días, tamaños, cantidades</td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Encender o apagar algo</td>
+</tr>
+<tr>
+<td><code>list(string)</code></td>
+<td><code>[&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;]</code></td>
+<td>Una lista ordenada</td>
+</tr>
+<tr>
+<td><code>set(string)</code></td>
+<td><code>toset([&quot;a&quot;, &quot;b&quot;])</code></td>
+<td>Lista sin orden ni repetidos</td>
+</tr>
+<tr>
+<td><code>map(number)</code></td>
+<td><code>{ bronze = 90, gold = 730 }</code></td>
+<td>Pares clave → valor del mismo tipo</td>
+</tr>
+<tr>
+<td><code>object({...})</code></td>
+<td><code>{ nombre = &quot;x&quot;, dias = 30 }</code></td>
+<td>Una estructura con campos de distinto tipo</td>
+</tr>
+</tbody></table></div>
+<h2>Variables: las entradas</h2>
+<pre><code class="language-hcl"># variables.tf
+variable &quot;proyecto&quot; {
+  type        = string
+  description = &quot;Prefijo de todos los recursos&quot;
+  default     = &quot;tienda&quot;
+}
+
+variable &quot;entorno&quot; {
+  type        = string
+  description = &quot;dev, test o prod&quot;
+
+  validation {
+    condition     = contains([&quot;dev&quot;, &quot;test&quot;, &quot;prod&quot;], var.entorno)
+    error_message = &quot;El entorno debe ser dev, test o prod.&quot;
+  }
+}
+
+variable &quot;capas&quot; {
+  type    = list(string)
+  default = [&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;]
+}
+
+variable &quot;dias_retencion&quot; {
+  type = map(number)
+  default = {
+    bronze = 90
+    silver = 365
+    gold   = 730
+  }
+}</code></pre>
+<p>Cómo leerlo:</p>
+<ul>
+<li><strong><code>type</code></strong> obliga a que el valor sea de ese tipo. Si alguien pasa <code>&quot;noventa&quot;</code> donde se espera un número, Terraform se niega antes de empezar.</li>
+<li><strong><code>description</code></strong> documenta. Aparece en la ayuda y es lo primero que lee alguien nuevo.</li>
+<li><strong><code>default</code></strong> hace la variable <strong>opcional</strong>. <code>entorno</code> no tiene default: es <strong>obligatoria</strong>, y Terraform falla si nadie le da un valor. Es intencional: así nadie despliega en el entorno equivocado por olvido.</li>
+<li><strong><code>validation</code></strong> agrega una regla propia. <code>contains(lista, valor)</code> devuelve <code>true</code> si el valor está en la lista. Si la condición da <code>false</code>, Terraform muestra <code>error_message</code> y se detiene.</li>
+</ul>
+<p>Se usan con <strong><code>var.nombre</code></strong>: <code>var.entorno</code>, <code>var.capas</code>.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 Variables sensibles</div>
+
+<p>Una variable con <code>sensitive = true</code> (por ejemplo, una contraseña) no se muestra en el plan ni en la salida: aparece como <code>(sensitive value)</code>. Ojo: <strong>sí queda en el archivo de estado</strong> en texto claro. Por eso el estado se guarda cifrado y con acceso restringido, y lo ideal es que las contraseñas las genere la nube (o un <code>random_password</code>) y vivan en un Key Vault o Secrets Manager.</p>
+</div>
+
+
+<h3>Cómo se les da valor</h3>
+<p>Hay cuatro formas. Si una variable recibe valor por más de una, <strong>gana la de más abajo</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Prioridad</th>
+<th>Forma</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>1 (la más débil)</td>
+<td><code>default</code> en la declaración</td>
+<td><code>default = &quot;tienda&quot;</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Variable de entorno <code>TF_VAR_nombre</code></td>
+<td><code>export TF_VAR_entorno=dev</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Archivo de valores</td>
+<td><code>terraform plan -var-file=dev.tfvars</code> (y <code>terraform.tfvars</code>, que se carga solo)</td>
+</tr>
+<tr>
+<td>4 (la más fuerte)</td>
+<td>Argumento en la línea de comandos</td>
+<td><code>terraform plan -var entorno=prod</code></td>
+</tr>
+</tbody></table></div>
+<p>Un archivo <code>.tfvars</code> tiene solo asignaciones:</p>
+<pre><code class="language-hcl"># dev.tfvars
+entorno = &quot;dev&quot;
+
+# prod.tfvars
+entorno = &quot;prod&quot;
+capas   = [&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;, &quot;sandbox&quot;]</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Qué va en Git?</div>
+
+<p>Los <code>.tfvars</code> de cada entorno <strong>sí</strong> van a Git: son configuración, no secretos. Los secretos nunca van en un <code>.tfvars</code>: se pasan desde la CI con <code>TF_VAR_</code> leyendo un gestor de secretos.</p>
+</div>
+
+
+<h2>Locals: los valores calculados</h2>
+<p>Un <strong>local</strong> es un valor que calculas una vez y reutilizas. Sirve para no repetir la misma expresión en diez lugares:</p>
+<pre><code class="language-hcl"># locals.tf
+locals {
+  prefijo = &quot;${var.proyecto}-${var.entorno}&quot;     # &quot;tienda-dev&quot;
+
+  etiquetas = {
+    proyecto = var.proyecto
+    entorno  = var.entorno
+    equipo   = &quot;datos&quot;
+  }
+
+  es_prod = var.entorno == &quot;prod&quot;               # true o false
+}</code></pre>
+<p>Se usan con <strong><code>local.nombre</code></strong> (en singular): <code>local.prefijo</code>, <code>local.es_prod</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Variable</th>
+<th>Local</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Quién le da el valor?</td>
+<td>Quien ejecuta Terraform (tfvars, -var)</td>
+<td>El propio código</td>
+</tr>
+<tr>
+<td>¿Se puede cambiar desde afuera?</td>
+<td>Sí</td>
+<td>No</td>
+</tr>
+<tr>
+<td>¿Para qué?</td>
+<td>Lo que cambia entre entornos o usos</td>
+<td>Nombres, etiquetas y reglas derivadas</td>
+</tr>
+</tbody></table></div>
+<h2>Expresiones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Expresión</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>Plantilla de texto</td>
+<td><code>&quot;${local.prefijo}-gold&quot;</code></td>
+<td><code>&quot;tienda-dev-gold&quot;</code></td>
+</tr>
+<tr>
+<td>Condicional</td>
+<td><code>local.es_prod ? &quot;Enabled&quot; : &quot;Suspended&quot;</code></td>
+<td>Según el entorno</td>
+</tr>
+<tr>
+<td>Comparación y lógica</td>
+<td><code>var.entorno == &quot;prod&quot; &amp;&amp; var.dias &gt; 30</code></td>
+<td><code>true</code>/<code>false</code></td>
+</tr>
+<tr>
+<td>Índice de lista</td>
+<td><code>var.capas[0]</code></td>
+<td><code>&quot;bronze&quot;</code></td>
+</tr>
+<tr>
+<td>Clave de mapa</td>
+<td><code>var.dias_retencion[&quot;gold&quot;]</code></td>
+<td><code>730</code></td>
+</tr>
+<tr>
+<td><code>for</code> a lista</td>
+<td><code>[for c in var.capas : upper(c)]</code></td>
+<td><code>[&quot;BRONZE&quot;, &quot;SILVER&quot;, &quot;GOLD&quot;]</code></td>
+</tr>
+<tr>
+<td><code>for</code> a mapa</td>
+<td><code>{ for c in var.capas : c =&gt; &quot;${local.prefijo}-${c}&quot; }</code></td>
+<td><code>{ bronze = &quot;tienda-dev-bronze&quot;, … }</code></td>
+</tr>
+<tr>
+<td><code>for</code> con filtro</td>
+<td><code>[for c in var.capas : c if c != &quot;bronze&quot;]</code></td>
+<td><code>[&quot;silver&quot;, &quot;gold&quot;]</code></td>
+</tr>
+</tbody></table></div>
+<h3>Funciones más usadas</h3>
+<p>Terraform no deja definir funciones propias, pero trae muchas. Estas aparecen en casi todo proyecto de datos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>lower</code>, <code>upper</code></td>
+<td><code>lower(&quot;Gold&quot;)</code></td>
+<td><code>&quot;gold&quot;</code></td>
+</tr>
+<tr>
+<td><code>replace</code></td>
+<td><code>replace(&quot;tienda-dev&quot;, &quot;-&quot;, &quot;&quot;)</code></td>
+<td><code>&quot;tiendadev&quot;</code> (útil para cuentas de Azure, que no aceptan guiones)</td>
+</tr>
+<tr>
+<td><code>substr</code></td>
+<td><code>substr(&quot;tiendadevlake&quot;, 0, 8)</code></td>
+<td><code>&quot;tiendade&quot;</code></td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td><code>format(&quot;%s-%03d&quot;, &quot;nodo&quot;, 7)</code></td>
+<td><code>&quot;nodo-007&quot;</code></td>
+</tr>
+<tr>
+<td><code>join</code>, <code>split</code></td>
+<td><code>join(&quot;,&quot;, [&quot;a&quot;, &quot;b&quot;])</code></td>
+<td><code>&quot;a,b&quot;</code></td>
+</tr>
+<tr>
+<td><code>length</code></td>
+<td><code>length(var.capas)</code></td>
+<td><code>3</code></td>
+</tr>
+<tr>
+<td><code>contains</code></td>
+<td><code>contains(var.capas, &quot;gold&quot;)</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>merge</code></td>
+<td><code>merge(local.etiquetas, { capa = &quot;gold&quot; })</code></td>
+<td>Un mapa con las claves de los dos</td>
+</tr>
+<tr>
+<td><code>lookup</code></td>
+<td><code>lookup(var.dias_retencion, &quot;sandbox&quot;, 30)</code></td>
+<td><code>30</code> (valor por defecto si la clave no está)</td>
+</tr>
+<tr>
+<td><code>toset</code></td>
+<td><code>toset([&quot;a&quot;, &quot;a&quot;, &quot;b&quot;])</code></td>
+<td><code>[&quot;a&quot;, &quot;b&quot;]</code></td>
+</tr>
+<tr>
+<td><code>jsonencode</code></td>
+<td><code>jsonencode({ Version = &quot;2012-10-17&quot; })</code></td>
+<td>Un texto JSON (para políticas IAM)</td>
+</tr>
+<tr>
+<td><code>coalesce</code></td>
+<td><code>coalesce(var.nombre, local.prefijo)</code></td>
+<td>El primer valor no vacío</td>
+</tr>
+</tbody></table></div>
+<h2>Muchas copias de un recurso: count y for_each</h2>
+<p>Necesitas tres buckets iguales salvo el nombre. Escribir tres bloques <code>resource</code> es repetir código. Terraform tiene dos <strong>meta-argumentos</strong> para crear varias <strong>instancias</strong> de un mismo bloque.</p>
+<h3>count: N copias numeradas</h3>
+<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;logs&quot; {
+  count  = local.es_prod ? 1 : 0          # 1 en prod, 0 en los demás
+  bucket = &quot;${local.prefijo}-logs&quot;
+}</code></pre>
+<ul>
+<li><code>count = 3</code> crea <code>aws_s3_bucket.logs[0]</code>, <code>[1]</code> y <code>[2]</code>; dentro del bloque, <code>count.index</code> vale 0, 1, 2.</li>
+<li><strong><code>count = condición ? 1 : 0</code></strong> es el truco más usado para crear un recurso <strong>solo en algunos entornos</strong>.</li>
+</ul>
+<h3>for_each: una copia por cada clave</h3>
+<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
+  for_each = toset(var.capas)                      # &quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;
+
+  bucket = &quot;${local.prefijo}-${each.key}&quot;
+  tags   = merge(local.etiquetas, { capa = each.key })
+}</code></pre>
+<ul>
+<li><code>for_each</code> recibe un <strong>set de textos</strong> o un <strong>mapa</strong>. Crea <code>aws_s3_bucket.capa[&quot;bronze&quot;]</code>, <code>[&quot;silver&quot;]</code> y <code>[&quot;gold&quot;]</code>.</li>
+<li>Dentro del bloque, <strong><code>each.key</code></strong> es la clave y <strong><code>each.value</code></strong> el valor (con un set, los dos son iguales; con un mapa, <code>each.value</code> es el valor de esa clave).</li>
+<li>Puedes encadenar recursos: <code>for_each = aws_s3_bucket.capa</code> crea una instancia por cada bucket, y <code>each.value.id</code> es el id de ese bucket.</li>
+</ul>
+<pre><code class="language-hcl">resource &quot;aws_s3_bucket_versioning&quot; &quot;capa&quot; {
+  for_each = aws_s3_bucket.capa
+  bucket   = each.value.id
+
+  versioning_configuration {
+    status = local.es_prod ? &quot;Enabled&quot; : &quot;Suspended&quot;
+  }
+}</code></pre>
+<h3>¿count o for_each? El problema del índice</h3>
+<figure class="diagrama"><figcaption>Por qué for_each es más seguro que count al quitar un elemento de la lista</figcaption></figure>
+
+
+<p>Con <code>count</code>, cada instancia se identifica por su <strong>posición</strong>. Si quitas <code>silver</code> de la lista, <code>gold</code> pasa de la posición 2 a la 1, y Terraform cree que <code>[1]</code> cambió de nombre (lo <strong>reemplaza</strong>) y que <code>[2]</code> sobra (lo <strong>borra</strong>). Con un bucket de datos, eso es una catástrofe. Con <code>for_each</code>, cada instancia se identifica por su <strong>clave</strong>: quitar <code>silver</code> borra solo <code>[&quot;silver&quot;]</code>.</p>
+<p><strong>Regla práctica:</strong> <code>count</code> solo para &quot;0 o 1&quot; (crear algo opcional) o copias idénticas de verdad. Para todo lo que tiene un nombre, <code>for_each</code>.</p>
+<h2>Outputs: las salidas</h2>
+<pre><code class="language-hcl"># outputs.tf
+output &quot;buckets&quot; {
+  description = &quot;Nombre de cada bucket por capa&quot;
+  value       = { for k, b in aws_s3_bucket.capa : k =&gt; b.bucket }
+}
+
+output &quot;retencion_gold&quot; {
+  value = lookup(var.dias_retencion, &quot;gold&quot;, 30)
+}</code></pre>
+<p>Los outputs sirven para tres cosas: mostrarte datos útiles al terminar el <code>apply</code>, pasarle datos a <strong>otro</strong> proyecto de Terraform (se ve en la lección de estado remoto) y usarlos desde <strong>scripts</strong>:</p>
+<pre data-norun><code class="language-bash">terraform output                     # todos
+terraform output buckets             # uno
+terraform output -json               # en JSON, para jq
+terraform output -raw retencion_gold # el valor solo, sin comillas: para scripts
+BUCKET=$(terraform output -json buckets | jq -r '.gold')</code></pre>
+<h2>Laboratorio: los tres entornos</h2>
+<p>Abre la terminal. Arma el proyecto con los bloques de esta lección en un único <code>main.tf</code> (o repártelos en archivos, como prefieras):</p>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/lago &amp;&amp; cd ~/infra/lago
+code main.tf          # variables + locals + provider + los tres recursos + outputs
+code dev.tfvars       # entorno = &quot;dev&quot;
+terraform init</code></pre>
+<p><strong>1. La validación funciona.</strong> Prueba un entorno que no existe:</p>
+<pre><code class="language-text">$ terraform plan -var entorno=qa
+╷
+│ Error: Invalid value for variable
+│
+│ El entorno debe ser dev, test o prod.
+╵</code></pre>
+<p><strong>2. El plan de dev.</strong> <code>terraform plan -var-file=dev.tfvars</code> muestra 6 recursos a crear: los tres buckets con sus etiquetas y los tres versionados, con <code>status = &quot;Suspended&quot;</code>. No aparece el bucket de logs (en dev, <code>count = 0</code>).</p>
+<p><strong>3. Aplica y mira los outputs:</strong></p>
+<pre><code class="language-text">$ terraform apply -auto-approve -var-file=dev.tfvars
+$ terraform output
+buckets = {
+  &quot;bronze&quot; = &quot;tienda-dev-bronze&quot;
+  &quot;gold&quot;   = &quot;tienda-dev-gold&quot;
+  &quot;silver&quot; = &quot;tienda-dev-silver&quot;
+}
+retencion_gold = 730</code></pre>
+<p><strong>4. Un cambio de etiqueta.</strong> Cambia <code>equipo = &quot;datos&quot;</code> por <code>equipo = &quot;plataforma&quot;</code> en los locals. El plan muestra un <code>~</code> por bucket, y dentro, solo la clave que cambió:</p>
+<pre><code class="language-text">  ~ resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
+      ~ tags = {
+          ~ &quot;equipo&quot; = &quot;datos&quot; -&gt; &quot;plataforma&quot;
+            # (3 unchanged elements hidden)
+        }
+    }</code></pre>
+<p><strong>5. El peligro de cambiar un nombre.</strong> Ejecuta <code>terraform plan -var entorno=prod</code> <strong>en la misma carpeta</strong>. Terraform quiere <strong>reemplazar</strong> (<code>-/+</code>) los tres buckets, porque el nombre de un bucket no se puede cambiar: hay que borrarlo y crearlo. Con datos adentro, eso es perderlos. La lección: <strong>cada entorno necesita su propio estado</strong> (lo resuelves en la lección siguiente con backends y workspaces). No apliques este plan.</p>
+<p><strong>6. Limpia:</strong> <code>terraform destroy -var-file=dev.tfvars</code>.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>Error: No value for required variable</code></strong>: una variable sin <code>default</code> no recibió valor. Pasa <code>-var-file=</code> o define <code>TF_VAR_</code>.</li>
+<li><strong><code>Invalid for_each argument ... cannot be determined until apply</code></strong>: las <strong>claves</strong> del <code>for_each</code> dependen de algo que recién se conoce al crear (un id). Usa como clave algo que conozcas antes: nombres de tu código, no ids de la nube.</li>
+<li><strong>Usar <code>count</code> con una lista de nombres</strong> y después quitar un elemento del medio: Terraform reemplaza o borra los que siguen.</li>
+<li><strong><code>var.</code> en un <code>.tfvars</code></strong>: un archivo de valores solo admite valores literales (<code>entorno = &quot;dev&quot;</code>), no expresiones.</li>
+<li><strong>Nombres inválidos para la nube</strong>: las cuentas de Azure Storage solo aceptan minúsculas y números (sin guiones), entre 3 y 24 caracteres. Usa <code>replace()</code> y <code>substr()</code> en un local, y una <code>validation</code> para avisar temprano.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Tres entornos, un solo código</div>
+
+<p>El lago del Grupo Andino ya se crea con Terraform, pero el código tiene los nombres escritos a mano: <code>tienda-lake-bronze</code>. Ahora hacen falta tres entornos (<strong>dev</strong>, <strong>test</strong> y <strong>prod</strong>), cada uno con sus tres capas, y producción tiene reglas propias: versionado activado y un bucket de logs de auditoría. Martín pide:</p>
+<blockquote>
+<p>&quot;Un solo código para los tres entornos. Lo único que cambia entre ellos va en un archivo de variables. Y si alguien escribe <code>produccion</code> en lugar de <code>prod</code>, que Terraform lo frene antes de crear nada.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las <strong>etiquetas</strong> (<code>tags</code> en AWS, <code>labels</code> en GCP) son obligatorias en casi todas las empresas: proyecto, entorno, equipo, centro de costo. Con ellas se arma el reporte de costos por equipo. Se definen una vez en un <code>local</code> y se agregan con <code>merge</code>. En AWS, el proveedor tiene además <code>default_tags</code> para ponerlas en todo.</li>
+<li>Cada variable lleva <code>description</code> y, si tiene valores posibles, <code>validation</code>. En la revisión de código, una variable sin descripción suele rechazarse.</li>
+<li>Los nombres se arman siempre con un <strong>prefijo calculado</strong> (<code>proyecto-entorno-…</code>), nunca escritos a mano: así se evitan choques entre entornos.</li>
+<li>Para &quot;crear algo solo en prod&quot; se usa <code>count = local.es_prod ? 1 : 0</code>, y para referenciarlo, <code>one(aws_s3_bucket.logs[*].arn)</code> o <code>aws_s3_bucket.logs[0].arn</code> dentro de una condición.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cuál es la diferencia entre count y for_each?&quot;</div>
+
+<p><code>count</code> crea N instancias identificadas por posición (<code>[0]</code>, <code>[1]</code>), y <code>for_each</code> crea una instancia por cada clave de un mapa o set (<code>[&quot;bronze&quot;]</code>). La diferencia importa al cambiar la colección: con <code>count</code>, quitar un elemento del medio corre los índices y Terraform reemplaza o destruye recursos que no querías tocar; con <code>for_each</code>, cada instancia mantiene su clave y solo se borra la que quitaste. Uso <code>count</code> para recursos opcionales (<code>condición ? 1 : 0</code>) y <code>for_each</code> para colecciones con nombre.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Bloque</th>
+<th>Se usa como</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>variable &quot;x&quot; {}</code></td>
+<td><code>var.x</code></td>
+<td>Entradas con tipo, descripción y validación</td>
+</tr>
+<tr>
+<td><code>locals { x = … }</code></td>
+<td><code>local.x</code></td>
+<td>Valores calculados que se reutilizan</td>
+</tr>
+<tr>
+<td><code>output &quot;x&quot; {}</code></td>
+<td><code>terraform output x</code></td>
+<td>Salidas para personas, scripts y otros proyectos</td>
+</tr>
+<tr>
+<td><code>count = n</code></td>
+<td><code>count.index</code>, <code>recurso.x[0]</code></td>
+<td>N copias, o un recurso opcional (<code>? 1 : 0</code>)</td>
+</tr>
+<tr>
+<td><code>for_each = mapa o set</code></td>
+<td><code>each.key</code>, <code>each.value</code>, <code>recurso.x[&quot;k&quot;]</code></td>
+<td>Una copia por clave</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/terraform-hcl-variables">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="terraform-que-es-iac.html">← Infraestructura como código y tu primer terraform apply</a><a href="terraform-estado-remoto.html">El estado en equipo: backends remotos, workspaces, import y lifecycle →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

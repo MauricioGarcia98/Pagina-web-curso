@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preparar los datos para que Genie responda bien · Academia de Datos</title><meta name="description" content="El trabajo del data engineer antes de crear un agente - pocas tablas bien elegidas, descripciones en Unity Catalog, nombres de columnas claros, claves primarias y foráneas, vistas que ya traen los joins hechos y vistas de métricas (metric views) que definen cada indicador una sola vez. Con ejercicios sobre la base de la tienda."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-preparar-los-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Preparar los datos para que Genie responda bien · Academia de Datos"><meta property="og:description" content="El trabajo del data engineer antes de crear un agente - pocas tablas bien elegidas, descripciones en Unity Catalog, nombres de columnas claros, claves primarias y foráneas, vistas que ya traen los joins hechos y vistas de métricas (metric views) que definen cada indicador una sola vez. Con ejercicios sobre la base de la tienda."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-preparar-los-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#genie">🧞 Databricks Genie: preguntas en lenguaje natural</a> · Intermedio · 55 min</div>
+<h1>Preparar los datos para que Genie responda bien</h1><p class="resumen">El trabajo del data engineer antes de crear un agente - pocas tablas bien elegidas, descripciones en Unity Catalog, nombres de columnas claros, claves primarias y foráneas, vistas que ya traen los joins hechos y vistas de métricas (metric views) que definen cada indicador una sola vez. Con ejercicios sobre la base de la tienda.</p>
+<a class="cta" href="../index.html#/l/genie-preparar-los-datos">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir las tablas de un agente según su tema</li><li>Escribir descripciones de tablas y columnas que ayuden a Genie</li><li>Crear una vista desnormalizada para simplificar</li><li>Explicar qué es una vista de métricas y escribir una en YAML</li><li>Declarar claves para que Genie arme bien los joins</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Genie responde mejor con datos bien ordenados, como un bibliotecario que encuentra rápido un libro solo si la biblioteca está bien catalogada. Nombres claros, comentarios en las columnas y pocas tablas bien elegidas valen más que muchas tablas confusas.</p>
+</div>
+
+
+<h2>La regla principal: pocas tablas, bien documentadas</h2>
+<p>La guía de buenas prácticas de Databricks resume la preparación en tres ideas:</p>
+<ol>
+<li><strong>Enfoque</strong>: incluir solo las tablas necesarias para las preguntas del tema. La recomendación es <strong>cinco o menos</strong> para empezar (el máximo es 50 tablas, vistas o vistas de métricas por agente).</li>
+<li><strong>Documentación</strong>: Genie usa los <strong>nombres y las descripciones de Unity Catalog</strong> para elegir columnas. Descripciones claras y precisas mejoran directamente la exactitud.</li>
+<li><strong>Simplificación</strong>: resolver las ambigüedades y <strong>pre-unir</strong> (desnormalizar) las tablas con vistas o vistas de métricas, quitando columnas que no aportan.</li>
+</ol>
+<p>Fíjate que las tres son tareas de ingeniería de datos, no de &quot;IA&quot;. El modelo de lenguaje es tan bueno como el contexto que le preparas.</p>
+<div class="recorrido"></div>
+
+
+<h2>Paso 1: elegir las tablas según el tema</h2>
+<p>Un agente responde preguntas de <strong>un tema para un público</strong>: &quot;ventas para el área comercial&quot;, no &quot;todo para todos&quot;. Para el agente de ventas de la tienda:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>¿Va?</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>pedidos</code>, <code>detalle_pedidos</code></td>
+<td>Sí, en una vista</td>
+<td>Son las ventas</td>
+</tr>
+<tr>
+<td><code>clientes</code>, <code>productos</code>, <code>categorias</code></td>
+<td>Sí, sus columnas útiles dentro de la vista</td>
+<td>Dan país, segmento y categoría para agrupar</td>
+</tr>
+<tr>
+<td><code>pagos</code></td>
+<td>No</td>
+<td>Tiene <code>monto</code> con pagos rechazados: confunde con las ventas</td>
+</tr>
+<tr>
+<td><code>empleados</code>, <code>eventos_web</code>, <code>envios</code></td>
+<td>No</td>
+<td>Son otros temas (otro agente)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2: descripciones que ayudan</h2>
+<p>En Unity Catalog, cada tabla y columna puede tener un comentario. Genie lo lee como si fuera la documentación que le das a un analista nuevo:</p>
+<pre data-norun><code class="language-sql">COMMENT ON TABLE ventas.gold.ventas_lineas IS
+  'Una fila por línea de pedido (producto dentro de un pedido). Incluye pedidos de 2022 a 2024 de todos los canales. Para ventas, usar importe_neto y excluir estado = cancelado.';
+
+ALTER TABLE ventas.gold.ventas_lineas ALTER COLUMN importe_neto COMMENT
+  'Importe de la línea en dólares, después del descuento: cantidad * precio_unitario * (1 - descuento). Es la medida de &quot;ventas&quot; del negocio.';
+
+ALTER TABLE ventas.gold.ventas_lineas ALTER COLUMN canal COMMENT
+  'Canal de venta. Valores: web, app, tienda (local físico), telefono.';</code></pre>
+<p>Qué hace buena a una descripción:</p>
+<ul>
+<li>Dice <strong>qué es una fila</strong> (el grano): &quot;una fila por línea de pedido&quot;. Así Genie sabe que para contar pedidos tiene que usar <code>COUNT(DISTINCT pedido_id)</code>.</li>
+<li>Dice <strong>cómo se usa</strong> para el negocio: &quot;para ventas, usar importe_neto y excluir cancelados&quot;.</li>
+<li>Lista los <strong>valores posibles</strong> de las columnas de categorías, con su significado.</li>
+<li>Es corta y concreta. La documentación advierte que hay que <strong>revisar las descripciones generadas por IA</strong> antes de aceptarlas: suelen ser genéricas.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Nombres de columnas</div>
+
+<p><code>importe_neto</code> es mejor que <code>imp2</code>; <code>fecha_pedido</code> es mejor que <code>fecha</code>. Si no puedes cambiar el nombre en la tabla, cámbialo en la vista que le das a Genie (paso 3).</p>
+</div>
+
+
+<h2>Paso 3: una vista que ya trae los joins</h2>
+<p>Cada join que Genie tiene que adivinar es una oportunidad de error (¿se une por <code>cliente_id</code> o por <code>id</code>?, ¿uno a muchos?). Una <strong>vista desnormalizada</strong> entrega las columnas útiles ya unidas, con nombres claros:</p>
+<pre><code class="language-sql">SELECT d.detalle_id,
+       p.pedido_id,
+       date(p.fecha_pedido)              AS fecha,
+       substr(p.fecha_pedido, 1, 7)      AS mes,
+       p.canal,
+       p.estado,
+       c.pais,
+       c.segmento,
+       cat.nombre                        AS categoria,
+       pr.nombre                         AS producto,
+       d.cantidad,
+       ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe_neto
+FROM detalle_pedidos d
+JOIN pedidos p       ON p.pedido_id = d.pedido_id
+JOIN clientes c      ON c.cliente_id = p.cliente_id
+JOIN productos pr    ON pr.producto_id = d.producto_id
+JOIN categorias cat  ON cat.categoria_id = pr.categoria_id
+LIMIT 5;</code></pre>
+<p>En Databricks sería <code>CREATE VIEW ventas.gold.ventas_lineas AS SELECT ...</code> (sin el <code>LIMIT</code>). Con esa vista, la pregunta &quot;¿cuánto vendimos en Chile en marzo?&quot; se responde con una sola tabla, un filtro y una suma: mucho menos margen de error.</p>
+<h2>Paso 4: claves primarias y foráneas</h2>
+<p>Cuando sí hay varias tablas, Unity Catalog permite declarar <strong>claves primarias y foráneas</strong> (son informativas: no impiden insertar datos duplicados, pero documentan la relación). Según la documentación, Genie las lee y las guarda automáticamente como <strong>relaciones de join</strong> del agente:</p>
+<pre data-norun><code class="language-sql">ALTER TABLE ventas.silver.pedidos ADD CONSTRAINT pk_pedidos PRIMARY KEY (pedido_id);
+ALTER TABLE ventas.silver.pedidos ADD CONSTRAINT fk_pedidos_clientes
+  FOREIGN KEY (cliente_id) REFERENCES ventas.silver.clientes (cliente_id);</code></pre>
+<h2>Paso 5: vistas de métricas, definir cada indicador una sola vez</h2>
+<p>Una vista común &quot;congela&quot; los cálculos: si la vista agrupa por mes, no puedes pedirle el total por país. Una <strong>vista de métricas</strong> (<em>metric view</em>) separa dos cosas:</p>
+<ul>
+<li><strong>Campos</strong> (<em>fields</em>, antes llamados <em>dimensions</em>): por qué se puede agrupar o filtrar (mes, país, canal).</li>
+<li><strong>Medidas</strong> (<em>measures</em>): los cálculos (ventas netas, pedidos, ticket promedio), definidos una sola vez.</li>
+</ul>
+<p>Quien consulta elige cualquier combinación de campos y el motor calcula bien cada medida. La documentación las describe como la implementación central de la semántica en Unity Catalog, y recomienda especialmente usarlas con Genie porque traen las métricas ya definidas. Se crean con SQL y una definición en YAML:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW ventas.gold.metricas_ventas
+WITH METRICS
+LANGUAGE YAML
+AS $$
+version: 1.1
+source: ventas.gold.ventas_lineas
+filter: estado &lt;&gt; 'cancelado'
+comment: Métricas de ventas de Tienda Andina. Excluye pedidos cancelados.
+fields:
+  - name: mes
+    expr: mes
+    display_name: Mes
+  - name: pais
+    expr: pais
+    display_name: País
+    synonyms: [país del cliente, mercado]
+  - name: canal
+    expr: canal
+    display_name: Canal
+measures:
+  - name: ventas_netas
+    expr: SUM(importe_neto)
+    display_name: Ventas netas
+    synonyms: [ventas, facturación, ingresos]
+  - name: pedidos
+    expr: COUNT(DISTINCT pedido_id)
+    display_name: Pedidos
+  - name: ticket_promedio
+    expr: MEASURE(ventas_netas) / MEASURE(pedidos)
+    display_name: Ticket promedio
+    synonyms: [ticket medio, valor promedio del pedido]
+$$;</code></pre>
+<p>Línea por línea, lo importante:</p>
+<ul>
+<li><code>WITH METRICS LANGUAGE YAML AS $$ ... $$</code>: le dice a Databricks que es una vista de métricas definida en YAML.</li>
+<li><code>source</code>: la tabla o vista de origen (la vista desnormalizada del paso 3).</li>
+<li><code>filter</code>: un filtro que se aplica siempre (aquí, sin cancelados). Así nadie se olvida de él.</li>
+<li><code>fields</code>: las columnas por las que se puede agrupar, con un nombre visible y <strong>sinónimos</strong> (palabras que usa la gente).</li>
+<li><code>measures</code>: los cálculos. <code>ticket_promedio</code> reutiliza las otras dos con <code>MEASURE(...)</code>: si mañana cambia la definición de ventas netas, el ticket se actualiza solo. Fíjate que es una <strong>razón de sumas</strong> (lección de KPIs del módulo de análisis), no un promedio de promedios.</li>
+</ul>
+<p>Para consultarla se usa <code>MEASURE()</code> y se agrupa por los campos que quieras:</p>
+<pre data-norun><code class="language-sql">SELECT pais, MEASURE(ventas_netas) AS ventas, MEASURE(ticket_promedio) AS ticket
+FROM ventas.gold.metricas_ventas
+GROUP BY pais
+ORDER BY ventas DESC;</code></pre>
+<p>Cuando una vista de métricas se agrega a un Genie Agent, Genie usa esas definiciones: &quot;ticket promedio&quot; siempre significa lo mismo, en Genie, en los tableros y en las herramientas de BI que la consulten.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Agregar tablas &quot;por las dudas&quot;</strong>: más tablas, más columnas parecidas, más errores. Empieza con cinco o menos.</li>
+<li><strong>Tablas sin descripciones</strong>, o con descripciones generadas por IA sin revisar.</li>
+<li><strong>Dejar a Genie adivinar los joins</strong> cuando una vista podría traerlos hechos.</li>
+<li><strong>Columnas con el mismo nombre en tablas distintas</strong> con significados distintos (<code>monto</code> en pagos y en pedidos). Renómbralas en la vista.</li>
+<li><strong>Definir el mismo indicador de dos formas</strong> (en una vista y en una instrucción del agente): Genie puede elegir cualquiera. Una sola definición, idealmente en una vista de métricas.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El primer intento de agente de ventas de Tienda Andina incluyó 40 tablas &quot;por las dudas&quot;. A la pregunta &quot;¿cuánto vendimos en Chile?&quot;, Genie sumó la columna <code>monto</code> de la tabla <code>pagos</code> (que incluye pagos rechazados) en lugar del importe neto de <code>detalle_pedidos</code>. No fue un error del modelo: tenía 40 tablas, tres columnas que se llamaban parecido y ninguna descripción. </p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Preparar las vistas y vistas de métricas &quot;para Genie&quot; es cada vez más una tarea del data engineer o analytics engineer: es la misma capa gold de siempre, pero pensada para que la consulte un modelo de lenguaje además de una persona.</li>
+<li>Las descripciones de columnas se mantienen como código: en dbt van en el YAML del modelo y se publican en Unity Catalog con <code>persist_docs</code>.</li>
+<li>Las vistas de métricas también sirven a Power BI, Tableau y los tableros de AI/BI: una sola definición para toda la empresa.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué harías con los datos antes de darle acceso a Genie a un equipo de negocio?&quot;</div>
+
+<p>Elegiría pocas tablas del tema del equipo y las simplificaría en una vista desnormalizada con nombres claros y sin columnas confusas o sensibles. Escribiría descripciones en Unity Catalog que digan el grano de cada tabla, cómo se usa cada columna y sus valores posibles, y declararía claves primarias y foráneas. Definiría los indicadores en una vista de métricas para que tengan una sola definición, con sinónimos del lenguaje del negocio, y revisaría los permisos y los filtros de filas en Unity Catalog.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/genie-preparar-los-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="genie-que-es-genie.html">← ¿Qué es Databricks Genie?</a><a href="genie-crear-y-afinar-un-agente.html">Crear y afinar un Genie Agent →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

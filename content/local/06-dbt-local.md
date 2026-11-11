@@ -14,6 +14,10 @@ El equipo de Rápido modela todo en dbt sobre BigQuery. Para tu primera tarea (u
 > "Desarrolla en tu máquina con dbt-duckdb y los CSV de muestra. Es el mismo dbt: cuando funcione, el pull request corre contra BigQuery en la CI. Así no gastas ni esperas a la nube mientras iteras."
 :::
 
+:::analogia En palabras simples
+Correr dbt en tu computadora es como ensayar una obra de teatro en casa antes del estreno: usas DuckDB como escenario de prueba, gratis y rápido, y cuando todo sale bien, el mismo proyecto funciona en el warehouse de la empresa.
+:::
+
 ## Cómo se arma dbt en tu máquina
 
 ```diagrama

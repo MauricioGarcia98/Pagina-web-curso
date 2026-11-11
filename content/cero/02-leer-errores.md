@@ -9,9 +9,9 @@ autoevaluacion: ¿Sabes por qué un error de Python se lee desde la última lín
 ---
 
 :::escenario El primer error rojo
-Escribes tu primer programa, presionas **Ejecutar** y aparece un texto rojo lleno de palabras en inglés. La reacción natural es pensar "rompí algo" o "esto no es para mí".
+Ahora que sabes leer un error de arriba abajo, imagina este momento, que le pasa a todo el mundo en sus primeras semanas trabajando con datos: escribes tu programa, presionas **Ejecutar** y aparece un texto rojo lleno de palabras en inglés.
 
-Martín, tu líder, que programa hace 15 años, te dice: *"Yo veo errores rojos cien veces por día. La diferencia es que ya no me asustan: los leo. El error casi siempre te dice qué pasó y en qué línea."* En esta lección aprendes a leerlos.
+Martín, tu líder, que programa hace 15 años, te dice: *"Yo veo errores rojos cien veces por día. La diferencia es que ya no me asustan: los leo. El error casi siempre te dice qué pasó y en qué línea."* Con lo que practicaste en esta lección, ya puedes hacer lo mismo.
 :::
 
 ## Un error es un mensaje, no un castigo

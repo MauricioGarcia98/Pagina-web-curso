@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes por qué SUM(cantidad) * SUM(precio) no da las ventas? |
 Finanzas pide el **margen** por categoría. El precio de venta está en `detalle_pedidos`, pero el costo está en `productos`. Hay que multiplicar fila por fila y traer un dato de otra tabla. Para eso están los iteradores y `RELATED`.
 :::
 
+:::analogia En palabras simples
+Un iterador como `SUMX` es como un cajero que pasa los productos uno por uno: para cada fila hace una cuenta (cantidad por precio) y al final suma todo. `RELATED` es como mirar la etiqueta del producto para traer un dato de otra tabla, por ejemplo su categoría.
+:::
+
 ## Por qué hace falta iterar
 
 Las ventas de una línea son `cantidad × precio_unitario`. Si sumas las dos columnas por separado y después multiplicas, el resultado está **mal**:

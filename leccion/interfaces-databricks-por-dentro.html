@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks por dentro - qué es cada parte y para qué sirve · Academia de Datos</title><meta name="description" content="Recorrido completo por un workspace de Databricks - cuenta y workspace, plano de control y de cómputo, la barra lateral actual, notebooks, Unity Catalog, Delta Lake, compute y SQL warehouses, jobs, pipelines declarativos, SQL, dashboards, Genie y despliegue con bundles."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-databricks-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Databricks por dentro - qué es cada parte y para qué sirve · Academia de Datos"><meta property="og:description" content="Recorrido completo por un workspace de Databricks - cuenta y workspace, plano de control y de cómputo, la barra lateral actual, notebooks, Unity Catalog, Delta Lake, compute y SQL warehouses, jobs, pipelines declarativos, SQL, dashboards, Genie y despliegue con bundles."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-databricks-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 75 min</div>
+<h1>Databricks por dentro - qué es cada parte y para qué sirve</h1><p class="resumen">Recorrido completo por un workspace de Databricks - cuenta y workspace, plano de control y de cómputo, la barra lateral actual, notebooks, Unity Catalog, Delta Lake, compute y SQL warehouses, jobs, pipelines declarativos, SQL, dashboards, Genie y despliegue con bundles.</p>
+<a class="cta" href="../index.html#/l/interfaces-databricks-por-dentro">▶ Abrir la lección interactiva (9 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar cuenta, workspace, metastore, plano de control y plano de cómputo</li><li>Proteger filas y columnas con funciones, filtros de fila, máscaras y etiquetas</li><li>Crear tablas de streaming incrementales desde SQL</li><li>Armar un dashboard, una alerta y un Genie Agent que responda bien</li><li>Registrar modelos con MLflow y usar alias</li><li>Ubicar cada sección de la barra lateral y para qué sirve</li><li>Navegar Unity Catalog (catálogo, esquema, tabla, volumen) y dar permisos</li><li>Elegir el cómputo correcto - serverless, clúster de uso general, de jobs o SQL warehouse</li><li>Armar un job con tareas y un pipeline declarativo, y llevarlos a producción con bundles</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre el <a href="#/databricks">Databricks de práctica</a> y usa sus <strong>🎯 Retos</strong>. La réplica sigue la misma organización que un workspace real.</p>
+</div>
+
+
+<h2>Cuenta, workspace y planos</h2>
+<pre><code class="language-text">Cuenta de Databricks  (account console: usuarios, workspaces, metastores, facturación)
+├── Metastore de Unity Catalog  (uno por región: el catálogo de todos los datos)
+└── Workspace  (adb-xxxx.azuredatabricks.net: notebooks, jobs, compute, SQL)
+      ├── Plano de control  → lo opera Databricks: la interfaz, los jobs, el catálogo
+      └── Plano de cómputo  → donde corren los datos:
+            · clásico: máquinas en TU suscripción (el grupo de recursos administrado)
+            · serverless: máquinas que administra Databricks, listas en segundos</code></pre>
+<ul>
+<li>La <strong>cuenta</strong> agrupa todo: usuarios y grupos (sincronizados desde Microsoft Entra ID), workspaces y metastores.</li>
+<li>Un <strong>workspace</strong> es el entorno donde se trabaja. Una empresa suele tener uno por entorno (dev, prod) o por área.</li>
+<li>El <strong>metastore</strong> de Unity Catalog se comparte entre workspaces de la misma región: la misma tabla se ve, con los mismos permisos, desde todos.</li>
+<li>Los datos viven en <strong>tu almacenamiento</strong> (ADLS Gen2 en Azure) en formato <strong>Delta</strong>; Databricks los gobierna y procesa.</li>
+</ul>
+<h2>La ventana del workspace</h2>
+<p><strong>Barra superior</strong>: búsqueda (notebooks, tablas, jobs, dashboards), <strong>Genie</strong> para preguntar en lenguaje natural, el selector de workspace, el selector de aplicación (<strong>Analytics and AI</strong>) y tu usuario con <strong>Settings</strong> (preferencias, idioma, tema, tokens, configuración de administrador).</p>
+<p><strong>Inicio</strong>: <em>Ask Genie</em> (preguntar, buscar o abrir <strong>Genie Code</strong>), recomendados, favoritos, populares y novedades.</p>
+<p><strong>+ New</strong>: crear notebook, consulta, dashboard, job, pipeline, clúster, SQL warehouse, carga de archivos y más.</p>
+<h3>La barra lateral (organización de mayo de 2026)</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Elementos</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><em>(arriba)</em></td>
+<td><strong>Workspace</strong>, <strong>Recents</strong>, <strong>Catalog</strong>, <strong>Jobs &amp; Pipelines</strong>, <strong>Compute</strong>, <strong>Discover</strong>, <strong>Marketplace</strong></td>
+<td>Lo de todos los días: archivos, datos, orquestación y cómputo</td>
+</tr>
+<tr>
+<td><strong>Lakehouse</strong></td>
+<td><strong>SQL Editor</strong>, <strong>Queries</strong>, <strong>Query History</strong>, <strong>SQL Warehouses</strong></td>
+<td>Trabajar con SQL sobre el lakehouse (antes esta sección se llamaba <em>SQL</em>)</td>
+</tr>
+<tr>
+<td><strong>Analytics</strong></td>
+<td><strong>Dashboards</strong>, <strong>Genie Agents</strong>, <strong>Alerts</strong></td>
+<td>Analítica para el negocio: tableros AI/BI, espacios de preguntas en lenguaje natural y alertas</td>
+</tr>
+<tr>
+<td><strong>Data Engineering</strong></td>
+<td><strong>Runs</strong>, <strong>Data Ingestion</strong></td>
+<td>Ejecuciones de jobs y pipelines; asistentes para cargar datos (Lakeflow Connect)</td>
+</tr>
+<tr>
+<td><strong>AI/ML</strong></td>
+<td><strong>Playground</strong>, <strong>Agents</strong>, <strong>AI Gateway</strong>, <strong>Experiments</strong>, <strong>Features</strong>, <strong>Models</strong>, <strong>Serving</strong></td>
+<td>Modelos de lenguaje, agentes, MLflow, feature store, registro y servicio de modelos</td>
+</tr>
+</tbody></table></div>
+<p>Un candado junto a un elemento indica que te falta el permiso (<em>entitlement</em>) para usarlo.</p>
+<h2>Workspace: los archivos</h2>
+<p>El <strong>explorador del workspace</strong> guarda <strong>notebooks</strong>, archivos, consultas, dashboards, experimentos y <strong>carpetas Git</strong> (<em>Git folders</em>, antes <em>Repos</em>: un repositorio de GitHub o Azure DevOps clonado, con ramas, commits y pull). Carpetas principales: <strong>Home</strong> (<code>/Workspace/Users/tu@correo</code>), <strong>Shared</strong> y la <strong>Papelera</strong> (30 días).</p>
+<h2>Notebooks</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Celdas</strong></td>
+<td>Código o texto. Se ejecutan con Shift+Enter; el resultado queda debajo</td>
+</tr>
+<tr>
+<td><strong>Idioma por defecto y comandos mágicos</strong></td>
+<td><code>%python</code>, <code>%sql</code>, <code>%scala</code>, <code>%r</code> cambian el idioma de una celda; <code>%md</code> es texto; <code>%sh</code> ejecuta en la terminal del driver; <code>%fs</code> maneja archivos; <code>%run</code> incluye otro notebook; <code>%pip</code> instala librerías</td>
+</tr>
+<tr>
+<td><strong>Selector de cómputo</strong></td>
+<td>Arriba a la derecha: <strong>Serverless</strong> o un clúster. Sin cómputo conectado no se ejecuta nada</td>
+</tr>
+<tr>
+<td><strong>Resultados</strong></td>
+<td>Tabla con orden y filtro, <strong>+</strong> para agregar visualizaciones, descargar</td>
+</tr>
+<tr>
+<td><strong><code>display()</code></strong></td>
+<td>Muestra un DataFrame como tabla interactiva</td>
+</tr>
+<tr>
+<td><strong>Widgets</strong></td>
+<td>Parámetros del notebook (texto, lista) que también recibe de un job: <code>dbutils.widgets.get(&quot;fecha&quot;)</code></td>
+</tr>
+<tr>
+<td><strong><code>dbutils</code></strong></td>
+<td>Utilidades: <code>fs</code> (archivos), <code>secrets</code> (leer secretos sin mostrarlos), <code>widgets</code>, <code>notebook.run</code> / <code>notebook.exit</code>, <code>jobs.taskValues</code></td>
+</tr>
+<tr>
+<td><strong>Panel lateral</strong></td>
+<td>Tabla de contenidos, explorador de variables, <strong>historial de versiones</strong>, comentarios, <strong>Genie Code</strong> (el asistente que escribe y corrige código)</td>
+</tr>
+<tr>
+<td><strong>Programar</strong></td>
+<td>Convertir el notebook en un job con horario</td>
+</tr>
+</tbody></table></div>
+<h2>Catalog: Unity Catalog</h2>
+<p>Todo dato tiene un nombre de <strong>tres partes</strong>: <code>catálogo.esquema.objeto</code>, por ejemplo <code>main.ventas.pedidos</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Objeto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Catálogo</strong></td>
+<td>El nivel más alto: suele separar entornos o áreas (<code>dev</code>, <code>prod</code>, <code>finanzas</code>)</td>
+</tr>
+<tr>
+<td><strong>Esquema</strong> (<em>schema</em> o <em>database</em>)</td>
+<td>Agrupa objetos de un tema o capa (<code>bronze</code>, <code>silver</code>, <code>gold</code>)</td>
+</tr>
+<tr>
+<td><strong>Tabla administrada</strong></td>
+<td>Unity Catalog decide dónde guardar los archivos y los borra al hacer <code>DROP</code></td>
+</tr>
+<tr>
+<td><strong>Tabla externa</strong></td>
+<td>Los archivos están en una ruta tuya (<em>external location</em>); <code>DROP</code> no los borra</td>
+</tr>
+<tr>
+<td><strong>Vista</strong>, <strong>vista materializada</strong>, <strong>tabla de streaming</strong></td>
+<td>Consultas guardadas; las materializadas guardan el resultado y se actualizan</td>
+</tr>
+<tr>
+<td><strong>Volumen</strong></td>
+<td>Archivos que no son tablas (CSV, imágenes, PDFs) en <code>/Volumes/catálogo/esquema/volumen/</code></td>
+</tr>
+<tr>
+<td><strong>Función</strong> y <strong>modelo</strong></td>
+<td>Funciones SQL/Python y modelos de ML registrados</td>
+</tr>
+</tbody></table></div>
+<p>En <strong>Catalog Explorer</strong> ves el esquema de cada tabla, datos de muestra, <strong>historial</strong> de versiones Delta, <strong>linaje</strong> (de dónde viene y quién la usa), <strong>permisos</strong> y etiquetas. Los permisos se dan con SQL: <code>GRANT SELECT ON TABLE main.ventas.pedidos TO analistas</code> (además se necesitan <code>USE CATALOG</code> y <code>USE SCHEMA</code>). El catálogo <strong>system</strong> tiene tablas del sistema: facturación, auditoría, historial de consultas y linaje. El catálogo <strong>samples</strong> trae datos de ejemplo de solo lectura.</p>
+<h3>Delta Lake en una tabla</h3>
+<p>Cada tabla Delta es un conjunto de archivos Parquet más un <strong>registro de transacciones</strong> (<code>_delta_log</code>) que anota cada cambio como una <strong>versión</strong>. Eso permite:</p>
+<ul>
+<li><code>DESCRIBE HISTORY</code>: ver quién cambió qué.</li>
+<li><strong>Viaje en el tiempo</strong>: <code>SELECT … VERSION AS OF 3</code> y <code>RESTORE</code>.</li>
+<li><code>MERGE INTO</code>: upserts y sincronizaciones.</li>
+<li><code>OPTIMIZE</code> (compactar archivos chicos) y <strong>Liquid Clustering</strong> (<code>CLUSTER BY</code>, el reemplazo de particiones y Z-ORDER).</li>
+<li><code>VACUUM</code>: borra archivos viejos que ya no usa ninguna versión reciente. Después no puedes viajar a las versiones cuyos archivos se borraron.</li>
+</ul>
+<h2>Compute</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué es</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Serverless</strong> (notebooks, jobs, pipelines)</td>
+<td>Cómputo que administra Databricks, arranca en segundos y se cobra por uso</td>
+<td>La opción recomendada cuando está disponible</td>
+</tr>
+<tr>
+<td><strong>Clúster de uso general</strong> (<em>all-purpose</em>)</td>
+<td>Un clúster tuyo, compartido para trabajar en notebooks</td>
+<td>Desarrollo interactivo con configuración propia</td>
+</tr>
+<tr>
+<td><strong>Clúster de jobs</strong></td>
+<td>Se crea para un job y se apaga al terminar</td>
+<td>Producción con cómputo clásico (más barato que uno de uso general)</td>
+</tr>
+<tr>
+<td><strong>SQL warehouse</strong></td>
+<td>Cómputo optimizado para SQL: <em>Serverless</em>, <em>Pro</em> o <em>Classic</em></td>
+<td>SQL Editor, dashboards, herramientas de BI (Power BI se conecta acá)</td>
+</tr>
+</tbody></table></div>
+<p>Al crear un clúster eliges: <strong>modo de acceso</strong> (<em>Standard</em>, antes <em>Shared</em>: varios usuarios con aislamiento; <em>Dedicated</em>, antes <em>Single user</em>), versión de <strong>Databricks Runtime</strong> (o <em>ML</em> con librerías de machine learning), <strong>Photon</strong> (motor vectorizado más rápido), tamaño de nodos, <strong>escalado automático</strong> (mínimo y máximo de workers) y <strong>terminación automática</strong> tras N minutos sin uso (lo que más ahorra). Las <strong>políticas de cómputo</strong> limitan lo que cada equipo puede crear.</p>
+<h2>Jobs &amp; Pipelines</h2>
+<h3>Jobs (Lakeflow Jobs)</h3>
+<p>Un <strong>job</strong> ejecuta <strong>tareas</strong> en orden:</p>
+<ul>
+<li><strong>Tipos de tarea</strong>: notebook, script Python, SQL (consulta, archivo o dashboard), <strong>pipeline</strong>, dbt, JAR, <em>If/else condition</em>, <em>For each</em>, <em>Run job</em>.</li>
+<li><strong>Dependencias</strong> entre tareas y <strong>Run if</strong> (<em>All succeeded</em>, <em>At least one failed</em>, <em>All done</em>…).</li>
+<li><strong>Parámetros</strong> del job y <strong>valores dinámicos</strong>: <code>{{job.parameters.fecha}}</code>, <code>{{tasks.limpiar.values.filas}}</code> (lo que una tarea guarda con <code>dbutils.jobs.taskValues.set</code>).</li>
+<li><strong>Triggers</strong>: programado (cron), <strong>llegada de archivos</strong>, <strong>actualización de tabla</strong> o continuo.</li>
+<li><strong>Reintentos</strong>, <strong>tiempo límite</strong>, <strong>notificaciones</strong> (correo, Slack) y <strong>Repair run</strong>: volver a correr solo las tareas que fallaron.</li>
+</ul>
+<p>En <strong>Runs</strong> ves todas las ejecuciones con su matriz de tareas, duración y salida.</p>
+<h3>Pipelines declarativos (Lakeflow Spark Declarative Pipelines)</h3>
+<p>Describes <strong>qué tablas quieres</strong> y Databricks resuelve el orden, el estado y los reintentos:</p>
+<ul>
+<li><strong>Tabla de streaming</strong>: procesa solo los datos nuevos (ingesta incremental, <code>STREAM(…)</code>, <code>read_files</code>).</li>
+<li><strong>Vista materializada</strong>: el resultado de una consulta, recalculado de forma incremental cuando puede.</li>
+<li><strong>Expectativas</strong>: <code>CONSTRAINT … EXPECT (…) ON VIOLATION DROP ROW | FAIL UPDATE</code> para la calidad de datos.</li>
+<li><strong>AUTO CDC</strong>: aplica un feed de cambios (altas, cambios, bajas desordenadas) como SCD tipo 1 o 2.</li>
+<li>Modo <strong>triggered</strong> o <strong>continuous</strong>, modo <strong>desarrollo</strong> o <strong>producción</strong>, <strong>Full refresh</strong>, y el <strong>registro de eventos</strong> con métricas y calidad.</li>
+</ul>
+<p><strong>Data Ingestion</strong> (Lakeflow Connect) trae datos de SaaS y bases de datos con conectores administrados, y <strong>Lakeflow Designer</strong> permite armar transformaciones de forma visual.</p>
+<h2>Lakehouse y Analytics: SQL, dashboards, alertas y Genie</h2>
+<p>Piensa en esta parte como <strong>el lugar donde los datos se convierten en respuestas</strong> para gente que no programa.</p>
+<ul>
+<li><p><strong>SQL Editor</strong>: escribes SQL y lo ejecutas contra un SQL warehouse, con autocompletado, parámetros y gráficos. <strong>Queries</strong> guarda tus consultas y <strong>Query History</strong> muestra cada ejecución con su duración.</p>
+</li>
+<li><p><strong>Dashboards</strong> (AI/BI): un tablero se arma en tres pasos:</p>
+<ol>
+<li><strong>Datasets</strong>: una o más consultas SQL que traen los datos (por ejemplo, ventas por categoría y país).</li>
+<li><strong>Widgets</strong>: cada gráfico (barras, líneas, contador, tabla) usa un dataset y dice qué va en cada eje.</li>
+<li><strong>Filtros</strong>: un desplegable (por ejemplo <em>país</em>) que cambia todos los gráficos a la vez.</li>
+</ol>
+<p>Mientras lo editas es un <strong>borrador</strong> (<em>draft</em>). Al <strong>publicarlo</strong> se congela una versión que ven los demás: puedes seguir cambiando el borrador sin romper lo que ya están mirando.</p>
+</li>
+<li><p><strong>Alerts</strong>: una consulta que se ejecuta con un horario y <strong>avisa</strong> (correo, Slack) cuando el resultado cumple una condición. Ejemplo: &quot;si los pedidos cancelados de hoy son más de 50, avísale al equipo&quot;. La alerta mira <strong>la primera fila</strong> del resultado y compara una columna contra un umbral.</p>
+</li>
+<li><p><strong>Genie Agents</strong> (antes <em>Genie spaces</em>): alguien del negocio pregunta en castellano (&quot;¿cuánto vendimos por categoría?&quot;) y Genie escribe el SQL, lo ejecuta y muestra la tabla o el gráfico. <strong>Siempre puedes ver el SQL</strong> que generó (<em>Show code</em>) para revisar que tenga sentido.</p>
+</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo hacer que Genie responda bien</div>
+
+<p>Genie no &quot;adivina&quot; el negocio: aprende de lo que el equipo de datos le enseña.</p>
+<ol>
+<li><strong>Pocas tablas y bien documentadas</strong> (comentarios en tablas y columnas). Con 5 tablas claras responde mejor que con 25 confusas.</li>
+<li><strong>Instrucciones</strong> con el vocabulario de la empresa, una por línea: <code>ventas = cantidad * precio_unitario</code>. Así, cuando alguien dice &quot;ventas&quot;, Genie sabe qué cuenta hacer.</li>
+<li><strong>Consultas de ejemplo</strong> (<em>SQL queries</em>): preguntas frecuentes con su SQL correcto. Cuando alguien pregunta lo mismo, Genie usa ese SQL tal cual.</li>
+<li><strong>Feedback</strong>: cada 👎 es una pista de qué instrucción o ejemplo falta.</li>
+</ol>
+</div>
+
+
+<p>En la réplica, el Genie Agent une las tablas por sus columnas <code>_id</code>, entiende &quot;por mes&quot;, &quot;en 2023&quot;, &quot;top 5&quot;, &quot;más baratos&quot; y valores reales como &quot;cancelados&quot; o &quot;Argentina&quot;, y te dice qué supuso (&quot;Uní pedidos con clientes por cliente_id&quot;). Es mucho más simple que el Genie real (que usa un modelo de lenguaje), pero sirve para aprender lo importante: <strong>revisar el SQL</strong> y <strong>mejorar el espacio con instrucciones y ejemplos</strong>.</p>
+<h2>Gobierno fino: quién ve qué filas y qué columnas</h2>
+<p><code>GRANT SELECT</code> es todo o nada: o ves la tabla o no la ves. Pero muchas veces la regla es más fina: <em>&quot;el equipo de Argentina solo ve los clientes de Argentina&quot;</em> o <em>&quot;solo soporte ve el email completo&quot;</em>. Para eso Unity Catalog tiene tres piezas que se usan juntas.</p>
+<p><strong>1. Una función SQL propia</strong> (<em>UDF</em>). Es como una fórmula de Excel con nombre: recibe valores y devuelve un resultado.</p>
+<pre data-norun><code class="language-sql">CREATE FUNCTION main.default.con_iva(precio DOUBLE)
+RETURNS DOUBLE
+RETURN precio * 1.21;
+
+SELECT nombre, main.default.con_iva(precio) AS precio_final
+FROM samples.tienda.productos;</code></pre>
+<p><strong>2. Un filtro de fila</strong> (<em>row filter</em>): una función que devuelve <strong>verdadero o falso</strong> para cada fila. Las filas con falso desaparecen para quien consulta, como si no existieran.</p>
+<pre data-norun><code class="language-sql">CREATE FUNCTION main.default.solo_mi_pais(pais STRING)
+RETURNS BOOLEAN
+RETURN is_account_group_member('admins') OR pais = 'Argentina';
+
+ALTER TABLE main.default.clientes
+  SET ROW FILTER main.default.solo_mi_pais ON (pais);</code></pre>
+<p><code>is_account_group_member(&#39;admins&#39;)</code> pregunta &quot;¿la persona que está consultando está en el grupo admins?&quot;. Si está, ve todo; si no, solo Argentina.</p>
+<p><strong>3. Una máscara de columna</strong> (<em>column mask</em>): una función que recibe el valor real y devuelve lo que se muestra.</p>
+<pre data-norun><code class="language-sql">CREATE FUNCTION main.default.ocultar_email(email STRING)
+RETURNS STRING
+RETURN CASE WHEN is_account_group_member('soporte') THEN email
+            ELSE concat('***@', split(email, '@')[1]) END;
+
+ALTER TABLE main.default.clientes
+  ALTER COLUMN email SET MASK main.default.ocultar_email;</code></pre>
+<p>Quien no está en <code>soporte</code> ve <code>***@gmail.com</code>; quien está, ve el email completo. <strong>Los datos guardados no cambian</strong>: la máscara se aplica cada vez que alguien lee.</p>
+<p>:::warning El orden importa al quitarlos
+Primero quita el filtro o la máscara (<code>ALTER TABLE … DROP ROW FILTER</code> o <code>ALTER COLUMN … DROP MASK</code>) y <strong>después</strong> borra la función. Si borras la función primero, la tabla queda inaccesible hasta que quites la referencia.
+:::</p>
+<p><strong>Etiquetas</strong> (<em>tags</em>): marcan qué es sensible para poder encontrarlo y auditarlo.</p>
+<pre data-norun><code class="language-sql">ALTER TABLE main.default.clientes SET TAGS ('dominio' = 'ventas');
+ALTER TABLE main.default.clientes ALTER COLUMN email SET TAGS ('pii' = 'email');
+
+SELECT * FROM main.information_schema.column_tags;   -- ¿dónde hay datos personales?
+SELECT * FROM main.information_schema.row_filters;    -- ¿qué tablas tienen filtro?</code></pre>
+<p>Con muchas tablas, Databricks recomienda <strong>políticas ABAC</strong>: reglas que se aplican solas a todas las columnas que tengan cierta etiqueta (por ejemplo, &quot;enmascarar todo lo etiquetado <code>pii</code>&quot;). Los filtros y máscaras por tabla que acabas de ver son la base para entenderlas.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Pruébalo en la réplica</div>
+
+<p>En <strong>Settings → Identity and access → Groups</strong> puedes entrar y salir de los grupos <code>admins</code> y <code>soporte</code>. Consulta la tabla, cambia de grupo y vuelve a consultarla: verás aparecer y desaparecer filas, y el email pasar de oculto a visible.</p>
+</div>
+
+
+<h2>Tablas de streaming desde el editor SQL</h2>
+<p>No hace falta armar un pipeline para ingerir archivos de forma incremental: desde el SQL Editor puedes crear una <strong>tabla de streaming independiente</strong> (Databricks crea por detrás un pipeline administrado).</p>
+<pre data-norun><code class="language-sql">CREATE OR REFRESH STREAMING TABLE main.default.pedidos_bronze
+AS SELECT * FROM STREAM read_files('/Volumes/main/default/crudos/', format =&gt; 'csv', header =&gt; true);
+
+-- llegan archivos nuevos al volumen…
+REFRESH STREAMING TABLE main.default.pedidos_bronze;        -- procesa SOLO los archivos nuevos
+REFRESH STREAMING TABLE main.default.pedidos_bronze FULL;   -- borra todo y procesa desde cero</code></pre>
+<p>La palabra <strong><code>STREAM</code></strong> es lo que la hace incremental: la tabla <strong>recuerda qué archivos ya leyó</strong> y no los vuelve a leer. También puede leer de otra tabla con <code>FROM STREAM(main.default.otra_tabla)</code>, pero solo si a esa tabla <strong>se le agregan filas</strong> (<em>append-only</em>): si alguien borra o cambia filas de la fuente, el siguiente <code>REFRESH</code> falla y tienes que decidir si haces <code>FULL</code>.</p>
+<h2>Machine learning: Experiments y Models</h2>
+<p><strong>MLflow</strong> es el cuaderno de laboratorio del machine learning: cada vez que entrenas un modelo anota <strong>qué probaste</strong> y <strong>qué tan bien salió</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué guarda</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Experimento</strong></td>
+<td>Una carpeta de intentos sobre el mismo problema</td>
+<td><code>/Users/tu@empresa.com/precio-envios</code></td>
+</tr>
+<tr>
+<td><strong>Corrida</strong> (<em>run</em>)</td>
+<td>Un intento: <strong>parámetros</strong> (lo que elegiste) y <strong>métricas</strong> (el resultado)</td>
+<td><code>max_depth = 5</code> → <code>rmse = 2.1</code></td>
+</tr>
+<tr>
+<td><strong>Modelo registrado</strong></td>
+<td>El modelo guardado en Unity Catalog con nombre de tres partes y <strong>versiones</strong></td>
+<td><code>main.default.precio_envio</code> versión 3</td>
+</tr>
+<tr>
+<td><strong>Alias</strong></td>
+<td>Un apodo que apunta a una versión</td>
+<td><code>@champion</code> = la versión que usa producción</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-python">import mlflow
+mlflow.set_registry_uri(&quot;databricks-uc&quot;)      # los modelos van a Unity Catalog
+with mlflow.start_run():
+    mlflow.log_param(&quot;max_depth&quot;, 5)
+    mlflow.log_metric(&quot;rmse&quot;, 2.1)
+    mlflow.sklearn.log_model(modelo, &quot;modelo&quot;, registered_model_name=&quot;main.default.precio_envio&quot;)</code></pre>
+<p>En <strong>Experiments</strong> comparas corridas lado a lado para elegir la mejor; en <strong>Models</strong> le pones el alias <code>champion</code> a esa versión. Las aplicaciones cargan <code>models:/main.default.precio_envio@champion</code>: para cambiar de modelo en producción <strong>solo mueves el alias</strong>, sin tocar el código.</p>
+<h2>Llevar a producción</h2>
+<ul>
+<li><strong>Databricks Asset Bundles</strong>: un <code>databricks.yml</code> describe jobs, pipelines y su código; <code>databricks bundle deploy -t prod</code> lo despliega igual en cada entorno (ideal con GitHub Actions o Azure DevOps).</li>
+<li><strong>CLI de Databricks</strong> y <strong>API REST</strong> para automatizar todo lo que haces con clics.</li>
+<li><strong>Costos</strong>: se paga en <strong>DBU</strong> (unidades de Databricks) según el tipo de cómputo, más las máquinas en el caso clásico. Las tablas del sistema <code>system.billing</code> muestran el gasto por job, usuario o etiqueta.</li>
+</ul>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Workspace con carpetas, notebooks SQL y Python (Spark en el navegador), widgets, dbutils, <code>%run</code>, importar y exportar</td>
+<td>Scala y R, carpetas Git conectadas a un repositorio, Genie Code</td>
+</tr>
+<tr>
+<td>Unity Catalog con catálogos, esquemas, tablas, vistas, volúmenes, GRANT, historial, viaje en el tiempo, MERGE, COPY INTO, <code>system</code> y <code>samples</code></td>
+<td>Tablas externas reales, Delta Sharing, políticas ABAC</td>
+</tr>
+<tr>
+<td>Funciones SQL propias, filtros de fila, máscaras de columna, etiquetas, grupos (Settings) e <code>information_schema</code> con todo eso</td>
+<td>Funciones en Python y funciones de tabla (<code>RETURNS TABLE</code>)</td>
+</tr>
+<tr>
+<td>Compute (clústeres y SQL warehouses con estados y terminación automática), jobs con tareas, Run if, parámetros y Repair</td>
+<td>Escalado y rendimiento reales, triggers por llegada de archivos que se disparen solos</td>
+</tr>
+<tr>
+<td>Pipelines declarativos con expectativas y AUTO CDC, tablas de streaming desde SQL con <code>REFRESH</code>, Structured Streaming y Auto Loader en notebooks</td>
+<td>Kafka y fuentes en tiempo real</td>
+</tr>
+<tr>
+<td>Dashboards con datasets, widgets, filtros y publicación; alertas; Genie Agents con instrucciones, ejemplos y feedback</td>
+<td>Programar envíos por correo; el modelo de lenguaje real de Genie</td>
+</tr>
+<tr>
+<td>MLflow: experimentos, corridas, comparación, registro de modelos en Unity Catalog y alias</td>
+<td>Model Serving, Playground y AI Gateway</td>
+</tr>
+<tr>
+<td>Exportar como Asset Bundle</td>
+<td>Desplegar en un workspace real (para eso: Databricks Free Edition)</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>9 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-databricks-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-data-factory-por-dentro.html">← Azure Data Factory por dentro - qué es cada parte y para qué sirve</a><a href="interfaces-github-por-dentro.html">GitHub por dentro - qué es cada parte y para qué sirve →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

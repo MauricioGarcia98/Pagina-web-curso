@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aerolínea ✈️: sobreventa, propagación de demoras y tareas generadas por código · Academia de Datos</title><meta name="description" content="Cuántos pasajes vender por encima de la capacidad (probabilidad binomial) y cómo se propaga una demora en Python, las peores rutas de cada mes en PySpark, la ocupación por ruta en dbt y un DAG con una tarea por aeropuerto generada en un bucle."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-vuelos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Aerolínea ✈️: sobreventa, propagación de demoras y tareas generadas por código · Academia de Datos"><meta property="og:description" content="Cuántos pasajes vender por encima de la capacidad (probabilidad binomial) y cómo se propaga una demora en Python, las peores rutas de cada mes en PySpark, la ocupación por ruta en dbt y un DAG con una tarea por aeropuerto generada en un bucle."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-vuelos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Experto · 65 min</div>
+<h1>Aerolínea ✈️: sobreventa, propagación de demoras y tareas generadas por código</h1><p class="resumen">Cuántos pasajes vender por encima de la capacidad (probabilidad binomial) y cómo se propaga una demora en Python, las peores rutas de cada mes en PySpark, la ocupación por ruta en dbt y un DAG con una tarea por aeropuerto generada en un bucle.</p>
+<a class="cta" href="../index.html#/l/pipelines-vuelos">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<p>En <strong>Cóndor Air</strong> (caso ✈️) cada asiento vacío al despegar es dinero perdido, y cada demora de la mañana arrastra a todos los vuelos del día. Esta lección programa dos decisiones clave de una aerolínea y arma el pipeline de operaciones.</p>
+<h2>1. Python: ¿cuántos pasajes vender? (sobreventa)</h2>
+<p>En el caso, alrededor del <strong>5 %</strong> de los pasajeros con reserva no se presenta (<em>no-show</em>). Si un avión de 160 asientos vende exactamente 160 pasajes, en promedio despega con 8 asientos vacíos. Por eso las aerolíneas <strong>sobrevenden</strong>: venden algunos pasajes más que asientos, aceptando un pequeño riesgo de que se presenten más pasajeros que asientos (y haya que compensar a alguien).</p>
+<p>¿Cuál es ese riesgo? Si cada pasajero se presenta con probabilidad <code>p</code> de forma independiente, la cantidad que se presenta de <code>n</code> vendidos sigue una distribución <strong>binomial</strong>:</p>
+<pre><code class="language-text">P(se presentan exactamente k) = C(n, k) · p^k · (1 − p)^(n − k)        C(n, k) = combinaciones = math.comb(n, k)
+P(sobreventa) = P(se presentan más de C) = suma de P(k) para k = C+1 … n</code></pre>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Tirar monedas cargadas</div>
+
+<p>Imagina que cada pasajero vendido es una moneda que sale &quot;se presenta&quot; el 95 % de las veces. Vender 165 pasajes es tirar 165 monedas: lo más probable es que salgan unas 157 &quot;se presenta&quot;, pero a veces salen 161 o más. La fórmula binomial calcula exactamente qué tan seguido pasa eso.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-experto"><div class="callout-title">🚀 Revenue management de verdad</div>
+
+<p>Las aerolíneas reales no usan un riesgo fijo: comparan el <strong>ingreso esperado</strong> de vender un pasaje más con el <strong>costo esperado</strong> de una sobreventa (compensación, hotel, mala reputación), y la probabilidad de no-show cambia por ruta, día, tarifa y anticipación (lo estima un modelo con los datos históricos que tú preparas en el pipeline). Pero la base matemática es exactamente esta.</p>
+</div>
+
+
+<h2>2. Python: cómo se propaga una demora</h2>
+<p>Un avión hace varios tramos en el día (Buenos Aires → Santiago → Lima → …). Entre tramo y tramo hay un <strong>tiempo de rotación</strong> programado (desembarcar, limpiar, cargar combustible, embarcar), que tiene un margen. Si el avión llega tarde, ese margen <strong>absorbe</strong> parte de la demora; el resto se arrastra al tramo siguiente.</p>
+<p>Regla: la demora de salida de un tramo = máx(0, demora de llegada del tramo anterior − margen de rotación). Además, en vuelo el avión puede <strong>recuperar</strong> algunos minutos (o perderlos): la demora de llegada de cada tramo = demora de salida − recuperación del tramo (nunca menor que 0).</p>
+<div class="exercise-slot"></div>
+
+
+<h2>3. PySpark: las peores rutas de cada mes</h2>
+<p>Operaciones revisa cada mes las rutas con peor puntualidad (OTP: llegada con 15 minutos o menos de demora; los cancelados cuentan como no puntuales). Quiere las <strong>3 peores</strong> de cada mes.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>4. dbt: ocupación e ingresos por ruta</h2>
+<p>Comercial quiere la ocupación (<em>load factor</em>) e ingresos por ruta. Recuerda las reglas del caso: <code>vuelos_reservas</code> es una <strong>muestra</strong> y cada reserva representa <strong>40</strong> pasajeros; los vuelos cancelados no ofrecen asientos.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>5. Airflow: una tarea por aeropuerto, generada por código</h2>
+<p>El reporte de puntualidad se calcula por aeropuerto, y la lista de aeropuertos cambia (se abren rutas nuevas). En vez de escribir una tarea a mano por aeropuerto, se <strong>generan en un bucle</strong>: el DAG es código Python, así que puede crear tareas a partir de una lista.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Generar tareas: sí; leer una base para generarlas: no</div>
+
+<p>La lista <code>AEROPUERTOS</code> está escrita en el código o en un archivo de configuración. <strong>No</strong> la leas de una base de datos en el nivel superior del archivo: Airflow parsea el DAG cada pocos segundos y haría miles de consultas por día. Para cantidades que cambian en cada ejecución (por ejemplo, &quot;una tarea por cada archivo que llegó hoy&quot;) existe el <strong>mapeo dinámico de tareas</strong> (<code>.expand()</code>), que crea las tareas recién al ejecutar.</p>
+</div>
+
+
+<h2>Generar tareas con un bucle o con expand()</h2>
+<p>El DAG de esta lección crea una tarea por aeropuerto con un <code>for</code> sobre una <strong>lista fija</strong> escrita en el código. Eso está bien cuando la lista cambia muy de vez en cuando (se agrega un aeropuerto por año), porque el <code>for</code> se ejecuta cada vez que Airflow <strong>lee</strong> el archivo y las tareas aparecen en la interfaz con nombre propio (<code>procesar_SCL</code>, <code>procesar_LIM</code>).</p>
+<p>Cuando la lista depende de <strong>los datos del día</strong> (los aeropuertos que tuvieron vuelos hoy, los archivos que llegaron), el <code>for</code> no sirve: se usa el <strong>mapeo dinámico</strong> (<code>.expand()</code>) que viste en la lección de XCom y TaskFlow, que crea las copias en tiempo de ejecución.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th><code>for</code> al nivel superior</th>
+<th><code>.expand()</code></th>
+</tr>
+</thead><tbody><tr>
+<td>Cuándo se decide cuántas tareas</td>
+<td>Al leer el archivo</td>
+<td>Al ejecutar el DAG</td>
+</tr>
+<tr>
+<td>De dónde sale la lista</td>
+<td>Una lista escrita en el código o un archivo de configuración del repositorio</td>
+<td>El resultado de una tarea anterior</td>
+</tr>
+<tr>
+<td>Cómo se ven en la interfaz</td>
+<td>Tareas separadas con nombre propio</td>
+<td>Una tarea con instancias <code>[0]</code>, <code>[1]</code>…</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Sobreventa calculada con la probabilidad de un solo pasajero</strong>: lo que importa es la probabilidad de que se presenten <strong>más</strong> pasajeros que asientos, que sale de la distribución binomial.</li>
+<li><strong>Demoras que se propagan sin tiempo mínimo de conexión</strong>: si un avión llega 20 minutos tarde y necesita 45 en tierra, la demora del vuelo siguiente no es 20.</li>
+<li><strong>Ocupación = pasajes vendidos / asientos</strong>: cuenta las ausencias como asientos ocupados. Se usan los pasajeros que embarcaron.</li>
+<li><strong>Leer una base de datos en el <code>for</code> que genera tareas</strong>: se consulta en cada lectura del archivo, miles de veces por día.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las aerolíneas trabajan con <em>revenue management</em>: la sobreventa se decide con modelos que usan el historial de ausencias por ruta, día y clase, y el costo de compensar a un pasajero que no puede viajar.</li>
+<li>Los DAGs con &quot;una tarea por aeropuerto, por país o por cliente&quot; son muy comunes; la regla práctica es <code>for</code> con una lista versionada si cambia poco, <code>.expand()</code> si depende de los datos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cuándo usarías un bucle para crear tareas en Airflow y cuándo el mapeo dinámico?&quot;</div>
+
+<p>Un bucle al nivel superior sirve cuando la lista es estable y está en el código o en un archivo de configuración del repositorio, porque se evalúa al leer el archivo y cada tarea tiene un nombre propio en la interfaz. Si la cantidad depende de los datos del día, uso mapeo dinámico con <code>.expand()</code> sobre el resultado de una tarea anterior, que crea las instancias en tiempo de ejecución. Nunca consultaría una base o una API en el nivel superior para generar tareas.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-vuelos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-saas.html">← SaaS ☁️: prorrateos, movimientos de MRR, facturación incremental y cierre mensual</a><a href="pipelines-logistica.html">Logística 📦: costo FIFO, días hábiles, stock diario y alertas de quiebre →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El inglés técnico mínimo - las palabras que aparecen en errores y documentación · Academia de Datos</title><meta name="description" content="No necesitas hablar inglés para programar. Necesitas reconocer unas 100 palabras que se repiten en todos lados. Aquí están, agrupadas y con ejemplos reales."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-ingles-tecnico.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El inglés técnico mínimo - las palabras que aparecen en errores y documentación · Academia de Datos"><meta property="og:description" content="No necesitas hablar inglés para programar. Necesitas reconocer unas 100 palabras que se repiten en todos lados. Aquí están, agrupadas y con ejemplos reales."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-ingles-tecnico.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cero">🌱 Antes de empezar: desde cero absoluto</a> · Básico · 30 min</div>
+<h1>El inglés técnico mínimo - las palabras que aparecen en errores y documentación</h1><p class="resumen">No necesitas hablar inglés para programar. Necesitas reconocer unas 100 palabras que se repiten en todos lados. Aquí están, agrupadas y con ejemplos reales.</p>
+<a class="cta" href="../index.html#/l/cero-ingles-tecnico">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer las palabras más comunes de los mensajes de error</li><li>Entender los verbos de los comandos (get, set, list, create, delete…)</li><li>Leer el título de una página de documentación y saber de qué trata</li><li>Usar un traductor sin perder el sentido técnico</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El inglés técnico es como el idioma de las señales de tránsito: son pocas, se repiten siempre y, una vez que las conoces, entiendes cualquier calle. &quot;Error&quot;, &quot;file&quot;, &quot;not found&quot;, &quot;run&quot; o &quot;missing&quot; aparecen todo el tiempo. Con unas cincuenta palabras entiendes la mayoría de los mensajes.</p>
+</div>
+
+
+<h2>Por qué todo está en inglés</h2>
+<p>Casi todos los lenguajes y herramientas se crearon pensando en una audiencia mundial, y el inglés quedó como idioma común. Los nombres de los comandos son palabras en inglés simplificadas: <code>list</code> (listar), <code>copy</code> → <code>cp</code>, <code>move</code> → <code>mv</code>, <code>make directory</code> → <code>mkdir</code>. Saber la palabra original te ayuda a <strong>recordar</strong> el comando.</p>
+<h2>Las palabras de los errores</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Inglés</th>
+<th>Español</th>
+<th>Ejemplo real</th>
+</tr>
+</thead><tbody><tr>
+<td>error / exception</td>
+<td>error / excepción</td>
+<td><code>ValueError</code>, <code>Exception</code></td>
+</tr>
+<tr>
+<td>not found</td>
+<td>no encontrado</td>
+<td><code>command not found</code>, <code>404 Not Found</code></td>
+</tr>
+<tr>
+<td>no such</td>
+<td>no existe tal</td>
+<td><code>no such file or directory</code>, <code>no such column</code></td>
+</tr>
+<tr>
+<td>denied / forbidden</td>
+<td>denegado / prohibido</td>
+<td><code>Permission denied</code>, <code>403 Forbidden</code></td>
+</tr>
+<tr>
+<td>invalid</td>
+<td>inválido</td>
+<td><code>invalid syntax</code>, <code>invalid literal for int()</code></td>
+</tr>
+<tr>
+<td>expected</td>
+<td>se esperaba</td>
+<td><code>expected &#39;:&#39;</code> (se esperaban dos puntos)</td>
+</tr>
+<tr>
+<td>unexpected</td>
+<td>inesperado</td>
+<td><code>unexpected EOF</code> (el archivo terminó antes de tiempo)</td>
+</tr>
+<tr>
+<td>missing</td>
+<td>falta</td>
+<td><code>missing 1 required positional argument</code></td>
+</tr>
+<tr>
+<td>required</td>
+<td>obligatorio</td>
+<td><code>field required</code></td>
+</tr>
+<tr>
+<td>already exists</td>
+<td>ya existe</td>
+<td><code>table already exists</code></td>
+</tr>
+<tr>
+<td>failed</td>
+<td>falló</td>
+<td><code>Task failed</code>, <code>connection failed</code></td>
+</tr>
+<tr>
+<td>timeout / timed out</td>
+<td>se agotó el tiempo</td>
+<td><code>Read timed out</code></td>
+</tr>
+<tr>
+<td>retry</td>
+<td>reintentar</td>
+<td><code>retrying in 5 seconds</code></td>
+</tr>
+<tr>
+<td>unauthorized</td>
+<td>no autorizado (no te identificaste bien)</td>
+<td><code>401 Unauthorized</code></td>
+</tr>
+<tr>
+<td>deprecated</td>
+<td>obsoleto (todavía funciona, pero lo van a quitar)</td>
+<td><code>DeprecationWarning</code></td>
+</tr>
+<tr>
+<td>warning</td>
+<td>advertencia (no frena el programa)</td>
+<td><code>UserWarning</code></td>
+</tr>
+<tr>
+<td>null / none</td>
+<td>vacío, sin valor</td>
+<td><code>NOT NULL constraint failed</code></td>
+</tr>
+<tr>
+<td>constraint</td>
+<td>restricción, regla</td>
+<td><code>UNIQUE constraint failed</code></td>
+</tr>
+<tr>
+<td>out of memory</td>
+<td>sin memoria</td>
+<td><code>OutOfMemoryError</code></td>
+</tr>
+<tr>
+<td>out of range</td>
+<td>fuera de rango</td>
+<td><code>list index out of range</code></td>
+</tr>
+</tbody></table></div>
+<h2>Los verbos de los comandos</h2>
+<p>Casi todas las herramientas de la nube y de datos usan los mismos verbos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Verbo</th>
+<th>Qué hace</th>
+<th>Ejemplos</th>
+</tr>
+</thead><tbody><tr>
+<td>list / ls</td>
+<td>listar varias cosas</td>
+<td><code>aws s3 ls</code>, <code>az group list</code></td>
+</tr>
+<tr>
+<td>get / show / describe</td>
+<td>ver el detalle de <strong>una</strong> cosa</td>
+<td><code>kubectl get</code>, <code>az storage account show</code>, <code>gcloud ... describe</code></td>
+</tr>
+<tr>
+<td>create / new / init</td>
+<td>crear</td>
+<td><code>az group create</code>, <code>git init</code>, <code>dbt init</code></td>
+</tr>
+<tr>
+<td>delete / remove / rm</td>
+<td>borrar</td>
+<td><code>gcloud storage rm</code>, <code>docker rm</code></td>
+</tr>
+<tr>
+<td>update / set</td>
+<td>cambiar</td>
+<td><code>az account set</code>, <code>gcloud config set</code></td>
+</tr>
+<tr>
+<td>run / exec / start</td>
+<td>ejecutar, arrancar</td>
+<td><code>dbt run</code>, <code>docker run</code>, <code>spark-submit</code></td>
+</tr>
+<tr>
+<td>stop / kill</td>
+<td>detener</td>
+<td><code>docker stop</code></td>
+</tr>
+<tr>
+<td>deploy</td>
+<td>desplegar (poner en producción)</td>
+<td><code>databricks bundle deploy</code></td>
+</tr>
+<tr>
+<td>install / add</td>
+<td>instalar</td>
+<td><code>pip install</code>, <code>uv add</code></td>
+</tr>
+<tr>
+<td>push / pull</td>
+<td>subir / bajar</td>
+<td><code>git push</code>, <code>docker pull</code></td>
+</tr>
+<tr>
+<td>load / read / write</td>
+<td>cargar / leer / escribir</td>
+<td><code>spark.read</code>, <code>df.write</code></td>
+</tr>
+<tr>
+<td>fetch</td>
+<td>traer (de otro lado)</td>
+<td><code>git fetch</code></td>
+</tr>
+</tbody></table></div>
+<h2>Las palabras de la documentación</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Inglés</th>
+<th>Qué te dice</th>
+</tr>
+</thead><tbody><tr>
+<td>Getting started / Quickstart</td>
+<td>Por dónde empezar: el tutorial básico</td>
+</tr>
+<tr>
+<td>Overview</td>
+<td>Resumen general</td>
+</tr>
+<tr>
+<td>How-to / Guide</td>
+<td>Cómo hacer una tarea concreta</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td>La lista completa de opciones (para consultar, no para leer de corrido)</td>
+</tr>
+<tr>
+<td>Example</td>
+<td>Un ejemplo listo para copiar</td>
+</tr>
+<tr>
+<td>Prerequisites</td>
+<td>Lo que necesitas antes</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>El valor que se usa si no dices nada</td>
+</tr>
+<tr>
+<td>Optional / Required</td>
+<td>Opcional / obligatorio</td>
+</tr>
+<tr>
+<td>Best practices</td>
+<td>Buenas prácticas</td>
+</tr>
+<tr>
+<td>Troubleshooting</td>
+<td>Solución de problemas comunes</td>
+</tr>
+<tr>
+<td>Release notes / Changelog</td>
+<td>Qué cambió en cada versión</td>
+</tr>
+</tbody></table></div>
+<h2>Cómo usar un traductor sin perder el sentido</h2>
+<p>Un traductor automático te ayuda mucho, pero a veces <strong>traduce lo que no debe</strong>: los nombres de variables, columnas o comandos. <code>table</code> puede volverse &quot;mesa&quot;, <code>bucket</code> &quot;cubo&quot;, <code>pipeline</code> &quot;tubería&quot; y <code>spark.read</code> &quot;chispa.leer&quot;. Dos trucos:</p>
+<ol>
+<li>Copia <strong>solo la frase</strong> del error, no el código.</li>
+<li>Si una palabra suena rara traducida (mesa, cubo, huevo), es probablemente un <strong>nombre técnico</strong>: déjala en inglés.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Pregúntale a una IA</div>
+
+<p>Una IA (como Claude o ChatGPT) es muy buena para esto: pega el error y pide &quot;explícamelo en español, simple, sin resolverlo todavía&quot;. La lección &quot;Cómo aprender esto&quot; explica cómo usarla bien.</p>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Todo está en inglés</div>
+
+<p>Ahora que conoces las palabras que más se repiten, imagina esta situación de trabajo: Martín, tu líder, te pasa el enlace a la documentación de dbt y te dice: <em>&quot;Lee la parte de <code>incremental models</code>&quot;</em>. La página está toda en inglés, igual que los errores, los comandos y los nombres de las funciones.</p>
+<p>No hace falta hablar inglés para entenderla: con el vocabulario de esta lección y un traductor al lado, alcanza para la mayoría de los casos. El resto se aprende de a poco, usándolo.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p>En los equipos de datos de Latinoamérica y España es normal hablar en español y escribir el código, los nombres de tablas y los commits en inglés. No hace falta un inglés perfecto: hace falta reconocer estas palabras y no tenerle miedo a una página de documentación.</p>
+</div>
+
+
+<h2>Practica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cero-ingles-tecnico">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cero-matematica-para-datos.html">← La matemática justa para datos - porcentajes, tasas, promedios y medianas</a><a href="cero-como-aprender.html">Cómo aprender esto - método de estudio, pedir ayuda y la IA como tutor →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

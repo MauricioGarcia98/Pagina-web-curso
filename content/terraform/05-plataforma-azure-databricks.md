@@ -14,6 +14,10 @@ El Grupo Andino eligió Azure con Databricks. La plataforma se armó en meses de
 > "Toda la plataforma en Terraform, en dos proyectos: uno para lo de Azure y otro para lo de adentro de Databricks. Que `terraform apply` en una suscripción vacía deje todo listo para que el equipo de datos empiece a trabajar."
 :::
 
+:::analogia En palabras simples
+Este proyecto es como construir una casa completa con planos: en vez de crear a mano el grupo de recursos, el almacenamiento, el workspace de Databricks y los permisos, todo queda escrito en código y se construye con un comando, igual cada vez.
+:::
+
 ## La arquitectura
 
 ```diagrama

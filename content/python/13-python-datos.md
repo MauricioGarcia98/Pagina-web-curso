@@ -18,6 +18,10 @@ Esta lección junta todo lo que aprendiste de Python en un pipeline real, y te p
 :::
 Ya tienes todas las piezas de Python: tipos, colecciones, funciones, errores y archivos. Ahora vamos a usarlas como lo hace un ingeniero de datos: **extraer, limpiar, transformar, validar y cargar**. Esta lección arma un pipeline completo en Python puro, explica cómo se consume una API de verdad y termina con **pandas**, la librería que vas a usar cuando los datos entran en una computadora.
 
+:::analogia En palabras simples
+Un pipeline de datos es como una línea de producción: entran ingredientes crudos (un CSV desordenado), pasan por estaciones (limpiar, validar, transformar) y sale un producto terminado (una tabla lista para usar). En esta lección armas esa línea completa con Python, estación por estación.
+:::
+
 ## Un mini ETL en Python puro
 
 Este es un archivo de pedidos tal como podría llegar de un sistema viejo. Míralo con ojo de data engineer antes de leer el código: ¿qué problemas ves?

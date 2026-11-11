@@ -16,6 +16,10 @@ Volvemos a la entrevista para data engineer semi senior. Superaste SQL y Python.
 No hay una respuesta correcta. Lo que evalúan es si haces las preguntas correctas, si tus decisiones tienen fundamento y si conoces las alternativas. Esta lección te da el método y tres diseños de referencia para practicar.
 :::
 
+:::analogia En palabras simples
+Las arquitecturas de referencia son como planos de casas ya probadas: no copias uno tal cual, pero te dan un punto de partida. En una entrevista de diseño te piden dibujar uno de esos planos y, sobre todo, explicar por qué elegiste cada pieza.
+:::
+
 ## El método en 6 pasos
 
 ```diagrama

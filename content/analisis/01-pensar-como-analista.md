@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes qué preguntas hacer cuando te piden “las ventas del m
 Lunes, 9:05. La gerente comercial escribe por chat: “¿Cuánto vendimos en noviembre?”. Un analista junior responde en dos minutos con un número. Un analista senior responde en diez, con el número, la definición que usó y una advertencia: “incluye pedidos entregados y enviados; si sumamos los pendientes, sube un 4 %”. Este módulo es para llegar a ser el segundo.
 :::
 
+:::analogia En palabras simples
+Un buen análisis empieza como una buena visita al médico: antes de recetar, se pregunta qué te pasa, desde cuándo y qué esperas. Antes de escribir una consulta, un analista aclara qué decisión se va a tomar con el número. Si la pregunta está mal entendida, la consulta perfecta no sirve.
+:::
+
 ## El método en seis pasos
 
 ```diagrama

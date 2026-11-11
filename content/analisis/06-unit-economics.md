@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes qué es expansión y contracción del MRR? | ¿Sabes cal
 Nube Pyme va a pedir inversión. El fondo no pregunta “¿cuánto facturan?”, pregunta “¿cuánto de lo que facturaban hace un año siguen facturando hoy, contando las mejoras de plan y las bajas?”. Esa es la retención neta. Si supera el 100 %, el negocio crece aunque no consiga ni un cliente nuevo.
 :::
 
+:::analogia En palabras simples
+Los *unit economics* responden una pregunta simple: ¿cuánto gano o pierdo con cada cliente o con cada pedido? Es como un puesto de limonada: si cada vaso cuesta más de hacer de lo que lo vendes, vender más te hace perder más. Esta lección enseña a hacer esa cuenta con datos reales.
+:::
+
 ## MRR y su cascada
 
 El **MRR** (ingreso recurrente mensual) es la suma de las facturas del mes. Mes contra mes, cada empresa cae en un movimiento:

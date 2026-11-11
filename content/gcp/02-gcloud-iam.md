@@ -5,6 +5,10 @@ duracion: 30
 resumen: Instalar y configurar gcloud, autenticarse, elegir proyecto y región, habilitar APIs, formatos de salida y filtros, e IAM con roles y cuentas de servicio.
 ---
 
+:::analogia En palabras simples
+`gcloud` es el control remoto de Google Cloud, y IAM es la lista de quién tiene llave de qué puerta. En Google Cloud todo vive dentro de un **proyecto**, como un departamento con su propia cerradura: los permisos se dan proyecto por proyecto.
+:::
+
 ## Las tres herramientas de línea de comandos
 
 El **Google Cloud CLI** trae tres comandos:

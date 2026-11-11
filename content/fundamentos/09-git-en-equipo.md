@@ -9,9 +9,9 @@ autoevaluacion: ¿Sabes por qué Git rechazó tu push y qué hacer? | ¿Puedes e
 ---
 
 :::escenario Tu primer push rechazado
-Martín te pide: *"Marketing quiere que el ETL incluya Colombia. Es un cambio de una línea en `pipelines/etl.py`."* Clonas el repositorio, cambias la línea, haces commit y `git push`. Y Git responde con un `! [rejected]` en rojo.
+Ahora que sabes traer los cambios de otros y resolver un conflicto, mira por qué es tan común. Martín le pide a alguien del equipo: *"Marketing quiere que el ETL incluya Colombia. Es un cambio de una línea en `pipelines/etl.py`."* La persona clona el repositorio, cambia la línea, hace commit y `git push`. Y Git responde con un `! [rejected]` en rojo.
 
-No rompiste nada. Mientras tú trabajabas, **Camila subió un cambio a la misma línea** (agregó México). Esto pasa varias veces por semana en cualquier equipo. En esta lección lo vives en la terminal: el repositorio de práctica `https://github.com/tienda-andina/pipelines` tiene una compañera que sube cambios mientras trabajas.
+No rompió nada: mientras trabajaba, **Camila subió un cambio a la misma línea** (agregó México). Esto pasa varias veces por semana en cualquier equipo, y se resuelve exactamente como practicaste: `git pull`, resolver el conflicto y volver a subir.
 :::
 
 ## El repositorio remoto

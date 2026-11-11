@@ -50,6 +50,10 @@ Si el job se cae después de `t2`, al reiniciar lee el **checkpoint**, ve "leí 
 
 Muchísimas veces, "tiempo real" en una reunión significa "actualizado cada hora". Un stream encendido 24/7 cuesta un cluster encendido 24/7; un job `availableNow` cada hora usa el **mismo código** y cuesta una fracción.
 
+:::analogia En palabras simples
+Procesar por lotes es como lavar la ropa una vez por semana: juntas todo y lo haces de una. Hacer **streaming** es como lavar cada prenda apenas se ensucia: el trabajo nunca termina, pero siempre está al día. Spark lo hace de a pedacitos (micro-lotes) y anota en un cuaderno (el **checkpoint**) hasta dónde llegó, para no repetir ni saltear nada si se corta.
+:::
+
 ## Conceptos clave
 
 | Concepto | Qué es |

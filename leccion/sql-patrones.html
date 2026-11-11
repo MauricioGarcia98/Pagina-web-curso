@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patrones avanzados de análisis · Academia de Datos</title><meta name="description" content="Deduplicación, gaps &amp; islands (rachas), sesiones, embudos, cohortes y &quot;último valor conocido&quot;."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-patrones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Patrones avanzados de análisis · Academia de Datos"><meta property="og:description" content="Deduplicación, gaps &amp; islands (rachas), sesiones, embudos, cohortes y &quot;último valor conocido&quot;."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-patrones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Experto · 50 min</div>
+<h1>Patrones avanzados de análisis</h1><p class="resumen">Deduplicación, gaps &amp; islands (rachas), sesiones, embudos, cohortes y &quot;último valor conocido&quot;.</p>
+<a class="cta" href="../index.html#/l/sql-patrones">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Deduplicar registros quedándote con la versión más reciente</li><li>Detectar rachas de días consecutivos (gaps &amp; islands)</li><li>Agrupar eventos en sesiones con un corte de inactividad</li><li>Calcular embudos de conversión y retención por cohortes</li></ul>
+<p>Estos son los problemas que separan a un analista de un <strong>experto</strong>. Ninguno se resuelve con una sola cláusula: todos combinan CTE, funciones de ventana y agregaciones en <strong>varios pasos</strong>. La forma de abordarlos es siempre la misma: entender el patrón con un ejemplo chico (como las tablas de abajo), escribir cada paso en una CTE y verificar el resultado intermedio antes de seguir.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón</th>
+<th>Pregunta de negocio típica</th>
+<th>Herramienta clave</th>
+</tr>
+</thead><tbody><tr>
+<td>Deduplicación</td>
+<td>&quot;Quédate con la versión más reciente de cada cliente&quot;</td>
+<td><code>ROW_NUMBER</code> + <code>rn = 1</code></td>
+</tr>
+<tr>
+<td>Gaps &amp; islands</td>
+<td>&quot;¿Cuál fue la racha más larga de días seguidos?&quot;</td>
+<td>fecha − número de fila</td>
+</tr>
+<tr>
+<td>Sesionización</td>
+<td>&quot;Agrupa los clics en visitas&quot;</td>
+<td><code>LAG</code> + suma acumulada de cortes</td>
+</tr>
+<tr>
+<td>Embudos</td>
+<td>&quot;¿Cuántos llegaron a cada paso de la compra?&quot;</td>
+<td><code>COUNT(DISTINCT CASE …)</code></td>
+</tr>
+<tr>
+<td>Cohortes</td>
+<td>&quot;¿Qué % de los clientes de enero sigue comprando?&quot;</td>
+<td>primera fecha + meses transcurridos</td>
+</tr>
+<tr>
+<td>Último valor conocido</td>
+<td>&quot;Usa el tipo de cambio vigente ese día&quot;</td>
+<td>as-of join</td>
+</tr>
+</tbody></table></div>
+<p> Aparecen todo el tiempo en el trabajo real y en entrevistas de nivel senior. Todos combinan CTEs y funciones de ventana.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Muchas preguntas de negocio parecen distintas pero son la misma receta con otros ingredientes. &quot;¿Cuántos días seguidos entró este usuario?&quot;, &quot;¿dónde abandonan la compra?&quot; o &quot;¿cuántos clientes de enero siguen comprando en marzo?&quot; son recetas conocidas. Esta lección es tu recetario: una vez que reconoces el patrón, la consulta casi se escribe sola.</p>
+</div>
+
+
+<h2>1. Deduplicación: quedarse con el registro más reciente</h2>
+<p>Los datos crudos casi siempre traen <strong>duplicados</strong>: el sistema de origen reenvió un registro, un proceso se ejecutó dos veces, o el cliente actualizó su email y llegó una versión nueva. En la capa limpia (silver) debe quedar <strong>una fila por clave</strong>, normalmente la más reciente.</p>
+<p>La tabla <code>clientes_crudo</code> tiene el mismo cliente cargado varias veces, con distintas <code>fecha_carga</code>. El patrón tiene dos pasos:</p>
+<ol>
+<li><strong>Numerar</strong> las copias de cada <code>cliente_id</code>, de la más reciente a la más vieja: <code>ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_carga DESC)</code>. La más reciente recibe el 1.</li>
+<li><strong>Quedarse</strong> con las filas numeradas 1.</li>
+</ol>
+<p>Aprovecha el mismo paso para limpiar (<code>TRIM</code>, <code>LOWER</code>): deduplicar y normalizar van juntos.</p>
+<pre><code class="language-sql">WITH numerados AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_carga DESC) AS rn
+    FROM clientes_crudo
+)
+SELECT registro_id, cliente_id, TRIM(nombre) AS nombre, LOWER(email) AS email, fecha_carga
+FROM numerados
+WHERE rn = 1
+LIMIT 10;</code></pre>
+<h2>2. Gaps &amp; islands: rachas de días consecutivos</h2>
+<p>La tabla <code>logins</code> tiene los días en que cada cliente entró a la app. Queremos sus <strong>rachas</strong> (<em>streaks</em>): bloques de días <strong>consecutivos</strong>. Se llama <em>gaps and islands</em> (huecos e islas): las rachas son islas separadas por huecos.</p>
+<p>¿Por qué es difícil? Porque &quot;consecutivo&quot; compara cada fila con la anterior, y una racha puede tener 2 días o 200: no sirve un número fijo de <code>LAG</code>.</p>
+<p>El truco genial: si a cada fecha le restas su número de fila (en días), las fechas <strong>consecutivas</strong> dan <strong>el mismo resultado</strong>. Ese valor identifica la “isla”.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>fecha</th>
+<th>rn</th>
+<th>fecha − rn días</th>
+</tr>
+</thead><tbody><tr>
+<td>2024-01-10</td>
+<td>1</td>
+<td>2024-01-09</td>
+</tr>
+<tr>
+<td>2024-01-11</td>
+<td>2</td>
+<td>2024-01-09</td>
+</tr>
+<tr>
+<td>2024-01-12</td>
+<td>3</td>
+<td>2024-01-09</td>
+</tr>
+<tr>
+<td>2024-01-20</td>
+<td>4</td>
+<td>2024-01-16 ← nueva isla</td>
+</tr>
+<tr>
+<td>2024-01-21</td>
+<td>5</td>
+<td>2024-01-16</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">WITH marcados AS (
+    SELECT cliente_id, fecha,
+           date(fecha, '-' || ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha) || ' days') AS grupo
+    FROM logins
+),
+rachas AS (
+    SELECT cliente_id, grupo, MIN(fecha) AS desde, MAX(fecha) AS hasta, COUNT(*) AS dias
+    FROM marcados
+    GROUP BY cliente_id, grupo
+)
+SELECT * FROM rachas WHERE cliente_id = 1 ORDER BY desde;</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>3. Sesionización: agrupar clics en visitas</h2>
+<p>Las herramientas de analítica web (como Google Analytics) agrupan los eventos de un usuario en <strong>sesiones</strong> (visitas). La regla estándar: una sesión <strong>termina</strong> si pasan más de 30 minutos sin actividad; el próximo evento abre una sesión nueva. Los datos crudos solo traen eventos sueltos; las sesiones hay que construirlas.</p>
+<p>El razonamiento en tres pasos:</p>
+<ol>
+<li>Para cada evento, ¿cuántos minutos pasaron desde el evento <strong>anterior del mismo usuario</strong>? → <code>LAG</code>.</li>
+<li>Si fueron más de 30 (o es el primer evento), marca un <strong>corte</strong>: <code>1</code>; si no, <code>0</code>.</li>
+<li>La <strong>suma acumulada</strong> de los cortes numera las sesiones: 1, 1, 1, 2, 2, 3… Cada corte incrementa el contador.</li>
+</ol>
+<pre><code class="language-sql">WITH e AS (
+    SELECT cliente_id, fecha_hora, pagina,
+           (julianday(fecha_hora) - julianday(LAG(fecha_hora) OVER (PARTITION BY cliente_id ORDER BY fecha_hora))) * 24 * 60 AS min_desde_anterior
+    FROM eventos_web
+    WHERE cliente_id IS NOT NULL
+),
+cortes AS (
+    SELECT *, CASE WHEN min_desde_anterior IS NULL OR min_desde_anterior &gt; 30 THEN 1 ELSE 0 END AS nueva_sesion
+    FROM e
+)
+SELECT cliente_id, fecha_hora, pagina, ROUND(min_desde_anterior, 1) AS min_desde_anterior,
+       SUM(nueva_sesion) OVER (PARTITION BY cliente_id ORDER BY fecha_hora ROWS UNBOUNDED PRECEDING) AS sesion
+FROM cortes
+WHERE cliente_id = 5
+ORDER BY fecha_hora;</code></pre>
+<h2>4. Embudos (funnels)</h2>
+<p>Un <strong>embudo</strong> (<em>funnel</em>) mide cuántas personas llegan a cada paso de un proceso: ver un producto → agregar al carrito → iniciar el pago → confirmar. Siempre se &quot;angosta&quot; hacia abajo, y la pregunta del negocio es <strong>dónde se pierde más gente</strong> (la conversión entre pasos).</p>
+<p>Se calcula en una sola pasada contando <strong>personas distintas</strong> que pasaron por cada paso (no eventos: alguien que vio 10 productos cuenta una vez). La técnica es <code>COUNT(DISTINCT CASE WHEN condición THEN cliente_id END)</code>: el <code>CASE</code> sin <code>ELSE</code> devuelve <code>NULL</code> para los demás, y <code>COUNT(DISTINCT …)</code> ignora los <code>NULL</code>.</p>
+<p>¿Cuántos visitantes vieron un producto, cuántos agregaron al carrito y cuántos compraron?</p>
+<pre><code class="language-sql">SELECT COUNT(DISTINCT CASE WHEN pagina = 'producto'     THEN cliente_id END) AS vieron_producto,
+       COUNT(DISTINCT CASE WHEN pagina = 'carrito'      THEN cliente_id END) AS agregaron_carrito,
+       COUNT(DISTINCT CASE WHEN pagina = 'checkout'     THEN cliente_id END) AS checkout,
+       COUNT(DISTINCT CASE WHEN pagina = 'confirmacion' THEN cliente_id END) AS compraron
+FROM eventos_web
+WHERE cliente_id IS NOT NULL;</code></pre>
+<h2>5. Cohortes de retención</h2>
+<p>&quot;¿Los clientes vuelven?&quot; es una de las preguntas más importantes de cualquier negocio. Mirar el total de clientes activos por mes engaña: puede crecer porque entran muchos nuevos aunque los viejos se vayan. Un <strong>análisis de cohortes</strong> separa a los clientes según <strong>cuándo empezaron</strong> y sigue a cada grupo en el tiempo.</p>
+<p>Pasos:</p>
+<ol>
+<li><strong>Cohorte</strong> de cada cliente: el mes de su <strong>primera</strong> compra (<code>MIN</code> de la fecha, truncada al mes).</li>
+<li><strong>Mes relativo</strong> de cada compra: cuántos meses pasaron desde la cohorte (mes 0 = el de la primera compra, mes 1 = el siguiente…). Se calcula como (años de diferencia × 12) + meses de diferencia.</li>
+<li><strong>Pivotar</strong>: para cada cohorte, cuántos clientes distintos compraron en el mes 0, 1, 2, 3… Dividiendo por el mes 0 obtienes el <strong>% de retención</strong>.</li>
+</ol>
+<p>El resultado es la famosa tabla triangular de retención: cada fila es una cohorte y cada columna, un mes desde el inicio.</p>
+<pre><code class="language-sql">WITH primera AS (
+    SELECT cliente_id, MIN(date(fecha_pedido, 'start of month')) AS cohorte FROM pedidos GROUP BY cliente_id
+),
+actividad AS (
+    SELECT DISTINCT p.cliente_id, f.cohorte,
+           (CAST(strftime('%Y', p.fecha_pedido) AS INT) - CAST(strftime('%Y', f.cohorte) AS INT)) * 12
+         + (CAST(strftime('%m', p.fecha_pedido) AS INT) - CAST(strftime('%m', f.cohorte) AS INT)) AS mes_n
+    FROM pedidos p JOIN primera f ON f.cliente_id = p.cliente_id
+)
+SELECT cohorte,
+       COUNT(DISTINCT CASE WHEN mes_n = 0 THEN cliente_id END) AS m0,
+       COUNT(DISTINCT CASE WHEN mes_n = 1 THEN cliente_id END) AS m1,
+       COUNT(DISTINCT CASE WHEN mes_n = 2 THEN cliente_id END) AS m2,
+       COUNT(DISTINCT CASE WHEN mes_n = 3 THEN cliente_id END) AS m3
+FROM actividad
+WHERE cohorte &gt;= '2024-01-01'
+GROUP BY cohorte
+ORDER BY cohorte;</code></pre>
+<h2>6. Último valor conocido (forward fill)</h2>
+<p>Muchos datos de referencia solo existen en <strong>algunas</strong> fechas: el tipo de cambio no se publica los fines de semana, un precio cambia de vez en cuando, el estado de un cliente se actualiza solo cuando algo cambia. Para cada evento necesitas <strong>el último valor vigente en ese momento</strong>: ni el de hoy, ni uno posterior (eso sería &quot;ver el futuro&quot;, un error grave en análisis financieros y en modelos de machine learning).</p>
+<p><code>tipos_cambio</code> no tiene sábados ni domingos. Para convertir un pedido del sábado, usamos la última cotización <strong>anterior o igual</strong> a esa fecha:</p>
+<pre><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido,
+       (SELECT t.valor_usd FROM tipos_cambio t
+         WHERE t.moneda = 'MXN' AND t.fecha &lt;= p.fecha_pedido
+         ORDER BY t.fecha DESC LIMIT 1) AS mxn_por_usd
+FROM pedidos p
+WHERE p.fecha_pedido BETWEEN '2024-03-01' AND '2024-03-10'
+LIMIT 10;</code></pre>
+<div class="callout callout-experto"><div class="callout-title">🚀 El “as-of join”</div>
+
+<p>Esto se llama <strong>as-of join</strong> o <em>point-in-time join</em>. Con volúmenes grandes, la subconsulta correlacionada es lenta; alternativas: un calendario con el valor propagado (<code>LAST_VALUE ... IGNORE NULLS</code> en Spark/Snowflake), o rangos de validez <code>[desde, hasta)</code> con <code>LEAD(fecha)</code> y un join por rango.</p>
+</div>
+
+
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Deduplicar sin desempate</strong>: si dos registros tienen la misma <code>fecha_carga</code>, <code>ROW_NUMBER</code> elige uno al azar en cada ejecución y el resultado cambia. Agrega un segundo criterio (<code>registro_id DESC</code>).</li>
+<li><strong>Rachas con fechas repetidas</strong>: si un usuario tiene dos logins el mismo día, el truco de restar el <code>ROW_NUMBER</code> falla. Deduplica a un registro por día antes.</li>
+<li><strong>Sesiones que cruzan la medianoche</strong>: si agrupas por día antes de sesionizar, partes una visita en dos. Sesioniza sobre la marca de tiempo completa.</li>
+<li><strong>Embudos que cuentan eventos en vez de personas</strong>: un usuario que vio 10 páginas no es 10 visitantes. Cuenta <code>DISTINCT</code> usuarios en cada paso.</li>
+<li><strong>Cohortes que mezclan meses incompletos</strong>: el último mes siempre parece tener mala retención porque todavía no terminó. Exclúyelo o márcalo.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Las preguntas difíciles de producto</div>
+
+<p>El equipo de producto se sumó a los pedidos, y sus preguntas son más difíciles:</p>
+<blockquote>
+<p>&quot;¿Cuánto dura una visita promedio al sitio? ¿Cuántos usuarios llegan al carrito y cuántos terminan comprando, por dispositivo? ¿Cuántos de los que compraron por primera vez en enero siguen comprando tres meses después?&quot;</p>
+</blockquote>
+<p>Ninguna se resuelve con una sola función. Son <strong>patrones</strong>: combinaciones de ventanas, CTE y agregaciones que se repiten en todas las empresas. Aprenderlos de memoria te ahorra días de trabajo (y te hace brillar en las entrevistas).</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Estos patrones son el trabajo diario de los equipos de analítica de producto. En una empresa grande, los resultados (sesiones, embudos, cohortes) se guardan como tablas gold que alimentan los dashboards de producto.</li>
+<li>La deduplicación aparece en <strong>todos</strong> los pipelines: los sistemas de origen reenvían eventos, las APIs devuelven el mismo registro dos veces y los reintentos duplican cargas. Es lo primero que hace la capa silver.</li>
+<li>Cuando el volumen es muy grande (miles de millones de eventos), la sesionización se hace en Spark con las mismas ventanas que aprendiste aquí: el SQL se traslada casi palabra por palabra.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-patrones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-capa-bronze.html">← La capa bronze - limpiar datos como llegan de verdad</a><a href="sql-rendimiento.html">Rendimiento: índices y planes de ejecución →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

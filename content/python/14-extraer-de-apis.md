@@ -14,6 +14,10 @@ Martín te asigna tu primera extracción: *"El marketplace donde también vendem
 Esto es, palabra por palabra, una tarea real de la primera semana. En esta lección la resuelves contra la **API de práctica** de Tienda Andina (`https://api.tiendaandina.dev/v1`), que corre dentro del sitio y se porta como una de verdad: pide token, pagina, limita y falla.
 :::
 
+:::analogia En palabras simples
+Pedirle datos a una API es como pedir comida por teléfono a un restaurante con reglas: tienes que identificarte (el **token**), solo te mandan los platos de a tandas (la **paginación**), no puedes llamar cada segundo (el **límite**) y, si la línea está ocupada, vuelves a intentar un rato después (los **reintentos**). Esta lección enseña a hacer el pedido completo sin perder ni repetir ningún plato.
+:::
+
 ## La documentación primero
 
 Toda API tiene su documentación. La de práctica también: `GET /v1/docs`. Léela antes de escribir código; es lo primero que hace un profesional.

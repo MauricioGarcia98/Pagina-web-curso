@@ -18,6 +18,10 @@ Hasta ahora consultabas tablas que alguien más diseñó. Ahora te toca **diseñ
 :::
 Saber consultar es la mitad del trabajo. La otra mitad es **diseñar** las tablas para que las consultas sean simples, correctas y rápidas.
 
+:::analogia En palabras simples
+Ordenar datos es como ordenar una cocina. Para cocinar todos los días conviene tener cada cosa en su lugar y una sola vez (eso es **normalizar**). Para saber rápido "cuánto gastamos en verduras este año" conviene una planilla resumen, aunque repita algunos datos (eso es un **esquema estrella**). Cada forma sirve para una tarea distinta.
+:::
+
 ## Normalización (mundo OLTP)
 
 **Normalizar** es repartir los datos en tablas para que cada dato viva en **un solo lugar**. Así evitas inconsistencias (el mismo cliente con dos direcciones distintas en dos pedidos).

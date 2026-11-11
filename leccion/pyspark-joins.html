@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joins en PySpark · Academia de Datos</title><meta name="description" content="inner, left, anti y semi joins, columnas ambiguas, alias y self joins."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-joins.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Joins en PySpark · Academia de Datos"><meta property="og:description" content="inner, left, anti y semi joins, columnas ambiguas, alias y self joins."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-joins.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Intermedio · 40 min</div>
+<h1>Joins en PySpark</h1><p class="resumen">inner, left, anti y semi joins, columnas ambiguas, alias y self joins.</p>
+<a class="cta" href="../index.html#/l/pyspark-joins">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un join es como unir dos listas que comparten algo: una lista de pedidos con el número de cliente y una lista de clientes con su nombre. Al unirlas por ese número, cada pedido aparece con el nombre de quien lo hizo. Los distintos tipos de join deciden qué hacer con los que no tienen pareja.</p>
+</div>
+
+
+<h2>Los mismos joins de SQL, con otra sintaxis</h2>
+<p>Todo lo que aprendiste de <code>JOIN</code> en SQL vale aquí: claves que conectan tablas, <code>INNER</code> que descarta lo que no tiene pareja, <code>LEFT</code> que conserva todo lo de la izquierda, el anti-join para encontrar lo que falta y la multiplicación de filas en relaciones uno a muchos. En PySpark un join es un <strong>método</strong> del DataFrame de la izquierda:</p>
+<pre data-norun><code class="language-python">df_izq.join(df_der, on=..., how=&quot;inner&quot;)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parámetro</th>
+<th>Qué es</th>
+<th>Valores</th>
+</tr>
+</thead><tbody><tr>
+<td><code>df_der</code></td>
+<td>La tabla de la derecha</td>
+<td>otro DataFrame</td>
+</tr>
+<tr>
+<td><code>on</code></td>
+<td>Cómo emparejar</td>
+<td>un <strong>nombre</strong> de columna, una <strong>lista</strong> de nombres, o una <strong>condición</strong></td>
+</tr>
+<tr>
+<td><code>how</code></td>
+<td>El tipo de join</td>
+<td><code>&quot;inner&quot;</code> (por defecto), <code>&quot;left&quot;</code>, <code>&quot;right&quot;</code>, <code>&quot;full&quot;</code>, <code>&quot;left_semi&quot;</code>, <code>&quot;left_anti&quot;</code>, <code>&quot;cross&quot;</code></td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>SQL</th>
+<th>PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td><code>FROM pedidos JOIN clientes USING (cliente_id)</code></td>
+<td><code>pedidos.join(clientes, &quot;cliente_id&quot;)</code></td>
+</tr>
+<tr>
+<td><code>LEFT JOIN … ON a.x = b.y</code></td>
+<td><code>a.join(b, a.x == b.y, &quot;left&quot;)</code></td>
+</tr>
+<tr>
+<td><code>WHERE EXISTS (…)</code></td>
+<td><code>.join(…, how=&quot;left_semi&quot;)</code></td>
+</tr>
+<tr>
+<td><code>WHERE NOT EXISTS (…)</code> / anti-join</td>
+<td><code>.join(…, how=&quot;left_anti&quot;)</code></td>
+</tr>
+</tbody></table></div>
+<h2>Join por nombre de columna</h2>
+<p>Si la columna de unión <strong>se llama igual</strong> en las dos tablas, pasa su nombre:</p>
+<pre><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
+clientes = spark.table(&quot;clientes&quot;)
+pedidos.join(clientes, &quot;cliente_id&quot;).select(&quot;pedido_id&quot;, &quot;nombre&quot;, &quot;pais&quot;).show(5)</code></pre>
+<pre><code class="language-text">+---------+--------+----------+
+|pedido_id|  nombre|      pais|
++---------+--------+----------+
+|        1|   Paula| Argentina|
+|        2|Santiago|Costa Rica|
+|        3| Gabriel| Argentina|</code></pre>
+<p>Es el <code>USING</code> de SQL: la columna <code>cliente_id</code> aparece <strong>una sola vez</strong> en el resultado (no hay ambigüedad). Para unir por varias columnas, pasa una lista: <code>ventas.join(metas, [&quot;anio&quot;, &quot;mes&quot;, &quot;tienda&quot;])</code>.</p>
+<h2>Join por condición y el problema de las columnas ambiguas</h2>
+<p>Si los nombres son distintos, o necesitas una condición más compleja, escribe la condición con columnas de cada DataFrame:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+p = spark.table(&quot;productos&quot;)
+c = spark.table(&quot;categorias&quot;)
+# ambas tablas tienen una columna &quot;nombre&quot;: hay que decir de cuál hablamos
+(p.join(c, p.categoria_id == c.categoria_id)
+   .select(p.nombre.alias(&quot;producto&quot;), c.nombre.alias(&quot;categoria&quot;))
+   .show(5))</code></pre>
+<p>Con una condición, <strong>ambas</strong> columnas de unión quedan en el resultado, y cualquier columna que exista en las dos tablas (aquí <code>nombre</code> y <code>categoria_id</code>) queda <strong>duplicada</strong>. Si después escribes <code>F.col(&quot;nombre&quot;)</code>, Spark responde <code>AMBIGUOUS_REFERENCE</code>: no sabe de cuál hablas. Tres soluciones:</p>
+<ol>
+<li>Referirte a la columna a través de su DataFrame (<code>p.nombre</code>, <code>c.nombre</code>), como arriba.</li>
+<li>Ponerle <strong>alias</strong> a cada DataFrame y usar <code>F.col(&quot;alias.columna&quot;)</code>:</li>
+</ol>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;productos&quot;).alias(&quot;p&quot;)
+   .join(spark.table(&quot;categorias&quot;).alias(&quot;c&quot;), F.col(&quot;p.categoria_id&quot;) == F.col(&quot;c.categoria_id&quot;))
+   .select(F.col(&quot;p.nombre&quot;).alias(&quot;producto&quot;), F.col(&quot;c.nombre&quot;).alias(&quot;categoria&quot;))
+   .show(5))</code></pre>
+<ol start="3">
+<li>La más práctica: <strong>renombrar</strong> las columnas conflictivas antes del join y unir por nombre.</li>
+</ol>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+categorias = spark.table(&quot;categorias&quot;).select(&quot;categoria_id&quot;, F.col(&quot;nombre&quot;).alias(&quot;categoria&quot;))
+spark.table(&quot;productos&quot;).join(categorias, &quot;categoria_id&quot;).select(&quot;nombre&quot;, &quot;categoria&quot;).show(3)</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Un hábito que evita la mayoría de los problemas</div>
+
+<p>Antes de un join, deja en cada lado <strong>solo</strong> las columnas que vas a usar (<code>select</code>) y con nombres que no choquen. El código queda más claro, no hay ambigüedades y Spark mueve menos datos por la red.</p>
+</div>
+
+
+<h2>Los tipos de join, con números reales</h2>
+<p>Con 2.000 clientes, 1.453 de ellos con pedidos y 12.000 pedidos en total:</p>
+<pre><code class="language-python">clientes = spark.table(&quot;clientes&quot;)
+pedidos = spark.table(&quot;pedidos&quot;)
+print(&quot;inner:&quot;, clientes.join(pedidos, &quot;cliente_id&quot;).count())               # 12000: solo clientes con pedidos, una fila por pedido
+print(&quot;left:&quot;, clientes.join(pedidos, &quot;cliente_id&quot;, &quot;left&quot;).count())        # 12547: + 547 clientes sin pedidos, con nulos
+print(&quot;left_semi:&quot;, clientes.join(pedidos, &quot;cliente_id&quot;, &quot;left_semi&quot;).count())  # 1453: clientes que tienen pedidos, UNA vez
+print(&quot;left_anti:&quot;, clientes.join(pedidos, &quot;cliente_id&quot;, &quot;left_anti&quot;).count())  # 547: clientes SIN pedidos</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Filas</th>
+<th>Columnas</th>
+<th>Equivale en SQL</th>
+</tr>
+</thead><tbody><tr>
+<td><code>inner</code></td>
+<td>Solo con pareja; se repite por cada pareja</td>
+<td>De ambas tablas</td>
+<td><code>INNER JOIN</code></td>
+</tr>
+<tr>
+<td><code>left</code></td>
+<td>Todas las de la izquierda</td>
+<td>De ambas (nulos si no hay pareja)</td>
+<td><code>LEFT JOIN</code></td>
+</tr>
+<tr>
+<td><code>left_semi</code></td>
+<td>Las de la izquierda que <strong>tienen</strong> pareja, sin repetir</td>
+<td><strong>Solo</strong> de la izquierda</td>
+<td><code>WHERE EXISTS</code> / <code>IN</code></td>
+</tr>
+<tr>
+<td><code>left_anti</code></td>
+<td>Las de la izquierda que <strong>no</strong> tienen pareja</td>
+<td><strong>Solo</strong> de la izquierda</td>
+<td><code>WHERE NOT EXISTS</code></td>
+</tr>
+</tbody></table></div>
+<p><code>left_semi</code> y <code>left_anti</code> son &quot;joins filtro&quot;: usan la otra tabla solo para decidir qué filas quedan. Son más claros y más eficientes que un <code>left</code> + <code>filter(isNull)</code>, y en Spark se usan muchísimo: &quot;clientes activos&quot; (<code>semi</code>), &quot;productos nunca vendidos&quot; (<code>anti</code>), &quot;registros nuevos que todavía no están en la tabla destino&quot; (<code>anti</code>, clave en las cargas incrementales).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La explosión de filas</div>
+
+<p>Igual que en SQL, si la clave <strong>no es única</strong> en ninguno de los dos lados, el join multiplica filas (si una fecha aparece 1.000 veces a cada lado, salen 1.000.000 de filas). En un cluster eso no solo da un resultado equivocado: puede dejar el job corriendo horas. Antes de unir, pregúntate si la clave es única en al menos un lado, y verifica con <code>count()</code> antes y después.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Self join</h2>
+<p>Unir una tabla consigo misma requiere <strong>alias</strong>, porque las dos &quot;copias&quot; tienen exactamente las mismas columnas:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+e = spark.table(&quot;empleados&quot;)
+(e.alias(&quot;e&quot;)
+   .join(e.alias(&quot;j&quot;), F.col(&quot;e.jefe_id&quot;) == F.col(&quot;j.empleado_id&quot;), &quot;left&quot;)
+   .select(F.col(&quot;e.nombre&quot;).alias(&quot;empleado&quot;), F.col(&quot;j.nombre&quot;).alias(&quot;jefe&quot;))
+   .show(5))</code></pre>
+<h2>Cómo ejecuta Spark un join</h2>
+<p>En un cluster, unir no es trivial: las filas con la misma clave tienen que estar <strong>en la misma máquina</strong> para poder emparejarse. Spark elige una estrategia:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Cuándo</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Broadcast hash join</strong></td>
+<td>Una tabla es chica (por defecto &lt; 10 MB): se <strong>copia entera</strong> a cada máquina</td>
+<td>Barato: la tabla grande no se mueve</td>
+</tr>
+<tr>
+<td><strong>Sort-merge join</strong></td>
+<td>Ambas son grandes: se reparten por la clave (shuffle) y se ordenan</td>
+<td>Caro: mueve las dos tablas por la red</td>
+</tr>
+</tbody></table></div>
+<p>Puedes sugerir el broadcast cuando sabes que una tabla es chica (una dimensión de países, de categorías):</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+spark.table(&quot;productos&quot;).join(F.broadcast(spark.table(&quot;categorias&quot;)), &quot;categoria_id&quot;).count()</code></pre>
+<p>Lo verás en detalle en la lección de rendimiento; por ahora quédate con la idea: <strong>unir una tabla grande con una chica es barato; unir dos grandes, caro</strong>.</p>
+<h2>Resumen</h2>
+<ul>
+<li><code>izq.join(der, on, how)</code>: <code>on</code> es un nombre, una lista de nombres o una condición.</li>
+<li>Por nombre, la columna de unión aparece una vez; por condición, cuidado con las columnas duplicadas (usa alias o renombra antes).</li>
+<li><code>inner</code>, <code>left</code>, <code>full</code> como en SQL; <code>left_semi</code> = <code>EXISTS</code>, <code>left_anti</code> = <code>NOT EXISTS</code>.</li>
+<li>Claves no únicas multiplican filas: verifica conteos.</li>
+<li>Tabla chica + tabla grande → <code>F.broadcast(chica)</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pyspark-joins">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-agregaciones.html">← groupBy, agg, pivot y rollup</a><a href="pyspark-leer-escribir.html">Leer y escribir datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

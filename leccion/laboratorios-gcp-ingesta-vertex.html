@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio Google Cloud: Pub/Sub a BigQuery, Workflows, Scheduler y Vertex AI · Academia de Datos</title><meta name="description" content="Ingesta de eventos sin código con una suscripción de Pub/Sub que escribe directo en BigQuery, un proceso de dos pasos con Workflows disparado cada noche por Cloud Scheduler, y un modelo publicado en un endpoint de Vertex AI con división de tráfico, predicción y limpieza (retirar el modelo antes de borrar el endpoint). Cubre ingesta y operación del PDE y despliegue del PMLE."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-gcp-ingesta-vertex.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Laboratorio Google Cloud: Pub/Sub a BigQuery, Workflows, Scheduler y Vertex AI · Academia de Datos"><meta property="og:description" content="Ingesta de eventos sin código con una suscripción de Pub/Sub que escribe directo en BigQuery, un proceso de dos pasos con Workflows disparado cada noche por Cloud Scheduler, y un modelo publicado en un endpoint de Vertex AI con división de tráfico, predicción y limpieza (retirar el modelo antes de borrar el endpoint). Cubre ingesta y operación del PDE y despliegue del PMLE."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-gcp-ingesta-vertex.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Avanzado · 60 min</div>
+<h1>Laboratorio Google Cloud: Pub/Sub a BigQuery, Workflows, Scheduler y Vertex AI</h1><p class="resumen">Ingesta de eventos sin código con una suscripción de Pub/Sub que escribe directo en BigQuery, un proceso de dos pasos con Workflows disparado cada noche por Cloud Scheduler, y un modelo publicado en un endpoint de Vertex AI con división de tráfico, predicción y limpieza (retirar el modelo antes de borrar el endpoint). Cubre ingesta y operación del PDE y despliegue del PMLE.</p>
+<a class="cta" href="../index.html#/l/laboratorios-gcp-ingesta-vertex">▶ Abrir la lección interactiva (16 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una suscripción de BigQuery en Pub/Sub y verificar las filas</li><li>Desplegar y ejecutar un workflow desde un YAML</li><li>Programar el workflow con Cloud Scheduler en tu zona horaria</li><li>Subir un modelo al Model Registry, desplegarlo en un endpoint y predecir</li><li>Retirar el modelo y borrar el endpoint</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La app de la tienda manda cada clic a Pub/Sub y hoy un servicio propio los copia a BigQuery (y se cae). Además, el resumen de ventas se refresca a mano cada mañana, y el equipo de ciencia de datos quiere publicar su modelo de segmentos para que la web lo consulte.</p>
+</div>
+
+
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Ingesta, orquestación y modelo en Google Cloud</figcaption></figure>
+
+
+<h2>Costo en una cuenta real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td>Pub/Sub y suscripción de BigQuery</td>
+<td>Capa gratuita (10 GB por mes)</td>
+</tr>
+<tr>
+<td>Workflows y Cloud Scheduler</td>
+<td>Capa gratuita (5.000 pasos, 3 jobs)</td>
+</tr>
+<tr>
+<td>Endpoint de Vertex AI <code>n1-standard-2</code></td>
+<td>Unos USD 0,10 por hora <strong>mientras tenga un modelo desplegado</strong></td>
+</tr>
+</tbody></table></div>
+<h2>Práctica guiada: eventos a BigQuery sin código</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Práctica guiada: orquestación</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Práctica guiada: modelo en Vertex AI</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En tu cuenta real</h2>
+<pre data-norun><code class="language-bash">gcloud services enable pubsub.googleapis.com workflows.googleapis.com cloudscheduler.googleapis.com aiplatform.googleapis.com
+# la cuenta de servicio de Pub/Sub necesita escribir en BigQuery
+gcloud projects add-iam-policy-binding $PROYECTO \
+  --member=&quot;serviceAccount:service-$NUMERO@gcp-sa-pubsub.iam.gserviceaccount.com&quot; --role=roles/bigquery.dataEditor
+# ids reales del endpoint y del modelo
+EP=$(gcloud ai endpoints list --region us-central1 --filter=&quot;display_name=segmento&quot; --format=&quot;value(name)&quot;)
+MODELO=$(gcloud ai models list --region us-central1 --filter=&quot;display_name=segmento-v1&quot; --format=&quot;value(name)&quot;)
+gcloud ai endpoints deploy-model $EP --region us-central1 --model $MODELO --display-name segmento-v1 \
+  --machine-type n1-standard-2 --min-replica-count 1 --max-replica-count 2 --traffic-split 0=100</code></pre>
+<p>El modelo de sklearn espera en <code>gs://academia-modelos/segmento/</code> un archivo <code>model.joblib</code> (o <code>model.pkl</code>) entrenado con la misma versión de la imagen.</p>
+<h2>Limpieza</h2>
+<pre data-norun><code class="language-bash">DM=$(gcloud ai endpoints describe $EP --region us-central1 --format=&quot;value(deployedModels[0].id)&quot;)
+gcloud ai endpoints undeploy-model $EP --region us-central1 --deployed-model-id $DM
+gcloud ai endpoints delete $EP --region us-central1 --quiet
+gcloud ai models delete $MODELO --region us-central1 --quiet
+gcloud scheduler jobs delete refresco-nocturno --location us-central1 --quiet
+gcloud workflows delete refrescar-ventas --location us-central1 --quiet
+gcloud pubsub subscriptions delete clics-a-bq &amp;&amp; gcloud pubsub topics delete clics-lab
+bq rm -r -f eventos_lab</code></pre>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Esquema de la suscripción distinto del de la tabla</strong>: la suscripción de Pub/Sub a BigQuery rechaza los mensajes. Hay que configurar la tabla de mensajes no entregados (<em>dead letter</em>) para no perderlos.</li>
+<li><strong>Cloud Scheduler sin zona horaria</strong> explícita: el proceso de &quot;la noche&quot; corre a otra hora.</li>
+<li><strong>Workflows sin manejo de errores</strong>: un paso que falla deja el proceso a medias sin aviso; se agregan reintentos y un paso de notificación.</li>
+<li><strong>Dividir el tráfico de un endpoint y no comparar métricas</strong> entre las dos versiones: la división no sirve si no se mide.</li>
+<li><strong>Dejar el endpoint de Vertex AI con una réplica mínima encendida</strong>: cobra por hora aunque no reciba tráfico.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La suscripción directa de Pub/Sub a BigQuery reemplaza muchos jobs de Dataflow simples: cuando no hay transformación, es la ingesta más barata y con menos mantenimiento.</li>
+<li>Workflows y Cloud Scheduler se usan para procesos cortos de pocos pasos; para pipelines con muchas dependencias, Composer (Airflow).</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo publicarías una nueva versión de un modelo sin riesgo para los usuarios?&quot;</div>
+
+<p>Desplegaría la nueva versión en el mismo endpoint con una división de tráfico pequeña, por ejemplo 10 %, compararía métricas de negocio y técnicas con la versión actual, y aumentaría el tráfico de a poco si todo va bien. Si algo empeora, vuelvo el tráfico a la versión anterior sin redesplegar. Antes, la evaluaría fuera de línea con datos recientes y la registraría con su versión.</p>
+</div>
+
+
+<h2>Preguntas de examen</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>16 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-gcp-ingesta-vertex">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-gcp-bigquery-bqml.html">← Laboratorio Google Cloud: BigQuery particionado, dry run y BigQuery ML</a><a href="laboratorios-azure-foundry-ml.html">Laboratorio Azure: Foundry seguro y despliegue blue/green en Azure ML →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

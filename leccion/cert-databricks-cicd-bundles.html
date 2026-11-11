@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI/CD - Git folders, Declarative Automation Bundles y la CLI · Academia de Datos</title><meta name="description" content="Trabajar con Git desde el workspace, definir jobs y pipelines como código con Declarative Automation Bundles (antes Databricks Asset Bundles), targets dev y prod, variables, modos development y production, comandos de la CLI, autenticación OAuth de usuario y de service principal, y un pipeline de GitHub Actions con federación de identidad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-cicd-bundles.html">
+<meta property="og:type" content="article"><meta property="og:title" content="CI/CD - Git folders, Declarative Automation Bundles y la CLI · Academia de Datos"><meta property="og:description" content="Trabajar con Git desde el workspace, definir jobs y pipelines como código con Declarative Automation Bundles (antes Databricks Asset Bundles), targets dev y prod, variables, modos development y production, comandos de la CLI, autenticación OAuth de usuario y de service principal, y un pipeline de GitHub Actions con federación de identidad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-cicd-bundles.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-databricks">🏅 Certificaciones Databricks: Data Engineer e IA</a> · Avanzado · 50 min</div>
+<h1>CI/CD - Git folders, Declarative Automation Bundles y la CLI</h1><p class="resumen">Trabajar con Git desde el workspace, definir jobs y pipelines como código con Declarative Automation Bundles (antes Databricks Asset Bundles), targets dev y prod, variables, modos development y production, comandos de la CLI, autenticación OAuth de usuario y de service principal, y un pipeline de GitHub Actions con federación de identidad.</p>
+<a class="cta" href="../index.html#/l/cert-databricks-cicd-bundles">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Usar Git folders para versionar notebooks y código desde el workspace</li><li>Escribir un databricks.yml con recursos, variables y targets</li><li>Explicar qué cambia entre el modo development y production de un target</li><li>Ejecutar el ciclo validate → deploy → run con la CLI</li><li>Configurar un despliegue automático desde GitHub Actions sin secretos de larga duración</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>En Rápido, cada ingeniero edita los jobs en la interfaz de producción. La semana pasada alguien cambió el horario de un job &quot;solo para probar&quot; y el reporte de la mañana salió vacío. El nuevo líder técnico decide: <strong>nada se cambia a mano en producción</strong>. Todo vive en Git, se prueba en un entorno de desarrollo y se despliega solo cuando se aprueba un pull request. Las herramientas: <strong>Git folders</strong> para trabajar, <strong>Declarative Automation Bundles</strong> para describir todo como código y la <strong>CLI</strong> para desplegar desde CI.</p>
+</div>
+
+
+<h2>Git folders</h2>
+<p>Un <strong>Git folder</strong> (antes <em>Repos</em>) es una carpeta del workspace conectada a un repositorio remoto (GitHub, GitLab, Azure DevOps, Bitbucket). Desde la interfaz puedes clonar, crear y cambiar de rama, ver diferencias, hacer <em>commit</em> y <em>push</em>, y traer cambios (<em>pull</em>).</p>
+<ul>
+<li>Se configura una <strong>credencial de Git</strong> por usuario (token personal o la app de Git del proveedor).</li>
+<li>Guarda notebooks como archivos de código (<code>.py</code>, <code>.sql</code>) y también archivos comunes (módulos de Python, YAML, tests), que se pueden importar desde los notebooks.</li>
+<li>Para operaciones más complejas (<em>rebase</em>, resolver conflictos grandes, <em>hooks</em>) conviene la terminal local.</li>
+</ul>
+<p>Un Git folder sirve para <strong>desarrollar</strong>; para <strong>desplegar</strong> en producción se usan los bundles desde CI.</p>
+<h2>Declarative Automation Bundles</h2>
+<p>En marzo de 2026, Databricks renombró <strong>Databricks Asset Bundles</strong> a <strong>Declarative Automation Bundles</strong>. La sigla <strong>DAB</strong>, los comandos (<code>databricks bundle …</code>) y los archivos de configuración no cambiaron.</p>
+<p>Un <strong>bundle</strong> es una carpeta con código (notebooks, archivos <code>.py</code> y <code>.sql</code>) y un archivo <strong><code>databricks.yml</code></strong> que describe los <strong>recursos</strong> de Databricks (jobs, pipelines, esquemas, volúmenes, dashboards, apps, endpoints de serving) y los <strong>targets</strong> (entornos) donde se despliegan.</p>
+<pre><code class="language-yaml">bundle:
+  name: rapido_pedidos
+
+include:
+  - resources/*.yml               # los recursos pueden repartirse en varios archivos
+
+variables:
+  catalogo:
+    description: Catálogo de destino
+    default: dev
+  aviso_email:
+    default: datos@rapido.pe
+
+resources:
+  pipelines:
+    pedidos:
+      name: pedidos
+      catalog: ${var.catalogo}
+      schema: rapido
+      serverless: true
+      libraries:
+        - file: { path: ./src/pedidos.sql }
+
+  jobs:
+    diario:
+      name: rapido_diario
+      trigger:
+        file_arrival: { url: /Volumes/${var.catalogo}/rapido/aterrizaje/pedidos/ }
+      email_notifications:
+        on_failure: [ &quot;${var.aviso_email}&quot; ]
+      tasks:
+        - task_key: ingesta
+          pipeline_task: { pipeline_id: &quot;${resources.pipelines.pedidos.id}&quot; }
+        - task_key: validar
+          depends_on: [ { task_key: ingesta } ]
+          notebook_task: { notebook_path: ./src/validar.py }
+
+targets:
+  dev:
+    mode: development             # recursos con prefijo &quot;[dev usuario]&quot;, disparadores en pausa
+    default: true
+    workspace:
+      host: https://adb-1111.11.azuredatabricks.net
+
+  prod:
+    mode: production              # validaciones de producción
+    workspace:
+      host: https://adb-2222.22.azuredatabricks.net
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalogo: prod
+    run_as:
+      service_principal_name: 6f1e9f3a-0000-4b1c-9d7e-sp-rapido     # el id de aplicación del service principal
+    permissions:
+      - group_name: equipo-datos
+        level: CAN_MANAGE_RUN</code></pre>
+<p>Las piezas:</p>
+<ul>
+<li><strong><code>variables</code></strong>: valores que cambian por entorno; se usan con <code>${var.nombre}</code> y se pueden sobrescribir por target o con <code>--var</code>.</li>
+<li><strong>Referencias</strong>: <code>${resources.pipelines.pedidos.id}</code> se resuelve al desplegar con el id real del pipeline en ese workspace. <code>${bundle.target}</code> es el nombre del target.</li>
+<li><strong><code>targets</code></strong>: el mismo código se despliega en <code>dev</code> y en <code>prod</code> con distinta configuración.</li>
+<li><strong><code>run_as</code></strong> y <strong><code>permissions</code></strong>: con qué identidad corren los recursos y quién puede verlos o ejecutarlos.</li>
+</ul>
+<h3>mode development vs. mode production</h3>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th><code>mode: development</code></th>
+<th><code>mode: production</code></th>
+</tr>
+</thead><tbody><tr>
+<td>Nombres</td>
+<td>Prefija los recursos con <code>[dev tu_usuario]</code></td>
+<td>Nombres tal cual</td>
+</tr>
+<tr>
+<td>Disparadores y horarios</td>
+<td>En <strong>pausa</strong> (no corre solo)</td>
+<td>Activos</td>
+</tr>
+<tr>
+<td>Despliegue</td>
+<td>En tu carpeta personal; cada desarrollador tiene su copia</td>
+<td>En una ruta compartida (<code>root_path</code>)</td>
+</tr>
+<tr>
+<td>Pipelines</td>
+<td>En modo desarrollo</td>
+<td>Modo producción</td>
+</tr>
+<tr>
+<td>Validaciones</td>
+<td>Pocas</td>
+<td>Exige, por ejemplo, que no se desplieguen recursos con la identidad de una persona sin configurarlo explícitamente</td>
+</tr>
+</tbody></table></div>
+<h2>El ciclo con la CLI</h2>
+<pre data-norun><code class="language-bash">databricks bundle init                        # crea un bundle a partir de una plantilla (default-python, default-sql, dbt-sql…)
+databricks bundle validate                    # revisa la sintaxis y resuelve variables; no despliega nada
+databricks bundle deploy -t dev               # sube el código y crea o actualiza los recursos del target dev
+databricks bundle run -t dev diario           # ejecuta el recurso &quot;diario&quot; (un job o un pipeline)
+databricks bundle summary -t prod             # muestra qué recursos tiene desplegados el target
+databricks bundle destroy -t dev              # borra los recursos de ese target
+databricks bundle generate job --existing-job-id 123456   # genera el YAML de un job creado en la interfaz
+databricks bundle deployment bind diario 123456 -t prod    # asocia el recurso del bundle con un job que ya existe</code></pre>
+<p><code>deploy</code> es <strong>declarativo</strong>: compara el estado del bundle con lo desplegado y crea, modifica o borra recursos para que coincidan. Si borras un job del YAML y despliegas, el job se borra del workspace.</p>
+<div class="callout callout-examen"><div class="callout-title">🏅 Comandos que confunden</div>
+
+<ul>
+<li><strong>Validar sin desplegar</strong> → <code>databricks bundle validate</code>.</li>
+<li><strong>Pasar a código un job creado a mano</strong> → <code>databricks bundle generate job --existing-job-id …</code> (y <code>deployment bind</code> para no crear un duplicado).</li>
+<li><strong>Desplegar a producción</strong> → <code>databricks bundle deploy -t prod</code>, idealmente desde CI y no desde una laptop.</li>
+</ul>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Autenticación de la CLI</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Escenario</th>
+<th>Método</th>
+</tr>
+</thead><tbody><tr>
+<td>Tú, desde tu computadora</td>
+<td><strong>OAuth de usuario a máquina (U2M)</strong>: <code>databricks auth login --host &lt;url&gt;</code>. Abre el navegador, guarda un <strong>perfil</strong> en <code>~/.databrickscfg</code> y renueva los tokens solo</td>
+</tr>
+<tr>
+<td>Un proceso automático con secreto</td>
+<td><strong>OAuth de máquina a máquina (M2M)</strong> con un <strong>service principal</strong>: <code>DATABRICKS_HOST</code>, <code>DATABRICKS_CLIENT_ID</code>, <code>DATABRICKS_CLIENT_SECRET</code></td>
+</tr>
+<tr>
+<td>CI/CD sin secretos guardados</td>
+<td><strong>Federación de identidad de cargas de trabajo</strong> (OIDC): GitHub Actions, Azure DevOps y otros obtienen un token de corta duración que Databricks acepta para un service principal</td>
+</tr>
+<tr>
+<td>Heredado</td>
+<td>Tokens personales de acceso (PAT): funcionan, pero se desaconsejan por ser de larga duración</td>
+</tr>
+</tbody></table></div>
+<h3>GitHub Actions: desplegar al aprobar un PR</h3>
+<pre><code class="language-yaml">name: deploy-prod
+on:
+  push:
+    branches: [ main ]
+permissions:
+  id-token: write          # permite pedir el token OIDC
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      DATABRICKS_HOST: https://adb-2222.22.azuredatabricks.net
+      DATABRICKS_CLIENT_ID: ${{ vars.SP_CLIENT_ID }}
+      DATABRICKS_AUTH_TYPE: github-oidc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - run: databricks bundle validate -t prod
+      - run: databricks bundle deploy -t prod</code></pre>
+<p>En los pull requests, otro workflow ejecuta las pruebas unitarias (<code>pytest</code>) y <code>databricks bundle validate</code>; si se quiere más, despliega a un target de prueba y corre un job de integración.</p>
+<h2>Probar el código</h2>
+<ul>
+<li><strong>Pruebas unitarias</strong>: la lógica de transformación vive en funciones (<code>def limpiar(df): ...</code>) dentro de módulos, y se prueba con <code>pytest</code> y DataFrames chicos. Para comparar resultados, <code>pyspark.testing.assertDataFrameEqual</code>.</li>
+<li><strong>Databricks Connect</strong>: ejecuta código PySpark desde tu IDE local contra cómputo de Databricks (incluido serverless), útil para probar con datos reales sin subir notebooks.</li>
+<li><strong>Pruebas de integración</strong>: desplegar el bundle en un target de pruebas y ejecutar el job completo con datos de prueba.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Editar en la interfaz un job desplegado con un bundle.</strong> Síntoma: el siguiente <code>deploy</code> borra tus cambios. Corrección: cambiar el YAML.</li>
+<li><strong>Desplegar a prod desde la laptop.</strong> Síntoma: versiones que nadie revisó en producción. Corrección: solo CI despliega a prod.</li>
+<li><strong>Tokens personales en secretos de CI.</strong> Síntoma: el pipeline se rompe cuando la persona se va, y el token es una llave de larga duración. Corrección: service principal con OIDC.</li>
+<li><strong>Olvidar <code>mode: development</code> en dev.</strong> Síntoma: el job de desarrollo corre con su horario y compite con producción. Corrección: usar el modo, que pausa los disparadores.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 La estructura que verás en las empresas</div>
+
+<pre><code class="language-text">rapido_pedidos/
+├── databricks.yml
+├── resources/            ← jobs.yml, pipelines.yml
+├── src/                  ← notebooks, .sql y paquete de Python
+├── tests/                ← pytest
+└── .github/workflows/    ← pr.yml (tests + validate), deploy.yml (deploy a prod)</code></pre>
+<p>Cada desarrollador despliega su copia con <code>-t dev</code>, abre un pull request, CI corre las pruebas y, al aprobarse, despliega a producción con el service principal.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Cómo llevas a producción un job que alguien armó a mano en la interfaz?&quot;</strong> Genero su YAML con <code>databricks bundle generate job --existing-job-id</code>, lo agrego al bundle, lo vinculo con <code>bundle deployment bind</code> para no duplicarlo, reviso que corra como service principal y, desde ese momento, los cambios solo entran por pull request y CI.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-databricks-cicd-bundles">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-databricks-lakeflow-jobs.html">← Orquestar con Lakeflow Jobs</a><a href="cert-databricks-optimizacion-monitoreo.html">Optimizar, monitorear y resolver problemas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

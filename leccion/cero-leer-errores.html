@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Los errores son tus amigos - cómo leer cualquier mensaje de error · Academia de Datos</title><meta name="description" content="Un error no es un fracaso: es la computadora diciéndote exactamente qué no entendió. Aprende a leerlo en Python, SQL y la terminal."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-leer-errores.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Los errores son tus amigos - cómo leer cualquier mensaje de error · Academia de Datos"><meta property="og:description" content="Un error no es un fracaso: es la computadora diciéndote exactamente qué no entendió. Aprende a leerlo en Python, SQL y la terminal."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-leer-errores.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cero">🌱 Antes de empezar: desde cero absoluto</a> · Básico · 35 min</div>
+<h1>Los errores son tus amigos - cómo leer cualquier mensaje de error</h1><p class="resumen">Un error no es un fracaso: es la computadora diciéndote exactamente qué no entendió. Aprende a leerlo en Python, SQL y la terminal.</p>
+<a class="cta" href="../index.html#/l/cero-leer-errores">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer las tres partes de todo mensaje de error (dónde, qué tipo, por qué)</li><li>Leer un error de Python de abajo hacia arriba</li><li>Leer un error de SQL y de la terminal</li><li>Arreglar los errores más comunes de principiante</li><li>Seguir un método fijo cuando algo falla</li></ul>
+<h2>Un error es un mensaje, no un castigo</h2>
+<p>La computadora no tiene sentido común: hace exactamente lo que escribiste. Cuando algo no tiene sentido para ella, <strong>se detiene y te explica por qué</strong>. Ese texto rojo es la explicación. Equivocarse es la forma normal de programar: todo programador profesional escribe, ejecuta, lee el error, corrige y vuelve a ejecutar, muchas veces por hora.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El GPS que recalcula</div>
+
+<p>Un error es como el GPS diciendo &quot;recalculando&quot;. No te reta: te avisa que te desviaste y por dónde. Lo peor que puedes hacer es ignorarlo; lo mejor, leer qué dice.</p>
+</div>
+
+
+<h2>Las tres preguntas que responde todo error</h2>
+<p>Todos los mensajes de error, en cualquier lenguaje, responden tres preguntas:</p>
+<ol>
+<li><strong>¿Dónde?</strong> El archivo y la línea donde la computadora se trabó.</li>
+<li><strong>¿Qué tipo de problema?</strong> Un nombre que clasifica el error: <code>NameError</code>, <code>SyntaxError</code>, <code>no such column</code>…</li>
+<li><strong>¿Por qué?</strong> Una frase que explica el detalle: <code>name &#39;precio&#39; is not defined</code> (el nombre <code>precio</code> no está definido).</li>
+</ol>
+<h2>Errores de Python: se leen de abajo hacia arriba</h2>
+<p>Python muestra un <strong>traceback</strong> (el &quot;rastro&quot; de por dónde pasó el programa antes de fallar). La parte importante está <strong>al final</strong>:</p>
+<pre data-norun><code class="language-text">Traceback (most recent call last):
+  File &quot;ventas.py&quot;, line 3, in &lt;module&gt;
+    total = precio * cantidad
+            ^^^^^^
+NameError: name 'precio' is not defined</code></pre>
+<ul>
+<li><strong>Última línea</strong>: el tipo (<code>NameError</code>) y el porqué (<code>name &#39;precio&#39; is not defined</code>: &quot;el nombre &#39;precio&#39; no está definido&quot;).</li>
+<li><strong>Arriba</strong>: dónde (<code>ventas.py</code>, línea 3) y la línea exacta, con <code>^^^^</code> señalando el pedazo culpable.</li>
+</ul>
+<p>Traducido: &quot;en la línea 3 usaste <code>precio</code>, pero nunca le diste un valor&quot;. Quizá lo escribiste distinto más arriba (<code>Precio</code>, <code>precios</code>) o te olvidaste de crearlo.</p>
+<h3>Los errores de Python más comunes al empezar</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Error</th>
+<th>Qué significa</th>
+<th>La causa típica</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SyntaxError</code></td>
+<td>Escribiste algo que no es Python válido</td>
+<td>Falta un <code>:</code>, un paréntesis o una comilla</td>
+</tr>
+<tr>
+<td><code>IndentationError</code></td>
+<td>La sangría (espacios al principio) está mal</td>
+<td>Mezclar espacios, olvidar sangrar después de <code>if</code> o <code>for</code></td>
+</tr>
+<tr>
+<td><code>NameError</code></td>
+<td>Usaste un nombre que no existe</td>
+<td>Error de tipeo, o usar la variable antes de crearla</td>
+</tr>
+<tr>
+<td><code>TypeError</code></td>
+<td>Mezclaste tipos que no se combinan</td>
+<td>Sumar texto con número: <code>&quot;Total: &quot; + 5</code></td>
+</tr>
+<tr>
+<td><code>ValueError</code></td>
+<td>El tipo está bien pero el valor no sirve</td>
+<td><code>int(&quot;hola&quot;)</code>: no se puede convertir</td>
+</tr>
+<tr>
+<td><code>KeyError</code></td>
+<td>Pediste una clave que el diccionario no tiene</td>
+<td><code>cliente[&quot;email&quot;]</code> cuando no hay <code>email</code></td>
+</tr>
+<tr>
+<td><code>IndexError</code></td>
+<td>Pediste una posición que la lista no tiene</td>
+<td><code>lista[10]</code> en una lista de 3 elementos</td>
+</tr>
+<tr>
+<td><code>ZeroDivisionError</code></td>
+<td>Dividiste por cero</td>
+<td>Un promedio de una lista vacía</td>
+</tr>
+<tr>
+<td><code>FileNotFoundError</code></td>
+<td>El archivo no está donde dijiste</td>
+<td>Ruta relativa desde otra carpeta</td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError</code></td>
+<td>La librería no está instalada</td>
+<td>Falta <code>pip install</code> o <code>uv add</code></td>
+</tr>
+</tbody></table></div>
+<h2>Errores de SQL</h2>
+<p>Los errores de SQL son más cortos y casi siempre nombran el culpable:</p>
+<pre data-norun><code class="language-text">Error: no such column: emial</code></pre>
+<p>&quot;No existe la columna <code>emial</code>&quot;: un error de tipeo (era <code>email</code>). Los más comunes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Mensaje</th>
+<th>Qué significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>no such table: X</code></td>
+<td>La tabla <code>X</code> no existe (tipeo, o el nombre es otro)</td>
+</tr>
+<tr>
+<td><code>no such column: X</code></td>
+<td>La columna <code>X</code> no existe en esas tablas</td>
+</tr>
+<tr>
+<td><code>near &quot;X&quot;: syntax error</code></td>
+<td>Justo <strong>antes</strong> de <code>X</code> hay algo mal escrito: una coma de más o de menos, una palabra mal puesta</td>
+</tr>
+<tr>
+<td><code>ambiguous column name: X</code></td>
+<td>Dos tablas del JOIN tienen la columna <code>X</code> y no dijiste de cuál: usa <code>tabla.X</code></td>
+</tr>
+<tr>
+<td><code>misuse of aggregate</code></td>
+<td>Usaste <code>SUM</code> o <code>COUNT</code> donde no se puede (por ejemplo en el <code>WHERE</code>; va en el <code>HAVING</code>)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 El &quot;near&quot; apunta después del error</div>
+
+<p>En <code>near &quot;FROM&quot;: syntax error</code>, el problema casi nunca es el <code>FROM</code> en sí: es lo que está <strong>justo antes</strong>. Lo más común: una coma después de la última columna del <code>SELECT</code> (<code>SELECT nombre, email, FROM clientes</code>).</p>
+</div>
+
+
+<h2>Errores de la terminal</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Mensaje</th>
+<th>Qué significa</th>
+<th>Qué hacer</th>
+</tr>
+</thead><tbody><tr>
+<td><code>command not found</code></td>
+<td>Ese comando no existe o no está instalado</td>
+<td>Revisa cómo lo escribiste; si está bien, instálalo</td>
+</tr>
+<tr>
+<td><code>No such file or directory</code></td>
+<td>El archivo o la carpeta no está en esa ruta</td>
+<td>Usa <code>pwd</code> y <code>ls</code> para ver dónde estás y qué hay</td>
+</tr>
+<tr>
+<td><code>Permission denied</code></td>
+<td>No tienes permiso para eso</td>
+<td>Revisa de quién es el archivo; en un script, falta <code>chmod +x</code></td>
+</tr>
+<tr>
+<td><code>Is a directory</code></td>
+<td>Usaste una carpeta donde iba un archivo</td>
+<td>Revisa la ruta</td>
+</tr>
+</tbody></table></div>
+<h2>El método de los 5 pasos</h2>
+<p>Cuando algo falla, sigue siempre los mismos pasos:</p>
+<ol>
+<li><strong>Lee la última línea</strong> del error, con calma, entera.</li>
+<li><strong>Ve a la línea</strong> que indica y mírala con lupa: comillas, paréntesis, dos puntos, mayúsculas.</li>
+<li><strong>Traduce</strong> el mensaje (la lección de inglés técnico te ayuda) y pregúntate: ¿qué esperaba la computadora y qué le di?</li>
+<li><strong>Cambia una sola cosa</strong> y vuelve a ejecutar. Si cambias cinco cosas a la vez, no sabes cuál lo arregló (o cuál lo empeoró).</li>
+<li>Si después de 15 minutos sigues trabado, <strong>busca el mensaje exacto</strong> o pregunta (te enseñamos cómo en la lección &quot;Cómo aprender esto&quot;).</li>
+</ol>
+<div class="callout callout-experto"><div class="callout-title">🚀 Leer el error es una habilidad de senior</div>
+
+<p>Los programadores senior no cometen menos errores: los resuelven más rápido porque leen el mensaje completo antes de tocar nada. En una entrevista técnica, decir en voz alta &quot;el error dice que la columna no existe, así que voy a revisar el nombre&quot; suma muchos puntos.</p>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El primer error rojo</div>
+
+<p>Ahora que sabes leer un error de arriba abajo, imagina este momento, que le pasa a todo el mundo en sus primeras semanas trabajando con datos: escribes tu programa, presionas <strong>Ejecutar</strong> y aparece un texto rojo lleno de palabras en inglés.</p>
+<p>Martín, tu líder, que programa hace 15 años, te dice: <em>&quot;Yo veo errores rojos cien veces por día. La diferencia es que ya no me asustan: los leo. El error casi siempre te dice qué pasó y en qué línea.&quot;</em> Con lo que practicaste en esta lección, ya puedes hacer lo mismo.</p>
+</div>
+
+
+<h2>Practica</h2>
+<p>En los ejercicios de código, el editor ya trae el programa <strong>con el error</strong>. Ejecútalo (▶ o Ctrl + Enter), lee el mensaje, arréglalo y presiona <strong>Comprobar</strong>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Leer solo la primera línea del traceback</strong>: lo importante está al final.</li>
+<li><strong>Copiar y pegar el error en un buscador sin leerlo</strong>: muchas veces la respuesta está en el propio mensaje.</li>
+<li><strong>Cambiar muchas cosas a la vez</strong>: pierdes el hilo de qué arregló qué.</li>
+</ul>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cero-leer-errores">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cero-tu-computadora.html">← Tu computadora por dentro - archivos, carpetas, extensiones y rutas</a><a href="cero-matematica-para-datos.html">La matemática justa para datos - porcentajes, tasas, promedios y medianas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

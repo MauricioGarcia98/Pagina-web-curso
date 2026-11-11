@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones de ventana I: rankings · Academia de Datos</title><meta name="description" content="OVER, PARTITION BY, ROW_NUMBER, RANK, DENSE_RANK y el top-N por grupo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-ventanas-1.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones de ventana I: rankings · Academia de Datos"><meta property="og:description" content="OVER, PARTITION BY, ROW_NUMBER, RANK, DENSE_RANK y el top-N por grupo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-ventanas-1.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Avanzado · 45 min</div>
+<h1>Funciones de ventana I: rankings</h1><p class="resumen">OVER, PARTITION BY, ROW_NUMBER, RANK, DENSE_RANK y el top-N por grupo.</p>
+<a class="cta" href="../index.html#/l/sql-ventanas-1">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular agregaciones sin perder el detalle de cada fila con <code>OVER (PARTITION BY …)</code></li><li>Numerar y rankear filas con <code>ROW_NUMBER</code>, <code>RANK</code> y <code>DENSE_RANK</code>, eligiendo según los empates</li><li>Resolver el patrón &quot;top N por grupo&quot;</li><li>Calcular la participación de cada fila en el total de su grupo</li></ul>
+<h2>El límite de GROUP BY</h2>
+<p>Con <code>GROUP BY</code> puedes calcular el precio promedio <strong>por categoría</strong>. Pero el resultado tiene <strong>una fila por categoría</strong>: perdiste el detalle de cada producto. ¿Y si quieres ver <strong>cada producto</strong> junto al promedio de su categoría, o su <strong>puesto</strong> dentro de su marca? Necesitas un cálculo de grupo <strong>sin colapsar las filas</strong>. Eso hacen las <strong>funciones de ventana</strong> (<em>window functions</em>).</p>
+<p>Son, para muchos, la frontera entre un SQL intermedio y uno avanzado, y aparecen en prácticamente <strong>todas</strong> las entrevistas técnicas de datos.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th><code>GROUP BY</code></th>
+<th>Función de ventana</th>
+</tr>
+</thead><tbody><tr>
+<td>Filas en el resultado</td>
+<td>Una por grupo</td>
+<td><strong>Todas</strong> las originales</td>
+</tr>
+<tr>
+<td>Puede mostrar columnas de detalle</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Ejemplo</td>
+<td>&quot;promedio por categoría&quot;</td>
+<td>&quot;cada producto con el promedio de su categoría&quot;</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La ventana del tren</div>
+
+<p>Imagina que cada fila es un pasajero sentado en un vagón (su grupo). Una función de ventana permite que cada pasajero mire <strong>por la ventana a los demás de su mismo vagón</strong>, en cierto orden, y anote algo en su boleto: &quot;en mi vagón soy el 3.º más alto&quot;, &quot;el promedio de edad de mi vagón es 34&quot;, &quot;la persona sentada antes que yo tiene 20 años&quot;. Nadie se baja del tren: todos los pasajeros siguen ahí, cada uno con su anotación.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>La sintaxis</h2>
+<pre data-norun><code class="language-sql">funcion(...) OVER (
+    PARTITION BY columnas   -- opcional: los &quot;vagones&quot; (grupos). Sin él, toda la tabla es un solo grupo
+    ORDER BY columnas       -- opcional: el orden dentro de cada grupo
+    ROWS BETWEEN …          -- opcional: el &quot;marco&quot; de filas (lección siguiente)
+)</code></pre>
+<p>La palabra clave es <strong><code>OVER</code></strong>: lo que va antes es la función, lo que va adentro de los paréntesis define <strong>la ventana</strong>, es decir, qué filas mira cada fila.</p>
+<h2>Agregaciones como ventana</h2>
+<p>Cualquier agregación (<code>SUM</code>, <code>AVG</code>, <code>COUNT</code>, <code>MIN</code>, <code>MAX</code>) se convierte en función de ventana si le agregas <code>OVER</code>:</p>
+<pre><code class="language-sql">SELECT nombre, categoria_id, precio,
+       ROUND(AVG(precio) OVER (PARTITION BY categoria_id), 2)         AS promedio_categoria,
+       ROUND(precio - AVG(precio) OVER (PARTITION BY categoria_id), 2) AS diferencia,
+       COUNT(*) OVER ()                                                AS total_productos
+FROM productos
+LIMIT 10;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>nombre</th>
+<th>categoria_id</th>
+<th>precio</th>
+<th>promedio_categoria</th>
+<th>diferencia</th>
+<th>total_productos</th>
+</tr>
+</thead><tbody><tr>
+<td>Smartphone Apple Mini 300</td>
+<td>6</td>
+<td>484.99</td>
+<td>665.49</td>
+<td>−180.5</td>
+<td>300</td>
+</tr>
+<tr>
+<td>Teléfono Samsung Ultra</td>
+<td>6</td>
+<td>1111.99</td>
+<td>665.49</td>
+<td>446.5</td>
+<td>300</td>
+</tr>
+<tr>
+<td>Parlante Xiaomi Sport 900</td>
+<td>7</td>
+<td>425.99</td>
+<td>239.1</td>
+<td>186.89</td>
+<td>300</td>
+</tr>
+</tbody></table></div>
+<p>Cómo leerlo:</p>
+<ul>
+<li><code>AVG(precio) OVER (PARTITION BY categoria_id)</code>: para cada fila, el promedio de <strong>las filas de su misma categoría</strong>. Todas las filas de la categoría 6 muestran el mismo 665,49.</li>
+<li><code>COUNT(*) OVER ()</code>: con paréntesis vacíos, la ventana es <strong>toda la tabla</strong>: 300 en cada fila. Muy útil para porcentajes del total: <code>100.0 * precio / SUM(precio) OVER ()</code>.</li>
+<li>Puedes usar el resultado en un cálculo (<code>precio - AVG(…) OVER (…)</code>).</li>
+</ul>
+<p>Compara con la subconsulta correlacionada de la lección 13: mismo resultado, mucho más claro y, en general, más rápido.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las ventanas se calculan después del WHERE</div>
+
+<p>Las funciones de ventana se evalúan en el paso del <code>SELECT</code>, <strong>después</strong> de <code>WHERE</code>, <code>GROUP BY</code> y <code>HAVING</code>. Por eso:</p>
+<ul>
+<li>Si filtras con <code>WHERE categoria_id = 6</code>, <code>COUNT(*) OVER ()</code> cuenta solo las filas que quedaron (56), no las 300.</li>
+<li><strong>No</strong> puedes usar una función de ventana dentro de un <code>WHERE</code> (todavía no se calculó). Para filtrar por ella, envuelve la consulta en una CTE (lo verás en el top-N).</li>
+</ul>
+</div>
+
+
+<h2>Rankings: ROW_NUMBER, RANK y DENSE_RANK</h2>
+<p>Con <code>ORDER BY</code> dentro del <code>OVER</code>, puedes <strong>numerar</strong> las filas de cada grupo. Hay tres funciones, y la diferencia está en cómo tratan los <strong>empates</strong>:</p>
+<pre><code class="language-sql">WITH notas(alumno, puntaje) AS (VALUES ('Ana', 100), ('Beto', 90), ('Carla', 90), ('Dani', 80))
+SELECT alumno, puntaje,
+       ROW_NUMBER() OVER (ORDER BY puntaje DESC) AS row_number,
+       RANK()       OVER (ORDER BY puntaje DESC) AS rank,
+       DENSE_RANK() OVER (ORDER BY puntaje DESC) AS dense_rank
+FROM notas;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>alumno</th>
+<th>puntaje</th>
+<th>row_number</th>
+<th>rank</th>
+<th>dense_rank</th>
+</tr>
+</thead><tbody><tr>
+<td>Ana</td>
+<td>100</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Beto</td>
+<td>90</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Carla</td>
+<td>90</td>
+<td>3</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Dani</td>
+<td>80</td>
+<td>4</td>
+<td><strong>4</strong></td>
+<td><strong>3</strong></td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Con empates</th>
+<th>Cuándo usarla</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ROW_NUMBER()</code></td>
+<td>Siempre números distintos; el empate se rompe <strong>arbitrariamente</strong></td>
+<td>Elegir <strong>exactamente una</strong> fila por grupo (el último pedido de cada cliente, deduplicar)</td>
+</tr>
+<tr>
+<td><code>RANK()</code></td>
+<td>Los empatados comparten puesto y se <strong>salta</strong> el siguiente (1, 2, 2, 4)</td>
+<td>Rankings &quot;deportivos&quot;: si dos empatan en el 2.º puesto, no hay 3.º</td>
+</tr>
+<tr>
+<td><code>DENSE_RANK()</code></td>
+<td>Comparten puesto <strong>sin saltos</strong> (1, 2, 2, 3)</td>
+<td>&quot;El 2.º valor más alto&quot;, niveles o categorías consecutivas</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Desempata siempre con ROW_NUMBER</div>
+
+<p>Si usas <code>ROW_NUMBER()</code> y hay empates en la columna de orden, cada ejecución puede elegir una fila distinta (el resultado no es determinista). Agrega una columna de desempate única: <code>ORDER BY precio DESC, producto_id</code>.</p>
+</div>
+
+
+<h3>Rankings dentro de cada grupo</h3>
+<p>Con <code>PARTITION BY</code>, la numeración <strong>vuelve a empezar en 1</strong> en cada grupo:</p>
+<pre><code class="language-sql">SELECT nombre, marca, precio,
+       ROW_NUMBER() OVER (PARTITION BY marca ORDER BY precio DESC) AS puesto_en_marca
+FROM productos
+WHERE marca IN ('Apple', 'Sony')
+ORDER BY marca, precio DESC;</code></pre>
+<p>Los productos Apple se numeran 1, 2, 3… del más caro al más barato; al llegar a Sony, el contador vuelve a 1.</p>
+<h2>El patrón estrella: el top-N por grupo</h2>
+<p>&quot;Los 3 productos más caros <strong>de cada marca</strong>&quot;, &quot;el último pedido <strong>de cada cliente</strong>&quot;, &quot;la canción más escuchada <strong>en cada país</strong>&quot;: es probablemente el patrón más pedido en entrevistas y en el trabajo real. Como no se puede filtrar una ventana en el <code>WHERE</code>, se hace en dos pasos con una CTE:</p>
+<pre><code class="language-sql">WITH ranking AS (                                  -- paso 1: numerar dentro de cada marca
+    SELECT nombre, marca, precio,
+           ROW_NUMBER() OVER (PARTITION BY marca ORDER BY precio DESC, producto_id) AS rn
+    FROM productos
+)
+SELECT marca, nombre, precio                       -- paso 2: quedarse con los primeros 3
+FROM ranking
+WHERE rn &lt;= 3
+ORDER BY marca, rn;</code></pre>
+<p>Para &quot;el último pedido de cada cliente&quot; es lo mismo con <code>PARTITION BY cliente_id ORDER BY fecha_pedido DESC</code> y <code>WHERE rn = 1</code>. Este es el método estándar para <strong>deduplicar</strong>: cuando una tabla tiene varias versiones de un registro, te quedas con la más reciente de cada clave.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 QUALIFY</div>
+
+<p>Databricks/Spark SQL, Snowflake, BigQuery y DuckDB permiten filtrar directamente con <code>QUALIFY</code>, sin CTE: <code>SELECT … FROM productos QUALIFY ROW_NUMBER() OVER (PARTITION BY marca ORDER BY precio DESC) &lt;= 3</code>. SQLite y PostgreSQL no lo tienen, por eso aquí usamos la CTE (que funciona en todos).</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Encuentra el segundo salario más alto&quot;</div>
+
+<p>Una de las preguntas más clásicas. Con ventanas:</p>
+<pre><code class="language-sql">WITH r AS (SELECT nombre, salario, DENSE_RANK() OVER (ORDER BY salario DESC) AS dr FROM empleados)
+SELECT nombre, salario FROM r WHERE dr = 2;</code></pre>
+<p>¿Por qué <code>DENSE_RANK</code> y no <code>ROW_NUMBER</code>? Si dos personas empatan en el sueldo más alto, el &quot;segundo salario&quot; es el <strong>siguiente valor distinto</strong>. <code>ROW_NUMBER</code> devolvería a una de las empatadas; <code>RANK</code> saltaría al 3. Explicar esa diferencia es lo que el entrevistador quiere escuchar.</p>
+</div>
+
+
+<p>Las funciones de ventana son estándar, pero algunos motores tienen atajos para el top-N por grupo:</p>
+<div class="motores"></div>
+
+
+<h2>NTILE: repartir en grupos iguales</h2>
+<p><code>NTILE(n)</code> divide las filas ordenadas en <code>n</code> grupos de tamaño parecido y devuelve el número de grupo. Sirve para cuartiles, deciles o segmentos (&quot;el 25 % de clientes que más compra&quot;):</p>
+<pre><code class="language-sql">SELECT nombre, precio,
+       NTILE(4) OVER (ORDER BY precio) AS cuartil_precio
+FROM productos
+LIMIT 10;</code></pre>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Filtrar la ventana en el <code>WHERE</code></strong>: <code>WHERE ROW_NUMBER() OVER (...) &lt;= 2</code> da error, porque las ventanas se calculan <strong>después</strong> del <code>WHERE</code>. Calcula la ventana en una CTE y filtra afuera.</li>
+<li><strong><code>ROW_NUMBER</code> con empates</strong>: si dos productos cuestan lo mismo, <code>ROW_NUMBER</code> elige uno al azar. Agrega un desempate al <code>ORDER BY</code> de la ventana o usa <code>RANK</code>/<code>DENSE_RANK</code> si quieres incluir a los dos.</li>
+<li><strong>Olvidar el <code>PARTITION BY</code></strong>: sin él, la ventana es toda la tabla. <code>ROW_NUMBER() OVER (ORDER BY precio DESC)</code> numera todos los productos juntos, no dentro de cada categoría.</li>
+<li><strong>Confundir el <code>ORDER BY</code> de la ventana con el de la consulta</strong>: el de la ventana define el ranking; el del final define cómo se muestra el resultado. Son independientes.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El top 2 por categoría</div>
+
+<p>Valentina prepara la vidriera de la home:</p>
+<blockquote>
+<p>&quot;Para cada categoría, quiero los 2 productos más caros, para destacarlos. Y para cada cliente, ¿cuál fue su último pedido? Marketing quiere mandar un mail de &#39;vuelve a comprar&#39;.&quot;</p>
+</blockquote>
+<p>Con <code>GROUP BY</code> obtienes una fila por categoría, pero pierdes los productos. Necesitas calcular algo <strong>por grupo</strong> sin colapsar las filas. Eso hacen las <strong>funciones de ventana</strong>, la herramienta más pedida en entrevistas de SQL.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li><code>ROW_NUMBER() ... = 1</code> es <strong>el</strong> patrón para deduplicar en los pipelines: &quot;quedarme con la versión más reciente de cada cliente&quot;. Lo vas a escribir en SQL, en PySpark y en dbt (en la capa staging).</li>
+<li>En Databricks, BigQuery y Snowflake existe <code>QUALIFY</code>, que filtra por una ventana sin necesitar una CTE: <code>... QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha DESC) = 1</code>.</li>
+<li>Una ventana con <code>PARTITION BY</code> en Spark provoca un <em>shuffle</em> por esa columna. Si la columna tiene un valor muy frecuente (por ejemplo, un <code>cliente_id</code> nulo), esa partición queda gigante.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Las funciones de ventana calculan sobre un grupo de filas <strong>sin colapsarlas</strong>: <code>función OVER (PARTITION BY … ORDER BY …)</code>.</li>
+<li><code>PARTITION BY</code> define los grupos; sin él, la ventana es toda la tabla (<code>OVER ()</code>).</li>
+<li><code>ROW_NUMBER</code> (único), <code>RANK</code> (empates con salto), <code>DENSE_RANK</code> (empates sin salto), <code>NTILE</code> (grupos iguales).</li>
+<li>Se calculan después del <code>WHERE</code>: para filtrar por ellas usa una CTE (o <code>QUALIFY</code> donde exista).</li>
+<li>Top-N por grupo y deduplicación: <code>ROW_NUMBER() … AS rn</code> + <code>WHERE rn &lt;= N</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-ventanas-1">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-cte.html">← CTE: consultas legibles con WITH</a><a href="sql-ventanas-2.html">Funciones de ventana II: acumulados, LAG/LEAD y marcos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

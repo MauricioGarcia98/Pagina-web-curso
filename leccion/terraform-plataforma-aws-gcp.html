@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto: la plataforma de datos en AWS y en Google Cloud · Academia de Datos</title><meta name="description" content="El mismo lakehouse en las otras dos nubes. En AWS, lago en S3, catálogo y crawler de Glue, job de Spark con su script, rol IAM de permisos mínimos y workgroup de Athena con límite de costo. En Google Cloud, buckets, datasets y una tabla particionada de BigQuery, cuenta de servicio con IAM y Pub/Sub para eventos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-plataforma-aws-gcp.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto: la plataforma de datos en AWS y en Google Cloud · Academia de Datos"><meta property="og:description" content="El mismo lakehouse en las otras dos nubes. En AWS, lago en S3, catálogo y crawler de Glue, job de Spark con su script, rol IAM de permisos mínimos y workgroup de Athena con límite de costo. En Google Cloud, buckets, datasets y una tabla particionada de BigQuery, cuenta de servicio con IAM y Pub/Sub para eventos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-plataforma-aws-gcp.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#terraform">🏗️ Terraform: infraestructura como código</a> · Avanzado · 90 min</div>
+<h1>Proyecto: la plataforma de datos en AWS y en Google Cloud</h1><p class="resumen">El mismo lakehouse en las otras dos nubes. En AWS, lago en S3, catálogo y crawler de Glue, job de Spark con su script, rol IAM de permisos mínimos y workgroup de Athena con límite de costo. En Google Cloud, buckets, datasets y una tabla particionada de BigQuery, cuenta de servicio con IAM y Pub/Sub para eventos.</p>
+<a class="cta" href="../index.html#/l/terraform-plataforma-aws-gcp">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir con Terraform un lago en S3 con catálogo de Glue, crawler, job y Athena, con sus dependencias</li><li>Escribir políticas IAM con jsonencode y expresiones for, aplicando el principio de permisos mínimos</li><li>Construir en Google Cloud buckets, datasets, una tabla particionada y agrupada de BigQuery y una suscripción de Pub/Sub</li><li>Dar permisos a una cuenta de servicio a nivel de bucket, dataset y proyecto</li><li>Comparar las piezas equivalentes de Azure, AWS y Google Cloud en Terraform</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Es la misma casa, construida en otros terrenos: AWS y Google Cloud tienen piezas con otros nombres, pero la idea es igual. Ver la misma plataforma en tres nubes te ayuda a separar lo que es un concepto de lo que es solo el nombre que le pone cada proveedor.</p>
+</div>
+
+
+<h2>Las mismas piezas en tres nubes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Azure</th>
+<th>AWS</th>
+<th>Google Cloud</th>
+</tr>
+</thead><tbody><tr>
+<td>Lago</td>
+<td><code>azurerm_storage_data_lake_gen2_filesystem</code></td>
+<td><code>aws_s3_bucket</code></td>
+<td><code>google_storage_bucket</code></td>
+</tr>
+<tr>
+<td>Catálogo</td>
+<td>Unity Catalog (<code>databricks_schema</code>)</td>
+<td><code>aws_glue_catalog_database</code></td>
+<td><code>google_bigquery_dataset</code></td>
+</tr>
+<tr>
+<td>Descubrir esquemas</td>
+<td>Auto Loader / tablas externas</td>
+<td><code>aws_glue_crawler</code></td>
+<td>Tablas externas / BigLake</td>
+</tr>
+<tr>
+<td>Procesar (Spark)</td>
+<td><code>databricks_job</code></td>
+<td><code>aws_glue_job</code></td>
+<td><code>google_dataproc_*</code></td>
+</tr>
+<tr>
+<td>Consultar con SQL</td>
+<td><code>databricks_sql_endpoint</code></td>
+<td><code>aws_athena_workgroup</code></td>
+<td>BigQuery</td>
+</tr>
+<tr>
+<td>Identidad del proceso</td>
+<td>Identidad administrada</td>
+<td><code>aws_iam_role</code></td>
+<td><code>google_service_account</code></td>
+</tr>
+<tr>
+<td>Dar permisos</td>
+<td><code>azurerm_role_assignment</code></td>
+<td><code>aws_iam_policy</code> + attachment</td>
+<td><code>google_*_iam_member</code></td>
+</tr>
+<tr>
+<td>Eventos</td>
+<td><code>azurerm_eventhub</code></td>
+<td><code>aws_kinesis_stream</code></td>
+<td><code>google_pubsub_topic</code></td>
+</tr>
+<tr>
+<td>Secretos</td>
+<td><code>azurerm_key_vault_secret</code></td>
+<td><code>aws_secretsmanager_secret</code></td>
+<td><code>google_secret_manager_secret</code></td>
+</tr>
+</tbody></table></div>
+<h2>Parte 1: AWS para Ritmo</h2>
+<figure class="diagrama"><figcaption>El lago de Ritmo en AWS: todo lo crea Terraform, con un rol de permisos mínimos para Glue</figcaption></figure>
+
+
+<h3>Proveedor con etiquetas para todo</h3>
+<pre><code class="language-hcl">provider &quot;aws&quot; {
+  region = &quot;us-east-1&quot;
+
+  default_tags {
+    tags = {
+      proyecto = &quot;lakehouse&quot;
+      entorno  = &quot;dev&quot;
+    }
+  }
+}
+
+data &quot;aws_caller_identity&quot; &quot;yo&quot; {}     # la cuenta en la que estás: data.aws_caller_identity.yo.account_id
+
+locals {
+  prefijo = &quot;andina-dev&quot;
+  capas   = toset([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;])
+}</code></pre>
+<p><code>default_tags</code> pone esas etiquetas en <strong>todos</strong> los recursos de este proveedor: no hace falta repetirlas.</p>
+<h3>Lago y artefactos</h3>
+<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;capa&quot; {
+  for_each = local.capas
+  bucket   = &quot;${local.prefijo}-${each.key}&quot;
+}
+
+resource &quot;aws_s3_bucket&quot; &quot;artefactos&quot; {
+  bucket = &quot;${local.prefijo}-artefactos&quot;
+}
+
+# el script del job viaja con el código de Terraform
+resource &quot;aws_s3_object&quot; &quot;script&quot; {
+  bucket = aws_s3_bucket.artefactos.id
+  key    = &quot;glue/silver_pedidos.py&quot;
+  source = &quot;${path.module}/glue/silver_pedidos.py&quot;
+  etag   = filemd5(&quot;${path.module}/glue/silver_pedidos.py&quot;)
+}</code></pre>
+<p><code>etag = filemd5(...)</code> hace que Terraform vuelva a subir el script cuando cambia su contenido. En el laboratorio, usa <code>content = &quot;print(&#39;silver&#39;)&quot;</code> en lugar de <code>source</code> y <code>etag</code>.</p>
+<h3>El rol de Glue con permisos mínimos</h3>
+<p>Un <strong>rol</strong> de IAM tiene dos partes: <strong>quién puede usarlo</strong> (la <em>trust policy</em>, <code>assume_role_policy</code>) y <strong>qué puede hacer</strong> (las políticas que se le adjuntan).</p>
+<pre><code class="language-hcl">resource &quot;aws_iam_role&quot; &quot;glue&quot; {
+  name = &quot;${local.prefijo}-glue&quot;
+
+  # quién: solo el servicio Glue puede asumir este rol
+  assume_role_policy = jsonencode({
+    Version = &quot;2012-10-17&quot;
+    Statement = [{
+      Effect    = &quot;Allow&quot;
+      Action    = &quot;sts:AssumeRole&quot;
+      Principal = { Service = &quot;glue.amazonaws.com&quot; }
+    }]
+  })
+}
+
+# qué: leer y escribir objetos SOLO en los tres buckets del lago
+resource &quot;aws_iam_policy&quot; &quot;lago&quot; {
+  name = &quot;${local.prefijo}-lago-rw&quot;
+  policy = jsonencode({
+    Version = &quot;2012-10-17&quot;
+    Statement = [
+      {
+        Effect   = &quot;Allow&quot;
+        Action   = [&quot;s3:GetObject&quot;, &quot;s3:PutObject&quot;, &quot;s3:DeleteObject&quot;]
+        Resource = [for b in aws_s3_bucket.capa : &quot;${b.arn}/*&quot;]
+      },
+      {
+        Effect   = &quot;Allow&quot;
+        Action   = [&quot;s3:ListBucket&quot;]
+        Resource = [for b in aws_s3_bucket.capa : b.arn]
+      }
+    ]
+  })
+}
+
+resource &quot;aws_iam_role_policy_attachment&quot; &quot;lago&quot; {
+  role       = aws_iam_role.glue.name
+  policy_arn = aws_iam_policy.lago.arn
+}
+
+resource &quot;aws_iam_role_policy_attachment&quot; &quot;glue_servicio&quot; {
+  role       = aws_iam_role.glue.name
+  policy_arn = &quot;arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole&quot;
+}</code></pre>
+<ul>
+<li><strong><code>jsonencode</code></strong> convierte un objeto de HCL en el texto JSON que pide IAM. Es mejor que escribir el JSON como texto: Terraform revisa la sintaxis y puedes usar expresiones.</li>
+<li><strong><code>[for b in aws_s3_bucket.capa : &quot;${b.arn}/*&quot;]</code></strong> arma la lista de los tres ARN. Si agregas una capa, la política se actualiza sola.</li>
+<li>Los objetos (<code>GetObject</code>) se autorizan sobre <code>arn/*</code>; listar (<code>ListBucket</code>), sobre el bucket (<code>arn</code>). Confundirlos es el error de IAM más común en S3.</li>
+</ul>
+<h3>Catálogo, crawler, job y Athena</h3>
+<pre><code class="language-hcl">resource &quot;aws_glue_catalog_database&quot; &quot;capa&quot; {
+  for_each = local.capas
+  name     = &quot;andina_dev_${each.key}&quot;         # Glue no acepta guiones: guiones bajos
+}
+
+resource &quot;aws_glue_crawler&quot; &quot;bronze&quot; {
+  name          = &quot;${local.prefijo}-bronze-pedidos&quot;
+  database_name = aws_glue_catalog_database.capa[&quot;bronze&quot;].name
+  role          = aws_iam_role.glue.arn
+  schedule      = &quot;cron(0 2 * * ? *)&quot;
+  s3_target {
+    path = &quot;s3://${aws_s3_bucket.capa[&quot;bronze&quot;].bucket}/pedidos/&quot;
+  }
+}
+
+resource &quot;aws_glue_job&quot; &quot;silver&quot; {
+  name              = &quot;${local.prefijo}-silver-pedidos&quot;
+  role_arn          = aws_iam_role.glue.arn
+  glue_version      = &quot;4.0&quot;
+  worker_type       = &quot;G.1X&quot;
+  number_of_workers = 2
+  command {
+    script_location = &quot;s3://${aws_s3_bucket.artefactos.bucket}/${aws_s3_object.script.key}&quot;
+    python_version  = &quot;3&quot;
+  }
+  default_arguments = {
+    &quot;--origen&quot;  = &quot;s3://${aws_s3_bucket.capa[&quot;bronze&quot;].bucket}/pedidos/&quot;
+    &quot;--destino&quot; = &quot;s3://${aws_s3_bucket.capa[&quot;silver&quot;].bucket}/pedidos/&quot;
+  }
+}
+
+resource &quot;aws_athena_workgroup&quot; &quot;analistas&quot; {
+  name = &quot;${local.prefijo}-analistas&quot;
+  configuration {
+    enforce_workgroup_configuration = true
+    bytes_scanned_cutoff_per_query  = 10737418240          # 10 GB: corta consultas caras
+    result_configuration {
+      output_location = &quot;s3://${aws_s3_bucket.artefactos.bucket}/athena/&quot;
+    }
+  }
+}</code></pre>
+<p><code>bytes_scanned_cutoff_per_query</code> es un <strong>control de costos en código</strong>: Athena cobra por dato escaneado, y una consulta sin filtro de partición sobre años de datos se corta antes de costar cientos de dólares.</p>
+<h3>Laboratorio AWS</h3>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/ritmo &amp;&amp; cd ~/infra/ritmo
+code main.tf                 # todo lo de la parte 1 (con content = &quot;print('silver')&quot; en el script)
+terraform init
+terraform apply -auto-approve          # Plan: 15 to add
+aws glue get-databases --query 'DatabaseList[].Name' --output text
+aws glue get-crawler --name andina-dev-bronze-pedidos --query Crawler.Targets
+aws glue get-job --job-name andina-dev-silver-pedidos --query Job.Command.ScriptLocation --output text
+aws s3 cp s3://andina-dev-artefactos/glue/silver_pedidos.py -</code></pre>
+<p>Cuenta los 15: 4 buckets, 1 objeto, 1 rol, 1 política, 2 attachments, 3 bases, 1 crawler, 1 job y 1 workgroup.</p>
+<h2>Parte 2: Google Cloud para Rápido</h2>
+<figure class="diagrama"><figcaption>Rápido en Google Cloud: lago, BigQuery por capas, eventos y una cuenta de servicio con permisos por recurso</figcaption></figure>
+
+
+<pre><code class="language-hcl">provider &quot;google&quot; {
+  project = &quot;academia-datos-dev&quot;
+  region  = &quot;us-central1&quot;
+}
+
+locals {
+  capas = toset([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;])
+}
+
+resource &quot;google_storage_bucket&quot; &quot;capa&quot; {
+  for_each                    = local.capas
+  name                        = &quot;andina-dev-${each.key}&quot;
+  location                    = &quot;US&quot;
+  uniform_bucket_level_access = true          # permisos solo por IAM, sin ACL por objeto
+  labels = {
+    capa = each.key
+  }
+}
+
+resource &quot;google_bigquery_dataset&quot; &quot;capa&quot; {
+  for_each   = local.capas
+  dataset_id = &quot;andina_${each.key}&quot;
+  location   = &quot;US&quot;                            # la misma ubicación que los buckets
+}
+
+resource &quot;google_bigquery_table&quot; &quot;pedidos&quot; {
+  dataset_id          = google_bigquery_dataset.capa[&quot;silver&quot;].dataset_id
+  table_id            = &quot;pedidos&quot;
+  deletion_protection = false                  # en prod: true
+
+  time_partitioning {
+    type  = &quot;DAY&quot;
+    field = &quot;fecha&quot;
+  }
+  clustering = [&quot;cliente_id&quot;]
+
+  schema = jsonencode([
+    { name = &quot;pedido_id&quot;, type = &quot;INT64&quot;, mode = &quot;REQUIRED&quot; },
+    { name = &quot;cliente_id&quot;, type = &quot;INT64&quot;, mode = &quot;REQUIRED&quot; },
+    { name = &quot;fecha&quot;, type = &quot;DATE&quot;, mode = &quot;REQUIRED&quot; },
+    { name = &quot;total&quot;, type = &quot;NUMERIC&quot;, mode = &quot;NULLABLE&quot; }
+  ])
+}</code></pre>
+<p>La tabla queda <strong>particionada por día</strong> (una consulta con <code>WHERE fecha = ...</code> lee solo esa partición) y <strong>agrupada</strong> (<em>clustered</em>) por cliente: lo que viste en BigQuery, ahora en código revisable.</p>
+<h3>Identidad y permisos</h3>
+<pre><code class="language-hcl">resource &quot;google_service_account&quot; &quot;etl&quot; {
+  account_id   = &quot;etl-andina-dev&quot;
+  display_name = &quot;ETL del lakehouse&quot;
+}
+
+# permiso sobre CADA bucket, no sobre todo el proyecto
+resource &quot;google_storage_bucket_iam_member&quot; &quot;etl_lago&quot; {
+  for_each = local.capas
+  bucket   = google_storage_bucket.capa[each.key].name
+  role     = &quot;roles/storage.objectAdmin&quot;
+  member   = &quot;serviceAccount:${google_service_account.etl.email}&quot;
+}
+
+# ejecutar consultas sí es un permiso de proyecto
+resource &quot;google_project_iam_member&quot; &quot;etl_bq&quot; {
+  project = &quot;academia-datos-dev&quot;
+  role    = &quot;roles/bigquery.jobUser&quot;
+  member  = &quot;serviceAccount:${google_service_account.etl.email}&quot;
+}
+
+# escribir tablas, solo en silver
+resource &quot;google_bigquery_dataset_iam_member&quot; &quot;etl_silver&quot; {
+  dataset_id = google_bigquery_dataset.capa[&quot;silver&quot;].dataset_id
+  role       = &quot;roles/bigquery.dataEditor&quot;
+  member     = &quot;serviceAccount:${google_service_account.etl.email}&quot;
+}
+
+resource &quot;google_pubsub_topic&quot; &quot;eventos&quot; {
+  name = &quot;eventos-pedidos&quot;
+}
+
+resource &quot;google_pubsub_subscription&quot; &quot;a_bigquery&quot; {
+  name                 = &quot;eventos-pedidos-bq&quot;
+  topic                = google_pubsub_topic.eventos.id
+  ack_deadline_seconds = 30
+}</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ _member, _binding y _policy</div>
+
+<p>En Google Cloud hay tres recursos de IAM para cada cosa, y mezclarlos rompe permisos:</p>
+<ul>
+<li><strong><code>google_*_iam_member</code></strong>: agrega <strong>una</strong> persona a un rol. No toca a los demás. Es el más seguro.</li>
+<li><strong><code>google_*_iam_binding</code></strong>: define <strong>la lista completa</strong> de miembros de un rol. Quita a los que no estén en la lista.</li>
+<li><strong><code>google_*_iam_policy</code></strong>: define <strong>toda</strong> la política del recurso. Quita todo lo que no esté escrito, incluidos permisos que Google necesita.</li>
+</ul>
+<p>Usa <code>_member</code> salvo que de verdad quieras que Terraform sea el único dueño de ese rol.</p>
+</div>
+
+
+<h3>Laboratorio Google Cloud</h3>
+<pre data-norun><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+mkdir -p ~/infra/rapido &amp;&amp; cd ~/infra/rapido
+code main.tf                        # todo lo de la parte 2
+terraform init
+terraform apply -auto-approve                 # Plan: 15 to add
+gcloud storage ls
+bq ls
+bq show andina_silver.pedidos                 # partición DAY (field: fecha), cluster cliente_id
+bq show --schema --format=prettyjson andina_silver.pedidos
+gcloud pubsub subscriptions list</code></pre>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>BucketAlreadyExists</code></strong> (AWS) o <strong><code>409 conflict</code></strong> (GCP): los nombres de buckets son <strong>globales</strong> en todo el mundo. Usa un prefijo de empresa y, si hace falta, un sufijo aleatorio.</li>
+<li><strong><code>AccessDenied</code> en un job de Glue</strong> con la política &quot;bien escrita&quot;: casi siempre <code>ListBucket</code> sobre <code>arn/*</code> en lugar de <code>arn</code>, o <code>GetObject</code> sobre <code>arn</code> en lugar de <code>arn/*</code>.</li>
+<li><strong><code>google_project_iam_policy</code> en un proyecto existente</strong>: borra todos los permisos que no estén en tu código, incluidos los tuyos. Recuperarlo requiere a un administrador de la organización.</li>
+<li><strong>Dataset y bucket en ubicaciones distintas</strong>: BigQuery no puede cargar desde un bucket <code>EU</code> a un dataset <code>US</code>.</li>
+<li><strong>Cambiar el esquema de una tabla de BigQuery</strong>: agregar una columna <code>NULLABLE</code> se actualiza en el lugar; quitar o cambiar el tipo de una columna fuerza <strong>reemplazo</strong> (se borra la tabla y sus datos). Lee el plan.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Dos adquisiciones, dos nubes</div>
+
+<p>El Grupo Andino compró dos empresas: <strong>Ritmo</strong> (la app de música) trabaja en AWS, y <strong>Rápido</strong> (delivery) en Google Cloud. La dirección decidió no migrarlas por ahora, pero exige el mismo estándar en las tres nubes: lago con capas, catálogo, permisos mínimos, todo en Terraform. Martín te pasa el pedido:</p>
+<blockquote>
+<p>&quot;Repliquen el lakehouse de Azure en AWS para Ritmo y en Google Cloud para Rápido. Mismos nombres de capas, mismas etiquetas, mismo orden en el código. El que sepa leer uno tiene que poder leer los otros dos.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las políticas IAM se revisan en el pull request con la misma atención que el código: un <code>&quot;Resource&quot;: &quot;*&quot;</code> o un <code>&quot;Action&quot;: &quot;s3:*&quot;</code> deberían bloquear la aprobación. Herramientas como <strong>Checkov</strong> o <strong>tfsec</strong> lo marcan solas.</li>
+<li>Las empresas multinube mantienen la <strong>misma estructura</strong> en las tres (capas, nombres, etiquetas, carpetas del repositorio), como en este proyecto: el costo de cambiar de nube es la sintaxis, no el diseño.</li>
+<li><code>default_tags</code> (AWS) y <code>default_labels</code> (GCP) se usan para que ningún recurso quede sin centro de costo.</li>
+<li>En GCP, el proyecto suele ser también el límite de facturación y permisos: muchos equipos tienen un proyecto por entorno y por dominio, creados con Terraform desde una &quot;fábrica de proyectos&quot;.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo aplicas el principio de permisos mínimos con Terraform?&quot;</div>
+
+<p>Cada proceso tiene su propia identidad (un rol de IAM, una cuenta de servicio o una identidad administrada) y le doy permisos solo sobre los recursos que usa, escribiendo los ARN o nombres a partir de los recursos de Terraform (por ejemplo, la lista de buckets del lago con una expresión for), nunca con comodines. Prefiero asignaciones a nivel de recurso (bucket, dataset) antes que de proyecto o cuenta, y en GCP uso <code>_member</code> para no pisar otros permisos. El pull request muestra exactamente qué permiso se agrega, y un chequeo automático (Checkov, tfsec) rechaza comodines.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/terraform-plataforma-aws-gcp">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="terraform-plataforma-azure-databricks.html">← Proyecto: el lakehouse completo en Azure y Databricks con Terraform</a><a href="terraform-cicd-buenas-practicas.html">Terraform en equipo: pruebas, CI/CD con GitHub Actions y buenas prácticas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

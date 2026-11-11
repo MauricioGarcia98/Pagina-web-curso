@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Big data y computación distribuida · Academia de Datos</title><meta name="description" content="Por qué una sola computadora no alcanza y cómo se reparte el trabajo entre muchas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-big-data.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Big data y computación distribuida · Academia de Datos"><meta property="og:description" content="Por qué una sola computadora no alcanza y cómo se reparte el trabajo entre muchas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-big-data.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Básico · 35 min</div>
+<h1>Big data y computación distribuida</h1><p class="resumen">Por qué una sola computadora no alcanza y cómo se reparte el trabajo entre muchas.</p>
+<a class="cta" href="../index.html#/l/spark-big-data">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<h2>El problema</h2>
+<p>Tu laptop procesa sin problema un archivo de 100 MB: lo abres con pandas y en un segundo tienes el resultado. ¿Y uno de 10 TB?</p>
+<p>Hagamos la cuenta. Un buen disco lee unos 500 MB por segundo:</p>
+<pre><code class="language-text">10 TB = 10.000.000 MB
+10.000.000 MB ÷ 500 MB/s = 20.000 segundos ≈ 5,5 horas   ← solo para LEER el archivo una vez</code></pre>
+<p>Y eso suponiendo que los 10 TB entren en tu disco (no entran) y que no necesites tenerlos en memoria (tu laptop tiene 16 GB de RAM, unas 600 veces menos). Ese es el mundo del <strong>big data</strong>: volúmenes que <strong>no caben</strong> o <strong>no se pueden procesar a tiempo</strong> en una sola computadora.</p>
+<p>Se suele describir con las &quot;V&quot;:</p>
+<ul>
+<li><strong>Volumen</strong>: terabytes o petabytes. Un banco mediano genera millones de transacciones por día; una app de streaming, miles de millones de eventos de reproducción.</li>
+<li><strong>Velocidad</strong>: datos que llegan sin parar (clics, sensores, transacciones) y que hay que procesar en minutos, no en días.</li>
+<li><strong>Variedad</strong>: no solo tablas. También JSON de APIs, logs de servidores, imágenes, audio.</li>
+</ul>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Cuánto es &quot;big&quot;?</div>
+
+<p>No hay un número mágico. Una regla práctica: si los datos que procesas en un job <strong>no entran en la memoria de una máquina grande</strong> (cientos de GB), o crecen cada mes sin límite, estás en territorio de big data.</p>
+</div>
+
+
+<h2>La solución: dividir y conquistar</h2>
+<p>Hay dos formas de conseguir más potencia:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Escalado vertical (<em>scale up</em>)</th>
+<th>Escalado horizontal (<em>scale out</em>)</th>
+</tr>
+</thead><tbody><tr>
+<td>Qué haces</td>
+<td>Compras una máquina más grande</td>
+<td>Agregas más máquinas normales</td>
+</tr>
+<tr>
+<td>Límite</td>
+<td>El servidor más grande que exista</td>
+<td>Prácticamente ninguno</td>
+</tr>
+<tr>
+<td>Costo</td>
+<td>Crece muy rápido: el doble de potencia cuesta mucho más del doble</td>
+<td>Crece de forma lineal</td>
+</tr>
+<tr>
+<td>Si falla</td>
+<td>Se cae todo</td>
+<td>Se cae una máquina y las demás siguen</td>
+</tr>
+</tbody></table></div>
+<p>El big data moderno usa el escalado <strong>horizontal</strong>: muchas computadoras normales trabajando en paralelo. A ese grupo de máquinas se lo llama <strong>clúster</strong> (en inglés, <em>cluster</em>), y a cada máquina, <strong>nodo</strong>.</p>
+<p>Volvamos a los 10 TB. Si los repartes entre <strong>100 máquinas</strong>, a cada una le tocan 100 GB. Cada una lee lo suyo en unos 3 minutos y, como trabajan <strong>al mismo tiempo</strong>, el trabajo completo tarda esos mismos 3 minutos en vez de 5,5 horas.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Contar los votos de un país</div>
+
+<p>Una persona sola tardaría meses en contar 30 millones de votos. Si repartes las urnas entre 10.000 mesas, cada una cuenta las suyas (<strong>map</strong>) y luego se suman los resultados parciales (<strong>reduce</strong>). Eso es exactamente <strong>MapReduce</strong>, la idea que dio origen al big data moderno.</p>
+</div>
+
+
+<h3>MapReduce paso a paso</h3>
+<p>Supongamos que quieres saber cuántos pedidos hay por país, y los pedidos están repartidos en tres máquinas:</p>
+<pre><code class="language-text">              Máquina 1              Máquina 2              Máquina 3
+DATOS      Chile, Perú, Chile     Perú, México, Chile    México, México, Perú
+
+MAP        Chile:2  Perú:1        Perú:1 México:1        México:2  Perú:1
+(cada una     (cuenta sus propios datos, sin hablar con nadie)
+ cuenta lo suyo)
+                     ─────────  SHUFFLE  ─────────
+              (se envían todos los &quot;Chile&quot; a una máquina, todos los &quot;Perú&quot; a otra…)
+
+REDUCE     Chile: 2+1 = 3         Perú: 1+1+1 = 3        México: 1+2 = 3
+(cada una suma los parciales de su país)</code></pre>
+<!-- dg:sp01-mapreduce -->
+<figure class="diagrama"><figcaption>MapReduce: cada máquina cuenta lo suyo, el shuffle junta cada país y el reduce suma</figcaption></figure>
+
+
+<p>Las tres fases son la base de todo lo que hace Spark:</p>
+<ol>
+<li><strong>Map</strong>: cada máquina procesa <strong>su parte</strong> de los datos de forma independiente. Es lo que hace que escale: con el doble de máquinas, cada una tiene la mitad de trabajo.</li>
+<li><strong>Shuffle</strong>: se <strong>mueven datos por la red</strong> para juntar en la misma máquina todo lo que va junto (todos los registros de Chile). Es la parte cara, porque la red es mucho más lenta que la memoria.</li>
+<li><strong>Reduce</strong>: cada máquina combina lo que recibió y produce el resultado final.</li>
+</ol>
+<p>Puedes simular la idea en Python puro:</p>
+<pre><code class="language-python">from collections import Counter
+
+# Los datos ya vienen repartidos en 3 &quot;máquinas&quot; (particiones)
+particiones = [
+    [&quot;Chile&quot;, &quot;Perú&quot;, &quot;Chile&quot;],
+    [&quot;Perú&quot;, &quot;México&quot;, &quot;Chile&quot;],
+    [&quot;México&quot;, &quot;México&quot;, &quot;Perú&quot;],
+]
+
+# MAP: cada partición cuenta lo suyo, sin mirar a las demás
+parciales = [Counter(p) for p in particiones]
+print(&quot;Parciales:&quot;, parciales)
+
+# SHUFFLE + REDUCE: se combinan los parciales por país
+total = Counter()
+for parcial in parciales:
+    total += parcial
+print(&quot;Total:&quot;, dict(total))</code></pre>
+<p>Spark hace exactamente esto, pero con miles de particiones, en cientos de máquinas, y encargándose solo del reparto, de la red y de los fallos.</p>
+<h2>Breve historia</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Año</th>
+<th>Hito</th>
+</tr>
+</thead><tbody><tr>
+<td>2004</td>
+<td>Google publica el paper de <strong>MapReduce</strong></td>
+</tr>
+<tr>
+<td>2006</td>
+<td>Nace <strong>Hadoop</strong> (HDFS + MapReduce), open source</td>
+</tr>
+<tr>
+<td>2009</td>
+<td><strong>Spark</strong> nace en la Universidad de Berkeley (AMPLab)</td>
+</tr>
+<tr>
+<td>2013</td>
+<td>Spark pasa a la fundación Apache y sus creadores fundan <strong>Databricks</strong></td>
+</tr>
+<tr>
+<td>2014+</td>
+<td>Spark reemplaza a MapReduce: hasta 100× más rápido al trabajar en memoria</td>
+</tr>
+<tr>
+<td>2019</td>
+<td>Nace <strong>Delta Lake</strong> (transacciones ACID sobre el data lake)</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué Spark le ganó a Hadoop MapReduce? Porque MapReduce <strong>escribía en disco después de cada paso</strong>. Un proceso de 10 pasos leía y escribía el disco 10 veces. Spark mantiene los datos intermedios <strong>en memoria</strong> siempre que puede, y es mucho más fácil de programar: lo que en MapReduce eran 100 líneas de Java, en Spark es una línea de SQL o de Python.</p>
+<h2>¿Qué es Apache Spark?</h2>
+<p><strong>Spark</strong> es un <strong>motor de procesamiento distribuido</strong>. Tú escribes <strong>qué</strong> quieres hacer con los datos (en SQL, Python, Scala, Java o R) y Spark se encarga del <strong>cómo</strong>: reparte el trabajo entre las máquinas del clúster, mueve los datos entre ellas y se recupera si una falla.</p>
+<pre data-norun><code class="language-python"># Esto es todo lo que escribes. Spark decide cómo repartirlo en 100 máquinas.
+ventas = spark.read.parquet(&quot;s3://lake/ventas/&quot;)              # 10 TB
+ventas.groupBy(&quot;pais&quot;).sum(&quot;total&quot;).write.parquet(&quot;s3://lake/gold/ventas_por_pais/&quot;)</code></pre>
+<p>Se compone de varias librerías sobre un mismo motor:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Componente</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Spark SQL y DataFrames</strong></td>
+<td>Tablas, SQL y transformaciones. Es lo que vas a usar el 90 % del tiempo</td>
+</tr>
+<tr>
+<td><strong>Structured Streaming</strong></td>
+<td>Procesar datos que llegan sin parar, casi en tiempo real</td>
+</tr>
+<tr>
+<td><strong>MLlib</strong></td>
+<td>Machine learning distribuido</td>
+</tr>
+<tr>
+<td><strong>Spark Core</strong></td>
+<td>El motor de abajo: tareas, memoria, red, recuperación de fallos</td>
+</tr>
+</tbody></table></div>
+<p>Sirve para:</p>
+<ul>
+<li><strong>ETL e ingeniería de datos</strong> a gran escala (su uso principal).</li>
+<li><strong>SQL analítico</strong> sobre data lakes.</li>
+<li><strong>Streaming</strong>: procesar datos casi en tiempo real.</li>
+<li><strong>Machine learning</strong> (MLlib) sobre grandes volúmenes.</li>
+</ul>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Necesito Spark?</div>
+
+<p>No siempre. Si tus datos entran cómodamente en una máquina (pocos GB), pandas, Polars, DuckDB o un buen data warehouse pueden ser más simples y más baratos. Spark brilla cuando el volumen es grande o crece sin límite, y cuando necesitas una plataforma unificada (Databricks). Coordinar un clúster tiene un costo fijo: para 50 MB, Spark es <strong>más lento</strong> que pandas.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Big data = datos que no caben o no se procesan a tiempo en una sola máquina.</li>
+<li>La solución es el escalado horizontal: un clúster de muchas máquinas en paralelo.</li>
+<li>MapReduce: cada máquina procesa lo suyo (map), se juntan los datos relacionados (shuffle) y se combinan (reduce).</li>
+<li>El shuffle es la parte cara, porque mueve datos por la red. Vas a escuchar esa palabra durante todo el módulo.</li>
+<li>Spark hace todo esto por ti, en memoria, y con una API sencilla en SQL o Python.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<p>Estos ejercicios corren en <strong>mini-Spark</strong>, el simulador del curso: la variable <code>spark</code> ya existe y las tablas de la tienda están disponibles con <code>spark.table(&quot;...&quot;)</code>. Guarda tu resultado en la variable <code>resultado</code>.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-big-data">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-desafios.html">← Desafíos de Python para entrevistas de datos</a><a href="spark-arquitectura.html">Arquitectura de Spark →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

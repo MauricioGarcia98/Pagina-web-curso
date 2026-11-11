@@ -7,6 +7,10 @@ resumen: Idempotencia, código top-level, secretos, Variables y Connections, pru
 
 Escribir un DAG que corra una vez es fácil. Lo difícil es que siga funcionando a las 3 de la mañana, durante dos años, cuando falla la red, cuando alguien lo relanza por error o cuando hay que recalcular todo marzo. Esta lección reúne las prácticas que separan un DAG de juguete de uno de producción.
 
+:::analogia En palabras simples
+Un buen DAG es como una buena receta: si la sigues dos veces, el plato sale igual y no sale doble (eso es ser **idempotente**). Además, nunca escribes la clave del candado en la receta: la guardas aparte (las **Connections** y los secretos). Esta lección junta las costumbres que evitan los problemas más comunes.
+:::
+
 ## Las reglas de oro
 
 ### 1. Idempotencia: ejecutar dos veces da lo mismo que ejecutar una

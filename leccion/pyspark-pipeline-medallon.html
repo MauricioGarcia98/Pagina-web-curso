@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto: pipeline bronze → silver → gold · Academia de Datos</title><meta name="description" content="Un pipeline completo en PySpark con funciones reutilizables, idempotente y probado."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-pipeline-medallon.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto: pipeline bronze → silver → gold · Academia de Datos"><meta property="og:description" content="Un pipeline completo en PySpark con funciones reutilizables, idempotente y probado."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-pipeline-medallon.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Avanzado · 45 min</div>
+<h1>Proyecto: pipeline bronze → silver → gold</h1><p class="resumen">Un pipeline completo en PySpark con funciones reutilizables, idempotente y probado.</p>
+<a class="cta" href="../index.html#/l/pyspark-pipeline-medallon">▶ Abrir la lección interactiva (2 ejercicios)</a>
+
+<p>Vamos a construir, paso a paso, un pipeline como los que se hacen en Databricks. Ejecuta cada bloque con <strong>▶ Probar</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El pipeline medallón es como refinar un metal en tres pasos: <strong>bronze</strong> guarda el material tal como llegó, <strong>silver</strong> lo limpia y lo deja parejo, y <strong>gold</strong> lo convierte en algo listo para usar, como un informe. Aquí armas los tres pasos con PySpark, de forma que puedas volver a ejecutarlos sin duplicar nada.</p>
+</div>
+
+
+<h2>La arquitectura medallón</h2>
+<p>Es la forma estándar de organizar un lakehouse: los datos pasan por tres capas, cada una más limpia y más cercana al negocio que la anterior.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Contenido</th>
+<th>Reglas</th>
+<th>Quién la usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Bronze</strong></td>
+<td>Datos <strong>crudos</strong>, tal como llegaron, más metadatos de ingesta (origen, fecha de carga)</td>
+<td>Inmutable: nunca se corrige, solo se agrega</td>
+<td>Data engineers (para reprocesar)</td>
+</tr>
+<tr>
+<td><strong>Silver</strong></td>
+<td>Datos <strong>limpios</strong>: tipos correctos, formatos normalizados, sin duplicados, validados</td>
+<td>Una fila por entidad o evento; registros inválidos en cuarentena</td>
+<td>Data engineers, data scientists</td>
+</tr>
+<tr>
+<td><strong>Gold</strong></td>
+<td><strong>Métricas de negocio</strong> y tablas listas para BI: agregados, esquemas estrella</td>
+<td>Nombres de negocio, reglas acordadas con el área</td>
+<td>Analistas, dashboards, directorio</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué no ir directo de crudo a gold? Porque si mañana cambia una regla de negocio (por ejemplo, cómo se calcula una venta neta), puedes <strong>recalcular</strong> gold desde silver sin volver a pedir los datos al origen. Y si un día se descubre un error en la limpieza, bronze guarda la versión original para reprocesar.</p>
+<h2>La estructura: funciones puras de DataFrame a DataFrame</h2>
+<p>En código profesional, cada transformación es una <strong>función que recibe un DataFrame y devuelve otro</strong>, sin leer ni escribir nada por su cuenta. Así se pueden <strong>probar</strong> por separado (con un DataFrame chiquito hecho a mano) y <strong>componer</strong> con <code>.transform()</code>:</p>
+<pre><code class="language-text">df.transform(limpiar).transform(enriquecer)   ≡   enriquecer(limpiar(df))</code></pre>
+<p><code>.transform(f)</code> simplemente llama a <code>f(df)</code>, pero permite escribir la cadena en el orden en que ocurren los pasos. El código de abajo separa claramente <strong>qué</strong> hace cada capa; la lectura (<code>spark.table</code>) y la escritura (<code>saveAsTable</code>) quedan al final, fuera de las funciones.</p>
+<pre><code class="language-python">from pyspark.sql import DataFrame, functions as F
+from pyspark.sql.window import Window
+
+# ---------- BRONZE: datos crudos + metadatos de ingesta ----------
+def a_bronze(df: DataFrame, origen: str) -&gt; DataFrame:
+    return (df.withColumn(&quot;_origen&quot;, F.lit(origen))
+              .withColumn(&quot;_fecha_ingesta&quot;, F.lit(&quot;2025-01-01 03:00:00&quot;).cast(&quot;timestamp&quot;)))
+
+# ---------- SILVER: limpio, tipado, deduplicado ----------
+def limpiar_pedidos(df: DataFrame) -&gt; DataFrame:
+    w = Window.partitionBy(&quot;pedido_id&quot;).orderBy(F.col(&quot;_fecha_ingesta&quot;).desc())
+    return (df.withColumn(&quot;estado&quot;, F.lower(F.trim(&quot;estado&quot;)))
+              .withColumn(&quot;canal&quot;, F.lower(F.trim(&quot;canal&quot;)))
+              .filter(F.col(&quot;pedido_id&quot;).isNotNull())
+              .withColumn(&quot;_rn&quot;, F.row_number().over(w))
+              .filter(&quot;_rn = 1&quot;).drop(&quot;_rn&quot;))
+
+def lineas_con_importe(det: DataFrame) -&gt; DataFrame:
+    return det.withColumn(&quot;importe&quot;, F.round(F.col(&quot;cantidad&quot;) * F.col(&quot;precio_unitario&quot;) * (1 - F.col(&quot;descuento&quot;)), 2))
+
+# ---------- GOLD: métricas de negocio ----------
+def ventas_diarias(pedidos: DataFrame, lineas: DataFrame) -&gt; DataFrame:
+    return (lineas.join(pedidos.filter(F.col(&quot;estado&quot;) != &quot;cancelado&quot;), &quot;pedido_id&quot;)
+                  .groupBy(&quot;fecha_pedido&quot;, &quot;canal&quot;)
+                  .agg(F.round(F.sum(&quot;importe&quot;), 2).alias(&quot;ventas&quot;),
+                       F.countDistinct(&quot;pedido_id&quot;).alias(&quot;pedidos&quot;),
+                       F.countDistinct(&quot;cliente_id&quot;).alias(&quot;clientes&quot;)))
+
+bronze_pedidos = a_bronze(spark.table(&quot;pedidos&quot;), &quot;erp&quot;)
+silver_pedidos = bronze_pedidos.transform(limpiar_pedidos)
+silver_lineas = spark.table(&quot;detalle_pedidos&quot;).transform(lineas_con_importe)
+gold = ventas_diarias(silver_pedidos, silver_lineas)
+
+gold.write.mode(&quot;overwrite&quot;).saveAsTable(&quot;gold_ventas_diarias&quot;)
+spark.table(&quot;gold_ventas_diarias&quot;).orderBy(F.desc(&quot;ventas&quot;)).show(5)</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Principios que hacen un pipeline “de producción”</h2>
+<ul>
+<li><strong>Idempotencia</strong>: correrlo dos veces con los mismos datos deja el mismo resultado (sobrescribe por partición o usa <code>MERGE</code>; nunca <code>append</code> a ciegas).</li>
+<li><strong>Incrementalidad</strong>: procesar solo lo nuevo (por fecha de ingesta, Auto Loader, Change Data Feed o <code>MERGE</code>).</li>
+<li><strong>Funciones puras + tests</strong>: cada transformación se prueba con un DataFrame chiquito hecho a mano (<code>spark.createDataFrame</code>) y <code>pytest</code>.</li>
+<li><strong>Parámetros, no constantes</strong>: fechas, rutas y entornos llegan como parámetros del job (widgets en Databricks, variables en Declarative Automation Bundles).</li>
+<li><strong>Observabilidad</strong>: registra cuántas filas entran, salen y se descartan en cada paso.</li>
+</ul>
+<h2>Un test de la transformación (estilo pytest)</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+def lineas_con_importe(det):
+    return det.withColumn(&quot;importe&quot;, F.round(F.col(&quot;cantidad&quot;) * F.col(&quot;precio_unitario&quot;) * (1 - F.col(&quot;descuento&quot;)), 2))
+
+def test_lineas_con_importe():
+    entrada = spark.createDataFrame([(1, 2, 10.0, 0.1), (2, 1, 5.0, 0.0)], [&quot;detalle_id&quot;, &quot;cantidad&quot;, &quot;precio_unitario&quot;, &quot;descuento&quot;])
+    salida = {r[&quot;detalle_id&quot;]: r[&quot;importe&quot;] for r in lineas_con_importe(entrada).collect()}
+    assert salida == {1: 18.0, 2: 5.0}, salida
+
+test_lineas_con_importe()
+print(&quot;✔ test OK&quot;)</code></pre>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pyspark-pipeline-medallon">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-calidad.html">← Limpieza y calidad de datos</a><a href="pyspark-rdd-rendimiento.html">RDDs y rendimiento en la práctica →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

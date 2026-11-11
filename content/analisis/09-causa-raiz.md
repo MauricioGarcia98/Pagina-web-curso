@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes qué revisar antes de buscar una causa de negocio? | ¿S
 El director comercial ve el tablero el 1 de septiembre de 2024: “¡los pedidos de agosto cayeron 31 % contra julio! Necesito saber por qué antes del mediodía”. Responder rápido “porque bajó la app” sin método es apostar. Vas a seguir los pasos de un analista senior.
 :::
 
+:::analogia En palabras simples
+Encontrar la causa de una caída es trabajo de detective: no se acusa al primer sospechoso. Se revisa pista por pista: ¿bajó en todos los países o en uno? ¿en todos los canales o en la app? ¿desde qué día? Cada respuesta descarta sospechosos hasta que queda el culpable.
+:::
+
 ## El orden de las preguntas
 
 ```diagrama

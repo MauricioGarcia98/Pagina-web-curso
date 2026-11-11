@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airflow en producción - zombies, OOM, pools y DAGs que desaparecen · Academia de Datos</title><meta name="description" content="Los fallos operativos de Airflow que más se repiten - errores de importación que hacen desaparecer un DAG, tareas zombie por workers que se quedan sin memoria (SIGKILL), pools sin slots, catchup que crea cientos de ejecuciones, timeouts y reglas de disparo. Diagnóstico con los logs del scheduler y del worker, y con SQL sobre la base de metadatos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-airflow-en-produccion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Airflow en producción - zombies, OOM, pools y DAGs que desaparecen · Academia de Datos"><meta property="og:description" content="Los fallos operativos de Airflow que más se repiten - errores de importación que hacen desaparecer un DAG, tareas zombie por workers que se quedan sin memoria (SIGKILL), pools sin slots, catchup que crea cientos de ejecuciones, timeouts y reglas de disparo. Diagnóstico con los logs del scheduler y del worker, y con SQL sobre la base de metadatos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-airflow-en-produccion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Avanzado · 60 min</div>
+<h1>Airflow en producción - zombies, OOM, pools y DAGs que desaparecen</h1><p class="resumen">Los fallos operativos de Airflow que más se repiten - errores de importación que hacen desaparecer un DAG, tareas zombie por workers que se quedan sin memoria (SIGKILL), pools sin slots, catchup que crea cientos de ejecuciones, timeouts y reglas de disparo. Diagnóstico con los logs del scheduler y del worker, y con SQL sobre la base de metadatos.</p>
+<a class="cta" href="../index.html#/l/incidentes-airflow-en-produccion">▶ Abrir la lección interactiva (13 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Encontrar en el log del scheduler un error de importación y su causa</li><li>Explicar por qué aparece una tarea zombie y relacionarla con un OOM del worker</li><li>Detectar con SQL las tareas que más fallan, las que están colgadas y las que se volvieron lentas</li><li>Medir el tiempo en cola para diagnosticar pools saturados</li><li>Configurar reintentos, timeouts y catchup sin sorpresas</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Lunes, 07:30. Finanzas avisa que el DAG <code>finanzas_cierre</code> <strong>no aparece</strong> en Airflow. <code>ml_features</code> falló tres noches seguidas con un mensaje que nadie entiende (&quot;Detected zombie job&quot;). Y desde las 02:00 las tareas pasan media hora en cola antes de empezar. Tres problemas distintos que se ven como uno solo: &quot;Airflow anda mal&quot;.</p>
+</div>
+
+
+<h2>Cómo funciona Airflow (lo justo para depurarlo)</h2>
+<figure class="diagrama"><figcaption>Las piezas de Airflow que intervienen en un fallo</figcaption></figure>
+
+
+<h2>Los cinco fallos más comunes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Síntoma</th>
+<th>Causa típica</th>
+<th>Dónde se ve</th>
+</tr>
+</thead><tbody><tr>
+<td>El DAG <strong>no aparece</strong> o aparece con un banner rojo</td>
+<td>Error de importación: falta un paquete, error de sintaxis, una variable que no existe en el import</td>
+<td>Log del DAG processor / scheduler: <code>Failed to import</code>; <code>airflow dags list-import-errors</code></td>
+</tr>
+<tr>
+<td><strong>&quot;Detected zombie job&quot;</strong></td>
+<td>El proceso de la tarea murió sin avisar: el sistema lo mató por memoria (OOM), el worker se reinició o el pod se desalojó</td>
+<td>Log del scheduler + log del worker: <code>Negsignal.SIGKILL</code>, <code>Out of memory: Killed process</code></td>
+</tr>
+<tr>
+<td>Tareas en <strong>cola</strong> mucho tiempo</td>
+<td>Pool sin slots, <code>parallelism</code> o <code>max_active_tasks</code> al límite, sensores en modo poke ocupando slots</td>
+<td><code>Pool default_pool has 0 open slots</code></td>
+</tr>
+<tr>
+<td><strong>Cientos de ejecuciones</strong> de golpe</td>
+<td><code>catchup=True</code> con un <code>start_date</code> viejo al activar o reactivar el DAG</td>
+<td>La grilla llena de ejecuciones en cola</td>
+</tr>
+<tr>
+<td>Tarea <code>upstream_failed</code> o <code>skipped</code></td>
+<td>Una tarea anterior falló y la regla de disparo (<code>trigger_rule</code>) es <code>all_success</code></td>
+<td><code>Dependencies not met</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un SIGKILL no se ve en el log de la tarea</div>
+
+<p>Cuando el kernel de Linux mata un proceso por falta de memoria (el <em>OOM killer</em>), lo hace con <code>SIGKILL</code>: el proceso no alcanza a escribir nada. El log de la tarea termina de golpe y el scheduler, que deja de recibir heartbeats, lo declara <strong>zombie</strong>. La evidencia del OOM está en el log del <strong>worker</strong> o del sistema (<code>dmesg</code>, eventos del pod en Kubernetes: <code>OOMKilled</code>).</p>
+</div>
+
+
+<h2>Reintentos y timeouts: la configuración que evita sorpresas</h2>
+<pre data-norun><code class="language-python">default_args = {
+    &quot;retries&quot;: 3,
+    &quot;retry_delay&quot;: timedelta(minutes=5),
+    &quot;retry_exponential_backoff&quot;: True,      # 5, 10, 20 minutos: no martilla un sistema caído
+    &quot;max_retry_delay&quot;: timedelta(minutes=30),
+    &quot;execution_timeout&quot;: timedelta(hours=1), # cada intento; sin esto, una tarea colgada ocupa un slot para siempre
+    &quot;on_failure_callback&quot;: avisar_guardia,   # alerta con el enlace al log
+}</code></pre>
+<p>Los reintentos solo ayudan con fallos <strong>transitorios</strong> (un corte de red, un 503). Un error de datos o de código falla igual en el intento 3, y si la tarea no es idempotente, cada reintento puede empeorar las cosas (lección 3).</p>
+<h2>La base de metadatos es tu mejor herramienta</h2>
+<p>Todo lo que ves en la interfaz de Airflow está en tablas: <code>dag_run</code> (cada ejecución de un DAG) y <code>task_instance</code> (cada intento de cada tarea, con <code>state</code>, <code>try_number</code>, <code>queued_dttm</code>, <code>start_date</code>, <code>end_date</code>, <code>duration</code>). Con SQL respondes en segundos preguntas que en la interfaz llevan una hora de clics: qué tareas fallan más, cuáles se volvieron lentas, cuánto esperan en cola.</p>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Código pesado en el nivel superior del archivo del DAG</strong>: una consulta a la base o una llamada a una API fuera de las tareas se ejecuta cada vez que se importa el archivo (cada pocos segundos) y vuelve lento o rompe el DAG processor.</li>
+<li><strong>Procesar datos grandes dentro del worker</strong>: Airflow orquesta; el trabajo pesado va al warehouse, a Spark o a un contenedor dimensionado para eso.</li>
+<li><strong>Sin <code>execution_timeout</code></strong>: una tarea colgada ocupa un slot indefinidamente.</li>
+<li><strong>Reactivar un DAG con <code>catchup=True</code> sin pensar</strong>: cientos de ejecuciones de golpe. Usa <code>catchup=False</code> salvo que el DAG esté diseñado para backfills.</li>
+<li><strong>Instalar paquetes a mano en un worker</strong>: el próximo reinicio lo borra y los workers quedan distintos entre sí.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En el CI de los DAGs se corre una prueba que <strong>importa todos los archivos</strong> (con <code>DagBag</code> o <code>airflow dags list-import-errors</code>) y falla si hay errores: así un <code>ModuleNotFoundError</code> nunca llega a producción.</li>
+<li>Las tareas pesadas usan <code>KubernetesPodOperator</code> o colas de workers separadas (<code>queue=&quot;alta_memoria&quot;</code>) con recursos acordes.</li>
+<li>Los <strong>pools</strong> separan la capacidad: un pool chico para la API que limita las conexiones, uno reservado para lo crítico.</li>
+<li>Los equipos miran tableros con las métricas de Airflow (StatsD o OpenTelemetry): tareas en cola, slots libres, duración del parseo de DAGs, zombies por hora.</li>
+<li>En servicios administrados (MWAA, Cloud Composer, Astronomer) los logs del scheduler y de los workers están en CloudWatch, Cloud Logging o la consola del proveedor.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;Una tarea de Airflow falla con &#39;Detected zombie job&#39;. ¿Qué investigas?&quot;</strong> Explica que el scheduler dejó de recibir heartbeats porque el proceso murió; buscas en el log del worker o en los eventos del pod un <code>SIGKILL</code> u <code>OOMKilled</code>; revisas cuánta memoria usa la tarea y por qué (datos traídos a memoria); y corriges moviendo el cómputo, procesando en lotes o asignando una cola con más recursos. Subir el timeout del heartbeat solo esconde el problema.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Síntoma</th>
+<th>Primer lugar donde mirar</th>
+</tr>
+</thead><tbody><tr>
+<td>DAG desaparecido</td>
+<td><code>Failed to import</code> en el log del scheduler / DAG processor</td>
+</tr>
+<tr>
+<td>Zombie</td>
+<td>Log del worker: SIGKILL, OOM, reinicios</td>
+</tr>
+<tr>
+<td>Mucha espera en cola</td>
+<td>Slots de los pools, sensores en poke, <code>parallelism</code></td>
+</tr>
+<tr>
+<td>Duraciones que crecen</td>
+<td><code>task_instance.duration</code> en el tiempo</td>
+</tr>
+<tr>
+<td>Avalancha de ejecuciones</td>
+<td><code>catchup</code> y <code>start_date</code></td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>13 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-airflow-en-produccion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-datos-tardios-y-backfills.html">← Datos tardíos y faltantes - sensores, marcas de agua y backfills</a><a href="incidentes-spark-skew-memoria-archivos.html">Spark que no termina - skew, falta de memoria y archivos chicos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

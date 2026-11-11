@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diccionarios y conjuntos · Academia de Datos</title><meta name="description" content="Pares clave-valor, contar y agrupar, JSON y conjuntos sin duplicados."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-diccionarios.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Diccionarios y conjuntos · Academia de Datos"><meta property="og:description" content="Pares clave-valor, contar y agrupar, JSON y conjuntos sin duplicados."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-diccionarios.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Básico · 35 min</div>
+<h1>Diccionarios y conjuntos</h1><p class="resumen">Pares clave-valor, contar y agrupar, JSON y conjuntos sin duplicados.</p>
+<a class="cta" href="../index.html#/l/python-diccionarios">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Guardar y buscar datos por clave con diccionarios</li><li>Leer claves que pueden no existir con <code>get</code></li><li>Contar y agrupar valores con diccionarios (el patrón más usado en datos)</li><li>Recorrer estructuras anidadas como las que devuelven las APIs</li><li>Comparar grupos con conjuntos (intersección, diferencia)</li></ul>
+<h2>Buscar por nombre, no por posición</h2>
+<p>Con una lista, para encontrar el stock del &quot;monitor&quot; tienes que recorrerla hasta dar con él. Si guardas datos con <strong>nombres</strong> (de productos, de columnas, de clientes), la estructura correcta es un <strong>diccionario</strong> (<code>dict</code>): guarda pares <strong>clave → valor</strong> y te da el valor de una clave <strong>al instante</strong>, sin recorrer nada, aunque tenga un millón de entradas.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un diccionario de verdad</div>
+
+<p>En un diccionario de papel no lees todas las páginas para encontrar &quot;dato&quot;: vas directo a la palabra (la <strong>clave</strong>) y lees su definición (el <strong>valor</strong>). Las claves no se repiten: cada palabra aparece una sola vez.</p>
+</div>
+
+
+<pre><code class="language-python">cliente = {
+    &quot;id&quot;: 7,
+    &quot;nombre&quot;: &quot;Sofía&quot;,
+    &quot;pais&quot;: &quot;Chile&quot;,
+    &quot;compras&quot;: 12,
+}
+print(cliente[&quot;nombre&quot;])              # leer por clave → Sofía
+cliente[&quot;email&quot;] = &quot;sofia@mail.com&quot;   # agregar una clave nueva
+cliente[&quot;compras&quot;] += 1               # modificar un valor
+del cliente[&quot;pais&quot;]                   # borrar una clave
+print(cliente)</code></pre>
+<ul>
+<li>Se escribe con <strong>llaves</strong> <code>{ }</code>; cada par es <code>clave: valor</code>, separados por comas.</li>
+<li>Las claves suelen ser textos (también pueden ser números o tuplas: cualquier valor <strong>inmutable</strong>). Los valores pueden ser <strong>cualquier cosa</strong>: números, listas, otros diccionarios.</li>
+<li>Asignar a una clave que no existe la <strong>crea</strong>; asignar a una que existe la <strong>reemplaza</strong>.</li>
+</ul>
+<p>Un diccionario es la forma natural de representar <strong>un registro</strong> (una fila con nombres de columna). Por eso, cuando leas un CSV con <code>csv.DictReader</code> o un JSON de una API, cada fila te llegará como un diccionario.</p>
+<h2>Leer sin errores: get</h2>
+<pre><code class="language-python">cliente = {&quot;id&quot;: 7, &quot;nombre&quot;: &quot;Sofía&quot;}
+# print(cliente[&quot;telefono&quot;])                 # KeyError: 'telefono'
+print(cliente.get(&quot;telefono&quot;))               # None
+print(cliente.get(&quot;telefono&quot;, &quot;sin dato&quot;))   # valor por defecto
+print(&quot;telefono&quot; in cliente)                 # ¿existe la clave? → False</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Si la clave no existe</th>
+</tr>
+</thead><tbody><tr>
+<td><code>d[&quot;clave&quot;]</code></td>
+<td>Error <code>KeyError</code> (detiene el programa)</td>
+</tr>
+<tr>
+<td><code>d.get(&quot;clave&quot;)</code></td>
+<td>Devuelve <code>None</code></td>
+</tr>
+<tr>
+<td><code>d.get(&quot;clave&quot;, valor)</code></td>
+<td>Devuelve <code>valor</code></td>
+</tr>
+<tr>
+<td><code>&quot;clave&quot; in d</code></td>
+<td>Responde <code>True</code>/<code>False</code></td>
+</tr>
+</tbody></table></div>
+<p>En datos reales (JSON de APIs, eventos) es muy común que falten campos: <code>get</code> con valor por defecto es tu mejor amigo. Usa <code>d[&quot;clave&quot;]</code> cuando la clave <strong>tiene</strong> que estar y prefieres que el programa falle si no está.</p>
+<h2>Recorrer un diccionario</h2>
+<pre><code class="language-python">stock = {&quot;mouse&quot;: 40, &quot;teclado&quot;: 0, &quot;monitor&quot;: 7}
+for producto, unidades in stock.items():          # pares (clave, valor)
+    estado = &quot;AGOTADO&quot; if unidades == 0 else unidades
+    print(f&quot;{producto:10} {estado}&quot;)
+print(list(stock.keys()), list(stock.values()))</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>d.keys()</code></td>
+<td>Las claves</td>
+</tr>
+<tr>
+<td><code>d.values()</code></td>
+<td>Los valores</td>
+</tr>
+<tr>
+<td><code>d.items()</code></td>
+<td>Los pares <code>(clave, valor)</code>: lo más usado para recorrer</td>
+</tr>
+</tbody></table></div>
+<p><code>for k in d:</code> recorre las <strong>claves</strong>. Desde Python 3.7 los diccionarios <strong>conservan el orden</strong> en que se insertaron las claves.</p>
+<h2>El patrón más importante: contar y agrupar</h2>
+<p>Este es el <code>GROUP BY</code> de Python. Recorres los registros y acumulas en un diccionario cuya <strong>clave es el grupo</strong>:</p>
+<pre><code class="language-python">pedidos = [(&quot;web&quot;, 120), (&quot;app&quot;, 80), (&quot;web&quot;, 200), (&quot;tienda&quot;, 50), (&quot;app&quot;, 30)]
+
+conteo = {}
+total_por_canal = {}
+for canal, monto in pedidos:
+    conteo[canal] = conteo.get(canal, 0) + 1
+    total_por_canal[canal] = total_por_canal.get(canal, 0) + monto
+
+print(conteo)            # {'web': 2, 'app': 2, 'tienda': 1}
+print(total_por_canal)   # {'web': 320, 'app': 110, 'tienda': 50}</code></pre>
+<p>La línea clave es <code>conteo.get(canal, 0) + 1</code>: &quot;lo que había para este canal (o 0 si es la primera vez), más uno&quot;. Así funciona por dentro un <code>GROUP BY</code> en cualquier motor: una tabla en memoria con una entrada por grupo.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Vuelta</th>
+<th>canal</th>
+<th>conteo después</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>web</td>
+<td><code>{&#39;web&#39;: 1}</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>app</td>
+<td><code>{&#39;web&#39;: 1, &#39;app&#39;: 1}</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>web</td>
+<td><code>{&#39;web&#39;: 2, &#39;app&#39;: 1}</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>tienda</td>
+<td><code>{&#39;web&#39;: 2, &#39;app&#39;: 1, &#39;tienda&#39;: 1}</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>app</td>
+<td><code>{&#39;web&#39;: 2, &#39;app&#39;: 2, &#39;tienda&#39;: 1}</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Atajos de la librería estándar</div>
+
+<p><code>from collections import Counter</code> cuenta en una línea: <code>Counter(c for c, _ in pedidos)</code>. Y <code>defaultdict(list)</code> crea listas automáticamente para agrupar: <code>grupos[canal].append(pedido)</code>. Los verás en la lección de Python avanzado; primero entiende el patrón a mano.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Estructuras anidadas: así llegan los datos de las APIs</h2>
+<p>El formato <strong>JSON</strong>, que usan casi todas las APIs, es exactamente &quot;diccionarios y listas anidados&quot;. Leerlo es encadenar claves e índices:</p>
+<pre><code class="language-python">pedido = {
+    &quot;id&quot;: 1001,
+    &quot;cliente&quot;: {&quot;nombre&quot;: &quot;Mateo&quot;, &quot;pais&quot;: &quot;México&quot;},
+    &quot;items&quot;: [
+        {&quot;sku&quot;: &quot;A1&quot;, &quot;cantidad&quot;: 2, &quot;precio&quot;: 10.0},
+        {&quot;sku&quot;: &quot;B7&quot;, &quot;cantidad&quot;: 1, &quot;precio&quot;: 35.5},
+    ],
+}
+print(pedido[&quot;cliente&quot;][&quot;pais&quot;])            # entrar a un diccionario dentro de otro
+print(pedido[&quot;items&quot;][1][&quot;sku&quot;])            # la segunda línea, su sku
+total = sum(item[&quot;cantidad&quot;] * item[&quot;precio&quot;] for item in pedido[&quot;items&quot;])
+print(total)                                # 55.5</code></pre>
+<p>Léelo de izquierda a derecha: <code>pedido[&quot;items&quot;]</code> es una lista → <code>[1]</code> es su segundo elemento (un diccionario) → <code>[&quot;sku&quot;]</code> es un valor de ese diccionario.</p>
+<p>Un trabajo típico de data engineer es <strong>aplanar</strong> (<em>flatten</em>) estas estructuras: convertir cada <code>item</code> en una fila de una tabla con columnas <code>pedido_id</code>, <code>sku</code>, <code>cantidad</code>, <code>precio</code>. Es lo mismo que hace <code>explode</code> en PySpark o <code>UNNEST</code> en SQL.</p>
+<h2>Conjuntos (set): valores únicos</h2>
+<p>Un <strong>conjunto</strong> guarda valores <strong>sin repetir</strong> y <strong>sin orden</strong>. Se escribe con llaves pero sin <code>:</code>:</p>
+<pre><code class="language-python">compraron_2023 = {1, 2, 3, 5, 8}
+compraron_2024 = {2, 3, 4, 8, 9}
+print(compraron_2023 &amp; compraron_2024)   # intersección: compraron ambos años → {2, 3, 8}
+print(compraron_2023 - compraron_2024)   # diferencia: compraron en 2023 y NO en 2024 (churn) → {1, 5}
+print(compraron_2023 | compraron_2024)   # unión: todos
+print(len(set([&quot;a&quot;, &quot;b&quot;, &quot;a&quot;, &quot;c&quot;])))    # quitar duplicados: 3</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>Símbolo</th>
+<th>Equivalente SQL</th>
+</tr>
+</thead><tbody><tr>
+<td>Intersección</td>
+<td><code>a &amp; b</code></td>
+<td><code>INTERSECT</code></td>
+</tr>
+<tr>
+<td>Diferencia</td>
+<td><code>a - b</code></td>
+<td><code>EXCEPT</code></td>
+</tr>
+<tr>
+<td>Unión</td>
+<td><code>a | b</code></td>
+<td><code>UNION</code></td>
+</tr>
+</tbody></table></div>
+<p>Usos típicos: quitar duplicados (<code>set(lista)</code>), comprobar pertenencia muy rápido (<code>if id in ids_vistos</code>), comparar dos fuentes (¿qué ids están en el sistema A y no en el B?). Para crear un conjunto vacío usa <code>set()</code>: <code>{}</code> crea un <strong>diccionario</strong> vacío.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 Por qué buscar en un dict o set es tan rápido</div>
+
+<p>Diccionarios y conjuntos usan una <strong>tabla hash</strong>: calculan una &quot;dirección&quot; a partir de la clave y van directo a ella. Buscar en una lista de un millón de elementos puede requerir un millón de comparaciones; en un set, prácticamente una. Es la misma idea del <em>hash join</em> de las bases de datos.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>KeyError</code></strong>: pediste una clave que no existe. Usa <code>d.get(clave, valor_por_defecto)</code> o revisa con <code>if clave in d</code>.</li>
+<li><strong>Olvidar inicializar al contar</strong>: <code>conteo[palabra] += 1</code> falla la primera vez. Usa <code>conteo[palabra] = conteo.get(palabra, 0) + 1</code>, o <code>collections.Counter</code>.</li>
+<li><strong>Listas como claves</strong>: <code>{[1, 2]: &quot;x&quot;}</code> da error, porque las claves tienen que ser inmutables. Usa una tupla <code>(1, 2)</code>.</li>
+<li><strong>Asumir que el JSON siempre tiene la misma forma</strong>: una API puede omitir un campo cuando está vacío. Lee los campos opcionales con <code>.get</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Las ventas por país desde la API</div>
+
+<p>El equipo de desarrollo expuso una API interna de pedidos. Valentina pregunta:</p>
+<blockquote>
+<p>&quot;¿Cuánto vendimos por país esta semana? La API devuelve los pedidos con el país del cliente adentro. Y quiero saber cuántos clientes de enero volvieron a comprar en febrero.&quot;</p>
+</blockquote>
+<p>Contar y agrupar &quot;por algo&quot; es la operación más frecuente en datos, y en Python se hace con <strong>diccionarios</strong>. Los <strong>conjuntos</strong> responden preguntas de &quot;quiénes están en los dos grupos&quot;.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El patrón &quot;diccionario para agrupar&quot; es exactamente lo que hace un <code>GROUP BY</code> por dentro. Cuando los datos no caben en memoria, la misma idea se reparte entre muchas máquinas: eso es Spark.</li>
+<li>Los conjuntos (<code>set</code>) son la forma más rápida de comparar listas grandes de ids: &quot;qué clientes están en el CRM pero no en la base de pedidos&quot;. Es una tarea de conciliación muy común.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>dict</code>: pares clave → valor; acceso instantáneo por clave. <code>d[k]</code> falla si no existe; <code>d.get(k, defecto)</code> no.</li>
+<li>Recorre con <code>for k, v in d.items()</code>.</li>
+<li>Contar y agrupar: <code>d[k] = d.get(k, 0) + valor</code> es un <code>GROUP BY</code> hecho a mano.</li>
+<li>JSON = diccionarios y listas anidados; se navega encadenando <code>[&quot;clave&quot;]</code> y <code>[índice]</code>.</li>
+<li><code>set</code>: valores únicos; <code>&amp;</code>, <code>-</code>, <code>|</code> son <code>INTERSECT</code>, <code>EXCEPT</code>, <code>UNION</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-diccionarios">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-listas.html">← Listas y tuplas</a><a href="python-funciones.html">Funciones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

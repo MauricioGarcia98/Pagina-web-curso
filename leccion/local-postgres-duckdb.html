@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL en tu máquina: PostgreSQL en Docker y DuckDB · Academia de Datos</title><meta name="description" content="Las dos bases que todo data engineer tiene en su computadora. PostgreSQL en un contenedor para practicar como en una base de producción (psql, carga de CSV con \copy, clientes gráficos) y DuckDB, la base analítica en un archivo que consulta CSV y Parquet directamente, desde la terminal y desde Python."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-postgres-duckdb.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL en tu máquina: PostgreSQL en Docker y DuckDB · Academia de Datos"><meta property="og:description" content="Las dos bases que todo data engineer tiene en su computadora. PostgreSQL en un contenedor para practicar como en una base de producción (psql, carga de CSV con \copy, clientes gráficos) y DuckDB, la base analítica en un archivo que consulta CSV y Parquet directamente, desde la terminal y desde Python."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-postgres-duckdb.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Intermedio · 60 min</div>
+<h1>SQL en tu máquina: PostgreSQL en Docker y DuckDB</h1><p class="resumen">Las dos bases que todo data engineer tiene en su computadora. PostgreSQL en un contenedor para practicar como en una base de producción (psql, carga de CSV con \copy, clientes gráficos) y DuckDB, la base analítica en un archivo que consulta CSV y Parquet directamente, desde la terminal y desde Python.</p>
+<a class="cta" href="../index.html#/l/local-postgres-duckdb">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Conectarte a PostgreSQL con psql y con un cliente gráfico y explicar los parámetros de conexión</li><li>Crear tablas y cargar archivos CSV con \copy</li><li>Consultar archivos CSV y JSON directamente con DuckDB y guardar resultados en Parquet</li><li>Usar DuckDB desde Python con pandas</li><li>Elegir entre PostgreSQL y DuckDB según el uso</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Tener una base de datos en tu computadora es como tener un laboratorio en casa: puedes probar, romper y volver a empezar sin miedo. PostgreSQL es la base que usan muchas aplicaciones; DuckDB es una base pequeña y muy rápida para analizar archivos sin instalar nada.</p>
+</div>
+
+
+<h2>Dos bases, dos propósitos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>PostgreSQL</th>
+<th>DuckDB</th>
+</tr>
+</thead><tbody><tr>
+<td>Tipo</td>
+<td><strong>OLTP</strong>: transaccional, muchas escrituras chicas</td>
+<td><strong>OLAP</strong>: analítica, consultas grandes sobre columnas</td>
+</tr>
+<tr>
+<td>Cómo corre</td>
+<td>Un <strong>servidor</strong> (aquí, en un contenedor) al que te conectas</td>
+<td>Una <strong>librería</strong>: la base es un archivo (o la memoria)</td>
+</tr>
+<tr>
+<td>Para qué en tu máquina</td>
+<td>Simular la base de una app, probar ingestas, practicar SQL de producción</td>
+<td>Explorar CSV/Parquet, prototipar transformaciones, correr dbt sin nube</td>
+</tr>
+<tr>
+<td>Concurrencia</td>
+<td>Muchos usuarios a la vez</td>
+<td>Un proceso escribe a la vez</td>
+</tr>
+<tr>
+<td>En la empresa</td>
+<td>La base de las aplicaciones (la <strong>fuente</strong>)</td>
+<td>Análisis local, pipelines chicos, pruebas de dbt</td>
+</tr>
+</tbody></table></div>
+<h2>PostgreSQL</h2>
+<h3>Levantarlo</h3>
+<pre data-norun><code class="language-bash">docker run -d --name pg \
+  -e POSTGRES_PASSWORD=secreto -e POSTGRES_DB=rapido \
+  -p 5432:5432 -v pgdata:/var/lib/postgresql/data \
+  postgres:16</code></pre>
+<h3>Conectarse: los cinco datos</h3>
+<p>Toda conexión a una base necesita lo mismo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dato</th>
+<th>Valor aquí</th>
+<th>En psql</th>
+</tr>
+</thead><tbody><tr>
+<td>Host</td>
+<td><code>localhost</code></td>
+<td><code>-h localhost</code></td>
+</tr>
+<tr>
+<td>Puerto</td>
+<td><code>5432</code></td>
+<td><code>-p 5432</code></td>
+</tr>
+<tr>
+<td>Base</td>
+<td><code>rapido</code></td>
+<td><code>-d rapido</code></td>
+</tr>
+<tr>
+<td>Usuario</td>
+<td><code>postgres</code></td>
+<td><code>-U postgres</code></td>
+</tr>
+<tr>
+<td>Contraseña</td>
+<td><code>secreto</code></td>
+<td>la pide, o variable <code>PGPASSWORD</code></td>
+</tr>
+</tbody></table></div>
+<p>Los mismos datos, escritos como <strong>URL de conexión</strong> (la usan Python, dbt y casi todo): <code>postgresql://postgres:secreto@localhost:5432/rapido</code>.</p>
+<p><strong>Con psql</strong> (el cliente de terminal; en macOS <code>brew install libpq</code>, en Ubuntu <code>sudo apt install postgresql-client</code>, o desde el contenedor con <code>docker exec -it pg psql -U postgres -d rapido</code>):</p>
+<pre data-norun><code class="language-bash">psql -h localhost -p 5432 -U postgres -d rapido</code></pre>
+<p><strong>Con un cliente gráfico</strong>: <strong>DBeaver</strong> (gratis, para todas las bases) o la extensión <strong>SQLTools</strong> de VS Code. Nueva conexión → PostgreSQL → los cinco datos de arriba.</p>
+<h3>Crear una tabla y cargar un CSV</h3>
+<pre data-norun><code class="language-sql">CREATE TABLE clientes (
+  cliente_id INTEGER PRIMARY KEY,
+  nombre     VARCHAR(50),
+  apellido   VARCHAR(50),
+  email      TEXT,
+  ciudad     TEXT,
+  pais       TEXT,
+  segmento   TEXT
+);</code></pre>
+<p><strong><code>\copy</code></strong> carga un archivo de <strong>tu máquina</strong> a una tabla (es un comando de psql, empieza con <code>\</code> y no lleva <code>;</code>):</p>
+<pre><code class="language-text">rapido=# \copy clientes FROM 'datos/clientes.csv' WITH (FORMAT csv, HEADER)
+COPY 300
+rapido=# SELECT pais, COUNT(*) FROM clientes GROUP BY pais ORDER BY 2 DESC LIMIT 3;
+   pais   | count
+----------+-------
+ México   |    65
+ España   |    51
+ Colombia |    47
+(3 rows)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando de psql</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>\dt</code></td>
+<td>Lista las tablas</td>
+</tr>
+<tr>
+<td><code>\d clientes</code></td>
+<td>Columnas y tipos de una tabla</td>
+</tr>
+<tr>
+<td><code>\l</code></td>
+<td>Lista las bases</td>
+</tr>
+<tr>
+<td><code>\copy tabla FROM &#39;archivo.csv&#39; WITH (FORMAT csv, HEADER)</code></td>
+<td>Carga un CSV</td>
+</tr>
+<tr>
+<td><code>\copy (SELECT …) TO &#39;salida.csv&#39; WITH (FORMAT csv, HEADER)</code></td>
+<td>Exporta una consulta</td>
+</tr>
+<tr>
+<td><code>\q</code></td>
+<td>Sale</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 COPY y \copy</div>
+
+<p><code>COPY</code> (sin barra) es SQL y lee archivos <strong>del servidor</strong>: dentro del contenedor, no tu disco. <code>\copy</code> es de psql y lee archivos <strong>de tu máquina</strong>. Por eso en local casi siempre usas <code>\copy</code>.</p>
+</div>
+
+
+<h2>DuckDB</h2>
+<p><strong>Instalar:</strong> <code>brew install duckdb</code> (macOS), o en Linux/WSL el binario de <a href="https://duckdb.org">duckdb.org</a> (<code>curl https://install.duckdb.org | sh</code>). En Python: <code>uv add duckdb</code>.</p>
+<h3>Consultar archivos sin cargarlos</h3>
+<pre><code class="language-text">$ duckdb
+D SELECT pais, COUNT(*) AS clientes
+  FROM 'datos/clientes.csv'
+  GROUP BY pais ORDER BY clientes DESC LIMIT 3;
+┌──────────┬──────────┐
+│   pais   │ clientes │
+│ varchar  │  int64   │
+├──────────┼──────────┤
+│ México   │       65 │
+│ España   │       51 │
+│ Colombia │       47 │
+└──────────┴──────────┘</code></pre>
+<p>El archivo <strong>es</strong> la tabla: DuckDB detecta el separador, la cabecera y los tipos. También: <code>read_csv_auto(&#39;x.csv&#39;)</code>, <code>read_json_auto(&#39;x.json&#39;)</code>, <code>read_parquet(&#39;x.parquet&#39;)</code>, y comodines: <code>FROM &#39;datos/ventas_*.csv&#39;</code>.</p>
+<pre data-norun><code class="language-sql">DESCRIBE SELECT * FROM read_csv_auto('datos/ventas_2024_12.csv');   -- columnas y tipos detectados</code></pre>
+<h3>Una base persistente y exportar a Parquet</h3>
+<pre data-norun><code class="language-bash">duckdb lago.duckdb                     # crea (o abre) la base en un archivo</code></pre>
+<pre data-norun><code class="language-sql">CREATE TABLE clientes AS SELECT * FROM 'datos/clientes.csv';
+COPY (SELECT pais, COUNT(*) AS n FROM clientes GROUP BY pais)
+  TO 'clientes_por_pais.parquet' (FORMAT parquet);</code></pre>
+<p><strong>Parquet</strong> es el formato columnar de los lagos de datos: comprimido, con tipos, y se lee rapidísimo. Convertir CSV a Parquet con DuckDB es una línea.</p>
+<h3>DuckDB desde Python</h3>
+<pre data-norun><code class="language-python">import duckdb
+
+con = duckdb.connect(&quot;lago.duckdb&quot;)
+df = con.sql(&quot;&quot;&quot;
+    SELECT pais, COUNT(*) AS clientes
+    FROM 'datos/clientes.csv'
+    GROUP BY pais
+&quot;&quot;&quot;).df()                        # el resultado como DataFrame de pandas
+
+# y al revés: consultar un DataFrame de pandas con SQL
+top = duckdb.sql(&quot;SELECT * FROM df ORDER BY clientes DESC LIMIT 5&quot;).df()</code></pre>
+<p>DuckDB puede consultar un DataFrame de pandas <strong>por su nombre de variable</strong>. Es la forma más cómoda de mezclar Python y SQL en un análisis.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>connection refused</code> en psql</strong>: el contenedor no está corriendo (<code>docker ps</code>) o publicaste otro puerto.</li>
+<li><strong><code>relation &quot;clientes&quot; does not exist</code></strong>: estás en otra base (<code>\conninfo</code> dice cuál), o la tabla se creó en otro esquema.</li>
+<li><strong><code>COPY … could not open file … No such file or directory</code></strong>: usaste <code>COPY</code> (busca en el servidor/contenedor). Usa <code>\copy</code>.</li>
+<li><strong>Fechas o números como texto en DuckDB</strong>: el CSV tiene formatos mezclados (<code>01/02/2024</code> y <code>2024-02-01</code>). Usa <code>read_csv(&#39;x.csv&#39;, dateformat=&#39;%d/%m/%Y&#39;)</code> o <code>types={&#39;col&#39;: &#39;DATE&#39;}</code>.</li>
+<li><strong><code>Could not set lock on file lago.duckdb</code></strong>: otro proceso (por ejemplo, un notebook) tiene la base abierta para escribir. Cierra el otro o ábrela en solo lectura (<code>duckdb -readonly</code>).</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Dos bases, dos usos</div>
+
+<p>Tienes los CSV de pedidos de Rápido y quieres explorarlos, y además el equipo de la app usa PostgreSQL y necesitas practicar las consultas que vas a correr contra esa base. Tu compañera te recomienda:</p>
+<blockquote>
+<p>&quot;Para explorar archivos, DuckDB: no instalas servidor, lee el CSV directo y es rapidísimo. Para simular la base de la app, un Postgres en Docker. Las dos cosas en tu laptop.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Muchos equipos usan DuckDB para <strong>prototipar</strong> transformaciones (y correr dbt localmente) antes de llevarlas al warehouse de la nube, y para pipelines chicos que no justifican Spark.</li>
+<li>La conexión a las bases de producción nunca se hace con el usuario administrador: cada persona y cada pipeline tiene su usuario con permisos de solo lectura sobre lo que necesita, y las contraseñas viven en un gestor de secretos.</li>
+<li>Para mover datos de Postgres a un lago, la práctica es leer de una <strong>réplica de lectura</strong>, no de la base principal de la app.</li>
+</ul>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-postgres-duckdb">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-docker.html">← Docker: bases de datos y servicios sin instalarlos</a><a href="local-dbt-local.html">dbt en tu máquina con DuckDB →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

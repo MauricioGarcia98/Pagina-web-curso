@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SparkSession y tu primer DataFrame · Academia de Datos</title><meta name="description" content="Crear la sesión, crear DataFrames, ver esquema y datos, y cómo funciona el simulador."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-sparksession.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SparkSession y tu primer DataFrame · Academia de Datos"><meta property="og:description" content="Crear la sesión, crear DataFrames, ver esquema y datos, y cómo funciona el simulador."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-sparksession.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Básico · 35 min</div>
+<h1>SparkSession y tu primer DataFrame</h1><p class="resumen">Crear la sesión, crear DataFrames, ver esquema y datos, y cómo funciona el simulador.</p>
+<a class="cta" href="../index.html#/l/pyspark-sparksession">▶ Abrir la lección interactiva (3 ejercicios)</a>
+
+<h2>Qué es PySpark y por qué existe</h2>
+<p>En el módulo de Spark viste la idea: cuando los datos no entran en una sola computadora (cientos de GB, terabytes), se reparten entre <strong>muchas</strong> computadoras que trabajan en paralelo. <strong>Apache Spark</strong> es el motor que coordina ese trabajo. Está escrito en Scala (un lenguaje que corre sobre Java), pero se puede usar desde varios lenguajes; <strong>PySpark</strong> es su API para <strong>Python</strong>.</p>
+<p>Es la herramienta que usarás el 90 % del tiempo en <strong>Databricks</strong>, en <strong>AWS Glue</strong>, en <strong>EMR</strong> y en <strong>Dataproc</strong>. La buena noticia: si ya sabes SQL y Python, PySpark es combinar ambos. Casi todo lo que haces con <code>SELECT</code>, <code>WHERE</code>, <code>GROUP BY</code> y <code>JOIN</code> tiene un equivalente directo.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Sobre el simulador de este sitio</div>
+
+<p>Spark real necesita Java y un cluster. Para que practiques sin instalar nada, los ejercicios usan <strong>mini-Spark</strong>, un simulador en Python que implementa gran parte de la API de <code>pyspark.sql</code> con <strong>la misma sintaxis</strong>. Los resultados son los mismos que en Spark para estos datos (salvo detalles como el orden de filas sin <code>orderBy</code>, que en Spark real no está garantizado). Cuando pases a Databricks, tu código funcionará igual.</p>
+<p>En los ejercicios la variable <code>spark</code> ya existe y están disponibles las tablas de Tienda Andina (<code>clientes</code>, <code>productos</code>, <code>categorias</code>, <code>pedidos</code>, <code>detalle_pedidos</code>, <code>pagos</code>, <code>empleados</code>, <code>departamentos</code>, <code>eventos_web</code>) y las de los casos de negocio (<code>banco_transacciones</code>, <code>streaming_reproducciones</code>, <code>viajes_viajes</code>, <code>vuelos_vuelos</code>…).</p>
+</div>
+
+
+<h2>La SparkSession: la puerta de entrada</h2>
+<p>Todo programa PySpark empieza obteniendo una <strong>SparkSession</strong>: el objeto que se conecta con el motor de Spark y desde el cual lees datos, creas tablas y ejecutas SQL.</p>
+<pre><code class="language-python">from pyspark.sql import SparkSession
+
+spark = (SparkSession.builder
+           .appName(&quot;mi-primer-job&quot;)     # un nombre para reconocer el trabajo en la interfaz de Spark
+           .getOrCreate())               # crea la sesión, o reutiliza la que ya existe
+print(spark.version)</code></pre>
+<ul>
+<li><code>SparkSession.builder</code> usa el patrón &quot;constructor&quot;: vas encadenando configuraciones (<code>.appName(…)</code>, <code>.config(&quot;spark.sql.shuffle.partitions&quot;, 200)</code>) y terminas con <code>.getOrCreate()</code>.</li>
+<li>En <strong>Databricks</strong> y en este sitio, <code>spark</code> <strong>ya viene creada</strong>: no hace falta escribir esto. En tu computadora o en un script que corre en un cluster, sí.</li>
+</ul>
+<h3>Instalar PySpark en tu computadora</h3>
+<p>Según la documentación oficial, Spark 4.2 necesita <strong>Java 17, 21 o 25</strong> y <strong>Python 3.10 o más nuevo</strong>. Java es necesario porque el motor de Spark corre en la máquina virtual de Java (JVM); PySpark es la capa de Python que le habla.</p>
+<pre data-norun><code class="language-bash">java -version                       # debe decir 17, 21 o 25; si no, instala un JDK (por ejemplo, Temurin)
+python -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install pyspark==4.2.1          # trae el motor completo (unos 400 MB)
+pyspark                             # abre una consola interactiva con `spark` ya creada</code></pre>
+<p>En tu computadora Spark corre en <strong>modo local</strong>: el driver y los executors son hilos del mismo proceso, y usa todos los núcleos del procesador (<code>local[*]</code>). Es la misma API que en un clúster, solo que en una máquina.</p>
+<p>Si en vez de correr Spark en tu máquina quieres <strong>conectarte</strong> a uno que ya existe (un clúster o Databricks), usa el cliente liviano de <strong>Spark Connect</strong>, que no necesita Java:</p>
+<pre data-norun><code class="language-python"># pip install pyspark-client
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.remote(&quot;sc://mi-servidor:15002&quot;).getOrCreate()</code></pre>
+<p>La lección &quot;Spark 4: qué cambió&quot; del módulo de Spark explica Spark Connect y el modo ANSI, que cambia cómo se comportan las conversiones de tipos.</p>
+<h2>Qué es un DataFrame</h2>
+<p>Un <strong>DataFrame</strong> es una tabla: filas y columnas con nombre y tipo, como una tabla de SQL o una hoja de Excel. La diferencia está en lo que no ves:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Tabla de SQLite / hoja de Excel</th>
+<th>DataFrame de Spark</th>
+</tr>
+</thead><tbody><tr>
+<td>Dónde están los datos</td>
+<td>En una computadora</td>
+<td><strong>Repartidos</strong> en particiones entre muchas máquinas</td>
+</tr>
+<tr>
+<td>Cuándo se calcula</td>
+<td>Al ejecutar la consulta</td>
+<td>Solo cuando pides un resultado (<strong>evaluación perezosa</strong>)</td>
+</tr>
+<tr>
+<td>¿Se puede modificar?</td>
+<td>Sí (<code>UPDATE</code>)</td>
+<td>No: cada transformación crea un DataFrame <strong>nuevo</strong> (es inmutable)</td>
+</tr>
+<tr>
+<td>Tamaño máximo</td>
+<td>Lo que entre en el disco/memoria de una máquina</td>
+<td>Petabytes</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La receta y el plato</div>
+
+<p>Un DataFrame no es el plato servido: es la <strong>receta</strong>. Cada vez que escribes <code>.filter(...)</code> o <code>.select(...)</code> agregas un paso a la receta, pero nadie cocina todavía. Recién cuando pides el plato (<code>show()</code>, <code>count()</code>, <code>write</code>), Spark lee la receta completa, la optimiza (por ejemplo, filtra antes de unir) y cocina todo de una vez, repartiendo el trabajo entre muchos cocineros.</p>
+</div>
+
+
+<h2>Crear un DataFrame a mano</h2>
+<p>Para pruebas y ejemplos puedes crear un DataFrame desde una lista de Python:</p>
+<pre><code class="language-python">datos = [
+    (&quot;Ana&quot;, &quot;Chile&quot;, 34),
+    (&quot;Luis&quot;, &quot;Perú&quot;, 28),
+    (&quot;Eva&quot;, &quot;México&quot;, 41),
+]
+df = spark.createDataFrame(datos, [&quot;nombre&quot;, &quot;pais&quot;, &quot;edad&quot;])
+df.show()
+df.printSchema()</code></pre>
+<pre><code class="language-text">+------+------+----+
+|nombre|  pais|edad|
++------+------+----+
+|   Ana| Chile|  34|
+|  Luis|  Perú|  28|
+|   Eva|México|  41|
++------+------+----+
+root
+ |-- nombre: string (nullable = true)
+ |-- pais: string (nullable = true)
+ |-- edad: bigint (nullable = true)</code></pre>
+<ul>
+<li>Cada <strong>tupla</strong> es una fila; la lista de nombres define las columnas.</li>
+<li><code>show()</code> dibuja las filas como tabla (por defecto, las primeras 20, y corta los textos largos a 20 caracteres; <code>show(5, truncate=False)</code> muestra 5 sin cortar).</li>
+<li><code>printSchema()</code> muestra el <strong>esquema</strong>: cada columna con su <strong>tipo</strong> y si admite nulos. Spark <strong>infirió</strong> los tipos: <code>string</code> para textos, <code>bigint</code> (entero grande) para números enteros de Python.</li>
+</ul>
+<h3>Definir el esquema explícitamente</h3>
+<p>Inferir tipos es cómodo para probar, pero en un pipeline real conviene <strong>declarar</strong> el esquema: es más rápido (Spark no tiene que adivinar), y si los datos llegan con otro formato, el error aparece enseguida en lugar de colarse.</p>
+<pre><code class="language-python">from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+
+esquema = StructType([
+    StructField(&quot;nombre&quot;, StringType(), nullable=False),
+    StructField(&quot;edad&quot;, IntegerType(), nullable=True),
+])
+df = spark.createDataFrame([(&quot;Ana&quot;, 34), (&quot;Luis&quot;, None)], esquema)
+df.printSchema()
+
+df2 = spark.createDataFrame([(&quot;Sol&quot;, 25)], &quot;nombre STRING, edad INT&quot;)   # forma corta: texto DDL
+df2.show()</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de Spark</th>
+<th>Equivale a</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>StringType()</code> / <code>STRING</code></td>
+<td>texto</td>
+<td><code>&quot;Chile&quot;</code></td>
+</tr>
+<tr>
+<td><code>IntegerType()</code> / <code>INT</code>, <code>LongType()</code> / <code>BIGINT</code></td>
+<td>entero</td>
+<td><code>42</code></td>
+</tr>
+<tr>
+<td><code>DoubleType()</code> / <code>DOUBLE</code>, <code>DecimalType(10,2)</code></td>
+<td>decimal</td>
+<td><code>19.99</code></td>
+</tr>
+<tr>
+<td><code>BooleanType()</code> / <code>BOOLEAN</code></td>
+<td>verdadero/falso</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>DateType()</code> / <code>DATE</code>, <code>TimestampType()</code> / <code>TIMESTAMP</code></td>
+<td>fecha / fecha-hora</td>
+<td><code>2024-03-15</code></td>
+</tr>
+<tr>
+<td><code>ArrayType</code>, <code>StructType</code>, <code>MapType</code></td>
+<td>listas, registros, diccionarios anidados</td>
+<td>(lección de tipos complejos)</td>
+</tr>
+</tbody></table></div>
+<h2>Leer una tabla y explorarla</h2>
+<p>En la práctica casi nunca creas DataFrames a mano: los <strong>lees</strong> de tablas o archivos. <code>spark.table(&quot;nombre&quot;)</code> devuelve una tabla registrada en el catálogo como DataFrame:</p>
+<pre><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
+pedidos.printSchema()            # columnas y tipos
+pedidos.show(5)                  # primeras 5 filas
+print(pedidos.count())           # cantidad de filas
+print(pedidos.columns)           # lista de nombres de columnas
+pedidos.describe(&quot;pedido_id&quot;).show()   # estadísticas básicas: count, mean, stddev, min, max</code></pre>
+<p>Esta es la rutina que harás siempre al recibir una tabla nueva: <strong>esquema → algunas filas → cantidad</strong>. Te dice qué hay, de qué tipo y cuánto.</p>
+<h2>Transformaciones y acciones: la idea más importante de Spark</h2>
+<p>Las operaciones sobre un DataFrame son de dos tipos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué hace</th>
+<th>Ejemplos</th>
+<th>¿Ejecuta algo?</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Transformación</strong></td>
+<td>Describe un DataFrame nuevo a partir de otro</td>
+<td><code>select</code>, <code>filter</code>, <code>withColumn</code>, <code>groupBy</code>, <code>join</code>, <code>orderBy</code></td>
+<td><strong>No</strong>: solo agrega un paso al plan</td>
+</tr>
+<tr>
+<td><strong>Acción</strong></td>
+<td>Pide un resultado concreto</td>
+<td><code>show</code>, <code>count</code>, <code>collect</code>, <code>take</code>, <code>first</code>, <code>write</code></td>
+<td><strong>Sí</strong>: dispara todo el cálculo</td>
+</tr>
+</tbody></table></div>
+<p>Por eso <code>spark.table(&quot;pedidos&quot;).filter(...)</code> responde al instante aunque la tabla tenga mil millones de filas: no hizo nada todavía. Todo ocurre al llamar una acción. Es la <strong>evaluación perezosa</strong> (<em>lazy evaluation</em>), y permite a Spark optimizar el plan completo antes de mover un solo byte.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Qué hace</th>
+<th>¿Acción?</th>
+</tr>
+</thead><tbody><tr>
+<td><code>show(n, truncate=False)</code></td>
+<td>Muestra n filas en formato tabla</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><code>printSchema()</code></td>
+<td>Muestra el esquema</td>
+<td>No (solo metadatos)</td>
+</tr>
+<tr>
+<td><code>count()</code></td>
+<td>Cuenta filas</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><code>collect()</code></td>
+<td>Trae <strong>todas</strong> las filas a tu programa como lista de <code>Row</code></td>
+<td>Sí (¡cuidado!)</td>
+</tr>
+<tr>
+<td><code>take(n)</code> / <code>first()</code></td>
+<td>Trae n filas / la primera</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><code>columns</code>, <code>dtypes</code>, <code>schema</code></td>
+<td>Metadatos</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>display(df)</code></td>
+<td>Tabla interactiva con gráficos (solo Databricks)</td>
+<td>Sí</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ collect() puede tumbar el programa</div>
+
+<p><code>collect()</code> trae <strong>todas</strong> las filas desde las máquinas del cluster a <strong>una sola</strong> (el <em>driver</em>, la que ejecuta tu código Python). Con una tabla de 500 millones de filas, el driver se queda sin memoria y el job falla. Usa <code>show()</code>, <code>take(n)</code> o <code>limit(n)</code> para mirar, y deja que los resultados grandes se <strong>escriban</strong> a tablas o archivos.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Row: las filas de Spark</h2>
+<p>Cuando traes filas a Python (<code>first()</code>, <code>take</code>, <code>collect</code>), cada una es un objeto <code>Row</code>, parecido a una tupla con nombres:</p>
+<pre><code class="language-python">fila = spark.table(&quot;clientes&quot;).first()
+print(fila)
+print(fila[&quot;nombre&quot;], fila.pais)          # acceso por nombre o como atributo
+print(fila.asDict())                      # convertir a diccionario</code></pre>
+<pre><code class="language-text">Row(cliente_id=1, nombre='Lucía', apellido='Aguilar', email='lucia.aguilar@correo.com', …)
+Lucía España</code></pre>
+<h2>Resumen</h2>
+<ul>
+<li>PySpark es la API de Python para Spark; <code>spark</code> (la SparkSession) es la puerta de entrada.</li>
+<li>Un DataFrame es una tabla distribuida, inmutable y perezosa: una &quot;receta&quot; que se ejecuta al pedir un resultado.</li>
+<li><code>createDataFrame</code> para datos de prueba; declara el esquema en pipelines reales. <code>spark.table(...)</code> para leer tablas.</li>
+<li>Rutina de exploración: <code>printSchema()</code>, <code>show(n)</code>, <code>count()</code>.</li>
+<li>Transformaciones (<code>select</code>, <code>filter</code>…) no ejecutan nada; acciones (<code>show</code>, <code>count</code>, <code>write</code>) sí. Evita <code>collect()</code> con datos grandes.</li>
+</ul>
+<h2>Ejercicios</h2>
+<p>En los ejercicios de PySpark guarda tu resultado en la variable <strong><code>resultado</code></strong> (un DataFrame). El corrector compara tus filas con las de la solución (sin importar el orden, salvo que se pida).</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pyspark-sparksession">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-spark-4.html">← Spark 4: qué cambió y por qué te importa</a><a href="pyspark-select-filter.html">select, filter, withColumn y columnas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

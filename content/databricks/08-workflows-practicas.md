@@ -11,6 +11,10 @@ Arma un [job de práctica](#/databricks/jobs/nuevo) con varias tareas, dependenc
 
 Ya tienes notebooks que leen bronze, limpian a silver y calculan gold. Falta que corran **solos**, todas las noches, en el orden correcto, con reintentos y con alguien que se entere si algo falla. Eso son los **Jobs** de Databricks (hoy llamados **Lakeflow Jobs**, y antes **Workflows**). Esta lección explica cómo se arman, cómo se pasan datos entre tareas, cómo se monitorean y cierra el módulo con la checklist de un lakehouse profesional.
 
+:::analogia En palabras simples
+Un job de Databricks es como una lista de tareas con horario: "a las 6 limpia los datos, cuando termine actualiza las tablas, si falla avísame". Esta lección enseña a armar esas listas y a vigilarlas para enterarte antes que nadie si algo se rompe.
+:::
+
 ## Lakeflow Jobs (Workflows)
 
 Un **job** de Databricks es un DAG de **tareas**, igual que un DAG de Airflow, pero dentro de Databricks. Cada tarea puede ser:

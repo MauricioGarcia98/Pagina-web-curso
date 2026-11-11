@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes qué es una cohorte? | ¿Sabes armar la tabla de retenci
 Marketing celebra: “¡este mes ganamos 400 clientes nuevos!”. Producto pregunta lo incómodo: “¿y cuántos de los 400 del mes pasado volvieron?”. Conseguir clientes cuesta caro; que vuelvan es lo que hace rentable el negocio. Las cohortes responden esa pregunta mes por mes.
 :::
 
+:::analogia En palabras simples
+Una cohorte es como una promoción de egresados: todos los que empezaron en el mismo mes. Mirar cuántos de cada promoción siguen comprando un mes, tres meses o un año después muestra si el negocio retiene a la gente o si se le escapa por un agujero.
+:::
+
 ## Usuarios activos: DAU, MAU y stickiness
 
 - **DAU**: usuarios distintos activos en un día. **MAU**: en un mes.

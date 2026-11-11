@@ -13,6 +13,10 @@ Lo que escribas acá no cambia tu catálogo del [Databricks de práctica](#/data
 
 Antes de empezar repasa [Delta Lake en la práctica](#/l/databricks-delta-sql). En todos los ejercicios el catálogo actual es `main` y el esquema `default`, así que `clientes` es `main.default.clientes`.
 
+:::analogia En palabras simples
+Esta lección es el gimnasio después de la teoría: ejercicios que se corrigen solos para que practiques el SQL de Databricks (tablas Delta, MERGE, historial) hasta que te salga sin mirar.
+:::
+
 ## Tablas Delta: crear, cargar y modificar
 
 :::ejercicio dbsql dificultad=Básico titulo="Crear una tabla Delta y cargarla"

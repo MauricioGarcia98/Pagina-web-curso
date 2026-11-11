@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limpieza y calidad de datos · Academia de Datos</title><meta name="description" content="Deduplicar, normalizar textos, manejar nulos, convertir tipos con el modo ANSI de Spark 4 (cast y try_cast), validar reglas y separar registros inválidos en cuarentena."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-calidad.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Limpieza y calidad de datos · Academia de Datos"><meta property="og:description" content="Deduplicar, normalizar textos, manejar nulos, convertir tipos con el modo ANSI de Spark 4 (cast y try_cast), validar reglas y separar registros inválidos en cuarentena."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-calidad.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Avanzado · 50 min</div>
+<h1>Limpieza y calidad de datos</h1><p class="resumen">Deduplicar, normalizar textos, manejar nulos, convertir tipos con el modo ANSI de Spark 4 (cast y try_cast), validar reglas y separar registros inválidos en cuarentena.</p>
+<a class="cta" href="../index.html#/l/pyspark-calidad">▶ Abrir la lección interactiva (4 ejercicios)</a>
+
+<p>En la vida real, <strong>la mitad del trabajo de un ingeniero de datos es limpiar</strong>. Los datos llegan con espacios de más, mayúsculas mezcladas, duplicados porque un sistema reenvió un archivo, nulos donde no debería haberlos y valores imposibles (cantidades negativas, fechas del año 2099). Si esos problemas llegan a la capa gold, terminan en un reporte del directorio con números equivocados, y la confianza en el equipo de datos se pierde muy rápido.</p>
+<p>La capa <strong>silver</strong> existe justamente para esto. Sus tareas típicas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Ejemplo</th>
+<th>Solución en PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td>Formato inconsistente</td>
+<td><code>&quot; ANA &quot;</code>, <code>&quot;ana&quot;</code>, <code>&quot;Ana&quot;</code></td>
+<td><code>F.trim</code>, <code>F.lower</code>, <code>F.initcap</code></td>
+</tr>
+<tr>
+<td>Tipos incorrectos</td>
+<td><code>&quot;120.50&quot;</code> como texto, <code>&quot;N/A&quot;</code> en una cantidad</td>
+<td><code>.try_cast(&quot;double&quot;)</code> y contar los <code>null</code> resultantes</td>
+</tr>
+<tr>
+<td>Duplicados</td>
+<td>El mismo pedido cargado dos veces</td>
+<td><code>row_number()</code> por clave + <code>rn = 1</code></td>
+</tr>
+<tr>
+<td>Nulos</td>
+<td>Email faltante</td>
+<td>Contar, completar (<code>fillna</code>) o descartar según la regla de negocio</td>
+</tr>
+<tr>
+<td>Valores imposibles</td>
+<td>Cantidad −2, descuento 150 %</td>
+<td>Reglas de validación + <strong>cuarentena</strong></td>
+</tr>
+</tbody></table></div>
+<p>La regla más importante: <strong>nunca descartes datos en silencio</strong>. Cada fila que quitas debe quedar contada y, mejor aún, guardada con el motivo.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Limpiar datos es como revisar una caja de fruta antes de venderla: sacas las repetidas, separas las golpeadas para revisarlas aparte y te aseguras de que cada una tenga su etiqueta. En esta lección haces eso con datos: quitar duplicados, arreglar textos, decidir qué hacer con los vacíos y separar los registros que no cumplen las reglas.</p>
+</div>
+
+
+<h2>Normalizar textos</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+limpios = (spark.table(&quot;clientes&quot;)
+             .withColumn(&quot;nombre&quot;, F.initcap(F.trim(&quot;nombre&quot;)))
+             .withColumn(&quot;email&quot;, F.lower(F.trim(&quot;email&quot;)))
+             .withColumn(&quot;ciudad&quot;, F.initcap(F.trim(&quot;ciudad&quot;)))
+             .withColumn(&quot;telefono&quot;, F.regexp_replace(&quot;telefono&quot;, r&quot;[^0-9+]&quot;, &quot;&quot;)))
+limpios.select(&quot;nombre&quot;, &quot;email&quot;, &quot;telefono&quot;).show(5)</code></pre>
+<h2>Deduplicar</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+df = spark.table(&quot;pedidos&quot;)
+df.dropDuplicates().count()                     # filas 100% idénticas
+df.dropDuplicates([&quot;cliente_id&quot;]).count()       # una fila cualquiera por cliente (¡no determinista!)
+
+# Determinista: quedarse con la fila más reciente por clave
+w = Window.partitionBy(&quot;cliente_id&quot;).orderBy(F.col(&quot;fecha_pedido&quot;).desc(), F.col(&quot;pedido_id&quot;).desc())
+ultimo = df.withColumn(&quot;rn&quot;, F.row_number().over(w)).filter(&quot;rn = 1&quot;).drop(&quot;rn&quot;)
+print(ultimo.count())</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ dropDuplicates(subset) elige una fila al azar</div>
+
+<p>En Spark real, cuál fila sobrevive con <code>dropDuplicates([&quot;clave&quot;])</code> <strong>no está garantizado</strong>. Si importa cuál queda (casi siempre importa), usa <code>row_number()</code> con un orden explícito.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Nulos</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+c = spark.table(&quot;clientes&quot;)
+# cuántos nulos tiene cada columna
+c.select([F.sum(F.col(x).isNull().cast(&quot;int&quot;)).alias(x) for x in c.columns]).show()
+c.na.fill({&quot;telefono&quot;: &quot;sin dato&quot;, &quot;email&quot;: &quot;sin dato&quot;}).show(3)
+c.na.drop(subset=[&quot;email&quot;]).count()</code></pre>
+<h2>Convertir tipos sin perder datos (Spark 4)</h2>
+<p>Los datos de bronze suelen llegar como <strong>texto</strong>: un CSV no sabe que <code>&quot;120.50&quot;</code> es un número. Convertirlos al tipo correcto es tarea de silver. Desde Spark 4, el <strong>modo ANSI</strong> está activado por defecto: si un valor no se puede convertir, <code>cast</code> <strong>lanza un error</strong> y el job se detiene. Es a propósito: antes, Spark ponía <code>NULL</code> en silencio y el dato se perdía sin que nadie lo notara.</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+crudos = spark.createDataFrame(
+    [(&quot;P1&quot;, &quot;2&quot;, &quot;120.50&quot;), (&quot;P2&quot;, &quot;N/A&quot;, &quot;99.90&quot;), (&quot;P3&quot;, &quot;1&quot;, &quot;precio a confirmar&quot;), (&quot;P4&quot;, &quot;3&quot;, &quot;45&quot;)],
+    [&quot;pedido&quot;, &quot;cantidad_txt&quot;, &quot;precio_txt&quot;],
+)
+
+try:
+    crudos.select(F.col(&quot;cantidad_txt&quot;).cast(&quot;int&quot;)).show()
+except Exception as e:
+    print(&quot;Error ANSI:&quot;, str(e)[:90], &quot;...&quot;)</code></pre>
+<p>La salida muestra el error <code>CAST_INVALID_INPUT</code>, con el valor que lo causó (<code>&#39;N/A&#39;</code>). Cuando <strong>sabes</strong> que la columna trae valores inválidos y decides tratarlos, usas <code>try_cast</code>: devuelve <code>NULL</code> solo en esas filas. Y como no queremos perder datos en silencio, <strong>contamos</strong> cuántos fallaron:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+crudos = spark.createDataFrame(
+    [(&quot;P1&quot;, &quot;2&quot;, &quot;120.50&quot;), (&quot;P2&quot;, &quot;N/A&quot;, &quot;99.90&quot;), (&quot;P3&quot;, &quot;1&quot;, &quot;precio a confirmar&quot;), (&quot;P4&quot;, &quot;3&quot;, &quot;45&quot;)],
+    [&quot;pedido&quot;, &quot;cantidad_txt&quot;, &quot;precio_txt&quot;],
+)
+
+tipados = (crudos
+    .withColumn(&quot;cantidad&quot;, F.col(&quot;cantidad_txt&quot;).try_cast(&quot;int&quot;))
+    .withColumn(&quot;precio&quot;, F.col(&quot;precio_txt&quot;).try_cast(&quot;double&quot;)))
+
+# cuántos valores había y no se pudieron convertir (no confundir con los que ya venían vacíos)
+tipados.select(
+    F.sum((F.col(&quot;cantidad_txt&quot;).isNotNull() &amp; F.col(&quot;cantidad&quot;).isNull()).cast(&quot;int&quot;)).alias(&quot;cantidades_invalidas&quot;),
+    F.sum((F.col(&quot;precio_txt&quot;).isNotNull() &amp; F.col(&quot;precio&quot;).isNull()).cast(&quot;int&quot;)).alias(&quot;precios_invalidos&quot;),
+).show()
+tipados.show()</code></pre>
+<p>Paso a paso:</p>
+<ol>
+<li><code>try_cast(&quot;int&quot;)</code> intenta convertir; si no puede, devuelve <code>NULL</code> en esa fila y sigue.</li>
+<li>Para contar las conversiones fallidas, la condición es &quot;el texto <strong>no</strong> era nulo pero el resultado <strong>sí</strong>&quot;. Si solo contaras los <code>NULL</code> del resultado, mezclarías los inválidos con los que ya venían vacíos.</li>
+<li><code>.cast(&quot;int&quot;)</code> sobre una condición convierte <code>true</code>/<code>false</code> en <code>1</code>/<code>0</code>, y <code>F.sum</code> los suma.</li>
+</ol>
+<p>Lo mismo para divisiones: <code>F.col(&quot;a&quot;) / F.col(&quot;b&quot;)</code> falla si <code>b</code> es 0; <code>F.try_divide(&quot;a&quot;, &quot;b&quot;)</code> devuelve <code>NULL</code>.</p>
+<h2>Reglas de calidad y cuarentena</h2>
+<p>Patrón profesional: en lugar de descartar en silencio, <strong>separa</strong> las filas válidas de las inválidas y guarda las inválidas (con el motivo) en una tabla de <strong>cuarentena</strong>. Así:</p>
+<ul>
+<li>El pipeline <strong>sigue funcionando</strong> aunque lleguen algunas filas malas.</li>
+<li>Alguien puede <strong>revisar</strong> la cuarentena, corregir el origen y reprocesar.</li>
+<li>Puedes <strong>alertar</strong> si la cantidad de inválidas supera un umbral (por ejemplo, más del 1 %): eso suele indicar que el sistema de origen cambió algo.</li>
+</ul>
+<p>La técnica es un <code>F.when</code> encadenado que asigna el <strong>primer</strong> motivo de rechazo (o <code>null</code> si la fila es válida), y después dos filtros:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+det = spark.table(&quot;detalle_pedidos&quot;)
+reglas = (det.withColumn(&quot;motivo&quot;,
+            F.when(F.col(&quot;cantidad&quot;) &lt;= 0, &quot;cantidad_no_positiva&quot;)
+             .when(F.col(&quot;precio_unitario&quot;) &lt;= 0, &quot;precio_no_positivo&quot;)
+             .when(~F.col(&quot;descuento&quot;).between(0, 0.5), &quot;descuento_fuera_de_rango&quot;)))
+validos = reglas.filter(F.col(&quot;motivo&quot;).isNull()).drop(&quot;motivo&quot;)
+cuarentena = reglas.filter(F.col(&quot;motivo&quot;).isNotNull())
+print(validos.count(), cuarentena.count())</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Herramientas de calidad</div>
+
+<p>En proyectos reales se usan frameworks: <strong>expectations</strong> de Lakeflow Declarative Pipelines (Databricks), <strong>tests de dbt</strong>, <strong>Great Expectations</strong>, <strong>Soda</strong> o <strong>DQX</strong>. La idea es la misma: reglas declaradas, métricas de calidad y alertas.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>cast</code> en datos sucios y &quot;arreglarlo&quot; desactivando ANSI</strong>: el job vuelve a andar, pero los valores inválidos se convierten en <code>NULL</code> sin que nadie lo vea. Usa <code>try_cast</code> y cuenta.</li>
+<li><strong>Contar solo los <code>NULL</code> del resultado</strong>: mezcla los valores inválidos con los que ya venían vacíos.</li>
+<li><strong><code>dropDuplicates([&quot;clave&quot;])</code> cuando importa cuál fila queda</strong>: el resultado cambia entre ejecuciones.</li>
+<li><strong>Descartar filas sin guardarlas</strong>: si mañana alguien pregunta por qué faltan 300 pedidos, no hay cómo responder. Van a cuarentena con su motivo.</li>
+<li><strong>Normalizar con <code>F.upper</code> en un lado y <code>F.lower</code> en otro</strong>: los joins por texto dejan de coincidir. Define una sola regla por columna.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Un pipeline de silver típico tiene tres salidas: la tabla limpia, la tabla de cuarentena y una tabla de <strong>métricas de calidad</strong> por ejecución (filas leídas, válidas, en cuarentena, por motivo). Las alertas se disparan sobre esas métricas.</li>
+<li>En Databricks, las <em>expectations</em> de Lakeflow Declarative Pipelines hacen esto declarando reglas: <code>@dp.expect_or_drop(&quot;cantidad_positiva&quot;, &quot;cantidad &gt; 0&quot;)</code>, y registran cuántas filas rompió cada regla.</li>
+<li>Cuando el porcentaje de inválidos salta de golpe (de 0,1 % a 15 %), casi nunca es &quot;datos malos&quot;: es un cambio en el sistema de origen (un campo renombrado, un formato de fecha nuevo). Se avisa al equipo dueño del origen.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo manejas registros inválidos en un pipeline de Spark?&quot;</div>
+
+<p>No los descarto en silencio. En silver aplico reglas de validación con <code>when</code> encadenados que asignan un motivo de rechazo, separo las filas válidas de las inválidas y guardo las inválidas en una tabla de cuarentena con el motivo y la fecha de carga. Para tipos uso <code>try_cast</code>, porque en Spark 4 <code>cast</code> falla con datos inválidos, y cuento cuántos valores no se pudieron convertir. Registro las métricas de cada ejecución y alerto si el porcentaje de inválidos supera un umbral, porque suele indicar un cambio en el origen.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pyspark-calidad">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-complejos.html">← Arrays, structs, maps y JSON</a><a href="pyspark-pipeline-medallon.html">Proyecto: pipeline bronze → silver → gold →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

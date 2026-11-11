@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones · Academia de Datos</title><meta name="description" content="def, parámetros, valores por defecto, return, alcance, *args/**kwargs, lambda y docstrings."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-funciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones · Academia de Datos"><meta property="og:description" content="def, parámetros, valores por defecto, return, alcance, *args/**kwargs, lambda y docstrings."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-funciones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Intermedio · 40 min</div>
+<h1>Funciones</h1><p class="resumen">def, parámetros, valores por defecto, return, alcance, *args/**kwargs, lambda y docstrings.</p>
+<a class="cta" href="../index.html#/l/python-funciones">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Definir funciones con parámetros y valores por defecto</li><li>Devolver resultados con <code>return</code> (y no confundirlo con <code>print</code>)</li><li>Explicar qué variables ve cada función (alcance)</li><li>Escribir funciones pequeñas, con una responsabilidad, documentadas y con type hints</li></ul>
+<h2>Por qué existen las funciones</h2>
+<p>Imagina que calculas el precio final (con descuento e IVA) en diez lugares de tu programa. Un día cambia el IVA: tienes que encontrar y corregir los diez, y seguro se te escapa uno. Una <strong>función</strong> resuelve eso: escribes la lógica <strong>una vez</strong>, le pones un nombre, y la usas (la &quot;llamas&quot;) donde la necesites. Si la regla cambia, la corriges en un solo lugar.</p>
+<p>Las funciones son también la forma de <strong>organizar</strong> un programa: en vez de 500 líneas seguidas, tienes piezas con nombres que explican qué hacen (<code>leer_archivo</code>, <code>limpiar_emails</code>, <code>calcular_mora</code>) y que se pueden <strong>probar</strong> por separado.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una máquina con entradas y salida</div>
+
+<p>Una función es como una máquina de jugos: por arriba entran ingredientes (los <strong>parámetros</strong>), adentro pasa algo, y por abajo sale el jugo (el valor que <strong>devuelve</strong>). No necesitas saber cómo funciona por dentro para usarla: solo qué le das y qué te devuelve.</p>
+</div>
+
+
+<h2>Definir y llamar una función</h2>
+<pre><code class="language-python">def precio_final(precio, descuento=0.0, iva=0.21):
+    &quot;&quot;&quot;Devuelve el precio con descuento e IVA, redondeado a 2 decimales.&quot;&quot;&quot;
+    con_descuento = precio * (1 - descuento)
+    return round(con_descuento * (1 + iva), 2)
+
+print(precio_final(100))                   # usa los valores por defecto → 121.0
+print(precio_final(100, 0.1))              # argumentos posicionales     → 108.9
+print(precio_final(100, iva=0.0))          # argumentos por nombre       → 100.0</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>def</code></td>
+<td>Palabra clave para <strong>definir</strong> una función</td>
+</tr>
+<tr>
+<td><code>precio_final</code></td>
+<td>El nombre (en <code>snake_case</code>, idealmente un verbo o lo que calcula)</td>
+</tr>
+<tr>
+<td><code>(precio, descuento=0.0, iva=0.21)</code></td>
+<td>Los <strong>parámetros</strong>: las entradas. <code>descuento</code> e <code>iva</code> tienen <strong>valores por defecto</strong></td>
+</tr>
+<tr>
+<td><code>&quot;&quot;&quot;…&quot;&quot;&quot;</code></td>
+<td>El <strong>docstring</strong>: documentación de la función (aparece con <code>help(precio_final)</code>)</td>
+</tr>
+<tr>
+<td><code>return …</code></td>
+<td>Lo que la función <strong>devuelve</strong> a quien la llamó</td>
+</tr>
+</tbody></table></div>
+<p><strong>Definir</strong> una función no la ejecuta: solo la &quot;guarda&quot;. Se ejecuta cuando la <strong>llamas</strong> escribiendo su nombre con paréntesis: <code>precio_final(100)</code>. Los valores que pasas en la llamada se llaman <strong>argumentos</strong>.</p>
+<h3>Tres formas de pasar argumentos</h3>
+<ul>
+<li><strong>Posicional</strong>: por orden. <code>precio_final(100, 0.1)</code> → <code>precio=100</code>, <code>descuento=0.1</code>.</li>
+<li><strong>Por nombre</strong> (<em>keyword</em>): <code>precio_final(100, iva=0.0)</code>. Más claro cuando hay varios parámetros, y permite saltear los del medio.</li>
+<li><strong>Omitir</strong> los que tienen valor por defecto.</li>
+</ul>
+<p>Los parámetros con valor por defecto van <strong>después</strong> de los que no lo tienen.</p>
+<h2>return: devolver un resultado</h2>
+<p><code>return</code> hace dos cosas: <strong>entrega</strong> el valor y <strong>termina</strong> la función (lo que esté debajo no se ejecuta). Una función sin <code>return</code> devuelve <code>None</code>.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ print no es return</div>
+
+<p><code>print</code> <strong>muestra</strong> algo en pantalla, pero el valor se pierde: no lo puedes guardar ni usar en otra cuenta. <code>return</code> <strong>entrega</strong> el valor a quien llamó, que puede guardarlo (<code>total = precio_final(100)</code>), sumarlo o pasarlo a otra función. En los ejercicios y en el código real, una función que calcula algo casi siempre usa <code>return</code>. Si después quieres verlo, imprimes el resultado afuera.</p>
+</div>
+
+
+<h3>Salir temprano: cláusulas de guarda</h3>
+<p>Un <code>return</code> dentro de un <code>if</code> permite resolver los casos especiales al principio y dejar el caso normal sin anidar:</p>
+<pre><code class="language-python">def tasa_conversion(compras, visitas):
+    if not visitas:              # guarda: evita dividir por cero
+        return None
+    return round(100 * compras / visitas, 2)
+
+print(tasa_conversion(5, 200), tasa_conversion(5, 0))</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Devolver varios valores</h2>
+<pre><code class="language-python">def estadisticas(numeros):
+    return min(numeros), max(numeros), sum(numeros) / len(numeros)
+
+minimo, maximo, promedio = estadisticas([4, 8, 15, 16, 23, 42])
+print(minimo, maximo, promedio)</code></pre>
+<p>En realidad devuelve <strong>una tupla</strong> <code>(4, 42, 18.0)</code>, que se desempaqueta en tres variables.</p>
+<h2>Alcance (scope): qué variables ve cada parte</h2>
+<p>Las variables creadas <strong>dentro</strong> de una función son <strong>locales</strong>: nacen cuando la función se ejecuta y desaparecen cuando termina. No existen afuera.</p>
+<pre><code class="language-python">def f():
+    x = 10           # x es local de f
+    return x * 2
+
+print(f())
+# print(x)  -&gt; NameError: name 'x' is not defined</code></pre>
+<p>Esto es una ventaja: cada función es una caja cerrada, y dos funciones pueden usar una variable <code>total</code> sin pisarse. Una función <strong>puede leer</strong> variables definidas afuera (globales), pero depender de ellas hace el código frágil. La regla de oro: <strong>todo lo que una función necesita, que entre por parámetros; todo lo que produce, que salga por <code>return</code></strong>. Esas funciones se llaman <strong>puras</strong>, y son las más fáciles de probar y reutilizar (en el módulo de casos de punta a punta verás por qué importan tanto).</p>
+<h2>Parámetros flexibles: *args y **kwargs</h2>
+<pre><code class="language-python">def total(*montos):                  # cualquier cantidad de argumentos → llegan en una tupla
+    return sum(montos)
+
+def ficha(**datos):                  # cualquier argumento por nombre → llega en un diccionario
+    return &quot;, &quot;.join(f&quot;{k}={v}&quot; for k, v in datos.items())
+
+print(total(10, 20, 30))
+print(ficha(nombre=&quot;Eva&quot;, pais=&quot;Perú&quot;))</code></pre>
+<p>Los verás mucho en librerías (por ejemplo, los operadores de Airflow aceptan <code>**kwargs</code>). Los nombres <code>args</code> y <code>kwargs</code> son convención; lo que importa son los asteriscos.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Valores por defecto mutables</div>
+
+<p>Nunca uses una lista o diccionario como valor por defecto: <code>def agregar(x, lista=[])</code>. La lista se crea <strong>una sola vez</strong>, cuando se define la función, y se <strong>comparte</strong> entre todas las llamadas: los datos de una llamada aparecen en la siguiente. Usa <code>lista=None</code> y adentro <code>if lista is None: lista = []</code>.</p>
+</div>
+
+
+<h2>lambda: funciones de una línea</h2>
+<p>Una <code>lambda</code> es una función pequeña, sin nombre, que se escribe en una línea. Se usa sobre todo como <strong>argumento</strong> de otra función, por ejemplo para indicar por qué ordenar:</p>
+<pre><code class="language-python">productos = [(&quot;Mouse&quot;, 25), (&quot;Monitor&quot;, 210), (&quot;Cable&quot;, 4.5)]
+print(sorted(productos, key=lambda p: p[1]))              # por precio
+print(sorted(productos, key=lambda p: p[1], reverse=True))</code></pre>
+<p><code>lambda p: p[1]</code> equivale a <code>def f(p): return p[1]</code>. Si la lógica no entra cómoda en una línea, usa un <code>def</code> normal.</p>
+<h2>Type hints: documentar los tipos</h2>
+<p>Python no obliga a declarar tipos, pero puedes <strong>anotarlos</strong>. No cambian cómo se ejecuta el código; documentan y permiten que tu editor y herramientas como <code>mypy</code> detecten errores antes de ejecutar:</p>
+<pre><code class="language-python">def iva(precio: float, tasa: float = 0.21) -&gt; float:
+    return precio * tasa
+
+print(iva(100))</code></pre>
+<p>Se lee: &quot;<code>precio</code> es un <code>float</code>, <code>tasa</code> es un <code>float</code> con valor por defecto 0.21, y la función devuelve un <code>float</code>&quot;. En proyectos profesionales de datos son casi obligatorios.</p>
+<h2>Cómo escribir buenas funciones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Una función, <strong>una</strong> tarea</td>
+<td><code>limpiar_email</code> y <code>validar_email</code>, no <code>limpiar_y_validar_y_guardar</code></td>
+</tr>
+<tr>
+<td>Nombres que dicen qué hacen</td>
+<td><code>calcular_dias_atraso(…)</code> se entiende sin leer el código</td>
+</tr>
+<tr>
+<td>Pocos parámetros (≤ 4–5)</td>
+<td>Muchos parámetros suelen indicar que hace demasiado</td>
+</tr>
+<tr>
+<td>Docstring en las funciones importantes</td>
+<td>Qué recibe, qué devuelve, qué supuestos tiene</td>
+</tr>
+<tr>
+<td>Sin efectos escondidos</td>
+<td>No modificar variables globales ni las listas que recibe</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>print</code> en lugar de <code>return</code></strong>: la función muestra el resultado, pero quien la llama recibe <code>None</code>. Si el valor se va a usar después, va con <code>return</code>.</li>
+<li><strong>Olvidar los paréntesis al llamar</strong>: <code>limpiar</code> es la función; <code>limpiar(x)</code> la ejecuta.</li>
+<li><strong>Lista como valor por defecto</strong>: <code>def agregar(x, lista=[])</code> comparte la <strong>misma</strong> lista entre todas las llamadas. Usa <code>lista=None</code> y créala adentro.</li>
+<li><strong>Funciones que hacen de todo</strong>: una función de 80 líneas que lee, limpia, calcula y escribe no se puede probar por partes. Divídela.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La misma limpieza en cinco scripts</div>
+
+<p>Martín revisa el repositorio y encuentra el mismo bloque de limpieza de emails copiado en cinco scripts distintos, cada uno con una pequeña diferencia:</p>
+<blockquote>
+<p>&quot;Por eso marketing y finanzas tienen distinto número de clientes. Hay que tener <strong>una</strong> función de limpieza, probada, y que todos la usen.&quot;</p>
+</blockquote>
+<p>Las <strong>funciones</strong> son la forma de escribir una lógica una sola vez y reutilizarla. Son la base de todo código mantenible, y de todos los pipelines que vas a construir.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En los equipos de datos, las funciones de transformación son <strong>puras</strong> siempre que se puede: reciben datos y devuelven datos, sin leer archivos ni bases por su cuenta. Así se pueden probar con pytest en milisegundos.</li>
+<li>Los <em>type hints</em> (<code>def limpiar(email: str) -&gt; str | None</code>) no cambian cómo corre el código, pero el editor y herramientas como mypy detectan errores antes de ejecutar. En proyectos profesionales son casi obligatorios.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>def nombre(parámetros):</code> define; <code>nombre(argumentos)</code> ejecuta.</li>
+<li><code>return</code> entrega el valor y termina la función; <code>print</code> solo muestra.</li>
+<li>Argumentos posicionales, por nombre y valores por defecto (nunca listas como defecto).</li>
+<li>Variables locales: lo que entra por parámetros, lo que sale por <code>return</code>.</li>
+<li><code>lambda</code> para funciones cortas como argumento; type hints para documentar tipos.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-funciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-diccionarios.html">← Diccionarios y conjuntos</a><a href="python-comprensiones.html">Comprensiones y funciones de orden superior →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

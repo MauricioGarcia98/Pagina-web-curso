@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buenas prácticas, Variables, Connections y CLI · Academia de Datos</title><meta name="description" content="Idempotencia, código top-level, secretos, Variables y Connections, pruebas de DAGs y la CLI de Airflow."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-buenas-practicas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Buenas prácticas, Variables, Connections y CLI · Academia de Datos"><meta property="og:description" content="Idempotencia, código top-level, secretos, Variables y Connections, pruebas de DAGs y la CLI de Airflow."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-buenas-practicas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Avanzado · 45 min</div>
+<h1>Buenas prácticas, Variables, Connections y CLI</h1><p class="resumen">Idempotencia, código top-level, secretos, Variables y Connections, pruebas de DAGs y la CLI de Airflow.</p>
+<a class="cta" href="../index.html#/l/airflow-buenas-practicas">▶ Abrir la lección interactiva (8 ejercicios)</a>
+
+<p>Escribir un DAG que corra una vez es fácil. Lo difícil es que siga funcionando a las 3 de la mañana, durante dos años, cuando falla la red, cuando alguien lo relanza por error o cuando hay que recalcular todo marzo. Esta lección reúne las prácticas que separan un DAG de juguete de uno de producción.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un buen DAG es como una buena receta: si la sigues dos veces, el plato sale igual y no sale doble (eso es ser <strong>idempotente</strong>). Además, nunca escribes la clave del candado en la receta: la guardas aparte (las <strong>Connections</strong> y los secretos). Esta lección junta las costumbres que evitan los problemas más comunes.</p>
+</div>
+
+
+<h2>Las reglas de oro</h2>
+<h3>1. Idempotencia: ejecutar dos veces da lo mismo que ejecutar una</h3>
+<p>Una tarea es <strong>idempotente</strong> si correrla dos veces para la misma fecha deja los datos exactamente igual que correrla una vez. Es la regla más importante, porque <strong>en Airflow las tareas se repiten</strong>: por reintentos, porque alguien hace <em>clear</em> o porque corres un backfill.</p>
+<p>Ejemplo con la carga diaria de ventas del 15 de marzo:</p>
+<pre data-norun><code class="language-sql">-- ❌ No idempotente: si la tarea corre dos veces, las ventas del día quedan duplicadas
+INSERT INTO ventas_diarias
+SELECT fecha, SUM(total) FROM pedidos WHERE fecha = '{{ ds }}' GROUP BY fecha;
+
+-- ✅ Idempotente: primero borra lo de ese día y después lo vuelve a escribir
+DELETE FROM ventas_diarias WHERE fecha = '{{ ds }}';
+INSERT INTO ventas_diarias
+SELECT fecha, SUM(total) FROM pedidos WHERE fecha = '{{ ds }}' GROUP BY fecha;</code></pre>
+<p>Otras formas de lograr lo mismo: <code>MERGE</code> (actualiza si existe, inserta si no), sobrescribir la partición del día (<code>INSERT OVERWRITE ... PARTITION (fecha=&#39;{{ ds }}&#39;)</code>) o escribir en una ruta que incluye la fecha (<code>s3://lake/ventas/fecha={{ ds }}/</code>).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Nunca uses &quot;hoy&quot; dentro de una tarea</div>
+
+<p><code>datetime.now()</code> o <code>CURRENT_DATE</code> hacen que la tarea dependa del momento en que corre. Si relanzas el 20 de marzo la tarea del 15, procesarías el 20. Usa siempre la fecha lógica: <code>{{ ds }}</code>, o el argumento <code>ds</code> en Python.</p>
+</div>
+
+
+<h3>2. Atomicidad: cada tarea hace una cosa completa</h3>
+<p>Una tarea debería hacer <strong>una sola cosa</strong> y dejarla completa, o fallar sin dejar basura. Si &quot;extraer, limpiar y cargar&quot; es una sola tarea y falla en la carga, al reintentar vuelves a extraer todo. Si son tres tareas, reintentas solo la carga.</p>
+<p>Para no dejar datos a medias, escribe primero en una tabla o carpeta temporal y, cuando todo está listo, renómbrala o muévela al destino final en un solo paso.</p>
+<h3>3. Airflow orquesta, no procesa</h3>
+<p>Airflow es el <strong>director de orquesta</strong>, no el músico. Su trabajo es decir &quot;ahora corre este job de Spark, después este modelo de dbt, después avisa&quot;. El cálculo pesado va al motor adecuado: Spark/Databricks, el data warehouse o dbt.</p>
+<p>Si cargas 5 GB en un <code>PythonOperator</code> con pandas, el worker de Airflow se queda sin memoria y tumba también a las otras tareas que corrían en él. Pasa lo mismo con XCom: sirve para <strong>pasar datos chicos</strong> (un conteo, una ruta, un id), nunca un DataFrame entero.</p>
+<h3>4. Nada pesado en el nivel superior del archivo</h3>
+<p>Esta es la causa más común de un Airflow lento. El <strong>scheduler vuelve a leer (parsear) todos los archivos de la carpeta <code>dags/</code> cada 30 segundos</strong> aproximadamente, para detectar cambios. Todo lo que está <strong>fuera de una función</strong> se ejecuta en cada lectura.</p>
+<pre data-norun><code class="language-python"># ❌ Malo: se ejecuta cada vez que el scheduler lee el archivo (¡miles de veces al día!)
+clientes = requests.get(&quot;https://api/clientes&quot;).json()
+
+# ✅ Bien: se ejecuta solo cuando corre la tarea
+@task
+def traer_clientes():
+    return requests.get(&quot;https://api/clientes&quot;, timeout=30).json()</code></pre>
+<p>Lo mismo vale para <code>Variable.get(...)</code> en el nivel superior (hace una consulta a la base de metadatos en cada parseo) o para importar librerías enormes. En el nivel superior solo deberían estar las definiciones del DAG y de sus tareas.</p>
+<h3>5. Fechas fijas y catchup consciente</h3>
+<ul>
+<li><code>start_date</code> siempre <strong>fija</strong> (<code>datetime(2024, 1, 1)</code>), nunca <code>datetime.now()</code>. Con una fecha que se mueve, Airflow nunca sabe qué intervalos ya pasaron.</li>
+<li><code>catchup=False</code>, salvo que realmente quieras que al activar el DAG se ejecuten todos los días desde <code>start_date</code> hasta hoy.</li>
+</ul>
+<h3>6. Reintentos y alertas</h3>
+<p>Las fallas pasajeras (la red, un servidor que reinicia) son normales. Configura reintentos para todas las tareas con <code>default_args</code>, y una alerta que avise solo cuando se agotan:</p>
+<pre data-norun><code class="language-python">def avisar(context):
+    ti = context[&quot;task_instance&quot;]
+    enviar_a_slack(f&quot;Falló {ti.dag_id}.{ti.task_id} del {context['ds']}&quot;)
+
+default_args = {
+    &quot;retries&quot;: 3,
+    &quot;retry_delay&quot;: timedelta(minutes=5),
+    &quot;retry_exponential_backoff&quot;: True,   # 5 min, 10 min, 20 min…
+    &quot;on_failure_callback&quot;: avisar,       # solo cuando falla el último intento
+}
+with DAG(&quot;etl_ventas&quot;, default_args=default_args, ...):
+    ...</code></pre>
+<p>Para tareas que no deberían tardar más de cierto tiempo, agrega <code>execution_timeout=timedelta(hours=1)</code>. Así una consulta colgada no bloquea el DAG para siempre.</p>
+<h3>7. Secretos fuera del código</h3>
+<p>Contraseñas, tokens y claves <strong>nunca</strong> van en el archivo del DAG: ese archivo está en Git y lo lee todo el equipo. Van en <strong>Connections</strong>, idealmente guardadas en un gestor de secretos (Azure Key Vault, AWS Secrets Manager, GCP Secret Manager).</p>
+<h2>Variables y Connections</h2>
+<p>Airflow guarda dos tipos de configuración en su base de metadatos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Variables</th>
+<th>Connections</th>
+</tr>
+</thead><tbody><tr>
+<td>Qué guardan</td>
+<td>Configuración clave-valor: <code>bucket_destino = &quot;lake-prod&quot;</code></td>
+<td>Cómo conectarse a un sistema: host, usuario, contraseña, puerto, extras</td>
+</tr>
+<tr>
+<td>Cómo se leen</td>
+<td><code>Variable.get(&quot;bucket_destino&quot;)</code> o <code>{{ var.value.bucket_destino }}</code></td>
+<td>Los operadores reciben un id: <code>databricks_conn_id=&quot;databricks_default&quot;</code></td>
+</tr>
+<tr>
+<td>Ejemplo de uso</td>
+<td>Nombre del entorno, umbrales, listas de países</td>
+<td>Databricks, Postgres, Snowflake, S3, Slack</td>
+</tr>
+</tbody></table></div>
+<p>Se crean desde la interfaz web, la CLI o variables de entorno con un prefijo especial:</p>
+<pre><code class="language-bash">export AIRFLOW_VAR_ENTORNO=prod                                   # Variable &quot;entorno&quot;
+export AIRFLOW_CONN_MI_DB='postgresql://usuario:clave@host:5432/ventas'   # Connection &quot;mi_db&quot;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Prefiere plantillas a Variable.get</div>
+
+<p><code>{{ var.value.bucket }}</code> dentro de un parámetro con plantilla se resuelve <strong>cuando corre la tarea</strong>. <code>Variable.get(&quot;bucket&quot;)</code> en el nivel superior se ejecuta <strong>en cada parseo</strong>.</p>
+</div>
+
+
+<h2>Probar DAGs antes de subirlos</h2>
+<p>Un DAG con un error de sintaxis no aparece en la interfaz: Airflow lo registra como <strong>import error</strong> y sigue de largo. Para que eso no llegue a producción, los equipos corren tests en CI (por ejemplo, GitHub Actions) en cada pull request:</p>
+<pre data-norun><code class="language-python"># tests/test_dags.py — se corre en CI con pytest
+from airflow.dag_processing.dagbag import DagBag   # en Airflow 2: from airflow.models import DagBag
+
+def test_sin_errores_de_importacion():
+    bag = DagBag(dag_folder=&quot;dags/&quot;, include_examples=False)
+    assert bag.import_errors == {}, bag.import_errors
+
+def test_todas_las_tareas_tienen_reintentos():
+    bag = DagBag(dag_folder=&quot;dags/&quot;, include_examples=False)
+    for dag in bag.dags.values():
+        for t in dag.tasks:
+            assert t.retries &gt;= 1, f&quot;{dag.dag_id}.{t.task_id} no tiene reintentos&quot;</code></pre>
+<p><code>DagBag</code> lee la carpeta igual que el Dag processor. El primer test atrapa errores de sintaxis e imports rotos. El segundo hace cumplir una regla del equipo.</p>
+<div class="recorrido"></div>
+
+
+<h2>La CLI de Airflow</h2>
+<p>La interfaz web es cómoda, pero en el día a día (y en scripts) se usa mucho la línea de comandos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>airflow dags list</code></td>
+<td>Lista los DAGs</td>
+</tr>
+<tr>
+<td><code>airflow dags list-import-errors</code></td>
+<td>Muestra los archivos que no se pudieron leer y por qué</td>
+</tr>
+<tr>
+<td><code>airflow dags trigger etl_ventas</code></td>
+<td>Dispara una ejecución manual</td>
+</tr>
+<tr>
+<td><code>airflow dags trigger etl_ventas --conf &#39;{&quot;pais&quot;: &quot;Chile&quot;}&#39;</code></td>
+<td>…con parámetros, que la tarea lee en <code>dag_run.conf</code></td>
+</tr>
+<tr>
+<td><code>airflow dags pause etl_ventas</code> / <code>unpause</code></td>
+<td>Pausa o reactiva el DAG</td>
+</tr>
+<tr>
+<td><code>airflow dags test etl_ventas 2024-03-15</code></td>
+<td>Ejecuta el DAG completo localmente para esa fecha</td>
+</tr>
+<tr>
+<td><code>airflow tasks test etl_ventas extraer 2024-03-15</code></td>
+<td>Ejecuta <strong>una tarea</strong> sin registrar su estado (ideal para depurar)</td>
+</tr>
+<tr>
+<td><code>airflow tasks clear etl_ventas -s 2024-03-01 -e 2024-03-05</code></td>
+<td>Borra los estados de ese rango para que se vuelvan a ejecutar</td>
+</tr>
+<tr>
+<td><code>airflow dags backfill -s 2024-03-01 -e 2024-03-05 etl_ventas</code></td>
+<td>Ejecuta todos los intervalos de ese rango</td>
+</tr>
+<tr>
+<td><code>airflow variables set entorno prod</code></td>
+<td>Crea o actualiza una variable</td>
+</tr>
+<tr>
+<td><code>airflow connections add mi_db --conn-uri &#39;...&#39;</code></td>
+<td>Crea una conexión</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 `tasks test` vs `dags test`</div>
+
+<p><code>tasks test</code> corre una sola tarea ignorando dependencias y sin guardar nada: es para probar. <code>dags test</code> corre todo el DAG en orden. Ninguna de las dos necesita que el scheduler esté encendido.</p>
+</div>
+
+
+<p>Abre la terminal del curso (botón ⌨ Terminal) y prueba: <code>ls dags</code>, <code>airflow dags list</code>, <code>airflow tasks list etl_ventas</code> y <code>airflow dags test etl_ventas 2024-03-15</code>. Son DAGs reales que corre el mini-Airflow del curso.</p>
+<h2>Checklist antes de subir un DAG</h2>
+<ul>
+<li><input disabled="" type="checkbox"> ¿Cada tarea es idempotente y usa <code>{{ ds }}</code> en vez de &quot;hoy&quot;?</li>
+<li><input disabled="" type="checkbox"> ¿<code>start_date</code> es fija y <code>catchup</code> está decidido a propósito?</li>
+<li><input disabled="" type="checkbox"> ¿Hay <code>retries</code>, <code>execution_timeout</code> y una alerta de falla?</li>
+<li><input disabled="" type="checkbox"> ¿El nivel superior del archivo está libre de consultas, APIs y <code>Variable.get</code>?</li>
+<li><input disabled="" type="checkbox"> ¿El trabajo pesado corre fuera de Airflow (Spark, dbt, warehouse)?</li>
+<li><input disabled="" type="checkbox"> ¿Los secretos están en Connections?</li>
+<li><input disabled="" type="checkbox"> ¿Pasa el test de <code>DagBag</code> sin import errors?</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-buenas-practicas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-control-flujo.html">← Ramas, trigger rules, sensores y TaskGroups</a><a href="airflow-airflow-databricks-dbt.html">Airflow + Databricks + dbt: un pipeline real →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

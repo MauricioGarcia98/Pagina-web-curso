@@ -18,6 +18,10 @@ El Grupo Andino compró una cadena de hoteles, **Posada Andina**, que maneja tod
 Esta lección te enseña a convertir ese párrafo en un modelo de datos. Es una habilidad que se usa en cada proyecto nuevo.
 :::
 
+:::analogia En palabras simples
+Diseñar una base de datos es como diseñar una casa: primero un dibujo a mano con los ambientes (**conceptual**), después los planos con medidas (**lógico**) y recién al final los ladrillos y caños (**físico**). Saltarse el dibujo inicial es la forma más rápida de construir algo que no sirve.
+:::
+
 ## Los tres niveles de un modelo
 
 Un modelo de datos se construye de lo general a lo concreto:

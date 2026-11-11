@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unity Catalog: permisos y gobierno · Academia de Datos</title><meta name="description" content="Jerarquía de objetos, GRANT/REVOKE, grupos, external locations, volúmenes y tablas de sistema."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-unity-catalog.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Unity Catalog: permisos y gobierno · Academia de Datos"><meta property="og:description" content="Jerarquía de objetos, GRANT/REVOKE, grupos, external locations, volúmenes y tablas de sistema."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-unity-catalog.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Intermedio · 25 min</div>
+<h1>Unity Catalog: permisos y gobierno</h1><p class="resumen">Jerarquía de objetos, GRANT/REVOKE, grupos, external locations, volúmenes y tablas de sistema.</p>
+<a class="cta" href="../index.html#/l/databricks-unity-catalog">▶ Abrir la lección interactiva (3 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>En el <a href="#/databricks/catalogo">Catalog Explorer de práctica</a> crea un catálogo, un esquema y un volumen, sube un archivo, dale <code>GRANT SELECT</code> a un grupo y mira el linaje que se arma cuando creas una tabla a partir de otra. Las tablas del sistema están en <code>system</code> (por ejemplo <code>system.query.history</code>).</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Unity Catalog es como la oficina de llaves de un edificio: lleva el registro de todas las habitaciones (tablas, archivos, modelos) y de quién tiene llave de cuál. En vez de repartir llaves sueltas, todo se pide y se otorga en un único lugar.</p>
+</div>
+
+
+<h2>Por qué existe Unity Catalog</h2>
+<p>Antes de Unity Catalog, cada workspace de Databricks tenía su propio catálogo (el <em>Hive metastore</em>) y los permisos se manejaban por separado en cada uno, muchas veces con llaves de almacenamiento compartidas. En una empresa con 10 workspaces, nadie podía responder con certeza &quot;¿quién puede ver la tabla de salarios?&quot;.</p>
+<p><strong>Unity Catalog</strong> centraliza el <strong>gobierno</strong> de todos los datos de la cuenta:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesidad</th>
+<th>Cómo la resuelve</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Quién puede ver qué?</td>
+<td>Permisos con <code>GRANT</code>/<code>REVOKE</code> sobre catálogos, esquemas, tablas, vistas, volúmenes y funciones, en <strong>un solo lugar</strong> para todos los workspaces</td>
+</tr>
+<tr>
+<td>¿De dónde sale esta tabla y quién la usa?</td>
+<td><strong>Linaje</strong> automático, hasta el nivel de columna</td>
+</tr>
+<tr>
+<td>¿Quién consultó la tabla de clientes ayer?</td>
+<td><strong>Auditoría</strong> en tablas de sistema</td>
+</tr>
+<tr>
+<td>Ocultar datos sensibles</td>
+<td>Filtros de filas y máscaras de columnas</td>
+</tr>
+<tr>
+<td>Acceso al almacenamiento sin llaves</td>
+<td><em>Storage credentials</em> y <em>external locations</em></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-text">Metastore (uno por región, compartido por los workspaces)
+ └── Catálogo        dev, prod, main             ← normalmente por entorno o unidad de negocio
+      └── Esquema    bronze, silver, gold, ventas ← por capa o dominio
+           ├── Tabla / Vista       prod.gold.ventas_diarias
+           ├── Volumen (archivos)  /Volumes/prod/crudo/archivos/
+           └── Función, Modelo</code></pre>
+<p>Los permisos se <strong>heredan</strong> hacia abajo: <code>GRANT SELECT ON SCHEMA prod.gold TO analistas</code> da lectura sobre todas las tablas del esquema, incluidas las que se creen después. Y para leer una tabla hacen falta tres permisos encadenados: <code>USE CATALOG</code> en el catálogo, <code>USE SCHEMA</code> en el esquema y <code>SELECT</code> en la tabla.</p>
+<!-- dg:dbx04-uc -->
+<figure class="diagrama"><figcaption>La jerarquía de Unity Catalog: catálogo.esquema.tabla</figcaption></figure>
+
+
+<h2>Permisos con SQL</h2>
+<p>Los permisos se dan a <strong>grupos</strong> (no a personas) y se heredan hacia abajo. Para leer una tabla hacen falta <code>USE CATALOG</code>, <code>USE SCHEMA</code> y <code>SELECT</code>:</p>
+<pre data-norun><code class="language-sql">GRANT USE CATALOG ON CATALOG prod TO `analistas`;
+GRANT USE SCHEMA  ON SCHEMA prod.gold TO `analistas`;
+GRANT SELECT      ON SCHEMA prod.gold TO `analistas`;           -- todas las tablas del esquema, incluidas las futuras
+GRANT MODIFY, SELECT ON TABLE prod.silver.pedidos TO `ingenieros-datos`;
+GRANT READ VOLUME ON VOLUME prod.crudo.archivos TO `ingenieros-datos`;
+REVOKE SELECT ON TABLE prod.gold.salarios FROM `analistas`;
+SHOW GRANTS ON SCHEMA prod.gold;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Privilegio</th>
+<th>Permite</th>
+</tr>
+</thead><tbody><tr>
+<td><code>USE CATALOG</code> / <code>USE SCHEMA</code></td>
+<td>“Entrar” al catálogo / esquema</td>
+</tr>
+<tr>
+<td><code>SELECT</code></td>
+<td>Leer</td>
+</tr>
+<tr>
+<td><code>MODIFY</code></td>
+<td>Insertar, actualizar, borrar</td>
+</tr>
+<tr>
+<td><code>CREATE TABLE</code> / <code>CREATE SCHEMA</code></td>
+<td>Crear objetos</td>
+</tr>
+<tr>
+<td><code>READ VOLUME</code> / <code>WRITE VOLUME</code></td>
+<td>Archivos en volúmenes</td>
+</tr>
+<tr>
+<td><code>ALL PRIVILEGES</code></td>
+<td>Todo</td>
+</tr>
+</tbody></table></div>
+<h2>Seguridad fina</h2>
+<ul>
+<li><strong>Row filters</strong> y <strong>column masks</strong>: funciones que filtran filas o enmascaran columnas según quién consulta (por ejemplo, mostrar el email solo al grupo de soporte).</li>
+<li><strong>Vistas dinámicas</strong> con <code>is_account_group_member(&#39;grupo&#39;)</code>.</li>
+</ul>
+<h2>Acceso al almacenamiento</h2>
+<pre data-norun><code class="language-sql">-- Credencial (managed identity vía Access Connector) y ubicación externa
+CREATE EXTERNAL LOCATION lake_bronze
+URL 'abfss://bronze@stdatosprod001.dfs.core.windows.net/'
+WITH (STORAGE CREDENTIAL cred_lake_prod);
+
+CREATE EXTERNAL VOLUME prod.crudo.archivos
+LOCATION 'abfss://bronze@stdatosprod001.dfs.core.windows.net/archivos/';</code></pre>
+<h2>Tablas de sistema</h2>
+<p><code>system.access.audit</code> (quién hizo qué), <code>system.billing.usage</code> (costos), <code>system.access.table_lineage</code> (linaje), <code>system.compute.clusters</code>… Se consultan con SQL como cualquier tabla.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-unity-catalog">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-delta-sql.html">← Delta Lake en la práctica (SQL de Databricks)</a><a href="databricks-cli-autenticacion.html">Databricks CLI: instalación y autenticación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

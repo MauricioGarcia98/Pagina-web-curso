@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notebooks, magic commands y dbutils · Academia de Datos</title><meta name="description" content="Qué es un notebook y dónde corre (serverless, clúster, SQL warehouse), celdas multilenguaje y magic commands, _sqldf, display, widgets y marcadores de parámetro en SQL, dbutils.fs, secretos, %run frente a dbutils.notebook.run y task values entre tareas de un job."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-notebooks-dbutils.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Notebooks, magic commands y dbutils · Academia de Datos"><meta property="og:description" content="Qué es un notebook y dónde corre (serverless, clúster, SQL warehouse), celdas multilenguaje y magic commands, _sqldf, display, widgets y marcadores de parámetro en SQL, dbutils.fs, secretos, %run frente a dbutils.notebook.run y task values entre tareas de un job."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-notebooks-dbutils.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Básico · 50 min</div>
+<h1>Notebooks, magic commands y dbutils</h1><p class="resumen">Qué es un notebook y dónde corre (serverless, clúster, SQL warehouse), celdas multilenguaje y magic commands, _sqldf, display, widgets y marcadores de parámetro en SQL, dbutils.fs, secretos, %run frente a dbutils.notebook.run y task values entre tareas de un job.</p>
+<a class="cta" href="../index.html#/l/databricks-notebooks-dbutils">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>En un <a href="#/databricks/workspace">notebook de práctica</a> puedes usar <code>%sql</code>, <code>%md</code>, <code>%fs ls /Volumes/...</code>, <code>%run ./otro_notebook</code>, <code>dbutils.widgets.text(...)</code>, <code>dbutils.fs.put(...)</code> y <code>dbutils.secrets.get(...)</code> (la salida muestra <code>[REDACTED]</code>).</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un notebook es como un cuaderno donde mezclas texto, código y resultados en celdas: escribes un poco, lo ejecutas, ves qué pasa y sigues. <code>dbutils</code> es una caja de utilidades para tareas de todos los días, como listar archivos o leer una contraseña guardada de forma segura.</p>
+</div>
+
+
+<h2>Qué es un notebook</h2>
+<p>Un <strong>notebook</strong> es un documento interactivo formado por <strong>celdas</strong>. Cada celda tiene código (Python, SQL, Scala o R) o texto (Markdown), y se ejecuta por separado mostrando su resultado justo debajo: una tabla, un gráfico, un mensaje. Todas las celdas comparten el mismo <strong>contexto</strong>: una variable creada en la celda 1 existe en la celda 5.</p>
+<p>Es la herramienta ideal para <strong>explorar</strong> datos y desarrollar paso a paso: lees una tabla, la miras, pruebas una transformación, corriges. En Databricks, además, el notebook está conectado a un cluster: el código PySpark de cada celda se ejecuta distribuido.</p>
+<h3>Dónde corre tu código: el cómputo</h3>
+<p>Un notebook no hace nada solo: hay que <strong>conectarlo</strong> (<em>attach</em>) a un <strong>cómputo</strong>, el conjunto de máquinas que ejecuta las celdas. En Databricks hay tres tipos que vas a ver todo el tiempo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Cómputo</th>
+<th>Qué es</th>
+<th>Cuándo se usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Serverless</strong></td>
+<td>Databricks administra las máquinas: arranca en segundos y cobras por uso</td>
+<td>La opción por defecto en workspaces nuevos para notebooks y jobs</td>
+</tr>
+<tr>
+<td><strong>Clúster</strong> (<em>all-purpose</em> o de job)</td>
+<td>Máquinas virtuales que tú configuras (tamaño, versión del <em>runtime</em>, librerías)</td>
+<td>Cuando necesitas una configuración especial o librerías que serverless no admite</td>
+</tr>
+<tr>
+<td><strong>SQL warehouse</strong></td>
+<td>Cómputo optimizado solo para SQL</td>
+<td>Celdas SQL, el editor de SQL, tableros y herramientas de BI</td>
+</tr>
+</tbody></table></div>
+<p>El <strong>Databricks Runtime</strong> es la &quot;versión&quot; del cómputo: trae una versión de Spark, de Python y de las librerías. Por ejemplo, según las notas de versión oficiales, Databricks Runtime 17.3 LTS trae Spark 4.0, el 18 LTS trae Spark 4.1 y el 19 trae Spark 4.2. Las versiones marcadas <strong>LTS</strong> (<em>long term support</em>) se mantienen por más tiempo y son las que se usan en producción.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El orden de ejecución</div>
+
+<p>En un notebook puedes ejecutar las celdas en cualquier orden, y eso es una trampa: una variable puede tener el valor de una ejecución vieja, o depender de una celda que borraste. Antes de dar por terminado un notebook (o de convertirlo en job), ejecútalo <strong>completo de arriba a abajo</strong> en un cluster limpio (&quot;Run all&quot; después de &quot;Clear state&quot;). Para producción, la lógica importante debería vivir en módulos <code>.py</code> versionados, y el notebook solo llamarla.</p>
+</div>
+
+
+<h2>Magic commands</h2>
+<p>En un notebook de Python, una celda puede cambiar de lenguaje o de función con un comando “mágico” en la primera línea:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>%sql</code></td>
+<td>La celda es SQL (el resultado se ve como tabla)</td>
+</tr>
+<tr>
+<td><code>%python</code>, <code>%scala</code>, <code>%r</code></td>
+<td>Cambia el lenguaje de la celda</td>
+</tr>
+<tr>
+<td><code>%md</code></td>
+<td>Texto en Markdown (documentación)</td>
+</tr>
+<tr>
+<td><code>%run ./otro_notebook</code></td>
+<td>Ejecuta otro notebook en el mismo contexto (comparte variables y funciones)</td>
+</tr>
+<tr>
+<td><code>%pip install paquete</code></td>
+<td>Instala una librería en el entorno del notebook</td>
+</tr>
+<tr>
+<td><code>%sh</code></td>
+<td>Comandos de shell en el driver</td>
+</tr>
+<tr>
+<td><code>%fs ls /Volumes/...</code></td>
+<td>Atajo de <code>dbutils.fs</code></td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-sql">%sql
+SELECT canal, COUNT(*) AS pedidos
+FROM main.ventas.pedidos
+GROUP BY canal</code></pre>
+<p>Dos detalles que la documentación oficial remarca y que confunden al principio:</p>
+<ul>
+<li><strong>Cada lenguaje tiene su propio intérprete.</strong> Una variable creada en una celda <code>%python</code> <strong>no</strong> existe en una celda <code>%scala</code>. Para pasar datos entre lenguajes se usa una tabla o una vista temporal: <code>df.createOrReplaceTempView(&quot;ventas&quot;)</code> en Python y <code>SELECT * FROM ventas</code> en SQL.</li>
+<li><strong>El resultado de una celda SQL queda en <code>_sqldf</code>.</strong> Después de ejecutar una celda <code>%sql</code>, el resultado está disponible en Python como el DataFrame <code>_sqldf</code> (en clústeres; no en SQL warehouses). Se pisa con cada celda SQL nueva, así que si lo necesitas, guárdalo: <code>ventas_por_canal = _sqldf</code>.</li>
+<li><code>%sh</code> corre <strong>solo en el driver</strong> (la máquina principal), no en todas las máquinas del clúster.</li>
+</ul>
+<h2>display()</h2>
+<p><code>display(df)</code> muestra una tabla interactiva con filtros y gráficos rápidos. En este curso, <code>display(df)</code> también funciona en los ejercicios de PySpark (muestra la tabla en texto).</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+display(spark.table(&quot;pedidos&quot;).groupBy(&quot;canal&quot;).count())</code></pre>
+<h2>Widgets: parámetros del notebook</h2>
+<pre data-norun><code class="language-python">dbutils.widgets.text(&quot;fecha&quot;, &quot;2024-03-15&quot;, &quot;Fecha a procesar&quot;)
+dbutils.widgets.dropdown(&quot;entorno&quot;, &quot;dev&quot;, [&quot;dev&quot;, &quot;prod&quot;])
+fecha = dbutils.widgets.get(&quot;fecha&quot;)
+df = spark.table(&quot;main.bronze.pedidos&quot;).filter(f&quot;fecha_pedido = '{fecha}'&quot;)</code></pre>
+<p>Cuando el notebook corre en un <strong>job</strong>, los parámetros del job llenan los widgets.</p>
+<p>Desde SQL, los widgets se leen con <strong>marcadores de parámetro</strong> (<code>:nombre</code>), disponibles desde Databricks Runtime 15.2:</p>
+<pre data-norun><code class="language-sql">SELECT *
+FROM main.bronze.pedidos
+WHERE fecha_pedido = :fecha;
+
+SHOW TABLES IN IDENTIFIER(:esquema);   -- IDENTIFIER() convierte el texto en un nombre de tabla o esquema</code></pre>
+<p>Los marcadores protegen contra la <strong>inyección de SQL</strong>: el valor del widget nunca se &quot;pega&quot; dentro del texto de la consulta, se pasa por separado. En código viejo verás <code>${fecha}</code> o <code>getArgument(&quot;fecha&quot;)</code>, la sintaxis anterior.</p>
+<div class="recorrido"></div>
+
+
+<h2>dbutils.fs: archivos</h2>
+<pre data-norun><code class="language-python">dbutils.fs.ls(&quot;/Volumes/main/crudo/archivos/&quot;)
+dbutils.fs.cp(&quot;/Volumes/main/crudo/archivos/ventas.csv&quot;, &quot;/Volumes/main/crudo/respaldo/ventas.csv&quot;)
+dbutils.fs.mkdirs(&quot;/Volumes/main/crudo/archivos/2024/&quot;)
+dbutils.fs.rm(&quot;/Volumes/main/crudo/tmp/&quot;, recurse=True)
+dbutils.fs.head(&quot;/Volumes/main/crudo/archivos/ventas.csv&quot;)</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 DBFS y Volumes</div>
+
+<p>Antes se usaba el <strong>DBFS root</strong> (<code>dbfs:/FileStore/...</code>) y los <em>mounts</em>. Con Unity Catalog, la forma recomendada para archivos es <strong>Volumes</strong> (<code>/Volumes/&lt;catalogo&gt;/&lt;esquema&gt;/&lt;volumen&gt;/...</code>), que tienen permisos gobernados.</p>
+</div>
+
+
+<h2>dbutils.secrets: nunca escribas contraseñas</h2>
+<pre data-norun><code class="language-python">token = dbutils.secrets.get(scope=&quot;kv-datos&quot;, key=&quot;api-token&quot;)
+print(token)   # Databricks muestra [REDACTED]: el valor nunca aparece en el notebook</code></pre>
+<h2>Encadenar notebooks: %run, dbutils.notebook.run y los jobs</h2>
+<p>Cuando un proyecto crece, la lógica se reparte en varios notebooks o archivos. La documentación oficial compara las opciones:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Qué hace</th>
+<th>Cuándo usarlo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Archivos <code>.py</code> del workspace</strong> (<code>import utilidades</code>)</td>
+<td>Importas funciones como en cualquier proyecto de Python</td>
+<td>La forma <strong>recomendada</strong> de reutilizar código: se versiona en Git y se prueba con tests</td>
+</tr>
+<tr>
+<td><strong><code>%run ./utilidades</code></strong></td>
+<td>Ejecuta el otro notebook <strong>en el mismo contexto</strong>: sus funciones y variables quedan disponibles</td>
+<td>Compartir funciones cuando no puedes usar archivos <code>.py</code></td>
+</tr>
+<tr>
+<td><strong><code>dbutils.notebook.run(&quot;./carga&quot;, 600, {&quot;fecha&quot;: &quot;2024-03-15&quot;})</code></strong></td>
+<td>Ejecuta el otro notebook como un <strong>job nuevo y separado</strong>, con parámetros y un tiempo máximo (600 segundos), y devuelve el valor de su <code>dbutils.notebook.exit(...)</code></td>
+<td>Lógica dinámica que un job no puede expresar, por ejemplo &quot;un notebook por cada tabla de un archivo de configuración&quot;</td>
+</tr>
+<tr>
+<td><strong>Lakeflow Jobs</strong></td>
+<td>Un job con varias tareas, dependencias, horarios y reintentos</td>
+<td>La forma <strong>recomendada</strong> de orquestar en producción</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-python"># notebook &quot;carga&quot;: recibe un parámetro y devuelve un resultado
+dbutils.widgets.text(&quot;tabla&quot;, &quot;&quot;)
+tabla = dbutils.widgets.get(&quot;tabla&quot;)
+filas = spark.table(f&quot;main.bronze.{tabla}&quot;).count()
+dbutils.notebook.exit(str(filas))          # el valor de salida es siempre un texto
+
+# notebook &quot;orquestador&quot;: lo llama una vez por tabla
+for t in [&quot;pedidos&quot;, &quot;clientes&quot;, &quot;pagos&quot;]:
+    filas = dbutils.notebook.run(&quot;./carga&quot;, 600, {&quot;tabla&quot;: t})
+    print(t, filas)</code></pre>
+<h3>Pasar valores entre tareas de un job: task values</h3>
+<p>Dentro de un job de varias tareas, una tarea puede dejar un valor para las siguientes con <code>dbutils.jobs.taskValues</code>:</p>
+<pre data-norun><code class="language-python"># tarea &quot;validar&quot;
+dbutils.jobs.taskValues.set(key=&quot;filas_validas&quot;, value=11850)
+
+# tarea &quot;publicar&quot; (depende de &quot;validar&quot;)
+filas = dbutils.jobs.taskValues.get(taskKey=&quot;validar&quot;, key=&quot;filas_validas&quot;, default=0, debugValue=100)</code></pre>
+<ul>
+<li>El valor debe poder escribirse como JSON y ocupar menos de 48 KB: igual que XCom en Airflow, sirve para <strong>metadatos</strong> (conteos, rutas, banderas), no para datos.</li>
+<li><code>debugValue</code> es lo que devuelve cuando ejecutas el notebook a mano, fuera de un job (si no lo pones, da error).</li>
+<li>En la configuración del job también se puede usar <code>{{tasks.validar.values.filas_validas}}</code> como parámetro de otra tarea, o en una condición <em>if/else</em>.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar variables de una celda <code>%python</code> en una celda <code>%scala</code></strong>: cada lenguaje tiene su intérprete. Pasa los datos por una vista temporal.</li>
+<li><strong>Concatenar el widget dentro del SQL</strong> (<code>f&quot;WHERE fecha = &#39;{fecha}&#39;&quot;</code>): abre la puerta a inyección de SQL. Usa <code>:fecha</code> en SQL o <code>spark.sql(&quot;... :fecha&quot;, args={&quot;fecha&quot;: fecha})</code>.</li>
+<li><strong>Orquestar producción con <code>dbutils.notebook.run</code> en un bucle</strong>: cada llamada es un job efímero, sin reintentos por tarea ni historial claro. Usa Lakeflow Jobs.</li>
+<li><strong>Escribir contraseñas en el notebook</strong>: quedan en el historial de versiones. Usa <code>dbutils.secrets</code>.</li>
+<li><strong>Dar por terminado un notebook sin &quot;Run all&quot; en un cómputo limpio</strong>: puede depender de celdas ejecutadas en otro orden.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El patrón más común en equipos maduros: el notebook es solo el <strong>punto de entrada</strong> (lee parámetros, llama funciones), y la lógica vive en archivos <code>.py</code> en una carpeta Git, con tests que corren en CI.</li>
+<li>Los notebooks de producción se versionan en <strong>Git folders</strong> (antes <em>Repos</em>) y se despliegan con <strong>Declarative Automation Bundles</strong>, nunca editándolos a mano en el workspace de producción.</li>
+<li>Para explorar datos, Databricks ofrece además <strong>Genie Code</strong> (el asistente de IA dentro del notebook) que genera, explica y depura código; hay que revisar siempre lo que propone.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre %run y dbutils.notebook.run?&quot;</div>
+
+<p><code>%run</code> ejecuta otro notebook dentro del mismo contexto, así que sus funciones y variables quedan disponibles en el notebook que lo llama; sirve para compartir código, aunque hoy se recomienda importar archivos <code>.py</code>. <code>dbutils.notebook.run</code> ejecuta el notebook como un job separado, con parámetros y un tiempo máximo, y devuelve el valor que el otro notebook pasa a <code>dbutils.notebook.exit</code>; no comparte variables. Sirve para lógica dinámica, como recorrer una lista de tablas. Para orquestar producción con dependencias, horarios y reintentos, lo recomendado es un Lakeflow Job.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-notebooks-dbutils">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-que-es-databricks.html">← ¿Qué es Databricks? Recorrido por la plataforma</a><a href="databricks-delta-sql.html">Delta Lake en la práctica (SQL de Databricks) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

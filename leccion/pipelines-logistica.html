@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logística 📦: costo FIFO, días hábiles, stock diario y alertas de quiebre · Academia de Datos</title><meta name="description" content="El costo de la mercadería con el método FIFO y la fecha de entrega en días hábiles en Python, el stock diario y los quiebres con ventanas en PySpark, la puntualidad mensual por transportista en dbt y un DAG que dispara otro DAG."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-logistica.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Logística 📦: costo FIFO, días hábiles, stock diario y alertas de quiebre · Academia de Datos"><meta property="og:description" content="El costo de la mercadería con el método FIFO y la fecha de entrega en días hábiles en Python, el stock diario y los quiebres con ventanas en PySpark, la puntualidad mensual por transportista en dbt y un DAG que dispara otro DAG."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-logistica.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Experto · 65 min</div>
+<h1>Logística 📦: costo FIFO, días hábiles, stock diario y alertas de quiebre</h1><p class="resumen">El costo de la mercadería con el método FIFO y la fecha de entrega en días hábiles en Python, el stock diario y los quiebres con ventanas en PySpark, la puntualidad mensual por transportista en dbt y un DAG que dispara otro DAG.</p>
+<a class="cta" href="../index.html#/l/pipelines-logistica">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<p>En <strong>Mercurio Logística</strong> (caso 📦) el stock no se guarda: se <strong>calcula</strong> sumando movimientos. Y cada envío tiene una <strong>fecha prometida</strong> que hay que cumplir. Esta lección programa la lógica contable y de promesas, y arma el pipeline diario de inventario.</p>
+<h2>1. Python: el costo de lo vendido con FIFO</h2>
+<p>La mercadería de un mismo producto se compra en distintos momentos y a distintos precios. Cuando se vende, ¿qué costo se le asigna? El método <strong>FIFO</strong> (<em>first in, first out</em>: lo primero que entra es lo primero que sale) supone que se venden primero las unidades más viejas. Es el método más usado en contabilidad de inventarios.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Lote (en orden de llegada)</th>
+<th>Unidades</th>
+<th>Costo unitario</th>
+</tr>
+</thead><tbody><tr>
+<td>Enero</td>
+<td>100</td>
+<td>10,00</td>
+</tr>
+<tr>
+<td>Febrero</td>
+<td>50</td>
+<td>12,00</td>
+</tr>
+<tr>
+<td>Marzo</td>
+<td>80</td>
+<td>11,00</td>
+</tr>
+</tbody></table></div>
+<p>Si se venden 130 unidades: 100 salen del lote de enero (1.000) y 30 del de febrero (360). Costo de lo vendido: <strong>1.360</strong>. Quedan 20 unidades del lote de febrero y 80 del de marzo.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La góndola de la leche</div>
+
+<p>En un supermercado, el repositor pone la leche nueva <strong>atrás</strong> y la vieja adelante, para que se venda primero la que vence antes. FIFO hace lo mismo con los costos: las primeras unidades en entrar son las primeras en &quot;salir&quot; con su costo.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>2. Python: la fecha prometida en días hábiles</h2>
+<p>Cada transportista promete entregar en una cantidad de <strong>días hábiles</strong>: no cuentan sábados, domingos ni feriados. Si un envío sale un viernes con promesa de 2 días hábiles, se entrega el martes.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>3. PySpark: stock diario y días de quiebre</h2>
+<p>El stock de un SKU en un almacén al final de un día es la <strong>suma acumulada</strong> de todos sus movimientos hasta ese día. Un <strong>quiebre</strong> es un día que termina con stock negativo (se registraron salidas de mercadería que no había: un error operativo que hay que investigar).</p>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ¿Por qué agregar por día antes de acumular?</div>
+
+<p>Si acumularas movimiento por movimiento, un día con una salida de 50 registrada <strong>antes</strong> que la entrada de 100 mostraría un stock negativo &quot;a mitad del día&quot; que en realidad no fue un quiebre (el orden de carga dentro del día no es el orden físico). Definir el <strong>grano</strong> (cierre diario) antes de calcular evita falsas alarmas. Es la misma lección de siempre: primero el grano, después la métrica.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>4. dbt: puntualidad mensual por transportista</h2>
+<p>Compras renegocia los contratos con los transportistas cada trimestre, con datos de cumplimiento. El modelo calcula, por transportista y mes de despacho, la entrega a tiempo (<strong>OTD</strong>, <em>on-time delivery</em>) y el costo por envío exitoso.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>5. Airflow: alertar y disparar la reposición</h2>
+<p>El DAG diario de inventario calcula el stock y detecta quiebres. Si hay alguno, en vez de mandar un mail que nadie lee, <strong>dispara</strong> otro DAG (<code>reposicion_urgente</code>, que mantiene otro equipo) pasándole los datos necesarios. Así cada equipo es dueño de su DAG y se comunican por contrato.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>Por qué la logística exige tanto cuidado con el tiempo</h2>
+<p>En logística casi todo depende de <strong>cuándo</strong> pasó algo: el costo de lo vendido depende de qué lote entró primero (FIFO), la fecha prometida depende de los días hábiles y los feriados, y el stock de cada día depende de todos los movimientos anteriores. Un error en el orden o en el calendario no da un error de programa: da un número plausible y equivocado.</p>
+<p>El DAG de esta lección <strong>dispara otro DAG</strong> (<code>TriggerDagRunOperator</code>) cuando detecta quiebres de stock: el DAG de reposición tiene su propio dueño, sus propios horarios y reintentos, y se puede ejecutar también a mano. Separar los dos procesos evita un DAG gigante en el que todo depende de todo. La alternativa moderna es que la tarea de alertas actualice un <strong>Asset</strong> (<code>outlets=[Asset(&quot;quiebres_stock&quot;)]</code>) y que el DAG de reposición se programe con ese asset.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>FIFO ordenando solo por fecha</strong>: dos lotes del mismo día necesitan un segundo criterio (el número de lote), si no, el costo cambia entre ejecuciones.</li>
+<li><strong>Días hábiles sin feriados</strong>: la fecha prometida falla justo en las semanas que más importan.</li>
+<li><strong>Acumular movimientos sin agregarlos antes por día</strong>: con varios movimientos el mismo día, la suma acumulada muestra estados intermedios que no existieron al cierre.</li>
+<li><strong>Puntualidad que ignora los envíos sin fecha de entrega</strong>: los que todavía no llegaron y ya vencieron también son impuntuales.</li>
+<li><strong>Disparar el DAG de reposición sin pasarle qué productos</strong>: el otro DAG tiene que adivinar; se pasa por <code>conf</code> o por el asset.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los calendarios de feriados se mantienen como una tabla (un seed de dbt o una tabla de referencia) que actualiza un área responsable, porque cambian por país y por año.</li>
+<li>Los quiebres de stock suelen alimentar alertas operativas (correo, Slack) además del DAG de reposición; la alerta incluye el producto, el depósito y desde cuándo está en cero.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo calcularías el stock diario a partir de una tabla de movimientos?&quot;</div>
+
+<p>Primero agregaría los movimientos por producto, depósito y día, sumando entradas y salidas. Luego generaría la grilla completa de días para cada producto, para que los días sin movimientos también aparezcan, y aplicaría una suma acumulada con una función de ventana ordenada por fecha. Los días con stock menor o igual a cero son quiebres. Lo validaría contra un inventario físico conocido y usaría un desempate determinista si hay varios movimientos con la misma marca de tiempo.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-logistica">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-vuelos.html">← Aerolínea ✈️: sobreventa, propagación de demoras y tareas generadas por código</a><a href="pipelines-tienda.html">Tienda 🛒: segmentación RFM, cohortes de retención y el ETL completo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

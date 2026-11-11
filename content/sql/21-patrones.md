@@ -29,6 +29,10 @@ Estos son los problemas que separan a un analista de un **experto**. Ninguno se 
 
  Aparecen todo el tiempo en el trabajo real y en entrevistas de nivel senior. Todos combinan CTEs y funciones de ventana.
 
+:::analogia En palabras simples
+Muchas preguntas de negocio parecen distintas pero son la misma receta con otros ingredientes. "¿Cuántos días seguidos entró este usuario?", "¿dónde abandonan la compra?" o "¿cuántos clientes de enero siguen comprando en marzo?" son recetas conocidas. Esta lección es tu recetario: una vez que reconoces el patrón, la consulta casi se escribe sola.
+:::
+
 ## 1. Deduplicación: quedarse con el registro más reciente
 
 Los datos crudos casi siempre traen **duplicados**: el sistema de origen reenvió un registro, un proceso se ejecutó dos veces, o el cliente actualizó su email y llegó una versión nueva. En la capa limpia (silver) debe quedar **una fila por clave**, normalmente la más reciente.

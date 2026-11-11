@@ -12,6 +12,10 @@ autoevaluacion: ¿Puedes levantar todo el proyecto desde cero con dos o tres com
 En las entrevistas te van a preguntar "¿qué construiste?". Un repositorio que cualquiera puede clonar y levantar con `make up`, con un README claro, pruebas y CI, vale más que diez certificados. Este es ese proyecto, con los datos de Rápido.
 :::
 
+:::analogia En palabras simples
+Este proyecto es el ensayo general: armas en tu computadora un pipeline completo, de punta a punta, con las mismas herramientas que se usan en una empresa. Es el tipo de proyecto que puedes mostrar en tu portafolio.
+:::
+
 ## El objetivo
 
 ```diagrama

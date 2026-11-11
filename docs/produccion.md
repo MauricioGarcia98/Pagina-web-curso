@@ -92,12 +92,16 @@ Si tienes visitantes de la Unión Europea, el Reino Unido o Suiza, Google exige 
 - [ ] Ingreso por correo probado en dos navegadores; "Borrar mis datos de la nube" funciona.
 - [ ] Privacidad y Términos muestran tu nombre y tu correo de contacto.
 - [ ] Probaste el sitio en un celular con datos móviles.
-- [ ] (Opcional) Alta en Google Search Console y envío del dominio.
+- [ ] Alta en Google Search Console: verifica el dominio y envía `sitemap.xml`. El build genera una página por lección en `leccion/` y el sitemap con tu dominio: cambia `homepage` en `package.json` por tu dominio y vuelve a ejecutar `node tools/build.mjs`.
 
 ## Lo que falta para crecer
 
-Estas mejoras no bloquean el lanzamiento:
+## Uso sin conexión
 
-1. **Una dirección real por lección.** Hoy las direcciones son del tipo `#/l/…` y los buscadores ven una sola página. Generar una página HTML por lección en el build es lo que más tráfico traería.
-2. **Uso sin conexión** con un service worker.
-3. **Pruebas automáticas en cada cambio** con GitHub Actions.
+`sw.js` (en la raíz) es un service worker: guarda en el dispositivo cada página y archivo que el alumno abre, así el curso sigue funcionando sin internet. Desde **Mis datos → Usar sin conexión** se puede guardar todo el curso de una vez. La página principal se pide siempre a la red primero, así que cada publicación se ve al instante; los archivos con `?v=<hash>` se sirven desde la caché porque no cambian bajo la misma dirección. Solo funciona en `https` o en `localhost` (regla de los navegadores). Si alguna vez hay que desactivarlo, basta con publicar un `sw.js` que llame a `self.registration.unregister()`.
+
+## Pruebas automáticas
+
+Cada push a `main` y cada pull request corre `.github/workflows/pruebas.yml` en GitHub Actions: revisa la sintaxis del JavaScript, comprueba que los archivos generados estén al día con `node tools/build.mjs`, ejecuta el validador de los ~2.500 ejercicios (`node tools/validate.mjs`) y abre las páginas principales en Chromium (`node tools/humo.mjs`). Si algo falla, el pull request lo muestra en rojo antes de hacer merge.
+
+Para correr lo mismo en tu computadora: `npm ci`, `pip install -r requirements-ci.txt`, `node tools/validate.mjs`; y con el sitio servido (`npm run serve`), `node tools/humo.mjs`.

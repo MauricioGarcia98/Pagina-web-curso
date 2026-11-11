@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingesta: carga completa, incremental, CDC y streaming · Academia de Datos</title><meta name="description" content="Las cuatro formas de traer datos, cuándo usar cada una, la marca de agua, el CDC con Debezium y cómo lograr que una carga sea idempotente."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-ingesta.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Ingesta: carga completa, incremental, CDC y streaming · Academia de Datos"><meta property="og:description" content="Las cuatro formas de traer datos, cuándo usar cada una, la marca de agua, el CDC con Debezium y cómo lograr que una carga sea idempotente."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-ingesta.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Avanzado · 55 min</div>
+<h1>Ingesta: carga completa, incremental, CDC y streaming</h1><p class="resumen">Las cuatro formas de traer datos, cuándo usar cada una, la marca de agua, el CDC con Debezium y cómo lograr que una carga sea idempotente.</p>
+<a class="cta" href="../index.html#/l/arquitectura-ingesta">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre carga completa, incremental, CDC y streaming según la fuente y la latencia</li><li>Implementar una carga incremental con marca de agua (watermark) sin perder ni duplicar filas</li><li>Aplicar un flujo de cambios CDC (insert, update, delete) para reconstruir el estado de una tabla</li><li>Diseñar cargas idempotentes que se pueden repetir sin efectos secundarios</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Ingerir datos es como llenar una pileta. Puedes vaciarla y volver a llenarla entera cada día (<strong>carga completa</strong>), agregar solo el agua que falta (<strong>incremental</strong>), copiar cada gota que entra o sale de otra pileta (<strong>CDC</strong>) o tener una canilla que nunca se cierra (<strong>streaming</strong>). Cada forma tiene su costo y su uso.</p>
+</div>
+
+
+<h2>Las cuatro formas de traer datos</h2>
+<figure class="diagrama"><figcaption>Las cuatro estrategias de ingesta, de la más simple a la de menor latencia</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Cómo funciona</th>
+<th>Latencia típica</th>
+<th>Ventajas</th>
+<th>Desventajas</th>
+<th>Úsala cuando…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Carga completa</strong> (<em>full load</em>)</td>
+<td>Se copia toda la tabla y se reemplaza la anterior</td>
+<td>Horas o un día</td>
+<td>Simplísima, siempre correcta, detecta borrados</td>
+<td>Lenta y cara con tablas grandes; carga la base de origen</td>
+<td>La tabla es chica (países, productos, categorías)</td>
+</tr>
+<tr>
+<td><strong>Incremental</strong></td>
+<td>Se copian solo las filas creadas o modificadas desde la última carga</td>
+<td>Minutos a horas</td>
+<td>Mucho menos volumen</td>
+<td>Necesita una columna confiable (<code>updated_at</code>); <strong>no ve los borrados</strong></td>
+<td>Tablas grandes con columna de modificación</td>
+</tr>
+<tr>
+<td><strong>CDC</strong> (<em>change data capture</em>)</td>
+<td>Se lee el <strong>registro de transacciones</strong> de la base: cada insert, update y delete</td>
+<td>Segundos a minutos</td>
+<td>Ve todo, incluso los borrados, y casi no carga la base</td>
+<td>Más piezas que operar (Debezium, Kafka, DMS, Datastream)</td>
+<td>Tablas transaccionales grandes y críticas</td>
+</tr>
+<tr>
+<td><strong>Streaming de eventos</strong></td>
+<td>La aplicación publica cada evento en una cola (Kafka, Kinesis, Pub/Sub)</td>
+<td>Segundos</td>
+<td>Latencia mínima, desacopla sistemas</td>
+<td>Hay que manejar orden, duplicados y esquemas</td>
+<td>Clics, GPS, sensores, pagos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 La carga completa no es &quot;de principiante&quot;</div>
+
+<p>Para tablas chicas (hasta algunos millones de filas) la carga completa es muchas veces <strong>la mejor opción</strong>: es simple, se recupera sola de cualquier error y detecta borrados. No compliques lo que no hace falta.</p>
+</div>
+
+
+<h2>Carga incremental con marca de agua</h2>
+<p>La idea: guardar <strong>hasta dónde llegaste</strong> la última vez (la <em>marca de agua</em> o <em>watermark</em>) y pedir solo lo posterior.</p>
+<pre><code class="language-text">Ejecución del lunes:   SELECT * FROM pedidos WHERE updated_at &gt;  '2024-12-01 00:00:00'   → máximo visto: '2024-12-01 23:58:10'
+Ejecución del martes:  SELECT * FROM pedidos WHERE updated_at &gt;  '2024-12-01 23:58:10'   → máximo visto: '2024-12-02 23:59:41'</code></pre>
+<p>Tres reglas para que no se pierdan filas:</p>
+<ol>
+<li><strong>La marca se guarda solo si la carga terminó bien.</strong> Si la guardas antes y la carga falla, la próxima ejecución salta esos datos para siempre.</li>
+<li><strong>La marca es el máximo que viste en los datos</strong>, no &quot;la hora de ahora&quot;. Entre que lees y que terminas pueden llegar filas nuevas con un <code>updated_at</code> anterior al reloj del servidor.</li>
+<li><strong>Deja un margen de seguridad</strong> (<em>lookback</em>): pide desde la marca menos unos minutos, porque las transacciones que estaban abiertas pueden confirmarse con un <code>updated_at</code> levemente anterior. Esto trae algunos duplicados, que se resuelven con la regla siguiente.</li>
+</ol>
+<h3>Idempotencia: poder repetir sin miedo</h3>
+<p>Una carga es <strong>idempotente</strong> si ejecutarla dos veces con los mismos datos deja el destino igual que ejecutarla una vez. Con el margen de seguridad vas a recibir filas repetidas, y con los reintentos, cargas repetidas. Por eso el destino no se escribe con <code>INSERT</code>, sino con un <strong>upsert</strong> (<code>MERGE</code>): si la fila existe, se actualiza; si no, se inserta.</p>
+<p>Practica la lógica con datos escritos a mano. Esta consulta simula &quot;lo que ya tengo en el destino&quot; y &quot;lo que llegó en la carga de hoy&quot;, y calcula cómo queda la tabla después del upsert:</p>
+<pre><code class="language-sql">WITH destino(pedido_id, estado, updated_at) AS (
+    VALUES (1, 'pagado',    '2024-12-01 10:00'),
+           (2, 'pagado',    '2024-12-01 11:00'),
+           (3, 'pendiente', '2024-12-01 12:00')
+),
+llegada(pedido_id, estado, updated_at) AS (
+    VALUES (2, 'enviado',   '2024-12-02 09:00'),   -- cambió
+           (3, 'pendiente', '2024-12-01 12:00'),   -- repetido por el margen de seguridad
+           (4, 'pagado',    '2024-12-02 10:30')    -- nuevo
+),
+todo AS (
+    SELECT * FROM destino UNION ALL SELECT * FROM llegada
+),
+ultima_version AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY pedido_id ORDER BY updated_at DESC) AS rn
+    FROM todo
+)
+SELECT pedido_id, estado, updated_at
+FROM ultima_version
+WHERE rn = 1
+ORDER BY pedido_id;</code></pre>
+<p>El pedido 2 quedó <code>enviado</code>, el 3 no se duplicó y el 4 se agregó. Si vuelves a &quot;cargar&quot; la misma llegada, el resultado es idéntico: eso es idempotencia. En una base real, lo mismo se escribe con <code>MERGE INTO destino USING llegada ON ...</code>.</p>
+<h2>CDC: leer el diario de la base de datos</h2>
+<p>Toda base transaccional escribe cada cambio en un <strong>registro de transacciones</strong> (el <em>WAL</em> en PostgreSQL, el <em>binlog</em> en MySQL) para poder recuperarse de una caída. El CDC lee ese registro y lo convierte en un flujo de eventos:</p>
+<figure class="diagrama"><figcaption>CDC con Debezium: cada cambio de la base se convierte en un evento</figcaption></figure>
+
+
+<p>Cada evento dice <strong>qué operación</strong> fue, el estado <strong>antes</strong> y <strong>después</strong>, y cuándo pasó. Simplificado:</p>
+<pre><code class="language-json">{&quot;op&quot;: &quot;u&quot;, &quot;antes&quot;: {&quot;pedido_id&quot;: 2, &quot;estado&quot;: &quot;pagado&quot;}, &quot;despues&quot;: {&quot;pedido_id&quot;: 2, &quot;estado&quot;: &quot;enviado&quot;}, &quot;ts_ms&quot;: 1733130000000}
+{&quot;op&quot;: &quot;d&quot;, &quot;antes&quot;: {&quot;pedido_id&quot;: 5, &quot;estado&quot;: &quot;pendiente&quot;}, &quot;despues&quot;: null, &quot;ts_ms&quot;: 1733130060000}</code></pre>
+<p><code>op</code> vale <code>c</code> (create), <code>u</code> (update), <code>d</code> (delete) o <code>r</code> (lectura inicial, <em>snapshot</em>). Las herramientas más usadas: <strong>Debezium</strong> (open source), <strong>AWS DMS</strong>, <strong>Google Datastream</strong>, <strong>Azure Data Factory</strong> con CDC, <strong>Fivetran</strong> y <strong>Airbyte</strong>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Por qué el CDC no carga la base?</div>
+
+<p>Porque no ejecuta consultas sobre las tablas: lee un archivo que la base escribe de todos modos. Por eso resuelve exactamente el problema de Sofía: la base deja de sufrir el export nocturno y los cambios llegan en minutos.</p>
+</div>
+
+
+<h3>Los borrados: lo que la carga incremental no ve</h3>
+<p>Si un pedido de prueba se <strong>borra</strong> en el origen, una carga por <code>updated_at</code> nunca se entera: la fila simplemente deja de existir y no hay nada &quot;nuevo&quot; que traer. En el destino queda para siempre. El CDC sí trae el evento <code>d</code>. Las alternativas sin CDC son el <em>soft delete</em> (el origen marca <code>borrado = true</code> en vez de borrar) o una carga completa periódica de las claves para comparar.</p>
+<h2>Streaming de eventos</h2>
+<p>Cuando el dato <strong>es</strong> un evento (un clic, una posición GPS, un pago), la aplicación lo publica directamente en una cola o <em>log</em> de mensajes. Lo verás en detalle en la lección de batch y streaming. Lo importante para la ingesta:</p>
+<ul>
+<li><strong>Los mensajes pueden llegar repetidos</strong> (casi todas las colas garantizan &quot;al menos una vez&quot;). El destino debe deduplicar por un id de evento.</li>
+<li><strong>Pueden llegar desordenados</strong>: el evento de las 10:01 puede llegar después del de las 10:02.</li>
+<li><strong>El esquema cambia</strong>: un día la app agrega un campo. Un <em>schema registry</em> (registro de esquemas) controla qué cambios se permiten.</li>
+</ul>
+<h2>Bronze: guarda lo que llegó, tal cual</h2>
+<p>Sea cual sea la estrategia, la regla de oro es la misma: <strong>lo que llega se guarda primero sin transformar</strong>, en bronze, con metadatos de la carga:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Columna extra</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>_fecha_ingesta</code></td>
+<td>Cuándo llegó (para reprocesar un día y para medir frescura)</td>
+</tr>
+<tr>
+<td><code>_archivo_origen</code> / <code>_offset</code></td>
+<td>De dónde vino exactamente</td>
+</tr>
+<tr>
+<td><code>_id_carga</code></td>
+<td>Qué ejecución la trajo (para borrar una carga mala)</td>
+</tr>
+</tbody></table></div>
+<p>Así, si mañana descubres un error en la limpieza, reprocesas desde bronze sin volver a molestar a la fuente.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Guardar la marca de agua antes de terminar la carga</strong>: si la carga falla, la próxima salta esos datos y se pierden para siempre.</li>
+<li><strong>Usar la hora del servidor como marca</strong>: las filas confirmadas un poco tarde quedan afuera. Usa el máximo visto en los datos y un margen de seguridad.</li>
+<li><strong><code>INSERT</code> en lugar de <code>MERGE</code></strong>: cada reintento o margen de seguridad duplica filas.</li>
+<li><strong>Confiar en un <code>updated_at</code> que no siempre se actualiza</strong>: muchos sistemas tienen procesos que cambian filas sin tocar esa columna. Verifica con el equipo del origen antes de basar una carga en ella.</li>
+<li><strong>Olvidar los borrados</strong>: el dashboard sigue mostrando pedidos que ya no existen.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El export que tarda cuatro horas</div>
+
+<p>Sofía, de operaciones, se queja:</p>
+<blockquote>
+<p>&quot;El export nocturno de la base de pedidos empieza a las 0:00 y termina a las 4:00. La base se pone lenta toda la noche y el call center de México, que trabaja hasta tarde, no puede consultar nada. Y encima, si un pedido se cancela a las 10 de la mañana, recién lo vemos al día siguiente.&quot;</p>
+</blockquote>
+<p>El problema no es la herramienta: es la <strong>forma</strong> de ingerir. Hoy copian la tabla completa todas las noches. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En la mayoría de las empresas no se escribe la ingesta desde cero: se usan <strong>conectores</strong> administrados (Fivetran, Airbyte, Data Factory, Datastream, DMS). El trabajo del data engineer es elegir la estrategia, configurar, monitorear y resolver lo que el conector no cubre.</li>
+<li>Antes de conectar CDC a una base de producción hay que hablar con el equipo que la administra: requiere permisos especiales y configurar la retención del log.</li>
+<li>Las ingestas tienen un <strong>SLA</strong> de frescura (&quot;los pedidos de ayer, antes de las 6:00&quot;) y una alerta si no se cumple. Lo verás en la lección de calidad.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo cargarías incrementalmente una tabla de 2.000 millones de filas?&quot;</div>
+
+<p>Pregunta primero si hay una columna de modificación confiable y si hay borrados. Si hay columna y no hay borrados: incremental con marca de agua (guardada al final y con margen de seguridad) y <code>MERGE</code> en el destino para que sea idempotente. Si hay borrados o la tabla es crítica: CDC desde el log de transacciones (Debezium, DMS, Datastream). Menciona la carga inicial (un <em>snapshot</em> histórico en paralelo, por particiones), la deduplicación en silver y cómo verificarías que no se pierden filas (conteos por día contra el origen).</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-ingesta">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-que-es.html">← Qué es la arquitectura de datos</a><a href="arquitectura-almacenamiento.html">Almacenamiento: warehouse, data lake y lakehouse →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

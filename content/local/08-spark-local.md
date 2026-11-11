@@ -14,6 +14,10 @@ En Rápido, los jobs de Spark corren en Dataproc y cada prueba levanta un clúst
 > "Desarrolla el job en tu máquina con una muestra de los datos. Spark en modo local es el mismo motor: si funciona con 16 000 pedidos en tu laptop, va a funcionar con 16 millones en el clúster. Solo cambia dónde corre."
 :::
 
+:::analogia En palabras simples
+Spark está pensado para trabajar con muchas computadoras, pero también corre en una sola, como un equipo de fútbol que entrena con un solo jugador para aprender las jugadas. En tu computadora practicas con datos chicos el mismo código que después corre con millones de filas.
+:::
+
 ## Spark en modo local
 
 En un clúster, Spark tiene un **driver** (coordina) y varios **executors** en distintas máquinas (procesan). En **modo local**, todo corre en **un proceso de tu computadora**, y los "executors" son los núcleos de tu procesador.

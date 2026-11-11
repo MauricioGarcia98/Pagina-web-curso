@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Módulos: tu propia biblioteca de infraestructura · Academia de Datos</title><meta name="description" content="Empaqueta un patrón (una capa del lago con seguridad, versionado y retención) en un módulo con entradas y salidas, úsalo muchas veces con for_each, y organiza el repositorio en módulos y entornos como lo hacen los equipos de plataforma."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-modulos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Módulos: tu propia biblioteca de infraestructura · Academia de Datos"><meta property="og:description" content="Empaqueta un patrón (una capa del lago con seguridad, versionado y retención) en un módulo con entradas y salidas, úsalo muchas veces con for_each, y organiza el repositorio en módulos y entornos como lo hacen los equipos de plataforma."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-modulos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#terraform">🏗️ Terraform: infraestructura como código</a> · Avanzado · 65 min</div>
+<h1>Módulos: tu propia biblioteca de infraestructura</h1><p class="resumen">Empaqueta un patrón (una capa del lago con seguridad, versionado y retención) en un módulo con entradas y salidas, úsalo muchas veces con for_each, y organiza el repositorio en módulos y entornos como lo hacen los equipos de plataforma.</p>
+<a class="cta" href="../index.html#/l/terraform-modulos">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un módulo y la diferencia entre módulo raíz y módulo hijo</li><li>Escribir un módulo con variables, recursos y outputs, y llamarlo desde otro proyecto</li><li>Crear varias copias de un módulo con for_each y leer sus outputs</li><li>Organizar un repositorio en modules/ y envs/ con un estado por entorno</li><li>Elegir entre un módulo propio y uno público del registro, y fijar su versión</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un módulo de Terraform es como un kit de muebles prearmado: en vez de describir cada tornillo de una cuenta de almacenamiento cada vez, creas un kit &quot;almacenamiento de datos&quot; y lo reutilizas en todos los proyectos con los ajustes de cada uno.</p>
+</div>
+
+
+<h2>Qué es un módulo</h2>
+<p>Un <strong>módulo</strong> es una carpeta con archivos <code>.tf</code>. Ya escribiste uno: la carpeta donde ejecutas <code>terraform</code> es el <strong>módulo raíz</strong>. Cuando ese módulo llama a otra carpeta con un bloque <code>module</code>, esa carpeta es un <strong>módulo hijo</strong>.</p>
+<p>Un módulo es como una <strong>función</strong>: recibe entradas (variables), hace algo (crea recursos) y devuelve salidas (outputs). El código que lo llama no necesita saber cómo está hecho por dentro.</p>
+<figure class="diagrama"><figcaption>Un módulo es una función de infraestructura: entradas, recursos, salidas</figcaption></figure>
+
+
+<h2>Escribir el módulo</h2>
+<p>La estructura estándar de un módulo:</p>
+<pre><code class="language-text">modules/capa_lago/
+├── variables.tf    ← las entradas
+├── main.tf         ← los recursos
+├── outputs.tf      ← las salidas
+└── README.md       ← cómo se usa (muchos equipos lo generan con terraform-docs)</code></pre>
+<p><strong>variables.tf</strong> — la &quot;firma&quot; del módulo. Pocas entradas, con descripción y valores por defecto razonables:</p>
+<pre><code class="language-hcl">variable &quot;nombre&quot; {
+  type        = string
+  description = &quot;Nombre completo del bucket&quot;
+}
+
+variable &quot;dias_retencion&quot; {
+  type        = number
+  description = &quot;Días hasta borrar los objetos. 0 = nunca&quot;
+  default     = 0
+}
+
+variable &quot;versionado&quot; {
+  type    = bool
+  default = false
+}
+
+variable &quot;etiquetas&quot; {
+  type    = map(string)
+  default = {}
+}</code></pre>
+<p><strong>main.tf</strong> — lo que la empresa decidió que <strong>toda</strong> capa del lago debe tener:</p>
+<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;this&quot; {
+  bucket = var.nombre
+  tags   = var.etiquetas
+}
+
+# siempre privado: no es una opción del módulo
+resource &quot;aws_s3_bucket_public_access_block&quot; &quot;this&quot; {
+  bucket                  = aws_s3_bucket.this.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource &quot;aws_s3_bucket_versioning&quot; &quot;this&quot; {
+  bucket = aws_s3_bucket.this.id
+  versioning_configuration {
+    status = var.versionado ? &quot;Enabled&quot; : &quot;Suspended&quot;
+  }
+}
+
+# la regla de retención solo existe si se pidió
+resource &quot;aws_s3_bucket_lifecycle_configuration&quot; &quot;this&quot; {
+  count  = var.dias_retencion &gt; 0 ? 1 : 0
+  bucket = aws_s3_bucket.this.id
+  rule {
+    id     = &quot;expirar&quot;
+    status = &quot;Enabled&quot;
+    expiration {
+      days = var.dias_retencion
+    }
+  }
+}</code></pre>
+<ul>
+<li>El nombre local <strong><code>this</code></strong> es la convención cuando el módulo tiene un único recurso principal de ese tipo.</li>
+<li>Lo obligatorio para la empresa (privado) <strong>no</strong> es una variable: nadie puede apagarlo por error. Lo que cambia entre usos (retención, versionado) sí lo es.</li>
+</ul>
+<p><strong>outputs.tf</strong> — lo que necesita saber quien lo usa:</p>
+<pre><code class="language-hcl">output &quot;nombre&quot; {
+  value = aws_s3_bucket.this.bucket
+}
+
+output &quot;arn&quot; {
+  value = aws_s3_bucket.this.arn
+}</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un módulo no configura el proveedor</div>
+
+<p>Un módulo hijo <strong>no</strong> lleva bloque <code>provider &quot;aws&quot; { region = ... }</code>: hereda el del módulo raíz. Si lo configura por dentro, no se puede usar en otra región ni en otra cuenta, y no se puede borrar limpiamente. Solo declara qué proveedores necesita en <code>terraform { required_providers { ... } }</code>.</p>
+</div>
+
+
+<h2>Llamar al módulo</h2>
+<pre><code class="language-hcl"># envs/dev/main.tf
+provider &quot;aws&quot; {
+  region = &quot;us-east-1&quot;
+}
+
+locals {
+  capas = {
+    bronze = { dias = 90, versionado = false }
+    silver = { dias = 0, versionado = true }
+    gold   = { dias = 0, versionado = true }
+  }
+}
+
+module &quot;capa&quot; {
+  source   = &quot;../../modules/capa_lago&quot;
+  for_each = local.capas
+
+  nombre         = &quot;andina-dev-${each.key}&quot;
+  dias_retencion = each.value.dias
+  versionado     = each.value.versionado
+  etiquetas      = { capa = each.key }
+}
+
+module &quot;logs&quot; {
+  source = &quot;../../modules/capa_lago&quot;
+  nombre = &quot;andina-dev-logs&quot;          # el resto, con los valores por defecto
+}
+
+output &quot;arns&quot; {
+  value = { for k, m in module.capa : k =&gt; m.arn }
+}</code></pre>
+<ul>
+<li><strong><code>source</code></strong> dice dónde está el módulo. Una ruta local empieza con <code>./</code> o <code>../</code>.</li>
+<li>Los demás argumentos son las <strong>variables</strong> del módulo. Si falta una sin <code>default</code>, el plan falla con <code>Missing required argument</code>.</li>
+<li>Los outputs se leen como <strong><code>module.&lt;nombre&gt;.&lt;output&gt;</code></strong>. Con <code>for_each</code>, <code>module.capa</code> es un mapa: <code>module.capa[&quot;gold&quot;].arn</code>.</li>
+<li>Cada vez que agregas un bloque <code>module</code> o cambias su <code>source</code>, hay que volver a ejecutar <strong><code>terraform init</code></strong>.</li>
+</ul>
+<h2>Laboratorio: el lago con un módulo</h2>
+<p>En la terminal, arma esta estructura (para simplificar, el raíz va en <code>~/infra/m</code> y el módulo en <code>~/infra/m/modules/capa_lago</code>, así que el <code>source</code> es <code>&quot;./modules/capa_lago&quot;</code>):</p>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/m/modules/capa_lago &amp;&amp; cd ~/infra/m
+code modules/capa_lago/variables.tf
+code modules/capa_lago/main.tf
+code modules/capa_lago/outputs.tf
+code main.tf
+terraform init</code></pre>
+<p>El <code>init</code> ahora instala los módulos:</p>
+<pre><code class="language-text">Initializing modules...
+- capa in modules/capa_lago
+- logs in modules/capa_lago</code></pre>
+<p>Aplica y mira cómo se llaman los recursos en el estado:</p>
+<pre><code class="language-text">$ terraform apply -auto-approve
+...
+Apply complete! Resources: 13 added, 0 changed, 0 destroyed.
+
+$ terraform state list
+module.capa[&quot;bronze&quot;].aws_s3_bucket.this
+module.capa[&quot;bronze&quot;].aws_s3_bucket_lifecycle_configuration.this[0]
+module.capa[&quot;bronze&quot;].aws_s3_bucket_public_access_block.this
+module.capa[&quot;bronze&quot;].aws_s3_bucket_versioning.this
+module.capa[&quot;gold&quot;].aws_s3_bucket.this
+...
+module.logs.aws_s3_bucket_versioning.this</code></pre>
+<p>Cuenta: 3 recursos por cada una de las 4 copias (12) + 1 regla de retención, solo en bronze = <strong>13</strong>. La dirección completa de un recurso es <code>module.&lt;nombre&gt;[clave].&lt;tipo&gt;.&lt;nombre_local&gt;</code>.</p>
+<p>Prueba: agrega una capa <code>sandbox = { dias = 7, versionado = false }</code> al mapa y ejecuta <code>terraform plan</code>. Aparecen 4 recursos nuevos, todos con la misma seguridad, sin escribir una línea de recursos.</p>
+<h2>Organizar el repositorio</h2>
+<pre><code class="language-text">infra-datos/
+├── modules/
+│   ├── capa_lago/         ← un bucket del lago con todo lo obligatorio
+│   ├── catalogo_glue/     ← base de Glue + crawler + rol
+│   └── job_spark/         ← job de Glue o de Databricks con sus permisos
+├── envs/
+│   ├── dev/    main.tf  backend.tf  terraform.tfvars
+│   ├── test/   main.tf  backend.tf  terraform.tfvars
+│   └── prod/   main.tf  backend.tf  terraform.tfvars
+└── .github/workflows/terraform.yml</code></pre>
+<figure class="diagrama"><figcaption>Los entornos llaman a los mismos módulos con valores distintos, y cada uno tiene su estado</figcaption></figure>
+
+
+<h2>Módulos del registro público</h2>
+<p>No hace falta escribir todo. El <strong>Terraform Registry</strong> (registry.terraform.io) tiene miles de módulos. Los de <code>terraform-aws-modules</code> y <code>Azure/avm-*</code> (Azure Verified Modules) son los más usados:</p>
+<pre><code class="language-hcl">module &quot;lago_bronze&quot; {
+  source  = &quot;terraform-aws-modules/s3-bucket/aws&quot;
+  version = &quot;~&gt; 4.2&quot;            # fija la versión: 4.2, 4.3… pero nunca 5.0
+
+  bucket = &quot;andina-prod-bronze&quot;
+  versioning = {
+    enabled = true
+  }
+}
+
+module &quot;red&quot; {
+  source = &quot;git::https://github.com/grupo-andina/tf-modulos.git//red?ref=v1.3.0&quot;   # un módulo interno en Git, en un tag
+}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Módulo propio</th>
+<th>Módulo público</th>
+</tr>
+</thead><tbody><tr>
+<td>Control</td>
+<td>Total: hace exactamente lo que la empresa necesita</td>
+<td>Lo que el autor decidió</td>
+</tr>
+<tr>
+<td>Trabajo</td>
+<td>Lo escribes y lo mantienes tú</td>
+<td>Ya está hecho y probado por miles</td>
+</tr>
+<tr>
+<td>Riesgo</td>
+<td>Errores tuyos</td>
+<td>Cambios de versión, dependencias de terceros</td>
+</tr>
+<tr>
+<td>Típico</td>
+<td>Envolver uno público con las reglas de la empresa</td>
+<td>Recursos complejos (VPC, EKS, buckets con muchas opciones)</td>
+</tr>
+</tbody></table></div>
+<p>Un patrón muy común: el módulo <strong>interno</strong> <code>capa_lago</code> usa por dentro el módulo <strong>público</strong> de S3 y le fija las reglas de la empresa.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Versiones de módulos y proveedores</div>
+
+<p><code>version = &quot;~&gt; 4.2&quot;</code> significa &quot;&gt;= 4.2 y &lt; 5.0&quot;: aceptas arreglos y funciones nuevas, pero no cambios que rompen (versión mayor). Lo mismo para los proveedores en <code>required_providers</code>. Un módulo de Git sin <code>?ref=</code> usa la rama principal y cambia sin aviso: siempre un tag.</p>
+</div>
+
+
+<h2>Cuándo hacer un módulo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Hazlo cuando…</th>
+<th>No lo hagas cuando…</th>
+</tr>
+</thead><tbody><tr>
+<td>El mismo patrón se repite 3 o más veces</td>
+<td>Es un recurso suelto que aparece una vez</td>
+</tr>
+<tr>
+<td>Hay reglas que <strong>todos</strong> deben cumplir (seguridad, etiquetas)</td>
+<td>El &quot;módulo&quot; solo pasa variables a un único recurso sin agregar nada</td>
+</tr>
+<tr>
+<td>Varios equipos necesitan lo mismo</td>
+<td>Todavía no sabes cómo va a ser el patrón (primero repite, después abstrae)</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>Module not installed</code></strong>: agregaste o cambiaste un bloque <code>module</code> sin <code>terraform init</code>.</li>
+<li><strong><code>Unsupported argument</code></strong> en el bloque <code>module</code>: le pasaste un argumento que el módulo no declara como variable (o lo escribiste mal).</li>
+<li><strong>Mover recursos a un módulo y que el plan quiera destruirlos</strong>: <code>aws_s3_bucket.bronze</code> pasa a llamarse <code>module.capa[&quot;bronze&quot;].aws_s3_bucket.this</code>. Agrega un bloque <code>moved { from = aws_s3_bucket.bronze  to = module.capa[&quot;bronze&quot;].aws_s3_bucket.this }</code>.</li>
+<li><strong>Módulos con 40 variables</strong> que exponen cada argumento del recurso: es más difícil de usar que el recurso directo. Un buen módulo decide por ti.</li>
+<li><strong><code>source</code> de Git sin <code>?ref=</code></strong> o del registro sin <code>version</code>: un día el módulo cambia y tu plan quiere reemplazar recursos.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Doce buckets, doce formas distintas</div>
+
+<p>El lago del Grupo Andino ya tiene doce buckets en tres entornos. Una auditoría de seguridad encuentra que cuatro no tienen bloqueo de acceso público, dos no tienen cifrado y ninguno de bronze tiene regla de retención. Cada uno se escribió copiando y pegando bloques, y cada copia quedó un poco distinta.</p>
+<blockquote>
+<p>&quot;Quiero <strong>una</strong> definición de cómo es una capa del lago en esta empresa: privada, cifrada, versionada si hace falta y con retención. Y que todos los buckets salgan de ahí.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En empresas medianas y grandes, un <strong>equipo de plataforma</strong> mantiene los módulos (con versiones, changelog y ejemplos) y los equipos de datos los usan. Pedir &quot;un bucket&quot; es escribir 5 líneas de <code>module</code>.</li>
+<li>Los módulos tienen pruebas: <code>terraform validate</code> y <code>tflint</code> en la CI, y pruebas con <strong><code>terraform test</code></strong> (archivos <code>.tftest.hcl</code> que crean el módulo en una cuenta de pruebas y verifican los outputs) o con Terratest.</li>
+<li>El README de cada módulo se genera con <strong>terraform-docs</strong>: lista entradas, salidas y un ejemplo de uso.</li>
+<li>Las herramientas de políticas (<strong>Checkov</strong>, <strong>tfsec/Trivy</strong>, <strong>OPA/Conftest</strong>) revisan en el pull request que ningún bucket sea público o sin cifrado, aunque alguien no use el módulo.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo organizarías el Terraform de una plataforma de datos con tres entornos?&quot;</div>
+
+<p>Un repositorio con dos carpetas: <code>modules/</code>, con módulos chicos por patrón (capa del lago, catálogo, job, permisos), con versión y pruebas; y <code>envs/dev</code>, <code>envs/test</code> y <code>envs/prod</code>, donde cada entorno llama a los mismos módulos con sus valores y tiene su propio estado remoto (idealmente en cuentas o suscripciones distintas, para que los permisos de prod estén separados). Los proveedores se configuran solo en los entornos. La CI hace <code>fmt</code>, <code>validate</code>, <code>tflint</code>, chequeos de seguridad y <code>plan</code> en cada pull request, y <code>apply</code> al hacer merge, primero en dev y con aprobación manual en prod.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Detalle</th>
+</tr>
+</thead><tbody><tr>
+<td>Módulo raíz</td>
+<td>La carpeta donde ejecutas <code>terraform</code></td>
+</tr>
+<tr>
+<td>Módulo hijo</td>
+<td>Una carpeta llamada con <code>module &quot;x&quot; { source = &quot;…&quot; }</code></td>
+</tr>
+<tr>
+<td>Entradas / salidas</td>
+<td><code>variable</code> del módulo / <code>module.x.output</code></td>
+</tr>
+<tr>
+<td>Dirección en el estado</td>
+<td><code>module.x[&quot;clave&quot;].tipo.nombre</code></td>
+</tr>
+<tr>
+<td>Fuentes</td>
+<td>Local (<code>./modules/x</code>), registro (<code>org/nombre/proveedor</code> + <code>version</code>), Git (<code>git::…?ref=v1.0.0</code>)</td>
+</tr>
+<tr>
+<td>Después de agregar o cambiar un módulo</td>
+<td><code>terraform init</code></td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/terraform-modulos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="terraform-estado-remoto.html">← El estado en equipo: backends remotos, workspaces, import y lifecycle</a><a href="terraform-plataforma-azure-databricks.html">Proyecto: el lakehouse completo en Azure y Databricks con Terraform →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

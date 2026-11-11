@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Almacenamiento: Storage Accounts y ADLS Gen2 · Academia de Datos</title><meta name="description" content="Crear el data lake, contenedores, subir y listar archivos, autenticación con --auth-mode login y rutas abfss://."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-storage.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Almacenamiento: Storage Accounts y ADLS Gen2 · Academia de Datos"><meta property="og:description" content="Crear el data lake, contenedores, subir y listar archivos, autenticación con --auth-mode login y rutas abfss://."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-storage.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure">☁️ Azure y Azure CLI</a> · Intermedio · 40 min</div>
+<h1>Almacenamiento: Storage Accounts y ADLS Gen2</h1><p class="resumen">Crear el data lake, contenedores, subir y listar archivos, autenticación con --auth-mode login y rutas abfss://.</p>
+<a class="cta" href="../index.html#/l/azure-storage">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Crea una cuenta con el <a href="#/azure/crear/storage">asistente de Storage</a> (prueba un nombre con mayúsculas para ver la validación), sube un blob a un contenedor, genera una SAS y agrega una regla de ciclo de vida que pase los blobs a Cool.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una cuenta de almacenamiento es como un depósito enorme en la nube donde guardas archivos de cualquier tamaño. Si activas el espacio de nombres jerárquico se convierte en un <strong>data lake</strong>: el depósito pasa a tener estanterías y carpetas de verdad, que es lo que necesitan herramientas como Spark.</p>
+</div>
+
+
+<h2>El data lake de Azure</h2>
+<p>En AWS el lago es S3 y en Google Cloud es Cloud Storage. En Azure es <strong>Azure Data Lake Storage Gen2 (ADLS Gen2)</strong>: una <strong>Storage Account</strong> (cuenta de almacenamiento) con una opción activada, el <strong>espacio de nombres jerárquico</strong> (<em>hierarchical namespace</em>, HNS). Esa opción es la que la convierte en un data lake de verdad:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Blob Storage común</th>
+<th>ADLS Gen2 (HNS activado)</th>
+</tr>
+</thead><tbody><tr>
+<td>Carpetas</td>
+<td>&quot;Falsas&quot;: prefijos en el nombre, como en S3</td>
+<td><strong>Reales</strong>: renombrar o borrar una carpeta es una sola operación</td>
+</tr>
+<tr>
+<td>Permisos</td>
+<td>Por contenedor</td>
+<td>También por carpeta y archivo (ACL estilo POSIX)</td>
+</tr>
+<tr>
+<td>Rendimiento con Spark</td>
+<td>Bueno</td>
+<td>Mejor (operaciones de carpetas atómicas)</td>
+</tr>
+<tr>
+<td>Protocolo para Spark</td>
+<td><code>wasbs://</code> (antiguo)</td>
+<td><code>abfss://</code></td>
+</tr>
+</tbody></table></div>
+<p>La jerarquía es:</p>
+<pre><code class="language-text">Storage Account  stdatosdev001                      ← la cuenta (un recurso de Azure)
+ └── Contenedor (file system)  bronze               ← como un bucket; uno por capa
+      └── Carpetas  ventas/anio=2024/mes=12/        ← carpetas reales
+           └── Archivo  ventas.parquet</code></pre>
+<h2>Crear la cuenta</h2>
+<pre data-norun><code class="language-bash">az storage account create \
+  --name stdatosdev001 \
+  --resource-group rg-datos-dev \
+  --location eastus2 \
+  --sku Standard_LRS \
+  --kind StorageV2 \
+  --hns true</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parámetro</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>--name</code></td>
+<td>Nombre único en <strong>todo Azure</strong> (forma parte de la URL)</td>
+</tr>
+<tr>
+<td><code>--resource-group</code></td>
+<td>El grupo de recursos que la contiene</td>
+</tr>
+<tr>
+<td><code>--location</code></td>
+<td>La región</td>
+</tr>
+<tr>
+<td><code>--sku</code></td>
+<td>La <strong>redundancia</strong>: cuántas copias y dónde</td>
+</tr>
+<tr>
+<td><code>--kind StorageV2</code></td>
+<td>El tipo de cuenta moderno</td>
+</tr>
+<tr>
+<td><code>--hns true</code></td>
+<td><strong>Activa el hierarchical namespace</strong> → ADLS Gen2. ¡No se puede cambiar después con facilidad!</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 Nombres de cuentas de almacenamiento</div>
+
+<p>Entre 3 y 24 caracteres, <strong>solo minúsculas y números</strong> (sin guiones), y únicos en todo Azure, porque forman parte de una URL pública: <code>https://stdatosdev001.dfs.core.windows.net</code>. Convención común: <code>st</code> + proyecto + entorno + número.</p>
+</div>
+
+
+<h3>Redundancia (<code>--sku</code>)</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>SKU</th>
+<th>Copias</th>
+<th>Protege contra</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td><code>Standard_LRS</code></td>
+<td>3 en un datacenter</td>
+<td>Falla de un disco o servidor</td>
+<td>Desarrollo, datos que se pueden regenerar</td>
+</tr>
+<tr>
+<td><code>Standard_ZRS</code></td>
+<td>3 en 3 zonas de la región</td>
+<td>Caída de un datacenter</td>
+<td>Producción</td>
+</tr>
+<tr>
+<td><code>Standard_GRS</code></td>
+<td>6: 3 locales + 3 en otra región</td>
+<td>Desastre regional</td>
+<td>Datos críticos</td>
+</tr>
+</tbody></table></div>
+<h2>Contenedores (file systems) y carpetas</h2>
+<p>Un <strong>contenedor</strong> es la división de primer nivel de la cuenta (en ADLS Gen2 también se llama <em>file system</em>). Lo habitual es un contenedor por capa del lakehouse:</p>
+<pre data-norun><code class="language-bash"># Contenedores para las capas del lakehouse
+for capa in bronze silver gold; do
+  az storage container create --name $capa --account-name stdatosdev001 --auth-mode login
+done
+
+# En ADLS Gen2 también existe el grupo &quot;fs&quot; (file system), con carpetas reales
+az storage fs directory create --name ventas/2024 --file-system bronze --account-name stdatosdev001 --auth-mode login</code></pre>
+<h2>Subir, listar y descargar</h2>
+<pre data-norun><code class="language-bash">az storage blob upload \
+  --account-name stdatosdev001 --container-name bronze \
+  --name ventas/2024/ventas_2024-03-15.csv --file ./ventas_2024-03-15.csv \
+  --auth-mode login
+
+az storage blob upload-batch --account-name stdatosdev001 --destination bronze/ventas --source ./exportes --auth-mode login
+
+az storage blob list --account-name stdatosdev001 --container-name bronze --output table --auth-mode login
+
+az storage blob download --account-name stdatosdev001 --container-name bronze \
+  --name ventas/2024/ventas_2024-03-15.csv --file ./copia.csv --auth-mode login</code></pre>
+<ul>
+<li><code>--name</code> es la <strong>ruta dentro del contenedor</strong> (con carpetas); <code>--file</code> es el archivo <strong>local</strong>.</li>
+<li><code>upload-batch</code> sube una carpeta entera.</li>
+<li>En la práctica, las cargas grandes las hace <strong>azcopy</strong> (otra herramienta de Microsoft, mucho más rápida) o un servicio como Data Factory; la CLI es para operaciones puntuales y scripts.</li>
+</ul>
+<div class="recorrido"></div>
+
+
+<h2>Autenticación: --auth-mode login</h2>
+<p>Cada comando de datos necesita saber <strong>con qué credencial</strong> acceder. Hay tres opciones:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Seguridad</th>
+<th>Comentario</th>
+</tr>
+</thead><tbody><tr>
+<td><code>--auth-mode login</code></td>
+<td>✅ Recomendada</td>
+<td>Usa tu identidad de Entra ID y permisos RBAC (<code>Storage Blob Data Contributor</code>)</td>
+</tr>
+<tr>
+<td>Account key</td>
+<td>⚠️</td>
+<td>Llave maestra con acceso total a toda la cuenta. Evítala; si se filtra, hay que rotarla</td>
+</tr>
+<tr>
+<td>SAS token</td>
+<td>⚠️ con cuidado</td>
+<td>Acceso limitado (a un contenedor, solo lectura…) y con vencimiento. Útil para compartir algo puntual</td>
+</tr>
+</tbody></table></div>
+<p>Si no pones <code>--auth-mode login</code>, la CLI intenta buscar la <strong>account key</strong>, lo que requiere permisos de administración y te muestra una advertencia.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Tener Owner no alcanza</div>
+
+<p>Para leer o escribir <strong>datos</strong> con <code>--auth-mode login</code> necesitas un rol <strong>de datos</strong>, como <strong>Storage Blob Data Contributor</strong> o <strong>Storage Blob Data Reader</strong>. Los roles Owner y Contributor administran el <strong>recurso</strong> (crearlo, borrarlo, cambiar su configuración), no los <strong>datos</strong> que contiene. Es la causa número uno del error &quot;This request is not authorized to perform this operation&quot;.</p>
+</div>
+
+
+<h2>Las rutas desde Spark / Databricks</h2>
+<pre><code class="language-text">abfss://&lt;contenedor&gt;@&lt;cuenta&gt;.dfs.core.windows.net/&lt;ruta&gt;
+abfss://bronze@stdatosdev001.dfs.core.windows.net/ventas/2024/</code></pre>
+<p><code>abfss</code> = <em>Azure Blob File System, Secure</em>. Desde PySpark se lee igual que cualquier ruta: <code>spark.read.parquet(&quot;abfss://silver@stdatosdev001.dfs.core.windows.net/pedidos/&quot;)</code>. En Databricks con Unity Catalog se registran como <strong>External Locations</strong> (con una <em>storage credential</em> basada en una identidad administrada) y se accede vía tablas externas o <strong>Volumes</strong>, sin manejar llaves.</p>
+<h2>Laboratorio: tu data lake en Azure</h2>
+<p>Ejecuta en la terminal (crea todo desde cero; si ya existe algo, verás el error real de Azure):</p>
+<pre><code class="language-bash">az login
+az group create --name rg-datos-dev --location eastus2
+az storage account create --name stdatosdev001 --resource-group rg-datos-dev --location eastus2 --sku Standard_LRS --kind StorageV2 --hns true --query &quot;{nombre:name, hns:isHnsEnabled}&quot;
+az storage container create --name bronze --account-name stdatosdev001 --auth-mode login
+az storage blob upload --account-name stdatosdev001 --container-name bronze --name clientes/clientes.csv --file datos/clientes.csv --auth-mode login
+az storage blob list --account-name stdatosdev001 --container-name bronze --output table --auth-mode login</code></pre>
+<h2>Resumen</h2>
+<ul>
+<li>ADLS Gen2 = Storage Account con <code>--hns true</code>: carpetas reales y permisos finos; es el lago de Azure.</li>
+<li>Nombres de cuenta: 3–24 caracteres, minúsculas y números, únicos globalmente.</li>
+<li>Un contenedor por capa (bronze, silver, gold); <code>az storage blob upload/list/download</code>.</li>
+<li>Usa <code>--auth-mode login</code> con un rol de <strong>datos</strong> (Storage Blob Data Contributor).</li>
+<li>Desde Spark: <code>abfss://contenedor@cuenta.dfs.core.windows.net/ruta</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-storage">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-grupos-query.html">← Grupos de recursos, formatos de salida y --query</a><a href="azure-identidad-seguridad.html">Identidad, permisos (RBAC) y Key Vault →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iteradores, RELATED y ranking - SUMX, AVERAGEX y RANKX · Academia de Datos</title><meta name="description" content="Cómo calcular fila por fila con las funciones X (SUMX, AVERAGEX, MAXX), traer columnas de otra tabla con RELATED, calcular márgenes, rankear categorías con RANKX y decidir entre columna calculada y medida."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-iteradores-y-related.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Iteradores, RELATED y ranking - SUMX, AVERAGEX y RANKX · Academia de Datos"><meta property="og:description" content="Cómo calcular fila por fila con las funciones X (SUMX, AVERAGEX, MAXX), traer columnas de otra tabla con RELATED, calcular márgenes, rankear categorías con RANKX y decidir entre columna calculada y medida."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-iteradores-y-related.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi">📊 Power BI y DAX</a> · Intermedio · 50 min</div>
+<h1>Iteradores, RELATED y ranking - SUMX, AVERAGEX y RANKX</h1><p class="resumen">Cómo calcular fila por fila con las funciones X (SUMX, AVERAGEX, MAXX), traer columnas de otra tabla con RELATED, calcular márgenes, rankear categorías con RANKX y decidir entre columna calculada y medida.</p>
+<a class="cta" href="../index.html#/l/powerbi-iteradores-y-related">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular importes fila por fila con SUMX</li><li>Traer datos de la dimensión con RELATED</li><li>Calcular un margen porcentual correcto</li><li>Rankear con RANKX y ALL</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un iterador como <code>SUMX</code> es como un cajero que pasa los productos uno por uno: para cada fila hace una cuenta (cantidad por precio) y al final suma todo. <code>RELATED</code> es como mirar la etiqueta del producto para traer un dato de otra tabla, por ejemplo su categoría.</p>
+</div>
+
+
+<h2>Por qué hace falta iterar</h2>
+<p>Las ventas de una línea son <code>cantidad × precio_unitario</code>. Si sumas las dos columnas por separado y después multiplicas, el resultado está <strong>mal</strong>:</p>
+<pre><code class="language-dax">-- ✗ mal: (suma de cantidades) × (suma de precios)
+SUM(detalle_pedidos[cantidad]) * SUM(detalle_pedidos[precio_unitario])
+
+-- ✓ bien: multiplica en cada fila y después suma
+SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario])</code></pre>
+<p>Las funciones que terminan en <strong>X</strong> (<code>SUMX</code>, <code>AVERAGEX</code>, <code>MINX</code>, <code>MAXX</code>, <code>COUNTX</code>) reciben una <strong>tabla</strong> y una <strong>expresión</strong>. Calculan la expresión en cada fila (contexto de fila) y después agregan los resultados.</p>
+<h2>RELATED: un dato de la dimensión</h2>
+<p>Dentro de <code>SUMX(detalle_pedidos, …)</code> estás parado en una línea de pedido. El costo del producto está en otra tabla. <code>RELATED</code> lo trae siguiendo la relación del lado <strong>*</strong> al lado <strong>1</strong>:</p>
+<pre><code class="language-dax">Costo = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * RELATED(productos[costo]))
+Margen % = DIVIDE([Ventas] - [Costo], [Ventas])</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 RELATED y RELATEDTABLE</div>
+
+<p><code>RELATED</code> va del lado varios al lado uno (de la línea a su producto): devuelve <strong>un</strong> valor. Para ir al revés, de un producto a todas sus líneas, se usa <code>RELATEDTABLE</code>, que devuelve una tabla.</p>
+</div>
+
+
+<p>Con <code>RELATEDTABLE</code> puedes contar, desde cada cliente, sus pedidos. Por ejemplo, para saber cuántos clientes compraron 3 veces o más:</p>
+<pre><code class="language-dax">Clientes frecuentes = COUNTROWS(FILTER(clientes, COUNTROWS(RELATEDTABLE(pedidos)) &gt;= 3))</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 LOOKUPVALUE cuando no hay relación</div>
+
+<p><code>LOOKUPVALUE(productos[nombre], productos[producto_id], 25)</code> busca un valor por clave, como un BUSCARV de Excel. Úsalo solo cuando <strong>no</strong> hay relación entre las tablas: si la hay, <code>RELATED</code> es más simple y más rápido.</p>
+</div>
+
+
+<h2>Iterar sobre los valores de una columna</h2>
+<p><code>AVERAGEX(VALUES(clientes[segmento]), [Ventas])</code> calcula las ventas de <strong>cada</strong> segmento y después las promedia. Es distinto de <code>AVERAGE</code>, que promedia filas.</p>
+<h2>Ranking con RANKX</h2>
+<pre><code class="language-dax">Ranking de categoría = RANKX(ALL(categorias[nombre]), [Ventas])</code></pre>
+<p><code>RANKX</code> calcula <code>[Ventas]</code> para cada categoría de la lista y se fija en qué puesto queda la categoría de la celda. El <code>ALL</code> es clave: sin él, la lista tendría solo la categoría de la celda y todas quedarían en el puesto 1.</p>
+<h2>¿Columna calculada o medida?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesito…</th>
+<th>Uso</th>
+</tr>
+</thead><tbody><tr>
+<td>Un valor por fila para <strong>agrupar o filtrar</strong> (rango de precio, año, &quot;es caro&quot;)</td>
+<td>Columna calculada (o mejor, en Power Query / SQL)</td>
+</tr>
+<tr>
+<td>Un número que se <strong>agrega</strong> distinto en cada celda (ventas, margen, ranking)</td>
+<td>Medida</td>
+</tr>
+</tbody></table></div>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Finanzas pide el <strong>margen</strong> por categoría. El precio de venta está en <code>detalle_pedidos</code>, pero el costo está en <code>productos</code>. Hay que multiplicar fila por fila y traer un dato de otra tabla. Para eso están los iteradores y <code>RELATED</code>.</p>
+</div>
+
+
+<h2>Practica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cuándo usarías RELATED?&quot;</div>
+
+<p>Cuando estoy en el contexto de fila de la tabla del lado varios (una columna calculada o dentro de SUMX sobre los hechos) y necesito un atributo de la dimensión relacionada, como el costo del producto para calcular el margen línea por línea. Requiere que exista la relación y va del lado * al lado 1.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-iteradores-y-related">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-calculate-y-contexto.html">← CALCULATE - cambiar el contexto de filtro</a><a href="powerbi-inteligencia-de-tiempo.html">Inteligencia de tiempo - acumulados, año anterior y variaciones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

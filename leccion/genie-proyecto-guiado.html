@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto guiado: el asistente de ventas de Tienda Andina con Genie · Academia de Datos</title><meta name="description" content="Un proyecto completo, paso a paso, en tu cuenta gratuita de Databricks Free Edition - generar y subir los datos, crear las tablas con read_files, una vista documentada y una vista de métricas, crear el Genie Agent, enseñarle el negocio (sinónimos, coincidencia de valores, SQL expressions, ejemplos con parámetros e instrucciones), medirlo con benchmarks, preguntarle desde un notebook con el SDK y documentarlo para tu portafolio. Cada paso tiene lugar para tu captura."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-proyecto-guiado.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto guiado: el asistente de ventas de Tienda Andina con Genie · Academia de Datos"><meta property="og:description" content="Un proyecto completo, paso a paso, en tu cuenta gratuita de Databricks Free Edition - generar y subir los datos, crear las tablas con read_files, una vista documentada y una vista de métricas, crear el Genie Agent, enseñarle el negocio (sinónimos, coincidencia de valores, SQL expressions, ejemplos con parámetros e instrucciones), medirlo con benchmarks, preguntarle desde un notebook con el SDK y documentarlo para tu portafolio. Cada paso tiene lugar para tu captura."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-proyecto-guiado.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#genie">🧞 Databricks Genie: preguntas en lenguaje natural</a> · Avanzado · 150 min</div>
+<h1>Proyecto guiado: el asistente de ventas de Tienda Andina con Genie</h1><p class="resumen">Un proyecto completo, paso a paso, en tu cuenta gratuita de Databricks Free Edition - generar y subir los datos, crear las tablas con read_files, una vista documentada y una vista de métricas, crear el Genie Agent, enseñarle el negocio (sinónimos, coincidencia de valores, SQL expressions, ejemplos con parámetros e instrucciones), medirlo con benchmarks, preguntarle desde un notebook con el SDK y documentarlo para tu portafolio. Cada paso tiene lugar para tu captura.</p>
+<a class="cta" href="../index.html#/l/genie-proyecto-guiado">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir un Genie Agent de punta a punta sobre datos propios</li><li>Aplicar el orden recomendado de contexto (datos, knowledge store, ejemplos, texto)</li><li>Medir la mejora con benchmarks antes y después</li><li>Consultar el agente por código</li><li>Presentar el proyecto en un portafolio</li></ul>
+<div class="callout callout-nota"><div class="callout-title">📝 Antes de empezar</div>
+
+<ul>
+<li>Necesitas una cuenta de <strong>Databricks Free Edition</strong> (sigue la guía del módulo de Laboratorios si todavía no la tienes).</li>
+<li>En los bloques SQL, reemplaza <code>&lt;catalogo&gt;</code> por el nombre del catálogo de tu workspace (lo ves en <strong>Catalog</strong>; suele coincidir con el nombre del workspace).</li>
+<li>Cada paso tiene un recuadro de <strong>captura pendiente</strong>. Saca la captura y súbela con el nombre indicado a <code>assets/img/guias/</code> (tapando tu correo). Al final tendrás el proyecto ilustrado para tu portafolio.</li>
+<li>Los nombres de botones son los de la documentación oficial de octubre de 2026.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Este proyecto junta todo lo del módulo, como cocinar un plato completo después de practicar cada paso: preparas los datos, creas el agente, lo afinas con instrucciones y ejemplos, y lo evalúas antes de entregarlo.</p>
+</div>
+
+
+<h2>El plan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué haces</th>
+<th>Lección del módulo</th>
+</tr>
+</thead><tbody><tr>
+<td>1-2</td>
+<td>Generar los datos, subirlos y crear las tablas</td>
+<td>Guía de Free Edition</td>
+</tr>
+<tr>
+<td>3-4</td>
+<td>Vista documentada y vista de métricas</td>
+<td>2. Preparar los datos</td>
+</tr>
+<tr>
+<td>5-7</td>
+<td>Crear el agente y enseñarle el negocio</td>
+<td>3. Crear y afinar un agente</td>
+</tr>
+<tr>
+<td>8-9</td>
+<td>Benchmarks antes y después</td>
+<td>4. Evaluar y monitorear</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Preguntarle desde un notebook</td>
+<td>6. Genie One, tableros y API</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Documentarlo para el portafolio</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 1: generar y subir los datos</h2>
+<ol>
+<li>En el <strong>Generador de datos</strong> del curso elige <strong>Tienda online</strong>, 1.000 clientes, semilla 42, problemas <strong>limpio</strong> (para este proyecto queremos datos sin ruido; la limpieza ya la practicaste) y formato <strong>CSV</strong>. Descarga el ZIP y descomprímelo.</li>
+<li>En Databricks: <strong>+ New</strong> → <strong>Add or upload data</strong> → <strong>Upload files to a volume</strong>. Crea el volumen <code>crudo</code> en el esquema <code>default</code> de tu catálogo y sube <code>clientes.csv</code>, <code>productos.csv</code>, <code>pedidos.csv</code> y <code>detalle_pedidos.csv</code>.</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Los cuatro archivos CSV en el volumen crudo</span><code>assets/img/guias/genie-p01-volumen.png</code></div></figure>
+
+
+<h2>Paso 2: crear las tablas</h2>
+<p>Abre el <strong>SQL Editor</strong> y ejecuta (la función <code>read_files</code> lee archivos de un volumen e infiere los tipos de las columnas):</p>
+<pre data-norun><code class="language-sql">USE CATALOG &lt;catalogo&gt;;
+USE SCHEMA default;
+
+CREATE OR REPLACE TABLE clientes AS
+SELECT * FROM read_files('/Volumes/&lt;catalogo&gt;/default/crudo/clientes.csv', format =&gt; 'csv', header =&gt; true);
+
+CREATE OR REPLACE TABLE productos AS
+SELECT * FROM read_files('/Volumes/&lt;catalogo&gt;/default/crudo/productos.csv', format =&gt; 'csv', header =&gt; true);
+
+CREATE OR REPLACE TABLE pedidos AS
+SELECT * FROM read_files('/Volumes/&lt;catalogo&gt;/default/crudo/pedidos.csv', format =&gt; 'csv', header =&gt; true);
+
+CREATE OR REPLACE TABLE detalle_pedidos AS
+SELECT * FROM read_files('/Volumes/&lt;catalogo&gt;/default/crudo/detalle_pedidos.csv', format =&gt; 'csv', header =&gt; true);
+
+SELECT COUNT(*) AS lineas FROM detalle_pedidos;</code></pre>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El SQL Editor con las cuatro tablas creadas y el conteo de líneas</span><code>assets/img/guias/genie-p02-tablas.png</code></div></figure>
+
+
+<h2>Paso 3: la vista que verá Genie</h2>
+<p>Una sola vista, una fila por línea de pedido, con los joins hechos, sin cancelados y con nombres claros:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW ventas_lineas
+COMMENT 'Una fila por línea de pedido (producto dentro de un pedido) de Tienda Andina. Excluye pedidos cancelados. Para &quot;ventas&quot; usar importe_neto. Para contar pedidos usar COUNT(DISTINCT pedido_id).'
+AS
+SELECT d.detalle_id,
+       p.pedido_id,
+       CAST(p.fecha_pedido AS DATE)            AS fecha,
+       date_format(p.fecha_pedido, 'yyyy-MM')  AS mes,
+       p.canal,
+       p.estado,
+       c.pais,
+       c.segmento,
+       pr.categoria,
+       pr.nombre                               AS producto,
+       d.cantidad,
+       ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe_neto
+FROM detalle_pedidos d
+JOIN pedidos p    ON p.pedido_id = d.pedido_id
+JOIN clientes c   ON c.cliente_id = p.cliente_id
+JOIN productos pr ON pr.producto_id = d.producto_id
+WHERE p.estado &lt;&gt; 'cancelado';</code></pre>
+<p>Ahora las descripciones de las columnas que más importan:</p>
+<pre data-norun><code class="language-sql">ALTER VIEW ventas_lineas ALTER COLUMN importe_neto COMMENT
+  'Importe de la línea en USD después del descuento. Es la medida de ventas del negocio.';
+ALTER VIEW ventas_lineas ALTER COLUMN canal COMMENT
+  'Canal de venta: web, app, tienda (el local físico) o telefono.';
+ALTER VIEW ventas_lineas ALTER COLUMN segmento COMMENT
+  'Tipo de cliente: Consumo (personas), Pyme o Corporativo.';
+ALTER VIEW ventas_lineas ALTER COLUMN mes COMMENT
+  'Mes del pedido en formato AAAA-MM, por ejemplo 2024-03.';</code></pre>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>La vista ventas_lineas en Catalog Explorer con las descripciones de sus columnas</span><code>assets/img/guias/genie-p03-vista.png</code></div></figure>
+
+
+<h2>Paso 4: la vista de métricas</h2>
+<p>Las tres métricas que más pregunta la gerencia, definidas una sola vez:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE VIEW metricas_ventas
+WITH METRICS
+LANGUAGE YAML
+AS $$
+version: 1.1
+source: &lt;catalogo&gt;.default.ventas_lineas
+comment: Métricas de ventas de Tienda Andina (sin pedidos cancelados).
+fields:
+  - name: mes
+    expr: mes
+    display_name: Mes
+  - name: pais
+    expr: pais
+    display_name: País
+  - name: canal
+    expr: canal
+    display_name: Canal
+    synonyms: [canal de venta, medio]
+  - name: categoria
+    expr: categoria
+    display_name: Categoría
+measures:
+  - name: ventas_netas
+    expr: SUM(importe_neto)
+    display_name: Ventas netas
+    synonyms: [ventas, facturación, ingresos]
+  - name: pedidos
+    expr: COUNT(DISTINCT pedido_id)
+    display_name: Pedidos
+  - name: ticket_promedio
+    expr: MEASURE(ventas_netas) / MEASURE(pedidos)
+    display_name: Ticket promedio
+    synonyms: [ticket medio, valor promedio del pedido]
+$$;
+
+SELECT canal, MEASURE(ventas_netas) AS ventas, MEASURE(ticket_promedio) AS ticket
+FROM metricas_ventas
+GROUP BY canal
+ORDER BY ventas DESC;</code></pre>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El resultado de consultar la vista de métricas por canal</span><code>assets/img/guias/genie-p04-metricas.png</code></div></figure>
+
+
+<h2>Paso 5: crear el agente</h2>
+<ol>
+<li>En la barra lateral: <strong>Genie Agents</strong> → <strong>New</strong>.</li>
+<li>Fuentes: <code>ventas_lineas</code> y <code>metricas_ventas</code> → <strong>Create</strong>.</li>
+<li>Genie Code propone descripciones y consultas: <strong>lee cada una</strong> y acepta solo las correctas.</li>
+<li><strong>Configure → Settings</strong>:<ul>
+<li>Título: <code>Ventas de Tienda Andina</code>.</li>
+<li>Descripción: <code>Responde preguntas sobre ventas netas, pedidos y ticket promedio de 2022 a 2024, por mes, país, canal, categoría y segmento. No incluye pedidos cancelados, pagos ni stock.</code></li>
+<li>Preguntas comunes: &quot;¿Cuánto vendimos en 2024?&quot;, &quot;¿Qué canal vendió más el último trimestre?&quot;, &quot;Ticket promedio por país en 2024&quot;.</li>
+</ul>
+</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>La configuración del agente con título, descripción y preguntas comunes</span><code>assets/img/guias/genie-p05-crear-agente.png</code></div></figure>
+
+
+<h2>Paso 6: la línea base (antes de afinar)</h2>
+<p>Antes de enseñarle nada, mide. Haz estas diez preguntas y anota en una tabla si la respuesta fue correcta (mirando <strong>Show code</strong>):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Pregunta</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>¿Cuánto vendimos en 2024?</td>
+</tr>
+<tr>
+<td>2</td>
+<td>¿Cuánto facturó el local en marzo de 2024?</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Ventas por canal en 2024</td>
+</tr>
+<tr>
+<td>4</td>
+<td>¿Cuál es el ticket promedio por país?</td>
+</tr>
+<tr>
+<td>5</td>
+<td>¿Cuántos pedidos grandes hubo en 2024?</td>
+</tr>
+<tr>
+<td>6</td>
+<td>¿Qué categoría vendió más a clientes corporativos?</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Comparativo de ventas por canal: 2024 contra 2023</td>
+</tr>
+<tr>
+<td>8</td>
+<td>¿Cómo vamos este trimestre fiscal?</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Top 5 productos por ventas en México</td>
+</tr>
+<tr>
+<td>10</td>
+<td>¿Cuántos clientes pyme compraron en diciembre de 2024?</td>
+</tr>
+</tbody></table></div>
+<p>Las preguntas 2, 5 y 8 están pensadas para fallar: &quot;el local&quot; no es un valor de los datos, &quot;pedido grande&quot; no está definido y el &quot;trimestre fiscal&quot; depende de una regla de la empresa.</p>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Una respuesta incorrecta de la línea base con Show code abierto</span><code>assets/img/guias/genie-p06-linea-base.png</code></div></figure>
+
+
+<h2>Paso 7: enseñarle el negocio</h2>
+<p>En el orden recomendado por la documentación:</p>
+<p><strong>7.1 Sinónimos y coincidencia de valores</strong> (Configure → Sources → <code>ventas_lineas</code>):</p>
+<ul>
+<li>Columna <code>canal</code>: sinónimos <code>local, local físico, sucursal</code> (para <code>tienda</code>); activa <strong>Entity matching</strong> en <strong>Advanced</strong>.</li>
+<li>Columna <code>pais</code>: activa <strong>Entity matching</strong>.</li>
+<li>Columna <code>segmento</code>: sinónimos <code>empresas grandes</code> (Corporativo), <code>particulares</code> (Consumo).</li>
+</ul>
+<p><strong>7.2 SQL expressions</strong> (Configure → Examples → Add):</p>
+<ul>
+<li><strong>Filter</strong> &quot;Clientes corporativos&quot;: <code>segmento = &#39;Corporativo&#39;</code>. Sinónimos: <code>empresas grandes, corporativos</code>. Instrucciones: <code>Aplica cuando pregunten por empresas grandes o clientes corporativos.</code></li>
+<li><strong>Field</strong> &quot;Trimestre fiscal&quot;: <code>CASE WHEN month(fecha) IN (2,3,4) THEN &#39;Q1&#39; WHEN month(fecha) IN (5,6,7) THEN &#39;Q2&#39; WHEN month(fecha) IN (8,9,10) THEN &#39;Q3&#39; ELSE &#39;Q4&#39; END</code>. Sinónimos: <code>trimestre</code>. Instrucciones: <code>El año fiscal empieza el 1 de febrero.</code></li>
+</ul>
+<p><strong>7.3 Una consulta de ejemplo para &quot;pedidos grandes&quot;</strong>. Como la vista tiene una fila por línea, &quot;pedido grande&quot; necesita sumar por pedido antes de filtrar: es lógica de varios pasos, y para eso la documentación recomienda una consulta de ejemplo (Configure → Examples → Add → query). Pregunta: &quot;¿Cuántos pedidos grandes hubo en 2024?&quot;:</p>
+<pre data-norun><code class="language-sql">-- Un pedido es grande si sus ventas netas superan 3.000 USD
+WITH pedido_neto AS (
+  SELECT pedido_id, SUM(importe_neto) AS neto
+  FROM &lt;catalogo&gt;.default.ventas_lineas
+  WHERE fecha &gt;= '2024-01-01' AND fecha &lt; '2025-01-01'
+  GROUP BY pedido_id
+)
+SELECT COUNT(*) AS pedidos_grandes
+FROM pedido_neto
+WHERE neto &gt; 3000</code></pre>
+<p><strong>7.4 Una consulta de ejemplo con parámetros</strong> (Configure → Examples → Add → query). Pregunta: &quot;¿Cuánto vendimos en un país en un mes?&quot;:</p>
+<pre data-norun><code class="language-sql">SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas,
+       COUNT(DISTINCT pedido_id)   AS pedidos
+FROM &lt;catalogo&gt;.default.ventas_lineas
+WHERE pais = :pais
+  AND mes = :mes</code></pre>
+<p>Configura <code>:pais</code> como texto (comentario: &quot;nombre del país, por ejemplo Chile&quot;) y <code>:mes</code> como texto (comentario: &quot;formato AAAA-MM&quot;). Es un <strong>trusted asset</strong>: cuando Genie la use, la respuesta saldrá como verificada.</p>
+<p><strong>7.5 Instrucciones de texto, pocas</strong> (Configure → Instructions → Text):</p>
+<pre><code class="language-text">- El año fiscal empieza el 1 de febrero: el FY2024 va del 1/2/2024 al 31/1/2025.
+- Redondea los importes a 2 decimales.
+- Si preguntan por ventas sin decir el período, pregunta: &quot;¿De qué período? Por ejemplo, marzo de 2024 o todo 2024.&quot;
+
+Instructions you must follow when providing summaries
+- Responde siempre en español.
+- Indica el período que cubren los resultados.</code></pre>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>La pestaña de ejemplos con las SQL expressions y la consulta con parámetros</span><code>assets/img/guias/genie-p07-knowledge-store.png</code></div></figure>
+
+
+<h2>Paso 8: los benchmarks</h2>
+<p>En la pestaña <strong>Benchmarks</strong> agrega al menos ocho preguntas con su <strong>SQL Answer</strong>: las diez del paso 6 (menos las que no tienen una respuesta única) y <strong>dos variantes</strong> de las más importantes. Por ejemplo, para la pregunta 2:</p>
+<ul>
+<li>&quot;¿Cuánto facturó el local en marzo de 2024?&quot;</li>
+<li>&quot;Ventas del canal tienda en 2024-03&quot;</li>
+<li>&quot;¿Cuánto vendió la sucursal física en marzo del 24?&quot;</li>
+</ul>
+<p>Todas con el mismo SQL Answer:</p>
+<pre data-norun><code class="language-sql">SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas
+FROM &lt;catalogo&gt;.default.ventas_lineas
+WHERE canal = 'tienda' AND mes = '2024-03'</code></pre>
+<p>Corre <strong>Run benchmarks</strong> y anota la exactitud.</p>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>La pestaña Evaluations con el porcentaje de exactitud de la corrida</span><code>assets/img/guias/genie-p08-benchmarks.png</code></div></figure>
+
+
+<h2>Paso 9: iterar</h2>
+<p>Por cada benchmark en <em>Bad</em>: abre la evaluación, compara la salida con la respuesta correcta, decide qué herramienta lo arregla (sinónimo, SQL expression, ejemplo), aplícala y vuelve a correr. Anota la exactitud de cada corrida: esa evolución es la mejor evidencia de tu trabajo.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Corrida</th>
+<th>Cambio</th>
+<th>Exactitud</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Línea base</td>
+<td>(anota)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Sinónimos y entity matching</td>
+<td>(anota)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>SQL expressions y consulta de pedidos grandes</td>
+<td>(anota)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Consulta con parámetros e instrucciones</td>
+<td>(anota)</td>
+</tr>
+</tbody></table></div>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Una pregunta que pasó de Bad a Good después de agregar un sinónimo</span><code>assets/img/guias/genie-p09-iteracion.png</code></div></figure>
+
+
+<h2>Paso 10: preguntarle desde un notebook</h2>
+<p>Copia el identificador del agente: es la última parte de la dirección (URL) cuando tienes el agente abierto, una cadena larga de letras y números. Luego, en un notebook nuevo:</p>
+<pre data-norun><code class="language-python">from databricks.sdk import WorkspaceClient
+
+w = WorkspaceClient()
+space_id = &quot;&lt;id_del_agente&gt;&quot;
+
+for pregunta in [&quot;¿Cuánto vendimos en 2024?&quot;, &quot;Ventas del local en marzo de 2024&quot;]:
+    m = w.genie.start_conversation_and_wait(space_id, pregunta)
+    print(&quot;❓&quot;, pregunta, &quot;→&quot;, m.status)
+    for a in m.attachments or []:
+        if a.text:
+            print(&quot;  &quot;, a.text.content)
+        if a.query:
+            print(&quot;   SQL:&quot;, a.query.query)</code></pre>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El notebook con las respuestas del agente obtenidas por el SDK</span><code>assets/img/guias/genie-p10-sdk.png</code></div></figure>
+
+
+<h2>Paso 11: documentarlo para tu portafolio</h2>
+<p>En un repositorio de GitHub con un <code>README.md</code>:</p>
+<ol>
+<li><strong>El problema</strong>: la gerencia esperaba un día por cada pregunta de ventas.</li>
+<li><strong>La arquitectura</strong>: CSV → volumen → tablas → vista documentada → vista de métricas → Genie Agent (un diagrama).</li>
+<li><strong>Las decisiones de contexto</strong>: por qué una vista y no cuatro tablas, qué definiste como SQL expression y por qué, qué quedó como texto.</li>
+<li><strong>La evidencia</strong>: la tabla de exactitud de los benchmarks por corrida y dos ejemplos de antes y después.</li>
+<li><strong>Los límites</strong>: qué preguntas no responde y por qué.</li>
+<li>Las capturas de esta guía y el SQL de los pasos 2 a 4.</li>
+</ol>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Saltarse la línea base</strong>: sin medir antes, no puedes demostrar que tu trabajo mejoró algo.</li>
+<li><strong>Afinar con instrucciones de texto lo que se arregla con un sinónimo</strong>.</li>
+<li><strong>Benchmarks con una sola forma de cada pregunta</strong>.</li>
+<li><strong>Dejar la vista con cancelados</strong> y &quot;arreglarlo&quot; en una instrucción: el filtro va en los datos.</li>
+<li><strong>No revisar las sugerencias de Genie Code</strong> al crear el agente.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Eres el data engineer de Tienda Andina. La gerencia comercial quiere hacer sus propias preguntas de ventas sin esperar al equipo de datos, y confiar en que los números son los mismos que los del tablero. Vas a construir el asistente completo, medir su calidad y dejarlo documentado como un proyecto de portafolio. Todo en Databricks Free Edition, sin costo.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Este proyecto reproduce el trabajo real de quien lanza Genie en una empresa: preparar la capa semántica, construir un agente enfocado, medirlo y mejorarlo con evidencia.</li>
+<li>En una entrevista, la tabla de exactitud por corrida y la explicación de cada decisión valen más que la demo en vivo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Muéstrame un proyecto con IA generativa sobre datos.&quot;</div>
+
+<p>Presentaría el asistente de ventas con Genie: el problema de negocio, la preparación de los datos en una vista documentada y una vista de métricas para tener una sola definición de cada indicador, cómo configuré el agente siguiendo el orden recomendado (sinónimos y coincidencia de valores, SQL expressions, una consulta con parámetros como respuesta verificada y pocas instrucciones de texto) y, sobre todo, la medición: benchmarks con variantes de cada pregunta, la exactitud de la línea base y cómo subió en cada iteración, y los límites conocidos.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/genie-proyecto-guiado">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="genie-genie-one-tableros-y-api.html">← Llevar Genie a los usuarios - Genie One, tableros y la API</a><a href="interfaces-power-bi-por-dentro.html">Power BI por dentro - qué es cada parte y para qué sirve →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

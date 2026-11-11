@@ -23,6 +23,10 @@ Una vez autenticado, la CLI organiza los comandos por **tipo de recurso**, con e
 
 Agrega `--output json` a casi cualquier comando para procesar la respuesta con `jq` en un script.
 
+:::analogia En palabras simples
+Con la CLI haces desde la terminal lo mismo que en la interfaz web: subir archivos, crear clusters, lanzar jobs o guardar secretos. La ventaja es que todo queda escrito en comandos que se pueden repetir y automatizar.
+:::
+
 ## Workspace (notebooks y carpetas)
 
 ```bash norun

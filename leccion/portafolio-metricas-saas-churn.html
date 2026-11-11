@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5: Métricas SaaS y riesgo de baja con dbt · Academia de Datos</title><meta name="description" content="Una empresa de software por suscripción con altas, mejoras de plan, reducciones y bajas, uso diario del producto, facturas y tickets. Construyes con dbt las métricas que mira un directorio (MRR, nuevo, expansión, contracción, churn, NRR), un historial SCD2 de planes, y una lista semanal de cuentas en riesgo según su uso. Valor - que Customer Success llame a las cuentas en riesgo antes de que se vayan."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-metricas-saas-churn.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5: Métricas SaaS y riesgo de baja con dbt · Academia de Datos"><meta property="og:description" content="Una empresa de software por suscripción con altas, mejoras de plan, reducciones y bajas, uso diario del producto, facturas y tickets. Construyes con dbt las métricas que mira un directorio (MRR, nuevo, expansión, contracción, churn, NRR), un historial SCD2 de planes, y una lista semanal de cuentas en riesgo según su uso. Valor - que Customer Success llame a las cuentas en riesgo antes de que se vayan."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-metricas-saas-churn.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Avanzado · 110 min</div>
+<h1>Proyecto 5: Métricas SaaS y riesgo de baja con dbt</h1><p class="resumen">Una empresa de software por suscripción con altas, mejoras de plan, reducciones y bajas, uso diario del producto, facturas y tickets. Construyes con dbt las métricas que mira un directorio (MRR, nuevo, expansión, contracción, churn, NRR), un historial SCD2 de planes, y una lista semanal de cuentas en riesgo según su uso. Valor - que Customer Success llame a las cuentas en riesgo antes de que se vayan.</p>
+<a class="cta" href="../index.html#/l/portafolio-metricas-saas-churn">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Descomponer el MRR mensual en nuevo, expansión, contracción y churn</li><li>Calcular la retención neta de ingresos (NRR) de una cohorte</li><li>Modelar el historial de planes como SCD tipo 2 con dbt snapshot</li><li>Construir una señal de riesgo de baja a partir del uso</li><li>Escribir modelos incrementales con ventana de relectura</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El CEO de una empresa SaaS presenta al directorio un MRR que sale de una planilla con fórmulas que nadie entiende. El directorio pregunta: &quot;¿crecimos por clientes nuevos o porque los actuales pagan más? ¿Cuánto perdemos por bajas?&quot;. Y la líder de Customer Success quiere saber <strong>a quién llamar esta semana</strong> para evitar una baja.</p>
+</div>
+
+
+<h2>Métricas y valor</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Métrica</th>
+<th>Definición</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>MRR</strong></td>
+<td>Ingreso recurrente mensual de las suscripciones activas</td>
+</tr>
+<tr>
+<td><strong>Nuevo</strong></td>
+<td>MRR de empresas que no estaban activas el mes anterior</td>
+</tr>
+<tr>
+<td><strong>Expansión / contracción</strong></td>
+<td>Aumento o baja del MRR de empresas activas en los dos meses</td>
+</tr>
+<tr>
+<td><strong>Churn</strong></td>
+<td>MRR de empresas activas el mes anterior que ya no lo están</td>
+</tr>
+<tr>
+<td><strong>NRR</strong></td>
+<td>MRR de hoy de una cohorte ÷ MRR inicial de la cohorte (incluye expansión, contracción y churn)</td>
+</tr>
+</tbody></table></div>
+<p>Valor: un tablero mensual confiable y una lista semanal de cuentas en riesgo, con el uso que justifica cada una.</p>
+<h2>Los datos</h2>
+<p><a href="#/generador?esc=saas&n=400&semilla=33&desde=2023-01-01&hasta=2024-12-31&duplicados=1&nulos=3&formatos=3&tardios=3">🏭 Generar los datos del proyecto</a> · Escenario <strong>SaaS</strong>: <code>empresas</code>, <code>suscripciones</code> (un período por plan, con <code>motivo_fin</code>: renovación, mejora, reducción o baja), <code>uso_diario</code>, <code>facturas</code> y <code>tickets</code>. Las empresas que se van usan cada vez menos el producto en los 45 días previos.</p>
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Métricas SaaS con dbt</figcaption></figure>
+
+
+<h2>El modelo central: MRR por empresa y mes</h2>
+<p>El truco es <strong>expandir</strong> cada suscripción a los meses en que estuvo activa y después agregar:</p>
+<pre data-norun><code class="language-sql">-- models/marts/mrr_mensual.sql (dbt + DuckDB)
+with meses as (
+    select unnest(generate_series(date '2023-01-01', date '2024-12-01', interval 1 month))::date as mes
+)
+select m.mes, s.empresa_id, sum(s.mrr) as mrr
+from {{ ref('stg_suscripciones') }} s
+join meses m on m.mes &gt;= date_trunc('month', s.inicio)
+            and (s.fin is null or m.mes &lt; date_trunc('month', s.fin))
+group by all</code></pre>
+<p>Con <code>mrr_mensual</code>, los movimientos salen de comparar cada empresa con el mes anterior (<code>lag</code>): si antes era 0 y ahora no → nuevo; si sube → expansión; si baja sin llegar a 0 → contracción; si llega a 0 → churn.</p>
+<h2>El historial de planes: dbt snapshot</h2>
+<pre data-norun><code class="language-sql">{% snapshot planes_snapshot %}
+{{ config(target_schema='snapshots', unique_key='empresa_id', strategy='check', check_cols=['plan', 'mrr']) }}
+select empresa_id, plan, mrr from {{ ref('stg_suscripcion_actual') }}
+{% endsnapshot %}</code></pre>
+<p>Cada vez que corre, si una empresa cambió de plan, cierra la fila anterior (<code>dbt_valid_to</code>) y abre una nueva: el <strong>SCD tipo 2</strong> que permite responder &quot;¿en qué plan estaba en marzo?&quot;.</p>
+<h2>Riesgo de baja: una señal simple y explicable</h2>
+<p>Uso de los últimos 30 días contra el promedio de los 90 anteriores. Una caída fuerte, sumada a tickets abiertos con satisfacción baja, pone a la cuenta en la lista semanal. Antes de cualquier modelo de machine learning, mide cuántas de las bajas reales habría anticipado esta regla: ese número va al README.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>MRR que no cumple la identidad</strong> de los movimientos.</li>
+<li><strong>Un modelo de riesgo de baja sin comparar contra una regla simple</strong>: quizás &quot;no usó el producto en 30 días&quot; predice igual de bien.</li>
+<li><strong>Features con información posterior a la fecha de corte</strong>.</li>
+<li><strong>Métricas sin definición escrita</strong>: el lector no sabe si el churn es de clientes o de ingresos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las empresas SaaS revisan cada mes MRR, NRR y churn; un proyecto que muestre esas métricas bien definidas, con tests, es exactamente lo que piden en una entrevista para ese sector.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo validarías que tus métricas de MRR son correctas?&quot;</div>
+
+<p>Con la identidad contable: MRR inicial más nuevo y expansión, menos contracción y churn, tiene que dar el MRR final, y un test de dbt falla si no cuadra. Compararía el total con la facturación del sistema de cobro, revisaría casos borde como upgrades a mitad de mes y planes anuales, y documentaría cada definición.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>mrr_mensual</code> y <code>movimientos_mrr</code> con tests (el MRR de un mes = MRR anterior + nuevo + expansión − contracción − churn).</li>
+<li><input disabled="" type="checkbox"> NRR por cohorte de alta.</li>
+<li><input disabled="" type="checkbox"> Snapshot de planes y una consulta &quot;plan vigente en una fecha&quot;.</li>
+<li><input disabled="" type="checkbox"> Lista de riesgo semanal y cuántas bajas reales anticipa.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Modelo de churn con MLflow usando las features de uso, tickets y facturas vencidas; comparado contra la regla.</li>
+<li>Exposición de las métricas como <strong>métricas semánticas</strong> (dbt Semantic Layer o métricas de Unity Catalog) para que todos usen la misma definición.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-metricas-saas-churn">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-torre-de-control-logistica.html">← Proyecto 4: Torre de control logística en Azure</a><a href="portafolio-ausentismo-con-privacidad.html">Proyecto 6: Menos turnos perdidos en una clínica, con privacidad →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

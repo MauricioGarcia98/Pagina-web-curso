@@ -14,6 +14,10 @@ En el Grupo Andino, cada persona aplica Terraform desde su computadora, con sus 
 > "Nadie más aplica desde su computadora. Cada cambio va por pull request, la CI muestra el plan, alguien lo aprueba, y la CI aplica. Y quiero pruebas: si alguien rompe el módulo del lago, que la CI lo frene."
 :::
 
+:::analogia En palabras simples
+Cambiar infraestructura sin revisión es como modificar los cimientos de un edificio sin avisar a nadie. En equipo, cada cambio pasa por un pull request, una revisión automática que muestra qué se va a modificar (`terraform plan`) y recién después se aplica.
+:::
+
 ## El flujo de un cambio
 
 ```diagrama

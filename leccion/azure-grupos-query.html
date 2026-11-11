@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grupos de recursos, formatos de salida y --query · Academia de Datos</title><meta name="description" content="Crear y listar recursos, --output (json, table, tsv), consultas JMESPath con --query y uso en scripts."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-grupos-query.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Grupos de recursos, formatos de salida y --query · Academia de Datos"><meta property="og:description" content="Crear y listar recursos, --output (json, table, tsv), consultas JMESPath con --query y uso en scripts."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-grupos-query.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure">☁️ Azure y Azure CLI</a> · Intermedio · 40 min</div>
+<h1>Grupos de recursos, formatos de salida y --query</h1><p class="resumen">Crear y listar recursos, --output (json, table, tsv), consultas JMESPath con --query y uso en scripts.</p>
+<a class="cta" href="../index.html#/l/azure-grupos-query">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Crea un grupo de recursos con el <a href="#/azure/crear/grupo">asistente del portal de práctica</a>, agrégale etiquetas y un bloqueo <strong>Delete</strong>, y después intenta borrarlo para ver el error <code>ScopeLocked</code>.</p>
+</div>
+
+
+<p>En la lección anterior iniciaste sesión con <code>az</code>. Ahora vas a crear tus primeros recursos y, sobre todo, a aprender a <strong>leer y filtrar</strong> lo que <code>az</code> responde. Eso se usa todo el tiempo: en scripts de despliegue, en pipelines de CI y cada vez que necesitas un dato puntual (&quot;¿cuál es el id de esta cuenta de almacenamiento?&quot;).</p>
+<p>Abre la terminal del curso (⌨ Terminal) y escribe cada comando a medida que lees. Antes, ejecuta <code>az login</code>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un grupo de recursos es como una caja con etiqueta donde guardas todo lo de un proyecto: si el proyecto termina, tiras la caja entera. Y <code>--query</code> es como pedirle a Azure &quot;de toda esta respuesta larga, dame solo los nombres&quot;.</p>
+</div>
+
+
+<h2>Grupos de recursos</h2>
+<p>Un grupo de recursos es la carpeta donde viven los recursos de un proyecto y un entorno. Su ciclo de vida completo se maneja con cinco comandos:</p>
+<pre data-norun><code class="language-bash">az group create --name rg-datos-dev --location eastus2 --tags proyecto=tienda entorno=dev
+az group list --output table
+az group show --name rg-datos-dev
+az resource list --resource-group rg-datos-dev --output table      # qué hay adentro
+az group delete --name rg-datos-dev --yes --no-wait                 # ¡borra TODO lo que contiene!</code></pre>
+<p>Qué hace cada parámetro de <code>az group create</code>:</p>
+<ul>
+<li><code>--name</code> (o <code>-n</code>): el nombre. Tiene que ser único <strong>dentro de la suscripción</strong>.</li>
+<li><code>--location</code> (o <code>-l</code>): la región donde se guarda la <em>información sobre</em> el grupo. Los recursos que pongas adentro pueden estar en otras regiones, aunque lo normal es que estén en la misma.</li>
+<li><code>--tags</code>: etiquetas <code>clave=valor</code> separadas por espacios. Sirven para filtrar costos y recursos después.</li>
+</ul>
+<p>Al crearlo, <code>az</code> responde con un <strong>JSON</strong> que describe el recurso creado:</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;/subscriptions/1111aaaa-1111-4111-8111-111111111111/resourceGroups/rg-datos-dev&quot;,
+  &quot;location&quot;: &quot;eastus2&quot;,
+  &quot;name&quot;: &quot;rg-datos-dev&quot;,
+  &quot;properties&quot;: { &quot;provisioningState&quot;: &quot;Succeeded&quot; },
+  &quot;tags&quot;: { &quot;proyecto&quot;: &quot;tienda&quot;, &quot;entorno&quot;: &quot;dev&quot; },
+  &quot;type&quot;: &quot;Microsoft.Resources/resourceGroups&quot;
+}</code></pre>
+<p>Fíjate en el <strong><code>id</code></strong>. Todo recurso de Azure tiene un id con forma de ruta: <code>/subscriptions/&lt;sub&gt;/resourceGroups/&lt;grupo&gt;/providers/&lt;tipo&gt;/&lt;nombre&gt;</code>. Lo vas a necesitar para asignar permisos (RBAC) en la lección siguiente.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ `az group delete` no tiene papelera</div>
+
+<p>Borrar un grupo elimina <strong>todos</strong> sus recursos: el lake con sus datos, el Databricks, los secretos del Key Vault. <code>--yes</code> salta la pregunta &quot;¿estás seguro?&quot; y <code>--no-wait</code> devuelve el control sin esperar a que termine. Úsalo en laboratorios, y <strong>nunca</strong> en producción desde un script sin revisar dos veces el nombre. En producción se agregan <strong>locks</strong> (<code>az lock create --lock-type CanNotDelete</code>) para impedirlo.</p>
+</div>
+
+
+<h2>Formatos de salida: --output / -o</h2>
+<p>El mismo dato se puede pedir en distintos formatos. Crea un segundo grupo (<code>az group create -n rg-datos-prod -l brazilsouth</code>) y compara:</p>
+<pre><code class="language-text">$ az group list -o table
+Location     Name
+-----------  -------------
+eastus2      rg-datos-dev
+brazilsouth  rg-datos-prod
+
+$ az group list --query &quot;[].name&quot; -o tsv
+rg-datos-dev
+rg-datos-prod</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>Cómo se ve</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>json</code> (por defecto)</td>
+<td>Todo el detalle, con llaves y comillas</td>
+<td>Procesar con otras herramientas (<code>jq</code>, Python)</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Columnas alineadas</td>
+<td><strong>Leer</strong> en pantalla</td>
+</tr>
+<tr>
+<td><code>tsv</code></td>
+<td>Valores separados por tabulación, sin comillas ni encabezados</td>
+<td>Usar en <strong>scripts</strong></td>
+</tr>
+<tr>
+<td><code>yaml</code>, <code>jsonc</code></td>
+<td>Variantes legibles del JSON</td>
+<td>Leer configuraciones largas</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td>Nada</td>
+<td>Comandos donde solo importa si funcionó</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Configúralo una vez</div>
+
+<p><code>az config set core.output=table</code> cambia el formato por defecto para tu usuario. Igual puedes pedir otro con <code>-o</code> en cada comando.</p>
+</div>
+
+
+<h2>--query: filtrar y transformar con JMESPath</h2>
+<p>Todas las respuestas de <code>az</code> son JSON, y <code>--query</code> aplica sobre ellas una consulta <strong>JMESPath</strong>. Es como un mini-SQL para JSON: eliges qué campos quieres (como un <code>SELECT</code>) y qué elementos (como un <code>WHERE</code>). Lo bueno es que el filtro se aplica <strong>antes</strong> de formatear, así que funciona con cualquier <code>-o</code>.</p>
+<p>Piensa en <code>az group list</code> como una <strong>lista de objetos</strong>:</p>
+<pre><code class="language-json">[
+  { &quot;name&quot;: &quot;rg-datos-dev&quot;,  &quot;location&quot;: &quot;eastus2&quot;,     &quot;tags&quot;: { &quot;proyecto&quot;: &quot;tienda&quot;, &quot;entorno&quot;: &quot;dev&quot; } },
+  { &quot;name&quot;: &quot;rg-datos-prod&quot;, &quot;location&quot;: &quot;brazilsouth&quot;, &quot;tags&quot;: {} }
+]</code></pre>
+<p>Ahora mira qué devuelve cada consulta sobre esa lista:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Consulta</th>
+<th>Se lee como</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&quot;[].name&quot;</code></td>
+<td>De cada elemento, el campo <code>name</code></td>
+<td><code>rg-datos-dev</code>, <code>rg-datos-prod</code></td>
+</tr>
+<tr>
+<td><code>&quot;[0].name&quot;</code></td>
+<td>El <code>name</code> del primer elemento</td>
+<td><code>rg-datos-dev</code></td>
+</tr>
+<tr>
+<td><code>&quot;[?location==&#39;eastus2&#39;].name&quot;</code></td>
+<td>Los que están en eastus2 → su <code>name</code></td>
+<td><code>rg-datos-dev</code></td>
+</tr>
+<tr>
+<td><code>&quot;[?tags.entorno==&#39;dev&#39;].name&quot;</code></td>
+<td>Los que tienen la etiqueta entorno=dev</td>
+<td><code>rg-datos-dev</code></td>
+</tr>
+<tr>
+<td><code>&quot;[].{Nombre:name, Region:location}&quot;</code></td>
+<td>De cada uno, un objeto nuevo con dos columnas renombradas</td>
+<td>Una tabla de dos columnas</td>
+</tr>
+<tr>
+<td><code>&quot;length(@)&quot;</code></td>
+<td>Cuántos elementos hay (<code>@</code> es &quot;el dato actual&quot;)</td>
+<td><code>2</code></td>
+</tr>
+<tr>
+<td><code>&quot;[?contains(name, &#39;prod&#39;)].name&quot;</code></td>
+<td>Los que tienen &quot;prod&quot; en el nombre</td>
+<td><code>rg-datos-prod</code></td>
+</tr>
+</tbody></table></div>
+<p>Y en comandos completos:</p>
+<pre data-norun><code class="language-bash"># Solo el nombre de la suscripción activa
+az account show --query name -o tsv
+
+# Nombres de todos los grupos de recursos
+az group list --query &quot;[].name&quot; -o tsv
+
+# Grupos en eastus2 (filtro con ?)
+az group list --query &quot;[?location=='eastus2'].name&quot; -o tsv
+
+# Proyectar varias columnas con nombre
+az group list --query &quot;[].{Nombre:name, Region:location}&quot; -o table
+
+# Recursos de tipo cuenta de almacenamiento
+az resource list --query &quot;[?type=='Microsoft.Storage/storageAccounts'].name&quot; -o tsv</code></pre>
+<p>Resumen de la sintaxis:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>JMESPath</th>
+<th>Significado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>[]</code></td>
+<td>Recorrer la lista</td>
+</tr>
+<tr>
+<td><code>.campo</code></td>
+<td>Acceder a un campo (se pueden encadenar: <code>.tags.entorno</code>)</td>
+</tr>
+<tr>
+<td><code>[?cond]</code></td>
+<td>Filtrar: <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&amp;&amp;</code>, <code>||</code>, <code>contains()</code>, <code>starts_with()</code></td>
+</tr>
+<tr>
+<td><code>{A:a, B:b}</code></td>
+<td>Proyectar con nombres nuevos</td>
+</tr>
+<tr>
+<td><code>[0]</code>, <code>[-1]</code></td>
+<td>Primer y último elemento</td>
+</tr>
+<tr>
+<td><code>length(@)</code></td>
+<td>Cantidad</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Comillas</div>
+
+<p>Los textos dentro de JMESPath van entre <strong>comillas simples</strong> (<code>&#39;eastus2&#39;</code>), y toda la consulta entre <strong>comillas dobles</strong> para que bash no interprete <code>[</code>, <code>?</code> ni <code>@</code>. Si las mezclas al revés, bash corta la consulta y <code>az</code> responde con un error de sintaxis.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Usar resultados en scripts</h2>
+<p>Lo que hace útil a <code>--query</code> + <code>-o tsv</code> es guardar un valor en una <strong>variable de shell</strong> con <code>$( ... )</code> y usarlo en el siguiente comando:</p>
+<pre data-norun><code class="language-bash">SUB_ID=$(az account show --query id -o tsv)
+RG_ID=$(az group show --name rg-datos-dev --query id -o tsv)
+echo &quot;Suscripción: $SUB_ID&quot;
+echo &quot;Grupo: $RG_ID&quot;</code></pre>
+<p><code>$( ... )</code> ejecuta el comando de adentro y lo reemplaza por lo que imprimió. Así <code>SUB_ID</code> queda con <code>1111aaaa-1111-4111-8111-111111111111</code>, sin comillas.</p>
+<p>Un script real recorre una lista con un bucle:</p>
+<pre data-norun><code class="language-bash"># Imprime cuántos recursos tiene cada grupo
+for rg in $(az group list --query &quot;[].name&quot; -o tsv); do
+  n=$(az resource list -g &quot;$rg&quot; --query &quot;length(@)&quot;)
+  echo &quot;$rg: $n recursos&quot;
+done</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Por qué tsv en scripts?</div>
+
+<p>Con <code>-o json</code> obtienes <code>&quot;valor&quot;</code>, con comillas, y con <code>-o table</code> obtienes también el encabezado. Con <code>-o tsv</code> obtienes <code>valor</code> limpio, listo para asignar a una variable.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-grupos-query">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-azure-cli.html">← Azure CLI: instalación y primeros comandos</a><a href="azure-storage.html">Almacenamiento: Storage Accounts y ADLS Gen2 →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

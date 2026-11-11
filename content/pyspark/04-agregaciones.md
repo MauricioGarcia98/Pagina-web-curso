@@ -5,6 +5,10 @@ duracion: 40
 resumen: Agregar datos por grupos con varias métricas, pivotear y subtotales.
 ---
 
+:::analogia En palabras simples
+Agrupar es como ordenar los tickets de compra en pilas por mes y después sumar cada pila. `groupBy` arma las pilas y `agg` dice qué calcular en cada una (sumar, contar, promediar). `pivot` gira la tabla para que, por ejemplo, cada mes quede como una columna, como en una tabla dinámica de Excel.
+:::
+
 ## Resumir datos por grupos
 
 Agrupar y resumir es el corazón del análisis: ventas por mes, clientes por país, ticket promedio por canal. En SQL lo hiciste con `GROUP BY` y funciones de agregación; en PySpark es la pareja **`groupBy` + `agg`**. Las ideas son idénticas, incluida la regla de oro: el resultado tiene **una fila por grupo**.

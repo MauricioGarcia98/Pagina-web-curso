@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pruebas A/B - leer un experimento sin engañarse · Academia de Datos</title><meta name="description" content="Cómo se analiza un experimento con SQL - controlar que la asignación esté sana, calcular conversión e ingreso por grupo, la mejora absoluta y relativa, una prueba de significancia para dos proporciones y la paradoja de Simpson, que hace que un cambio bueno parezca neutro cuando los grupos no son comparables."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-pruebas-ab.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pruebas A/B - leer un experimento sin engañarse · Academia de Datos"><meta property="og:description" content="Cómo se analiza un experimento con SQL - controlar que la asignación esté sana, calcular conversión e ingreso por grupo, la mejora absoluta y relativa, una prueba de significancia para dos proporciones y la paradoja de Simpson, que hace que un cambio bueno parezca neutro cuando los grupos no son comparables."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-pruebas-ab.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Avanzado · 55 min</div>
+<h1>Pruebas A/B - leer un experimento sin engañarse</h1><p class="resumen">Cómo se analiza un experimento con SQL - controlar que la asignación esté sana, calcular conversión e ingreso por grupo, la mejora absoluta y relativa, una prueba de significancia para dos proporciones y la paradoja de Simpson, que hace que un cambio bueno parezca neutro cuando los grupos no son comparables.</p>
+<a class="cta" href="../index.html#/l/analisis-pruebas-ab">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Revisar el tamaño y la composición de los grupos antes de mirar resultados</li><li>Calcular conversión, ingreso por usuario y mejora</li><li>Hacer una prueba z para dos proporciones en SQL</li><li>Detectar y corregir la paradoja de Simpson estratificando</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una prueba A/B es como probar dos recetas de galletitas con dos grupos de amigos elegidos al azar y ver cuál gusta más. La clave es que los grupos sean parecidos y que la diferencia no sea pura suerte. Esta lección enseña a decidir cuándo una diferencia es real.</p>
+</div>
+
+
+<h2>Antes de mirar el resultado: controlar la asignación</h2>
+<p>Un experimento solo compara bien si los grupos son <strong>iguales en todo</strong> salvo el cambio que se prueba. Dos controles obligatorios:</p>
+<ol>
+<li><strong>Tamaño de los grupos</strong> (<em>sample ratio mismatch</em>): si debía ser 50/50 y da 60/40, algo falló en la asignación.</li>
+<li><strong>Composición</strong>: los grupos deberían tener la misma mezcla de dispositivos, países, clientes nuevos, etc.</li>
+</ol>
+<pre><code class="language-sql">SELECT grupo, COUNT(*) AS clientes,
+       ROUND(100.0 * AVG(CASE WHEN dispositivo = 'movil' THEN 1 ELSE 0 END), 1) AS pct_movil
+FROM experimento_checkout
+GROUP BY grupo;</code></pre>
+<h2>Las métricas de un experimento</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Métrica</th>
+<th>Fórmula</th>
+</tr>
+</thead><tbody><tr>
+<td>Conversión</td>
+<td>convirtieron ÷ asignados</td>
+</tr>
+<tr>
+<td>Ingreso por usuario</td>
+<td>ingreso total ÷ asignados (incluye a los que no compraron)</td>
+</tr>
+<tr>
+<td>Mejora absoluta</td>
+<td>conversión B − conversión A (en puntos porcentuales)</td>
+</tr>
+<tr>
+<td>Mejora relativa</td>
+<td>(B − A) ÷ A</td>
+</tr>
+</tbody></table></div>
+<h2>¿Es una diferencia real? La prueba z para dos proporciones</h2>
+<p>Con muestras chicas, una diferencia puede ser azar. La prueba z compara la diferencia con su ruido:</p>
+<ul>
+<li>p = conversión conjunta de los dos grupos.</li>
+<li>varianza = p × (1 − p) × (1/n₁ + 1/n₂).</li>
+<li>z = (p₂ − p₁) ÷ √varianza. Con 95 % de confianza, la diferencia es significativa si |z| &gt; 1,96.</li>
+</ul>
+<p>Como SQLite no trae raíz cuadrada, compara los cuadrados: es significativa si <strong>z² = (p₂ − p₁)² ÷ varianza &gt; 3,84</strong> (1,96²).</p>
+<h2>La paradoja de Simpson</h2>
+<p>Si un grupo recibió más tráfico de un segmento que convierte menos (por ejemplo, móvil), el total compara manzanas con peras. Puede pasar que el cambio <strong>gane en cada segmento</strong> y en el total parezca empatar o perder. La solución es comparar <strong>dentro de cada segmento</strong> o reponderar con la misma mezcla para los dos grupos.</p>
+<figure class="diagrama"><figcaption>Simpson - el total esconde lo que pasa en cada segmento</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Mirar antes de tiempo</div>
+
+<p>Revisar el resultado todos los días y cortar el experimento “cuando da significativo” infla los falsos positivos. Se fija antes cuántos usuarios hacen falta y se lee al final.</p>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>En septiembre de 2024 la tienda probó un checkout nuevo con la mitad de los clientes. El resumen del equipo de producto dice: “sin diferencias: 12,4 % contra 12,5 %, lo descartamos”. Antes de tirar meses de trabajo, te piden revisar el análisis. Los datos están en <code>experimento_checkout</code>.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-pruebas-ab">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="analisis-unit-economics.html">← Unit economics - MRR, retención neta y lo que deja cada pedido</a><a href="analisis-series-de-tiempo.html">Series de tiempo - tendencia, estacionalidad y anomalías →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

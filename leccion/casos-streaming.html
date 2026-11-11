@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🎧 Ritmo: suscripciones, MRR y churn · Academia de Datos</title><meta name="description" content="Usuarios activos, skips, artistas top, MRR mes a mes, churn, conversión de gratis a pago y motivos de baja."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-streaming.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🎧 Ritmo: suscripciones, MRR y churn · Academia de Datos"><meta property="og:description" content="Usuarios activos, skips, artistas top, MRR mes a mes, churn, conversión de gratis a pago y motivos de baja."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-streaming.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Avanzado · 60 min</div>
+<h1>Caso 🎧 Ritmo: suscripciones, MRR y churn</h1><p class="resumen">Usuarios activos, skips, artistas top, MRR mes a mes, churn, conversión de gratis a pago y motivos de baja.</p>
+<a class="cta" href="../index.html#/l/casos-streaming">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular usuarios activos mensuales (MAU) y métricas de consumo</li><li>Calcular el MRR a una fecha a partir de suscripciones vigentes</li><li>Medir churn y conversión de plan gratis a pago sin contar mal los cambios de plan</li><li>Identificar usuarios en riesgo de baja con reglas de inactividad</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Ritmo</div>
+
+<p>El director de producto de <strong>Ritmo</strong>, la app de música, está preocupado:</p>
+<blockquote>
+<p>&quot;Los inversores nos preguntan por el MRR y el churn de cada mes. Y quiero saber cuántos usuarios gratis terminan pagando, porque ahí está el negocio. Ah, y los que pagan pero no escuchan nada hace un mes: esos se van a ir, quiero mandarles algo.&quot;</p>
+</blockquote>
+<p>Un negocio de suscripciones vive de <strong>retener</strong>: conseguir un usuario cuesta mucho más que conservarlo. Estas métricas son las que miran todos los días.</p>
+</div>
+
+<p><strong>Ritmo</strong> es una app de música por suscripción con planes <code>gratis</code>, <code>individual</code>, <code>duo</code> y <code>familiar</code>. La directora de producto quiere entender el <strong>engagement</strong> (cuánto se usa la app) y el <strong>negocio</strong> (cuánto se factura y cuántos se van).</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">streaming_usuarios (usuario_id, pais, fecha_registro, edad, dispositivo_principal)
+  ├── streaming_suscripciones (suscripcion_id, usuario_id, plan, precio_mensual, fecha_inicio, fecha_fin, motivo_baja)
+  └── streaming_reproducciones (repro_id, usuario_id, contenido_id, fecha_hora, segundos_escuchados, dispositivo)
+                                                     └── streaming_contenidos (contenido_id, titulo, tipo, genero, artista, duracion_seg, ...)</code></pre>
+<h2>Glosario de métricas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Métrica</th>
+<th>Definición</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>DAU / MAU</strong></td>
+<td>Usuarios activos (con al menos una reproducción) por día / por mes</td>
+</tr>
+<tr>
+<td><strong>Skip</strong></td>
+<td>Reproducción de menos de 30 segundos</td>
+</tr>
+<tr>
+<td><strong>MRR</strong> (<em>Monthly Recurring Revenue</em>)</td>
+<td>Suma del precio mensual de las suscripciones <strong>vigentes</strong> al inicio del mes</td>
+</tr>
+<tr>
+<td><strong>Churn</strong></td>
+<td>Usuarios que se dan de baja de un plan pago en un periodo</td>
+</tr>
+<tr>
+<td><strong>Conversión</strong></td>
+<td>Usuarios que pasaron de <code>gratis</code> a un plan pago</td>
+</tr>
+</tbody></table></div>
+<p>Una suscripción está <strong>vigente</strong> en una fecha <code>F</code> si <code>fecha_inicio &lt;= F</code> y (<code>fecha_fin</code> es NULL o <code>fecha_fin &gt;= F</code>).</p>
+<h2>Cómo funciona un negocio de streaming</h2>
+<p>Una app de música por suscripción tiene un modelo <strong>freemium</strong>: mucha gente usa el plan <strong>gratis</strong> (con anuncios y limitaciones), y el negocio vive de <strong>convertir</strong> a una parte de ellos en suscriptores pagos y de <strong>retenerlos</strong> mes a mes. Por eso la directora de producto mira dos familias de métricas que están conectadas:</p>
+<ul>
+<li><strong>Engagement</strong> (uso): si la gente escucha mucho y todos los días, es más probable que pague y que no se vaya.</li>
+<li><strong>Negocio</strong>: cuántos pagan (MRR), cuántos se van (churn) y por qué.</li>
+</ul>
+<p>La cadena causal que el equipo intenta mover es: <strong>buen catálogo y recomendaciones → más horas de escucha → más conversión a pago → menos bajas → más MRR</strong>.</p>
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿La gente termina lo que empieza a escuchar? Compara canciones y podcasts.&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por tipo de contenido (<code>cancion</code>, <code>podcast</code>). El tipo está en <code>streaming_contenidos</code>, así que unimos cada reproducción con su contenido.</li>
+<li><strong>Métricas</strong>: reproducciones, minutos promedio escuchados y <strong>% completado</strong>. Para el % completado usamos el cociente de sumas: segundos escuchados totales / duración total de lo reproducido. (El promedio de los porcentajes individuales daría el mismo peso a una canción de 2 minutos que a un podcast de 1 hora.)</li>
+</ol>
+<pre><code class="language-sql">SELECT c.tipo,
+       COUNT(*)                                                   AS reproducciones,
+       ROUND(AVG(r.segundos_escuchados) / 60.0, 1)                AS min_promedio,
+       ROUND(100.0 * SUM(r.segundos_escuchados) / SUM(c.duracion_seg), 1) AS pct_completado
+FROM streaming_reproducciones r
+JOIN streaming_contenidos c ON c.contenido_id = r.contenido_id
+GROUP BY c.tipo;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>tipo</th>
+<th>reproducciones</th>
+<th>min_promedio</th>
+<th>pct_completado</th>
+</tr>
+</thead><tbody><tr>
+<td>cancion</td>
+<td>16057</td>
+<td>2.4</td>
+<td>67.0</td>
+</tr>
+<tr>
+<td>podcast</td>
+<td>1943</td>
+<td>18.7</td>
+<td>54.1</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura de negocio:</strong> los podcasts se escuchan mucho más tiempo por reproducción (casi 19 minutos), pero se <strong>abandonan más</strong> (solo se completa el 54 %). Una función &quot;continuar donde lo dejaste&quot; para podcasts tiene sentido; también recomendar episodios más cortos.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>&quot;Activo&quot; se define por reproducciones</strong>, no por suscripciones: un suscriptor pago que no escucha nada en el mes no es un usuario activo (y es un candidato a darse de baja).</li>
+<li><strong>Vigencia de una suscripción</strong>: está vigente en la fecha F si empezó antes o ese día y no terminó (<code>fecha_fin</code> es NULL o posterior). Olvidar el <code>NULL</code> deja afuera a todos los suscriptores actuales.</li>
+<li><strong>Churn de planes pagos</strong>: el que pasa de pago a gratis también es churn de ingresos, aunque siga usando la app.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas de suscripción, el MRR y el churn se calculan en tablas gold &quot;por mes y por usuario&quot; que guardan el estado de cada suscripción en cada mes. Los dashboards leen de ahí, y finanzas e inversores usan exactamente la misma definición.</li>
+<li>Los eventos de reproducción son enormes (miles de millones de filas). Se procesan con Spark o en BigQuery, particionados por fecha, y se resumen por día y usuario apenas entran.</li>
+<li>Las listas de &quot;usuarios en riesgo&quot; alimentan campañas automáticas. Por eso se miden después: ¿los que recibieron el mensaje se fueron menos que los que no?</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usuarios activos contados por reproducciones</strong> en vez de usuarios distintos.</li>
+<li><strong>Churn con las altas del mes en el denominador</strong>: se esconde la pérdida en los meses de campañas.</li>
+<li><strong>MRR sumando planes gratuitos o pruebas</strong>: infla el ingreso.</li>
+<li><strong>Skip rate promediando tasas por usuario</strong> en lugar de skips totales sobre reproducciones totales (o al revés): son preguntas distintas; elige una y escríbela.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo definirías y calcularías el churn mensual de una app de suscripción?&quot;</div>
+
+<p>Acordaría la definición: bajas en el mes sobre suscriptores pagos activos al inicio del mes, sin las altas del mes en el denominador. Calcularía los activos al inicio con las fechas de inicio y fin de cada suscripción, las bajas como los que terminan dentro del mes, y presentaría también el churn por cohorte y por plan. Validaría que activos al inicio más altas menos bajas dé los activos al final.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-streaming">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-banco.html">← Caso 🏦 Banco Austral: saldos, fraude y morosidad</a><a href="casos-viajes.html">Caso 🚕 Ruta: viajes, esperas y tarifa dinámica →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

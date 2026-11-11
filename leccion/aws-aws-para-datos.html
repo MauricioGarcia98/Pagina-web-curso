@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AWS para data engineers en 25 minutos · Academia de Datos</title><meta name="description" content="Qué es AWS, cuentas, regiones y zonas, el mapa de servicios de datos, cuánto cuesta y cómo se compara con Azure y Google Cloud."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-aws-para-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="AWS para data engineers en 25 minutos · Academia de Datos"><meta property="og:description" content="Qué es AWS, cuentas, regiones y zonas, el mapa de servicios de datos, cuánto cuesta y cómo se compara con Azure y Google Cloud."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-aws-para-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#aws">🟧 AWS para Data Engineers</a> · Básico · 25 min</div>
+<h1>AWS para data engineers en 25 minutos</h1><p class="resumen">Qué es AWS, cuentas, regiones y zonas, el mapa de servicios de datos, cuánto cuesta y cómo se compara con Azure y Google Cloud.</p>
+<a class="cta" href="../index.html#/l/aws-aws-para-datos">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<h2>Primero, la idea en una frase</h2>
+<p><strong>AWS (Amazon Web Services)</strong> es la nube de Amazon: en lugar de comprar servidores y discos, <strong>alquilas</strong> almacenamiento y capacidad de cómputo por minuto, y <strong>pagas solo lo que usas</strong>. Es la nube con más participación de mercado, así que es la que más vas a ver en ofertas de trabajo.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La nube como un edificio de oficinas con servicios</div>
+
+<p>Montar tu propio centro de datos es como construir un edificio: caro, lento y tienes que mantenerlo. La nube es alquilar una oficina amueblada: llegas, prendes la luz (creas un recurso), trabajas y pagas la factura del mes. Si mañana necesitas diez oficinas más, las tienes en minutos; si ya no las usas, las devuelves.</p>
+</div>
+
+
+<h2>Cómo está organizado AWS</h2>
+<pre><code class="language-text">Organización (AWS Organizations)          ← la empresa: agrupa cuentas y aplica reglas
+ └── Cuentas (account)  123456789012      ← unidad de facturación y de aislamiento: datos-dev, datos-prod
+      └── Regiones  us-east-1, sa-east-1   ← lugares del mundo
+           └── Zonas de disponibilidad      ← centros de datos separados dentro de la región (us-east-1a, 1b…)
+                └── Recursos                ← un bucket S3, un job de Glue, un cluster EMR…</code></pre>
+<ul>
+<li><strong>Cuenta</strong>: es el equivalente a la <em>suscripción</em> de Azure o al <em>proyecto</em> de Google Cloud. Las empresas separan <strong>dev</strong>, <strong>staging</strong> y <strong>prod</strong> en cuentas distintas para que un error en desarrollo nunca toque producción.</li>
+<li><strong>Región</strong>: un lugar físico (<code>us-east-1</code> Virginia, <code>sa-east-1</code> São Paulo, <code>mx-central-1</code> México, <code>eu-west-1</code> Irlanda). Los datos <strong>no salen</strong> de la región salvo que tú los copies, algo clave para leyes de privacidad.</li>
+<li><strong>Zona de disponibilidad (AZ)</strong>: cada región tiene 3 o más centros de datos independientes. Los servicios administrados (S3, Glue, Athena) ya replican entre zonas por ti.</li>
+<li><strong>ARN</strong> (<em>Amazon Resource Name</em>): el &quot;DNI&quot; de cada recurso, por ejemplo <code>arn:aws:s3:::lake-tienda-prod</code> o <code>arn:aws:glue:us-east-1:123456789012:database/lake_silver</code>.</li>
+</ul>
+<h2>El mapa de servicios de datos</h2>
+<p>Lo que hace un data engineer en AWS casi siempre sigue este recorrido:</p>
+<pre><code class="language-text"> FUENTES             INGESTA                 ALMACENAMIENTO          PROCESO                  CONSUMO
+ apps, APIs,  ──►  Kinesis / Firehose  ──►   S3 (data lake)   ──►   Glue (Spark)       ──►  Athena (SQL)
+ bases, logs       DMS (bases de datos)      bronze/silver/gold      EMR (Spark/Hadoop)       Redshift (warehouse)
+                   Lambda, AppFlow           Glue Data Catalog       Lambda (eventos)         QuickSight (BI)
+                                             Lake Formation          dbt / Redshift           SageMaker (ML)
+                         ORQUESTACIÓN: Step Functions · MWAA (Airflow) · EventBridge</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Para qué lo usa un data engineer</th>
+<th>Analogía</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>S3</strong></td>
+<td>Guardar archivos (CSV, JSON, Parquet, Delta, Iceberg): es el data lake</td>
+<td>Un disco infinito y barato</td>
+</tr>
+<tr>
+<td><strong>Glue Data Catalog</strong></td>
+<td>El &quot;índice&quot; de qué tablas hay en S3, sus columnas y particiones</td>
+<td>El catálogo de una biblioteca</td>
+</tr>
+<tr>
+<td><strong>Glue (jobs y crawlers)</strong></td>
+<td>Correr Spark sin administrar servidores; descubrir el esquema de archivos</td>
+<td>Spark &quot;de alquiler por minuto&quot;</td>
+</tr>
+<tr>
+<td><strong>Athena</strong></td>
+<td>Consultar con SQL los archivos de S3, sin servidor, pagando por TB leído</td>
+<td>Un buscador SQL sobre el lago</td>
+</tr>
+<tr>
+<td><strong>Redshift</strong></td>
+<td>Data warehouse columnar para BI con muchas consultas concurrentes</td>
+<td>Una biblioteca ordenada para leer rápido</td>
+</tr>
+<tr>
+<td><strong>EMR</strong></td>
+<td>Clusters de Spark/Hive/Presto que controlas tú (o EMR Serverless)</td>
+<td>Tu propio taller de Spark</td>
+</tr>
+<tr>
+<td><strong>Kinesis / Firehose / MSK</strong></td>
+<td>Ingesta de eventos en tiempo real (MSK = Kafka administrado)</td>
+<td>Una cinta transportadora</td>
+</tr>
+<tr>
+<td><strong>Lambda</strong></td>
+<td>Funciones cortas que reaccionan a eventos (llegó un archivo → procesarlo)</td>
+<td>Un timbre que dispara una acción</td>
+</tr>
+<tr>
+<td><strong>Step Functions / MWAA</strong></td>
+<td>Orquestar pasos; MWAA es Airflow administrado</td>
+<td>El director de orquesta</td>
+</tr>
+<tr>
+<td><strong>IAM / Lake Formation</strong></td>
+<td>Quién puede hacer qué; permisos finos sobre tablas y columnas</td>
+<td>Las llaves del edificio</td>
+</tr>
+<tr>
+<td><strong>DMS</strong></td>
+<td>Copiar bases de datos (incluido CDC: los cambios en vivo)</td>
+<td>Una mudanza sin cerrar la tienda</td>
+</tr>
+</tbody></table></div>
+<!-- dg:aws01-mapa -->
+<figure class="diagrama"><figcaption>Plataforma de datos de referencia en AWS</figcaption></figure>
+
+
+<h2>Las tres nubes lado a lado</h2>
+<p>En este curso vas a ver Azure, AWS y Google Cloud. Los conceptos son <strong>los mismos</strong>; cambian los nombres:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>AWS</th>
+<th>Azure</th>
+<th>Google Cloud</th>
+</tr>
+</thead><tbody><tr>
+<td>Contenedor de recursos y factura</td>
+<td>Cuenta</td>
+<td>Suscripción + grupo de recursos</td>
+<td>Proyecto</td>
+</tr>
+<tr>
+<td>Almacenamiento de objetos (lago)</td>
+<td>S3</td>
+<td>ADLS Gen2 / Blob</td>
+<td>Cloud Storage (GCS)</td>
+</tr>
+<tr>
+<td>Catálogo de tablas</td>
+<td>Glue Data Catalog</td>
+<td>Unity Catalog / Purview</td>
+<td>Dataplex / BigQuery</td>
+</tr>
+<tr>
+<td>SQL sin servidor sobre el lago</td>
+<td>Athena</td>
+<td>Synapse serverless / Fabric</td>
+<td>BigQuery (tablas externas)</td>
+</tr>
+<tr>
+<td>Data warehouse</td>
+<td>Redshift</td>
+<td>Synapse / Fabric Warehouse</td>
+<td>BigQuery</td>
+</tr>
+<tr>
+<td>Spark administrado</td>
+<td>Glue, EMR</td>
+<td>Databricks, Synapse Spark</td>
+<td>Dataproc</td>
+</tr>
+<tr>
+<td>Streaming</td>
+<td>Kinesis, MSK</td>
+<td>Event Hubs</td>
+<td>Pub/Sub</td>
+</tr>
+<tr>
+<td>Funciones por evento</td>
+<td>Lambda</td>
+<td>Functions</td>
+<td>Cloud Functions / Run</td>
+</tr>
+<tr>
+<td>Airflow administrado</td>
+<td>MWAA</td>
+<td>Apache Airflow job (Microsoft Fabric)</td>
+<td>Composer</td>
+</tr>
+<tr>
+<td>Identidad</td>
+<td>IAM</td>
+<td>Entra ID + RBAC</td>
+<td>IAM</td>
+</tr>
+<tr>
+<td>CLI</td>
+<td><code>aws</code></td>
+<td><code>az</code></td>
+<td><code>gcloud</code>, <code>bq</code>, <code>gsutil</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-experto"><div class="callout-title">🚀 Lo que piden en las entrevistas</div>
+
+<p>No te van a preguntar &quot;qué botón aprietas&quot;. Te van a preguntar <strong>por qué</strong> elegiste un servicio: &quot;¿Athena o Redshift para este caso?&quot;, &quot;¿Glue o EMR?&quot;, &quot;¿cómo particionas en S3 para que Athena cueste menos?&quot;. Este módulo está armado alrededor de esas decisiones.</p>
+</div>
+
+
+<h2>Cuánto cuesta (y cómo no llevarte un susto)</h2>
+<p>AWS cobra por tres cosas: <strong>almacenamiento</strong> (GB por mes), <strong>cómputo</strong> (segundos o minutos encendidos) y <strong>transferencia</strong> (datos que salen de AWS o cruzan regiones). Precios orientativos en <code>us-east-1</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Precio aproximado</th>
+<th>Qué lo hace subir</th>
+</tr>
+</thead><tbody><tr>
+<td>S3 Standard</td>
+<td>~USD 0,023 por GB/mes</td>
+<td>Muchos archivos chiquitos (cobran por petición), no borrar lo viejo</td>
+</tr>
+<tr>
+<td>Athena</td>
+<td>~USD 5 por <strong>TB escaneado</strong></td>
+<td>Consultar CSV sin particionar con <code>SELECT *</code></td>
+</tr>
+<tr>
+<td>Glue</td>
+<td>~USD 0,44 por DPU-hora</td>
+<td>Jobs con demasiados workers</td>
+</tr>
+<tr>
+<td>Redshift Serverless</td>
+<td>por RPU-hora mientras consulta</td>
+<td>Dashboards que consultan cada minuto</td>
+</tr>
+<tr>
+<td>Transferencia saliente</td>
+<td>~USD 0,09 por GB</td>
+<td>Copiar el lago a otra nube o región</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las tres sorpresas clásicas en la factura</div>
+
+<ol>
+<li>Un <strong>cluster EMR</strong> o un <strong>endpoint</strong> que quedó encendido el fin de semana.</li>
+<li>Una consulta de Athena con <code>SELECT *</code> sobre años de CSV: lee <strong>todo</strong> y cobra todo.</li>
+<li>Un <strong>NAT Gateway</strong> que mueve terabytes. Configura <strong>AWS Budgets</strong> con una alerta por email el primer día.</li>
+</ol>
+</div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Capa gratuita</div>
+
+<p>AWS tiene una capa gratuita (<em>Free Tier</em>) para aprender. Aun así, crea una alerta de presupuesto de USD 5 y borra lo que crees al terminar cada laboratorio. En este curso practicas en una <strong>terminal simulada</strong>, así que acá no gastas nada.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/aws-aws-para-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-automatizacion.html">← Automatización: scripts e infraestructura como código</a><a href="aws-cli-iam.html">AWS CLI e IAM, quién puede hacer qué →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desafíos SQL de entrevista (nivel senior) · Academia de Datos</title><meta name="description" content="Problemas reales de entrevistas técnicas para Data Engineer y Analytics Engineer."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-entrevistas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Desafíos SQL de entrevista (nivel senior) · Academia de Datos"><meta property="og:description" content="Problemas reales de entrevistas técnicas para Data Engineer y Analytics Engineer."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-entrevistas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Experto · 60 min</div>
+<h1>Desafíos SQL de entrevista (nivel senior)</h1><p class="resumen">Problemas reales de entrevistas técnicas para Data Engineer y Analytics Engineer.</p>
+<a class="cta" href="../index.html#/l/sql-entrevistas">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Seguir un método para resolver un problema de SQL en una entrevista: aclarar, planificar, escribir, verificar</li><li>Reconocer las familias de preguntas que más aparecen</li><li>Explicar en voz alta tu razonamiento mientras escribes</li><li>Validar tu propia respuesta con casos borde antes de entregarla</li></ul>
+<p>Llegaste al final del módulo de SQL. Estos desafíos combinan todo lo aprendido. Son del tipo que se piden en entrevistas para <strong>Data Engineer</strong>, <strong>Analytics Engineer</strong> y <strong>Data Analyst senior</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una entrevista técnica de SQL no busca que sepas todo de memoria: busca ver cómo piensas un problema nuevo. Es como un examen de manejo, donde importa más que mires los espejos y expliques lo que haces que llegar rápido. En esta lección practicas problemas típicos y, sobre todo, la forma de razonarlos en voz alta.</p>
+</div>
+
+
+<h2>Cómo es una entrevista técnica de SQL</h2>
+<p>Casi siempre tiene esta forma: te dan 2 a 4 tablas (muy parecidas a las de este curso), una pregunta de negocio y entre 15 y 30 minutos. A veces en una pizarra, a veces en un editor compartido sin poder ejecutar. Lo que evalúan <strong>no</strong> es solo si llegas al resultado:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Lo que miran</th>
+<th>Cómo demostrarlo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Entender el problema</strong></td>
+<td>Repite la pregunta con tus palabras y pregunta lo ambiguo: &quot;¿los pedidos cancelados cuentan?&quot;, &quot;¿qué pasa con los empates?&quot;</td>
+</tr>
+<tr>
+<td><strong>Estructurar</strong></td>
+<td>Di el grano del resultado y los pasos antes de escribir: &quot;primero agrupo por cliente y mes, después numero…&quot;</td>
+</tr>
+<tr>
+<td><strong>Conocer las herramientas</strong></td>
+<td>Elige la correcta y justifícala: &quot;uso <code>DENSE_RANK</code> porque si hay empate en el primer puesto…&quot;</td>
+</tr>
+<tr>
+<td><strong>Casos borde</strong></td>
+<td>NULL, empates, clientes sin pedidos, divisiones por cero, días sin datos</td>
+</tr>
+<tr>
+<td><strong>Comunicación</strong></td>
+<td>Piensa en voz alta. Un silencio de 10 minutos y una respuesta perfecta vale menos que un razonamiento claro con un detalle a corregir</td>
+</tr>
+</tbody></table></div>
+<div class="recorrido"></div>
+
+
+<h2>Las familias de preguntas que más aparecen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Familia</th>
+<th>Ejemplo</th>
+<th>Técnica (lección)</th>
+</tr>
+</thead><tbody><tr>
+<td>Top-N por grupo</td>
+<td>&quot;El producto más vendido de cada país&quot;</td>
+<td><code>ROW_NUMBER</code>/<code>RANK</code> + CTE (16)</td>
+</tr>
+<tr>
+<td>Segundo / n-ésimo valor</td>
+<td>&quot;El segundo salario más alto&quot;</td>
+<td><code>DENSE_RANK</code> (16)</td>
+</tr>
+<tr>
+<td>Comparar con el periodo anterior</td>
+<td>&quot;Crecimiento mes a mes&quot;</td>
+<td><code>LAG</code> (17)</td>
+</tr>
+<tr>
+<td>Acumulados y móviles</td>
+<td>&quot;Ventas acumuladas del año&quot;, &quot;promedio de 7 días&quot;</td>
+<td><code>SUM … OVER</code>, marcos (17)</td>
+</tr>
+<tr>
+<td>Rachas y consecutivos</td>
+<td>&quot;Usuarios que entraron 3 días seguidos&quot;</td>
+<td>Gaps &amp; islands (20)</td>
+</tr>
+<tr>
+<td>Lo que falta</td>
+<td>&quot;Clientes que nunca compraron&quot;</td>
+<td>Anti-join / <code>NOT EXISTS</code> (12, 13)</td>
+</tr>
+<tr>
+<td>Retención y cohortes</td>
+<td>&quot;% de usuarios que vuelven al mes siguiente&quot;</td>
+<td>Primera fecha + meses (20)</td>
+</tr>
+<tr>
+<td>Deduplicación</td>
+<td>&quot;Quédate con la última versión de cada registro&quot;</td>
+<td><code>ROW_NUMBER</code> + <code>rn = 1</code> (20)</td>
+</tr>
+<tr>
+<td>Métricas con condición</td>
+<td>&quot;Tasa de cancelación por canal&quot;</td>
+<td><code>SUM(CASE WHEN …)</code> (10)</td>
+</tr>
+<tr>
+<td>Mediana y percentiles</td>
+<td>&quot;Mediana del ticket&quot;</td>
+<td>Numerar y tomar el centro (este módulo)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Método para resolver problemas difíciles</div>
+
+<ol>
+<li><strong>Reformula</strong> el problema con tus palabras y define el <strong>grano</strong> del resultado (“una fila por…”).</li>
+<li>Escribe la solución en <strong>pasos</strong> con CTEs. Ejecuta cada paso y mira los datos.</li>
+<li>Piensa en los <strong>casos borde</strong>: NULLs, empates, clientes sin pedidos, días sin datos.</li>
+<li>Recién al final, optimiza.</li>
+</ol>
+</div>
+
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La entrevista para semi senior</div>
+
+<p>Pasó un año. Te va bien en Tienda Andina y un headhunter te ofrece una entrevista para un puesto de <strong>data engineer semi senior</strong>. Te avisa:</p>
+<blockquote>
+<p>&quot;La primera etapa es una prueba de SQL en vivo, de 45 minutos, compartiendo pantalla. Suelen ser 3 o 4 problemas de dificultad creciente.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En una entrevista evalúan <strong>cómo piensas</strong> tanto como el resultado. Antes de escribir, repite el problema con tus palabras y pregunta: &quot;¿los pedidos cancelados cuentan?&quot;, &quot;¿qué hago con los empates?&quot;. Hacer esas preguntas suma puntos: es lo mismo que se espera en el trabajo.</li>
+<li>Escribe por pasos, con CTE nombradas, y ejecuta cada paso antes de seguir. Una solución en 5 pasos claros vale más que una consulta brillante de 30 líneas que nadie entiende.</li>
+<li>Al terminar, valida en voz alta: &quot;revisemos un cliente concreto&quot;, &quot;¿qué pasa si un mes no tiene ventas?&quot;. Encontrar tu propio error antes que el entrevistador es una de las mejores señales que puedes dar.</li>
+</ul>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-entrevistas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-dialectos.html">← Dialectos de SQL: SQLite, PostgreSQL, SQL Server, Spark</a><a href="analisis-pensar-como-analista.html">Pensar como analista - de la pregunta a la consulta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

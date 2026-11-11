@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Git en equipo - ramas, pull, conflictos y pull requests · Academia de Datos</title><meta name="description" content="Lo que pasa cuando no trabajas solo. Tu push rechazado, el primer conflicto, stash, rebase y el pull request que revisa tu equipo, practicado con una compañera que sube cambios mientras trabajas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-git-en-equipo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Git en equipo - ramas, pull, conflictos y pull requests · Academia de Datos"><meta property="og:description" content="Lo que pasa cuando no trabajas solo. Tu push rechazado, el primer conflicto, stash, rebase y el pull request que revisa tu equipo, practicado con una compañera que sube cambios mientras trabajas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-git-en-equipo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fundamentos">🧱 Fundamentos</a> · Intermedio · 55 min</div>
+<h1>Git en equipo - ramas, pull, conflictos y pull requests</h1><p class="resumen">Lo que pasa cuando no trabajas solo. Tu push rechazado, el primer conflicto, stash, rebase y el pull request que revisa tu equipo, practicado con una compañera que sube cambios mientras trabajas.</p>
+<a class="cta" href="../index.html#/l/fundamentos-git-en-equipo">▶ Abrir la lección interactiva (14 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Clonar un repositorio y trabajar en una rama propia</li><li>Entender por qué un push es rechazado y cómo traer los cambios del equipo</li><li>Leer y resolver un conflicto de fusión</li><li>Guardar cambios a medias con stash</li><li>Elegir entre merge y rebase para actualizar tu rama</li><li>Abrir y fusionar un pull request</li></ul>
+<h2>El repositorio remoto</h2>
+<p>Hasta ahora usaste Git solo en tu computadora. En un equipo hay además un <strong>repositorio remoto</strong> (en GitHub, GitLab o Azure DevOps) que es la versión compartida. Cada persona tiene su copia y sincroniza con el remoto:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>git clone URL</code></td>
+<td>Copia el remoto completo (con toda la historia) a tu computadora</td>
+</tr>
+<tr>
+<td><code>git fetch</code></td>
+<td>Trae lo nuevo del remoto <strong>sin tocar</strong> tus archivos (actualiza <code>origin/main</code>)</td>
+</tr>
+<tr>
+<td><code>git pull</code></td>
+<td><code>fetch</code> + fusiona lo nuevo en tu rama</td>
+</tr>
+<tr>
+<td><code>git push</code></td>
+<td>Sube tus commits al remoto</td>
+</tr>
+</tbody></table></div>
+<p><code>origin</code> es el nombre del remoto, y <code>origin/main</code> es &quot;cómo estaba <code>main</code> en el remoto la última vez que miré&quot;. <code>git status</code> te dice si tu rama está <strong>adelantada</strong> (tienes commits que el remoto no tiene), <strong>atrasada</strong> (el remoto tiene commits que tú no) o si <strong>divergieron</strong> (las dos cosas).</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El documento compartido sin edición en vivo</div>
+
+<p>Imagina un documento que cada uno descarga, edita en su computadora y vuelve a subir. Si dos personas cambian el mismo párrafo, al subir el segundo hay que decidir qué queda. Git hace eso, pero en vez de pisar el trabajo del otro te <strong>frena</strong> y te pide que lo resuelvas.</p>
+</div>
+
+
+<h2>Trabajar en una rama</h2>
+<p>En un equipo casi nunca se trabaja directo en <code>main</code>. Cada tarea va en su <strong>rama</strong>:</p>
+<pre data-norun><code class="language-bash">git switch -c feature/colombia      # crea la rama y te cambia a ella
+# ... editas, pruebas ...
+git add pipelines/etl.py
+git commit -m &quot;Agrega Colombia a los países del ETL&quot;
+git push -u origin feature/colombia # sube la rama (-u: la próxima vez alcanza con git push)</code></pre>
+<p>Nombres típicos: <code>feature/…</code> (algo nuevo), <code>fix/…</code> (un arreglo), <code>chore/…</code> (mantenimiento). La rama aísla tu trabajo: <code>main</code> sigue funcionando mientras tú pruebas.</p>
+<h2>Push rechazado: traer primero, subir después</h2>
+<pre data-norun><code class="language-text"> ! [rejected]        main -&gt; main (fetch first)
+ayuda: Las actualizaciones fueron rechazadas porque el remoto contiene trabajo que
+ayuda: no tienes localmente.</code></pre>
+<p>Git no te deja pisar el trabajo de otra persona. La solución es siempre la misma: <strong>traer los cambios (<code>git pull</code>), integrarlos y volver a subir</strong>. Si las dos personas tocaron partes distintas, Git los junta solo. Si tocaron <strong>las mismas líneas</strong>, hay un conflicto.</p>
+<h2>Anatomía de un conflicto</h2>
+<pre data-norun><code class="language-text">$ git pull
+Auto-fusionando pipelines/etl.py
+CONFLICTO (contenido): Conflicto de fusión en pipelines/etl.py
+Fusión automática falló; arregla los conflictos y luego haz commit del resultado.</code></pre>
+<p>Git escribió en el archivo <strong>las dos versiones</strong>, separadas por marcas:</p>
+<pre data-norun><code class="language-text">FECHA_INICIO = &quot;2024-01-01&quot;
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+PAISES = [&quot;Chile&quot;, &quot;Perú&quot;, &quot;Colombia&quot;]
+=======
+PAISES = [&quot;Chile&quot;, &quot;Perú&quot;, &quot;México&quot;]
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main</code></pre>
+<ul>
+<li>Entre <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> y <code>=======</code>: <strong>tu</strong> versión.</li>
+<li>Entre <code>=======</code> y <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main</code>: la versión <strong>que llegó</strong> (la de Camila).</li>
+</ul>
+<p>Resolver es <strong>decidir qué queda</strong> (a veces una, a veces la otra, casi siempre una combinación), <strong>borrar las tres marcas</strong> y avisarle a Git:</p>
+<pre data-norun><code class="language-text">PAISES = [&quot;Chile&quot;, &quot;Perú&quot;, &quot;México&quot;, &quot;Colombia&quot;]</code></pre>
+<pre data-norun><code class="language-bash">git add pipelines/etl.py      # &quot;este archivo ya está resuelto&quot;
+git commit -m &quot;Une Colombia (marketing) y México (Camila)&quot;
+git push</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las marcas no se van solas</div>
+
+<p>Si haces <code>git add</code> con las marcas todavía en el archivo, Git te deja hacer commit… y el código queda roto (<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> no es Python válido). Antes de <code>git add</code>, busca: <code>grep -n &quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;\|&gt;&gt;&gt;&gt;&gt;&gt;&gt;&quot; pipelines/etl.py</code> no debería mostrar nada.</p>
+</div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Te equivocaste resolviendo?</div>
+
+<p><code>git merge --abort</code> deshace la fusión y te deja como antes del <code>git pull</code>. Respira y vuelve a empezar. Y si no entiendes qué cambió la otra persona, pregúntale: resolver un conflicto es una conversación, no una adivinanza.</p>
+</div>
+
+
+<h2>stash: guardar algo a medias</h2>
+<p>Estás a mitad de un cambio y te piden algo urgente en otra rama. Git no te deja cambiar de rama con cambios que se pisarían, y no quieres hacer commit de algo incompleto. <code>git stash</code> guarda tus cambios en un cajón y deja el árbol limpio:</p>
+<pre data-norun><code class="language-bash">git stash                     # guarda y limpia
+git switch main               # haces lo urgente…
+git switch feature/colombia
+git stash pop                 # recuperas lo que tenías</code></pre>
+<p><code>git stash list</code> muestra lo guardado. Úsalo para pausas cortas: lo que dura más de un día merece un commit en una rama.</p>
+<h2>merge o rebase para actualizar tu rama</h2>
+<p>Tu rama <code>feature/colombia</code> salió de <code>main</code> hace dos días y <code>main</code> avanzó. Para ponerte al día hay dos formas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th><code>git merge origin/main</code></th>
+<th><code>git rebase origin/main</code></th>
+</tr>
+</thead><tbody><tr>
+<td>Qué hace</td>
+<td>Crea un commit de fusión que junta las dos historias</td>
+<td>Reescribe tus commits como si hubieras empezado desde el <code>main</code> nuevo</td>
+</tr>
+<tr>
+<td>Historia</td>
+<td>Fiel a lo que pasó, con ramas que se cruzan</td>
+<td>Lineal, más fácil de leer</td>
+</tr>
+<tr>
+<td>Conflictos</td>
+<td>Los resuelves una vez</td>
+<td>Los resuelves commit por commit (<code>git rebase --continue</code>)</td>
+</tr>
+<tr>
+<td>Peligro</td>
+<td>Ninguno</td>
+<td><strong>Cambia los hashes</strong>: nunca lo hagas sobre una rama que otras personas ya bajaron</td>
+</tr>
+</tbody></table></div>
+<p>La regla de oro: <strong>rebase solo de tu rama privada; merge para todo lo compartido</strong>. Muchos equipos usan <code>git pull --rebase</code> para traer cambios a su rama sin commits de fusión.</p>
+<h2>El pull request</h2>
+<p>Un <strong>pull request</strong> (PR, o <em>merge request</em> en GitLab) es pedirle al equipo: &quot;revisen mi rama y, si está bien, fusiónenla en <code>main</code>&quot;. Ahí pasan tres cosas:</p>
+<ol>
+<li><strong>Revisión de código</strong>: alguien lee tu cambio, pregunta y sugiere. Es la forma más efectiva de aprender (y de encontrar errores antes de producción).</li>
+<li><strong>Checks automáticos</strong>: GitHub Actions corre los tests, el linter, <code>dbt build</code>… Si algo falla, el PR no se fusiona.</li>
+<li><strong>Historia</strong>: el PR queda como registro de <strong>por qué</strong> cambió algo.</li>
+</ol>
+<pre data-norun><code class="language-bash">gh pr create --title &quot;Agrega Colombia al ETL&quot; --body &quot;Pedido de marketing (ticket DATA-142). Probado con datos de octubre: +312 filas.&quot;
+gh pr view 1        # estado, checks y si se puede fusionar
+gh pr merge 1 --squash
+git switch main &amp;&amp; git pull</code></pre>
+<p>Un buen PR es <strong>chico</strong> (se revisa en 15 minutos), explica <strong>qué</strong> cambia y <strong>por qué</strong>, y dice <strong>cómo se probó</strong>.</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Tu primer push rechazado</div>
+
+<p>Ahora que sabes traer los cambios de otros y resolver un conflicto, mira por qué es tan común. Martín le pide a alguien del equipo: <em>&quot;Marketing quiere que el ETL incluya Colombia. Es un cambio de una línea en <code>pipelines/etl.py</code>.&quot;</em> La persona clona el repositorio, cambia la línea, hace commit y <code>git push</code>. Y Git responde con un <code>! [rejected]</code> en rojo.</p>
+<p>No rompió nada: mientras trabajaba, <strong>Camila subió un cambio a la misma línea</strong> (agregó México). Esto pasa varias veces por semana en cualquier equipo, y se resuelve exactamente como practicaste: <code>git pull</code>, resolver el conflicto y volver a subir.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p>En la mayoría de los equipos <code>main</code> está protegida: nadie hace push directo, todo entra por PR con al menos una aprobación y los checks en verde. Tu primera semana vas a abrir PRs chicos y vas a recibir comentarios: no son críticas personales, son la forma en que el equipo cuida el código. Responder &quot;buena observación, lo cambio&quot; o &quot;lo dejé así porque…&quot; es parte del trabajo.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li>Trabajar directo en <code>main</code> y hacer push sin pull.</li>
+<li>Hacer <code>git add</code> con las marcas de conflicto adentro.</li>
+<li><code>git push --force</code> para &quot;arreglar&quot; un rechazo: pisa el trabajo de tus compañeros.</li>
+<li>Rebase de una rama que otra persona ya bajó.</li>
+<li>PRs gigantes que nadie puede revisar.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo resuelves un conflicto de merge?&quot;</div>
+
+<p>Leo qué cambió cada lado (<code>git status</code>, el diff, y si hace falta hablo con quien hizo el otro cambio). Edito el archivo para que quede la combinación correcta, borro las marcas, corro los tests, <code>git add</code> y commit. Si me equivoco, <code>git merge --abort</code> y empiezo de nuevo. Para evitarlos: ramas cortas, PRs chicos y traer <code>main</code> seguido.</p>
+</div>
+
+
+<h2>Practica</h2>
+<p>Cada ejercicio prepara el repositorio cuando haces clic en su terminal. El comando <code>reiniciar-remoto</code> que verás en la preparación es del curso: deja el remoto de práctica como nuevo.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>14 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fundamentos-git-en-equipo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-git.html">← Git y GitHub: guarda tu trabajo como un profesional</a><a href="sql-introduccion.html">¿Qué es SQL? Tu primera consulta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

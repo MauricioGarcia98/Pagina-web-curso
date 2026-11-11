@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instalación y estructura de un proyecto · Academia de Datos</title><meta name="description" content="Desde cero - terminal, Python, entorno virtual y adaptador; instalar dbt, dbt init y dbt debug, la estructura de carpetas, las tres capas, dbt_project.yml, profiles.yml y cómo se arma el nombre del esquema."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-proyecto.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Instalación y estructura de un proyecto · Academia de Datos"><meta property="og:description" content="Desde cero - terminal, Python, entorno virtual y adaptador; instalar dbt, dbt init y dbt debug, la estructura de carpetas, las tres capas, dbt_project.yml, profiles.yml y cómo se arma el nombre del esquema."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-proyecto.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Básico · 40 min</div>
+<h1>Instalación y estructura de un proyecto</h1><p class="resumen">Desde cero - terminal, Python, entorno virtual y adaptador; instalar dbt, dbt init y dbt debug, la estructura de carpetas, las tres capas, dbt_project.yml, profiles.yml y cómo se arma el nombre del esquema.</p>
+<a class="cta" href="../index.html#/l/dbt-proyecto">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<h2>Antes de empezar: las palabras que vas a ver</h2>
+<p>Si nunca instalaste una herramienta de programación, estas son las piezas que aparecen en esta lección. No hace falta memorizarlas; vuelve a esta tabla cuando una palabra no se entienda.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Palabra</th>
+<th>Qué es, en simple</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Terminal</strong></td>
+<td>Una ventana donde le das órdenes a la computadora escribiendo, en vez de hacer clic. Cada línea es un <strong>comando</strong>.</td>
+</tr>
+<tr>
+<td><strong>Python</strong></td>
+<td>Un lenguaje de programación. dbt está escrito en Python, por eso se instala con las herramientas de Python.</td>
+</tr>
+<tr>
+<td><strong>pip</strong></td>
+<td>El &quot;instalador de programas&quot; de Python: <code>pip install algo</code> descarga e instala <code>algo</code>.</td>
+</tr>
+<tr>
+<td><strong>Entorno virtual</strong> (<code>.venv</code>)</td>
+<td>Una carpeta aislada donde se instalan los programas de <strong>un</strong> proyecto, para que no choquen con los de otro. Se &quot;activa&quot; con <code>source .venv/bin/activate</code>.</td>
+</tr>
+<tr>
+<td><strong>Adaptador</strong></td>
+<td>El conector entre dbt y tu base de datos. dbt no sabe hablar con Databricks o PostgreSQL por sí solo: el paquete <code>dbt-databricks</code> o <code>dbt-postgres</code> le enseña.</td>
+</tr>
+<tr>
+<td><strong>YAML</strong> (<code>.yml</code>)</td>
+<td>Un formato de texto para configuración: <code>clave: valor</code>, y la <strong>sangría</strong> (los espacios al principio) indica qué está dentro de qué. Un espacio de más o de menos cambia el significado.</td>
+</tr>
+<tr>
+<td><strong>Esquema</strong> (<em>schema</em>)</td>
+<td>Una &quot;carpeta&quot; dentro de la base de datos que agrupa tablas. En Databricks hay además un nivel encima, el <strong>catálogo</strong>: <code>catalogo.esquema.tabla</code>.</td>
+</tr>
+<tr>
+<td><strong>Git</strong></td>
+<td>El programa que guarda la historia de cambios de los archivos de un proyecto, para trabajar en equipo y volver atrás.</td>
+</tr>
+</tbody></table></div>
+<h2>Instalar dbt Core, paso a paso</h2>
+<pre data-norun><code class="language-bash">python -m venv .venv               # 1. crea el entorno virtual en la carpeta .venv
+source .venv/bin/activate          # 2. lo activa (en Windows: .venv\Scripts\activate)
+pip install dbt-databricks         # 3. instala dbt-core + el adaptador de Databricks
+dbt --version                      # 4. comprueba qué se instaló</code></pre>
+<ol>
+<li><code>python -m venv .venv</code> le pide a Python que cree un entorno virtual llamado <code>.venv</code> (el punto inicial lo oculta en los listados).</li>
+<li>Al activarlo, el texto de la terminal empieza con <code>(.venv)</code>: a partir de ahí, lo que instales con <code>pip</code> queda dentro de esa carpeta.</li>
+<li>Instalas <strong>el adaptador</strong> de tu base, no <code>dbt-core</code> solo: el adaptador ya trae <code>dbt-core</code> como dependencia. Para practicar en tu computadora sin nube, <code>pip install dbt-duckdb</code> usa DuckDB, una base que vive en un archivo.</li>
+<li><code>dbt --version</code> muestra la versión de <code>dbt-core</code> y de cada adaptador (<em>plugin</em>).</li>
+</ol>
+<h2>Crear el proyecto</h2>
+<pre data-norun><code class="language-bash">dbt init tienda_andina            # pregunta el adaptador y los datos de conexión
+cd tienda_andina
+dbt debug                         # verifica la conexión y la configuración</code></pre>
+<ul>
+<li><code>dbt init</code> crea la carpeta del proyecto con la estructura de la sección siguiente y, si no existe, te hace preguntas para armar <code>~/.dbt/profiles.yml</code> (qué base usas, a qué servidor te conectas, con qué usuario).</li>
+<li><code>dbt debug</code> es el primer comando que se corre siempre: revisa que <code>dbt_project.yml</code> sea válido, que encuentre <code>profiles.yml</code> y que <strong>pueda conectarse</strong> a la base. Si algo falla, el mensaje dice qué parte. Los errores más comunes son un token vencido, un <code>http_path</code> mal copiado o estar parado en otra carpeta.</li>
+</ul>
+<p>En la terminal del curso puedes probarlo: <code>dbt init mi_proyecto</code>, <code>cd mi_proyecto</code> y <code>dbt run</code> construyen un primer modelo de ejemplo.</p>
+<h2>Qué es cada cosa</h2>
+<p>Un proyecto dbt es <strong>una carpeta con archivos de texto</strong>: SQL para los modelos y YAML para la configuración. No hay nada &quot;instalado en la base&quot;: todo vive en tu repositorio Git y dbt lo convierte en tablas y vistas cuando lo ejecutas. Hay dos archivos de configuración que conviene no confundir:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Archivo</th>
+<th>Qué define</th>
+<th>Dónde vive</th>
+<th>¿Va a Git?</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt_project.yml</code></td>
+<td><strong>Qué</strong> construir: nombre del proyecto, carpetas, materializaciones por defecto</td>
+<td>En la raíz del proyecto</td>
+<td><strong>Sí</strong></td>
+</tr>
+<tr>
+<td><code>profiles.yml</code></td>
+<td><strong>Dónde</strong> construirlo: la conexión a tu motor (host, usuario, token, esquema)</td>
+<td>En <code>~/.dbt/</code> (tu carpeta personal)</td>
+<td><strong>No</strong> (tiene credenciales)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El plano y la dirección de la obra</div>
+
+<p><code>dbt_project.yml</code> es el plano de la casa: qué habitaciones hay y cómo son. <code>profiles.yml</code> es la dirección del terreno y la llave del portón. El mismo plano se puede construir en el terreno de pruebas (dev) o en el definitivo (prod) cambiando solo la dirección.</p>
+</div>
+
+
+<h2>Estructura de carpetas</h2>
+<pre><code class="language-text">tienda_andina/
+├── dbt_project.yml          # configuración del proyecto
+├── models/
+│   ├── staging/             # 1 modelo por tabla de origen: renombrar, tipar, limpiar
+│   │   ├── _sources.yml
+│   │   ├── stg_pedidos.sql
+│   │   └── stg_clientes.sql
+│   ├── intermediate/        # lógica reutilizable (joins, enriquecimientos)
+│   └── marts/               # modelos finales para el negocio (hechos y dimensiones)
+│       ├── fct_ventas.sql
+│       ├── dim_clientes.sql
+│       └── _marts.yml       # tests y documentación
+├── seeds/                   # CSV pequeños que se cargan como tablas (dbt seed)
+├── snapshots/               # historiales SCD tipo 2
+├── macros/                  # funciones Jinja reutilizables
+├── tests/                   # tests &quot;singulares&quot; (SQL)
+└── packages.yml             # dependencias (por ejemplo dbt_utils)</code></pre>
+<h3>Las tres capas de modelos</h3>
+<p>La convención de dbt Labs, usada en casi todos los proyectos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Prefijo</th>
+<th>Qué hace</th>
+<th>Regla</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>staging</strong></td>
+<td><code>stg_</code></td>
+<td>Un modelo por tabla de origen: renombrar columnas, convertir tipos, limpiar formatos</td>
+<td>Sin joins ni agregaciones; nada de lógica de negocio</td>
+</tr>
+<tr>
+<td><strong>intermediate</strong></td>
+<td><code>int_</code></td>
+<td>Pasos de lógica reutilizable: joins, enriquecimientos, cálculos intermedios</td>
+<td>No los consume el negocio directamente</td>
+</tr>
+<tr>
+<td><strong>marts</strong></td>
+<td><code>fct_</code> / <code>dim_</code></td>
+<td>Las tablas finales: hechos y dimensiones listos para BI</td>
+<td>Nombres y métricas de negocio</td>
+</tr>
+</tbody></table></div>
+<p>Es la misma idea que bronze → silver → gold, aplicada dentro del warehouse.</p>
+<div class="recorrido"></div>
+
+
+<h2>dbt_project.yml</h2>
+<pre data-norun><code class="language-yaml">name: tienda_andina
+version: &quot;1.0.0&quot;
+profile: tienda_andina          # qué conexión de profiles.yml usar
+
+models:
+  tienda_andina:
+    staging:
+      +materialized: view       # todo staging como vistas
+      +schema: staging
+    marts:
+      +materialized: table      # marts como tablas
+      +schema: marts</code></pre>
+<p>Los <code>+</code> delante de <code>materialized</code> y <code>schema</code> indican que es una configuración que se <strong>aplica a toda la carpeta</strong> (y sus subcarpetas). Un modelo puede sobrescribirla individualmente con <code>{{ config(materialized=&#39;table&#39;) }}</code> al principio del archivo.</p>
+<h2>profiles.yml: la conexión (¡fuera del repo!)</h2>
+<p>Vive en <code>~/.dbt/profiles.yml</code> porque tiene credenciales:</p>
+<pre data-norun><code class="language-yaml">tienda_andina:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      host: adb-1234567890123456.7.azuredatabricks.net
+      http_path: /sql/1.0/warehouses/abc123
+      catalog: dev
+      schema: dbt_ana            # cada dev trabaja en su propio esquema
+      token: &quot;{{ env_var('DATABRICKS_TOKEN') }}&quot;
+    prod:
+      type: databricks
+      host: adb-1234567890123456.7.azuredatabricks.net
+      http_path: /sql/1.0/warehouses/abc123
+      catalog: prod
+      schema: analytics
+      token: &quot;{{ env_var('DATABRICKS_TOKEN_PROD') }}&quot;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Entornos</div>
+
+<p>Con <code>--target</code> eliges a dónde escribir: <code>dbt run</code> (dev, por defecto) o <code>dbt run --target prod</code>. Así cada desarrollador prueba en su esquema sin tocar producción.</p>
+</div>
+
+
+<h2>Recorre el proyecto en la terminal</h2>
+<pre><code class="language-bash">cd tienda_dbt
+ls
+cat dbt_project.yml
+ls models/staging models/marts
+cat models/staging/stg_ventas.sql
+cat models/schema.yml</code></pre>
+<p>Con <code>code models/marts/top_clientes.sql</code> puedes abrir un modelo en el editor, cambiarlo, guardarlo (Ctrl+S) y volver a ejecutar <code>dbt run -s top_clientes</code>.</p>
+<h2>El detalle que confunde a todos: <code>+schema</code></h2>
+<p>Con <code>+schema: staging</code> uno espera que los modelos queden en un esquema llamado <code>staging</code>. <strong>No es así</strong>. La documentación oficial explica que dbt <strong>concatena</strong> el esquema del perfil (el <em>target schema</em>) con el que pusiste:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Esquema del perfil (<code>schema:</code> en profiles.yml)</th>
+<th><code>+schema</code> del modelo</th>
+<th>Esquema donde se crea</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt_ana</code> (dev)</td>
+<td>ninguno</td>
+<td><code>dbt_ana</code></td>
+</tr>
+<tr>
+<td><code>dbt_ana</code> (dev)</td>
+<td><code>staging</code></td>
+<td><code>dbt_ana_staging</code></td>
+</tr>
+<tr>
+<td><code>analytics</code> (prod)</td>
+<td><code>marts</code></td>
+<td><code>analytics_marts</code></td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué? Porque si cada desarrollador escribiera directamente en <code>staging</code>, todos pisarían las tablas de todos. Al anteponer el esquema personal, Ana trabaja en <code>dbt_ana_staging</code> y Luis en <code>dbt_luis_staging</code>, sin chocar.</p>
+<p>Esa lógica vive en una macro llamada <code>generate_schema_name</code>. Si en producción quieres los nombres &quot;limpios&quot; (<code>staging</code>, <code>marts</code>), se sobrescribe esa macro en <code>macros/</code> para que en el target <code>prod</code> use solo el esquema personalizado. Es una de las primeras cosas que se configuran en un proyecto real.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Subir <code>profiles.yml</code> a Git</strong>: expone el token de la base. Va en <code>~/.dbt/</code> y en el repositorio solo se usa <code>env_var(&#39;...&#39;)</code>.</li>
+<li><strong>Instalar <code>dbt-core</code> sin adaptador</strong>: <code>dbt debug</code> dice que no encuentra el tipo de conexión.</li>
+<li><strong>Correr dbt desde la carpeta equivocada</strong>: el error <code>No dbt_project.yml found</code> significa que no estás dentro del proyecto.</li>
+<li><strong>Sangría de YAML con tabulaciones</strong>: YAML exige espacios; un tab rompe el archivo.</li>
+<li><strong>Sorprenderse por <code>dbt_ana_staging</code></strong>: es el comportamiento normal de <code>+schema</code> (ver arriba).</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El primer día en un equipo de datos suele ser: clonar el repositorio con Git, crear el entorno virtual, instalar las dependencias (<code>pip install -r requirements.txt</code> y <code>dbt deps</code>), pedir un token y armar tu <code>profiles.yml</code> con <strong>tu</strong> esquema de desarrollo, y correr <code>dbt debug</code> y <code>dbt build -s staging</code>.</li>
+<li>En dbt Cloud (la plataforma de dbt Labs) la conexión se configura en la web y no hay <code>profiles.yml</code>, pero el resto del proyecto es idéntico.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre dbt_project.yml y profiles.yml?&quot;</div>
+
+<p><code>dbt_project.yml</code> define qué se construye y cómo: nombre del proyecto, carpetas y configuraciones por defecto como la materialización; se versiona en Git. <code>profiles.yml</code> define dónde se construye: la conexión a la base y las credenciales para cada entorno (dev, prod); vive fuera del repositorio porque tiene secretos. El campo <code>profile:</code> del primero dice qué perfil del segundo usar, y <code>--target</code> elige el entorno.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-proyecto">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-que-es-dbt.html">← ¿Qué es dbt y por qué todos lo usan?</a><a href="dbt-modelos-ref.html">Modelos y ref(): el corazón de dbt →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

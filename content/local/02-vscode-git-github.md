@@ -14,6 +14,10 @@ Tu líder te comparte el repositorio del equipo y te pide un cambio chico para q
 > "Clona el repo, crea una rama, agrega tu nombre al README y abre un pull request. Lo importante no es el cambio: es que tu máquina quede lista para trabajar como el resto del equipo."
 :::
 
+:::analogia En palabras simples
+VS Code es tu mesa de trabajo, Git es el historial que guarda cada versión de lo que haces y GitHub es la nube donde compartes ese historial con tu equipo. Juntos son las herramientas que usa cualquier persona que escribe código todos los días.
+:::
+
 ## 1. VS Code
 
 **Visual Studio Code** es el editor más usado en datos: liviano, gratuito y con extensiones para todo.

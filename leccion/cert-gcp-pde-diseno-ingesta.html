@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDE - Diseñar sistemas de procesamiento e ingerir datos · Academia de Datos</title><meta name="description" content="Las secciones 1 y 2 del Professional Data Engineer - diseñar pensando en seguridad, confiabilidad, flexibilidad y migración; Pub/Sub, Dataflow y Apache Beam (ventanas, marcas de agua, disparadores, datos tardíos), Datastream para CDC, Dataproc y Dataproc Serverless, Data Fusion, Storage Transfer y Transfer Appliance, Dataform y Cloud Composer."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-gcp-pde-diseno-ingesta.html">
+<meta property="og:type" content="article"><meta property="og:title" content="PDE - Diseñar sistemas de procesamiento e ingerir datos · Academia de Datos"><meta property="og:description" content="Las secciones 1 y 2 del Professional Data Engineer - diseñar pensando en seguridad, confiabilidad, flexibilidad y migración; Pub/Sub, Dataflow y Apache Beam (ventanas, marcas de agua, disparadores, datos tardíos), Datastream para CDC, Dataproc y Dataproc Serverless, Data Fusion, Storage Transfer y Transfer Appliance, Dataform y Cloud Composer."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-gcp-pde-diseno-ingesta.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-gcp">🏆 Certificaciones Google Cloud: Data Engineer e IA</a> · Avanzado · 75 min</div>
+<h1>PDE - Diseñar sistemas de procesamiento e ingerir datos</h1><p class="resumen">Las secciones 1 y 2 del Professional Data Engineer - diseñar pensando en seguridad, confiabilidad, flexibilidad y migración; Pub/Sub, Dataflow y Apache Beam (ventanas, marcas de agua, disparadores, datos tardíos), Datastream para CDC, Dataproc y Dataproc Serverless, Data Fusion, Storage Transfer y Transfer Appliance, Dataform y Cloud Composer.</p>
+<a class="cta" href="../index.html#/l/cert-gcp-pde-diseno-ingesta">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre Dataflow, Dataproc, BigQuery y Data Fusion según el caso</li><li>Diseñar un pipeline de streaming con ventanas, marcas de agua y manejo de datos tardíos</li><li>Replicar bases con Datastream hacia BigQuery</li><li>Orquestar con Cloud Composer, Workflows o Dataform</li><li>Planificar migraciones de datos a Google Cloud</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La cadena de Valentina tiene 900 sucursales que envían cada venta en tiempo real, una base MySQL de stock en Cloud SQL, un clúster Hadoop on-premises con 200 trabajos de Spark y 400 TB de históricos en su centro de datos. Hay que diseñar la plataforma en Google Cloud: es la primera mitad del PDE.</p>
+</div>
+
+
+<h2>Sección 1: diseñar sistemas de procesamiento</h2>
+<p>El examen evalúa cuatro ejes:</p>
+<ul>
+<li><strong>Seguridad y cumplimiento</strong>: IAM, cifrado (Google por defecto, <strong>CMEK</strong> con Cloud KMS), <strong>VPC Service Controls</strong>, residencia de datos (ubicación de datasets y buckets), <strong>Sensitive Data Protection</strong>.</li>
+<li><strong>Confiabilidad y fidelidad</strong>: validación, limpieza, recuperación ante fallas, pipelines <strong>idempotentes</strong>, monitoreo.</li>
+<li><strong>Flexibilidad y portabilidad</strong>: formatos abiertos (Parquet, Iceberg con <strong>BigLake</strong>), multinube (BigQuery Omni), herramientas portables (Beam, Spark).</li>
+<li><strong>Migración</strong>: evaluar, planificar, migrar y validar (<strong>BigQuery Migration Service</strong> traduce SQL de Teradata, Redshift y otros; Database Migration Service para bases).</li>
+</ul>
+<figure class="diagrama"><figcaption>Plataforma de datos de la cadena en Google Cloud</figcaption></figure>
+
+
+<h2>Sección 2: ingerir y procesar datos</h2>
+<h3>Pub/Sub</h3>
+<ul>
+<li>Mensajería serverless global: <strong>temas</strong> y <strong>suscripciones</strong> (pull, push, <strong>exportación directa a BigQuery o Cloud Storage</strong> sin código).</li>
+<li>Entrega <strong>al menos una vez</strong> por defecto; <strong>exactly-once</strong> opcional en suscripciones pull.</li>
+<li><strong>Orden por clave</strong> (<em>ordering key</em>): orden garantizado dentro de cada clave.</li>
+<li>Retención de mensajes reconocidos y <strong>seek</strong> para reprocesar (a un snapshot o un instante).</li>
+<li><strong>Dead-letter topic</strong> para mensajes que fallan repetidamente; <strong>esquemas</strong> (Avro, Protobuf) para validar.</li>
+<li><strong>Pub/Sub Lite</strong> fue discontinuado: la alternativa es Pub/Sub o <strong>Managed Service for Apache Kafka</strong>.</li>
+</ul>
+<h3>Dataflow y Apache Beam</h3>
+<p>Dataflow ejecuta pipelines de <strong>Apache Beam</strong> (lotes y streaming con el mismo código) de forma serverless con autoescalado.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>PCollection / PTransform</strong></td>
+<td>Datos y transformaciones (<code>ParDo</code>, <code>GroupByKey</code>, <code>CoGroupByKey</code>, <code>Combine</code>)</td>
+</tr>
+<tr>
+<td><strong>Ventanas fijas</strong> (<em>tumbling</em>)</td>
+<td>Intervalos sin superposición (ventas por minuto)</td>
+</tr>
+<tr>
+<td><strong>Ventanas deslizantes</strong> (<em>hopping</em>)</td>
+<td>Se superponen (promedio de 10 min cada 1 min)</td>
+</tr>
+<tr>
+<td><strong>Ventanas de sesión</strong></td>
+<td>Se cierran tras un período de inactividad por clave</td>
+</tr>
+<tr>
+<td><strong>Marca de agua</strong> (<em>watermark</em>)</td>
+<td>Estimación de hasta qué tiempo de evento ya llegaron los datos</td>
+</tr>
+<tr>
+<td><strong>Disparadores</strong> (<em>triggers</em>)</td>
+<td>Cuándo emitir resultados (al pasar la marca de agua, antes, por cantidad)</td>
+</tr>
+<tr>
+<td><strong>Allowed lateness</strong></td>
+<td>Cuánto tiempo se aceptan datos tardíos para actualizar una ventana</td>
+</tr>
+<tr>
+<td><strong>Side input</strong></td>
+<td>Datos chicos adicionales (por ejemplo, un catálogo) disponibles en cada worker</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><strong>Plantillas</strong> (clásicas y <strong>Flex</strong>) para lanzar pipelines sin compilar; plantillas de Google (Pub/Sub a BigQuery, JDBC a BigQuery).</li>
+<li><strong>Streaming Engine</strong> y <strong>Dataflow Prime</strong> (autoajuste vertical); <strong>Runner v2</strong>.</li>
+<li>Actualizar un pipeline en streaming: <strong>update</strong> (mismo nombre de job, conserva el estado) o <strong>drain</strong> (termina de procesar y se detiene) frente a <strong>cancel</strong> (descarta lo que está en vuelo).</li>
+<li>Mensajes con errores: <strong>dead-letter</strong> a un tema o tabla aparte, nunca frenar todo el pipeline.</li>
+</ul>
+<pre data-norun><code class="language-python">import apache_beam as beam
+from apache_beam.transforms import window, trigger
+
+with beam.Pipeline(options=opciones) as p:
+    (p
+     | &quot;Leer&quot; &gt;&gt; beam.io.ReadFromPubSub(subscription=SUB)
+     | &quot;Parsear&quot; &gt;&gt; beam.Map(parsear_venta)
+     | &quot;Ventana&quot; &gt;&gt; beam.WindowInto(
+           window.FixedWindows(60),
+           trigger=trigger.AfterWatermark(late=trigger.AfterCount(1)),
+           allowed_lateness=600,
+           accumulation_mode=trigger.AccumulationMode.ACCUMULATING)
+     | &quot;Clave&quot; &gt;&gt; beam.Map(lambda v: (v[&quot;sucursal&quot;], v[&quot;monto&quot;]))
+     | &quot;Sumar&quot; &gt;&gt; beam.CombinePerKey(sum)
+     | &quot;Formato&quot; &gt;&gt; beam.Map(lambda kv: {&quot;sucursal&quot;: kv[0], &quot;total&quot;: kv[1]})
+     | &quot;Escribir&quot; &gt;&gt; beam.io.WriteToBigQuery(
+           &quot;proyecto:ventas.por_minuto&quot;,
+           write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))</code></pre>
+<h3>Otras formas de ingerir</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Caso</th>
+<th>Servicio</th>
+</tr>
+</thead><tbody><tr>
+<td>CDC de MySQL, PostgreSQL, Oracle, SQL Server a BigQuery o Cloud Storage</td>
+<td><strong>Datastream</strong> (serverless, baja latencia)</td>
+</tr>
+<tr>
+<td>Migrar una base a Cloud SQL o AlloyDB</td>
+<td><strong>Database Migration Service</strong></td>
+</tr>
+<tr>
+<td>Copiar desde S3, Azure o HTTP a Cloud Storage</td>
+<td><strong>Storage Transfer Service</strong></td>
+</tr>
+<tr>
+<td>Cientos de terabytes sin ancho de banda suficiente</td>
+<td><strong>Transfer Appliance</strong></td>
+</tr>
+<tr>
+<td>Cargar desde SaaS (Google Ads, YouTube) o S3 a BigQuery programado</td>
+<td><strong>BigQuery Data Transfer Service</strong></td>
+</tr>
+<tr>
+<td>ETL visual sin código, con muchos conectores</td>
+<td><strong>Cloud Data Fusion</strong> (basado en CDAP)</td>
+</tr>
+<tr>
+<td>Escrituras de alto volumen en BigQuery desde aplicaciones</td>
+<td><strong>Storage Write API</strong></td>
+</tr>
+</tbody></table></div>
+<h3>Dataproc</h3>
+<ul>
+<li>Spark, Hadoop, Hive, Presto y Flink administrados; clústeres que arrancan en unos 90 segundos.</li>
+<li>Buenas prácticas: <strong>clústeres efímeros</strong> por trabajo, datos en <strong>Cloud Storage</strong> (no HDFS), <strong>VMs preemptibles/Spot</strong> como workers secundarios, <strong>autoescalado</strong>, <strong>Dataproc Metastore</strong>.</li>
+<li><strong>Dataproc Serverless</strong> (Serverless for Apache Spark): ejecuta lotes o sesiones de Spark sin clúster.</li>
+<li>Conectores a BigQuery, Bigtable y Cloud Storage.</li>
+</ul>
+<h3>Transformación con SQL y orquestación</h3>
+<ul>
+<li><strong>Dataform</strong>: transformaciones SQL (SQLX) dentro de BigQuery con dependencias, <strong>aserciones</strong> (pruebas), tablas <strong>incrementales</strong>, Git y programación. Es el equivalente administrado a dbt en Google Cloud.</li>
+<li><strong>Cloud Composer</strong> (Airflow administrado, versión 3): DAGs con dependencias complejas entre muchos servicios.</li>
+<li><strong>Workflows</strong>: orquestación serverless liviana de llamadas a APIs y servicios (barata, sin entorno permanente).</li>
+<li><strong>Cloud Scheduler</strong> y <strong>Eventarc</strong> para disparar por horario o evento.</li>
+<li><strong>BigQuery pipelines</strong> y <strong>consultas programadas</strong> para casos simples.</li>
+</ul>
+<div class="callout callout-examen"><div class="callout-title">🏅 Cuál elegir</div>
+
+<ul>
+<li>Streaming con ventanas, marcas de agua y datos tardíos → <strong>Dataflow</strong>.</li>
+<li>Spark/Hadoop existente → <strong>Dataproc</strong>; Spark sin clúster → <strong>Dataproc Serverless</strong>.</li>
+<li>Base operacional a BigQuery casi en tiempo real → <strong>Datastream</strong>.</li>
+<li>Equipo sin programadores que necesita ETL visual → <strong>Data Fusion</strong>.</li>
+<li>SQL modular con pruebas en BigQuery → <strong>Dataform</strong>.</li>
+<li>Orquestar decenas de servicios con reintentos y dependencias → <strong>Composer</strong>; unas pocas llamadas a APIs → <strong>Workflows</strong>.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-gcp-pde-diseno-ingesta">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-gcp-mapa-certificaciones.html">← El mapa de las certificaciones de datos e IA de Google Cloud</a><a href="cert-gcp-pde-almacenamiento-analisis.html">PDE - Almacenar datos y prepararlos para el análisis →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tus primeras medidas DAX - SUM, COUNTROWS, DISTINCTCOUNT y DIVIDE · Academia de Datos</title><meta name="description" content="Qué es una medida, en qué se diferencia de una columna, qué es el contexto de filtro y cómo escribir las medidas que piden todos los tableros - ventas, pedidos, clientes, promedios y ticket promedio - sin dividir por cero."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-primeras-medidas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tus primeras medidas DAX - SUM, COUNTROWS, DISTINCTCOUNT y DIVIDE · Academia de Datos"><meta property="og:description" content="Qué es una medida, en qué se diferencia de una columna, qué es el contexto de filtro y cómo escribir las medidas que piden todos los tableros - ventas, pedidos, clientes, promedios y ticket promedio - sin dividir por cero."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-primeras-medidas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi">📊 Power BI y DAX</a> · Básico · 45 min</div>
+<h1>Tus primeras medidas DAX - SUM, COUNTROWS, DISTINCTCOUNT y DIVIDE</h1><p class="resumen">Qué es una medida, en qué se diferencia de una columna, qué es el contexto de filtro y cómo escribir las medidas que piden todos los tableros - ventas, pedidos, clientes, promedios y ticket promedio - sin dividir por cero.</p>
+<a class="cta" href="../index.html#/l/powerbi-primeras-medidas">▶ Abrir la lección interactiva (9 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir medidas con SUM, AVERAGE, COUNTROWS y DISTINCTCOUNT</li><li>Explicar el contexto de filtro de un objeto visual</li><li>Reutilizar medidas dentro de otras medidas</li><li>Dividir con DIVIDE</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una medida de DAX es como una calculadora que se reacomoda sola: le dices &quot;suma las ventas&quot; una vez y, si después miras por país, por mes o por producto, recalcula el número para cada caso. No guarda un resultado fijo: calcula en el momento según lo que estés mirando.</p>
+</div>
+
+
+<h2>Medida o columna</h2>
+<ul>
+<li>Una <strong>columna</strong> (también una columna calculada) tiene un valor <strong>por fila</strong> y se guarda en la tabla.</li>
+<li>Una <strong>medida</strong> no se guarda: es una <strong>fórmula que se calcula cada vez</strong>, para cada celda del objeto visual, con los filtros de esa celda.</li>
+</ul>
+<pre><code class="language-dax">Unidades = SUM(detalle_pedidos[cantidad])</code></pre>
+<p>Si pones <code>[Unidades]</code> en un gráfico de columnas por canal, la misma fórmula da un número distinto en cada barra: en la barra &quot;web&quot; solo suma las líneas de pedidos web. Eso es el <strong>contexto de filtro</strong>: el conjunto de filtros que tiene cada celda (la barra, las segmentaciones, los filtros de página y los de las otras visuales).</p>
+<figure class="diagrama"><figcaption>Una medida, muchos resultados: cada barra la evalúa con su propio filtro</figcaption></figure>
+
+
+<h2>Las funciones que más se usan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué devuelve</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SUM(T[c])</code></td>
+<td>Suma de la columna</td>
+<td><code>SUM(detalle_pedidos[cantidad])</code></td>
+</tr>
+<tr>
+<td><code>AVERAGE(T[c])</code></td>
+<td>Promedio</td>
+<td><code>AVERAGE(productos[precio])</code></td>
+</tr>
+<tr>
+<td><code>MIN</code> / <code>MAX</code></td>
+<td>Mínimo / máximo</td>
+<td><code>MAX(pedidos[fecha_pedido])</code></td>
+</tr>
+<tr>
+<td><code>COUNTROWS(T)</code></td>
+<td>Cantidad de filas de la tabla</td>
+<td><code>COUNTROWS(pedidos)</code></td>
+</tr>
+<tr>
+<td><code>DISTINCTCOUNT(T[c])</code></td>
+<td>Valores distintos</td>
+<td><code>DISTINCTCOUNT(pedidos[cliente_id])</code></td>
+</tr>
+<tr>
+<td><code>DIVIDE(a, b)</code></td>
+<td>a ÷ b, y <strong>blanco</strong> si b es 0</td>
+<td><code>DIVIDE([Ventas], [Pedidos])</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Contar pedidos con la tabla correcta</div>
+
+<p><code>COUNTROWS(detalle_pedidos)</code> cuenta <strong>líneas</strong>, no pedidos: un pedido con tres productos cuenta tres. Para pedidos usa <code>COUNTROWS(pedidos)</code> o <code>DISTINCTCOUNT(detalle_pedidos[pedido_id])</code>. Es la misma trampa del grano que viste en SQL.</p>
+</div>
+
+
+<h2>Medidas que usan medidas</h2>
+<p>Una medida puede usar otra entre corchetes. Así cada fórmula se escribe una sola vez:</p>
+<pre><code class="language-dax">Pedidos = COUNTROWS(pedidos)
+Ventas = SUMX(detalle_pedidos, detalle_pedidos[cantidad] * detalle_pedidos[precio_unitario] * (1 - detalle_pedidos[descuento]))
+Ticket promedio = DIVIDE([Ventas], [Pedidos])</code></pre>
+<p><code>SUMX</code> recorre la tabla fila por fila (lo verás a fondo en otra lección). Por ahora, úsalo tal cual para las ventas.</p>
+<h2>Cómo se corrigen los ejercicios de esta lección</h2>
+<p>Escribes <strong>la fórmula de una medida</strong>. El ejercicio la llama <code>[?]</code> y la pone en una consulta, como si la arrastraras a un objeto visual. Por ejemplo, para &quot;por canal&quot;:</p>
+<pre><code class="language-dax">EVALUATE SUMMARIZECOLUMNS(pedidos[canal], &quot;Valor&quot;, [?])</code></pre>
+<p>Puedes escribir <code>Nombre = expresión</code> o solo la expresión. Abre &quot;Tu medida se llama [?]…&quot; en cada ejercicio para ver la consulta.</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Arrastras la columna <code>cantidad</code> a un gráfico y Power BI muestra &quot;Suma de cantidad&quot;. Funciona, pero cuando el gerente pide &quot;ticket promedio&quot; o &quot;% del total&quot;, arrastrar columnas ya no alcanza: hacen falta <strong>medidas</strong>.</p>
+</div>
+
+
+<h2>Practica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre una columna calculada y una medida?&quot;</div>
+
+<p>La columna calculada se evalúa una vez por fila al actualizar el modelo y ocupa memoria; sirve para clasificar o agrupar (por ejemplo, &quot;rango de precio&quot;). La medida se calcula en el momento, para cada celda, con el contexto de filtro de esa celda; sirve para agregaciones como totales, promedios y porcentajes. Regla: si lo vas a poner en un eje o en una segmentación, columna; si es un número que se agrega, medida.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>9 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-primeras-medidas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-power-bi-y-el-modelo.html">← Power BI y el modelo semántico - de los datos al tablero</a><a href="powerbi-calculate-y-contexto.html">CALCULATE - cambiar el contexto de filtro →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

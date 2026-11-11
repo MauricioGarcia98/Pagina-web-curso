@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto completo II · Rápido: el pipeline en producción · Academia de Datos</title><meta name="description" content="La segunda parte del proyecto de Rápido. Las reglas de negocio en Python con pruebas, el mart diario en PySpark, la tabla de hechos incremental en dbt, el DAG de Airflow con una compuerta de calidad que decide si se publica, la infraestructura en Google Cloud con Terraform y el workflow de CI. Termina con la checklist de entrega y cómo presentarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-rapido-pipeline.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto completo II · Rápido: el pipeline en producción · Academia de Datos"><meta property="og:description" content="La segunda parte del proyecto de Rápido. Las reglas de negocio en Python con pruebas, el mart diario en PySpark, la tabla de hechos incremental en dbt, el DAG de Airflow con una compuerta de calidad que decide si se publica, la infraestructura en Google Cloud con Terraform y el workflow de CI. Termina con la checklist de entrega y cómo presentarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-rapido-pipeline.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto">🏆 Proyecto final y entrevistas</a> · Experto · 110 min</div>
+<h1>Proyecto completo II · Rápido: el pipeline en producción</h1><p class="resumen">La segunda parte del proyecto de Rápido. Las reglas de negocio en Python con pruebas, el mart diario en PySpark, la tabla de hechos incremental en dbt, el DAG de Airflow con una compuerta de calidad que decide si se publica, la infraestructura en Google Cloud con Terraform y el workflow de CI. Termina con la checklist de entrega y cómo presentarlo.</p>
+<a class="cta" href="../index.html#/l/proyecto-rapido-pipeline">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Programar reglas de validez y de negocio como funciones de Python con pruebas</li><li>Escribir el mart diario en PySpark con diferencias de timestamps y agregaciones condicionales</li><li>Convertir la tabla de hechos en un modelo incremental de dbt que solo procesa los días nuevos</li><li>Orquestar el pipeline en Airflow con una compuerta de calidad que frena la publicación</li><li>Crear la infraestructura del proyecto con Terraform y llevarla a CI</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 De la consulta al pipeline</div>
+
+<p>Las consultas de la primera parte funcionan, y la directora ya vio los números. Ahora Martín pone la vara de producción:</p>
+<blockquote>
+<p>&quot;Que corra solo todos los días a las 6, que si los datos están mal <strong>no publique</strong>, que se pueda reprocesar un día cualquiera, que la infraestructura esté en Terraform y que cualquier cambio pase por un pull request con pruebas. Cuando esté, me lo presentas en 10 minutos.&quot;</p>
+</blockquote>
+</div>
+
+
+<h2>El pipeline completo</h2>
+<figure class="diagrama"><figcaption>El pipeline diario de Rápido: cada pieza con su herramienta</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Herramienta</th>
+<th>Por qué esa</th>
+</tr>
+</thead><tbody><tr>
+<td>Reglas de negocio</td>
+<td>Python con pruebas</td>
+<td>Se prueban solas, se reutilizan en la app y en los controles</td>
+</tr>
+<tr>
+<td>stg y fct</td>
+<td>dbt</td>
+<td>SQL versionado, <code>ref()</code> entre modelos, pruebas y documentación</td>
+</tr>
+<tr>
+<td>Mart diario</td>
+<td>PySpark (o dbt)</td>
+<td>Cuando el volumen crece, Spark escala; aquí ves las dos versiones</td>
+</tr>
+<tr>
+<td>Orquestación</td>
+<td>Airflow</td>
+<td>Horario, dependencias, reintentos, reprocesos por fecha</td>
+</tr>
+<tr>
+<td>Infraestructura</td>
+<td>Terraform</td>
+<td>Buckets, datasets, cuenta de servicio y permisos, repetibles por entorno</td>
+</tr>
+<tr>
+<td>Cambios</td>
+<td>GitHub Actions</td>
+<td>Pruebas y plan en cada pull request</td>
+</tr>
+</tbody></table></div>
+<h2>1. Python: las reglas de negocio, con pruebas</h2>
+<p>La regla de validez de la primera parte vive en un <code>CASE</code> de SQL. Escrita como función de Python, se puede <strong>probar</strong> con casos borde antes de confiar en ella, y reutilizar (por ejemplo, en el servicio que recibe los pedidos).</p>
+<div class="exercise-slot"></div>
+
+
+<h2>2. PySpark: el mart diario</h2>
+<p>Cuando Rápido opere en veinte ciudades con millones de pedidos por mes, el mart se calculará en Spark (Dataproc o Databricks). El código es la misma lógica de la primera parte.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>3. dbt: la tabla de hechos incremental</h2>
+<p><code>fct_rapido_pedidos</code> crece todos los días y los días cerrados no cambian. En dbt se escribe como modelo <strong>incremental</strong>: la primera vez procesa todo; después, solo las fechas posteriores a la última que ya tiene. En el proyecto de dbt:</p>
+<pre><code class="language-text">models/
+├── staging/stg_rapido_pedidos.sql        ← vista: las reglas de validez (es_valido)
+├── marts/fct_rapido_pedidos.sql          ← incremental por fecha
+├── marts/mart_operaciones_diario.sql
+└── schema.yml                     ← pruebas: unique, not_null, accepted_values, relationships</code></pre>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Reprocesar un día</div>
+
+<p>¿Y si el incidente de agosto se corrige en la fuente y hay que recalcular esos tres días? Con <code>unique_key=&#39;pedido_id&#39;</code>, dbt actualiza las filas existentes. Para reprocesar fechas puntuales, el modelo acepta una variable (<code>--vars &#39;{&quot;desde&quot;: &quot;2024-08-14&quot;}&#39;</code>) que reemplaza el filtro incremental, o se usa la estrategia <code>insert_overwrite</code> por partición en BigQuery. Y para reconstruir todo: <code>dbt build --full-refresh -s fct_rapido_pedidos</code>.</p>
+</div>
+
+
+<h2>4. Airflow: el DAG con compuerta de calidad</h2>
+<p>La compuerta es un <strong><code>ShortCircuitOperator</code></strong>: ejecuta una función; si devuelve <code>True</code>, el DAG sigue; si devuelve <code>False</code>, <strong>saltea</strong> todo lo que viene después (no publica) sin marcar el DAG como roto. Los controles bloqueantes devuelven <code>False</code>; los de advertencia solo dejan un mensaje.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>5. Terraform: la infraestructura en Google Cloud</h2>
+<p>Rápido trabaja en Google Cloud. El proyecto necesita: un bucket para bronze, datasets de BigQuery para silver y gold, una cuenta de servicio para el pipeline con permisos <strong>solo</strong> sobre esos recursos, y el estado de Terraform en un bucket aparte.</p>
+<pre><code class="language-hcl"># infra/envs/dev/main.tf
+terraform {
+  backend &quot;gcs&quot; {
+    bucket = &quot;rapido-tfstate&quot;
+    prefix = &quot;operaciones/dev&quot;
+  }
+}
+
+provider &quot;google&quot; {
+  project = &quot;rapido-datos-dev&quot;
+  region  = &quot;us-central1&quot;
+}
+
+locals {
+  entorno = &quot;dev&quot;
+  capas   = toset([&quot;silver&quot;, &quot;gold&quot;])
+}
+
+resource &quot;google_storage_bucket&quot; &quot;bronze&quot; {
+  name                        = &quot;rapido-${local.entorno}-bronze&quot;
+  location                    = &quot;US&quot;
+  uniform_bucket_level_access = true
+  lifecycle_rule {
+    condition {
+      age = 90                      # bronze se guarda 90 días
+    }
+    action {
+      type = &quot;Delete&quot;
+    }
+  }
+}
+
+resource &quot;google_bigquery_dataset&quot; &quot;capa&quot; {
+  for_each   = local.capas
+  dataset_id = &quot;rapido_${each.key}&quot;
+  location   = &quot;US&quot;
+}
+
+resource &quot;google_service_account&quot; &quot;pipeline&quot; {
+  account_id   = &quot;pipeline-operaciones&quot;
+  display_name = &quot;Pipeline del tablero de operaciones&quot;
+}
+
+resource &quot;google_storage_bucket_iam_member&quot; &quot;pipeline_bronze&quot; {
+  bucket = google_storage_bucket.bronze.name
+  role   = &quot;roles/storage.objectAdmin&quot;
+  member = &quot;serviceAccount:${google_service_account.pipeline.email}&quot;
+}
+
+resource &quot;google_bigquery_dataset_iam_member&quot; &quot;pipeline_capas&quot; {
+  for_each   = local.capas
+  dataset_id = google_bigquery_dataset.capa[each.key].dataset_id
+  role       = &quot;roles/bigquery.dataEditor&quot;
+  member     = &quot;serviceAccount:${google_service_account.pipeline.email}&quot;
+}
+
+resource &quot;google_project_iam_member&quot; &quot;pipeline_jobs&quot; {
+  project = &quot;rapido-datos-dev&quot;
+  role    = &quot;roles/bigquery.jobUser&quot;
+  member  = &quot;serviceAccount:${google_service_account.pipeline.email}&quot;
+}
+
+output &quot;cuenta_pipeline&quot; {
+  value = google_service_account.pipeline.email
+}</code></pre>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>6. CI: cada cambio, probado</h2>
+<p>El repositorio del proyecto tiene tres carpetas (<code>ingesta/</code>, <code>dbt/</code>, <code>infra/</code>) y un workflow que, en cada pull request, corre lo que corresponde a lo que cambió:</p>
+<pre><code class="language-yaml"># .github/workflows/ci.yml
+name: ci
+on: [pull_request]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: &quot;3.12&quot; }
+      - run: pip install -r requirements.txt
+      - run: ruff check . &amp;&amp; pytest -q          # validar_pedido y compañía
+
+  dbt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2       # OIDC: sin claves guardadas
+        with:
+          workload_identity_provider: projects/123/locations/global/workloadIdentityPools/github/providers/github
+          service_account: ci-dbt@rapido-datos-dev.iam.gserviceaccount.com
+      - run: pip install dbt-bigquery
+      - run: dbt build --target ci --select state:modified+ --defer --state ./prod-manifest
+
+  terraform:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: infra/envs/dev } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive &amp;&amp; terraform init -input=false &amp;&amp; terraform validate
+      - run: terraform plan -input=false -no-color</code></pre>
+<p><code>dbt build --select state:modified+</code> construye y prueba <strong>solo</strong> los modelos que cambiaron y los que dependen de ellos, en un dataset de CI; <code>--defer</code> lee lo que no cambió desde producción. Así un pull request de dbt tarda minutos, no horas.</p>
+<h2>7. La entrega</h2>
+<p>Antes de decir &quot;está listo&quot;, la checklist:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Área</th>
+<th>Listo cuando…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Datos</strong></td>
+<td>El GMV de un mes cerrado coincide con finanzas (o la diferencia está explicada)</td>
+</tr>
+<tr>
+<td><strong>Calidad</strong></td>
+<td>Los controles bloqueantes y de advertencia corren cada día y alguien recibe las alertas</td>
+</tr>
+<tr>
+<td><strong>Operación</strong></td>
+<td>El DAG corre a las 6:00, tiene reintentos y se probó un reproceso de un día</td>
+</tr>
+<tr>
+<td><strong>Código</strong></td>
+<td>Todo en Git, con pruebas en CI y revisión de otra persona</td>
+</tr>
+<tr>
+<td><strong>Infraestructura</strong></td>
+<td>Creada con Terraform; dev y prod con el mismo código</td>
+</tr>
+<tr>
+<td><strong>Documentación</strong></td>
+<td>README con el diagrama, las definiciones de las métricas y qué hacer si falla</td>
+</tr>
+<tr>
+<td><strong>Costos</strong></td>
+<td>Particiones por fecha en BigQuery y retención en bronze; costo mensual estimado</td>
+</tr>
+</tbody></table></div>
+<h3>Cómo presentarlo en 10 minutos</h3>
+<ol>
+<li><strong>El problema</strong> (1 min): qué decisión necesitaba tomar operaciones.</li>
+<li><strong>El resultado</strong> (2 min): el tablero, y una conclusión concreta (&quot;la preparación pesa tanto como el viaje; estos 10 restaurantes explican el X % de las demoras&quot;).</li>
+<li><strong>Cómo está hecho</strong> (4 min): el diagrama del pipeline, las decisiones (grano, medidas aditivas, incremental, compuerta de calidad) y por qué.</li>
+<li><strong>Confiabilidad</strong> (2 min): controles, el incidente de agosto que se detectó, reprocesos.</li>
+<li><strong>Lo que sigue</strong> (1 min): fase 2 en tiempo real, más ciudades, costos.</li>
+</ol>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Probar el pipeline solo con datos buenos</strong>: el incidente de agosto existe para eso. Cada control se prueba con un caso que lo hace fallar.</li>
+<li><strong>Un DAG que hace todo en una tarea</strong>: si falla, no sabes dónde, y reintentar repite todo. Una tarea por paso.</li>
+<li><strong>Fechas &quot;de hoy&quot; dentro del código</strong>: el reproceso de un día viejo vuelve a procesar hoy. Usa la fecha lógica de Airflow (<code>{{ ds }}</code>) en todas las tareas.</li>
+<li><strong>Permisos de administrador para la cuenta del pipeline</strong>: si se filtra, se filtra todo. Permisos por recurso, como en el <code>main.tf</code>.</li>
+<li><strong>Presentar el cómo antes que el qué</strong>: a la directora le importa la decisión que puede tomar; la arquitectura va después.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Así se ve un proyecto &quot;de verdad&quot; en un equipo de datos: relevamiento, capas, pruebas, orquestación, infraestructura como código y CI. La diferencia entre un junior y un semi senior suele estar en los pasos 4 a 7, no en el SQL.</li>
+<li>En tu portafolio, este proyecto va en un repositorio público con un README que tenga el diagrama, las preguntas de negocio, las decisiones y capturas del tablero. Puedes reproducirlo en tu computadora con DuckDB, dbt y Airflow (lo ves en el módulo &quot;Desde tu computadora&quot;).</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo te aseguras de que un pipeline no publique datos malos?&quot;</div>
+
+<p>Separo los controles en bloqueantes y de advertencia. Los bloqueantes (frescura, unicidad de la clave, totales que no cuadran con la fuente) van en una compuerta antes de publicar: en Airflow, un ShortCircuitOperator o una tarea que falla, de modo que el tablero sigue mostrando el dato de ayer en lugar de uno incorrecto, y alguien recibe una alerta. Los de advertencia (volumen fuera de lo normal, porcentaje de registros inválidos) publican con una nota. Todos los controles devuelven las filas problemáticas para investigar, y cada uno se prueba con un caso que lo hace fallar.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-rapido-pipeline">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-rapido-modelo.html">← Proyecto completo I · Rápido: del pedido de negocio al modelo de datos</a><a href="proyecto-entrevistas-carrera.html">Entrevistas, diseño de sistemas y tu plan de carrera →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

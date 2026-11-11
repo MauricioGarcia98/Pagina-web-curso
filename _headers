@@ -4,6 +4,9 @@
   Cache-Control: no-cache
 /index.html
   Cache-Control: no-cache
+# el service worker siempre se revisa (si no, el navegador podría tardar en tomar una versión nueva)
+/sw.js
+  Cache-Control: no-cache
 # El resto se guarda unas horas. Los archivos de código llevan ?v=<hash> en su dirección,
 # así que cuando cambian se piden con una dirección nueva y no se sirve una versión vieja.
 /assets/*

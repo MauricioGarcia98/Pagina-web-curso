@@ -9,6 +9,10 @@ resumen: Instalar az, iniciar sesión, elegir suscripción, ayuda, extensiones y
 En el [portal de práctica](#/azure) abre **Cloud Shell** (ícono `>_` arriba a la derecha): los recursos que creas con `az` aparecen en el portal y al revés.
 :::
 
+:::analogia En palabras simples
+La CLI de Azure es como un control remoto para la nube: en lugar de entrar al portal y hacer clics, escribes una orden ("crea una cuenta de almacenamiento") y Azure la ejecuta. Lo bueno es que una orden escrita se puede repetir, guardar y compartir.
+:::
+
 ## Por qué la terminal y no el portal
 
 Azure tiene una web muy completa, el **portal** (portal.azure.com), donde todo se hace con clics. Para aprender a "ver" los servicios es ideal. Pero en el trabajo de datos casi todo se hace con la **Azure CLI** (el comando `az`), por tres motivos:

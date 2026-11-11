@@ -25,6 +25,10 @@ Estos problemas aparecen en entrevistas de **Data Engineer**. No buscan algoritm
 4. Menciona la complejidad: O(n), O(n log n)…
 :::
 
+:::analogia En palabras simples
+Los desafíos de entrevista son como los acertijos de lógica: casi siempre se resuelven eligiendo la herramienta correcta. ¿Necesitas contar cosas? Un diccionario. ¿Saber si algo ya apareció? Un conjunto. En esta lección practicas reconocer qué estructura de datos pide cada problema.
+:::
+
 ## Complejidad: qué significa O(n)
 
 En las entrevistas te van a preguntar "¿qué complejidad tiene tu solución?". La **notación O grande** describe cómo **crece** el tiempo (o la memoria) cuando crece la cantidad de datos `n`. No mide segundos: mide la **forma** del crecimiento.

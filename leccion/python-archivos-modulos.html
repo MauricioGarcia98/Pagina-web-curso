@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Módulos, archivos, CSV, JSON y fechas · Academia de Datos</title><meta name="description" content="import, la biblioteca estándar, leer y escribir archivos, csv, json, datetime, collections y pathlib."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-archivos-modulos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Módulos, archivos, CSV, JSON y fechas · Academia de Datos"><meta property="og:description" content="import, la biblioteca estándar, leer y escribir archivos, csv, json, datetime, collections y pathlib."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-archivos-modulos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Intermedio · 45 min</div>
+<h1>Módulos, archivos, CSV, JSON y fechas</h1><p class="resumen">import, la biblioteca estándar, leer y escribir archivos, csv, json, datetime, collections y pathlib.</p>
+<a class="cta" href="../index.html#/l/python-archivos-modulos">▶ Abrir la lección interactiva (12 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Importar módulos de la librería estándar y entender cómo se organiza el código en archivos</li><li>Leer y escribir archivos de texto, CSV y JSON</li><li>Trabajar con fechas con <code>datetime</code> y calcular diferencias</li><li>Usar <code>Counter</code>, <code>defaultdict</code> y <code>pathlib</code> para tareas frecuentes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Python trae una caja de herramientas enorme lista para usar: leer y escribir archivos, trabajar con fechas, con CSV o con JSON. Un <strong>módulo</strong> es un cajón de esa caja; con <code>import</code> lo abres y tomas lo que necesitas. No hace falta construir un martillo cada vez que quieres clavar algo.</p>
+</div>
+
+
+<h2>Más allá de un solo archivo de código</h2>
+<p>Hasta ahora todo tu código vivía en un solo lugar y los datos estaban escritos dentro del programa. En el trabajo real, los datos vienen de <strong>archivos</strong> (CSV, JSON, logs), y el código se organiza en <strong>módulos</strong> que se reutilizan. Además, Python trae una enorme <strong>biblioteca estándar</strong> con herramientas listas para usar. Esta lección cubre esas tres cosas: importar, leer y escribir archivos, y las herramientas más útiles para datos.</p>
+<h2>Importar módulos</h2>
+<p>Un <strong>módulo</strong> es un archivo <code>.py</code> con funciones, clases o variables que puedes usar desde otro programa. Para usarlo, lo <strong>importas</strong>:</p>
+<pre><code class="language-python">import math
+from datetime import date, timedelta
+from collections import Counter, defaultdict
+import json, csv, random as rnd
+
+print(math.sqrt(16), math.pi)
+print(date(2024, 12, 31) - timedelta(days=7))
+print(Counter(&quot;abracadabra&quot;).most_common(2))</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Cómo se usa después</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>import math</code></td>
+<td><code>math.sqrt(16)</code></td>
+<td>Deja claro de dónde viene cada cosa (recomendado)</td>
+</tr>
+<tr>
+<td><code>from datetime import date</code></td>
+<td><code>date(2024, 1, 1)</code></td>
+<td>Cuando usas mucho una o dos cosas</td>
+</tr>
+<tr>
+<td><code>import pandas as pd</code></td>
+<td><code>pd.read_csv(…)</code></td>
+<td>Un alias corto (convenciones: <code>pd</code>, <code>np</code>, <code>F</code> para <code>pyspark.sql.functions</code>)</td>
+</tr>
+<tr>
+<td><code>from modulo import *</code></td>
+<td>Todo, sin prefijo</td>
+<td><strong>Evítalo</strong>: no se sabe de dónde viene cada nombre</td>
+</tr>
+</tbody></table></div>
+<p>Hay tres tipos de módulos:</p>
+<ol>
+<li><strong>Biblioteca estándar</strong>: viene con Python (&quot;baterías incluidas&quot;): <code>math</code>, <code>datetime</code>, <code>json</code>, <code>csv</code>, <code>pathlib</code>, <code>collections</code>, <code>os</code>, <code>re</code>…</li>
+<li><strong>Paquetes externos</strong>: los instala la comunidad con <code>pip install pandas</code> (lo verás en buenas prácticas): <code>pandas</code>, <code>requests</code>, <code>pyspark</code>, <code>boto3</code>…</li>
+<li><strong>Tus propios módulos</strong>: si tienes <code>limpieza.py</code> con una función <code>limpiar_email</code>, desde otro archivo de la misma carpeta haces <code>from limpieza import limpiar_email</code>.</li>
+</ol>
+<h2>Leer y escribir archivos de texto</h2>
+<pre><code class="language-python"># Escribir: modo &quot;w&quot; crea o SOBRESCRIBE; modo &quot;a&quot; agrega al final
+with open(&quot;notas.txt&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+    f.write(&quot;línea 1\n&quot;)
+    f.write(&quot;línea 2\n&quot;)
+
+# Leer línea por línea
+with open(&quot;notas.txt&quot;, encoding=&quot;utf-8&quot;) as f:
+    for linea in f:
+        print(linea.strip())     # strip quita el salto de línea &quot;\n&quot; del final</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&quot;r&quot;</code> (por defecto)</td>
+<td>Leer. Error si no existe</td>
+</tr>
+<tr>
+<td><code>&quot;w&quot;</code></td>
+<td>Escribir. <strong>Borra</strong> el contenido anterior</td>
+</tr>
+<tr>
+<td><code>&quot;a&quot;</code></td>
+<td>Agregar al final (<em>append</em>). Ideal para logs</td>
+</tr>
+<tr>
+<td><code>&quot;rb&quot;</code> / <code>&quot;wb&quot;</code></td>
+<td>Binario (imágenes, Parquet, archivos comprimidos)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Siempre usa with y encoding</div>
+
+<ul>
+<li><code>with open(...) as f:</code> <strong>cierra el archivo automáticamente</strong> al salir del bloque, aunque ocurra un error. Un archivo que queda abierto puede no guardarse completo o bloquearse.</li>
+<li><code>encoding=&quot;utf-8&quot;</code> evita los famosos caracteres raros (<code>Ã±</code> en vez de <code>ñ</code>). Los archivos que vienen de Excel en Windows a veces usan <code>&quot;latin-1&quot;</code> o <code>&quot;utf-8-sig&quot;</code>: si ves caracteres raros, prueba esos.</li>
+</ul>
+</div>
+
+
+<p>Leer un archivo <strong>línea por línea</strong> (<code>for linea in f</code>) no carga todo en memoria: puedes procesar archivos de varios gigabytes. <code>f.read()</code> lee todo de una vez (cómodo para archivos chicos).</p>
+<h2>CSV: el formato más común</h2>
+<p>Un <strong>CSV</strong> (<em>comma-separated values</em>) es texto donde cada línea es una fila y las columnas se separan con comas. Parece fácil de leer con <code>split(&quot;,&quot;)</code>, pero <strong>no lo es</strong>: un nombre como <code>&quot;Pérez, Ana&quot;</code> tiene una coma adentro (va entre comillas) y <code>split</code> lo rompería. El módulo <code>csv</code> maneja esos casos:</p>
+<pre><code class="language-python">import csv
+
+filas = [
+    {&quot;producto&quot;: &quot;Mouse&quot;, &quot;unidades&quot;: 3, &quot;precio&quot;: 25.5},
+    {&quot;producto&quot;: &quot;Teclado, inalámbrico&quot;, &quot;unidades&quot;: 1, &quot;precio&quot;: 49.9},
+]
+with open(&quot;ventas.csv&quot;, &quot;w&quot;, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as f:
+    w = csv.DictWriter(f, fieldnames=[&quot;producto&quot;, &quot;unidades&quot;, &quot;precio&quot;])
+    w.writeheader()          # la fila de encabezados
+    w.writerows(filas)
+
+with open(&quot;ventas.csv&quot;, encoding=&quot;utf-8&quot;) as f:
+    total = 0
+    for fila in csv.DictReader(f):
+        print(fila)                                          # cada fila es un diccionario
+        total += int(fila[&quot;unidades&quot;]) * float(fila[&quot;precio&quot;])   # ¡convertir tipos!
+    print(&quot;Total:&quot;, total)</code></pre>
+<ul>
+<li><code>csv.DictReader</code> usa la primera línea como encabezado y devuelve cada fila como un <strong>diccionario</strong> <code>{&quot;producto&quot;: &quot;Mouse&quot;, …}</code>.</li>
+<li><strong>Todo llega como texto</strong>: <code>&quot;3&quot;</code>, no <code>3</code>. Hay que convertir con <code>int()</code> y <code>float()</code>, y prepararse para valores vacíos o inválidos (lección de errores).</li>
+<li><code>newline=&quot;&quot;</code> al escribir evita líneas en blanco de más en Windows.</li>
+<li>Para otro separador (muy común en países que usan coma decimal): <code>csv.DictReader(f, delimiter=&quot;;&quot;)</code>.</li>
+</ul>
+<div class="recorrido"></div>
+
+
+<h2>JSON: el formato de las APIs</h2>
+<p><strong>JSON</strong> representa diccionarios, listas, textos, números, <code>true/false</code> y <code>null</code>. Es el formato de casi todas las APIs y de muchos eventos. El módulo <code>json</code> convierte en ambas direcciones:</p>
+<pre><code class="language-python">import json
+
+pedido = {&quot;id&quot;: 1, &quot;cliente&quot;: &quot;Eva&quot;, &quot;items&quot;: [{&quot;sku&quot;: &quot;A1&quot;, &quot;cant&quot;: 2}], &quot;pagado&quot;: True, &quot;cupon&quot;: None}
+texto = json.dumps(pedido, ensure_ascii=False, indent=2)   # dict -&gt; texto JSON (dump String)
+print(texto)
+de_vuelta = json.loads(texto)                              # texto JSON -&gt; dict (load String)
+print(de_vuelta[&quot;items&quot;][0][&quot;sku&quot;])</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Convierte</th>
+<th>Con archivos</th>
+</tr>
+</thead><tbody><tr>
+<td><code>json.dumps(obj)</code></td>
+<td>objeto Python → texto</td>
+<td><code>json.dump(obj, f)</code></td>
+</tr>
+<tr>
+<td><code>json.loads(texto)</code></td>
+<td>texto → objeto Python</td>
+<td><code>json.load(f)</code></td>
+</tr>
+</tbody></table></div>
+<p>Fíjate cómo <code>True</code> se escribe <code>true</code> y <code>None</code> se escribe <code>null</code> en JSON. <code>ensure_ascii=False</code> conserva las tildes; <code>indent=2</code> lo hace legible para humanos.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 JSON Lines</div>
+
+<p>En datos se usa mucho <strong>JSON Lines</strong> (<code>.jsonl</code>): un objeto JSON <strong>por línea</strong>. Se lee línea por línea con <code>json.loads(linea)</code>, sin cargar todo el archivo, y es fácil de dividir entre muchas máquinas. Spark lo lee directamente.</p>
+</div>
+
+
+<h2>Fechas con datetime</h2>
+<pre><code class="language-python">from datetime import datetime, date, timedelta
+
+f = datetime.strptime(&quot;2024-03-15 14:30&quot;, &quot;%Y-%m-%d %H:%M&quot;)   # texto -&gt; fecha (string parse time)
+print(f.year, f.month, f.strftime(&quot;%d/%m/%Y&quot;))                 # fecha -&gt; texto (string format time)
+print(f + timedelta(days=30))                                  # sumar tiempo
+print((date(2024, 12, 25) - date(2024, 3, 15)).days)          # restar fechas → timedelta → .days
+print(date(2024, 3, 15).isoformat(), date.fromisoformat(&quot;2024-03-15&quot;).weekday())  # 0 = lunes</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas</th>
+<th>Herramienta</th>
+</tr>
+</thead><tbody><tr>
+<td>Texto → fecha</td>
+<td><code>datetime.strptime(texto, formato)</code> o <code>date.fromisoformat(&quot;2024-03-15&quot;)</code></td>
+</tr>
+<tr>
+<td>Fecha → texto</td>
+<td><code>fecha.strftime(&quot;%d/%m/%Y&quot;)</code> o <code>fecha.isoformat()</code></td>
+</tr>
+<tr>
+<td>Sumar/restar tiempo</td>
+<td><code>fecha + timedelta(days=7, hours=3)</code></td>
+</tr>
+<tr>
+<td>Diferencia entre fechas</td>
+<td><code>(b - a).days</code></td>
+</tr>
+<tr>
+<td>Día de la semana</td>
+<td><code>fecha.weekday()</code> (0 = lunes … 6 = domingo)</td>
+</tr>
+</tbody></table></div>
+<p>Los códigos de formato (<code>%Y</code>, <code>%m</code>, <code>%d</code>, <code>%H</code>, <code>%M</code>) son los mismos que viste en <code>strftime</code> de SQLite.</p>
+<h2>collections: estructuras extra</h2>
+<pre><code class="language-python">from collections import Counter, defaultdict
+
+canales = [&quot;web&quot;, &quot;app&quot;, &quot;web&quot;, &quot;tienda&quot;, &quot;web&quot;]
+print(Counter(canales))                        # contar en una línea: {'web': 3, 'app': 1, 'tienda': 1}
+print(Counter(canales).most_common(1))         # el más frecuente
+
+por_pais = defaultdict(list)                   # diccionario que crea una lista vacía si la clave no existe
+for nombre, pais in [(&quot;Ana&quot;, &quot;Chile&quot;), (&quot;Luis&quot;, &quot;Perú&quot;), (&quot;Eva&quot;, &quot;Chile&quot;)]:
+    por_pais[pais].append(nombre)
+print(dict(por_pais))                          # {'Chile': ['Ana', 'Eva'], 'Perú': ['Luis']}</code></pre>
+<p><code>Counter</code> y <code>defaultdict</code> son atajos del patrón &quot;contar y agrupar&quot; que hiciste a mano con <code>.get(k, 0)</code>.</p>
+<h2>pathlib: rutas de archivos sin dolor</h2>
+<p>Las rutas se escriben distinto en Windows (<code>datos\crudos</code>) y en Linux/Mac (<code>datos/crudos</code>). <code>pathlib</code> las maneja como objetos y funciona igual en todos lados:</p>
+<pre><code class="language-python">from pathlib import Path
+
+carpeta = Path(&quot;datos&quot;) / &quot;crudos&quot;                      # el operador / une partes de la ruta
+carpeta.mkdir(parents=True, exist_ok=True)              # crea la carpeta (y las intermedias) si no existe
+(carpeta / &quot;a.txt&quot;).write_text(&quot;hola&quot;, encoding=&quot;utf-8&quot;)
+(carpeta / &quot;b.txt&quot;).write_text(&quot;chau&quot;, encoding=&quot;utf-8&quot;)
+print([p.name for p in carpeta.glob(&quot;*.txt&quot;)])          # listar archivos que coinciden con un patrón
+print((carpeta / &quot;a.txt&quot;).exists(), (carpeta / &quot;a.txt&quot;).suffix)</code></pre>
+<p>Es la forma moderna de trabajar con archivos y carpetas: procesar todos los CSV de una carpeta es <code>for archivo in Path(&quot;entrada&quot;).glob(&quot;*.csv&quot;):</code>.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Archivos sin cerrar</strong>: <code>f = open(...)</code> sin <code>close()</code> puede dejar datos sin escribir. Usa siempre <code>with open(...) as f:</code>, que cierra solo.</li>
+<li><strong>Codificación</strong>: en Windows, <code>open(&quot;clientes.csv&quot;)</code> puede usar una codificación distinta de UTF-8 y romper los acentos. Escribe siempre <code>encoding=&quot;utf-8&quot;</code>.</li>
+<li><strong>Líneas en blanco extra en CSV en Windows</strong>: abre el archivo con <code>newline=&quot;&quot;</code> al escribir con el módulo <code>csv</code>.</li>
+<li><strong>Comparar fechas como texto en otro formato</strong>: <code>&quot;15/03/2024&quot; &lt; &quot;02/04/2024&quot;</code> es falso. Convierte a <code>date</code> o usa formato ISO.</li>
+<li><strong>Rutas con barras de Windows</strong>: <code>&quot;C:\nuevos\datos&quot;</code> contiene un <code>\n</code> (salto de línea). Usa <code>pathlib.Path</code> o barras normales <code>/</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El reporte diario de pagos</div>
+
+<p>Diego, de finanzas, recibe cada mañana un JSON con los pagos del día que manda la pasarela de pagos:</p>
+<blockquote>
+<p>&quot;Necesito un CSV con el total aprobado y cuántos días tardó cada pago desde el pedido. Hoy lo hago copiando y pegando en Excel.&quot;</p>
+</blockquote>
+<p>Leer un archivo, procesarlo y escribir otro es el corazón de cualquier pipeline. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En los pipelines reales, los archivos no están en tu disco sino en un data lake (S3, ADLS, GCS). Las librerías cambian (<code>boto3</code>, <code>fsspec</code>), pero el patrón de leer, procesar y escribir es el mismo.</li>
+<li>JSON es el formato de las APIs y de los eventos; CSV, el de los exports y los proveedores. Los dos se convierten a Parquet apenas entran al lake.</li>
+<li>Las fechas se guardan en UTC y en formato ISO. Las conversiones a hora local se hacen solo al mostrar.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>import modulo</code> / <code>from modulo import nombre</code>: biblioteca estándar, paquetes con <code>pip</code>, y tus propios archivos.</li>
+<li><code>with open(ruta, modo, encoding=&quot;utf-8&quot;) as f:</code> para leer y escribir; recorre línea por línea los archivos grandes.</li>
+<li><code>csv.DictReader</code>/<code>DictWriter</code> para CSV (todo llega como texto); <code>json.loads</code>/<code>dumps</code> para JSON.</li>
+<li><code>datetime</code>: <code>strptime</code> (texto → fecha), <code>strftime</code> (fecha → texto), <code>timedelta</code> para sumar.</li>
+<li><code>Counter</code> y <code>defaultdict</code> para contar y agrupar; <code>pathlib.Path</code> para rutas.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-archivos-modulos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-errores.html">← Errores y excepciones</a><a href="python-clases.html">Programación orientada a objetos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

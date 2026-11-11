@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones de agregación · Academia de Datos</title><meta name="description" content="COUNT, SUM, AVG, MIN, MAX y COUNT(DISTINCT): resumir muchas filas en un número."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-agregaciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones de agregación · Academia de Datos"><meta property="og:description" content="COUNT, SUM, AVG, MIN, MAX y COUNT(DISTINCT): resumir muchas filas en un número."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-agregaciones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Intermedio · 30 min</div>
+<h1>Funciones de agregación</h1><p class="resumen">COUNT, SUM, AVG, MIN, MAX y COUNT(DISTINCT): resumir muchas filas en un número.</p>
+<a class="cta" href="../index.html#/l/sql-agregaciones">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Resumir una tabla con <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code> y <code>MAX</code></li><li>Elegir entre <code>COUNT(*)</code>, <code>COUNT(columna)</code> y <code>COUNT(DISTINCT columna)</code> según la pregunta</li><li>Calcular importes netos agregando expresiones</li><li>Evitar los errores clásicos: promedio de promedios y nulos ignorados</li></ul>
+<h2>De muchas filas a un número</h2>
+<p>Hasta ahora, cada fila del resultado correspondía a una fila de la tabla: si había 2.000 clientes, podías ver hasta 2.000 filas. Pero las preguntas de negocio casi nunca son &quot;muéstrame los 12.000 pedidos&quot;, sino:</p>
+<ul>
+<li>¿<strong>Cuántos</strong> pedidos hubo?</li>
+<li>¿<strong>Cuánto</strong> facturamos en total?</li>
+<li>¿Cuál es el ticket <strong>promedio</strong>?</li>
+<li>¿Cuándo fue el <strong>primer</strong> y el <strong>último</strong> registro?</li>
+</ul>
+<p>Para eso existen las <strong>funciones de agregación</strong>: toman <strong>muchas filas</strong> y devuelven <strong>un solo valor</strong> que las resume.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La boleta del supermercado</div>
+
+<p>Pasas 40 productos por la caja (40 filas). Al final la boleta te muestra: cantidad de artículos (<code>COUNT</code>), total a pagar (<code>SUM</code>), el producto más caro (<code>MAX</code>). Cuarenta filas se resumieron en unas pocas cifras. Eso hace una agregación.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Las cinco funciones básicas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué calcula</th>
+<th>Funciona con</th>
+</tr>
+</thead><tbody><tr>
+<td><code>COUNT(*)</code></td>
+<td>Cantidad de <strong>filas</strong></td>
+<td>Cualquier tabla</td>
+</tr>
+<tr>
+<td><code>COUNT(columna)</code></td>
+<td>Cantidad de valores <strong>no nulos</strong> de esa columna</td>
+<td>Cualquier tipo</td>
+</tr>
+<tr>
+<td><code>COUNT(DISTINCT columna)</code></td>
+<td>Cantidad de valores <strong>distintos</strong> (no nulos)</td>
+<td>Cualquier tipo</td>
+</tr>
+<tr>
+<td><code>SUM(columna)</code></td>
+<td>Suma</td>
+<td>Números</td>
+</tr>
+<tr>
+<td><code>AVG(columna)</code></td>
+<td>Promedio</td>
+<td>Números</td>
+</tr>
+<tr>
+<td><code>MIN(columna)</code> / <code>MAX(columna)</code></td>
+<td>Menor / mayor valor</td>
+<td>Números, <strong>textos</strong> (orden alfabético) y <strong>fechas</strong></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">SELECT COUNT(*)              AS total_clientes,
+       COUNT(email)          AS con_email,
+       COUNT(DISTINCT pais)  AS paises,
+       MIN(fecha_registro)   AS primer_registro,
+       MAX(fecha_registro)   AS ultimo_registro
+FROM clientes;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>total_clientes</th>
+<th>con_email</th>
+<th>paises</th>
+<th>primer_registro</th>
+<th>ultimo_registro</th>
+</tr>
+</thead><tbody><tr>
+<td>2000</td>
+<td>1911</td>
+<td>11</td>
+<td>2021-01-01</td>
+<td>2024-11-01</td>
+</tr>
+</tbody></table></div>
+<p>Fíjate: 2.000 filas entraron y salió <strong>una sola fila</strong>. Cada columna del resultado es un resumen distinto de las mismas filas.</p>
+<h2>Las tres versiones de COUNT</h2>
+<p>Es la función más usada y la que más confunde. Las tres responden preguntas distintas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Expresión</th>
+<th>Pregunta que responde</th>
+<th>En <code>clientes</code></th>
+</tr>
+</thead><tbody><tr>
+<td><code>COUNT(*)</code></td>
+<td>¿Cuántas filas hay?</td>
+<td>2.000</td>
+</tr>
+<tr>
+<td><code>COUNT(email)</code></td>
+<td>¿Cuántas filas tienen email?</td>
+<td>1.911</td>
+</tr>
+<tr>
+<td><code>COUNT(DISTINCT pais)</code></td>
+<td>¿Cuántos países distintos aparecen?</td>
+<td>11</td>
+</tr>
+</tbody></table></div>
+<p>Y en <code>pedidos</code>:</p>
+<pre><code class="language-sql">SELECT COUNT(*)                   AS pedidos,
+       COUNT(DISTINCT cliente_id) AS clientes_que_compraron
+FROM pedidos;</code></pre>
+<p>Hay 12.000 pedidos hechos por <strong>1.453</strong> clientes distintos. Eso ya es información de negocio: de 2.000 clientes registrados, 547 nunca compraron. Confundir <code>COUNT(*)</code> con <code>COUNT(DISTINCT cliente_id)</code> es uno de los errores más caros en reportes: &quot;tenemos 12.000 compradores&quot; vs. &quot;tenemos 1.453&quot;.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Un truco con COUNT</div>
+
+<p><code>COUNT(*) - COUNT(email)</code> = cantidad de clientes <strong>sin</strong> email (89). Como <code>COUNT(columna)</code> ignora los <code>NULL</code>, la resta los cuenta.</p>
+</div>
+
+
+<h2>SUM y AVG</h2>
+<pre><code class="language-sql">SELECT COUNT(*)                                  AS lineas,
+       ROUND(SUM(cantidad * precio_unitario), 2) AS facturacion_bruta,
+       ROUND(AVG(cantidad * precio_unitario), 2) AS importe_promedio_linea,
+       MIN(precio_unitario)                      AS precio_minimo,
+       MAX(precio_unitario)                      AS precio_maximo
+FROM detalle_pedidos;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>lineas</th>
+<th>facturacion_bruta</th>
+<th>importe_promedio_linea</th>
+<th>precio_minimo</th>
+<th>precio_maximo</th>
+</tr>
+</thead><tbody><tr>
+<td>25524</td>
+<td>14878014.07</td>
+<td>582.9</td>
+<td>8.09</td>
+<td>2374.99</td>
+</tr>
+</tbody></table></div>
+<p>Observa que dentro de <code>SUM</code> puede ir una <strong>expresión</strong>: primero se calcula <code>cantidad * precio_unitario</code> en cada fila, y después se suman todos esos resultados.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ AVG ignora los NULL</div>
+
+<p><code>AVG(x)</code> es <code>SUM(x) / COUNT(x)</code>, <strong>no</strong> <code>SUM(x) / COUNT(*)</code>. Las filas con <code>NULL</code> no cuentan ni arriba ni abajo. Si para tu negocio un <code>NULL</code> significa &quot;cero&quot; (por ejemplo, un descuento no informado = sin descuento), escríbelo: <code>AVG(COALESCE(descuento, 0))</code>. Lo viste en la lección de <code>NULL</code>.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El promedio de promedios</div>
+
+<p>Si tienes el ticket promedio de cada país y los promedias, <strong>no</strong> obtienes el ticket promedio total (un país con 10 pedidos pesaría lo mismo que uno con 5.000). El promedio general siempre se calcula desde las filas originales: <code>SUM(total) / COUNT(*)</code>. Es una trampa clásica de entrevistas y del módulo de casos de negocio.</p>
+</div>
+
+
+<h2>MIN y MAX con textos y fechas</h2>
+<p><code>MIN</code> y <code>MAX</code> no son solo para números:</p>
+<pre><code class="language-sql">SELECT MIN(nombre) AS primero_alfabetico,   -- Agustín
+       MAX(nombre) AS ultimo_alfabetico     -- Ximena
+FROM clientes;
+
+SELECT MIN(fecha_pedido) AS primer_pedido,
+       MAX(fecha_pedido) AS ultimo_pedido
+FROM pedidos;</code></pre>
+<p>Con fechas ISO, <code>MAX(fecha)</code> es la más reciente: así se responde &quot;¿cuándo fue la última compra de cada cliente?&quot; (con <code>GROUP BY</code>, en la próxima lección).</p>
+<h2>Agregar con filtros: WHERE va antes</h2>
+<p><code>WHERE</code> se aplica <strong>antes</strong> de agregar: primero se eligen las filas y después se resumen.</p>
+<pre><code class="language-sql">-- ¿Cuántos pedidos se cancelaron en 2024?
+SELECT COUNT(*) AS cancelados_2024
+FROM pedidos
+WHERE estado = 'cancelado'
+  AND fecha_pedido &gt;= '2024-01-01' AND fecha_pedido &lt; '2025-01-01';</code></pre>
+<h3>Contar varias cosas a la vez: agregación condicional</h3>
+<p>¿Y si quieres, en una misma consulta, el total de pedidos <strong>y</strong> los cancelados? Con <code>WHERE</code> no se puede (filtraría todo). El truco es sumar <code>1</code> solo cuando se cumple la condición:</p>
+<pre><code class="language-sql">SELECT COUNT(*) AS pedidos,
+       SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados,
+       ROUND(100.0 * SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) / COUNT(*), 2) AS pct_cancelados
+FROM pedidos;</code></pre>
+<p><code>CASE WHEN</code> (que verás en detalle en la lección 10) devuelve 1 para los cancelados y 0 para el resto; la suma de unos es la cantidad. Es una de las técnicas más usadas en análisis: la verás en casi todos los casos de negocio.</p>
+<h2>Una regla importante: agregaciones y columnas sueltas</h2>
+<p>Sin <code>GROUP BY</code>, una consulta con agregaciones devuelve <strong>una sola fila</strong>. Por eso esto no tiene sentido:</p>
+<pre data-norun><code class="language-sql">SELECT nombre, COUNT(*) FROM clientes;   -- ❌ ¿qué &quot;nombre&quot; mostraría al lado del 2000?</code></pre>
+<p>Hay 2.000 nombres y un solo conteo: no hay una respuesta lógica. PostgreSQL, SQL Server, BigQuery y Spark dan <strong>error</strong>. SQLite y MySQL (en ciertos modos) lo permiten y muestran <strong>un nombre cualquiera</strong>, lo que es aún peor porque parece correcto. Si quieres &quot;el conteo <strong>por</strong> algo&quot;, necesitas <code>GROUP BY</code>: es la próxima lección.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>COUNT(*)</code> cuando querías clientes distintos</strong>: <code>COUNT(*)</code> sobre <code>pedidos</code> cuenta pedidos, no clientes. Para clientes, <code>COUNT(DISTINCT cliente_id)</code>.</li>
+<li><strong>El promedio de promedios</strong>: promediar el ticket promedio de cada país no da el ticket promedio total, porque cada país tiene distinta cantidad de pedidos. Calcula <code>SUM(total) / COUNT(*)</code> sobre todas las filas.</li>
+<li><strong>Nulos que desaparecen</strong>: <code>AVG(descuento)</code> ignora los nulos. Si un nulo significa &quot;sin descuento&quot; (0), usa <code>AVG(COALESCE(descuento, 0))</code>. Si significa &quot;no se sabe&quot;, déjalo y aclara la base del cálculo.</li>
+<li><strong><code>SUM</code> de una tabla que se multiplicó en un JOIN</strong>: si unes pedidos con su detalle y sumas el total del pedido, lo sumas una vez por línea. Agrega al nivel correcto antes de unir.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los números del trimestre</div>
+
+<p>Valentina, la gerente comercial, prepara la reunión de directorio:</p>
+<blockquote>
+<p>&quot;Necesito tres números para mañana: cuántos clientes distintos nos compraron, cuántas unidades vendimos y cuánto facturamos en neto. Nada de listados, solo los totales.&quot;</p>
+</blockquote>
+<p>Hasta ahora tus consultas devolvían filas. Ahora vas a <strong>resumir</strong> muchas filas en un número: es el corazón de cualquier reporte.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las definiciones de las métricas (&quot;venta neta&quot;, &quot;cliente activo&quot;) son acuerdos con el negocio y se escriben <strong>una sola vez</strong>: en un modelo de dbt, una capa semántica o una vista. Así, el número del dashboard de comercial coincide con el de finanzas.</li>
+<li><code>COUNT(DISTINCT ...)</code> es caro en tablas enormes, porque hay que recordar cada valor visto. Plataformas como BigQuery y Databricks ofrecen <code>APPROX_COUNT_DISTINCT</code>, que es mucho más rápido con un error de alrededor del 1 %: suficiente para un dashboard, no para facturar.</li>
+<li>Antes de entregar un total, compáralo con una fuente conocida (el sistema contable, el reporte del mes anterior). Un número que &quot;parece razonable&quot; no está necesariamente bien.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre COUNT(*), COUNT(col) y COUNT(DISTINCT col)?&quot;</div>
+
+<p><code>COUNT(*)</code> cuenta filas, incluidas las que tienen nulos. <code>COUNT(col)</code> cuenta las filas donde <code>col</code> <strong>no es nula</strong>. <code>COUNT(DISTINCT col)</code> cuenta los <strong>valores distintos</strong> no nulos. Un buen ejemplo para dar: en <code>clientes</code>, <code>COUNT(*)</code> es el total de clientes, <code>COUNT(telefono)</code> los que tienen teléfono y <code>COUNT(DISTINCT pais)</code> cuántos países hay.</p>
+</div>
+
+
+<p>Juntar valores de un grupo en una lista de texto es muy útil para reportes, y cada motor lo llama distinto:</p>
+<div class="motores"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Las agregaciones resumen muchas filas en un valor: <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>.</li>
+<li><code>COUNT(*)</code> cuenta filas; <code>COUNT(col)</code> cuenta no nulos; <code>COUNT(DISTINCT col)</code> cuenta valores distintos.</li>
+<li><code>AVG</code> ignora los <code>NULL</code>; nunca promedies promedios.</li>
+<li><code>WHERE</code> filtra antes de agregar; para contar con condición usa <code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code>.</li>
+<li>Sin <code>GROUP BY</code> el resultado es una sola fila: no mezcles columnas sueltas con agregaciones.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-agregaciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-fechas.html">← Trabajar con fechas</a><a href="sql-group-by.html">GROUP BY y HAVING →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

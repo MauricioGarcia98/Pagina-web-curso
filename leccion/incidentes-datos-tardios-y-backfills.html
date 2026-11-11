@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datos tardíos y faltantes - sensores, marcas de agua y backfills · Academia de Datos</title><meta name="description" content="Lo que pasa cuando los datos llegan tarde o no llegan - huecos en las particiones, archivos vacíos, sensores que se agotan ocupando un worker, cargas incrementales con una marca de agua mal elegida que pierden eventos para siempre, y cómo reprocesar (backfill) de forma segura con una ventana de relectura."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-datos-tardios-y-backfills.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Datos tardíos y faltantes - sensores, marcas de agua y backfills · Academia de Datos"><meta property="og:description" content="Lo que pasa cuando los datos llegan tarde o no llegan - huecos en las particiones, archivos vacíos, sensores que se agotan ocupando un worker, cargas incrementales con una marca de agua mal elegida que pierden eventos para siempre, y cómo reprocesar (backfill) de forma segura con una ventana de relectura."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-datos-tardios-y-backfills.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Avanzado · 60 min</div>
+<h1>Datos tardíos y faltantes - sensores, marcas de agua y backfills</h1><p class="resumen">Lo que pasa cuando los datos llegan tarde o no llegan - huecos en las particiones, archivos vacíos, sensores que se agotan ocupando un worker, cargas incrementales con una marca de agua mal elegida que pierden eventos para siempre, y cómo reprocesar (backfill) de forma segura con una ventana de relectura.</p>
+<a class="cta" href="../index.html#/l/incidentes-datos-tardios-y-backfills">▶ Abrir la lección interactiva (12 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Encontrar horas o días faltantes generando la serie esperada y comparándola</li><li>Medir cuántos datos llegan tarde y con cuánto retraso</li><li>Explicar por qué una marca de agua sobre la hora del evento pierde datos tardíos</li><li>Reprocesar una ventana de días sin duplicar</li><li>Configurar sensores que no bloqueen workers</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Marketing pregunta por qué los clics del 28/10 entre las 14:00 y las 17:00 &quot;se ven raros&quot;. Investigando, descubres tres cosas: la hora 14 nunca llegó, la hora 15 llegó como un archivo <strong>vacío</strong> y la hora 16 llegó con casi tres horas de atraso. Y cuando revisas la carga incremental de eventos, encuentras algo peor: hace semanas que pierde <strong>todos</strong> los eventos que llegan tarde.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Hay dos relojes: <strong>cuándo pasó</strong> algo (hora del evento) y <strong>cuándo te enteraste</strong> (hora de ingesta). Los datos tardíos aparecen cuando esos relojes se separan, y casi todos los bugs de este tema vienen de usar el reloj equivocado.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Reloj</th>
+<th>Ejemplo</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Hora del evento</strong> (<code>evento_ts</code>)</td>
+<td>El usuario hizo clic a las 14:05</td>
+<td>Reportes de negocio: &quot;clics por hora&quot;</td>
+</tr>
+<tr>
+<td><strong>Hora de ingesta</strong> (<code>ingerido_ts</code>)</td>
+<td>El clic llegó al lago a las 19:41</td>
+<td>Saber qué cargaste y qué no: marcas de agua, reprocesos</td>
+</tr>
+</tbody></table></div>
+<p>Un celular sin señal, un proveedor que manda los archivos en lote, un reintento: todos producen eventos con hora del evento vieja y hora de ingesta nueva.</p>
+<h2>La marca de agua que pierde datos</h2>
+<p>Una <strong>marca de agua</strong> (watermark) es el punto hasta donde ya cargaste. Una carga incremental lee solo lo que está &quot;después&quot; de la marca. El bug clásico:</p>
+<pre data-norun><code class="language-sql">INSERT INTO dw.eventos
+SELECT * FROM staging.eventos
+WHERE evento_ts &gt; (SELECT max(evento_ts) FROM dw.eventos);</code></pre>
+<figure class="diagrama"><figcaption>Un evento tardío queda detrás de la marca de agua</figcaption></figure>
+
+
+<p>Las correcciones, de menor a mayor robustez:</p>
+<ol>
+<li><strong>Marca de agua sobre la hora de ingesta</strong> (<code>ingerido_ts</code>), que solo crece, en lugar de la del evento.</li>
+<li><strong>Ventana de relectura</strong> (lookback): releer siempre los últimos N días y hacer un <strong>MERGE</strong> o un <code>NOT EXISTS</code>, para que releer no duplique. N se elige midiendo cuánto tardan los datos tardíos (lo harás abajo).</li>
+<li><strong>Avanzar la marca después del COMMIT</strong>: si la carga falla, la marca no se mueve y la próxima ejecución repite el trabajo, lo cual es seguro porque la carga es idempotente.</li>
+<li>Pasado cierto plazo (por ejemplo, 7 días), las particiones se <strong>congelan</strong>: lo que llegue después se registra aparte y se decide caso por caso.</li>
+</ol>
+<h2>Sensores: esperar sin bloquear</h2>
+<p>Un <strong>sensor</strong> es una tarea de Airflow que espera a que algo exista (un archivo, una partición, otro DAG). Los parámetros que importan:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parámetro</th>
+<th>Qué controla</th>
+</tr>
+</thead><tbody><tr>
+<td><code>mode=&quot;poke&quot;</code></td>
+<td>El sensor ocupa un <strong>slot del worker</strong> todo el tiempo que espera</td>
+</tr>
+<tr>
+<td><code>mode=&quot;reschedule&quot;</code></td>
+<td>Libera el slot entre chequeos; vuelve en <code>poke_interval</code></td>
+</tr>
+<tr>
+<td><code>deferrable=True</code></td>
+<td>La espera la hace el <strong>triggerer</strong> de forma asíncrona; no ocupa workers</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>Cuánto puede esperar el sensor en total. Al vencerse lanza <code>AirflowSensorTimeout</code> y <strong>no</strong> reintenta</td>
+</tr>
+<tr>
+<td><code>execution_timeout</code></td>
+<td>Cuánto puede durar <strong>cada intento</strong> de cualquier tarea. Al vencerse lanza <code>AirflowTaskTimeout</code> y <strong>sí</strong> reintenta</td>
+</tr>
+<tr>
+<td><code>soft_fail=True</code></td>
+<td>Si se vence, la tarea queda <code>skipped</code> en vez de <code>failed</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cien sensores en modo poke</div>
+
+<p>Con 24 DAGs horarios y sensores en modo <code>poke</code> esperando 2 horas, puedes tener decenas de slots ocupados solo esperando. Las tareas de verdad quedan encoladas (&quot;Pool default_pool has 0 open slots&quot;) y el atraso se contagia a pipelines que no tenían nada que ver.</p>
+</div>
+
+
+<h2>Backfill sin miedo</h2>
+<p>Un <strong>backfill</strong> es volver a correr un pipeline para fechas pasadas: porque llegaron datos tardíos, porque se corrigió un bug o porque hay una tabla nueva. Es seguro solo si:</p>
+<ul>
+<li>Cada ejecución escribe <strong>solo su partición</strong> (usa la fecha lógica <code>{{ ds }}</code>, nunca <code>now()</code>).</li>
+<li>La escritura <strong>reemplaza</strong> (delete+insert, overwrite, MERGE). Ver la lección anterior.</li>
+<li>Limitas el <strong>paralelismo</strong> (<code>max_active_runs</code>) para no saturar el warehouse.</li>
+<li>Avisas a los consumidores: los números del pasado van a cambiar.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Marca de agua sobre la hora del evento</strong>: pierde los tardíos en silencio. Usa la hora de ingesta o una ventana de relectura.</li>
+<li><strong>Avanzar la marca antes de cargar</strong>: si la carga falla, ese tramo no se vuelve a leer nunca.</li>
+<li><strong>Sensores en modo poke con timeouts largos</strong>: bloquean workers y atrasan pipelines que no tienen nada que ver.</li>
+<li><strong>Confiar en que el archivo existe</strong>: un archivo de 0 bytes o a medio escribir también &quot;existe&quot;. Espera un <code>_SUCCESS</code> o un manifiesto.</li>
+<li><strong>Backfill con <code>now()</code></strong>: todas las ejecuciones escriben la partición de hoy.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Spark Structured Streaming y Flink manejan los tardíos con <code>withWatermark(&quot;evento_ts&quot;, &quot;2 hours&quot;)</code>: los eventos más tardíos que eso se descartan de las agregaciones por ventana. Hay que decidir ese umbral con datos.</li>
+<li>En Airflow, el comando <code>airflow dags backfill</code> (o &quot;Clear&quot; en la interfaz sobre un rango de fechas) vuelve a correr ejecuciones pasadas; <code>catchup=True</code> crea automáticamente las ejecuciones pendientes al activar un DAG.</li>
+<li>dbt incremental con <code>lookback</code> (o <code>is_incremental()</code> con <code>where updated_at &gt; (select max(updated_at) from {{ this }}) - interval 3 day</code>) y <code>unique_key</code>.</li>
+<li>Se publica la <strong>completitud</strong> de cada partición (completa, parcial, reprocesada) para que el negocio sepa qué números pueden cambiar.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Cómo manejas los datos que llegan tarde?&quot;</strong> Distingue hora del evento y de ingesta; explica la ventana de relectura con MERGE o anti-join, la marca de agua que avanza después del commit, cómo mediste la distribución de atrasos para elegir la ventana y qué pasa con lo que llega fuera de ella. En streaming, menciona <code>withWatermark</code> y el costo de esperar más (más estado en memoria).</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Detección</th>
+<th>Solución</th>
+</tr>
+</thead><tbody><tr>
+<td>Partición faltante o vacía</td>
+<td>Serie esperada + LEFT JOIN</td>
+<td>Alerta de frescura; esperar <code>_SUCCESS</code>; reprocesar</td>
+</tr>
+<tr>
+<td>Eventos tardíos perdidos</td>
+<td>Anti-join staging vs destino</td>
+<td>Marca de agua sobre ingesta + ventana de relectura</td>
+</tr>
+<tr>
+<td>Sensores que bloquean</td>
+<td>Pools sin slots, colas largas</td>
+<td><code>reschedule</code> o <code>deferrable</code>, <code>timeout</code> acorde al SLA</td>
+</tr>
+<tr>
+<td>Backfill que duplica</td>
+<td>Check de unicidad</td>
+<td>Fecha lógica + reemplazo por partición</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-datos-tardios-y-backfills">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-cambios-de-esquema.html">← Cambios de esquema - la columna que desapareció</a><a href="incidentes-airflow-en-produccion.html">Airflow en producción - zombies, OOM, pools y DAGs que desaparecen →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

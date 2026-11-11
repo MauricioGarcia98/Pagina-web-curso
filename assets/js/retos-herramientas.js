@@ -40,6 +40,14 @@
         ['az-adf', 'Crea un data factory', 'Create a resource → Data Factory.', () => Object.keys(az().adf || {}).length > 0],
         ['az-mi', 'Dale a la identidad administrada del factory un rol de datos sobre tu cuenta', 'Cuenta → IAM → Add role assignment → Storage Blob Data Contributor → miembro: el data factory (identidad administrada).', () => Object.keys(az().adf || {}).some((f) => (az().roles || []).some((r) => r.principalName === f && /^Storage Blob Data/.test(r.roleDefinitionName) && Object.keys(az().storage || {}).some((n) => cubre(r.scope, idCuenta(n)))))],
       ]],
+      ['Identidad, monitoreo y bases', [
+        ['az-app', 'Registra una aplicación y créale un secreto', 'Microsoft Entra ID → App registrations → New registration; adentro, New client secret. Copia el valor: se muestra una sola vez.', () => (((az().entra || {}).apps) || []).some((a) => (a.secretos || []).length)],
+        ['az-sp-rol', 'Dale un rol a un grupo o a una aplicación que hayas creado', 'Crea el grupo o la aplicación en Entra ID y asígnale un rol en Access control (IAM) de un recurso.', () => { const E = az().entra || {}; const propios = new Set([...(E.groups || []).map((g) => g.nombre), ...(E.apps || []).map((a) => a.nombre)]); return (az().roles || []).some((r) => propios.has(r.principalName)); }],
+        ['az-alerta', 'Crea una regla de alerta que avise a un grupo de acciones', 'Monitor → Action groups → Create; después Alerts → Create alert rule y elige ese grupo.', () => (((az().monitor || {}).reglas) || []).some((g) => g.grupo)],
+        ['az-sql', 'Crea una base de Azure SQL, abre el cortafuegos y crea una tabla', 'All services → SQL databases → Create. En Query editor te va a bloquear el cortafuegos: agrega tu IP y ejecuta un CREATE TABLE.', () => val((az().sql || {}).servers).some((V) => (V.firewall || []).length && val(V.dbs).some((B) => (B.cambios || []).some((c) => /CREATE\s+TABLE/i.test(c))))],
+        ['az-cola', 'Envía un mensaje a una cola de Storage', 'Cuenta de almacenamiento → Queues → + Queue → Add message.', () => val(az().storage).some((s) => val(s.queues).some((q) => (q.mensajes || []).length))],
+        ['az-key', 'Crea una clave en Key Vault y rótala', 'Key Vault → Keys → Generate/Import (necesitas el rol Key Vault Crypto Officer) y después Rotate Now.', () => val(az().kv).some((k) => val(k.keys).some((x) => (x.versiones || []).length > 1))],
+      ]],
     ] },
     adf: { titulo: 'Retos de Data Factory', niveles: [
       ['Básico', [
@@ -118,6 +126,31 @@
       ['gh-conf', 'Resuelve un conflicto de un PR', 'Haz que main y tu rama cambien la misma línea; luego Resolve conflicts en el PR (o git pull origin main en la terminal).', () => ghRepos().some(({ r }) => Object.values(r.commits || {}).some((c) => c.parent2 && /^Merge (branch|remote-tracking branch) /.test(c.msg || '')))],
       ['gh-secret', 'Usa un secreto en un workflow (aparece como *** en el log)', 'Settings → Secrets → New repository secret, y en el YAML: ${{ secrets.NOMBRE }}.', () => ghRuns().some((k) => (k.jobs || []).some((j) => (j.pasos || []).some((p) => (p.log || []).some((l) => String(l).includes('***')))))],
       ['gh-pages', 'Publica un sitio con GitHub Pages', 'Sube un index.html y en Settings → Pages elige Deploy from a branch.', () => ghRepos().some(({ r }) => r.config && r.config.pages && r.config.pages.sitio)],
+    ]],
+  ] };
+
+  // Snowflake: mira el estado de la réplica (historial de consultas, warehouses, stages y permisos)
+  const sfS = () => (Store && Store.data.snowflake) || { historial: [], warehouses: {}, stages: {}, grants: [], roles: {} };
+  const sfOk = (re) => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && re.test(h.sql));
+  RETOS.snowflake = { titulo: 'Retos de Snowflake', niveles: [
+    ['Básico', [
+      ['sf-run', 'Ejecuta una consulta que devuelva filas', 'Abre una hoja (Worksheets → + SQL Worksheet) y ejecuta un SELECT con Ctrl+Enter.', () => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*SELECT/i.test(h.sql) && h.filas > 0)],
+      ['sf-wh', 'Crea tu propio warehouse X-Small con AUTO_SUSPEND de 60 segundos', "CREATE WAREHOUSE mi_wh WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60; (o Warehouses → + Warehouse).", () => Object.values(sfS().warehouses || {}).some((w) => w.nombre !== 'COMPUTE_WH' && w.autoSuspend && w.autoSuspend <= 60)],
+      ['sf-susp', 'Suspende un warehouse a mano', 'ALTER WAREHOUSE mi_wh SUSPEND; (o el botón Suspend en Warehouses).', () => sfOk(/^\s*ALTER\s+WAREHOUSE\s+\S+\s+SUSPEND/i)],
+      ['sf-ctx', 'Cambia el contexto de la hoja con USE SCHEMA', 'USE SCHEMA TIENDA_ANDINA.PUBLIC; (o el selector base.esquema de la hoja).', () => sfOk(/^\s*USE\s+SCHEMA/i)],
+    ]],
+    ['Intermedio', [
+      ['sf-db', 'Crea una base y un esquema propios', 'CREATE DATABASE analitica; CREATE SCHEMA staging;', () => sfOk(/^\s*CREATE\s+(OR\s+REPLACE\s+)?DATABASE/i) && sfOk(/^\s*CREATE\s+(OR\s+REPLACE\s+)?SCHEMA/i)],
+      ['sf-stage', 'Crea un stage y sube al menos un archivo', 'CREATE STAGE carga; luego Databases → el stage → + Files o Archivos de ejemplo.', () => Object.values(sfS().stages || {}).some((x) => Object.keys(x.archivos || {}).length)],
+      ['sf-copy', 'Carga un archivo del stage a una tabla con COPY INTO', "COPY INTO tabla FROM @carga FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);", () => sfOk(/^\s*COPY\s+INTO/i)],
+      ['sf-skip', 'Repite el mismo COPY INTO y comprueba que no duplica filas', 'Ejecútalo otra vez: los archivos ya cargados aparecen como LOAD_SKIPPED.', () => (sfS().historial || []).filter((h) => h.estado === 'Succeeded' && /^\s*COPY\s+INTO/i.test(h.sql)).length >= 2],
+    ]],
+    ['Avanzado', [
+      ['sf-tt', 'Consulta una tabla como estaba antes de un cambio (Time Travel)', "SELECT * FROM t BEFORE(STATEMENT => '<Query ID>'); el ID está en Query History.", () => sfOk(/\b(BEFORE|AT)\s*\(\s*(STATEMENT|OFFSET|TIMESTAMP)\s*=>/i)],
+      ['sf-undrop', 'Borra una tabla y recupérala con UNDROP', 'DROP TABLE t; UNDROP TABLE t;', () => sfOk(/^\s*UNDROP\s+TABLE/i)],
+      ['sf-clone', 'Clona una tabla para tener una copia de pruebas', 'CREATE TABLE ventas_dev CLONE ventas;', () => sfOk(/\bCLONE\b/i)],
+      ['sf-rol', 'Crea un rol con permiso de lectura sobre un esquema', 'CREATE ROLE analista; GRANT USAGE ON ... ; GRANT SELECT ON ALL TABLES IN SCHEMA ... TO ROLE analista;', () => (sfS().grants || []).some((g) => g.priv === 'SELECT' && (sfS().roles || {})[g.a])],
+      ['sf-usar-rol', 'Ejecuta una consulta con tu rol nuevo (no ACCOUNTADMIN ni SYSADMIN)', 'USE ROLE analista; y luego un SELECT.', () => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*SELECT/i.test(h.sql) && (sfS().roles || {})[h.rol])],
     ]],
   ] };
 

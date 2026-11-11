@@ -27,6 +27,10 @@ No hay uno "más rápido". La elección es de **claridad y de equipo**:
 
 Y se pueden mezclar libremente: `spark.sql(…)` devuelve un DataFrame, y un DataFrame se puede registrar como vista para consultarlo con SQL.
 
+:::analogia En palabras simples
+Spark entiende dos idiomas para la misma tarea: Python y SQL. Es como una tienda donde puedes pedir con un formulario o hablando con el vendedor, y el resultado es el mismo. Esta lección te muestra cómo pasar de uno a otro y dónde guarda Spark los nombres de las tablas (el **catálogo**), como el índice de una biblioteca.
+:::
+
 ## Vistas temporales: SQL sobre un DataFrame
 
 ```python norun

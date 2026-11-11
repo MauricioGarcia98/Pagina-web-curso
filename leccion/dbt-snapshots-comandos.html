@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snapshots, comandos, selección y CI/CD · Academia de Datos</title><meta name="description" content="Por qué las tablas de origen &quot;olvidan&quot;, SCD2 con snapshots (YAML de dbt 1.9 y sintaxis clásica, estrategias timestamp y check, borrados), cómo consultar la historia, comandos, selección de nodos, state:modified y dbt en producción."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-snapshots-comandos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Snapshots, comandos, selección y CI/CD · Academia de Datos"><meta property="og:description" content="Por qué las tablas de origen &quot;olvidan&quot;, SCD2 con snapshots (YAML de dbt 1.9 y sintaxis clásica, estrategias timestamp y check, borrados), cómo consultar la historia, comandos, selección de nodos, state:modified y dbt en producción."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-snapshots-comandos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Experto · 50 min</div>
+<h1>Snapshots, comandos, selección y CI/CD</h1><p class="resumen">Por qué las tablas de origen &quot;olvidan&quot;, SCD2 con snapshots (YAML de dbt 1.9 y sintaxis clásica, estrategias timestamp y check, borrados), cómo consultar la historia, comandos, selección de nodos, state:modified y dbt en producción.</p>
+<a class="cta" href="../index.html#/l/dbt-snapshots-comandos">▶ Abrir la lección interactiva (9 ejercicios)</a>
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Muchas tablas de origen tienen mala memoria: cuando un cliente se muda, guardan la dirección nueva y olvidan la vieja. Un <strong>snapshot</strong> es como sacarle una foto a la tabla cada día para recordar cómo era antes. Además, esta lección muestra los comandos para ejecutar solo una parte del proyecto y probarlo antes de publicarlo.</p>
+</div>
+
+
+<h2>El problema: las tablas de origen olvidan</h2>
+<p>La mayoría de los sistemas (la app de la tienda, un CRM, un ERP) guardan solo el <strong>estado actual</strong> de cada cosa. Si Sofía se muda de Barcelona a Santiago, el sistema <strong>sobrescribe</strong> la ciudad: la fila dice &quot;Santiago&quot; y &quot;Barcelona&quot; desaparece. Para la app está bien; para el análisis es un problema, porque preguntas como estas quedan sin respuesta:</p>
+<ul>
+<li>&quot;¿Cuántas ventas hicimos en Barcelona el año pasado?&quot; (las compras de Sofía hoy cuentan como de Santiago).</li>
+<li>&quot;¿Cuánto tarda un pedido en pasar de <code>pendiente</code> a <code>entregado</code>?&quot; (solo vemos el estado final).</li>
+</ul>
+<p>La solución se llama <strong>dimensión lentamente cambiante tipo 2</strong> (<em>Slowly Changing Dimension</em>, SCD2): en lugar de sobrescribir, se guarda <strong>una fila por cada versión</strong>, con las fechas en que fue válida. dbt la construye por ti con los <strong>snapshots</strong>.</p>
+<h2>Snapshots: historial automático (SCD tipo 2)</h2>
+<p>Un <strong>snapshot</strong> es una tabla que dbt mantiene así: en cada ejecución de <code>dbt snapshot</code> compara el origen con la última versión guardada y, si una fila cambió, <strong>cierra</strong> la versión vieja (le pone fecha en <code>dbt_valid_to</code>) y <strong>agrega</strong> la nueva (con <code>dbt_valid_to</code> vacío, que significa &quot;vigente&quot;).</p>
+<p>Desde dbt 1.9 se configuran en YAML (dentro de <code>snapshots/</code> o de <code>models/</code>):</p>
+<pre data-norun><code class="language-yaml"># snapshots/clientes_snapshot.yml
+snapshots:
+  - name: clientes_snapshot
+    relation: source('tienda', 'clientes')   # qué tabla vigilar
+    config:
+      unique_key: cliente_id                 # qué identifica cada fila
+      strategy: check                        # cómo detectar cambios
+      check_cols: [ciudad, segmento]         # qué columnas comparar
+      hard_deletes: invalidate               # qué hacer si una fila desaparece</code></pre>
+<p>Campo por campo:</p>
+<ul>
+<li><code>relation</code>: la tabla de origen (un <code>source()</code> o un <code>ref()</code>). Si necesitas limpiarla antes, la documentación recomienda un modelo <code>ephemeral</code> o de staging y apuntar el snapshot a ese modelo.</li>
+<li><code>unique_key</code>: la clave que dbt usa para emparejar la fila de hoy con la de ayer. <strong>Tiene que ser única</strong>: ponle un test <code>unique</code> en el origen.</li>
+<li><code>strategy</code>: la forma de detectar un cambio. Hay dos:<ul>
+<li><code>timestamp</code> (la recomendada por la documentación): el origen tiene una columna que dice cuándo se modificó la fila (<code>updated_at:</code>). Si ese valor es más nuevo que el guardado, la fila cambió. Es robusta frente a columnas nuevas.</li>
+<li><code>check</code>: no hay columna confiable de modificación, así que dbt compara los valores de las columnas que listas en <code>check_cols</code> (o <code>all</code>).</li>
+</ul>
+</li>
+<li><code>hard_deletes</code>: si una fila <strong>desaparece</strong> del origen. <code>ignore</code> (por defecto) no hace nada; <code>invalidate</code> cierra su versión vigente; <code>new_record</code> agrega una fila que marca el borrado.</li>
+</ul>
+<p>En versiones anteriores a 1.9 (las verás en muchos proyectos) el snapshot se escribía en un archivo <code>.sql</code> con un bloque Jinja:</p>
+<pre data-norun><code class="language-sql">-- snapshots/clientes_snapshot.sql  (sintaxis clásica, dbt 1.8 o anterior)
+{% snapshot clientes_snapshot %}
+{{ config(
+    target_schema='snapshots',
+    unique_key='cliente_id',
+    strategy='check',
+    check_cols=['ciudad', 'segmento']
+) }}
+select * from {{ source('tienda', 'clientes') }}
+{% endsnapshot %}</code></pre>
+<p>Además de tus columnas, dbt agrega cuatro <strong>columnas de control</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Columna</th>
+<th>Qué guarda</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt_valid_from</code></td>
+<td>Desde cuándo vale esta versión</td>
+</tr>
+<tr>
+<td><code>dbt_valid_to</code></td>
+<td>Hasta cuándo valió; <code>NULL</code> si es la vigente (se puede cambiar por una fecha lejana con <code>dbt_valid_to_current</code>)</td>
+</tr>
+<tr>
+<td><code>dbt_updated_at</code></td>
+<td>El valor de <code>updated_at</code> (o la hora de la ejecución, con <code>check</code>)</td>
+</tr>
+<tr>
+<td><code>dbt_scd_id</code></td>
+<td>Un identificador único de cada versión</td>
+</tr>
+</tbody></table></div>
+<h3>Qué pasa en cada ejecución, paso a paso</h3>
+<p><strong>Día 1</strong> (<code>dbt snapshot</code>, primera vez): copia todas las filas, cada una &quot;vigente desde hoy, sin fin&quot;.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_id</th>
+<th>ciudad</th>
+<th>dbt_valid_from</th>
+<th>dbt_valid_to</th>
+</tr>
+</thead><tbody><tr>
+<td>7</td>
+<td>Barcelona</td>
+<td>2024-01-01</td>
+<td><code>NULL</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Día 2</strong>: en el origen, Sofía ahora dice Santiago. Al ejecutar <code>dbt snapshot</code>, dbt detecta que <code>ciudad</code> cambió (estrategia <code>check</code>), <strong>cierra</strong> la fila vieja y <strong>agrega</strong> una nueva:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_id</th>
+<th>ciudad</th>
+<th>dbt_valid_from</th>
+<th>dbt_valid_to</th>
+</tr>
+</thead><tbody><tr>
+<td>7</td>
+<td>Barcelona</td>
+<td>2024-01-01</td>
+<td><strong>2024-06-01</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Santiago</td>
+<td><strong>2024-06-01</strong></td>
+<td><code>NULL</code></td>
+</tr>
+</tbody></table></div>
+<p>Ahora puedes responder &quot;¿en qué ciudad vivía Sofía cuando hizo el pedido de marzo?&quot; uniendo por cliente <strong>y por rango de fechas</strong>:</p>
+<pre data-norun><code class="language-sql">select p.pedido_id, p.fecha_pedido, s.ciudad
+from {{ ref('stg_pedidos') }} p
+join {{ ref('clientes_snapshot') }} s
+  on s.cliente_id = p.cliente_id
+ and p.fecha_pedido &gt;= s.dbt_valid_from
+ and (p.fecha_pedido &lt; s.dbt_valid_to or s.dbt_valid_to is null)</code></pre>
+<p>La condición de fechas elige, para cada pedido, <strong>la versión del cliente que estaba vigente ese día</strong>. Y para &quot;cómo están hoy&quot; se filtra <code>where dbt_valid_to is null</code>.</p>
+<h3>Pruébalo en la terminal</h3>
+<p>La terminal del curso ejecuta snapshots de verdad sobre la base de la tienda. Crea el YAML de arriba en <code>~/tienda_dbt/snapshots/clientes_snapshot.yml</code> (con <code>nano</code>) y luego:</p>
+<pre><code class="language-bash">cd tienda_dbt
+dbt snapshot                                   # día 1: copia todo
+sqlite3 tienda.db &quot;UPDATE clientes SET ciudad = 'Santiago' WHERE cliente_id = 7&quot;
+sqlite3 tienda.db &quot;DELETE FROM clientes WHERE cliente_id = 9&quot;
+dbt snapshot                                   # día 2: detecta 1 cambio y 1 borrado
+sqlite3 tienda.db &quot;SELECT cliente_id, ciudad, dbt_valid_from, dbt_valid_to FROM clientes_snapshot WHERE cliente_id IN (7, 9)&quot;</code></pre>
+<p>Verás dos versiones del cliente 7 y la versión del cliente 9 cerrada por el borrado (porque pusimos <code>hard_deletes: invalidate</code>).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los snapshots solo ven lo que existe cuando corren</div>
+
+<p>Si un cliente cambia de ciudad dos veces entre una ejecución y la siguiente, el snapshot solo registra el estado final. Por eso los snapshots se programan con frecuencia (al menos diaria) y se ejecutan <strong>antes</strong> de los modelos que los usan.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un snapshot no se puede reconstruir</div>
+
+<p>Un modelo se puede borrar y volver a crear con <code>dbt run</code>; un snapshot <strong>no</strong>, porque la historia ya no existe en el origen. La documentación recomienda ponerlos en un esquema aparte, con permisos más estrictos, para que nadie los borre por accidente.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Comandos esenciales</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt run</code></td>
+<td>Construye los modelos</td>
+</tr>
+<tr>
+<td><code>dbt test</code></td>
+<td>Ejecuta los tests</td>
+</tr>
+<tr>
+<td><code>dbt build</code></td>
+<td><strong>run + test + seed + snapshot</strong> en orden del DAG (si un modelo falla sus tests, no se construye lo que depende de él)</td>
+</tr>
+<tr>
+<td><code>dbt seed</code></td>
+<td>Carga los CSV de <code>seeds/</code></td>
+</tr>
+<tr>
+<td><code>dbt snapshot</code></td>
+<td>Ejecuta los snapshots</td>
+</tr>
+<tr>
+<td><code>dbt compile</code></td>
+<td>Genera el SQL compilado sin ejecutarlo (<code>target/compiled/</code>)</td>
+</tr>
+<tr>
+<td><code>dbt docs generate</code> / <code>serve</code></td>
+<td>Documentación</td>
+</tr>
+<tr>
+<td><code>dbt deps</code></td>
+<td>Instala paquetes</td>
+</tr>
+<tr>
+<td><code>dbt source freshness</code></td>
+<td>Verifica la frescura de las fuentes</td>
+</tr>
+<tr>
+<td><code>dbt ls -s ...</code></td>
+<td>Lista qué nodos seleccionaría</td>
+</tr>
+</tbody></table></div>
+<h2>Selección de nodos (-s / --select)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sintaxis</th>
+<th>Selecciona</th>
+</tr>
+</thead><tbody><tr>
+<td><code>-s fct_ventas</code></td>
+<td>Solo ese modelo</td>
+</tr>
+<tr>
+<td><code>-s +fct_ventas</code></td>
+<td>El modelo y <strong>todo lo que necesita</strong> (ancestros)</td>
+</tr>
+<tr>
+<td><code>-s fct_ventas+</code></td>
+<td>El modelo y <strong>todo lo que depende</strong> de él (descendientes)</td>
+</tr>
+<tr>
+<td><code>-s +fct_ventas+</code></td>
+<td>Ambos</td>
+</tr>
+<tr>
+<td><code>-s staging</code> / <code>-s path:models/staging</code></td>
+<td>Una carpeta</td>
+</tr>
+<tr>
+<td><code>-s tag:diario</code></td>
+<td>Modelos con un tag</td>
+</tr>
+<tr>
+<td><code>-s state:modified+</code></td>
+<td>Lo modificado respecto a producción y sus dependientes (<strong>Slim CI</strong>)</td>
+</tr>
+<tr>
+<td><code>--exclude ...</code></td>
+<td>Excluir</td>
+</tr>
+</tbody></table></div>
+<h2>dbt en producción</h2>
+<ul>
+<li><strong>CI</strong> (en cada Pull Request): <code>dbt build -s state:modified+ --defer --state ./prod-manifest</code> construye solo lo que cambió, en un esquema temporal, reutilizando producción para el resto.</li>
+<li><strong>CD / producción</strong>: un job programado (dbt Cloud, <strong>Lakeflow Jobs</strong> (antes Databricks Workflows) con una tarea de tipo dbt, o <strong>Airflow</strong> con <code>BashOperator</code> / Cosmos) ejecuta <code>dbt build --target prod</code>.</li>
+<li><strong>Databricks</strong>: el adaptador <code>dbt-databricks</code> usa un SQL Warehouse o un cluster; los modelos son tablas Delta en Unity Catalog.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>9 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-snapshots-comandos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-jinja-macros.html">← Jinja y macros</a><a href="airflow-orquestacion.html">Orquestación y el concepto de DAG →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

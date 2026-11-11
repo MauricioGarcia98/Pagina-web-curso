@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La plataforma por dentro - arquitectura, cómputo y costos · Academia de Datos</title><meta name="description" content="Plano de control y plano de cómputo, serverless y cómputo clásico, SQL warehouses, job clusters, modos de acceso Standard y Dedicated, Photon, pools, políticas y cómo se calcula lo que pagas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-plataforma-computo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La plataforma por dentro - arquitectura, cómputo y costos · Academia de Datos"><meta property="og:description" content="Plano de control y plano de cómputo, serverless y cómputo clásico, SQL warehouses, job clusters, modos de acceso Standard y Dedicated, Photon, pools, políticas y cómo se calcula lo que pagas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-plataforma-computo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-databricks">🏅 Certificaciones Databricks: Data Engineer e IA</a> · Intermedio · 45 min</div>
+<h1>La plataforma por dentro - arquitectura, cómputo y costos</h1><p class="resumen">Plano de control y plano de cómputo, serverless y cómputo clásico, SQL warehouses, job clusters, modos de acceso Standard y Dedicated, Photon, pools, políticas y cómo se calcula lo que pagas.</p>
+<a class="cta" href="../index.html#/l/cert-databricks-plataforma-computo">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué vive en el plano de control y qué en el plano de cómputo</li><li>Elegir el tipo de cómputo correcto para notebooks, jobs, pipelines y consultas SQL</li><li>Distinguir los modos de acceso Standard y Dedicated y sus limitaciones</li><li>Calcular el costo de una carga con DBU y consultarlo en las tablas de sistema</li><li>Usar políticas de clúster y pools para controlar costos y tiempos de arranque</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Configura un cluster en el <a href="#/databricks/compute/nuevo">formulario de compute de práctica</a>: el resumen muestra cómo cambian los DBU por hora con Photon, autoescalado, el modo de acceso y la autoterminación (entre 10 y 10.000 minutos).</p>
+</div>
+
+
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La factura de Databricks de la empresa de Valentina subió 40 % en dos meses. El gerente pregunta qué pasó. Al revisar, aparecen tres clústeres <em>all-purpose</em> encendidos todo el día que ejecutan jobs nocturnos, y un SQL warehouse clásico sin autoapagado. Entender <strong>qué tipo de cómputo existe, cuánto cuesta cada uno y cuándo usarlo</strong> es el primer dominio del examen y, en el trabajo, la forma más rápida de ahorrar dinero.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Databricks separa <strong>dónde se coordina</strong> el trabajo (el <em>plano de control</em>, que administra Databricks) de <strong>dónde se procesan los datos</strong> (el <em>plano de cómputo</em>), y tus datos viven siempre en <strong>tu</strong> almacenamiento en la nube.</p>
+<h2>Los dos planos</h2>
+<figure class="diagrama"><figcaption>Arquitectura de Databricks: plano de control, plano de cómputo y tu almacenamiento</figcaption></figure>
+
+
+<ul>
+<li><strong>Plano de control.</strong> Lo opera Databricks: la interfaz web, el servicio de notebooks, el <em>scheduler</em> de Lakeflow Jobs, la API REST, el servicio de Unity Catalog (metadatos y permisos). Tus datos de negocio <strong>no</strong> se guardan acá; sí los metadatos, el código de los notebooks y los resultados que muestras en pantalla.</li>
+<li><strong>Plano de cómputo.</strong> Donde corre Spark (o Photon) sobre tus datos. Puede ser:<ul>
+<li><strong>Clásico:</strong> las máquinas virtuales se crean en <strong>tu</strong> cuenta de nube (tu VPC o VNet). Pagas a Databricks los DBU <strong>y</strong> a tu proveedor de nube las máquinas.</li>
+<li><strong>Serverless:</strong> las máquinas viven en una cuenta que administra Databricks, en la misma región. Arrancan en segundos, escalan solas y pagas solo DBU (la infraestructura va incluida en el precio).</li>
+</ul>
+</li>
+<li><strong>Almacenamiento.</strong> Las tablas Delta y los volúmenes están en tu S3, ADLS Gen2 o GCS. Unity Catalog decide quién puede leer qué y entrega credenciales temporales al cómputo.</li>
+</ul>
+<p>Una <strong>cuenta</strong> de Databricks contiene uno o más <strong>workspaces</strong> (entornos de trabajo con su URL). Unity Catalog tiene <strong>un metastore por región</strong>, al que se asignan los workspaces de esa región.</p>
+<h2>Los tipos de cómputo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Cómputo</th>
+<th>Para qué</th>
+<th>Cómo se paga</th>
+<th>Arranque</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Serverless para notebooks</strong></td>
+<td>Desarrollo interactivo en Python y SQL</td>
+<td>DBU serverless</td>
+<td>Segundos</td>
+</tr>
+<tr>
+<td><strong>Serverless para jobs y pipelines</strong></td>
+<td>Jobs y Declarative Pipelines en producción sin administrar máquinas</td>
+<td>DBU serverless</td>
+<td>Segundos</td>
+</tr>
+<tr>
+<td><strong>SQL warehouse</strong> (serverless, pro o clásico)</td>
+<td>Consultas SQL, dashboards, herramientas de BI, dbt</td>
+<td>DBU de SQL</td>
+<td>Serverless: segundos; clásico/pro: minutos</td>
+</tr>
+<tr>
+<td><strong>Clúster all-purpose</strong> (clásico)</td>
+<td>Trabajo interactivo compartido cuando necesitas configuración propia (librerías, GPU, init scripts)</td>
+<td>DBU <em>all-purpose</em> (los más caros) + VMs</td>
+<td>Minutos</td>
+</tr>
+<tr>
+<td><strong>Job cluster</strong> (clásico)</td>
+<td>Un job en producción: se crea al empezar y se borra al terminar</td>
+<td>DBU <em>jobs</em> (más baratos) + VMs</td>
+<td>Minutos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Analogía</div>
+
+<p>El <strong>clúster all-purpose</strong> es un auto propio que dejas estacionado con el motor prendido para que cualquiera lo use: cómodo, pero pagas aunque nadie lo maneje. El <strong>job cluster</strong> es un taxi que pides para un viaje y se va al llegar. <strong>Serverless</strong> es un servicio de autos que aparece en segundos y te cobra solo el trayecto.</p>
+</div>
+
+
+<h3>Las configuraciones que importan en el cómputo clásico</h3>
+<ul>
+<li><strong>Databricks Runtime (DBR):</strong> la versión de Spark más las librerías de Databricks. Las versiones <strong>LTS</strong> (<em>long term support</em>) tienen soporte extendido: úsalas en producción. La variante <strong>ML</strong> trae librerías de machine learning.</li>
+<li><strong>Photon:</strong> motor vectorizado escrito en C++ que acelera SQL y DataFrames (agregaciones, joins, escritura Delta). Consume DBU con un multiplicador, pero suele terminar antes y costar menos en total. Viene activado en los SQL warehouses y en serverless.</li>
+<li><strong>Autoscaling:</strong> mínimo y máximo de <em>workers</em>; Databricks agrega o quita nodos según la carga.</li>
+<li><strong>Auto termination:</strong> apaga un clúster all-purpose tras N minutos sin uso. Es la configuración que más dinero ahorra.</li>
+<li><strong>Instance pools:</strong> máquinas ya creadas y en espera, que bajan el tiempo de arranque de minutos a segundos. Las máquinas inactivas del pool no consumen DBU, pero sí costo de nube.</li>
+<li><strong>Políticas de clúster (<em>compute policies</em>):</strong> reglas que limitan qué pueden crear los usuarios (tipos de máquina, máximo de workers, autoapagado obligatorio, etiquetas de costo). Son la herramienta de gobierno de costos del administrador.</li>
+</ul>
+<h2>Modos de acceso: Standard y Dedicated</h2>
+<p>Para usar Unity Catalog, el cómputo clásico tiene un <strong>modo de acceso</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Antes se llamaba</th>
+<th>Quién lo usa</th>
+<th>Limitaciones</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Standard</strong></td>
+<td><em>Shared</em></td>
+<td>Varios usuarios a la vez, aislados entre sí (Lakeguard)</td>
+<td>Python y SQL (Scala desde DBR 13.3 LTS); sin R; sin API de RDD; sin acceso privilegiado a la máquina</td>
+</tr>
+<tr>
+<td><strong>Dedicated</strong></td>
+<td><em>Single user</em></td>
+<td>Un usuario o un grupo asignado</td>
+<td>Permite RDD, R, GPU, ML distribuido y acceso a la máquina</td>
+</tr>
+</tbody></table></div>
+<p>Databricks recomienda <strong>Standard</strong> para la mayoría de las cargas. <strong>Serverless</strong> está construido sobre la misma arquitectura que Standard, por eso tiene restricciones parecidas (por ejemplo, no hay API de RDD ni <code>sparkContext</code>).</p>
+<div class="callout callout-examen"><div class="callout-title">🏅 Cómo suelen preguntarlo</div>
+
+<p>&quot;Un científico de datos necesita usar la API de RDD y librerías de R en un clúster con Unity Catalog. ¿Qué modo de acceso?&quot; → <strong>Dedicated</strong>. &quot;Diez analistas comparten un clúster y cada uno debe ver solo lo que sus permisos permiten&quot; → <strong>Standard</strong>.</p>
+</div>
+
+
+<h2>SQL warehouses: tres tipos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Arranque</th>
+<th>Funciones avanzadas</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Serverless</strong></td>
+<td>Segundos</td>
+<td>Todas (Photon, <em>Intelligent Workload Management</em>, caché de resultados, escalado rápido)</td>
+<td>Opción por defecto recomendada</td>
+</tr>
+<tr>
+<td><strong>Pro</strong></td>
+<td>Minutos</td>
+<td>Casi todas (incluye funciones de Lakehouse Federation y Python UDFs)</td>
+<td>Cuando la red exige cómputo en tu cuenta</td>
+</tr>
+<tr>
+<td><strong>Classic</strong></td>
+<td>Minutos</td>
+<td>Básicas</td>
+<td>Casos heredados</td>
+</tr>
+</tbody></table></div>
+<p>Un warehouse tiene un <strong>tamaño</strong> (2X-Small a 4X-Large: cuánta potencia por clúster) y un <strong>escalado</strong> (mínimo y máximo de clústeres, para atender más consultas a la vez). Si las consultas son <strong>lentas</strong> sube el tamaño; si <strong>se encolan</strong> porque hay muchos usuarios, sube el máximo de clústeres.</p>
+<h2>Cuánto cuesta: DBU</h2>
+<p>Databricks cobra en <strong>DBU</strong> (<em>Databricks Units</em>): una unidad de capacidad de procesamiento por hora. El costo es:</p>
+<pre><code class="language-text">costo = DBU consumidos × precio del DBU según el SKU    (+ VMs de tu nube, si es cómputo clásico)</code></pre>
+<p>El precio del DBU cambia según el <strong>SKU</strong>: <em>Jobs Compute</em> es mucho más barato que <em>All-Purpose Compute</em>, y serverless incluye la infraestructura. Por eso el mismo notebook cuesta bastante menos ejecutado como job que en un clúster interactivo.</p>
+<h3>Medir el gasto con las tablas de sistema</h3>
+<p>Las <strong>tablas de sistema</strong> (<code>system.*</code>) son tablas que Databricks llena con datos operativos de tu cuenta: facturación, consultas, jobs, linaje, auditoría. Las de costo son <code>system.billing.usage</code> (cuánto se consumió) y <code>system.billing.list_prices</code> (a qué precio de lista).</p>
+<pre data-norun><code class="language-sql">-- Gasto aproximado de los últimos 30 días por producto, a precio de lista
+SELECT
+  u.billing_origin_product                       AS producto,     -- JOBS, SQL, ALL_PURPOSE, DLT, MODEL_SERVING…
+  ROUND(SUM(u.usage_quantity), 1)                AS dbu,
+  ROUND(SUM(u.usage_quantity * lp.pricing.default), 2) AS usd_lista
+FROM system.billing.usage u
+JOIN system.billing.list_prices lp
+  ON  u.sku_name = lp.sku_name
+  AND u.usage_start_time &gt;= lp.price_start_time
+  AND (lp.price_end_time IS NULL OR u.usage_start_time &lt; lp.price_end_time)
+WHERE u.usage_date &gt;= current_date() - INTERVAL 30 DAYS
+GROUP BY ALL
+ORDER BY usd_lista DESC;</code></pre>
+<p>Línea por línea:</p>
+<ul>
+<li><code>usage_quantity</code> es la cantidad consumida en la unidad del SKU (normalmente DBU).</li>
+<li>El <em>join</em> con <code>list_prices</code> busca el precio vigente <strong>en el momento del consumo</strong> (los precios tienen fecha de inicio y de fin).</li>
+<li><code>GROUP BY ALL</code> agrupa por todas las columnas que no son agregaciones (sintaxis de Databricks SQL).</li>
+<li><code>usage_metadata</code> (no usado acá) trae el <code>job_id</code>, <code>cluster_id</code> o <code>warehouse_id</code> para bajar al detalle de qué recurso gastó.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Jobs nocturnos en clústeres all-purpose.</strong> Síntoma: factura alta con poco uso interactivo. Corrección: job clusters o serverless para jobs.</li>
+<li><strong>Sin autoapagado.</strong> Síntoma: clústeres con 24 h de uptime y CPU casi en cero. Corrección: <code>autotermination_minutes</code> en una política obligatoria.</li>
+<li><strong>Agrandar el warehouse cuando el problema es concurrencia.</strong> Síntoma: las consultas esperan en cola pero cada una es rápida. Corrección: subir el máximo de clústeres, no el tamaño.</li>
+<li><strong>Usar Dedicated &quot;por las dudas&quot;.</strong> Síntoma: un clúster por persona, caro y subutilizado. Corrección: Standard compartido salvo que haga falta RDD, R o GPU.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cómo se gobierna el costo en una empresa</div>
+
+<p>El equipo de plataforma define <strong>políticas de clúster</strong> (por ejemplo, &quot;jobs: máximo 8 workers, Photon activado, etiqueta <code>centro_costo</code> obligatoria&quot;), activa <strong>serverless</strong> por defecto para notebooks y jobs, y arma un <strong>dashboard</strong> sobre <code>system.billing.usage</code> agrupado por etiqueta y por job. Con <strong>budgets</strong> de la cuenta se envían alertas cuando un equipo supera su presupuesto mensual.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Cuándo usarías un job cluster clásico en vez de serverless para jobs?&quot;</strong> Cuando necesito algo que serverless no permite: un tipo de máquina específico (GPU), init scripts o librerías del sistema, conectividad de red particular hacia recursos privados, o la API de RDD. Si no hay una restricción así, serverless es más simple: arranca en segundos, no administro máquinas y no pago tiempo ocioso.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesito…</th>
+<th>Uso</th>
+</tr>
+</thead><tbody><tr>
+<td>Explorar datos con Python y SQL</td>
+<td>Serverless para notebooks</td>
+</tr>
+<tr>
+<td>Un job en producción sin requisitos especiales</td>
+<td>Serverless para jobs</td>
+</tr>
+<tr>
+<td>Un job que necesita GPU o librerías del sistema</td>
+<td>Job cluster clásico (modo Dedicated si hace falta)</td>
+</tr>
+<tr>
+<td>Dashboards, BI o dbt</td>
+<td>SQL warehouse serverless</td>
+</tr>
+<tr>
+<td>Varios usuarios compartiendo un clúster con Unity Catalog</td>
+<td>Modo Standard</td>
+</tr>
+<tr>
+<td>RDD, R o ML distribuido</td>
+<td>Modo Dedicated</td>
+</tr>
+<tr>
+<td>Saber qué gasta cada cosa</td>
+<td><code>system.billing.usage</code> + <code>system.billing.list_prices</code></td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-databricks-plataforma-computo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-databricks-mapa-certificaciones.html">← El mapa de las certificaciones de Databricks y cómo prepararte</a><a href="cert-databricks-ingesta.html">Ingesta - Auto Loader, COPY INTO, read_files y Lakeflow Connect →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

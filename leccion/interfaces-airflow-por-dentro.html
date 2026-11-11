@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airflow por dentro - la interfaz web de Airflow 3 pantalla por pantalla · Academia de Datos</title><meta name="description" content="Recorrido por la interfaz de Apache Airflow 3 - Home, la lista de DAGs, la vista de un DAG con Grid, Graph y Code, el log de cada intento, Trigger con parámetros, Clear y backfill, assets, Browse y Admin (variables, conexiones, pools). Con el flujo de arreglar una tarea que falló."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-airflow-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Airflow por dentro - la interfaz web de Airflow 3 pantalla por pantalla · Academia de Datos"><meta property="og:description" content="Recorrido por la interfaz de Apache Airflow 3 - Home, la lista de DAGs, la vista de un DAG con Grid, Graph y Code, el log de cada intento, Trigger con parámetros, Clear y backfill, assets, Browse y Admin (variables, conexiones, pools). Con el flujo de arreglar una tarea que falló."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-airflow-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 40 min</div>
+<h1>Airflow por dentro - la interfaz web de Airflow 3 pantalla por pantalla</h1><p class="resumen">Recorrido por la interfaz de Apache Airflow 3 - Home, la lista de DAGs, la vista de un DAG con Grid, Graph y Code, el log de cada intento, Trigger con parámetros, Clear y backfill, assets, Browse y Admin (variables, conexiones, pools). Con el flujo de arreglar una tarea que falló.</p>
+<a class="cta" href="../index.html#/l/interfaces-airflow-por-dentro">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ubicar cada sección de la interfaz de Airflow 3 y para qué sirve</li><li>Leer la Grid de un DAG y encontrar la tarea que falló</li><li>Abrir el log de un intento, corregir el DAG y volver a correrlo con Clear</li><li>Disparar un DAG con parámetros y entender un backfill</li><li>Usar variables, conexiones y assets desde la interfaz</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/airflow">Airflow de práctica</a>. Lee los DAGs de la carpeta <code>~/airflow/dags</code> de la terminal del curso (botón <strong>Terminal</strong> abajo a la izquierda) y los ejecuta con el mini-Airflow de Python: si editas un archivo, la interfaz lo vuelve a analizar.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si un DAG es la receta, la interfaz de Airflow es la cocina vista desde arriba: ves qué recetas hay, cuáles se están cocinando, qué paso salió mal y en qué intento, y puedes volver a cocinar solo ese paso sin empezar de cero.</p>
+</div>
+
+
+<h2>Las piezas de Airflow</h2>
+<p>La interfaz es solo una parte. Detrás hay varios procesos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Proceso</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>DAG processor</strong></td>
+<td>Lee los archivos <code>.py</code> de la carpeta de DAGs y detecta errores</td>
+</tr>
+<tr>
+<td><strong>Scheduler</strong></td>
+<td>Decide qué corridas y tareas tocan, según el horario y las dependencias</td>
+</tr>
+<tr>
+<td><strong>Executor / workers</strong></td>
+<td>Ejecutan las tareas</td>
+</tr>
+<tr>
+<td><strong>API server</strong></td>
+<td>Sirve la interfaz web y la API REST</td>
+</tr>
+<tr>
+<td><strong>Base de metadatos</strong></td>
+<td>Guarda corridas, estados, variables, conexiones y logs</td>
+</tr>
+</tbody></table></div>
+<p>En la réplica no hay procesos reales: todo corre en tu navegador, pero la pantalla <strong>Home</strong> muestra el estado de cada pieza como en Airflow.</p>
+<h2>La barra lateral</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Home</strong></td>
+<td>Resumen: DAGs fallidos, errores de importación, corridas activas y salud de los procesos</td>
+</tr>
+<tr>
+<td><strong>Dags</strong></td>
+<td>La lista de DAGs, con su horario, última corrida y el interruptor de pausa</td>
+</tr>
+<tr>
+<td><strong>Assets</strong></td>
+<td>Los datos que producen y consumen los DAGs (programación por datos)</td>
+</tr>
+<tr>
+<td><strong>Browse</strong></td>
+<td>Dag Runs, Task Instances, Audit Log y XComs de todos los DAGs</td>
+</tr>
+<tr>
+<td><strong>Admin</strong></td>
+<td>Variables, Pools, Providers, Plugins, Connections y Config</td>
+</tr>
+</tbody></table></div>
+<h2>La lista de DAGs</h2>
+<p>Cada fila muestra el <strong>dag_id</strong>, las <strong>etiquetas</strong>, el <strong>horario</strong> (<code>@daily</code>, un cron, o un asset), la <strong>próxima corrida</strong> y el resultado de las últimas. A la izquierda está el <strong>interruptor de pausa</strong>.</p>
+<p>Por defecto, los DAGs nuevos están <strong>pausados</strong> (<code>dags_are_paused_at_creation = True</code>): aunque el archivo esté perfecto, no corre hasta que lo despausas. Es la primera causa de &quot;mi DAG no hace nada&quot;.</p>
+<p>Si un archivo tiene un error (de sintaxis, un <code>import</code> que falla, un ciclo entre tareas), el DAG <strong>no aparece en la lista</strong>: aparece en <strong>Dag Import Errors</strong>, con el archivo y la traza. En la réplica, <code>avisos_slack.py</code> falla a propósito porque le falta un provider: ábrelo y lee el error.</p>
+<h2>La vista de un DAG</h2>
+<p>Al entrar a un DAG hay varias pestañas:</p>
+<ul>
+<li><strong>Grid</strong>: una columna por corrida y una fila por tarea. Cada cuadro es una <strong>task instance</strong> con el color de su estado. Es la vista para encontrar qué falló y cuándo.</li>
+<li><strong>Graph</strong>: las tareas y sus dependencias como diagrama. Sirve para entender el orden.</li>
+<li><strong>Code</strong>: el código del archivo, tal como lo leyó Airflow.</li>
+<li><strong>Details</strong>: configuración del DAG (horario, <code>start_date</code>, <code>catchup</code>, dueño, reintentos por defecto).</li>
+</ul>
+<p>Colores de estado más comunes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Estado</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>success</strong> (verde)</td>
+<td>Terminó bien</td>
+</tr>
+<tr>
+<td><strong>failed</strong> (rojo)</td>
+<td>Falló después de agotar los reintentos</td>
+</tr>
+<tr>
+<td><strong>running</strong> (verde claro)</td>
+<td>Se está ejecutando</td>
+</tr>
+<tr>
+<td><strong>queued</strong> / <strong>scheduled</strong></td>
+<td>Esperando un worker o su turno</td>
+</tr>
+<tr>
+<td><strong>up_for_retry</strong> (amarillo)</td>
+<td>Falló y se va a reintentar</td>
+</tr>
+<tr>
+<td><strong>upstream_failed</strong> (naranja)</td>
+<td>No corrió porque falló una tarea anterior</td>
+</tr>
+<tr>
+<td><strong>skipped</strong> (rosa)</td>
+<td>Se saltó (por ejemplo, por una rama no elegida)</td>
+</tr>
+</tbody></table></div>
+<h2>El log de una tarea</h2>
+<p>Haz clic en un cuadro de la Grid y luego en <strong>Logs</strong>. Cada <strong>intento</strong> (<em>try</em>) tiene su propio log: si la tarea tiene <code>retries=2</code>, verás hasta tres. El error real suele estar al final, en la traza de Python. Al lado están <strong>XCom</strong> (los valores que la tarea devolvió) y <strong>Details</strong> (inicio, fin, duración, operador).</p>
+<h2>Volver a correr: Clear, Trigger y backfill</h2>
+<ul>
+<li><strong>Clear</strong> sobre una tarea fallida borra su estado y el scheduler la vuelve a ejecutar (y, si eliges <em>downstream</em>, también las que dependen de ella). Es lo que se hace después de arreglar el problema: no hace falta correr todo el DAG de nuevo.</li>
+<li><strong>Trigger</strong> dispara una corrida manual ahora. Si el DAG tiene <code>params</code>, aparece un formulario para completarlos.</li>
+<li><strong>Backfill</strong> crea corridas para un rango de fechas pasadas (por ejemplo, para recalcular una semana después de corregir un error). Respeta <code>max_active_runs</code>.</li>
+<li><strong>Mark as success / failed</strong> cambia el estado sin ejecutar: úsalo con cuidado, porque oculta lo que pasó.</li>
+</ul>
+<h2>Assets: programar por datos</h2>
+<p>Un DAG puede declarar que produce un <strong>asset</strong> (por ejemplo <code>Asset(&quot;s3://lago/ventas_diarias&quot;)</code>) y otro puede programarse con <code>schedule=[ese_asset]</code>. Cuando el primero termina bien, el segundo arranca solo. En <strong>Assets</strong> ves cada asset, quién lo produce, quién lo consume y sus eventos. En la réplica, <code>ventas_diarias</code> actualiza un asset que dispara <code>reporte_ventas</code>.</p>
+<h2>Admin: variables, conexiones y pools</h2>
+<ul>
+<li><strong>Variables</strong>: pares clave-valor para configuración (<code>ambiente = prod</code>). En el código: <code>Variable.get(&quot;ambiente&quot;)</code>.</li>
+<li><strong>Connections</strong>: datos de acceso a sistemas externos (host, usuario, contraseña, extra en JSON), identificados por un <code>conn_id</code>. Así las contraseñas no quedan en el código del DAG.</li>
+<li><strong>Pools</strong>: limitan cuántas tareas corren a la vez contra un recurso (por ejemplo, 2 consultas simultáneas a una base frágil).</li>
+</ul>
+<p>Todo esto también se maneja desde la terminal con <code>airflow variables</code>, <code>airflow connections</code> y <code>airflow pools</code>.</p>
+<h2>Un flujo completo: arreglar una tarea que falló</h2>
+<ol>
+<li>En <strong>Dags</strong>, despausa <code>conciliacion_pagos</code> y dispárala con <strong>Trigger</strong>.</li>
+<li>En la <strong>Grid</strong>, una tarea queda en rojo y las siguientes en naranja (<code>upstream_failed</code>).</li>
+<li>Abre el <strong>log</strong> del último intento y lee la traza: dice qué línea falló.</li>
+<li>En la terminal, corrige el archivo en <code>~/airflow/dags/</code> (con <code>nano</code> o <code>vim</code>).</li>
+<li>Vuelve a la tarea y haz <strong>Clear</strong> con <em>downstream</em>.</li>
+<li>La tarea y las siguientes pasan a verde.</li>
+</ol>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Home, lista de DAGs con pausa, Grid, Graph, Code y Details</td>
+<td>Gantt y Calendar detallados</td>
+</tr>
+<tr>
+<td>Logs por intento, XCom, Clear, Mark as, Trigger con params y backfill</td>
+<td>Ejecución distribuida real (Celery, Kubernetes)</td>
+</tr>
+<tr>
+<td>Assets con programación por datos</td>
+<td>Deferrable operators y triggerer real</td>
+</tr>
+<tr>
+<td>Variables, Connections, Pools, Config, Audit Log y la CLI <code>airflow</code></td>
+<td>Autenticación y roles de usuario</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-airflow-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-fabric-por-dentro.html">← Microsoft Fabric por dentro - workspaces, lakehouse, warehouse, notebooks y pipelines</a><a href="interfaces-snowflake-por-dentro.html">Snowflake por dentro - warehouses, bases, stages, Time Travel y costos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

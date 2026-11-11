@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes por qué hay que rellenar los días sin datos? | ¿Sabes
 En diciembre las ventas subieron un 11 % contra noviembre y en el directorio aplauden. El analista senior pregunta: “¿y contra diciembre del año pasado?”. Diciembre siempre sube: lo que importa es si subió **más de lo habitual**. Separar tendencia, estacionalidad y ruido evita festejos (y alarmas) equivocados.
 :::
 
+:::analogia En palabras simples
+Una serie de tiempo es como el registro de temperatura de todo un año: tiene una tendencia (cada año un poco más calor), ciclos que se repiten (frío en invierno, calor en verano) y días raros que se salen de lo normal. Separar esas tres cosas permite entender qué está pasando de verdad.
+:::
+
 ## Series completas: el calendario
 
 Si un día no hubo pedidos, `GROUP BY fecha` simplemente no lo devuelve, y un promedio móvil de “7 filas” deja de ser de 7 días. Por eso se parte de un calendario y se une con `LEFT JOIN`.

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pensar como analista - de la pregunta a la consulta · Academia de Datos</title><meta name="description" content="El método que usan los analistas para no responder rápido y mal - aclarar la pregunta, fijar el grano, escribir la fórmula de la métrica, decidir los filtros, consultar y validar el resultado antes de mostrarlo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-pensar-como-analista.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pensar como analista - de la pregunta a la consulta · Academia de Datos"><meta property="og:description" content="El método que usan los analistas para no responder rápido y mal - aclarar la pregunta, fijar el grano, escribir la fórmula de la métrica, decidir los filtros, consultar y validar el resultado antes de mostrarlo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-pensar-como-analista.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Básico · 40 min</div>
+<h1>Pensar como analista - de la pregunta a la consulta</h1><p class="resumen">El método que usan los analistas para no responder rápido y mal - aclarar la pregunta, fijar el grano, escribir la fórmula de la métrica, decidir los filtros, consultar y validar el resultado antes de mostrarlo.</p>
+<a class="cta" href="../index.html#/l/analisis-pensar-como-analista">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir una pregunta vaga en una pregunta medible</li><li>Decidir el grano y la fórmula antes de escribir SQL</li><li>Elegir qué fecha y qué estados cuentan</li><li>Validar un número con controles simples antes de entregarlo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un buen análisis empieza como una buena visita al médico: antes de recetar, se pregunta qué te pasa, desde cuándo y qué esperas. Antes de escribir una consulta, un analista aclara qué decisión se va a tomar con el número. Si la pregunta está mal entendida, la consulta perfecta no sirve.</p>
+</div>
+
+
+<h2>El método en seis pasos</h2>
+<figure class="diagrama"><figcaption>De la pregunta al número confiable</figcaption></figure>
+
+
+<ol>
+<li><strong>Aclarar la pregunta.</strong> “Ventas” puede ser cantidad de pedidos, unidades o dinero; bruto o con descuento; con o sin cancelados; por fecha de pedido o de pago.</li>
+<li><strong>Fijar el grano del resultado.</strong> ¿Una fila por mes? ¿Por mes y canal? Escribirlo evita sumar dos veces.</li>
+<li><strong>Escribir la fórmula de la métrica</strong> en palabras: “ventas = suma de cantidad × precio unitario × (1 − descuento) de las líneas de pedidos no cancelados”.</li>
+<li><strong>Decidir los filtros</strong>: rango de fechas (semiabierto), estados, canales, países.</li>
+<li><strong>Consultar.</strong></li>
+<li><strong>Validar</strong> antes de entregar: ¿el total cuadra con otra fuente?, ¿hay duplicados?, ¿hay nulos que se perdieron?, ¿el orden de magnitud tiene sentido?</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Escríbelo como comentario</div>
+
+<p>Antes de cada consulta, tres líneas: <code>-- grano: …</code>, <code>-- métrica: …</code>, <code>-- filtros: …</code>. Te obliga a pensar y deja documentada la decisión.</p>
+</div>
+
+
+<h2>Un ejemplo completo</h2>
+<p>“¿Cuánto vendimos en noviembre de 2024?” Supuestos acordados: dinero con descuento, sin pedidos cancelados, por fecha de pedido.</p>
+<pre><code class="language-sql">-- grano: un total (una fila)
+-- métrica: ventas = SUM(cantidad * precio_unitario * (1 - descuento))
+-- filtros: noviembre 2024 por fecha de pedido, estado distinto de cancelado
+SELECT ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.fecha_pedido &gt;= '2024-11-01' AND p.fecha_pedido &lt; '2024-12-01'
+  AND p.estado &lt;&gt; 'cancelado';</code></pre>
+<h3>Validar: tres controles rápidos</h3>
+<pre><code class="language-sql">-- 1) ¿Cuántos pedidos y líneas entraron? (orden de magnitud)
+SELECT COUNT(DISTINCT p.pedido_id) AS pedidos, COUNT(*) AS lineas
+FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.fecha_pedido &gt;= '2024-11-01' AND p.fecha_pedido &lt; '2024-12-01' AND p.estado &lt;&gt; 'cancelado';
+
+-- 2) ¿Cuánto pesan los estados que dejé afuera o adentro?
+SELECT p.estado, COUNT(DISTINCT p.pedido_id) AS pedidos
+FROM pedidos p
+WHERE p.fecha_pedido &gt;= '2024-11-01' AND p.fecha_pedido &lt; '2024-12-01'
+GROUP BY p.estado;
+
+-- 3) ¿Hay pedidos sin líneas de detalle (se perderían en el JOIN)?
+SELECT COUNT(*) AS pedidos_sin_detalle
+FROM pedidos p LEFT JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE d.pedido_id IS NULL;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El error más caro: el grano mezclado</div>
+
+<p>Si unes <code>pedidos</code> con <code>detalle_pedidos</code> y después sumas una columna de <strong>pedidos</strong> (por ejemplo, un costo de envío), la sumas una vez por línea. Antes de sumar, pregúntate: ¿esta columna es del grano de la fila que estoy sumando?</p>
+</div>
+
+
+<h2>Preguntas para aclarar (cópialas)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si te piden…</th>
+<th>Pregunta antes de consultar</th>
+</tr>
+</thead><tbody><tr>
+<td>“Las ventas”</td>
+<td>¿Dinero o unidades? ¿Con descuento? ¿Con o sin cancelados y devueltos?</td>
+</tr>
+<tr>
+<td>“Los clientes”</td>
+<td>¿Registrados o los que compraron? ¿En qué período?</td>
+</tr>
+<tr>
+<td>“El mes pasado”</td>
+<td>¿Por fecha de pedido, de pago o de entrega? ¿En qué zona horaria?</td>
+</tr>
+<tr>
+<td>“La tasa de …”</td>
+<td>¿Sobre qué total (el denominador)?</td>
+</tr>
+<tr>
+<td>“Comparado con antes”</td>
+<td>¿Contra el mes anterior o el mismo mes del año anterior?</td>
+</tr>
+</tbody></table></div>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Lunes, 9:05. La gerente comercial escribe por chat: “¿Cuánto vendimos en noviembre?”. Un analista junior responde en dos minutos con un número. Un analista senior responde en diez, con el número, la definición que usó y una advertencia: “incluye pedidos entregados y enviados; si sumamos los pendientes, sube un 4 %”. Este módulo es para llegar a ser el segundo.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<p>Cada enunciado ya trae las definiciones acordadas: respétalas al pie de la letra (son las que usará la corrección).</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-pensar-como-analista">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-entrevistas.html">← Desafíos SQL de entrevista (nivel senior)</a><a href="analisis-kpis-sin-trampas.html">KPIs sin trampas - numeradores, denominadores y promedios →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

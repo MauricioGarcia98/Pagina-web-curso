@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes por qué conviene dar a Genie cinco tablas y no cincuent
 El primer intento de agente de ventas de Tienda Andina incluyó 40 tablas "por las dudas". A la pregunta "¿cuánto vendimos en Chile?", Genie sumó la columna `monto` de la tabla `pagos` (que incluye pagos rechazados) en lugar del importe neto de `detalle_pedidos`. No fue un error del modelo: tenía 40 tablas, tres columnas que se llamaban parecido y ninguna descripción. Esta lección es sobre preparar los datos para que eso no pase.
 :::
 
+:::analogia En palabras simples
+Genie responde mejor con datos bien ordenados, como un bibliotecario que encuentra rápido un libro solo si la biblioteca está bien catalogada. Nombres claros, comentarios en las columnas y pocas tablas bien elegidas valen más que muchas tablas confusas.
+:::
+
 ## La regla principal: pocas tablas, bien documentadas
 
 La guía de buenas prácticas de Databricks resume la preparación en tres ideas:

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones: texto, fechas, condiciones y nulos · Academia de Datos</title><meta name="description" content="El módulo pyspark.sql.functions: strings, fechas, when/otherwise, coalesce y manejo de NULL."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-funciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones: texto, fechas, condiciones y nulos · Academia de Datos"><meta property="og:description" content="El módulo pyspark.sql.functions: strings, fechas, when/otherwise, coalesce y manejo de NULL."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-funciones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Intermedio · 45 min</div>
+<h1>Funciones: texto, fechas, condiciones y nulos</h1><p class="resumen">El módulo pyspark.sql.functions: strings, fechas, when/otherwise, coalesce y manejo de NULL.</p>
+<a class="cta" href="../index.html#/l/pyspark-funciones">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<h2>Las funciones de Spark</h2>
+<p>En Python puro limpiarías un texto con <code>.strip().lower()</code>. En PySpark no trabajas con un texto, sino con <strong>una columna entera</strong> (millones de valores repartidos en muchas máquinas), así que se usan las funciones del módulo <code>pyspark.sql.functions</code> (importado como <code>F</code>). Hay más de 300; esta lección cubre las que usarás a diario, agrupadas por tema.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tema</th>
+<th>Funciones clave</th>
+<th>Equivalente SQL</th>
+</tr>
+</thead><tbody><tr>
+<td>Texto</td>
+<td><code>upper</code>, <code>lower</code>, <code>trim</code>, <code>length</code>, <code>concat_ws</code>, <code>substring</code>, <code>split</code>, <code>regexp_replace</code>, <code>initcap</code></td>
+<td><code>UPPER</code>, <code>TRIM</code>, <code>SUBSTR</code>…</td>
+</tr>
+<tr>
+<td>Fechas</td>
+<td><code>year</code>, <code>month</code>, <code>date_format</code>, <code>trunc</code>, <code>date_add</code>, <code>datediff</code>, <code>to_date</code></td>
+<td><code>strftime</code>, <code>date(…)</code>, <code>julianday</code></td>
+</tr>
+<tr>
+<td>Condiciones</td>
+<td><code>when(…).otherwise(…)</code></td>
+<td><code>CASE WHEN</code></td>
+</tr>
+<tr>
+<td>Nulos</td>
+<td><code>isNull</code>, <code>coalesce</code>, <code>fillna</code>, <code>na.drop</code></td>
+<td><code>IS NULL</code>, <code>COALESCE</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Por qué no usar Python normal?</div>
+
+<p>Podrías escribir una función de Python y aplicarla a cada fila (una UDF, que verás más adelante), pero sería <strong>mucho más lenta</strong>: cada valor tendría que viajar del motor de Spark (en Java) a Python y volver. Las funciones de <code>F</code> se ejecutan <strong>dentro</strong> del motor, optimizadas. Regla de oro: <strong>si existe en <code>F</code>, úsala</strong>.</p>
+</div>
+
+
+<h2>Texto</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;clientes&quot;)
+   .select(
+       F.upper(&quot;nombre&quot;).alias(&quot;mayus&quot;),
+       F.lower(&quot;email&quot;).alias(&quot;email&quot;),
+       F.trim(F.col(&quot;nombre&quot;)).alias(&quot;sin_espacios&quot;),
+       F.length(&quot;apellido&quot;).alias(&quot;largo&quot;),
+       F.concat_ws(&quot; &quot;, &quot;nombre&quot;, &quot;apellido&quot;).alias(&quot;completo&quot;),
+       F.split(&quot;email&quot;, &quot;@&quot;).getItem(1).alias(&quot;dominio&quot;),
+       F.regexp_replace(&quot;telefono&quot;, r&quot;[^0-9]&quot;, &quot;&quot;).alias(&quot;solo_digitos&quot;),
+       F.initcap(F.lower(&quot;ciudad&quot;)).alias(&quot;ciudad&quot;),
+   )
+   .show(5, truncate=False))</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué hace</th>
+<th>Detalle</th>
+</tr>
+</thead><tbody><tr>
+<td><code>F.upper(c)</code> / <code>F.lower(c)</code></td>
+<td>Mayúsculas / minúsculas</td>
+<td></td>
+</tr>
+<tr>
+<td><code>F.trim(c)</code></td>
+<td>Quita espacios a los lados</td>
+<td>también <code>ltrim</code>, <code>rtrim</code></td>
+</tr>
+<tr>
+<td><code>F.length(c)</code></td>
+<td>Cantidad de caracteres</td>
+<td></td>
+</tr>
+<tr>
+<td><code>F.concat_ws(sep, c1, c2…)</code></td>
+<td>Une columnas con un separador</td>
+<td><strong>ignora los nulos</strong> (a diferencia de <code>F.concat</code>, que devuelve nulo si alguno lo es)</td>
+</tr>
+<tr>
+<td><code>F.substring(c, inicio, largo)</code></td>
+<td>Recorta</td>
+<td>la primera posición es <strong>1</strong>, como en SQL</td>
+</tr>
+<tr>
+<td><code>F.split(c, patrón)</code></td>
+<td>Corta en un <strong>array</strong></td>
+<td><code>.getItem(i)</code> toma un elemento (desde 0)</td>
+</tr>
+<tr>
+<td><code>F.regexp_replace(c, patrón, reemplazo)</code></td>
+<td>Reemplaza con expresiones regulares</td>
+<td><code>[^0-9]</code> = &quot;todo lo que no sea dígito&quot;</td>
+</tr>
+<tr>
+<td><code>F.regexp_extract(c, patrón, grupo)</code></td>
+<td>Extrae lo que coincide con un patrón</td>
+<td>ej. el código de área de un teléfono</td>
+</tr>
+<tr>
+<td><code>F.initcap(c)</code></td>
+<td>Primera letra de cada palabra en mayúscula</td>
+<td>ideal para nombres y ciudades</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Las expresiones regulares</div>
+
+<p>Una expresión regular es un &quot;molde&quot; para buscar texto: <code>[^0-9]</code> significa &quot;cualquier carácter que no sea un dígito&quot;, <code>^\+</code> &quot;un + al principio&quot;, <code>\d{4}</code> &quot;cuatro dígitos seguidos&quot;. Son un mini-lenguaje propio; para limpieza de datos con 5 o 6 patrones resuelves el 90 % de los casos. Cuando no recuerdes uno, búscalo o pruébalo en sitios como regex101.</p>
+</div>
+
+
+<p>Un paso típico de limpieza en la capa <em>silver</em> aplica varias de estas funciones juntas:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+limpio = (spark.table(&quot;clientes&quot;)
+            .withColumn(&quot;email&quot;, F.lower(F.trim(&quot;email&quot;)))
+            .withColumn(&quot;nombre&quot;, F.initcap(F.trim(&quot;nombre&quot;)))
+            .withColumn(&quot;telefono&quot;, F.regexp_replace(&quot;telefono&quot;, r&quot;[^0-9+]&quot;, &quot;&quot;)))
+limpio.select(&quot;nombre&quot;, &quot;email&quot;, &quot;telefono&quot;).show(3, truncate=False)</code></pre>
+<h2>Fechas</h2>
+<p>En nuestras tablas, las columnas <code>fecha_*</code> son de tipo <code>date</code> o <code>timestamp</code>. Spark tiene funciones para extraer partes, mover fechas y calcular diferencias:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;pedidos&quot;)
+   .select(
+       &quot;fecha_pedido&quot;,
+       F.year(&quot;fecha_pedido&quot;).alias(&quot;anio&quot;),
+       F.month(&quot;fecha_pedido&quot;).alias(&quot;mes&quot;),
+       F.dayofweek(&quot;fecha_pedido&quot;).alias(&quot;dia_semana&quot;),        # 1 = domingo … 7 = sábado
+       F.date_format(&quot;fecha_pedido&quot;, &quot;yyyy-MM&quot;).alias(&quot;anio_mes&quot;),
+       F.trunc(&quot;fecha_pedido&quot;, &quot;month&quot;).alias(&quot;inicio_mes&quot;),
+       F.date_add(&quot;fecha_pedido&quot;, 30).alias(&quot;vence&quot;),
+       F.datediff(F.lit(&quot;2024-12-31&quot;), &quot;fecha_pedido&quot;).alias(&quot;dias_hasta_fin_2024&quot;),
+   )
+   .show(5))</code></pre>
+<pre><code class="language-text">+------------+----+---+----------+--------+----------+----------+-------------------+
+|fecha_pedido|anio|mes|dia_semana|anio_mes|inicio_mes|     vence|dias_hasta_fin_2024|
++------------+----+---+----------+--------+----------+----------+-------------------+
+|  2022-01-01|2022|  1|         7| 2022-01|2022-01-01|2022-01-31|               1095|</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas</th>
+<th>Función</th>
+</tr>
+</thead><tbody><tr>
+<td>Año, mes, día, hora</td>
+<td><code>F.year</code>, <code>F.month</code>, <code>F.dayofmonth</code>, <code>F.hour</code></td>
+</tr>
+<tr>
+<td>Día de la semana</td>
+<td><code>F.dayofweek</code> (1 = domingo)</td>
+</tr>
+<tr>
+<td>Fecha → texto con formato</td>
+<td><code>F.date_format(c, &quot;yyyy-MM&quot;)</code></td>
+</tr>
+<tr>
+<td>Inicio del mes / año</td>
+<td><code>F.trunc(c, &quot;month&quot;)</code>, <code>F.date_trunc(&quot;month&quot;, c)</code></td>
+</tr>
+<tr>
+<td>Sumar días / meses</td>
+<td><code>F.date_add(c, n)</code>, <code>F.add_months(c, n)</code></td>
+</tr>
+<tr>
+<td>Diferencia en días / meses</td>
+<td><code>F.datediff(fin, inicio)</code>, <code>F.months_between(fin, inicio)</code></td>
+</tr>
+<tr>
+<td>Texto → fecha</td>
+<td><code>F.to_date(c, &quot;dd/MM/yyyy&quot;)</code>, <code>F.to_timestamp(c)</code></td>
+</tr>
+<tr>
+<td>Último día del mes</td>
+<td><code>F.last_day(c)</code></td>
+</tr>
+<tr>
+<td>Hoy</td>
+<td><code>F.current_date()</code> (¡cuidado en pipelines: mejor un parámetro!)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los formatos de fecha de Spark</div>
+
+<p>Spark usa los patrones de Java, que <strong>no</strong> son los de Python ni los de SQLite: <code>yyyy</code> (año), <code>MM</code> (mes, <strong>mayúscula</strong>), <code>dd</code> (día), <code>HH</code> (hora), <code>mm</code> (minutos, <strong>minúscula</strong>). Confundir <code>MM</code> con <code>mm</code> es un error clásico: <code>&quot;yyyy-mm-dd&quot;</code> pone los <strong>minutos</strong> donde iba el mes. Si <code>to_date</code> no puede interpretar un texto, devuelve <code>null</code>: después de convertir, cuenta los nulos.</p>
+</div>
+
+
+<h2>Condiciones: when / otherwise</h2>
+<p><code>F.when</code> es el <code>CASE WHEN</code> de PySpark. Se encadenan varios <code>.when</code> y se cierra con <code>.otherwise</code>:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;productos&quot;)
+   .withColumn(&quot;gama&quot;,
+       F.when(F.col(&quot;precio&quot;) &lt; 50, &quot;económico&quot;)
+        .when(F.col(&quot;precio&quot;) &lt; 300, &quot;medio&quot;)
+        .when(F.col(&quot;precio&quot;) &lt; 1000, &quot;premium&quot;)
+        .otherwise(&quot;lujo&quot;))
+   .groupBy(&quot;gama&quot;).count()
+   .show())</code></pre>
+<pre><code class="language-text">+---------+-----+
+|     gama|count|
++---------+-----+
+|  premium|   84|
+|     lujo|   32|
+|económico|   56|
+|    medio|  128|
++---------+-----+</code></pre>
+<p>Funciona igual que en SQL: <strong>gana la primera condición verdadera</strong>, y sin <code>.otherwise</code> lo que no coincide queda <code>null</code>. Las condiciones se combinan con <code>&amp;</code> y <code>|</code>, con paréntesis: <code>F.when((F.col(&quot;pais&quot;) == &quot;Chile&quot;) &amp; (F.col(&quot;total&quot;) &gt; 1000), &quot;VIP Chile&quot;)</code>.</p>
+<div class="recorrido"></div>
+
+
+<h2>Nulos</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+c = spark.table(&quot;clientes&quot;)
+print(c.filter(F.col(&quot;email&quot;).isNull()).count())          # cuántos sin email
+print(c.filter(F.col(&quot;telefono&quot;).isNotNull()).count())    # cuántos con teléfono
+c.select(F.coalesce(&quot;email&quot;, &quot;telefono&quot;, F.lit(&quot;sin contacto&quot;)).alias(&quot;contacto&quot;)).show(5)
+c.fillna({&quot;telefono&quot;: &quot;desconocido&quot;}).select(&quot;telefono&quot;).show(5)   # reemplazar nulos por columna
+print(c.na.drop(subset=[&quot;email&quot;]).count())                # descartar filas sin email</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas</th>
+<th>PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Es nulo?</td>
+<td><code>F.col(&quot;x&quot;).isNull()</code> / <code>.isNotNull()</code></td>
+</tr>
+<tr>
+<td>Primer valor no nulo</td>
+<td><code>F.coalesce(&quot;a&quot;, &quot;b&quot;, F.lit(&quot;defecto&quot;))</code></td>
+</tr>
+<tr>
+<td>Reemplazar nulos</td>
+<td><code>df.fillna({&quot;col&quot;: valor})</code> o <code>df.na.fill(…)</code></td>
+</tr>
+<tr>
+<td>Descartar filas con nulos</td>
+<td><code>df.na.drop(subset=[&quot;col&quot;])</code> (<code>how=&quot;all&quot;</code> para descartar solo si todas son nulas)</td>
+</tr>
+<tr>
+<td>Contar nulos de cada columna</td>
+<td><code>df.select([F.sum(F.col(c).isNull().cast(&quot;int&quot;)).alias(c) for c in df.columns])</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ NULL en comparaciones</div>
+
+<p>Igual que en SQL: <code>F.col(&quot;email&quot;) == None</code> <strong>no funciona</strong> (siempre da nulo). Usa <code>.isNull()</code> / <code>.isNotNull()</code>. Y <code>F.col(&quot;x&quot;) != &quot;a&quot;</code> <strong>excluye</strong> las filas donde <code>x</code> es nulo. Si necesitas una igualdad que trate los nulos como iguales, existe <code>F.col(&quot;a&quot;).eqNullSafe(F.col(&quot;b&quot;))</code> (el operador <code>&lt;=&gt;</code> de Spark SQL).</p>
+</div>
+
+
+<p>La última fila de la tabla (contar nulos de todas las columnas en una pasada) es un clásico de <strong>perfilado de datos</strong>: la primera cosa que haces con una tabla nueva para saber qué tan completa está.</p>
+<h2>Resumen</h2>
+<ul>
+<li>Usa las funciones de <code>F</code> (se ejecutan dentro del motor); evita Python fila por fila.</li>
+<li>Texto: <code>trim</code>, <code>lower</code>/<code>upper</code>, <code>initcap</code>, <code>concat_ws</code>, <code>split</code>, <code>regexp_replace</code>.</li>
+<li>Fechas: <code>year</code>, <code>month</code>, <code>date_format</code> (patrones Java: <code>yyyy-MM-dd</code>), <code>trunc</code>, <code>date_add</code>, <code>datediff</code>, <code>to_date</code>.</li>
+<li><code>F.when(…).when(…).otherwise(…)</code> = <code>CASE WHEN</code>.</li>
+<li>Nulos: <code>isNull</code>, <code>coalesce</code>, <code>fillna</code>, <code>na.drop</code>; nunca <code>== None</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pyspark-funciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-select-filter.html">← select, filter, withColumn y columnas</a><a href="pyspark-agregaciones.html">groupBy, agg, pivot y rollup →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

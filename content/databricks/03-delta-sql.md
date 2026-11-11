@@ -11,6 +11,10 @@ Ejecuta estas sentencias en el [editor SQL de práctica](#/databricks/sql) y des
 
 Todo lo que sigue se ejecuta en Databricks (SQL warehouse o notebook con `%sql`). Los ejercicios te piden **escribir** las sentencias y compararlas con una respuesta modelo.
 
+:::analogia En palabras simples
+Una tabla Delta es como un documento con historial de cambios: cada vez que alguien la modifica, queda guardada una versión nueva, y puedes volver a ver cómo era antes. Además, si dos personas escriben al mismo tiempo, no se pisan.
+:::
+
 ## Cómo funciona Delta Lake por dentro
 
 Una tabla Delta es una carpeta en el lago con dos cosas:

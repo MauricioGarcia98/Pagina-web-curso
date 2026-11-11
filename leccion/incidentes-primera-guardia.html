@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu primera guardia - el método para no entrar en pánico · Academia de Datos</title><meta name="description" content="Cómo trabaja un ingeniero de datos de guardia (on-call) - reconocer la alerta, avisar, medir el impacto, mitigar antes de arreglar, diagnosticar con los logs y los datos, reparar sin empeorar, verificar y cerrar. Con un incidente real - todas las tareas en verde y el tablero de gerencia sin datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-primera-guardia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tu primera guardia - el método para no entrar en pánico · Academia de Datos"><meta property="og:description" content="Cómo trabaja un ingeniero de datos de guardia (on-call) - reconocer la alerta, avisar, medir el impacto, mitigar antes de arreglar, diagnosticar con los logs y los datos, reparar sin empeorar, verificar y cerrar. Con un incidente real - todas las tareas en verde y el tablero de gerencia sin datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-primera-guardia.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Intermedio · 50 min</div>
+<h1>Tu primera guardia - el método para no entrar en pánico</h1><p class="resumen">Cómo trabaja un ingeniero de datos de guardia (on-call) - reconocer la alerta, avisar, medir el impacto, mitigar antes de arreglar, diagnosticar con los logs y los datos, reparar sin empeorar, verificar y cerrar. Con un incidente real - todas las tareas en verde y el tablero de gerencia sin datos.</p>
+<a class="cta" href="../index.html#/l/incidentes-primera-guardia">▶ Abrir la lección interactiva (12 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Seguir los 8 pasos de un incidente en orden</li><li>Clasificar la severidad de un incidente de datos</li><li>Escribir un mensaje de estado útil para el negocio</li><li>Encontrar en un log de Airflow la línea que explica el problema</li><li>Detectar con SQL una carga con volumen anómalo y verificar la reparación</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Son las 07:12 UTC. Te llega una alerta al teléfono: <strong>la tabla de ventas diarias no tiene los datos de ayer</strong>. El tablero &quot;Ventas diarias - Gerencia&quot; lo abren 68 personas a las 08:00. Entras a Airflow y… todas las tareas del DAG están en <strong>verde</strong>. Tienes 48 minutos. Este módulo te entrena para esa hora: con alertas, logs y datos rotos de verdad, preparados en la terminal.</p>
+</div>
+
+
+<h2>Por qué este módulo existe</h2>
+<p>En los cursos se aprende a <strong>construir</strong> pipelines. En el trabajo, buena parte de la semana se va en <strong>operarlos</strong>: cargas que fallan, datos que llegan tarde, un proveedor que cambia una columna, un job que antes tardaba 10 minutos y ahora tarda 3 horas, una factura de la nube que se triplicó. Las encuestas a equipos de datos repiten lo mismo: la mitad del tiempo, o más, se va en mantener y depurar lo que ya existe.</p>
+<p>Lo que diferencia a un ingeniero junior de uno senior en un incidente no es saberse todos los errores de memoria. Es tener un <strong>método</strong>: saber qué hacer primero, dónde mirar, cómo no empeorar las cosas y cómo evitar que vuelva a pasar.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Analogía</div>
+
+<p>Un incidente de datos se parece a una guardia en una sala de emergencias. Primero se estabiliza al paciente (mitigar), después se busca la causa (diagnosticar) y recién entonces se opera (reparar). Un médico que opera sin estabilizar, o que estabiliza y se va sin buscar la causa, hace mal su trabajo.</p>
+</div>
+
+
+<h2>Los 8 pasos de un incidente</h2>
+<figure class="diagrama"><figcaption>El ciclo de un incidente de datos</figcaption></figure>
+
+
+<ol>
+<li><strong>Reconocer (ack)</strong>: tomas la alerta en la herramienta (PagerDuty, Opsgenie, el canal de Slack). Así nadie más pierde tiempo y la alerta no escala al siguiente nivel.</li>
+<li><strong>Avisar</strong>: un mensaje corto en el canal de incidentes en los primeros minutos. Todavía no sabes la causa, y no importa.</li>
+<li><strong>Medir el impacto</strong>: qué tablas, qué tableros, qué usuarios, qué decisiones dependen de esos datos y desde cuándo están mal.</li>
+<li><strong>Mitigar</strong>: frenar el daño antes de arreglar. Por ejemplo, pausar el DAG que copia los datos malos a otros sistemas, poner un aviso en el tablero (&quot;datos al 27/10&quot;) o volver a la versión anterior de una tabla.</li>
+<li><strong>Diagnosticar</strong>: buscar la causa con los logs y los datos. Tres preguntas: <strong>¿qué cambió?</strong> (un deploy, un proveedor, un volumen), <strong>¿dónde se rompió?</strong> (recorres el linaje hacia atrás, tabla por tabla) y <strong>¿desde cuándo?</strong></li>
+<li><strong>Reparar</strong>: corregir de forma <strong>idempotente</strong> (correrlo dos veces deja el mismo resultado) y anotando cada acción en la línea de tiempo del incidente.</li>
+<li><strong>Verificar</strong>: comprobar los <strong>datos</strong>: filas, totales, duplicados, contra la historia. &quot;La tarea está en verde&quot; no es una verificación.</li>
+<li><strong>Postmortem</strong>: un documento sin culpables que explica qué pasó, por qué y qué acciones evitan que se repita.</li>
+</ol>
+<h2>Severidad: no todo es una emergencia</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Severidad</th>
+<th>Ejemplo en datos</th>
+<th>Respuesta</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>SEV1</strong></td>
+<td>Datos incorrectos que ya usó un sistema externo: facturas, pagos, reportes a un regulador, un modelo de crédito decidiendo con datos rotos</td>
+<td>Todo el equipo, ahora. Se avisa a la dirección</td>
+</tr>
+<tr>
+<td><strong>SEV2</strong></td>
+<td>Un tablero clave sin datos o con datos incorrectos antes de una reunión; un SLA importante vencido</td>
+<td>La guardia, de inmediato. Actualizaciones cada 30 minutos</td>
+</tr>
+<tr>
+<td><strong>SEV3</strong></td>
+<td>Un pipeline secundario atrasado, con margen antes de que alguien lo note</td>
+<td>Dentro del día laboral</td>
+</tr>
+<tr>
+<td><strong>SEV4</strong></td>
+<td>Una alerta ruidosa, un warning, una mejora</td>
+<td>Ticket en el backlog</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Los datos incorrectos son peores que los datos faltantes</div>
+
+<p>Un tablero vacío se nota enseguida. Un tablero con números <strong>plausibles pero incorrectos</strong> se usa para decidir durante días. Por eso los fallos <strong>silenciosos</strong> (la tarea en verde con datos malos) suelen ser los incidentes más caros.</p>
+</div>
+
+
+<h2>El mensaje de estado</h2>
+<p>El primer aviso no necesita la causa. Necesita cuatro cosas: <strong>qué pasa</strong>, <strong>a quién afecta</strong>, <strong>qué estás haciendo</strong> y <strong>cuándo vuelves a escribir</strong>.</p>
+<pre><code class="language-text">🔴 [SEV2] Ventas diarias sin datos del 28/10
+Impacto: el tablero &quot;Ventas diarias - Gerencia&quot; muestra hasta el 27/10.
+Qué hacemos: investigando la carga de esta madrugada. Agregamos un aviso en el tablero.
+Próxima actualización: 07:45 UTC o antes si hay novedades.</code></pre>
+<p>Lo que <strong>no</strong> se escribe: &quot;creo que es el ERP&quot; (si no está confirmado), jerga (&quot;el MERGE devolvió 0 rows affected&quot;) o silencio durante una hora.</p>
+<h2>Leer un log de Airflow</h2>
+<p>Cada tarea de Airflow deja un log con líneas como esta:</p>
+<pre><code class="language-text">[2026-10-29 03:06:14,512] {erp.py:83} WARNING - Archivo erp/ventas/2026-10-28.csv no encontrado después de 6 intentos; allow_empty=True: se continúa con un lote vacío</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Significado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>[2026-10-29 03:06:14,512]</code></td>
+<td>Fecha y hora (UTC) con milisegundos</td>
+</tr>
+<tr>
+<td><code>{erp.py:83}</code></td>
+<td>Archivo y línea del código que escribió el mensaje</td>
+</tr>
+<tr>
+<td><code>WARNING</code></td>
+<td>Nivel: DEBUG, INFO, WARNING, ERROR, CRITICAL</td>
+</tr>
+<tr>
+<td>El resto</td>
+<td>El mensaje</td>
+</tr>
+</tbody></table></div>
+<p>En un incidente no se lee el log de arriba abajo: se <strong>filtra</strong>. Con <code>grep WARNING archivo.log</code> ves solo las advertencias; con <code>grep -c ERROR</code> cuentas los errores; con <code>tail -n 20</code> ves el final, donde suele estar la excepción.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Verde no es correcto</div>
+
+<p>Airflow marca una tarea como <strong>SUCCESS</strong> cuando el código terminó sin lanzar una excepción. No sabe si cargó 0 filas o 12.000. Por eso, al lado de cada carga importante, hace falta un <strong>check de datos</strong> (volumen, frescura, duplicados) que haga fallar la tarea si los datos no tienen sentido. Eso lo vemos en la lección siguiente.</p>
+</div>
+
+
+<h2>Práctica: el incidente del tablero vacío</h2>
+<p>Prepara los archivos del incidente en la terminal: la alerta, el runbook (la guía de pasos para este pipeline), el log de la ejecución y el historial de cargas.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Reejecutar en bucle</strong>: si el archivo no llegó, reejecutar 10 veces solo llena el log y puede duplicar datos en tareas que no son idempotentes.</li>
+<li><strong>Arreglar en silencio</strong>: reparas, nadie se entera y el negocio decide con datos que estuvieron mal dos horas. Siempre avisa y cierra el incidente en el canal.</li>
+<li><strong>Confiar en el color de la tarea</strong>: SUCCESS significa &quot;el código no lanzó una excepción&quot;, no &quot;los datos están bien&quot;.</li>
+<li><strong>Tocar producción sin anotar</strong>: cada comando que corres durante el incidente va a la línea de tiempo. Sin eso, el postmortem es pura memoria.</li>
+<li><strong>Editar el test para que pase</strong>: si un check de datos falla, el problema son los datos (o el check está mal diseñado, y eso se discute después, no a las 7 de la mañana).</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las empresas tienen una <strong>rotación de guardia</strong> (on-call) semanal con una herramienta que llama al teléfono (PagerDuty, Opsgenie, incident.io) y un canal fijo de incidentes.</li>
+<li>Cada pipeline importante tiene un <strong>runbook</strong>: qué hace, de qué depende, qué hacer con cada alerta y a quién escalar. Si un runbook no existe, escribirlo es parte del postmortem.</li>
+<li>Se miden <strong>MTTD</strong> (tiempo medio hasta detectar), <strong>MTTA</strong> (hasta reconocer) y <strong>MTTR</strong> (hasta resolver). En datos, el MTTD suele ser el problema: los fallos silenciosos se descubren días después.</li>
+<li>Un buen postmortem es <strong>sin culpables</strong> (blameless): explica qué decisión del sistema permitió el error, no quién se equivocó.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;Cuéntame de un incidente de datos que hayas resuelto.&quot;</strong> Usa la estructura del ciclo: cómo se detectó, cuál fue el impacto, qué mitigaste primero, cómo encontraste la causa (con qué evidencia: un log, una consulta), cómo lo reparaste de forma segura y qué cambiaste para que no se repita. Los entrevistadores buscan <strong>método</strong> y <strong>prevención</strong>, no heroísmo.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Pregunta clave</th>
+</tr>
+</thead><tbody><tr>
+<td>Reconocer y avisar</td>
+<td>¿Saben todos que alguien lo está mirando?</td>
+</tr>
+<tr>
+<td>Impacto</td>
+<td>¿Quién usa estos datos y desde cuándo están mal?</td>
+</tr>
+<tr>
+<td>Mitigar</td>
+<td>¿Cómo freno el daño ahora, aunque no sepa la causa?</td>
+</tr>
+<tr>
+<td>Diagnosticar</td>
+<td>¿Qué cambió, dónde se rompió, desde cuándo?</td>
+</tr>
+<tr>
+<td>Reparar y verificar</td>
+<td>¿Es idempotente? ¿Los <strong>datos</strong> están bien?</td>
+</tr>
+<tr>
+<td>Postmortem</td>
+<td>¿Qué cambio del sistema evita que se repita?</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-primera-guardia">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-tienda.html">← Tienda 🛒: segmentación RFM, cohortes de retención y el ETL completo</a><a href="incidentes-monitoreo-y-checks.html">Mantener sin apagar incendios - checks, alertas y runbooks →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

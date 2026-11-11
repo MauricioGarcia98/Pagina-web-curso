@@ -16,6 +16,10 @@ Valentina, la gerente comercial, te escribe:
 
 Ya sabes ver una tabla completa con `SELECT *`. Ahora vas a aprender a **elegir** columnas, **calcular** columnas nuevas y **ponerles nombre**, para entregar exactamente lo que te pidieron.
 :::
+:::analogia En palabras simples
+Imagina una planilla enorme con veinte columnas. `SELECT` es como decirle a alguien: "de toda esa planilla, pásame solo el nombre y el precio". No cambia la planilla original: te arma una copia con las columnas que pediste, y hasta puede agregar una columna nueva calculada, como "precio con IVA".
+:::
+
 ## Elegir columnas: pedir solo lo que necesitas
 
 En la lección anterior usaste `SELECT *`, que trae **todas** las columnas. En la práctica casi nunca necesitas todas. Para elegir, escribe los nombres de las columnas **separados por comas**, en el orden en que quieres verlas:

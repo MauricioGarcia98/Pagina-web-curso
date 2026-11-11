@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IA generativa I - diseñar la aplicación y preparar los datos (RAG y Vector Search) · Academia de Datos</title><meta name="description" content="Cómo funciona un LLM en la práctica (tokens, contexto, temperatura), elegir entre prompt, RAG, agente o multiagente, ingeniería de prompts, la arquitectura RAG de punta a punta, parsear documentos, estrategias de chunking, embeddings y los índices de Vector Search (Databricks AI Search) con búsqueda híbrida y filtros."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-genai-diseno-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="IA generativa I - diseñar la aplicación y preparar los datos (RAG y Vector Search) · Academia de Datos"><meta property="og:description" content="Cómo funciona un LLM en la práctica (tokens, contexto, temperatura), elegir entre prompt, RAG, agente o multiagente, ingeniería de prompts, la arquitectura RAG de punta a punta, parsear documentos, estrategias de chunking, embeddings y los índices de Vector Search (Databricks AI Search) con búsqueda híbrida y filtros."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-genai-diseno-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-databricks">🏅 Certificaciones Databricks: Data Engineer e IA</a> · Avanzado · 60 min</div>
+<h1>IA generativa I - diseñar la aplicación y preparar los datos (RAG y Vector Search)</h1><p class="resumen">Cómo funciona un LLM en la práctica (tokens, contexto, temperatura), elegir entre prompt, RAG, agente o multiagente, ingeniería de prompts, la arquitectura RAG de punta a punta, parsear documentos, estrategias de chunking, embeddings y los índices de Vector Search (Databricks AI Search) con búsqueda híbrida y filtros.</p>
+<a class="cta" href="../index.html#/l/cert-databricks-genai-diseno-datos">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir la arquitectura adecuada (prompt, RAG, agente o multiagente) para un caso de negocio</li><li>Escribir prompts con instrucciones, ejemplos y formato de salida</li><li>Preparar documentos para RAG eligiendo el parseo y la estrategia de chunking</li><li>Crear y consultar un índice de Vector Search con sincronización desde una tabla Delta</li><li>Diagnosticar problemas de recuperación (chunks malos, embeddings distintos, filtros)</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo de soporte de Rápido recibe 3.000 consultas por día de restaurantes socios: &quot;¿cómo cambio mi horario?&quot;, &quot;¿por qué me cobraron esta comisión?&quot;, &quot;¿dónde está el pedido 88213?&quot;. Las respuestas están en un manual de 400 páginas en PDF, en las políticas comerciales y en las tablas de pedidos. La empresa quiere un asistente que responda con precisión, cite la fuente y nunca invente comisiones. Diseñarlo bien empieza mucho antes de escribir el primer prompt.</p>
+</div>
+
+
+<h2>Lo mínimo que hay que saber de un LLM</h2>
+<ul>
+<li><strong>Token</strong>: el trozo de texto en el que el modelo parte la entrada (en español, aproximadamente 3 a 4 caracteres). Los modelos cobran y limitan por tokens.</li>
+<li><strong>Ventana de contexto</strong>: cuántos tokens puede recibir el modelo de una vez (instrucciones + documentos + historial + respuesta). Más contexto no siempre es mejor: los documentos irrelevantes confunden al modelo y encarecen la llamada.</li>
+<li><strong>Temperatura</strong>: cuánta aleatoriedad tiene la respuesta. Baja (0 a 0.3) para respuestas precisas y repetibles (soporte, extracción); más alta para tareas creativas.</li>
+<li><strong>Alucinación</strong>: el modelo inventa con seguridad datos que no tiene. La principal defensa es darle el contexto correcto (RAG) y pedirle que diga &quot;no sé&quot; cuando no está en el contexto.</li>
+<li><strong>Modelos en Databricks</strong>: las <strong>Foundation Model APIs</strong> ofrecen modelos abiertos y comerciales listos para usar (por ejemplo, de las familias Llama, GPT OSS, Claude y Gemini, según la región), los <strong>external models</strong> conectan proveedores externos a través del AI Gateway, y puedes servir modelos propios o ajustados.</li>
+</ul>
+<h2>Elegir la arquitectura</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Arquitectura</th>
+<th>Qué es</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Prompt</strong></td>
+<td>Una llamada al modelo con instrucciones</td>
+<td>Tareas sobre el texto que le das: resumir, clasificar, traducir, extraer</td>
+</tr>
+<tr>
+<td><strong>RAG</strong> (<em>Retrieval-Augmented Generation</em>)</td>
+<td>Antes de responder, se <strong>recuperan</strong> documentos relevantes y se agregan al prompt</td>
+<td>Preguntas sobre conocimiento propio que el modelo no conoce o que cambia seguido</td>
+</tr>
+<tr>
+<td><strong>Agente</strong></td>
+<td>El modelo decide qué <strong>herramientas</strong> usar (buscar documentos, consultar una tabla, llamar a una API) y en qué orden, en un ciclo</td>
+<td>Tareas que requieren datos en vivo, varios pasos o acciones</td>
+</tr>
+<tr>
+<td><strong>Multiagente</strong></td>
+<td>Un <strong>supervisor</strong> reparte el trabajo entre agentes especializados</td>
+<td>Dominios distintos con herramientas y datos propios</td>
+</tr>
+<tr>
+<td><strong>Ajuste fino</strong> (<em>fine-tuning</em>)</td>
+<td>Reentrenar el modelo con ejemplos propios</td>
+<td>Cambiar estilo, formato o mejorar una tarea muy específica; no es la forma de &quot;agregar conocimiento&quot; que cambia</td>
+</tr>
+</tbody></table></div>
+<p>El asistente de Rápido necesita: conocimiento del manual (RAG), datos en vivo de un pedido (herramienta que consulta la tabla) y decidir cuál usar según la pregunta: es un <strong>agente con una herramienta de recuperación y una de consulta</strong>.</p>
+<div class="callout callout-examen"><div class="callout-title">🏅 Descomponer el caso de uso</div>
+
+<p>Las preguntas de diseño piden identificar <strong>componentes</strong>: ¿qué fuentes hay?, ¿qué datos cambian y cuáles no?, ¿qué hace falta en tiempo real?, ¿qué riesgo hay si el modelo se equivoca? Si la respuesta depende de datos que cambian cada día, el fine-tuning es incorrecto; si hace falta un dato puntual en vivo (estado de un pedido), RAG sobre documentos no alcanza: hace falta una herramienta.</p>
+</div>
+
+
+<h2>Ingeniería de prompts</h2>
+<p>Un buen prompt de sistema para el asistente:</p>
+<pre><code class="language-text">Eres el asistente de soporte de Rápido para restaurantes socios.
+Responde SOLO con la información de los &lt;documentos&gt; y de las herramientas.
+Si la respuesta no está ahí, di &quot;No tengo esa información&quot; y sugiere escribir a socios@rapido.pe.
+Responde en español, en menos de 120 palabras, y cita la sección del manual entre corchetes.
+
+Ejemplo:
+Pregunta: ¿Cuándo se pagan las ventas?
+Respuesta: Los pagos se acreditan cada lunes por las ventas de la semana anterior [Manual §4.2].
+
+&lt;documentos&gt;
+{contexto}
+&lt;/documentos&gt;</code></pre>
+<p>Las técnicas que contiene:</p>
+<ul>
+<li><strong>Rol e instrucciones claras</strong> al principio.</li>
+<li><strong>Delimitadores</strong> (<code>&lt;documentos&gt;</code>) para separar el contexto de las instrucciones, lo que además dificulta la inyección de instrucciones desde los documentos.</li>
+<li><strong>Restricción explícita</strong> a la información dada y una respuesta de escape (&quot;No tengo esa información&quot;).</li>
+<li><strong>Formato y largo</strong> de la salida. Para respuestas que las procese un programa, pedir <strong>JSON con un esquema</strong> (salidas estructuradas).</li>
+<li><strong>Ejemplos</strong> (<em>few-shot</em>) del estilo esperado.</li>
+<li><strong>Plantillas</strong>: el prompt se guarda con variables (<code>{contexto}</code>, <code>{pregunta}</code>) y se versiona; MLflow tiene un <strong>registro de prompts</strong> para guardarlos y versionarlos en Unity Catalog.</li>
+</ul>
+<h2>La arquitectura RAG</h2>
+<figure class="diagrama"><figcaption>RAG: preparación (arriba) y consulta (abajo)</figcaption></figure>
+
+
+<h3>1. Parsear</h3>
+<p>Convertir PDFs, Word o HTML en texto <strong>conservando la estructura</strong> (títulos, tablas, listas). En Databricks, <code>ai_parse_document</code> extrae texto y elementos de documentos desde SQL; también se usan librerías como <code>pypdf</code> o <code>unstructured</code>. Se guarda el texto junto con <strong>metadatos</strong>: archivo, página, sección, fecha de vigencia.</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE prod.ia.manual_parseado AS
+SELECT path, ai_parse_document(content) AS doc
+FROM read_files('/Volumes/prod/ia/manuales/', format =&gt; 'binaryFile');</code></pre>
+<h3>2. Dividir en chunks</h3>
+<p>Un <strong>chunk</strong> es un fragmento de texto que se indexa y se recupera por separado.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Cómo</th>
+<th>Ventaja</th>
+<th>Riesgo</th>
+</tr>
+</thead><tbody><tr>
+<td>Tamaño fijo con solapamiento</td>
+<td>Cada N tokens, repitiendo M tokens entre chunks</td>
+<td>Simple</td>
+<td>Corta ideas a la mitad</td>
+</tr>
+<tr>
+<td>Por estructura</td>
+<td>Por sección, título o párrafo</td>
+<td>Respeta el sentido del documento</td>
+<td>Chunks de tamaños muy desparejos</td>
+</tr>
+<tr>
+<td>Recursiva</td>
+<td>Intenta cortar por párrafos, luego oraciones, luego palabras hasta un máximo</td>
+<td>Buen equilibrio</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Semántica</td>
+<td>Corta donde cambia el tema (comparando embeddings)</td>
+<td>Chunks coherentes</td>
+<td>Más costosa</td>
+</tr>
+</tbody></table></div>
+<p>El <strong>tamaño</strong> importa: chunks <strong>muy chicos</strong> pierden contexto (la respuesta queda partida en varios), chunks <strong>muy grandes</strong> mezclan temas y diluyen la similitud, además de llenar la ventana de contexto. Un punto de partida común son 300 a 800 tokens con 10 a 20 % de solapamiento, y después se ajusta <strong>midiendo</strong> la calidad de la recuperación. Nunca superes el máximo de tokens del modelo de embeddings: lo que pase de ese límite se trunca.</p>
+<h3>3. Embeddings</h3>
+<p>Un <strong>embedding</strong> es un vector de números que representa el significado de un texto: textos parecidos quedan cerca. Reglas:</p>
+<ul>
+<li><strong>El mismo modelo</strong> para los documentos y para las preguntas (vectores de modelos distintos no son comparables).</li>
+<li>Elegir el modelo por idioma, longitud máxima y dimensión (en Databricks hay modelos de embeddings como <code>databricks-gte-large-en</code> y <code>databricks-bge-large-en</code>, y se pueden usar externos).</li>
+</ul>
+<h3>4. Indexar con Vector Search</h3>
+<p><strong>Mosaic AI Vector Search</strong> (en 2026 Databricks lo presenta como <strong>Databricks AI Search</strong>; el SDK y los objetos siguen llamándose <em>vector search</em>) guarda los vectores y busca los más parecidos.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Opciones</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Endpoint</strong></td>
+<td>El cómputo que sirve los índices. <em>Standard</em> (baja latencia, sincronización incremental) o <em>storage-optimized</em> (muchísimos vectores a menor costo, con un poco más de latencia; cada sincronización reconstruye el índice)</td>
+</tr>
+<tr>
+<td><strong>Índice Delta Sync</strong></td>
+<td>Se sincroniza solo desde una <strong>tabla Delta</strong> (que debe tener <strong>Change Data Feed</strong> activado). Embeddings <strong>administrados</strong> (le das la columna de texto y el endpoint del modelo) o <strong>propios</strong> (la tabla ya trae la columna de vectores)</td>
+</tr>
+<tr>
+<td><strong>Índice Direct Vector Access</strong></td>
+<td>Tú escribes y borras los vectores con la API; no hay tabla de origen</td>
+</tr>
+<tr>
+<td><strong>Sincronización</strong></td>
+<td><em>Triggered</em> (cuando la pides, más barato) o <em>continuous</em> (casi en tiempo real)</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-python">from databricks.vector_search.client import VectorSearchClient
+
+vsc = VectorSearchClient()
+vsc.create_endpoint(name=&quot;rapido-vs&quot;, endpoint_type=&quot;STANDARD&quot;)
+
+indice = vsc.create_delta_sync_index(
+    endpoint_name=&quot;rapido-vs&quot;,
+    index_name=&quot;prod.ia.manual_idx&quot;,                     # el índice es un objeto de Unity Catalog
+    source_table_name=&quot;prod.ia.manual_chunks&quot;,           # tabla Delta con CDF activado
+    primary_key=&quot;chunk_id&quot;,
+    pipeline_type=&quot;TRIGGERED&quot;,
+    embedding_source_column=&quot;texto&quot;,                     # embeddings administrados
+    embedding_model_endpoint_name=&quot;databricks-gte-large-en&quot;,
+)
+
+resultados = indice.similarity_search(
+    query_text=&quot;¿Cuándo se acreditan los pagos a los restaurantes?&quot;,
+    columns=[&quot;chunk_id&quot;, &quot;texto&quot;, &quot;seccion&quot;],
+    filters={&quot;vigente&quot;: True},                           # filtro por metadatos
+    num_results=5,
+    query_type=&quot;HYBRID&quot;,                                 # vectorial + palabras clave
+)</code></pre>
+<p>Desde SQL, la función <code>vector_search(index =&gt; &#39;prod.ia.manual_idx&#39;, query_text =&gt; &#39;…&#39;, num_results =&gt; 5)</code> devuelve los mismos resultados como tabla.</p>
+<ul>
+<li><strong>Búsqueda híbrida</strong>: combina similitud de vectores con coincidencia de palabras clave. Ayuda con códigos, nombres propios y siglas (&quot;comisión C-12&quot;) que los embeddings capturan mal.</li>
+<li><strong>Filtros</strong>: restringen por metadatos (vigencia, país, tipo de documento) antes de rankear.</li>
+<li><strong>Reranking</strong>: un segundo modelo reordena los primeros resultados por relevancia; mejora la precisión a cambio de algo de latencia.</li>
+<li><strong>Permisos</strong>: el índice es un objeto de Unity Catalog; se controla quién puede consultarlo.</li>
+</ul>
+<div class="callout callout-examen"><div class="callout-title">🏅 Lo que más se pregunta de Vector Search</div>
+
+<ul>
+<li>&quot;El índice Delta Sync no se puede crear sobre la tabla de chunks&quot; → falta activar <strong>Change Data Feed</strong> en la tabla.</li>
+<li>&quot;Las respuestas no encuentran los códigos de comisión exactos&quot; → <strong>búsqueda híbrida</strong>.</li>
+<li>&quot;Los vectores se generan en otro sistema y llegan por API&quot; → <strong>Direct Vector Access</strong>.</li>
+<li>&quot;Hay 500 millones de chunks y la latencia de 250 ms es aceptable&quot; → endpoint <strong>storage-optimized</strong>.</li>
+</ul>
+</div>
+
+
+<h2>Medir la recuperación</h2>
+<p>Antes de culpar al LLM, revisa si recuperaste los chunks correctos. Con un conjunto de preguntas y la sección correcta de cada una:</p>
+<ul>
+<li><strong>Recall@k</strong>: ¿en qué porcentaje de las preguntas el chunk correcto está entre los k recuperados?</li>
+<li><strong>Precisión</strong>: ¿cuántos de los k recuperados son realmente relevantes?</li>
+</ul>
+<p>Si el recall es bajo: revisa el parseo (¿se perdieron tablas?), el tamaño de chunk, los metadatos y los filtros, la búsqueda híbrida o un reranker.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Modelos de embedding distintos para documentos y preguntas.</strong> Síntoma: resultados sin sentido. Corrección: el mismo modelo en los dos lados.</li>
+<li><strong>Chunks de una página entera.</strong> Síntoma: recupera la página correcta pero el modelo responde mal o mezcla temas. Corrección: chunks más chicos por sección.</li>
+<li><strong>Sin metadatos de vigencia.</strong> Síntoma: el asistente cita una política vieja. Corrección: columna <code>vigente</code> y filtro.</li>
+<li><strong>Fine-tuning para &quot;enseñarle&quot; el manual.</strong> Síntoma: respuestas desactualizadas y costo alto. Corrección: RAG.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cómo se arma en una empresa</div>
+
+<p>Los documentos llegan a un volumen; un pipeline declarativo los parsea, los divide y escribe la tabla de chunks con CDF; el índice Delta Sync se refresca desde un job. Todo vive en un catálogo <code>ia</code> con permisos por grupo, y un conjunto de evaluación con 100 preguntas reales mide el recall después de cada cambio en el chunking.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Cómo elegirías el tamaño de chunk?&quot;</strong> No hay un número mágico: arranco con 500 tokens y 15 % de solapamiento, o por secciones si el documento tiene buena estructura, y lo ajusto midiendo el recall@5 sobre un conjunto de preguntas reales. También verifico que no supere el límite del modelo de embeddings y que cada chunk tenga sentido leído solo.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-databricks-genai-diseno-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-databricks-nivel-professional.html">← Nivel Professional - streaming avanzado, CDC, modelado y código de producción</a><a href="cert-databricks-genai-agentes.html">IA generativa II - desarrollar agentes con herramientas, MCP y Agent Bricks →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

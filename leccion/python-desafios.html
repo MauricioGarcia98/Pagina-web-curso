@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desafíos de Python para entrevistas de datos · Academia de Datos</title><meta name="description" content="Problemas típicos de entrevistas técnicas resueltos con estructuras de datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-desafios.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Desafíos de Python para entrevistas de datos · Academia de Datos"><meta property="og:description" content="Problemas típicos de entrevistas técnicas resueltos con estructuras de datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-desafios.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Experto · 60 min</div>
+<h1>Desafíos de Python para entrevistas de datos</h1><p class="resumen">Problemas típicos de entrevistas técnicas resueltos con estructuras de datos.</p>
+<a class="cta" href="../index.html#/l/python-desafios">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Seguir un método para resolver desafíos: entender, casos borde, solución simple, mejora</li><li>Estimar la complejidad de una solución con notación O</li><li>Bajar una solución de O(n²) a O(n) usando diccionarios y conjuntos</li><li>Explicar en voz alta tu razonamiento como en una entrevista real</li></ul>
+<p>Estos problemas aparecen en entrevistas de <strong>Data Engineer</strong>. No buscan algoritmos rebuscados sino que demuestres que manejas bien diccionarios, conjuntos, ordenamiento, generadores y casos borde.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 En una entrevista, piensa en voz alta</div>
+
+<ol>
+<li>Repite el problema y pregunta por los casos borde (¿lista vacía?, ¿empates?, ¿nulos?).</li>
+<li>Propón una solución simple primero; luego mejora su complejidad.</li>
+<li>Prueba tu código con un ejemplo pequeño, a mano.</li>
+<li>Menciona la complejidad: O(n), O(n log n)…</li>
+</ol>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Los desafíos de entrevista son como los acertijos de lógica: casi siempre se resuelven eligiendo la herramienta correcta. ¿Necesitas contar cosas? Un diccionario. ¿Saber si algo ya apareció? Un conjunto. En esta lección practicas reconocer qué estructura de datos pide cada problema.</p>
+</div>
+
+
+<h2>Complejidad: qué significa O(n)</h2>
+<p>En las entrevistas te van a preguntar &quot;¿qué complejidad tiene tu solución?&quot;. La <strong>notación O grande</strong> describe cómo <strong>crece</strong> el tiempo (o la memoria) cuando crece la cantidad de datos <code>n</code>. No mide segundos: mide la <strong>forma</strong> del crecimiento.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Notación</th>
+<th>Nombre</th>
+<th>Si los datos se multiplican por 10, el tiempo…</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>O(1)</td>
+<td>constante</td>
+<td>no cambia</td>
+<td>Buscar una clave en un <code>dict</code> o <code>set</code></td>
+</tr>
+<tr>
+<td>O(log n)</td>
+<td>logarítmica</td>
+<td>crece muy poco</td>
+<td>Búsqueda binaria en una lista ordenada</td>
+</tr>
+<tr>
+<td>O(n)</td>
+<td>lineal</td>
+<td>se multiplica por 10</td>
+<td>Recorrer una lista una vez</td>
+</tr>
+<tr>
+<td>O(n log n)</td>
+<td>&quot;n log n&quot;</td>
+<td>algo más de 10 veces</td>
+<td>Ordenar con <code>sorted</code></td>
+</tr>
+<tr>
+<td>O(n²)</td>
+<td>cuadrática</td>
+<td>se multiplica por <strong>100</strong></td>
+<td>Dos <code>for</code> anidados sobre la misma lista</td>
+</tr>
+</tbody></table></div>
+<p>Con 1.000 elementos, O(n²) son un millón de pasos; con un millón de elementos, un billón: imposible. El truco más frecuente para bajar de O(n²) a O(n) es usar un <strong>diccionario o conjunto</strong> para recordar lo que ya viste, en vez de volver a recorrer la lista. Es exactamente lo que hacen los ejercicios &quot;Dos que suman&quot; y &quot;Join en Python&quot; (y lo que hace un <em>hash join</em> en una base de datos).</p>
+<h2>Cómo encarar cada desafío</h2>
+<ol>
+<li><strong>Entender</strong>: lee el enunciado dos veces y escribe un ejemplo chico a mano, con su resultado esperado.</li>
+<li><strong>Casos borde</strong>: ¿qué pasa con una lista vacía, un solo elemento, empates, repetidos, <code>None</code>? Los tests de cada ejercicio prueban justamente eso.</li>
+<li><strong>Primero que funcione</strong>: una solución simple y correcta, aunque no sea la más rápida.</li>
+<li><strong>Después, mejorar</strong>: ¿estoy recorriendo dos veces lo mismo? ¿Puedo usar un <code>dict</code> o un <code>set</code>?</li>
+</ol>
+<h2>Ejemplo resuelto: el primer pedido duplicado, de O(n²) a O(n)</h2>
+<p><strong>Enunciado</strong>: un sistema reenvía pedidos por error. Dada la lista de <code>pedido_id</code> en el orden en que llegaron, devuelve el <strong>primer id que aparece por segunda vez</strong> (o <code>None</code> si no hay repetidos).</p>
+<p><strong>Paso 1, entender y preguntar.</strong> &quot;¿&#39;Primero&#39; es el primero en repetirse, o el primero de la lista que tiene un repetido?&quot; Son distintos: en <code>[7, 3, 5, 3, 7]</code>, el primero en repetirse es el <code>3</code> (su segunda aparición está en la posición 3), aunque el <code>7</code> aparezca antes en la lista. Supongamos que piden el primero en repetirse.</p>
+<p><strong>Paso 2, la solución simple.</strong> Para cada elemento, mirar si ya apareció antes:</p>
+<pre><code class="language-python">def primer_repetido_lento(ids):
+    for j in range(len(ids)):
+        for i in range(j):              # todo lo anterior
+            if ids[i] == ids[j]:
+                return ids[j]
+    return None
+
+print(primer_repetido_lento([7, 3, 5, 3, 7]))   # 3</code></pre>
+<p>Funciona, pero con dos <code>for</code> anidados es <strong>O(n²)</strong>: con un millón de pedidos son medio billón de comparaciones.</p>
+<p><strong>Paso 3, mejorar con un conjunto.</strong> La pregunta &quot;¿ya lo vi?&quot; la responde un <code>set</code> en O(1):</p>
+<pre><code class="language-python">def primer_repetido(ids):
+    vistos = set()
+    for x in ids:
+        if x in vistos:                 # búsqueda O(1)
+            return x
+        vistos.add(x)
+    return None
+
+print(primer_repetido([7, 3, 5, 3, 7]))  # 3
+print(primer_repetido([1, 2, 3]))        # None
+print(primer_repetido([]))               # None: caso borde, lista vacía</code></pre>
+<p>Una sola pasada: <strong>O(n)</strong> en tiempo y O(n) en memoria. Con un millón de pedidos, un millón de pasos.</p>
+<p><strong>Paso 4, decirlo en voz alta.</strong> &quot;Cambié tiempo por memoria: guardo lo que vi en un conjunto. Es la misma idea que usa una base de datos en un <em>hash join</em> o en un <code>DISTINCT</code>.&quot; Conectar el algoritmo con el trabajo de datos suele sumar puntos. Ahora aplica la misma idea en el primer desafío.</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La prueba técnica de Python</div>
+
+<p>En la entrevista para data engineer semi senior, después de SQL viene la parte de Python:</p>
+<blockquote>
+<p>&quot;Tienes 45 minutos para tres problemas. Puedes elegir el orden. Lo importante es que nos cuentes cómo piensas.&quot;</p>
+</blockquote>
+<p>Estos desafíos no buscan algoritmos rebuscados: buscan que manejes bien diccionarios, conjuntos, ordenamiento y casos borde, y que expliques tu razonamiento.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Más allá de la entrevista, estas técnicas aparecen en el trabajo: deduplicar con un <code>set</code>, unir datos con un <code>dict</code> (un join en memoria), fusionar intervalos para calcular sesiones o tiempos de conexión.</li>
+<li>En una entrevista real, preguntar por los casos borde antes de escribir es tan importante como la solución. &quot;¿La lista puede estar vacía? ¿Puede haber empates?&quot; muestra criterio profesional.</li>
+</ul>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-desafios">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-buenas-practicas.html">← Python profesional: entornos, paquetes, tests y estilo</a><a href="spark-big-data.html">Big data y computación distribuida →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

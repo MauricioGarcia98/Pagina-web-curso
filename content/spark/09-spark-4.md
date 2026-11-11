@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes por qué una consulta que funcionaba en Spark 3 falla en
 El equipo actualizó el clúster de Spark 3.5 a Spark 4 un viernes. El lunes, el job de ventas falló con un error que nunca habían visto: `CAST_INVALID_INPUT: The value 'N/A' of the type "STRING" cannot be cast to "INT"`. El código no cambió. Lo que cambió fue una regla de Spark: ahora, cuando un dato no se puede convertir, Spark **avisa** en lugar de inventar un `NULL` en silencio. Esta lección explica ese cambio y las otras novedades que vas a encontrar en los proyectos actuales.
 :::
 
+:::analogia En palabras simples
+Una versión nueva de Spark es como una actualización del celular: la mayoría de las cosas siguen igual, pero algunas reglas cambian. La más importante en Spark 4 es que ahora es más estricto: si intentas convertir "hola" en número, en vez de devolver un vacío en silencio, avisa con un error. Esta lección repasa esos cambios para que no te sorprendan.
+:::
+
 ## Las versiones, en una tabla
 
 Spark sale con una versión grande (*major*) cada varios años y versiones menores varias veces por año. Databricks, EMR, Dataproc y Fabric incluyen versiones concretas de Spark en sus *runtimes*.

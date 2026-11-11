@@ -19,6 +19,10 @@ Eres el data engineer de Tienda Andina. La gerencia comercial quiere hacer sus p
 - Los nombres de botones son los de la documentación oficial de octubre de 2026.
 :::
 
+:::analogia En palabras simples
+Este proyecto junta todo lo del módulo, como cocinar un plato completo después de practicar cada paso: preparas los datos, creas el agente, lo afinas con instrucciones y ejemplos, y lo evalúas antes de entregarlo.
+:::
+
 ## El plan
 
 | Paso | Qué haces | Lección del módulo |

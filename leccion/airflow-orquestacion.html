@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orquestación y el concepto de DAG · Academia de Datos</title><meta name="description" content="Qué problema resuelve un orquestador, qué es un DAG, el vocabulario básico, los componentes de Airflow 3 (Dag processor, scheduler, executor, API server, base de metadatos) y qué cambió respecto de Airflow 2."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-orquestacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Orquestación y el concepto de DAG · Academia de Datos"><meta property="og:description" content="Qué problema resuelve un orquestador, qué es un DAG, el vocabulario básico, los componentes de Airflow 3 (Dag processor, scheduler, executor, API server, base de metadatos) y qué cambió respecto de Airflow 2."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-orquestacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Básico · 35 min</div>
+<h1>Orquestación y el concepto de DAG</h1><p class="resumen">Qué problema resuelve un orquestador, qué es un DAG, el vocabulario básico, los componentes de Airflow 3 (Dag processor, scheduler, executor, API server, base de metadatos) y qué cambió respecto de Airflow 2.</p>
+<a class="cta" href="../index.html#/l/airflow-orquestacion">▶ Abrir la lección interactiva (7 ejercicios)</a>
+
+<p>Imagina un pipeline diario: a las 2:00 descargar ventas, a las 2:30 limpiarlas con Spark, después correr <code>dbt build</code>, y si todo salió bien, actualizar el tablero y avisar por Slack. ¿Qué pasa si la descarga falla? ¿Y si tarda más de lo normal? ¿Cómo reprocesas el martes pasado?</p>
+<p>Ese es el trabajo de un <strong>orquestador</strong>. <strong>Apache Airflow</strong> (creado en Airbnb en 2014) es el más usado del mundo.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El director de orquesta</div>
+
+<p>Airflow no toca ningún instrumento: no procesa datos él mismo. Le indica a cada músico (Spark, dbt, una API, un script) <strong>cuándo</strong> entrar, en qué <strong>orden</strong>, y qué hacer si alguien se equivoca.</p>
+</div>
+
+
+<h2>DAG: Directed Acyclic Graph</h2>
+<p>Un <strong>DAG</strong> (grafo dirigido acíclico) es el conjunto de <strong>tareas</strong> con sus <strong>dependencias</strong>:</p>
+<pre><code class="language-text">extraer_ventas ──┐
+                 ├──▶ transformar ──▶ dbt_build ──▶ notificar
+extraer_clientes ┘</code></pre>
+<ul>
+<li><strong>Dirigido</strong>: las flechas tienen sentido (A antes que B).</li>
+<li><strong>Acíclico</strong>: no hay ciclos (B no puede depender de A si A depende de B).</li>
+<li>En Airflow, <strong>un DAG se escribe en un archivo Python</strong>.</li>
+</ul>
+<h2>¿Por qué no alcanza con cron?</h2>
+<p>Linux trae <code>cron</code>, que ejecuta comandos a una hora fija. Muchas empresas empezaron así… y se encontraron con estos problemas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesidad</th>
+<th>cron</th>
+<th>Airflow</th>
+</tr>
+</thead><tbody><tr>
+<td>Ejecutar a una hora</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>&quot;B solo cuando A termina bien&quot;</td>
+<td>❌ (adivinas horarios: &quot;A tarda ~20 min, pongo B a las 2:30&quot;)</td>
+<td>✅ dependencias explícitas</td>
+</tr>
+<tr>
+<td>Reintentar si falla</td>
+<td>❌</td>
+<td>✅ <code>retries=3</code></td>
+</tr>
+<tr>
+<td>Ver qué falló, cuándo y por qué</td>
+<td>❌ (buscar en logs sueltos)</td>
+<td>✅ interfaz web con el historial y los logs de cada tarea</td>
+</tr>
+<tr>
+<td>Reprocesar el martes pasado</td>
+<td>❌ (a mano)</td>
+<td>✅ cada ejecución sabe <strong>qué día</strong> procesa</td>
+</tr>
+<tr>
+<td>Alertar si algo falla o tarda demasiado</td>
+<td>❌</td>
+<td>✅ callbacks y <em>deadline alerts</em></td>
+</tr>
+<tr>
+<td>Paralelizar tareas independientes</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody></table></div>
+<h2>Vocabulario básico</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Término</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>DAG</strong></td>
+<td>El flujo completo, definido en un archivo Python</td>
+<td><code>etl_ventas</code></td>
+</tr>
+<tr>
+<td><strong>Tarea</strong> (<em>task</em>)</td>
+<td>Un paso del DAG</td>
+<td><code>extraer_ventas</code></td>
+</tr>
+<tr>
+<td><strong>Operador</strong></td>
+<td>La &quot;plantilla&quot; de una tarea: qué tipo de trabajo hace</td>
+<td><code>PythonOperator</code>, <code>BashOperator</code></td>
+</tr>
+<tr>
+<td><strong>DAG run</strong></td>
+<td><strong>Una ejecución</strong> del DAG, para un periodo concreto</td>
+<td>&quot;la ejecución del 15 de marzo&quot;</td>
+</tr>
+<tr>
+<td><strong>Task instance</strong></td>
+<td><strong>Una ejecución de una tarea</strong> dentro de un DAG run</td>
+<td>&quot;<code>extraer_ventas</code> del 15 de marzo&quot;</td>
+</tr>
+</tbody></table></div>
+<p>Cada task instance pasa por <strong>estados</strong>: <code>scheduled</code> → <code>queued</code> → <code>running</code> → <code>success</code> (o <code>failed</code>, <code>up_for_retry</code>, <code>skipped</code>, <code>upstream_failed</code>). En la interfaz web se ven como cuadraditos de colores: verde (éxito), rojo (falló), amarillo (reintentando), rosa (salteada). Gran parte del trabajo diario de un data engineer de guardia es mirar esa grilla y entender por qué algo está en rojo.</p>
+<h2>Componentes de Airflow</h2>
+<p>Airflow no es un solo programa: son varios programas que trabajan juntos y se comunican a través de una base de datos. Saber qué hace cada uno es lo que te permite diagnosticar un problema (&quot;el DAG no aparece&quot; es un problema de una pieza distinta que &quot;la tarea no arranca&quot;). Esta es la arquitectura de <strong>Airflow 3</strong>, según la documentación oficial:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Componente</th>
+<th>Qué hace</th>
+<th>¿Obligatorio?</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Dag bundle</strong> (la carpeta <code>dags/</code> o un repositorio Git)</td>
+<td>Donde viven tus archivos <code>.py</code> con DAGs. Un <em>bundle</em> también guarda versiones, para que cada ejecución use el código con el que empezó</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><strong>Dag processor</strong></td>
+<td>Lee (parsea) los archivos de DAGs cada cierto tiempo y guarda su definición en la base de metadatos. Si un archivo tiene un error de Python, aquí aparece el <em>import error</em></td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><strong>Scheduler</strong></td>
+<td>Decide qué DAG runs crear y qué tareas ya pueden correr (sus dependencias terminaron), y se las pasa al <strong>executor</strong></td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><strong>Executor</strong></td>
+<td>Una configuración del scheduler que define <strong>dónde</strong> corre cada tarea: en la misma máquina (<code>LocalExecutor</code>), en una cola de workers (<code>CeleryExecutor</code>) o en un pod de Kubernetes por tarea (<code>KubernetesExecutor</code>)</td>
+<td>Sí (es parte del scheduler)</td>
+</tr>
+<tr>
+<td><strong>Workers</strong></td>
+<td>Las máquinas o procesos que ejecutan las tareas</td>
+<td>Según el executor</td>
+</tr>
+<tr>
+<td><strong>API server</strong></td>
+<td>Sirve la interfaz web y la API REST. Las tareas también le reportan su estado a través de él, sin tocar la base directamente</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><strong>Base de metadatos</strong></td>
+<td>Una base PostgreSQL o MySQL con el estado de todo: DAGs, ejecuciones, tareas, variables, conexiones</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><strong>Triggerer</strong></td>
+<td>Espera eventos para las tareas <em>diferibles</em> (por ejemplo, &quot;avísame cuando aparezca el archivo&quot;) sin ocupar un worker</td>
+<td>Opcional</td>
+</tr>
+</tbody></table></div>
+<p>El recorrido de una ejecución, paso a paso:</p>
+<ol>
+<li>Guardas <code>ventas_diarias.py</code> en la carpeta de DAGs.</li>
+<li>El <strong>Dag processor</strong> lo lee y registra el DAG en la base de metadatos. Si tiene un error, el DAG <strong>no aparece</strong> en la interfaz y se registra un error de importación.</li>
+<li>Llega la hora programada: el <strong>scheduler</strong> crea un <em>DAG run</em> y marca como listas las tareas sin dependencias pendientes.</li>
+<li>El <strong>executor</strong> envía cada tarea lista a un <strong>worker</strong>.</li>
+<li>El worker ejecuta la tarea e informa el resultado (éxito, falla) al <strong>API server</strong>, que lo guarda en la base.</li>
+<li>El scheduler ve que la tarea terminó y libera a las que dependían de ella. Así hasta el final.</li>
+<li>Tú miras todo en la <strong>interfaz web</strong>: la grilla de colores, los logs de cada intento, y desde ahí relanzas lo que falló.</li>
+</ol>
+<p>Formas de usarlo: instalarlo tú (<code>pip install apache-airflow</code>, <code>airflow standalone</code> para probar en tu computadora, Docker Compose, el <em>chart</em> de Helm en Kubernetes) o un servicio administrado que se ocupa de los servidores: <strong>Astronomer</strong>, <strong>Google Cloud Composer</strong>, <strong>Amazon MWAA</strong>, o <strong>Apache Airflow Job</strong> en Microsoft Fabric.</p>
+<h2>Airflow 2 y Airflow 3: qué cambió</h2>
+<p>Airflow 3 salió en abril de 2025 y la versión estable hoy es la 3.3. Muchas empresas todavía usan Airflow 2, y la mayoría de los tutoriales de internet están escritos para Airflow 2, así que conviene reconocer las dos formas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tema</th>
+<th>Airflow 2</th>
+<th>Airflow 3</th>
+</tr>
+</thead><tbody><tr>
+<td>Importar <code>DAG</code>, <code>@dag</code>, <code>@task</code></td>
+<td><code>from airflow import DAG</code>, <code>from airflow.decorators import dag, task</code></td>
+<td><code>from airflow.sdk import DAG, dag, task</code></td>
+</tr>
+<tr>
+<td>Operadores básicos</td>
+<td><code>from airflow.operators.bash import BashOperator</code></td>
+<td><code>from airflow.providers.standard.operators.bash import BashOperator</code> (paquete <code>apache-airflow-providers-standard</code>)</td>
+</tr>
+<tr>
+<td>Interfaz web</td>
+<td><em>Webserver</em></td>
+<td><em>API server</em> (la interfaz es nueva, en React)</td>
+</tr>
+<tr>
+<td>Leer los DAGs</td>
+<td>Lo hacía el scheduler</td>
+<td>Componente aparte: el <em>Dag processor</em></td>
+</tr>
+<tr>
+<td>Datos que disparan DAGs</td>
+<td><code>Dataset</code></td>
+<td><code>Asset</code></td>
+</tr>
+<tr>
+<td><code>catchup</code> por defecto</td>
+<td><code>True</code></td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td>Fecha de la ejecución en plantillas</td>
+<td><code>execution_date</code></td>
+<td><code>logical_date</code> (<code>execution_date</code> ya no existe)</td>
+</tr>
+<tr>
+<td>Alertas por demora</td>
+<td><code>sla</code></td>
+<td><em>Deadline alerts</em></td>
+</tr>
+<tr>
+<td>Sub-DAGs</td>
+<td><code>SubDagOperator</code> (obsoleto)</td>
+<td>Eliminado: se usan <code>TaskGroup</code></td>
+</tr>
+</tbody></table></div>
+<p>Las rutas viejas de importación siguen funcionando en Airflow 3 con un aviso de obsoleto, pero se van a eliminar. En este curso escribimos con la sintaxis de Airflow 3 y mostramos la de Airflow 2 cuando la vas a encontrar en proyectos existentes.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Alternativas</div>
+
+<p><strong>Lakeflow Jobs</strong> (antes Databricks Workflows) orquesta tareas dentro de Databricks (notebooks, dbt, SQL) y muchas empresas lo usan en lugar de Airflow si todo vive en Databricks. Otras: <strong>Dagster</strong>, <strong>Prefect</strong>, <strong>Azure Data Factory</strong>. Los conceptos (tareas, dependencias, reintentos, programación) son los mismos.</p>
+</div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Cómo practicamos Airflow aquí</div>
+
+<p>Tus DAGs se ejecutan en <strong>mini-Airflow</strong>, un simulador que acepta la sintaxis de Airflow 3 (<code>from airflow.sdk import ...</code>, el provider estándar, <code>Asset</code>) y también la de Airflow 2: <code>DAG</code>, operadores, <code>&gt;&gt;</code>, XCom, TaskFlow (<code>@dag</code>, <code>@task</code>), ramas, trigger rules y <code>TaskGroup</code>. El corrector inspecciona el DAG que creaste (tareas, dependencias, programación) y puede &quot;ejecutarlo&quot; con <code>dag.test()</code>, que es también como se prueba un DAG en Airflow real sin scheduler.</p>
+</div>
+
+
+<!-- dg:af01-componentes -->
+<figure class="diagrama"><figcaption>Los componentes de Airflow 3 y cómo se comunican</figcaption></figure>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<p>En los ejercicios de Airflow escribes un DAG con la misma API de Airflow 3. El corrector lo carga, revisa las dependencias y lo ejecuta con <code>dag.test()</code>.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-orquestacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-snapshots-comandos.html">← Snapshots, comandos, selección y CI/CD</a><a href="airflow-primer-dag.html">Tu primer DAG →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

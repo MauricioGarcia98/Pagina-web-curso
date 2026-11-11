@@ -18,6 +18,10 @@ Esta lección es el entrenamiento para ese día: problemas reales de entrevista,
 :::
 Llegaste al final del módulo de SQL. Estos desafíos combinan todo lo aprendido. Son del tipo que se piden en entrevistas para **Data Engineer**, **Analytics Engineer** y **Data Analyst senior**.
 
+:::analogia En palabras simples
+Una entrevista técnica de SQL no busca que sepas todo de memoria: busca ver cómo piensas un problema nuevo. Es como un examen de manejo, donde importa más que mires los espejos y expliques lo que haces que llegar rápido. En esta lección practicas problemas típicos y, sobre todo, la forma de razonarlos en voz alta.
+:::
+
 ## Cómo es una entrevista técnica de SQL
 
 Casi siempre tiene esta forma: te dan 2 a 4 tablas (muy parecidas a las de este curso), una pregunta de negocio y entre 15 y 30 minutos. A veces en una pizarra, a veces en un editor compartido sin poder ejecutar. Lo que evalúan **no** es solo si llegas al resultado:

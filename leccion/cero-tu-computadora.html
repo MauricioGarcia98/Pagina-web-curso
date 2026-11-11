@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu computadora por dentro - archivos, carpetas, extensiones y rutas · Academia de Datos</title><meta name="description" content="Antes de programar, entender cómo guarda las cosas tu computadora. Todo lo demás se apoya en esto."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-tu-computadora.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tu computadora por dentro - archivos, carpetas, extensiones y rutas · Academia de Datos"><meta property="og:description" content="Antes de programar, entender cómo guarda las cosas tu computadora. Todo lo demás se apoya en esto."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-tu-computadora.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cero">🌱 Antes de empezar: desde cero absoluto</a> · Básico · 30 min</div>
+<h1>Tu computadora por dentro - archivos, carpetas, extensiones y rutas</h1><p class="resumen">Antes de programar, entender cómo guarda las cosas tu computadora. Todo lo demás se apoya en esto.</p>
+<a class="cta" href="../index.html#/l/cero-tu-computadora">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un archivo y qué es una carpeta</li><li>Reconocer la extensión de un archivo y qué te dice</li><li>Leer una ruta completa y saber dónde está un archivo</li><li>Distinguir una ruta absoluta de una relativa</li><li>Ver archivos ocultos y entender por qué existen</li><li>Usar los atajos de teclado que vas a usar todos los días</li></ul>
+<h2>Qué es un archivo</h2>
+<p>Un <strong>archivo</strong> es un paquete de información guardado con un nombre: una foto, una canción, una planilla de Excel, un documento de Word, un programa. Por dentro, todo archivo es una larga fila de números (unos y ceros); lo que cambia es <strong>cómo hay que leerlos</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Cajas con etiqueta</div>
+
+<p>Piensa en los archivos como cajas cerradas con una etiqueta. La etiqueta dice qué hay adentro y cómo usarlo: &quot;fotos de las vacaciones&quot;, &quot;facturas de marzo&quot;. Sin etiqueta, abrirías la caja y verías un montón de cosas sin saber qué hacer con ellas.</p>
+</div>
+
+
+<h2>La extensión: el apellido del archivo</h2>
+<p>El nombre de un archivo suele tener dos partes separadas por un punto: <code>ventas.csv</code>, <code>informe.pdf</code>, <code>foto.jpg</code>. Lo que va después del último punto es la <strong>extensión</strong>. Le dice a la computadora (y a ti) <strong>qué tipo de contenido</strong> hay adentro y con qué programa abrirlo.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Extensión</th>
+<th>Qué es</th>
+<th>Con qué se abre</th>
+<th>¿La vas a usar en datos?</th>
+</tr>
+</thead><tbody><tr>
+<td><code>.csv</code></td>
+<td>Tabla en texto: filas y columnas separadas por comas</td>
+<td>Excel, un editor de texto, Python, SQL</td>
+<td><strong>Todo el tiempo</strong></td>
+</tr>
+<tr>
+<td><code>.json</code></td>
+<td>Datos en texto con llaves <code>{ }</code>, como los que devuelven las APIs</td>
+<td>Editor de texto, Python</td>
+<td><strong>Todo el tiempo</strong></td>
+</tr>
+<tr>
+<td><code>.parquet</code></td>
+<td>Tabla comprimida en formato binario, muy rápida</td>
+<td>Python, Spark, DuckDB</td>
+<td>Mucho, en datos grandes</td>
+</tr>
+<tr>
+<td><code>.sql</code></td>
+<td>Una consulta o script de SQL (texto)</td>
+<td>Editor de código</td>
+<td>Siempre</td>
+</tr>
+<tr>
+<td><code>.py</code></td>
+<td>Un programa de Python (texto)</td>
+<td>Editor de código</td>
+<td>Siempre</td>
+</tr>
+<tr>
+<td><code>.txt</code>, <code>.log</code></td>
+<td>Texto plano; los <code>.log</code> guardan lo que pasó en un programa</td>
+<td>Editor de texto</td>
+<td>Muy seguido (para encontrar errores)</td>
+</tr>
+<tr>
+<td><code>.xlsx</code></td>
+<td>Planilla de Excel</td>
+<td>Excel, Google Sheets</td>
+<td>A veces (llegan de las áreas de negocio)</td>
+</tr>
+<tr>
+<td><code>.zip</code>, <code>.gz</code></td>
+<td>Archivo comprimido: uno o varios archivos &quot;aplastados&quot; para ocupar menos</td>
+<td>Descompresor</td>
+<td>Seguido</td>
+</tr>
+<tr>
+<td><code>.md</code></td>
+<td>Texto con formato simple (Markdown), como los README</td>
+<td>Editor, GitHub</td>
+<td>Siempre</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Windows esconde las extensiones</div>
+
+<p>Windows, por defecto, <strong>oculta</strong> las extensiones: ves <code>ventas</code> en vez de <code>ventas.csv</code>. Para trabajar con datos conviene verlas siempre. En el Explorador de archivos: menú <strong>Ver → Mostrar → Extensiones de nombre de archivo</strong>. En macOS: Finder → Ajustes → Avanzado → <em>Mostrar todas las extensiones</em>.</p>
+</div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Texto o binario</div>
+
+<p>Hay archivos de <strong>texto</strong> (<code>.csv</code>, <code>.json</code>, <code>.py</code>, <code>.sql</code>, <code>.md</code>, <code>.log</code>): si los abres con un editor de texto, los puedes leer. Y hay archivos <strong>binarios</strong> (<code>.parquet</code>, <code>.xlsx</code>, <code>.zip</code>, <code>.jpg</code>): si los abres con un editor de texto ves símbolos sin sentido, porque necesitan un programa que sepa interpretarlos. No están rotos: están en otro idioma.</p>
+</div>
+
+
+<h2>Carpetas: cajas dentro de cajas</h2>
+<p>Una <strong>carpeta</strong> (o <em>directorio</em>, que es lo mismo) es un contenedor de archivos y de <strong>otras carpetas</strong>. Así se arma un árbol:</p>
+<pre data-norun><code class="language-text">/                       ← la raíz: la carpeta que contiene todo
+└── home
+    └── ana             ← tu carpeta personal
+        ├── datos
+        │   ├── clientes.csv
+        │   └── 2024
+        │       └── diciembre
+        │           └── ventas.csv
+        └── informe.md</code></pre>
+<p>Cada carpeta puede tener adentro archivos y más carpetas, sin límite. Al principio de todo hay una carpeta que contiene a todas las demás: la <strong>raíz</strong>.</p>
+<h2>Rutas: la dirección de un archivo</h2>
+<p>Una <strong>ruta</strong> (<em>path</em>, en inglés) es la dirección completa para llegar a un archivo, carpeta por carpeta, como la dirección de una casa: país, ciudad, calle, número.</p>
+<pre data-norun><code class="language-text">/home/ana/datos/2024/diciembre/ventas.csv
+│ │    │   │     │    │         └── el archivo
+│ │    │   │     │    └── carpeta &quot;diciembre&quot;
+│ │    │   │     └── carpeta &quot;2024&quot;
+│ │    │   └── carpeta &quot;datos&quot;
+│ │    └── carpeta personal de ana
+│ └── carpeta &quot;home&quot;
+└── la raíz</code></pre>
+<p>Cada <code>/</code> separa una carpeta de la siguiente. Se lee de izquierda a derecha: &quot;desde la raíz, entra a <code>home</code>, después a <code>ana</code>, después a <code>datos</code>…&quot;.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 En Windows las rutas se ven distinto</div>
+
+<p>En Windows la raíz es una letra de disco y las barras van al revés: <code>C:\Users\Ana\datos\ventas.csv</code>. La idea es exactamente la misma. En este curso usamos el estilo de Linux y macOS (<code>/</code>), que es el que usan los servidores, la nube y las herramientas de datos. Si usas Windows, vas a trabajar con <strong>WSL</strong>, que es un Linux dentro de Windows (lo vemos en el módulo &quot;Desde tu computadora&quot;).</p>
+</div>
+
+
+<h3>Ruta absoluta y ruta relativa</h3>
+<ul>
+<li>Una ruta <strong>absoluta</strong> empieza desde la raíz (<code>/</code>) y funciona desde cualquier lugar: <code>/home/ana/datos/clientes.csv</code>.</li>
+<li>Una ruta <strong>relativa</strong> empieza desde <strong>donde estás parado</strong>: si ya estás en <code>/home/ana</code>, el mismo archivo es <code>datos/clientes.csv</code>.</li>
+</ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Indicaciones para llegar</div>
+
+<p>La absoluta es la dirección completa: &quot;Av. Libertador 1200, Buenos Aires, Argentina&quot;. Sirve desde cualquier parte del mundo. La relativa es &quot;dos cuadras a la derecha&quot;: solo sirve si sabes desde dónde sale la persona.</p>
+</div>
+
+
+<p>Tres atajos que vas a ver todo el tiempo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Símbolo</th>
+<th>Significa</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>.</code></td>
+<td>La carpeta donde estás</td>
+<td><code>./script.sh</code> = &quot;el script que está acá&quot;</td>
+</tr>
+<tr>
+<td><code>..</code></td>
+<td>La carpeta de arriba (la &quot;madre&quot;)</td>
+<td><code>cd ..</code> = subir un nivel</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>Tu carpeta personal</td>
+<td><code>~/datos</code> = <code>/home/ana/datos</code></td>
+</tr>
+</tbody></table></div>
+<h2>Archivos ocultos</h2>
+<p>Los archivos y carpetas cuyo nombre <strong>empieza con un punto</strong> (<code>.bashrc</code>, <code>.git</code>, <code>.env</code>) están <strong>ocultos</strong>: no se muestran a menos que lo pidas. No son secretos; se ocultan porque son configuración que no se toca todos los días y estorbaría verlos. En datos vas a cruzarte seguido con tres:</p>
+<ul>
+<li><code>.git</code>: la carpeta donde Git guarda toda la historia de un proyecto.</li>
+<li><code>.env</code>: un archivo con contraseñas y claves. <strong>Nunca</strong> se sube a internet.</li>
+<li><code>.venv</code>: el &quot;entorno virtual&quot; de un proyecto de Python (sus librerías).</li>
+</ul>
+<h2>Comprimir y descomprimir</h2>
+<p>Un <code>.zip</code> es una caja que contiene uno o varios archivos &quot;aplastados&quot; para que ocupen menos y viajen juntos. Para usarlos hay que <strong>descomprimirlos</strong> (en Windows: clic derecho → <em>Extraer todo</em>; en macOS: doble clic; en la terminal: <code>unzip archivo.zip</code>). Los datos suelen llegar comprimidos: un CSV de 1 GB puede ocupar 150 MB en <code>.zip</code> o <code>.gz</code>.</p>
+<h2>Los atajos de teclado que usa todo el mundo</h2>
+<p>Programar es mucho teclado. Estos atajos te ahorran horas (en macOS, cambia <strong>Ctrl</strong> por <strong>Cmd</strong>):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Atajo</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Ctrl + C / Ctrl + V</td>
+<td>Copiar / pegar</td>
+</tr>
+<tr>
+<td>Ctrl + X</td>
+<td>Cortar</td>
+</tr>
+<tr>
+<td>Ctrl + Z / Ctrl + Y</td>
+<td>Deshacer / rehacer</td>
+</tr>
+<tr>
+<td>Ctrl + A</td>
+<td>Seleccionar todo</td>
+</tr>
+<tr>
+<td>Ctrl + F</td>
+<td>Buscar en la página o el archivo</td>
+</tr>
+<tr>
+<td>Ctrl + S</td>
+<td>Guardar</td>
+</tr>
+<tr>
+<td>Alt + Tab</td>
+<td>Cambiar de ventana</td>
+</tr>
+<tr>
+<td>Ctrl + Enter</td>
+<td>En este sitio: <strong>ejecutar</strong> el código del editor</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ En la terminal, Ctrl + C no copia</div>
+
+<p>En la terminal, <strong>Ctrl + C detiene el programa que se está ejecutando</strong>. Para copiar en la terminal se usa Ctrl + Shift + C (y Ctrl + Shift + V para pegar). Parece raro, pero es así por una razón histórica: Ctrl + C ya significaba &quot;cancelar&quot; mucho antes de que existiera el copiar y pegar.</p>
+</div>
+
+
+<h2>Practica</h2>
+<p>Los ejercicios con terminal se escriben en la terminal que aparece debajo del enunciado. No te preocupes por romper algo: es una terminal de práctica.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>&quot;No encuentro el archivo&quot;</strong>: casi siempre es una ruta relativa usada desde otra carpeta. Revisa dónde estás.</li>
+<li><strong>Llamar <code>ventas</code> a un archivo que en realidad es <code>ventas.csv.txt</code></strong>: pasa cuando Windows esconde las extensiones. Actívalas.</li>
+<li><strong>Espacios y tildes en los nombres</strong> (<code>Ventas Diciembre Año.csv</code>): funcionan, pero en la terminal y en el código te van a complicar. Usa minúsculas, sin tildes y con guion bajo: <code>ventas_diciembre_2024.csv</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Una carpeta compartida</div>
+
+<p>Ahora que sabes qué son una carpeta, una ruta, un archivo y una extensión, mira cómo aparecen juntos en un mensaje de trabajo. Imagina que ya trabajas en datos y Martín, tu líder, te escribe:</p>
+<blockquote>
+<p>&quot;Te dejé el archivo de ventas en la carpeta compartida, en <code>datos/2024/diciembre/ventas.csv</code>. Ábrelo y dime cuántas filas tiene.&quot;</p>
+</blockquote>
+<p>Con lo que viste puedes leerlo entero: <code>datos</code>, <code>2024</code> y <code>diciembre</code> son carpetas, una dentro de otra; <code>ventas.csv</code> es el archivo, y su extensión <code>.csv</code> te dice que es una tabla de texto separada por comas.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p>En un equipo de datos, la forma de nombrar carpetas y archivos se acuerda entre todos (por ejemplo <code>datos/AAAA/MM/DD/tabla.parquet</code>). Esa convención hace que los programas encuentren solos los archivos de cada día. Respetarla es parte del trabajo.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cero-tu-computadora">▶ Hacer los ejercicios</a>
+<nav class="nav"><span></span><a href="cero-leer-errores.html">Los errores son tus amigos - cómo leer cualquier mensaje de error →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

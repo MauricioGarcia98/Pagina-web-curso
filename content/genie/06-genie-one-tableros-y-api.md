@@ -12,6 +12,10 @@ autoevaluacion: ¿Sabes qué permisos necesita un usuario para usar un agente co
 El agente de ventas funciona y tiene 95 % de exactitud en los benchmarks. Ahora hay tres pedidos: que lo usen los 40 vendedores (cada uno viendo solo su región), que aparezca junto al tablero de ventas que ya miran cada mañana, y que el equipo de producto lo integre en la aplicación interna de la empresa. Cada pedido usa una pieza distinta.
 :::
 
+:::analogia En palabras simples
+Un Genie Agent sirve de poco si nadie lo encuentra. Esta lección muestra las puertas para llegar a él: desde Genie One, dentro de un tablero o desde otra aplicación a través de su API.
+:::
+
 ## Compartir un agente
 
 Con el botón **Share** eliges usuarios o grupos (o **All account users**) y un nivel de permiso:

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIF-C01 - AI Practitioner - IA, IA generativa e IA responsable en AWS · Academia de Datos</title><meta name="description" content="Los cinco dominios del AWS Certified AI Practitioner - conceptos de IA, ML y aprendizaje profundo, tipos de aprendizaje y métricas, el ciclo de vida de ML, fundamentos de IA generativa (tokens, embeddings, transformers, difusión), cómo elegir y adaptar un modelo fundacional (prompting, RAG, fine-tuning), los servicios de IA de AWS, IA responsable y seguridad y gobierno."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-aif-fundamentos-ia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="AIF-C01 - AI Practitioner - IA, IA generativa e IA responsable en AWS · Academia de Datos"><meta property="og:description" content="Los cinco dominios del AWS Certified AI Practitioner - conceptos de IA, ML y aprendizaje profundo, tipos de aprendizaje y métricas, el ciclo de vida de ML, fundamentos de IA generativa (tokens, embeddings, transformers, difusión), cómo elegir y adaptar un modelo fundacional (prompting, RAG, fine-tuning), los servicios de IA de AWS, IA responsable y seguridad y gobierno."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-aif-fundamentos-ia.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-aws">🥇 Certificaciones AWS: Data Engineer e IA</a> · Intermedio · 65 min</div>
+<h1>AIF-C01 - AI Practitioner - IA, IA generativa e IA responsable en AWS</h1><p class="resumen">Los cinco dominios del AWS Certified AI Practitioner - conceptos de IA, ML y aprendizaje profundo, tipos de aprendizaje y métricas, el ciclo de vida de ML, fundamentos de IA generativa (tokens, embeddings, transformers, difusión), cómo elegir y adaptar un modelo fundacional (prompting, RAG, fine-tuning), los servicios de IA de AWS, IA responsable y seguridad y gobierno.</p>
+<a class="cta" href="../index.html#/l/cert-aws-aif-fundamentos-ia">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir IA, ML, aprendizaje profundo e IA generativa</li><li>Elegir el tipo de aprendizaje y la métrica según el problema</li><li>Comparar prompting, RAG, fine-tuning y preentrenamiento continuo por costo y esfuerzo</li><li>Elegir el servicio de IA administrado de AWS para cada caso</li><li>Aplicar principios de IA responsable y las herramientas de AWS para medir sesgo y explicar modelos</li><li>Explicar el modelo de responsabilidad compartida en IA</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Lucía es analista de producto en la empresa de Tomás. No programa modelos, pero debe decidir si un asistente para choferes usa Amazon Bedrock o un servicio ya armado, explicar por qué el modelo de demoras se equivoca más en una región y defender ante legales que el sistema es responsable. La AI Practitioner es la certificación para ella: conceptos, criterio y servicios, sin programar.</p>
+</div>
+
+
+<h2>Dominio 1 (20 %): fundamentos de IA y ML</h2>
+<ul>
+<li><strong>IA</strong> ⊃ <strong>ML</strong> (aprende de datos) ⊃ <strong>aprendizaje profundo</strong> (redes neuronales de muchas capas) ⊃ <strong>IA generativa</strong> (crea contenido nuevo).</li>
+<li><strong>Tipos de aprendizaje</strong>:<ul>
+<li><strong>Supervisado</strong>: con etiquetas. <strong>Clasificación</strong> (¿es fraude?) y <strong>regresión</strong> (¿cuántos días tarda?).</li>
+<li><strong>No supervisado</strong>: sin etiquetas. <strong>Clustering</strong> (segmentar clientes), detección de anomalías, reducción de dimensiones.</li>
+<li><strong>Por refuerzo</strong>: un agente aprende por recompensas (robótica, rutas). <strong>RLHF</strong> usa preferencias humanas para alinear LLMs.</li>
+</ul>
+</li>
+<li><strong>Inferencia</strong> en tiempo real (una predicción por solicitud, baja latencia) o por <strong>lotes</strong> (muchas predicciones programadas, más barato).</li>
+<li><strong>Cuándo no usar ML</strong>: si una regla fija resuelve el problema, si se necesita un resultado exacto y determinista, si no hay datos, o si el costo supera el beneficio.</li>
+</ul>
+<h3>Métricas</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Métricas</th>
+</tr>
+</thead><tbody><tr>
+<td>Clasificación</td>
+<td><strong>Exactitud</strong> (engaña con clases desbalanceadas), <strong>precisión</strong> (de lo que predije positivo, cuánto lo era), <strong>recall</strong> (de lo positivo, cuánto encontré), <strong>F1</strong>, <strong>AUC-ROC</strong>, matriz de confusión</td>
+</tr>
+<tr>
+<td>Regresión</td>
+<td><strong>MAE</strong>, <strong>RMSE</strong> (penaliza errores grandes), <strong>R²</strong></td>
+</tr>
+<tr>
+<td>Negocio</td>
+<td>ROI, costo por predicción, tasa de conversión</td>
+</tr>
+</tbody></table></div>
+<p>Si el falso negativo es caro (no detectar un fraude o una enfermedad), se prioriza el <strong>recall</strong>. Si el falso positivo es caro (bloquear a un buen cliente), la <strong>precisión</strong>.</p>
+<ul>
+<li><strong>Sobreajuste</strong> (<em>overfitting</em>): muy bien en entrenamiento, mal en datos nuevos (alta varianza). Se reduce con más datos, regularización, menos complejidad o <em>early stopping</em>. <strong>Subajuste</strong>: mal en todo (alto sesgo).</li>
+</ul>
+<h3>El ciclo de vida de ML</h3>
+<p>Objetivo de negocio → recolección y preparación de datos (<strong>SageMaker Data Wrangler</strong>, <strong>Feature Store</strong>) → entrenamiento y ajuste de hiperparámetros → evaluación → despliegue (<strong>endpoints</strong>) → monitoreo (<strong>Model Monitor</strong>) → reentrenamiento. <strong>SageMaker Canvas</strong> permite crear modelos <strong>sin código</strong>; <strong>JumpStart</strong> ofrece modelos preentrenados.</p>
+<h2>Dominio 2 (24 %): fundamentos de IA generativa</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Token</strong></td>
+<td>Unidad de texto que procesa el modelo (≈ ¾ de palabra en inglés). Se paga por token de entrada y de salida</td>
+</tr>
+<tr>
+<td><strong>Ventana de contexto</strong></td>
+<td>Cuántos tokens entran en una solicitud</td>
+</tr>
+<tr>
+<td><strong>Embedding</strong></td>
+<td>Vector numérico que representa el significado; textos parecidos quedan cerca</td>
+</tr>
+<tr>
+<td><strong>Transformer</strong></td>
+<td>Arquitectura con <strong>atención</strong> que relaciona cada token con los demás; base de los LLM</td>
+</tr>
+<tr>
+<td><strong>Modelo de difusión</strong></td>
+<td>Genera imágenes partiendo de ruido y eliminándolo paso a paso</td>
+</tr>
+<tr>
+<td><strong>Multimodal</strong></td>
+<td>Entiende o genera texto, imagen, audio o video</td>
+</tr>
+<tr>
+<td><strong>Modelo fundacional (FM)</strong></td>
+<td>Modelo grande preentrenado con datos amplios, adaptable a muchas tareas</td>
+</tr>
+<tr>
+<td><strong>Alucinación</strong></td>
+<td>Respuesta plausible pero falsa</td>
+</tr>
+</tbody></table></div>
+<p><strong>Parámetros de inferencia</strong>: <strong>temperatura</strong> (más alta = más variada y creativa; más baja = más determinista), <strong>top-p</strong> y <strong>top-k</strong> (limitan qué tokens se consideran), <strong>máximo de tokens</strong> y <strong>secuencias de parada</strong>.</p>
+<p><strong>Ventajas</strong>: adaptabilidad, rapidez para prototipar, interfaz natural. <strong>Limitaciones</strong>: alucinaciones, no determinismo, interpretabilidad baja, costo por token, conocimiento con fecha de corte.</p>
+<h2>Dominio 3 (28 %): aplicaciones de modelos fundacionales</h2>
+<h3>Elegir un modelo</h3>
+<p>Criterios: <strong>costo</strong>, <strong>latencia</strong>, <strong>tamaño del contexto</strong>, <strong>modalidad</strong>, idiomas, calidad en la tarea (evaluación), personalización disponible y licencias. En <strong>Amazon Bedrock</strong> hay modelos de Anthropic (Claude), Amazon (<strong>Nova</strong>, Titan Embeddings), Meta (Llama), Mistral, Cohere y otros, con una sola API.</p>
+<h3>Adaptar un modelo: de lo más barato a lo más caro</h3>
+<figure class="diagrama"><figcaption>Cómo adaptar un modelo fundacional</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Técnica</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Ingeniería de prompts</strong> (zero-shot, few-shot, cadena de pensamiento, rol, plantillas)</td>
+<td>Siempre primero</td>
+</tr>
+<tr>
+<td><strong>RAG</strong> (Retrieval Augmented Generation) con <strong>Bedrock Knowledge Bases</strong></td>
+<td>El modelo necesita <strong>datos propios o actuales</strong>, con citas; los datos cambian seguido</td>
+</tr>
+<tr>
+<td><strong>Fine-tuning</strong></td>
+<td>Cambiar el <strong>estilo, formato o comportamiento</strong> en una tarea con ejemplos etiquetados (pares prompt–respuesta)</td>
+</tr>
+<tr>
+<td><strong>Preentrenamiento continuo</strong></td>
+<td>Adaptar el modelo al <strong>vocabulario de un dominio</strong> con mucho texto sin etiquetar</td>
+</tr>
+<tr>
+<td><strong>Destilación</strong></td>
+<td>Un modelo chico aprende de uno grande: menos costo y latencia</td>
+</tr>
+</tbody></table></div>
+<p><strong>Agentes</strong> (<strong>Amazon Bedrock Agents</strong>, <strong>Bedrock AgentCore</strong>): el modelo planifica, llama herramientas (APIs, Lambda) y consulta bases de conocimiento para completar tareas de varios pasos.</p>
+<p><strong>Riesgos de prompts</strong>: inyección de prompt, <em>jailbreak</em>, fuga del prompt de sistema, envenenamiento de datos.</p>
+<p><strong>Evaluar</strong>: evaluación humana, conjuntos de referencia y métricas automáticas (<strong>ROUGE</strong> para resúmenes, <strong>BLEU</strong> para traducción, <strong>BERTScore</strong> para similitud semántica), <strong>Bedrock Model Evaluation</strong> (automática, humana o con un modelo como juez).</p>
+<h3>Los servicios de IA de AWS</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Amazon Bedrock</strong></td>
+<td>Modelos fundacionales por API, Knowledge Bases, Agents, Guardrails, evaluación</td>
+</tr>
+<tr>
+<td><strong>Amazon Q Business</strong></td>
+<td>Asistente generativo sobre los datos de la empresa (conectores a SharePoint, S3, Confluence)</td>
+</tr>
+<tr>
+<td><strong>Amazon Q Developer</strong></td>
+<td>Asistente para programar y operar AWS</td>
+</tr>
+<tr>
+<td><strong>SageMaker AI</strong></td>
+<td>Construir, entrenar y desplegar modelos propios; JumpStart, Canvas</td>
+</tr>
+<tr>
+<td><strong>Amazon Comprehend</strong></td>
+<td>NLP: entidades, sentimiento, PII, clasificación de texto</td>
+</tr>
+<tr>
+<td><strong>Amazon Textract</strong></td>
+<td>Extraer texto, formularios y tablas de documentos</td>
+</tr>
+<tr>
+<td><strong>Amazon Rekognition</strong></td>
+<td>Análisis de imágenes y video (objetos, rostros, moderación)</td>
+</tr>
+<tr>
+<td><strong>Amazon Transcribe / Polly</strong></td>
+<td>Voz a texto / texto a voz</td>
+</tr>
+<tr>
+<td><strong>Amazon Translate</strong></td>
+<td>Traducción</td>
+</tr>
+<tr>
+<td><strong>Amazon Lex</strong></td>
+<td>Chatbots conversacionales (voz y texto)</td>
+</tr>
+<tr>
+<td><strong>Amazon Personalize</strong></td>
+<td>Recomendaciones</td>
+</tr>
+<tr>
+<td><strong>Amazon Kendra</strong></td>
+<td>Búsqueda empresarial inteligente</td>
+</tr>
+<tr>
+<td><strong>Amazon Fraud Detector</strong> / <strong>Forecast</strong></td>
+<td>Fraude / pronósticos (servicios heredados; para nuevos casos se usa SageMaker)</td>
+</tr>
+<tr>
+<td><strong>Amazon A2I</strong></td>
+<td>Revisión humana de predicciones</td>
+</tr>
+</tbody></table></div>
+<h2>Dominio 4 (14 %): IA responsable</h2>
+<ul>
+<li>Principios: <strong>equidad</strong>, <strong>explicabilidad</strong>, <strong>privacidad y seguridad</strong>, <strong>robustez</strong>, <strong>gobernanza</strong>, <strong>transparencia</strong>, <strong>veracidad</strong>, <strong>seguridad</strong>.</li>
+<li><strong>Sesgo</strong> en los datos (muestras no representativas) o en el modelo. Se mide con <strong>SageMaker Clarify</strong> (sesgo antes y después de entrenar, y <strong>explicabilidad</strong> con valores SHAP).</li>
+<li><strong>Guardrails for Amazon Bedrock</strong>: filtros de contenido dañino, temas denegados, filtros de palabras, <strong>detección y enmascarado de PII</strong>, <strong>verificación de grounding</strong> contextual y <strong>comprobaciones de razonamiento automatizado</strong>.</li>
+<li><strong>SageMaker Model Cards</strong> documentan el uso previsto, los datos y los riesgos; <strong>AI Service Cards</strong> describen los servicios de AWS.</li>
+<li><strong>Augmented AI (A2I)</strong>: humanos revisan predicciones de baja confianza.</li>
+<li>Modelos transparentes (árboles, regresión) frente a cajas negras (redes profundas): equilibrio entre rendimiento e interpretabilidad.</li>
+</ul>
+<h2>Dominio 5 (14 %): seguridad, cumplimiento y gobierno</h2>
+<ul>
+<li><strong>Responsabilidad compartida</strong>: AWS protege la infraestructura; el cliente, sus datos, accesos, prompts y configuraciones.</li>
+<li><strong>IAM</strong> con permisos mínimos, <strong>KMS</strong> para cifrar, <strong>PrivateLink</strong> para usar Bedrock sin internet, <strong>Macie</strong> para PII, <strong>CloudTrail</strong> para auditoría.</li>
+<li>En Bedrock, <strong>los prompts y respuestas no se usan para entrenar los modelos</strong> de los proveedores ni se comparten con ellos.</li>
+<li><strong>Linaje y origen de datos</strong>: SageMaker Model Registry, ML Lineage Tracking, citas de fuentes.</li>
+<li><strong>Cumplimiento</strong>: <strong>AWS Artifact</strong> (informes de cumplimiento de AWS), <strong>AWS Audit Manager</strong>, <strong>AWS Config</strong>, <strong>Trusted Advisor</strong>; normas ISO 42001 y el EU AI Act.</li>
+</ul>
+<div class="callout callout-examen"><div class="callout-title">🏅 Reglas rápidas</div>
+
+<ul>
+<li>&quot;Datos propios que cambian a diario, con citas&quot; → <strong>RAG / Knowledge Bases</strong>.</li>
+<li>&quot;Que responda siempre con el formato y tono de la marca&quot; → <strong>fine-tuning</strong> (si el prompting no alcanza).</li>
+<li>&quot;Detectar sesgo y explicar predicciones&quot; → <strong>SageMaker Clarify</strong>.</li>
+<li>&quot;Bloquear temas y ocultar PII en un chatbot de Bedrock&quot; → <strong>Guardrails</strong>.</li>
+<li>&quot;Analistas sin código crean un modelo&quot; → <strong>SageMaker Canvas</strong>.</li>
+<li>&quot;Respuestas más creativas&quot; → subir la <strong>temperatura</strong>.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-aws-aif-fundamentos-ia">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-aws-dea-operacion-seguridad.html">← DEA-C01 - Operación, monitoreo, seguridad y gobierno</a><a href="cert-aws-aip-bedrock-profesional.html">AIP-C01 - Generative AI Developer Professional con Amazon Bedrock →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

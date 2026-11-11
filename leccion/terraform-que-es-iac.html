@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infraestructura como código y tu primer terraform apply · Academia de Datos</title><meta name="description" content="Por qué la infraestructura se escribe como código, cómo piensa Terraform (declarativo, proveedores, estado) y el ciclo init → plan → apply → destroy en un laboratorio real."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-que-es-iac.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Infraestructura como código y tu primer terraform apply · Academia de Datos"><meta property="og:description" content="Por qué la infraestructura se escribe como código, cómo piensa Terraform (declarativo, proveedores, estado) y el ciclo init → plan → apply → destroy en un laboratorio real."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-que-es-iac.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#terraform">🏗️ Terraform: infraestructura como código</a> · Intermedio · 50 min</div>
+<h1>Infraestructura como código y tu primer terraform apply</h1><p class="resumen">Por qué la infraestructura se escribe como código, cómo piensa Terraform (declarativo, proveedores, estado) y el ciclo init → plan → apply → destroy en un laboratorio real.</p>
+<a class="cta" href="../index.html#/l/terraform-que-es-iac">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué problemas resuelve la infraestructura como código frente a crear recursos a mano</li><li>Describir las piezas de Terraform: proveedor, recurso, estado, plan</li><li>Ejecutar el ciclo init, plan, apply y destroy e interpretar cada salida</li><li>Verificar que lo creado con Terraform existe en la nube y que el estado lo refleja</li></ul>
+<h2>El problema de los clics</h2>
+<p>Crear recursos desde la consola web es cómodo la primera vez. Después aparecen los problemas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>No se puede repetir</strong></td>
+<td>Crear el entorno de pruebas &quot;igual que producción&quot; lleva días y siempre queda algo distinto</td>
+</tr>
+<tr>
+<td><strong>No hay historia</strong></td>
+<td>Nadie sabe quién cambió la retención del bucket ni cuándo</td>
+</tr>
+<tr>
+<td><strong>No hay revisión</strong></td>
+<td>Un clic equivocado en producción no lo revisó nadie antes</td>
+</tr>
+<tr>
+<td><strong>Errores silenciosos</strong></td>
+<td>Un bucket público &quot;por un ratito&quot; que quedó así meses</td>
+</tr>
+<tr>
+<td><strong>Se pierde el conocimiento</strong></td>
+<td>La persona que armó todo se fue de la empresa</td>
+</tr>
+</tbody></table></div>
+<p>La <strong>infraestructura como código</strong> (IaC, <em>infrastructure as code</em>) resuelve todo esto con una idea simple: la infraestructura se <strong>describe en archivos de texto</strong>, que se guardan en Git, se revisan en pull requests y los ejecuta una herramienta. Si el archivo dice que existen tres buckets, la herramienta se asegura de que existan tres buckets.</p>
+<h2>Cómo piensa Terraform</h2>
+<p><strong>Terraform</strong> (de HashiCorp; su versión libre se llama <strong>OpenTofu</strong>) es la herramienta de IaC más usada. Funciona con todas las nubes y con cientos de servicios (Databricks, Snowflake, GitHub, Datadog…).</p>
+<h3>Declarativo, no imperativo</h3>
+<p>Con la CLI de una nube das <strong>órdenes</strong>: &quot;crea este bucket&quot;. Si lo ejecutas dos veces, la segunda falla porque ya existe. Con Terraform <strong>describes el resultado</strong> que quieres: &quot;tiene que existir este bucket&quot;. Terraform compara lo que describes con lo que existe y hace <strong>solo lo que falta</strong>. Si lo ejecutas dos veces, la segunda no hace nada.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El plano de una casa</div>
+
+<p>Las órdenes de la CLI son como darle instrucciones a un albañil ladrillo por ladrillo. Terraform es como entregarle <strong>el plano</strong>: él compara el plano con lo que ya está construido y hace solo lo que falta. Si cambias el plano (una ventana más), construye solo esa ventana.</p>
+</div>
+
+
+<h3>Las piezas</h3>
+<figure class="diagrama"><figcaption>Cómo trabaja Terraform: compara tu código con el estado y la nube, y calcula un plan</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Proveedor</strong> (<em>provider</em>)</td>
+<td>El plugin que sabe hablar con una plataforma: <code>aws</code>, <code>azurerm</code>, <code>google</code>, <code>databricks</code>. Se descarga con <code>terraform init</code></td>
+</tr>
+<tr>
+<td><strong>Recurso</strong> (<em>resource</em>)</td>
+<td>Algo que existe en la plataforma: un bucket, una base, un rol</td>
+</tr>
+<tr>
+<td><strong>Estado</strong> (<em>state</em>)</td>
+<td>Un archivo JSON donde Terraform anota qué creó y con qué atributos. Es su memoria</td>
+</tr>
+<tr>
+<td><strong>Plan</strong></td>
+<td>La lista de cambios que Terraform haría: crear, cambiar o borrar</td>
+</tr>
+</tbody></table></div>
+<h2>Tu primer archivo de Terraform</h2>
+<p>Un archivo <code>.tf</code> está escrito en <strong>HCL</strong> (HashiCorp Configuration Language). Este crea un bucket de S3 para la capa bronze del lago:</p>
+<pre><code class="language-hcl"># main.tf
+provider &quot;aws&quot; {
+  region = &quot;us-east-1&quot;
+}
+
+resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
+  bucket = &quot;tienda-lake-bronze&quot;
+
+  tags = {
+    proyecto = &quot;lakehouse&quot;
+    capa     = &quot;bronze&quot;
+  }
+}
+
+output &quot;arn_bronze&quot; {
+  value = aws_s3_bucket.bronze.arn
+}</code></pre>
+<p>Cómo leerlo:</p>
+<ul>
+<li><strong><code>provider &quot;aws&quot;</code></strong> configura el proveedor de AWS: en qué región trabajar.</li>
+<li><strong><code>resource &quot;aws_s3_bucket&quot; &quot;bronze&quot;</code></strong> declara un recurso. <code>aws_s3_bucket</code> es el <strong>tipo</strong> (lo define el proveedor) y <code>bronze</code> es el <strong>nombre local</strong>: cómo lo llamas dentro de tu código. No es el nombre del bucket en AWS.</li>
+<li><strong><code>bucket = &quot;tienda-lake-bronze&quot;</code></strong> es un <strong>argumento</strong>: el nombre real del bucket.</li>
+<li><strong><code>output</code></strong> muestra un valor al terminar. <code>aws_s3_bucket.bronze.arn</code> es una <strong>referencia</strong>: el ARN del bucket, que AWS asigna al crearlo.</li>
+</ul>
+<h2>El ciclo de trabajo</h2>
+<figure class="diagrama"><figcaption>El ciclo de Terraform</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>terraform init</code></td>
+<td>Lee la configuración, descarga los proveedores y prepara el backend del estado</td>
+<td>Al empezar, o cuando agregas un proveedor o un módulo</td>
+</tr>
+<tr>
+<td><code>terraform fmt</code></td>
+<td>Ordena el formato (sangría, alineación)</td>
+<td>Antes de cada commit</td>
+</tr>
+<tr>
+<td><code>terraform validate</code></td>
+<td>Revisa la sintaxis y las referencias, sin tocar la nube</td>
+<td>Antes del plan</td>
+</tr>
+<tr>
+<td><code>terraform plan</code></td>
+<td>Compara código, estado y nube, y muestra los cambios <strong>sin hacerlos</strong></td>
+<td>Siempre antes de aplicar</td>
+</tr>
+<tr>
+<td><code>terraform apply</code></td>
+<td>Muestra el plan, pide confirmación y lo ejecuta</td>
+<td>Para crear o cambiar</td>
+</tr>
+<tr>
+<td><code>terraform destroy</code></td>
+<td>Borra todo lo que este código creó</td>
+<td>Al terminar un laboratorio</td>
+</tr>
+</tbody></table></div>
+<h2>Laboratorio: tu primer lago con Terraform</h2>
+<p>La terminal del curso tiene un <strong>Terraform simulado</strong> que lee tus archivos de verdad y crea los recursos en las nubes simuladas. Abre la terminal (⌨ Terminal) y sigue los pasos.</p>
+<p><strong>1. Prepara la carpeta y las credenciales.</strong> Terraform usa las mismas credenciales que la CLI de AWS:</p>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/lake &amp;&amp; cd ~/infra/lake
+code main.tf</code></pre>
+<p>Pega en el editor el archivo <code>main.tf</code> de arriba y guarda.</p>
+<p><strong>2. Inicializa:</strong></p>
+<pre><code class="language-text">$ terraform init
+Initializing the backend...
+Initializing provider plugins...
+- Finding hashicorp/aws versions matching &quot;latest&quot;...
+- Installing hashicorp/aws v5.82.2...
+- Installed hashicorp/aws v5.82.2 (signed by HashiCorp)
+Terraform has created a lock file .terraform.lock.hcl ...
+Terraform has been successfully initialized!</code></pre>
+<p>Se crearon dos cosas: la carpeta <code>.terraform/</code> (los proveedores descargados; no va a Git) y el archivo <code>.terraform.lock.hcl</code> (las versiones exactas de los proveedores; <strong>sí</strong> va a Git, para que todo el equipo use las mismas).</p>
+<p><strong>3. Mira el plan:</strong></p>
+<pre><code class="language-text">$ terraform plan
+  # aws_s3_bucket.bronze will be created
+  + resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
+      + arn                = (known after apply)
+      + bucket             = &quot;tienda-lake-bronze&quot;
+      + id                 = (known after apply)
+      + tags               = {
+          + &quot;proyecto&quot; = &quot;lakehouse&quot;
+          + &quot;capa&quot;     = &quot;bronze&quot;
+        }
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.</code></pre>
+<p>El <code>+</code> significa &quot;se va a crear&quot;. <code>(known after apply)</code> son valores que recién se conocen cuando AWS crea el recurso, como el ARN. <strong>Leer el plan con atención es la habilidad más importante de Terraform</strong>: es tu última oportunidad de ver un error antes de que ocurra.</p>
+<p><strong>4. Aplica y verifica:</strong></p>
+<pre data-norun><code class="language-bash">terraform apply          # confirma con yes (el simulador confirma solo)
+aws s3 ls                # el bucket existe de verdad
+terraform output         # el ARN</code></pre>
+<p><strong>5. Ejecuta <code>terraform plan</code> otra vez.</strong> Vas a ver <code>No changes. Your infrastructure matches the configuration.</code> Terraform compara lo que pediste con lo que existe, y ya coincide: eso es lo declarativo.</p>
+<p><strong>6. Cambia algo.</strong> Agrega una etiqueta <code>entorno = &quot;dev&quot;</code> en <code>tags</code> y ejecuta <code>terraform plan</code>. Ahora el símbolo es <code>~</code> (<em>update in-place</em>): se modifica sin recrear. Aplica el cambio.</p>
+<p><strong>7. Limpia:</strong></p>
+<pre data-norun><code class="language-bash">terraform destroy
+aws s3 ls                # el bucket ya no existe</code></pre>
+<h2>El archivo de estado</h2>
+<p>Después del <code>apply</code> apareció <code>terraform.tfstate</code>. Es un JSON con todo lo que Terraform creó y sus atributos. Con él, Terraform sabe que <code>aws_s3_bucket.bronze</code> en tu código corresponde al bucket <code>tienda-lake-bronze</code> en AWS.</p>
+<pre data-norun><code class="language-bash">terraform state list                         # qué recursos administra
+terraform state show aws_s3_bucket.bronze    # sus atributos</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Tres reglas del estado</div>
+
+<ol>
+<li><strong>No se edita a mano.</strong> Si hace falta, se usan los comandos <code>terraform state</code>.</li>
+<li><strong>No va a Git</strong>: puede contener contraseñas y llaves. Va en el <code>.gitignore</code>.</li>
+<li><strong>No se pierde.</strong> Si lo pierdes, Terraform &quot;olvida&quot; lo que creó e intenta crearlo de nuevo. En un equipo, el estado vive en un <strong>backend remoto</strong> (un bucket), que se ve en la lección de estado.</li>
+</ol>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Aplicar sin leer el plan</strong>: el <code>-/+</code> (reemplazar) en una base de datos significa <strong>borrarla y crearla de nuevo</strong>, con sus datos.</li>
+<li><strong>Cambiar a mano lo que administra Terraform</strong>: el siguiente <code>apply</code> lo vuelve a dejar como dice el código (o falla). Todo cambio, por código.</li>
+<li><strong>Confundir el nombre local con el nombre real</strong>: en <code>resource &quot;aws_s3_bucket&quot; &quot;bronze&quot;</code>, <code>bronze</code> es solo el nombre en tu código.</li>
+<li><strong>Olvidar el <code>terraform init</code></strong> después de agregar un proveedor o un módulo: aparece &quot;Inconsistent dependency lock file&quot;.</li>
+<li><strong>Subir <code>terraform.tfstate</code> o <code>.terraform/</code> a Git.</strong></li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La plataforma que nadie puede repetir</div>
+
+<p>El lakehouse del Grupo Andino se armó en los primeros meses con clics en la consola de la nube. Ahora hay que crear un entorno de <strong>pruebas</strong> idéntico al de producción, y nadie sabe exactamente qué se creó, con qué configuración ni en qué orden. Martín te dice:</p>
+<blockquote>
+<p>&quot;Esto no puede volver a pasar. Desde hoy, todo recurso de la nube se define en código, en Git, y se crea con Terraform. Empecemos por algo chico: los buckets del lago.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En los equipos de datos, Terraform crea la &quot;plataforma&quot;: buckets, bases, catálogos, permisos, clústeres, jobs de Databricks, cuentas de servicio. Los pipelines (dbt, Spark, Airflow) corren <strong>sobre</strong> esa plataforma.</li>
+<li>El flujo profesional es: cambio en una rama → pull request → la CI ejecuta <code>terraform plan</code> y lo publica como comentario → alguien lo revisa → al hacer merge, la CI ejecuta <code>terraform apply</code>. Nadie aplica cambios de producción desde su computadora.</li>
+<li>Saber leer y escribir Terraform aparece en casi todas las ofertas de data engineer semi senior y senior.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué es el estado de Terraform y dónde lo guardarías?&quot;</div>
+
+<p>Es el archivo donde Terraform registra qué recursos reales corresponden a cada recurso del código, con sus atributos; lo usa para calcular el plan. En un equipo se guarda en un backend remoto (un bucket de S3, GCS o un contenedor de Azure) con bloqueo, versionado y cifrado, para que todos usen el mismo estado, nadie aplique a la vez y se pueda recuperar una versión anterior. Nunca va a Git porque puede contener secretos.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/terraform-que-es-iac">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-referencias-entrevista.html">← Arquitecturas de referencia y la entrevista de diseño</a><a href="terraform-hcl-variables.html">HCL a fondo: variables, locals, outputs, expresiones y for_each →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

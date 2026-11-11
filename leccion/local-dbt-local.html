@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dbt en tu máquina con DuckDB · Academia de Datos</title><meta name="description" content="Arma un proyecto de dbt real en tu computadora sin nube ni servidor, usando DuckDB como warehouse. Instalación con uv, profiles.yml, fuentes que leen CSV, modelos staging y marts, pruebas, documentación y los comandos del día a día, con el mismo flujo que usarías con Snowflake, BigQuery o Databricks."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-dbt-local.html">
+<meta property="og:type" content="article"><meta property="og:title" content="dbt en tu máquina con DuckDB · Academia de Datos"><meta property="og:description" content="Arma un proyecto de dbt real en tu computadora sin nube ni servidor, usando DuckDB como warehouse. Instalación con uv, profiles.yml, fuentes que leen CSV, modelos staging y marts, pruebas, documentación y los comandos del día a día, con el mismo flujo que usarías con Snowflake, BigQuery o Databricks."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-dbt-local.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Intermedio · 60 min</div>
+<h1>dbt en tu máquina con DuckDB</h1><p class="resumen">Arma un proyecto de dbt real en tu computadora sin nube ni servidor, usando DuckDB como warehouse. Instalación con uv, profiles.yml, fuentes que leen CSV, modelos staging y marts, pruebas, documentación y los comandos del día a día, con el mismo flujo que usarías con Snowflake, BigQuery o Databricks.</p>
+<a class="cta" href="../index.html#/l/local-dbt-local">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Instalar dbt con el adaptador de DuckDB en un entorno de uv</li><li>Configurar profiles.yml y explicar qué separa del dbt_project.yml</li><li>Declarar fuentes y escribir modelos staging y marts con source() y ref()</li><li>Agregar pruebas y documentación en schema.yml y ejecutarlas</li><li>Usar dbt run, test, build, compile y docs con selección de modelos</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Correr dbt en tu computadora es como ensayar una obra de teatro en casa antes del estreno: usas DuckDB como escenario de prueba, gratis y rápido, y cuando todo sale bien, el mismo proyecto funciona en el warehouse de la empresa.</p>
+</div>
+
+
+<h2>Cómo se arma dbt en tu máquina</h2>
+<figure class="diagrama"><figcaption>dbt local: el mismo proyecto, otro adaptador</figcaption></figure>
+
+
+<p>El <strong>código</strong> del proyecto (modelos, pruebas, <code>dbt_project.yml</code>) es igual para todos y va a Git. <strong>Dónde</strong> se ejecuta lo dice el <code>profiles.yml</code>, que es personal (tiene credenciales) y vive en <code>~/.dbt/</code>, fuera del repositorio. Cambiar de DuckDB a BigQuery es cambiar de <em>target</em>, no de código.</p>
+<h2>1. Instalar</h2>
+<pre data-norun><code class="language-bash">uv init rapido-dbt &amp;&amp; cd rapido-dbt
+uv add dbt-duckdb              # trae dbt-core y el adaptador de DuckDB
+uv run dbt --version</code></pre>
+<p>(Con pip clásico: <code>pip install dbt-duckdb</code> dentro de un entorno virtual.) Para trabajar sin escribir <code>uv run</code> cada vez, activa el entorno: <code>source .venv/bin/activate</code>.</p>
+<h2>2. Crear el proyecto y el perfil</h2>
+<pre data-norun><code class="language-bash">dbt init rapido_dbt            # pregunta el adaptador: elige duckdb
+cd rapido_dbt</code></pre>
+<p>El perfil (<code>~/.dbt/profiles.yml</code>):</p>
+<pre><code class="language-yaml">rapido_dbt:                    # el mismo nombre que &quot;profile:&quot; en dbt_project.yml
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: rapido.duckdb      # el archivo de la base, en la carpeta del proyecto
+      threads: 4
+    prod:
+      type: bigquery           # lo que usa la CI (con su propia autenticación)
+      method: oauth
+      project: rapido-datos-prod
+      dataset: analytics
+      threads: 8</code></pre>
+<pre data-norun><code class="language-bash">dbt debug                      # comprueba el proyecto, el perfil y la conexión</code></pre>
+<h2>3. Fuentes: los CSV como tablas</h2>
+<p>Copia los datos de muestra a <code>data/</code> y decláralos como <strong>fuentes</strong>. Con dbt-duckdb, una fuente puede apuntar directo a un archivo con <code>external_location</code>:</p>
+<pre><code class="language-yaml"># models/staging/sources.yml
+version: 2
+
+sources:
+  - name: app
+    meta:
+      external_location: &quot;data/{name}.csv&quot;     # {name} = el nombre de la tabla
+    tables:
+      - name: delivery_pedidos
+      - name: delivery_restaurantes</code></pre>
+<h2>4. Modelos: staging y marts</h2>
+<pre data-norun><code class="language-sql">-- models/staging/stg_rapido_pedidos.sql
+{{ config(materialized='view') }}
+
+select
+    pedido_id,
+    restaurante_id,
+    ciudad,
+    cast(creado as timestamp)    as creado,
+    cast(entregado as timestamp) as entregado,
+    estado,
+    subtotal
+from {{ source('app', 'delivery_pedidos') }}</code></pre>
+<pre data-norun><code class="language-sql">-- models/marts/mart_tiempos_ciudad.sql
+{{ config(materialized='table') }}
+
+select
+    ciudad,
+    count(*)                                                   as entregados,
+    round(avg(date_diff('minute', creado, entregado)), 1)      as min_promedio
+from {{ ref('stg_rapido_pedidos') }}
+where estado = 'entregado'
+group by ciudad</code></pre>
+<ul>
+<li><code>source(&#39;app&#39;, &#39;delivery_pedidos&#39;)</code> → la fuente declarada en el YAML.</li>
+<li><code>ref(&#39;stg_rapido_pedidos&#39;)</code> → otro modelo. Con los <code>ref</code>, dbt arma el <strong>grafo</strong> y sabe que primero va staging y después el mart.</li>
+</ul>
+<h2>5. Pruebas y documentación</h2>
+<pre><code class="language-yaml"># models/marts/schema.yml
+version: 2
+
+models:
+  - name: mart_tiempos_ciudad
+    description: &quot;Tiempo promedio de entrega por ciudad (solo pedidos entregados).&quot;
+    columns:
+      - name: ciudad
+        description: &quot;Ciudad del pedido.&quot;
+        tests: [unique, not_null]
+      - name: min_promedio
+        tests: [not_null]</code></pre>
+<h2>6. Los comandos del día a día</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt run</code></td>
+<td>Construye todos los modelos</td>
+</tr>
+<tr>
+<td><code>dbt run -s stg_rapido_pedidos</code></td>
+<td>Solo ese modelo</td>
+</tr>
+<tr>
+<td><code>dbt run -s stg_rapido_pedidos+</code></td>
+<td>Ese modelo y todo lo que depende de él</td>
+</tr>
+<tr>
+<td><code>dbt run -s +mart_tiempos_ciudad</code></td>
+<td>Ese modelo y todo lo que necesita</td>
+</tr>
+<tr>
+<td><code>dbt test</code></td>
+<td>Corre las pruebas</td>
+</tr>
+<tr>
+<td><code>dbt build</code></td>
+<td><code>run</code> + <code>test</code> (+ seeds y snapshots) en orden: si un modelo falla sus pruebas, no se construye lo que sigue</td>
+</tr>
+<tr>
+<td><code>dbt compile -s mart_tiempos_ciudad</code></td>
+<td>Genera el SQL final (en <code>target/compiled/…</code>) sin ejecutarlo</td>
+</tr>
+<tr>
+<td><code>dbt docs generate &amp;&amp; dbt docs serve</code></td>
+<td>Documentación navegable con el linaje, en <code>localhost:8080</code></td>
+</tr>
+<tr>
+<td><code>dbt seed</code></td>
+<td>Carga los CSV de <code>seeds/</code> como tablas (para tablas chicas de referencia)</td>
+</tr>
+</tbody></table></div>
+<p>Y para mirar el resultado, DuckDB:</p>
+<pre data-norun><code class="language-bash">duckdb rapido.duckdb -c &quot;SELECT * FROM mart_tiempos_ciudad ORDER BY min_promedio DESC&quot;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Practica en la terminal del curso</div>
+
+<p>La terminal del curso tiene un dbt que ejecuta los modelos de verdad (sobre SQLite, con todas las tablas del curso, incluidas <code>delivery_*</code>). Prueba: <code>dbt init rapido_dbt</code>, crea los modelos de esta lección con <code>code</code>, y corre <code>dbt build</code>.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>Could not find profile named &#39;rapido_dbt&#39;</code></strong>: el nombre en <code>profiles.yml</code> no coincide con <code>profile:</code> de <code>dbt_project.yml</code>, o el archivo no está en <code>~/.dbt/</code> (se puede indicar otra carpeta con <code>--profiles-dir</code>).</li>
+<li><strong><code>dbt: command not found</code></strong>: instalaste dbt en un entorno que no está activo. Usa <code>uv run dbt …</code> o activa <code>.venv</code>.</li>
+<li><strong><code>Compilation Error … depends on a node named &#39;stg_pedido&#39; which was not found</code></strong>: un <code>ref()</code> con un nombre que no existe (revisa el nombre del archivo, sin <code>.sql</code>).</li>
+<li><strong>SQL que funciona en DuckDB y no en BigQuery</strong>: funciones con otro nombre (<code>date_diff</code> vs <code>TIMESTAMP_DIFF</code>). Para lo que cambia entre motores, usa las macros cross-database de dbt (<code>{{ dbt.datediff(...) }}</code>) o los paquetes como <code>dbt_utils</code>.</li>
+<li><strong>Subir <code>rapido.duckdb</code> o <code>target/</code> a Git</strong>: se regeneran; van en <code>.gitignore</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El warehouse en tu laptop</div>
+
+<p>El equipo de Rápido modela todo en dbt sobre BigQuery. Para tu primera tarea (un modelo nuevo de tiempos de entrega), tu líder te propone:</p>
+<blockquote>
+<p>&quot;Desarrolla en tu máquina con dbt-duckdb y los CSV de muestra. Es el mismo dbt: cuando funcione, el pull request corre contra BigQuery en la CI. Así no gastas ni esperas a la nube mientras iteras.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Desarrollar con dbt-duckdb y una muestra de datos y validar en la CI contra el warehouse real es un patrón cada vez más común: iteras en segundos y sin costo.</li>
+<li>En la CI, <code>dbt build --select state:modified+</code> construye solo lo que cambió y lo que depende de eso, comparando con el <code>manifest.json</code> de producción.</li>
+<li>La documentación de dbt (<code>dbt docs</code>) se publica en cada merge a main: es el catálogo que consultan los analistas.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-dbt-local">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-postgres-duckdb.html">← SQL en tu máquina: PostgreSQL en Docker y DuckDB</a><a href="local-airflow-local.html">Airflow en tu máquina: standalone, Astro CLI o Docker Compose →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

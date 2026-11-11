@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio AWS: RAG con Bedrock Knowledge Bases, Guardrails y lotes · Academia de Datos</title><meta name="description" content="Arma un asistente de postventa con Amazon Bedrock - documentos con metadatos en S3, una Knowledge Base con S3 Vectors y chunking de tamaño fijo, ingesta, recuperación con filtros por país, respuesta con citas, un guardrail que bloquea temas y anonimiza correos, y una clasificación masiva con inferencia por lotes. Es la práctica de AIF-C01 y AIP-C01."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-bedrock-rag.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Laboratorio AWS: RAG con Bedrock Knowledge Bases, Guardrails y lotes · Academia de Datos"><meta property="og:description" content="Arma un asistente de postventa con Amazon Bedrock - documentos con metadatos en S3, una Knowledge Base con S3 Vectors y chunking de tamaño fijo, ingesta, recuperación con filtros por país, respuesta con citas, un guardrail que bloquea temas y anonimiza correos, y una clasificación masiva con inferencia por lotes. Es la práctica de AIF-C01 y AIP-C01."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-bedrock-rag.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Experto · 75 min</div>
+<h1>Laboratorio AWS: RAG con Bedrock Knowledge Bases, Guardrails y lotes</h1><p class="resumen">Arma un asistente de postventa con Amazon Bedrock - documentos con metadatos en S3, una Knowledge Base con S3 Vectors y chunking de tamaño fijo, ingesta, recuperación con filtros por país, respuesta con citas, un guardrail que bloquea temas y anonimiza correos, y una clasificación masiva con inferencia por lotes. Es la práctica de AIF-C01 y AIP-C01.</p>
+<a class="cta" href="../index.html#/l/laboratorios-aws-bedrock-rag">▶ Abrir la lección interactiva (21 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una Knowledge Base con un modelo de embeddings y un almacén vectorial de bajo costo</li><li>Configurar la fuente de datos con prefijos y estrategia de chunking</li><li>Recuperar con filtros por metadatos y generar respuestas con citas</li><li>Crear un guardrail con temas denegados, PII y ataques de prompt, y publicar una versión</li><li>Ejecutar inferencia por lotes desde un JSONL en S3</li><li>Borrar la Knowledge Base, el guardrail y el bucket</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo de postventa responde 2.000 consultas por día buscando a mano en tres políticas. Quieren un asistente que conteste con la fuente citada, que solo use las políticas del país del cliente, que no dé consejos de inversión y que nunca muestre correos en sus respuestas. Además, quieren clasificar todos los reclamos del mes de una vez y barato.</p>
+</div>
+
+
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Asistente de postventa con Amazon Bedrock</figcaption></figure>
+
+
+<h2>Costo en una cuenta real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Costo del laboratorio</th>
+</tr>
+</thead><tbody><tr>
+<td>Embeddings de Titan V2 (unos 2.000 tokens)</td>
+<td>Menos de un centavo</td>
+</tr>
+<tr>
+<td><strong>S3 Vectors</strong> como almacén</td>
+<td>Por uso: centavos</td>
+</tr>
+<tr>
+<td>Consultas a Nova Lite y Nova Pro</td>
+<td>Centavos</td>
+</tr>
+<tr>
+<td>Guardrail</td>
+<td>Por cada 1.000 unidades de texto evaluadas: centavos</td>
+</tr>
+<tr>
+<td>Inferencia por lotes</td>
+<td>Alrededor del 50 % del precio bajo demanda</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ No uses OpenSearch Serverless para practicar</div>
+
+<p>El asistente de la consola propone por defecto <strong>OpenSearch Serverless</strong>, que cobra un mínimo de OCU por hora aunque no consultes: cientos de dólares al mes. Para el laboratorio elige <strong>S3 Vectors</strong> (o Aurora PostgreSQL con escalado a cero). Si ya creaste una colección de OpenSearch, bórrala hoy.</p>
+</div>
+
+
+<h2>Práctica guiada</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En tu cuenta real</h2>
+<ul>
+<li><strong>Acceso a modelos</strong>: en la consola de Bedrock, <em>Model access</em>, habilita Titan Text Embeddings V2 y Amazon Nova (es inmediato).</li>
+<li><strong>Rol de la Knowledge Base</strong>: lo crea la consola si eliges <em>Create and use a new service role</em>. Por CLI necesita confianza para <code>bedrock.amazonaws.com</code>, lectura del bucket e invocación del modelo de embeddings.</li>
+<li><strong>S3 Vectors</strong>: crea antes el vector bucket y el índice, y pasa sus ARN en <code>--storage-configuration</code> (<code>{&quot;type&quot;:&quot;S3_VECTORS&quot;,&quot;s3VectorsConfiguration&quot;:{&quot;indexArn&quot;:&quot;…&quot;}}</code>). La consola lo hace con <em>Quick create</em>.</li>
+<li><strong>La ingesta tarda</strong>: consulta <code>aws bedrock-agent get-ingestion-job</code> hasta ver <code>COMPLETE</code>.</li>
+</ul>
+<pre data-norun><code class="language-python">import boto3
+
+rt = boto3.client(&quot;bedrock-agent-runtime&quot;, region_name=&quot;us-east-1&quot;)
+resp = rt.retrieve_and_generate(
+    input={&quot;text&quot;: &quot;¿Cuántos días tengo para devolver un producto?&quot;},
+    retrieveAndGenerateConfiguration={
+        &quot;type&quot;: &quot;KNOWLEDGE_BASE&quot;,
+        &quot;knowledgeBaseConfiguration&quot;: {
+            &quot;knowledgeBaseId&quot;: &quot;KB12345678&quot;,
+            &quot;modelArn&quot;: &quot;arn:aws:bedrock:us-east-1:123456789012:inference-profile/us.amazon.nova-pro-v1:0&quot;,
+            &quot;retrievalConfiguration&quot;: {&quot;vectorSearchConfiguration&quot;: {
+                &quot;numberOfResults&quot;: 4,
+                &quot;filter&quot;: {&quot;equals&quot;: {&quot;key&quot;: &quot;pais&quot;, &quot;value&quot;: &quot;AR&quot;}},
+            }},
+            &quot;generationConfiguration&quot;: {&quot;guardrailConfiguration&quot;: {
+                &quot;guardrailId&quot;: &quot;abc123&quot;, &quot;guardrailVersion&quot;: &quot;1&quot;}},
+        },
+    },
+)
+print(resp[&quot;output&quot;][&quot;text&quot;])
+for c in resp[&quot;citations&quot;]:
+    for r in c[&quot;retrievedReferences&quot;]:
+        print(&quot;fuente:&quot;, r[&quot;location&quot;][&quot;s3Location&quot;][&quot;uri&quot;])</code></pre>
+<h2>Limpieza</h2>
+<pre data-norun><code class="language-bash">aws bedrock-agent delete-data-source --knowledge-base-id $KB --data-source-id $DS
+aws bedrock-agent delete-knowledge-base --knowledge-base-id $KB
+aws bedrock delete-guardrail --guardrail-identifier $GR
+aws s3 rb s3://kb-politicas-lab --force
+# si usaste S3 Vectors: borra el índice y el vector bucket
+# si usaste OpenSearch Serverless: aws opensearchserverless delete-collection --id &lt;id&gt;</code></pre>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Chunks demasiado grandes o demasiado chicos</strong>: muy grandes y la búsqueda trae texto irrelevante; muy chicos y se pierde el contexto. Se ajusta probando preguntas reales.</li>
+<li><strong>No cargar metadatos</strong> con los documentos: después no se puede filtrar por país, producto o fecha, y el asistente mezcla políticas de distintos lugares.</li>
+<li><strong>Olvidar volver a ingerir</strong> después de cambiar documentos en S3: la Knowledge Base responde con la versión vieja.</li>
+<li><strong>Respuestas sin citas</strong>: nadie puede verificar de dónde salió una respuesta, y los errores no se detectan.</li>
+<li><strong>Guardrails solo en la entrada</strong>: también hay que revisar la salida (por ejemplo, para anonimizar datos personales en la respuesta).</li>
+<li><strong>Elegir un almacén vectorial con costo mínimo por hora</strong> para un laboratorio: OpenSearch Serverless cobra aunque no se use.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Un asistente RAG en producción se evalúa con un conjunto de preguntas y respuestas esperadas, y se mide si recupera el documento correcto y si la respuesta es fiel a él, antes y después de cada cambio.</li>
+<li>Los documentos fuente tienen dueño y fecha de vigencia; un pipeline los sincroniza con la base de conocimiento y avisa si un documento venció.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo evitarías que un asistente RAG responda con información equivocada?&quot;</div>
+
+<p>Trabajaría la recuperación: buenos metadatos para filtrar, un tamaño de chunk probado con preguntas reales y, si hace falta, reordenamiento de resultados. Obligaría a responder con citas de los fragmentos recuperados y a decir &quot;no lo sé&quot; cuando no hay contexto suficiente. Agregaría guardrails en entrada y salida, y un conjunto de evaluación con preguntas reales que corra en cada cambio de documentos, chunking o modelo.</p>
+</div>
+
+
+<h2>Preguntas de examen</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>21 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-aws-bedrock-rag">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-aws-lake-calidad.html">← Laboratorio AWS: data lake con S3, Glue, Athena y Data Quality</a><a href="laboratorios-aws-sagemaker.html">Laboratorio AWS: entrenar con Spot, desplegar y borrar un endpoint de SageMaker →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

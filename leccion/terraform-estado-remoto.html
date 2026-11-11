@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El estado en equipo: backends remotos, workspaces, import y lifecycle · Academia de Datos</title><meta name="description" content="Por qué el estado local no sirve en un equipo, cómo moverlo a un bucket con bloqueo y versionado, cómo separar entornos, y las herramientas para operar el estado sin romper nada (import, moved, state mv, prevent_destroy)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-estado-remoto.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El estado en equipo: backends remotos, workspaces, import y lifecycle · Academia de Datos"><meta property="og:description" content="Por qué el estado local no sirve en un equipo, cómo moverlo a un bucket con bloqueo y versionado, cómo separar entornos, y las herramientas para operar el estado sin romper nada (import, moved, state mv, prevent_destroy)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-estado-remoto.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#terraform">🏗️ Terraform: infraestructura como código</a> · Avanzado · 75 min</div>
+<h1>El estado en equipo: backends remotos, workspaces, import y lifecycle</h1><p class="resumen">Por qué el estado local no sirve en un equipo, cómo moverlo a un bucket con bloqueo y versionado, cómo separar entornos, y las herramientas para operar el estado sin romper nada (import, moved, state mv, prevent_destroy).</p>
+<a class="cta" href="../index.html#/l/terraform-estado-remoto">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar los riesgos del estado local en un equipo y qué resuelven el bloqueo y el versionado</li><li>Configurar un backend remoto en S3, GCS o Azure Storage y migrar el estado</li><li>Separar entornos con workspaces o con carpetas y elegir entre los dos</li><li>Traer recursos creados a mano con import y renombrar recursos sin destruirlos con moved</li><li>Proteger recursos críticos con lifecycle (prevent_destroy, ignore_changes, create_before_destroy)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El estado de Terraform es su libreta de memoria: anota qué creó para saber qué cambiar la próxima vez. Si cada persona del equipo tiene su propia libreta, se contradicen. El estado remoto es una libreta compartida, con un candado para que dos personas no escriban a la vez.</p>
+</div>
+
+
+<h2>Qué guarda el estado y por qué importa</h2>
+<p>El estado es la <strong>tabla de correspondencias</strong> entre tu código y la nube: &quot;<code>aws_s3_bucket.bronze</code> es el bucket <code>andina-prod-bronze</code>, con estos atributos&quot;. Sin él, Terraform no sabe qué creó.</p>
+<pre><code class="language-text">$ terraform state pull | jq '.resources[0]'
+{
+  &quot;mode&quot;: &quot;managed&quot;,
+  &quot;type&quot;: &quot;aws_s3_bucket&quot;,
+  &quot;name&quot;: &quot;bronze&quot;,
+  &quot;instances&quot;: [ { &quot;attributes&quot;: { &quot;bucket&quot;: &quot;andina-prod-bronze&quot;, &quot;arn&quot;: &quot;arn:aws:s3:::andina-prod-bronze&quot;, ... } } ]
+}</code></pre>
+<p>Tres problemas del estado <strong>local</strong> en un equipo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Qué pasa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cada uno tiene su copia</strong></td>
+<td>El estado de Ana no sabe lo que aplicó Bruno. El siguiente plan es incorrecto</td>
+</tr>
+<tr>
+<td><strong>Dos aplican a la vez</strong></td>
+<td>Las dos ejecuciones leen el mismo estado, crean cosas en paralelo y una pisa el estado de la otra</td>
+</tr>
+<tr>
+<td><strong>Se pierde</strong></td>
+<td>Un disco roto o un <code>rm -rf</code> y Terraform pierde la memoria de todo lo que administra</td>
+</tr>
+</tbody></table></div>
+<h2>Backends remotos</h2>
+<p>Un <strong>backend</strong> es el lugar donde Terraform guarda el estado. El remoto resuelve los tres problemas:</p>
+<figure class="diagrama"><figcaption>Un estado compartido, con bloqueo y versionado, para todo el equipo</figcaption></figure>
+
+
+<ul>
+<li><strong>Compartido</strong>: todos leen y escriben el mismo archivo.</li>
+<li><strong>Bloqueo</strong> (<em>state locking</em>): mientras alguien ejecuta <code>plan</code> o <code>apply</code>, el estado queda bloqueado y los demás reciben <code>Error acquiring the state lock</code>.</li>
+<li><strong>Versionado</strong>: el bucket guarda cada versión del estado; si algo sale mal, se recupera la anterior.</li>
+</ul>
+<h3>Los tres backends de nube</h3>
+<pre><code class="language-hcl"># AWS: S3 (desde Terraform 1.10 el bloqueo usa un archivo .tflock en el mismo bucket)
+terraform {
+  backend &quot;s3&quot; {
+    bucket       = &quot;andina-tfstate&quot;
+    key          = &quot;plataforma/lago.tfstate&quot;
+    region       = &quot;us-east-1&quot;
+    encrypt      = true
+    use_lockfile = true
+  }
+}</code></pre>
+<pre><code class="language-hcl"># Google Cloud: GCS (el bloqueo viene incluido)
+terraform {
+  backend &quot;gcs&quot; {
+    bucket = &quot;andina-tfstate&quot;
+    prefix = &quot;plataforma/lago&quot;
+  }
+}</code></pre>
+<pre><code class="language-hcl"># Azure: un contenedor de una cuenta de Storage (bloqueo con un lease del blob)
+terraform {
+  backend &quot;azurerm&quot; {
+    resource_group_name  = &quot;rg-tfstate&quot;
+    storage_account_name = &quot;sttfstateandina&quot;
+    container_name       = &quot;tfstate&quot;
+    key                  = &quot;plataforma/lago.tfstate&quot;
+  }
+}</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 El huevo y la gallina</div>
+
+<p>El bucket del estado no puede crearlo el mismo proyecto que guarda su estado en él. Se crea <strong>una sola vez</strong>, aparte: con la CLI, o con un pequeño proyecto &quot;bootstrap&quot; que usa estado local. Antes de Terraform 1.10, en AWS hacía falta además una tabla de DynamoDB para el bloqueo (<code>dynamodb_table = &quot;tf-locks&quot;</code>); vas a verla en muchos proyectos existentes.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El bloque backend no acepta variables</div>
+
+<p>Dentro de <code>backend { }</code> no puedes usar <code>var.</code> ni <code>local.</code>: se lee antes que todo lo demás. Si necesitas valores distintos por entorno, se pasan en el <code>init</code>: <code>terraform init -backend-config=&quot;key=prod/lago.tfstate&quot;</code> o <code>-backend-config=prod.s3.tfbackend</code>.</p>
+</div>
+
+
+<h2>Laboratorio: mover el estado a S3</h2>
+<p>Abre la terminal y sigue los pasos.</p>
+<p><strong>1. Crea el bucket del estado</strong> (una vez, con la CLI) y actívale el versionado:</p>
+<pre data-norun><code class="language-bash">aws configure
+aws s3 mb s3://andina-tfstate
+aws s3api put-bucket-versioning --bucket andina-tfstate --versioning-configuration Status=Enabled</code></pre>
+<p><strong>2. El proyecto.</strong> En <code>~/infra/lago</code>, un <code>main.tf</code> con el bloque <code>backend &quot;s3&quot;</code> de arriba, el proveedor y un bucket cuyo nombre usa el workspace:</p>
+<pre><code class="language-hcl">locals {
+  prefijo = &quot;andina-${terraform.workspace}&quot;
+}
+
+resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
+  bucket = &quot;${local.prefijo}-bronze&quot;
+}</code></pre>
+<p><strong>3. Inicializa y aplica:</strong></p>
+<pre><code class="language-text">$ terraform init
+Initializing the backend...
+Successfully configured the backend &quot;s3&quot;! Terraform will automatically
+use this backend unless the backend configuration changes.
+...
+$ terraform apply -auto-approve
+$ ls -a
+.terraform/  .terraform.lock.hcl  main.tf          ← no hay terraform.tfstate local
+$ aws s3 ls s3://andina-tfstate --recursive
+2026-10-24 10:15:02       1317 plataforma/lago.tfstate</code></pre>
+<p>Si ya tenías un estado local, <code>terraform init</code> detecta el cambio de backend y pregunta si quieres <strong>copiarlo</strong> al nuevo (<code>terraform init -migrate-state</code>).</p>
+<h2>Separar entornos</h2>
+<p>Ya viste en la lección anterior que aplicar <code>prod</code> sobre el estado de <code>dev</code> quiere <strong>reemplazar</strong> todo. Cada entorno necesita su propio estado. Hay dos formas.</p>
+<h3>Opción 1: workspaces</h3>
+<p>Un <strong>workspace</strong> es un estado con nombre dentro del mismo backend. El código es el mismo; <code>terraform.workspace</code> te dice en cuál estás.</p>
+<pre><code class="language-text">$ terraform workspace new prod
+Created and switched to workspace &quot;prod&quot;!
+$ terraform workspace list
+  default
+* prod
+$ terraform apply -auto-approve        # crea andina-prod-bronze
+$ aws s3 ls s3://andina-tfstate --recursive
+2026-10-24 10:20:11       1290 env:/prod/plataforma/lago.tfstate
+2026-10-24 10:15:02       1317 plataforma/lago.tfstate</code></pre>
+<p>Cada backend guarda los workspaces a su manera: S3 en <code>env:/&lt;workspace&gt;/&lt;key&gt;</code>, GCS en <code>&lt;prefix&gt;/&lt;workspace&gt;.tfstate</code>, Azure en <code>&lt;key&gt;env:&lt;workspace&gt;</code>.</p>
+<h3>Opción 2: una carpeta (o una clave) por entorno</h3>
+<pre><code class="language-text">infra/
+├── modules/lago/          ← el código reutilizable (lección de módulos)
+└── envs/
+    ├── dev/   main.tf  backend key = &quot;dev/lago.tfstate&quot;   terraform.tfvars
+    ├── test/  main.tf  backend key = &quot;test/lago.tfstate&quot;  terraform.tfvars
+    └── prod/  main.tf  backend key = &quot;prod/lago.tfstate&quot;  terraform.tfvars</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Workspaces</th>
+<th>Carpeta por entorno</th>
+</tr>
+</thead><tbody><tr>
+<td>Código</td>
+<td>Exactamente el mismo</td>
+<td>Cada carpeta llama al mismo módulo con sus valores</td>
+</tr>
+<tr>
+<td>Riesgo</td>
+<td>Olvidar en qué workspace estás y aplicar en prod</td>
+<td>Menor: estás en la carpeta <code>prod/</code></td>
+</tr>
+<tr>
+<td>Diferencias entre entornos</td>
+<td>Con condicionales (<code>terraform.workspace == &quot;prod&quot;</code>)</td>
+<td>Naturales: cada carpeta tiene sus valores</td>
+</tr>
+<tr>
+<td>Permisos distintos por entorno</td>
+<td>Difícil (mismo backend)</td>
+<td>Fácil: el estado de prod en otra cuenta o bucket</td>
+</tr>
+<tr>
+<td>Uso típico</td>
+<td>Entornos efímeros, ramas, pruebas</td>
+<td>La mayoría de las empresas, para dev/test/prod</td>
+</tr>
+</tbody></table></div>
+<h2>Operar el estado sin romper nada</h2>
+<h3>Ver: list, show, pull</h3>
+<pre data-norun><code class="language-bash">terraform state list                         # todas las direcciones
+terraform state show aws_s3_bucket.bronze    # los atributos de una
+terraform state pull | jq .serial            # el JSON completo (serial = cuántas veces se escribió)</code></pre>
+<h3>Renombrar en el código: moved</h3>
+<p>Si cambias el nombre local <code>aws_s3_bucket.bronze</code> a <code>aws_s3_bucket.landing</code>, Terraform entiende que borraste uno y creaste otro: <strong>destruye</strong> el bucket y crea uno nuevo. Para decirle que es el mismo:</p>
+<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;landing&quot; {
+  bucket = &quot;andina-bronze&quot;
+}
+
+moved {
+  from = aws_s3_bucket.bronze
+  to   = aws_s3_bucket.landing
+}</code></pre>
+<pre><code class="language-text">$ terraform plan
+  # aws_s3_bucket.bronze has moved to aws_s3_bucket.landing
+Plan: 0 to add, 0 to change, 0 to destroy.</code></pre>
+<p>El bloque <code>moved</code> queda en el código (es documentación y sirve para los demás entornos). La alternativa por comando es <code>terraform state mv aws_s3_bucket.bronze aws_s3_bucket.landing</code>, pero hay que ejecutarla a mano en cada entorno; <code>moved</code> viaja por el pull request.</p>
+<h3>Traer lo que se creó a mano: import</h3>
+<p>Un bucket que alguien creó en la consola no está en el estado. Para administrarlo con Terraform: escribe el bloque <code>resource</code> y <strong>impórtalo</strong>:</p>
+<pre><code class="language-text">$ terraform import aws_s3_bucket.manual creado-a-mano
+aws_s3_bucket.manual: Importing from ID &quot;creado-a-mano&quot;...
+Import successful!
+$ terraform plan
+No changes. Your infrastructure matches the configuration.</code></pre>
+<p>Si el plan después del import muestra cambios, es que tu código no describe exactamente cómo está el recurso: ajusta el código hasta que el plan diga <code>No changes</code>. Desde Terraform 1.5 también existe el bloque <code>import { to = aws_s3_bucket.manual  id = &quot;creado-a-mano&quot; }</code>, que se revisa en un pull request como cualquier cambio.</p>
+<h3>Dejar de administrar: state rm</h3>
+<p><code>terraform state rm aws_s3_bucket.viejo</code> saca el recurso del estado <strong>sin borrarlo</strong> de la nube. Se usa para pasar un recurso a otro proyecto (rm en uno, import en el otro).</p>
+<h2>lifecycle: reglas de protección</h2>
+<pre><code class="language-hcl">resource &quot;aws_s3_bucket&quot; &quot;bronze&quot; {
+  bucket = &quot;andina-prod-bronze&quot;
+  tags   = local.etiquetas
+
+  lifecycle {
+    prevent_destroy = true      # ningún plan puede destruirlo
+    ignore_changes  = [tags]    # si alguien cambia las etiquetas afuera, no las pises
+  }
+}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Regla</th>
+<th>Qué hace</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>prevent_destroy = true</code></td>
+<td>Cualquier plan que lo destruya o reemplace <strong>falla</strong></td>
+<td>Buckets con datos, bases de producción, el Key Vault</td>
+</tr>
+<tr>
+<td><code>ignore_changes = [x]</code></td>
+<td>Ignora diferencias en esos argumentos</td>
+<td>Etiquetas que pone otra herramienta, tamaños que ajusta el autoescalado</td>
+</tr>
+<tr>
+<td><code>create_before_destroy = true</code></td>
+<td>En un reemplazo, crea el nuevo antes de borrar el viejo (<code>+/-</code>)</td>
+<td>Recursos que no pueden faltar ni un minuto</td>
+</tr>
+</tbody></table></div>
+<p>Con <code>prevent_destroy</code>, un <code>terraform destroy</code> o un cambio de nombre se frena así:</p>
+<pre><code class="language-text">│ Error: Instance cannot be destroyed
+│
+│   on main.tf line 4:
+│
+│ Resource aws_s3_bucket.bronze has lifecycle.prevent_destroy set, but the plan calls for
+│ this resource to be destroyed.</code></pre>
+<h3>Más herramientas del plan</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>terraform plan -target=aws_s3_bucket.bronze</code></td>
+<td>Planificar solo ese recurso (para emergencias, no para el día a día)</td>
+</tr>
+<tr>
+<td><code>terraform plan -replace=aws_s3_bucket.bronze</code></td>
+<td>Forzar que se reemplace (recurso dañado o corrupto)</td>
+</tr>
+<tr>
+<td><code>terraform plan -refresh-only</code></td>
+<td>Ver solo el <strong>drift</strong>: lo que cambió en la nube fuera de Terraform</td>
+</tr>
+</tbody></table></div>
+<h2>Leer las salidas de otro proyecto</h2>
+<p>En una empresa no hay un único proyecto de Terraform: está la <strong>red</strong> (de un equipo), la <strong>plataforma de datos</strong> (de otro), cada uno con su estado. Para que la plataforma use la red que creó otro equipo, lee sus outputs:</p>
+<pre><code class="language-hcl">data &quot;terraform_remote_state&quot; &quot;red&quot; {
+  backend = &quot;s3&quot;
+  config = {
+    bucket = &quot;andina-tfstate&quot;
+    key    = &quot;red/vpc.tfstate&quot;
+    region = &quot;us-east-1&quot;
+  }
+}
+
+# data.terraform_remote_state.red.outputs.subred_privada</code></pre>
+<figure class="diagrama"><figcaption>Proyectos separados que se pasan datos por los outputs</figcaption></figure>
+
+
+<p>Dividir en proyectos chicos tiene ventajas: un plan más rápido, un error afecta menos cosas (<em>blast radius</em>) y cada equipo es dueño de lo suyo.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>Error acquiring the state lock</code></strong>: otra ejecución tiene el estado bloqueado. Espera. Si de verdad quedó colgado (una CI que se cortó), <code>terraform force-unlock &lt;ID&gt;</code>, <strong>solo</strong> si estás seguro de que nadie más está aplicando.</li>
+<li><strong><code>Backend configuration changed</code></strong>: cambiaste el bloque backend. Ejecuta <code>terraform init -migrate-state</code> (copia el estado) o <code>-reconfigure</code> (empieza de cero, sin copiar).</li>
+<li><strong>Aplicar en el workspace equivocado</strong>: antes de aplicar, <code>terraform workspace show</code>. Muchos equipos lo ponen en el prompt de la terminal.</li>
+<li><strong>Renombrar un recurso sin <code>moved</code></strong>: el plan muestra <code>1 to add, 1 to destroy</code> para algo que solo cambió de nombre. Si ves eso en un rename, para y agrega el bloque.</li>
+<li><strong>Editar el JSON del estado a mano</strong>: usa <code>state mv</code>, <code>state rm</code> e <code>import</code>. Si de verdad hay que hacerlo, <code>state pull</code> &gt; archivo &gt; <code>state push</code>, con una copia de respaldo.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El día que se pisaron los estados</div>
+
+<p>Ana y Bruno trabajan en el mismo proyecto de Terraform. Cada uno tiene su <code>terraform.tfstate</code> en su computadora. Ana crea el bucket de logs. Bruno, que no tiene ese bucket en <strong>su</strong> estado, agrega un permiso y aplica: Terraform intenta crear otra vez el bucket que ya existe y falla a la mitad. Otra semana, alguien borra por error su carpeta y su estado con ella: Terraform &quot;olvida&quot; 40 recursos de producción.</p>
+<p>Martín decide:</p>
+<blockquote>
+<p>&quot;El estado vive en un bucket, versionado y con bloqueo. Nadie más tiene un tfstate en su computadora. Y la base de producción no se puede destruir ni por error.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El bucket del estado tiene versionado, cifrado, <strong>bloqueo de acceso público</strong> y acceso solo para la CI y unas pocas personas: el estado puede contener contraseñas y llaves.</li>
+<li>Los estados se dividen por <strong>dominio y entorno</strong>: <code>red/prod</code>, <code>datos/prod</code>, <code>datos/dev</code>. Un estado gigante con todo tarda minutos en planificar, y un error ahí puede romper todo.</li>
+<li>Los recursos con datos (buckets, bases, Key Vault, catálogos) llevan <code>prevent_destroy</code>. En la revisión del pull request, cualquier <code>-/+</code> sobre ellos se discute.</li>
+<li>Una tarea programada (por ejemplo, cada noche) ejecuta <code>terraform plan -detailed-exitcode</code> en cada entorno y avisa si hay <strong>drift</strong>: alguien cambió algo a mano.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Un compañero cambió algo en la consola y ahora el plan quiere revertirlo. ¿Qué haces?&quot;</div>
+
+<p>Primero entiendo si el cambio era correcto. Si lo era, lo llevo al código para que el plan quede en <code>No changes</code> (y si era un recurso nuevo, lo importo). Si no lo era, dejo que el apply lo revierta. En los dos casos, el cambio queda registrado en un pull request. Para que no se repita: permisos de solo lectura en la consola de producción, y un plan programado que detecte el drift y avise. Si el atributo lo cambia otro sistema a propósito (por ejemplo, el autoescalado), uso <code>lifecycle { ignore_changes = [...] }</code>.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas…</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Compartir el estado con bloqueo</td>
+<td><code>backend &quot;s3&quot;</code> (<code>use_lockfile</code>), <code>&quot;gcs&quot;</code> o <code>&quot;azurerm&quot;</code></td>
+</tr>
+<tr>
+<td>Copiar el estado al cambiar de backend</td>
+<td><code>terraform init -migrate-state</code></td>
+</tr>
+<tr>
+<td>Un estado por entorno</td>
+<td>Carpeta por entorno (o <code>terraform workspace new</code>)</td>
+</tr>
+<tr>
+<td>Renombrar un recurso sin destruirlo</td>
+<td>Bloque <code>moved</code> (o <code>terraform state mv</code>)</td>
+</tr>
+<tr>
+<td>Administrar algo creado a mano</td>
+<td><code>terraform import</code> (o bloque <code>import</code>)</td>
+</tr>
+<tr>
+<td>Dejar de administrar sin borrar</td>
+<td><code>terraform state rm</code></td>
+</tr>
+<tr>
+<td>Que algo no se pueda destruir</td>
+<td><code>lifecycle { prevent_destroy = true }</code></td>
+</tr>
+<tr>
+<td>Usar outputs de otro proyecto</td>
+<td><code>data &quot;terraform_remote_state&quot;</code></td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/terraform-estado-remoto">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="terraform-hcl-variables.html">← HCL a fondo: variables, locals, outputs, expresiones y for_each</a><a href="terraform-modulos.html">Módulos: tu propia biblioteca de infraestructura →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

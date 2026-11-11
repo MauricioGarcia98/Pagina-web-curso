@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes por qué el promedio de los márgenes por producto no es
 Dos tableros de la empresa muestran “tasa de cancelación” y no coinciden: uno dice 8 % y el otro 11 %. Nadie miente: uno divide por todos los pedidos y el otro solo por los pedidos que llegaron a enviarse. Un KPI sin fórmula escrita no es un KPI, es una opinión.
 :::
 
+:::analogia En palabras simples
+Un KPI es como el termómetro de una empresa: un número que dice si algo va bien o mal. Pero un termómetro mal leído engaña: un promedio puede esconder que la mitad está enferma. Esta lección enseña a revisar qué se divide por qué antes de creerle a un número.
+:::
+
 ## La ficha de un KPI
 
 Antes de calcular, cada métrica debería tener su ficha:

@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes por qué conviene una tabla calendario en vez de usar la
 El directorio quiere ver cada mes con tres números: lo vendido en el mes, lo acumulado en el año y cuánto creció contra el mismo mes del año anterior. Son las funciones de **inteligencia de tiempo** de DAX.
 :::
 
+:::analogia En palabras simples
+La inteligencia de tiempo es como tener un calendario que entiende de comparaciones: "lo que llevamos del año", "lo mismo del año pasado" o "cuánto cambió". Para que funcione hace falta una tabla de fechas completa, como un calendario sin días faltantes.
+:::
+
 ## La tabla calendario
 
 Las funciones de tiempo necesitan una columna de fechas **sin huecos** (todos los días, aunque no haya ventas). Por eso en Power BI se crea una **tabla calendario**:

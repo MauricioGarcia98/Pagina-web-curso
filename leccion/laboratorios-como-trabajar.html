@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cómo trabajar los laboratorios sin sorpresas en la factura · Academia de Datos</title><meta name="description" content="El método de todos los laboratorios guiados - practicar primero en la terminal simulada, después repetir en tu cuenta real con presupuesto, alertas, etiquetas, región fija, nombres con sufijo -lab y una limpieza obligatoria al final. Incluye qué servicios cobran aunque no los uses y cómo verificar que no quedó nada encendido."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-como-trabajar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cómo trabajar los laboratorios sin sorpresas en la factura · Academia de Datos"><meta property="og:description" content="El método de todos los laboratorios guiados - practicar primero en la terminal simulada, después repetir en tu cuenta real con presupuesto, alertas, etiquetas, región fija, nombres con sufijo -lab y una limpieza obligatoria al final. Incluye qué servicios cobran aunque no los uses y cómo verificar que no quedó nada encendido."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-como-trabajar.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Intermedio · 35 min</div>
+<h1>Cómo trabajar los laboratorios sin sorpresas en la factura</h1><p class="resumen">El método de todos los laboratorios guiados - practicar primero en la terminal simulada, después repetir en tu cuenta real con presupuesto, alertas, etiquetas, región fija, nombres con sufijo -lab y una limpieza obligatoria al final. Incluye qué servicios cobran aunque no los uses y cómo verificar que no quedó nada encendido.</p>
+<a class="cta" href="../index.html#/l/laboratorios-como-trabajar">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Seguir el flujo de cada laboratorio - simulador, cuenta real y limpieza</li><li>Configurar presupuestos y alertas de costo en AWS, Google Cloud, Azure y Databricks</li><li>Reconocer los recursos que cobran por hora aunque no tengan tráfico</li><li>Verificar con la terminal que la limpieza quedó completa</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Lucía aprobó la teoría de la certificación pero nunca creó una Knowledge Base ni un endpoint. En el examen aparece: &quot;el endpoint devuelve 4xx después de cambiar el tráfico&quot;. Quien lo hizo con sus manos lo resuelve en segundos. Estos laboratorios son para eso: hacer cada servicio de punta a punta, primero gratis en la terminal del curso y después, si quieres, en tu cuenta real con un costo de centavos.</p>
+</div>
+
+
+<h2>Cómo está armado cada laboratorio</h2>
+<p>Todos los laboratorios siguen el mismo orden:</p>
+<ol>
+<li><strong>Arquitectura</strong>: qué vas a construir y por qué cada pieza.</li>
+<li><strong>Costo</strong>: cuánto cuesta en una cuenta real y qué recurso es el peligroso.</li>
+<li><strong>Práctica guiada</strong>: ejercicios de terminal en orden. Cada uno deja el estado listo para el siguiente (el bucket creado, la tabla catalogada…). Si saltas un paso, el ejercicio prepara lo que falta en silencio.</li>
+<li><strong>En tu cuenta real</strong>: los mismos comandos para tu nube, con las diferencias que la simulación no muestra (permisos, tiempos de espera, consola).</li>
+<li><strong>Limpieza</strong>: los comandos para borrar todo. <strong>No es opcional</strong>.</li>
+<li><strong>Preguntas de examen</strong> sobre lo que acabas de hacer.</li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 Nota</div>
+
+<p>La terminal del curso simula AWS, Google Cloud, Azure y Databricks: guarda estado, valida parámetros y devuelve errores realistas. No necesitas tarjeta de crédito para hacer la práctica guiada. Los laboratorios que necesitan archivos (documentos para un RAG, YAML de despliegues) los crean con <code>lab-preparar</code>.</p>
+</div>
+
+
+<h2>Las reglas de oro para tu cuenta real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Regla</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Una cuenta o proyecto solo para laboratorios</strong></td>
+<td>Si algo sale mal, borras todo el proyecto (GCP) o el grupo de recursos (Azure) sin tocar nada de trabajo</td>
+</tr>
+<tr>
+<td><strong>Presupuesto con alertas al 50 %, 80 % y 100 %</strong></td>
+<td>Te avisa por correo antes de que la factura crezca</td>
+</tr>
+<tr>
+<td><strong>Una sola región</strong> (<code>us-east-1</code>, <code>us-central1</code>, <code>eastus2</code>)</td>
+<td>Los recursos olvidados en otra región no aparecen en la consola que miras</td>
+</tr>
+<tr>
+<td><strong>Nombres con sufijo <code>-lab</code></strong></td>
+<td>Encuentras todo lo que creaste con un filtro</td>
+</tr>
+<tr>
+<td><strong>Etiquetas</strong> <code>proyecto=lab</code></td>
+<td>Los informes de costo se filtran por etiqueta</td>
+</tr>
+<tr>
+<td><strong>Limpieza el mismo día</strong></td>
+<td>Un endpoint olvidado un mes cuesta más que todos los laboratorios juntos</td>
+</tr>
+</tbody></table></div>
+<h3>Lo que cobra aunque no lo uses</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Nube</th>
+<th>Recurso</th>
+<th>Costo aproximado si lo olvidas</th>
+</tr>
+</thead><tbody><tr>
+<td>AWS</td>
+<td>Endpoint de SageMaker (<code>ml.m5.large</code>)</td>
+<td>USD 0,115 por hora: unos USD 80 al mes</td>
+</tr>
+<tr>
+<td>AWS</td>
+<td>OpenSearch Serverless para una Knowledge Base</td>
+<td>Mínimo de OCU: cientos de dólares al mes. En el laboratorio usamos <strong>S3 Vectors</strong>, que cobra por uso</td>
+</tr>
+<tr>
+<td>AWS</td>
+<td>NAT Gateway, cluster de EMR o de Redshift</td>
+<td>Desde USD 30 hasta miles al mes</td>
+</tr>
+<tr>
+<td>Google Cloud</td>
+<td>Endpoint de Vertex AI con <code>min-replica-count 1</code></td>
+<td>Una máquina <code>n1-standard-2</code> encendida: unos USD 70 al mes</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>Online endpoint de Azure ML con instancia <code>Standard_DS3_v2</code></td>
+<td>Unos USD 200 al mes</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>Azure AI Search (tier Basic o superior)</td>
+<td>Desde unos USD 75 al mes</td>
+</tr>
+<tr>
+<td>Databricks</td>
+<td>Cluster sin auto-terminación, SQL warehouse sin auto-stop</td>
+<td>DBU + máquinas por hora</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La regla del endpoint</div>
+
+<p>Todo lo que <strong>sirve predicciones en tiempo real</strong> (SageMaker, Vertex AI, Azure ML) cobra por hora de máquina, no por petición. Termina cada laboratorio de endpoints borrándolo y verificando con un <code>list</code> que no queda ninguno.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Práctica guiada: prepara la terminal</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En tu cuenta real: presupuestos y alertas</h2>
+<pre data-norun><code class="language-bash"># AWS: presupuesto mensual de USD 10 con alerta por correo al 80 %
+aws budgets create-budget --account-id $(aws sts get-caller-identity --query Account --output text) \
+  --budget '{&quot;BudgetName&quot;:&quot;labs&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}' \
+  --notifications-with-subscribers '[{&quot;Notification&quot;:{&quot;NotificationType&quot;:&quot;ACTUAL&quot;,&quot;ComparisonOperator&quot;:&quot;GREATER_THAN&quot;,&quot;Threshold&quot;:80},&quot;Subscribers&quot;:[{&quot;SubscriptionType&quot;:&quot;EMAIL&quot;,&quot;Address&quot;:&quot;tu-correo@ejemplo.com&quot;}]}]'
+
+# Google Cloud: proyecto exclusivo y presupuesto sobre la cuenta de facturación
+gcloud projects create labs-$(date +%s) --name=&quot;Laboratorios&quot;
+gcloud billing budgets create --billing-account=XXXXXX-XXXXXX-XXXXXX \
+  --display-name=&quot;labs&quot; --budget-amount=10USD \
+  --threshold-rule=percent=0.5 --threshold-rule=percent=0.8 --threshold-rule=percent=1.0
+
+# Azure: presupuesto sobre el grupo de recursos
+az consumption budget create --budget-name labs --amount 10 --time-grain Monthly \
+  --resource-group rg-lab-ia --category Cost \
+  --start-date 2026-11-01 --end-date 2027-11-01</code></pre>
+<ul>
+<li><strong>AWS</strong>: activa también la capa gratuita con alertas (<em>Free Tier usage alerts</em>) y revisa <strong>Cost Explorer</strong> filtrando por la etiqueta <code>proyecto</code>.</li>
+<li><strong>Google Cloud</strong>: el presupuesto <strong>avisa pero no corta</strong>. Si quieres un corte duro, conecta la alerta a Pub/Sub y una función que deshabilite la facturación del proyecto.</li>
+<li><strong>Azure</strong>: las cuentas gratuitas y de estudiante tienen un límite de gasto; las de pago por uso no.</li>
+<li><strong>Databricks</strong>: usa la <strong>Free Edition</strong> para practicar; en una cuenta paga, crea una <em>budget policy</em> y revisa <code>system.billing.usage</code>.</li>
+</ul>
+<h2>Cómo comprobar que limpiaste todo</h2>
+<pre data-norun><code class="language-bash"># AWS: recursos con la etiqueta del laboratorio, en todas las regiones
+aws resourcegroupstaggingapi get-resources --tag-filters Key=proyecto,Values=lab --query &quot;ResourceTagMappingList[].ResourceARN&quot;
+aws sagemaker list-endpoints --query &quot;Endpoints[].EndpointName&quot;
+
+# Google Cloud: lo más rápido es borrar el proyecto completo
+gcloud ai endpoints list --region us-central1
+gcloud projects delete labs-1730000000
+
+# Azure: borrar el grupo borra todo lo que contiene
+az group delete -n rg-lab-ia --yes --no-wait</code></pre>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar la cuenta de trabajo para practicar</strong>: un recurso olvidado o un permiso mal dado afecta a sistemas reales. Usa una cuenta o un proyecto aparte.</li>
+<li><strong>Crear el presupuesto después del laboratorio</strong>: las alertas llegan tarde. Es el primer paso, antes de crear cualquier recurso.</li>
+<li><strong>Cambiar de región a mitad del laboratorio</strong>: los recursos de la otra región no aparecen en la consola que estás mirando.</li>
+<li><strong>Confiar en que &quot;borré todo&quot; sin listar</strong>: el <code>list</code> final es el único que lo confirma.</li>
+<li><strong>Creer que una alerta de presupuesto frena el gasto</strong>: solo avisa. Para cortar hay que borrar recursos (o configurar acciones de presupuesto donde la nube lo permite).</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas los entornos de prueba (<em>sandbox</em>) tienen presupuesto, etiquetas obligatorias y, muchas veces, un proceso automático que borra lo que tiene más de unos días.</li>
+<li>Revisar la factura por etiqueta o por grupo de recursos es tarea habitual del equipo de plataforma; cada recurso sin etiqueta es una pregunta de &quot;¿de quién es esto?&quot;.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo controlarías los costos de un entorno de datos en la nube?&quot;</div>
+
+<p>Con presupuestos y alertas por entorno, etiquetas obligatorias de proyecto y responsable, y reportes de costo por etiqueta. Apagado automático de lo que cobra por hora: auto-terminación de clústeres, auto-stop de warehouses, endpoints que escalan a cero o se borran. Límites de escaneo en motores que cobran por bytes leídos, como Athena o BigQuery. Y una revisión periódica de recursos sin uso.</p>
+</div>
+
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-como-trabajar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-simulacro-de-guardia.html">← Simulacro de guardia - cinco alertas a la vez y el postmortem</a><a href="laboratorios-aws-lake-calidad.html">Laboratorio AWS: data lake con S3, Glue, Athena y Data Quality →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

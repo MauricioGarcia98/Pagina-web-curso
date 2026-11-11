@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNION, INTERSECT y EXCEPT · Academia de Datos</title><meta name="description" content="Combinar resultados de varias consultas verticalmente."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-conjuntos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="UNION, INTERSECT y EXCEPT · Academia de Datos"><meta property="og:description" content="Combinar resultados de varias consultas verticalmente."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-conjuntos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Intermedio · 30 min</div>
+<h1>UNION, INTERSECT y EXCEPT</h1><p class="resumen">Combinar resultados de varias consultas verticalmente.</p>
+<a class="cta" href="../index.html#/l/sql-conjuntos">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Apilar resultados de varias consultas con <code>UNION</code> y <code>UNION ALL</code></li><li>Elegir entre <code>UNION</code> y <code>UNION ALL</code> según si quieres eliminar repetidos</li><li>Encontrar coincidencias y diferencias entre dos conjuntos con <code>INTERSECT</code> y <code>EXCEPT</code></li><li>Comparar dos tablas para validar un pipeline</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Piensa en dos listas de invitados a dos fiestas. <code>UNION</code> junta las dos listas en una (sin repetir a quien fue a ambas), <code>INTERSECT</code> muestra solo a quienes fueron a las dos, y <code>EXCEPT</code> muestra a quienes fueron a la primera pero no a la segunda. Las listas se apilan una debajo de la otra, así que tienen que tener las mismas columnas.</p>
+</div>
+
+
+<h2>Combinar resultados &quot;hacia abajo&quot;</h2>
+<p>Los <code>JOIN</code> combinan tablas <strong>a lo ancho</strong>: pegan columnas de una tabla al lado de las de otra. Los <strong>operadores de conjuntos</strong> combinan resultados <strong>a lo largo</strong>: apilan las filas de una consulta <strong>debajo</strong> de las de otra.</p>
+<pre><code class="language-text">JOIN (a lo ancho)                 UNION (a lo largo)
+┌────┬──────┐ + ┌──────┐          ┌──────────┐
+│ id │ col1 │   │ col2 │          │ consulta │
+└────┴──────┘   └──────┘          │    A     │
+        =                         ├──────────┤
+┌────┬──────┬──────┐              │ consulta │
+│ id │ col1 │ col2 │              │    B     │
+└────┴──────┴──────┘              └──────────┘</code></pre>
+<p>Cuándo los necesitas:</p>
+<ul>
+<li>Juntar datos <strong>parecidos</strong> que viven en tablas distintas: ventas de la tienda online + ventas de la tienda física; clientes + empleados en un directorio único.</li>
+<li>Unir tablas <strong>particionadas</strong> por periodo: <code>ventas_2023</code> + <code>ventas_2024</code>.</li>
+<li>Comparar dos listas: ¿qué ids están en ambas? ¿Cuáles están solo en una?</li>
+</ul>
+<h2>Los cuatro operadores</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>Resultado</th>
+<th>Analogía con dos listas de invitados</th>
+</tr>
+</thead><tbody><tr>
+<td><code>UNION ALL</code></td>
+<td>Todas las filas de ambas, <strong>con</strong> repetidos</td>
+<td>Juntar las dos listas tal cual</td>
+</tr>
+<tr>
+<td><code>UNION</code></td>
+<td>Todas las filas de ambas, <strong>sin</strong> repetidos</td>
+<td>Juntarlas y tachar los nombres repetidos</td>
+</tr>
+<tr>
+<td><code>INTERSECT</code></td>
+<td>Solo las filas que están en <strong>las dos</strong></td>
+<td>Quienes están invitados por ambos</td>
+</tr>
+<tr>
+<td><code>EXCEPT</code></td>
+<td>Las filas de la primera que <strong>no</strong> están en la segunda</td>
+<td>Invitados solo de la primera lista</td>
+</tr>
+</tbody></table></div>
+<p>(<code>EXCEPT</code> se llama <code>MINUS</code> en Oracle.)</p>
+<h2>Las reglas</h2>
+<ol>
+<li>Las consultas deben tener <strong>la misma cantidad de columnas</strong>.</li>
+<li>Las columnas se emparejan <strong>por posición</strong>, no por nombre: la primera con la primera, la segunda con la segunda. Los tipos deben ser compatibles.</li>
+<li>Los <strong>nombres</strong> de las columnas del resultado salen de la <strong>primera</strong> consulta.</li>
+<li><code>ORDER BY</code> va <strong>una sola vez, al final</strong>, y ordena el resultado completo.</li>
+</ol>
+<pre><code class="language-sql">-- Directorio de contactos: clientes de Uruguay y empleados de Recursos Humanos
+SELECT nombre, apellido, email, 'cliente' AS tipo FROM clientes  WHERE pais = 'Uruguay'
+UNION ALL
+SELECT nombre, apellido, email, 'empleado'        FROM empleados WHERE departamento_id = 8
+ORDER BY apellido;</code></pre>
+<p>Fíjate en la columna literal <code>tipo</code>: le agrega a cada fila una etiqueta de <strong>de dónde vino</strong>. Es una práctica muy buena cuando apilas fuentes distintas: después puedes filtrar o contar por origen.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El orden de las columnas importa, no su nombre</div>
+
+<p>Si escribes <code>SELECT nombre, apellido …</code> arriba y <code>SELECT apellido, nombre …</code> abajo, SQL <strong>no</strong> da error: apila apellidos en la columna <code>nombre</code>. Revisa que las columnas estén en el mismo orden en todas las consultas.</p>
+</div>
+
+
+<h2>UNION vs UNION ALL</h2>
+<pre><code class="language-sql">SELECT (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION     SELECT ciudad FROM departamentos)) AS con_union,
+       (SELECT COUNT(*) FROM (SELECT ciudad FROM clientes UNION ALL SELECT ciudad FROM departamentos)) AS con_union_all;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>con_union</th>
+<th>con_union_all</th>
+</tr>
+</thead><tbody><tr>
+<td>24</td>
+<td>2009</td>
+</tr>
+</tbody></table></div>
+<p><code>UNION ALL</code> apila las 2.000 ciudades de clientes y las 9 de departamentos (2.009 filas, con muchísimas repetidas). <code>UNION</code> además elimina repetidos y deja las <strong>24 ciudades distintas</strong>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Usa UNION ALL por defecto</div>
+
+<p><code>UNION</code> tiene que comparar todas las filas para eliminar duplicados (ordenar o &quot;hashear&quot; todo el resultado), lo cual es costoso con muchos datos. Y a veces los duplicados son <strong>información válida</strong> (dos ventas idénticas son dos ventas). Usa <code>UNION ALL</code> salvo que <strong>quieras</strong> eliminar repetidos.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>INTERSECT y EXCEPT</h2>
+<pre><code class="language-sql">-- Ciudades donde hay clientes Y alguna oficina de la empresa
+SELECT ciudad FROM clientes
+INTERSECT
+SELECT ciudad FROM departamentos;</code></pre>
+<p>Devuelve 7 ciudades (Bogotá, Buenos Aires, Ciudad de México, Lima, Madrid, Montevideo, Santiago).</p>
+<pre><code class="language-sql">-- Ciudades con clientes pero SIN oficina
+SELECT ciudad FROM clientes
+EXCEPT
+SELECT ciudad FROM departamentos
+ORDER BY ciudad;</code></pre>
+<p><code>INTERSECT</code> y <code>EXCEPT</code> eliminan repetidos (como <code>UNION</code>). Tienen equivalentes con <code>EXISTS</code> y <code>NOT EXISTS</code>, pero cuando comparas <strong>filas completas</strong> de varias columnas, son mucho más cortos y claros.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 EXCEPT para probar pipelines</div>
+
+<p>Un uso profesional: verificar que dos versiones de una tabla son idénticas (por ejemplo, después de migrar un proceso). <code>(A EXCEPT B)</code> y <code>(B EXCEPT A)</code> deben dar <strong>cero</strong> filas. Si alguna devuelve algo, esas son exactamente las filas que difieren. Es un test de regresión barato y potente.</p>
+</div>
+
+
+<div class="motores"></div>
+
+
+<h2>Apilar y después agregar</h2>
+<p>Para agregar sobre el resultado apilado, envuélvelo en una tabla derivada (o una CTE):</p>
+<pre><code class="language-sql">SELECT tipo, COUNT(*) AS personas
+FROM (
+  SELECT 'cliente'  AS tipo FROM clientes
+  UNION ALL
+  SELECT 'empleado' AS tipo FROM empleados
+) AS todos
+GROUP BY tipo;</code></pre>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>UNION</code> cuando querías todas las filas</strong>: <code>UNION</code> elimina duplicados. Si apilas las ventas de dos meses y dos ventas son idénticas, una desaparece. Para apilar datos, usa <code>UNION ALL</code>.</li>
+<li><strong>Columnas en distinto orden</strong>: <code>UNION</code> empareja por <strong>posición</strong>, no por nombre. <code>SELECT nombre, ciudad ... UNION SELECT ciudad, nombre ...</code> mezcla ciudades con nombres sin dar error.</li>
+<li><strong><code>ORDER BY</code> en cada parte</strong>: solo se permite un <code>ORDER BY</code>, al final de todo.</li>
+<li><strong><code>EXCEPT</code> no es simétrico</strong>: <code>A EXCEPT B</code> (lo que está en A y no en B) no es lo mismo que <code>B EXCEPT A</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los clientes que se fueron</div>
+
+<p>Camila quiere entender la fuga de clientes:</p>
+<blockquote>
+<p>&quot;¿Qué clientes compraron en 2022 y nunca más volvieron en 2024? Y al revés, ¿quiénes compran tanto online como en la tienda física? Esos son nuestros mejores clientes.&quot;</p>
+</blockquote>
+<p>Son preguntas sobre <strong>conjuntos</strong> de clientes: los de un año menos los de otro, los que están en los dos grupos. SQL tiene operadores pensados exactamente para eso.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li><code>UNION ALL</code> es la forma estándar de juntar datos que llegan partidos: una tabla por país, por año o por sistema de origen. En dbt existe la macro <code>union_relations</code> para hacerlo con tablas que tienen columnas distintas.</li>
+<li><code>EXCEPT</code> en las dos direcciones es una prueba clásica de <strong>regresión</strong> en pipelines: después de reescribir un modelo, comparas el resultado nuevo con el viejo. Si <code>nuevo EXCEPT viejo</code> y <code>viejo EXCEPT nuevo</code> están vacíos, tu cambio no alteró los datos.</li>
+<li><code>UNION</code> (sin ALL) obliga a la base a ordenar o comparar todas las filas para quitar duplicados: en tablas grandes, es mucho más lento.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Los operadores de conjuntos apilan filas; los <code>JOIN</code> agregan columnas.</li>
+<li>Misma cantidad de columnas, emparejadas por <strong>posición</strong>; nombres de la primera consulta; un único <code>ORDER BY</code> al final.</li>
+<li><code>UNION ALL</code> conserva repetidos (y es más rápido); <code>UNION</code> los elimina.</li>
+<li><code>INTERSECT</code> = filas en ambas; <code>EXCEPT</code> = filas solo en la primera. Útiles para comparar tablas.</li>
+<li>Agrega una columna literal de origen cuando apilas fuentes distintas.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-conjuntos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-subconsultas.html">← Subconsultas</a><a href="sql-cte.html">CTE: consultas legibles con WITH →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

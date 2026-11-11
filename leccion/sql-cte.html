@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CTE: consultas legibles con WITH · Academia de Datos</title><meta name="description" content="Common Table Expressions para dividir un problema en pasos con nombre."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-cte.html">
+<meta property="og:type" content="article"><meta property="og:title" content="CTE: consultas legibles con WITH · Academia de Datos"><meta property="og:description" content="Common Table Expressions para dividir un problema en pasos con nombre."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-cte.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Avanzado · 35 min</div>
+<h1>CTE: consultas legibles con WITH</h1><p class="resumen">Common Table Expressions para dividir un problema en pasos con nombre.</p>
+<a class="cta" href="../index.html#/l/sql-cte">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reescribir una consulta anidada como una secuencia de pasos con <code>WITH</code></li><li>Encadenar varias CTE donde cada una usa la anterior</li><li>Usar CTE para calcular métricas en dos niveles (por pedido y después por cliente)</li><li>Explicar por qué los equipos prefieren CTE para código que otros van a mantener</li></ul>
+<h2>El problema: consultas que se leen de adentro hacia afuera</h2>
+<p>Con subconsultas puedes resolver problemas de varios pasos, pero el código se lee <strong>al revés</strong>: lo primero que se ejecuta está en el paréntesis más profundo, y para entender la consulta tienes que empezar por el medio. Con dos o tres niveles de anidamiento, nadie (ni tú dentro de un mes) entiende qué hace.</p>
+<p>Una <strong>CTE</strong> (<em>Common Table Expression</em>, &quot;expresión de tabla común&quot;) resuelve esto: le pones <strong>nombre</strong> a cada paso y los escribes <strong>en orden</strong>, de arriba hacia abajo, antes de la consulta final. Se declara con la palabra <code>WITH</code>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La receta de cocina</div>
+
+<p>Una receta no dice &quot;cocina (lo que resulta de mezclar (lo que resulta de picar (las cebollas)))&quot;. Dice: <strong>1.</strong> Pica las cebollas. <strong>2.</strong> Mézclalas con los tomates. <strong>3.</strong> Cocina la mezcla. Cada paso tiene un resultado con nombre que usa el siguiente. Las CTE son eso: pasos con nombre.</p>
+</div>
+
+
+<h2>La sintaxis</h2>
+<pre data-norun><code class="language-sql">WITH nombre_del_paso AS (
+    SELECT …            -- una consulta cualquiera
+)
+SELECT …
+FROM nombre_del_paso;   -- se usa como si fuera una tabla</code></pre>
+<p>Un ejemplo real: los 10 clientes que más compraron (solo pedidos entregados).</p>
+<pre><code class="language-sql">WITH ventas_por_cliente AS (
+    SELECT p.cliente_id,
+           SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS total
+    FROM pedidos p
+    JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+    WHERE p.estado = 'entregado'
+    GROUP BY p.cliente_id
+)
+SELECT c.nombre, c.apellido, c.pais, ROUND(v.total, 2) AS total
+FROM ventas_por_cliente v
+JOIN clientes c ON c.cliente_id = v.cliente_id
+ORDER BY v.total DESC
+LIMIT 10;</code></pre>
+<p>Se lee como un texto:</p>
+<ol>
+<li><strong>Primero</strong> calculo <code>ventas_por_cliente</code>: una fila por cliente con su total comprado.</li>
+<li><strong>Después</strong> uno ese resultado con <code>clientes</code> para mostrar nombre y país, y me quedo con los 10 mayores.</li>
+</ol>
+<p>Compárala con la versión con subconsulta: <code>FROM (SELECT p.cliente_id, SUM(…) … GROUP BY p.cliente_id) v JOIN clientes …</code>. Hace lo mismo, pero el paso 1 queda enterrado dentro del <code>FROM</code>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Importante: una CTE existe solo dentro de su consulta</div>
+
+<p>La CTE no crea una tabla en la base de datos. Es un nombre temporal que vive <strong>solo durante esa instrucción</strong>. Si ejecutas otra consulta después, <code>ventas_por_cliente</code> ya no existe. Para guardar resultados de forma permanente se usan tablas o vistas (lección 19) o modelos de dbt.</p>
+</div>
+
+
+<h2>Varias CTE encadenadas: un pipeline en miniatura</h2>
+<p>Puedes declarar varias CTE separadas <strong>por comas</strong> (con un único <code>WITH</code> al principio). Cada una puede usar las anteriores:</p>
+<pre><code class="language-sql">WITH pedidos_2024 AS (                       -- paso 1: filtrar
+    SELECT * FROM pedidos WHERE fecha_pedido &gt;= '2024-01-01'
+),
+por_cliente AS (                              -- paso 2: contar por cliente
+    SELECT cliente_id, COUNT(*) AS pedidos FROM pedidos_2024 GROUP BY cliente_id
+),
+distribucion AS (                             -- paso 3: ¿cuántos clientes hicieron 1, 2, 3… pedidos?
+    SELECT pedidos, COUNT(*) AS clientes FROM por_cliente GROUP BY pedidos
+)
+SELECT * FROM distribucion ORDER BY pedidos;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>pedidos</th>
+<th>clientes</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>344</td>
+</tr>
+<tr>
+<td>2</td>
+<td>235</td>
+</tr>
+<tr>
+<td>3</td>
+<td>167</td>
+</tr>
+<tr>
+<td>4</td>
+<td>124</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<p>La respuesta de negocio: en 2024, 344 clientes compraron <strong>una sola vez</strong>, 235 dos veces, y así. Es una <strong>distribución de frecuencia</strong>, y necesitó dos agregaciones seguidas, imposible en una sola consulta plana.</p>
+<p>Fíjate en la estructura: <strong>filtrar → transformar → agregar → presentar</strong>. Es la misma forma que tiene un pipeline de datos completo. No es casualidad: así se escriben los modelos de dbt.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Errores de sintaxis típicos</div>
+
+<ul>
+<li>Escribir <code>WITH</code> en cada paso: solo va <strong>una vez</strong>, al principio. Los demás se separan con coma.</li>
+<li>Poner una coma <strong>después</strong> de la última CTE (antes del <code>SELECT</code> final): error de sintaxis.</li>
+<li>Terminar con la CTE sin un <code>SELECT</code> final: el <code>WITH</code> siempre va seguido de la consulta principal.</li>
+</ul>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Ventajas que hacen que todos los profesionales usen CTE</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Ventaja</th>
+<th>En la práctica</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Legibilidad</strong></td>
+<td>Cada paso tiene un nombre que explica qué hace (<code>clientes_activos</code>, <code>ventas_mensuales</code>)</td>
+</tr>
+<tr>
+<td><strong>Depuración</strong></td>
+<td>Para revisar un paso, cambia el <code>SELECT</code> final por <code>SELECT * FROM paso_intermedio LIMIT 20</code> y mira qué hay</td>
+</tr>
+<tr>
+<td><strong>Reutilización</strong></td>
+<td>Una CTE se puede usar <strong>varias veces</strong> en la misma consulta (por ejemplo, unir <code>ventas_mensuales</code> consigo misma para comparar con el mes anterior)</td>
+</tr>
+<tr>
+<td><strong>Revisión de código</strong></td>
+<td>En un <em>pull request</em>, un compañero entiende los pasos sin descifrar paréntesis</td>
+</tr>
+<tr>
+<td><strong>Es el estilo de dbt</strong></td>
+<td>En dbt, cada modelo es una cadena de CTE: importaciones, transformaciones, resultado final</td>
+</tr>
+</tbody></table></div>
+<h3>El estilo dbt: CTE de importación</h3>
+<p>En proyectos profesionales verás este patrón: las primeras CTE solo &quot;importan&quot; las tablas (sin transformarlas), y después vienen los pasos lógicos.</p>
+<pre><code class="language-sql">WITH src_pedidos AS (
+    SELECT * FROM pedidos
+),
+src_detalle AS (
+    SELECT * FROM detalle_pedidos
+),
+totales AS (
+    SELECT pedido_id, SUM(cantidad * precio_unitario) AS total
+    FROM src_detalle
+    GROUP BY pedido_id
+),
+final AS (
+    SELECT p.pedido_id, p.cliente_id, p.fecha_pedido, t.total
+    FROM src_pedidos p
+    JOIN totales t ON t.pedido_id = p.pedido_id
+)
+SELECT * FROM final
+LIMIT 5;</code></pre>
+<p>(En dbt las importaciones se escriben <code>pedidos AS (SELECT * FROM {{ ref(&#39;stg_pedidos&#39;) }})</code>; aquí usamos el prefijo <code>src_</code> porque SQLite no permite que una CTE se llame igual que la tabla que lee.) Parece redundante, pero al principio del archivo ves de un vistazo <strong>de qué tablas depende</strong> el modelo, y el <code>SELECT * FROM final</code> del final permite depurar cambiando una sola palabra.</p>
+<h2>CTE con datos escritos a mano</h2>
+<p>Una CTE también puede contener datos literales con <code>VALUES</code>. Lo usamos en varias lecciones para crear tablitas de ejemplo o tablas de parámetros:</p>
+<pre><code class="language-sql">WITH metas(canal, meta_mensual) AS (
+    VALUES ('web', 200), ('app', 110), ('tienda', 100), ('telefono', 40)
+)
+SELECT p.canal, COUNT(*) AS pedidos_dic_2024, m.meta_mensual,
+       CASE WHEN COUNT(*) &gt;= m.meta_mensual THEN 'cumplió' ELSE 'no cumplió' END AS estado
+FROM pedidos p
+JOIN metas m ON m.canal = p.canal
+WHERE p.fecha_pedido &gt;= '2024-12-01' AND p.fecha_pedido &lt; '2025-01-01'
+GROUP BY p.canal, m.meta_mensual;</code></pre>
+<div class="callout callout-experto"><div class="callout-title">🚀 ¿Las CTE hacen más rápida la consulta?</div>
+
+<p>No necesariamente. La mayoría de los motores modernos (PostgreSQL 12+, Spark, Snowflake, BigQuery) <strong>expanden</strong> las CTE como si fueran subconsultas y optimizan todo junto, así que el rendimiento es el mismo. Algunos motores pueden &quot;materializarlas&quot; (calcular una vez y guardar el resultado), lo que ayuda si la usas muchas veces y perjudica si impide filtrar antes. Úsalas por <strong>claridad</strong>; si el rendimiento importa, mide con el plan de ejecución (lección 21).</p>
+</div>
+
+
+<h2>Lo que viene: CTE recursivas</h2>
+<p>Hay un tipo especial de CTE que se usa <strong>a sí misma</strong> para recorrer jerarquías (el organigrama de la empresa, categorías dentro de categorías) o generar secuencias (todos los días de un año). Lo verás en la lección 18.</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los clientes VIP</div>
+
+<p>Valentina quiere lanzar un programa de fidelización:</p>
+<blockquote>
+<p>&quot;Quiero saber quiénes son nuestros clientes VIP: los que gastaron mucho más que el promedio. Digamos más de tres veces. Y necesito que la lógica quede clara, porque marketing la va a revisar.&quot;</p>
+</blockquote>
+<p>Con subconsultas se puede, pero el resultado se lee de adentro hacia afuera y nadie lo entiende. Las <strong>CTE</strong> permiten escribirlo como una receta: primero esto, después aquello. Es como escriben SQL los equipos profesionales.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En dbt, <strong>cada modelo</strong> es una sucesión de CTE: una por cada fuente (<code>with pedidos as (select * from {{ ref(&#39;stg_pedidos&#39;) }})</code>), una por cada paso de lógica y un <code>select</code> final. Si aprendes a pensar en CTE, ya escribes como un analytics engineer.</li>
+<li>Nombra las CTE por <strong>lo que contienen</strong> (<code>ventas_por_cliente</code>, <code>clientes_vip</code>), no por el paso (<code>paso1</code>, <code>tmp</code>). Quien revise tu código lee los nombres como si fuera un índice.</li>
+<li>Para depurar, puedes cambiar el <code>SELECT</code> final por <code>SELECT * FROM una_cte_intermedia LIMIT 20</code> y ver qué hay en ese paso, sin tocar nada más.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre una CTE, una subconsulta y una tabla temporal?&quot;</div>
+
+<p>Una <strong>CTE</strong> y una <strong>subconsulta</strong> existen solo durante esa consulta; la CTE tiene nombre, se puede reutilizar dentro de la consulta y permite recursión. Una <strong>tabla temporal</strong> se guarda (en memoria o disco) durante la sesión y se puede consultar varias veces e indexar, lo que conviene cuando un resultado intermedio caro se usa en muchas consultas.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>WITH nombre AS (SELECT …)</code> crea un paso con nombre que se usa como una tabla en la consulta principal.</li>
+<li>Varias CTE se separan con comas; cada una puede usar las anteriores. Un solo <code>WITH</code> al principio.</li>
+<li>Existen solo durante la consulta; no crean tablas.</li>
+<li>Ventajas: legibilidad, depuración paso a paso, reutilización. Es el estilo de dbt.</li>
+<li>Patrón profesional: importaciones → pasos lógicos → <code>final</code> → <code>SELECT * FROM final</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-cte">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-conjuntos.html">← UNION, INTERSECT y EXCEPT</a><a href="sql-ventanas-1.html">Funciones de ventana I: rankings →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

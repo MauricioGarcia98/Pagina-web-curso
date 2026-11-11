@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BigQuery avanzado, particiones, clustering, anidados y MERGE · Academia de Datos</title><meta name="description" content="Tablas particionadas y clusterizadas, cómo leen menos datos; STRUCT, ARRAY y UNNEST; vistas materializadas; MERGE para upserts; control de costos y buenas prácticas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-bigquery-avanzado.html">
+<meta property="og:type" content="article"><meta property="og:title" content="BigQuery avanzado, particiones, clustering, anidados y MERGE · Academia de Datos"><meta property="og:description" content="Tablas particionadas y clusterizadas, cómo leen menos datos; STRUCT, ARRAY y UNNEST; vistas materializadas; MERGE para upserts; control de costos y buenas prácticas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-bigquery-avanzado.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#gcp">🔷 Google Cloud para Data Engineers</a> · Avanzado · 50 min</div>
+<h1>BigQuery avanzado, particiones, clustering, anidados y MERGE</h1><p class="resumen">Tablas particionadas y clusterizadas, cómo leen menos datos; STRUCT, ARRAY y UNNEST; vistas materializadas; MERGE para upserts; control de costos y buenas prácticas.</p>
+<a class="cta" href="../index.html#/l/gcp-bigquery-avanzado">▶ Abrir la lección interactiva (9 ejercicios)</a>
+
+<h2>Particionar: cortar la tabla en trozos por fecha</h2>
+<p>Una tabla <strong>particionada</strong> se divide internamente, por ejemplo una partición por día. Si filtras por la columna de partición, BigQuery <strong>solo lee esas particiones</strong> (y solo te cobra esas).</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE tienda_silver.pedidos
+PARTITION BY fecha_pedido                 -- una partición por día (DATE)
+CLUSTER BY canal, cliente_id              -- dentro de cada partición, ordenado por estas columnas
+OPTIONS (partition_expiration_days = 730, require_partition_filter = TRUE)
+AS
+SELECT pedido_id, cliente_id, DATE(fecha_pedido) AS fecha_pedido, canal, estado
+FROM tienda_bronze.pedidos;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de partición</th>
+<th>Ejemplo</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td>Por columna de fecha/tiempo</td>
+<td><code>PARTITION BY fecha</code> o <code>PARTITION BY DATE(ts)</code></td>
+<td>Lo habitual: eventos, ventas, logs</td>
+</tr>
+<tr>
+<td>Por mes/año</td>
+<td><code>PARTITION BY DATE_TRUNC(fecha, MONTH)</code></td>
+<td>Pocos datos por día (BigQuery admite hasta 10.000 particiones)</td>
+</tr>
+<tr>
+<td>Por tiempo de ingesta</td>
+<td><code>_PARTITIONTIME</code></td>
+<td>Cuando no hay una fecha confiable en los datos</td>
+</tr>
+<tr>
+<td>Por rango de enteros</td>
+<td><code>PARTITION BY RANGE_BUCKET(cliente_id, GENERATE_ARRAY(0, 100000, 1000))</code></td>
+<td>Raro; filtros por un id</td>
+</tr>
+</tbody></table></div>
+<p><strong>Clustering</strong> ordena los datos dentro de cada partición por hasta 4 columnas. Filtrar o agrupar por ellas lee menos bloques. Elige columnas con muchos valores que uses en <code>WHERE</code> (cliente, país, canal).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 `require_partition_filter`</div>
+
+<p>Con esta opción, BigQuery <strong>rechaza</strong> cualquier consulta que no filtre por la partición. Es el mejor seguro contra el analista que corre <code>SELECT *</code> sobre 5 años.</p>
+</div>
+
+
+<h3>Laboratorio: mide cuánto ahorras</h3>
+<p>En esta terminal, <code>--dry_run</code> estima los bytes y tiene en cuenta la poda de particiones:</p>
+<pre><code class="language-bash">bq mk --dataset tienda_silver
+bq query --use_legacy_sql=false 'CREATE OR REPLACE TABLE tienda_silver.pedidos PARTITION BY fecha_pedido CLUSTER BY canal AS SELECT pedido_id, cliente_id, date(fecha_pedido) AS fecha_pedido, canal, estado FROM tienda.pedidos'
+bq show tienda_silver.pedidos
+bq query --use_legacy_sql=false --dry_run 'SELECT canal, COUNT(*) FROM tienda_silver.pedidos GROUP BY canal'
+bq query --use_legacy_sql=false --dry_run &quot;SELECT canal, COUNT(*) FROM tienda_silver.pedidos WHERE fecha_pedido = '2024-12-24' GROUP BY canal&quot;</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Datos anidados: STRUCT y ARRAY</h2>
+<p>BigQuery permite columnas que son <strong>registros</strong> (<code>STRUCT</code>) y <strong>listas</strong> (<code>ARRAY</code>). Así se evitan joins costosos: un pedido puede llevar adentro sus líneas.</p>
+<pre data-norun><code class="language-sql">CREATE TABLE tienda_gold.pedidos_anidados AS
+SELECT p.pedido_id, p.cliente_id, p.fecha_pedido,
+       ARRAY_AGG(STRUCT(d.producto_id, d.cantidad, d.precio_unitario)) AS lineas
+FROM tienda_silver.pedidos p JOIN tienda_silver.detalle_pedidos d USING (pedido_id)
+GROUP BY 1, 2, 3;
+
+-- &quot;desarmar&quot; el array con UNNEST
+SELECT pedido_id, l.producto_id, l.cantidad * l.precio_unitario AS importe
+FROM tienda_gold.pedidos_anidados, UNNEST(lineas) AS l
+WHERE l.cantidad &gt;= 3;</code></pre>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La caja con compartimentos</div>
+
+<p>Una fila con un <code>ARRAY</code> de <code>STRUCT</code> es como una caja de un pedido que adentro trae cada producto en su compartimento. Para mirar producto por producto &quot;abres la caja&quot; con <code>UNNEST</code>, que es un join de la fila con su propio array.</p>
+</div>
+
+
+<h2>MERGE: altas, cambios y bajas en un solo paso</h2>
+<pre data-norun><code class="language-sql">MERGE tienda_silver.clientes AS t
+USING tienda_bronze.clientes_cambios AS c
+ON t.cliente_id = c.cliente_id
+WHEN MATCHED AND c.operacion = 'BAJA' THEN DELETE
+WHEN MATCHED THEN UPDATE SET email = c.email, segmento = c.segmento, actualizado = CURRENT_TIMESTAMP()
+WHEN NOT MATCHED AND c.operacion &lt;&gt; 'BAJA' THEN
+  INSERT (cliente_id, email, segmento, actualizado) VALUES (c.cliente_id, c.email, c.segmento, CURRENT_TIMESTAMP());</code></pre>
+<h2>Vistas materializadas y otras herramientas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Vista materializada</strong></td>
+<td>Agregados que se consultan mucho (BigQuery los mantiene y reescribe consultas para usarlos)</td>
+</tr>
+<tr>
+<td><strong>BI Engine</strong></td>
+<td>Caché en memoria para dashboards</td>
+</tr>
+<tr>
+<td><strong>Time travel</strong></td>
+<td><code>FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR)</code>: ver la tabla como era hace hasta 7 días</td>
+</tr>
+<tr>
+<td><strong>Search / vector indexes</strong></td>
+<td>Búsqueda de texto y embeddings</td>
+</tr>
+<tr>
+<td><strong>BigQuery ML</strong></td>
+<td><code>CREATE MODEL … OPTIONS(model_type=&#39;logistic_reg&#39;)</code>: modelos con SQL</td>
+</tr>
+<tr>
+<td><strong>INFORMATION_SCHEMA.JOBS</strong></td>
+<td>Quién consultó qué y cuántos bytes: auditoría de costos</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-sql">-- las 10 consultas más caras de la última semana
+SELECT user_email, total_bytes_billed / POW(1024, 4) AS tb, LEFT(query, 80) AS consulta
+FROM `region-us`.INFORMATION_SCHEMA.JOBS
+WHERE creation_time &gt; TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
+ORDER BY total_bytes_billed DESC LIMIT 10;</code></pre>
+<h2>Ejercicios de SQL</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Ejercicios de terminal</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>9 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/gcp-bigquery-avanzado">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="gcp-bigquery-fundamentos.html">← BigQuery, fundamentos</a><a href="gcp-pubsub-dataflow.html">Pub/Sub y Dataflow, streaming en Google Cloud →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

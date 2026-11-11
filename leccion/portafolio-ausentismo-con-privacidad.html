@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 6: Menos turnos perdidos en una clínica, con privacidad · Academia de Datos</title><meta name="description" content="Turnos médicos con asistencias, ausencias y cancelaciones, y datos personales sensibles. Analizas qué explica el ausentismo (anticipación de la reserva, día, hora, especialidad), construyes un puntaje de riesgo de ausencia para enviar recordatorios dirigidos, y diseñas el acceso a los datos con mínimo privilegio, enmascaramiento de columnas y filtros por fila en Unity Catalog. Valor - recuperar horas de agenda sin exponer datos de salud."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-ausentismo-con-privacidad.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 6: Menos turnos perdidos en una clínica, con privacidad · Academia de Datos"><meta property="og:description" content="Turnos médicos con asistencias, ausencias y cancelaciones, y datos personales sensibles. Analizas qué explica el ausentismo (anticipación de la reserva, día, hora, especialidad), construyes un puntaje de riesgo de ausencia para enviar recordatorios dirigidos, y diseñas el acceso a los datos con mínimo privilegio, enmascaramiento de columnas y filtros por fila en Unity Catalog. Valor - recuperar horas de agenda sin exponer datos de salud."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-ausentismo-con-privacidad.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Avanzado · 100 min</div>
+<h1>Proyecto 6: Menos turnos perdidos en una clínica, con privacidad</h1><p class="resumen">Turnos médicos con asistencias, ausencias y cancelaciones, y datos personales sensibles. Analizas qué explica el ausentismo (anticipación de la reserva, día, hora, especialidad), construyes un puntaje de riesgo de ausencia para enviar recordatorios dirigidos, y diseñas el acceso a los datos con mínimo privilegio, enmascaramiento de columnas y filtros por fila en Unity Catalog. Valor - recuperar horas de agenda sin exponer datos de salud.</p>
+<a class="cta" href="../index.html#/l/portafolio-ausentismo-con-privacidad">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular la tasa de ausentismo por segmentos y encontrar sus factores</li><li>Construir un puntaje de riesgo simple y medir su efecto</li><li>Enmascarar datos personales con SQL y con máscaras de columna</li><li>Diseñar permisos por rol con grupos, vistas y filtros por fila</li><li>Explicar las obligaciones básicas al trabajar con datos de salud</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Una clínica pierde cerca del 9 % de sus turnos porque el paciente no viene y no avisa. Cada turno perdido es una hora de un médico sin trabajo y un paciente que esperaba. La directora quiere enviar recordatorios por WhatsApp, pero solo a los turnos con más riesgo (los mensajes cuestan). Y el área legal pone una condición: <strong>nadie fuera de recepción puede ver nombres, documentos ni datos de salud</strong>.</p>
+</div>
+
+
+<h2>Valor</h2>
+<ul>
+<li><strong>Horas recuperadas</strong>: si los recordatorios dirigidos bajan la ausencia del grupo de riesgo de 20 % a 12 %, ¿cuántas horas de agenda vuelven por mes?</li>
+<li><strong>Cumplimiento</strong>: el analista ve tasas y patrones, nunca a la persona.</li>
+</ul>
+<h2>Los datos</h2>
+<p><a href="#/generador?esc=salud&n=2000&semilla=55&desde=2024-01-01&hasta=2024-12-31&nulos=3&formatos=3&duplicados=1">🏭 Generar los datos del proyecto</a> · Escenario <strong>Clínica</strong>: <code>pacientes</code> (con documento, email y fecha de nacimiento), <code>medicos</code> y <code>turnos</code> (fecha de reserva, fecha del turno y estado: atendido, ausente o cancelado). La ausencia crece con la anticipación de la reserva y es mayor los lunes.</p>
+<h2>Arquitectura y acceso</h2>
+<figure class="diagrama"><figcaption>Datos de salud con mínimo privilegio</figcaption></figure>
+
+
+<h2>Fase 1: entender el ausentismo</h2>
+<p>Tasa de ausencia = ausentes ÷ (atendidos + ausentes). Las cancelaciones con aviso no son ausencias: liberan el turno. Abre la tasa por:</p>
+<ul>
+<li><strong>Anticipación</strong> (días entre reserva y turno): 0–2, 3–10, más de 10.</li>
+<li><strong>Día de la semana</strong> y <strong>franja horaria</strong>.</li>
+<li><strong>Especialidad</strong> y <strong>paciente nuevo o recurrente</strong>.</li>
+</ul>
+<h2>Fase 2: puntaje de riesgo y experimento</h2>
+<p>Un puntaje simple (por ejemplo: +2 si la anticipación es mayor a 10 días, +1 si es lunes, +2 si el paciente faltó antes) ordena los turnos de mañana. Los recordatorios van al 30 % con más puntaje. Para saber si <strong>funcionan</strong>, durante un mes se envían a la mitad del grupo de riesgo (al azar) y se compara la ausencia: es un experimento A/B como los del módulo de Análisis.</p>
+<h2>Fase 3: privacidad en Unity Catalog</h2>
+<pre data-norun><code class="language-sql">-- máscara de columna: recepción ve el documento; el resto, solo los últimos 3 dígitos
+CREATE FUNCTION workspace.clinica.mask_documento(doc STRING)
+RETURN CASE WHEN is_account_group_member('recepcion') THEN doc ELSE concat('*****', right(doc, 3)) END;
+ALTER TABLE workspace.clinica.silver_pacientes ALTER COLUMN documento SET MASK workspace.clinica.mask_documento;
+
+-- filtro por fila: cada recepción ve solo los turnos de su sede
+CREATE FUNCTION workspace.clinica.filtro_sede(sede STRING)
+RETURN is_account_group_member('direccion') OR is_account_group_member(concat('recepcion_', lower(sede)));
+ALTER TABLE workspace.clinica.silver_turnos SET ROW FILTER workspace.clinica.filtro_sede ON (sede);
+
+-- los analistas leen solo gold
+GRANT SELECT ON TABLE workspace.clinica.gold_ausentismo TO `analistas`;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Datos sensibles</div>
+
+<p>Los datos de salud son una <strong>categoría especial</strong> en la mayoría de las leyes de protección de datos: requieren una base legal, finalidad clara, acceso mínimo y registro de quién los consulta. En el proyecto, los datos son sintéticos, pero diseña como si fueran reales: es lo que se evalúa.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Datos personales en tablas de análisis</strong> &quot;porque era más fácil&quot;.</li>
+<li><strong>Seudonimizar con un hash sin sal</strong> de un dato conocido (el documento): se puede revertir probando todos los documentos posibles.</li>
+<li><strong>Dar acceso a toda la tabla</strong> cuando el analista solo necesita columnas agregadas.</li>
+<li><strong>No documentar qué datos personales hay y para qué se usan</strong>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En salud y en cualquier sector regulado, poder mostrar cómo protegiste los datos personales (enmascaramiento, permisos por columna, auditoría) vale tanto como el resultado del análisis.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo protegerías datos personales en un proyecto de análisis?&quot;</div>
+
+<p>Minimizando: solo los datos necesarios, con identificadores seudonimizados con un hash con sal o un token guardado aparte. Permisos por columna y por fila en el catálogo, con máscaras para datos sensibles, acceso por grupos con lo mínimo necesario y auditoría de quién consultó qué. Documentaría qué datos personales hay, su finalidad y su plazo de conservación.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Tabla de ausentismo por anticipación, día y especialidad, con la conclusión.</li>
+<li><input disabled="" type="checkbox"> Puntaje de riesgo y la estimación de horas recuperadas.</li>
+<li><input disabled="" type="checkbox"> Diseño del experimento de recordatorios (grupos, duración, métrica).</li>
+<li><input disabled="" type="checkbox"> Matriz de acceso por rol (qué ve cada uno) y el SQL de máscaras, filtros y permisos.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Auditoría: consulta las tablas de sistema de acceso para mostrar quién leyó datos sensibles.</li>
+<li>Modelo de riesgo con MLflow comparado contra el puntaje de reglas.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-ausentismo-con-privacidad">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-metricas-saas-churn.html">← Proyecto 5: Métricas SaaS y riesgo de baja con dbt</a><a href="portafolio-recomendaciones-streaming.html">Proyecto 7: Recomendaciones y retención en una plataforma de streaming →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

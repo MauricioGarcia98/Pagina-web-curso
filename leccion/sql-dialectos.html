@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dialectos de SQL: SQLite, PostgreSQL, SQL Server, Spark · Academia de Datos</title><meta name="description" content="Lo que cambia entre motores y cómo traducir tus consultas a Databricks / Spark SQL."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-dialectos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Dialectos de SQL: SQLite, PostgreSQL, SQL Server, Spark · Academia de Datos"><meta property="og:description" content="Lo que cambia entre motores y cómo traducir tus consultas a Databricks / Spark SQL."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-dialectos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Experto · 35 min</div>
+<h1>Dialectos de SQL: SQLite, PostgreSQL, SQL Server, Spark</h1><p class="resumen">Lo que cambia entre motores y cómo traducir tus consultas a Databricks / Spark SQL.</p>
+<a class="cta" href="../index.html#/l/sql-dialectos">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer las diferencias más comunes entre SQLite, PostgreSQL, SQL Server, BigQuery y Spark SQL</li><li>Traducir funciones de fecha, texto y límites de un dialecto a otro</li><li>Anticipar diferencias que no dan error pero cambian el resultado</li><li>Aprender un dialecto nuevo con un método rápido</li></ul>
+<h2>Un idioma, muchos acentos</h2>
+<p>SQL tiene un <strong>estándar</strong> (ANSI/ISO SQL) que define el núcleo común: <code>SELECT</code>, <code>JOIN</code>, <code>GROUP BY</code>, <code>CASE</code>, CTE, funciones de ventana. Todo eso funciona igual en casi cualquier motor. Pero cada fabricante agregó, a lo largo de décadas, sus propias funciones y atajos: esas variantes se llaman <strong>dialectos</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El español de cada país</div>
+
+<p>Un argentino, un mexicano y un español se entienden perfectamente, aunque uno diga &quot;auto&quot;, otro &quot;carro&quot; y otro &quot;coche&quot;. Con SQL pasa lo mismo: si sabes qué quieres decir (los conceptos), traducir la palabra exacta es buscarla en el diccionario. Por eso este curso enseña conceptos con SQLite y te marca las diferencias.</p>
+</div>
+
+
+<p>¿Dónde vas a encontrar cada motor?</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Motor</th>
+<th>Dónde se usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>PostgreSQL</strong></td>
+<td>Bases de aplicaciones, muy popular en startups; Redshift y muchos motores modernos copian su sintaxis</td>
+</tr>
+<tr>
+<td><strong>MySQL / MariaDB</strong></td>
+<td>Aplicaciones web clásicas</td>
+</tr>
+<tr>
+<td><strong>SQL Server (T-SQL)</strong></td>
+<td>Empresas con ecosistema Microsoft; Azure SQL, Synapse, Fabric</td>
+</tr>
+<tr>
+<td><strong>Oracle</strong></td>
+<td>Grandes corporaciones, bancos</td>
+</tr>
+<tr>
+<td><strong>Spark SQL / Databricks SQL</strong></td>
+<td>Lakehouse, big data</td>
+</tr>
+<tr>
+<td><strong>BigQuery (GoogleSQL)</strong></td>
+<td>Google Cloud</td>
+</tr>
+<tr>
+<td><strong>Snowflake</strong></td>
+<td>Data warehouse multinube</td>
+</tr>
+<tr>
+<td><strong>Athena / Trino / Presto</strong></td>
+<td>Consultas sobre data lakes en AWS y otros</td>
+</tr>
+<tr>
+<td><strong>SQLite / DuckDB</strong></td>
+<td>Bases embebidas, análisis local (DuckDB es furor para analítica en una laptop)</td>
+</tr>
+</tbody></table></div>
+<h2>La chuleta de equivalencias</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tarea</th>
+<th>SQLite</th>
+<th>PostgreSQL</th>
+<th>SQL Server</th>
+<th>Spark / Databricks</th>
+<th>BigQuery</th>
+<th>Snowflake</th>
+</tr>
+</thead><tbody><tr>
+<td>Limitar filas</td>
+<td><code>LIMIT 10</code></td>
+<td><code>LIMIT 10</code></td>
+<td><code>TOP 10</code></td>
+<td><code>LIMIT 10</code></td>
+<td><code>LIMIT 10</code></td>
+<td><code>LIMIT 10</code></td>
+</tr>
+<tr>
+<td>Concatenar</td>
+<td><code>a || b</code></td>
+<td><code>a || b</code></td>
+<td><code>a + b</code> / <code>CONCAT</code></td>
+<td><code>CONCAT</code> / <code>||</code></td>
+<td><code>CONCAT</code> / <code>||</code></td>
+<td><code>||</code> / <code>CONCAT</code></td>
+</tr>
+<tr>
+<td>Reemplazar NULL</td>
+<td><code>COALESCE</code> / <code>IFNULL</code></td>
+<td><code>COALESCE</code></td>
+<td><code>COALESCE</code> / <code>ISNULL</code></td>
+<td><code>COALESCE</code> / <code>NVL</code></td>
+<td><code>COALESCE</code> / <code>IFNULL</code></td>
+<td><code>COALESCE</code> / <code>NVL</code></td>
+</tr>
+<tr>
+<td>Fecha actual</td>
+<td><code>date(&#39;now&#39;)</code></td>
+<td><code>CURRENT_DATE</code></td>
+<td><code>GETDATE()</code></td>
+<td><code>current_date()</code></td>
+<td><code>CURRENT_DATE()</code></td>
+<td><code>CURRENT_DATE</code></td>
+</tr>
+<tr>
+<td>Año</td>
+<td><code>strftime(&#39;%Y&#39;, f)</code></td>
+<td><code>EXTRACT(YEAR FROM f)</code></td>
+<td><code>YEAR(f)</code></td>
+<td><code>year(f)</code></td>
+<td><code>EXTRACT(YEAR FROM f)</code></td>
+<td><code>YEAR(f)</code></td>
+</tr>
+<tr>
+<td>Truncar a mes</td>
+<td><code>date(f, &#39;start of month&#39;)</code></td>
+<td><code>date_trunc(&#39;month&#39;, f)</code></td>
+<td><code>DATETRUNC(month, f)</code></td>
+<td><code>date_trunc(&#39;MONTH&#39;, f)</code></td>
+<td><code>DATE_TRUNC(f, MONTH)</code></td>
+<td><code>DATE_TRUNC(&#39;month&#39;, f)</code></td>
+</tr>
+<tr>
+<td>Sumar 7 días</td>
+<td><code>date(f, &#39;+7 days&#39;)</code></td>
+<td><code>f + INTERVAL &#39;7 day&#39;</code></td>
+<td><code>DATEADD(day, 7, f)</code></td>
+<td><code>date_add(f, 7)</code></td>
+<td><code>DATE_ADD(f, INTERVAL 7 DAY)</code></td>
+<td><code>DATEADD(day, 7, f)</code></td>
+</tr>
+<tr>
+<td>Días entre fechas</td>
+<td><code>julianday(b) - julianday(a)</code></td>
+<td><code>b - a</code></td>
+<td><code>DATEDIFF(day, a, b)</code></td>
+<td><code>datediff(b, a)</code></td>
+<td><code>DATE_DIFF(b, a, DAY)</code></td>
+<td><code>DATEDIFF(day, a, b)</code></td>
+</tr>
+<tr>
+<td>Conversión segura</td>
+<td>—</td>
+<td>—</td>
+<td><code>TRY_CAST</code></td>
+<td><code>try_cast</code></td>
+<td><code>SAFE_CAST</code></td>
+<td><code>TRY_CAST</code></td>
+</tr>
+<tr>
+<td>Filtrar ventanas</td>
+<td>CTE + <code>WHERE</code></td>
+<td>CTE + <code>WHERE</code></td>
+<td>CTE + <code>WHERE</code></td>
+<td><code>QUALIFY</code></td>
+<td><code>QUALIFY</code></td>
+<td><code>QUALIFY</code></td>
+</tr>
+<tr>
+<td>Upsert</td>
+<td><code>ON CONFLICT</code></td>
+<td><code>ON CONFLICT</code> / <code>MERGE</code></td>
+<td><code>MERGE</code></td>
+<td><code>MERGE INTO</code></td>
+<td><code>MERGE</code></td>
+<td><code>MERGE</code></td>
+</tr>
+<tr>
+<td>Regex</td>
+<td>(extensión)</td>
+<td><code>~</code>, <code>regexp_replace</code></td>
+<td>limitado</td>
+<td><code>rlike</code>, <code>regexp_extract</code></td>
+<td><code>REGEXP_CONTAINS</code></td>
+<td><code>REGEXP_LIKE</code></td>
+</tr>
+<tr>
+<td>Arrays / JSON</td>
+<td><code>json_extract</code></td>
+<td><code>ARRAY</code>, <code>jsonb</code></td>
+<td><code>OPENJSON</code></td>
+<td><code>ARRAY</code>, <code>explode</code>, <code>from_json</code></td>
+<td><code>ARRAY</code>, <code>UNNEST</code>, <code>JSON_VALUE</code></td>
+<td><code>VARIANT</code>, <code>FLATTEN</code></td>
+</tr>
+<tr>
+<td>Nombre raro de columna</td>
+<td><code>&quot;col&quot;</code></td>
+<td><code>&quot;col&quot;</code></td>
+<td><code>[col]</code></td>
+<td><code>`col`</code></td>
+<td><code>`col`</code></td>
+<td><code>&quot;col&quot;</code></td>
+</tr>
+</tbody></table></div>
+<div class="recorrido"></div>
+
+
+<h2>Diferencias que causan errores silenciosos</h2>
+<p>Las diferencias de sintaxis son fáciles: el motor da un error y lo corriges. Las peligrosas son las que <strong>no dan error</strong> pero cambian el resultado:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comportamiento</th>
+<th>Dónde cambia</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>División entera</strong></td>
+<td><code>7/2 = 3</code> en SQLite, PostgreSQL, SQL Server; <code>3.5</code> en MySQL, Spark, BigQuery</td>
+<td>Porcentajes que dan 0 al migrar</td>
+</tr>
+<tr>
+<td><strong>Mayúsculas en comparaciones</strong></td>
+<td>SQL Server y MySQL suelen ignorarlas; PostgreSQL y Spark no</td>
+<td><code>WHERE pais = &#39;chile&#39;</code> encuentra filas en un motor y en otro no</td>
+</tr>
+<tr>
+<td><strong>NULL al ordenar</strong></td>
+<td>Primero en SQLite/MySQL; último en PostgreSQL/Oracle</td>
+<td>Un &quot;top 10&quot; distinto</td>
+</tr>
+<tr>
+<td><strong>Texto vacío vs NULL</strong></td>
+<td>Oracle trata <code>&#39;&#39;</code> como <code>NULL</code></td>
+<td>Filtros <code>IS NULL</code> que cambian</td>
+</tr>
+<tr>
+<td><strong>Tipos estrictos</strong></td>
+<td>SQLite convierte en silencio; los demás fallan o convierten distinto</td>
+<td><code>CAST(&#39;abc&#39; AS INT)</code> → 0 en SQLite, error en otros</td>
+</tr>
+</tbody></table></div>
+<p>Cuando migres una consulta de un motor a otro, compara <strong>resultados</strong> (conteos y totales), no solo que &quot;ejecute sin error&quot;.</p>
+<h2>Particularidades de Spark SQL / Databricks que vas a usar</h2>
+<pre data-norun><code class="language-sql">-- Leer archivos directamente, sin crear una tabla
+SELECT * FROM parquet.`/mnt/datos/pedidos/`;
+SELECT * FROM read_files('/Volumes/main/crudo/archivos/', format =&gt; 'csv', header =&gt; true);
+
+-- QUALIFY: top-1 por grupo sin CTE
+SELECT * FROM pedidos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido DESC) = 1;
+
+-- Arrays: explode genera una fila por elemento
+SELECT pedido_id, explode(array('a', 'b', 'c')) AS letra FROM pedidos LIMIT 3;
+
+-- Tres niveles de nombres con Unity Catalog: catálogo.esquema.tabla
+SELECT * FROM main.ventas.pedidos;
+
+-- Time travel en Delta Lake: la tabla como era antes
+SELECT * FROM main.ventas.pedidos VERSION AS OF 12;
+SELECT * FROM main.ventas.pedidos TIMESTAMP AS OF '2024-06-01';</code></pre>
+<h2>DuckDB: SQL analítico sin servidor</h2>
+<p><strong>DuckDB</strong> es un motor gratuito y de código abierto pensado para <strong>analizar</strong>, no para atender una aplicación. Guarda cada columna junta (es <em>columnar</em>), así que sumar o promediar millones de filas le lleva milisegundos. No necesita servidor: corre dentro de tu programa, de tu notebook o, como en el laboratorio, de tu navegador. Lee archivos CSV y Parquet directamente (<code>SELECT * FROM &#39;ventas.parquet&#39;</code>).</p>
+<p>Su SQL se parece mucho al de PostgreSQL y suma atajos muy cómodos para analizar:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Atajo</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GROUP BY ALL</code></td>
+<td>Agrupa por todas las columnas que no son agregaciones: no hay que repetirlas</td>
+</tr>
+<tr>
+<td><code>QUALIFY</code></td>
+<td>Filtra por el resultado de una función de ventana, como en Databricks y Snowflake</td>
+</tr>
+<tr>
+<td><code>PIVOT … ON … USING …</code></td>
+<td>Convierte valores de una columna en columnas</td>
+</tr>
+<tr>
+<td><code>SUMMARIZE tabla</code></td>
+<td>Muestra, por columna, mínimo, máximo, nulos y valores distintos</td>
+</tr>
+<tr>
+<td><code>SELECT * EXCLUDE (col)</code></td>
+<td>Todas las columnas menos algunas</td>
+</tr>
+</tbody></table></div>
+<p>Pruébalo en el <a href="#/lab/sql?modo=libre">laboratorio SQL</a>: elige la pestaña 🦆 <strong>DuckDB</strong>.</p>
+<h2>Cómo aprender un dialecto nuevo en una tarde</h2>
+<ol>
+<li>Busca la página de <strong>funciones de fecha</strong> y la de <strong>funciones de texto</strong> de su documentación: ahí están el 80 % de las diferencias.</li>
+<li>Revisa cómo hace <strong>upsert</strong> (<code>MERGE</code>) y cómo <strong>filtra ventanas</strong> (<code>QUALIFY</code> o CTE).</li>
+<li>Prueba los &quot;errores silenciosos&quot; de la tabla de arriba con consultas chiquitas (<code>SELECT 7/2</code>, <code>SELECT &#39;a&#39; = &#39;A&#39;</code>).</li>
+<li>Pásale tus consultas favoritas de este curso y ajusta lo que falle.</li>
+</ol>
+<p>Herramientas como <strong>sqlglot</strong> (Python) traducen automáticamente entre dialectos, muy útil en migraciones grandes.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Consejo profesional</div>
+
+<p>Escribe SQL lo más <strong>estándar</strong> posible (CTE, <code>COALESCE</code>, <code>CASE</code>, ventanas, <code>CAST</code>) y usa los trucos específicos solo cuando aporten mucho. Tu código será más fácil de leer para otros y de migrar entre motores, algo que pasa más seguido de lo que crees (de un PostgreSQL a Snowflake, de un Hive a Databricks…).</p>
+</div>
+
+
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>División entera</strong>: <code>7 / 2</code> es 3 en PostgreSQL, SQL Server y SQLite, pero 3.5 en Spark SQL, BigQuery (con <code>/</code>) y MySQL. Una métrica migrada puede cambiar sin avisar.</li>
+<li><strong>Comparación de textos</strong>: SQL Server y MySQL suelen ignorar mayúsculas al comparar (<code>&#39;ana&#39; = &#39;ANA&#39;</code> es verdadero); PostgreSQL, Spark y BigQuery no.</li>
+<li><strong>NULL al ordenar</strong>: PostgreSQL pone los NULL al final en orden ascendente; SQL Server y SQLite, al principio. Usa <code>NULLS FIRST</code>/<code>NULLS LAST</code> donde exista.</li>
+<li><strong>Funciones de fecha con argumentos en distinto orden</strong>: <code>DATEDIFF(day, inicio, fin)</code> en SQL Server y <code>DATEDIFF(fin, inicio)</code> en Spark. Si los inviertes, el signo cambia.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La migración a Databricks</div>
+
+<p>Martín trae novedades:</p>
+<blockquote>
+<p>&quot;La empresa decidió migrar el warehouse a Databricks. Tenemos 200 consultas escritas para PostgreSQL y SQL Server. No hay que reescribirlas desde cero, pero sí revisarlas una por una.&quot;</p>
+</blockquote>
+<p>SQL es un estándar, pero cada motor tiene su &quot;acento&quot;. La mayoría de las diferencias dan error y se corrigen rápido. Las peligrosas son las que <strong>no dan error</strong> y devuelven otro número.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En una migración real se arma un <strong>conjunto de pruebas</strong>: se ejecuta cada consulta en el motor viejo y en el nuevo y se comparan los resultados (con <code>EXCEPT</code> o comparando totales). Las diferencias muestran justamente los errores silenciosos.</li>
+<li>Herramientas como <strong>sqlglot</strong> traducen SQL entre dialectos automáticamente. Sirven como primer paso, pero el resultado se revisa igual.</li>
+<li>dbt ayuda a escribir SQL portable con macros que se traducen según el motor (<code>dateadd</code>, <code>datediff</code>, <code>type_string</code>).</li>
+</ul>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-dialectos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-modelado.html">← Modelado de datos: normalización y esquema estrella</a><a href="sql-entrevistas.html">Desafíos SQL de entrevista (nivel senior) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

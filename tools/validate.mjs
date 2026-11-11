@@ -31,7 +31,10 @@ base.run(DataGen.VIEWS);
 const bytes = base.export();
 
 let fails = 0, okCount = 0;
-const fail = (ex, msg) => { fails++; console.log(`✗ ${ex.id} [${ex.type}] ${msg}`); };
+// los ejercicios que usan la API de práctica (api.tiendaandina.dev) solo corren dentro del navegador, donde
+// assets/js/api-practica.js responde: aquí se cuentan aparte y los cubre la prueba en navegador (tools/pruebas)
+let enNavegador = 0;
+const fail = (ex, msg) => { if (/api\.tiendaandina\.dev|corren sin internet/.test(msg + ' ' + (ex.code || ex.solucion || ''))) { enNavegador++; return; } fails++; console.log(`✗ ${ex.id} [${ex.type}] ${msg}`); };
 function runSql(sql, check) {
   const db = new SQL.Database(bytes);
   try {
@@ -130,5 +133,5 @@ if (pyJobs.length) {
     else { okCount++; if (process.env.VERBOSE) console.log(`✓ ${ex.id} (${r.t}s)`); }
   }
 }
-console.log(`\n${okCount} ejercicios OK, ${fails} con problemas`);
+console.log(`\n${okCount} ejercicios OK, ${fails} con problemas${enNavegador ? ` · ${enNavegador} usan la API de práctica y se prueban en el navegador` : ''}`);
 process.exit(fails ? 1 : 0);

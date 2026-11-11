@@ -9,9 +9,13 @@ autoevaluacion: ¿Tienes un horario fijo de estudio, aunque sea corto? | ¿Sabes
 ---
 
 :::escenario "No soy bueno para esto"
-Tres semanas después de empezar, Lucía le escribe a una amiga que trabaja en datos: *"Creo que no soy bueno para esto. Me trabo en todo y me olvido de lo que vi la semana pasada."*
+Esto le pasa a casi todo el que empieza, también a quienes después consiguen trabajo en datos. Tres semanas después de arrancar, Lucía le escribe a una amiga que ya trabaja en el tema: *"Creo que no soy bueno para esto. Me trabo en todo y me olvido de lo que vi la semana pasada."*
 
-La amiga le responde: *"A mí me pasó lo mismo. No es falta de talento: estás estudiando sin método. Nadie aprende a programar leyendo; se aprende practicando un poquito todos los días, equivocándose y repasando."* Esta lección es ese método.
+La amiga le responde: *"A mí me pasó lo mismo. No es falta de talento: estás estudiando sin método. Nadie aprende a programar leyendo; se aprende practicando un poquito todos los días, equivocándose y repasando."* Es exactamente el método que acabas de ver.
+:::
+
+:::analogia En palabras simples
+Aprender a programar se parece más a aprender a andar en bicicleta que a estudiar historia: no alcanza con leer cómo se hace, hay que subirse, caerse y volver a intentar. Un poco todos los días rinde mucho más que muchas horas de golpe una vez por semana.
 :::
 
 ## 1. Poco y seguido le gana a mucho y de vez en cuando

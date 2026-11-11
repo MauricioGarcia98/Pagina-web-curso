@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spark en tu máquina: PySpark local, Jupyter y spark-submit · Academia de Datos</title><meta name="description" content="Instala Java y PySpark, entiende qué significa correr Spark en modo local, desarrolla en notebooks de Jupyter dentro de VS Code, mira la Spark UI y ejecuta un job completo con spark-submit. Incluye la alternativa en Docker y cómo dimensionar la memoria."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-spark-local.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Spark en tu máquina: PySpark local, Jupyter y spark-submit · Academia de Datos"><meta property="og:description" content="Instala Java y PySpark, entiende qué significa correr Spark en modo local, desarrolla en notebooks de Jupyter dentro de VS Code, mira la Spark UI y ejecuta un job completo con spark-submit. Incluye la alternativa en Docker y cómo dimensionar la memoria."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-spark-local.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Intermedio · 50 min</div>
+<h1>Spark en tu máquina: PySpark local, Jupyter y spark-submit</h1><p class="resumen">Instala Java y PySpark, entiende qué significa correr Spark en modo local, desarrolla en notebooks de Jupyter dentro de VS Code, mira la Spark UI y ejecuta un job completo con spark-submit. Incluye la alternativa en Docker y cómo dimensionar la memoria.</p>
+<a class="cta" href="../index.html#/l/local-spark-local">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Instalar Java 17 y PySpark y comprobar que Spark arranca</li><li>Explicar el modo local[*] y en qué se diferencia de un clúster</li><li>Desarrollar con PySpark en un notebook de Jupyter y leer la Spark UI</li><li>Ejecutar un script de PySpark con spark-submit y ajustar la memoria del driver</li><li>Leer y escribir Parquet particionado en tu disco</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Spark está pensado para trabajar con muchas computadoras, pero también corre en una sola, como un equipo de fútbol que entrena con un solo jugador para aprender las jugadas. En tu computadora practicas con datos chicos el mismo código que después corre con millones de filas.</p>
+</div>
+
+
+<h2>Spark en modo local</h2>
+<p>En un clúster, Spark tiene un <strong>driver</strong> (coordina) y varios <strong>executors</strong> en distintas máquinas (procesan). En <strong>modo local</strong>, todo corre en <strong>un proceso de tu computadora</strong>, y los &quot;executors&quot; son los núcleos de tu procesador.</p>
+<figure class="diagrama"><figcaption>El mismo código, dos lugares donde correr</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th><code>--master</code></th>
+<th>Qué significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>local</code></td>
+<td>Un solo hilo (útil para depurar)</td>
+</tr>
+<tr>
+<td><code>local[4]</code></td>
+<td>4 hilos</td>
+</tr>
+<tr>
+<td><code>local[*]</code></td>
+<td>Un hilo por núcleo de tu procesador (lo normal)</td>
+</tr>
+<tr>
+<td><code>yarn</code>, <code>spark://…</code>, <code>k8s://…</code></td>
+<td>Un clúster real</td>
+</tr>
+</tbody></table></div>
+<h2>1. Instalar Java y PySpark</h2>
+<p>Spark está escrito en Scala y corre sobre la <strong>JVM</strong> (Java): PySpark necesita Java instalado. Usa Java 17 (compatible con Spark 3.5).</p>
+<pre data-norun><code class="language-bash"># Ubuntu / WSL
+sudo apt install -y openjdk-17-jdk
+# macOS
+brew install openjdk@17
+sudo ln -sfn $(brew --prefix)/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+
+java -version</code></pre>
+<p>Si tienes varias versiones de Java, apunta <code>JAVA_HOME</code> a la 17 (en <code>~/.bashrc</code> o <code>~/.zshrc</code>): <code>export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64</code> (Ubuntu) o <code>export JAVA_HOME=$(/usr/libexec/java_home -v 17)</code> (macOS).</p>
+<p>Y PySpark en el proyecto:</p>
+<pre data-norun><code class="language-bash">uv init spark-rapido &amp;&amp; cd spark-rapido
+uv add pyspark==3.5.3 pandas pyarrow
+uv add --dev jupyter ipykernel
+uv run python -c &quot;from pyspark.sql import SparkSession; print(SparkSession.builder.master('local[*]').getOrCreate().version)&quot;</code></pre>
+<h2>2. Un notebook en VS Code</h2>
+<p>Crea <code>explorar.ipynb</code>, elige el kernel de <code>.venv</code> (arriba a la derecha) y:</p>
+<pre data-norun><code class="language-python">from pyspark.sql import SparkSession, functions as F
+
+spark = (SparkSession.builder
+         .master(&quot;local[*]&quot;)
+         .appName(&quot;explorar-rapido&quot;)
+         .config(&quot;spark.sql.shuffle.partitions&quot;, &quot;8&quot;)   # 200 por defecto: demasiadas para una laptop
+         .getOrCreate())
+
+pedidos = spark.read.csv(&quot;data/delivery_pedidos.csv&quot;, header=True, inferSchema=True)
+pedidos.printSchema()
+
+(pedidos.filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)
+        .groupBy(&quot;ciudad&quot;)
+        .agg(F.count(&quot;*&quot;).alias(&quot;entregados&quot;),
+             F.round(F.avg((F.unix_timestamp(&quot;entregado&quot;) - F.unix_timestamp(&quot;creado&quot;)) / 60), 1).alias(&quot;min_promedio&quot;))
+        .orderBy(F.desc(&quot;entregados&quot;))
+        .show())</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 spark.sql.shuffle.partitions</div>
+
+<p>Por defecto, cada <code>groupBy</code> o <code>join</code> reparte los datos en <strong>200</strong> particiones: pensado para clústeres. En tu laptop con datos chicos, son 200 tareas diminutas y todo va lento. Con 8 (o el doble de tus núcleos) vuela. En Spark 3 con AQE activado, Spark las ajusta solo en parte.</p>
+</div>
+
+
+<h2>3. La Spark UI</h2>
+<p>Mientras la sesión está abierta, Spark sirve una interfaz web en <strong><code>http://localhost:4040</code></strong> (4041, 4042… si ya hay otra sesión). Ahí ves:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pestaña</th>
+<th>Qué mirar</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Jobs</strong></td>
+<td>Cada acción (<code>show</code>, <code>count</code>, <code>write</code>) es un job; cuánto tardó</td>
+</tr>
+<tr>
+<td><strong>Stages</strong></td>
+<td>Las etapas separadas por <em>shuffles</em>; si una tarea tarda mucho más que las otras, hay <strong>skew</strong></td>
+</tr>
+<tr>
+<td><strong>SQL / DataFrame</strong></td>
+<td>El plan físico: dónde hay <code>Exchange</code> (shuffle) y si un join fue <code>BroadcastHashJoin</code></td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>Lo que guardaste con <code>cache()</code></td>
+</tr>
+<tr>
+<td><strong>Executors</strong></td>
+<td>Memoria usada y errores</td>
+</tr>
+</tbody></table></div>
+<h2>4. Un job con spark-submit</h2>
+<p>El notebook es para explorar; el job que va a producción es un script:</p>
+<pre data-norun><code class="language-python"># jobs/mart_diario.py
+import sys
+from pyspark.sql import SparkSession, functions as F
+
+def main(entrada, salida):
+    spark = SparkSession.builder.appName(&quot;mart-diario&quot;).getOrCreate()
+    p = spark.read.csv(entrada, header=True, inferSchema=True)
+    mart = (p.withColumn(&quot;fecha&quot;, F.to_date(&quot;creado&quot;))
+             .groupBy(&quot;ciudad&quot;, &quot;fecha&quot;)
+             .agg(F.count(&quot;*&quot;).alias(&quot;pedidos&quot;),
+                  F.sum(F.when(F.col(&quot;estado&quot;) == &quot;entregado&quot;, F.col(&quot;subtotal&quot;)).otherwise(0)).alias(&quot;gmv&quot;)))
+    (mart.write.mode(&quot;overwrite&quot;)
+         .partitionBy(&quot;fecha&quot;)
+         .parquet(salida))
+    spark.stop()
+
+if __name__ == &quot;__main__&quot;:
+    main(sys.argv[1], sys.argv[2])</code></pre>
+<pre data-norun><code class="language-bash">uv run spark-submit --master &quot;local[*]&quot; --driver-memory 4g \
+  jobs/mart_diario.py data/delivery_pedidos.csv salida/mart_diario
+ls salida/mart_diario | head      # fecha=2024-01-01/  fecha=2024-01-02/  …  _SUCCESS</code></pre>
+<ul>
+<li>El script <strong>no</strong> fija <code>.master(...)</code>: lo decide quien lo ejecuta (<code>--master local[*]</code> en tu máquina, el clúster en producción). Así el mismo archivo sirve en los dos lados.</li>
+<li><code>partitionBy(&quot;fecha&quot;)</code> crea una carpeta por fecha: después, leer un día lee solo esa carpeta.</li>
+<li><code>_SUCCESS</code> es el archivo que Spark deja cuando el job terminó bien: otros procesos lo usan como señal.</li>
+</ul>
+<h2>5. La alternativa: Spark en Docker</h2>
+<p>Si no quieres instalar Java, la imagen <code>jupyter/pyspark-notebook</code> trae Python, Java, Spark y Jupyter:</p>
+<pre data-norun><code class="language-bash">docker run -d --name spark -p 8888:8888 -p 4040:4040 -v &quot;$PWD&quot;:/home/jovyan/work jupyter/pyspark-notebook
+docker logs spark          # copia la URL con el token y ábrela en el navegador</code></pre>
+<p>Tus archivos aparecen en la carpeta <code>work/</code> del Jupyter.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>JAVA_HOME is not set</code></strong> o <strong><code>Java gateway process exited before sending its port number</code></strong>: falta Java o <code>JAVA_HOME</code> apunta a una versión incompatible (Spark 3.5 funciona con Java 8, 11 y 17).</li>
+<li><strong><code>java.lang.OutOfMemoryError: Java heap space</code></strong>: el driver tiene poca memoria (1 GB por defecto). Sube con <code>--driver-memory 4g</code> o <code>.config(&quot;spark.driver.memory&quot;, &quot;4g&quot;)</code> <strong>antes</strong> de crear la sesión, o trabaja con una muestra más chica. Nunca hagas <code>.collect()</code> o <code>.toPandas()</code> de algo grande.</li>
+<li><strong>Todo anda lentísimo con datos chicos</strong>: las 200 particiones de shuffle. Bájalas.</li>
+<li><strong><code>Path does not exist</code></strong>: las rutas relativas son desde donde ejecutaste el comando, no desde el script.</li>
+<li><strong>Versiones distintas de PySpark en tu máquina y en el clúster</strong>: fija la misma versión (<code>pyspark==3.5.3</code>) para no descubrir diferencias en producción.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Probar antes de pagar el clúster</div>
+
+<p>En Rápido, los jobs de Spark corren en Dataproc y cada prueba levanta un clúster que tarda minutos y cuesta. Tu líder te dice:</p>
+<blockquote>
+<p>&quot;Desarrolla el job en tu máquina con una muestra de los datos. Spark en modo local es el mismo motor: si funciona con 16 000 pedidos en tu laptop, va a funcionar con 16 millones en el clúster. Solo cambia dónde corre.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El flujo habitual: explorar en un notebook con una muestra → pasar la lógica a funciones en un módulo → probar esas funciones con <strong>pytest</strong> y un <code>SparkSession</code> local (<code>local[2]</code>) → el job llama a esas funciones y se despliega por CI.</li>
+<li>En Databricks se trabaja igual en local con <strong>Databricks Connect</strong> (el código corre en tu VS Code y los cálculos en el clúster) o con un Spark local para las pruebas unitarias.</li>
+<li>Las pruebas de Spark se hacen con DataFrames chicos construidos en la prueba (<code>spark.createDataFrame([...])</code>) y se comparan resultados esperados: rápidas y sin depender de archivos.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-spark-local">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-airflow-local.html">← Airflow en tu máquina: standalone, Astro CLI o Docker Compose</a><a href="local-nube-desde-tu-compu.html">La nube desde tu computadora: cuentas gratuitas, CLIs, credenciales seguras y Terraform →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

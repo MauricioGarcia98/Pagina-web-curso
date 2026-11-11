@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preparar tu computadora: Windows con WSL, macOS o Linux · Academia de Datos</title><meta name="description" content="El plan de todo lo que vas a instalar en este módulo y por qué, los requisitos mínimos, y el primer paso según tu sistema operativo: WSL 2 con Ubuntu en Windows, Homebrew en macOS o apt en Linux. Termina con una checklist para comprobar que todo funciona."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-preparar-la-computadora.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Preparar tu computadora: Windows con WSL, macOS o Linux · Academia de Datos"><meta property="og:description" content="El plan de todo lo que vas a instalar en este módulo y por qué, los requisitos mínimos, y el primer paso según tu sistema operativo: WSL 2 con Ubuntu en Windows, Homebrew en macOS o apt en Linux. Termina con una checklist para comprobar que todo funciona."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-preparar-la-computadora.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Básico · 45 min</div>
+<h1>Preparar tu computadora: Windows con WSL, macOS o Linux</h1><p class="resumen">El plan de todo lo que vas a instalar en este módulo y por qué, los requisitos mínimos, y el primer paso según tu sistema operativo: WSL 2 con Ubuntu en Windows, Homebrew en macOS o apt en Linux. Termina con una checklist para comprobar que todo funciona.</p>
+<a class="cta" href="../index.html#/l/local-preparar-la-computadora">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué herramientas forman el entorno local de un data engineer y para qué sirve cada una</li><li>Instalar WSL 2 con Ubuntu en Windows, o Homebrew en macOS</li><li>Usar el gestor de paquetes de tu sistema para instalar herramientas</li><li>Comprobar las versiones instaladas desde la terminal</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Antes de cocinar hay que preparar la cocina: limpiar la mesada, tener a mano los utensilios. Esta lección prepara tu computadora para trabajar con datos como en una empresa. En Windows se usa WSL, que es como tener una pequeña computadora Linux dentro de la tuya.</p>
+</div>
+
+
+<h2>El mapa de lo que vas a instalar</h2>
+<figure class="diagrama"><figcaption>Tu entorno local de data engineering, en capas</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Lección</th>
+<th>Qué instalas</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td>1 (esta)</td>
+<td>WSL 2 (Windows) o Homebrew (macOS)</td>
+<td>Una terminal Linux y un gestor de paquetes</td>
+</tr>
+<tr>
+<td>2</td>
+<td>VS Code, Git, cuenta de GitHub con SSH</td>
+<td>Editar código y versionarlo</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Python con <strong>uv</strong>, entornos virtuales, ruff y pytest</td>
+<td>Proyectos de Python aislados y reproducibles</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Docker Desktop</td>
+<td>Correr bases de datos y servicios sin instalarlos</td>
+</tr>
+<tr>
+<td>5</td>
+<td>PostgreSQL (en Docker) y DuckDB</td>
+<td>Practicar SQL con datos reales</td>
+</tr>
+<tr>
+<td>6</td>
+<td>dbt con DuckDB</td>
+<td>Transformaciones como en el trabajo</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Airflow</td>
+<td>Orquestar pipelines</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Java y PySpark</td>
+<td>Spark en tu máquina</td>
+</tr>
+<tr>
+<td>9</td>
+<td>CLIs de AWS, Google Cloud, Azure, Databricks y Terraform</td>
+<td>Trabajar con la nube desde tu terminal</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Todo junto</td>
+<td>El proyecto completo, corriendo en tu computadora</td>
+</tr>
+</tbody></table></div>
+<h3>Requisitos mínimos</h3>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Mínimo</th>
+<th>Recomendado</th>
+</tr>
+</thead><tbody><tr>
+<td>Memoria (RAM)</td>
+<td>8 GB</td>
+<td>16 GB (Docker + Airflow + Spark consumen bastante)</td>
+</tr>
+<tr>
+<td>Disco libre</td>
+<td>30 GB</td>
+<td>60 GB en SSD</td>
+</tr>
+<tr>
+<td>Sistema</td>
+<td>Windows 10 22H2 / 11, macOS 13, Ubuntu 22.04</td>
+<td>Windows 11, macOS 14 o superior, Ubuntu 24.04</td>
+</tr>
+<tr>
+<td>Procesador</td>
+<td>Cualquier x86-64 o Apple Silicon (M1–M4)</td>
+<td>4 núcleos o más</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Puedes practicar sin instalar nada</div>
+
+<p>Cada comando de este módulo funciona también en la <strong>terminal del curso</strong> (botón ⌨ Terminal): tiene Docker, PostgreSQL, DuckDB, uv, dbt, Airflow y las CLIs de nube simulados con estado. Úsala para ensayar antes de hacerlo en tu máquina, o si tu computadora no cumple los requisitos.</p>
+</div>
+
+
+<h2>Windows: trabajar dentro de Linux con WSL 2</h2>
+<p>Casi todas las herramientas de datos están pensadas para Linux: los servidores de producción, los contenedores y la documentación de dbt, Airflow y Spark asumen una terminal Linux. <strong>WSL 2</strong> (<em>Windows Subsystem for Linux</em>) corre un Ubuntu real dentro de Windows, integrado con el explorador de archivos y con VS Code. Es la forma recomendada de trabajar en Windows.</p>
+<p><strong>Paso 1.</strong> Abre <strong>PowerShell como administrador</strong> (clic derecho en el menú Inicio → &quot;Terminal (Administrador)&quot;) y ejecuta:</p>
+<pre><code class="language-powershell">wsl --install</code></pre>
+<p>Instala la plataforma de virtualización, el kernel de Linux y <strong>Ubuntu</strong>. Reinicia cuando te lo pida.</p>
+<p><strong>Paso 2.</strong> Al reiniciar se abre Ubuntu y te pide un <strong>usuario y una contraseña de Linux</strong> (no tienen que ser los de Windows; anota la contraseña: la pide <code>sudo</code>).</p>
+<p><strong>Paso 3.</strong> Comprueba que es la versión 2:</p>
+<pre><code class="language-powershell">wsl -l -v</code></pre>
+<pre><code class="language-text">  NAME      STATE           VERSION
+* Ubuntu    Running         2</code></pre>
+<p><strong>Paso 4.</strong> Instala <strong>Windows Terminal</strong> (viene con Windows 11; en Windows 10, desde la Microsoft Store). Desde ahora abre &quot;Ubuntu&quot; en Windows Terminal para trabajar.</p>
+<p><strong>Paso 5.</strong> Actualiza Ubuntu e instala lo básico:</p>
+<pre data-norun><code class="language-bash">sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y build-essential curl unzip git make</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Dónde guardar tus proyectos</div>
+
+<p>Guarda tus proyectos <strong>dentro de Linux</strong> (<code>/home/tu_usuario/proyectos</code>), no en <code>C:\Users\...</code> (que en WSL aparece como <code>/mnt/c/...</code>). Leer archivos de Windows desde Linux es hasta 10 veces más lento, y Git, Python y Docker se comportan mejor con el sistema de archivos de Linux. Desde el explorador de Windows puedes ver tus archivos de Linux en <code>\\wsl$\Ubuntu\home\tu_usuario</code>.</p>
+</div>
+
+
+<p><strong>Instalar programas de Windows</strong> (VS Code, Docker Desktop) se hace con el instalador o con <strong>winget</strong> en PowerShell:</p>
+<pre><code class="language-powershell">winget install -e --id Microsoft.VisualStudioCode
+winget install -e --id Docker.DockerDesktop</code></pre>
+<h2>macOS: Homebrew</h2>
+<p>macOS ya tiene una terminal tipo Unix (zsh). Le falta un <strong>gestor de paquetes</strong>: <strong>Homebrew</strong>, que instala y actualiza herramientas con un comando.</p>
+<p><strong>Paso 1.</strong> Instala las herramientas de línea de comandos de Apple (incluyen <code>git</code> y el compilador):</p>
+<pre data-norun><code class="language-bash">xcode-select --install</code></pre>
+<p><strong>Paso 2.</strong> Instala Homebrew (el comando oficial de <a href="https://brew.sh">brew.sh</a>):</p>
+<pre data-norun><code class="language-bash">/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;</code></pre>
+<p>Al terminar, Homebrew te muestra <strong>dos líneas para agregar al PATH</strong> (en Apple Silicon, <code>eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot;</code>). Cópialas y ejecútalas: si no, la terminal no encuentra <code>brew</code>.</p>
+<p><strong>Paso 3.</strong> Instala lo básico:</p>
+<pre data-norun><code class="language-bash">brew install git make wget
+brew install --cask visual-studio-code docker</code></pre>
+<p><code>--cask</code> es para aplicaciones con ventana (VS Code, Docker Desktop).</p>
+<h2>Linux (Ubuntu o Debian)</h2>
+<p>Ya tienes todo lo necesario para empezar. Actualiza e instala lo básico con <strong>apt</strong>:</p>
+<pre data-norun><code class="language-bash">sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y build-essential curl unzip git make</code></pre>
+<h2>Los gestores de paquetes, comparados</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tarea</th>
+<th>Ubuntu / WSL (<code>apt</code>)</th>
+<th>macOS (<code>brew</code>)</th>
+<th>Windows (<code>winget</code>, en PowerShell)</th>
+</tr>
+</thead><tbody><tr>
+<td>Actualizar la lista</td>
+<td><code>sudo apt update</code></td>
+<td><code>brew update</code></td>
+<td>(automático)</td>
+</tr>
+<tr>
+<td>Instalar</td>
+<td><code>sudo apt install git</code></td>
+<td><code>brew install git</code></td>
+<td><code>winget install -e --id Git.Git</code></td>
+</tr>
+<tr>
+<td>Actualizar todo</td>
+<td><code>sudo apt upgrade</code></td>
+<td><code>brew upgrade</code></td>
+<td><code>winget upgrade --all</code></td>
+</tr>
+<tr>
+<td>Buscar</td>
+<td><code>apt search duckdb</code></td>
+<td><code>brew search duckdb</code></td>
+<td><code>winget search duckdb</code></td>
+</tr>
+<tr>
+<td>Desinstalar</td>
+<td><code>sudo apt remove x</code></td>
+<td><code>brew uninstall x</code></td>
+<td><code>winget uninstall x</code></td>
+</tr>
+</tbody></table></div>
+<p><code>sudo</code> ejecuta el comando como administrador: <code>apt</code> lo necesita porque instala para todo el sistema; <code>brew</code> no (instala en tu usuario).</p>
+<h2>La checklist: ¿está todo listo?</h2>
+<p>Al terminar el módulo, estos comandos deberían responder con una versión. Ve tachando a medida que avanzas:</p>
+<pre data-norun><code class="language-bash">git --version          # lección 2
+code --version         # lección 2
+uv --version           # lección 3
+python --version       # lección 3
+docker --version       # lección 4
+docker compose version # lección 4
+psql --version         # lección 5
+duckdb --version       # lección 5
+java -version          # lección 8
+aws --version; gcloud --version; az --version; databricks --version   # lección 9
+terraform -version     # lección 9</code></pre>
+<p>Si un comando dice <code>command not found</code>, la herramienta no está instalada <strong>o</strong> no está en el <strong>PATH</strong> (la lista de carpetas donde la terminal busca programas). <code>echo $PATH</code> la muestra, y <code>which git</code> te dice dónde está un programa.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>&quot;WSL 2 requires an update to its kernel component&quot;</strong>: ejecuta <code>wsl --update</code> en PowerShell y vuelve a intentar.</li>
+<li><strong>&quot;Virtualization is not enabled&quot;</strong> al instalar WSL o Docker: hay que activar la virtualización (Intel VT-x / AMD-V / SVM) en la BIOS de la computadora.</li>
+<li><strong><code>brew: command not found</code> después de instalarlo</strong>: faltó agregar Homebrew al PATH (las dos líneas que muestra el instalador). Cierra y vuelve a abrir la terminal.</li>
+<li><strong>Proyectos en <code>/mnt/c/...</code> desde WSL</strong>: todo anda lento y Git muestra archivos modificados por los finales de línea. Muévelos a tu carpeta de Linux.</li>
+<li><strong>Instalar Python, Git y Docker dos veces</strong> (una en Windows y otra en WSL) y confundirse de cuál se usa: en Windows, las herramientas de desarrollo van <strong>dentro de WSL</strong>; solo VS Code y Docker Desktop se instalan en Windows.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Tu primer día con una laptop nueva</div>
+
+<p>Te contratan en el equipo de datos del Grupo Andino. Te dan una laptop vacía y un mensaje de tu líder:</p>
+<blockquote>
+<p>&quot;Antes del viernes, tu máquina tiene que poder correr el proyecto del equipo: Python, Git, Docker, una base de datos, dbt, Airflow y las CLIs de la nube. Si te trabas, pregunta; pero intenta seguir la guía del equipo.&quot;</p>
+</blockquote>
+<p>Este módulo es esa guía, paso a paso, para que puedas hacer <strong>en tu computadora</strong> todo lo que practicaste en el navegador.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Muchos equipos tienen un <strong>script de onboarding</strong> (<code>setup.sh</code> o un <code>Makefile</code>) que instala todo lo de este módulo de una vez, o usan <strong>Dev Containers</strong>: un contenedor con el entorno ya armado que VS Code abre con un clic. Pregunta el primer día si existe.</li>
+<li>Las empresas suelen entregar laptops con restricciones (sin permisos de administrador, proxy corporativo). Si <code>apt</code>, <code>brew</code> o <code>pip</code> fallan por certificados o red, es eso: pide ayuda a soporte en lugar de desactivar la seguridad.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-preparar-la-computadora">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="terraform-cicd-buenas-practicas.html">← Terraform en equipo: pruebas, CI/CD con GitHub Actions y buenas prácticas</a><a href="local-vscode-git-github.html">VS Code, Git y GitHub: editar y versionar como en un equipo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

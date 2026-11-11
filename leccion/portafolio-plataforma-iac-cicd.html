@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 11: La plataforma con Terraform, Declarative Automation Bundles y CI/CD · Academia de Datos</title><meta name="description" content="Lo que convierte proyectos sueltos en una plataforma profesional. Toda la infraestructura en código con Terraform (grupo de recursos, lago, Key Vault, workspace de Databricks), los pipelines y jobs en un Databricks Asset Bundle con entornos dev y prod, y GitHub Actions que validan cada cambio y despliegan al aprobar. Usas cualquiera de los proyectos anteriores como carga de trabajo. Valor - desplegar en minutos, igual en cada entorno y sin pasos manuales."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-plataforma-iac-cicd.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 11: La plataforma con Terraform, Declarative Automation Bundles y CI/CD · Academia de Datos"><meta property="og:description" content="Lo que convierte proyectos sueltos en una plataforma profesional. Toda la infraestructura en código con Terraform (grupo de recursos, lago, Key Vault, workspace de Databricks), los pipelines y jobs en un Databricks Asset Bundle con entornos dev y prod, y GitHub Actions que validan cada cambio y despliegan al aprobar. Usas cualquiera de los proyectos anteriores como carga de trabajo. Valor - desplegar en minutos, igual en cada entorno y sin pasos manuales."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-plataforma-iac-cicd.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Experto · 120 min</div>
+<h1>Proyecto 11: La plataforma con Terraform, Declarative Automation Bundles y CI/CD</h1><p class="resumen">Lo que convierte proyectos sueltos en una plataforma profesional. Toda la infraestructura en código con Terraform (grupo de recursos, lago, Key Vault, workspace de Databricks), los pipelines y jobs en un Databricks Asset Bundle con entornos dev y prod, y GitHub Actions que validan cada cambio y despliegan al aprobar. Usas cualquiera de los proyectos anteriores como carga de trabajo. Valor - desplegar en minutos, igual en cada entorno y sin pasos manuales.</p>
+<a class="cta" href="../index.html#/l/portafolio-plataforma-iac-cicd">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Describir infraestructura de Azure y Databricks con Terraform y estado remoto</li><li>Empaquetar jobs y pipelines en un Asset Bundle con targets dev y prod</li><li>Diseñar un flujo de CI que valide, pruebe y despliegue</li><li>Autenticar la CI sin secretos de larga duración (OIDC o identidades federadas)</li><li>Explicar cómo se promueve un cambio de dev a prod</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo tiene tres proyectos en producción, creados a mano desde la consola. Nadie sabe exactamente qué configuración tiene el job de producción, un cambio &quot;rápido&quot; rompió el pipeline del viernes y el entorno de pruebas no se parece al de producción. La líder técnica pide: &quot;todo en código, revisado por pull request y desplegado igual en todos lados&quot;.</p>
+</div>
+
+
+<h2>Qué va en cada herramienta</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Herramienta</th>
+<th>Ejemplos</th>
+</tr>
+</thead><tbody><tr>
+<td>Infraestructura de la nube</td>
+<td><strong>Terraform</strong> (azurerm + databricks)</td>
+<td>Grupo de recursos, cuenta de almacenamiento, Key Vault, workspace, catálogos y permisos</td>
+</tr>
+<tr>
+<td>Cargas de trabajo de datos</td>
+<td><strong>Databricks Asset Bundle</strong></td>
+<td>Jobs, pipelines declarativos, notebooks, tableros</td>
+</tr>
+<tr>
+<td>Automatización</td>
+<td><strong>GitHub Actions</strong></td>
+<td>Lint, tests, <code>terraform plan</code>, <code>bundle validate</code> y <code>deploy</code></td>
+</tr>
+</tbody></table></div>
+<p>Regla práctica: lo que cambia poco y crea recursos (la infraestructura) va en Terraform; lo que cambia todas las semanas con el código de datos va en el bundle, en el mismo repositorio que ese código.</p>
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>De un pull request a producción</figcaption></figure>
+
+
+<h2>Fase 1: Terraform</h2>
+<pre><code class="language-hcl">terraform {
+  backend &quot;azurerm&quot; {
+    resource_group_name  = &quot;rg-tfstate&quot;
+    storage_account_name = &quot;sttfstateacademia&quot;
+    container_name       = &quot;tfstate&quot;
+    key                  = &quot;plataforma.tfstate&quot;
+  }
+}
+
+resource &quot;azurerm_resource_group&quot; &quot;rg&quot; {
+  name     = &quot;rg-datos-${var.entorno}&quot;
+  location = &quot;eastus2&quot;
+  tags     = { proyecto = &quot;plataforma&quot;, entorno = var.entorno }
+}
+
+resource &quot;azurerm_storage_account&quot; &quot;lago&quot; {
+  name                     = &quot;stlago${var.entorno}${random_string.sufijo.result}&quot;
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = &quot;Standard&quot;
+  account_replication_type = &quot;LRS&quot;
+  is_hns_enabled           = true
+}</code></pre>
+<ul>
+<li><strong>Estado remoto</strong> con bloqueo: dos personas (o dos ejecuciones de CI) no pueden aplicar a la vez, y el estado no vive en la computadora de nadie.</li>
+<li><strong>Un estado por entorno</strong> (<code>dev</code>, <code>prod</code>), con variables distintas: mismo código, distinta escala.</li>
+</ul>
+<h2>Fase 2: el Asset Bundle</h2>
+<pre><code class="language-yaml"># databricks.yml
+bundle:
+  name: ventas_lakehouse
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development        # prefija los recursos con tu usuario y pausa los horarios
+    default: true
+    workspace:
+      host: https://adb-1111111111111111.1.azuredatabricks.net
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-2222222222222222.2.azuredatabricks.net
+    run_as:
+      service_principal_name: sp-datos-prod   # producción no corre con un usuario personal</code></pre>
+<pre><code class="language-yaml"># resources/ventas.job.yml
+resources:
+  jobs:
+    ventas_diarias:
+      name: ventas_diarias
+      schedule: { quartz_cron_expression: &quot;0 0 6 * * ?&quot;, timezone_id: &quot;America/Bogota&quot; }
+      tasks:
+        - task_key: dbt_build
+          dbt_task: { project_directory: ./transform, commands: [&quot;dbt deps&quot;, &quot;dbt build&quot;] }</code></pre>
+<h2>Fase 3: CI/CD con GitHub Actions</h2>
+<pre><code class="language-yaml"># .github/workflows/ci.yml
+on:
+  pull_request:
+  push: { branches: [main] }
+permissions: { id-token: write, contents: read }   # OIDC: sin secretos de larga duración
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run ruff check . &amp;&amp; uv run pytest
+      - run: uv run dbt build --target ci          # contra DuckDB, rápido y gratis
+      - uses: databricks/setup-cli@main
+      - run: databricks bundle validate -t dev
+  desplegar_prod:
+    needs: validar
+    if: github.ref == 'refs/heads/main'
+    environment: produccion                        # requiere aprobación manual
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - run: databricks bundle deploy -t prod</code></pre>
+<p>La autenticación de la CI usa <strong>identidades federadas</strong> (OIDC): GitHub presenta un token firmado y Azure o Databricks confían en él según el repositorio y la rama. No hay claves guardadas que puedan filtrarse.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Un estado de Terraform local</strong> en un proyecto de equipo: se pierde o dos personas lo pisan. Usa un backend remoto con bloqueo.</li>
+<li><strong>Secretos en el repositorio</strong> o en variables sin marcar como secretas en el CI.</li>
+<li><strong>Desplegar a producción desde tu computadora</strong>.</li>
+<li><strong>Sin <code>plan</code>/<code>what-if</code> en el pull request</strong>: el revisor no ve qué va a cambiar en la nube.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Un proyecto que muestra infraestructura como código, entornos separados y despliegue automático con aprobación es justamente lo que piden los puestos de plataforma de datos y los semi senior.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo organizarías el despliegue de una plataforma de datos con varios entornos?&quot;</div>
+
+<p>Infraestructura en Terraform o Bicep con estado remoto y un archivo de variables por entorno; jobs y pipelines en bundles con targets dev y prod. Cada cambio por pull request, con CI que corre validaciones, tests y el plan o what-if publicado en el PR. Al aprobar, el CI despliega a prod con una identidad de servicio vía OIDC, con aprobación manual para producción, y nadie cambia producción a mano.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Terraform con estado remoto y dos entornos.</li>
+<li><input disabled="" type="checkbox"> Bundle con targets dev y prod, y un job real (de cualquier proyecto anterior).</li>
+<li><input disabled="" type="checkbox"> CI que corre en cada PR y despliega a prod con aprobación.</li>
+<li><input disabled="" type="checkbox"> Documento &quot;cómo se promueve un cambio&quot; y qué se haría ante un deploy fallido (rollback).</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Políticas como código: un chequeo en la CI que rechace recursos sin etiquetas o cuentas de almacenamiento públicas.</li>
+<li>Pruebas de integración: después del deploy a dev, correr el job con un dataset chico generado y verificar resultados.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-plataforma-iac-cicd">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-agente-que-consulta-datos.html">← Proyecto 10: Un agente que responde preguntas sobre los datos</a><a href="portafolio-observabilidad-de-datos.html">Proyecto 12: Observabilidad de datos - salud, calidad y costos de la plataforma →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

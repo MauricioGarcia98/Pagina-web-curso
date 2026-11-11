@@ -410,3 +410,22 @@ body.adf-abierto { overflow: hidden; }
 .azp .az-tpl-card small { color: var(--a-dim); }
 .azp .az-tpl-ed { width: 100%; min-height: 380px; font: 12.5px/1.5 Consolas, 'Courier New', monospace; border: 1px solid var(--a-borde2); padding: 8px; resize: vertical; tab-size: 2; }
 .azp .az-mal { color: var(--a-rojo); }
+
+/* piezas de azure-extra.js: Entra ID, Monitor y Storage (files, queues, tables) */
+.az-fila-in { display: flex; align-items: center; gap: 6px; } .az-fila-in input { flex: 1; min-width: 0; } .az-fila-in span { color: #605e5c; white-space: nowrap; }
+.az-fila-sel { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 14px; }
+.az-fila-sel label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #605e5c; flex: 1; min-width: 150px; }
+.az-fila-sel select, .az-fila-sel input { height: 32px; border: 1px solid #8a8886; border-radius: 2px; padding: 0 8px; font: inherit; background: #fff; color: var(--a-txt); }
+.az-ess-nums { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.az-ess-nums > div { border: 1px solid var(--a-borde); border-radius: 4px; padding: 12px 18px; min-width: 130px; }
+.az-ess-nums b { display: block; font-size: 26px; font-weight: 600; } .az-ess-nums span { font-size: 12px; color: #605e5c; }
+.az-sev { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; color: #fff; background: #605e5c; white-space: nowrap; }
+.az-sev0 { background: #a4262c; } .az-sev1 { background: #d13438; } .az-sev2 { background: #c19c00; } .az-sev3 { background: #0078d4; } .az-sev4 { background: #8a8886; }
+.az-grafico { width: 100%; max-width: 760px; height: auto; display: block; margin: 6px 0 10px; }
+.az-sql { display: grid; grid-template-columns: 200px 1fr; gap: 14px; align-items: start; }
+.az-sql-obj { border: 1px solid var(--a-borde); border-radius: 4px; padding: 10px; font-size: 13px; max-height: 420px; overflow: auto; }
+.az-sql-obj a { display: block; padding: 3px 0; white-space: nowrap; cursor: pointer; }
+.az-sql-ed textarea { width: 100%; box-sizing: border-box; font: 13px/1.5 Consolas, 'Cascadia Mono', Menlo, monospace; border: 1px solid #8a8886; border-radius: 2px; padding: 8px 10px; resize: vertical; background: #fff; color: #201f1e; }
+.az-sql-res { margin-top: 10px; } .az-sql-tabla { max-height: 360px; overflow: auto; border: 1px solid var(--a-borde); }
+.az-code { background: #f3f2f1; border: 1px solid var(--a-borde); border-radius: 2px; padding: 10px 12px; font: 12.5px/1.5 Consolas, Menlo, monospace; white-space: pre-wrap; word-break: break-all; margin: 4px 0 14px; }
+@media (max-width: 760px) { .az-sql { grid-template-columns: 1fr; } .az-sql-obj { max-height: 140px; } }

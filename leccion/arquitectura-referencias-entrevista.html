@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arquitecturas de referencia y la entrevista de diseño · Academia de Datos</title><meta name="description" content="Un método de 6 pasos para diseñar (y defender) una plataforma, estimaciones rápidas de volumen y costo, y tres arquitecturas completas en AWS, Google Cloud y Azure."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-referencias-entrevista.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Arquitecturas de referencia y la entrevista de diseño · Academia de Datos"><meta property="og:description" content="Un método de 6 pasos para diseñar (y defender) una plataforma, estimaciones rápidas de volumen y costo, y tres arquitecturas completas en AWS, Google Cloud y Azure."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-referencias-entrevista.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Experto · 60 min</div>
+<h1>Arquitecturas de referencia y la entrevista de diseño</h1><p class="resumen">Un método de 6 pasos para diseñar (y defender) una plataforma, estimaciones rápidas de volumen y costo, y tres arquitecturas completas en AWS, Google Cloud y Azure.</p>
+<a class="cta" href="../index.html#/l/arquitectura-referencias-entrevista">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Aplicar un método de 6 pasos para resolver una pregunta de diseño de sistemas de datos</li><li>Estimar volumen, almacenamiento y costo con cuentas rápidas</li><li>Explicar tres arquitecturas de referencia completas (batch en AWS, streaming en GCP, regulada en Azure)</li><li>Defender las decisiones y sus alternativas descartadas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Las arquitecturas de referencia son como planos de casas ya probadas: no copias uno tal cual, pero te dan un punto de partida. En una entrevista de diseño te piden dibujar uno de esos planos y, sobre todo, explicar por qué elegiste cada pieza.</p>
+</div>
+
+
+<h2>El método en 6 pasos</h2>
+<figure class="diagrama"><figcaption>Seis pasos para cualquier pregunta de diseño de datos</figcaption></figure>
+
+
+<ol>
+<li><strong>Preguntar (5 minutos).</strong> ¿Qué decisiones se van a tomar con los datos? ¿Quién los usa? ¿Qué latencia? ¿Qué volumen? ¿Qué nube usan hoy? ¿Hay regulación? Anota los requisitos en un costado de la pizarra.</li>
+<li><strong>Estimar (3 minutos).</strong> Cuentas rápidas de volumen y almacenamiento. No hace falta exactitud: el orden de magnitud decide si alcanza una base de datos o hace falta un motor distribuido.</li>
+<li><strong>Dibujar (10 minutos).</strong> Los siete componentes, de izquierda a derecha, con una herramienta concreta en cada caja.</li>
+<li><strong>Profundizar (15 minutos).</strong> Elige 2 o 3 partes críticas y explícalas en detalle: cómo es la ingesta incremental, cómo se manejan los eventos tardíos, cómo es el modelo de datos de gold.</li>
+<li><strong>Cuidar (5 minutos).</strong> Calidad (qué controles y dónde), seguridad (PII, permisos), y qué pasa cuando algo falla (reintentos, reproceso, alertas).</li>
+<li><strong>Alternativas (5 minutos).</strong> &quot;Consideré X pero elegí Y porque…&quot;. Mostrar que conoces las opciones vale tanto como el diseño.</li>
+</ol>
+<h2>Estimaciones rápidas</h2>
+<p>Las cuentas que más se usan, con números redondos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dato</th>
+<th>Valor para estimar</th>
+</tr>
+</thead><tbody><tr>
+<td>Un evento JSON típico (clic, GPS)</td>
+<td>0,5 a 1 KB</td>
+</tr>
+<tr>
+<td>Una fila de pedido en Parquet</td>
+<td>100 a 200 bytes</td>
+</tr>
+<tr>
+<td>Compresión de JSON a Parquet</td>
+<td>5 a 10 veces menos</td>
+</tr>
+<tr>
+<td>Segundos en un día</td>
+<td>~86.400 (redondea a 100.000)</td>
+</tr>
+<tr>
+<td>1 millón de eventos de 1 KB</td>
+<td>~1 GB</td>
+</tr>
+</tbody></table></div>
+<p>Ejemplo para la app de delivery: 2 millones de pedidos por día y, por cada pedido, unos 200 eventos (clics, búsquedas, posiciones del repartidor):</p>
+<pre><code class="language-text">Eventos por día:     2.000.000 × 200          = 400 millones
+Volumen crudo/día:   400 M × 1 KB             ≈ 400 GB en JSON
+En Parquet:          400 GB ÷ 8               ≈ 50 GB por día
+Por año:             50 GB × 365              ≈ 18 TB por año (más el crudo si se guarda)
+Eventos por segundo: 400 M ÷ 100.000 s        ≈ 4.000 por segundo (picos de 3 a 5 veces más)</code></pre>
+<p>Conclusión que dices en voz alta: &quot;Son decenas de TB por año y miles de eventos por segundo: necesito un motor distribuido y una cola de eventos; no alcanza con una base de datos&quot;.</p>
+<h2>Referencia 1: e-commerce batch en AWS</h2>
+<p><strong>Caso:</strong> Tienda Andina. Reportes diarios, analistas con SQL, volumen moderado (cientos de GB), equipo chico.</p>
+<figure class="diagrama"><figcaption>Referencia 1 · E-commerce batch en AWS</figcaption></figure>
+
+
+<ul>
+<li><strong>Orquestación:</strong> MWAA (Airflow administrado) o Step Functions, diario a las 3:00.</li>
+<li><strong>Calidad:</strong> tests de dbt; volumen por día con alertas en Slack.</li>
+<li><strong>Gobierno:</strong> Lake Formation con permisos por grupo; Glue Data Catalog.</li>
+<li><strong>Por qué así:</strong> todo administrado (equipo chico), Iceberg para no quedar atado a un motor, CDC para no cargar la base de la app.</li>
+<li><strong>Alternativa descartada:</strong> Redshift como único almacén: más simple al principio, pero más caro y cerrado para los científicos de datos.</li>
+</ul>
+<h2>Referencia 2: app de movilidad con streaming en Google Cloud</h2>
+<p><strong>Caso:</strong> Ruta. Tarifa dinámica en menos de un minuto, millones de eventos GPS, reportes diarios exactos.</p>
+<figure class="diagrama"><figcaption>Referencia 2 · Movilidad con streaming en Google Cloud (Kappa)</figcaption></figure>
+
+
+<ul>
+<li><strong>Orquestación:</strong> Cloud Composer para el batch diario de Dataform y los controles.</li>
+<li><strong>Calidad:</strong> deduplicación por id de evento, marca de agua de 2 minutos, monitoreo del retraso de Pub/Sub, conciliación diaria.</li>
+<li><strong>Por qué así:</strong> Dataflow hace batch y streaming con el mismo código (Kappa); BigQuery absorbe el volumen sin administrar clústeres.</li>
+<li><strong>Alternativa descartada:</strong> Lambda con dos implementaciones: duplica código y genera diferencias entre el número en vivo y el del día siguiente.</li>
+</ul>
+<h2>Referencia 3: banco regulado en Azure</h2>
+<p><strong>Caso:</strong> Banco Austral. Datos sensibles, auditoría, detección de fraude, reportes al regulador.</p>
+<figure class="diagrama"><figcaption>Referencia 3 · Banco regulado en Azure con Databricks</figcaption></figure>
+
+
+<ul>
+<li><strong>Seguridad:</strong> todo en la región del país, red privada (private endpoints), llaves de cifrado propias, enmascaramiento y filtros por fila en Unity Catalog, auditoría de accesos, cuentas de servicio por pipeline.</li>
+<li><strong>Calidad:</strong> conciliación diaria contra el core contable (cualquier diferencia frena la publicación).</li>
+<li><strong>Infraestructura:</strong> todo declarado en Terraform, con cambios revisados y aprobados (lo verás en el módulo de Terraform).</li>
+<li><strong>Alternativa descartada:</strong> copiar los datos a una herramienta SaaS externa: más rápido de montar, pero complica la residencia de datos y las auditorías.</li>
+</ul>
+<h2>Las tres nubes, pieza por pieza</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Componente</th>
+<th>AWS</th>
+<th>Google Cloud</th>
+<th>Azure</th>
+<th>Multinube</th>
+</tr>
+</thead><tbody><tr>
+<td>Ingesta batch / CDC</td>
+<td>DMS, Glue, AppFlow</td>
+<td>Datastream, Data Fusion</td>
+<td>Data Factory</td>
+<td>Fivetran, Airbyte, Debezium</td>
+</tr>
+<tr>
+<td>Streaming</td>
+<td>Kinesis, MSK</td>
+<td>Pub/Sub</td>
+<td>Event Hubs</td>
+<td>Kafka (Confluent)</td>
+</tr>
+<tr>
+<td>Almacenamiento</td>
+<td>S3</td>
+<td>Cloud Storage</td>
+<td>ADLS Gen2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Warehouse</td>
+<td>Redshift</td>
+<td>BigQuery</td>
+<td>Synapse / Fabric</td>
+<td>Snowflake, Databricks SQL</td>
+</tr>
+<tr>
+<td>Procesamiento</td>
+<td>Glue, EMR</td>
+<td>Dataflow, Dataproc</td>
+<td>Databricks, Synapse Spark</td>
+<td>Databricks, Spark</td>
+</tr>
+<tr>
+<td>Transformación SQL</td>
+<td>dbt</td>
+<td>Dataform, dbt</td>
+<td>dbt</td>
+<td>dbt</td>
+</tr>
+<tr>
+<td>Orquestación</td>
+<td>MWAA, Step Functions</td>
+<td>Composer, Workflows</td>
+<td>Data Factory, Airflow</td>
+<td>Airflow, Dagster</td>
+</tr>
+<tr>
+<td>Catálogo y gobierno</td>
+<td>Glue Catalog, Lake Formation</td>
+<td>Dataplex</td>
+<td>Purview, Unity Catalog</td>
+<td>Unity Catalog</td>
+</tr>
+<tr>
+<td>BI</td>
+<td>QuickSight</td>
+<td>Looker</td>
+<td>Power BI</td>
+<td>Tableau</td>
+</tr>
+<tr>
+<td>Infraestructura como código</td>
+<td>CloudFormation, Terraform</td>
+<td>Terraform</td>
+<td>Bicep, Terraform</td>
+<td>Terraform</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Dibujar antes de preguntar</strong>: el entrevistador pide &quot;delivery&quot; y dibujas Kafka. Pregunta primero qué necesitan.</li>
+<li><strong>Nombrar herramientas sin decir por qué</strong>: &quot;uso Databricks&quot; no dice nada; &quot;uso Databricks porque el equipo ya sabe Spark y necesitamos ML sobre los mismos datos&quot; sí.</li>
+<li><strong>Olvidar lo que falla</strong>: no mencionar reintentos, reproceso, alertas ni costos.</li>
+<li><strong>Diseñar para escala infinita</strong>: mostrar criterio incluye decir &quot;con este volumen, esto alcanza; si se multiplica por 10, cambiaría X&quot;.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La entrevista de diseño</div>
+
+<p>Volvemos a la entrevista para data engineer semi senior. Superaste SQL y Python. La última etapa es con el arquitecto principal:</p>
+<blockquote>
+<p>&quot;Tienes 45 minutos y una pizarra. Diseña la plataforma de datos de una app de delivery de comida que opera en 5 países. Pregunta lo que necesites.&quot;</p>
+</blockquote>
+<p>No hay una respuesta correcta. Lo que evalúan es si haces las preguntas correctas, si tus decisiones tienen fundamento y si conoces las alternativas. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En el trabajo, el diseño se escribe en un documento (<em>design doc</em>) que revisan otros ingenieros antes de construir. Tiene las mismas partes que la entrevista: contexto, requisitos, estimaciones, diagrama, decisiones, alternativas y riesgos.</li>
+<li>Las nubes publican sus propias arquitecturas de referencia (AWS Architecture Center, Google Cloud Architecture Center, Azure Architecture Center). Son un buen punto de partida, pero siempre se adaptan a los requisitos propios.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-referencias-entrevista">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-patrones-modernos.html">← Patrones modernos: data mesh, capa semántica, reverse ETL y más</a><a href="terraform-que-es-iac.html">Infraestructura como código y tu primer terraform apply →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

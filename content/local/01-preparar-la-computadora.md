@@ -16,6 +16,10 @@ Te contratan en el equipo de datos del Grupo Andino. Te dan una laptop vacía y 
 Este módulo es esa guía, paso a paso, para que puedas hacer **en tu computadora** todo lo que practicaste en el navegador.
 :::
 
+:::analogia En palabras simples
+Antes de cocinar hay que preparar la cocina: limpiar la mesada, tener a mano los utensilios. Esta lección prepara tu computadora para trabajar con datos como en una empresa. En Windows se usa WSL, que es como tener una pequeña computadora Linux dentro de la tuya.
+:::
+
 ## El mapa de lo que vas a instalar
 
 ```diagrama

@@ -16,6 +16,10 @@ El equipo de BI se queja del modelo nuevo:
 La respuesta no es "sí" ni "no": depende del motor, del volumen y de quién consume. Esta lección te da los criterios.
 :::
 
+:::analogia En palabras simples
+A veces, en lugar de guardar las cosas en muchas cajas pequeñas, conviene una sola caja grande con todo junto: más fácil de llevar y de abrir, aunque se repitan cosas. Una tabla ancha (OBT) es eso: todas las columnas en una sola tabla, rápida de consultar y fácil de usar para quien no sabe hacer joins.
+:::
+
 ## One Big Table (OBT)
 
 Una **OBT** (tabla ancha) es la tabla de hechos con **todos los atributos de las dimensiones ya unidos**: una sola tabla con 50 o 100 columnas. Se construye **a partir** de la estrella, no en lugar de ella:

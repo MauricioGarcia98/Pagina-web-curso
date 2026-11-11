@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RDD, DataFrame y evaluación perezosa · Academia de Datos</title><meta name="description" content="Las APIs de Spark, transformaciones vs acciones, narrow vs wide y el optimizador Catalyst."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-lazy.html">
+<meta property="og:type" content="article"><meta property="og:title" content="RDD, DataFrame y evaluación perezosa · Academia de Datos"><meta property="og:description" content="Las APIs de Spark, transformaciones vs acciones, narrow vs wide y el optimizador Catalyst."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-lazy.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Intermedio · 40 min</div>
+<h1>RDD, DataFrame y evaluación perezosa</h1><p class="resumen">Las APIs de Spark, transformaciones vs acciones, narrow vs wide y el optimizador Catalyst.</p>
+<a class="cta" href="../index.html#/l/spark-lazy">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>Ya sabes que Spark reparte el trabajo en particiones, stages y tasks. Esta lección responde dos preguntas: <strong>con qué API</strong> le das instrucciones a Spark, y <strong>cuándo</strong> las ejecuta. La segunda respuesta sorprende a todos al principio: Spark no hace nada hasta que no le queda más remedio.</p>
+<h2>Tres APIs, una evolución</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>API</th>
+<th>Desde</th>
+<th>Qué es</th>
+<th>¿Usarla hoy?</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>RDD</strong></td>
+<td>2011</td>
+<td>Colección distribuida de objetos. Control total, sin optimizador</td>
+<td>Solo en casos muy especiales</td>
+</tr>
+<tr>
+<td><strong>DataFrame</strong></td>
+<td>2015</td>
+<td>Tabla distribuida con columnas y tipos (como una tabla SQL), optimizada por Catalyst</td>
+<td><strong>Sí, siempre</strong></td>
+</tr>
+<tr>
+<td><strong>Dataset</strong></td>
+<td>2016</td>
+<td>DataFrame con tipos de Scala/Java verificados al compilar</td>
+<td>Solo en Scala/Java</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué ganó el DataFrame? Con un RDD le dices a Spark <strong>cómo</strong> hacer cada paso, con funciones de Python que Spark no puede &quot;leer por dentro&quot;:</p>
+<pre data-norun><code class="language-python"># RDD: Spark solo ve &quot;una función de Python&quot;. No sabe qué hace, así que no puede optimizarla.
+rdd.filter(lambda p: p[&quot;estado&quot;] == &quot;entregado&quot;).map(lambda p: (p[&quot;canal&quot;], 1)).reduceByKey(lambda a, b: a + b)</code></pre>
+<p>Con un DataFrame le dices <strong>qué</strong> quieres, con expresiones que Spark entiende:</p>
+<pre data-norun><code class="language-python"># DataFrame: Spark sabe que es un filtro sobre la columna estado y un conteo por canal.
+df.filter(df.estado == &quot;entregado&quot;).groupBy(&quot;canal&quot;).count()</code></pre>
+<p>Como entiende cada expresión, Spark puede reordenarlas, leer menos datos y generar código rápido. El resultado es el mismo, pero el DataFrame suele ser varias veces más rápido, sobre todo en Python.</p>
+<p>En PySpark trabajarás con <strong>DataFrames</strong> y <strong>Spark SQL</strong>, que son dos caras de lo mismo: ambos generan <strong>el mismo plan optimizado</strong>. Estas dos líneas son equivalentes:</p>
+<pre data-norun><code class="language-python">df.filter(df.estado == &quot;entregado&quot;).groupBy(&quot;canal&quot;).count()
+spark.sql(&quot;SELECT canal, count(*) FROM pedidos WHERE estado = 'entregado' GROUP BY canal&quot;)</code></pre>
+<h2>Evaluación perezosa (lazy evaluation)</h2>
+<p>Las operaciones de Spark se dividen en dos tipos:</p>
+<ul>
+<li><strong>Transformaciones</strong>: describen un DataFrame nuevo a partir de otro (<code>select</code>, <code>filter</code>, <code>withColumn</code>, <code>join</code>, <code>groupBy</code>…). <strong>No ejecutan nada</strong>: solo agregan un paso al plan, y por eso responden al instante aunque la tabla tenga mil millones de filas.</li>
+<li><strong>Acciones</strong>: piden un resultado (<code>show</code>, <code>count</code>, <code>collect</code>, <code>write</code>, <code>take</code>…). <strong>Recién ahí</strong> Spark ejecuta todo el plan.</li>
+</ul>
+<pre data-norun><code class="language-python">df = spark.read.parquet(&quot;/datos/pedidos&quot;)          # nada se lee todavía (solo mira el esquema)
+df2 = df.filter(df.estado == &quot;entregado&quot;)          # nada
+df3 = df2.groupBy(&quot;canal&quot;).count()                 # nada
+df3.show()                                         # ¡ACCIÓN! Ahora sí se ejecuta todo</code></pre>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La lista del supermercado</div>
+
+<p>Las transformaciones son anotar cosas en la lista. La acción es ir al supermercado. Como tienes la lista completa antes de salir, puedes planear la ruta óptima por los pasillos (eso hace el optimizador <strong>Catalyst</strong>). Si fueras al supermercado cada vez que anotas algo, harías diez viajes.</p>
+</div>
+
+
+<h3>Cómo distinguirlas</h3>
+<p>Una regla que casi nunca falla: <strong>si devuelve un DataFrame, es una transformación</strong>. Si devuelve otra cosa (un número, una lista de filas, nada pero escribe archivos), es una acción.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Transformaciones (devuelven DataFrame)</th>
+<th>Acciones (devuelven otra cosa o escriben)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>select</code>, <code>selectExpr</code>, <code>withColumn</code>, <code>drop</code></td>
+<td><code>show()</code> → imprime</td>
+</tr>
+<tr>
+<td><code>filter</code> / <code>where</code></td>
+<td><code>count()</code> → un número</td>
+</tr>
+<tr>
+<td><code>groupBy(...).agg(...)</code></td>
+<td><code>collect()</code> → lista de filas en el driver</td>
+</tr>
+<tr>
+<td><code>join</code>, <code>union</code></td>
+<td><code>take(n)</code>, <code>first()</code>, <code>head()</code></td>
+</tr>
+<tr>
+<td><code>orderBy</code>, <code>distinct</code>, <code>limit</code></td>
+<td><code>toPandas()</code> → DataFrame de pandas en el driver</td>
+</tr>
+<tr>
+<td><code>repartition</code>, <code>coalesce</code></td>
+<td><code>write...save()</code> / <code>saveAsTable()</code> → escribe</td>
+</tr>
+</tbody></table></div>
+<h3>Consecuencia práctica: los errores aparecen tarde</h3>
+<p>Como nada se ejecuta hasta la acción, un error en un paso del medio (por ejemplo, dividir por una columna que tiene textos) <strong>no aparece en esa línea</strong>, sino en el <code>show()</code> o el <code>write</code> del final. Si el error es raro, ejecuta acciones chicas (<code>df2.limit(5).show()</code>) después de cada paso para encontrar el culpable.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cada acción vuelve a ejecutar todo el plan</div>
+
+<p>Si haces <code>df3.count()</code> y después <code>df3.show()</code>, Spark <strong>lee y calcula todo dos veces</strong>. Si vas a usar el mismo resultado varias veces, guárdalo en memoria con <code>df3.cache()</code> (se ve en la lección de optimización) o escríbelo a una tabla.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Por qué la pereza es buena: Catalyst</h2>
+<p>Como Spark ve el plan completo antes de ejecutar, su optimizador <strong>Catalyst</strong> puede reescribirlo para que sea más eficiente. El plan pasa por cuatro etapas:</p>
+<pre><code class="language-text">Tu código ──► Plan lógico ──► Plan lógico optimizado ──► Planes físicos ──► El más barato se ejecuta
+              (qué pediste)   (reglas de Catalyst)       (cómo hacerlo:      (Tungsten genera
+                                                          qué tipo de join…)  código para la CPU)</code></pre>
+<p>Las optimizaciones más importantes:</p>
+<ul>
+<li><strong>Predicate pushdown</strong>: aplicar los filtros lo antes posible, incluso al leer el archivo. Si filtras <code>fecha = &#39;2024-03-15&#39;</code> sobre Parquet, Spark usa las estadísticas de cada archivo para <strong>saltarse</strong> los que no tienen esa fecha.</li>
+<li><strong>Column pruning</strong>: leer solo las columnas que se usan. Si la tabla tiene 80 columnas y usas 3, en Parquet las otras 77 ni se tocan.</li>
+<li><strong>Reordenar joins</strong> y elegir el mejor algoritmo (por ejemplo, <em>broadcast</em> si una tabla es chica).</li>
+<li><strong>Constant folding</strong> y simplificación de expresiones: <code>precio * (1 + 0.19)</code> se convierte en <code>precio * 1.19</code> una sola vez, no una vez por fila.</li>
+</ul>
+<p>Después, el motor <strong>Tungsten</strong> genera código optimizado para la CPU. Por eso un DataFrame casi siempre le gana a un RDD escrito a mano.</p>
+<h3>Ver el plan: explain()</h3>
+<p><code>df.explain()</code> muestra el plan físico sin ejecutar nada. En Spark real, para un filtro + conteo por canal verías algo así:</p>
+<pre><code class="language-text">== Physical Plan ==
+AdaptiveSparkPlan
++- HashAggregate(keys=[canal], functions=[count(1)])                       ← reduce: suma los parciales
+   +- Exchange hashpartitioning(canal, 200)                                ← ¡SHUFFLE!
+      +- HashAggregate(keys=[canal], functions=[partial_count(1)])         ← map: cuenta parcial
+         +- Project [canal]                                                ← column pruning: solo lee canal
+            +- Filter (estado = entregado)
+               +- FileScan parquet [canal,estado] PushedFilters: [EqualTo(estado,entregado)]   ← pushdown</code></pre>
+<p>Se lee <strong>de abajo hacia arriba</strong>. Las palabras que más vas a buscar son:</p>
+<ul>
+<li><strong><code>Exchange</code></strong>: un shuffle. Cada <code>Exchange</code> es un límite entre stages.</li>
+<li><strong><code>PushedFilters</code></strong>: los filtros que se aplicaron al leer el archivo (bien).</li>
+<li><strong><code>BroadcastHashJoin</code></strong> o <strong><code>SortMergeJoin</code></strong>: qué estrategia de join eligió.</li>
+</ul>
+<p>Pruébalo con los datos del curso. El mini-Spark del curso ejecuta al instante y su <code>explain()</code> es simplificado, pero el resultado es el mismo que obtendrías en un clúster:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+por_canal = (pedidos
+    .filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)        # transformación
+    .groupBy(&quot;canal&quot;)                               # transformación (wide)
+    .agg(F.count(&quot;*&quot;).alias(&quot;pedidos&quot;))
+    .orderBy(F.desc(&quot;pedidos&quot;)))                    # transformación (wide)
+
+por_canal.explain()     # muestra el plan
+por_canal.show()        # ACCIÓN: ejecuta</code></pre>
+<h2>Transformaciones narrow y wide</h2>
+<p>No todas las transformaciones cuestan lo mismo. La pregunta clave es: <strong>¿para calcular una partición de salida, necesito datos de otras particiones?</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué significa</th>
+<th>Ejemplos</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Narrow</strong> (angostas)</td>
+<td>Cada partición de salida depende de <strong>una</strong> partición de entrada</td>
+<td><code>select</code>, <code>filter</code>, <code>withColumn</code>, <code>union</code></td>
+<td>Barato: sin mover datos</td>
+</tr>
+<tr>
+<td><strong>Wide</strong> (anchas)</td>
+<td>Una partición de salida necesita datos de <strong>muchas</strong> particiones</td>
+<td><code>groupBy</code>, <code>join</code>, <code>distinct</code>, <code>orderBy</code>, <code>repartition</code></td>
+<td>Caro: requiere <strong>shuffle</strong></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-text">NARROW (filter)                         WIDE (groupBy canal)
+ P1 ──► P1'                              P1 ─┬─► web
+ P2 ──► P2'                              P2 ─┼─► app        cada salida recibe datos
+ P3 ──► P3'                              P3 ─┴─► tienda     de TODAS las entradas
+ cada una sigue sola                     = shuffle por la red</code></pre>
+<p>Un <code>filter</code> puede aplicarse a cada partición por separado: la máquina 1 filtra sus filas sin preguntarle nada a la máquina 2. Pero para contar todos los pedidos &quot;web&quot;, hay que <strong>juntar</strong> las filas web de todas las máquinas.</p>
+<p>El <strong>shuffle</strong> escribe datos a disco, los envía por la red y los vuelve a leer. Es casi siempre la parte más lenta de un job. Optimizar Spark es, en gran medida, <strong>minimizar los shuffles</strong> y su tamaño. Dos trucos que salen de esta idea:</p>
+<ol>
+<li><strong>Filtra y selecciona antes de agrupar o unir.</strong> Menos filas y columnas = menos datos por la red.</li>
+<li><strong>Agrupa una sola vez.</strong> Si necesitas varias métricas por canal, calcúlalas todas en un mismo <code>agg(...)</code> en vez de hacer tres <code>groupBy</code> distintos.</li>
+</ol>
+<p>Spark encadena todas las transformaciones narrow seguidas en <strong>un mismo stage</strong> (<em>pipelining</em>): lee una fila, la filtra, le calcula la columna nueva y sigue, sin guardar resultados intermedios. Por eso diez <code>withColumn</code> seguidos no son diez pasadas sobre los datos.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ collect() puede tumbar el driver</div>
+
+<p><code>collect()</code> trae <strong>todas</strong> las filas al driver. Con millones de filas, el driver se queda sin memoria. Usa <code>show()</code>, <code>take(n)</code>, <code>limit(n)</code> o escribe el resultado a una tabla.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-lazy">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-arquitectura.html">← Arquitectura de Spark</a><a href="spark-formatos-delta.html">Formatos, Delta Lake y arquitectura medallón →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

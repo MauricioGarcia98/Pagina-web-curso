@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes qué controlar antes de leer un A/B? | ¿Sabes calcular 
 En septiembre de 2024 la tienda probó un checkout nuevo con la mitad de los clientes. El resumen del equipo de producto dice: “sin diferencias: 12,4 % contra 12,5 %, lo descartamos”. Antes de tirar meses de trabajo, te piden revisar el análisis. Los datos están en `experimento_checkout`.
 :::
 
+:::analogia En palabras simples
+Una prueba A/B es como probar dos recetas de galletitas con dos grupos de amigos elegidos al azar y ver cuál gusta más. La clave es que los grupos sean parecidos y que la diferencia no sea pura suerte. Esta lección enseña a decidir cuándo una diferencia es real.
+:::
+
 ## Antes de mirar el resultado: controlar la asignación
 
 Un experimento solo compara bien si los grupos son **iguales en todo** salvo el cambio que se prueba. Dos controles obligatorios:

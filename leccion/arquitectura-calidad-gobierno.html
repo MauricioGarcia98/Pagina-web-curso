@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calidad, observabilidad y gobierno de datos · Academia de Datos</title><meta name="description" content="Las seis dimensiones de la calidad, dónde poner cada control, SLAs de frescura, linaje, catálogos, datos personales y control de acceso."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-calidad-gobierno.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Calidad, observabilidad y gobierno de datos · Academia de Datos"><meta property="og:description" content="Las seis dimensiones de la calidad, dónde poner cada control, SLAs de frescura, linaje, catálogos, datos personales y control de acceso."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-calidad-gobierno.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Avanzado · 50 min</div>
+<h1>Calidad, observabilidad y gobierno de datos</h1><p class="resumen">Las seis dimensiones de la calidad, dónde poner cada control, SLAs de frescura, linaje, catálogos, datos personales y control de acceso.</p>
+<a class="cta" href="../index.html#/l/arquitectura-calidad-gobierno">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Clasificar un problema de datos según las seis dimensiones de la calidad</li><li>Ubicar controles de calidad en cada capa del pipeline y decidir si frenan o solo alertan</li><li>Definir SLAs de frescura y volumen y monitorearlos</li><li>Diseñar el control de acceso y la protección de datos personales con roles, enmascaramiento y filas filtradas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>La calidad de datos es como el control de calidad de una fábrica: revisar que lo que sale esté bien antes de que llegue al cliente. El gobierno es el reglamento: quién puede usar qué, de dónde viene cada cosa y quién responde si algo sale mal.</p>
+</div>
+
+
+<h2>Las seis dimensiones de la calidad</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Dimensión</th>
+<th>Pregunta</th>
+<th>Ejemplo de problema</th>
+<th>Control típico</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Completitud</strong></td>
+<td>¿Está todo lo que debería?</td>
+<td>La API de México devolvió 0 pedidos</td>
+<td>Volumen por día y país dentro de un rango esperado</td>
+</tr>
+<tr>
+<td><strong>Unicidad</strong></td>
+<td>¿Hay duplicados?</td>
+<td>El mismo pago cargado dos veces</td>
+<td><code>unique</code> sobre la clave</td>
+</tr>
+<tr>
+<td><strong>Validez</strong></td>
+<td>¿Los valores tienen sentido?</td>
+<td>Un total negativo, un estado &quot;perdido&quot;</td>
+<td>Rangos, valores aceptados, formatos</td>
+</tr>
+<tr>
+<td><strong>Consistencia</strong></td>
+<td>¿Coincide con otras fuentes?</td>
+<td>La suma de ventas no coincide con contabilidad</td>
+<td>Conciliación entre sistemas</td>
+</tr>
+<tr>
+<td><strong>Integridad referencial</strong></td>
+<td>¿Las relaciones existen?</td>
+<td>Pedidos de un cliente que no existe</td>
+<td><code>relationships</code> (anti-join)</td>
+</tr>
+<tr>
+<td><strong>Frescura</strong></td>
+<td>¿Está al día?</td>
+<td>El tablero muestra datos de anteayer</td>
+<td>Máxima fecha cargada vs. ahora</td>
+</tr>
+</tbody></table></div>
+<p>El problema de Valentina fue de <strong>completitud</strong>, y ningún test de &quot;valores válidos&quot; lo hubiera detectado: cero filas no tienen valores inválidos.</p>
+<h2>Dónde poner cada control</h2>
+<figure class="diagrama"><figcaption>Controles de calidad a lo largo del pipeline</figcaption></figure>
+
+
+<p>La decisión más importante: <strong>¿el control frena o solo avisa?</strong></p>
+<ul>
+<li><strong>Frena</strong> (<em>blocking</em>): si falla, el pipeline se detiene y los datos malos <strong>no</strong> llegan a quien los usa. El tablero muestra los datos de ayer, pero no datos incorrectos. Úsalo para lo que hace que el resultado sea falso: claves duplicadas, cero filas, contrato roto.</li>
+<li><strong>Avisa</strong> (<em>warning</em>): el pipeline sigue y alguien revisa. Úsalo para lo dudoso: el volumen bajó un 30 % (¿un feriado?), aparecieron 5 emails inválidos.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Mejor viejo que incorrecto</div>
+
+<p>Un tablero con datos de ayer y un cartel &quot;datos actualizados al 14/12&quot; es molesto. Un tablero con datos incorrectos es peligroso: alguien toma una decisión con él. Por eso los controles críticos frenan.</p>
+</div>
+
+
+<h2>Observabilidad: SLAs de frescura y volumen</h2>
+<p>La <strong>observabilidad de datos</strong> es monitorear los datos como se monitorea un servidor. Los dos indicadores más útiles:</p>
+<ul>
+<li><strong>Frescura</strong>: ¿cuándo fue el último dato? Se compara contra un <strong>SLA</strong> (<em>service level agreement</em>), por ejemplo &quot;los pedidos de ayer, disponibles antes de las 6:00&quot;.</li>
+<li><strong>Volumen</strong>: ¿cuántas filas llegaron, comparado con lo normal para ese día de la semana?</li>
+</ul>
+<p>Consulta de frescura sobre los datos del curso (el último pedido de cada canal):</p>
+<pre><code class="language-sql">SELECT
+    canal,
+    MAX(fecha_pedido)                                        AS ultimo_pedido,
+    CAST(julianday('2024-12-31') - julianday(MAX(fecha_pedido)) AS INTEGER) AS dias_de_atraso
+FROM pedidos
+GROUP BY canal
+ORDER BY dias_de_atraso DESC;</code></pre>
+<p>En producción, <code>&#39;2024-12-31&#39;</code> sería la fecha de hoy, y una alerta se dispara si <code>dias_de_atraso</code> supera el SLA.</p>
+<p>Y una consulta de volumen que compara cada día con el promedio de los 7 anteriores, para detectar caídas como la de México:</p>
+<pre><code class="language-sql">WITH por_dia AS (
+    SELECT fecha_pedido AS dia, COUNT(*) AS pedidos
+    FROM pedidos
+    WHERE fecha_pedido BETWEEN '2024-11-01' AND '2024-12-31'
+    GROUP BY fecha_pedido
+),
+con_referencia AS (
+    SELECT dia, pedidos,
+           AVG(pedidos) OVER (ORDER BY dia ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS promedio_7d
+    FROM por_dia
+)
+SELECT dia, pedidos, ROUND(promedio_7d, 1) AS promedio_7d,
+       ROUND(100.0 * pedidos / promedio_7d, 1) AS pct_de_lo_normal
+FROM con_referencia
+WHERE promedio_7d IS NOT NULL
+ORDER BY pct_de_lo_normal
+LIMIT 5;</code></pre>
+<p>Los días con menor porcentaje de lo normal son los candidatos a investigar.</p>
+<h2>Linaje: qué depende de qué</h2>
+<p>El <strong>linaje</strong> (<em>lineage</em>) es el mapa de dependencias entre tablas: de qué fuentes sale cada tabla y qué tableros dependen de ella. Lo construyen automáticamente dbt, Unity Catalog, Dataplex, Purview y OpenLineage.</p>
+<p>Sirve en dos direcciones durante un incidente:</p>
+<ul>
+<li><strong>Hacia atrás</strong> (<em>upstream</em>): &quot;el tablero de ventas está mal: ¿de qué tablas sale?&quot; → encuentras la fuente con el problema.</li>
+<li><strong>Hacia adelante</strong> (<em>downstream</em>): &quot;la API de México falló: ¿a quién afecta?&quot; → avisas a los dueños de esos tableros <strong>antes</strong> de que lo descubran ellos.</li>
+</ul>
+<h2>Gobierno: quién puede ver qué</h2>
+<p>El gobierno de datos responde: ¿quién es dueño de cada dato?, ¿qué significa?, ¿quién puede verlo?, ¿cumplimos la ley?</p>
+<h3>Control de acceso por roles</h3>
+<p>Los permisos se dan a <strong>grupos</strong>, nunca a personas individuales, y a <strong>cuentas de servicio</strong> para los procesos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Grupo</th>
+<th>Puede</th>
+</tr>
+</thead><tbody><tr>
+<td><code>analistas_comercial</code></td>
+<td>Leer <code>gold_ventas</code></td>
+</tr>
+<tr>
+<td><code>cientificos_datos</code></td>
+<td>Leer silver y gold, escribir en su esquema de pruebas</td>
+</tr>
+<tr>
+<td><code>ingenieros_datos</code></td>
+<td>Leer todo, escribir en dev</td>
+</tr>
+<tr>
+<td><code>sa_pipelines_prod</code> (cuenta de servicio)</td>
+<td>Escribir en prod</td>
+</tr>
+</tbody></table></div>
+<p>Cuando alguien cambia de área, se lo mueve de grupo y sus permisos cambian solos.</p>
+<h3>Datos personales: enmascarar y filtrar</h3>
+<p>Los datos que identifican a una persona (nombre, email, documento, teléfono, dirección) se tratan especial por leyes de protección de datos. Tres herramientas:</p>
+<figure class="diagrama"><figcaption>La misma tabla, vista por dos personas distintas</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Técnica</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Enmascaramiento de columnas</strong></td>
+<td>Oculta parte del valor según quién consulta</td>
+<td><code>ana@gmail.com</code> → <code>****@gmail.com</code></td>
+</tr>
+<tr>
+<td><strong>Filtro de filas</strong> (<em>row-level security</em>)</td>
+<td>Cada usuario ve solo las filas que le corresponden</td>
+<td>El analista de Chile ve solo clientes de Chile</td>
+</tr>
+<tr>
+<td><strong>Seudonimización</strong></td>
+<td>Reemplaza el identificador por un código</td>
+<td><code>cliente_id</code> → hash; útil para análisis sin saber quién es</td>
+</tr>
+</tbody></table></div>
+<p>Así se ve el enmascaramiento con SQL simple (en Databricks, BigQuery o Snowflake se define una vez como política y se aplica sola):</p>
+<pre><code class="language-sql">SELECT
+    cliente_id,
+    pais,
+    '****' || SUBSTR(email, INSTR(email, '@')) AS email_enmascarado
+FROM clientes
+WHERE pais = 'Chile'
+LIMIT 5;</code></pre>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Solo testear valores, no volumen</strong>: cero filas pasan todos los tests de validez.</li>
+<li><strong>Todos los controles en &quot;warning&quot;</strong>: llegan 200 alertas por día, nadie las lee y la importante se pierde.</li>
+<li><strong>Permisos a personas</strong>: cuando alguien se va de la empresa, conserva accesos que nadie recuerda haber dado.</li>
+<li><strong>Copiar datos personales a dev sin enmascarar</strong>: una laptop perdida con una tabla de clientes es un incidente legal.</li>
+<li><strong>Avisar tarde</strong>: el negocio descubre el problema antes que el equipo de datos. Con linaje y alertas, el equipo avisa primero.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El tablero que mintió tres días</div>
+
+<p>Un lunes, Valentina llama furiosa:</p>
+<blockquote>
+<p>&quot;El tablero dice que el jueves, viernes y sábado vendimos casi cero en México. Pasé el fin de semana pensando que había un problema comercial. ¡Y era que no se cargaban los datos!&quot;</p>
+</blockquote>
+<p>El pipeline no falló: terminó &quot;en verde&quot; todos los días. Lo que pasó es que la API de México devolvía una lista vacía, y nadie controlaba que llegaran datos. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las herramientas de observabilidad (Monte Carlo, Soda, Elementary para dbt, Databricks Lakehouse Monitoring, Dataplex) aprenden el volumen y la frescura &quot;normales&quot; de cada tabla y alertan cuando se salen del patrón.</li>
+<li>Cada incidente de datos se documenta en un <strong>post-mortem</strong> sin culpables: qué pasó, cómo se detectó, cuánto duró y qué control se agrega para que no vuelva a pasar. El control de volumen por país nace de un incidente como el de México.</li>
+<li>En empresas reguladas (bancos, salud) hay auditorías: hay que poder demostrar quién accedió a qué dato y cuándo. Los catálogos guardan esos registros.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo te aseguras de que los datos de un tablero son confiables?&quot;</div>
+
+<p>Habla de capas: contratos y controles de volumen en la ingesta; tests de unicidad, nulos, valores e integridad en silver (que frenan); conciliación y rangos en gold (que alertan); SLAs de frescura con alertas; linaje para saber a quién afecta un problema; y un proceso de incidentes con post-mortem. Menciona el principio &quot;mejor viejo que incorrecto&quot;.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-calidad-gobierno">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-diseno-lakehouse.html">← Diseñar el lakehouse: capas, entornos, nombres y contratos</a><a href="arquitectura-patrones-modernos.html">Patrones modernos: data mesh, capa semántica, reverse ETL y más →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

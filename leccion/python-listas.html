@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listas y tuplas · Academia de Datos</title><meta name="description" content="Guardar colecciones ordenadas, agregar, quitar, ordenar y recortar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-listas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Listas y tuplas · Academia de Datos"><meta property="og:description" content="Guardar colecciones ordenadas, agregar, quitar, ordenar y recortar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-listas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Básico · 35 min</div>
+<h1>Listas y tuplas</h1><p class="resumen">Guardar colecciones ordenadas, agregar, quitar, ordenar y recortar.</p>
+<a class="cta" href="../index.html#/l/python-listas">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear listas, leer elementos por posición y modificar su contenido</li><li>Usar <code>len</code>, <code>sum</code>, <code>min</code>, <code>max</code>, <code>sorted</code> y slices para analizar una lista</li><li>Evitar la trampa de las referencias al copiar listas</li><li>Representar registros con tuplas y tablas con listas de tuplas</li></ul>
+<h2>Muchos valores bajo un mismo nombre</h2>
+<p>Una variable guarda <strong>un</strong> valor. Pero los datos casi siempre vienen en grupos: las ventas del mes, los emails de los clientes, las líneas de un archivo. Una <strong>lista</strong> guarda varios valores <strong>en orden</strong> bajo un solo nombre. Es la estructura de datos más usada de Python.</p>
+<pre><code class="language-python">ventas = [120, 340, 90, 560]
+nombres = [&quot;Ana&quot;, &quot;Luis&quot;, &quot;Eva&quot;]
+mezcla = [1, &quot;dos&quot;, 3.0, True, None]   # puede mezclar tipos (casi nunca conviene)
+vacia = []
+print(len(ventas), ventas[0], ventas[-1], ventas[1:3])</code></pre>
+<ul>
+<li>Se escribe con <strong>corchetes</strong> <code>[ ]</code> y los elementos separados por comas.</li>
+<li><code>len(lista)</code> da la cantidad de elementos.</li>
+<li>Los índices funcionan <strong>igual que en los strings</strong>: empiezan en 0, <code>-1</code> es el último, y <code>lista[1:3]</code> es un <em>slice</em> con las posiciones 1 y 2.</li>
+</ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una fila de casilleros numerados</div>
+
+<p>Una lista es una fila de casilleros con números grabados desde el 0. Cada casillero guarda un valor. Puedes abrir el casillero 2 (<code>ventas[2]</code>), cambiar su contenido, agregar casilleros al final o sacar alguno (y los de la derecha se corren).</p>
+</div>
+
+
+<p>Si pides un índice que no existe, Python avisa: <code>ventas[10]</code> → <code>IndexError: list index out of range</code>.</p>
+<h2>Modificar listas</h2>
+<p>A diferencia de los strings, las listas son <strong>mutables</strong>: se pueden cambiar sin crear una nueva.</p>
+<pre><code class="language-python">carrito = [&quot;mouse&quot;, &quot;teclado&quot;]
+carrito.append(&quot;monitor&quot;)          # agrega AL FINAL               → ['mouse', 'teclado', 'monitor']
+carrito.insert(0, &quot;webcam&quot;)        # agrega en una posición       → ['webcam', 'mouse', 'teclado', 'monitor']
+carrito.remove(&quot;teclado&quot;)          # quita la primera aparición de ese VALOR
+ultimo = carrito.pop()             # quita y DEVUELVE el último   → 'monitor'
+carrito[0] = &quot;webcam HD&quot;           # reemplaza por posición
+carrito.extend([&quot;cable&quot;, &quot;hub&quot;])   # agrega varios elementos
+print(carrito, ultimo)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>Qué hace</th>
+<th>Ojo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>lista.append(x)</code></td>
+<td>Agrega <code>x</code> al final</td>
+<td>La más usada: construir una lista en un bucle</td>
+</tr>
+<tr>
+<td><code>lista.insert(i, x)</code></td>
+<td>Agrega en la posición <code>i</code></td>
+<td>Lento en listas enormes</td>
+</tr>
+<tr>
+<td><code>lista.extend(otra)</code></td>
+<td>Agrega todos los elementos de <code>otra</code></td>
+<td><code>append(otra)</code> agregaría la lista entera como UN elemento</td>
+</tr>
+<tr>
+<td><code>lista.remove(x)</code></td>
+<td>Quita la primera aparición de <code>x</code></td>
+<td><code>ValueError</code> si no está</td>
+</tr>
+<tr>
+<td><code>lista.pop()</code> / <code>pop(i)</code></td>
+<td>Quita y devuelve el último / el de la posición <code>i</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>lista[i] = x</code></td>
+<td>Reemplaza</td>
+<td></td>
+</tr>
+<tr>
+<td><code>del lista[i]</code></td>
+<td>Borra por posición</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h2>Funciones y métodos útiles</h2>
+<pre><code class="language-python">numeros = [5, 3, 9, 1, 7]
+print(sum(numeros), min(numeros), max(numeros))   # 25 1 9
+print(sorted(numeros))                 # NUEVA lista ordenada: [1, 3, 5, 7, 9]
+print(sorted(numeros, reverse=True))   # de mayor a menor
+numeros.sort()                         # ordena LA MISMA lista (no devuelve nada)
+print(numeros, 9 in numeros, numeros.index(9), numeros.count(3))</code></pre>
+<p>Con esto ya puedes calcular un promedio: <code>sum(numeros) / len(numeros)</code> (¡cuidado con la lista vacía: división por cero!).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ sort() vs sorted()</div>
+
+<p><code>lista.sort()</code> <strong>modifica</strong> la lista y devuelve <code>None</code>. <code>sorted(lista)</code> <strong>devuelve una lista nueva</strong> y deja la original intacta. El error típico es <code>lista = lista.sort()</code>: guardas <code>None</code> y pierdes la lista. Regla: si quieres conservar el original o encadenar, usa <code>sorted</code>.</p>
+</div>
+
+
+<h3>Ordenar por un criterio: key</h3>
+<p><code>sorted</code> acepta <code>key=</code>, una función que dice <strong>por qué</strong> ordenar:</p>
+<pre><code class="language-python">nombres = [&quot;valentina&quot;, &quot;Ana&quot;, &quot;luis&quot;, &quot;Bruno&quot;]
+print(sorted(nombres))                    # mayúsculas primero: ['Ana', 'Bruno', 'luis', 'valentina']
+print(sorted(nombres, key=str.lower))     # ignorando mayúsculas
+print(sorted(nombres, key=len))           # por largo</code></pre>
+<p>Lo usarás muchísimo con listas de diccionarios o tuplas: &quot;ordena los clientes por total gastado&quot; (<code>key=lambda c: c[&quot;total&quot;]</code>, lo verás en funciones).</p>
+<h2>Copiar listas: la trampa de las referencias</h2>
+<p>Esto sorprende a todos la primera vez:</p>
+<pre><code class="language-python">a = [1, 2, 3]
+b = a          # ¡b NO es una copia: es otro nombre para LA MISMA lista!
+b.append(4)
+print(a)       # [1, 2, 3, 4]  😱 a también cambió
+c = a.copy()   # copia de verdad (también list(a) o a[:])
+c.append(5)
+print(a, c)    # a no cambia</code></pre>
+<p>Recuerda la analogía de las etiquetas: <code>b = a</code> pega una <strong>segunda etiqueta</strong> sobre la misma lista, no fabrica una lista nueva. Con números o textos no lo notas porque son inmutables (no se pueden modificar &quot;en el lugar&quot;), pero con listas y diccionarios sí. Por eso, si una función recibe una lista y la modifica, <strong>modifica la del que la llamó</strong>: un error difícil de encontrar.</p>
+<div class="recorrido"></div>
+
+
+<h2>Listas de listas: tablas en memoria</h2>
+<p>Una lista puede contener otras listas. Así se representa una tabla: una lista de filas.</p>
+<pre><code class="language-python">tabla = [
+    [&quot;Ana&quot;, &quot;Chile&quot;, 3],
+    [&quot;Luis&quot;, &quot;Perú&quot;, 5],
+]
+print(tabla[1][0])                      # fila 1, columna 0 → 'Luis'
+for nombre, pais, compras in tabla:     # desempaquetado de cada fila
+    print(nombre, &quot;de&quot;, pais, &quot;hizo&quot;, compras, &quot;compras&quot;)</code></pre>
+<p>El <strong>desempaquetado</strong> (<code>for nombre, pais, compras in tabla</code>) asigna cada elemento de la fila a una variable. Es mucho más legible que <code>fila[0]</code>, <code>fila[1]</code>, <code>fila[2]</code>. (Para tablas con nombres de columnas, en la próxima lección verás que es mejor una lista de <strong>diccionarios</strong>.)</p>
+<h2>Tuplas: registros que no cambian</h2>
+<p>Una <strong>tupla</strong> es como una lista pero <strong>inmutable</strong>: una vez creada no se puede modificar. Se escribe con paréntesis:</p>
+<pre><code class="language-python">punto = (-34.6, -58.4)           # latitud, longitud
+lat, lon = punto                 # desempaquetado
+registro = (&quot;2024-03-15&quot;, &quot;web&quot;, 120.5)
+print(lat, lon, registro[1])</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Lista <code>[ ]</code></th>
+<th>Tupla <code>( )</code></th>
+</tr>
+</thead><tbody><tr>
+<td>¿Se puede modificar?</td>
+<td>Sí</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Uso típico</td>
+<td>Colecciones que crecen o cambian: las ventas del día</td>
+<td>Registros fijos: una coordenada, una fila (fecha, canal, monto)</td>
+</tr>
+<tr>
+<td>Se puede usar como clave de diccionario</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué querrías algo que no se puede cambiar? Porque <strong>comunica intención</strong> (&quot;esto es un registro, no se toca&quot;) y evita modificaciones accidentales. Además, muchas funciones devuelven tuplas: <code>divmod(17, 5)</code> → <code>(3, 2)</code>, y un <code>return a, b</code> en una función devuelve una tupla.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>El primer elemento es el 0</strong>: <code>lista[1]</code> es el <strong>segundo</strong>. El último es <code>lista[-1]</code>.</li>
+<li><strong><code>lista.sort()</code> devuelve <code>None</code></strong>: ordena la lista en el lugar. Si escribes <code>ordenada = lista.sort()</code>, <code>ordenada</code> queda en <code>None</code>. Usa <code>sorted(lista)</code> si quieres una lista nueva.</li>
+<li><strong>Copias que no son copias</strong>: <code>b = a</code> hace que las dos variables apunten a la misma lista; cambiar <code>b</code> cambia <code>a</code>. Usa <code>b = a.copy()</code> o <code>b = list(a)</code>.</li>
+<li><strong><code>sum</code> de textos</strong>: <code>sum([&quot;1&quot;, &quot;2&quot;])</code> da error. Convierte primero: <code>sum(int(x) for x in lista)</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La cola de pedidos</div>
+
+<p>Sofía, de operaciones, administra la cola de pedidos a despachar:</p>
+<blockquote>
+<p>&quot;Los pedidos entran al final y salen por el principio. A veces hay que sacar uno del medio porque se canceló. ¿Me ayudas a modelarlo? Y quiero saber el promedio y el máximo de unidades por pedido.&quot;</p>
+</blockquote>
+<p>Una <strong>lista</strong> guarda muchos valores en orden bajo un solo nombre. Es la estructura más usada de Python, y la base para entender cómo se representan tablas en memoria.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Una lista de tuplas <code>[(producto, unidades, precio), ...]</code> es la forma más simple de una tabla en memoria. Es lo que devuelven muchas librerías de bases de datos (<code>cursor.fetchall()</code>).</li>
+<li>Sacar elementos del principio de una lista grande (<code>pop(0)</code>) es lento, porque mueve todos los demás. Para colas de verdad se usa <code>collections.deque</code>.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Lista: colección ordenada y mutable <code>[a, b, c]</code>; índices desde 0, slices <code>[i:j]</code>, <code>len()</code>.</li>
+<li><code>append</code> (al final), <code>extend</code>, <code>insert</code>, <code>remove</code>, <code>pop</code>; <code>sum</code>, <code>min</code>, <code>max</code>, <code>in</code>.</li>
+<li><code>sorted()</code> devuelve una lista nueva (acepta <code>key=</code> y <code>reverse=</code>); <code>.sort()</code> modifica y devuelve <code>None</code>.</li>
+<li><code>b = a</code> no copia: usa <code>a.copy()</code>.</li>
+<li>Tupla: como una lista inmutable; ideal para registros fijos y desempaquetado.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-listas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-bucles.html">← Bucles: for y while</a><a href="python-diccionarios.html">Diccionarios y conjuntos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

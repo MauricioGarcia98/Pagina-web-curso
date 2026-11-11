@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lakehouse en problemas - el overwrite, el VACUUM y el RESTORE que falla · Academia de Datos</title><meta name="description" content="Un incidente encadenado en una tabla Delta - un overwrite por error deja 1.412 filas donde había 1,2 millones, un VACUUM con retención 0 borra los archivos de las versiones anteriores y el RESTORE falla. Más los errores de concurrencia (ConcurrentAppendException) y de esquema (DELTA_SCHEMA_MISMATCH). Cómo leer el historial de una tabla, recuperar datos y qué permisos y configuraciones lo previenen."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-lakehouse-delta-restore.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Lakehouse en problemas - el overwrite, el VACUUM y el RESTORE que falla · Academia de Datos"><meta property="og:description" content="Un incidente encadenado en una tabla Delta - un overwrite por error deja 1.412 filas donde había 1,2 millones, un VACUUM con retención 0 borra los archivos de las versiones anteriores y el RESTORE falla. Más los errores de concurrencia (ConcurrentAppendException) y de esquema (DELTA_SCHEMA_MISMATCH). Cómo leer el historial de una tabla, recuperar datos y qué permisos y configuraciones lo previenen."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-lakehouse-delta-restore.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Experto · 55 min</div>
+<h1>Lakehouse en problemas - el overwrite, el VACUUM y el RESTORE que falla</h1><p class="resumen">Un incidente encadenado en una tabla Delta - un overwrite por error deja 1.412 filas donde había 1,2 millones, un VACUUM con retención 0 borra los archivos de las versiones anteriores y el RESTORE falla. Más los errores de concurrencia (ConcurrentAppendException) y de esquema (DELTA_SCHEMA_MISMATCH). Cómo leer el historial de una tabla, recuperar datos y qué permisos y configuraciones lo previenen.</p>
+<a class="cta" href="../index.html#/l/incidentes-lakehouse-delta-restore">▶ Abrir la lección interactiva (14 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer el historial de una tabla Delta y encontrar la operación que dañó los datos</li><li>Explicar la relación entre time travel, VACUUM y la retención de archivos</li><li>Recuperar una tabla a una versión anterior y verificar la recuperación</li><li>Detectar en un historial una escritura que redujo drásticamente las filas</li><li>Prevenir conflictos de concurrencia y escrituras destructivas</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>06:15. El tablero de clientes falla. A las 07:40, alguien del equipo de soporte intenta &quot;volver atrás&quot; la tabla <code>main.crm.dim_clientes</code> y obtiene <code>DELTA_FILE_NOT_FOUND_DETAILED</code>. Te pasan el caso con una pregunta: <strong>¿se perdieron los datos de 1,2 millones de clientes?</strong></p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Delta Lake (e Iceberg, con otros nombres) guarda <strong>versiones</strong>: cada escritura crea una nueva versión en el log de transacciones, y los archivos de las versiones anteriores siguen en el almacenamiento hasta que un <strong>VACUUM</strong> los borra. El time travel y el RESTORE funcionan <strong>solo mientras esos archivos existan</strong>.</p>
+<figure class="diagrama"><figcaption>La cadena del incidente</figcaption></figure>
+
+
+<h2>Las operaciones y lo que hacen con los archivos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>DESCRIBE HISTORY tabla</code></td>
+<td>Lista las versiones: número, fecha, usuario, operación, parámetros y métricas (<code>numOutputRows</code>, <code>numTargetRowsDeleted</code>…)</td>
+</tr>
+<tr>
+<td><code>SELECT … FROM tabla VERSION AS OF 40</code> / <code>TIMESTAMP AS OF &#39;…&#39;</code></td>
+<td>Time travel: lee una versión anterior</td>
+</tr>
+<tr>
+<td><code>RESTORE TABLE tabla TO VERSION AS OF 40</code></td>
+<td>Crea una versión nueva igual a la 40 (no borra el historial)</td>
+</tr>
+<tr>
+<td><code>VACUUM tabla [RETAIN n HOURS]</code></td>
+<td>Borra los archivos que ya no usa ninguna versión dentro de la retención. Por defecto, <strong>7 días</strong> (168 h)</td>
+</tr>
+<tr>
+<td><code>spark.databricks.delta.retentionDurationCheck.enabled</code></td>
+<td>El chequeo que impide un VACUUM con retención menor a la configurada. Desactivarlo es la forma de llegar a este incidente</td>
+</tr>
+<tr>
+<td><code>delta.deletedFileRetentionDuration</code> / <code>delta.logRetentionDuration</code></td>
+<td>Propiedades de la tabla: cuánto se conservan los archivos borrados y el historial del log</td>
+</tr>
+<tr>
+<td><code>CREATE TABLE copia DEEP CLONE tabla</code></td>
+<td>Copia completa (datos y metadatos): un backup que no depende de la tabla original</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ VACUUM con retención 0 también rompe lectores</div>
+
+<p>Además de impedir el time travel, un VACUUM con retención menor a la duración de las consultas en curso puede borrar archivos que un job o un stream <strong>está leyendo en ese momento</strong>, y ese job falla con archivo no encontrado. Por eso existe el chequeo de 7 días.</p>
+</div>
+
+
+<h2>Concurrencia y esquema</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Error</th>
+<th>Qué significa</th>
+<th>Corrección</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ConcurrentAppendException</code></td>
+<td>Otra escritura agregó archivos en la zona que tu operación leyó, entre que empezaste y que intentaste confirmar</td>
+<td>Hacer las escrituras <strong>disjuntas</strong>: condición del MERGE con la columna de partición (<code>t.fecha = &#39;…&#39;</code>), o no correr dos jobs sobre la misma tabla a la vez; reintentar con espera</td>
+</tr>
+<tr>
+<td><code>ConcurrentDeleteReadException</code> / <code>ConcurrentDeleteDeleteException</code></td>
+<td>Otra operación borró archivos que tu operación leyó o quería borrar</td>
+<td>Igual: disjuntas o serializadas</td>
+</tr>
+<tr>
+<td><code>DELTA_SCHEMA_MISMATCH</code></td>
+<td>Los datos que escribes tienen otro esquema que la tabla</td>
+<td>Corregir el código o evolucionar el esquema a propósito (no activar <code>mergeSchema</code> por reflejo: ver la lección de esquemas)</td>
+</tr>
+</tbody></table></div>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>VACUUM con retención 0 &quot;para ahorrar espacio&quot;</strong>: elimina el time travel y puede romper lecturas en curso.</li>
+<li><strong>Overwrite completo para corregir una parte</strong>: un lote correctivo de 1.412 filas no debería poder reemplazar 1,2 millones. <code>replaceWhere</code> limita el reemplazo a un predicado.</li>
+<li><strong>Permisos de escritura amplios</strong>: si cualquier persona puede escribir en producción desde un notebook, tarde o temprano alguien lo hace.</li>
+<li><strong>Intentar arreglos sobre arreglos</strong>: cada acción durante un incidente con datos perdidos puede empeorarlo. Congela las operaciones sobre la tabla (pausa los jobs) antes de investigar.</li>
+<li><strong>No tener capa cruda</strong>: sin bronze inmutable ni backup, un error así sí es pérdida definitiva.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Unity Catalog: <code>MODIFY</code> solo para el principal de servicio del pipeline; las personas leen. Los cambios manuales pasan por un job revisado.</li>
+<li>Tablas críticas con <code>DEEP CLONE</code> programado a otro esquema o región, y versionado del almacenamiento (S3 versioning, soft delete de ADLS o GCS).</li>
+<li><em>Predictive optimization</em> en Databricks (o un job de mantenimiento) corre <code>OPTIMIZE</code> y <code>VACUUM</code> con la retención por defecto, no a mano.</li>
+<li>En Iceberg, lo equivalente es <code>expire_snapshots</code> (borra snapshots viejos) y <code>remove_orphan_files</code>; los mismos riesgos con <code>older_than</code> demasiado reciente.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;Alguien borró datos de una tabla Delta por error. ¿Cómo los recuperas?&quot;</strong> Primero, detener escrituras y cualquier VACUUM; después <code>DESCRIBE HISTORY</code> para encontrar la última versión buena; verificar con time travel (<code>VERSION AS OF</code>) y hacer <code>RESTORE</code>. Si los archivos ya no existen por un VACUUM, reconstruir desde la capa cruda o un clon. Cierra con la prevención: permisos, <code>replaceWhere</code>, retención, backups.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>DESCRIBE HISTORY</code></td>
+<td>Encontrar quién hizo qué y cuándo</td>
+</tr>
+<tr>
+<td>Time travel + <code>RESTORE</code></td>
+<td>Volver atrás, mientras existan los archivos</td>
+</tr>
+<tr>
+<td>Retención de 7 días y su chequeo</td>
+<td>Que el time travel siga siendo posible</td>
+</tr>
+<tr>
+<td>Escrituras disjuntas</td>
+<td>Evitar ConcurrentAppendException</td>
+</tr>
+<tr>
+<td>Permisos + <code>replaceWhere</code> + clones</td>
+<td>Que un error humano no destruya una tabla</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>14 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-lakehouse-delta-restore">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-kafka-y-streaming.html">← Streaming en problemas - lag, mensajes venenosos y rebalanceos</a><a href="incidentes-apis-credenciales-y-costos.html">APIs, credenciales y costos - el extractor que dijo OK y la consulta de miles de dólares →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

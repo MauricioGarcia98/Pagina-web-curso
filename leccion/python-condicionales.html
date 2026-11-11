@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Condicionales: if, elif, else · Academia de Datos</title><meta name="description" content="Tomar decisiones con comparaciones, operadores lógicos e indentación."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-condicionales.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Condicionales: if, elif, else · Academia de Datos"><meta property="og:description" content="Tomar decisiones con comparaciones, operadores lógicos e indentación."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-condicionales.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Básico · 30 min</div>
+<h1>Condicionales: if, elif, else</h1><p class="resumen">Tomar decisiones con comparaciones, operadores lógicos e indentación.</p>
+<a class="cta" href="../index.html#/l/python-condicionales">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Tomar decisiones en un programa con <code>if</code>, <code>elif</code> y <code>else</code></li><li>Escribir condiciones con comparaciones y con <code>and</code>, <code>or</code> y <code>not</code></li><li>Anticipar qué valores Python considera falsos</li><li>Escribir una regla de negocio como código legible</li></ul>
+<h2>Programas que deciden</h2>
+<p>Hasta ahora tus programas ejecutaban <strong>todas</strong> sus líneas, siempre. Pero la lógica de negocio está llena de decisiones: &quot;si el stock es bajo, avisar&quot;, &quot;si el total supera 2.000, el envío es gratis&quot;, &quot;si el email está vacío, mandar el registro a revisión&quot;. Para eso existen los <strong>condicionales</strong>: bloques de código que se ejecutan <strong>solo si</strong> se cumple una condición.</p>
+<h2>if: hacer algo solo si se cumple una condición</h2>
+<pre><code class="language-python">stock = 3
+if stock &lt; 5:
+    print(&quot;¡Quedan pocas unidades!&quot;)
+    print(&quot;Reponer pronto&quot;)
+print(&quot;Fin del chequeo&quot;)</code></pre>
+<p>Cómo se lee y cómo se ejecuta:</p>
+<ol>
+<li>Python evalúa la condición <code>stock &lt; 5</code> → <code>3 &lt; 5</code> → <code>True</code>.</li>
+<li>Como es verdadera, ejecuta el <strong>bloque</strong> de abajo: las dos líneas con sangría.</li>
+<li>Sigue con la primera línea <strong>sin</strong> sangría: &quot;Fin del chequeo&quot;, que se ejecuta siempre.</li>
+</ol>
+<p>Si <code>stock</code> fuera 10, la condición daría <code>False</code>, Python <strong>saltaría</strong> el bloque y solo imprimiría &quot;Fin del chequeo&quot;. Pruébalo cambiando el valor.</p>
+<h3>Las dos reglas de sintaxis</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Regla</th>
+<th>Detalle</th>
+<th>Error si la olvidas</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Dos puntos</strong> al final de la línea del <code>if</code></td>
+<td><code>if stock &lt; 5:</code></td>
+<td><code>SyntaxError: expected &#39;:&#39;</code></td>
+</tr>
+<tr>
+<td><strong>Sangría</strong> (indentación) del bloque</td>
+<td>4 espacios al principio de cada línea &quot;de adentro&quot;</td>
+<td><code>IndentationError: expected an indented block</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La indentación no es decorativa</div>
+
+<p>En muchos lenguajes los bloques se marcan con llaves <code>{ }</code> y la sangría es solo estética. En Python, <strong>la sangría ES la sintaxis</strong>: los espacios al principio de la línea deciden qué código está dentro del <code>if</code>. Usa siempre 4 espacios (el editor los pone solo al presionar Enter después de <code>:</code> o con <kbd>Tab</kbd>) y nunca mezcles espacios con tabulaciones.</p>
+</div>
+
+
+<h2>elif y else: varias alternativas</h2>
+<pre><code class="language-python">total = 1800
+if total &gt;= 2000:
+    envio = 0
+elif total &gt;= 1000:
+    envio = 50
+else:
+    envio = 120
+print(&quot;Costo de envío:&quot;, envio)</code></pre>
+<ul>
+<li><code>elif</code> (abreviatura de <em>else if</em>, &quot;si no, si…&quot;) agrega otra condición. Puede haber todos los que necesites.</li>
+<li><code>else</code> (&quot;si no&quot;) es el caso por defecto: se ejecuta si <strong>ninguna</strong> condición anterior se cumplió. Es opcional y va al final.</li>
+</ul>
+<p>Python revisa de arriba hacia abajo y ejecuta <strong>solo el primer bloque</strong> cuya condición sea verdadera; los demás se saltean, aunque también se cumplieran. Con <code>total = 1800</code>: <code>1800 &gt;= 2000</code> es falso → <code>1800 &gt;= 1000</code> es verdadero → <code>envio = 50</code>, y el <code>else</code> ni se mira. Es exactamente la lógica de <code>CASE WHEN</code> en SQL, y el <strong>orden</strong> importa igual: si pusieras <code>total &gt;= 1000</code> primero, un pedido de 5.000 pagaría 50.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El portero de la discoteca</div>
+
+<p>El portero tiene una lista de reglas en orden: &quot;¿Estás en la lista VIP? Pasa por la puerta dorada. ¿Si no, tienes entrada? Pasa por la puerta común. ¿Si no? No entras&quot;. Aplica la primera regla que te corresponde y no sigue preguntando.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Comparaciones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>Significa</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>==</code></td>
+<td>igual</td>
+<td><code>3 == 3</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>!=</code></td>
+<td>distinto</td>
+<td><code>&quot;web&quot; != &quot;app&quot;</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code></td>
+<td>menor, menor o igual, mayor, mayor o igual</td>
+<td><code>10 &gt;= 10</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>in</code></td>
+<td>está contenido en</td>
+<td><code>&quot;Chile&quot; in [&quot;Chile&quot;, &quot;Perú&quot;]</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>not in</code></td>
+<td>no está contenido en</td>
+<td><code>&quot;@&quot; not in &quot;anamail.com&quot;</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>is</code> / <code>is not</code></td>
+<td>es el mismo objeto (se usa con <code>None</code>)</td>
+<td><code>x is None</code></td>
+<td>según <code>x</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ `=` vs `==`</div>
+
+<p><code>=</code> <strong>asigna</strong> (guarda un valor). <code>==</code> <strong>compara</strong> (pregunta si son iguales). Escribir <code>if total = 100:</code> da <code>SyntaxError</code>. Es el error número uno al empezar.</p>
+</div>
+
+
+<p>Las comparaciones de texto distinguen mayúsculas y espacios, igual que en SQL: <code>&quot;chile&quot; == &quot;Chile&quot;</code> es <code>False</code>. Si los datos pueden venir &quot;sucios&quot;, normaliza antes de comparar: <code>pais.strip().lower() == &quot;chile&quot;</code>.</p>
+<p>Python permite <strong>comparaciones encadenadas</strong>, como en matemática: <code>0 &lt;= descuento &lt;= 0.5</code> significa &quot;descuento entre 0 y 0,5, ambos incluidos&quot;.</p>
+<h2>Combinar condiciones: and, or, not</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>Es verdadero si…</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>a and b</code></td>
+<td>se cumplen <strong>las dos</strong></td>
+<td><code>edad &gt;= 18 and pais == &quot;Chile&quot;</code></td>
+</tr>
+<tr>
+<td><code>a or b</code></td>
+<td>se cumple <strong>al menos una</strong></td>
+<td><code>canal == &quot;web&quot; or canal == &quot;app&quot;</code></td>
+</tr>
+<tr>
+<td><code>not a</code></td>
+<td><code>a</code> es falso</td>
+<td><code>not es_cliente</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python">pais = &quot;Chile&quot;
+edad = 17
+if pais in (&quot;Chile&quot;, &quot;Perú&quot;) and not edad &lt; 18:
+    print(&quot;Puede registrarse&quot;)
+else:
+    print(&quot;No puede registrarse&quot;)</code></pre>
+<p>Igual que en SQL, <code>and</code> se evalúa antes que <code>or</code>. Si mezclas ambos, <strong>usa paréntesis</strong>: <code>(canal == &quot;web&quot; or canal == &quot;app&quot;) and estado == &quot;cancelado&quot;</code>.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 Evaluación en cortocircuito</div>
+
+<p>Python deja de evaluar en cuanto conoce el resultado: en <code>a and b</code>, si <code>a</code> es falso ya no mira <code>b</code>. Se usa para protegerse: <code>if lista and lista[0] &gt; 10:</code> nunca falla con una lista vacía, porque si está vacía no llega a pedir <code>lista[0]</code>. Lo mismo con <code>if usuario is not None and usuario.activo:</code>.</p>
+</div>
+
+
+<h2>Valores &quot;verdaderos&quot; y &quot;falsos&quot; (truthiness)</h2>
+<p>En un <code>if</code> no hace falta que la condición sea literalmente <code>True</code> o <code>False</code>: cualquier valor se interpreta. Estos cuentan como <strong>falsos</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Falsos</th>
+<th>Ejemplos</th>
+</tr>
+</thead><tbody><tr>
+<td><code>False</code>, <code>None</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Cero</td>
+<td><code>0</code>, <code>0.0</code></td>
+</tr>
+<tr>
+<td>Colecciones vacías</td>
+<td><code>&quot;&quot;</code> (texto vacío), <code>[]</code>, <code>{}</code>, <code>()</code>, <code>set()</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Todo lo demás es verdadero</strong> (incluido <code>&quot; &quot;</code>, un texto con un espacio, y <code>&quot;0&quot;</code>, un texto con un cero).</p>
+<pre><code class="language-python">email = &quot;&quot;
+if not email:
+    print(&quot;Falta el email&quot;)
+
+pedidos = []
+if pedidos:
+    print(&quot;Hay pedidos para procesar&quot;)
+else:
+    print(&quot;Nada que procesar hoy&quot;)</code></pre>
+<p>Es una forma muy idiomática (típica de Python) de escribir &quot;si está vacío&quot; o &quot;si hay algo&quot;. Pero cuidado: <code>if not cantidad:</code> también es verdadero cuando <code>cantidad</code> es <code>0</code>, que puede ser un valor válido. Si quieres distinguir &quot;cero&quot; de &quot;sin dato&quot;, pregunta explícitamente: <code>if cantidad is None:</code>.</p>
+<h2>Condicionales anidados</h2>
+<p>Un <code>if</code> puede ir dentro de otro (con más sangría):</p>
+<pre><code class="language-python">es_cliente = True
+total = 2500
+if es_cliente:
+    if total &gt; 2000:
+        print(&quot;Cliente con compra grande: 15 % de descuento&quot;)
+    else:
+        print(&quot;Cliente: 5 % de descuento&quot;)
+else:
+    print(&quot;Sin descuento&quot;)</code></pre>
+<p>Más de dos o tres niveles se vuelve difícil de leer. Muchas veces se puede aplanar con <code>and</code> (<code>if es_cliente and total &gt; 2000:</code>) o con <em>guardas</em> (salir temprano con <code>return</code> dentro de una función, como verás después).</p>
+<h2>La expresión condicional: if en una línea</h2>
+<p>Para asignar un valor u otro según una condición, existe una forma compacta:</p>
+<pre><code class="language-python">nota = 7
+resultado = &quot;aprobado&quot; if nota &gt;= 6 else &quot;desaprobado&quot;
+print(resultado)</code></pre>
+<p>Se lee: &quot;<code>resultado</code> es <code>&#39;aprobado&#39;</code> <strong>si</strong> <code>nota &gt;= 6</code>, <strong>si no</strong> <code>&#39;desaprobado&#39;</code>&quot;. Úsala para decisiones simples de dos ramas; para más casos, <code>if/elif/else</code> es más claro.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>=</code> en lugar de <code>==</code></strong>: <code>if estado = &quot;entregado&quot;:</code> es un error de sintaxis. <code>=</code> asigna, <code>==</code> compara.</li>
+<li><strong>Condiciones en el orden equivocado</strong>: si el primer <code>if</code> es <code>total &gt; 0</code>, el <code>elif total &gt; 2000</code> nunca se ejecuta. Ve de lo más específico a lo más general.</li>
+<li><strong><code>if estado == &quot;cancelado&quot; or &quot;devuelto&quot;:</code></strong> siempre es verdadero, porque <code>&quot;devuelto&quot;</code> (un texto no vacío) es verdadero por sí solo. Se escribe <code>estado in (&quot;cancelado&quot;, &quot;devuelto&quot;)</code>.</li>
+<li><strong>Olvidar la indentación</strong>: en Python, lo que va &quot;dentro&quot; del <code>if</code> se marca con 4 espacios. Sin ellos, <code>IndentationError</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La regla del envío gratis</div>
+
+<p>Valentina define una nueva política comercial:</p>
+<blockquote>
+<p>&quot;Desde el lunes, el envío es gratis si la compra es de 2000 o más, o si el cliente es premium. Los pedidos cancelados o devueltos no cuentan. ¿Lo puedes implementar en el proceso?&quot;</p>
+</blockquote>
+<p>Las reglas del negocio son, en el fondo, <strong>condiciones</strong>: &quot;si pasa esto, haz aquello&quot;. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las reglas de negocio cambian (&quot;ahora el mínimo es 2500&quot;). En vez de dejar el número escrito dentro del <code>if</code>, se guarda en una constante con nombre (<code>MINIMO_ENVIO_GRATIS = 2000</code>) o en un archivo de configuración.</li>
+<li>Una regla de negocio importante siempre lleva tests con los casos límite: justo 2000, 1999,99, cliente premium con total 0. Ahí es donde aparecen los errores.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>if condición:</code> + bloque con sangría de 4 espacios. Los dos puntos y la sangría son obligatorios.</li>
+<li><code>elif</code> agrega alternativas, <code>else</code> es el caso por defecto; solo se ejecuta el primer bloque verdadero.</li>
+<li><code>==</code> compara, <code>=</code> asigna. <code>in</code> pregunta pertenencia; <code>is None</code> pregunta por la ausencia de valor.</li>
+<li><code>and</code>, <code>or</code>, <code>not</code>; paréntesis cuando los mezcles.</li>
+<li><code>0</code>, <code>&quot;&quot;</code>, <code>[]</code>, <code>None</code> son falsos en un <code>if</code>; cuidado con el <code>0</code> válido.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-condicionales">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-tipos-y-strings.html">← Tipos de datos y textos (strings)</a><a href="python-bucles.html">Bucles: for y while →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

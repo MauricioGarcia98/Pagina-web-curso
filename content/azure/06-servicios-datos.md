@@ -9,6 +9,10 @@ resumen: La arquitectura de referencia de un lakehouse en Azure, crear Databrick
 Crea un [workspace de Azure Databricks](#/azure/crear/dbw) en el portal de práctica: vas a ver el grupo de recursos administrado que crea Azure y el botón **Launch Workspace**, que abre el Databricks de práctica.
 :::
 
+:::analogia En palabras simples
+Azure tiene un servicio para cada tarea, como una ferretería con un pasillo por tipo de herramienta: Data Factory para mover datos, Databricks para procesarlos, Synapse y Fabric para analizarlos, Event Hubs para datos que llegan sin parar. Esta lección es el plano de la ferretería.
+:::
+
 ## Arquitectura de referencia (lakehouse en Azure)
 
 ```text

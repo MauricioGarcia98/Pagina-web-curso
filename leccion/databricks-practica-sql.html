@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Práctica autocorregida — Databricks SQL y pipelines · Academia de Datos</title><meta name="description" content="15 ejercicios que se corrigen solos sobre Delta Lake, MERGE, time travel, COPY INTO, QUALIFY, expectativas y AUTO CDC (SCD tipo 1 y 2)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-practica-sql.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Práctica autocorregida — Databricks SQL y pipelines · Academia de Datos"><meta property="og:description" content="15 ejercicios que se corrigen solos sobre Delta Lake, MERGE, time travel, COPY INTO, QUALIFY, expectativas y AUTO CDC (SCD tipo 1 y 2)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-practica-sql.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Intermedio · 60 min</div>
+<h1>Práctica autocorregida — Databricks SQL y pipelines</h1><p class="resumen">15 ejercicios que se corrigen solos sobre Delta Lake, MERGE, time travel, COPY INTO, QUALIFY, expectativas y AUTO CDC (SCD tipo 1 y 2).</p>
+<a class="cta" href="../index.html#/l/databricks-practica-sql">▶ Abrir la lección interactiva (15 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo funcionan estos ejercicios</div>
+
+<p>Cada ejercicio corre en un <strong>catálogo limpio</strong> (un metastore propio del ejercicio, no el tuyo): primero se crean las tablas del <em>setup</em>, después se ejecuta <strong>tu código</strong> y al final una <strong>consulta de control</strong>. Tu resultado se compara con el de la solución. Por eso no importa cómo lo escribas: importa <strong>en qué estado quedan las tablas</strong>, como en el trabajo real.</p>
+<p>Lo que escribas acá no cambia tu catálogo del <a href="#/databricks/sql">Databricks de práctica</a>. Si quieres seguir probando con tus propias tablas, usa ese editor.</p>
+</div>
+
+
+<p>Antes de empezar repasa <a href="#/l/databricks-delta-sql">Delta Lake en la práctica</a>. En todos los ejercicios el catálogo actual es <code>main</code> y el esquema <code>default</code>, así que <code>clientes</code> es <code>main.default.clientes</code>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Esta lección es el gimnasio después de la teoría: ejercicios que se corrigen solos para que practiques el SQL de Databricks (tablas Delta, MERGE, historial) hasta que te salga sin mirar.</p>
+</div>
+
+
+<h2>Tablas Delta: crear, cargar y modificar</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>MERGE INTO: upsert y sincronización</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Historial y time travel</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Calidad: restricciones</h2>
+<div class="exercise-slot"></div>
+
+
+<h2>Ingesta desde archivos</h2>
+<div class="exercise-slot"></div>
+
+
+<h2>QUALIFY: filtrar por una función de ventana</h2>
+<div class="exercise-slot"></div>
+
+
+<h2>Pipelines declarativos (Lakeflow)</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Las tablas Delta guardan <strong>versiones</strong>: <code>DESCRIBE HISTORY</code>, <code>VERSION AS OF</code> y <code>RESTORE</code> te salvan de los errores.</li>
+<li><code>MERGE INTO</code> hace upserts, bajas (<code>WHEN MATCHED AND … THEN DELETE</code>) y sincronizaciones completas (<code>WHEN NOT MATCHED BY SOURCE</code>).</li>
+<li><code>COPY INTO</code> carga archivos nuevos una sola vez; <code>QUALIFY</code> filtra por funciones de ventana sin subconsultas.</li>
+<li>En los pipelines, las <strong>expectativas</strong> controlan la calidad y <strong>AUTO CDC</strong> aplica feeds de cambios en orden, con SCD tipo 1 (foto actual) o tipo 2 (historial).</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>15 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-practica-sql">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-workflows-practicas.html">← Workflows (Jobs), monitoreo y buenas prácticas</a><a href="genie-que-es-genie.html">¿Qué es Databricks Genie? →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
