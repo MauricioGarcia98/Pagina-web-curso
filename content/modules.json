@@ -42,19 +42,6 @@
     ]
   },
   {
-    "id": "casos",
-    "titulo": "Casos de negocio con SQL",
-    "icono": "💼",
-    "color": "#7c3aed",
-    "descripcion": "Trece empresas reales-simuladas (banco, streaming, movilidad, salud, SaaS, aerolínea, logística, e-commerce, telecomunicaciones, seguros, hotelería, energía y delivery) para entrenar la lógica: pasar de una pregunta de negocio a la consulta correcta.",
-    "objetivos": [
-      "Aplicar un método para traducir preguntas de negocio a SQL",
-      "Calcular KPIs reales: fraude, mora, churn, MRR, ARPU, siniestralidad, RevPAR, SAIDI, take rate, cohortes",
-      "Evitar trampas lógicas: denominadores, doble conteo, promedios de promedios",
-      "Resolver problemas de entrevista con datos de distintos rubros"
-    ]
-  },
-  {
     "id": "analisis",
     "titulo": "Análisis de datos con SQL: de cero a senior",
     "icono": "📊",
@@ -281,6 +268,34 @@
     ]
   },
   {
+    "id": "local",
+    "titulo": "Desde tu computadora: el entorno local paso a paso",
+    "icono": "💻",
+    "color": "#0891b2",
+    "descripcion": "Tutorial paso a paso para armar en tu propia computadora (Windows con WSL, macOS o Linux) el entorno completo de un data engineer: Git y GitHub, Python con uv, Docker, PostgreSQL, DuckDB, dbt, Airflow, Spark, las CLIs de nube y Terraform, y el proyecto final corriendo en tu máquina.",
+    "objetivos": [
+      "Instalar y configurar el entorno de trabajo en Windows (WSL), macOS o Linux",
+      "Versionar proyectos con Git y GitHub usando SSH",
+      "Crear proyectos de Python reproducibles con uv, entornos virtuales, ruff y pytest",
+      "Levantar bases de datos y servicios con Docker y Docker Compose",
+      "Correr dbt, Airflow y Spark localmente y conectar las CLIs de nube de forma segura",
+      "Armar un proyecto de datos completo en tu computadora, listo para tu portafolio"
+    ]
+  },
+  {
+    "id": "casos",
+    "titulo": "Casos de negocio con SQL",
+    "icono": "💼",
+    "color": "#7c3aed",
+    "descripcion": "Trece empresas reales-simuladas (banco, streaming, movilidad, salud, SaaS, aerolínea, logística, e-commerce, telecomunicaciones, seguros, hotelería, energía y delivery) para entrenar la lógica: pasar de una pregunta de negocio a la consulta correcta.",
+    "objetivos": [
+      "Aplicar un método para traducir preguntas de negocio a SQL",
+      "Calcular KPIs reales: fraude, mora, churn, MRR, ARPU, siniestralidad, RevPAR, SAIDI, take rate, cohortes",
+      "Evitar trampas lógicas: denominadores, doble conteo, promedios de promedios",
+      "Resolver problemas de entrevista con datos de distintos rubros"
+    ]
+  },
+  {
     "id": "pipelines",
     "titulo": "Casos de negocio de punta a punta",
     "icono": "🧠",
@@ -305,21 +320,6 @@
       "Diagnosticar con grep, awk, jq y SQL directamente sobre los datos rotos",
       "Reparar sin empeorar: deduplicar, reprocesar de forma idempotente, restaurar versiones",
       "Prevenir: checks de frescura, volumen, unicidad y esquema, alertas accionables y runbooks"
-    ]
-  },
-  {
-    "id": "local",
-    "titulo": "Desde tu computadora: el entorno local paso a paso",
-    "icono": "💻",
-    "color": "#0891b2",
-    "descripcion": "Tutorial paso a paso para armar en tu propia computadora (Windows con WSL, macOS o Linux) el entorno completo de un data engineer: Git y GitHub, Python con uv, Docker, PostgreSQL, DuckDB, dbt, Airflow, Spark, las CLIs de nube y Terraform, y el proyecto final corriendo en tu máquina.",
-    "objetivos": [
-      "Instalar y configurar el entorno de trabajo en Windows (WSL), macOS o Linux",
-      "Versionar proyectos con Git y GitHub usando SSH",
-      "Crear proyectos de Python reproducibles con uv, entornos virtuales, ruff y pytest",
-      "Levantar bases de datos y servicios con Docker y Docker Compose",
-      "Correr dbt, Airflow y Spark localmente y conectar las CLIs de nube de forma segura",
-      "Armar un proyecto de datos completo en tu computadora, listo para tu portafolio"
     ]
   },
   {
@@ -350,6 +350,19 @@
       "Integrar IA generativa con criterio: clasificar, extraer, responder con fuentes y evaluar",
       "Automatizar con orquestación, infraestructura como código y CI/CD",
       "Presentar cada proyecto en GitHub con README, diagrama, métricas de valor y demo"
+    ]
+  },
+  {
+    "id": "proyecto",
+    "titulo": "Proyecto final y entrevistas",
+    "icono": "🏆",
+    "color": "#16a34a",
+    "descripcion": "Une todo en proyectos de punta a punta y prepárate para entrevistas: arquitectura, el proyecto completo de Rápido (relevamiento, capas en SQL, Python, PySpark, dbt, Airflow con compuerta de calidad, Terraform y CI), retos de SQL y PySpark, y plan de carrera.",
+    "objetivos": [
+      "Diseñar una arquitectura de datos completa",
+      "Llevar un proyecto real del pedido de negocio a producción: modelo, pipeline, calidad, infraestructura y CI",
+      "Resolver casos de negocio con SQL y PySpark",
+      "Presentar un proyecto y responder preguntas de diseño en entrevistas"
     ]
   },
   {
@@ -407,19 +420,6 @@
       "Ingerir, procesar y almacenar datos con el servicio correcto",
       "Preparar datos para análisis e IA en BigQuery y mantener las cargas automatizadas",
       "Construir, desplegar y monitorear soluciones de ML e IA generativa"
-    ]
-  },
-  {
-    "id": "proyecto",
-    "titulo": "Proyecto final y entrevistas",
-    "icono": "🏆",
-    "color": "#16a34a",
-    "descripcion": "Une todo en proyectos de punta a punta y prepárate para entrevistas: arquitectura, el proyecto completo de Rápido (relevamiento, capas en SQL, Python, PySpark, dbt, Airflow con compuerta de calidad, Terraform y CI), retos de SQL y PySpark, y plan de carrera.",
-    "objetivos": [
-      "Diseñar una arquitectura de datos completa",
-      "Llevar un proyecto real del pedido de negocio a producción: modelo, pipeline, calidad, infraestructura y CI",
-      "Resolver casos de negocio con SQL y PySpark",
-      "Presentar un proyecto y responder preguntas de diseño en entrevistas"
     ]
   }
 ]

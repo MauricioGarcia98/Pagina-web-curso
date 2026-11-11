@@ -7,11 +7,12 @@ objetivos: Explicar con tus palabras qué hace un ingeniero o ingeniera de datos
 autoevaluacion: ¿Puedes contarle a alguien que no sabe nada qué hace un data engineer, usando el ejemplo de una compra? | ¿Sabes qué diferencia hay entre ETL y ELT y cuál es más común hoy? | ¿Sabes cuándo conviene batch y cuándo streaming? | ¿Puedes nombrar para qué sirve SQL, Spark, dbt y Airflow en una frase cada uno? | ¿Ejecutaste el ejemplo de SQL de esta lección y cambiaste el número del LIMIT?
 ---
 
-<!-- estandar:escenario -->
-:::escenario Tu nuevo trabajo
-Imagina que acabas de conseguir tu primer trabajo como **data engineer junior** en **Tienda Andina**, un e-commerce de tecnología que vende en Latinoamérica y España. Tiene una app, una web, tiendas físicas y un call center, y cada día genera miles de pedidos, pagos y clics.
+:::nota Cómo está pensado este curso
+**Primero aprendes, después trabajas.** Cada lección empieza explicando el tema desde cero, con ejemplos simples y práctica, como en una clase. Nadie espera que ya sepas algo.
 
-En este curso vas a vivir ese trabajo: cada lección empieza con un pedido real de alguien de la empresa (la gerente comercial, finanzas, marketing, operaciones o tu líder técnico) y termina con lo que necesitas saber para resolverlo como lo haría un profesional. Esta primera lección es tu inducción: qué hace el equipo de datos y con qué herramientas.
+Recién **al final** de cada lección vas a encontrar un **caso real**: un pedido como los que te harían en una empresa, para que veas dónde se usa lo que acabas de aprender. La empresa de los ejemplos se llama **Tienda Andina**, un comercio en línea de tecnología que vende en Latinoamérica y España.
+
+Cuando termines las etapas de aprendizaje llega la parte de **💼 Trabajo real**: casos de negocio completos, incidentes de guardia, proyectos de portafolio y una semana simulada en tu primer empleo.
 :::
 ¡Hola! Si llegaste hasta aquí sin saber nada de programación ni de datos, **este es exactamente tu lugar**. Vamos a ir paso a paso, sin dar nada por sabido. Al terminar el curso vas a poder hacer el trabajo diario de un ingeniero o ingeniera de datos: juntar los datos que una empresa tiene desparramados, limpiarlos, ordenarlos y dejarlos listos para que otros tomen decisiones con ellos.
 
