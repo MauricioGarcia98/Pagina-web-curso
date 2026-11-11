@@ -25,6 +25,7 @@
   }
   const tabla = (r) => ({ columns: r.cols || [], values: r.filas || [] });
   async function pipeline(codigo) {
+    if (!(window.DBX && window.DBX.correrPipeline) && window.__cargarGrupo) await window.__cargarGrupo('databricks');
     const D = window.DBX; if (!D || !D.correrPipeline) throw new Error('El motor de pipelines no está cargado.');
     if (D.asegurarStore) D.asegurarStore({ data: {}, save() {} });
     const W = D.ws(); W.pipelines = W.pipelines || {};

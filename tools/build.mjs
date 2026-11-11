@@ -384,6 +384,22 @@ function pistasAutomaticas(ex) {
 const lista = (v) => (v ? String(v).split(/\s+\|\s+/).map((x) => x.trim()).filter(Boolean) : []);
 const mdInline = (t) => marked.parseInline(t);
 
+// Módulos donde se aprende un tema desde cero: quien estudia todavía no trabaja en una empresa, así que la
+// lección empieza por la explicación y el pedido laboral (:::escenario) se muestra al final, como caso real.
+// En los módulos de "Trabajo real" (casos, pipelines, incidentes, laboratorios, portafolio…) el escenario sigue arriba.
+const MODULOS_APRENDER = new Set(['cero', 'fundamentos', 'sql', 'analisis', 'modelado', 'powerbi', 'python', 'spark', 'pyspark', 'dbt', 'airflow', 'azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces', 'arquitectura', 'terraform', 'local']);
+function casoAlFinal(body, moduleId) {
+  if (!MODULOS_APRENDER.has(moduleId)) return body;
+  const m = /^(?:<!--\s*estandar:escenario\s*-->\n)?:::escenario[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*\n/m.exec(body);
+  if (!m || /^## /m.test(body.slice(0, m.index))) return body; // solo el escenario que abre la lección
+  const resto = body.slice(0, m.index) + body.slice(m.index + m[0].length);
+  // el caso ahora se lee al terminar: se quitan las frases que anunciaban lo que la lección iba a enseñar
+  m[2] = m[2].replace(/(?:En esta lección|Esta lección|Eso es exactamente lo que vas a aprender|Ahora vas a aprender|Con las palabras de esta lección)[^.\n]*\.[ \t]?/g, '');
+  const caso = `## Caso real: así te lo piden en un trabajo\n\nYa viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:\n\n:::escenario ${m[1]}\n${m[2]}:::\n\n`;
+  const ancla = [/^<!--\s*estandar:trabajo\s*-->\n/m, /^:::trabajo/m, /^<!--\s*estandar:entrevista\s*-->\n/m, /^## Resumen\b/m, /^## (?:Ejercicios|Pr[aá]ctica)\b/m, /^:::ejercicio/m].map((r) => r.exec(resto)).find(Boolean);
+  return ancla ? resto.slice(0, ancla.index) + caso + resto.slice(ancla.index) : resto.replace(/\s*$/, '\n\n') + caso;
+}
+
 function buildLesson(file, moduleId, order) {
   const src = fs.readFileSync(file, 'utf8');
   const { meta, body } = parseFrontMatter(src, file);
@@ -392,7 +408,7 @@ function buildLesson(file, moduleId, order) {
   const exercises = [];
   const re = /^:::ejercicio[ \t]+([^\n]*)\n([\s\S]*?)^:::[ \t]*$/gm;
   let k = 0;
-  const content = body.replace(re, (_, header, exBody) => {
+  const content = casoAlFinal(body, moduleId).replace(re, (_, header, exBody) => {
     const ex = parseExercise(header, exBody, file, k, id);
     // sin dificultad propia, el ejercicio toma el nivel de su lección (así todos muestran su etiqueta)
     if (!ex.dificultad) { ex.dificultad = meta.nivel || 'Básico'; ex.dificultadLeccion = true; }
@@ -633,9 +649,42 @@ function build() {
   const glosario = buildGlosario(modules);
   const examenes = buildExamenes(modules);
   const certificaciones = buildCertificaciones(modules, examenes);
-  const course = { generado: new Date().toISOString().slice(0, 10), modulos: modules, glosario, examenes, certificaciones };
+  // El contenido se reparte para que la portada cargue rápido:
+  //  - assets/js/content.js: el índice (módulos, títulos, resúmenes, lista de ejercicios sin su contenido)
+  //  - assets/content/<módulo>.js: el texto de las lecciones y los ejercicios completos; se descarga al abrir el módulo
+  //  - assets/content/_buscar.js: texto plano de las lecciones, solo para el buscador
+  const dirC = path.join(ROOT, 'assets/content');
+  fs.rmSync(dirC, { recursive: true, force: true }); fs.mkdirSync(dirC, { recursive: true });
+  const hash = (txt) => { let h = 2166136261; for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
+  const buscar = {};
+  const indice = modules.map((m) => {
+    const datos = {};
+    const lecciones = m.lecciones.map((l) => {
+      datos[l.id] = { html: l.html, ejercicios: l.ejercicios };
+      buscar[l.id] = l.html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+      const enlaces = [...new Set([...l.html.matchAll(/href="(#\/[^"]*)"/g)].map((x) => x[1]))];
+      return { ...l, html: '', htmlLen: l.html.length, enlaces, ejercicios: l.ejercicios.map((e) => ({ id: e.id, type: e.type, ...(e.dificultad ? { dificultad: e.dificultad } : {}) })) };
+    });
+    const js = `window.__contenido(${JSON.stringify(m.id)}, ${JSON.stringify(datos)});\n`;
+    fs.writeFileSync(path.join(dirC, m.id + '.js'), js);
+    return { ...m, lecciones, v: hash(js) };
+  });
+  const jsBuscar = `window.__buscar(${JSON.stringify(buscar)});\n`;
+  fs.writeFileSync(path.join(dirC, '_buscar.js'), jsBuscar);
+  // versión del código de las herramientas (se descargan a pedido): cambia cuando cambia algún archivo
+  const dirJs = path.join(ROOT, 'assets/js');
+  const vJs = hash(fs.readdirSync(dirJs).filter((n) => n.endsWith('.js') && n !== 'content.js').sort().map((n) => n + ':' + hash(fs.readFileSync(path.join(dirJs, n), 'utf8'))).join('|'));
+  const course = { generado: new Date().toISOString().slice(0, 10), vJs, vBuscar: hash(jsBuscar), modulos: indice, glosario, examenes, certificaciones };
   fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
     '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
+
+  // index.html: cada script y hoja de estilos local lleva ?v=<hash de su contenido>, así el navegador
+  // puede guardarlos mucho tiempo y aun así recibe la versión nueva cuando un archivo cambia
+  globalThis.__sellarIndex = () => {
+    const pIndex = path.join(ROOT, 'index.html'); let html = fs.readFileSync(pIndex, 'utf8');
+    html = html.replace(/(src|href)="(assets\/[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"/g, (m, attr, ruta) => { const p = path.join(ROOT, ruta); return fs.existsSync(p) ? `${attr}="${ruta}?v=${hash(fs.readFileSync(p, 'utf8'))}"` : m; });
+    fs.writeFileSync(pIndex, html);
+  };
 
   // simuladores Python -> window.PY_SOURCES
   const pyRoot = path.join(ROOT, 'assets/py');
@@ -654,8 +703,9 @@ function build() {
   walk(pyRoot);
   fs.writeFileSync(path.join(ROOT, 'assets/js/pysrc.js'),
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
+  globalThis.__sellarIndex();
   console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${certificaciones.length} certificaciones (${certificaciones.reduce((n, c) => n + c.claves.length, 0)} tarjetas) · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
-  return course;
+  return { ...course, modulos: modules } /* quien valida necesita las lecciones completas, no el índice */;
 }
 
 export { build };

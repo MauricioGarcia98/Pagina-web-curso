@@ -19,6 +19,48 @@
   }
   const ALL_EX = LESSONS.flatMap((l) => l.ejercicios.map((e) => ({ ...e, leccion: l })));
 
+  // ---------------------------------------------------------------- contenido por módulo (carga diferida)
+  // El índice trae títulos y la lista de ejercicios; el texto de las lecciones y los ejercicios completos
+  // llegan en assets/content/<módulo>.js la primera vez que se abre una lección de ese módulo.
+  const EX_POR_ID = new Map(ALL_EX.map((e) => [e.id, e]));
+  const modCargas = new Map();
+  const cargarScript = (src) => new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => { s.remove(); mal(new Error('No se pudo descargar ' + src)); }; document.head.append(s); });
+  window.__contenido = (mid, datos) => {
+    const m = MODULE_BY_ID.get(mid); if (!m) return;
+    for (const l of m.lecciones) { const d = datos[l.id]; if (!d) continue; l.html = d.html; l.ejercicios = d.ejercicios; for (const e of d.ejercicios) { const x = EX_POR_ID.get(e.id); if (x) Object.assign(x, e); } }
+    m.cargado = true;
+  };
+  function cargarModulo(mid) {
+    const m = MODULE_BY_ID.get(mid); if (!m || m.cargado) return Promise.resolve();
+    if (!modCargas.has(mid)) modCargas.set(mid, cargarScript(`assets/content/${mid}.js?v=${m.v || C.generado}`).catch((e) => { modCargas.delete(mid); throw e; }));
+    return modCargas.get(mid);
+  }
+  const cargarModulos = (ids) => Promise.all([...new Set(ids)].map(cargarModulo));
+  // ---------------------------------------------------------------- herramientas de práctica (carga diferida)
+  // Cada herramienta pesa cientos de KB: su código se descarga recién al entrar a ella.
+  const V_APP = C.vJs || C.generado;
+  const GRUPOS = {
+    powerbi: ['powerbi-iconos', 'powerbi-visuales', 'powerbi', 'powerbi-informe', 'powerbi-ia', 'powerbi-servicio'],
+    databricks: ['databricks', 'databricks-datos', 'databricks-computo', 'databricks-analitica', 'databricks-ml'],
+    azure: ['@databricks', 'azure-portal', 'adf-studio'],
+    github: ['octicons', 'github-actions', 'github', 'github-colab'],
+  };
+  const grupoCargas = {};
+  function cargarGrupo(g) {
+    if (!grupoCargas[g]) grupoCargas[g] = GRUPOS[g].reduce((p, n) => p.then(() => (n[0] === '@' ? cargarGrupo(n.slice(1)) : cargarScript(`assets/js/${n}.js?v=${V_APP}`))), Promise.resolve()).then(() => { grupoCargas[g].listo = true; }, (e) => { delete grupoCargas[g]; throw e; });
+    return grupoCargas[g];
+  }
+  window.__cargarGrupo = cargarGrupo;
+  window.__cargarTodo = () => cargarModulos(C.modulos.map((m) => m.id)); // para las pruebas automáticas
+  // muestra "cargando", descarga lo que haga falta y recién ahí dibuja (si el alumno no se fue a otra página)
+  function conContenido(ids, dibujar) {
+    const pend = [...new Set(ids)].filter((id) => MODULE_BY_ID.get(id) && !MODULE_BY_ID.get(id).cargado);
+    if (!pend.length) return dibujar();
+    const donde = location.hash;
+    main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Cargando la lección…</div>';
+    cargarModulos(pend).then(() => { if (location.hash === donde) dibujar(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo cargar el contenido</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarC">Reintentar</button></div>'; main.querySelector('#reintentarC').onclick = () => conContenido(ids, dibujar); } });
+  }
+
   // ---------------------------------------------------------------- progreso
   const KEY = 'academia-datos-v1';
   const Store = {
@@ -1596,13 +1638,13 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   const ETAPAS = [
     { id: 'e0', titulo: 'Etapa 0 · Antes de empezar', desc: 'Si nunca programaste: tu computadora por dentro, leer errores, la matemática justa, inglés técnico, cómo estudiar y qué es una API.', mods: ['cero'] },
     { id: 'e1', titulo: 'Etapa 1 · Empieza aquí', desc: 'Qué es un dato, qué hace un ingeniero de datos, la terminal y Git. Si no sabes nada, arranca por acá.', mods: ['fundamentos'] },
-    { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, con casos de negocio reales, y llevar los números a un tablero de Power BI.', mods: ['sql', 'casos', 'analisis', 'modelado', 'powerbi'] },
+    { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, analizar datos, diseñar tablas y llevar los números a un tablero de Power BI.', mods: ['sql', 'analisis', 'modelado', 'powerbi'] },
     { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, y Spark para cuando los datos no entran en una sola computadora.', mods: ['python', 'spark', 'pyspark'] },
     { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
     { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces'] },
-    { id: 'e6', titulo: 'Etapa 6 · Diseñar y automatizar', desc: 'Cómo se diseña una plataforma de datos y cómo se crea la infraestructura con código.', mods: ['arquitectura', 'terraform'] },
-    { id: 'e7', titulo: 'Etapa 7 · Pipelines reales y operación', desc: 'Juntar todo en pipelines de punta a punta, resolver incidentes, trabajar en tu computadora y en la nube real.', mods: ['pipelines', 'incidentes', 'local', 'laboratorios'] },
-    { id: 'e8', titulo: 'Etapa 8 · Tu portafolio y tu primer trabajo', desc: 'Proyectos para mostrar, el proyecto final y cómo prepararte para las entrevistas.', mods: ['portafolio', 'proyecto'] },
+    { id: 'e6', titulo: 'Etapa 6 · Diseñar, automatizar y tu computadora', desc: 'Cómo se diseña una plataforma de datos, cómo se crea la infraestructura con código y cómo armar tu entorno en tu propia computadora.', mods: ['arquitectura', 'terraform', 'local'] },
+    { id: 'e7', titulo: '💼 Trabajo real · Casos de negocio y operación', desc: 'Aquí dejas de ser estudiante y resuelves pedidos como en una empresa: casos de negocio con SQL (puedes hacerlos apenas termines la etapa 2), pipelines de punta a punta, incidentes de guardia y laboratorios en la nube.', mods: ['casos', 'pipelines', 'incidentes', 'laboratorios'] },
+    { id: 'e8', titulo: '💼 Trabajo real · Tu portafolio y tu primer empleo', desc: 'Proyectos para mostrar, el proyecto final y cómo prepararte para las entrevistas.', mods: ['portafolio', 'proyecto'] },
     { id: 'e9', titulo: 'Opcional · Certificaciones', desc: 'Preparación para las certificaciones de Databricks, Azure, AWS y Google Cloud. Mejor después de la etapa 5.', mods: ['cert-databricks', 'cert-azure', 'cert-aws', 'cert-gcp'] },
   ];
   function etapasConModulos() {
@@ -1771,7 +1813,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     }
     const enLab = LABS_MENU.some((x) => x[3] === route.name) || route.name === 'herramientas';
     html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧰</span><span class="st-name">Herramientas de práctica</span><span class="chev">▶</span></summary>${link('#/herramientas', '🧰', 'Todas las herramientas', route.name === 'herramientas')}<div class="side-sub">Réplicas de las reales</div>${LABS_MENU.filter((x) => x[4] === 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}<div class="side-sub">Laboratorios y simulaciones</div>${LABS_MENU.filter((x) => x[4] !== 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
-    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo'];
+    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'mis-datos', 'revisar-repo'];
     html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
@@ -1781,6 +1823,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
     html += link('#/revisar-repo', '🔎', 'Revisar mi proyecto en GitHub', route.name === 'revisar-repo');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
+    html += link('#/mis-datos', '🗂️', 'Mis datos', route.name === 'mis-datos');
     html += '</details>';
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
@@ -1845,11 +1888,11 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   const herrLeccionCache = new Map();
   function herramientasDe(l) {
     if (herrLeccionCache.has(l.id)) return herrLeccionCache.get(l.id);
-    const r = HERRAMIENTAS.filter((x) => x.g === 'apps' && (l.html.includes(`href="${x.href}`) || (x.modulos.includes(l.modulo.id) && x.id !== 'notas' && (x.id !== 'terminal' || l.ejercicios.some((e) => e.type === 'cli')))));
+    const r = HERRAMIENTAS.filter((x) => x.g === 'apps' && ((l.enlaces || []).some((u) => u.startsWith(x.href)) || (x.modulos.includes(l.modulo.id) && x.id !== 'notas' && (x.id !== 'terminal' || l.ejercicios.some((e) => e.type === 'cli')))));
     herrLeccionCache.set(l.id, r); return r;
   }
   function viewHerramientas() {
-    const usos = (x) => LESSONS.filter((l) => l.html.includes(`href="${x.href}`)).length;
+    const usos = (x) => LESSONS.filter((l) => (l.enlaces || []).some((u) => u.startsWith(x.href))).length;
     const card = (x) => {
       const mods = x.modulos.map((id) => MODULE_BY_ID.get(id)).filter(Boolean);
       const n = usos(x);
@@ -2739,21 +2782,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       ${resumenLabs()}
       ${resumenPractica()}
       <h2 class="section-title">Tus datos</h2>
-      <p class="muted">El progreso se guarda solo en este navegador. Puedes exportarlo para llevarlo a otra computadora.</p>
-      <div class="row"><button class="btn" id="exp">⬇ Exportar progreso</button><label class="btn">⬆ Importar<input type="file" id="imp" accept="application/json" hidden></label><span class="spacer"></span><button class="btn btn-ghost" id="rst" style="color:var(--bad)">Borrar todo mi progreso</button></div>
+      <p class="muted">Tu progreso se guarda solo en este navegador. En <b>Mis datos</b> ves qué hay guardado, puedes reiniciar una parte sin tocar el resto y descargar o restaurar una copia completa.</p>
+      <div class="row"><a class="btn" href="#/mis-datos">🗂️ Abrir Mis datos</a></div>
     </div>`;
-    $('#exp').addEventListener('click', () => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(Store.data)], { type: 'application/json' }));
-      a.download = 'academia-datos-progreso.json'; a.click();
-    });
-    $('#imp').addEventListener('change', async (e) => {
-      try { const d = JSON.parse(await e.target.files[0].text()); Store.data = Object.assign(Store.data, d); Store.save(); toast('Progreso importado'); route(); }
-      catch (err) { toast('Archivo inválido'); }
-    });
-    $('#rst').addEventListener('click', () => {
-      if (confirm('¿Seguro? Se borrará todo tu progreso y tu código guardado.')) { Store.data = { ex: {}, lessons: {}, code: {}, theme: Store.data.theme, visited: {} }; Store.save(); route(); }
-    });
   }
 
   // ---------------------------------------------------------------- atajos de teclado por vista
@@ -3538,12 +3569,16 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   }
 
   // ---------------------------------------------------------------- búsqueda
+  // el texto completo de las lecciones para buscar se descarga la primera vez que se usa el buscador
+  let buscarPedido = false;
+  window.__buscar = (textos) => { for (const x of searchIndex) if (x.lid && textos[x.lid]) x.body = (x.resumen + ' ' + textos[x.lid]).toLowerCase(); if (sIn.value.trim().length >= 2) sIn.dispatchEvent(new Event('input')); };
   const searchIndex = [
-    ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, body: (l.resumen + ' ' + l.html.replace(/<[^>]+>/g, ' ')).toLowerCase() })),
+    ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, lid: l.id, resumen: l.resumen || '', body: (l.resumen || '').toLowerCase() })),
     ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + g.texto).toLowerCase() }))
   ];
   const sIn = $('#search'), sOut = $('#searchResults');
   let sSel = 0;
+  sIn.addEventListener('focus', () => { if (!buscarPedido) { buscarPedido = true; cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; }); } });
   sIn.addEventListener('input', () => {
     const q = sIn.value.trim().toLowerCase();
     if (q.length < 2) { sOut.hidden = true; return; }
@@ -3590,7 +3625,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
     if (parts[0] === 'azure') return { name: 'azure', sub: parts.slice(1) };
     if (parts[0] === 'github') return { name: 'github', sub: parts.slice(1) };
-    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
+    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones', 'mis-datos'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
   // ---------------------------------------------------------------- barra de las herramientas de práctica
@@ -3631,16 +3666,22 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
 
   function route() {
     const r = parse();
+    if (GRUPOS[r.name] && !(grupoCargas[r.name] && grupoCargas[r.name].listo)) {
+      const donde = location.hash;
+      if (!main.querySelector('.cargando-contenido')) main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Abriendo la herramienta…</div>';
+      cargarGrupo(r.name).then(() => { if (location.hash === donde) route(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo abrir la herramienta</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarH">Reintentar</button></div>'; main.querySelector('#reintentarH').onclick = () => route(); } });
+      return;
+    }
     document.body.classList.remove('nav-open');
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
     else if (r.name === 'module') viewModule(r.module);
-    else if (r.name === 'lesson') viewLesson(r.lesson);
+    else if (r.name === 'lesson') conContenido([r.lesson.modulo.id], () => viewLesson(r.lesson));
     else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
       const lab = r.name.slice(4);
       window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, compiledBlock, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
@@ -3666,7 +3707,8 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
-    else if (r.name === 'repaso') viewRepaso();
+    else if (r.name === 'mis-datos' && window.MisDatos) window.MisDatos.vista(main, { Store, toast });
+    else if (r.name === 'repaso') conContenido(Object.keys(Store.data.visited || {}).map((id) => (LESSON_BY_ID.get(id) || { modulo: {} }).modulo.id).filter(Boolean), () => viewRepaso());
     else if (r.name === 'examenes') viewExamenes();
     else if (r.name === 'examen') viewExamen(r.examen, r.dom);
     else if (r.name === 'claves') viewClaves(r.cert, r.dom);
