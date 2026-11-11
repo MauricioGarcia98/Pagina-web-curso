@@ -9,9 +9,9 @@ autoevaluacion: ¿Sabes qué significa `not found`? ¿Y `denied`? | ¿Sabes qué
 ---
 
 :::escenario Todo está en inglés
-Martín te pasa el enlace a la documentación de dbt y te dice: *"Lee la parte de `incremental models`"*. Abres la página y está toda en inglés. Los errores también, y los comandos, y los nombres de las funciones.
+Ahora que conoces las palabras que más se repiten, imagina esta situación de trabajo: Martín, tu líder, te pasa el enlace a la documentación de dbt y te dice: *"Lee la parte de `incremental models`"*. La página está toda en inglés, igual que los errores, los comandos y los nombres de las funciones.
 
-Respira: el inglés técnico es un idioma **muy chico y muy repetitivo**. Con las palabras de esta lección vas a entender la mayoría de los mensajes que veas en el curso. El resto se aprende de a poco, con el traductor al lado.
+No hace falta hablar inglés para entenderla: con el vocabulario de esta lección y un traductor al lado, alcanza para la mayoría de los casos. El resto se aprende de a poco, usándolo.
 :::
 
 ## Por qué todo está en inglés

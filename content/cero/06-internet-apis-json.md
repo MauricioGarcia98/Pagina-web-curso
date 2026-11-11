@@ -9,9 +9,9 @@ autoevaluacion: ¿Puedes explicar qué hace un servidor? | ¿Sabes qué es el `?
 ---
 
 :::escenario Los datos que no están en ninguna base
-Martín te pide: *"Necesitamos el tipo de cambio de cada día y los productos del proveedor. El proveedor no nos da acceso a su base de datos, pero tiene una **API**. Trae los datos de ahí."*
+Ahora que sabes qué es una API y cómo se lee un JSON, mira para qué se usa en un trabajo. Imagina que Martín, tu líder, te pide: *"Necesitamos el tipo de cambio de cada día y los productos del proveedor. El proveedor no nos da acceso a su base de datos, pero tiene una **API**. Trae los datos de ahí."*
 
-Muchos de los datos que necesita una empresa no están en sus propias bases: están en sistemas de otros (pagos, clima, redes sociales, proveedores, el CRM) y se consiguen **pidiéndolos por internet**. En esta lección entiendes cómo funciona ese pedido.
+Muchos de los datos que necesita una empresa no están en sus propias bases: están en sistemas de otros (pagos, clima, redes sociales, proveedores) y se consiguen **pidiéndolos por internet**, exactamente como practicaste en esta lección.
 :::
 
 ## Cliente y servidor

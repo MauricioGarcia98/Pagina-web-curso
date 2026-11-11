@@ -10,11 +10,11 @@ autoevaluacion: ¿Sabes en qué carpeta estás y cómo volver a tu carpeta perso
 
 <!-- estandar:escenario -->
 :::escenario El pipeline falló anoche
-Son las 8:30 de la mañana y Martín, tu líder, te escribe:
+Ahora que sabes moverte y mirar archivos en la terminal, mira para qué sirve en un trabajo. Son las 8:30 de la mañana y Martín, el líder del equipo de datos, escribe:
 
 > "El dashboard de ventas no se actualizó. El log del pipeline está en `logs/pipeline.log` del servidor. ¿Puedes ver qué falló? Y de paso fíjate si el archivo de ventas de diciembre llegó completo."
 
-El servidor no tiene ventanas ni mouse: solo una terminal. En esta lección aprendes a moverte, mirar archivos y encontrar lo que buscas escribiendo comandos, que es lo que hace un data engineer cuando algo se rompe.
+El servidor no tiene ventanas ni mouse: solo una terminal. Con `cd`, `ls`, `tail` y `grep`, que practicaste en esta lección, encuentras el error en un par de minutos.
 :::
 La **terminal** (o consola, o línea de comandos) es una ventana donde le das órdenes a la computadora escribiendo, en vez de hacer clics. Parece antigua, pero los ingenieros de datos la usan todo el día: para Git, para las CLIs de Azure, AWS, Google Cloud y Databricks, para dbt, para Airflow…
 

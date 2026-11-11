@@ -9,12 +9,12 @@ autoevaluacion: ¿Puedes señalar la clave primaria y una clave foránea en las 
 ---
 
 <!-- estandar:escenario -->
-:::escenario El archivo que llegó por mail
-En tu primera semana, Diego, de finanzas, te manda un archivo:
+:::escenario El archivo que llegó por correo
+Ahora que conoces tablas, tipos y formatos, mira cómo se ve en un trabajo real. Diego, de finanzas, le manda un archivo al equipo de datos:
 
 > "Te paso el export de ventas del sistema viejo, `ventas.csv`. Cuando lo abro en Excel, los montos salen raros y algunas fechas no se entienden. ¿Lo podemos cargar al warehouse?"
 
-Antes de cargar nada, necesitas entender cómo están organizados los datos: tablas, tipos y formatos. Esta lección te da ese vocabulario, y vas a ver por qué "un CSV" puede esconder muchos problemas.
+Con lo que viste ya sabes qué revisar antes de cargar nada: el separador, los decimales con coma o punto, el formato de las fechas y si la primera fila trae los nombres de las columnas.
 :::
 Antes de aprender a consultar datos, conviene entender **cómo están guardados**: en tablas, con tipos, en archivos de distintos formatos y en distintos sistemas. Esta lección te da ese vocabulario, que vas a usar todos los días.
 

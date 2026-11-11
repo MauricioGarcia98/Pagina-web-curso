@@ -8,8 +8,10 @@ prerrequisitos: fundamentos-bienvenida
 autoevaluacion: ¿Puedes contar el viaje de una compra en 10 pasos sin mirar? | ¿Sabes qué es bronze, silver y gold? | ¿Sabes por qué no se analizan los datos directamente en la base de la app? | ¿Sabes qué hace Airflow en el recorrido? | ¿Encontraste el pedido 10729 con SQL?
 ---
 
-:::escenario Tu primera semana
-Tu líder te dice: "antes de tocar cualquier pipeline, quiero que sepas por dónde pasa un dato. Elige una compra cualquiera de ayer y síguela hasta el tablero de la gerencia". Vas a seguir la compra **10729**: el sábado 19 de octubre de 2024, **Pablo Aguilar**, de Cali (Colombia), compró tres teléfonos Samsung y una campera desde el navegador de su celular.
+:::escenario Seguir una compra
+Ahora que conoces cada parada del viaje, así es como suele pedirse en un trabajo. En su primera semana, a muchos ingenieros de datos les piden: *"Antes de tocar cualquier pipeline, quiero que sepas por dónde pasa un dato. Elige una compra cualquiera de ayer y síguela hasta el tablero de la gerencia."*
+
+Es lo que acabas de hacer con la compra **10729**: la de Pablo Aguilar, de Cali, el 19 de octubre de 2024.
 :::
 
 ## La idea en una frase
