@@ -10,11 +10,13 @@
   'use strict';
 
   const PGLITE_URL = 'https://cdn.jsdelivr.net/npm/@electric-sql/pglite@0.4.6/dist/index.js';
+  const DUCKDB_URL = 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm';
 
   const MOTORES = {
     sqlite: { nombre: 'SQLite', icono: '🪶', version: 'SQLite 3.45', real: true, desc: 'SQLite real en tu navegador. Es el motor de los ejercicios del curso.' },
     postgres: { nombre: 'PostgreSQL', icono: '🐘', version: 'PostgreSQL 17 (PGlite)', real: true, desc: 'PostgreSQL 17 real compilado a WebAssembly (PGlite). La primera vez descarga unos 6 MB y carga el dataset completo con tipos DATE, TIMESTAMP y NUMERIC.' },
     mysql: { nombre: 'MySQL', icono: '🐬', version: 'MySQL 8.4 (modo compatible)', real: false, desc: 'Modo compatible con MySQL 8: escribes en sintaxis de MySQL (LIMIT, DATE_FORMAT, IFNULL, GROUP_CONCAT, backticks…), se traduce a SQLite y se ejecuta. Lo que MySQL rechaza devuelve su error real.' },
+    duckdb: { nombre: 'DuckDB', icono: '🦆', version: 'DuckDB 1.1 (WebAssembly)', real: true, desc: 'DuckDB real en tu navegador: un motor analítico (columnar) pensado para agregar millones de filas rápido. Es gratis, de código abierto y se usa mucho para analizar archivos CSV y Parquet sin servidor. La primera vez descarga unos 10 MB.' },
     sqlserver: { nombre: 'SQL Server', icono: '🗄️', version: 'SQL Server 2022 (modo compatible)', real: false, desc: 'Modo compatible con SQL Server (T-SQL): TOP, OFFSET … FETCH, GETDATE, DATEADD, DATEDIFF, FORMAT, ISNULL, corchetes, variables con DECLARE… Se traduce a SQLite y se ejecuta. Lo que SQL Server rechaza devuelve su error real.' },
   };
 
@@ -550,6 +552,86 @@
     },
     async reiniciar(progreso) { if (this._db) { try { await this._db.close(); } catch (e) { /* ya cerrada */ } } this._db = null; this._cargando = null; return this.init(progreso); },
   };
+  // ============================================================== DuckDB (real, en WebAssembly)
+  // Corre en un Web Worker. Las tablas del curso se cargan como CSV con tipos explícitos (no se adivinan).
+  const DUCK = {
+    _db: null, _con: null, _cargando: null, _mod: null,
+    estado: 'sin cargar',
+    async init(progreso = () => {}) {
+      if (this._con) return this._con;
+      if (this._cargando) return this._cargando;
+      this._cargando = (async () => {
+        progreso('Descargando DuckDB (unos 10 MB, solo la primera vez)…');
+        const duckdb = this._mod = this._mod || await import(/* webpackIgnore: true */ DUCKDB_URL);
+        if (!this._db) {
+          const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+          const url = URL.createObjectURL(new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' }));
+          const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), new Worker(url)); await db.instantiate(bundle.mainModule, bundle.pthreadWorker); URL.revokeObjectURL(url);
+          this._db = db;
+        }
+        const con = await this._db.connect();
+        progreso('Creando las tablas del dataset…');
+        const SQL = window.Engines.SQL; if (!SQL._bytes) await SQL.init();
+        const T = SQL.tables, nombres = Object.keys(T);
+        const fecha = /^\d{4}-\d{2}-\d{2}$/, fechaHora = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
+        let hechas = 0, total = 0;
+        for (const nombre of nombres) {
+          const t = T[nombre];
+          const tipos = t.columns.map((c, j) => {
+            const vals = t.rows.map((r) => r[j]).filter((v) => v !== null && v !== undefined && v !== '');
+            if (!vals.length) return 'VARCHAR';
+            if (vals.every((v) => typeof v === 'number')) return vals.every((v) => Number.isInteger(v)) ? (vals.some((v) => Math.abs(v) > 2147483647) ? 'BIGINT' : 'INTEGER') : 'DOUBLE';
+            if (vals.every((v) => typeof v === 'string' && fecha.test(v))) return 'DATE';
+            if (vals.every((v) => typeof v === 'string' && (fechaHora.test(v) || fecha.test(v)))) return 'TIMESTAMP';
+            return 'VARCHAR';
+          });
+          const q = (v) => (v === null || v === undefined ? '' : typeof v === 'number' ? String(v) : `"${String(v).replace(/"/g, '""')}"`);
+          const archivo = `__${nombre}.csv`;
+          await this._db.registerFileText(archivo, t.rows.map((r) => r.map(q).join(',')).join('\n') + '\n');
+          const cols = '{' + t.columns.map((c, j) => `'${c.replace(/'/g, "''")}': '${tipos[j]}'`).join(', ') + '}';
+          await con.query(`CREATE OR REPLACE TABLE "${nombre}" AS SELECT * FROM read_csv('${archivo}', header = false, columns = ${cols}, nullstr = '', quote = '"', escape = '"', auto_detect = false)`);
+          await this._db.dropFile(archivo);
+          total += t.rows.length; hechas++;
+          if (hechas % 6 === 0) progreso(`Cargando datos: ${hechas} de ${nombres.length} tablas (${total.toLocaleString('es')} filas)…`);
+        }
+        for (const v of (window.DataGen && window.DataGen.VIEWS || '').split(';').map((x) => x.trim()).filter(Boolean)) { try { await con.query(v); } catch (e) { /* vista con sintaxis propia de SQLite */ } }
+        this._con = con; this.estado = 'listo';
+        return con;
+      })();
+      this._cargando.catch(() => { this._cargando = null; });
+      return this._cargando;
+    },
+    // convierte un valor de Arrow a algo que la tabla de resultados sabe mostrar
+    _celda(v, tipo) {
+      if (v === null || v === undefined) return null;
+      const t = String(tipo);
+      if (typeof v === 'bigint') return Number.isSafeInteger(Number(v)) ? Number(v) : v.toString();
+      if (/^Date/.test(t) && typeof v === 'number') return new Date(v).toISOString().slice(0, 10);
+      if (/^Timestamp/.test(t) && typeof v === 'number') return new Date(v).toISOString().replace('T', ' ').replace(/\.000Z$|Z$/, '');
+      if (/^Decimal/.test(t)) { const m = /e([+-]?\d+)\]/.exec(t); const esc0 = m ? Number(m[1]) : 0; const n = Number(String(v)); return esc0 ? n / Math.pow(10, esc0) : n; }
+      if (typeof v === 'boolean') return v ? 'true' : 'false';
+      if (typeof v === 'object') { try { return JSON.stringify(v.toJSON ? v.toJSON() : v, (k, x) => (typeof x === 'bigint' ? Number(x) : x)); } catch (e) { return String(v); } }
+      return v;
+    },
+    async exec(sql) {
+      const t0 = performance.now();
+      const sentencias = partirSentencias(sql, 'duckdb');
+      const results = []; let changes = 0;
+      try {
+        for (const s of sentencias) {
+          const r = await this._con.query(s);
+          const campos = r.schema.fields;
+          if (campos.length === 1 && campos[0].name === 'Count' && /^\s*(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/i.test(s)) { const fila = r.toArray()[0]; changes += Number(fila ? fila.Count : 0); continue; }
+          if (!campos.length) continue;
+          results.push({ columns: campos.map((f) => f.name), values: r.toArray().map((fila) => campos.map((f) => this._celda(fila[f.name], f.type))) });
+        }
+        return { ok: true, results, changes, ms: performance.now() - t0 };
+      } catch (e) {
+        return { ok: false, error: String(e.message || e).replace(/^(\w+ Error): /, '$1: '), ms: performance.now() - t0 };
+      }
+    },
+    async reiniciar(progreso) { if (this._con) { try { await this._con.close(); } catch (e) { /* ya cerrada */ } } this._con = null; this._cargando = null; if (this._db) { try { await this._db.reset(); } catch (e) { this._db = null; } } return this.init(progreso); },
+  };
   function errorPg(e, sql) {
     let msg = `ERROR:  ${e.message}`;
     if (e.position) {
@@ -682,6 +764,49 @@ SELECT nombre || ' ' || apellido AS con_barras,
 FROM clientes
 LIMIT 3;`],
     ],
+    duckdb: [
+      ['Ventas por mes (columnar y rápido)', `-- DuckDB es un motor analítico: guarda cada columna junta y agrega millones de filas en milisegundos
+SELECT date_trunc('month', p.fecha_pedido) AS mes,
+       count(DISTINCT p.pedido_id) AS pedidos,
+       round(sum(d.cantidad * d.precio_unitario), 2) AS ventas
+FROM pedidos p
+JOIN detalle_pedidos d USING (pedido_id)
+WHERE p.estado <> 'cancelado'
+GROUP BY ALL
+ORDER BY mes
+LIMIT 12;`],
+      ['QUALIFY: los 2 más vendidos por país', `-- QUALIFY filtra por el resultado de una función de ventana, sin subconsulta
+SELECT c.pais, pr.nombre AS producto, sum(d.cantidad) AS unidades,
+       rank() OVER (PARTITION BY c.pais ORDER BY sum(d.cantidad) DESC) AS puesto
+FROM detalle_pedidos d
+JOIN pedidos p USING (pedido_id)
+JOIN clientes c USING (cliente_id)
+JOIN productos pr USING (producto_id)
+GROUP BY c.pais, pr.nombre
+QUALIFY puesto <= 2
+ORDER BY c.pais, puesto;`],
+      ['PIVOT: países como columnas', `-- PIVOT convierte valores de una columna en columnas
+PIVOT (SELECT c.pais, p.canal FROM pedidos p JOIN clientes c USING (cliente_id))
+ON canal
+USING count(*)
+ORDER BY pais;`],
+      ['SUMMARIZE: perfilar una tabla', `-- SUMMARIZE muestra, por columna, mínimo, máximo, nulos, valores distintos y más:
+-- lo primero que hace un analista con una tabla nueva
+SUMMARIZE productos;`],
+      ['Listas y funciones de texto', `SELECT segmento,
+       count(*) AS clientes,
+       list(DISTINCT pais ORDER BY pais) AS paises,
+       string_agg(DISTINCT ciudad, ', ' ORDER BY ciudad)[1:60] AS algunas_ciudades
+FROM clientes
+GROUP BY segmento
+ORDER BY clientes DESC;`],
+      ['Crear una tabla con CREATE TABLE AS', `CREATE OR REPLACE TABLE ventas_por_cliente AS
+SELECT p.cliente_id, count(*) AS pedidos, round(sum(d.cantidad * d.precio_unitario), 2) AS total
+FROM pedidos p JOIN detalle_pedidos d USING (pedido_id)
+GROUP BY p.cliente_id;
+
+SELECT * FROM ventas_por_cliente ORDER BY total DESC LIMIT 5;`],
+    ],
     sqlserver: [
       ['TOP con ORDER BY', `SELECT TOP (10) producto_id, nombre, precio
 FROM productos
@@ -766,9 +891,10 @@ GROUP BY anio;`],
 
   async function ejecutar(motor, sql, progreso) {
     if (motor === 'postgres') { await PG.init(progreso); return PG.exec(sql); }
+    if (motor === 'duckdb') { await DUCK.init(progreso); return DUCK.exec(sql); }
     if (motor === 'mysql' || motor === 'sqlserver') return ejecutarCompatible(sql, motor);
     return window.Engines.SQL.exec(sql, window.Engines.SQL.playground());
   }
 
-  window.SqlMotores = { MOTORES, EJEMPLOS, COMPARATIVA, PG, ejecutar, ejecutarEn: (motor, sql, db) => ejecutarCompatible(sql, motor, db), traducir, PGLITE_URL };
+  window.SqlMotores = { MOTORES, EJEMPLOS, COMPARATIVA, PG, DUCK, ejecutar, ejecutarEn: (motor, sql, db) => ejecutarCompatible(sql, motor, db), traducir, PGLITE_URL };
 })();

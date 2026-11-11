@@ -416,7 +416,7 @@
         if (run) run.addEventListener('click', async () => {
           const out = $('[data-out]', d);
           if (!(await ensureSql(out))) return;
-          loadingInto(out, v.m === 'postgres' && window.SqlMotores.PG.estado !== 'listo' ? 'Cargando PostgreSQL (unos 6 MB, solo la primera vez)…' : 'Ejecutando…');
+          loadingInto(out, v.m === 'postgres' && window.SqlMotores.PG.estado !== 'listo' ? 'Cargando PostgreSQL (unos 6 MB, solo la primera vez)…' : v.m === 'duckdb' && window.SqlMotores.DUCK.estado !== 'listo' ? 'Cargando DuckDB (unos 10 MB, solo la primera vez)…' : 'Ejecutando…');
           try { const r = await window.SqlMotores.ejecutar(v.m, v.code, (msg) => loadingInto(out, msg)); renderSqlOutput(out, r); if (r.avisos && r.avisos.length) out.prepend(h(`<div class="motor-aviso">⚠️ ${r.avisos.map(esc).join('<br>⚠️ ')}</div>`)); }
           catch (e) { out.innerHTML = `<pre class="console"><span class="err">${esc(e.message)}</span></pre>`; }
         });
@@ -1875,7 +1875,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'vscode', g: 'apps', href: '#/vscode', ico: '🟦', nombre: 'VS Code', real: 'Visual Studio Code', desc: 'El editor con temas e íconos del repositorio oficial, terminal integrada, Git, problemas, esquema, editor dividido y diff.', puedes: ['Abrir carpetas del disco de práctica (o code . desde la terminal)', 'Editar con Monaco, el mismo editor de VS Code, y ejecutar Python o SQL', 'Control de código fuente, extensiones y ajustes'], modulos: ['local', 'python', 'dbt', 'airflow', 'fundamentos', 'proyecto'], rutas: ['vscode'] },
     { id: 'terminal', g: 'apps', href: '#/lab/terminal', ico: '⌨️', nombre: 'Terminal', real: 'bash en Linux/macOS', desc: 'Una terminal con disco propio: bash, git, docker, vim y las CLIs de Azure, AWS, Google Cloud, Databricks y Terraform.', puedes: ['Misiones guiadas de cero a experto', 'git con ramas, conflictos y un remoto de práctica', 'az, aws, gcloud, databricks y terraform con estado compartido con los portales'], modulos: ['cero', 'fundamentos', 'local', 'azure', 'aws', 'gcp', 'terraform', 'incidentes'], rutas: ['lab-terminal'] },
     { id: 'notas', g: 'apps', href: '#/notas', ico: '📝', nombre: 'Notas', real: 'Notion / Obsidian', desc: 'Tus apuntes en Markdown con enlaces entre notas, una nota por lección y búsqueda.', puedes: ['Una nota por lección, enlazada desde cada lección', 'Markdown con vista previa, enlaces [[entre notas]] y etiquetas', 'Exportar todo como archivos .md'], modulos: [], rutas: ['notas'] },
-    { id: 'lab-sql', g: 'labs', href: '#/lab/sql', ico: '🧪', nombre: 'SQL', desc: 'SQLite, PostgreSQL, MySQL y SQL Server sobre las 13 empresas del curso.', modulos: ['sql', 'casos', 'analisis', 'modelado'], rutas: ['lab-sql'] },
+    { id: 'lab-sql', g: 'labs', href: '#/lab/sql', ico: '🧪', nombre: 'SQL', desc: 'SQLite, PostgreSQL, DuckDB, MySQL y SQL Server sobre las 13 empresas del curso.', modulos: ['sql', 'casos', 'analisis', 'modelado'], rutas: ['lab-sql'] },
     { id: 'lab-python', g: 'labs', href: '#/lab/python', ico: '🐍', nombre: 'Python', desc: 'Python 3 real (Pyodide) con pandas.', modulos: ['python'], rutas: ['lab-python'] },
     { id: 'lab-pyspark', g: 'labs', href: '#/lab/pyspark', ico: '⚡', nombre: 'PySpark', desc: 'La API de DataFrames de Spark con las tablas del curso.', modulos: ['spark', 'pyspark'], rutas: ['lab-pyspark'] },
     { id: 'lab-dbt', g: 'labs', href: '#/lab/dbt', ico: '🔧', nombre: 'dbt', desc: 'Modelos, ref() y Jinja compilado a SQL.', modulos: ['dbt'], rutas: ['lab-dbt'] },
@@ -2387,9 +2387,10 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     const run = async () => {
       if (!(await ensureSql(out))) return;
       if (motor === 'postgres' && SM.PG.estado !== 'listo') loadingInto(out, 'Preparando PostgreSQL…');
+      if (motor === 'duckdb' && SM.DUCK.estado !== 'listo') loadingInto(out, 'Preparando DuckDB…');
       let r;
       try { r = await SM.ejecutar(motor, ed.getValue(), (msg) => loadingInto(out, msg)); } catch (e) {
-        out.innerHTML = `<pre class="console"><span class="err">${esc(motor === 'postgres' ? 'No se pudo cargar PostgreSQL (PGlite) desde cdn.jsdelivr.net: ' + e.message + '\nRevisa tu conexión o prueba con otro motor.' : e.message)}</span></pre>`; return;
+        out.innerHTML = `<pre class="console"><span class="err">${esc(motor === 'postgres' || motor === 'duckdb' ? `No se pudo cargar ${motor === 'duckdb' ? 'DuckDB' : 'PostgreSQL (PGlite)'} desde cdn.jsdelivr.net: ${e.message}\nRevisa tu conexión o prueba con otro motor.` : e.message)}</span></pre>`; return;
       }
       renderSqlOutput(out, r);
       if (r.ok !== false) { const c = costoHtml(ed.getValue()); if (c) out.append(h(c)); }
@@ -2400,12 +2401,12 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     $('#run').addEventListener('click', run);
     $('#samples').addEventListener('change', (e) => { if (e.target.value !== '') { ed.setValue(ejemplos(motor)[e.target.value][1]); run(); } });
     $('#resetDb').addEventListener('click', async () => {
-      if (motor === 'postgres') { if (SM.PG.estado !== 'listo') return; await SM.PG.reiniciar((msg) => loadingInto(out, msg)); out.innerHTML = ''; toast('PostgreSQL reiniciado a su estado original'); return; }
+      if (motor === 'postgres' || motor === 'duckdb') { const E = motor === 'duckdb' ? SM.DUCK : SM.PG; if (E.estado !== 'listo') return; await E.reiniciar((msg) => loadingInto(out, msg)); out.innerHTML = ''; toast(`${SM.MOTORES[motor].nombre} reiniciado a su estado original`); return; }
       SQL.resetPlayground(); toast('Base de datos reiniciada a su estado original');
     });
     $('#cero').addEventListener('click', async () => {
       if (!confirm('¿Empezar de cero? La base vuelve a su estado original y el editor al primer ejemplo (tu consulta actual se reemplaza).')) return;
-      if (motor === 'postgres' && SM.PG.estado === 'listo') await SM.PG.reiniciar((msg) => loadingInto(out, msg)); else SQL.resetPlayground();
+      if (motor === 'postgres' && SM.PG.estado === 'listo') await SM.PG.reiniciar((msg) => loadingInto(out, msg)); else if (motor === 'duckdb' && SM.DUCK.estado === 'listo') await SM.DUCK.reiniciar((msg) => loadingInto(out, msg)); else SQL.resetPlayground();
       ed.setValue(ejemplos(motor)[0][1]); out.innerHTML = ''; if (expl) expl.actualizar('', null); toast('Todo limpio: base original y editor nuevo');
     });
     $$('.motor-tabs [data-motor]').forEach((b) => b.addEventListener('click', () => {
