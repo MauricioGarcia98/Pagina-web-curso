@@ -1132,3 +1132,5 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .resumen-final .rf-obj li::marker { content: '☐  '; }
 .resumen-final .rf-pie { margin: .6em 0 0; font-size: .95rem; }
 @media (max-width: 600px) { .resumen-final { padding: 14px 14px 8px; } }
+/* aviso mientras se descarga una lección o una herramienta */
+.cargando-contenido { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40vh; color: var(--muted, #64748b); font-size: 15px; }

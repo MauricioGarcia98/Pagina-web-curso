@@ -19,6 +19,48 @@
   }
   const ALL_EX = LESSONS.flatMap((l) => l.ejercicios.map((e) => ({ ...e, leccion: l })));
 
+  // ---------------------------------------------------------------- contenido por módulo (carga diferida)
+  // El índice trae títulos y la lista de ejercicios; el texto de las lecciones y los ejercicios completos
+  // llegan en assets/content/<módulo>.js la primera vez que se abre una lección de ese módulo.
+  const EX_POR_ID = new Map(ALL_EX.map((e) => [e.id, e]));
+  const modCargas = new Map();
+  const cargarScript = (src) => new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => { s.remove(); mal(new Error('No se pudo descargar ' + src)); }; document.head.append(s); });
+  window.__contenido = (mid, datos) => {
+    const m = MODULE_BY_ID.get(mid); if (!m) return;
+    for (const l of m.lecciones) { const d = datos[l.id]; if (!d) continue; l.html = d.html; l.ejercicios = d.ejercicios; for (const e of d.ejercicios) { const x = EX_POR_ID.get(e.id); if (x) Object.assign(x, e); } }
+    m.cargado = true;
+  };
+  function cargarModulo(mid) {
+    const m = MODULE_BY_ID.get(mid); if (!m || m.cargado) return Promise.resolve();
+    if (!modCargas.has(mid)) modCargas.set(mid, cargarScript(`assets/content/${mid}.js?v=${m.v || C.generado}`).catch((e) => { modCargas.delete(mid); throw e; }));
+    return modCargas.get(mid);
+  }
+  const cargarModulos = (ids) => Promise.all([...new Set(ids)].map(cargarModulo));
+  // ---------------------------------------------------------------- herramientas de práctica (carga diferida)
+  // Cada herramienta pesa cientos de KB: su código se descarga recién al entrar a ella.
+  const V_APP = C.vJs || C.generado;
+  const GRUPOS = {
+    powerbi: ['powerbi-iconos', 'powerbi-visuales', 'powerbi', 'powerbi-informe', 'powerbi-ia', 'powerbi-servicio'],
+    databricks: ['databricks', 'databricks-datos', 'databricks-computo', 'databricks-analitica', 'databricks-ml'],
+    azure: ['@databricks', 'azure-portal', 'adf-studio'],
+    github: ['octicons', 'github-actions', 'github', 'github-colab'],
+  };
+  const grupoCargas = {};
+  function cargarGrupo(g) {
+    if (!grupoCargas[g]) grupoCargas[g] = GRUPOS[g].reduce((p, n) => p.then(() => (n[0] === '@' ? cargarGrupo(n.slice(1)) : cargarScript(`assets/js/${n}.js?v=${V_APP}`))), Promise.resolve()).then(() => { grupoCargas[g].listo = true; }, (e) => { delete grupoCargas[g]; throw e; });
+    return grupoCargas[g];
+  }
+  window.__cargarGrupo = cargarGrupo;
+  window.__cargarTodo = () => cargarModulos(C.modulos.map((m) => m.id)); // para las pruebas automáticas
+  // muestra "cargando", descarga lo que haga falta y recién ahí dibuja (si el alumno no se fue a otra página)
+  function conContenido(ids, dibujar) {
+    const pend = [...new Set(ids)].filter((id) => MODULE_BY_ID.get(id) && !MODULE_BY_ID.get(id).cargado);
+    if (!pend.length) return dibujar();
+    const donde = location.hash;
+    main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Cargando la lección…</div>';
+    cargarModulos(pend).then(() => { if (location.hash === donde) dibujar(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo cargar el contenido</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarC">Reintentar</button></div>'; main.querySelector('#reintentarC').onclick = () => conContenido(ids, dibujar); } });
+  }
+
   // ---------------------------------------------------------------- progreso
   const KEY = 'academia-datos-v1';
   const Store = {
@@ -1845,11 +1887,11 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   const herrLeccionCache = new Map();
   function herramientasDe(l) {
     if (herrLeccionCache.has(l.id)) return herrLeccionCache.get(l.id);
-    const r = HERRAMIENTAS.filter((x) => x.g === 'apps' && (l.html.includes(`href="${x.href}`) || (x.modulos.includes(l.modulo.id) && x.id !== 'notas' && (x.id !== 'terminal' || l.ejercicios.some((e) => e.type === 'cli')))));
+    const r = HERRAMIENTAS.filter((x) => x.g === 'apps' && ((l.enlaces || []).some((u) => u.startsWith(x.href)) || (x.modulos.includes(l.modulo.id) && x.id !== 'notas' && (x.id !== 'terminal' || l.ejercicios.some((e) => e.type === 'cli')))));
     herrLeccionCache.set(l.id, r); return r;
   }
   function viewHerramientas() {
-    const usos = (x) => LESSONS.filter((l) => l.html.includes(`href="${x.href}`)).length;
+    const usos = (x) => LESSONS.filter((l) => (l.enlaces || []).some((u) => u.startsWith(x.href))).length;
     const card = (x) => {
       const mods = x.modulos.map((id) => MODULE_BY_ID.get(id)).filter(Boolean);
       const n = usos(x);
@@ -3538,12 +3580,16 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   }
 
   // ---------------------------------------------------------------- búsqueda
+  // el texto completo de las lecciones para buscar se descarga la primera vez que se usa el buscador
+  let buscarPedido = false;
+  window.__buscar = (textos) => { for (const x of searchIndex) if (x.lid && textos[x.lid]) x.body = (x.resumen + ' ' + textos[x.lid]).toLowerCase(); if (sIn.value.trim().length >= 2) sIn.dispatchEvent(new Event('input')); };
   const searchIndex = [
-    ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, body: (l.resumen + ' ' + l.html.replace(/<[^>]+>/g, ' ')).toLowerCase() })),
+    ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, lid: l.id, resumen: l.resumen || '', body: (l.resumen || '').toLowerCase() })),
     ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + g.texto).toLowerCase() }))
   ];
   const sIn = $('#search'), sOut = $('#searchResults');
   let sSel = 0;
+  sIn.addEventListener('focus', () => { if (!buscarPedido) { buscarPedido = true; cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; }); } });
   sIn.addEventListener('input', () => {
     const q = sIn.value.trim().toLowerCase();
     if (q.length < 2) { sOut.hidden = true; return; }
@@ -3631,6 +3677,12 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
 
   function route() {
     const r = parse();
+    if (GRUPOS[r.name] && !(grupoCargas[r.name] && grupoCargas[r.name].listo)) {
+      const donde = location.hash;
+      if (!main.querySelector('.cargando-contenido')) main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Abriendo la herramienta…</div>';
+      cargarGrupo(r.name).then(() => { if (location.hash === donde) route(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo abrir la herramienta</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarH">Reintentar</button></div>'; main.querySelector('#reintentarH').onclick = () => route(); } });
+      return;
+    }
     document.body.classList.remove('nav-open');
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
@@ -3640,7 +3692,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
     else if (r.name === 'module') viewModule(r.module);
-    else if (r.name === 'lesson') viewLesson(r.lesson);
+    else if (r.name === 'lesson') conContenido([r.lesson.modulo.id], () => viewLesson(r.lesson));
     else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
       const lab = r.name.slice(4);
       window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, compiledBlock, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
@@ -3666,7 +3718,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
-    else if (r.name === 'repaso') viewRepaso();
+    else if (r.name === 'repaso') conContenido(Object.keys(Store.data.visited || {}).map((id) => (LESSON_BY_ID.get(id) || { modulo: {} }).modulo.id).filter(Boolean), () => viewRepaso());
     else if (r.name === 'examenes') viewExamenes();
     else if (r.name === 'examen') viewExamen(r.examen, r.dom);
     else if (r.name === 'claves') viewClaves(r.cert, r.dom);
