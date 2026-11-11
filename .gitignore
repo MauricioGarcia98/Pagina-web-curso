@@ -6,5 +6,6 @@ __pycache__/
 # Archivos que generan las pruebas locales de la terminal
 /*.csv
 /*.txt
+!/requirements-ci.txt
 /*.db
 /datos/
