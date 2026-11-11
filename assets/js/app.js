@@ -1813,7 +1813,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     }
     const enLab = LABS_MENU.some((x) => x[3] === route.name) || route.name === 'herramientas';
     html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧰</span><span class="st-name">Herramientas de práctica</span><span class="chev">▶</span></summary>${link('#/herramientas', '🧰', 'Todas las herramientas', route.name === 'herramientas')}<div class="side-sub">Réplicas de las reales</div>${LABS_MENU.filter((x) => x[4] === 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}<div class="side-sub">Laboratorios y simulaciones</div>${LABS_MENU.filter((x) => x[4] !== 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
-    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'mis-datos', 'revisar-repo'];
+    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'mis-datos', 'cuenta', 'revisar-repo'];
     html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
@@ -1824,7 +1824,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     html += link('#/revisar-repo', '🔎', 'Revisar mi proyecto en GitHub', route.name === 'revisar-repo');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
     html += link('#/mis-datos', '🗂️', 'Mis datos', route.name === 'mis-datos');
+    if (window.Sitio && window.Sitio.hayCuentas()) html += link('#/cuenta', '☁️', 'Mi cuenta', route.name === 'cuenta');
     html += '</details>';
+    html += '<div class="nav-legal"><a href="#/privacidad">Privacidad</a><span>·</span><a href="#/terminos">Términos de uso</a></div>';
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
       const mod = b.closest('.side-module');
@@ -3625,7 +3627,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
     if (parts[0] === 'azure') return { name: 'azure', sub: parts.slice(1) };
     if (parts[0] === 'github') return { name: 'github', sub: parts.slice(1) };
-    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones', 'mis-datos'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
+    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones', 'mis-datos', 'cuenta', 'privacidad', 'terminos'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
   // ---------------------------------------------------------------- barra de las herramientas de práctica
@@ -3664,6 +3666,13 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   // Alt+← vuelve al curso desde una herramienta (además del botón atrás del navegador)
   document.addEventListener('keydown', (e) => { if (e.altKey && e.key === 'ArrowLeft' && document.body.classList.contains('herr-on')) { const a = document.querySelector('#herrBar .hb-volver'); if (a) { e.preventDefault(); location.hash = a.getAttribute('href'); } } });
 
+  // un único bloque de publicidad al final de la portada y de las lecciones (nunca en ejercicios, exámenes ni herramientas);
+  // solo existe si el sitio tiene AdSense configurado y la persona aceptó
+  function ponerAnuncio(tipo) {
+    const X = window.Sitio; if (!X || !X.hayAnuncios()) return;
+    const html = X.bloqueAnuncio(tipo); if (!html) return;
+    const donde = main.querySelector('.leccion-col') || main.querySelector('.page') || main; donde.insertAdjacentHTML('beforeend', html); X.activarAnuncios(main);
+  }
   function route() {
     const r = parse();
     if (GRUPOS[r.name] && !(grupoCargas[r.name] && grupoCargas[r.name].listo)) {
@@ -3676,12 +3685,12 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
-    if (r.name === 'home') viewHome();
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    if (r.name === 'home') { viewHome(); ponerAnuncio('portada'); }
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
     else if (r.name === 'module') viewModule(r.module);
-    else if (r.name === 'lesson') conContenido([r.lesson.modulo.id], () => viewLesson(r.lesson));
+    else if (r.name === 'lesson') conContenido([r.lesson.modulo.id], () => { viewLesson(r.lesson); ponerAnuncio('leccion'); });
     else if (r.name.startsWith('lab-') && !r.libre && window.Misiones) {
       const lab = r.name.slice(4);
       window.Misiones.vista(main, { h, Store, toast, createEditor, Engines: window.Engines, renderSqlOutput, renderConsole, ensureSql, loadingInto, pyLoadingMsg, compiledBlock, libre: () => { location.hash = `#/lab/${lab}?modo=libre`; } }, lab);
@@ -3708,6 +3717,8 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
     else if (r.name === 'mis-datos' && window.MisDatos) window.MisDatos.vista(main, { Store, toast });
+    else if (r.name === 'cuenta' && window.Sitio) window.Sitio.vistaCuenta(main);
+    else if ((r.name === 'privacidad' || r.name === 'terminos') && window.Sitio) window.Sitio.vistaLegal(main, r.name);
     else if (r.name === 'repaso') conContenido(Object.keys(Store.data.visited || {}).map((id) => (LESSON_BY_ID.get(id) || { modulo: {} }).modulo.id).filter(Boolean), () => viewRepaso());
     else if (r.name === 'examenes') viewExamenes();
     else if (r.name === 'examen') viewExamen(r.examen, r.dom);
@@ -3757,5 +3768,6 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   $('#termBtn').addEventListener('click', () => Dock.toggle());
   document.addEventListener('keydown', (e) => { if (e.key === '`' && e.ctrlKey) { e.preventDefault(); Dock.toggle(); } });
   if (Store.data.editor !== 'simple') Monaco.load().catch(() => {});
+  if (window.Sitio) { window.Sitio.iniciar({ Store, toast }); window.Sitio.avisoConsentimiento(); }
   route();
 })();

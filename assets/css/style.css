@@ -1146,3 +1146,15 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .md-ico { font-size: 22px; width: 36px; } .md-tam { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
 .md-auto { white-space: nowrap; font-size: 13px; } .md-auto input { vertical-align: -2px; }
 @media (max-width: 700px) { .md-tabla tr { display: grid; grid-template-columns: 36px 1fr auto; gap: 2px 8px; padding: 10px 0; border-bottom: 1px solid var(--border, #e5e7eb); } .md-tabla td { border: 0; padding: 2px 4px; } .md-auto { grid-column: 2 / 4; } .md-tabla td:last-child { grid-column: 2 / 4; } }
+
+/* enlaces legales al pie del menú, cuenta, anuncios y aviso de cookies */
+.nav-legal { display: flex; gap: 8px; padding: 14px 20px 20px; font-size: 12px; color: var(--muted, #64748b); }
+.nav-legal a { color: inherit; }
+.cuenta-caja { padding: 18px 20px; margin: 16px 0; max-width: 620px; }
+.cuenta-caja input[type="email"] { flex: 1; min-width: 200px; padding: 9px 12px; border: 1px solid var(--border, #d1d5db); border-radius: 8px; background: var(--surface, #fff); color: inherit; font: inherit; }
+@media (max-width: 760px) { .cuenta-lbl { display: none; } }
+.anuncio { margin: 40px 0 8px; padding-top: 14px; border-top: 1px dashed var(--border, #d1d5db); min-height: 120px; }
+.anuncio-rotulo { display: block; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted, #64748b); margin-bottom: 8px; }
+.aviso-cookies { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 950; max-width: 640px; margin: 0 auto; padding: 16px 18px; border-radius: 12px; background: var(--surface, #fff); color: var(--text, #111); border: 1px solid var(--border, #d1d5db); box-shadow: 0 10px 30px rgba(0,0,0,.18); font-size: 14px; }
+.aviso-cookies p { margin: 0 0 12px; }
+.legal h2 { margin-top: 28px; }

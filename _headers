@@ -1,0 +1,13 @@
+# Cabeceras para Cloudflare Pages (GitHub Pages ignora este archivo)
+# index.html se revalida siempre: así cada publicación se ve al instante.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+# El resto se guarda unas horas. Los archivos de código llevan ?v=<hash> en su dirección,
+# así que cuando cambian se piden con una dirección nueva y no se sirve una versión vieja.
+/assets/*
+  Cache-Control: public, max-age=14400, stale-while-revalidate=86400
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
