@@ -660,7 +660,7 @@ body.vscode-abierto { overflow: hidden; }
 .herr-bar .hb-tit { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .herr-bar .hb-tag { font-size: 11px; padding: 2px 6px; border-radius: 10px; background: #2e3146; color: #b9bbd6; }
 .herr-bar .hb-sp { flex: 1; }
-body.herr-on .pbi, body.herr-on .dbx, body.herr-on .azp, body.herr-on .adf, body.herr-on .ghp, body.herr-on .fbp, body.herr-on .afp { top: 34px; }
+body.herr-on .pbi, body.herr-on .dbx, body.herr-on .azp, body.herr-on .adf, body.herr-on .ghp, body.herr-on .fbp, body.herr-on .afp, body.herr-on .sfp { top: 34px; }
 @media (max-width: 640px) {
   .herr-bar { padding: 0 4px; }
   .herr-bar .hb-donde, .herr-bar .hb-txt, .herr-bar .hb-tag { display: none; }

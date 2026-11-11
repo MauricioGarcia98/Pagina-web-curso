@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snowflake por dentro - warehouses, bases, stages, Time Travel y costos · Academia de Datos</title><meta name="description" content="Recorrido por Snowflake y su interfaz web (Snowsight) - la separación entre almacenamiento y cómputo, warehouses virtuales y créditos, bases y esquemas, hojas de SQL, stages y COPY INTO, Time Travel, UNDROP y clones, roles y permisos, y Query History. Con una carga completa de punta a punta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-snowflake-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Snowflake por dentro - warehouses, bases, stages, Time Travel y costos · Academia de Datos"><meta property="og:description" content="Recorrido por Snowflake y su interfaz web (Snowsight) - la separación entre almacenamiento y cómputo, warehouses virtuales y créditos, bases y esquemas, hojas de SQL, stages y COPY INTO, Time Travel, UNDROP y clones, roles y permisos, y Query History. Con una carga completa de punta a punta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-snowflake-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 45 min</div>
+<h1>Snowflake por dentro - warehouses, bases, stages, Time Travel y costos</h1><p class="resumen">Recorrido por Snowflake y su interfaz web (Snowsight) - la separación entre almacenamiento y cómputo, warehouses virtuales y créditos, bases y esquemas, hojas de SQL, stages y COPY INTO, Time Travel, UNDROP y clones, roles y permisos, y Query History. Con una carga completa de punta a punta.</p>
+<a class="cta" href="../index.html#/l/interfaces-snowflake-por-dentro">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar por qué en Snowflake el almacenamiento y el cómputo se pagan por separado</li><li>Crear y dimensionar un warehouse y estimar cuántos créditos consume</li><li>Cargar archivos con un stage y COPY INTO sin duplicar</li><li>Recuperar datos borrados con Time Travel y UNDROP</li><li>Dar permisos con roles siguiendo el mínimo privilegio</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/snowflake">Snowflake de práctica</a>. Corre en tu navegador sobre DuckDB con la base de la tienda del curso: no necesitas cuenta ni tarjeta. Imita la interfaz y el SQL de Snowflake, pero no es Snowflake: al final está la lista de lo que cambia.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Snowflake es como un depósito enorme (el almacenamiento) con cocinas que se alquilan por minuto (los warehouses). Los datos están siempre guardados y se pagan por lo que ocupan; la cocina solo se paga mientras está encendida. Puedes tener una cocina chica para el equipo de análisis y una grande para la carga de la noche, sin que una le quite lugar a la otra.</p>
+</div>
+
+
+<h2>Qué es Snowflake</h2>
+<p><strong>Snowflake</strong> es un data warehouse en la nube que funciona en AWS, Azure o Google Cloud. Su idea central es separar tres capas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Qué hace</th>
+<th>Cómo se paga</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Almacenamiento</strong></td>
+<td>Guarda las tablas en un formato columnar comprimido (micro-particiones)</td>
+<td>Por TB al mes</td>
+</tr>
+<tr>
+<td><strong>Cómputo</strong></td>
+<td>Los <strong>warehouses virtuales</strong> ejecutan las consultas</td>
+<td>Por <strong>créditos</strong>, por segundo mientras están encendidos</td>
+</tr>
+<tr>
+<td><strong>Servicios en la nube</strong></td>
+<td>Autenticación, metadatos, optimizador, seguridad</td>
+<td>Incluido casi siempre</td>
+</tr>
+</tbody></table></div>
+<p>Como el cómputo está separado, varios equipos pueden consultar los mismos datos al mismo tiempo, cada uno con su warehouse, sin pisarse.</p>
+<h2>Snowsight: la interfaz</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Worksheets</strong></td>
+<td>Hojas de SQL: escribes, ejecutas (Ctrl+Enter) y ves el resultado</td>
+</tr>
+<tr>
+<td><strong>Databases</strong></td>
+<td>Explorador de bases, esquemas, tablas, vistas y stages, con columnas y vista previa</td>
+</tr>
+<tr>
+<td><strong>Query History</strong></td>
+<td>Todo lo que se ejecutó: quién, con qué rol y warehouse, cuánto tardó y si falló</td>
+</tr>
+<tr>
+<td><strong>Warehouses</strong></td>
+<td>Crear, dimensionar, suspender y reanudar el cómputo</td>
+</tr>
+<tr>
+<td><strong>Users &amp; Roles</strong></td>
+<td>Usuarios, roles y permisos</td>
+</tr>
+</tbody></table></div>
+<p>Arriba de cada hoja hay dos selectores: <strong>rol · warehouse</strong> y <strong>base.esquema</strong>. Son el <em>contexto</em> de la sesión, lo mismo que ejecutar <code>USE ROLE</code>, <code>USE WAREHOUSE</code> y <code>USE SCHEMA</code>.</p>
+<h2>Warehouses y créditos</h2>
+<p>Un warehouse tiene un <strong>tamaño</strong>: X-Small consume 1 crédito por hora, Small 2, Medium 4, y así se duplica en cada tamaño. Un tamaño más grande no es más caro por consulta si la consulta termina proporcionalmente más rápido; sirve para consultas pesadas, no para muchas consultas chicas (para eso existe el escalado multi-cluster).</p>
+<pre data-norun><code class="language-sql">CREATE WAREHOUSE etl_wh
+  WAREHOUSE_SIZE = 'XSMALL'
+  AUTO_SUSPEND = 60        -- se apaga tras 60 s sin consultas
+  AUTO_RESUME = TRUE       -- se enciende solo al recibir una consulta
+  INITIALLY_SUSPENDED = TRUE;
+
+ALTER WAREHOUSE etl_wh SET WAREHOUSE_SIZE = 'SMALL';
+ALTER WAREHOUSE etl_wh SUSPEND;</code></pre>
+<p>Reglas que conviene recordar:</p>
+<ul>
+<li>Se cobra <strong>por segundo</strong>, con un <strong>mínimo de 60 segundos</strong> cada vez que el warehouse arranca.</li>
+<li>Un warehouse suspendido <strong>no cobra</strong>. Por eso <code>AUTO_SUSPEND</code> bajo (60 a 300 segundos) es lo más importante para controlar costos.</li>
+<li>Si no hay warehouse en el contexto, una consulta falla con <em>No active warehouse selected in the current session</em>. La solución es <code>USE WAREHOUSE nombre;</code>.</li>
+<li>Algunas cosas no necesitan warehouse: <code>SHOW</code>, <code>DESCRIBE</code> y consultas que se responden solo con metadatos.</li>
+</ul>
+<p>En la réplica, la página <strong>Warehouses</strong> suma los créditos de tus consultas con estas mismas reglas.</p>
+<h2>Bases, esquemas y nombres</h2>
+<p>Toda tabla vive en <code>BASE.ESQUEMA.TABLA</code>. Los nombres sin comillas se guardan en <strong>mayúsculas</strong>: <code>ventas</code>, <code>Ventas</code> y <code>VENTAS</code> son la misma tabla; <code>&quot;Ventas&quot;</code>, con comillas, sería otra.</p>
+<pre data-norun><code class="language-sql">CREATE DATABASE analitica;
+CREATE SCHEMA analitica.staging;
+USE SCHEMA analitica.staging;
+CREATE TABLE ventas (id INT, monto NUMBER(10,2), pais VARCHAR);</code></pre>
+<h2>Cargar archivos: stages y COPY INTO</h2>
+<p>Un <strong>stage</strong> es una carpeta donde quedan los archivos antes de cargarlos. Puede ser <strong>interno</strong> (los archivos viven en Snowflake; en Snowsight se suben con <strong>+ Files</strong>) o <strong>externo</strong> (apunta a un bucket de S3, un contenedor de Azure o GCS).</p>
+<pre data-norun><code class="language-sql">CREATE STAGE carga;
+LIST @carga;
+
+COPY INTO clientes_nuevos
+FROM @carga
+PATTERN = '.*clientes.*[.]csv'
+FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1)
+ON_ERROR = 'ABORT_STATEMENT';</code></pre>
+<p><code>COPY INTO</code> <strong>recuerda qué archivos ya cargó</strong> en esa tabla (durante 64 días): si lo ejecutas otra vez, esos archivos aparecen como <code>LOAD_SKIPPED</code> y no se duplican filas. Para cargarlos de nuevo a propósito se usa <code>FORCE = TRUE</code>. Para cargas continuas sin programar nada existe <strong>Snowpipe</strong>, que ejecuta el <code>COPY</code> cada vez que llega un archivo.</p>
+<h2>Time Travel, UNDROP y clones</h2>
+<p>Snowflake guarda las versiones anteriores de los datos durante un período de retención (1 día por defecto; hasta 90 en la edición Enterprise). Eso permite:</p>
+<pre data-norun><code class="language-sql">-- la tabla como estaba hace 5 minutos
+SELECT * FROM ventas AT(OFFSET =&gt; -60*5);
+
+-- la tabla justo antes de una sentencia (el Query ID sale de Query History)
+SELECT * FROM ventas BEFORE(STATEMENT =&gt; '01b2c3d4-0000-0001');
+
+-- recuperar las filas borradas
+INSERT INTO ventas SELECT * FROM ventas BEFORE(STATEMENT =&gt; '01b2c3d4-0000-0001') WHERE pais = 'AR';
+
+-- recuperar una tabla borrada
+DROP TABLE ventas;
+UNDROP TABLE ventas;</code></pre>
+<p>Un <strong>clon</strong> (<code>CREATE TABLE ventas_dev CLONE ventas;</code>) crea una copia que al principio no ocupa espacio: comparte las micro-particiones con el original y solo guarda lo que cambias. Se usa mucho para tener un entorno de pruebas con datos reales en segundos.</p>
+<h2>Roles y permisos</h2>
+<p>En Snowflake los permisos se dan a <strong>roles</strong>, y los roles a usuarios. Los roles del sistema:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Rol</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ACCOUNTADMIN</code></td>
+<td>Todo, incluida la facturación. Úsalo solo para tareas de cuenta</td>
+</tr>
+<tr>
+<td><code>SECURITYADMIN</code></td>
+<td>Administra permisos y usuarios</td>
+</tr>
+<tr>
+<td><code>USERADMIN</code></td>
+<td>Crea usuarios y roles</td>
+</tr>
+<tr>
+<td><code>SYSADMIN</code></td>
+<td>Crea warehouses, bases y objetos: el rol de trabajo de ingeniería</td>
+</tr>
+<tr>
+<td><code>PUBLIC</code></td>
+<td>Lo tienen todos</td>
+</tr>
+</tbody></table></div>
+<p>Para que un rol pueda leer una tabla necesita permiso en <strong>toda la cadena</strong>: el warehouse, la base, el esquema y la tabla.</p>
+<pre data-norun><code class="language-sql">CREATE ROLE analista;
+GRANT USAGE ON WAREHOUSE compute_wh TO ROLE analista;
+GRANT USAGE ON DATABASE tienda_andina TO ROLE analista;
+GRANT USAGE ON SCHEMA tienda_andina.public TO ROLE analista;
+GRANT SELECT ON ALL TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
+GRANT SELECT ON FUTURE TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
+GRANT ROLE analista TO USER ana;</code></pre>
+<p><code>FUTURE TABLES</code> hace que las tablas que se creen después también queden con el permiso.</p>
+<h2>Funciones propias de Snowflake</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Snowflake</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>IFF(cond, a, b)</code></td>
+<td>Un <code>CASE WHEN</code> corto</td>
+</tr>
+<tr>
+<td><code>NVL(x, y)</code></td>
+<td><code>COALESCE</code> de dos valores</td>
+</tr>
+<tr>
+<td><code>DATEADD(day, 7, fecha)</code> / <code>DATEDIFF(day, a, b)</code></td>
+<td>Sumar y restar fechas</td>
+</tr>
+<tr>
+<td><code>QUALIFY</code></td>
+<td>Filtrar por una función de ventana sin subconsulta</td>
+</tr>
+<tr>
+<td><code>columna:campo.sub::string</code></td>
+<td>Leer un campo de un JSON guardado como <code>VARIANT</code></td>
+</tr>
+<tr>
+<td><code>LATERAL FLATTEN(input =&gt; arr)</code></td>
+<td>Convertir un array en filas</td>
+</tr>
+</tbody></table></div>
+<h2>Un flujo completo</h2>
+<ol>
+<li>Crea un warehouse <code>etl_wh</code> X-Small con <code>AUTO_SUSPEND = 60</code> y úsalo.</li>
+<li>Crea la base <code>analitica</code>, el esquema <code>staging</code> y un stage <code>carga</code>.</li>
+<li>En <strong>Databases</strong>, abre el stage y agrega los archivos de ejemplo.</li>
+<li>Crea la tabla <code>clientes_nuevos</code> y cárgala con <code>COPY INTO</code>. Ejecuta el <code>COPY</code> otra vez y mira el <code>LOAD_SKIPPED</code>.</li>
+<li>Borra por error los clientes de un país con <code>DELETE</code> y recupéralos con <code>BEFORE(STATEMENT =&gt; ...)</code>.</li>
+<li>Crea el rol <code>analista</code> con permiso de lectura y revisa <code>SHOW GRANTS TO ROLE analista</code>.</li>
+<li>Mira en <strong>Warehouses</strong> cuántos créditos usaste y en <strong>Query History</strong> todo lo que corrió.</li>
+</ol>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Hojas de SQL con contexto, explorador de objetos y vista previa</td>
+<td>Notebooks, Streamlit, dashboards, Cortex (IA)</td>
+</tr>
+<tr>
+<td>Warehouses con tamaño, auto-suspend, auto-resume y créditos</td>
+<td>Multi-cluster, resource monitors, Query Acceleration</td>
+</tr>
+<tr>
+<td>Bases, esquemas, tablas, vistas, clones</td>
+<td>Data sharing, Marketplace, tablas Iceberg, dynamic tables</td>
+</tr>
+<tr>
+<td>Stages internos, <code>LIST</code>, <code>REMOVE</code>, <code>COPY INTO</code> con <code>PATTERN</code>, <code>SKIP_HEADER</code>, <code>FORCE</code></td>
+<td>Stages externos, Snowpipe, <code>PUT</code>/<code>GET</code> desde SnowSQL</td>
+</tr>
+<tr>
+<td>Time Travel (<code>AT</code>, <code>BEFORE</code>) y <code>UNDROP TABLE</code></td>
+<td>Fail-safe, retención configurable</td>
+</tr>
+<tr>
+<td>Roles, <code>GRANT</code>/<code>REVOKE</code>, <code>SHOW GRANTS</code> (se registran; no se bloquean consultas por permisos)</td>
+<td>Políticas de enmascaramiento y de filas, tags</td>
+</tr>
+</tbody></table></div>
+<p>El motor por debajo es DuckDB: algunas funciones muy específicas de Snowflake pueden no estar o dar mensajes de error distintos.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-snowflake-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-airflow-por-dentro.html">← Airflow por dentro - la interfaz web de Airflow 3 pantalla por pantalla</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

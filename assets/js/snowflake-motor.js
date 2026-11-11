@@ -82,7 +82,7 @@ ORDER BY ventas DESC;
       if (s.replay.length) {
         progreso(`Restaurando tus objetos (${s.replay.length} sentencias)…`);
         const ctx0 = { ...s.ctx };
-        for (const r of s.replay) { try { s.ctx = { ...s.ctx, db: r.db, esquema: r.esquema }; await ejecutarUna(r.sql, { replay: true }); } catch (e) { /* objeto que ya no se puede recrear */ } }
+        for (const r of s.replay) { try { s.ctx = { ...s.ctx, db: r.db, esquema: r.esquema }; await usarContexto(); await ejecutarUna(r.sql, { replay: true }); } catch (e) { /* objeto que ya no se puede recrear */ } }
         s.ctx = ctx0;
       }
       await usarContexto();

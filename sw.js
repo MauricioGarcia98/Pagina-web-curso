@@ -9,7 +9,7 @@
  *   vez que se usan. Nada más sale a internet desde aquí: ni cuentas ni anuncios pasan por la caché.
  */
 const APP = 'academia-app-v1';
-const CDN = 'academia-cdn-v1';
+const CDN = 'academia-cdn-v2';
 const CDNS = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'unpkg.com'];
 const BASE = new URL('./', self.location).href;
 
@@ -92,11 +92,16 @@ self.addEventListener('fetch', (e) => {
       const c = await caches.open(CDN);
       const hit = await c.match(req);
       if (hit) return hit;
+      // se pide siempre con CORS (las CDN lo permiten): una respuesta así sirve tanto a un <script> común como
+      // a un fetch con CORS. Una respuesta opaca guardada rompería a los pedidos con CORS de la misma dirección.
       try {
-        const r = await fetch(req);
-        if (r.ok || r.type === 'opaque') c.put(req, r.clone()).catch(() => {});
+        const r = await fetch(req.url, { mode: 'cors', credentials: 'omit' });
+        if (!r.ok) return fetch(req); // 404 u otro error: que el navegador lo maneje como siempre
+        c.put(req.url, r.clone()).catch(() => {});
         return r;
-      } catch (err) { return Response.error(); }
+      } catch (err) {
+        try { return await fetch(req); } catch (e2) { return Response.error(); }
+      }
     })());
   }
 });

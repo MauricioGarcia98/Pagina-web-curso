@@ -44,7 +44,7 @@ Arriba de cada hoja hay dos selectores: **rol · warehouse** y **base.esquema**.
 
 Un warehouse tiene un **tamaño**: X-Small consume 1 crédito por hora, Small 2, Medium 4, y así se duplica en cada tamaño. Un tamaño más grande no es más caro por consulta si la consulta termina proporcionalmente más rápido; sirve para consultas pesadas, no para muchas consultas chicas (para eso existe el escalado multi-cluster).
 
-```sql
+```sql norun
 CREATE WAREHOUSE etl_wh
   WAREHOUSE_SIZE = 'XSMALL'
   AUTO_SUSPEND = 60        -- se apaga tras 60 s sin consultas
@@ -68,7 +68,7 @@ En la réplica, la página **Warehouses** suma los créditos de tus consultas co
 
 Toda tabla vive en `BASE.ESQUEMA.TABLA`. Los nombres sin comillas se guardan en **mayúsculas**: `ventas`, `Ventas` y `VENTAS` son la misma tabla; `"Ventas"`, con comillas, sería otra.
 
-```sql
+```sql norun
 CREATE DATABASE analitica;
 CREATE SCHEMA analitica.staging;
 USE SCHEMA analitica.staging;
@@ -79,7 +79,7 @@ CREATE TABLE ventas (id INT, monto NUMBER(10,2), pais VARCHAR);
 
 Un **stage** es una carpeta donde quedan los archivos antes de cargarlos. Puede ser **interno** (los archivos viven en Snowflake; en Snowsight se suben con **+ Files**) o **externo** (apunta a un bucket de S3, un contenedor de Azure o GCS).
 
-```sql
+```sql norun
 CREATE STAGE carga;
 LIST @carga;
 
@@ -96,7 +96,7 @@ ON_ERROR = 'ABORT_STATEMENT';
 
 Snowflake guarda las versiones anteriores de los datos durante un período de retención (1 día por defecto; hasta 90 en la edición Enterprise). Eso permite:
 
-```sql
+```sql norun
 -- la tabla como estaba hace 5 minutos
 SELECT * FROM ventas AT(OFFSET => -60*5);
 
@@ -127,7 +127,7 @@ En Snowflake los permisos se dan a **roles**, y los roles a usuarios. Los roles 
 
 Para que un rol pueda leer una tabla necesita permiso en **toda la cadena**: el warehouse, la base, el esquema y la tabla.
 
-```sql
+```sql norun
 CREATE ROLE analista;
 GRANT USAGE ON WAREHOUSE compute_wh TO ROLE analista;
 GRANT USAGE ON DATABASE tienda_andina TO ROLE analista;

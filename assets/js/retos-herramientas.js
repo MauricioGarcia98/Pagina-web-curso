@@ -129,6 +129,31 @@
     ]],
   ] };
 
+  // Snowflake: mira el estado de la réplica (historial de consultas, warehouses, stages y permisos)
+  const sfS = () => (Store && Store.data.snowflake) || { historial: [], warehouses: {}, stages: {}, grants: [], roles: {} };
+  const sfOk = (re) => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && re.test(h.sql));
+  RETOS.snowflake = { titulo: 'Retos de Snowflake', niveles: [
+    ['Básico', [
+      ['sf-run', 'Ejecuta una consulta que devuelva filas', 'Abre una hoja (Worksheets → + SQL Worksheet) y ejecuta un SELECT con Ctrl+Enter.', () => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*SELECT/i.test(h.sql) && h.filas > 0)],
+      ['sf-wh', 'Crea tu propio warehouse X-Small con AUTO_SUSPEND de 60 segundos', "CREATE WAREHOUSE mi_wh WAREHOUSE_SIZE = 'XSMALL' AUTO_SUSPEND = 60; (o Warehouses → + Warehouse).", () => Object.values(sfS().warehouses || {}).some((w) => w.nombre !== 'COMPUTE_WH' && w.autoSuspend && w.autoSuspend <= 60)],
+      ['sf-susp', 'Suspende un warehouse a mano', 'ALTER WAREHOUSE mi_wh SUSPEND; (o el botón Suspend en Warehouses).', () => sfOk(/^\s*ALTER\s+WAREHOUSE\s+\S+\s+SUSPEND/i)],
+      ['sf-ctx', 'Cambia el contexto de la hoja con USE SCHEMA', 'USE SCHEMA TIENDA_ANDINA.PUBLIC; (o el selector base.esquema de la hoja).', () => sfOk(/^\s*USE\s+SCHEMA/i)],
+    ]],
+    ['Intermedio', [
+      ['sf-db', 'Crea una base y un esquema propios', 'CREATE DATABASE analitica; CREATE SCHEMA staging;', () => sfOk(/^\s*CREATE\s+(OR\s+REPLACE\s+)?DATABASE/i) && sfOk(/^\s*CREATE\s+(OR\s+REPLACE\s+)?SCHEMA/i)],
+      ['sf-stage', 'Crea un stage y sube al menos un archivo', 'CREATE STAGE carga; luego Databases → el stage → + Files o Archivos de ejemplo.', () => Object.values(sfS().stages || {}).some((x) => Object.keys(x.archivos || {}).length)],
+      ['sf-copy', 'Carga un archivo del stage a una tabla con COPY INTO', "COPY INTO tabla FROM @carga FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);", () => sfOk(/^\s*COPY\s+INTO/i)],
+      ['sf-skip', 'Repite el mismo COPY INTO y comprueba que no duplica filas', 'Ejecútalo otra vez: los archivos ya cargados aparecen como LOAD_SKIPPED.', () => (sfS().historial || []).filter((h) => h.estado === 'Succeeded' && /^\s*COPY\s+INTO/i.test(h.sql)).length >= 2],
+    ]],
+    ['Avanzado', [
+      ['sf-tt', 'Consulta una tabla como estaba antes de un cambio (Time Travel)', "SELECT * FROM t BEFORE(STATEMENT => '<Query ID>'); el ID está en Query History.", () => sfOk(/\b(BEFORE|AT)\s*\(\s*(STATEMENT|OFFSET|TIMESTAMP)\s*=>/i)],
+      ['sf-undrop', 'Borra una tabla y recupérala con UNDROP', 'DROP TABLE t; UNDROP TABLE t;', () => sfOk(/^\s*UNDROP\s+TABLE/i)],
+      ['sf-clone', 'Clona una tabla para tener una copia de pruebas', 'CREATE TABLE ventas_dev CLONE ventas;', () => sfOk(/\bCLONE\b/i)],
+      ['sf-rol', 'Crea un rol con permiso de lectura sobre un esquema', 'CREATE ROLE analista; GRANT USAGE ON ... ; GRANT SELECT ON ALL TABLES IN SCHEMA ... TO ROLE analista;', () => (sfS().grants || []).some((g) => g.priv === 'SELECT' && (sfS().roles || {})[g.a])],
+      ['sf-usar-rol', 'Ejecuta una consulta con tu rol nuevo (no ACCOUNTADMIN ni SYSADMIN)', 'USE ROLE analista; y luego un SELECT.', () => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*SELECT/i.test(h.sql) && (sfS().roles || {})[h.rol])],
+    ]],
+  ] };
+
   let Store = null;
   const hechos = () => { if (!Store) return {}; Store.data.retosHerr = Store.data.retosHerr || {}; return Store.data.retosHerr; };
   function revisar(id) {

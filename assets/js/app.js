@@ -46,6 +46,7 @@
     github: ['octicons', 'github-actions', 'github', 'github-colab'],
     fabric: ['@databricks', 'fabric', 'fabric-editores'],
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
+    snowflake: ['snowflake-motor', 'snowflake'],
   };
   const grupoCargas = {};
   function cargarGrupo(g) {
@@ -169,10 +170,14 @@
         s.onload = () => {
           const req = window.require;
           window.MonacoEnvironment = {
+            globalAPI: true,
             getWorkerUrl: () => `data:text/javascript;charset=utf-8,${encodeURIComponent(`self.MonacoEnvironment={baseUrl:'${MONACO_BASE.replace(/\/vs$/, '')}/'};importScripts('${MONACO_BASE}/base/worker/workerMain.js');`)}`,
           };
           req.config({ paths: { vs: MONACO_BASE } });
-          req(['vs/editor/editor.main'], () => {
+          req(['vs/editor/editor.main'], (api) => {
+            // según el orden de carga, el cargador AMD puede no dejar la variable global: se usa el módulo recibido
+            if (!(window.monaco && window.monaco.languages) && api && api.languages) window.monaco = api;
+            if (!(window.monaco && window.monaco.languages)) { reject(new Error('monaco')); return; }
             setupMonaco(window.monaco);
             this.ready = true;
             resolve(window.monaco);
@@ -1781,6 +1786,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     ['#/github', '🐙', 'GitHub', 'github', 'apps'],
     ['#/fabric', '🟩', 'Microsoft Fabric', 'fabric', 'apps'],
     ['#/airflow', '🌀', 'Airflow', 'airflow', 'apps'],
+    ['#/snowflake', '❄️', 'Snowflake', 'snowflake', 'apps'],
     ['#/powerbi', '📊', 'Power BI Desktop', 'powerbi', 'apps'],
     ['#/vscode', '🟦', 'VS Code', 'vscode', 'apps'],
     ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal', 'apps'],
@@ -1884,6 +1890,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'github', g: 'apps', href: '#/github', ico: '🐙', nombre: 'GitHub', real: 'github.com', desc: 'Repositorios, issues, pull requests con revisión, GitHub Actions que corre de verdad, protección de ramas, secretos y Pages, conectado a la terminal: lo que subes con git push aparece al instante.', puedes: ['Código, commits, blame, ramas y editar archivos en el navegador', 'Pull requests: Files changed, comentarios por línea, revisiones de compañeros, merge/squash/rebase y conflictos', 'Actions: workflows YAML que corren pytest y ruff en un runner, checks que bloquean el merge', 'Protección de main, secretos enmascarados, Pages y gh pr / gh issue / gh run en la terminal'], modulos: ['fundamentos', 'local', 'dbt', 'terraform', 'airflow', 'portafolio', 'proyecto', 'pipelines', 'interfaces'], rutas: ['github'] },
     { id: 'fabric', g: 'apps', href: '#/fabric', ico: '🟩', nombre: 'Microsoft Fabric', real: 'app.fabric.microsoft.com', desc: 'Workspaces con lakehouse (Files, Tables, Load to Tables, atajos), SQL analytics endpoint de solo lectura, warehouse con T-SQL, notebooks con PySpark, pipelines, modelo semántico, Monitor e integración con Git.', puedes: ['Subir archivos a Files y convertirlos en tablas Delta con Load to Tables', 'Consultar con el SQL analytics endpoint y escribir en un warehouse con nombres de tres partes', 'Transformar con un notebook de PySpark y orquestar con un pipeline', 'Conectar el workspace a un repositorio del GitHub de práctica y hacer commit'], modulos: ['azure', 'cert-azure', 'interfaces', 'arquitectura'], rutas: ['fabric'] },
     { id: 'airflow', g: 'apps', href: '#/airflow', ico: '🌀', nombre: 'Airflow', real: 'la interfaz web de Apache Airflow 3', desc: 'La interfaz de Airflow 3 con tus DAGs de verdad: los lee de ~/airflow/dags en la terminal, los analiza con Python y los ejecuta. Grid, Graph, logs por intento, Trigger con parámetros, backfill, assets, variables y conexiones.', puedes: ['Despausar y disparar DAGs, ver la Grid y el Graph en vivo', 'Leer el log de una tarea que falla, arreglar el archivo en la terminal y hacer Clear', 'Programar por datos: un DAG que actualiza un asset dispara otro', 'Variables, Connections, Pools, backfill y el comando airflow en la terminal'], modulos: ['airflow', 'pipelines', 'proyecto', 'interfaces', 'local'], rutas: ['airflow'] },
+    { id: 'snowflake', g: 'apps', href: '#/snowflake', ico: '❄️', nombre: 'Snowflake', real: 'Snowsight (app.snowflake.com)', desc: 'Hojas de SQL con el dialecto de Snowflake sobre la base del curso, warehouses virtuales que cobran créditos, bases y esquemas, stages con COPY INTO, Time Travel, UNDROP, clones, roles y Query History.', puedes: ['Ejecutar SQL con contexto de rol, warehouse, base y esquema (Ctrl+Enter)', 'Crear warehouses, ver cuándo se suspenden y cuántos créditos gastaste', 'Subir archivos a un stage y cargarlos con COPY INTO sin duplicar', 'Recuperar datos con Time Travel (BEFORE/AT) y tablas con UNDROP; dar permisos con roles'], modulos: ['sql', 'arquitectura', 'interfaces', 'modelado'], rutas: ['snowflake'] },
     { id: 'powerbi', g: 'apps', href: '#/powerbi', ico: '📊', nombre: 'Power BI Desktop', real: 'Power BI Desktop', desc: 'Importa CSV, Excel o las bases del curso, transforma con Power Query, modela relaciones, escribe DAX y arma el informe.', puedes: ['Power Query con pasos aplicados y M', 'Modelo con relaciones, medidas y columnas calculadas (motor DAX con contexto de filtro)', '23 objetos visuales, mapa, seguridad por filas (RLS) y grupos de cálculo', 'Exportar el modelo en TMDL (carpeta de proyecto .pbip) para Power BI Desktop'], modulos: ['powerbi', 'interfaces', 'analisis', 'casos'], rutas: ['powerbi'] },
     { id: 'vscode', g: 'apps', href: '#/vscode', ico: '🟦', nombre: 'VS Code', real: 'Visual Studio Code', desc: 'El editor con temas e íconos del repositorio oficial, terminal integrada, Git, problemas, esquema, editor dividido y diff.', puedes: ['Abrir carpetas del disco de práctica (o code . desde la terminal)', 'Editar con Monaco, el mismo editor de VS Code, y ejecutar Python o SQL', 'Control de código fuente, extensiones y ajustes'], modulos: ['local', 'python', 'dbt', 'airflow', 'fundamentos', 'proyecto'], rutas: ['vscode'] },
     { id: 'terminal', g: 'apps', href: '#/lab/terminal', ico: '⌨️', nombre: 'Terminal', real: 'bash en Linux/macOS', desc: 'Una terminal con disco propio: bash, git, docker, vim y las CLIs de Azure, AWS, Google Cloud, Databricks y Terraform.', puedes: ['Misiones guiadas de cero a experto', 'git con ramas, conflictos y un remoto de práctica', 'az, aws, gcloud, databricks y terraform con estado compartido con los portales'], modulos: ['cero', 'fundamentos', 'local', 'azure', 'aws', 'gcp', 'terraform', 'incidentes'], rutas: ['lab-terminal'] },
@@ -3643,6 +3650,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'github') return { name: 'github', sub: parts.slice(1) };
     if (parts[0] === 'fabric') return { name: 'fabric', sub: parts.slice(1) };
     if (parts[0] === 'airflow') return { name: 'airflow', sub: parts.slice(1) };
+    if (parts[0] === 'snowflake') return { name: 'snowflake', sub: parts.slice(1) };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones', 'mis-datos', 'cuenta', 'privacidad', 'terminos'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -3658,6 +3666,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     github: { ico: '🐙', nombre: 'GitHub', leccion: 'interfaces-github-por-dentro' },
     fabric: { ico: '🟩', nombre: 'Microsoft Fabric', leccion: 'interfaces-fabric-por-dentro' },
     airflow: { ico: '🌀', nombre: 'Airflow', leccion: 'interfaces-airflow-por-dentro' },
+    snowflake: { ico: '❄️', nombre: 'Snowflake', leccion: 'interfaces-snowflake-por-dentro' },
   };
   let rutaCurso = null;   // la última página del curso (no de una herramienta) para el botón Volver
   function claveHerramienta(r) { if (r.name === 'azure' && r.sub && r.sub[0] === 'studio') return 'adf'; if (r.name === 'powerbi' && r.sub && r.sub[0] === 'servicio') return 'pbiservicio'; return HERR_BARRA[r.name] ? r.name : null; }
@@ -3701,7 +3710,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', snowflake: 'Snowflake (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') { viewHome(); ponerAnuncio('portada'); }
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3731,6 +3740,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'github' && window.GitHubPractica) window.GitHubPractica.vista(main, { Store, toast });
     else if (r.name === 'fabric' && window.FabricPractica) window.FabricPractica.vista(main, { Store, toast });
     else if (r.name === 'airflow' && window.AirflowUI) window.AirflowUI.vista(main, { Store, toast }, r.sub);
+    else if (r.name === 'snowflake' && window.SnowflakePractica) window.SnowflakePractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
@@ -3746,7 +3756,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
     else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
     barraHerramienta(r);
-    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else window.RetosHerramientas.desmontar(); }
+    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();

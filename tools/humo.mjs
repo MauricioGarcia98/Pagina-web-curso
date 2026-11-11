@@ -14,6 +14,7 @@ const PAGINAS = [
   ['Microsoft Fabric', '#/fabric', '.fbp'],
   ['Airflow', '#/airflow', '#afp'],
   ['GitHub', '#/github', '.ghp'],
+  ['Snowflake', '#/snowflake', '.sfp'],
 ];
 
 let fallas = 0;
