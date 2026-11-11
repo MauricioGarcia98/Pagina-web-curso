@@ -99,4 +99,9 @@ Si tienes visitantes de la Unión Europea, el Reino Unido o Suiza, Google exige 
 Estas mejoras no bloquean el lanzamiento:
 
 1. **Uso sin conexión** con un service worker.
-2. **Pruebas automáticas en cada cambio** con GitHub Actions.
+
+## Pruebas automáticas
+
+Cada push a `main` y cada pull request corre `.github/workflows/pruebas.yml` en GitHub Actions: revisa la sintaxis del JavaScript, comprueba que los archivos generados estén al día con `node tools/build.mjs`, ejecuta el validador de los ~2.500 ejercicios (`node tools/validate.mjs`) y abre las páginas principales en Chromium (`node tools/humo.mjs`). Si algo falla, el pull request lo muestra en rojo antes de hacer merge.
+
+Para correr lo mismo en tu computadora: `npm ci`, `pip install -r requirements-ci.txt`, `node tools/validate.mjs`; y con el sitio servido (`npm run serve`), `node tools/humo.mjs`.

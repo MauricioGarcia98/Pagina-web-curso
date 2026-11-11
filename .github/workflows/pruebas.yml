@@ -1,0 +1,64 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: |
+          npm ci
+          pip install -r requirements-ci.txt
+
+      - name: Sintaxis de JavaScript
+        run: |
+          for f in assets/js/*.js tools/*.mjs; do node --check "$f" || exit 1; done
+
+      - name: Los archivos generados están al día
+        # se vuelve a generar todo y se compara con lo que está en el repositorio, ignorando las fechas
+        run: |
+          node tools/build.mjs
+          fallo=0
+          for f in $(git diff --name-only); do
+            if ! diff -q <(git show "HEAD:$f" | sed -E 's/20[0-9]{2}-[0-9]{2}-[0-9]{2}//g') <(sed -E 's/20[0-9]{2}-[0-9]{2}-[0-9]{2}//g' "$f") >/dev/null; then
+              echo "::error file=$f::desactualizado: ejecuta node tools/build.mjs y sube el resultado"; fallo=1
+            fi
+          done
+          nuevos=$(git ls-files --others --exclude-standard)
+          if [ -n "$nuevos" ]; then echo "::error::archivos generados sin subir: $nuevos"; fallo=1; fi
+          exit $fallo
+
+      - name: Ejercicios y ejemplos (validador)
+        run: node tools/validate.mjs
+
+      - name: Prueba de humo en navegador
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8000 >/dev/null 2>&1 &
+          sleep 2
+          node tools/humo.mjs http://localhost:8000/
