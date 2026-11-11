@@ -20,6 +20,7 @@
     load() {
       try {
         const d = JSON.parse(localStorage.getItem(KEY));
+        if (d && d.v === 1 && !d.fs) { this.reset(); this.cloud = d.cloud || {}; this.ready = true; this.save(); return; } // terminal reiniciada desde Mis datos: disco de fábrica, nubes conservadas
         if (d && d.v === 1) { Object.assign(this, d); this.alias = this.alias || {}; this.ready = true; return; }
       } catch (e) { /* sin almacenamiento */ }
       this.reset();

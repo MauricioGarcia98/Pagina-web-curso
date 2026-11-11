@@ -1813,7 +1813,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     }
     const enLab = LABS_MENU.some((x) => x[3] === route.name) || route.name === 'herramientas';
     html += `<details class="side-stage side-extra" ${enLab ? 'open' : ''}><summary><span class="st-num">🧰</span><span class="st-name">Herramientas de práctica</span><span class="chev">▶</span></summary>${link('#/herramientas', '🧰', 'Todas las herramientas', route.name === 'herramientas')}<div class="side-sub">Réplicas de las reales</div>${LABS_MENU.filter((x) => x[4] === 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}<div class="side-sub">Laboratorios y simulaciones</div>${LABS_MENU.filter((x) => x[4] !== 'apps').map((x) => link(x[0], x[1], x[2], route.name === x[3])).join('')}</details>`;
-    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'revisar-repo'];
+    const RECURSOS = ['notas', 'datos', 'glosario', 'repaso', 'examenes', 'examen', 'certificaciones', 'simulacro', 'claves', 'plan', 'progreso', 'mis-datos', 'revisar-repo'];
     html += `<details class="side-stage side-extra" ${RECURSOS.includes(route.name) ? 'open' : ''}><summary><span class="st-num">📚</span><span class="st-name">Recursos y repaso</span><span class="chev">▶</span></summary>`;
     html += link('#/notas', '📝', 'Mis notas', route.name === 'notas', window.Notas ? String(window.Notas.contar()) : '');
     html += link('#/datos', '🗃️', 'Bases de datos', route.name === 'datos');
@@ -1823,6 +1823,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if ((C.certificaciones || []).length) html += link('#/certificaciones', '🏅', 'Certificaciones', route.name === 'certificaciones' || route.name === 'simulacro' || route.name === 'claves' || route.name === 'plan');
     html += link('#/revisar-repo', '🔎', 'Revisar mi proyecto en GitHub', route.name === 'revisar-repo');
     html += link('#/progreso', '📈', 'Mi progreso', route.name === 'progreso');
+    html += link('#/mis-datos', '🗂️', 'Mis datos', route.name === 'mis-datos');
     html += '</details>';
     sb.innerHTML = html;
     $$('[data-toggle]', sb).forEach((b) => b.addEventListener('click', () => {
@@ -2781,21 +2782,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       ${resumenLabs()}
       ${resumenPractica()}
       <h2 class="section-title">Tus datos</h2>
-      <p class="muted">El progreso se guarda solo en este navegador. Puedes exportarlo para llevarlo a otra computadora.</p>
-      <div class="row"><button class="btn" id="exp">⬇ Exportar progreso</button><label class="btn">⬆ Importar<input type="file" id="imp" accept="application/json" hidden></label><span class="spacer"></span><button class="btn btn-ghost" id="rst" style="color:var(--bad)">Borrar todo mi progreso</button></div>
+      <p class="muted">Tu progreso se guarda solo en este navegador. En <b>Mis datos</b> ves qué hay guardado, puedes reiniciar una parte sin tocar el resto y descargar o restaurar una copia completa.</p>
+      <div class="row"><a class="btn" href="#/mis-datos">🗂️ Abrir Mis datos</a></div>
     </div>`;
-    $('#exp').addEventListener('click', () => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(Store.data)], { type: 'application/json' }));
-      a.download = 'academia-datos-progreso.json'; a.click();
-    });
-    $('#imp').addEventListener('change', async (e) => {
-      try { const d = JSON.parse(await e.target.files[0].text()); Store.data = Object.assign(Store.data, d); Store.save(); toast('Progreso importado'); route(); }
-      catch (err) { toast('Archivo inválido'); }
-    });
-    $('#rst').addEventListener('click', () => {
-      if (confirm('¿Seguro? Se borrará todo tu progreso y tu código guardado.')) { Store.data = { ex: {}, lessons: {}, code: {}, theme: Store.data.theme, visited: {} }; Store.save(); route(); }
-    });
   }
 
   // ---------------------------------------------------------------- atajos de teclado por vista
@@ -3636,7 +3625,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'databricks') return { name: 'databricks', sub: parts.slice(1) };
     if (parts[0] === 'azure') return { name: 'azure', sub: parts.slice(1) };
     if (parts[0] === 'github') return { name: 'github', sub: parts.slice(1) };
-    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
+    if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones', 'mis-datos'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
   // ---------------------------------------------------------------- barra de las herramientas de práctica
@@ -3687,7 +3676,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') viewHome();
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3718,6 +3707,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
+    else if (r.name === 'mis-datos' && window.MisDatos) window.MisDatos.vista(main, { Store, toast });
     else if (r.name === 'repaso') conContenido(Object.keys(Store.data.visited || {}).map((id) => (LESSON_BY_ID.get(id) || { modulo: {} }).modulo.id).filter(Boolean), () => viewRepaso());
     else if (r.name === 'examenes') viewExamenes();
     else if (r.name === 'examen') viewExamen(r.examen, r.dom);
