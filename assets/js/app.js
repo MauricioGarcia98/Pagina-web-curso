@@ -53,6 +53,13 @@
     return grupoCargas[g];
   }
   window.__cargarGrupo = cargarGrupo;
+  // lo que se descarga con "Guardar todo el curso" (Mis datos): el contenido de cada módulo, el buscador,
+  // las herramientas de práctica y los datos de ejemplo
+  window.__urlsCurso = () => [
+    ...C.modulos.map((m) => `assets/content/${m.id}.js?v=${m.v || C.generado}`),
+    `assets/content/_buscar.js?v=${C.vBuscar || C.generado}`,
+    ...[...new Set(Object.values(GRUPOS).flat().filter((n) => n[0] !== '@'))].map((n) => `assets/js/${n}.js?v=${V_APP}`),
+  ];
   window.__cargarTodo = () => cargarModulos(C.modulos.map((m) => m.id)); // para las pruebas automáticas
   // muestra "cargando", descarga lo que haga falta y recién ahí dibuja (si el alumno no se fue a otra página)
   function conContenido(ids, dibujar) {

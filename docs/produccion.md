@@ -96,9 +96,9 @@ Si tienes visitantes de la Unión Europea, el Reino Unido o Suiza, Google exige 
 
 ## Lo que falta para crecer
 
-Estas mejoras no bloquean el lanzamiento:
+## Uso sin conexión
 
-1. **Uso sin conexión** con un service worker.
+`sw.js` (en la raíz) es un service worker: guarda en el dispositivo cada página y archivo que el alumno abre, así el curso sigue funcionando sin internet. Desde **Mis datos → Usar sin conexión** se puede guardar todo el curso de una vez. La página principal se pide siempre a la red primero, así que cada publicación se ve al instante; los archivos con `?v=<hash>` se sirven desde la caché porque no cambian bajo la misma dirección. Solo funciona en `https` o en `localhost` (regla de los navegadores). Si alguna vez hay que desactivarlo, basta con publicar un `sw.js` que llame a `self.registration.unregister()`.
 
 ## Pruebas automáticas
 

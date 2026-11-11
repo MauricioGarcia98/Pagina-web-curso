@@ -103,6 +103,10 @@
       <h2 class="section-title">Qué hay guardado</h2>
       <div class="md-tabla-caja"><table class="md-tabla"><tbody>${filas}</tbody></table></div>
       <div class="callout"><b>¿Cuándo conviene "Empezar limpio siempre"?</b> Cuando usas una herramienta solo para practicar y prefieres encontrarla vacía cada vez (por ejemplo, para repetir un laboratorio desde cero). Tu progreso del curso nunca se borra solo.</div>
+      <h2 class="section-title">Usar sin conexión</h2>
+      <div class="card" id="mdOff"><p style="margin-top:0">Las páginas que ya abriste quedan guardadas en este dispositivo y funcionan sin internet. Si vas a estudiar sin conexión (en un viaje, con datos móviles), guarda antes <b>todo el curso</b>: lecciones, ejercicios, exámenes y herramientas de práctica.</p>
+        <div class="row"><button class="btn btn-primary" id="mdOffG">⬇ Guardar todo el curso en este dispositivo</button><span class="small muted" id="mdOffE"></span><span class="spacer"></span><button class="btn" id="mdOffB">Borrar lo guardado</button></div>
+        <p class="small muted" style="margin-bottom:0">Python, Spark y las bases de datos grandes (DuckDB, PostgreSQL) se guardan la primera vez que los usas con internet. Lo guardado ocupa espacio del navegador, aparte de los 5 MB de arriba, y no incluye tu progreso: ese ya está en este navegador.</p></div>
       <h2 class="section-title">Copia de seguridad</h2>
       <p class="muted">La copia incluye <b>todo</b>: progreso, código, herramientas, terminal y notas. Sirve para pasar a otra computadora o para guardar un punto al que volver.</p>
       <div class="row"><button class="btn" id="mdExp">⬇ Descargar una copia completa</button><label class="btn">⬆ Restaurar una copia<input type="file" id="mdImp" accept="application/json,.json" hidden></label><span class="spacer"></span><button class="btn btn-ghost" id="mdTodo" style="color:var(--bad)">Borrar absolutamente todo</button></div>
@@ -118,6 +122,23 @@
       limpiar(c.id); recargar(`"${c.nombre}" quedó como nuevo`);
     }));
     main.querySelectorAll('[data-auto]').forEach((x) => x.addEventListener('change', () => { auto[x.dataset.auto] = x.checked; if (!x.checked) delete auto[x.dataset.auto]; Store.save(); toast(x.checked ? 'Desde la próxima vez que abras el sitio, empieza limpio.' : 'Vuelve a conservarse entre visitas.'); }));
+    const off = window.SinConexion, offE = main.querySelector('#mdOffE'), offG = main.querySelector('#mdOffG'), offB = main.querySelector('#mdOffB');
+    if (!off || !off.soportado) { offG.disabled = offB.disabled = true; offE.textContent = 'Este navegador (o esta dirección sin https) no permite el modo sin conexión.'; }
+    else if (off.activo()) off.estado().then((r) => { offE.textContent = `${r.archivos} archivos guardados`; }).catch(() => {});
+    else offE.textContent = 'Se activa al recargar la página una vez.';
+    offG.addEventListener('click', async () => {
+      offG.disabled = true;
+      try {
+        const r = await off.guardarTodo((p) => { if (p.total) offE.textContent = `Guardando… ${p.hechos} de ${p.total}`; });
+        offE.textContent = r.fallos ? `Listo, pero ${r.fallos} archivos no se pudieron guardar (revisa la conexión y vuelve a intentar).` : `✓ Curso guardado: ${r.total} archivos. Ya puedes usarlo sin internet.`;
+        toast(r.fallos ? 'Guardado incompleto' : 'Curso guardado para usar sin conexión');
+      } catch (e) { offE.textContent = e.message; }
+      offG.disabled = false;
+    });
+    offB.addEventListener('click', async () => {
+      if (!confirm('¿Borrar los archivos del curso guardados en este dispositivo?\n\nTu progreso no se toca. Sin internet, solo funcionará lo que vuelvas a abrir.')) return;
+      try { await off.borrar(); offE.textContent = 'Borrado. Las páginas se vuelven a guardar a medida que las abres.'; } catch (e) { offE.textContent = e.message; }
+    });
     main.querySelector('#mdExp').addEventListener('click', () => { Store.save(); exportar(); toast('Copia descargada'); });
     main.querySelector('#mdImp').addEventListener('change', async (e) => {
       const f = e.target.files[0]; if (!f) return;

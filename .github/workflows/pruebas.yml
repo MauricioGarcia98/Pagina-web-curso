@@ -36,7 +36,7 @@ jobs:
 
       - name: Sintaxis de JavaScript
         run: |
-          for f in assets/js/*.js tools/*.mjs; do node --check "$f" || exit 1; done
+          for f in assets/js/*.js tools/*.mjs sw.js; do node --check "$f" || exit 1; done
 
       - name: Los archivos generados están al día
         # se vuelve a generar todo y se compara con lo que está en el repositorio, ignorando las fechas
