@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía real: Azure paso a paso, de la cuenta gratuita a Azure Databricks · Academia de Datos</title><meta name="description" content="Una guía para hacer en tu propia cuenta de Azure - crear la cuenta gratuita (200 USD de crédito por 30 días), un presupuesto con alertas, un grupo de recursos, un lago ADLS Gen2 con contenedores bronze, silver y gold, subir datos desde el portal y desde Cloud Shell con az, y (opcional, con costo) un workspace de Azure Databricks con la prueba de 14 días. Termina con la limpieza completa. Cada paso tiene lugar para tu captura de pantalla."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-guia-azure-paso-a-paso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Guía real: Azure paso a paso, de la cuenta gratuita a Azure Databricks · Academia de Datos"><meta property="og:description" content="Una guía para hacer en tu propia cuenta de Azure - crear la cuenta gratuita (200 USD de crédito por 30 días), un presupuesto con alertas, un grupo de recursos, un lago ADLS Gen2 con contenedores bronze, silver y gold, subir datos desde el portal y desde Cloud Shell con az, y (opcional, con costo) un workspace de Azure Databricks con la prueba de 14 días. Termina con la limpieza completa. Cada paso tiene lugar para tu captura de pantalla."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-guia-azure-paso-a-paso.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Intermedio · 90 min</div>
+<h1>Guía real: Azure paso a paso, de la cuenta gratuita a Azure Databricks</h1><p class="resumen">Una guía para hacer en tu propia cuenta de Azure - crear la cuenta gratuita (200 USD de crédito por 30 días), un presupuesto con alertas, un grupo de recursos, un lago ADLS Gen2 con contenedores bronze, silver y gold, subir datos desde el portal y desde Cloud Shell con az, y (opcional, con costo) un workspace de Azure Databricks con la prueba de 14 días. Termina con la limpieza completa. Cada paso tiene lugar para tu captura de pantalla.</p>
+<a class="cta" href="../index.html#/l/laboratorios-guia-azure-paso-a-paso">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una cuenta de Azure y un presupuesto con alertas antes de crear recursos</li><li>Crear un grupo de recursos y una cuenta ADLS Gen2 desde el portal</li><li>Hacer lo mismo con az en Cloud Shell</li><li>Saber qué cobra Azure Databricks y qué cubre la prueba</li><li>Borrar todo y comprobar que no quedó nada</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>En el módulo de Azure creaste grupos de recursos, cuentas de almacenamiento y un workspace de Databricks en la terminal simulada. Ahora vas a hacerlo en Azure de verdad. La parte 1 de esta guía cabe en el crédito gratuito y no te cobra nada; la parte 2 (Azure Databricks) es opcional y puede tener un costo pequeño, que te explicamos antes de que hagas clic.</p>
+</div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Cómo usar esta guía</div>
+
+<p>Cada paso tiene un recuadro de <strong>captura pendiente</strong>: cuando lo hagas, saca una captura y súbela con el nombre indicado. <strong>Antes de subirla, tapa</strong> el ID de suscripción, el ID de inquilino (<em>tenant</em>), tu correo y cualquier clave: esos datos no deben quedar en una imagen pública. Los nombres de las opciones son los de Microsoft Learn de octubre de 2026; si el portal cambió, busca la opción con un nombre parecido.</p>
+</div>
+
+
+<h2>Antes de empezar: cuánto cuesta</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué creas</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Cuenta, presupuesto, grupo de recursos, ADLS Gen2 con unos MB de datos</td>
+<td>Centavos, cubiertos por el crédito</td>
+</tr>
+<tr>
+<td>2 (opcional)</td>
+<td>Workspace de Azure Databricks con la prueba de 14 días</td>
+<td>La prueba regala las DBU (el uso de Databricks), pero <strong>Azure cobra las máquinas virtuales</strong> del cómputo mientras están encendidas</td>
+</tr>
+<tr>
+<td>Limpieza</td>
+<td>Borrar el grupo de recursos</td>
+<td>Deja de cobrar todo</td>
+</tr>
+</tbody></table></div>
+<p>Según Microsoft, la cuenta gratuita incluye <strong>200 USD de crédito para usar en 30 días</strong>, cantidades mensuales gratis de más de 20 servicios populares por 12 meses (solo para clientes nuevos) y protección: mientras uses la cuenta gratuita, la tarjeta no se cobra salvo que pases a pago por uso.</p>
+<h2>Parte 1: la base, sin costo</h2>
+<h3>Paso 1: crear la cuenta gratuita</h3>
+<ol>
+<li>Entra a la página de la cuenta gratuita de Azure (busca &quot;Azure free account&quot;; la página es de <code>azure.microsoft.com</code>) y elige <strong>Try Azure for free</strong> o la opción equivalente.</li>
+<li>Inicia sesión con una cuenta de Microsoft (o crea una).</li>
+<li>Completa la verificación por teléfono y la tarjeta: Microsoft la usa para verificar tu identidad.</li>
+<li>Al terminar, entra al <strong>portal de Azure</strong> (<code>portal.azure.com</code>).</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>La página de inicio del portal de Azure después de crear la cuenta</span><code>assets/img/guias/az-01-cuenta.png</code></div></figure>
+
+
+<h3>Paso 2: el presupuesto, antes que cualquier recurso</h3>
+<p>Un <strong>presupuesto</strong> te avisa por correo cuando el gasto llega a un porcentaje. Según la documentación de Cost Management, <strong>no detiene ni afecta los recursos</strong>: solo avisa. Por eso es el primer paso, no el último.</p>
+<ol>
+<li>En el buscador de arriba del portal, escribe <strong>Budgets</strong> (o entra a <strong>Cost Management</strong> → <strong>Budgets</strong>).</li>
+<li>Elige como alcance (<em>scope</em>) tu suscripción y haz clic en <strong>Add</strong>.</li>
+<li>Nombre <code>presupuesto-lab</code>, período mensual, monto <strong>10 USD</strong>.</li>
+<li>En las alertas, agrega umbrales de <strong>50 %, 80 % y 100 %</strong> sobre el costo real, con tu correo.</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El presupuesto presupuesto-lab con alertas al 50, 80 y 100 por ciento</span><code>assets/img/guias/az-02-presupuesto.png</code></div></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los avisos llegan con demora</div>
+
+<p>Microsoft aclara que los datos de costo aparecen entre 8 y 24 horas después del uso, que los presupuestos se evalúan cada 24 horas y que en una suscripción nueva Cost Management puede tardar hasta 48 horas en estar disponible. Un presupuesto no reemplaza borrar los recursos al terminar.</p>
+</div>
+
+
+<h3>Paso 3: el grupo de recursos</h3>
+<p>Un <strong>grupo de recursos</strong> es una carpeta lógica para todo lo de un proyecto. La ventaja para un laboratorio: al final se borra el grupo y desaparece todo lo que tiene adentro.</p>
+<ol>
+<li>Busca <strong>Resource groups</strong> → <strong>Create</strong>.</li>
+<li>Nombre <code>rg-datos-lab</code>, región <strong>East US 2</strong> (o una cercana; usa siempre la misma).</li>
+<li>En <strong>Tags</strong>, agrega <code>proyecto = lab</code>.</li>
+<li><strong>Review + create</strong> → <strong>Create</strong>.</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El grupo de recursos rg-datos-lab creado, con su región y la etiqueta proyecto=lab</span><code>assets/img/guias/az-03-grupo.png</code></div></figure>
+
+
+<h3>Paso 4: el lago de datos (ADLS Gen2)</h3>
+<p>Una cuenta de almacenamiento se convierte en <strong>ADLS Gen2</strong> (el lago de datos) con una sola opción: el <strong>espacio de nombres jerárquico</strong>, que permite carpetas reales y permisos por carpeta.</p>
+<ol>
+<li>Busca <strong>Storage accounts</strong> → <strong>Create</strong>.</li>
+<li>Pestaña <strong>Basics</strong>: grupo <code>rg-datos-lab</code>; nombre <code>stdatoslab</code> seguido de números para que sea único (solo minúsculas y números, de 3 a 24 caracteres); misma región; rendimiento <strong>Standard</strong>; redundancia <strong>LRS</strong> (la más barata: tres copias en un centro de datos).</li>
+<li>Pestaña <strong>Advanced</strong>: marca <strong>Enable hierarchical namespace</strong>. Según Microsoft Learn, esta es la opción que habilita las capacidades de Data Lake Storage.</li>
+<li><strong>Review + create</strong> → <strong>Create</strong>.</li>
+<li>Cuando termine, abre la cuenta → <strong>Containers</strong> → crea tres contenedores: <code>bronze</code>, <code>silver</code> y <code>gold</code>.</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>La pestaña Advanced con Enable hierarchical namespace marcado</span><code>assets/img/guias/az-04-hns.png</code></div></figure>
+
+
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Los contenedores bronze, silver y gold dentro de la cuenta de almacenamiento</span><code>assets/img/guias/az-05-contenedores.png</code></div></figure>
+
+
+<h3>Paso 5: subir datos al lago</h3>
+<ol>
+<li>Descarga del <strong>Generador de datos</strong> del curso el escenario Tienda online en CSV y descomprime el ZIP.</li>
+<li>Abre el contenedor <code>bronze</code> → <strong>Upload</strong> → elige <code>pedidos.csv</code>. En <strong>Advanced</strong>, escribe la carpeta <code>ventas/2024/</code> para que quede organizado.</li>
+<li>Haz clic en el archivo subido para ver sus propiedades (tamaño, tipo, fecha).</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>pedidos.csv dentro de bronze/ventas/2024 en el contenedor</span><code>assets/img/guias/az-06-subida.png</code></div></figure>
+
+
+<h3>Paso 6: lo mismo con az en Cloud Shell</h3>
+<p><strong>Cloud Shell</strong> es una terminal en el navegador, ya conectada a tu cuenta y con <code>az</code> instalado. Ábrela con el ícono <code>&gt;_</code> de la barra superior del portal y elige <strong>Bash</strong>. Los comandos son los del módulo de Azure del curso:</p>
+<pre data-norun><code class="language-bash">az account show --query &quot;{suscripcion:name, usuario:user.name}&quot; -o table
+az group list -o table
+az storage account list -g rg-datos-lab --query &quot;[].{nombre:name, hns:isHnsEnabled, sku:sku.name}&quot; -o table
+az storage blob list --account-name &lt;tu_cuenta&gt; --container-name bronze --auth-mode login -o table</code></pre>
+<p>Si el último comando da un error de permisos, es porque <code>--auth-mode login</code> usa tu identidad de Entra ID y no las claves de la cuenta. Asígnate el rol de datos (como en la lección de identidad) y espera unos minutos:</p>
+<pre data-norun><code class="language-bash">az role assignment create --assignee &quot;$(az ad signed-in-user show --query id -o tsv)&quot; \
+  --role &quot;Storage Blob Data Contributor&quot; \
+  --scope &quot;$(az storage account show -n &lt;tu_cuenta&gt; -g rg-datos-lab --query id -o tsv)&quot;</code></pre>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Cloud Shell con la tabla de cuentas de almacenamiento (hns = True)</span><code>assets/img/guias/az-07-cloud-shell.png</code></div></figure>
+
+
+<h2>Parte 2 (opcional, con costo): Azure Databricks</h2>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Lee esto antes de crear el workspace</div>
+
+<p>Según Microsoft Learn, para la prueba gratuita de Azure Databricks necesitas una suscripción que <strong>no</strong> sea de prueba gratuita: hay que pasar la cuenta a <strong>pago por uso</strong> (<em>pay-as-you-go</em>), quitar el límite de gasto y, a veces, pedir más cuota de vCPU en la región. La prueba (nivel <em>Trial (Premium - 14-Days Free DBUs)</em>) regala las <strong>DBU</strong> (la tarifa de Databricks) por 14 días, pero <strong>Azure cobra las máquinas virtuales</strong> del cómputo mientras estén encendidas. Con un clúster chico, auto-terminación de 10 minutos y una hora de práctica, son unos pocos dólares. Si no quieres ningún costo, haz la guía de <strong>Databricks Free Edition</strong>: tiene la misma interfaz.</p>
+</div>
+
+
+<h3>Paso 7: crear el workspace</h3>
+<ol>
+<li>En el portal: <strong>Create a resource</strong> → <strong>Analytics</strong> → <strong>Azure Databricks</strong>.</li>
+<li>Grupo <code>rg-datos-lab</code>, nombre <code>dbw-datos-lab</code>, la misma región, nivel de precios <strong>Trial (Premium - 14-Days Free DBUs)</strong>.</li>
+<li><strong>Review + create</strong> → <strong>Create</strong>. Tarda unos minutos. Tu usuario queda como administrador del workspace.</li>
+<li>Abre el recurso y haz clic en <strong>Launch Workspace</strong>.</li>
+</ol>
+<p>Fíjate que Azure creó además un <strong>grupo de recursos administrado</strong> (su nombre empieza con <code>databricks-rg-</code>): ahí Databricks pone las máquinas y la red. No lo toques; se borra solo cuando borras el workspace.</p>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El formulario de Azure Databricks con el nivel Trial (Premium - 14-Days Free DBUs)</span><code>assets/img/guias/az-08-databricks-crear.png</code></div></figure>
+
+
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El workspace de Azure Databricks abierto después de Launch Workspace</span><code>assets/img/guias/az-09-databricks-workspace.png</code></div></figure>
+
+
+<h3>Paso 8: un cómputo barato y tu primer notebook</h3>
+<ol>
+<li>En el workspace, <strong>Compute</strong> → <strong>Create compute</strong>: un solo nodo (<em>Single node</em>), el tipo de máquina más chico que ofrezca y <strong>Terminate after 10 minutes of inactivity</strong>.</li>
+<li><strong>+ New</strong> → <strong>Notebook</strong>, conéctalo a ese cómputo y repite los pasos 4 y 5 de la guía de Free Edition (subir el CSV a un volumen y crear las tablas <code>pedidos_crudos</code> y <code>pedidos_silver</code>).</li>
+<li>Para leer <strong>directamente</strong> desde tu ADLS Gen2 (en vez de subir a un volumen), Unity Catalog usa una <em>storage credential</em> (con un <em>Access Connector for Azure Databricks</em>) y una <em>external location</em>: es el paso siguiente, explicado en la lección de Unity Catalog.</li>
+</ol>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>El cómputo de un solo nodo con auto-terminación de 10 minutos</span><code>assets/img/guias/az-10-compute.png</code></div></figure>
+
+
+<p>Para llevar el proyecto dbt del curso a este workspace, sigue la sección &quot;De dbt en tu terminal a Azure&quot; de la lección de servicios de datos: usa el SQL warehouse del workspace y un job con tarea dbt.</p>
+<h2>Parte 3: limpieza (no es opcional)</h2>
+<ol>
+<li>Detén el cómputo de Databricks si lo creaste (<strong>Compute</strong> → <strong>Terminate</strong>).</li>
+<li>En el portal: <strong>Resource groups</strong> → <code>rg-datos-lab</code> → <strong>Delete resource group</strong>. Escribe el nombre para confirmar. Esto borra la cuenta de almacenamiento, el workspace y, con él, el grupo administrado <code>databricks-rg-...</code>.</li>
+<li>Comprueba en Cloud Shell que no quedó nada:</li>
+</ol>
+<pre data-norun><code class="language-bash">az group list --query &quot;[?starts_with(name, 'rg-datos-lab') || starts_with(name, 'databricks-rg')].name&quot; -o tsv
+az resource list --tag proyecto=lab -o table</code></pre>
+<p>Ambos comandos deben devolver vacío. Al día siguiente, revisa <strong>Cost Management</strong> → <strong>Cost analysis</strong> para confirmar que el gasto dejó de crecer.</p>
+<figure class="captura captura-pendiente"><div class="captura-marco">📷 <strong>Captura pendiente</strong><span>Cloud Shell sin grupos ni recursos con la etiqueta proyecto=lab</span><code>assets/img/guias/az-11-limpieza.png</code></div></figure>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Crear recursos antes del presupuesto</strong>: si algo se olvida encendido, te enteras por la factura.</li>
+<li><strong>Creer que el presupuesto corta el gasto</strong>: solo avisa, y con hasta un día de demora.</li>
+<li><strong>Olvidar el espacio de nombres jerárquico</strong> al crear la cuenta: no es un lago ADLS Gen2 (se puede actualizar después, pero es un trámite).</li>
+<li><strong>Intentar la prueba de Databricks con la suscripción de prueba gratuita</strong>: falla; hay que pasar a pago por uso.</li>
+<li><strong>Clústeres sin auto-terminación</strong>: cobran máquinas por hora aunque nadie los use.</li>
+<li><strong>Borrar el workspace y no el grupo de recursos</strong>: la cuenta de almacenamiento sigue cobrando (poco, pero sigue).</li>
+<li><strong>Subir capturas con el ID de suscripción o claves visibles</strong>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas no se crea nada desde el portal en producción: estos mismos pasos se escriben en Bicep o Terraform (lección de automatización) y se despliegan desde CI/CD. Hacerlo una vez a mano sirve para entender qué hace cada opción.</li>
+<li>El presupuesto con alertas y las etiquetas <code>proyecto</code> y <code>responsable</code> son obligatorios en casi todas las organizaciones; Azure Policy puede impedir crear recursos sin etiquetas.</li>
+<li>Las suscripciones de laboratorio (<em>sandbox</em>) suelen tener un límite de gasto y un proceso que borra grupos viejos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué harías antes de crear recursos en una suscripción de Azure nueva?&quot;</div>
+
+<p>Configuraría un presupuesto con alertas en varios umbrales y destinatarios, sabiendo que solo avisa y con demora. Definiría una región y una convención de nombres y etiquetas, por ejemplo proyecto, entorno y responsable, y si es posible una política que las exija. Agruparía los recursos de cada proyecto y entorno en su propio grupo de recursos para poder controlar costos y borrarlos juntos, y crearía la infraestructura como código en lugar de a mano.</p>
+</div>
+
+
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-guia-azure-paso-a-paso">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-guia-databricks-free-edition.html">← Guía real: Databricks Free Edition paso a paso</a><a href="portafolio-como-armar-tu-portafolio.html">Cómo armar un portafolio que consigue entrevistas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

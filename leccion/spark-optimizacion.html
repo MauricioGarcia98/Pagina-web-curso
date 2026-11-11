@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optimización y tuning de Spark · Academia de Datos</title><meta name="description" content="Diagnóstico con la Spark UI, caché, archivos pequeños, configuración de memoria y checklist de rendimiento."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-optimizacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Optimización y tuning de Spark · Academia de Datos"><meta property="og:description" content="Diagnóstico con la Spark UI, caché, archivos pequeños, configuración de memoria y checklist de rendimiento."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-optimizacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Avanzado · 50 min</div>
+<h1>Optimización y tuning de Spark</h1><p class="resumen">Diagnóstico con la Spark UI, caché, archivos pequeños, configuración de memoria y checklist de rendimiento.</p>
+<a class="cta" href="../index.html#/l/spark-optimizacion">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<p>Tu job de Spark funciona, pero tarda 90 minutos y la factura del clúster no para de crecer. Esta lección te da un <strong>método</strong> para encontrar por qué y una lista de soluciones para los problemas más comunes. La idea central es que casi todos los problemas de rendimiento son uno de estos cinco: <strong>leer de más, mover de más (shuffle), skew, archivos chicos o traer datos al driver.</strong></p>
+<h2>Primero: medir</h2>
+<p>Nunca optimices a ciegas. Cambiar configuraciones al azar (&quot;¿y si pongo 1.000 particiones?&quot;) rara vez funciona y a veces empeora las cosas. El método es siempre el mismo:</p>
+<ol>
+<li><strong>Mide</strong> cuánto tarda hoy, y anótalo.</li>
+<li><strong>Encuentra el stage más lento</strong> en la Spark UI. En un job lento, casi siempre uno o dos stages explican el 80 % del tiempo.</li>
+<li><strong>Clasifica el síntoma</strong> con la tabla de abajo.</li>
+<li><strong>Cambia una sola cosa</strong> y vuelve a medir. Si cambias tres a la vez, no sabes cuál ayudó.</li>
+</ol>
+<p>La <strong>Spark UI</strong> muestra:</p>
+<ul>
+<li><strong>Jobs / Stages</strong>: cuánto tarda cada etapa, cuántas tareas tiene, cuánto se leyó y cuánto se movió en <strong>shuffle</strong>.</li>
+<li><strong>Tareas de un stage</strong>: si hay <em>skew</em> (unas pocas tareas mucho más lentas), <em>spill</em> (datos que no entraron en memoria y se escribieron a disco) o GC excesivo (Java pasa mucho tiempo liberando memoria).</li>
+<li><strong>SQL / DataFrame</strong>: el plan físico con métricas por operador (filas, tiempo).</li>
+</ul>
+<p><code>df.explain(&quot;formatted&quot;)</code> te muestra el plan antes de ejecutar. Busca <code>Exchange</code> (shuffle), <code>BroadcastHashJoin</code> vs. <code>SortMergeJoin</code>, y <code>PushedFilters</code> en la lectura.</p>
+<h3>Leer los síntomas</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Lo que ves en la Spark UI</th>
+<th>Qué significa</th>
+<th>Dónde buscar la solución</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Input</strong> enorme en el primer stage</td>
+<td>Lees más datos de los que necesitas</td>
+<td>Filtros tempranos, columnas, formato, particionado</td>
+</tr>
+<tr>
+<td><strong>Shuffle read/write</strong> de muchos GB</td>
+<td>Estás moviendo mucho por la red</td>
+<td>Broadcast, filtrar antes del join, menos <code>groupBy</code></td>
+</tr>
+<tr>
+<td>Tarea <strong>Max</strong> mucho mayor que la <strong>Median</strong></td>
+<td>Skew</td>
+<td>AQE skew join, NULLs, salting (lección anterior)</td>
+</tr>
+<tr>
+<td><strong>Spill (memory/disk)</strong> alto</td>
+<td>Particiones demasiado grandes para la memoria</td>
+<td>Más particiones o máquinas con más memoria</td>
+</tr>
+<tr>
+<td>Miles de tareas que tardan milisegundos</td>
+<td>Archivos o particiones demasiado chicos</td>
+<td><code>OPTIMIZE</code>, menos particiones</td>
+</tr>
+<tr>
+<td>El driver se cae con <code>OutOfMemoryError</code></td>
+<td>Estás trayendo datos al driver</td>
+<td>Quitar <code>collect()</code>/<code>toPandas()</code>, revisar broadcasts</td>
+</tr>
+</tbody></table></div>
+<h2>Checklist de rendimiento</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Solución</th>
+</tr>
+</thead><tbody><tr>
+<td>Leer columnas o filas de más</td>
+<td>Selecciona solo lo necesario y <strong>filtra temprano</strong> (aprovecha pushdown y partition pruning)</td>
+</tr>
+<tr>
+<td>Formato CSV/JSON en tablas grandes</td>
+<td>Convierte a <strong>Parquet/Delta</strong></td>
+</tr>
+<tr>
+<td>Muchos archivos pequeños</td>
+<td><code>OPTIMIZE</code> (Delta), <em>auto compaction</em>, <code>coalesce</code> antes de escribir</td>
+</tr>
+<tr>
+<td>Join con una tabla chica</td>
+<td><code>broadcast()</code></td>
+</tr>
+<tr>
+<td>Skew en joins o agregaciones</td>
+<td>AQE skew join, filtrar NULL, <em>salting</em></td>
+</tr>
+<tr>
+<td>Particiones de shuffle inadecuadas</td>
+<td>AQE (<code>spark.sql.adaptive.enabled</code>) o ajustar <code>spark.sql.shuffle.partitions</code></td>
+</tr>
+<tr>
+<td>Reusar un DataFrame costoso varias veces</td>
+<td><code>cache()</code> / <code>persist()</code> (¡y <code>unpersist()</code> al terminar!)</td>
+</tr>
+<tr>
+<td>UDFs de Python lentas</td>
+<td>Usa funciones nativas de <code>pyspark.sql.functions</code>; si no queda otra, <strong>pandas UDF</strong> (vectorizadas con Arrow)</td>
+</tr>
+<tr>
+<td><code>collect()</code> o <code>toPandas()</code> de datos grandes</td>
+<td>Agrega o escribe en Spark; trae al driver solo resultados chicos</td>
+</tr>
+<tr>
+<td><code>count()</code> innecesarios para &quot;ver si funciona&quot;</td>
+<td>Cada acción vuelve a ejecutar el plan: evítalas en producción</td>
+</tr>
+</tbody></table></div>
+<h2>Un caso real, paso a paso</h2>
+<p>El job nocturno <code>ventas_por_cliente</code> tarda <strong>90 minutos</strong>:</p>
+<pre data-norun><code class="language-python">pedidos  = spark.read.json(&quot;/lake/bronze/pedidos/&quot;)             # 800 GB de JSON
+clientes = spark.read.parquet(&quot;/lake/silver/clientes/&quot;)         # 40 MB
+r = (pedidos.join(clientes, &quot;cliente_id&quot;)
+            .filter(F.col(&quot;fecha&quot;) &gt;= &quot;2024-01-01&quot;)
+            .groupBy(&quot;cliente_id&quot;, &quot;pais&quot;).agg(F.sum(&quot;total&quot;).alias(&quot;ventas&quot;)))
+print(r.count())                                                 # &quot;para ver que funciona&quot;
+r.write.mode(&quot;overwrite&quot;).parquet(&quot;/lake/gold/ventas_por_cliente/&quot;)</code></pre>
+<p><strong>Diagnóstico</strong> en la Spark UI:</p>
+<ol>
+<li>El job aparece <strong>dos veces</strong>: una por el <code>count()</code> y otra por el <code>write</code>. Todo se calcula dos veces. → <strong>Quitar el <code>count()</code></strong>: 90 → 45 min.</li>
+<li>El primer stage lee <strong>800 GB de JSON</strong>, aunque solo se usan 4 columnas y el último año. JSON no permite leer columnas sueltas ni saltarse archivos. → Leer desde la tabla <strong>silver en Delta, particionada por fecha</strong>, y filtrar <strong>antes</strong> del join. Ahora lee 35 GB: 45 → 12 min.</li>
+<li>El plan muestra <code>SortMergeJoin</code> con un shuffle de 30 GB, porque Spark no sabía que <code>clientes</code> era chica. → <strong><code>F.broadcast(clientes)</code></strong>: desaparece el shuffle de pedidos, 12 → 6 min.</li>
+<li>En el stage del <code>groupBy</code>, una tarea tarda 4 minutos y las demás 10 segundos: <code>cliente_id = NULL</code> (compras sin cuenta) tiene el 30 % de las filas. → <strong>Filtrar los NULL</strong> antes (no sirven en un inner join): 6 → 2 min.</li>
+</ol>
+<pre data-norun><code class="language-python">pedidos  = (spark.table(&quot;silver.pedidos&quot;)
+              .filter(F.col(&quot;fecha&quot;) &gt;= &quot;2024-01-01&quot;)           # pruning + pushdown
+              .filter(F.col(&quot;cliente_id&quot;).isNotNull())          # adiós skew
+              .select(&quot;cliente_id&quot;, &quot;total&quot;))                   # solo lo necesario
+clientes = spark.table(&quot;silver.clientes&quot;).select(&quot;cliente_id&quot;, &quot;pais&quot;)
+r = (pedidos.join(F.broadcast(clientes), &quot;cliente_id&quot;)          # sin shuffle de pedidos
+            .groupBy(&quot;cliente_id&quot;, &quot;pais&quot;).agg(F.sum(&quot;total&quot;).alias(&quot;ventas&quot;)))
+r.write.mode(&quot;overwrite&quot;).saveAsTable(&quot;gold.ventas_por_cliente&quot;)</code></pre>
+<p>De 90 a 2 minutos <strong>sin agregar una sola máquina</strong>. Es lo habitual: el código y los datos importan mucho más que el tamaño del clúster.</p>
+<div class="recorrido"></div>
+
+
+<h2>Caché: cuándo sí y cuándo no</h2>
+<p><code>cache()</code> guarda un DataFrame en la memoria de los executors la primera vez que se calcula, y las acciones siguientes lo reutilizan en vez de recalcularlo desde el principio.</p>
+<pre data-norun><code class="language-python">clientes_activos = (spark.table(&quot;silver.clientes&quot;)
+                      .filter(&quot;activo = true&quot;)
+                      .cache())                  # perezoso: se materializa con la primera acción
+clientes_activos.count()                         # ahora sí queda en memoria
+reporte_a = clientes_activos.groupBy(&quot;pais&quot;).count()
+reporte_b = clientes_activos.join(pedidos, &quot;cliente_id&quot;)
+clientes_activos.unpersist()</code></pre>
+<p>Úsala solo si el DataFrame <strong>se reutiliza varias veces</strong> y es costoso de calcular. Cachear algo que se usa una vez solo gasta memoria, y esa memoria se la quitas a los joins y las agregaciones, que pueden empezar a hacer spill.</p>
+<ul>
+<li><code>cache()</code> es un atajo de <code>persist()</code> con el nivel por defecto (memoria y, si no entra, disco).</li>
+<li><code>persist(StorageLevel.DISK_ONLY)</code> y otros niveles te dejan elegir dónde guardar.</li>
+<li>En Databricks, el <strong>disk cache</strong> acelera automáticamente las lecturas repetidas de Parquet/Delta, sin que escribas nada.</li>
+</ul>
+<h2>UDFs: el último recurso</h2>
+<p>Una <strong>UDF</strong> (<em>user-defined function</em>) es una función de Python que aplicas a una columna. Parece cómodo, pero es lento: Spark corre en la JVM (Java), así que cada fila tiene que <strong>convertirse, viajar a un proceso de Python, procesarse y volver</strong>. Además, Catalyst no puede ver qué hace la función, así que no puede optimizarla.</p>
+<pre data-norun><code class="language-python">from pyspark.sql import functions as F, types as T
+
+# ❌ UDF de Python: cada fila viaja a un proceso Python y vuelve (lento)
+@F.udf(T.StringType())
+def dominio(email):
+    return email.split(&quot;@&quot;)[1] if email else None
+
+# ✅ Función nativa: se ejecuta en la JVM, optimizada
+df.withColumn(&quot;dominio&quot;, F.split(&quot;email&quot;, &quot;@&quot;).getItem(1))</code></pre>
+<p>Antes de escribir una UDF, busca en <code>pyspark.sql.functions</code>: tiene más de 300 funciones (textos, fechas, arreglos, JSON, expresiones regulares). Casi todo se puede hacer con ellas.</p>
+<p>Si de verdad necesitas Python (por ejemplo, una librería de geolocalización), usa una <strong>pandas UDF</strong>. Procesa <strong>lotes</strong> de miles de filas a la vez como una <code>pd.Series</code>, usando Apache Arrow, y suele ser de 10 a 100 veces más rápida que una UDF común:</p>
+<pre data-norun><code class="language-python">import pandas as pd
+
+@F.pandas_udf(&quot;string&quot;)
+def dominio_vec(emails: pd.Series) -&gt; pd.Series:
+    return emails.str.split(&quot;@&quot;).str[1]
+
+df.withColumn(&quot;dominio&quot;, dominio_vec(&quot;email&quot;))</code></pre>
+<h2>Memoria (lo básico)</h2>
+<p>Cada executor divide su memoria entre <strong>ejecución</strong> (joins, agregaciones, ordenamientos) y <strong>almacenamiento</strong> (caché). Las dos comparten un mismo espacio y se lo prestan según la necesidad. Si no alcanza, Spark hace <em>spill</em> a disco (lento) o falla con <code>OutOfMemoryError</code>.</p>
+<p>Antes de agrandar las máquinas, revisa estos sospechosos:</p>
+<ol>
+<li><strong>Skew</strong>: una partición gigante no entra en memoria aunque todas las demás sí.</li>
+<li><strong>Particiones demasiado grandes</strong>: con 200 particiones para 1 TB, cada una tiene 5 GB. Sube <code>spark.sql.shuffle.partitions</code> o deja que AQE lo ajuste.</li>
+<li><strong><code>collect()</code> o <code>toPandas()</code></strong>, que llenan la memoria del <strong>driver</strong>.</li>
+<li><strong>Broadcast de tablas que no son chicas</strong>, que llenan driver y executors.</li>
+</ol>
+<div class="callout callout-experto"><div class="callout-title">🚀 Photon</div>
+
+<p>En Databricks, <strong>Photon</strong> es un motor de ejecución vectorizado escrito en C++ que reemplaza partes de Spark y acelera mucho SQL y DataFrames, sin cambiar tu código. Las UDF de Python no se benefician: otra razón para usar funciones nativas.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-optimizacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-particiones-joins.html">← Particiones, shuffle, joins y skew</a><a href="spark-streaming.html">Structured Streaming →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

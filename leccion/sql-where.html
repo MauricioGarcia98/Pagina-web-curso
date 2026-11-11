@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHERE: filtrar filas · Academia de Datos</title><meta name="description" content="Comparaciones, AND/OR/NOT, IN, BETWEEN y LIKE."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-where.html">
+<meta property="og:type" content="article"><meta property="og:title" content="WHERE: filtrar filas · Academia de Datos"><meta property="og:description" content="Comparaciones, AND/OR/NOT, IN, BETWEEN y LIKE."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-where.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Básico · 35 min</div>
+<h1>WHERE: filtrar filas</h1><p class="resumen">Comparaciones, AND/OR/NOT, IN, BETWEEN y LIKE.</p>
+<a class="cta" href="../index.html#/l/sql-where">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar filas con <code>WHERE</code> usando comparaciones de números, textos y fechas</li><li>Combinar condiciones con <code>AND</code>, <code>OR</code> y <code>NOT</code> usando paréntesis cuando hace falta</li><li>Usar <code>IN</code>, <code>BETWEEN</code> y <code>LIKE</code> para filtros comunes</li><li>Detectar filtros que dejan afuera filas por mayúsculas o espacios</li></ul>
+<h2>Para qué sirve WHERE</h2>
+<p><code>SELECT</code> decide <strong>qué columnas</strong> ves. <code>WHERE</code> decide <strong>qué filas</strong> ves: se queda solo con las que cumplen una <strong>condición</strong>. Es el filtro de cualquier pregunta de negocio: &quot;los pedidos <strong>de diciembre</strong>&quot;, &quot;los clientes <strong>de Chile</strong>&quot;, &quot;los productos <strong>sin stock</strong>&quot;.</p>
+<pre><code class="language-sql">SELECT nombre, precio
+FROM productos
+WHERE precio &gt; 1000;</code></pre>
+<p>El orden de escritura siempre es: <code>SELECT</code> → <code>FROM</code> → <code>WHERE</code> (y <code>LIMIT</code>, si lo usas, al final).</p>
+<h3>Cómo piensa la base de datos</h3>
+<p>Imagina que la base recorre la tabla <strong>fila por fila</strong> y, para cada una, se hace la pregunta del <code>WHERE</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>producto</th>
+<th>precio</th>
+<th>¿precio &gt; 1000?</th>
+<th>¿Aparece?</th>
+</tr>
+</thead><tbody><tr>
+<td>Smartphone Apple Mini 300</td>
+<td>484.99</td>
+<td>falso</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Notebook Apple X</td>
+<td>1044.99</td>
+<td><strong>verdadero</strong></td>
+<td><strong>sí</strong></td>
+</tr>
+<tr>
+<td>Parlante Xiaomi Sport 900</td>
+<td>425.99</td>
+<td>falso</td>
+<td>no</td>
+</tr>
+</tbody></table></div>
+<p>Solo las filas donde la condición da <strong>verdadero</strong> pasan al resultado. (En realidad el motor es más astuto: con índices puede saltar directo a las filas que sirven. Pero el <em>resultado</em> es el mismo que si recorriera fila por fila, y pensarlo así nunca falla.)</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El colador</div>
+
+<p><code>WHERE</code> es un colador: echas toda la tabla y solo quedan las filas que &quot;no pasan por los agujeros&quot;. Filtrar <strong>no borra nada</strong> de la tabla: la próxima consulta vuelve a tener todas las filas.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Operadores de comparación</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>Significa</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>=</code></td>
+<td>igual</td>
+<td><code>pais = &#39;Chile&#39;</code></td>
+</tr>
+<tr>
+<td><code>&lt;&gt;</code> o <code>!=</code></td>
+<td>distinto</td>
+<td><code>estado &lt;&gt; &#39;cancelado&#39;</code></td>
+</tr>
+<tr>
+<td><code>&gt;</code> / <code>&gt;=</code></td>
+<td>mayor / mayor o igual</td>
+<td><code>precio &gt;= 100</code></td>
+</tr>
+<tr>
+<td><code>&lt;</code> / <code>&lt;=</code></td>
+<td>menor / menor o igual</td>
+<td><code>stock &lt; 10</code></td>
+</tr>
+</tbody></table></div>
+<p>Funcionan con <strong>números</strong>, con <strong>texto</strong> y con <strong>fechas</strong>:</p>
+<ul>
+<li>Números: <code>stock = 0</code> → productos sin stock.</li>
+<li>Texto: <code>pais = &#39;Chile&#39;</code>. <strong>Comillas simples</strong> siempre. Sin comillas (<code>pais = Chile</code>), SQL cree que <code>Chile</code> es el nombre de una columna y da error <code>no such column: Chile</code>.</li>
+<li>Fechas: en SQLite las fechas se guardan como texto <code>&#39;AAAA-MM-DD&#39;</code>, que se ordena igual que el tiempo, así que <code>fecha_pedido &gt;= &#39;2024-12-01&#39;</code> funciona perfecto.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Mayúsculas y espacios en los textos</div>
+
+<p><code>pais = &#39;chile&#39;</code> devuelve <strong>0 filas</strong>, porque en la tabla está escrito <code>&#39;Chile&#39;</code>. En la mayoría de los motores las comparaciones de texto distinguen mayúsculas, tildes y espacios: <code>&#39;Perú&#39;</code> no es <code>&#39;Peru&#39;</code>, ni <code>&#39;Chile &#39;</code> (con espacio al final) es <code>&#39;Chile&#39;</code>. Antes de filtrar por un texto, mira qué valores existen con <code>SELECT DISTINCT pais FROM clientes;</code> (verás <code>DISTINCT</code> en detalle más adelante: muestra cada valor una sola vez).</p>
+</div>
+
+
+<h2>Combinar condiciones: AND, OR y NOT</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>La fila pasa si…</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>A AND B</code></td>
+<td>se cumplen <strong>las dos</strong></td>
+<td>Apple <strong>y</strong> precio mayor a 1.500</td>
+</tr>
+<tr>
+<td><code>A OR B</code></td>
+<td>se cumple <strong>al menos una</strong></td>
+<td>de Chile <strong>o</strong> de Perú</td>
+</tr>
+<tr>
+<td><code>NOT A</code></td>
+<td><strong>no</strong> se cumple A</td>
+<td><code>NOT estado = &#39;entregado&#39;</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">-- Productos de Apple de más de 1500
+SELECT nombre, marca, precio
+FROM productos
+WHERE marca = 'Apple' AND precio &gt; 1500;
+
+-- Clientes de Chile o de Perú
+SELECT nombre, pais
+FROM clientes
+WHERE pais = 'Chile' OR pais = 'Perú';</code></pre>
+<p>Un truco para no confundirte: <code>AND</code> <strong>achica</strong> el resultado (cada condición nueva deja menos filas) y <code>OR</code> lo <strong>agranda</strong> (cada condición nueva suma filas).</p>
+<h3>La trampa de la prioridad: usa paréntesis</h3>
+<p><code>AND</code> se evalúa <strong>antes</strong> que <code>OR</code>, igual que en matemática la multiplicación va antes que la suma. Mira cómo cambia el resultado. Queremos &quot;pedidos de web o de app que fueron cancelados&quot;:</p>
+<pre><code class="language-sql">-- ❌ Sin paréntesis: 5.666 filas
+SELECT COUNT(*) FROM pedidos
+WHERE canal = 'web' OR canal = 'app' AND estado = 'cancelado';
+
+-- ✅ Con paréntesis: 687 filas
+SELECT COUNT(*) FROM pedidos
+WHERE (canal = 'web' OR canal = 'app') AND estado = 'cancelado';</code></pre>
+<p>(<code>COUNT(*)</code> cuenta filas; lo verás en la lección de agregaciones.) La primera consulta se lee, para SQL, como <code>canal = &#39;web&#39; OR (canal = &#39;app&#39; AND estado = &#39;cancelado&#39;)</code>: <strong>todos</strong> los pedidos web (5.400, cancelados o no) más los de app cancelados. Es un error silencioso: no da mensaje de error, solo un número equivocado. <strong>Regla práctica: si mezclas <code>AND</code> y <code>OR</code>, pon paréntesis siempre.</strong></p>
+<h2>IN: comparar contra una lista</h2>
+<p>Cuando tienes muchos <code>OR</code> sobre la misma columna, <code>IN</code> es más corto y más legible:</p>
+<pre><code class="language-sql">SELECT nombre, pais
+FROM clientes
+WHERE pais IN ('Chile', 'Perú', 'Uruguay');</code></pre>
+<p>Es exactamente igual a <code>pais = &#39;Chile&#39; OR pais = &#39;Perú&#39; OR pais = &#39;Uruguay&#39;</code>. Su opuesto es <code>NOT IN</code>:</p>
+<pre><code class="language-sql">SELECT pedido_id, estado
+FROM pedidos
+WHERE estado NOT IN ('cancelado', 'devuelto')
+LIMIT 10;</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Más adelante: IN con una subconsulta</div>
+
+<p>La lista de <code>IN</code> también puede salir de otra consulta: &quot;clientes <strong>que están en</strong> la lista de clientes que compraron en diciembre&quot;. Lo verás en la lección de subconsultas, junto con una trampa importante de <code>NOT IN</code> cuando la lista tiene valores vacíos (<code>NULL</code>).</p>
+</div>
+
+
+<h2>BETWEEN: un rango (con los extremos incluidos)</h2>
+<pre><code class="language-sql">SELECT nombre, precio
+FROM productos
+WHERE precio BETWEEN 100 AND 200;     -- equivale a: precio &gt;= 100 AND precio &lt;= 200</code></pre>
+<p><code>BETWEEN</code> <strong>incluye</strong> ambos extremos: un producto de exactamente 100 o exactamente 200 aparece. El menor va primero: <code>BETWEEN 200 AND 100</code> devuelve 0 filas.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ BETWEEN con fechas y horas</div>
+
+<p>En <code>pedidos</code>, <code>fecha_pedido</code> es solo una fecha (<code>2024-12-31</code>), así que <code>BETWEEN &#39;2024-12-01&#39; AND &#39;2024-12-31&#39;</code> funciona. Pero en <code>eventos_web</code>, <code>fecha_hora</code> incluye la hora (<code>2024-12-31 18:45:10</code>), y ese valor es <strong>mayor</strong> que <code>&#39;2024-12-31&#39;</code> (como texto, es más largo), así que <strong>queda afuera</strong>:</p>
+<pre><code class="language-sql">-- ❌ Pierde todo lo del 31 de diciembre después de las 00:00: 1.595 filas
+SELECT COUNT(*) FROM eventos_web WHERE fecha_hora BETWEEN '2024-12-01' AND '2024-12-31';
+
+-- ✅ Rango semiabierto: desde el 1 (incluido) hasta el 1 del mes siguiente (excluido): 1.658 filas
+SELECT COUNT(*) FROM eventos_web WHERE fecha_hora &gt;= '2024-12-01' AND fecha_hora &lt; '2025-01-01';</code></pre>
+<p>Los profesionales usan siempre la segunda forma (<code>&gt;=</code> inicio y <code>&lt;</code> día siguiente) para fechas: funciona con o sin hora.</p>
+</div>
+
+
+<h2>LIKE: buscar patrones en textos</h2>
+<p>A veces no sabes el texto exacto, solo una parte. <code>LIKE</code> compara contra un <strong>patrón</strong> con dos comodines:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comodín</th>
+<th>Significa</th>
+<th>Ejemplo</th>
+<th>Coincide con</th>
+</tr>
+</thead><tbody><tr>
+<td><code>%</code></td>
+<td>cualquier cantidad de caracteres (incluso cero)</td>
+<td><code>&#39;Laptop%&#39;</code></td>
+<td>&quot;Laptop&quot;, &quot;Laptop Apple Neo 700&quot;</td>
+</tr>
+<tr>
+<td><code>_</code></td>
+<td>exactamente <strong>un</strong> carácter</td>
+<td><code>&#39;_ana&#39;</code></td>
+<td>&quot;Ana&quot;, &quot;Dana&quot; (no &quot;Juana&quot;)</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">SELECT nombre FROM productos WHERE nombre LIKE 'Laptop%';      -- empieza con Laptop
+SELECT nombre FROM productos WHERE nombre LIKE '%Pro%';        -- contiene &quot;Pro&quot; en cualquier lugar
+SELECT email  FROM clientes  WHERE email  LIKE '%@gmail.com';  -- termina en @gmail.com
+SELECT nombre FROM productos WHERE nombre NOT LIKE '%Apple%';  -- no contiene Apple</code></pre>
+<p>Sin comodines, <code>LIKE &#39;Chile&#39;</code> es igual que <code>= &#39;Chile&#39;</code>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Mayúsculas en LIKE según el motor</div>
+
+<p>En SQLite, <code>LIKE</code> <strong>no</strong> distingue mayúsculas en letras simples (<code>&#39;laptop%&#39;</code> también encuentra &quot;Laptop&quot;). En PostgreSQL sí las distingue, y existe <code>ILIKE</code> para ignorarlas. En cualquier motor puedes normalizar: <code>WHERE LOWER(nombre) LIKE &#39;%laptop%&#39;</code>.</p>
+</div>
+
+
+<div class="callout callout-experto"><div class="callout-title">🚀 LIKE '%texto' es lento</div>
+
+<p>Un patrón que <strong>empieza</strong> con <code>%</code> obliga a revisar todas las filas: no puede usar un índice (como buscar en una guía telefónica todas las personas cuyo apellido <em>termina</em> en &quot;ez&quot;). <code>&#39;texto%&#39;</code> sí aprovecha índices. En tablas enormes, la búsqueda de texto libre se resuelve con índices especiales (<em>full-text search</em>).</p>
+</div>
+
+
+<p>Que <code>LIKE</code> distinga mayúsculas o no depende del motor (y de su configuración):</p>
+<div class="motores"></div>
+
+
+<h2>Filtrar por columnas calculadas</h2>
+<p>La condición puede usar cálculos:</p>
+<pre><code class="language-sql">-- Productos con margen de ganancia menor al 20 %
+SELECT nombre, precio, costo
+FROM productos
+WHERE (precio - costo) / precio &lt; 0.20;</code></pre>
+<p>Pero <strong>no</strong> puedes usar en el <code>WHERE</code> un alias definido en el <code>SELECT</code> (<code>WHERE margen &lt; 0.20</code> falla en la mayoría de los motores), porque el <code>WHERE</code> se evalúa <strong>antes</strong> que el <code>SELECT</code>. Lo explicamos con detalle en la próxima lección.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Precedencia de AND y OR</strong>: <code>AND</code> se evalúa antes que <code>OR</code>. <code>WHERE canal = &#39;web&#39; OR canal = &#39;app&#39; AND metodo_pago = &#39;efectivo&#39;</code> significa &quot;web (con cualquier pago) <strong>o</strong> app en efectivo&quot;. Pon paréntesis siempre que mezcles los dos: <code>(canal = &#39;web&#39; OR canal = &#39;app&#39;) AND metodo_pago = &#39;efectivo&#39;</code>.</li>
+<li><strong>Comparar con NULL usando <code>=</code></strong>: <code>WHERE telefono = NULL</code> nunca devuelve filas. Se usa <code>IS NULL</code> (lo verás en la lección de NULL).</li>
+<li><strong>Textos con distinta escritura</strong>: <code>WHERE pais = &#39;argentina&#39;</code> no encuentra <code>&#39;Argentina&#39;</code> en muchas bases. Si los datos están sucios, normaliza con <code>LOWER(TRIM(pais))</code>.</li>
+<li><strong>Fechas con hora y BETWEEN</strong>: <code>BETWEEN &#39;2024-12-01&#39; AND &#39;2024-12-31&#39;</code> deja afuera todo lo que pasó el 31 después de las 00:00 si la columna tiene hora. Usa el rango semiabierto <code>&gt;= &#39;2024-12-01&#39; AND &lt; &#39;2025-01-01&#39;</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los clientes de Argentina</div>
+
+<p>Camila, de marketing, prepara una campaña para Argentina:</p>
+<blockquote>
+<p>&quot;Necesito la lista de clientes de Argentina con su ciudad. Ah, y aparte, los pedidos cancelados o devueltos del último mes, que quiero entender qué pasó.&quot;</p>
+</blockquote>
+<p>Para eso no sirve ver toda la tabla: necesitas <strong>filtrar</strong> filas. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Casi todas las consultas en producción filtran por <strong>fecha</strong>: &quot;los pedidos de ayer&quot;, &quot;el último mes&quot;. En tablas grandes, filtrar por la columna de partición (normalmente la fecha) es lo que hace que una consulta tarde segundos en vez de horas.</li>
+<li>Los filtros que vienen &quot;del negocio&quot; (qué cuenta como venta, qué estados se excluyen) se documentan y se acuerdan con el área. Un error típico de un junior es excluir <code>devuelto</code> cuando finanzas sí lo quiere ver, o al revés. Ante la duda, <strong>pregunta y anota la definición</strong>.</li>
+<li><code>LIKE &#39;%texto%&#39;</code> no puede usar índices: en tablas grandes es lento. Para búsquedas de texto en serio se usan índices de texto completo u otras herramientas.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre WHERE y HAVING?&quot;</div>
+
+<p><code>WHERE</code> filtra <strong>filas</strong> antes de agrupar y no puede usar funciones de agregación. <code>HAVING</code> filtra <strong>grupos</strong> después del <code>GROUP BY</code> y sí puede usar <code>COUNT</code>, <code>SUM</code>, etc. Lo verás a fondo en la lección de GROUP BY; ya puedes dar la primera mitad de la respuesta.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>WHERE condición</code> deja solo las filas donde la condición es verdadera; no modifica la tabla.</li>
+<li>Comparaciones: <code>=</code>, <code>&lt;&gt;</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>. Texto entre comillas simples y escrito exacto.</li>
+<li><code>AND</code> achica, <code>OR</code> agranda, <code>NOT</code> invierte. <strong>Paréntesis</strong> siempre que mezcles <code>AND</code> y <code>OR</code>.</li>
+<li><code>IN (lista)</code> reemplaza varios <code>OR</code>; <code>BETWEEN a AND b</code> incluye extremos (cuidado con fechas con hora: usa <code>&gt;=</code> y <code>&lt;</code>).</li>
+<li><code>LIKE</code> busca patrones con <code>%</code> (cualquier cosa) y <code>_</code> (un carácter).</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-where">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-select.html">← SELECT: elegir columnas, alias y cálculos</a><a href="sql-order-by.html">ORDER BY, LIMIT y DISTINCT →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

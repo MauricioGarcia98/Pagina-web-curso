@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 9: Asistente de soporte con RAG que cita sus fuentes · Academia de Datos</title><meta name="description" content="Un asistente que responde preguntas de clientes usando solo la base de conocimiento de la empresa y dice de qué artículo sacó cada respuesta. Construyes la ingesta de documentos (limpieza y fragmentos), la búsqueda (por palabras, por embeddings y combinada), el prompt con citas, y - lo que separa un demo de un proyecto - la evaluación con un conjunto de preguntas y respuestas esperadas. Primero local con Ollama y una base vectorial en archivo; después con Vector Search en Databricks o Azure AI Search."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-asistente-rag-con-citas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 9: Asistente de soporte con RAG que cita sus fuentes · Academia de Datos"><meta property="og:description" content="Un asistente que responde preguntas de clientes usando solo la base de conocimiento de la empresa y dice de qué artículo sacó cada respuesta. Construyes la ingesta de documentos (limpieza y fragmentos), la búsqueda (por palabras, por embeddings y combinada), el prompt con citas, y - lo que separa un demo de un proyecto - la evaluación con un conjunto de preguntas y respuestas esperadas. Primero local con Ollama y una base vectorial en archivo; después con Vector Search en Databricks o Azure AI Search."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-asistente-rag-con-citas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Experto · 120 min</div>
+<h1>Proyecto 9: Asistente de soporte con RAG que cita sus fuentes</h1><p class="resumen">Un asistente que responde preguntas de clientes usando solo la base de conocimiento de la empresa y dice de qué artículo sacó cada respuesta. Construyes la ingesta de documentos (limpieza y fragmentos), la búsqueda (por palabras, por embeddings y combinada), el prompt con citas, y - lo que separa un demo de un proyecto - la evaluación con un conjunto de preguntas y respuestas esperadas. Primero local con Ollama y una base vectorial en archivo; después con Vector Search en Databricks o Azure AI Search.</p>
+<a class="cta" href="../index.html#/l/portafolio-asistente-rag-con-citas">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Dividir documentos en fragmentos con superposición y metadatos</li><li>Implementar y comparar búsqueda por palabras, por embeddings e híbrida</li><li>Escribir un prompt que obligue a citar y a decir &quot;no sé&quot;</li><li>Evaluar la recuperación (acierto en el top k) y la respuesta (fidelidad a la fuente)</li><li>Llevar la solución a Vector Search o Azure AI Search con actualización automática</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El chat de soporte responde 40 % de las veces &quot;un agente te contactará&quot;. Los artículos de ayuda existen (devoluciones, envíos, cobros, garantía, cuenta), pero nadie los lee. La gerente de experiencia de cliente quiere un asistente que responda con la política vigente, <strong>cite el artículo</strong> y, si no sabe, lo diga y derive. Una respuesta inventada sobre plazos de devolución es un problema legal.</p>
+</div>
+
+
+<h2>Valor y riesgos</h2>
+<ul>
+<li><strong>Valor</strong>: más consultas resueltas sin agente; respuestas consistentes con la política.</li>
+<li><strong>Riesgo principal</strong>: alucinación (inventar un plazo o una condición). Se mitiga con recuperación buena, un prompt que obliga a citar y una evaluación antes de publicar.</li>
+</ul>
+<h2>Los datos</h2>
+<p><a href="#/generador?esc=soporte&n=1500&semilla=88&desde=2024-01-01&hasta=2024-12-31">🏭 Generar los datos del proyecto</a> · <code>base_conocimiento</code> (7 artículos: devoluciones, envíos, cobros, garantía, cuenta, paquetes dañados y facturación) y <code>tickets</code> con preguntas reales y su <code>articulo_relacionado</code>: <strong>ese par es tu conjunto de evaluación</strong>.</p>
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>RAG con citas y evaluación</figcaption></figure>
+
+
+<h2>Fase 1: local</h2>
+<pre data-norun><code class="language-python"># ingesta: fragmentos con superposición y metadatos (artículo, título, fecha)
+def fragmentar(texto, tam=600, solape=120):
+    return [texto[i:i + tam] for i in range(0, max(1, len(texto) - solape), tam - solape)]
+
+import chromadb, ollama
+col = chromadb.PersistentClient(&quot;data/index&quot;).get_or_create_collection(&quot;kb&quot;)
+for a in articulos:
+    for k, frag in enumerate(fragmentar(a[&quot;contenido&quot;])):
+        emb = ollama.embed(model=&quot;nomic-embed-text&quot;, input=frag)[&quot;embeddings&quot;][0]
+        col.add(ids=[f'{a[&quot;articulo_id&quot;]}-{k}'], embeddings=[emb], documents=[frag],
+                metadatas=[{&quot;articulo_id&quot;: a[&quot;articulo_id&quot;], &quot;titulo&quot;: a[&quot;titulo&quot;]}])</code></pre>
+<p>El prompt de generación:</p>
+<pre><code class="language-text">Responde la pregunta del cliente usando SOLO los fragmentos.
+Después de cada afirmación, cita el artículo entre corchetes: [art. 3].
+Si los fragmentos no alcanzan para responder, di exactamente:
+&quot;No tengo esa información; te derivo con un agente.&quot; No inventes plazos ni montos.
+
+Fragmentos:
+{fragmentos}
+
+Pregunta: {pregunta}</code></pre>
+<h2>Fase 2: evaluar antes de publicar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Qué se mide</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Acierto@k</strong> de la recuperación</td>
+<td>¿El artículo correcto está entre los k fragmentos recuperados? (con los tickets etiquetados)</td>
+</tr>
+<tr>
+<td><strong>Fidelidad</strong></td>
+<td>¿Cada afirmación de la respuesta está en los fragmentos citados? (revisión humana de una muestra, o un modelo juez con criterios explícitos)</td>
+</tr>
+<tr>
+<td><strong>&quot;No sé&quot; correcto</strong></td>
+<td>Preguntas fuera de la base (por ejemplo, sobre sucursales) deben derivar</td>
+</tr>
+<tr>
+<td><strong>Latencia y costo</strong></td>
+<td>Por pregunta</td>
+</tr>
+</tbody></table></div>
+<p>Compara tres recuperadores (palabras, embeddings, híbrido) con el <strong>mismo</strong> conjunto de preguntas. Esa tabla es el centro del README.</p>
+<h2>Fase 3: en la nube</h2>
+<ul>
+<li><strong>Databricks</strong>: los fragmentos en una tabla Delta con <em>Change Data Feed</em>, un índice de <strong>Vector Search</strong> sincronizado con esa tabla (si cambia un artículo, se reindexa solo) y un endpoint de modelo para generar. Si tu edición no incluye Vector Search, mantén el índice local y usa Databricks para la ingesta y la evaluación.</li>
+<li><strong>Azure</strong>: <strong>Azure AI Search</strong> con búsqueda híbrida (palabras + vectores) y reranking semántico, y un modelo desplegado en <strong>Microsoft Foundry</strong>.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Responder sin citas</strong>: no se puede verificar.</li>
+<li><strong>Chunks sin metadatos</strong> (producto, versión, fecha): el asistente mezcla documentación vieja y nueva.</li>
+<li><strong>No evaluar la recuperación</strong>: si el documento correcto no aparece entre los recuperados, ningún modelo va a responder bien.</li>
+<li><strong>No contemplar &quot;no lo sé&quot;</strong>: el asistente inventa cuando no tiene contexto.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas, un RAG se mide con un conjunto de preguntas reales y respuestas esperadas, y se vuelve a evaluar cada vez que cambian los documentos, el chunking o el modelo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo evaluarías un asistente RAG?&quot;</div>
+
+<p>En dos partes. La recuperación: para un conjunto de preguntas sé qué documento contiene la respuesta y mido si aparece entre los primeros recuperados. La generación: si la respuesta es fiel al contexto, si cita las fuentes correctas y si dice no saber cuando corresponde, con revisión humana de una muestra o con un modelo evaluador calibrado. Lo corro en cada cambio.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Pipeline de ingesta (fragmentos con metadatos) y su actualización.</li>
+<li><input disabled="" type="checkbox"> Tabla de evaluación: acierto@k de los tres recuperadores, fidelidad y &quot;no sé&quot; correcto.</li>
+<li><input disabled="" type="checkbox"> Ejemplos de respuestas buenas y de fallas analizadas.</li>
+<li><input disabled="" type="checkbox"> Costo y latencia por pregunta.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Reranking de los fragmentos recuperados antes de generar.</li>
+<li>Un agente que, además de responder, consulte el estado del pedido (herramienta) cuando la pregunta lo requiera.</li>
+<li>Evaluación automática con MLflow (evaluadores de fidelidad y relevancia) en cada cambio del prompt o del índice.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-asistente-rag-con-citas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-clasificador-tickets-llm.html">← Proyecto 8: Clasificador de tickets con un modelo de lenguaje</a><a href="portafolio-agente-que-consulta-datos.html">Proyecto 10: Un agente que responde preguntas sobre los datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

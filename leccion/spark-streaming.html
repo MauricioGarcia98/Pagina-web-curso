@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structured Streaming · Academia de Datos</title><meta name="description" content="Procesar datos que llegan sin parar: fuentes, sinks, triggers, checkpoints, watermarks y Auto Loader."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-streaming.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Structured Streaming · Academia de Datos"><meta property="og:description" content="Procesar datos que llegan sin parar: fuentes, sinks, triggers, checkpoints, watermarks y Auto Loader."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-streaming.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Experto · 25 min</div>
+<h1>Structured Streaming</h1><p class="resumen">Procesar datos que llegan sin parar: fuentes, sinks, triggers, checkpoints, watermarks y Auto Loader.</p>
+<a class="cta" href="../index.html#/l/spark-streaming">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<p>Hasta ahora procesamos datos “en lote” (<em>batch</em>): un conjunto fijo, de principio a fin. Pero muchos datos <strong>no paran de llegar</strong>: clics, pagos, sensores, logs. <strong>Structured Streaming</strong> permite tratarlos como una <strong>tabla que crece infinitamente</strong>, con casi la misma API que los DataFrames.</p>
+<pre data-norun><code class="language-python">eventos = (spark.readStream
+             .format(&quot;json&quot;)
+             .schema(&quot;evento_id LONG, cliente_id LONG, tipo STRING, ts TIMESTAMP&quot;)
+             .load(&quot;/lake/bronze/eventos/&quot;))
+
+conteo = (eventos
+            .withWatermark(&quot;ts&quot;, &quot;10 minutes&quot;)                       # tolera datos tardíos
+            .groupBy(F.window(&quot;ts&quot;, &quot;5 minutes&quot;), &quot;tipo&quot;)             # ventanas de 5 min
+            .count())
+
+(conteo.writeStream
+   .format(&quot;delta&quot;)
+   .outputMode(&quot;append&quot;)
+   .option(&quot;checkpointLocation&quot;, &quot;/lake/_checkpoints/conteo_eventos&quot;)
+   .trigger(processingTime=&quot;1 minute&quot;)                               # o availableNow=True
+   .toTable(&quot;silver.conteo_eventos&quot;))</code></pre>
+<h3>Cómo pensar un stream</h3>
+<p>La idea genial de Structured Streaming es que <strong>no tienes que aprender una API nueva</strong>. Imagina la fuente como una tabla a la que <strong>se le agregan filas sin parar</strong>. Escribes la consulta como si fuera batch (<code>filter</code>, <code>groupBy</code>, <code>join</code>), y Spark la ejecuta <strong>incrementalmente</strong>: cada cierto tiempo toma solo las filas nuevas, actualiza el resultado y lo escribe.</p>
+<pre><code class="language-text">tiempo →     t1               t2                 t3
+fuente:      [e1 e2 e3]   +   [e4 e5]        +   [e6 e7 e8]
+Spark:       procesa e1-e3    procesa e4-e5      procesa e6-e8   (cada &quot;micro-lote&quot;)
+resultado:   conteo = 3       conteo = 5         conteo = 8
+checkpoint:  &quot;leí hasta e3&quot;   &quot;leí hasta e5&quot;     &quot;leí hasta e8&quot;</code></pre>
+<p>Si el job se cae después de <code>t2</code>, al reiniciar lee el <strong>checkpoint</strong>, ve &quot;leí hasta e5&quot; y continúa desde <code>e6</code>: no pierde ni duplica eventos.</p>
+<h3>¿Realmente necesitas streaming?</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Latencia que pide el negocio</th>
+<th>Solución típica</th>
+</tr>
+</thead><tbody><tr>
+<td>Segundos (fraude, precios dinámicos, alertas)</td>
+<td>Streaming continuo (<code>processingTime</code>)</td>
+</tr>
+<tr>
+<td>Minutos a horas (tablero &quot;casi en vivo&quot;)</td>
+<td>Streaming con <code>availableNow</code> programado cada 15–60 minutos</td>
+</tr>
+<tr>
+<td>Un día (reporte diario)</td>
+<td>Batch normal</td>
+</tr>
+</tbody></table></div>
+<p>Muchísimas veces, &quot;tiempo real&quot; en una reunión significa &quot;actualizado cada hora&quot;. Un stream encendido 24/7 cuesta un cluster encendido 24/7; un job <code>availableNow</code> cada hora usa el <strong>mismo código</strong> y cuesta una fracción.</p>
+<h2>Conceptos clave</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Source</strong></td>
+<td>De dónde llegan los datos: archivos en el lake, Kafka, Event Hubs, Delta</td>
+</tr>
+<tr>
+<td><strong>Sink</strong></td>
+<td>Dónde se escriben: Delta, Kafka, consola, <code>foreachBatch</code></td>
+</tr>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>Cada cuánto se procesa: <code>processingTime=&quot;1 minute&quot;</code>, <code>availableNow=True</code> (procesa lo pendiente y termina, ideal para jobs programados)</td>
+</tr>
+<tr>
+<td><strong>Checkpoint</strong></td>
+<td>Carpeta donde Spark guarda su progreso. Permite reiniciar sin perder ni duplicar datos (<strong>exactly-once</strong> con Delta)</td>
+</tr>
+<tr>
+<td><strong>Output mode</strong></td>
+<td><code>append</code> (solo filas nuevas), <code>update</code> (filas cambiadas), <code>complete</code> (toda la tabla)</td>
+</tr>
+<tr>
+<td><strong>Watermark</strong></td>
+<td>Cuánto tiempo esperar datos tardíos antes de cerrar una ventana de tiempo</td>
+</tr>
+</tbody></table></div>
+<div class="recorrido"></div>
+
+
+<h2>Auto Loader (Databricks)</h2>
+<p><strong>Auto Loader</strong> (<code>format(&quot;cloudFiles&quot;)</code>) es la forma recomendada de ingerir archivos que van llegando a un data lake: detecta archivos nuevos de manera eficiente, infiere y evoluciona el esquema y guarda los registros malformados aparte.</p>
+<pre data-norun><code class="language-python">(spark.readStream.format(&quot;cloudFiles&quot;)
+   .option(&quot;cloudFiles.format&quot;, &quot;json&quot;)
+   .option(&quot;cloudFiles.schemaLocation&quot;, &quot;/lake/_schemas/pedidos&quot;)
+   .load(&quot;/Volumes/main/crudo/pedidos/&quot;)
+   .writeStream
+   .option(&quot;checkpointLocation&quot;, &quot;/lake/_checkpoints/bronze_pedidos&quot;)
+   .trigger(availableNow=True)
+   .toTable(&quot;main.bronze.pedidos&quot;))</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Lakeflow Spark Declarative Pipelines (antes Delta Live Tables)</div>
+
+<p>Databricks ofrece una forma <strong>declarativa</strong> de construir pipelines batch y streaming: declaras las tablas y sus reglas de calidad (<em>expectations</em>) y la plataforma se encarga del orden, los reintentos y la infraestructura.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<p>El simulador no tiene streaming, pero la lógica de las ventanas de tiempo se practica igual sobre datos en lote: es la misma cuenta que haría Structured Streaming sobre cada micro-lote.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-streaming">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-optimizacion.html">← Optimización y tuning de Spark</a><a href="spark-spark-4.html">Spark 4: qué cambió y por qué te importa →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

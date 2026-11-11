@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks CLI: workspace, archivos, clusters, jobs y secretos · Academia de Datos</title><meta name="description" content="Los comandos que usarás a diario para operar un workspace desde la terminal."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-cli-recursos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Databricks CLI: workspace, archivos, clusters, jobs y secretos · Academia de Datos"><meta property="og:description" content="Los comandos que usarás a diario para operar un workspace desde la terminal."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-cli-recursos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Avanzado · 35 min</div>
+<h1>Databricks CLI: workspace, archivos, clusters, jobs y secretos</h1><p class="resumen">Los comandos que usarás a diario para operar un workspace desde la terminal.</p>
+<a class="cta" href="../index.html#/l/databricks-cli-recursos">▶ Abrir la lección interactiva (8 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Prueba <code>databricks fs cp ventas.csv dbfs:/Volumes/main/default/raw/</code> en la terminal y después léelo en el <a href="#/databricks/sql">editor SQL de práctica</a> con <code>SELECT * FROM read_files(&#39;/Volumes/main/default/raw/ventas.csv&#39;, format =&gt; &#39;csv&#39;, header =&gt; true)</code> (antes crea el volumen con <code>CREATE VOLUME main.default.raw</code>).</p>
+</div>
+
+
+<p>Una vez autenticado, la CLI organiza los comandos por <strong>tipo de recurso</strong>, con el mismo patrón que <code>az</code> o <code>aws</code>: <code>databricks &lt;grupo&gt; &lt;acción&gt; [argumentos]</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Grupo</th>
+<th>Administra</th>
+<th>Ejemplos de acciones</th>
+</tr>
+</thead><tbody><tr>
+<td><code>workspace</code></td>
+<td>Notebooks y carpetas del workspace</td>
+<td><code>list</code>, <code>import</code>, <code>export</code>, <code>mkdirs</code>, <code>delete</code></td>
+</tr>
+<tr>
+<td><code>fs</code></td>
+<td>Archivos en Volumes (y DBFS)</td>
+<td><code>ls</code>, <code>cp</code>, <code>cat</code>, <code>rm</code></td>
+</tr>
+<tr>
+<td><code>clusters</code></td>
+<td>Cómputo</td>
+<td><code>list</code>, <code>get</code>, <code>start</code>, <code>restart</code>, <code>delete</code></td>
+</tr>
+<tr>
+<td><code>jobs</code></td>
+<td>Jobs (Lakeflow Jobs)</td>
+<td><code>list</code>, <code>create</code>, <code>run-now</code>, <code>get-run</code></td>
+</tr>
+<tr>
+<td><code>secrets</code></td>
+<td>Secret scopes y secretos</td>
+<td><code>create-scope</code>, <code>put-secret</code>, <code>list-secrets</code></td>
+</tr>
+<tr>
+<td><code>catalogs</code>, <code>schemas</code>, <code>tables</code></td>
+<td>Unity Catalog</td>
+<td><code>list</code>, <code>get</code></td>
+</tr>
+<tr>
+<td><code>bundle</code></td>
+<td>Declarative Automation Bundles</td>
+<td><code>init</code>, <code>validate</code>, <code>deploy</code>, <code>run</code></td>
+</tr>
+</tbody></table></div>
+<p>Agrega <code>--output json</code> a casi cualquier comando para procesar la respuesta con <code>jq</code> en un script.</p>
+<h2>Workspace (notebooks y carpetas)</h2>
+<pre data-norun><code class="language-bash">databricks workspace list /Users/ana@empresa.com
+databricks workspace mkdirs /Shared/pipelines
+databricks workspace import /Shared/pipelines/silver --file ./silver.py --language PYTHON --format SOURCE
+databricks workspace export /Shared/pipelines/silver --format SOURCE --file ./silver.py
+databricks workspace import-dir ./notebooks /Shared/pipelines --overwrite</code></pre>
+<h2>Archivos (Volumes / DBFS)</h2>
+<pre data-norun><code class="language-bash">databricks fs ls dbfs:/Volumes/main/crudo/archivos/
+databricks fs cp ./ventas.csv dbfs:/Volumes/main/crudo/archivos/ventas.csv
+databricks fs cp -r ./exportes dbfs:/Volumes/main/crudo/archivos/exportes --overwrite
+databricks fs cat dbfs:/Volumes/main/crudo/archivos/ventas.csv
+databricks fs rm -r dbfs:/Volumes/main/crudo/tmp</code></pre>
+<h2>Clusters</h2>
+<pre data-norun><code class="language-bash">databricks clusters list
+databricks clusters get 0123-456789-abcdef12
+databricks clusters start 0123-456789-abcdef12
+databricks clusters delete 0123-456789-abcdef12        # &quot;delete&quot; = TERMINAR (apagar), se puede volver a iniciar
+databricks clusters permanent-delete 0123-456789-abcdef12
+databricks clusters create --json @cluster.json
+databricks clusters spark-versions                      # versiones de Databricks Runtime disponibles</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Jobs</h2>
+<pre data-norun><code class="language-bash">databricks jobs list
+databricks jobs get 123456
+databricks jobs run-now 123456
+databricks jobs run-now 123456 --json '{&quot;job_parameters&quot;: {&quot;fecha&quot;: &quot;2024-12-31&quot;}}'
+databricks jobs list-runs --job-id 123456
+databricks jobs get-run 987654321
+databricks jobs cancel-run 987654321
+databricks jobs create --json @job.json</code></pre>
+<h2>Secretos</h2>
+<pre data-norun><code class="language-bash">databricks secrets create-scope datos-api
+databricks secrets put-secret datos-api token              # pide el valor de forma segura
+databricks secrets put-secret datos-api token --string-value &quot;abc123&quot;
+databricks secrets list-scopes
+databricks secrets list-secrets datos-api
+databricks secrets put-acl datos-api ingenieros-datos READ</code></pre>
+<h2>Unity Catalog y SQL</h2>
+<pre data-norun><code class="language-bash">databricks catalogs list
+databricks schemas list main
+databricks tables list main ventas
+databricks warehouses list</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 --output json + jq</div>
+
+<p>Casi todos los comandos aceptan <code>--output json</code>. Combínalo con <code>jq</code> para scripts: <code>databricks clusters list --output json | jq -r &#39;.[] | select(.state==&quot;RUNNING&quot;) | .cluster_id&#39;</code>.</p>
+</div>
+
+
+<h2>Laboratorio en la terminal</h2>
+<pre><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks fs cp datos/clientes.csv dbfs:/Volumes/main/crudo/archivos/clientes.csv
+databricks fs ls dbfs:/Volumes/main/crudo/archivos
+databricks secrets create-scope datos-api
+databricks secrets put-secret datos-api token --string-value abc123
+databricks secrets list-secrets datos-api
+databricks jobs list</code></pre>
+<p>Fíjate que <code>list-secrets</code> muestra las <strong>claves</strong> pero nunca los <strong>valores</strong>: los secretos solo se leen desde el código que corre en Databricks (<code>dbutils.secrets.get</code>), y aun así aparecen como <code>[REDACTED]</code> si alguien intenta imprimirlos.</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-cli-recursos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-cli-autenticacion.html">← Databricks CLI: instalación y autenticación</a><a href="databricks-asset-bundles.html">Declarative Automation Bundles (antes Asset Bundles) y CI/CD →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

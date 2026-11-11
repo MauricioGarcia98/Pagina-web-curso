@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones de ventana II: acumulados, LAG/LEAD y marcos · Academia de Datos</title><meta name="description" content="Totales acumulados, promedios móviles, comparar con el periodo anterior, FIRST_VALUE, NTILE y percentiles."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-ventanas-2.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones de ventana II: acumulados, LAG/LEAD y marcos · Academia de Datos"><meta property="og:description" content="Totales acumulados, promedios móviles, comparar con el periodo anterior, FIRST_VALUE, NTILE y percentiles."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-ventanas-2.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Avanzado · 50 min</div>
+<h1>Funciones de ventana II: acumulados, LAG/LEAD y marcos</h1><p class="resumen">Totales acumulados, promedios móviles, comparar con el periodo anterior, FIRST_VALUE, NTILE y percentiles.</p>
+<a class="cta" href="../index.html#/l/sql-ventanas-2">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular totales acumulados y promedios móviles con marcos de ventana</li><li>Elegir entre <code>ROWS</code> y <code>RANGE</code> sabiendo cómo tratan los empates</li><li>Comparar cada fila con la anterior o la siguiente usando <code>LAG</code> y <code>LEAD</code></li><li>Calcular variaciones porcentuales período contra período</li></ul>
+<h2>Más allá del ranking</h2>
+<p>En la lección anterior usaste <code>ORDER BY</code> dentro de <code>OVER</code> para numerar filas. Ese mismo orden abre otras puertas: <strong>acumular</strong> (&quot;ventas acumuladas del año&quot;), <strong>suavizar</strong> (&quot;promedio de los últimos 3 meses&quot;) y <strong>comparar con filas vecinas</strong> (&quot;¿cuánto crecimos respecto al mes anterior?&quot;, &quot;¿cuántos días pasaron desde la compra anterior?&quot;). Son las herramientas de cualquier análisis temporal.</p>
+<h2>Totales acumulados</h2>
+<p>Si a una agregación de ventana le agregas <code>ORDER BY</code>, deja de ser &quot;el total del grupo&quot; y pasa a ser <strong>&quot;el total desde el principio hasta esta fila&quot;</strong>:</p>
+<pre><code class="language-sql">WITH mensual AS (
+  SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+  FROM pedidos
+  GROUP BY mes
+)
+SELECT mes, pedidos,
+       SUM(pedidos) OVER (ORDER BY mes) AS acumulado
+FROM mensual
+ORDER BY mes;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>mes</th>
+<th>pedidos</th>
+<th>acumulado</th>
+</tr>
+</thead><tbody><tr>
+<td>2022-01</td>
+<td>233</td>
+<td>233</td>
+</tr>
+<tr>
+<td>2022-02</td>
+<td>238</td>
+<td>471</td>
+</tr>
+<tr>
+<td>2022-03</td>
+<td>247</td>
+<td>718</td>
+</tr>
+<tr>
+<td>2022-04</td>
+<td>275</td>
+<td>993</td>
+</tr>
+</tbody></table></div>
+<p>Cada fila suma su valor al de todas las anteriores: 233, luego 233 + 238 = 471, luego 471 + 247 = 718…</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Primero agrega, después acumula</div>
+
+<p>Fíjate en la estructura: una CTE agrupa por mes (una fila por mes) y <strong>después</strong> se aplica la ventana. Intentar acumular sobre los 12.000 pedidos sueltos y agrupar a la vez lleva a errores. El patrón &quot;agregar en una CTE y aplicar ventanas en el paso siguiente&quot; es el que usarás siempre.</p>
+</div>
+
+
+<h3>Acumular &quot;por año&quot;: PARTITION BY + ORDER BY</h3>
+<p>Con <code>PARTITION BY</code>, el acumulado <strong>vuelve a cero</strong> en cada grupo. Es el clásico &quot;acumulado del año&quot; (<em>year to date</em>, YTD):</p>
+<pre><code class="language-sql">WITH mensual AS (
+  SELECT strftime('%Y-%m', p.fecha_pedido) AS mes,
+         SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS ventas
+  FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  WHERE p.estado &lt;&gt; 'cancelado'
+  GROUP BY mes
+)
+SELECT mes,
+       ROUND(ventas, 2) AS ventas,
+       ROUND(SUM(ventas) OVER (ORDER BY mes), 2)                                AS acumulado_total,
+       ROUND(SUM(ventas) OVER (PARTITION BY substr(mes, 1, 4) ORDER BY mes), 2) AS acumulado_anual
+FROM mensual
+ORDER BY mes;</code></pre>
+<p><code>substr(mes, 1, 4)</code> toma el año (<code>&#39;2022&#39;</code>), así que cada año es una partición: en enero de 2023 el acumulado anual arranca de nuevo.</p>
+<h2>El marco: qué filas entran en el cálculo</h2>
+<p>El <strong>marco</strong> (<em>frame</em>) define, para cada fila, <strong>cuáles filas de su partición</strong> participan del cálculo. Se escribe con <code>ROWS BETWEEN inicio AND fin</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Marco</th>
+<th>Significa</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code></td>
+<td>Desde la primera fila hasta la actual</td>
+<td>Acumulado</td>
+</tr>
+<tr>
+<td><code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code></td>
+<td>La actual y las 2 anteriores</td>
+<td>Promedio móvil de 3 periodos</td>
+</tr>
+<tr>
+<td><code>ROWS BETWEEN 6 PRECEDING AND CURRENT ROW</code></td>
+<td>La actual y las 6 anteriores</td>
+<td>Promedio de 7 días</td>
+</tr>
+<tr>
+<td><code>ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING</code></td>
+<td>Anterior, actual y siguiente</td>
+<td>Suavizado centrado</td>
+</tr>
+<tr>
+<td><code>ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING</code></td>
+<td>Desde la actual hasta la última</td>
+<td>&quot;Lo que falta&quot;</td>
+</tr>
+<tr>
+<td><code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code></td>
+<td>Toda la partición</td>
+<td>Total del grupo</td>
+</tr>
+</tbody></table></div>
+<h3>Promedio móvil</h3>
+<p>Las series mensuales o diarias tienen &quot;ruido&quot; (un mes con un feriado, una semana con una promoción). Un <strong>promedio móvil</strong> suaviza la curva para ver la tendencia:</p>
+<pre><code class="language-sql">WITH mensual AS (
+  SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos
+  FROM pedidos GROUP BY mes
+)
+SELECT mes, pedidos,
+       ROUND(AVG(pedidos) OVER (ORDER BY mes ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 1) AS movil_3m
+FROM mensual;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>mes</th>
+<th>pedidos</th>
+<th>movil_3m</th>
+<th>cálculo</th>
+</tr>
+</thead><tbody><tr>
+<td>2022-01</td>
+<td>233</td>
+<td>233.0</td>
+<td>solo enero (no hay anteriores)</td>
+</tr>
+<tr>
+<td>2022-02</td>
+<td>238</td>
+<td>235.5</td>
+<td>(233 + 238) / 2</td>
+</tr>
+<tr>
+<td>2022-03</td>
+<td>247</td>
+<td>239.3</td>
+<td>(233 + 238 + 247) / 3</td>
+</tr>
+<tr>
+<td>2022-04</td>
+<td>275</td>
+<td>253.3</td>
+<td>(238 + 247 + 275) / 3</td>
+</tr>
+</tbody></table></div>
+<p>Observa los primeros meses: el marco &quot;2 anteriores&quot; todavía no tiene 2 filas, así que promedia las que haya. Si eso te molesta, puedes mostrar <code>NULL</code> mientras <code>COUNT(*) OVER (mismo marco) &lt; 3</code>.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ROWS vs RANGE (el detalle que nadie te cuenta)</div>
+
+<p>Si escribes <code>ORDER BY</code> <strong>sin</strong> marco, el marco por defecto es <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. <strong>RANGE</strong> trata como una sola cosa a todas las filas <strong>empatadas</strong> en el orden:</p>
+<pre><code class="language-sql">WITH t(dia, v) AS (VALUES ('d1', 10), ('d2', 5), ('d2', 7), ('d3', 1))
+SELECT dia, v,
+       SUM(v) OVER (ORDER BY dia)                                           AS con_range,
+       SUM(v) OVER (ORDER BY dia ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS con_rows
+FROM t;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>dia</th>
+<th>v</th>
+<th>con_range</th>
+<th>con_rows</th>
+</tr>
+</thead><tbody><tr>
+<td>d1</td>
+<td>10</td>
+<td>10</td>
+<td>10</td>
+</tr>
+<tr>
+<td>d2</td>
+<td>5</td>
+<td><strong>22</strong></td>
+<td>15</td>
+</tr>
+<tr>
+<td>d2</td>
+<td>7</td>
+<td>22</td>
+<td>22</td>
+</tr>
+<tr>
+<td>d3</td>
+<td>1</td>
+<td>23</td>
+<td>23</td>
+</tr>
+</tbody></table></div>
+<p>Las dos filas del día <code>d2</code> muestran 22 con <code>RANGE</code> (ya incluyen a las dos). Con <code>ROWS</code>, se suma fila por fila. Ninguno está &quot;mal&quot;, pero tienes que saber cuál quieres. Si el orden no tiene empates (una fila por mes), ambos dan lo mismo.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>LAG y LEAD: mirar a los vecinos</h2>
+<ul>
+<li><code>LAG(columna, n, valor_por_defecto)</code>: el valor de la fila que está <code>n</code> posiciones <strong>antes</strong> (por defecto, 1).</li>
+<li><code>LEAD(columna, n, valor_por_defecto)</code>: el valor de la fila <code>n</code> posiciones <strong>después</strong>.</li>
+</ul>
+<h3>Crecimiento respecto al periodo anterior</h3>
+<pre><code class="language-sql">WITH mensual AS (
+  SELECT strftime('%Y-%m', fecha_pedido) AS mes, COUNT(*) AS pedidos FROM pedidos GROUP BY mes
+)
+SELECT mes, pedidos,
+       LAG(pedidos) OVER (ORDER BY mes) AS mes_anterior,
+       ROUND(100.0 * (pedidos - LAG(pedidos) OVER (ORDER BY mes))
+             / LAG(pedidos) OVER (ORDER BY mes), 1) AS crecimiento_pct
+FROM mensual;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>mes</th>
+<th>pedidos</th>
+<th>mes_anterior</th>
+<th>crecimiento_pct</th>
+</tr>
+</thead><tbody><tr>
+<td>2022-01</td>
+<td>233</td>
+<td>NULL</td>
+<td>NULL</td>
+</tr>
+<tr>
+<td>2022-02</td>
+<td>238</td>
+<td>233</td>
+<td>2.1</td>
+</tr>
+<tr>
+<td>2022-04</td>
+<td>275</td>
+<td>247</td>
+<td>11.3</td>
+</tr>
+<tr>
+<td>2022-05</td>
+<td>241</td>
+<td>275</td>
+<td>−12.4</td>
+</tr>
+</tbody></table></div>
+<p>El primer mes no tiene anterior: <code>LAG</code> devuelve <code>NULL</code> (o el tercer argumento si lo das: <code>LAG(pedidos, 1, 0)</code>). La fórmula del crecimiento es siempre <strong>(actual − anterior) / anterior</strong>.</p>
+<p>Para comparar con <strong>el mismo mes del año anterior</strong> (y evitar la estacionalidad), usa <code>LAG(pedidos, 12)</code>, siempre que no falten meses en la serie.</p>
+<h3>Tiempo entre eventos</h3>
+<p>Con <code>PARTITION BY</code>, <code>LAG</code> mira la fila anterior <strong>del mismo cliente</strong>:</p>
+<pre><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido,
+       julianday(fecha_pedido) - julianday(LAG(fecha_pedido) OVER (PARTITION BY cliente_id ORDER BY fecha_pedido)) AS dias_desde_anterior
+FROM pedidos
+WHERE cliente_id = 3;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_id</th>
+<th>pedido_id</th>
+<th>fecha_pedido</th>
+<th>dias_desde_anterior</th>
+</tr>
+</thead><tbody><tr>
+<td>3</td>
+<td>10386</td>
+<td>2024-09-17</td>
+<td>NULL</td>
+</tr>
+<tr>
+<td>3</td>
+<td>10727</td>
+<td>2024-10-18</td>
+<td>31.0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>11506</td>
+<td>2024-12-06</td>
+<td>49.0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>11915</td>
+<td>2024-12-27</td>
+<td>21.0</td>
+</tr>
+</tbody></table></div>
+<p>Esta técnica es la base de muchísimos análisis: frecuencia de compra, sesiones web (un &quot;corte&quot; cuando pasan más de 30 minutos entre eventos), rachas, detección de fraude (tres compras en pocos segundos: lo verás en el caso del banco con <code>LAG(fecha_hora, 2)</code>).</p>
+<h2>FIRST_VALUE, LAST_VALUE y NTH_VALUE</h2>
+<p>Devuelven el valor de la primera, la última o la n-ésima fila <strong>del marco</strong>:</p>
+<pre><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido,
+       FIRST_VALUE(fecha_pedido) OVER (PARTITION BY cliente_id ORDER BY fecha_pedido) AS primera_compra
+FROM pedidos
+WHERE cliente_id &lt;= 3;</code></pre>
+<p>Cada pedido muestra la fecha de la <strong>primera</strong> compra de su cliente: útil para análisis de cohortes (&quot;clientes que empezaron en enero&quot;).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La trampa de LAST_VALUE</div>
+
+<p><code>LAST_VALUE(fecha_pedido) OVER (PARTITION BY cliente_id ORDER BY fecha_pedido)</code> devuelve… la fecha de la <strong>fila actual</strong>, no la última. ¿Por qué? Por el marco por defecto: termina en <code>CURRENT ROW</code>, así que &quot;la última fila del marco&quot; es la actual. Soluciones:</p>
+<ul>
+<li>Ampliar el marco: <code>… ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>.</li>
+<li>Más simple: <code>FIRST_VALUE</code> con el orden invertido (<code>ORDER BY fecha_pedido DESC</code>), o <code>MAX(fecha_pedido) OVER (PARTITION BY cliente_id)</code>.</li>
+</ul>
+</div>
+
+
+<h2>Distribuciones: NTILE, PERCENT_RANK y CUME_DIST</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Devuelve</th>
+<th>Ejemplo de uso</th>
+</tr>
+</thead><tbody><tr>
+<td><code>NTILE(n)</code></td>
+<td>En cuál de <code>n</code> grupos iguales cae la fila (1…n)</td>
+<td>Cuartiles de gasto (segmentación RFM)</td>
+</tr>
+<tr>
+<td><code>PERCENT_RANK()</code></td>
+<td>(puesto − 1) / (filas − 1), entre 0 y 1</td>
+<td>&quot;Este producto es más caro que el 87 % del catálogo&quot;</td>
+</tr>
+<tr>
+<td><code>CUME_DIST()</code></td>
+<td>Proporción de filas con valor ≤ al actual</td>
+<td>Distribución acumulada</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">SELECT nombre, precio,
+       NTILE(4) OVER (ORDER BY precio)                AS cuartil,
+       ROUND(PERCENT_RANK() OVER (ORDER BY precio), 3) AS pct_rank
+FROM productos
+LIMIT 10;</code></pre>
+<h2>Ventanas con nombre: WINDOW</h2>
+<p>Si repites la misma definición varias veces, ponle nombre al final de la consulta:</p>
+<pre><code class="language-sql">SELECT nombre, salario,
+       RANK() OVER w                  AS puesto,
+       ROUND(AVG(salario) OVER w, 0)  AS promedio_acumulado
+FROM empleados
+WINDOW w AS (ORDER BY salario DESC)
+LIMIT 10;</code></pre>
+<p>Funciona en SQLite, PostgreSQL, MySQL 8 y Spark. Hace el código más corto y evita que dos ventanas &quot;iguales&quot; queden distintas por un error de tipeo.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>El marco por defecto</strong>: con <code>ORDER BY</code> y sin marco, la ventana es <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. Si hay dos filas con la misma fecha, las dos reciben el mismo acumulado. Si quieres fila por fila, escribe <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>.</li>
+<li><strong>Promedio móvil con huecos</strong>: <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code> toma las 2 filas anteriores, no los 2 meses anteriores. Si falta un mes en los datos, el promedio mezcla meses que no son consecutivos. Rellena los huecos con una tabla calendario.</li>
+<li><strong>División por el período anterior cuando es cero o nulo</strong>: <code>(actual - anterior) / anterior</code> falla o da infinito. Usa <code>NULLIF(anterior, 0)</code>.</li>
+<li><strong><code>LAST_VALUE</code> engañoso</strong>: con el marco por defecto, termina en la fila actual. Usa <code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>, o <code>FIRST_VALUE</code> con el orden invertido.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El acumulado del mes</div>
+
+<p>Diego, de finanzas, quiere seguir el mes en tiempo real:</p>
+<blockquote>
+<p>&quot;Necesito un reporte con los pedidos de cada día de diciembre y el acumulado del mes, para ver si llegamos a la meta. Y el directorio pide la variación de facturación año contra año.&quot;</p>
+</blockquote>
+<p>Un acumulado necesita &quot;todas las filas anteriores&quot;, y una variación necesita &quot;la fila anterior&quot;. Las funciones de ventana con <strong>marcos</strong> y las funciones <code>LAG</code>/<code>LEAD</code> resuelven exactamente eso.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los acumulados (&quot;ventas del mes a la fecha&quot;, <em>MTD</em>; &quot;del año a la fecha&quot;, <em>YTD</em>) y las comparaciones con el período anterior son las métricas más pedidas en los dashboards. Normalmente se calculan en la capa gold, una vez, y no en cada dashboard.</li>
+<li><code>LAG</code> sobre eventos ordenados por tiempo es la base de la <strong>sesionización</strong> y de la detección de rachas, que verás en la lección de patrones.</li>
+<li>En entrevistas y en el trabajo, aclara siempre si un promedio móvil de &quot;3 meses&quot; incluye o no el mes actual: es una de las ambigüedades más comunes en los pedidos del negocio.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Calcula el crecimiento mes a mes de las ventas&quot;</div>
+
+<p>Agrega primero por mes (en una CTE), y después usa <code>LAG(ventas) OVER (ORDER BY mes)</code> para traer el mes anterior y calcular <code>ROUND(100.0 * (ventas - anterior) / NULLIF(anterior, 0), 2)</code>. Menciona los meses sin ventas (rellenar con calendario) y que el primer mes queda en NULL a propósito.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Agregación + <code>ORDER BY</code> en el <code>OVER</code> = acumulado; con <code>PARTITION BY</code> se reinicia por grupo (YTD).</li>
+<li>El marco <code>ROWS BETWEEN … AND …</code> define qué filas entran: acumulados, promedios móviles, ventanas centradas.</li>
+<li>Sin marco explícito, el defecto es <code>RANGE … CURRENT ROW</code>: los empates se tratan juntos.</li>
+<li><code>LAG</code>/<code>LEAD</code> miran filas anteriores/siguientes: crecimiento, días entre compras, sesiones.</li>
+<li><code>FIRST_VALUE</code> es seguro; <code>LAST_VALUE</code> necesita ampliar el marco. <code>NTILE</code> y <code>PERCENT_RANK</code> describen distribuciones.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-ventanas-2">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-ventanas-1.html">← Funciones de ventana I: rankings</a><a href="sql-recursivas.html">CTE recursivas: jerarquías y series →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

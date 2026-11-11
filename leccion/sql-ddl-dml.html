@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crear y modificar datos: DDL, DML y transacciones · Academia de Datos</title><meta name="description" content="CREATE TABLE, restricciones, INSERT, UPDATE, DELETE, UPSERT, vistas y transacciones ACID."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-ddl-dml.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Crear y modificar datos: DDL, DML y transacciones · Academia de Datos"><meta property="og:description" content="CREATE TABLE, restricciones, INSERT, UPDATE, DELETE, UPSERT, vistas y transacciones ACID."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-ddl-dml.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Avanzado · 50 min</div>
+<h1>Crear y modificar datos: DDL, DML y transacciones</h1><p class="resumen">CREATE TABLE, restricciones, INSERT, UPDATE, DELETE, UPSERT, vistas y transacciones ACID.</p>
+<a class="cta" href="../index.html#/l/sql-ddl-dml">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear tablas con tipos, claves y restricciones adecuadas</li><li>Insertar, actualizar y borrar filas de forma segura</li><li>Hacer un upsert (insertar o actualizar) con <code>INSERT … ON CONFLICT</code></li><li>Explicar qué garantizan las transacciones (ACID) y cuándo usarlas</li></ul>
+<h2>De leer a escribir</h2>
+<p>Hasta ahora solo <strong>leíste</strong> datos: ningún <code>SELECT</code> cambia nada. Pero alguien tiene que <strong>crear</strong> las tablas, <strong>cargar</strong> las filas y <strong>corregirlas</strong>. En ingeniería de datos lo harás todo el tiempo: crear tablas de staging, cargar el lote del día, actualizar el estado de un pedido, borrar datos de prueba, y hacerlo de forma <strong>segura</strong>, porque aquí sí puedes romper cosas.</p>
+<p>SQL se divide en &quot;sublenguajes&quot; según lo que hace cada instrucción:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Sigla</th>
+<th>Nombre</th>
+<th>Comandos</th>
+<th>Qué cambia</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>DQL</strong></td>
+<td>Consulta</td>
+<td><code>SELECT</code></td>
+<td>Nada: solo lee</td>
+</tr>
+<tr>
+<td><strong>DDL</strong></td>
+<td>Definición de datos</td>
+<td><code>CREATE</code>, <code>ALTER</code>, <code>DROP</code>, <code>TRUNCATE</code></td>
+<td>La <strong>estructura</strong>: tablas, columnas, vistas</td>
+</tr>
+<tr>
+<td><strong>DML</strong></td>
+<td>Manipulación de datos</td>
+<td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>MERGE</code></td>
+<td>El <strong>contenido</strong>: las filas</td>
+</tr>
+<tr>
+<td><strong>DCL</strong></td>
+<td>Control de acceso</td>
+<td><code>GRANT</code>, <code>REVOKE</code></td>
+<td>Los <strong>permisos</strong></td>
+</tr>
+<tr>
+<td><strong>TCL</strong></td>
+<td>Control de transacciones</td>
+<td><code>BEGIN</code>, <code>COMMIT</code>, <code>ROLLBACK</code></td>
+<td>Agrupa cambios en &quot;todo o nada&quot;</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La planilla y sus datos</div>
+
+<p>DDL es diseñar la planilla: qué columnas tiene, de qué tipo, qué reglas cumplen. DML es escribir, corregir y borrar los datos dentro de la planilla. Cambiar el diseño es raro y delicado; cargar datos es diario.</p>
+</div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Aquí puedes romper todo</div>
+
+<p>Cada ejercicio se ejecuta en una <strong>copia nueva</strong> de la base de datos. Los ejemplos (▶) y el laboratorio usan una copia compartida que puedes reiniciar. Experimenta con tranquilidad: es justamente el lugar para equivocarse.</p>
+</div>
+
+
+<h2>CREATE TABLE: diseñar una tabla</h2>
+<pre><code class="language-sql">-- la base del curso ya trae una tabla proveedores: la borramos para recrearla con este diseño
+DROP TABLE IF EXISTS proveedores;
+
+CREATE TABLE proveedores (
+    proveedor_id  INTEGER PRIMARY KEY,
+    nombre        TEXT NOT NULL,
+    email         TEXT UNIQUE,
+    pais          TEXT DEFAULT 'Argentina',
+    calificacion  INTEGER CHECK (calificacion BETWEEN 1 AND 5),
+    creado_en     TEXT DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+<p>Cada línea define una columna: <strong>nombre</strong>, <strong>tipo</strong> y, opcionalmente, <strong>restricciones</strong>.</p>
+<h3>Tipos de datos más comunes</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo (estándar)</th>
+<th>Guarda</th>
+<th>En SQLite</th>
+<th>En Spark / BigQuery</th>
+</tr>
+</thead><tbody><tr>
+<td><code>INTEGER</code> / <code>BIGINT</code></td>
+<td>Números enteros</td>
+<td><code>INTEGER</code></td>
+<td><code>INT</code>, <code>BIGINT</code> / <code>INT64</code></td>
+</tr>
+<tr>
+<td><code>DECIMAL(p, s)</code> / <code>NUMERIC</code></td>
+<td>Decimales exactos (dinero)</td>
+<td><code>REAL</code> (aproximado)</td>
+<td><code>DECIMAL(10,2)</code> / <code>NUMERIC</code></td>
+</tr>
+<tr>
+<td><code>REAL</code> / <code>DOUBLE</code> / <code>FLOAT</code></td>
+<td>Decimales aproximados</td>
+<td><code>REAL</code></td>
+<td><code>DOUBLE</code> / <code>FLOAT64</code></td>
+</tr>
+<tr>
+<td><code>VARCHAR(n)</code> / <code>TEXT</code></td>
+<td>Texto</td>
+<td><code>TEXT</code></td>
+<td><code>STRING</code></td>
+</tr>
+<tr>
+<td><code>DATE</code> / <code>TIMESTAMP</code></td>
+<td>Fechas y fecha-hora</td>
+<td><code>TEXT</code> en formato ISO</td>
+<td><code>DATE</code>, <code>TIMESTAMP</code></td>
+</tr>
+<tr>
+<td><code>BOOLEAN</code></td>
+<td>Verdadero / falso</td>
+<td><code>INTEGER</code> (0/1)</td>
+<td><code>BOOLEAN</code> / <code>BOOL</code></td>
+</tr>
+</tbody></table></div>
+<p>SQLite es muy permisivo con los tipos (puedes guardar texto en una columna <code>INTEGER</code>); PostgreSQL, Spark o BigQuery son estrictos y dan error. Diseña tus tablas como si fueran estrictos.</p>
+<h3>Restricciones: las reglas que la base hace cumplir</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Restricción</th>
+<th>Garantiza</th>
+<th>Si se viola…</th>
+</tr>
+</thead><tbody><tr>
+<td><code>PRIMARY KEY</code></td>
+<td>Identificador único y no nulo</td>
+<td>Error: <code>UNIQUE constraint failed</code></td>
+</tr>
+<tr>
+<td><code>NOT NULL</code></td>
+<td>Siempre tiene valor</td>
+<td>Error al insertar sin ese dato</td>
+</tr>
+<tr>
+<td><code>UNIQUE</code></td>
+<td>No se repite (pero puede ser <code>NULL</code>)</td>
+<td>Error con un duplicado</td>
+</tr>
+<tr>
+<td><code>DEFAULT valor</code></td>
+<td>Valor automático si no se indica</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>CHECK (condición)</code></td>
+<td>Cumple una regla de negocio</td>
+<td>Error: <code>CHECK constraint failed</code></td>
+</tr>
+<tr>
+<td><code>REFERENCES otra(col)</code></td>
+<td>Clave foránea: el valor existe en la otra tabla</td>
+<td>Error si apunta a algo inexistente (si está activado)</td>
+</tr>
+</tbody></table></div>
+<p>Las restricciones son <strong>la primera línea de defensa de la calidad de datos</strong>: un error que la base rechaza al cargar es mucho más barato que uno que llega a un reporte del directorio.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 En los data lakes y warehouses</div>
+
+<p>Snowflake, BigQuery y Redshift <strong>aceptan</strong> declarar <code>PRIMARY KEY</code> y <code>FOREIGN KEY</code>, pero <strong>no las hacen cumplir</strong> (por rendimiento). Por eso en esos mundos la calidad se verifica con <strong>tests</strong> (los de dbt, por ejemplo: <code>unique</code>, <code>not_null</code>, <code>relationships</code>), que verás en su módulo. Delta Lake sí admite <code>NOT NULL</code> y <code>CHECK</code>.</p>
+</div>
+
+
+<h2>INSERT: agregar filas</h2>
+<pre><code class="language-sql">INSERT INTO proveedores (proveedor_id, nombre, email, calificacion)
+VALUES (1, 'Distribuidora Sur', 'ventas@dsur.com', 5),
+       (2, 'TecnoImport',       'hola@tecnoimport.com', 4);
+
+SELECT * FROM proveedores;</code></pre>
+<ul>
+<li>Lista las columnas <strong>explícitamente</strong> (<code>(proveedor_id, nombre, …)</code>): si mañana alguien agrega una columna a la tabla, tu <code>INSERT</code> sigue funcionando. Las columnas que no menciones toman su <code>DEFAULT</code> (o <code>NULL</code>).</li>
+<li>Puedes insertar <strong>varias filas</strong> en una sola instrucción, separadas por comas. Es mucho más rápido que una instrucción por fila.</li>
+</ul>
+<h3>Insertar el resultado de una consulta</h3>
+<pre><code class="language-sql">-- Crear una tabla nueva a partir de una consulta (CTAS: CREATE TABLE AS SELECT)
+CREATE TABLE marcas AS SELECT DISTINCT marca FROM productos;
+
+-- Agregar filas a una tabla existente desde una consulta
+INSERT INTO proveedores (proveedor_id, nombre)
+SELECT 100 + ROW_NUMBER() OVER (ORDER BY marca), 'Proveedor de ' || marca
+FROM marcas;</code></pre>
+<p><code>CREATE TABLE … AS SELECT</code> (CTAS) e <code>INSERT INTO … SELECT</code> son las dos formas en que se materializan los resultados en un pipeline: la capa silver se construye con CTAS a partir de bronze, la capa gold a partir de silver. Lo verás en Athena, BigQuery, Databricks y dbt.</p>
+<p>Cómo se declara una clave que se numera sola cambia en cada motor:</p>
+<div class="motores"></div>
+
+
+<h2>UPDATE y DELETE: modificar y borrar</h2>
+<pre data-norun><code class="language-sql">-- Subir 10 % el precio de los productos Apple
+UPDATE productos
+SET precio = ROUND(precio * 1.10, 2)
+WHERE marca = 'Apple';
+
+-- Borrar pedidos cancelados antiguos
+DELETE FROM pedidos
+WHERE estado = 'cancelado' AND fecha_pedido &lt; '2022-06-01';</code></pre>
+<ul>
+<li><code>UPDATE tabla SET columna = nuevo_valor WHERE condición</code>: puedes cambiar varias columnas a la vez (<code>SET a = 1, b = 2</code>), y el nuevo valor puede usar el valor viejo (<code>precio * 1.10</code>).</li>
+<li><code>DELETE FROM tabla WHERE condición</code>: borra las filas que cumplen la condición.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El WHERE olvidado</div>
+
+<p><code>UPDATE productos SET precio = 0;</code> <strong>sin</strong> <code>WHERE</code> modifica las 300 filas. <code>DELETE FROM pedidos;</code> las borra todas. No hay papelera ni &quot;deshacer&quot;. El protocolo profesional:</p>
+<ol>
+<li>Escribe primero un <code>SELECT</code> con el <strong>mismo</strong> <code>WHERE</code> y mira cuántas filas devuelve y cuáles son.</li>
+<li>Si es lo esperado, cambia <code>SELECT *</code> por <code>UPDATE … SET …</code> o <code>DELETE</code>.</li>
+<li>En producción, hazlo dentro de una <strong>transacción</strong> (abajo) y verifica antes del <code>COMMIT</code>.</li>
+</ol>
+</div>
+
+
+<h3>DELETE, TRUNCATE y DROP</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Instrucción</th>
+<th>Qué borra</th>
+<th>¿La tabla sigue existiendo?</th>
+<th>Notas</th>
+</tr>
+</thead><tbody><tr>
+<td><code>DELETE FROM t WHERE …</code></td>
+<td>Las filas que cumplen la condición</td>
+<td>Sí</td>
+<td>Puede ser lento con millones de filas</td>
+</tr>
+<tr>
+<td><code>DELETE FROM t</code> / <code>TRUNCATE TABLE t</code></td>
+<td><strong>Todas</strong> las filas</td>
+<td>Sí, vacía</td>
+<td><code>TRUNCATE</code> es mucho más rápido (no existe en SQLite)</td>
+</tr>
+<tr>
+<td><code>DROP TABLE t</code></td>
+<td>La tabla <strong>completa</strong> (estructura y datos)</td>
+<td>No</td>
+<td>Usa <code>DROP TABLE IF EXISTS t</code> para no fallar si no existe</td>
+</tr>
+</tbody></table></div>
+<div class="recorrido"></div>
+
+
+<h2>ALTER TABLE: cambiar la estructura</h2>
+<pre data-norun><code class="language-sql">ALTER TABLE proveedores ADD COLUMN telefono TEXT;          -- agregar columna
+ALTER TABLE proveedores RENAME COLUMN pais TO pais_origen; -- renombrar
+ALTER TABLE proveedores RENAME TO proveedores_v2;          -- renombrar la tabla</code></pre>
+<p>Cambiar la estructura de una tabla que ya usan reportes y procesos es delicado: quien hacía <code>SELECT pais</code> deja de funcionar. Por eso en equipos grandes los cambios de esquema se versionan y se anuncian (<em>migraciones</em>, <em>contratos de datos</em>).</p>
+<h2>UPSERT: insertar o actualizar</h2>
+<p>El problema más común al cargar datos: llega un lote donde algunos registros son <strong>nuevos</strong> y otros son <strong>cambios</strong> de registros existentes. &quot;Si no existe, insértalo; si existe, actualízalo&quot; se llama <strong>upsert</strong> (<em>update</em> + <em>insert</em>).</p>
+<p>En SQLite y PostgreSQL:</p>
+<pre data-norun><code class="language-sql">INSERT INTO proveedores (proveedor_id, nombre, calificacion)
+VALUES (1, 'Distribuidora Sur SA', 4)
+ON CONFLICT (proveedor_id) DO UPDATE
+   SET nombre = excluded.nombre,
+       calificacion = excluded.calificacion;</code></pre>
+<p><code>excluded</code> se refiere a la fila que <strong>intentabas</strong> insertar. Si el <code>proveedor_id</code> 1 ya existe, en vez de dar error, actualiza sus columnas.</p>
+<p>En Databricks, Snowflake, BigQuery, SQL Server y Oracle se usa <code>MERGE</code>, más completo (también puede borrar):</p>
+<pre data-norun><code class="language-sql">MERGE INTO clientes_silver AS d
+USING cambios_del_dia AS c
+   ON d.cliente_id = c.cliente_id
+WHEN MATCHED AND c.operacion = 'baja' THEN DELETE
+WHEN MATCHED THEN UPDATE SET d.email = c.email, d.segmento = c.segmento
+WHEN NOT MATCHED THEN INSERT (cliente_id, email, segmento) VALUES (c.cliente_id, c.email, c.segmento);</code></pre>
+<p><code>MERGE</code> es <strong>idempotente</strong> si la clave está bien elegida: ejecutarlo dos veces con el mismo lote deja la tabla igual. Por eso es la base de las cargas incrementales (dbt incremental, Delta Lake, Iceberg).</p>
+<div class="motores"></div>
+
+
+<h2>Transacciones y ACID</h2>
+<p>Una <strong>transacción</strong> agrupa varias operaciones que deben ocurrir <strong>todas o ninguna</strong>. El ejemplo clásico: una transferencia bancaria. Si se resta de una cuenta y se corta la luz antes de sumar en la otra, el dinero desaparece.</p>
+<pre data-norun><code class="language-sql">BEGIN;                                                  -- empieza la transacción
+UPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;
+UPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;
+-- (verificación: SELECT … para comprobar que todo está bien)
+COMMIT;                                                 -- confirma: los cambios son definitivos
+-- o ROLLBACK;                                          -- deshace todo lo hecho desde el BEGIN</code></pre>
+<p><strong>ACID</strong> son las cuatro garantías de una base de datos transaccional:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Letra</th>
+<th>Propiedad</th>
+<th>Significa</th>
+<th>En el ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>A</strong></td>
+<td>Atomicidad</td>
+<td>Todo o nada</td>
+<td>No queda la resta sin la suma</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>Consistencia</td>
+<td>Las reglas (restricciones) siempre se cumplen</td>
+<td>Un <code>CHECK (saldo &gt;= 0)</code> impide saldos negativos</td>
+</tr>
+<tr>
+<td><strong>I</strong></td>
+<td>Aislamiento</td>
+<td>Transacciones simultáneas no se pisan</td>
+<td>Dos transferencias a la vez no leen saldos a medio actualizar</td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>Durabilidad</td>
+<td>Lo confirmado no se pierde</td>
+<td>Tras el <code>COMMIT</code>, aunque se corte la luz, la transferencia quedó</td>
+</tr>
+</tbody></table></div>
+<p>Durante años los data lakes (archivos en S3 o ADLS) <strong>no</strong> tenían estas garantías: un job que fallaba a la mitad dejaba archivos sueltos. <strong>Delta Lake</strong>, <strong>Apache Iceberg</strong> y <strong>Hudi</strong> llevaron ACID a los archivos del lago: es una de las razones por las que existe el <em>lakehouse</em>.</p>
+<h2>Vistas: consultas guardadas con nombre</h2>
+<p>Una <strong>vista</strong> es una consulta guardada con un nombre. <strong>No guarda datos</strong>: cada vez que la consultas, ejecuta la consulta original sobre los datos actuales.</p>
+<pre><code class="language-sql">CREATE VIEW v_ventas_diarias AS
+SELECT p.fecha_pedido AS dia,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM pedidos p JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+GROUP BY p.fecha_pedido;
+
+SELECT * FROM v_ventas_diarias ORDER BY dia DESC LIMIT 5;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Vista</th>
+<th>Tabla (CTAS)</th>
+<th>Vista materializada</th>
+</tr>
+</thead><tbody><tr>
+<td>Guarda datos</td>
+<td>No</td>
+<td>Sí</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Siempre actualizada</td>
+<td>Sí</td>
+<td>No (hay que recalcularla)</td>
+<td>El motor la refresca</td>
+</tr>
+<tr>
+<td>Velocidad al consultar</td>
+<td>Lo que tarde la consulta</td>
+<td>Rápida</td>
+<td>Rápida</td>
+</tr>
+<tr>
+<td>Uso típico</td>
+<td>Simplificar consultas, ocultar columnas sensibles</td>
+<td>Capas de un pipeline</td>
+<td>Dashboards con agregados frecuentes</td>
+</tr>
+</tbody></table></div>
+<p>En dbt, elegir entre vista y tabla es elegir la <strong>materialización</strong> de un modelo (<code>view</code>, <code>table</code>, <code>incremental</code>).</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La tabla de cupones</div>
+
+<p>Camila va a lanzar cupones de descuento y el equipo de desarrollo te pide ayuda:</p>
+<blockquote>
+<p>&quot;Necesitamos una tabla nueva para los cupones: código, descuento y fecha de vencimiento. Ah, y Valentina pidió subir un 5 % los precios de Audio. ¿Lo haces tú?&quot;</p>
+</blockquote>
+<p>Hasta ahora solo <strong>leías</strong> datos. Ahora vas a <strong>crearlos y modificarlos</strong>. Es poder real, y con poder real se pueden hacer daños reales: esta lección también es sobre cómo no borrar una tabla de producción.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En una empresa, casi nunca se ejecuta un <code>UPDATE</code> o <code>DELETE</code> a mano en producción. Los cambios de estructura (<code>CREATE</code>, <code>ALTER</code>) van en <strong>migraciones</strong> versionadas en Git y revisadas por otra persona, y los cambios de datos los hacen los pipelines.</li>
+<li>Si de verdad hay que corregir datos a mano: primero un <code>SELECT</code> con el mismo <code>WHERE</code> para ver qué filas se van a tocar, después el cambio <strong>dentro de una transacción</strong>, revisar el número de filas afectadas y recién ahí <code>COMMIT</code>.</li>
+<li>En los data lakes con Delta Lake o Iceberg existen <code>UPDATE</code>, <code>DELETE</code> y <code>MERGE</code>, y además <em>time travel</em>: si algo sale mal, se puede volver a la versión anterior de la tabla.</li>
+<li>El upsert (<code>MERGE</code>) es la operación central de las cargas incrementales: &quot;si el cliente ya existe, actualízalo; si no, insértalo&quot;.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué significa ACID?&quot;</div>
+
+<p><strong>Atomicidad</strong> (la transacción se aplica completa o no se aplica), <strong>Consistencia</strong> (deja la base en un estado válido según sus reglas), <strong>Aislamiento</strong> (las transacciones simultáneas no ven los cambios a medias de las otras) y <strong>Durabilidad</strong> (lo confirmado sobrevive a un corte de luz). Un buen ejemplo: transferir dinero entre dos cuentas, que son dos <code>UPDATE</code> que tienen que ocurrir juntos.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>DDL cambia estructuras (<code>CREATE</code>, <code>ALTER</code>, <code>DROP</code>); DML cambia filas (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>MERGE</code>).</li>
+<li>Las restricciones (<code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>REFERENCES</code>) protegen la calidad.</li>
+<li>Antes de <code>UPDATE</code>/<code>DELETE</code>, prueba el <code>WHERE</code> con un <code>SELECT</code>. Sin <code>WHERE</code>, afecta todas las filas.</li>
+<li>Upsert: <code>INSERT … ON CONFLICT</code> (SQLite/PostgreSQL) o <code>MERGE</code> (Databricks, Snowflake, BigQuery…).</li>
+<li>Transacciones = todo o nada (ACID). Vistas = consultas guardadas sin datos.</li>
+</ul>
+<h2>Ejercicios</h2>
+<p>Estos ejercicios se corrigen ejecutando una consulta de verificación <strong>después</strong> de tu código.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-ddl-dml">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-recursivas.html">← CTE recursivas: jerarquías y series</a><a href="sql-capa-bronze.html">La capa bronze - limpiar datos como llegan de verdad →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -384,6 +384,64 @@ function pistasAutomaticas(ex) {
 const lista = (v) => (v ? String(v).split(/\s+\|\s+/).map((x) => x.trim()).filter(Boolean) : []);
 const mdInline = (t) => marked.parseInline(t);
 
+// Una página HTML liviana por lección (leccion/<id>.html), un índice, sitemap.xml y robots.txt.
+// Sirven para que los buscadores indexen cada lección (las direcciones #/l/… del sitio son una sola página para
+// Google) y para compartir un enlace con vista previa. Cada página trae el texto completo y un botón que abre la
+// lección interactiva, con sus ejercicios, en la Academia.
+function paginasParaBuscadores(modules) {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  const base = String(pkg.homepage || '').replace(/\/?$/, '/');
+  const dir = path.join(ROOT, 'leccion');
+  fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
+  const esc = (x) => escapeHtml(String(x ?? ''));
+  const icono = (fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').match(/<link rel="icon" href="[^"]*">/) || [''])[0];
+  const css = `:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}`;
+  const pagina = ({ titulo, desc, canon, cuerpo }) => `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(titulo)}</title><meta name="description" content="${esc(desc)}">${base ? `<link rel="canonical" href="${esc(base + canon)}">` : ''}
+<meta property="og:type" content="article"><meta property="og:title" content="${esc(titulo)}"><meta property="og:description" content="${esc(desc)}">${base ? `<meta property="og:url" content="${esc(base + canon)}">` : ''}<meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+${icono}<style>${css}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main>${cuerpo}</main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
+`;
+  // el HTML de la lección trae piezas interactivas que necesitan la app: se quitan para la versión de lectura
+  const limpiar = (h) => h.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/ data-[\w-]+="[^"]*"/g, '');
+  const todas = modules.flatMap((m) => m.lecciones.map((l) => ({ m, l })));
+  todas.forEach(({ m, l }, i) => {
+    const ant = todas[i - 1], sig = todas[i + 1];
+    const app = `../index.html#/l/${l.id}`;
+    const nEj = l.ejercicios.length;
+    const cuerpo = `<div class="migas"><a href="index.html#${esc(m.id)}">${esc(m.icono || '')} ${esc(m.titulo)}</a> · ${esc(l.nivel || '')} · ${esc(l.duracion || '')} min</div>
+<h1>${esc(l.titulo)}</h1><p class="resumen">${esc(l.resumen || '')}</p>
+<a class="cta" href="${app}">▶ Abrir la lección interactiva${nEj ? ` (${nEj} ejercicios)` : ''}</a>
+${(l.objetivos || []).length ? `<h2>Al terminar vas a poder</h2><ul class="lista">${l.objetivos.map((o) => `<li>${o}</li>`).join('')}</ul>` : ''}
+${limpiar(l.html)}
+${nEj ? `<h2>Practica</h2><p>Esta lección tiene <b>${nEj} ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="${app}">▶ Hacer los ejercicios</a>` : ''}
+<nav class="nav">${ant ? `<a href="${esc(ant.l.id)}.html">← ${esc(ant.l.titulo)}</a>` : '<span></span>'}${sig ? `<a href="${esc(sig.l.id)}.html">${esc(sig.l.titulo)} →</a>` : ''}</nav>`;
+    fs.writeFileSync(path.join(dir, l.id + '.html'), pagina({ titulo: `${l.titulo} · Academia de Datos`, desc: l.resumen || l.titulo, canon: `leccion/${l.id}.html`, cuerpo }));
+  });
+  const indice = `<h1>Todas las lecciones</h1><p class="resumen">${todas.length} lecciones gratuitas para aprender datos desde cero: SQL, Python, Spark, Power BI, Databricks, Azure, AWS, Google Cloud y certificaciones.</p><a class="cta" href="../index.html">▶ Abrir la Academia</a>
+${modules.map((m) => `<h2 id="${esc(m.id)}">${esc(m.icono || '')} ${esc(m.titulo)}</h2>${m.descripcion ? `<p>${esc(m.descripcion)}</p>` : ''}<ul class="lista">${m.lecciones.map((l) => `<li><a href="${esc(l.id)}.html">${esc(l.titulo)}</a></li>`).join('')}</ul>`).join('\n')}`;
+  fs.writeFileSync(path.join(dir, 'index.html'), pagina({ titulo: 'Todas las lecciones · Academia de Datos', desc: `${todas.length} lecciones gratuitas de datos en español, desde cero hasta certificaciones.`, canon: 'leccion/index.html', cuerpo: indice }));
+  if (base) {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const urls = ['', 'leccion/index.html', ...todas.map(({ l }) => `leccion/${l.id}.html`)];
+    fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${esc(base + u)}</loc><lastmod>${hoy}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+    fs.writeFileSync(path.join(ROOT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${base}sitemap.xml\n`);
+  }
+}
+
 // Módulos donde se aprende un tema desde cero: quien estudia todavía no trabaja en una empresa, así que la
 // lección empieza por la explicación y el pedido laboral (:::escenario) se muestra al final, como caso real.
 // En los módulos de "Trabajo real" (casos, pipelines, incidentes, laboratorios, portafolio…) el escenario sigue arriba.
@@ -704,6 +762,7 @@ function build() {
   fs.writeFileSync(path.join(ROOT, 'assets/js/pysrc.js'),
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
   globalThis.__sellarIndex();
+  paginasParaBuscadores(modules);
   console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${certificaciones.length} certificaciones (${certificaciones.reduce((n, c) => n + c.claves.length, 0)} tarjetas) · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
   return { ...course, modulos: modules } /* quien valida necesita las lecciones completas, no el índice */;
 }

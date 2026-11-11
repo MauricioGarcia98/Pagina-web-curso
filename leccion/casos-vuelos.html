@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso ✈️ Cóndor Air: puntualidad, ocupación y precios · Academia de Datos</title><meta name="description" content="On-time performance, demoras por ruta, propagación de demoras, factor de ocupación, ingresos y precio según anticipación."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-vuelos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso ✈️ Cóndor Air: puntualidad, ocupación y precios · Academia de Datos"><meta property="og:description" content="On-time performance, demoras por ruta, propagación de demoras, factor de ocupación, ingresos y precio según anticipación."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-vuelos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 55 min</div>
+<h1>Caso ✈️ Cóndor Air: puntualidad, ocupación y precios</h1><p class="resumen">On-time performance, demoras por ruta, propagación de demoras, factor de ocupación, ingresos y precio según anticipación.</p>
+<a class="cta" href="../index.html#/l/casos-vuelos">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular la puntualidad (OTP) por ruta con la tolerancia estándar de 15 minutos</li><li>Medir demoras promedio por aeropuerto sin incluir vuelos cancelados</li><li>Estimar ocupación ponderada por asientos</li><li>Analizar precio según anticipación y la propagación de demoras entre vuelos encadenados</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Cóndor Air</div>
+
+<p>El gerente de operaciones de <strong>Cóndor Air</strong> recibió una queja del regulador:</p>
+<blockquote>
+<p>&quot;Dicen que nuestra puntualidad está por debajo del promedio. Necesito saber en qué rutas y aeropuertos fallamos. Y comercial quiere entender la ocupación y si los que compran tarde realmente pagan más.&quot;</p>
+</blockquote>
+<p>Una aerolínea vive de llenar aviones al mejor precio y de cumplir horarios. Un avión que sale tarde arrastra la demora a todos los vuelos que hace ese día.</p>
+</div>
+
+<p><strong>Cóndor Air</strong> opera 20 rutas en Latinoamérica y una a Madrid. Operaciones mide la <strong>puntualidad</strong> y comercial la <strong>ocupación</strong> y el <strong>ingreso</strong>.</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">vuelos_aeropuertos (codigo, ciudad, pais)
+vuelos_vuelos (vuelo_id, numero, origen, destino, fecha,
+               salida_programada, salida_real, llegada_programada, llegada_real, estado, capacidad)
+vuelos_reservas (reserva_id, vuelo_id, pasajero_id, fecha_reserva, clase, precio, estado)</code></pre>
+<ul>
+<li>Un vuelo es <strong>puntual</strong> si llegó con <strong>15 minutos o menos</strong> de demora (estándar de la industria). Los cancelados no son puntuales.</li>
+<li><strong>Demora de salida</strong> = minutos entre <code>salida_programada</code> y <code>salida_real</code>.</li>
+<li><code>vuelos_reservas</code> es una <strong>muestra</strong>: cada reserva representa a 40 pasajeros reales (factor de expansión 40). Para estimar la ocupación: <code>pasajeros_estimados = reservas_confirmadas × 40</code>.</li>
+<li><strong>Load factor</strong> (ocupación) = pasajeros / asientos ofrecidos.</li>
+</ul>
+<h2>Cómo funciona una aerolínea</h2>
+<p>Una aerolínea tiene costos enormes y casi fijos: el avión, el combustible y la tripulación cuestan casi lo mismo si el vuelo va lleno o medio vacío. Por eso sus dos obsesiones son:</p>
+<ol>
+<li><strong>Llenar los aviones</strong> (<em>load factor</em>): cada asiento vacío al despegar es ingreso perdido para siempre (como el turno vacío de la clínica).</li>
+<li><strong>Vender cada asiento al mejor precio posible</strong> (<em>revenue management</em>): el mismo asiento cuesta distinto según la anticipación, la clase y la demanda. Quien compra a último momento suele pagar más.</li>
+</ol>
+<p>Y operaciones vive de la <strong>puntualidad</strong>: una demora en la mañana se <strong>propaga</strong> a todos los vuelos siguientes del mismo avión, genera conexiones perdidas, compensaciones y malas reseñas.</p>
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿Hay días de la semana con más demora de salida?&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por día de la semana (<code>strftime(&#39;%w&#39;, fecha)</code>: 0 = domingo … 6 = sábado).</li>
+<li><strong>Filtro</strong>: excluir los cancelados (no tienen <code>salida_real</code>).</li>
+<li><strong>Métrica</strong>: demora promedio en minutos = (salida real − salida programada) × 1.440.</li>
+</ol>
+<pre><code class="language-sql">SELECT strftime('%w', fecha) AS dia_semana,
+       COUNT(*) AS vuelos,
+       ROUND(AVG((julianday(salida_real) - julianday(salida_programada)) * 1440), 1) AS demora_min
+FROM vuelos_vuelos
+WHERE estado &lt;&gt; 'cancelado'
+GROUP BY dia_semana
+ORDER BY dia_semana;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>dia_semana</th>
+<th>vuelos</th>
+<th>demora_min</th>
+</tr>
+</thead><tbody><tr>
+<td>0 (dom)</td>
+<td>650</td>
+<td>20.6</td>
+</tr>
+<tr>
+<td>1 (lun)</td>
+<td>683</td>
+<td>22.9</td>
+</tr>
+<tr>
+<td>3 (mié)</td>
+<td>685</td>
+<td>23.4</td>
+</tr>
+<tr>
+<td>5 (vie)</td>
+<td>663</td>
+<td>19.2</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura de negocio:</strong> las diferencias entre días son pequeñas (19 a 23 minutos). El día de la semana <strong>no</strong> explica las demoras; hay que buscar en otro lado: aeropuerto de origen y, sobre todo, la propagación desde el vuelo anterior (lo verás en los ejercicios). Un resultado &quot;sin hallazgo&quot; también es información: evita invertir en la solución equivocada.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>Muestra con factor de expansión</strong>: <code>vuelos_reservas</code> es una muestra; cada reserva representa 40 pasajeros. Olvidar el ×40 da ocupaciones absurdas de 2 %.</li>
+<li><strong>Doble conteo al unir vuelos con reservas</strong>: si unes primero y después sumas la capacidad, la capacidad de cada vuelo se suma una vez <strong>por reserva</strong>. Agrega las reservas por vuelo antes de unir.</li>
+<li><strong>Puntualidad se mide en la llegada</strong> (15 minutos de tolerancia), no en la salida; y los cancelados cuentan como no puntuales.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La puntualidad se mide con un estándar de la industria: un vuelo es puntual si llega dentro de los 15 minutos de lo programado. Usar otra definición hace que tus números no se puedan comparar con nadie.</li>
+<li>Las aerolíneas combinan datos de muchas fuentes (reservas, operaciones, mantenimiento, clima). Integrarlas por vuelo y fecha es un trabajo típico de data engineering, y los datos de operación llegan en tiempo casi real.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Puntualidad que excluye los vuelos cancelados</strong>: se ve mejor de lo que es; los cancelados se reportan aparte.</li>
+<li><strong>Demora de llegada y de salida mezcladas</strong>.</li>
+<li><strong>Factor de ocupación con pasajes vendidos</strong> en vez de pasajeros embarcados.</li>
+<li><strong>Comparar precios sin la anticipación de la compra</strong>: el mismo asiento cuesta distinto según cuándo se compra.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo calcularías cuánto se propaga una demora en la red de vuelos?&quot;</div>
+
+<p>Uniría cada vuelo con el siguiente que opera el mismo avión ordenando por hora de salida, con <code>LEAD</code> por matrícula. La demora que se transmite es la demora de llegada del primero menos el margen entre la llegada programada y la salida del siguiente, menos el tiempo mínimo en tierra, si da positivo. Compararía esa demora heredada con la demora real del segundo vuelo para separar la propagada de la propia.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-vuelos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-saas.html">← Caso ☁️ Nube Pyme: MRR, retención neta y soporte</a><a href="casos-logistica.html">Caso 📦 Mercurio: stock, quiebres y entregas a tiempo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

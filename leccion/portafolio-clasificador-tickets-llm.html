@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 8: Clasificador de tickets con un modelo de lenguaje · Academia de Datos</title><meta name="description" content="Mensajes reales de clientes (con errores de tipeo, mayúsculas y enojo) ya etiquetados por categoría, sentimiento y prioridad. Usas un modelo de lenguaje para clasificarlos - con Ollama en tu computadora, con ai_classify y ai_query en Databricks o con un modelo desplegado en Microsoft Foundry - y lo evalúas contra las etiquetas con una matriz de confusión, costo por mil tickets y casos donde falla. Valor - enrutar al instante en vez de triar a mano."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-clasificador-tickets-llm.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 8: Clasificador de tickets con un modelo de lenguaje · Academia de Datos"><meta property="og:description" content="Mensajes reales de clientes (con errores de tipeo, mayúsculas y enojo) ya etiquetados por categoría, sentimiento y prioridad. Usas un modelo de lenguaje para clasificarlos - con Ollama en tu computadora, con ai_classify y ai_query en Databricks o con un modelo desplegado en Microsoft Foundry - y lo evalúas contra las etiquetas con una matriz de confusión, costo por mil tickets y casos donde falla. Valor - enrutar al instante en vez de triar a mano."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-clasificador-tickets-llm.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Avanzado · 110 min</div>
+<h1>Proyecto 8: Clasificador de tickets con un modelo de lenguaje</h1><p class="resumen">Mensajes reales de clientes (con errores de tipeo, mayúsculas y enojo) ya etiquetados por categoría, sentimiento y prioridad. Usas un modelo de lenguaje para clasificarlos - con Ollama en tu computadora, con ai_classify y ai_query en Databricks o con un modelo desplegado en Microsoft Foundry - y lo evalúas contra las etiquetas con una matriz de confusión, costo por mil tickets y casos donde falla. Valor - enrutar al instante en vez de triar a mano.</p>
+<a class="cta" href="../index.html#/l/portafolio-clasificador-tickets-llm">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar un prompt de clasificación con categorías cerradas y salida estructurada</li><li>Evaluar un clasificador contra etiquetas con exactitud por clase y matriz de confusión</li><li>Calcular el costo y la latencia por mil tickets</li><li>Usar funciones de IA en SQL (ai_classify, ai_query) sobre una tabla</li><li>Decidir cuándo un LLM no es la mejor opción</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo de soporte recibe 1.500 mensajes por semana por chat, email, WhatsApp y formulario. Una persona los lee y los asigna: pagos, envíos, devoluciones, garantía o cuenta. Los urgentes (cobros duplicados, cuentas hackeadas) a veces esperan horas en la cola. Te piden clasificar y priorizar automáticamente, y <strong>demostrar</strong> que la clasificación es confiable antes de activarla.</p>
+</div>
+
+
+<h2>Valor</h2>
+<ul>
+<li><strong>Tiempo de primera respuesta</strong> de los urgentes: de horas a minutos.</li>
+<li><strong>Horas de triage</strong> liberadas por semana.</li>
+<li>La condición para activarlo: <strong>exactitud por categoría</strong> mayor a 90 % y revisión humana de los casos de baja confianza.</li>
+</ul>
+<h2>Los datos</h2>
+<p><a href="#/generador?esc=soporte&n=1500&semilla=88&desde=2024-01-01&hasta=2024-12-31&formatos=3&duplicados=1">🏭 Generar los datos del proyecto</a> · Escenario <strong>Soporte</strong>: <code>tickets</code> (mensaje, canal, país, y las etiquetas <code>categoria</code>, <code>sentimiento</code> y <code>prioridad</code>) y <code>base_conocimiento</code> (para el proyecto 9).</p>
+<pre><code class="language-bash">generar-datos soporte --filas 300 --semilla 88
+duckdb -c &quot;SELECT categoria, COUNT(*) FROM '~/datos/generados/soporte/tickets.csv' GROUP BY 1&quot;</code></pre>
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Clasificación con LLM y evaluación</figcaption></figure>
+
+
+<h2>El prompt</h2>
+<pre><code class="language-text">Eres un clasificador de tickets de soporte de una tienda online.
+Categorías posibles: pagos, envios, devoluciones, garantia, cuenta.
+Prioridad: urgente si hay riesgo de dinero o de seguridad (cobros duplicados, cuenta hackeada);
+alta si el cliente está enojado; si no, media.
+
+Responde SOLO con JSON: {&quot;categoria&quot;: &quot;...&quot;, &quot;prioridad&quot;: &quot;...&quot;, &quot;confianza&quot;: 0.0-1.0}
+
+Mensaje: &quot;&quot;&quot;{mensaje}&quot;&quot;&quot;</code></pre>
+<ul>
+<li><strong>Categorías cerradas</strong> y salida <strong>JSON</strong>: se puede validar y medir.</li>
+<li>Incluye 3 a 5 <strong>ejemplos</strong> reales (few-shot) si la exactitud de una categoría es baja.</li>
+<li>Temperatura 0: misma entrada, misma salida.</li>
+</ul>
+<h2>Tres formas de ejecutarlo</h2>
+<p><strong>Local con Ollama</strong> (gratis, privado):</p>
+<pre data-norun><code class="language-python">import json, ollama, pandas as pd
+df = pd.read_csv(&quot;data/raw/tickets.csv&quot;)
+def clasificar(msg):
+    r = ollama.chat(model=&quot;llama3.2&quot;, options={&quot;temperature&quot;: 0}, format=&quot;json&quot;,
+                    messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: PROMPT.format(mensaje=msg)}])
+    return json.loads(r[&quot;message&quot;][&quot;content&quot;])
+df[[&quot;pred_categoria&quot;, &quot;pred_prioridad&quot;, &quot;confianza&quot;]] = df[&quot;mensaje&quot;].apply(lambda m: pd.Series(clasificar(m)))</code></pre>
+<p><strong>Databricks, con funciones de IA en SQL</strong>:</p>
+<pre data-norun><code class="language-sql">SELECT ticket_id, mensaje, categoria,
+       ai_classify(mensaje, ARRAY('pagos', 'envios', 'devoluciones', 'garantia', 'cuenta')) AS pred_categoria,
+       ai_analyze_sentiment(mensaje) AS pred_sentimiento
+FROM workspace.soporte.tickets;</code></pre>
+<p><code>ai_query(&#39;&lt;endpoint&gt;&#39;, prompt)</code> permite usar tu propio prompt con un modelo del workspace. Revisa qué funciones y modelos están disponibles en tu edición y región.</p>
+<p><strong>Azure</strong>: un modelo desplegado en <strong>Microsoft Foundry</strong> y llamado con el SDK (con salida estructurada en JSON). Las credenciales van en Key Vault o variables de entorno, nunca en el código.</p>
+<h2>Evaluar como un profesional</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Métrica</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Exactitud por categoría</td>
+<td>Una categoría mala no se esconde en el promedio</td>
+</tr>
+<tr>
+<td>Matriz de confusión</td>
+<td>Ver <strong>qué</strong> confunde (¿devoluciones con envíos?)</td>
+</tr>
+<tr>
+<td>% fuera de categoría</td>
+<td>Respuestas que no respetan el formato</td>
+</tr>
+<tr>
+<td>Costo por 1.000 tickets</td>
+<td>Tokens de entrada + salida × precio</td>
+</tr>
+<tr>
+<td>Latencia p95</td>
+<td>Si sirve para enrutar en el momento</td>
+</tr>
+</tbody></table></div>
+<p>Y una sección de <strong>errores analizados</strong>: 10 casos mal clasificados con por qué (ambiguos, ironía, dos temas en un mensaje).</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>No tener un conjunto de evaluación</strong> con tickets etiquetados: no sabes si el clasificador mejora o empeora.</li>
+<li><strong>Mandar datos personales del cliente al modelo</strong> sin necesidad.</li>
+<li><strong>Confiar en la salida sin validar el formato</strong>: pide JSON con un esquema y valida.</li>
+<li><strong>No medir costo ni latencia</strong> por ticket.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los clasificadores con modelos de lenguaje se usan mucho en soporte; lo que distingue un buen proyecto es la evaluación con datos reales, el manejo de los casos dudosos (derivar a una persona) y el costo por ticket.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo pondrías en producción un clasificador hecho con un modelo de lenguaje?&quot;</div>
+
+<p>Con un conjunto de evaluación etiquetado y una métrica por categoría, comparando contra una regla simple. Salida estructurada validada contra un esquema y una categoría de &quot;no seguro&quot; que deriva a una persona. Sin datos personales innecesarios en el prompt, registro de entradas y salidas para auditar, y monitoreo de costo, latencia y distribución de categorías.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Prompt versionado y la tabla de resultados por versión.</li>
+<li><input disabled="" type="checkbox"> Matriz de confusión y exactitud por categoría.</li>
+<li><input disabled="" type="checkbox"> Costo y latencia por 1.000 tickets en al menos dos opciones (local y nube).</li>
+<li><input disabled="" type="checkbox"> Decisión de activación: qué se automatiza y qué va a revisión humana.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Extraer datos estructurados del mensaje (número de pedido, monto) con <code>ai_extract</code> o un prompt con esquema.</li>
+<li>Monitoreo: exactitud semanal sobre una muestra revisada por humanos, para detectar deriva.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-clasificador-tickets-llm">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-recomendaciones-streaming.html">← Proyecto 7: Recomendaciones y retención en una plataforma de streaming</a><a href="portafolio-asistente-rag-con-citas.html">Proyecto 9: Asistente de soporte con RAG que cita sus fuentes →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

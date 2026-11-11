@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rendimiento: índices y planes de ejecución · Academia de Datos</title><meta name="description" content="Cómo ejecuta el motor tu consulta, índices B-tree, EXPLAIN, consultas &quot;sargables&quot; y antipatrones."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-rendimiento.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Rendimiento: índices y planes de ejecución · Academia de Datos"><meta property="og:description" content="Cómo ejecuta el motor tu consulta, índices B-tree, EXPLAIN, consultas &quot;sargables&quot; y antipatrones."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-rendimiento.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Experto · 35 min</div>
+<h1>Rendimiento: índices y planes de ejecución</h1><p class="resumen">Cómo ejecuta el motor tu consulta, índices B-tree, EXPLAIN, consultas &quot;sargables&quot; y antipatrones.</p>
+<a class="cta" href="../index.html#/l/sql-rendimiento">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer un plan de ejecución e identificar si una consulta usa un índice o recorre toda la tabla</li><li>Explicar qué es un índice, cuándo ayuda y qué cuesta</li><li>Reescribir filtros para que sean sargables</li><li>Aplicar una checklist de optimización en el orden correcto</li></ul>
+<p>Una consulta correcta pero lenta es un problema en producción. Para optimizar, primero hay que entender <strong>cómo</strong> ejecuta el motor tu consulta.</p>
+<h2>El optimizador y el plan de ejecución</h2>
+<p>Cuando envías una consulta, el motor:</p>
+<ol>
+<li>La <strong>analiza</strong> (parser) y verifica que tablas y columnas existan.</li>
+<li>El <strong>optimizador</strong> genera varios planes posibles (¿qué tabla leo primero?, ¿uso un índice?, ¿qué algoritmo de join?) y estima su costo con <strong>estadísticas</strong> de las tablas.</li>
+<li><strong>Ejecuta</strong> el plan más barato.</li>
+</ol>
+<p>Con <code>EXPLAIN QUERY PLAN</code> (SQLite) o <code>EXPLAIN</code> / <code>EXPLAIN ANALYZE</code> (PostgreSQL, Spark, Databricks) ves el plan:</p>
+<pre><code class="language-sql">EXPLAIN QUERY PLAN
+SELECT * FROM pedidos WHERE cliente_id = 42;</code></pre>
+<p>Verás <code>SEARCH pedidos USING INDEX idx_pedidos_cliente (cliente_id=?)</code>: el motor usa un <strong>índice</strong> en vez de recorrer toda la tabla. Compara con:</p>
+<pre><code class="language-sql">EXPLAIN QUERY PLAN
+SELECT * FROM pedidos WHERE metodo_pago = 'efectivo';</code></pre>
+<p>Aquí verás <code>SCAN pedidos</code>: un recorrido completo (<em>full table scan</em>), porque no hay índice sobre <code>metodo_pago</code>.</p>
+<h2>¿Qué es un índice?</h2>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El índice de un libro</div>
+
+<p>Para encontrar “funciones de ventana” en un libro de 800 páginas, no lo lees entero: vas al índice alfabético, que te dice “página 412”. Un índice de base de datos es igual: una estructura ordenada (normalmente un <strong>árbol B</strong>, <em>B-tree</em>) que lleva rápidamente de un valor a las filas que lo contienen.</p>
+</div>
+
+
+<pre><code class="language-sql">CREATE INDEX idx_pedidos_metodo ON pedidos(metodo_pago);
+EXPLAIN QUERY PLAN SELECT * FROM pedidos WHERE metodo_pago = 'efectivo';</code></pre>
+<p><strong>Ventajas</strong>: búsquedas, joins y ordenamientos mucho más rápidos.
+<strong>Costos</strong>: ocupan espacio y hacen más lentos los <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code> (hay que mantener el índice).</p>
+<h3>Índices compuestos y la regla del prefijo</h3>
+<p>Un índice en <code>(cliente_id, fecha_pedido)</code> sirve para filtrar por <code>cliente_id</code> o por <code>cliente_id</code> + <code>fecha_pedido</code>, pero <strong>no</strong> solo por <code>fecha_pedido</code> (igual que una guía telefónica ordenada por apellido y nombre no sirve para buscar solo por nombre).</p>
+<div class="recorrido"></div>
+
+
+<h2>Consultas “sargables”</h2>
+<p>Una condición es <strong>sargable</strong> (<em>Search ARGument ABLE</em>) si el motor puede usar un índice para resolverla. Envolver la columna en una función suele <strong>impedirlo</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>❌ No sargable</th>
+<th>✅ Sargable</th>
+</tr>
+</thead><tbody><tr>
+<td><code>WHERE strftime(&#39;%Y&#39;, fecha_pedido) = &#39;2024&#39;</code></td>
+<td><code>WHERE fecha_pedido &gt;= &#39;2024-01-01&#39; AND fecha_pedido &lt; &#39;2025-01-01&#39;</code></td>
+</tr>
+<tr>
+<td><code>WHERE UPPER(email) = &#39;ANA@MAIL.COM&#39;</code></td>
+<td>Guardar el email normalizado, o un índice sobre la expresión</td>
+</tr>
+<tr>
+<td><code>WHERE precio * 1.21 &gt; 100</code></td>
+<td><code>WHERE precio &gt; 100 / 1.21</code></td>
+</tr>
+<tr>
+<td><code>WHERE nombre LIKE &#39;%ana&#39;</code></td>
+<td><code>WHERE nombre LIKE &#39;ana%&#39;</code> (el comodín al inicio impide usar el índice)</td>
+</tr>
+</tbody></table></div>
+<h2>Antipatrones frecuentes</h2>
+<ul>
+<li><strong><code>SELECT *</code></strong> en tablas anchas: traes columnas que no usas (en Parquet/Spark lee mucho más disco).</li>
+<li><strong>Subconsultas correlacionadas</strong> sobre tablas grandes: pueden ejecutarse una vez por fila. Prueba un JOIN o una ventana.</li>
+<li><strong><code>DISTINCT</code> para “arreglar” duplicados</strong> que vienen de un JOIN mal hecho: arregla el JOIN.</li>
+<li><strong><code>OR</code> entre columnas distintas</strong> a veces impide índices: a veces conviene <code>UNION ALL</code>.</li>
+<li><strong>Funciones sobre columnas en el JOIN</strong> (<code>ON CAST(a.id AS TEXT) = b.id</code>): tipos distintos impiden índices; normaliza los tipos.</li>
+<li><strong><code>NOT IN</code> con subconsultas que pueden tener NULL</strong>: resultado incorrecto (y suele ser lento).</li>
+</ul>
+<h2>En el mundo big data (Spark, Databricks, Snowflake, BigQuery)</h2>
+<p>Los data warehouses columnares casi no usan índices B-tree. En su lugar optimizan con:</p>
+<ul>
+<li><strong>Particionado</strong>: archivos separados por, por ejemplo, fecha. Un filtro por fecha lee solo esas carpetas (<em>partition pruning</em>).</li>
+<li><strong>Estadísticas min/max por archivo</strong> (<em>data skipping</em>), clustering / Z-ORDER / Liquid Clustering en Delta Lake.</li>
+<li><strong>Leer solo las columnas necesarias</strong> (<em>column pruning</em>) y <strong>empujar filtros</strong> hacia la lectura (<em>predicate pushdown</em>).</li>
+</ul>
+<p>Lo verás en detalle en el módulo de Spark.</p>
+<h2>Cómo combina tablas el motor: los algoritmos de join</h2>
+<p>Cuando escribes un <code>JOIN</code>, el optimizador elige <strong>cómo</strong> emparejar las filas. Conocer las tres estrategias te ayuda a leer planes (en Spark las verás con estos mismos nombres):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Algoritmo</th>
+<th>Cómo funciona</th>
+<th>Cuándo es bueno</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Nested loop</strong> (bucle anidado)</td>
+<td>Para cada fila de A, busca sus parejas en B (idealmente con un índice)</td>
+<td>A es chica y B tiene índice en la columna de unión</td>
+</tr>
+<tr>
+<td><strong>Hash join</strong></td>
+<td>Construye una tabla <em>hash</em> (un diccionario) con la tabla chica y recorre la grande consultándolo</td>
+<td>Tablas grandes sin índice, uniones por igualdad. El más común en analítica</td>
+</tr>
+<tr>
+<td><strong>Merge join</strong> (sort-merge)</td>
+<td>Ordena ambas por la clave y las recorre en paralelo, como un cierre relámpago</td>
+<td>Datos ya ordenados o muy grandes (Spark lo usa por defecto entre tablas grandes)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Buscar a tus compañeros en una fiesta</div>
+
+<p><em>Nested loop</em>: por cada persona de tu lista, recorres la fiesta buscándola (lento sin un &quot;índice&quot;, es decir, sin saber dónde está cada uno). <em>Hash join</em>: primero armas un mapa &quot;nombre → mesa&quot; de la lista chica y después recorres la fiesta una vez, consultando el mapa. <em>Merge join</em>: ordenas ambas listas alfabéticamente y las comparas de arriba hacia abajo a la vez.</p>
+</div>
+
+
+<div class="motores"></div>
+
+
+<h2>Cómo leer un plan de SQLite</h2>
+<p><code>EXPLAIN QUERY PLAN</code> muestra una línea por paso. Las palabras clave:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Verás</th>
+<th>Significa</th>
+<th>¿Bueno o malo?</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SCAN tabla</code></td>
+<td>Recorre <strong>toda</strong> la tabla</td>
+<td>Malo en tablas grandes si filtrabas por pocos valores</td>
+</tr>
+<tr>
+<td><code>SEARCH tabla USING INDEX idx (col=?)</code></td>
+<td>Usa un índice para ir directo</td>
+<td>Bueno</td>
+</tr>
+<tr>
+<td><code>USING COVERING INDEX</code></td>
+<td>El índice tiene todas las columnas necesarias: ni siquiera lee la tabla</td>
+<td>Muy bueno</td>
+</tr>
+<tr>
+<td><code>USE TEMP B-TREE FOR ORDER BY / GROUP BY</code></td>
+<td>Tiene que ordenar en una estructura temporal</td>
+<td>Costoso con muchos datos</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">EXPLAIN QUERY PLAN
+SELECT c.pais, COUNT(*)
+FROM pedidos p JOIN clientes c ON c.cliente_id = p.cliente_id
+WHERE p.fecha_pedido &gt;= '2024-12-01'
+GROUP BY c.pais;</code></pre>
+<p>En PostgreSQL usa <code>EXPLAIN ANALYZE</code> (ejecuta la consulta y muestra los tiempos <strong>reales</strong> de cada paso, además de las filas estimadas vs. reales: una gran diferencia indica estadísticas desactualizadas). En Spark y Databricks, <code>df.explain()</code> o la pestaña SQL de la Spark UI.</p>
+<h2>Checklist de optimización (en orden)</h2>
+<ol>
+<li><strong>¿La consulta es correcta?</strong> Optimizar algo mal hecho es perder el tiempo. Verifica conteos y totales.</li>
+<li><strong>¿Lee menos datos?</strong> Filtra lo antes posible (<code>WHERE</code> antes que <code>HAVING</code>), elige columnas, filtra por partición.</li>
+<li><strong>¿Los filtros son sargables?</strong> Nada de funciones sobre la columna filtrada.</li>
+<li><strong>¿Los joins están bien?</strong> Claves correctas, mismos tipos, sin multiplicar filas por un <code>ON</code> incompleto.</li>
+<li><strong>¿Hay índice (o partición/clustering) para los filtros y joins frecuentes?</strong></li>
+<li><strong>Mira el plan</strong> antes y después de cada cambio. Mide, no adivines.</li>
+</ol>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La consulta que tarda 10 minutos</div>
+
+<p>Martín, tu líder, te reenvía un mensaje del equipo de BI:</p>
+<blockquote>
+<p>&quot;El dashboard de ventas tarda 10 minutos en cargar y los gerentes se quejan. La consulta es esta. ¿Puedes ver qué pasa?&quot;</p>
+</blockquote>
+<p>Que una consulta dé el resultado correcto es la mitad del trabajo. La otra mitad es que lo dé <strong>rápido</strong> y <strong>sin gastar de más</strong>. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En los data warehouses en la nube (BigQuery, Snowflake, Databricks SQL) casi no hay índices como en PostgreSQL. Lo que manda es <strong>leer menos</strong>: particionar por fecha, agrupar los datos por las columnas más filtradas (<em>clustering</em>, Z-ORDER, Liquid Clustering) y seleccionar solo las columnas necesarias. La idea de fondo es la misma: no recorrer lo que no hace falta.</li>
+<li>Optimizar sin medir es adivinar. El flujo profesional es: medir cuánto tarda y cuánto lee, mirar el plan, cambiar <strong>una</strong> cosa y volver a medir.</li>
+<li>En la nube, rendimiento es plata: en BigQuery se paga por byte leído y en Snowflake o Databricks, por tiempo de cómputo. Una consulta 10 veces más eficiente es una factura 10 veces más chica.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Una consulta que antes tardaba 2 segundos ahora tarda 2 minutos. ¿Qué haces?&quot;</div>
+
+<p>Una buena respuesta es un método: 1) ¿Cambió el volumen de datos o la consulta? 2) Mirar el plan de ejecución: ¿dejó de usar un índice o de podar particiones? 3) Revisar si las estadísticas están desactualizadas. 4) Buscar cambios recientes (un JOIN nuevo que multiplica filas, una función sobre una columna filtrada). 5) Probar la corrección y medir.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-rendimiento">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-patrones.html">← Patrones avanzados de análisis</a><a href="sql-modelado.html">Modelado de datos: normalización y esquema estrella →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

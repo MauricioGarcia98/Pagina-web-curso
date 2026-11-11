@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🛡️ Escudo Seguros: siniestralidad, frecuencia, severidad y fraude · Academia de Datos</title><meta name="description" content="Una aseguradora descubre que el ramo hogar casi no deja ganancia. Calcula primas, siniestralidad, frecuencia y severidad por ramo y por edad, y arma reglas para detectar siniestros sospechosos de fraude."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-seguros.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🛡️ Escudo Seguros: siniestralidad, frecuencia, severidad y fraude · Academia de Datos"><meta property="og:description" content="Una aseguradora descubre que el ramo hogar casi no deja ganancia. Calcula primas, siniestralidad, frecuencia y severidad por ramo y por edad, y arma reglas para detectar siniestros sospechosos de fraude."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-seguros.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 55 min</div>
+<h1>Caso 🛡️ Escudo Seguros: siniestralidad, frecuencia, severidad y fraude</h1><p class="resumen">Una aseguradora descubre que el ramo hogar casi no deja ganancia. Calcula primas, siniestralidad, frecuencia y severidad por ramo y por edad, y arma reglas para detectar siniestros sospechosos de fraude.</p>
+<a class="cta" href="../index.html#/l/casos-seguros">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular la siniestralidad (loss ratio) por ramo sin multiplicar filas en el JOIN</li><li>Separar frecuencia y severidad para explicar por qué un ramo pierde dinero</li><li>Comparar el riesgo por tramo de edad en el seguro de autos</li><li>Construir y evaluar una regla de detección de fraude con precisión y cobertura</li><li>Medir el embudo de siniestros: pagados, rechazados y en revisión</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Hogar no cierra</div>
+
+<p>El director técnico de <strong>Escudo Seguros</strong> trae el cierre del año:</p>
+<blockquote>
+<p>&quot;Autos y salud están en línea con el mercado. Pero <strong>hogar</strong> está pagando casi todo lo que cobra. ¿Subieron los robos? ¿Hay fraude? Antes de subir la prima a todos los clientes, quiero entender qué pasa.&quot;</p>
+</blockquote>
+<p>Subir el precio a todos castiga a los buenos clientes, que se van a la competencia, y deja a los malos: es la espiral de la <strong>selección adversa</strong>. Primero, entender.</p>
+</div>
+
+
+<h2>Cómo funciona una aseguradora</h2>
+<p>Una aseguradora cobra <strong>primas</strong> (el precio mensual del seguro) a muchos clientes y paga <strong>siniestros</strong> (los daños cubiertos) a unos pocos. El negocio funciona si lo que paga en siniestros, más los gastos, es menor que lo que cobra.</p>
+<ul>
+<li><strong>Póliza</strong>: el contrato. Tiene un <strong>ramo</strong> (auto, hogar, vida, salud), una vigencia (normalmente un año), una <strong>suma asegurada</strong> (lo máximo que se paga) y una <strong>prima</strong>.</li>
+<li><strong>Siniestro</strong>: el evento cubierto (un choque, un robo). Se <strong>denuncia</strong>, se revisa y se <strong>paga</strong> o se <strong>rechaza</strong>.</li>
+<li><strong>Canal</strong>: quién vendió la póliza: un <strong>broker</strong> (cobra comisión), la <strong>web</strong> o un <strong>banco</strong>.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Fórmula</th>
+<th>Lectura</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Siniestralidad</strong> (<em>loss ratio</em>)</td>
+<td>siniestros pagados / primas</td>
+<td>65 % es sano; cerca de 100 %, se pierde dinero (falta sumar los gastos)</td>
+</tr>
+<tr>
+<td><strong>Frecuencia</strong></td>
+<td>siniestros / pólizas</td>
+<td>Qué tan seguido pasa algo</td>
+</tr>
+<tr>
+<td><strong>Severidad</strong></td>
+<td>monto pagado / siniestros pagados</td>
+<td>Cuánto cuesta cada vez que pasa</td>
+</tr>
+<tr>
+<td><strong>Tasa de rechazo</strong></td>
+<td>rechazados / denunciados</td>
+<td>Control de fraude y de coberturas</td>
+</tr>
+</tbody></table></div>
+<p><strong>Siniestralidad = frecuencia × severidad / prima promedio.</strong> Si un ramo pierde, la pregunta es: ¿pasa más seguido (frecuencia) o cuesta más cada vez (severidad)?</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">seguros_clientes   (cliente_id, edad, ciudad, fecha_alta)
+seguros_polizas    (poliza_id, cliente_id, ramo, fecha_inicio, fecha_fin, prima_mensual, suma_asegurada, canal, estado)
+seguros_siniestros (siniestro_id, poliza_id, fecha_ocurrencia, fecha_denuncia, tipo, monto_reclamado, monto_pagado, estado, fraude_confirmado)</code></pre>
+<figure class="diagrama"><figcaption>Modelo de Escudo Seguros: los siniestros cuelgan de la póliza, no del cliente</figcaption></figure>
+
+
+<ul>
+<li>Todas las pólizas duran un año: la prima del período es <code>prima_mensual * 12</code>.</li>
+<li><code>monto_pagado</code> es 0 si el siniestro fue rechazado o sigue en revisión.</li>
+<li><code>fraude_confirmado</code> = 1 solo cuando la investigación terminó y confirmó el fraude (aunque el siniestro se haya pagado antes).</li>
+</ul>
+<h2>Un ejemplo resuelto: la siniestralidad por ramo</h2>
+<p><strong>La trampa:</strong> si unes pólizas con siniestros y sumas <code>prima_mensual</code>, cada póliza con 3 siniestros suma su prima <strong>3 veces</strong>. Hay que agregar cada tabla <strong>por separado</strong> y unir los resultados.</p>
+<pre><code class="language-sql">WITH primas AS (
+  SELECT ramo, COUNT(*) AS polizas, SUM(prima_mensual * 12) AS primas
+  FROM seguros_polizas
+  GROUP BY ramo
+),
+pagos AS (
+  SELECT p.ramo, COUNT(*) AS siniestros, SUM(s.monto_pagado) AS pagado
+  FROM seguros_siniestros s
+  JOIN seguros_polizas p ON p.poliza_id = s.poliza_id
+  GROUP BY p.ramo
+)
+SELECT pr.ramo, pr.polizas, ROUND(pr.primas, 0) AS primas,
+       pa.siniestros, ROUND(pa.pagado, 0) AS pagado,
+       ROUND(100.0 * pa.pagado / pr.primas, 1) AS siniestralidad_pct
+FROM primas pr
+LEFT JOIN pagos pa ON pa.ramo = pr.ramo
+ORDER BY siniestralidad_pct DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>ramo</th>
+<th>polizas</th>
+<th>primas</th>
+<th>siniestros</th>
+<th>pagado</th>
+<th>siniestralidad_pct</th>
+</tr>
+</thead><tbody><tr>
+<td>hogar</td>
+<td>580</td>
+<td>744489</td>
+<td>110</td>
+<td>710224</td>
+<td>95.4</td>
+</tr>
+<tr>
+<td>auto</td>
+<td>860</td>
+<td>1311656</td>
+<td>412</td>
+<td>980915</td>
+<td>74.8</td>
+</tr>
+<tr>
+<td>salud</td>
+<td>190</td>
+<td>245042</td>
+<td>278</td>
+<td>176608</td>
+<td>72.1</td>
+</tr>
+<tr>
+<td>vida</td>
+<td>299</td>
+<td>276073</td>
+<td>3</td>
+<td>52659</td>
+<td>19.1</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura:</strong> hogar paga 95 centavos de cada peso que cobra: con los gastos, pierde. Salud tiene muchísimos siniestros (278 en 190 pólizas: más de uno por póliza) pero baratos; vida casi nunca paga, pero cuando paga, es mucho. En los ejercicios vas a separar frecuencia y severidad y encontrar qué hay detrás de hogar.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>El fan-out del JOIN</strong>: sumar primas después de unir con siniestros multiplica las primas. Agrega por separado (dos CTE) y une al final.</li>
+<li><strong>Rechazados y en revisión</strong>: tienen <code>monto_pagado = 0</code>. Para la severidad, divide por los siniestros <strong>pagados</strong>, no por todos.</li>
+<li><strong>Fraude confirmado ≠ fraude</strong>: solo se marcan los investigados. Una regla que &quot;falla&quot; en un siniestro no marcado puede haber encontrado un fraude que nadie investigó.</li>
+<li><strong>Primas emitidas vs. devengadas</strong>: aquí todas las pólizas cubren un año completo; en la vida real se usa la prima <strong>devengada</strong> (la parte del período que ya transcurrió).</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los <strong>actuarios</strong> usan exactamente frecuencia y severidad para fijar precios: un modelo para cada una (por edad, zona, vehículo), y la prima sale de multiplicarlas. El equipo de datos les entrega las tablas limpias por póliza-año.</li>
+<li>La detección de fraude empieza con <strong>reglas</strong> como las de este caso (siniestro muy cerca del inicio, denuncia tardía, monto cerca de la suma asegurada) y luego pasa a modelos. Las alertas van a un equipo de investigación con capacidad limitada: por eso importa la <strong>precisión</strong>.</li>
+<li>Los datos de seguros incluyen datos de salud y personales: acceso restringido, enmascaramiento y auditoría, como en la clínica.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Tienes que sumar un importe de la tabla padre y contar filas de la hija. ¿Cómo evitas duplicar?&quot;</div>
+
+<p>Agrego cada tabla a su propio grano antes de unir: un CTE que suma las primas por ramo desde pólizas, otro que cuenta y suma los siniestros por ramo, y recién después uno los dos resultados por ramo. Si uniera primero, cada póliza aparecería una vez por siniestro y su prima se sumaría varias veces. Para comprobarlo, comparo el total de primas de mi consulta con un SUM directo sobre la tabla de pólizas.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Siniestralidad con primas emitidas</strong> cuando la pregunta es por primas devengadas (la parte del año ya transcurrida).</li>
+<li><strong>Severidad promedio con siniestros en curso</strong> sin monto final.</li>
+<li><strong>Reglas de fraude sin medir cuántos casos marcan</strong>: una regla que marca la mitad no es útil.</li>
+</ul>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-seguros">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-telco.html">← Caso 📱 Conecta: bajas de clientes (churn), reclamos y ARPU en una telco</a><a href="casos-hoteleria.html">Caso 🏨 Posada Andina: ocupación, ADR, RevPAR y canales de venta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

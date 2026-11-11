@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spark que no termina - skew, falta de memoria y archivos chicos · Academia de Datos</title><meta name="description" content="Los problemas de rendimiento y estabilidad de Spark que llegan a la guardia - una partición gigante (skew) que deja 199 tareas terminadas y una corriendo una hora, executors que mueren por memoria (heap o memoryOverhead), FetchFailed al perder un executor, spill a disco y miles de archivos chicos. Cómo leer las métricas de un stage, encontrar la clave caliente y corregir con AQE, broadcast, salting y compactación."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-spark-skew-memoria-archivos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Spark que no termina - skew, falta de memoria y archivos chicos · Academia de Datos"><meta property="og:description" content="Los problemas de rendimiento y estabilidad de Spark que llegan a la guardia - una partición gigante (skew) que deja 199 tareas terminadas y una corriendo una hora, executors que mueren por memoria (heap o memoryOverhead), FetchFailed al perder un executor, spill a disco y miles de archivos chicos. Cómo leer las métricas de un stage, encontrar la clave caliente y corregir con AQE, broadcast, salting y compactación."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-spark-skew-memoria-archivos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Experto · 65 min</div>
+<h1>Spark que no termina - skew, falta de memoria y archivos chicos</h1><p class="resumen">Los problemas de rendimiento y estabilidad de Spark que llegan a la guardia - una partición gigante (skew) que deja 199 tareas terminadas y una corriendo una hora, executors que mueren por memoria (heap o memoryOverhead), FetchFailed al perder un executor, spill a disco y miles de archivos chicos. Cómo leer las métricas de un stage, encontrar la clave caliente y corregir con AQE, broadcast, salting y compactación.</p>
+<a class="cta" href="../index.html#/l/incidentes-spark-skew-memoria-archivos">▶ Abrir la lección interactiva (15 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Detectar skew comparando la mediana y el máximo de las tareas de un stage</li><li>Encontrar la clave caliente de un join y cuantificar su peso</li><li>Distinguir un OOM de heap, uno de memoryOverhead y uno del driver por su mensaje</li><li>Explicar salting, AQE skew join y broadcast join y cuándo usar cada uno</li><li>Calcular la cantidad de archivos objetivo de una compactación</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El job nocturno que une pedidos con clientes tardaba 25 minutos. Desde hace una semana tarda dos horas y esta noche falló después de cuatro intentos con <code>java.lang.OutOfMemoryError: Java heap space</code>. Alguien ya propuso &quot;duplicar la memoria de los executors&quot;. Antes de gastar el doble, vas a encontrar la causa.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Un stage de Spark termina cuando termina su <strong>tarea más lenta</strong>. Si una partición tiene 80 veces más datos que las demás, agregar memoria o executors no ayuda: esa única tarea sigue sola. Casi todos los &quot;Spark está lento&quot; se diagnostican mirando <strong>la distribución</strong> de las tareas, no el promedio.</p>
+<h2>Cómo se ve el skew</h2>
+<p>En la Spark UI, pestaña <strong>Stages</strong>, cada stage muestra un resumen de sus tareas (mínimo, percentil 25, mediana, percentil 75, máximo) para la duración, el shuffle leído y el spill:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Métrica</th>
+<th>Mín</th>
+<th>Mediana</th>
+<th>P75</th>
+<th><strong>Máx</strong></th>
+</tr>
+</thead><tbody><tr>
+<td>Duración</td>
+<td>38 s</td>
+<td>52 s</td>
+<td>60 s</td>
+<td><strong>45 min</strong></td>
+</tr>
+<tr>
+<td>Shuffle read</td>
+<td>110 MB</td>
+<td>140 MB</td>
+<td>155 MB</td>
+<td><strong>9,2 GB</strong></td>
+</tr>
+<tr>
+<td>Spill (disco)</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td><strong>21 GB</strong></td>
+</tr>
+</tbody></table></div>
+<p>Cuando el máximo es decenas de veces la mediana, hay <strong>skew</strong> (sesgo): una clave concentra muchas filas y todas van a la misma partición, porque en un join o un <code>groupBy</code> las filas con la misma clave siempre van juntas.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Analogía</div>
+
+<p>Es una fila de supermercado con 20 cajas abiertas en la que todos los clientes con carro lleno van a la caja 7. Abrir 20 cajas más no cambia nada: hay que repartir los carros llenos.</p>
+</div>
+
+
+<h2>Los mensajes de memoria y lo que significan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Mensaje</th>
+<th>Qué se quedó sin memoria</th>
+<th>Corrección típica</th>
+</tr>
+</thead><tbody><tr>
+<td><code>java.lang.OutOfMemoryError: Java heap space</code> en un executor</td>
+<td>El heap de la JVM del executor (<code>spark.executor.memory</code>)</td>
+<td>Repartir mejor los datos (skew), más particiones, evitar estructuras enormes por fila</td>
+</tr>
+<tr>
+<td><code>Container killed by YARN for exceeding physical memory limits … Consider boosting spark.executor.memoryOverhead</code> / <code>OOMKilled</code> en Kubernetes</td>
+<td>La memoria <strong>fuera</strong> del heap: buffers de red, Python (PySpark, UDFs de pandas), Arrow</td>
+<td>Subir <code>spark.executor.memoryOverhead</code>, revisar UDFs de Python</td>
+</tr>
+<tr>
+<td><code>OutOfMemoryError</code> en el <strong>driver</strong></td>
+<td>El proceso coordinador</td>
+<td>No traer datos al driver: evitar <code>collect()</code>, <code>toPandas()</code> sobre tablas grandes, broadcasts gigantes</td>
+</tr>
+<tr>
+<td><code>ExecutorLostFailure</code></td>
+<td>Un executor murió (memoria, nodo spot reclamado, disco lleno)</td>
+<td>Ver la razón que sigue al mensaje</td>
+</tr>
+<tr>
+<td><code>FetchFailedException</code></td>
+<td>Un executor no pudo leer el shuffle que había escrito otro executor que ya no existe</td>
+<td>Spark rehace el stage anterior; arreglar la causa de la pérdida de executors</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un executor perdido cuesta dos stages</div>
+
+<p>Cuando un executor muere, se pierden los archivos de shuffle que había escrito. El stage siguiente no los encuentra (<code>FetchFailed</code>) y Spark vuelve a correr las tareas del stage anterior que los generaron. Por eso un OOM en una tarea puede convertir un job de 25 minutos en uno de dos horas antes de fallar.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Las correcciones del skew</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Técnica</th>
+<th>Cómo funciona</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Filtrar o separar la clave caliente</strong></td>
+<td>La clave <code>0</code> o <code>NULL</code> (&quot;cliente invitado&quot;) se procesa aparte o se descarta si no se usa</td>
+<td>Casi siempre: la clave caliente suele ser un valor &quot;basura&quot;</td>
+</tr>
+<tr>
+<td><strong>AQE skew join</strong></td>
+<td>Con <code>spark.sql.adaptive.enabled</code> y <code>spark.sql.adaptive.skewJoin.enabled</code> (activos por defecto desde Spark 3.2), Spark detecta particiones mucho más grandes que la mediana y las divide</td>
+<td>Joins entre tablas grandes</td>
+</tr>
+<tr>
+<td><strong>Broadcast join</strong></td>
+<td>Si una tabla es chica, se copia entera a cada executor y no hay shuffle</td>
+<td>Una dimensión de pocos cientos de MB o menos; controla <code>spark.sql.autoBroadcastJoinThreshold</code></td>
+</tr>
+<tr>
+<td><strong>Salting</strong></td>
+<td>Se agrega a la clave caliente un sufijo aleatorio (0 a N−1) y se replica N veces la fila del otro lado, para que la clave se reparta en N particiones</td>
+<td>Cuando AQE no alcanza o en agregaciones</td>
+</tr>
+</tbody></table></div>
+<h2>Spill y particiones de shuffle</h2>
+<p>Cuando los datos de una tarea no entran en memoria, Spark los escribe temporalmente a disco: es el <strong>spill</strong>, y vuelve todo mucho más lento. Con <code>spark.sql.shuffle.partitions = 200</code> (el valor por defecto) y un shuffle de 2 TB, cada partición tiene unos 10 GB: demasiado. La regla práctica es apuntar a particiones de <strong>100–200 MB</strong>, o dejar que AQE ajuste la cantidad (<code>spark.sql.adaptive.coalescePartitions.enabled</code>).</p>
+<h2>Archivos chicos</h2>
+<p>Escribir con muchas particiones, o en streaming cada pocos segundos, deja miles de archivos de pocos KB. Cada archivo cuesta una petición al almacenamiento y metadatos en el catálogo: leer 10.000 archivos de 50 KB es mucho más lento que leer 4 de 128 MB. Las soluciones:</p>
+<ul>
+<li><strong>Compactar</strong>: <code>OPTIMIZE tabla</code> en Delta (con <code>ZORDER BY</code> o liquid clustering), <code>rewrite_data_files</code> en Iceberg, o reescribir con <code>coalesce</code> / <code>repartition</code>.</li>
+<li><strong>Escribir mejor</strong>: <code>optimizeWrite</code> y <code>autoCompact</code> en Delta, <code>maxRecordsPerFile</code>, menos particiones de salida.</li>
+<li><strong>Leer mejor</strong>: <code>spark.sql.files.maxPartitionBytes</code> (128 MB por defecto) controla cuántos bytes lee cada tarea.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>&quot;Más memoria&quot; como primera respuesta</strong>: con skew, duplica el costo y la tarea gigante sigue sola (o falla un poco más tarde).</li>
+<li><strong>Mirar el promedio</strong>: la mediana y el máximo de las tareas cuentan la historia; el promedio la esconde.</li>
+<li><strong><code>collect()</code> y <code>toPandas()</code> sobre tablas grandes</strong>: el driver es un solo proceso.</li>
+<li><strong>Particiones de salida al azar</strong>: <code>repartition(2000)</code> antes de escribir deja 2.000 archivos por partición de la tabla.</li>
+<li><strong>Ignorar los nodos spot</strong>: si los workers son spot, perder executors es normal; el job tiene que tolerarlo (y conviene que el driver no esté en un nodo spot).</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Antes de tocar configuración se mira la <strong>Spark UI</strong> (o el <em>Spark History Server</em> para jobs terminados): pestaña Stages, métricas de resumen de tareas, <em>Event Timeline</em> y el plan físico en la pestaña SQL.</li>
+<li>En Databricks, los <em>Query Profile</em> y las alertas de skew y spill del motor ayudan; <code>OPTIMIZE</code> y <em>predictive optimization</em> compactan las tablas administradas.</li>
+<li>Las configuraciones del job viven en el código (o en el bundle o la definición del job), versionadas: nunca solo en la consola.</li>
+<li>Se guarda un histórico de duración y costo por job: una regresión de 25 minutos a 2 horas se detecta el primer día, no el séptimo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;Un job de Spark tiene una tarea que tarda mucho más que el resto. ¿Qué haces?&quot;</strong> Confirmar skew con las métricas de la Spark UI (mediana contra máximo del shuffle read), encontrar la clave caliente con un <code>groupBy().count()</code>, y elegir: separar o filtrar la clave si es un valor basura (0, NULL, &quot;desconocido&quot;), AQE skew join, broadcast si un lado es chico, o salting. Explica por qué agregar memoria o executors no resuelve una partición gigante.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Síntoma</th>
+<th>Causa</th>
+<th>Corrección</th>
+</tr>
+</thead><tbody><tr>
+<td>199 tareas rápidas y 1 eterna</td>
+<td>Skew por clave caliente</td>
+<td>Separar la clave, AQE, broadcast, salting</td>
+</tr>
+<tr>
+<td><code>exceeding memory limits</code> / <code>OOMKilled</code></td>
+<td>Memoria fuera del heap</td>
+<td><code>memoryOverhead</code>, revisar UDFs de Python</td>
+</tr>
+<tr>
+<td><code>Java heap space</code></td>
+<td>Heap del executor</td>
+<td>Repartir datos, más particiones</td>
+</tr>
+<tr>
+<td>OOM en el driver</td>
+<td><code>collect</code>, <code>toPandas</code>, broadcast enorme</td>
+<td>Agregar en Spark, escribir a tabla</td>
+</tr>
+<tr>
+<td><code>FetchFailed</code> + stage repetido</td>
+<td>Executor perdido</td>
+<td>La causa de la pérdida (memoria, spot, disco)</td>
+</tr>
+<tr>
+<td>Lecturas lentas con miles de archivos</td>
+<td>Archivos chicos</td>
+<td>Compactar, <code>optimizeWrite</code>, menos particiones de salida</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>15 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-spark-skew-memoria-archivos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-airflow-en-produccion.html">← Airflow en producción - zombies, OOM, pools y DAGs que desaparecen</a><a href="incidentes-zonas-horarias-y-codificacion.html">Fechas, zonas horarias y codificación - los bugs que aparecen dos veces al año →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

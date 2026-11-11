@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airflow + Databricks + dbt: un pipeline real · Academia de Datos</title><meta name="description" content="Orquestar jobs de Databricks y dbt desde Airflow, sensores, alertas y el diseño de un DAG de producción."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-airflow-databricks-dbt.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Airflow + Databricks + dbt: un pipeline real · Academia de Datos"><meta property="og:description" content="Orquestar jobs de Databricks y dbt desde Airflow, sensores, alertas y el diseño de un DAG de producción."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-airflow-databricks-dbt.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Experto · 50 min</div>
+<h1>Airflow + Databricks + dbt: un pipeline real</h1><p class="resumen">Orquestar jobs de Databricks y dbt desde Airflow, sensores, alertas y el diseño de un DAG de producción.</p>
+<a class="cta" href="../index.html#/l/airflow-airflow-databricks-dbt">▶ Abrir la lección interactiva (3 ejercicios)</a>
+
+<p>En la vida real, un DAG de Airflow casi nunca procesa datos. Lo que hace es <strong>coordinar</strong> a otros sistemas: le dice a Databricks que corra un job, espera a que termine, le dice a dbt que construya los modelos y avisa si algo sale mal. Esta lección arma ese pipeline completo, el que vas a encontrar en muchas empresas que usan Azure, Databricks y dbt.</p>
+<h2>El escenario</h2>
+<p>Tienda Andina recibe cada noche los pedidos del día. A las 7 de la mañana el equipo comercial abre su dashboard y espera ver las ventas de ayer. Entre medio pasa esto:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Hora</th>
+<th>Paso</th>
+<th>Quién lo hace</th>
+<th>Capa</th>
+</tr>
+</thead><tbody><tr>
+<td>03:00</td>
+<td>Copiar los pedidos crudos al lake</td>
+<td>Job de Databricks</td>
+<td>Bronze</td>
+</tr>
+<tr>
+<td>03:20</td>
+<td>Limpiar, tipar y deduplicar</td>
+<td>Notebook de Databricks (Spark)</td>
+<td>Silver</td>
+</tr>
+<tr>
+<td>03:50</td>
+<td>Construir hechos, dimensiones y métricas, y correr tests</td>
+<td>dbt sobre Databricks SQL</td>
+<td>Gold</td>
+</tr>
+<tr>
+<td>04:10</td>
+<td>Avisar que terminó (o que falló)</td>
+<td>Airflow</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p>Airflow es quien dispara cada paso <strong>en orden</strong>, reintenta si algo falla por un problema pasajero y deja un registro de qué corrió y cuándo.</p>
+<h2>El DAG completo</h2>
+<pre><code class="language-python">from datetime import datetime, timedelta
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator, DatabricksSubmitRunOperator
+
+default_args = {&quot;owner&quot;: &quot;datos&quot;, &quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=10)}
+
+with DAG(
+    dag_id=&quot;lakehouse_diario&quot;,
+    start_date=datetime(2024, 1, 1),
+    schedule=&quot;0 3 * * *&quot;,
+    catchup=False,
+    max_active_runs=1,
+    default_args=default_args,
+    tags=[&quot;produccion&quot;, &quot;lakehouse&quot;],
+) as dag:
+
+    inicio = EmptyOperator(task_id=&quot;inicio&quot;)
+
+    # 1) Ingesta a bronze: un job de Databricks ya existente (creado con Declarative Automation Bundles)
+    ingesta = DatabricksRunNowOperator(
+        task_id=&quot;ingesta_bronze&quot;,
+        databricks_conn_id=&quot;databricks_default&quot;,
+        job_id=123456,
+        job_parameters={&quot;fecha&quot;: &quot;{{ ds }}&quot;},
+    )
+
+    # 2) Silver con un notebook (cluster efímero solo para esta ejecución)
+    silver = DatabricksSubmitRunOperator(
+        task_id=&quot;silver_pedidos&quot;,
+        databricks_conn_id=&quot;databricks_default&quot;,
+        new_cluster={&quot;spark_version&quot;: &quot;15.4.x-scala2.12&quot;, &quot;node_type_id&quot;: &quot;Standard_D4ds_v5&quot;, &quot;num_workers&quot;: 2},
+        notebook_task={&quot;notebook_path&quot;: &quot;/Repos/datos/pipelines/silver_pedidos&quot;, &quot;base_parameters&quot;: {&quot;fecha&quot;: &quot;{{ ds }}&quot;}},
+    )
+
+    # 3) Gold con dbt (en un contenedor o venv con dbt-databricks)
+    dbt_build = BashOperator(
+        task_id=&quot;dbt_build&quot;,
+        bash_command=&quot;cd /opt/dbt/tienda &amp;&amp; dbt build --target prod --vars '{fecha: {{ ds }}}'&quot;,
+    )
+
+    fin = EmptyOperator(task_id=&quot;fin&quot;)
+
+    inicio &gt;&gt; ingesta &gt;&gt; silver &gt;&gt; dbt_build &gt;&gt; fin
+
+dag.test()</code></pre>
+<p>Ejecútalo: el mini-Airflow del curso simula las llamadas a Databricks y muestra qué parámetros enviaría, con las plantillas ya resueltas.</p>
+<!-- dg:af08-lakehouse -->
+<figure class="diagrama"><figcaption>El DAG lakehouse_diario: Airflow coordina, Databricks y dbt procesan</figcaption></figure>
+
+
+<h2>La configuración del DAG, línea por línea</h2>
+<ul>
+<li><strong><code>schedule=&quot;0 3 * * *&quot;</code></strong>: una expresión cron que significa &quot;a las 03:00 todos los días&quot;. Los cinco campos son minuto, hora, día del mes, mes y día de la semana.</li>
+<li><strong><code>catchup=False</code></strong>: al activar el DAG no se ejecutan los días pasados desde <code>start_date</code>.</li>
+<li><strong><code>max_active_runs=1</code></strong>: nunca hay dos ejecuciones del DAG al mismo tiempo. Si la del lunes se atrasa, la del martes espera. Importa porque silver y gold dependen del estado que dejó el día anterior: dos ejecuciones en paralelo escribiendo las mismas tablas se pisan.</li>
+<li><strong><code>default_args</code></strong>: lo que heredan todas las tareas. <code>owner</code> dice qué equipo responde por el DAG. <code>retries=2</code> con <code>retry_delay</code> de 10 minutos le da tiempo a un clúster que tardó en arrancar.</li>
+<li><strong><code>tags</code></strong>: etiquetas para filtrar en la interfaz (&quot;muéstrame todo lo de producción&quot;).</li>
+</ul>
+<h2>Las tres formas de lanzar trabajo en Databricks</h2>
+<h3><code>DatabricksRunNowOperator</code>: correr un job que ya existe</h3>
+<p>El job (sus tareas, el clúster, las librerías) <strong>ya está definido en Databricks</strong>, normalmente con Declarative Automation Bundles y versionado en Git. Airflow solo dice &quot;córrelo ahora con estos parámetros&quot; y espera a que termine.</p>
+<ul>
+<li><strong>Ventaja</strong>: la definición del job vive en un solo lugar y se puede correr a mano desde Databricks para depurar.</li>
+<li><strong><code>job_parameters={&quot;fecha&quot;: &quot;{{ ds }}&quot;}</code></strong>: el job recibe la fecha lógica. Así reprocesar el 15 de marzo es relanzar esa ejecución, sin tocar código.</li>
+</ul>
+<h3><code>DatabricksSubmitRunOperator</code>: definir el trabajo desde Airflow</h3>
+<p>Aquí la definición completa (qué notebook y en qué clúster) va <strong>en el DAG</strong>. Databricks crea un <strong>clúster efímero</strong> (<code>new_cluster</code>), corre el notebook y lo apaga.</p>
+<ul>
+<li><strong>Ventaja</strong>: el clúster existe solo mientras corre la tarea y se paga solo ese tiempo.</li>
+<li><strong>Desventaja</strong>: la configuración queda repartida entre Airflow y Databricks.</li>
+</ul>
+<h3><code>DatabricksWorkflowTaskGroup</code>: un job con varias tareas</h3>
+<p>Si tienes muchas tareas de Databricks seguidas, este TaskGroup las agrupa en <strong>un solo job</strong> que comparte el clúster. Así no pagas un arranque de clúster por cada tarea.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 La Connection `databricks_default`</div>
+
+<p><code>databricks_conn_id</code> apunta a una Connection de Airflow que guarda la URL del workspace y un token o service principal. Las credenciales nunca aparecen en el DAG.</p>
+</div>
+
+
+<h2>dbt desde Airflow: tres opciones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Cómo</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>BashOperator</code> con <code>dbt build</code></td>
+<td>Un solo comando construye y testea todo</td>
+<td>Proyectos chicos; lo más simple</td>
+</tr>
+<tr>
+<td><strong>Cosmos</strong></td>
+<td>Una tarea de Airflow <strong>por modelo</strong> y por test</td>
+<td>Proyectos medianos o grandes; reintentar solo el modelo que falló</td>
+</tr>
+<tr>
+<td>Job de Databricks con tarea dbt</td>
+<td>Databricks corre dbt; Airflow lanza el job con <code>RunNow</code></td>
+<td>Cuando todo lo demás ya vive en Databricks</td>
+</tr>
+</tbody></table></div>
+<p>En el ejemplo, <code>dbt build --target prod</code> construye todos los modelos y corre sus tests en orden. Si un test falla, <code>dbt</code> termina con código de salida distinto de 0, el <code>BashOperator</code> falla y Airflow lo reintenta y avisa. Así un dato malo <strong>no llega al dashboard sin que nadie se entere</strong>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Cosmos</div>
+
+<p>El paquete <strong>astronomer-cosmos</strong> convierte un proyecto dbt en un TaskGroup de Airflow con <strong>una tarea por modelo</strong> (y sus tests). Si de 40 modelos falla uno, ves exactamente cuál en la interfaz y reintentas solo ese y los que dependen de él.</p>
+</div>
+
+
+<h2>Alertas</h2>
+<pre data-norun><code class="language-python">def avisar_falla(context):
+    ti = context[&quot;task_instance&quot;]
+    enviar_a_teams(f&quot;❌ Falló {ti.dag_id}.{ti.task_id} ({context['ds']}). Log: {ti.log_url}&quot;)
+
+default_args = {&quot;on_failure_callback&quot;: avisar_falla, &quot;retries&quot;: 2}</code></pre>
+<ul>
+<li><code>on_failure_callback</code> corre <strong>solo cuando la tarea falla definitivamente</strong>, después de agotar los reintentos. No recibes un mensaje por cada intento.</li>
+<li>El mensaje incluye el DAG, la tarea, la fecha y un <strong>link al log</strong>, para que quien esté de guardia vaya directo al problema.</li>
+<li>Para procesos con hora límite (el dashboard de las 7:00), Airflow 3 trae <strong>deadline alerts</strong> y Airflow 2 tiene <code>sla</code>. Las dos te avisan si a cierta hora todavía no terminó, aunque no haya fallado nada.</li>
+</ul>
+<h2>¿Qué pasa cuando algo falla a las 3:25?</h2>
+<p>Supón que el notebook de silver falla porque llegó una columna nueva:</p>
+<ol>
+<li><code>silver_pedidos</code> falla. Espera 10 minutos y reintenta dos veces, y las dos vuelven a fallar.</li>
+<li>Queda en <code>failed</code> y <code>on_failure_callback</code> manda el mensaje a Teams.</li>
+<li><code>dbt_build</code> y <code>fin</code> quedan en <code>upstream_failed</code>: <strong>gold no se reconstruye con datos a medias</strong>, y el dashboard sigue mostrando los datos de anteayer en vez de datos incorrectos.</li>
+<li>Quien está de guardia corrige el notebook y hace <strong>clear</strong> de <code>silver_pedidos</code> en la interfaz. Airflow vuelve a correr silver, dbt y fin para esa misma fecha. Como todo es idempotente y usa <code>{{ ds }}</code>, el resultado es el mismo que si nunca hubiera fallado.</li>
+</ol>
+<h2>Diseño de un DAG de producción: checklist</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>start_date</code> fijo, <code>catchup</code> decidido a propósito y <code>max_active_runs</code> si hay dependencia entre días.</li>
+<li><input disabled="" type="checkbox"> Reintentos con espera y timeouts (<code>execution_timeout</code>) para que nada quede colgado.</li>
+<li><input disabled="" type="checkbox"> Tareas idempotentes, parametrizadas con <code>{{ ds }}</code> o el data interval.</li>
+<li><input disabled="" type="checkbox"> El cómputo pesado en Databricks o dbt; Airflow solo coordina.</li>
+<li><input disabled="" type="checkbox"> Alertas al fallar y SLAs o deadlines para lo crítico.</li>
+<li><input disabled="" type="checkbox"> Credenciales en Connections (respaldadas por Key Vault).</li>
+<li><input disabled="" type="checkbox"> Tests de importación en CI y despliegue automático de la carpeta <code>dags/</code>.</li>
+</ul>
+<h2>Ejercicio integrador</h2>
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-airflow-databricks-dbt">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-buenas-practicas.html">← Buenas prácticas, Variables, Connections y CLI</a><a href="azure-nube-azure.html">La nube y Azure en 20 minutos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

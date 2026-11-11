@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VS Code, Git y GitHub: editar y versionar como en un equipo · Academia de Datos</title><meta name="description" content="Instala y configura VS Code con las extensiones de un data engineer, configura Git con tu identidad, conecta tu computadora con GitHub por SSH y practica el flujo de trabajo de un equipo: rama, commits, push y pull request."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-vscode-git-github.html">
+<meta property="og:type" content="article"><meta property="og:title" content="VS Code, Git y GitHub: editar y versionar como en un equipo · Academia de Datos"><meta property="og:description" content="Instala y configura VS Code con las extensiones de un data engineer, configura Git con tu identidad, conecta tu computadora con GitHub por SSH y practica el flujo de trabajo de un equipo: rama, commits, push y pull request."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-vscode-git-github.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Básico · 55 min</div>
+<h1>VS Code, Git y GitHub: editar y versionar como en un equipo</h1><p class="resumen">Instala y configura VS Code con las extensiones de un data engineer, configura Git con tu identidad, conecta tu computadora con GitHub por SSH y practica el flujo de trabajo de un equipo: rama, commits, push y pull request.</p>
+<a class="cta" href="../index.html#/l/local-vscode-git-github">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Instalar VS Code y las extensiones para Python, SQL, dbt, Docker, Terraform y WSL</li><li>Configurar la identidad de Git y la rama por defecto</li><li>Crear una clave SSH, agregarla a GitHub y comprobar la conexión</li><li>Crear un repositorio con .gitignore y subirlo a GitHub</li><li>Trabajar con ramas y pull requests como en un equipo</li></ul>
+<h2>1. VS Code</h2>
+<p><strong>Visual Studio Code</strong> es el editor más usado en datos: liviano, gratuito y con extensiones para todo.</p>
+<p><strong>Instalar:</strong> Windows → <code>winget install -e --id Microsoft.VisualStudioCode</code> (en PowerShell) · macOS → <code>brew install --cask visual-studio-code</code> · Ubuntu → descarga el <code>.deb</code> de <a href="https://code.visualstudio.com">code.visualstudio.com</a> y <code>sudo apt install ./code_*.deb</code>.</p>
+<p><strong>Extensiones recomendadas</strong> (pestaña Extensiones, <code>Ctrl+Shift+X</code>):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Extensión</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>WSL</strong> (Microsoft)</td>
+<td>Solo Windows: abre carpetas de Linux con todo funcionando dentro de WSL</td>
+</tr>
+<tr>
+<td><strong>Python</strong> + <strong>Pylance</strong></td>
+<td>Autocompletado, depurador, entornos virtuales</td>
+</tr>
+<tr>
+<td><strong>Ruff</strong></td>
+<td>Formato y errores de Python al guardar</td>
+</tr>
+<tr>
+<td><strong>Jupyter</strong></td>
+<td>Notebooks dentro de VS Code</td>
+</tr>
+<tr>
+<td><strong>SQLTools</strong> + driver de PostgreSQL</td>
+<td>Conectarte a bases y ejecutar SQL</td>
+</tr>
+<tr>
+<td><strong>dbt Power User</strong></td>
+<td>Navegar modelos de dbt, ver el SQL compilado y el linaje</td>
+</tr>
+<tr>
+<td><strong>Docker</strong></td>
+<td>Ver contenedores, imágenes y logs</td>
+</tr>
+<tr>
+<td><strong>HashiCorp Terraform</strong></td>
+<td>Sintaxis y autocompletado de HCL</td>
+</tr>
+<tr>
+<td><strong>YAML</strong> (Red Hat)</td>
+<td>Validar YAML (dbt, Docker Compose, GitHub Actions)</td>
+</tr>
+<tr>
+<td><strong>GitLens</strong></td>
+<td>Ver quién cambió cada línea y cuándo</td>
+</tr>
+</tbody></table></div>
+<p><strong>Abrir un proyecto desde la terminal:</strong> dentro de la carpeta del proyecto, <code>code .</code> abre VS Code en esa carpeta. En WSL, la primera vez instala solo el &quot;servidor&quot; de VS Code en Linux, y la barra inferior muestra <code>WSL: Ubuntu</code>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Atajos que vas a usar todo el día</div>
+
+<p><code>Ctrl+P</code> (<code>Cmd+P</code> en Mac) abre un archivo por nombre · <code>Ctrl+Shift+P</code> abre la paleta de comandos · <code>Ctrl+`</code> abre la terminal integrada · <code>Ctrl+/</code> comenta líneas · <code>F2</code> renombra una variable en todo el proyecto.</p>
+</div>
+
+
+<h2>2. Git: tu identidad</h2>
+<p>Git viene en macOS (con <code>xcode-select</code>) y lo instalaste en WSL/Linux con <code>apt</code>. Antes del primer commit, dile quién eres (queda en cada commit):</p>
+<pre data-norun><code class="language-bash">git config --global user.name &quot;Ana Pérez&quot;
+git config --global user.email &quot;ana@correo.com&quot;     # el mismo email de tu cuenta de GitHub
+git config --global init.defaultBranch main
+git config --global pull.rebase false
+git config --global --list</code></pre>
+<p><code>--global</code> guarda la configuración para tu usuario (en <code>~/.gitconfig</code>), para todos tus repositorios.</p>
+<h2>3. GitHub con SSH</h2>
+<p>GitHub necesita saber que eres tú cuando haces <code>push</code>. La forma recomendada es una <strong>clave SSH</strong>: un par de archivos, uno <strong>privado</strong> (queda en tu máquina, nunca se comparte) y uno <strong>público</strong> (<code>.pub</code>, se sube a GitHub).</p>
+<figure class="diagrama"><figcaption>Cómo te reconoce GitHub con SSH</figcaption></figure>
+
+
+<p><strong>Paso 1.</strong> Crea la clave (pon una frase de contraseña cuando la pida):</p>
+<pre data-norun><code class="language-bash">ssh-keygen -t ed25519 -C &quot;ana@correo.com&quot;</code></pre>
+<p><strong>Paso 2.</strong> Copia la clave <strong>pública</strong>:</p>
+<pre data-norun><code class="language-bash">cat ~/.ssh/id_ed25519.pub</code></pre>
+<p><strong>Paso 3.</strong> En GitHub: tu foto → <strong>Settings</strong> → <strong>SSH and GPG keys</strong> → <strong>New SSH key</strong>, pega el contenido y guarda. (Con la CLI de GitHub: <code>gh auth login</code> y <code>gh ssh-key add ~/.ssh/id_ed25519.pub</code>.)</p>
+<p><strong>Paso 4.</strong> Prueba la conexión:</p>
+<pre><code class="language-text">$ ssh -T git@github.com
+Hi ana-perez! You've successfully authenticated, but GitHub does not provide shell access.</code></pre>
+<h2>4. Tu primer repositorio</h2>
+<pre data-norun><code class="language-bash">mkdir -p ~/proyectos/lago &amp;&amp; cd ~/proyectos/lago
+git init
+code .gitignore           # pega el contenido de abajo
+echo &quot;# Lago de datos&quot; &gt; README.md
+git add .
+git commit -m &quot;Primer commit: README y .gitignore&quot;</code></pre>
+<p>Un <code>.gitignore</code> de un proyecto de datos:</p>
+<pre><code class="language-text"># entornos y cachés de Python
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# secretos: NUNCA a Git
+.env
+*.pem
+credenciales*.json
+
+# datos y bases locales (se regeneran; pueden ser grandes o sensibles)
+data/
+*.duckdb
+*.parquet
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*</code></pre>
+<p>Crea el repositorio vacío en GitHub (botón <strong>New</strong>, sin README) y conéctalo:</p>
+<pre data-norun><code class="language-bash">git remote add origin git@github.com:ana-perez/lago.git
+git push -u origin main</code></pre>
+<h2>5. El flujo de trabajo de un equipo</h2>
+<p>Nadie trabaja directo en <code>main</code>. Cada cambio va en una <strong>rama</strong>, se sube y se propone con un <strong>pull request</strong> (PR) que otra persona revisa.</p>
+<figure class="diagrama"><figcaption>Del cambio al merge: el flujo con ramas y pull requests</figcaption></figure>
+
+
+<pre data-norun><code class="language-bash">git switch main &amp;&amp; git pull              # empezar siempre desde main actualizado
+git switch -c feat/ingesta-pedidos       # rama nueva con un nombre que diga qué haces
+# … editas, pruebas …
+git add ingesta.py
+git commit -m &quot;Agrega ingesta diaria de pedidos&quot;
+git push -u origin feat/ingesta-pedidos  # la primera vez, -u conecta la rama local con la remota</code></pre>
+<p>GitHub muestra un botón <strong>Compare &amp; pull request</strong>. En la descripción explica <strong>qué</strong> cambia y <strong>por qué</strong>, y cómo lo probaste. Cuando te aprueban, se hace el merge y borras la rama.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Mensajes de commit</div>
+
+<p>Un buen mensaje dice qué hace el cambio, en presente y en una línea: &quot;Agrega ingesta diaria de pedidos&quot;, &quot;Corrige el cálculo de churn mensual&quot;. Muchos equipos usan prefijos (<em>Conventional Commits</em>): <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>refactor:</code>.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>Permission denied (publickey)</code></strong> al hacer push: la clave pública no está en GitHub, o el remoto es <code>https://</code> en lugar de <code>git@github.com:</code>. Revisa con <code>git remote -v</code> y <code>ssh -T git@github.com</code>.</li>
+<li><strong>Commits con otro nombre o email</strong> (el de la computadora): no configuraste <code>user.name</code> y <code>user.email</code>, y GitHub no los asocia a tu cuenta.</li>
+<li><strong>Subir un <code>.env</code> o una clave</strong>: aunque lo borres después, queda en la historia. Hay que <strong>rotar</strong> la credencial (crear una nueva e invalidar la vieja) de inmediato.</li>
+<li><strong>Trabajar en <code>main</code> y no poder hacer push</strong> porque el repositorio protege la rama: crea una rama con tus cambios (<code>git switch -c mi-rama</code>) y súbela.</li>
+<li><strong><code>code .</code> abre VS Code de Windows sin conectarse a WSL</strong> (y no encuentra Python): falta la extensión WSL. Instálala y vuelve a ejecutar <code>code .</code> desde Ubuntu.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El primer pull request</div>
+
+<p>Tu líder te comparte el repositorio del equipo y te pide un cambio chico para que te familiarices:</p>
+<blockquote>
+<p>&quot;Clona el repo, crea una rama, agrega tu nombre al README y abre un pull request. Lo importante no es el cambio: es que tu máquina quede lista para trabajar como el resto del equipo.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los repositorios del equipo tienen <code>main</code> <strong>protegida</strong>: solo se cambia por pull request con al menos una aprobación y la CI en verde.</li>
+<li>Muchos equipos agregan <strong>pre-commit</strong> (<code>pip install pre-commit</code> y un archivo <code>.pre-commit-config.yaml</code>) para correr ruff, el formato de SQL y la detección de secretos antes de cada commit.</li>
+<li>Un pull request chico (menos de 300 líneas) se revisa en el día; uno enorme espera una semana. Divide el trabajo.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-vscode-git-github">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-preparar-la-computadora.html">← Preparar tu computadora: Windows con WSL, macOS o Linux</a><a href="local-python-uv.html">Python profesional en tu máquina: uv, entornos virtuales, ruff y pytest →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airflow en tu máquina: standalone, Astro CLI o Docker Compose · Academia de Datos</title><meta name="description" content="Tres maneras de correr Airflow en tu computadora, cuándo usar cada una y cómo hacerlo paso a paso. Dónde poner los DAGs, cómo probarlos sin esperar al scheduler (dags test, tasks test), cómo pasar conexiones y variables sin escribir contraseñas en el código, y cómo escribir pruebas de los DAGs."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-airflow-local.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Airflow en tu máquina: standalone, Astro CLI o Docker Compose · Academia de Datos"><meta property="og:description" content="Tres maneras de correr Airflow en tu computadora, cuándo usar cada una y cómo hacerlo paso a paso. Dónde poner los DAGs, cómo probarlos sin esperar al scheduler (dags test, tasks test), cómo pasar conexiones y variables sin escribir contraseñas en el código, y cómo escribir pruebas de los DAGs."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-airflow-local.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Intermedio · 55 min</div>
+<h1>Airflow en tu máquina: standalone, Astro CLI o Docker Compose</h1><p class="resumen">Tres maneras de correr Airflow en tu computadora, cuándo usar cada una y cómo hacerlo paso a paso. Dónde poner los DAGs, cómo probarlos sin esperar al scheduler (dags test, tasks test), cómo pasar conexiones y variables sin escribir contraseñas en el código, y cómo escribir pruebas de los DAGs.</p>
+<a class="cta" href="../index.html#/l/local-airflow-local">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre airflow standalone, Astro CLI y el docker-compose oficial según la situación</li><li>Instalar Airflow con sus restricciones de versiones y levantarlo localmente</li><li>Ubicar los DAGs en la carpeta correcta y comprobar que se importan sin errores</li><li>Probar un DAG y una tarea con airflow dags test y airflow tasks test</li><li>Configurar conexiones y variables con variables de entorno y escribir pruebas de los DAGs</li></ul>
+<h2>Tres maneras de correr Airflow</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th><code>airflow standalone</code></th>
+<th><strong>Astro CLI</strong></th>
+<th>docker-compose oficial</th>
+</tr>
+</thead><tbody><tr>
+<td>Qué es</td>
+<td>Airflow instalado en tu entorno de Python, todo en un proceso</td>
+<td>Herramienta de Astronomer que levanta Airflow en Docker con un comando</td>
+<td>El <code>docker-compose.yaml</code> publicado por Apache Airflow</td>
+</tr>
+<tr>
+<td>Requiere Docker</td>
+<td>No</td>
+<td>Sí</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Parecido a producción</td>
+<td>Bajo (SQLite, un solo proceso)</td>
+<td>Alto (Postgres, scheduler, Dag processor, API server y triggerer separados)</td>
+<td>Alto (incluye Celery y Redis)</td>
+</tr>
+<tr>
+<td>Ideal para</td>
+<td>Aprender, probar DAGs rápido</td>
+<td>El día a día en un equipo</td>
+<td>Entender la arquitectura completa</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Lo que levanta un Airflow local &quot;completo&quot; (Astro CLI o docker-compose)</figcaption></figure>
+
+
+<h2>Opción 1: <code>airflow standalone</code> (la más simple)</h2>
+<p>Airflow tiene muchas dependencias y se instala con un archivo de <strong>constraints</strong>: las versiones exactas que Airflow probó juntas. Sin él, pip puede elegir una combinación que rompe Airflow.</p>
+<pre data-norun><code class="language-bash">uv venv --python 3.12 &amp;&amp; source .venv/bin/activate
+AIRFLOW_VERSION=3.3.2
+PYTHON_VERSION=3.12
+uv pip install &quot;apache-airflow==${AIRFLOW_VERSION}&quot; \
+  --constraint &quot;https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt&quot;
+
+export AIRFLOW_HOME=~/airflow          # dónde guarda su configuración, su base y los dags/
+airflow standalone</code></pre>
+<p><code>standalone</code> inicializa la base, crea un usuario <code>admin</code> y arranca todos los componentes (scheduler, Dag processor, triggerer y API server). En Airflow 3 el usuario lo maneja el <em>Simple auth manager</em>: la contraseña aparece en la salida y queda guardada en <code>$AIRFLOW_HOME/simple_auth_manager_passwords.json.generated</code> (en Airflow 2 era <code>standalone_admin_password.txt</code>). Abre <code>http://localhost:8080</code>. Los DAGs van en <code>$AIRFLOW_HOME/dags/</code>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Windows</div>
+
+<p>Airflow no corre nativo en Windows: usa WSL (lección 1) o una de las opciones con Docker.</p>
+</div>
+
+
+<h2>Opción 2: Astro CLI (la recomendada para el día a día)</h2>
+<pre data-norun><code class="language-bash">brew install astro                                   # macOS
+curl -sSL install.astronomer.io | sudo bash -s       # Linux y WSL
+
+mkdir rapido-airflow &amp;&amp; cd rapido-airflow
+astro dev init          # crea la estructura del proyecto
+astro dev start         # construye la imagen y levanta Postgres, scheduler, Dag processor, API server y triggerer</code></pre>
+<pre><code class="language-text">rapido-airflow/
+├── dags/                 ← tus DAGs
+├── include/              ← SQL, scripts y archivos que usan los DAGs
+├── plugins/
+├── tests/dags/           ← pruebas de los DAGs (pytest)
+├── Dockerfile            ← FROM quay.io/astronomer/astro-runtime:…
+├── requirements.txt      ← paquetes de Python extra (dbt, providers…)
+├── .env                  ← variables de entorno locales (conexiones, claves): en .gitignore
+└── airflow_settings.yaml ← conexiones, variables y pools para desarrollo</code></pre>
+<p>UI en <code>http://localhost:8080</code> (usuario y contraseña <code>admin</code>). Cuando cambias un DAG, el scheduler lo relee solo; cuando cambias <code>requirements.txt</code>, <code>astro dev restart</code>.</p>
+<h2>Opción 3: el docker-compose oficial</h2>
+<pre data-norun><code class="language-bash">mkdir airflow-oficial &amp;&amp; cd airflow-oficial
+curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.10.3/docker-compose.yaml'
+mkdir -p ./dags ./logs ./plugins ./config
+echo -e &quot;AIRFLOW_UID=$(id -u)&quot; &gt; .env
+docker compose up airflow-init       # inicializa la base y crea el usuario airflow / airflow
+docker compose up -d</code></pre>
+<p>Levanta la arquitectura completa (con CeleryExecutor, Redis y workers): es la mejor forma de <strong>ver</strong> cómo se compone Airflow en producción, pero consume bastante memoria (4 GB o más para Docker).</p>
+<h2>Probar DAGs sin esperar al scheduler</h2>
+<pre data-norun><code class="language-bash">airflow dags list                        # ¿aparece mi DAG?
+airflow dags list-import-errors          # errores de sintaxis o de import, con el archivo y la línea
+airflow tasks list rapido_operaciones    # sus tareas
+airflow tasks test rapido_operaciones compuerta_calidad 2024-12-01   # una tarea, sin dependencias ni estado
+airflow dags test rapido_operaciones 2024-12-01                       # el DAG completo, en tu terminal</code></pre>
+<p>Con Astro CLI, los mismos comandos van dentro del contenedor: <code>astro dev run dags test rapido_operaciones 2024-12-01</code>.</p>
+<p><code>tasks test</code> y <code>dags test</code> no registran nada en la base (no afectan el historial) y muestran los logs en la terminal: es el ciclo rápido de desarrollo.</p>
+<h2>Conexiones y variables sin contraseñas en el código</h2>
+<p>Airflow lee conexiones y variables de <strong>variables de entorno</strong> con un nombre especial:</p>
+<pre><code class="language-text"># .env (Astro CLI la carga sola; con standalone: export …)
+AIRFLOW_CONN_POSTGRES_RAPIDO=postgresql://rapido:clave-local@host.docker.internal:5432/operaciones
+AIRFLOW_VAR_CIUDADES='[&quot;Bogotá&quot;, &quot;Lima&quot;, &quot;Ciudad de México&quot;]'</code></pre>
+<p>En el DAG se usan por su id (<code>postgres_rapido</code>) y su nombre (<code>ciudades</code>), sin ver nunca la contraseña. En producción, las mismas conexiones vienen de un gestor de secretos (AWS Secrets Manager, Key Vault, Secret Manager) configurado como <em>secrets backend</em>: el código del DAG no cambia.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ localhost dentro de un contenedor</div>
+
+<p>Si Airflow corre en Docker (Astro, compose) y Postgres en tu máquina u otro contenedor, <code>localhost</code> en la conexión apunta <strong>al propio contenedor de Airflow</strong>. Usa <code>host.docker.internal</code> (Docker Desktop) o el nombre del servicio de Compose.</p>
+</div>
+
+
+<h2>Pruebas de los DAGs</h2>
+<p>La prueba más valiosa y simple: que <strong>todos</strong> los DAGs importen sin errores y cumplan las reglas del equipo.</p>
+<pre data-norun><code class="language-python"># tests/dags/test_dags.py
+from airflow.dag_processing.dagbag import DagBag   # en Airflow 2: from airflow.models import DagBag
+
+def test_sin_errores_de_importacion():
+    bag = DagBag(dag_folder=&quot;dags&quot;, include_examples=False)
+    assert bag.import_errors == {}, bag.import_errors
+
+def test_reglas_del_equipo():
+    bag = DagBag(dag_folder=&quot;dags&quot;, include_examples=False)
+    for dag_id, dag in bag.dags.items():
+        assert dag.catchup is False or &quot;backfill&quot; in dag.tags, f&quot;{dag_id}: catchup sin justificar&quot;
+        assert dag.default_args.get(&quot;retries&quot;, 0) &gt;= 1, f&quot;{dag_id}: sin reintentos&quot;</code></pre>
+<pre data-norun><code class="language-bash">pytest tests/            # con standalone
+astro dev pytest         # con Astro CLI</code></pre>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>El DAG no aparece en la UI</strong>: está en otra carpeta (<code>airflow config get-value core dags_folder</code> dice cuál), tiene un error de importación (<code>airflow dags list-import-errors</code>) o el archivo no contiene las palabras <code>airflow</code> y <code>dag</code> (Airflow los ignora por defecto).</li>
+<li><strong>Instalar Airflow sin constraints</strong> y que el API server (el webserver en Airflow 2) no arranque por versiones incompatibles: reinstala en un entorno limpio con el archivo de constraints.</li>
+<li><strong><code>ModuleNotFoundError</code> en un DAG con Astro</strong>: falta el paquete en <code>requirements.txt</code>; agrégalo y <code>astro dev restart</code>.</li>
+<li><strong>Docker se queda sin memoria</strong> con el compose oficial: dale 4–8 GB en Docker Desktop → Settings → Resources, o usa Astro CLI.</li>
+<li><strong>Contraseñas en el DAG</strong> (<code>password=&quot;…&quot;</code>): van en conexiones, nunca en el código.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El DAG que solo funcionaba en el servidor</div>
+
+<p>Hasta ahora, para probar un DAG había que subirlo al Airflow compartido de desarrollo y esperar a que el scheduler lo leyera. Un error de importación dejaba el DAG roto para todo el equipo durante media hora. La regla nueva:</p>
+<blockquote>
+<p>&quot;Ningún DAG llega al Airflow compartido sin haberse probado en tu máquina: que importe sin errores, que <code>dags test</code> corra completo y que pasen las pruebas.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los equipos que usan Astronomer, Cloud Composer o MWAA desarrollan con Astro CLI (o la imagen oficial) en local y despliegan los DAGs por CI: la imagen local y la de producción son casi idénticas.</li>
+<li>La CI de un repositorio de DAGs corre al menos el <code>DagBag</code> sin errores y las reglas del equipo; muchos agregan <code>dags test</code> de los DAGs modificados con datos de prueba.</li>
+<li>Nadie edita DAGs directo en el servidor: el despliegue copia la carpeta <code>dags/</code> desde Git (un bucket en Composer y MWAA, una imagen en Kubernetes).</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-airflow-local">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-dbt-local.html">← dbt en tu máquina con DuckDB</a><a href="local-spark-local.html">Spark en tu máquina: PySpark local, Jupyter y spark-submit →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

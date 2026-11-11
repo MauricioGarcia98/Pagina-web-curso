@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🏨 Posada Andina: ocupación, ADR, RevPAR y canales de venta · Academia de Datos</title><meta name="description" content="Una cadena de seis hoteles quiere saber qué hotel rinde más y cuánto le cuestan las agencias online. Calcula noches, ocupación, ADR y RevPAR, el ingreso neto de comisiones por canal, las cancelaciones según la anticipación y el gasto extra por estadía."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-hoteleria.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🏨 Posada Andina: ocupación, ADR, RevPAR y canales de venta · Academia de Datos"><meta property="og:description" content="Una cadena de seis hoteles quiere saber qué hotel rinde más y cuánto le cuestan las agencias online. Calcula noches, ocupación, ADR y RevPAR, el ingreso neto de comisiones por canal, las cancelaciones según la anticipación y el gasto extra por estadía."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-hoteleria.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 55 min</div>
+<h1>Caso 🏨 Posada Andina: ocupación, ADR, RevPAR y canales de venta</h1><p class="resumen">Una cadena de seis hoteles quiere saber qué hotel rinde más y cuánto le cuestan las agencias online. Calcula noches, ocupación, ADR y RevPAR, el ingreso neto de comisiones por canal, las cancelaciones según la anticipación y el gasto extra por estadía.</p>
+<a class="cta" href="../index.html#/l/casos-hoteleria">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular noches vendidas, ocupación, ADR y RevPAR por hotel a partir de reservas con fechas de entrada y salida</li><li>Comparar canales por ingreso bruto y neto de comisiones</li><li>Medir la cancelación según la anticipación de la reserva</li><li>Calcular el gasto extra por estadía y la satisfacción por canal</li><li>Detectar la estacionalidad de la tarifa por destino</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 ¿Cuánto nos cuesta Booking?</div>
+
+<p>El director de <strong>Posada Andina</strong>, una cadena de seis hoteles en Sudamérica, está por renegociar con las agencias online:</p>
+<blockquote>
+<p>&quot;Booking nos trae más reservas que nadie, pero nos cobra 18 % de comisión y sus clientes cancelan muchísimo. Quiero saber cuánto nos deja <strong>de verdad</strong> cada canal, qué hotel rinde más, y si vale la pena invertir en que la gente reserve directo en nuestra web.&quot;</p>
+</blockquote>
+<p>Es la conversación más importante de la hotelería actual: la dependencia de las OTA (<em>online travel agencies</em>).</p>
+</div>
+
+
+<h2>Cómo funciona un hotel</h2>
+<p>Un hotel vende <strong>noches de habitación</strong>. Como el asiento de un avión, una noche que no se vende <strong>se pierde para siempre</strong>. Por eso la gestión hotelera (<em>revenue management</em>) ajusta precios por temporada, día de la semana y anticipación para llenar el hotel al mejor precio posible.</p>
+<p>Las reservas llegan por <strong>canales</strong>: la web propia (<strong>directo</strong>, sin comisión), las <strong>OTA</strong> (Booking, Expedia, con comisiones de 15–25 %) y las <strong>agencias</strong> de viajes.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Fórmula</th>
+<th>Pregunta que responde</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Noches vendidas</strong></td>
+<td>suma de (check-out − check-in) de las estadías</td>
+<td>¿Cuánto vendimos?</td>
+</tr>
+<tr>
+<td><strong>Ocupación</strong></td>
+<td>noches vendidas / (habitaciones × días)</td>
+<td>¿Qué tan lleno está?</td>
+</tr>
+<tr>
+<td><strong>ADR</strong> (<em>average daily rate</em>)</td>
+<td>ingreso de habitaciones / noches vendidas</td>
+<td>¿A qué precio vendimos?</td>
+</tr>
+<tr>
+<td><strong>RevPAR</strong> (<em>revenue per available room</em>)</td>
+<td>ingreso de habitaciones / (habitaciones × días) = ocupación × ADR</td>
+<td>¿Cuánto rinde cada habitación, llena o vacía?</td>
+</tr>
+<tr>
+<td><strong>Ingreso neto</strong></td>
+<td>ingreso × (1 − comisión)</td>
+<td>¿Cuánto queda después del canal?</td>
+</tr>
+</tbody></table></div>
+<p>El <strong>RevPAR</strong> es el KPI rey porque castiga los dos errores: un hotel lleno a precio de remate (ocupación alta, ADR bajo) y uno caro y vacío (ADR alto, ocupación baja).</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">hotel_hoteles   (hotel_id, nombre, ciudad, estrellas, habitaciones)
+hotel_huespedes (huesped_id, pais, programa_fidelidad)
+hotel_reservas  (reserva_id, hotel_id, huesped_id, fecha_reserva, check_in, check_out,
+                 tipo_habitacion, canal, tarifa_noche, comision_pct, estado)
+hotel_consumos  (consumo_id, reserva_id, fecha, concepto, monto)
+hotel_resenas   (resena_id, reserva_id, fecha, puntaje)</code></pre>
+<figure class="diagrama"><figcaption>Modelo de Posada Andina: la reserva es el centro</figcaption></figure>
+
+
+<ul>
+<li><strong>Noches</strong> de una reserva: <code>julianday(check_out) - julianday(check_in)</code> (el día de salida no se cuenta como noche).</li>
+<li><code>estado</code>: <code>completada</code> (vino y se quedó), <code>cancelada</code> o <code>no_show</code> (no vino y no avisó). Solo las completadas ocupan habitaciones.</li>
+<li><code>tarifa_noche</code> es el precio que pagó el huésped; <code>comision_pct</code> es lo que se lleva el canal (0 en directo).</li>
+<li>Las reservas son de check-in en 2024. El hotel nunca vende más habitaciones que las que tiene.</li>
+</ul>
+<h2>Un ejemplo resuelto: el ranking por RevPAR</h2>
+<ol>
+<li><strong>Grano</strong>: un hotel por fila. Las reservas se agregan por hotel (solo completadas) y se unen con <code>hotel_hoteles</code> para tener la capacidad.</li>
+<li><strong>Disponibilidad</strong>: habitaciones × 366 días (2024 fue bisiesto).</li>
+</ol>
+<pre><code class="language-sql">WITH r AS (
+  SELECT hotel_id,
+         SUM(julianday(check_out) - julianday(check_in)) AS noches,
+         SUM((julianday(check_out) - julianday(check_in)) * tarifa_noche) AS ingreso
+  FROM hotel_reservas
+  WHERE estado = 'completada'
+  GROUP BY hotel_id
+)
+SELECT h.nombre, h.habitaciones, r.noches,
+       ROUND(100.0 * r.noches / (h.habitaciones * 366), 1) AS ocupacion_pct,
+       ROUND(r.ingreso / r.noches, 2) AS adr,
+       ROUND(r.ingreso / (h.habitaciones * 366), 2) AS revpar
+FROM hotel_hoteles h
+JOIN r ON r.hotel_id = h.hotel_id
+ORDER BY revpar DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>nombre</th>
+<th>habitaciones</th>
+<th>noches</th>
+<th>ocupacion_pct</th>
+<th>adr</th>
+<th>revpar</th>
+</tr>
+</thead><tbody><tr>
+<td>Posada Andina Bariloche</td>
+<td>28</td>
+<td>5027</td>
+<td>49.1</td>
+<td>137.92</td>
+<td>67.65</td>
+</tr>
+<tr>
+<td>Posada Andina Cartagena</td>
+<td>30</td>
+<td>5472</td>
+<td>49.8</td>
+<td>114.74</td>
+<td>57.18</td>
+</tr>
+<tr>
+<td>Posada Andina Cusco</td>
+<td>24</td>
+<td>4113</td>
+<td>46.8</td>
+<td>108.9</td>
+<td>50.99</td>
+</tr>
+<tr>
+<td>Posada Andina Lima</td>
+<td>36</td>
+<td>5965</td>
+<td>45.3</td>
+<td>111.16</td>
+<td>50.32</td>
+</tr>
+<tr>
+<td>Posada Andina Mendoza</td>
+<td>18</td>
+<td>3215</td>
+<td>48.8</td>
+<td>83.13</td>
+<td>40.57</td>
+</tr>
+<tr>
+<td>Posada Andina Salta</td>
+<td>16</td>
+<td>2800</td>
+<td>47.8</td>
+<td>82.65</td>
+<td>39.52</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura:</strong> las ocupaciones son parecidas (45–50 %); la diferencia la hace el <strong>precio</strong>. Bariloche (5 estrellas) rinde 67,65 por habitación disponible y por día, 70 % más que Salta. Lima vende más noches que nadie, pero porque tiene más habitaciones: por habitación rinde menos que Cartagena.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>Contar reservas en lugar de noches</strong>: una reserva de 7 noches pesa siete veces más que una de una noche en la ocupación y en el ingreso.</li>
+<li><strong>Incluir canceladas o no-shows</strong> en la ocupación: no ocuparon habitaciones. (En la realidad el no-show suele pagar la primera noche: es ingreso, pero no ocupación.)</li>
+<li><strong>El denominador del RevPAR</strong> es la capacidad (habitaciones × días), no las noches vendidas: si divides por noches, obtienes el ADR.</li>
+<li><strong>Estadías que cruzan el fin de año</strong>: una entrada el 30 de diciembre suma noches de 2025. Aquí la diferencia es mínima; en un informe oficial se recorta la estadía al período.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los hoteles comparan su RevPAR con el de su <strong>set competitivo</strong> (los hoteles similares de la zona) usando datos de empresas como STR; un RevPAR bajo con ocupación normal indica que se está vendiendo barato.</li>
+<li>Las cadenas pagan millones por año en comisiones de OTA: cada punto que pasa de OTA a directo es margen. Por eso los programas de fidelidad dan beneficios solo al reservar directo.</li>
+<li>Las reservas llegan de un <strong>PMS</strong> (<em>property management system</em>) y de un <strong>channel manager</strong> que sincroniza las OTA: el pipeline típico las ingiere cada hora y recalcula el <em>pickup</em> (reservas nuevas para fechas futuras), que alimenta los precios.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué es el RevPAR y por qué es mejor que la ocupación?&quot;</div>
+
+<p>RevPAR es el ingreso de habitaciones dividido por las habitaciones disponibles en el período; equivale a ocupación × ADR. La ocupación sola premia llenar el hotel a cualquier precio, y el ADR solo premia cobrar caro aunque el hotel quede vacío. El RevPAR mide cuánto rinde cada habitación que el hotel tiene, vendida o no, así que solo sube si se combina bien precio y ocupación.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ocupación con habitaciones totales</strong> incluyendo las que estaban fuera de servicio, o sin decirlo.</li>
+<li><strong>ADR con ingresos de otros servicios</strong> (restaurante, spa): el ADR es solo por habitaciones.</li>
+<li><strong>Ingreso por canal sin descontar comisiones</strong>: las agencias online parecen más rentables de lo que son.</li>
+</ul>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-hoteleria">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-seguros.html">← Caso 🛡️ Escudo Seguros: siniestralidad, frecuencia, severidad y fraude</a><a href="casos-energia.html">Caso ⚡ Luz del Valle: hurto de energía, cobranza y calidad del servicio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

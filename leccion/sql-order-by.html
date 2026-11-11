@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORDER BY, LIMIT y DISTINCT · Academia de Datos</title><meta name="description" content="Ordenar resultados, paginar y eliminar duplicados."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-order-by.html">
+<meta property="og:type" content="article"><meta property="og:title" content="ORDER BY, LIMIT y DISTINCT · Academia de Datos"><meta property="og:description" content="Ordenar resultados, paginar y eliminar duplicados."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-order-by.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Básico · 30 min</div>
+<h1>ORDER BY, LIMIT y DISTINCT</h1><p class="resumen">Ordenar resultados, paginar y eliminar duplicados.</p>
+<a class="cta" href="../index.html#/l/sql-order-by">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ordenar resultados por una o varias columnas, ascendente o descendente</li><li>Obtener un &quot;top N&quot; correcto combinando <code>ORDER BY</code> y <code>LIMIT</code></li><li>Paginar resultados con <code>LIMIT</code> y <code>OFFSET</code></li><li>Quitar filas repetidas con <code>DISTINCT</code> y saber cuándo no es la solución</li></ul>
+<h2>Las tablas no tienen orden</h2>
+<p>Una idea que sorprende al principio: <strong>las filas de una tabla no tienen un orden garantizado</strong>. Si ejecutas <code>SELECT * FROM productos</code> dos veces, normalmente verás el mismo orden, pero es casualidad: depende de cómo están guardadas en disco, de si se borró o actualizó algo, de si el motor trabaja en paralelo (en Spark o BigQuery el orden cambia de una ejecución a otra). Si el orden <strong>importa</strong> para tu pregunta, tienes que pedirlo explícitamente con <code>ORDER BY</code>.</p>
+<h2>ORDER BY: ordenar el resultado</h2>
+<pre><code class="language-sql">SELECT nombre, precio
+FROM productos
+ORDER BY precio DESC
+LIMIT 5;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>nombre</th>
+<th>precio</th>
+</tr>
+</thead><tbody><tr>
+<td>Notebook Apple Sport</td>
+<td>2374.99</td>
+</tr>
+<tr>
+<td>Laptop Asus Classic 900</td>
+<td>2251.99</td>
+</tr>
+<tr>
+<td>Notebook Asus Eco</td>
+<td>2079.99</td>
+</tr>
+<tr>
+<td>Laptop Apple Neo 700</td>
+<td>2039.99</td>
+</tr>
+<tr>
+<td>Candado Specialized Pro 800</td>
+<td>1945.99</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><code>ASC</code> (<em>ascending</em>, ascendente): de menor a mayor. Es el valor <strong>por defecto</strong>: si no escribes nada, ordena ascendente.</li>
+<li><code>DESC</code> (<em>descending</em>, descendente): de mayor a menor.</li>
+</ul>
+<p>Cómo ordena cada tipo de dato:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>ASC significa</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>Números</td>
+<td>del más chico al más grande</td>
+<td>1, 2, 10, 100</td>
+</tr>
+<tr>
+<td>Texto</td>
+<td>orden alfabético (según la &quot;intercalación&quot; del motor)</td>
+<td>Argentina, Bolivia, Chile</td>
+</tr>
+<tr>
+<td>Fechas <code>AAAA-MM-DD</code></td>
+<td>de la más antigua a la más reciente</td>
+<td>2022-01-01, 2024-12-31</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Números guardados como texto</div>
+
+<p>Si una columna guarda números como <strong>texto</strong>, el orden es alfabético: <code>&#39;10&#39;</code> va antes que <code>&#39;9&#39;</code> (porque compara el primer carácter: &quot;1&quot; &lt; &quot;9&quot;). Si ves un orden raro, revisa el tipo de la columna y conviértela: <code>ORDER BY CAST(columna AS INTEGER)</code>.</p>
+</div>
+
+
+<h3>Ordenar por varias columnas</h3>
+<p>Puedes ordenar por varias columnas separadas por comas. La segunda solo se usa para <strong>desempatar</strong> cuando la primera es igual, la tercera para desempatar la segunda, y así:</p>
+<pre><code class="language-sql">SELECT pais, ciudad, nombre
+FROM clientes
+ORDER BY pais ASC, ciudad ASC, nombre ASC
+LIMIT 20;</code></pre>
+<p>Primero todos los de Argentina (ordenados por ciudad, y dentro de cada ciudad por nombre), después Bolivia, etc. Cada columna lleva su propio <code>ASC</code>/<code>DESC</code>: <code>ORDER BY pais ASC, precio DESC</code> es &quot;países de la A a la Z y, dentro de cada país, del más caro al más barato&quot;.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La guía telefónica</div>
+
+<p>Una guía se ordena por apellido y, entre los que se apellidan igual, por nombre. &quot;García, Ana&quot; va antes que &quot;García, Beto&quot;. Eso es <code>ORDER BY apellido, nombre</code>.</p>
+</div>
+
+
+<h3>Ordenar por un cálculo o un alias</h3>
+<pre><code class="language-sql">SELECT nombre, precio - costo AS ganancia
+FROM productos
+ORDER BY ganancia DESC
+LIMIT 5;</code></pre>
+<p>Aquí <strong>sí</strong> puedes usar el alias <code>ganancia</code>. ¿Por qué en <code>ORDER BY</code> sí y en <code>WHERE</code> no? Lo explica la sección &quot;El orden real de ejecución&quot;, más abajo. También puedes ordenar por una expresión que no aparece en el <code>SELECT</code> (<code>ORDER BY precio - costo DESC</code>) o por la posición de la columna (<code>ORDER BY 2 DESC</code> = por la segunda columna; funciona, pero es frágil: si agregas una columna al principio, cambia el significado).</p>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Dónde quedan los NULL al ordenar?</div>
+
+<p>Los valores vacíos (<code>NULL</code>) no son ni grandes ni chicos. Cada motor decide: en SQLite y MySQL van <strong>primero</strong> en orden ascendente; en PostgreSQL y Oracle, <strong>al final</strong>. Puedes forzarlo con <code>NULLS FIRST</code> o <code>NULLS LAST</code> (SQLite 3.30+, PostgreSQL, Spark, BigQuery): <code>ORDER BY fecha_entrega DESC NULLS LAST</code>.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>LIMIT: el &quot;top N&quot;</h2>
+<p>Combinado con <code>ORDER BY</code>, <code>LIMIT</code> responde preguntas de tipo <strong>ranking</strong>: &quot;los 5 productos más caros&quot;, &quot;los 10 clientes más antiguos&quot;, &quot;el último pedido&quot;.</p>
+<pre><code class="language-sql">-- Los 10 clientes que se registraron primero
+SELECT nombre, apellido, fecha_registro
+FROM clientes
+ORDER BY fecha_registro ASC
+LIMIT 10;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ LIMIT sin ORDER BY no es &quot;los primeros&quot;</div>
+
+<p><code>SELECT * FROM pedidos LIMIT 5</code> no te da &quot;los 5 primeros pedidos&quot;: te da <strong>5 pedidos cualesquiera</strong>. Para &quot;los 5 primeros&quot;, ordena por fecha. Para &quot;el top 5&quot;, ordena por la métrica.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Empates en el corte</div>
+
+<p>&quot;Los 3 productos más caros&quot; con <code>LIMIT 3</code>: si el 3.º y el 4.º cuestan lo mismo, uno queda afuera y cuál depende del azar. Para un resultado estable, agrega una columna de desempate: <code>ORDER BY precio DESC, producto_id</code>. Para incluir todos los empatados necesitarás funciones de ventana (<code>RANK</code>), que verás más adelante.</p>
+</div>
+
+
+<p><code>LIMIT</code> no es estándar: cada motor tiene su forma de pedir “las primeras N filas”.</p>
+<div class="motores"></div>
+
+
+<h3>Paginar con OFFSET</h3>
+<p><code>OFFSET n</code> <strong>salta</strong> las primeras <code>n</code> filas. Sirve para mostrar resultados por páginas, como un buscador:</p>
+<pre><code class="language-sql">-- Página 3, con 10 resultados por página: salta 20 y toma 10
+SELECT producto_id, nombre
+FROM productos
+ORDER BY producto_id
+LIMIT 10 OFFSET 20;</code></pre>
+<p>La fórmula: <code>OFFSET = (número_de_página − 1) × tamaño_de_página</code>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Cómo se escribe en otros motores</div>
+
+<ul>
+<li>PostgreSQL, MySQL, SQLite, Spark, BigQuery: <code>LIMIT 10 OFFSET 20</code>.</li>
+<li>SQL Server: <code>SELECT TOP 10 …</code> o <code>OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY</code>.</li>
+<li>Oracle y el estándar SQL: <code>FETCH FIRST 10 ROWS ONLY</code>.</li>
+</ul>
+</div>
+
+
+<div class="motores"></div>
+
+
+<h2>DISTINCT: quitar repetidos</h2>
+<p><code>DISTINCT</code> elimina las filas <strong>repetidas</strong> del resultado. Es la forma más rápida de responder &quot;¿qué valores distintos hay en esta columna?&quot;:</p>
+<pre><code class="language-sql">SELECT DISTINCT pais
+FROM clientes
+ORDER BY pais;</code></pre>
+<p>La tabla tiene 2.000 clientes, pero el resultado son <strong>11</strong> filas, una por país.</p>
+<p><code>DISTINCT</code> se aplica a la <strong>combinación</strong> de todas las columnas del <code>SELECT</code>, no a la primera:</p>
+<pre><code class="language-sql">SELECT DISTINCT pais, segmento
+FROM clientes
+ORDER BY pais, segmento;</code></pre>
+<p>Devuelve <strong>33</strong> filas: cada combinación país + segmento (11 países × 3 segmentos). Si existe &quot;Chile – Pyme&quot; y &quot;Chile – Consumidor&quot;, aparecen ambas.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ DISTINCT no es un arreglo mágico</div>
+
+<p>Si una consulta devuelve filas duplicadas que no esperabas, agregar <code>DISTINCT</code> &quot;para que desaparezcan&quot; suele <strong>esconder</strong> un error (típicamente, un <code>JOIN</code> mal hecho que multiplica filas). Primero entiende <strong>por qué</strong> se duplican. Además, <code>DISTINCT</code> obliga al motor a comparar todas las filas: en tablas grandes es costoso.</p>
+</div>
+
+
+<h2>El orden de escritura y el orden real de ejecución</h2>
+<p>Las cláusulas se <strong>escriben</strong> siempre en este orden:</p>
+<pre data-norun><code class="language-sql">SELECT    columnas y cálculos
+FROM      tabla
+WHERE     condición sobre filas
+ORDER BY  columnas
+LIMIT     n OFFSET m;</code></pre>
+<p>Pero la base de datos las <strong>ejecuta</strong> en otro orden, que tiene mucha lógica:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Cláusula</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td><code>FROM</code></td>
+<td>Busca la tabla</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>WHERE</code></td>
+<td>Descarta las filas que no cumplen la condición</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>SELECT</code></td>
+<td>Calcula las columnas pedidas y les pone alias</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>DISTINCT</code></td>
+<td>Quita repetidos</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>ORDER BY</code></td>
+<td>Ordena</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>LIMIT</code> / <code>OFFSET</code></td>
+<td>Corta</td>
+</tr>
+</tbody></table></div>
+<p>(Cuando aprendas <code>GROUP BY</code> y <code>HAVING</code>, se ubicarán entre <code>WHERE</code> y <code>SELECT</code>.)</p>
+<p>Este orden explica varias cosas que parecían caprichos:</p>
+<ul>
+<li>En <code>WHERE</code> <strong>no</strong> puedes usar un alias del <code>SELECT</code>: cuando se ejecuta <code>WHERE</code> (paso 2), el <code>SELECT</code> (paso 3) todavía no calculó nada.</li>
+<li>En <code>ORDER BY</code> <strong>sí</strong> puedes usar alias: se ejecuta en el paso 5, cuando los alias ya existen.</li>
+<li><code>LIMIT</code> se aplica <strong>al final</strong>: primero se filtra y se ordena todo, y recién después se cortan las filas. Por eso <code>ORDER BY … LIMIT 5</code> da el verdadero top 5.</li>
+</ul>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>LIMIT</code> sin <code>ORDER BY</code></strong>: devuelve filas en el orden que la base las encuentre, que puede cambiar entre ejecuciones. Un &quot;top 10&quot; siempre necesita <code>ORDER BY</code>.</li>
+<li><strong>Empates en el corte</strong>: si el producto 10 y el 11 cuestan lo mismo, <code>LIMIT 10</code> elige uno al azar. Agrega una columna de desempate (<code>ORDER BY precio DESC, producto_id</code>) para que el resultado sea siempre el mismo.</li>
+<li><strong><code>DESC</code> solo afecta a la columna que lo tiene</strong>: <code>ORDER BY pais, ventas DESC</code> ordena país de A a Z y ventas de mayor a menor dentro de cada país.</li>
+<li><strong><code>DISTINCT</code> para &quot;arreglar&quot; duplicados de un JOIN</strong>: si aparecen filas repetidas, casi siempre el problema es el JOIN. <code>DISTINCT</code> lo esconde y puede dar totales incorrectos.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El top 5 de sueldos</div>
+
+<p>Tomás, del área de personas, prepara la revisión salarial anual:</p>
+<blockquote>
+<p>&quot;¿Me pasas los 5 empleados que más ganan, con su cargo? Y aparte, la lista de marcas que vendemos, sin repetidos, que la necesito para un formulario.&quot;</p>
+</blockquote>
+<p>Las tablas no tienen un orden propio. Para un ranking necesitas <strong>ordenar</strong> y <strong>cortar</strong>, y para una lista de valores únicos, <strong>quitar repetidos</strong>.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Ordenar es caro en tablas grandes: la base tiene que ver <strong>todas</strong> las filas antes de saber cuál es la primera. Por eso en un pipeline no se ordena &quot;por si acaso&quot;: se ordena solo el resultado final que alguien va a mirar.</li>
+<li>La paginación con <code>OFFSET</code> se vuelve lenta en páginas altas (<code>OFFSET 100000</code> lee y descarta cien mil filas). Las APIs y aplicaciones usan <em>keyset pagination</em>: <code>WHERE id &gt; ultimo_id_visto ORDER BY id LIMIT 50</code>.</li>
+<li>Para rankings por grupo (&quot;el top 3 de cada categoría&quot;) no alcanza con <code>ORDER BY</code> + <code>LIMIT</code>: se usan funciones de ventana, que verás más adelante.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿En qué orden ejecuta SQL las cláusulas de un SELECT?&quot;</div>
+
+<p><code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> → <code>DISTINCT</code> → <code>ORDER BY</code> → <code>LIMIT</code>. Por eso en <code>ORDER BY</code> sí puedes usar un alias definido en el <code>SELECT</code>, pero en <code>WHERE</code> no (todavía no existe cuando se filtra).</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Sin <code>ORDER BY</code>, el orden de las filas no está garantizado.</li>
+<li><code>ORDER BY col [ASC|DESC]</code>, con varias columnas para desempatar; acepta alias y expresiones.</li>
+<li><code>LIMIT n</code> corta el resultado (top N con <code>ORDER BY</code>); <code>OFFSET</code> salta filas para paginar.</li>
+<li><code>DISTINCT</code> devuelve combinaciones únicas de todas las columnas seleccionadas; no lo uses para tapar duplicados que no entiendes.</li>
+<li>Orden de ejecución: <code>FROM → WHERE → SELECT → DISTINCT → ORDER BY → LIMIT</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-order-by">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-where.html">← WHERE: filtrar filas</a><a href="sql-null.html">NULL: el valor que no es un valor →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

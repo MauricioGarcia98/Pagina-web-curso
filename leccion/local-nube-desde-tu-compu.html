@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La nube desde tu computadora: cuentas gratuitas, CLIs, credenciales seguras y Terraform · Academia de Datos</title><meta name="description" content="Abre cuentas de prueba en AWS, Google Cloud, Azure y Databricks sin llevarte sorpresas en la factura, instala sus CLIs y Terraform, inicia sesión de la forma segura (SSO, credenciales temporales, Application Default Credentials), maneja perfiles y entornos, y aprende a no dejar nada encendido."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-nube-desde-tu-compu.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La nube desde tu computadora: cuentas gratuitas, CLIs, credenciales seguras y Terraform · Academia de Datos"><meta property="og:description" content="Abre cuentas de prueba en AWS, Google Cloud, Azure y Databricks sin llevarte sorpresas en la factura, instala sus CLIs y Terraform, inicia sesión de la forma segura (SSO, credenciales temporales, Application Default Credentials), maneja perfiles y entornos, y aprende a no dejar nada encendido."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-nube-desde-tu-compu.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Intermedio · 65 min</div>
+<h1>La nube desde tu computadora: cuentas gratuitas, CLIs, credenciales seguras y Terraform</h1><p class="resumen">Abre cuentas de prueba en AWS, Google Cloud, Azure y Databricks sin llevarte sorpresas en la factura, instala sus CLIs y Terraform, inicia sesión de la forma segura (SSO, credenciales temporales, Application Default Credentials), maneja perfiles y entornos, y aprende a no dejar nada encendido.</p>
+<a class="cta" href="../index.html#/l/local-nube-desde-tu-compu">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Abrir cuentas gratuitas y configurar alertas de presupuesto antes de crear cualquier recurso</li><li>Instalar las CLIs de AWS, Google Cloud, Azure y Databricks, y Terraform</li><li>Iniciar sesión con SSO y credenciales temporales en lugar de claves fijas</li><li>Manejar varios perfiles, proyectos o suscripciones y saber cuál está activo</li><li>Limpiar los recursos al terminar y proteger las credenciales de tu máquina</li></ul>
+<h2>1. Cuentas gratuitas, con red de seguridad</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Nube</th>
+<th>Qué ofrece para aprender</th>
+<th>Cuidado con</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>AWS</strong></td>
+<td>Free Tier: S3, Lambda, Glue y otros con límites mensuales; créditos para cuentas nuevas</td>
+<td>NAT Gateways, clústeres EMR/Redshift, instancias grandes: no son gratis</td>
+</tr>
+<tr>
+<td><strong>Google Cloud</strong></td>
+<td>300 USD de crédito por 90 días + capa siempre gratuita (BigQuery: 1 TB de consultas y 10 GB de almacenamiento por mes)</td>
+<td>Dataproc y Composer cobran por hora</td>
+</tr>
+<tr>
+<td><strong>Azure</strong></td>
+<td>200 USD de crédito por 30 días + servicios gratis 12 meses</td>
+<td>Databricks y Synapse consumen el crédito rápido</td>
+</tr>
+<tr>
+<td><strong>Databricks</strong></td>
+<td><strong>Free Edition</strong> (gratuita, sin tarjeta, con límites) y prueba de 14 días en tu nube</td>
+<td>La prueba en tu nube cobra la infraestructura a tu cuenta de nube</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Lo primero: una alerta de presupuesto</div>
+
+<p>Antes de crear cualquier recurso, crea un presupuesto con alerta por email (por ejemplo, 10 USD al mes). No apaga nada, pero te avisa a tiempo.</p>
+<pre data-norun><code class="language-bash"># AWS
+aws budgets create-budget --account-id 123456789012 \
+  --budget '{&quot;BudgetName&quot;:&quot;mensual&quot;,&quot;BudgetLimit&quot;:{&quot;Amount&quot;:&quot;10&quot;,&quot;Unit&quot;:&quot;USD&quot;},&quot;TimeUnit&quot;:&quot;MONTHLY&quot;,&quot;BudgetType&quot;:&quot;COST&quot;}' \
+  --notifications-with-subscribers '[{&quot;Notification&quot;:{&quot;NotificationType&quot;:&quot;ACTUAL&quot;,&quot;ComparisonOperator&quot;:&quot;GREATER_THAN&quot;,&quot;Threshold&quot;:80},&quot;Subscribers&quot;:[{&quot;SubscriptionType&quot;:&quot;EMAIL&quot;,&quot;Address&quot;:&quot;ana@correo.com&quot;}]}]'
+
+# Google Cloud
+gcloud billing budgets create --billing-account=0X0X0X-0X0X0X-0X0X0X \
+  --display-name=mensual --budget-amount=10USD --threshold-rule=percent=0.8
+
+# Azure
+az consumption budget create --budget-name mensual --amount 10 --category cost \
+  --time-grain monthly --start-date 2025-01-01 --end-date 2026-12-31</code></pre>
+<p>Además, en AWS activa <strong>MFA</strong> en el usuario raíz y no lo uses nunca para el día a día.</p>
+</div>
+
+
+<h2>2. Instalar las CLIs y Terraform</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Ubuntu / WSL</th>
+<th>macOS</th>
+</tr>
+</thead><tbody><tr>
+<td>AWS CLI v2</td>
+<td><code>curl &quot;https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip&quot; -o awscliv2.zip &amp;&amp; unzip awscliv2.zip &amp;&amp; sudo ./aws/install</code></td>
+<td><code>brew install awscli</code></td>
+</tr>
+<tr>
+<td>Google Cloud CLI</td>
+<td><code>sudo apt install google-cloud-cli</code> (después de agregar el repositorio de Google) o el instalador de <a href="https://cloud.google.com/sdk/docs/install">cloud.google.com/sdk</a></td>
+<td><code>brew install --cask google-cloud-sdk</code></td>
+</tr>
+<tr>
+<td>Azure CLI</td>
+<td><code>curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash</code></td>
+<td><code>brew install azure-cli</code></td>
+</tr>
+<tr>
+<td>Databricks CLI</td>
+<td><code>curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh</code></td>
+<td><code>brew tap databricks/tap &amp;&amp; brew install databricks</code></td>
+</tr>
+<tr>
+<td>Terraform</td>
+<td>Repositorio de HashiCorp con <code>apt</code>, o <code>tfenv</code> para manejar versiones</td>
+<td><code>brew tap hashicorp/tap &amp;&amp; brew install hashicorp/tap/terraform</code></td>
+</tr>
+</tbody></table></div>
+<p>Comprueba: <code>aws --version</code>, <code>gcloud --version</code>, <code>az version</code>, <code>databricks --version</code>, <code>terraform -version</code>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Varias versiones de Terraform</div>
+
+<p>Cada proyecto fija su versión (<code>required_version</code>). Con <strong>tfenv</strong> (<code>tfenv install 1.10.3</code>, <code>tfenv use 1.10.3</code>) o con un archivo <code>.terraform-version</code> en el repositorio, cambias de versión por proyecto, como <code>uv</code> con Python.</p>
+</div>
+
+
+<h2>3. Iniciar sesión de forma segura</h2>
+<figure class="diagrama"><figcaption>Credenciales temporales: la sesión vence sola y no hay claves fijas en tu disco</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Nube</th>
+<th>Recomendado</th>
+<th>Evitar</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>AWS</strong></td>
+<td><code>aws configure sso</code> una vez, después <code>aws sso login --profile dev</code></td>
+<td><code>aws configure</code> con una access key de un usuario IAM</td>
+</tr>
+<tr>
+<td><strong>Google Cloud</strong></td>
+<td><code>gcloud auth login</code> (para la CLI) <strong>y</strong> <code>gcloud auth application-default login</code> (para Terraform, Python, dbt)</td>
+<td>Descargar archivos JSON de claves de cuentas de servicio</td>
+</tr>
+<tr>
+<td><strong>Azure</strong></td>
+<td><code>az login</code> (abre el navegador)</td>
+<td>Service principals con secreto en tu máquina</td>
+</tr>
+<tr>
+<td><strong>Databricks</strong></td>
+<td><code>databricks auth login --host https://…</code> (OAuth)</td>
+<td>Tokens personales sin vencimiento</td>
+</tr>
+</tbody></table></div>
+<p><strong>Google Cloud tiene dos inicios de sesión distintos.</strong> <code>gcloud auth login</code> es para los comandos <code>gcloud</code>/<code>bq</code>; las librerías (Terraform, Python, dbt) usan las <strong>Application Default Credentials (ADC)</strong>, que se crean con <code>gcloud auth application-default login</code>. Si Terraform dice &quot;could not find default credentials&quot;, falta el segundo.</p>
+<h2>4. ¿Dónde estoy? Perfiles, proyectos y suscripciones</h2>
+<p>El error más caro es crear algo en la cuenta equivocada (producción en lugar de pruebas). Antes de crear, verifica:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Nube</th>
+<th>¿Quién soy y dónde estoy?</th>
+<th>Cambiar</th>
+</tr>
+</thead><tbody><tr>
+<td>AWS</td>
+<td><code>aws sts get-caller-identity</code></td>
+<td><code>export AWS_PROFILE=dev</code> o <code>--profile dev</code></td>
+</tr>
+<tr>
+<td>Google Cloud</td>
+<td><code>gcloud config list</code></td>
+<td><code>gcloud config set project academia-datos-dev</code> (o configuraciones con <code>gcloud config configurations</code>)</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td><code>az account show -o table</code></td>
+<td><code>az account set --subscription sub-datos-dev</code></td>
+</tr>
+<tr>
+<td>Databricks</td>
+<td><code>databricks auth profiles</code></td>
+<td><code>--profile dev</code> o <code>DATABRICKS_CONFIG_PROFILE=dev</code></td>
+</tr>
+<tr>
+<td>Terraform</td>
+<td><code>terraform workspace show</code> y el backend de la carpeta</td>
+<td>La carpeta del entorno</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 El prompt que te salva</div>
+
+<p>Herramientas como <strong>Starship</strong> muestran en el prompt de la terminal el perfil de AWS, el proyecto de GCP y el workspace de Terraform activos. Ver <code>☁️ prod</code> en rojo antes de un <code>apply</code> evita desastres.</p>
+</div>
+
+
+<h2>5. Al terminar: limpiar</h2>
+<ul>
+<li>Si lo creaste con <strong>Terraform</strong>: <code>terraform destroy</code> en la carpeta del laboratorio.</li>
+<li>Si lo creaste con la CLI: borra el <strong>contenedor</strong> completo, no recurso por recurso: el grupo de recursos en Azure (<code>az group delete -n rg-lab --yes</code>), el proyecto de prueba en Google Cloud (<code>gcloud projects delete lab-xyz</code>).</li>
+<li>Revisa al día siguiente el panel de costos de la nube.</li>
+</ul>
+<h2>6. Proteger tu máquina</h2>
+<ul>
+<li>Las credenciales viven en <code>~/.aws/</code>, <code>~/.config/gcloud/</code>, <code>~/.azure/</code>, <code>~/.databrickscfg</code>: <strong>nunca</strong> las copies a un proyecto ni a la nube.</li>
+<li>Agrega a tu <code>.gitignore</code> global (<code>git config --global core.excludesFile ~/.gitignore_global</code>): <code>.env</code>, <code>*.pem</code>, <code>credentials*.json</code>, <code>*.tfstate</code>.</li>
+<li>Activa el escaneo de secretos de GitHub en tus repositorios y, si se filtra algo, <strong>rota la credencial</strong> de inmediato.</li>
+</ul>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>ExpiredToken</code> / <code>The SSO session has expired</code></strong>: la sesión temporal venció (es lo esperado). <code>aws sso login --profile dev</code> y listo.</li>
+<li><strong>Terraform con Google: <code>could not find default credentials</code></strong>: faltan las ADC: <code>gcloud auth application-default login</code>.</li>
+<li><strong><code>AuthorizationFailed</code> en Azure con un usuario que tiene permisos</strong>: estás en otra suscripción. <code>az account show</code> y <code>az account set</code>.</li>
+<li><strong>Crear recursos en la región por defecto equivocada</strong> (us-east-1 cuando tus datos están en southamerica): fija la región en el perfil y en el proveedor de Terraform.</li>
+<li><strong>Una access key en un repositorio</strong>: aunque borres el commit, ya está expuesta. Desactívala en la consola, crea otra y revisa la actividad de la cuenta.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La factura de 400 dólares</div>
+
+<p>Una estudiante dejó un clúster de prueba encendido &quot;un ratito&quot; un viernes. El lunes tenía una factura de 400 dólares. Otro subió por error su archivo de credenciales a un repositorio público: en minutos, alguien usó su cuenta para minar criptomonedas.</p>
+<blockquote>
+<p>&quot;Antes de crear tu primer recurso en la nube: alerta de presupuesto, sesión con SSO y nada de claves fijas en archivos. Y al terminar cada práctica, <code>terraform destroy</code>.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas no existen usuarios IAM con claves para las personas: todos entran por <strong>SSO</strong> (IAM Identity Center, Entra ID, Google Workspace) con MFA, y los permisos se asignan por grupo y por cuenta/proyecto.</li>
+<li>Cada persona tiene acceso de escritura solo a <code>dev</code> (o a su <em>sandbox</em>); producción es de solo lectura para las personas y la CI aplica los cambios.</li>
+<li>Los presupuestos y las alertas de costo se crean también con Terraform, por proyecto y por equipo, junto con etiquetas obligatorias para saber quién gasta qué.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-nube-desde-tu-compu">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-spark-local.html">← Spark en tu máquina: PySpark local, Jupyter y spark-submit</a><a href="local-proyecto-local.html">Proyecto: el pipeline de Rápido completo en tu computadora →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

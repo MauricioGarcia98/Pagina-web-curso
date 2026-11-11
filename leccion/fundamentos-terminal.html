@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La terminal sin miedo · Academia de Datos</title><meta name="description" content="Qué es la línea de comandos y los 15 comandos que vas a usar siempre."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-terminal.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La terminal sin miedo · Academia de Datos"><meta property="og:description" content="Qué es la línea de comandos y los 15 comandos que vas a usar siempre."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-terminal.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fundamentos">🧱 Fundamentos</a> · Básico · 40 min</div>
+<h1>La terminal sin miedo</h1><p class="resumen">Qué es la línea de comandos y los 15 comandos que vas a usar siempre.</p>
+<a class="cta" href="../index.html#/l/fundamentos-terminal">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Moverte entre carpetas usando rutas absolutas y relativas</li><li>Crear, copiar, mover y borrar archivos y carpetas desde la terminal</li><li>Inspeccionar un archivo de datos con <code>head</code>, <code>wc</code>, <code>grep</code>, <code>cut</code>, <code>sort</code> y <code>uniq</code></li><li>Encadenar comandos con tuberías y guardar resultados con redirecciones</li><li>Usar variables de entorno y guardar la salida de un comando en una variable</li></ul>
+<p>La <strong>terminal</strong> (o consola, o línea de comandos) es una ventana donde le das órdenes a la computadora escribiendo, en vez de hacer clics. Parece antigua, pero los ingenieros de datos la usan todo el día: para Git, para las CLIs de Azure, AWS, Google Cloud y Databricks, para dbt, para Airflow…</p>
+<p>¿Por qué escribir si se puede hacer clic? Por tres razones:</p>
+<ol>
+<li><strong>Los servidores no tienen pantalla.</strong> Las máquinas de la nube donde corren tus pipelines no tienen ventanas ni mouse: solo terminal.</li>
+<li><strong>Se puede repetir y automatizar.</strong> Un comando se copia, se guarda en un script y lo ejecuta un pipeline a las 3 de la mañana. Diez clics no.</li>
+<li><strong>Es más rápido</strong> para muchas tareas: &quot;¿cuántas líneas tiene este archivo de 2 GB?&quot; es un comando de una línea, mientras que Excel ni siquiera lo abre.</li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Dónde está la terminal?</div>
+
+<ul>
+<li><strong>Windows</strong>: instala <em>Windows Terminal</em> y usa <strong>WSL</strong> (Ubuntu dentro de Windows) o <em>Git Bash</em>. PowerShell también sirve, pero algunos comandos cambian.</li>
+<li><strong>macOS</strong>: aplicación <em>Terminal</em> (o iTerm2).</li>
+<li><strong>Linux</strong>: ya la tienes (Ctrl + Alt + T).</li>
+</ul>
+<p>En este curso usamos comandos de <strong>bash</strong>, el estándar en servidores y en la nube. Y no necesitas instalar nada todavía: el botón <strong>⌨ Terminal</strong> abre una terminal Linux simulada dentro del navegador.</p>
+</div>
+
+
+<h2>Anatomía de un comando</h2>
+<pre data-norun><code class="language-bash">ls -l --all /home/ana</code></pre>
+<ul>
+<li><code>ls</code> → el <strong>programa</strong> (listar archivos).</li>
+<li><code>-l</code> → una <strong>opción corta</strong> (formato largo). Las cortas llevan un guion y una letra, y se pueden juntar: <code>-la</code> es lo mismo que <code>-l -a</code>.</li>
+<li><code>--all</code> → una <strong>opción larga</strong> (mostrar ocultos). Llevan dos guiones y una palabra.</li>
+<li><code>/home/ana</code> → un <strong>argumento</strong> (sobre qué carpeta).</li>
+</ul>
+<p>El símbolo <code>$</code> que verás al inicio de las líneas solo indica &quot;escribe aquí&quot;; <strong>no</strong> se escribe.</p>
+<p>Las mayúsculas importan: <code>ls</code> funciona y <code>LS</code> no. Y los espacios separan las partes: para un archivo con espacios en el nombre, usa comillas (<code>cat &quot;mis ventas.csv&quot;</code>).</p>
+<h2>Dónde estás: rutas</h2>
+<p>Los archivos se organizan en un árbol de <strong>carpetas</strong> (directorios). En la terminal siempre estás &quot;parado&quot; en una carpeta, que se llama <strong>directorio de trabajo</strong>. En la terminal del curso, la carpeta inicial es <code>/home/alumno</code>:</p>
+<pre><code class="language-text">/                          ← la raíz: todo cuelga de aquí
+└── home/
+    └── alumno/            ← tu carpeta personal (también se escribe ~)
+        ├── README.md
+        ├── datos/
+        │   ├── clientes.csv
+        │   └── ventas_2024_12.csv
+        ├── logs/
+        │   └── pipeline.log
+        ├── dags/          ← DAGs de Airflow
+        ├── scripts/
+        └── tienda_dbt/    ← un proyecto dbt</code></pre>
+<p>Hay dos formas de nombrar un archivo:</p>
+<ul>
+<li><strong>Ruta absoluta</strong>: empieza con <code>/</code> y describe el camino completo desde la raíz: <code>/home/alumno/datos/clientes.csv</code>. Funciona estés donde estés.</li>
+<li><strong>Ruta relativa</strong>: empieza desde donde estás. Si estás en <code>/home/alumno</code>, la misma ruta es <code>datos/clientes.csv</code>.</li>
+</ul>
+<p>Y tres atajos que vas a usar siempre:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Atajo</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>.</code></td>
+<td>La carpeta actual</td>
+</tr>
+<tr>
+<td><code>..</code></td>
+<td>La carpeta de arriba (la &quot;madre&quot;)</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>Tu carpeta personal (<code>/home/alumno</code>)</td>
+</tr>
+</tbody></table></div>
+<h2>Moverse por las carpetas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>pwd</code></td>
+<td>Muestra en qué carpeta estás (<em>print working directory</em>)</td>
+<td><code>pwd</code> → <code>/home/alumno</code></td>
+</tr>
+<tr>
+<td><code>ls</code></td>
+<td>Lista el contenido</td>
+<td><code>ls -la</code></td>
+</tr>
+<tr>
+<td><code>cd</code></td>
+<td>Cambia de carpeta</td>
+<td><code>cd proyectos</code>, <code>cd ..</code> (subir), <code>cd ~</code> (inicio)</td>
+</tr>
+<tr>
+<td><code>mkdir</code></td>
+<td>Crea una carpeta</td>
+<td><code>mkdir -p datos/crudos</code></td>
+</tr>
+<tr>
+<td><code>touch</code></td>
+<td>Crea un archivo vacío</td>
+<td><code>touch notas.txt</code></td>
+</tr>
+<tr>
+<td><code>cp</code></td>
+<td>Copia</td>
+<td><code>cp ventas.csv respaldo.csv</code></td>
+</tr>
+<tr>
+<td><code>mv</code></td>
+<td>Mueve o renombra</td>
+<td><code>mv viejo.csv nuevo.csv</code></td>
+</tr>
+<tr>
+<td><code>rm</code></td>
+<td>Borra (¡sin papelera!)</td>
+<td><code>rm archivo.csv</code>, <code>rm -r carpeta</code></td>
+</tr>
+<tr>
+<td><code>find</code></td>
+<td>Busca archivos por nombre</td>
+<td><code>find . -name &quot;*.csv&quot;</code></td>
+</tr>
+</tbody></table></div>
+<p><code>mkdir -p datos/crudos</code> crea <code>datos</code> y adentro <code>crudos</code>, aunque <code>datos</code> no exista todavía, y no se queja si ya existen. Por eso <code>-p</code> aparece en todos los scripts.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ rm no perdona</div>
+
+<p><code>rm -rf</code> borra todo sin preguntar y sin papelera de reciclaje. Revisa dos veces antes de presionar Enter.</p>
+</div>
+
+
+<h2>Mirar archivos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>cat archivo</code></td>
+<td>Muestra todo el archivo</td>
+</tr>
+<tr>
+<td><code>head -n 5 archivo</code></td>
+<td>Las primeras 5 líneas</td>
+</tr>
+<tr>
+<td><code>tail -n 5 archivo</code></td>
+<td>Las últimas 5 líneas (<code>tail -f</code> sigue un log en vivo)</td>
+</tr>
+<tr>
+<td><code>tail -n +2 archivo</code></td>
+<td>Desde la línea 2 hasta el final (saltar el encabezado de un CSV)</td>
+</tr>
+<tr>
+<td><code>wc -l archivo</code></td>
+<td>Cuenta líneas</td>
+</tr>
+<tr>
+<td><code>less archivo</code></td>
+<td>Navega un archivo grande (salir con <code>q</code>)</td>
+</tr>
+<tr>
+<td><code>grep texto archivo</code></td>
+<td>Busca líneas que contienen un texto</td>
+</tr>
+<tr>
+<td><code>cut -d, -f3 archivo</code></td>
+<td>Se queda con la columna 3, separando por comas</td>
+</tr>
+<tr>
+<td><code>sort</code> / <code>uniq -c</code></td>
+<td>Ordena / cuenta líneas repetidas seguidas</td>
+</tr>
+</tbody></table></div>
+<p>Opciones de <code>grep</code> que vas a usar mucho: <code>-i</code> (ignora mayúsculas), <code>-c</code> (cuenta en vez de mostrar), <code>-v</code> (las líneas que <strong>no</strong> coinciden) y <code>-n</code> (muestra el número de línea).</p>
+<h2>Tuberías (pipes) y redirección</h2>
+<p>La barra vertical <code>|</code> envía la salida de un comando como entrada del siguiente. Es la idea central de un <em>pipeline</em>, ¡en miniatura! Cada comando hace <strong>una sola cosa</strong> y se encadenan como piezas de Lego.</p>
+<pre data-norun><code class="language-bash"># ¿Cuántas líneas de clientes.csv mencionan &quot;Chile&quot;?
+grep &quot;Chile&quot; datos/clientes.csv | wc -l
+
+# Guardar el resultado en un archivo (&gt; sobrescribe, &gt;&gt; agrega al final)
+grep &quot;Chile&quot; datos/clientes.csv &gt; clientes_chile.csv</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Símbolo</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>a | b</code></td>
+<td>La salida de <code>a</code> es la entrada de <code>b</code></td>
+</tr>
+<tr>
+<td><code>a &gt; archivo</code></td>
+<td>Guarda la salida en el archivo (lo <strong>reemplaza</strong>)</td>
+</tr>
+<tr>
+<td><code>a &gt;&gt; archivo</code></td>
+<td>Agrega la salida al final del archivo</td>
+</tr>
+<tr>
+<td><code>a &amp;&amp; b</code></td>
+<td>Ejecuta <code>b</code> solo si <code>a</code> funcionó</td>
+</tr>
+<tr>
+<td><code>a 2&gt; errores.txt</code></td>
+<td>Guarda <strong>solo los errores</strong> (el descriptor 2) en un archivo</td>
+</tr>
+<tr>
+<td><code>a &gt; todo.txt 2&gt;&amp;1</code></td>
+<td>Guarda la salida <strong>y</strong> los errores en el mismo archivo (<code>&amp;&gt; todo.txt</code> es lo mismo)</td>
+</tr>
+<tr>
+<td><code>a 2&gt; /dev/null</code></td>
+<td>Descarta los errores: <code>/dev/null</code> es un &quot;agujero negro&quot;</td>
+</tr>
+<tr>
+<td><code>a &amp;</code></td>
+<td>Ejecuta <code>a</code> <strong>en segundo plano</strong>: la terminal queda libre mientras corre</td>
+</tr>
+</tbody></table></div>
+<p>Un comando tiene dos salidas: la <strong>normal</strong> (descriptor 1) y la de <strong>errores</strong> (descriptor 2). <code>&gt;</code> solo redirige la normal: por eso <code>ls /noexiste &gt; salida.txt</code> sigue mostrando el error en pantalla y deja el archivo vacío.</p>
+<h3>Procesos en segundo plano</h3>
+<p>Algo que tarda (un script de carga, un servidor local) se puede lanzar con <code>&amp;</code> al final y seguir trabajando:</p>
+<pre data-norun><code class="language-bash">sleep 30 &amp;          # [1] 4123 → número de trabajo y PID
+jobs                # [1]+  Ejecutando   sleep 30 &amp;
+fg %1               # lo trae al frente y esperas que termine (Ctrl+C lo corta)
+kill %1             # o lo terminas sin traerlo
+echo $!             # el PID del último trabajo lanzado con &amp;
+wait                # espera a que terminen todos</code></pre>
+<p>Cuando un trabajo termina, bash avisa <code>[1]+  Hecho  sleep 30</code> antes del siguiente prompt. Ojo: si cierras la terminal, los trabajos mueren con ella; para que sigan, se usa <code>nohup comando &amp;</code> (o un servicio de verdad, como un scheduler).</p>
+<div class="recorrido"></div>
+
+
+<h2>Una sesión real, paso a paso</h2>
+<p>Abre la terminal (⌨ Terminal) y haz esta sesión. Es exactamente lo que hace un ingeniero de datos cuando recibe un archivo nuevo: <strong>mirarlo antes de procesarlo</strong>.</p>
+<p><strong>1. ¿Dónde estoy y qué hay?</strong></p>
+<pre><code class="language-text">$ pwd
+/home/alumno
+$ ls datos
+clientes.csv  ventas_2024_12.csv</code></pre>
+<p><strong>2. ¿Qué columnas tiene el archivo de ventas?</strong> Las primeras líneas de un CSV dicen mucho:</p>
+<pre><code class="language-text">$ head -n 3 datos/ventas_2024_12.csv
+pedido_id,fecha,cliente_id,canal,estado,total
+11407,2024-12-01,562,app,entregado,359.97
+11408,2024-12-01,1744,tienda,entregado,63.96</code></pre>
+<p><strong>3. ¿Cuántas filas tiene?</strong></p>
+<pre><code class="language-text">$ wc -l datos/ventas_2024_12.csv
+ 595 datos/ventas_2024_12.csv</code></pre>
+<p>Son 595 líneas: 1 de encabezado + <strong>594 pedidos</strong>.</p>
+<p><strong>4. ¿Cuántos pedidos hay por canal?</strong> Aquí se ve la potencia de las tuberías. Se lee de izquierda a derecha:</p>
+<pre><code class="language-text">$ cut -d, -f4 datos/ventas_2024_12.csv | tail -n +2 | sort | uniq -c | sort -rn
+    258 web
+    152 app
+    136 tienda
+     48 telefono</code></pre>
+<ul>
+<li><code>cut -d, -f4</code> → de cada línea, solo la columna 4 (<code>canal</code>).</li>
+<li><code>tail -n +2</code> → salta la primera línea (el encabezado).</li>
+<li><code>sort</code> → ordena, para que los iguales queden juntos (<code>uniq</code> solo cuenta repetidos <strong>seguidos</strong>).</li>
+<li><code>uniq -c</code> → cuenta cuántas veces aparece cada valor.</li>
+<li><code>sort -rn</code> → ordena por ese número (<code>-n</code>), de mayor a menor (<code>-r</code>).</li>
+</ul>
+<p>Es un <code>SELECT canal, COUNT(*) ... GROUP BY canal ORDER BY 2 DESC</code> hecho con comandos de terminal.</p>
+<p><strong>5. ¿Hubo errores en el pipeline de anoche?</strong></p>
+<pre><code class="language-text">$ grep -n ERROR logs/pipeline.log
+36:2025-01-01 02:21:00 ERROR [cargar_silver] MERGE falló: duplicate key pedido_id=8812
+42:2025-01-01 02:41:10 ERROR [dbt_build] Compilation Error in model fct_ventas: ref(&quot;stg_pagos_v2&quot;) not found</code></pre>
+<p>Dos errores, con su número de línea y la tarea que falló. Esto es lo primero que haces cuando te avisan &quot;el dashboard no se actualizó&quot;.</p>
+<h2>Editar archivos sin salir de la terminal</h2>
+<p>En un servidor no hay ventanas: para cambiar un archivo de configuración o un script usas un <strong>editor de terminal</strong>. Hay tres que vas a cruzarte, y los tres funcionan en la terminal del curso:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Editor</th>
+<th>Cuándo</th>
+<th>Lo mínimo para sobrevivir</th>
+</tr>
+</thead><tbody><tr>
+<td><code>nano archivo</code></td>
+<td>El más fácil: escribes directo</td>
+<td><strong>Ctrl+O</strong> guarda (Enter para confirmar el nombre) · <strong>Ctrl+X</strong> sale · los atajos están abajo en pantalla</td>
+</tr>
+<tr>
+<td><code>vim archivo</code></td>
+<td>Está en <strong>todos</strong> los servidores Linux</td>
+<td>Arranca en modo <em>normal</em> (las teclas son órdenes). <strong>i</strong> para escribir, <strong>Esc</strong> para volver, <strong>:wq</strong> guarda y sale, <strong>:q!</strong> sale sin guardar</td>
+</tr>
+<tr>
+<td><code>code .</code></td>
+<td>En tu computadora, con VS Code</td>
+<td>Abre la carpeta en un editor completo con explorador, pestañas y terminal integrada</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-bash">nano notas.txt
+vim etl.py
+code .</code></pre>
+<h3>Ejecutar lo que escribiste</h3>
+<p>El orden siempre es <strong>programa + archivo</strong>: <code>python hola.py</code> (no <code>hola.py python</code>). Según el editor:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dónde estás</th>
+<th>Cómo ejecutas <code>hola.py</code></th>
+</tr>
+</thead><tbody><tr>
+<td>En la terminal</td>
+<td><code>python hola.py</code> (los <code>.sh</code> con <code>bash script.sh</code>; los <code>.sql</code> con <code>sqlite3 tienda.db &lt; consulta.sql</code>)</td>
+</tr>
+<tr>
+<td>Dentro de vim</td>
+<td><code>:w</code> para guardar y <code>:!python %</code> (el <code>%</code> es &quot;este archivo&quot;); Enter vuelve a vim</td>
+</tr>
+<tr>
+<td>En <code>code .</code></td>
+<td>El botón <strong>▷</strong> arriba a la derecha o <strong>F5</strong>: guarda y lo ejecuta en la terminal de abajo. Un DAG de Airflow se prueba con <code>airflow dags test</code>, un modelo de dbt con <code>dbt run --select</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Aprende vim en 10 minutos</div>
+
+<p>Escribe <code>vimtutor</code>: abre un texto en español para practicar los comandos de vim mientras lo lees. El chiste más viejo de la informática es &quot;¿cómo salgo de vim?&quot;. Ahora sabes la respuesta: <code>Esc</code> y después <code>:q!</code>.</p>
+</div>
+
+
+<h2>Variables de entorno</h2>
+<p>Son valores con nombre que el sistema guarda y que cualquier programa puede leer. Se usan muchísimo para <strong>configuraciones</strong> (en qué entorno estoy) y <strong>secretos</strong> (una contraseña que no debe quedar escrita en el código).</p>
+<pre data-norun><code class="language-bash">export AMBIENTE=desarrollo
+echo $AMBIENTE        # imprime: desarrollo
+echo $HOME            # tu carpeta personal: /home/alumno</code></pre>
+<ul>
+<li><code>export NOMBRE=valor</code> crea la variable (sin espacios alrededor del <code>=</code>).</li>
+<li><code>$NOMBRE</code> la lee.</li>
+<li>Duran mientras la terminal está abierta. Para que queden siempre, se agregan al archivo <code>~/.bashrc</code>.</li>
+</ul>
+<p>También se puede guardar en una variable <strong>el resultado de un comando</strong> con <code>$( ... )</code>. Lo vas a usar mucho con las CLIs de la nube:</p>
+<pre data-norun><code class="language-bash">TOTAL=$(wc -l &lt; datos/ventas_2024_12.csv)
+echo &quot;El archivo tiene $TOTAL líneas&quot;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Truco de supervivencia</div>
+
+<ul>
+<li><kbd>Tab</kbd> autocompleta nombres de archivos y comandos. Escribe <code>cat da</code> + Tab y se completa <code>datos/</code>.</li>
+<li><kbd>↑</kbd> recupera el comando anterior.</li>
+<li><kbd>Ctrl</kbd> + <kbd>C</kbd> cancela lo que se está ejecutando.</li>
+<li><kbd>Ctrl</kbd> + <kbd>L</kbd> (o <code>clear</code>) limpia la pantalla.</li>
+<li><code>comando --help</code> o <code>man comando</code> muestran la ayuda.</li>
+</ul>
+</div>
+
+
+<h2>Comandos para archivos de datos (cuando ya te sientas cómodo)</h2>
+<p>No hace falta aprenderlos hoy, pero vas a encontrarlos en el trabajo y la terminal del curso los tiene todos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td>¿El archivo llegó entero?</td>
+<td><code>sha256sum ventas.csv</code></td>
+<td>Calcula una &quot;huella&quot;. Si cambia un solo byte, cambia la huella. Los proveedores la publican junto al archivo; <code>sha256sum -c sumas.txt</code> las compara todas.</td>
+</tr>
+<tr>
+<td>El archivo es enorme</td>
+<td><code>split -l 100000 -d ventas.csv parte_</code></td>
+<td>Lo parte en pedazos de 100.000 líneas (<code>parte_00</code>, <code>parte_01</code>…) para cargarlo de a poco.</td>
+</tr>
+<tr>
+<td>Aparecen letras raras (<code>JosÃ©</code>)</td>
+<td><code>iconv -f LATIN1 -t UTF-8 clientes.csv -o clientes_utf8.csv</code></td>
+<td>Cambia la codificación del texto. Es el error más común con CSV que salen de Excel en Windows.</td>
+</tr>
+<tr>
+<td>Bajar un archivo</td>
+<td><code>wget https://…/datos.csv</code></td>
+<td>Lo descarga y lo guarda con su nombre (<code>-O</code> para otro nombre).</td>
+</tr>
+<tr>
+<td>¿Cuánto tarda?</td>
+<td><code>time python etl.py</code></td>
+<td>Al final muestra el tiempo real que tardó.</td>
+</tr>
+<tr>
+<td>Correrlo todas las noches</td>
+<td><code>crontab -e</code></td>
+<td>Programa comandos a horario. <code>30 2 * * * python etl.py</code> = todos los días a las 2:30. Es el &quot;Airflow&quot; más simple que existe.</td>
+</tr>
+<tr>
+<td>Comparar dos listas</td>
+<td><code>comm -23 hoy.txt ayer.txt</code></td>
+<td>Muestra lo que está en <code>hoy.txt</code> y no en <code>ayer.txt</code> (los archivos tienen que estar ordenados con <code>sort</code>).</td>
+</tr>
+</tbody></table></div>
+<h2>Practica</h2>
+<p>Cada ejercicio trae su propia <strong>terminal</strong>: escribe el comando y presiona Enter. Se ejecuta de verdad sobre una máquina simulada (la misma del <strong>Laboratorio → Terminal</strong>), que ya tiene archivos en las carpetas <code>datos/</code> y <code>logs/</code>. Puedes explorar con <code>ls</code> antes de responder.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>&quot;No existe el archivo o el directorio&quot;</strong>: casi siempre estás en otra carpeta. Ejecuta <code>pwd</code> y <code>ls</code> para ver dónde estás, o usa la ruta completa.</li>
+<li><strong>Espacios en los nombres</strong>: <code>cat mis ventas.csv</code> busca dos archivos (<code>mis</code> y <code>ventas.csv</code>). Usa comillas: <code>cat &quot;mis ventas.csv&quot;</code>, o mejor, no uses espacios en nombres de archivos.</li>
+<li><strong><code>&gt;</code> en lugar de <code>&gt;&gt;</code></strong>: <code>&gt;</code> <strong>reemplaza</strong> el contenido del archivo. Si querías agregar líneas al final, perdiste lo que había.</li>
+<li><strong><code>uniq -c</code> sin <code>sort</code> antes</strong>: <code>uniq</code> solo junta repetidos que están <strong>seguidos</strong>. Sin ordenar, cuenta mal.</li>
+<li><strong>Contar el encabezado</strong>: <code>wc -l</code> en un CSV incluye la línea de títulos. Resta 1 o usa <code>tail -n +2</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pipeline falló anoche</div>
+
+<p>Ahora que sabes moverte y mirar archivos en la terminal, mira para qué sirve en un trabajo. Son las 8:30 de la mañana y Martín, el líder del equipo de datos, escribe:</p>
+<blockquote>
+<p>&quot;El dashboard de ventas no se actualizó. El log del pipeline está en <code>logs/pipeline.log</code> del servidor. ¿Puedes ver qué falló? Y de paso fíjate si el archivo de ventas de diciembre llegó completo.&quot;</p>
+</blockquote>
+<p>El servidor no tiene ventanas ni mouse: solo una terminal. Con <code>cd</code>, <code>ls</code>, <code>tail</code> y <code>grep</code>, que practicaste en esta lección, encuentras el error en un par de minutos.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Cuando un pipeline falla, lo primero es <strong>leer el log</strong>: <code>tail -n 50</code> para ver el final, <code>grep -n ERROR</code> para encontrar el error y su línea. Es una habilidad que se usa todas las semanas.</li>
+<li>Antes de procesar un archivo grande, se inspecciona con <code>head</code>, <code>wc -l</code> y <code>cut | sort | uniq -c</code>. En segundos sabes si el archivo llegó completo y si tiene valores raros, sin cargarlo en ninguna herramienta.</li>
+<li>Los comandos que repites se guardan en un <strong>script</strong> (<code>.sh</code>) dentro del repositorio, para que cualquiera del equipo los pueda ejecutar igual.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo verías las 10 IPs que más aparecen en un archivo de log enorme?&quot;</div>
+
+<p>Con una tubería: <code>cut -d&#39; &#39; -f1 acceso.log | sort | uniq -c | sort -rn | head -10</code>. Explica cada paso: extraer la columna, ordenar para juntar los iguales, contar, ordenar por cantidad de mayor a menor y quedarse con 10. Mencionar que funciona con archivos de gigabytes sin cargarlos en memoria suma puntos.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fundamentos-terminal">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-datos-y-formatos.html">← Datos, tablas y formatos de archivo</a><a href="fundamentos-git.html">Git y GitHub: guarda tu trabajo como un profesional →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

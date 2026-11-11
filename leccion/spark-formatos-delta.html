@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formatos, Delta Lake y arquitectura medallón · Academia de Datos</title><meta name="description" content="CSV vs Parquet, particionado en disco, Delta Lake (ACID, time travel, MERGE) y bronze/silver/gold."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-formatos-delta.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Formatos, Delta Lake y arquitectura medallón · Academia de Datos"><meta property="og:description" content="CSV vs Parquet, particionado en disco, Delta Lake (ACID, time travel, MERGE) y bronze/silver/gold."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-formatos-delta.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Intermedio · 45 min</div>
+<h1>Formatos, Delta Lake y arquitectura medallón</h1><p class="resumen">CSV vs Parquet, particionado en disco, Delta Lake (ACID, time travel, MERGE) y bronze/silver/gold.</p>
+<a class="cta" href="../index.html#/l/spark-formatos-delta">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>Spark no guarda datos: los <strong>lee</strong> de archivos en un data lake (S3, ADLS, Cloud Storage) y <strong>escribe</strong> archivos nuevos. El formato de esos archivos y cómo los organizas en carpetas deciden si una consulta tarda 5 segundos o 50 minutos, y si cuesta centavos o cientos de dólares. Esta lección cubre los formatos, el particionado, <strong>Delta Lake</strong> y la forma estándar de ordenar todo: la <strong>arquitectura medallón</strong>.</p>
+<h2>Filas vs. columnas: la idea clave</h2>
+<p>Imagina la tabla de pedidos con 100 millones de filas y 30 columnas. La pregunta del negocio es: &quot;¿cuánto vendimos por canal?&quot;. Solo necesitas <strong>2 de las 30 columnas</strong>: <code>canal</code> y <code>total</code>.</p>
+<p>Hay dos formas de guardar esa tabla en disco:</p>
+<pre><code class="language-text">ORIENTADO A FILAS (CSV, JSON, Avro)        ORIENTADO A COLUMNAS (Parquet, Delta)
+fila 1: 1001, Ana, web, 2024-03-15, 89.9   canal:  web, app, web, tienda, ...
+fila 2: 1002, Luis, app, 2024-03-15, 15.0  total:  89.9, 15.0, 42.5, 120.0, ...
+fila 3: 1003, Ana, web, 2024-03-16, 42.5   nombre: Ana, Luis, Ana, Marta, ...
+...                                        fecha:  2024-03-15, 2024-03-15, ...</code></pre>
+<ul>
+<li>En <strong>filas</strong>, para leer <code>canal</code> y <code>total</code> tienes que leer <strong>cada fila completa</strong> y descartar las otras 28 columnas. Lees el 100 % del archivo.</li>
+<li>En <strong>columnas</strong>, cada columna está guardada junta. Lees solo los bloques de <code>canal</code> y <code>total</code>: alrededor del <strong>7 %</strong> del archivo.</li>
+</ul>
+<p>Además, los valores de una misma columna se parecen mucho entre sí (millones de &quot;web&quot;, &quot;app&quot;, &quot;web&quot;), así que se <strong>comprimen</strong> muchísimo mejor. Es común que un CSV de 10 GB quede en 1–2 GB como Parquet.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La guía telefónica</div>
+
+<p>Un formato por filas es como una guía telefónica impresa: cada línea tiene nombre, dirección y teléfono. Si solo quieres contar cuántas personas viven en cada ciudad, igual tienes que pasar por todas las líneas. Un formato columnar es como tener un cuaderno solo con las ciudades: lo recorres mucho más rápido.</p>
+</div>
+
+
+<p><strong>Regla práctica:</strong> formatos por filas para <strong>escribir e intercambiar</strong> registros de a uno (APIs, colas de eventos); formatos columnares para <strong>analizar</strong>, es decir, leer muchas filas y pocas columnas.</p>
+<h2>Formatos de archivo en el lake</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>Tipo</th>
+<th>Esquema</th>
+<th>Compresión</th>
+<th>Lectura selectiva</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td>CSV</td>
+<td>Texto, filas</td>
+<td>No (todo es texto)</td>
+<td>Mala</td>
+<td>No</td>
+<td>Intercambio, ingestas simples</td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>Texto, anidado</td>
+<td>Inferido</td>
+<td>Mala</td>
+<td>No</td>
+<td>APIs, eventos</td>
+</tr>
+<tr>
+<td>Avro</td>
+<td>Binario, filas</td>
+<td>Sí</td>
+<td>Buena</td>
+<td>No</td>
+<td>Streaming, Kafka</td>
+</tr>
+<tr>
+<td><strong>Parquet</strong></td>
+<td>Binario, <strong>columnar</strong></td>
+<td>Sí</td>
+<td>Excelente</td>
+<td><strong>Sí</strong> (columnas y min/max)</td>
+<td>Analítica</td>
+</tr>
+<tr>
+<td><strong>Delta</strong></td>
+<td>Parquet + log de transacciones</td>
+<td>Sí (+ evolución)</td>
+<td>Excelente</td>
+<td>Sí, más <em>data skipping</em></td>
+<td><strong>Estándar en Databricks</strong></td>
+</tr>
+</tbody></table></div>
+<p>Problemas típicos del CSV, que vas a sufrir en la capa bronze:</p>
+<ul>
+<li><strong>Sin tipos</strong>: <code>&quot;0012&quot;</code> puede ser un código o el número 12. Spark tiene que adivinar (<code>inferSchema</code>) o recibir el esquema a mano.</li>
+<li><strong>Separadores dentro de los datos</strong>: una dirección <code>&quot;Av. Siempre Viva 123, Depto 4&quot;</code> rompe las columnas si no está bien entrecomillada.</li>
+<li><strong>Lento</strong>: no se puede leer solo una columna, ni saltarse partes del archivo.</li>
+</ul>
+<h3>Por dentro de un Parquet</h3>
+<p>Un archivo Parquet se divide en <strong>row groups</strong> (bloques de, por ejemplo, 1 millón de filas), y dentro de cada uno, cada columna se guarda por separado. Al final del archivo hay un <strong>pie</strong> (<em>footer</em>) con estadísticas de cada bloque: el <strong>mínimo y el máximo</strong> de cada columna.</p>
+<pre><code class="language-text">ventas.parquet
+├── row group 1  │ fecha: min 2024-01-01  max 2024-01-31 │ total: min 0.5 max 980 │
+├── row group 2  │ fecha: min 2024-02-01  max 2024-02-29 │ ...
+└── footer (esquema + estadísticas)</code></pre>
+<p>Si consultas <code>WHERE fecha = &#39;2024-02-10&#39;</code>, Spark lee el pie, ve que el row group 1 termina el 31 de enero y <strong>se lo salta sin leerlo</strong>. Esto es el <em>predicate pushdown</em> que viste en la lección anterior.</p>
+<h2>Particionado en disco</h2>
+<p>Al escribir puedes <strong>particionar por una columna</strong>: Spark crea una carpeta por cada valor.</p>
+<pre data-norun><code class="language-python">(df.write
+   .mode(&quot;overwrite&quot;)
+   .partitionBy(&quot;anio&quot;, &quot;mes&quot;)
+   .parquet(&quot;/lake/silver/pedidos&quot;))</code></pre>
+<pre><code class="language-text">/lake/silver/pedidos/anio=2024/mes=1/part-0000.parquet
+/lake/silver/pedidos/anio=2024/mes=2/part-0000.parquet
+...</code></pre>
+<p>Un filtro <code>WHERE anio = 2024 AND mes = 2</code> lee <strong>solo esa carpeta</strong> y ni siquiera abre las demás (<em>partition pruning</em>). Con 5 años de datos, eso es leer 1 de 60 carpetas.</p>
+<p>Fíjate que las columnas <code>anio</code> y <code>mes</code> <strong>no están dentro de los archivos</strong>: su valor sale del nombre de la carpeta. Esta convención <code>columna=valor</code> se llama <strong>particionado estilo Hive</strong>, y la entienden Spark, Athena, BigQuery, Trino y casi cualquier motor.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ No particiones de más</div>
+
+<p>Particionar por una columna con muchos valores (por ejemplo <code>cliente_id</code>) genera millones de archivos diminutos: el famoso <strong>problema de los archivos pequeños</strong>. Abrir un archivo tiene un costo fijo, así que leer un millón de archivos de 10 KB es muchísimo más lento que leer 80 de 128 MB. Regla: particiona por columnas de <strong>baja cardinalidad</strong> (fecha, país) y solo si cada partición va a tener al menos alrededor de 1 GB. En Delta moderno, prefiere <strong>Liquid Clustering</strong>, que organiza los datos sin crear carpetas.</p>
+</div>
+
+
+<h2>Delta Lake</h2>
+<p>Un data lake de Parquet &quot;pelado&quot; tiene problemas serios:</p>
+<ol>
+<li><strong>Escrituras a medias</strong>: si un job falla en la mitad, quedan algunos archivos nuevos y otros no. Quien lea en ese momento ve datos incompletos.</li>
+<li><strong>Sin UPDATE ni DELETE</strong>: para corregir un solo cliente hay que reescribir todos los archivos donde aparece.</li>
+<li><strong>Escrituras simultáneas</strong>: dos procesos que escriben a la vez pueden pisarse.</li>
+<li><strong>Esquemas que se rompen</strong>: si un día llega un archivo con una columna de más o con otro tipo, se mezcla con los demás sin que nadie avise.</li>
+</ol>
+<p><strong>Delta Lake</strong> resuelve esto agregando un <strong>registro de transacciones</strong>, la carpeta <code>_delta_log/</code>, junto a los archivos Parquet:</p>
+<pre><code class="language-text">/lake/silver/clientes/
+├── _delta_log/
+│   ├── 00000000000000000000.json    ← versión 0: &quot;se agregaron part-001 y part-002&quot;
+│   ├── 00000000000000000001.json    ← versión 1: &quot;se agregó part-003&quot;
+│   └── 00000000000000000002.json    ← versión 2: &quot;se quitó part-001 y se agregó part-004&quot; (un UPDATE)
+├── part-001.parquet                 ← ya no forma parte de la versión actual, pero sigue ahí
+├── part-002.parquet
+├── part-003.parquet
+└── part-004.parquet</code></pre>
+<p>La tabla <strong>no es &quot;todos los Parquet de la carpeta&quot;</strong>: es <strong>lo que dice el log</strong>. Para leer, Spark recorre el log y sabe exactamente qué archivos forman la versión actual. Un commit solo existe cuando su archivo JSON quedó escrito completo. Si el job falla antes, los Parquet nuevos quedan huérfanos y <strong>nadie los lee</strong>. De ahí salen todas las ventajas:</p>
+<ul>
+<li><strong>ACID</strong>: cada escritura es atómica y los lectores nunca ven datos a medias.</li>
+<li><strong>UPDATE, DELETE y MERGE</strong> (<em>upserts</em>): Delta reescribe solo los archivos afectados y anota en el log cuáles reemplazó.</li>
+<li><strong>Time travel</strong>: como los archivos viejos siguen ahí, puedes consultar cualquier versión anterior.</li>
+<li><strong>Schema enforcement y evolution</strong>: rechaza datos con un esquema incorrecto, o lo evoluciona si lo permites (<code>mergeSchema</code>).</li>
+<li><strong>OPTIMIZE, Z-ORDER y Liquid Clustering</strong>: compactan archivos chicos y ordenan los datos para acelerar los filtros.</li>
+<li>Lectura y escritura <strong>batch y streaming</strong> sobre la misma tabla.</li>
+</ul>
+<pre data-norun><code class="language-sql">-- Upsert de cambios en la tabla de clientes
+MERGE INTO silver.clientes AS t
+USING bronze.clientes_cambios AS s
+ON t.cliente_id = s.cliente_id
+WHEN MATCHED AND s.operacion = 'DELETE' THEN DELETE
+WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *;
+
+-- Historial y time travel
+DESCRIBE HISTORY silver.clientes;
+SELECT * FROM silver.clientes VERSION AS OF 3;
+RESTORE TABLE silver.clientes TO VERSION AS OF 3;
+
+-- Mantenimiento
+OPTIMIZE silver.clientes ZORDER BY (pais);
+VACUUM silver.clientes RETAIN 168 HOURS;</code></pre>
+<p>Qué hace cada bloque:</p>
+<ul>
+<li><strong><code>MERGE</code></strong> compara cada fila de cambios (<code>s</code>) con la tabla (<code>t</code>) por <code>cliente_id</code>. Si el cliente existe y la operación es DELETE, lo borra. Si existe, lo actualiza. Si no existe, lo inserta. Todo en <strong>una sola transacción</strong>: o se aplican todos los cambios o ninguno.</li>
+<li><strong><code>DESCRIBE HISTORY</code></strong> lista las versiones: quién escribió, cuándo y con qué operación.</li>
+<li><strong><code>VERSION AS OF 3</code></strong> lee la tabla como estaba en la versión 3. Es ideal para auditar (&quot;¿qué decía este dato el lunes?&quot;) o para comparar antes y después de un cambio.</li>
+<li><strong><code>RESTORE</code></strong> vuelve la tabla a una versión anterior. Es el &quot;deshacer&quot; cuando un job escribió datos malos.</li>
+<li><strong><code>OPTIMIZE</code></strong> junta muchos archivos chicos en pocos grandes. <strong><code>ZORDER BY (pais)</code></strong> además ordena los datos por país, para que los filtros por país se salten más archivos.</li>
+<li><strong><code>VACUUM</code></strong> borra físicamente los archivos que ya no usa ninguna versión de más de 168 horas (7 días). Ahorra almacenamiento, pero <strong>después de un VACUUM ya no puedes viajar</strong> a esas versiones.</li>
+</ul>
+<div class="callout callout-nota"><div class="callout-title">📝 Delta, Iceberg y Hudi</div>
+
+<p>Delta no es el único formato de tabla. <strong>Apache Iceberg</strong> (muy usado en AWS y Snowflake) y <strong>Apache Hudi</strong> resuelven el mismo problema con ideas parecidas: archivos Parquet más una capa de metadatos. Los conceptos de esta lección (ACID, time travel, MERGE) valen para los tres.</p>
+</div>
+
+
+<h2>Arquitectura medallón (bronze, silver, gold)</h2>
+<p>La forma estándar de organizar un lakehouse es en capas de calidad creciente:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Contenido</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>🥉 <strong>Bronze</strong></td>
+<td>Datos <strong>crudos</strong>, tal como llegan, más metadatos de ingesta (fecha de carga, archivo de origen). Solo se agregan datos, nunca se modifican</td>
+<td>JSON de la API de pedidos</td>
+</tr>
+<tr>
+<td>🥈 <strong>Silver</strong></td>
+<td>Datos <strong>limpios y conformados</strong>: tipos correctos, sin duplicados, validados y unidos con referencias</td>
+<td><code>pedidos</code>, <code>clientes</code> limpios</td>
+</tr>
+<tr>
+<td>🥇 <strong>Gold</strong></td>
+<td>Datos <strong>listos para el negocio</strong>: agregados, métricas y esquema estrella para BI y ML</td>
+<td><code>ventas_diarias_por_pais</code>, <code>dim_cliente</code></td>
+</tr>
+</tbody></table></div>
+<!-- dg:sp04-medallon -->
+<figure class="diagrama"><figcaption>Arquitectura medallón: cada capa agrega calidad y valor</figcaption></figure>
+
+
+<p>Así viaja un pedido de Tienda Andina por las tres capas:</p>
+<pre><code class="language-text">BRONZE  {&quot;id&quot;:&quot;1001&quot;,&quot;cli&quot;:&quot;  ANA@MAIL.COM &quot;,&quot;total&quot;:&quot;89,90&quot;,&quot;ts&quot;:&quot;15/03/2024 10:22&quot;}   ← texto tal cual llegó
+           │  limpiar tipos, normalizar email, parsear fecha, quitar duplicados
+SILVER  pedido_id=1001  email=ana@mail.com  total=89.90  fecha_pedido=2024-03-15 10:22
+           │  unir con clientes y productos, agregar por día y país
+GOLD    fecha=2024-03-15  pais=Chile  pedidos=1.284  ventas=98.410,50                      ← lo que ve el dashboard</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Por qué conservar bronze</div>
+
+<p>Si mañana descubres un error en la limpieza, puedes <strong>reprocesar</strong> silver y gold desde bronze sin volver a pedir los datos al origen (que quizá ya no existan).</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-formatos-delta">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-lazy.html">← RDD, DataFrame y evaluación perezosa</a><a href="spark-spark-sql.html">Spark SQL y el catálogo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dónde viven los datos - bases, lagos, warehouses y lakehouses · Academia de Datos</title><meta name="description" content="La primera profundización del viaje. Por qué la base de la app (OLTP) y el almacén de análisis (OLAP) son sistemas distintos, cómo guardar por filas o por columnas cambia todo, qué es un data lake, un data warehouse y un lakehouse, y para qué sirven las particiones. Con un recorrido animado que muestra qué lee cada sistema para responder la misma pregunta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-donde-viven-los-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Dónde viven los datos - bases, lagos, warehouses y lakehouses · Academia de Datos"><meta property="og:description" content="La primera profundización del viaje. Por qué la base de la app (OLTP) y el almacén de análisis (OLAP) son sistemas distintos, cómo guardar por filas o por columnas cambia todo, qué es un data lake, un data warehouse y un lakehouse, y para qué sirven las particiones. Con un recorrido animado que muestra qué lee cada sistema para responder la misma pregunta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-donde-viven-los-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fundamentos">🧱 Fundamentos</a> · Básico · 40 min</div>
+<h1>Dónde viven los datos - bases, lagos, warehouses y lakehouses</h1><p class="resumen">La primera profundización del viaje. Por qué la base de la app (OLTP) y el almacén de análisis (OLAP) son sistemas distintos, cómo guardar por filas o por columnas cambia todo, qué es un data lake, un data warehouse y un lakehouse, y para qué sirven las particiones. Con un recorrido animado que muestra qué lee cada sistema para responder la misma pregunta.</p>
+<a class="cta" href="../index.html#/l/fundamentos-donde-viven-los-datos">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diferenciar OLTP de OLAP por su uso, sus consultas y sus herramientas</li><li>Explicar por qué el almacenamiento por columnas acelera las consultas analíticas</li><li>Comparar data lake, data warehouse y lakehouse</li><li>Explicar qué es una partición y qué ahorra</li><li>Clasificar consultas reales como operativas o analíticas</li></ul>
+<h2>La idea en una frase</h2>
+<p>Los mismos datos se guardan de formas distintas según <strong>para qué</strong> se usan: para <strong>operar</strong> (registrar un pedido en milisegundos) o para <strong>analizar</strong> (sumar millones de pedidos). Ningún sistema hace bien las dos cosas a la vez.</p>
+<h2>OLTP y OLAP</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>OLTP (operar)</th>
+<th>OLAP (analizar)</th>
+</tr>
+</thead><tbody><tr>
+<td>Ejemplo de pregunta</td>
+<td>&quot;¿En qué estado está el pedido 10729?&quot;</td>
+<td>&quot;¿Cuánto vendimos por país en 2024?&quot;</td>
+</tr>
+<tr>
+<td>Filas que toca cada consulta</td>
+<td>Una o pocas</td>
+<td>Millones</td>
+</tr>
+<tr>
+<td>Operaciones</td>
+<td>INSERT, UPDATE, lecturas por clave</td>
+<td>Lecturas grandes, agregaciones</td>
+</tr>
+<tr>
+<td>Quién la usa</td>
+<td>La app, miles de clientes a la vez</td>
+<td>Analistas, tableros, modelos</td>
+</tr>
+<tr>
+<td>Diseño de las tablas</td>
+<td>Normalizado: muchas tablas chicas sin repetir datos</td>
+<td>Desnormalizado o estrella: pocas tablas anchas</td>
+</tr>
+<tr>
+<td>Guarda</td>
+<td>El estado <strong>actual</strong></td>
+<td>La <strong>historia</strong></td>
+</tr>
+<tr>
+<td>Ejemplos</td>
+<td>PostgreSQL, MySQL, SQL Server, Oracle, DynamoDB</td>
+<td>BigQuery, Snowflake, Redshift, Databricks SQL, Fabric</td>
+</tr>
+</tbody></table></div>
+<p>Si la gerente corre su consulta en la base de la tienda, la base tiene que leer todos los pedidos de 2024 mientras miles de clientes intentan comprar: la app se pone lenta. Por eso el pipeline copia los datos a un sistema pensado para analizar.</p>
+<h2>Filas o columnas: la diferencia que más importa</h2>
+<p>Una base OLTP guarda <strong>por filas</strong>: todos los datos de un pedido juntos. Ideal para &quot;traer el pedido 10729 completo&quot;. Un almacén analítico guarda <strong>por columnas</strong>: todos los países juntos, todos los montos juntos. Ideal para &quot;sumar el monto por país&quot;, porque solo lee esas dos columnas.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Los números del recorrido</div>
+
+<p>Salvo el pedido 10729, las filas y los totales del recorrido son ilustrativos. Los números reales de 2024 los calculas tú en los ejercicios.</p>
+</div>
+
+
+<h2>Lago, warehouse y lakehouse</h2>
+<figure class="diagrama"><figcaption>Tres formas de guardar los datos para analizar</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Data lake</th>
+<th>Data warehouse</th>
+<th>Lakehouse</th>
+</tr>
+</thead><tbody><tr>
+<td>Qué es</td>
+<td>Archivos en almacenamiento de objetos (S3, ADLS, Cloud Storage)</td>
+<td>Una base de datos analítica administrada</td>
+<td>Un lago con un <strong>formato de tabla</strong> encima</td>
+</tr>
+<tr>
+<td>Guarda</td>
+<td>Cualquier cosa: CSV, JSON, Parquet, imágenes, logs</td>
+<td>Tablas con esquema</td>
+<td>Tablas Delta o Iceberg (archivos Parquet + un registro de transacciones)</td>
+</tr>
+<tr>
+<td>Fuerte en</td>
+<td>Barato, flexible, datos crudos y no estructurados</td>
+<td>Velocidad, SQL, gobierno, simplicidad</td>
+<td>Lo mejor de los dos: barato y abierto, con transacciones y versiones</td>
+</tr>
+<tr>
+<td>Débil en</td>
+<td>Sin transacciones: dos procesos escribiendo pueden romperlo</td>
+<td>Más caro; formato cerrado</td>
+<td>Requiere mantenimiento (compactar, limpiar versiones)</td>
+</tr>
+<tr>
+<td>Ejemplos</td>
+<td>S3 + Athena, ADLS, GCS</td>
+<td>Snowflake, BigQuery, Redshift, Synapse</td>
+<td>Databricks, Fabric (OneLake), Iceberg con Trino o Spark</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Cuál se usa hoy?</div>
+
+<p>La mayoría de las empresas medianas y grandes usan una arquitectura <strong>medallón</strong> (bronze, silver, gold) sobre un lakehouse o un warehouse, o las dos cosas: el lago para lo crudo y voluminoso, el warehouse o lakehouse para lo que consulta el negocio. No es una competencia: son herramientas para distintas partes del viaje.</p>
+</div>
+
+
+<h2>Particiones, en una frase</h2>
+<p><strong>Particionar</strong> es repartir una tabla en carpetas según el valor de una columna (casi siempre la fecha), para que las consultas que filtran por esa columna lean solo las carpetas que necesitan. La regla práctica: se particiona por la columna con la que <strong>más se filtra</strong>, y con particiones que no queden demasiado chicas (miles de archivos diminutos son un problema que verás en el módulo de Guardia).</p>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Analizar sobre la base de producción</strong>: la app se pone lenta para los clientes. Se usa una réplica de lectura o, mejor, el warehouse.</li>
+<li><strong><code>SELECT *</code> en un warehouse por columnas</strong>: lee todas las columnas y paga por todas.</li>
+<li><strong>Particionar por una columna con millones de valores</strong> (por ejemplo, <code>cliente_id</code>): miles de carpetas diminutas, más lento que no particionar.</li>
+<li><strong>Pensar que lago y warehouse compiten</strong>: casi siempre conviven, cada uno en su parte del viaje.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 ¿Base de la tienda o warehouse?</div>
+
+<p>Ahora que conoces la diferencia entre una base operativa y un warehouse, mira esta discusión, muy común en un equipo de datos. La gerente pregunta: <em>&quot;¿Cuánto vendimos por país en 2024?&quot;</em>. Un compañero propone correr la consulta directamente en la base de la tienda: <em>&quot;total, ahí están todos los pedidos&quot;</em>. La líder dice que no, que esa consulta va al warehouse.</p>
+<p>Ya sabes por qué: una consulta pesada sobre la base operativa puede hacer más lenta la tienda para los clientes, y el warehouse está preparado justamente para esas preguntas.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p>En una entrevista o en tu primer día te van a preguntar &quot;¿qué stack usan?&quot;. La respuesta casi siempre tiene esta forma: una o varias bases OLTP (PostgreSQL, MySQL, SQL Server), ingesta a un lago (S3, ADLS o GCS), un lakehouse o warehouse (Databricks, Snowflake, BigQuery, Fabric) con capas bronze, silver y gold, y herramientas de BI encima. Con esta lección ya sabes para qué está cada pieza.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>En una línea</th>
+</tr>
+</thead><tbody><tr>
+<td>OLTP</td>
+<td>Operar: una transacción a la vez, estado actual</td>
+</tr>
+<tr>
+<td>OLAP</td>
+<td>Analizar: millones de filas, historia</td>
+</tr>
+<tr>
+<td>Por filas / por columnas</td>
+<td>Traer un registro completo / sumar pocas columnas de muchos registros</td>
+</tr>
+<tr>
+<td>Data lake</td>
+<td>Archivos baratos de cualquier tipo</td>
+</tr>
+<tr>
+<td>Data warehouse</td>
+<td>Tablas SQL rápidas y administradas</td>
+</tr>
+<tr>
+<td>Lakehouse</td>
+<td>Lago + formato de tabla con transacciones (Delta, Iceberg)</td>
+</tr>
+<tr>
+<td>Partición</td>
+<td>Carpetas por fecha para leer solo lo necesario</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fundamentos-donde-viven-los-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-el-viaje-de-una-compra.html">← El viaje de una compra - del clic al tablero, paso a paso</a><a href="fundamentos-como-se-mueven-los-datos.html">Cómo se mueven los datos - batch, streaming, ETL, ELT y orquestación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

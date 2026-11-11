@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-103 - Microsoft Foundry, IA generativa, RAG con Azure AI Search y agentes · Academia de Datos</title><meta name="description" content="Los dos dominios más pesados de AI-103 - planificar y administrar una solución en Microsoft Foundry (recursos y proyectos, catálogo y tipos de despliegue de modelos, cuotas, autenticación sin claves, filtros de contenido, red y costos) e implementar IA generativa y agentes (prompts, RAG con Azure AI Search, Foundry Agent Service con sus herramientas, multiagente, evaluación, trazas y ajuste fino)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-azure-ai103-foundry-agentes.html">
+<meta property="og:type" content="article"><meta property="og:title" content="AI-103 - Microsoft Foundry, IA generativa, RAG con Azure AI Search y agentes · Academia de Datos"><meta property="og:description" content="Los dos dominios más pesados de AI-103 - planificar y administrar una solución en Microsoft Foundry (recursos y proyectos, catálogo y tipos de despliegue de modelos, cuotas, autenticación sin claves, filtros de contenido, red y costos) e implementar IA generativa y agentes (prompts, RAG con Azure AI Search, Foundry Agent Service con sus herramientas, multiagente, evaluación, trazas y ajuste fino)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-azure-ai103-foundry-agentes.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-azure">🎖️ Certificaciones Azure: Fabric, IA y MLOps</a> · Avanzado · 65 min</div>
+<h1>AI-103 - Microsoft Foundry, IA generativa, RAG con Azure AI Search y agentes</h1><p class="resumen">Los dos dominios más pesados de AI-103 - planificar y administrar una solución en Microsoft Foundry (recursos y proyectos, catálogo y tipos de despliegue de modelos, cuotas, autenticación sin claves, filtros de contenido, red y costos) e implementar IA generativa y agentes (prompts, RAG con Azure AI Search, Foundry Agent Service con sus herramientas, multiagente, evaluación, trazas y ajuste fino).</p>
+<a class="cta" href="../index.html#/l/cert-azure-ai103-foundry-agentes">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear y organizar recursos y proyectos de Microsoft Foundry y elegir el tipo de despliegue de un modelo</li><li>Proteger una solución con autenticación de Entra ID, identidades administradas y filtros de contenido</li><li>Construir RAG con un índice híbrido y semántico de Azure AI Search</li><li>Crear agentes con herramientas, conocimiento y orquestación multiagente en Foundry Agent Service</li><li>Evaluar, trazar y mejorar una aplicación generativa</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Lucía construye para la cadena de farmacias un asistente que responde a los farmacéuticos sobre interacciones de medicamentos usando los prospectos (miles de PDF), consulta el stock de cada sucursal y, si falta un producto, crea un pedido de reposición. Debe cumplir con las políticas de seguridad del grupo: nada de claves en el código, datos que no salgan de la región y bloqueo de contenido dañino. Todo esto es la mitad del AI-103.</p>
+</div>
+
+
+<h2>Microsoft Foundry: recursos y proyectos</h2>
+<p><strong>Microsoft Foundry</strong> (antes Azure AI Foundry y Azure AI Studio) es la plataforma de Azure para construir aplicaciones y agentes de IA.</p>
+<ul>
+<li><strong>Recurso de Foundry</strong>: el recurso de Azure que define el límite de gobierno, red y facturación. Contiene <strong>proyectos</strong>.</li>
+<li><strong>Proyecto</strong>: el espacio de trabajo de un equipo o aplicación: despliegues de modelos, agentes, conexiones, evaluaciones y archivos. Los proyectos de Foundry ya no requieren un <em>hub</em>; los proyectos basados en hub siguen existiendo para algunas capacidades, como camino heredado.</li>
+<li><strong>Conexiones</strong>: acceso configurado a otros recursos (Azure AI Search, Storage, Bing, servicios externos) que usan los agentes y las herramientas.</li>
+</ul>
+<h2>Modelos: catálogo y tipos de despliegue</h2>
+<p>El <strong>catálogo de modelos</strong> incluye modelos de OpenAI vendidos por Azure, otros modelos vendidos directamente por Azure (por ejemplo, de Meta, Mistral, DeepSeek o xAI, según disponibilidad) y modelos de socios. Para usar un modelo, se crea un <strong>despliegue</strong> con un nombre, que es lo que llama la aplicación.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de despliegue</th>
+<th>Dónde se procesa</th>
+<th>Cobro</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Global Standard</strong></td>
+<td>En cualquier región de Azure del mundo</td>
+<td>Por token</td>
+<td>Mejor disponibilidad y cuota; sin requisitos de residencia de datos durante el procesamiento</td>
+</tr>
+<tr>
+<td><strong>Data Zone Standard</strong></td>
+<td>Dentro de una zona (por ejemplo, la UE o EE. UU.)</td>
+<td>Por token</td>
+<td>Hay que mantener el procesamiento dentro de una zona geográfica</td>
+</tr>
+<tr>
+<td><strong>Standard</strong> (regional)</td>
+<td>En la región del recurso</td>
+<td>Por token</td>
+<td>Residencia estricta en una región</td>
+</tr>
+<tr>
+<td><strong>Provisioned</strong> (global, zona o regional)</td>
+<td>Capacidad dedicada en <strong>PTU</strong> (<em>provisioned throughput units</em>)</td>
+<td>Por hora o reserva</td>
+<td>Volumen alto y estable, latencia predecible</td>
+</tr>
+<tr>
+<td><strong>Global Batch</strong></td>
+<td>Global, asíncrono</td>
+<td>Por token, con descuento</td>
+<td>Procesar muchas solicitudes sin urgencia (respuesta en hasta 24 h)</td>
+</tr>
+</tbody></table></div>
+<p>La <strong>cuota</strong> se mide en tokens por minuto (TPM) por modelo, región y tipo de despliegue. Si una aplicación recibe errores <strong>429</strong>, está superando la cuota o los límites: se reparte la carga, se pide más cuota, se usa Global Standard o se pasa a Provisioned.</p>
+<div class="callout callout-examen"><div class="callout-title">🏅 Elegir el despliegue</div>
+
+<ul>
+<li>&quot;Los datos de clientes europeos no pueden procesarse fuera de la UE, y se paga por uso&quot; → <strong>Data Zone Standard</strong> (UE).</li>
+<li>&quot;Resumir 2 millones de documentos durante el fin de semana al menor costo&quot; → <strong>Global Batch</strong>.</li>
+<li>&quot;Un call center con tráfico alto y constante que necesita latencia estable&quot; → <strong>Provisioned</strong>.</li>
+<li>&quot;Errores 429 en horas pico con un despliegue Standard regional&quot; → más cuota, <strong>Global Standard</strong> o Provisioned.</li>
+</ul>
+</div>
+
+
+<h2>Seguridad, red y costo</h2>
+<ul>
+<li><strong>Autenticación sin claves</strong>: la aplicación usa <strong>Microsoft Entra ID</strong> con <code>DefaultAzureCredential</code> y una <strong>identidad administrada</strong> (en producción) con un rol de RBAC sobre el recurso (por ejemplo <strong>Azure AI User</strong> o <strong>Cognitive Services OpenAI User</strong>). Las claves de API funcionan, pero son secretos de larga duración: si se usan, van en <strong>Key Vault</strong> y se rotan.</li>
+<li><strong>Red</strong>: <strong>private endpoints</strong> y desactivar el acceso público para que el tráfico no salga a internet; la red administrada del proyecto para los agentes.</li>
+<li><strong>Filtros de contenido</strong> (Azure AI Content Safety): todo despliegue tiene una política que filtra entradas y salidas por categorías (odio, sexual, violencia, autolesiones) y niveles de severidad, más <strong>Prompt Shields</strong> contra <em>jailbreaks</em> y ataques indirectos (instrucciones escondidas en documentos), detección de material protegido y de afirmaciones sin respaldo (<em>groundedness</em>). Se crean políticas propias y se asignan a cada despliegue.</li>
+<li><strong>Monitoreo y costo</strong>: métricas del recurso en Azure Monitor (tokens, latencia, solicitudes rechazadas), <strong>Application Insights</strong> para trazas, y <strong>Cost Management</strong> con presupuestos. Para bajar costos: modelos más chicos para tareas simples, menos contexto, caché de prompts, Batch para lo asíncrono.</li>
+</ul>
+<h2>Prompts y respuestas estructuradas</h2>
+<p>Las aplicaciones llaman a los modelos con el <strong>SDK de Foundry</strong> o con la API compatible con OpenAI (incluida la API <em>Responses</em>). Las técnicas son las de siempre: <strong>mensaje de sistema</strong> con rol e instrucciones, ejemplos (<em>few-shot</em>), delimitadores para el contexto, <strong>salidas estructuradas</strong> con un esquema JSON cuando la respuesta la procesa un programa, y parámetros (<code>temperature</code>, <code>max_output_tokens</code>).</p>
+<h2>RAG con Azure AI Search</h2>
+<p><strong>Azure AI Search</strong> es el servicio de búsqueda de Azure para RAG.</p>
+<figure class="diagrama"><figcaption>RAG con Azure AI Search y Foundry</figcaption></figure>
+
+
+<ul>
+<li><strong>Índice</strong>: campos con atributos (<em>searchable</em>, <em>filterable</em>, <em>sortable</em>, <em>facetable</em>, <em>retrievable</em>) y <strong>campos vectoriales</strong> con su dimensión y un <strong>perfil vectorial</strong> (algoritmo HNSW o búsqueda exhaustiva).</li>
+<li><strong>Indexador</strong>: lee una fuente (Blob Storage, ADLS, Azure SQL, Cosmos DB…) en forma programada e incremental. El <strong>skillset</strong> enriquece cada documento: extraer texto (OCR), <strong>dividir en fragmentos</strong> (<em>Text Split</em>), generar <strong>embeddings</strong> con un modelo de Foundry. Esto es la <strong>vectorización integrada</strong>: el servicio también convierte la pregunta en vector al consultar.</li>
+<li><strong>Búsqueda híbrida</strong>: combina la búsqueda por palabras clave (BM25) y la vectorial, fusionando resultados con <strong>RRF</strong> (<em>Reciprocal Rank Fusion</em>).</li>
+<li><strong>Ranker semántico</strong>: reordena los mejores resultados con un modelo de lenguaje de Microsoft y puede devolver <strong>subtítulos</strong> y <strong>respuestas</strong> destacadas. Es la combinación que suele dar mejor relevancia: híbrida + semántica.</li>
+<li><strong>Filtros</strong> sobre campos <em>filterable</em> (por ejemplo, país o vigencia) y <strong>seguridad a nivel de documento</strong> filtrando por grupos del usuario.</li>
+<li><strong>Recuperación agéntica</strong>: el servicio puede usar un modelo para descomponer una pregunta compleja en varias subconsultas, ejecutarlas y combinar los resultados.</li>
+</ul>
+<h2>Agentes con Foundry Agent Service</h2>
+<p>Un <strong>agente</strong> en Foundry es un modelo + <strong>instrucciones</strong> + <strong>herramientas</strong> + conocimiento, que mantiene una <strong>conversación</strong> y decide qué herramienta usar.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>File search</strong></td>
+<td>Buscar en archivos subidos (crea un almacén de vectores administrado)</td>
+</tr>
+<tr>
+<td><strong>Azure AI Search</strong></td>
+<td>Buscar en un índice propio de AI Search</td>
+</tr>
+<tr>
+<td><strong>Grounding con Bing Search</strong></td>
+<td>Información pública y actual de la web</td>
+</tr>
+<tr>
+<td><strong>Code interpreter</strong></td>
+<td>Ejecutar Python en un entorno aislado: cálculos, gráficos, procesar archivos</td>
+</tr>
+<tr>
+<td><strong>Function calling</strong></td>
+<td>Funciones de tu aplicación (consultar stock, crear un pedido)</td>
+</tr>
+<tr>
+<td><strong>OpenAPI</strong></td>
+<td>Llamar a una API descrita con una especificación OpenAPI</td>
+</tr>
+<tr>
+<td><strong>MCP</strong></td>
+<td>Herramientas de un servidor <em>Model Context Protocol</em></td>
+</tr>
+<tr>
+<td><strong>Azure Functions</strong>, <strong>Logic Apps</strong></td>
+<td>Acciones y flujos de integración</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><strong>Multiagente</strong>: un agente principal delega en <strong>agentes conectados</strong> especializados (uno de interacciones de medicamentos, otro de stock), o se define un <strong>flujo de trabajo</strong> (<em>workflow</em>) con pasos y agentes.</li>
+<li><strong>Controles</strong>: aprobación humana antes de ejecutar herramientas sensibles (crear el pedido), límites de herramientas por agente, filtros de contenido del despliegue, y gobierno del acceso a herramientas.</li>
+<li><strong>Memoria</strong>: la conversación guarda el contexto; la memoria persistente permite recordar preferencias entre sesiones.</li>
+</ul>
+<pre data-norun><code class="language-python"># Esquema con el SDK de Foundry (azure-ai-projects): el agente usa un índice de AI Search y una función propia
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
+
+proyecto = AIProjectClient(endpoint=&quot;https://farmacias.services.ai.azure.com/api/projects/asistente&quot;,
+                           credential=DefaultAzureCredential())          # sin claves: Entra ID
+
+agente = proyecto.agents.create_agent(
+    model=&quot;gpt-4.1-mini&quot;,                                                # nombre del despliegue
+    name=&quot;asistente-farmacia&quot;,
+    instructions=&quot;Responde solo con los prospectos. Cita el medicamento y la sección. &quot;
+                 &quot;Antes de crear un pedido, pide confirmación al usuario.&quot;,
+    tools=[herramienta_ai_search_prospectos, herramienta_funcion_stock, herramienta_funcion_pedido],
+)</code></pre>
+<h2>Evaluar y observar</h2>
+<ul>
+<li><strong>Evaluadores de calidad</strong>: <em>groundedness</em> (¿la respuesta se apoya en el contexto?), relevancia, coherencia, fluidez, similitud con una respuesta esperada; para agentes, resolución de la intención, exactitud de las llamadas a herramientas y adherencia a la tarea.</li>
+<li><strong>Evaluadores de riesgo y seguridad</strong>: contenido dañino, material protegido, vulnerabilidad a <em>jailbreak</em>; y el <strong>agente de red teaming</strong> para probar ataques automáticamente.</li>
+<li><strong>Trazas</strong>: con OpenTelemetry y Application Insights se ve cada paso del agente (llamadas al modelo, herramientas, latencia, tokens).</li>
+<li><strong>Ajuste fino</strong> (<em>fine-tuning</em>): supervisado, por preferencias o por refuerzo, para estilo, formato o tareas específicas; para conocimiento que cambia, RAG.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Claves de API en el código o en el repositorio.</strong> Síntoma: alerta de seguridad y rotación de emergencia. Corrección: identidad administrada y Entra ID.</li>
+<li><strong>Solo búsqueda vectorial con códigos de producto.</strong> Síntoma: no encuentra &quot;Ibuprofeno 400 mg&quot; exacto. Corrección: búsqueda híbrida y ranker semántico.</li>
+<li><strong>Un agente que crea pedidos sin confirmación.</strong> Síntoma: pedidos por error. Corrección: aprobación humana para herramientas que modifican datos.</li>
+<li><strong>Ignorar los 429.</strong> Síntoma: usuarios con errores en horas pico. Corrección: reintentos con espera, más cuota, Global Standard o Provisioned.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Cómo se arma en una empresa</div>
+
+<p>Un recurso de Foundry por entorno con private endpoints; despliegues Data Zone por residencia; identidad administrada de la app con el rol mínimo; índice híbrido con ranker semántico y filtros por país; un agente con las herramientas justas y aprobación para acciones; un conjunto de evaluación con preguntas reales que corre en CI antes de cada cambio; y trazas en Application Insights revisadas cada semana.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-azure-ai103-foundry-agentes">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-azure-fabric-monitoreo-optimizacion.html">← Monitorear y optimizar Fabric</a><a href="cert-azure-ai103-vision-lenguaje-extraccion.html">AI-103 - visión, análisis de texto y extracción de información →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

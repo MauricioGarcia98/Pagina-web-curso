@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub por dentro - qué es cada parte y para qué sirve · Academia de Datos</title><meta name="description" content="Recorrido completo por GitHub - repositorio, pestaña Code, issues, pull requests con revisión, merge, squash y rebase, conflictos, GitHub Actions (workflows, jobs, steps, checks, secretos), protección de ramas, Pages, escaneo de secretos y la CLI gh. Con un flujo de equipo de datos de punta a punta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-github-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="GitHub por dentro - qué es cada parte y para qué sirve · Academia de Datos"><meta property="og:description" content="Recorrido completo por GitHub - repositorio, pestaña Code, issues, pull requests con revisión, merge, squash y rebase, conflictos, GitHub Actions (workflows, jobs, steps, checks, secretos), protección de ramas, Pages, escaneo de secretos y la CLI gh. Con un flujo de equipo de datos de punta a punta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-github-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 50 min</div>
+<h1>GitHub por dentro - qué es cada parte y para qué sirve</h1><p class="resumen">Recorrido completo por GitHub - repositorio, pestaña Code, issues, pull requests con revisión, merge, squash y rebase, conflictos, GitHub Actions (workflows, jobs, steps, checks, secretos), protección de ramas, Pages, escaneo de secretos y la CLI gh. Con un flujo de equipo de datos de punta a punta.</p>
+<a class="cta" href="../index.html#/l/interfaces-github-por-dentro">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ubicar cada pestaña de un repositorio y para qué sirve</li><li>Recorrer el flujo rama → push → pull request → revisión → checks → merge</li><li>Leer y escribir un workflow de GitHub Actions y entender por qué un check queda en rojo</li><li>Proteger main para que todo entre por pull request con tests en verde</li><li>Elegir entre merge, squash y rebase, y resolver un conflicto</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre el <a href="#/github/tienda-andina/pipelines">GitHub de práctica</a> y su terminal (ícono de terminal arriba a la derecha). Es la misma máquina del curso: lo que subes con <code>git push</code> aparece en la página al instante. Los <strong>🎯 Retos</strong> de GitHub siguen el mismo orden que esta lección.</p>
+</div>
+
+
+<h2>Qué es GitHub (y qué no es)</h2>
+<p><strong>Git</strong> es el programa que guarda la historia de tu código en tu computadora: commits, ramas, fusiones. <strong>GitHub</strong> es un servicio web que guarda una copia de ese repositorio (el <strong>remoto</strong>, normalmente llamado <code>origin</code>) y le agrega todo lo que necesita un equipo: revisar cambios antes de aceptarlos, conversar sobre tareas, correr pruebas automáticas y publicar.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Git (en tu máquina)</th>
+<th>GitHub (en la web)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>git commit</code>, <code>git switch</code>, <code>git merge</code></td>
+<td>Pull requests, revisiones, issues</td>
+</tr>
+<tr>
+<td>Historia local</td>
+<td>Copia compartida del repositorio</td>
+</tr>
+<tr>
+<td>Funciona sin internet</td>
+<td>Necesita <code>git push</code> / <code>git pull</code> para sincronizar</td>
+</tr>
+<tr>
+<td>No ejecuta nada por sí solo</td>
+<td><strong>Actions</strong> corre tus pruebas en cada cambio</td>
+</tr>
+</tbody></table></div>
+<p>GitLab, Bitbucket y Azure Repos hacen lo mismo con otros nombres (en GitLab el pull request se llama <em>merge request</em>).</p>
+<h2>El repositorio: la barra de pestañas</h2>
+<p>Arriba de cada repositorio está <code>dueño / nombre</code>, si es <strong>Public</strong> o <strong>Private</strong>, y los botones <strong>Watch</strong> (notificaciones), <strong>Fork</strong> (copia en tu cuenta) y <strong>Star</strong> (marcador). Debajo, las pestañas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pestaña</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Code</strong></td>
+<td>Los archivos de una rama, su historia y el README</td>
+</tr>
+<tr>
+<td><strong>Issues</strong></td>
+<td>Tareas, errores e ideas, con conversación</td>
+</tr>
+<tr>
+<td><strong>Pull requests</strong></td>
+<td>Propuestas de cambio para revisar antes de fusionarlas</td>
+</tr>
+<tr>
+<td><strong>Actions</strong></td>
+<td>Las ejecuciones automáticas (pruebas, despliegues)</td>
+</tr>
+<tr>
+<td><strong>Security</strong></td>
+<td>Alertas: secretos expuestos, dependencias con vulnerabilidades</td>
+</tr>
+<tr>
+<td><strong>Insights</strong></td>
+<td>Actividad y quién contribuye</td>
+</tr>
+<tr>
+<td><strong>Settings</strong></td>
+<td>Configuración: ramas protegidas, secretos, Pages, colaboradores</td>
+</tr>
+</tbody></table></div>
+<h2>La pestaña Code</h2>
+<ul>
+<li><strong>Selector de rama</strong> (<code>main ▾</code>): todo lo que ves es de esa rama. Al lado, cuántas ramas y tags hay.</li>
+<li><strong>Go to file</strong> (atajo <code>t</code>): buscar un archivo por nombre.</li>
+<li><strong>Add file</strong>: crear o subir archivos desde el navegador.</li>
+<li><strong>Code ▾</strong> (botón verde): la URL para <code>git clone</code> (HTTPS o SSH) y <strong>Download ZIP</strong>.</li>
+<li><strong>Última fila de commit</strong>: autor, mensaje, ✓/✗ de los checks de ese commit, y <strong>N Commits</strong> para ver la historia.</li>
+<li><strong>Lista de archivos</strong>: para cada uno, el último commit que lo cambió.</li>
+<li><strong>README</strong>: el archivo <code>README.md</code> se muestra como página. Es la portada del proyecto: qué hace, cómo correrlo y cómo contribuir.</li>
+<li><strong>About</strong> (derecha): descripción, temas, licencia y lenguajes.</li>
+</ul>
+<p>Al abrir un archivo tienes <strong>Code / Blame</strong> (qué commit escribió cada línea: útil para entender por qué algo está como está), <strong>History</strong> (commits que lo tocaron), <strong>Raw</strong> y el lápiz para <strong>editarlo en el navegador</strong>. Si la rama está protegida, el commit va a una rama nueva con su pull request.</p>
+<h2>Issues: las tareas</h2>
+<p>Un <strong>issue</strong> describe algo por hacer o un problema: título, descripción en Markdown, <strong>etiquetas</strong> (<code>bug</code>, <code>enhancement</code>, <code>good first issue</code>…), <strong>asignados</strong> y comentarios. Se cierra como <em>completed</em> (resuelto) o <em>not planned</em> (no se hará).</p>
+<p>Lo más útil: si un pull request dice en su descripción <strong><code>Closes #2</code></strong> (o <code>Fixes #2</code>, <code>Resolves #2</code>), al fusionarse <strong>cierra el issue #2 automáticamente</strong>. Y cualquier <code>#2</code> en un commit o comentario queda enlazado.</p>
+<h2>Pull requests: el centro del trabajo en equipo</h2>
+<p>Un <strong>pull request (PR)</strong> pide fusionar una rama (<em>compare</em>, la tuya) en otra (<em>base</em>, normalmente <code>main</code>). El flujo:</p>
+<ol>
+<li><code>git switch -c tests-etl</code> → cambias → <code>git commit</code> → <code>git push -u origin tests-etl</code>.</li>
+<li>GitHub ofrece <strong>Compare &amp; pull request</strong>. Escribes título y descripción (qué cambia, por qué, cómo probarlo).</li>
+<li>Pides revisión (<strong>Reviewers</strong>). Mientras tanto corren los <strong>checks</strong> (Actions).</li>
+<li>Si te piden cambios, haces más commits en <strong>la misma rama</strong> y <code>git push</code>: el PR se actualiza solo.</li>
+<li>Con aprobación y checks en verde, <strong>Merge</strong>. Después: <code>git switch main &amp;&amp; git pull</code>.</li>
+</ol>
+<p>Las pestañas de un PR:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pestaña</th>
+<th>Qué tiene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Conversation</strong></td>
+<td>Descripción, comentarios, revisiones y la caja de merge</td>
+</tr>
+<tr>
+<td><strong>Commits</strong></td>
+<td>Los commits de la rama que no están en la base</td>
+</tr>
+<tr>
+<td><strong>Checks</strong></td>
+<td>Los resultados de Actions para el último commit</td>
+</tr>
+<tr>
+<td><strong>Files changed</strong></td>
+<td>El diff: verde lo agregado, rojo lo quitado. Aquí se comenta <strong>línea por línea</strong></td>
+</tr>
+</tbody></table></div>
+<h3>Revisar</h3>
+<p>En <em>Files changed</em>, el <strong>+</strong> al lado de una línea abre un comentario. Al terminar, <strong>Review changes</strong> con tres opciones: <strong>Comment</strong> (opinión), <strong>Approve</strong> (aprobar) o <strong>Request changes</strong> (pedir cambios antes de fusionar). <strong>El autor no puede aprobar su propio PR</strong>: la gracia es que otra persona mire. Un comentario de línea se cierra con <strong>Resolve conversation</strong> cuando quedó atendido.</p>
+<h3>La caja de merge</h3>
+<p>Resume si se puede fusionar:</p>
+<ul>
+<li><strong>Review required / Changes approved / Changes requested</strong>: el estado de las revisiones.</li>
+<li><strong>All checks have passed / Some checks were not successful</strong>: los checks.</li>
+<li><strong>No conflicts / This branch has conflicts</strong>: si Git puede fusionar solo.</li>
+<li><strong>Merging is blocked</strong>: alguna regla de protección no se cumple (y dice cuál).</li>
+</ul>
+<h3>Merge, squash o rebase</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Botón</th>
+<th>Qué queda en main</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Create a merge commit</strong></td>
+<td>Todos los commits de la rama + un commit de fusión</td>
+<td>Quieres conservar la historia tal cual</td>
+</tr>
+<tr>
+<td><strong>Squash and merge</strong></td>
+<td><strong>Un solo commit</strong> con todo el cambio</td>
+<td>Muchos commits chicos (&quot;arreglo&quot;, &quot;otra vez&quot;): main queda limpia. Lo más común en equipos</td>
+</tr>
+<tr>
+<td><strong>Rebase and merge</strong></td>
+<td>Los commits de la rama, uno tras otro, sin commit de fusión</td>
+<td>Historia lineal conservando cada commit</td>
+</tr>
+</tbody></table></div>
+<h3>Conflictos</h3>
+<p>Si tu rama y <code>main</code> cambiaron <strong>las mismas líneas</strong>, GitHub muestra <em>This branch has conflicts</em>. Dos caminos: <strong>Resolve conflicts</strong> en la web (editas el archivo y borras las marcas <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>), o en la terminal <code>git pull origin main</code>, resuelves, <code>git add</code>, <code>git commit</code> y <code>git push</code>. <strong>HEAD</strong> es lo que hay en la base; lo de abajo de <code>=======</code> viene de tu rama.</p>
+<h2>GitHub Actions: pruebas automáticas</h2>
+<p>Un <strong>workflow</strong> es un archivo YAML en <code>.github/workflows/</code>. Ejemplo de un equipo de datos:</p>
+<pre><code class="language-yaml">name: CI
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: pytest</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>on</code></td>
+<td><strong>Cuándo</strong> corre: <code>push</code>, <code>pull_request</code>, <code>schedule</code> (cron), <code>workflow_dispatch</code> (botón manual)</td>
+</tr>
+<tr>
+<td><code>jobs</code></td>
+<td>Trabajos; corren en paralelo salvo que uno diga <code>needs: otro</code></td>
+</tr>
+<tr>
+<td><code>runs-on</code></td>
+<td>La máquina (<strong>runner</strong>): <code>ubuntu-latest</code> es una VM nueva y vacía en cada ejecución</td>
+</tr>
+<tr>
+<td><code>steps</code></td>
+<td>Pasos en orden: <code>uses</code> usa una acción hecha por otros; <code>run</code> ejecuta comandos de bash</td>
+</tr>
+<tr>
+<td><code>actions/checkout</code></td>
+<td>Copia el repositorio al runner. <strong>Sin este paso la carpeta está vacía</strong></td>
+</tr>
+<tr>
+<td><code>${{ secrets.X }}</code></td>
+<td>Un secreto de <em>Settings → Secrets</em>; en el log aparece como <code>***</code></td>
+</tr>
+<tr>
+<td><code>if:</code></td>
+<td>Condición: <code>if: github.ref == &#39;refs/heads/main&#39;</code> o <code>if: failure()</code></td>
+</tr>
+</tbody></table></div>
+<p>Cada job aparece como un <strong>check</strong> en el PR, con su nombre (<code>test</code>). Si un paso termina con código distinto de 0 (un test que falla, <code>exit 1</code>), el job queda en <strong>rojo</strong> y el log muestra el error. Errores clásicos: olvidar <code>checkout</code>, la sangría del YAML, y <code>python-version: 3.10</code> <strong>sin comillas</strong>, que YAML lee como el número <code>3.1</code>.</p>
+<h2>Proteger main</h2>
+<p>En <strong>Settings → Branches → Add rule</strong> (o <em>Rulesets</em>) para <code>main</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Regla</th>
+<th>Efecto</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Require a pull request before merging</strong></td>
+<td>Nadie hace <code>git push</code> directo a main: el push se rechaza con <em>GH006: Protected branch update failed</em></td>
+</tr>
+<tr>
+<td><strong>Required approvals</strong></td>
+<td>Cuántas aprobaciones necesita el PR</td>
+</tr>
+<tr>
+<td><strong>Dismiss stale approvals</strong></td>
+<td>Un commit nuevo anula las aprobaciones viejas</td>
+</tr>
+<tr>
+<td><strong>Require status checks to pass</strong></td>
+<td>Los checks elegidos (por ejemplo <code>test</code>) tienen que estar en verde</td>
+</tr>
+<tr>
+<td><strong>Require branches to be up to date</strong></td>
+<td>La rama tiene que tener lo último de main (botón <em>Update branch</em>)</td>
+</tr>
+<tr>
+<td><strong>Do not allow bypassing</strong></td>
+<td>Las reglas aplican también a los administradores</td>
+</tr>
+</tbody></table></div>
+<p>Es la configuración de casi cualquier equipo: main siempre funciona porque todo entró revisado y probado.</p>
+<h2>Secretos, Security y Pages</h2>
+<ul>
+<li><strong>Secrets and variables → Actions</strong>: claves y contraseñas que usan los workflows. Nunca en el código.</li>
+<li><strong>Security → Secret scanning</strong>: GitHub detecta claves conocidas (AWS, Azure, tokens) en los commits. Si una clave llegó a un commit, <strong>borrarla en otro commit no alcanza</strong>: sigue en la historia. Hay que <strong>rotarla</strong> (crear otra e invalidar la vieja).</li>
+<li><strong>Pages</strong>: publica un sitio estático (un <code>index.html</code>, o el README convertido en página) en <code>https://usuario.github.io/repositorio/</code>. Se activa en <em>Settings → Pages</em> desde una rama o con un workflow.</li>
+</ul>
+<h2>La CLI gh</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>gh repo create mi-repo --public --source=. --push</code></td>
+<td>Crea el repositorio y sube la carpeta actual</td>
+</tr>
+<tr>
+<td><code>gh pr create --fill</code></td>
+<td>Abre un PR con el mensaje del último commit</td>
+</tr>
+<tr>
+<td><code>gh pr checks</code> / <code>gh pr view</code></td>
+<td>Estado de checks y revisiones</td>
+</tr>
+<tr>
+<td><code>gh pr merge 4 --squash --delete-branch</code></td>
+<td>Fusiona con squash y borra la rama</td>
+</tr>
+<tr>
+<td><code>gh issue create -t &quot;…&quot;</code> / <code>gh issue list</code></td>
+<td>Issues</td>
+</tr>
+<tr>
+<td><code>gh run list</code> / <code>gh run view --log-failed</code></td>
+<td>Ejecuciones de Actions y el log de lo que falló</td>
+</tr>
+<tr>
+<td><code>gh browse</code></td>
+<td>Abre el repositorio en el navegador</td>
+</tr>
+</tbody></table></div>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Code, Blame, History, editar/crear/subir archivos, ramas, commits con diff</td>
+<td>Forks, tags y releases, Codespaces, github.dev</td>
+</tr>
+<tr>
+<td>Issues con etiquetas, asignados y cierre por <code>Closes #N</code></td>
+<td>Projects, milestones, Discussions, Wiki</td>
+</tr>
+<tr>
+<td>PRs con revisión por línea, revisores simulados, merge/squash/rebase, conflictos en la web, borradores</td>
+<td>Revisores reales, CODEOWNERS, merge queue</td>
+</tr>
+<tr>
+<td>Actions con YAML, expresiones, matrix, needs, secretos, artefactos; los <code>run:</code> corren en la bash del curso</td>
+<td>Acciones de terceros (se dan por buenas), Docker, runners de Windows/macOS</td>
+</tr>
+<tr>
+<td>Protección de ramas, secretos, Pages, escaneo de secretos, <code>gh</code></td>
+<td>Rulesets nuevos, Dependabot, notificaciones por correo</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-github-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-databricks-por-dentro.html">← Databricks por dentro - qué es cada parte y para qué sirve</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio AWS: data lake con S3, Glue, Athena y Data Quality · Academia de Datos</title><meta name="description" content="Construye la capa bronze de un data lake en S3, catalógala con un crawler de Glue, consulta con un workgroup de Athena que limita los bytes escaneados, mide la calidad con Glue Data Quality (DQDL) y crea un table bucket de S3 Tables para Iceberg. Es el recorrido práctico de los dominios 1 a 4 del DEA-C01."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-lake-calidad.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Laboratorio AWS: data lake con S3, Glue, Athena y Data Quality · Academia de Datos"><meta property="og:description" content="Construye la capa bronze de un data lake en S3, catalógala con un crawler de Glue, consulta con un workgroup de Athena que limita los bytes escaneados, mide la calidad con Glue Data Quality (DQDL) y crea un table bucket de S3 Tables para Iceberg. Es el recorrido práctico de los dominios 1 a 4 del DEA-C01."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-lake-calidad.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Avanzado · 60 min</div>
+<h1>Laboratorio AWS: data lake con S3, Glue, Athena y Data Quality</h1><p class="resumen">Construye la capa bronze de un data lake en S3, catalógala con un crawler de Glue, consulta con un workgroup de Athena que limita los bytes escaneados, mide la calidad con Glue Data Quality (DQDL) y crea un table bucket de S3 Tables para Iceberg. Es el recorrido práctico de los dominios 1 a 4 del DEA-C01.</p>
+<a class="cta" href="../index.html#/l/laboratorios-aws-lake-calidad">▶ Abrir la lección interactiva (16 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Subir datos a un prefijo bronze y catalogarlos con un crawler</li><li>Crear un workgroup de Athena con límite de bytes y ubicación de resultados obligatoria</li><li>Escribir reglas DQDL y leer el resultado de una evaluación</li><li>Crear un table bucket de S3 Tables</li><li>Limpiar todos los recursos del laboratorio</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La tienda online quiere que los analistas consulten los clientes desde Athena, pero el año pasado una consulta sin filtro escaneó 3 TB y costó USD 15. Además, marketing se queja de correos vacíos. Vas a montar bronze en S3, catalogar, poner un tope de costo por consulta y una compuerta de calidad.</p>
+</div>
+
+
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Laboratorio de data lake en AWS</figcaption></figure>
+
+
+<h2>Costo en una cuenta real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Costo del laboratorio</th>
+</tr>
+</thead><tbody><tr>
+<td>S3 (un CSV de 30 KB)</td>
+<td>Centavos</td>
+</tr>
+<tr>
+<td>Crawler de Glue</td>
+<td>USD 0,44 por DPU-hora, mínimo 10 minutos: unos USD 0,07</td>
+</tr>
+<tr>
+<td>Athena</td>
+<td>USD 5 por TB escaneado: una fracción de centavo</td>
+</tr>
+<tr>
+<td>Glue Data Quality</td>
+<td>Cobra DPU por evaluación: unos USD 0,10</td>
+</tr>
+<tr>
+<td>S3 Tables</td>
+<td>Almacenamiento y mantenimiento por uso: centavos</td>
+</tr>
+</tbody></table></div>
+<p><strong>Total esperado: menos de USD 0,50.</strong> Nada queda cobrando por hora.</p>
+<h2>Práctica guiada</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En tu cuenta real</h2>
+<p>Los comandos son los mismos. Diferencias que la simulación no muestra:</p>
+<ul>
+<li>El <strong>rol <code>GlueServiceRole-lab</code></strong> tiene que existir: política de confianza para <code>glue.amazonaws.com</code>, la política administrada <code>AWSGlueServiceRole</code> y lectura sobre el bucket.</li>
+<li>El crawler tarda 1 o 2 minutos. Espera a que <code>aws glue get-crawler --name crawler-clientes --query Crawler.State</code> vuelva a <code>READY</code>.</li>
+<li>La evaluación de calidad tarda unos minutos: consulta <code>get-data-quality-ruleset-evaluation-run</code> hasta que <code>Status</code> sea <code>SUCCEEDED</code>.</li>
+<li>Para ver los resultados de Athena: <code>aws athena get-query-results --query-execution-id &lt;id&gt;</code>.</li>
+</ul>
+<pre data-norun><code class="language-bash">aws iam create-role --role-name GlueServiceRole-lab \
+  --assume-role-policy-document '{&quot;Version&quot;:&quot;2012-10-17&quot;,&quot;Statement&quot;:[{&quot;Effect&quot;:&quot;Allow&quot;,&quot;Principal&quot;:{&quot;Service&quot;:&quot;glue.amazonaws.com&quot;},&quot;Action&quot;:&quot;sts:AssumeRole&quot;}]}'
+aws iam attach-role-policy --role-name GlueServiceRole-lab \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+aws iam put-role-policy --role-name GlueServiceRole-lab --policy-name leer-lake \
+  --policy-document '{&quot;Version&quot;:&quot;2012-10-17&quot;,&quot;Statement&quot;:[{&quot;Effect&quot;:&quot;Allow&quot;,&quot;Action&quot;:[&quot;s3:GetObject&quot;,&quot;s3:ListBucket&quot;],&quot;Resource&quot;:[&quot;arn:aws:s3:::lake-tienda-lab&quot;,&quot;arn:aws:s3:::lake-tienda-lab/*&quot;]}]}'</code></pre>
+<h2>Limpieza</h2>
+<pre data-norun><code class="language-bash">aws s3 rb s3://lake-tienda-lab --force
+aws glue delete-crawler --name crawler-clientes
+aws glue delete-data-quality-ruleset --name dq-clientes
+aws glue delete-database --name lake_bronze
+aws athena delete-work-group --work-group analistas-lab --recursive-delete-option
+aws s3tables delete-table-bucket --table-bucket-arn arn:aws:s3tables:us-east-1:&lt;cuenta&gt;:bucket/tablas-tienda-lab
+aws iam delete-role-policy --role-name GlueServiceRole-lab --policy-name leer-lake
+aws iam detach-role-policy --role-name GlueServiceRole-lab --policy-arn arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+aws iam delete-role --role-name GlueServiceRole-lab</code></pre>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>El crawler crea una tabla por archivo</strong> en lugar de una por carpeta: la estructura de carpetas no es uniforme o hay archivos con distinto esquema mezclados.</li>
+<li><strong>Consultar sin filtrar la partición</strong>: Athena cobra por bytes escaneados; una consulta sobre todo el lago puede costar más que el laboratorio entero. El workgroup con límite lo evita.</li>
+<li><strong>CSV en vez de Parquet</strong> para lo que se consulta seguido: escanea todas las columnas y ocupa varias veces más.</li>
+<li><strong>Reglas de calidad que nadie mira</strong>: un resultado de Data Quality sin alerta asociada es solo un número.</li>
+<li><strong>Dejar los resultados de Athena en un bucket sin ciclo de vida</strong>: se acumulan para siempre.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El patrón &quot;S3 + catálogo de Glue + Athena&quot; es la forma más barata de tener SQL sobre un lago en AWS; se usa mucho para exploración y para tablas que se consultan poco.</li>
+<li>Cada vez más equipos usan tablas Iceberg (con S3 Tables o Glue) en lugar de Parquet suelto, para tener transacciones, borrado de filas y evolución del esquema.</li>
+<li>Los workgroups de Athena separan equipos y costos: cada área tiene el suyo, con su límite y su bucket de resultados.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo reducirías el costo de las consultas de Athena sobre un data lake?&quot;</div>
+
+<p>Convertiría los datos a un formato columnar como Parquet o a tablas Iceberg, particionaría por la columna que más se filtra, normalmente la fecha, y pediría a los usuarios filtrar por partición y elegir columnas en lugar de <code>SELECT *</code>. Pondría workgroups con límite de bytes escaneados por consulta, y compactaría archivos chicos. También revisaría las consultas más caras en el historial del workgroup.</p>
+</div>
+
+
+<h2>Preguntas de examen</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>16 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-aws-lake-calidad">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-como-trabajar.html">← Cómo trabajar los laboratorios sin sorpresas en la factura</a><a href="laboratorios-aws-bedrock-rag.html">Laboratorio AWS: RAG con Bedrock Knowledge Bases, Guardrails y lotes →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

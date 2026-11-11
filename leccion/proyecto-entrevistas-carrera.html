@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrevistas, diseño de sistemas y tu plan de carrera · Academia de Datos</title><meta name="description" content="Cómo son las entrevistas de Data Engineer, preguntas de diseño, checklist de conocimientos y cómo seguir creciendo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-entrevistas-carrera.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Entrevistas, diseño de sistemas y tu plan de carrera · Academia de Datos"><meta property="og:description" content="Cómo son las entrevistas de Data Engineer, preguntas de diseño, checklist de conocimientos y cómo seguir creciendo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-entrevistas-carrera.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto">🏆 Proyecto final y entrevistas</a> · Experto · 40 min</div>
+<h1>Entrevistas, diseño de sistemas y tu plan de carrera</h1><p class="resumen">Cómo son las entrevistas de Data Engineer, preguntas de diseño, checklist de conocimientos y cómo seguir creciendo.</p>
+<a class="cta" href="../index.html#/l/proyecto-entrevistas-carrera">▶ Abrir la lección interactiva (2 ejercicios)</a>
+
+<h2>Cómo es un proceso de selección típico</h2>
+<ol>
+<li><strong>Filtro inicial</strong>: CV y conversación con RR. HH.</li>
+<li><strong>Prueba técnica de SQL</strong> (casi siempre): joins, agregaciones, ventanas, CTEs — ¡ya practicaste decenas!</li>
+<li><strong>Python / PySpark</strong>: manipular datos, estructuras de datos, a veces un pequeño ETL.</li>
+<li><strong>Diseño de sistemas de datos</strong>: “diseña el pipeline para…”.</li>
+<li><strong>Conductual</strong>: proyectos pasados, trabajo en equipo, cómo manejas un incidente.</li>
+</ol>
+<div class="recorrido"></div>
+
+
+<h2>Preguntas de diseño frecuentes (y qué esperan oír)</h2>
+<div class="callout callout-entrevista"><div class="callout-title">🎯 “Diseña un pipeline que ingiera 50 GB diarios de eventos de una app y alimente un tablero”</div>
+
+<p>Habla de: <strong>ingesta</strong> (Event Hubs/Kafka → Auto Loader o Structured Streaming), <strong>almacenamiento</strong> (Delta en ADLS, medallón), <strong>procesamiento</strong> incremental e idempotente, <strong>modelado</strong> gold (estrella), <strong>orquestación</strong> (Workflows/Airflow), <strong>calidad</strong> (tests, cuarentena, alertas), <strong>costos</strong> (job clusters, autoscaling, clustering) y <strong>gobierno</strong> (Unity Catalog). Pregunta por latencia requerida (¿minutos u horas?) antes de elegir streaming.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 “Un job que tardaba 20 minutos ahora tarda 3 horas. ¿Qué haces?”</div>
+
+<p>Método: revisar qué cambió (volumen, código, datos), mirar la <strong>Spark UI</strong> (stage lento, skew, spill, shuffle grande), revisar el plan (<code>explain</code>), tamaños de archivos (archivos pequeños), joins (¿se perdió el broadcast?), y recién después escalar el cluster.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 “¿Cómo garantizas que no haya duplicados si un job se ejecuta dos veces?”</div>
+
+<p>Idempotencia: <code>MERGE</code> por clave, sobrescritura por partición/<code>replaceWhere</code>, checkpoints en streaming, claves de negocio con tests <code>unique</code>.</p>
+</div>
+
+
+<p>Otras clásicas: diferencias entre ETL y ELT; OLTP vs OLAP; data lake vs warehouse vs lakehouse; SCD tipo 2; particionado vs clustering; narrow vs wide; broadcast join; cuándo usar streaming; cómo versionas y despliegas pipelines (Git + CI/CD + Declarative Automation Bundles).</p>
+<h2>Checklist: ¿estás listo para un puesto Junior / Semi Senior?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Área</th>
+<th>Debes poder…</th>
+</tr>
+</thead><tbody><tr>
+<td>SQL</td>
+<td>Joins de todo tipo, GROUP BY/HAVING, CTEs, ventanas, deduplicación, gaps &amp; islands</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>Funciones, estructuras de datos, archivos/JSON, errores, tests, entornos virtuales</td>
+</tr>
+<tr>
+<td>Spark</td>
+<td>Explicar driver/executors, lazy evaluation, shuffles, joins, particiones; escribir PySpark limpio</td>
+</tr>
+<tr>
+<td>Lakehouse</td>
+<td>Delta Lake (MERGE, time travel, OPTIMIZE), medallón, Unity Catalog</td>
+</tr>
+<tr>
+<td>dbt</td>
+<td>Proyecto con staging/marts, ref/source, incrementales, tests y docs</td>
+</tr>
+<tr>
+<td>Orquestación</td>
+<td>DAGs de Airflow o jobs de Databricks con reintentos, parámetros y alertas</td>
+</tr>
+<tr>
+<td>Nube</td>
+<td>Azure CLI, ADLS Gen2, identidades/RBAC, Key Vault</td>
+</tr>
+<tr>
+<td>Ingeniería</td>
+<td>Git, PRs, CI/CD, Declarative Automation Bundles, buenas prácticas de código</td>
+</tr>
+</tbody></table></div>
+<h2>Certificaciones que suman</h2>
+<ul>
+<li><strong>Databricks Certified Data Engineer Associate</strong> (y luego <strong>Professional</strong>): muy valoradas en el mercado actual.</li>
+<li><strong>dbt Analytics Engineering Certification</strong>.</li>
+<li><strong>Microsoft</strong>: Azure Fundamentals (AZ-900) para empezar; el certificado de ingeniería de datos de Microsoft se renueva seguido (hoy el foco está en Fabric: DP-700). Revisa la página oficial antes de elegir.</li>
+<li><strong>Astronomer Certification for Apache Airflow</strong>.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Lo que más pesa</div>
+
+<p>Un <strong>proyecto propio</strong> bien documentado en GitHub (como el del módulo anterior), tu capacidad para explicar decisiones y una base sólida de SQL valen más que juntar certificados.</p>
+</div>
+
+
+<h2>Cómo seguir después de este curso</h2>
+<ol>
+<li>Repite los ejercicios difíciles sin mirar la solución, una semana después.</li>
+<li>Crea una cuenta gratuita de <strong>Databricks</strong> (Free Edition) y de <strong>Azure</strong>, y reconstruye el proyecto con datos reales (por ejemplo, datos abiertos de tu ciudad).</li>
+<li>Lee documentación oficial: Spark, Delta Lake, dbt, Airflow. Es la mejor fuente.</li>
+<li>Practica SQL a diario (15 minutos) en plataformas de ejercicios.</li>
+<li>Únete a comunidades (dbt Slack, foros de Databricks, meetups locales) y escribe sobre lo que aprendes.</li>
+</ol>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Responder una pregunta de diseño nombrando herramientas</strong> sin preguntar requisitos (volumen, frescura, usuarios, presupuesto).</li>
+<li><strong>Contar un proyecto solo con lo que se usó</strong> (&quot;usé Spark y Airflow&quot;) sin decir qué problema resolvía, qué decidiste y qué resultado tuvo.</li>
+<li><strong>Esconder lo que no sabes</strong>: &quot;no lo usé, pero lo resolvería así&quot; es una buena respuesta; inventar no.</li>
+<li><strong>Un portafolio sin README</strong>: nadie va a clonar tu repositorio para entender qué hiciste.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los equipos contratan juniors por fundamentos (SQL sólido, Python, entender un pipeline) y actitud para aprender; las herramientas específicas se aprenden en el trabajo.</li>
+<li>Para pasar a semi senior, lo que más pesa es haber operado algo en producción: incidentes resueltos, costos reducidos, calidad mejorada. Anótalo con números mientras pasa.</li>
+</ul>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-entrevistas-carrera">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-rapido-pipeline.html">← Proyecto completo II · Rápido: el pipeline en producción</a><a href="cert-databricks-mapa-certificaciones.html">El mapa de las certificaciones de Databricks y cómo prepararte →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

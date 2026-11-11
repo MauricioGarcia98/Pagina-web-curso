@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terraform en equipo: pruebas, CI/CD con GitHub Actions y buenas prácticas · Academia de Datos</title><meta name="description" content="Lleva Terraform a producción como lo hace un equipo de plataforma. Pruebas con terraform test, chequeos de formato, lint y seguridad, un pipeline de GitHub Actions con OIDC que publica el plan en el pull request y aplica con aprobación, detección de drift y la lista de convenciones que se revisan en cada cambio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-cicd-buenas-practicas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Terraform en equipo: pruebas, CI/CD con GitHub Actions y buenas prácticas · Academia de Datos"><meta property="og:description" content="Lleva Terraform a producción como lo hace un equipo de plataforma. Pruebas con terraform test, chequeos de formato, lint y seguridad, un pipeline de GitHub Actions con OIDC que publica el plan en el pull request y aplica con aprobación, detección de drift y la lista de convenciones que se revisan en cada cambio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-cicd-buenas-practicas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#terraform">🏗️ Terraform: infraestructura como código</a> · Experto · 75 min</div>
+<h1>Terraform en equipo: pruebas, CI/CD con GitHub Actions y buenas prácticas</h1><p class="resumen">Lleva Terraform a producción como lo hace un equipo de plataforma. Pruebas con terraform test, chequeos de formato, lint y seguridad, un pipeline de GitHub Actions con OIDC que publica el plan en el pull request y aplica con aprobación, detección de drift y la lista de convenciones que se revisan en cada cambio.</p>
+<a class="cta" href="../index.html#/l/terraform-cicd-buenas-practicas">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir pruebas de Terraform con terraform test (run, assert, expect_failures)</li><li>Armar un pipeline de CI/CD que valide, planifique en cada pull request y aplique al hacer merge</li><li>Autenticar la CI en la nube con OIDC, sin secretos de larga duración</li><li>Detectar drift con un plan programado y explicar qué hacer con él</li><li>Revisar un pull request de Terraform con una checklist de buenas prácticas</li></ul>
+<h2>El flujo de un cambio</h2>
+<figure class="diagrama"><figcaption>Un cambio de infraestructura, de la rama a producción</figcaption></figure>
+
+
+<h2>Pruebas con terraform test</h2>
+<p>Desde la versión 1.6, Terraform trae su propio framework de pruebas. Una prueba es un archivo <strong><code>.tftest.hcl</code></strong> (en la carpeta del módulo o en <code>tests/</code>) con bloques <strong><code>run</code></strong>. Cada <code>run</code> planifica o aplica el módulo con ciertas variables y verifica condiciones con <strong><code>assert</code></strong>.</p>
+<p>Para el proyecto del lago de la lección de HCL (buckets por capa, versionado solo en prod, bucket de logs solo en prod):</p>
+<pre><code class="language-hcl"># tests/lago.tftest.hcl
+variables {                          # valores para todos los run
+  proyecto = &quot;tienda&quot;
+}
+
+run &quot;dev_sin_logs&quot; {
+  command = plan                     # solo planifica: rápido y sin crear nada
+
+  variables {
+    entorno = &quot;dev&quot;
+  }
+
+  assert {
+    condition     = aws_s3_bucket.capa[&quot;gold&quot;].bucket == &quot;tienda-dev-gold&quot;
+    error_message = &quot;El bucket gold debe llamarse tienda-dev-gold&quot;
+  }
+
+  assert {
+    condition     = length(aws_s3_bucket.logs) == 0
+    error_message = &quot;En dev no debe haber bucket de logs&quot;
+  }
+}
+
+run &quot;prod_con_logs_y_versionado&quot; {
+  # sin command: aplica (en una cuenta de pruebas) y al final destruye
+  variables {
+    entorno = &quot;prod&quot;
+  }
+
+  assert {
+    condition     = length(aws_s3_bucket.logs) == 1
+    error_message = &quot;En prod debe existir el bucket de logs&quot;
+  }
+
+  assert {
+    condition     = aws_s3_bucket_versioning.capa[&quot;gold&quot;].versioning_configuration[0].status == &quot;Enabled&quot;
+    error_message = &quot;En prod el versionado debe estar activado&quot;
+  }
+
+  assert {
+    condition     = output.buckets[&quot;bronze&quot;] == &quot;tienda-prod-bronze&quot;
+    error_message = &quot;El output buckets no tiene el nombre esperado&quot;
+  }
+}
+
+run &quot;entorno_invalido&quot; {
+  command = plan
+  variables {
+    entorno = &quot;produccion&quot;
+  }
+  expect_failures = [var.entorno]    # la prueba pasa si la validación de la variable FALLA
+}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>command = plan</code></td>
+<td>Prueba la lógica (nombres, condicionales, <code>count</code>) sin crear nada. Es la mayoría de las pruebas</td>
+</tr>
+<tr>
+<td><code>command = apply</code> (por defecto)</td>
+<td>Crea los recursos de verdad, verifica valores que solo se conocen al crear, y al terminar los <strong>destruye</strong></td>
+</tr>
+<tr>
+<td><code>assert { condition, error_message }</code></td>
+<td>La condición tiene que dar <code>true</code></td>
+</tr>
+<tr>
+<td><code>output.x</code></td>
+<td>Lee un output del módulo</td>
+</tr>
+<tr>
+<td><code>expect_failures = [var.x]</code></td>
+<td>Prueba que una validación rechaza un valor inválido</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-text">$ terraform test
+tests/lago.tftest.hcl... in progress
+  run &quot;dev_sin_logs&quot;... pass
+  run &quot;prod_con_logs_y_versionado&quot;... pass
+  run &quot;entorno_invalido&quot;... pass
+tests/lago.tftest.hcl... tearing down
+tests/lago.tftest.hcl... pass
+
+Success! 3 passed, 0 failed.</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 En el simulador</div>
+
+<p>La terminal del curso ejecuta <code>terraform test</code> de verdad sobre tus archivos. Los <code>run</code> con <code>command = apply</code> se <strong>simulan</strong>: calcula los valores como si hubiera creado los recursos, pero no toca la nube ni tu estado. En tu computadora, un <code>apply</code> de prueba crea recursos reales (y cobra), por eso las pruebas con apply corren en una cuenta o suscripción de pruebas.</p>
+</div>
+
+
+<h2>Los chequeos automáticos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Qué revisa</th>
+<th>Comando</th>
+</tr>
+</thead><tbody><tr>
+<td><code>terraform fmt</code></td>
+<td>Formato estándar</td>
+<td><code>terraform fmt -check -recursive</code> (código 3 si hay archivos sin formato)</td>
+</tr>
+<tr>
+<td><code>terraform validate</code></td>
+<td>Sintaxis, tipos, referencias</td>
+<td><code>terraform validate</code></td>
+</tr>
+<tr>
+<td><strong>TFLint</strong></td>
+<td>Errores que validate no ve: tipos de instancia que no existen, variables sin usar, convenciones</td>
+<td><code>tflint --recursive</code></td>
+</tr>
+<tr>
+<td><strong>Checkov</strong> / <strong>Trivy</strong> (ex tfsec)</td>
+<td>Seguridad: buckets públicos, sin cifrado, <code>*</code> en IAM, puertos abiertos</td>
+<td><code>checkov -d .</code></td>
+</tr>
+<tr>
+<td><code>terraform test</code></td>
+<td>La lógica de tus módulos</td>
+<td><code>terraform test</code></td>
+</tr>
+<tr>
+<td><strong>Infracost</strong></td>
+<td>Cuánto va a costar el cambio por mes</td>
+<td><code>infracost diff --path .</code></td>
+</tr>
+</tbody></table></div>
+<p>Todo esto se corre también <strong>antes del commit</strong> con <strong>pre-commit</strong> (<code>.pre-commit-config.yaml</code> con los hooks de <code>pre-commit-terraform</code>), para que los errores obvios no lleguen ni al pull request.</p>
+<h2>El pipeline en GitHub Actions</h2>
+<pre><code class="language-yaml"># .github/workflows/terraform.yml
+name: terraform
+
+on:
+  pull_request:
+    paths: [&quot;infra/**&quot;]
+  push:
+    branches: [main]
+    paths: [&quot;infra/**&quot;]
+
+permissions:
+  id-token: write          # para OIDC
+  contents: read
+  pull-requests: write     # para comentar el plan
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/envs/dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+
+      - name: Login en AWS con OIDC (sin access keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-terraform-plan
+          aws-region: us-east-1
+
+      - run: terraform fmt -check -recursive
+      - run: terraform init -input=false
+      - run: terraform validate
+      - run: terraform test
+      - run: terraform plan -input=false -no-color -out=tfplan | tee plan.txt
+
+      - name: Publicar el plan en el PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const plan = require('fs').readFileSync('infra/envs/dev/plan.txt', 'utf8');
+            await github.rest.issues.createComment({
+              ...context.repo, issue_number: context.issue.number,
+              body: '### Plan de dev\n```\n' + plan.slice(-60000) + '\n```'
+            });
+
+  apply-dev:
+    if: github.ref == 'refs/heads/main' &amp;&amp; github.event_name == 'push'
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: infra/envs/dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-terraform-apply
+          aws-region: us-east-1
+      - run: terraform init -input=false
+      - run: terraform apply -input=false -auto-approve
+
+  apply-prod:
+    needs: apply-dev
+    runs-on: ubuntu-latest
+    environment: prod        # el environment &quot;prod&quot; de GitHub exige la aprobación de 2 personas
+    # … los mismos pasos, en infra/envs/prod y con el rol de prod</code></pre>
+<p>Lo importante del pipeline:</p>
+<ul>
+<li><strong>El plan se publica en el pull request</strong>: el revisor no aprueba código, aprueba <strong>cambios en la nube</strong>. Un <code>-/+</code> en una base de producción salta a la vista.</li>
+<li><strong>Dos roles distintos</strong>: el de <code>plan</code> solo puede <strong>leer</strong> (y leer/escribir el estado); el de <code>apply</code>, crear y modificar. Un pull request de alguien de afuera no puede aplicar nada.</li>
+<li><strong><code>environment: prod</code></strong> con <em>required reviewers</em>: GitHub pausa el job hasta que dos personas aprueben.</li>
+<li><strong><code>-input=false</code></strong>: en la CI no hay nadie para responder preguntas; si falta una variable, que falle.</li>
+</ul>
+<h3>OIDC: la CI sin secretos</h3>
+<p>La forma vieja era crear un usuario de IAM, generar una <strong>access key</strong> y guardarla en los secretos de GitHub. Esa clave no expira, se puede filtrar y hay que rotarla. Con <strong>OIDC</strong> (<em>OpenID Connect</em>), GitHub le presenta a la nube un token firmado que dice &quot;soy el workflow del repositorio <code>grupo-andina/infra-datos</code>, rama <code>main</code>&quot;, y la nube le da credenciales <strong>temporales</strong> (una hora) para un rol que confía en ese repositorio:</p>
+<pre><code class="language-hcl">resource &quot;aws_iam_openid_connect_provider&quot; &quot;github&quot; {
+  url             = &quot;https://token.actions.githubusercontent.com&quot;
+  client_id_list  = [&quot;sts.amazonaws.com&quot;]
+  thumbprint_list = [&quot;6938fd4d98bab03faadb97b34396831e3780aea1&quot;]
+}
+
+resource &quot;aws_iam_role&quot; &quot;github_apply&quot; {
+  name = &quot;github-terraform-apply&quot;
+  assume_role_policy = jsonencode({
+    Version = &quot;2012-10-17&quot;
+    Statement = [{
+      Effect    = &quot;Allow&quot;
+      Action    = &quot;sts:AssumeRoleWithWebIdentity&quot;
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Condition = {
+        StringEquals = {
+          &quot;token.actions.githubusercontent.com:sub&quot; = &quot;repo:grupo-andina/infra-datos:ref:refs/heads/main&quot;
+        }
+      }
+    }]
+  })
+}</code></pre>
+<p>La condición <code>sub</code> es la clave: <strong>solo</strong> la rama <code>main</code> de <strong>ese</strong> repositorio puede usar el rol de apply. Azure (<em>federated credentials</em> de una identidad) y Google Cloud (<em>Workload Identity Federation</em>) tienen el mismo mecanismo.</p>
+<h2>Drift: lo que cambió fuera de Terraform</h2>
+<p>El <strong>drift</strong> es la diferencia entre lo que dice el código y lo que hay en la nube porque alguien cambió algo a mano (o lo cambió otro sistema). Se detecta con un plan programado:</p>
+<pre><code class="language-yaml">on:
+  schedule:
+    - cron: &quot;0 6 * * 1-5&quot;       # de lunes a viernes, 06:00 UTC
+jobs:
+  drift:
+    steps:
+      # … checkout, setup, OIDC con el rol de solo lectura, init …
+      - run: terraform plan -detailed-exitcode -input=false</code></pre>
+<p><code>-detailed-exitcode</code> cambia el código de salida: <strong>0</strong> = sin cambios, <strong>1</strong> = error, <strong>2</strong> = hay cambios (drift). Un 2 abre un issue o avisa en Slack. Después alguien decide: llevar el cambio al código, o aplicar para revertirlo.</p>
+<pre><code class="language-text">$ terraform plan -detailed-exitcode
+...
+Plan: 0 to add, 1 to change, 0 to destroy.
+$ echo $?
+2</code></pre>
+<h3>Laboratorio: provoca un drift</h3>
+<p>En la terminal, crea un bucket con Terraform y bórralo &quot;a mano&quot;, como haría alguien desde la consola:</p>
+<pre data-norun><code class="language-bash">aws configure
+mkdir -p ~/infra/drift &amp;&amp; cd ~/infra/drift
+code main.tf                         # provider &quot;aws&quot; + resource &quot;aws_s3_bucket&quot; &quot;gold&quot; { bucket = &quot;tienda-prod-gold&quot; }
+terraform init &amp;&amp; terraform apply -auto-approve
+aws s3 rb s3://tienda-prod-gold      # el cambio &quot;por fuera&quot;
+terraform plan -refresh-only         # solo muestra lo que cambió afuera
+terraform plan -detailed-exitcode; echo $?</code></pre>
+<pre><code class="language-text">Note: Objects have changed outside of Terraform
+
+  # aws_s3_bucket.gold has been deleted
+  - resource &quot;aws_s3_bucket&quot; &quot;gold&quot; {
+      - id = &quot;tienda-prod-gold&quot; -&gt; null
+    }
+...
+  # aws_s3_bucket.gold will be created
+Plan: 1 to add, 0 to change, 0 to destroy.
+2</code></pre>
+<p>Terraform <strong>refresca</strong> el estado antes de planificar: pregunta a la nube si cada recurso sigue existiendo y cómo está. El bucket ya no está, así que el plan propone crearlo de nuevo, y el código de salida es 2. Un <code>terraform apply</code> lo recrea (vacío: los datos que tenía no vuelven; para eso existen el versionado y las copias de seguridad).</p>
+<h2>Checklist para revisar un pull request de Terraform</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Revisa</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>El plan: ¿hay <code>-/+</code> o <code>-</code> en algo con datos?</td>
+<td>Un reemplazo de una base o un bucket es perder datos</td>
+</tr>
+<tr>
+<td>¿El número de cambios es el esperado?</td>
+<td>&quot;Agregué una etiqueta&quot; y el plan dice 40 cambios: algo está mal</td>
+</tr>
+<tr>
+<td>Nombres armados con el prefijo, no escritos a mano</td>
+<td>Choques entre entornos</td>
+</tr>
+<tr>
+<td>Variables con <code>type</code>, <code>description</code> y <code>validation</code></td>
+<td>Errores tempranos y código que se entiende</td>
+</tr>
+<tr>
+<td>Permisos: sin <code>*</code>, a nivel de recurso</td>
+<td>Permisos mínimos</td>
+</tr>
+<tr>
+<td>Nada de secretos en el código ni en los <code>.tfvars</code></td>
+<td>Los secretos van en un gestor y se generan o leen desde ahí</td>
+</tr>
+<tr>
+<td>Versiones fijadas (<code>required_version</code>, <code>required_providers</code>, <code>version</code> de los módulos)</td>
+<td>El mismo código produce el mismo resultado mañana</td>
+</tr>
+<tr>
+<td><code>prevent_destroy</code> en lo crítico</td>
+<td>Un error no borra producción</td>
+</tr>
+<tr>
+<td>Renombres con <code>moved</code>, importaciones con <code>import</code></td>
+<td>Nada se destruye por un cambio de nombre</td>
+</tr>
+<tr>
+<td>Etiquetas de costo en todo (<code>default_tags</code>)</td>
+<td>Se puede saber cuánto cuesta cada equipo</td>
+</tr>
+</tbody></table></div>
+<h3>Las versiones, fijadas</h3>
+<pre><code class="language-hcl">terraform {
+  required_version = &quot;&gt;= 1.10, &lt; 2.0&quot;
+
+  required_providers {
+    aws = {
+      source  = &quot;hashicorp/aws&quot;
+      version = &quot;~&gt; 5.82&quot;
+    }
+  }
+}</code></pre>
+<p>Y el archivo <strong><code>.terraform.lock.hcl</code></strong> en Git, para que la CI y todo el equipo usen exactamente la misma versión de cada proveedor. Para actualizarlos: <code>terraform init -upgrade</code> en una rama, y el plan dirá si algo cambia.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 HCP Terraform, Atlantis, OpenTofu</div>
+
+<ul>
+<li><strong>HCP Terraform</strong> (antes Terraform Cloud) y <strong>Terraform Enterprise</strong> son la plataforma de HashiCorp: guardan el estado, ejecutan plan/apply, tienen políticas (Sentinel) y aprobaciones.</li>
+<li><strong>Atlantis</strong> es la alternativa libre: un servidor que comenta el plan en el pull request y aplica cuando alguien escribe <code>atlantis apply</code>.</li>
+<li><strong>OpenTofu</strong> es el fork libre de Terraform (de la Linux Foundation), compatible con la misma sintaxis; el comando es <code>tofu</code> en lugar de <code>terraform</code>. Algunas empresas lo eligieron por la licencia.</li>
+</ul>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Aplicar un plan viejo</strong>: alguien aprueba el plan del lunes y el apply corre el jueves con otro estado. Por eso el apply de la CI vuelve a planificar sobre <code>main</code> (o aplica el archivo de plan guardado, que falla con &quot;Saved plan is stale&quot; si el estado cambió).</li>
+<li><strong>El mismo rol para plan y apply</strong>: un pull request malicioso podría modificar el workflow y aplicar cambios. El rol del plan es de solo lectura.</li>
+<li><strong>Pruebas con <code>command = apply</code> contra la cuenta de producción</strong>: crean y destruyen recursos reales. Siempre en una cuenta de pruebas.</li>
+<li><strong>Ignorar el drift</strong>: el siguiente apply de alguien revierte el cambio manual sin que nadie se entere. El plan nocturno lo hace visible.</li>
+<li><strong>No fijar <code>terraform_version</code> en la CI</strong>: la imagen se actualiza, el estado se escribe con una versión más nueva y ya no se puede usar con la vieja.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El apply de los viernes</div>
+
+<p>En el Grupo Andino, cada persona aplica Terraform desde su computadora, con sus propias credenciales de administrador. Un viernes alguien aplica una rama vieja y revierte los permisos de Unity Catalog de toda la semana. Nadie revisó el plan. La auditoría pregunta quién lo aprobó.</p>
+<blockquote>
+<p>&quot;Nadie más aplica desde su computadora. Cada cambio va por pull request, la CI muestra el plan, alguien lo aprueba, y la CI aplica. Y quiero pruebas: si alguien rompe el módulo del lago, que la CI lo frene.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En un equipo maduro, <strong>nadie</strong> tiene permisos de escritura en producción desde su usuario: todo cambio pasa por la CI. Para emergencias existe un procedimiento <em>break glass</em> con un rol temporal, auditado.</li>
+<li>El plan publicado en el pull request es parte de la auditoría: quién pidió el cambio, qué cambió en la nube, quién lo aprobó, cuándo se aplicó.</li>
+<li>Las pruebas de los módulos corren en cada pull request del repositorio de módulos; los entornos solo se actualizan a una versión nueva del módulo después de que pasen.</li>
+<li>Un pull request de infraestructura es chico: un cambio, un plan que se entiende en dos minutos. Los cambios grandes se dividen.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo despliegas Terraform de forma segura en producción?&quot;</div>
+
+<p>Todo por pull request. La CI corre fmt, validate, tflint, un escáner de seguridad y terraform test, y publica el plan de cada entorno en el pull request. Un revisor lee el plan, no solo el código. Al hacer merge, la CI aplica en dev automáticamente y en prod con aprobación manual (environment protegido). La CI se autentica con OIDC, con un rol de solo lectura para el plan y otro para el apply que solo puede usar la rama main. El estado está en un backend remoto con bloqueo y versionado, los recursos críticos tienen prevent_destroy, y un plan nocturno con -detailed-exitcode detecta drift.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Etapa</th>
+<th>Qué se hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Antes del commit</td>
+<td><code>pre-commit</code>: fmt, validate, tflint</td>
+</tr>
+<tr>
+<td>Pull request</td>
+<td>fmt -check, validate, tflint, checkov, <code>terraform test</code>, plan publicado en el PR</td>
+</tr>
+<tr>
+<td>Merge a main</td>
+<td>Apply en dev automático</td>
+</tr>
+<tr>
+<td>Producción</td>
+<td>Apply con aprobación manual, rol separado, OIDC</td>
+</tr>
+<tr>
+<td>Todos los días</td>
+<td>Plan con <code>-detailed-exitcode</code> para detectar drift</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/terraform-cicd-buenas-practicas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="terraform-plataforma-aws-gcp.html">← Proyecto: la plataforma de datos en AWS y en Google Cloud</a><a href="local-preparar-la-computadora.html">Preparar tu computadora: Windows con WSL, macOS o Linux →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

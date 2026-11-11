@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SaaS ☁️: prorrateos, movimientos de MRR, facturación incremental y cierre mensual · Academia de Datos</title><meta name="description" content="El prorrateo de un cambio de plan y los movimientos de MRR en Python, la conciliación de movimientos en PySpark, un modelo incremental de facturación en dbt y el DAG de cierre de mes."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-saas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SaaS ☁️: prorrateos, movimientos de MRR, facturación incremental y cierre mensual · Academia de Datos"><meta property="og:description" content="El prorrateo de un cambio de plan y los movimientos de MRR en Python, la conciliación de movimientos en PySpark, un modelo incremental de facturación en dbt y el DAG de cierre de mes."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-saas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Experto · 65 min</div>
+<h1>SaaS ☁️: prorrateos, movimientos de MRR, facturación incremental y cierre mensual</h1><p class="resumen">El prorrateo de un cambio de plan y los movimientos de MRR en Python, la conciliación de movimientos en PySpark, un modelo incremental de facturación en dbt y el DAG de cierre de mes.</p>
+<a class="cta" href="../index.html#/l/pipelines-saas">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<p>En <strong>Nube Pyme</strong> (caso ☁️) las métricas de suscripción se presentan al directorio y a los inversores cada mes. No pueden tener errores. Esta lección construye las piezas del <strong>cierre mensual</strong>: la lógica de facturación de los cambios de plan, la descomposición del MRR en movimientos, la tabla de facturas cargada de forma incremental, y el DAG que lo orquesta.</p>
+<h2>1. Python: el prorrateo de un cambio de plan</h2>
+<p>Una empresa paga el plan Básico (49 por mes) y el día 11 de un mes de 30 días sube al Profesional (149). No es justo cobrarle el mes entero del plan nuevo ni regalarle la diferencia: se <strong>prorratea</strong> por días.</p>
+<ul>
+<li>Días restantes del mes, <strong>incluido</strong> el día del cambio: del 11 al 30 son 20 días → fracción 20/30.</li>
+<li><strong>Crédito</strong> por la parte no usada del plan viejo: 49 × 20/30 = 32,67.</li>
+<li><strong>Cargo</strong> por la parte restante del plan nuevo: 149 × 20/30 = 99,33.</li>
+<li>A cobrar ahora: cargo − crédito = <strong>66,67</strong> (si es una bajada de plan, el resultado es negativo: un saldo a favor).</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 El centavo perdido</div>
+
+<p>Fíjate en el primer test: el neto da 66,66 y no 66,67, porque se calcula con los montos <strong>ya redondeados</strong> (99,33 − 32,67). Es una decisión de negocio, no un error: lo importante es que el sistema de facturación y el reporte usen <strong>la misma</strong> regla. Si uno redondea antes y otro después, la conciliación nunca cierra por centavos.</p>
+</div>
+
+
+<h2>2. Python: descomponer el MRR en movimientos</h2>
+<p>El MRR pasó de 100.000 a 104.000. ¿Es buena noticia? Depende: puede ser que entraron muchos clientes nuevos y se fueron otros tantos. Por eso se <strong>descompone</strong> la variación:</p>
+<pre><code class="language-text">MRR final = MRR inicial + nuevo + expansión − contracción − churn</code></pre>
+<div class="exercise-slot"></div>
+
+
+<h2>3. PySpark: los movimientos de cada mes, a escala</h2>
+<p>La misma lógica, para todos los meses y todas las empresas a la vez. El truco: unir la facturación de cada mes con la del <strong>mes anterior</strong> de la misma empresa, con un <strong>full outer join</strong> (para no perder ni las altas, que no estaban antes, ni las bajas, que no están ahora).</p>
+<div class="exercise-slot"></div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>4. dbt: la facturación mensual, incremental</h2>
+<p>La tabla de facturación por empresa y mes crece todos los meses y nunca se modifican los meses cerrados. Recalcularla completa cada vez es un desperdicio: es el caso ideal para un modelo <strong>incremental</strong>.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Facturas que cambian de estado</div>
+
+<p>Una factura de noviembre puede pasar de <code>pendiente</code> a <code>pagada</code> en diciembre. Con el filtro <code>mes &gt; max(mes)</code>, ese cambio <strong>nunca</strong> se vería. En la vida real, la ventana incremental reprocesa también los últimos 2 o 3 meses (<code>mes &gt;= max(mes) - 2 meses</code>) con <code>unique_key</code> para que el <code>merge</code> actualice esas filas. Elegir la ventana es una decisión de negocio: ¿cuánto tarda en estabilizarse un dato?</p>
+</div>
+
+
+<h2>5. Airflow: el cierre de mes</h2>
+<p>El cierre corre el <strong>día 1 de cada mes</strong> a las 06:00 y procesa el mes que terminó. Ojo con la fecha: en Airflow 3, con <code>schedule=&quot;0 6 1 * *&quot;</code>, la ejecución que corre el 1 de julio tiene <code>ds</code> = 1 de julio (la fecha del disparo). Para que el intervalo sea el mes cerrado se usa <code>CronTriggerTimetable(&quot;0 6 1 * *&quot;, timezone=&quot;UTC&quot;, interval=relativedelta(months=1))</code>, y entonces <code>data_interval_start</code> = 1 de junio. En Airflow 2 ese era el comportamiento por defecto.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>Por qué el cierre de mes es especial</h2>
+<p>En una empresa SaaS el <strong>MRR</strong> (ingreso mensual recurrente) es la métrica que mira el directorio y los inversores. Su descomposición en movimientos (nuevo, expansión, contracción, churn) tiene una <strong>identidad contable</strong>: MRR inicial + nuevo + expansión − contracción − churn = MRR final. Si no cuadra, hay un error en el pipeline, no &quot;un mes raro&quot;. Por eso el DAG de cierre tiene una tarea que <strong>verifica la identidad</strong> y falla si la diferencia supera un centavo: es un test de negocio dentro del pipeline.</p>
+<p>El modelo de facturación en dbt es <strong>incremental</strong> porque cada mes se agregan facturas, pero una factura puede cambiar de estado (de pendiente a pagada) después de cargada. Por eso usa <code>merge</code> con <code>unique_key</code> y reprocesa una ventana de meses recientes, no solo el último.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Prorratear con días de 30</strong> cuando el contrato dice días calendario: la diferencia es pequeña por cliente y enorme en el total.</li>
+<li><strong>Contar un upgrade como churn más alta nueva</strong>: el MRR del mes queda igual pero los movimientos mienten (más churn y más altas de lo real).</li>
+<li><strong>Incremental con <code>append</code></strong> para facturas que cambian de estado: aparecen duplicadas o quedan con el estado viejo.</li>
+<li><strong>Cerrar el mes antes de que lleguen todas las facturas</strong>: el cierre se programa días después del fin de mes y se marca como provisorio hasta entonces.</li>
+<li><strong>No verificar la identidad del MRR</strong>: los errores se descubren en la reunión del directorio.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El cierre de mes suele tener un calendario: el día 1 se corre el cierre provisorio, el día 5 el definitivo, y cualquier reproceso posterior queda registrado.</li>
+<li>Finanzas y datos deben acordar las definiciones (qué es expansión, cuándo una baja cuenta) por escrito; esas definiciones se convierten en tests.</li>
+<li><code>catchup=True</code> tiene sentido en DAGs mensuales como este: permite reprocesar meses viejos con un backfill cuando se corrige una regla.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo validarías que una métrica como el MRR es correcta en cada cierre?&quot;</div>
+
+<p>Con controles que no dependen de la implementación: la identidad contable entre MRR inicial, movimientos y MRR final debe cuadrar al centavo, y si no, el cierre falla. Compararía el MRR con la suma de facturas del mes de otra fuente, por ejemplo el sistema de facturación, y alertaría ante variaciones grandes contra el mes anterior. Las definiciones de cada movimiento estarían acordadas con finanzas y probadas con casos.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-saas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-clinica.html">← Clínica 🏥: agenda, riesgo de ausencia, pacientes reincidentes y recordatorios</a><a href="pipelines-vuelos.html">Aerolínea ✈️: sobreventa, propagación de demoras y tareas generadas por código →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GROUP BY y HAVING · Academia de Datos</title><meta name="description" content="Agrupar filas para calcular totales por categoría, y filtrar grupos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-group-by.html">
+<meta property="og:type" content="article"><meta property="og:title" content="GROUP BY y HAVING · Academia de Datos"><meta property="og:description" content="Agrupar filas para calcular totales por categoría, y filtrar grupos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-group-by.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Intermedio · 40 min</div>
+<h1>GROUP BY y HAVING</h1><p class="resumen">Agrupar filas para calcular totales por categoría, y filtrar grupos.</p>
+<a class="cta" href="../index.html#/l/sql-group-by">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular métricas &quot;por cada…&quot; con <code>GROUP BY</code></li><li>Agrupar por varias columnas y por expresiones (año, mes)</li><li>Filtrar grupos con <code>HAVING</code> y saber cuándo usar <code>WHERE</code></li><li>Aplicar la regla de oro: toda columna del <code>SELECT</code> está en el <code>GROUP BY</code> o dentro de una agregación</li></ul>
+<h2>De &quot;un total&quot; a &quot;un total por cada…&quot;</h2>
+<p>La lección anterior te dio <strong>un</strong> número para toda la tabla: 2.000 clientes. Pero el negocio pregunta casi siempre <strong>&quot;por&quot;</strong>: clientes <strong>por país</strong>, ventas <strong>por mes</strong>, pedidos <strong>por canal</strong>, ticket promedio <strong>por segmento</strong>. Eso es <code>GROUP BY</code>: divide las filas en <strong>grupos</strong> según el valor de una o más columnas y calcula la agregación <strong>dentro de cada grupo</strong>.</p>
+<pre><code class="language-sql">SELECT pais, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais
+ORDER BY clientes DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>pais</th>
+<th>clientes</th>
+</tr>
+</thead><tbody><tr>
+<td>México</td>
+<td>387</td>
+</tr>
+<tr>
+<td>Argentina</td>
+<td>363</td>
+</tr>
+<tr>
+<td>Colombia</td>
+<td>312</td>
+</tr>
+<tr>
+<td>España</td>
+<td>300</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<p>El resultado tiene <strong>una fila por cada país distinto</strong> (11 filas), con su conteo.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Separar caramelos por color</div>
+
+<p>Tienes una bolsa con caramelos de colores. <code>GROUP BY color</code> los separa en montoncitos, uno por color. <code>COUNT(*)</code> cuenta cada montoncito y <code>SUM(peso)</code> pesa cada uno. Al final tienes <strong>una fila por montoncito</strong>, no una por caramelo.</p>
+</div>
+
+
+<h2>Cómo funciona por dentro, paso a paso</h2>
+<p>Para <code>SELECT canal, COUNT(*) AS pedidos, SUM(…) AS cancelados FROM pedidos GROUP BY canal</code>:</p>
+<ol>
+<li><strong>FROM</strong>: toma las 12.000 filas de <code>pedidos</code>.</li>
+<li><strong>GROUP BY canal</strong>: las reparte en 4 montones: <code>app</code>, <code>telefono</code>, <code>tienda</code>, <code>web</code>.</li>
+<li><strong>SELECT</strong>: para cada montón calcula las agregaciones y escribe <strong>una fila</strong>.</li>
+</ol>
+<pre><code class="language-sql">SELECT canal,
+       COUNT(*) AS pedidos,
+       SUM(CASE WHEN estado = 'cancelado' THEN 1 ELSE 0 END) AS cancelados
+FROM pedidos
+GROUP BY canal;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>canal</th>
+<th>pedidos</th>
+<th>cancelados</th>
+</tr>
+</thead><tbody><tr>
+<td>app</td>
+<td>2973</td>
+<td>266</td>
+</tr>
+<tr>
+<td>telefono</td>
+<td>982</td>
+<td>73</td>
+</tr>
+<tr>
+<td>tienda</td>
+<td>2645</td>
+<td>207</td>
+</tr>
+<tr>
+<td>web</td>
+<td>5400</td>
+<td>421</td>
+</tr>
+</tbody></table></div>
+<p>Comprueba: 2.973 + 982 + 2.645 + 5.400 = 12.000. Los grupos <strong>reparten</strong> todas las filas sin repetir ni perder ninguna.</p>
+<div class="recorrido"></div>
+
+
+<h2>La regla de oro</h2>
+<blockquote>
+<p>Toda columna del <code>SELECT</code> debe estar <strong>en el <code>GROUP BY</code></strong> o <strong>dentro de una función de agregación</strong>.</p>
+</blockquote>
+<p>¿Por qué? Porque cada fila del resultado representa <strong>un grupo</strong>. Si pones <code>nombre</code> en el <code>SELECT</code> agrupando por <code>pais</code>, en el grupo &quot;Chile&quot; hay 167 nombres distintos: ¿cuál mostraría? No hay respuesta. En cambio <code>pais</code> tiene un único valor por grupo (por definición), y <code>COUNT(*)</code> también.</p>
+<pre><code class="language-sql">-- ❌ nombre no está agrupado ni agregado
+SELECT pais, nombre, COUNT(*) FROM clientes GROUP BY pais;
+
+-- ✅ Agrupar por varias columnas: un grupo por cada combinación
+SELECT pais, segmento, COUNT(*) AS clientes
+FROM clientes
+GROUP BY pais, segmento
+ORDER BY pais, segmento;</code></pre>
+<p>Con dos columnas en el <code>GROUP BY</code>, cada grupo es una <strong>combinación</strong>: &quot;Argentina – Consumidor&quot;, &quot;Argentina – Corporativo&quot;, &quot;Argentina – Pyme&quot;, &quot;Bolivia – Consumidor&quot;… (33 grupos).</p>
+<h2>Agrupar por una expresión</h2>
+<p>El grupo no tiene que ser una columna tal cual: puede ser un cálculo. El caso más común es agrupar fechas por <strong>mes</strong> o <strong>año</strong>:</p>
+<pre><code class="language-sql">SELECT strftime('%Y', fecha_pedido) AS anio,
+       COUNT(*) AS pedidos
+FROM pedidos
+GROUP BY anio
+ORDER BY anio;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>anio</th>
+<th>pedidos</th>
+</tr>
+</thead><tbody><tr>
+<td>2022</td>
+<td>3346</td>
+</tr>
+<tr>
+<td>2023</td>
+<td>4021</td>
+</tr>
+<tr>
+<td>2024</td>
+<td>4633</td>
+</tr>
+</tbody></table></div>
+<p>Si agruparas por <code>fecha_pedido</code> directamente obtendrías una fila por <strong>día</strong> (más de mil filas). Al transformar la fecha a año, todos los días de 2022 caen en el mismo grupo.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Puedo usar el alias en el GROUP BY?</div>
+
+<p>SQLite, PostgreSQL, MySQL, Spark y BigQuery aceptan <code>GROUP BY anio</code> (el alias del <code>SELECT</code>). SQL Server y Oracle (antes de la versión 23ai) no: allí debes repetir la expresión (<code>GROUP BY strftime(&#39;%Y&#39;, fecha_pedido)</code>). También existe <code>GROUP BY 1</code> (la primera columna del <code>SELECT</code>), muy usado en análisis rápido.</p>
+</div>
+
+
+<h2>HAVING: filtrar grupos</h2>
+<p><code>WHERE</code> filtra <strong>filas</strong>, antes de agrupar. ¿Y si quieres filtrar por el <strong>resultado</strong> de una agregación, como &quot;las ciudades con más de 100 clientes&quot;? No puedes usar <code>WHERE COUNT(*) &gt; 100</code>, porque cuando se ejecuta el <code>WHERE</code> los grupos todavía no existen. Para eso está <code>HAVING</code>: filtra <strong>grupos</strong>, después de agrupar.</p>
+<pre><code class="language-sql">SELECT ciudad, COUNT(*) AS clientes
+FROM clientes
+GROUP BY ciudad
+HAVING COUNT(*) &gt; 100
+ORDER BY clientes DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>ciudad</th>
+<th>clientes</th>
+</tr>
+</thead><tbody><tr>
+<td>Buenos Aires</td>
+<td>201</td>
+</tr>
+<tr>
+<td>Ciudad de México</td>
+<td>179</td>
+</tr>
+<tr>
+<td>Madrid</td>
+<td>153</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<h3>WHERE y HAVING juntos</h3>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th><code>WHERE</code></th>
+<th><code>HAVING</code></th>
+</tr>
+</thead><tbody><tr>
+<td>Qué filtra</td>
+<td>Filas individuales</td>
+<td>Grupos</td>
+</tr>
+<tr>
+<td>Cuándo</td>
+<td><strong>Antes</strong> de agrupar</td>
+<td><strong>Después</strong> de agrupar</td>
+</tr>
+<tr>
+<td>Puede usar agregaciones</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Ejemplo</td>
+<td><code>WHERE estado = &#39;entregado&#39;</code></td>
+<td><code>HAVING SUM(total) &gt; 10000</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-sql">-- Clientes con más de 10 pedidos ENTREGADOS
+SELECT cliente_id, COUNT(*) AS pedidos_entregados
+FROM pedidos
+WHERE estado = 'entregado'          -- 1) solo filas entregadas
+GROUP BY cliente_id                 -- 2) un grupo por cliente
+HAVING COUNT(*) &gt; 10                -- 3) solo los grupos con más de 10
+ORDER BY pedidos_entregados DESC;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Filtra lo antes posible</div>
+
+<p>Si una condición se puede escribir en <code>WHERE</code> (no usa agregaciones), ponla en <code>WHERE</code>, no en <code>HAVING</code>. El resultado es el mismo pero el motor agrupa menos filas, y la consulta se entiende mejor.</p>
+</div>
+
+
+<h2>El orden lógico de ejecución (versión completa)</h2>
+<p>SQL se <strong>escribe</strong> en un orden y se <strong>ejecuta</strong> en otro. Esta tabla explica casi todos los errores de principiante:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Cláusula</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td><code>FROM</code> / <code>JOIN</code></td>
+<td>Junta las tablas</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>WHERE</code></td>
+<td>Filtra filas</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>GROUP BY</code></td>
+<td>Forma grupos</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>HAVING</code></td>
+<td>Filtra grupos</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>SELECT</code></td>
+<td>Calcula columnas y alias</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>DISTINCT</code></td>
+<td>Quita duplicados</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>ORDER BY</code></td>
+<td>Ordena (ya puede usar alias)</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>LIMIT</code> / <code>OFFSET</code></td>
+<td>Recorta</td>
+</tr>
+</tbody></table></div>
+<p>Consecuencias:</p>
+<ul>
+<li><code>WHERE COUNT(*) &gt; 5</code> → error: en el paso 2 no hay grupos.</li>
+<li><code>WHERE margen &gt; 0.3</code> (alias) → error en el estándar: en el paso 2 el <code>SELECT</code> no se ejecutó.</li>
+<li><code>ORDER BY clientes DESC</code> (alias) → funciona: en el paso 7 los alias ya existen.</li>
+</ul>
+<p>Los motores no son igual de estrictos con el <code>GROUP BY</code>. Prueba la misma consulta (incorrecta) en cada uno:</p>
+<div class="motores"></div>
+
+
+<p>Usar el alias del <code>SELECT</code> en el <code>GROUP BY</code> funciona en casi todos, salvo SQL Server:</p>
+<div class="motores"></div>
+
+
+<h2>Errores frecuentes</h2>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Agrupar de más</div>
+
+<p>Si agrupas por <code>cliente_id, fecha_pedido</code> cuando querías &quot;por cliente&quot;, obtienes una fila por cliente <strong>y día</strong>. Antes de escribir el <code>GROUP BY</code>, define el <strong>grano</strong> del resultado: &quot;quiero una fila por ______&quot;. Lo que pongas en el blanco es exactamente lo que va en el <code>GROUP BY</code>.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Grupos que no aparecen</div>
+
+<p><code>GROUP BY</code> solo crea grupos para los valores que <strong>existen</strong> en los datos. Si en marzo no hubo ventas, marzo no aparece (no aparece con 0). Para mostrar los meses vacíos necesitas un calendario y un <code>LEFT JOIN</code> (lecciones de JOIN y CTE recursivas).</p>
+</div>
+
+
+
+
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Las ventas por canal</div>
+
+<p>Valentina vuelve con otra pregunta, la más común de todas:</p>
+<blockquote>
+<p>&quot;Los totales estuvieron bien, pero en el directorio me preguntaron: ¿y por canal? ¿Y por año? ¿Y qué clientes nos compran más de 10 veces?&quot;</p>
+</blockquote>
+<p>Un total sirve poco. Lo que el negocio quiere casi siempre es <strong>un total por cada algo</strong>: por canal, por país, por mes. Eso es <code>GROUP BY</code>, y vas a usarlo en casi todas tus consultas.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los dashboards de negocio son, en el fondo, <code>GROUP BY</code> sobre una tabla de hechos: ventas por día, por país, por canal. En los pipelines, esas agregaciones se <strong>precalculan</strong> en la capa gold para que el dashboard no tenga que recalcular millones de filas cada vez que alguien lo abre.</li>
+<li>Agrupar por una columna con muchísimos valores distintos (el id de usuario en una tabla de mil millones de eventos) genera un <em>shuffle</em> enorme en Spark o BigQuery. Antes de agrupar, pregúntate si realmente necesitas ese nivel de detalle.</li>
+<li>Cuando el resultado es un reporte, los grupos sin datos (un día sin ventas) desaparecen. Si el negocio necesita ver el cero, se parte de una tabla calendario o de una lista de todos los grupos y se hace un <code>LEFT JOIN</code>.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Se puede usar un alias del SELECT en el GROUP BY o en el HAVING?&quot;</div>
+
+<p>Según el estándar, no, porque <code>GROUP BY</code> y <code>HAVING</code> se evalúan antes que el <code>SELECT</code>. En la práctica, SQLite, PostgreSQL (en GROUP BY), MySQL, BigQuery y Spark lo permiten por comodidad; SQL Server y Oracle (antes de la versión 23ai) no. Lo seguro y portable es repetir la expresión o calcularla antes en una CTE.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>GROUP BY col</code> crea un grupo por cada valor distinto y calcula las agregaciones dentro de cada grupo.</li>
+<li>Regla de oro: todo lo del <code>SELECT</code> va en el <code>GROUP BY</code> o dentro de una agregación.</li>
+<li>Puedes agrupar por expresiones (año, mes) y por varias columnas (combinaciones).</li>
+<li><code>WHERE</code> filtra filas antes; <code>HAVING</code> filtra grupos después.</li>
+<li>Define el grano (&quot;una fila por…&quot;) antes de escribir el <code>GROUP BY</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-group-by">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-agregaciones.html">← Funciones de agregación</a><a href="sql-case.html">CASE WHEN: lógica condicional →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

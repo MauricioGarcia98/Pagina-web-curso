@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cohortes, retención y churn · Academia de Datos</title><meta name="description" content="Medir si los clientes vuelven - usuarios activos (DAU, MAU, stickiness), cohortes por mes de primera compra, la tabla de retención mes a mes, la tasa de bajas (churn) de una suscripción y la diferencia entre clientes nuevos, recurrentes y recuperados."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-cohortes-retencion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cohortes, retención y churn · Academia de Datos"><meta property="og:description" content="Medir si los clientes vuelven - usuarios activos (DAU, MAU, stickiness), cohortes por mes de primera compra, la tabla de retención mes a mes, la tasa de bajas (churn) de una suscripción y la diferencia entre clientes nuevos, recurrentes y recuperados."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-cohortes-retencion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Avanzado · 55 min</div>
+<h1>Cohortes, retención y churn</h1><p class="resumen">Medir si los clientes vuelven - usuarios activos (DAU, MAU, stickiness), cohortes por mes de primera compra, la tabla de retención mes a mes, la tasa de bajas (churn) de una suscripción y la diferencia entre clientes nuevos, recurrentes y recuperados.</p>
+<a class="cta" href="../index.html#/l/analisis-cohortes-retencion">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular usuarios activos diarios y mensuales</li><li>Asignar a cada cliente su cohorte de primera compra</li><li>Construir una tabla de retención por cohorte y mes</li><li>Calcular churn mensual sobre la base correcta</li></ul>
+<h2>Usuarios activos: DAU, MAU y stickiness</h2>
+<ul>
+<li><strong>DAU</strong>: usuarios distintos activos en un día. <strong>MAU</strong>: en un mes.</li>
+<li><strong>Stickiness</strong> = DAU promedio ÷ MAU. Un 20 % significa que el usuario típico entra unos 6 días al mes.</li>
+</ul>
+<pre><code class="language-sql">-- usuarios activos por mes en los logins de la tienda
+SELECT strftime('%Y-%m', fecha) AS mes, COUNT(DISTINCT cliente_id) AS mau
+FROM logins
+GROUP BY mes
+ORDER BY mes;</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Cohortes</h2>
+<p>Una <strong>cohorte</strong> es un grupo de clientes que empezó en el mismo período (por ejemplo, el mes de su primera compra). Se sigue a cada cohorte en el tiempo: ¿qué porcentaje sigue comprando 1, 2, 3 meses después?</p>
+<pre><code class="language-sql">WITH primera AS (
+  SELECT cliente_id, MIN(fecha_pedido) AS primera_compra
+  FROM pedidos
+  GROUP BY cliente_id
+)
+SELECT strftime('%Y-%m', primera_compra) AS cohorte, COUNT(*) AS clientes
+FROM primera
+GROUP BY cohorte
+ORDER BY cohorte
+LIMIT 6;</code></pre>
+<h3>La tabla de retención</h3>
+<p>Para cada pedido, el <strong>mes relativo</strong> es cuántos meses pasaron desde la cohorte del cliente: 0 es el mes de la primera compra.</p>
+<pre><code class="language-sql">WITH primera AS (
+  SELECT cliente_id, MIN(fecha_pedido) AS primera FROM pedidos GROUP BY cliente_id
+), actividad AS (
+  SELECT DISTINCT p.cliente_id,
+         strftime('%Y-%m', f.primera) AS cohorte,
+         (CAST(strftime('%Y', p.fecha_pedido) AS INTEGER) * 12 + CAST(strftime('%m', p.fecha_pedido) AS INTEGER))
+       - (CAST(strftime('%Y', f.primera) AS INTEGER) * 12 + CAST(strftime('%m', f.primera) AS INTEGER)) AS mes_rel
+  FROM pedidos p JOIN primera f ON f.cliente_id = p.cliente_id
+)
+SELECT cohorte, mes_rel, COUNT(*) AS clientes_activos
+FROM actividad
+WHERE cohorte BETWEEN '2024-01' AND '2024-03' AND mes_rel &lt;= 3
+GROUP BY cohorte, mes_rel
+ORDER BY cohorte, mes_rel;</code></pre>
+<p>La retención del mes N es <code>clientes_activos(mes N) ÷ clientes de la cohorte (mes 0)</code>.</p>
+<h2>Churn de una suscripción</h2>
+<p>En una suscripción, el <strong>churn del mes</strong> es: suscriptores que se dieron de baja en el mes ÷ suscriptores activos <strong>al inicio</strong> del mes. Dividir por los activos al final (o por el total histórico) es un error frecuente.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cohortes incompletas</div>
+
+<p>La cohorte de diciembre todavía no tuvo “mes 3”. En la tabla, esa celda no es 0 %: es “todavía no ocurrió”. Mostrarla como 0 hace pensar que la retención se desplomó.</p>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Marketing celebra: “¡este mes ganamos 400 clientes nuevos!”. Producto pregunta lo incómodo: “¿y cuántos de los 400 del mes pasado volvieron?”. Conseguir clientes cuesta caro; que vuelvan es lo que hace rentable el negocio. Las cohortes responden esa pregunta mes por mes.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-cohortes-retencion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="analisis-segmentacion.html">← Segmentar - histogramas, Pareto y RFM</a><a href="analisis-embudos.html">Embudos de conversión - dónde se pierden los clientes →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quién usa los datos y cómo se cuidan - calidad, linaje y privacidad · Academia de Datos</title><meta name="description" content="La última parte del viaje. Quién consume los datos (tableros, analistas, modelos, otros sistemas), qué significa que un dato sea de calidad, cómo se rastrea un número hasta su origen (linaje), quién es dueño de cada tabla y cómo se protegen los datos personales. Con un recorrido animado que sigue un número sospechoso del tablero hasta el error que lo causó."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-quien-usa-los-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Quién usa los datos y cómo se cuidan - calidad, linaje y privacidad · Academia de Datos"><meta property="og:description" content="La última parte del viaje. Quién consume los datos (tableros, analistas, modelos, otros sistemas), qué significa que un dato sea de calidad, cómo se rastrea un número hasta su origen (linaje), quién es dueño de cada tabla y cómo se protegen los datos personales. Con un recorrido animado que sigue un número sospechoso del tablero hasta el error que lo causó."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-quien-usa-los-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fundamentos">🧱 Fundamentos</a> · Básico · 40 min</div>
+<h1>Quién usa los datos y cómo se cuidan - calidad, linaje y privacidad</h1><p class="resumen">La última parte del viaje. Quién consume los datos (tableros, analistas, modelos, otros sistemas), qué significa que un dato sea de calidad, cómo se rastrea un número hasta su origen (linaje), quién es dueño de cada tabla y cómo se protegen los datos personales. Con un recorrido animado que sigue un número sospechoso del tablero hasta el error que lo causó.</p>
+<a class="cta" href="../index.html#/l/fundamentos-quien-usa-los-datos">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Nombrar los principales consumidores de los datos y qué necesita cada uno</li><li>Reconocer las dimensiones de calidad (completitud, unicidad, validez, consistencia, frescura) en datos reales</li><li>Seguir el linaje de un número desde el tablero hasta el origen</li><li>Explicar qué son los datos personales y cómo se protegen (enmascarar, mínimo privilegio)</li><li>Escribir checks de calidad simples con SQL</li></ul>
+<h2>La idea en una frase</h2>
+<p>Los datos valen lo que vale la <strong>confianza</strong> que se les tiene. Esa confianza se construye con calidad medida, dueños claros, linaje para explicar cada número y protección de los datos de las personas.</p>
+<h2>Quién usa los datos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Consumidor</th>
+<th>Qué hace con los datos</th>
+<th>Qué necesita</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tableros y reportes</strong> (BI)</td>
+<td>Mostrar métricas al negocio</td>
+<td>Tablas gold estables, frescas, con definiciones claras</td>
+</tr>
+<tr>
+<td><strong>Analistas</strong></td>
+<td>Responder preguntas nuevas</td>
+<td>Datos limpios en silver y gold, documentación, SQL</td>
+</tr>
+<tr>
+<td><strong>Científicos de datos y modelos de ML</strong></td>
+<td>Entrenar y predecir</td>
+<td>Historia completa, sin fugas del futuro, features reproducibles</td>
+</tr>
+<tr>
+<td><strong>Otros sistemas</strong> (reverse ETL, APIs)</td>
+<td>Usar datos en la operación: CRM, emails, precios</td>
+<td>Datos actualizados con un contrato estable</td>
+</tr>
+<tr>
+<td><strong>Reguladores y auditoría</strong></td>
+<td>Verificar números oficiales</td>
+<td>Exactitud, trazabilidad y retención</td>
+</tr>
+<tr>
+<td><strong>Asistentes de IA generativa</strong></td>
+<td>Responder preguntas en lenguaje natural sobre los datos</td>
+<td>Datos bien descritos (nombres, descripciones, métricas definidas) y permisos correctos</td>
+</tr>
+</tbody></table></div>
+<h2>Las dimensiones de la calidad</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Dimensión</th>
+<th>Pregunta</th>
+<th>Ejemplo de problema</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Completitud</strong></td>
+<td>¿Están todos los datos que deberían?</td>
+<td>Clientes sin email</td>
+</tr>
+<tr>
+<td><strong>Unicidad</strong></td>
+<td>¿Cada cosa aparece una sola vez?</td>
+<td>El mismo cliente cargado 5 veces</td>
+</tr>
+<tr>
+<td><strong>Validez</strong></td>
+<td>¿Los valores tienen el formato y rango correctos?</td>
+<td>Un email sin @, una edad de 230 años</td>
+</tr>
+<tr>
+<td><strong>Consistencia</strong></td>
+<td>¿Lo mismo se escribe igual en todos lados?</td>
+<td>&quot;Bogotá&quot;, &quot;bogotá&quot; y &quot;BOGOTA&quot;</td>
+</tr>
+<tr>
+<td><strong>Frescura</strong></td>
+<td>¿Los datos están al día?</td>
+<td>El tablero muestra datos de anteayer</td>
+</tr>
+<tr>
+<td><strong>Exactitud</strong></td>
+<td>¿Coincide con la realidad o con la fuente?</td>
+<td>Las ventas no cuadran con la contabilidad</td>
+</tr>
+</tbody></table></div>
+<h2>Seguir un número hasta su origen: el linaje</h2>
+<p>El <strong>linaje</strong> (lineage) es el mapa de qué tabla sale de qué tabla. Cuando un número parece incorrecto, se recorre hacia atrás, mirando el dato en cada paso, hasta encontrar dónde se rompió.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Los números del recorrido</div>
+
+<p>Los 243 clientes distintos y los 230 emails distintos salen de la tabla <code>clientes_crudo</code> del curso; el <code>cliente_id</code> 2201 es ilustrativo. Los checks reales los haces tú en los ejercicios.</p>
+</div>
+
+
+<h2>Dueños, catálogo y contratos</h2>
+<ul>
+<li>Cada tabla importante tiene un <strong>dueño</strong> (un equipo, no una persona) que responde por su calidad y sus cambios.</li>
+<li>Un <strong>catálogo de datos</strong> (Unity Catalog, Microsoft Purview, Dataplex, DataHub) lista las tablas con su descripción, dueño, columnas, linaje y quién puede verlas.</li>
+<li>Un <strong>contrato de datos</strong> es el acuerdo entre quien produce y quien consume: columnas, tipos, significado, frescura y cómo se avisan los cambios.</li>
+</ul>
+<h2>Privacidad y seguridad</h2>
+<p>Los <strong>datos personales</strong> (PII) son los que identifican a una persona: nombre, email, teléfono, documento, dirección, y también combinaciones como fecha de nacimiento + ciudad. Las leyes de protección de datos (GDPR en Europa, LGPD en Brasil, la Ley 1581 en Colombia, la Ley 25.326 en Argentina, entre otras) exigen cuidarlos.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Mínimo privilegio</strong></td>
+<td>Cada persona y cada sistema ve solo lo que necesita</td>
+<td>El tablero de ventas no necesita emails</td>
+</tr>
+<tr>
+<td><strong>Enmascarar</strong></td>
+<td>Mostrar el dato parcialmente</td>
+<td><code>pa***@gmail.com</code></td>
+</tr>
+<tr>
+<td><strong>Seudonimizar</strong></td>
+<td>Reemplazar el dato por un identificador</td>
+<td>Un hash del email en lugar del email</td>
+</tr>
+<tr>
+<td><strong>Minimizar</strong></td>
+<td>No copiar datos personales que nadie usa</td>
+<td>El lago no guarda el número de tarjeta</td>
+</tr>
+<tr>
+<td><strong>Retención</strong></td>
+<td>Borrar cuando ya no se necesitan o el titular lo pide</td>
+<td>Derecho al olvido</td>
+</tr>
+</tbody></table></div>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Arreglar el número en el tablero</strong>: un filtro &quot;a mano&quot; en el BI esconde el problema y otro tablero mostrará el número viejo. Se arregla en el pipeline, lo más cerca del origen posible.</li>
+<li><strong>Copiar datos personales &quot;por si acaso&quot;</strong>: cada copia es un riesgo y una obligación legal.</li>
+<li><strong>Tablas sin dueño</strong>: cuando se rompen, nadie sabe a quién avisar.</li>
+<li><strong>Checks que nadie mira</strong>: un test que falla en silencio es igual a no tener test.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Dos números que no coinciden</div>
+
+<p>Ahora que sabes por qué importan la calidad y el linaje, mira un caso que se repite en todas las empresas. Marketing reporta que el tablero dice <strong>243 clientes nuevos</strong> en el último trimestre, pero el CRM dice 230, y nadie confía en ninguno de los dos números.</p>
+<p>La tarea de un ingeniero de datos no es elegir uno al azar: es seguir el <strong>linaje</strong> de cada número hasta encontrar dónde se separan (una definición distinta de &quot;cliente nuevo&quot;, duplicados, una zona horaria). Es la forma de trabajar que viste en esta lección.</p>
+</div>
+
+
+<h2>Resumen del viaje</h2>
+<figure class="diagrama"><figcaption>El viaje completo, con lo que cuida cada parte</figcaption></figure>
+
+
+<p>Con estas cinco lecciones tienes el mapa completo. Las siguientes de Fundamentos te dan las herramientas para empezar a recorrerlo: <strong>formatos de datos</strong>, <strong>la terminal</strong> y <strong>Git</strong>.</p>
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fundamentos-quien-usa-los-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-como-se-mueven-los-datos.html">← Cómo se mueven los datos - batch, streaming, ETL, ELT y orquestación</a><a href="fundamentos-datos-y-formatos.html">Datos, tablas y formatos de archivo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

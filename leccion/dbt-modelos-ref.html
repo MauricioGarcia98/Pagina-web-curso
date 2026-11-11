@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelos y ref(): el corazón de dbt · Academia de Datos</title><meta name="description" content="Desde cero - qué es un modelo, qué es Jinja y qué significa compilar; ref() y source(), el DAG de dependencias, los selectores y el estilo de CTEs."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-modelos-ref.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Modelos y ref(): el corazón de dbt · Academia de Datos"><meta property="og:description" content="Desde cero - qué es un modelo, qué es Jinja y qué significa compilar; ref() y source(), el DAG de dependencias, los selectores y el estilo de CTEs."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-modelos-ref.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Intermedio · 35 min</div>
+<h1>Modelos y ref(): el corazón de dbt</h1><p class="resumen">Desde cero - qué es un modelo, qué es Jinja y qué significa compilar; ref() y source(), el DAG de dependencias, los selectores y el estilo de CTEs.</p>
+<a class="cta" href="../index.html#/l/dbt-modelos-ref">▶ Abrir la lección interactiva (7 ejercicios)</a>
+
+<p>Un <strong>modelo</strong> es un archivo <code>.sql</code> con <strong>un solo SELECT</strong>. El nombre del archivo es el nombre del modelo: <code>models/marts/fct_ventas.sql</code> crea <code>fct_ventas</code>.</p>
+<h2>Desde cero: qué escribes y qué ejecuta la base</h2>
+<p>Un modelo <strong>no</strong> lleva <code>CREATE TABLE</code>, ni <code>INSERT</code>, ni punto y coma al final: solo la consulta que describe el resultado que quieres. dbt agrega el resto (según la materialización, que verás en otra lección). Esa es la gran simplificación: tú piensas en <strong>qué datos</strong> quieres; dbt se ocupa de <strong>cómo</strong> guardarlos.</p>
+<p>Dentro del SQL aparecen cosas entre llaves dobles, como <code>{{ ref(&#39;stg_pedidos&#39;) }}</code>. Eso no es SQL: es <strong>Jinja</strong>, un lenguaje de plantillas (el mismo que usan muchos sitios web para armar páginas). Funciona como un &quot;buscar y reemplazar&quot; inteligente:</p>
+<ul>
+<li><code>{{ ... }}</code> significa &quot;calcula esto y <strong>escribe el resultado aquí</strong>&quot;.</li>
+<li><code>{% ... %}</code> significa &quot;ejecuta esta instrucción&quot; (un <code>if</code>, un <code>for</code>), sin escribir nada.</li>
+</ul>
+<p>Antes de enviar la consulta a la base, dbt <strong>compila</strong> el archivo: ejecuta el Jinja y obtiene SQL puro. Ese SQL queda guardado en <code>target/compiled/</code> para que lo leas. Cuando algo falla, siempre conviene mirar el compilado: es lo que la base recibió de verdad.</p>
+<pre><code class="language-text">models/marts/ventas_por_canal.sql           target/compiled/.../ventas_por_canal.sql
+--------------------------------            -----------------------------------------
+from {{ ref('stg_pedidos') }} as p    ──▶   from main.stg_pedidos as p</code></pre>
+<h2>ref(): la función más importante</h2>
+<p>En lugar de escribir el nombre de la tabla, referencias otros modelos con <code>{{ ref(&#39;nombre_modelo&#39;) }}</code>:</p>
+<pre><code class="language-dbt">-- models/marts/ventas_por_canal.sql
+select
+    p.canal,
+    count(distinct p.pedido_id) as pedidos,
+    round(sum(d.importe), 2)    as ventas
+from {{ ref('stg_pedidos') }} as p
+join {{ ref('stg_detalle_pedidos') }} as d on d.pedido_id = p.pedido_id
+where p.estado &lt;&gt; 'cancelado'
+group by p.canal</code></pre>
+<p>Presiona ▶ Probar: verás el resultado y, abajo, el <strong>SQL compilado</strong>.</p>
+<p>¿Por qué no escribir directamente <code>stg_pedidos</code>?</p>
+<ol>
+<li><strong>Dependencias automáticas</strong>: dbt lee todos los <code>ref()</code> y arma un <strong>DAG</strong>; sabe que <code>stg_pedidos</code> debe construirse antes que <code>ventas_por_canal</code>.</li>
+<li><strong>Entornos</strong>: <code>ref(&#39;stg_pedidos&#39;)</code> se compila como <code>dev.dbt_ana.stg_pedidos</code> en desarrollo y <code>prod.analytics.stg_pedidos</code> en producción. El mismo código sirve para ambos.</li>
+<li><strong>Linaje y documentación</strong>: dbt dibuja el grafo de qué modelo depende de cuál.</li>
+</ol>
+<pre><code class="language-text">source(tienda.pedidos) ─▶ stg_pedidos ─────────┐
+source(tienda.detalle) ─▶ stg_detalle_pedidos ─┼─▶ ventas_por_canal
+                                               └─▶ fct_ventas ─▶ ...</code></pre>
+<h2>ref() y source(): dos formas de nombrar una tabla</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Para qué tabla</th>
+<th>Ejemplo</th>
+<th>Dónde se declara</th>
+</tr>
+</thead><tbody><tr>
+<td><code>{{ ref(&#39;modelo&#39;) }}</code></td>
+<td>Una tabla que <strong>construye dbt</strong> (otro modelo, un seed o un snapshot)</td>
+<td><code>{{ ref(&#39;stg_pedidos&#39;) }}</code></td>
+<td>No hace falta declararla: basta con que exista el archivo</td>
+</tr>
+<tr>
+<td><code>{{ source(&#39;fuente&#39;, &#39;tabla&#39;) }}</code></td>
+<td>Una tabla que <strong>ya existe</strong> y que cargó otra herramienta (los datos crudos)</td>
+<td><code>{{ source(&#39;tienda&#39;, &#39;pedidos&#39;) }}</code></td>
+<td>En un <code>.yml</code> con <code>sources:</code> (lección siguiente)</td>
+</tr>
+</tbody></table></div>
+<p>La regla de oro: <strong>ningún modelo escribe el nombre de una tabla a mano</strong>. Los modelos de staging leen con <code>source()</code>; todos los demás, con <code>ref()</code>. Si escribes <code>from pedidos</code> directamente, dbt no sabe que dependes de esa tabla, el DAG queda incompleto y el modelo puede ejecutarse antes de que sus datos estén listos.</p>
+<div class="recorrido"></div>
+
+
+<h2>Qué es el DAG y por qué te importa</h2>
+<p><strong>DAG</strong> significa <em>Directed Acyclic Graph</em> (grafo dirigido acíclico): un dibujo de cajas (modelos) unidas por flechas (dependencias), donde las flechas van siempre &quot;hacia adelante&quot; y <strong>nunca forman un círculo</strong>. dbt lo construye solo, leyendo los <code>ref()</code> de cada archivo. Te importa por tres razones:</p>
+<ol>
+<li><strong>Orden de ejecución</strong>: dbt ejecuta primero los modelos sin dependencias y después los que dependen de ellos; lo que no depende entre sí corre en <strong>paralelo</strong>.</li>
+<li><strong>Ejecutar solo una parte</strong>: con <strong>selectores</strong> reconstruyes un modelo y lo que lo rodea, sin correr todo el proyecto.</li>
+<li><strong>Impacto de un cambio</strong>: antes de modificar <code>stg_pedidos</code>, puedes ver qué modelos (y dashboards) dependen de él.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th>Selector</th>
+<th>Qué ejecuta</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt run -s fct_ventas</code></td>
+<td>Solo ese modelo</td>
+</tr>
+<tr>
+<td><code>dbt run -s +fct_ventas</code></td>
+<td>El modelo <strong>y todo lo que necesita</strong> (sus ancestros)</td>
+</tr>
+<tr>
+<td><code>dbt run -s fct_ventas+</code></td>
+<td>El modelo <strong>y todo lo que depende de él</strong> (descendientes)</td>
+</tr>
+<tr>
+<td><code>dbt run -s +fct_ventas+</code></td>
+<td>Ancestros, el modelo y descendientes</td>
+</tr>
+<tr>
+<td><code>dbt run -s staging</code></td>
+<td>Todos los modelos de la carpeta <code>staging</code></td>
+</tr>
+<tr>
+<td><code>dbt build -s state:modified+</code></td>
+<td>Lo que cambió en tu rama y lo que depende de eso (CI)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Referencias circulares</div>
+
+<p>Si <code>a</code> usa <code>ref(&#39;b&#39;)</code> y <code>b</code> usa <code>ref(&#39;a&#39;)</code>, ya no es un DAG: dbt se niega a compilar con un error de <em>dependency cycle</em>. Casi siempre significa que falta un modelo intermedio que ambos deberían usar.</p>
+</div>
+
+
+<p>Pruébalo con el proyecto de la terminal:</p>
+<pre><code class="language-bash">cd tienda_dbt
+dbt ls -s +ventas_por_canal
+dbt run -s ventas_por_canal
+dbt run -s +top_clientes</code></pre>
+<h2>El estilo de dbt: CTEs de importación</h2>
+<p>La guía de estilo de dbt Labs recomienda empezar cada modelo <strong>importando</strong> sus dependencias en CTEs, y luego transformarlas en pasos con nombre:</p>
+<pre><code class="language-dbt">with pedidos as (
+    select * from {{ ref('stg_pedidos') }}
+),
+
+lineas as (
+    select * from {{ ref('stg_detalle_pedidos') }}
+),
+
+totales_por_pedido as (
+    select pedido_id, sum(importe) as total, sum(cantidad) as unidades
+    from lineas
+    group by pedido_id
+),
+
+final as (
+    select
+        p.pedido_id,
+        p.cliente_id,
+        p.fecha_pedido,
+        p.canal,
+        p.estado,
+        t.unidades,
+        round(t.total, 2) as total
+    from pedidos p
+    join totales_por_pedido t using (pedido_id)
+)
+
+select * from final</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Convenciones de nombres</div>
+
+<ul>
+<li><code>stg_&lt;fuente&gt;__&lt;tabla&gt;</code>: staging (por ejemplo <code>stg_erp__pedidos</code>).</li>
+<li><code>int_&lt;descripcion&gt;</code>: intermedios.</li>
+<li><code>fct_&lt;proceso&gt;</code>: hechos (<code>fct_ventas</code>, <code>fct_pagos</code>).</li>
+<li><code>dim_&lt;entidad&gt;</code>: dimensiones (<code>dim_clientes</code>, <code>dim_productos</code>).</li>
+</ul>
+</div>
+
+
+<h3>Por qué los CTEs y no subconsultas</h3>
+<p>Un <strong>CTE</strong> (<em>Common Table Expression</em>) es una consulta con nombre que se define con <code>with nombre as (...)</code> y se usa más abajo como si fuera una tabla. El modelo de arriba se lee de arriba hacia abajo como una receta: &quot;tomo los pedidos, tomo las líneas, calculo totales por pedido, junto todo&quot;. Con subconsultas anidadas, el mismo cálculo se lee de adentro hacia afuera y es mucho más difícil de revisar. El último CTE se llama <code>final</code> por convención, y el modelo termina con <code>select * from final</code>: así, para depurar, basta cambiar esa última línea por <code>select * from totales_por_pedido</code> y ver un paso intermedio.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Terminar el modelo con <code>;</code></strong>: dbt envuelve tu consulta dentro de un <code>create ... as (...)</code> y el punto y coma la rompe en muchos motores.</li>
+<li><strong>Escribir el nombre de la tabla en vez de <code>ref()</code></strong>: funciona en tu entorno, pero el orden de ejecución queda mal y en producción apunta al esquema equivocado.</li>
+<li><strong>Dos archivos con el mismo nombre</strong> en carpetas distintas: los nombres de modelo deben ser únicos en todo el proyecto.</li>
+<li><strong>Varios <code>SELECT</code> sueltos en un archivo</strong>: un modelo es una sola consulta (puede tener muchos CTEs, pero un solo resultado).</li>
+<li><strong>Leer el error del SQL sin mirar el compilado</strong>: el número de línea del error es el del SQL compilado, no el de tu archivo con Jinja.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las revisiones de código (<em>pull requests</em>) se mira que cada modelo tenga CTEs de importación arriba, nombres claros y un <code>final</code>. Es la guía de estilo que casi todos los equipos adoptan.</li>
+<li><code>dbt ls -s +modelo+</code> y el grafo de <code>dbt docs</code> se usan antes de cambiar un modelo para saber a quién afecta: si un tablero importante depende de él, se avisa al dueño.</li>
+<li>Un modelo de más de 200 líneas suele dividirse en modelos <code>int_</code> más chicos, reutilizables y fáciles de probar.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Por qué usar ref() en lugar de escribir el nombre de la tabla?&quot;</div>
+
+<p>Porque <code>ref()</code> le dice a dbt que el modelo depende de otro: con eso arma el DAG y ejecuta en el orden correcto, en paralelo donde se puede. Además resuelve el nombre completo según el entorno (el esquema de desarrollo de cada persona o el de producción), así el mismo código sirve en todos lados, y permite el linaje en la documentación y la selección con <code>+modelo+</code>.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<p>En estos ejercicios usa siempre <code>{{ ref(&#39;...&#39;) }}</code> para referirte a los modelos <code>stg_*</code>.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-modelos-ref">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-proyecto.html">← Instalación y estructura de un proyecto</a><a href="dbt-sources-capas.html">Sources, seeds y las capas del proyecto →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

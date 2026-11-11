@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particiones, shuffle, joins y skew · Academia de Datos</title><meta name="description" content="Cómo Spark mueve datos, estrategias de join, data skew y Adaptive Query Execution."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-particiones-joins.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Particiones, shuffle, joins y skew · Academia de Datos"><meta property="og:description" content="Cómo Spark mueve datos, estrategias de join, data skew y Adaptive Query Execution."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-particiones-joins.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Avanzado · 45 min</div>
+<h1>Particiones, shuffle, joins y skew</h1><p class="resumen">Cómo Spark mueve datos, estrategias de join, data skew y Adaptive Query Execution.</p>
+<a class="cta" href="../index.html#/l/spark-particiones-joins">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>Ya sabes que el <strong>shuffle</strong> (mover datos entre máquinas) es lo más caro de un job. Esta lección es sobre cómo controlarlo: cuántas particiones tener, cómo hace Spark un join entre dos tablas repartidas en cien máquinas y qué hacer cuando unos pocos valores concentran casi todos los datos (<strong>skew</strong>). Es el tema más preguntado en entrevistas de Spark.</p>
+<h2>repartition vs coalesce</h2>
+<p>A veces el número de particiones que eligió Spark no te sirve: son muy pocas para tu clúster, o vas a escribir el resultado y no quieres 200 archivos de 1 MB. Para cambiarlo hay dos herramientas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Qué hace</th>
+<th>Shuffle</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>df.repartition(200)</code></td>
+<td>Redistribuye en N particiones parejas</td>
+<td>Sí</td>
+<td>Aumentar el paralelismo o equilibrar</td>
+</tr>
+<tr>
+<td><code>df.repartition(&quot;pais&quot;)</code></td>
+<td>Agrupa por columna (las filas del mismo país quedan juntas)</td>
+<td>Sí</td>
+<td>Antes de escribir particionado, o de joins repetidos por esa clave</td>
+</tr>
+<tr>
+<td><code>df.coalesce(10)</code></td>
+<td>Junta particiones existentes sin redistribuir</td>
+<td>No</td>
+<td><strong>Reducir</strong> particiones (por ejemplo, para escribir pocos archivos)</td>
+</tr>
+</tbody></table></div>
+<p>La diferencia se entiende con un dibujo:</p>
+<pre><code class="language-text">repartition(3): TODAS las filas se reparten de nuevo         coalesce(2): se juntan particiones vecinas
+ P1 ─┬─► A                                                     P1 ─┐
+ P2 ─┼─► B      (shuffle completo: cada fila puede              P2 ─┴─► A     (sin shuffle: P1 y P2
+ P3 ─┼─► C       ir a cualquier destino)                        P3 ─┐          se juntan donde están)
+ P4 ─┘                                                          P4 ─┴─► B</code></pre>
+<ul>
+<li><code>repartition</code> cuesta un shuffle, pero deja particiones <strong>parejas</strong>.</li>
+<li><code>coalesce</code> es casi gratis, pero <strong>solo puede reducir</strong> y puede dejar particiones desparejas.</li>
+</ul>
+<pre><code class="language-python">pedidos = spark.table(&quot;pedidos&quot;)
+print(&quot;Particiones originales:&quot;, pedidos.rdd.getNumPartitions())
+print(&quot;Con repartition(4):    &quot;, pedidos.repartition(4).rdd.getNumPartitions())
+print(&quot;Con coalesce(2):       &quot;, pedidos.coalesce(2).rdd.getNumPartitions())</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ coalesce(1) en datos grandes</div>
+
+<p><code>coalesce(1)</code> hace que <strong>toda la etapa anterior</strong> corra en una sola tarea, porque Spark lo &quot;empuja&quot; hacia atrás en el plan. Con 500 GB, un solo core procesa todo. Si de verdad necesitas un único archivo de algo grande, usa <code>repartition(1)</code>: el cálculo pesado se hace en paralelo y solo la escritura final va en una tarea.</p>
+</div>
+
+
+<p><code>spark.sql.shuffle.partitions</code> (por defecto <strong>200</strong>) define cuántas particiones salen de cada shuffle. Para datos chicos es demasiado (200 tareas de 50 KB) y para datos muy grandes es poco (200 particiones de 5 GB que no entran en memoria). Con AQE activado (por defecto en Spark 3.2+ y en Databricks), Spark lo ajusta solo.</p>
+<h2>Estrategias de join</h2>
+<p>Unir dos tablas distribuidas tiene una dificultad: las filas que tienen que unirse (el pedido y su cliente) pueden estar <strong>en máquinas distintas</strong>. Spark tiene que juntarlas de alguna forma, y elige el algoritmo según el tamaño de las tablas.</p>
+<h3>1. Broadcast hash join: copiar la tabla chica</h3>
+<p>Si una tabla es <strong>chica</strong> (por defecto, menos de 10 MB, configurable con <code>spark.sql.autoBroadcastJoinThreshold</code>), Spark manda <strong>una copia completa a cada executor</strong>. Cada executor une sus particiones de la tabla grande con su copia local. La tabla grande <strong>no se mueve</strong>: ¡no hay shuffle!</p>
+<pre><code class="language-text">        clientes (2.000 filas) ── copia ──► executor 1, executor 2, executor 3
+pedidos (12.000 filas, se quedan donde están)
+ executor 1: sus pedidos ⋈ copia de clientes
+ executor 2: sus pedidos ⋈ copia de clientes      ← nadie mueve pedidos por la red
+ executor 3: sus pedidos ⋈ copia de clientes</code></pre>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+clientes = spark.table(&quot;clientes&quot;).select(&quot;cliente_id&quot;, &quot;pais&quot;)
+
+por_pais = (pedidos
+    .join(F.broadcast(clientes), &quot;cliente_id&quot;)   # forzar el broadcast con un hint
+    .groupBy(&quot;pais&quot;)
+    .agg(F.count(&quot;*&quot;).alias(&quot;pedidos&quot;))
+    .orderBy(F.desc(&quot;pedidos&quot;)))
+por_pais.show(5)</code></pre>
+<p>Spark suele elegir broadcast solo, si sabe que la tabla es chica. <code>F.broadcast(...)</code> lo <strong>fuerza</strong>, algo útil cuando Spark no tiene estadísticas o cuando la tabla chica sale de un filtro.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La tabla &quot;chica&quot; tiene que ser chica de verdad</div>
+
+<p>La copia vive en la memoria del driver y de <strong>cada</strong> executor. Forzar el broadcast de una tabla de 5 GB tumba el job por falta de memoria. Hasta unos cientos de MB suele andar bien.</p>
+</div>
+
+
+<h3>2. Sort-merge join: el estándar para dos tablas grandes</h3>
+<p>Cuando las dos tablas son grandes, ninguna se puede copiar. Spark entonces:</p>
+<ol>
+<li><strong>Reparte ambas por la clave</strong> (shuffle): todas las filas con <code>cliente_id = 42</code>, de las dos tablas, van a la misma partición.</li>
+<li><strong>Ordena</strong> cada partición por la clave.</li>
+<li>Recorre las dos listas ordenadas <strong>a la par</strong>, como quien junta dos mazos de cartas ordenados.</li>
+</ol>
+<p>Es robusto y funciona con cualquier tamaño, porque si no entra en memoria usa el disco. Su costo es el <strong>doble shuffle</strong>.</p>
+<h3>3. Shuffle hash join</h3>
+<p>Se reparten las dos tablas por clave (como en sort-merge), pero en vez de ordenar, en cada partición se construye una <strong>tabla hash</strong> con el lado más chico. Evita el ordenamiento, pero necesita que ese lado entre en memoria.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>¿Shuffle?</th>
+<th>Cuándo la elige Spark</th>
+</tr>
+</thead><tbody><tr>
+<td>Broadcast hash join</td>
+<td>No (solo copia la chica)</td>
+<td>Una tabla menor que el umbral, o con hint <code>broadcast</code></td>
+</tr>
+<tr>
+<td>Sort-merge join</td>
+<td>Sí, de las dos tablas</td>
+<td>Dos tablas grandes (el defecto)</td>
+</tr>
+<tr>
+<td>Shuffle hash join</td>
+<td>Sí, de las dos tablas</td>
+<td>Un lado bastante más chico que el otro, pero no lo suficiente para broadcast</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Broadcast</div>
+
+<p>Si cada obrero necesita consultar una lista de 20 códigos de país, es más rápido darle <strong>una fotocopia a cada uno</strong> que hacer que todos los obreros se reorganicen por país.</p>
+</div>
+
+
+<h2>Data skew: el enemigo silencioso</h2>
+<p><strong>Skew</strong> (sesgo) es cuando unas pocas claves concentran la mayoría de los datos. Como un shuffle manda <strong>todas</strong> las filas de una misma clave a <strong>una misma partición</strong>, una clave gigante produce una partición gigante.</p>
+<p>Ejemplo: en un join por <code>cliente_id</code>, el &quot;cliente&quot; <code>NULL</code> o <code>0</code> (compras sin cuenta) tiene el 40 % de las filas.</p>
+<pre><code class="language-text">200 particiones después del shuffle por cliente_id:
+ partición 1   (cliente_id = 0):  40.000.000 filas   ████████████████████████████  2 horas
+ partición 2   (cliente_id = 17):       3.100 filas  ▏                             2 segundos
+ partición 3   (cliente_id = 29):       2.800 filas  ▏                             2 segundos
+ ...</code></pre>
+<p><strong>Una tarea tarda 2 horas mientras las otras 199 terminan en 2 minutos.</strong> El job tarda lo que tarda la tarea más lenta, y agregar máquinas no ayuda, porque esa partición sigue en un solo core.</p>
+<p>Síntomas en la Spark UI:</p>
+<ul>
+<li>Un stage donde casi todas las tareas terminan rápido y unas pocas tardan muchísimo (mira la columna <strong>Max</strong> frente a la <strong>Median</strong> en &quot;Summary Metrics&quot;).</li>
+<li>Errores de memoria o mucho <strong>spill</strong> a disco en una sola tarea.</li>
+</ul>
+<p>Para detectarlo antes de que pase, cuenta cuántas filas tiene cada clave. Mira qué tan repartidos están los pedidos por canal:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+total = pedidos.count()
+(pedidos.groupBy(&quot;canal&quot;).count()
+    .withColumn(&quot;pct&quot;, F.round(F.col(&quot;count&quot;) / F.lit(total) * 100, 1))
+    .orderBy(F.desc(&quot;count&quot;))
+    .show())</code></pre>
+<p><code>web</code> tiene el 45 % de los pedidos. Si agruparas o unieras <strong>solo</strong> por canal, una de las cuatro particiones haría casi la mitad del trabajo. Con 4 valores no importa mucho; con mil millones de filas, sí.</p>
+<h3>Soluciones</h3>
+<ul>
+<li><strong>AQE skew join</strong> (Spark 3+): <code>spark.sql.adaptive.skewJoin.enabled=true</code> detecta las particiones gigantes y las <strong>divide automáticamente</strong> en varias. Es lo primero que tienes que tener activado.</li>
+<li><strong>Filtrar o tratar aparte</strong> las claves problemáticas. Los <code>NULL</code> nunca hacen match en un inner join: filtrarlos antes (<code>where cliente_id is not null</code>) elimina el problema de raíz.</li>
+<li><strong>Broadcast</strong> de la tabla chica, si se puede: sin shuffle no hay partición gigante.</li>
+<li><strong>Salting</strong>: agregar un número al azar a la clave caliente para repartirla en N particiones, y replicar la otra tabla N veces:</li>
+</ul>
+<pre data-norun><code class="language-python">N = 10
+# Lado grande: a cada fila le agrega un número al azar de 0 a 9
+ventas_s = ventas.withColumn(&quot;sal&quot;, (F.rand() * N).cast(&quot;int&quot;))
+# Lado chico: se replica 10 veces, una por cada valor de sal
+sales = spark.range(N).withColumnRenamed(&quot;id&quot;, &quot;sal&quot;)
+clientes_s = clientes.crossJoin(sales)
+# Join por la clave + la sal: el cliente 0 ahora se reparte en 10 particiones
+unido = ventas_s.join(clientes_s, [&quot;cliente_id&quot;, &quot;sal&quot;]).drop(&quot;sal&quot;)</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Adaptive Query Execution (AQE)</h2>
+<p>Sin AQE, Spark decide <strong>todo el plan antes de empezar</strong>, con estimaciones que pueden estar muy equivocadas. Con AQE, Spark <strong>reoptimiza el plan durante la ejecución</strong>, usando estadísticas reales de cada stage que termina:</p>
+<ul>
+<li><strong>Une particiones chicas</strong> después de un shuffle: adiós a las 200 particiones casi vacías.</li>
+<li><strong>Cambia a broadcast join</strong> si descubre que una tabla, después de filtrarla, resultó chica.</li>
+<li><strong>Divide las particiones con skew</strong> en los joins.</li>
+</ul>
+<p>Está activado por defecto en Databricks y en Spark ≥ 3.2 (<code>spark.sql.adaptive.enabled=true</code>). En el <code>explain()</code> lo reconoces porque el plan empieza con <code>AdaptiveSparkPlan</code>.</p>
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Qué hacer</th>
+</tr>
+</thead><tbody><tr>
+<td>Pocas particiones para el clúster</td>
+<td><code>repartition(n)</code></td>
+</tr>
+<tr>
+<td>Muchos archivos chicos al escribir</td>
+<td><code>coalesce(n)</code> (o <code>repartition(n)</code> si los datos son grandes)</td>
+</tr>
+<tr>
+<td>Join de una tabla grande con una chica</td>
+<td>Broadcast</td>
+</tr>
+<tr>
+<td>Join de dos tablas grandes</td>
+<td>Sort-merge (el defecto); filtra y selecciona columnas antes</td>
+</tr>
+<tr>
+<td>Una tarea tarda mucho más que el resto</td>
+<td>Skew: AQE, filtrar NULLs, broadcast o salting</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-particiones-joins">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-spark-sql.html">← Spark SQL y el catálogo</a><a href="spark-optimizacion.html">Optimización y tuning de Spark →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

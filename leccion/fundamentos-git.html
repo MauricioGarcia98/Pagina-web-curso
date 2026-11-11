@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Git y GitHub: guarda tu trabajo como un profesional · Academia de Datos</title><meta name="description" content="Control de versiones, commits, ramas, pull requests y el flujo de trabajo en equipo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-git.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Git y GitHub: guarda tu trabajo como un profesional · Academia de Datos"><meta property="og:description" content="Control de versiones, commits, ramas, pull requests y el flujo de trabajo en equipo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-git.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fundamentos">🧱 Fundamentos</a> · Básico · 40 min</div>
+<h1>Git y GitHub: guarda tu trabajo como un profesional</h1><p class="resumen">Control de versiones, commits, ramas, pull requests y el flujo de trabajo en equipo.</p>
+<a class="cta" href="../index.html#/l/fundamentos-git">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un repositorio y registrar cambios con <code>git add</code> y <code>git commit</code></li><li>Leer el estado y el historial con <code>git status</code>, <code>git diff</code> y <code>git log</code></li><li>Trabajar en una rama y unirla con <code>merge</code></li><li>Evitar subir secretos con <code>.gitignore</code></li><li>Describir el flujo de un pull request con revisión y pruebas automáticas</li></ul>
+<h2>¿Para qué sirve Git?</h2>
+<p>Imagina que trabajas en un documento y guardas <code>final.sql</code>, <code>final2.sql</code>, <code>final_AHORA_SI.sql</code>… <strong>Git</strong> resuelve eso: guarda un historial de cada cambio, quién lo hizo y por qué, y permite volver atrás o trabajar en paralelo con otras personas sin pisarse.</p>
+<p>En un equipo de datos, <strong>todo</strong> el código vive en Git: las consultas SQL, los modelos de dbt, los DAGs de Airflow, los notebooks, la infraestructura. Y casi nunca se sube un cambio a producción sin que otra persona lo revise. Saber Git no es opcional: es lo primero que te piden el primer día de trabajo.</p>
+<ul>
+<li><strong>Git</strong> es el programa que lleva el historial en tu computadora.</li>
+<li><strong>GitHub</strong> (o GitLab, Azure DevOps, Bitbucket) es un sitio web donde se guardan los repositorios en la nube para compartirlos y colaborar.</li>
+</ul>
+<h2>Conceptos clave</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Repositorio</strong> (repo)</td>
+<td>Una carpeta cuyo historial controla Git</td>
+</tr>
+<tr>
+<td><strong>Commit</strong></td>
+<td>Una &quot;foto&quot; de tus cambios con un mensaje que explica qué hiciste</td>
+</tr>
+<tr>
+<td><strong>Rama</strong> (<em>branch</em>)</td>
+<td>Una línea de trabajo paralela. La principal suele llamarse <code>main</code></td>
+</tr>
+<tr>
+<td><strong>Merge</strong></td>
+<td>Unir los cambios de una rama en otra</td>
+</tr>
+<tr>
+<td><strong>Remote</strong></td>
+<td>La copia del repo en la nube (normalmente se llama <code>origin</code>)</td>
+</tr>
+<tr>
+<td><strong>Pull request</strong> (PR)</td>
+<td>Pedido para que revisen y unan tu rama a <code>main</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Las tres zonas de Git</div>
+
+<ol>
+<li><strong>Directorio de trabajo</strong>: tu escritorio, donde editas.</li>
+<li><strong>Staging</strong> (<code>git add</code>): la caja donde pones lo que vas a enviar.</li>
+<li><strong>Repositorio</strong> (<code>git commit</code>): el archivo histórico, con la caja sellada y etiquetada.</li>
+</ol>
+</div>
+
+
+<p>¿Por qué existe el paso intermedio (staging)? Porque muchas veces cambias varios archivos y quieres guardarlos en <strong>commits separados</strong>, cada uno con su explicación: &quot;arregla el filtro de fechas&quot; por un lado y &quot;agrega el modelo de clientes&quot; por otro. Con <code>git add</code> eliges qué entra en cada foto.</p>
+<h2>Una sesión guiada, paso a paso</h2>
+<p>Abre la terminal (⌨ Terminal) y sigue esta sesión. Vas a crear un repositorio, hacer commits, trabajar en una rama y unirla. Todo funciona igual que en tu computadora.</p>
+<p><strong>1. Crear el repositorio y presentarte.</strong> Git anota en cada commit quién lo hizo, así que hay que decirle tu nombre y email una sola vez:</p>
+<pre data-norun><code class="language-bash">mkdir -p ~/mi_pipeline &amp;&amp; cd ~/mi_pipeline
+git init
+git config --global user.name &quot;Ana Datos&quot;
+git config --global user.email &quot;ana@ejemplo.com&quot;</code></pre>
+<p><code>git init</code> crea una carpeta oculta <code>.git</code> donde se guarda todo el historial. Si la borras, el historial desaparece (los archivos no).</p>
+<p><strong>2. Crear un archivo y mirar el estado.</strong> <code>git status</code> es el comando que más vas a usar: te dice qué cambió y qué está listo para guardar.</p>
+<pre><code class="language-text">$ echo &quot;SELECT canal, COUNT(*) FROM pedidos GROUP BY canal;&quot; &gt; ventas.sql
+$ git status
+En la rama main
+
+No hay commits todavía
+
+Archivos sin seguimiento:
+  (usa &quot;git add &lt;archivo&gt;...&quot; para incluirlo a lo que será confirmado)
+    ventas.sql</code></pre>
+<p>&quot;Sin seguimiento&quot; (<em>untracked</em>) significa que Git ve el archivo, pero todavía no lo controla.</p>
+<p><strong>3. Agregar al staging y hacer el commit:</strong></p>
+<pre><code class="language-text">$ git add ventas.sql
+$ git commit -m &quot;Agrega consulta de ventas por canal&quot;
+[main (commit-raíz) aad6f3d] Agrega consulta de ventas por canal
+ 1 archivo(s) cambiado(s)</code></pre>
+<p><code>aad6f3d</code> es el <strong>identificador</strong> del commit (un <em>hash</em>). Cada commit tiene uno distinto, y con él puedes volver a esa versión cuando quieras.</p>
+<p><strong>4. Cambiar el archivo y ver la diferencia:</strong></p>
+<pre><code class="language-text">$ echo &quot;-- total por canal&quot; &gt;&gt; ventas.sql
+$ git diff
+diff --git a/ventas.sql b/ventas.sql
++-- total por canal
+$ git add ventas.sql &amp;&amp; git commit -m &quot;Documenta la consulta&quot;
+$ git log --oneline
+95826db Documenta la consulta
+aad6f3d Agrega consulta de ventas por canal</code></pre>
+<p><code>git diff</code> muestra qué cambió desde el último commit (las líneas con <code>+</code> son nuevas, las con <code>-</code>, borradas). <code>git log --oneline</code> muestra el historial, del más nuevo al más viejo.</p>
+<p><strong>5. Trabajar en una rama.</strong> Para un cambio nuevo, <strong>nunca</strong> trabajes directo en <code>main</code>: crea una rama.</p>
+<pre><code class="language-text">$ git switch -c feature/clientes
+Cambiado a nueva rama 'feature/clientes'
+$ echo &quot;SELECT pais, COUNT(*) FROM clientes GROUP BY pais;&quot; &gt; clientes.sql
+$ git add clientes.sql &amp;&amp; git commit -m &quot;Agrega clientes por país&quot;
+$ git switch main
+$ ls
+ventas.sql</code></pre>
+<p>Al volver a <code>main</code>, <code>clientes.sql</code> <strong>desaparece</strong>: ese archivo existe solo en la rama <code>feature/clientes</code>. Así, si tu cambio no está listo, <code>main</code> sigue funcionando.</p>
+<p><strong>6. Unir la rama:</strong></p>
+<pre><code class="language-text">$ git merge feature/clientes
+$ ls
+clientes.sql  ventas.sql</code></pre>
+<p>En un equipo, este paso no lo haces tú en la terminal: lo hace GitHub cuando aprueban tu <strong>pull request</strong>.</p>
+<p><strong>7. Deshacer un cambio que todavía no guardaste:</strong></p>
+<pre><code class="language-text">$ echo &quot;basura&quot; &gt;&gt; ventas.sql
+$ git restore ventas.sql
+$ cat ventas.sql
+SELECT canal, COUNT(*) FROM pedidos GROUP BY canal;
+-- total por canal</code></pre>
+<p><code>git restore</code> vuelve el archivo a como estaba en el último commit. Es el &quot;deshacer&quot; más usado.</p>
+<p><strong>8. No subir secretos: <code>.gitignore</code>.</strong> Un archivo <code>.gitignore</code> lista lo que Git debe ignorar:</p>
+<pre><code class="language-text">$ echo &quot;PASSWORD=1234&quot; &gt; .env
+$ echo &quot;.env&quot; &gt; .gitignore
+$ git status
+Archivos sin seguimiento:
+    .gitignore</code></pre>
+<p><code>.env</code> ya no aparece: Git lo ignora y nunca va a terminar en GitHub. Lo mismo se hace con carpetas de datos, entornos virtuales (<code>.venv/</code>) y archivos generados (<code>target/</code> en dbt, <code>__pycache__/</code> en Python).</p>
+<h2>El ciclo diario en un equipo</h2>
+<pre data-norun><code class="language-bash">git clone https://github.com/empresa/pipelines.git   # 1. descargar el repo (una sola vez)
+cd pipelines
+git switch -c feature/nuevo-modelo                   # 2. crear una rama para tu cambio
+# ... editas archivos ...
+git status                                           # 3. ver qué cambió
+git add modelos/ventas.sql                           # 4. elegir qué cambios guardar
+git commit -m &quot;Agrega modelo de ventas diarias&quot;      # 5. guardar la foto
+git push -u origin feature/nuevo-modelo              # 6. subir la rama a GitHub
+# 7. en GitHub abres un Pull Request, alguien lo revisa y se hace merge
+git switch main &amp;&amp; git pull                          # 8. actualizar tu main</code></pre>
+<p>Qué pasa en el paso 7, el <strong>pull request</strong>:</p>
+<ol>
+<li>En GitHub abres el PR: &quot;quiero unir <code>feature/nuevo-modelo</code> a <code>main</code>&quot;, con una descripción de qué cambia y por qué.</li>
+<li>Se ejecuta la <strong>integración continua</strong> (CI): pruebas automáticas, por ejemplo <code>dbt build</code> contra datos de prueba o <code>pytest</code>. Si fallan, el PR queda en rojo.</li>
+<li>Una compañera <strong>revisa</strong> el código y deja comentarios (&quot;este filtro excluye los devueltos, ¿es a propósito?&quot;). Respondes o corriges con nuevos commits en la misma rama.</li>
+<li>Cuando está aprobado y en verde, se hace <strong>merge</strong> y el cambio llega a <code>main</code>. Muchas veces eso dispara el despliegue automático a producción.</li>
+</ol>
+<!-- dg:f04-pr -->
+<figure class="diagrama"><figcaption>El camino de un cambio: de tu rama a producción</figcaption></figure>
+
+
+<h2>Buenas prácticas</h2>
+<ul>
+<li>Commits <strong>pequeños y frecuentes</strong>, con mensajes claros en imperativo: &quot;Agrega test de unicidad&quot;, no &quot;cambios&quot; ni &quot;arreglo&quot;.</li>
+<li><strong>Nunca</strong> subas contraseñas ni llaves. Usa un archivo <code>.gitignore</code> para excluir archivos como <code>.env</code>. Si se te escapó una, cámbiala de inmediato: borrar el archivo no la saca del historial.</li>
+<li>Trabaja siempre en una rama; <code>main</code> debe estar siempre funcionando.</li>
+<li>Haz <code>git pull</code> antes de empezar a trabajar, para partir de la última versión.</li>
+<li>En equipos de datos, los PR se revisan y además corren <strong>CI</strong> (pruebas automáticas, por ejemplo <code>dbt build</code>).</li>
+</ul>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Trabajar directo en <code>main</code></strong>: si tu cambio rompe algo, rompe lo de todos. Crea una rama para cada cambio.</li>
+<li><strong>Commits gigantes con mensaje &quot;cambios&quot;</strong>: nadie puede revisarlos ni entender después qué pasó. Un commit = un cambio con sentido, con un mensaje que explique qué y por qué.</li>
+<li><strong>Subir un secreto</strong>: borrar el archivo en el siguiente commit <strong>no</strong> lo saca del historial. Cambia la contraseña de inmediato y avisa.</li>
+<li><strong>Olvidar <code>git pull</code> antes de empezar</strong>: trabajas sobre una versión vieja y después aparecen conflictos al unir.</li>
+<li><strong>Conflictos de merge</strong>: aparecen cuando dos personas cambiaron las mismas líneas. Git marca el archivo con <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> y <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>; tienes que elegir qué queda, borrar las marcas y hacer commit.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Tu primer pull request</div>
+
+<p>Ahora que conoces ramas, commits y pull requests, así suele ser la primera tarea de código en un equipo de datos. Martín, el líder, te escribe:</p>
+<blockquote>
+<p>&quot;Agrega la consulta de ventas por canal al repositorio del equipo. Hazlo en una rama, abre un pull request y yo lo reviso. Ojo: nada de contraseñas en el código, que el repo lo ve toda la empresa.&quot;</p>
+</blockquote>
+<p>Es el flujo que acabas de practicar: rama nueva, commit, push y pull request. En un equipo nadie edita el código de producción directamente.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La revisión de código (<em>code review</em>) es donde más se aprende en los primeros meses. Lee los comentarios como consejos, no como críticas, y revisa también el código de otros: es la forma más rápida de aprender cómo trabaja el equipo.</li>
+<li>En equipos de datos, el CI de un pull request suele ejecutar los tests de dbt, <code>pytest</code> de las transformaciones de Python y un chequeo de estilo de SQL (por ejemplo, con sqlfluff).</li>
+<li>Las herramientas de datos modernas se despliegan desde Git: dbt Cloud, Declarative Automation Bundles y Airflow leen el código de la rama <code>main</code>. Lo que no está en Git, no existe.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fundamentos-git">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-terminal.html">← La terminal sin miedo</a><a href="fundamentos-git-en-equipo.html">Git en equipo - ramas, pull, conflictos y pull requests →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

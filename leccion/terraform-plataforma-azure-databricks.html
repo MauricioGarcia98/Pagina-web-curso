@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto: el lakehouse completo en Azure y Databricks con Terraform · Academia de Datos</title><meta name="description" content="Construye de punta a punta la plataforma del Grupo Andino: grupo de recursos, Data Lake Gen2 con sus capas, Key Vault con secretos, Databricks con Unity Catalog (credencial, ubicaciones externas, catálogo, esquemas, permisos), un clúster, un job programado, un SQL Warehouse y Data Factory. En dos proyectos de Terraform conectados."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-plataforma-azure-databricks.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto: el lakehouse completo en Azure y Databricks con Terraform · Academia de Datos"><meta property="og:description" content="Construye de punta a punta la plataforma del Grupo Andino: grupo de recursos, Data Lake Gen2 con sus capas, Key Vault con secretos, Databricks con Unity Catalog (credencial, ubicaciones externas, catálogo, esquemas, permisos), un clúster, un job programado, un SQL Warehouse y Data Factory. En dos proyectos de Terraform conectados."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/terraform-plataforma-azure-databricks.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#terraform">🏗️ Terraform: infraestructura como código</a> · Avanzado · 90 min</div>
+<h1>Proyecto: el lakehouse completo en Azure y Databricks con Terraform</h1><p class="resumen">Construye de punta a punta la plataforma del Grupo Andino: grupo de recursos, Data Lake Gen2 con sus capas, Key Vault con secretos, Databricks con Unity Catalog (credencial, ubicaciones externas, catálogo, esquemas, permisos), un clúster, un job programado, un SQL Warehouse y Data Factory. En dos proyectos de Terraform conectados.</p>
+<a class="cta" href="../index.html#/l/terraform-plataforma-azure-databricks">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar una plataforma de datos en Azure como un conjunto de recursos de Terraform con sus dependencias</li><li>Crear el Data Lake Gen2 con capas, el Key Vault y el workspace de Databricks con identidades y permisos</li><li>Configurar Unity Catalog con Terraform: credencial, ubicaciones externas, catálogo, esquemas y grants</li><li>Separar la infraestructura de nube y la del workspace en dos proyectos conectados con terraform_remote_state</li><li>Verificar con az y databricks que lo creado existe y funciona</li></ul>
+<h2>La arquitectura</h2>
+<figure class="diagrama"><figcaption>La plataforma de datos del Grupo Andino en Azure (proyecto 1) y Databricks (proyecto 2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Para qué</th>
+<th>Decisión clave</th>
+</tr>
+</thead><tbody><tr>
+<td>Grupo de recursos</td>
+<td>Agrupa todo y define la región</td>
+<td>Uno por entorno: borrar el entorno es borrar el grupo</td>
+</tr>
+<tr>
+<td>Storage con <strong>HNS</strong></td>
+<td>El lago (ADLS Gen2)</td>
+<td><code>is_hns_enabled = true</code>: carpetas reales y permisos por carpeta</td>
+</tr>
+<tr>
+<td>Contenedores bronze/silver/gold</td>
+<td>Una capa por contenedor</td>
+<td>Permisos distintos por capa</td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td>Contraseñas de las fuentes</td>
+<td>RBAC; protección contra borrado en prod</td>
+</tr>
+<tr>
+<td>Workspace de Databricks</td>
+<td>Notebooks, jobs, SQL</td>
+<td>SKU <code>premium</code> (Unity Catalog lo necesita)</td>
+</tr>
+<tr>
+<td>Access connector</td>
+<td>La identidad con la que Databricks lee el lago</td>
+<td>Sin claves: rol <code>Storage Blob Data Contributor</code></td>
+</tr>
+<tr>
+<td>Data Factory</td>
+<td>Copia desde las fuentes (ERP, SFTP) a bronze</td>
+<td>Identidad administrada</td>
+</tr>
+</tbody></table></div>
+<h2>¿Por qué dos proyectos?</h2>
+<p>El proveedor <code>databricks</code> necesita la <strong>URL de un workspace</strong> para conectarse. Si el workspace y lo de adentro están en el mismo proyecto, en el primer plan esa URL todavía no existe, y si un día hay que reemplazar el workspace, el proveedor se queda sin destino a mitad del plan. Por eso la práctica recomendada es:</p>
+<ol>
+<li><strong>Proyecto <code>plataforma</code></strong> (proveedor <code>azurerm</code>): todo lo de Azure. Expone outputs: la URL del workspace, los <code>abfss://</code> de cada capa, el id del access connector.</li>
+<li><strong>Proyecto <code>workspace</code></strong> (proveedor <code>databricks</code>): Unity Catalog, clústeres, jobs y permisos. Lee los outputs del primero con <code>terraform_remote_state</code>.</li>
+</ol>
+<p>Además, suelen tener dueños distintos: el equipo de plataforma administra el primero, y el equipo de datos, el segundo.</p>
+<h2>Proyecto 1: la plataforma en Azure</h2>
+<h3>Proveedores y variables</h3>
+<pre><code class="language-hcl"># plataforma/versions.tf
+terraform {
+  required_providers {
+    azurerm = {
+      source  = &quot;hashicorp/azurerm&quot;
+      version = &quot;~&gt; 4.14&quot;
+    }
+    random = {
+      source  = &quot;hashicorp/random&quot;
+      version = &quot;~&gt; 3.6&quot;
+    }
+  }
+}
+
+provider &quot;azurerm&quot; {
+  features {}           # obligatorio en azurerm, aunque esté vacío
+}
+
+# plataforma/variables.tf
+variable &quot;entorno&quot; {
+  type    = string
+  default = &quot;dev&quot;
+}
+
+variable &quot;ubicacion&quot; {
+  type    = string
+  default = &quot;brazilsouth&quot;
+}</code></pre>
+<h3>Nombres y etiquetas</h3>
+<pre><code class="language-hcl">data &quot;azurerm_client_config&quot; &quot;actual&quot; {}        # quién ejecuta: tenant_id, object_id
+
+locals {
+  nombre = &quot;andina-${var.entorno}&quot;
+  cuenta = substr(replace(&quot;stlakeandina${var.entorno}&quot;, &quot;-&quot;, &quot;&quot;), 0, 24)
+  capas  = toset([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;])
+  etiquetas = {
+    proyecto = &quot;lakehouse&quot;
+    entorno  = var.entorno
+  }
+}</code></pre>
+<p>Un <strong>data source</strong> (<code>data &quot;tipo&quot; &quot;nombre&quot;</code>) <strong>lee</strong> algo que ya existe en lugar de crearlo. <code>azurerm_client_config</code> devuelve los datos de la sesión con la que ejecutas Terraform; el Key Vault necesita el <code>tenant_id</code>.</p>
+<h3>El lago</h3>
+<pre><code class="language-hcl">resource &quot;azurerm_resource_group&quot; &quot;datos&quot; {
+  name     = &quot;rg-${local.nombre}-datos&quot;
+  location = var.ubicacion
+  tags     = local.etiquetas
+}
+
+resource &quot;azurerm_storage_account&quot; &quot;lago&quot; {
+  name                     = local.cuenta
+  resource_group_name      = azurerm_resource_group.datos.name
+  location                 = azurerm_resource_group.datos.location
+  account_tier             = &quot;Standard&quot;
+  account_replication_type = &quot;LRS&quot;       # en prod: ZRS o GRS
+  is_hns_enabled           = true        # Data Lake Gen2
+  tags                     = local.etiquetas
+}
+
+resource &quot;azurerm_storage_data_lake_gen2_filesystem&quot; &quot;capa&quot; {
+  for_each           = local.capas
+  name               = each.key
+  storage_account_id = azurerm_storage_account.lago.id
+}</code></pre>
+<p>Mira las <strong>referencias</strong>: la cuenta usa <code>azurerm_resource_group.datos.name</code>. Así Terraform sabe que primero tiene que crear el grupo. Nunca escribas el nombre del grupo a mano en la cuenta: perderías la dependencia y el orden.</p>
+<h3>Secretos</h3>
+<pre><code class="language-hcl">resource &quot;azurerm_key_vault&quot; &quot;kv&quot; {
+  name                      = &quot;kv-${local.nombre}&quot;
+  location                  = azurerm_resource_group.datos.location
+  resource_group_name       = azurerm_resource_group.datos.name
+  tenant_id                 = data.azurerm_client_config.actual.tenant_id
+  sku_name                  = &quot;standard&quot;
+  enable_rbac_authorization = true
+  purge_protection_enabled  = var.entorno == &quot;prod&quot;
+}
+
+resource &quot;random_password&quot; &quot;sql&quot; {
+  length  = 24
+  special = true
+}
+
+resource &quot;azurerm_key_vault_secret&quot; &quot;sql&quot; {
+  name         = &quot;sql-erp-password&quot;
+  value        = random_password.sql.result
+  key_vault_id = azurerm_key_vault.kv.id
+}</code></pre>
+<p>La contraseña la <strong>genera</strong> Terraform (<code>random_password</code>) y la guarda en el Key Vault: no aparece en el código ni en el plan (<code>(sensitive value)</code>). Los pipelines la leen del Key Vault, nunca de Terraform.</p>
+<h3>Databricks y su identidad</h3>
+<pre><code class="language-hcl">resource &quot;azurerm_databricks_workspace&quot; &quot;dbw&quot; {
+  name                = &quot;dbw-${local.nombre}&quot;
+  resource_group_name = azurerm_resource_group.datos.name
+  location            = azurerm_resource_group.datos.location
+  sku                 = &quot;premium&quot;
+  tags                = local.etiquetas
+}
+
+# la identidad con la que Unity Catalog lee y escribe el lago
+resource &quot;azurerm_databricks_access_connector&quot; &quot;uc&quot; {
+  name                = &quot;ac-${local.nombre}&quot;
+  resource_group_name = azurerm_resource_group.datos.name
+  location            = azurerm_resource_group.datos.location
+  identity {
+    type = &quot;SystemAssigned&quot;
+  }
+}
+
+resource &quot;azurerm_role_assignment&quot; &quot;uc_lago&quot; {
+  scope                = azurerm_storage_account.lago.id
+  role_definition_name = &quot;Storage Blob Data Contributor&quot;
+  principal_id         = azurerm_databricks_access_connector.uc.identity[0].principal_id
+}
+
+resource &quot;azurerm_data_factory&quot; &quot;adf&quot; {
+  name                = &quot;adf-${local.nombre}&quot;
+  location            = azurerm_resource_group.datos.location
+  resource_group_name = azurerm_resource_group.datos.name
+  identity {
+    type = &quot;SystemAssigned&quot;
+  }
+}</code></pre>
+<p><code>identity[0].principal_id</code> es el id de la identidad que Azure crea para el connector. El <code>role_assignment</code> le da permiso sobre <strong>solo</strong> esta cuenta (el <code>scope</code>). Ninguna clave de almacenamiento se copia a ningún lado.</p>
+<h3>Outputs</h3>
+<pre><code class="language-hcl">output &quot;databricks_url&quot; {
+  value = &quot;https://${azurerm_databricks_workspace.dbw.workspace_url}&quot;
+}
+
+output &quot;access_connector_id&quot; {
+  value = azurerm_databricks_access_connector.uc.id
+}
+
+output &quot;dfs&quot; {
+  value = { for k, f in azurerm_storage_data_lake_gen2_filesystem.capa :
+    k =&gt; &quot;abfss://${f.name}@${azurerm_storage_account.lago.name}.dfs.core.windows.net/&quot; }
+}</code></pre>
+<h2>Proyecto 2: dentro de Databricks</h2>
+<h3>Conectarse al workspace del proyecto 1</h3>
+<pre><code class="language-hcl"># workspace/main.tf
+data &quot;terraform_remote_state&quot; &quot;plataforma&quot; {
+  backend = &quot;local&quot;                      # en la empresa: &quot;azurerm&quot;, con el mismo contenedor de estados
+  config = {
+    path = &quot;../plataforma/terraform.tfstate&quot;
+  }
+}
+
+locals {
+  plat = data.terraform_remote_state.plataforma.outputs
+}
+
+provider &quot;databricks&quot; {
+  host = local.plat.databricks_url        # se autentica con tu sesión (databricks auth login o az login)
+}</code></pre>
+<h3>Unity Catalog</h3>
+<pre><code class="language-hcl">resource &quot;databricks_storage_credential&quot; &quot;lago&quot; {
+  name = &quot;cred-lago&quot;
+  azure_managed_identity {
+    access_connector_id = local.plat.access_connector_id
+  }
+}
+
+resource &quot;databricks_external_location&quot; &quot;capa&quot; {
+  for_each        = toset([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;])
+  name            = &quot;lago-${each.key}&quot;
+  url             = local.plat.dfs[each.key]
+  credential_name = databricks_storage_credential.lago.name
+}
+
+resource &quot;databricks_catalog&quot; &quot;dev&quot; {
+  name    = &quot;dev&quot;
+  comment = &quot;Catálogo de desarrollo&quot;
+}
+
+resource &quot;databricks_schema&quot; &quot;capa&quot; {
+  for_each     = toset([&quot;bronze&quot;, &quot;silver&quot;, &quot;gold&quot;])
+  catalog_name = databricks_catalog.dev.name
+  name         = each.key
+}
+
+resource &quot;databricks_grants&quot; &quot;gold&quot; {
+  schema = databricks_schema.capa[&quot;gold&quot;].id
+  grant {
+    principal  = &quot;analistas&quot;
+    privileges = [&quot;USE_SCHEMA&quot;, &quot;SELECT&quot;]
+  }
+}</code></pre>
+<p>La cadena completa: el <strong>access connector</strong> (Azure) tiene permiso sobre el lago → la <strong>storage credential</strong> (Databricks) usa esa identidad → cada <strong>external location</strong> autoriza una ruta <code>abfss://</code> → los <strong>esquemas</strong> y tablas viven ahí → los <strong>grants</strong> dicen quién puede leer qué. Con esto, la pregunta de la auditoría (&quot;¿quién accede a gold?&quot;) se responde leyendo un archivo en Git.</p>
+<h3>Cómputo y un job</h3>
+<pre><code class="language-hcl">data &quot;databricks_spark_version&quot; &quot;lts&quot; {
+  long_term_support = true
+}
+
+data &quot;databricks_node_type&quot; &quot;chico&quot; {
+  local_disk = true
+}
+
+resource &quot;databricks_cluster&quot; &quot;etl&quot; {
+  cluster_name            = &quot;etl-dev&quot;
+  spark_version           = data.databricks_spark_version.lts.id
+  node_type_id            = data.databricks_node_type.chico.id
+  autotermination_minutes = 20           # se apaga solo: no pagues un clúster ocioso
+  autoscale {
+    min_workers = 1
+    max_workers = 4
+  }
+}
+
+resource &quot;databricks_notebook&quot; &quot;ingesta&quot; {
+  path           = &quot;/Shared/etl/ingesta_pedidos&quot;
+  language       = &quot;PYTHON&quot;
+  content_base64 = base64encode(file(&quot;${path.module}/notebooks/ingesta_pedidos.py&quot;))
+}
+
+resource &quot;databricks_job&quot; &quot;diario&quot; {
+  name = &quot;etl-pedidos-diario&quot;
+
+  task {
+    task_key            = &quot;ingesta&quot;
+    existing_cluster_id = databricks_cluster.etl.id
+    notebook_task {
+      notebook_path = databricks_notebook.ingesta.path
+    }
+  }
+
+  task {
+    task_key = &quot;silver&quot;
+    depends_on {
+      task_key = &quot;ingesta&quot;
+    }
+    existing_cluster_id = databricks_cluster.etl.id
+    notebook_task {
+      notebook_path = &quot;/Shared/etl/silver_pedidos&quot;
+    }
+  }
+
+  schedule {
+    quartz_cron_expression = &quot;0 0 3 * * ?&quot;     # todos los días a las 03:00
+    timezone_id            = &quot;America/Lima&quot;
+  }
+}
+
+resource &quot;databricks_sql_endpoint&quot; &quot;bi&quot; {
+  name                      = &quot;bi-dev&quot;
+  cluster_size              = &quot;2X-Small&quot;
+  auto_stop_mins            = 10
+  enable_serverless_compute = true
+}</code></pre>
+<ul>
+<li>Los <strong>data sources</strong> <code>databricks_spark_version</code> y <code>databricks_node_type</code> eligen la versión LTS más nueva y el tipo de máquina más chico con disco local. Así el código no queda atado a una versión vieja.</li>
+<li><code>file()</code> lee un archivo de tu repositorio; <code>base64encode()</code> lo codifica como pide la API. El notebook se versiona en Git junto al job que lo ejecuta.</li>
+<li>En <code>databricks_job</code>, cada <code>task</code> tiene una clave, y <code>depends_on</code> arma el grafo: <code>silver</code> corre cuando <code>ingesta</code> termina bien.</li>
+</ul>
+<div class="callout callout-nota"><div class="callout-title">📝 Terraform o Declarative Automation Bundles</div>
+
+<p>Para los <strong>jobs y notebooks</strong> de un proyecto de datos, muchos equipos usan <strong>Declarative Automation Bundles</strong> (que viste en el módulo de Databricks) en lugar de Terraform: están pensados para el ciclo de vida del código. Una división frecuente: Terraform para la plataforma (workspace, Unity Catalog, permisos, clústeres compartidos, warehouses) y Declarative Automation Bundles para los pipelines de cada equipo.</p>
+</div>
+
+
+<h2>Laboratorio</h2>
+<p>La terminal tiene los dos simuladores (Azure y Databricks) conectados con Terraform.</p>
+<p><strong>1. Sesiones:</strong></p>
+<pre data-norun><code class="language-bash">az login
+databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+mkdir -p ~/infra/plataforma ~/infra/workspace</code></pre>
+<p><strong>2. Proyecto 1.</strong> En <code>~/infra/plataforma</code> escribe un <code>main.tf</code> con todo lo del proyecto 1 (proveedores, variables, locals, recursos y outputs; para el laboratorio puedes omitir <code>required_providers</code>):</p>
+<pre><code class="language-text">$ cd ~/infra/plataforma &amp;&amp; terraform init &amp;&amp; terraform apply -auto-approve
+...
+Plan: 12 to add, 0 to change, 0 to destroy.
+...
+Apply complete! Resources: 12 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+access_connector_id = &quot;/subscriptions/…/accessConnectors/ac-andina-dev&quot;
+databricks_url = &quot;https://adb-….azuredatabricks.net&quot;
+dfs = {
+  &quot;bronze&quot; = &quot;abfss://bronze@stlakeandinadev.dfs.core.windows.net/&quot;
+  &quot;gold&quot;   = &quot;abfss://gold@stlakeandinadev.dfs.core.windows.net/&quot;
+  &quot;silver&quot; = &quot;abfss://silver@stlakeandinadev.dfs.core.windows.net/&quot;
+}</code></pre>
+<p>Son 12: grupo, cuenta, 3 contenedores, Key Vault, contraseña, secreto, workspace, connector, rol y Data Factory.</p>
+<p><strong>3. Verifica con la CLI de Azure:</strong></p>
+<pre data-norun><code class="language-bash">az storage fs list --account-name stlakeandinadev --auth-mode login -o table
+az keyvault secret list --vault-name kv-andina-dev -o table</code></pre>
+<p><strong>4. Proyecto 2.</strong> En <code>~/infra/workspace</code> escribe el <code>main.tf</code> del proyecto 2. Para el laboratorio, cambia el <code>content_base64</code> del notebook por <code>base64encode(&quot;print(&#39;hola&#39;)&quot;)</code> (o crea el archivo <code>notebooks/ingesta_pedidos.py</code>).</p>
+<pre data-norun><code class="language-bash">cd ~/infra/workspace &amp;&amp; terraform init &amp;&amp; terraform apply -auto-approve
+databricks catalogs list
+databricks schemas list dev
+databricks jobs list</code></pre>
+<p><strong>5. El orden de destrucción.</strong> Para limpiar, primero el proyecto 2 y después el 1: <code>terraform destroy</code> en <code>workspace</code>, luego en <code>plataforma</code>. Al revés, el proyecto 2 queda apuntando a un workspace que ya no existe.</p>
+<h2>Del laboratorio a producción</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En el laboratorio</th>
+<th>En producción</th>
+</tr>
+</thead><tbody><tr>
+<td>Estado local</td>
+<td><code>backend &quot;azurerm&quot;</code> en una cuenta aparte, con un estado por proyecto y entorno</td>
+</tr>
+<tr>
+<td><code>terraform_remote_state</code> con <code>backend = &quot;local&quot;</code></td>
+<td><code>backend = &quot;azurerm&quot;</code> y la clave del proyecto 1</td>
+</tr>
+<tr>
+<td>Tu usuario (<code>az login</code>)</td>
+<td>Una identidad de la CI con OIDC (sin secretos) y permisos mínimos</td>
+</tr>
+<tr>
+<td><code>account_replication_type = &quot;LRS&quot;</code></td>
+<td><code>ZRS</code> o <code>GRS</code></td>
+</tr>
+<tr>
+<td>Lago con acceso público de red</td>
+<td><code>public_network_access_enabled = false</code>, endpoints privados y workspace con <em>VNet injection</em></td>
+</tr>
+<tr>
+<td>Sin protección</td>
+<td><code>prevent_destroy</code> en el lago, el Key Vault y el catálogo; <code>purge_protection_enabled</code></td>
+</tr>
+<tr>
+<td>Grants a un grupo de prueba</td>
+<td>Grants a grupos de Entra ID sincronizados con Databricks (SCIM)</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>StorageAccountAlreadyTaken</code></strong>: el nombre de una cuenta de Storage es <strong>global</strong> en todo Azure. Agrega un sufijo propio (o un <code>random_string</code>) al nombre.</li>
+<li><strong>El proveedor databricks falla con &quot;cannot configure default credentials&quot;</strong>: falta la sesión (<code>databricks auth login</code> o <code>az login</code>) o el <code>host</code> del proveedor.</li>
+<li><strong><code>403 This request is not authorized</code></strong> al crear tablas en una external location: el rol del access connector todavía no se propagó (puede tardar minutos) o se asignó en otra cuenta.</li>
+<li><strong>Unity Catalog pide un metastore</strong>: el workspace tiene que estar asignado a un metastore de la región (se hace una vez por región con <code>databricks_metastore_assignment</code>, normalmente desde la cuenta de Databricks).</li>
+<li><strong>Destruir el proyecto 1 antes que el 2</strong>: el estado del 2 queda con recursos huérfanos. Siempre en orden inverso de dependencias.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La plataforma del Grupo Andino, en código</div>
+
+<p>El Grupo Andino eligió Azure con Databricks. La plataforma se armó en meses de clics. Ahora hay que crear <code>test</code> y <code>prod</code> idénticos, y la auditoría pide saber quién tiene acceso a qué. Martín te asigna el proyecto:</p>
+<blockquote>
+<p>&quot;Toda la plataforma en Terraform, en dos proyectos: uno para lo de Azure y otro para lo de adentro de Databricks. Que <code>terraform apply</code> en una suscripción vacía deje todo listo para que el equipo de datos empiece a trabajar.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Este mismo código, con <code>entorno = &quot;prod&quot;</code> y su backend, crea producción en horas en lugar de semanas. Y la diferencia entre entornos queda escrita en un archivo <code>.tfvars</code>.</li>
+<li>Los permisos de Unity Catalog en Terraform son la respuesta a las auditorías: cada <code>grant</code> tiene un pull request con quién lo pidió y quién lo aprobó.</li>
+<li>Las empresas grandes tienen una <strong>suscripción por entorno</strong> (y a veces por dominio), creadas también con Terraform por el equipo de plataforma (<em>landing zones</em>).</li>
+<li>Los costos se controlan con código: <code>autotermination_minutes</code>, <code>auto_stop_mins</code>, tamaños máximos de clúster y <strong>políticas de clúster</strong> (<code>databricks_cluster_policy</code>) que limitan lo que cada equipo puede crear.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo le das acceso a Databricks al data lake sin guardar claves?&quot;</div>
+
+<p>Con una identidad administrada: creo un access connector de Databricks (que tiene una identidad del sistema), le asigno el rol Storage Blob Data Contributor sobre la cuenta del lago, y en Unity Catalog creo una storage credential que usa ese connector y external locations para cada ruta. Así no hay claves de la cuenta ni service principals con secretos que rotar, el acceso se controla con grants de Unity Catalog, y todo queda en Terraform.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/terraform-plataforma-azure-databricks">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="terraform-modulos.html">← Módulos: tu propia biblioteca de infraestructura</a><a href="terraform-plataforma-aws-gcp.html">Proyecto: la plataforma de datos en AWS y en Google Cloud →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

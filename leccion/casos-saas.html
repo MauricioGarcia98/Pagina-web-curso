@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso ☁️ Nube Pyme: MRR, retención neta y soporte · Academia de Datos</title><meta name="description" content="MRR, movimientos de MRR (nuevo, expansión, contracción, churn), ARPA, NRR, cobranza y SLA de soporte."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-saas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso ☁️ Nube Pyme: MRR, retención neta y soporte · Academia de Datos"><meta property="og:description" content="MRR, movimientos de MRR (nuevo, expansión, contracción, churn), ARPA, NRR, cobranza y SLA de soporte."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-saas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 60 min</div>
+<h1>Caso ☁️ Nube Pyme: MRR, retención neta y soporte</h1><p class="resumen">MRR, movimientos de MRR (nuevo, expansión, contracción, churn), ARPA, NRR, cobranza y SLA de soporte.</p>
+<a class="cta" href="../index.html#/l/casos-saas">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular MRR, empresas activas y ARPA por mes</li><li>Descomponer la variación del MRR en nuevo, expansión, contracción y churn</li><li>Calcular la retención neta de ingresos (NRR)</li><li>Medir el cumplimiento de SLA de soporte y relacionarlo con el churn</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Nube Pyme</div>
+
+<p>El CEO de <strong>Nube Pyme</strong>, un software de gestión para pequeñas empresas, prepara una ronda de inversión:</p>
+<blockquote>
+<p>&quot;Los inversores van a mirar tres cosas: cómo crece el MRR, de dónde viene ese crecimiento y cuánto retenemos de los clientes que ya tenemos. Si el NRR está arriba de 100 %, crecemos aunque no consigamos clientes nuevos. Necesito esos números bien calculados, sin maquillaje.&quot;</p>
+</blockquote>
+<p>En un SaaS B2B, el crecimiento sano viene tanto de vender a clientes nuevos como de que los actuales paguen más con el tiempo.</p>
+</div>
+
+<p><strong>Nube Pyme</strong> vende un software de gestión a pequeñas y medianas empresas, con tres planes mensuales. Es el tipo de empresa donde las métricas de suscripción lo son todo, y donde un Analytics/Data Engineer las calcula para el directorio y los inversores.</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">saas_planes (plan_id, nombre, precio_mensual)            -- 1 Básico 49, 2 Profesional 149, 3 Empresa 499
+saas_empresas (empresa_id, nombre, industria, pais, empleados, fecha_alta)
+saas_facturas (factura_id, empresa_id, plan_id, mes, monto, estado)   -- una por empresa y mes activo
+saas_tickets (ticket_id, empresa_id, fecha_creacion, fecha_cierre, prioridad, categoria, satisfaccion)</code></pre>
+<ul>
+<li>Si una empresa tiene factura en un mes, estuvo <strong>activa</strong> ese mes. El <strong>MRR</strong> del mes = suma de <code>monto</code> de las facturas del mes.</li>
+<li>Comparando el MRR de cada empresa entre un mes y el anterior se obtienen los <strong>movimientos de MRR</strong>:</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>Movimiento</th>
+<th>Condición (empresa)</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Nuevo</strong></td>
+<td>No facturó el mes anterior y sí este mes (y es su primer mes)</td>
+</tr>
+<tr>
+<td><strong>Expansión</strong></td>
+<td>Facturó ambos meses y este mes paga <strong>más</strong></td>
+</tr>
+<tr>
+<td><strong>Contracción</strong></td>
+<td>Facturó ambos meses y paga <strong>menos</strong></td>
+</tr>
+<tr>
+<td><strong>Churn</strong></td>
+<td>Facturó el mes anterior y <strong>no</strong> este mes</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><strong>NRR</strong> (<em>Net Revenue Retention</em>): MRR de hoy de las empresas que ya eran clientes hace 12 meses / su MRR de hace 12 meses. Más de 100% = crecen aunque no entren clientes nuevos.</li>
+<li><strong>SLA de soporte</strong>: un ticket <code>critica</code> debe cerrarse en 24 h; <code>alta</code> en 48 h.</li>
+</ul>
+<h2>Cómo funciona un negocio SaaS</h2>
+<p>Una empresa SaaS (<em>Software as a Service</em>) no vende licencias de una sola vez: cobra una <strong>suscripción mensual</strong> mientras el cliente use el software. Eso cambia todo el análisis:</p>
+<ul>
+<li>El ingreso más importante es el <strong>recurrente</strong>: el MRR (<em>Monthly Recurring Revenue</em>). Los inversores valoran la empresa como un múltiplo de su MRR anualizado (ARR = MRR × 12).</li>
+<li>Conseguir un cliente es caro (ventas, marketing); el negocio funciona solo si el cliente <strong>se queda</strong> muchos meses. Por eso el <strong>churn</strong> (bajas) y la <strong>NRR</strong> son métricas de supervivencia.</li>
+<li>Los clientes pueden <strong>subir de plan</strong> (expansión) o <strong>bajar</strong> (contracción). Una buena SaaS crece aunque no entren clientes nuevos, solo con expansiones: eso significa NRR &gt; 100 %.</li>
+<li>El <strong>soporte</strong> influye directamente: un cliente que espera tres días por un problema crítico es un cliente que evalúa irse.</li>
+</ul>
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿Qué industrias nos facturan más en 2024 (facturas pagadas)?&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por industria (atributo de <code>saas_empresas</code>).</li>
+<li><strong>Filtro</strong>: facturas de 2024 (<code>mes &gt;= &#39;2024-01-01&#39;</code>) y <strong>pagadas</strong>: lo facturado y no cobrado es otra métrica (cobranza).</li>
+<li><strong>Métricas</strong>: empresas distintas (<code>COUNT(DISTINCT …)</code>, porque cada empresa tiene una factura por mes) y monto facturado.</li>
+</ol>
+<pre><code class="language-sql">SELECT e.industria,
+       COUNT(DISTINCT e.empresa_id) AS empresas,
+       ROUND(SUM(f.monto), 2)       AS facturado
+FROM saas_empresas e
+JOIN saas_facturas f ON f.empresa_id = e.empresa_id
+WHERE f.mes &gt;= '2024-01-01' AND f.estado = 'pagada'
+GROUP BY e.industria
+ORDER BY facturado DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>industria</th>
+<th>empresas</th>
+<th>facturado</th>
+</tr>
+</thead><tbody><tr>
+<td>Turismo</td>
+<td>78</td>
+<td>152379.0</td>
+</tr>
+<tr>
+<td>Logística</td>
+<td>67</td>
+<td>137402.0</td>
+</tr>
+<tr>
+<td>Salud</td>
+<td>57</td>
+<td>127887.0</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<p>Fíjate en <code>COUNT(DISTINCT e.empresa_id)</code>: después del join hay <strong>una fila por factura</strong> (hasta 12 por empresa en el año). <code>COUNT(*)</code> contaría facturas, no empresas: el error de doble conteo más común en SaaS.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>Facturas recientes todavía no vencidas</strong>: el último mes siempre parece tener una cobranza peor (muchas facturas están <code>pendiente</code> porque recién se emitieron). Compara meses &quot;maduros&quot;.</li>
+<li><strong>MRR no es lo mismo que lo cobrado</strong>: el MRR mide lo que el cliente <strong>se comprometió</strong> a pagar; la cobranza mide lo que efectivamente entró.</li>
+<li><strong>Churn y meses salteados</strong>: una empresa que no factura en marzo pero vuelve en abril, ¿fue churn y reactivación? Define la regla antes de contar.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las métricas SaaS (MRR, NRR, churn) se calculan en un modelo &quot;MRR por empresa y mes&quot; que es la fuente de verdad para finanzas, ventas y el directorio. Un error ahí se repite en todas las presentaciones.</li>
+<li>Los datos de facturación suelen venir de herramientas externas (Stripe, Chargebee) y los de soporte de otras (Zendesk). Unirlos exige un id común de cliente, y conciliar esos ids es parte importante del trabajo.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>MRR con facturas anuales sin dividir por 12</strong>: un mes salta y los otros once caen.</li>
+<li><strong>NRR que incluye clientes nuevos</strong>: el NRR mide solo la base de clientes del inicio del período.</li>
+<li><strong>Movimientos de MRR que no cumplen la identidad</strong> (inicial + nuevo + expansión − contracción − churn = final).</li>
+<li><strong>SLA medido en horas corridas</strong> cuando el contrato dice horas hábiles.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre el NRR y el churn de clientes?&quot;</div>
+
+<p>El churn de clientes cuenta cuántos clientes se van; el NRR (retención neta de ingresos) mide cuánto ingreso conserva la base de clientes del inicio del período, sumando las expansiones y restando contracciones y bajas, sin contar clientes nuevos. Un NRR mayor a 100 % significa que lo que crecen los clientes existentes compensa lo que se pierde, aunque se vayan clientes. Se calculan sobre la misma cohorte inicial.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-saas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-clinica.html">← Caso 🏥 Clínica del Sur: ausentismo, agenda y facturación</a><a href="casos-vuelos.html">Caso ✈️ Cóndor Air: puntualidad, ocupación y precios →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

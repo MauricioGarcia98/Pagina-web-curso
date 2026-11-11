@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tienda 🛒: segmentación RFM, cohortes de retención y el ETL completo · Academia de Datos</title><meta name="description" content="Puntajes RFM y segmentos de clientes en Python, la matriz de retención por cohorte en PySpark, la tabla de clientes con tests en dbt y el ETL diario completo con TaskFlow y una verificación de calidad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-tienda.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tienda 🛒: segmentación RFM, cohortes de retención y el ETL completo · Academia de Datos"><meta property="og:description" content="Puntajes RFM y segmentos de clientes en Python, la matriz de retención por cohorte en PySpark, la tabla de clientes con tests en dbt y el ETL diario completo con TaskFlow y una verificación de calidad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-tienda.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Experto · 65 min</div>
+<h1>Tienda 🛒: segmentación RFM, cohortes de retención y el ETL completo</h1><p class="resumen">Puntajes RFM y segmentos de clientes en Python, la matriz de retención por cohorte en PySpark, la tabla de clientes con tests en dbt y el ETL diario completo con TaskFlow y una verificación de calidad.</p>
+<a class="cta" href="../index.html#/l/pipelines-tienda">▶ Abrir la lección interactiva (4 ejercicios)</a>
+
+<p>Cerramos el módulo con <strong>Tienda Andina</strong>, la tienda que conoces desde el primer día. Marketing quiere dejar de mandar la misma promoción a todos: necesita <strong>segmentos</strong> de clientes y saber si los clientes <strong>vuelven</strong>. Esta lección arma todo, de la lógica en Python al pipeline diario.</p>
+<h2>1. Python: puntajes RFM y segmentos</h2>
+<p><strong>RFM</strong> describe a cada cliente con tres números:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Letra</th>
+<th>Significa</th>
+<th>Cómo se mide</th>
+<th>Mejor es…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>R</strong> (recencia)</td>
+<td>Hace cuánto compró por última vez</td>
+<td>días desde la última compra</td>
+<td><strong>menos</strong> días</td>
+</tr>
+<tr>
+<td><strong>F</strong> (frecuencia)</td>
+<td>Cuántas veces compró</td>
+<td>cantidad de pedidos</td>
+<td><strong>más</strong></td>
+</tr>
+<tr>
+<td><strong>M</strong> (monto)</td>
+<td>Cuánto gastó en total</td>
+<td>suma de compras</td>
+<td><strong>más</strong></td>
+</tr>
+</tbody></table></div>
+<p>Cada dimensión se convierte en un <strong>puntaje del 1 al 5</strong> según umbrales, y la combinación define el segmento:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Segmento</th>
+<th>Regla (en este orden)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>campeon</code></td>
+<td>R ≥ 4 y F ≥ 4</td>
+</tr>
+<tr>
+<td><code>leal</code></td>
+<td>F ≥ 4</td>
+</tr>
+<tr>
+<td><code>en_riesgo</code></td>
+<td>R ≤ 2 y F ≥ 3 (compraba seguido, pero hace mucho que no vuelve)</td>
+</tr>
+<tr>
+<td><code>nuevo</code></td>
+<td>R ≥ 4 y F ≤ 1</td>
+</tr>
+<tr>
+<td><code>dormido</code></td>
+<td>R ≤ 2</td>
+</tr>
+<tr>
+<td><code>regular</code></td>
+<td>cualquier otro caso</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+<h2>2. PySpark: la matriz de retención por cohorte</h2>
+<p>En el módulo de SQL viste las cohortes. Ahora, en PySpark y como <strong>tabla larga</strong> (una fila por cohorte y mes relativo), que es el formato que prefieren las herramientas de BI para dibujar la matriz.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>3. dbt: la tabla de clientes, con tests</h2>
+<p>El segmento RFM se calcula en SQL para todos los clientes y se publica como <code>dim_clientes_rfm</code>, la tabla que usa el CRM. Es el lugar donde más importan los <strong>tests</strong>: si un cliente apareciera dos veces, recibiría dos correos.</p>
+<div class="exercise-slot"></div>
+
+
+<p>Y su YAML con los tests que lo protegen:</p>
+<pre data-norun><code class="language-yaml">version: 2
+models:
+  - name: clientes_rfm
+    description: &quot;Una fila por cliente con compras: recencia, frecuencia y monto al 2024-12-31.&quot;
+    columns:
+      - name: cliente_id
+        data_tests: [unique, not_null]
+      - name: dias
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range: {min_value: 0}
+      - name: pedidos
+        data_tests:
+          - dbt_utils.accepted_range: {min_value: 1}</code></pre>
+<h2>4. Airflow: el ETL diario completo</h2>
+<p>El DAG final une todo con la <strong>TaskFlow API</strong>: extraer, transformar, verificar la calidad, y solo si la verificación pasa, publicar. Los datos que viajan entre tareas son <strong>metadatos</strong> chicos (rutas, conteos), nunca las tablas.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>RFM con la fecha de hoy</strong> como referencia de recencia: el segmento de un cliente cambia según el día en que se corre. Usa una fecha de corte fija.</li>
+<li><strong>Cohortes por fecha de registro</strong> cuando la pregunta es por la <strong>primera compra</strong>: mezclan clientes que nunca compraron.</li>
+<li><strong>Retención que suma meses incompletos</strong>: el último mes de cada cohorte todavía no terminó y parece una caída.</li>
+<li><strong>Tests de dbt solo al final del flujo</strong>: si <code>dim_clientes</code> tiene duplicados, se detecta tarde. Prueba también las claves de staging.</li>
+<li><strong>ETL diario sin verificación de calidad</strong> antes de publicar: un día con la mitad de los pedidos llega igual al tablero.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Este es el esqueleto de casi cualquier pipeline de comercio: ingesta diaria, limpieza, una tabla de clientes con tests, segmentos y cohortes para marketing, y un DAG que no publica si la calidad falla.</li>
+<li>Los segmentos RFM se recalculan de forma periódica (semanal o mensual) y se guarda el historial, para medir cuántos clientes pasaron de &quot;campeones&quot; a &quot;en riesgo&quot;.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Describe un pipeline de punta a punta que hayas construido.&quot;</div>
+
+<p>Contaría el caso con la estructura situación, decisiones y resultado: los datos de pedidos y clientes llegan cada día a bronze; un job de PySpark limpia y deduplica a silver con una cuarentena de filas inválidas; dbt construye la tabla de clientes, los segmentos RFM y la retención por cohorte, con tests de unicidad, no nulos y relaciones; Airflow orquesta con TaskFlow y una tarea de verificación que corta la publicación si los conteos no son razonables. Mencionaría qué haría distinto con más volumen y cómo monitorearía la frescura.</p>
+</div>
+
+
+<h2>Lo que construiste en este módulo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Caso</th>
+<th>Python</th>
+<th>PySpark</th>
+<th>dbt</th>
+<th>Airflow</th>
+</tr>
+</thead><tbody><tr>
+<td>🏦 Banco</td>
+<td>Cuota francesa, mora, decisión de crédito, conciliación</td>
+<td>Cartera en mora, perfil de gasto</td>
+<td>Mora por segmento</td>
+<td>Cierre diario con rama de calidad</td>
+</tr>
+<tr>
+<td>🎧 Streaming</td>
+<td>Plan óptimo, churn oficial</td>
+<td>Features de churn</td>
+<td>Género top por país</td>
+<td>DAG semanal con TaskGroups</td>
+</tr>
+<tr>
+<td>🚕 Movilidad</td>
+<td>Tarifa dinámica, cotizador</td>
+<td>Oferta y demanda por hora</td>
+<td>Conductores destacados</td>
+<td>DAG horario con sensor y reintentos</td>
+</tr>
+<tr>
+<td>🏥 Clínica</td>
+<td>Turnos libres, riesgo de ausencia</td>
+<td>Historial de pacientes</td>
+<td>Facturación por cobertura</td>
+<td>Recordatorios con ShortCircuit</td>
+</tr>
+<tr>
+<td>☁️ SaaS</td>
+<td>Prorrateo, movimientos de MRR</td>
+<td>Movimientos de MRR a escala</td>
+<td>Facturación incremental</td>
+<td>Cierre mensual con verificación</td>
+</tr>
+<tr>
+<td>✈️ Aerolínea</td>
+<td>Sobreventa, propagación de demoras</td>
+<td>Peores rutas por mes</td>
+<td>Ocupación por ruta</td>
+<td>Una tarea por aeropuerto</td>
+</tr>
+<tr>
+<td>📦 Logística</td>
+<td>Costo FIFO, días hábiles</td>
+<td>Stock diario y quiebres</td>
+<td>OTD por transportista</td>
+<td>DAG que dispara otro DAG</td>
+</tr>
+<tr>
+<td>🛒 Tienda</td>
+<td>Segmentos RFM</td>
+<td>Retención por cohorte</td>
+<td>Clientes RFM con tests</td>
+<td>ETL completo con TaskFlow</td>
+</tr>
+</tbody></table></div>
+<p>Si resolviste todo, ya practicaste el trabajo real de un data engineer de punta a punta: <strong>lógica de negocio probada, transformaciones a escala, modelos versionados y orquestación confiable</strong>.</p>
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-tienda">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-logistica.html">← Logística 📦: costo FIFO, días hábiles, stock diario y alertas de quiebre</a><a href="incidentes-primera-guardia.html">Tu primera guardia - el método para no entrar en pánico →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

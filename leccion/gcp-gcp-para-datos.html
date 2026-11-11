@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Google Cloud para data engineers en 25 minutos · Academia de Datos</title><meta name="description" content="Qué es Google Cloud, proyectos, regiones y la jerarquía de recursos, el mapa de servicios de datos con BigQuery al centro, costos y equivalencias con AWS y Azure."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-gcp-para-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Google Cloud para data engineers en 25 minutos · Academia de Datos"><meta property="og:description" content="Qué es Google Cloud, proyectos, regiones y la jerarquía de recursos, el mapa de servicios de datos con BigQuery al centro, costos y equivalencias con AWS y Azure."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-gcp-para-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#gcp">🔷 Google Cloud para Data Engineers</a> · Básico · 25 min</div>
+<h1>Google Cloud para data engineers en 25 minutos</h1><p class="resumen">Qué es Google Cloud, proyectos, regiones y la jerarquía de recursos, el mapa de servicios de datos con BigQuery al centro, costos y equivalencias con AWS y Azure.</p>
+<a class="cta" href="../index.html#/l/gcp-gcp-para-datos">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<h2>La idea en una frase</h2>
+<p><strong>Google Cloud (GCP)</strong> es la nube de Google. Para datos tiene una estrella indiscutida: <strong>BigQuery</strong>, un data warehouse sin servidores donde guardas terabytes y los consultas con SQL en segundos, sin administrar nada. Muchas empresas eligen GCP justamente por BigQuery.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La planta eléctrica</div>
+
+<p>Con BigQuery no compras ni enciendes servidores: es como la electricidad. Enchufas tu consulta, Google pone cientos o miles de computadoras a trabajar durante unos segundos, y te cobra lo que consumiste (los datos que leyó). Cuando no consultas, no hay nada encendido.</p>
+</div>
+
+
+<h2>Cómo está organizado Google Cloud</h2>
+<pre><code class="language-text">Organización (tuempresa.com)                 ← la empresa, ligada a su dominio
+ └── Carpetas (opcional)  datos/, finanzas/   ← agrupan proyectos por área
+      └── Proyectos  academia-datos-dev        ← EL contenedor clave: recursos, permisos, APIs y facturación
+           └── Recursos                        ← buckets, datasets de BigQuery, temas de Pub/Sub, clusters…</code></pre>
+<ul>
+<li><strong>Proyecto</strong>: todo vive dentro de un proyecto. Tiene un <strong>ID</strong> único en el mundo (<code>academia-datos-dev</code>) que usarás en cada comando. Es el equivalente a la <em>cuenta</em> de AWS o a la <em>suscripción + grupo de recursos</em> de Azure.</li>
+<li><strong>Cuenta de facturación</strong>: se vincula a uno o varios proyectos; ahí llega la factura.</li>
+<li><strong>APIs</strong>: cada servicio se <strong>habilita</strong> por proyecto (<code>gcloud services enable bigquery.googleapis.com</code>). Si olvidas habilitarla, el error dice &quot;API has not been used in project…&quot;.</li>
+<li><strong>Región y zona</strong>: <code>us-central1</code> (Iowa), <code>southamerica-east1</code> (São Paulo), <code>southamerica-west1</code> (Santiago), <code>northamerica-south1</code> (México)… BigQuery y Cloud Storage también ofrecen <strong>multirregiones</strong> como <code>US</code> y <code>EU</code>.</li>
+</ul>
+<h2>El mapa de servicios de datos</h2>
+<pre><code class="language-text"> FUENTES          INGESTA                    ALMACENAMIENTO            PROCESO                  CONSUMO
+ apps, APIs ──►  Pub/Sub (eventos)    ──►    Cloud Storage (lago) ──►  Dataflow (Beam)    ──►   BigQuery (SQL)
+ bases      ──►  Datastream (CDC)            BigQuery (warehouse)      Dataproc (Spark)         Looker / Looker Studio
+ SaaS       ──►  Data Transfer Service       BigLake (tablas abiertas) Dataform / dbt (SQL)     Agent Platform (ML, antes Vertex AI)
+                       ORQUESTACIÓN: Cloud Composer (Airflow) · Workflows · Cloud Scheduler
+                       GOBIERNO: IAM · Dataplex · Policy tags · Cloud Audit Logs</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Para qué</th>
+<th>Analogía</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cloud Storage (GCS)</strong></td>
+<td>Archivos del lago: CSV, Parquet, Avro, Iceberg</td>
+<td>El depósito</td>
+</tr>
+<tr>
+<td><strong>BigQuery</strong></td>
+<td>Warehouse sin servidor: SQL sobre TB, ML con SQL, tablas externas</td>
+<td>El cerebro analítico</td>
+</tr>
+<tr>
+<td><strong>Pub/Sub</strong></td>
+<td>Mensajería de eventos en tiempo real</td>
+<td>El correo instantáneo</td>
+</tr>
+<tr>
+<td><strong>Dataflow</strong></td>
+<td>Procesamiento batch y streaming con Apache Beam, sin servidores</td>
+<td>La fábrica que escala sola</td>
+</tr>
+<tr>
+<td><strong>Dataproc</strong></td>
+<td>Spark y Hadoop administrados (clusters o <em>serverless</em>)</td>
+<td>El taller de Spark</td>
+</tr>
+<tr>
+<td><strong>Cloud Composer</strong></td>
+<td>Apache Airflow administrado</td>
+<td>El director de orquesta</td>
+</tr>
+<tr>
+<td><strong>Dataform</strong></td>
+<td>Transformaciones SQL versionadas dentro de BigQuery (como dbt)</td>
+<td>La receta del SQL</td>
+</tr>
+<tr>
+<td><strong>Datastream</strong></td>
+<td>Replicar bases (MySQL, Postgres, Oracle) con CDC hacia BigQuery</td>
+<td>La mudanza en vivo</td>
+</tr>
+<tr>
+<td><strong>Dataplex</strong></td>
+<td>Catálogo, calidad y gobierno del lago y del warehouse</td>
+<td>El bibliotecario</td>
+</tr>
+<tr>
+<td><strong>Cloud Run / Functions</strong></td>
+<td>Código que reacciona a eventos</td>
+<td>El timbre</td>
+</tr>
+</tbody></table></div>
+<!-- dg:gcp01-mapa -->
+<figure class="diagrama"><figcaption>Plataforma de datos de referencia en Google Cloud</figcaption></figure>
+
+
+<h2>Las tres nubes lado a lado</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Google Cloud</th>
+<th>AWS</th>
+<th>Azure</th>
+</tr>
+</thead><tbody><tr>
+<td>Contenedor de recursos</td>
+<td>Proyecto</td>
+<td>Cuenta</td>
+<td>Suscripción + grupo de recursos</td>
+</tr>
+<tr>
+<td>Lago de objetos</td>
+<td>Cloud Storage</td>
+<td>S3</td>
+<td>ADLS Gen2</td>
+</tr>
+<tr>
+<td>Warehouse sin servidor</td>
+<td><strong>BigQuery</strong></td>
+<td>Redshift Serverless / Athena</td>
+<td>Synapse / Fabric</td>
+</tr>
+<tr>
+<td>Spark administrado</td>
+<td>Dataproc</td>
+<td>EMR / Glue</td>
+<td>Databricks / Synapse Spark</td>
+</tr>
+<tr>
+<td>Streaming</td>
+<td>Pub/Sub + Dataflow</td>
+<td>Kinesis + Flink</td>
+<td>Event Hubs + Stream Analytics</td>
+</tr>
+<tr>
+<td>Airflow administrado</td>
+<td>Composer</td>
+<td>MWAA</td>
+<td>Apache Airflow job (Microsoft Fabric)</td>
+</tr>
+<tr>
+<td>SQL versionado</td>
+<td>Dataform (o dbt)</td>
+<td>dbt</td>
+<td>dbt</td>
+</tr>
+<tr>
+<td>CLI</td>
+<td><code>gcloud</code>, <code>bq</code>, <code>gsutil</code></td>
+<td><code>aws</code></td>
+<td><code>az</code></td>
+</tr>
+</tbody></table></div>
+<h2>Cuánto cuesta</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Precio orientativo</th>
+<th>Qué lo dispara</th>
+</tr>
+</thead><tbody><tr>
+<td>Cloud Storage Standard</td>
+<td>~USD 0,020 por GB/mes</td>
+<td>Guardar todo para siempre sin ciclo de vida</td>
+</tr>
+<tr>
+<td>BigQuery almacenamiento</td>
+<td>~USD 0,02 por GB/mes (la mitad si la tabla no cambia en 90 días)</td>
+<td>Copias innecesarias de tablas</td>
+</tr>
+<tr>
+<td>BigQuery consultas (<em>on-demand</em>)</td>
+<td>~USD 6,25 por <strong>TB leído</strong> (el primer TB de cada mes es gratis)</td>
+<td><code>SELECT *</code>, tablas sin particionar</td>
+</tr>
+<tr>
+<td>BigQuery por capacidad (<em>editions</em>)</td>
+<td>por <em>slot</em>-hora</td>
+<td>Reservas sobredimensionadas</td>
+</tr>
+<tr>
+<td>Dataflow / Dataproc</td>
+<td>por vCPU y memoria por hora</td>
+<td>Jobs de streaming que nunca se detienen</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El SELECT * más caro de tu vida</div>
+
+<p>En BigQuery cobran por las <strong>columnas</strong> que lees, no por las filas que devuelves. <code>SELECT * FROM eventos LIMIT 10</code> sobre una tabla de 20 TB <strong>lee 20 TB</strong> (USD 125) para mostrarte 10 filas. Usa la vista previa de la tabla (es gratis), elige columnas y filtra por partición. Y configura un límite: <code>--maximum_bytes_billed</code>.</p>
+</div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Para practicar gratis</div>
+
+<p>GCP ofrece crédito inicial y una capa gratuita permanente (BigQuery: 10 GB de almacenamiento y 1 TB de consultas por mes; además el <strong>BigQuery Sandbox</strong> no pide tarjeta). En este curso practicas en la terminal simulada: no gastas nada.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/gcp-gcp-para-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="aws-orquestacion-gobierno.html">← Orquestación, gobierno y arquitectura de referencia</a><a href="gcp-gcloud-iam.html">gcloud, proyectos e IAM →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

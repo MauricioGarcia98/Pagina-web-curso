@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Declarative Automation Bundles (antes Asset Bundles) y CI/CD · Academia de Datos</title><meta name="description" content="Proyectos como código con databricks.yml, targets dev/prod, validate/deploy/run y despliegue con GitHub Actions."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-asset-bundles.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Declarative Automation Bundles (antes Asset Bundles) y CI/CD · Academia de Datos"><meta property="og:description" content="Proyectos como código con databricks.yml, targets dev/prod, validate/deploy/run y despliegue con GitHub Actions."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-asset-bundles.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Experto · 40 min</div>
+<h1>Declarative Automation Bundles (antes Asset Bundles) y CI/CD</h1><p class="resumen">Proyectos como código con databricks.yml, targets dev/prod, validate/deploy/run y despliegue con GitHub Actions.</p>
+<a class="cta" href="../index.html#/l/databricks-asset-bundles">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>En cualquier <a href="#/databricks/jobs">job de práctica</a> el botón <strong>View as code</strong> muestra el YAML del bundle y el JSON de la API de ese job.</p>
+</div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Nombre nuevo</div>
+
+<p>En marzo de 2026, Databricks renombró <strong>Databricks Asset Bundles</strong> como <strong>Declarative Automation Bundles</strong>. El archivo <code>databricks.yml</code> y los comandos <code>databricks bundle …</code> no cambiaron, y en documentación, foros y entrevistas vas a seguir viendo el nombre viejo y la sigla DABs.</p>
+</div>
+
+
+<p><strong>Declarative Automation Bundles (DABs)</strong> son la forma oficial de tratar jobs, pipelines, notebooks y configuraciones como <strong>código</strong>: se versionan en Git, se revisan en Pull Requests y se despliegan a dev/test/prod con la CLI.</p>
+<h2>El problema: &quot;funciona en mi workspace&quot;</h2>
+<p>Sin bundles, un proyecto de Databricks se despliega a mano: alguien copia notebooks de su carpeta personal a la de producción, crea el job con clics, configura el cluster, los parámetros, los horarios… y nadie sabe exactamente qué versión está corriendo en producción ni cómo recrearla si se borra.</p>
+<p>Los <strong>Declarative Automation Bundles</strong> (DABs) aplican al proyecto de datos la misma idea que la infraestructura como código: <strong>todo</strong> (código, jobs, pipelines, clusters, permisos) se describe en archivos YAML dentro del repositorio Git, y un comando lo despliega idéntico en cada entorno.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Sin bundles</th>
+<th>Con bundles</th>
+</tr>
+</thead><tbody><tr>
+<td>Jobs creados a mano en la interfaz</td>
+<td>Jobs definidos en YAML, revisados en un <em>pull request</em></td>
+</tr>
+<tr>
+<td>&quot;¿Qué versión corre en prod?&quot;</td>
+<td>La del último commit desplegado en <code>main</code></td>
+</tr>
+<tr>
+<td>Dev y prod configurados distinto por error</td>
+<td>Un mismo archivo con <strong>targets</strong> (<code>dev</code>, <code>prod</code>) que solo cambian lo necesario</td>
+</tr>
+<tr>
+<td>Recrear todo si se borra el workspace</td>
+<td><code>databricks bundle deploy -t prod</code></td>
+</tr>
+</tbody></table></div>
+<p>El ciclo de trabajo es siempre: <strong>editar → <code>bundle validate</code> → <code>bundle deploy -t dev</code> → <code>bundle run -t dev</code> → commit → CI despliega a prod</strong>.</p>
+<h2>Crear un bundle</h2>
+<pre data-norun><code class="language-bash">databricks bundle init                  # elige una plantilla: default-python, dbt-sql, default-sql...
+cd mi_proyecto</code></pre>
+<pre><code class="language-text">mi_proyecto/
+├── databricks.yml            # definición del bundle y de los entornos (targets)
+├── resources/
+│   └── etl_diario.job.yml    # jobs y pipelines
+├── src/
+│   ├── bronze.py
+│   └── silver.ipynb
+└── tests/</code></pre>
+<h2>databricks.yml</h2>
+<pre data-norun><code class="language-yaml">bundle:
+  name: tienda_lakehouse
+
+include:
+  - resources/*.yml
+
+variables:
+  catalogo:
+    default: dev
+
+targets:
+  dev:
+    mode: development          # prefija recursos con tu usuario y pausa los schedules
+    default: true
+    workspace:
+      host: https://adb-1111111111111111.1.azuredatabricks.net
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-2222222222222222.2.azuredatabricks.net
+    variables:
+      catalogo: prod
+    run_as:
+      service_principal_name: &quot;11111111-2222-3333-4444-555555555555&quot;</code></pre>
+<h2>Un job definido como código</h2>
+<pre data-norun><code class="language-yaml"># resources/etl_diario.job.yml
+resources:
+  jobs:
+    etl_diario:
+      name: etl_diario
+      schedule:
+        quartz_cron_expression: &quot;0 0 3 * * ?&quot;
+        timezone_id: America/Argentina/Buenos_Aires
+      parameters:
+        - name: fecha
+          default: &quot;{{job.start_time.iso_date}}&quot;
+      tasks:
+        - task_key: bronze
+          notebook_task:
+            notebook_path: ../src/bronze.py
+            base_parameters: { catalogo: &quot;${var.catalogo}&quot; }
+        - task_key: silver
+          depends_on: [{ task_key: bronze }]
+          notebook_task:
+            notebook_path: ../src/silver.ipynb
+        - task_key: gold_dbt
+          depends_on: [{ task_key: silver }]
+          dbt_task:
+            commands: [&quot;dbt deps&quot;, &quot;dbt build --target ${bundle.target}&quot;]
+            project_directory: ../dbt
+      email_notifications:
+        on_failure: [equipo-datos@empresa.com]</code></pre>
+<h2>El ciclo de trabajo</h2>
+<pre data-norun><code class="language-bash">databricks bundle validate                      # revisa la configuración
+databricks bundle deploy -t dev                 # sube código y crea/actualiza jobs en dev
+databricks bundle run -t dev etl_diario         # ejecuta el job y muestra el progreso
+databricks bundle summary -t dev                # qué recursos hay desplegados
+databricks bundle deploy -t prod                # (normalmente desde CI)
+databricks bundle destroy -t dev                # borra lo desplegado en dev</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>CI/CD con GitHub Actions</h2>
+<pre data-norun><code class="language-yaml">name: deploy-prod
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - run: databricks bundle validate -t prod
+      - run: databricks bundle deploy -t prod
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}</code></pre>
+<p>Flujo típico: rama → PR (CI: tests unitarios + <code>bundle validate</code> + deploy a un entorno de pruebas) → merge a <code>main</code> → deploy automático a producción con un <strong>service principal</strong>.</p>
+<h2>Laboratorio en la terminal</h2>
+<pre><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+databricks bundle init
+cd mi_proyecto
+cat databricks.yml
+databricks bundle validate
+databricks bundle deploy -t dev
+databricks bundle summary</code></pre>
+<p>En <code>summary</code>, el job aparece como <code>[dev alumno] mi_proyecto_job</code>: en el target <code>dev</code> (con <code>mode: development</code>), Databricks antepone tu nombre a cada recurso. Así cada desarrollador despliega su propia copia sin pisar la de los demás. En <code>prod</code> el nombre queda limpio.</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-asset-bundles">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-cli-recursos.html">← Databricks CLI: workspace, archivos, clusters, jobs y secretos</a><a href="databricks-workflows-practicas.html">Workflows (Jobs), monitoreo y buenas prácticas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crear y afinar un Genie Agent · Academia de Datos</title><meta name="description" content="Crear un agente paso a paso (datos, warehouse, descripción, preguntas comunes) y enseñarle el negocio con las herramientas en el orden que recomienda la documentación - el knowledge store (descripciones, sinónimos, coincidencia de valores, joins y SQL expressions de tipo filtro, medida y campo), las consultas SQL de ejemplo (y con parámetros, que se vuelven respuestas verificadas), las funciones de Unity Catalog y, como último recurso, las instrucciones de texto."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-crear-y-afinar-un-agente.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Crear y afinar un Genie Agent · Academia de Datos"><meta property="og:description" content="Crear un agente paso a paso (datos, warehouse, descripción, preguntas comunes) y enseñarle el negocio con las herramientas en el orden que recomienda la documentación - el knowledge store (descripciones, sinónimos, coincidencia de valores, joins y SQL expressions de tipo filtro, medida y campo), las consultas SQL de ejemplo (y con parámetros, que se vuelven respuestas verificadas), las funciones de Unity Catalog y, como último recurso, las instrucciones de texto."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-crear-y-afinar-un-agente.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#genie">🧞 Databricks Genie: preguntas en lenguaje natural</a> · Intermedio · 70 min</div>
+<h1>Crear y afinar un Genie Agent</h1><p class="resumen">Crear un agente paso a paso (datos, warehouse, descripción, preguntas comunes) y enseñarle el negocio con las herramientas en el orden que recomienda la documentación - el knowledge store (descripciones, sinónimos, coincidencia de valores, joins y SQL expressions de tipo filtro, medida y campo), las consultas SQL de ejemplo (y con parámetros, que se vuelven respuestas verificadas), las funciones de Unity Catalog y, como último recurso, las instrucciones de texto.</p>
+<a class="cta" href="../index.html#/l/genie-crear-y-afinar-un-agente">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un Genie Agent y configurar sus datos y ajustes</li><li>Agregar descripciones, sinónimos y coincidencia de valores</li><li>Definir SQL expressions de tipo filtro, medida y campo</li><li>Escribir consultas de ejemplo, con y sin parámetros</li><li>Elegir el tipo de instrucción adecuado para cada necesidad</li><li>Escribir instrucciones de aclaración y de resumen</li></ul>
+<h2>Crear el agente</h2>
+<p>Requisitos, según la documentación: que los datos estén en <strong>Unity Catalog</strong>, un <strong>SQL warehouse pro o serverless</strong> sobre el que tengas permiso <code>CAN USE</code>, permiso <code>SELECT</code> sobre las tablas y el <em>entitlement</em> de Databricks SQL. En Databricks Free Edition ya tienes todo eso.</p>
+<ol>
+<li>En la barra lateral, haz clic en <strong>Genie Agents</strong> → <strong>New</strong>.</li>
+<li>Elige las fuentes de datos (la vista de ventas, o tus tablas) → <strong>Create</strong>.</li>
+<li>Se abre <strong>Genie Code</strong> con sugerencias: lee tus datos y propone descripciones y consultas de ejemplo. Revisa cada una y acepta solo las correctas.</li>
+<li>En <strong>Configure → Settings</strong> completa el <strong>título</strong>, la <strong>descripción</strong> (qué responde el agente, para quién y con qué datos), el <strong>warehouse por defecto</strong> y las <strong>preguntas comunes</strong> que verán los usuarios al entrar.</li>
+</ol>
+<p>Si tu workspace tiene consultas populares sobre esas tablas, Genie te las sugiere en el diálogo <strong>Review Suggested Queries</strong>: son un buen punto de partida, pero revisa cada una antes de aceptarla.</p>
+<h2>Qué le enseñas al agente: el mapa</h2>
+<figure class="diagrama"><figcaption>Las piezas de contexto de un Genie Agent</figcaption></figure>
+
+
+<p>Las herramientas, en el orden en que la documentación recomienda usarlas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Prioridad</th>
+<th>Herramienta</th>
+<th>Para qué</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td><strong>SQL expressions</strong> (knowledge store)</td>
+<td>Términos de negocio que se repiten: medidas, filtros y campos</td>
+<td>&quot;clientes corporativos&quot; = <code>segmento = &#39;Corporativo&#39;</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Consultas SQL de ejemplo</strong></td>
+<td>Preguntas complejas, de varias partes o ambiguas</td>
+<td>&quot;comparativo de ventas por canal contra el año anterior&quot;</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Funciones SQL</strong> de Unity Catalog</td>
+<td>Lógica que no cabe en una consulta fija</td>
+<td>Un cálculo de comisiones con reglas por tramo</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Instrucciones de texto</strong></td>
+<td>Lo que no se puede expresar en SQL</td>
+<td>&quot;si no dicen el período, pregunta cuál&quot;</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué ese orden? Porque las definiciones estructuradas se aplican <strong>exactamente como están escritas</strong>; una instrucción de texto, en cambio, el modelo la interpreta, y con muchas instrucciones le cuesta priorizar. La documentación es explícita: usa instrucciones de texto <strong>solo como último recurso</strong>.</p>
+<h2>1. El knowledge store</h2>
+<p>El <strong>knowledge store</strong> es la colección de definiciones del agente. Todo lo que configures acá vale <strong>solo para este agente</strong>: no cambia la metadata de Unity Catalog ni afecta a otros usuarios de las tablas. Se configura en <strong>Configure → Sources</strong> (metadata) y <strong>Configure → Examples</strong> (joins y SQL expressions).</p>
+<h3>Descripciones, sinónimos y columnas ocultas</h3>
+<p>Haz clic en una tabla y luego en el lápiz de una columna:</p>
+<ul>
+<li><strong>Descripción</strong>: una versión pensada para este agente (por ejemplo, aclarar que <code>importe_neto</code> es &quot;las ventas&quot;).</li>
+<li><strong>Sinónimos</strong>: cómo llama la gente a la columna. Para <code>canal</code>: &quot;canal de venta&quot;, &quot;medio&quot;. Para <code>importe_neto</code>: &quot;ventas&quot;, &quot;facturación&quot;.</li>
+<li><strong>Ocultar columnas</strong> que confunden o sobran: Genie deja de considerarlas.</li>
+</ul>
+<h3>Coincidencia de valores (prompt matching)</h3>
+<p>Las personas escriben como hablan, con sinónimos y errores de tipeo. La documentación pone este ejemplo: si los datos guardan los estados como <code>FL</code> y alguien pregunta por &quot;Florida&quot;, sin ayuda Genie escribiría <code>WHERE state ILIKE &#39;%Florida%&#39;</code> y no encontraría nada. Con <strong>entity matching</strong> activado en esa columna, Genie conoce los valores reales y escribe <code>WHERE state = &#39;FL&#39;</code>.</p>
+<p>En la tienda pasa lo mismo con &quot;el local&quot; → <code>canal = &#39;tienda&#39;</code>. Hay dos niveles:</p>
+<ul>
+<li><strong>Format assistance</strong>: Genie ve valores de muestra de cada columna para entender su formato (fechas, códigos). Se activa sola.</li>
+<li><strong>Entity matching</strong>: para columnas de texto con categorías (país, canal, estado), Genie guarda la lista de valores distintos (hasta 1.024 por columna, en hasta 120 columnas). Se activa en <strong>Advanced</strong> dentro de la columna. No se puede usar en tablas con filtros de filas ni máscaras de columnas.</li>
+</ul>
+<p>Cuando aparecen valores nuevos (un canal nuevo), se actualiza con <strong>Refresh prompt matching</strong>.</p>
+<h3>Relaciones de join</h3>
+<p>Si el agente tiene varias tablas, define cómo se unen en <strong>Configure → Examples → Add → Joins</strong>: tabla izquierda, tabla derecha, condición (<code>pedidos.cliente_id = clientes.cliente_id</code>) y tipo de relación (<strong>muchos a uno</strong>, <strong>uno a muchos</strong> o <strong>uno a uno</strong>). El tipo importa: le dice a Genie dónde se puede duplicar al sumar. Si declaraste claves en Unity Catalog, estas relaciones ya aparecen solas.</p>
+<h3>SQL expressions: filtros, medidas y campos</h3>
+<p>Son la herramienta más eficiente para los términos del negocio. Hay tres tipos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué es</th>
+<th>Ejemplo para la tienda</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Filter</strong> (filtro)</td>
+<td>Una condición verdadera o falsa sobre cada fila</td>
+<td>Nombre &quot;Líneas con descuento&quot; · Código <code>descuento &gt; 0</code> · Sinónimos: con promoción, rebajadas</td>
+</tr>
+<tr>
+<td><strong>Measure</strong> (medida)</td>
+<td>Un cálculo que agrega muchas filas</td>
+<td>Nombre &quot;Ticket promedio&quot; · Código <code>SUM(importe_neto) / COUNT(DISTINCT pedido_id)</code> · Sinónimos: ticket medio</td>
+</tr>
+<tr>
+<td><strong>Field</strong> (campo)</td>
+<td>Un valor nuevo por fila, para agrupar</td>
+<td>Nombre &quot;Trimestre fiscal&quot; · Código <code>CASE WHEN month(fecha) IN (2,3,4) THEN &#39;Q1&#39; ...</code> · Sinónimos: trimestre</td>
+</tr>
+</tbody></table></div>
+<p>Cada una lleva además un campo <strong>Instructions</strong>: cuándo usarla (&quot;aplica cuando pregunten por ventas con promoción&quot;). Un filtro se evalúa <strong>fila por fila</strong>: si la condición necesita sumar varias filas primero (como &quot;pedidos de más de 3.000&quot; en una tabla de líneas), es lógica de varios pasos y va mejor como consulta de ejemplo. Se agregan en <strong>Configure → Examples → Add</strong> eligiendo <em>Filter</em>, <em>Measure</em> o <em>Field</em>.</p>
+<p>Si tu agente usa una <strong>vista de métricas</strong>, las medidas ya vienen definidas en ella: no las repitas como SQL expressions.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Límites</div>
+
+<p>Cada agente admite hasta <strong>200 fragmentos del knowledge store</strong> (descripciones de tablas, joins y SQL expressions) y hasta <strong>100 instrucciones</strong> (cada consulta de ejemplo, cada función y el bloque completo de instrucciones de texto cuentan como una).</p>
+</div>
+
+
+<h2>2. Consultas SQL de ejemplo</h2>
+<p>Para preguntas complejas, la mejor herramienta es mostrarle a Genie <strong>cómo se resuelve</strong>. En <strong>Configure → Examples</strong> agregas una pregunta (escrita como la diría un usuario) y la consulta que la responde:</p>
+<ul>
+<li><strong>Pregunta</strong>: &quot;¿Cómo vamos por canal contra el mismo mes del año pasado?&quot;</li>
+<li><strong>SQL</strong>: la consulta completa, con los filtros y cálculos correctos.</li>
+</ul>
+<p>Cuando llega una pregunta parecida, Genie usa ese ejemplo como guía. Con <strong>Usage guidance</strong> puedes aclarar cuándo aplica.</p>
+<h3>Consultas con parámetros: respuestas verificadas</h3>
+<p>Una consulta de ejemplo puede tener <strong>parámetros</strong>, que se escriben con dos puntos (<code>:pais</code>) o con el botón <strong>Add parameter</strong>. Cada parámetro tiene tipo (texto, fecha, fecha y hora, decimal o entero) y un comentario que explica los valores posibles:</p>
+<pre data-norun><code class="language-sql">-- Pregunta: &quot;¿Cuánto vendimos en &lt;país&gt; en &lt;mes&gt;?&quot;
+SELECT ROUND(SUM(importe_neto), 2) AS ventas_netas,
+       COUNT(DISTINCT pedido_id)   AS pedidos
+FROM ventas.gold.ventas_lineas
+WHERE estado &lt;&gt; 'cancelado'
+  AND pais = :pais
+  AND mes = :mes</code></pre>
+<p>Las consultas con parámetros y las funciones de Unity Catalog son <strong>trusted assets</strong> (activos de confianza): cuando Genie responde usando exactamente una de ellas, la respuesta aparece como <strong>verificada</strong>, y el usuario puede cambiar el valor del parámetro y volver a ejecutarla. Para las preguntas más frecuentes e importantes, esta es la forma de dar respuestas que no varían.</p>
+<h2>3. Funciones de Unity Catalog</h2>
+<p>Cuando la lógica no cabe en una consulta fija (por ejemplo, comisiones por tramos con reglas que dependen del vendedor), se registra una <strong>función SQL</strong> en Unity Catalog y se agrega al agente. Genie la llama con los valores de la pregunta. Los usuarios necesitan permiso <code>EXECUTE</code> sobre la función.</p>
+<h2>4. Instrucciones de texto (último recurso)</h2>
+<p>En <strong>Configure → Instructions → Text</strong> van las reglas que no se pueden escribir en SQL. Pocas y concretas:</p>
+<pre><code class="language-text">- El año fiscal empieza el 1 de febrero: el FY2025 va del 1/2/2025 al 31/1/2026.
+- Redondea los importes a 2 decimales.
+- Si preguntan por ventas sin decir el período, pregunta primero:
+  &quot;¿De qué período quieres las ventas? Por ejemplo: marzo de 2024 o todo 2024.&quot;
+
+Instructions you must follow when providing summaries
+- Responde siempre en español.
+- Indica el período que cubren los resultados.
+- Menciona la tabla y las columnas que usaste.</code></pre>
+<p>Tres recomendaciones de la documentación:</p>
+<ul>
+<li><strong>Ser específico</strong>: &quot;pregunta si falta algo&quot; es vago. Mejor: <strong>cuándo</strong> (pregunta de ventas), <strong>qué falta</strong> (el período), <strong>qué hacer</strong> (preguntar) y <strong>cómo</strong> (el texto exacto de la pregunta). Esas instrucciones de aclaración van al <strong>final</strong> del bloque.</li>
+<li><strong>No contradecirse</strong>: si el texto dice &quot;redondear a 2 decimales&quot;, las consultas de ejemplo también tienen que redondear a 2.</li>
+<li><strong>Los resúmenes</strong> se personalizan con una sección que empiece con el título exacto <code>Instructions you must follow when providing summaries</code>. Solo las instrucciones de texto afectan los resúmenes; los ejemplos SQL no.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Resolver todo con instrucciones de texto</strong>: el modelo las interpreta y con muchas prioriza mal. Primero SQL expressions y ejemplos.</li>
+<li><strong>Definir el mismo término en dos lugares</strong> con reglas distintas (por ejemplo, &quot;pedido grande&quot; en un filtro y en una instrucción, con umbrales diferentes).</li>
+<li><strong>Aceptar las sugerencias de Genie Code o las consultas populares sin revisarlas</strong>.</li>
+<li><strong>Entity matching en columnas con datos sensibles</strong>: los valores quedan como contexto del agente. La documentación lo bloquea en tablas con filtros de filas o máscaras.</li>
+<li><strong>Parámetros con el tipo equivocado</strong> (un mes como entero cuando la columna es texto <code>2024-03</code>): Genie interpreta mal el valor.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Con la vista de ventas preparada, toca crear el agente. La primera prueba sale bien (&quot;¿cuánto vendimos en 2024?&quot;), pero las siguientes muestran huecos: &quot;¿cuánto vendimos en el local?&quot; no encuentra nada porque en los datos el canal se llama <code>tienda</code>; &quot;pedidos grandes&quot; se interpreta cada vez con un umbral distinto; y &quot;¿cómo vamos este trimestre?&quot; mezcla trimestres calendario con el año fiscal de la empresa. Cada hueco tiene una herramienta específica para cerrarlo.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El orden de trabajo habitual: vista o vista de métricas bien documentada → agente con pocas tablas → probar con 20 preguntas reales → cerrar cada error con la herramienta adecuada → repetir.</li>
+<li>Las preguntas más importantes del negocio (las que van a una reunión de directorio) se convierten en consultas con parámetros, para que la respuesta salga verificada.</li>
+<li>La configuración del agente se versiona con Declarative Automation Bundles y se promueve de desarrollo a producción como cualquier otro recurso.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Un Genie Agent interpreta 'clientes activos' de formas distintas según el día. ¿Cómo lo resuelves?&quot;</div>
+
+<p>Lo defino una sola vez como contexto estructurado, no como texto: una SQL expression de tipo filtro con la condición exacta, por ejemplo al menos una compra en los últimos 90 días, con sinónimos como &quot;clientes vigentes&quot;, o mejor aún como medida en la vista de métricas que usa el agente. Agrego una consulta de ejemplo para las preguntas típicas sobre clientes activos y un benchmark con varias formas de preguntarlo, para comprobar que la respuesta es consistente.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/genie-crear-y-afinar-un-agente">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="genie-preparar-los-datos.html">← Preparar los datos para que Genie responda bien</a><a href="genie-evaluar-y-monitorear.html">Probar, evaluar y monitorear un Genie Agent →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

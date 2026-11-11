@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso ⚡ Luz del Valle: hurto de energía, cobranza y calidad del servicio · Academia de Datos</title><meta name="description" content="Una distribuidora eléctrica pierde energía que nadie paga. Detecta caídas bruscas de consumo (posible hurto) comparando períodos, mide la cobranza y la deuda por zona, calcula los índices de calidad SAIDI y SAIFI y la proporción de lecturas estimadas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-energia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso ⚡ Luz del Valle: hurto de energía, cobranza y calidad del servicio · Academia de Datos"><meta property="og:description" content="Una distribuidora eléctrica pierde energía que nadie paga. Detecta caídas bruscas de consumo (posible hurto) comparando períodos, mide la cobranza y la deuda por zona, calcula los índices de calidad SAIDI y SAIFI y la proporción de lecturas estimadas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-energia.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 55 min</div>
+<h1>Caso ⚡ Luz del Valle: hurto de energía, cobranza y calidad del servicio</h1><p class="resumen">Una distribuidora eléctrica pierde energía que nadie paga. Detecta caídas bruscas de consumo (posible hurto) comparando períodos, mide la cobranza y la deuda por zona, calcula los índices de calidad SAIDI y SAIFI y la proporción de lecturas estimadas.</p>
+<a class="cta" href="../index.html#/l/casos-energia">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Comparar el consumo de cada cliente entre dos períodos para detectar caídas anómalas</li><li>Calcular la cobranza a tiempo, la morosidad y la deuda por zona</li><li>Calcular los indicadores regulatorios de calidad SAIDI y SAIFI</li><li>Medir las lecturas estimadas por tipo de medidor y explicar su efecto en la facturación</li><li>Encontrar los meses de mayor consumo por tipo de cliente</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 La energía que se pierde</div>
+
+<p>El gerente de <strong>Luz del Valle</strong>, una distribuidora eléctrica, recibe dos presiones a la vez:</p>
+<blockquote>
+<p>&quot;El regulador nos va a multar si no mejoramos los cortes en la zona rural. Y el balance de energía no cierra: compramos bastante más de lo que facturamos. Parte es pérdida técnica de la red, pero sospechamos que hay <strong>conexiones clandestinas</strong> y medidores manipulados. Las cuadrillas de inspección son pocas: díganme <strong>a qué casas mandarlas</strong>.&quot;</p>
+</blockquote>
+</div>
+
+
+<h2>Cómo funciona una distribuidora eléctrica</h2>
+<p>La distribuidora compra energía en bloque y la lleva hasta cada casa, comercio o industria por su red. Cada cliente tiene un <strong>medidor</strong>: los <strong>analógicos</strong> los lee una persona una vez por mes (y si no puede entrar, la lectura se <strong>estima</strong>); los <strong>inteligentes</strong> envían la lectura solos.</p>
+<p>Las <strong>pérdidas</strong> son la energía comprada que no se factura: una parte es técnica (calor en los cables) y otra es <strong>no técnica</strong>: hurto (conexiones directas a la red, medidores alterados) y errores de medición. Un cliente que manipula el medidor sigue consumiendo, pero el medidor registra mucho menos: en los datos aparece como una <strong>caída brusca y sostenida</strong> del consumo.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Fórmula</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Caída de consumo</strong></td>
+<td>consumo reciente / consumo de referencia</td>
+<td>Detectar posibles hurtos</td>
+</tr>
+<tr>
+<td><strong>Cobranza a tiempo</strong></td>
+<td>facturas pagadas hasta el vencimiento / facturas</td>
+<td>Salud financiera</td>
+</tr>
+<tr>
+<td><strong>Morosidad</strong></td>
+<td>facturas impagas / facturas</td>
+<td>Riesgo de cobro</td>
+</tr>
+<tr>
+<td><strong>SAIDI</strong></td>
+<td>minutos sin servicio × clientes afectados / clientes de la zona</td>
+<td>Minutos sin luz por cliente en el año (regulatorio)</td>
+</tr>
+<tr>
+<td><strong>SAIFI</strong></td>
+<td>clientes afectados / clientes de la zona</td>
+<td>Cantidad de cortes por cliente en el año (regulatorio)</td>
+</tr>
+<tr>
+<td><strong>% de lecturas estimadas</strong></td>
+<td>lecturas estimadas / lecturas</td>
+<td>Calidad de la medición</td>
+</tr>
+</tbody></table></div>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">energia_clientes  (cliente_id, tipo, zona, fecha_alta)
+energia_medidores (medidor_id, cliente_id, tipo, fecha_instalacion)
+energia_lecturas  (lectura_id, medidor_id, mes, kwh, estimada)          ← una por medidor y mes de 2024
+energia_facturas  (factura_id, cliente_id, mes, kwh, monto, fecha_vencimiento, fecha_pago)
+energia_cortes    (corte_id, zona, inicio, fin, causa, clientes_afectados)</code></pre>
+<figure class="diagrama"><figcaption>Modelo de Luz del Valle: consumo por medidor, facturas por cliente y cortes por zona</figcaption></figure>
+
+
+<ul>
+<li>Cada cliente tiene un medidor. El <strong>consumo</strong> se lee en <code>energia_lecturas</code> (por medidor); la <strong>plata</strong>, en <code>energia_facturas</code> (por cliente).</li>
+<li><code>fecha_pago</code> en <code>NULL</code> = impaga. Pagada a tiempo = <code>fecha_pago &lt;= fecha_vencimiento</code>.</li>
+<li>Los cortes no están ligados a clientes individuales sino a una <strong>zona</strong>, con la cantidad de clientes afectados.</li>
+</ul>
+<h2>Un ejemplo resuelto: caídas bruscas de consumo</h2>
+<p><strong>Pregunta:</strong> &quot;¿Qué clientes consumen, a fin de año, menos de la mitad de lo que consumían a principio de año?&quot;</p>
+<ol>
+<li><strong>Grano</strong>: un cliente por fila, con dos números: promedio de enero–marzo (referencia) y promedio de octubre–diciembre (reciente).</li>
+<li><strong>Truco</strong>: <code>AVG(CASE WHEN período THEN kwh END)</code> calcula los dos promedios en la misma pasada (el <code>CASE</code> sin <code>ELSE</code> deja <code>NULL</code> fuera del período, y <code>AVG</code> los ignora).</li>
+<li><strong>Comparar</strong> los dos promedios de cada cliente, no de toda la base: así no importa que un comercio consuma diez veces más que una casa.</li>
+</ol>
+<pre><code class="language-sql">WITH x AS (
+  SELECT m.cliente_id, c.tipo, c.zona,
+         AVG(CASE WHEN l.mes &lt;= '2024-03' THEN l.kwh END) AS kwh_ene_mar,
+         AVG(CASE WHEN l.mes &gt;= '2024-10' THEN l.kwh END) AS kwh_oct_dic
+  FROM energia_lecturas l
+  JOIN energia_medidores m ON m.medidor_id = l.medidor_id
+  JOIN energia_clientes c ON c.cliente_id = m.cliente_id
+  GROUP BY m.cliente_id, c.tipo, c.zona
+)
+SELECT cliente_id, tipo, zona,
+       ROUND(kwh_ene_mar) AS antes, ROUND(kwh_oct_dic) AS despues,
+       ROUND(100.0 * kwh_oct_dic / kwh_ene_mar, 1) AS pct_del_consumo
+FROM x
+WHERE kwh_oct_dic &lt; 0.5 * kwh_ene_mar
+ORDER BY pct_del_consumo;</code></pre>
+<p>Las primeras filas (de 25):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_id</th>
+<th>tipo</th>
+<th>zona</th>
+<th>antes</th>
+<th>despues</th>
+<th>pct_del_consumo</th>
+</tr>
+</thead><tbody><tr>
+<td>245</td>
+<td>residencial</td>
+<td>Centro</td>
+<td>247</td>
+<td>40</td>
+<td>16.1</td>
+</tr>
+<tr>
+<td>694</td>
+<td>residencial</td>
+<td>Rural</td>
+<td>141</td>
+<td>23</td>
+<td>16.3</td>
+</tr>
+<tr>
+<td>270</td>
+<td>residencial</td>
+<td>Norte</td>
+<td>262</td>
+<td>44</td>
+<td>16.8</td>
+</tr>
+<tr>
+<td>940</td>
+<td>residencial</td>
+<td>Centro</td>
+<td>506</td>
+<td>86</td>
+<td>17</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura:</strong> 25 clientes pasaron a consumir entre el 16 % y el 25 % de lo que consumían. Una casa no reduce su consumo en un 80 % de un mes para otro sin una razón (una mudanza, una casa vacía). Esta lista, ordenada, es la <strong>hoja de ruta de las cuadrillas</strong>: primero los comercios (más energía en juego) y los casos más extremos.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>Estacionalidad</strong>: comparar enero (verano, aire acondicionado) con octubre puede dar caídas &quot;normales&quot;. Una regla más robusta compara con el <strong>mismo mes del año anterior</strong>, o con el consumo de clientes parecidos de la misma zona.</li>
+<li><strong>Casas vacías y mudanzas</strong>: también caen a casi cero. Antes de mandar una cuadrilla, se cruza con bajas, cambios de titular y facturas.</li>
+<li><strong>Lecturas estimadas</strong>: si el lector no entró, el kWh es una estimación (suele ser el promedio histórico) y <strong>oculta</strong> la caída. Las caídas se miden con lecturas reales.</li>
+<li><strong>SAIDI/SAIFI se dividen por los clientes de la zona</strong>, no por los afectados: miden la experiencia del cliente promedio.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las distribuidoras usan modelos de detección de hurto con las lecturas de los <strong>medidores inteligentes</strong> cada 15 minutos (curvas de carga), y cruzan con inspecciones previas, deuda y hasta imágenes satelitales. El primer paso siempre es una regla como la de este caso.</li>
+<li>El resultado de cada inspección (¿había hurto?) se vuelve a cargar en la base: es la etiqueta que permite medir la precisión de la regla y entrenar un modelo.</li>
+<li>SAIDI y SAIFI se reportan al regulador con reglas exactas (qué cortes cuentan, cómo se excluyen los de fuerza mayor): esa lógica vive en un modelo de gold versionado y auditable, no en una planilla.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo detectarías anomalías en series de consumo de miles de clientes?&quot;</div>
+
+<p>Empiezo comparando cada cliente consigo mismo: su consumo reciente contra su línea base (el mismo período del año anterior o su promedio estable), para no confundir tamaños distintos. Marco caídas fuertes y sostenidas (varios meses, no un mes aislado), descarto explicaciones conocidas (casa vacía, cambio de titular, lecturas estimadas) y además comparo con sus vecinos de zona, para separar efectos de clima. Priorizo por energía en juego y mido la precisión con el resultado de las inspecciones.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Comparar consumos de períodos con distinta cantidad de días</strong>: una &quot;caída&quot; puede ser solo un mes más corto. Normaliza por día.</li>
+<li><strong>Marcar hurto por cualquier caída</strong>: un cliente que se mudó o una casa vacía también bajan el consumo. Las reglas generan candidatos a inspeccionar, no acusaciones.</li>
+<li><strong>Deuda por zona sin separar la deuda vencida</strong> de la que todavía no vence.</li>
+</ul>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-energia">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-hoteleria.html">← Caso 🏨 Posada Andina: ocupación, ADR, RevPAR y canales de venta</a><a href="casos-delivery.html">Caso 🛵 Rápido: tiempos de entrega, take rate y retención en una app de delivery →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

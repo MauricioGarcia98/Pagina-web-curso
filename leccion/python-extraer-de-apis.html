@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extraer datos de una API - tokens, paginación, límites y reintentos · Academia de Datos</title><meta name="description" content="La tarea más común de un data engineer junior: traer datos de una API sin perder ni duplicar nada. Contra una API de práctica que se porta como una real."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-extraer-de-apis.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Extraer datos de una API - tokens, paginación, límites y reintentos · Academia de Datos"><meta property="og:description" content="La tarea más común de un data engineer junior: traer datos de una API sin perder ni duplicar nada. Contra una API de práctica que se porta como una real."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-extraer-de-apis.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Avanzado · 60 min</div>
+<h1>Extraer datos de una API - tokens, paginación, límites y reintentos</h1><p class="resumen">La tarea más común de un data engineer junior: traer datos de una API sin perder ni duplicar nada. Contra una API de práctica que se porta como una real.</p>
+<a class="cta" href="../index.html#/l/python-extraer-de-apis">▶ Abrir la lección interactiva (12 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Hacer pedidos GET y POST con <code>requests</code> y leer el código de estado</li><li>Recorrer todas las páginas de una API (por número de página y por cursor)</li><li>Autenticarte con un token y renovarlo cuando vence</li><li>Respetar el límite de pedidos (429 y Retry-After)</li><li>Reintentar con espera creciente cuando el servidor falla</li><li>Deduplicar y limpiar lo que llega antes de guardarlo</li></ul>
+<h2>La documentación primero</h2>
+<p>Toda API tiene su documentación. La de práctica también: <code>GET /v1/docs</code>. Léela antes de escribir código; es lo primero que hace un profesional.</p>
+<pre><code class="language-python">import requests
+r = requests.get(&quot;https://api.tiendaandina.dev/v1/docs&quot;)
+for tema, texto in r.json().items():
+    print(f&quot;{tema}: {texto}\n&quot;)</code></pre>
+<h2>Un pedido, con cuidado</h2>
+<pre><code class="language-python">import requests
+
+r = requests.get(&quot;https://api.tiendaandina.dev/v1/productos&quot;, params={&quot;page&quot;: 1, &quot;per_page&quot;: 5})
+print(r.status_code)              # 200
+print(r.headers[&quot;content-type&quot;])  # application/json
+datos = r.json()
+print(datos[&quot;total&quot;], datos[&quot;total_pages&quot;], datos[&quot;siguiente&quot;])
+for p in datos[&quot;datos&quot;]:
+    print(p[&quot;id&quot;], p[&quot;nombre&quot;], p[&quot;precio&quot;])</code></pre>
+<ul>
+<li><code>params=</code> arma la parte de la URL después del <code>?</code> por ti (y escapa los espacios y tildes).</li>
+<li>Siempre mira el <strong>código de estado</strong> antes de usar los datos. <code>r.raise_for_status()</code> lanza una excepción si el código es 4xx o 5xx: así un error no pasa inadvertido.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El error silencioso más común</div>
+
+<p>Si no revisas el estado, un <code>404</code> o un <code>401</code> también trae JSON (<code>{&quot;error&quot;: &quot;...&quot;}</code>) y tu programa sigue como si nada, guardando un error en vez de datos. Por eso: <code>r.raise_for_status()</code> o un <code>if r.status_code != 200</code> antes de seguir.</p>
+</div>
+
+
+<h2>Paginación: hasta que no haya más</h2>
+<p>Ninguna API te da todo de una vez. Hay dos estilos y la de práctica tiene los dos.</p>
+<p><strong>Por número de página</strong> (<code>/v1/productos</code>): pides <code>page=1</code>, <code>page=2</code>… hasta que la respuesta diga que no hay <code>siguiente</code>:</p>
+<pre><code class="language-python">import requests
+URL = &quot;https://api.tiendaandina.dev/v1/productos&quot;
+todos, page = [], 1
+while page is not None:
+    r = requests.get(URL, params={&quot;page&quot;: page, &quot;per_page&quot;: 10})
+    r.raise_for_status()
+    cuerpo = r.json()
+    todos.extend(cuerpo[&quot;datos&quot;])
+    page = cuerpo[&quot;siguiente&quot;]        # None en la última página
+print(len(todos))</code></pre>
+<p><strong>Por cursor</strong> (<code>/v1/pedidos</code>): en vez de un número, la API te da un <strong>cursor</strong> (un código opaco) que apunta a &quot;dónde quedaste&quot;. Lo devuelves en el próximo pedido hasta que venga <code>null</code>. Es más robusto cuando llegan datos nuevos mientras paginas, y por eso lo usan casi todas las APIs grandes.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 No adivines el final</div>
+
+<p>Nunca calcules cuántas páginas hay &quot;a mano&quot; ni pares cuando una página viene con menos filas: usa lo que te dice la API (<code>siguiente</code>, <code>siguiente_cursor</code>, <code>has_more</code>, <code>next</code>). Es la única señal confiable.</p>
+</div>
+
+
+<h2>Autenticación con token</h2>
+<p>Los datos sensibles (pedidos, clientes) piden <strong>identificarse</strong>. El flujo típico (OAuth &quot;client credentials&quot;):</p>
+<ol>
+<li>Haces <code>POST /v1/token</code> con tu <code>cliente_id</code> y tu <code>secreto</code>.</li>
+<li>La API te da un <code>access_token</code> que vence (aquí, a los 60 segundos o tras 25 pedidos).</li>
+<li>Lo mandas en cada pedido, en la cabecera <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+<li>Si recibes <code>401</code> con &quot;token expirado&quot;, pides otro y repites el pedido.</li>
+</ol>
+<pre><code class="language-python">import os, requests
+BASE = &quot;https://api.tiendaandina.dev/v1&quot;
+credenciales = {&quot;cliente_id&quot;: &quot;academia&quot;, &quot;secreto&quot;: os.environ.get(&quot;TIENDA_SECRETO&quot;, &quot;s3cr3t0-de-practica&quot;)}
+token = requests.post(f&quot;{BASE}/token&quot;, json=credenciales).json()[&quot;access_token&quot;]
+r = requests.get(f&quot;{BASE}/pedidos&quot;, params={&quot;limit&quot;: 3}, headers={&quot;Authorization&quot;: f&quot;Bearer {token}&quot;})
+print(r.status_code, r.json()[&quot;siguiente_cursor&quot;])</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El secreto no va en el código</div>
+
+<p>En un proyecto real, el secreto <strong>nunca</strong> se escribe en el código ni se sube a Git: se lee de una variable de entorno (<code>os.environ</code>), de un archivo <code>.env</code> que está en <code>.gitignore</code>, o de un gestor de secretos (Key Vault, Secrets Manager, Secret Manager, los <em>secret scopes</em> de Databricks, las <em>Connections</em> de Airflow). Aquí lo escribimos porque es una API de práctica.</p>
+</div>
+
+
+<h2>Límites: 429 y Retry-After</h2>
+<p>Las APIs se protegen limitando cuántos pedidos aceptan por segundo o por minuto. La de práctica acepta <strong>10 por segundo</strong>. Si te pasas responde <code>429 Too Many Requests</code> con la cabecera <code>Retry-After</code> (segundos a esperar). Lo correcto es <strong>esperar eso y reintentar</strong>:</p>
+<pre><code class="language-python">import time, requests
+
+def get_respetando_limite(url, **kw):
+    while True:
+        r = requests.get(url, **kw)
+        if r.status_code != 429:
+            return r
+        espera = int(r.headers.get(&quot;Retry-After&quot;, &quot;1&quot;))
+        print(f&quot;429: espero {espera} s&quot;)
+        time.sleep(espera)</code></pre>
+<h2>Reintentos con espera creciente (backoff)</h2>
+<p>Los <code>5xx</code> (500, 502, 503, 504) y los cortes de red suelen ser <strong>temporales</strong>. Se reintenta, pero esperando cada vez más (1, 2, 4, 8 segundos…) para no empeorar un servidor que ya está saturado. Eso se llama <strong>backoff exponencial</strong>. Los <code>4xx</code> (salvo 429) <strong>no</strong> se reintentan: el pedido está mal y va a seguir mal.</p>
+<pre><code class="language-python">import time, requests
+
+def get_con_reintentos(url, intentos=5, **kw):
+    for n in range(intentos):
+        r = requests.get(url, **kw)
+        if r.status_code &lt; 500 and r.status_code != 429:
+            return r                      # éxito, o un error que no se arregla reintentando
+        espera = 2 ** n                   # 1, 2, 4, 8, 16
+        print(f&quot;intento {n + 1}: {r.status_code}, reintento en {espera} s&quot;)
+        time.sleep(espera)
+    r.raise_for_status()                  # se agotaron los intentos: que falle fuerte</code></pre>
+<div class="callout callout-experto"><div class="callout-title">🚀 En producción</div>
+
+<p>Librerías como <code>tenacity</code> o el <code>Retry</code> de <code>urllib3</code> hacen esto por ti, y también se suma un poco de azar a la espera (<em>jitter</em>) para que mil clientes no reintenten todos en el mismo segundo. En Airflow, además, cada tarea tiene <code>retries</code> y <code>retry_delay</code>: un reintento dentro del código para fallas cortas y otro de la tarea para fallas largas.</p>
+</div>
+
+
+<h2>Lo que llega no está limpio</h2>
+<p>Las APIs también mandan datos sucios: emails con mayúsculas y espacios, y <strong>registros duplicados</strong> (el sistema de origen reintentó y grabó dos veces, o un pedido cambió de página mientras paginabas). Antes de guardar:</p>
+<ul>
+<li><strong>Deduplica por la clave</strong> (<code>id</code>), quedándote con una sola versión.</li>
+<li><strong>Normaliza</strong> los textos que se usan para cruzar (<code>email.strip().lower()</code>).</li>
+<li>Guarda también <strong>cuándo</strong> lo extrajiste: si algo sale mal, sabes qué corrida lo trajo.</li>
+</ul>
+<h2>Idempotencia: correrlo dos veces no puede duplicar</h2>
+<p>El pipeline va a fallar alguna noche y alguien lo va a volver a correr. Si cada corrida <em>agrega</em> los pedidos, la segunda los duplica. Un pipeline <strong>idempotente</strong> da el mismo resultado lo corras una o diez veces: por ejemplo, escribe la extracción de cada día en su propia partición (<code>pedidos/fecha=2024-10-31/</code>) <strong>reemplazándola</strong>, o usa <code>MERGE</code> por <code>id</code>. Lo profundizas en el módulo de incidentes (cargas duplicadas).</p>
+<h2>Practica</h2>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li>Usar los datos sin mirar el código de estado.</li>
+<li>Paginar con un <code>range(10)</code> &quot;porque hay 10 páginas&quot; en vez de seguir <code>siguiente</code>.</li>
+<li>Reintentar en un <code>while True</code> sin espera, o reintentar errores 4xx.</li>
+<li>Escribir el secreto en el código y subirlo a GitHub.</li>
+<li>Guardar lo que llega sin deduplicar.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los pedidos del marketplace</div>
+
+<p>Martín te asigna tu primera extracción: <em>&quot;El marketplace donde también vendemos tiene una API. Necesito todos los pedidos de octubre en nuestro lago, todos los días a las 4. La API pide token, devuelve de a 50 y si le pegas muy rápido te bloquea. Ah, y a veces se cae.&quot;</em></p>
+<p>Esto es, palabra por palabra, una tarea real de la primera semana. tiendaandina.dev/v1`), que corre dentro del sitio y se porta como una de verdad: pide token, pagina, limita y falla.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p>En el trabajo esta extracción va dentro de una tarea de Airflow (o un job de Databricks), escribe en la capa bronze del lago y deja un registro: cuántas filas trajo, cuántos duplicados quitó, cuánto tardó. Si mañana la API cambia, ese registro es lo primero que vas a mirar.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo extraerías todos los datos de una API paginada con límite de pedidos?&quot;</div>
+
+<p>Leo la documentación (autenticación, estilo de paginación, límites). Pido el token y lo renuevo con un 401. Recorro siguiendo el cursor que da la API hasta que venga vacío, sin asumir cuántas páginas hay. Respeto el 429 esperando lo que dice <code>Retry-After</code>, y reintento los 5xx con backoff exponencial y un máximo de intentos. Deduplico por clave, guardo en una partición por fecha de forma idempotente y registro métricas de la corrida.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-extraer-de-apis">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-python-datos.html">← Python para ingeniería de datos</a><a href="python-buenas-practicas.html">Python profesional: entornos, paquetes, tests y estilo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

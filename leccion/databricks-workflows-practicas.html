@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflows (Jobs), monitoreo y buenas prácticas · Academia de Datos</title><meta name="description" content="Jobs multi-tarea, parámetros, reintentos, alertas, costos y la checklist de un lakehouse bien hecho."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-workflows-practicas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Workflows (Jobs), monitoreo y buenas prácticas · Academia de Datos"><meta property="og:description" content="Jobs multi-tarea, parámetros, reintentos, alertas, costos y la checklist de un lakehouse bien hecho."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-workflows-practicas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Experto · 45 min</div>
+<h1>Workflows (Jobs), monitoreo y buenas prácticas</h1><p class="resumen">Jobs multi-tarea, parámetros, reintentos, alertas, costos y la checklist de un lakehouse bien hecho.</p>
+<a class="cta" href="../index.html#/l/databricks-workflows-practicas">▶ Abrir la lección interactiva (3 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Arma un <a href="#/databricks/jobs/nuevo">job de práctica</a> con varias tareas, dependencias, condiciones <em>Run if</em>, reintentos y parámetros, hazlo fallar y usa <strong>Repair run</strong>. También puedes crear un <a href="#/databricks/pipelines/nuevo">pipeline declarativo</a> con tablas de streaming y expectativas.</p>
+</div>
+
+
+<p>Ya tienes notebooks que leen bronze, limpian a silver y calculan gold. Falta que corran <strong>solos</strong>, todas las noches, en el orden correcto, con reintentos y con alguien que se entere si algo falla. Eso son los <strong>Jobs</strong> de Databricks (hoy llamados <strong>Lakeflow Jobs</strong>, y antes <strong>Workflows</strong>). Esta lección explica cómo se arman, cómo se pasan datos entre tareas, cómo se monitorean y cierra el módulo con la checklist de un lakehouse profesional.</p>
+<h2>Lakeflow Jobs (Workflows)</h2>
+<p>Un <strong>job</strong> de Databricks es un DAG de <strong>tareas</strong>, igual que un DAG de Airflow, pero dentro de Databricks. Cada tarea puede ser:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de tarea</th>
+<th>Qué ejecuta</th>
+</tr>
+</thead><tbody><tr>
+<td>Notebook</td>
+<td>Un notebook (Python, SQL o Scala)</td>
+</tr>
+<tr>
+<td>Python script / wheel</td>
+<td>Un archivo <code>.py</code> o un paquete instalado</td>
+</tr>
+<tr>
+<td>SQL</td>
+<td>Una consulta o un archivo <code>.sql</code> en un SQL warehouse</td>
+</tr>
+<tr>
+<td>dbt</td>
+<td><code>dbt build</code> sobre el proyecto, en un SQL warehouse</td>
+</tr>
+<tr>
+<td>Pipeline</td>
+<td>Un pipeline declarativo (Lakeflow Spark Declarative Pipelines, antes DLT)</td>
+</tr>
+<tr>
+<td>Run Job</td>
+<td>Otro job completo</td>
+</tr>
+<tr>
+<td>If/else, For each</td>
+<td>Condiciones y bucles sobre parámetros o resultados</td>
+</tr>
+</tbody></table></div>
+<p>Un job tiene:</p>
+<ul>
+<li><strong>Disparadores</strong> (<em>triggers</em>): cron (&quot;todos los días a las 3:00&quot;), llegada de archivos (<em>file arrival</em>: arranca cuando aparece un archivo en un volumen o un bucket), actualización de una tabla, modo continuo o manual.</li>
+<li><strong>Parámetros de job</strong>: valores propios (<code>fecha</code>, <code>pais</code>) y valores dinámicos como <code>{{job.start_time.iso_date}}</code>, que llegan a los widgets de los notebooks.</li>
+<li><strong>Reintentos</strong>, <strong>timeouts</strong>, <strong>notificaciones</strong> (email, Slack, Teams, webhooks) y <strong>condiciones</strong> (<code>if/else</code>, <code>for each</code>).</li>
+<li><strong>Cómputo</strong>: un <em>job cluster</em> que comparten las tareas (se crea al empezar y se borra al terminar) o <strong>serverless</strong>.</li>
+</ul>
+<h3>Cómo se define un job</h3>
+<p>Se puede crear con clics en la interfaz, pero en un equipo profesional se define como <strong>código</strong>: en un Asset Bundle (lo viste en la lección de CLI) o en un JSON. Este job tiene cuatro tareas: bronze, después silver, y después dos gold en paralelo:</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;lakehouse_diario&quot;,
+  &quot;parameters&quot;: [{ &quot;name&quot;: &quot;fecha&quot;, &quot;default&quot;: &quot;2024-12-31&quot; }],
+  &quot;schedule&quot;: { &quot;quartz_cron_expression&quot;: &quot;0 0 3 * * ?&quot;, &quot;timezone_id&quot;: &quot;America/Santiago&quot; },
+  &quot;email_notifications&quot;: { &quot;on_failure&quot;: [&quot;datos@tiendaandina.com&quot;] },
+  &quot;tasks&quot;: [
+    { &quot;task_key&quot;: &quot;bronze&quot;,
+      &quot;notebook_task&quot;: { &quot;notebook_path&quot;: &quot;/Repos/datos/pipelines/bronze&quot; } },
+    { &quot;task_key&quot;: &quot;silver&quot;, &quot;depends_on&quot;: [{ &quot;task_key&quot;: &quot;bronze&quot; }],
+      &quot;notebook_task&quot;: { &quot;notebook_path&quot;: &quot;/Repos/datos/pipelines/silver&quot; },
+      &quot;max_retries&quot;: 2, &quot;min_retry_interval_millis&quot;: 600000 },
+    { &quot;task_key&quot;: &quot;gold_ventas&quot;, &quot;depends_on&quot;: [{ &quot;task_key&quot;: &quot;silver&quot; }],
+      &quot;notebook_task&quot;: { &quot;notebook_path&quot;: &quot;/Repos/datos/pipelines/gold_ventas&quot; } },
+    { &quot;task_key&quot;: &quot;gold_clientes&quot;, &quot;depends_on&quot;: [{ &quot;task_key&quot;: &quot;silver&quot; }],
+      &quot;notebook_task&quot;: { &quot;notebook_path&quot;: &quot;/Repos/datos/pipelines/gold_clientes&quot; } }
+  ]
+}</code></pre>
+<p>Cómo leerlo:</p>
+<ul>
+<li><strong><code>task_key</code></strong> es el nombre de la tarea dentro del job. Tiene que ser único.</li>
+<li><strong><code>depends_on</code></strong> dice qué tareas tienen que terminar antes. Así se arma el DAG: <code>gold_ventas</code> y <code>gold_clientes</code> dependen de <code>silver</code>, así que corren <strong>en paralelo</strong> cuando silver termina.</li>
+<li><strong><code>parameters</code></strong> define el parámetro <code>fecha</code> con un valor por defecto. Al lanzar el job a mano puedes cambiarlo (por ejemplo, para reprocesar un día).</li>
+<li><strong><code>schedule</code></strong> usa formato <em>Quartz cron</em>, que tiene un campo más que el cron de Airflow: los <strong>segundos</strong>. <code>0 0 3 * * ?</code> es &quot;segundo 0, minuto 0, hora 3, todos los días&quot;.</li>
+<li><strong><code>max_retries</code></strong> y <strong><code>min_retry_interval_millis</code></strong>: silver se reintenta hasta 2 veces, esperando 10 minutos entre intentos.</li>
+</ul>
+<h3>Leer los parámetros en el notebook</h3>
+<p>En cada notebook, el parámetro llega como un <strong>widget</strong>:</p>
+<pre data-norun><code class="language-python">fecha = dbutils.widgets.get(&quot;fecha&quot;)             # &quot;2024-12-31&quot;
+df = spark.read.table(&quot;bronze.pedidos&quot;).where(f&quot;fecha_ingesta = '{fecha}'&quot;)</code></pre>
+<h3>Pasar valores entre tareas</h3>
+<p>A veces una tarea necesita un dato de la anterior, por ejemplo cuántas filas cargó bronze, para saltarse silver si llegaron 0. Para eso están los <strong>task values</strong> (el &quot;XCom&quot; de Databricks):</p>
+<pre data-norun><code class="language-python"># En el notebook de la tarea &quot;bronze&quot;
+dbutils.jobs.taskValues.set(key=&quot;filas&quot;, value=1200)
+
+# En una tarea posterior
+filas = dbutils.jobs.taskValues.get(taskKey=&quot;bronze&quot;, key=&quot;filas&quot;, default=0)</code></pre>
+<p>También se pueden usar en una tarea <strong>If/else</strong>: <code>{{tasks.bronze.values.filas}} &gt; 0</code>. Como con XCom en Airflow, sirven para valores <strong>chicos</strong> (números, textos, rutas), no para datos.</p>
+<h2>Laboratorio: un job de cuatro tareas en la terminal</h2>
+<p>Abre la terminal (⌨ Terminal) y conéctate al workspace simulado:</p>
+<pre data-norun><code class="language-bash">databricks auth login --host https://adb-1234567890123456.7.azuredatabricks.net
+code job.json</code></pre>
+<p>En el editor, pega este JSON (es el de arriba, más corto) y guarda:</p>
+<pre><code class="language-json">{&quot;name&quot;: &quot;lakehouse_diario&quot;,
+ &quot;parameters&quot;: [{&quot;name&quot;: &quot;fecha&quot;, &quot;default&quot;: &quot;2024-12-31&quot;}],
+ &quot;tasks&quot;: [
+   {&quot;task_key&quot;: &quot;bronze&quot;},
+   {&quot;task_key&quot;: &quot;silver&quot;, &quot;depends_on&quot;: [{&quot;task_key&quot;: &quot;bronze&quot;}]},
+   {&quot;task_key&quot;: &quot;gold_ventas&quot;, &quot;depends_on&quot;: [{&quot;task_key&quot;: &quot;silver&quot;}]},
+   {&quot;task_key&quot;: &quot;gold_clientes&quot;, &quot;depends_on&quot;: [{&quot;task_key&quot;: &quot;silver&quot;}]}
+ ]}</code></pre>
+<p>Ahora crea el job, guarda su id en una variable y ejecútalo:</p>
+<pre data-norun><code class="language-bash">databricks jobs create --json @job.json
+JOB=$(databricks jobs list | grep lakehouse_diario | cut -d&quot; &quot; -f1)
+databricks jobs run-now $JOB
+databricks jobs run-now $JOB --json '{&quot;job_parameters&quot;: {&quot;fecha&quot;: &quot;2024-12-30&quot;}}'
+databricks jobs list-runs --job-id $JOB</code></pre>
+<p>En <code>run-now</code> vas a ver las tareas en el orden del DAG: bronze, silver y después las dos gold, con los parámetros que recibió el job. La segunda ejecución <strong>reprocesa el 30 de diciembre</strong> sin tocar el código: así se arregla un día que salió mal.</p>
+<p>Prueba también romperlo a propósito: cambia en <code>job.json</code> la dependencia de <code>gold_ventas</code> a <code>&quot;silverr&quot;</code> y vuelve a ejecutar <code>databricks jobs create --json @job.json</code>. Databricks rechaza el job porque la tarea de la que depende no existe.</p>
+<div class="recorrido"></div>
+
+
+<h2>¿Airflow o Lakeflow Jobs (antes Databricks Workflows)?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si…</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Todo el pipeline vive en Databricks</td>
+<td>Workflows (más simple, sin otra plataforma)</td>
+</tr>
+<tr>
+<td>Orquestas muchos sistemas (ADF, APIs, Snowflake, Databricks, SaaS)</td>
+<td>Airflow (o ADF) llamando a jobs de Databricks</td>
+</tr>
+<tr>
+<td>Necesitas dependencias entre equipos y plataformas</td>
+<td>Airflow con datasets / sensores</td>
+</tr>
+</tbody></table></div>
+<p>No es uno o el otro: es muy común que <strong>Airflow dispare un job de Databricks</strong> con <code>DatabricksRunNowOperator</code> (lo viste en el módulo de Airflow), y que ese job tenga varias tareas adentro. Airflow coordina la empresa y el job coordina lo de Databricks.</p>
+<h2>Monitoreo</h2>
+<p>Un job que nadie mira es un job que falla en silencio. Los tres niveles de monitoreo son:</p>
+<ol>
+<li><strong>La UI de Job runs</strong>: el historial de ejecuciones, en una matriz de colores (verde, rojo, gris). Para cada ejecución ves la duración y los logs de cada tarea, cuántos reintentos hizo y con qué parámetros corrió. Si una tarea falló, puedes usar <strong>Repair run</strong>, que vuelve a ejecutar <strong>solo</strong> las tareas que fallaron y las que dependen de ellas, sin repetir lo que ya salió bien.</li>
+<li><strong>System tables</strong>: tablas que Databricks llena solo, consultables con SQL:<ul>
+<li><code>system.lakeflow.job_run_timeline</code>: cada ejecución con inicio, fin y resultado.</li>
+<li><code>system.billing.usage</code>: lo que consumió cada job, para saber <strong>cuánto cuesta</strong>.</li>
+</ul>
+</li>
+<li><strong>Alertas sobre los datos</strong>: que el job termine en verde no significa que los datos estén bien. Una <strong>alerta de Databricks SQL</strong> sobre una consulta de calidad avisa cuando algo no cuadra.</li>
+</ol>
+<pre data-norun><code class="language-sql">-- ¿Qué jobs fallaron en los últimos 7 días?
+SELECT job_id, run_id, period_start_time, result_state
+FROM system.lakeflow.job_run_timeline
+WHERE result_state = 'FAILED' AND period_start_time &gt;= current_date() - 7;
+
+-- Alerta: si hoy llegaron 0 pedidos, algo pasó en la ingesta (aunque el job esté en verde)
+SELECT count(*) AS pedidos_hoy FROM silver.pedidos WHERE fecha_pedido = current_date() - 1;</code></pre>
+<h2>Checklist de un lakehouse profesional</h2>
+<p>Es el resumen de todo el módulo. Si tu proyecto cumple estos puntos, está al nivel de un equipo de datos profesional:</p>
+<ul>
+<li><input disabled="" type="checkbox"> Medallón: bronze (crudo, append), silver (limpio, deduplicado, MERGE), gold (negocio).</li>
+<li><input disabled="" type="checkbox"> Todo en <strong>Unity Catalog</strong>, con catálogos por entorno (<code>dev</code>, <code>prod</code>) y permisos por grupos.</li>
+<li><input disabled="" type="checkbox"> Código en <strong>Git</strong> + <strong>Declarative Automation Bundles</strong> (antes Asset Bundles) + CI/CD; nada se edita a mano en producción.</li>
+<li><input disabled="" type="checkbox"> Jobs con job clusters o serverless, reintentos, timeouts y alertas.</li>
+<li><input disabled="" type="checkbox"> Ingesta incremental (Auto Loader, <code>MERGE</code>, CDF) e idempotente.</li>
+<li><input disabled="" type="checkbox"> Tests: unitarios (pytest) de transformaciones, tests de datos (dbt / expectations).</li>
+<li><input disabled="" type="checkbox"> Mantenimiento: Predictive Optimization u <code>OPTIMIZE</code>/<code>VACUUM</code> programados; Liquid Clustering.</li>
+<li><input disabled="" type="checkbox"> Secretos en Key Vault / secret scopes; acceso a datos con managed identities.</li>
+<li><input disabled="" type="checkbox"> Costos vigilados: auto-terminación, políticas de cómputo, tags y tablas de facturación.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-workflows-practicas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-asset-bundles.html">← Declarative Automation Bundles (antes Asset Bundles) y CI/CD</a><a href="databricks-practica-sql.html">Práctica autocorregida — Databricks SQL y pipelines →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

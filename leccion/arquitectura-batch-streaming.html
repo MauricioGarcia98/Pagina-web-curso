@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Procesamiento: batch, micro-batch y streaming (Lambda y Kappa) · Academia de Datos</title><meta name="description" content="Cuándo procesar por lotes y cuándo en flujo, las arquitecturas Lambda y Kappa, el tiempo del evento, las ventanas, las marcas de agua y las garantías de entrega."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-batch-streaming.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Procesamiento: batch, micro-batch y streaming (Lambda y Kappa) · Academia de Datos"><meta property="og:description" content="Cuándo procesar por lotes y cuándo en flujo, las arquitecturas Lambda y Kappa, el tiempo del evento, las ventanas, las marcas de agua y las garantías de entrega."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-batch-streaming.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Avanzado · 55 min</div>
+<h1>Procesamiento: batch, micro-batch y streaming (Lambda y Kappa)</h1><p class="resumen">Cuándo procesar por lotes y cuándo en flujo, las arquitecturas Lambda y Kappa, el tiempo del evento, las ventanas, las marcas de agua y las garantías de entrega.</p>
+<a class="cta" href="../index.html#/l/arquitectura-batch-streaming">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre batch, micro-batch y streaming según la latencia y el costo</li><li>Comparar las arquitecturas Lambda y Kappa y explicar por qué Kappa ganó terreno</li><li>Distinguir tiempo del evento y tiempo de procesamiento, y manejar eventos tardíos con marcas de agua</li><li>Calcular agregaciones por ventanas y deduplicar eventos repetidos</li></ul>
+<h2>El espectro de la latencia</h2>
+<figure class="diagrama"><figcaption>Cuanto menor la latencia, mayor la complejidad y el costo</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Cómo funciona</th>
+<th>Herramientas</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Batch</strong></td>
+<td>Se procesa un bloque de datos (el día de ayer) de una vez</td>
+<td>Spark, dbt, SQL programado</td>
+<td>Ventas diarias, cierre contable</td>
+</tr>
+<tr>
+<td><strong>Micro-batch</strong></td>
+<td>Se procesan lotes chicos cada pocos minutos</td>
+<td>Spark Structured Streaming, dbt cada 15 min</td>
+<td>Tablero de pedidos del día</td>
+</tr>
+<tr>
+<td><strong>Streaming</strong></td>
+<td>Cada evento se procesa apenas llega, con estado</td>
+<td>Flink, Spark Streaming, Dataflow, Kafka Streams</td>
+<td>Tarifa dinámica, alertas</td>
+</tr>
+<tr>
+<td><strong>Tiempo real en línea</strong></td>
+<td>La decisión se toma dentro de la transacción</td>
+<td>Servicios con un modelo y una base rápida (Redis)</td>
+<td>Aprobar o bloquear un pago</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Regla práctica</div>
+
+<p>Empieza por batch. Pasa a micro-batch cuando alguien <strong>toma decisiones</strong> dentro del mismo día. Pasa a streaming solo cuando la decisión <strong>pierde valor en minutos</strong>. Cada paso multiplica la complejidad de operar, depurar y reprocesar.</p>
+</div>
+
+
+<h2>Lambda y Kappa</h2>
+<p>Cuando hacen falta las dos latencias, hay dos formas clásicas de organizarlo.</p>
+<h3>Arquitectura Lambda: dos caminos</h3>
+<figure class="diagrama"><figcaption>Lambda: un camino rápido y aproximado + un camino batch exacto</figcaption></figure>
+
+
+<p>El mismo dato se procesa <strong>dos veces</strong>, con dos códigos distintos. Funciona, pero tiene un problema grave: mantener dos implementaciones de la misma lógica (una en streaming y otra en batch) que <strong>deben dar el mismo resultado</strong>, y nunca lo dan del todo.</p>
+<h3>Arquitectura Kappa: un solo camino</h3>
+<figure class="diagrama"><figcaption>Kappa: todo es un stream; el historial se reprocesa reproduciendo el log</figcaption></figure>
+
+
+<p>Un solo código. Si la lógica cambia, se <strong>reproduce</strong> el log desde el principio con la versión nueva. Hoy, con formatos de tabla que aceptan escrituras en streaming y en batch (Delta, Iceberg) y motores que hacen las dos cosas con el mismo código (Spark Structured Streaming, Flink, Beam/Dataflow), la mayoría de los diseños nuevos se parecen más a Kappa.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Lambda</th>
+<th>Kappa</th>
+</tr>
+</thead><tbody><tr>
+<td>Caminos</td>
+<td>Dos (speed + batch)</td>
+<td>Uno</td>
+</tr>
+<tr>
+<td>Código</td>
+<td>Duplicado</td>
+<td>Único</td>
+</tr>
+<tr>
+<td>Reproceso</td>
+<td>Con el batch</td>
+<td>Releyendo el log</td>
+</tr>
+<tr>
+<td>Complejidad de operar</td>
+<td>Alta</td>
+<td>Media</td>
+</tr>
+<tr>
+<td>Cuándo sigue teniendo sentido</td>
+<td>Lógica batch muy pesada que no conviene correr en streaming</td>
+<td>La mayoría de los casos nuevos</td>
+</tr>
+</tbody></table></div>
+<h2>Tiempo del evento y tiempo de procesamiento</h2>
+<p>Es <strong>el</strong> concepto clave del streaming. Cada evento tiene dos horas:</p>
+<ul>
+<li><strong>Tiempo del evento</strong>: cuándo ocurrió de verdad (el pasajero tocó &quot;pedir viaje&quot; a las 10:01:05).</li>
+<li><strong>Tiempo de procesamiento</strong>: cuándo llegó al sistema (a las 10:03:40, porque el celular estaba sin señal en un túnel).</li>
+</ul>
+<p>Si agrupas por tiempo de procesamiento, el viaje cae en la ventana equivocada. Los cálculos de negocio se hacen <strong>por tiempo del evento</strong>.</p>
+<h3>Ventanas</h3>
+<p>Un stream no termina nunca, así que para agregar hay que cortarlo en <strong>ventanas</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ventana</th>
+<th>Cómo corta</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Fija</strong> (<em>tumbling</em>)</td>
+<td>Bloques consecutivos sin superposición</td>
+<td>Solicitudes cada 5 minutos: 10:00–10:05, 10:05–10:10</td>
+</tr>
+<tr>
+<td><strong>Deslizante</strong> (<em>sliding / hopping</em>)</td>
+<td>Bloques que se superponen</td>
+<td>Últimos 10 minutos, recalculado cada minuto</td>
+</tr>
+<tr>
+<td><strong>De sesión</strong></td>
+<td>Se abre con actividad y se cierra tras un silencio</td>
+<td>Una visita a la app, que termina tras 30 minutos sin clics</td>
+</tr>
+</tbody></table></div>
+<h3>Marcas de agua: cuánto esperar a los rezagados</h3>
+<p>Si la ventana de 10:00–10:05 se cierra a las 10:05 en punto, los eventos que llegan tarde quedan afuera. Si esperas para siempre, nunca publicas nada. La <strong>marca de agua</strong> (<em>watermark</em>) es la regla de compromiso: &quot;doy por cerrada una ventana cuando ya vi eventos <strong>N minutos</strong> posteriores a su fin&quot;. Lo que llegue después se descarta (o se manda a una tabla de tardíos).</p>
+<pre><code class="language-text">Marca de agua de 2 minutos:
+evento 10:04:50 llega 10:05:30  → entra en 10:00–10:05 (la ventana sigue abierta)
+evento 10:04:10 llega 10:07:30  → la marca ya pasó 10:07 → la ventana 10:00–10:05 está cerrada → tardío</code></pre>
+<p>Más espera = más exactitud pero más demora. Es una decisión de negocio, no técnica.</p>
+<h2>Garantías de entrega</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Garantía</th>
+<th>Qué significa</th>
+<th>Riesgo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Como máximo una vez</strong> (<em>at most once</em>)</td>
+<td>Ningún evento se repite, pero alguno puede perderse</td>
+<td>Perder datos</td>
+</tr>
+<tr>
+<td><strong>Al menos una vez</strong> (<em>at least once</em>)</td>
+<td>Ninguno se pierde, pero alguno puede repetirse</td>
+<td>Contar dos veces</td>
+</tr>
+<tr>
+<td><strong>Exactamente una vez</strong> (<em>exactly once</em>)</td>
+<td>Cada evento afecta al resultado una sola vez</td>
+<td>Es la más cara de lograr</td>
+</tr>
+</tbody></table></div>
+<p>En la práctica, &quot;exactamente una vez&quot; casi siempre se logra así: <strong>al menos una vez + un destino idempotente</strong>. Cada evento trae un id único; el destino ignora los ids que ya vio (o hace <code>MERGE</code> por id). Es la misma idea de la lección de ingesta.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Agrupar por tiempo de procesamiento</strong>: los picos aparecen corridos y los reportes no coinciden con el batch.</li>
+<li><strong>Sin marca de agua</strong>: el estado de las ventanas crece para siempre y el job se queda sin memoria.</li>
+<li><strong>No deduplicar</strong>: con &quot;al menos una vez&quot;, un reintento cuenta dos veces el mismo pago.</li>
+<li><strong>Streaming para todo</strong>: un tablero que se mira una vez por día no necesita un job de streaming encendido 24/7 (que se paga 24/7).</li>
+<li><strong>No poder reprocesar</strong>: si no guardas los eventos crudos (en el log o en bronze), un error en la lógica no tiene arreglo.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La tarifa dinámica de Ruta</div>
+
+<p>La gerente de producto de Ruta (la app de viajes) llega con un pedido distinto a todos:</p>
+<blockquote>
+<p>&quot;Queremos que la tarifa suba cuando en una zona hay muchas solicitudes y pocos conductores. Pero tiene que reaccionar en el momento: si recalculamos una vez por hora, ya es tarde. Y finanzas igual quiere su reporte diario exacto, como siempre.&quot;</p>
+</blockquote>
+<p>Dos necesidades con latencias muy distintas sobre los mismos datos: segundos para la tarifa y un día para finanzas. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los equipos que operan streaming tienen guardias (<em>on-call</em>): un job de streaming caído a las 3 de la mañana es un incidente, no algo que se mira al día siguiente. Esa carga operativa es parte del costo.</li>
+<li>Se monitorea el <strong>retraso</strong> (<em>lag</em>): cuántos eventos hay en la cola sin procesar. Si crece, el job no da abasto.</li>
+<li>Spark Structured Streaming con <code>trigger(availableNow=True)</code> permite correr la misma lógica de streaming <strong>como un batch</strong> que procesa lo pendiente y se apaga. Es la forma más barata de empezar con código &quot;de streaming&quot;.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué es una marca de agua en streaming?&quot;</div>
+
+<p>Es el umbral de tiempo del evento hasta el que el sistema considera que ya llegaron (casi) todos los datos. Permite cerrar ventanas y liberar estado aunque el stream no termine. Un evento con tiempo anterior a la marca se considera tardío y se descarta o se envía aparte. Explica el compromiso: una marca más permisiva da resultados más exactos pero con más demora y más memoria.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-batch-streaming">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-almacenamiento.html">← Almacenamiento: warehouse, data lake y lakehouse</a><a href="arquitectura-diseno-lakehouse.html">Diseñar el lakehouse: capas, entornos, nombres y contratos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

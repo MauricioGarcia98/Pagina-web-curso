@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🏦 Banco Austral: saldos, fraude y morosidad · Academia de Datos</title><meta name="description" content="Saldos, gasto por comercio, saldo acumulado, reglas de fraude, mora y riesgo crediticio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-banco.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🏦 Banco Austral: saldos, fraude y morosidad · Academia de Datos"><meta property="og:description" content="Saldos, gasto por comercio, saldo acumulado, reglas de fraude, mora y riesgo crediticio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-banco.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Avanzado · 60 min</div>
+<h1>Caso 🏦 Banco Austral: saldos, fraude y morosidad</h1><p class="resumen">Saldos, gasto por comercio, saldo acumulado, reglas de fraude, mora y riesgo crediticio.</p>
+<a class="cta" href="../index.html#/l/casos-banco">▶ Abrir la lección interactiva (9 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular saldos y extractos con montos con signo y totales acumulados</li><li>Detectar patrones de fraude con ventanas de tiempo y medir una regla con precisión y cobertura</li><li>Calcular la mora de una cartera de préstamos a una fecha de corte</li><li>Evaluar si un score crediticio separa bien a los buenos y malos pagadores</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Banco Austral</div>
+
+<p>La gerente de riesgos de <strong>Banco Austral</strong> pide reunión con el equipo de datos:</p>
+<blockquote>
+<p>&quot;Tenemos tres frentes. Seguridad propone una regla nueva para detectar fraude y quiero saber si sirve antes de activarla. Cobranzas necesita la deuda vencida al cierre del año. Y el directorio pregunta si nuestro score crediticio funciona o si estamos prestando a ciegas.&quot;</p>
+</blockquote>
+<p>Un banco vive de prestar dinero y cobrarlo, y pierde por fraude y por morosidad. Cada error en estos números es dinero real.</p>
+</div>
+
+<p><strong>Banco Austral</strong> es un banco digital que opera en cinco países. El equipo de riesgo y el de producto necesitan respuestas. Tú eres el/la analista de datos.</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">banco_clientes (cliente_id, nombre, apellido, pais, fecha_alta, segmento, score_crediticio)
+   │ 1..N
+banco_cuentas (cuenta_id, cliente_id, tipo, fecha_apertura, estado)
+   │ 1..N
+banco_transacciones (tx_id, cuenta_id, fecha_hora, tipo, monto, canal, comercio, ciudad, es_fraude)
+
+banco_clientes 1..N banco_prestamos (prestamo_id, cliente_id, fecha_otorgado, monto, tasa_anual, plazo_meses, estado)
+                         │ 1..N
+                    banco_cuotas (cuota_id, prestamo_id, numero, fecha_vencimiento, fecha_pago, monto)</code></pre>
+<p><strong>Reglas del negocio que debes saber:</strong></p>
+<ul>
+<li>En <code>banco_transacciones</code>, <code>monto</code> <strong>positivo</strong> = entra dinero (depósitos); <strong>negativo</strong> = sale (compras, retiros, transferencias, pagos de tarjeta).</li>
+<li>El <strong>saldo</strong> de una cuenta en 2024 es la suma de sus montos.</li>
+<li><code>es_fraude = 1</code> marca fraudes confirmados por el equipo de seguridad.</li>
+<li>Una cuota está <strong>impaga</strong> si <code>fecha_pago</code> es NULL. Está <strong>vencida</strong> si además su <code>fecha_vencimiento</code> ya pasó (usamos como “hoy” el <code>2024-12-31</code>).</li>
+<li>El <strong>score crediticio</strong> va de 300 (alto riesgo) a 850 (bajo riesgo).</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo pensar</div>
+
+<p>Antes de cada ejercicio, escribe en un comentario: <em>grano</em> (“una fila por…”), <em>métricas</em> (fórmulas) y <em>tablas</em>. Por ejemplo: <code>-- grano: cuenta | métrica: saldo = SUM(monto) | tablas: banco_transacciones</code>.</p>
+</div>
+
+
+<h2>Cómo gana (y pierde) dinero un banco</h2>
+<p>Para analizar bien un negocio, primero hay que entender <strong>cómo funciona</strong>. Un banco digital como Banco Austral gana dinero principalmente de tres formas:</p>
+<ol>
+<li><strong>Intereses de préstamos</strong>: presta dinero a una tasa (por ejemplo 30 % anual) más alta de la que paga por los depósitos. La diferencia es su margen.</li>
+<li><strong>Comisiones</strong>: por uso de tarjetas en comercios (cada compra deja un pequeño porcentaje), mantenimiento de cuentas, transferencias.</li>
+<li><strong>Saldos de los clientes</strong>: el dinero depositado le permite prestar e invertir.</li>
+</ol>
+<p>Y pierde dinero de dos formas que el área de <strong>riesgo</strong> vigila todo el tiempo:</p>
+<ul>
+<li><strong>Mora e incobrables</strong>: clientes que no devuelven los préstamos.</li>
+<li><strong>Fraude</strong>: transacciones hechas por terceros con tarjetas o cuentas robadas, que el banco suele devolver al cliente.</li>
+</ul>
+<h2>Los indicadores (KPIs) de este caso</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Definición</th>
+<th>Fórmula</th>
+<th>Por qué importa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Saldo</strong></td>
+<td>Dinero disponible en una cuenta</td>
+<td><code>SUM(monto)</code> de sus transacciones</td>
+<td>Base de todo: productos, riesgo, cuentas dormidas</td>
+</tr>
+<tr>
+<td><strong>Gasto por comercio/canal</strong></td>
+<td>Cuánto compran los clientes y dónde</td>
+<td><code>-SUM(monto)</code> de las compras</td>
+<td>Acuerdos con comercios, campañas de cashback</td>
+</tr>
+<tr>
+<td><strong>Tasa de fraude</strong></td>
+<td>Qué parte de las transacciones son fraude</td>
+<td>fraudes / transacciones</td>
+<td>En este banco es ~2,3 %: cada punto son millones</td>
+</tr>
+<tr>
+<td><strong>Precisión de una regla</strong></td>
+<td>De las alertas que dispara, cuántas son fraude real</td>
+<td>verdaderos positivos / alertas</td>
+<td>Una regla con baja precisión molesta a clientes honestos</td>
+</tr>
+<tr>
+<td><strong>Recall (cobertura)</strong></td>
+<td>De los fraudes reales, cuántos detecta</td>
+<td>verdaderos positivos / fraudes</td>
+<td>Una regla con bajo recall deja pasar fraudes</td>
+</tr>
+<tr>
+<td><strong>Tasa de mora</strong></td>
+<td>Préstamos con cuotas vencidas impagas</td>
+<td>préstamos en mora / préstamos activos</td>
+<td>El indicador central de riesgo de crédito</td>
+</tr>
+<tr>
+<td><strong>Score crediticio</strong></td>
+<td>Probabilidad de que el cliente pague (300 a 850)</td>
+<td>lo calcula un modelo</td>
+<td>Decide a quién prestar y a qué tasa</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Precisión y recall con una red de pesca</div>
+
+<p>Una regla de fraude es una red. <strong>Precisión</strong>: de todo lo que atrapaste, ¿qué parte eran peces (fraudes) y qué parte basura (clientes honestos bloqueados)? <strong>Recall</strong>: de todos los peces del lago, ¿cuántos atrapaste? Una red con agujeros chicos atrapa casi todos los peces (mucho recall) pero también mucha basura (poca precisión). Siempre hay que balancear las dos.</p>
+</div>
+
+
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿Por qué canal compran más nuestros clientes y cuál es el ticket promedio de cada uno?&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por canal.</li>
+<li><strong>Filtro</strong>: solo transacciones de tipo <code>compra</code> (los depósitos o retiros no son gasto).</li>
+<li><strong>Métricas</strong>: cantidad de compras, gasto total y ticket promedio. Como las compras tienen <code>monto</code> <strong>negativo</strong> (sale dinero), invertimos el signo para mostrar el gasto en positivo.</li>
+</ol>
+<pre><code class="language-sql">SELECT canal,
+       COUNT(*)                AS compras,
+       ROUND(-SUM(monto), 2)   AS gasto,
+       ROUND(-AVG(monto), 2)   AS ticket_promedio
+FROM banco_transacciones
+WHERE tipo = 'compra'
+GROUP BY canal
+ORDER BY gasto DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>canal</th>
+<th>compras</th>
+<th>gasto</th>
+<th>ticket_promedio</th>
+</tr>
+</thead><tbody><tr>
+<td>web</td>
+<td>2072</td>
+<td>441391.64</td>
+<td>213.03</td>
+</tr>
+<tr>
+<td>app</td>
+<td>2663</td>
+<td>331787.9</td>
+<td>124.59</td>
+</tr>
+<tr>
+<td>pos</td>
+<td>1263</td>
+<td>321339.38</td>
+<td>254.43</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura de negocio:</strong> la app tiene <strong>más</strong> compras pero tickets más chicos (compras cotidianas); el POS (las terminales de los comercios) tiene pocas compras pero el ticket más alto. Si el banco quiere aumentar el gasto, una campaña de cuotas sin interés en POS apunta a compras grandes; un cashback en la app apunta a frecuencia. Una consulta, una conversación con el área de marketing.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>El signo del monto</strong>: si sumas compras sin invertir el signo, el &quot;gasto&quot; sale negativo; si sumas todos los tipos juntos, obtienes el saldo, no el gasto.</li>
+<li><strong>El &quot;hoy&quot; del análisis</strong>: para saber si una cuota está vencida necesitas una fecha de referencia. Aquí es <code>2024-12-31</code>; nunca uses <code>date(&#39;now&#39;)</code>, porque el resultado cambiaría según el día en que ejecutes.</li>
+<li><strong>Contar clientes vs. cuentas</strong>: un cliente puede tener varias cuentas. &quot;Clientes con saldo negativo&quot; y &quot;cuentas con saldo negativo&quot; son preguntas distintas.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En un banco, los saldos nunca se recalculan sumando todo el historial cada vez: se guardan <strong>saldos diarios</strong> (una foto por cuenta y día) y se concilian contra el sistema contable. Si no coinciden, se detiene todo hasta encontrar la diferencia.</li>
+<li>Las reglas de fraude se evalúan siempre con dos números: cuántos fraudes atrapa (cobertura) y cuántas alertas son falsas (precisión). Una regla con muchas falsas alarmas bloquea tarjetas de clientes honestos, y eso también cuesta.</li>
+<li>Los datos bancarios están muy regulados: acceso por roles, enmascaramiento de datos personales y auditoría de quién consultó qué. Lo verás en Unity Catalog, Lake Formation y BigQuery.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Sumar montos sin mirar el signo</strong>: si las compras son negativas y los depósitos positivos, &quot;gasto total&quot; sin filtrar el tipo da cualquier cosa.</li>
+<li><strong>Saldo acumulado sin desempate</strong> en el orden de la ventana: dos movimientos con la misma hora intercambian el orden y el saldo intermedio cambia.</li>
+<li><strong>Reglas de fraude evaluadas sin la tasa de falsos positivos</strong>: una regla que marca el 20 % de las compras como sospechosas no se puede revisar.</li>
+<li><strong>Mora contada por cuotas</strong> cuando la pregunta es por préstamos.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo calcularías el saldo de cada cuenta después de cada movimiento?&quot;</div>
+
+<p>Con una suma acumulada como función de ventana: <code>SUM(monto) OVER (PARTITION BY cuenta_id ORDER BY fecha_hora, tx_id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)</code>. El <code>tx_id</code> en el orden desempata movimientos con la misma hora para que el resultado sea determinista, y el marco explícito evita que filas empatadas se sumen juntas. Validaría que el último saldo coincida con el saldo informado por el sistema de origen.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>9 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-banco">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-metodo.html">← Cómo pensar un problema de negocio (el método)</a><a href="casos-streaming.html">Caso 🎧 Ritmo: suscripciones, MRR y churn →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

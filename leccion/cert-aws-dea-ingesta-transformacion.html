@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEA-C01 - Ingesta y transformación de datos en AWS · Academia de Datos</title><meta name="description" content="El dominio más pesado del DEA-C01 (34 %) - ingesta por lotes y en streaming (Kinesis Data Streams, Firehose, MSK, DMS, AppFlow, DataSync), transformación con Glue, EMR, Lambda y Redshift, procesamiento asistido por LLM, orquestación con Step Functions, MWAA, EventBridge y Glue Workflows, y los principios de programación que pide el examen."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-dea-ingesta-transformacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="DEA-C01 - Ingesta y transformación de datos en AWS · Academia de Datos"><meta property="og:description" content="El dominio más pesado del DEA-C01 (34 %) - ingesta por lotes y en streaming (Kinesis Data Streams, Firehose, MSK, DMS, AppFlow, DataSync), transformación con Glue, EMR, Lambda y Redshift, procesamiento asistido por LLM, orquestación con Step Functions, MWAA, EventBridge y Glue Workflows, y los principios de programación que pide el examen."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-dea-ingesta-transformacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-aws">🥇 Certificaciones AWS: Data Engineer e IA</a> · Avanzado · 75 min</div>
+<h1>DEA-C01 - Ingesta y transformación de datos en AWS</h1><p class="resumen">El dominio más pesado del DEA-C01 (34 %) - ingesta por lotes y en streaming (Kinesis Data Streams, Firehose, MSK, DMS, AppFlow, DataSync), transformación con Glue, EMR, Lambda y Redshift, procesamiento asistido por LLM, orquestación con Step Functions, MWAA, EventBridge y Glue Workflows, y los principios de programación que pide el examen.</p>
+<a class="cta" href="../index.html#/l/cert-aws-dea-ingesta-transformacion">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir el servicio de ingesta según volumen, latencia y origen</li><li>Distinguir Kinesis Data Streams, Firehose y MSK</li><li>Diseñar transformaciones con Glue, EMR o Lambda según el caso</li><li>Configurar cargas incrementales con job bookmarks y CDC con DMS</li><li>Orquestar pipelines con Step Functions, MWAA o EventBridge</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La empresa de logística de Tomás recibe tres tipos de datos: posiciones GPS de 4.000 camiones cada 5 segundos, una base Oracle de pedidos en su centro de datos y reportes diarios de Salesforce. Todo debe llegar a un lago en S3, limpio y en Parquet, y los paneles de seguimiento deben actualizarse en menos de un minuto. Este es el dominio 1 del DEA-C01: un tercio del examen.</p>
+</div>
+
+
+<h2>La arquitectura de referencia</h2>
+<figure class="diagrama"><figcaption>Ingesta y transformación en AWS</figcaption></figure>
+
+
+<h2>Ingesta en streaming</h2>
+<h3>Kinesis Data Streams (KDS)</h3>
+<ul>
+<li>Un stream se divide en <strong>shards</strong>. En modo <strong>aprovisionado</strong>, cada shard admite <strong>1 MB/s o 1.000 registros/s de escritura</strong> y <strong>2 MB/s de lectura</strong> compartidos entre consumidores. En modo <strong>on-demand</strong>, escala solo (conveniente si el tráfico es impredecible).</li>
+<li>Cada registro tiene una <strong>clave de partición</strong>: los registros con la misma clave van al mismo shard y <strong>mantienen el orden</strong>.</li>
+<li><strong>Retención</strong>: 24 horas por defecto, ampliable hasta 365 días. Se puede <strong>releer</strong> (<em>replay</em>) desde una posición.</li>
+<li><strong>Fan-out mejorado</strong> (<em>enhanced fan-out</em>): cada consumidor obtiene sus propios 2 MB/s por shard por push (HTTP/2), útil con muchos consumidores o baja latencia.</li>
+<li>Productores: SDK, <strong>KPL</strong> (agrega registros), Kinesis Agent. Consumidores: <strong>KCL</strong>, Lambda, Managed Service for Apache Flink, Firehose.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Shard caliente</div>
+
+<p>Si la clave de partición es poco variada (por ejemplo, el país), casi todo va a un shard y aparece <code>ProvisionedThroughputExceededException</code>. La solución es una <strong>clave de alta cardinalidad</strong> (id del camión), dividir shards (<em>resharding</em>) o pasar a on-demand. Los productores deben reintentar con espera exponencial.</p>
+</div>
+
+
+<h3>Amazon Data Firehose</h3>
+<p>El servicio de <strong>entrega</strong> administrado: no hay shards ni consumidores que programar.</p>
+<ul>
+<li>Destinos: <strong>S3</strong>, <strong>Redshift</strong> (vía S3 y <code>COPY</code>), <strong>OpenSearch</strong>, <strong>Splunk</strong>, <strong>Apache Iceberg en S3</strong>, HTTP y otros.</li>
+<li><strong>Buffer</strong> por tamaño (1–128 MB) o tiempo (0–900 s): es <strong>casi en tiempo real</strong>, no instantáneo.</li>
+<li><strong>Conversión de formato</strong> a Parquet u ORC usando un esquema del <strong>Glue Data Catalog</strong>, compresión, <strong>particionado dinámico</strong> por campos del registro y transformación con <strong>Lambda</strong>.</li>
+</ul>
+<h3>Amazon MSK y Managed Service for Apache Flink</h3>
+<ul>
+<li><strong>MSK</strong> es Kafka administrado (también <strong>MSK Serverless</strong>). Se elige cuando ya existen productores o consumidores Kafka, o se necesita el ecosistema Kafka (Connect, Schema Registry).</li>
+<li><strong>Managed Service for Apache Flink</strong> procesa streams con estado: ventanas, joins, detección de patrones, con semántica <em>exactly-once</em>.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesidad</th>
+<th>Servicio</th>
+</tr>
+</thead><tbody><tr>
+<td>Llevar eventos a S3 o Redshift sin escribir consumidores</td>
+<td><strong>Firehose</strong></td>
+</tr>
+<tr>
+<td>Varios consumidores, orden por clave, releer datos</td>
+<td><strong>Kinesis Data Streams</strong></td>
+</tr>
+<tr>
+<td>Migrar un Kafka existente sin reescribir aplicaciones</td>
+<td><strong>MSK</strong></td>
+</tr>
+<tr>
+<td>Agregaciones por ventana, alertas complejas sobre el stream</td>
+<td><strong>Managed Service for Apache Flink</strong></td>
+</tr>
+<tr>
+<td>Latencia de milisegundos y ordenamiento por shard</td>
+<td><strong>KDS</strong> (Firehose agrega segundos de buffer)</td>
+</tr>
+</tbody></table></div>
+<h2>Ingesta por lotes y desde bases de datos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Origen</th>
+<th>Servicio</th>
+<th>Detalle para el examen</th>
+</tr>
+</thead><tbody><tr>
+<td>Base relacional (Oracle, SQL Server, MySQL, PostgreSQL)</td>
+<td><strong>AWS DMS</strong></td>
+<td>Carga completa + <strong>CDC</strong> continuo; <strong>SCT</strong> convierte esquemas entre motores distintos</td>
+</tr>
+<tr>
+<td>SaaS (Salesforce, SAP, Zendesk, Google Analytics)</td>
+<td><strong>Amazon AppFlow</strong></td>
+<td>Sin código, programado o por evento, filtros y mapeos</td>
+</tr>
+<tr>
+<td>Archivos de un NAS o file server</td>
+<td><strong>AWS DataSync</strong></td>
+<td>Transferencia programada, incremental y verificada</td>
+</tr>
+<tr>
+<td>Muchos terabytes sin red suficiente</td>
+<td><strong>AWS Snowball</strong></td>
+<td>Dispositivo físico</td>
+</tr>
+<tr>
+<td>SFTP de un socio</td>
+<td><strong>AWS Transfer Family</strong></td>
+<td>SFTP/FTPS administrado sobre S3</td>
+</tr>
+<tr>
+<td>Base con CDC hacia Redshift sin pipelines</td>
+<td><strong>Zero-ETL</strong></td>
+<td>Aurora, RDS, DynamoDB → Redshift o SageMaker Lakehouse</td>
+</tr>
+<tr>
+<td>Llamar una API o leer un archivo pequeño</td>
+<td><strong>Lambda</strong></td>
+<td>Máximo 15 minutos, 10 GB de memoria</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-examen"><div class="callout-title">🏅 Zero-ETL</div>
+
+<p>Si la pregunta pide analizar datos de Aurora o DynamoDB en Redshift &quot;casi en tiempo real&quot; y &quot;sin construir ni mantener pipelines&quot;, la respuesta es una <strong>integración zero-ETL</strong>. Si dice &quot;transformar durante la carga&quot;, no lo es.</p>
+</div>
+
+
+<h2>Transformación</h2>
+<h3>AWS Glue</h3>
+<ul>
+<li><strong>Glue ETL</strong> ejecuta Spark (o Python shell) <strong>serverless</strong>, medido en <strong>DPU</strong>. Tipos de worker G.1X, G.2X, G.4X… y <strong>Flex</strong> (más barato, para jobs no urgentes). <strong>Auto scaling</strong> ajusta los workers.</li>
+<li><strong>DynamicFrame</strong>: como un DataFrame pero tolera esquemas inconsistentes; <code>resolveChoice</code> resuelve columnas con tipos mezclados. <code>ApplyMapping</code>, <code>Relationalize</code> (aplana JSON anidado) y <code>DropNullFields</code>.</li>
+<li><strong>Job bookmarks</strong>: guardan qué datos ya se procesaron para que la siguiente ejecución lea <strong>solo lo nuevo</strong>. Requieren <code>transformation_ctx</code> en cada fuente y llamar a <code>job.commit()</code>.</li>
+<li><strong>Pushdown predicates</strong>: filtran particiones al leer del catálogo, sin listar todo S3.</li>
+<li><strong>Glue Studio</strong> (visual), <strong>Glue DataBrew</strong> (preparación visual sin código, con más de 250 transformaciones), <strong>Glue Data Quality</strong> (reglas DQDL).</li>
+<li><strong>Glue Streaming</strong>: Spark Structured Streaming sobre Kinesis o Kafka.</li>
+</ul>
+<pre data-norun><code class="language-python">import sys
+from awsglue.context import GlueContext
+from awsglue.job import Job
+from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
+
+args = getResolvedOptions(sys.argv, [&quot;JOB_NAME&quot;])
+glue = GlueContext(SparkContext.getOrCreate())
+job = Job(glue)
+job.init(args[&quot;JOB_NAME&quot;], args)
+
+pedidos = glue.create_dynamic_frame.from_catalog(
+    database=&quot;bronze&quot;,
+    table_name=&quot;pedidos&quot;,
+    push_down_predicate=&quot;anio = '2026' and mes = '10'&quot;,
+    transformation_ctx=&quot;pedidos&quot;,          # necesario para el bookmark
+)
+pedidos = pedidos.resolveChoice(specs=[(&quot;monto&quot;, &quot;cast:double&quot;)])
+
+glue.write_dynamic_frame.from_options(
+    frame=pedidos,
+    connection_type=&quot;s3&quot;,
+    connection_options={&quot;path&quot;: &quot;s3://lago/silver/pedidos/&quot;, &quot;partitionKeys&quot;: [&quot;anio&quot;, &quot;mes&quot;]},
+    format=&quot;parquet&quot;,
+    transformation_ctx=&quot;salida&quot;,
+)
+job.commit()                                 # guarda el bookmark</code></pre>
+<h3>Amazon EMR</h3>
+<p>Spark, Hive, Presto/Trino, HBase y Flink con control total. Tres formas:</p>
+<ul>
+<li><strong>EMR en EC2</strong>: nodos primario, core (HDFS) y task (solo cómputo, ideales para <strong>Spot</strong>). Puede apagarse al terminar el paso.</li>
+<li><strong>EMR Serverless</strong>: sin clúster, se paga por uso.</li>
+<li><strong>EMR en EKS</strong>: en un clúster de Kubernetes existente.</li>
+</ul>
+<p>Elige EMR cuando la pregunta exige un framework que Glue no tiene, configuraciones finas de Spark, o un clúster de larga duración más barato que Glue para uso continuo.</p>
+<h3>Otras opciones</h3>
+<ul>
+<li><strong>Lambda</strong>: transformaciones livianas por evento (un archivo llega a S3). No sirve para archivos grandes ni procesos de más de 15 minutos.</li>
+<li><strong>Redshift</strong>: ELT con SQL, procedimientos almacenados y vistas materializadas.</li>
+<li><strong>Athena</strong>: CTAS e <code>INSERT INTO</code> para transformar con SQL sobre S3.</li>
+</ul>
+<h3>Procesamiento asistido por LLM (nuevo en v1.1)</h3>
+<p>La guía 1.1 agrega usar modelos fundacionales para transformar datos: clasificar texto libre, extraer campos de documentos o normalizar direcciones llamando a <strong>Amazon Bedrock</strong> desde un job (en lote con <strong>inferencia por lotes</strong> de Bedrock, más barata), y generar código o SQL con <strong>Amazon Q</strong>. Los datos se validan después igual que cualquier otra transformación.</p>
+<h2>Orquestación</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>AWS Step Functions</strong></td>
+<td>Máquinas de estado serverless que integran servicios de AWS directamente; reintentos, <code>Catch</code>, ramas paralelas, <code>Map</code> distribuido para millones de objetos</td>
+</tr>
+<tr>
+<td><strong>Amazon MWAA</strong></td>
+<td>Apache Airflow administrado: el equipo ya usa Airflow, DAGs en Python, muchos operadores</td>
+</tr>
+<tr>
+<td><strong>Glue Workflows y triggers</strong></td>
+<td>Encadenar crawlers y jobs de Glue sin otro servicio</td>
+</tr>
+<tr>
+<td><strong>Amazon EventBridge</strong></td>
+<td>Disparar por eventos (archivo nuevo en S3, cambio de estado) o por horario (EventBridge Scheduler)</td>
+</tr>
+<tr>
+<td><strong>Redshift Data API + Scheduler</strong></td>
+<td>Programar SQL en Redshift</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-json">{
+  &quot;StartAt&quot;: &quot;Crawler&quot;,
+  &quot;States&quot;: {
+    &quot;Crawler&quot;: {
+      &quot;Type&quot;: &quot;Task&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:states:::aws-sdk:glue:startCrawler&quot;,
+      &quot;Parameters&quot;: {&quot;Name&quot;: &quot;crawler-bronze&quot;},
+      &quot;Next&quot;: &quot;Transformar&quot;
+    },
+    &quot;Transformar&quot;: {
+      &quot;Type&quot;: &quot;Task&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:states:::glue:startJobRun.sync&quot;,
+      &quot;Parameters&quot;: {&quot;JobName&quot;: &quot;pedidos-silver&quot;},
+      &quot;Retry&quot;: [{&quot;ErrorEquals&quot;: [&quot;States.ALL&quot;], &quot;MaxAttempts&quot;: 2, &quot;BackoffRate&quot;: 2}],
+      &quot;Catch&quot;: [{&quot;ErrorEquals&quot;: [&quot;States.ALL&quot;], &quot;Next&quot;: &quot;Avisar&quot;}],
+      &quot;End&quot;: true
+    },
+    &quot;Avisar&quot;: {
+      &quot;Type&quot;: &quot;Task&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:states:::sns:publish&quot;,
+      &quot;Parameters&quot;: {&quot;TopicArn&quot;: &quot;arn:aws:sns:us-east-1:123456789012:alertas&quot;, &quot;Message&quot;: &quot;Falló pedidos-silver&quot;},
+      &quot;End&quot;: true
+    }
+  }
+}</code></pre>
+<p>El sufijo <code>.sync</code> hace que Step Functions <strong>espere</strong> a que termine el job de Glue antes de seguir.</p>
+<h2>Principios de programación que evalúa el examen</h2>
+<ul>
+<li><strong>Idempotencia</strong>: reejecutar no duplica (sobrescribir particiones, <code>MERGE</code>, claves únicas).</li>
+<li><strong>Infraestructura como código</strong>: CloudFormation, AWS CDK, AWS SAM (para Lambda).</li>
+<li><strong>CI/CD</strong>: CodePipeline, CodeBuild y Git.</li>
+<li>SQL eficiente: filtrar por particiones, evitar <code>SELECT *</code>, joins con tablas chicas primero.</li>
+<li><strong>Estructuras de datos</strong>: grafos para dependencias, árboles para índices; complejidad de algoritmos.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li>Usar Lambda para procesar un archivo de 50 GB (límite de 15 minutos).</li>
+<li>Olvidar <code>job.commit()</code> y reprocesar todo en cada ejecución.</li>
+<li>Elegir Firehose cuando se necesita latencia de milisegundos o releer datos.</li>
+<li>Elegir EMR en EC2 cuando la pregunta pide &quot;menor esfuerzo operativo&quot;.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-aws-dea-ingesta-transformacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-aws-mapa-certificaciones.html">← El mapa de las certificaciones de datos e IA de AWS</a><a href="cert-aws-dea-almacenamiento.html">DEA-C01 - Administración del almacén de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arquitectura de Spark · Academia de Datos</title><meta name="description" content="Driver, executors, cluster manager, particiones, jobs, stages y tasks."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-arquitectura.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Arquitectura de Spark · Academia de Datos"><meta property="og:description" content="Driver, executors, cluster manager, particiones, jobs, stages y tasks."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-arquitectura.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Básico · 40 min</div>
+<h1>Arquitectura de Spark</h1><p class="resumen">Driver, executors, cluster manager, particiones, jobs, stages y tasks.</p>
+<a class="cta" href="../index.html#/l/spark-arquitectura">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>En la lección anterior viste la idea: repartir el trabajo entre muchas máquinas. Ahora vamos a ver <strong>quién hace qué</strong> dentro de un clúster de Spark. Entender estas piezas es lo que te va a permitir leer la Spark UI, entender un error de memoria y saber por qué un job tarda 2 minutos o 2 horas.</p>
+<h2>Las piezas</h2>
+<pre><code class="language-text">                 ┌──────────────────────┐
+                 │       DRIVER         │  tu programa (SparkSession):
+                 │  planifica el trabajo│  arma el plan y reparte tareas
+                 └─────────┬────────────┘
+                           │  pide recursos
+                 ┌─────────▼────────────┐
+                 │   CLUSTER MANAGER    │  YARN, Kubernetes, Standalone
+                 └─────────┬────────────┘  (en Databricks lo gestiona la plataforma)
+          ┌────────────────┼────────────────┐
+   ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
+   │  EXECUTOR 1 │  │  EXECUTOR 2 │  │  EXECUTOR 3 │  procesos en los &quot;workers&quot;
+   │ [T][T][T][T]│  │ [T][T][T][T]│  │ [T][T][T][T]│  cada [T] = un core ejecutando una task
+   └─────────────┘  └─────────────┘  └─────────────┘</code></pre>
+<!-- dg:sp02-cluster -->
+<figure class="diagrama"><figcaption>Un clúster de Spark: el driver planifica, el cluster manager presta máquinas y los executors trabajan</figcaption></figure>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una obra en construcción</div>
+
+<ul>
+<li>El <strong>driver</strong> es el <strong>jefe de obra</strong>: lee los planos (tu código), decide en qué orden se hace cada cosa y reparte el trabajo. No pone ladrillos.</li>
+<li>Los <strong>executors</strong> son las <strong>cuadrillas de obreros</strong>. Cada obrero (un <strong>core</strong>) hace una tarea a la vez.</li>
+<li>El <strong>cluster manager</strong> es la <strong>empresa constructora</strong>, que decide cuántas cuadrillas te presta para tu obra.</li>
+</ul>
+</div>
+
+
+<h3>Driver</h3>
+<ul>
+<li>Es el proceso donde corre <strong>tu código</strong>: tu notebook o tu script de Python. Ahí vive la <code>SparkSession</code> (la variable <code>spark</code>).</li>
+<li>Convierte tus transformaciones en un <strong>plan de ejecución</strong>, lo divide en tareas y se las manda a los executors.</li>
+<li>Lleva la cuenta de qué tarea terminó, cuál falló y cuál hay que reintentar.</li>
+<li>Recibe los resultados <strong>solo</strong> cuando los pides explícitamente, por ejemplo con <code>collect()</code>, <code>show()</code> o <code>toPandas()</code>.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El error clásico: traer todo al driver</div>
+
+<p><code>df.collect()</code> o <code>df.toPandas()</code> sobre 50 millones de filas manda <strong>todos los datos a una sola máquina</strong>, la del driver. Resultado: <code>OutOfMemoryError</code> y el job se cae. Trae al driver solo resultados chicos (agregados, un <code>limit</code>, una muestra). Los datos grandes se escriben directo desde los executors con <code>df.write...</code>.</p>
+</div>
+
+
+<h3>Executors</h3>
+<ul>
+<li>Son procesos que corren en las máquinas trabajadoras (<em>workers</em>). Cada executor tiene una cantidad de <strong>cores</strong> (cuántas tareas puede correr a la vez) y de <strong>memoria</strong>.</li>
+<li>Leen los datos de su parte (del lake, de S3, de ADLS), aplican las transformaciones, guardan resultados intermedios en memoria o en disco y escriben la salida.</li>
+<li>Un clúster de 3 workers con 4 cores cada uno puede correr <strong>12 tareas en paralelo</strong>.</li>
+</ul>
+<h3>Cluster manager</h3>
+<ul>
+<li>Asigna máquinas, CPU y memoria a tu aplicación. Los más comunes son <strong>YARN</strong> (el de Hadoop), <strong>Kubernetes</strong> y el modo <strong>Standalone</strong> de Spark.</li>
+<li>En <strong>Databricks</strong>, <strong>EMR</strong> o <strong>Dataproc</strong> casi no lo ves: eliges cuántas máquinas quieres (o un rango, con <em>autoscaling</em>) y la plataforma se encarga.</li>
+</ul>
+<h2>Particiones: la unidad de paralelismo</h2>
+<p>Spark no procesa &quot;un DataFrame&quot;: procesa <strong>particiones</strong>. Una partición es un pedazo de las filas del DataFrame. <strong>Cada partición la procesa una tarea, en un core.</strong></p>
+<p>Por ejemplo, 10 GB de pedidos en archivos Parquet de unos 128 MB generan unas 80 particiones. Con un clúster de 40 cores:</p>
+<pre><code class="language-text">Oleada 1: 40 tareas en paralelo (particiones 1 a 40)
+Oleada 2: 40 tareas en paralelo (particiones 41 a 80)</code></pre>
+<p>Si tienes 200 particiones y 40 cores, se procesan 40 a la vez, en 5 &quot;oleadas&quot;.</p>
+<p>¿De dónde salen las particiones?</p>
+<ul>
+<li><strong>Al leer archivos</strong>: Spark agrupa los archivos en bloques de hasta unos 128 MB (<code>spark.sql.files.maxPartitionBytes</code>). Muchos archivos chicos se juntan en una partición, y un archivo enorme se parte en varias.</li>
+<li><strong>Después de un shuffle</strong> (<code>groupBy</code>, <code>join</code>): el número lo define <code>spark.sql.shuffle.partitions</code>, que vale <strong>200</strong> por defecto. Con <em>Adaptive Query Execution</em> (AQE, activado por defecto desde Spark 3.2), Spark lo ajusta solo según el tamaño real de los datos.</li>
+<li><strong>A mano</strong>: con <code>repartition(n)</code> o <code>coalesce(n)</code>, que se ven en la lección de particiones y joins.</li>
+</ul>
+<pre data-norun><code class="language-python">df = spark.read.parquet(&quot;/lake/silver/pedidos&quot;)
+df.rdd.getNumPartitions()        # ¿en cuántos pedazos quedó? p. ej. 80</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 La regla práctica</div>
+
+<ul>
+<li>Muy pocas particiones → cores ociosos y particiones enormes que no entran en memoria.</li>
+<li>Demasiadas particiones → mucho tiempo perdido en coordinar tareas diminutas.</li>
+<li>Un tamaño razonable por partición suele estar entre <strong>100 MB y 1 GB</strong> (en Parquet, unos 128 MB).</li>
+<li>Apunta a tener al menos <strong>2 a 4 veces más particiones que cores</strong>, para que ninguno quede sin trabajo.</li>
+</ul>
+</div>
+
+
+<h2>Job → Stage → Task</h2>
+<p>Cuando ejecutas una <strong>acción</strong> (como <code>count()</code>, <code>show()</code> o escribir un archivo), Spark crea un <strong>job</strong>. Las transformaciones anteriores (<code>filter</code>, <code>select</code>, <code>groupBy</code>) solo arman el plan; la acción lo pone en marcha. (Esto es la <em>lazy evaluation</em>, el tema de la próxima lección.)</p>
+<ol>
+<li>El job se divide en <strong>stages</strong> (etapas). Un stage nuevo empieza cada vez que hay que <strong>redistribuir datos entre máquinas</strong> (un <em>shuffle</em>), por ejemplo en un <code>groupBy</code> o un <code>join</code>.</li>
+<li>Cada stage se divide en <strong>tasks</strong>: una por partición.</li>
+</ol>
+<pre><code class="language-text">job: df.groupBy(&quot;pais&quot;).count().show()
+ ├── stage 1: leer archivos + contar parcial por partición   (200 tasks)
+ │        ── shuffle: mover filas del mismo país a la misma partición ──
+ └── stage 2: sumar los conteos parciales por país            (200 tasks)</code></pre>
+<p>Es exactamente el MapReduce de la lección anterior: el stage 1 es el <em>map</em>, la línea del medio es el <em>shuffle</em> y el stage 2 es el <em>reduce</em>.</p>
+<p>¿Por qué el shuffle parte el job en stages? Porque el stage 2 <strong>no puede empezar</strong> hasta que todas las tareas del stage 1 terminaron: necesita <strong>todos</strong> los conteos parciales de Chile antes de sumarlos. Dentro de un stage, en cambio, cada tarea avanza sola, sin esperar a nadie.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+<th>Cuántos hay</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Application</strong></td>
+<td>Tu programa completo (una SparkSession)</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>Job</strong></td>
+<td>Lo que dispara cada acción</td>
+<td>1 por acción</td>
+</tr>
+<tr>
+<td><strong>Stage</strong></td>
+<td>Un tramo del job sin shuffles adentro</td>
+<td>1 + uno por cada shuffle</td>
+</tr>
+<tr>
+<td><strong>Task</strong></td>
+<td>El trabajo sobre una partición dentro de un stage</td>
+<td>1 por partición</td>
+</tr>
+</tbody></table></div>
+<h3>La Spark UI</h3>
+<p>Todo esto se ve en la <strong>Spark UI</strong>, una página web que muestra cada job, sus stages y sus tasks, con tiempos y bytes leídos o movidos. En Databricks está en la pestaña <em>Spark UI</em> del clúster, y cada celda de un notebook tiene un enlace &quot;Spark Jobs&quot;. Es la herramienta número uno para entender por qué algo es lento. Lo primero que se mira:</p>
+<ul>
+<li><strong>¿Qué stage tarda más?</strong> Casi siempre es uno con shuffle.</li>
+<li><strong>Shuffle read/write</strong>: cuántos GB se movieron por la red.</li>
+<li><strong>Duración de las tasks</strong>: si la mayoría tarda 5 segundos y una tarda 10 minutos, hay <strong>skew</strong> (datos desbalanceados: un país con muchísimas más filas que el resto).</li>
+<li><strong>Spill</strong>: datos que no entraron en memoria y se escribieron al disco. Significa particiones demasiado grandes.</li>
+</ul>
+<h2>Tolerancia a fallos</h2>
+<p>En un clúster de 100 máquinas, que alguna falle es algo normal. Spark no copia todos los datos intermedios por si acaso: recuerda <strong>cómo</strong> se construyó cada partición, su <strong>linaje</strong> (<em>lineage</em>): &quot;esta partición sale de leer el archivo X, filtrar y agrupar&quot;.</p>
+<p>Si un executor muere, el driver vuelve a mandar <strong>solo las tareas de las particiones perdidas</strong> a otro executor, que las recalcula a partir del linaje. El job sigue como si nada, solo un poco más lento.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿Y si muere el driver?</div>
+
+<p>Ahí se pierde la aplicación completa, porque el driver es quien tiene el plan. Por eso, en producción, los jobs se lanzan con un orquestador (Lakeflow Jobs o Airflow) que <strong>reintenta</strong> el job entero.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Rol</th>
+<th>Si falla…</th>
+</tr>
+</thead><tbody><tr>
+<td>Driver</td>
+<td>Planifica y coordina; recibe resultados de <code>collect()</code></td>
+<td>Se cae la aplicación</td>
+</tr>
+<tr>
+<td>Executor</td>
+<td>Procesa particiones en sus cores</td>
+<td>Spark recalcula sus tareas en otro</td>
+</tr>
+<tr>
+<td>Cluster manager</td>
+<td>Presta máquinas y recursos</td>
+<td>La plataforma lo maneja</td>
+</tr>
+<tr>
+<td>Partición</td>
+<td>Un pedazo de los datos = 1 task = 1 core</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Shuffle</td>
+<td>Mover datos entre máquinas; separa stages</td>
+<td>Es lo más caro: minimízalo</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-arquitectura">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-big-data.html">← Big data y computación distribuida</a><a href="spark-lazy.html">RDD, DataFrame y evaluación perezosa →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

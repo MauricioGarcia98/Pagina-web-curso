@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JOIN: combinar tablas · Academia de Datos</title><meta name="description" content="Claves primarias y foráneas, INNER JOIN, alias de tabla y joins de varias tablas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-joins.html">
+<meta property="og:type" content="article"><meta property="og:title" content="JOIN: combinar tablas · Academia de Datos"><meta property="og:description" content="Claves primarias y foráneas, INNER JOIN, alias de tabla y joins de varias tablas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-joins.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Intermedio · 40 min</div>
+<h1>JOIN: combinar tablas</h1><p class="resumen">Claves primarias y foráneas, INNER JOIN, alias de tabla y joins de varias tablas.</p>
+<a class="cta" href="../index.html#/l/sql-joins">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar por qué los datos están repartidos en varias tablas y cómo se conectan con claves</li><li>Unir dos o más tablas con <code>INNER JOIN … ON</code></li><li>Anticipar cuántas filas devuelve un JOIN en relaciones uno a muchos</li><li>Agregar después de unir sin duplicar importes</li></ul>
+<h2>Por qué los datos están repartidos en varias tablas</h2>
+<p>En la primera lección viste que una base relacional <strong>no repite</strong> información: el pedido no guarda el nombre del cliente, solo su <code>cliente_id</code>. Es eficiente y evita inconsistencias, pero tiene una consecuencia: para responder &quot;¿qué compró Martina López?&quot; necesitas datos de <strong>varias</strong> tablas a la vez. Juntarlas es el trabajo de <code>JOIN</code>, la operación más importante de SQL después de <code>SELECT</code>.</p>
+<h2>Claves: cómo se conectan las tablas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Clave primaria (PK)</strong></td>
+<td>Columna que identifica <strong>una sola</strong> fila; nunca se repite ni es <code>NULL</code></td>
+<td><code>clientes.cliente_id</code></td>
+</tr>
+<tr>
+<td><strong>Clave foránea (FK)</strong></td>
+<td>Columna que guarda la PK <strong>de otra tabla</strong>: una &quot;flecha&quot; hacia ella</td>
+<td><code>pedidos.cliente_id</code> → <code>clientes.cliente_id</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-text">clientes                       pedidos
+┌────────────┬─────────┐       ┌───────────┬────────────┬──────────────┐
+│ cliente_id │ nombre  │       │ pedido_id │ cliente_id │ fecha_pedido │
+├────────────┼─────────┤       ├───────────┼────────────┼──────────────┤
+│ 562        │ Martina │◄──┬───│ 2715      │ 562        │ 2022-11-12   │
+│ 563        │ Diego   │   ├───│ 3479      │ 562        │ 2023-01-15   │
+└────────────┴─────────┘   └───│ 3575      │ 562        │ 2023-01-26   │
+                               └───────────┴────────────┴──────────────┘</code></pre>
+<p>Martina (cliente 562) aparece <strong>una vez</strong> en <code>clientes</code> y su id aparece en <strong>cada uno</strong> de sus pedidos. Eso es una relación <strong>uno a muchos</strong> (1:N).</p>
+<!-- dg:sql11-er -->
+<figure class="diagrama"><figcaption>Las tablas de Tienda Andina y las claves que las conectan (1 → N: &quot;uno a muchos&quot;)</figcaption></figure>
+
+
+<h2>Tu primer JOIN</h2>
+<pre><code class="language-sql">SELECT p.pedido_id, p.fecha_pedido, c.nombre, c.apellido, c.pais
+FROM pedidos AS p
+JOIN clientes AS c ON c.cliente_id = p.cliente_id
+LIMIT 10;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>pedido_id</th>
+<th>fecha_pedido</th>
+<th>nombre</th>
+<th>apellido</th>
+<th>pais</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>2022-01-01</td>
+<td>Paula</td>
+<td>Mendoza</td>
+<td>Argentina</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2022-01-01</td>
+<td>Santiago</td>
+<td>Molina</td>
+<td>Costa Rica</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2022-01-01</td>
+<td>Gabriel</td>
+<td>Navarro</td>
+<td>Argentina</td>
+</tr>
+</tbody></table></div>
+<p>Léelo por partes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>FROM pedidos AS p</code></td>
+<td>Empieza por la tabla de pedidos y llámala <code>p</code></td>
+</tr>
+<tr>
+<td><code>JOIN clientes AS c</code></td>
+<td>Combínala con la tabla de clientes, llamada <code>c</code></td>
+</tr>
+<tr>
+<td><code>ON c.cliente_id = p.cliente_id</code></td>
+<td><strong>La regla de emparejamiento</strong>: una fila de pedidos va con la fila de clientes que tenga el mismo <code>cliente_id</code></td>
+</tr>
+<tr>
+<td><code>p.pedido_id</code>, <code>c.nombre</code></td>
+<td>Cada columna lleva delante de qué tabla viene</td>
+</tr>
+</tbody></table></div>
+<h3>Qué hace el motor (la idea)</h3>
+<p>Para cada pedido, busca en <code>clientes</code> la fila cuyo <code>cliente_id</code> coincide, y <strong>pega</strong> ambas filas una al lado de la otra en una fila más ancha. El resultado tiene las columnas de las dos tablas. (Internamente usa algoritmos eficientes como <em>hash join</em> o índices, pero el resultado es el mismo que si lo hiciera a mano.)</p>
+<h3>Alias de tabla</h3>
+<p><code>AS p</code> y <code>AS c</code> son <strong>alias de tabla</strong>. Sirven para dos cosas:</p>
+<ol>
+<li><strong>Escribir menos</strong>: <code>p.fecha_pedido</code> en vez de <code>pedidos.fecha_pedido</code>.</li>
+<li><strong>Evitar ambigüedad</strong>: las dos tablas tienen una columna <code>cliente_id</code>. Si escribes solo <code>cliente_id</code> en el <code>SELECT</code>, el motor responde <code>ambiguous column name: cliente_id</code>. Con <code>p.cliente_id</code> o <code>c.cliente_id</code> queda claro.</li>
+</ol>
+<p>El <code>AS</code> es opcional (<code>FROM pedidos p</code> funciona igual). Usa alias cortos y con sentido: <code>p</code> para pedidos, <code>c</code> para clientes, <code>d</code> para detalle, <code>pr</code> para productos.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Prefija siempre las columnas</div>
+
+<p>Aunque una columna no sea ambigua, escribir <code>c.nombre</code> en lugar de <code>nombre</code> hace que cualquiera sepa de dónde viene cada dato sin abrir las tablas. Y evita errores el día que alguien agregue una columna <code>nombre</code> a otra tabla.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>INNER JOIN: solo las filas con pareja</h2>
+<p><code>JOIN</code> a secas significa <code>INNER JOIN</code>: solo quedan las combinaciones donde la condición <code>ON</code> se cumple. Una fila <strong>sin pareja</strong> en la otra tabla <strong>desaparece</strong> del resultado.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El baile de parejas</div>
+
+<p><code>INNER JOIN</code> es un baile donde solo entran a la pista quienes encontraron pareja. Un cliente que nunca compró no tiene pedido con quien bailar: no aparece. Un pedido con un <code>cliente_id</code> que no existe en <code>clientes</code> tampoco.</p>
+</div>
+
+
+<p>Comprobación con números: <code>pedidos</code> tiene 12.000 filas y todas tienen un cliente válido, así que <code>pedidos JOIN clientes</code> devuelve 12.000 filas. Pero de los 2.000 clientes, solo 1.453 compraron: los otros 547 <strong>no aparecen</strong> en el resultado. Si quisieras incluirlos (por ejemplo, para listar &quot;clientes que nunca compraron&quot;), necesitas un <code>LEFT JOIN</code>, que es la próxima lección.</p>
+<h2>La multiplicación de filas en relaciones uno a muchos</h2>
+<p>Cuando unes el lado &quot;uno&quot; con el lado &quot;muchos&quot;, la fila del &quot;uno&quot; se <strong>repite</strong> por cada pareja:</p>
+<pre><code class="language-sql">SELECT c.nombre, c.apellido, p.pedido_id, p.fecha_pedido, p.estado
+FROM clientes c
+JOIN pedidos p ON p.cliente_id = c.cliente_id
+WHERE c.cliente_id = 562
+ORDER BY p.fecha_pedido;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>nombre</th>
+<th>apellido</th>
+<th>pedido_id</th>
+<th>fecha_pedido</th>
+<th>estado</th>
+</tr>
+</thead><tbody><tr>
+<td>Martina</td>
+<td>López</td>
+<td>2715</td>
+<td>2022-11-12</td>
+<td>devuelto</td>
+</tr>
+<tr>
+<td>Martina</td>
+<td>López</td>
+<td>3479</td>
+<td>2023-01-15</td>
+<td>entregado</td>
+</tr>
+<tr>
+<td>Martina</td>
+<td>López</td>
+<td>3575</td>
+<td>2023-01-26</td>
+<td>cancelado</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<p>Martina tiene 16 pedidos, así que aparece <strong>16 veces</strong>. Esto es correcto y esperado, pero tiene consecuencias:</p>
+<ul>
+<li>Después del join, <code>COUNT(*)</code> cuenta filas del lado &quot;muchos&quot; (pedidos), no clientes. Para contar clientes: <code>COUNT(DISTINCT c.cliente_id)</code>.</li>
+<li>Si sumas una columna del lado &quot;uno&quot; (por ejemplo, un <code>limite_credito</code> del cliente) después del join, la sumas <strong>16 veces</strong>. Es el famoso error de <strong>doble conteo</strong>.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El ON equivocado multiplica sin avisar</div>
+
+<p>Si te equivocas de columna en el <code>ON</code> (por ejemplo <code>ON c.categoria_id = p.producto_id</code>), SQL no da error: empareja números que coinciden por casualidad y devuelve basura con apariencia normal. Después de un join, verifica siempre la cantidad de filas: &quot;¿tiene sentido este número?&quot;. Un pedido con 2 líneas debe dar 2 filas al unir con el detalle, no 200.</p>
+</div>
+
+
+<h2>Unir varias tablas</h2>
+<p>Los joins se encadenan: cada <code>JOIN</code> agrega una tabla más al resultado acumulado.</p>
+<pre><code class="language-sql">SELECT d.pedido_id, p.fecha_pedido, pr.nombre AS producto, d.cantidad, d.precio_unitario
+FROM detalle_pedidos d
+JOIN pedidos   p  ON p.pedido_id    = d.pedido_id
+JOIN productos pr ON pr.producto_id = d.producto_id
+WHERE d.pedido_id = 5;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>pedido_id</th>
+<th>fecha_pedido</th>
+<th>producto</th>
+<th>cantidad</th>
+<th>precio_unitario</th>
+</tr>
+</thead><tbody><tr>
+<td>5</td>
+<td>2022-01-01</td>
+<td>Cafetera Tramontina Sport</td>
+<td>1</td>
+<td>41.39</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2022-01-01</td>
+<td>Candado Shimano Ultra 900</td>
+<td>1</td>
+<td>73.79</td>
+</tr>
+</tbody></table></div>
+<p>Y con agregación, la pregunta &quot;¿cuánto se vendió por país y marca?&quot; necesita cuatro tablas:</p>
+<pre><code class="language-sql">SELECT c.pais,
+       pr.marca,
+       ROUND(SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)), 2) AS ventas
+FROM detalle_pedidos d
+JOIN pedidos   p  ON p.pedido_id    = d.pedido_id
+JOIN clientes  c  ON c.cliente_id   = p.cliente_id
+JOIN productos pr ON pr.producto_id = d.producto_id
+WHERE p.estado &lt;&gt; 'cancelado'
+GROUP BY c.pais, pr.marca
+ORDER BY ventas DESC
+LIMIT 10;</code></pre>
+<p>El camino es: detalle → (su pedido) → (el cliente de ese pedido) y detalle → (su producto). El país está en <code>clientes</code>, la marca en <code>productos</code> y el importe en <code>detalle_pedidos</code>: sin joins no hay forma de cruzarlos.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Método para escribir un join de varias tablas</div>
+
+<ol>
+<li><strong>Define el grano</strong>: &quot;una fila por línea de pedido&quot;. Empieza el <code>FROM</code> por la tabla que tiene ese nivel de detalle (aquí, <code>detalle_pedidos</code>).</li>
+<li><strong>Dibuja el camino</strong> con las flechas del diagrama de <a href="#/datos/tienda">Tienda Andina</a>: ¿cómo llego desde el detalle hasta el país?</li>
+<li><strong>Agrega una tabla por vez</strong> y ejecuta: verifica que la cantidad de filas no cambie de forma inesperada.</li>
+<li><strong>Recién al final</strong> agrega <code>WHERE</code>, <code>GROUP BY</code> y <code>ORDER BY</code>.</li>
+</ol>
+</div>
+
+
+<h2>USING: atajo cuando la columna se llama igual</h2>
+<p>Si la columna de unión tiene <strong>el mismo nombre</strong> en las dos tablas, puedes escribir <code>USING</code>:</p>
+<pre><code class="language-sql">SELECT pedido_id, nombre, fecha_pedido
+FROM pedidos JOIN clientes USING (cliente_id)
+LIMIT 5;</code></pre>
+<p>Con <code>USING</code>, la columna <code>cliente_id</code> aparece una sola vez en el resultado y ya no es ambigua. Es cómodo, pero <code>ON</code> es más explícito y funciona aunque los nombres sean distintos (por ejemplo <code>empleados.jefe_id = empleados.empleado_id</code>).</p>
+<div class="callout callout-nota"><div class="callout-title">📝 La sintaxis antigua</div>
+
+<p>Verás código viejo que une tablas con comas y pone la condición en el <code>WHERE</code>: <code>FROM pedidos p, clientes c WHERE c.cliente_id = p.cliente_id</code>. Funciona, pero si olvidas la condición obtienes <strong>todas las combinaciones</strong> (12.000 × 2.000 = 24 millones de filas). La sintaxis <code>JOIN … ON</code> separa la regla de unión de los filtros y es la que se usa hoy.</p>
+</div>
+
+
+
+
+
+
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Unir por la columna equivocada</strong>: <code>ON p.pedido_id = c.cliente_id</code> no da error, pero mezcla datos que no tienen nada que ver. Une siempre la clave foránea con la clave primaria que le corresponde.</li>
+<li><strong>Filas multiplicadas</strong>: si unes <code>pedidos</code> con <code>detalle_pedidos</code> y sumas el total del pedido, lo cuentas una vez por línea. Antes de sumar, pregúntate: ¿cuál es el <strong>grano</strong> de mi resultado (una fila por qué cosa)?</li>
+<li><strong>Columnas ambiguas</strong>: si dos tablas tienen una columna <code>nombre</code>, <code>SELECT nombre</code> da error &quot;ambiguous column&quot;. Usa alias (<code>c.nombre</code>, <code>pr.nombre</code>).</li>
+<li><strong>Perder filas sin darte cuenta</strong>: el <code>INNER JOIN</code> descarta los pedidos cuyo cliente no existe en <code>clientes</code>. Si el total da menos de lo esperado, compara <code>COUNT(*)</code> antes y después del JOIN.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Las ventas por categoría</div>
+
+<p>Valentina necesita saber qué categorías venden más:</p>
+<blockquote>
+<p>&quot;¿Cuánto vendimos por categoría? Celulares, notebooks, audio… Y por país del cliente.&quot;</p>
+</blockquote>
+<p>El problema es que esa información está <strong>repartida</strong>: la categoría está en <code>categorias</code>, el producto en <code>productos</code>, las cantidades en <code>detalle_pedidos</code> y el país en <code>clientes</code>. Para responder tienes que <strong>unir</strong> tablas. Es el paso que separa a quien &quot;sabe un poco de SQL&quot; de quien lo usa en el trabajo.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Antes de un JOIN importante, los ingenieros revisan las claves: ¿la del lado &quot;uno&quot; es realmente única? (<code>SELECT id, COUNT(*) ... GROUP BY id HAVING COUNT(*) &gt; 1</code>). Un duplicado en una tabla de dimensión multiplica silenciosamente todas las ventas.</li>
+<li>En tablas de hechos grandes, unir con dimensiones chicas (productos, países) es barato: los motores distribuidos copian la tabla chica a todas las máquinas (<em>broadcast join</em>). Unir dos tablas enormes es lo que hace lentos los pipelines.</li>
+<li>Los modelos de datos analíticos (esquema estrella, en la lección de modelado) están pensados justamente para que los JOIN sean simples: una tabla de hechos en el centro y dimensiones alrededor.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué pasa si haces un JOIN y la clave tiene duplicados en las dos tablas?&quot;</div>
+
+<p>Cada fila de un lado se combina con <strong>todas</strong> las filas del otro que tienen la misma clave: si una clave aparece 3 veces a la izquierda y 4 a la derecha, salen 12 filas. Es la causa más común de totales inflados. Se detecta comparando el conteo de filas antes y después, y se soluciona agregando o deduplicando antes de unir.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Las tablas se conectan con claves: la FK de una apunta a la PK de otra.</li>
+<li><code>JOIN tabla ON regla</code> empareja filas; <code>JOIN</code> = <code>INNER JOIN</code>: solo quedan las filas con pareja.</li>
+<li>Usa alias de tabla y prefija las columnas para evitar ambigüedades.</li>
+<li>En relaciones 1:N, el lado &quot;uno&quot; se repite: cuidado con <code>COUNT(*)</code> y con sumar columnas del lado &quot;uno&quot;.</li>
+<li>Une tablas de a una, definiendo primero el grano y verificando la cantidad de filas.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-joins">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-case.html">← CASE WHEN: lógica condicional</a><a href="sql-joins-avanzados.html">LEFT, RIGHT, FULL, SELF y CROSS JOIN →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

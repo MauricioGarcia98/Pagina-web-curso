@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La matemática justa para datos - porcentajes, tasas, promedios y medianas · Academia de Datos</title><meta name="description" content="No necesitas ser bueno en matemática para trabajar con datos; necesitas dominar seis cuentas y saber cuándo engañan."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-matematica-para-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La matemática justa para datos - porcentajes, tasas, promedios y medianas · Academia de Datos"><meta property="og:description" content="No necesitas ser bueno en matemática para trabajar con datos; necesitas dominar seis cuentas y saber cuándo engañan."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cero-matematica-para-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cero">🌱 Antes de empezar: desde cero absoluto</a> · Básico · 40 min</div>
+<h1>La matemática justa para datos - porcentajes, tasas, promedios y medianas</h1><p class="resumen">No necesitas ser bueno en matemática para trabajar con datos; necesitas dominar seis cuentas y saber cuándo engañan.</p>
+<a class="cta" href="../index.html#/l/cero-matematica-para-datos">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular un porcentaje y una variación porcentual sin confundirte</li><li>Distinguir puntos porcentuales de porcentaje</li><li>Calcular una tasa (conversión, abandono) con el denominador correcto</li><li>Elegir entre promedio y mediana según los datos</li><li>Evitar el promedio de promedios</li><li>Redondear solo al final</li></ul>
+<h2>1. Porcentaje: una parte sobre el total</h2>
+<p>Un <strong>porcentaje</strong> dice cuántos de cada 100. Se calcula como <strong>parte ÷ total × 100</strong>.</p>
+<ul>
+<li>De 400 pedidos, 60 se pagaron con tarjeta → 60 ÷ 400 × 100 = <strong>15 %</strong>.</li>
+<li>Un producto de 2.000 con 15 % de descuento → descuento = 2.000 × 15 ÷ 100 = 300 → precio final 1.700. Atajo: 2.000 × 0,85 = 1.700.</li>
+</ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La pizza en 100 porciones</div>
+
+<p>Un porcentaje es imaginar que el total es una pizza cortada en 100 porciones iguales: 15 % son 15 porciones, sin importar si la pizza &quot;real&quot; eran 400 pedidos o 4 millones.</p>
+</div>
+
+
+<h2>2. Variación porcentual: cuánto cambió</h2>
+<p><strong>(nuevo − anterior) ÷ anterior × 100</strong>. Lo importante es <strong>dividir por el valor de antes</strong>.</p>
+<ul>
+<li>Marzo 120.000 → abril 150.000: (150.000 − 120.000) ÷ 120.000 × 100 = <strong>25 %</strong>. Finanzas tenía razón.</li>
+<li>Marketing dividió por 100.000 (otro mes) o calculó al revés. El error más común es dividir por el valor nuevo: 30.000 ÷ 150.000 = 20 %, que es otra cosa.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Subir y bajar no se compensan</div>
+
+<p>Si algo baja 50 % y después sube 50 %, <strong>no vuelve al inicio</strong>: 100 → 50 → 75. Para volver de 50 a 100 hay que subir 100 %. Por eso un &quot;bajamos 20 % y recuperamos 20 %&quot; esconde una pérdida.</p>
+</div>
+
+
+<h2>3. Puntos porcentuales: restar porcentajes</h2>
+<p>Si la tasa de conversión pasa de <strong>2 %</strong> a <strong>3 %</strong>:</p>
+<ul>
+<li>Subió <strong>1 punto porcentual</strong> (3 − 2 = 1).</li>
+<li>Pero subió <strong>50 %</strong> en términos relativos ((3 − 2) ÷ 2 × 100).</li>
+</ul>
+<p>Las dos frases son verdad y dicen cosas distintas. En un informe, decir &quot;la conversión subió 1 % &quot; es ambiguo; di <strong>&quot;subió 1 punto (de 2 % a 3 %)&quot;</strong>.</p>
+<h2>4. Tasas: siempre pregunta &quot;¿de cuántos?&quot;</h2>
+<p>Una <strong>tasa</strong> es un porcentaje con un denominador elegido con cuidado: tasa de conversión, de abandono (churn), de devolución, de error.</p>
+<ul>
+<li><strong>Tasa de conversión</strong> = compraron ÷ visitaron. 30 compras de 1.500 visitas = 2 %.</li>
+<li><strong>Tasa de devolución</strong> = pedidos devueltos ÷ pedidos <strong>entregados</strong> (no ÷ todos los pedidos: los cancelados nunca pudieron devolverse).</li>
+</ul>
+<p>La pregunta mágica ante cualquier tasa: <strong>&quot;¿sobre cuántos?&quot;</strong>. La mitad de los errores de los informes están en el denominador.</p>
+<h2>5. Promedio y mediana: el centro de los datos</h2>
+<ul>
+<li><strong>Promedio</strong> (o media): sumas todo y divides por la cantidad. Sueldos 800, 900, 1.000, 1.100 → 3.800 ÷ 4 = 950.</li>
+<li><strong>Mediana</strong>: ordenas y tomas el del medio (si son pares, el promedio de los dos del medio). En el ejemplo: (900 + 1.000) ÷ 2 = 950.</li>
+</ul>
+<p>Hasta acá dan igual. Ahora entra el gerente general, que gana 20.000:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>800, 900, 1.000, 1.100</th>
+<th>800, 900, 1.000, 1.100, 20.000</th>
+</tr>
+</thead><tbody><tr>
+<td>Promedio</td>
+<td>950</td>
+<td><strong>4.760</strong></td>
+</tr>
+<tr>
+<td>Mediana</td>
+<td>950</td>
+<td><strong>1.000</strong></td>
+</tr>
+</tbody></table></div>
+<p>El promedio dice que &quot;el empleado típico gana 4.760&quot;, y nadie gana eso. La mediana (1.000) describe mucho mejor al empleado típico. <strong>Cuando hay valores extremos (sueldos, precios de casas, tiempos de espera, montos de compra), usa la mediana</strong>, o muestra las dos.</p>
+<h2>6. El promedio de promedios engaña</h2>
+<p>Dos tiendas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tienda</th>
+<th>Pedidos</th>
+<th>Devueltos</th>
+<th>Tasa</th>
+</tr>
+</thead><tbody><tr>
+<td>Centro</td>
+<td>1.000</td>
+<td>100</td>
+<td>10 %</td>
+</tr>
+<tr>
+<td>Norte</td>
+<td>10</td>
+<td>5</td>
+<td>50 %</td>
+</tr>
+</tbody></table></div>
+<p>¿La tasa de devolución de la empresa es (10 % + 50 %) ÷ 2 = 30 %? <strong>No</strong>. La empresa tuvo 105 devoluciones de 1.010 pedidos = <strong>10,4 %</strong>. Promediar porcentajes trata igual a una tienda de 10 pedidos que a una de 1.000. Regla: <strong>suma las partes y suma los totales, y recién ahí divide</strong>.</p>
+<h2>7. Redondear al final</h2>
+<p>Si redondeas en cada paso, los errores se acumulan. Calcula con todos los decimales y redondea <strong>solo lo que muestras</strong>. En dinero, además, ten presente que las computadoras guardan algunos decimales de forma aproximada (<code>0.1 + 0.2</code> da <code>0.30000000000000004</code> en Python): por eso las bases de datos usan tipos como <code>DECIMAL</code> para montos.</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 &quot;¿Crecimos o no?&quot;</div>
+
+<p>Ahora que sabes calcular una variación porcentual, mira por qué importa. En una reunión de una empresa, la gerente comercial pregunta: <em>&quot;En marzo vendimos 120.000 y en abril 150.000. Marketing dice que crecimos 30 %, finanzas dice 25 %. ¿Quién tiene razón?&quot;</em></p>
+<p>Todo el mundo mira al equipo de datos. Con la cuenta de esta lección lo respondes en un minuto: (150.000 − 120.000) / 120.000 = 25 %. Finanzas tiene razón; marketing dividió por el mes equivocado. Preguntas como esta (y sus primas: tasas, promedios, medianas) aparecen <strong>todas las semanas</strong>.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<p>En el trabajo vas a ver cada uno de estos errores en informes reales, a veces hechos por personas con mucha experiencia. Detectarlos (y explicarlos sin hacer sentir mal a nadie) es una de las cosas que más valora un equipo de datos.</p>
+</div>
+
+
+<h2>Practica</h2>
+<p>Estos ejercicios usan Python como calculadora. No hace falta saber Python todavía: en cada uno tienes las variables listas y solo escribes la cuenta. <code>/</code> divide, <code>*</code> multiplica, <code>round(x, 1)</code> redondea a un decimal.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li>Dividir la variación por el valor <strong>nuevo</strong> en vez del anterior.</li>
+<li>Decir &quot;subió 1 %&quot; cuando subió 1 punto porcentual.</li>
+<li>Promediar porcentajes de grupos de distinto tamaño.</li>
+<li>Usar el promedio con valores extremos.</li>
+</ul>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cero-matematica-para-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cero-leer-errores.html">← Los errores son tus amigos - cómo leer cualquier mensaje de error</a><a href="cero-ingles-tecnico.html">El inglés técnico mínimo - las palabras que aparecen en errores y documentación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

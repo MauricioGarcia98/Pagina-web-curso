@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mantener sin apagar incendios - checks, alertas y runbooks · Academia de Datos</title><meta name="description" content="La parte preventiva de la guardia - los seis checks que detectan casi todos los fallos silenciosos (frescura, volumen, nulos, unicidad, integridad referencial y dominio), cómo escribirlos en SQL, cómo detectar anomalías de volumen sin falsos positivos, el patrón write-audit-publish y cómo limpiar alertas ruidosas para que la guardia confíe en ellas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-monitoreo-y-checks.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Mantener sin apagar incendios - checks, alertas y runbooks · Academia de Datos"><meta property="og:description" content="La parte preventiva de la guardia - los seis checks que detectan casi todos los fallos silenciosos (frescura, volumen, nulos, unicidad, integridad referencial y dominio), cómo escribirlos en SQL, cómo detectar anomalías de volumen sin falsos positivos, el patrón write-audit-publish y cómo limpiar alertas ruidosas para que la guardia confíe en ellas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-monitoreo-y-checks.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Intermedio · 55 min</div>
+<h1>Mantener sin apagar incendios - checks, alertas y runbooks</h1><p class="resumen">La parte preventiva de la guardia - los seis checks que detectan casi todos los fallos silenciosos (frescura, volumen, nulos, unicidad, integridad referencial y dominio), cómo escribirlos en SQL, cómo detectar anomalías de volumen sin falsos positivos, el patrón write-audit-publish y cómo limpiar alertas ruidosas para que la guardia confíe en ellas.</p>
+<a class="cta" href="../index.html#/l/incidentes-monitoreo-y-checks">▶ Abrir la lección interactiva (13 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir en SQL los seis checks básicos de calidad de datos</li><li>Detectar una anomalía de volumen comparando contra la historia</li><li>Medir el ruido de las alertas y decidir cuáles apagar o mejorar</li><li>Explicar el patrón write-audit-publish</li><li>Diseñar una alerta accionable con dueño y runbook</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Después del incidente de ayer, tu líder te pide revisar el monitoreo del equipo. Descubres tres cosas: el check de volumen de <code>fct_envios</code> está <strong>apagado</strong> &quot;porque daba falsos positivos los domingos&quot;, nadie mira los nulos de <code>dim_clientes</code> y en octubre hubo 220 alertas, de las que casi ninguna terminó en una acción. La guardia ya no confía en las alertas, y por eso no vio las que importaban.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Un pipeline sano no es el que nunca falla: es el que <strong>falla rápido, ruidosamente y con un mensaje que dice qué hacer</strong>. Los checks de datos convierten fallos silenciosos (la tarea en verde con datos malos) en fallos visibles.</p>
+<h2>Los seis checks que detectan casi todo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Check</th>
+<th>Pregunta</th>
+<th>Ejemplo de fallo que detecta</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Frescura</strong></td>
+<td>¿Llegaron datos nuevos a tiempo?</td>
+<td>El archivo del ERP no llegó</td>
+</tr>
+<tr>
+<td><strong>Volumen</strong></td>
+<td>¿La cantidad de filas tiene sentido?</td>
+<td>Carga parcial, filtro mal puesto, duplicación</td>
+</tr>
+<tr>
+<td><strong>Nulos</strong></td>
+<td>¿Las columnas obligatorias tienen valor?</td>
+<td>Una columna renombrada en el origen llega vacía</td>
+</tr>
+<tr>
+<td><strong>Unicidad</strong></td>
+<td>¿La clave primaria es única?</td>
+<td>Un reintento insertó dos veces</td>
+</tr>
+<tr>
+<td><strong>Integridad referencial</strong></td>
+<td>¿Cada clave foránea existe en su tabla padre?</td>
+<td>Pedidos de clientes que no existen (huérfanos)</td>
+</tr>
+<tr>
+<td><strong>Dominio y rango</strong></td>
+<td>¿Los valores son posibles?</td>
+<td>Un estado nuevo, un costo negativo, una fecha del año 2099</td>
+</tr>
+</tbody></table></div>
+<p>Además existe la <strong>reconciliación</strong>: comparar un total del origen (filas exportadas, monto facturado) con el destino. Es el check más fuerte y el que se usa para finanzas.</p>
+<figure class="diagrama"><figcaption>Write-audit-publish - los datos malos nunca llegan al usuario</figcaption></figure>
+
+
+<p>El patrón <strong>write-audit-publish (WAP)</strong> pone los checks <strong>antes</strong> de que los datos lleguen a producción. Si fallan, los usuarios ven los datos de ayer (viejos, pero correctos) en vez de datos nuevos e incorrectos. dbt lo hace con <code>dbt build</code> (los tests de un modelo corren antes de sus dependientes) y las tablas Iceberg y Delta lo permiten con ramas o tablas de staging.</p>
+<h2>Volumen: comparar contra la historia, no contra un número fijo</h2>
+<p>Un umbral fijo (&quot;alerta si hay menos de 10.000 filas&quot;) falla los fines de semana, en feriados y cuando el negocio crece. Las alternativas, de más simple a más robusta:</p>
+<ol>
+<li><strong>Contra la media de los últimos N días</strong> (lo hiciste en la lección anterior).</li>
+<li><strong>Contra el mismo día de la semana</strong> de las últimas 4 semanas: resuelve el problema de los domingos.</li>
+<li><strong>Puntaje z</strong>: cuántas desviaciones estándar se aleja el valor de la media. |z| &gt; 3 es raro por azar.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Puntaje z sin raíz cuadrada</div>
+
+<p>SQLite no tiene <code>SQRT</code>. Pero |z| &gt; 3 equivale a (x − media)² &gt; 9 × varianza, y la varianza es <code>AVG(x*x) - AVG(x)*AVG(x)</code>. Comparar cuadrados evita la raíz.</p>
+</div>
+
+
+<h2>Alertas que la guardia respeta</h2>
+<p>Una alerta <strong>accionable</strong> tiene:</p>
+<ul>
+<li><strong>Un dueño</strong> (un equipo, no &quot;data&quot;).</li>
+<li><strong>Un umbral que significa un problema real</strong>: si se resuelve sola el 90 % de las veces, no es una alerta, es ruido.</li>
+<li><strong>Un enlace al runbook</strong> que dice qué hacer.</li>
+<li><strong>La severidad correcta</strong>: lo que puede esperar al lunes va a un ticket, no al teléfono a las 3 de la mañana.</li>
+</ul>
+<p>El ruido tiene un costo: la <strong>fatiga de alertas</strong>. Cuando la mayoría de las alertas no requiere acción, la gente deja de mirarlas, y la alerta real se pierde entre las falsas.</p>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Apagar el check en vez de arreglarlo</strong>: &quot;da falsos positivos los domingos&quot; se resuelve comparando contra el mismo día de la semana, no con <code>enabled: false</code>.</li>
+<li><strong>Checks que solo avisan</strong>: un warning que nadie lee es igual a no tener check. Decide qué checks <strong>bloquean</strong> la publicación.</li>
+<li><strong>Alertar por todo</strong>: 220 alertas en un mes enseñan a ignorarlas.</li>
+<li><strong>Checks sin dueño ni runbook</strong>: la alerta suena y nadie sabe qué hacer ni a quién llamar.</li>
+<li><strong>Probar solo el último paso</strong>: si la tabla final tiene nulos, ¿de qué paso vinieron? Pon checks en la entrada (staging) y en la salida.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li><strong>dbt tests</strong> (<code>unique</code>, <code>not_null</code>, <code>relationships</code>, <code>accepted_values</code>) con <code>severity: error</code> o <code>warn</code>; <strong>dbt source freshness</strong> para la frescura.</li>
+<li><strong>Great Expectations</strong>, <strong>Soda</strong> y <strong>Elementary</strong> para checks y anomalías; <strong>Monte Carlo</strong>, <strong>Bigeye</strong> o <strong>Anomalo</strong> como observabilidad de datos administrada.</li>
+<li>Las alertas van a la herramienta de guardia con <strong>etiqueta del dueño</strong> y <strong>enlace al runbook</strong>. Cada mes se revisa qué alertas sonaron y cuáles no llevaron a ninguna acción.</li>
+<li>Se acuerdan <strong>SLO</strong> con el negocio (&quot;ventas diarias disponible a las 06:00 el 99 % de los días&quot;) y las alertas protegen ese SLO.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Cómo sabes que los datos de tu pipeline son correctos?&quot;</strong> Menciona los checks (frescura, volumen contra la historia, nulos, unicidad, integridad referencial, dominio), dónde corren (antes de publicar: write-audit-publish), cuáles bloquean y cuáles avisan, la reconciliación contra el origen para los datos críticos y cómo evitas la fatiga de alertas.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Frescura, volumen, nulos, unicidad, referencial, dominio</td>
+<td>Detectar los fallos silenciosos más comunes</td>
+</tr>
+<tr>
+<td>Volumen contra la historia (mismo día de la semana, puntaje z)</td>
+<td>Evitar falsos positivos</td>
+</tr>
+<tr>
+<td>Write-audit-publish</td>
+<td>Que los datos malos no lleguen a producción</td>
+</tr>
+<tr>
+<td>Revisión mensual de alertas</td>
+<td>Mantener la confianza de la guardia</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>13 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-monitoreo-y-checks">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-primera-guardia.html">← Tu primera guardia - el método para no entrar en pánico</a><a href="incidentes-duplicados-e-idempotencia.html">Cargas duplicadas - reintentos, idempotencia y MERGE →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

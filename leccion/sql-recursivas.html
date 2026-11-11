@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CTE recursivas: jerarquías y series · Academia de Datos</title><meta name="description" content="Recorrer árboles (organigramas, categorías) y generar series de fechas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-recursivas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="CTE recursivas: jerarquías y series · Academia de Datos"><meta property="og:description" content="Recorrer árboles (organigramas, categorías) y generar series de fechas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-recursivas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Avanzado · 40 min</div>
+<h1>CTE recursivas: jerarquías y series</h1><p class="resumen">Recorrer árboles (organigramas, categorías) y generar series de fechas.</p>
+<a class="cta" href="../index.html#/l/sql-recursivas">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la estructura de una CTE recursiva: caso base, paso recursivo y condición de parada</li><li>Generar series de números y de fechas</li><li>Recorrer jerarquías (organigramas, categorías) calculando niveles y rutas</li><li>Rellenar huecos de un reporte con un calendario generado</li></ul>
+<h2>Datos con forma de árbol</h2>
+<p>Hay datos donde una fila apunta a <strong>otra fila de la misma tabla</strong>, formando una jerarquía:</p>
+<ul>
+<li><strong>Organigrama</strong>: cada empleado tiene un <code>jefe_id</code>, que es otro empleado, que a su vez tiene jefe… hasta llegar al CEO.</li>
+<li><strong>Categorías</strong>: &quot;Laptops&quot; está dentro de &quot;Computadoras&quot;, que está dentro de &quot;Tecnología&quot;.</li>
+<li><strong>Cuentas contables</strong>, carpetas de archivos, comentarios con respuestas, rutas entre ciudades.</li>
+</ul>
+<pre><code class="language-text">categorias                                    el árbol que forman
+categoria_id │ nombre       │ padre           Tecnología (1)
+─────────────┼──────────────┼───────          ├── Computadoras (5)
+1            │ Tecnología   │ NULL            │   └── Laptops (8)
+5            │ Computadoras │ 1               ├── Celulares (6)
+6            │ Celulares    │ 1               └── Audio (7)
+7            │ Audio        │ 1
+8            │ Laptops      │ 5</code></pre>
+<p>Con un self join (lección 12) subes <strong>un</strong> nivel: &quot;el padre de Laptops es Computadoras&quot;. Pero ¿y si quieres <strong>todos</strong> los niveles, sin saber cuántos hay? Necesitarías un join para cada nivel, y la profundidad cambia. La solución es una <strong>CTE recursiva</strong>: una CTE que se usa <strong>a sí misma</strong> hasta que no hay más que recorrer.</p>
+<h2>La estructura</h2>
+<pre data-norun><code class="language-sql">WITH RECURSIVE nombre AS (
+    -- 1. ANCLA (caso base): las filas con las que se empieza
+    SELECT …
+    UNION ALL
+    -- 2. PASO RECURSIVO: a partir de las filas que ya están en &quot;nombre&quot;, produce las siguientes
+    SELECT … FROM tabla JOIN nombre ON …
+)
+SELECT * FROM nombre;</code></pre>
+<p>Cómo la ejecuta el motor:</p>
+<ol>
+<li>Ejecuta el <strong>ancla</strong> → esas filas son la &quot;vuelta 0&quot;.</li>
+<li>Ejecuta el <strong>paso recursivo</strong> usando <strong>solo las filas nuevas</strong> de la vuelta anterior → vuelta 1.</li>
+<li>Repite el paso 2 con las filas de la vuelta 1 → vuelta 2… y así.</li>
+<li>Se <strong>detiene</strong> cuando una vuelta no produce ninguna fila nueva.</li>
+<li>El resultado es la unión de todas las vueltas.</li>
+</ol>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Las fichas de dominó</div>
+
+<p>El ancla es empujar la primera ficha. El paso recursivo es la regla &quot;cada ficha que cae empuja a la siguiente&quot;. El proceso termina solo cuando ya no quedan fichas por caer. Si las fichas formaran un círculo, nunca terminaría: por eso la condición de parada es crucial.</p>
+</div>
+
+
+<p>La palabra <code>RECURSIVE</code> es obligatoria en PostgreSQL y MySQL, y no existe en SQL Server ni en Oracle:</p>
+<div class="motores"></div>
+
+
+<h2>Ejemplo 1: generar una serie de números</h2>
+<p>El caso más simple, para entender la mecánica:</p>
+<pre><code class="language-sql">WITH RECURSIVE numeros(n) AS (
+    SELECT 1                                  -- ancla: empiezo en 1
+    UNION ALL
+    SELECT n + 1 FROM numeros WHERE n &lt; 10    -- paso: el siguiente, mientras sea menor a 10
+)
+SELECT n, n * n AS cuadrado FROM numeros;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>vuelta</th>
+<th>qué produce</th>
+</tr>
+</thead><tbody><tr>
+<td>0 (ancla)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1 + 1 = 2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>3</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>9</td>
+<td>10</td>
+</tr>
+<tr>
+<td>10</td>
+<td>nada (10 no es &lt; 10): <strong>fin</strong></td>
+</tr>
+</tbody></table></div>
+<p>El <code>(n)</code> después del nombre define el nombre de la columna. <code>UNION ALL</code> es obligatorio entre ancla y paso.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La condición de parada</div>
+
+<p>Sin <code>WHERE n &lt; 10</code>, el paso recursivo produciría filas para siempre (en la práctica, hasta un límite de seguridad del motor o hasta llenar la memoria). Antes de ejecutar, pregúntate: <strong>¿en qué momento el paso deja de devolver filas?</strong> En un árbol, se detiene sola cuando llegas a las hojas (nadie tiene como jefe a un empleado sin subordinados). Si los datos tuvieran un <strong>ciclo</strong> (A es jefe de B y B jefe de A), también sería infinita: en ese caso agrega un límite de profundidad (<code>WHERE nivel &lt; 20</code>).</p>
+</div>
+
+
+<h2>Ejemplo 2: un calendario para rellenar huecos</h2>
+<p>Ya viste que <code>GROUP BY</code> no muestra los días <strong>sin</strong> datos. Un calendario generado con recursión, unido con <code>LEFT JOIN</code>, lo resuelve:</p>
+<pre><code class="language-sql">WITH RECURSIVE dias(dia) AS (
+    SELECT '2024-12-20'
+    UNION ALL
+    SELECT date(dia, '+1 day') FROM dias WHERE dia &lt; '2024-12-31'
+)
+SELECT d.dia, COUNT(p.pedido_id) AS pedidos
+FROM dias d
+LEFT JOIN pedidos p ON p.fecha_pedido = d.dia
+GROUP BY d.dia;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>dia</th>
+<th>pedidos</th>
+</tr>
+</thead><tbody><tr>
+<td>2024-12-20</td>
+<td>18</td>
+</tr>
+<tr>
+<td>2024-12-21</td>
+<td>24</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<p>Si algún día no hubiera tenido pedidos, aparecería con <strong>0</strong> en lugar de desaparecer. En reportes y gráficos esto es fundamental: un día faltante en un gráfico de líneas une puntos que no deberían unirse. (En Spark, BigQuery o PostgreSQL existen funciones que generan series directamente, como <code>sequence()</code> o <code>generate_series()</code>; la recursión funciona en todos.)</p>
+<h2>Ejemplo 3: recorrer el organigrama completo</h2>
+<pre><code class="language-sql">WITH RECURSIVE org AS (
+    -- ancla: el CEO (no tiene jefe)
+    SELECT empleado_id, nombre, cargo, jefe_id, 0 AS nivel, nombre AS ruta
+    FROM empleados
+    WHERE jefe_id IS NULL
+    UNION ALL
+    -- paso: los empleados cuyo jefe ya está en &quot;org&quot;
+    SELECT e.empleado_id, e.nombre, e.cargo, e.jefe_id,
+           o.nivel + 1,
+           o.ruta || ' &gt; ' || e.nombre
+    FROM empleados e
+    JOIN org o ON e.jefe_id = o.empleado_id
+)
+SELECT nivel, nombre, cargo, ruta
+FROM org
+ORDER BY nivel, nombre
+LIMIT 25;</code></pre>
+<p>Qué pasa en cada vuelta:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>vuelta</th>
+<th>quiénes entran</th>
+<th>cuántos</th>
+</tr>
+</thead><tbody><tr>
+<td>0</td>
+<td>el CEO</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>los que reportan al CEO (directores)</td>
+<td>8</td>
+</tr>
+<tr>
+<td>2</td>
+<td>los que reportan a esos directores (gerentes)</td>
+<td>18</td>
+</tr>
+<tr>
+<td>3</td>
+<td>los que reportan a los gerentes</td>
+<td>96</td>
+</tr>
+<tr>
+<td>4</td>
+<td>nadie: <strong>fin</strong></td>
+<td>0</td>
+</tr>
+</tbody></table></div>
+<p>Dos columnas se van &quot;arrastrando&quot; y calculando en cada vuelta:</p>
+<ul>
+<li><code>nivel</code>: el del jefe + 1 → la profundidad en el organigrama.</li>
+<li><code>ruta</code>: la ruta del jefe + el nombre propio → <code>Camila &gt; Daniela &gt; Pedro</code>. Muy útil para mostrar y para ordenar jerárquicamente.</li>
+</ul>
+<p>Con este resultado puedes responder preguntas como &quot;¿cuántas personas tiene a cargo (directa o indirectamente) cada director?&quot; o &quot;¿cuál es la masa salarial de cada rama?&quot;.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 En el mundo real</div>
+
+<ul>
+<li>En los data warehouses, las jerarquías profundas suelen &quot;aplanarse&quot; en la etapa de transformación (una columna por nivel: <code>nivel_1</code>, <code>nivel_2</code>, <code>nivel_3</code>), justamente con una CTE recursiva, para que los usuarios de BI no tengan que escribir recursión.</li>
+<li>Spark SQL agregó soporte de CTE recursivas recién en versiones recientes; en Databricks antiguo se resolvía con bucles en PySpark. BigQuery y Snowflake las soportan con <code>WITH RECURSIVE</code>.</li>
+</ul>
+</div>
+
+
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Sin condición de parada</strong>: la CTE crece para siempre (o hasta el límite del motor). Siempre incluye un <code>WHERE n &lt; 20</code> o una condición que termine.</li>
+<li><strong>Ciclos en los datos</strong>: si por error A es jefe de B y B es jefe de A, la recursión no termina. En jerarquías reales conviene limitar la profundidad (<code>WHERE nivel &lt; 20</code>).</li>
+<li><strong><code>UNION</code> en lugar de <code>UNION ALL</code></strong>: en la mayoría de los casos quieres <code>UNION ALL</code>; <code>UNION</code> quita duplicados en cada paso, es más lento y puede esconder errores.</li>
+<li><strong>Tipos que no coinciden</strong> entre el caso base y el paso recursivo (por ejemplo, un texto que se alarga en cada nivel): algunos motores dan error. Convierte el caso base al tipo final con <code>CAST</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El organigrama completo</div>
+
+<p>Tomás, de personas, tiene que armar el organigrama:</p>
+<blockquote>
+<p>&quot;Para cada director necesito saber cuánta gente tiene a cargo en total, no solo los que le reportan directo, sino también los de sus jefes de equipo, y así para abajo.&quot;</p>
+</blockquote>
+<p>La tabla <code>empleados</code> solo dice quién es el jefe <strong>directo</strong> de cada persona. Para recorrer todos los niveles hace falta una consulta que se llame a sí misma: una <strong>CTE recursiva</strong>.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En la práctica, la CTE recursiva más usada es el <strong>calendario</strong>: una fila por día, para que los reportes muestren los días sin ventas. En dbt se hace con la macro <code>date_spine</code>, y en Spark con <code>sequence()</code> + <code>explode()</code>.</li>
+<li>Las jerarquías profundas (categorías de productos, cuentas contables, organigramas) se suelen <strong>aplanar</strong> una vez en el pipeline: se guarda para cada elemento su ruta completa y su nivel, para que los reportes no necesiten recursión.</li>
+<li>Spark SQL no tuvo CTE recursivas durante muchos años (llegaron en versiones muy recientes). Muchos equipos todavía resuelven las jerarquías con bucles en PySpark.</li>
+</ul>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Una CTE recursiva tiene <strong>ancla</strong> + <code>UNION ALL</code> + <strong>paso recursivo</strong> que se refiere a la propia CTE.</li>
+<li>El motor aplica el paso sobre las filas nuevas hasta que no aparecen más.</li>
+<li>Siempre debe haber una condición de parada (o un límite de profundidad si puede haber ciclos).</li>
+<li>Usos: series de números y fechas (calendarios para rellenar huecos), árboles (organigramas, categorías), rutas.</li>
+<li>Arrastra columnas como <code>nivel</code> y <code>ruta</code> para describir la posición en la jerarquía.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-recursivas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-ventanas-2.html">← Funciones de ventana II: acumulados, LAG/LEAD y marcos</a><a href="sql-ddl-dml.html">Crear y modificar datos: DDL, DML y transacciones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

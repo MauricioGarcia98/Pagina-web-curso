@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cambios de esquema - la columna que desapareció · Academia de Datos</title><meta name="description" content="Schema drift (el origen cambia su esquema sin que el pipeline lo sepa) - columnas renombradas que llegan como NULL, tipos que cambian (decimales con coma, centavos en vez de unidades), valores nuevos en un estado. Cómo detectarlo con jq, grep y SQL, cómo reparar los datos ya cargados y cómo prevenirlo con contratos de datos y los modos de evolución de esquema de Spark y Auto Loader."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-cambios-de-esquema.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cambios de esquema - la columna que desapareció · Academia de Datos"><meta property="og:description" content="Schema drift (el origen cambia su esquema sin que el pipeline lo sepa) - columnas renombradas que llegan como NULL, tipos que cambian (decimales con coma, centavos en vez de unidades), valores nuevos en un estado. Cómo detectarlo con jq, grep y SQL, cómo reparar los datos ya cargados y cómo prevenirlo con contratos de datos y los modos de evolución de esquema de Spark y Auto Loader."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-cambios-de-esquema.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Avanzado · 55 min</div>
+<h1>Cambios de esquema - la columna que desapareció</h1><p class="resumen">Schema drift (el origen cambia su esquema sin que el pipeline lo sepa) - columnas renombradas que llegan como NULL, tipos que cambian (decimales con coma, centavos en vez de unidades), valores nuevos en un estado. Cómo detectarlo con jq, grep y SQL, cómo reparar los datos ya cargados y cómo prevenirlo con contratos de datos y los modos de evolución de esquema de Spark y Auto Loader.</p>
+<a class="cta" href="../index.html#/l/incidentes-cambios-de-esquema">▶ Abrir la lección interactiva (12 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Comparar el esquema de dos muestras de datos con jq</li><li>Medir la tasa de nulos por carga para encontrar cuándo empezó el cambio</li><li>Reparar una columna con datos de la columna nueva convirtiendo unidades</li><li>Normalizar números con formatos regionales distintos</li><li>Detectar diferencias de columnas entre dos tablas desde el catálogo</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El tablero de ingresos muestra que el 28/10 se cobraron <strong>cero dólares</strong>, pero la cantidad de pagos es normal. El pipeline de pagos terminó OK en 41 segundos. El equipo de Payments publicó la versión 4 de su API la noche anterior. Nadie en tu equipo lo leyó.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p><strong>Schema drift</strong> es cuando el esquema de los datos de origen cambia (columnas nuevas, renombradas, borradas, tipos distintos) y el pipeline sigue funcionando como si nada. El peor caso no es que falle: es que <strong>siga</strong> y cargue nulos o valores mal interpretados.</p>
+<h2>Los tipos de cambio y qué tan peligrosos son</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Cambio</th>
+<th>Ejemplo</th>
+<th>Riesgo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Columna nueva</strong></td>
+<td>Aparece <code>currency</code></td>
+<td>Bajo: se ignora o se agrega</td>
+</tr>
+<tr>
+<td><strong>Columna renombrada</strong></td>
+<td><code>amount</code> → <code>amount_cents</code></td>
+<td><strong>Alto</strong>: la columna vieja llega como NULL, sin error</td>
+</tr>
+<tr>
+<td><strong>Cambio de unidad</strong></td>
+<td>Unidades → centavos</td>
+<td><strong>Muy alto</strong>: los números parecen válidos y están ×100</td>
+</tr>
+<tr>
+<td><strong>Cambio de tipo</strong></td>
+<td><code>&quot;1.234,50&quot;</code> (texto con coma decimal) donde había <code>1234.50</code></td>
+<td>Alto: falla el casteo o se trunca</td>
+</tr>
+<tr>
+<td><strong>Valor nuevo en un dominio</strong></td>
+<td>Estado <code>PENDING_REVIEW</code></td>
+<td>Medio: los <code>CASE WHEN</code> que no lo contemplan lo cuentan mal</td>
+</tr>
+<tr>
+<td><strong>Columna borrada</strong></td>
+<td>Desaparece <code>customer_email</code></td>
+<td>Alto: falla o llega nula</td>
+</tr>
+<tr>
+<td><strong>Cambio de anidamiento</strong></td>
+<td><code>address.city</code> pasa a <code>shipping.address.city</code></td>
+<td>Alto en JSON: queda NULL sin error</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los lectores permisivos esconden el problema</div>
+
+<p>Spark lee JSON y CSV en modo <strong>PERMISSIVE</strong> por defecto: si un campo no existe o no se puede convertir, lo deja en NULL y sigue. Los otros modos son <strong>DROPMALFORMED</strong> (descarta los registros que no se pueden leer) y <strong>FAILFAST</strong> (falla en el primero). Para datos críticos, conviene fallar o mandar los registros malos a una columna de rescate (<code>columnNameOfCorruptRecord</code> en Spark, <code>_rescued_data</code> en Auto Loader de Databricks) en lugar de convertirlos en nulos.</p>
+</div>
+
+
+<h2>Cómo se ve en el log</h2>
+<pre><code class="language-text">2026-10-29 01:10:02 WARN  ingesta_pagos  archivo part-0000.json: columna &quot;amount&quot; no existe; se completa con NULL (modo PERMISSIVE)
+2026-10-29 01:10:03 WARN  ingesta_pagos  archivo part-0000.json: columnas desconocidas ignoradas: amount_cents, currency</code></pre>
+<p>Dos warnings por archivo, catorce archivos y un <strong>Fin OK</strong>. Nadie lee los warnings de un job que termina bien. Por eso el check de nulos de la lección anterior es la red de seguridad.</p>
+<div class="recorrido"></div>
+
+
+<h2>Evolución de esquema en las herramientas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Opción</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Delta Lake</td>
+<td><code>mergeSchema = true</code></td>
+<td>Agrega columnas nuevas a la tabla al escribir. <strong>No</strong> resuelve renombres: <code>amount</code> sigue y <code>amount_cents</code> se agrega aparte</td>
+</tr>
+<tr>
+<td>Auto Loader</td>
+<td><code>cloudFiles.schemaEvolutionMode</code></td>
+<td><code>addNewColumns</code> (por defecto: el stream se detiene, actualiza el esquema y hay que reiniciarlo), <code>rescue</code> (lo nuevo va a <code>_rescued_data</code>), <code>failOnNewColumns</code>, <code>none</code></td>
+</tr>
+<tr>
+<td>BigQuery</td>
+<td><code>--schema_update_option=ALLOW_FIELD_ADDITION</code></td>
+<td>Permite agregar columnas al cargar</td>
+</tr>
+<tr>
+<td>dbt</td>
+<td><code>on_schema_change</code> en modelos incrementales</td>
+<td><code>ignore</code> (por defecto), <code>fail</code>, <code>append_new_columns</code>, <code>sync_all_columns</code></td>
+</tr>
+</tbody></table></div>
+<h2>Prevenir: contratos de datos</h2>
+<p>Un <strong>contrato de datos</strong> es un acuerdo explícito, versionado y verificable entre quien produce los datos y quien los consume: nombres, tipos, unidades, valores permitidos, frescura y a quién avisar. Con un contrato:</p>
+<ul>
+<li>Los cambios que <strong>rompen</strong> (renombrar, cambiar de unidad, borrar) requieren una versión nueva y un período de transición en el que conviven la columna vieja y la nueva.</li>
+<li>El productor corre el contrato en su CI: si su cambio lo viola, su deploy falla <strong>antes</strong> de llegar a producción.</li>
+<li>El consumidor valida el contrato al leer (dbt <code>contract: enforced: true</code>, esquemas en un registro como Confluent Schema Registry para Kafka).</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar la columna nueva sin leer el contrato</strong>: <code>amount_cents</code> sumado como si fueran unidades multiplica los ingresos por 100.</li>
+<li><strong>&quot;Arreglarlo&quot; con mergeSchema</strong>: agrega columnas, no resuelve renombres ni cambios de unidad.</li>
+<li><strong>Castear texto sin validar</strong>: <code>CAST(&#39;1.234,50&#39; AS REAL)</code> da 1,234 en SQLite sin error.</li>
+<li><strong>Olvidar los NULL en <code>NOT IN</code></strong>: un test de dominio que no los cuenta deja pasar el problema.</li>
+<li><strong>Reparar la tabla final y no la de origen</strong>: si la capa bronze/raw tiene los datos buenos (<code>amount_cents</code>), reprocesa desde ahí; si solo existe la capa final, deja documentado cómo se corrigió.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Guarda los datos <strong>crudos</strong> (bronze) tal como llegan, con todas las columnas: si el esquema cambia, puedes reprocesar sin pedirle nada al origen.</li>
+<li>Los esquemas de eventos se versionan en un <strong>registro de esquemas</strong> (Confluent Schema Registry, AWS Glue Schema Registry) con reglas de compatibilidad (<code>BACKWARD</code>, <code>FORWARD</code>, <code>FULL</code>).</li>
+<li>Los equipos maduros tienen un canal de <strong>cambios de datos</strong> y una regla: ningún cambio que rompa se publica sin aviso y sin período de transición.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Cómo manejas los cambios de esquema en una ingesta?&quot;</strong> Distingue cambios aditivos (se pueden aceptar automáticamente) de los que rompen (renombres, tipos, unidades: tienen que fallar rápido o ir a cuarentena). Menciona la capa cruda inmutable para reprocesar, el check de nulos por carga, los modos de lectura (PERMISSIVE/FAILFAST, columna de rescate) y los contratos de datos con el productor.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Síntoma</th>
+<th>Causa probable</th>
+<th>Dónde mirar</th>
+</tr>
+</thead><tbody><tr>
+<td>Una columna 100 % NULL desde una fecha</td>
+<td>Renombre o columna borrada en el origen</td>
+<td>Claves de la muestra (<code>jq keys</code>), changelog del productor</td>
+</tr>
+<tr>
+<td>Montos ×100 o ÷100</td>
+<td>Cambio de unidad</td>
+<td>Contrato, documentación de la API</td>
+</tr>
+<tr>
+<td>Montos truncados</td>
+<td>Formato regional en texto</td>
+<td>Muestras crudas, <code>CAST</code></td>
+</tr>
+<tr>
+<td>Categorías &quot;otros&quot; que crecen</td>
+<td>Valor nuevo en el dominio</td>
+<td>Test de valores aceptados</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-cambios-de-esquema">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-duplicados-e-idempotencia.html">← Cargas duplicadas - reintentos, idempotencia y MERGE</a><a href="incidentes-datos-tardios-y-backfills.html">Datos tardíos y faltantes - sensores, marcas de agua y backfills →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

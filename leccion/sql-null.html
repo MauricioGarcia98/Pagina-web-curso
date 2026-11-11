@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NULL: el valor que no es un valor · Academia de Datos</title><meta name="description" content="IS NULL, COALESCE, NULLIF y la lógica de tres valores."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-null.html">
+<meta property="og:type" content="article"><meta property="og:title" content="NULL: el valor que no es un valor · Academia de Datos"><meta property="og:description" content="IS NULL, COALESCE, NULLIF y la lógica de tres valores."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-null.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Básico · 30 min</div>
+<h1>NULL: el valor que no es un valor</h1><p class="resumen">IS NULL, COALESCE, NULLIF y la lógica de tres valores.</p>
+<a class="cta" href="../index.html#/l/sql-null">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué significa NULL y en qué se diferencia de 0 y de un texto vacío</li><li>Filtrar valores nulos y no nulos con <code>IS NULL</code> e <code>IS NOT NULL</code></li><li>Predecir cómo afecta NULL a comparaciones, cálculos, <code>COUNT</code> y <code>AVG</code></li><li>Reemplazar nulos con <code>COALESCE</code> y crear nulos a propósito con <code>NULLIF</code></li></ul>
+<h2>Qué es NULL</h2>
+<p><code>NULL</code> es la forma en que SQL dice <strong>&quot;no hay dato&quot;</strong>: el valor es desconocido, no aplica o nunca se cargó. No es un cero, no es un texto vacío, no es un espacio. Es <strong>la ausencia</strong> de valor.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Valor correcto</th>
+<th>¿Por qué no otra cosa?</th>
+</tr>
+</thead><tbody><tr>
+<td>Cliente que no dio su teléfono</td>
+<td><code>NULL</code></td>
+<td><code>0</code> o <code>&#39;&#39;</code> parecerían un teléfono real (y vacío)</td>
+</tr>
+<tr>
+<td>Pedido que todavía no se entregó</td>
+<td><code>fecha_entrega = NULL</code></td>
+<td>No existe una fecha de entrega aún</td>
+</tr>
+<tr>
+<td>Producto con stock 0</td>
+<td><code>0</code></td>
+<td>Aquí <strong>sí</strong> sabemos el valor: no hay unidades</td>
+</tr>
+<tr>
+<td>El CEO no tiene jefe</td>
+<td><code>jefe_id = NULL</code></td>
+<td>No aplica</td>
+</tr>
+</tbody></table></div>
+<p>En nuestra tabla <code>clientes</code>, de 2.000 clientes, <strong>89</strong> no tienen email y <strong>268</strong> no tienen teléfono.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La casilla en blanco del formulario</div>
+
+<p>Piensa en un formulario en papel. Si alguien escribe &quot;0&quot; en &quot;cantidad de hijos&quot;, sabes que no tiene hijos. Si deja la casilla <strong>en blanco</strong>, no sabes nada: puede no tener, puede no haber querido responder, puede haberla salteado. <code>NULL</code> es la casilla en blanco. Y no puedes comparar dos casillas en blanco y decir que &quot;son iguales&quot;: no sabes qué hay detrás de ninguna.</p>
+</div>
+
+
+<h2>La trampa número uno de SQL: <code>= NULL</code></h2>
+<pre><code class="language-sql">-- ❌ Devuelve 0 filas, aunque hay 89 clientes sin email
+SELECT COUNT(*) FROM clientes WHERE email = NULL;</code></pre>
+<p>¿Por qué? Porque cualquier comparación con <code>NULL</code> da como resultado… <code>NULL</code> (desconocido). La pregunta &quot;¿este email desconocido es igual a otro valor desconocido?&quot; no tiene respuesta. Y <code>WHERE</code> solo deja pasar las filas donde la condición es <strong>verdadera</strong>: lo desconocido se descarta.</p>
+<p>Para preguntar por nulos existen dos operadores especiales:</p>
+<pre><code class="language-sql">-- ✅ Clientes sin email: 89
+SELECT cliente_id, nombre, email FROM clientes WHERE email IS NULL;
+
+-- ✅ Clientes con email: 1.911
+SELECT COUNT(*) FROM clientes WHERE email IS NOT NULL;</code></pre>
+<h3>Los NULL desaparecen de los filtros &quot;negativos&quot;</h3>
+<p>Esto engaña incluso a gente con experiencia:</p>
+<pre><code class="language-sql">-- ¿Cuántos clientes NO tienen el email x@x.com? Uno esperaría 2.000…
+SELECT COUNT(*) FROM clientes WHERE email &lt;&gt; 'x@x.com';</code></pre>
+<p>El resultado es <strong>1.911</strong>, no 2.000. Para los 89 clientes sin email, <code>NULL &lt;&gt; &#39;x@x.com&#39;</code> es desconocido, y quedan afuera. Si quieres incluirlos, dilo explícitamente:</p>
+<pre><code class="language-sql">SELECT COUNT(*) FROM clientes WHERE email &lt;&gt; 'x@x.com' OR email IS NULL;</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>La lógica de tres valores</h2>
+<p>En la mayoría de los lenguajes una condición es verdadera o falsa. En SQL hay un tercer resultado: <strong>UNKNOWN</strong> (desconocido), que aparece cada vez que hay un <code>NULL</code> en juego.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Expresión</th>
+<th>Resultado</th>
+<th>Cómo pensarlo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>NULL = NULL</code></td>
+<td>UNKNOWN</td>
+<td>Dos desconocidos no se pueden comparar</td>
+</tr>
+<tr>
+<td><code>NULL &lt;&gt; 5</code></td>
+<td>UNKNOWN</td>
+<td>No sé si el desconocido es 5</td>
+</tr>
+<tr>
+<td><code>NULL + 10</code></td>
+<td><code>NULL</code></td>
+<td>&quot;Algo desconocido más 10&quot; sigue siendo desconocido</td>
+</tr>
+<tr>
+<td><code>&#39;Hola &#39; || NULL</code></td>
+<td><code>NULL</code></td>
+<td>Concatenar con nada da nada</td>
+</tr>
+<tr>
+<td><code>TRUE AND UNKNOWN</code></td>
+<td>UNKNOWN</td>
+<td>Depende del desconocido</td>
+</tr>
+<tr>
+<td><code>FALSE AND UNKNOWN</code></td>
+<td><strong>FALSE</strong></td>
+<td>Ya con un falso, el <code>AND</code> es falso</td>
+</tr>
+<tr>
+<td><code>TRUE OR UNKNOWN</code></td>
+<td><strong>TRUE</strong></td>
+<td>Ya con un verdadero, el <code>OR</code> es verdadero</td>
+</tr>
+<tr>
+<td><code>NOT UNKNOWN</code></td>
+<td>UNKNOWN</td>
+<td>Negar lo desconocido sigue siendo desconocido</td>
+</tr>
+</tbody></table></div>
+<p>La regla para recordar: <strong><code>WHERE</code> solo deja pasar TRUE</strong>. Tanto FALSE como UNKNOWN quedan afuera.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ NOT IN con un NULL en la lista</div>
+
+<p><code>5 NOT IN (1, 2, NULL)</code> equivale a <code>5 &lt;&gt; 1 AND 5 &lt;&gt; 2 AND 5 &lt;&gt; NULL</code> → <code>TRUE AND TRUE AND UNKNOWN</code> → <strong>UNKNOWN</strong>. Resultado: la condición <strong>nunca</strong> es verdadera y la consulta devuelve 0 filas, sin error. Pasa muchísimo con subconsultas (<code>WHERE cliente_id NOT IN (SELECT cliente_id FROM …)</code> cuando esa columna tiene algún <code>NULL</code>). La solución es <code>NOT EXISTS</code> o filtrar los nulos de la subconsulta; lo verás en la lección de subconsultas.</p>
+</div>
+
+
+<h2>NULL en cálculos y funciones de agregación</h2>
+<p>En cálculos fila por fila, un <code>NULL</code> &quot;contagia&quot; todo: <code>precio * NULL</code> es <code>NULL</code>.</p>
+<p>Pero las funciones de agregación (<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>, que verás en detalle pronto) <strong>ignoran</strong> los <code>NULL</code>. Mira este ejemplo con tres alumnos, uno sin nota:</p>
+<pre><code class="language-sql">WITH notas(alumno, nota) AS (VALUES ('Ana', 8), ('Beto', NULL), ('Carla', 6))
+SELECT COUNT(*)             AS filas,
+       COUNT(nota)          AS con_nota,
+       SUM(nota)            AS suma,
+       AVG(nota)            AS promedio,
+       AVG(COALESCE(nota, 0)) AS promedio_con_ceros
+FROM notas;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>filas</th>
+<th>con_nota</th>
+<th>suma</th>
+<th>promedio</th>
+<th>promedio_con_ceros</th>
+</tr>
+</thead><tbody><tr>
+<td>3</td>
+<td>2</td>
+<td>14</td>
+<td>7.0</td>
+<td>4.67</td>
+</tr>
+</tbody></table></div>
+<p>(No te preocupes por el <code>WITH … VALUES</code>: crea una tablita temporal para el ejemplo; lo verás en la lección de CTE.)</p>
+<ul>
+<li><code>COUNT(*)</code> cuenta <strong>filas</strong>: 3.</li>
+<li><code>COUNT(nota)</code> cuenta <strong>valores no nulos</strong>: 2.</li>
+<li><code>AVG(nota)</code> = 14 / <strong>2</strong> = 7. Beto no cuenta.</li>
+<li>Si para el negocio &quot;sin nota&quot; significa &quot;cero&quot;, tienes que decirlo: <code>AVG(COALESCE(nota, 0))</code> = 14 / 3 = 4,67.</li>
+</ul>
+<p>Ninguno de los dos promedios es &quot;el correcto&quot;: depende de qué significa el <code>NULL</code> en tu caso. Esa es una pregunta de negocio, no de SQL.</p>
+<h2>COALESCE: reemplazar nulos por un valor</h2>
+<p><code>COALESCE(a, b, c, …)</code> revisa los valores <strong>de izquierda a derecha</strong> y devuelve <strong>el primero que no sea <code>NULL</code></strong>:</p>
+<pre><code class="language-sql">SELECT nombre,
+       COALESCE(telefono, 'sin teléfono')         AS telefono,
+       COALESCE(email, telefono, 'sin contacto')  AS contacto
+FROM clientes
+WHERE email IS NULL
+LIMIT 5;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>nombre</th>
+<th>telefono</th>
+<th>contacto</th>
+</tr>
+</thead><tbody><tr>
+<td>María</td>
+<td>+82 749 7455</td>
+<td>+82 749 7455</td>
+</tr>
+<tr>
+<td>Sofía</td>
+<td>sin teléfono</td>
+<td>sin contacto</td>
+</tr>
+<tr>
+<td>Elena</td>
+<td>+19 667 4127</td>
+<td>+19 667 4127</td>
+</tr>
+</tbody></table></div>
+<p>Para <code>contacto</code>: si hay email, usa el email; si no, el teléfono; si tampoco, el texto <code>&#39;sin contacto&#39;</code>. Es la herramienta más usada para limpiar datos y para dar valores por defecto.</p>
+<p>Nombres en otros motores: <code>IFNULL(a, b)</code> (SQLite, MySQL), <code>ISNULL(a, b)</code> (SQL Server), <code>NVL(a, b)</code> (Oracle, Spark). <code>COALESCE</code> funciona en <strong>todos</strong>, así que es la que conviene aprender.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los tipos tienen que coincidir</div>
+
+<p>En motores estrictos (PostgreSQL, BigQuery, Spark), <code>COALESCE(precio, &#39;sin precio&#39;)</code> da error: no se puede mezclar un número con un texto en la misma columna. Usa un valor del mismo tipo (<code>COALESCE(precio, 0)</code>) o convierte (<code>COALESCE(CAST(precio AS TEXT), &#39;sin precio&#39;)</code>).</p>
+</div>
+
+
+<p>Cada motor tiene además su propia función de dos argumentos, pero <code>COALESCE</code> funciona en todos:</p>
+<div class="motores"></div>
+
+
+<h2>NULLIF: crear un NULL a propósito</h2>
+<p><code>NULLIF(a, b)</code> devuelve <code>NULL</code> si <code>a</code> es igual a <code>b</code>; si no, devuelve <code>a</code>. Parece rara, pero tiene un uso estrella: <strong>evitar la división por cero</strong>.</p>
+<pre><code class="language-sql">SELECT nombre, precio, stock,
+       precio / NULLIF(stock, 0) AS precio_por_unidad_en_stock
+FROM productos
+LIMIT 10;</code></pre>
+<p>Si <code>stock</code> es 0, <code>NULLIF(stock, 0)</code> devuelve <code>NULL</code>, y <code>precio / NULL</code> es <code>NULL</code> en lugar de un error (en PostgreSQL o SQL Server dividir por cero <strong>detiene la consulta</strong>; SQLite devuelve <code>NULL</code> igual, pero el hábito te salvará en otros motores). Otro uso: convertir textos vacíos en nulos de verdad, <code>NULLIF(TRIM(telefono), &#39;&#39;)</code>.</p>
+<h2>NULL al ordenar y al agrupar</h2>
+<ul>
+<li><code>ORDER BY</code>: los <code>NULL</code> van primero o último según el motor (ver lección anterior); usa <code>NULLS LAST</code> para controlarlo.</li>
+<li><code>GROUP BY</code> y <code>DISTINCT</code>: todos los <code>NULL</code> se juntan en <strong>un solo grupo</strong>. Es la única situación en que SQL &quot;trata a los NULL como iguales&quot;.</li>
+</ul>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los clientes sin teléfono</div>
+
+<p>Sofía, de operaciones, quiere llamar a los clientes cuyos pedidos se demoran:</p>
+<blockquote>
+<p>&quot;El call center dice que a muchos clientes no los pueden contactar. ¿Cuántos no tienen teléfono? Y para los que no tienen, ¿me das al menos el email?&quot;</p>
+</blockquote>
+<p>Parece fácil: buscar los que tienen el teléfono vacío. Pero en SQL &quot;vacío&quot; tiene un nombre especial, <code>NULL</code>, y se comporta distinto que cualquier otro valor. Es la fuente número uno de resultados incorrectos que <strong>no dan error</strong>.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En los pipelines, los NULL se tratan a propósito en la capa <strong>silver</strong>: se decide, columna por columna, si un nulo significa &quot;no se sabe&quot;, &quot;no aplica&quot; o &quot;cero&quot;, y se documenta. Nunca se reemplaza un nulo por <code>0</code> sin preguntar: el promedio de ventas cambia por completo.</li>
+<li>Los tests de calidad más comunes en dbt y en cualquier pipeline son <code>not_null</code> sobre las claves (un pedido sin <code>cliente_id</code> es un bug en el origen) y el porcentaje de nulos por columna, con una alerta si sube de golpe.</li>
+<li>Un salto en los nulos suele ser la primera señal de que <strong>cambió el sistema de origen</strong>: alguien renombró un campo en la API y ahora llega vacío.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Por qué NOT IN puede no devolver ninguna fila?&quot;</div>
+
+<p>Porque si la lista (o la subconsulta) contiene un <code>NULL</code>, la comparación <code>x &lt;&gt; NULL</code> da &quot;desconocido&quot; para todas las filas, y <code>NOT IN</code> necesita que todas sean verdaderas. La solución es filtrar los nulos en la subconsulta (<code>WHERE col IS NOT NULL</code>) o usar <code>NOT EXISTS</code>, que no tiene ese problema.</p>
+</div>
+
+
+<p>Dónde quedan los NULL al ordenar también cambia: SQLite, MySQL y SQL Server los ponen primero en orden ascendente; PostgreSQL y Oracle, al final.</p>
+<div class="motores"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>NULL</code> = sin dato. No es 0 ni <code>&#39;&#39;</code>.</li>
+<li>Nunca <code>= NULL</code>: usa <code>IS NULL</code> / <code>IS NOT NULL</code>.</li>
+<li>Comparar con <code>NULL</code> da UNKNOWN y <code>WHERE</code> lo descarta; cuidado con <code>&lt;&gt;</code> y con <code>NOT IN</code>.</li>
+<li>Las agregaciones ignoran <code>NULL</code>: <code>COUNT(*)</code> ≠ <code>COUNT(columna)</code>.</li>
+<li><code>COALESCE</code> reemplaza nulos; <code>NULLIF</code> crea nulos (ideal para evitar dividir por cero).</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-null">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-order-by.html">← ORDER BY, LIMIT y DISTINCT</a><a href="sql-funciones.html">Funciones de texto, números y conversiones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

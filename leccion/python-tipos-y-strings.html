@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tipos de datos y textos (strings) · Academia de Datos</title><meta name="description" content="int, float, str, bool, None, conversiones, f-strings y métodos de texto."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-tipos-y-strings.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tipos de datos y textos (strings) · Academia de Datos"><meta property="og:description" content="int, float, str, bool, None, conversiones, f-strings y métodos de texto."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-tipos-y-strings.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Básico · 35 min</div>
+<h1>Tipos de datos y textos (strings)</h1><p class="resumen">int, float, str, bool, None, conversiones, f-strings y métodos de texto.</p>
+<a class="cta" href="../index.html#/l/python-tipos-y-strings">▶ Abrir la lección interactiva (11 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer los tipos <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code> y <code>None</code> y convertir entre ellos</li><li>Armar textos con f-strings</li><li>Limpiar textos con métodos como <code>strip</code>, <code>lower</code>, <code>replace</code> y <code>split</code></li><li>Extraer partes de un texto con índices y slices</li></ul>
+<h2>Cada valor tiene un tipo</h2>
+<p>Para Python no es lo mismo <code>29</code> que <code>&quot;29&quot;</code>. El primero es un <strong>número</strong> (se puede sumar, multiplicar); el segundo es un <strong>texto</strong> formado por los caracteres &quot;2&quot; y &quot;9&quot; (se puede poner en mayúsculas o cortar, pero no sumar). El <strong>tipo</strong> de un valor determina qué puedes hacer con él.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Nombre</th>
+<th>Ejemplos</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>int</code></td>
+<td>entero</td>
+<td><code>42</code>, <code>-7</code>, <code>0</code>, <code>1_000_000</code></td>
+<td>Cantidades, ids, contadores</td>
+</tr>
+<tr>
+<td><code>float</code></td>
+<td>decimal (&quot;de punto flotante&quot;)</td>
+<td><code>3.14</code>, <code>0.5</code>, <code>1e6</code> (= 1.000.000)</td>
+<td>Precios, porcentajes, medidas</td>
+</tr>
+<tr>
+<td><code>str</code></td>
+<td>texto (<em>string</em>)</td>
+<td><code>&quot;hola&quot;</code>, <code>&#39;datos&#39;</code>, <code>&quot;&quot;</code> (vacío)</td>
+<td>Nombres, emails, códigos</td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td>booleano (verdadero/falso)</td>
+<td><code>True</code>, <code>False</code></td>
+<td>Condiciones, banderas (<code>es_cliente</code>)</td>
+</tr>
+<tr>
+<td><code>NoneType</code></td>
+<td>&quot;nada&quot;</td>
+<td><code>None</code></td>
+<td>Falta de valor: el <code>NULL</code> de SQL</td>
+</tr>
+</tbody></table></div>
+<p><code>type()</code> te dice el tipo de cualquier valor:</p>
+<pre><code class="language-python">print(type(42), type(3.14), type(&quot;hola&quot;), type(True), type(None))</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Los guiones bajos en los números</div>
+
+<p><code>1_000_000</code> es lo mismo que <code>1000000</code>: Python ignora los <code>_</code> dentro de los números para que se lean mejor. Muy útil con cifras grandes.</p>
+</div>
+
+
+<h2>Convertir de un tipo a otro</h2>
+<p>Los datos que llegan de afuera (un archivo CSV, un formulario, una API) muchas veces llegan como <strong>texto</strong>, aunque representen números. Para operar con ellos, hay que convertirlos:</p>
+<pre><code class="language-python">edad_texto = &quot;29&quot;
+edad = int(edad_texto)      # str -&gt; int
+precio = float(&quot;19.99&quot;)     # str -&gt; float
+codigo = str(1234)          # int -&gt; str
+print(edad + 1, precio * 2, codigo + &quot;-A&quot;)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Convierte a</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>int(x)</code></td>
+<td>entero</td>
+<td><code>int(&quot;42&quot;)</code>, <code>int(3.9)</code></td>
+<td><code>42</code>, <code>3</code> (trunca, no redondea)</td>
+</tr>
+<tr>
+<td><code>float(x)</code></td>
+<td>decimal</td>
+<td><code>float(&quot;1.5&quot;)</code></td>
+<td><code>1.5</code></td>
+</tr>
+<tr>
+<td><code>str(x)</code></td>
+<td>texto</td>
+<td><code>str(3.5)</code></td>
+<td><code>&quot;3.5&quot;</code></td>
+</tr>
+<tr>
+<td><code>bool(x)</code></td>
+<td>booleano</td>
+<td><code>bool(0)</code>, <code>bool(&quot;hola&quot;)</code></td>
+<td><code>False</code>, <code>True</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ &quot;29&quot; + 1 da error</div>
+
+<p>Python <strong>no</strong> mezcla texto y números por su cuenta: <code>&quot;29&quot; + 1</code> lanza <code>TypeError: can only concatenate str (not &quot;int&quot;) to str</code>. Tiene que ser explícito: <code>int(&quot;29&quot;) + 1</code> → <code>30</code>, o <code>&quot;29&quot; + str(1)</code> → <code>&quot;291&quot;</code>. Que no adivine es bueno: evita errores silenciosos como los de SQLite con <code>CAST</code>.</p>
+</div>
+
+
+<p>Si el texto no representa un número válido, la conversión <strong>falla</strong> con un error: <code>int(&quot;abc&quot;)</code> → <code>ValueError: invalid literal for int()</code>. En la lección de errores aprenderás a manejar estos casos sin que se detenga el programa (muy común al limpiar datos).</p>
+<div class="recorrido"></div>
+
+
+<h2>Strings: trabajar con texto</h2>
+<pre><code class="language-python">nombre = &quot;Ana&quot;
+apellido = &quot;Pérez&quot;
+completo = nombre + &quot; &quot; + apellido   # concatenar (unir) con +
+print(completo)
+print(len(completo))                  # largo: 9 caracteres (el espacio cuenta)
+print(completo[0])                    # primer carácter: A
+print(completo[-1])                   # último carácter: z
+print(completo[0:3])                  # rebanada (slice): Ana
+print(&quot;=&quot; * 20)                       # repetir 20 veces</code></pre>
+<h3>Índices: cada carácter tiene una posición</h3>
+<pre><code class="language-text"> A   n   a       P   é   r   e   z
+ 0   1   2   3   4   5   6   7   8     ← índices desde el principio
+-9  -8  -7  -6  -5  -4  -3  -2  -1     ← índices desde el final</code></pre>
+<ul>
+<li>Los índices empiezan en <strong>0</strong> (no en 1, a diferencia de <code>SUBSTR</code> en SQL).</li>
+<li>Los negativos cuentan desde el final: <code>-1</code> es el último.</li>
+<li>Un <strong>slice</strong> <code>texto[inicio:fin]</code> toma desde <code>inicio</code> <strong>hasta antes de</strong> <code>fin</code> (el fin <strong>no</strong> se incluye). <code>completo[0:3]</code> = posiciones 0, 1 y 2 = <code>&quot;Ana&quot;</code>.</li>
+<li>Si omites un extremo, va hasta el borde: <code>completo[4:]</code> = <code>&quot;Pérez&quot;</code>, <code>completo[:3]</code> = <code>&quot;Ana&quot;</code>.</li>
+</ul>
+<pre><code class="language-python">fecha = &quot;2024-03-15&quot;
+print(fecha[:4], fecha[5:7], fecha[8:])   # 2024 03 15</code></pre>
+<h2>f-strings: armar textos con valores adentro</h2>
+<p>Concatenar con <code>+</code> y <code>str()</code> es incómodo. Las <strong>f-strings</strong> (de <em>formatted</em>) permiten escribir expresiones entre llaves <code>{}</code> directamente dentro del texto. Solo hay que poner una <code>f</code> antes de las comillas:</p>
+<pre><code class="language-python">producto = &quot;Laptop&quot;
+precio = 1234.5
+unidades = 3
+print(f&quot;{unidades} x {producto} = {precio * unidades}&quot;)
+print(f&quot;Precio con 2 decimales: {precio:.2f}&quot;)
+print(f&quot;Con separador de miles: {precio * 1000:,.2f}&quot;)
+print(f&quot;Porcentaje: {0.4567:.1%}&quot;)</code></pre>
+<p>Dentro de las llaves puede ir cualquier expresión, y después de <code>:</code> un <strong>formato</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>Significa</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>:.2f</code></td>
+<td>2 decimales</td>
+<td><code>f&quot;{3.14159:.2f}&quot;</code></td>
+<td><code>3.14</code></td>
+</tr>
+<tr>
+<td><code>:,</code></td>
+<td>separador de miles</td>
+<td><code>f&quot;{1234567:,}&quot;</code></td>
+<td><code>1,234,567</code></td>
+</tr>
+<tr>
+<td><code>:.1%</code></td>
+<td>porcentaje con 1 decimal</td>
+<td><code>f&quot;{0.256:.1%}&quot;</code></td>
+<td><code>25.6%</code></td>
+</tr>
+<tr>
+<td><code>:&gt;10</code></td>
+<td>alinear a la derecha en 10 espacios</td>
+<td><code>f&quot;{&#39;ok&#39;:&gt;10}&quot;</code></td>
+<td><code>        ok</code></td>
+</tr>
+<tr>
+<td><code>:05d</code></td>
+<td>rellenar con ceros</td>
+<td><code>f&quot;{42:05d}&quot;</code></td>
+<td><code>00042</code></td>
+</tr>
+</tbody></table></div>
+<p>Las f-strings son la forma moderna y recomendada; verás código viejo con <code>&quot;%s&quot; % x</code> o <code>&quot;{}&quot;.format(x)</code>, que hacen lo mismo.</p>
+<h2>Métodos de texto</h2>
+<p>Un <strong>método</strong> es una función que &quot;pertenece&quot; a un tipo de dato y se escribe con un punto: <code>texto.upper()</code>. Los strings traen decenas; estos son los que más usarás para <strong>limpiar datos</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>.upper()</code> / <code>.lower()</code></td>
+<td>Mayúsculas / minúsculas</td>
+<td><code>&quot;Hola&quot;.upper()</code></td>
+<td><code>&quot;HOLA&quot;</code></td>
+</tr>
+<tr>
+<td><code>.strip()</code></td>
+<td>Quita espacios (y saltos de línea) a los lados</td>
+<td><code>&quot;  hola \n&quot;.strip()</code></td>
+<td><code>&quot;hola&quot;</code></td>
+</tr>
+<tr>
+<td><code>.replace(a, b)</code></td>
+<td>Reemplaza todas las apariciones</td>
+<td><code>&quot;a-b&quot;.replace(&quot;-&quot;, &quot;/&quot;)</code></td>
+<td><code>&quot;a/b&quot;</code></td>
+</tr>
+<tr>
+<td><code>.split(sep)</code></td>
+<td>Corta en una <strong>lista</strong> de pedazos</td>
+<td><code>&quot;a,b,c&quot;.split(&quot;,&quot;)</code></td>
+<td><code>[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]</code></td>
+</tr>
+<tr>
+<td><code>sep.join(lista)</code></td>
+<td>Une una lista con un separador</td>
+<td><code>&quot;-&quot;.join([&quot;a&quot;, &quot;b&quot;])</code></td>
+<td><code>&quot;a-b&quot;</code></td>
+</tr>
+<tr>
+<td><code>.startswith(x)</code> / <code>.endswith(x)</code></td>
+<td>¿Empieza / termina con…?</td>
+<td><code>&quot;data.csv&quot;.endswith(&quot;.csv&quot;)</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>x in texto</code></td>
+<td>¿Contiene…?</td>
+<td><code>&quot;@&quot; in &quot;ana@mail.com&quot;</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>.find(x)</code></td>
+<td>Posición de <code>x</code> (−1 si no está)</td>
+<td><code>&quot;ana@mail&quot;.find(&quot;@&quot;)</code></td>
+<td><code>3</code></td>
+</tr>
+<tr>
+<td><code>.title()</code></td>
+<td>Primera letra de cada palabra en mayúscula</td>
+<td><code>&quot;ana pérez&quot;.title()</code></td>
+<td><code>&quot;Ana Pérez&quot;</code></td>
+</tr>
+<tr>
+<td><code>.zfill(n)</code></td>
+<td>Rellena con ceros a la izquierda</td>
+<td><code>&quot;42&quot;.zfill(5)</code></td>
+<td><code>&quot;00042&quot;</code></td>
+</tr>
+</tbody></table></div>
+<h3>Los strings no se modifican: se crean nuevos</h3>
+<p>Los strings son <strong>inmutables</strong>: ningún método cambia el texto original, todos <strong>devuelven uno nuevo</strong>. Si quieres conservar el resultado, guárdalo:</p>
+<pre><code class="language-python">email = &quot;  Ana.Perez@Gmail.COM &quot;
+email.strip()                 # devuelve un texto nuevo, pero no lo guardamos: se pierde
+print(repr(email))            # sigue con espacios
+limpio = email.strip().lower()   # métodos encadenados: primero strip, después lower
+usuario, dominio = limpio.split(&quot;@&quot;)
+print(limpio, usuario, dominio)</code></pre>
+<p><code>repr()</code> muestra el texto con sus comillas, útil para ver espacios escondidos. La última línea usa <strong>desempaquetado</strong>: <code>split(&quot;@&quot;)</code> devuelve una lista de dos elementos y se guarda cada uno en una variable.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 Limpieza de textos en pipelines reales</div>
+
+<p>Un paso típico de la capa <em>silver</em> es normalizar textos: <code>strip()</code> para espacios, <code>lower()</code> para emails, <code>title()</code> para nombres, reemplazar valores vacíos por <code>None</code>. En PySpark harás lo mismo con <code>F.trim</code>, <code>F.lower</code>, <code>F.initcap</code>. Los conceptos son idénticos.</p>
+</div>
+
+
+<h2>Booleanos y None</h2>
+<p><code>True</code> y <code>False</code> (con mayúscula inicial) son el resultado de cualquier comparación: <code>5 &gt; 3</code> → <code>True</code>, <code>&quot;a&quot; == &quot;b&quot;</code> → <code>False</code>. Los usarás en la próxima lección con <code>if</code>.</p>
+<p><code>None</code> representa la <strong>ausencia de valor</strong>. Para preguntar si algo es <code>None</code> se usa <code>is</code>: <code>if telefono is None:</code>. Igual que en SQL con <code>IS NULL</code>.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>TypeError: can only concatenate str (not &quot;int&quot;) to str</code></strong>: intentaste sumar texto y número. Convierte con <code>int(...)</code>/<code>str(...)</code> o usa un f-string.</li>
+<li><strong><code>int(&quot;12.5&quot;)</code> da <code>ValueError</code></strong>: un texto con decimales se convierte con <code>float(...)</code> primero.</li>
+<li><strong>Los textos no se modifican</strong>: <code>email.lower()</code> <strong>devuelve</strong> un texto nuevo, no cambia <code>email</code>. Tienes que guardarlo: <code>email = email.lower()</code>.</li>
+<li><strong>Índices fuera de rango</strong>: <code>texto[10]</code> en un texto de 5 letras da <code>IndexError</code>. Los slices (<code>texto[0:10]</code>) no fallan, devuelven lo que haya.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los emails sucios del formulario</div>
+
+<p>Camila, de marketing, te reenvía la lista de emails del formulario de suscripción:</p>
+<blockquote>
+<p>&quot;La mitad rebota. Hay emails con espacios, con mayúsculas, algunos vacíos… ¿Los puedes limpiar antes de que los cargue en la herramienta de envíos?&quot;</p>
+</blockquote>
+<p>Casi todos los datos que vas a recibir llegan como <strong>texto</strong>, aunque sean números o fechas. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La limpieza de textos (espacios, mayúsculas, acentos, formatos de teléfono) es de las tareas más frecuentes de un data engineer. Se hace <strong>una vez</strong>, en una función reutilizable y probada, y todos los procesos la usan.</li>
+<li>Los decimales con <code>float</code> no son exactos (<code>0.1 + 0.2</code> da <code>0.30000000000000004</code>). Para dinero, en Python se usa el módulo <code>decimal</code>, y en las bases de datos, el tipo <code>DECIMAL</code>.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Tipos básicos: <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>, <code>None</code>. <code>type()</code> dice el tipo.</li>
+<li>Convierte con <code>int()</code>, <code>float()</code>, <code>str()</code>; Python no mezcla texto y números solo.</li>
+<li>Índices desde 0; slices <code>[inicio:fin]</code> sin incluir el fin; negativos desde el final.</li>
+<li>f-strings: <code>f&quot;Total: {total:,.2f}&quot;</code>.</li>
+<li>Los métodos de texto devuelven un string nuevo: guarda el resultado.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>11 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-tipos-y-strings">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-primeros-pasos.html">← Primeros pasos: print, comentarios y variables</a><a href="python-condicionales.html">Condicionales: if, elif, else →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

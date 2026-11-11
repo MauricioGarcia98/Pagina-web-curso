@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comprensiones y funciones de orden superior · Academia de Datos</title><meta name="description" content="List/dict/set comprehensions, any/all, map/filter y el estilo &quot;pythónico&quot;."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-comprensiones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Comprensiones y funciones de orden superior · Academia de Datos"><meta property="og:description" content="List/dict/set comprehensions, any/all, map/filter y el estilo &quot;pythónico&quot;."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-comprensiones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Intermedio · 30 min</div>
+<h1>Comprensiones y funciones de orden superior</h1><p class="resumen">List/dict/set comprehensions, any/all, map/filter y el estilo &quot;pythónico&quot;.</p>
+<a class="cta" href="../index.html#/l/python-comprensiones">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Transformar y filtrar listas en una línea con list comprehensions</li><li>Crear diccionarios y conjuntos con comprensiones</li><li>Usar expresiones generadoras para procesar sin crear listas intermedias</li><li>Pasar funciones como argumentos (<code>sorted</code>, <code>map</code>, <code>filter</code>)</li></ul>
+<h2>Transformar colecciones en una línea</h2>
+<p>Muchísimo código de datos tiene esta forma: &quot;crea una lista vacía, recorre otra lista, transforma o filtra cada elemento y agrégalo&quot;. Python tiene una sintaxis compacta para eso: las <strong>comprensiones</strong> (<em>comprehensions</em>). Son uno de los rasgos más queridos del lenguaje porque se leen casi como una frase.</p>
+<p>Compara las dos versiones, que hacen exactamente lo mismo:</p>
+<pre><code class="language-python">precios = [100, 250, 80, 40]
+
+# Con un for clásico
+con_iva = []
+for p in precios:
+    con_iva.append(round(p * 1.21, 2))
+
+# Con una comprensión
+con_iva_2 = [round(p * 1.21, 2) for p in precios]
+
+print(con_iva, con_iva_2)</code></pre>
+<h2>La anatomía de una list comprehension</h2>
+<pre><code class="language-text">[ expresión        for elemento in colección     if condición ]
+  qué guardo       de dónde saco cada valor      (opcional) cuáles</code></pre>
+<p>Se lee: &quot;<strong>la lista de</strong> <code>expresión</code> <strong>para cada</strong> <code>elemento</code> <strong>en</strong> <code>colección</code> <strong>si</strong> <code>condición</code>&quot;.</p>
+<pre><code class="language-python">precios = [100, 250, 80, 40]
+con_iva   = [round(p * 1.21, 2) for p in precios]                 # transformar (como SELECT con un cálculo)
+caros     = [p for p in precios if p &gt; 90]                         # filtrar (como WHERE)
+etiquetas = [&quot;caro&quot; if p &gt; 90 else &quot;barato&quot; for p in precios]     # clasificar (como CASE WHEN)
+print(con_iva, caros, etiquetas)</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Dónde va cada if</div>
+
+<ul>
+<li><code>[p for p in precios if p &gt; 90]</code> → el <code>if</code> va <strong>al final</strong> y <strong>filtra</strong>: la lista resultante es más corta.</li>
+<li><code>[&quot;caro&quot; if p &gt; 90 else &quot;barato&quot; for p in precios]</code> → el <code>if … else</code> va <strong>al principio</strong>, es parte de la expresión y <strong>transforma</strong>: la lista tiene el mismo largo.
+Mezclarlos es el error más común con comprensiones.</li>
+</ul>
+</div>
+
+
+<p>Fíjate en el paralelo con SQL: una comprensión hace en una línea lo que <code>SELECT expresión FROM colección WHERE condición</code> hace en una consulta. Es la misma idea, en Python.</p>
+<div class="recorrido"></div>
+
+
+<h2>Dict y set comprehensions</h2>
+<p>La misma sintaxis, con llaves:</p>
+<pre><code class="language-python">productos = [&quot;mouse&quot;, &quot;teclado&quot;, &quot;monitor&quot;]
+largos = {p: len(p) for p in productos}            # dict: clave: valor
+iniciales = {p[0] for p in productos}              # set: valores únicos
+stock = {&quot;mouse&quot;: 40, &quot;teclado&quot;: 0, &quot;monitor&quot;: 7}
+agotados = [k for k, v in stock.items() if v == 0]
+precios_ars = {k: v * 1000 for k, v in {&quot;mouse&quot;: 25, &quot;monitor&quot;: 210}.items()}
+print(largos, iniciales, agotados, precios_ars)</code></pre>
+<p>Un uso muy práctico: <strong>invertir</strong> o <strong>reindexar</strong> datos. Si tienes una lista de clientes (diccionarios) y quieres buscarlos por id al instante: <code>por_id = {c[&quot;id&quot;]: c for c in clientes}</code>.</p>
+<h2>Expresiones generadoras: sin crear la lista</h2>
+<p>Si solo vas a <strong>sumar</strong>, <strong>contar</strong> o preguntar &quot;¿alguno?/¿todos?&quot;, no hace falta construir la lista completa en memoria. Quita los corchetes y pasa la expresión directamente a la función:</p>
+<pre><code class="language-python">ventas = [{&quot;monto&quot;: 100, &quot;pais&quot;: &quot;Chile&quot;}, {&quot;monto&quot;: 50, &quot;pais&quot;: &quot;Perú&quot;}, {&quot;monto&quot;: 70, &quot;pais&quot;: &quot;Chile&quot;}]
+total_chile = sum(v[&quot;monto&quot;] for v in ventas if v[&quot;pais&quot;] == &quot;Chile&quot;)   # 170
+cantidad_chile = sum(1 for v in ventas if v[&quot;pais&quot;] == &quot;Chile&quot;)         # contar: 2
+print(total_chile, cantidad_chile)
+print(any(v[&quot;monto&quot;] &gt; 90 for v in ventas))   # ¿alguno cumple?   → True
+print(all(v[&quot;monto&quot;] &gt; 10 for v in ventas))   # ¿todos cumplen?   → True
+print(max(v[&quot;monto&quot;] for v in ventas))        # el mayor          → 100</code></pre>
+<p>Esto se llama <strong>expresión generadora</strong>: produce los valores de a uno, a medida que la función los pide. Con millones de elementos ahorra mucha memoria (lo verás en detalle con generadores en Python avanzado).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Pregunta</th>
+<th>Equivalente SQL</th>
+</tr>
+</thead><tbody><tr>
+<td><code>sum(… for …)</code></td>
+<td>Suma</td>
+<td><code>SUM</code></td>
+</tr>
+<tr>
+<td><code>sum(1 for … if …)</code></td>
+<td>Cuántos cumplen</td>
+<td><code>COUNT(*) … WHERE</code></td>
+</tr>
+<tr>
+<td><code>any(…)</code></td>
+<td>¿Al menos uno?</td>
+<td><code>EXISTS</code></td>
+</tr>
+<tr>
+<td><code>all(…)</code></td>
+<td>¿Todos?</td>
+<td><code>NOT EXISTS (… que no cumpla)</code></td>
+</tr>
+<tr>
+<td><code>max</code>, <code>min</code></td>
+<td>Extremos</td>
+<td><code>MAX</code>, <code>MIN</code></td>
+</tr>
+</tbody></table></div>
+<h2>Las funciones también son valores</h2>
+<p>En Python una función es un valor más: puedes guardarla en una variable, ponerla en una lista o <strong>pasarla como argumento</strong> a otra función. Las funciones que reciben funciones se llaman <strong>de orden superior</strong>. Ya usaste una: <code>sorted(…, key=función)</code>.</p>
+<pre><code class="language-python">def a_mayusculas(s):
+    return s.upper()
+
+nombres = [&quot;ana&quot;, &quot;luis&quot;, &quot;andrea&quot;]
+print(list(map(a_mayusculas, nombres)))                        # aplica la función a cada elemento
+print(list(filter(lambda n: n.startswith(&quot;a&quot;), nombres)))      # deja los que cumplen
+reglas = [str.strip, str.lower]                                # una lista de funciones
+texto = &quot;  Hola MUNDO &quot;
+for regla in reglas:
+    texto = regla(texto)
+print(repr(texto))</code></pre>
+<p><code>map</code> y <code>filter</code> vienen de la programación funcional y existen en muchos lenguajes (en PySpark los verás con RDD). En Python, las comprensiones suelen ser más legibles: <code>[a_mayusculas(n) for n in nombres]</code> en vez de <code>list(map(…))</code>.</p>
+<p>El último ejemplo (una lista de funciones aplicadas en orden) es la idea de un <strong>pipeline de limpieza configurable</strong>: cada regla es una función, y agregar una regla es agregar un elemento a la lista.</p>
+<h2>Comprensiones anidadas</h2>
+<p>Puedes tener más de un <code>for</code>. Se leen en el mismo orden que los <code>for</code> anidados:</p>
+<pre><code class="language-python">pedidos = [{&quot;id&quot;: 1, &quot;items&quot;: [&quot;A&quot;, &quot;B&quot;]}, {&quot;id&quot;: 2, &quot;items&quot;: [&quot;C&quot;]}]
+lineas = [(p[&quot;id&quot;], item) for p in pedidos for item in p[&quot;items&quot;]]   # aplanar
+print(lineas)   # [(1, 'A'), (1, 'B'), (2, 'C')]</code></pre>
+<p>Eso es <strong>aplanar</strong> datos anidados (como <code>explode</code> en Spark): una fila por cada item de cada pedido.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Cuándo NO usar comprensiones?</div>
+
+<p>Si no entra cómodamente en una línea, tiene varios <code>if</code>/<code>else</code> anidados, o necesitas manejar errores (<code>try</code>), usa un <code>for</code> normal. Una comprensión ilegible es peor que cinco líneas claras. La regla de Python: <strong>la legibilidad cuenta</strong>.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Comprensiones ilegibles</strong>: dos <code>for</code> y tres <code>if</code> en una sola línea funcionan, pero nadie los entiende. Si no se lee de un vistazo, usa un <code>for</code> normal.</li>
+<li><strong>Usar una comprensión solo por los efectos</strong>: <code>[print(x) for x in lista]</code> crea una lista de <code>None</code> que nadie usa. Para hacer algo con cada elemento, usa un <code>for</code>.</li>
+<li><strong>El <code>if</code> en el lugar equivocado</strong>: <code>[x for x in l if x &gt; 0]</code> filtra; <code>[x if x &gt; 0 else 0 for x in l]</code> transforma. El <code>if ... else</code> va antes del <code>for</code>.</li>
+<li><strong>Un generador se consume una vez</strong>: después de recorrerlo, queda vacío. Si lo necesitas dos veces, conviértelo en lista.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El catálogo para la web</div>
+
+<p>El equipo web necesita un archivo con el precio de cada producto activo:</p>
+<blockquote>
+<p>&quot;Mándanos un diccionario <code>{sku: precio}</code>, solo de productos activos, con el precio redondeado. Lo actualizamos cada hora.&quot;</p>
+</blockquote>
+<p>Con un <code>for</code> son cinco líneas. Con una <strong>comprensión</strong> es una, y se lee casi como la frase del pedido: &quot;el precio de cada producto, para cada producto activo&quot;.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las comprensiones son el estilo idiomático de Python para transformar colecciones, y las vas a ver en todo el código profesional.</li>
+<li>Las expresiones generadoras (<code>sum(x[&quot;monto&quot;] for x in filas)</code>) no crean una lista intermedia: con millones de registros, ahorran memoria.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>[expr for x in col if cond]</code>: transformar y filtrar en una línea (es un <code>SELECT … WHERE</code>).</li>
+<li><code>if</code> al final filtra; <code>a if cond else b</code> al principio transforma.</li>
+<li><code>{k: v for …}</code> crea diccionarios; <code>{x for …}</code> crea conjuntos.</li>
+<li>Sin corchetes, dentro de <code>sum</code>/<code>any</code>/<code>all</code>/<code>max</code>, es una expresión generadora: no crea la lista.</li>
+<li>Las funciones son valores: se pasan como argumento (<code>sorted(key=…)</code>, <code>map</code>, <code>filter</code>).</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-comprensiones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-funciones.html">← Funciones</a><a href="python-errores.html">Errores y excepciones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Almacenamiento: warehouse, data lake y lakehouse · Academia de Datos</title><meta name="description" content="Las tres familias de almacenamiento analítico, los formatos de tabla abiertos (Delta, Iceberg, Hudi), cómo organizar los datos para leer menos y cuánto cuesta guardar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-almacenamiento.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Almacenamiento: warehouse, data lake y lakehouse · Academia de Datos"><meta property="og:description" content="Las tres familias de almacenamiento analítico, los formatos de tabla abiertos (Delta, Iceberg, Hudi), cómo organizar los datos para leer menos y cuánto cuesta guardar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-almacenamiento.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Avanzado · 50 min</div>
+<h1>Almacenamiento: warehouse, data lake y lakehouse</h1><p class="resumen">Las tres familias de almacenamiento analítico, los formatos de tabla abiertos (Delta, Iceberg, Hudi), cómo organizar los datos para leer menos y cuánto cuesta guardar.</p>
+<a class="cta" href="../index.html#/l/arquitectura-almacenamiento">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Comparar warehouse, data lake y lakehouse y elegir según el caso</li><li>Explicar qué agrega un formato de tabla (Delta, Iceberg, Hudi) sobre archivos Parquet</li><li>Elegir particionado y clustering para que las consultas lean menos datos</li><li>Estimar el costo de almacenar y de consultar, y bajarlo con capas de almacenamiento</li></ul>
+<h2>Tres generaciones</h2>
+<figure class="diagrama"><figcaption>De dónde viene cada modelo: cada generación resolvió un problema de la anterior</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Data warehouse</th>
+<th>Data lake</th>
+<th>Lakehouse</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Qué es</strong></td>
+<td>Una base de datos analítica: tablas, SQL, tipos</td>
+<td>Archivos en almacenamiento de objetos (S3, ADLS, GCS)</td>
+<td>Archivos abiertos en el lake + un formato de tabla con transacciones</td>
+</tr>
+<tr>
+<td><strong>Formato</strong></td>
+<td>Propietario (interno del producto)</td>
+<td>Abierto: CSV, JSON, Parquet</td>
+<td>Abierto: Parquet + Delta, Iceberg o Hudi</td>
+</tr>
+<tr>
+<td><strong>Datos</strong></td>
+<td>Estructurados</td>
+<td>Cualquiera: tablas, logs, imágenes, audio</td>
+<td>Cualquiera, con tablas confiables encima</td>
+</tr>
+<tr>
+<td><strong>ACID, UPDATE, MERGE</strong></td>
+<td>Sí</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><strong>Costo de almacenar</strong></td>
+<td>Medio a alto</td>
+<td>Muy bajo</td>
+<td>Muy bajo</td>
+</tr>
+<tr>
+<td><strong>Quién lo usa</strong></td>
+<td>Analistas con SQL, BI</td>
+<td>Ingenieros, científicos de datos</td>
+<td>Todos: SQL, Python, ML</td>
+</tr>
+<tr>
+<td><strong>Ejemplos</strong></td>
+<td>Redshift, Synapse dedicado, Teradata, (y en la práctica BigQuery y Snowflake)</td>
+<td>S3 + Athena, ADLS + Spark</td>
+<td>Databricks, BigQuery + BigLake, Snowflake con Iceberg, Fabric</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 Las fronteras se están borrando</div>
+
+<p>Hoy BigQuery lee tablas Iceberg en GCS, Snowflake administra tablas Iceberg, y Databricks ofrece un SQL warehouse que se usa como un warehouse clásico. Por eso importa entender <strong>el modelo</strong>: ¿los datos quedan en un formato abierto, que puedes leer con otras herramientas, o encerrados en un producto?</p>
+</div>
+
+
+<h2>Separar almacenamiento y cómputo</h2>
+<p>La idea más importante de las plataformas modernas: <strong>los datos viven en un lugar barato (almacenamiento de objetos) y el cómputo se enciende solo cuando hace falta</strong>.</p>
+<figure class="diagrama"><figcaption>Almacenamiento y cómputo separados: varios motores sobre los mismos datos</figcaption></figure>
+
+
+<p>Ventajas: cada equipo usa el motor que necesita sin copiar los datos; el cómputo se escala o apaga por separado; si mañana aparece un motor mejor, los datos no se migran.</p>
+<h2>Qué agrega un formato de tabla</h2>
+<p>Un montón de archivos Parquet en una carpeta <strong>no es una tabla confiable</strong>. Si un job falla a la mitad, quedan archivos a medias; si dos procesos escriben a la vez, se pisan; para borrar un cliente hay que reescribir archivos a mano.</p>
+<p>Los <strong>formatos de tabla abiertos</strong> (Delta Lake, Apache Iceberg, Apache Hudi) agregan una capa de <strong>metadatos</strong>: un registro de qué archivos forman cada versión de la tabla.</p>
+<figure class="diagrama"><figcaption>Las capas de una tabla en un lakehouse</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>Origen</th>
+<th>Fortaleza</th>
+<th>Dónde se usa más</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Delta Lake</strong></td>
+<td>Databricks (2019)</td>
+<td>Integración total con Spark y Databricks</td>
+<td>Databricks, Microsoft Fabric</td>
+</tr>
+<tr>
+<td><strong>Apache Iceberg</strong></td>
+<td>Netflix (2018)</td>
+<td>El más neutral: lo leen casi todos los motores</td>
+<td>AWS (Athena, Glue), Snowflake, BigQuery, Trino</td>
+</tr>
+<tr>
+<td><strong>Apache Hudi</strong></td>
+<td>Uber (2017)</td>
+<td>Muy bueno para <em>upserts</em> frecuentes</td>
+<td>Lagos con mucho CDC</td>
+</tr>
+</tbody></table></div>
+<p>Los tres dan lo mismo en lo esencial: <strong>ACID</strong>, <code>MERGE</code>/<code>UPDATE</code>/<code>DELETE</code>, <em>time travel</em>, evolución de esquema y estadísticas para saltar archivos.</p>
+<h2>Organizar los datos para leer menos</h2>
+<p>En analítica, el costo y el tiempo de una consulta dependen casi siempre de <strong>cuántos bytes lee</strong>. Tres técnicas, de la más gruesa a la más fina:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Técnica</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+<th>Cuándo usarla</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Particionado</strong></td>
+<td>Separa los archivos en carpetas por el valor de una columna</td>
+<td><code>fecha=2024-12-01/</code></td>
+<td>Columna de baja cardinalidad que casi siempre se filtra (la fecha)</td>
+</tr>
+<tr>
+<td><strong>Clustering / Z-ORDER / Liquid</strong></td>
+<td>Ordena los datos dentro de los archivos por columnas</td>
+<td>Ordenar por <code>cliente_id</code></td>
+<td>Columnas de alta cardinalidad muy filtradas</td>
+</tr>
+<tr>
+<td><strong>Estadísticas min/max</strong></td>
+<td>Cada archivo guarda el mínimo y el máximo de cada columna</td>
+<td>Saltar archivos que no contienen el valor buscado</td>
+<td>Automático en Parquet, Delta e Iceberg</td>
+</tr>
+</tbody></table></div>
+<p>Un ejemplo con números. La tabla <code>eventos_web</code> tiene 3 años de datos, 1 TB en total, y una consulta pide <strong>un día</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Organización</th>
+<th>Bytes leídos</th>
+<th>Costo en BigQuery (≈ 6,25 USD por TB)</th>
+</tr>
+</thead><tbody><tr>
+<td>Sin particionar</td>
+<td>1 TB (todo)</td>
+<td>≈ 6,25 USD</td>
+</tr>
+<tr>
+<td>Particionada por día</td>
+<td>1 TB ÷ 1.095 días ≈ 0,9 GB</td>
+<td>≈ 0,006 USD</td>
+</tr>
+<tr>
+<td>Particionada + solo 3 de 30 columnas</td>
+<td>≈ 0,09 GB</td>
+<td>≈ 0,0006 USD</td>
+</tr>
+</tbody></table></div>
+<p>Mil veces menos, con la misma consulta. Por eso las decisiones de almacenamiento son decisiones de <strong>costo</strong>.</p>
+<h2>Capas de temperatura</h2>
+<p>No todos los datos se leen igual de seguido. Las nubes cobran distinto según la &quot;temperatura&quot;:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Ejemplo</th>
+<th>Precio aproximado por GB/mes</th>
+<th>Leer cuesta</th>
+</tr>
+</thead><tbody><tr>
+<td>Caliente (<em>hot</em>)</td>
+<td>S3 Standard, GCS Standard, ADLS Hot</td>
+<td>0,020 – 0,023 USD</td>
+<td>Casi nada</td>
+</tr>
+<tr>
+<td>Fría (<em>cool / infrequent</em>)</td>
+<td>S3 Standard-IA, GCS Nearline, ADLS Cool</td>
+<td>0,010 – 0,0125 USD</td>
+<td>Un poco</td>
+</tr>
+<tr>
+<td>Archivo</td>
+<td>S3 Glacier, GCS Archive, ADLS Archive</td>
+<td>0,001 – 0,004 USD</td>
+<td>Bastante, y puede tardar horas</td>
+</tr>
+</tbody></table></div>
+<p>Una política típica: bronze de más de 90 días pasa a fría, de más de un año a archivo; silver y gold quedan calientes. Se configura una vez con <strong>reglas de ciclo de vida</strong> y se olvida.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Particionar por una columna de alta cardinalidad</strong> (<code>cliente_id</code>, <code>timestamp</code>): millones de carpetas con archivos diminutos, y todo se vuelve más lento.</li>
+<li><strong>Archivos chicos</strong>: miles de archivos de pocos KB porque cada micro-lote escribe uno. Se compactan con <code>OPTIMIZE</code> (Delta), <em>rewrite data files</em> (Iceberg) o configurando el tamaño de escritura.</li>
+<li><strong>Copiar los datos a cada herramienta</strong>: un CSV para BI, otro para ML, otro para finanzas. Tres versiones de la verdad que nunca coinciden. Un solo almacenamiento con varios motores encima.</li>
+<li><strong>Elegir por la marca</strong>: preguntar &quot;¿Snowflake o Databricks?&quot; antes de preguntar &quot;¿quién usa los datos y cómo?&quot;.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 ¿Snowflake, Databricks o BigQuery?</div>
+
+<p>Llegan tres vendedores a ofrecer su plataforma al Grupo Andino. Cada uno dice que la suya es &quot;la única que necesitan&quot;. Martín te pide:</p>
+<blockquote>
+<p>&quot;Antes de escuchar a los vendedores, quiero que entiendas qué tipo de almacenamiento propone cada uno y qué nos conviene. No me interesa la marca: me interesa el modelo.&quot;</p>
+</blockquote>
+<p>Con ellas puedes evaluar cualquier producto, incluso los que todavía no existen.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La pregunta &quot;¿formato abierto o cerrado?&quot; tiene consecuencias de años: migrar 500 TB de un formato propietario cuesta meses. Muchas empresas eligen hoy Iceberg o Delta justamente para no quedar atadas a un proveedor.</li>
+<li>Los equipos de plataforma revisan todos los meses las <strong>10 consultas más caras</strong> (todas las nubes tienen tablas de sistema con esa información) y las optimizan. Suele ahorrar más que cualquier negociación con el proveedor.</li>
+<li>Las tablas de más de unos cientos de GB sin particionar ni clustering son una señal de alarma en cualquier revisión de arquitectura.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre un data lake y un lakehouse?&quot;</div>
+
+<p>Un data lake son archivos en almacenamiento de objetos: barato y flexible, pero sin transacciones, sin <code>UPDATE</code> ni <code>MERGE</code> y difícil de gobernar. Un lakehouse agrega un formato de tabla abierto (Delta, Iceberg, Hudi) con un log de transacciones: así tienes ACID, <em>time travel</em>, evolución de esquema y estadísticas, manteniendo los datos en archivos abiertos y baratos que leen varios motores. Un buen cierre: &quot;es tener la confiabilidad de un warehouse con el costo y la apertura de un lake&quot;.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-almacenamiento">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-ingesta.html">← Ingesta: carga completa, incremental, CDC y streaming</a><a href="arquitectura-batch-streaming.html">Procesamiento: batch, micro-batch y streaming (Lambda y Kappa) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XCom y la TaskFlow API · Academia de Datos</title><meta name="description" content="Pasar datos pequeños entre tareas con XCom, la TaskFlow API (@dag y @task), dependencias implícitas, multiple_outputs, el contexto de la ejecución, mezclar operadores clásicos y TaskFlow, y mapeo dinámico con expand()."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-xcom-taskflow.html">
+<meta property="og:type" content="article"><meta property="og:title" content="XCom y la TaskFlow API · Academia de Datos"><meta property="og:description" content="Pasar datos pequeños entre tareas con XCom, la TaskFlow API (@dag y @task), dependencias implícitas, multiple_outputs, el contexto de la ejecución, mezclar operadores clásicos y TaskFlow, y mapeo dinámico con expand()."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-xcom-taskflow.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Avanzado · 55 min</div>
+<h1>XCom y la TaskFlow API</h1><p class="resumen">Pasar datos pequeños entre tareas con XCom, la TaskFlow API (@dag y @task), dependencias implícitas, multiple_outputs, el contexto de la ejecución, mezclar operadores clásicos y TaskFlow, y mapeo dinámico con expand().</p>
+<a class="cta" href="../index.html#/l/airflow-xcom-taskflow">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<h2>XCom: mensajes entre tareas</h2>
+<p>Las tareas pueden correr en máquinas distintas, así que no comparten variables. Para pasar <strong>datos pequeños</strong> (un nombre de archivo, un conteo, una fecha) se usa <strong>XCom</strong> (<em>cross-communication</em>), que los guarda en la base de metadatos.</p>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def extraer(ti):
+    ti.xcom_push(key=&quot;ruta&quot;, value=&quot;/lake/bronze/ventas/2024-03-15.json&quot;)
+    return 1500                                      # lo que se devuelve va al XCom &quot;return_value&quot;
+
+def transformar(ti):
+    filas = ti.xcom_pull(task_ids=&quot;extraer&quot;)         # return_value
+    ruta = ti.xcom_pull(task_ids=&quot;extraer&quot;, key=&quot;ruta&quot;)
+    print(f&quot;Transformando {filas} filas de {ruta}&quot;)
+
+with DAG(&quot;xcom_clasico&quot;, start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    PythonOperator(task_id=&quot;extraer&quot;, python_callable=extraer) &gt;&gt; PythonOperator(task_id=&quot;transformar&quot;, python_callable=transformar)
+
+dag.test()</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ XCom no es para datos grandes</div>
+
+<p>XCom se guarda en la base de metadatos: úsalo para <strong>metadatos</strong> (rutas, conteos, IDs). Los datos en sí (millones de filas) van al data lake o a una tabla; por XCom pasas <strong>dónde</strong> están.</p>
+</div>
+
+
+<h3>Cómo funciona por dentro</h3>
+<ol>
+<li>La función <code>extraer</code> <strong>devuelve</strong> <code>1500</code>. Airflow guarda automáticamente ese valor en la base de metadatos, asociado a esta tarea y a esta ejecución, con la clave <code>return_value</code>.</li>
+<li><code>ti.xcom_push(key=&quot;ruta&quot;, value=…)</code> guarda un valor adicional con otra clave.</li>
+<li>En <code>transformar</code>, <code>ti.xcom_pull(task_ids=&quot;extraer&quot;)</code> busca en la base el valor que dejó <code>extraer</code> <strong>en la misma ejecución del DAG</strong> (no el de ayer).</li>
+</ol>
+<p><code>ti</code> es la <em>task instance</em> (la ejecución concreta de la tarea), que Airflow pasa automáticamente a la función si declaras un parámetro con ese nombre.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El casillero de la oficina</div>
+
+<p>Las tareas son empleados que trabajan en turnos distintos y quizás en edificios distintos: no pueden pasarse papeles en mano. XCom es un casillero compartido, rotulado con el nombre de la tarea y la fecha de la ejecución: una deja una nota (&quot;el archivo quedó en /lake/bronze/…&quot;), la siguiente la retira. Para notas, perfecto; para mudanzas (millones de filas), no entra.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>TaskFlow API: Airflow “pythónico”</h2>
+<p>Desde Airflow 2, los decoradores <code>@dag</code> y <code>@task</code> convierten funciones comunes en DAGs y tareas. Lo que una tarea <strong>devuelve</strong> pasa automáticamente por XCom a la siguiente, y las <strong>dependencias se infieren</strong> de cómo pasas los valores:</p>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(schedule=&quot;@daily&quot;, start_date=datetime(2024, 1, 1), catchup=False, tags=[&quot;taskflow&quot;])
+def etl_taskflow():
+
+    @task
+    def extraer():
+        return [{&quot;producto&quot;: &quot;Mouse&quot;, &quot;monto&quot;: 25.0}, {&quot;producto&quot;: &quot;Teclado&quot;, &quot;monto&quot;: 49.9}]
+
+    @task
+    def transformar(filas):
+        return round(sum(f[&quot;monto&quot;] for f in filas), 2)
+
+    @task
+    def cargar(total):
+        print(f&quot;Total cargado: {total}&quot;)
+
+    cargar(transformar(extraer()))      # extraer &gt;&gt; transformar &gt;&gt; cargar, automáticamente
+
+dag_etl = etl_taskflow()                # ¡hay que llamar a la función para crear el DAG!
+dag_etl.test()</code></pre>
+<p>Compara con la versión clásica de arriba:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Clásico (<code>PythonOperator</code> + XCom)</th>
+<th>TaskFlow (<code>@task</code>)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ti.xcom_push</code> / <code>ti.xcom_pull</code> explícitos</td>
+<td>El <code>return</code> de una tarea es el argumento de la siguiente</td>
+</tr>
+<tr>
+<td>Dependencias con <code>&gt;&gt;</code></td>
+<td>Dependencias <strong>inferidas</strong> de cómo pasas los valores</td>
+</tr>
+<tr>
+<td>Más código repetitivo</td>
+<td>Se lee como Python normal</td>
+</tr>
+</tbody></table></div>
+<p>Por dentro es <strong>exactamente lo mismo</strong>: TaskFlow usa XCom. Por eso las mismas reglas aplican: lo que devuelves debe ser <strong>chico</strong> y <strong>serializable a JSON</strong> (números, textos, listas, diccionarios; no un DataFrame de pandas ni una conexión a una base).</p>
+<h3>multiple_outputs</h3>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(schedule=None, start_date=datetime(2024, 1, 1))
+def resumen():
+    @task(multiple_outputs=True)
+    def calcular():
+        return {&quot;filas&quot;: 1200, &quot;errores&quot;: 3}
+
+    @task
+    def reportar(filas, errores):
+        print(f&quot;{filas} filas, {errores} errores&quot;)
+
+    r = calcular()
+    reportar(r[&quot;filas&quot;], r[&quot;errores&quot;])
+
+resumen().test()</code></pre>
+<h2>Leer la fecha y otros datos de la ejecución en TaskFlow</h2>
+<p>En un <code>PythonOperator</code> recibías <code>ti</code> declarando un parámetro con ese nombre. En TaskFlow hay dos formas de acceder al <strong>contexto</strong> (la fecha lógica, los parámetros, la task instance):</p>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task, get_current_context
+
+@dag(schedule=None, start_date=datetime(2024, 1, 1))
+def contexto():
+
+    @task
+    def con_parametros(ds=None, logical_date=None):
+        # Airflow completa los parámetros cuyo nombre coincide con una variable del contexto
+        print(f&quot;Procesando {ds} (logical_date={logical_date})&quot;)
+
+    @task
+    def con_funcion():
+        ctx = get_current_context()          # el diccionario completo
+        print(&quot;Run:&quot;, ctx[&quot;run_id&quot;], &quot;· día:&quot;, ctx[&quot;ds&quot;])
+
+    con_parametros() &gt;&gt; con_funcion()
+
+contexto().test()</code></pre>
+<ul>
+<li>La primera forma es la más legible: pides solo lo que necesitas, con valor por defecto <code>None</code>.</li>
+<li><code>get_current_context()</code> sirve cuando lo necesitas dentro de una función auxiliar. Solo funciona <strong>mientras corre</strong> una tarea; fuera de ella da error.</li>
+</ul>
+<h2>Mezclar operadores clásicos y TaskFlow</h2>
+<p>En un DAG real conviven los dos estilos: un operador de un <em>provider</em> (Databricks, SQL) y funciones <code>@task</code>. Para pasar el resultado de un operador clásico a una tarea <code>@task</code> se usa <code>.output</code>, que representa su XCom <code>return_value</code>:</p>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+from airflow.providers.standard.operators.bash import BashOperator
+
+@dag(schedule=None, start_date=datetime(2024, 1, 1))
+def mixto():
+    contar = BashOperator(task_id=&quot;contar&quot;, bash_command=&quot;echo 1200&quot;)   # su salida va al XCom
+
+    @task
+    def validar(filas):
+        print(f&quot;El origen tiene {filas} filas&quot;)
+
+    validar(contar.output)            # además crea la dependencia contar &gt;&gt; validar
+
+mixto().test()</code></pre>
+<h2>Mapeo dinámico: una tarea por cada elemento</h2>
+<p>A veces no sabes <strong>cuántas</strong> tareas vas a necesitar hasta que el DAG corre: hoy llegaron 3 archivos, mañana 12. Escribir un <code>for</code> al nivel superior del archivo no sirve (se evalúa al <strong>leer</strong> el archivo, no al ejecutar). Para eso existe el <strong>mapeo dinámico de tareas</strong> (<em>dynamic task mapping</em>): <code>.expand()</code> crea, en tiempo de ejecución, una copia de la tarea por cada elemento de una lista.</p>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(schedule=None, start_date=datetime(2024, 1, 1))
+def cargar_archivos():
+
+    @task
+    def listar():
+        # en la vida real: listar los archivos nuevos de una carpeta del lago
+        return [&quot;ventas_norte.csv&quot;, &quot;ventas_sur.csv&quot;, &quot;ventas_oeste.csv&quot;]
+
+    @task
+    def cargar(archivo, destino):
+        print(f&quot;Cargando {archivo} en {destino}&quot;)
+        return 100                      # filas cargadas
+
+    @task
+    def resumir(filas):
+        print(f&quot;Total: {sum(filas)} filas en {len(filas)} archivos&quot;)
+
+    cargadas = cargar.partial(destino=&quot;bronze.ventas&quot;).expand(archivo=listar())
+    resumir(cargadas)
+
+cargar_archivos().test()</code></pre>
+<p>Paso a paso:</p>
+<ol>
+<li><code>listar()</code> devuelve una lista. Su tamaño solo se conoce cuando corre.</li>
+<li><code>cargar.partial(destino=&quot;bronze.ventas&quot;)</code> fija los argumentos que son <strong>iguales</strong> para todas las copias.</li>
+<li><code>.expand(archivo=listar())</code> dice: &quot;una copia de <code>cargar</code> por cada elemento de la lista, con ese elemento como <code>archivo</code>&quot;. En la interfaz verás una sola tarea con un número de instancias mapeadas (<code>[0]</code>, <code>[1]</code>, <code>[2]</code>), cada una con su log y sus reintentos.</li>
+<li><code>resumir(cargadas)</code> recibe la <strong>lista de resultados</strong> de todas las copias.</li>
+</ol>
+<p>Si pasas dos listas a <code>expand</code> (por ejemplo <code>expand(archivo=[...], region=[...])</code>), Airflow crea una copia por <strong>cada combinación</strong> (el producto cartesiano).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Límites del mapeo</div>
+
+<p>Cada copia es una tarea más para el scheduler. Mapear 50 archivos está bien; mapear 100.000 filas es un error de diseño (se procesan en Spark o en la base, y Airflow solo dispara el trabajo). Airflow limita la cantidad de copias con la configuración <code>max_map_length</code> (1024 por defecto).</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Devolver un DataFrame o una conexión desde una tarea</strong>: no se puede guardar en XCom (debe ser serializable a JSON). Guarda los datos en el lago y devuelve la ruta.</li>
+<li><strong>Olvidar llamar a la función <code>@dag</code></strong>: si no escribes <code>etl_taskflow()</code> al final, el DAG no existe.</li>
+<li><strong>Llamar a la función <code>@task</code> fuera del DAG</strong>: las tareas se crean dentro de la función decorada con <code>@dag</code> o del <code>with DAG</code>.</li>
+<li><strong><code>xcom_pull</code> sin <code>task_ids</code></strong>: busca el XCom de la propia tarea y devuelve <code>None</code>.</li>
+<li><strong>Un <code>for</code> al nivel superior para crear tareas según datos externos</strong>: se evalúa al leer el archivo. Usa <code>.expand()</code>.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En los equipos que empezaron con Airflow 2.x moderno o 3, TaskFlow es el estilo por defecto para la lógica en Python, y los operadores de <em>providers</em> se usan para los sistemas externos. Los dos conviven con <code>.output</code>.</li>
+<li>El mapeo dinámico se usa mucho para &quot;una tarea por cliente&quot;, &quot;una por tabla a replicar&quot; o &quot;una por archivo que llegó&quot;, porque cada elemento se reintenta por separado.</li>
+<li>Para valores grandes existe un <em>backend</em> de XCom en almacenamiento de objetos (S3, GCS, Azure Blob): Airflow guarda el valor en el bucket y en la base solo la referencia. Aun así, la buena práctica sigue siendo devolver rutas.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo procesarías en Airflow una cantidad variable de archivos que llegan cada día?&quot;</div>
+
+<p>Con mapeo dinámico de tareas: una tarea lista los archivos nuevos y devuelve sus rutas, y la tarea de carga se mapea con <code>.expand(archivo=...)</code>, de modo que se crea una instancia por archivo en tiempo de ejecución, cada una con su log y sus reintentos. Los argumentos fijos van en <code>.partial()</code>. Luego una tarea final recibe la lista de resultados para validar los totales. Por XCom solo viajan rutas y conteos; los datos quedan en el lago.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-xcom-taskflow">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-operadores-plantillas.html">← Operadores, plantillas Jinja y contexto</a><a href="airflow-control-flujo.html">Ramas, trigger rules, sensores y TaskGroups →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

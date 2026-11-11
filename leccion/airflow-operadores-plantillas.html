@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operadores, plantillas Jinja y contexto · Academia de Datos</title><meta name="description" content="PythonOperator con argumentos, plantillas {{ ds }}, macros, el contexto de ejecución y reintentos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-operadores-plantillas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Operadores, plantillas Jinja y contexto · Academia de Datos"><meta property="og:description" content="PythonOperator con argumentos, plantillas {{ ds }}, macros, el contexto de ejecución y reintentos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-operadores-plantillas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Intermedio · 45 min</div>
+<h1>Operadores, plantillas Jinja y contexto</h1><p class="resumen">PythonOperator con argumentos, plantillas {{ ds }}, macros, el contexto de ejecución y reintentos.</p>
+<a class="cta" href="../index.html#/l/airflow-operadores-plantillas">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<p>Un <strong>operador</strong> es una plantilla de tarea: &quot;ejecuta esta función de Python&quot;, &quot;corre este comando bash&quot;, &quot;lanza este job de Databricks&quot;. Cuando creas un operador con un <code>task_id</code> dentro de un DAG, nace una <strong>tarea</strong>. En esta lección aprendes a pasarle argumentos, a usar <strong>plantillas</strong> para que cada ejecución sepa qué día le toca procesar, a leer el <strong>contexto</strong> de ejecución y a configurar <strong>reintentos</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Operador = molde, tarea = galleta</div>
+
+<p><code>PythonOperator</code> es el molde. <code>PythonOperator(task_id=&quot;cargar_chile&quot;, ...)</code> es una galleta concreta hecha con ese molde. Un DAG puede tener muchas tareas hechas con el mismo operador.</p>
+</div>
+
+
+<h2>Los operadores más usados</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>PythonOperator</code> / <code>@task</code></td>
+<td>Ejecuta una función de Python</td>
+<td>Llamar a una API, validar un archivo</td>
+</tr>
+<tr>
+<td><code>BashOperator</code></td>
+<td>Ejecuta un comando de terminal</td>
+<td><code>dbt build</code>, <code>python script.py</code></td>
+</tr>
+<tr>
+<td><code>EmptyOperator</code></td>
+<td>No hace nada</td>
+<td>Marcar un inicio o un fin, unir ramas</td>
+</tr>
+<tr>
+<td><code>SQLExecuteQueryOperator</code></td>
+<td>Ejecuta SQL en una base</td>
+<td><code>DELETE</code> + <code>INSERT</code> de un día</td>
+</tr>
+<tr>
+<td><code>DatabricksRunNowOperator</code></td>
+<td>Lanza un job de Databricks</td>
+<td>Transformación con Spark</td>
+</tr>
+<tr>
+<td><code>TriggerDagRunOperator</code></td>
+<td>Dispara otro DAG</td>
+<td>Encadenar pipelines</td>
+</tr>
+</tbody></table></div>
+<p>Los de bases de datos y nubes vienen en paquetes aparte llamados <strong>providers</strong> (<code>apache-airflow-providers-databricks</code>, <code>-amazon</code>, <code>-google</code>, <code>-microsoft-azure</code>…).</p>
+<h2>PythonOperator con argumentos</h2>
+<p><code>python_callable</code> recibe la <strong>función</strong> (sin paréntesis: <code>cargar_pais</code>, no <code>cargar_pais()</code>). Los argumentos se pasan con <code>op_kwargs</code> (un diccionario de nombre → valor) o <code>op_args</code> (una lista, por posición).</p>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def cargar_pais(pais, minimo=0):
+    print(f&quot;Cargando ventas de {pais} con mínimo {minimo}&quot;)
+
+with DAG(&quot;cargas_por_pais&quot;, start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    for pais in [&quot;Chile&quot;, &quot;Perú&quot;, &quot;México&quot;]:                        # tareas generadas dinámicamente
+        PythonOperator(
+            task_id=f&quot;cargar_{pais.lower().replace('ú', 'u').replace('é', 'e')}&quot;,
+            python_callable=cargar_pais,
+            op_kwargs={&quot;pais&quot;: pais, &quot;minimo&quot;: 100},
+        )
+
+dag.test()</code></pre>
+<p>Qué está pasando:</p>
+<ul>
+<li>El <code>for</code> corre <strong>cuando Airflow lee el archivo</strong> y crea tres tareas: <code>cargar_chile</code>, <code>cargar_peru</code> y <code>cargar_mexico</code>. Si mañana agregas <code>&quot;Colombia&quot;</code> a la lista, aparece una cuarta tarea sin tocar nada más.</li>
+<li>Cada <code>task_id</code> tiene que ser <strong>único</strong> dentro del DAG y usar solo letras, números, <code>_</code>, <code>-</code> y <code>.</code>. Por eso se quitan los acentos.</li>
+<li>Como no hay <code>&gt;&gt;</code> entre ellas, las tres son independientes y pueden correr <strong>en paralelo</strong>.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Error clásico: llamar a la función</div>
+
+<p><code>python_callable=cargar_pais(&quot;Chile&quot;)</code> <strong>ejecuta la función al leer el archivo</strong> y le pasa a Airflow su resultado (<code>None</code>). La tarea falla con &quot;python_callable param must be callable&quot;. Pasa la función sin paréntesis y los argumentos en <code>op_kwargs</code>.</p>
+</div>
+
+
+<h2>Plantillas (templating)</h2>
+<p>Un pipeline diario tiene que saber <strong>qué día está procesando</strong>. No es &quot;hoy&quot;: si el DAG del 15 de marzo falla y lo relanzas el 20, tiene que seguir procesando el 15. Para eso Airflow ofrece <strong>plantillas Jinja</strong>: textos con <code>{{ ... }}</code> que se reemplazan por valores reales <strong>justo antes de ejecutar</strong> la tarea.</p>
+<p>Las variables más usadas, para una ejecución cuya fecha lógica es el 15 de marzo de 2024:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Plantilla</th>
+<th>Valor</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td><code>{{ ds }}</code></td>
+<td><code>2024-03-15</code></td>
+<td>Filtros SQL: <code>WHERE fecha = &#39;{{ ds }}&#39;</code></td>
+</tr>
+<tr>
+<td><code>{{ ds_nodash }}</code></td>
+<td><code>20240315</code></td>
+<td>Nombres de archivo: <code>ventas_20240315.csv</code></td>
+</tr>
+<tr>
+<td><code>{{ data_interval_start }}</code> / <code>{{ data_interval_end }}</code></td>
+<td>Inicio y fin del intervalo (fecha y hora)</td>
+<td>Cargas por hora</td>
+</tr>
+<tr>
+<td><code>{{ macros.ds_add(ds, -7) }}</code></td>
+<td><code>2024-03-08</code></td>
+<td>&quot;Los últimos 7 días&quot;</td>
+</tr>
+<tr>
+<td><code>{{ params.x }}</code></td>
+<td>Un parámetro del DAG</td>
+<td>Configuración por DAG</td>
+</tr>
+<tr>
+<td><code>{{ var.value.mi_variable }}</code></td>
+<td>Una Variable de Airflow</td>
+<td>Bucket o entorno</td>
+</tr>
+<tr>
+<td><code>{{ dag_run.conf }}</code></td>
+<td>Lo que pasaste con <code>--conf</code> al disparar</td>
+<td>Ejecuciones manuales con parámetros</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+with DAG(&quot;plantillas&quot;, start_date=datetime(2024, 3, 15), schedule=&quot;@daily&quot;, catchup=False) as dag:
+    BashOperator(
+        task_id=&quot;descargar&quot;,
+        bash_command=&quot;echo descargando ventas del {{ ds }} en /lake/bronze/ventas/{{ ds_nodash }}.json&quot;,
+    )
+
+dag.test()</code></pre>
+<p>En la salida vas a ver el comando <strong>ya resuelto</strong>, con la fecha real en lugar de <code>{{ ds }}</code>.</p>
+<h3>¿Qué parámetros aceptan plantillas?</h3>
+<p>No todos. Cada operador declara una lista llamada <code>template_fields</code>:</p>
+<ul>
+<li><code>BashOperator</code>: <code>bash_command</code> y <code>env</code>.</li>
+<li><code>PythonOperator</code>: <code>op_kwargs</code>, <code>op_args</code> y <code>templates_dict</code>.</li>
+<li>Operadores SQL: <code>sql</code>.</li>
+</ul>
+<p>Si pones <code>{{ ds }}</code> en un parámetro que no está en esa lista, llega tal cual, como el texto literal <code>&quot;{{ ds }}&quot;</code>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Esto hace a tus pipelines idempotentes</div>
+
+<p>Usar <code>{{ ds }}</code> en lugar de &quot;hoy&quot; hace que cada ejecución procese <strong>su</strong> periodo. Reprocesar el 15 de marzo dentro de un mes da exactamente el mismo resultado.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las plantillas son texto</div>
+
+<p><code>{{ ds }}</code> siempre llega como <strong>string</strong> (<code>&quot;2024-03-15&quot;</code>), no como fecha. Si necesitas operar con ella en Python, conviértela: <code>date.fromisoformat(ds)</code>.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>El contexto en funciones Python</h2>
+<p>Además de plantillas, una función de <code>PythonOperator</code> puede recibir el <strong>contexto</strong> de ejecución. Es un diccionario con todo lo que Airflow sabe de esa ejecución: las fechas, la tarea, el DAG run y la instancia de tarea <code>ti</code> (que se usa para XCom).</p>
+<p>Airflow mira <strong>los nombres de los parámetros</strong> de tu función y le pasa los que coinciden. Si pones <code>**context</code>, recibe todo el resto.</p>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+def procesar(ds, **context):
+    print(&quot;Procesando el día&quot;, ds)
+    print(&quot;Tarea:&quot;, context[&quot;task&quot;].task_id, &quot;| run:&quot;, context[&quot;run_id&quot;])
+
+with DAG(&quot;contexto&quot;, start_date=datetime(2024, 1, 1), schedule=None) as dag:
+    PythonOperator(task_id=&quot;procesar&quot;, python_callable=procesar)
+
+dag.test(logical_date=datetime(2024, 6, 30))</code></pre>
+<p>Claves del contexto que vas a usar seguido:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Clave</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ds</code>, <code>ds_nodash</code></td>
+<td>La fecha lógica como texto</td>
+</tr>
+<tr>
+<td><code>logical_date</code></td>
+<td>La fecha lógica como <code>datetime</code></td>
+</tr>
+<tr>
+<td><code>ti</code></td>
+<td>La instancia de tarea: <code>ti.xcom_push(...)</code>, <code>ti.xcom_pull(...)</code>, <code>ti.try_number</code></td>
+</tr>
+<tr>
+<td><code>task</code>, <code>dag</code></td>
+<td>Los objetos de la tarea y del DAG</td>
+</tr>
+<tr>
+<td><code>run_id</code></td>
+<td>Identificador de la ejecución (<code>manual__...</code> o <code>scheduled__...</code>)</td>
+</tr>
+<tr>
+<td><code>params</code></td>
+<td>Los parámetros del DAG</td>
+</tr>
+<tr>
+<td><code>dag_run</code></td>
+<td>El DAG run; <code>dag_run.conf</code> trae lo enviado con <code>--conf</code></td>
+</tr>
+</tbody></table></div>
+<h2>Reintentos y timeouts</h2>
+<p>Una API que no responde o una red que se cae un segundo son cosas normales. En vez de fallar a la primera, configura <strong>reintentos</strong>:</p>
+<pre data-norun><code class="language-python">PythonOperator(
+    task_id=&quot;llamar_api&quot;,
+    python_callable=llamar_api,
+    retries=3,                               # hasta 3 intentos extra (4 en total)
+    retry_delay=timedelta(minutes=2),        # espera entre intentos
+    retry_exponential_backoff=True,          # 2 min, 4 min, 8 min…
+    execution_timeout=timedelta(minutes=30), # si tarda más, se corta y cuenta como fallo
+)</code></pre>
+<ul>
+<li>Mientras espera el siguiente intento, la tarea queda en estado <code>up_for_retry</code> (amarillo).</li>
+<li>Solo después de agotar todos los intentos queda en <code>failed</code>.</li>
+<li><strong>Los reintentos solo son seguros si la tarea es idempotente.</strong> Si la tarea inserta filas sin borrar las anteriores, cada reintento las duplica.</li>
+</ul>
+<p>Para no repetir lo mismo en cada tarea, se pone en <code>default_args</code> del DAG y todas lo heredan:</p>
+<pre data-norun><code class="language-python">default_args = {&quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)}
+with DAG(&quot;etl&quot;, default_args=default_args, ...) as dag:
+    ...   # todas las tareas tienen 2 reintentos, salvo que una lo cambie</code></pre>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-operadores-plantillas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-programacion.html">← Programación: schedule, start_date, catchup e intervalos</a><a href="airflow-xcom-taskflow.html">XCom y la TaskFlow API →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

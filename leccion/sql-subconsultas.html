@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subconsultas · Academia de Datos</title><meta name="description" content="Consultas dentro de consultas: escalares, con IN, EXISTS, correlacionadas y tablas derivadas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-subconsultas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Subconsultas · Academia de Datos"><meta property="og:description" content="Consultas dentro de consultas: escalares, con IN, EXISTS, correlacionadas y tablas derivadas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-subconsultas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Intermedio · 45 min</div>
+<h1>Subconsultas</h1><p class="resumen">Consultas dentro de consultas: escalares, con IN, EXISTS, correlacionadas y tablas derivadas.</p>
+<a class="cta" href="../index.html#/l/sql-subconsultas">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Usar una subconsulta escalar para comparar contra un valor calculado (como el promedio)</li><li>Filtrar con <code>IN</code> y <code>EXISTS</code> usando el resultado de otra consulta</li><li>Escribir subconsultas correlacionadas y entender su costo</li><li>Usar tablas derivadas en el <code>FROM</code> para agregar en dos pasos</li></ul>
+<h2>Una consulta dentro de otra</h2>
+<p>Algunas preguntas necesitan <strong>dos pasos</strong>: &quot;¿qué productos cuestan más <strong>que el promedio</strong>?&quot; Primero hay que calcular el promedio (374,28) y después comparar cada producto contra ese número. Podrías hacer dos consultas y copiar el número a mano, pero sería frágil: mañana el promedio cambia. Una <strong>subconsulta</strong> resuelve ambos pasos en una sola instrucción: es un <code>SELECT</code> escrito <strong>entre paréntesis</strong> dentro de otro <code>SELECT</code>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Preguntarle a un compañero</div>
+
+<p>Estás armando un informe y necesitas un dato que tiene otra persona. Le preguntas, ella te responde, y usas su respuesta en tu informe. La subconsulta es esa pregunta al compañero: el motor la resuelve primero y usa el resultado en la consulta de afuera.</p>
+</div>
+
+
+<p>Según <strong>qué devuelve</strong> la subconsulta, se usa en un lugar distinto:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Devuelve</th>
+<th>Se usa en</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>Escalar</td>
+<td><strong>Un</strong> valor (1 fila, 1 columna)</td>
+<td>Donde iría un número o texto</td>
+<td><code>WHERE precio &gt; (SELECT AVG(precio) …)</code></td>
+</tr>
+<tr>
+<td>De lista</td>
+<td><strong>Una columna</strong> con varias filas</td>
+<td>Con <code>IN</code> / <code>NOT IN</code></td>
+<td><code>WHERE cliente_id IN (SELECT …)</code></td>
+</tr>
+<tr>
+<td>De existencia</td>
+<td>Cualquier cosa (solo importa si hay filas)</td>
+<td>Con <code>EXISTS</code> / <code>NOT EXISTS</code></td>
+<td><code>WHERE EXISTS (SELECT 1 …)</code></td>
+</tr>
+<tr>
+<td>Tabla derivada</td>
+<td>Una tabla completa</td>
+<td>En el <code>FROM</code>, con alias</td>
+<td><code>FROM (SELECT …) AS t</code></td>
+</tr>
+</tbody></table></div>
+<h2>1. Subconsulta escalar: un solo valor</h2>
+<pre><code class="language-sql">-- Productos más caros que el promedio
+SELECT nombre, precio
+FROM productos
+WHERE precio &gt; (SELECT AVG(precio) FROM productos)
+ORDER BY precio;</code></pre>
+<p>Paso a paso:</p>
+<ol>
+<li>El motor resuelve <code>(SELECT AVG(precio) FROM productos)</code> → <code>374.28</code>.</li>
+<li>La consulta de afuera queda, en la práctica, como <code>WHERE precio &gt; 374.28</code>.</li>
+<li>Devuelve los 100 productos que superan ese valor.</li>
+</ol>
+<p>Una subconsulta escalar también puede ir en el <code>SELECT</code>, para mostrar el valor de referencia al lado de cada fila:</p>
+<pre><code class="language-sql">SELECT nombre, precio,
+       ROUND(precio - (SELECT AVG(precio) FROM productos), 2) AS diferencia_con_promedio
+FROM productos
+ORDER BY diferencia_con_promedio DESC
+LIMIT 5;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Debe devolver exactamente un valor</div>
+
+<p>Si la subconsulta escalar devuelve <strong>varias filas</strong>, PostgreSQL, SQL Server y otros motores dan error (&quot;more than one row returned by a subquery used as an expression&quot;); SQLite toma la primera en silencio. Si devuelve <strong>cero</strong> filas, el resultado es <code>NULL</code>. Asegúrate de que sea una agregación (<code>AVG</code>, <code>MAX</code>, <code>COUNT</code>) o un filtro por clave única.</p>
+</div>
+
+
+<h2>2. Subconsulta con IN: una lista de valores</h2>
+<p><code>IN</code> ya lo conoces con listas escritas a mano (<code>pais IN (&#39;Chile&#39;, &#39;Perú&#39;)</code>). La lista también puede salir de una consulta:</p>
+<pre><code class="language-sql">-- Clientes que alguna vez compraron por teléfono
+SELECT cliente_id, nombre, apellido
+FROM clientes
+WHERE cliente_id IN (SELECT cliente_id FROM pedidos WHERE canal = 'telefono');</code></pre>
+<ol>
+<li>La subconsulta produce la lista de <code>cliente_id</code> con pedidos telefónicos (con repetidos: no importa).</li>
+<li>La consulta de afuera deja los clientes cuyo id <strong>está en</strong> esa lista: 596 clientes.</li>
+</ol>
+<p>¿Por qué no un <code>JOIN</code>? Porque un cliente con 5 pedidos telefónicos aparecería <strong>5 veces</strong> con un join; con <code>IN</code> aparece <strong>una</strong>. <code>IN</code> responde &quot;¿está o no está?&quot;, sin multiplicar filas. Esto se llama <strong>semi-join</strong>.</p>
+<p>Una subconsulta con <code>IN</code> puede tener sus propios joins:</p>
+<pre><code class="language-sql">-- Clientes que compraron algún producto Apple
+SELECT cliente_id, nombre FROM clientes
+WHERE cliente_id IN (
+  SELECT p.cliente_id
+  FROM pedidos p
+  JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  JOIN productos pr      ON pr.producto_id = d.producto_id
+  WHERE pr.marca = 'Apple'
+);</code></pre>
+<h2>3. EXISTS: ¿hay al menos una fila?</h2>
+<p><code>EXISTS (subconsulta)</code> es verdadero si la subconsulta devuelve <strong>alguna</strong> fila, sin importar qué columnas. Por eso se escribe <code>SELECT 1</code>: el contenido da igual.</p>
+<pre><code class="language-sql">SELECT c.cliente_id, c.nombre
+FROM clientes c
+WHERE EXISTS (
+  SELECT 1
+  FROM pedidos p
+  WHERE p.cliente_id = c.cliente_id      -- ← usa una columna de la consulta de afuera
+    AND p.canal = 'telefono'
+);</code></pre>
+<p>Es el mismo resultado que el <code>IN</code> de arriba. La diferencia es que la subconsulta <strong>menciona</strong> <code>c.cliente_id</code>, una columna de afuera: se evalúa &quot;para cada cliente&quot;. El motor puede detenerse en cuanto encuentra <strong>la primera</strong> coincidencia, por eso <code>EXISTS</code> suele ser muy eficiente.</p>
+<h2>La trampa de NOT IN con NULL (caso real)</h2>
+<p>Para lo opuesto (&quot;lo que <strong>no</strong> está&quot;) tienes <code>NOT IN</code> y <code>NOT EXISTS</code>. Parecen equivalentes, pero no lo son cuando hay <code>NULL</code>. Mira este caso real con los datos del curso: queremos los clientes cuyo id no coincide con ningún <code>jefe_id</code> de la tabla <code>empleados</code> (es un ejemplo artificial, pero muestra el problema):</p>
+<pre><code class="language-sql">-- ❌ Devuelve 0 filas
+SELECT COUNT(*) FROM clientes
+WHERE cliente_id NOT IN (SELECT jefe_id FROM empleados);
+
+-- ✅ Devuelve 1.973 filas
+SELECT COUNT(*) FROM clientes c
+WHERE NOT EXISTS (SELECT 1 FROM empleados e WHERE e.jefe_id = c.cliente_id);</code></pre>
+<p>¿Por qué el primero da 0? El CEO tiene <code>jefe_id = NULL</code>, así que la lista contiene un <code>NULL</code>. Para cualquier cliente, <code>cliente_id NOT IN (…, NULL)</code> significa <code>cliente_id &lt;&gt; … AND cliente_id &lt;&gt; NULL</code>, y esa última comparación es UNKNOWN: <strong>ninguna</strong> fila pasa. Sin error, sin aviso: solo un resultado vacío.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Regla práctica</div>
+
+<p>Para &quot;lo que no está&quot;, usa <strong><code>NOT EXISTS</code></strong> o el anti-join (<code>LEFT JOIN … WHERE … IS NULL</code>). Si usas <code>NOT IN</code>, agrega <code>WHERE columna IS NOT NULL</code> dentro de la subconsulta.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>4. Subconsultas correlacionadas</h2>
+<p>Una subconsulta es <strong>correlacionada</strong> cuando usa columnas de la consulta de afuera (como el <code>EXISTS</code> de arriba). Conceptualmente se ejecuta <strong>una vez por cada fila</strong> de afuera:</p>
+<pre><code class="language-sql">-- Cada producto comparado con el precio promedio de SU categoría
+SELECT p.nombre, p.categoria_id, p.precio,
+       (SELECT ROUND(AVG(p2.precio), 2)
+        FROM productos p2
+        WHERE p2.categoria_id = p.categoria_id) AS promedio_categoria
+FROM productos p
+LIMIT 10;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>nombre</th>
+<th>categoria_id</th>
+<th>precio</th>
+<th>promedio_categoria</th>
+</tr>
+</thead><tbody><tr>
+<td>Smartphone Apple Mini 300</td>
+<td>6</td>
+<td>484.99</td>
+<td>665.49</td>
+</tr>
+<tr>
+<td>Parlante Xiaomi Sport 900</td>
+<td>7</td>
+<td>425.99</td>
+<td>239.1</td>
+</tr>
+<tr>
+<td>Notebook Apple X</td>
+<td>8</td>
+<td>1044.99</td>
+<td>1015.92</td>
+</tr>
+</tbody></table></div>
+<p>Para el smartphone (categoría 6), la subconsulta calcula el promedio de <strong>la categoría 6</strong>; para el parlante, el de <strong>la 7</strong>. Fíjate que la tabla aparece dos veces con alias distintos (<code>p</code> afuera, <code>p2</code> adentro), como en un self join.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 Rendimiento de las correlacionadas</div>
+
+<p>Con 300 productos no importa, pero con millones de filas &quot;una subconsulta por fila&quot; puede ser lento si el motor no la optimiza. Las alternativas habituales son un <code>JOIN</code> contra una tabla agregada (<code>JOIN (SELECT categoria_id, AVG(precio) … GROUP BY categoria_id)</code>) o una <strong>función de ventana</strong> (<code>AVG(precio) OVER (PARTITION BY categoria_id)</code>), que verás pronto y es la forma más elegante.</p>
+</div>
+
+
+<h2>5. Tablas derivadas: una subconsulta en el FROM</h2>
+<p>El resultado de cualquier <code>SELECT</code> es, a su vez, una tabla. Por eso puedes ponerlo en el <code>FROM</code> y consultarlo como si existiera. Es la herramienta para <strong>agregar dos veces</strong>:</p>
+<pre><code class="language-sql">-- ¿Cuántos pedidos hace en promedio un cliente (entre los que compraron)?
+SELECT ROUND(AVG(n), 2) AS promedio_pedidos
+FROM (
+  SELECT cliente_id, COUNT(*) AS n      -- paso 1: pedidos por cliente
+  FROM pedidos
+  GROUP BY cliente_id
+) AS t;                                 -- paso 2: promedio de esos conteos</code></pre>
+<p>Resultado: <strong>8,26</strong> pedidos por cliente. No hay forma de hacerlo en un solo nivel: <code>AVG(COUNT(*))</code> no está permitido, porque no se pueden anidar agregaciones directamente.</p>
+<p>La tabla derivada <strong>necesita un alias</strong> (<code>AS t</code>), aunque no lo uses.</p>
+<h2>Legibilidad: cuando las subconsultas se anidan</h2>
+<p>Una subconsulta dentro de otra dentro de otra se lee &quot;de adentro hacia afuera&quot;, y se vuelve difícil muy rápido. En la lección 15 aprenderás las <strong>CTE</strong> (<code>WITH</code>), que permiten escribir los mismos pasos <strong>en orden, de arriba hacia abajo</strong>, con nombres. Para todo lo que tenga más de un nivel de anidamiento, usa CTE.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Subconsulta escalar que devuelve varias filas</strong>: <code>WHERE precio &gt; (SELECT precio FROM productos WHERE marca = &#39;Apple&#39;)</code> falla (o toma solo la primera fila, según el motor). Una subconsulta escalar debe devolver <strong>una fila y una columna</strong>: agrégala con <code>AVG</code>, <code>MAX</code>, etc.</li>
+<li><strong><code>NOT IN</code> con nulos</strong>: si la subconsulta devuelve algún <code>NULL</code>, <code>NOT IN</code> no devuelve nada. Usa <code>NOT EXISTS</code> o filtra los nulos.</li>
+<li><strong>Correlacionar con la tabla equivocada</strong>: en una correlacionada, la columna de afuera tiene que llevar el alias de afuera (<code>p.categoria_id</code>). Si no pones alias, SQL puede tomar la columna de la tabla de adentro y la condición siempre se cumple.</li>
+<li><strong>Subconsultas anidadas en tres niveles</strong>: funcionan, pero nadie las puede leer ni revisar. Pásalas a CTE (próxima lección).</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los sueldos sobre el promedio</div>
+
+<p>Tomás, de personas, sigue con la revisión salarial:</p>
+<blockquote>
+<p>&quot;¿Quiénes ganan más que el promedio de la empresa? Y otra: ¿qué productos están más caros que el promedio de su categoría? Me lo pidió Valentina para revisar precios.&quot;</p>
+</blockquote>
+<p>Para responder necesitas un número que <strong>todavía no tienes</strong> (el promedio) y usarlo dentro de otra consulta. Eso es una subconsulta: una consulta dentro de otra.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las subconsultas correlacionadas se ejecutan, en principio, <strong>una vez por fila</strong> de afuera. Los optimizadores modernos suelen reescribirlas como JOIN, pero no siempre. En tablas grandes, revisa el plan o reescríbelas con una CTE + JOIN o con funciones de ventana.</li>
+<li>En revisión de código, una subconsulta de más de 10 líneas casi siempre recibe el comentario &quot;pásala a una CTE con nombre&quot;. La legibilidad es una exigencia del equipo, no un detalle estético.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Encuentra los productos más caros que el promedio de su categoría&quot;</div>
+
+<p>Hay tres formas, y conviene mencionar al menos dos: una subconsulta correlacionada (<code>WHERE precio &gt; (SELECT AVG(precio) FROM productos p2 WHERE p2.categoria_id = p.categoria_id)</code>), una CTE con el promedio por categoría unida por <code>categoria_id</code>, o una función de ventana <code>AVG(precio) OVER (PARTITION BY categoria_id)</code>. La de ventana lee la tabla una sola vez.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Una subconsulta es un <code>SELECT</code> entre paréntesis dentro de otro.</li>
+<li>Escalar (un valor) → donde iría un valor; de lista → con <code>IN</code>; <code>EXISTS</code> → &quot;¿hay al menos una?&quot;; en el <code>FROM</code> → tabla derivada con alias.</li>
+<li><code>IN</code>/<code>EXISTS</code> no multiplican filas como un <code>JOIN</code> (semi-join).</li>
+<li><code>NOT IN</code> con un <code>NULL</code> en la lista devuelve vacío: usa <code>NOT EXISTS</code>.</li>
+<li>Las correlacionadas usan columnas de afuera; las tablas derivadas permiten agregar dos veces.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-subconsultas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-joins-avanzados.html">← LEFT, RIGHT, FULL, SELF y CROSS JOIN</a><a href="sql-conjuntos.html">UNION, INTERSECT y EXCEPT →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

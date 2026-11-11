@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 1: Lakehouse de ventas con dbt, de DuckDB a Databricks · Academia de Datos</title><meta name="description" content="El proyecto base de todo portafolio de datos. Datos de una tienda online con duplicados, nulos, formatos rotos y datos tardíos; un pipeline medallón con dbt que corre primero en tu computadora con DuckDB y después en Databricks Free Edition; un modelo estrella con tests; un tablero; y un job programado. Valor - reemplazar un Excel manual de dos días por datos confiables cada mañana."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-lakehouse-de-ventas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 1: Lakehouse de ventas con dbt, de DuckDB a Databricks · Academia de Datos"><meta property="og:description" content="El proyecto base de todo portafolio de datos. Datos de una tienda online con duplicados, nulos, formatos rotos y datos tardíos; un pipeline medallón con dbt que corre primero en tu computadora con DuckDB y después en Databricks Free Edition; un modelo estrella con tests; un tablero; y un job programado. Valor - reemplazar un Excel manual de dos días por datos confiables cada mañana."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-lakehouse-de-ventas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Avanzado · 120 min</div>
+<h1>Proyecto 1: Lakehouse de ventas con dbt, de DuckDB a Databricks</h1><p class="resumen">El proyecto base de todo portafolio de datos. Datos de una tienda online con duplicados, nulos, formatos rotos y datos tardíos; un pipeline medallón con dbt que corre primero en tu computadora con DuckDB y después en Databricks Free Edition; un modelo estrella con tests; un tablero; y un job programado. Valor - reemplazar un Excel manual de dos días por datos confiables cada mañana.</p>
+<a class="cta" href="../index.html#/l/portafolio-lakehouse-de-ventas">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Generar y explorar los datos crudos del proyecto con DuckDB</li><li>Construir staging, silver y gold con dbt y tests de calidad</li><li>Deduplicar, normalizar y convertir fechas con formatos mezclados</li><li>Diseñar un modelo estrella con su grano declarado</li><li>Llevar el mismo proyecto a Databricks con un volumen, dbt y un job programado</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La gerente comercial de una tienda online arma cada mes un Excel con las ventas: exporta pedidos, los cruza a mano con productos y clientes, y tarda <strong>dos días</strong>. Los números nunca coinciden con los de Finanzas. Te pide &quot;un tablero con las ventas de ayer, por país, canal y categoría, que se actualice solo&quot;. Este es el proyecto que más se repite en las empresas, y el que todo reclutador entiende.</p>
+</div>
+
+
+<h2>Valor y alcance</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Hoy</th>
+<th>Con el proyecto</th>
+</tr>
+</thead><tbody><tr>
+<td>Frecuencia</td>
+<td>Mensual</td>
+<td>Diaria, 06:00</td>
+</tr>
+<tr>
+<td>Esfuerzo</td>
+<td>2 días por mes</td>
+<td>0 (automático)</td>
+</tr>
+<tr>
+<td>Confianza</td>
+<td>&quot;No coincide con Finanzas&quot;</td>
+<td>Tests de calidad y definición única de &quot;venta neta&quot;</td>
+</tr>
+</tbody></table></div>
+<p><strong>Fuera de alcance</strong>: pronósticos, tiempo real. Escribirlo en el README demuestra criterio.</p>
+<h2>Los datos</h2>
+<p><a href="#/generador?esc=ecommerce&n=2000&semilla=42&desde=2024-01-01&hasta=2024-12-31&duplicados=2&nulos=4&formatos=5&atipicos=1&huerfanos=1&tardios=3&mojibake=1">🏭 Generar los datos del proyecto</a> · Escenario <strong>Tienda online</strong>, 2.000 clientes, semilla 42, problemas &quot;realista&quot;. Seis tablas: <code>clientes</code>, <code>productos</code>, <code>pedidos</code>, <code>detalle_pedidos</code>, <code>pagos</code> y <code>eventos_web</code>.</p>
+<p>En la terminal del curso puedes explorarlos ya mismo:</p>
+<pre><code class="language-bash">generar-datos ecommerce --filas 500 --semilla 42 --problemas realista
+duckdb -c &quot;SELECT canal, COUNT(*) FROM '~/datos/generados/ecommerce/pedidos.csv' GROUP BY canal&quot;</code></pre>
+<p>Vas a ver <code>web</code>, <code>WEB</code> y <code>  web</code>: el primer problema de calidad. Anótalo para la sección &quot;Calidad de datos&quot; del README.</p>
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Lakehouse de ventas - local y en Databricks</figcaption></figure>
+
+
+<h2>Fase 1: en tu computadora (gratis)</h2>
+<h3>1. El proyecto</h3>
+<pre><code class="language-bash">mkdir ventas-lakehouse &amp;&amp; cd ventas-lakehouse &amp;&amp; git init
+uv init --python 3.12
+uv add dbt-duckdb duckdb pandas streamlit
+uv run dbt init transform        # elige duckdb
+mkdir -p data/raw &amp;&amp; echo &quot;data/&quot; &gt;&gt; .gitignore
+cp ~/datos/generados/ecommerce/*.csv data/raw/   # los CSV del generador (o descomprime acá el .zip que bajaste)</code></pre>
+<p><code>transform/profiles.yml</code> (o <code>~/.dbt/profiles.yml</code>):</p>
+<pre><code class="language-yaml">transform:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/ventas.duckdb
+      threads: 4</code></pre>
+<h3>2. Bronze: las fuentes tal cual</h3>
+<p>En <code>models/sources.yml</code> declara las fuentes leyendo los CSV directamente (dbt-duckdb lo permite con <code>external_location</code>):</p>
+<pre><code class="language-yaml">version: 2
+sources:
+  - name: crudo
+    meta:
+      external_location: &quot;read_csv_auto('../data/raw/{name}.csv', header=true, all_varchar=true)&quot;
+    tables:
+      - name: pedidos
+      - name: detalle_pedidos
+      - name: clientes
+      - name: productos
+      - name: pagos</code></pre>
+<p><code>all_varchar=true</code> lee todo como texto: las fechas con formatos mezclados y los números raros no rompen la carga. El tipado se hace en silver, a propósito.</p>
+<h3>3. Silver: limpiar con reglas explícitas</h3>
+<p><code>models/staging/stg_pedidos.sql</code>:</p>
+<pre data-norun><code class="language-sql">with fuente as (
+    select * from {{ source('crudo', 'pedidos') }}
+),
+tipado as (
+    select
+        cast(pedido_id as integer)                         as pedido_id,
+        cast(cliente_id as integer)                        as cliente_id,
+        cast(fecha_pedido as timestamp)                    as fecha_pedido,
+        lower(trim(canal))                                 as canal,
+        lower(trim(estado))                                as estado,
+        nullif(lower(trim(metodo_pago)), '')               as metodo_pago,
+        cast(cargado_en as timestamp)                      as cargado_en
+    from fuente
+),
+dedup as (
+    -- un reintento cargó algunos pedidos dos veces: nos quedamos con la primera carga
+    select *, row_number() over (partition by pedido_id order by cargado_en) as rn
+    from tipado
+)
+select * exclude (rn) from dedup where rn = 1</code></pre>
+<p><code>models/staging/stg_clientes.sql</code> (fechas con dos formatos y textos con mojibake):</p>
+<pre data-norun><code class="language-sql">select
+    cast(cliente_id as integer) as cliente_id,
+    trim(nombre)                as nombre,
+    lower(trim(email))          as email,
+    trim(pais)                  as pais,
+    coalesce(try_strptime(fecha_registro, '%Y-%m-%d'),
+             try_strptime(fecha_registro, '%d/%m/%Y'))::date as fecha_registro
+from {{ source('crudo', 'clientes') }}
+qualify row_number() over (partition by cliente_id order by fecha_registro) = 1</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El mojibake no se arregla con REPLACE en silver</div>
+
+<p><code>BogotÃ¡</code> viene de un archivo leído con la codificación equivocada. Lo correcto es corregir la lectura (o el sistema de origen) y documentarlo; un <code>replace</code> a mano solo cubre los casos que se te ocurrieron. En el proyecto, anótalo como hallazgo en la sección de calidad del README.</p>
+</div>
+
+
+<h3>4. Gold: el modelo estrella</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Grano (una fila es…)</th>
+<th>Columnas clave</th>
+</tr>
+</thead><tbody><tr>
+<td><code>fct_ventas</code></td>
+<td>una línea de pedido entregado o enviado</td>
+<td>fecha, cliente_id, producto_id, canal, cantidad, venta_neta, costo</td>
+</tr>
+<tr>
+<td><code>dim_cliente</code></td>
+<td>un cliente</td>
+<td>país, segmento, fecha de registro</td>
+</tr>
+<tr>
+<td><code>dim_producto</code></td>
+<td>un producto</td>
+<td>categoría, marca</td>
+</tr>
+<tr>
+<td><code>dim_fecha</code></td>
+<td>un día</td>
+<td>año, mes, día de la semana, feriado</td>
+</tr>
+</tbody></table></div>
+<p><code>models/marts/fct_ventas.sql</code>:</p>
+<pre data-norun><code class="language-sql">select
+    p.fecha_pedido::date                                   as fecha,
+    p.pedido_id, p.cliente_id, d.producto_id, p.canal,
+    d.cantidad,
+    round(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) as venta_neta,
+    round(d.cantidad * pr.costo, 2)                        as costo
+from {{ ref('stg_pedidos') }} p
+join {{ ref('stg_detalle_pedidos') }} d using (pedido_id)
+join {{ ref('stg_productos') }} pr using (producto_id)
+where p.estado in ('entregado', 'enviado')</code></pre>
+<h3>5. Tests: la definición de &quot;confiable&quot;</h3>
+<pre><code class="language-yaml">models:
+  - name: stg_pedidos
+    columns:
+      - name: pedido_id
+        tests: [unique, not_null]
+      - name: canal
+        tests:
+          - accepted_values: { values: ['web', 'app', 'tienda', 'telefono'] }
+      - name: cliente_id
+        tests:
+          - relationships: { to: ref('stg_clientes'), field: cliente_id, severity: warn }
+  - name: fct_ventas
+    tests:
+      - dbt_utils.expression_is_true: { expression: &quot;venta_neta &gt;= 0&quot; }</code></pre>
+<p>Los huérfanos (<code>cliente_id</code> que no existe) quedan como <strong>warn</strong>: se reportan en el README con su cantidad y la decisión que tomaste (excluirlos, o asignarlos a un cliente &quot;desconocido&quot;).</p>
+<pre><code class="language-bash">cd transform &amp;&amp; uv run dbt build          # corre modelos y tests en orden</code></pre>
+<h3>6. Un tablero rápido</h3>
+<pre data-norun><code class="language-python"># app.py  →  uv run streamlit run app.py
+import duckdb, streamlit as st
+con = duckdb.connect(&quot;data/ventas.duckdb&quot;, read_only=True)
+df = con.sql(&quot;select fecha, canal, sum(venta_neta) as ventas from fct_ventas group by all order by fecha&quot;).df()
+st.title(&quot;Ventas diarias&quot;)
+st.line_chart(df, x=&quot;fecha&quot;, y=&quot;ventas&quot;, color=&quot;canal&quot;)</code></pre>
+<h2>Fase 2: en Databricks Free Edition</h2>
+<ol>
+<li><strong>Catálogo y volumen</strong>: en Free Edition el catálogo por defecto es <code>workspace</code>. Crea el esquema y un volumen para los archivos crudos:<pre><code class="language-sql">CREATE SCHEMA IF NOT EXISTS workspace.ventas;
+CREATE VOLUME IF NOT EXISTS workspace.ventas.crudo;</code></pre>
+</li>
+<li><strong>Subir los CSV</strong> desde tu computadora con la CLI (o arrastrando en la interfaz del volumen):<pre><code class="language-bash">databricks fs cp -r data/raw dbfs:/Volumes/workspace/ventas/crudo/</code></pre>
+</li>
+<li><strong>Bronze</strong> con <code>read_files</code> (lee CSV, JSON o Parquet de un volumen):<pre><code class="language-sql">CREATE OR REPLACE TABLE workspace.ventas.bronze_pedidos AS
+SELECT *, current_timestamp() AS _cargado_en, _metadata.file_path AS _archivo
+FROM read_files('/Volumes/workspace/ventas/crudo/pedidos.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
+</li>
+<li><strong>dbt en Databricks</strong>: cambia el adaptador (<code>uv add dbt-databricks</code>) y el <code>profiles.yml</code> (host, <code>http_path</code> de un SQL warehouse, token o OAuth). Los modelos casi no cambian: <code>qualify</code>, <code>try_strptime</code> → <code>try_to_timestamp</code> y <code>exclude</code> → <code>except</code> son las diferencias de dialecto que vas a encontrar. Documéntalas: es un gran tema de entrevista.</li>
+<li><strong>Tablero</strong>: un tablero de AI/BI sobre <code>fct_ventas</code> y un <strong>Job</strong> programado a las 06:00 con una tarea de dbt (o un Asset Bundle, como en el proyecto 11).</li>
+</ol>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Subir el proyecto con credenciales</strong> en <code>profiles.yml</code> o en un notebook: lo primero que mira un revisor (y un bot) es eso.</li>
+<li><strong>Que funcione solo en tu máquina</strong>: sin <code>requirements.txt</code> fijo y sin instrucciones, nadie lo puede correr.</li>
+<li><strong>Modelos sin tests</strong>: un lakehouse &quot;de portafolio&quot; sin <code>unique</code> y <code>not_null</code> en las claves parece un ejercicio, no un sistema.</li>
+<li><strong>Cambiar de DuckDB a Databricks reescribiendo los modelos</strong>: la gracia es que solo cambia el perfil y el origen.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En el trabajo real, el camino &quot;probar local con DuckDB y desplegar en Databricks&quot; es cada vez más común porque abarata el desarrollo: se itera en segundos y sin cómputo en la nube.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Cuéntame un proyecto de datos que hayas construido.&quot;</div>
+
+<p>Lo contaría con situación, decisiones y resultado: armé un lakehouse de ventas con capas bronze, silver y gold modeladas en dbt, con tests de claves y relaciones y documentación. Lo desarrollé localmente con DuckDB para iterar rápido y lo desplegué en Databricks cambiando solo el perfil y las fuentes, con un job que ejecuta <code>dbt build</code>. Explicaría por qué elegí incremental para los hechos, cómo manejé los duplicados y qué mediría para monitorear frescura y calidad.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> README con problema, resultado (&quot;tablero diario en lugar de 2 días de Excel&quot;), diagrama y cómo correrlo.</li>
+<li><input disabled="" type="checkbox"> Sección <strong>Calidad de datos</strong>: cuántos duplicados, nulos, formatos, huérfanos y tardíos encontraste y qué decidiste con cada uno.</li>
+<li><input disabled="" type="checkbox"> <code>dbt build</code> en verde, con tests de unicidad, nulos, valores aceptados y relaciones.</li>
+<li><input disabled="" type="checkbox"> Captura del tablero y del job programado.</li>
+<li><input disabled="" type="checkbox"> Sección <strong>Dialectos</strong>: qué cambió de DuckDB a Databricks.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Modelos <strong>incrementales</strong> en <code>fct_ventas</code> (<code>materialized=&#39;incremental&#39;</code>, <code>unique_key</code>) con una ventana de relectura de 3 días para los datos tardíos.</li>
+<li><code>dim_cliente</code> como <strong>SCD tipo 2</strong> con <code>dbt snapshot</code> (cambios de segmento o país).</li>
+<li>Comparar el tiempo y el costo del mismo <code>dbt build</code> en DuckDB y en Databricks.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-lakehouse-de-ventas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-como-armar-tu-portafolio.html">← Cómo armar un portafolio que consigue entrevistas</a><a href="portafolio-fraude-tiempo-real.html">Proyecto 2: Detección de fraude en tiempo casi real →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

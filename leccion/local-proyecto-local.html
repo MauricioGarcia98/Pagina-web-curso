@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto: el pipeline de Rápido completo en tu computadora · Academia de Datos</title><meta name="description" content="Junta todo el módulo en un repositorio real que puedes mostrar en tu portafolio. Postgres en Docker como base de la app, una ingesta en Python a un lago local en Parquet, dbt con DuckDB para las capas, Airflow para orquestar, un Makefile con los comandos del proyecto, pruebas y GitHub Actions. Paso a paso, con la verificación de cada paso."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-proyecto-local.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto: el pipeline de Rápido completo en tu computadora · Academia de Datos"><meta property="og:description" content="Junta todo el módulo en un repositorio real que puedes mostrar en tu portafolio. Postgres en Docker como base de la app, una ingesta en Python a un lago local en Parquet, dbt con DuckDB para las capas, Airflow para orquestar, un Makefile con los comandos del proyecto, pruebas y GitHub Actions. Paso a paso, con la verificación de cada paso."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/local-proyecto-local.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#local">💻 Desde tu computadora: el entorno local paso a paso</a> · Avanzado · 120 min</div>
+<h1>Proyecto: el pipeline de Rápido completo en tu computadora</h1><p class="resumen">Junta todo el módulo en un repositorio real que puedes mostrar en tu portafolio. Postgres en Docker como base de la app, una ingesta en Python a un lago local en Parquet, dbt con DuckDB para las capas, Airflow para orquestar, un Makefile con los comandos del proyecto, pruebas y GitHub Actions. Paso a paso, con la verificación de cada paso.</p>
+<a class="cta" href="../index.html#/l/local-proyecto-local">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Estructurar un repositorio de datos completo con código, infraestructura local, pruebas y documentación</li><li>Levantar la fuente (Postgres) con Docker Compose y cargarle datos</li><li>Escribir una ingesta incremental de Postgres a Parquet y transformarla con dbt-duckdb</li><li>Orquestar ingesta, dbt y controles con un DAG de Airflow</li><li>Automatizar los comandos con un Makefile y validar cada cambio con GitHub Actions</li></ul>
+<h2>El objetivo</h2>
+<figure class="diagrama"><figcaption>El pipeline de Rápido, todo en tu máquina</figcaption></figure>
+
+
+<h2>Paso 1: el repositorio</h2>
+<pre data-norun><code class="language-bash">mkdir rapido-local &amp;&amp; cd rapido-local
+git init
+uv init --name rapido
+uv add pandas duckdb psycopg[binary] python-dotenv pyarrow dbt-duckdb
+uv add --dev ruff pytest
+mkdir -p ingesta tests dbt dags data/bronze sql</code></pre>
+<pre><code class="language-text">rapido-local/
+├── README.md                 ← qué es, diagrama, cómo levantarlo
+├── Makefile                  ← los comandos del proyecto
+├── compose.yaml              ← Postgres (la fuente)
+├── .env.example              ← variables necesarias (sin valores secretos)
+├── pyproject.toml / uv.lock
+├── sql/crear_tablas.sql      ← esquema de la base de la app
+├── ingesta/ingesta.py        ← Postgres → data/bronze/*.parquet
+├── dbt/                      ← proyecto dbt (profiles.yml de ejemplo incluido)
+├── dags/rapido_diario.py     ← el DAG de Airflow
+├── tests/                    ← pruebas de Python
+└── .github/workflows/ci.yml</code></pre>
+<h2>Paso 2: la fuente en Docker</h2>
+<pre><code class="language-yaml"># compose.yaml
+services:
+  app-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: rapido
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}     # sale de .env
+      POSTGRES_DB: app
+    ports:
+      - &quot;5432:5432&quot;
+    volumes:
+      - appdata:/var/lib/postgresql/data
+volumes:
+  appdata:</code></pre>
+<pre><code class="language-text"># .env.example   (copiar a .env y completar)
+POSTGRES_PASSWORD=
+POSTGRES_URL=postgresql://rapido:${POSTGRES_PASSWORD}@localhost:5432/app</code></pre>
+<pre data-norun><code class="language-sql">-- sql/crear_tablas.sql
+CREATE TABLE IF NOT EXISTS pedidos (
+  pedido_id      INTEGER PRIMARY KEY,
+  cliente_id     INTEGER,
+  restaurante_id INTEGER,
+  ciudad         TEXT,
+  creado         TIMESTAMP,
+  entregado      TIMESTAMP,
+  subtotal       NUMERIC(10,2),
+  estado         TEXT
+);</code></pre>
+<p>Verificación: <code>docker compose up -d</code>, <code>docker compose ps</code> (Up) y <code>psql -h localhost -U rapido -d app -c &#39;\dt&#39;</code>.</p>
+<h2>Paso 3: cargar datos de ejemplo</h2>
+<p>Exporta los pedidos de Rápido del curso a CSV (o usa los de tu propia app) y cárgalos con <code>\copy</code>:</p>
+<pre data-norun><code class="language-bash">psql -h localhost -U rapido -d app -f sql/crear_tablas.sql
+psql -h localhost -U rapido -d app -c &quot;\copy pedidos FROM 'data/semilla/pedidos.csv' WITH (FORMAT csv, HEADER)&quot;
+psql -h localhost -U rapido -d app -c &quot;SELECT estado, COUNT(*) FROM pedidos GROUP BY estado&quot;</code></pre>
+<h2>Paso 4: la ingesta incremental</h2>
+<p>La ingesta trae <strong>solo los pedidos de un día</strong> (el que le pasa Airflow) y los guarda en Parquet, en una carpeta por fecha. Si se vuelve a correr para el mismo día, <strong>sobrescribe</strong> ese archivo: es <strong>idempotente</strong> (correrla dos veces da el mismo resultado que una).</p>
+<pre data-norun><code class="language-python"># ingesta/ingesta.py
+import os
+import sys
+from pathlib import Path
+
+import pandas as pd
+import psycopg
+from dotenv import load_dotenv
+
+def extraer_dia(url: str, fecha: str) -&gt; pd.DataFrame:
+    consulta = &quot;&quot;&quot;
+        SELECT * FROM pedidos
+        WHERE creado &gt;= %(fecha)s::date AND creado &lt; %(fecha)s::date + INTERVAL '1 day'
+    &quot;&quot;&quot;
+    with psycopg.connect(url) as con:
+        return pd.read_sql(consulta, con, params={&quot;fecha&quot;: fecha})
+
+def guardar(df: pd.DataFrame, fecha: str, base: str = &quot;data/bronze/pedidos&quot;) -&gt; Path:
+    destino = Path(base) / f&quot;fecha={fecha}&quot; / &quot;pedidos.parquet&quot;
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(destino, index=False)          # sobrescribe: idempotente
+    return destino
+
+if __name__ == &quot;__main__&quot;:
+    load_dotenv()
+    fecha = sys.argv[1]                          # &quot;2024-12-01&quot;
+    df = extraer_dia(os.environ[&quot;POSTGRES_URL&quot;], fecha)
+    print(f&quot;{len(df)} pedidos → {guardar(df, fecha)}&quot;)</code></pre>
+<p>Verificación: <code>uv run python ingesta/ingesta.py 2024-12-01</code> y <code>duckdb -c &quot;SELECT COUNT(*) FROM &#39;data/bronze/pedidos/*/*.parquet&#39;&quot;</code>.</p>
+<h2>Paso 5: dbt sobre el lago local</h2>
+<p>En <code>dbt/models/staging/sources.yml</code>, la fuente apunta a los Parquet:</p>
+<pre><code class="language-yaml">version: 2
+sources:
+  - name: bronze
+    meta:
+      external_location: &quot;../data/bronze/{name}/*/*.parquet&quot;
+    tables:
+      - name: pedidos</code></pre>
+<p>Los modelos son los de la lección de dbt (<code>stg_rapido_pedidos</code>, <code>mart_tiempos_ciudad</code>) más el mart diario del proyecto final, con sus pruebas. Verificación: <code>cd dbt &amp;&amp; uv run dbt build</code> (todo en verde) y <code>duckdb rapido.duckdb -c &quot;SELECT * FROM mart_tiempos_ciudad&quot;</code>.</p>
+<h2>Paso 6: el DAG</h2>
+<pre data-norun><code class="language-python"># dags/rapido_diario.py
+from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+
+PROYECTO = &quot;/usr/local/airflow/include/rapido&quot;   # con Astro, el repo se copia en include/
+
+with DAG(&quot;rapido_diario&quot;, schedule=&quot;0 6 * * *&quot;, start_date=datetime(2024, 12, 1),
+         catchup=False, default_args={&quot;retries&quot;: 1}, tags=[&quot;rapido&quot;]) as dag:
+    ingesta = BashOperator(task_id=&quot;ingesta&quot;, bash_command=f&quot;cd {PROYECTO} &amp;&amp; python ingesta/ingesta.py {{{{ ds }}}}&quot;)
+    dbt_build = BashOperator(task_id=&quot;dbt_build&quot;, bash_command=f&quot;cd {PROYECTO}/dbt &amp;&amp; dbt build --profiles-dir .&quot;)
+    ingesta &gt;&gt; dbt_build</code></pre>
+<p>Verificación: <code>astro dev run dags test rapido_diario 2024-12-01</code>.</p>
+<h2>Paso 7: el Makefile</h2>
+<p>Un <strong>Makefile</strong> guarda los comandos del proyecto con nombres cortos. Cualquiera que clone el repo los ve todos en un solo lugar:</p>
+<pre><code class="language-makefile">.PHONY: up carga ingesta dbt test down limpiar
+
+up:          ## levanta la base de la app
+    docker compose up -d
+
+carga:       ## crea las tablas y carga los datos de ejemplo
+    psql -h localhost -U rapido -d app -f sql/crear_tablas.sql
+    psql -h localhost -U rapido -d app -c &quot;\copy pedidos FROM 'data/semilla/pedidos.csv' WITH (FORMAT csv, HEADER)&quot;
+
+ingesta:     ## ingesta de un día: make ingesta FECHA=2024-12-01
+    uv run python ingesta/ingesta.py $(FECHA)
+
+dbt:         ## construye y prueba los modelos
+    cd dbt &amp;&amp; uv run dbt build --profiles-dir .
+
+test:        ## revisa y prueba el código
+    uv run ruff check . &amp;&amp; uv run pytest -q
+
+down:        ## apaga todo (los datos quedan en el volumen)
+    docker compose down
+
+limpiar:     ## borra todo, incluidos los datos
+    docker compose down -v &amp;&amp; rm -rf data/bronze dbt/target dbt/rapido.duckdb</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Tabulaciones</div>
+
+<p>Las líneas de comandos de un Makefile empiezan con una <strong>tabulación</strong>, no con espacios. Si VS Code las convierte en espacios, <code>make</code> dice <code>missing separator</code>.</p>
+</div>
+
+
+<h2>Paso 8: pruebas y CI</h2>
+<pre data-norun><code class="language-python"># tests/test_ingesta.py
+import pandas as pd
+from ingesta.ingesta import guardar
+
+def test_guardar_es_idempotente(tmp_path):
+    df = pd.DataFrame({&quot;pedido_id&quot;: [1, 2], &quot;estado&quot;: [&quot;entregado&quot;, &quot;cancelado_cliente&quot;]})
+    p1 = guardar(df, &quot;2024-12-01&quot;, base=str(tmp_path))
+    p2 = guardar(df, &quot;2024-12-01&quot;, base=str(tmp_path))
+    assert p1 == p2
+    assert len(pd.read_parquet(p1)) == 2          # no duplicó filas</code></pre>
+<pre><code class="language-yaml"># .github/workflows/ci.yml
+name: ci
+on: [pull_request, push]
+jobs:
+  calidad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+      - run: cd dbt &amp;&amp; uv run dbt build --profiles-dir . --target ci   # dbt sobre una muestra en DuckDB</code></pre>
+<h2>Paso 9: el README</h2>
+<p>El README es lo primero que ve un reclutador. Lo mínimo:</p>
+<ol>
+<li><strong>Qué problema resuelve</strong> (dos líneas, con el negocio).</li>
+<li><strong>El diagrama</strong> de arquitectura.</li>
+<li><strong>Cómo levantarlo</strong>: <code>cp .env.example .env</code>, <code>make up carga</code>, <code>make ingesta FECHA=2024-12-01</code>, <code>make dbt</code>.</li>
+<li><strong>Decisiones</strong> que tomaste y por qué (incremental por día, Parquet, medidas aditivas, compuerta de calidad).</li>
+<li><strong>Qué sigue</strong> (la versión en la nube con Terraform, el tablero).</li>
+</ol>
+<h2>La checklist final</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>✔</th>
+<th>Criterio</th>
+</tr>
+</thead><tbody><tr>
+<td>☐</td>
+<td>Se clona y se levanta con los comandos del README en una máquina limpia</td>
+</tr>
+<tr>
+<td>☐</td>
+<td>No hay secretos en el repositorio (solo <code>.env.example</code>)</td>
+</tr>
+<tr>
+<td>☐</td>
+<td>La ingesta es incremental e idempotente</td>
+</tr>
+<tr>
+<td>☐</td>
+<td><code>dbt build</code> corre con pruebas en verde</td>
+</tr>
+<tr>
+<td>☐</td>
+<td>El DAG se probó con <code>dags test</code></td>
+</tr>
+<tr>
+<td>☐</td>
+<td>La CI corre en cada pull request</td>
+</tr>
+<tr>
+<td>☐</td>
+<td>El README explica el problema, la arquitectura y las decisiones</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>&quot;En mi máquina funciona&quot;</strong>: probaste con datos que no están en el repo o con una variable que solo existe en tu <code>.env</code>. Prueba desde un clon nuevo, siguiendo tu propio README.</li>
+<li><strong>Una ingesta que hace <code>append</code></strong>: correrla dos veces duplica los datos. Sobrescribe la partición del día.</li>
+<li><strong>El DAG con rutas de tu computadora</strong> (<code>/home/ana/...</code>): en el contenedor de Airflow no existen. Usa rutas relativas al proyecto o variables.</li>
+<li><strong>Subir <code>data/</code> o <code>rapido.duckdb</code> a Git</strong>: son artefactos; se regeneran con los comandos del Makefile.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Tu proyecto de portafolio</div>
+
+<p>En las entrevistas te van a preguntar &quot;¿qué construiste?&quot;. Un repositorio que cualquiera puede clonar y levantar con <code>make up</code>, con un README claro, pruebas y CI, vale más que diez certificados. Este es ese proyecto, con los datos de Rápido.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Este es, en miniatura, el mismo proyecto que corre en la nube en la lección del proyecto final: la fuente es una base real, el lago es un bucket, DuckDB es BigQuery o Databricks, Astro es Composer o MWAA. Si entiendes el local, entiendes el de producción.</li>
+<li>En una entrevista técnica, recorrer tu propio repositorio (estructura, una decisión de diseño, una prueba y la CI) es una de las mejores formas de demostrar experiencia práctica.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/local-proyecto-local">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="local-nube-desde-tu-compu.html">← La nube desde tu computadora: cuentas gratuitas, CLIs, credenciales seguras y Terraform</a><a href="casos-metodo.html">Cómo pensar un problema de negocio (el método) →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Migración: tu job de Spark 3.5 a Spark 4 · Academia de Datos</title><meta name="description" content="Un job de Spark 3.5 que falla al pasar a Spark 4 (o a Databricks Runtime 17.3 LTS en adelante) - conversiones inválidas y divisiones por cero que antes daban NULL en silencio y ahora son errores del modo ANSI, código con RDDs que no corre en Spark Connect ni en serverless, y un plan para migrar sin perder datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-migrar-a-spark-4.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Migración: tu job de Spark 3.5 a Spark 4 · Academia de Datos"><meta property="og:description" content="Un job de Spark 3.5 que falla al pasar a Spark 4 (o a Databricks Runtime 17.3 LTS en adelante) - conversiones inválidas y divisiones por cero que antes daban NULL en silencio y ahora son errores del modo ANSI, código con RDDs que no corre en Spark Connect ni en serverless, y un plan para migrar sin perder datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-migrar-a-spark-4.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Avanzado · 55 min</div>
+<h1>Migración: tu job de Spark 3.5 a Spark 4</h1><p class="resumen">Un job de Spark 3.5 que falla al pasar a Spark 4 (o a Databricks Runtime 17.3 LTS en adelante) - conversiones inválidas y divisiones por cero que antes daban NULL en silencio y ahora son errores del modo ANSI, código con RDDs que no corre en Spark Connect ni en serverless, y un plan para migrar sin perder datos.</p>
+<a class="cta" href="../index.html#/l/incidentes-migrar-a-spark-4">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer un error CAST_INVALID_INPUT o DIVIDE_BY_ZERO y encontrar la fila que lo causa</li><li>Corregir con try_cast y try_divide contando los valores inválidos</li><li>Reescribir código con RDDs usando DataFrames</li><li>Planificar una migración de runtime con un entorno de prueba</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El clúster de producción pasa de Databricks Runtime 16.4 LTS (Spark 3.5) a 17.3 LTS (Spark 4.0). En el entorno de prueba, el job <code>silver_lecturas</code> falla con <code>[CAST_INVALID_INPUT] The value &#39;sin lectura&#39; of the type &quot;STRING&quot; cannot be cast to &quot;DOUBLE&quot;</code>. Un compañero propone poner <code>spark.sql.ansi.enabled = false</code> y seguir. Antes de aceptarlo, hay una pregunta: ¿cuántas filas venía perdiendo el job en Spark 3.5 sin que nadie lo supiera?</p>
+</div>
+
+
+<h2>Qué cambia al pasar a Spark 4</h2>
+<p>Según la guía de migración oficial de Spark, el cambio más importante es que <code>spark.sql.ansi.enabled</code> vale <code>true</code> por defecto. Los efectos que vas a ver en un job real:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>Spark 3.5</th>
+<th>Spark 4</th>
+<th>Corrección</th>
+</tr>
+</thead><tbody><tr>
+<td><code>cast(&quot;double&quot;)</code> de <code>&quot;sin lectura&quot;</code></td>
+<td><code>NULL</code></td>
+<td>Error <code>CAST_INVALID_INPUT</code></td>
+<td><code>try_cast(&quot;double&quot;)</code> y contar los inválidos</td>
+</tr>
+<tr>
+<td><code>a / b</code> con <code>b = 0</code></td>
+<td><code>NULL</code></td>
+<td>Error <code>DIVIDE_BY_ZERO</code></td>
+<td><code>F.try_divide(a, b)</code></td>
+</tr>
+<tr>
+<td>Un entero que se desborda</td>
+<td>Un número sin sentido</td>
+<td>Error de desbordamiento</td>
+<td>Un tipo más grande (<code>bigint</code>, <code>decimal</code>) o <code>try_add</code></td>
+</tr>
+<tr>
+<td><code>df.rdd</code>, <code>sc.parallelize</code> en Spark Connect o serverless</td>
+<td>Funciona en un clúster clásico</td>
+<td>No existe</td>
+<td>Reescribir con DataFrames</td>
+</tr>
+</tbody></table></div>
+<p>El error te dice <strong>el valor</strong> que lo causó (<code>&#39;sin lectura&#39;</code>). Ese es el punto de partida para investigar: buscar en bronze cuántas filas traen valores así y desde cuándo.</p>
+<h2>Encontrar y medir antes de corregir</h2>
+<p>Antes de cambiar el código, se mide el tamaño del problema con <code>try_cast</code>, que nunca falla:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+bronze = spark.createDataFrame(
+    [(&quot;M1&quot;, &quot;12.5&quot;, &quot;2&quot;), (&quot;M2&quot;, &quot;sin lectura&quot;, &quot;1&quot;), (&quot;M3&quot;, &quot;8&quot;, &quot;0&quot;), (&quot;M4&quot;, &quot;N/A&quot;, &quot;4&quot;), (&quot;M5&quot;, &quot;3.25&quot;, &quot;1&quot;)],
+    [&quot;medidor&quot;, &quot;kwh_txt&quot;, &quot;dias_txt&quot;],
+)
+
+(bronze
+   .withColumn(&quot;kwh&quot;, F.col(&quot;kwh_txt&quot;).try_cast(&quot;double&quot;))
+   .filter(F.col(&quot;kwh_txt&quot;).isNotNull() &amp; F.col(&quot;kwh&quot;).isNull())
+   .groupBy(&quot;kwh_txt&quot;).count()
+   .show())</code></pre>
+<p>El resultado lista cada valor inválido y cuántas veces aparece. En Spark 3.5 esas filas se convertían en <code>NULL</code> y desaparecían de los promedios. Ahora sabes que no es una fila rara: es un patrón (&quot;sin lectura&quot;, &quot;N/A&quot;) que hay que tratar con una regla.</p>
+<div class="recorrido"></div>
+
+
+<h2>Practica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Código con RDDs: no corre en Spark Connect</h2>
+<p>Los RDDs son la API más antigua de Spark. Spark Connect (lo que usan Databricks Connect y el cómputo <em>serverless</em>) solo entiende DataFrames y SQL, así que <code>sc.parallelize</code>, <code>df.rdd</code> y <code>spark.sparkContext</code> fallan ahí. Además, el código con DataFrames lo optimiza Catalyst y el de RDDs no. La migración es reescribir cada <code>map</code>/<code>reduceByKey</code> como una transformación de columnas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>RDD</th>
+<th>DataFrame</th>
+</tr>
+</thead><tbody><tr>
+<td><code>rdd.map(lambda r: (r.canal, r.total))</code></td>
+<td><code>df.select(&quot;canal&quot;, &quot;total&quot;)</code></td>
+</tr>
+<tr>
+<td><code>.reduceByKey(lambda a, b: a + b)</code></td>
+<td><code>.groupBy(&quot;canal&quot;).agg(F.sum(&quot;total&quot;))</code></td>
+</tr>
+<tr>
+<td><code>.filter(lambda r: r.total &gt; 0)</code></td>
+<td><code>.filter(F.col(&quot;total&quot;) &gt; 0)</code></td>
+</tr>
+<tr>
+<td><code>.collect()</code></td>
+<td><code>.collect()</code> (igual, y con el mismo cuidado: trae todo al driver)</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+<h2>Un plan de migración de runtime</h2>
+<ol>
+<li><strong>Inventario</strong> de jobs con su dueño, su versión de runtime y si usan RDDs, UDFs de Python o librerías que tocan la JVM.</li>
+<li><strong>Entorno de prueba</strong> con el runtime nuevo y datos reales (una copia o una muestra grande de producción).</li>
+<li><strong>Correr cada job</strong> y juntar los errores: <code>CAST_INVALID_INPUT</code>, <code>DIVIDE_BY_ZERO</code>, desbordamientos, APIs que no existen.</li>
+<li><strong>Medir antes de corregir</strong>: con <code>try_cast</code>, cuántas filas inválidas hay por columna. Si son muchas, el problema está en el origen y hay que hablar con su dueño.</li>
+<li><strong>Corregir de forma explícita</strong>: <code>try_cast</code> y <code>try_divide</code> donde la regla de negocio acepta un NULL, una tabla de cuarentena donde no, y una métrica de inválidos con alerta.</li>
+<li><strong>Comparar resultados</strong>: mismas tablas de salida en los dos runtimes, comparando conteos y sumas. Las diferencias son, justamente, las filas que antes se perdían.</li>
+</ol>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>spark.sql.ansi.enabled = false</code> como solución definitiva</strong>: vuelve a perder datos en silencio. Como mucho, es un parche temporal mientras se corrige.</li>
+<li><strong><code>try_cast</code> sin contar</strong>: el job no falla, pero el problema sigue escondido. Siempre va con una métrica de inválidos.</li>
+<li><strong>Migrar el runtime directo en producción</strong>: los errores de ANSI aparecen a las 3 de la mañana.</li>
+<li><strong>Mantener código con RDDs</strong> cuando el equipo se pasa a serverless o a Databricks Connect.</li>
+<li><strong>Comparar solo que el job &quot;termina&quot;</strong>: hay que comparar los resultados con el runtime anterior.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las migraciones de runtime (por ejemplo, de una LTS a la siguiente) se planifican con meses de anticipación porque las versiones LTS tienen fecha de fin de soporte; el equipo de plataforma publica la fecha y cada equipo migra sus jobs.</li>
+<li>Muchas veces la migración destapa problemas de calidad viejos en el origen: es una oportunidad para documentarlos y agregar reglas de cuarentena.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Al actualizar a Spark 4, un job falla con CAST_INVALID_INPUT. ¿Qué haces?&quot;</div>
+
+<p>No desactivo ANSI. Primero mido: con <code>try_cast</code> cuento qué valores no se pueden convertir y cuántas filas son, para saber si es un caso aislado o un patrón del origen. Después corrijo de forma explícita: <code>try_cast</code> donde un NULL es aceptable según la regla de negocio, cuarentena donde no, y una métrica de inválidos con alerta. Comparo los resultados con el runtime anterior; la diferencia son las filas que antes se perdían en silencio, y lo informo al dueño del dato.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-migrar-a-spark-4">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-migrar-a-airflow-3.html">← Migración: tu DAG de Airflow 2 a Airflow 3</a><a href="incidentes-simulacro-de-guardia.html">Simulacro de guardia - cinco alertas a la vez y el postmortem →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

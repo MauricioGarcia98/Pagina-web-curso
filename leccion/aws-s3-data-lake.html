@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S3, construir un data lake · Academia de Datos</title><meta name="description" content="Buckets, objetos y prefijos; capas bronze, silver y gold; particiones estilo Hive; aws s3 mb, cp, sync, ls y rm; clases de almacenamiento, versionado, ciclo de vida y seguridad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-s3-data-lake.html">
+<meta property="og:type" content="article"><meta property="og:title" content="S3, construir un data lake · Academia de Datos"><meta property="og:description" content="Buckets, objetos y prefijos; capas bronze, silver y gold; particiones estilo Hive; aws s3 mb, cp, sync, ls y rm; clases de almacenamiento, versionado, ciclo de vida y seguridad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-s3-data-lake.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#aws">🟧 AWS para Data Engineers</a> · Intermedio · 40 min</div>
+<h1>S3, construir un data lake</h1><p class="resumen">Buckets, objetos y prefijos; capas bronze, silver y gold; particiones estilo Hive; aws s3 mb, cp, sync, ls y rm; clases de almacenamiento, versionado, ciclo de vida y seguridad.</p>
+<a class="cta" href="../index.html#/l/aws-s3-data-lake">▶ Abrir la lección interactiva (10 ejercicios)</a>
+
+<h2>Qué es S3</h2>
+<p><strong>Amazon S3</strong> (<em>Simple Storage Service</em>) guarda <strong>objetos</strong> (archivos) dentro de <strong>buckets</strong> (contenedores). Es prácticamente infinito, muy durable (11 nueves: 99,999999999 %) y barato. En AWS, <strong>el data lake es S3</strong>.</p>
+<pre><code class="language-text">s3://lake-tienda-dev/bronze/ventas/anio=2024/mes=12/ventas_2024_12.csv
+     └──── bucket ───┘└──────────────────── key (clave) ─────────────────┘</code></pre>
+<div class="callout callout-analogia"><div class="callout-title">🧠 No hay carpetas, hay etiquetas largas</div>
+
+<p>S3 no tiene carpetas de verdad: cada objeto tiene una <strong>clave</strong> larga como <code>bronze/ventas/anio=2024/mes=12/archivo.csv</code>. La consola y la CLI muestran las barras como si fueran carpetas (los llaman <strong>prefijos</strong>), pero en el fondo es un enorme diccionario <code>clave → archivo</code>. Por eso &quot;renombrar una carpeta&quot; en S3 significa copiar y borrar cada objeto.</p>
+</div>
+
+
+<h3>Reglas de los nombres de bucket</h3>
+<ul>
+<li>Únicos <strong>en todo el mundo</strong> (no solo en tu cuenta): <code>datos</code> ya está tomado; usa <code>lake-tienda-dev-123456789012</code>.</li>
+<li>De 3 a 63 caracteres, minúsculas, números, puntos y guiones. Sin mayúsculas ni guion bajo.</li>
+</ul>
+<h2>Organizar el lago: capas y particiones</h2>
+<pre><code class="language-text">s3://lake-tienda-dev/
+├── landing/            ← llega tal cual de la fuente (temporal)
+├── bronze/             ← copia cruda e inmutable, con fecha de carga
+│   └── ventas/anio=2024/mes=12/ventas_2024_12.csv
+├── silver/             ← limpio, tipado, deduplicado, en Parquet/Delta/Iceberg
+│   └── ventas/anio=2024/mes=12/part-0000.parquet
+└── gold/               ← tablas de negocio listas para BI
+    └── ventas_por_canal/</code></pre>
+<p>Las carpetas <code>anio=2024/mes=12</code> siguen el estilo <strong>Hive</strong>: <code>columna=valor</code>. Athena, Glue, Spark y Redshift Spectrum entienden ese formato y lo usan para <strong>saltarse</strong> las particiones que no necesitas (<em>partition pruning</em>).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Por qué columnas y no solo &quot;2024/12&quot;?</div>
+
+<p>Con <code>anio=2024/mes=12</code> el motor sabe que la carpeta corresponde a la columna <code>anio</code> con valor <code>2024</code>. Una consulta con <code>WHERE anio = 2024 AND mes = 12</code> lee <strong>una sola carpeta</strong> en lugar de todo el histórico.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El problema de los archivos chiquitos</div>
+
+<p>Millones de archivos de 10 KB hacen todo lento y caro: S3 cobra por petición y los motores tardan en listar. Apunta a archivos de <strong>128 MB a 1 GB</strong> en silver y gold, y compacta periódicamente.</p>
+</div>
+
+
+<h2>Los comandos de <code>aws s3</code></h2>
+<pre data-norun><code class="language-bash">aws s3 mb s3://lake-tienda-dev                       # make bucket: crear
+aws s3 ls                                            # listar buckets
+aws s3 ls s3://lake-tienda-dev/bronze/               # listar un prefijo
+aws s3 ls s3://lake-tienda-dev --recursive --summarize
+aws s3 cp datos/clientes.csv s3://lake-tienda-dev/bronze/clientes/         # subir un archivo
+aws s3 cp s3://lake-tienda-dev/bronze/clientes/clientes.csv ./copia.csv    # bajar
+aws s3 cp datos/ s3://lake-tienda-dev/landing/ --recursive                 # subir una carpeta
+aws s3 sync datos/ s3://lake-tienda-dev/landing/     # sincronizar: sube solo lo nuevo o cambiado
+aws s3 mv s3://lake-tienda-dev/landing/a.csv s3://lake-tienda-dev/bronze/a.csv
+aws s3 rm s3://lake-tienda-dev/landing/ --recursive  # borrar un prefijo
+aws s3 rb s3://lake-tienda-dev                       # remove bucket (debe estar vacío, o --force)
+aws s3 presign s3://lake-tienda-dev/gold/reporte.csv --expires-in 3600  # link temporal para compartir</code></pre>
+<h3>Laboratorio: tu primer lago</h3>
+<p>Abre la terminal con el botón <strong>⌨ En la terminal</strong> (es la misma máquina que el laboratorio: los archivos de <code>datos/</code> ya están ahí). Si antes no configuraste credenciales, empieza por <code>aws configure</code>.</p>
+<pre><code class="language-bash">aws configure
+aws s3 mb s3://lake-tienda-dev
+aws s3 cp datos/ventas_2024_12.csv s3://lake-tienda-dev/bronze/ventas/anio=2024/mes=12/
+aws s3 cp datos/clientes.csv s3://lake-tienda-dev/bronze/clientes/
+aws s3 ls s3://lake-tienda-dev/bronze/
+aws s3 ls s3://lake-tienda-dev --recursive --summarize</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>La API de bajo nivel: <code>aws s3api</code></h2>
+<p><code>aws s3</code> son atajos amigables. <code>aws s3api</code> expone cada operación de la API, con salida JSON y <code>--query</code>:</p>
+<pre data-norun><code class="language-bash">aws s3api list-buckets --query &quot;Buckets[].Name&quot; --output text
+aws s3api list-objects-v2 --bucket lake-tienda-dev --prefix bronze/ --query &quot;Contents[].Key&quot;
+aws s3api put-bucket-versioning --bucket lake-tienda-dev --versioning-configuration Status=Enabled
+aws s3api put-public-access-block --bucket lake-tienda-dev \
+  --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true</code></pre>
+<h2>Costo, durabilidad y seguridad</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tema</th>
+<th>Qué hacer</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Clases de almacenamiento</strong></td>
+<td><code>STANDARD</code> para lo que se usa seguido; <code>STANDARD_IA</code> para lo que se lee poco; <code>GLACIER</code> / <code>DEEP_ARCHIVE</code> para archivo histórico (barato de guardar, lento y caro de leer). <code>INTELLIGENT_TIERING</code> mueve solo</td>
+</tr>
+<tr>
+<td><strong>Ciclo de vida</strong> (<em>lifecycle</em>)</td>
+<td>Reglas automáticas: &quot;<code>landing/</code> se borra a los 7 días&quot;, &quot;<code>bronze/</code> pasa a Glacier a los 180 días&quot;</td>
+</tr>
+<tr>
+<td><strong>Versionado</strong></td>
+<td>Guarda versiones anteriores: te salva de un borrado o una sobrescritura accidental</td>
+</tr>
+<tr>
+<td><strong>Cifrado</strong></td>
+<td>Activado por defecto (SSE-S3). Con datos sensibles, SSE-KMS con tu propia llave</td>
+</tr>
+<tr>
+<td><strong>Acceso público</strong></td>
+<td><strong>Bloqueado</strong> siempre en un data lake (<em>Block Public Access</em>)</td>
+</tr>
+<tr>
+<td><strong>Permisos</strong></td>
+<td>Políticas de IAM por rol y prefijo; políticas de bucket; Lake Formation para tablas</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-json">{
+  &quot;Rules&quot;: [
+    { &quot;ID&quot;: &quot;limpiar-landing&quot;, &quot;Filter&quot;: { &quot;Prefix&quot;: &quot;landing/&quot; }, &quot;Status&quot;: &quot;Enabled&quot;,
+      &quot;Expiration&quot;: { &quot;Days&quot;: 7 } },
+    { &quot;ID&quot;: &quot;bronze-a-glacier&quot;, &quot;Filter&quot;: { &quot;Prefix&quot;: &quot;bronze/&quot; }, &quot;Status&quot;: &quot;Enabled&quot;,
+      &quot;Transitions&quot;: [ { &quot;Days&quot;: 180, &quot;StorageClass&quot;: &quot;GLACIER&quot; } ] }
+  ]
+}</code></pre>
+<div class="callout callout-experto"><div class="callout-title">🚀 Formatos de tabla abiertos: Iceberg, Delta y Hudi</div>
+
+<p>Parquet guarda datos, pero no sabe de transacciones. <strong>Apache Iceberg</strong> (muy usado en AWS: Athena, Glue y EMR lo soportan nativamente, y existen las <strong>S3 Tables</strong>), <strong>Delta Lake</strong> y <strong>Hudi</strong> agregan una capa de metadatos encima: <code>MERGE</code>, <code>UPDATE</code>, <code>DELETE</code>, <em>time travel</em> y evolución de esquema sobre S3. Es la base del <em>lakehouse</em>.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/aws-s3-data-lake">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="aws-cli-iam.html">← AWS CLI e IAM, quién puede hacer qué</a><a href="aws-glue.html">Glue, catálogo, crawlers y jobs de Spark →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

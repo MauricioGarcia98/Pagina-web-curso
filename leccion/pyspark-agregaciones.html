@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>groupBy, agg, pivot y rollup · Academia de Datos</title><meta name="description" content="Agregar datos por grupos con varias métricas, pivotear y subtotales."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-agregaciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="groupBy, agg, pivot y rollup · Academia de Datos"><meta property="og:description" content="Agregar datos por grupos con varias métricas, pivotear y subtotales."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pyspark-agregaciones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pyspark">🔥 PySpark</a> · Intermedio · 40 min</div>
+<h1>groupBy, agg, pivot y rollup</h1><p class="resumen">Agregar datos por grupos con varias métricas, pivotear y subtotales.</p>
+<a class="cta" href="../index.html#/l/pyspark-agregaciones">▶ Abrir la lección interactiva (4 ejercicios)</a>
+
+<h2>Resumir datos por grupos</h2>
+<p>Agrupar y resumir es el corazón del análisis: ventas por mes, clientes por país, ticket promedio por canal. En SQL lo hiciste con <code>GROUP BY</code> y funciones de agregación; en PySpark es la pareja <strong><code>groupBy</code> + <code>agg</code></strong>. Las ideas son idénticas, incluida la regla de oro: el resultado tiene <strong>una fila por grupo</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>SQL</th>
+<th>PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td><code>GROUP BY marca</code></td>
+<td><code>.groupBy(&quot;marca&quot;)</code></td>
+</tr>
+<tr>
+<td><code>COUNT(*) AS productos</code></td>
+<td><code>F.count(&quot;*&quot;).alias(&quot;productos&quot;)</code></td>
+</tr>
+<tr>
+<td><code>AVG(precio)</code></td>
+<td><code>F.avg(&quot;precio&quot;)</code></td>
+</tr>
+<tr>
+<td><code>COUNT(DISTINCT x)</code></td>
+<td><code>F.countDistinct(&quot;x&quot;)</code></td>
+</tr>
+<tr>
+<td><code>HAVING COUNT(*) &gt; 10</code></td>
+<td><code>.filter(F.col(&quot;n&quot;) &gt; 10)</code> <strong>después</strong> del <code>agg</code></td>
+</tr>
+<tr>
+<td><code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code></td>
+<td><code>F.sum(F.when(…, 1).otherwise(0))</code></td>
+</tr>
+</tbody></table></div>
+<h2>groupBy + agg</h2>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;productos&quot;)
+   .groupBy(&quot;marca&quot;)
+   .agg(
+       F.count(&quot;*&quot;).alias(&quot;productos&quot;),
+       F.round(F.avg(&quot;precio&quot;), 2).alias(&quot;precio_promedio&quot;),
+       F.min(&quot;precio&quot;).alias(&quot;minimo&quot;),
+       F.max(&quot;precio&quot;).alias(&quot;maximo&quot;),
+       F.sum(&quot;stock&quot;).alias(&quot;stock_total&quot;),
+       F.countDistinct(&quot;categoria_id&quot;).alias(&quot;categorias&quot;),
+   )
+   .orderBy(F.desc(&quot;productos&quot;))
+   .show(10))</code></pre>
+<p>Cómo leerlo:</p>
+<ol>
+<li><code>groupBy(&quot;marca&quot;)</code> reparte las filas en grupos, uno por marca. Por sí solo <strong>no</strong> produce un DataFrame que puedas mostrar: es un objeto intermedio que espera saber <strong>qué calcular</strong>.</li>
+<li><code>agg(...)</code> recibe una o más agregaciones; cada una con su <code>.alias</code>, porque si no el nombre sería <code>avg(precio)</code>.</li>
+<li>El resultado tiene la columna de agrupación (<code>marca</code>) más una columna por agregación.</li>
+</ol>
+<p>Puedes agrupar por varias columnas (<code>groupBy(&quot;pais&quot;, &quot;segmento&quot;)</code>) o por expresiones (<code>groupBy(F.year(&quot;fecha_pedido&quot;).alias(&quot;anio&quot;))</code>).</p>
+<h3>Atajos</h3>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+spark.table(&quot;pedidos&quot;).groupBy(&quot;canal&quot;).count().show()                      # una columna &quot;count&quot;
+spark.table(&quot;productos&quot;).groupBy(&quot;marca&quot;).max(&quot;precio&quot;).show(3)             # max(precio)
+spark.table(&quot;productos&quot;).agg(F.max(&quot;precio&quot;), F.min(&quot;precio&quot;)).show()       # sin agrupar: una sola fila</code></pre>
+<p><code>groupBy(...).count()</code> es el atajo más usado; para todo lo demás, <code>agg</code> con alias es más claro.</p>
+<h3>HAVING en PySpark</h3>
+<p>No hay un método especial: simplemente <strong>filtras después</strong> del <code>agg</code>, porque a esa altura cada fila ya es un grupo:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;pedidos&quot;)
+   .groupBy(&quot;cliente_id&quot;)
+   .agg(F.count(&quot;*&quot;).alias(&quot;n&quot;))
+   .filter(F.col(&quot;n&quot;) &gt; 20)          # = HAVING COUNT(*) &gt; 20
+   .orderBy(F.desc(&quot;n&quot;))
+   .show(5))</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Agregaciones condicionales</h2>
+<p>Igual que en SQL, puedes contar o sumar <strong>solo</strong> lo que cumple una condición, combinando <code>F.when</code> dentro de la agregación:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;pedidos&quot;)
+   .groupBy(&quot;canal&quot;)
+   .agg(
+       F.count(&quot;*&quot;).alias(&quot;total&quot;),
+       F.sum(F.when(F.col(&quot;estado&quot;) == &quot;cancelado&quot;, 1).otherwise(0)).alias(&quot;cancelados&quot;),
+       F.round(F.avg(F.when(F.col(&quot;estado&quot;) == &quot;devuelto&quot;, 1).otherwise(0)) * 100, 2).alias(&quot;pct_devueltos&quot;),
+   )
+   .show())</code></pre>
+<pre><code class="language-text">+--------+-----+----------+-------------+
+|   canal|total|cancelados|pct_devueltos|
++--------+-----+----------+-------------+
+|     app| 2973|       266|         4.27|
+|telefono|  982|        73|         4.07|
+|  tienda| 2645|       207|         4.73|
+|     web| 5400|       421|         3.96|</code></pre>
+<p>Fíjate en el truco de <code>pct_devueltos</code>: el <strong>promedio</strong> de una columna de unos y ceros es directamente la <strong>proporción</strong> de unos. <code>avg(1, 0, 0, 1)</code> = 0,5 = 50 %. Es una forma elegante de calcular tasas.</p>
+<h2>collect_list y collect_set: juntar valores en un array</h2>
+<p>A veces no quieres un número por grupo, sino <strong>la lista</strong> de valores:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;pedidos&quot;)
+   .filter(F.col(&quot;cliente_id&quot;) &lt;= 3)
+   .groupBy(&quot;cliente_id&quot;)
+   .agg(F.collect_set(&quot;canal&quot;).alias(&quot;canales&quot;), F.count(&quot;*&quot;).alias(&quot;pedidos&quot;))
+   .show(truncate=False))</code></pre>
+<ul>
+<li><code>collect_list</code> junta <strong>todos</strong> los valores (con repetidos).</li>
+<li><code>collect_set</code> junta los valores <strong>distintos</strong>.</li>
+</ul>
+<p>Usos: &quot;¿por qué canales compró cada cliente?&quot;, &quot;los productos de cada pedido en una sola fila&quot;. El orden dentro del array no está garantizado. Cuidado con grupos enormes: todo el array de un grupo tiene que entrar en la memoria de una máquina.</p>
+<h2>pivot: valores convertidos en columnas</h2>
+<p><code>pivot</code> hace en un paso lo que en SQL requiere un <code>SUM(CASE WHEN …)</code> por cada valor: convierte los valores de una columna en <strong>columnas</strong>.</p>
+<pre><code class="language-python">(spark.table(&quot;pedidos&quot;)
+   .groupBy(&quot;canal&quot;)
+   .pivot(&quot;estado&quot;, [&quot;entregado&quot;, &quot;enviado&quot;, &quot;pendiente&quot;, &quot;cancelado&quot;, &quot;devuelto&quot;])
+   .count()
+   .show())</code></pre>
+<pre><code class="language-text">+--------+---------+-------+---------+---------+--------+
+|   canal|entregado|enviado|pendiente|cancelado|devuelto|
++--------+---------+-------+---------+---------+--------+
+|     app|     2261|    …  |    …    |      266|     127|</code></pre>
+<p>La estructura es siempre: <code>groupBy(filas)</code> → <code>pivot(columna_que_se_vuelve_columnas)</code> → la agregación de cada celda (<code>count()</code>, <code>sum(&quot;monto&quot;)</code>, <code>agg(...)</code>).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Pasa los valores a pivot</div>
+
+<p>Si indicas la lista de valores (<code>pivot(&quot;estado&quot;, [...])</code>), Spark no tiene que hacer una pasada extra por los datos para descubrirlos: es más rápido y el orden de las columnas queda fijo. Sin la lista, también funciona.</p>
+</div>
+
+
+<h2>rollup y cube: subtotales</h2>
+<p>Los reportes suelen mostrar subtotales: por país y segmento, el total de cada país, y el total general. <code>rollup</code> los calcula en una sola operación:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+(spark.table(&quot;clientes&quot;)
+   .rollup(&quot;pais&quot;, &quot;segmento&quot;)
+   .agg(F.count(&quot;*&quot;).alias(&quot;clientes&quot;))
+   .orderBy(&quot;pais&quot;, &quot;segmento&quot;)
+   .show(12))</code></pre>
+<p><code>rollup(&quot;pais&quot;, &quot;segmento&quot;)</code> produce:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Nivel</th>
+<th><code>pais</code></th>
+<th><code>segmento</code></th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td>Detalle</td>
+<td>Chile</td>
+<td>Pyme</td>
+<td>Clientes Pyme de Chile</td>
+</tr>
+<tr>
+<td>Subtotal</td>
+<td>Chile</td>
+<td><code>NULL</code></td>
+<td>Todos los clientes de Chile</td>
+</tr>
+<tr>
+<td>Total general</td>
+<td><code>NULL</code></td>
+<td><code>NULL</code></td>
+<td>Los 2.000 clientes</td>
+</tr>
+</tbody></table></div>
+<p>Los <code>NULL</code> marcan &quot;todos&quot;. (Si tus datos ya tenían nulos en esas columnas, <code>F.grouping(&quot;pais&quot;)</code> distingue un nulo &quot;real&quot; de uno de subtotal.) <code>cube</code> es parecido pero calcula <strong>todas</strong> las combinaciones, incluidos los totales por segmento sin país.</p>
+<div class="callout callout-experto"><div class="callout-title">🚀 groupBy y el shuffle</div>
+
+<p>Agrupar en un cluster obliga a <strong>mover</strong> datos: todas las filas de &quot;Chile&quot; tienen que terminar en la misma máquina para sumarlas. Ese movimiento se llama <strong>shuffle</strong> y es la operación más cara de Spark (lo viste en el módulo de Spark). Spark lo hace en dos fases: primero agrega parcialmente en cada máquina y recién después mueve esos resultados parciales, mucho más chicos. Por eso agrupar suele ser eficiente, salvo con <code>collect_list</code> sobre grupos enormes o claves muy desbalanceadas (<em>skew</em>).</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>groupBy(cols).agg(F.func(...).alias(...), …)</code>: una fila por grupo, una columna por métrica.</li>
+<li><code>HAVING</code> = <code>filter</code> después del <code>agg</code>.</li>
+<li>Agregación condicional: <code>F.sum(F.when(cond, 1).otherwise(0))</code>; el <code>avg</code> de unos y ceros es una proporción.</li>
+<li><code>collect_list</code>/<code>collect_set</code> juntan valores en arrays.</li>
+<li><code>pivot</code> convierte valores en columnas (pasa la lista de valores); <code>rollup</code>/<code>cube</code> agregan subtotales.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pyspark-agregaciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-funciones.html">← Funciones: texto, fechas, condiciones y nulos</a><a href="pyspark-joins.html">Joins en PySpark →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

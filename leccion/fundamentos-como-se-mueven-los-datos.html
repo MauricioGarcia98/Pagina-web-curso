@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cómo se mueven los datos - batch, streaming, ETL, ELT y orquestación · Academia de Datos</title><meta name="description" content="La segunda profundización del viaje. Cómo se extraen los datos (completos, incrementales o por captura de cambios), cuándo conviene procesar por lotes y cuándo en tiempo real, por qué hoy se hace ELT en lugar de ETL, y qué hace un orquestador como Airflow. Con dos recorridos animados - una noche en la vida de un pipeline batch y un pago sospechoso detectado en dos segundos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-como-se-mueven-los-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cómo se mueven los datos - batch, streaming, ETL, ELT y orquestación · Academia de Datos"><meta property="og:description" content="La segunda profundización del viaje. Cómo se extraen los datos (completos, incrementales o por captura de cambios), cuándo conviene procesar por lotes y cuándo en tiempo real, por qué hoy se hace ELT en lugar de ETL, y qué hace un orquestador como Airflow. Con dos recorridos animados - una noche en la vida de un pipeline batch y un pago sospechoso detectado en dos segundos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-como-se-mueven-los-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fundamentos">🧱 Fundamentos</a> · Básico · 40 min</div>
+<h1>Cómo se mueven los datos - batch, streaming, ETL, ELT y orquestación</h1><p class="resumen">La segunda profundización del viaje. Cómo se extraen los datos (completos, incrementales o por captura de cambios), cuándo conviene procesar por lotes y cuándo en tiempo real, por qué hoy se hace ELT en lugar de ETL, y qué hace un orquestador como Airflow. Con dos recorridos animados - una noche en la vida de un pipeline batch y un pago sospechoso detectado en dos segundos.</p>
+<a class="cta" href="../index.html#/l/fundamentos-como-se-mueven-los-datos">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diferenciar una extracción completa, una incremental y una por captura de cambios (CDC)</li><li>Elegir entre batch y streaming según el costo de esperar</li><li>Explicar la diferencia entre ETL y ELT y por qué ELT es lo más común</li><li>Describir qué es un DAG y qué hace un orquestador</li><li>Escribir una extracción incremental simple con SQL</li></ul>
+<h2>La idea en una frase</h2>
+<p>Mover datos es decidir <strong>qué</strong> copiar (todo o solo lo nuevo), <strong>cada cuánto</strong> (de a lotes o al instante), <strong>dónde transformar</strong> (antes o después de cargar) y <strong>quién coordina</strong> que cada paso ocurra en orden.</p>
+<h2>Extraer: todo, lo nuevo o los cambios</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Cómo funciona</th>
+<th>Ventaja</th>
+<th>Problema</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Completa</strong> (full)</td>
+<td>Copiar la tabla entera cada vez</td>
+<td>Simple y siempre correcta</td>
+<td>Lenta y cara con tablas grandes</td>
+</tr>
+<tr>
+<td><strong>Incremental</strong></td>
+<td>Copiar solo las filas con fecha mayor a la última copiada (la <strong>marca de agua</strong>)</td>
+<td>Rápida</td>
+<td>No ve los borrados; los datos tardíos pueden perderse</td>
+</tr>
+<tr>
+<td><strong>CDC</strong> (captura de cambios)</td>
+<td>Leer el registro interno de cambios de la base y copiar cada INSERT, UPDATE y DELETE</td>
+<td>Completa y casi en tiempo real; no carga la base</td>
+<td>Más compleja de operar (Debezium, Datastream, DMS, Fivetran)</td>
+</tr>
+</tbody></table></div>
+<h2>Batch o streaming: ¿cuánto cuesta esperar?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Batch (por lotes)</th>
+<th>Streaming (tiempo real)</th>
+</tr>
+</thead><tbody><tr>
+<td>Cada cuánto</td>
+<td>Cada hora, cada día</td>
+<td>Cada evento, en segundos</td>
+</tr>
+<tr>
+<td>Ejemplo</td>
+<td>Ventas de ayer para el tablero de las 8:00</td>
+<td>Bloquear un pago fraudulento antes de aprobarlo</td>
+</tr>
+<tr>
+<td>Costo y complejidad</td>
+<td>Bajos</td>
+<td>Altos: el sistema está siempre encendido</td>
+</tr>
+<tr>
+<td>Herramientas</td>
+<td>Spark, dbt, SQL + Airflow</td>
+<td>Kafka, Flink, Spark Structured Streaming, Dataflow</td>
+</tr>
+</tbody></table></div>
+<p>La pregunta clave no es &quot;¿se puede en tiempo real?&quot; (casi siempre se puede) sino <strong>&quot;¿cuánto dinero se pierde por esperar una hora?&quot;</strong>. Para un tablero de ventas, nada. Para un fraude con tarjeta, todo.</p>
+<h2>Una noche en la vida de un pipeline batch</h2>
+<div class="recorrido"></div>
+
+
+<h2>Un pago sospechoso en dos segundos</h2>
+<div class="recorrido"></div>
+
+
+<h2>ETL o ELT</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>ETL (antes)</th>
+<th>ELT (hoy)</th>
+</tr>
+</thead><tbody><tr>
+<td>Orden</td>
+<td>Extraer → <strong>Transformar</strong> en un servidor aparte → Cargar</td>
+<td>Extraer → <strong>Cargar</strong> crudo → Transformar dentro del warehouse o lakehouse</td>
+</tr>
+<tr>
+<td>Dónde se transforma</td>
+<td>Una herramienta ETL (Informatica, SSIS, Talend)</td>
+<td>El propio motor (SQL con dbt, Spark en Databricks)</td>
+</tr>
+<tr>
+<td>Datos crudos</td>
+<td>Se descartan después de transformar</td>
+<td>Quedan en bronze para reprocesar</td>
+</tr>
+<tr>
+<td>Por qué cambió</td>
+<td>El almacenamiento era caro y los warehouses, lentos</td>
+<td>El almacenamiento en la nube es barato y los motores escalan</td>
+</tr>
+</tbody></table></div>
+<h2>El orquestador</h2>
+<p>Un <strong>orquestador</strong> (Airflow, Dagster, Prefect, los Jobs de Databricks, Azure Data Factory) se encarga de:</p>
+<ul>
+<li><strong>Cuándo</strong>: ejecutar cada pipeline a su hora o cuando llega un archivo.</li>
+<li><strong>En qué orden</strong>: el DAG define que transformar va después de extraer.</li>
+<li><strong>Qué hacer si falla</strong>: reintentar, avisar, no ejecutar lo que depende del paso fallido.</li>
+<li><strong>Historia</strong>: qué corrió, cuánto tardó, qué falló, con sus logs.</li>
+</ul>
+<figure class="diagrama"><figcaption>Un DAG - si un paso falla, lo que depende de él no corre</figcaption></figure>
+
+
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Streaming porque &quot;suena moderno&quot;</strong>: cuesta más y es más difícil de operar. Si nadie actúa en segundos, alcanza con batch.</li>
+<li><strong>Incremental sin pensar en los datos tardíos</strong>: un pedido que llega con fecha de ayer después de la extracción se pierde (lo resuelve una ventana de relectura; lo ves en el módulo de Guardia).</li>
+<li><strong>Cargas que agregan filas sin control</strong>: el primer reintento duplica todo. Las cargas deben ser idempotentes.</li>
+<li><strong>Pipelines sin orquestador</strong> (un cron por script): nadie sabe qué depende de qué ni qué falló anoche.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Dos pedidos, dos pipelines</div>
+
+<p>Ahora que conoces batch y streaming, mira cómo aparecen en el trabajo diario. Dos pedidos llegan el mismo día al equipo de datos. Finanzas quiere <em>&quot;las ventas de ayer, todos los días a las 8:00&quot;</em>. Prevención de fraude quiere <em>&quot;saber si un pago es sospechoso <strong>antes</strong> de aprobarlo&quot;</em>.</p>
+<p>Usan los mismos datos de pagos, pero necesitan pipelines distintos: el primero es un proceso <strong>batch</strong> que corre una vez por día; el segundo necesita <strong>streaming</strong>, porque la respuesta sirve solo si llega en segundos.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Decisión</th>
+<th>Opciones</th>
+<th>Criterio</th>
+</tr>
+</thead><tbody><tr>
+<td>Qué extraer</td>
+<td>Completo, incremental, CDC</td>
+<td>Tamaño de la tabla, si hay borrados, latencia necesaria</td>
+</tr>
+<tr>
+<td>Cada cuánto</td>
+<td>Batch, streaming</td>
+<td>Cuánto cuesta esperar</td>
+</tr>
+<tr>
+<td>Dónde transformar</td>
+<td>ETL, ELT</td>
+<td>Hoy casi siempre ELT: crudo en bronze y transformación en el motor</td>
+</tr>
+<tr>
+<td>Quién coordina</td>
+<td>Airflow, Dagster, Jobs de Databricks, ADF</td>
+<td>Dependencias, horarios, reintentos, alertas</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fundamentos-como-se-mueven-los-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-donde-viven-los-datos.html">← Dónde viven los datos - bases, lagos, warehouses y lakehouses</a><a href="fundamentos-quien-usa-los-datos.html">Quién usa los datos y cómo se cuidan - calidad, linaje y privacidad →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 3: Mantenimiento predictivo con sensores IoT y MLflow · Academia de Datos</title><meta name="description" content="Lecturas horarias de temperatura, vibración y presión de máquinas industriales, con huecos de conectividad, deriva y fallas registradas. Construyes features por ventana de tiempo, etiquetas &quot;falla en las próximas 24 horas&quot; sin fuga de información, entrenas y registras un modelo con MLflow, y lo programas para puntuar cada hora. Valor - pasar de reparar después de la falla a intervenir antes."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-mantenimiento-predictivo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 3: Mantenimiento predictivo con sensores IoT y MLflow · Academia de Datos"><meta property="og:description" content="Lecturas horarias de temperatura, vibración y presión de máquinas industriales, con huecos de conectividad, deriva y fallas registradas. Construyes features por ventana de tiempo, etiquetas &quot;falla en las próximas 24 horas&quot; sin fuga de información, entrenas y registras un modelo con MLflow, y lo programas para puntuar cada hora. Valor - pasar de reparar después de la falla a intervenir antes."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/portafolio-mantenimiento-predictivo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#portafolio">🚀 Proyectos de portafolio: de tu PC a Azure, Databricks e IA</a> · Experto · 120 min</div>
+<h1>Proyecto 3: Mantenimiento predictivo con sensores IoT y MLflow</h1><p class="resumen">Lecturas horarias de temperatura, vibración y presión de máquinas industriales, con huecos de conectividad, deriva y fallas registradas. Construyes features por ventana de tiempo, etiquetas &quot;falla en las próximas 24 horas&quot; sin fuga de información, entrenas y registras un modelo con MLflow, y lo programas para puntuar cada hora. Valor - pasar de reparar después de la falla a intervenir antes.</p>
+<a class="cta" href="../index.html#/l/portafolio-mantenimiento-predictivo">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Detectar huecos y anomalías en series de tiempo con SQL</li><li>Construir features con ventanas móviles (media, desvío, tendencia)</li><li>Etiquetar &quot;falla en las próximas N horas&quot; sin fuga de información del futuro</li><li>Entrenar, comparar y registrar modelos con MLflow</li><li>Diseñar la puntuación periódica y su monitoreo</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Una planta con 40 máquinas tiene, en promedio, una falla por máquina cada dos meses. Cada falla imprevista detiene la línea 12 horas. El jefe de mantenimiento pregunta: &quot;si me avisan con 24 horas, puedo cambiar el rodamiento en el turno de noche. ¿Se puede?&quot;. Los sensores ya miden; nadie mira los datos.</p>
+</div>
+
+
+<h2>Valor</h2>
+<p>Cada falla anticipada ahorra la parada no planificada (12 h) a cambio de una intervención planificada (2 h). La métrica que importa es <strong>cuántas fallas se anticipan</strong> y <strong>cuántas intervenciones innecesarias</strong> genera el modelo, no la exactitud.</p>
+<h2>Los datos</h2>
+<p><a href="#/generador?esc=iot&n=40&semilla=11&desde=2024-01-01&hasta=2024-12-31&nulos=2&atipicos=1&tardios=2">🏭 Generar los datos del proyecto</a> · Escenario <strong>Sensores industriales</strong>: <code>plantas</code>, <code>dispositivos</code>, <code>lecturas</code> (una por hora y dispositivo, con huecos) y <code>fallas</code>. Antes de cada falla, la temperatura y la vibración derivan durante unas 48 horas.</p>
+<pre><code class="language-bash">generar-datos iot --filas 6 --semilla 11
+duckdb -c &quot;SELECT estado, COUNT(*), ROUND(AVG(vibracion_mm_s),2) FROM '~/datos/generados/iot/lecturas.csv' GROUP BY estado&quot;</code></pre>
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Mantenimiento predictivo</figcaption></figure>
+
+
+<h2>Fase 1: entender la serie (local, DuckDB)</h2>
+<ol>
+<li><strong>Huecos</strong>: genera la serie esperada de horas por dispositivo y compárala con las lecturas. Un hueco de 18 horas en una máquina que después falla es información.</li>
+<li><strong>Ciclo diario</strong>: la temperatura sube de día. Sin quitar ese ciclo, el modelo confunde &quot;son las 15:00&quot; con &quot;se va a romper&quot;.</li>
+<li><strong>Deriva</strong>: grafica vibración en las 72 horas previas a cada falla. Ese gráfico va al README.</li>
+</ol>
+<h2>Fase 2: features y etiqueta sin fuga del futuro</h2>
+<pre data-norun><code class="language-sql">CREATE TABLE features AS
+SELECT dispositivo_id, ts,
+       avg(temperatura_c)  OVER w6   AS temp_media_6h,
+       stddev(vibracion_mm_s) OVER w6 AS vib_desvio_6h,
+       avg(vibracion_mm_s) OVER w24  AS vib_media_24h,
+       vibracion_mm_s - avg(vibracion_mm_s) OVER w24 AS vib_vs_24h
+FROM lecturas
+WINDOW w6  AS (PARTITION BY dispositivo_id ORDER BY ts RANGE BETWEEN INTERVAL 6 HOURS PRECEDING AND CURRENT ROW),
+       w24 AS (PARTITION BY dispositivo_id ORDER BY ts RANGE BETWEEN INTERVAL 24 HOURS PRECEDING AND CURRENT ROW);
+
+-- etiqueta: ¿hay una falla en las próximas 24 horas? (mira hacia adelante SOLO para la etiqueta)
+CREATE TABLE dataset AS
+SELECT f.*, EXISTS (SELECT 1 FROM fallas x WHERE x.dispositivo_id = f.dispositivo_id
+                    AND x.ts_falla &gt; f.ts AND x.ts_falla &lt;= f.ts + INTERVAL 24 HOURS) AS falla_24h
+FROM features f;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las dos fugas más comunes</div>
+
+<ol>
+<li><strong>Features que miran el futuro</strong>: una ventana centrada o que incluye filas posteriores. Todas las features usan solo el pasado.</li>
+<li><strong>Partición aleatoria</strong>: mezclar horas de enero y diciembre en entrenamiento y prueba deja que el modelo &quot;vea&quot; el futuro. Se divide <strong>por tiempo</strong> (entrenar hasta octubre, probar noviembre y diciembre) o por dispositivo.</li>
+</ol>
+</div>
+
+
+<h2>Fase 3: entrenar y registrar con MLflow</h2>
+<pre data-norun><code class="language-python">import mlflow, mlflow.sklearn
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.metrics import average_precision_score, recall_score
+
+mlflow.set_experiment(&quot;/Shared/mantenimiento&quot;)
+with mlflow.start_run(run_name=&quot;hgb_v1&quot;):
+    modelo = HistGradientBoostingClassifier(max_depth=4, learning_rate=0.1)
+    modelo.fit(X_train, y_train)
+    prob = modelo.predict_proba(X_test)[:, 1]
+    mlflow.log_params({&quot;max_depth&quot;: 4, &quot;ventanas&quot;: &quot;6h,24h&quot;})
+    mlflow.log_metrics({&quot;pr_auc&quot;: average_precision_score(y_test, prob),
+                        &quot;fallas_anticipadas&quot;: recall_score(y_test, prob &gt; 0.5)})
+    mlflow.sklearn.log_model(modelo, &quot;modelo&quot;, registered_model_name=&quot;workspace.mantenimiento.falla_24h&quot;)</code></pre>
+<p>En Databricks, el modelo queda en Unity Catalog; el job horario carga la versión con alias <code>campeon</code>, puntúa la última hora y escribe en <code>predicciones</code>. En local, MLflow corre con <code>uv run mlflow ui</code> y guarda todo en una carpeta.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Mezclar datos de entrenamiento y prueba en el tiempo</strong>: con series de sensores, la prueba tiene que ser posterior al entrenamiento.</li>
+<li><strong>No registrar el experimento en MLflow</strong>: después no sabes qué parámetros dieron el mejor modelo.</li>
+<li><strong>Features calculadas con datos del futuro</strong> (la ventana incluye la falla que querés predecir).</li>
+<li><strong>Medir solo la exactitud</strong> cuando las fallas son raras: un modelo que nunca predice falla tiene 99 % de exactitud.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En mantenimiento predictivo el costo de una falla no detectada es mucho mayor que el de una inspección de más, así que el umbral del modelo se elige con el área de operaciones, no solo por métricas.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué métricas usarías para un modelo que predice fallas poco frecuentes?&quot;</div>
+
+<p>No la exactitud, porque con fallas raras engaña. Usaría precisión y recall, o el área bajo la curva de precisión y recall, y elegiría el umbral según el costo de cada error con el área de operaciones: una falla no detectada cuesta mucho más que una inspección innecesaria. Evaluaría con una partición temporal, entrenando con el pasado y probando con el futuro, y registraría todo en MLflow.</p>
+</div>
+
+
+<h2>Entregables</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Análisis de la serie: huecos, ciclo diario y deriva antes de las fallas (con gráfico).</li>
+<li><input disabled="" type="checkbox"> Tabla de features documentada y explicación de cómo evitaste la fuga.</li>
+<li><input disabled="" type="checkbox"> Comparación de al menos dos modelos (o un modelo contra una regla simple) en MLflow.</li>
+<li><input disabled="" type="checkbox"> Métrica de negocio: fallas anticipadas y falsas alarmas por semana sobre el período de prueba.</li>
+</ul>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Para ir más lejos</h2>
+<ul>
+<li>Monitoreo del modelo: distribución de las features por semana (deriva de datos) y fallas anticipadas reales contra las esperadas.</li>
+<li>Umbral elegido con el costo: una parada imprevista (12 h) contra una intervención innecesaria (2 h).</li>
+<li>Ingesta en streaming de las lecturas y puntuación cada 15 minutos.</li>
+</ul>
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/portafolio-mantenimiento-predictivo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="portafolio-fraude-tiempo-real.html">← Proyecto 2: Detección de fraude en tiempo casi real</a><a href="portafolio-torre-de-control-logistica.html">Proyecto 4: Torre de control logística en Azure →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

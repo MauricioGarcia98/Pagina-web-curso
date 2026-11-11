@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🛵 Rápido: tiempos de entrega, take rate y retención en una app de delivery · Academia de Datos</title><meta name="description" content="Una app de delivery quiere entregar más rápido y que los clientes vuelvan. Descompone el tiempo de entrega por etapa, relaciona la demora con la calificación, calcula GMV y take rate, mide la falta de repartidores por hora y arma cohortes de recompra a 30 días."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-delivery.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🛵 Rápido: tiempos de entrega, take rate y retención en una app de delivery · Academia de Datos"><meta property="og:description" content="Una app de delivery quiere entregar más rápido y que los clientes vuelvan. Descompone el tiempo de entrega por etapa, relaciona la demora con la calificación, calcula GMV y take rate, mide la falta de repartidores por hora y arma cohortes de recompra a 30 días."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-delivery.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 60 min</div>
+<h1>Caso 🛵 Rápido: tiempos de entrega, take rate y retención en una app de delivery</h1><p class="resumen">Una app de delivery quiere entregar más rápido y que los clientes vuelvan. Descompone el tiempo de entrega por etapa, relaciona la demora con la calificación, calcula GMV y take rate, mide la falta de repartidores por hora y arma cohortes de recompra a 30 días.</p>
+<a class="cta" href="../index.html#/l/casos-delivery">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Descomponer el tiempo de entrega en aceptación, preparación y viaje con diferencias de fechas</li><li>Relacionar el tiempo de entrega con la calificación del cliente</li><li>Calcular GMV, ingresos de la plataforma y take rate</li><li>Encontrar las horas con falta de repartidores</li><li>Construir cohortes de recompra y reconocer el sesgo de los meses recientes</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Más rápido, más pedidos</div>
+
+<p>La directora de operaciones de <strong>Rápido</strong> llega con dos objetivos del año:</p>
+<blockquote>
+<p>&quot;Uno: bajar el tiempo de entrega promedio a menos de 40 minutos. Dos: que más clientes nuevos vuelvan a pedir. Marketing dice que los cupones son la clave; yo creo que la clave es llegar rápido. Quiero datos, no opiniones.&quot;</p>
+</blockquote>
+</div>
+
+
+<h2>Cómo funciona una app de delivery</h2>
+<p>Rápido es un <strong>marketplace de tres lados</strong>: clientes que piden, <strong>restaurantes</strong> que cocinan y <strong>repartidores</strong> que llevan. Un pedido pasa por etapas:</p>
+<figure class="diagrama"><figcaption>Las etapas de un pedido: cada una tiene su responsable</figcaption></figure>
+
+
+<p>Rápido gana una <strong>comisión</strong> sobre lo que vende el restaurante y el <strong>costo de envío</strong> que paga el cliente; los <strong>cupones</strong> son descuentos que paga Rápido.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Fórmula</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tiempo de entrega</strong></td>
+<td>entregado − creado</td>
+<td>La experiencia del cliente</td>
+</tr>
+<tr>
+<td><strong>Tiempo por etapa</strong></td>
+<td>aceptado − creado, retirado − aceptado, entregado − retirado</td>
+<td>Saber a quién mejorar: restaurante o logística</td>
+</tr>
+<tr>
+<td><strong>GMV</strong> (<em>gross merchandise value</em>)</td>
+<td>suma del subtotal de los pedidos entregados</td>
+<td>El tamaño del negocio</td>
+</tr>
+<tr>
+<td><strong>Take rate</strong></td>
+<td>(comisiones + envíos − cupones) / GMV</td>
+<td>Cuánto de lo vendido queda para la plataforma</td>
+</tr>
+<tr>
+<td><strong>Recompra a 30 días</strong></td>
+<td>clientes nuevos que vuelven a pedir en 30 días / clientes nuevos</td>
+<td>Retención</td>
+</tr>
+</tbody></table></div>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">delivery_clientes     (cliente_id, ciudad, fecha_registro, plataforma)
+delivery_restaurantes (restaurante_id, nombre, ciudad, categoria, comision_pct, rating)
+delivery_repartidores (repartidor_id, ciudad, vehiculo, fecha_alta)
+delivery_pedidos      (pedido_id, cliente_id, restaurante_id, repartidor_id, ciudad,
+                       creado, aceptado, retirado, entregado,
+                       subtotal, costo_envio, descuento_cupon, propina, estado, calificacion)</code></pre>
+<ul>
+<li>Los cuatro tiempos son fecha-hora (<code>&#39;2024-03-05 20:14:33&#39;</code>). Los que no ocurrieron son <code>NULL</code> (un pedido cancelado no tiene <code>entregado</code>).</li>
+<li><strong>Minutos entre dos momentos</strong>: <code>(julianday(b) - julianday(a)) * 1440</code> (un día tiene 1440 minutos).</li>
+<li><code>estado</code>: <code>entregado</code>, <code>cancelado_cliente</code>, <code>cancelado_restaurante</code>, <code>sin_repartidor</code> (nadie lo tomó).</li>
+<li><code>comision_pct</code> es del restaurante: la comisión de un pedido es <code>subtotal * comision_pct / 100</code>.</li>
+<li>Ojo: del 14 al 16 de agosto una versión de la app registró mal algunos horarios (hay pedidos con <code>aceptado</code> después de <code>retirado</code>). En el proyecto final escribirás el control que lo detecta.</li>
+</ul>
+<h2>Un ejemplo resuelto: ¿dónde se va el tiempo?</h2>
+<pre><code class="language-sql">SELECT ciudad,
+       COUNT(*) AS entregados,
+       ROUND(AVG((julianday(aceptado)  - julianday(creado))   * 1440), 1) AS aceptacion_min,
+       ROUND(AVG((julianday(retirado)  - julianday(aceptado)) * 1440), 1) AS preparacion_min,
+       ROUND(AVG((julianday(entregado) - julianday(retirado)) * 1440), 1) AS viaje_min,
+       ROUND(AVG((julianday(entregado) - julianday(creado))   * 1440), 1) AS total_min
+FROM delivery_pedidos
+WHERE estado = 'entregado'
+GROUP BY ciudad
+ORDER BY total_min DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>ciudad</th>
+<th>entregados</th>
+<th>aceptacion_min</th>
+<th>preparacion_min</th>
+<th>viaje_min</th>
+<th>total_min</th>
+</tr>
+</thead><tbody><tr>
+<td>Medellín</td>
+<td>1782</td>
+<td>3.5</td>
+<td>20.2</td>
+<td>18.8</td>
+<td>42.5</td>
+</tr>
+<tr>
+<td>Ciudad de México</td>
+<td>4235</td>
+<td>3.5</td>
+<td>20.3</td>
+<td>18.4</td>
+<td>42.3</td>
+</tr>
+<tr>
+<td>Bogotá</td>
+<td>3138</td>
+<td>3.6</td>
+<td>20.1</td>
+<td>18.6</td>
+<td>42.3</td>
+</tr>
+<tr>
+<td>Lima</td>
+<td>2642</td>
+<td>3.6</td>
+<td>19.9</td>
+<td>18.5</td>
+<td>41.9</td>
+</tr>
+<tr>
+<td>Buenos Aires</td>
+<td>2608</td>
+<td>3.6</td>
+<td>19.8</td>
+<td>18.2</td>
+<td>41.5</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura:</strong> el total ronda los 42 minutos en todas las ciudades, así que la meta de 40 no se logra mirando una ciudad en particular. La <strong>preparación</strong> (unos 20 minutos) es la etapa más larga, un poco más que el viaje: hay que trabajar con los restaurantes, no solo con los repartidores. El ejercicio de restaurantes lentos muestra con quién empezar.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>Promediar tiempos de pedidos no entregados</strong>: los cancelados no tienen <code>entregado</code>; <code>AVG</code> los ignoraría solo en esa columna, y las etapas quedarían calculadas sobre pedidos distintos. Filtra <code>estado = &#39;entregado&#39;</code>.</li>
+<li><strong>Restar textos</strong>: <code>entregado - creado</code> sobre texto da cualquier cosa. Usa <code>julianday</code>.</li>
+<li><strong>El promedio esconde la cola</strong>: un promedio de 42 minutos puede tener un 30 % de pedidos de más de 45. Mira también los porcentajes por tramo.</li>
+<li><strong>Cohortes recientes</strong>: un cliente que hizo su primer pedido el 20 de diciembre todavía no tuvo 30 días para volver. Las cohortes de noviembre y diciembre parecen peores solo porque están <strong>incompletas</strong> (<em>censura por la derecha</em>).</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las apps de delivery tienen tableros en tiempo real por ciudad y zona con exactamente estos tiempos por etapa, y alertas cuando la preparación de un restaurante se dispara (cocina saturada) para dejar de mandarle pedidos.</li>
+<li>Los eventos de cada etapa llegan como un <strong>stream</strong> (Kafka, Pub/Sub) y se procesan con Spark Structured Streaming o Flink; el modelo de este caso es la tabla de hechos que queda al final, con un timestamp por etapa (<em>accumulating snapshot</em>, en términos de Kimball).</li>
+<li>Las decisiones de cupones se toman con <strong>experimentos A/B</strong>: un grupo recibe el cupón y otro no, y se compara la recompra. Comparar a los que usaron cupón con los que no, sin experimento, mezcla causas.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo medirías la retención de una app de pedidos?&quot;</div>
+
+<p>Con cohortes: agrupo a los clientes por el mes de su primer pedido y, para cada cohorte, calculo qué porcentaje vuelve a pedir dentro de 30, 60 y 90 días desde su primer pedido. Uso ventanas relativas al primer pedido (no meses calendario) para que todos los clientes tengan la misma oportunidad, y excluyo o marco las cohortes que todavía no completaron la ventana. Después corto por canal de adquisición, ciudad o si el primer pedido llegó tarde, para encontrar qué explica la diferencia.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tiempo de entrega promedio con pedidos cancelados</strong> o sin hora de entrega.</li>
+<li><strong>Take rate sobre el total cobrado</strong> incluyendo propinas o costo de envío, sin decirlo.</li>
+<li><strong>Relacionar demora y calificación</strong> sin agrupar en tramos: una nube de puntos no se lee en un tablero.</li>
+</ul>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-delivery">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-energia.html">← Caso ⚡ Luz del Valle: hurto de energía, cobranza y calidad del servicio</a><a href="pipelines-de-la-regla-al-codigo.html">De la regla de negocio al código →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

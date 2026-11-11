@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python para ingeniería de datos · Academia de Datos</title><meta name="description" content="Un mini-pipeline ETL en Python puro, limpieza, validación, APIs y una introducción a pandas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-python-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Python para ingeniería de datos · Academia de Datos"><meta property="og:description" content="Un mini-pipeline ETL en Python puro, limpieza, validación, APIs y una introducción a pandas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-python-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Avanzado · 60 min</div>
+<h1>Python para ingeniería de datos</h1><p class="resumen">Un mini-pipeline ETL en Python puro, limpieza, validación, APIs y una introducción a pandas.</p>
+<a class="cta" href="../index.html#/l/python-python-datos">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir un pipeline ETL en Python con funciones pequeñas: extraer, limpiar, deduplicar, agregar</li><li>Separar las filas inválidas con su motivo en lugar de descartarlas en silencio</li><li>Describir cómo extraer datos de una API con timeouts, reintentos y paginación</li><li>Limpiar y agregar datos con pandas y traducir entre SQL, pandas y PySpark</li></ul>
+<p>Ya tienes todas las piezas de Python: tipos, colecciones, funciones, errores y archivos. Ahora vamos a usarlas como lo hace un ingeniero de datos: <strong>extraer, limpiar, transformar, validar y cargar</strong>. Esta lección arma un pipeline completo en Python puro, explica cómo se consume una API de verdad y termina con <strong>pandas</strong>, la librería que vas a usar cuando los datos entran en una computadora.</p>
+<h2>Un mini ETL en Python puro</h2>
+<p>Este es un archivo de pedidos tal como podría llegar de un sistema viejo. Míralo con ojo de data engineer antes de leer el código: ¿qué problemas ves?</p>
+<pre><code class="language-text">pedido_id,fecha,cliente,pais,monto
+1,2024-03-01,  ana ,chile,120.50
+2,2024-03-01,LUIS,Perú,80
+3,2024-03-02,Eva,Chile,              ← monto vacío
+4,2024-03-02,ana,Chile,99.90
+4,2024-03-02,ana,Chile,99.90         ← pedido duplicado
+5,2024-13-02,Tom,México,40           ← mes 13: fecha imposible</code></pre>
+<p>Hay espacios y mayúsculas mezcladas, un monto vacío, un duplicado y una fecha inválida. Es un archivo <strong>normal</strong>: así llegan los datos casi siempre. El pipeline tiene que limpiarlo sin perder información en silencio.</p>
+<pre><code class="language-python">import csv, io, json
+from datetime import date
+from collections import defaultdict
+
+CRUDO = &quot;&quot;&quot;pedido_id,fecha,cliente,pais,monto
+1,2024-03-01,  ana ,chile,120.50
+2,2024-03-01,LUIS,Perú,80
+3,2024-03-02,Eva,Chile,
+4,2024-03-02,ana,Chile,99.90
+4,2024-03-02,ana,Chile,99.90
+5,2024-13-02,Tom,México,40
+&quot;&quot;&quot;
+
+def extraer(texto):
+    return list(csv.DictReader(io.StringIO(texto)))
+
+def limpiar(fila):
+    &quot;&quot;&quot;Normaliza tipos y formatos. Devuelve None si la fila es inválida.&quot;&quot;&quot;
+    try:
+        return {
+            &quot;pedido_id&quot;: int(fila[&quot;pedido_id&quot;]),
+            &quot;fecha&quot;: date.fromisoformat(fila[&quot;fecha&quot;]),
+            &quot;cliente&quot;: fila[&quot;cliente&quot;].strip().title(),
+            &quot;pais&quot;: fila[&quot;pais&quot;].strip().title(),
+            &quot;monto&quot;: float(fila[&quot;monto&quot;]),
+        }
+    except (ValueError, KeyError):
+        return None
+
+def transformar(filas):
+    vistos, limpias, rechazadas = set(), [], 0
+    for f in filas:
+        l = limpiar(f)
+        if l is None:
+            rechazadas += 1
+            continue
+        if l[&quot;pedido_id&quot;] in vistos:          # deduplicar
+            continue
+        vistos.add(l[&quot;pedido_id&quot;])
+        limpias.append(l)
+    return limpias, rechazadas
+
+def agregar(filas):
+    por_pais = defaultdict(float)
+    for f in filas:
+        por_pais[f[&quot;pais&quot;]] += f[&quot;monto&quot;]
+    return {k: round(v, 2) for k, v in sorted(por_pais.items())}
+
+filas, rechazadas = transformar(extraer(CRUDO))
+print(f&quot;{len(filas)} filas válidas, {rechazadas} rechazadas&quot;)
+print(json.dumps(agregar(filas), ensure_ascii=False))</code></pre>
+<p>Recórrelo función por función:</p>
+<ol>
+<li><strong><code>extraer</code></strong> convierte el texto en una lista de diccionarios con <code>csv.DictReader</code>, uno por fila, con los nombres de columna como claves. Todos los valores son <strong>texto</strong>: <code>&quot;120.50&quot;</code>, no <code>120.5</code>. En la vida real, aquí leerías un archivo, una base o una API.</li>
+<li><strong><code>limpiar</code></strong> recibe <strong>una</strong> fila y devuelve una fila limpia o <code>None</code>:<ul>
+<li><code>int(...)</code>, <code>date.fromisoformat(...)</code> y <code>float(...)</code> convierten los textos a sus tipos. Si un valor no se puede convertir (el monto vacío, el mes 13), Python lanza <code>ValueError</code>.</li>
+<li><code>.strip().title()</code> quita los espacios y deja la primera letra en mayúscula: <code>&quot;  ana &quot;</code> → <code>&quot;Ana&quot;</code>, <code>&quot;chile&quot;</code> → <code>&quot;Chile&quot;</code>.</li>
+<li>El <code>try/except</code> atrapa ese error y devuelve <code>None</code>: la fila se <strong>rechaza</strong> en lugar de romper todo el pipeline.</li>
+</ul>
+</li>
+<li><strong><code>transformar</code></strong> recorre las filas, cuenta las rechazadas y <strong>deduplica</strong> con un <code>set</code> de ids ya vistos: la segunda aparición del pedido 4 se descarta.</li>
+<li><strong><code>agregar</code></strong> suma los montos por país con un <code>defaultdict(float)</code> (un diccionario que empieza en 0 para cada clave nueva) y redondea a 2 decimales.</li>
+</ol>
+<p>El resultado: 3 filas válidas (los pedidos 1, 2 y 4), 2 rechazadas (el monto vacío del pedido 3 y la fecha imposible del 5) y el duplicado del pedido 4 eliminado sin contarlo como rechazo. Ejecútalo y comprueba que los totales por país coinciden con lo que calcularías a mano.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Principios que verás en todo el curso</div>
+
+<ul>
+<li><strong>Funciones pequeñas</strong> con una responsabilidad (extraer, limpiar, transformar…): fáciles de probar y de reutilizar.</li>
+<li><strong>Nunca confíes en los datos de entrada</strong>: valida tipos, rangos y duplicados.</li>
+<li><strong>Cuenta lo que descartas</strong>: si de golpe se rechaza el 40 % de las filas, algo cambió en el origen.</li>
+<li><strong>Idempotencia</strong>: ejecutar el pipeline dos veces con la misma entrada debe dar el mismo resultado.</li>
+</ul>
+</div>
+
+
+<h3>Del ejercicio al trabajo real: no tirar los rechazos</h3>
+<p>En el ejemplo, las filas inválidas solo se cuentan. En producción se <strong>guardan aparte</strong>, con el motivo, en una tabla de &quot;cuarentena&quot;. Así alguien puede revisarlas, corregir el origen y reprocesarlas. Una versión mejorada de <code>limpiar</code> devuelve el motivo:</p>
+<pre><code class="language-python">from datetime import date
+
+def validar(fila):
+    &quot;&quot;&quot;Devuelve (fila_limpia, None) o (None, motivo).&quot;&quot;&quot;
+    if not fila.get(&quot;monto&quot;, &quot;&quot;).strip():
+        return None, &quot;monto vacío&quot;
+    try:
+        fecha = date.fromisoformat(fila[&quot;fecha&quot;])
+    except ValueError:
+        return None, f&quot;fecha inválida: {fila['fecha']}&quot;
+    return {&quot;pedido_id&quot;: int(fila[&quot;pedido_id&quot;]), &quot;fecha&quot;: fecha, &quot;monto&quot;: float(fila[&quot;monto&quot;])}, None
+
+filas = [
+    {&quot;pedido_id&quot;: &quot;3&quot;, &quot;fecha&quot;: &quot;2024-03-02&quot;, &quot;monto&quot;: &quot;&quot;},
+    {&quot;pedido_id&quot;: &quot;5&quot;, &quot;fecha&quot;: &quot;2024-13-02&quot;, &quot;monto&quot;: &quot;40&quot;},
+    {&quot;pedido_id&quot;: &quot;6&quot;, &quot;fecha&quot;: &quot;2024-03-03&quot;, &quot;monto&quot;: &quot;15.5&quot;},
+]
+validas, cuarentena = [], []
+for f in filas:
+    ok, motivo = validar(f)
+    if ok:
+        validas.append(ok)
+    else:
+        cuarentena.append({**f, &quot;motivo&quot;: motivo})
+
+print(&quot;Válidas:&quot;, validas)
+print(&quot;Cuarentena:&quot;, cuarentena)</code></pre>
+<p><code>{**f, &quot;motivo&quot;: motivo}</code> crea un diccionario nuevo con todo lo que tenía <code>f</code> más la clave <code>motivo</code>. Es una forma muy común de &quot;agregar una columna&quot; a un registro.</p>
+<div class="recorrido"></div>
+
+
+<h2>Consumir una API (para tu computadora)</h2>
+<p>Muchos datos no llegan en archivos: se piden a una <strong>API</strong>, un servicio web que responde en JSON. En tu máquina usarás la librería <code>requests</code> (<code>pip install requests</code>). Así se ve una extracción profesional (la practicas de verdad, contra la API de práctica del curso, en la lección siguiente: <strong>Extraer datos de una API</strong>):</p>
+<pre data-norun><code class="language-python">import time
+import requests
+
+def traer_pedidos(desde, token):
+    url = &quot;https://api.ejemplo.com/v1/pedidos&quot;
+    headers = {&quot;Authorization&quot;: f&quot;Bearer {token}&quot;}      # el token llega de una variable de entorno, nunca escrito aquí
+    pagina, todos = 1, []
+    while True:
+        for intento in range(4):                         # reintentos con espera exponencial
+            resp = requests.get(url, headers=headers, params={&quot;desde&quot;: desde, &quot;page&quot;: pagina}, timeout=30)
+            if resp.status_code == 429 or resp.status_code &gt;= 500:
+                time.sleep(2 ** intento)                 # 1, 2, 4, 8 segundos
+                continue
+            resp.raise_for_status()                      # error claro si es 401, 404…
+            break
+        datos = resp.json()
+        todos.extend(datos[&quot;resultados&quot;])
+        if not datos.get(&quot;siguiente&quot;):                   # no hay más páginas
+            return todos
+        pagina += 1</code></pre>
+<p>Qué hace cada parte y por qué:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>timeout=30</code></td>
+<td>Sin timeout, si el servidor no responde, tu pipeline queda colgado para siempre</td>
+</tr>
+<tr>
+<td>Reintentos ante <code>429</code> y <code>5xx</code></td>
+<td><code>429</code> = &quot;demasiadas solicitudes&quot; (<em>rate limit</em>); <code>5xx</code> = error pasajero del servidor. Vale la pena reintentar</td>
+</tr>
+<tr>
+<td>Espera exponencial (<code>2 ** intento</code>)</td>
+<td>Darle al servidor cada vez más tiempo para recuperarse, en vez de bombardearlo</td>
+</tr>
+<tr>
+<td><code>raise_for_status()</code></td>
+<td>Un <code>401</code> (token inválido) o <code>404</code> no se arregla reintentando: hay que fallar con un error claro</td>
+</tr>
+<tr>
+<td>Paginación</td>
+<td>Las APIs devuelven los datos de a 100 o 1.000 registros: hay que pedir página por página</td>
+</tr>
+<tr>
+<td>Token en variable de entorno</td>
+<td>Los secretos nunca van en el código, que está en Git</td>
+</tr>
+</tbody></table></div>
+<p>Y una regla más: <strong>guarda la respuesta cruda</strong> (el JSON tal cual) en el lake antes de transformarla. Si mañana descubres un error en la transformación, reprocesas sin volver a llamar a la API, que quizá ya no tenga esos datos.</p>
+<h2>pandas: el Excel de los programadores</h2>
+<p><strong>pandas</strong> es la librería más usada para analizar datos que caben en la memoria de una computadora (hasta unos pocos GB). Su objeto central es el <strong>DataFrame</strong>: una tabla con columnas con nombre y tipo, como una tabla de SQL o una hoja de Excel.</p>
+<p>En este sitio pandas funciona de verdad (la primera vez tarda unos segundos en cargar). Este ejemplo hace el mismo ETL de arriba, pero con pandas:</p>
+<pre><code class="language-python">import io
+import pandas as pd
+
+CRUDO = &quot;&quot;&quot;pedido_id,fecha,cliente,pais,monto,estado
+1,2024-03-01,  ana ,chile,120.50,entregado
+2,2024-03-01,LUIS,Perú,80,entregado
+3,2024-03-02,Eva,Chile,,cancelado
+4,2024-03-02,ana,Chile,99.90,entregado
+4,2024-03-02,ana,Chile,99.90,entregado
+5,2024-03-05,Tom,México,40,entregado
+&quot;&quot;&quot;
+
+df = pd.read_csv(io.StringIO(CRUDO))
+print(df.dtypes, &quot;\n&quot;)                                   # qué tipo adivinó pandas para cada columna
+
+df[&quot;cliente&quot;] = df[&quot;cliente&quot;].str.strip().str.title()   # limpiar textos en toda la columna
+df[&quot;pais&quot;] = df[&quot;pais&quot;].str.strip().str.title()
+df[&quot;fecha&quot;] = pd.to_datetime(df[&quot;fecha&quot;])
+df = df.drop_duplicates(subset=&quot;pedido_id&quot;)             # deduplicar
+df = df.dropna(subset=[&quot;monto&quot;])                        # quitar montos vacíos
+
+resumen = (df[df[&quot;estado&quot;] != &quot;cancelado&quot;]              # WHERE
+             .groupby(&quot;pais&quot;, as_index=False)           # GROUP BY
+             .agg(ventas=(&quot;monto&quot;, &quot;sum&quot;), pedidos=(&quot;pedido_id&quot;, &quot;count&quot;))
+             .sort_values(&quot;ventas&quot;, ascending=False))   # ORDER BY
+print(resumen.to_string(index=False))</code></pre>
+<p>Fíjate en la diferencia con Python puro: no hay bucles. <code>df[&quot;cliente&quot;].str.strip()</code> aplica la operación a <strong>toda la columna</strong> de una vez. Esto se llama <strong>operación vectorizada</strong>: es más corto de escribir y, con millones de filas, mucho más rápido que un <code>for</code>.</p>
+<p>Lo que hace cada paso:</p>
+<ul>
+<li><code>pd.read_csv(...)</code> lee el CSV y <strong>adivina los tipos</strong>: <code>monto</code> queda como número decimal y el vacío se convierte en <code>NaN</code> (el &quot;nulo&quot; de pandas).</li>
+<li><code>.str.strip().str.title()</code>: los métodos de texto de Python, aplicados columna entera a través de <code>.str</code>.</li>
+<li><code>drop_duplicates(subset=&quot;pedido_id&quot;)</code> deja la primera aparición de cada pedido.</li>
+<li><code>dropna(subset=[&quot;monto&quot;])</code> elimina las filas sin monto.</li>
+<li><code>df[df[&quot;estado&quot;] != &quot;cancelado&quot;]</code> filtra: la condición devuelve una columna de <code>True</code>/<code>False</code>, y <code>df[...]</code> se queda con las filas <code>True</code>.</li>
+<li><code>groupby(...).agg(ventas=(&quot;monto&quot;, &quot;sum&quot;), ...)</code> agrupa y calcula varias métricas con nombre, igual que <code>SUM(monto) AS ventas</code>.</li>
+</ul>
+<p>Las mismas operaciones en SQL, pandas y PySpark se parecen mucho. Si sabes una, las otras se aprenden rápido:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>SQL</th>
+<th>pandas</th>
+<th>PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SELECT a, b</code></td>
+<td><code>df[[&quot;a&quot;, &quot;b&quot;]]</code></td>
+<td><code>df.select(&quot;a&quot;, &quot;b&quot;)</code></td>
+</tr>
+<tr>
+<td><code>WHERE x &gt; 5</code></td>
+<td><code>df[df[&quot;x&quot;] &gt; 5]</code></td>
+<td><code>df.filter(F.col(&quot;x&quot;) &gt; 5)</code></td>
+</tr>
+<tr>
+<td><code>GROUP BY</code> + <code>SUM</code></td>
+<td><code>df.groupby(&quot;a&quot;)[&quot;x&quot;].sum()</code></td>
+<td><code>df.groupBy(&quot;a&quot;).agg(F.sum(&quot;x&quot;))</code></td>
+</tr>
+<tr>
+<td><code>JOIN</code></td>
+<td><code>df.merge(otro, on=&quot;id&quot;)</code></td>
+<td><code>df.join(otro, &quot;id&quot;)</code></td>
+</tr>
+<tr>
+<td><code>ORDER BY</code></td>
+<td><code>df.sort_values(&quot;x&quot;)</code></td>
+<td><code>df.orderBy(&quot;x&quot;)</code></td>
+</tr>
+<tr>
+<td><code>COUNT(DISTINCT a)</code></td>
+<td><code>df[&quot;a&quot;].nunique()</code></td>
+<td><code>F.countDistinct(&quot;a&quot;)</code></td>
+</tr>
+<tr>
+<td>Quitar duplicados</td>
+<td><code>df.drop_duplicates()</code></td>
+<td><code>df.dropDuplicates()</code></td>
+</tr>
+</tbody></table></div>
+<p>Para guardar el resultado en tu computadora: <code>resumen.to_parquet(&quot;resumen.parquet&quot;)</code> (necesita <code>pip install pyarrow</code>) o <code>resumen.to_csv(&quot;resumen.csv&quot;, index=False)</code>.</p>
+<h3>pandas 3: lo que cambió en 2026</h3>
+<p>pandas 3.0 salió el 21 de enero de 2026 y, según sus notas de versión oficiales, trae tres cambios que vas a notar enseguida. Los ejercicios de este sitio ya corren con <strong>pandas 3</strong> dentro del navegador (Pyodide 314, con Python 3.14), así que puedes probar cada cambio en el editor. Igual conviene escribir código que funcione en las dos versiones, porque muchos proyectos siguen en pandas 2: las recomendaciones de abajo lo hacen.</p>
+<p><strong>1. Un tipo de dato propio para el texto.</strong> Antes, una columna de textos tenía el tipo genérico <code>object</code> (que acepta cualquier cosa). En pandas 3 se infiere el tipo <code>str</code>:</p>
+<pre><code class="language-python">import pandas as pd
+s = pd.Series([&quot;Lima&quot;, &quot;Quito&quot;])
+print(pd.__version__, s.dtype)     # pandas 2: object   ·   pandas 3: str
+print(pd.api.types.is_string_dtype(s))</code></pre>
+<p>Consecuencia: un código que pregunta <code>if df[&quot;ciudad&quot;].dtype == object:</code> deja de funcionar. Para saber si una columna es de texto, usa <code>pd.api.types.is_string_dtype(df[&quot;ciudad&quot;])</code>, que funciona en ambas versiones. Además, una columna <code>str</code> solo acepta textos o valores faltantes: asignarle un número da error.</p>
+<p><strong>2. Copy-on-Write: todo resultado se comporta como una copia.</strong> Cualquier selección (<code>df[df.total &gt; 100]</code>, <code>df[&quot;total&quot;]</code>) se comporta como una copia <strong>independiente</strong> del original. La regla es simple: para cambiar un DataFrame, se lo cambia <strong>directamente</strong>, en una sola operación.</p>
+<pre data-norun><code class="language-python"># pandas 3: NO cambia df (el filtro devuelve una copia y se modifica esa copia); avisa con ChainedAssignmentError
+df[df[&quot;pais&quot;] == &quot;Chile&quot;][&quot;total&quot;] = 0
+
+# en las dos versiones: una sola operación sobre df
+df.loc[df[&quot;pais&quot;] == &quot;Chile&quot;, &quot;total&quot;] = 0</code></pre>
+<p>Por eso desaparece el famoso aviso <code>SettingWithCopyWarning</code> y ya no hacen falta los <code>.copy()</code> &quot;por las dudas&quot;. Por dentro pandas evita copiar hasta que hace falta, así que además es más rápido.</p>
+<p><strong>3. <code>pd.col()</code> para escribir expresiones sin <code>lambda</code>.</strong></p>
+<pre><code class="language-python">import pandas as pd
+df = pd.DataFrame({&quot;total&quot;: [100.0, 250.0]})
+print(df.assign(total_con_iva=lambda d: d[&quot;total&quot;] * 1.21))   # pandas 2 y 3
+print(df.assign(total_con_iva=pd.col(&quot;total&quot;) * 1.21))         # nuevo en pandas 3</code></pre>
+<p>También subió el mínimo de Python a la versión 3.11. La guía oficial recomienda migrar en dos pasos: primero a pandas 2.3, corregir todos los avisos (<em>warnings</em>) y recién después pasar a 3.0.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 ¿pandas, Polars, DuckDB o Spark?</div>
+
+<ul>
+<li><strong>pandas</strong>: el estándar para datos que entran en memoria. Enorme comunidad y documentación.</li>
+<li><strong>Polars</strong>: una alternativa moderna, mucho más rápida y con mejor manejo de memoria. Cada vez más usada en pipelines.</li>
+<li><strong>DuckDB</strong>: SQL sobre archivos (CSV, Parquet) en tu computadora, muy rápido. Ideal para explorar.</li>
+<li><strong>Spark</strong>: cuando los datos son decenas de GB o más, o crecen sin parar, y necesitas repartir el trabajo entre muchas máquinas.</li>
+</ul>
+<p>La regla práctica: empieza por lo más simple que alcance. Usar Spark para 50 MB es como contratar un camión para llevar una carta.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Rechazar sin contar ni guardar</strong>: si un día el 40 % de las filas son inválidas y nadie lo sabe, el dashboard muestra ventas que bajaron &quot;de golpe&quot;.</li>
+<li><strong>Deduplicar por la fila completa</strong>: dos registros del mismo pedido con distinta hora de carga no son idénticos, pero son el mismo pedido. Deduplica por la <strong>clave</strong> (<code>pedido_id</code>) y decide cuál versión conservar.</li>
+<li><strong>pandas con datos enormes</strong>: pandas carga todo en memoria y suele necesitar de 5 a 10 veces el tamaño del archivo en RAM. Con un CSV de 5 GB, tu computadora no alcanza.</li>
+<li><strong>Asignación encadenada en pandas</strong> (<code>df[df.pais == &quot;Chile&quot;][&quot;total&quot;] = 0</code>): en pandas 2 daba el aviso <code>SettingWithCopyWarning</code>; en pandas 3 directamente <strong>no modifica nada</strong>. Usa una sola operación: <code>df.loc[df.pais == &quot;Chile&quot;, &quot;total&quot;] = 0</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El primer pipeline de verdad</div>
+
+<p>Martín te asigna tu primer pipeline completo:</p>
+<blockquote>
+<p>&quot;El sistema de pedidos viejo nos manda un CSV cada noche. Hay que limpiarlo, sacar duplicados, rechazar lo inválido (pero guardarlo, que operaciones lo quiere revisar) y calcular las ventas por país. Hazlo en Python, con funciones chicas y probadas.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los pipelines en Python puro siguen existiendo para fuentes chicas: APIs, archivos de proveedores, planillas. En cuanto el volumen crece, la misma lógica se lleva a PySpark o a SQL con dbt.</li>
+<li>La &quot;cuarentena&quot; de filas inválidas es una práctica estándar: una tabla con la fila original, el motivo y la fecha. Operaciones la revisa, corrige el origen y se reprocesa.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo diseñarías la extracción diaria de una API paginada con límite de solicitudes?&quot;</div>
+
+<p>Menciona: autenticación con un token desde un gestor de secretos; extracción incremental (pedir solo lo nuevo desde la última fecha cargada); paginación hasta que no haya más resultados; reintentos con espera exponencial ante <code>429</code> y <code>5xx</code>; timeout en cada llamada; guardar la respuesta cruda en el lake antes de transformar; y que todo sea idempotente, para poder volver a correr un día sin duplicar.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-python-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-python-avanzado.html">← Iteradores, generadores, decoradores y context managers</a><a href="python-extraer-de-apis.html">Extraer datos de una API - tokens, paginación, límites y reintentos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

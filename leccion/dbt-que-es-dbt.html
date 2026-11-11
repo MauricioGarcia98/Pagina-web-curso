@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Qué es dbt y por qué todos lo usan? · Academia de Datos</title><meta name="description" content="ELT, analytics engineering, qué hace dbt (y qué no) y cómo encaja con Databricks y Airflow."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-que-es-dbt.html">
+<meta property="og:type" content="article"><meta property="og:title" content="¿Qué es dbt y por qué todos lo usan? · Academia de Datos"><meta property="og:description" content="ELT, analytics engineering, qué hace dbt (y qué no) y cómo encaja con Databricks y Airflow."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-que-es-dbt.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Básico · 20 min</div>
+<h1>¿Qué es dbt y por qué todos lo usan?</h1><p class="resumen">ELT, analytics engineering, qué hace dbt (y qué no) y cómo encaja con Databricks y Airflow.</p>
+<a class="cta" href="../index.html#/l/dbt-que-es-dbt">▶ Abrir la lección interactiva (4 ejercicios)</a>
+
+<p><strong>dbt</strong> (<em>data build tool</em>) es la herramienta estándar para la <strong>T</strong> de ELT: transformar datos <strong>dentro</strong> del data warehouse o lakehouse usando <strong>SQL</strong>, pero con las prácticas de la ingeniería de software: control de versiones, modularidad, tests, documentación y entornos.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 dbt es un “compilador de SQL con superpoderes”</div>
+
+<p>Tú escribes archivos <code>.sql</code> con un <code>SELECT</code> cada uno (un <strong>modelo</strong>). dbt los <strong>compila</strong> (resolviendo referencias y plantillas), descubre en qué <strong>orden</strong> ejecutarlos y los <strong>materializa</strong> en tu base como vistas o tablas. No mueve datos de un lado a otro: le dice a tu motor (Databricks, Snowflake, BigQuery, Postgres…) qué SQL ejecutar.</p>
+</div>
+
+
+<h2>El problema que resuelve</h2>
+<p>Imagina el área de datos de una empresa <strong>antes</strong> de dbt. Las transformaciones (de las tablas crudas a las tablas de reportes) vivían en:</p>
+<ul>
+<li><strong>Decenas de scripts SQL sueltos</strong>, ejecutados en un orden que solo una persona conocía (&quot;primero corro <code>limpiar_clientes.sql</code>, después <code>ventas.sql</code>, y el viernes <code>resumen.sql</code>&quot;).</li>
+<li><strong>Stored procedures</strong> de cientos de líneas dentro de la base de datos, sin control de versiones.</li>
+<li><strong>Cero tests</strong>: los errores se descubrían cuando el gerente veía un número raro en el dashboard.</li>
+<li><strong>Sin documentación</strong>: nadie sabía de dónde salía la columna <code>venta_neta_ajustada</code> ni quién la usaba.</li>
+</ul>
+<p>dbt resuelve cada uno de esos problemas con una idea simple: <strong>cada transformación es un archivo <code>.sql</code> con un <code>SELECT</code></strong>, guardado en un repositorio Git, y dbt se ocupa del resto.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Cómo lo resuelve dbt</th>
+</tr>
+</thead><tbody><tr>
+<td>¿En qué orden se ejecuta?</td>
+<td>Lees <code>{{ ref(&#39;otro_modelo&#39;) }}</code> y dbt arma solo el <strong>grafo de dependencias</strong> (DAG)</td>
+</tr>
+<tr>
+<td>¿Tabla o vista? ¿<code>CREATE</code> o <code>INSERT</code>?</td>
+<td>Una línea de configuración (<code>materialized</code>); dbt escribe el DDL</td>
+</tr>
+<tr>
+<td>¿Los datos están bien?</td>
+<td><strong>Tests</strong> declarados en YAML (<code>unique</code>, <code>not_null</code>…) que corren con <code>dbt test</code></td>
+</tr>
+<tr>
+<td>¿Qué significa cada columna?</td>
+<td>Documentación en YAML y un sitio web generado con <code>dbt docs</code></td>
+</tr>
+<tr>
+<td>¿Cómo pruebo sin romper producción?</td>
+<td><strong>Entornos</strong>: cada desarrollador escribe en su propio esquema</td>
+</tr>
+<tr>
+<td>¿Quién cambió qué?</td>
+<td>Todo es código en Git, con <em>pull requests</em> y revisión</td>
+</tr>
+</tbody></table></div>
+<h2>Qué pasa cuando ejecutas <code>dbt run</code></h2>
+<ol>
+<li>dbt <strong>lee</strong> todos los archivos <code>.sql</code> de la carpeta <code>models/</code>.</li>
+<li><strong>Compila</strong> cada uno: reemplaza las expresiones Jinja (<code>{{ ref(&#39;stg_pedidos&#39;) }}</code> → <code>analytics.staging.stg_pedidos</code>) y produce SQL puro.</li>
+<li>Con los <code>ref()</code>, arma el <strong>DAG</strong> y decide el orden: primero los modelos que no dependen de nadie.</li>
+<li><strong>Envuelve</strong> cada <code>SELECT</code> en el DDL de su materialización (<code>CREATE VIEW … AS SELECT …</code>, <code>CREATE TABLE … AS SELECT …</code>) y lo envía a tu motor.</li>
+<li>Ejecuta en paralelo lo que se puede y reporta qué funcionó y qué falló.</li>
+</ol>
+<p>El trabajo pesado lo hace tu <strong>motor</strong> (Databricks, Snowflake, BigQuery…): dbt solo genera y ordena el SQL.</p>
+<div class="recorrido"></div>
+
+
+<h2>Pruébalo en la terminal</h2>
+<p>La terminal del curso tiene un proyecto dbt de verdad en la carpeta <code>tienda_dbt</code> (los modelos se ejecutan sobre la base SQLite del curso). Ábrela con el botón <strong>⌨ En la terminal</strong> y ejecuta:</p>
+<pre><code class="language-bash">cd tienda_dbt
+dbt debug
+dbt ls
+dbt compile -s ventas_por_canal
+dbt run
+dbt test</code></pre>
+<p>Fíjate en la salida de <code>dbt compile</code>: el modelo tiene <code>from {{ ref(&#39;stg_ventas&#39;) }}</code> y el SQL compilado tiene <code>from main.stg_ventas</code>. Esa traducción es el corazón de dbt.</p>
+<h2>Qué hace y qué no hace</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>dbt SÍ</th>
+<th>dbt NO</th>
+</tr>
+</thead><tbody><tr>
+<td>Transforma datos que <strong>ya están</strong> en tu warehouse/lakehouse</td>
+<td>Extraer de APIs o bases de origen (eso es Fivetran, Airbyte, ADF, código propio)</td>
+</tr>
+<tr>
+<td>Ordena las dependencias entre modelos (un DAG)</td>
+<td>Programar horarios complejos de todo el pipeline (eso es Airflow, Lakeflow Jobs (Databricks), dbt Cloud jobs)</td>
+</tr>
+<tr>
+<td>Prueba la calidad de los datos</td>
+<td>Procesar en Python a gran escala (para eso, Spark; aunque dbt soporta modelos Python en algunos motores)</td>
+</tr>
+<tr>
+<td>Genera documentación y linaje</td>
+<td>Visualizar datos (eso es Power BI, Tableau, Looker)</td>
+</tr>
+</tbody></table></div>
+<h2>El flujo moderno de datos</h2>
+<pre><code class="language-text"> Fuentes ──(EL: Fivetran/ADF/Airbyte/Auto Loader)──▶ Bronze / raw
+                                                       │
+                                     dbt (T): staging ─▶ intermediate ─▶ marts (gold)
+                                                       │
+                                     BI / ML / reverse ETL
+ Orquestación de todo: Airflow / Lakeflow Jobs / dbt Cloud</code></pre>
+<h2>Analytics engineering</h2>
+<p>dbt popularizó el rol de <strong>Analytics Engineer</strong>: alguien entre el analista y el ingeniero de datos, que modela los datos con SQL de calidad productiva. Como Data Engineer, vas a escribir y revisar muchos modelos dbt.</p>
+<h2>Sabores de dbt</h2>
+<ul>
+<li><strong>dbt Core</strong>: open source, se instala con <code>pip</code> y se usa desde la terminal. Es lo que aprenderás aquí.</li>
+<li><strong>dbt Cloud / plataforma de dbt Labs</strong>: servicio pago con IDE web, jobs programados, CI, catálogo y semantic layer.</li>
+<li>Se conecta a cada motor con un <strong>adaptador</strong>: <code>dbt-databricks</code>, <code>dbt-snowflake</code>, <code>dbt-bigquery</code>, <code>dbt-postgres</code>, <code>dbt-duckdb</code>…</li>
+</ul>
+<div class="callout callout-nota"><div class="callout-title">📝 Cómo practicamos dbt aquí</div>
+
+<p>Los ejercicios de dbt compilan tus modelos con <strong>Jinja real</strong> (la misma librería que usa dbt) y ejecutan el SQL resultante en la base SQLite del curso. Ya existen los modelos de staging <code>stg_clientes</code>, <code>stg_productos</code>, <code>stg_pedidos</code>, <code>stg_detalle_pedidos</code> (con la columna <code>importe</code>) y <code>stg_pagos</code>, y las fuentes de la tienda: <code>source(&#39;tienda&#39;, &#39;pedidos&#39;)</code> apunta a la tabla <code>pedidos</code> (se compila como <code>main.pedidos</code>), etc. Siempre verás el <strong>SQL compilado</strong>.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<p>En los ejercicios de dbt escribes el SQL de un <strong>modelo</strong>, con Jinja. El corrector lo compila como dbt (<code>ref()</code> y <code>source()</code> apuntan a las tablas del curso) y compara el resultado con el esperado. Los modelos de staging <code>stg_clientes</code>, <code>stg_productos</code>, <code>stg_pedidos</code>, <code>stg_detalle_pedidos</code> y <code>stg_pagos</code> ya existen.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-que-es-dbt">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-desafios.html">← Desafíos de PySpark (nivel entrevista)</a><a href="dbt-proyecto.html">Instalación y estructura de un proyecto →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Llevar Genie a los usuarios - Genie One, tableros y la API · Academia de Datos</title><meta name="description" content="Cómo llega Genie a la gente - compartir un agente con los permisos correctos, Genie One como puerta de entrada para el negocio, los tableros de AI/BI con su agente asociado, y la Genie Agents API para usar Genie desde una aplicación, un chatbot o un notebook, con las buenas prácticas de sondeo (polling) de la documentación. Cierra con versionar el agente con Declarative Automation Bundles."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-genie-one-tableros-y-api.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Llevar Genie a los usuarios - Genie One, tableros y la API · Academia de Datos"><meta property="og:description" content="Cómo llega Genie a la gente - compartir un agente con los permisos correctos, Genie One como puerta de entrada para el negocio, los tableros de AI/BI con su agente asociado, y la Genie Agents API para usar Genie desde una aplicación, un chatbot o un notebook, con las buenas prácticas de sondeo (polling) de la documentación. Cierra con versionar el agente con Declarative Automation Bundles."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-genie-one-tableros-y-api.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#genie">🧞 Databricks Genie: preguntas en lenguaje natural</a> · Avanzado · 55 min</div>
+<h1>Llevar Genie a los usuarios - Genie One, tableros y la API</h1><p class="resumen">Cómo llega Genie a la gente - compartir un agente con los permisos correctos, Genie One como puerta de entrada para el negocio, los tableros de AI/BI con su agente asociado, y la Genie Agents API para usar Genie desde una aplicación, un chatbot o un notebook, con las buenas prácticas de sondeo (polling) de la documentación. Cierra con versionar el agente con Declarative Automation Bundles.</p>
+<a class="cta" href="../index.html#/l/genie-genie-one-tableros-y-api">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Compartir un agente con el nivel de permiso adecuado</li><li>Explicar qué es Genie One y cómo se accede</li><li>Relacionar un tablero de AI/BI con su Genie Agent</li><li>Llamar a Genie desde Python con el SDK y entender el flujo de la API</li><li>Programar un sondeo con espera exponencial</li></ul>
+<h2>Compartir un agente</h2>
+<p>Con el botón <strong>Share</strong> eliges usuarios o grupos (o <strong>All account users</strong>) y un nivel de permiso:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Nivel</th>
+<th>Qué puede hacer</th>
+</tr>
+</thead><tbody><tr>
+<td><code>CAN VIEW</code> / <code>CAN RUN</code></td>
+<td>Usar el agente: hacer preguntas</td>
+</tr>
+<tr>
+<td><code>CAN EDIT</code></td>
+<td>Además, cambiar instrucciones, ejemplos y benchmarks</td>
+</tr>
+<tr>
+<td><code>CAN MANAGE</code></td>
+<td>Además, ver el monitoreo, compartir y borrar conversaciones</td>
+</tr>
+</tbody></table></div>
+<p>Para que un usuario pueda usarlo necesita, según la documentación: el <em>entitlement</em> de <strong>Consumer access</strong> o de Databricks SQL, permiso de uso sobre el agente y <strong><code>SELECT</code> sobre las tablas</strong> del agente. <strong>No</strong> necesita permiso sobre el SQL warehouse: el agente usa las credenciales de cómputo de quien lo configuró. Y como los datos se leen con los permisos de cada usuario, para que cada vendedor vea solo su región se aplica un <strong>filtro de filas</strong> en Unity Catalog sobre la tabla: el mismo agente, compartido con todos, muestra a cada uno lo suyo.</p>
+<p>Los agentes nuevos se guardan en tu carpeta de usuario y heredan los permisos de la carpeta, como cualquier objeto del workspace. Los usuarios también pueden compartir conversaciones individuales.</p>
+<h2>Genie One: la puerta de entrada para el negocio</h2>
+<p><strong>Genie One</strong> (antes <em>Databricks One</em>) es la interfaz simplificada para personas de negocio: muestra tableros, permite hacer preguntas en lenguaje natural y usar aplicaciones, <strong>sin</strong> clústeres, notebooks ni consultas a la vista.</p>
+<ul>
+<li>Un usuario cuyo único permiso es <strong>Consumer access</strong> entra directamente a Genie One.</li>
+<li>Los demás cambian entre la interfaz completa y Genie One con el selector de aplicaciones, o agregando <code>/one</code> a la URL del workspace.</li>
+<li>Existe además un Genie One <strong>a nivel de cuenta</strong>, que reúne lo compartido en todos los workspaces (en <code>accounts.cloud.databricks.com/one</code> en AWS).</li>
+<li>Hay aplicaciones para <strong>iOS y Android</strong>.</li>
+</ul>
+<p>Para el equipo de datos, el trabajo es el de siempre: publicar tableros y agentes bien hechos y compartirlos con los grupos correctos.</p>
+<h2>Tableros de AI/BI y su agente</h2>
+<p>Los tableros de AI/BI (<em>dashboards</em>) de Databricks se integran con Genie: al <strong>publicar un tablero</strong>, Databricks crea automáticamente un Genie Agent asociado, para que quien mira el tablero pueda hacer preguntas sobre los mismos datos. En ese agente creado automáticamente, los <strong>filtros del tablero</strong> se respetan en el chat. Si en cambio vinculas un agente que ya existía, la documentación aclara que los filtros del tablero <strong>no</strong> pasan al contexto del chat.</p>
+<h2>La Genie Agents API</h2>
+<p>Para usar Genie desde una aplicación propia (un chatbot de Slack, una app interna, otro agente de IA), Databricks ofrece una API con tres grupos de funciones:</p>
+<ul>
+<li><strong>API de chat</strong>: iniciar una conversación, hacer preguntas de seguimiento y obtener el SQL, los resultados y los gráficos.</li>
+<li><strong>API del modo agente</strong>: enviar preguntas en modo agente y recibir el informe con citas.</li>
+<li><strong>API de administración</strong>: crear, configurar y desplegar agentes por código (para CI/CD).</li>
+</ul>
+<p>Para preguntar necesitas al menos <code>CAN VIEW</code> sobre el agente y <code>SELECT</code> sobre sus tablas: las respuestas incluyen <strong>solo los datos que tú puedes ver</strong>. La autenticación recomendada es OAuth (U2M si hay una persona con navegador; un <em>service principal</em> con M2M si no). En la URL de un agente aparece su identificador (<code>space_id</code>; la API mantiene el nombre de la época de los <em>Genie Spaces</em>).</p>
+<h3>El flujo de una pregunta</h3>
+<p>Una respuesta de Genie puede tardar varios segundos (tiene que generar el SQL y ejecutarlo), así que la API es <strong>asíncrona</strong>: haces la pregunta, recibes un identificador y <strong>consultas el estado</strong> hasta que termina.</p>
+<div class="recorrido"></div>
+
+
+<p>Las buenas prácticas de la documentación para el sondeo:</p>
+<ul>
+<li>Consultar el estado <strong>cada 1 a 5 segundos</strong>, hasta un estado final (<code>COMPLETED</code>, <code>FAILED</code> o <code>CANCELLED</code>).</li>
+<li>Usar <strong>espera exponencial</strong> (<em>exponential backoff</em>): aumentar el tiempo entre consultas hasta un máximo de <strong>un minuto</strong>.</li>
+<li><strong>Dejar de esperar a los 10 minutos</strong> si no hay respuesta.</li>
+<li>Cada agente admite hasta 200.000 conversaciones: borrar las viejas por la API (<code>DELETE</code> sobre la conversación) para no llegar al límite.</li>
+</ul>
+<h3>Con el SDK de Python</h3>
+<p>En la práctica casi nunca se escribe el sondeo a mano: el SDK de Databricks para Python lo hace por ti. Desde un notebook (donde la autenticación ya está resuelta):</p>
+<pre data-norun><code class="language-python">from databricks.sdk import WorkspaceClient
+
+w = WorkspaceClient()
+space_id = &quot;01f0...&quot;   # el identificador de tu agente (está en su URL)
+
+mensaje = w.genie.start_conversation_and_wait(space_id, &quot;¿Cuánto vendimos por canal en marzo de 2024?&quot;)
+print(mensaje.status)
+for adjunto in mensaje.attachments or []:
+    if adjunto.text:
+        print(adjunto.text.content)            # el resumen en palabras
+    if adjunto.query:
+        print(adjunto.query.query)             # el SQL generado</code></pre>
+<p><code>start_conversation_and_wait</code> envía la pregunta y espera a que termine. Para seguir la misma conversación se usa el <code>conversation_id</code> con <code>create_message_and_wait</code>.</p>
+<h2>Versionar el agente como código</h2>
+<p>La configuración de un agente (tablas, instrucciones, ejemplos, SQL expressions) se puede definir y desplegar con <strong>Declarative Automation Bundles</strong>, igual que los jobs. Así el agente tiene historial de cambios en Git, revisión por pull request y se promueve de desarrollo a producción sin copiar a mano. La API de administración permite además exportarlo e importarlo entre workspaces.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Compartir el agente pero no dar <code>SELECT</code> sobre las tablas</strong>: el usuario lo ve, pero las respuestas no traen datos.</li>
+<li><strong>Hacer un agente por región</strong> para separar datos: se resuelve con un filtro de filas en Unity Catalog y un solo agente.</li>
+<li><strong>Sondear la API cada 100 milisegundos</strong>: carga innecesaria. De 1 a 5 segundos, con espera creciente.</li>
+<li><strong>Esperar para siempre</strong>: corta a los 10 minutos y muestra un mensaje al usuario.</li>
+<li><strong>Usar el token personal de una persona en una aplicación</strong>: las aplicaciones usan un service principal con OAuth M2M (y su uso de Genie se cobra).</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El agente de ventas funciona y tiene 95 % de exactitud en los benchmarks. Ahora hay tres pedidos: que lo usen los 40 vendedores (cada uno viendo solo su región), que aparezca junto al tablero de ventas que ya miran cada mañana, y que el equipo de producto lo integre en la aplicación interna de la empresa. Cada pedido usa una pieza distinta.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Integraciones típicas: un bot en Slack o Teams que responde preguntas de datos llamando a la API, y agentes de IA de varios pasos que usan un Genie Agent como &quot;herramienta&quot; para consultar datos con las definiciones correctas.</li>
+<li>Los agentes importantes se tratan como un producto: tienen versión en Git, benchmarks en el CI y un dueño que revisa el monitoreo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo integrarías Genie en una aplicación interna?&quot;</div>
+
+<p>Usaría la API de chat con un service principal autenticado por OAuth máquina a máquina, con CAN VIEW sobre el agente y SELECT sobre sus tablas, o el SDK de Python que resuelve el sondeo. La aplicación inicia la conversación, consulta el estado cada pocos segundos con espera exponencial hasta un estado final y corta a los 10 minutos, y luego muestra el resultado, el resumen y el SQL. Para que cada usuario vea solo sus datos, preferiría que la app actúe con la identidad del usuario, o aplicaría filtros de filas en Unity Catalog. Y borraría conversaciones viejas para respetar el límite.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/genie-genie-one-tableros-y-api">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="genie-genie-code.html">← Genie Code: el asistente de código dentro de Databricks</a><a href="genie-proyecto-guiado.html">Proyecto guiado: el asistente de ventas de Tienda Andina con Genie →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

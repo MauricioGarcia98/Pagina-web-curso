@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fechas, zonas horarias y codificación - los bugs que aparecen dos veces al año · Academia de Datos</title><meta name="description" content="Los errores más traicioneros de los datos - ventas que se cambian de día por mezclar UTC y hora local, el cambio de horario que crea días de 23 y 25 horas y horas ambiguas que pisan claves primarias, el BOM que renombra la primera columna de un CSV y el mojibake (Ã¡ en vez de á) por leer UTF-8 como Latin-1."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-zonas-horarias-y-codificacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Fechas, zonas horarias y codificación - los bugs que aparecen dos veces al año · Academia de Datos"><meta property="og:description" content="Los errores más traicioneros de los datos - ventas que se cambian de día por mezclar UTC y hora local, el cambio de horario que crea días de 23 y 25 horas y horas ambiguas que pisan claves primarias, el BOM que renombra la primera columna de un CSV y el mojibake (Ã¡ en vez de á) por leer UTF-8 como Latin-1."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-zonas-horarias-y-codificacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Avanzado · 55 min</div>
+<h1>Fechas, zonas horarias y codificación - los bugs que aparecen dos veces al año</h1><p class="resumen">Los errores más traicioneros de los datos - ventas que se cambian de día por mezclar UTC y hora local, el cambio de horario que crea días de 23 y 25 horas y horas ambiguas que pisan claves primarias, el BOM que renombra la primera columna de un CSV y el mojibake (Ã¡ en vez de á) por leer UTF-8 como Latin-1.</p>
+<a class="cta" href="../index.html#/l/incidentes-zonas-horarias-y-codificacion">▶ Abrir la lección interactiva (12 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar por qué un total diario cambia según se agrupe por fecha UTC o local</li><li>Convertir horas locales a UTC con el desplazamiento de cada zona</li><li>Detectar los días de 25 horas y las horas ambiguas del cambio de horario</li><li>Diagnosticar un BOM y un mojibake con la terminal</li><li>Reparar texto con mojibake en SQL</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Lunes 2 de noviembre. Tres tickets a la vez: (1) &quot;las ventas del domingo de la tienda de Bogotá no coinciden con la caja&quot; (2) &quot;el reporte de sensores de Nueva York perdió casi dos mil lecturas el domingo&quot; y (3) &quot;en el tablero aparece <strong>BogotÃ¡</strong>&quot;. Los tres tienen la misma raíz: las fechas y los textos no son tan simples como parecen.</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Un timestamp sin zona horaria es <strong>ambiguo</strong> y un texto sin codificación declarada es <strong>una apuesta</strong>. La regla de oro: guarda en <strong>UTC</strong> (o con su desplazamiento), convierte a hora local <strong>solo al mostrar o agrupar para el negocio</strong>, y lee y escribe texto en <strong>UTF-8</strong> declarado.</p>
+<h2>UTC y hora local</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>UTC</strong></td>
+<td>El reloj de referencia mundial, sin cambios de horario</td>
+</tr>
+<tr>
+<td><strong>Desplazamiento</strong> (offset)</td>
+<td>Bogotá es UTC−5 todo el año; Nueva York es UTC−4 en verano (EDT) y UTC−5 en invierno (EST)</td>
+</tr>
+<tr>
+<td><strong>Zona IANA</strong></td>
+<td><code>America/Bogota</code>, <code>America/New_York</code>: el nombre que conoce las reglas de cada país, incluidos los cambios de horario históricos. Se usa este nombre, no un desplazamiento fijo</td>
+</tr>
+</tbody></table></div>
+<p>Una venta de las 21:30 del sábado en Bogotá es las <strong>02:30 del domingo en UTC</strong>. Si el reporte agrupa por <code>date(ts_utc)</code>, esa venta aparece el domingo y la caja de la tienda (que cierra el sábado) no coincide.</p>
+<h2>El cambio de horario</h2>
+<figure class="diagrama"><figcaption>1 de noviembre de 2026 en Nueva York - la hora que ocurre dos veces</figcaption></figure>
+
+
+<ul>
+<li>Cuando el reloj <strong>se atrasa</strong> (fin del horario de verano), una hora local ocurre <strong>dos veces</strong> y ese día tiene <strong>25 horas</strong>. Una clave primaria <code>(sensor_id, ts_local)</code> choca, y un <code>ON CONFLICT DO NOTHING</code> descarta en silencio la segunda lectura.</li>
+<li>Cuando el reloj <strong>se adelanta</strong>, una hora local <strong>no existe</strong> y el día tiene <strong>23 horas</strong>: un job programado a las 02:30 hora local no corre ese día (o corre dos veces el otro).</li>
+<li>Los países cambian sus reglas (México eliminó el horario de verano en 2022): por eso se usan zonas IANA actualizadas y no tablas de desplazamientos escritas a mano.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Airflow y las zonas horarias</div>
+
+<p>Airflow trabaja en UTC por dentro. Si programas un DAG con <code>schedule=&quot;0 2 * * *&quot;</code> y <code>start_date</code> con <code>tz=&quot;America/New_York&quot;</code>, Airflow respeta el cambio de horario. Si lo programas en UTC, a las 02:00 UTC corre siempre, pero eso es las 22:00 o las 21:00 de Nueva York según la época del año.</p>
+</div>
+
+
+<h2>Codificación: BOM y mojibake</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Qué es</th>
+<th>Síntoma</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>BOM</strong> (Byte Order Mark)</td>
+<td>Tres bytes invisibles (<code>EF BB BF</code>) que Excel y algunos programas de Windows ponen al principio de un archivo UTF-8</td>
+<td>La primera columna se llama <code>﻿venta_id</code> en lugar de <code>venta_id</code>: <code>KeyError</code>, &quot;column not found&quot;, o un join por esa columna que no encuentra nada</td>
+</tr>
+<tr>
+<td><strong>Mojibake</strong></td>
+<td>Texto UTF-8 leído como Latin-1 (o Windows-1252) y guardado otra vez</td>
+<td><code>BogotÃ¡</code>, <code>MedellÃ­n</code>, <code>SÃ£o Paulo</code></td>
+</tr>
+<tr>
+<td><strong>CRLF</strong></td>
+<td>Fin de línea de Windows (<code>\r\n</code>)</td>
+<td>La última columna termina con <code>\r</code>: <code>&#39;ENTREGADO\r&#39; != &#39;ENTREGADO&#39;</code></td>
+</tr>
+</tbody></table></div>
+<p>Cómo diagnosticarlos: <code>file archivo.csv</code> dice la codificación y si hay BOM o CRLF; <code>head -c 3 archivo | xxd</code> muestra los bytes del BOM. Cómo arreglarlos: leer con <code>encoding=&quot;utf-8-sig&quot;</code> en Python (descarta el BOM), <code>iconv -f latin1 -t utf-8</code> para convertir, <code>sed -i &#39;1s/^\xEF\xBB\xBF//&#39;</code> para quitar el BOM. Y siempre que se pueda, <strong>reprocesar desde el archivo crudo</strong> con la codificación correcta en vez de &quot;arreglar&quot; el texto ya dañado.</p>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Agrupar ventas por <code>date(ts_utc)</code></strong>: el día del negocio es el local de cada tienda o usuario.</li>
+<li><strong>Desplazamientos fijos para zonas con horario de verano</strong>: dos veces al año los datos se corren una hora.</li>
+<li><strong>Claves con hora local</strong>: chocan en el día de 25 horas y dejan un hueco en el de 23.</li>
+<li><strong>Programar jobs en una hora local que no existe</strong>: las 02:30 del día que se adelanta el reloj.</li>
+<li><strong>&quot;Arreglar&quot; el mojibake sin encontrar dónde se produjo</strong>: vuelve con el próximo archivo.</li>
+<li><strong>Abrir y guardar CSV con Excel en el medio del pipeline</strong>: agrega BOM, cambia separadores y formatos de fecha.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las tablas de hechos guardan <code>*_ts_utc</code> y, si hace falta, la zona del lugar (<code>tienda.zona = &#39;America/Bogota&#39;</code>); las vistas para el negocio calculan <code>fecha_local</code>.</li>
+<li>Todos los servidores, contenedores y bases trabajan en UTC (<code>TZ=UTC</code>), y la conversión es explícita en el código.</li>
+<li>Los contratos de archivos dicen codificación (UTF-8 sin BOM), separador, fin de línea, formato de fecha (ISO 8601 con zona: <code>2026-11-01T01:30:00-05:00</code>) y separador decimal.</li>
+<li>Se agregan pruebas con fechas de cambio de horario (el último domingo de octubre en Europa, el primero de noviembre en EE. UU.) a los tests del pipeline.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Qué problemas pueden aparecer con las zonas horarias en un pipeline?&quot;</strong> Agrupar por fecha UTC en lugar de la local; días de 23 y 25 horas; horas ambiguas que rompen claves; jobs programados en horas que no existen; desplazamientos fijos para zonas con horario de verano. Y la solución: almacenar en UTC con zona, convertir con zonas IANA al presentar y probar los días de cambio.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Síntoma</th>
+<th>Causa</th>
+<th>Corrección</th>
+</tr>
+</thead><tbody><tr>
+<td>Totales diarios que no coinciden con la caja</td>
+<td>Agrupación por fecha UTC</td>
+<td>Agrupar por fecha local</td>
+</tr>
+<tr>
+<td>Lecturas perdidas o duplicadas una vez al año</td>
+<td>Clave con hora local + cambio de horario</td>
+<td>Clave en UTC, guardar desplazamiento</td>
+</tr>
+<tr>
+<td>Primera columna &quot;no existe&quot;</td>
+<td>BOM</td>
+<td><code>utf-8-sig</code>, quitar el BOM</td>
+</tr>
+<tr>
+<td><code>BogotÃ¡</code></td>
+<td>UTF-8 leído como Latin-1</td>
+<td>Reprocesar con la codificación correcta</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-zonas-horarias-y-codificacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-spark-skew-memoria-archivos.html">← Spark que no termina - skew, falta de memoria y archivos chicos</a><a href="incidentes-kafka-y-streaming.html">Streaming en problemas - lag, mensajes venenosos y rebalanceos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

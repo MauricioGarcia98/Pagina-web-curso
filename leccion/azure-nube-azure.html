@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La nube y Azure en 20 minutos · Academia de Datos</title><meta name="description" content="Qué es la nube, la jerarquía de Azure (tenant, suscripción, grupo de recursos, recurso), regiones y costos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-nube-azure.html">
+<meta property="og:type" content="article"><meta property="og:title" content="La nube y Azure en 20 minutos · Academia de Datos"><meta property="og:description" content="Qué es la nube, la jerarquía de Azure (tenant, suscripción, grupo de recursos, recurso), regiones y costos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-nube-azure.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure">☁️ Azure y Azure CLI</a> · Básico · 35 min</div>
+<h1>La nube y Azure en 20 minutos</h1><p class="resumen">Qué es la nube, la jerarquía de Azure (tenant, suscripción, grupo de recursos, recurso), regiones y costos.</p>
+<a class="cta" href="../index.html#/l/azure-nube-azure">▶ Abrir la lección interactiva (3 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Abre el <a href="#/azure">portal de Azure de práctica</a>: grupos de recursos, cuentas de almacenamiento, Key Vault, Azure Databricks y Cloud Shell, sin cuenta real ni costo.</p>
+</div>
+
+
+<h2>¿Qué es &quot;la nube&quot;?</h2>
+<p>&quot;La nube&quot; es usar <strong>computadoras, almacenamiento y servicios de otra empresa</strong> (Microsoft, Amazon o Google) a través de internet, <strong>pagando solo por lo que usas</strong>, en lugar de comprar y mantener servidores propios.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Comprar un auto vs. pedir un taxi</div>
+
+<p>Tener servidores propios es como comprar un auto: pagas todo por adelantado, pagas el seguro y el mantenimiento aunque no lo uses, y si un día necesitas diez autos no los tienes. La nube es como pedir un taxi: pagas por kilómetro, nadie te cobra cuando no viajas y puedes pedir diez a la vez durante una hora.</p>
+</div>
+
+
+<p>Para un data engineer esto cambia todo. Procesar 2 TB una vez al mes ya no exige comprar un clúster de 40 servidores que pasa 29 días apagado: lo creas a las 3 de la mañana, procesa durante una hora y lo apagas. Pagas una hora.</p>
+<h3>Tres formas de usar la nube</h3>
+<p>Según cuánto administras tú y cuánto el proveedor:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modelo</th>
+<th>El proveedor se encarga de…</th>
+<th>Tú te encargas de…</th>
+<th>Ejemplo en Azure</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>IaaS</strong> (infraestructura como servicio)</td>
+<td>El hardware, la red y la electricidad</td>
+<td>Sistema operativo, parches, software y datos</td>
+<td>Máquinas virtuales</td>
+</tr>
+<tr>
+<td><strong>PaaS</strong> (plataforma como servicio)</td>
+<td>Todo lo anterior + sistema operativo y software</td>
+<td>Tu código y tus datos</td>
+<td>Azure SQL Database, Data Factory, Databricks</td>
+</tr>
+<tr>
+<td><strong>SaaS</strong> (software como servicio)</td>
+<td>Todo</td>
+<td>Solo lo usas</td>
+<td>Microsoft 365, Power BI</td>
+</tr>
+</tbody></table></div>
+<p>Los data engineers trabajan casi siempre con <strong>PaaS</strong>: no instalas Spark ni parchas Linux, creas un workspace de Databricks y escribes código.</p>
+<h2>La jerarquía de Azure</h2>
+<p>Todo lo que creas en Azure vive dentro de una jerarquía de cajas. Entenderla es clave, porque los <strong>permisos</strong>, la <strong>facturación</strong> y las <strong>políticas</strong> se asignan en algún nivel y se heredan hacia abajo.</p>
+<pre><code class="language-text">Tenant (tu organización en Microsoft Entra ID: usuarios, grupos, identidades)
+ └── Management groups (opcional, para empresas grandes)
+      └── Suscripciones (unidad de facturación y límites)   ← &quot;sub-datos-prod&quot;, &quot;sub-datos-dev&quot;
+           └── Grupos de recursos (contenedores lógicos)    ← &quot;rg-datos-dev&quot;
+                └── Recursos                                ← cuenta de almacenamiento, workspace de Databricks, Key Vault…</code></pre>
+<!-- dg:az01-jerarquia -->
+<figure class="diagrama"><figcaption>La jerarquía de Azure: los permisos y la facturación se heredan hacia abajo</figcaption></figure>
+
+
+<p>Nivel por nivel:</p>
+<ul>
+<li><strong>Tenant y Microsoft Entra ID</strong> (antes llamado Azure Active Directory): el directorio de <strong>identidades</strong> de la empresa. Ahí viven los usuarios (<code>ana@tiendaandina.com</code>), los grupos (<code>grp-data-engineers</code>) y las identidades de aplicaciones (<em>service principals</em> y <em>managed identities</em>), que son las &quot;cuentas&quot; que usan los programas, por ejemplo Airflow o Data Factory, para entrar a otros servicios.</li>
+<li><strong>Management groups</strong>: carpetas para agrupar suscripciones y aplicarles reglas en conjunto (&quot;en ninguna suscripción se pueden crear recursos fuera de Sudamérica&quot;).</li>
+<li><strong>Suscripción</strong>: la unidad de <strong>facturación</strong>. Todo recurso pertenece a una suscripción y su costo llega a esa factura. Las empresas suelen tener una suscripción por entorno (dev, test, prod) para que un error en desarrollo nunca toque producción y para saber cuánto cuesta cada uno.</li>
+<li><strong>Grupo de recursos</strong>: una carpeta lógica con recursos que <strong>nacen y mueren juntos</strong>: el lake, el Databricks y el Key Vault de un mismo proyecto. Borrar el grupo borra todo lo que contiene, algo muy útil para limpiar un laboratorio.</li>
+<li><strong>Recurso</strong>: cada servicio concreto que creas: una cuenta de almacenamiento, un workspace de Databricks, un Key Vault.</li>
+</ul>
+<h3>Regiones</h3>
+<p>Un <strong>recurso vive en una región</strong>: un conjunto de centros de datos en una zona geográfica (<code>eastus2</code>, <code>brazilsouth</code>, <code>westeurope</code>, <code>mexicocentral</code>, <code>chilecentral</code>…). Para elegirla, mira tres cosas:</p>
+<ol>
+<li><strong>Cercanía</strong>: a tus usuarios y, sobre todo, <strong>a tus datos</strong>. Si el lake está en <code>brazilsouth</code> y Databricks en <code>eastus2</code>, cada lectura cruza el continente: es más lento y además <strong>se cobra la transferencia</strong> entre regiones.</li>
+<li><strong>Leyes</strong>: algunas regulaciones (salud, banca) exigen que los datos se queden en el país o la región.</li>
+<li><strong>Disponibilidad y precio</strong>: no todos los servicios ni tipos de máquina existen en todas las regiones, y los precios cambian de una región a otra.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Regla práctica</div>
+
+<p>Pon el almacenamiento y el cómputo que lo procesa <strong>en la misma región</strong>.</p>
+</div>
+
+
+<h3>Nombres y etiquetas</h3>
+<p>Las empresas usan una <strong>convención de nombres</strong> para saber qué es cada cosa con solo leerla. Una muy común es <code>&lt;tipo&gt;-&lt;proyecto&gt;-&lt;entorno&gt;-&lt;región&gt;</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Nombre de ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>Grupo de recursos</td>
+<td><code>rg-datos-prod-brs</code></td>
+</tr>
+<tr>
+<td>Cuenta de almacenamiento (solo minúsculas y números, máximo 24, único en todo Azure)</td>
+<td><code>stlakeandinaprod</code></td>
+</tr>
+<tr>
+<td>Databricks</td>
+<td><code>dbw-datos-prod-brs</code></td>
+</tr>
+<tr>
+<td>Key Vault</td>
+<td><code>kv-datos-prod-brs</code></td>
+</tr>
+</tbody></table></div>
+<p>Además se ponen <strong>etiquetas (tags)</strong>, pares clave-valor como <code>proyecto=lakehouse</code>, <code>entorno=prod</code> y <code>responsable=equipo-datos</code>, que después permiten filtrar la factura por proyecto.</p>
+<h2>Los servicios de datos que más vas a usar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Servicio</th>
+<th>Para qué</th>
+<th>Equivalente en AWS / GCP</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Azure Data Lake Storage Gen2</strong> (una Storage Account con <em>hierarchical namespace</em>)</td>
+<td>El data lake: archivos Parquet/Delta en contenedores <code>bronze</code>, <code>silver</code> y <code>gold</code></td>
+<td>S3 / Cloud Storage</td>
+</tr>
+<tr>
+<td><strong>Azure Databricks</strong></td>
+<td>Spark, notebooks, Delta Lake, SQL warehouses y jobs</td>
+<td>Databricks en AWS o GCP, EMR, Dataproc</td>
+</tr>
+<tr>
+<td><strong>Azure Data Factory</strong></td>
+<td>Copiar datos entre sistemas (EL) y orquestación visual</td>
+<td>Glue, Data Fusion</td>
+</tr>
+<tr>
+<td><strong>Microsoft Fabric / Synapse</strong></td>
+<td>Plataforma analítica de Microsoft (lakehouse, warehouse, Power BI)</td>
+<td>Redshift / BigQuery</td>
+</tr>
+<tr>
+<td><strong>Azure Key Vault</strong></td>
+<td>Guardar secretos, llaves y certificados</td>
+<td>Secrets Manager / Secret Manager</td>
+</tr>
+<tr>
+<td><strong>Event Hubs</strong></td>
+<td>Ingesta de eventos en streaming (compatible con Kafka)</td>
+<td>Kinesis / Pub/Sub</td>
+</tr>
+<tr>
+<td><strong>Azure SQL Database</strong></td>
+<td>Base relacional administrada</td>
+<td>RDS / Cloud SQL</td>
+</tr>
+<tr>
+<td><strong>Azure Monitor / Log Analytics</strong></td>
+<td>Logs, métricas y alertas</td>
+<td>CloudWatch / Cloud Logging</td>
+</tr>
+</tbody></table></div>
+<h3>Cómo encajan en un lakehouse</h3>
+<p>Así se vería la plataforma de datos de Tienda Andina en Azure:</p>
+<pre><code class="language-text">  ERP / web / app ──► Data Factory ──► ADLS Gen2 (bronze) ──► Databricks ──► ADLS (silver, gold) ──► Power BI
+       eventos     ──► Event Hubs  ──┘                         ▲    │
+                                         Key Vault (secretos) ─┘    └─► Azure Monitor (logs y alertas)
+                          Airflow o Data Factory orquestan todo el flujo cada noche</code></pre>
+<h2>Costos (¡importante!)</h2>
+<p>La nube cobra principalmente por tres cosas:</p>
+<ol>
+<li><strong>Cómputo encendido</strong>, por minuto: máquinas virtuales, clústeres de Databricks, SQL warehouses.</li>
+<li><strong>Almacenamiento</strong>, por GB al mes: barato, pero se acumula.</li>
+<li><strong>Transferencia de datos</strong> que sale de la región o de Azure.</li>
+</ol>
+<p>Un ejemplo para dimensionarlo: un clúster de 4 máquinas que cuesta unos 3 USD la hora, si alguien lo deja prendido un fin de semana largo (72 horas), cuesta 216 USD <strong>sin procesar nada</strong>. Las sorpresas más comunes son clústeres que quedaron prendidos, VMs olvidadas y datos duplicados.</p>
+<p>Buenas prácticas desde el primer día:</p>
+<ul>
+<li><strong>Alertas de presupuesto</strong> (<em>Cost Management + Budgets</em>): un correo cuando gastas el 50 %, 80 % y 100 % de lo previsto.</li>
+<li><strong>Etiquetas</strong> por proyecto y entorno, para saber quién gasta qué.</li>
+<li><strong>Auto-apagado</strong> de clústeres de Databricks después de 15–30 minutos sin uso.</li>
+<li><strong>Borrar los grupos de recursos</strong> de pruebas al terminar.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Cuenta gratuita</div>
+
+<p>Azure ofrece una cuenta gratuita con crédito inicial para probar. Crea todo lo de este módulo en un grupo de recursos de laboratorio y <strong>bórralo al terminar</strong>.</p>
+</div>
+
+
+<h2>Pruébalo en la terminal</h2>
+<p>En las próximas lecciones vas a manejar Azure con la <strong>Azure CLI</strong> (<code>az</code>). Abre la terminal del curso (botón ⌨ Terminal) y prueba: <code>az login</code>, luego <code>az account show</code> (en qué suscripción estás) y <code>az group list -o table</code> (los grupos de recursos que existen; al principio, ninguno). Es un simulador: nada se crea de verdad ni cuesta dinero.</p>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-nube-azure">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-airflow-databricks-dbt.html">← Airflow + Databricks + dbt: un pipeline real</a><a href="azure-azure-cli.html">Azure CLI: instalación y primeros comandos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

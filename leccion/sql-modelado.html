@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelado de datos: normalización y esquema estrella · Academia de Datos</title><meta name="description" content="Normalización, OLTP vs OLAP, hechos y dimensiones, granularidad y SCD tipo 2."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-modelado.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Modelado de datos: normalización y esquema estrella · Academia de Datos"><meta property="og:description" content="Normalización, OLTP vs OLAP, hechos y dimensiones, granularidad y SCD tipo 2."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-modelado.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Experto · 35 min</div>
+<h1>Modelado de datos: normalización y esquema estrella</h1><p class="resumen">Normalización, OLTP vs OLAP, hechos y dimensiones, granularidad y SCD tipo 2.</p>
+<a class="cta" href="../index.html#/l/sql-modelado">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la normalización y para qué sirve en sistemas transaccionales</li><li>Diseñar un esquema estrella con una tabla de hechos y sus dimensiones</li><li>Definir el grano de una tabla de hechos antes de construirla</li><li>Elegir un tipo de dimensión lentamente cambiante (SCD 1 o 2) según la pregunta del negocio</li></ul>
+<p>Saber consultar es la mitad del trabajo. La otra mitad es <strong>diseñar</strong> las tablas para que las consultas sean simples, correctas y rápidas.</p>
+<h2>Normalización (mundo OLTP)</h2>
+<p><strong>Normalizar</strong> es repartir los datos en tablas para que cada dato viva en <strong>un solo lugar</strong>. Así evitas inconsistencias (el mismo cliente con dos direcciones distintas en dos pedidos).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma normal</th>
+<th>Regla (simplificada)</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>1FN</strong></td>
+<td>Cada celda tiene un solo valor (nada de “tel1, tel2” en una celda)</td>
+</tr>
+<tr>
+<td><strong>2FN</strong></td>
+<td>Cada columna depende de <strong>toda</strong> la clave primaria</td>
+</tr>
+<tr>
+<td><strong>3FN</strong></td>
+<td>Las columnas no dependen de otras columnas que no son clave (el nombre del cliente no se guarda en la tabla de pedidos)</td>
+</tr>
+</tbody></table></div>
+<p>Nuestras tablas <code>pedidos</code>, <code>clientes</code>, <code>detalle_pedidos</code> están normalizadas: por eso necesitamos JOINs.</p>
+<h2>Modelado dimensional (mundo OLAP / analítica)</h2>
+<p>Para <strong>analizar</strong>, conviene lo contrario: menos tablas y más anchas, pensadas para agregar rápido. El modelo más usado es el <strong>esquema estrella</strong> (<em>star schema</em>), de Ralph Kimball:</p>
+<ul>
+<li><strong>Tabla de hechos</strong> (<em>fact</em>): los eventos medibles del negocio, con <strong>métricas</strong> numéricas y <strong>claves</strong> a dimensiones. Ej.: <code>fct_ventas</code> (una fila por línea de pedido: unidades, importe, descuento).</li>
+<li><strong>Tablas de dimensiones</strong> (<em>dim</em>): el contexto descriptivo: <code>dim_cliente</code>, <code>dim_producto</code>, <code>dim_fecha</code>, <code>dim_canal</code>.</li>
+</ul>
+<pre><code class="language-text">                 dim_fecha
+                     |
+  dim_cliente — fct_ventas — dim_producto
+                     |
+                 dim_canal</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 La pregunta más importante: ¿cuál es la granularidad?</div>
+
+<p>Antes de diseñar una tabla de hechos, define su <strong>grano</strong>: “una fila representa…”. Por ejemplo: “una fila por producto en cada pedido”. Mezclar granos (líneas y pedidos en la misma tabla) es la fuente número uno de totales duplicados.</p>
+</div>
+
+
+<!-- dg:sql22-estrella -->
+<figure class="diagrama"><figcaption>Esquema estrella de ventas: la tabla de hechos en el centro y las dimensiones alrededor</figcaption></figure>
+
+
+<h2>Dimensiones lentamente cambiantes (SCD)</h2>
+<p>¿Qué pasa si un cliente se muda de Lima a Santiago? Las ventas viejas, ¿se reportan en Lima o en Santiago?</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Estrategia</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>SCD tipo 1</strong></td>
+<td>Sobrescribir</td>
+<td>Se pierde la historia: todo aparece en Santiago</td>
+</tr>
+<tr>
+<td><strong>SCD tipo 2</strong></td>
+<td>Agregar una fila nueva con vigencia (<code>valido_desde</code>, <code>valido_hasta</code>, <code>es_actual</code>)</td>
+<td>Se conserva la historia</td>
+</tr>
+<tr>
+<td>SCD tipo 3</td>
+<td>Columna “valor anterior”</td>
+<td>Historia limitada</td>
+</tr>
+</tbody></table></div>
+<p>Ejemplo de SCD2:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_sk</th>
+<th>cliente_id</th>
+<th>ciudad</th>
+<th>valido_desde</th>
+<th>valido_hasta</th>
+<th>es_actual</th>
+</tr>
+</thead><tbody><tr>
+<td>101</td>
+<td>7</td>
+<td>Lima</td>
+<td>2022-01-01</td>
+<td>2024-05-31</td>
+<td>0</td>
+</tr>
+<tr>
+<td>245</td>
+<td>7</td>
+<td>Santiago</td>
+<td>2024-06-01</td>
+<td>9999-12-31</td>
+<td>1</td>
+</tr>
+</tbody></table></div>
+<p><code>cliente_sk</code> es una <strong>clave subrogada</strong> (<em>surrogate key</em>): un identificador interno de cada versión. En dbt esto se automatiza con <strong>snapshots</strong>.</p>
+<h2>Otras arquitecturas que vas a escuchar</h2>
+<ul>
+<li><strong>One Big Table (OBT)</strong>: una sola tabla gigante y desnormalizada; simple para BI, costosa de mantener.</li>
+<li><strong>Data Vault</strong>: hubs, links y satellites; muy auditable, usado en empresas grandes.</li>
+<li><strong>Medallón</strong> (bronze / silver / gold): capas de calidad en un lakehouse. Bronze = crudo, Silver = limpio y conformado, Gold = listo para negocio (a menudo en esquema estrella).</li>
+</ul>
+<h2>OLTP vs. OLAP: dos mundos con necesidades opuestas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>OLTP (transaccional)</th>
+<th>OLAP (analítico)</th>
+</tr>
+</thead><tbody><tr>
+<td>Para qué</td>
+<td>Operar el negocio: registrar ventas, pagos, altas</td>
+<td>Analizar el negocio: reportes, tendencias, KPIs</td>
+</tr>
+<tr>
+<td>Consultas típicas</td>
+<td>&quot;Inserta este pedido&quot;, &quot;trae el cliente 42&quot;</td>
+<td>&quot;Ventas por país y mes de los últimos 3 años&quot;</td>
+</tr>
+<tr>
+<td>Filas por consulta</td>
+<td>Pocas</td>
+<td>Millones</td>
+</tr>
+<tr>
+<td>Diseño</td>
+<td>Normalizado (3FN): muchas tablas chicas</td>
+<td>Dimensional: hechos + dimensiones</td>
+</tr>
+<tr>
+<td>Ejemplos</td>
+<td>PostgreSQL, MySQL, SQL Server de la app</td>
+<td>BigQuery, Snowflake, Redshift, Databricks SQL</td>
+</tr>
+</tbody></table></div>
+<p>El trabajo del data engineer es, en buena parte, <strong>llevar datos del mundo OLTP al OLAP</strong>: extraer de las bases de las aplicaciones, limpiar y remodelar en un esquema pensado para analizar.</p>
+<h2>Ejemplo: construir una estrella con las tablas de la tienda</h2>
+<p>Las tablas del curso están normalizadas (OLTP). Así se construiría un modelo dimensional mínimo con SQL (en un proyecto real, cada consulta sería un modelo de dbt):</p>
+<pre><code class="language-sql">-- Dimensión de productos: aplanamos la categoría para no tener que unirla siempre
+CREATE TABLE dim_producto AS
+SELECT pr.producto_id, pr.nombre AS producto, pr.marca, c.nombre AS categoria, pr.precio AS precio_lista
+FROM productos pr
+LEFT JOIN categorias c ON c.categoria_id = pr.categoria_id;
+
+-- Hechos de ventas: grano = una fila por línea de pedido no cancelado
+CREATE TABLE fct_ventas AS
+SELECT d.detalle_id, p.pedido_id, p.cliente_id, d.producto_id,
+       date(p.fecha_pedido) AS fecha, p.canal,
+       d.cantidad,
+       ROUND(d.cantidad * d.precio_unitario * (1 - d.descuento), 2) AS importe
+FROM detalle_pedidos d
+JOIN pedidos p ON p.pedido_id = d.pedido_id
+WHERE p.estado &lt;&gt; 'cancelado';
+
+-- Y ahora las preguntas de negocio son simples:
+SELECT dp.categoria, strftime('%Y', f.fecha) AS anio, ROUND(SUM(f.importe), 2) AS ventas
+FROM fct_ventas f
+JOIN dim_producto dp ON dp.producto_id = f.producto_id
+GROUP BY dp.categoria, anio
+ORDER BY dp.categoria, anio;</code></pre>
+<p>Fíjate en lo que ganamos:</p>
+<ul>
+<li><strong>Las métricas ya están calculadas</strong> (<code>importe</code>), con la regla de negocio (descuento, excluir cancelados) aplicada <strong>una sola vez</strong> y para todos.</li>
+<li><strong>Las dimensiones son anchas y legibles</strong>: la categoría está en <code>dim_producto</code>, no hace falta saber que existe una tabla <code>categorias</code>.</li>
+<li><strong>Una consulta de BI une los hechos con 1 o 2 dimensiones</strong>, nunca 5 tablas en cadena.</li>
+</ul>
+<h3>Tipos de tablas de hechos</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Grano</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Transaccional</strong></td>
+<td>Un evento</td>
+<td>Una línea de venta, un pago, un clic</td>
+</tr>
+<tr>
+<td><strong>Snapshot periódico</strong></td>
+<td>El estado al cierre de cada periodo</td>
+<td>Saldo de cada cuenta al fin de cada mes, stock diario por almacén</td>
+</tr>
+<tr>
+<td><strong>Snapshot acumulativo</strong></td>
+<td>Un proceso con varios hitos que se actualiza</td>
+<td>Un pedido con fecha de compra, pago, envío y entrega</td>
+</tr>
+</tbody></table></div>
+<h3>Las dimensiones conformadas</h3>
+<p>Una dimensión <strong>conformada</strong> es la misma tabla (por ejemplo <code>dim_cliente</code> o <code>dim_fecha</code>) compartida por <strong>varias</strong> tablas de hechos (ventas, pagos, tickets de soporte). Así, &quot;clientes de Chile&quot; significa lo mismo en todos los reportes y puedes cruzar procesos distintos. Es una de las ideas más valiosas de Kimball.</p>
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Diseña el modelo de datos para…&quot;</div>
+
+<p>Es una pregunta habitual en entrevistas de data engineer (una app de viajes, un e-commerce, un banco). El orden que se espera: (1) aclarar las <strong>preguntas de negocio</strong>, (2) definir los <strong>procesos</strong> (viajes, pagos, calificaciones), (3) fijar el <strong>grano</strong> de cada hecho, (4) listar <strong>dimensiones</strong> y <strong>métricas</strong>, (5) explicar cómo manejarías los <strong>cambios</strong> (SCD2) y la <strong>carga incremental</strong>.</p>
+</div>
+
+
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>No definir el grano</strong>: si la tabla de hechos mezcla filas &quot;por pedido&quot; y &quot;por línea de pedido&quot;, cualquier suma da mal. Escribe el grano en una frase antes de empezar: &quot;una fila por línea de pedido&quot;.</li>
+<li><strong>Métricas de distinto grano en la misma tabla</strong>: el costo de envío es por pedido; si lo pones en cada línea, se suma una vez por producto.</li>
+<li><strong>Dimensiones con claves duplicadas</strong>: si <code>dim_producto</code> tiene dos filas para el mismo producto, cada venta se cuenta dos veces al unir.</li>
+<li><strong>Sobrescribir historia que el negocio necesitaba</strong>: actualizar el segmento del cliente (SCD 1) cambia también los reportes de años anteriores. Pregunta antes si la historia importa.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El modelo para el nuevo dashboard</div>
+
+<p>Martín te da tu primera tarea de diseño:</p>
+<blockquote>
+<p>&quot;Vamos a reconstruir el dashboard de ventas desde cero. Antes de escribir una línea, quiero que propongas el modelo de datos: qué tablas, con qué columnas y a qué nivel de detalle. Lo revisamos juntos el jueves.&quot;</p>
+</blockquote>
+<p>Hasta ahora consultabas tablas que alguien más diseñó. Ahora te toca <strong>diseñarlas</strong>. Un buen modelo hace que todas las consultas futuras sean simples; uno malo te persigue durante años.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El esquema estrella (Kimball) sigue siendo el modelo más usado en analítica, también en lakehouses: la capa gold suele ser un conjunto de tablas <code>fct_</code> y <code>dim_</code> construidas con dbt.</li>
+<li>Antes de modelar, se hace una sesión con el negocio para listar las <strong>preguntas</strong> que el modelo tiene que responder. El modelo se diseña desde las preguntas, no desde las tablas de origen.</li>
+<li>Las SCD tipo 2 se implementan con los <strong>snapshots</strong> de dbt o con <code>MERGE</code> en Delta Lake. Las vas a construir en esos módulos.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-modelado">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-rendimiento.html">← Rendimiento: índices y planes de ejecución</a><a href="sql-dialectos.html">Dialectos de SQL: SQLite, PostgreSQL, SQL Server, Spark →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

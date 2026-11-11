@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datos, tablas y formatos de archivo · Academia de Datos</title><meta name="description" content="Filas y columnas, tipos de datos, CSV, JSON, Parquet, bases de datos OLTP y OLAP."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-datos-y-formatos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Datos, tablas y formatos de archivo · Academia de Datos"><meta property="og:description" content="Filas y columnas, tipos de datos, CSV, JSON, Parquet, bases de datos OLTP y OLAP."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fundamentos-datos-y-formatos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fundamentos">🧱 Fundamentos</a> · Básico · 35 min</div>
+<h1>Datos, tablas y formatos de archivo</h1><p class="resumen">Filas y columnas, tipos de datos, CSV, JSON, Parquet, bases de datos OLTP y OLAP.</p>
+<a class="cta" href="../index.html#/l/fundamentos-datos-y-formatos">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Identificar filas, columnas, claves primarias y claves foráneas en una tabla</li><li>Elegir el tipo de dato adecuado para cada columna y explicar por qué importa</li><li>Comparar CSV, JSON, Parquet y Delta y decidir cuál usar en cada caso</li><li>Distinguir una base transaccional (OLTP) de un warehouse (OLAP), un data lake y un lakehouse</li></ul>
+<p>Antes de aprender a consultar datos, conviene entender <strong>cómo están guardados</strong>: en tablas, con tipos, en archivos de distintos formatos y en distintos sistemas. Esta lección te da ese vocabulario, que vas a usar todos los días.</p>
+<h2>Todo empieza con una tabla</h2>
+<p>La forma más común de organizar datos es una <strong>tabla</strong>, como una hoja de Excel:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_id</th>
+<th>nombre</th>
+<th>pais</th>
+<th>fecha_registro</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Lucía</td>
+<td>España</td>
+<td>2024-04-07</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Mateo</td>
+<td>México</td>
+<td>2023-01-15</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sofía</td>
+<td>Chile</td>
+<td>2022-11-30</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>Cada <strong>fila</strong> (o <em>registro</em>) es una cosa: un cliente.</li>
+<li>Cada <strong>columna</strong> (o <em>campo</em>) es una característica: su nombre, su país…</li>
+<li>Una columna que identifica de forma única cada fila (aquí <code>cliente_id</code>) se llama <strong>clave primaria</strong> (<em>primary key</em>).</li>
+</ul>
+<p>¿Por qué hace falta un id si ya tenemos el nombre? Porque puede haber dos &quot;Lucía&quot;, y porque los nombres cambian (alguien corrige un apellido mal escrito). El número <code>1</code> <strong>nunca cambia y nunca se repite</strong>: es la forma segura de referirse a ese cliente.</p>
+<h3>Tablas que se relacionan</h3>
+<p>Una empresa no tiene una sola tabla gigante: tiene varias, cada una sobre un tipo de cosa, conectadas por sus ids. En Tienda Andina, cada pedido dice <strong>qué cliente</strong> lo hizo guardando su <code>cliente_id</code>:</p>
+<pre><code class="language-text">clientes                                        pedidos
+┌────────────┬──────────┬────────────┐        ┌───────────┬────────────┬──────────────┬───────┐
+│ cliente_id │ nombre   │ pais       │        │ pedido_id │ cliente_id │ fecha_pedido │ canal │
+├────────────┼──────────┼────────────┤        ├───────────┼────────────┼──────────────┼───────┤
+│ 528        │ Paula    │ Argentina  │◄───────│ 1         │ 528        │ 2022-01-01   │ app   │
+│ 970        │ Santiago │ Costa Rica │◄───────│ 2         │ 970        │ 2022-01-01   │ web   │
+└────────────┴──────────┴────────────┘   └────│ 42        │ 528        │ 2022-01-06   │ web   │
+                                              └───────────┴────────────┴──────────────┴───────┘</code></pre>
+<p>En <code>pedidos</code>, la columna <code>cliente_id</code> es una <strong>clave foránea</strong> (<em>foreign key</em>): apunta a la clave primaria de otra tabla. Así, el pedido no repite el nombre ni el país del cliente. Si Paula se muda a Chile, se cambia <strong>en un solo lugar</strong> y todos sus pedidos quedan bien. A esta forma de separar la información para no repetirla se la llama <strong>normalización</strong>. En SQL vas a volver a unir las tablas con <code>JOIN</code>.</p>
+<p>Prueba a contar cuántos pedidos tiene cada uno de los primeros clientes. Todavía no tienes que entender la consulta, solo mirar el resultado:</p>
+<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, c.pais, COUNT(p.pedido_id) AS pedidos
+FROM clientes c
+JOIN pedidos p ON p.cliente_id = c.cliente_id
+GROUP BY c.cliente_id
+ORDER BY c.cliente_id
+LIMIT 5;</code></pre>
+<h2>Tipos de datos</h2>
+<p>Cada columna guarda un <strong>tipo</strong> de dato. Los más importantes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Ejemplos</th>
+<th>Nota</th>
+</tr>
+</thead><tbody><tr>
+<td>Entero (<code>INTEGER</code>)</td>
+<td>1, 42, -7</td>
+<td>Sin decimales</td>
+</tr>
+<tr>
+<td>Decimal (<code>REAL</code>, <code>DOUBLE</code>, <code>DECIMAL</code>)</td>
+<td>19.99, 0.5</td>
+<td>Para dinero se prefiere <code>DECIMAL</code> (exacto)</td>
+</tr>
+<tr>
+<td>Texto (<code>TEXT</code>, <code>VARCHAR</code>, <code>STRING</code>)</td>
+<td>&#39;Lucía&#39;, &#39;web&#39;</td>
+<td>Va entre comillas simples en SQL</td>
+</tr>
+<tr>
+<td>Fecha / hora (<code>DATE</code>, <code>TIMESTAMP</code>)</td>
+<td>2024-03-15, 2024-03-15 10:30:00</td>
+<td>Formato ISO: año-mes-día</td>
+</tr>
+<tr>
+<td>Booleano (<code>BOOLEAN</code>)</td>
+<td>verdadero / falso</td>
+<td>En SQLite se usa 1 / 0</td>
+</tr>
+<tr>
+<td>Nulo (<code>NULL</code>)</td>
+<td>—</td>
+<td>Significa &quot;no se sabe&quot; o &quot;no hay dato&quot;</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué importa el tipo? Porque cambia lo que puedes hacer y el resultado:</p>
+<ul>
+<li>Con números puedes <strong>sumar y promediar</strong>. Si el precio está guardado como texto, <code>&#39;10&#39; + &#39;5&#39;</code> puede dar <code>&#39;105&#39;</code> o un error, según el sistema.</li>
+<li>Los textos se <strong>ordenan como en el diccionario</strong>: <code>&#39;9&#39;</code> va <strong>después</strong> de <code>&#39;10&#39;</code>, porque se compara letra por letra y <code>&#39;9&#39;</code> &gt; <code>&#39;1&#39;</code>. Por eso un número guardado como texto se ordena mal.</li>
+<li>Las fechas en formato <strong>ISO</strong> (<code>2024-03-15</code>, año-mes-día) se ordenan bien incluso como texto. <code>15/03/2024</code> no: el 15 de marzo quedaría antes que el 2 de enero.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Por qué DECIMAL para el dinero?</div>
+
+<p>Las computadoras guardan los decimales &quot;normales&quot; (<code>REAL</code>, <code>DOUBLE</code>) en binario, y algunos números no se pueden representar exactos: en Python, <code>0.1 + 0.2</code> da <code>0.30000000000000004</code>. Para un cálculo científico da igual; para la contabilidad de un banco, no. <code>DECIMAL(12, 2)</code> guarda exactamente dos decimales.</p>
+</div>
+
+
+<p>Puedes preguntarle a la base de qué tipo es cada valor con <code>typeof</code> (una función de SQLite):</p>
+<pre><code class="language-sql">SELECT cliente_id, typeof(cliente_id) AS tipo_id,
+       nombre,     typeof(nombre)     AS tipo_nombre,
+       telefono,   typeof(telefono)   AS tipo_telefono
+FROM clientes
+WHERE telefono IS NULL
+LIMIT 3;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ NULL no es cero ni texto vacío</div>
+
+<p><code>NULL</code> significa <strong>ausencia de valor</strong>. Un cliente sin teléfono tiene <code>telefono = NULL</code>, que es distinto de <code>telefono = &#39;&#39;</code> (texto vacío) o de <code>0</code>. Le dedicaremos una lección entera.</p>
+</div>
+
+
+<h2>Datos sucios: lo que llega de verdad</h2>
+<p>En los ejemplos de los libros los datos vienen perfectos. En la vida real, no. La tabla <code>clientes_crudo</code> tiene los clientes <strong>como llegan</strong> del sistema de origen, antes de limpiarlos:</p>
+<pre><code class="language-sql">SELECT registro_id, cliente_id, nombre, email, ciudad, fecha_carga
+FROM clientes_crudo
+WHERE cliente_id IN (524, 1638)
+ORDER BY cliente_id, fecha_carga;</code></pre>
+<p>Mira lo que aparece: el mismo cliente (<code>1638</code>) cargado <strong>cinco veces</strong>: una con el nombre y el email en MAYÚSCULAS, otra con espacios sobrantes en el nombre y otra con la ciudad en minúsculas. Y otro cliente (<code>524</code>) llegó <strong>sin email</strong>. Limpiar esto (quitar duplicados, normalizar textos, decidir qué hacer con los vacíos) es una parte enorme del trabajo, y lo vas a practicar en SQL, Python, PySpark y dbt.</p>
+<h2>Formatos de archivo</h2>
+<p>Los datos viajan en archivos. Estos son los que vas a ver siempre:</p>
+<p><strong>CSV</strong> (<em>comma-separated values</em>): texto plano, una fila por línea, valores separados por comas. Simple y universal (lo abre Excel, cualquier lenguaje y cualquier base de datos), pero:</p>
+<ul>
+<li><strong>No guarda tipos</strong>: todo es texto. <code>0012</code> ¿es un código o el número 12?</li>
+<li>Si un valor tiene una coma adentro, tiene que ir <strong>entre comillas</strong>: <code>&quot;Teclado, inalámbrico&quot;</code>. Si alguien se olvida, las columnas se corren.</li>
+<li>No dice qué <strong>codificación</strong> usa (UTF-8, Latin-1). Si se lee con la equivocada, <code>Perú</code> aparece como <code>PerÃº</code>.</li>
+<li>Es <strong>lento</strong> para grandes volúmenes: para leer una columna hay que leer el archivo entero.</li>
+</ul>
+<pre><code class="language-text">cliente_id,nombre,pais
+1,Lucía,España
+2,Mateo,México</code></pre>
+<p><strong>JSON</strong>: texto con estructura anidada (objetos <code>{}</code> y listas <code>[]</code>). Es el idioma de las APIs web. Permite cosas que un CSV no puede, como una <strong>lista</strong> de intereses o un <strong>objeto</strong> dirección dentro de cada cliente:</p>
+<pre><code class="language-json">{&quot;cliente_id&quot;: 1, &quot;nombre&quot;: &quot;Lucía&quot;, &quot;intereses&quot;: [&quot;running&quot;, &quot;tecnología&quot;], &quot;direccion&quot;: {&quot;ciudad&quot;: &quot;Madrid&quot;}}</code></pre>
+<p>Para analizarlo, casi siempre hay que <strong>aplanarlo</strong> en columnas: <code>direccion.ciudad</code> pasa a ser una columna <code>ciudad</code>, y cada interés, una fila en otra tabla. Lo vas a hacer en Python y PySpark.</p>
+<p><strong>Parquet</strong>: formato <strong>binario y columnar</strong>. Guarda los tipos, comprime muchísimo y permite leer solo las columnas que necesitas. Es el estándar en big data (Spark, Databricks, BigQuery, Athena). No se puede abrir con un editor de texto: se lee con herramientas de datos.</p>
+<p><strong>Delta Lake</strong> (y sus primos <strong>Iceberg</strong> y <strong>Hudi</strong>): Parquet + un registro de transacciones. Agrega actualizaciones seguras (ACID), historial de versiones (<em>time travel</em>) y <code>MERGE</code>. Lo verás en Spark y Databricks.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>CSV</th>
+<th>JSON</th>
+<th>Parquet</th>
+<th>Delta</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Lo lee un humano?</td>
+<td>Sí</td>
+<td>Sí</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>¿Guarda tipos?</td>
+<td>No</td>
+<td>Algunos</td>
+<td>Sí</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Datos anidados</td>
+<td>No</td>
+<td>Sí</td>
+<td>Sí</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Tamaño (los mismos datos)</td>
+<td>100 %</td>
+<td>~150 %</td>
+<td>~10–25 %</td>
+<td>~10–25 %</td>
+</tr>
+<tr>
+<td>Leer una sola columna</td>
+<td>Lee todo</td>
+<td>Lee todo</td>
+<td>Solo esa columna</td>
+<td>Solo esa columna</td>
+</tr>
+<tr>
+<td>Uso típico</td>
+<td>Intercambio, exportes</td>
+<td>APIs, eventos</td>
+<td>Analítica</td>
+<td>Lakehouse</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-analogia"><div class="callout-title">🧠 ¿Por qué &quot;columnar&quot; es más rápido?</div>
+
+<p>Imagina una biblioteca. En CSV cada libro es un cliente con todos sus datos; para saber &quot;el país de todos&quot;, abres todos los libros. En Parquet hay un libro por columna: para saber el país de todos, abres <strong>un solo libro</strong>.</p>
+</div>
+
+
+<h2>Dónde viven los datos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sistema</th>
+<th>Para qué</th>
+<th>Ejemplos</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Base de datos transaccional (OLTP)</strong></td>
+<td>La app del día a día: registrar una venta, actualizar un stock. Muchas operaciones pequeñas y rápidas</td>
+<td>PostgreSQL, MySQL, SQL Server</td>
+</tr>
+<tr>
+<td><strong>Data warehouse (OLAP)</strong></td>
+<td>Análisis: &quot;ventas por mes de los últimos 5 años&quot;. Pocas consultas, pero enormes</td>
+<td>Snowflake, BigQuery, Redshift, Synapse, Databricks SQL</td>
+</tr>
+<tr>
+<td><strong>Data lake</strong></td>
+<td>Archivos (CSV, JSON, Parquet) de cualquier tipo, baratos, en la nube</td>
+<td>Amazon S3, Azure Data Lake Storage, Google Cloud Storage</td>
+</tr>
+<tr>
+<td><strong>Lakehouse</strong></td>
+<td>Lo mejor de ambos: archivos baratos en el lake con la fiabilidad de un warehouse (gracias a Delta o Iceberg)</td>
+<td>Databricks, BigQuery + BigLake, Snowflake con Iceberg</td>
+</tr>
+</tbody></table></div>
+<!-- dg:f02-donde -->
+<figure class="diagrama"><figcaption>Dónde vive cada dato: la app escribe en OLTP, el pipeline copia al lake y el análisis lee de ahí</figcaption></figure>
+
+
+<p>¿Por qué no se analiza directo en la base de la app? Porque una consulta de &quot;ventas de los últimos 5 años&quot; lee millones de filas, y mientras tanto la app, que necesita responder en milisegundos para que los clientes puedan comprar, se pone lenta. Por eso los datos se <strong>copian</strong> a un sistema pensado para analizar. Esa copia es, justamente, el pipeline que construye un ingeniero de datos.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>OLTP (la app)</th>
+<th>OLAP (el análisis)</th>
+</tr>
+</thead><tbody><tr>
+<td>Operación típica</td>
+<td>&quot;Guarda este pedido&quot;</td>
+<td>&quot;Suma las ventas de 2024 por país&quot;</td>
+</tr>
+<tr>
+<td>Filas por operación</td>
+<td>Una o pocas</td>
+<td>Millones</td>
+</tr>
+<tr>
+<td>Cuántas operaciones</td>
+<td>Miles por segundo</td>
+<td>Pocas, pero pesadas</td>
+</tr>
+<tr>
+<td>Cómo guarda</td>
+<td>Por filas</td>
+<td>Por columnas</td>
+</tr>
+</tbody></table></div>
+<h2>Nuestros datos: 13 empresas</h2>
+<p>En todo el curso usamos empresas ficticias con datos realistas. La principal es <strong>Tienda Andina</strong>, un e-commerce con 19 tablas: clientes, productos, categorías, pedidos, detalle de pedidos, pagos, envíos, devoluciones, reseñas, proveedores, compras, cupones, empleados, eventos web y más. Además hay <strong>12 empresas más</strong> para los casos de negocio: un banco, una app de música, una app de viajes, una clínica, un SaaS, una aerolínea, una empresa de logística, una telco, una aseguradora, una cadena de hoteles, una distribuidora de energía y una app de delivery. En total son 97 tablas con más de 500.000 filas. En <a href="#/datos">Bases de datos</a> puedes ver cada una con su diagrama y por qué está diseñada así.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Guardar números como texto</strong>: un código de producto <code>0012</code> guardado como número se convierte en <code>12</code>, y un monto <code>1.234,50</code> guardado como texto no se puede sumar. Decide el tipo de cada columna a propósito.</li>
+<li><strong>Fechas en formato local</strong>: <code>03/04/2024</code> es 3 de abril en Latinoamérica y 4 de marzo en EE. UU. Convierte todo a ISO (<code>2024-04-03</code>) al cargar.</li>
+<li><strong>Abrir un CSV con la codificación equivocada</strong>: aparecen caracteres como <code>PerÃº</code>. Usa UTF-8 siempre que puedas, y pregunta con qué codificación se generó el archivo.</li>
+<li><strong>Confundir vacío con nulo</strong>: un campo <code>&quot;&quot;</code> y un campo ausente no significan lo mismo. Al cargar, decide cómo tratar cada caso.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El archivo que llegó por correo</div>
+
+<p>Ahora que conoces tablas, tipos y formatos, mira cómo se ve en un trabajo real. Diego, de finanzas, le manda un archivo al equipo de datos:</p>
+<blockquote>
+<p>&quot;Te paso el export de ventas del sistema viejo, <code>ventas.csv</code>. Cuando lo abro en Excel, los montos salen raros y algunas fechas no se entienden. ¿Lo podemos cargar al warehouse?&quot;</p>
+</blockquote>
+<p>Con lo que viste ya sabes qué revisar antes de cargar nada: el separador, los decimales con coma o punto, el formato de las fechas y si la primera fila trae los nombres de las columnas.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas, los datos que llegan de afuera (exports, archivos de proveedores, APIs) aterrizan primero <strong>tal cual</strong> en una zona de &quot;landing&quot; o &quot;bronze&quot;. Se limpian y tipan después, en un paso separado. Así siempre puedes volver al original.</li>
+<li>La conversión de CSV o JSON a Parquet/Delta es uno de los primeros pasos de casi todos los pipelines: reduce el tamaño, guarda los tipos y acelera todo lo que viene después.</li>
+<li>Cuando recibas un archivo nuevo, antes de procesarlo, revisa: cuántas filas tiene, qué columnas, qué separador, qué codificación, cuántos nulos y si hay duplicados. Lo vas a practicar en la terminal, en Python y en SQL.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fundamentos-datos-y-formatos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-quien-usa-los-datos.html">← Quién usa los datos y cómo se cuidan - calidad, linaje y privacidad</a><a href="fundamentos-terminal.html">La terminal sin miedo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

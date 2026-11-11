@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Vault: hubs, links y satélites · Academia de Datos</title><meta name="description" content="Qué problema resuelve Data Vault, sus tres piezas, cómo se cargan y cuándo conviene frente a un modelo dimensional."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-data-vault.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Data Vault: hubs, links y satélites · Academia de Datos"><meta property="og:description" content="Qué problema resuelve Data Vault, sus tres piezas, cómo se cargan y cuándo conviene frente a un modelo dimensional."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-data-vault.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#modelado">📐 Modelado de datos</a> · Experto · 45 min</div>
+<h1>Data Vault: hubs, links y satélites</h1><p class="resumen">Qué problema resuelve Data Vault, sus tres piezas, cómo se cargan y cuándo conviene frente a un modelo dimensional.</p>
+<a class="cta" href="../index.html#/l/modelado-data-vault">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar el problema que resuelve Data Vault (integrar muchas fuentes que cambian)</li><li>Identificar hubs, links y satélites a partir de un modelo de origen</li><li>Construir un hub y un satélite con SQL a partir de dos fuentes</li><li>Decidir entre Data Vault y modelado dimensional según la empresa</li></ul>
+<h2>La idea</h2>
+<p><strong>Data Vault</strong> (creado por Dan Linstedt) es una forma de modelar la capa <strong>intermedia</strong> (silver, o &quot;raw vault&quot;) pensada para tres cosas:</p>
+<ol>
+<li><strong>Integrar muchas fuentes</strong> que describen las mismas entidades de negocio.</li>
+<li><strong>Absorber cambios</strong> en las fuentes sin rediseñar lo existente: se <strong>agrega</strong>, nunca se modifica.</li>
+<li><strong>Auditar</strong>: guardar toda la historia, con la fuente y la fecha de carga de cada dato.</li>
+</ol>
+<p>Separa el modelo en tres tipos de tablas:</p>
+<figure class="diagrama"><figcaption>Data Vault: hubs (claves), links (relaciones) y satélites (atributos con historia)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué guarda</th>
+<th>Columnas típicas</th>
+<th>Cambia…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Hub</strong></td>
+<td>Una fila por <strong>clave de negocio</strong> única (el cliente &quot;existe&quot;)</td>
+<td><code>hk_cliente</code> (hash de la clave), <code>documento</code>, <code>fecha_carga</code>, <code>fuente</code></td>
+<td>Solo se agregan filas</td>
+</tr>
+<tr>
+<td><strong>Link</strong></td>
+<td>Una fila por <strong>relación</strong> entre claves</td>
+<td><code>hk_link</code>, <code>hk_cliente</code>, <code>hk_cuenta</code>, <code>fecha_carga</code>, <code>fuente</code></td>
+<td>Solo se agregan filas</td>
+</tr>
+<tr>
+<td><strong>Satélite</strong></td>
+<td>Los <strong>atributos descriptivos</strong> de un hub o link, con su historia</td>
+<td><code>hk_cliente</code>, <code>fecha_carga</code>, <code>hash_atributos</code>, atributos…, <code>fuente</code></td>
+<td>Se agrega una fila por cada cambio</td>
+</tr>
+</tbody></table></div>
+<p>Las claves suelen ser <strong>hashes</strong> de la clave de negocio (por ejemplo, <code>MD5(documento)</code>): se pueden calcular en paralelo, sin consultar una secuencia, y son iguales en todos los sistemas.</p>
+<h3>Por qué absorbe tan bien los cambios</h3>
+<ul>
+<li>¿La fintech agrega una columna &quot;nivel de fidelidad&quot;? Se agrega un <strong>satélite nuevo</strong> (o una columna nueva en el suyo). Nada de lo existente cambia.</li>
+<li>¿Llega un tercer sistema con clientes? Se carga en el <strong>mismo hub</strong> (las claves de negocio coinciden) y en un <strong>satélite propio</strong>.</li>
+<li>¿El regulador pregunta qué segmento tenía el cliente el 3 de marzo? Los satélites guardan todas las versiones con su fecha de carga.</li>
+</ul>
+<h2>Cargar un hub y un satélite</h2>
+<p>Integrar el cliente de las dos fuentes en el hub: la clave de negocio (el documento) se normaliza y se quedan los valores distintos, con la primera fuente y fecha en que se vio:</p>
+<pre><code class="language-sql">WITH core(documento, nombre, segmento, fecha_carga) AS (
+    VALUES ('12.345.678', 'Ana Ruiz',  'Pyme',       '2024-01-10'),
+           ('20.111.222', 'Luis Paz',  'Consumidor', '2024-01-10')
+),
+fintech(id_app, documento, email, fecha_carga) AS (
+    VALUES ('A-9', '12345678', 'ana@mail.com',   '2024-02-01'),
+           ('A-7', '30999888', 'eva@correo.com', '2024-02-01')
+),
+claves AS (
+    SELECT REPLACE(documento, '.', '') AS documento, fecha_carga, 'core' AS fuente FROM core
+    UNION ALL
+    SELECT REPLACE(documento, '.', ''), fecha_carga, 'fintech' FROM fintech
+),
+primera_vez AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY documento ORDER BY fecha_carga, fuente) AS rn FROM claves
+)
+SELECT 'hk_' || documento AS hk_cliente, documento, fecha_carga, fuente
+FROM primera_vez
+WHERE rn = 1
+ORDER BY documento;</code></pre>
+<p>(En un motor real, <code>hk_cliente</code> sería <code>MD5(documento)</code>; SQLite no tiene MD5, así que lo simulamos con un prefijo.) Ana aparece <strong>una sola vez</strong> aunque esté en los dos sistemas con formatos distintos de documento: esa es la integración. Eva solo existe en la fintech y Luis solo en el core.</p>
+<p>El satélite guarda una fila por <strong>cambio</strong> de los atributos. Para detectar cambios se compara un hash de todos los atributos con el de la última versión: si es igual, no se inserta nada.</p>
+<h2>De Data Vault al modelo dimensional</h2>
+<p>Data Vault <strong>no</strong> se consulta directamente desde el BI: para responder &quot;ventas por segmento&quot; habría que unir hubs, links y varios satélites, eligiendo la versión vigente de cada uno. Por eso la arquitectura típica es:</p>
+<figure class="diagrama"><figcaption>Data Vault en el medio, estrella para consumir</figcaption></figure>
+
+
+<h2>¿Cuándo sí y cuándo no?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Conviene Data Vault si…</th>
+<th>No conviene si…</th>
+</tr>
+</thead><tbody><tr>
+<td>Muchas fuentes describen las mismas entidades</td>
+<td>Hay una o dos fuentes estables</td>
+</tr>
+<tr>
+<td>Las fuentes cambian seguido</td>
+<td>El equipo es chico</td>
+</tr>
+<tr>
+<td>Hay exigencias fuertes de auditoría (banca, seguros, salud)</td>
+<td>Se necesita entregar valor rápido</td>
+</tr>
+<tr>
+<td>El modelo va a vivir muchos años y crecer mucho</td>
+<td>El modelo dimensional directo alcanza</td>
+</tr>
+</tbody></table></div>
+<p>Data Vault multiplica la cantidad de tablas y de JOINs. En una empresa mediana, una capa silver bien hecha (con SCD tipo 2 donde importa) más un modelo dimensional suele ser suficiente.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Poner atributos en el hub</strong>: el hub solo tiene la clave de negocio. Si pones el nombre, cada cambio rompe el principio de &quot;solo agregar&quot;.</li>
+<li><strong>Elegir mal la clave de negocio</strong>: usar el id interno de un sistema en lugar de una clave que compartan todas las fuentes (el documento, el número de cuenta) impide integrar.</li>
+<li><strong>Consultar el vault desde el BI</strong>: consultas de 15 JOINs, lentas y fáciles de equivocar. Siempre se construye una capa de marts encima.</li>
+<li><strong>Adoptarlo &quot;porque es lo moderno&quot;</strong> en una empresa con dos fuentes: meses de trabajo para un problema que no existe.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Dos sistemas, el mismo cliente</div>
+
+<p>El banco del Grupo Andino compró una fintech. Ahora hay dos sistemas con clientes: el <strong>core bancario</strong> (con el documento como identificador) y la <strong>app de la fintech</strong> (con su propio id, pero también con el documento). Cada sistema cambia sus columnas cada pocos meses, y el regulador exige poder reconstruir <strong>qué sabía el banco de cada cliente en cualquier fecha</strong>.</p>
+<p>Martín te dice:</p>
+<blockquote>
+<p>&quot;Con un esquema estrella directo desde las fuentes, cada cambio de un sistema nos obliga a rehacer las dimensiones. Investiga Data Vault: lo usan muchos bancos justamente para esto.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Data Vault es común en bancos, aseguradoras y grandes empresas europeas. En dbt existe el paquete <strong>AutomateDV</strong> (antes dbtvault), que genera hubs, links y satélites a partir de configuraciones.</li>
+<li>Aunque no uses Data Vault completo, dos de sus ideas se usan en todos lados: guardar <code>fuente</code> y <code>fecha_carga</code> en cada fila, y detectar cambios comparando un <strong>hash</strong> de los atributos.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Data Vault o Kimball?&quot;</div>
+
+<p>No son excluyentes: Data Vault es una forma de modelar la capa de integración (historia completa, muchas fuentes, auditoría, cambios sin rediseño) y Kimball es la forma de modelar la capa de consumo (simple y rápida para el BI). En empresas con muchas fuentes y regulación, se usa Data Vault en el medio y estrellas encima. En empresas chicas, silver con SCD donde haga falta y estrellas en gold es más simple y suficiente.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/modelado-data-vault">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="modelado-scd.html">← Dimensiones lentamente cambiantes (SCD) con SQL</a><a href="modelado-obt-anidados.html">Tablas anchas (OBT), datos anidados y agregados →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

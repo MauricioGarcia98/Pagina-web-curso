@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🛒 Tienda Andina: preguntas de directorio · Academia de Datos</title><meta name="description" content="Canasta de productos, cliente nuevo vs recurrente, primer producto comprado, LTV y tiempo hasta la recompra."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-tienda-avanzado.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🛒 Tienda Andina: preguntas de directorio · Academia de Datos"><meta property="og:description" content="Canasta de productos, cliente nuevo vs recurrente, primer producto comprado, LTV y tiempo hasta la recompra."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-tienda-avanzado.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Experto · 50 min</div>
+<h1>Caso 🛒 Tienda Andina: preguntas de directorio</h1><p class="resumen">Canasta de productos, cliente nuevo vs recurrente, primer producto comprado, LTV y tiempo hasta la recompra.</p>
+<a class="cta" href="../index.html#/l/casos-tienda-avanzado">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Encontrar pares de productos que se compran juntos sin contar cada par dos veces</li><li>Separar ventas de clientes nuevos y recurrentes usando la primera compra</li><li>Calcular el LTV por cohorte de registro</li><li>Calcular la mediana del tiempo hasta la segunda compra sin funciones de mediana</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 El directorio de Tienda Andina</div>
+
+<p>Valentina vuelve a presentar en el directorio y esta vez las preguntas son de estrategia:</p>
+<blockquote>
+<p>&quot;Me van a preguntar: ¿crecemos porque conseguimos clientes nuevos o porque los que tenemos vuelven? ¿Con qué productos entra la gente? ¿Cuánto vale un cliente en toda su vida? ¿Y cuánto tarda en volver a comprar? Con eso decidimos el presupuesto de marketing del año.&quot;</p>
+</blockquote>
+<p>Son las preguntas que hace cualquier directorio de un e-commerce. Todas dependen de identificar bien la <strong>primera</strong> compra de cada cliente y de no mezclar granos.</p>
+</div>
+
+<p>Volvemos a la tienda que conoces, ahora con preguntas que haría un directorio. Todas exigen pensar bien el <strong>grano</strong> y el <strong>orden temporal</strong>.</p>
+<h2>Preguntas de directorio: qué hay detrás de cada una</h2>
+<p>Los ejercicios de esta lección son los que aparecen en una reunión de directorio de cualquier e-commerce. Antes de resolverlos, conviene entender qué concepto de negocio hay detrás de cada uno:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Concepto</th>
+<th>Para qué se usa</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Qué productos se compran juntos?</td>
+<td><strong>Análisis de canasta</strong> (<em>market basket</em>)</td>
+<td>Recomendaciones (&quot;quienes compraron esto también…&quot;), combos, ubicación en la tienda</td>
+</tr>
+<tr>
+<td>¿Cuánto venden los clientes nuevos vs. los que vuelven?</td>
+<td><strong>Nuevo vs. recurrente</strong></td>
+<td>Saber si el crecimiento depende de adquirir (caro) o de retener (barato)</td>
+</tr>
+<tr>
+<td>¿Con qué categoría entran los clientes?</td>
+<td><strong>Categoría de entrada</strong> (<em>first purchase</em>)</td>
+<td>Qué productos traen clientes nuevos: dónde invertir en publicidad</td>
+</tr>
+<tr>
+<td>¿Cuánto vale un cliente a lo largo del tiempo?</td>
+<td><strong>LTV</strong> (<em>lifetime value</em>) por cohorte</td>
+<td>Cuánto se puede gastar para conseguir un cliente (debe ser menor que su LTV)</td>
+</tr>
+<tr>
+<td>¿Cuánto tarda en volver a comprar?</td>
+<td><strong>Mediana de tiempo a la segunda compra</strong></td>
+<td>Cuándo enviar un recordatorio o un cupón</td>
+</tr>
+</tbody></table></div>
+<p>Todas comparten dos dificultades: el <strong>orden temporal</strong> (qué pasó primero: hay que identificar la <em>primera</em> compra de cada cliente con <code>MIN</code> o <code>ROW_NUMBER</code>) y el <strong>grano</strong> (pedidos, líneas, clientes y pares de productos son niveles distintos; mezclarlos multiplica o pierde filas).</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 ¿Por qué la mediana y no el promedio?</div>
+
+<p>Si 9 clientes vuelven a los 20 días y uno a los 700, el promedio da 88 días, que no describe a nadie. La <strong>mediana</strong> (el valor del medio) da 20: lo que le pasa al cliente típico. Para tiempos, montos de compra y salarios, que tienen valores extremos, la mediana es casi siempre más honesta.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pares duplicados en la canasta</strong>: un self join de las líneas del mismo pedido devuelve (A, B) y (B, A), y también (A, A). Usa <code>a.producto_id &lt; b.producto_id</code>.</li>
+<li><strong>&quot;Nuevo&quot; por año en vez de por cliente</strong>: un cliente nuevo es el que hace su <strong>primer</strong> pedido, no el que se registró ese año.</li>
+<li><strong>Primera compra con pedidos cancelados</strong>: si el primer pedido se canceló, ¿cuenta? Decide y aplica la misma regla en todas las métricas.</li>
+<li><strong>LTV de cohortes recientes</strong>: los clientes de 2024 tuvieron menos tiempo para comprar. Compara cohortes con el mismo tiempo de antigüedad, o acláralo.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Estas métricas (nuevos vs. recurrentes, LTV, tiempo a la recompra) son la base de las decisiones de marketing: cuánto invertir para conseguir un cliente (que tiene que ser menos que su LTV) y cuándo mandar un recordatorio.</li>
+<li>El análisis de canasta con millones de pedidos genera una explosión de pares. En producción se limita a los productos más vendidos o se usan algoritmos específicos en Spark.</li>
+</ul>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo calcularías el tiempo hasta la recompra de los clientes?&quot;</div>
+
+<p>Para cada cliente ordenaría sus pedidos no cancelados por fecha y usaría <code>LEAD</code> para obtener la fecha del siguiente pedido; la diferencia en días es el tiempo hasta la recompra. Tomaría la mediana además del promedio, porque hay valores muy largos, y la separaría por la categoría de la primera compra. Los clientes con un solo pedido no tienen recompra todavía: los informaría aparte, no como cero.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-tienda-avanzado">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-logistica.html">← Caso 📦 Mercurio: stock, quiebres y entregas a tiempo</a><a href="casos-telco.html">Caso 📱 Conecta: bajas de clientes (churn), reclamos y ARPU en una telco →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

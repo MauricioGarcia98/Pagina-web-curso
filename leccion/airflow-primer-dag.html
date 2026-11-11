@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu primer DAG · Academia de Datos</title><meta name="description" content="Desde cero - el Python mínimo que necesitas, un DAG completo explicado línea por línea (sintaxis de Airflow 3), cómo lee Airflow tu archivo, operadores, task_id, dependencias con &gt;&gt; y cómo probarlo con dags test."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-primer-dag.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tu primer DAG · Academia de Datos"><meta property="og:description" content="Desde cero - el Python mínimo que necesitas, un DAG completo explicado línea por línea (sintaxis de Airflow 3), cómo lee Airflow tu archivo, operadores, task_id, dependencias con &gt;&gt; y cómo probarlo con dags test."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-primer-dag.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow">🌬️ Apache Airflow</a> · Básico · 45 min</div>
+<h1>Tu primer DAG</h1><p class="resumen">Desde cero - el Python mínimo que necesitas, un DAG completo explicado línea por línea (sintaxis de Airflow 3), cómo lee Airflow tu archivo, operadores, task_id, dependencias con &gt;&gt; y cómo probarlo con dags test.</p>
+<a class="cta" href="../index.html#/l/airflow-primer-dag">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer y escribir un DAG con with DAG(...)</li><li>Crear tareas con BashOperator, PythonOperator y EmptyOperator</li><li>Definir dependencias en cadena y en paralelo</li><li>Explicar por qué el código fuera de las tareas se ejecuta en cada lectura</li><li>Probar un DAG con airflow dags test</li></ul>
+<h2>Antes de empezar: el Python mínimo para leer un DAG</h2>
+<p>Un DAG se escribe en Python, pero no necesitas saber mucho. Estas son las cinco piezas que aparecen:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Ejemplo</th>
+<th>Qué significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>import</strong></td>
+<td><code>from datetime import datetime</code></td>
+<td>&quot;Trae la herramienta <code>datetime</code> del paquete <code>datetime</code>.&quot; Python no carga nada que no pidas.</td>
+</tr>
+<tr>
+<td><strong>función</strong></td>
+<td><code>def transformar(): ...</code></td>
+<td>Un bloque de código con nombre que se ejecuta <strong>cuando alguien lo llama</strong>, no cuando se escribe.</td>
+</tr>
+<tr>
+<td><strong>objeto</strong></td>
+<td><code>BashOperator(task_id=&quot;extraer&quot;, ...)</code></td>
+<td>Crear &quot;una cosa&quot; de un tipo (aquí, una tarea) con sus datos entre paréntesis: <code>nombre=valor</code>.</td>
+</tr>
+<tr>
+<td><strong>variable</strong></td>
+<td><code>extraer = BashOperator(...)</code></td>
+<td>Un nombre para referirte a ese objeto después.</td>
+</tr>
+<tr>
+<td><strong>bloque with</strong></td>
+<td><code>with DAG(...) as dag:</code></td>
+<td>&quot;Todo lo que esté <strong>indentado</strong> (con sangría) debajo pertenece a este DAG.&quot;</td>
+</tr>
+</tbody></table></div>
+<p>En Python la <strong>sangría</strong> (los espacios al comienzo de la línea) no es decoración: indica qué está dentro de qué. Si una tarea queda sin sangría, queda <strong>fuera</strong> del DAG.</p>
+<h2>El DAG completo</h2>
+<pre><code class="language-python">from datetime import datetime
+from airflow.sdk import DAG
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+
+def transformar():
+    print(&quot;Limpiando y transformando datos...&quot;)
+
+with DAG(
+    dag_id=&quot;etl_ventas&quot;,
+    start_date=datetime(2024, 1, 1),
+    schedule=&quot;@daily&quot;,
+    catchup=False,
+    tags=[&quot;ventas&quot;],
+) as dag:
+
+    extraer = BashOperator(task_id=&quot;extraer&quot;, bash_command=&quot;echo descargando ventas&quot;)
+    limpiar = PythonOperator(task_id=&quot;transformar&quot;, python_callable=transformar)
+    cargar = BashOperator(task_id=&quot;cargar&quot;, bash_command=&quot;echo cargando en el lakehouse&quot;)
+
+    extraer &gt;&gt; limpiar &gt;&gt; cargar          # dependencias
+
+dag.test()                                 # ejecuta el DAG completo una vez (como `airflow dags test`)</code></pre>
+<p>Presiona ▶ para ejecutarlo. Ahora, línea por línea:</p>
+<ol>
+<li><code>from datetime import datetime</code>: trae <code>datetime</code>, que sirve para escribir fechas como <code>datetime(2024, 1, 1)</code>.</li>
+<li><code>from airflow.sdk import DAG</code>: trae la clase <code>DAG</code>. En Airflow 3, todo lo que usas para <strong>escribir</strong> DAGs se importa de <code>airflow.sdk</code>.</li>
+<li>y 4. Traen dos <strong>operadores</strong> del <em>provider</em> estándar (el paquete <code>apache-airflow-providers-standard</code>, que viene con Airflow): uno para comandos de terminal y otro para funciones de Python.</li>
+<li><code>def transformar():</code> define la función que hará el trabajo de limpieza. Todavía <strong>no se ejecuta</strong>: solo se define.</li>
+<li><code>with DAG(...) as dag:</code> crea el DAG con sus datos:<ul>
+<li><code>dag_id=&quot;etl_ventas&quot;</code>: el nombre único con el que lo verás en la interfaz.</li>
+<li><code>start_date=datetime(2024, 1, 1)</code>: desde qué fecha el DAG es válido.</li>
+<li><code>schedule=&quot;@daily&quot;</code>: corre una vez por día, a medianoche (la próxima lección explica los horarios en detalle).</li>
+<li><code>catchup=False</code>: no recupera días pasados al activarlo (es el valor por defecto en Airflow 3; se escribe igual para que quede claro).</li>
+<li><code>tags=[&quot;ventas&quot;]</code>: etiquetas para filtrar en la interfaz.</li>
+</ul>
+</li>
+<li>Las tres líneas siguientes crean las <strong>tareas</strong>. Cada una es un operador con un <code>task_id</code> único. <code>python_callable=transformar</code> le pasa la función <strong>sin paréntesis</strong>: le dices &quot;esta es la función que tienes que llamar&quot;, no la llamas tú.</li>
+<li><code>extraer &gt;&gt; limpiar &gt;&gt; cargar</code>: el operador <code>&gt;&gt;</code> significa &quot;antes que&quot;. Primero extraer, después limpiar, después cargar.</li>
+<li><code>dag.test()</code>: está <strong>fuera</strong> del <code>with</code> (sin sangría). Ejecuta el DAG completo una vez, en orden, sin necesidad de un scheduler. Es lo que usarás para probar.</li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 Si ves la sintaxis de Airflow 2</div>
+
+<p>En proyectos y tutoriales anteriores a 2025 vas a ver <code>from airflow import DAG</code> y <code>from airflow.operators.bash import BashOperator</code>. Hacen lo mismo: son las rutas de Airflow 2, que en Airflow 3 todavía funcionan con un aviso de obsoleto. El simulador del curso acepta las dos.</p>
+</div>
+
+
+<h2>Cómo lee Airflow tu archivo</h2>
+<p>Esto confunde a todos al principio: el archivo del DAG <strong>no se ejecuta como un script</strong> de principio a fin para procesar datos. Lo que pasa es:</p>
+<ol>
+<li>El <strong>Dag processor</strong> lee (<em>parsea</em>) los archivos <code>.py</code> de la carpeta de DAGs cada cierto tiempo (por defecto, cada 30 segundos se revisa si hay cambios).</li>
+<li>Al leerlo, Python ejecuta el código &quot;de nivel superior&quot;: crea el objeto <code>DAG</code> y las tareas, y anota las dependencias. <strong>No</strong> ejecuta las funciones de las tareas.</li>
+<li>Cuando llega la hora (según el <code>schedule</code>), el <strong>scheduler</strong> crea un <strong>DAG run</strong> y va enviando cada tarea a un <em>worker</em>, que recién ahí ejecuta <code>transformar()</code> o el comando de Bash.</li>
+</ol>
+<p>Consecuencia práctica, y la primera regla de la página de buenas prácticas de la documentación oficial: el código que está <strong>fuera</strong> de las funciones de las tareas (el <em>top-level code</em>) se ejecuta cada vez que se parsea el archivo, ¡miles de veces por día! Nunca pongas ahí consultas a bases de datos, llamadas a APIs o lecturas de archivos grandes: van <strong>dentro</strong> de las tareas.</p>
+<pre data-norun><code class="language-python"># MAL: se ejecuta en cada lectura del archivo, aunque el DAG no corra
+clientes = requests.get(&quot;https://api.tienda.com/clientes&quot;).json()
+
+# BIEN: se ejecuta solo cuando corre la tarea
+def descargar_clientes():
+    import requests
+    return requests.get(&quot;https://api.tienda.com/clientes&quot;).json()</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Las piezas</h2>
+<ul>
+<li><code>with DAG(...) as dag:</code> todo lo que crees adentro pertenece a ese DAG.</li>
+<li><code>dag_id</code>: nombre único del DAG en toda la instalación de Airflow.</li>
+<li><code>start_date</code>: desde cuándo es válido el DAG. <code>schedule</code>: cada cuánto corre.</li>
+<li><strong>Operadores</strong>: plantillas de tareas. Al instanciarlos con un <code>task_id</code> único se convierten en <strong>tareas</strong>.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>Qué hace</th>
+<th>De dónde se importa (Airflow 3)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>BashOperator</code></td>
+<td>Ejecuta un comando de terminal</td>
+<td><code>airflow.providers.standard.operators.bash</code></td>
+</tr>
+<tr>
+<td><code>PythonOperator</code></td>
+<td>Ejecuta una función de Python</td>
+<td><code>airflow.providers.standard.operators.python</code></td>
+</tr>
+<tr>
+<td><code>EmptyOperator</code></td>
+<td>No hace nada (útil para agrupar o marcar inicio/fin)</td>
+<td><code>airflow.providers.standard.operators.empty</code></td>
+</tr>
+<tr>
+<td><code>TriggerDagRunOperator</code></td>
+<td>Dispara otro DAG</td>
+<td><code>airflow.providers.standard.operators.trigger_dagrun</code></td>
+</tr>
+<tr>
+<td>Operadores de otros <em>providers</em></td>
+<td>Databricks, Azure, AWS, Google, SQL, dbt… (cientos)</td>
+<td><code>airflow.providers.&lt;proveedor&gt;...</code></td>
+</tr>
+</tbody></table></div>
+<p>Un <strong>provider</strong> es un paquete aparte que agrega operadores para un sistema: <code>pip install apache-airflow-providers-databricks</code> agrega los de Databricks.</p>
+<h2>Dependencias</h2>
+<pre data-norun><code class="language-python">a &gt;&gt; b            # a antes que b      (equivale a b &lt;&lt; a)
+a &gt;&gt; [b, c]       # b y c después de a (en paralelo)
+[b, c] &gt;&gt; d       # d después de b y c
+a &gt;&gt; b &gt;&gt; c       # en cadena
+
+from airflow.sdk import chain
+chain(a, [b, c], d)</code></pre>
+<p>Dos palabras que verás en todos lados: las tareas que van <strong>antes</strong> de una tarea son sus <em>upstream</em>; las que van <strong>después</strong>, sus <em>downstream</em>. En <code>a &gt;&gt; b</code>, <code>a</code> es upstream de <code>b</code>.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ task_id únicos</div>
+
+<p>Dentro de un DAG, cada <code>task_id</code> debe ser único. Y el nombre de la <strong>variable</strong> Python (<code>limpiar</code>) no importa para Airflow: lo que vale es el <code>task_id</code> (<code>&quot;transformar&quot;</code>). En la interfaz y en los logs solo verás el <code>task_id</code>.</p>
+</div>
+
+
+<h2>Pruébalo en la terminal</h2>
+<p>La terminal tiene un DAG de ejemplo en <code>~/dags/etl_ventas.py</code>, y el comando <code>airflow</code> usa el mismo simulador que los ejercicios:</p>
+<pre><code class="language-bash">cat dags/etl_ventas.py
+airflow dags list
+airflow tasks list etl_ventas
+airflow dags test etl_ventas 2024-12-31</code></pre>
+<p><code>airflow dags test</code> ejecuta el DAG completo <strong>una vez</strong>, en orden, sin el scheduler: es la forma de probar un DAG en tu computadora antes de subirlo. Puedes editar el archivo con <code>code dags/etl_ventas.py</code> y volver a probarlo.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tareas sin sangría</strong>: quedan fuera del <code>with DAG</code> y Airflow dice que la tarea no tiene DAG.</li>
+<li><strong><code>python_callable=transformar()</code></strong> (con paréntesis): ejecuta la función al leer el archivo y le pasa el resultado al operador. Va sin paréntesis.</li>
+<li><strong>Dos tareas con el mismo <code>task_id</code></strong>: error al cargar el DAG.</li>
+<li><strong>Código pesado al nivel superior</strong>: el Dag processor se pone lento y los DAGs tardan en aparecer o desaparecen por <em>timeout</em>.</li>
+<li><strong>Un <code>dag_id</code> repetido en dos archivos</strong>: Airflow solo carga uno y no sabes cuál.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Todas las noches alguien del equipo entra a las 2:00 a correr tres scripts a mano: descargar ventas, limpiarlas y cargarlas. Si se olvida, el tablero de la mañana está vacío. Vamos a convertir esos tres pasos en un DAG de Airflow: un archivo de Python que describe <strong>qué</strong> pasos hay y <strong>en qué orden</strong>, para que Airflow los ejecute solo.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los DAGs viven en un repositorio Git; cada cambio pasa por un <em>pull request</em> y un CI que, como mínimo, importa todos los archivos para detectar errores (la documentación oficial recomienda un test que cargue los DAGs y falle si hay <em>import errors</em>).</li>
+<li>La convención de los equipos: un DAG por archivo, el <code>dag_id</code> igual al nombre del archivo, <code>owner</code> y <code>tags</code> siempre completos para saber a quién avisar.</li>
+<li>Las tareas suelen ser &quot;delgadas&quot;: el trabajo pesado lo hace Spark, dbt o la base; la tarea de Airflow solo lo dispara y espera.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué pasa si pongo una consulta a la base de datos fuera de las tareas de un DAG?&quot;</div>
+
+<p>Se ejecuta cada vez que Airflow parsea el archivo, que es cada pocos segundos o minutos, aunque el DAG no esté corriendo. Eso carga la base, hace lento al Dag processor y puede hacer que el DAG no se cargue por exceder el tiempo de parseo. Todo trabajo con sistemas externos debe ir dentro de la función de una tarea; para valores de configuración se usan Variables o plantillas de Jinja, que se resuelven al ejecutar.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-primer-dag">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-orquestacion.html">← Orquestación y el concepto de DAG</a><a href="airflow-programacion.html">Programación: schedule, start_date, catchup e intervalos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

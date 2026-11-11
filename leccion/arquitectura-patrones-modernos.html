@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patrones modernos: data mesh, capa semántica, reverse ETL y más · Academia de Datos</title><meta name="description" content="Las ideas que vas a escuchar en cualquier equipo de datos actual, qué problema resuelve cada una y cuándo NO conviene adoptarlas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-patrones-modernos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Patrones modernos: data mesh, capa semántica, reverse ETL y más · Academia de Datos"><meta property="og:description" content="Las ideas que vas a escuchar en cualquier equipo de datos actual, qué problema resuelve cada una y cuándo NO conviene adoptarlas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-patrones-modernos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#arquitectura">🏛️ Arquitectura de datos</a> · Experto · 45 min</div>
+<h1>Patrones modernos: data mesh, capa semántica, reverse ETL y más</h1><p class="resumen">Las ideas que vas a escuchar en cualquier equipo de datos actual, qué problema resuelve cada una y cuándo NO conviene adoptarlas.</p>
+<a class="cta" href="../index.html#/l/arquitectura-patrones-modernos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar data mesh y data products y cuándo tienen sentido</li><li>Explicar para qué sirve una capa semántica y cómo evita métricas contradictorias</li><li>Describir reverse ETL, feature store y zero-ETL con un caso de uso cada uno</li><li>Evaluar si un patrón de moda conviene para un equipo y una empresa concretos</li></ul>
+<h2>Data mesh: los datos como producto de cada dominio</h2>
+<p>En una plataforma <strong>centralizada</strong>, un solo equipo de datos construye todo para todos. Funciona bien hasta que el equipo no da abasto y no conoce el negocio de cada área tan bien como sus dueños.</p>
+<p><strong>Data mesh</strong> propone otra organización, con cuatro principios:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Principio</th>
+<th>Qué significa</th>
+<th>En el Grupo Andino</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Propiedad por dominio</strong></td>
+<td>Cada área es dueña de sus datos y de sus pipelines</td>
+<td>El equipo de la aerolínea construye y mantiene sus tablas</td>
+</tr>
+<tr>
+<td><strong>Datos como producto</strong></td>
+<td>Lo que publica un dominio tiene usuarios, calidad, documentación y SLA, como un producto</td>
+<td><code>vuelos.gold.puntualidad_diaria</code> con dueño, contrato y SLA</td>
+</tr>
+<tr>
+<td><strong>Plataforma de autoservicio</strong></td>
+<td>Un equipo central da las herramientas para que los dominios no reinventen nada</td>
+<td>El equipo central mantiene el lakehouse, la CI, los permisos y las plantillas</td>
+</tr>
+<tr>
+<td><strong>Gobierno federado</strong></td>
+<td>Reglas comunes (nombres, seguridad, calidad) que todos cumplen, decididas en conjunto</td>
+<td>Todos usan la misma convención y los mismos controles de PII</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Data mesh: los dominios publican productos sobre una plataforma común</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Data mesh es una organización, no una herramienta</div>
+
+<p>No se &quot;instala&quot; data mesh. Requiere equipos de datos dentro de cada área, una plataforma madura y mucha disciplina de gobierno. Tiene sentido en empresas <strong>grandes</strong> con muchos dominios y equipos. En una empresa con un equipo de datos de 3 personas, lo único que logra es repartir el trabajo entre gente que no está preparada para hacerlo. Puedes adoptar ideas sueltas (tratar las tablas gold como productos, con dueño y SLA) sin hacer data mesh completo.</p>
+</div>
+
+
+<h2>Data products</h2>
+<p>Aunque no hagas data mesh, la idea de <strong>producto de datos</strong> es útil. Una tabla es un producto cuando tiene:</p>
+<ul>
+<li><strong>Dueño</strong> identificado (una persona o un equipo, no &quot;el equipo de datos&quot;).</li>
+<li><strong>Contrato</strong>: esquema, significado de cada columna, reglas de cambio.</li>
+<li><strong>Calidad medida</strong> y un <strong>SLA</strong> de frescura.</li>
+<li><strong>Documentación</strong> y ejemplos de uso.</li>
+<li><strong>Usuarios conocidos</strong>: se sabe quién depende de ella (linaje).</li>
+</ul>
+<h2>Capa semántica: una sola definición de cada métrica</h2>
+<p>El problema: el tablero de comercial dice que en noviembre se vendieron 1,20 millones; el de finanzas, 1,15 millones. Los dos tienen razón: uno resta devoluciones y el otro no. Cada herramienta define &quot;ventas&quot; por su lado.</p>
+<p>Una <strong>capa semántica</strong> define las métricas <strong>una sola vez</strong>, en código, y todas las herramientas las piden ahí:</p>
+<pre data-norun><code class="language-yaml"># metricas.yml (estilo dbt Semantic Layer / MetricFlow)
+metrics:
+  - name: venta_neta
+    description: &quot;Importe de pedidos no cancelados, menos descuentos y devoluciones&quot;
+    type: simple
+    type_params:
+      measure: importe_neto
+    filter: &quot;{{ Dimension('pedido__estado') }} not in ('cancelado', 'devuelto')&quot;</code></pre>
+<p>Después, Power BI, una planilla o un notebook piden &quot;venta_neta por país y mes&quot;, y la capa semántica genera el SQL. Herramientas: <strong>dbt Semantic Layer</strong>, <strong>Cube</strong>, <strong>LookML</strong> (Looker), <strong>AtScale</strong> y las métricas de Databricks o Snowflake.</p>
+<h2>Reverse ETL: los datos vuelven a las herramientas operativas</h2>
+<p>El camino normal va de las aplicaciones al warehouse. El <strong>reverse ETL</strong> hace el camino inverso: lleva datos calculados en el warehouse <strong>de vuelta</strong> a las herramientas que usa la gente.</p>
+<figure class="diagrama"><figcaption>Reverse ETL: lo que calcula el lakehouse vuelve a las herramientas del negocio</figcaption></figure>
+
+
+<p>Ejemplo: el lakehouse calcula qué clientes de Ritmo están en riesgo de darse de baja; cada mañana, ese segmento se sincroniza con la herramienta de emails, que les envía una oferta. Herramientas: Hightouch, Census, o un pipeline propio que llama a la API del destino.</p>
+<h2>Feature store: los datos de los modelos de ML</h2>
+<p>Un modelo de machine learning necesita <strong>features</strong> (variables calculadas: &quot;cantidad de compras del cliente en los últimos 30 días&quot;). Un <strong>feature store</strong> guarda esas features con dos garantías:</p>
+<ul>
+<li>Se calculan <strong>igual</strong> para entrenar el modelo (con historia) y para usarlo en producción (en línea, en milisegundos).</li>
+<li>Se puede pedir el valor de una feature <strong>como era en una fecha pasada</strong> (<em>point-in-time</em>), para no entrenar con información del futuro.</li>
+</ul>
+<p>Herramientas: Databricks Feature Store, Feature Store de Gemini Enterprise Agent Platform (antes Vertex AI), SageMaker Feature Store, Feast.</p>
+<h2>Zero-ETL y HTAP: menos pipelines de copia</h2>
+<p>Las nubes ofrecen integraciones que replican automáticamente una base transaccional al warehouse, sin que escribas la ingesta: <strong>zero-ETL</strong> de Aurora a Redshift, <strong>Datastream</strong> a BigQuery, <strong>Lakehouse Federation</strong> de Databricks para consultar bases externas sin copiarlas, y bases <strong>HTAP</strong> que sirven transacciones y análisis a la vez. Son útiles para casos simples, pero no eliminan la necesidad de modelar, limpiar y controlar la calidad.</p>
+<h2>¿Moda o necesidad? Una tabla para decidir</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón</th>
+<th>Te conviene si…</th>
+<th>No te conviene si…</th>
+</tr>
+</thead><tbody><tr>
+<td>Data mesh</td>
+<td>Muchos dominios con equipos de datos propios y una plataforma madura</td>
+<td>Equipo central chico o plataforma inmadura</td>
+</tr>
+<tr>
+<td>Data products</td>
+<td>Siempre (como forma de trabajar)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Capa semántica</td>
+<td>Varias herramientas de BI o métricas que no coinciden</td>
+<td>Un solo tablero y pocas métricas</td>
+</tr>
+<tr>
+<td>Reverse ETL</td>
+<td>Áreas operativas que necesitan datos calculados en sus herramientas</td>
+<td>Nadie actúa sobre esos datos</td>
+</tr>
+<tr>
+<td>Feature store</td>
+<td>Varios modelos de ML en producción que comparten features</td>
+<td>Un modelo experimental</td>
+</tr>
+<tr>
+<td>Zero-ETL</td>
+<td>Replicar una base a analítica sin transformaciones complejas</td>
+<td>Necesitas limpieza, historia (SCD) o combinar muchas fuentes</td>
+</tr>
+</tbody></table></div>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Adoptar un patrón por el nombre</strong>: &quot;hacemos data mesh&quot; sin equipos por dominio es solo un reorganigrama.</li>
+<li><strong>Capa semántica sin dueños de métricas</strong>: si nadie decide qué es la &quot;venta neta&quot;, la herramienta solo traslada la discusión.</li>
+<li><strong>Reverse ETL sin cuidado con los datos personales</strong>: estás enviando datos a herramientas de terceros. Revisa qué se envía y con qué permisos.</li>
+<li><strong>Features calculadas distinto en entrenamiento y en producción</strong>: el modelo funciona en las pruebas y falla en la vida real (<em>training-serving skew</em>).</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Las ocho empresas quieren autonomía</div>
+
+<p>Pasaron seis meses. La plataforma central funciona, pero el equipo de datos es un cuello de botella: el banco espera tres semanas para un cambio, la aerolínea tiene sus propios ingenieros y quiere publicar sus tablas sin pedir permiso, y marketing quiere que los segmentos de clientes lleguen solos a la herramienta de emails. En la reunión alguien dice: &quot;deberíamos hacer data mesh&quot;.</p>
+<p>Martín te pide:</p>
+<blockquote>
+<p>&quot;Antes de que alguien compre algo, investigá qué son estos patrones de los que todos hablan, y decime cuáles nos sirven de verdad y cuáles son moda.&quot;</p>
+</blockquote>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En una entrevista para un puesto senior es común que te pregunten tu opinión sobre data mesh. Lo que buscan es criterio: cuándo sí, cuándo no y qué ideas tomarías aunque no lo adoptes completo.</li>
+<li>Los patrones se adoptan de a uno, empezando por el problema más doloroso. &quot;Los tableros no coinciden&quot; pide capa semántica; &quot;el equipo central es un cuello de botella&quot; pide autoservicio y, quizás, dominios.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué opinas de data mesh?&quot;</div>
+
+<p>Explica los cuatro principios en una frase cada uno. Luego da criterio: tiene sentido en organizaciones grandes, con muchos dominios y equipos con capacidades de datos, y con una plataforma central madura que dé autoservicio; en organizaciones chicas agrega complejidad sin beneficio. Cierra con lo que sí adoptarías siempre: tratar los datasets publicados como productos, con dueño, contrato, calidad y SLA.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/arquitectura-patrones-modernos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="arquitectura-calidad-gobierno.html">← Calidad, observabilidad y gobierno de datos</a><a href="arquitectura-referencias-entrevista.html">Arquitecturas de referencia y la entrevista de diseño →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

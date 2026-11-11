@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dimensiones lentamente cambiantes (SCD) con SQL · Academia de Datos</title><meta name="description" content="Los tipos de SCD (0, 1, 2, 3 y 6), cómo construir una dimensión tipo 2 con funciones de ventana y cómo unir hechos con la versión correcta de la dimensión."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-scd.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Dimensiones lentamente cambiantes (SCD) con SQL · Academia de Datos"><meta property="og:description" content="Los tipos de SCD (0, 1, 2, 3 y 6), cómo construir una dimensión tipo 2 con funciones de ventana y cómo unir hechos con la versión correcta de la dimensión."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-scd.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#modelado">📐 Modelado de datos</a> · Avanzado · 55 min</div>
+<h1>Dimensiones lentamente cambiantes (SCD) con SQL</h1><p class="resumen">Los tipos de SCD (0, 1, 2, 3 y 6), cómo construir una dimensión tipo 2 con funciones de ventana y cómo unir hechos con la versión correcta de la dimensión.</p>
+<a class="cta" href="../index.html#/l/modelado-scd">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir el tipo de SCD según si el negocio necesita la historia</li><li>Construir una dimensión SCD tipo 2 con vigencias a partir de un registro de cambios</li><li>Colapsar versiones repetidas para no crear historia falsa</li><li>Unir una tabla de hechos con la versión de la dimensión vigente en la fecha del hecho (point-in-time)</li></ul>
+<h2>Los tipos de SCD</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué hace cuando un atributo cambia</th>
+<th>Historia</th>
+<th>Ejemplo de uso</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>0</strong></td>
+<td>Nada: el valor original no cambia nunca</td>
+<td>—</td>
+<td>Fecha de nacimiento, fecha de alta</td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td>Sobrescribe el valor</td>
+<td>Se pierde</td>
+<td>Corregir un error de tipeo en el nombre</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Cierra la fila vieja y crea una nueva con fechas de vigencia</td>
+<td>Completa</td>
+<td>Segmento, ciudad, categoría de un producto</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Guarda el valor anterior en otra columna</td>
+<td>Solo un cambio atrás</td>
+<td>&quot;Región actual&quot; y &quot;región anterior&quot; tras una reorganización</td>
+</tr>
+<tr>
+<td><strong>6</strong> (1+2+3)</td>
+<td>Tipo 2, más una columna con el valor actual en todas las filas</td>
+<td>Completa + fácil de comparar</td>
+<td>Reportar por el segmento de entonces y por el de hoy</td>
+</tr>
+</tbody></table></div>
+<p>La decisión es <strong>de negocio</strong>, columna por columna: &quot;si el cliente se muda, ¿las ventas viejas se reportan en la ciudad vieja o en la nueva?&quot;. Lo más común: tipo 1 para correcciones y tipo 2 para cambios reales que importan al análisis.</p>
+<h2>Cómo se ve una dimensión tipo 2</h2>
+<figure class="diagrama"><figcaption>SCD tipo 2: cada cambio cierra una versión y abre otra</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_sk</th>
+<th>cliente_id</th>
+<th>segmento</th>
+<th>ciudad</th>
+<th>valido_desde</th>
+<th>valido_hasta</th>
+<th>es_actual</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>42</td>
+<td>Pyme</td>
+<td>Lima</td>
+<td>2022-05-10</td>
+<td>2024-03-01</td>
+<td>false</td>
+</tr>
+<tr>
+<td>2</td>
+<td>42</td>
+<td>Corporativo</td>
+<td>Lima</td>
+<td>2024-03-01</td>
+<td>2024-09-15</td>
+<td>false</td>
+</tr>
+<tr>
+<td>3</td>
+<td>42</td>
+<td>Corporativo</td>
+<td>Santiago</td>
+<td>2024-09-15</td>
+<td>9999-12-31</td>
+<td>true</td>
+</tr>
+</tbody></table></div>
+<p>Las columnas que agrega el tipo 2:</p>
+<ul>
+<li><strong><code>cliente_sk</code></strong>: clave <strong>sustituta</strong>, una por versión. El <code>cliente_id</code> (clave natural) se repite.</li>
+<li><strong><code>valido_desde</code> / <code>valido_hasta</code></strong>: el rango de vigencia. Se usa el rango <strong>semiabierto</strong>: válido desde (incluido) hasta (excluido). La versión actual tiene una fecha &quot;infinita&quot; (<code>9999-12-31</code>), que evita lidiar con nulos.</li>
+<li><strong><code>es_actual</code></strong>: atajo para filtrar la versión vigente.</li>
+</ul>
+<h2>Construir el tipo 2 desde un registro de cambios</h2>
+<p>Supongamos que tenemos cada &quot;foto&quot; de los atributos del cliente con su fecha (lo que da un CDC o un snapshot diario). El truco es <code>LEAD</code>: el <code>valido_hasta</code> de una versión es el <code>valido_desde</code> de la siguiente.</p>
+<pre><code class="language-sql">WITH cambios(cliente_id, segmento, ciudad, fecha) AS (
+    VALUES (42, 'Pyme',        'Lima',     '2022-05-10'),
+           (42, 'Corporativo', 'Lima',     '2024-03-01'),
+           (42, 'Corporativo', 'Santiago', '2024-09-15'),
+           (77, 'Consumidor',  'Quito',    '2023-01-20')
+)
+SELECT
+    ROW_NUMBER() OVER (ORDER BY cliente_id, fecha)                                AS cliente_sk,
+    cliente_id, segmento, ciudad,
+    fecha                                                                         AS valido_desde,
+    COALESCE(LEAD(fecha) OVER (PARTITION BY cliente_id ORDER BY fecha), '9999-12-31') AS valido_hasta,
+    LEAD(fecha) OVER (PARTITION BY cliente_id ORDER BY fecha) IS NULL             AS es_actual
+FROM cambios
+ORDER BY cliente_id, valido_desde;</code></pre>
+<h3>Colapsar versiones repetidas</h3>
+<p>Las fotos diarias repiten los mismos valores muchos días seguidos. Si las conviertes directamente en versiones, la dimensión tiene una fila por día y por cliente, con &quot;cambios&quot; que no cambiaron nada. Antes de calcular las vigencias, hay que quedarse solo con las fotos donde <strong>algo cambió</strong> respecto a la anterior:</p>
+<pre><code class="language-sql">WITH fotos(cliente_id, segmento, fecha) AS (
+    VALUES (42, 'Pyme', '2024-02-27'), (42, 'Pyme', '2024-02-28'), (42, 'Pyme', '2024-02-29'),
+           (42, 'Corporativo', '2024-03-01'), (42, 'Corporativo', '2024-03-02'),
+           (42, 'Pyme', '2024-03-03')
+),
+con_anterior AS (
+    SELECT *, LAG(segmento) OVER (PARTITION BY cliente_id ORDER BY fecha) AS segmento_anterior
+    FROM fotos
+)
+SELECT cliente_id, segmento, fecha AS valido_desde
+FROM con_anterior
+WHERE segmento_anterior IS NULL OR segmento_anterior &lt;&gt; segmento
+ORDER BY fecha;</code></pre>
+<p>De 6 fotos quedan 3 versiones reales: Pyme, Corporativo y de nuevo Pyme. Fíjate que la tercera <strong>no</strong> se fusiona con la primera aunque tengan el mismo valor: son períodos distintos.</p>
+<h2>Unir hechos con la versión correcta (point-in-time)</h2>
+<p>La respuesta a la pregunta de Valentina: cada venta se une con la versión del cliente <strong>vigente en la fecha de la venta</strong>:</p>
+<pre data-norun><code class="language-sql">SELECT d.segmento, SUM(f.importe_neto) AS ventas
+FROM fct_ventas f
+JOIN dim_cliente d
+  ON d.cliente_id = f.cliente_id
+ AND f.fecha_venta &gt;= d.valido_desde
+ AND f.fecha_venta &lt;  d.valido_hasta          -- rango semiabierto: nunca dos versiones a la vez
+WHERE f.fecha_venta &gt;= '2023-01-01' AND f.fecha_venta &lt; '2024-01-01'
+GROUP BY d.segmento;</code></pre>
+<p>Una alternativa muy usada: guardar en la tabla de hechos directamente la <strong><code>cliente_sk</code></strong> de la versión vigente al momento de cargar el hecho. Así el JOIN es un simple igualdad (<code>f.cliente_sk = d.cliente_sk</code>), más rápido y sin riesgo de errores con las fechas.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 SCD tipo 6: lo mejor de los dos mundos</div>
+
+<p>Si a veces quieren &quot;ventas por el segmento de entonces&quot; y otras &quot;por el segmento de hoy&quot;, agrega a cada versión una columna <code>segmento_actual</code>, que se actualiza en todas las filas del cliente. Con el mismo JOIN, eliges una columna u otra.</p>
+</div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Unir hechos con la dimensión tipo 2 solo por <code>cliente_id</code></strong>: cada venta se multiplica por la cantidad de versiones del cliente.</li>
+<li><strong>Rangos cerrados en los dos extremos</strong> (<code>BETWEEN valido_desde AND valido_hasta</code>): el día del cambio, la venta coincide con dos versiones y se duplica.</li>
+<li><strong>No colapsar fotos repetidas</strong>: la dimensión crece una fila por día y por cliente y las consultas se vuelven lentas.</li>
+<li><strong>Tipo 2 para todo</strong>: si el nombre del cliente se corrige de &quot;Ana Ruz&quot; a &quot;Ana Ruiz&quot;, eso no es historia: es un error. Tipo 1.</li>
+<li><strong>Olvidar las correcciones del pasado</strong>: si llega tarde un cambio con fecha vieja, hay que recalcular las vigencias, no solo agregar una fila al final.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El cliente que cambió de segmento</div>
+
+<p>Valentina pregunta en la reunión mensual:</p>
+<blockquote>
+<p>&quot;¿Cuánto nos compraron los clientes Corporativos el año pasado? Ojo: hay clientes que en marzo pasaron de Pyme a Corporativo. Quiero que lo que compraron siendo Pyme cuente como Pyme.&quot;</p>
+</blockquote>
+<p>Hoy, la tabla <code>clientes</code> solo guarda el segmento <strong>actual</strong>. Si unes las ventas de 2023 con ella, todas las compras de esos clientes aparecen como Corporativas. Para responder bien hace falta guardar <strong>la historia</strong> de los atributos que cambian. Eso es una dimensión lentamente cambiante (<em>slowly changing dimension</em>, SCD).</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En dbt, el tipo 2 se implementa con <strong>snapshots</strong> (<code>dbt snapshot</code>), que comparan la tabla de origen con la última versión y generan <code>dbt_valid_from</code> y <code>dbt_valid_to</code>. En Databricks, con <code>MERGE</code> o con las <em>Delta Live Tables</em> (<code>APPLY CHANGES ... STORED AS SCD TYPE 2</code>).</li>
+<li>Antes de implementar, se acuerda con el negocio la lista de atributos tipo 1 y tipo 2. Esa lista va en la documentación del modelo.</li>
+<li>Los tests típicos de una dimensión tipo 2: una sola versión actual por clave natural, sin solapamientos de vigencia y sin huecos entre versiones.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo implementarías una SCD tipo 2?&quot;</div>
+
+<p>Explica las columnas (clave sustituta, clave natural, atributos, <code>valido_desde</code>, <code>valido_hasta</code>, <code>es_actual</code>); el proceso de carga (comparar la foto nueva con la versión actual; si cambió un atributo tipo 2, cerrar la vigente con la fecha del cambio e insertar una nueva; si cambió uno tipo 1, actualizarlo en todas las versiones); y el JOIN point-in-time con rango semiabierto o guardando la clave sustituta en el hecho. Menciona herramientas: <code>dbt snapshot</code>, <code>MERGE</code> en Delta.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/modelado-scd">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="modelado-kimball.html">← Modelado dimensional de Kimball, paso a paso</a><a href="modelado-data-vault.html">Data Vault: hubs, links y satélites →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEFT, RIGHT, FULL, SELF y CROSS JOIN · Academia de Datos</title><meta name="description" content="Conservar filas sin pareja, encontrar lo que falta (anti-join), unir una tabla consigo misma y productos cartesianos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-joins-avanzados.html">
+<meta property="og:type" content="article"><meta property="og:title" content="LEFT, RIGHT, FULL, SELF y CROSS JOIN · Academia de Datos"><meta property="og:description" content="Conservar filas sin pareja, encontrar lo que falta (anti-join), unir una tabla consigo misma y productos cartesianos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-joins-avanzados.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Intermedio · 45 min</div>
+<h1>LEFT, RIGHT, FULL, SELF y CROSS JOIN</h1><p class="resumen">Conservar filas sin pareja, encontrar lo que falta (anti-join), unir una tabla consigo misma y productos cartesianos.</p>
+<a class="cta" href="../index.html#/l/sql-joins-avanzados">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre <code>INNER</code>, <code>LEFT</code>, <code>FULL</code>, <code>SELF</code> y <code>CROSS JOIN</code> según la pregunta</li><li>Encontrar lo que falta con un anti-join (<code>LEFT JOIN … WHERE … IS NULL</code>)</li><li>Evitar que un filtro en el <code>WHERE</code> convierta un <code>LEFT JOIN</code> en un <code>INNER JOIN</code></li><li>Recorrer relaciones dentro de una misma tabla con un self join</li></ul>
+<h2>El problema que resuelven</h2>
+<p><code>INNER JOIN</code> descarta las filas sin pareja. Muchas veces eso es justo lo que <strong>no</strong> quieres:</p>
+<ul>
+<li>&quot;Lista <strong>todos</strong> los clientes con su cantidad de pedidos&quot; → los que nunca compraron deben aparecer con 0.</li>
+<li>&quot;¿Qué productos <strong>nunca</strong> se vendieron?&quot; → justamente los que no tienen pareja en el detalle.</li>
+<li>&quot;Ventas por mes, <strong>incluidos</strong> los meses sin ventas&quot; → necesitas filas que no existen en los datos.</li>
+</ul>
+<p>Para esto existen los <strong>outer joins</strong> (externos): <code>LEFT</code>, <code>RIGHT</code> y <code>FULL</code>.</p>
+<h2>Las cinco formas de unir, con un ejemplo mínimo</h2>
+<p>Imagina dos tablitas:</p>
+<pre><code class="language-text">clientes            pedidos
+id │ nombre         pedido │ cliente_id
+───┼────────        ───────┼───────────
+1  │ Ana            10     │ 1
+2  │ Beto           11     │ 1
+3  │ Carla          12     │ 4      ← cliente que no existe</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Filas del resultado</th>
+<th>En el ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>INNER JOIN</code></td>
+<td>Solo pares que coinciden</td>
+<td>Ana-10, Ana-11</td>
+</tr>
+<tr>
+<td><code>LEFT JOIN</code></td>
+<td><strong>Todas</strong> las de la izquierda; sin pareja → <code>NULL</code> a la derecha</td>
+<td>Ana-10, Ana-11, Beto-NULL, Carla-NULL</td>
+</tr>
+<tr>
+<td><code>RIGHT JOIN</code></td>
+<td><strong>Todas</strong> las de la derecha; sin pareja → <code>NULL</code> a la izquierda</td>
+<td>Ana-10, Ana-11, NULL-12</td>
+</tr>
+<tr>
+<td><code>FULL OUTER JOIN</code></td>
+<td>Todas las de ambos lados</td>
+<td>Ana-10, Ana-11, Beto-NULL, Carla-NULL, NULL-12</td>
+</tr>
+<tr>
+<td><code>CROSS JOIN</code></td>
+<td>Todas las combinaciones, sin condición</td>
+<td>3 × 3 = 9 filas</td>
+</tr>
+</tbody></table></div>
+<p>&quot;Izquierda&quot; es la tabla que está en el <code>FROM</code> (o la acumulada hasta ese punto) y &quot;derecha&quot; es la que está después del <code>JOIN</code>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La lista de invitados</div>
+
+<p><code>LEFT JOIN</code> es pasar lista con la planilla de invitados (izquierda) en la mano: lees <strong>todos</strong> los nombres de tu planilla y anotas al lado si vino o no. Los que no vinieron siguen en la planilla, con la casilla vacía (<code>NULL</code>). Los que vinieron sin estar invitados (filas de la derecha sin pareja) no aparecen en tu planilla.</p>
+</div>
+
+
+<h2>LEFT JOIN en la práctica</h2>
+<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, p.pedido_id
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
+ORDER BY c.cliente_id
+LIMIT 6;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>cliente_id</th>
+<th>nombre</th>
+<th>pedido_id</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Lucía</td>
+<td>NULL</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Juan</td>
+<td>NULL</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Andrés</td>
+<td>10386</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Andrés</td>
+<td>10727</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>Lucía y Juan no compraron nunca: aparecen <strong>una vez</strong>, con <code>NULL</code> en las columnas de <code>pedidos</code>.</li>
+<li>Andrés aparece una vez <strong>por cada pedido</strong> (igual que con <code>INNER</code>).</li>
+<li>En total: 12.000 filas de clientes con pedido + 547 clientes sin pedido = <strong>12.547 filas</strong>.</li>
+</ul>
+<h3>Contar correctamente después de un LEFT JOIN</h3>
+<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, COUNT(p.pedido_id) AS pedidos
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
+GROUP BY c.cliente_id, c.nombre
+ORDER BY pedidos
+LIMIT 5;</code></pre>
+<p>Fíjate en <code>COUNT(p.pedido_id)</code> y no <code>COUNT(*)</code>. Para Lucía hay <strong>una</strong> fila (con <code>pedido_id</code> en <code>NULL</code>): <code>COUNT(*)</code> diría 1 pedido (¡falso!), mientras que <code>COUNT(p.pedido_id)</code> ignora el <code>NULL</code> y da <strong>0</strong>. Es un error muy común.</p>
+<h2>El anti-join: encontrar lo que falta</h2>
+<p>&quot;¿Qué clientes <strong>nunca</strong> compraron?&quot; Haz un <code>LEFT JOIN</code> y quédate con las filas donde la derecha vino vacía:</p>
+<pre><code class="language-sql">SELECT c.cliente_id, c.nombre, c.fecha_registro
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
+WHERE p.pedido_id IS NULL;</code></pre>
+<p>Devuelve los 547 clientes sin pedidos. El patrón <code>LEFT JOIN … WHERE derecha.clave IS NULL</code> se llama <strong>anti-join</strong> y es de los más usados: productos sin ventas, empleados sin jefe asignado, pagos sin pedido, archivos que no se cargaron. (En la lección de subconsultas verás su hermano: <code>NOT EXISTS</code>.)</p>
+<p>Para el <code>IS NULL</code>, usa una columna que <strong>nunca</strong> es nula cuando hay pareja (la clave primaria de la tabla derecha es lo más seguro).</p>
+<h2>La trampa más común: filtrar la tabla derecha en el WHERE</h2>
+<p>Quieres &quot;todos los clientes, con sus pedidos de 2024 si los tienen&quot;. El intento intuitivo:</p>
+<pre><code class="language-sql">-- ❌ Este &quot;LEFT JOIN&quot; se comporta como INNER: 4.633 filas, solo clientes que compraron en 2024
+SELECT c.cliente_id, p.pedido_id
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.cliente_id
+WHERE p.fecha_pedido &gt;= '2024-01-01';</code></pre>
+<p>¿Qué pasó? El <code>LEFT JOIN</code> sí conservó a los clientes sin pedidos (con <code>fecha_pedido</code> en <code>NULL</code>), pero después el <code>WHERE</code> evaluó <code>NULL &gt;= &#39;2024-01-01&#39;</code> → UNKNOWN → <strong>descartados</strong>. La condición sobre la tabla derecha hay que ponerla <strong>en el <code>ON</code></strong>:</p>
+<pre><code class="language-sql">-- ✅ Todos los clientes (2.000), con la cantidad de pedidos de 2024 (0 si no compraron)
+SELECT c.cliente_id, COUNT(p.pedido_id) AS pedidos_2024
+FROM clientes c
+LEFT JOIN pedidos p
+       ON p.cliente_id = c.cliente_id
+      AND p.fecha_pedido &gt;= '2024-01-01'
+GROUP BY c.cliente_id
+LIMIT 10;</code></pre>
+<p>La regla:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dónde pones la condición</th>
+<th>Efecto en un LEFT JOIN</th>
+</tr>
+</thead><tbody><tr>
+<td>En el <code>ON</code></td>
+<td>Decide <strong>qué filas de la derecha</strong> se emparejan. Las de la izquierda se conservan todas</td>
+</tr>
+<tr>
+<td>En el <code>WHERE</code></td>
+<td>Filtra el resultado <strong>final</strong>. Si es sobre la derecha, elimina las filas sin pareja</td>
+</tr>
+</tbody></table></div>
+<p>Condiciones sobre la tabla <strong>izquierda</strong> (por ejemplo <code>c.pais = &#39;Chile&#39;</code>) van en el <code>WHERE</code> sin problema.</p>
+<div class="recorrido"></div>
+
+
+<h2>RIGHT y FULL OUTER JOIN</h2>
+<ul>
+<li><code>RIGHT JOIN</code> es un <code>LEFT JOIN</code> con las tablas al revés. <code>A RIGHT JOIN B</code> = <code>B LEFT JOIN A</code>. Casi nadie lo usa: es más fácil leer siempre de izquierda a derecha y poner la tabla &quot;principal&quot; primero.</li>
+<li><code>FULL OUTER JOIN</code> conserva todo de ambos lados. Su uso clásico es <strong>comparar dos fuentes</strong>: &quot;¿qué ids están solo en el sistema A, solo en el B, o en los dos?&quot; (conciliaciones, migraciones, validar que una carga no perdió filas).</li>
+</ul>
+<pre><code class="language-sql">-- ¿Hay pedidos sin pago o pagos sin pedido?
+SELECT CASE WHEN p.pedido_id IS NULL THEN 'pago sin pedido'
+            WHEN g.pedido_id IS NULL THEN 'pedido sin pago'
+            ELSE 'ok' END AS situacion,
+       COUNT(*) AS filas
+FROM pedidos p
+FULL OUTER JOIN pagos g ON g.pedido_id = p.pedido_id
+GROUP BY situacion;</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Soporte</div>
+
+<p>SQLite soporta <code>RIGHT</code> y <code>FULL OUTER JOIN</code> desde la versión 3.39 (la de este sitio lo soporta). MySQL no tiene <code>FULL OUTER JOIN</code> (se simula con un <code>LEFT</code> + <code>UNION</code> + un <code>RIGHT</code>).</p>
+</div>
+
+
+<div class="motores"></div>
+
+
+<h2>SELF JOIN: una tabla consigo misma</h2>
+<p>A veces una tabla apunta <strong>a sí misma</strong>. En <code>empleados</code>, la columna <code>jefe_id</code> guarda el <code>empleado_id</code> de otro empleado. Para ver cada empleado con el nombre de su jefe, usas la misma tabla <strong>dos veces</strong>, con dos alias distintos, como si fueran dos tablas:</p>
+<pre><code class="language-sql">SELECT e.nombre AS empleado, e.cargo, j.nombre AS jefe, j.cargo AS cargo_jefe
+FROM empleados e                               -- e = &quot;el empleado&quot;
+LEFT JOIN empleados j ON j.empleado_id = e.jefe_id   -- j = &quot;su jefe&quot;
+LIMIT 10;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>empleado</th>
+<th>cargo</th>
+<th>jefe</th>
+<th>cargo_jefe</th>
+</tr>
+</thead><tbody><tr>
+<td>Camila</td>
+<td>CEO</td>
+<td>NULL</td>
+<td>NULL</td>
+</tr>
+<tr>
+<td>Camila</td>
+<td>Director de Ventas</td>
+<td>Camila</td>
+<td>CEO</td>
+</tr>
+<tr>
+<td>Daniela</td>
+<td>Director de Marketing</td>
+<td>Camila</td>
+<td>CEO</td>
+</tr>
+</tbody></table></div>
+<p>Es <code>LEFT</code> porque el CEO no tiene jefe: con <code>INNER</code> desaparecería. Otros usos del self join: comparar cada fila con la anterior (aunque las funciones de ventana lo hacen mejor), encontrar duplicados (<code>a.email = b.email AND a.id &lt; b.id</code>), o pares de productos comprados juntos.</p>
+<h2>CROSS JOIN: todas las combinaciones</h2>
+<p><code>CROSS JOIN</code> no tiene condición: combina <strong>cada</strong> fila de la izquierda con <strong>cada</strong> fila de la derecha (producto cartesiano). Su uso legítimo es generar <strong>grillas</strong> completas, por ejemplo todos los pares canal × año, para después rellenar con ceros los que no tuvieron ventas:</p>
+<pre><code class="language-sql">SELECT canales.canal, anios.anio
+FROM (SELECT DISTINCT canal FROM pedidos) AS canales
+CROSS JOIN (SELECT DISTINCT strftime('%Y', fecha_pedido) AS anio FROM pedidos) AS anios
+ORDER BY 1, 2;</code></pre>
+<p>4 canales × 3 años = 12 filas. Luego harías un <code>LEFT JOIN</code> de esa grilla con las ventas agregadas.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Explosión de filas</div>
+
+<p>Un <code>CROSS JOIN</code> de dos tablas de 10.000 filas da 100 millones. Y un <code>JOIN</code> con un <code>ON</code> incompleto (por ejemplo, unir por <code>fecha</code> cuando la clave real es <code>fecha</code> + <code>tienda</code>) produce una &quot;explosión&quot; parecida sin avisar. Si un total te da sospechosamente grande, cuenta las filas antes y después de cada join.</p>
+</div>
+
+
+<h2>Joins con condiciones que no son igualdad</h2>
+<p>El <code>ON</code> acepta <strong>cualquier</strong> condición, no solo <code>=</code>. Un uso típico es asignar cada fila a un <strong>rango</strong> definido en otra tabla:</p>
+<pre><code class="language-sql">WITH rangos(nombre, desde, hasta) AS (VALUES ('chico', 0, 100), ('mediano', 100, 1000), ('grande', 1000, 1e9))
+SELECT r.nombre, COUNT(*) AS lineas
+FROM detalle_pedidos d
+JOIN rangos r ON d.precio_unitario &gt;= r.desde AND d.precio_unitario &lt; r.hasta
+GROUP BY r.nombre;</code></pre>
+<p>Otros ejemplos reales: unir una venta con el <strong>tipo de cambio vigente</strong> en su fecha, o con la versión del cliente que estaba activa en ese momento (<code>fecha BETWEEN valido_desde AND valido_hasta</code>, lo verás en modelado y en los snapshots de dbt).</p>
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los clientes que nunca compraron</div>
+
+<p>Camila, de marketing, quiere reactivar clientes:</p>
+<blockquote>
+<p>&quot;Hay gente que se registró y nunca compró nada. ¿Cuántos son? Y aparte, Diego me dice que hay pedidos sin pagos aprobados: ¿me los pasas?&quot;</p>
+</blockquote>
+<p>Con <code>INNER JOIN</code> solo ves lo que <strong>tiene</strong> pareja. Las preguntas más valiosas del negocio suelen ser sobre lo que <strong>falta</strong>: clientes sin pedidos, pedidos sin pago, productos sin ventas. Para eso hacen falta los otros tipos de JOIN.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>El anti-join es una herramienta clave para la <strong>calidad de datos</strong>: &quot;pedidos cuyo cliente no existe&quot;, &quot;pagos sin pedido&quot;. En dbt existe un test listo para eso (<code>relationships</code>), que por dentro es un <code>LEFT JOIN … WHERE … IS NULL</code>.</li>
+<li><code>FULL OUTER JOIN</code> se usa mucho para <strong>conciliar</strong> dos fuentes: lo que dice el sistema de pagos frente a lo que dice el banco. Las filas que solo están de un lado son exactamente las diferencias a investigar.</li>
+<li>Los <code>CROSS JOIN</code> con una tabla calendario son el truco estándar para que un reporte muestre ceros en lugar de huecos.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿LEFT JOIN … WHERE b.id IS NULL o NOT EXISTS?&quot;</div>
+
+<p>Las dos encuentran filas de A sin pareja en B y, en los motores modernos, suelen generar el mismo plan (un <em>anti join</em>). <code>NOT EXISTS</code> se lee mejor y no tiene la trampa de <code>NOT IN</code> con nulos. Lo importante en la respuesta es mencionar que <code>NOT IN</code> puede fallar si la subconsulta devuelve un NULL.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li><code>LEFT JOIN</code> conserva todo lo de la izquierda; lo que no tiene pareja trae <code>NULL</code> a la derecha.</li>
+<li>Después de un <code>LEFT JOIN</code>, cuenta con <code>COUNT(derecha.clave)</code>, no con <code>COUNT(*)</code>.</li>
+<li>Anti-join: <code>LEFT JOIN … WHERE derecha.clave IS NULL</code> encuentra lo que falta.</li>
+<li>Condiciones sobre la tabla derecha van en el <code>ON</code>; en el <code>WHERE</code> convierten el <code>LEFT</code> en <code>INNER</code>.</li>
+<li><code>FULL</code> sirve para comparar fuentes; <code>SELF JOIN</code> une una tabla consigo misma con dos alias; <code>CROSS JOIN</code> genera grillas.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-joins-avanzados">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-joins.html">← JOIN: combinar tablas</a><a href="sql-subconsultas.html">Subconsultas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

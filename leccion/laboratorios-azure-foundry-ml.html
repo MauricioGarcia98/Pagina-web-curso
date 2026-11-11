@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio Azure: Foundry seguro y despliegue blue/green en Azure ML · Academia de Datos</title><meta name="description" content="Crea un recurso de Microsoft Foundry (AIServices), despliega un modelo con el SKU adecuado y desactiva las claves para usar solo Entra ID. Después, en Azure Machine Learning, crea un cómputo que escala a cero, entrena con un job YAML, registra dos versiones del modelo y hace un despliegue blue/green con tráfico espejo, canario y corte completo. Es la práctica de AI-103 y AI-300."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-azure-foundry-ml.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Laboratorio Azure: Foundry seguro y despliegue blue/green en Azure ML · Academia de Datos"><meta property="og:description" content="Crea un recurso de Microsoft Foundry (AIServices), despliega un modelo con el SKU adecuado y desactiva las claves para usar solo Entra ID. Después, en Azure Machine Learning, crea un cómputo que escala a cero, entrena con un job YAML, registra dos versiones del modelo y hace un despliegue blue/green con tráfico espejo, canario y corte completo. Es la práctica de AI-103 y AI-300."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-azure-foundry-ml.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Avanzado · 60 min</div>
+<h1>Laboratorio Azure: Foundry seguro y despliegue blue/green en Azure ML</h1><p class="resumen">Crea un recurso de Microsoft Foundry (AIServices), despliega un modelo con el SKU adecuado y desactiva las claves para usar solo Entra ID. Después, en Azure Machine Learning, crea un cómputo que escala a cero, entrena con un job YAML, registra dos versiones del modelo y hace un despliegue blue/green con tráfico espejo, canario y corte completo. Es la práctica de AI-103 y AI-300.</p>
+<a class="cta" href="../index.html#/l/laboratorios-azure-foundry-ml">▶ Abrir la lección interactiva (18 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un recurso Foundry y un despliegue de modelo con el SKU correcto</li><li>Desactivar la autenticación por clave y el acceso público</li><li>Crear un cómputo de Azure ML que escala a cero y lanzar un job</li><li>Desplegar dos versiones en un online endpoint y mover tráfico con espejo y canario</li><li>Borrar todo con el grupo de recursos</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Una clínica quiere un asistente con un modelo de OpenAI que procese los datos dentro de la zona de datos de EE. UU. y sin claves compartidas en el código. Su equipo de riesgo, además, tiene un modelo de crédito en Azure ML y quiere cambiarlo por la versión 2 sin cortar el servicio ni arriesgar a todos los clientes a la vez.</p>
+</div>
+
+
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Foundry y Azure ML en el grupo rg-lab-ia</figcaption></figure>
+
+
+<h2>Costo en una cuenta real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td>Recurso Foundry y despliegue estándar</td>
+<td>Sin costo fijo: pagas por tokens (centavos en el laboratorio)</td>
+</tr>
+<tr>
+<td>Workspace de Azure ML</td>
+<td>Crea un Storage, un Key Vault y Application Insights: centavos al día</td>
+</tr>
+<tr>
+<td>Cómputo <code>amlcompute</code> con mínimo 0</td>
+<td>Solo mientras corre el job</td>
+</tr>
+<tr>
+<td><strong>Online endpoint</strong> con <code>Standard_DS3_v2</code></td>
+<td>Unos USD 0,30 por hora <strong>por cada despliegue</strong> (blue y green: el doble)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Dos despliegues, dos máquinas</div>
+
+<p>Durante el blue/green tienes dos despliegues encendidos. Termina el laboratorio el mismo día y borra el grupo de recursos.</p>
+</div>
+
+
+<h2>Práctica guiada: Foundry</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Práctica guiada: Azure ML blue/green</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En tu cuenta real</h2>
+<pre data-norun><code class="language-bash">az extension add -n ml
+az provider register --namespace Microsoft.MachineLearningServices
+# rol para que la app use Foundry sin claves
+az role assignment create --assignee &lt;object-id-de-la-identidad&gt; \
+  --role &quot;Cognitive Services OpenAI User&quot; \
+  --scope $(az cognitiveservices account show -n foundry-lab-clinica -g rg-lab-ia --query id -o tsv)</code></pre>
+<pre data-norun><code class="language-python">from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from openai import AzureOpenAI
+
+token = get_bearer_token_provider(DefaultAzureCredential(), &quot;https://cognitiveservices.azure.com/.default&quot;)
+cliente = AzureOpenAI(azure_endpoint=&quot;https://foundry-lab-clinica.openai.azure.com/&quot;,
+                      azure_ad_token_provider=token, api_version=&quot;2024-10-21&quot;)
+r = cliente.chat.completions.create(model=&quot;chat&quot;, messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hola&quot;}])
+print(r.choices[0].message.content)</code></pre>
+<ul>
+<li>Con <code>--public-network-access Disabled</code> solo entras por un <strong>private endpoint</strong>; para probar desde tu computadora, deja el acceso público y restringe por IP.</li>
+<li>Los despliegues tardan de 5 a 15 minutos. Revisa los logs con <code>az ml online-deployment get-logs --name green --endpoint-name riesgo-credito</code>.</li>
+<li>Comprueba la <strong>cuota</strong> de la familia de VM (<code>Standard_DSv2</code>) en la región antes de desplegar.</li>
+</ul>
+<h2>Limpieza</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Dejar habilitadas las claves de API</strong> del recurso de Foundry: cualquiera que copie la clave tiene acceso. Desactivarlas obliga a usar identidades de Entra ID con permisos.</li>
+<li><strong>Asignar el rol a la persona y no a la identidad de la aplicación</strong>: funciona en la prueba y falla en producción.</li>
+<li><strong>Cómputo de entrenamiento con mínimo de nodos mayor que cero</strong>: cobra aunque no haya jobs.</li>
+<li><strong>Pasar el tráfico al despliegue verde de golpe</strong>: si falla, falla para todos. Se pasa de a poco y se compara.</li>
+<li><strong>Olvidar borrar el online endpoint</strong>: es de lo más caro del laboratorio.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En Azure, las empresas desactivan las claves locales de los servicios de IA y usan identidades administradas con roles mínimos, auditados con Entra ID.</li>
+<li>El despliegue blue/green de modelos se automatiza en el pipeline de CI/CD: crear el despliegue nuevo, probarlo con tráfico espejado o parcial, y cambiar el tráfico.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Por qué desactivarías las claves de un servicio de IA y usarías Entra ID?&quot;</div>
+
+<p>Porque una clave es un secreto compartido de larga duración que cualquiera que la tenga puede usar, y no identifica quién hizo cada llamada. Con Entra ID cada aplicación usa su propia identidad, idealmente una identidad administrada, con un rol que limita qué puede hacer; los tokens son de corta duración, los accesos quedan auditados y se pueden revocar sin cambiar el código de las demás aplicaciones.</p>
+</div>
+
+
+<h2>Preguntas de examen</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>18 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-azure-foundry-ml">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-gcp-ingesta-vertex.html">← Laboratorio Google Cloud: Pub/Sub a BigQuery, Workflows, Scheduler y Vertex AI</a><a href="laboratorios-databricks-bundles-gobierno.html">Laboratorio Databricks: bundles, Lakeflow Declarative Pipelines, Unity Catalog y serving →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

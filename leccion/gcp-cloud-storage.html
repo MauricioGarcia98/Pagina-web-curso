@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloud Storage, el lago de datos · Academia de Datos</title><meta name="description" content="Buckets y objetos, ubicaciones, gcloud storage (create, cp, ls, rm, rsync), clases de almacenamiento, ciclo de vida, permisos uniformes y la organización del lago."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-cloud-storage.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cloud Storage, el lago de datos · Academia de Datos"><meta property="og:description" content="Buckets y objetos, ubicaciones, gcloud storage (create, cp, ls, rm, rsync), clases de almacenamiento, ciclo de vida, permisos uniformes y la organización del lago."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-cloud-storage.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#gcp">🔷 Google Cloud para Data Engineers</a> · Intermedio · 45 min</div>
+<h1>Cloud Storage, el lago de datos</h1><p class="resumen">Buckets y objetos, ubicaciones, gcloud storage (create, cp, ls, rm, rsync), clases de almacenamiento, ciclo de vida, permisos uniformes y la organización del lago.</p>
+<a class="cta" href="../index.html#/l/gcp-cloud-storage">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>En Google Cloud, el data lake vive en <strong>Cloud Storage</strong> (GCS). Es donde aterrizan los archivos que mandan los sistemas de origen, donde se guarda la capa bronze y de donde BigQuery, Dataproc y Dataflow leen. En esta lección vas a entender cómo se organiza, cuánto cuesta, cómo se protege y cómo se maneja desde la terminal.</p>
+<h2>Buckets y objetos</h2>
+<p>GCS guarda <strong>objetos</strong> (archivos) dentro de <strong>buckets</strong> (contenedores). Funciona igual que S3 en AWS o que los contenedores de ADLS en Azure.</p>
+<pre><code class="language-text">gs://lake-tienda-dev/bronze/ventas/fecha=2024-12-01/ventas.csv
+     └── bucket ───┘└──────────────── nombre del objeto ─────────┘</code></pre>
+<p>Tres ideas que hay que tener claras desde el principio:</p>
+<ol>
+<li><strong>No hay carpetas de verdad.</strong> El nombre del objeto es <code>bronze/ventas/fecha=2024-12-01/ventas.csv</code>, completo, con barras incluidas. La consola y <code>ls</code> muestran &quot;carpetas&quot; porque agrupan por lo que hay antes de cada <code>/</code> (los <strong>prefijos</strong>), pero no existe un objeto &quot;carpeta&quot;. Por eso no hace falta crear <code>bronze/</code> antes de copiar un archivo ahí.</li>
+<li><strong>Los objetos no se editan: se reemplazan.</strong> No puedes agregar una línea a un CSV que ya está en GCS. Si lo cambias, subes el objeto entero otra vez. Por eso los pipelines escriben <strong>archivos nuevos</strong> (uno por día o por lote) en lugar de modificar uno.</li>
+<li><strong>El nombre del bucket es global.</strong> Tiene que ser único en <strong>todo Google Cloud</strong>, no solo en tu proyecto: si alguien ya creó <code>lake-dev</code>, tú no puedes. Por eso se usa un prefijo de la empresa: <code>tiendaandina-lake-dev</code>. Solo admite minúsculas, números, <code>-</code>, <code>_</code> y <code>.</code>, con entre 3 y 63 caracteres.</li>
+</ol>
+<h3>Las decisiones al crear un bucket</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Decisión</th>
+<th>Opciones</th>
+<th>Consejo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Ubicación</strong></td>
+<td>Región (<code>us-central1</code>), doble región, multirregión (<code>US</code>, <code>EU</code>)</td>
+<td>La <strong>misma</strong> ubicación que tus datasets de BigQuery: cargar entre ubicaciones distintas falla o cuesta</td>
+</tr>
+<tr>
+<td><strong>Clase</strong></td>
+<td><code>STANDARD</code>, <code>NEARLINE</code> (≥30 días), <code>COLDLINE</code> (≥90), <code>ARCHIVE</code> (≥365)</td>
+<td>Standard para el lago activo; ciclo de vida para lo viejo</td>
+</tr>
+<tr>
+<td><strong>Acceso</strong></td>
+<td><em>Uniform bucket-level access</em></td>
+<td>Siempre uniforme (permisos por IAM, sin ACL por objeto)</td>
+</tr>
+<tr>
+<td><strong>Acceso público</strong></td>
+<td><em>Public access prevention</em></td>
+<td>Activado en todo bucket de datos</td>
+</tr>
+</tbody></table></div>
+<p><strong>La ubicación no se puede cambiar después.</strong> Para mover un bucket de región tienes que crear otro y copiar todo. Piénsala bien:</p>
+<ul>
+<li><strong>Región</strong> (<code>us-central1</code>, <code>southamerica-east1</code>): la más barata, y lo más común para un lake. Pon en la misma región tu BigQuery, tus clústeres de Dataproc y tus jobs de Dataflow.</li>
+<li><strong>Doble región o multirregión</strong> (<code>US</code>, <code>EU</code>): los datos se copian en varias regiones. Sobreviven a que se caiga una región entera, pero cuestan más.</li>
+</ul>
+<h3>Clases de almacenamiento: pagar menos por lo que casi no se lee</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Clase</th>
+<th>Precio aprox. por GB al mes*</th>
+<th>Mínimo de permanencia</th>
+<th>Cobro por leer</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>STANDARD</code></td>
+<td>0,020 USD</td>
+<td>—</td>
+<td>No</td>
+<td>Datos que se leen seguido: landing, bronze reciente</td>
+</tr>
+<tr>
+<td><code>NEARLINE</code></td>
+<td>0,010 USD</td>
+<td>30 días</td>
+<td>Sí</td>
+<td>Datos que se leen una vez al mes</td>
+</tr>
+<tr>
+<td><code>COLDLINE</code></td>
+<td>0,004 USD</td>
+<td>90 días</td>
+<td>Sí, más alto</td>
+<td>Datos de hace meses, por si hay que reprocesar</td>
+</tr>
+<tr>
+<td><code>ARCHIVE</code></td>
+<td>0,0012 USD</td>
+<td>365 días</td>
+<td>Sí, el más alto</td>
+<td>Retención legal: guardar años &quot;por si acaso&quot;</td>
+</tr>
+</tbody></table></div>
+<p>*Precios orientativos de una región de EE. UU. Varían según la región y cambian con el tiempo.</p>
+<p>La trampa: las clases frías son baratas para <strong>guardar</strong>, pero <strong>caras para leer</strong>. Y si borras un objeto antes del mínimo, igual pagas los días que faltan. Nunca pongas en <code>COLDLINE</code> algo que un pipeline lee todos los días.</p>
+<h2>Los comandos</h2>
+<p>Hoy la herramienta recomendada es <strong><code>gcloud storage</code></strong>. La clásica, <code>gsutil</code>, sigue funcionando y la vas a ver en mucha documentación y scripts viejos.</p>
+<pre data-norun><code class="language-bash">gcloud storage buckets create gs://lake-tienda-dev --location=us-central1 --uniform-bucket-level-access
+gcloud storage buckets list --format=&quot;value(name)&quot;
+gcloud storage buckets describe gs://lake-tienda-dev   # configuración del bucket
+gcloud storage ls                                      # buckets
+gcloud storage ls gs://lake-tienda-dev/bronze/         # un prefijo
+gcloud storage ls --recursive gs://lake-tienda-dev
+gcloud storage ls -l gs://lake-tienda-dev/bronze/ventas/   # con tamaño y fecha
+gcloud storage du -s --readable-sizes gs://lake-tienda-dev # cuánto ocupa
+gcloud storage cp datos/clientes.csv gs://lake-tienda-dev/bronze/clientes/
+gcloud storage cp --recursive datos gs://lake-tienda-dev/landing/
+gcloud storage rsync --recursive datos gs://lake-tienda-dev/landing/datos   # sincronizar
+gcloud storage mv gs://lake-tienda-dev/landing/a.csv gs://lake-tienda-dev/bronze/   # mover
+gcloud storage cat gs://lake-tienda-dev/bronze/clientes/clientes.csv | head -3
+gcloud storage rm --recursive gs://lake-tienda-dev/landing/
+gsutil ls gs://lake-tienda-dev                         # la herramienta clásica sigue funcionando</code></pre>
+<p>Algunos detalles importantes:</p>
+<ul>
+<li><strong><code>cp</code> con la barra final</strong>: <code>gs://lake/bronze/clientes/</code> (con <code>/</code>) copia el archivo <strong>dentro</strong> de ese prefijo, con su nombre. Sin la barra, <code>gs://lake/bronze/clientes</code> sería el <strong>nombre del objeto</strong>: tu archivo se llamaría <code>clientes</code>, sin extensión.</li>
+<li><strong><code>cp</code> vs. <code>rsync</code></strong>: <code>cp --recursive</code> copia <strong>todo</strong>, siempre. <code>rsync</code> compara origen y destino y copia <strong>solo lo que cambió</strong>. Si lo corres dos veces seguidas, la segunda no copia nada. Con <code>--delete-unmatched-destination-objects</code> además borra del destino lo que ya no está en el origen (¡cuidado!).</li>
+<li><strong><code>mv</code></strong> es en realidad copiar y después borrar el original. En GCS no existe &quot;renombrar&quot; sin copiar.</li>
+<li><strong>Comodines</strong>: <code>*</code> coincide con cualquier texto <strong>dentro de un nivel</strong> y <code>**</code> cruza niveles. <code>gs://lake/bronze/*/*.csv</code> lista los CSV que están a un nivel debajo de bronze, y <code>gs://lake/**.csv</code>, todos los CSV del bucket.</li>
+</ul>
+<h3>Laboratorio: arma el lago en GCS</h3>
+<p>Abre la terminal (⌨ Terminal) y ejecuta paso a paso. En la carpeta <code>datos/</code> ya tienes dos archivos de Tienda Andina.</p>
+<pre><code class="language-bash">gcloud auth login
+gcloud config set project academia-datos-dev
+gcloud storage buckets create gs://lake-tienda-dev --location=us-central1 --uniform-bucket-level-access
+gcloud storage cp datos/ventas_2024_12.csv gs://lake-tienda-dev/bronze/ventas/
+gcloud storage cp datos/clientes.csv gs://lake-tienda-dev/bronze/clientes/
+gcloud storage ls --recursive gs://lake-tienda-dev
+gcloud storage cat gs://lake-tienda-dev/bronze/clientes/clientes.csv | head -3</code></pre>
+<p>Deberías ver los dos objetos y las primeras líneas de clientes:</p>
+<pre><code class="language-text">gs://lake-tienda-dev/bronze/clientes/clientes.csv
+gs://lake-tienda-dev/bronze/ventas/ventas_2024_12.csv
+cliente_id,nombre,apellido,email,ciudad,pais,segmento
+1,Lucía,Aguilar,lucia.aguilar@correo.com,Madrid,España,Corporativo</code></pre>
+<p>Sigue explorando:</p>
+<pre data-norun><code class="language-bash">gcloud storage ls -l --recursive gs://lake-tienda-dev      # tamaños y total
+gcloud storage du -s --readable-sizes gs://lake-tienda-dev # cuánto ocupa el bucket
+gcloud storage ls gs://lake-tienda-dev/bronze/*/*.csv       # comodines
+gcloud storage rsync datos gs://lake-tienda-dev/landing/datos   # ejecútalo dos veces y compara</code></pre>
+<h2>Ciclo de vida y versiones</h2>
+<p>Nadie se acuerda de borrar archivos viejos a mano. Las <strong>reglas de ciclo de vida</strong> lo hacen solas: GCS revisa los objetos todos los días y aplica la acción a los que cumplen la condición.</p>
+<pre><code class="language-json">{
+  &quot;rule&quot;: [
+    { &quot;action&quot;: { &quot;type&quot;: &quot;Delete&quot; }, &quot;condition&quot;: { &quot;age&quot;: 7, &quot;matchesPrefix&quot;: [&quot;landing/&quot;] } },
+    { &quot;action&quot;: { &quot;type&quot;: &quot;SetStorageClass&quot;, &quot;storageClass&quot;: &quot;COLDLINE&quot; }, &quot;condition&quot;: { &quot;age&quot;: 180, &quot;matchesPrefix&quot;: [&quot;bronze/&quot;] } }
+  ]
+}</code></pre>
+<p>Este archivo tiene dos reglas:</p>
+<ol>
+<li>Todo lo que está en <code>landing/</code> y tiene <strong>más de 7 días</strong> se <strong>borra</strong>. Landing es una zona de paso: los archivos llegan, se procesan hacia bronze y ya no hacen falta.</li>
+<li>Todo lo que está en <code>bronze/</code> y tiene <strong>más de 180 días</strong> pasa a <strong>COLDLINE</strong>: se conserva por si hay que reprocesar, pero cuesta un 80 % menos.</li>
+</ol>
+<pre data-norun><code class="language-bash">gcloud storage buckets update gs://lake-tienda-dev --lifecycle-file=ciclo.json
+gcloud storage buckets update gs://lake-tienda-dev --versioning
+gcloud storage buckets describe gs://lake-tienda-dev      # verifica que quedó aplicado</code></pre>
+<p><strong>Versionado</strong> (<code>--versioning</code>): cuando sobrescribes o borras un objeto, GCS guarda la versión anterior en lugar de perderla. Te salva de un <code>rm</code> equivocado, pero <strong>cada versión ocupa espacio y se cobra</strong>. Combínalo con una regla de ciclo de vida que borre las versiones viejas (condición <code>numNewerVersions</code>).</p>
+<div class="recorrido"></div>
+
+
+<h2>Permisos</h2>
+<p>Con <em>uniform bucket-level access</em>, los permisos se dan con <strong>IAM</strong>, a nivel de bucket (o de proyecto), igual que en el resto de Google Cloud. Los roles que más se usan:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Rol</th>
+<th>Puede</th>
+<th>Para quién</th>
+</tr>
+</thead><tbody><tr>
+<td><code>roles/storage.objectViewer</code></td>
+<td>Leer y listar objetos</td>
+<td>Analistas, jobs que solo leen</td>
+</tr>
+<tr>
+<td><code>roles/storage.objectCreator</code></td>
+<td>Crear objetos, pero no leer ni borrar</td>
+<td>El sistema que sube archivos a landing</td>
+</tr>
+<tr>
+<td><code>roles/storage.objectUser</code></td>
+<td>Leer, crear, sobrescribir y borrar objetos</td>
+<td>Los pipelines de ETL</td>
+</tr>
+<tr>
+<td><code>roles/storage.admin</code></td>
+<td>Todo, incluida la configuración del bucket</td>
+<td>El equipo de plataforma</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-bash">gcloud storage buckets add-iam-policy-binding gs://lake-tienda-dev \
+  --member=&quot;serviceAccount:etl-tienda@academia-datos-dev.iam.gserviceaccount.com&quot; \
+  --role=&quot;roles/storage.objectUser&quot;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un bucket público es un incidente</div>
+
+<p>Un bucket de datos con <code>allUsers</code> como lector expone tus datos a todo internet. Activa <em>public access prevention</em> (<code>--public-access-prevention</code> al crear o actualizar) en todos los buckets de datos: así ni siquiera un error de configuración puede volverlos públicos.</p>
+</div>
+
+
+<h2>Cómo organizar el lago</h2>
+<p>Una convención típica, en <strong>un bucket por entorno</strong>, con un prefijo por capa:</p>
+<pre><code class="language-text">gs://tiendaandina-lake-prod/
+├── landing/            ← lo que llega, tal cual, una vez al día (se borra a los 7 días)
+│   └── erp/ventas/2024-12-01/ventas.csv
+├── bronze/             ← copia fiel e histórica, particionada por fecha de carga
+│   └── ventas/fecha=2024-12-01/part-000.parquet
+├── silver/             ← limpio y tipado (si no vive en BigQuery)
+└── tmp/                ← temporales de Dataproc o Dataflow (regla de ciclo de vida corta)</code></pre>
+<p>Usar <code>fecha=2024-12-01</code> en la ruta (particionado estilo Hive) permite que BigQuery, Spark y Dataproc lean <strong>solo las fechas que necesitan</strong>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 GCS + BigQuery = lakehouse</div>
+
+<p>En GCP muchas veces la capa silver/gold vive directamente en <strong>BigQuery</strong> (tablas nativas), y GCS guarda bronze y los archivos que llegan. Si quieres formatos abiertos, <strong>BigLake</strong> permite tablas Iceberg o Parquet en GCS consultadas desde BigQuery con permisos finos.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/gcp-cloud-storage">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="gcp-gcloud-iam.html">← gcloud, proyectos e IAM</a><a href="gcp-bigquery-fundamentos.html">BigQuery, fundamentos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

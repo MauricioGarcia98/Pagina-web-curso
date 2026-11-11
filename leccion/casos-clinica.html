@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🏥 Clínica del Sur: ausentismo, agenda y facturación · Academia de Datos</title><meta name="description" content="Ausentismo por anticipación, productividad de médicos, pacientes recurrentes y facturación por cobertura."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-clinica.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🏥 Clínica del Sur: ausentismo, agenda y facturación · Academia de Datos"><meta property="og:description" content="Ausentismo por anticipación, productividad de médicos, pacientes recurrentes y facturación por cobertura."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-clinica.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Avanzado · 50 min</div>
+<h1>Caso 🏥 Clínica del Sur: ausentismo, agenda y facturación</h1><p class="resumen">Ausentismo por anticipación, productividad de médicos, pacientes recurrentes y facturación por cobertura.</p>
+<a class="cta" href="../index.html#/l/casos-clinica">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular el ausentismo con el denominador correcto (turnos que debían atenderse)</li><li>Relacionar el ausentismo con la anticipación de la reserva y el día de la semana</li><li>Medir la productividad de los médicos por día trabajado</li><li>Separar lo facturado, lo cubierto y el copago por cobertura</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Clínica del Sur</div>
+
+<p>El director médico de <strong>Clínica del Sur</strong> está preocupado:</p>
+<blockquote>
+<p>&quot;Casi uno de cada ocho pacientes no viene al turno y nadie avisa. Es tiempo de médico perdido y otro paciente que no consiguió turno. ¿En qué especialidades pasa más? ¿Tiene que ver con cuánto antes reservan? Si confirmamos por mensaje los turnos de mayor riesgo, ¿cuáles serían?&quot;</p>
+</blockquote>
+<p>En salud, cada turno vacío es un costo fijo que no se recupera. Y los datos de salud son de los más sensibles que existen.</p>
+</div>
+
+<p><strong>Clínica del Sur</strong> atiende en tres sedes. El problema número uno es el <strong>ausentismo</strong> (<em>no-show</em>): pacientes que reservan un turno y no vienen, dejando a un médico sin atender a nadie.</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">clinica_pacientes (paciente_id, sexo, fecha_nacimiento, cobertura, ciudad)
+clinica_medicos (medico_id, nombre, especialidad, sede)
+clinica_turnos (turno_id, paciente_id, medico_id, fecha_hora, estado, fecha_reserva)
+clinica_facturas (factura_id, turno_id, monto, monto_cubierto, pagada)</code></pre>
+<ul>
+<li><code>estado</code> del turno: <code>atendido</code>, <code>ausente</code> (no vino) o <code>cancelado</code> (avisó).</li>
+<li><strong>Anticipación</strong> = días entre <code>fecha_reserva</code> y el día del turno.</li>
+<li><strong>Tasa de ausentismo</strong> = ausentes / (atendidos + ausentes). Los cancelados <strong>no</strong> cuentan: avisaron y el turno se pudo reasignar.</li>
+<li>En <code>clinica_facturas</code>, <code>monto_cubierto</code> es lo que paga el seguro; el resto (<code>monto - monto_cubierto</code>) lo paga el paciente (copago).</li>
+</ul>
+<h2>Cómo funciona una clínica (y por qué el ausentismo duele tanto)</h2>
+<p>Una clínica vende <strong>tiempo de profesionales</strong>: cada médico tiene una agenda con turnos de duración fija. Ese tiempo es un recurso <strong>perecedero</strong>: un turno de las 10:00 que nadie usa no se puede guardar para mañana. Por eso el ausentismo (<em>no-show</em>) es tan caro: el médico cobra igual, otro paciente que necesitaba ese turno no lo consiguió, y la clínica pierde la facturación.</p>
+<p>Los ingresos vienen de dos fuentes: lo que paga el <strong>seguro o la cobertura</strong> del paciente (prepaga, obra social) y el <strong>copago</strong> que paga el paciente. Coberturas distintas pagan montos distintos y tienen comportamientos distintos, así que casi todo análisis se corta por cobertura, especialidad y sede.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Fórmula</th>
+<th>Por qué importa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tasa de ausentismo</strong></td>
+<td>ausentes / (atendidos + ausentes)</td>
+<td>Turnos perdidos; los cancelados no cuentan porque avisaron</td>
+</tr>
+<tr>
+<td><strong>Ocupación de agenda</strong></td>
+<td>turnos usados / turnos disponibles</td>
+<td>¿Faltan o sobran médicos?</td>
+</tr>
+<tr>
+<td><strong>Anticipación</strong></td>
+<td>días entre reserva y turno</td>
+<td>Turnos reservados con mucha anticipación se olvidan más</td>
+</tr>
+<tr>
+<td><strong>Tasa de retorno a 30 días</strong></td>
+<td>pacientes que vuelven antes de 30 días / pacientes atendidos</td>
+<td>Controles o problemas no resueltos</td>
+</tr>
+<tr>
+<td><strong>% cubierto por el seguro</strong></td>
+<td><code>SUM(monto_cubierto) / SUM(monto)</code></td>
+<td>Dependencia de cada cobertura</td>
+</tr>
+</tbody></table></div>
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿Algunas coberturas faltan más que otras?&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por cobertura. La cobertura es un atributo del <strong>paciente</strong>, así que unimos cada turno con su paciente.</li>
+<li><strong>Métrica</strong>: la tasa de ausentismo con el denominador correcto. Contamos todos los turnos en <code>turnos</code> (como dato de volumen), pero el porcentaje se calcula solo sobre <code>atendido</code> + <code>ausente</code>.</li>
+</ol>
+<pre><code class="language-sql">SELECT p.cobertura,
+       COUNT(*) AS turnos,
+       ROUND(100.0 * SUM(CASE WHEN t.estado = 'ausente' THEN 1 ELSE 0 END)
+             / SUM(CASE WHEN t.estado IN ('atendido', 'ausente') THEN 1 ELSE 0 END), 2) AS pct_ausentismo
+FROM clinica_turnos t
+JOIN clinica_pacientes p ON p.paciente_id = t.paciente_id
+GROUP BY p.cobertura
+ORDER BY pct_ausentismo DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>cobertura</th>
+<th>turnos</th>
+<th>pct_ausentismo</th>
+</tr>
+</thead><tbody><tr>
+<td>Galeno</td>
+<td>1950</td>
+<td>12.41</td>
+</tr>
+<tr>
+<td>OSDE</td>
+<td>1779</td>
+<td>12.37</td>
+</tr>
+<tr>
+<td>Particular</td>
+<td>1562</td>
+<td>12.09</td>
+</tr>
+<tr>
+<td>Swiss Medical</td>
+<td>1167</td>
+<td>11.89</td>
+</tr>
+<tr>
+<td>PAMI</td>
+<td>1296</td>
+<td>9.82</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura de negocio:</strong> PAMI (la cobertura de jubilados) falta claramente menos. Las diferencias entre las demás son chicas: antes de lanzar una acción por cobertura, conviene mirar otras variables (anticipación, día de la semana), que son justamente los ejercicios.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>El denominador del ausentismo</strong>: incluir los cancelados en el total baja artificialmente la tasa.</li>
+<li><strong>Fecha vs. fecha-hora</strong>: <code>fecha_hora</code> del turno tiene hora; <code>fecha_reserva</code> es solo fecha. Para calcular la anticipación en días, lleva el turno a fecha con <code>date(fecha_hora)</code>.</li>
+<li><strong>Una factura por turno, pero no todos los turnos facturan</strong>: los ausentes y cancelados no generan factura; un <code>JOIN</code> con facturas los hace desaparecer.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los datos de salud tienen leyes específicas de privacidad. En los entornos de análisis, los pacientes se identifican con ids seudónimos, los datos de diagnóstico tienen acceso restringido y cada consulta queda auditada.</li>
+<li>Las clínicas usan modelos de predicción de ausentismo para decidir a quién confirmar o a quién sobreagendar. La base de esos modelos son exactamente las variables de este caso: anticipación, día, especialidad e historial del paciente.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Ausentismo calculado sobre turnos futuros</strong>: todavía no se sabe si el paciente va a venir.</li>
+<li><strong>Productividad de médicos sin considerar sus horas disponibles</strong>: más turnos atendidos puede ser solo más horas.</li>
+<li><strong>Facturación sumando turnos cancelados</strong>.</li>
+<li><strong>Datos personales de pacientes en los resultados</strong> cuando bastan los identificadores.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo medirías el efecto de la anticipación del turno en el ausentismo?&quot;</div>
+
+<p>Calcularía para cada turno pasado los días entre la reserva y la cita, lo agruparía en tramos (mismo día, 1 a 7, 8 a 30, más de 30) y mediría la tasa de ausencias por tramo sobre los turnos que ya ocurrieron. Controlaría por especialidad y tipo de paciente, porque pueden explicar la diferencia, y mostraría la cantidad de turnos por tramo para no sacar conclusiones de grupos chicos.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-clinica">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-viajes.html">← Caso 🚕 Ruta: viajes, esperas y tarifa dinámica</a><a href="casos-saas.html">Caso ☁️ Nube Pyme: MRR, retención neta y soporte →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

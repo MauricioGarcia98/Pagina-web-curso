@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests y documentación · Academia de Datos</title><meta name="description" content="Qué es un test de datos en dbt y cómo funciona por dentro, los cuatro tests genéricos, tests singulares, severidad y umbrales, guardar las fallas, dbt build, unit tests, contratos y documentación. Todo explicado desde cero con la documentación oficial."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-tests-docs.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tests y documentación · Academia de Datos"><meta property="og:description" content="Qué es un test de datos en dbt y cómo funciona por dentro, los cuatro tests genéricos, tests singulares, severidad y umbrales, guardar las fallas, dbt build, unit tests, contratos y documentación. Todo explicado desde cero con la documentación oficial."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/dbt-tests-docs.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#dbt">🔧 dbt</a> · Avanzado · 60 min</div>
+<h1>Tests y documentación</h1><p class="resumen">Qué es un test de datos en dbt y cómo funciona por dentro, los cuatro tests genéricos, tests singulares, severidad y umbrales, guardar las fallas, dbt build, unit tests, contratos y documentación. Todo explicado desde cero con la documentación oficial.</p>
+<a class="cta" href="../index.html#/l/dbt-tests-docs">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué hace dbt cuando un test &quot;pasa&quot; o &quot;falla&quot;</li><li>Declarar unique, not_null, accepted_values y relationships en YAML</li><li>Escribir un test singular</li><li>Configurar severity, warn_if, error_if y where</li><li>Elegir entre data test, unit test y contrato</li><li>Documentar modelos y columnas</li></ul>
+<h2>Primero, ¿qué es un &quot;test&quot; en datos?</h2>
+<p>En programación, un <em>test</em> es un pequeño programa que verifica que otro programa hace lo que debe. En datos, la idea es la misma pero aplicada a <strong>tablas</strong>: un test es una <strong>afirmación</strong> sobre los datos que debería ser siempre cierta. Por ejemplo:</p>
+<ul>
+<li>&quot;Cada pedido aparece <strong>una sola vez</strong>.&quot;</li>
+<li>&quot;Ningún pedido tiene el cliente <strong>vacío</strong>.&quot;</li>
+<li>&quot;El estado de un pago es <strong>solo</strong> <code>aprobado</code> o <code>rechazado</code>.&quot;</li>
+<li>&quot;Cada <code>cliente_id</code> de los pedidos <strong>existe</strong> en la tabla de clientes.&quot;</li>
+</ul>
+<p>Si la afirmación es falsa, algo se rompió: en el origen, en la carga o en tu código. El test te avisa <strong>antes</strong> que el usuario del tablero.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El control de calidad de una fábrica</div>
+
+<p>Una fábrica de botellas no espera a que el cliente se queje: al final de la línea hay una máquina que revisa cada botella (que tenga tapa, que no esté rajada, que tenga la cantidad correcta). Los tests de dbt son esa máquina, al final de cada modelo.</p>
+</div>
+
+
+<h2>Cómo funciona un test por dentro</h2>
+<p>La documentación oficial de dbt lo explica en una frase: <strong>un test es una consulta <code>SELECT</code> que busca las filas que rompen la regla</strong>.</p>
+<ul>
+<li>Si la consulta devuelve <strong>0 filas</strong>, nadie rompe la regla: el test <strong>pasa</strong> (<code>PASS</code>).</li>
+<li>Si devuelve <strong>1 o más filas</strong>, cada fila es un caso que viola la regla: el test <strong>falla</strong> (<code>FAIL</code>), y el número que muestra dbt es la cantidad de filas encontradas.</li>
+</ul>
+<p>Esto parece al revés la primera vez: uno esperaría que el test &quot;devuelva lo bueno&quot;. Pero buscar lo malo tiene una ventaja enorme: cuando falla, <strong>las filas devueltas son exactamente los casos a investigar</strong>.</p>
+<p>Por ejemplo, para afirmar &quot;<code>pedido_id</code> es único&quot;, dbt busca los duplicados:</p>
+<pre><code class="language-sql">select pedido_id
+from stg_pedidos
+where pedido_id is not null
+group by pedido_id
+having count(*) &gt; 1</code></pre>
+<p>Línea por línea:</p>
+<ol>
+<li><code>from stg_pedidos</code>: la tabla (el modelo) que estamos probando.</li>
+<li><code>where pedido_id is not null</code>: los nulos no se consideran duplicados (eso lo controla otro test, <code>not_null</code>).</li>
+<li><code>group by pedido_id</code>: junta todas las filas que tienen el mismo <code>pedido_id</code>.</li>
+<li><code>having count(*) &gt; 1</code>: deja solo los grupos con más de una fila, es decir, los repetidos.</li>
+</ol>
+<p>Ejecútala: devuelve 0 filas, así que el test pasaría.</p>
+<div class="recorrido"></div>
+
+
+<h2>Dos formas de escribir tests</h2>
+<p>dbt tiene dos tipos de tests de datos (en la documentación se llaman <em>data tests</em>, para distinguirlos de los <em>unit tests</em> que veremos al final):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Dónde se escribe</th>
+<th>Cuándo usarlo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Genérico</strong></td>
+<td>Una línea en un archivo <code>.yml</code>, debajo de la columna</td>
+<td>Reglas que se repiten en muchas tablas: único, no nulo, valores permitidos, relación con otra tabla</td>
+</tr>
+<tr>
+<td><strong>Singular</strong></td>
+<td>Un archivo <code>.sql</code> en la carpeta <code>tests/</code></td>
+<td>Una regla de negocio específica que no encaja en un genérico</td>
+</tr>
+</tbody></table></div>
+<p>La recomendación oficial es que los genéricos sean la <strong>mayoría</strong> de tus tests, porque se reutilizan sin escribir SQL.</p>
+<h2>Los cuatro tests genéricos que trae dbt</h2>
+<p>dbt incluye cuatro tests listos para usar. Se declaran en un archivo YAML (un formato de texto para configuración, donde la <strong>sangría</strong> —los espacios al comienzo de la línea— indica qué está dentro de qué).</p>
+<pre data-norun><code class="language-yaml"># models/marts/_marts.yml
+version: 2
+models:
+  - name: fct_pedidos                 # el modelo (archivo fct_pedidos.sql)
+    description: &quot;Una fila por pedido, con unidades y total neto.&quot;
+    columns:
+      - name: pedido_id               # la columna que probamos
+        description: &quot;Identificador del pedido.&quot;
+        data_tests:
+          - unique                    # 1. no se repite
+          - not_null                  # 2. nunca está vacío
+      - name: estado
+        data_tests:
+          - accepted_values:          # 3. solo estos valores
+              arguments:
+                values: ['entregado', 'enviado', 'pendiente', 'cancelado', 'devuelto']
+      - name: cliente_id
+        data_tests:
+          - not_null
+          - relationships:            # 4. existe en otra tabla
+              arguments:
+                to: ref('dim_clientes')
+                field: cliente_id</code></pre>
+<p>Cómo leer el archivo:</p>
+<ul>
+<li><code>models:</code> es una lista; cada elemento empieza con <code>- name:</code> y es un modelo.</li>
+<li>Dentro de cada modelo, <code>columns:</code> es otra lista con las columnas que quieres describir o probar.</li>
+<li><code>data_tests:</code> es la lista de tests de esa columna. En proyectos viejos verás <code>tests:</code>: es la misma cosa con el nombre anterior (dbt acepta los dos, pero no los dos juntos en el mismo modelo).</li>
+<li><code>arguments:</code> agrupa los parámetros del test. Es la sintaxis nueva (dbt 1.10.5 en adelante); en versiones anteriores los parámetros (<code>values:</code>, <code>to:</code>, <code>field:</code>) van directamente debajo del nombre del test. Las dos formas funcionan en la terminal del curso.</li>
+</ul>
+<p>Qué consulta genera cada uno:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Test</th>
+<th>Afirmación</th>
+<th>Busca (filas que fallan)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>unique</code></td>
+<td>No hay valores repetidos</td>
+<td>Valores con <code>count(*) &gt; 1</code></td>
+</tr>
+<tr>
+<td><code>not_null</code></td>
+<td>Nunca está vacío</td>
+<td>Filas con la columna <code>is null</code></td>
+</tr>
+<tr>
+<td><code>accepted_values</code></td>
+<td>Solo valores de una lista</td>
+<td>Valores <code>not in (lista)</code></td>
+</tr>
+<tr>
+<td><code>relationships</code></td>
+<td>Cada valor existe en otra tabla (integridad referencial)</td>
+<td>Valores sin pareja en la tabla <code>to</code> (un <code>left join</code> que no encuentra nada)</td>
+</tr>
+</tbody></table></div>
+<p><code>relationships</code>, por ejemplo, se traduce en algo así:</p>
+<pre><code class="language-sql">select p.cliente_id
+from stg_pedidos p
+left join stg_clientes c on c.cliente_id = p.cliente_id
+where p.cliente_id is not null
+  and c.cliente_id is null</code></pre>
+<p>El <code>left join</code> conserva todos los pedidos; si un pedido no encuentra su cliente, las columnas de <code>c</code> quedan en <code>NULL</code>. Esos son los &quot;huérfanos&quot;.</p>
+<p>Para más tests genéricos existen <strong>paquetes</strong> (librerías de dbt que se instalan con <code>dbt deps</code>): <code>dbt_utils</code> agrega, por ejemplo, <code>unique_combination_of_columns</code> y <code>expression_is_true</code>; <code>dbt_expectations</code> trae decenas inspirados en Great Expectations.</p>
+<h2>Tests singulares: tu propia regla en SQL</h2>
+<p>Cuando la regla es específica de tu negocio, escribes la consulta completa en un archivo de la carpeta <code>tests/</code>. El nombre del archivo es el nombre del test.</p>
+<pre data-norun><code class="language-sql">-- tests/assert_pagos_no_superan_total.sql
+-- Falla si algún pago aprobado supera el total del pedido en más de 1 centavo
+with totales as (
+    select pedido_id, sum(cantidad * precio_unitario * (1 - descuento)) as total
+    from {{ ref('stg_detalle_pedidos') }}
+    group by pedido_id
+)
+select p.pago_id, p.monto, t.total
+from {{ ref('stg_pagos') }} p
+join totales t on t.pedido_id = p.pedido_id
+where p.estado = 'aprobado'
+  and p.monto &gt; t.total + 0.01</code></pre>
+<p>Tres reglas de la documentación oficial:</p>
+<ol>
+<li>Usa <code>{{ ref(&#39;...&#39;) }}</code> igual que en un modelo: así dbt sabe de qué modelos depende el test.</li>
+<li><strong>No</strong> termines la consulta con punto y coma (<code>;</code>): dbt la envuelve en otra consulta y el <code>;</code> la rompe.</li>
+<li><strong>No</strong> lo declares en el <code>.yml</code> de los modelos: todo <code>.sql</code> dentro de <code>tests/</code> se ejecuta solo con <code>dbt test</code>.</li>
+</ol>
+<h2>Pruébalo en la terminal</h2>
+<p>La terminal del curso ejecuta los cuatro tests genéricos y los singulares sobre la base de la tienda. Ábrela con <strong>⌨ En la terminal</strong>:</p>
+<pre><code class="language-bash">cd tienda_dbt
+cat models/schema.yml          # los tests declarados
+dbt run                        # construye los modelos
+dbt test                       # corre todos los tests
+dbt test -s top_clientes       # solo los tests de un modelo</code></pre>
+<p>Después edita <code>models/schema.yml</code> (con <code>nano models/schema.yml</code>) y agrega un <code>accepted_values</code> sobre <code>canal</code> de <code>ventas_por_canal</code> con solo <code>[&#39;web&#39;, &#39;app&#39;]</code>. Vuelve a correr <code>dbt test</code>: va a fallar, y debajo verás el <strong>SQL compilado</strong> del test y cuántas filas lo rompen. Ese es el flujo real de trabajo: el test falla, copias la consulta y miras las filas.</p>
+<h2>Severidad: no todo es una emergencia</h2>
+<p>Por defecto, un test que encuentra <strong>una sola</strong> fila es un error. A veces eso es demasiado estricto: un 0,1 % de emails vacíos puede ser aceptable, pero un 20 % no. dbt tiene tres configuraciones para eso (página <code>severity</code> de la referencia oficial):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Config</th>
+<th>Valores</th>
+<th>Por defecto</th>
+</tr>
+</thead><tbody><tr>
+<td><code>severity</code></td>
+<td><code>error</code> o <code>warn</code></td>
+<td><code>error</code></td>
+</tr>
+<tr>
+<td><code>error_if</code></td>
+<td>una condición sobre la cantidad de fallas: <code>&quot;&gt;100&quot;</code>, <code>&quot;!=0&quot;</code>…</td>
+<td><code>&quot;!=0&quot;</code></td>
+</tr>
+<tr>
+<td><code>warn_if</code></td>
+<td>igual, para la advertencia</td>
+<td><code>&quot;!=0&quot;</code></td>
+</tr>
+</tbody></table></div>
+<p>Cómo decide dbt, paso a paso:</p>
+<ol>
+<li>Si <code>severity: error</code>, primero revisa <code>error_if</code>. Si se cumple, el test da <strong>ERROR</strong>.</li>
+<li>Si no se cumple, revisa <code>warn_if</code>. Si se cumple, da <strong>WARN</strong> (advertencia: se muestra pero no detiene nada).</li>
+<li>Si ninguna se cumple, <strong>PASS</strong>.</li>
+<li>Si <code>severity: warn</code>, dbt <strong>ignora</strong> <code>error_if</code> y solo mira <code>warn_if</code>: ese test nunca puede dar error.</li>
+</ol>
+<p>Entonces, para &quot;avisar desde 10 fallas y frenar desde 100&quot;:</p>
+<pre data-norun><code class="language-yaml">      - name: email
+        data_tests:
+          - not_null:
+              config:
+                severity: error   # (es el valor por defecto; se puede omitir)
+                warn_if: &quot;&gt;10&quot;
+                error_if: &quot;&gt;100&quot;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un error muy común</div>
+
+<p>Escribir <code>severity: warn</code> junto con <code>error_if: &quot;&gt;100&quot;</code> <strong>no</strong> funciona como uno espera: con <code>severity: warn</code> el <code>error_if</code> se ignora y el test nunca falla. Para tener los dos niveles, deja <code>severity: error</code>.</p>
+</div>
+
+
+<p>Otras dos configuraciones útiles:</p>
+<ul>
+<li><code>where: &quot;fecha_pedido &gt;= &#39;2024-01-01&#39;&quot;</code>: aplica el test solo a una parte de la tabla (por ejemplo, ignorar datos históricos que ya sabes que están sucios).</li>
+<li><code>store_failures: true</code> (o la opción <code>--store-failures</code> en la línea de comandos): guarda las filas que fallan en una tabla dentro de un esquema que termina en <code>dbt_test__audit</code>, para consultarlas después. En la terminal del curso las verás como tablas <code>dbt_test__audit_...</code>.</li>
+</ul>
+<h2>dbt test frente a dbt build</h2>
+<ul>
+<li><code>dbt test</code> solo <strong>prueba</strong>: no construye nada. Si un modelo no existe todavía, su test da error.</li>
+<li><code>dbt build</code> hace todo <strong>en el orden del grafo</strong>: construye un modelo, enseguida corre sus tests y recién después pasa a los modelos que dependen de él. Si un test con severidad error falla, los modelos que dependen de ese modelo se <strong>saltan</strong> (<code>SKIP</code>).</li>
+</ul>
+<p>Esa regla es lo que impide que un dato roto llegue al tablero: si <code>stg_pedidos</code> tiene duplicados, <code>fct_ventas</code> ni siquiera se construye y el tablero sigue mostrando la versión anterior, que estaba bien. En producción casi siempre se usa <code>dbt build</code>. Pruébalo: pon un <code>accepted_values</code> que falle sobre <code>stg_ventas</code> y ejecuta <code>dbt build</code>; verás los <code>SKIP</code> de los modelos de abajo.</p>
+<h2>Unit tests: probar la lógica, no los datos</h2>
+<p>Los tests de datos revisan los datos <strong>reales</strong> cada vez que corren. Pero a veces lo que quieres probar es tu <strong>lógica</strong>: &quot;si el pedido tiene descuento del 100 %, el importe debe dar 0&quot;. Esperar a que aparezca ese caso en los datos reales no sirve. Para eso, dbt (desde la versión 1.8) tiene <strong>unit tests</strong>: le das filas de entrada inventadas y la salida que esperas.</p>
+<pre data-norun><code class="language-yaml">unit_tests:
+  - name: importe_con_descuento_total
+    model: stg_detalle_pedidos         # el modelo cuya lógica pruebas
+    given:                             # datos de entrada inventados
+      - input: source('tienda', 'detalle_pedidos')
+        rows:
+          - {detalle_id: 1, cantidad: 2, precio_unitario: 100, descuento: 0}
+          - {detalle_id: 2, cantidad: 1, precio_unitario: 50, descuento: 1}
+    expect:                            # lo que el modelo debe devolver
+      rows:
+        - {detalle_id: 1, importe: 200}
+        - {detalle_id: 2, importe: 0}</code></pre>
+<p>Cuándo escribirlos, según la documentación oficial: cuando hay lógica difícil (expresiones regulares, cálculos de fechas, funciones de ventana, <code>case when</code> con muchos casos), cuando ya hubo un bug en ese modelo, para casos que todavía no aparecen en los datos reales y <strong>antes de reescribir</strong> un modelo importante. No hace falta probar funciones del motor como <code>min()</code> o <code>sum()</code>.</p>
+<p>Como sus entradas son fijas, la recomendación es correrlos en desarrollo y en CI (las pruebas automáticas de cada <em>pull request</em>), <strong>no</strong> en cada ejecución de producción: <code>dbt test --select &quot;test_type:unit&quot;</code> corre solo los unit tests y <code>test_type:data</code> solo los de datos.</p>
+<h2>Contratos: prometer la forma de la tabla</h2>
+<p>Un <strong>contrato</strong> es una promesa sobre las <strong>columnas y sus tipos</strong>. Si otro equipo consume tu tabla <code>dim_clientes</code>, un cambio pequeño (que <code>cliente_id</code> pase de número a texto) puede romper sus consultas. Con el contrato activado, dbt compara el resultado del modelo con lo declarado <strong>antes</strong> de crear la tabla, y si no coincide, falla:</p>
+<pre data-norun><code class="language-yaml">models:
+  - name: dim_clientes
+    config:
+      materialized: table
+      contract:
+        enforced: true
+    columns:
+      - name: cliente_id
+        data_type: int
+        constraints:
+          - type: not_null
+      - name: nombre
+        data_type: string</code></pre>
+<p>Diferencia clave: un <strong>test</strong> revisa los <strong>valores</strong> después de construir; un <strong>contrato</strong> revisa la <strong>forma</strong> (nombres y tipos de columnas) antes de construir.</p>
+<h2>Documentación: que cualquiera entienda tus tablas</h2>
+<p>Las mismas <code>description:</code> del YAML se convierten en un sitio web de documentación:</p>
+<pre><code class="language-bash">dbt docs generate   # crea target/manifest.json y target/catalog.json
+dbt docs serve      # abre el sitio en el navegador</code></pre>
+<ul>
+<li><code>manifest.json</code> describe el proyecto: modelos, tests, descripciones y dependencias.</li>
+<li><code>catalog.json</code> agrega lo que dbt lee de la base: columnas reales y tipos.</li>
+<li>El sitio muestra cada modelo, sus columnas, sus tests y el <strong>grafo de linaje</strong> (de qué tablas sale y qué tablas lo usan).</li>
+</ul>
+<p>Para textos largos se usan bloques <code>{% docs nombre %} … {% enddocs %}</code> en un archivo <code>.md</code> dentro de <code>models/</code>, y se reutilizan con <code>description: &#39;{{ doc(&quot;nombre&quot;) }}&#39;</code>.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tests que siempre fallan</strong>: un <code>accepted_values</code> con una lista incompleta enseña al equipo a ignorar los fallos. Un test debe codificar una regla de negocio real.</li>
+<li><strong>Solo probar el final</strong>: si pruebas solo <code>fct_ventas</code>, cuando falla no sabes en qué paso se rompió. Prueba también las claves de staging.</li>
+<li><strong><code>severity: warn</code> con <code>error_if</code></strong>: el <code>error_if</code> se ignora.</li>
+<li><strong>Punto y coma al final de un test singular</strong>: rompe la consulta que arma dbt.</li>
+<li><strong>Correr <code>dbt run</code> y después <code>dbt test</code> en producción</strong>: si el test falla, el dato malo ya se publicó. Usa <code>dbt build</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El lunes, el tablero de ventas mostró el doble de lo normal. Después de dos horas se descubrió la causa: la tabla de pedidos tenía cada pedido <strong>repetido</strong> porque una carga se ejecutó dos veces. Un test de una línea (<code>unique</code> sobre <code>pedido_id</code>) lo habría detectado antes de que el número llegara al tablero. </p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La convención más usada: <strong>toda clave primaria</strong> tiene <code>unique</code> + <code>not_null</code>, y <strong>toda clave foránea</strong> tiene <code>relationships</code>. Es lo mínimo que se pide en una revisión de código.</li>
+<li>En CI se corre <code>dbt build --select state:modified+</code> (solo lo que cambió y lo que depende de eso), incluidos los unit tests.</li>
+<li>Los warnings se revisan cada semana: si un test lleva un mes en <code>WARN</code>, o se arregla el origen o se ajusta el umbral, pero no se deja sonando.</li>
+<li>Herramientas como <strong>Elementary</strong> leen los resultados de los tests para armar tableros de calidad y alertas.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué diferencia hay entre un data test, un unit test y un contrato en dbt?&quot;</div>
+
+<p>El data test revisa los valores de los datos reales después de construir el modelo (por ejemplo, que no haya duplicados). El unit test revisa la lógica del SQL con datos de entrada inventados y una salida esperada, y se corre en desarrollo y CI. El contrato revisa la forma del resultado (nombres y tipos de columnas) antes de crear la tabla, para no romper a quienes la consumen. Se complementan: el contrato protege la estructura, el unit test la lógica y el data test los datos.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>En una línea</th>
+</tr>
+</thead><tbody><tr>
+<td>Data test</td>
+<td><code>SELECT</code> que busca filas que rompen una regla; 0 filas = pasa</td>
+</tr>
+<tr>
+<td>Genérico</td>
+<td>Test reutilizable declarado en YAML (<code>unique</code>, <code>not_null</code>, <code>accepted_values</code>, <code>relationships</code>)</td>
+</tr>
+<tr>
+<td>Singular</td>
+<td>Archivo <code>.sql</code> en <code>tests/</code> con tu propia regla</td>
+</tr>
+<tr>
+<td><code>severity</code> / <code>warn_if</code> / <code>error_if</code></td>
+<td>Cuándo una falla es advertencia y cuándo error</td>
+</tr>
+<tr>
+<td><code>dbt build</code></td>
+<td>Construye y prueba en orden; salta lo que depende de un test fallido</td>
+</tr>
+<tr>
+<td>Unit test</td>
+<td>Entrada inventada + salida esperada para probar la lógica</td>
+</tr>
+<tr>
+<td>Contrato</td>
+<td>Columnas y tipos garantizados antes de crear la tabla</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/dbt-tests-docs">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="dbt-materializaciones.html">← Materializaciones e incrementales</a><a href="dbt-jinja-macros.html">Jinja y macros →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

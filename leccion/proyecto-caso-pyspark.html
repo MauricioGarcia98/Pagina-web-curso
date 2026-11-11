@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso práctico II: el pipeline en PySpark · Academia de Datos</title><meta name="description" content="Construye las capas silver y gold del proyecto con PySpark."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-caso-pyspark.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso práctico II: el pipeline en PySpark · Academia de Datos"><meta property="og:description" content="Construye las capas silver y gold del proyecto con PySpark."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-caso-pyspark.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto">🏆 Proyecto final y entrevistas</a> · Experto · 60 min</div>
+<h1>Caso práctico II: el pipeline en PySpark</h1><p class="resumen">Construye las capas silver y gold del proyecto con PySpark.</p>
+<a class="cta" href="../index.html#/l/proyecto-caso-pyspark">▶ Abrir la lección interactiva (3 ejercicios)</a>
+
+<p>Ahora construimos las tablas que alimentan el tablero. Cada ejercicio es una pieza del pipeline; en Databricks, cada una sería una tarea de un job.</p>
+<h2>El diseño antes del código</h2>
+<p>Un pipeline profesional se diseña antes de escribirlo. Para este proyecto, el diseño es:</p>
+<pre><code class="language-text">bronze (crudo)            silver (limpio, grano fino)            gold (negocio)
+pedidos ─────────┐
+detalle_pedidos ─┼──▶  silver.fct_ventas  ──┬──▶ gold.ventas_mensuales_pais   → tablero de ventas
+productos ───────┘     (una fila por línea)  └──▶ gold.dim_clientes             → CRM / marketing
+clientes ─────────────────────────────────────────┘</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Grano</th>
+<th>Para qué</th>
+<th>Decisiones clave</th>
+</tr>
+</thead><tbody><tr>
+<td><code>silver.fct_ventas</code></td>
+<td>Una fila por <strong>línea de pedido</strong></td>
+<td>La base de todos los cálculos de ventas</td>
+<td>Excluir cancelados aquí, <strong>una sola vez</strong>; calcular <code>importe</code> neto con la regla oficial</td>
+</tr>
+<tr>
+<td><code>gold.ventas_mensuales_pais</code></td>
+<td>Una fila por <strong>mes y país</strong></td>
+<td>El tablero de ventas</td>
+<td>Variación contra el mes anterior <strong>del mismo país</strong> (ventana particionada por país)</td>
+</tr>
+<tr>
+<td><code>gold.dim_clientes</code></td>
+<td>Una fila por <strong>cliente</strong></td>
+<td>Segmentación, CRM</td>
+<td>Incluir clientes <strong>sin</strong> compras (left join), con métricas en 0 o nulas</td>
+</tr>
+</tbody></table></div>
+<p>Fíjate en el principio de la arquitectura medallón: las reglas de negocio (qué es una venta, cómo se calcula el importe) se aplican <strong>en silver</strong>, y las tablas gold <strong>reutilizan</strong> silver. Si mañana cambia la regla del importe, se corrige en un solo lugar y todo lo de gold se recalcula coherente.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo resolver cada ejercicio</div>
+
+<ol>
+<li>Escribe el grano en un comentario (<code># grano: mes x país</code>).</li>
+<li>Construye el resultado en variables con nombre (<code>ped</code>, <code>lineas</code>, <code>mensual</code>), revisando cada una con <code>show(5)</code>.</li>
+<li>Compara contra la consulta SQL equivalente del caso práctico I: los totales deben coincidir.</li>
+</ol>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Deduplicar con <code>dropDuplicates([&quot;clave&quot;])</code></strong> cuando importa cuál fila queda: el resultado cambia entre ejecuciones. Usa <code>row_number()</code> con un orden explícito.</li>
+<li><strong><code>cast</code> sobre datos sucios sin <code>try_cast</code></strong>: en Spark 4 el job falla con <code>CAST_INVALID_INPUT</code>; con <code>try_cast</code> decides y cuentas los inválidos.</li>
+<li><strong>Escribir silver con <code>mode(&quot;overwrite&quot;)</code> completo todos los días</strong>: reprocesa todo y, si falla a mitad, deja la tabla vacía. Usa MERGE o reemplaza solo la partición del día.</li>
+<li><strong>Gold que se calcula desde bronze</strong> saltándose silver: la limpieza se repite en cada tabla y con diferencias.</li>
+<li><strong><code>collect()</code> o <code>toPandas()</code> sobre tablas grandes</strong>: trae todo al driver y lo tumba.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En Databricks, este código vive en archivos <code>.py</code> con funciones que se prueban con datos chicos en CI, y un notebook o un job las llama con la fecha a procesar como parámetro.</li>
+<li>Cada tabla de silver y gold tiene dueño, descripción y tests en Unity Catalog o en dbt; las métricas de cada ejecución (filas leídas, escritas, en cuarentena) se guardan.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo construirías la capa silver de pedidos con PySpark?&quot;</div>
+
+<p>Leería de bronze solo lo nuevo, con Auto Loader o un filtro por fecha de ingesta. Normalizaría tipos con <code>try_cast</code>, textos y fechas, aplicaría reglas de validación y enviaría las filas inválidas a una tabla de cuarentena con el motivo. Deduplicaría el lote con <code>row_number()</code> por <code>pedido_id</code> ordenando por la fecha de ingesta, y haría MERGE en la tabla Delta de silver para insertar los nuevos y actualizar los que cambiaron de estado. Agregaría columnas de auditoría y registraría las métricas de cada ejecución.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-caso-pyspark">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-caso-sql.html">← Caso práctico I: el informe ejecutivo en SQL</a><a href="proyecto-rapido-modelo.html">Proyecto completo I · Rápido: del pedido de negocio al modelo de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

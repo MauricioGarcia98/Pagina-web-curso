@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Qué es SQL? Tu primera consulta · Academia de Datos</title><meta name="description" content="Bases de datos relacionales, el dataset del curso y SELECT * FROM."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-introduccion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="¿Qué es SQL? Tu primera consulta · Academia de Datos"><meta property="og:description" content="Bases de datos relacionales, el dataset del curso y SELECT * FROM."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-introduccion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Básico · 25 min</div>
+<h1>¿Qué es SQL? Tu primera consulta</h1><p class="resumen">Bases de datos relacionales, el dataset del curso y SELECT * FROM.</p>
+<a class="cta" href="../index.html#/l/sql-introduccion">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es una base de datos relacional con tus palabras: tablas, filas, columnas y claves</li><li>Distinguir una clave primaria de una clave foránea en una tabla real</li><li>Escribir y ejecutar tu primera consulta con <code>SELECT * FROM</code></li><li>Explorar una tabla desconocida de forma segura con <code>LIMIT</code></li></ul>
+<h2>Antes de empezar: ¿qué es un dato y dónde se guarda?</h2>
+<p>Cada vez que compras algo en una tienda online se generan <strong>datos</strong>: quién compró, qué producto, cuántas unidades, a qué precio, en qué fecha, con qué medio de pago. Una empresa mediana genera miles de estos registros por día; una grande, millones por hora. Esos datos tienen que guardarse en algún lugar ordenado, para después poder responder preguntas como:</p>
+<ul>
+<li>¿Cuánto vendimos ayer?</li>
+<li>¿Cuál es el producto más vendido en Chile?</li>
+<li>¿Qué clientes no compran hace más de 3 meses?</li>
+</ul>
+<p>Ese &quot;lugar ordenado&quot; es una <strong>base de datos</strong>. Y el idioma que se usa para hacerle preguntas es <strong>SQL</strong>.</p>
+<h2>¿Qué es una base de datos relacional?</h2>
+<p>Una <strong>base de datos relacional</strong> guarda la información en <strong>tablas</strong>, muy parecidas a una hoja de Excel:</p>
+<ul>
+<li>Cada <strong>tabla</strong> guarda un tipo de cosa: clientes, productos, pedidos.</li>
+<li>Cada <strong>fila</strong> (también llamada <em>registro</em>) es <strong>una</strong> de esas cosas: un cliente, un producto, un pedido.</li>
+<li>Cada <strong>columna</strong> (también llamada <em>campo</em>) es <strong>una característica</strong>: el nombre, el precio, la fecha.</li>
+</ul>
+<p>Así se ven las primeras filas de la tabla <code>productos</code> del curso:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>producto_id</th>
+<th>nombre</th>
+<th>categoria_id</th>
+<th>marca</th>
+<th>precio</th>
+<th>costo</th>
+<th>stock</th>
+<th>activo</th>
+<th>fecha_lanzamiento</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Smartphone Apple Mini 300</td>
+<td>6</td>
+<td>Apple</td>
+<td>484.99</td>
+<td>310.41</td>
+<td>38</td>
+<td>1</td>
+<td>2022-05-27</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Parlante Xiaomi Sport 900</td>
+<td>7</td>
+<td>Xiaomi</td>
+<td>425.99</td>
+<td>242.21</td>
+<td>0</td>
+<td>1</td>
+<td>2022-06-17</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Notebook Apple X</td>
+<td>8</td>
+<td>Apple</td>
+<td>1044.99</td>
+<td>718.28</td>
+<td>468</td>
+<td>1</td>
+<td>2019-09-28</td>
+</tr>
+</tbody></table></div>
+<p>Fíjate en tres cosas:</p>
+<ol>
+<li><strong><code>producto_id</code></strong> es un número único para cada producto. Se llama <strong>clave primaria</strong> (<em>primary key</em>): es como el DNI del producto. Nunca hay dos productos con el mismo id.</li>
+<li><strong><code>categoria_id</code></strong> no dice &quot;Celulares&quot; sino un número (6). Ese número apunta a una fila de <strong>otra</strong> tabla, <code>categorias</code>. Eso se llama <strong>clave foránea</strong> (<em>foreign key</em>) y es lo que hace que la base sea <em>relacional</em>: las tablas están <strong>relacionadas</strong> entre sí por estos números.</li>
+<li>Cada columna tiene un <strong>tipo de dato</strong>: <code>precio</code> es un número con decimales, <code>nombre</code> es texto, <code>fecha_lanzamiento</code> es una fecha.</li>
+</ol>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una biblioteca con fichas cruzadas</div>
+
+<p>Imagina una biblioteca con tres ficheros: uno de <strong>libros</strong>, uno de <strong>autores</strong> y uno de <strong>préstamos</strong>. La ficha de un préstamo no copia el nombre completo del autor ni el título del libro: solo anota &quot;libro n.º 152, socio n.º 37&quot;. Para saber el título, buscas la ficha 152 en el fichero de libros. Así no se repite información y, si un autor cambia su nombre, se corrige en un solo lugar. Las bases relacionales funcionan exactamente así.</p>
+</div>
+
+
+<h3>¿Por qué no guardar todo en una sola tabla gigante?</h3>
+<p>Si cada pedido repitiera el nombre, el email y la ciudad del cliente, un cliente con 50 pedidos tendría sus datos copiados 50 veces. Si cambia de email, habría que corregir 50 filas (y seguro alguna queda mal). Separar en tablas evita esas repeticiones. Este principio se llama <strong>normalización</strong> y lo verás a fondo en la lección de modelado.</p>
+<h2>¿Qué es SQL?</h2>
+<p><strong>SQL</strong> (<em>Structured Query Language</em>, &quot;lenguaje de consultas estructurado&quot;; se pronuncia &quot;ese-cu-ele&quot; o &quot;sícuel&quot;) es el idioma estándar para trabajar con bases relacionales. Con SQL puedes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Qué quieres hacer</th>
+<th>Ejemplo de instrucción</th>
+<th>Se llama</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Consultar</strong> datos</td>
+<td><code>SELECT … FROM …</code></td>
+<td>DQL (consulta)</td>
+</tr>
+<tr>
+<td><strong>Agregar, modificar o borrar</strong> filas</td>
+<td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code></td>
+<td>DML (manipulación)</td>
+</tr>
+<tr>
+<td><strong>Crear o cambiar</strong> tablas</td>
+<td><code>CREATE TABLE</code>, <code>ALTER TABLE</code></td>
+<td>DDL (definición)</td>
+</tr>
+<tr>
+<td><strong>Dar permisos</strong></td>
+<td><code>GRANT</code>, <code>REVOKE</code></td>
+<td>DCL (control)</td>
+</tr>
+</tbody></table></div>
+<p>En el trabajo de datos, el <strong>90 %</strong> del tiempo usarás <code>SELECT</code>: hacer preguntas a los datos. Por eso el curso empieza ahí.</p>
+<p>SQL nació en IBM en los años 70 y hoy lo hablan casi todas las herramientas de datos: PostgreSQL, MySQL, SQL Server, Oracle, SQLite, y también las plataformas modernas como <strong>BigQuery, Snowflake, Redshift, Athena y Databricks</strong>. Cada una tiene pequeñas diferencias (llamadas <em>dialectos</em>), pero lo que aprendas aquí sirve en todas.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 SQL es pedir en un restaurante</div>
+
+<p>No le dices al cocinero <em>cómo</em> cocinar (&quot;prende el fuego, corta la cebolla, hierve el agua…&quot;). Le dices <strong>qué</strong> quieres: &quot;un plato de pasta, sin queso, para dos&quot;. SQL es igual: es un lenguaje <strong>declarativo</strong>. Describes el <strong>resultado</strong> que quieres y la base de datos decide la mejor forma de obtenerlo (qué leer primero, qué índices usar, cómo combinar las tablas). Esa parte la hace un componente llamado <strong>optimizador</strong>.</p>
+</div>
+
+
+<p>Compáralo con Python, que es <strong>imperativo</strong>: ahí sí escribes los pasos uno por uno (&quot;recorre esta lista; si el precio es mayor a 100, agrégalo a otra lista…&quot;). Ambas formas son útiles; un data engineer usa las dos todos los días.</p>
+<h2>La base de datos del curso: Tienda Andina</h2>
+<p>Para practicar usarás una base <strong>SQLite</strong> que corre <strong>dentro de tu navegador</strong>: no hay que instalar nada y no puedes romper nada (si algo sale mal, se recarga). Representa a <strong>Tienda Andina</strong>, un e-commerce de tecnología que vende en varios países de Latinoamérica y España. Las tablas principales:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Qué contiene</th>
+<th>Filas</th>
+</tr>
+</thead><tbody><tr>
+<td><code>clientes</code></td>
+<td>Nombre, email, teléfono, ciudad, país, segmento, fechas de nacimiento y registro</td>
+<td>2.000</td>
+</tr>
+<tr>
+<td><code>productos</code></td>
+<td>Nombre, categoría, marca, precio, costo, stock, si está activo</td>
+<td>300</td>
+</tr>
+<tr>
+<td><code>categorias</code></td>
+<td>Categorías y subcategorías (una categoría puede tener una &quot;madre&quot;)</td>
+<td>~20</td>
+</tr>
+<tr>
+<td><code>pedidos</code></td>
+<td>Quién compró, cuándo, en qué canal (web, app, tienda, teléfono), estado</td>
+<td>12.000</td>
+</tr>
+<tr>
+<td><code>detalle_pedidos</code></td>
+<td>Las líneas de cada pedido: producto, cantidad, precio unitario, descuento</td>
+<td>~30.000</td>
+</tr>
+<tr>
+<td><code>pagos</code></td>
+<td>Pagos de cada pedido</td>
+<td>~12.000</td>
+</tr>
+<tr>
+<td><code>empleados</code>, <code>departamentos</code></td>
+<td>La empresa por dentro: sueldos, jefes, áreas</td>
+<td>~100</td>
+</tr>
+<tr>
+<td><code>eventos_web</code></td>
+<td>Visitas, búsquedas y clics en el sitio</td>
+<td>~20.000</td>
+</tr>
+</tbody></table></div>
+<p>Además hay tablas de <strong>doce empresas más</strong> (banco, música, viajes, clínica, SaaS, aerolínea, logística, telco, seguros, hotelería, energía y delivery) que usarás en el módulo de casos de negocio. Puedes verlas todas, con su diagrama, en <a href="#/datos">Bases de datos</a>.</p>
+<p>La relación entre las tablas principales es esta:</p>
+<pre><code class="language-text">clientes ──&lt; pedidos ──&lt; detalle_pedidos &gt;── productos &gt;── categorias
+   1      N    1      N                  N   1         N   1</code></pre>
+<p>Se lee: &quot;un cliente tiene <strong>muchos</strong> pedidos; un pedido tiene <strong>muchas</strong> líneas de detalle; cada línea apunta a <strong>un</strong> producto; cada producto pertenece a <strong>una</strong> categoría&quot;. Los símbolos <code>&lt;</code> indican el lado &quot;muchos&quot;.</p>
+<h2>Tu primera consulta</h2>
+<pre><code class="language-sql">SELECT * FROM productos;</code></pre>
+<p>Léela en voz alta, palabra por palabra:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SELECT</code></td>
+<td>&quot;Quiero ver…&quot;</td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td>&quot;…todas las columnas…&quot; (el asterisco es un comodín: <em>todas</em>)</td>
+</tr>
+<tr>
+<td><code>FROM productos</code></td>
+<td>&quot;…de la tabla <code>productos</code>.&quot;</td>
+</tr>
+<tr>
+<td><code>;</code></td>
+<td>Fin de la instrucción. Con una sola consulta es opcional, pero es buena costumbre ponerlo.</td>
+</tr>
+</tbody></table></div>
+<p>Pruébala con el botón <strong>▶</strong>. Vas a ver las 300 filas de la tabla y, debajo, cuántas filas devolvió y cuánto tardó.</p>
+<h3>Reglas de escritura que conviene saber desde ya</h3>
+<ul>
+<li><strong>Mayúsculas y minúsculas</strong>: SQL no distingue mayúsculas en las palabras clave. <code>select * from productos</code> funciona igual. La costumbre (que usaremos) es escribir las palabras clave en MAYÚSCULAS y los nombres de tablas y columnas en minúsculas, para leer más fácil.</li>
+<li><strong>Espacios y saltos de línea</strong>: no importan. Puedes escribir una consulta en una línea o en diez. En consultas largas, una cláusula por línea se lee mucho mejor.</li>
+<li><strong>Texto entre comillas simples</strong>: los valores de texto se escriben <code>&#39;así&#39;</code> (lo verás en la lección de <code>WHERE</code>). Las comillas dobles se reservan para nombres de columnas raros.</li>
+<li><strong>Comentarios</strong>: todo lo que va después de <code>--</code> en una línea es un comentario, y SQL lo ignora. Úsalos para explicar tu consulta.</li>
+</ul>
+<pre><code class="language-sql">-- Esto es un comentario: SQL lo ignora
+SELECT *          -- todas las columnas
+FROM clientes     -- de la tabla de clientes
+LIMIT 5;          -- solo 5 filas</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>Ver solo algunas filas: LIMIT</h2>
+<p>Las tablas reales pueden tener <strong>millones</strong> de filas. Pedirlas todas para &quot;echar un vistazo&quot; es lento y, en la nube, puede costar dinero. Para explorar usa <code>LIMIT</code>, que corta el resultado a la cantidad de filas que indiques:</p>
+<pre><code class="language-sql">SELECT * FROM clientes LIMIT 5;</code></pre>
+<p><code>LIMIT</code> siempre va <strong>al final</strong> de la consulta. Sin un orden explícito (lo verás con <code>ORDER BY</code>), la base devuelve &quot;las primeras que encuentre&quot;, que no tienen por qué ser siempre las mismas: <code>LIMIT</code> sirve para mirar, no para pedir &quot;los 5 mejores&quot;.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Errores típicos del primer día</div>
+
+<ul>
+<li><strong>Escribir mal el nombre de la tabla</strong>: <code>SELECT * FROM producto;</code> da el error <code>no such table: producto</code>. El nombre correcto es <code>productos</code> (en plural). Usa el botón <strong>📋 Tablas</strong> para verificar nombres.</li>
+<li><strong>Olvidar el <code>FROM</code></strong>: <code>SELECT *;</code> no sabe de dónde sacar los datos.</li>
+<li><strong>Poner <code>LIMIT</code> antes del <code>FROM</code></strong>: el orden de las cláusulas importa. Siempre es <code>SELECT … FROM … LIMIT …</code>.</li>
+</ul>
+</div>
+
+
+<h2>¿Cómo sé qué columnas tiene una tabla?</h2>
+<p>Tienes tres formas:</p>
+<ol>
+<li>El botón <strong>📋 Tablas</strong> de cualquier ejercicio muestra todas las tablas y sus columnas (y haciendo clic en una columna se escribe en el editor).</li>
+<li>La página <a href="#/datos">Bases de datos</a> describe cada tabla y dibuja cómo se relacionan.</li>
+<li>Una consulta rápida con <code>LIMIT 1</code>: verás todos los nombres de columnas en el encabezado del resultado.</li>
+</ol>
+<pre><code class="language-sql">SELECT * FROM pedidos LIMIT 1;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Explora sin miedo</div>
+
+<p>En el <a href="#/lab/sql">Laboratorio SQL</a> puedes escribir cualquier consulta, sobre cualquier tabla, sin que nada se califique. Ninguna consulta <code>SELECT</code> modifica los datos: solo los lee. Equivocarse es parte de aprender, y los mensajes de error te dicen exactamente qué falló.</p>
+</div>
+
+
+
+
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Tu primer día en Tienda Andina</div>
+
+<p>Hoy empiezas como <strong>data engineer junior</strong> en <strong>Tienda Andina</strong>, un e-commerce de tecnología que vende en Latinoamérica y España. Martín, el líder del equipo de datos, te da la bienvenida con un pedido sencillo:</p>
+<blockquote>
+<p>&quot;Antes de tocar nada, quiero que conozcas los datos. Entra a la base, mira qué tablas hay y qué tiene cada una. Mañana me cuentas qué entendiste.&quot;</p>
+</blockquote>
+<p>A lo largo del curso vas a recibir pedidos de distintas personas de la empresa: Valentina (gerente comercial), Camila (marketing), Diego (finanzas), Sofía (operaciones) y Tomás (personas). Cada lección resuelve uno.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En una empresa, lo primero que hace alguien nuevo en datos es justamente esto: <strong>explorar</strong>. Abre las tablas principales con <code>LIMIT</code>, lee la documentación (si existe) y pregunta qué significa cada columna rara. Nadie espera que lo sepas todo el primer día.</li>
+<li>En bases grandes (BigQuery, Snowflake, Databricks), un <code>SELECT *</code> sin <code>LIMIT</code> sobre una tabla de miles de millones de filas puede tardar minutos y <strong>costar dinero</strong>, porque esas plataformas cobran por datos leídos. Muchas incluso muestran una vista previa gratuita de la tabla: úsala.</li>
+<li>Los equipos suelen tener un <strong>catálogo de datos</strong> (Unity Catalog, Dataplex, un wiki) con la descripción de cada tabla. Si no existe, los ingenieros de datos son quienes lo construyen.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué es una clave primaria y para qué sirve?&quot;</div>
+
+<p>Respuesta modelo: &quot;Es una columna (o combinación de columnas) cuyo valor identifica de forma <strong>única</strong> cada fila y nunca es nulo, como <code>cliente_id</code> en <code>clientes</code>. Sirve para referirse a una fila sin ambigüedad y es lo que usan las claves foráneas de otras tablas para relacionarse con ella, como <code>pedidos.cliente_id</code>.&quot; Si puedes, menciona que la base la usa además para crear un índice y que no debería cambiar con el tiempo.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Una <strong>base de datos relacional</strong> guarda datos en <strong>tablas</strong> (filas y columnas) relacionadas por <strong>claves</strong>.</li>
+<li><strong>SQL</strong> es el idioma para consultarlas; es <strong>declarativo</strong>: dices qué quieres, no cómo obtenerlo.</li>
+<li><code>SELECT * FROM tabla</code> muestra todas las columnas de una tabla; <code>LIMIT n</code> muestra solo <code>n</code> filas.</li>
+<li>La palabra clave va en mayúsculas por costumbre, el texto entre comillas simples y los comentarios después de <code>--</code>.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-introduccion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fundamentos-git-en-equipo.html">← Git en equipo - ramas, pull, conflictos y pull requests</a><a href="sql-select.html">SELECT: elegir columnas, alias y cálculos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

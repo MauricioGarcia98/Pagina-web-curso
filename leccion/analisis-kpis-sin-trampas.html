@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPIs sin trampas - numeradores, denominadores y promedios · Academia de Datos</title><meta name="description" content="Cómo se definen y calculan bien las métricas de negocio más pedidas - ticket promedio, tasas (cancelación, conversión, rechazo), márgenes y take rate - y las tres trampas que arruinan un tablero, el denominador equivocado, el promedio de promedios y la división entera."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-kpis-sin-trampas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="KPIs sin trampas - numeradores, denominadores y promedios · Academia de Datos"><meta property="og:description" content="Cómo se definen y calculan bien las métricas de negocio más pedidas - ticket promedio, tasas (cancelación, conversión, rechazo), márgenes y take rate - y las tres trampas que arruinan un tablero, el denominador equivocado, el promedio de promedios y la división entera."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/analisis-kpis-sin-trampas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#analisis">📊 Análisis de datos con SQL: de cero a senior</a> · Intermedio · 45 min</div>
+<h1>KPIs sin trampas - numeradores, denominadores y promedios</h1><p class="resumen">Cómo se definen y calculan bien las métricas de negocio más pedidas - ticket promedio, tasas (cancelación, conversión, rechazo), márgenes y take rate - y las tres trampas que arruinan un tablero, el denominador equivocado, el promedio de promedios y la división entera.</p>
+<a class="cta" href="../index.html#/l/analisis-kpis-sin-trampas">▶ Abrir la lección interactiva (12 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir la fórmula exacta de un KPI antes de calcularlo</li><li>Elegir el denominador correcto de una tasa</li><li>Distinguir razón de sumas y promedio de razones</li><li>Calcular KPIs por segmento sin errores de grano</li></ul>
+<h2>La ficha de un KPI</h2>
+<p>Antes de calcular, cada métrica debería tener su ficha:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Campo</th>
+<th>Ejemplo: ticket promedio</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Pregunta que responde</strong></td>
+<td>¿Cuánto gasta un cliente cada vez que compra?</td>
+</tr>
+<tr>
+<td><strong>Fórmula</strong></td>
+<td>ventas netas ÷ cantidad de pedidos</td>
+</tr>
+<tr>
+<td><strong>Numerador</strong></td>
+<td>Suma de importes con descuento de las líneas</td>
+</tr>
+<tr>
+<td><strong>Denominador</strong></td>
+<td>Pedidos distintos (no líneas)</td>
+</tr>
+<tr>
+<td><strong>Filtros</strong></td>
+<td>Sin cancelados; por fecha de pedido</td>
+</tr>
+<tr>
+<td><strong>Grano</strong></td>
+<td>Se puede abrir por mes, canal y país</td>
+</tr>
+</tbody></table></div>
+<h2>Trampa 1: el denominador</h2>
+<p>Una tasa es <strong>casos que cumplen ÷ casos que podían cumplir</strong>. Lo difícil es el “podían”.</p>
+<pre><code class="language-sql">-- Tasa de rechazo de pagos: sobre todos los intentos de pago
+SELECT ROUND(100.0 * SUM(estado = 'rechazado') / COUNT(*), 2) AS pct_rechazo_intentos
+FROM pagos;
+
+-- Otra pregunta distinta: ¿qué % de pedidos tuvo al menos un rechazo?
+SELECT ROUND(100.0 * COUNT(DISTINCT CASE WHEN estado = 'rechazado' THEN pedido_id END)
+             / COUNT(DISTINCT pedido_id), 2) AS pct_pedidos_con_rechazo
+FROM pagos;</code></pre>
+<p>Las dos están “bien”: responden preguntas diferentes. La ficha dice cuál se usa.</p>
+<h2>Trampa 2: el promedio de promedios</h2>
+<p>El margen de la empresa <strong>no</strong> es el promedio de los márgenes de cada producto: un producto que vende poco pesa lo mismo que uno que vende mucho.</p>
+<pre><code class="language-sql">SELECT
+  -- promedio de razones: cada producto pesa igual
+  ROUND(AVG((precio - costo) / precio) * 100, 2) AS margen_promedio_productos,
+  -- razón de sumas: pondera por lo que realmente se vendió
+  ROUND(100.0 * SUM(d.cantidad * (d.precio_unitario - pr.costo)) / SUM(d.cantidad * d.precio_unitario), 2) AS margen_real_ventas
+FROM detalle_pedidos d
+JOIN productos pr ON pr.producto_id = d.producto_id;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Regla práctica</div>
+
+<p>Para un KPI que es una razón (margen, conversión, ticket), calcula <strong>suma del numerador ÷ suma del denominador</strong> en el nivel que te piden. Promediar razones ya calculadas casi siempre da otro número.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Trampa 3: la división entera</h2>
+<p>En SQLite, PostgreSQL y SQL Server, <code>7 / 2</code> da <code>3</code>. Multiplica por <code>100.0</code> (o <code>1.0</code>) <strong>antes</strong> de dividir.</p>
+<h2>KPIs de otros negocios</h2>
+<ul>
+<li><strong>Delivery (Rápido)</strong>: <em>take rate</em> = lo que se queda la plataforma ÷ lo que vendieron los restaurantes (GMV).</li>
+<li><strong>SaaS (Nube Pyme)</strong>: MRR = suma de las facturas del mes; ARPA = MRR ÷ empresas que pagaron.</li>
+<li><strong>Hotelería</strong>: ADR = ingreso por habitaciones ÷ noches vendidas.</li>
+</ul>
+<h2>Trampa 4: el JOIN que multiplica filas</h2>
+<p>Es la trampa más común en el trabajo real y la más difícil de ver, porque la consulta corre sin errores. Un pedido tiene varias líneas en <code>detalle_pedidos</code>. Si unes <code>pedidos</code> con <code>detalle_pedidos</code> y cuentas con <code>COUNT(*)</code>, estás contando <strong>líneas</strong>, no pedidos.</p>
+<pre><code class="language-sql">SELECT COUNT(*) AS filas_despues_del_join,
+       COUNT(DISTINCT p.pedido_id) AS pedidos_reales
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado &lt;&gt; 'cancelado';</code></pre>
+<p>La primera columna es más del doble que la segunda. Cualquier KPI que use <code>COUNT(*)</code> o <code>SUM</code> de una columna del pedido (por ejemplo, un costo de envío) <strong>después</strong> de ese join queda inflado. A esto se le llama <em>fan-out</em> (abanico): una fila de un lado se abre en varias del otro.</p>
+<p>La forma segura es <strong>llevar cada tabla al grano del KPI antes de unir</strong>: primero una fila por pedido, después el cálculo.</p>
+<pre><code class="language-sql">WITH pedido_neto AS (            -- 1. una fila por pedido
+  SELECT p.pedido_id, p.canal,
+         SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS neto,
+         COUNT(*) AS lineas
+  FROM pedidos p
+  JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  WHERE p.estado &lt;&gt; 'cancelado'
+  GROUP BY p.pedido_id, p.canal
+)
+SELECT canal,                    -- 2. el KPI en el grano pedido
+       COUNT(*) AS pedidos,
+       ROUND(SUM(neto) / COUNT(*), 2) AS ticket_promedio,
+       ROUND(SUM(neto) / SUM(lineas), 2) AS importe_por_linea
+FROM pedido_neto
+GROUP BY canal
+ORDER BY ticket_promedio DESC;</code></pre>
+<p>Qué hace cada parte:</p>
+<ul>
+<li>El CTE <code>pedido_neto</code> <strong>colapsa</strong> las líneas: después del <code>GROUP BY p.pedido_id</code> hay exactamente una fila por pedido. Es el momento de verificar: <code>COUNT(*)</code> de este CTE debe ser igual a <code>COUNT(DISTINCT pedido_id)</code>.</li>
+<li><code>SUM(neto) / COUNT(*)</code> es la razón de sumas que pedía la ficha: ventas ÷ pedidos.</li>
+<li><code>importe_por_linea</code> responde otra pregunta (cuánto vale cada línea) y por eso usa otro denominador. Ponerlas una al lado de la otra muestra que <strong>el denominador es parte de la definición</strong>.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cómo detectar un fan-out</div>
+
+<p>Antes y después de cada <code>JOIN</code>, cuenta filas. Si el número sube y no esperabas que subiera, el join multiplicó. Las preguntas que hay que hacerse: ¿cuál es la clave de cada tabla? ¿La relación es uno a uno, uno a muchos o muchos a muchos?</p>
+</div>
+
+
+<h2>Trampa 5: el filtro que cambia la población</h2>
+<p>El escenario de esta lección pasa en la base de la tienda. Con los mismos datos, la &quot;tasa de cancelación&quot; puede ser:</p>
+<pre><code class="language-sql">SELECT ROUND(100.0 * SUM(estado = 'cancelado') / COUNT(*), 2) AS sobre_todos,
+       ROUND(100.0 * SUM(estado = 'cancelado')
+             / SUM(estado IN ('enviado', 'entregado', 'cancelado')), 2) AS sin_pendientes_ni_devueltos
+FROM pedidos;</code></pre>
+<ul>
+<li><code>sobre_todos</code> incluye en el denominador los pedidos <strong>pendientes</strong>, que todavía pueden cancelarse. Si el mes acaba de cerrar, esa tasa va a subir en los próximos días.</li>
+<li><code>sin_pendientes_ni_devueltos</code> solo mira pedidos con un desenlace. Es más estable, pero excluye a los devueltos: ¿una devolución es un éxito o un fracaso? Depende de la pregunta del negocio.</li>
+</ul>
+<p>No hay una respuesta correcta universal: hay una <strong>acordada y escrita</strong>. Esa es la diferencia entre los dos tableros del escenario.</p>
+<h3>Métricas que todavía están &quot;madurando&quot;</h3>
+<p>Muchos KPIs cambian con el tiempo aunque no cambie nada en el negocio: la tasa de devolución de pedidos de ayer es casi cero porque nadie tuvo tiempo de devolver. Para compararlas de forma justa:</p>
+<ol>
+<li>Fija una <strong>ventana de maduración</strong>: &quot;devoluciones dentro de los 30 días del pedido&quot;.</li>
+<li>Muestra solo los períodos que ya cumplieron esa ventana, o márcalos como provisorios.</li>
+</ol>
+<h2>Cómo se arma la ficha, paso a paso</h2>
+<p>Tomemos un pedido real del negocio: <em>&quot;queremos saber si los cupones atraen clientes que gastan menos&quot;</em>.</p>
+<ol>
+<li><strong>Pregunta</strong>: ¿el ticket de los pedidos con cupón es menor que el de los pedidos sin cupón?</li>
+<li><strong>Unidad y grano</strong>: pedido. Un pedido tiene a lo sumo un cupón (<code>uso_cupones</code> tiene <code>pedido_id</code> como clave): no hay fan-out al unir.</li>
+<li><strong>Numerador</strong>: ventas netas (ya con el descuento de línea).</li>
+<li><strong>Denominador</strong>: pedidos distintos no cancelados.</li>
+<li><strong>Filtros</strong>: mismo período para los dos grupos. Si los cupones solo existen desde 2024, comparar contra 2022 mezcla el efecto del cupón con la inflación.</li>
+<li><strong>Cortes permitidos</strong>: canal y mes.</li>
+<li><strong>Dueño</strong>: quién responde si el número cambia.</li>
+</ol>
+<pre><code class="language-sql">WITH pedido_neto AS (
+  SELECT p.pedido_id,
+         CASE WHEN u.cupon_id IS NULL THEN 'sin cupón' ELSE 'con cupón' END AS grupo,
+         SUM(d.cantidad * d.precio_unitario * (1 - d.descuento)) AS neto
+  FROM pedidos p
+  JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+  LEFT JOIN uso_cupones u ON u.pedido_id = p.pedido_id
+  WHERE p.estado &lt;&gt; 'cancelado'
+    AND p.fecha_pedido &gt;= '2024-01-01'
+  GROUP BY p.pedido_id, grupo
+)
+SELECT grupo, COUNT(*) AS pedidos, ROUND(SUM(neto) / COUNT(*), 2) AS ticket
+FROM pedido_neto
+GROUP BY grupo;</code></pre>
+<p>El <code>LEFT JOIN</code> es clave: con un <code>JOIN</code> normal desaparecerían todos los pedidos sin cupón y no habría con qué comparar.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Practica la ficha en Power BI</div>
+
+<p>Abre el <a href="#/powerbi">Power BI de práctica</a>, importa un CSV tuyo, un Excel o una tabla de las bases del curso, y escribe el KPI como <strong>medida DAX</strong>: <code>Ticket = DIVIDE([Ventas], DISTINCTCOUNT(Pedidos[pedido_id]))</code>. Es la misma idea de la ficha: la fórmula vive en un solo lugar y cada gráfico la reutiliza. Si en vez de <code>DISTINCTCOUNT</code> usas <code>COUNTROWS</code> sobre la tabla de detalle, vas a ver la trampa del fan-out en el número.</p>
+</div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Promediar porcentajes de cada mes</strong> para sacar el del año: un mes con 10 pedidos pesa igual que uno con 1.000.</li>
+<li><strong><code>COUNT(*)</code> después de un join</strong> uno a muchos: cuenta líneas, no pedidos.</li>
+<li><strong>Cambiar el filtro sin cambiar el nombre</strong>: si &quot;tasa de cancelación&quot; deja de incluir los pendientes, es otra métrica y el histórico ya no se puede comparar.</li>
+<li><strong>Dividir enteros</strong>: <code>SUM(x) / COUNT(*)</code> con columnas enteras trunca el decimal en SQLite, PostgreSQL y SQL Server.</li>
+<li><strong>Comparar un período abierto con uno cerrado</strong>: el mes en curso siempre &quot;cae&quot;.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Dos tableros de la empresa muestran “tasa de cancelación” y no coinciden: uno dice 8 % y el otro 11 %. Nadie miente: uno divide por todos los pedidos y el otro solo por los pedidos que llegaron a enviarse. Un KPI sin fórmula escrita no es un KPI, es una opinión.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En los equipos maduros, las fichas viven en una <strong>capa semántica</strong> (dbt Semantic Layer, Looker, Power BI, métricas de Unity Catalog): la fórmula se escribe una vez y todos los tableros la reutilizan. El data engineer construye las tablas en el grano correcto para que esa capa no tenga que corregir fan-outs.</li>
+<li>Cuando dos áreas discuten un número, el primer paso no es recalcular: es <strong>poner las dos fichas una al lado de la otra</strong> y encontrar la diferencia en numerador, denominador o filtros.</li>
+<li>Los KPIs se versionan: si cambia la definición, se anota la fecha del cambio en el tablero.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Te dan un tablero donde el ticket promedio subió 30 % de un día para otro. ¿Qué miras?&quot;</div>
+
+<p>Antes de celebrar, buscaría un cambio en la definición o en los datos: un join nuevo que multiplica filas (fan-out), un filtro que sacó pedidos baratos, una carga duplicada o un cambio de moneda. Contaría filas en cada paso de la consulta, compararía pedidos distintos contra filas, y abriría el KPI por canal y día para ver si el salto está concentrado. Solo después de descartar eso lo trataría como un cambio real del negocio.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Trampa</th>
+<th>Síntoma</th>
+<th>Antídoto</th>
+</tr>
+</thead><tbody><tr>
+<td>Denominador</td>
+<td>Dos tableros no coinciden</td>
+<td>Ficha con &quot;casos que podían cumplir&quot;</td>
+</tr>
+<tr>
+<td>Promedio de promedios</td>
+<td>El total no cuadra con las partes</td>
+<td>Suma de numeradores ÷ suma de denominadores</td>
+</tr>
+<tr>
+<td>División entera</td>
+<td>Tasas en 0 o números redondos</td>
+<td>Multiplicar por <code>100.0</code> antes</td>
+</tr>
+<tr>
+<td>Fan-out</td>
+<td>Totales inflados después de un join</td>
+<td>Llevar al grano antes de unir; contar filas</td>
+</tr>
+<tr>
+<td>Población</td>
+<td>La métrica cambia sola con el tiempo</td>
+<td>Filtros escritos y ventana de maduración</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>12 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/analisis-kpis-sin-trampas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="analisis-pensar-como-analista.html">← Pensar como analista - de la pregunta a la consulta</a><a href="analisis-segmentacion.html">Segmentar - histogramas, Pareto y RFM →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

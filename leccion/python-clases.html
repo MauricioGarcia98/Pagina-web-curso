@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programación orientada a objetos · Academia de Datos</title><meta name="description" content="Clases, objetos, métodos, herencia, métodos especiales y dataclasses."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-clases.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Programación orientada a objetos · Academia de Datos"><meta property="og:description" content="Clases, objetos, métodos, herencia, métodos especiales y dataclasses."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/python-clases.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#python">🐍 Python</a> · Avanzado · 45 min</div>
+<h1>Programación orientada a objetos</h1><p class="resumen">Clases, objetos, métodos, herencia, métodos especiales y dataclasses.</p>
+<a class="cta" href="../index.html#/l/python-clases">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué son una clase y un objeto con un ejemplo de datos</li><li>Definir clases con <code>__init__</code>, atributos y métodos</li><li>Reutilizar código con herencia</li><li>Usar <code>@dataclass</code> para representar registros con poco código</li></ul>
+<h2>Por qué aprender clases si vas a trabajar con datos</h2>
+<p>Quizás pienses que la programación orientada a objetos es &quot;para programadores de aplicaciones&quot;. Pero casi todo lo que usarás como data engineer <strong>son objetos</strong>: un <code>DataFrame</code> de PySpark, la <code>SparkSession</code>, un <code>DAG</code> y sus operadores en Airflow, un cliente de S3 de <code>boto3</code>, una conexión a una base. Entender clases te permite <strong>leer</strong> esas librerías, entender sus errores y, cuando haga falta, escribir tus propias piezas reutilizables (un lector de una API, un validador, un operador personalizado).</p>
+<h2>Clase y objeto</h2>
+<ul>
+<li>Una <strong>clase</strong> es un <strong>molde</strong>: describe qué datos tiene algo y qué puede hacer.</li>
+<li>Un <strong>objeto</strong> (o <strong>instancia</strong>) es <strong>una cosa concreta</strong> hecha con ese molde.</li>
+</ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 El molde de galletitas</div>
+
+<p>La clase <code>Producto</code> es el molde: dice que todo producto tiene nombre, precio y stock, y que se puede vender. Con ese molde haces muchas galletitas (objetos): el mouse, el teclado, el monitor. Cada una tiene <strong>sus propios</strong> valores, pero todas tienen la misma forma y saben hacer lo mismo.</p>
+</div>
+
+
+<pre><code class="language-python">class Producto:
+    def __init__(self, nombre, precio, stock=0):   # constructor: se ejecuta al crear cada objeto
+        self.nombre = nombre                       # atributos: los datos de ESTE objeto
+        self.precio = precio
+        self.stock = stock
+
+    def valor_inventario(self):                    # métodos: lo que el objeto sabe hacer
+        return self.precio * self.stock
+
+    def vender(self, unidades):
+        if unidades &gt; self.stock:
+            raise ValueError(f&quot;Stock insuficiente de {self.nombre}&quot;)
+        self.stock -= unidades
+
+mouse = Producto(&quot;Mouse&quot;, 25.0, stock=40)      # crear un objeto (instanciar)
+teclado = Producto(&quot;Teclado&quot;, 49.9, stock=5)
+mouse.vender(3)
+print(mouse.nombre, mouse.stock, mouse.valor_inventario())
+print(teclado.nombre, teclado.stock)           # el teclado no se vio afectado</code></pre>
+<p>Pieza por pieza:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><code>class Producto:</code></td>
+<td>Define la clase. Por convención, los nombres de clases van en <code>CamelCase</code></td>
+</tr>
+<tr>
+<td><code>def __init__(self, …)</code></td>
+<td>El <strong>constructor</strong>: se ejecuta automáticamente al hacer <code>Producto(...)</code>. Prepara los atributos</td>
+</tr>
+<tr>
+<td><code>self</code></td>
+<td>&quot;Este objeto&quot;. Es el primer parámetro de todo método; Python lo pasa solo</td>
+</tr>
+<tr>
+<td><code>self.nombre = nombre</code></td>
+<td>Guarda un <strong>atributo</strong> en el objeto</td>
+</tr>
+<tr>
+<td><code>def vender(self, unidades)</code></td>
+<td>Un <strong>método</strong>: una función que pertenece a la clase y trabaja con los datos de <code>self</code></td>
+</tr>
+<tr>
+<td><code>mouse = Producto(…)</code></td>
+<td>Crea un objeto. Python llama a <code>__init__</code> con <code>self = mouse</code></td>
+</tr>
+<tr>
+<td><code>mouse.vender(3)</code></td>
+<td>Llama al método. Python lo traduce a <code>Producto.vender(mouse, 3)</code></td>
+</tr>
+</tbody></table></div>
+<p>La gran ventaja: <strong>datos y comportamiento viajan juntos</strong>. El objeto <code>mouse</code> sabe su stock y sabe cómo venderse, incluida la regla &quot;no vender más de lo que hay&quot;. Nadie puede olvidarse de esa validación porque está <strong>dentro</strong> del método.</p>
+<div class="recorrido"></div>
+
+
+<h2>Métodos especiales (dunder)</h2>
+<p>Los métodos con doble guion bajo al principio y al final (<em>double underscore</em>, &quot;dunder&quot;) definen cómo se comporta el objeto con las operaciones de Python: cómo se muestra, qué hace el <code>+</code>, cómo se compara.</p>
+<pre><code class="language-python">class Dinero:
+    def __init__(self, monto, moneda=&quot;USD&quot;):
+        self.monto = monto
+        self.moneda = moneda
+
+    def __repr__(self):                       # cómo se muestra con print o en la consola
+        return f&quot;Dinero({self.monto:.2f} {self.moneda})&quot;
+
+    def __add__(self, otro):                  # qué hace el operador +
+        if self.moneda != otro.moneda:
+            raise ValueError(&quot;No se pueden sumar monedas distintas&quot;)
+        return Dinero(self.monto + otro.monto, self.moneda)
+
+    def __eq__(self, otro):                   # qué hace el operador ==
+        return (self.monto, self.moneda) == (otro.monto, otro.moneda)
+
+print(Dinero(10) + Dinero(5.5))
+print(Dinero(10) == Dinero(10.0))</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Método</th>
+<th>Se activa con</th>
+</tr>
+</thead><tbody><tr>
+<td><code>__init__</code></td>
+<td><code>Clase(…)</code></td>
+</tr>
+<tr>
+<td><code>__repr__</code> / <code>__str__</code></td>
+<td><code>print(obj)</code>, la consola</td>
+</tr>
+<tr>
+<td><code>__add__</code>, <code>__sub__</code>, <code>__mul__</code></td>
+<td><code>+</code>, <code>-</code>, <code>*</code></td>
+</tr>
+<tr>
+<td><code>__eq__</code>, <code>__lt__</code></td>
+<td><code>==</code>, <code>&lt;</code></td>
+</tr>
+<tr>
+<td><code>__len__</code></td>
+<td><code>len(obj)</code></td>
+</tr>
+<tr>
+<td><code>__getitem__</code></td>
+<td><code>obj[clave]</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-experto"><div class="callout-title">🚀 Así funciona PySpark</div>
+
+<p>Cuando escribes <code>F.col(&quot;precio&quot;) * F.col(&quot;cantidad&quot;)</code> en PySpark, no se multiplica nada en ese momento: el objeto <code>Column</code> tiene un <code>__mul__</code> que <strong>construye</strong> una expresión &quot;precio × cantidad&quot; para ejecutarla más tarde en el cluster. Lo mismo <code>F.col(&quot;a&quot;) &gt; 5</code> (con <code>__gt__</code>). Esa &quot;magia&quot; son métodos dunder.</p>
+</div>
+
+
+<h2>Herencia: especializar una clase</h2>
+<p>Una clase puede <strong>heredar</strong> de otra: recibe todos sus atributos y métodos, y puede agregar o <strong>reemplazar</strong> (<em>sobrescribir</em>) algunos.</p>
+<pre><code class="language-python">class Fuente:
+    def __init__(self, nombre):
+        self.nombre = nombre
+    def leer(self):
+        raise NotImplementedError(&quot;Cada fuente debe implementar leer()&quot;)
+    def describir(self):
+        return f&quot;Fuente {self.nombre}&quot;
+
+class FuenteCSV(Fuente):                    # FuenteCSV hereda de Fuente
+    def __init__(self, nombre, separador=&quot;,&quot;):
+        super().__init__(nombre)            # reutiliza el constructor del padre
+        self.separador = separador
+    def leer(self):                          # sobrescribe leer()
+        return f&quot;leyendo {self.nombre} separado por '{self.separador}'&quot;
+
+class FuenteAPI(Fuente):
+    def leer(self):
+        return f&quot;llamando a la API {self.nombre}&quot;
+
+for f in [FuenteCSV(&quot;ventas.csv&quot;, &quot;;&quot;), FuenteAPI(&quot;https://api/pedidos&quot;)]:
+    print(f.describir(), &quot;→&quot;, f.leer())     # polimorfismo: misma interfaz, distinto comportamiento</code></pre>
+<ul>
+<li><code>class FuenteCSV(Fuente)</code> = &quot;una FuenteCSV <strong>es una</strong> Fuente&quot;.</li>
+<li><code>super().__init__(nombre)</code> llama al constructor de la clase padre, para no repetir código.</li>
+<li><code>describir()</code> no está en <code>FuenteCSV</code>: lo hereda de <code>Fuente</code>.</li>
+</ul>
+<p>El bucle final muestra la idea más poderosa, el <strong>polimorfismo</strong>: el código que recorre las fuentes no necesita saber de qué tipo es cada una; solo llama a <code>leer()</code>, y cada clase responde a su manera. Agregar una <code>FuenteS3</code> no requiere tocar ese bucle.</p>
+<p>Así está construido Airflow: todos los operadores (<code>PythonOperator</code>, <code>BashOperator</code>, los de AWS o Databricks) <strong>heredan de <code>BaseOperator</code></strong> y cada uno implementa su propio <code>execute()</code>. Airflow solo sabe &quot;llamar a <code>execute()</code>&quot;.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 No abuses de la herencia</div>
+
+<p>Usa herencia cuando hay una relación clara &quot;es un&quot; y un comportamiento compartido. Para combinar capacidades, muchas veces es más simple <strong>componer</strong>: que un objeto <em>tenga</em> otro como atributo (un <code>Pipeline</code> que tiene una lista de <code>Fuente</code>s).</p>
+</div>
+
+
+<h2>dataclasses: clases de datos sin escribir de más</h2>
+<p>Muchas clases solo existen para <strong>agrupar datos</strong> (un pedido, un evento, una fila). Escribir <code>__init__</code>, <code>__repr__</code> y <code>__eq__</code> a mano es repetitivo. El decorador <code>@dataclass</code> los genera por ti a partir de las anotaciones de tipo:</p>
+<pre><code class="language-python">from dataclasses import dataclass, field
+
+@dataclass
+class Pedido:
+    id: int
+    cliente: str
+    items: list = field(default_factory=list)   # una lista nueva para cada pedido (¡no compartida!)
+    pagado: bool = False
+
+    def total(self):
+        return sum(i[&quot;cantidad&quot;] * i[&quot;precio&quot;] for i in self.items)
+
+p = Pedido(1, &quot;Eva&quot;, [{&quot;cantidad&quot;: 2, &quot;precio&quot;: 10.0}])
+print(p, p.total())            # __init__, __repr__ y __eq__ se generaron solos
+print(p == Pedido(1, &quot;Eva&quot;, [{&quot;cantidad&quot;: 2, &quot;precio&quot;: 10.0}]))</code></pre>
+<p><code>field(default_factory=list)</code> resuelve la misma trampa de los valores por defecto mutables que viste en funciones. Con <code>@dataclass(frozen=True)</code> el objeto se vuelve inmutable, ideal para registros que no deben cambiar.</p>
+<h2>Propiedades y métodos de clase</h2>
+<pre><code class="language-python">class Temperatura:
+    def __init__(self, celsius):
+        self.celsius = celsius
+
+    @property
+    def fahrenheit(self):              # se calcula al pedirlo, pero se usa como atributo: t.fahrenheit
+        return self.celsius * 9 / 5 + 32
+
+    @classmethod
+    def desde_fahrenheit(cls, f):      # un constructor alternativo
+        return cls((f - 32) * 5 / 9)
+
+t = Temperatura.desde_fahrenheit(212)
+print(t.celsius, t.fahrenheit)</code></pre>
+<ul>
+<li><code>@property</code> convierte un método en un &quot;atributo calculado&quot;: <code>t.fahrenheit</code> sin paréntesis, siempre coherente con <code>celsius</code>.</li>
+<li><code>@classmethod</code> recibe la <strong>clase</strong> (<code>cls</code>) en vez del objeto. Se usa para constructores alternativos. Lo verás en librerías: <code>SparkSession.builder…getOrCreate()</code>, <code>datetime.fromisoformat(…)</code>.</li>
+</ul>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Olvidar <code>self</code></strong>: un método sin <code>self</code> como primer parámetro da <code>TypeError: takes 0 positional arguments but 1 was given</code>.</li>
+<li><strong>Atributos de clase compartidos por accidente</strong>: una lista definida en el cuerpo de la clase (fuera de <code>__init__</code>) la comparten todos los objetos.</li>
+<li><strong>Usar clases donde basta una función</strong>: una clase con un solo método y sin estado es una función disfrazada.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los validadores de calidad</div>
+
+<p>Martín quiere ordenar las reglas de calidad de datos del equipo:</p>
+<blockquote>
+<p>&quot;Tenemos validaciones copiadas por todos lados: que el email tenga arroba, que el monto sea positivo, que la fecha no sea futura. Quiero una estructura común: cada regla con el mismo formato, que se puedan combinar y probar.&quot;</p>
+</blockquote>
+<p>Las <strong>clases</strong> permiten crear tus propios tipos de objetos, con datos y comportamiento juntos. No las vas a escribir todos los días, pero las usas todo el tiempo: un DAG de Airflow, un DataFrame de Spark y un operador son objetos.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En ingeniería de datos se usan mucho las <code>dataclass</code> (o modelos de <strong>pydantic</strong>) para definir la forma de los registros que llegan de una API y validarlos al entrar.</li>
+<li>Leer código de librerías (Airflow, PySpark, dbt) exige entender clases: un operador de Airflow es una clase que hereda de <code>BaseOperator</code> y define <code>execute</code>. Si algún día escribes un operador propio, es exactamente lo que vas a hacer.</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Clase = molde; objeto = instancia concreta. <code>__init__</code> prepara los atributos; <code>self</code> es &quot;este objeto&quot;.</li>
+<li>Los métodos agrupan comportamiento con los datos (y protegen sus reglas).</li>
+<li>Los métodos dunder definen <code>print</code>, <code>+</code>, <code>==</code>… (así funciona <code>F.col(...) * ...</code> en PySpark).</li>
+<li>Herencia: <code>class Hija(Padre)</code>, <code>super().__init__()</code>, polimorfismo (así funcionan los operadores de Airflow).</li>
+<li><code>@dataclass</code> para clases de datos; <code>@property</code> para atributos calculados; <code>@classmethod</code> para constructores alternativos.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Más práctica</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/python-clases">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="python-archivos-modulos.html">← Módulos, archivos, CSV, JSON y fechas</a><a href="python-python-avanzado.html">Iteradores, generadores, decoradores y context managers →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

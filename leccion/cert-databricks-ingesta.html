@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingesta - Auto Loader, COPY INTO, read_files y Lakeflow Connect · Academia de Datos</title><meta name="description" content="Las formas de traer datos a Databricks y cuándo usar cada una, Auto Loader a fondo (detección de archivos, esquema, datos rescatados, checkpoints), COPY INTO, read_files, conectores gestionados de Lakeflow Connect, JSON y VARIANT, y evolución de esquema en Delta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-ingesta.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Ingesta - Auto Loader, COPY INTO, read_files y Lakeflow Connect · Academia de Datos"><meta property="og:description" content="Las formas de traer datos a Databricks y cuándo usar cada una, Auto Loader a fondo (detección de archivos, esquema, datos rescatados, checkpoints), COPY INTO, read_files, conectores gestionados de Lakeflow Connect, JSON y VARIANT, y evolución de esquema en Delta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-databricks-ingesta.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-databricks">🏅 Certificaciones Databricks: Data Engineer e IA</a> · Avanzado · 55 min</div>
+<h1>Ingesta - Auto Loader, COPY INTO, read_files y Lakeflow Connect</h1><p class="resumen">Las formas de traer datos a Databricks y cuándo usar cada una, Auto Loader a fondo (detección de archivos, esquema, datos rescatados, checkpoints), COPY INTO, read_files, conectores gestionados de Lakeflow Connect, JSON y VARIANT, y evolución de esquema en Delta.</p>
+<a class="cta" href="../index.html#/l/cert-databricks-ingesta">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre Auto Loader, COPY INTO, read_files, Lakeflow Connect y Lakehouse Federation según el escenario</li><li>Configurar Auto Loader con ubicación de esquema, modo de evolución y checkpoint</li><li>Explicar cómo Auto Loader y COPY INTO evitan reprocesar archivos</li><li>Consultar JSON anidado con la sintaxis de dos puntos y con el tipo VARIANT</li><li>Distinguir schema enforcement de schema evolution en tablas Delta</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Practica <code>COPY INTO</code> y <code>read_files</code> en el <a href="#/databricks/sql">editor SQL de práctica</a>: <code>COPY INTO</code> es idempotente y la segunda vez carga 0 filas. Las tablas de streaming de un <a href="#/databricks/pipelines/nuevo">pipeline</a> solo procesan los archivos nuevos.</p>
+</div>
+
+
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Rápido, la app de delivery, tiene tres fuentes: (1) el sistema de pedidos deja cada minuto archivos JSON en un bucket; (2) el CRM es Salesforce; (3) la facturación vive en una base SQL Server. El equipo quiere todo en tablas Delta bronze, <strong>sin reprocesar</strong> lo ya cargado, sin perder datos cuando cambie el formato, y con el menor código posible. Cada fuente pide una herramienta distinta, y saber elegir es exactamente lo que evalúa este dominio.</p>
+</div>
+
+
+<h2>El mapa de la ingesta</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Fuente</th>
+<th>Herramienta recomendada</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Archivos que llegan a un bucket o volumen (continuo o por lotes)</td>
+<td><strong>Auto Loader</strong></td>
+<td>Incremental, escala a millones de archivos, evoluciona el esquema</td>
+</tr>
+<tr>
+<td>Archivos ocasionales, cargas puntuales desde SQL</td>
+<td><strong>COPY INTO</strong></td>
+<td>Idempotente, simple, todo en SQL</td>
+</tr>
+<tr>
+<td>Leer archivos una vez para explorar o crear una tabla</td>
+<td><strong><code>read_files</code></strong> + CTAS</td>
+<td>Sin estado: lee lo que hay en ese momento</td>
+</tr>
+<tr>
+<td>Aplicaciones SaaS (Salesforce, Workday, ServiceNow, Google Analytics…) y bases de datos (SQL Server, entre otras)</td>
+<td><strong>Lakeflow Connect, conectores gestionados</strong></td>
+<td>Databricks administra la extracción, el incremental y el CDC</td>
+</tr>
+<tr>
+<td>Mensajería (Kafka, Kinesis, Event Hubs, Pub/Sub)</td>
+<td>Structured Streaming o Declarative Pipelines (conectores estándar)</td>
+<td>Lectura continua de un <em>stream</em></td>
+</tr>
+<tr>
+<td>Una base que quieres <strong>consultar sin copiar</strong></td>
+<td><strong>Lakehouse Federation</strong></td>
+<td>Consulta en el origen; no es ingesta</td>
+</tr>
+<tr>
+<td>Un archivo chico subido a mano</td>
+<td>Interfaz <em>Add data</em> / subir a un volumen</td>
+<td>Cargas puntuales</td>
+</tr>
+</tbody></table></div>
+<figure class="diagrama"><figcaption>Rápido: cada fuente con su forma de ingesta hacia bronze</figcaption></figure>
+
+
+<h2>Auto Loader a fondo</h2>
+<p><strong>Auto Loader</strong> es una fuente de Structured Streaming (<code>format(&quot;cloudFiles&quot;)</code>) que detecta y procesa <strong>solo los archivos nuevos</strong> de una ruta. Recuerda qué archivos ya procesó en el <strong>checkpoint</strong> (un almacén clave-valor RocksDB dentro de la carpeta de checkpoint), por eso garantiza que cada archivo se procesa <strong>exactamente una vez</strong>, aunque el job se caiga y se reinicie.</p>
+<pre data-norun><code class="language-python">(spark.readStream
+   .format(&quot;cloudFiles&quot;)
+   .option(&quot;cloudFiles.format&quot;, &quot;json&quot;)                                   # formato de los archivos
+   .option(&quot;cloudFiles.schemaLocation&quot;, &quot;/Volumes/prod/bronze/_chk/pedidos_esquema&quot;)  # dónde guarda el esquema inferido
+   .option(&quot;cloudFiles.inferColumnTypes&quot;, &quot;true&quot;)                         # infiere tipos (si no, todo es STRING)
+   .option(&quot;cloudFiles.schemaEvolutionMode&quot;, &quot;addNewColumns&quot;)             # qué hacer con columnas nuevas (por defecto)
+   .option(&quot;cloudFiles.schemaHints&quot;, &quot;total DECIMAL(12,2), creado_en TIMESTAMP&quot;)  # fija tipos que no quieres inferir
+   .load(&quot;/Volumes/prod/bronze/aterrizaje/pedidos/&quot;)
+ .withColumn(&quot;_archivo&quot;, F.col(&quot;_metadata.file_path&quot;))                    # de qué archivo vino cada fila
+ .withColumn(&quot;_cargado_en&quot;, F.current_timestamp())
+ .writeStream
+   .option(&quot;checkpointLocation&quot;, &quot;/Volumes/prod/bronze/_chk/pedidos&quot;)     # estado: archivos procesados y offsets
+   .trigger(availableNow=True)                                            # procesa lo pendiente y se detiene
+   .toTable(&quot;prod.bronze.pedidos&quot;))</code></pre>
+<p>Qué hace cada parte:</p>
+<ul>
+<li><strong><code>cloudFiles.schemaLocation</code></strong>: la primera vez, Auto Loader muestrea archivos, <strong>infiere el esquema</strong> y lo guarda ahí. En las siguientes ejecuciones lo reutiliza y lo versiona si cambia.</li>
+<li><strong><code>inferColumnTypes</code></strong>: para JSON y CSV, sin esta opción todas las columnas se infieren como <code>STRING</code> (más seguro, pero hay que convertir después).</li>
+<li><strong><code>schemaHints</code></strong>: impone el tipo de algunas columnas, aunque el resto se infiera.</li>
+<li><strong><code>_metadata.file_path</code></strong>: la columna oculta <code>_metadata</code> trae ruta, nombre, tamaño y fecha de modificación del archivo origen. Guardarla en bronze permite auditar y reprocesar.</li>
+<li><strong><code>checkpointLocation</code></strong>: cada stream necesita <strong>su propio</strong> checkpoint. Si lo borras, Auto Loader &quot;olvida&quot; lo procesado y vuelve a cargar todo.</li>
+<li><strong><code>trigger(availableNow=True)</code></strong>: procesa todo lo pendiente (en varios lotes si hace falta) y termina. Es la forma de usar Auto Loader como <strong>batch incremental</strong> dentro de un job programado. Sin trigger, el stream queda corriendo continuamente.</li>
+</ul>
+<h3>Cómo detecta los archivos nuevos</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Cómo funciona</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Listado de directorio</strong> (por defecto)</td>
+<td>Lista la carpeta y compara con lo procesado</td>
+<td>Simple, sin permisos extra; puede volverse lento con muchísimos archivos</td>
+</tr>
+<tr>
+<td><strong>Eventos de archivo / notificaciones</strong></td>
+<td>Usa las notificaciones del proveedor (colas de eventos de S3, ADLS, GCS) para enterarse de cada archivo nuevo</td>
+<td>Millones de archivos o directorios enormes. Con Unity Catalog se habilitan los <em>file events</em> en la ubicación externa y Databricks administra las colas</td>
+</tr>
+</tbody></table></div>
+<h3>Qué pasa cuando cambia el esquema</h3>
+<p>Llega un JSON con una columna nueva, <code>propina</code>. Según <code>cloudFiles.schemaEvolutionMode</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Qué hace con <code>propina</code></th>
+</tr>
+</thead><tbody><tr>
+<td><code>addNewColumns</code> (por defecto si no das esquema)</td>
+<td>El stream <strong>se detiene</strong> con un error, actualiza el esquema guardado agregando la columna, y <strong>al reiniciarlo</strong> continúa con la columna nueva. En un job con reintentos, el reintento lo resuelve solo</td>
+</tr>
+<tr>
+<td><code>rescue</code></td>
+<td>No cambia el esquema: el valor va a la columna <strong><code>_rescued_data</code></strong> (un JSON con lo que no encajó)</td>
+</tr>
+<tr>
+<td><code>failOnNewColumns</code></td>
+<td>Falla y no cambia nada hasta que alguien actualice el esquema a mano</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td>Ignora la columna nueva (salvo que esté activado el rescate de datos)</td>
+</tr>
+</tbody></table></div>
+<p>La columna <strong><code>_rescued_data</code></strong> también guarda valores con <strong>tipo incorrecto</strong> (por ejemplo <code>&quot;total&quot;: &quot;N/A&quot;</code> cuando se esperaba un número) y columnas que difieren solo en mayúsculas. Así no se pierde nada: lo raro queda guardado para revisarlo.</p>
+<div class="callout callout-examen"><div class="callout-title">🏅 El clásico del dominio de ingesta</div>
+
+<p>&quot;El stream de Auto Loader falló porque apareció una columna nueva. ¿Qué hay que hacer?&quot; → con el modo por defecto (<code>addNewColumns</code>), <strong>reiniciar el stream</strong>: el esquema ya se actualizó. Por eso Databricks recomienda ejecutarlo en Lakeflow Jobs con <strong>reintentos</strong>.</p>
+</div>
+
+
+<h3>Auto Loader en SQL</h3>
+<p>En SQL se usa <code>read_files</code> dentro de una <em>streaming table</em> (lo verás a fondo en Declarative Pipelines):</p>
+<pre data-norun><code class="language-sql">CREATE OR REFRESH STREAMING TABLE prod.bronze.pedidos
+AS SELECT *, _metadata.file_path AS _archivo
+FROM STREAM read_files(
+  '/Volumes/prod/bronze/aterrizaje/pedidos/',
+  format =&gt; 'json',
+  schemaHints =&gt; 'total DECIMAL(12,2)'
+);</code></pre>
+<p><code>STREAM read_files(...)</code> usa Auto Loader por debajo: incremental y con checkpoint administrado.</p>
+<h2>COPY INTO</h2>
+<p><code>COPY INTO</code> carga archivos a una tabla Delta <strong>desde SQL</strong> y es <strong>idempotente</strong>: guarda en los metadatos de la tabla qué archivos ya cargó y los saltea si vuelves a ejecutar el comando.</p>
+<pre data-norun><code class="language-sql">CREATE TABLE IF NOT EXISTS prod.bronze.tarifas;     -- tabla vacía, sin esquema: COPY INTO lo infiere
+
+COPY INTO prod.bronze.tarifas
+FROM '/Volumes/prod/bronze/aterrizaje/tarifas/'
+FILEFORMAT = CSV
+FORMAT_OPTIONS ('header' = 'true', 'inferSchema' = 'true')
+COPY_OPTIONS ('mergeSchema' = 'true');               -- acepta columnas nuevas</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Auto Loader</th>
+<th>COPY INTO</th>
+</tr>
+</thead><tbody><tr>
+<td>Interfaz</td>
+<td>Python (Structured Streaming) o SQL con <code>STREAM read_files</code></td>
+<td>SQL</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>Millones de archivos</td>
+<td>Miles de archivos</td>
+</tr>
+<tr>
+<td>Evolución de esquema</td>
+<td>Completa, con rescate de datos</td>
+<td><code>mergeSchema</code></td>
+</tr>
+<tr>
+<td>Ejecución</td>
+<td>Continua o <code>availableNow</code></td>
+<td>Cada vez que ejecutas el comando</td>
+</tr>
+<tr>
+<td>Recomendación de Databricks</td>
+<td>Opción por defecto para ingesta incremental de archivos</td>
+<td>Cargas simples y ocasionales desde SQL</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ COPY INTO no es &quot;recargar todo&quot;</div>
+
+<p>Ejecutar dos veces <code>COPY INTO</code> sobre los mismos archivos <strong>no duplica</strong> filas: los saltea. Si de verdad quieres recargarlos (por ejemplo, porque corregiste los archivos), usa <code>COPY_OPTIONS (&#39;force&#39; = &#39;true&#39;)</code>.</p>
+</div>
+
+
+<h2>read_files: leer sin estado</h2>
+<p><code>read_files</code> es una función de tabla que lee archivos <strong>una vez</strong>, sin recordar nada. Sirve para explorar o para crear una tabla con CTAS:</p>
+<pre data-norun><code class="language-sql">SELECT * FROM read_files('/Volumes/prod/bronze/aterrizaje/pedidos/', format =&gt; 'json') LIMIT 10;
+
+CREATE OR REPLACE TABLE prod.bronze.pedidos_snapshot AS
+SELECT * FROM read_files('/Volumes/prod/bronze/aterrizaje/pedidos/2026-10-01/', format =&gt; 'json');</code></pre>
+<p>Sin <code>STREAM</code>, cada ejecución relee todo: no sirve para cargas incrementales.</p>
+<h2>Lakeflow Connect: conectores gestionados</h2>
+<p><strong>Lakeflow Connect</strong> agrupa los conectores de ingesta de Databricks:</p>
+<ul>
+<li><strong>Conectores gestionados</strong>: para <strong>aplicaciones SaaS</strong> (Salesforce, Workday, ServiceNow, Google Analytics, SharePoint, entre otras) y <strong>bases de datos</strong> (SQL Server y otras). Se configuran desde la interfaz o con la API, y Databricks administra la autenticación, la extracción <strong>incremental</strong>, el <strong>CDC</strong> (captura de cambios) y la evolución de esquema. Escriben en <em>streaming tables</em> gobernadas por Unity Catalog.</li>
+<li>Para bases de datos, un <strong>gateway de ingesta</strong> corre cerca de la base, lee el log de cambios y deja los cambios en un volumen; una <strong>pipeline de ingesta</strong> los aplica a las tablas de destino.</li>
+<li><strong>Conectores estándar</strong>: los que configuras tú en código, como Auto Loader para archivos o las fuentes de Kafka, Kinesis, Event Hubs y Pub/Sub.</li>
+</ul>
+<p>Se pagan como cómputo serverless de pipelines. La ventaja frente a escribir un extractor propio es que no mantienes el código de la API del proveedor, los límites de cuota ni la lógica de CDC.</p>
+<h2>Lakehouse Federation: consultar sin copiar</h2>
+<p><strong>Lakehouse Federation</strong> registra una base externa (PostgreSQL, MySQL, SQL Server, Snowflake, BigQuery, Redshift, otras) como un <strong>catálogo foráneo</strong> de Unity Catalog. Las consultas se envían al origen (con <em>pushdown</em> de filtros) y los permisos se manejan con Unity Catalog.</p>
+<pre data-norun><code class="language-sql">CREATE CONNECTION pg_ventas TYPE postgresql
+OPTIONS (host 'pg.interna', port '5432', user secret('pg', 'usuario'), password secret('pg', 'clave'));
+
+CREATE FOREIGN CATALOG ventas_pg USING CONNECTION pg_ventas OPTIONS (database 'ventas');
+
+SELECT * FROM ventas_pg.public.facturas WHERE fecha = current_date();</code></pre>
+<p>Úsala para consultas puntuales, pruebas de concepto o datos que no justifican un pipeline. Para cargas grandes y frecuentes, ingesta a Delta.</p>
+<h2>Datos semiestructurados: JSON y VARIANT</h2>
+<p>Si una columna <code>raw</code> guarda el JSON como texto, Databricks SQL permite navegarlo con <strong>dos puntos</strong>:</p>
+<pre data-norun><code class="language-sql">SELECT
+  raw:pedido_id::BIGINT              AS pedido_id,     -- :: convierte el tipo
+  raw:cliente.ciudad::STRING         AS ciudad,        -- . entra a un objeto anidado
+  raw:items[0].producto::STRING      AS primer_item    -- [n] entra a una lista
+FROM prod.bronze.pedidos_texto;</code></pre>
+<p>Para estructuras fijas, <code>from_json(raw, &#39;pedido_id BIGINT, items ARRAY&lt;STRUCT&lt;producto STRING, cantidad INT&gt;&gt;&#39;)</code> convierte el texto en columnas tipadas, y <code>schema_of_json</code> ayuda a escribir ese esquema.</p>
+<p>El tipo <strong><code>VARIANT</code></strong> guarda datos semiestructurados en un formato binario eficiente: más rápido que el texto JSON y flexible ante cambios de forma.</p>
+<pre data-norun><code class="language-sql">CREATE TABLE prod.bronze.eventos (evento VARIANT);
+INSERT INTO prod.bronze.eventos SELECT parse_json(raw) FROM prod.bronze.eventos_texto;
+
+SELECT evento:tipo::STRING AS tipo, evento:propiedades.monto::DECIMAL(12,2) AS monto
+FROM prod.bronze.eventos;</code></pre>
+<h2>Schema enforcement y schema evolution en Delta</h2>
+<ul>
+<li><strong>Schema enforcement</strong> (siempre activo): una escritura con columnas que la tabla no tiene, o con tipos incompatibles, <strong>falla</strong>. Protege la tabla de basura.</li>
+<li><strong>Schema evolution</strong> (opcional): agregas columnas nuevas de forma explícita:<ul>
+<li>en una escritura: <code>.option(&quot;mergeSchema&quot;, &quot;true&quot;)</code>;</li>
+<li>en un <code>MERGE</code>: <code>MERGE WITH SCHEMA EVOLUTION INTO ...</code>;</li>
+<li>a mano: <code>ALTER TABLE t ADD COLUMNS (propina DECIMAL(10,2))</code>.</li>
+</ul>
+</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Compartir el checkpoint entre dos streams.</strong> Síntoma: datos que faltan o errores raros. Corrección: un checkpoint por stream, siempre.</li>
+<li><strong>Borrar el checkpoint &quot;para arreglar algo&quot;.</strong> Síntoma: todos los archivos se vuelven a cargar y aparecen duplicados. Corrección: no tocarlo; si hay que reprocesar, hacerlo de forma controlada en otra tabla.</li>
+<li><strong>Inferir esquema sin <code>schemaLocation</code>.</strong> Síntoma: Auto Loader se queja al iniciar. Corrección: indicar siempre una ubicación de esquema (Declarative Pipelines la administra sola).</li>
+<li><strong>Usar <code>read_files</code> sin <code>STREAM</code> en un job &quot;incremental&quot;.</strong> Síntoma: cada ejecución carga todo otra vez. Corrección: <code>STREAM read_files</code> o Auto Loader.</li>
+<li><strong>Escribir un extractor propio para Salesforce.</strong> Síntoma: semanas de código y errores de cuotas de API. Corrección: conector gestionado de Lakeflow Connect.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 Convenciones de una capa bronze sana</div>
+
+<p>En bronze se guarda <strong>todo tal cual llega</strong>, agregando columnas técnicas (<code>_archivo</code>, <code>_cargado_en</code>) y sin filtrar filas. Los archivos de aterrizaje van a un <strong>volumen</strong> de Unity Catalog con permisos de solo escritura para el sistema origen, y los checkpoints a una carpeta que nadie más toca. Así siempre puedes reconstruir silver y gold desde bronze.</p>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;Te llegan 2 millones de archivos pequeños por día a un bucket. ¿Cómo los cargas?&quot;</strong> Con Auto Loader en modo de eventos de archivo (notificaciones), para no listar el directorio entero en cada ejecución; con <code>trigger(availableNow=True)</code> dentro de un job cada hora si alcanza con esa latencia, o continuo si se necesita casi tiempo real; checkpoint propio, <code>schemaLocation</code>, <code>_metadata.file_path</code> en bronze y, después, <code>OPTIMIZE</code> o Liquid Clustering para compactar los archivos chicos.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Elige</th>
+</tr>
+</thead><tbody><tr>
+<td>Archivos incrementales, muchos, esquema que cambia</td>
+<td>Auto Loader</td>
+</tr>
+<tr>
+<td>Carga ocasional de archivos desde SQL, idempotente</td>
+<td>COPY INTO</td>
+</tr>
+<tr>
+<td>Explorar o cargar una vez</td>
+<td><code>read_files</code> + CTAS</td>
+</tr>
+<tr>
+<td>SaaS o bases con CDC, sin código</td>
+<td>Lakeflow Connect (conector gestionado)</td>
+</tr>
+<tr>
+<td>Consultar una base externa sin copiar</td>
+<td>Lakehouse Federation</td>
+</tr>
+<tr>
+<td>JSON con forma cambiante</td>
+<td><code>VARIANT</code> o sintaxis <code>:</code></td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-databricks-ingesta">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-databricks-plataforma-computo.html">← La plataforma por dentro - arquitectura, cómputo y costos</a><a href="cert-databricks-transformacion-pipelines.html">Transformar y modelar - Spark SQL, PySpark y Lakeflow Spark Declarative Pipelines →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

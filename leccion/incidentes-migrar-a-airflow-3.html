@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Migración: tu DAG de Airflow 2 a Airflow 3 · Academia de Datos</title><meta name="description" content="Un DAG real de Airflow 2 que deja de funcionar al actualizar - schedule_interval, days_ago, execution_date, sla y rutas de importación viejas. Los pasos oficiales de migración (ruff con las reglas AIR, provider estándar, config update), el cambio de la fecha lógica que no da error pero procesa el día equivocado, y Datasets que pasan a ser Assets."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-migrar-a-airflow-3.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Migración: tu DAG de Airflow 2 a Airflow 3 · Academia de Datos"><meta property="og:description" content="Un DAG real de Airflow 2 que deja de funcionar al actualizar - schedule_interval, days_ago, execution_date, sla y rutas de importación viejas. Los pasos oficiales de migración (ruff con las reglas AIR, provider estándar, config update), el cambio de la fecha lógica que no da error pero procesa el día equivocado, y Datasets que pasan a ser Assets."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-migrar-a-airflow-3.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Avanzado · 60 min</div>
+<h1>Migración: tu DAG de Airflow 2 a Airflow 3</h1><p class="resumen">Un DAG real de Airflow 2 que deja de funcionar al actualizar - schedule_interval, days_ago, execution_date, sla y rutas de importación viejas. Los pasos oficiales de migración (ruff con las reglas AIR, provider estándar, config update), el cambio de la fecha lógica que no da error pero procesa el día equivocado, y Datasets que pasan a ser Assets.</p>
+<a class="cta" href="../index.html#/l/incidentes-migrar-a-airflow-3">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Seguir los pasos oficiales para migrar a Airflow 3</li><li>Reconocer los errores que aparecen al cargar un DAG de Airflow 2</li><li>Corregir el cambio silencioso de la fecha lógica</li><li>Migrar Datasets a Assets</li><li>Armar un plan de migración sin cortar la operación</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo de plataforma actualizó Airflow de 2.10 a 3.3 un domingo. El lunes, la mitad de los DAGs no aparecen en la interfaz (errores de importación) y la otra mitad corrió &quot;bien&quot;… pero el tablero de ventas muestra los datos de <strong>hoy</strong> en la fila de <strong>ayer</strong>. El primer problema hace ruido y se arregla rápido. El segundo es silencioso y es el peligroso. Esta lección te entrena en los dos.</p>
+</div>
+
+
+<h2>Los pasos oficiales</h2>
+<p>La guía de actualización de la documentación de Airflow propone este orden:</p>
+<ol>
+<li><strong>Estar en Airflow 2.7 o más nuevo</strong> (mejor, en la última 2.x) y que los DAGs no muestren avisos de obsoleto.</li>
+<li><strong>Limpiar y respaldar</strong> la base de metadatos (<code>airflow db clean</code> para recortar historia vieja, y un respaldo antes de tocar nada).</li>
+<li><strong>Revisar los DAGs</strong> con <code>ruff</code>, un analizador de código de Python que tiene reglas específicas de Airflow:</li>
+</ol>
+<pre data-norun><code class="language-bash">pip install &quot;ruff&gt;=0.13.1&quot;
+ruff check dags/ --select AIR301              # cambios que ROMPEN en Airflow 3
+ruff check dags/ --select AIR301 --show-fixes # qué corregiría
+ruff check dags/ --select AIR301 --fix        # corrige lo seguro
+ruff check dags/ --select AIR311,AIR312       # cambios recomendados (rutas de importación nuevas)</code></pre>
+<p>   Las reglas AIR301 y AIR302 marcan lo que se rompe; AIR311 y AIR312, lo que todavía funciona pero conviene cambiar.
+4. <strong>Instalar el provider estándar</strong> (<code>apache-airflow-providers-standard</code>), donde ahora viven <code>BashOperator</code>, <code>PythonOperator</code>, <code>FileSensor</code> y compañía.
+5. <strong>Revisar las tareas que acceden directo a la base de metadatos</strong>: en Airflow 3 las tareas ya no pueden abrir sesiones contra esa base; se usa la API REST o el cliente de Python de Airflow.
+6. <strong>Actualizar la instalación</strong>: <code>airflow config update --fix</code> para renombrar configuraciones (todo lo que era <code>[webserver]</code> pasa a <code>[api]</code> o <code>[fab]</code>) y <code>airflow db migrate</code> para la base.
+7. <strong>Cambiar los scripts de arranque</strong>: ahora hay que levantar <code>airflow api-server</code> (no <code>webserver</code>) y <code>airflow dag-processor</code> como proceso aparte.</p>
+<p>Los pasos 1 a 5 son del equipo que escribe DAGs; el 6 y el 7, de quien administra la instalación.</p>
+<h2>Lo que rompe en voz alta</h2>
+<p>Estos cambios hacen que el DAG <strong>no cargue</strong>: aparece un error de importación y el DAG desaparece de la interfaz. Son molestos, pero se ven enseguida.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Airflow 2</th>
+<th>Error en Airflow 3</th>
+<th>Corrección</th>
+</tr>
+</thead><tbody><tr>
+<td><code>DAG(..., schedule_interval=&quot;0 2 * * *&quot;)</code></td>
+<td><code>unexpected keyword argument &#39;schedule_interval&#39;</code></td>
+<td><code>schedule=&quot;0 2 * * *&quot;</code></td>
+</tr>
+<tr>
+<td><code>from airflow.utils.dates import days_ago</code> / <code>start_date=days_ago(1)</code></td>
+<td><code>days_ago</code> no existe</td>
+<td>Una fecha fija: <code>start_date=datetime(2024, 1, 1)</code></td>
+</tr>
+<tr>
+<td><code>BashOperator(..., sla=timedelta(hours=2))</code></td>
+<td><code>Invalid arguments were passed … &#39;sla&#39;</code></td>
+<td>Quitar <code>sla</code>; usar <em>Deadline Alerts</em></td>
+</tr>
+<tr>
+<td><code>{{ execution_date }}</code> en una plantilla</td>
+<td><code>&#39;execution_date&#39; is undefined</code> al ejecutar la tarea</td>
+<td><code>{{ logical_date }}</code> o <code>{{ ds }}</code></td>
+</tr>
+<tr>
+<td><code>{{ prev_ds }}</code>, <code>{{ yesterday_ds }}</code>, <code>{{ next_ds }}</code></td>
+<td><code>undefined</code></td>
+<td><code>{{ macros.ds_add(ds, -1) }}</code> o el intervalo del timetable</td>
+</tr>
+<tr>
+<td><code>SubDagOperator</code></td>
+<td>No existe</td>
+<td><code>TaskGroup</code></td>
+</tr>
+</tbody></table></div>
+<p>Y hay cambios que <strong>todavía funcionan</strong> con un aviso de obsoleto, pero que se van a eliminar: las rutas <code>airflow.operators.*</code> y <code>airflow.decorators</code>, que pasan a <code>airflow.providers.standard.*</code> y <code>airflow.sdk</code>. El simulador del curso se comporta igual: con una ruta vieja, el DAG corre y muestra un <code>AirflowDeprecationWarning</code>.</p>
+<h2>Lo que rompe en silencio: la fecha lógica</h2>
+<p>Este es el error del escenario, y ningún analizador lo detecta porque <strong>no es un error de código</strong>. En Airflow 2, un DAG con <code>schedule=&quot;0 2 * * *&quot;</code> tenía como fecha lógica el <strong>comienzo</strong> del intervalo: la ejecución que corría el 15 de marzo a las 2:00 tenía <code>ds = 2024-03-14</code>. Muchos DAGs usaban <code>{{ ds }}</code> para decir &quot;ayer&quot; sin saberlo.</p>
+<p>En Airflow 3, con un horario cron, la fecha lógica es el <strong>momento del disparo</strong>: la misma ejecución tiene <code>ds = 2024-03-15</code>. El DAG corre sin errores, pero ahora extrae <strong>hoy</strong> (un día incompleto) en lugar de ayer.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ejecución del 15/03 a las 02:00</th>
+<th>Airflow 2</th>
+<th>Airflow 3</th>
+</tr>
+</thead><tbody><tr>
+<td><code>{{ ds }}</code></td>
+<td>2024-03-14</td>
+<td>2024-03-15</td>
+</tr>
+<tr>
+<td><code>{{ macros.ds_add(ds, -1) }}</code></td>
+<td>2024-03-13</td>
+<td>2024-03-14</td>
+</tr>
+<tr>
+<td><code>{{ data_interval_start | ds }}</code></td>
+<td>2024-03-14</td>
+<td>2024-03-15 (sin intervalo)</td>
+</tr>
+</tbody></table></div>
+<p>Cómo se arregla, de más simple a más explícito:</p>
+<ul>
+<li>Restar un día en la plantilla: <code>{{ macros.ds_add(ds, -1) }}</code>.</li>
+<li>Declarar el intervalo en el timetable: <code>CronTriggerTimetable(&quot;0 2 * * *&quot;, timezone=&quot;UTC&quot;, interval=timedelta(days=1))</code>, y usar <code>{{ data_interval_start | ds }}</code>.</li>
+<li>Mantener el comportamiento viejo para toda la instalación con <code>[scheduler] create_cron_data_intervals = True</code>. Sirve para migrar sin tocar cada DAG, pero hay que configurarlo <strong>antes</strong> de que corra la primera ejecución en Airflow 3: cambiarlo después hace que se salte una ejecución.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cómo detectar el error silencioso</div>
+
+<p>Antes de migrar, guarda para cada DAG qué fecha procesa una ejecución conocida (por ejemplo, con <code>airflow dags test mi_dag 2024-03-15</code> en Airflow 2). Después de migrar, repite la misma prueba y compara. Si el día procesado cambió, el DAG necesita corrección aunque no haya fallado.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Practica: la migración completa</h2>
+<p>El DAG del ejercicio es el <code>ventas_diarias</code> del equipo, tal como estaba en Airflow 2. Al cargarlo en el simulador (que se comporta como Airflow 3) verás los errores en el orden en que aparecen. Corrígelos uno por uno, como en el trabajo real: lee el error, corrige, vuelve a ejecutar.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Un plan de migración que no corta la operación</h2>
+<ol>
+<li><strong>Inventario</strong>: lista de DAGs con su dueño, si usan <code>ds</code> para &quot;ayer&quot;, si usan Datasets, operadores propios o acceso directo a la base.</li>
+<li><strong>Correr ruff</strong> sobre todo el repositorio y corregir en una rama, con <em>pull requests</em> chicos.</li>
+<li><strong>Pruebas de &quot;qué día procesa&quot;</strong>: para cada DAG, la misma ejecución en Airflow 2 y en un entorno de prueba con Airflow 3, comparando la fecha y los conteos.</li>
+<li><strong>Entorno paralelo</strong>: Airflow 3 levantado aparte, con los DAGs pausados; se activan de a grupos mientras se pausan en Airflow 2.</li>
+<li><strong>Plan de vuelta atrás</strong>: el respaldo de la base y la instalación vieja disponibles hasta que pase al menos un cierre de mes.</li>
+</ol>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Migrar solo lo que da error</strong>: los DAGs que usan <code>{{ ds }}</code> como &quot;ayer&quot; corren sin fallar y procesan el día equivocado.</li>
+<li><strong>Cambiar <code>create_cron_data_intervals</code> después de la primera ejecución</strong>: se salta una ejecución.</li>
+<li><strong>Actualizar directo desde una 2.x vieja</strong> (anterior a 2.7): la guía exige pasar antes por 2.7 o más nuevo.</li>
+<li><strong>No instalar el provider estándar</strong>: los operadores básicos no aparecen.</li>
+<li><strong>Dejar los avisos de obsoleto para &quot;después&quot;</strong>: en la próxima versión mayor, esas rutas desaparecen.</li>
+<li><strong>Operadores propios que leen la base de metadatos</strong> con una sesión de SQLAlchemy: en Airflow 3 ya no tienen acceso.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas la migración a Airflow 3 suele ser un proyecto de semanas o meses, con un responsable por equipo de DAGs y un tablero de avance (DAGs migrados, probados, activados).</li>
+<li>Los servicios administrados (MWAA, Composer 3, Astronomer) ofrecen Airflow 3, pero la migración del código y las pruebas siguen siendo tuyas.</li>
+<li><code>ruff</code> con las reglas AIR se deja en el CI después de migrar, para que nadie vuelva a escribir sintaxis vieja.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo encararías la migración de 300 DAGs de Airflow 2 a Airflow 3?&quot;</div>
+
+<p>Seguiría la guía oficial: primero llevar la instalación a la última 2.x sin avisos de obsoleto, respaldar la base y correr ruff con las reglas AIR301 y AIR311 sobre todo el repositorio, corrigiendo en pull requests chicos. Pondría especial atención en el cambio de la fecha lógica, que no da error: para cada DAG compararía qué día procesa la misma ejecución antes y después, y corregiría con <code>ds_add</code> o un timetable con intervalo, o decidiría usar <code>create_cron_data_intervals</code> antes de arrancar. Levantaría Airflow 3 en paralelo y movería los DAGs por grupos, con un plan de vuelta atrás.</p>
+</div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-migrar-a-airflow-3">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-apis-credenciales-y-costos.html">← APIs, credenciales y costos - el extractor que dijo OK y la consulta de miles de dólares</a><a href="incidentes-migrar-a-spark-4.html">Migración: tu job de Spark 3.5 a Spark 4 →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

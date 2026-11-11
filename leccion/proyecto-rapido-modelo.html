@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto completo I · Rápido: del pedido de negocio al modelo de datos · Academia de Datos</title><meta name="description" content="Un proyecto real de punta a punta con la app de delivery Rápido. En esta primera parte, el relevamiento, la arquitectura, las capas bronze/silver/gold escritas en SQL (limpieza, tabla de hechos con las etapas del pedido, dimensiones y un mart diario) y los controles de calidad que deciden si los datos se publican."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-rapido-modelo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto completo I · Rápido: del pedido de negocio al modelo de datos · Academia de Datos"><meta property="og:description" content="Un proyecto real de punta a punta con la app de delivery Rápido. En esta primera parte, el relevamiento, la arquitectura, las capas bronze/silver/gold escritas en SQL (limpieza, tabla de hechos con las etapas del pedido, dimensiones y un mart diario) y los controles de calidad que deciden si los datos se publican."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/proyecto-rapido-modelo.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#proyecto">🏆 Proyecto final y entrevistas</a> · Experto · 90 min</div>
+<h1>Proyecto completo I · Rápido: del pedido de negocio al modelo de datos</h1><p class="resumen">Un proyecto real de punta a punta con la app de delivery Rápido. En esta primera parte, el relevamiento, la arquitectura, las capas bronze/silver/gold escritas en SQL (limpieza, tabla de hechos con las etapas del pedido, dimensiones y un mart diario) y los controles de calidad que deciden si los datos se publican.</p>
+<a class="cta" href="../index.html#/l/proyecto-rapido-modelo">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir un pedido de negocio en requerimientos, métricas definidas y un diseño de capas</li><li>Escribir la capa silver: limpieza, tipos y reglas de validez de los pedidos</li><li>Diseñar la tabla de hechos de pedidos con las duraciones de cada etapa (accumulating snapshot)</li><li>Construir un mart diario por ciudad con KPIs que se puedan sumar correctamente</li><li>Escribir controles de calidad que devuelvan las filas problemáticas</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El primer proyecto que te asignan solo</div>
+
+<p>Llevas tres meses en el equipo de datos de <strong>Rápido</strong>. La directora de operaciones (la del caso 🛵) aprobó el proyecto <strong>&quot;Tablero de operaciones&quot;</strong> y te lo asignan:</p>
+<blockquote>
+<p>&quot;Quiero ver cada mañana, por ciudad y por día, cuántos pedidos entregamos, en cuánto tiempo y en qué etapa se nos va el tiempo, cuántos perdimos por falta de repartidores, y el GMV y el take rate. Y que los números sean los mismos que ve finanzas.&quot;</p>
+</blockquote>
+<p>Este proyecto (dos lecciones) es exactamente lo que harías en tu trabajo, en orden. Si lo completas, tienes un proyecto de portafolio que puedes explicar en una entrevista de principio a fin.</p>
+</div>
+
+
+<h2>Paso 1: el relevamiento</h2>
+<p>Antes de una línea de código, un ingeniero de datos senior escribe una página de <strong>requerimientos</strong> y la valida con quien lo pidió. Es la mejor inversión del proyecto: evita construir el tablero equivocado.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Respuesta acordada</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>¿Quién lo usa y para qué decisión?</strong></td>
+<td>Operaciones, cada mañana: dónde poner incentivos de repartidores y con qué restaurantes hablar</td>
+</tr>
+<tr>
+<td><strong>Métricas y definiciones</strong></td>
+<td>Pedidos entregados; tiempo total y por etapa (promedio y % de más de 45 min); pedidos sin repartidor; GMV = subtotal de entregados; take rate = (comisión + envío − cupón) / GMV</td>
+</tr>
+<tr>
+<td><strong>Grano</strong></td>
+<td>Ciudad × día (la fecha es la de <strong>creación</strong> del pedido)</td>
+</tr>
+<tr>
+<td><strong>Frescura</strong></td>
+<td>Datos de ayer listos a las 7:00</td>
+</tr>
+<tr>
+<td><strong>Fuente</strong></td>
+<td>Base transaccional de la app (pedidos) y el maestro de restaurantes</td>
+</tr>
+<tr>
+<td><strong>Fuente de verdad del GMV</strong></td>
+<td>La misma regla que usa finanzas (se valida con ellos el total de un mes)</td>
+</tr>
+<tr>
+<td><strong>Fuera de alcance</strong></td>
+<td>Tiempo real (fase 2), datos de repartidores individuales</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 El acuerdo de definiciones</div>
+
+<p>&quot;Pedidos del día&quot; puede significar pedidos <strong>creados</strong> ese día o <strong>entregados</strong> ese día; a las 23:50 la diferencia importa. Escribe la definición, haz que la directora la apruebe, y ponla en la documentación del modelo. Es lo que evita la reunión de &quot;tu número no coincide con el mío&quot;.</p>
+</div>
+
+
+<h2>Paso 2: la arquitectura</h2>
+<figure class="diagrama"><figcaption>Arquitectura del tablero de operaciones de Rápido</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Qué tiene</th>
+<th>Quién la usa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>bronze</strong></td>
+<td>La copia tal cual de la fuente, con fecha de carga</td>
+<td>Nadie directo; sirve para reprocesar</td>
+</tr>
+<tr>
+<td><strong>silver</strong></td>
+<td><code>stg_rapido_pedidos</code>: tipos correctos, estados normalizados, reglas de validez</td>
+<td>Ingeniería, analistas avanzados</td>
+</tr>
+<tr>
+<td><strong>gold</strong></td>
+<td><code>fct_rapido_pedidos</code> (hechos) y dimensiones</td>
+<td>Analistas, ciencia de datos</td>
+</tr>
+<tr>
+<td><strong>mart</strong></td>
+<td><code>mart_operaciones_diario</code>: el tablero, ya agregado</td>
+<td>La directora y su equipo</td>
+</tr>
+</tbody></table></div>
+<p>En esta lección escribes silver, gold, el mart y los controles en <strong>SQL</strong> sobre las tablas <code>delivery_*</code> (que hacen de bronze). En la segunda parte, el mismo flujo se convierte en un pipeline con Python, PySpark, dbt, Airflow y Terraform.</p>
+<h2>Paso 3: silver — limpiar y validar</h2>
+<p>Reglas acordadas para que un pedido sea <strong>válido</strong> para el tablero:</p>
+<ol>
+<li>El estado es uno de los cuatro conocidos.</li>
+<li>Si está <code>entregado</code>, tiene los cuatro timestamps y están <strong>en orden</strong> (creado ≤ aceptado ≤ retirado ≤ entregado).</li>
+<li>El subtotal es positivo.</li>
+</ol>
+<p>Los pedidos que no cumplen no se borran: se marcan (<code>es_valido = 0</code>) y un control cuenta cuántos hay.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>Paso 4: gold — la tabla de hechos con etapas</h2>
+<p><code>fct_rapido_pedidos</code> tiene <strong>una fila por pedido</strong> con sus claves, sus importes y la duración de cada etapa ya calculada. En Kimball se llama <strong>accumulating snapshot</strong>: una fila que se va completando a medida que el proceso avanza (creado → aceptado → retirado → entregado). Calcular las duraciones una sola vez aquí evita que cada analista las calcule distinto.</p>
+<pre><code class="language-text">fct_rapido_pedidos
+  pedido_id, fecha, ciudad, restaurante_id, cliente_id, estado
+  min_aceptacion, min_preparacion, min_viaje, min_total     ← NULL si la etapa no ocurrió
+  gmv (subtotal si se entregó, 0 si no), comision, costo_envio, descuento_cupon
+  es_tarde (1 si min_total &gt; 45)</code></pre>
+<div class="exercise-slot"></div>
+
+
+<h2>Paso 5: el mart diario, con medidas aditivas</h2>
+<p>El tablero muestra promedios y porcentajes, pero el mart <strong>no</strong> los guarda: guarda <strong>sumas y conteos</strong> (medidas <strong>aditivas</strong>), y el tablero divide. ¿Por qué? Porque el usuario va a querer ver la semana, el mes o &quot;todas las ciudades&quot;, y <strong>el promedio de los promedios diarios no es el promedio del mes</strong>: un día con 10 pedidos pesaría igual que uno con 500.</p>
+<pre><code class="language-text">mart_operaciones_diario (ciudad, fecha,
+  pedidos, entregados, sin_repartidor, tarde,
+  suma_min_total, suma_min_preparacion, suma_min_viaje,       ← para promediar: suma / entregados
+  gmv, comision, envios, cupones)                              ← take rate = (comision + envios − cupones) / gmv</code></pre>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Paso 6: los controles de calidad</h2>
+<p>Los controles se escriben como consultas que <strong>devuelven las filas problemáticas</strong>: si la consulta devuelve 0 filas, el control pasa. Así el resultado sirve a la vez para la alerta y para investigar.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Severidad</th>
+<th>Si falla</th>
+</tr>
+</thead><tbody><tr>
+<td>Hay datos de <strong>ayer</strong> en todas las ciudades</td>
+<td>Bloqueante</td>
+<td>No se publica; alerta al equipo</td>
+</tr>
+<tr>
+<td><code>pedido_id</code> único</td>
+<td>Bloqueante</td>
+<td>No se publica</td>
+</tr>
+<tr>
+<td>Pedidos inválidos &lt; 1 % del día</td>
+<td>Advertencia</td>
+<td>Se publica y se avisa</td>
+</tr>
+<tr>
+<td>GMV diario dentro de ±50 % del promedio de los 7 días anteriores</td>
+<td>Advertencia</td>
+<td>Se publica con una nota</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Arrancar por el tablero</strong>: sin definiciones acordadas, el tablero se rehace tres veces. Primero el relevamiento.</li>
+<li><strong>Guardar promedios en el mart</strong>: al agregar por semana o por &quot;todas las ciudades&quot; el número sale mal. Guarda sumas y conteos.</li>
+<li><strong>Borrar los registros inválidos</strong>: desaparecen sin rastro y nadie sabe que hubo un problema en la fuente. Márcalos y cuéntalos.</li>
+<li><strong>Repetir la lógica en cada capa</strong>: si la regla de validez está escrita en tres lugares, un día alguien cambia una y los números dejan de cuadrar. En la segunda parte, dbt resuelve esto con <code>ref()</code>: <code>fct_rapido_pedidos</code> lee de <code>stg_rapido_pedidos</code>.</li>
+<li><strong>Controles que solo dicen &quot;falló&quot;</strong>: un control útil devuelve las filas, la severidad y a quién avisar.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Este documento de requerimientos (una página) se guarda en el repositorio junto al código, y cada métrica se documenta en el modelo (dbt docs o el catálogo). Cuando alguien pregunta &quot;¿cómo se calcula el take rate?&quot;, la respuesta es un enlace.</li>
+<li>La validación con finanzas se hace <strong>antes</strong> de publicar: se compara el GMV de un mes cerrado entre el mart y el sistema contable. Si no coincide, se entiende la diferencia y se documenta.</li>
+<li>En una entrevista, este proyecto se cuenta así: problema de negocio → decisiones de diseño (grano, capas, medidas aditivas) → calidad → resultado (qué decisión permitió tomar).</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;Cuéntame un proyecto de datos que hayas hecho de principio a fin.&quot;</div>
+
+<p>Uso la estructura situación–decisiones–resultado. &quot;En Rápido, operaciones necesitaba ver cada mañana los tiempos de entrega por ciudad y etapa. Empecé acordando definiciones y grano (ciudad por día, por fecha de creación). Diseñé una capa silver con reglas de validez que marcan en lugar de borrar, una tabla de hechos tipo accumulating snapshot con las duraciones de cada etapa, y un mart con medidas aditivas para que cualquier agregación sea correcta. Agregué controles de frescura y unicidad que bloquean la publicación y controles de volumen que avisan. El tablero mostró que la preparación pesaba tanto como el viaje, y operaciones empezó a trabajar con los restaurantes más lentos.&quot;</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/proyecto-rapido-modelo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="proyecto-caso-pyspark.html">← Caso práctico II: el pipeline en PySpark</a><a href="proyecto-rapido-pipeline.html">Proyecto completo II · Rápido: el pipeline en producción →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

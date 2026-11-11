@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones de texto, números y conversiones · Academia de Datos</title><meta name="description" content="UPPER, LOWER, TRIM, SUBSTR, REPLACE, LENGTH, INSTR, ROUND, CAST y la división entera."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-funciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones de texto, números y conversiones · Academia de Datos"><meta property="og:description" content="UPPER, LOWER, TRIM, SUBSTR, REPLACE, LENGTH, INSTR, ROUND, CAST y la división entera."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-funciones.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Básico · 35 min</div>
+<h1>Funciones de texto, números y conversiones</h1><p class="resumen">UPPER, LOWER, TRIM, SUBSTR, REPLACE, LENGTH, INSTR, ROUND, CAST y la división entera.</p>
+<a class="cta" href="../index.html#/l/sql-funciones">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Limpiar y transformar textos con <code>UPPER</code>, <code>LOWER</code>, <code>TRIM</code>, <code>SUBSTR</code>, <code>INSTR</code> y <code>REPLACE</code></li><li>Redondear y calcular porcentajes sin caer en la división entera</li><li>Convertir tipos con <code>CAST</code> y anticipar lo que puede salir mal</li><li>Leer y escribir funciones anidadas de adentro hacia afuera</li></ul>
+<h2>Qué es una función</h2>
+<p>Una <strong>función</strong> recibe uno o más valores (sus <em>argumentos</em>, entre paréntesis), hace algo con ellos y <strong>devuelve un valor</strong>. Ya usaste una: <code>ROUND(precio, 2)</code>. Las funciones se pueden usar en cualquier lugar donde iría un valor: en el <code>SELECT</code>, en el <code>WHERE</code>, en el <code>ORDER BY</code>, e incluso unas dentro de otras.</p>
+<p>Esta lección cubre las funciones <strong>escalares</strong>: trabajan <strong>fila por fila</strong> (una fila entra, un valor sale). Más adelante verás las de <strong>agregación</strong> (muchas filas entran, un valor sale) y las de <strong>ventana</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Las funciones de una calculadora</div>
+
+<p>La tecla √ de una calculadora es una función: le das 16 y te devuelve 4. <code>UPPER</code> es una tecla que recibe <code>&#39;hola&#39;</code> y devuelve <code>&#39;HOLA&#39;</code>. Puedes encadenarlas: √(√16) = 2, igual que <code>UPPER(TRIM(&#39;  hola &#39;))</code> = <code>&#39;HOLA&#39;</code>. Se resuelven de adentro hacia afuera.</p>
+</div>
+
+
+<h2>Funciones de texto</h2>
+<p>Los datos de texto casi nunca vienen limpios: espacios de más, mayúsculas mezcladas, información pegada en un mismo campo. Estas funciones son tu caja de herramientas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>UPPER(t)</code> / <code>LOWER(t)</code></td>
+<td>Pasa a mayúsculas / minúsculas</td>
+<td><code>LOWER(&#39;Chile&#39;)</code></td>
+<td><code>chile</code></td>
+</tr>
+<tr>
+<td><code>LENGTH(t)</code></td>
+<td>Cantidad de caracteres</td>
+<td><code>LENGTH(&#39;datos&#39;)</code></td>
+<td><code>5</code></td>
+</tr>
+<tr>
+<td><code>TRIM(t)</code></td>
+<td>Quita espacios al principio y al final (<code>LTRIM</code> solo izquierda, <code>RTRIM</code> solo derecha)</td>
+<td><code>TRIM(&#39;  ana &#39;)</code></td>
+<td><code>ana</code></td>
+</tr>
+<tr>
+<td><code>SUBSTR(t, inicio, largo)</code></td>
+<td>Recorta un pedazo. <strong>La primera posición es 1</strong> (no 0)</td>
+<td><code>SUBSTR(&#39;2024-03-15&#39;, 1, 4)</code></td>
+<td><code>2024</code></td>
+</tr>
+<tr>
+<td><code>REPLACE(t, buscar, poner)</code></td>
+<td>Reemplaza todas las apariciones</td>
+<td><code>REPLACE(&#39;a-b-c&#39;, &#39;-&#39;, &#39;/&#39;)</code></td>
+<td><code>a/b/c</code></td>
+</tr>
+<tr>
+<td><code>INSTR(t, buscar)</code></td>
+<td>Posición donde aparece <code>buscar</code> (0 si no está)</td>
+<td><code>INSTR(&#39;ana@mail.com&#39;, &#39;@&#39;)</code></td>
+<td><code>4</code></td>
+</tr>
+</tbody></table></div>
+<h3>Por qué importa limpiar el texto</h3>
+<pre><code class="language-sql">SELECT '  ana ' = 'ana'        AS sin_limpiar,
+       TRIM('  ana ') = 'ana'  AS limpio,
+       LENGTH('  ana ')        AS largo;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>sin_limpiar</th>
+<th>limpio</th>
+<th>largo</th>
+</tr>
+</thead><tbody><tr>
+<td>0</td>
+<td>1</td>
+<td>6</td>
+</tr>
+</tbody></table></div>
+<p>(En SQLite, 0 = falso y 1 = verdadero.) Para la base de datos, <code>&#39;  ana &#39;</code> y <code>&#39;ana&#39;</code> son textos <strong>distintos</strong>. Si un sistema guardó un país como <code>&#39;Chile &#39;</code> con un espacio, <code>WHERE pais = &#39;Chile&#39;</code> no lo encuentra. Por eso, en la capa de limpieza de un pipeline (la capa <em>silver</em>, que verás en el curso) es habitual aplicar <code>TRIM</code> y <code>LOWER</code>/<code>UPPER</code> a los campos de texto clave.</p>
+<h3>Ejemplo paso a paso: extraer el dominio de un email</h3>
+<p>Queremos saber qué proveedores de correo usan los clientes. El dominio es lo que viene <strong>después</strong> de la <code>@</code>:</p>
+<pre><code class="language-sql">SELECT email,
+       INSTR(email, '@')                      AS posicion_arroba,
+       SUBSTR(email, INSTR(email, '@') + 1)   AS dominio
+FROM clientes
+WHERE email IS NOT NULL
+LIMIT 5;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>email</th>
+<th>posicion_arroba</th>
+<th>dominio</th>
+</tr>
+</thead><tbody><tr>
+<td><a href="mailto:lucia.aguilar@correo.com">lucia.aguilar@correo.com</a></td>
+<td>14</td>
+<td>correo.com</td>
+</tr>
+<tr>
+<td><a href="mailto:juan.flores@yahoo.com">juan.flores@yahoo.com</a></td>
+<td>12</td>
+<td>yahoo.com</td>
+</tr>
+<tr>
+<td><a href="mailto:andres.perez@gmail.com">andres.perez@gmail.com</a></td>
+<td>13</td>
+<td>gmail.com</td>
+</tr>
+</tbody></table></div>
+<ol>
+<li><code>INSTR(email, &#39;@&#39;)</code> busca la arroba: en <code>lucia.aguilar@correo.com</code> está en la posición 14.</li>
+<li><code>+ 1</code> → el dominio empieza en la posición 15.</li>
+<li><code>SUBSTR(email, 15)</code> → si no indicas el largo, toma <strong>hasta el final</strong>: <code>correo.com</code>.</li>
+</ol>
+<p>Con la misma idea, <code>SUBSTR(email, 1, INSTR(email, &#39;@&#39;) - 1)</code> da la parte de antes de la arroba (el usuario).</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Los nombres cambian según el motor</div>
+
+<div class="table-wrap"><table><thead><tr>
+<th>SQLite</th>
+<th>PostgreSQL</th>
+<th>SQL Server</th>
+<th>MySQL / Spark / BigQuery</th>
+</tr>
+</thead><tbody><tr>
+<td><code>SUBSTR</code></td>
+<td><code>SUBSTRING</code> / <code>SUBSTR</code></td>
+<td><code>SUBSTRING</code></td>
+<td><code>SUBSTRING</code> / <code>SUBSTR</code></td>
+</tr>
+<tr>
+<td><code>INSTR(t, s)</code></td>
+<td><code>POSITION(s IN t)</code> / <code>STRPOS</code></td>
+<td><code>CHARINDEX(s, t)</code></td>
+<td><code>INSTR</code> / <code>LOCATE</code> / <code>STRPOS</code></td>
+</tr>
+<tr>
+<td><code>LENGTH</code></td>
+<td><code>LENGTH</code></td>
+<td><code>LEN</code></td>
+<td><code>LENGTH</code></td>
+</tr>
+</tbody></table></div>
+<p>Los conceptos son idénticos; ante la duda, busca &quot;nombre de la función + nombre del motor&quot;.</p>
+</div>
+
+
+<p>Las funciones de texto son de las que más cambian de nombre:</p>
+<div class="motores"></div>
+
+
+<h2>Funciones numéricas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ROUND(x, d)</code></td>
+<td>Redondea a <code>d</code> decimales</td>
+<td><code>ROUND(3.14159, 2)</code></td>
+<td><code>3.14</code></td>
+</tr>
+<tr>
+<td><code>ABS(x)</code></td>
+<td>Valor absoluto (quita el signo)</td>
+<td><code>ABS(-7)</code></td>
+<td><code>7</code></td>
+</tr>
+<tr>
+<td><code>x % y</code></td>
+<td>Resto de la división</td>
+<td><code>17 % 5</code></td>
+<td><code>2</code></td>
+</tr>
+<tr>
+<td><code>CEIL(x)</code> / <code>FLOOR(x)</code></td>
+<td>Redondea hacia arriba / hacia abajo (SQLite 3.35+)</td>
+<td><code>FLOOR(2.7)</code></td>
+<td><code>2</code></td>
+</tr>
+<tr>
+<td><code>MAX(a, b)</code> / <code>MIN(a, b)</code></td>
+<td>El mayor / menor de varios valores (en SQLite con 2+ argumentos)</td>
+<td><code>MAX(3, 9)</code></td>
+<td><code>9</code></td>
+</tr>
+<tr>
+<td><code>POWER(x, y)</code> / <code>SQRT(x)</code></td>
+<td>Potencia / raíz (SQLite 3.35+)</td>
+<td><code>POWER(2, 10)</code></td>
+<td><code>1024</code></td>
+</tr>
+</tbody></table></div>
+<p>Usos frecuentes del resto (<code>%</code>): saber si un número es par (<code>id % 2 = 0</code>), repartir filas en grupos (<code>cliente_id % 10</code> da 10 grupos parecidos, útil para muestras o pruebas A/B).</p>
+<div class="callout callout-nota"><div class="callout-title">📝 MAX y MIN de varios valores</div>
+
+<p>En SQLite <code>MAX(a, b)</code> con dos o más argumentos devuelve el mayor de esos valores (en la misma fila). En PostgreSQL, MySQL, Spark y BigQuery esa función se llama <code>GREATEST(a, b)</code> y la opuesta <code>LEAST(a, b)</code>. No las confundas con las funciones de agregación <code>MAX(columna)</code>, que buscan el máximo <strong>entre filas</strong>.</p>
+</div>
+
+
+<h2>La división entera (otra vez, porque importa)</h2>
+<pre><code class="language-sql">SELECT 7 / 2                AS division_entera,   -- 3
+       7 / 2.0              AS division_real,     -- 3.5
+       CAST(7 AS REAL) / 2  AS con_cast,          -- 3.5
+       1.0 * 7 / 2          AS truco_uno_punto_cero;</code></pre>
+<p>Entero dividido entero da entero (en SQLite, PostgreSQL y SQL Server; en MySQL, Spark y BigQuery no). Cuando calcules un porcentaje, escribe <strong>siempre</strong> <code>100.0 * parte / total</code>: funciona en todos los motores.</p>
+<div class="motores"></div>
+
+
+<h2>CAST: convertir de un tipo a otro</h2>
+<p>Cada valor tiene un <strong>tipo</strong>: entero (<code>INTEGER</code>), decimal (<code>REAL</code>, <code>DECIMAL</code>, <code>DOUBLE</code>), texto (<code>TEXT</code>, <code>VARCHAR</code>, <code>STRING</code>), fecha (<code>DATE</code>, <code>TIMESTAMP</code>). <code>CAST(valor AS tipo)</code> convierte:</p>
+<pre><code class="language-sql">SELECT CAST('42' AS INTEGER) + 1                      AS numero,       -- 43
+       CAST(19.99 AS INTEGER)                         AS truncado,     -- 19
+       CAST(producto_id AS TEXT) || '-' || marca      AS codigo
+FROM productos
+LIMIT 3;</code></pre>
+<p>Cuándo lo necesitas:</p>
+<ul>
+<li><strong>Datos crudos que llegan como texto</strong>: en un CSV todo es texto; para sumar precios hay que convertirlos.</li>
+<li><strong>Armar códigos</strong>: unir un número con un texto.</li>
+<li><strong>Forzar decimales</strong>: <code>CAST(cantidad AS REAL) / total</code>.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ CAST no redondea y puede &quot;mentir&quot;</div>
+
+<ul>
+<li><code>CAST(19.99 AS INTEGER)</code> da <strong>19</strong>: trunca (corta los decimales), no redondea. Si quieres 20, usa <code>ROUND(19.99)</code>.</li>
+<li>En SQLite, <code>CAST(&#39;42abc&#39; AS INTEGER)</code> da 42 y <code>CAST(&#39;abc&#39; AS INTEGER)</code> da <strong>0</strong>, en silencio. En PostgreSQL o BigQuery esas conversiones dan <strong>error</strong>, y existen <code>TRY_CAST</code> / <code>SAFE_CAST</code> que devuelven <code>NULL</code> si no se puede convertir. En limpieza de datos, un <code>NULL</code> es mucho mejor que un 0 inventado.</li>
+</ul>
+</div>
+
+
+<h2>Funciones anidadas: leer de adentro hacia afuera</h2>
+<pre><code class="language-sql">SELECT nombre,
+       UPPER(SUBSTR(TRIM(nombre), 1, 1)) || '.' AS inicial
+FROM clientes
+LIMIT 5;</code></pre>
+<ol>
+<li><code>TRIM(nombre)</code> → quita espacios.</li>
+<li><code>SUBSTR(…, 1, 1)</code> → toma la primera letra.</li>
+<li><code>UPPER(…)</code> → la pasa a mayúscula.</li>
+<li><code>|| &#39;.&#39;</code> → le agrega un punto: <code>L.</code></li>
+</ol>
+<p>Si una expresión anidada te confunde, pruébala por partes en el laboratorio: primero <code>TRIM(nombre)</code>, luego agrega <code>SUBSTR</code>, y así.</p>
+<div class="recorrido"></div>
+
+
+<h2>Funciones en el WHERE y en el ORDER BY</h2>
+<pre><code class="language-sql">-- Clientes cuyo email es de gmail, sin importar mayúsculas
+SELECT nombre, email
+FROM clientes
+WHERE LOWER(email) LIKE '%@gmail.com'
+ORDER BY LENGTH(nombre) DESC
+LIMIT 10;</code></pre>
+<div class="callout callout-experto"><div class="callout-title">🚀 Funciones sobre columnas y los índices</div>
+
+<p><code>WHERE LOWER(email) = &#39;ana@gmail.com&#39;</code> no puede usar un índice normal sobre <code>email</code>, porque el índice guarda los valores originales, no los convertidos. En tablas grandes conviene guardar los datos ya normalizados (en minúsculas) en la capa limpia del pipeline, o crear un índice sobre la expresión. Lo verás en la lección de rendimiento.</p>
+</div>
+
+
+
+
+
+
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>División entera</strong>: <code>cantidad / total</code> con dos enteros da 0 en vez de 0,25. Multiplica por <code>1.0</code> o convierte con <code>CAST(x AS REAL)</code> antes de dividir.</li>
+<li><strong><code>ROUND</code> en el lugar equivocado</strong>: redondear cada línea y después sumar no da lo mismo que sumar y después redondear. En dinero, redondea <strong>al final</strong>.</li>
+<li><strong><code>SUBSTR</code> empieza en 1</strong>, no en 0 como en Python. <code>SUBSTR(&#39;hola&#39;, 1, 2)</code> es <code>&#39;ho&#39;</code>.</li>
+<li><strong>Funciones distintas en cada motor</strong>: <code>INSTR</code> en SQLite es <code>POSITION</code> en PostgreSQL y <code>CHARINDEX</code> en SQL Server. Revisa la lección de dialectos cuando cambies de base.</li>
+<li><strong><code>CAST</code> de texto sucio</strong>: <code>CAST(&#39;12,5&#39; AS REAL)</code> da <code>12</code> en SQLite (se detiene en la coma) sin avisar. Limpia antes con <code>REPLACE</code>.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 Los emails de los clientes</div>
+
+<p>Camila, de marketing, quiere saber con qué proveedores de correo trabajan sus clientes:</p>
+<blockquote>
+<p>&quot;¿Cuántos clientes usan Gmail, Hotmail, Outlook…? Quiero ajustar el diseño del newsletter. Y de paso, en la tabla de carga de clientes los nombres vienen con espacios y mayúsculas mezcladas: ¿se pueden limpiar?&quot;</p>
+</blockquote>
+<p>La información está, pero no en la forma en que la necesitas: hay que <strong>cortar</strong>, <strong>limpiar</strong> y <strong>convertir</strong>. Para eso están las funciones.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La limpieza de textos (<code>TRIM</code>, <code>LOWER</code>, quitar acentos, normalizar teléfonos) se hace <strong>una sola vez</strong>, en la capa silver o en el modelo de staging de dbt, y todos leen de ahí. Si cada analista limpia a su manera, cada dashboard muestra un número distinto.</li>
+<li>Una función sobre la columna en el <code>WHERE</code> (<code>WHERE LOWER(email) = ...</code>, <code>WHERE strftime(&#39;%Y&#39;, fecha) = &#39;2024&#39;</code>) impide usar índices y el <em>partition pruning</em>. En tablas grandes se reescribe para dejar la columna &quot;limpia&quot;: <code>WHERE fecha &gt;= &#39;2024-01-01&#39; AND fecha &lt; &#39;2025-01-01&#39;</code>.</li>
+<li>Para dinero, en producción se usa <code>DECIMAL(12,2)</code> (exacto) en vez de <code>REAL</code> (aproximado).</li>
+</ul>
+</div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Las funciones escalares transforman un valor por fila; se pueden anidar y se leen de adentro hacia afuera.</li>
+<li>Texto: <code>UPPER</code>, <code>LOWER</code>, <code>TRIM</code>, <code>LENGTH</code>, <code>SUBSTR</code> (empieza en 1), <code>REPLACE</code>, <code>INSTR</code>.</li>
+<li>Números: <code>ROUND</code>, <code>ABS</code>, <code>%</code>, <code>CEIL</code>, <code>FLOOR</code>; <code>100.0 *</code> para evitar la división entera.</li>
+<li><code>CAST</code> convierte tipos; trunca en vez de redondear y en SQLite puede devolver 0 en silencio.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-funciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-null.html">← NULL: el valor que no es un valor</a><a href="sql-fechas.html">Trabajar con fechas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

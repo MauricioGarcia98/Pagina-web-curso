@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spark SQL y el catálogo · Academia de Datos</title><meta name="description" content="Vistas temporales, tablas administradas y externas, Unity Catalog y SQL desde PySpark."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-spark-sql.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Spark SQL y el catálogo · Academia de Datos"><meta property="og:description" content="Vistas temporales, tablas administradas y externas, Unity Catalog y SQL desde PySpark."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-spark-sql.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Intermedio · 25 min</div>
+<h1>Spark SQL y el catálogo</h1><p class="resumen">Vistas temporales, tablas administradas y externas, Unity Catalog y SQL desde PySpark.</p>
+<a class="cta" href="../index.html#/l/spark-spark-sql">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>Todo lo que aprendiste de SQL funciona en Spark. <strong>Spark SQL</strong> y la API de DataFrames comparten el mismo optimizador: elige el que haga tu código más claro (¡y puedes mezclarlos!).</p>
+<h3>¿SQL o DataFrames? El mismo motor</h3>
+<p>Esta es la idea más tranquilizadora del módulo: una consulta escrita en SQL y la misma lógica escrita con la API de DataFrames <strong>producen exactamente el mismo plan</strong> de ejecución. Ambas pasan por <strong>Catalyst</strong>, el optimizador de Spark:</p>
+<pre><code class="language-text">spark.sql(&quot;SELECT …&quot;)  ─┐
+                         ├─▶  plan lógico  ─▶  Catalyst optimiza  ─▶  plan físico  ─▶  ejecución en el cluster
+df.filter(…).groupBy(…) ─┘</code></pre>
+<p>No hay uno &quot;más rápido&quot;. La elección es de <strong>claridad y de equipo</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Usa SQL cuando…</th>
+<th>Usa la API de DataFrames cuando…</th>
+</tr>
+</thead><tbody><tr>
+<td>La lógica es una consulta clásica (joins, agregaciones)</td>
+<td>Necesitas construir la consulta dinámicamente (columnas en una lista, bucles, parámetros)</td>
+</tr>
+<tr>
+<td>Trabajas con analistas que saben SQL</td>
+<td>Quieres funciones reutilizables y testeables (<code>def limpiar(df) -&gt; df</code>)</td>
+</tr>
+<tr>
+<td>Es un modelo de dbt o un dashboard</td>
+<td>Mezclas con lógica de Python (UDFs, validaciones)</td>
+</tr>
+</tbody></table></div>
+<p>Y se pueden mezclar libremente: <code>spark.sql(…)</code> devuelve un DataFrame, y un DataFrame se puede registrar como vista para consultarlo con SQL.</p>
+<h2>Vistas temporales: SQL sobre un DataFrame</h2>
+<pre data-norun><code class="language-python">pedidos = spark.read.parquet(&quot;/lake/silver/pedidos&quot;)
+pedidos.createOrReplaceTempView(&quot;pedidos&quot;)        # visible solo en esta SparkSession
+
+top = spark.sql(&quot;&quot;&quot;
+    SELECT canal, COUNT(*) AS n
+    FROM pedidos
+    WHERE estado = 'entregado'
+    GROUP BY canal
+    ORDER BY n DESC
+&quot;&quot;&quot;)
+top.show()</code></pre>
+<p><code>createOrReplaceTempView(&quot;pedidos&quot;)</code> no copia datos: solo le pone un <strong>nombre</strong> al DataFrame para que SQL pueda referirse a él. La vista existe mientras dure la sesión de Spark (en Databricks, mientras el notebook esté conectado).</p>
+<div class="recorrido"></div>
+
+
+<h2>El catálogo: dónde viven los nombres de las tablas</h2>
+<p>Un <strong>catálogo</strong> (o <em>metastore</em>) es la &quot;guía telefónica&quot; de las tablas: para cada nombre (<code>main.ventas.pedidos</code>) guarda <strong>dónde</strong> están los archivos, en qué <strong>formato</strong>, con qué <strong>esquema</strong> y quién tiene <strong>permiso</strong>. Spark consulta el catálogo cada vez que escribes <code>spark.table(&quot;…&quot;)</code> o un <code>FROM</code> en SQL. Es el mismo papel que cumplen el Glue Data Catalog en AWS y el catálogo de BigQuery en Google Cloud.</p>
+<h2>Tablas en el catálogo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué es</th>
+<th>Al hacer DROP</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Vista temporal</strong></td>
+<td>Un nombre para un DataFrame en la sesión actual</td>
+<td>Desaparece al cerrar la sesión</td>
+</tr>
+<tr>
+<td><strong>Tabla administrada</strong> (<em>managed</em>)</td>
+<td>Spark/Databricks gestiona datos y metadatos</td>
+<td>Se borran datos y metadatos</td>
+</tr>
+<tr>
+<td><strong>Tabla externa</strong> (<em>external</em>)</td>
+<td>Los datos viven en una ruta tuya (<code>LOCATION</code>)</td>
+<td>Solo se borran los metadatos</td>
+</tr>
+<tr>
+<td><strong>Vista</strong></td>
+<td>Consulta guardada en el catálogo</td>
+<td>Se borra la definición</td>
+</tr>
+</tbody></table></div>
+<pre data-norun><code class="language-sql">CREATE TABLE IF NOT EXISTS main.ventas.pedidos (
+  pedido_id BIGINT, cliente_id BIGINT, fecha_pedido DATE, estado STRING, canal STRING
+) USING DELTA;
+
+CREATE TABLE main.ventas.pedidos_ext
+USING DELTA LOCATION 'abfss://lake@cuenta.dfs.core.windows.net/silver/pedidos';
+
+CREATE OR REPLACE VIEW main.ventas.v_entregados AS
+SELECT * FROM main.ventas.pedidos WHERE estado = 'entregado';</code></pre>
+<h2>Unity Catalog: el espacio de nombres de tres niveles</h2>
+<p>En Databricks con <strong>Unity Catalog</strong> las tablas se nombran <code>catalogo.esquema.tabla</code> (por ejemplo <code>main.ventas.pedidos</code> o <code>prod.gold.ventas_diarias</code>). Unity Catalog centraliza <strong>permisos</strong>, <strong>linaje</strong> (qué tabla sale de cuál) y <strong>auditoría</strong> para todos los workspaces.</p>
+<h2>Funciones útiles de Spark SQL</h2>
+<pre data-norun><code class="language-sql">SELECT
+  date_trunc('MONTH', fecha_pedido)               AS mes,
+  date_format(fecha_pedido, 'yyyy-MM')            AS mes_txt,
+  datediff(current_date(), fecha_pedido)          AS dias,
+  concat_ws(' ', nombre, apellido)                AS nombre_completo,
+  collect_list(producto_id)                       AS productos,      -- agrega en un array
+  size(collect_set(canal))                        AS canales_distintos,
+  percentile_approx(monto, 0.5)                   AS mediana,
+  try_cast(codigo AS INT)                         AS codigo_num      -- NULL en vez de error
+FROM ...</code></pre>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-spark-sql">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-formatos-delta.html">← Formatos, Delta Lake y arquitectura medallón</a><a href="spark-particiones-joins.html">Particiones, shuffle, joins y skew →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

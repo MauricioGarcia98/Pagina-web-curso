@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BigQuery, fundamentos · Academia de Datos</title><meta name="description" content="Cómo funciona BigQuery por dentro (almacenamiento columnar, slots, separación de cómputo), proyectos, datasets y tablas, la CLI bq (mk, load, query, show, dry_run), costos y el dialecto GoogleSQL."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-bigquery-fundamentos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="BigQuery, fundamentos · Academia de Datos"><meta property="og:description" content="Cómo funciona BigQuery por dentro (almacenamiento columnar, slots, separación de cómputo), proyectos, datasets y tablas, la CLI bq (mk, load, query, show, dry_run), costos y el dialecto GoogleSQL."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/gcp-bigquery-fundamentos.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#gcp">🔷 Google Cloud para Data Engineers</a> · Intermedio · 45 min</div>
+<h1>BigQuery, fundamentos</h1><p class="resumen">Cómo funciona BigQuery por dentro (almacenamiento columnar, slots, separación de cómputo), proyectos, datasets y tablas, la CLI bq (mk, load, query, show, dry_run), costos y el dialecto GoogleSQL.</p>
+<a class="cta" href="../index.html#/l/gcp-bigquery-fundamentos">▶ Abrir la lección interactiva (8 ejercicios)</a>
+
+<h2>Qué hace especial a BigQuery</h2>
+<pre><code class="language-text">          tu SQL
+            │
+     ┌──────▼──────┐   reparte el trabajo en miles de &quot;slots&quot; (unidades de CPU+memoria)
+     │  Dremel     │──────────────┬──────────────┬──────────────┐
+     └─────────────┘            slot           slot   …        slot
+            │ red Jupiter (petabits/s)
+     ┌──────▼──────────────────────────────────────────────────┐
+     │ Colossus: almacenamiento columnar (Capacitor), comprimido │
+     └─────────────────────────────────────────────────────────┘</code></pre>
+<ul>
+<li><strong>Almacenamiento y cómputo separados</strong>: guardas datos sin pagar cómputo; consultas sin &quot;encender&quot; nada.</li>
+<li><strong>Columnar</strong>: cada columna se guarda aparte. Leer 3 columnas de 100 cuesta ~3 % de leer todas.</li>
+<li><strong>Slots</strong>: cuando consultas, BigQuery asigna cientos o miles de slots durante segundos.</li>
+<li><strong>Sin índices</strong>: en lugar de índices, BigQuery usa <strong>particiones</strong> y <strong>clustering</strong> (lección siguiente).</li>
+</ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Una biblioteca con un ejército de lectores</div>
+
+<p>Imagina que cada columna es un tomo separado y que, cuando haces una pregunta, mil bibliotecarios leen en paralelo solo los tomos necesarios. Por eso responde rápido sobre terabytes, y por eso te cobran por <strong>tomos leídos</strong>, no por respuestas.</p>
+</div>
+
+
+<h2>Proyecto → dataset → tabla</h2>
+<pre><code class="language-text">academia-datos-dev                 ← proyecto (factura las consultas)
+├── tienda_bronze                  ← dataset (como un &quot;esquema&quot;; tiene ubicación: US, EU, southamerica-east1…)
+│   └── ventas                     ← tabla
+└── tienda_gold
+    ├── ventas_por_canal           ← tabla
+    └── v_clientes_activos         ← vista</code></pre>
+<p>Una tabla se nombra completa así: <code>`academia-datos-dev.tienda_gold.ventas_por_canal`</code> (con <em>backticks</em> si el proyecto tiene guiones).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Objeto</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td>Tabla nativa</td>
+<td>Datos guardados en BigQuery (lo normal)</td>
+</tr>
+<tr>
+<td>Tabla externa / BigLake</td>
+<td>Datos en GCS (CSV, Parquet, Iceberg) consultados desde BigQuery</td>
+</tr>
+<tr>
+<td>Vista</td>
+<td>Consulta guardada; no guarda datos</td>
+</tr>
+<tr>
+<td>Vista materializada</td>
+<td>Resultado precalculado que BigQuery mantiene actualizado</td>
+</tr>
+<tr>
+<td>Snapshot / clon</td>
+<td>Copia barata de una tabla en un momento</td>
+</tr>
+</tbody></table></div>
+<h2>La CLI <code>bq</code></h2>
+<pre data-norun><code class="language-bash">bq mk --dataset --location=US academia-datos-dev:tienda_bronze      # crear dataset
+bq ls                                                               # datasets del proyecto
+bq ls tienda_bronze                                                 # tablas del dataset
+bq load --source_format=CSV --autodetect --skip_leading_rows=1 \
+   tienda_bronze.ventas gs://lake-tienda-dev/bronze/ventas/ventas_2024_12.csv
+bq show tienda_bronze.ventas                                        # filas, tamaño, particiones
+bq show --schema --format=prettyjson tienda_bronze.ventas           # esquema
+bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) FROM tienda_bronze.ventas GROUP BY canal'
+bq query --use_legacy_sql=false --dry_run 'SELECT * FROM tienda_bronze.ventas'   # ¿cuántos bytes leería?
+bq rm -t tienda_bronze.ventas_vieja                                 # borrar tabla</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Siempre `--use_legacy_sql=false`</div>
+
+<p>Por razones históricas, <code>bq query</code> usa por defecto el viejo <em>Legacy SQL</em>. Agrega siempre <code>--use_legacy_sql=false</code> (o <code>--nouse_legacy_sql</code>), o ponlo en tu <code>~/.bigqueryrc</code>. En la consola web y en las librerías ya se usa <strong>GoogleSQL</strong> por defecto.</p>
+</div>
+
+
+<h3>Laboratorio: del archivo a la consulta</h3>
+<p>Esta terminal carga el CSV <strong>de verdad</strong> y la consulta se ejecuta sobre esos datos:</p>
+<pre><code class="language-bash">gcloud config set project academia-datos-dev
+gcloud storage buckets create gs://lake-tienda-dev --location=US
+gcloud storage cp datos/ventas_2024_12.csv gs://lake-tienda-dev/bronze/ventas/
+bq mk --dataset tienda_bronze
+bq load --source_format=CSV --autodetect --skip_leading_rows=1 tienda_bronze.ventas gs://lake-tienda-dev/bronze/ventas/ventas_2024_12.csv
+bq query --use_legacy_sql=false 'SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS total FROM `academia-datos-dev.tienda_bronze.ventas` GROUP BY canal ORDER BY total DESC'</code></pre>
+<div class="recorrido"></div>
+
+
+<h2>GoogleSQL vs. lo que practicas aquí</h2>
+<p>Las consultas de los ejercicios corren en SQLite. Las diferencias más comunes con BigQuery:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Quiero…</th>
+<th>BigQuery (GoogleSQL)</th>
+<th>SQLite (este curso)</th>
+</tr>
+</thead><tbody><tr>
+<td>Truncar a mes</td>
+<td><code>DATE_TRUNC(fecha, MONTH)</code></td>
+<td><code>strftime(&#39;%Y-%m&#39;, fecha)</code></td>
+</tr>
+<tr>
+<td>Formatear fecha</td>
+<td><code>FORMAT_DATE(&#39;%Y-%m&#39;, fecha)</code></td>
+<td><code>strftime(&#39;%Y-%m&#39;, fecha)</code></td>
+</tr>
+<tr>
+<td>Diferencia de días</td>
+<td><code>DATE_DIFF(b, a, DAY)</code></td>
+<td><code>julianday(b) - julianday(a)</code></td>
+</tr>
+<tr>
+<td>Sumar días</td>
+<td><code>DATE_ADD(fecha, INTERVAL 7 DAY)</code></td>
+<td><code>date(fecha, &#39;+7 days&#39;)</code></td>
+</tr>
+<tr>
+<td>Hora</td>
+<td><code>EXTRACT(HOUR FROM ts)</code></td>
+<td><code>CAST(strftime(&#39;%H&#39;, ts) AS INTEGER)</code></td>
+</tr>
+<tr>
+<td>División segura</td>
+<td><code>SAFE_DIVIDE(a, b)</code></td>
+<td><code>a * 1.0 / NULLIF(b, 0)</code></td>
+</tr>
+<tr>
+<td>Conversión segura</td>
+<td><code>SAFE_CAST(x AS INT64)</code></td>
+<td><code>CAST(x AS INTEGER)</code></td>
+</tr>
+<tr>
+<td>Contar con condición</td>
+<td><code>COUNTIF(cond)</code></td>
+<td><code>SUM(CASE WHEN cond THEN 1 ELSE 0 END)</code></td>
+</tr>
+<tr>
+<td>Filtrar ventanas</td>
+<td><code>QUALIFY ROW_NUMBER() OVER (…) = 1</code></td>
+<td>subconsulta con <code>WHERE rn = 1</code></td>
+</tr>
+<tr>
+<td>Excluir columnas</td>
+<td><code>SELECT * EXCEPT (email)</code></td>
+<td>listar columnas</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-experto"><div class="callout-title">🚀 QUALIFY, el truco favorito</div>
+
+<p>En BigQuery puedes filtrar por una función de ventana sin subconsulta: <code>SELECT * FROM pedidos QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido DESC) = 1</code> devuelve el último pedido de cada cliente. En los ejercicios usa la versión con CTE, que funciona en todos los motores.</p>
+</div>
+
+
+<h2>Ejercicios de SQL</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Ejercicios de terminal</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/gcp-bigquery-fundamentos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="gcp-cloud-storage.html">← Cloud Storage, el lago de datos</a><a href="gcp-bigquery-avanzado.html">BigQuery avanzado, particiones, clustering, anidados y MERGE →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

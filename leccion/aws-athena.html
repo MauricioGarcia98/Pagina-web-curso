@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Athena, SQL sobre el lago sin servidores · Academia de Datos</title><meta name="description" content="Cómo funciona Athena, tablas externas, particiones y partition projection, CTAS a Parquet, Iceberg, costos por TB escaneado, workgroups y la API desde la CLI."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-athena.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Athena, SQL sobre el lago sin servidores · Academia de Datos"><meta property="og:description" content="Cómo funciona Athena, tablas externas, particiones y partition projection, CTAS a Parquet, Iceberg, costos por TB escaneado, workgroups y la API desde la CLI."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/aws-athena.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#aws">🟧 AWS para Data Engineers</a> · Intermedio · 45 min</div>
+<h1>Athena, SQL sobre el lago sin servidores</h1><p class="resumen">Cómo funciona Athena, tablas externas, particiones y partition projection, CTAS a Parquet, Iceberg, costos por TB escaneado, workgroups y la API desde la CLI.</p>
+<a class="cta" href="../index.html#/l/aws-athena">▶ Abrir la lección interactiva (10 ejercicios)</a>
+
+<h2>Qué es Athena</h2>
+<p><strong>Athena</strong> es un motor de SQL <strong>sin servidor</strong> (por dentro es Trino/Presto) que consulta directamente los archivos de S3 usando las tablas del <strong>Glue Data Catalog</strong>. No hay nada que encender ni apagar: escribes SQL, Athena lee los archivos, y pagas <strong>por TB escaneado</strong> (~USD 5).</p>
+<pre><code class="language-text">  tu SQL ──► Athena ──► ¿qué es lake_silver.ventas? ──► Glue Data Catalog
+                │                                         (ubicación, columnas, particiones)
+                └──► lee solo los archivos necesarios de S3 ──► resultados en s3://…/athena-results/</code></pre>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un buscador que cobra por página leída</div>
+
+<p>Imagina un bibliotecario que cobra por cada página que tiene que hojear. Si le pides &quot;todo lo de 2024&quot;, hojea todo. Si los libros están <strong>ordenados por mes</strong> (particiones) y <strong>por tema</strong> (Parquet: columnas separadas), hojea solo lo justo y te cobra centavos.</p>
+</div>
+
+
+<h2>Crear tablas: DDL sobre S3</h2>
+<p>Además de los crawlers, puedes declarar la tabla tú mismo. Fíjate en <code>EXTERNAL</code> (los datos no se mueven: la tabla solo <strong>apunta</strong> a S3) y en <code>LOCATION</code>:</p>
+<pre data-norun><code class="language-sql">CREATE EXTERNAL TABLE lake_bronze.ventas (
+  pedido_id   BIGINT,
+  fecha       DATE,
+  cliente_id  BIGINT,
+  canal       STRING,
+  estado      STRING,
+  total       DOUBLE
+)
+PARTITIONED BY (anio INT, mes INT)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+LOCATION 's3://lake-tienda-dev/bronze/ventas/'
+TBLPROPERTIES ('skip.header.line.count' = '1');
+
+-- registrar las particiones que ya existen en S3
+MSCK REPAIR TABLE lake_bronze.ventas;</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Partition projection: sin MSCK ni crawlers</div>
+
+<p>Con muchas particiones (una por día durante años), registrarlas cuesta. <strong>Partition projection</strong> le dice a Athena la regla (&quot;<code>fecha</code> va de 2020-01-01 a hoy, una carpeta por día&quot;) y Athena calcula las rutas sin consultar el catálogo:</p>
+<pre data-norun><code class="language-sql">TBLPROPERTIES (
+  'projection.enabled' = 'true',
+  'projection.fecha.type' = 'date',
+  'projection.fecha.range' = '2020-01-01,NOW',
+  'projection.fecha.format' = 'yyyy-MM-dd',
+  'storage.location.template' = 's3://lake-tienda-dev/silver/eventos/fecha=${fecha}/'
+)</code></pre>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>CTAS: convertir CSV a Parquet con una consulta</h2>
+<p><code>CREATE TABLE AS SELECT</code> (CTAS) escribe el resultado como archivos nuevos en S3. Es la forma más simple de pasar de bronze (CSV) a silver (Parquet particionado) <strong>sin Spark</strong>:</p>
+<pre data-norun><code class="language-sql">CREATE TABLE lake_silver.ventas
+WITH (
+  format = 'PARQUET',
+  write_compression = 'SNAPPY',
+  external_location = 's3://lake-tienda-dev/silver/ventas/',
+  partitioned_by = ARRAY['anio', 'mes']
+) AS
+SELECT pedido_id, fecha, cliente_id, canal, estado, total, anio, mes   -- las particiones van al final
+FROM lake_bronze.ventas
+WHERE estado &lt;&gt; 'cancelado';</code></pre>
+<h2>Iceberg en Athena: UPDATE, DELETE y MERGE sobre S3</h2>
+<p>Las tablas Hive clásicas solo permiten agregar archivos. Con <strong>Apache Iceberg</strong>, Athena soporta transacciones:</p>
+<pre data-norun><code class="language-sql">CREATE TABLE lake_silver.clientes (cliente_id BIGINT, email STRING, segmento STRING, actualizado TIMESTAMP)
+LOCATION 's3://lake-tienda-dev/silver/clientes/'
+TBLPROPERTIES ('table_type' = 'ICEBERG');
+
+MERGE INTO lake_silver.clientes t
+USING lake_bronze.clientes_cambios c ON t.cliente_id = c.cliente_id
+WHEN MATCHED THEN UPDATE SET email = c.email, segmento = c.segmento, actualizado = current_timestamp
+WHEN NOT MATCHED THEN INSERT VALUES (c.cliente_id, c.email, c.segmento, current_timestamp);
+
+SELECT * FROM lake_silver.clientes FOR TIMESTAMP AS OF (current_timestamp - interval '1' day);  -- time travel</code></pre>
+<h2>El dialecto: Trino vs. lo que practicas aquí</h2>
+<p>Los ejercicios del curso corren en SQLite dentro de tu navegador. El 95 % del SQL es idéntico; estas son las diferencias que más vas a notar:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Quiero…</th>
+<th>Athena (Trino)</th>
+<th>SQLite (este curso)</th>
+</tr>
+</thead><tbody><tr>
+<td>Truncar a mes</td>
+<td><code>date_trunc(&#39;month&#39;, fecha)</code></td>
+<td><code>strftime(&#39;%Y-%m&#39;, fecha)</code></td>
+</tr>
+<tr>
+<td>Diferencia de días</td>
+<td><code>date_diff(&#39;day&#39;, a, b)</code></td>
+<td><code>julianday(b) - julianday(a)</code></td>
+</tr>
+<tr>
+<td>Hora de un timestamp</td>
+<td><code>hour(ts)</code></td>
+<td><code>CAST(strftime(&#39;%H&#39;, ts) AS INTEGER)</code></td>
+</tr>
+<tr>
+<td>Convertir tipo</td>
+<td><code>CAST(x AS DOUBLE)</code> o <code>TRY_CAST</code></td>
+<td><code>CAST(x AS REAL)</code></td>
+</tr>
+<tr>
+<td>Concatenar</td>
+<td><code>concat(a, b)</code> o <code>a || b</code></td>
+<td><code>a || b</code></td>
+</tr>
+<tr>
+<td>Conteo aproximado (rápido)</td>
+<td><code>approx_distinct(col)</code></td>
+<td><code>COUNT(DISTINCT col)</code></td>
+</tr>
+<tr>
+<td>Percentil</td>
+<td><code>approx_percentile(col, 0.5)</code></td>
+<td>(ventana con <code>ROW_NUMBER</code>)</td>
+</tr>
+<tr>
+<td>Explotar un array</td>
+<td><code>CROSS JOIN UNNEST(arr) AS t(x)</code></td>
+<td><code>json_each</code></td>
+</tr>
+</tbody></table></div>
+<h2>Costo: las 5 reglas de oro</h2>
+<ol>
+<li><strong>Formato columnar</strong> (Parquet/ORC): Athena lee solo las columnas que pides. Convertir CSV → Parquet suele bajar el costo <strong>entre 10 y 100 veces</strong>.</li>
+<li><strong>Particiona</strong> por las columnas de filtro habituales (fecha) y <strong>filtra siempre</strong> por ellas.</li>
+<li><strong>Nunca</strong> <code>SELECT *</code> en exploración: usa columnas concretas y <code>LIMIT</code> (ojo: <code>LIMIT</code> no reduce lo escaneado en CSV).</li>
+<li><strong>Compacta</strong> archivos chicos (128 MB–1 GB).</li>
+<li>Usa <strong>workgroups</strong> con límite de datos escaneados por consulta, y separa la facturación por equipo.</li>
+</ol>
+<div class="callout callout-experto"><div class="callout-title">🚀 Pregunta típica de entrevista</div>
+
+<p>&quot;Una consulta de Athena tarda 3 minutos y cuesta USD 12. ¿Qué haces?&quot; Respuesta ordenada: mirar <code>DataScannedInBytes</code> en <code>get-query-execution</code> → ¿es CSV/JSON? pasar a Parquet con CTAS → ¿filtra por partición? agregar el filtro o reparticionar → ¿muchos archivos chicos? compactar → si es un dashboard que se repite, materializar una tabla gold (o llevarlo a Redshift).</p>
+</div>
+
+
+<h2>Athena desde la CLI</h2>
+<p>Athena es <strong>asíncrono</strong>: lanzas la consulta, recibes un ID, consultas el estado y luego pides los resultados.</p>
+<pre data-norun><code class="language-bash">QID=$(aws athena start-query-execution \
+  --query-string &quot;SELECT canal, COUNT(*) AS pedidos FROM lake_bronze.ventas GROUP BY canal&quot; \
+  --query-execution-context Database=lake_bronze \
+  --result-configuration OutputLocation=s3://lake-tienda-dev/athena-results/ \
+  --query QueryExecutionId --output text)
+
+aws athena get-query-execution --query-execution-id $QID --query &quot;QueryExecution.Status.State&quot;
+aws athena get-query-results --query-execution-id $QID --output table</code></pre>
+<h3>Laboratorio: consulta lo que catalogaste</h3>
+<p>Si hiciste los laboratorios de S3 y Glue, la tabla <code>lake_bronze.ventas</code> apunta al CSV que subiste. En esta terminal Athena <strong>lee ese archivo de verdad</strong> (incluida la partición <code>mes=12</code> de la ruta):</p>
+<pre><code class="language-bash">QID=$(aws athena start-query-execution --query-string &quot;SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS total FROM lake_bronze.ventas WHERE mes = 12 GROUP BY canal ORDER BY total DESC&quot; --result-configuration OutputLocation=s3://lake-tienda-dev/athena-results/ --query QueryExecutionId --output text)
+echo $QID
+aws athena get-query-execution --query-execution-id $QID --query &quot;QueryExecution.Status.State&quot;
+aws athena get-query-results --query-execution-id $QID --output table</code></pre>
+<h2>Ejercicios de SQL sobre el lago</h2>
+<p>Imagina que estas tablas son tablas de <code>lake_silver</code> en Athena. Resuélvelas en el dialecto de este curso (SQLite).</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Ejercicios de terminal</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/aws-athena">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="aws-glue.html">← Glue, catálogo, crawlers y jobs de Spark</a><a href="aws-redshift-emr.html">Redshift y EMR, warehouse y Spark a gran escala →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Qué es Databricks Genie? · Academia de Datos</title><meta name="description" content="Desde cero - qué problema resuelve preguntarle a los datos en lenguaje natural, la familia Genie (Genie One, Genie Agents y Genie Code), cómo convierte Genie una pregunta en SQL, qué preguntas responde bien y cuáles no, quién ve qué datos, cuánto cuesta y dónde probarlo gratis."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-que-es-genie.html">
+<meta property="og:type" content="article"><meta property="og:title" content="¿Qué es Databricks Genie? · Academia de Datos"><meta property="og:description" content="Desde cero - qué problema resuelve preguntarle a los datos en lenguaje natural, la familia Genie (Genie One, Genie Agents y Genie Code), cómo convierte Genie una pregunta en SQL, qué preguntas responde bien y cuáles no, quién ve qué datos, cuánto cuesta y dónde probarlo gratis."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/genie-que-es-genie.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#genie">🧞 Databricks Genie: preguntas en lenguaje natural</a> · Básico · 40 min</div>
+<h1>¿Qué es Databricks Genie?</h1><p class="resumen">Desde cero - qué problema resuelve preguntarle a los datos en lenguaje natural, la familia Genie (Genie One, Genie Agents y Genie Code), cómo convierte Genie una pregunta en SQL, qué preguntas responde bien y cuáles no, quién ve qué datos, cuánto cuesta y dónde probarlo gratis.</p>
+<a class="cta" href="../index.html#/l/genie-que-es-genie">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es Genie y para qué sirve cada producto de la familia</li><li>Describir el recorrido de una pregunta hasta la respuesta</li><li>Distinguir preguntas que Genie responde bien de las que no</li><li>Explicar cómo se respetan los permisos de Unity Catalog</li><li>Saber dónde practicar sin costo</li></ul>
+<h2>El problema que resuelve</h2>
+<p>En casi todas las empresas hay muchas más <strong>preguntas</strong> que personas que saben SQL. Los tableros responden las preguntas que alguien previó; las demás terminan en un correo al equipo de datos. Genie ataca ese cuello de botella: una persona de negocio escribe la pregunta en lenguaje natural (&quot;¿cuál fue el ticket promedio por canal en marzo?&quot;) y Genie:</p>
+<ol>
+<li>Entiende qué datos necesita.</li>
+<li><strong>Escribe la consulta SQL</strong>.</li>
+<li>La ejecuta sobre las tablas de la empresa.</li>
+<li>Devuelve la tabla, un resumen en palabras y, si sirve, un gráfico.</li>
+</ol>
+<p>La clave, y lo que lo diferencia de pegar una pregunta en un chatbot genérico, es que la respuesta sale de <strong>los datos reales de la empresa</strong>, con <strong>los permisos</strong> de quien pregunta, y con las <strong>definiciones</strong> que el equipo de datos le enseñó (qué es &quot;venta neta&quot;, qué es &quot;cliente activo&quot;).</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 Un analista nuevo en el equipo</div>
+
+<p>La documentación de Databricks lo compara con un analista de datos que acaba de entrar a la empresa: sabe SQL muy bien, pero no conoce la jerga del negocio ni las particularidades de cada tabla. Si le das buena documentación, ejemplos de consultas y las definiciones de los indicadores, responde bien. Si le das 80 tablas sin descripción, se equivoca. Configurar Genie es, justamente, entrenar a ese analista nuevo.</p>
+</div>
+
+
+<h2>La familia Genie</h2>
+<p>&quot;Genie&quot; es el nombre de varios productos de Databricks. Según la documentación oficial (octubre de 2026), son tres:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Producto</th>
+<th>Para quién</th>
+<th>Qué hace</th>
+<th>Nombre anterior</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Genie One</strong></td>
+<td>Personas de negocio</td>
+<td>Una interfaz simple para buscar tableros, hacer preguntas en lenguaje natural y usar aplicaciones, sin ver notebooks, clústeres ni consultas</td>
+<td>Databricks One</td>
+</tr>
+<tr>
+<td><strong>Genie Agents</strong></td>
+<td>Los configura el equipo de datos; los usan las personas de negocio</td>
+<td>Un espacio de conversación sobre <strong>un tema</strong> (ventas, inventario, soporte) con las tablas, las definiciones y los ejemplos que el equipo eligió</td>
+<td>Genie Spaces</td>
+</tr>
+<tr>
+<td><strong>Genie Code</strong></td>
+<td>Personas técnicas (ingenieros, analistas, científicos de datos)</td>
+<td>El asistente de programación dentro de Databricks: escribe, explica y corrige código en notebooks, en el editor de SQL, en pipelines y tableros</td>
+<td>Databricks Assistant</td>
+</tr>
+</tbody></table></div>
+<p>En el resto del módulo vas a ver los tres, pero el corazón es el <strong>Genie Agent</strong>: es lo que construye un data engineer o un analista para que las preguntas de negocio tengan buenas respuestas. Genie One es la &quot;puerta de entrada&quot; donde la persona de negocio encuentra y usa esos agentes.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Nombres viejos en internet</div>
+
+<p>En tutoriales, videos y certificaciones de 2024 y 2025 vas a leer &quot;Genie Space&quot;, &quot;AI/BI Genie&quot;, &quot;Databricks Assistant&quot; y &quot;Databricks One&quot;. Son los nombres anteriores de lo mismo: Genie Agent, Genie Agent, Genie Code y Genie One.</p>
+</div>
+
+
+<h2>Cómo responde Genie una pregunta</h2>
+<p>La documentación explica que Genie no es un único modelo de lenguaje sino un <strong>sistema compuesto</strong> (<em>compound AI system</em>): varias piezas que trabajan juntas. El recorrido de una pregunta es este:</p>
+<div class="recorrido"></div>
+
+
+<p>Tres ideas que conviene retener desde ahora:</p>
+<ol>
+<li><strong>Genie escribe SQL.</strong> Todo lo que sabes de SQL sirve para revisar y mejorar sus respuestas. La opción <strong>Show code</strong> muestra la consulta exacta.</li>
+<li><strong>La calidad depende del contexto</strong>, no de la pregunta. Buenas descripciones, buenos ejemplos y buenas definiciones dan buenas respuestas. Eso es trabajo del equipo de datos.</li>
+<li><strong>No es determinista</strong>: como todo modelo de lenguaje, la misma pregunta puede dar respuestas distintas. Los ejemplos SQL verificados (lección 3) lo hacen mucho más predecible.</li>
+</ol>
+<h2>Qué preguntas responde bien (y cuáles no)</h2>
+<p>Genie traduce preguntas a SQL. Por eso responde muy bien las preguntas que <strong>tienen una respuesta en los datos</strong>, y no puede responder las que piden una opinión o una explicación de causas. La documentación lo muestra con esta comparación:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Responde bien</th>
+<th>No puede responder bien</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Cuánto vendimos este trimestre?</td>
+<td>¿Por qué bajaron las ventas este trimestre?</td>
+</tr>
+<tr>
+<td>¿Qué clientes generaron más ingresos?</td>
+<td>¿Cómo le vendo más al cliente M?</td>
+</tr>
+<tr>
+<td>¿Qué vendedores vendieron más?</td>
+<td>¿Qué incentivos le doy al equipo de ventas?</td>
+</tr>
+<tr>
+<td>¿Qué campañas rindieron más en 2024?</td>
+<td>¿Cómo mejoro mi estrategia de marketing?</td>
+</tr>
+<tr>
+<td>¿Qué regiones dejaron más margen?</td>
+<td>¿Cuáles son las mejores regiones? (¿mejores según qué?)</td>
+</tr>
+</tbody></table></div>
+<p>La regla práctica: <strong>preguntas específicas y medibles</strong>. &quot;¿Cuáles son las mejores regiones?&quot; mejora a &quot;¿qué regiones tuvieron más ventas netas en 2024?&quot;. Para preguntas exploratorias más complejas (&quot;investiga qué cambió en las ventas de marzo&quot;), Genie Agents tiene el <strong>modo agente</strong> (<em>Agent mode</em>), que divide la pregunta en varios pasos, ejecuta varias consultas y arma un informe; lo vemos en la lección 4.</p>
+<h2>Quién ve qué: los permisos</h2>
+<p>Un miedo habitual es: &quot;si le doy Genie a toda la empresa, ¿cualquiera va a ver los sueldos?&quot;. La respuesta de la documentación es clara: un Genie Agent usa <strong>dos credenciales distintas</strong>:</p>
+<ul>
+<li><strong>El cómputo</strong> (el SQL warehouse) se usa con las credenciales de quien configuró el agente. Así, los usuarios de negocio no necesitan permisos sobre el warehouse.</li>
+<li><strong>Los datos</strong> se leen <strong>siempre con los permisos de Unity Catalog de quien pregunta</strong>. Si una persona no tiene <code>SELECT</code> sobre una tabla, Genie no le muestra esos datos. Los filtros de filas y las máscaras de columnas de Unity Catalog se aplican igual.</li>
+</ul>
+<p>Por eso la seguridad de Genie no se configura en Genie: se configura en <strong>Unity Catalog</strong>, como cualquier otro acceso a datos.</p>
+<h2>Cuánto cuesta y dónde practicar</h2>
+<p>Según la documentación de presupuestos de Genie (octubre de 2026):</p>
+<ul>
+<li><strong>Genie One y Genie Agents</strong> son gratis para los usuarios <strong>hasta el 31 de enero de 2027</strong> (no así para los <em>service principals</em>, cuyo uso se cobra). Lo que sí se paga es el SQL warehouse que ejecuta las consultas.</li>
+<li><strong>Genie Code</strong> se cobra desde el 8 de julio de 2026 por uso, con una <strong>cantidad gratuita mensual por usuario</strong>.</li>
+</ul>
+<p>Para practicar sin pagar, <strong>Databricks Free Edition</strong> incluye Genie (su documentación menciona Genie para tableros interactivos y Genie Code para ayuda con código). El proyecto final de este módulo está pensado para hacerse ahí; si todavía no tienes cuenta, sigue la guía de Free Edition del módulo de Laboratorios.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Pensar que Genie &quot;sabe&quot; de tu negocio</strong>: solo sabe lo que le das en el contexto. Sin definiciones, &quot;venta&quot; puede ser bruto, neto o con cancelados.</li>
+<li><strong>Darle todas las tablas de la empresa</strong>: más tablas confunden. La documentación recomienda empezar con cinco o menos.</li>
+<li><strong>Confiar en una respuesta sin mirar el SQL</strong>: &quot;Show code&quot; existe para verificar.</li>
+<li><strong>Configurar la seguridad en el agente</strong>: el acceso a los datos lo decide Unity Catalog.</li>
+<li><strong>Pedirle opiniones</strong> (&quot;¿qué estrategia sigo?&quot;): Genie responde con datos, no con recomendaciones de negocio.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>La gerente comercial de Tienda Andina le escribe al equipo de datos cinco veces por semana: &quot;¿cuánto vendimos en Chile el mes pasado?&quot;, &quot;¿qué canal creció más?&quot;, &quot;¿cuántos clientes nuevos tuvimos en marzo?&quot;. Cada pregunta es una consulta SQL de dos minutos, pero entre que llega, alguien la ve, la escribe y la responde pasa un día. Y el tablero no tiene justo ese corte. ¿Y si ella pudiera preguntarle directamente a los datos, en español, y recibir la respuesta con la tabla y el gráfico, sabiendo que el número es el mismo que calcularía el equipo?</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En las empresas, quien arma y mantiene los Genie Agents suele ser un analista o un analytics engineer que conoce el dominio; el data engineer prepara las tablas, las vistas y las vistas de métricas que el agente usa.</li>
+<li>Genie no reemplaza los tableros: los complementa. El tablero muestra los indicadores fijos; Genie responde las preguntas que el tablero no previó. De hecho, al publicar un tablero de AI/BI, Databricks crea un Genie Agent asociado.</li>
+<li>Los equipos que mejores resultados obtienen tratan al agente como un producto: tiene dueño, un conjunto de preguntas de prueba y una revisión periódica de lo que preguntan los usuarios.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo garantizarías que un usuario de Genie no vea datos que no le corresponden?&quot;</div>
+
+<p>Genie lee los datos con los permisos de Unity Catalog de quien pregunta: el agente solo usa las credenciales del autor para el cómputo, no para los datos. Entonces la seguridad se resuelve en Unity Catalog: permisos SELECT por grupo, filtros de filas para que cada región vea solo lo suyo y máscaras de columnas para datos sensibles. Además, al agente le daría solo las tablas o vistas necesarias para su tema, ya filtradas y sin columnas sensibles.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>En una línea</th>
+</tr>
+</thead><tbody><tr>
+<td>Genie One</td>
+<td>La interfaz simple para negocio: tableros, preguntas y apps</td>
+</tr>
+<tr>
+<td>Genie Agent</td>
+<td>Un espacio de preguntas sobre un tema, configurado por el equipo de datos (antes Genie Space)</td>
+</tr>
+<tr>
+<td>Genie Code</td>
+<td>El asistente de código para técnicos (antes Databricks Assistant)</td>
+</tr>
+<tr>
+<td>Show code</td>
+<td>Ver el SQL que generó Genie</td>
+</tr>
+<tr>
+<td>Permisos</td>
+<td>Los datos se leen con los permisos de Unity Catalog de quien pregunta</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/genie-que-es-genie">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-practica-sql.html">← Práctica autocorregida — Databricks SQL y pipelines</a><a href="genie-preparar-los-datos.html">Preparar los datos para que Genie responda bien →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

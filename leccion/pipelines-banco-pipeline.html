@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco 🏦: el pipeline en PySpark, dbt y Airflow · Academia de Datos</title><meta name="description" content="La cartera en mora con PySpark, el perfil de gasto de cada cliente, un modelo dbt de mora por segmento y el DAG de cierre diario con una rama de calidad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-banco-pipeline.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Banco 🏦: el pipeline en PySpark, dbt y Airflow · Academia de Datos"><meta property="og:description" content="La cartera en mora con PySpark, el perfil de gasto de cada cliente, un modelo dbt de mora por segmento y el DAG de cierre diario con una rama de calidad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-banco-pipeline.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Avanzado · 60 min</div>
+<h1>Banco 🏦: el pipeline en PySpark, dbt y Airflow</h1><p class="resumen">La cartera en mora con PySpark, el perfil de gasto de cada cliente, un modelo dbt de mora por segmento y el DAG de cierre diario con una rama de calidad.</p>
+<a class="cta" href="../index.html#/l/pipelines-banco-pipeline">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p>En la lección anterior programaste las <strong>reglas</strong> del banco en Python (cuota francesa, tramos de mora, conciliación). Ahora esas reglas pasan a formar parte de un <strong>pipeline</strong> que corre todas las noches. Este es el diseño:</p>
+<pre><code class="language-text">                 ┌──────────────────────── Airflow: banco_cierre_diario (todos los días 03:00) ────────────────────────┐
+ banco_cuotas ───┤ 1. calidad: ¿llegaron datos?  ──no──▶ avisar_sin_datos                                          │
+ banco_trans. ───┤        │ sí                                                                                       │
+ banco_prest. ───┤ 2. PySpark: silver.cartera_mora (un préstamo por fila)   3. PySpark: gold.perfil_gasto_cliente    │
+ banco_clientes ─┤ 4. dbt: mora_por_segmento (tabla para el tablero de riesgo)                                       │
+                 └ 5. reportar (corre siempre que no haya fallas)                                                     ┘</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Herramienta</th>
+<th>Por qué esa herramienta</th>
+</tr>
+</thead><tbody><tr>
+<td>Cartera en mora</td>
+<td><strong>PySpark</strong></td>
+<td>Recorre millones de cuotas: necesita procesamiento distribuido</td>
+</tr>
+<tr>
+<td>Perfil de gasto</td>
+<td><strong>PySpark</strong></td>
+<td>Une transacciones con cuentas: millones de filas</td>
+</tr>
+<tr>
+<td>Mora por segmento</td>
+<td><strong>dbt</strong></td>
+<td>Es SQL de negocio sobre tablas ya limpias; queda versionado, testeado y documentado</td>
+</tr>
+<tr>
+<td>Orquestación</td>
+<td><strong>Airflow</strong></td>
+<td>Decide el orden, reintenta, y no publica nada si los datos no llegaron</td>
+</tr>
+</tbody></table></div>
+<p>Recuerda las reglas del caso: la fecha de corte es <code>2024-12-31</code>; una cuota está <strong>vencida e impaga</strong> si <code>fecha_pago</code> es nula y <code>fecha_vencimiento</code> es anterior al corte; en <code>banco_transacciones</code>, las compras tienen <code>monto</code> <strong>negativo</strong>.</p>
+<h2>1. PySpark: la cartera en mora</h2>
+<p>El área de riesgo necesita, para cada préstamo, cuántas cuotas tiene vencidas e impagas, cuántos días de atraso acumula la más vieja y en qué <strong>tramo</strong> cae (los mismos tramos que programaste en Python). Es la tabla base del reporte regulatorio de provisiones.</p>
+<p>El razonamiento en PySpark:</p>
+<ol>
+<li>Marcar cada cuota como &quot;vencida e impaga&quot; y calcular sus días de atraso al corte (<code>F.datediff</code>).</li>
+<li>Agrupar por préstamo: contar las vencidas y tomar el <strong>máximo</strong> de días (la cuota más atrasada define el tramo).</li>
+<li>Clasificar el máximo en tramos con <code>F.when</code>.</li>
+</ol>
+<div class="exercise-slot"></div>
+
+
+<div class="recorrido"></div>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Fíjate en el diseño</div>
+
+<p>La regla de los tramos es <strong>la misma</strong> que la función <code>tramo(dias)</code> de Python. En un proyecto real, para no tener la regla escrita dos veces, se define una sola vez (por ejemplo, una tabla de parámetros con los límites, o una función que genera la expresión <code>F.when</code>) y se reutiliza. Si mañana el regulador cambia un límite, se cambia en un solo lugar.</p>
+</div>
+
+
+<h2>2. PySpark: el perfil de gasto de cada cliente</h2>
+<p>Producto quiere ofrecer tarjetas premium a quienes más gastan. Necesita, por cliente, su actividad de compras en 2024. Las compras están en <code>banco_transacciones</code> (por cuenta) y el cliente está en <code>banco_cuentas</code>: hay que <strong>unir</strong> y después <strong>agregar</strong>.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>3. dbt: mora por segmento</h2>
+<p>El tablero de riesgo muestra, por segmento de cliente, qué porcentaje de los préstamos está en mora. Es SQL de negocio sobre tablas limpias: el trabajo ideal para un modelo de dbt (versionado, testeado, documentado). En dbt, las tablas del caso se referencian con <code>ref()</code>.</p>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La trampa de este modelo</div>
+
+<p>Unir <code>prestamos</code> con <code>cuotas</code> y contar filas cuenta <strong>cuotas</strong>, no préstamos: un préstamo con 3 cuotas vencidas sumaría 3. La CTE <code>en_mora</code> con <code>distinct</code> reduce primero a <strong>una fila por préstamo</strong>, y recién después se une. Es el error de doble conteo del método de casos, en versión dbt.</p>
+</div>
+
+
+<h2>4. Airflow: el cierre diario</h2>
+<p>El DAG orquesta todo lo anterior. Además, tiene una regla de <strong>calidad en la puerta</strong>: si ese día no llegaron transacciones (el archivo del core bancario no se generó), no tiene sentido recalcular nada: se avisa y se termina. Eso se resuelve con una <strong>rama</strong>.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Cómo corre esto en producción</h2>
+<p>Lo que hiciste en ejercicios separados, en una empresa es <strong>un solo flujo</strong> que se ejecuta cada noche sin nadie mirando. Así se reparte el trabajo:</p>
+<ol>
+<li>A las 03:00 Airflow crea la ejecución del día. Su fecha lógica es la fecha de corte que reciben todas las tareas: nadie escribe <code>2024-12-31</code> en el código.</li>
+<li>La primera tarea solo <strong>cuenta</strong> las transacciones del día en bronze. Si son cero, la rama manda un aviso y el resto se salta: mejor un tablero con el dato de ayer que uno con mora en cero.</li>
+<li>Las dos tareas de PySpark no procesan dentro de Airflow: Airflow <strong>dispara</strong> un job de Spark (por ejemplo, un job de Databricks) y espera a que termine. Cada job escribe su tabla de forma idempotente (reemplaza la partición del día).</li>
+<li>dbt corre con <code>dbt build -s mora_por_segmento+</code>, que construye el modelo y ejecuta sus tests. Si un test falla, el modelo que alimenta el tablero no se publica.</li>
+<li>La tarea final informa conteos y tiempos (filas procesadas, préstamos en cada tramo), que quedan en un tablero de salud del pipeline.</li>
+</ol>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Contar cuotas en vez de préstamos</strong> al unir préstamos con cuotas: un préstamo con 3 cuotas vencidas suma 3. Reduce a una fila por préstamo antes de unir.</li>
+<li><strong>Olvidar el signo de las compras</strong> (<code>monto</code> negativo en este caso): el &quot;gasto total&quot; sale negativo o se mezcla con los depósitos. Filtra por <code>tipo</code> y usa el valor absoluto donde corresponda.</li>
+<li><strong>La regla de tramos copiada en tres lugares</strong> (Python, PySpark y dbt) con límites distintos: el reporte regulatorio no coincide con el tablero.</li>
+<li><strong>Procesar con pandas dentro de un <code>PythonOperator</code></strong>: con millones de transacciones el worker se queda sin memoria.</li>
+<li><strong>Publicar aunque no hayan llegado datos</strong>: el tablero muestra mora en cero y alguien toma una decisión con eso.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En bancos, la tabla de cartera en mora es la base de reportes que se envían al regulador: cada ejecución guarda la versión del código y la fecha de corte con la que se calculó, porque puede haber una auditoría años después.</li>
+<li>Los límites de los tramos y los porcentajes de provisión suelen vivir en una <strong>tabla de parámetros</strong> (o un <em>seed</em> de dbt) que mantiene el área de riesgo, no en el código.</li>
+<li>Las ramas de calidad (&quot;¿llegaron datos?&quot;) son de lo primero que se agrega a un DAG después del primer incidente.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo diseñarías el cierre diario de cartera de un banco?&quot;</div>
+
+<p>Un DAG diario cuya fecha lógica es la fecha de corte. Primero una verificación de que llegaron los datos del día; si no, alerta y no publica. Después jobs de Spark idempotentes que calculan la cartera en mora por préstamo y el perfil de gasto, reemplazando la partición del día. Luego dbt construye y prueba los modelos de negocio, como la mora por segmento, y solo se publica si los tests pasan. Las reglas de tramos van en una tabla de parámetros versionada, y cada ejecución registra conteos para auditar.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-banco-pipeline">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-banco-python.html">← Banco 🏦: reglas financieras en Python</a><a href="pipelines-streaming.html">Streaming 🎧: lógica, features de churn, rankings y orquestación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

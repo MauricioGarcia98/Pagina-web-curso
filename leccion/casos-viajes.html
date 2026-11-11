@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caso 🚕 Ruta: viajes, esperas y tarifa dinámica · Academia de Datos</title><meta name="description" content="Tasa de cancelación, tiempos de espera, horas pico, tarifa dinámica, ranking de conductores y retención de pasajeros."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-viajes.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Caso 🚕 Ruta: viajes, esperas y tarifa dinámica · Academia de Datos"><meta property="og:description" content="Tasa de cancelación, tiempos de espera, horas pico, tarifa dinámica, ranking de conductores y retención de pasajeros."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/casos-viajes.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#casos">💼 Casos de negocio con SQL</a> · Avanzado · 55 min</div>
+<h1>Caso 🚕 Ruta: viajes, esperas y tarifa dinámica</h1><p class="resumen">Tasa de cancelación, tiempos de espera, horas pico, tarifa dinámica, ranking de conductores y retención de pasajeros.</p>
+<a class="cta" href="../index.html#/l/casos-viajes">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular tasas de completitud y de viajes sin conductor por ciudad y por hora</li><li>Medir tiempos de espera y duración con diferencias entre marcas de tiempo</li><li>Separar el ingreso base del ingreso por tarifa dinámica</li><li>Rankear conductores con un mínimo de viajes y medir la retención de pasajeros</li></ul>
+<!-- estandar:escenario -->
+<div class="callout callout-escenario"><div class="callout-title">🏢 Ruta</div>
+
+<p>La gerente de operaciones de <strong>Ruta</strong>, la app de viajes, tiene la reunión mensual con las ciudades:</p>
+<blockquote>
+<p>&quot;Cada ciudad dice que le va bien, pero los números de quejas dicen otra cosa. Quiero ver por ciudad cuántas solicitudes se completan, cuánto espera la gente y qué conductores son los mejores. Y finanzas quiere saber cuánto ganamos por la tarifa dinámica.&quot;</p>
+</blockquote>
+<p>Una app de viajes es un <strong>mercado de dos lados</strong>: pasajeros que piden y conductores que ofrecen. Si falta oferta, se pierden viajes; si sobra, los conductores ganan poco y se van.</p>
+</div>
+
+<p><strong>Ruta</strong> es una app de viajes que opera en cinco ciudades. Operaciones quiere saber dónde falla el servicio y finanzas quiere entender los ingresos.</p>
+<h2>El modelo de datos</h2>
+<pre><code class="language-text">viajes_pasajeros (pasajero_id, ciudad, fecha_registro)
+viajes_conductores (conductor_id, nombre, ciudad, fecha_alta, vehiculo)
+viajes_viajes (viaje_id, pasajero_id, conductor_id, ciudad,
+               fecha_hora_solicitud, fecha_hora_inicio, fecha_hora_fin,
+               distancia_km, tarifa, multiplicador, estado, calificacion)</code></pre>
+<ul>
+<li>Cada fila de <code>viajes_viajes</code> es una <strong>solicitud</strong>. <code>estado</code>: <code>completado</code>, <code>cancelado_pasajero</code>, <code>cancelado_conductor</code> o <code>sin_conductor</code> (nadie aceptó).</li>
+<li><strong>Tiempo de espera</strong> = minutos entre <code>fecha_hora_solicitud</code> y <code>fecha_hora_inicio</code> (solo completados).</li>
+<li><code>multiplicador</code> &gt; 1 significa <strong>tarifa dinámica</strong> (<em>surge</em>): hay más demanda que conductores.</li>
+<li><code>tarifa</code> y <code>calificacion</code> solo existen en viajes completados (y no todos califican).</li>
+</ul>
+<h2>Cómo funciona una app de viajes</h2>
+<p>Una app como Ruta es un <strong>mercado de dos lados</strong> (<em>marketplace</em>): de un lado los <strong>pasajeros</strong> que piden viajes, del otro los <strong>conductores</strong> que los aceptan. La app no tiene autos: conecta a ambos y cobra una comisión por cada viaje completado. Su gran desafío es el <strong>equilibrio entre oferta y demanda</strong>:</p>
+<ul>
+<li>Si hay <strong>más pasajeros que conductores</strong> (hora pico, lluvia), las esperas crecen, muchas solicitudes quedan <code>sin_conductor</code> y los pasajeros se van a la competencia.</li>
+<li>Si hay <strong>más conductores que pasajeros</strong>, los conductores ganan poco por hora y dejan de conectarse.</li>
+</ul>
+<p>La <strong>tarifa dinámica</strong> (<em>surge pricing</em>) es la herramienta para equilibrar: cuando falta oferta, el precio sube (<code>multiplicador</code> &gt; 1). Eso reduce algo de demanda y, sobre todo, atrae conductores a la calle.</p>
+<h2>Los indicadores (KPIs) de este caso</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>KPI</th>
+<th>Definición</th>
+<th>Fórmula</th>
+<th>Por qué importa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tasa de completados</strong></td>
+<td>Solicitudes que terminan en viaje</td>
+<td>completados / solicitudes</td>
+<td>Mide la calidad del servicio: cada solicitud perdida es ingreso perdido</td>
+</tr>
+<tr>
+<td><strong>Tasa sin conductor</strong></td>
+<td>Solicitudes que nadie aceptó</td>
+<td>sin_conductor / solicitudes</td>
+<td>Indica <strong>falta de oferta</strong> (zonas u horas a reforzar)</td>
+</tr>
+<tr>
+<td><strong>Tasa de cancelación</strong></td>
+<td>Cancelaciones del pasajero o del conductor</td>
+<td>canceladas / solicitudes</td>
+<td>Pasajero: esperas largas o precio. Conductor: viajes poco convenientes</td>
+</tr>
+<tr>
+<td><strong>Tiempo de espera</strong></td>
+<td>Minutos desde la solicitud hasta el inicio</td>
+<td><code>(inicio − solicitud) × 1440</code></td>
+<td>La métrica que más percibe el pasajero</td>
+</tr>
+<tr>
+<td><strong>Tarifa por km</strong></td>
+<td>Ingreso por distancia recorrida</td>
+<td><code>SUM(tarifa) / SUM(distancia_km)</code></td>
+<td>Compara precios entre ciudades o tipos de vehículo</td>
+</tr>
+<tr>
+<td><strong>Ingreso por hora conectado</strong></td>
+<td>Lo que gana un conductor por hora de viaje</td>
+<td>tarifa / horas de viaje</td>
+<td>Si baja, los conductores se van</td>
+</tr>
+<tr>
+<td><strong>Retención de pasajeros</strong></td>
+<td>Pasajeros que vuelven a viajar</td>
+<td>activos en el mes N que ya viajaban antes</td>
+<td>Adquirir un pasajero nuevo es caro: retener es crecer</td>
+</tr>
+</tbody></table></div>
+<h2>Un ejemplo resuelto paso a paso</h2>
+<p><strong>Pregunta:</strong> &quot;¿Cambia la experiencia según el tipo de vehículo? Queremos viajes, distancia promedio, tarifa por km y calificación promedio.&quot;</p>
+<ol>
+<li><strong>Grano</strong>: una fila por tipo de vehículo. El vehículo está en <code>viajes_conductores</code>, así que hay que <strong>unir</strong> con el conductor de cada viaje.</li>
+<li><strong>Filtro</strong>: solo viajes <code>completado</code> (los demás no tienen tarifa ni distancia).</li>
+<li><strong>Métricas</strong>: ojo con la tarifa por km: es <code>SUM(tarifa) / SUM(distancia)</code>, <strong>no</strong> el promedio de <code>tarifa / distancia</code> de cada viaje (un viaje de 1 km a precio mínimo distorsionaría ese promedio). Es el famoso &quot;promedio de cocientes vs. cociente de sumas&quot;.</li>
+</ol>
+<pre><code class="language-sql">SELECT c.vehiculo,
+       COUNT(*)                                   AS viajes,
+       ROUND(AVG(v.distancia_km), 1)              AS km_promedio,
+       ROUND(SUM(v.tarifa) / SUM(v.distancia_km), 2) AS tarifa_por_km,
+       ROUND(AVG(v.calificacion), 2)              AS calificacion
+FROM viajes_viajes v
+JOIN viajes_conductores c ON c.conductor_id = v.conductor_id
+WHERE v.estado = 'completado'
+GROUP BY c.vehiculo
+ORDER BY tarifa_por_km DESC;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>vehiculo</th>
+<th>viajes</th>
+<th>km_promedio</th>
+<th>tarifa_por_km</th>
+<th>calificacion</th>
+</tr>
+</thead><tbody><tr>
+<td>van</td>
+<td>647</td>
+<td>10.1</td>
+<td>1.29</td>
+<td>4.21</td>
+</tr>
+<tr>
+<td>auto</td>
+<td>6437</td>
+<td>10.2</td>
+<td>1.28</td>
+<td>4.27</td>
+</tr>
+<tr>
+<td>moto</td>
+<td>1839</td>
+<td>10.2</td>
+<td>1.26</td>
+<td>4.34</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lectura de negocio:</strong> las motos cobran un poco menos por km pero tienen la <strong>mejor calificación</strong> (probablemente llegan más rápido en el tráfico). Ese dato justifica, por ejemplo, ofrecer motos en las horas pico de ciudades congestionadas.</p>
+<p>Fíjate en <code>AVG(v.calificacion)</code>: 2.317 viajes completados <strong>no</strong> tienen calificación (<code>NULL</code>), y <code>AVG</code> los ignora. Es lo correcto aquí: un viaje sin calificar no es un viaje con nota 0.</p>
+<div class="recorrido"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las trampas de este caso</div>
+
+<ul>
+<li><strong>El denominador</strong>: &quot;tasa de cancelación&quot; sobre <strong>todas</strong> las solicitudes o sobre las que tuvieron conductor asignado da números distintos. Decláralo siempre.</li>
+<li><strong>Promedio de cocientes</strong>: usa <code>SUM(a) / SUM(b)</code> para tasas como tarifa por km o ingreso por hora.</li>
+<li><strong>Columnas que solo existen en algunos estados</strong>: tarifa, inicio, fin y calificación son <code>NULL</code> en los viajes no completados. Filtra antes de calcular.</li>
+</ul>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Las apps de movilidad usan <strong>streaming</strong>: los precios dinámicos se calculan cada pocos segundos con la oferta y la demanda de cada zona. Lo verás con Kinesis, Pub/Sub y Spark Streaming.</li>
+<li>Los rankings de calificación siempre usan un mínimo de viajes (o promedios bayesianos), porque un conductor con un solo viaje de 5 estrellas no es mejor que uno con 2.000 viajes de 4,9.</li>
+<li>Las marcas de tiempo se guardan en UTC y se convierten a la hora local de cada ciudad. Con ciudades en distintos husos horarios, un error de zona horaria mueve los picos de demanda.</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Tasa de cancelación sobre los viajes completados</strong>: el denominador son todas las solicitudes.</li>
+<li><strong>Tiempo de espera promedio con valores nulos</strong> de viajes cancelados: el promedio queda sesgado; decide si se excluyen y dilo.</li>
+<li><strong>Horas pico en la zona horaria del servidor</strong> (UTC) en vez de la local.</li>
+<li><strong>Ranking de conductores sin mínimo de viajes</strong>: un conductor con un viaje de 5 estrellas queda primero.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo armarías un ranking justo de conductores por calificación?&quot;</div>
+
+<p>Exigiría un mínimo de viajes en el período para que el promedio sea estable, y consideraría un promedio ajustado (bayesiano) que acerca a la media general a quienes tienen pocos viajes. Rankearía con <code>DENSE_RANK</code> por ciudad para comparar en el mismo contexto, y desempataría por cantidad de viajes. Mostraría además la tasa de cancelación del conductor, porque una buena nota con muchas cancelaciones no es un buen servicio.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/casos-viajes">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="casos-streaming.html">← Caso 🎧 Ritmo: suscripciones, MRR y churn</a><a href="casos-clinica.html">Caso 🏥 Clínica del Sur: ausentismo, agenda y facturación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cargas duplicadas - reintentos, idempotencia y MERGE · Academia de Datos</title><meta name="description" content="El incidente más común de un pipeline - un reintento que vuelve a insertar lo que ya estaba. Por qué pasa (timeouts después del COMMIT, entrega al menos una vez, joins que multiplican filas), cómo medir el impacto, cómo deduplicar sin perder datos y cómo hacer cargas idempotentes con borrar e insertar por partición, UPSERT y MERGE."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-duplicados-e-idempotencia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cargas duplicadas - reintentos, idempotencia y MERGE · Academia de Datos"><meta property="og:description" content="El incidente más común de un pipeline - un reintento que vuelve a insertar lo que ya estaba. Por qué pasa (timeouts después del COMMIT, entrega al menos una vez, joins que multiplican filas), cómo medir el impacto, cómo deduplicar sin perder datos y cómo hacer cargas idempotentes con borrar e insertar por partición, UPSERT y MERGE."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/incidentes-duplicados-e-idempotencia.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#incidentes">🚨 Guardia: incidentes y mantenimiento de pipelines</a> · Avanzado · 60 min</div>
+<h1>Cargas duplicadas - reintentos, idempotencia y MERGE</h1><p class="resumen">El incidente más común de un pipeline - un reintento que vuelve a insertar lo que ya estaba. Por qué pasa (timeouts después del COMMIT, entrega al menos una vez, joins que multiplican filas), cómo medir el impacto, cómo deduplicar sin perder datos y cómo hacer cargas idempotentes con borrar e insertar por partición, UPSERT y MERGE.</p>
+<a class="cta" href="../index.html#/l/incidentes-duplicados-e-idempotencia">▶ Abrir la lección interactiva (13 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar por qué un reintento puede duplicar una carga aunque la tarea haya fallado</li><li>Detectar y cuantificar duplicados por carga y su impacto en los totales</li><li>Eliminar duplicados conservando una fila por clave</li><li>Escribir una recarga idempotente por partición y un UPSERT</li><li>Detectar la duplicación por un join que multiplica filas</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>Finanzas escribe a las 09:30: &quot;las ventas del 28/10 dan el <strong>doble</strong> de lo que dice el sistema de facturación&quot;. La tarea <code>cargar_fct_pedidos</code> muestra un intento fallido por timeout y un segundo intento exitoso. Nadie tocó nada. ¿Cómo puede un intento <strong>fallido</strong> haber cargado datos?</p>
+</div>
+
+
+<h2>La idea en una frase</h2>
+<p>Una carga es <strong>idempotente</strong> si correrla una vez o diez veces deja exactamente el mismo resultado. Los reintentos son inevitables (redes que se cortan, workers que se reinician, timeouts), así que <strong>toda carga tiene que poder repetirse sin duplicar</strong>.</p>
+<h2>Cómo un intento fallido carga datos</h2>
+<figure class="diagrama"><figcaption>El commit fantasma</figcaption></figure>
+
+
+<p>El problema no es el reintento: es que la carga es un <strong>append</strong> (<code>INSERT INTO … SELECT …</code>). Un append solo es seguro si el mismo lote nunca puede llegar dos veces, y en sistemas distribuidos eso no se puede garantizar.</p>
+<p>Otras fuentes de duplicados:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Causa</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Entrega al menos una vez</strong> (at-least-once)</td>
+<td>Kafka, SQS y Pub/Sub pueden entregar el mismo mensaje dos veces después de un rebalanceo o un reinicio</td>
+</tr>
+<tr>
+<td><strong>Backfill encima de datos existentes</strong></td>
+<td>Alguien reprocesa octubre con un <code>INSERT</code> y los días ya cargados quedan dobles</td>
+</tr>
+<tr>
+<td><strong>El origen manda duplicados</strong></td>
+<td>Una API con paginación por offset devuelve una fila en dos páginas si cambian los datos durante la lectura</td>
+</tr>
+<tr>
+<td><strong>Un join que multiplica filas</strong> (fan-out)</td>
+<td>Unir pedidos con pagos cuando un pedido tiene tres cuotas: el monto del pedido aparece tres veces</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las claves primarias de los warehouses no se validan</div>
+
+<p>En Snowflake, BigQuery, Redshift y Databricks, <code>PRIMARY KEY</code> y <code>UNIQUE</code> son <strong>informativos</strong>: el motor no rechaza duplicados (Snowflake solo valida <code>NOT NULL</code>). En PostgreSQL, MySQL y SQLite sí se validan. Si tu warehouse no valida la clave, necesitas un check de unicidad.</p>
+</div>
+
+
+<h2>Las tres formas de cargar sin duplicar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Estrategia</th>
+<th>Cómo</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Reemplazar la partición</strong></td>
+<td><code>DELETE</code> del día + <code>INSERT</code> del día, en una transacción (o <code>INSERT OVERWRITE</code> / <code>replaceWhere</code>)</td>
+<td>Tablas de hechos particionadas por fecha; backfills</td>
+</tr>
+<tr>
+<td><strong>UPSERT / MERGE por clave</strong></td>
+<td><code>INSERT … ON CONFLICT DO UPDATE</code> o <code>MERGE INTO … WHEN MATCHED … WHEN NOT MATCHED</code></td>
+<td>Dimensiones y tablas que reciben cambios de filas sueltas</td>
+</tr>
+<tr>
+<td><strong>Clave de idempotencia</strong></td>
+<td>Cada evento trae un id único; se ignoran los ya vistos</td>
+<td>Eventos y streaming</td>
+</tr>
+</tbody></table></div>
+<div class="motores"></div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ MERGE con duplicados en el origen</div>
+
+<p>Si la tabla de origen de un <code>MERGE</code> tiene dos filas con la misma clave, el motor no sabe cuál aplicar y falla: SQL Server dice <em>&quot;The MERGE statement attempted to UPDATE or DELETE the same row more than once&quot;</em>, Databricks lanza <code>DELTA_MULTIPLE_SOURCE_ROW_MATCHING_TARGET_ROW_IN_MERGE</code> y BigQuery <em>&quot;UPDATE/MERGE must match at most one source row for each target row&quot;</em>. Deduplica el origen antes (por ejemplo, la última versión de cada clave con <code>ROW_NUMBER</code>).</p>
+</div>
+
+
+<h2>Antes de borrar: medir el impacto</h2>
+<p>En un incidente de duplicados, antes de tocar nada responde:</p>
+<ol>
+<li><strong>¿Qué cargas y qué fechas</strong> están afectadas? (por <code>load_id</code> o por fecha)</li>
+<li><strong>¿Cuánto se infló</strong> cada métrica? (para avisar a Finanzas con números)</li>
+<li><strong>¿Quién consumió los datos duplicados?</strong> Tableros, exportaciones a otros sistemas, modelos. Si una exportación ya salió, el incidente no termina cuando arreglas la tabla.</li>
+<li><strong>Respaldo</strong>: guarda una copia de las filas que vas a borrar (o anota la versión de la tabla si es Delta o Iceberg).</li>
+</ol>
+<h2>Práctica</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Borrar sin respaldo</strong>: antes de un <code>DELETE</code> masivo, copia las filas (<code>CREATE TABLE respaldo AS SELECT …</code>) o anota la versión de la tabla.</li>
+<li><strong>Deduplicar con <code>DISTINCT</code> sobre todas las columnas</strong>: si las copias difieren en <code>cargado_en</code> o <code>load_id</code>, <code>DISTINCT</code> no las une. Deduplica por la <strong>clave de negocio</strong>.</li>
+<li><strong>Usar <code>RANK</code> para elegir la última versión</strong>: con empates devuelve más de una fila por clave. Usa <code>ROW_NUMBER</code> con un desempate determinista.</li>
+<li><strong>Arreglar la tabla y olvidar a los consumidores</strong>: si una exportación o un modelo ya leyó los duplicados, también hay que corregirlos o avisar.</li>
+<li><strong>&quot;Solucionarlo&quot; quitando los reintentos</strong>: el próximo corte de red deja el día sin datos. La solución es que la carga sea idempotente.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En Airflow, cada tarea recibe la fecha lógica (<code>{{ ds }}</code>) y escribe <strong>solo esa partición</strong>: así un reintento o un backfill reemplaza en lugar de agregar.</li>
+<li>En dbt, los modelos <code>incremental</code> usan <code>unique_key</code> (MERGE) o la estrategia <code>insert_overwrite</code> / <code>delete+insert</code> por partición.</li>
+<li>En Spark con Delta: <code>replaceWhere</code> o <code>MERGE</code>; en Spark Structured Streaming, <code>foreachBatch</code> con MERGE y el id del lote.</li>
+<li>Muchas empresas agregan una columna <code>_load_id</code> o <code>_cargado_en</code> a cada tabla: hace triviales los diagnósticos como el de este incidente.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 Pregunta de entrevista</div>
+
+<p><strong>&quot;¿Qué significa que un pipeline sea idempotente y cómo lo logras?&quot;</strong> Que correrlo varias veces con la misma entrada deja el mismo resultado. Se logra escribiendo por partición con reemplazo (delete+insert, <code>INSERT OVERWRITE</code>, <code>replaceWhere</code>), con MERGE por una clave de negocio, o con claves de idempotencia en eventos. Menciona el caso del timeout después del COMMIT: demuestra que entiendes por qué los reintentos duplican.</p>
+</div>
+
+
+<h2>Resumen</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Solución</th>
+</tr>
+</thead><tbody><tr>
+<td>Hechos por fecha</td>
+<td>Reemplazar la partición (delete+insert, overwrite, replaceWhere)</td>
+</tr>
+<tr>
+<td>Cambios de filas sueltas</td>
+<td>UPSERT / MERGE por clave, con el origen deduplicado</td>
+</tr>
+<tr>
+<td>Eventos con entrega al menos una vez</td>
+<td>Id único del evento + deduplicación</td>
+</tr>
+<tr>
+<td>Join entre tablas de distinto grano</td>
+<td>Agregar la tabla hija antes de unir</td>
+</tr>
+</tbody></table></div>
+
+<h2>Practica</h2><p>Esta lección tiene <b>13 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/incidentes-duplicados-e-idempotencia">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="incidentes-monitoreo-y-checks.html">← Mantener sin apagar incendios - checks, alertas y runbooks</a><a href="incidentes-cambios-de-esquema.html">Cambios de esquema - la columna que desapareció →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

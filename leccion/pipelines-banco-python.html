@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco 🏦: reglas financieras en Python · Academia de Datos</title><meta name="description" content="Cuota francesa y tabla de amortización, tramos de mora y provisiones, reglas de aprobación de crédito y conciliación de transacciones, programadas y probadas en Python."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-banco-python.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Banco 🏦: reglas financieras en Python · Academia de Datos"><meta property="og:description" content="Cuota francesa y tabla de amortización, tramos de mora y provisiones, reglas de aprobación de crédito y conciliación de transacciones, programadas y probadas en Python."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/pipelines-banco-python.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#pipelines">🧠 Casos de negocio de punta a punta</a> · Avanzado · 50 min</div>
+<h1>Banco 🏦: reglas financieras en Python</h1><p class="resumen">Cuota francesa y tabla de amortización, tramos de mora y provisiones, reglas de aprobación de crédito y conciliación de transacciones, programadas y probadas en Python.</p>
+<a class="cta" href="../index.html#/l/pipelines-banco-python">▶ Abrir la lección interactiva (6 ejercicios)</a>
+
+<p><strong>Banco Andino</strong> (el caso 🏦 del módulo de SQL) necesita su lógica financiera en código: el área de riesgo quiere poder auditar cada regla. Recordemos el modelo:</p>
+<pre><code class="language-text">banco_clientes (cliente_id, …, segmento, score_crediticio)
+banco_prestamos (prestamo_id, cliente_id, fecha_otorgado, monto, tasa_anual, plazo_meses, estado)
+banco_cuotas (cuota_id, prestamo_id, numero, fecha_vencimiento, fecha_pago, monto)
+banco_transacciones (tx_id, cuenta_id, fecha_hora, tipo, monto, canal, comercio, ciudad, es_fraude)</code></pre>
+<h2>La cuota francesa</h2>
+<p>En Latinoamérica casi todos los préstamos personales usan el <strong>sistema francés</strong>: todas las cuotas son <strong>iguales</strong>; al principio pagas sobre todo intereses y al final sobre todo capital.</p>
+<pre><code class="language-text">                 r
+cuota = P · ─────────────      P = monto, r = tasa_anual / 12, n = plazo en meses
+            1 − (1 + r)^(−n)</code></pre>
+<p>Ejemplo real del caso: el préstamo 1 es de <strong>11.000</strong> al <strong>30 % anual</strong> en <strong>24 meses</strong> → r = 0,025 → la cuota es <strong>615,04</strong>. Puedes verificarlo en la tabla: <code>SELECT monto FROM banco_cuotas WHERE prestamo_id = 1 LIMIT 1</code>.</p>
+<p>Cada mes:</p>
+<ul>
+<li><strong>interés</strong> = saldo pendiente × r</li>
+<li><strong>capital</strong> = cuota − interés</li>
+<li><strong>nuevo saldo</strong> = saldo − capital</li>
+</ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 La bola de nieve al revés</div>
+
+<p>Al principio el saldo es grande, así que el interés se come casi toda la cuota. Cada mes el saldo baja un poco, el interés baja, y una parte mayor de la misma cuota va a capital. La deuda se derrite cada vez más rápido.</p>
+</div>
+
+
+<h3>Los primeros meses, a mano</h3>
+<p>Para entender una fórmula financiera, lo mejor es hacer dos o tres filas a mano antes de programarla. Con P = 11.000, r = 0,025 y una cuota de 615,04:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Mes</th>
+<th>Interés (saldo × r)</th>
+<th>Capital (cuota − interés)</th>
+<th>Saldo nuevo</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>11.000 × 0,025 = <strong>275,00</strong></td>
+<td>615,04 − 275,00 = <strong>340,04</strong></td>
+<td>11.000 − 340,04 = <strong>10.659,96</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>10.659,96 × 0,025 = <strong>266,50</strong></td>
+<td>615,04 − 266,50 = <strong>348,54</strong></td>
+<td><strong>10.311,42</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>10.311,42 × 0,025 = <strong>257,79</strong></td>
+<td>615,04 − 257,79 = <strong>357,25</strong></td>
+<td><strong>9.954,17</strong></td>
+</tr>
+</tbody></table></div>
+<p>Fíjate que el interés baja y el capital sube mes a mes, con la misma cuota. Estas tres filas se convierten directamente en <strong>tests</strong>: si tu función de amortización no da 275,00 de interés en el mes 1, está mal, y lo sabes antes de que llegue a un reporte de riesgo.</p>
+<div class="recorrido"></div>
+
+
+<h3>Dinero y decimales: el detalle que separa a un junior de un senior</h3>
+<p>Las computadoras guardan los números con decimales (<code>float</code>) en binario, y muchos valores no se pueden representar exactos. En Python, <code>0.1 + 0.2</code> da <code>0.30000000000000004</code>, y <code>round(2.675, 2)</code> da <code>2.67</code> (no <code>2.68</code>), porque <code>2.675</code> en realidad se guarda como 2,67499999…</p>
+<p>Para cálculos de dinero, Python trae el módulo <code>decimal</code>, que trabaja en base 10 como una calculadora:</p>
+<pre><code class="language-python">from decimal import Decimal, ROUND_HALF_UP
+
+print(0.1 + 0.2)                                              # 0.30000000000000004
+print(round(2.675, 2))                                        # 2.67  (sorpresa)
+print(Decimal(&quot;2.675&quot;).quantize(Decimal(&quot;0.01&quot;), ROUND_HALF_UP))   # 2.68  (redondeo comercial)</code></pre>
+<ul>
+<li><code>Decimal(&quot;2.675&quot;)</code> se crea <strong>desde un texto</strong>, no desde un float (si escribes <code>Decimal(2.675)</code>, hereda el error del float).</li>
+<li><code>quantize(Decimal(&quot;0.01&quot;), ROUND_HALF_UP)</code> redondea a centavos con la regla que se enseña en la escuela: 5 o más, hacia arriba.</li>
+</ul>
+<p>En los ejercicios de abajo alcanza con <code>round</code>, pero en un sistema financiero real se usa <code>Decimal</code> (en Python) o <code>DECIMAL(18, 2)</code> (en SQL), nunca <code>float</code>. Y se <strong>define una regla de redondeo</strong>: ¿se redondea cada cuota y la última absorbe la diferencia, o se redondea al final? Esa regla la decide el área de negocio, no el programador, y va escrita en los tests.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Mora y provisiones</h2>
+<p>El regulador exige <strong>provisionar</strong> (reservar dinero) según los días de atraso de cada préstamo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Días de atraso</th>
+<th>Tramo</th>
+<th>Provisión</th>
+</tr>
+</thead><tbody><tr>
+<td>0 o menos</td>
+<td><code>al_dia</code></td>
+<td>1 %</td>
+</tr>
+<tr>
+<td>1 a 30</td>
+<td><code>1-30</code></td>
+<td>5 %</td>
+</tr>
+<tr>
+<td>31 a 60</td>
+<td><code>31-60</code></td>
+<td>20 %</td>
+</tr>
+<tr>
+<td>61 a 90</td>
+<td><code>61-90</code></td>
+<td>50 %</td>
+</tr>
+<tr>
+<td>más de 90</td>
+<td><code>90+</code></td>
+<td>100 %</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+<h2>Aprobar o rechazar un crédito</h2>
+<p>Un <strong>motor de decisión</strong> es una función que recibe los datos de una solicitud y devuelve una respuesta (aprobar, rechazar o derivar a un analista) <strong>con el motivo</strong>. El motivo no es un detalle: el regulador y el cliente tienen derecho a saber por qué se rechazó un crédito, así que cada <code>return</code> dice qué regla se aplicó. Las reglas se evalúan <strong>en orden</strong>, de la más grave a la más leve, y la primera que se cumple decide. Escribirlas en una función pura (sin leer bases ni la hora actual) permite probar cada regla con un <code>assert</code> y auditar la decisión años después con los mismos datos.</p>
+<div class="exercise-slot"></div>
+
+
+<h2>Conciliación</h2>
+<p>Cada noche el banco compara sus transacciones con las del <strong>procesador de tarjetas</strong>. Las diferencias se investigan: puede ser un error, una demora o un fraude.</p>
+<p>Conciliar dos fuentes siempre tiene la misma forma, sea en Python, en SQL o en Spark. Se arman los dos conjuntos por una <strong>clave común</strong> (el <code>tx_id</code>) y cada transacción cae en uno de cuatro grupos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Grupo</th>
+<th>Significado</th>
+<th>Qué se hace</th>
+</tr>
+</thead><tbody><tr>
+<td>En las dos, con el mismo monto</td>
+<td>Conciliada</td>
+<td>Nada</td>
+</tr>
+<tr>
+<td>En las dos, con distinto monto</td>
+<td>Diferencia de importe</td>
+<td>Se investiga (comisión, error de redondeo, fraude)</td>
+</tr>
+<tr>
+<td>Solo en el banco</td>
+<td>Falta en el procesador</td>
+<td>Puede ser una demora: se revisa al día siguiente</td>
+</tr>
+<tr>
+<td>Solo en el procesador</td>
+<td>Falta en el banco</td>
+<td>La más grave: dinero que se movió sin registro interno</td>
+</tr>
+</tbody></table></div>
+<p>En SQL esto es un <code>FULL OUTER JOIN</code> por la clave; en Python, operaciones con conjuntos de claves (<code>a.keys() &amp; b.keys()</code>, <code>a.keys() - b.keys()</code>). Lo que nunca se hace es comparar solo los <strong>totales</strong>: dos errores opuestos se cancelan y el total cuadra aunque haya dos transacciones mal.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Usar <code>float</code> para dinero</strong> y comparar con <code>==</code>: <code>0.1 + 0.2 == 0.3</code> es <code>False</code>. Usa <code>Decimal</code>, o compara con tolerancia (<code>abs(a - b) &lt; 0.005</code>) cuando solo verificas.</li>
+<li><strong>Calcular los días de atraso con la fecha de hoy</strong> (<code>date.today()</code>): reprocesar el mes pasado da otro resultado. La fecha de corte entra como parámetro.</li>
+<li><strong>Motor de decisión sin motivo</strong>: un &quot;rechazado&quot; sin explicación no se puede auditar ni explicar al cliente.</li>
+<li><strong>Conciliar por totales</strong>: dos errores opuestos se cancelan.</li>
+<li><strong>Olvidar las cuotas sin fecha de pago</strong>: no pagadas no es lo mismo que pagadas el día cero; el atraso se calcula hasta la fecha de corte.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>En bancos y fintechs, las reglas de riesgo viven en código versionado y cada cambio de regla queda registrado con la fecha desde la que aplica, porque una auditoría puede preguntar &quot;¿por qué se aprobó este crédito en 2023?&quot;.</li>
+<li>La conciliación diaria es un pipeline clásico: se carga el archivo del procesador, se cruza con las transacciones internas y las diferencias van a una tabla que un equipo de operaciones revisa cada mañana.</li>
+<li>Los tests de estas funciones usan ejemplos que da el área de negocio (con los números de un préstamo real anonimizado): así los dos lados acuerdan qué es &quot;correcto&quot;.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo garantizarías que un cálculo financiero en un pipeline es correcto?&quot;</div>
+
+<p>Primero pediría al área de negocio ejemplos resueltos a mano, incluidos los casos borde (pago el mismo día del vencimiento, cuotas sin pago, montos cero), y los convertiría en tests antes de programar. Usaría <code>Decimal</code> o tipos <code>DECIMAL</code> en SQL para evitar errores de punto flotante, con una regla de redondeo explícita. La función sería pura, con la fecha de corte como parámetro, para que reprocesar dé el mismo resultado. Y en el pipeline agregaría controles de cuadre, por ejemplo que la suma de capital de la tabla de amortización sea igual al monto del préstamo.</p>
+</div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/pipelines-banco-python">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pipelines-de-la-regla-al-codigo.html">← De la regla de negocio al código</a><a href="pipelines-banco-pipeline.html">Banco 🏦: el pipeline en PySpark, dbt y Airflow →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

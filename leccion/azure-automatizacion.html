@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatización: scripts e infraestructura como código · Academia de Datos</title><meta name="description" content="Desde cero - por qué automatizar, un script bash idempotente con az, qué es la infraestructura como código, Bicep paso a paso, what-if, el modo incremental (y por qué borrar del archivo no borra en Azure), deployment stacks y CI/CD con GitHub Actions y OIDC."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-automatizacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Automatización: scripts e infraestructura como código · Academia de Datos"><meta property="og:description" content="Desde cero - por qué automatizar, un script bash idempotente con az, qué es la infraestructura como código, Bicep paso a paso, what-if, el modo incremental (y por qué borrar del archivo no borra en Azure), deployment stacks y CI/CD con GitHub Actions y OIDC."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-automatizacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure">☁️ Azure y Azure CLI</a> · Experto · 55 min</div>
+<h1>Automatización: scripts e infraestructura como código</h1><p class="resumen">Desde cero - por qué automatizar, un script bash idempotente con az, qué es la infraestructura como código, Bicep paso a paso, what-if, el modo incremental (y por qué borrar del archivo no borra en Azure), deployment stacks y CI/CD con GitHub Actions y OIDC.</p>
+<a class="cta" href="../index.html#/l/azure-automatizacion">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un script de aprovisionamiento con az que se pueda correr dos veces</li><li>Leer y escribir un archivo Bicep con parámetros</li><li>Previsualizar cambios con what-if y entender Create, Modify, NoChange e Ignore</li><li>Explicar el modo incremental y cuándo usar deployment stacks</li><li>Desplegar desde GitHub Actions sin guardar contraseñas</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Antes de crear cualquier recurso en el <a href="#/azure/crear">portal de práctica</a>, abre <strong>Download a template for automation</strong> en <em>Review + create</em>: ahí está la plantilla ARM, el Bicep y el comando <code>az</code> equivalente.</p>
+</div>
+
+
+
+<h2>Por qué automatizar</h2>
+<p>Hacer clics en el portal no es <strong>repetible</strong> (nadie hace los mismos 40 clics dos veces igual) ni <strong>auditable</strong> (no queda escrito quién cambió qué ni por qué). En equipos profesionales la infraestructura se crea con <strong>código</strong>, guardado en Git como cualquier otro programa. Hay dos formas, de menor a mayor madurez:</p>
+<ol>
+<li><strong>Scripts</strong>: una secuencia de comandos <code>az</code> que se ejecutan en orden.</li>
+<li><strong>Infraestructura como código (IaC) declarativa</strong>: un archivo que describe <strong>cómo debe quedar</strong> la infraestructura; la herramienta calcula qué hacer.</li>
+</ol>
+<h2>Un script de aprovisionamiento con az</h2>
+<pre data-norun><code class="language-bash">#!/usr/bin/env bash
+set -euo pipefail                      # cortar ante cualquier error
+
+ENTORNO=${1:-dev}
+UBICACION=eastus2
+RG=&quot;rg-datos-$ENTORNO&quot;
+ST=&quot;stdatos${ENTORNO}001&quot;
+KV=&quot;kv-datos-$ENTORNO&quot;
+
+az group create -n &quot;$RG&quot; -l &quot;$UBICACION&quot; --tags entorno=&quot;$ENTORNO&quot; proyecto=tienda -o none
+az storage account create -n &quot;$ST&quot; -g &quot;$RG&quot; -l &quot;$UBICACION&quot; --sku Standard_LRS --kind StorageV2 --hns true -o none
+for capa in bronze silver gold; do
+  az storage container create -n &quot;$capa&quot; --account-name &quot;$ST&quot; --auth-mode login -o none
+done
+if [ &quot;$(az keyvault list -g &quot;$RG&quot; --query &quot;[?name=='$KV'] | length(@)&quot; -o tsv)&quot; = &quot;0&quot; ]; then
+  az keyvault create -n &quot;$KV&quot; -g &quot;$RG&quot; -l &quot;$UBICACION&quot; -o none
+fi
+echo &quot;✔ Entorno $ENTORNO listo&quot;</code></pre>
+<p>Línea por línea, lo importante:</p>
+<ul>
+<li><code>#!/usr/bin/env bash</code>: la primera línea dice con qué programa se ejecuta el archivo (bash).</li>
+<li><code>set -euo pipefail</code>: tres seguros. <code>-e</code> detiene el script si <strong>cualquier</strong> comando falla; <code>-u</code> lo detiene si usas una variable que no existe (un error de tipeo en <code>$ENTRONO</code> no crea un recurso con nombre vacío); <code>-o pipefail</code> hace que una tubería <code>a | b</code> falle si falla <code>a</code>, no solo si falla <code>b</code>.</li>
+<li><code>ENTORNO=${1:-dev}</code>: toma el primer argumento del script; si no hay, usa <code>dev</code>. Así el mismo script crea dev, test o prod, y los nombres se derivan del entorno: nunca hay nombres escritos a mano.</li>
+<li><code>-o none</code>: no imprime el JSON de cada creación; la salida queda limpia.</li>
+<li>El <code>if</code> del Key Vault consulta primero si existe, con <code>--query</code> (la lección de grupos y consultas explica JMESPath) y <code>-o tsv</code> para obtener el número &quot;pelado&quot;.</li>
+</ul>
+<p>Un script que se puede correr dos veces sin romper nada se llama <strong>idempotente</strong>. Muchos <code>az ... create</code> ya lo son: si el recurso existe con la misma configuración, lo dejan igual. Pero no todos (un Key Vault borrado queda en &quot;borrado lógico&quot; y el nombre no se puede reusar por 90 días), por eso los scripts profesionales preguntan antes de crear o borrar.</p>
+<h2>Infraestructura como código (IaC)</h2>
+<p>Un script dice <strong>cómo</strong> llegar (&quot;crea esto, después esto&quot;). La IaC declarativa dice <strong>qué</strong> quieres que exista (&quot;debe haber una cuenta con HNS y tres contenedores&quot;) y la herramienta compara con lo que ya existe y calcula la diferencia.</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Script con <code>az</code></th>
+<th>Bicep</th>
+<th>Terraform</th>
+</tr>
+</thead><tbody><tr>
+<td>Describe</td>
+<td>Pasos</td>
+<td>Estado final deseado</td>
+<td>Estado final deseado</td>
+</tr>
+<tr>
+<td>Si lo ejecutas dos veces</td>
+<td>Depende de cómo lo escribiste</td>
+<td>Segunda vez: sin cambios</td>
+<td>Segunda vez: sin cambios</td>
+</tr>
+<tr>
+<td>Si <strong>borras</strong> un recurso del código</td>
+<td>Sigue existiendo</td>
+<td><strong>Sigue existiendo</strong> (modo incremental); para borrar se usan <em>deployment stacks</em></td>
+<td><code>terraform plan</code> propone <strong>borrarlo</strong></td>
+</tr>
+<tr>
+<td>Vista previa</td>
+<td>No</td>
+<td><code>az deployment group what-if</code></td>
+<td><code>terraform plan</code></td>
+</tr>
+<tr>
+<td>Dónde guarda qué administra</td>
+<td>En ningún lado</td>
+<td>En Azure mismo</td>
+<td>En un archivo de <strong>estado</strong></td>
+</tr>
+<tr>
+<td>Nubes</td>
+<td>Solo Azure</td>
+<td>Solo Azure</td>
+<td>Azure, AWS, GCP y cientos más</td>
+</tr>
+</tbody></table></div>
+<h2>Bicep paso a paso</h2>
+<p><strong>Bicep</strong> es el lenguaje de Microsoft para describir recursos de Azure. Por dentro, Azure lo traduce a una plantilla ARM (JSON), el formato original, mucho más verboso. Así se lee un archivo:</p>
+<pre data-norun><code class="language-bicep">// main.bicep
+param entorno string                                  // 1. parámetro obligatorio
+param ubicacion string = resourceGroup().location     // 2. parámetro con valor por defecto
+
+resource lake 'Microsoft.Storage/storageAccounts@2025-06-01' = {   // 3. tipo y versión de API
+  name: 'stdatos${entorno}001'                        // 4. nombre armado con el parámetro
+  location: ubicacion
+  sku: { name: 'Standard_LRS' }                       // 5. redundancia local (3 copias en un centro de datos)
+  kind: 'StorageV2'
+  properties: { isHnsEnabled: true }                  // 6. espacio de nombres jerárquico = ADLS Gen2
+  tags: { entorno: entorno }
+}
+
+output lakeId string = lake.id                        // 7. un valor que devuelve el despliegue</code></pre>
+<ol>
+<li><code>param entorno string</code>: un valor que se pasa al desplegar (<code>--parameters entorno=dev</code>). Si no lo pasas, el despliegue falla diciendo qué falta.</li>
+<li>Con <code>= ...</code> el parámetro tiene un valor por defecto. <code>resourceGroup().location</code> es una <strong>función</strong> de Bicep: la región del grupo de recursos donde despliegas.</li>
+<li><code>resource lake &#39;&lt;tipo&gt;@&lt;versión&gt;&#39;</code>: <code>lake</code> es el nombre <strong>simbólico</strong> (para referirte al recurso dentro del archivo); el tipo dice qué es (<code>Microsoft.Storage/storageAccounts</code>) y la fecha es la <strong>versión de la API</strong>, que define qué propiedades existen.</li>
+<li><code>&#39;stdatos${entorno}001&#39;</code>: interpolación, como en bash. Con <code>entorno=dev</code> da <code>stdatosdev001</code>.</li>
+<li>y 6. Las propiedades del recurso, las mismas opciones que verías en el portal.</li>
+<li><code>output</code>: valores que el despliegue devuelve, útiles para encadenar pasos (por ejemplo, pasarle el ID del lago a Databricks).</li>
+</ol>
+<h2>Previsualizar con what-if</h2>
+<p>Antes de aplicar, siempre se mira qué va a pasar. <code>what-if</code> compara el archivo con lo que ya existe y clasifica cada recurso:</p>
+<pre data-norun><code class="language-bash">az deployment group what-if --resource-group rg-datos-dev --template-file main.bicep --parameters entorno=dev
+az deployment group create  --resource-group rg-datos-dev --template-file main.bicep --parameters entorno=dev</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Símbolo</th>
+<th>Tipo de cambio</th>
+<th>Significado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>+</code></td>
+<td>Create</td>
+<td>No existe y está en el archivo: se va a crear</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>Modify</td>
+<td>Existe y está en el archivo, con propiedades distintas: se va a modificar</td>
+</tr>
+<tr>
+<td><code>=</code></td>
+<td>NoChange</td>
+<td>Existe y está igual: se vuelve a desplegar sin cambios</td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td>Ignore</td>
+<td>Existe en Azure pero <strong>no</strong> está en el archivo: no se toca</td>
+</tr>
+</tbody></table></div>
+<h3>El modo incremental: lo que más sorprende</h3>
+<p>Por defecto, un despliegue de Bicep es <strong>incremental</strong>. Según la documentación oficial:</p>
+<ul>
+<li>Los recursos que existen en el grupo pero <strong>no están en el archivo</strong> se dejan como están (por eso <code>what-if</code> dice <em>Ignore</em>). Si borras el Key Vault de tu archivo, el Key Vault <strong>sigue existiendo</strong> en Azure.</li>
+<li>Los recursos que <strong>sí</strong> están en el archivo se vuelven a aplicar <strong>completos</strong>: si una propiedad no está escrita en el archivo, vuelve a su valor <strong>por defecto</strong>. Un error común es creer que lo que no escribes &quot;se deja como está&quot;. El archivo tiene que describir el recurso entero, no solo lo que quieres cambiar.</li>
+</ul>
+<p>Existía un modo <em>complete</em> (que borraba lo que no estaba en el archivo), pero Microsoft ya no lo recomienda y lo está retirando. Para que quitar un recurso del archivo lo <strong>borre</strong>, se usan los <strong>deployment stacks</strong>:</p>
+<pre data-norun><code class="language-bash">az stack group create --name datos --resource-group rg-datos-dev \
+  --template-file main.bicep --parameters entorno=dev \
+  --action-on-unmanage deleteResources \
+  --deny-settings-mode none</code></pre>
+<p>Un <em>stack</em> recuerda qué recursos administra. Si en la siguiente versión del archivo falta uno, <code>--action-on-unmanage</code> decide: <code>detachAll</code> lo deja de administrar pero no lo borra, <code>deleteResources</code> borra los recursos y <code>deleteAll</code> borra también los grupos de recursos administrados. <code>--deny-settings-mode</code> puede además impedir que alguien modifique o borre esos recursos a mano desde el portal.</p>
+<h3>Pruébalo en la terminal</h3>
+<p>La terminal del curso lee de verdad tu archivo Bicep y compara con lo desplegado:</p>
+<pre><code class="language-bash">az login
+az group create -n rg-datos-dev -l eastus2 -o none
+code main.bicep                     # pega el ejemplo de arriba y guarda
+az deployment group what-if -g rg-datos-dev -f main.bicep -p entorno=dev
+az deployment group create -g rg-datos-dev -f main.bicep -p entorno=dev -o none
+az deployment group what-if -g rg-datos-dev -f main.bicep -p entorno=dev</code></pre>
+<p>El primer <code>what-if</code> muestra <code>+ Create</code>; después del <code>create</code>, el segundo muestra <code>= NoChange</code>. Cambia <code>Standard_LRS</code> por <code>Standard_ZRS</code> y vuelve a correrlo: verás <code>~ Modify</code>. Agrega un segundo recurso, despliégalo, bórralo del archivo y mira cómo aparece como <code>* Ignore</code>; después repite con <code>az stack group create ... --action-on-unmanage deleteResources</code> y verás que el stack sí lo borra.</p>
+<div class="recorrido"></div>
+
+
+<h2>CI/CD con GitHub Actions (OIDC, sin secretos)</h2>
+<p>En un equipo, nadie despliega producción desde su computadora: lo hace un <strong>pipeline</strong> de CI/CD cuando se aprueba un <em>pull request</em>. Para que GitHub Actions pueda entrar a Azure sin guardar una contraseña, se usa <strong>OpenID Connect (OIDC)</strong>:</p>
+<ol>
+<li>Se crea una <strong>identidad</strong> en Microsoft Entra ID para el pipeline: una aplicación con <em>service principal</em>, o una identidad administrada asignada por el usuario.</li>
+<li>Se le asigna un rol con los permisos mínimos (por ejemplo, <em>Contributor</em> solo sobre <code>rg-datos-prod</code>).</li>
+<li>Se configura una <strong>credencial federada</strong>: le dice a Azure &quot;confía en los tokens que GitHub emite para el repositorio <code>empresa/plataforma-datos</code>, rama <code>main</code>&quot;.</li>
+<li>En GitHub se guardan como secretos solo tres identificadores, que no son contraseñas: <code>AZURE_CLIENT_ID</code>, <code>AZURE_TENANT_ID</code> y <code>AZURE_SUBSCRIPTION_ID</code>.</li>
+</ol>
+<pre data-norun><code class="language-yaml">name: desplegar-infra
+on: { push: { branches: [main] } }
+permissions: { id-token: write, contents: read }    # id-token: write permite pedir el token OIDC
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - run: az deployment group what-if -g rg-datos-prod -f infra/main.bicep -p entorno=prod
+      - run: az deployment group create -g rg-datos-prod -f infra/main.bicep -p entorno=prod</code></pre>
+<p>En cada ejecución, GitHub emite un token de corta duración que dice &quot;soy el workflow de este repositorio y esta rama&quot;, Azure lo valida contra la credencial federada y entrega acceso por unos minutos. No hay ningún secreto que pueda filtrarse ni que haya que rotar. La documentación recomienda además usar <em>environment secrets</em> con aprobación obligatoria para producción.</p>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Creer que borrar un recurso del Bicep lo borra en Azure</strong>: en modo incremental queda <em>Ignore</em>. Para eso están los deployment stacks.</li>
+<li><strong>Escribir solo las propiedades que quieres cambiar</strong>: las que faltan vuelven a su valor por defecto en el próximo despliegue.</li>
+<li><strong>Scripts sin <code>set -euo pipefail</code></strong>: un paso falla y el script sigue creando recursos sobre una base rota.</li>
+<li><strong>Guardar un secreto de service principal en GitHub</strong> cuando se puede usar OIDC.</li>
+<li><strong>Desplegar producción sin <code>what-if</code></strong>: un cambio de SKU o de redundancia puede recrear recursos.</li>
+<li><strong>Mezclar portal y código</strong>: si alguien cambia a mano lo que maneja Bicep, el próximo despliegue lo pisa. Los <em>deny settings</em> de los stacks lo evitan.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El entorno de desarrollo se armó a mano en el portal hace un año. Ahora hay que crear el de producción &quot;igual&quot;, y nadie recuerda qué opciones se marcaron: qué redundancia tenía la cuenta de almacenamiento, qué etiquetas, qué permisos. Dos semanas después, producción tiene diferencias sutiles con desarrollo que causan errores que no se pueden reproducir. Esto es lo que evita la automatización.</p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>La estructura típica de un repositorio de plataforma: <code>infra/</code> con Bicep o Terraform, un archivo de parámetros por entorno (<code>dev.bicepparam</code>, <code>prod.bicepparam</code>) y un workflow que corre <code>what-if</code> en cada <em>pull request</em> y <code>create</code> al aprobar.</li>
+<li>El resultado de <code>what-if</code> se publica como comentario en el <em>pull request</em> para que el revisor vea qué cambia en Azure, no solo qué cambia en el código.</li>
+<li>Muchas empresas usan Terraform para la plataforma (red, Databricks, almacenamiento, permisos) y Declarative Automation Bundles para los jobs de datos. El módulo de Terraform del curso lo muestra completo.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué pasa si eliminas un recurso de un archivo Bicep y vuelves a desplegar?&quot;</div>
+
+<p>Con el modo por defecto, que es incremental, nada: el recurso sigue existiendo en Azure y what-if lo marca como Ignore. Bicep solo crea o actualiza lo que está en el archivo. Si quiero que el código sea la fuente de verdad también para las eliminaciones, uso un deployment stack con <code>--action-on-unmanage deleteResources</code>, que recuerda qué recursos administra y borra los que ya no están. El modo complete existía para esto pero Microsoft lo está retirando. Además tengo en cuenta que el modo incremental vuelve a aplicar el recurso completo, así que las propiedades que no escribo vuelven a sus valores por defecto.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-automatizacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-servicios-datos.html">← Servicios de datos en Azure desde la CLI</a><a href="aws-aws-para-datos.html">AWS para data engineers en 25 minutos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

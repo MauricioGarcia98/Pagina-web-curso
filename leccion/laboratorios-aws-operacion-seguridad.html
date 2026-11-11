@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio AWS: operación y seguridad de un pipeline · Academia de Datos</title><meta name="description" content="Las piezas que rodean a un pipeline en producción - credenciales en Secrets Manager con rotación, una clave de KMS con alias y rotación anual, un tópico de SNS para alertas, una regla programada de EventBridge, una alarma de CloudWatch sobre fallos de Glue y una tabla de DynamoDB para el estado de los envíos con TTL. Cubre el dominio 3 y 4 del DEA-C01 y la parte de seguridad del MLA-C01."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-operacion-seguridad.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Laboratorio AWS: operación y seguridad de un pipeline · Academia de Datos"><meta property="og:description" content="Las piezas que rodean a un pipeline en producción - credenciales en Secrets Manager con rotación, una clave de KMS con alias y rotación anual, un tópico de SNS para alertas, una regla programada de EventBridge, una alarma de CloudWatch sobre fallos de Glue y una tabla de DynamoDB para el estado de los envíos con TTL. Cubre el dominio 3 y 4 del DEA-C01 y la parte de seguridad del MLA-C01."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/laboratorios-aws-operacion-seguridad.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#laboratorios">🧪 Laboratorios guiados en la nube</a> · Avanzado · 55 min</div>
+<h1>Laboratorio AWS: operación y seguridad de un pipeline</h1><p class="resumen">Las piezas que rodean a un pipeline en producción - credenciales en Secrets Manager con rotación, una clave de KMS con alias y rotación anual, un tópico de SNS para alertas, una regla programada de EventBridge, una alarma de CloudWatch sobre fallos de Glue y una tabla de DynamoDB para el estado de los envíos con TTL. Cubre el dominio 3 y 4 del DEA-C01 y la parte de seguridad del MLA-C01.</p>
+<a class="cta" href="../index.html#/l/laboratorios-aws-operacion-seguridad">▶ Abrir la lección interactiva (15 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Guardar y leer credenciales con Secrets Manager en lugar de dejarlas en el código</li><li>Crear una clave de KMS con alias y rotación</li><li>Conectar alarmas de CloudWatch y reglas de EventBridge con SNS</li><li>Modelar una tabla de DynamoDB con clave de partición y de orden, y consultarla con begins_with</li><li>Borrar todo al terminar</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El pipeline nocturno de la tienda funciona, pero la contraseña de la base está en el código, nadie se entera cuando un job falla y el estado de cada envío se guarda en un CSV. Auditoría pide cifrado con clave propia y rotación. Vas a dejarlo listo para producción.</p>
+</div>
+
+
+<h2>Arquitectura</h2>
+<figure class="diagrama"><figcaption>Operación del pipeline nocturno</figcaption></figure>
+
+
+<h2>Costo en una cuenta real</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td>Secreto de Secrets Manager</td>
+<td>USD 0,40 por mes (prorrateado: centavos si lo borras hoy)</td>
+</tr>
+<tr>
+<td>Clave de KMS administrada por el cliente</td>
+<td>USD 1 por mes, prorrateada; se borra con espera de 7 a 30 días</td>
+</tr>
+<tr>
+<td>SNS, EventBridge, CloudWatch (una alarma)</td>
+<td>Capa gratuita</td>
+</tr>
+<tr>
+<td>DynamoDB bajo demanda</td>
+<td>Centavos</td>
+</tr>
+</tbody></table></div>
+<h2>Práctica guiada</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>En tu cuenta real</h2>
+<ul>
+<li><strong>Confirma la suscripción</strong>: SNS manda un correo con un enlace; hasta que no lo abras, la suscripción queda <code>pending confirmation</code>.</li>
+<li><strong>Permisos de destino</strong>: para que EventBridge publique en SNS, el tópico necesita una política que permita <code>events.amazonaws.com</code>. Con <code>put-targets</code> apuntando a un job de Glue o a Step Functions, la regla usa un rol.</li>
+<li><strong>Rotación de secretos</strong>: para RDS, la consola crea la Lambda de rotación por ti; por CLI, <code>aws secretsmanager rotate-secret --rotation-lambda-arn … --rotation-rules AutomaticallyAfterDays=30</code>.</li>
+</ul>
+<pre data-norun><code class="language-python">import json, boto3
+
+sm = boto3.client(&quot;secretsmanager&quot;)
+cred = json.loads(sm.get_secret_value(SecretId=&quot;lab/rds/ventas&quot;)[&quot;SecretString&quot;])
+# conecta con cred[&quot;usuario&quot;] y cred[&quot;clave&quot;]; nunca imprimas la clave en los logs</code></pre>
+<h2>Limpieza</h2>
+<pre data-norun><code class="language-bash">aws dynamodb delete-table --table-name envios-lab
+aws events remove-targets --rule carga-nocturna-lab --ids 1
+aws events delete-rule --name carga-nocturna-lab
+aws cloudwatch delete-alarms --alarm-names glue-job-fallido-lab
+aws sns delete-topic --topic-arn arn:aws:sns:us-east-1:&lt;cuenta&gt;:alertas-datos-lab
+aws secretsmanager delete-secret --secret-id lab/rds/ventas --force-delete-without-recovery
+aws kms delete-alias --alias-name alias/lago-silver-lab
+aws kms schedule-key-deletion --key-id $KEY --pending-window-in-days 7</code></pre>
+<div class="exercise-slot"></div>
+
+
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Credenciales en variables de entorno o en el código</strong> en lugar de Secrets Manager: quedan en el historial de Git y en los logs.</li>
+<li><strong>Rotar la contraseña sin que la aplicación la vuelva a leer</strong>: la rotación funciona y el pipeline falla al día siguiente. El código debe leer el secreto en cada ejecución (o con un caché corto).</li>
+<li><strong>Alarmas que nadie recibe</strong>: un tópico de SNS sin suscripción confirmada no avisa a nadie.</li>
+<li><strong>Permisos con <code>*</code></strong> en la política de IAM del pipeline: si la credencial se filtra, da acceso a todo.</li>
+<li><strong>Programar con EventBridge en hora local</strong> sin revisar la zona: las expresiones <code>cron</code> de EventBridge son en UTC salvo que uses EventBridge Scheduler con zona horaria.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Estas piezas (secretos, cifrado, alertas, programación, alarmas) rodean a casi todo pipeline en AWS y suelen definirse con infraestructura como código (CloudFormation, CDK o Terraform), no a mano.</li>
+<li>Las alarmas tienen un responsable y un <em>runbook</em>: qué mirar y qué hacer cuando suena.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Cómo manejarías las credenciales de una base de datos que usa un pipeline en AWS?&quot;</div>
+
+<p>Las guardaría en Secrets Manager, cifradas con una clave de KMS, con rotación automática. El pipeline correría con un rol de IAM que solo puede leer ese secreto, y lo leería en cada ejecución en lugar de copiarlo a variables o archivos. Ninguna credencial en el código ni en el repositorio, y CloudTrail para auditar quién accedió al secreto.</p>
+</div>
+
+
+<h2>Preguntas de examen</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>15 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/laboratorios-aws-operacion-seguridad">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="laboratorios-aws-sagemaker.html">← Laboratorio AWS: entrenar con Spot, desplegar y borrar un endpoint de SageMaker</a><a href="laboratorios-gcp-bigquery-bqml.html">Laboratorio Google Cloud: BigQuery particionado, dry run y BigQuery ML →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

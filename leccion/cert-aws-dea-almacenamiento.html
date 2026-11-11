@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEA-C01 - Administración del almacén de datos · Academia de Datos</title><meta name="description" content="El dominio 2 del DEA-C01 (26 %) - elegir el almacén correcto (S3, Redshift, DynamoDB, RDS/Aurora, OpenSearch, vectores), clases de almacenamiento y ciclo de vida de S3, formatos y particionado, Apache Iceberg y S3 Tables, el Glue Data Catalog y los crawlers, el diseño de tablas en Redshift (distribución, ordenamiento, Spectrum, RA3, Serverless), el modelado en DynamoDB y los índices vectoriales HNSW e IVF."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-dea-almacenamiento.html">
+<meta property="og:type" content="article"><meta property="og:title" content="DEA-C01 - Administración del almacén de datos · Academia de Datos"><meta property="og:description" content="El dominio 2 del DEA-C01 (26 %) - elegir el almacén correcto (S3, Redshift, DynamoDB, RDS/Aurora, OpenSearch, vectores), clases de almacenamiento y ciclo de vida de S3, formatos y particionado, Apache Iceberg y S3 Tables, el Glue Data Catalog y los crawlers, el diseño de tablas en Redshift (distribución, ordenamiento, Spectrum, RA3, Serverless), el modelado en DynamoDB y los índices vectoriales HNSW e IVF."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/cert-aws-dea-almacenamiento.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#cert-aws">🥇 Certificaciones AWS: Data Engineer e IA</a> · Avanzado · 70 min</div>
+<h1>DEA-C01 - Administración del almacén de datos</h1><p class="resumen">El dominio 2 del DEA-C01 (26 %) - elegir el almacén correcto (S3, Redshift, DynamoDB, RDS/Aurora, OpenSearch, vectores), clases de almacenamiento y ciclo de vida de S3, formatos y particionado, Apache Iceberg y S3 Tables, el Glue Data Catalog y los crawlers, el diseño de tablas en Redshift (distribución, ordenamiento, Spectrum, RA3, Serverless), el modelado en DynamoDB y los índices vectoriales HNSW e IVF.</p>
+<a class="cta" href="../index.html#/l/cert-aws-dea-almacenamiento">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir el almacén de datos según el patrón de acceso</li><li>Configurar clases y reglas de ciclo de vida de S3</li><li>Diseñar tablas de Redshift con estilos de distribución y claves de ordenamiento</li><li>Explicar las ventajas de Iceberg y S3 Tables</li><li>Modelar claves de partición y ordenamiento en DynamoDB</li><li>Elegir entre índices vectoriales HNSW e IVF</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El lago de Tomás ya recibe datos, pero los costos de S3 crecen 20 % por mes, las consultas a Redshift sobre envíos tardan minutos y la app de seguimiento necesita leer el estado de un envío en milisegundos. Además, el equipo de IA pide guardar embeddings de manuales para un asistente. Todo es el dominio 2: dónde y cómo se guardan los datos.</p>
+</div>
+
+
+<h2>Elegir el almacén</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón</th>
+<th>Servicio</th>
+</tr>
+</thead><tbody><tr>
+<td>Lago de datos barato, cualquier formato, analítica con varios motores</td>
+<td><strong>Amazon S3</strong> (con Iceberg o S3 Tables)</td>
+</tr>
+<tr>
+<td>Data warehouse SQL, agregaciones sobre grandes volúmenes, BI</td>
+<td><strong>Amazon Redshift</strong></td>
+</tr>
+<tr>
+<td>Clave-valor con latencia de milisegundos a cualquier escala</td>
+<td><strong>Amazon DynamoDB</strong></td>
+</tr>
+<tr>
+<td>Transaccional relacional (OLTP)</td>
+<td><strong>Amazon RDS / Aurora</strong></td>
+</tr>
+<tr>
+<td>Búsqueda de texto, logs, búsqueda vectorial</td>
+<td><strong>Amazon OpenSearch Service</strong></td>
+</tr>
+<tr>
+<td>Vectores baratos a gran escala sobre S3</td>
+<td><strong>Amazon S3 Vectors</strong></td>
+</tr>
+<tr>
+<td>Grafos (relaciones, fraude)</td>
+<td><strong>Amazon Neptune</strong></td>
+</tr>
+<tr>
+<td>Series de tiempo</td>
+<td><strong>Amazon Timestream</strong></td>
+</tr>
+<tr>
+<td>Caché en memoria</td>
+<td><strong>Amazon ElastiCache / MemoryDB</strong></td>
+</tr>
+</tbody></table></div>
+<div class="recorrido"></div>
+
+
+<h2>Amazon S3 a fondo</h2>
+<h3>Clases de almacenamiento</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Clase</th>
+<th>Uso típico</th>
+<th>Detalle</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>S3 Standard</strong></td>
+<td>Datos de acceso frecuente</td>
+<td>Sin costo de recuperación</td>
+</tr>
+<tr>
+<td><strong>S3 Intelligent-Tiering</strong></td>
+<td>Patrón de acceso <strong>desconocido o cambiante</strong></td>
+<td>Mueve objetos entre niveles automáticamente; pequeño cargo de monitoreo</td>
+</tr>
+<tr>
+<td><strong>S3 Standard-IA</strong></td>
+<td>Acceso infrecuente, recuperación inmediata</td>
+<td>Mínimo 30 días; cobro por GB recuperado</td>
+</tr>
+<tr>
+<td><strong>S3 One Zone-IA</strong></td>
+<td>Infrecuente y recreable</td>
+<td>Una sola zona de disponibilidad</td>
+</tr>
+<tr>
+<td><strong>S3 Glacier Instant Retrieval</strong></td>
+<td>Acceso trimestral, recuperación en milisegundos</td>
+<td>Mínimo 90 días</td>
+</tr>
+<tr>
+<td><strong>S3 Glacier Flexible Retrieval</strong></td>
+<td>Archivo, minutos a horas</td>
+<td>Mínimo 90 días</td>
+</tr>
+<tr>
+<td><strong>S3 Glacier Deep Archive</strong></td>
+<td>Retención legal de años</td>
+<td>Hasta 12–48 horas; mínimo 180 días; la más barata</td>
+</tr>
+<tr>
+<td><strong>S3 Express One Zone</strong></td>
+<td>Latencia de un dígito de milisegundos para cargas intensivas (ML, consultas)</td>
+<td>Buckets de directorio en una zona</td>
+</tr>
+</tbody></table></div>
+<p><strong>Reglas de ciclo de vida</strong>: transicionan objetos por antigüedad (por ejemplo, a Standard-IA a los 30 días y a Deep Archive a los 365) y los <strong>expiran</strong>; también borran versiones antiguas y cargas multiparte incompletas. <strong>Versionado</strong> protege de borrados; <strong>Object Lock</strong> (modo cumplimiento) impide borrar o modificar durante el período de retención (WORM).</p>
+<pre data-norun><code class="language-json">{
+  &quot;Rules&quot;: [{
+    &quot;ID&quot;: &quot;bronze-a-archivo&quot;,
+    &quot;Filter&quot;: {&quot;Prefix&quot;: &quot;bronze/&quot;},
+    &quot;Status&quot;: &quot;Enabled&quot;,
+    &quot;Transitions&quot;: [
+      {&quot;Days&quot;: 30, &quot;StorageClass&quot;: &quot;STANDARD_IA&quot;},
+      {&quot;Days&quot;: 365, &quot;StorageClass&quot;: &quot;DEEP_ARCHIVE&quot;}
+    ],
+    &quot;NoncurrentVersionExpiration&quot;: {&quot;NoncurrentDays&quot;: 30},
+    &quot;AbortIncompleteMultipartUpload&quot;: {&quot;DaysAfterInitiation&quot;: 7}
+  }]
+}</code></pre>
+<h3>Formatos y particionado</h3>
+<ul>
+<li><strong>Parquet u ORC</strong> (columnares y comprimidos) reducen lo escaneado por Athena, Redshift Spectrum y Glue: menos costo y más velocidad que CSV o JSON.</li>
+<li><strong>Particionar</strong> por las columnas de filtro (fecha, región) con el esquema <code>s3://lago/ventas/anio=2026/mes=10/</code>. No sobreparticionar: millones de particiones con archivos chicos empeoran todo.</li>
+<li><strong>Archivos chicos</strong>: compactar a archivos de 128 MB–1 GB.</li>
+<li><strong>Compresión</strong>: Snappy (rápida), GZIP (más compacta, no divisible en texto), ZSTD.</li>
+</ul>
+<h3>Apache Iceberg y S3 Tables</h3>
+<p><strong>Iceberg</strong> es un formato de tabla abierto que agrega a los archivos de S3:</p>
+<ul>
+<li>Transacciones <strong>ACID</strong>, <code>MERGE</code>, <code>UPDATE</code> y <code>DELETE</code> desde Athena, Glue, EMR, Redshift y Firehose.</li>
+<li><strong>Evolución de esquema</strong> y de particiones sin reescribir datos.</li>
+<li><strong>Particionado oculto</strong>: el usuario filtra por <code>fecha</code> y Iceberg aplica la partición <code>day(fecha)</code>.</li>
+<li><strong>Viaje en el tiempo</strong> y snapshots.</li>
+</ul>
+<p><strong>Amazon S3 Tables</strong> son <em>table buckets</em> que guardan tablas Iceberg <strong>administradas</strong>: AWS ejecuta automáticamente la compactación, la expiración de snapshots y el borrado de archivos huérfanos, con más rendimiento de consulta que Iceberg autogestionado. Se integran con el catálogo de AWS Glue y Lake Formation.</p>
+<pre data-norun><code class="language-sql">-- Athena: tabla Iceberg y upsert
+CREATE TABLE silver.envios (
+  envio_id string, estado string, actualizado timestamp
+)
+PARTITIONED BY (day(actualizado))
+LOCATION 's3://lago/silver/envios/'
+TBLPROPERTIES ('table_type' = 'ICEBERG');
+
+MERGE INTO silver.envios t
+USING bronze.envios_cambios s ON t.envio_id = s.envio_id
+WHEN MATCHED THEN UPDATE SET estado = s.estado, actualizado = s.actualizado
+WHEN NOT MATCHED THEN INSERT VALUES (s.envio_id, s.estado, s.actualizado);
+
+OPTIMIZE silver.envios REWRITE DATA USING BIN_PACK;   -- compactar</code></pre>
+<h2>El catálogo de datos</h2>
+<ul>
+<li><strong>AWS Glue Data Catalog</strong>: metastore compatible con Hive con bases, tablas, esquemas y particiones, compartido por Athena, Redshift Spectrum, EMR y Glue.</li>
+<li><strong>Crawlers</strong>: recorren S3 o JDBC, infieren el esquema y crean o actualizan tablas y particiones. Se programan o se disparan por evento.</li>
+<li>Alternativas al crawler para particiones nuevas: <code>MSCK REPAIR TABLE</code>, <code>ALTER TABLE ADD PARTITION</code>, la API <code>BatchCreatePartition</code> o <strong>partition projection</strong> en Athena (calcula las particiones desde la configuración, sin catálogo, ideal para muchas particiones).</li>
+<li><strong>Glue Schema Registry</strong>: versiona esquemas Avro, JSON o Protobuf para streams.</li>
+<li><strong>Amazon SageMaker Catalog</strong> (construido sobre Amazon DataZone): catálogo de <strong>negocio</strong> para descubrir, publicar y suscribirse a datos con glosario y aprobaciones, dentro de <strong>SageMaker Unified Studio</strong>.</li>
+</ul>
+<h2>Amazon Redshift</h2>
+<h3>Arquitectura</h3>
+<ul>
+<li><strong>RA3</strong> con <strong>Redshift Managed Storage</strong>: cómputo y almacenamiento escalan por separado.</li>
+<li><strong>Redshift Serverless</strong>: se paga por <strong>RPU</strong>-hora, sin clúster; ideal para cargas variables.</li>
+<li><strong>Concurrency scaling</strong>: agrega capacidad temporal en picos de consultas.</li>
+<li><strong>Data sharing</strong>: compartir datos en vivo entre clústeres o cuentas sin copiar.</li>
+<li><strong>Redshift Spectrum</strong>: consulta tablas externas en S3 (catálogo de Glue) y las une con tablas locales.</li>
+<li><strong>Federated query</strong>: consulta RDS/Aurora PostgreSQL y MySQL en vivo.</li>
+<li><strong>Vistas materializadas</strong> con refresco automático, también sobre streams (<strong>streaming ingestion</strong> desde Kinesis o MSK).</li>
+</ul>
+<h3>Diseño de tablas</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Estilo de distribución</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>AUTO</strong> (por defecto)</td>
+<td>Redshift decide según el tamaño</td>
+</tr>
+<tr>
+<td><strong>KEY</strong></td>
+<td>Tablas grandes que se unen por la misma columna: las filas con igual clave van al mismo nodo y el join no mueve datos</td>
+</tr>
+<tr>
+<td><strong>ALL</strong></td>
+<td>Dimensiones <strong>chicas</strong> que se unen con todo: copia completa en cada nodo</td>
+</tr>
+<tr>
+<td><strong>EVEN</strong></td>
+<td>Sin joins claros: reparto en round robin</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><strong>Sort keys</strong>: las columnas por las que se filtra o rangea (normalmente la fecha). Permiten saltar bloques (<em>zone maps</em>). Las compuestas sirven si el filtro usa el prefijo.</li>
+<li><strong>Compresión</strong> (<code>ENCODE AUTO</code>, AZ64 para numéricos y fechas, ZSTD para texto).</li>
+<li>Carga con <strong><code>COPY</code></strong> desde S3 en paralelo (varios archivos, divisibles), nunca con miles de <code>INSERT</code>. <code>UNLOAD</code> exporta a S3 en Parquet.</li>
+<li><code>VACUUM</code> reordena y libera espacio; <code>ANALYZE</code> actualiza estadísticas (ambos automáticos por defecto).</li>
+</ul>
+<pre data-norun><code class="language-sql">CREATE TABLE envios (
+  envio_id    BIGINT,
+  cliente_id  INT,
+  fecha       DATE,
+  monto       DECIMAL(12,2)
+)
+DISTSTYLE KEY DISTKEY (cliente_id)
+SORTKEY (fecha);
+
+COPY envios
+FROM 's3://lago/silver/envios/'
+IAM_ROLE 'arn:aws:iam::123456789012:role/redshift-copy'
+FORMAT AS PARQUET;</code></pre>
+<h2>Amazon DynamoDB</h2>
+<ul>
+<li>Tabla con <strong>clave de partición</strong> (y opcional <strong>clave de ordenamiento</strong>). Toda consulta eficiente usa la clave: <code>Query</code> por partición; <code>Scan</code> lee todo (caro).</li>
+<li><strong>GSI</strong> (índice secundario global): otra clave de partición y ordenamiento, se crea cuando sea. <strong>LSI</strong>: misma partición, otro ordenamiento, solo al crear la tabla.</li>
+<li>Capacidad <strong>on-demand</strong> o <strong>aprovisionada</strong> con auto scaling. Claves de baja cardinalidad crean particiones calientes.</li>
+<li><strong>TTL</strong> borra ítems vencidos sin costo; <strong>DynamoDB Streams</strong> emite los cambios (para Lambda o CDC); <strong>PITR</strong> restaura a cualquier segundo de los últimos 35 días; <strong>DAX</strong> es un caché de microsegundos.</li>
+<li><strong>Export to S3</strong> (sin consumir capacidad) y <strong>zero-ETL</strong> a Redshift u OpenSearch para analítica.</li>
+</ul>
+<h2>Vectores (nuevo en v1.1)</h2>
+<p>Los <strong>embeddings</strong> se guardan en un almacén vectorial y se buscan por similitud.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Índice</th>
+<th>Cómo funciona</th>
+<th>Cuándo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>HNSW</strong></td>
+<td>Grafo jerárquico de vecinos navegables</td>
+<td><strong>Mejor recall y baja latencia</strong>; usa más memoria; inserciones incrementales sin reentrenar</td>
+</tr>
+<tr>
+<td><strong>IVF</strong></td>
+<td>Agrupa los vectores en <em>clusters</em> y busca en los más cercanos</td>
+<td><strong>Menos memoria</strong>, conjuntos muy grandes; requiere entrenar los centroides; recall algo menor</td>
+</tr>
+</tbody></table></div>
+<p>Opciones en AWS: <strong>OpenSearch Service/Serverless</strong> (motores FAISS o Lucene, HNSW o IVF, cuantización para ahorrar memoria), <strong>Aurora PostgreSQL con pgvector</strong>, <strong>Amazon S3 Vectors</strong> (más barato, latencia de subsegundo, para grandes volúmenes poco consultados) y <strong>MemoryDB</strong> (latencia mínima). <strong>Bedrock Knowledge Bases</strong> divide los documentos en fragmentos (<em>chunking</em>), genera los embeddings y los guarda en uno de esos almacenes automáticamente.</p>
+<div class="callout callout-examen"><div class="callout-title">🏅 Palabras clave</div>
+
+<ul>
+<li>&quot;Patrón de acceso desconocido&quot; → <strong>Intelligent-Tiering</strong>.</li>
+<li>&quot;Retener 7 años, recuperar raramente, lo más barato&quot; → <strong>Glacier Deep Archive</strong>.</li>
+<li>&quot;Dimensión chica unida con todas las tablas de hechos&quot; → <strong>DISTSTYLE ALL</strong>.</li>
+<li>&quot;Miles de particiones nuevas por día en Athena&quot; → <strong>partition projection</strong>.</li>
+<li>&quot;Upserts y borrados en el lago&quot; → <strong>Iceberg</strong> (o S3 Tables para que AWS lo mantenga).</li>
+</ul>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/cert-aws-dea-almacenamiento">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="cert-aws-dea-ingesta-transformacion.html">← DEA-C01 - Ingesta y transformación de datos en AWS</a><a href="cert-aws-dea-operacion-seguridad.html">DEA-C01 - Operación, monitoreo, seguridad y gobierno →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

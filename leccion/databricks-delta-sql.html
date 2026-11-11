@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delta Lake en la práctica (SQL de Databricks) · Academia de Datos</title><meta name="description" content="Crear tablas Delta, MERGE, time travel, RESTORE, OPTIMIZE, VACUUM, Liquid Clustering, constraints y Change Data Feed."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-delta-sql.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Delta Lake en la práctica (SQL de Databricks) · Academia de Datos"><meta property="og:description" content="Crear tablas Delta, MERGE, time travel, RESTORE, OPTIMIZE, VACUUM, Liquid Clustering, constraints y Change Data Feed."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-delta-sql.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks">🧩 Databricks y Databricks CLI</a> · Intermedio · 40 min</div>
+<h1>Delta Lake en la práctica (SQL de Databricks)</h1><p class="resumen">Crear tablas Delta, MERGE, time travel, RESTORE, OPTIMIZE, VACUUM, Liquid Clustering, constraints y Change Data Feed.</p>
+<a class="cta" href="../index.html#/l/databricks-delta-sql">▶ Abrir la lección interactiva (5 ejercicios)</a>
+
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo en el navegador</div>
+
+<p>Ejecuta estas sentencias en el <a href="#/databricks/sql">editor SQL de práctica</a> y después resuelve la <a href="#/l/databricks-practica-sql">práctica autocorregida</a>: <code>CREATE TABLE</code>, <code>MERGE INTO</code>, <code>DESCRIBE HISTORY</code>, <code>VERSION AS OF</code>, <code>RESTORE</code>, <code>OPTIMIZE</code>, <code>VACUUM</code> y las restricciones <code>CHECK</code> funcionan, y los errores tienen el mismo formato que en Databricks (<code>[TABLE_OR_VIEW_NOT_FOUND]</code>, <code>[DELTA_VACUUM_RETENTION_PERIOD_TOO_SHORT]</code>…).</p>
+</div>
+
+
+<p>Todo lo que sigue se ejecuta en Databricks (SQL warehouse o notebook con <code>%sql</code>). Los ejercicios te piden <strong>escribir</strong> las sentencias y compararlas con una respuesta modelo.</p>
+<h2>Cómo funciona Delta Lake por dentro</h2>
+<p>Una tabla Delta es una carpeta en el lago con dos cosas:</p>
+<pre><code class="language-text">/lake/silver/clientes/
+├── part-00000-a1b2.snappy.parquet      ← los datos: archivos Parquet comunes
+├── part-00001-c3d4.snappy.parquet
+├── part-00002-e5f6.snappy.parquet
+└── _delta_log/                         ← el &quot;libro de actas&quot; de la tabla
+    ├── 00000000000000000000.json       ← versión 0: se crearon los archivos a1b2 y c3d4
+    ├── 00000000000000000001.json       ← versión 1: se agregó e5f6 (un INSERT)
+    └── 00000000000000000002.json       ← versión 2: se quitó c3d4 y se agregó otro (un UPDATE)</code></pre>
+<p>Cada operación (<code>INSERT</code>, <code>UPDATE</code>, <code>MERGE</code>, <code>DELETE</code>) <strong>no modifica</strong> los archivos existentes: escribe archivos nuevos y agrega una entrada al <code>_delta_log</code> que dice &quot;a partir de ahora, la tabla está formada por estos archivos y no por aquellos&quot;. Esto permite todo lo que hace especial a Delta:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capacidad</th>
+<th>Cómo la logra el registro</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Transacciones ACID</strong></td>
+<td>Una escritura solo &quot;existe&quot; cuando su entrada en el log se confirma: si el job falla a la mitad, los archivos a medio escribir se ignoran</td>
+</tr>
+<tr>
+<td><strong>Lecturas consistentes</strong></td>
+<td>Un lector usa la última versión confirmada; nunca ve una escritura a medias</td>
+</tr>
+<tr>
+<td><strong>Time travel</strong></td>
+<td>Las versiones viejas siguen descritas en el log (y sus archivos siguen en disco hasta el <code>VACUUM</code>)</td>
+</tr>
+<tr>
+<td><strong>UPDATE / DELETE / MERGE</strong></td>
+<td>Se reescriben solo los archivos afectados y el log registra el cambio</td>
+</tr>
+<tr>
+<td><strong>Esquema obligatorio</strong></td>
+<td>El log guarda el esquema; una escritura con columnas incompatibles se rechaza</td>
+</tr>
+</tbody></table></div>
+<p>Apache <strong>Iceberg</strong> y <strong>Hudi</strong> funcionan con la misma idea (metadatos + archivos Parquet). Hoy Databricks puede leer y escribir también Iceberg (UniForm), así que los conceptos se transfieren.</p>
+<div class="recorrido"></div>
+
+
+<h2>Crear tablas</h2>
+<pre data-norun><code class="language-sql">CREATE CATALOG IF NOT EXISTS dev;
+CREATE SCHEMA IF NOT EXISTS dev.silver;
+
+CREATE TABLE IF NOT EXISTS dev.silver.clientes (
+  cliente_id     BIGINT NOT NULL,
+  nombre         STRING,
+  email          STRING,
+  pais           STRING,
+  actualizado_en TIMESTAMP,
+  CONSTRAINT pk_clientes PRIMARY KEY (cliente_id)        -- informativa en Databricks
+)
+CLUSTER BY (pais)                                         -- Liquid Clustering
+COMMENT 'Clientes limpios y deduplicados';
+
+-- CTAS: crear desde una consulta
+CREATE OR REPLACE TABLE dev.gold.ventas_por_pais AS
+SELECT c.pais, SUM(f.importe) AS ventas
+FROM dev.silver.fct_ventas f JOIN dev.silver.clientes c USING (cliente_id)
+GROUP BY c.pais;</code></pre>
+<h2>MERGE: el upsert del lakehouse</h2>
+<pre data-norun><code class="language-sql">MERGE INTO dev.silver.clientes AS t
+USING (
+  SELECT * FROM dev.bronze.clientes_cambios
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY _fecha_ingesta DESC) = 1   -- ¡deduplicar el origen!
+) AS s
+ON t.cliente_id = s.cliente_id
+WHEN MATCHED AND s.operacion = 'D' THEN DELETE
+WHEN MATCHED AND s.actualizado_en &gt; t.actualizado_en THEN UPDATE SET *
+WHEN NOT MATCHED AND s.operacion &lt;&gt; 'D' THEN INSERT *;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ MERGE con duplicados en el origen</div>
+
+<p>Si dos filas del origen coinciden con la misma fila del destino, <code>MERGE</code> falla. Deduplica la fuente antes (como arriba con <code>QUALIFY</code>).</p>
+</div>
+
+
+<h3>Qué hace este MERGE, fila por fila</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación del cliente en <code>s</code> (cambios)</th>
+<th>¿Existe en <code>t</code>?</th>
+<th>Cláusula que aplica</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>Cliente nuevo</td>
+<td>No</td>
+<td><code>WHEN NOT MATCHED … INSERT *</code></td>
+<td>Se agrega</td>
+</tr>
+<tr>
+<td>Cambió su email, y el cambio es más reciente</td>
+<td>Sí</td>
+<td><code>WHEN MATCHED AND s.actualizado_en &gt; t.actualizado_en THEN UPDATE SET *</code></td>
+<td>Se actualiza</td>
+</tr>
+<tr>
+<td>Llegó un cambio <strong>viejo</strong> (atrasado)</td>
+<td>Sí</td>
+<td>Ninguna (la condición de fecha no se cumple)</td>
+<td>No se toca: evita &quot;pisar&quot; un dato nuevo con uno viejo</td>
+</tr>
+<tr>
+<td>Se dio de baja (<code>operacion = &#39;D&#39;</code>)</td>
+<td>Sí</td>
+<td><code>WHEN MATCHED AND s.operacion = &#39;D&#39; THEN DELETE</code></td>
+<td>Se borra</td>
+</tr>
+</tbody></table></div>
+<p>Las cláusulas <code>WHEN</code> se evalúan <strong>en orden</strong> y cada fila usa la primera que se cumple, como un <code>CASE</code>. Correr este <code>MERGE</code> dos veces con los mismos cambios deja la tabla igual: es <strong>idempotente</strong>, la propiedad que buscamos en todo pipeline.</p>
+<h2>Historial, time travel y RESTORE</h2>
+<pre data-norun><code class="language-sql">DESCRIBE HISTORY dev.silver.clientes;                      -- versión, fecha, operación, usuario
+SELECT * FROM dev.silver.clientes VERSION AS OF 5;
+SELECT * FROM dev.silver.clientes TIMESTAMP AS OF '2024-12-01';
+RESTORE TABLE dev.silver.clientes TO VERSION AS OF 5;      -- deshacer un error</code></pre>
+<h2>Mantenimiento</h2>
+<pre data-norun><code class="language-sql">OPTIMIZE dev.silver.fct_ventas;                            -- compacta archivos pequeños
+OPTIMIZE dev.silver.fct_ventas ZORDER BY (cliente_id);     -- (legado) agrupa datos para data skipping
+ALTER TABLE dev.silver.fct_ventas CLUSTER BY (fecha);      -- Liquid Clustering (recomendado hoy)
+VACUUM dev.silver.fct_ventas RETAIN 168 HOURS;             -- borra archivos viejos no referenciados (pierdes time travel más antiguo)
+ANALYZE TABLE dev.silver.fct_ventas COMPUTE STATISTICS;</code></pre>
+<p>Con <strong>Predictive Optimization</strong> (Unity Catalog), Databricks ejecuta OPTIMIZE y VACUUM automáticamente.</p>
+<h2>Calidad y cambios</h2>
+<pre data-norun><code class="language-sql">ALTER TABLE dev.silver.pedidos ADD CONSTRAINT monto_positivo CHECK (monto &gt;= 0);   -- rechaza filas inválidas
+ALTER TABLE dev.silver.pedidos SET TBLPROPERTIES (delta.enableChangeDataFeed = true);
+SELECT * FROM table_changes('dev.silver.pedidos', 10);   -- filas insertadas/actualizadas/borradas desde la versión 10</code></pre>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-delta-sql">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-notebooks-dbutils.html">← Notebooks, magic commands y dbutils</a><a href="databricks-unity-catalog.html">Unity Catalog: permisos y gobierno →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

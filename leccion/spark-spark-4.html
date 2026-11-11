@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spark 4: qué cambió y por qué te importa · Academia de Datos</title><meta name="description" content="Lo nuevo de Spark 4 (la versión estable es la 4.2) explicado desde cero con la documentación oficial - el modo ANSI activado por defecto y las funciones try_, Spark Connect, el tipo VARIANT para JSON, la sintaxis SQL con pipes y Spark Declarative Pipelines."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-spark-4.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Spark 4: qué cambió y por qué te importa · Academia de Datos"><meta property="og:description" content="Lo nuevo de Spark 4 (la versión estable es la 4.2) explicado desde cero con la documentación oficial - el modo ANSI activado por defecto y las funciones try_, Spark Connect, el tipo VARIANT para JSON, la sintaxis SQL con pipes y Spark Declarative Pipelines."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/spark-spark-4.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#spark">⚡ Apache Spark</a> · Avanzado · 50 min</div>
+<h1>Spark 4: qué cambió y por qué te importa</h1><p class="resumen">Lo nuevo de Spark 4 (la versión estable es la 4.2) explicado desde cero con la documentación oficial - el modo ANSI activado por defecto y las funciones try_, Spark Connect, el tipo VARIANT para JSON, la sintaxis SQL con pipes y Spark Declarative Pipelines.</p>
+<a class="cta" href="../index.html#/l/spark-spark-4">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué cambia el modo ANSI y corregir consultas que fallan por él</li><li>Usar try_cast, try_divide y try_to_number para datos sucios</li><li>Explicar la arquitectura cliente-servidor de Spark Connect y sus límites</li><li>Guardar y consultar JSON con VARIANT</li><li>Leer y escribir consultas con la sintaxis pipe</li><li>Reconocer un pipeline declarativo</li></ul>
+<h2>Las versiones, en una tabla</h2>
+<p>Spark sale con una versión grande (<em>major</em>) cada varios años y versiones menores varias veces por año. Databricks, EMR, Dataproc y Fabric incluyen versiones concretas de Spark en sus <em>runtimes</em>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Versión</th>
+<th>Año</th>
+<th>Lo más importante</th>
+</tr>
+</thead><tbody><tr>
+<td>Spark 3.0</td>
+<td>2020</td>
+<td>Adaptive Query Execution (AQE)</td>
+</tr>
+<tr>
+<td>Spark 3.4</td>
+<td>2023</td>
+<td>Primera versión de Spark Connect</td>
+</tr>
+<tr>
+<td>Spark 3.5</td>
+<td>2023</td>
+<td>La última de la línea 3; muy usada todavía</td>
+</tr>
+<tr>
+<td><strong>Spark 4.0</strong></td>
+<td>2025</td>
+<td>Modo ANSI por defecto, VARIANT, sintaxis pipe, Spark Connect maduro</td>
+</tr>
+<tr>
+<td>Spark 4.1</td>
+<td>2025</td>
+<td>Spark Declarative Pipelines</td>
+</tr>
+<tr>
+<td><strong>Spark 4.2</strong></td>
+<td>2026</td>
+<td>La versión estable actual</td>
+</tr>
+</tbody></table></div>
+<h2>1. El modo ANSI: errores en vez de NULL silenciosos</h2>
+<p><strong>ANSI</strong> es el organismo que publica el estándar del lenguaje SQL. Durante años Spark siguió las reglas de Hive (un sistema anterior), que eran &quot;permisivas&quot;: si algo no se podía calcular, devolvía <code>NULL</code> y seguía. Desde Spark 4.0, la configuración <code>spark.sql.ansi.enabled</code> vale <code>true</code> por defecto: Spark sigue el estándar y <strong>lanza un error</strong> ante una operación inválida.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>Spark 3 (sin ANSI)</th>
+<th>Spark 4 (ANSI)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>CAST(&#39;N/A&#39; AS INT)</code></td>
+<td><code>NULL</code></td>
+<td>Error <code>CAST_INVALID_INPUT</code></td>
+</tr>
+<tr>
+<td><code>10 / 0</code></td>
+<td><code>NULL</code></td>
+<td>Error <code>DIVIDE_BY_ZERO</code></td>
+</tr>
+<tr>
+<td>Un entero que se desborda (<code>2147483647 + 1</code> en <code>INT</code>)</td>
+<td>Un número negativo sin sentido</td>
+<td>Error de desbordamiento</td>
+</tr>
+<tr>
+<td><code>element_at(array, 10)</code> en un arreglo de 3 elementos</td>
+<td><code>NULL</code></td>
+<td>Error de índice fuera de rango</td>
+</tr>
+</tbody></table></div>
+<p>¿Por qué es mejor? Porque un <code>NULL</code> silencioso es un <strong>dato perdido que nadie ve</strong>: si 30.000 montos tenían el texto <code>&quot;1.200,50&quot;</code> y Spark los convertía en <code>NULL</code>, la suma de ventas daba de menos y ningún test lo notaba. Con ANSI, el job falla y te obliga a decidir qué hacer con esos datos.</p>
+<h3>Cómo manejar datos sucios a propósito: las funciones <code>try_</code></h3>
+<p>Si <strong>sabes</strong> que una columna trae basura y quieres el comportamiento viejo <strong>solo ahí</strong>, usas las funciones <code>try_</code>, que devuelven <code>NULL</code> en lugar de fallar:</p>
+<pre data-norun><code class="language-sql">SELECT
+  try_cast(monto_texto AS DECIMAL(12, 2))        AS monto,          -- NULL si no es un número
+  try_divide(ingresos, visitas)                  AS ingreso_por_visita, -- NULL si visitas = 0
+  try_to_number(precio_texto, '999,999.99')      AS precio,         -- NULL si no respeta el formato
+  try_element_at(etiquetas, 5)                   AS quinta_etiqueta
+FROM bronze.ventas_crudas;</code></pre>
+<p>En PySpark es lo mismo: <code>F.try_divide(...)</code>, <code>F.col(&quot;x&quot;).try_cast(&quot;int&quot;)</code> o <code>F.expr(&quot;try_cast(x AS INT)&quot;)</code>.</p>
+<p>La buena práctica es usar <code>try_</code> en la capa <strong>silver</strong> (donde se limpian los datos) y además <strong>contar</strong> cuántos <code>NULL</code> se generaron, para que el problema no quede escondido:</p>
+<pre data-norun><code class="language-sql">SELECT COUNT(*) AS filas,
+       COUNT(*) FILTER (WHERE monto_texto IS NOT NULL AND try_cast(monto_texto AS DECIMAL(12,2)) IS NULL) AS montos_invalidos
+FROM bronze.ventas_crudas;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Desactivar ANSI no es la solución</div>
+
+<p>Se puede volver al comportamiento anterior con <code>spark.conf.set(&quot;spark.sql.ansi.enabled&quot;, &quot;false&quot;)</code>, y es tentador hacerlo el lunes del escenario para &quot;que vuelva a andar&quot;. Es solo un parche temporal: esconde el problema de calidad que el error está mostrando. La solución es encontrar las filas malas y tratarlas con <code>try_cast</code> de forma explícita.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>2. Spark Connect: Spark como un servicio</h2>
+<p>En la lección de arquitectura viste que una aplicación de Spark tiene un <strong>driver</strong> (el proceso que planifica) y <strong>executors</strong> (los que procesan). Clásicamente, tu código Python corre <strong>dentro</strong> del mismo proceso que el driver. Spark Connect (desde 3.4, maduro en 4.0) separa las dos cosas, según la documentación oficial:</p>
+<ol>
+<li>Tu código usa un <strong>cliente liviano</strong> (<code>pip install pyspark-client</code>), que puede correr en tu computadora, en un notebook o dentro de una aplicación web.</li>
+<li>Cada operación de DataFrame se convierte en un <strong>plan lógico sin resolver</strong> (la descripción de lo que quieres hacer, no el resultado) y se envía al servidor por la red usando <strong>gRPC</strong>.</li>
+<li>El servidor de Spark recibe el plan, lo optimiza y lo ejecuta como siempre en el clúster.</li>
+<li>Los resultados vuelven al cliente en lotes de <strong>Apache Arrow</strong> (un formato columnar muy rápido de transferir).</li>
+</ol>
+<pre data-norun><code class="language-python">from pyspark.sql import SparkSession
+
+# en lugar de arrancar Spark dentro de tu proceso, te conectas a un servidor remoto
+spark = SparkSession.builder.remote(&quot;sc://servidor-spark:15002&quot;).getOrCreate()
+
+df = spark.read.table(&quot;ventas&quot;)          # la API es la misma de siempre
+df.groupBy(&quot;canal&quot;).count().show()       # el plan viaja al servidor; el resultado vuelve</code></pre>
+<p>Ventajas: el cliente es chico y no necesita Java; si tu programa se cae, el clúster sigue; y varias personas pueden compartir el mismo servidor de forma aislada. Es lo que usan por dentro <strong>Databricks Connect</strong>, el cómputo <em>serverless</em> de Databricks y los notebooks modernos.</p>
+<p>Límites que hay que conocer (también de la documentación):</p>
+<ul>
+<li><strong>No hay RDDs</strong>: Spark Connect solo entiende DataFrames y SQL. <code>df.rdd</code>, <code>sc.parallelize</code> y <code>SparkContext</code> no existen en el cliente.</li>
+<li>No puedes tocar la JVM del driver (<code>df._jdf</code>, <code>spark._jvm</code>): librerías viejas que lo hacen dejan de funcionar.</li>
+<li>Algunas configuraciones del clúster no se pueden cambiar desde la sesión.</li>
+</ul>
+<p>Por eso el código moderno se escribe siempre con la API de DataFrames o SQL, nunca con RDDs.</p>
+<h2>3. VARIANT: JSON sin pelear con los esquemas</h2>
+<p>Muchos datos llegan como JSON: eventos de una app, respuestas de APIs. Hasta ahora había dos opciones malas:</p>
+<ul>
+<li>Guardarlo como <strong>texto</strong> (<code>STRING</code>) y parsearlo en cada consulta con <code>from_json</code> o <code>get_json_object</code>: lento, porque se vuelve a leer el texto cada vez.</li>
+<li>Convertirlo a un <strong>STRUCT</strong> con un esquema fijo: rápido, pero si mañana el JSON trae un campo nuevo, hay que cambiar el esquema y las cargas fallan.</li>
+</ul>
+<p>Spark 4 agregó el tipo <strong>VARIANT</strong>: guarda el JSON en un formato binario eficiente, <strong>sin</strong> esquema fijo, y permite consultar sus campos directamente.</p>
+<pre data-norun><code class="language-sql">CREATE TABLE eventos (id BIGINT, datos VARIANT);
+
+INSERT INTO eventos
+SELECT 1, parse_json('{&quot;tipo&quot;: &quot;compra&quot;, &quot;monto&quot;: 49.9, &quot;items&quot;: [{&quot;sku&quot;: &quot;A1&quot;}, {&quot;sku&quot;: &quot;B7&quot;}]}');
+
+SELECT
+  datos:tipo::string                AS tipo,      -- el operador : navega el JSON
+  datos:monto::decimal(10, 2)       AS monto,     -- :: convierte al tipo que necesitas
+  datos:items[0].sku::string        AS primer_sku
+FROM eventos;</code></pre>
+<ul>
+<li><code>parse_json(texto)</code> convierte el texto JSON a VARIANT (con <code>try_parse_json</code> si puede venir mal formado).</li>
+<li><code>datos:campo</code> lee un campo; <code>[0]</code> entra en un arreglo; <code>.sku</code> entra en un objeto.</li>
+<li><code>::tipo</code> convierte el valor al tipo SQL que necesitas.</li>
+<li>Si un campo no existe en una fila, el resultado es <code>NULL</code>, sin error: el esquema puede variar fila por fila.</li>
+</ul>
+<p>Úsalo en <strong>bronze</strong> para guardar el JSON tal como llega sin perder nada, y extrae a columnas normales en <strong>silver</strong> los campos que el negocio usa siempre.</p>
+<h2>4. La sintaxis pipe: SQL que se lee de arriba hacia abajo</h2>
+<p>Un <code>SELECT</code> clásico se <strong>escribe</strong> en un orden (<code>SELECT … FROM … WHERE … GROUP BY</code>) pero se <strong>ejecuta</strong> en otro (primero <code>FROM</code>, luego <code>WHERE</code>, luego <code>GROUP BY</code>, y recién al final <code>SELECT</code>). Con varias subconsultas anidadas, leerlo es un ejercicio de paciencia. Spark 4 agregó la <strong>sintaxis pipe</strong> (<code>|&gt;</code>), donde cada línea es un paso aplicado al resultado del anterior, en el orden en que ocurre:</p>
+<pre data-norun><code class="language-sql">-- SQL clásico
+SELECT canal, COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS ventas
+FROM pedidos
+WHERE estado &lt;&gt; 'cancelado'
+GROUP BY canal
+HAVING COUNT(*) &gt; 100
+ORDER BY ventas DESC;
+
+-- La misma consulta con pipes
+FROM pedidos
+|&gt; WHERE estado &lt;&gt; 'cancelado'
+|&gt; AGGREGATE COUNT(*) AS pedidos, ROUND(SUM(total), 2) AS ventas GROUP BY canal
+|&gt; WHERE pedidos &gt; 100
+|&gt; ORDER BY ventas DESC;</code></pre>
+<p>Cómo leerla: &quot;parto de <code>pedidos</code>, me quedo con los no cancelados, agrupo por canal calculando pedidos y ventas, me quedo con los canales de más de 100 pedidos, ordeno&quot;. Detalles:</p>
+<ul>
+<li>Se empieza con <code>FROM tabla</code> (o <code>TABLE tabla</code>).</li>
+<li><code>AGGREGATE … GROUP BY …</code> reemplaza a <code>SELECT … GROUP BY</code>.</li>
+<li>Un <code>WHERE</code> después de agregar cumple la función del <code>HAVING</code>: no hace falta otra palabra.</li>
+<li><code>|&gt; EXTEND expresión AS nombre</code> agrega una columna sin repetir todas las demás, y <code>|&gt; SET</code>, <code>|&gt; DROP</code> y <code>|&gt; AS alias</code> cambian, quitan o renombran.</li>
+<li>Se puede mezclar: se pueden agregar pasos <code>|&gt;</code> al final de cualquier consulta normal.</li>
+</ul>
+<p>Es opcional: la sintaxis clásica sigue funcionando y es la que vas a ver más. Pero para consultas largas de exploración, los pipes se parecen mucho a encadenar métodos de un DataFrame (<code>df.filter(...).groupBy(...).agg(...)</code>).</p>
+<h2>5. Spark Declarative Pipelines: decir qué tablas quieres, no cómo construirlas</h2>
+<p>En un pipeline &quot;imperativo&quot; tú escribes los pasos: leo esto, transformo, escribo en tal tabla, en este orden, y si falla vuelvo a intentar. En un pipeline <strong>declarativo</strong> describes <strong>qué tablas deben existir y de qué consulta salen</strong>, y el motor se ocupa del orden, de las dependencias, de los reintentos y de la ejecución incremental. Spark 4.1 incorporó este enfoque como <strong>Spark Declarative Pipelines (SDP)</strong>; es el mismo modelo que Databricks ofrece como <strong>Lakeflow Declarative Pipelines</strong> (antes Delta Live Tables).</p>
+<pre data-norun><code class="language-python">from pyspark import pipelines as dp
+from pyspark.sql import functions as F
+
+@dp.table                                   # tabla de streaming: procesa solo lo nuevo
+def bronze_pedidos():
+    return spark.readStream.format(&quot;json&quot;).load(&quot;/lago/landing/pedidos/&quot;)
+
+@dp.materialized_view                       # vista materializada: se recalcula cuando cambia el origen
+def ventas_por_dia():
+    return (spark.read.table(&quot;bronze_pedidos&quot;)
+              .groupBy(F.to_date(&quot;fecha&quot;).alias(&quot;dia&quot;))
+              .agg(F.sum(&quot;total&quot;).alias(&quot;ventas&quot;)))</code></pre>
+<ul>
+<li>Cada función decorada <strong>define</strong> una tabla: el nombre de la tabla es el nombre de la función.</li>
+<li><code>@dp.table</code> con una lectura <code>readStream</code> crea una <strong>tabla de streaming</strong> (incremental). <code>@dp.materialized_view</code> con una lectura normal crea una <strong>vista materializada</strong>.</li>
+<li>No hay <code>write</code> ni orden de ejecución: SDP ve que <code>ventas_por_dia</code> lee <code>bronze_pedidos</code> y construye primero la otra. Es la misma idea del <code>ref()</code> de dbt.</li>
+<li>Se ejecuta con la línea de comandos: <code>spark-pipelines init</code> crea el proyecto, <code>spark-pipelines dry-run</code> valida el grafo sin escribir datos y <code>spark-pipelines run</code> lo ejecuta.</li>
+</ul>
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Actualizar a Spark 4 sin probar los jobs</strong>: el modo ANSI hace fallar consultas que antes &quot;funcionaban&quot; devolviendo NULL. Antes de migrar, corre los jobs en un entorno de prueba con datos reales.</li>
+<li><strong>Desactivar ANSI globalmente</strong> para que vuelva a andar: esconde datos rotos. Usa <code>try_cast</code> donde corresponde y cuenta los inválidos.</li>
+<li><strong>Usar RDDs o <code>df._jdf</code></strong> en código nuevo: no funciona en Spark Connect ni en el cómputo serverless.</li>
+<li><strong>Guardar JSON como STRING y parsearlo en cada consulta</strong>: lento; usa VARIANT o extrae a columnas.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El caso</div>
+
+<p>El equipo actualizó el clúster de Spark 3.5 a Spark 4 un viernes. El lunes, el job de ventas falló con un error que nunca habían visto: <code>CAST_INVALID_INPUT: The value &#39;N/A&#39; of the type &quot;STRING&quot; cannot be cast to &quot;INT&quot;</code>. El código no cambió. Lo que cambió fue una regla de Spark: ahora, cuando un dato no se puede convertir, Spark <strong>avisa</strong> en lugar de inventar un <code>NULL</code> en silencio. </p>
+</div>
+
+
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Databricks Runtime 17.3 LTS usa Spark 4.0, el 18 LTS usa Spark 4.1 y el 19 usa Spark 4.2: si trabajas con Databricks, estas reglas ya te afectan.</li>
+<li>En las migraciones, el trabajo típico de un data engineer es correr los jobs en un entorno con Spark 4, juntar los errores <code>CAST_INVALID_INPUT</code> y <code>DIVIDE_BY_ZERO</code>, y decidir caso por caso: corregir el origen, usar <code>try_</code> o agregar una regla de calidad.</li>
+<li>VARIANT se volvió el estándar para ingerir eventos JSON en bronze, tanto en Spark como en Delta e Iceberg.</li>
+</ul>
+</div>
+
+
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué cambió con el modo ANSI en Spark 4 y cómo lo manejarías en una migración?&quot;</div>
+
+<p>Desde Spark 4.0 <code>spark.sql.ansi.enabled</code> está activado por defecto, así que las operaciones inválidas, como convertir un texto que no es número, dividir por cero o desbordar un entero, lanzan un error en lugar de devolver NULL. Eso evita perder datos en silencio. En una migración correría los jobs en un entorno de prueba, identificaría las consultas que fallan, y para las columnas que sé que traen datos sucios usaría funciones <code>try_cast</code> o <code>try_divide</code> de forma explícita en silver, contando cuántas filas quedan nulas para monitorearlo. No desactivaría ANSI globalmente salvo como medida temporal.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Novedad</th>
+<th>En una línea</th>
+</tr>
+</thead><tbody><tr>
+<td>Modo ANSI</td>
+<td>Operaciones inválidas dan error en vez de NULL</td>
+</tr>
+<tr>
+<td><code>try_cast</code>, <code>try_divide</code></td>
+<td>NULL a propósito, solo donde lo decides</td>
+</tr>
+<tr>
+<td>Spark Connect</td>
+<td>Cliente liviano que envía planes a un servidor de Spark por gRPC; sin RDDs</td>
+</tr>
+<tr>
+<td>VARIANT</td>
+<td>JSON en formato binario, sin esquema fijo, consultable con <code>:</code> y <code>::</code></td>
+</tr>
+<tr>
+<td>Sintaxis pipe</td>
+<td><code>FROM t |&gt; WHERE … |&gt; AGGREGATE …</code> en el orden en que se ejecuta</td>
+</tr>
+<tr>
+<td>Declarative Pipelines</td>
+<td>Defines tablas con funciones; el motor decide orden y ejecución</td>
+</tr>
+</tbody></table></div>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h3>Practica con código</h3>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/spark-spark-4">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="spark-streaming.html">← Structured Streaming</a><a href="pyspark-sparksession.html">SparkSession y tu primer DataFrame →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

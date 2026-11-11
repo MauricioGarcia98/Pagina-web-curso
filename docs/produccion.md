@@ -92,12 +92,11 @@ Si tienes visitantes de la Unión Europea, el Reino Unido o Suiza, Google exige 
 - [ ] Ingreso por correo probado en dos navegadores; "Borrar mis datos de la nube" funciona.
 - [ ] Privacidad y Términos muestran tu nombre y tu correo de contacto.
 - [ ] Probaste el sitio en un celular con datos móviles.
-- [ ] (Opcional) Alta en Google Search Console y envío del dominio.
+- [ ] Alta en Google Search Console: verifica el dominio y envía `sitemap.xml`. El build genera una página por lección en `leccion/` y el sitemap con tu dominio: cambia `homepage` en `package.json` por tu dominio y vuelve a ejecutar `node tools/build.mjs`.
 
 ## Lo que falta para crecer
 
 Estas mejoras no bloquean el lanzamiento:
 
-1. **Una dirección real por lección.** Hoy las direcciones son del tipo `#/l/…` y los buscadores ven una sola página. Generar una página HTML por lección en el build es lo que más tráfico traería.
-2. **Uso sin conexión** con un service worker.
-3. **Pruebas automáticas en cada cambio** con GitHub Actions.
+1. **Uso sin conexión** con un service worker.
+2. **Pruebas automáticas en cada cambio** con GitHub Actions.

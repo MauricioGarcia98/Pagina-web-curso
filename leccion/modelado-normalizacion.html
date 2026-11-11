@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normalización: de la planilla a tablas sanas (1FN, 2FN, 3FN) · Academia de Datos</title><meta name="description" content="Las anomalías de una tabla mal diseñada, las tres formas normales paso a paso con un ejemplo real, y cuándo conviene desnormalizar a propósito."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-normalizacion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Normalización: de la planilla a tablas sanas (1FN, 2FN, 3FN) · Academia de Datos"><meta property="og:description" content="Las anomalías de una tabla mal diseñada, las tres formas normales paso a paso con un ejemplo real, y cuándo conviene desnormalizar a propósito."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/modelado-normalizacion.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#modelado">📐 Modelado de datos</a> · Intermedio · 50 min</div>
+<h1>Normalización: de la planilla a tablas sanas (1FN, 2FN, 3FN)</h1><p class="resumen">Las anomalías de una tabla mal diseñada, las tres formas normales paso a paso con un ejemplo real, y cuándo conviene desnormalizar a propósito.</p>
+<a class="cta" href="../index.html#/l/modelado-normalizacion">▶ Abrir la lección interactiva (5 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Detectar las anomalías de inserción, actualización y borrado en una tabla plana</li><li>Llevar una tabla a primera, segunda y tercera forma normal explicando cada paso</li><li>Identificar dependencias funcionales entre columnas</li><li>Decidir cuándo desnormalizar para analítica y qué se gana y se pierde</li></ul>
+<h2>Las tres anomalías de una tabla plana</h2>
+<p>Guardar todo en una sola tabla parece cómodo, pero provoca tres problemas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Anomalía</th>
+<th>Qué pasa</th>
+<th>En la planilla</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>De actualización</strong></td>
+<td>El mismo dato está repetido y al cambiarlo hay que tocar muchas filas; si te olvidas una, quedan contradicciones</td>
+<td>Ana tiene <code>ana@mail.com</code> en una fila y <code>ana.ruiz@mail.com</code> en otra. ¿Cuál es el correcto?</td>
+</tr>
+<tr>
+<td><strong>De inserción</strong></td>
+<td>No puedes guardar un dato sin inventar otro</td>
+<td>Para registrar un hotel nuevo, sin reservas todavía, tendrías que crear una &quot;reserva&quot; falsa</td>
+</tr>
+<tr>
+<td><strong>De borrado</strong></td>
+<td>Al borrar una fila pierdes datos que no querías perder</td>
+<td>Si se cancela y borra la única reserva de Luis, se pierde que Luis existe y su email</td>
+</tr>
+</tbody></table></div>
+<h2>Dependencias funcionales: la idea de fondo</h2>
+<p>Una columna B <strong>depende funcionalmente</strong> de A (se escribe A → B) si conocer A determina B. En la planilla:</p>
+<ul>
+<li><code>reserva</code> → <code>fecha</code>, <code>huesped</code>, <code>hotel</code>, <code>noches</code></li>
+<li><code>huesped</code> → <code>email_huesped</code> (o debería: una persona tiene un email)</li>
+<li><code>hotel</code> → <code>ciudad_hotel</code></li>
+</ul>
+<p>Normalizar es, en esencia, <strong>poner cada dato en la tabla de la cosa de la que depende</strong>. El email depende del huésped, no de la reserva: va en la tabla de huéspedes.</p>
+<h2>Primera forma normal (1FN): un valor por celda</h2>
+<p><strong>Regla:</strong> cada celda tiene un solo valor, y no hay grupos repetidos.</p>
+<p>La columna <code>habitaciones</code> con <code>201, 202</code> viola la 1FN: no puedes unir, filtrar ni contar habitaciones dentro de un texto. La solución es una fila por cada habitación de la reserva:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>reserva</th>
+<th>habitacion</th>
+<th>fecha</th>
+<th>huesped</th>
+<th>email_huesped</th>
+<th>hotel</th>
+<th>ciudad_hotel</th>
+<th>noches</th>
+<th>tarifa</th>
+</tr>
+</thead><tbody><tr>
+<td>R-101</td>
+<td>201</td>
+<td>2024-03-01</td>
+<td>Ana Ruiz</td>
+<td><a href="mailto:ana@mail.com">ana@mail.com</a></td>
+<td>Posada Lima Centro</td>
+<td>Lima</td>
+<td>3</td>
+<td>85</td>
+</tr>
+<tr>
+<td>R-101</td>
+<td>202</td>
+<td>2024-03-01</td>
+<td>Ana Ruiz</td>
+<td><a href="mailto:ana@mail.com">ana@mail.com</a></td>
+<td>Posada Lima Centro</td>
+<td>Lima</td>
+<td>3</td>
+<td>85</td>
+</tr>
+<tr>
+<td>R-102</td>
+<td>105</td>
+<td>2024-03-02</td>
+<td>Luis Paz</td>
+<td><a href="mailto:luis@mail.com">luis@mail.com</a></td>
+<td>Posada Cusco</td>
+<td>Cusco</td>
+<td>2</td>
+<td>70</td>
+</tr>
+<tr>
+<td>R-103</td>
+<td>305</td>
+<td>2024-03-05</td>
+<td>Ana Ruiz</td>
+<td><a href="mailto:ana.ruiz@mail.com">ana.ruiz@mail.com</a></td>
+<td>Posada Lima Centro</td>
+<td>Lima</td>
+<td>1</td>
+<td>120</td>
+</tr>
+</tbody></table></div>
+<p>Ahora la clave de la tabla es <strong>compuesta</strong>: (<code>reserva</code>, <code>habitacion</code>).</p>
+<h2>Segunda forma normal (2FN): todo depende de la clave completa</h2>
+<p><strong>Regla:</strong> estar en 1FN, y que cada columna dependa de <strong>toda</strong> la clave, no de una parte.</p>
+<p>Con la clave (<code>reserva</code>, <code>habitacion</code>): la <code>fecha</code>, el <code>huesped</code> y las <code>noches</code> dependen solo de <code>reserva</code> (una parte de la clave). Están repetidas en las dos filas de R-101. La <code>tarifa</code> sí depende de las dos cosas (cada habitación puede tener su tarifa).</p>
+<p>La solución: separar lo que depende de una parte:</p>
+<ul>
+<li><code>reservas(reserva, fecha, huesped, email_huesped, hotel, ciudad_hotel, noches)</code> → clave <code>reserva</code></li>
+<li><code>reserva_habitaciones(reserva, habitacion, tarifa)</code> → clave (<code>reserva</code>, <code>habitacion</code>)</li>
+</ul>
+<h2>Tercera forma normal (3FN): nada depende de algo que no es la clave</h2>
+<p><strong>Regla:</strong> estar en 2FN, y que ninguna columna dependa de <strong>otra columna que no es clave</strong> (las llamadas dependencias <strong>transitivas</strong>).</p>
+<p>En <code>reservas</code> quedan dos dependencias transitivas:</p>
+<ul>
+<li><code>reserva</code> → <code>huesped</code> → <code>email_huesped</code>: el email depende del huésped, no de la reserva.</li>
+<li><code>reserva</code> → <code>hotel</code> → <code>ciudad_hotel</code>: la ciudad depende del hotel.</li>
+</ul>
+<p>Se separan en sus propias tablas. El modelo final:</p>
+<figure class="diagrama"><figcaption>La planilla normalizada en 3FN: cada dato vive en un solo lugar</figcaption></figure>
+
+
+<p>Ahora:</p>
+<ul>
+<li>El email de Ana está <strong>una sola vez</strong>: la anomalía de actualización desapareció (y la base puede exigir que sea único).</li>
+<li>Puedes dar de alta un hotel <strong>sin</strong> reservas: desapareció la anomalía de inserción.</li>
+<li>Borrar una reserva <strong>no</strong> borra al huésped: desapareció la anomalía de borrado.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Un truco para recordarlas</div>
+
+<p>Una frase clásica resume las tres formas normales: cada columna debe depender <strong>de la clave (1FN), de toda la clave (2FN) y de nada más que la clave (3FN)</strong>.</p>
+</div>
+
+
+<h2>Hazlo con SQL: separar la planilla</h2>
+<p>Así se separa la tabla plana con consultas. Primero, los huéspedes distintos y sus emails, donde aparece la contradicción:</p>
+<pre><code class="language-sql">WITH planilla(reserva, fecha, huesped, email_huesped, hotel, ciudad_hotel, habitacion, noches, tarifa) AS (
+    VALUES ('R-101', '2024-03-01', 'Ana Ruiz', 'ana@mail.com',      'Posada Lima Centro', 'Lima',  201, 3, 85),
+           ('R-101', '2024-03-01', 'Ana Ruiz', 'ana@mail.com',      'Posada Lima Centro', 'Lima',  202, 3, 85),
+           ('R-102', '2024-03-02', 'Luis Paz', 'luis@mail.com',     'Posada Cusco',       'Cusco', 105, 2, 70),
+           ('R-103', '2024-03-05', 'Ana Ruiz', 'ana.ruiz@mail.com', 'Posada Lima Centro', 'Lima',  305, 1, 120)
+)
+SELECT huesped, COUNT(DISTINCT email_huesped) AS emails_distintos, GROUP_CONCAT(DISTINCT email_huesped) AS emails
+FROM planilla
+GROUP BY huesped;</code></pre>
+<p>Ana tiene 2 emails: antes de cargar la tabla <code>huespedes</code> hay que decidir cuál es el correcto (por ejemplo, el más reciente). Normalizar <strong>hace visibles</strong> los problemas que la planilla escondía.</p>
+<h2>¿Y en analítica? Desnormalizar a propósito</h2>
+<p>La 3FN es ideal para sistemas <strong>transaccionales</strong> (OLTP): muchas escrituras chicas, sin contradicciones. Pero en <strong>analítica</strong> (OLAP) las consultas leen millones de filas y unen muchas tablas; cada <code>JOIN</code> cuesta.</p>
+<p>Por eso los modelos analíticos se <strong>desnormalizan a propósito</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Normalizado (3FN)</th>
+<th>Desnormalizado (estrella, tabla ancha)</th>
+</tr>
+</thead><tbody><tr>
+<td>Para qué sistema</td>
+<td>OLTP: la app</td>
+<td>OLAP: análisis y BI</td>
+</tr>
+<tr>
+<td>Repetición de datos</td>
+<td>Ninguna</td>
+<td>Algo de repetición (la ciudad en cada fila de la dimensión hotel)</td>
+</tr>
+<tr>
+<td>Escrituras</td>
+<td>Simples y seguras</td>
+<td>Las hace un pipeline, en lote</td>
+</tr>
+<tr>
+<td>Consultas</td>
+<td>Muchos JOIN</td>
+<td>Pocos JOIN, más rápidas</td>
+</tr>
+<tr>
+<td>Riesgo de contradicciones</td>
+<td>Bajo</td>
+<td>Controlado: el pipeline reconstruye desde la fuente normalizada</td>
+</tr>
+</tbody></table></div>
+<p>La diferencia clave: en analítica, la repetición <strong>no es peligrosa</strong> porque nadie edita a mano la tabla desnormalizada. La regenera un pipeline desde la fuente normalizada. Las próximas lecciones tratan justamente de ese modelo: el dimensional.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong>Listas en una celda</strong>: <code>&quot;201, 202&quot;</code> o un JSON con varios valores en una columna de una base relacional. Rompe la 1FN y todo lo que viene después.</li>
+<li><strong>Normalizar el modelo analítico como si fuera transaccional</strong>: 15 tablas que hay que unir para cada tablero, lentas y difíciles de entender.</li>
+<li><strong>Desnormalizar el sistema transaccional</strong>: la app escribe la ciudad del hotel en cada reserva y aparecen las anomalías.</li>
+<li><strong>Elegir un valor al azar ante una contradicción</strong>: decide una regla (el más reciente, el de la fuente maestra) y documéntala.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La planilla de reservas</div>
+
+<p>La gerente de Posada Andina te comparte la planilla con la que manejan las reservas desde hace años:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>reserva</th>
+<th>fecha</th>
+<th>huesped</th>
+<th>email_huesped</th>
+<th>hotel</th>
+<th>ciudad_hotel</th>
+<th>habitaciones</th>
+<th>noches</th>
+<th>tarifa</th>
+</tr>
+</thead><tbody><tr>
+<td>R-101</td>
+<td>2024-03-01</td>
+<td>Ana Ruiz</td>
+<td><a href="mailto:ana@mail.com">ana@mail.com</a></td>
+<td>Posada Lima Centro</td>
+<td>Lima</td>
+<td>201, 202</td>
+<td>3</td>
+<td>85</td>
+</tr>
+<tr>
+<td>R-102</td>
+<td>2024-03-02</td>
+<td>Luis Paz</td>
+<td><a href="mailto:luis@mail.com">luis@mail.com</a></td>
+<td>Posada Cusco</td>
+<td>Cusco</td>
+<td>105</td>
+<td>2</td>
+<td>70</td>
+</tr>
+<tr>
+<td>R-103</td>
+<td>2024-03-05</td>
+<td>Ana Ruiz</td>
+<td><a href="mailto:ana.ruiz@mail.com">ana.ruiz@mail.com</a></td>
+<td>Posada Lima Centro</td>
+<td>Lima</td>
+<td>305</td>
+<td>1</td>
+<td>120</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>&quot;Funciona, pero cada tanto encontramos cosas raras: Ana aparece con dos emails, y cuando cambiamos el nombre de un hotel hay que corregirlo en cientos de filas. ¿Lo pueden pasar a una base de datos bien hecha?&quot;</p>
+</blockquote>
+<p>Eso que &quot;cada tanto pasa&quot; tiene nombre: <strong>anomalías</strong>. La normalización es el método para eliminarlas.</p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Los ingenieros de datos casi nunca diseñan la base transaccional (eso lo hace el equipo de la aplicación), pero <strong>leen</strong> bases normalizadas todo el tiempo como fuente. Entender las formas normales es entender por qué los datos de origen están repartidos en 40 tablas.</li>
+<li>La migración de planillas a una base es un proyecto muy común en empresas medianas. La parte difícil no es crear las tablas: es resolver las contradicciones que aparecen (como los dos emails de Ana) con la gente del negocio.</li>
+</ul>
+</div>
+
+
+<!-- estandar:entrevista -->
+<div class="callout callout-entrevista"><div class="callout-title">🎯 &quot;¿Qué es la tercera forma normal y por qué un data warehouse no la usa?&quot;</div>
+
+<p>3FN: cada columna depende de la clave, de toda la clave y de nada más que la clave; elimina repeticiones y anomalías de actualización, inserción y borrado, ideal para sistemas transaccionales con muchas escrituras. Un warehouse se desnormaliza a propósito (esquema estrella) porque prioriza consultas rápidas y simples sobre grandes volúmenes; la repetición no es un riesgo porque las tablas las regenera un pipeline desde la fuente normalizada, no se editan a mano.</p>
+</div>
+
+
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/modelado-normalizacion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="modelado-del-negocio-al-modelo.html">← Del negocio al modelo: conceptual, lógico y físico</a><a href="modelado-kimball.html">Modelado dimensional de Kimball, paso a paso →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

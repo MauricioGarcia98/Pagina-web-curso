@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trabajar con fechas · Academia de Datos</title><meta name="description" content="Formato ISO, date(), strftime(), julianday(), rangos de fechas y diferencias entre motores."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-fechas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Trabajar con fechas · Academia de Datos"><meta property="og:description" content="Formato ISO, date(), strftime(), julianday(), rangos de fechas y diferencias entre motores."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/sql-fechas.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#sql">🗄️ SQL: de cero a experto</a> · Básico · 35 min</div>
+<h1>Trabajar con fechas</h1><p class="resumen">Formato ISO, date(), strftime(), julianday(), rangos de fechas y diferencias entre motores.</p>
+<a class="cta" href="../index.html#/l/sql-fechas">▶ Abrir la lección interactiva (10 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar periodos con rangos semiabiertos que no pierden datos</li><li>Extraer año, mes y día de la semana con <code>strftime</code></li><li>Calcular diferencias entre fechas en días con <code>julianday</code></li><li>Sumar y restar intervalos con <code>date(..., &#39;+N days&#39;)</code> y reconocer la trampa de fin de mes</li></ul>
+<h2>Por qué las fechas merecen una lección aparte</h2>
+<p>Casi toda pregunta de negocio tiene una fecha adentro: &quot;ventas <strong>por mes</strong>&quot;, &quot;clientes nuevos <strong>este año</strong>&quot;, &quot;días <strong>entre</strong> la compra y la entrega&quot;, &quot;usuarios activos <strong>en los últimos 30 días</strong>&quot;. Y las fechas son traicioneras: meses de distinta cantidad de días, años bisiestos, horas, zonas horarias, formatos distintos según el país (<code>03/04/2024</code>, ¿es 3 de abril o 4 de marzo?). Esta lección te da las herramientas para trabajarlas sin errores.</p>
+<h2>El formato ISO 8601: el único que deberías usar</h2>
+<p>El estándar internacional escribe las fechas de <strong>lo más grande a lo más chico</strong>:</p>
+<pre><code class="language-text">2024-03-15              ← fecha:        año-mes-día
+2024-03-15 14:30:00     ← fecha y hora: año-mes-día hora:minuto:segundo
+2024-03-15T14:30:00Z    ← con &quot;T&quot; y zona horaria (Z = UTC), típico en APIs y JSON</code></pre>
+<p>Su gran ventaja: <strong>ordenar el texto es lo mismo que ordenar en el tiempo</strong>. Comparando carácter por carácter, <code>&#39;2023-12-31&#39;</code> &lt; <code>&#39;2024-01-01&#39;</code>, exactamente como en el calendario. Con <code>&#39;31/12/2023&#39;</code> y <code>&#39;01/01/2024&#39;</code> no pasa: alfabéticamente <code>&#39;01…&#39;</code> va primero aunque sea posterior.</p>
+<h3>Cómo guarda las fechas SQLite</h3>
+<p>SQLite no tiene un tipo <code>DATE</code> propio: guarda las fechas como <strong>texto ISO</strong>. Por eso en el curso puedes comparar directamente:</p>
+<pre><code class="language-sql">SELECT pedido_id, fecha_pedido
+FROM pedidos
+WHERE fecha_pedido &gt;= '2024-12-24' AND fecha_pedido &lt; '2024-12-26'
+ORDER BY fecha_pedido;</code></pre>
+<p>Otros motores (PostgreSQL, BigQuery, Spark, Snowflake) sí tienen tipos <code>DATE</code> y <code>TIMESTAMP</code> de verdad, pero aceptan el mismo texto ISO al comparar: <code>WHERE fecha &gt;= &#39;2024-12-24&#39;</code> funciona en todos.</p>
+<h2>Filtrar periodos: el rango semiabierto</h2>
+<p>La forma profesional de pedir un periodo es: <strong>desde el inicio (incluido) hasta el inicio del periodo siguiente (excluido)</strong>.</p>
+<pre><code class="language-sql">-- Todo diciembre de 2024, con o sin horas en la columna
+SELECT COUNT(*)
+FROM pedidos
+WHERE fecha_pedido &gt;= '2024-12-01' AND fecha_pedido &lt; '2025-01-01';</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>¿Funciona con horas?</th>
+<th>Problema</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&gt;= &#39;2024-12-01&#39; AND &lt; &#39;2025-01-01&#39;</code></td>
+<td>✅ sí</td>
+<td>Ninguno</td>
+</tr>
+<tr>
+<td><code>BETWEEN &#39;2024-12-01&#39; AND &#39;2024-12-31&#39;</code></td>
+<td>❌ no</td>
+<td>Pierde todo lo del 31 después de las 00:00:00</td>
+</tr>
+<tr>
+<td><code>strftime(&#39;%Y-%m&#39;, fecha) = &#39;2024-12&#39;</code></td>
+<td>✅ sí</td>
+<td>Funciona, pero aplica una función a cada fila: no usa índices ni la poda de particiones</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Regla para toda tu carrera</div>
+
+<p>Para fechas, usa <code>&gt;=</code> inicio y <code>&lt;</code> inicio-del-siguiente. Es correcto con fechas y con fecha-hora, no tienes que saber cuántos días tiene el mes, y es eficiente.</p>
+</div>
+
+
+<div class="recorrido"></div>
+
+
+<h2>Las funciones de fecha de SQLite</h2>
+<p>SQLite tiene unas pocas funciones muy potentes:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Para qué</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>date(t)</code></td>
+<td>Quedarse con la fecha (sin hora)</td>
+<td><code>date(&#39;2024-03-15 14:30:00&#39;)</code></td>
+<td><code>2024-03-15</code></td>
+</tr>
+<tr>
+<td><code>date(t, mod1, mod2…)</code></td>
+<td>Mover o &quot;redondear&quot; fechas con modificadores</td>
+<td><code>date(&#39;2024-03-15&#39;, &#39;+1 month&#39;)</code></td>
+<td><code>2024-04-15</code></td>
+</tr>
+<tr>
+<td><code>datetime(t, …)</code></td>
+<td>Igual, pero conserva la hora</td>
+<td><code>datetime(&#39;2024-03-15 10:00&#39;, &#39;+3 hours&#39;)</code></td>
+<td><code>2024-03-15 13:00:00</code></td>
+</tr>
+<tr>
+<td><code>strftime(formato, t)</code></td>
+<td>Extraer partes o formatear</td>
+<td><code>strftime(&#39;%Y-%m&#39;, &#39;2024-03-15&#39;)</code></td>
+<td><code>2024-03</code></td>
+</tr>
+<tr>
+<td><code>julianday(t)</code></td>
+<td>Convertir a número de días (para restar)</td>
+<td><code>julianday(&#39;2024-12-25&#39;) - julianday(&#39;2024-12-01&#39;)</code></td>
+<td><code>24.0</code></td>
+</tr>
+</tbody></table></div>
+<h3>Modificadores de <code>date()</code></h3>
+<p>Se aplican <strong>en orden</strong>, de izquierda a derecha:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modificador</th>
+<th>Efecto</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&#39;+7 days&#39;</code>, <code>&#39;-1 day&#39;</code></td>
+<td>Sumar o restar días</td>
+</tr>
+<tr>
+<td><code>&#39;+1 month&#39;</code>, <code>&#39;-3 months&#39;</code>, <code>&#39;+1 year&#39;</code></td>
+<td>Sumar o restar meses o años</td>
+</tr>
+<tr>
+<td><code>&#39;start of month&#39;</code></td>
+<td>Ir al día 1 del mes</td>
+</tr>
+<tr>
+<td><code>&#39;start of year&#39;</code></td>
+<td>Ir al 1 de enero</td>
+</tr>
+<tr>
+<td><code>&#39;weekday 1&#39;</code></td>
+<td>Avanzar hasta el próximo lunes (0 = domingo, 1 = lunes…)</td>
+</tr>
+</tbody></table></div>
+<p>Combinándolos se resuelven preguntas típicas:</p>
+<pre><code class="language-sql">SELECT date('2024-03-15', 'start of month')                     AS primer_dia_mes,   -- 2024-03-01
+       date('2024-03-15', 'start of month', '+1 month', '-1 day') AS ultimo_dia_mes,   -- 2024-03-31
+       date('2024-03-15', 'start of year')                      AS inicio_anio,      -- 2024-01-01
+       date('2024-03-15', '-30 days')                           AS hace_30_dias;     -- 2024-02-14</code></pre>
+<p>El &quot;último día del mes&quot; se lee: ve al día 1, suma un mes (día 1 del mes siguiente), resta un día.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Sumar meses a fin de mes</div>
+
+<p><code>date(&#39;2024-01-31&#39;, &#39;+1 month&#39;)</code> da <strong>2024-03-02</strong>, no 2024-02-29: SQLite suma un mes al número de mes (31 de febrero, que no existe) y &quot;desborda&quot; hacia marzo. Cada motor resuelve distinto este caso (PostgreSQL y Spark devuelven el último día de febrero). Si tu lógica depende de vencimientos mensuales, pruébala con días 29, 30 y 31.</p>
+</div>
+
+
+<h3>strftime: extraer partes de una fecha</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Código</th>
+<th>Significa</th>
+<th>Para <code>&#39;2024-12-25 18:45:10&#39;</code></th>
+</tr>
+</thead><tbody><tr>
+<td><code>%Y</code></td>
+<td>año</td>
+<td><code>2024</code></td>
+</tr>
+<tr>
+<td><code>%m</code></td>
+<td>mes (01–12)</td>
+<td><code>12</code></td>
+</tr>
+<tr>
+<td><code>%d</code></td>
+<td>día del mes</td>
+<td><code>25</code></td>
+</tr>
+<tr>
+<td><code>%H</code>, <code>%M</code>, <code>%S</code></td>
+<td>hora, minuto, segundo</td>
+<td><code>18</code>, <code>45</code>, <code>10</code></td>
+</tr>
+<tr>
+<td><code>%w</code></td>
+<td>día de la semana (0 = domingo … 6 = sábado)</td>
+<td><code>3</code> (miércoles)</td>
+</tr>
+<tr>
+<td><code>%j</code></td>
+<td>día del año (001–366)</td>
+<td><code>360</code></td>
+</tr>
+<tr>
+<td><code>%W</code></td>
+<td>número de semana del año</td>
+<td><code>52</code></td>
+</tr>
+<tr>
+<td><code>%Y-%m</code></td>
+<td>año-mes: la clave para agrupar por mes</td>
+<td><code>2024-12</code></td>
+</tr>
+</tbody></table></div>
+<p><code>strftime</code> <strong>siempre devuelve texto</strong>. Si necesitas un número (para comparar <code>mes &gt; 6</code> o sumar), conviértelo: <code>CAST(strftime(&#39;%m&#39;, fecha) AS INTEGER)</code>.</p>
+<pre><code class="language-sql">SELECT pedido_id,
+       fecha_pedido,
+       strftime('%Y', fecha_pedido)               AS anio,
+       CAST(strftime('%m', fecha_pedido) AS INT)  AS mes,
+       date(fecha_pedido, 'start of month')       AS inicio_mes,
+       date(fecha_pedido, '+30 days')             AS vence
+FROM pedidos
+WHERE fecha_pedido &gt;= '2024-12-24'
+LIMIT 3;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>pedido_id</th>
+<th>fecha_pedido</th>
+<th>anio</th>
+<th>mes</th>
+<th>inicio_mes</th>
+<th>vence</th>
+</tr>
+</thead><tbody><tr>
+<td>11836</td>
+<td>2024-12-24</td>
+<td>2024</td>
+<td>12</td>
+<td>2024-12-01</td>
+<td>2025-01-23</td>
+</tr>
+</tbody></table></div>
+<h3>Diferencias entre fechas: julianday</h3>
+<p><code>julianday</code> convierte una fecha en un número: los días transcurridos desde una fecha muy antigua (el año 4713 a. C.). No importa el número en sí; lo útil es <strong>restar</strong> dos de ellos:</p>
+<pre><code class="language-sql">SELECT julianday('2024-12-25') - julianday('2024-12-01')                    AS dias,      -- 24.0
+       (julianday('2024-12-25 18:00') - julianday('2024-12-25 06:00')) * 24 AS horas,     -- 12.0
+       (julianday('2024-12-25 18:00') - julianday('2024-12-25 06:00')) * 1440 AS minutos; -- 720.0</code></pre>
+<ul>
+<li>El resultado está en <strong>días</strong>, con decimales para las horas: 12 horas = 0,5 días.</li>
+<li>Para horas multiplica por 24; para minutos, por 1.440 (24 × 60).</li>
+<li>Es la técnica de los casos de negocio: minutos de demora de un vuelo, días de atraso de una cuota, horas para cerrar un ticket.</li>
+</ul>
+<h2>Fecha &quot;de hoy&quot;: cuidado</h2>
+<p><code>date(&#39;now&#39;)</code> devuelve la fecha actual (en UTC). Es útil para explorar, pero en un pipeline es peligroso: si re-ejecutas el proceso de ayer, hoy, &quot;hoy&quot; cambió y el resultado también. En producción, la fecha de referencia <strong>entra como parámetro</strong> (por ejemplo, la fecha lógica de un DAG de Airflow). Lo verás en los módulos de Airflow y de casos de punta a punta.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Zonas horarias</div>
+
+<p>Un evento a las 23:30 del 31 de diciembre en Buenos Aires (UTC−3) es el <strong>1 de enero a las 02:30 en UTC</strong>. Si guardas en UTC (lo recomendado) y reportas &quot;ventas del 31 de diciembre&quot;, tienes que convertir a la hora local antes de agrupar. Regla de oro: <strong>guardar en UTC, convertir al mostrar</strong>.</p>
+</div>
+
+
+<h2>Lo mismo en otros motores</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Qué</th>
+<th>SQLite</th>
+<th>PostgreSQL</th>
+<th>Spark SQL / Databricks</th>
+<th>BigQuery</th>
+<th>SQL Server</th>
+</tr>
+</thead><tbody><tr>
+<td>Año</td>
+<td><code>strftime(&#39;%Y&#39;, f)</code></td>
+<td><code>EXTRACT(YEAR FROM f)</code></td>
+<td><code>year(f)</code></td>
+<td><code>EXTRACT(YEAR FROM f)</code></td>
+<td><code>YEAR(f)</code></td>
+</tr>
+<tr>
+<td>Inicio de mes</td>
+<td><code>date(f, &#39;start of month&#39;)</code></td>
+<td><code>date_trunc(&#39;month&#39;, f)</code></td>
+<td><code>date_trunc(&#39;month&#39;, f)</code></td>
+<td><code>DATE_TRUNC(f, MONTH)</code></td>
+<td><code>DATETRUNC(month, f)</code></td>
+</tr>
+<tr>
+<td>Sumar 7 días</td>
+<td><code>date(f, &#39;+7 days&#39;)</code></td>
+<td><code>f + INTERVAL &#39;7 days&#39;</code></td>
+<td><code>date_add(f, 7)</code></td>
+<td><code>DATE_ADD(f, INTERVAL 7 DAY)</code></td>
+<td><code>DATEADD(day, 7, f)</code></td>
+</tr>
+<tr>
+<td>Días entre a y b</td>
+<td><code>julianday(b) - julianday(a)</code></td>
+<td><code>b - a</code></td>
+<td><code>datediff(b, a)</code></td>
+<td><code>DATE_DIFF(b, a, DAY)</code></td>
+<td><code>DATEDIFF(day, a, b)</code></td>
+</tr>
+<tr>
+<td>Formatear año-mes</td>
+<td><code>strftime(&#39;%Y-%m&#39;, f)</code></td>
+<td><code>to_char(f, &#39;YYYY-MM&#39;)</code></td>
+<td><code>date_format(f, &#39;yyyy-MM&#39;)</code></td>
+<td><code>FORMAT_DATE(&#39;%Y-%m&#39;, f)</code></td>
+<td><code>FORMAT(f, &#39;yyyy-MM&#39;)</code></td>
+</tr>
+</tbody></table></div>
+<p>Los conceptos son los mismos en todos: extraer partes, truncar a un periodo, sumar intervalos y restar fechas.</p>
+<!-- estandar:errores -->
+<div class="callout callout-errores"><div class="callout-title">🐞 Errores frecuentes</div>
+
+<ul>
+<li><strong><code>BETWEEN</code> con fechas y horas</strong>: <code>fecha BETWEEN &#39;2024-12-01&#39; AND &#39;2024-12-31&#39;</code> excluye todo el 31 después de la medianoche. Usa <code>fecha &gt;= &#39;2024-12-01&#39; AND fecha &lt; &#39;2025-01-01&#39;</code>.</li>
+<li><strong>Fechas guardadas en otro formato</strong>: <code>&#39;15/03/2024&#39;</code> se ordena y compara como texto, mal. Conviértelas a ISO (<code>2024-03-15</code>) en la capa de limpieza.</li>
+<li><strong>Restar fechas como texto</strong>: <code>&#39;2024-03-15&#39; - &#39;2024-03-01&#39;</code> da <code>0</code> en SQLite (resta los primeros números). Usa <code>julianday(a) - julianday(b)</code>.</li>
+<li><strong>&quot;Hoy&quot; en el código</strong>: <code>date(&#39;now&#39;)</code> hace que el resultado dependa del día en que corre. En un pipeline se usa la fecha lógica que recibe (por ejemplo <code>{{ ds }}</code> en Airflow), para poder reprocesar cualquier día.</li>
+<li><strong>Zonas horarias</strong>: un pedido de las 23:30 en México es del día siguiente en UTC. Decide (y documenta) en qué zona se reporta.</li>
+</ul>
+</div>
+
+
+<h2>Caso real: así te lo piden en un trabajo</h2>
+<p>Ya viste el tema. Así es como suele aparecer cuando trabajas con datos en una empresa:</p>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El cierre de diciembre</div>
+
+<p>Diego, de finanzas, está cerrando el año:</p>
+<blockquote>
+<p>&quot;Necesito los pedidos de diciembre de 2024, y cuántos días tardamos en cobrar cada uno. También me piden saber si los fines de semana se vende más. Ojo, que el año pasado alguien me pasó un número que no incluía el 31 de diciembre.&quot;</p>
+</blockquote>
+<p>Las fechas parecen simples hasta que aparecen los rangos, las horas, los meses de distinto largo y las zonas horarias. </p>
+</div>
+
+
+<!-- estandar:trabajo -->
+<div class="callout callout-trabajo"><div class="callout-title">🧑‍💻 En el trabajo real</div>
+
+<ul>
+<li>Casi todas las tablas grandes están <strong>particionadas por fecha</strong>. Un filtro de rango sobre esa columna hace que la base lea solo los días necesarios; una función sobre la columna (<code>strftime(&#39;%Y&#39;, fecha) = &#39;2024&#39;</code>) puede obligarla a leer todo.</li>
+<li>Los equipos guardan las marcas de tiempo en <strong>UTC</strong> y convierten a la hora local solo al mostrar. Es la forma de evitar errores con el cambio de horario.</li>
+<li>Para reportes con días sin ventas se usa una <strong>tabla calendario</strong> (una fila por día) y se une con los datos. Lo verás con CTE recursivas y en dbt (<code>date_spine</code>).</li>
+</ul>
+</div>
+
+
+<h3>Pruébalo en cada motor</h3>
+<p>Las fechas son lo que más cambia entre motores. Elige el motor y ejecuta los tres ejemplos:</p>
+<div class="motores"></div>
+
+
+<div class="motores"></div>
+
+
+<div class="motores"></div>
+
+
+<h2>Resumen</h2>
+<ul>
+<li>Usa siempre el formato ISO <code>AAAA-MM-DD [HH:MM:SS]</code>: se ordena igual que el tiempo.</li>
+<li>Filtra periodos con <code>&gt;= inicio AND &lt; inicio_siguiente</code>.</li>
+<li><code>date()</code> con modificadores mueve y trunca fechas; <code>strftime()</code> extrae partes (devuelve texto); <code>julianday()</code> permite restar (resultado en días).</li>
+<li>Evita <code>date(&#39;now&#39;)</code> en pipelines: la fecha de referencia debe ser un parámetro. Guarda en UTC.</li>
+</ul>
+<h2>Ejercicios</h2>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>10 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/sql-fechas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="sql-funciones.html">← Funciones de texto, números y conversiones</a><a href="sql-agregaciones.html">Funciones de agregación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
