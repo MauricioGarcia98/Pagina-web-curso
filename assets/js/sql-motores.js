@@ -458,7 +458,7 @@
     conMath.add(db);
   }
 
-  function ejecutarCompatible(sql, motor) {
+  function ejecutarCompatible(sql, motor, dbPropia) {
     const SQL = window.Engines.SQL;
     const t0 = performance.now();
     let tr;
@@ -466,7 +466,7 @@
       if (!(e instanceof ErrorMotor)) throw e;
       return { ok: false, error: e.message, ms: performance.now() - t0 };
     }
-    const db = SQL.playground();
+    const db = dbPropia || SQL.playground(); // dbPropia: una base aparte (por ejemplo, la de Azure SQL de práctica)
     registrarFunciones(db);
     try { prepararCatalogo(db, tr.sql, motor); } catch (e) { /* si falla, la consulta mostrará el error */ }
     const r = SQL.exec(tr.sql, db);
@@ -770,5 +770,5 @@ GROUP BY anio;`],
     return window.Engines.SQL.exec(sql, window.Engines.SQL.playground());
   }
 
-  window.SqlMotores = { MOTORES, EJEMPLOS, COMPARATIVA, PG, ejecutar, traducir, PGLITE_URL };
+  window.SqlMotores = { MOTORES, EJEMPLOS, COMPARATIVA, PG, ejecutar, ejecutarEn: (motor, sql, db) => ejecutarCompatible(sql, motor, db), traducir, PGLITE_URL };
 })();

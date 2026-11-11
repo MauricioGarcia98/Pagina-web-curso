@@ -42,7 +42,7 @@
   const GRUPOS = {
     powerbi: ['powerbi-iconos', 'powerbi-visuales', 'powerbi', 'powerbi-informe', 'powerbi-ia', 'powerbi-servicio'],
     databricks: ['databricks', 'databricks-datos', 'databricks-computo', 'databricks-analitica', 'databricks-ml'],
-    azure: ['@databricks', 'azure-portal', 'adf-studio'],
+    azure: ['@databricks', 'azure-portal', 'azure-extra', 'adf-studio'],
     github: ['octicons', 'github-actions', 'github', 'github-colab'],
   };
   const grupoCargas = {};

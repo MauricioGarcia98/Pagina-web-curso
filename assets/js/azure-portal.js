@@ -84,7 +84,8 @@
   ];
   const PRINCIPALES_BASE = [[USUARIO, 'User', 'Alumno Academia (tú)'], ['ana.datos@academia.dev', 'User', 'Ana Datos'], ['ingenieros-datos', 'Group', 'Grupo de ingeniería de datos'], ['sp-pipeline-adf', 'ServicePrincipal', 'Service principal de los pipelines'], ['adb-access-connector', 'ManagedIdentity', 'Identidad administrada de Databricks (Access Connector)']];
   // cada data factory tiene su identidad administrada (system-assigned): se le asignan roles como a cualquier principal
-  const principales = () => [...PRINCIPALES_BASE, ...Object.keys(az().adf || {}).map((n) => [n, 'ManagedIdentity', `Data factory ${n} (identidad administrada)`])];
+  const extBlade = (box, o) => { const f = (window.AzurePortal.ext || {}).blade; return !!(f && f(box, o)); };
+  const principales = () => [...PRINCIPALES_BASE, ...(((window.AzurePortal || {}).ext || {}).principales ? window.AzurePortal.ext.principales() : []), ...Object.keys(az().adf || {}).map((n) => [n, 'ManagedIdentity', `Data factory ${n} (identidad administrada)`])];
   // el alumno es Owner de la suscripción (como quien crea una cuenta de prueba)
   const asignaciones = () => [{ principalName: USUARIO, roleDefinitionName: 'Owner', scope: `/subscriptions/${sub().id}`, id: 'propietario', implicita: true }, ...(az().roles || [])];
   const tieneRol = (scope, roles, quien = USUARIO) => asignaciones().some((a) => a.principalName === quien && roles.includes(a.roleDefinitionName) && (scope === a.scope || scope.startsWith(a.scope + '/')));
@@ -180,7 +181,8 @@
     const [v = '', ...r] = actual.map((x) => { try { return decodeURIComponent(x); } catch (e) { return x; } });
     const cont = main.querySelector('#azMain'); cont.scrollTop = 0;
     const V = { '': inicio, servicios: todosServicios, recursos: todosRecursos, grupos: listaGrupos, grupo: hojaGrupo, servicio: listaServicio, crear: crearRecurso, recurso: hojaRecurso, despliegue: hojaDespliegue, costos, suscripciones, suscripcion: hojaSuscripcion, actividad: registroActividad, entra: stubEntra, monitor: stubMonitor };
-    try { (V[v] || noEncontrado)(cont, r); } catch (e) { console.error(e); cont.innerHTML = `<div class="az-pag"><div class="az-banner error">${esc(e.message)}</div></div>`; }
+    const X = (window.AzurePortal.ext || {}).rutas || {}; // pantallas agregadas por azure-extra.js
+    try { (X[v] || V[v] || noEncontrado)(cont, r); } catch (e) { console.error(e); cont.innerHTML = `<div class="az-pag"><div class="az-banner error">${esc(e.message)}</div></div>`; }
   }
   const noEncontrado = (cont) => { cont.innerHTML = `<div class="az-pag"><h1>Not found</h1><p>Esta página no existe en el portal de práctica. <a href="#/azure">Volver al inicio</a></p></div>`; };
   const migas = (items) => `<div class="az-migas">${items.map(([t, h], i) => (h && i < items.length - 1 ? `<a href="#/azure/${h}">${esc(t)}</a>` : `<span>${esc(t)}</span>`)).join(`<i>${ic('chevron-right')}</i>`)}</div>`;
@@ -782,6 +784,7 @@
       return;
     }
     if (blade === 'config') { box.innerHTML = `<table class="az-kv"><tr><th>Secure transfer required</th><td>${P.secure !== false ? 'Enabled' : 'Disabled'}</td></tr><tr><th>Allow Blob anonymous access</th><td>${P.anonimo ? 'Enabled' : 'Disabled'}</td></tr><tr><th>Minimum TLS version</th><td>${P.tls === 'TLS1_3' ? 'Version 1.3' : 'Version 1.2'}</td></tr><tr><th>Blob access tier (default)</th><td>${esc(P.tier || 'Hot')}</td></tr><tr><th>Replication</th><td>${esc(R.sku)}</td></tr><tr><th>Hierarchical namespace</th><td>${R.hns ? 'Enabled (no se puede desactivar)' : 'Disabled'}</td></tr></table>`; return; }
+    if (extBlade(box, { k: 'storage', R, n, id, blade, again })) return;
     box.innerHTML = `<p class="az-dim">${blade === 'archivos' ? 'Azure Files: recursos compartidos SMB/NFS.' : blade === 'colas' ? 'Queue storage: mensajes entre aplicaciones.' : 'Table storage: datos NoSQL clave-valor.'} No está simulado en esta práctica.</p>`;
   }
   // ---- Key Vault
@@ -802,6 +805,7 @@
     }
     if (blade === 'acceso') { box.innerHTML = `<p><b>Permission model</b></p><label class="az-radio"><input type="radio" name="pm" value="rbac" ${rbac ? 'checked' : ''}> Azure role-based access control (recommended)</label><label class="az-radio"><input type="radio" name="pm" value="policy" ${rbac ? '' : 'checked'}> Vault access policy</label><div class="az-banner aviso">${ic('warning')} Cambiar el modelo de permisos puede dejar sin acceso a quienes lo usan hoy.</div><div class="az-pie-btn"><button class="az-btn primario" id="aG">Apply</button></div>`; box.querySelector('#aG').onclick = () => { P.permiso = box.querySelector('[name=pm]:checked').value; actividad('Update Key Vault', n); guardarAz(); notificar('Saved', 'Access configuration updated.', 'ok'); again(); }; return; }
     if (blade === 'red') { box.innerHTML = `<p>Public network access: <b>${P.red === 'disabled' ? 'Disabled' : 'Allow public access from all networks'}</b></p><p class="az-dim">En producción se suele usar un private endpoint para que el vault solo sea accesible desde la red de la empresa.</p>`; return; }
+    if ((blade === 'claves' || blade === 'certificados') && extBlade(box, { k: 'kv', R, n, id, blade, again, rbac })) return;
     if (blade === 'claves' || blade === 'certificados') { box.innerHTML = `<p class="az-dim">${blade === 'claves' ? 'Las claves criptográficas (RSA, EC) se usan para cifrar o firmar, por ejemplo como CMK de un storage.' : 'Los certificados TLS se pueden emitir y renovar desde Key Vault.'} No está simulado en esta práctica: usa <b>Secrets</b>.</p>`; return; }
   }
 
@@ -888,5 +892,5 @@
   }
   window.addEventListener('hashchange', () => { if (!/^#\/azure/.test(location.hash)) document.body.classList.remove('az-abierto'); });
   document.addEventListener('keydown', (e) => { if (!document.getElementById('azp')) return; if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.closest('.term')) { e.preventDefault(); main.querySelector('#azQ').focus(); } });
-  window.AzurePortal = { vista };
+  window.AzurePortal = { vista, ext: {}, _i: { az, guardarAz, esc, ic, uid, ahora, hora, panel, migas, svg, SVG, SERVICIOS, REGIONES, actividad, notificar, ir, tieneRol, ROLES, TENANT, USUARIO, sub, recursos, idRecurso, TIPOS, regionNombre, toast: (m) => toast(m), render: () => render(actual) } };
 })();
