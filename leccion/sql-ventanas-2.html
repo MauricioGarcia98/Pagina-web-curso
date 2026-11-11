@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Funciones de ventana II: acumulados, LAG/LEAD y marcos</h1><p class="resumen">Totales acumulados, promedios móviles, comparar con el periodo anterior, FIRST_VALUE, NTILE y percentiles.</p>
 <a class="cta" href="../index.html#/l/sql-ventanas-2">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular totales acumulados y promedios móviles con marcos de ventana</li><li>Elegir entre <code>ROWS</code> y <code>RANGE</code> sabiendo cómo tratan los empates</li><li>Comparar cada fila con la anterior o la siguiente usando <code>LAG</code> y <code>LEAD</code></li><li>Calcular variaciones porcentuales período contra período</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Imagina que anotas cuánto ahorras cada mes y, al lado, cuánto llevas ahorrado en total. Esa segunda columna, que va sumando fila por fila, es un <strong>acumulado</strong>. Las funciones de esta lección hacen eso y cosas parecidas: mirar la fila anterior (&quot;¿cuánto ahorré el mes pasado?&quot;), promediar los últimos tres meses o repartir las filas en grupos parejos, sin perder el detalle de cada fila.</p>
+</div>
+
+
 <h2>Más allá del ranking</h2>
 <p>En la lección anterior usaste <code>ORDER BY</code> dentro de <code>OVER</code> para numerar filas. Ese mismo orden abre otras puertas: <strong>acumular</strong> (&quot;ventas acumuladas del año&quot;), <strong>suavizar</strong> (&quot;promedio de los últimos 3 meses&quot;) y <strong>comparar con filas vecinas</strong> (&quot;¿cuánto crecimos respecto al mes anterior?&quot;, &quot;¿cuántos días pasaron desde la compra anterior?&quot;). Son las herramientas de cualquier análisis temporal.</p>
 <h2>Totales acumulados</h2>

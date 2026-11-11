@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Joins en PySpark</h1><p class="resumen">inner, left, anti y semi joins, columnas ambiguas, alias y self joins.</p>
 <a class="cta" href="../index.html#/l/pyspark-joins">▶ Abrir la lección interactiva (5 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un join es como unir dos listas que comparten algo: una lista de pedidos con el número de cliente y una lista de clientes con su nombre. Al unirlas por ese número, cada pedido aparece con el nombre de quien lo hizo. Los distintos tipos de join deciden qué hacer con los que no tienen pareja.</p>
+</div>
+
+
 <h2>Los mismos joins de SQL, con otra sintaxis</h2>
 <p>Todo lo que aprendiste de <code>JOIN</code> en SQL vale aquí: claves que conectan tablas, <code>INNER</code> que descarta lo que no tiene pareja, <code>LEFT</code> que conserva todo lo de la izquierda, el anti-join para encontrar lo que falta y la multiplicación de filas en relaciones uno a muchos. En PySpark un join es un <strong>método</strong> del DataFrame de la izquierda:</p>
 <pre data-norun><code class="language-python">df_izq.join(df_der, on=..., how=&quot;inner&quot;)</code></pre>

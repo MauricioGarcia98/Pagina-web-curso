@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Trabajar con fechas</h1><p class="resumen">Formato ISO, date(), strftime(), julianday(), rangos de fechas y diferencias entre motores.</p>
 <a class="cta" href="../index.html#/l/sql-fechas">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar periodos con rangos semiabiertos que no pierden datos</li><li>Extraer año, mes y día de la semana con <code>strftime</code></li><li>Calcular diferencias entre fechas en días con <code>julianday</code></li><li>Sumar y restar intervalos con <code>date(..., &#39;+N days&#39;)</code> y reconocer la trampa de fin de mes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una fecha es como una dirección: si cada persona la escribe distinto (&quot;3/4/24&quot;, &quot;4 de marzo&quot;, &quot;2024-03-04&quot;), nadie la encuentra. En las bases de datos se usa un formato único, año-mes-día (<code>2024-03-04</code>), que además se ordena solo. Con eso, preguntar &quot;¿cuántos días pasaron?&quot; o &quot;¿qué ventas hubo en marzo?&quot; es una cuenta simple.</p>
+</div>
+
+
 <h2>Por qué las fechas merecen una lección aparte</h2>
 <p>Casi toda pregunta de negocio tiene una fecha adentro: &quot;ventas <strong>por mes</strong>&quot;, &quot;clientes nuevos <strong>este año</strong>&quot;, &quot;días <strong>entre</strong> la compra y la entrega&quot;, &quot;usuarios activos <strong>en los últimos 30 días</strong>&quot;. Y las fechas son traicioneras: meses de distinta cantidad de días, años bisiestos, horas, zonas horarias, formatos distintos según el país (<code>03/04/2024</code>, ¿es 3 de abril o 4 de marzo?). Esta lección te da las herramientas para trabajarlas sin errores.</p>
 <h2>El formato ISO 8601: el único que deberías usar</h2>

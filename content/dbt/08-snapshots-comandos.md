@@ -5,6 +5,10 @@ duracion: 50
 resumen: Por qué las tablas de origen "olvidan", SCD2 con snapshots (YAML de dbt 1.9 y sintaxis clásica, estrategias timestamp y check, borrados), cómo consultar la historia, comandos, selección de nodos, state:modified y dbt en producción.
 ---
 
+:::analogia En palabras simples
+Muchas tablas de origen tienen mala memoria: cuando un cliente se muda, guardan la dirección nueva y olvidan la vieja. Un **snapshot** es como sacarle una foto a la tabla cada día para recordar cómo era antes. Además, esta lección muestra los comandos para ejecutar solo una parte del proyecto y probarlo antes de publicarlo.
+:::
+
 ## El problema: las tablas de origen olvidan
 
 La mayoría de los sistemas (la app de la tienda, un CRM, un ERP) guardan solo el **estado actual** de cada cosa. Si Sofía se muda de Barcelona a Santiago, el sistema **sobrescribe** la ciudad: la fila dice "Santiago" y "Barcelona" desaparece. Para la app está bien; para el análisis es un problema, porque preguntas como estas quedan sin respuesta:

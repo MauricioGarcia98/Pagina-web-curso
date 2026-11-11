@@ -16,6 +16,10 @@ Diego, de finanzas, está cerrando el año:
 
 Las fechas parecen simples hasta que aparecen los rangos, las horas, los meses de distinto largo y las zonas horarias. Esta lección te enseña a no perder ni duplicar un día.
 :::
+:::analogia En palabras simples
+Una fecha es como una dirección: si cada persona la escribe distinto ("3/4/24", "4 de marzo", "2024-03-04"), nadie la encuentra. En las bases de datos se usa un formato único, año-mes-día (`2024-03-04`), que además se ordena solo. Con eso, preguntar "¿cuántos días pasaron?" o "¿qué ventas hubo en marzo?" es una cuenta simple.
+:::
+
 ## Por qué las fechas merecen una lección aparte
 
 Casi toda pregunta de negocio tiene una fecha adentro: "ventas **por mes**", "clientes nuevos **este año**", "días **entre** la compra y la entrega", "usuarios activos **en los últimos 30 días**". Y las fechas son traicioneras: meses de distinta cantidad de días, años bisiestos, horas, zonas horarias, formatos distintos según el país (`03/04/2024`, ¿es 3 de abril o 4 de marzo?). Esta lección te da las herramientas para trabajarlas sin errores.

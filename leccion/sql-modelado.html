@@ -18,6 +18,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/sql-modelado">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la normalización y para qué sirve en sistemas transaccionales</li><li>Diseñar un esquema estrella con una tabla de hechos y sus dimensiones</li><li>Definir el grano de una tabla de hechos antes de construirla</li><li>Elegir un tipo de dimensión lentamente cambiante (SCD 1 o 2) según la pregunta del negocio</li></ul>
 <p>Saber consultar es la mitad del trabajo. La otra mitad es <strong>diseñar</strong> las tablas para que las consultas sean simples, correctas y rápidas.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Ordenar datos es como ordenar una cocina. Para cocinar todos los días conviene tener cada cosa en su lugar y una sola vez (eso es <strong>normalizar</strong>). Para saber rápido &quot;cuánto gastamos en verduras este año&quot; conviene una planilla resumen, aunque repita algunos datos (eso es un <strong>esquema estrella</strong>). Cada forma sirve para una tarea distinta.</p>
+</div>
+
+
 <h2>Normalización (mundo OLTP)</h2>
 <p><strong>Normalizar</strong> es repartir los datos en tablas para que cada dato viva en <strong>un solo lugar</strong>. Así evitas inconsistencias (el mismo cliente con dos direcciones distintas en dos pedidos).</p>
 <div class="table-wrap"><table><thead><tr>

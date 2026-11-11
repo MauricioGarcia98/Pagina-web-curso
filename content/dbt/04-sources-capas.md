@@ -7,6 +7,10 @@ resumen: Declarar fuentes con source(), freshness, seeds y cómo organizar stagi
 
 Un proyecto dbt real tiene decenas o cientos de modelos. Si cada uno lee las tablas crudas como quiere, el proyecto se vuelve inmanejable: cuando la fuente cambia una columna, hay que buscar y corregir 30 archivos. Esta lección explica las tres piezas que ponen orden: **sources** (de dónde vienen los datos), **seeds** (pequeñas tablas de referencia que tú mantienes) y las **capas** (staging, intermediate y marts).
 
+:::analogia En palabras simples
+Un proyecto de dbt se ordena como un supermercado: los productos llegan por la puerta de atrás (las **sources**), se acomodan en el depósito (**staging**), se arman combos (**intermediate**) y se ponen en la góndola listos para llevar (**marts**). Cada capa tiene una tarea y nadie toma productos del depósito para venderlos directo.
+:::
+
 ## source(): el punto de entrada
 
 dbt **no carga datos**: solo transforma lo que ya está en el warehouse. Las tablas crudas las dejó otra herramienta (Fivetran, Airbyte, Data Factory, Auto Loader o un script de Python). A esas tablas que dbt no creó se las llama **sources**, y se declaran en un archivo YAML:

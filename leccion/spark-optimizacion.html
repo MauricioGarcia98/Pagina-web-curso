@@ -18,6 +18,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/spark-optimizacion">▶ Abrir la lección interactiva (5 ejercicios)</a>
 
 <p>Tu job de Spark funciona, pero tarda 90 minutos y la factura del clúster no para de crecer. Esta lección te da un <strong>método</strong> para encontrar por qué y una lista de soluciones para los problemas más comunes. La idea central es que casi todos los problemas de rendimiento son uno de estos cinco: <strong>leer de más, mover de más (shuffle), skew, archivos chicos o traer datos al driver.</strong></p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Optimizar Spark es como organizar una mudanza con muchos ayudantes. Si a uno le das todas las cajas pesadas, todos esperan por él; si las cajas son diminutas, pierden tiempo yendo y viniendo. Esta lección enseña a mirar dónde se traba el trabajo (la Spark UI) y a repartirlo mejor.</p>
+</div>
+
+
 <h2>Primero: medir</h2>
 <p>Nunca optimices a ciegas. Cambiar configuraciones al azar (&quot;¿y si pongo 1.000 particiones?&quot;) rara vez funciona y a veces empeora las cosas. El método es siempre el mismo:</p>
 <ol>

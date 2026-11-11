@@ -7,6 +7,10 @@ resumen: Problemas tipo entrevista técnica para Data Engineer con PySpark.
 
 Resuelve estos problemas **solo con la API de DataFrames** (sin `spark.sql`). Son los que suelen pedir en entrevistas técnicas para Data Engineer con Spark/Databricks.
 
+:::analogia En palabras simples
+Estos desafíos son como los problemas de práctica antes de un examen: combinan todo lo que viste (filtros, agrupaciones, joins y ventanas) en situaciones parecidas a las de una entrevista. Lo importante no es memorizar la solución, sino reconocer qué herramienta usar en cada paso.
+:::
+
 ## Cómo encarar un desafío de PySpark
 
 Casi todos se resuelven combinando **cuatro** herramientas que ya conoces:

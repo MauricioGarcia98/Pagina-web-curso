@@ -18,6 +18,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/airflow-buenas-practicas">▶ Abrir la lección interactiva (8 ejercicios)</a>
 
 <p>Escribir un DAG que corra una vez es fácil. Lo difícil es que siga funcionando a las 3 de la mañana, durante dos años, cuando falla la red, cuando alguien lo relanza por error o cuando hay que recalcular todo marzo. Esta lección reúne las prácticas que separan un DAG de juguete de uno de producción.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un buen DAG es como una buena receta: si la sigues dos veces, el plato sale igual y no sale doble (eso es ser <strong>idempotente</strong>). Además, nunca escribes la clave del candado en la receta: la guardas aparte (las <strong>Connections</strong> y los secretos). Esta lección junta las costumbres que evitan los problemas más comunes.</p>
+</div>
+
+
 <h2>Las reglas de oro</h2>
 <h3>1. Idempotencia: ejecutar dos veces da lo mismo que ejecutar una</h3>
 <p>Una tarea es <strong>idempotente</strong> si correrla dos veces para la misma fecha deja los datos exactamente igual que correrla una vez. Es la regla más importante, porque <strong>en Airflow las tareas se repiten</strong>: por reintentos, porque alguien hace <em>clear</em> o porque corres un backfill.</p>

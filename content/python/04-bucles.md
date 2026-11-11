@@ -16,6 +16,10 @@ Diego, de finanzas, recibe cada día un archivo con cientos de movimientos, algu
 
 Cuando hay que hacer lo mismo con cada elemento de una lista (sumar, revisar, contar), se usa un **bucle**. Es la herramienta que convierte una tarea manual de media hora en un programa de un segundo.
 :::
+:::analogia En palabras simples
+Si tienes que doblar cien camisetas, no piensas cien instrucciones distintas: piensas una sola ("toma una, dóblala, déjala en la pila") y la repites hasta que se terminan. Un **bucle** es eso para la computadora: escribes los pasos una vez y Python los repite para cada elemento de una lista, o mientras se cumpla una condición.
+:::
+
 ## Repetir sin copiar y pegar
 
 Imagina que tienes que imprimir el total de 12.000 pedidos. No vas a escribir 12.000 `print`. Un **bucle** repite un bloque de código tantas veces como haga falta: para cada pedido, para cada línea de un archivo, para cada día de un mes, hasta que se cumpla una condición. Es lo que hace a las computadoras útiles: hacer lo mismo un millón de veces sin cansarse ni equivocarse.

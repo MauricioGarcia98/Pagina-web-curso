@@ -19,6 +19,10 @@ La capa **silver** existe justamente para esto. Sus tareas típicas:
 
 La regla más importante: **nunca descartes datos en silencio**. Cada fila que quitas debe quedar contada y, mejor aún, guardada con el motivo.
 
+:::analogia En palabras simples
+Limpiar datos es como revisar una caja de fruta antes de venderla: sacas las repetidas, separas las golpeadas para revisarlas aparte y te aseguras de que cada una tenga su etiqueta. En esta lección haces eso con datos: quitar duplicados, arreglar textos, decidir qué hacer con los vacíos y separar los registros que no cumplen las reglas.
+:::
+
 ## Normalizar textos
 
 ```python

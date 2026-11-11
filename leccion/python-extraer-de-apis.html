@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Extraer datos de una API - tokens, paginación, límites y reintentos</h1><p class="resumen">La tarea más común de un data engineer junior: traer datos de una API sin perder ni duplicar nada. Contra una API de práctica que se porta como una real.</p>
 <a class="cta" href="../index.html#/l/python-extraer-de-apis">▶ Abrir la lección interactiva (12 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Hacer pedidos GET y POST con <code>requests</code> y leer el código de estado</li><li>Recorrer todas las páginas de una API (por número de página y por cursor)</li><li>Autenticarte con un token y renovarlo cuando vence</li><li>Respetar el límite de pedidos (429 y Retry-After)</li><li>Reintentar con espera creciente cuando el servidor falla</li><li>Deduplicar y limpiar lo que llega antes de guardarlo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Pedirle datos a una API es como pedir comida por teléfono a un restaurante con reglas: tienes que identificarte (el <strong>token</strong>), solo te mandan los platos de a tandas (la <strong>paginación</strong>), no puedes llamar cada segundo (el <strong>límite</strong>) y, si la línea está ocupada, vuelves a intentar un rato después (los <strong>reintentos</strong>). Esta lección enseña a hacer el pedido completo sin perder ni repetir ningún plato.</p>
+</div>
+
+
 <h2>La documentación primero</h2>
 <p>Toda API tiene su documentación. La de práctica también: <code>GET /v1/docs</code>. Léela antes de escribir código; es lo primero que hace un profesional.</p>
 <pre><code class="language-python">import requests

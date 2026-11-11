@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>UNION, INTERSECT y EXCEPT</h1><p class="resumen">Combinar resultados de varias consultas verticalmente.</p>
 <a class="cta" href="../index.html#/l/sql-conjuntos">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Apilar resultados de varias consultas con <code>UNION</code> y <code>UNION ALL</code></li><li>Elegir entre <code>UNION</code> y <code>UNION ALL</code> según si quieres eliminar repetidos</li><li>Encontrar coincidencias y diferencias entre dos conjuntos con <code>INTERSECT</code> y <code>EXCEPT</code></li><li>Comparar dos tablas para validar un pipeline</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Piensa en dos listas de invitados a dos fiestas. <code>UNION</code> junta las dos listas en una (sin repetir a quien fue a ambas), <code>INTERSECT</code> muestra solo a quienes fueron a las dos, y <code>EXCEPT</code> muestra a quienes fueron a la primera pero no a la segunda. Las listas se apilan una debajo de la otra, así que tienen que tener las mismas columnas.</p>
+</div>
+
+
 <h2>Combinar resultados &quot;hacia abajo&quot;</h2>
 <p>Los <code>JOIN</code> combinan tablas <strong>a lo ancho</strong>: pegan columnas de una tabla al lado de las de otra. Los <strong>operadores de conjuntos</strong> combinan resultados <strong>a lo largo</strong>: apilan las filas de una consulta <strong>debajo</strong> de las de otra.</p>
 <pre><code class="language-text">JOIN (a lo ancho)                 UNION (a lo largo)

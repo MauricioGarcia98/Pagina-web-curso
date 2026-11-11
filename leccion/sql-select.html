@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>SELECT: elegir columnas, alias y cálculos</h1><p class="resumen">Seleccionar columnas específicas, renombrarlas con AS y calcular nuevas columnas.</p>
 <a class="cta" href="../index.html#/l/sql-select">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir solo las columnas que necesitas, en el orden que quieras</li><li>Calcular columnas nuevas con operaciones aritméticas</li><li>Ponerles nombres claros a los resultados con <code>AS</code></li><li>Combinar textos con <code>||</code> para armar columnas como el nombre completo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Imagina una planilla enorme con veinte columnas. <code>SELECT</code> es como decirle a alguien: &quot;de toda esa planilla, pásame solo el nombre y el precio&quot;. No cambia la planilla original: te arma una copia con las columnas que pediste, y hasta puede agregar una columna nueva calculada, como &quot;precio con IVA&quot;.</p>
+</div>
+
+
 <h2>Elegir columnas: pedir solo lo que necesitas</h2>
 <p>En la lección anterior usaste <code>SELECT *</code>, que trae <strong>todas</strong> las columnas. En la práctica casi nunca necesitas todas. Para elegir, escribe los nombres de las columnas <strong>separados por comas</strong>, en el orden en que quieres verlas:</p>
 <pre><code class="language-sql">SELECT nombre, apellido, pais

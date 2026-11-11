@@ -11,6 +11,10 @@ autoevaluacion: ¿Sabes qué hace cada línea de un DAG mínimo? | ¿Sabes la di
 Todas las noches alguien del equipo entra a las 2:00 a correr tres scripts a mano: descargar ventas, limpiarlas y cargarlas. Si se olvida, el tablero de la mañana está vacío. Vamos a convertir esos tres pasos en un DAG de Airflow: un archivo de Python que describe **qué** pasos hay y **en qué orden**, para que Airflow los ejecute solo.
 :::
 
+:::analogia En palabras simples
+Un DAG de Airflow es como la lista de pasos de una receta con flechas: "primero lavar, después cortar, recién después cocinar". Airflow lee esa lista, ejecuta cada paso en orden, a la hora que le digas, y te avisa si alguno falla. En esta lección escribes tu primera lista.
+:::
+
 ## Antes de empezar: el Python mínimo para leer un DAG
 
 Un DAG se escribe en Python, pero no necesitas saber mucho. Estas son las cinco piezas que aparecen:

@@ -42,6 +42,12 @@ df.filter(…).groupBy(…) ─┘</code></pre>
 </tr>
 </tbody></table></div>
 <p>Y se pueden mezclar libremente: <code>spark.sql(…)</code> devuelve un DataFrame, y un DataFrame se puede registrar como vista para consultarlo con SQL.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Spark entiende dos idiomas para la misma tarea: Python y SQL. Es como una tienda donde puedes pedir con un formulario o hablando con el vendedor, y el resultado es el mismo. Esta lección te muestra cómo pasar de uno a otro y dónde guarda Spark los nombres de las tablas (el <strong>catálogo</strong>), como el índice de una biblioteca.</p>
+</div>
+
+
 <h2>Vistas temporales: SQL sobre un DataFrame</h2>
 <pre data-norun><code class="language-python">pedidos = spark.read.parquet(&quot;/lake/silver/pedidos&quot;)
 pedidos.createOrReplaceTempView(&quot;pedidos&quot;)        # visible solo en esta SparkSession

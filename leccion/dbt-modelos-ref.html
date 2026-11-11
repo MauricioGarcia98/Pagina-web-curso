@@ -18,6 +18,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/dbt-modelos-ref">▶ Abrir la lección interactiva (7 ejercicios)</a>
 
 <p>Un <strong>modelo</strong> es un archivo <code>.sql</code> con <strong>un solo SELECT</strong>. El nombre del archivo es el nombre del modelo: <code>models/marts/fct_ventas.sql</code> crea <code>fct_ventas</code>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un modelo de dbt es una receta escrita en SQL: &quot;toma estos ingredientes y prepara esta tabla&quot;. <code>ref()</code> es la forma de decir &quot;usa como ingrediente la tabla que sale de otra receta&quot;. Así dbt sabe en qué orden cocinar todo, como cuando sabes que la salsa tiene que estar lista antes de armar la pizza.</p>
+</div>
+
+
 <h2>Desde cero: qué escribes y qué ejecuta la base</h2>
 <p>Un modelo <strong>no</strong> lleva <code>CREATE TABLE</code>, ni <code>INSERT</code>, ni punto y coma al final: solo la consulta que describe el resultado que quieres. dbt agrega el resto (según la materialización, que verás en otra lección). Esa es la gran simplificación: tú piensas en <strong>qué datos</strong> quieres; dbt se ocupa de <strong>cómo</strong> guardarlos.</p>
 <p>Dentro del SQL aparecen cosas entre llaves dobles, como <code>{{ ref(&#39;stg_pedidos&#39;) }}</code>. Eso no es SQL: es <strong>Jinja</strong>, un lenguaje de plantillas (el mismo que usan muchos sitios web para armar páginas). Funciona como un &quot;buscar y reemplazar&quot; inteligente:</p>

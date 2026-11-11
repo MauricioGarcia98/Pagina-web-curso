@@ -25,6 +25,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <li>&quot;No arranques hasta que el proveedor haya dejado el archivo.&quot;</li>
 </ul>
 <p>Esta lección cubre las cuatro herramientas que resuelven eso: <strong>ramas</strong>, <strong>trigger rules</strong>, <strong>sensores</strong> y <strong>TaskGroups</strong>.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>No todas las recetas son una línea recta: a veces dicen &quot;si el horno no está caliente, espera&quot; o &quot;si hay invitados vegetarianos, haz la otra salsa&quot;. En Airflow eso se hace con <strong>sensores</strong> (esperar algo), <strong>ramas</strong> (elegir un camino) y <strong>reglas de disparo</strong> (cuándo corre un paso según cómo terminaron los anteriores).</p>
+</div>
+
+
 <h2>Primero: los estados de una tarea</h2>
 <p>Cada vez que corre el DAG, cada tarea termina en un <strong>estado</strong>. Para entender esta lección te bastan cuatro:</p>
 <div class="table-wrap"><table><thead><tr>

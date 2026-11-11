@@ -18,6 +18,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/airflow-airflow-databricks-dbt">▶ Abrir la lección interactiva (3 ejercicios)</a>
 
 <p>En la vida real, un DAG de Airflow casi nunca procesa datos. Lo que hace es <strong>coordinar</strong> a otros sistemas: le dice a Databricks que corra un job, espera a que termine, le dice a dbt que construya los modelos y avisa si algo sale mal. Esta lección arma ese pipeline completo, el que vas a encontrar en muchas empresas que usan Azure, Databricks y dbt.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>En un proyecto real cada herramienta hace lo suyo, como en una cocina profesional: Databricks procesa los datos pesados, dbt transforma con SQL y Airflow es el jefe de cocina que dice quién empieza, quién sigue y qué hacer si algo sale mal. En esta lección los conectas en un solo pipeline.</p>
+</div>
+
+
 <h2>El escenario</h2>
 <p>Tienda Andina recibe cada noche los pedidos del día. A las 7 de la mañana el equipo comercial abre su dashboard y espera ver las ventas de ayer. Entre medio pasa esto:</p>
 <div class="table-wrap"><table><thead><tr>

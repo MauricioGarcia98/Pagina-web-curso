@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>groupBy, agg, pivot y rollup</h1><p class="resumen">Agregar datos por grupos con varias métricas, pivotear y subtotales.</p>
 <a class="cta" href="../index.html#/l/pyspark-agregaciones">▶ Abrir la lección interactiva (4 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Agrupar es como ordenar los tickets de compra en pilas por mes y después sumar cada pila. <code>groupBy</code> arma las pilas y <code>agg</code> dice qué calcular en cada una (sumar, contar, promediar). <code>pivot</code> gira la tabla para que, por ejemplo, cada mes quede como una columna, como en una tabla dinámica de Excel.</p>
+</div>
+
+
 <h2>Resumir datos por grupos</h2>
 <p>Agrupar y resumir es el corazón del análisis: ventas por mes, clientes por país, ticket promedio por canal. En SQL lo hiciste con <code>GROUP BY</code> y funciones de agregación; en PySpark es la pareja <strong><code>groupBy</code> + <code>agg</code></strong>. Las ideas son idénticas, incluida la regla de oro: el resultado tiene <strong>una fila por grupo</strong>.</p>
 <div class="table-wrap"><table><thead><tr>

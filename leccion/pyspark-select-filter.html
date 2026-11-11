@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>select, filter, withColumn y columnas</h1><p class="resumen">Elegir y renombrar columnas, filtrar filas, crear columnas calculadas y castear tipos.</p>
 <a class="cta" href="../index.html#/l/pyspark-select-filter">▶ Abrir la lección interactiva (5 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Trabajar con un DataFrame de PySpark es como trabajar con una planilla gigante, con millones de filas repartidas en varias computadoras. <code>select</code> elige columnas, <code>filter</code> se queda con las filas que cumplen una condición y <code>withColumn</code> agrega una columna calculada. Son las mismas ideas de SQL, escritas en Python.</p>
+</div>
+
+
 <h2>Las operaciones del día a día</h2>
 <p>Esta lección cubre lo que harás en el 80 % de tu código PySpark: <strong>elegir columnas</strong>, <strong>filtrar filas</strong> y <strong>calcular columnas nuevas</strong>. Si piensas en SQL, son el <code>SELECT</code>, el <code>WHERE</code> y las expresiones con <code>AS</code>. La diferencia es que en PySpark se escriben como <strong>métodos encadenados</strong> sobre el DataFrame:</p>
 <div class="table-wrap"><table><thead><tr>

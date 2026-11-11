@@ -16,6 +16,10 @@ Diego, de finanzas, quiere seguir el mes en tiempo real:
 
 Un acumulado necesita "todas las filas anteriores", y una variación necesita "la fila anterior". Las funciones de ventana con **marcos** y las funciones `LAG`/`LEAD` resuelven exactamente eso.
 :::
+:::analogia En palabras simples
+Imagina que anotas cuánto ahorras cada mes y, al lado, cuánto llevas ahorrado en total. Esa segunda columna, que va sumando fila por fila, es un **acumulado**. Las funciones de esta lección hacen eso y cosas parecidas: mirar la fila anterior ("¿cuánto ahorré el mes pasado?"), promediar los últimos tres meses o repartir las filas en grupos parejos, sin perder el detalle de cada fila.
+:::
+
 ## Más allá del ranking
 
 En la lección anterior usaste `ORDER BY` dentro de `OVER` para numerar filas. Ese mismo orden abre otras puertas: **acumular** ("ventas acumuladas del año"), **suavizar** ("promedio de los últimos 3 meses") y **comparar con filas vecinas** ("¿cuánto crecimos respecto al mes anterior?", "¿cuántos días pasaron desde la compra anterior?"). Son las herramientas de cualquier análisis temporal.

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Tu primer DAG</h1><p class="resumen">Desde cero - el Python mínimo que necesitas, un DAG completo explicado línea por línea (sintaxis de Airflow 3), cómo lee Airflow tu archivo, operadores, task_id, dependencias con &gt;&gt; y cómo probarlo con dags test.</p>
 <a class="cta" href="../index.html#/l/airflow-primer-dag">▶ Abrir la lección interactiva (6 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer y escribir un DAG con with DAG(...)</li><li>Crear tareas con BashOperator, PythonOperator y EmptyOperator</li><li>Definir dependencias en cadena y en paralelo</li><li>Explicar por qué el código fuera de las tareas se ejecuta en cada lectura</li><li>Probar un DAG con airflow dags test</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un DAG de Airflow es como la lista de pasos de una receta con flechas: &quot;primero lavar, después cortar, recién después cocinar&quot;. Airflow lee esa lista, ejecuta cada paso en orden, a la hora que le digas, y te avisa si alguno falla. En esta lección escribes tu primera lista.</p>
+</div>
+
+
 <h2>Antes de empezar: el Python mínimo para leer un DAG</h2>
 <p>Un DAG se escribe en Python, pero no necesitas saber mucho. Estas son las cinco piezas que aparecen:</p>
 <div class="table-wrap"><table><thead><tr>

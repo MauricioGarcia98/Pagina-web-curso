@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Programación: schedule, start_date, catchup e intervalos</h1><p class="resumen">Desde cero - start_date, schedule y catchup; expresiones cron y zona horaria; cómo calcula Airflow 3 la fecha lógica (y cómo lo hacía Airflow 2); procesar el día anterior; catchup, backfill y default_args.</p>
 <a class="cta" href="../index.html#/l/airflow-programacion">▶ Abrir la lección interactiva (8 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Programar un DAG es como poner una alarma que se repite: &quot;todos los días a las 6&quot;. Airflow además se pregunta &quot;¿qué día estoy procesando?&quot;: la corrida de hoy a las 6 suele trabajar con los datos de ayer. Entender esa idea evita la confusión más común de quienes empiezan con Airflow.</p>
+</div>
+
+
 <h2>Desde cero: ¿qué significa &quot;programar&quot; un DAG?</h2>
 <p>Programar un DAG es decirle a Airflow <strong>cuándo</strong> crear una ejecución (un <em>DAG run</em>). Para eso hay tres parámetros que siempre van juntos:</p>
 <ul>

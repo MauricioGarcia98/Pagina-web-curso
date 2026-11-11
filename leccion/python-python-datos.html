@@ -18,6 +18,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/python-python-datos">▶ Abrir la lección interactiva (10 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir un pipeline ETL en Python con funciones pequeñas: extraer, limpiar, deduplicar, agregar</li><li>Separar las filas inválidas con su motivo en lugar de descartarlas en silencio</li><li>Describir cómo extraer datos de una API con timeouts, reintentos y paginación</li><li>Limpiar y agregar datos con pandas y traducir entre SQL, pandas y PySpark</li></ul>
 <p>Ya tienes todas las piezas de Python: tipos, colecciones, funciones, errores y archivos. Ahora vamos a usarlas como lo hace un ingeniero de datos: <strong>extraer, limpiar, transformar, validar y cargar</strong>. Esta lección arma un pipeline completo en Python puro, explica cómo se consume una API de verdad y termina con <strong>pandas</strong>, la librería que vas a usar cuando los datos entran en una computadora.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un pipeline de datos es como una línea de producción: entran ingredientes crudos (un CSV desordenado), pasan por estaciones (limpiar, validar, transformar) y sale un producto terminado (una tabla lista para usar). En esta lección armas esa línea completa con Python, estación por estación.</p>
+</div>
+
+
 <h2>Un mini ETL en Python puro</h2>
 <p>Este es un archivo de pedidos tal como podría llegar de un sistema viejo. Míralo con ojo de data engineer antes de leer el código: ¿qué problemas ves?</p>
 <pre><code class="language-text">pedido_id,fecha,cliente,pais,monto

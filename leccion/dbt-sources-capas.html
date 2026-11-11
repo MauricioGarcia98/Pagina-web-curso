@@ -18,6 +18,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <a class="cta" href="../index.html#/l/dbt-sources-capas">▶ Abrir la lección interactiva (6 ejercicios)</a>
 
 <p>Un proyecto dbt real tiene decenas o cientos de modelos. Si cada uno lee las tablas crudas como quiere, el proyecto se vuelve inmanejable: cuando la fuente cambia una columna, hay que buscar y corregir 30 archivos. Esta lección explica las tres piezas que ponen orden: <strong>sources</strong> (de dónde vienen los datos), <strong>seeds</strong> (pequeñas tablas de referencia que tú mantienes) y las <strong>capas</strong> (staging, intermediate y marts).</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un proyecto de dbt se ordena como un supermercado: los productos llegan por la puerta de atrás (las <strong>sources</strong>), se acomodan en el depósito (<strong>staging</strong>), se arman combos (<strong>intermediate</strong>) y se ponen en la góndola listos para llevar (<strong>marts</strong>). Cada capa tiene una tarea y nadie toma productos del depósito para venderlos directo.</p>
+</div>
+
+
 <h2>source(): el punto de entrada</h2>
 <p>dbt <strong>no carga datos</strong>: solo transforma lo que ya está en el warehouse. Las tablas crudas las dejó otra herramienta (Fivetran, Airbyte, Data Factory, Auto Loader o un script de Python). A esas tablas que dbt no creó se las llama <strong>sources</strong>, y se declaran en un archivo YAML:</p>
 <pre data-norun><code class="language-yaml"># models/staging/_sources.yml

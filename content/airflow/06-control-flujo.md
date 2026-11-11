@@ -14,6 +14,10 @@ Hasta ahora tus DAGs eran una línea recta: A, después B, después C. En la vid
 
 Esta lección cubre las cuatro herramientas que resuelven eso: **ramas**, **trigger rules**, **sensores** y **TaskGroups**.
 
+:::analogia En palabras simples
+No todas las recetas son una línea recta: a veces dicen "si el horno no está caliente, espera" o "si hay invitados vegetarianos, haz la otra salsa". En Airflow eso se hace con **sensores** (esperar algo), **ramas** (elegir un camino) y **reglas de disparo** (cuándo corre un paso según cómo terminaron los anteriores).
+:::
+
 ## Primero: los estados de una tarea
 
 Cada vez que corre el DAG, cada tarea termina en un **estado**. Para entender esta lección te bastan cuatro:

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>La capa bronze - limpiar datos como llegan de verdad</h1><p class="resumen">Duplicados por reenvíos, fechas y montos como texto, estados en dos idiomas, pruebas de QA, clientes desconocidos, JSON que cambia de formato. Todo junto, como en el trabajo.</p>
 <a class="cta" href="../index.html#/l/sql-capa-bronze">▶ Abrir la lección interactiva (11 ejercicios)</a>
 <h2>Al terminar vas a poder</h2><ul class="lista"><li>Medir los problemas de una tabla antes de limpiarla</li><li>Deduplicar quedándote con la versión más reciente</li><li>Convertir textos a fechas y números aunque lleguen en varios formatos</li><li>Unificar valores de una categoría escritos de muchas formas</li><li>Separar datos de prueba y registros huérfanos</li><li>Leer JSON con dos versiones de formato</li><li>Armar la consulta silver completa</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Los datos llegan como la ropa del lavarropas: mezclados, algunos al revés, uno que otro calcetín sin par. La capa <strong>bronze</strong> es el canasto donde se deja todo tal como llegó, sin tirar nada. Después, con paciencia, se separa, se dobla y se ordena. Esta lección es aprender a doblar: sacar duplicados, convertir textos a números y fechas, y no perder nada en el camino.</p>
+</div>
+
+
 <h2>Por qué existe la capa bronze</h2>
 <p>En una arquitectura medallón, <strong>bronze</strong> guarda los datos <strong>exactamente como llegaron</strong>, con columnas extra que dicen de dónde vinieron (<code>archivo</code>) y cuándo se cargaron (<code>cargado_en</code>). Todo es texto, porque si declararas <code>fecha</code> como <code>DATE</code>, la fila con <code>&quot;31/10/2024&quot;</code> haría fallar la carga y perderías el dato.</p>
 <p>Tres razones para no limpiar &quot;en la entrada&quot;:</p>

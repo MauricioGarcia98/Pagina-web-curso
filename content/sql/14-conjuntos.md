@@ -16,6 +16,10 @@ Camila quiere entender la fuga de clientes:
 
 Son preguntas sobre **conjuntos** de clientes: los de un año menos los de otro, los que están en los dos grupos. SQL tiene operadores pensados exactamente para eso.
 :::
+:::analogia En palabras simples
+Piensa en dos listas de invitados a dos fiestas. `UNION` junta las dos listas en una (sin repetir a quien fue a ambas), `INTERSECT` muestra solo a quienes fueron a las dos, y `EXCEPT` muestra a quienes fueron a la primera pero no a la segunda. Las listas se apilan una debajo de la otra, así que tienen que tener las mismas columnas.
+:::
+
 ## Combinar resultados "hacia abajo"
 
 Los `JOIN` combinan tablas **a lo ancho**: pegan columnas de una tabla al lado de las de otra. Los **operadores de conjuntos** combinan resultados **a lo largo**: apilan las filas de una consulta **debajo** de las de otra.

@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Funciones de ventana en PySpark</h1><p class="resumen">Window.partitionBy().orderBy(), rankings, lag/lead, acumulados y marcos.</p>
 <a class="cta" href="../index.html#/l/pyspark-ventanas">▶ Abrir la lección interactiva (5 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una función de ventana es como mirar por una ventanita que se mueve fila por fila: en cada fila ves un grupo de filas cercanas (por ejemplo, los pedidos del mismo cliente) y calculas algo con ellas, como &quot;este es su tercer pedido&quot; o &quot;cuánto gastó el mes anterior&quot;, sin juntar las filas en una sola.</p>
+</div>
+
+
 <h2>Ventanas: SQL avanzado, ahora en PySpark</h2>
 <p>Las funciones de ventana te permitieron, en SQL, numerar filas dentro de un grupo, calcular acumulados y comparar con la fila anterior <strong>sin colapsar</strong> las filas. Todo eso funciona igual en PySpark. La diferencia es que la &quot;ventana&quot; (<code>OVER (PARTITION BY … ORDER BY …)</code>) se define como un <strong>objeto</strong> de la clase <code>Window</code>, que se guarda en una variable y se reutiliza:</p>
 <pre data-norun><code class="language-python">from pyspark.sql.window import Window

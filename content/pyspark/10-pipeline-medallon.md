@@ -7,6 +7,10 @@ resumen: Un pipeline completo en PySpark con funciones reutilizables, idempotent
 
 Vamos a construir, paso a paso, un pipeline como los que se hacen en Databricks. Ejecuta cada bloque con **▶ Probar**.
 
+:::analogia En palabras simples
+El pipeline medallón es como refinar un metal en tres pasos: **bronze** guarda el material tal como llegó, **silver** lo limpia y lo deja parejo, y **gold** lo convierte en algo listo para usar, como un informe. Aquí armas los tres pasos con PySpark, de forma que puedas volver a ejecutarlos sin duplicar nada.
+:::
+
 ## La arquitectura medallón
 
 Es la forma estándar de organizar un lakehouse: los datos pasan por tres capas, cada una más limpia y más cercana al negocio que la anterior.

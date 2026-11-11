@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>RDDs y rendimiento en la práctica</h1><p class="resumen">La API de bajo nivel, explain(), particiones, caché, broadcast y antipatrones en PySpark.</p>
 <a class="cta" href="../index.html#/l/pyspark-rdd-rendimiento">▶ Abrir la lección interactiva (3 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Los DataFrames son como manejar un auto automático: tú dices a dónde ir y el auto elige los cambios. Los <strong>RDD</strong> son el auto manual: más control, pero más trabajo y más fácil equivocarse. En esta lección ves cómo funciona el motor por dentro (particiones, caché, <code>explain</code>) para entender por qué algo es lento.</p>
+</div>
+
+
 <h2>RDDs: la base de todo</h2>
 <p>Un <strong>RDD</strong> (<em>Resilient Distributed Dataset</em>, &quot;conjunto de datos distribuido y resiliente&quot;) es la abstracción original de Spark: una colección de objetos de Python repartida entre las máquinas del cluster, <strong>sin esquema</strong> (Spark no sabe qué hay adentro de cada objeto).</p>
 <div class="table-wrap"><table><thead><tr>

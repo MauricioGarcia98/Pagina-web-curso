@@ -7,6 +7,10 @@ resumen: Diagnóstico con la Spark UI, caché, archivos pequeños, configuració
 
 Tu job de Spark funciona, pero tarda 90 minutos y la factura del clúster no para de crecer. Esta lección te da un **método** para encontrar por qué y una lista de soluciones para los problemas más comunes. La idea central es que casi todos los problemas de rendimiento son uno de estos cinco: **leer de más, mover de más (shuffle), skew, archivos chicos o traer datos al driver.**
 
+:::analogia En palabras simples
+Optimizar Spark es como organizar una mudanza con muchos ayudantes. Si a uno le das todas las cajas pesadas, todos esperan por él; si las cajas son diminutas, pierden tiempo yendo y viniendo. Esta lección enseña a mirar dónde se traba el trabajo (la Spark UI) y a repartirlo mejor.
+:::
+
 ## Primero: medir
 
 Nunca optimices a ciegas. Cambiar configuraciones al azar ("¿y si pongo 1.000 particiones?") rara vez funciona y a veces empeora las cosas. El método es siempre el mismo:

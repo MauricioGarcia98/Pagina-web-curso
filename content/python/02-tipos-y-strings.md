@@ -16,6 +16,10 @@ Camila, de marketing, te reenvía la lista de emails del formulario de suscripci
 
 Casi todos los datos que vas a recibir llegan como **texto**, aunque sean números o fechas. Esta lección te enseña a reconocer los tipos, convertirlos y limpiar textos, que es una parte enorme del trabajo diario.
 :::
+:::analogia En palabras simples
+En una cocina no guardas igual la harina, la leche y los huevos: cada cosa tiene su recipiente. En Python pasa lo mismo con los datos: un número entero (`5`), un número con decimales (`5.5`), un texto (`"hola"`) o un verdadero/falso (`True`) son de **tipos** distintos, y cada tipo sabe hacer cosas diferentes. Por ejemplo, un texto se puede pasar a mayúsculas, pero un número no.
+:::
+
 ## Cada valor tiene un tipo
 
 Para Python no es lo mismo `29` que `"29"`. El primero es un **número** (se puede sumar, multiplicar); el segundo es un **texto** formado por los caracteres "2" y "9" (se puede poner en mayúsculas o cortar, pero no sumar). El **tipo** de un valor determina qué puedes hacer con él.

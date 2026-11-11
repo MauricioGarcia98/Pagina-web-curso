@@ -17,6 +17,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 <h1>Snapshots, comandos, selección y CI/CD</h1><p class="resumen">Por qué las tablas de origen &quot;olvidan&quot;, SCD2 con snapshots (YAML de dbt 1.9 y sintaxis clásica, estrategias timestamp y check, borrados), cómo consultar la historia, comandos, selección de nodos, state:modified y dbt en producción.</p>
 <a class="cta" href="../index.html#/l/dbt-snapshots-comandos">▶ Abrir la lección interactiva (9 ejercicios)</a>
 
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Muchas tablas de origen tienen mala memoria: cuando un cliente se muda, guardan la dirección nueva y olvidan la vieja. Un <strong>snapshot</strong> es como sacarle una foto a la tabla cada día para recordar cómo era antes. Además, esta lección muestra los comandos para ejecutar solo una parte del proyecto y probarlo antes de publicarlo.</p>
+</div>
+
+
 <h2>El problema: las tablas de origen olvidan</h2>
 <p>La mayoría de los sistemas (la app de la tienda, un CRM, un ERP) guardan solo el <strong>estado actual</strong> de cada cosa. Si Sofía se muda de Barcelona a Santiago, el sistema <strong>sobrescribe</strong> la ciudad: la fila dice &quot;Santiago&quot; y &quot;Barcelona&quot; desaparece. Para la app está bien; para el análisis es un problema, porque preguntas como estas quedan sin respuesta:</p>
 <ul>

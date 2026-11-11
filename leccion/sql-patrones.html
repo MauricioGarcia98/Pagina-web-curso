@@ -55,6 +55,12 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
 </tr>
 </tbody></table></div>
 <p> Aparecen todo el tiempo en el trabajo real y en entrevistas de nivel senior. Todos combinan CTEs y funciones de ventana.</p>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Muchas preguntas de negocio parecen distintas pero son la misma receta con otros ingredientes. &quot;¿Cuántos días seguidos entró este usuario?&quot;, &quot;¿dónde abandonan la compra?&quot; o &quot;¿cuántos clientes de enero siguen comprando en marzo?&quot; son recetas conocidas. Esta lección es tu recetario: una vez que reconoces el patrón, la consulta casi se escribe sola.</p>
+</div>
+
+
 <h2>1. Deduplicación: quedarse con el registro más reciente</h2>
 <p>Los datos crudos casi siempre traen <strong>duplicados</strong>: el sistema de origen reenvió un registro, un proceso se ejecutó dos veces, o el cliente actualizó su email y llegó una versión nueva. En la capa limpia (silver) debe quedar <strong>una fila por clave</strong>, normalmente la más reciente.</p>
 <p>La tabla <code>clientes_crudo</code> tiene el mismo cliente cargado varias veces, con distintas <code>fecha_carga</code>. El patrón tiene dos pasos:</p>
