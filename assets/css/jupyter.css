@@ -1,0 +1,200 @@
+/* JupyterLab de práctica: tema claro de JupyterLab 4 (grises neutros, azul de selección). Sin logos oficiales. */
+body.jl-abierto { overflow: hidden; }
+.jlp [hidden] { display: none !important; }
+.jlp {
+  --t: #212121; --t2: #616161; --t3: #9e9e9e; --bd: #e0e0e0; --bd2: #bdbdbd; --bg: #ffffff; --bg2: #f5f5f5; --bg3: #eeeeee;
+  --ac: #1976d2; --ac-bg: #e3f2fd; --sel: #1976d2; --in: #307fc1; --out: #bf5b3d; --err-bg: #fdd; --cod-bg: #f5f5f5; --mal: #d32f2f;
+  position: fixed; inset: 0; z-index: 900; display: flex; flex-direction: column; background: var(--bg); color: var(--t); color-scheme: light;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+:root[data-theme="dark"] .jlp { --t: #e0e0e0; --t2: #b0b0b0; --t3: #808080; --bd: #3a3a3a; --bd2: #555; --bg: #111111; --bg2: #1d1d1d; --bg3: #2a2a2a; --ac: #42a5f5; --ac-bg: #0d2a44; --sel: #42a5f5; --in: #64a9e6; --out: #e0896e; --err-bg: #3d1d1d; --cod-bg: #1b1b1b; color-scheme: dark; }
+.jlp * { box-sizing: border-box; }
+.jlp button { font: inherit; color: inherit; }
+.jlp code { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--bg3); padding: 1px 4px; border-radius: 3px; }
+.jl-ic { flex: none; vertical-align: -3px; }
+.jl-sp { flex: 1; }
+.jl-dim { color: var(--t2); font-size: 12px; }
+.jl-vacio { color: var(--t2); padding: 14px 12px; font-size: 12px; }
+
+/* barra de menús */
+.jl-menu { height: 30px; display: flex; align-items: center; gap: 2px; padding: 0 6px; border-bottom: 1px solid var(--bd); background: var(--bg); flex: none; }
+.jl-marca { display: inline-flex; gap: 2px; margin: 0 8px 0 4px; }
+.jl-marca i { width: 6px; height: 6px; border-radius: 50%; background: var(--t3); display: block; }
+.jl-marca i:nth-child(2) { background: var(--ac); }
+.jl-mi { background: none; border: 0; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+.jl-mi:hover { background: var(--bg3); }
+.jl-tag { font-size: 11px; color: var(--t2); background: var(--bg3); padding: 1px 7px; border-radius: 9px; margin-right: 8px; }
+.jl-volver { display: inline-flex; align-items: center; gap: 4px; color: var(--ac); text-decoration: none; font-size: 12px; padding: 3px 8px; border-radius: 3px; }
+.jl-volver:hover { background: var(--ac-bg); }
+
+.jl-cuerpo { flex: 1; display: flex; min-height: 0; }
+.jl-side { width: 33px; flex: none; background: var(--bg2); border-right: 1px solid var(--bd); display: flex; flex-direction: column; padding-top: 2px; }
+.jl-sb { width: 33px; height: 36px; border: 0; background: none; color: var(--t2); cursor: pointer; border-left: 2px solid transparent; display: grid; place-items: center; }
+.jl-sb:hover { color: var(--t); }
+.jl-sb.on { color: var(--t); border-left-color: var(--sel); background: var(--bg); }
+.jl-panel { width: 250px; flex: none; border-right: 1px solid var(--bd); background: var(--bg); overflow: auto; display: flex; flex-direction: column; }
+.jl-panel.oculto { display: none; }
+.jl-pt { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--t2); padding: 9px 12px 6px; font-weight: 600; }
+.jl-fb-bar { display: flex; gap: 2px; padding: 6px 8px; border-bottom: 1px solid var(--bd); }
+.jl-ib { flex: none; width: 26px; height: 24px; display: inline-grid; place-items: center; border: 0; background: none; border-radius: 3px; cursor: pointer; color: var(--t2); }
+.jl-ib:hover { background: var(--bg3); color: var(--t); }
+.jl-migas { padding: 6px 12px; font-size: 12px; display: flex; flex-wrap: wrap; gap: 3px; align-items: center; color: var(--t2); }
+.jl-migas a { cursor: pointer; color: var(--t); }
+.jl-migas a:hover { text-decoration: underline; }
+.jl-fb-cab { display: flex; justify-content: space-between; padding: 4px 12px; font-size: 11px; color: var(--t2); border-top: 1px solid var(--bd); border-bottom: 1px solid var(--bd); }
+.jl-fb-i { display: flex; align-items: center; gap: 7px; padding: 3px 12px; cursor: default; user-select: none; outline: none; }
+.jl-fb-i:hover { background: var(--bg2); }
+.jl-fb-i.sel { background: var(--ac-bg); }
+.jl-fb-i.abierto .jl-fb-n::before { content: '●'; color: var(--ac); font-size: 8px; margin-right: 4px; vertical-align: 2px; }
+.jl-fb-i[data-dir] .jl-ic { color: var(--ac); }
+.jl-fb-n { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jl-fb-m { color: var(--t3); font-size: 11px; white-space: nowrap; }
+.jl-run-s { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 4px; font-size: 12px; }
+.jl-run-i { padding: 4px 12px; display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.jl-run-i:hover { background: var(--bg2); }
+.jl-run-sub { padding-left: 34px; color: var(--t2); }
+.jl-link { background: none; border: 0; color: var(--ac); cursor: pointer; font-size: 12px; }
+.jl-toc-i { display: block; padding: 4px 8px; cursor: pointer; color: var(--t); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jl-toc-i:hover { background: var(--bg2); }
+
+/* área principal y pestañas */
+.jl-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.jl-tabs { display: flex; align-items: flex-end; height: 30px; background: var(--bg2); border-bottom: 1px solid var(--bd); flex: none; overflow-x: auto; scrollbar-width: none; }
+.jl-tab { display: flex; align-items: center; gap: 6px; height: 29px; padding: 0 6px 0 10px; min-width: 110px; max-width: 220px; border-right: 1px solid var(--bd); cursor: default; color: var(--t2); background: var(--bg2); }
+.jl-tab span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jl-tab.on { background: var(--bg); color: var(--t); border-top: 2px solid var(--sel); height: 30px; margin-bottom: -1px; }
+.jl-tab-x { width: 18px; height: 18px; border: 0; background: none; border-radius: 3px; display: grid; place-items: center; cursor: pointer; color: var(--t2); font-size: 11px; }
+.jl-tab-x:hover { background: var(--bg3); }
+.jl-tab-x.sucio { color: var(--t); }
+.jl-tab-mas { border: 0; background: none; width: 28px; height: 28px; cursor: pointer; color: var(--t2); }
+.jl-area { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+
+/* launcher */
+.jl-launcher { overflow: auto; padding: 24px 40px; flex: 1; }
+.jl-l-cab { font-size: 15px; font-weight: 400; color: var(--t2); margin: 0 0 18px; display: flex; gap: 6px; align-items: center; }
+.jl-l-sec h3 { font-size: 16px; font-weight: 400; margin: 22px 0 10px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--bd); padding-bottom: 8px; }
+.jl-cards { display: flex; flex-wrap: wrap; gap: 14px; }
+.jl-card { width: 112px; height: 132px; border: 1px solid var(--bd); background: var(--bg); border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.12); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 14px 6px 6px; cursor: pointer; gap: 8px; text-align: center; }
+.jl-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.2); border-color: var(--bd2); }
+.jl-card-ic { width: 54px; height: 54px; display: grid; place-items: center; color: var(--t2); }
+.jl-ci-py3 { border-radius: 8px; background: linear-gradient(135deg, #3b77a8 50%, #e8c547 50%); color: #fff; font-size: 20px; }
+.jl-card-t { font-size: 12px; line-height: 1.25; }
+.jl-l-nota { margin-top: 28px; color: var(--t2); max-width: 640px; font-size: 12px; }
+
+/* notebook */
+.jl-nb, .jl-txt, .jl-csv { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.jl-nb-bar { display: flex; align-items: center; gap: 1px; height: 32px; padding: 0 6px; border-bottom: 1px solid var(--bd); flex: none; background: var(--bg); }
+.jl-tipo { margin-left: 6px; font: inherit; border: 1px solid var(--bd); background: var(--bg); color: var(--t); height: 22px; border-radius: 2px; }
+.jl-kernel { border: 0; background: none; cursor: pointer; color: var(--t2); padding: 2px 6px; font-size: 12px; }
+.jl-kernel:hover { background: var(--bg3); }
+.jl-kdot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--t2); margin: 0 6px 0 2px; }
+.jl-kdot.busy { background: var(--t2); }
+.jl-celdas { flex: 1; overflow: auto; padding: 8px 20px 40vh 4px; outline: none; }
+.jl-celda { position: relative; display: grid; grid-template-columns: 8px 1fr; padding: 5px 40px 5px 0; border: 1px solid transparent; }
+.jl-col { grid-row: 1 / span 2; width: 6px; border-radius: 1px; }
+.jl-celda.sel .jl-col { background: var(--sel); }
+.jl-celda.edit .jl-col { background: var(--sel); }
+.jl-in, .jl-out { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: start; grid-column: 2; }
+.jl-outs { grid-column: 2; }
+.jl-prompt { font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--in); text-align: right; padding: 5px 8px 0 0; white-space: nowrap; user-select: none; }
+.jl-prompt.out { color: var(--out); padding-top: 4px; }
+.jl-ed { border: 1px solid var(--bd); background: var(--cod-bg); border-radius: 2px; min-width: 0; }
+.jl-celda.edit .jl-ed { border-color: var(--sel); background: var(--bg); }
+.jl-celda.markdown .jl-ed, .jl-celda.raw .jl-ed { background: var(--bg); }
+.jl-ed .CodeMirror { height: auto; min-height: 0; background: transparent; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--t); padding: 2px 0; }
+.jl-ed .CodeMirror-lines { padding: 3px 0; }
+.jl-ed .CodeMirror-scroll { min-height: 0; max-height: none; }
+.jlp pre { position: static; }
+.jlp .CodeMirror-cursor { border-left: 1px solid var(--t); }
+.jl-ed .CodeMirror pre.CodeMirror-line { padding: 0 6px; }
+.jl-ed .CodeMirror-gutters { background: transparent; border-right: 1px solid var(--bd); }
+.jl-ed .CodeMirror-cursor { border-left-color: var(--t); }
+:root[data-theme="dark"] .jlp .cm-keyword { color: #c792ea; }
+:root[data-theme="dark"] .jlp .cm-string { color: #c3e88d; }
+:root[data-theme="dark"] .jlp .cm-number { color: #f78c6c; }
+:root[data-theme="dark"] .jlp .cm-comment { color: #7a8a99; }
+:root[data-theme="dark"] .jlp .cm-def, :root[data-theme="dark"] .jlp .cm-variable-2 { color: #82aaff; }
+:root[data-theme="dark"] .jlp .cm-builtin { color: #ffcb6b; }
+.jl-md { padding: 2px 8px 2px 4px; min-width: 0; overflow-wrap: anywhere; font-size: 14px; line-height: 1.55; }
+.jl-md h1 { font-size: 26px; margin: 10px 0 8px; font-weight: 600; }
+.jl-md h2 { font-size: 21px; margin: 12px 0 6px; font-weight: 600; }
+.jl-md h3 { font-size: 17px; margin: 10px 0 4px; font-weight: 600; }
+.jl-md p { margin: 6px 0; }
+.jl-md ul, .jl-md ol { margin: 6px 0; padding-left: 24px; }
+.jl-md pre { background: var(--cod-bg); padding: 8px; border-radius: 3px; overflow: auto; border: 0; margin: 6px 0; font-size: 12.5px; color: var(--t); }
+.jl-md table, .jl-html table { border-collapse: collapse; font-size: 12px; margin: 4px 0; }
+.jl-md th, .jl-md td { border: 1px solid var(--bd); padding: 3px 8px; }
+.jl-md blockquote { border-left: 4px solid var(--bd2); margin: 6px 0; padding: 2px 10px; color: var(--t2); }
+.jl-md a { color: var(--ac); }
+.jl-math { font-style: italic; font-family: "Times New Roman", serif; }
+.jl-out { margin-top: 2px; }
+.jl-stream { margin: 0; padding: 4px 6px; background: transparent; border: 0; border-radius: 0; color: var(--t); font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; max-height: 560px; overflow: auto; }
+.jl-stream.err { background: var(--err-bg); }
+.jl-error .tb-flecha, .jl-error .tb-loc, .jl-error .tb-nombre, .jl-error .tb-sep { font: inherit; }
+.jl-err-box { min-width: 0; }
+.jl-error { margin: 0; padding: 6px 8px; background: var(--err-bg); border: 0; border-radius: 0; color: var(--t); font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-x: auto; }
+.jl-error .tb-sep { color: var(--mal); }
+.jl-error .tb-nombre { color: var(--mal); font-weight: 600; }
+.jl-error .tb-loc { color: #00897b; }
+.jl-error .tb-flecha { color: #2e7d32; font-weight: 600; }
+.jl-err-ayuda { font-size: 12px; color: var(--t2); padding: 5px 8px; border-left: 3px solid #f9a825; margin-top: 4px; background: var(--bg2); }
+.jl-html { overflow: auto; max-height: 560px; padding: 2px 4px; min-width: 0; }
+.jl-html table.dataframe { border: none; }
+.jl-html table.dataframe thead th { border-bottom: 1px solid var(--t2); font-weight: 600; text-align: right; padding: 4px 8px; vertical-align: bottom; }
+.jl-html table.dataframe td, .jl-html table.dataframe tbody th { text-align: right; padding: 4px 8px; border: none; white-space: nowrap; }
+.jl-html table.dataframe tbody tr:nth-child(odd) { background: var(--bg2); }
+.jl-html table.dataframe tbody tr:hover { background: var(--ac-bg); }
+.jl-img { max-width: 100%; height: auto; display: block; margin: 4px 0; background: #fff; }
+.jl-c-tools { position: absolute; right: 6px; top: 6px; display: flex; gap: 1px; }
+.jl-fin { height: 60px; cursor: pointer; }
+
+/* editor de texto, CSV y vista previa */
+.jl-txt-ed { flex: 1; min-height: 0; }
+.jl-txt-ed .CodeMirror-scroll { max-height: none; }
+.jl-txt-ed .CodeMirror { height: 100%; min-height: 0; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--bg); color: var(--t); }
+.jl-txt-ed .CodeMirror-gutters { background: var(--bg2); border-right: 1px solid var(--bd); }
+.jl-md-prev { border-top: 1px solid var(--bd); max-height: 50%; overflow: auto; padding: 10px 20px; }
+.jl-btn { border: 1px solid var(--bd2); background: var(--bg); border-radius: 2px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
+.jl-btn:hover { background: var(--bg3); }
+.jl-btn.pri { background: var(--ac); border-color: var(--ac); color: #fff; }
+.jl-btn.peligro { background: var(--mal); border-color: var(--mal); }
+.jl-csv-grid { flex: 1; overflow: auto; }
+.jl-csv-grid table { border-collapse: collapse; font-size: 12px; }
+.jl-csv-grid th, .jl-csv-grid td { border: 1px solid var(--bd); padding: 2px 8px; white-space: nowrap; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.jl-csv-grid thead th { position: sticky; top: 0; background: var(--bg2); font-weight: 600; }
+.jl-csv-grid tbody th { background: var(--bg2); color: var(--t2); font-weight: 400; position: sticky; left: 0; }
+
+/* barra de estado, menús emergentes y diálogos */
+.jl-status { height: 24px; flex: none; display: flex; align-items: center; gap: 2px; border-top: 1px solid var(--bd); background: var(--bg); padding: 0 8px; font-size: 12px; color: var(--t2); }
+.jl-st-i { padding: 0 8px; white-space: nowrap; }
+.jl-pop { position: absolute; z-index: 20; min-width: 250px; background: var(--bg); border: 1px solid var(--bd2); box-shadow: 0 4px 14px rgba(0,0,0,.2); padding: 4px 0; }
+.jl-pop button { display: flex; width: 100%; justify-content: space-between; gap: 18px; border: 0; background: none; padding: 5px 14px; text-align: left; cursor: pointer; }
+.jl-pop button:hover { background: var(--ac-bg); }
+.jl-pop button:disabled { color: var(--t3); }
+.jl-pop kbd { font: 11px inherit; color: var(--t2); }
+.jl-pop hr { border: 0; border-top: 1px solid var(--bd); margin: 4px 0; }
+.jl-modal { position: absolute; inset: 0; z-index: 30; background: rgba(0,0,0,.25); display: grid; place-items: center; }
+.jl-dlg { background: var(--bg); border-radius: 2px; box-shadow: 0 6px 24px rgba(0,0,0,.3); padding: 16px 18px; width: min(420px, 92vw); }
+.jl-dlg.ancho { width: min(760px, 94vw); }
+.jl-dlg h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+.jl-dlg input { width: 100%; font: inherit; padding: 5px 8px; border: 1px solid var(--bd2); background: var(--bg); color: var(--t); border-radius: 2px; }
+.jl-dlg-b { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.jl-atajos { display: flex; gap: 24px; flex-wrap: wrap; }
+.jl-atajos table { border-collapse: collapse; font-size: 12px; }
+.jl-atajos th { text-align: left; padding: 4px 0; }
+.jl-atajos td { padding: 3px 12px 3px 0; }
+.jl-atajos kbd { font: 11px ui-monospace, monospace; background: var(--bg3); border: 1px solid var(--bd); padding: 1px 5px; border-radius: 3px; }
+
+@media (max-width: 760px) {
+  .jl-panel { position: absolute; left: 33px; top: 30px; bottom: 24px; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,.15); }
+  .jl-panel:not(.oculto) ~ .jl-main { pointer-events: auto; }
+  .jl-celdas { padding-right: 4px; }
+  .jl-in, .jl-out { grid-template-columns: 44px minmax(0, 1fr); }
+  .jl-celda { padding-right: 4px; }
+  .jl-c-tools { display: none; }
+  .jl-mi:nth-of-type(n+5) { display: none; }
+  .jl-launcher { padding: 16px; }
+  .jl-nb-bar { overflow-x: auto; scrollbar-width: none; }
+  .jl-kernel { display: none; }
+  .jl-status .jl-st-i:nth-child(n+3) { display: none; }
+}

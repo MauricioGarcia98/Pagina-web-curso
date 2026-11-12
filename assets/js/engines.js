@@ -452,6 +452,9 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         // pandas, numpy y otras librerías de Pyodide se cargan solas si el código las importa
         const codigo = [msg.code, msg.solution, msg.tests].filter(Boolean).join('\n');
         if (/^\s*(import|from)\s+(pandas|numpy)\b/m.test(codigo) && !loaded.has('pandas')) { await py.loadPackage(['pandas']); loaded.add('pandas'); }
+        // quien arma el código (por ejemplo, JupyterLab de práctica) puede pedir librerías explícitamente
+        const pedidas = (msg.libs || []).filter((n) => ['pandas', 'matplotlib'].includes(n) && !loaded.has(n));
+        if (pedidas.length) { await py.loadPackage(pedidas); pedidas.forEach((n) => loaded.add(n)); }
         if (msg.kind === 'dbt') {
           const f = py.globals.get('_dbt_render');
           const sql = f(msg.template, msg.macros || '', !!msg.incremental, JSON.stringify(msg.vars || {}), msg.thisName || 'this');
@@ -546,7 +549,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     dbt(template, opts = {}) { return this._send({ kind: 'dbt', mode: 'dbt', template, ...opts }); },
     warmup(mode) { return this._send({ kind: 'warmup', mode }); },
     shell({ code, argv, files, cwd, mode = 'python' }) { return this._send({ kind: 'shell', mode, code, argv, files, cwd }); },
-    repl(code, mode = 'python') { return this._send({ kind: 'repl', mode, code }); }
+    repl(code, mode = 'python', opts = {}) { return this._send({ kind: 'repl', mode, code, libs: opts.libs }, opts.timeoutMs || 45000); }
   };
 
   // --------------------------------------------------------------- dbt

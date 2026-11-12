@@ -16,6 +16,7 @@ const PAGINAS = [
   ['GitHub', '#/github', '.ghp'],
   ['Snowflake', '#/snowflake', '.sfp'],
   ['BigQuery', '#/bigquery', '.bqp'],
+  ['JupyterLab', '#/jupyter', '.jlp'],
 ];
 
 let fallas = 0;
