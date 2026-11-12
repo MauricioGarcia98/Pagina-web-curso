@@ -133,3 +133,35 @@ Antes de construir, escribe en 5–8 líneas las **decisiones de diseño** para 
 - Calidad: filas inválidas a silver.pedidos_cuarentena con el motivo; alerta si superan el 1%.
 ```
 :::
+
+:::ejercicio quiz
+En la arquitectura del proyecto, ¿qué herramienta decide cuándo corre cada paso y qué hacer si uno falla?
+- [ ] dbt
+- [ ] Spark
+- [x] Airflow
+- [ ] Power BI
+:::
+
+:::ejercicio quiz
+¿Por qué los datos crudos se guardan primero tal como llegan (capa bronze) antes de limpiarlos?
+- [ ] Porque los datos crudos ocupan menos espacio que los limpios
+- [x] Porque así se puede volver a procesar todo si se descubre un error en la limpieza
+- [ ] Porque los tableros leen directamente de bronze
+- [ ] Porque bronze es la única capa que admite SQL
+:::
+
+:::ejercicio quiz
+El plan dice que las filas inválidas van a una tabla de cuarentena con el motivo. ¿Qué se gana con eso?
+- [ ] Que el pipeline corra más rápido
+- [ ] Que no haga falta revisar la calidad de los datos
+- [x] Que el pipeline no se detenga por unas pocas filas malas y que quede registro de qué falló y por qué
+- [ ] Que las filas inválidas lleguen igual al tablero
+:::
+
+:::ejercicio quiz
+En el proyecto, ¿para qué se usa dbt?
+- [ ] Para mover archivos desde la API hasta el lake
+- [x] Para transformar con SQL dentro del warehouse o lakehouse, con tests y documentación
+- [ ] Para dibujar los tableros de la gerencia
+- [ ] Para crear los clústeres de Spark
+:::

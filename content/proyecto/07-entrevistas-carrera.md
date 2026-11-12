@@ -125,3 +125,27 @@ Días 61-90: preparar Databricks Data Engineer Associate (guía oficial + exáme
 - Los equipos contratan juniors por fundamentos (SQL sólido, Python, entender un pipeline) y actitud para aprender; las herramientas específicas se aprenden en el trabajo.
 - Para pasar a semi senior, lo que más pesa es haber operado algo en producción: incidentes resueltos, costos reducidos, calidad mejorada. Anótalo con números mientras pasa.
 :::
+
+:::ejercicio quiz
+En una pregunta de diseño de sistemas ("diseña un pipeline para X"), ¿qué conviene hacer primero?
+- [ ] Nombrar todas las herramientas que conoces
+- [x] Hacer preguntas para aclarar los requisitos: volumen, frecuencia, quién usa el resultado
+- [ ] Dibujar la arquitectura más compleja posible
+- [ ] Empezar a escribir código de inmediato
+:::
+
+:::ejercicio quiz
+Te preguntan "¿batch o streaming?" para un reporte que finanzas mira una vez al día. ¿Qué respondes?
+- [ ] Streaming, porque siempre es mejor tener los datos al instante
+- [x] Batch: alcanza con procesar una vez al día y es más simple y barato de operar
+- [ ] Ninguno: los reportes no necesitan pipeline
+- [ ] Depende solo de la herramienta que esté de moda
+:::
+
+:::ejercicio quiz
+¿Qué pesa más para pasar de junior a semi senior, según la lección?
+- [ ] Tener muchas certificaciones
+- [ ] Conocer el nombre de todas las herramientas del mercado
+- [x] Haber operado algo en producción: incidentes resueltos, costos reducidos, pipelines mantenidos
+- [ ] Haber cambiado de empresa muchas veces
+:::

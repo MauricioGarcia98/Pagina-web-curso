@@ -106,3 +106,27 @@ En Unity Catalog, ¿cómo se nombra completamente una tabla?
 - [x] `catalogo.esquema.tabla`
 - [ ] `workspace/tabla`
 :::
+
+:::ejercicio quiz
+En Databricks con cómputo clásico, ¿dónde se procesan tus datos?
+- [ ] En los servidores del plano de control de Databricks
+- [x] En máquinas dentro de tu propia cuenta de nube (el plano de cómputo)
+- [ ] En el navegador de quien abre el notebook
+- [ ] En el catálogo de Unity Catalog
+:::
+
+:::ejercicio quiz
+¿Qué cómputo conviene para un tablero que consultan analistas con SQL durante el día?
+- [ ] Un clúster all-purpose encendido las 24 horas
+- [ ] Un job cluster por cada consulta
+- [x] Un SQL warehouse, mejor serverless, con autoapagado
+- [ ] Ninguno: los tableros no usan cómputo
+:::
+
+:::ejercicio quiz
+¿Qué es una DBU?
+- [ ] Un tipo de tabla Delta
+- [x] La unidad con la que Databricks mide y cobra el uso de cómputo
+- [ ] Un permiso de Unity Catalog
+- [ ] El nombre de la región del workspace
+:::
