@@ -97,18 +97,39 @@
   }
 
   // ---------------------------------------------------------------- progreso
+  const claveDia = (f) => `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
+  const META_SEMANAL = 4; // días de estudio por semana que se proponen como meta
+  // racha: días seguidos con actividad (si hoy todavía no estudiaste, la racha de ayer sigue viva hasta la medianoche)
+  function racha() {
+    const d = Store.data.dias || {}; const hoy = new Date(); const dia = (n) => { const x = new Date(hoy); x.setDate(hoy.getDate() - n); return claveDia(x); };
+    let n = 0, i = d[dia(0)] ? 0 : 1; while (d[dia(i)]) { n++; i++; }
+    const lunes = (hoy.getDay() + 6) % 7; // 0 = lunes
+    const semana = Array.from({ length: 7 }, (_, k) => ({ hecho: !!d[dia(lunes - k)], hoy: k === lunes, futuro: k > lunes }));
+    let mejor = 0, corr = 0, prev = null;
+    for (const k of Object.keys(d).sort()) { const f = new Date(k + 'T12:00:00'); corr = prev && Math.round((f - prev) / 86400000) === 1 ? corr + 1 : 1; mejor = Math.max(mejor, corr); prev = f; }
+    return { dias: n, hoy: !!d[dia(0)], semana, estaSemana: semana.filter((x) => x.hecho).length, mejor: Math.max(mejor, n), total: Object.keys(d).length };
+  }
+  function bloqueRacha() {
+    const r = racha(); const L = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    const msg = r.hoy ? (r.dias > 1 ? `¡${r.dias} días seguidos!` : 'Hoy ya estudiaste.') : r.dias ? `Llevas ${r.dias} día${r.dias === 1 ? '' : 's'} seguido${r.dias === 1 ? '' : 's'}: resuelve un ejercicio hoy para no cortar la racha.` : 'Resuelve un ejercicio hoy para empezar una racha.';
+    return `<section class="racha card" aria-label="Tu racha de estudio"><div class="racha-n"><span aria-hidden="true">🔥</span><b>${r.dias}</b><small>día${r.dias === 1 ? '' : 's'}</small></div>
+      <div class="racha-t"><div class="racha-msg">${msg}</div><div class="racha-sem" role="img" aria-label="Esta semana estudiaste ${r.estaSemana} de 7 días">${r.semana.map((x, i) => `<span class="${x.hecho ? 'ok' : ''} ${x.hoy ? 'hoy' : ''} ${x.futuro ? 'fut' : ''}">${L[i]}</span>`).join('')}</div>
+      <div class="small muted">Meta de la semana: ${Math.min(r.estaSemana, META_SEMANAL)} de ${META_SEMANAL} días${r.estaSemana >= META_SEMANAL ? ' · ✓ cumplida' : ''}${r.mejor > r.dias ? ` · tu mejor racha: ${r.mejor} días` : ''}</div></div></section>`;
+  }
   const KEY = 'academia-datos-v1';
   const Store = {
     data: { ex: {}, lessons: {}, code: {}, theme: null, visited: {}, auto: {} },
     load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d) this.data = Object.assign(this.data, d); } catch (e) { /* sin almacenamiento */ } },
     save() { try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (e) { /* sin almacenamiento */ } },
     exDone(id) { return !!this.data.ex[id]; },
-    setExDone(id) { if (!this.data.ex[id]) { this.data.ex[id] = Date.now(); this.save(); updateProgressPill(); } },
+    setExDone(id) { if (!this.data.ex[id]) { this.data.ex[id] = Date.now(); this.marcarDia(); this.save(); updateProgressPill(); } },
+    // un día cuenta para la racha si en él se resolvió al menos un ejercicio o se completó una lección
+    marcarDia() { const k = claveDia(new Date()); const d = (this.data.dias = this.data.dias || {}); d[k] = (d[k] || 0) + 1; },
     lessonDone(l) {
       if (this.data.lessons[l.id]) return true;
       return l.ejercicios.length > 0 && l.ejercicios.every((e) => this.exDone(e.id));
     },
-    setLessonDone(id, v = true) { if (v) this.data.lessons[id] = Date.now(); else delete this.data.lessons[id]; this.save(); updateProgressPill(); },
+    setLessonDone(id, v = true) { if (v) { if (!this.data.lessons[id]) this.marcarDia(); this.data.lessons[id] = Date.now(); } else delete this.data.lessons[id]; this.save(); updateProgressPill(); },
     code(id) { return this.data.code[id]; },
     setCode(id, v) { this.data.code[id] = v; this.saveSoon(); },
     saveSoon() { clearTimeout(this._t); this._t = setTimeout(() => this.save(), 400); }
@@ -1977,7 +1998,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
           <div class="ct-m">${esc(nm.titulo)} · lección ${nm.lecciones.indexOf(nextLesson) + 1} de ${nm.lecciones.length}</div>
           <div class="bar"><i style="width:${pm.pct}%;background:${nm.color}"></i></div></div>
         <div class="ct-acc"><a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">Continuar →</a><span class="small muted">Llevas ${tp.done} de ${tp.total} lecciones (${tp.pct}%)</span></div>
-      </section>` : '';
+      </section>${bloqueRacha()}` : '';
     let paso = 0;
     const etapas = etapasConModulos().map((e) => {
       const pe = progresoEtapa(e), pt = partesEtapa(e), es = actual && e.id === actual.id, hecha = pe.total && pe.done === pe.total;
@@ -2714,22 +2735,26 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     </div>`;
     let tag = '';
     const abiertos = new Set(exacto ? [exacto.termino] : []);
-    const tarjeta = (g) => {
-      const resumen = g.nino.replace(/<[^>]+>/g, '').split(/(?<=[.!?])\s/)[0];
+    // el cuerpo de cada ficha (definición, ejemplo, enlaces) se arma recién al abrirla: son 351 fichas
+    const cuerpo = (g) => {
       const sec = (ico, tit, html, cls = '') => (html ? `<section class="gloss-sec ${cls}"><h4>${ico} ${tit}</h4>${html}</section>` : '');
       const ver = (g.ver || []).map((v) => `<a class="chip" href="#/glosario?q=${encodeURIComponent(v)}">${esc(v)}</a>`).join('');
       const lec = (g.lecciones || []).map((l) => `<a href="#/l/${l.id}">${esc(l.titulo)}</a>`).join('');
-      return `<details class="gloss-card" id="g-${encodeURIComponent(g.termino)}" ${abiertos.has(g.termino) ? 'open' : ''}>
-        <summary><span class="gloss-term">${esc(g.termino)}</span><span class="badge tag">${esc(g.area)}</span>${(g.alias || []).length ? `<span class="gloss-alias">también: ${g.alias.map(esc).join(', ')}</span>` : ''}<span class="gloss-res">${resumen}</span></summary>
-        <div class="gloss-body">
-          ${sec('👶', 'Explicado como a un niño', g.nino, 'nino')}
+      return `${sec('👶', 'Explicado como a un niño', g.nino, 'nino')}
           ${sec('📘', 'Qué es, con precisión', g.que)}
           ${sec('🧪', 'Un ejemplo', g.ejemplo)}
           ${sec('🎯', 'Para qué sirve', g.para)}
           ${sec('⚠️', 'Cuidado con', g.cuidado, 'cuidado')}
           ${ver ? `<section class="gloss-sec"><h4>🔗 Términos relacionados</h4><div class="gloss-chips">${ver}</div></section>` : ''}
-          ${lec ? `<section class="gloss-sec"><h4>📚 Lo ves en estas lecciones</h4><div class="gloss-lec">${lec}</div></section>` : ''}
-        </div></details>`;
+          ${lec ? `<section class="gloss-sec"><h4>📚 Lo ves en estas lecciones</h4><div class="gloss-lec">${lec}</div></section>` : ''}`;
+    };
+    const porTermino = new Map(G.map((g) => [g.termino, g]));
+    const tarjeta = (g) => {
+      const resumen = (g.nino || g.que || '').replace(/<[^>]+>/g, '').split(/(?<=[.!?])\s/)[0];
+      const abierta = abiertos.has(g.termino);
+      return `<details class="gloss-card" id="g-${encodeURIComponent(g.termino)}" ${abierta ? 'open' : ''}>
+        <summary><span class="gloss-term">${esc(g.termino)}</span><span class="badge tag">${esc(g.area)}</span>${(g.alias || []).length ? `<span class="gloss-alias">también: ${g.alias.map(esc).join(', ')}</span>` : ''}<span class="gloss-res">${resumen}</span></summary>
+        <div class="gloss-body">${abierta ? cuerpo(g) : ''}</div></details>`;
     };
     const paint = () => {
       const q = norm($('#gq').value.trim());
@@ -2748,7 +2773,8 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
         actual = l;
         return cab + tarjeta(g);
       }).join('') || '<div class="card muted" style="padding:16px">Sin resultados. Prueba con otra palabra.</div>';
-      const colorear = (d) => { if (d.open && !d.dataset.hl) { d.dataset.hl = '1'; $$('pre', d).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } }); } };
+      const llenar = (d) => { const b = d.querySelector('.gloss-body'); if (d.open && b && !b.firstElementChild) { const g = porTermino.get(decodeURIComponent(d.id.slice(2))); if (g) b.innerHTML = cuerpo(g); } };
+      const colorear = (d) => { llenar(d); if (d.open && !d.dataset.hl) { d.dataset.hl = '1'; $$('pre', d).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } }); } };
       for (const d of $$('#glist details')) { colorear(d); d.addEventListener('toggle', () => { const t = decodeURIComponent(d.id.slice(2)); if (d.open) abiertos.add(t); else abiertos.delete(t); colorear(d); }); }
     };
     $('#gq').value = exacto ? '' : filter;
@@ -2821,6 +2847,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     const exDone = ALL_EX.filter((e) => Store.exDone(e.id)).length;
     main.innerHTML = `<div class="container">
       <h1>📈 Mi progreso</h1>
+      ${bloqueRacha()}
       <div class="stats"><div class="stat"><b>${tp.pct}%</b><span>del curso</span></div><div class="stat"><b>${tp.done}/${tp.total}</b><span>lecciones</span></div><div class="stat"><b>${exDone}/${ALL_EX.length}</b><span>ejercicios</span></div></div>
       <div class="grid" style="margin-top:20px">${C.modulos.map((m) => {
         const p = moduleProgress(m);
@@ -3633,8 +3660,19 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   sIn.addEventListener('input', () => {
     const q = sIn.value.trim().toLowerCase();
     if (q.length < 2) { sOut.hidden = true; return; }
-    const res = searchIndex.map((x) => ({ x, score: (x.t.toLowerCase().includes(q) ? 10 : 0) + (x.body.includes(q) ? 1 : 0) }))
-      .filter((r) => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 12);
+    // Orden: primero lo que coincide en el título (mejor si empieza con la búsqueda o es una palabra entera), después
+    // el resumen y, por último, cuántas veces aparece en el texto. Sin tildes y con todas las palabras de la búsqueda.
+    const sinTildes = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const qn = sinTildes(q); const palabras = qn.split(/\s+/).filter(Boolean);
+    const veces = (texto, p) => { let n = 0, i = -1; while (n < 8 && (i = texto.indexOf(p, i + 1)) !== -1) n++; return n; };
+    const res = searchIndex.map((x) => {
+      if (x._b !== x.body) { x._b = x.body; x._bn = sinTildes(x.body); x._tn = sinTildes(x.t); x._rn = sinTildes(x.resumen || ''); }
+      if (!palabras.every((p) => x._tn.includes(p) || x._bn.includes(p))) return { x, score: 0 };
+      let score = 0;
+      if (x._tn.startsWith(qn)) score += 40; else if (new RegExp('(^|[^a-z0-9])' + qn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(x._tn)) score += 30; else if (x._tn.includes(qn)) score += 20;
+      for (const p of palabras) { if (x._tn.includes(p)) score += 8; if (x._rn.includes(p)) score += 4; score += veces(x._bn, p); }
+      return { x, score };
+    }).filter((r) => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 12);
     sSel = 0;
     sOut.innerHTML = res.map((r, i) => `<a href="${r.x.href}" class="${i === 0 ? 'active' : ''}">${esc(r.x.t)}<small>${esc(r.x.s)}</small></a>`).join('') || '<div class="muted small" style="padding:8px">Sin resultados</div>';
     sOut.hidden = false;

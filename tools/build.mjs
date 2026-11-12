@@ -408,7 +408,7 @@ footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24
   const pagina = ({ titulo, desc, canon, cuerpo }) => `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(titulo)}</title><meta name="description" content="${esc(desc)}">${base ? `<link rel="canonical" href="${esc(base + canon)}">` : ''}
-<meta property="og:type" content="article"><meta property="og:title" content="${esc(titulo)}"><meta property="og:description" content="${esc(desc)}">${base ? `<meta property="og:url" content="${esc(base + canon)}">` : ''}<meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<meta property="og:type" content="article"><meta property="og:title" content="${esc(titulo)}"><meta property="og:description" content="${esc(desc)}">${base ? `<meta property="og:url" content="${esc(base + canon)}">` : ''}<meta property="og:site_name" content="Academia de Datos">${base ? `<meta property="og:image" content="${esc(base)}assets/img/compartir.png">` : ''}<meta name="twitter:card" content="summary_large_image">
 ${icono}<style>${css}</style></head><body>
 <header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
 <main>${cuerpo}</main>
@@ -770,6 +770,9 @@ function build() {
   globalThis.__sellarIndex = () => {
     const pIndex = path.join(ROOT, 'index.html'); let html = fs.readFileSync(pIndex, 'utf8');
     html = html.replace(/(src|href)="(assets\/[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"/g, (m, attr, ruta) => { const p = path.join(ROOT, ruta); return fs.existsSync(p) ? `${attr}="${ruta}?v=${hash(fs.readFileSync(p, 'utf8'))}"` : m; });
+    // la imagen para compartir necesita la dirección completa del sitio (sale de "homepage" en package.json)
+    const sitio = (() => { try { return String(JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).homepage || '').replace(/\/?$/, '/'); } catch (e) { return ''; } })();
+    html = html.replace(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${sitio.length > 1 ? sitio : ''}assets/img/compartir.png">`);
     fs.writeFileSync(pIndex, html);
   };
 

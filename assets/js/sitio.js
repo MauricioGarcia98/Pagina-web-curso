@@ -18,7 +18,7 @@
   const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
   const K_NOTAS = 'academia-notas-v1';
   // lo que viaja a la nube: progreso y preferencias (mapas chicos), más el código y las notas
-  const CLAVES = ['ex', 'lessons', 'visited', 'auto', 'diagnostico', 'exams', 'simulacros', 'planes', 'cards', 'ultimoRepaso', 'repasoModo', 'misiones', 'retosHerr', 'trabajo', 'nombre', 'code'];
+  const CLAVES = ['ex', 'lessons', 'visited', 'auto', 'dias', 'diagnostico', 'exams', 'simulacros', 'planes', 'cards', 'ultimoRepaso', 'repasoModo', 'misiones', 'retosHerr', 'trabajo', 'nombre', 'code'];
   const MAPAS_DE_FECHAS = ['ex', 'lessons', 'visited']; // id → momento en que se completó: al unir se conserva el más antiguo
   const LIMITE = 900 * 1024;
   let sb = null, usuario = null, Store = null, toast = () => {}, estado = 'sin sesión', ultimaSync = null, temporizador = null, cargando = null;
