@@ -18,6 +18,8 @@
     for (const l of m.lecciones) { l.modulo = m; LESSONS.push(l); LESSON_BY_ID.set(l.id, l); }
   }
   const ALL_EX = LESSONS.flatMap((l) => l.ejercicios.map((e) => ({ ...e, leccion: l })));
+  // las preguntas de examen del índice solo traen el id de su lección: el título sale de la lección
+  for (const x of C.examenes || []) for (const p of x.preguntas) { const l = p.leccion && LESSON_BY_ID.get(p.leccion.id); if (l && !p.leccion.titulo) p.leccion.titulo = l.titulo; }
 
   // ---------------------------------------------------------------- contenido por módulo (carga diferida)
   // El índice trae títulos y la lista de ejercicios; el texto de las lecciones y los ejercicios completos
@@ -62,8 +64,27 @@
     ...C.modulos.map((m) => `assets/content/${m.id}.js?v=${m.v || C.generado}`),
     `assets/content/_buscar.js?v=${C.vBuscar || C.generado}`,
     ...[...new Set(Object.values(GRUPOS).flat().filter((n) => n[0] !== '@'))].map((n) => `assets/js/${n}.js?v=${V_APP}`),
+    ...['glosario', 'examenes', 'examenes_cert'].map((n) => `assets/content/_${n}.js?v=${(C.vExtras || {})[n] || C.generado}`),
+    `assets/js/pysrc.js?v=${V_APP}`,
   ];
-  window.__cargarTodo = () => cargarModulos(C.modulos.map((m) => m.id)); // para las pruebas automáticas
+  // ---------------------------------------------------------------- glosario completo y preguntas de examen (carga diferida)
+  // El índice trae lo justo para listar y buscar; el detalle llega en assets/content/_glosario.js, _examenes.js y
+  // _examenes_cert.js y se vuelca sobre los mismos objetos, así el resto del código no nota la diferencia.
+  const extraCargas = {};
+  function cargarExtra(n) {
+    if (!extraCargas[n]) extraCargas[n] = cargarScript(`assets/content/_${n}.js?v=${(C.vExtras || {})[n] || C.generado}`).then(() => { extraCargas[n].listo = true; }, (e) => { delete extraCargas[n]; throw e; });
+    return extraCargas[n];
+  }
+  window.__glosario = (lista) => { const porT = new Map(C.glosario.map((g) => [g.termino, g])); for (const g of lista) { const x = porT.get(g.termino); if (x) Object.assign(x, g); } if (window.__glosarioListo) window.__glosarioListo(); };
+  window.__examenes = (lista) => { for (const e of lista) { const x = (C.examenes || []).find((y) => y.id === e.id); if (!x) continue; const porId = new Map(x.preguntas.map((p) => [p.id, p])); for (const p of e.preguntas) { const y = porId.get(p.id); if (y) Object.assign(y, p); } } };
+  // qué archivos extra necesita una ruta antes de dibujarse
+  function extrasDe(r) {
+    if (r.name === 'glosario' || r.name === 'repaso') return ['glosario'];
+    if (r.name === 'simulacro') return ['examenes_cert'];
+    if (r.name === 'examen') { const x = (C.examenes || []).find((e) => e.id === r.examen); return [r.examen === 'final' || (x && x.id === x.modulo) ? 'examenes' : 'examenes_cert']; }
+    return [];
+  }
+  window.__cargarTodo = () => Promise.all([cargarModulos(C.modulos.map((m) => m.id)), ...['glosario', 'examenes', 'examenes_cert'].map(cargarExtra)]); // para las pruebas automáticas
   // muestra "cargando", descarga lo que haga falta y recién ahí dibuja (si el alumno no se fue a otra página)
   function conContenido(ids, dibujar) {
     const pend = [...new Set(ids)].filter((id) => MODULE_BY_ID.get(id) && !MODULE_BY_ID.get(id).cargado);
@@ -3598,14 +3619,15 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   // ---------------------------------------------------------------- búsqueda
   // el texto completo de las lecciones para buscar se descarga la primera vez que se usa el buscador
   let buscarPedido = false;
+  window.__glosarioListo = () => { const porT = new Map(C.glosario.map((g) => [g.termino, g])); for (const x of searchIndex) if (x.glos) { const g = porT.get(x.glos); if (g) x.body = ((g.alias || []).join(' ') + ' ' + (g.texto || '')).toLowerCase(); } };
   window.__buscar = (textos) => { for (const x of searchIndex) if (x.lid && textos[x.lid]) x.body = (x.resumen + ' ' + textos[x.lid]).toLowerCase(); if (sIn.value.trim().length >= 2) sIn.dispatchEvent(new Event('input')); };
   const searchIndex = [
     ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, lid: l.id, resumen: l.resumen || '', body: (l.resumen || '').toLowerCase() })),
-    ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + g.texto).toLowerCase() }))
+    ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + (g.texto || '')).toLowerCase(), glos: g.termino }))
   ];
   const sIn = $('#search'), sOut = $('#searchResults');
   let sSel = 0;
-  sIn.addEventListener('focus', () => { if (!buscarPedido) { buscarPedido = true; cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; }); } });
+  sIn.addEventListener('focus', () => { if (!buscarPedido) { buscarPedido = true; cargarExtra('glosario').catch(() => {}); cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; }); } });
   sIn.addEventListener('input', () => {
     const q = sIn.value.trim().toLowerCase();
     if (q.length < 2) { sOut.hidden = true; return; }
@@ -3710,6 +3732,13 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       const donde = location.hash;
       if (!main.querySelector('.cargando-contenido')) main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Abriendo la herramienta…</div>';
       cargarGrupo(r.name).then(() => { if (location.hash === donde) route(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo abrir la herramienta</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarH">Reintentar</button></div>'; main.querySelector('#reintentarH').onclick = () => route(); } });
+      return;
+    }
+    const faltan = extrasDe(r).filter((n) => !(extraCargas[n] && extraCargas[n].listo));
+    if (faltan.length) {
+      const donde = location.hash;
+      if (!main.querySelector('.cargando-contenido')) main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Cargando…</div>';
+      Promise.all(faltan.map(cargarExtra)).then(() => { if (location.hash === donde) route(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo cargar el contenido</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarX">Reintentar</button></div>'; main.querySelector('#reintentarX').onclick = () => route(); } });
       return;
     }
     document.body.classList.remove('nav-open');

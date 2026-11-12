@@ -512,7 +512,15 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
       }
       return this._tablesJson;
     },
+    // Las fuentes de mini-Spark y mini-Airflow (assets/js/pysrc.js, ~200 KB) se descargan recién la primera vez
+    // que se ejecuta Python: quien solo lee lecciones o usa SQL no las necesita.
+    _fuentes() {
+      if (window.PY_SOURCES) return Promise.resolve();
+      if (!this._cargaSrc) this._cargaSrc = new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'assets/js/pysrc.js?v=' + ((window.COURSE || {}).vJs || ''); s.onload = ok; s.onerror = () => { s.remove(); this._cargaSrc = null; mal(new Error('pysrc')); }; document.head.append(s); });
+      return this._cargaSrc;
+    },
     _send(msg, timeoutMs = 45000) {
+      if (!window.PY_SOURCES) return this._fuentes().then(() => this._send(msg, timeoutMs), () => ({ ok: false, error: 'No se pudo descargar el intérprete de práctica. Revisa tu conexión a internet y vuelve a intentar.' }));
       if (!this.worker) this._spawn();
       const id = ++this.seq;
       const first = this.status !== 'ready';

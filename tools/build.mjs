@@ -729,21 +729,6 @@ function build() {
   });
   const jsBuscar = `window.__buscar(${JSON.stringify(buscar)});\n`;
   fs.writeFileSync(path.join(dirC, '_buscar.js'), jsBuscar);
-  // versión del código de las herramientas (se descargan a pedido): cambia cuando cambia algún archivo
-  const dirJs = path.join(ROOT, 'assets/js');
-  const vJs = hash(fs.readdirSync(dirJs).filter((n) => n.endsWith('.js') && n !== 'content.js').sort().map((n) => n + ':' + hash(fs.readFileSync(path.join(dirJs, n), 'utf8'))).join('|'));
-  const course = { generado: new Date().toISOString().slice(0, 10), vJs, vBuscar: hash(jsBuscar), modulos: indice, glosario, examenes, certificaciones };
-  fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
-    '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
-
-  // index.html: cada script y hoja de estilos local lleva ?v=<hash de su contenido>, así el navegador
-  // puede guardarlos mucho tiempo y aun así recibe la versión nueva cuando un archivo cambia
-  globalThis.__sellarIndex = () => {
-    const pIndex = path.join(ROOT, 'index.html'); let html = fs.readFileSync(pIndex, 'utf8');
-    html = html.replace(/(src|href)="(assets\/[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"/g, (m, attr, ruta) => { const p = path.join(ROOT, ruta); return fs.existsSync(p) ? `${attr}="${ruta}?v=${hash(fs.readFileSync(p, 'utf8'))}"` : m; });
-    fs.writeFileSync(pIndex, html);
-  };
-
   // simuladores Python -> window.PY_SOURCES
   const pyRoot = path.join(ROOT, 'assets/py');
   const sources = {};
@@ -761,10 +746,37 @@ function build() {
   walk(pyRoot);
   fs.writeFileSync(path.join(ROOT, 'assets/js/pysrc.js'),
     '// Archivo generado por tools/build.mjs — fuentes de los simuladores mini-Spark y mini-Airflow\nwindow.PY_SOURCES = ' + JSON.stringify(sources) + ';\n');
+  // versión del código de las herramientas (se descargan a pedido): cambia cuando cambia algún archivo
+  const dirJs = path.join(ROOT, 'assets/js');
+  const vJs = hash(fs.readdirSync(dirJs).filter((n) => n.endsWith('.js') && n !== 'content.js').sort().map((n) => n + ':' + hash(fs.readFileSync(path.join(dirJs, n), 'utf8'))).join('|'));
+  // El glosario completo y las preguntas de examen pesan cerca de 2 MB: van en archivos aparte que la app descarga
+  // recién al entrar al glosario, al repaso o a un examen. En el índice queda lo justo para listar, buscar y mostrar
+  // la explicación corta al pasar por un término.
+  const glosarioIndice = glosario.map((g) => ({ termino: g.termino, area: g.area, alias: g.alias, ver: g.ver, ...(g.nino ? { nino: g.nino } : { que: g.que }) }));
+  const jsGlosario = `window.__glosario(${JSON.stringify(glosario)});\n`;
+  fs.writeFileSync(path.join(dirC, '_glosario.js'), jsGlosario);
+  const liviana = (p) => ({ id: p.id, tema: p.tema, leccion: { id: p.leccion.id }, ...(p.dominio ? { dominio: p.dominio } : {}), ...(p.caso ? { caso: p.caso } : {}), ...(p.multiple ? { multiple: p.multiple } : {}) });
+  const examenesIndice = examenes.map((x) => ({ ...x, preguntas: x.preguntas.map(liviana) }));
+  const completas = (lista) => `window.__examenes(${JSON.stringify(lista.map((x) => ({ id: x.id, preguntas: x.preguntas })))});\n`;
+  const jsExamenes = completas(examenes.filter((x) => x.id === x.modulo)), jsExamenesCert = completas(examenes.filter((x) => x.id !== x.modulo));
+  fs.writeFileSync(path.join(dirC, '_examenes.js'), jsExamenes);
+  fs.writeFileSync(path.join(dirC, '_examenes_cert.js'), jsExamenesCert);
+  const course = { generado: new Date().toISOString().slice(0, 10), vJs, vBuscar: hash(jsBuscar), vExtras: { glosario: hash(jsGlosario), examenes: hash(jsExamenes), examenes_cert: hash(jsExamenesCert) }, modulos: indice, glosario: glosarioIndice, examenes: examenesIndice, certificaciones };
+  fs.writeFileSync(path.join(ROOT, 'assets/js/content.js'),
+    '// Archivo generado por tools/build.mjs — no editar a mano. Edita content/**/*.md\nwindow.COURSE = ' + JSON.stringify(course) + ';\n');
+
+  // index.html: cada script y hoja de estilos local lleva ?v=<hash de su contenido>, así el navegador
+  // puede guardarlos mucho tiempo y aun así recibe la versión nueva cuando un archivo cambia
+  globalThis.__sellarIndex = () => {
+    const pIndex = path.join(ROOT, 'index.html'); let html = fs.readFileSync(pIndex, 'utf8');
+    html = html.replace(/(src|href)="(assets\/[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"/g, (m, attr, ruta) => { const p = path.join(ROOT, ruta); return fs.existsSync(p) ? `${attr}="${ruta}?v=${hash(fs.readFileSync(p, 'utf8'))}"` : m; });
+    fs.writeFileSync(pIndex, html);
+  };
+
   globalThis.__sellarIndex();
   paginasParaBuscadores(modules);
   console.log(`✔ ${glosario.length} términos de glosario · ${examenes.length} exámenes (${examenes.reduce((n, e) => n + e.preguntas.length, 0)} preguntas) · ${certificaciones.length} certificaciones (${certificaciones.reduce((n, c) => n + c.claves.length, 0)} tarjetas) · ${modules.length} módulos, ${nLessons} lecciones, ${nEx} ejercicios, ${Object.keys(sources).length} archivos Python`);
-  return { ...course, modulos: modules } /* quien valida necesita las lecciones completas, no el índice */;
+  return { ...course, modulos: modules, glosario, examenes } /* quien valida necesita todo completo, no el índice */;
 }
 
 export { build };
