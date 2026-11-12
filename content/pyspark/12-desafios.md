@@ -11,6 +11,10 @@ Resuelve estos problemas **solo con la API de DataFrames** (sin `spark.sql`). So
 Estos desafíos son como los problemas de práctica antes de un examen: combinan todo lo que viste (filtros, agrupaciones, joins y ventanas) en situaciones parecidas a las de una entrevista. Lo importante no es memorizar la solución, sino reconocer qué herramienta usar en cada paso.
 :::
 
+:::tip ¿Te trabas al empezar?
+El plan de cada desafío es el mismo que en Python o SQL; solo cambia la sintaxis. Si no sabes por dónde empezar, repasa [PySpark con el mismo método](#/l/logica-spark-con-metodo).
+:::
+
 ## Cómo encarar un desafío de PySpark
 
 Casi todos se resuelven combinando **cuatro** herramientas que ya conoces:

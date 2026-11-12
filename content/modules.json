@@ -130,6 +130,20 @@
     ]
   },
   {
+    "id": "logica",
+    "titulo": "Lógica: resolver cualquier problema",
+    "icono": "🧩",
+    "color": "#8b5cf6",
+    "descripcion": "El método para resolver problemas que nunca viste, en Python, SQL y PySpark: entender, descomponer, reconocer patrones, probar casos borde, aclarar pedidos ambiguos, depurar y desafíos tipo entrevista.",
+    "objetivos": [
+      "Seguir un método de 6 pasos ante cualquier problema nuevo",
+      "Partir un enunciado en filtrar, transformar, agrupar, agregar y ordenar",
+      "Reconocer los patrones que resuelven casi todo y traducirlos a Python, SQL y PySpark",
+      "Detectar casos borde y pedidos ambiguos antes de entregar",
+      "Depurar con método leyendo errores y reduciendo el caso"
+    ]
+  },
+  {
     "id": "dbt",
     "titulo": "dbt",
     "icono": "🔧",

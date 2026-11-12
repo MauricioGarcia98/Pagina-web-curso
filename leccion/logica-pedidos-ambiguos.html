@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedidos ambiguos - qué preguntar y qué suponer · Academia de Datos</title><meta name="description" content="En el trabajo real (y en las entrevistas) casi ningún pedido viene completo. Aprende a detectar las palabras ambiguas, la lista de preguntas que aclaran casi todo, a escribir supuestos explícitos cuando no puedes preguntar, a entregar dos versiones cuando conviene y a resolver estimaciones del tipo &quot;cuántos hay&quot; sin datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-pedidos-ambiguos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pedidos ambiguos - qué preguntar y qué suponer · Academia de Datos"><meta property="og:description" content="En el trabajo real (y en las entrevistas) casi ningún pedido viene completo. Aprende a detectar las palabras ambiguas, la lista de preguntas que aclaran casi todo, a escribir supuestos explícitos cuando no puedes preguntar, a entregar dos versiones cuando conviene y a resolver estimaciones del tipo &quot;cuántos hay&quot; sin datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-pedidos-ambiguos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#logica">🧩 Lógica: resolver cualquier problema</a> · Intermedio · 45 min</div>
+<h1>Pedidos ambiguos - qué preguntar y qué suponer</h1><p class="resumen">En el trabajo real (y en las entrevistas) casi ningún pedido viene completo. Aprende a detectar las palabras ambiguas, la lista de preguntas que aclaran casi todo, a escribir supuestos explícitos cuando no puedes preguntar, a entregar dos versiones cuando conviene y a resolver estimaciones del tipo &quot;cuántos hay&quot; sin datos.</p>
+<a class="cta" href="../index.html#/l/logica-pedidos-ambiguos">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Detectar las palabras de un pedido que admiten más de una interpretación</li><li>Hacer las preguntas de aclaración que cambian el resultado</li><li>Escribir supuestos explícitos y dejarlos en la entrega</li><li>Estimar un número sin datos partiendo el problema en factores</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si un amigo te pide &quot;traeme algo para tomar&quot;, puedes traer agua, gaseosa o vino. Si le preguntas &quot;¿frío o caliente, con o sin alcohol?&quot; aciertas seguro. Un pedido de datos es igual: la mitad del trabajo es entender qué te están pidiendo de verdad.</p>
+</div>
+
+
+<h2>Las palabras que esconden decisiones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Palabra del pedido</th>
+<th>Lo que no dice</th>
+<th>Preguntas para aclarar</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;clientes <strong>activos</strong>&quot;</td>
+<td>¿Activo según qué?</td>
+<td>¿Compró en los últimos 30, 90 o 365 días? ¿Inició sesión? ¿Tiene suscripción vigente?</td>
+</tr>
+<tr>
+<td>&quot;<strong>ventas</strong>&quot;</td>
+<td>¿Qué cuenta como venta?</td>
+<td>¿Pedidos creados o entregados? ¿Con o sin cancelados y devueltos? ¿Con impuestos? ¿En qué moneda?</td>
+</tr>
+<tr>
+<td>&quot;<strong>este mes</strong>&quot;</td>
+<td>¿Qué período exacto?</td>
+<td>¿Mes calendario o últimos 30 días? ¿Mes en curso incompleto o el último cerrado? ¿En qué zona horaria?</td>
+</tr>
+<tr>
+<td>&quot;<strong>por región</strong>&quot;</td>
+<td>¿Qué región?</td>
+<td>¿La del cliente, la de la tienda o la del envío?</td>
+</tr>
+<tr>
+<td>&quot;<strong>crecimiento</strong>&quot;</td>
+<td>¿Contra qué?</td>
+<td>¿Contra el mes anterior o el mismo mes del año pasado? ¿En porcentaje o en unidades?</td>
+</tr>
+<tr>
+<td>&quot;<strong>los mejores</strong> clientes&quot;</td>
+<td>¿Mejores en qué?</td>
+<td>¿Más gasto, más pedidos, más margen? ¿Cuántos: top 10 o el 20%?</td>
+</tr>
+<tr>
+<td>&quot;<strong>promedio</strong>&quot;</td>
+<td>¿De qué unidad?</td>
+<td>¿Por pedido, por cliente o por día? ¿Media o mediana?</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 El truco</div>
+
+<p>Cada vez que leas un adjetivo (activo, mejor, nuevo, grande) o un período (este mes, recientemente), hay una decisión escondida. Subráyalos.</p>
+</div>
+
+
+<h2>Las 6 preguntas que aclaran casi todo</h2>
+<ol>
+<li><strong>¿Para qué lo vas a usar?</strong> La decisión que se va a tomar dice qué definición conviene.</li>
+<li><strong>¿Una fila por qué?</strong> (la granularidad del resultado).</li>
+<li><strong>¿Qué período?</strong> Fechas exactas, zona horaria, incluir o no el mes en curso.</li>
+<li><strong>¿Qué se incluye y qué se excluye?</strong> Cancelados, pruebas internas, devoluciones.</li>
+<li><strong>¿Qué hago con lo raro?</strong> Nulos, duplicados, empates.</li>
+<li><strong>¿Hay una definición oficial?</strong> Muchas empresas ya definieron &quot;cliente activo&quot;: usa la misma para que los números coincidan.</li>
+</ol>
+<h2>Si no puedes preguntar: supuestos explícitos</h2>
+<p>A veces no hay a quién preguntar (o estás en una entrevista y te dicen &quot;decide tú&quot;). Entonces <strong>decides, lo escribes y sigues</strong>. Un supuesto bien escrito se puede corregir en un minuto; uno escondido genera números que nadie entiende.</p>
+<pre><code class="language-sql">-- Supuestos:
+-- 1. &quot;Ventas&quot; = pedidos con estado 'entregado' (excluye cancelados y devueltos).
+-- 2. Importe = cantidad * precio_unitario, sin descuentos ni impuestos.
+-- 3. &quot;Este año&quot; = año calendario 2024 completo.
+SELECT ROUND(SUM(d.cantidad * d.precio_unitario), 2) AS ventas_2024
+FROM pedidos p
+JOIN detalle_pedidos d ON d.pedido_id = p.pedido_id
+WHERE p.estado = 'entregado'
+  AND p.fecha_pedido &gt;= '2024-01-01' AND p.fecha_pedido &lt; '2025-01-01';</code></pre>
+<p>En Python, los supuestos van en la documentación de la función o en constantes con nombre:</p>
+<pre><code class="language-python">DIAS_ACTIVO = 90   # supuesto: activo = compró en los últimos 90 días
+
+def es_activo(dias_desde_ultima_compra):
+    return dias_desde_ultima_compra &lt;= DIAS_ACTIVO</code></pre>
+<p>Si mañana te dicen &quot;no, activo es 30 días&quot;, cambias una línea.</p>
+<h2>Entregar dos versiones</h2>
+<p>Cuando dos interpretaciones son razonables y el costo de calcular ambas es bajo, <strong>entrega las dos lado a lado</strong> y explica la diferencia en una frase. Es mucho mejor que adivinar.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Mes</th>
+<th>Pedidos creados</th>
+<th>Pedidos entregados</th>
+</tr>
+</thead><tbody><tr>
+<td>Enero</td>
+<td>410</td>
+<td>372</td>
+</tr>
+</tbody></table></div>
+<p>&quot;La diferencia son los cancelados y los que todavía están en camino.&quot;</p>
+<h2>Estimar sin datos</h2>
+<p>Algunas preguntas de entrevista no tienen datos a propósito: &quot;¿cuántos litros de café se toman por día en tu ciudad?&quot;. No buscan el número exacto; buscan ver <strong>cómo descompones</strong>. Es el mismo método: partir en factores que puedas estimar.</p>
+<ol>
+<li>Habitantes de la ciudad: digamos 3 millones.</li>
+<li>Adultos que toman café: quizás la mitad → 1,5 millones.</li>
+<li>Tazas por persona por día: 2.</li>
+<li>Litros por taza: 0,2.</li>
+<li>Resultado: 1,5 millones × 2 × 0,2 = <strong>600.000 litros por día</strong>.</li>
+</ol>
+<p>Dilo en voz alta, anota cada supuesto y termina con un chequeo de sentido común (&quot;¿600.000 litros es razonable? Son unas 30 cisternas de camión: plausible&quot;).</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/logica-pedidos-ambiguos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="logica-spark-con-metodo.html">← PySpark con el mismo método - el plan no cambia, cambia la sintaxis</a><a href="logica-depurar.html">Depurar - encontrar el error con método, no con suerte →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

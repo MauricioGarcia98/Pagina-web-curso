@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El método - cómo resolver un problema que nunca viste · Academia de Datos</title><meta name="description" content="Un método de seis pasos que sirve igual para Python, SQL y Spark - entender el pedido, resolver un ejemplo a mano, escribir el plan en palabras, programar de a pasos chicos, probar con casos difíciles y revisar. Con un problema resuelto de principio a fin y qué hacer cuando te quedas en blanco."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-metodo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El método - cómo resolver un problema que nunca viste · Academia de Datos"><meta property="og:description" content="Un método de seis pasos que sirve igual para Python, SQL y Spark - entender el pedido, resolver un ejemplo a mano, escribir el plan en palabras, programar de a pasos chicos, probar con casos difíciles y revisar. Con un problema resuelto de principio a fin y qué hacer cuando te quedas en blanco."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-metodo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#logica">🧩 Lógica: resolver cualquier problema</a> · Básico · 35 min</div>
+<h1>El método - cómo resolver un problema que nunca viste</h1><p class="resumen">Un método de seis pasos que sirve igual para Python, SQL y Spark - entender el pedido, resolver un ejemplo a mano, escribir el plan en palabras, programar de a pasos chicos, probar con casos difíciles y revisar. Con un problema resuelto de principio a fin y qué hacer cuando te quedas en blanco.</p>
+<a class="cta" href="../index.html#/l/logica-metodo">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Aplicar un método de seis pasos antes de escribir código</li><li>Resolver un ejemplo chico a mano para descubrir el algoritmo</li><li>Escribir el plan en palabras (pseudocódigo) y recién después traducirlo</li><li>Saber qué hacer cuando te trabas</li><li>Explicar tu solución en voz alta, como en una entrevista</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Nadie arma un mueble mirando solo la caja: primero mira el dibujo, cuenta las piezas y sigue los pasos en orden. Programar es igual. Quien se sienta a escribir código sin haber entendido el problema termina desarmando todo tres veces. El método de esta lección es el dibujo de instrucciones.</p>
+</div>
+
+
+<h2>Por qué necesitas un método</h2>
+<p>Saber la sintaxis no alcanza. Puedes conocer <code>for</code>, <code>if</code>, <code>GROUP BY</code> y <code>JOIN</code> de memoria y aun así quedarte en blanco frente a un problema nuevo. Lo que distingue a quien resuelve de quien se traba no es saber más comandos: es <strong>tener un orden para pensar</strong>.</p>
+<p>El método tiene seis pasos. Sirve para un ejercicio de este curso, para una consulta que te pide tu jefa y para una entrevista.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Qué haces</th>
+<th>Qué te preguntas</th>
+</tr>
+</thead><tbody><tr>
+<td>1. Entender</td>
+<td>Decir el problema con tus palabras</td>
+<td>¿Qué entra? ¿Qué tiene que salir?</td>
+</tr>
+<tr>
+<td>2. Ejemplo a mano</td>
+<td>Resolver un caso chico en papel</td>
+<td>¿Qué pasos seguí yo para llegar?</td>
+</tr>
+<tr>
+<td>3. Plan en palabras</td>
+<td>Escribir los pasos sin código</td>
+<td>¿Podría seguirlos otra persona?</td>
+</tr>
+<tr>
+<td>4. Código de a poco</td>
+<td>Traducir un paso por vez y probar</td>
+<td>¿Este pedacito ya funciona?</td>
+</tr>
+<tr>
+<td>5. Casos difíciles</td>
+<td>Probar lo raro</td>
+<td>¿Y si está vacío? ¿Y si hay empate?</td>
+</tr>
+<tr>
+<td>6. Revisar</td>
+<td>Leer, simplificar, explicar</td>
+<td>¿Lo entendería en un mes?</td>
+</tr>
+</tbody></table></div>
+<h2>El método aplicado: un problema completo</h2>
+<blockquote>
+<p><strong>Pedido:</strong> &quot;Dada la lista de ventas del día, dime qué vendedor vendió más.&quot;</p>
+</blockquote>
+<h3>Paso 1 · Entender</h3>
+<p>Antes de tocar el teclado, responde:</p>
+<ul>
+<li><strong>¿Qué entra?</strong> Una lista de ventas. ¿Con qué forma? Supongamos pares <code>(vendedor, monto)</code>: <code>[(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]</code>.</li>
+<li><strong>¿Qué sale?</strong> El nombre de un vendedor. ¿O el nombre y el total? Lo decidimos: solo el nombre.</li>
+<li><strong>¿&quot;Vendió más&quot; qué significa?</strong> ¿Más plata o más ventas? Decidimos: más plata en total.</li>
+</ul>
+<p>Fíjate cuántas decisiones había escondidas en una frase de doce palabras. Si no las tomas ahora, las vas a tomar sin darte cuenta mientras programas, y quizás mal.</p>
+<h3>Paso 2 · Un ejemplo a mano</h3>
+<p>Con <code>[(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]</code>:</p>
+<ul>
+<li>Ana: 100 + 200 = 300</li>
+<li>Luis: 250</li>
+<li>Gana Ana.</li>
+</ul>
+<p>¿Qué hiciste? <strong>Sumaste por vendedor</strong> y después <strong>buscaste el mayor</strong>. Acabas de descubrir el algoritmo sin escribir código.</p>
+<h3>Paso 3 · El plan en palabras</h3>
+<pre><code class="language-text">1. Preparar una tabla vacía: vendedor → total
+2. Para cada venta:
+     sumar el monto al total de ese vendedor
+3. Recorrer la tabla y quedarme con el vendedor de mayor total
+4. Devolver ese nombre</code></pre>
+<p>Esto se llama <strong>pseudocódigo</strong>. No tiene reglas: es tu plan, escrito para que lo entienda una persona.</p>
+<h3>Paso 4 · Código de a poco</h3>
+<p>Traduce un paso, ejecútalo, mira el resultado. Recién ahí el siguiente.</p>
+<pre><code class="language-python">ventas = [(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]
+
+# pasos 1 y 2: sumar por vendedor
+totales = {}
+for vendedor, monto in ventas:
+    totales[vendedor] = totales.get(vendedor, 0) + monto
+print(totales)          # compruebo antes de seguir: {'Ana': 300, 'Luis': 250}</code></pre>
+<p>Ya funciona la primera mitad. Ahora el paso 3:</p>
+<pre><code class="language-python">ventas = [(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]
+totales = {}
+for vendedor, monto in ventas:
+    totales[vendedor] = totales.get(vendedor, 0) + monto
+
+mejor = None
+for vendedor, total in totales.items():
+    if mejor is None or total &gt; totales[mejor]:
+        mejor = vendedor
+print(mejor)            # Ana</code></pre>
+<h3>Paso 5 · Los casos difíciles</h3>
+<p>El ejemplo fácil ya pasa. Ahora los que rompen programas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Caso</th>
+<th>¿Qué debería pasar?</th>
+</tr>
+</thead><tbody><tr>
+<td>Lista vacía</td>
+<td>No hay vendedor: devolver <code>None</code></td>
+</tr>
+<tr>
+<td>Un solo vendedor</td>
+<td>Ese</td>
+</tr>
+<tr>
+<td>Empate</td>
+<td>Hay que decidirlo: ¿el primero? ¿todos?</td>
+</tr>
+<tr>
+<td>Montos negativos (devoluciones)</td>
+<td>Siguen sumando: el total puede bajar</td>
+</tr>
+</tbody></table></div>
+<p>El código de arriba ya devuelve <code>None</code> con la lista vacía y, en un empate, se queda con el primero que encontró. Lo importante es que <strong>lo sepas y lo hayas decidido</strong>, no que salga así por casualidad.</p>
+<h3>Paso 6 · Revisar</h3>
+<p>Ahora que funciona, se puede mejorar:</p>
+<pre><code class="language-python">def mejor_vendedor(ventas):
+    totales = {}
+    for vendedor, monto in ventas:
+        totales[vendedor] = totales.get(vendedor, 0) + monto
+    if not totales:
+        return None
+    return max(totales, key=totales.get)
+
+print(mejor_vendedor([(&quot;Ana&quot;, 100), (&quot;Luis&quot;, 250), (&quot;Ana&quot;, 200)]))
+print(mejor_vendedor([]))</code></pre>
+<p>Primero que funcione; después que quede lindo. Nunca al revés.</p>
+<h2>Cuando te quedas en blanco</h2>
+<p>Le pasa a todo el mundo. Estas salidas funcionan, en este orden:</p>
+<ol>
+<li><strong>Vuelve al paso 2.</strong> Si no puedes resolverlo a mano con un ejemplo de tres elementos, todavía no entendiste el problema. El problema no es el código.</li>
+<li><strong>Achica el problema.</strong> ¿No sabes el mejor vendedor? Resuelve primero &quot;el total de un solo vendedor&quot;. Después &quot;el total de cada uno&quot;. Después &quot;el mayor&quot;.</li>
+<li><strong>Resuelve uno parecido que ya sepas.</strong> &quot;Buscar el vendedor con más ventas&quot; es &quot;buscar el máximo de una lista&quot; con un paso previo.</li>
+<li><strong>Escribe lo que sí sabes.</strong> Aunque sea leer la entrada e imprimirla. Tener algo que corre desbloquea.</li>
+<li><strong>Explícalo en voz alta</strong>, a otra persona o a un objeto. Al decirlo, casi siempre aparece el paso que faltaba.</li>
+</ol>
+<h2>El mismo método en SQL y en Spark</h2>
+<p>El método no cambia; cambia la herramienta del paso 4.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Paso</th>
+<th>Python</th>
+<th>SQL</th>
+<th>Spark</th>
+</tr>
+</thead><tbody><tr>
+<td>Sumar por vendedor</td>
+<td>diccionario y <code>for</code></td>
+<td><code>GROUP BY vendedor</code></td>
+<td><code>groupBy(&quot;vendedor&quot;)</code></td>
+</tr>
+<tr>
+<td>Quedarse con el mayor</td>
+<td><code>max(...)</code></td>
+<td><code>ORDER BY total DESC LIMIT 1</code></td>
+<td><code>orderBy(desc(&quot;total&quot;)).limit(1)</code></td>
+</tr>
+</tbody></table></div>
+<p>Por eso conviene pensar el plan <strong>en palabras</strong>: el mismo plan se traduce a los tres.</p>
+<h2>Explicar tu solución</h2>
+<p>En una entrevista y en el trabajo, resolver en silencio vale la mitad. Acostúmbrate a decir:</p>
+<ol>
+<li><strong>Qué entendí</strong> (&quot;me piden el vendedor con mayor monto total&quot;).</li>
+<li><strong>Qué supuse</strong> (&quot;si hay empate, devuelvo el primero&quot;).</li>
+<li><strong>Cómo lo resuelvo</strong> (&quot;sumo por vendedor y busco el máximo&quot;).</li>
+<li><strong>Qué probé</strong> (&quot;lista vacía, un solo vendedor y un empate&quot;).</li>
+</ol>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/logica-metodo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="pyspark-desafios.html">← Desafíos de PySpark (nivel entrevista)</a><a href="logica-descomponer.html">Descomponer - del enunciado a pasos chicos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

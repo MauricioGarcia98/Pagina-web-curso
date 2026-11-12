@@ -445,7 +445,7 @@ ${modules.map((m) => `<h2 id="${esc(m.id)}">${esc(m.icono || '')} ${esc(m.titulo
 // Módulos donde se aprende un tema desde cero: quien estudia todavía no trabaja en una empresa, así que la
 // lección empieza por la explicación y el pedido laboral (:::escenario) se muestra al final, como caso real.
 // En los módulos de "Trabajo real" (casos, pipelines, incidentes, laboratorios, portafolio…) el escenario sigue arriba.
-const MODULOS_APRENDER = new Set(['cero', 'fundamentos', 'sql', 'analisis', 'modelado', 'powerbi', 'python', 'spark', 'pyspark', 'dbt', 'airflow', 'azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces', 'arquitectura', 'terraform', 'local']);
+const MODULOS_APRENDER = new Set(['cero', 'fundamentos', 'sql', 'analisis', 'modelado', 'powerbi', 'python', 'spark', 'pyspark', 'logica', 'dbt', 'airflow', 'azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces', 'arquitectura', 'terraform', 'local']);
 function casoAlFinal(body, moduleId) {
   if (!MODULOS_APRENDER.has(moduleId)) return body;
   const m = /^(?:<!--\s*estandar:escenario\s*-->\n)?:::escenario[ \t]*(.*)\n([\s\S]*?)^:::[ \t]*\n/m.exec(body);

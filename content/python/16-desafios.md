@@ -29,6 +29,10 @@ Estos problemas aparecen en entrevistas de **Data Engineer**. No buscan algoritm
 Los desafíos de entrevista son como los acertijos de lógica: casi siempre se resuelven eligiendo la herramienta correcta. ¿Necesitas contar cosas? Un diccionario. ¿Saber si algo ya apareció? Un conjunto. En esta lección practicas reconocer qué estructura de datos pide cada problema.
 :::
 
+:::tip ¿Te trabas al empezar?
+Si un desafío te deja en blanco, no es falta de Python: es falta de método. El módulo [Lógica: resolver cualquier problema](#/m/logica) enseña a entender el enunciado, partirlo en pasos, reconocer el patrón (acumulador, contador, comparar con el anterior…) y probar casos borde. Empieza por [El método](#/l/logica-metodo).
+:::
+
 ## Complejidad: qué significa O(n)
 
 En las entrevistas te van a preguntar "¿qué complejidad tiene tu solución?". La **notación O grande** describe cómo **crece** el tiempo (o la memoria) cuando crece la cantidad de datos `n`. No mide segundos: mide la **forma** del crecimiento.
