@@ -119,21 +119,22 @@
   const $ = (s) => main.querySelector(s);
 
   function pintarTabs() { $('#xlTabs').innerHTML = ['File', 'Home', 'Insert', 'Formulas', 'Data', 'View'].map((t) => `<button class="xl-tab${t === pestaña ? ' on' : ''}" data-tab="${t}">${t}</button>`).join(''); }
-  const boton = (a, ico, t, tip) => `<button class="xl-b" data-a="${a}" title="${esc(tip || t)}"><span class="xl-bi">${ico}</span><span>${t}</span></button>`;
+  const icx = (a, alt) => (window.IconosOficiales && window.IconosOficiales.excel(a) ? window.IconosOficiales.excel(a, 22) : alt);
+  const boton = (a, ico, t, tip) => `<button class="xl-b" data-a="${a}" title="${esc(tip || t)}"><span class="xl-bi">${icx(a, ico)}</span><span>${t}</span></button>`;
   const grupo = (titulo, cont) => `<div class="xl-g"><div class="xl-gc">${cont}</div><div class="xl-gt">${titulo}</div></div>`;
   function pintarCinta() {
     const c = $('#xlCinta'); const H = hoja(); const cel = H.celdas[X().dir(sel.c, sel.f)] || {};
     const cintas = {
       File: grupo('Archivo', boton('csv-exportar', '⭳', 'Export CSV', 'Descarga la hoja activa como CSV') + boton('csv-importar', '⭱', 'Open CSV', 'Abre un archivo CSV en una hoja nueva') + boton('reiniciar', '↺', 'New workbook', 'Empieza un libro nuevo (borra el actual)')) + grupo('Curso', boton('salir', '←', 'Volver al curso')),
       Home: grupo('Clipboard', boton('copiar', '⧉', 'Copy', 'Ctrl+C') + boton('cortar', '✂', 'Cut', 'Ctrl+X') + boton('pegar', '📋', 'Paste', 'Ctrl+V')) +
-        grupo('Font', `<button class="xl-b sq${cel.b ? ' on' : ''}" data-a="negrita" title="Bold (Ctrl+B)"><b>B</b></button>`) +
-        grupo('Alignment', ['left', 'center', 'right'].map((al) => `<button class="xl-b sq${cel.al === al ? ' on' : ''}" data-a="al-${al}" title="Align ${al}">${{ left: '⯇≡', center: '≡', right: '≡⯈' }[al]}</button>`).join('')) +
+        grupo('Font', `<button class="xl-b sq${cel.b ? ' on' : ''}" data-a="negrita" title="Bold (Ctrl+B)">${icx('negrita', '<b>B</b>')}</button>`) +
+        grupo('Alignment', ['left', 'center', 'right'].map((al) => `<button class="xl-b sq${cel.al === al ? ' on' : ''}" data-a="al-${al}" title="Align ${al}">${icx('al-' + al, { left: '⯇≡', center: '≡', right: '≡⯈' }[al])}</button>`).join('')) +
         grupo('Number', `<select class="xl-sel" id="xlFmt" title="Number Format">${[['', 'General'], ['numero', 'Number'], ['moneda', 'Currency'], ['porcentaje', 'Percentage'], ['entero', 'Integer'], ['fecha', 'Date']].map(([v, t]) => `<option value="${v}"${(cel.fmt || '') === v ? ' selected' : ''}>${t}</option>`).join('')}</select>`) +
         grupo('Editing', boton('autosuma', 'Σ', 'AutoSum', 'Suma el rango de arriba (Alt+=)') + boton('orden-asc', 'A↓', 'Sort A→Z') + boton('filtro', '⏷', 'Filter', 'Activa el filtro en la fila de encabezados (Ctrl+Shift+L)') + boton('borrar', '⌫', 'Clear', 'Borra el contenido (Supr)')),
       Insert: grupo('Tables', boton('pivot', '▦', 'PivotTable', 'Resume una tabla agrupando por un campo')) + grupo('Charts', boton('graf-col', '▮▮', 'Column') + boton('graf-bar', '▬', 'Bar') + boton('graf-linea', '⟋', 'Line') + boton('graf-torta', '◔', 'Pie')),
-      Formulas: grupo('Function Library', boton('insertar-fn', 'fx', 'Insert Function', 'Busca una función y mira cómo se usa') + boton('autosuma', 'Σ', 'AutoSum')) + grupo('Formula Auditing', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas" title="Ctrl+\`"><span class="xl-bi">ƒ</span><span>Show Formulas</span></button>`),
+      Formulas: grupo('Function Library', boton('insertar-fn', 'fx', 'Insert Function', 'Busca una función y mira cómo se usa') + boton('autosuma', 'Σ', 'AutoSum')) + grupo('Formula Auditing', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas" title="Ctrl+\`"><span class="xl-bi">${icx('ver-formulas', 'ƒ')}</span><span>Show Formulas</span></button>`),
       Data: grupo('Get & Transform Data', boton('obtener', '⛁', 'Get Data', 'Carga una tabla del curso en una hoja nueva') + boton('csv-importar', '⭱', 'From Text/CSV')) + grupo('Sort & Filter', boton('orden-asc', 'A↓', 'Sort A→Z') + boton('orden-desc', 'Z↓', 'Sort Z→A') + boton('filtro', '⏷', 'Filter')) + grupo('Data Tools', boton('duplicados', '⧉', 'Remove Duplicates', 'Quita las filas repetidas de la tabla')),
-      View: grupo('Show', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas"><span class="xl-bi">ƒ</span><span>Formulas</span></button>`) + grupo('Ayuda', boton('leccion', '📘', 'Lección', 'Excel por dentro') + boton('atajos', '⌨', 'Shortcuts')),
+      View: grupo('Show', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas"><span class="xl-bi">${icx('ver-formulas', 'ƒ')}</span><span>Formulas</span></button>`) + grupo('Ayuda', boton('leccion', '📘', 'Lección', 'Excel por dentro') + boton('atajos', '⌨', 'Shortcuts')),
     };
     c.innerHTML = cintas[pestaña] || '';
     const f = c.querySelector('#xlFmt'); if (f) f.onchange = () => { aplicarARango((cel0) => ({ ...cel0, fmt: f.value || undefined })); evento('formato'); };

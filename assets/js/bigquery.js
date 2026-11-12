@@ -13,7 +13,10 @@
     proyecto: '<path d="M12 3l8 4.500v9L12 21l-8-4.500v-9z"/><path d="M12 12l8-4.500M12 12v9M12 12L4 7.500"/>', dataset: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>', tabla: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M9 10v10"/>', vista: '<path d="M2 12s3.600-7 10-7 10 7 10 7-3.600 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     ok: '<circle cx="12" cy="12" r="9"/><path d="M8 12.500l2.700 2.700L16 9.500"/>', mal: '<circle cx="12" cy="12" r="9"/><path d="M12 7.500v5.500M12 16.300v.200"/>', subir: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>', basura: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', part: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18"/>',
   };
-  const ic = (n, t = 16) => `<svg class="bq-ic" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${(IC[n] || '').replace(/(\d)\.(\d)00\b/g, '$1.$2')}</svg>`;
+  // íconos Material Symbols (los de la consola de Google Cloud, Apache-2.0); los trazos propios quedan de respaldo
+  const MSMAP = { estudio: 'query_stats', jobs: 'history', costo: 'payments', volver: 'arrow_back', play: 'play_arrow', mas: 'add', flecha: 'chevron_right', abajo: 'keyboard_arrow_down', proyecto: 'deployed_code', dataset: 'dataset', tabla: 'table', vista: 'visibility', ok: 'check_circle', mal: 'error', subir: 'upload', basura: 'delete', part: 'table_view' };
+  const ic = (n, t = 16) => (window.IconosOficiales && MSMAP[n] && window.IconosOficiales.tiene('ms', MSMAP[n]) ? window.IconosOficiales.ms(MSMAP[n], t + 2, 'bq-ic') : icPropio(n, t));
+  const icPropio = (n, t = 16) => `<svg class="bq-ic" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${(IC[n] || '').replace(/(\d)\.(\d)00\b/g, '$1.$2')}</svg>`;
   const href = (h) => '#/bigquery' + (h ? '/' + h : '');
   const NAV = [['estudio', 'Studio', 'estudio', ''], ['jobs', 'Job history', 'jobs', 'jobs'], ['costos', 'Costos', 'costo', 'costos']];
 

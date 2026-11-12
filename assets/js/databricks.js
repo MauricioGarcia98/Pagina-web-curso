@@ -84,6 +84,10 @@
     ['cluster', 'cloud', 'Compute'], ['warehouse', 'server', 'SQL warehouse'], ['-'],
     ['datos', 'cloud-upload', 'Add or upload data'], ['catalogo-nuevo', 'database', 'Catalog'],
   ];
+  // Apariencia (Settings → Preferences): Light, Dark o seguir al sistema (en la práctica, el tema del curso)
+  D.temaOscuro = () => { const t = (D.ws().prefs || {}).tema || 'system'; if (t === 'dark') return true; if (t === 'light') return false; const s = document.documentElement.getAttribute('data-theme'); return s ? s === 'dark' : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); };
+  D.aplicarTema = () => { const o = D.temaOscuro(); const r = document.getElementById('dbx'); if (r) r.classList.toggle('oscuro', o); document.body.classList.toggle('dbx-oscuro', o && !!r); };
+  D.cambiarTema = (t) => { const W = D.ws(); W.prefs.tema = t; D.guardar(); D.aplicarTema(); };
   function pintarMarco() {
     document.body.classList.add('dbx-abierto');
     const plegado = D.ws().prefs.plegado;
@@ -112,7 +116,7 @@
       const acc = a.dataset.acc;
       if (acc === 'plegar') { const W = D.ws(); W.prefs.plegado = !W.prefs.plegado; raiz.classList.toggle('plegado', W.prefs.plegado); D.guardar(); }
       if (acc === 'nuevo') D.menu(a, NUEVO.map((x) => (x[0] === '-' ? '-' : { ic: x[1], txt: x[2], fn: () => nuevo(x[0]) })));
-      if (acc === 'usuario') D.menu(a, [{ ic: 'account', txt: USUARIO, des: true }, '-', { ic: 'gear', txt: 'Settings (simulado)', fn: () => D.ir('ajustes') }, { ic: 'arrow-left', txt: 'Volver al curso', fn: () => { location.hash = '#/'; } }, '-', { ic: 'trash', txt: 'Reiniciar toda la práctica…', fn: reiniciarTodo }], 'der');
+      if (acc === 'usuario') { const tt = D.ws().prefs.tema || 'system'; D.menu(a, [{ ic: 'account', txt: USUARIO, des: true }, '-', { ic: 'gear', txt: 'Settings', fn: () => D.ir('ajustes') }, { ic: 'color-mode', txt: 'Appearance', des: true }, { ic: tt === 'light' ? 'check' : 'blank', txt: 'Light', fn: () => D.cambiarTema('light') }, { ic: tt === 'dark' ? 'check' : 'blank', txt: 'Dark', fn: () => D.cambiarTema('dark') }, { ic: tt === 'system' ? 'check' : 'blank', txt: 'Match system', fn: () => D.cambiarTema('system') }, '-', { ic: 'arrow-left', txt: 'Volver al curso', fn: () => { location.hash = '#/'; } }, '-', { ic: 'trash', txt: 'Reiniciar toda la práctica…', fn: reiniciarTodo }], 'der'); }
     });
     enlazarBuscar();
   }
@@ -215,6 +219,7 @@
     for (const f of limpiar) { try { f(); } catch (e) { /* nada */ } }
     limpiar = [];
     if (!main.querySelector('#dbx')) pintarMarco();
+    D.aplicarTema();
     const [v = 'home', ...resto] = sub || [];
     marcarNav(v);
     const cont = main.querySelector('#dbxMain');
@@ -231,7 +236,7 @@
     const listoSql = window.DBSQL ? window.DBSQL.init({ Store }) : Promise.resolve();
     ctx.ensureSql(main).then((ok) => { if (ok) listoSql.then(arrancar).catch((e) => { main.innerHTML = `<div class="dbx-err">${esc(e.message)}</div>`; }); });
   }
-  window.addEventListener('hashchange', () => { if (!/^#\/databricks/.test(location.hash)) { document.body.classList.remove('dbx-abierto'); for (const f of limpiar) { try { f(); } catch (e) { /* nada */ } } limpiar = []; } });
+  window.addEventListener('hashchange', () => { if (!/^#\/databricks/.test(location.hash)) { document.body.classList.remove('dbx-abierto', 'dbx-oscuro'); for (const f of limpiar) { try { f(); } catch (e) { /* nada */ } } limpiar = []; } });
 
   // ------------------------------------------------------------------ inicio
   D.registrar('home', (cont) => {
