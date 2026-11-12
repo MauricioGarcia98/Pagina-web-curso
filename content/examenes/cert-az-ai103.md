@@ -616,3 +616,183 @@ Al terminar cada llamada, hay que generar un resumen con el problema y la resolu
 - [ ] Custom Vision.
 - [ ] Translator de documentos.
 porque: El resumen de conversaciones extrae el problema y la resolución de transcripciones de soporte.
+
+## Rotar claves sin cortes
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Una aplicación heredada todavía usa claves de API de un recurso de Azure AI y hay que rotarlas sin cortar el servicio. ¿Cómo se hace?
+- [ ] Se regenera la única clave del recurso y se reinicia la aplicación enseguida.
+- [x] Se pasa la aplicación a la clave secundaria, se regenera la primaria y después se repite al revés.
+- [ ] Se crea un recurso nuevo por cada rotación y se borra el anterior.
+- [ ] No hace falta rotarlas: las claves de Azure AI vencen solas cada semana.
+porque: Los recursos tienen dos claves justamente para rotarlas sin interrupción. Lo ideal a largo plazo es dejar las claves y usar identidades administradas.
+
+## Modelo disponible en la región
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 1
+Al desplegar un modelo en tu proyecto de Foundry no aparece en la lista. ¿Qué revisas primero?
+- [ ] Que el navegador tenga las cookies habilitadas para el portal.
+- [x] Que el modelo y el tipo de despliegue estén disponibles en la región del recurso.
+- [ ] Que el proyecto tenga al menos un índice de AI Search creado.
+- [ ] Que la suscripción tenga una máquina virtual con GPU encendida.
+porque: La disponibilidad de modelos y tipos de despliegue varía por región; si no está, se elige otra región o otro tipo de despliegue.
+
+## Mensaje del sistema
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Un asistente de soporte debe responder solo sobre los productos de la empresa, en español y en viñetas. ¿Dónde se define eso primero?
+- [ ] En el nombre del despliegue del modelo.
+- [x] En el mensaje del sistema (instrucciones) del modelo o del agente.
+- [ ] En la región del recurso, que fija el idioma de las respuestas.
+- [ ] En la cuota de tokens por minuto del despliegue.
+porque: Las instrucciones del sistema fijan el rol, el alcance y el formato; se complementan con filtros de contenido y evaluaciones.
+
+## Extracción repetible
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Usas un modelo para extraer campos de correos y necesitas que la misma entrada dé casi siempre la misma salida. ¿Qué ajustas?
+- [ ] Subir la temperatura para que el modelo explore más alternativas.
+- [x] Bajar la temperatura y pedir una salida con estructura fija.
+- [ ] Aumentar la penalización de presencia al máximo permitido.
+- [ ] Quitar el mensaje del sistema para que el modelo tenga más libertad.
+porque: Una temperatura baja reduce la aleatoriedad, y una estructura de salida definida hace la respuesta fácil de validar.
+
+## Sinónimos en la búsqueda
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+En el índice de AI Search los usuarios buscan "notebook" y los documentos dicen "portátil". ¿Qué agregas sin reentrenar nada?
+- [ ] Un índice nuevo por cada palabra que los usuarios escriben distinto.
+- [x] Un mapa de sinónimos asociado al campo de búsqueda.
+- [ ] Un filtro OData que excluya los documentos con la palabra portátil.
+- [ ] Una cuota mayor de consultas por segundo en el servicio.
+porque: Los mapas de sinónimos expanden la consulta con términos equivalentes en los campos donde se asignan.
+
+## Priorizar lo reciente
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+En un buscador de normativas, a igual relevancia deben salir primero los documentos más nuevos. ¿Qué configuras en AI Search?
+- [ ] Un analizador de idioma diferente para el campo de fecha.
+- [x] Un perfil de puntuación con una función de actualidad sobre la fecha.
+- [ ] Un skillset con OCR para todos los documentos del índice.
+- [ ] Un índice separado para los documentos de cada año.
+porque: Los perfiles de puntuación ajustan el ranking, por ejemplo potenciando documentos según la cercanía de una fecha.
+
+## Herramienta OpenAPI
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Un agente de Foundry debe consultar el estado de un pedido en una API REST interna que ya tiene especificación OpenAPI. ¿Qué herramienta usas?
+- [ ] La búsqueda web con Bing, indicando la URL de la API en el prompt.
+- [x] Una herramienta OpenAPI definida a partir de esa especificación.
+- [ ] Code Interpreter, pegando la documentación de la API en un archivo.
+- [ ] Ninguna: los agentes no pueden llamar a APIs externas.
+porque: La herramienta OpenAPI permite al agente invocar operaciones descritas en la especificación, con la autenticación configurada.
+
+## PDFs sin armar un índice
+leccion: cert-azure-ai103-foundry-agentes
+dominio: 2
+Para un prototipo, un agente debe responder preguntas sobre 20 manuales en PDF y no quieres diseñar un índice de AI Search todavía. ¿Qué usas?
+- [ ] Ajuste fino del modelo con el texto de los manuales.
+- [x] La herramienta de búsqueda de archivos del agente, subiendo los PDFs.
+- [ ] Un mensaje del sistema con los 20 manuales pegados completos.
+- [ ] Traducción de documentos para pasar los PDFs a texto plano.
+porque: La búsqueda de archivos crea y consulta el almacén vectorial por ti; para producción a gran escala se suele pasar a AI Search.
+
+## Recorte inteligente
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Un catálogo necesita miniaturas cuadradas que mantengan el producto dentro del recorte. ¿Qué capacidad de Azure AI Vision usas?
+- [ ] OCR, para ubicar el texto de la etiqueta y recortar alrededor.
+- [x] Recortes inteligentes (smart crops) de Image Analysis.
+- [ ] Detección de rostros, para centrar la imagen en las personas.
+- [ ] Un modelo de clasificación personalizado entrenado con miniaturas.
+porque: Los recortes inteligentes sugieren recortes con la relación de aspecto pedida, conservando la zona de interés de la imagen.
+
+## Identificar personas por el rostro
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 3
+Un cliente quiere identificar empleados por su rostro en la entrada del edificio. ¿Qué tienes en cuenta?
+- [ ] Que basta con activar Image Analysis con la opción de etiquetas.
+- [x] Que la identificación y verificación de Face son de acceso limitado y requieren aprobación de Microsoft.
+- [ ] Que Azure no ofrece ningún servicio relacionado con rostros.
+- [ ] Que se puede entrenar con fotos tomadas de redes sociales sin consentimiento.
+porque: Por IA responsable, las funciones de identificación facial requieren solicitar acceso y cumplir requisitos de uso.
+
+## Transcribir miles de grabaciones
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Hay 20.000 llamadas grabadas en Blob Storage para transcribir durante la noche. ¿Qué usas de Azure AI Speech?
+- [ ] Reconocimiento en tiempo real, reproduciendo cada audio por un micrófono virtual.
+- [x] Transcripción por lotes apuntando a los archivos del almacenamiento.
+- [ ] Texto a voz, para generar un resumen hablado de cada llamada.
+- [ ] Traducción de voz en tiempo real con un solo idioma de destino.
+porque: La transcripción por lotes procesa grandes volúmenes de audio grabado de forma asíncrona.
+
+## Quién habló cuándo
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+En las transcripciones de reuniones hay que distinguir qué dijo cada participante. ¿Qué activas?
+- [ ] Un modelo de voz personalizada entrenado con la voz del moderador.
+- [x] La diarización de hablantes.
+- [ ] La detección de idioma en cada segundo del audio.
+- [ ] El filtro de groserías en modo enmascarado.
+porque: La diarización separa la transcripción por hablante.
+
+## Pronunciar una sigla
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+El texto a voz lee "AFIP" como una palabra y debe deletrearla, además de hacer una pausa antes del monto. ¿Qué usas?
+- [ ] Un prompt al modelo de lenguaje pidiendo que hable más despacio.
+- [x] SSML, con etiquetas para la forma de decir el texto y las pausas.
+- [ ] Un modelo de reconocimiento de voz personalizado.
+- [ ] La traducción de voz al mismo idioma de origen.
+porque: SSML controla pronunciación, pausas, velocidad y estilo de la voz sintetizada.
+
+## Detectar el idioma
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Llegan reseñas en idiomas desconocidos y cada una debe enrutarse al equipo del idioma correspondiente. ¿Qué capacidad de Azure AI Language usas?
+- [ ] Extracción de frases clave, para inferir el idioma por las palabras.
+- [x] Detección de idioma.
+- [ ] Reconocimiento de entidades nombradas en modo multilingüe.
+- [ ] Respuesta a preguntas personalizada con un proyecto por idioma.
+porque: La detección de idioma devuelve el idioma y una puntuación de confianza para cada texto.
+
+## Temas principales de un texto
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+Para un tablero de opiniones quieres listar los temas que más se mencionan en miles de comentarios. ¿Qué usas?
+- [ ] Análisis de sentimiento, que devuelve solo positivo, neutral o negativo.
+- [x] Extracción de frases clave.
+- [ ] Detección de PII, para encontrar los nombres propios.
+- [ ] Texto a voz, para escuchar los comentarios más largos.
+porque: La extracción de frases clave devuelve los conceptos principales de cada texto, que luego se pueden contar.
+
+## Entidades propias del negocio
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 4
+En contratos hay que encontrar cláusulas de penalidad y plazos de preaviso, que no son entidades estándar. ¿Qué usas?
+- [ ] El reconocimiento de entidades precompilado, sin cambios.
+- [x] Un modelo de reconocimiento de entidades personalizado, entrenado con contratos etiquetados.
+- [ ] La detección de idioma sobre cada página del contrato.
+- [ ] Un mapa de sinónimos en AI Search.
+porque: El NER personalizado aprende entidades del dominio a partir de ejemplos etiquetados.
+
+## Solo el texto de la página
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Necesitas únicamente el texto de documentos escaneados, sin tablas ni campos. ¿Qué modelo de Document Intelligence alcanza?
+- [ ] Un modelo compuesto con todos los modelos personalizados de la empresa.
+- [x] El modelo precompilado de lectura (Read).
+- [ ] El modelo de facturas, aunque no sean facturas.
+- [ ] Un modelo personalizado neuronal entrenado desde cero.
+porque: Read extrae texto e idioma; Layout agrega tablas y estructura, y los demás modelos extraen campos.
+
+## Datos para un modelo personalizado
+leccion: cert-azure-ai103-vision-lenguaje-extraccion
+dominio: 5
+Vas a entrenar un modelo personalizado de Document Intelligence para un formulario interno. ¿Qué necesitas como mínimo?
+- [ ] Miles de documentos sin etiquetar.
+- [x] Un conjunto de documentos de ejemplo etiquetados (al menos cinco) en un contenedor de almacenamiento.
+- [ ] Una sola imagen del formulario vacío.
+- [ ] Un índice de AI Search con los formularios ya cargados.
+porque: Los modelos personalizados se entrenan con ejemplos etiquetados del formulario, con un mínimo de cinco documentos.
