@@ -185,3 +185,27 @@ resultado = (ped.join(det, "pedido_id")
 Primero suma el importe por pedido, únelo a los pedidos no cancelados y agrega por cliente: `F.max("fecha_pedido")` para la recencia, `F.count("*")` para la frecuencia y `F.sum` para el monto.
 ```
 :::
+
+:::ejercicio quiz
+¿Por qué conviene escribir cada transformación como una función que recibe un DataFrame y devuelve otro?
+- [ ] Porque Spark no permite otra forma de escribirlas
+- [x] Porque se puede probar con un DataFrame chico de ejemplo, sin leer ni escribir tablas reales
+- [ ] Porque así el código ocupa menos líneas
+- [ ] Porque las funciones corren en la GPU
+:::
+
+:::ejercicio quiz
+Un pipeline es **idempotente** cuando…
+- [ ] termina en menos de un minuto
+- [ ] no usa ninguna función de agregación
+- [x] se puede volver a ejecutar para el mismo día sin duplicar ni romper los datos
+- [ ] solo corre una vez en toda su vida
+:::
+
+:::ejercicio quiz
+En la capa silver aparecen pedidos duplicados porque la fuente los envió dos veces. ¿Dónde corresponde resolverlo?
+- [ ] En el tablero, con un filtro manual
+- [ ] En bronze, borrando archivos de la fuente
+- [x] En el paso de bronze a silver, deduplicando por la clave del pedido
+- [ ] En gold, después de agregar
+:::

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BigQuery por dentro - bytes procesados, particiones, clustering y costos · Academia de Datos</title><meta name="description" content="Recorrido por BigQuery y su consola - proyecto, datasets y tablas, el editor con su validador de bytes, por qué se cobra por datos procesados y no por tiempo, particiones y clustering, la caché de resultados, cargas desde archivo, el historial de jobs y los hábitos que bajan la factura. Con las diferencias del dialecto GoogleSQL."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-bigquery-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="BigQuery por dentro - bytes procesados, particiones, clustering y costos · Academia de Datos"><meta property="og:description" content="Recorrido por BigQuery y su consola - proyecto, datasets y tablas, el editor con su validador de bytes, por qué se cobra por datos procesados y no por tiempo, particiones y clustering, la caché de resultados, cargas desde archivo, el historial de jobs y los hábitos que bajan la factura. Con las diferencias del dialecto GoogleSQL."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-bigquery-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Intermedio · 45 min</div>
+<h1>BigQuery por dentro - bytes procesados, particiones, clustering y costos</h1><p class="resumen">Recorrido por BigQuery y su consola - proyecto, datasets y tablas, el editor con su validador de bytes, por qué se cobra por datos procesados y no por tiempo, particiones y clustering, la caché de resultados, cargas desde archivo, el historial de jobs y los hábitos que bajan la factura. Con las diferencias del dialecto GoogleSQL.</p>
+<a class="cta" href="../index.html#/l/interfaces-bigquery-por-dentro">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué cobra BigQuery en el modelo on-demand y leer la estimación antes de ejecutar</li><li>Reducir los bytes de una consulta eligiendo columnas y filtrando por la partición</li><li>Crear tablas con PARTITION BY y CLUSTER BY y saber cuándo conviene cada uno</li><li>Usar la caché, la vista previa y el filtro de partición obligatorio para no gastar de más</li><li>Reconocer las funciones propias de GoogleSQL</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/bigquery">BigQuery de práctica</a>. Corre en tu navegador sobre DuckDB con la base de la tienda del curso: no necesitas cuenta de Google Cloud ni tarjeta. Calcula los bytes como lo hace BigQuery, pero no es BigQuery: al final está lo que cambia. Los <strong>🎯 Retos</strong> siguen el orden de esta lección.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Imagina una biblioteca donde no pagas por entrar ni por el tiempo que te quedas: pagas por <strong>cada página que el bibliotecario tiene que leer</strong> para responder tu pregunta. Si pides &quot;todo sobre los pedidos&quot;, lee todos los libros. Si pides &quot;el canal de los pedidos de junio&quot;, va directo al estante de junio y lee solo esa columna. BigQuery cobra así: por lo que lee, no por lo que te devuelve.</p>
+</div>
+
+
+<h2>Qué es BigQuery</h2>
+<p><strong>BigQuery</strong> es el data warehouse de Google Cloud. Es <em>serverless</em>: no eliges máquinas ni tamaños; escribes la consulta y Google reparte el trabajo entre miles de procesadores.</p>
+<p>La organización es de tres niveles:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Nivel</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Proyecto</strong></td>
+<td>La unidad de facturación y permisos</td>
+<td><code>tienda-andina-dev</code></td>
+</tr>
+<tr>
+<td><strong>Dataset</strong></td>
+<td>Agrupa tablas y define la región</td>
+<td><code>tienda</code></td>
+</tr>
+<tr>
+<td><strong>Tabla</strong></td>
+<td>Los datos</td>
+<td><code>pedidos</code></td>
+</tr>
+</tbody></table></div>
+<p>El nombre completo va entre comillas invertidas: <code>`tienda-andina-dev.tienda.pedidos`</code>. Dentro del mismo proyecto alcanza con <code>tienda.pedidos</code>.</p>
+<h2>Cómo se cobra</h2>
+<p>Hay dos modelos de cómputo:</p>
+<ul>
+<li><strong>On-demand</strong>: pagas por los <strong>bytes que procesa cada consulta</strong> (unos USD 6,25 por TiB; el primer TiB de cada mes es gratis). Es el modelo por defecto y el que simula la réplica.</li>
+<li><strong>Por capacidad</strong> (ediciones): pagas por <em>slots</em> (unidades de cómputo) reservados, uses lo que uses. Conviene con consumo alto y parejo.</li>
+</ul>
+<p>El almacenamiento se paga aparte, por GB al mes.</p>
+<p>En on-demand, lo que importa no es cuánto tarda la consulta ni cuántas filas devuelve, sino <strong>cuántos datos tuvo que leer</strong>. Y BigQuery guarda cada columna por separado, así que solo lee las columnas que la consulta nombra.</p>
+<h2>El validador: saber el costo antes de ejecutar</h2>
+<p>Arriba a la derecha del editor aparece un mensaje verde:</p>
+<blockquote>
+<p>✓ This query will process <strong>198 KB</strong> when run.</p>
+</blockquote>
+<p>Es un <strong>dry run</strong>: BigQuery analiza la consulta y calcula los bytes sin ejecutarla y sin cobrar. Mirarlo antes de pulsar <strong>Run</strong> es el hábito más importante de BigQuery.</p>
+<p>Prueba estas tres consultas en la réplica y mira solo el validador:</p>
+<pre data-norun><code class="language-sql">SELECT * FROM tienda.pedidos;                    -- todas las columnas
+SELECT canal, estado FROM tienda.pedidos;        -- dos columnas
+SELECT * FROM tienda.pedidos LIMIT 10;           -- ¿LIMIT ayuda?</code></pre>
+<p>La tercera procesa lo mismo que la primera: <strong><code>LIMIT</code> recorta el resultado, no lo que se lee</strong>. Para mirar cómo es una tabla, usa la pestaña <strong>Preview</strong>, que es gratis.</p>
+<p>Un caso especial: <code>SELECT COUNT(*) FROM tienda.pedidos</code> procesa <strong>0 B</strong>, porque la cantidad de filas está en los metadatos de la tabla.</p>
+<h2>Particiones</h2>
+<p>Una tabla <strong>particionada</strong> está dividida en bloques según el valor de una columna, casi siempre una fecha. Si la consulta filtra por esa columna, BigQuery ni abre las particiones que no hacen falta.</p>
+<pre data-norun><code class="language-sql">CREATE TABLE analitica.ventas (
+  venta_id INT64,
+  monto NUMERIC,
+  pais STRING,
+  fecha DATE
+)
+PARTITION BY fecha
+OPTIONS (require_partition_filter = TRUE);</code></pre>
+<p>En la réplica, <code>tienda.pedidos</code> ya viene particionada por <code>fecha_pedido</code>. Compara:</p>
+<pre data-norun><code class="language-sql">SELECT canal FROM tienda.pedidos;                                      -- toda la tabla
+SELECT canal FROM tienda.pedidos WHERE fecha_pedido &gt;= '2024-06-01';   -- solo esas particiones
+SELECT canal FROM tienda.pedidos WHERE EXTRACT(YEAR FROM fecha_pedido) = 2024;  -- ¡toda la tabla!</code></pre>
+<p>La última no aprovecha la partición: al envolver la columna en una función, BigQuery no puede saber qué particiones descartar. El filtro tiene que ser <strong>directo sobre la columna</strong>.</p>
+<p>Con <code>require_partition_filter = TRUE</code>, una consulta que olvide el filtro se rechaza con <em>Cannot query over table … without a filter … that can be used for partition elimination</em>. Es la protección estándar para tablas grandes.</p>
+<h2>Clustering</h2>
+<p>El <strong>clustering</strong> ordena los datos dentro de cada partición según hasta cuatro columnas. Cuando filtras por la primera, BigQuery salta los bloques que no la contienen.</p>
+<pre data-norun><code class="language-sql">CREATE TABLE analitica.eventos
+PARTITION BY fecha
+CLUSTER BY plataforma, evento
+AS SELECT * FROM analitica.eventos_app;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Partición</th>
+<th>Clustering</th>
+</tr>
+</thead><tbody><tr>
+<td>Sobre qué</td>
+<td>Una columna (fecha o entero)</td>
+<td>Hasta 4 columnas</td>
+</tr>
+<tr>
+<td>Cuándo conviene</td>
+<td>Casi todas las consultas filtran por fecha</td>
+<td>Filtras seguido por columnas con muchos valores distintos</td>
+</tr>
+<tr>
+<td>¿La estimación lo refleja?</td>
+<td>Sí</td>
+<td>No: el validador da el máximo; lo cobrado al final es menor</td>
+</tr>
+</tbody></table></div>
+<p>Se usan juntos: partición por fecha y clustering por lo que más se filtra.</p>
+<h2>La caché de resultados</h2>
+<p>Si ejecutas exactamente la misma consulta y las tablas no cambiaron, BigQuery devuelve el resultado guardado (hasta 24 horas): <strong>0 B procesados y sin costo</strong>. En <em>Job information</em> aparece como <em>results cached</em>. No aplica si la consulta usa funciones que cambian, como <code>CURRENT_DATE()</code> o <code>RAND()</code>.</p>
+<h2>Cargar datos</h2>
+<p>En un dataset, <strong>Create table</strong> crea una tabla desde un archivo (CSV, JSON por líneas, Parquet, Avro) con el esquema detectado automáticamente. Es un <em>load job</em> y <strong>no tiene costo de consulta</strong>: solo pagas el almacenamiento. Para datos que llegan todo el tiempo existen la Storage Write API y las transferencias programadas.</p>
+<h2>Job history</h2>
+<p>Cada consulta o carga es un <strong>job</strong>. En <strong>Job history</strong> ves quién lo corrió, cuántos bytes procesó y facturó, cuánto tardó y si salió de la caché. Es el primer lugar donde se buscan las consultas caras; en un proyecto real se consulta también con <code>INFORMATION_SCHEMA.JOBS</code>.</p>
+<h2>El dialecto: GoogleSQL</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>GoogleSQL</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>`proyecto.dataset.tabla`</code></td>
+<td>Nombres con comillas invertidas</td>
+</tr>
+<tr>
+<td><code>INT64</code>, <code>FLOAT64</code>, <code>STRING</code>, <code>BOOL</code>, <code>NUMERIC</code></td>
+<td>Los tipos</td>
+</tr>
+<tr>
+<td><code>SAFE_DIVIDE(a, b)</code></td>
+<td>Divide y devuelve <code>NULL</code> si <code>b</code> es 0</td>
+</tr>
+<tr>
+<td><code>COUNTIF(condición)</code></td>
+<td>Cuenta las filas que cumplen</td>
+</tr>
+<tr>
+<td><code>DATE_TRUNC(fecha, MONTH)</code></td>
+<td>Primer día del mes (el orden de los argumentos es al revés que en PostgreSQL)</td>
+</tr>
+<tr>
+<td><code>DATE_DIFF(fin, inicio, DAY)</code></td>
+<td>Días entre dos fechas</td>
+</tr>
+<tr>
+<td><code>DATE_ADD(fecha, INTERVAL 7 DAY)</code></td>
+<td>Sumar a una fecha</td>
+</tr>
+<tr>
+<td><code>FORMAT_DATE(&#39;%Y-%m&#39;, fecha)</code></td>
+<td>Fecha a texto</td>
+</tr>
+<tr>
+<td><code>SELECT * EXCEPT (col)</code></td>
+<td>Todas las columnas menos algunas</td>
+</tr>
+<tr>
+<td><code>SAFE_CAST(x AS INT64)</code></td>
+<td>Convierte y devuelve <code>NULL</code> si no puede</td>
+</tr>
+<tr>
+<td><code>UPDATE</code> / <code>DELETE</code></td>
+<td>Siempre con <code>WHERE</code> (si no, error)</td>
+</tr>
+</tbody></table></div>
+<h2>Un flujo completo</h2>
+<ol>
+<li>En <strong>Studio</strong>, ejecuta la consulta de ejemplo y lee <em>Job information</em>.</li>
+<li>Cambia las columnas por <code>*</code> y mira el validador. Vuelve a dos columnas.</li>
+<li>Ejecuta la misma consulta otra vez: sale de la caché.</li>
+<li>Crea el dataset <code>analitica</code> y, con <strong>Create table</strong>, carga el archivo de ejemplo particionado por <code>fecha</code>.</li>
+<li>Consulta la tabla filtrando por <code>fecha</code> y mira qué porcentaje se leyó.</li>
+<li>Crea una tabla con <code>require_partition_filter</code> y comprueba que la consulta sin filtro se rechaza.</li>
+<li>Abre <strong>Costos</strong>: tus consultas más caras y cuánto costarían a tamaño de empresa.</li>
+</ol>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la réplica</th>
+<th>Todavía no</th>
+</tr>
+</thead><tbody><tr>
+<td>Editor con validador de bytes, resultados y <em>Job information</em></td>
+<td>Pestañas <em>Execution details</em> y <em>Execution graph</em>, consultas programadas</td>
+</tr>
+<tr>
+<td>Datasets, tablas, vistas, esquema, detalles y Preview</td>
+<td>Tablas externas, BigLake, vistas materializadas, snapshots y time travel</td>
+</tr>
+<tr>
+<td><code>PARTITION BY</code>, <code>CLUSTER BY</code>, <code>require_partition_filter</code></td>
+<td>Particiones por ingesta y por rango de enteros, vencimiento de particiones</td>
+</tr>
+<tr>
+<td>Caché de resultados, historial de jobs, página de costos</td>
+<td>Reservas y ediciones (slots), <code>INFORMATION_SCHEMA</code>, cuotas</td>
+</tr>
+<tr>
+<td>Carga de CSV y JSON con esquema automático</td>
+<td>Parquet/Avro, streaming, Data Transfer Service</td>
+</tr>
+<tr>
+<td>GoogleSQL: las funciones más usadas</td>
+<td><code>STRUCT</code>/<code>ARRAY</code> avanzados, BigQuery ML, funciones remotas</td>
+</tr>
+</tbody></table></div>
+<p>Los bytes se calculan como en BigQuery (8 por número o fecha, 2 más el largo por texto), pero las tablas de práctica son chicas: la página <strong>Costos</strong> proyecta cuánto costaría cada consulta sobre tablas diez mil veces más grandes.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-bigquery-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-proyecto-integrador.html">← Proyecto integrador - un mismo dato cruzando Airflow, Databricks, Snowflake, Fabric y Power BI</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -577,6 +577,8 @@ class _RecordingOperator(BaseOperator):
         for k, v in own.items():
             setattr(self, k, v)
         self.config = own
+        # los parámetros propios se ven en Rendered Templates y los usa la réplica (por ejemplo, job_id)
+        self.template_fields = tuple(own.keys())
 
     def execute(self, context):
         print("     (simulado) %s con %s" % (type(self).__name__, ", ".join("%s=%r" % kv for kv in self.config.items())))

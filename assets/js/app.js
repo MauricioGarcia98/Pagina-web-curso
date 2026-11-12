@@ -18,6 +18,8 @@
     for (const l of m.lecciones) { l.modulo = m; LESSONS.push(l); LESSON_BY_ID.set(l.id, l); }
   }
   const ALL_EX = LESSONS.flatMap((l) => l.ejercicios.map((e) => ({ ...e, leccion: l })));
+  // las preguntas de examen del índice solo traen el id de su lección: el título sale de la lección
+  for (const x of C.examenes || []) for (const p of x.preguntas) { const l = p.leccion && LESSON_BY_ID.get(p.leccion.id); if (l && !p.leccion.titulo) p.leccion.titulo = l.titulo; }
 
   // ---------------------------------------------------------------- contenido por módulo (carga diferida)
   // El índice trae títulos y la lista de ejercicios; el texto de las lecciones y los ejercicios completos
@@ -47,6 +49,7 @@
     fabric: ['@databricks', 'fabric', 'fabric-editores'],
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
     snowflake: ['snowflake-motor', 'snowflake'],
+    bigquery: ['bigquery-motor', 'bigquery'],
   };
   const grupoCargas = {};
   function cargarGrupo(g) {
@@ -54,14 +57,36 @@
     return grupoCargas[g];
   }
   window.__cargarGrupo = cargarGrupo;
+  // enlace "Reportar un error": abre un issue de GitHub (o un correo) ya escrito; si no hay nada configurado, no aparece
+  const enlaceReporte = (titulo, cuerpo) => { const u = window.Sitio && window.Sitio.urlReporte({ titulo, cuerpo }); return u ? `<a class="badge badge-link" href="${esc(u)}" target="_blank" rel="noopener" title="¿Viste un error o algo que no se entiende? Avísanos">⚑ Reportar un error</a>` : ''; };
+  window.__almacen = () => Store; // para que una réplica use a otra sin haber pasado por su página
   // lo que se descarga con "Guardar todo el curso" (Mis datos): el contenido de cada módulo, el buscador,
   // las herramientas de práctica y los datos de ejemplo
   window.__urlsCurso = () => [
     ...C.modulos.map((m) => `assets/content/${m.id}.js?v=${m.v || C.generado}`),
     `assets/content/_buscar.js?v=${C.vBuscar || C.generado}`,
     ...[...new Set(Object.values(GRUPOS).flat().filter((n) => n[0] !== '@'))].map((n) => `assets/js/${n}.js?v=${V_APP}`),
+    ...['glosario', 'examenes', 'examenes_cert'].map((n) => `assets/content/_${n}.js?v=${(C.vExtras || {})[n] || C.generado}`),
+    `assets/js/pysrc.js?v=${V_APP}`,
   ];
-  window.__cargarTodo = () => cargarModulos(C.modulos.map((m) => m.id)); // para las pruebas automáticas
+  // ---------------------------------------------------------------- glosario completo y preguntas de examen (carga diferida)
+  // El índice trae lo justo para listar y buscar; el detalle llega en assets/content/_glosario.js, _examenes.js y
+  // _examenes_cert.js y se vuelca sobre los mismos objetos, así el resto del código no nota la diferencia.
+  const extraCargas = {};
+  function cargarExtra(n) {
+    if (!extraCargas[n]) extraCargas[n] = cargarScript(`assets/content/_${n}.js?v=${(C.vExtras || {})[n] || C.generado}`).then(() => { extraCargas[n].listo = true; }, (e) => { delete extraCargas[n]; throw e; });
+    return extraCargas[n];
+  }
+  window.__glosario = (lista) => { const porT = new Map(C.glosario.map((g) => [g.termino, g])); for (const g of lista) { const x = porT.get(g.termino); if (x) Object.assign(x, g); } if (window.__glosarioListo) window.__glosarioListo(); };
+  window.__examenes = (lista) => { for (const e of lista) { const x = (C.examenes || []).find((y) => y.id === e.id); if (!x) continue; const porId = new Map(x.preguntas.map((p) => [p.id, p])); for (const p of e.preguntas) { const y = porId.get(p.id); if (y) Object.assign(y, p); } } };
+  // qué archivos extra necesita una ruta antes de dibujarse
+  function extrasDe(r) {
+    if (r.name === 'glosario' || r.name === 'repaso') return ['glosario'];
+    if (r.name === 'simulacro') return ['examenes_cert'];
+    if (r.name === 'examen') { const x = (C.examenes || []).find((e) => e.id === r.examen); return [r.examen === 'final' || (x && x.id === x.modulo) ? 'examenes' : 'examenes_cert']; }
+    return [];
+  }
+  window.__cargarTodo = () => Promise.all([cargarModulos(C.modulos.map((m) => m.id)), ...['glosario', 'examenes', 'examenes_cert'].map(cargarExtra)]); // para las pruebas automáticas
   // muestra "cargando", descarga lo que haga falta y recién ahí dibuja (si el alumno no se fue a otra página)
   function conContenido(ids, dibujar) {
     const pend = [...new Set(ids)].filter((id) => MODULE_BY_ID.get(id) && !MODULE_BY_ID.get(id).cargado);
@@ -72,18 +97,39 @@
   }
 
   // ---------------------------------------------------------------- progreso
+  const claveDia = (f) => `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
+  const META_SEMANAL = 4; // días de estudio por semana que se proponen como meta
+  // racha: días seguidos con actividad (si hoy todavía no estudiaste, la racha de ayer sigue viva hasta la medianoche)
+  function racha() {
+    const d = Store.data.dias || {}; const hoy = new Date(); const dia = (n) => { const x = new Date(hoy); x.setDate(hoy.getDate() - n); return claveDia(x); };
+    let n = 0, i = d[dia(0)] ? 0 : 1; while (d[dia(i)]) { n++; i++; }
+    const lunes = (hoy.getDay() + 6) % 7; // 0 = lunes
+    const semana = Array.from({ length: 7 }, (_, k) => ({ hecho: !!d[dia(lunes - k)], hoy: k === lunes, futuro: k > lunes }));
+    let mejor = 0, corr = 0, prev = null;
+    for (const k of Object.keys(d).sort()) { const f = new Date(k + 'T12:00:00'); corr = prev && Math.round((f - prev) / 86400000) === 1 ? corr + 1 : 1; mejor = Math.max(mejor, corr); prev = f; }
+    return { dias: n, hoy: !!d[dia(0)], semana, estaSemana: semana.filter((x) => x.hecho).length, mejor: Math.max(mejor, n), total: Object.keys(d).length };
+  }
+  function bloqueRacha() {
+    const r = racha(); const L = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    const msg = r.hoy ? (r.dias > 1 ? `¡${r.dias} días seguidos!` : 'Hoy ya estudiaste.') : r.dias ? `Llevas ${r.dias} día${r.dias === 1 ? '' : 's'} seguido${r.dias === 1 ? '' : 's'}: resuelve un ejercicio hoy para no cortar la racha.` : 'Resuelve un ejercicio hoy para empezar una racha.';
+    return `<section class="racha card" aria-label="Tu racha de estudio"><div class="racha-n"><span aria-hidden="true">🔥</span><b>${r.dias}</b><small>día${r.dias === 1 ? '' : 's'}</small></div>
+      <div class="racha-t"><div class="racha-msg">${msg}</div><div class="racha-sem" role="img" aria-label="Esta semana estudiaste ${r.estaSemana} de 7 días">${r.semana.map((x, i) => `<span class="${x.hecho ? 'ok' : ''} ${x.hoy ? 'hoy' : ''} ${x.futuro ? 'fut' : ''}">${L[i]}</span>`).join('')}</div>
+      <div class="small muted">Meta de la semana: ${Math.min(r.estaSemana, META_SEMANAL)} de ${META_SEMANAL} días${r.estaSemana >= META_SEMANAL ? ' · ✓ cumplida' : ''}${r.mejor > r.dias ? ` · tu mejor racha: ${r.mejor} días` : ''}</div></div></section>`;
+  }
   const KEY = 'academia-datos-v1';
   const Store = {
     data: { ex: {}, lessons: {}, code: {}, theme: null, visited: {}, auto: {} },
     load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d) this.data = Object.assign(this.data, d); } catch (e) { /* sin almacenamiento */ } },
     save() { try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (e) { /* sin almacenamiento */ } },
     exDone(id) { return !!this.data.ex[id]; },
-    setExDone(id) { if (!this.data.ex[id]) { this.data.ex[id] = Date.now(); this.save(); updateProgressPill(); } },
+    setExDone(id) { if (!this.data.ex[id]) { this.data.ex[id] = Date.now(); this.marcarDia(); this.save(); updateProgressPill(); } },
+    // un día cuenta para la racha si en él se resolvió al menos un ejercicio o se completó una lección
+    marcarDia() { const k = claveDia(new Date()); const d = (this.data.dias = this.data.dias || {}); d[k] = (d[k] || 0) + 1; },
     lessonDone(l) {
       if (this.data.lessons[l.id]) return true;
       return l.ejercicios.length > 0 && l.ejercicios.every((e) => this.exDone(e.id));
     },
-    setLessonDone(id, v = true) { if (v) this.data.lessons[id] = Date.now(); else delete this.data.lessons[id]; this.save(); updateProgressPill(); },
+    setLessonDone(id, v = true) { if (v) { if (!this.data.lessons[id]) this.marcarDia(); this.data.lessons[id] = Date.now(); } else delete this.data.lessons[id]; this.save(); updateProgressPill(); },
     code(id) { return this.data.code[id]; },
     setCode(id, v) { this.data.code[id] = v; this.saveSoon(); },
     saveSoon() { clearTimeout(this._t); this._t = setTimeout(() => this.save(), 400); }
@@ -1653,7 +1699,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'e0', titulo: 'Etapa 0 · Antes de empezar', desc: 'Si nunca programaste: tu computadora por dentro, leer errores, la matemática justa, inglés técnico, cómo estudiar y qué es una API.', mods: ['cero'] },
     { id: 'e1', titulo: 'Etapa 1 · Empieza aquí', desc: 'Qué es un dato, qué hace un ingeniero de datos, la terminal y Git. Si no sabes nada, arranca por acá.', mods: ['fundamentos'] },
     { id: 'e2', titulo: 'Etapa 2 · SQL, el idioma de los datos', desc: 'Preguntarle cosas a una base de datos, de lo más simple a lo más avanzado, analizar datos, diseñar tablas y llevar los números a un tablero de Power BI.', mods: ['sql', 'analisis', 'modelado', 'powerbi'] },
-    { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, y Spark para cuando los datos no entran en una sola computadora.', mods: ['python', 'spark', 'pyspark'] },
+    { id: 'e3', titulo: 'Etapa 3 · Programar y procesar mucho', desc: 'Python para automatizar, Spark para cuando los datos no entran en una sola computadora, y el método para resolver cualquier problema nuevo en Python, SQL y PySpark.', mods: ['python', 'spark', 'pyspark', 'logica'] },
     { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
     { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces'] },
     { id: 'e6', titulo: 'Etapa 6 · Diseñar, automatizar y tu computadora', desc: 'Cómo se diseña una plataforma de datos, cómo se crea la infraestructura con código y cómo armar tu entorno en tu propia computadora.', mods: ['arquitectura', 'terraform', 'local'] },
@@ -1787,6 +1833,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     ['#/fabric', '🟩', 'Microsoft Fabric', 'fabric', 'apps'],
     ['#/airflow', '🌀', 'Airflow', 'airflow', 'apps'],
     ['#/snowflake', '❄️', 'Snowflake', 'snowflake', 'apps'],
+    ['#/bigquery', '🔎', 'BigQuery', 'bigquery', 'apps'],
     ['#/powerbi', '📊', 'Power BI Desktop', 'powerbi', 'apps'],
     ['#/vscode', '🟦', 'VS Code', 'vscode', 'apps'],
     ['#/lab/terminal', '⌨️', 'Terminal', 'lab-terminal', 'apps'],
@@ -1891,6 +1938,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'fabric', g: 'apps', href: '#/fabric', ico: '🟩', nombre: 'Microsoft Fabric', real: 'app.fabric.microsoft.com', desc: 'Workspaces con lakehouse (Files, Tables, Load to Tables, atajos), SQL analytics endpoint de solo lectura, warehouse con T-SQL, notebooks con PySpark, pipelines, modelo semántico, Monitor e integración con Git.', puedes: ['Subir archivos a Files y convertirlos en tablas Delta con Load to Tables', 'Consultar con el SQL analytics endpoint y escribir en un warehouse con nombres de tres partes', 'Transformar con un notebook de PySpark y orquestar con un pipeline', 'Conectar el workspace a un repositorio del GitHub de práctica y hacer commit'], modulos: ['azure', 'cert-azure', 'interfaces', 'arquitectura'], rutas: ['fabric'] },
     { id: 'airflow', g: 'apps', href: '#/airflow', ico: '🌀', nombre: 'Airflow', real: 'la interfaz web de Apache Airflow 3', desc: 'La interfaz de Airflow 3 con tus DAGs de verdad: los lee de ~/airflow/dags en la terminal, los analiza con Python y los ejecuta. Grid, Graph, logs por intento, Trigger con parámetros, backfill, assets, variables y conexiones.', puedes: ['Despausar y disparar DAGs, ver la Grid y el Graph en vivo', 'Leer el log de una tarea que falla, arreglar el archivo en la terminal y hacer Clear', 'Programar por datos: un DAG que actualiza un asset dispara otro', 'Variables, Connections, Pools, backfill y el comando airflow en la terminal'], modulos: ['airflow', 'pipelines', 'proyecto', 'interfaces', 'local'], rutas: ['airflow'] },
     { id: 'snowflake', g: 'apps', href: '#/snowflake', ico: '❄️', nombre: 'Snowflake', real: 'Snowsight (app.snowflake.com)', desc: 'Hojas de SQL con el dialecto de Snowflake sobre la base del curso, warehouses virtuales que cobran créditos, bases y esquemas, stages con COPY INTO, Time Travel, UNDROP, clones, roles y Query History.', puedes: ['Ejecutar SQL con contexto de rol, warehouse, base y esquema (Ctrl+Enter)', 'Crear warehouses, ver cuándo se suspenden y cuántos créditos gastaste', 'Subir archivos a un stage y cargarlos con COPY INTO sin duplicar', 'Recuperar datos con Time Travel (BEFORE/AT) y tablas con UNDROP; dar permisos con roles'], modulos: ['sql', 'arquitectura', 'interfaces', 'modelado'], rutas: ['snowflake'] },
+    { id: 'bigquery', g: 'apps', href: '#/bigquery', ico: '🔎', nombre: 'BigQuery', real: 'la consola de BigQuery en Google Cloud', desc: 'El editor de BigQuery con su validador: te dice cuántos bytes va a procesar la consulta antes de ejecutarla, que es lo que se cobra. Datasets y tablas, particiones y clustering, caché de resultados, cargas desde archivo, historial de jobs y una página de costos.', puedes: ['Ver cómo cambian los bytes al nombrar columnas, filtrar por la partición o usar SELECT *', 'Crear tablas con PARTITION BY, CLUSTER BY y require_partition_filter', 'Cargar un CSV a una tabla y explorar su esquema, detalles y vista previa (gratis)', 'Encontrar tus consultas más caras y proyectar su costo a tamaño de empresa'], modulos: ['gcp', 'cert-gcp', 'sql', 'interfaces', 'arquitectura'], rutas: ['bigquery'] },
     { id: 'powerbi', g: 'apps', href: '#/powerbi', ico: '📊', nombre: 'Power BI Desktop', real: 'Power BI Desktop', desc: 'Importa CSV, Excel o las bases del curso, transforma con Power Query, modela relaciones, escribe DAX y arma el informe.', puedes: ['Power Query con pasos aplicados y M', 'Modelo con relaciones, medidas y columnas calculadas (motor DAX con contexto de filtro)', '23 objetos visuales, mapa, seguridad por filas (RLS) y grupos de cálculo', 'Exportar el modelo en TMDL (carpeta de proyecto .pbip) para Power BI Desktop'], modulos: ['powerbi', 'interfaces', 'analisis', 'casos'], rutas: ['powerbi'] },
     { id: 'vscode', g: 'apps', href: '#/vscode', ico: '🟦', nombre: 'VS Code', real: 'Visual Studio Code', desc: 'El editor con temas e íconos del repositorio oficial, terminal integrada, Git, problemas, esquema, editor dividido y diff.', puedes: ['Abrir carpetas del disco de práctica (o code . desde la terminal)', 'Editar con Monaco, el mismo editor de VS Code, y ejecutar Python o SQL', 'Control de código fuente, extensiones y ajustes'], modulos: ['local', 'python', 'dbt', 'airflow', 'fundamentos', 'proyecto'], rutas: ['vscode'] },
     { id: 'terminal', g: 'apps', href: '#/lab/terminal', ico: '⌨️', nombre: 'Terminal', real: 'bash en Linux/macOS', desc: 'Una terminal con disco propio: bash, git, docker, vim y las CLIs de Azure, AWS, Google Cloud, Databricks y Terraform.', puedes: ['Misiones guiadas de cero a experto', 'git con ramas, conflictos y un remoto de práctica', 'az, aws, gcloud, databricks y terraform con estado compartido con los portales'], modulos: ['cero', 'fundamentos', 'local', 'azure', 'aws', 'gcp', 'terraform', 'incidentes'], rutas: ['lab-terminal'] },
@@ -1950,7 +1998,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
           <div class="ct-m">${esc(nm.titulo)} · lección ${nm.lecciones.indexOf(nextLesson) + 1} de ${nm.lecciones.length}</div>
           <div class="bar"><i style="width:${pm.pct}%;background:${nm.color}"></i></div></div>
         <div class="ct-acc"><a class="btn btn-primary btn-lg" href="#/l/${nextLesson.id}">Continuar →</a><span class="small muted">Llevas ${tp.done} de ${tp.total} lecciones (${tp.pct}%)</span></div>
-      </section>` : '';
+      </section>${bloqueRacha()}` : '';
     let paso = 0;
     const etapas = etapasConModulos().map((e) => {
       const pe = progresoEtapa(e), pt = partesEtapa(e), es = actual && e.id === actual.id, hecha = pe.total && pe.done === pe.total;
@@ -2237,7 +2285,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <details class="indice indice-movil" id="indiceMovil"><summary>📑 En esta lección</summary><div class="indice-cuerpo"></div></details>
       <article class="prose" id="lessonBody">
         <h1>${esc(l.titulo)}</h1>
-        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a>${herramientasDe(l).slice(0, 3).map((x) => `<a class="badge badge-link badge-herr" href="${x.href}" title="Practica esta lección en ${esc(x.nombre)} (réplica en tu navegador)">${x.ico} ${esc(x.nombre)}</a>`).join('')}<a class="badge badge-link" href="leccion/${l.id}.html" target="_blank" rel="noopener" title="Página de esta lección para compartir: se ve bien en redes y en buscadores">🔗 Compartir</a></div>
+        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a>${herramientasDe(l).slice(0, 3).map((x) => `<a class="badge badge-link badge-herr" href="${x.href}" title="Practica esta lección en ${esc(x.nombre)} (réplica en tu navegador)">${x.ico} ${esc(x.nombre)}</a>`).join('')}<a class="badge badge-link" href="leccion/${l.id}.html" target="_blank" rel="noopener" title="Página de esta lección para compartir: se ve bien en redes y en buscadores">🔗 Compartir</a>${enlaceReporte(l.titulo, `**Lección:** ${l.titulo}\n**Dirección:** ${location.href}`)}</div>
         ${lessonIntro(l)}
         ${l.html}
         ${l.autoevaluacion.length ? `<section class="autoeval" id="autoEval"><h2>✅ Autoevaluación</h2><p class="muted">Marca solo lo que puedas hacer <b>sin mirar la lección</b>. Si dudas en algo, vuelve a esa parte: esto es lo que se pregunta en una entrevista o se usa el primer día de trabajo.</p>${l.autoevaluacion.map((q, i) => `<label class="auto-item"><input type="checkbox" data-auto="${i}"><span>${q}</span></label>`).join('')}<div class="small muted" id="autoCount"></div></section>` : ''}
@@ -2687,22 +2735,26 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     </div>`;
     let tag = '';
     const abiertos = new Set(exacto ? [exacto.termino] : []);
-    const tarjeta = (g) => {
-      const resumen = g.nino.replace(/<[^>]+>/g, '').split(/(?<=[.!?])\s/)[0];
+    // el cuerpo de cada ficha (definición, ejemplo, enlaces) se arma recién al abrirla: son 351 fichas
+    const cuerpo = (g) => {
       const sec = (ico, tit, html, cls = '') => (html ? `<section class="gloss-sec ${cls}"><h4>${ico} ${tit}</h4>${html}</section>` : '');
       const ver = (g.ver || []).map((v) => `<a class="chip" href="#/glosario?q=${encodeURIComponent(v)}">${esc(v)}</a>`).join('');
       const lec = (g.lecciones || []).map((l) => `<a href="#/l/${l.id}">${esc(l.titulo)}</a>`).join('');
-      return `<details class="gloss-card" id="g-${encodeURIComponent(g.termino)}" ${abiertos.has(g.termino) ? 'open' : ''}>
-        <summary><span class="gloss-term">${esc(g.termino)}</span><span class="badge tag">${esc(g.area)}</span>${(g.alias || []).length ? `<span class="gloss-alias">también: ${g.alias.map(esc).join(', ')}</span>` : ''}<span class="gloss-res">${resumen}</span></summary>
-        <div class="gloss-body">
-          ${sec('👶', 'Explicado como a un niño', g.nino, 'nino')}
+      return `${sec('👶', 'Explicado como a un niño', g.nino, 'nino')}
           ${sec('📘', 'Qué es, con precisión', g.que)}
           ${sec('🧪', 'Un ejemplo', g.ejemplo)}
           ${sec('🎯', 'Para qué sirve', g.para)}
           ${sec('⚠️', 'Cuidado con', g.cuidado, 'cuidado')}
           ${ver ? `<section class="gloss-sec"><h4>🔗 Términos relacionados</h4><div class="gloss-chips">${ver}</div></section>` : ''}
-          ${lec ? `<section class="gloss-sec"><h4>📚 Lo ves en estas lecciones</h4><div class="gloss-lec">${lec}</div></section>` : ''}
-        </div></details>`;
+          ${lec ? `<section class="gloss-sec"><h4>📚 Lo ves en estas lecciones</h4><div class="gloss-lec">${lec}</div></section>` : ''}`;
+    };
+    const porTermino = new Map(G.map((g) => [g.termino, g]));
+    const tarjeta = (g) => {
+      const resumen = (g.nino || g.que || '').replace(/<[^>]+>/g, '').split(/(?<=[.!?])\s/)[0];
+      const abierta = abiertos.has(g.termino);
+      return `<details class="gloss-card" id="g-${encodeURIComponent(g.termino)}" ${abierta ? 'open' : ''}>
+        <summary><span class="gloss-term">${esc(g.termino)}</span><span class="badge tag">${esc(g.area)}</span>${(g.alias || []).length ? `<span class="gloss-alias">también: ${g.alias.map(esc).join(', ')}</span>` : ''}<span class="gloss-res">${resumen}</span></summary>
+        <div class="gloss-body">${abierta ? cuerpo(g) : ''}</div></details>`;
     };
     const paint = () => {
       const q = norm($('#gq').value.trim());
@@ -2721,7 +2773,8 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
         actual = l;
         return cab + tarjeta(g);
       }).join('') || '<div class="card muted" style="padding:16px">Sin resultados. Prueba con otra palabra.</div>';
-      const colorear = (d) => { if (d.open && !d.dataset.hl) { d.dataset.hl = '1'; $$('pre', d).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } }); } };
+      const llenar = (d) => { const b = d.querySelector('.gloss-body'); if (d.open && b && !b.firstElementChild) { const g = porTermino.get(decodeURIComponent(d.id.slice(2))); if (g) b.innerHTML = cuerpo(g); } };
+      const colorear = (d) => { llenar(d); if (d.open && !d.dataset.hl) { d.dataset.hl = '1'; $$('pre', d).forEach((pre) => { try { highlight(pre); } catch (e) { /* sin resaltado */ } }); } };
       for (const d of $$('#glist details')) { colorear(d); d.addEventListener('toggle', () => { const t = decodeURIComponent(d.id.slice(2)); if (d.open) abiertos.add(t); else abiertos.delete(t); colorear(d); }); }
     };
     $('#gq').value = exacto ? '' : filter;
@@ -2794,6 +2847,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     const exDone = ALL_EX.filter((e) => Store.exDone(e.id)).length;
     main.innerHTML = `<div class="container">
       <h1>📈 Mi progreso</h1>
+      ${bloqueRacha()}
       <div class="stats"><div class="stat"><b>${tp.pct}%</b><span>del curso</span></div><div class="stat"><b>${tp.done}/${tp.total}</b><span>lecciones</span></div><div class="stat"><b>${exDone}/${ALL_EX.length}</b><span>ejercicios</span></div></div>
       <div class="grid" style="margin-top:20px">${C.modulos.map((m) => {
         const p = moduleProgress(m);
@@ -3594,19 +3648,31 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   // ---------------------------------------------------------------- búsqueda
   // el texto completo de las lecciones para buscar se descarga la primera vez que se usa el buscador
   let buscarPedido = false;
+  window.__glosarioListo = () => { const porT = new Map(C.glosario.map((g) => [g.termino, g])); for (const x of searchIndex) if (x.glos) { const g = porT.get(x.glos); if (g) x.body = ((g.alias || []).join(' ') + ' ' + (g.texto || '')).toLowerCase(); } };
   window.__buscar = (textos) => { for (const x of searchIndex) if (x.lid && textos[x.lid]) x.body = (x.resumen + ' ' + textos[x.lid]).toLowerCase(); if (sIn.value.trim().length >= 2) sIn.dispatchEvent(new Event('input')); };
   const searchIndex = [
     ...LESSONS.map((l) => ({ t: l.titulo, s: `${l.modulo.icono} ${l.modulo.titulo} · ${l.nivel}`, href: '#/l/' + l.id, lid: l.id, resumen: l.resumen || '', body: (l.resumen || '').toLowerCase() })),
-    ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + g.texto).toLowerCase() }))
+    ...C.glosario.map((g) => ({ t: g.termino, s: '📖 Glosario · ' + g.area, href: '#/glosario?q=' + encodeURIComponent(g.termino), body: ((g.alias || []).join(' ') + ' ' + (g.texto || '')).toLowerCase(), glos: g.termino }))
   ];
   const sIn = $('#search'), sOut = $('#searchResults');
   let sSel = 0;
-  sIn.addEventListener('focus', () => { if (!buscarPedido) { buscarPedido = true; cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; }); } });
+  sIn.addEventListener('focus', () => { if (!buscarPedido) { buscarPedido = true; cargarExtra('glosario').catch(() => {}); cargarScript(`assets/content/_buscar.js?v=${C.vBuscar || C.generado}`).catch(() => { buscarPedido = false; }); } });
   sIn.addEventListener('input', () => {
     const q = sIn.value.trim().toLowerCase();
     if (q.length < 2) { sOut.hidden = true; return; }
-    const res = searchIndex.map((x) => ({ x, score: (x.t.toLowerCase().includes(q) ? 10 : 0) + (x.body.includes(q) ? 1 : 0) }))
-      .filter((r) => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 12);
+    // Orden: primero lo que coincide en el título (mejor si empieza con la búsqueda o es una palabra entera), después
+    // el resumen y, por último, cuántas veces aparece en el texto. Sin tildes y con todas las palabras de la búsqueda.
+    const sinTildes = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const qn = sinTildes(q); const palabras = qn.split(/\s+/).filter(Boolean);
+    const veces = (texto, p) => { let n = 0, i = -1; while (n < 8 && (i = texto.indexOf(p, i + 1)) !== -1) n++; return n; };
+    const res = searchIndex.map((x) => {
+      if (x._b !== x.body) { x._b = x.body; x._bn = sinTildes(x.body); x._tn = sinTildes(x.t); x._rn = sinTildes(x.resumen || ''); }
+      if (!palabras.every((p) => x._tn.includes(p) || x._bn.includes(p))) return { x, score: 0 };
+      let score = 0;
+      if (x._tn.startsWith(qn)) score += 40; else if (new RegExp('(^|[^a-z0-9])' + qn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(x._tn)) score += 30; else if (x._tn.includes(qn)) score += 20;
+      for (const p of palabras) { if (x._tn.includes(p)) score += 8; if (x._rn.includes(p)) score += 4; score += veces(x._bn, p); }
+      return { x, score };
+    }).filter((r) => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 12);
     sSel = 0;
     sOut.innerHTML = res.map((r, i) => `<a href="${r.x.href}" class="${i === 0 ? 'active' : ''}">${esc(r.x.t)}<small>${esc(r.x.s)}</small></a>`).join('') || '<div class="muted small" style="padding:8px">Sin resultados</div>';
     sOut.hidden = false;
@@ -3651,6 +3717,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     if (parts[0] === 'fabric') return { name: 'fabric', sub: parts.slice(1) };
     if (parts[0] === 'airflow') return { name: 'airflow', sub: parts.slice(1) };
     if (parts[0] === 'snowflake') return { name: 'snowflake', sub: parts.slice(1) };
+    if (parts[0] === 'bigquery') return { name: 'bigquery', sub: parts.slice(1) };
     if (['ruta', 'datos', 'glosario', 'progreso', 'repaso', 'examenes', 'certificaciones', 'mis-datos', 'cuenta', 'privacidad', 'terminos'].includes(parts[0])) return { name: parts[0], q: params.get('q') || params.get('c') || '' };
     return { name: 'notfound' };
   }
@@ -3667,6 +3734,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     fabric: { ico: '🟩', nombre: 'Microsoft Fabric', leccion: 'interfaces-fabric-por-dentro' },
     airflow: { ico: '🌀', nombre: 'Airflow', leccion: 'interfaces-airflow-por-dentro' },
     snowflake: { ico: '❄️', nombre: 'Snowflake', leccion: 'interfaces-snowflake-por-dentro' },
+    bigquery: { ico: '🔎', nombre: 'BigQuery', leccion: 'interfaces-bigquery-por-dentro' },
   };
   let rutaCurso = null;   // la última página del curso (no de una herramienta) para el botón Volver
   function claveHerramienta(r) { if (r.name === 'azure' && r.sub && r.sub[0] === 'studio') return 'adf'; if (r.name === 'powerbi' && r.sub && r.sub[0] === 'servicio') return 'pbiservicio'; return HERR_BARRA[r.name] ? r.name : null; }
@@ -3706,11 +3774,18 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       cargarGrupo(r.name).then(() => { if (location.hash === donde) route(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo abrir la herramienta</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarH">Reintentar</button></div>'; main.querySelector('#reintentarH').onclick = () => route(); } });
       return;
     }
+    const faltan = extrasDe(r).filter((n) => !(extraCargas[n] && extraCargas[n].listo));
+    if (faltan.length) {
+      const donde = location.hash;
+      if (!main.querySelector('.cargando-contenido')) main.innerHTML = '<div class="cargando-contenido"><span class="spinner"></span> Cargando…</div>';
+      Promise.all(faltan.map(cargarExtra)).then(() => { if (location.hash === donde) route(); }, () => { if (location.hash === donde) { main.innerHTML = '<div class="card" style="margin:24px"><h2>No se pudo cargar el contenido</h2><p>Revisa tu conexión a internet y vuelve a intentar.</p><button class="btn" id="reintentarX">Reintentar</button></div>'; main.querySelector('#reintentarX').onclick = () => route(); } });
+      return;
+    }
     document.body.classList.remove('nav-open');
     setTeclas(null);
     clearInterval(relojVista); relojVista = null;
     renderSidebar(r);
-    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', snowflake: 'Snowflake (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
+    const titles = { home: 'Academia de Datos', ruta: 'Ruta de aprendizaje', diagnostico: '¿Por dónde empiezo?', datos: 'Los datos', glosario: 'Glosario', progreso: 'Mi progreso', 'mis-datos': 'Mis datos', cuenta: 'Mi cuenta', privacidad: 'Privacidad', terminos: 'Términos de uso', repaso: 'Tarjetas de repaso', examenes: 'Exámenes y certificado', examen: 'Examen', simulacro: 'Simulacro', claves: 'Tarjetas de certificación', plan: 'Plan de estudio', certificaciones: 'Certificaciones', 'lab-sql': 'Laboratorio SQL', 'lab-python': 'Laboratorio Python', 'lab-pyspark': 'Laboratorio PySpark', 'lab-terminal': 'Laboratorio de terminal', 'lab-dbt': 'Laboratorio dbt', 'lab-airflow': 'Laboratorio Airflow', modelado: 'Laboratorio de modelado', notas: 'Mis notas', generador: 'Generador de datos', powerbi: 'Power BI (práctica)', databricks: 'Databricks (práctica)', azure: 'Portal de Azure (práctica)', github: 'GitHub (práctica)', fabric: 'Microsoft Fabric (práctica)', airflow: 'Airflow (práctica)', snowflake: 'Snowflake (práctica)', bigquery: 'BigQuery (práctica)', herramientas: 'Herramientas de práctica', vscode: 'VS Code (práctica)' };
     if (r.name === 'home') { viewHome(); ponerAnuncio('portada'); }
     else if (r.name === 'ruta') viewRuta();
     else if (r.name === 'diagnostico') viewDiagnostico();
@@ -3741,6 +3816,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'fabric' && window.FabricPractica) window.FabricPractica.vista(main, { Store, toast });
     else if (r.name === 'airflow' && window.AirflowUI) window.AirflowUI.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'snowflake' && window.SnowflakePractica) window.SnowflakePractica.vista(main, { Store, toast }, r.sub);
+    else if (r.name === 'bigquery' && window.BigQueryPractica) window.BigQueryPractica.vista(main, { Store, toast }, r.sub);
     else if (r.name === 'trabajo' && window.Trabajo) window.Trabajo.vista(main, { toast, h, esc, Store, createEditor, renderSqlOutput, ensureSql, params: r.params, $, $$ });
     else if (r.name === 'glosario') viewGlosario(r.q);
     else if (r.name === 'progreso') viewProgreso();
@@ -3754,9 +3830,9 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'plan') viewPlan(r.cert);
     else if (r.name === 'simulacro') viewSimulacro(r.cert);
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
-    else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
+    else main.innerHTML = `<div class="container prose"><h1>Página no encontrada</h1><p>La dirección <code>${esc(location.hash)}</code> no existe o cambió de lugar.</p><p><a class="btn btn-primary" href="#/">Ir al inicio</a> <a class="btn" href="#/ruta">Ver la ruta de aprendizaje</a> <a class="btn" href="#/herramientas">Herramientas de práctica</a></p><p class="muted">También puedes usar el buscador de arriba.${enlaceReporte('Página no encontrada', `**Dirección:** ${location.href}`).replace('class="badge badge-link"', 'style="margin-left:6px"')}</p></div>`;
     barraHerramienta(r);
-    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else window.RetosHerramientas.desmontar(); }
+    if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else if (r.name === 'airflow') window.RetosHerramientas.montar('airflow', Store); else if (r.name === 'fabric') window.RetosHerramientas.montar('fabric', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
     const anchor = location.hash.split('#')[2];
     if (anchor && document.getElementById(anchor)) document.getElementById(anchor).scrollIntoView();
@@ -3796,6 +3872,6 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   $('#termBtn').addEventListener('click', () => Dock.toggle());
   document.addEventListener('keydown', (e) => { if (e.key === '`' && e.ctrlKey) { e.preventDefault(); Dock.toggle(); } });
   if (Store.data.editor !== 'simple') Monaco.load().catch(() => {});
-  if (window.Sitio) { window.Sitio.iniciar({ Store, toast }); window.Sitio.avisoConsentimiento(); }
+  if (window.Sitio) { window.Sitio.iniciar({ Store, toast }); window.Sitio.avisoConsentimiento(); window.Sitio.iniciarMedicion(); }
   route();
 })();

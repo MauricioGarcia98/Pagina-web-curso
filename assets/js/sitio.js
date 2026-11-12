@@ -11,13 +11,14 @@
   const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const hayCuentas = () => !!(CFG.supabaseUrl && CFG.supabaseAnonKey);
   const hayAnuncios = () => !!CFG.adsenseCliente;
+  const hayMedicion = () => !!(CFG.medicion && CFG.medicion.proveedor && CFG.medicion.sitio);
   const cargarScript = (src, attrs = {}) => new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.async = true; Object.entries(attrs).forEach(([k, v]) => s.setAttribute(k, v)); s.onload = ok; s.onerror = () => mal(new Error('No se pudo cargar ' + src)); document.head.append(s); });
 
   // ================================================================ cuentas y sincronización
   const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
   const K_NOTAS = 'academia-notas-v1';
   // lo que viaja a la nube: progreso y preferencias (mapas chicos), más el código y las notas
-  const CLAVES = ['ex', 'lessons', 'visited', 'auto', 'diagnostico', 'exams', 'simulacros', 'planes', 'cards', 'ultimoRepaso', 'repasoModo', 'misiones', 'retosHerr', 'trabajo', 'nombre', 'code'];
+  const CLAVES = ['ex', 'lessons', 'visited', 'auto', 'dias', 'diagnostico', 'exams', 'simulacros', 'planes', 'cards', 'ultimoRepaso', 'repasoModo', 'misiones', 'retosHerr', 'trabajo', 'nombre', 'code'];
   const MAPAS_DE_FECHAS = ['ex', 'lessons', 'visited']; // id → momento en que se completó: al unir se conserva el más antiguo
   const LIMITE = 900 * 1024;
   let sb = null, usuario = null, Store = null, toast = () => {}, estado = 'sin sesión', ultimaSync = null, temporizador = null, cargando = null;
@@ -162,6 +163,7 @@
       <h2>Qué se guarda en tu navegador</h2><p>Tu avance, el código que escribes, tus notas y lo que armas en las herramientas de práctica se guardan en el almacenamiento local de tu navegador. No salen de tu dispositivo. Puedes verlo, descargarlo o borrarlo cuando quieras en <a href="#/mis-datos">Mis datos</a>.</p>
       <h2>Si creas una cuenta</h2><p>${hayCuentas() ? 'La cuenta es opcional. Si inicias sesión, guardamos tu correo electrónico y una copia de tu progreso, tu código de los ejercicios y tus notas, para mostrártelos en otros dispositivos. Estos datos se alojan en Supabase, nuestro proveedor de base de datos. Puedes borrarlos desde <a href="#/cuenta">Mi cuenta</a> en cualquier momento.' : 'Hoy el sitio no tiene cuentas: no pedimos correo ni ningún dato personal.'}</p>
       <h2>Publicidad y cookies</h2><p>${hayAnuncios() ? 'Para mantener el sitio gratis mostramos un anuncio al final de algunas páginas, provisto por Google AdSense. Solo se carga si lo aceptas en el aviso de cookies. Google y sus socios pueden usar cookies para mostrar anuncios según tus visitas a este y otros sitios; puedes administrar esa personalización en <a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>. Si eliges "Seguir sin anuncios", no se carga ningún código de publicidad.' : 'Hoy el sitio no muestra publicidad ni usa cookies de terceros.'} <button class="btn btn-sm btn-ghost" id="legalConsent" ${hayAnuncios() ? '' : 'hidden'}>Cambiar mi elección sobre los anuncios</button></p>
+      <h2>Estadísticas de uso</h2><p>${hayMedicion() ? 'Contamos qué páginas se visitan para saber qué lecciones sirven y cuáles hay que mejorar. La medición <b>no usa cookies</b>, no guarda tu dirección IP ni te identifica, y no se activa si tu navegador pide no ser rastreado.' : 'El sitio no usa herramientas de estadísticas ni de seguimiento.'}</p>
       <h2>Servicios externos</h2><p>Algunas funciones descargan bibliotecas de código abierto desde redes de distribución públicas (por ejemplo, el editor de código o Python en el navegador). Esos servidores reciben tu dirección IP, como cualquier sitio que visitas.</p>
       <h2>Menores</h2><p>El sitio es educativo y apto para todo público. No recopilamos a sabiendas datos de menores de 13 años; si creas una cuenta siendo menor, hazlo con permiso de un adulto responsable.</p>
       <h2>Contacto</h2><p>Responsable: ${resp}. Para consultas o para pedir que borremos tus datos, escribe a ${contacto}.</p>`;
@@ -176,5 +178,32 @@
     const b = main.querySelector('#legalConsent'); if (b) b.onclick = () => { try { localStorage.removeItem(K_CONSENT); } catch (e) { /* sin almacenamiento */ } avisoConsentimiento(); };
   }
 
-  window.Sitio = { hayCuentas, hayAnuncios, iniciar, vistaCuenta, vistaLegal, bloqueAnuncio, activarAnuncios, avisoConsentimiento, _: { fusionar, paquete: () => paquete(), sincronizar, setCliente: (c, u) => { sb = c; usuario = u; } } };
+  // ================================================================ reportar un error
+  // Abre un issue de GitHub ya escrito (o un correo, si no hay repositorio configurado). No envía nada solo.
+  function urlReporte({ titulo, cuerpo }) {
+    const t = `Error en: ${titulo}`; const b = `${cuerpo}\n\n**Qué está mal:**\n\n\n**Qué esperabas ver:**\n\n`;
+    if (CFG.repoReportes && /^[\w.-]+\/[\w.-]+$/.test(CFG.repoReportes)) return `https://github.com/${CFG.repoReportes}/issues/new?title=${encodeURIComponent(t)}&body=${encodeURIComponent(b)}`;
+    if (CFG.contacto) return `mailto:${CFG.contacto}?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(b.replace(/\*\*/g, ''))}`;
+    return null;
+  }
+
+  // ================================================================ medición de visitas sin cookies
+  // Solo cuenta qué página se abrió (sin los parámetros de búsqueda). No usa cookies ni identifica a la persona,
+  // y no se activa en localhost ni si el navegador pide no ser rastreado.
+  function iniciarMedicion() {
+    if (!hayMedicion() || ['localhost', '127.0.0.1'].includes(location.hostname) || navigator.doNotTrack === '1') return;
+    const { proveedor, sitio } = CFG.medicion;
+    const pagina = () => location.pathname + (location.hash.split('?')[0] || '#/');
+    if (proveedor === 'goatcounter') {
+      window.goatcounter = { no_onload: true };
+      cargarScript('https://gc.zgo.at/count.js', { 'data-goatcounter': `https://${sitio}.goatcounter.com/count` }).then(() => {
+        const contar = () => { try { window.goatcounter.count({ path: pagina() }); } catch (e) { /* bloqueado */ } };
+        contar(); window.addEventListener('hashchange', contar);
+      }).catch(() => {});
+    } else if (proveedor === 'plausible') {
+      cargarScript('https://plausible.io/js/script.hash.js', { 'data-domain': sitio, defer: '' }).catch(() => {});
+    }
+  }
+
+  window.Sitio = { hayCuentas, hayAnuncios, hayMedicion, urlReporte, iniciarMedicion, iniciar, vistaCuenta, vistaLegal, bloqueAnuncio, activarAnuncios, avisoConsentimiento, _: { fusionar, paquete: () => paquete(), sincronizar, setCliente: (c, u) => { sb = c; usuario = u; } } };
 })();

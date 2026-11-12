@@ -204,3 +204,27 @@ Necesitas que un pipeline corra **todos los días a las 6 de la mañana** y que,
 Airflow es un **orquestador**: decide cuándo corre cada tarea, en qué orden, y qué hacer si falla.
 ```
 :::
+
+:::ejercicio quiz
+¿Cuál de estas tareas es típica de un ingeniero o ingeniera de datos?
+- [ ] Diseñar los colores de la aplicación móvil
+- [x] Construir y mantener los procesos que llevan los datos desde donde nacen hasta donde se analizan
+- [ ] Decidir el precio de los productos
+- [ ] Atender las consultas de los clientes
+:::
+
+:::ejercicio quiz
+En el recorrido de una compra en Tienda Andina, ¿dónde nace el dato?
+- [ ] En el tablero de la gerente
+- [ ] En el data warehouse
+- [x] En la aplicación, cuando el cliente confirma la compra
+- [ ] En el informe mensual de finanzas
+:::
+
+:::ejercicio quiz
+¿Qué diferencia a un analista de datos de un ingeniero de datos?
+- [ ] No hay diferencia: son dos nombres para el mismo trabajo
+- [x] El ingeniero deja los datos disponibles y confiables; el analista los usa para responder preguntas del negocio
+- [ ] El analista programa y el ingeniero no
+- [ ] El ingeniero solo trabaja con hojas de cálculo
+:::

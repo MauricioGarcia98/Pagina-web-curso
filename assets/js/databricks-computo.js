@@ -226,7 +226,7 @@
 
   // ------------------------------------------------------------------ Jobs: modelo y ejecución
   const jobs = () => { const C = D.cli(); C.jobs = C.jobs || {}; return C.jobs; };
-  const normJob = (j) => { j.settings = j.settings || {}; const s = j.settings; s.tasks = (s.tasks || []).map((t) => ({ run_if: 'ALL_SUCCESS', max_retries: 0, depends_on: [], ...t, tipo: t.tipo || (t.notebook_task ? 'notebook' : t.sql_task ? 'sql' : t.condition_task ? 'condicion' : t.pipeline_task ? 'pipeline' : 'notebook'), notebook_path: t.notebook_path || (t.notebook_task && t.notebook_task.notebook_path) || '' })); s.parameters = s.parameters || []; s.max_concurrent_runs = s.max_concurrent_runs || 1; j.runs = j.runs || []; return j; };
+  const normJob = (j) => { j.settings = j.settings || {}; const s = j.settings; s.tasks = (s.tasks || []).map((t) => ({ run_if: 'ALL_SUCCESS', max_retries: 0, depends_on: [], ...t, tipo: t.tipo || (t.notebook_task ? 'notebook' : t.sql_task ? 'sql' : t.condition_task ? 'condicion' : t.pipeline_task ? 'pipeline' : 'notebook'), notebook_path: t.notebook_path || (t.notebook_task && t.notebook_task.notebook_path) || '', sql: t.sql || (t.sql_task && ((t.sql_task.query && t.sql_task.query.query_text) || t.sql_task.sql)) || '' })); s.parameters = s.parameters || []; s.max_concurrent_runs = s.max_concurrent_runs || 1; j.runs = j.runs || []; return j; };
   function ordenTopologico(tareas) {
     const keys = new Set(tareas.map((t) => t.task_key)); const orden = []; const hechas = new Set(); const pend = tareas.slice();
     for (const t of tareas) for (const d of t.depends_on || []) if (!keys.has(d.task_key)) throw new Error(`Invalid dependency: la tarea ${t.task_key} depende de ${d.task_key}, que no existe.`);

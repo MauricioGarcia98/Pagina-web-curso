@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casos borde - romper tu propia solución antes que nadie · Academia de Datos</title><meta name="description" content="Una solución que funciona con el ejemplo del enunciado todavía no está terminada. Aprende la lista corta de casos que rompen casi todo (vacío, uno solo, empates, nulos, duplicados, negativos) y a escribir tus propias pruebas con assert."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-casos-borde.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Casos borde - romper tu propia solución antes que nadie · Academia de Datos"><meta property="og:description" content="Una solución que funciona con el ejemplo del enunciado todavía no está terminada. Aprende la lista corta de casos que rompen casi todo (vacío, uno solo, empates, nulos, duplicados, negativos) y a escribir tus propias pruebas con assert."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-casos-borde.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#logica">🧩 Lógica: resolver cualquier problema</a> · Básico · 35 min</div>
+<h1>Casos borde - romper tu propia solución antes que nadie</h1><p class="resumen">Una solución que funciona con el ejemplo del enunciado todavía no está terminada. Aprende la lista corta de casos que rompen casi todo (vacío, uno solo, empates, nulos, duplicados, negativos) y a escribir tus propias pruebas con assert.</p>
+<a class="cta" href="../index.html#/l/logica-casos-borde">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Enumerar los casos borde típicos de un problema de datos</li><li>Escribir pruebas con assert antes de dar algo por terminado</li><li>Decidir qué devolver cuando la entrada está vacía o tiene nulos</li><li>Manejar empates sin perder resultados</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un ascensor que funciona con 3 personas no está probado. Hay que probarlo vacío, con una persona, con el peso máximo y con alguien que aprieta todos los botones. Los casos borde son esas pruebas incómodas: los extremos donde el código que &quot;andaba&quot; se rompe.</p>
+</div>
+
+
+<h2>La lista que rompe casi todo</h2>
+<p>Antes de decir &quot;listo&quot;, pasa tu solución por esta lista. No hace falta memorizarla: con el tiempo te sale sola.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Caso</th>
+<th>Pregunta que te haces</th>
+<th>Ejemplo de falla típica</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Vacío</strong></td>
+<td>¿Y si no viene nada?</td>
+<td><code>sum(x) / len(x)</code> → <code>ZeroDivisionError</code></td>
+</tr>
+<tr>
+<td><strong>Uno solo</strong></td>
+<td>¿Y si hay un único elemento?</td>
+<td>Comparar con &quot;el anterior&quot; que no existe</td>
+</tr>
+<tr>
+<td><strong>Empates</strong></td>
+<td>¿Y si dos valen lo mismo?</td>
+<td>Devuelves un ganador y había dos</td>
+</tr>
+<tr>
+<td><strong>Nulos</strong></td>
+<td>¿Y si falta un dato?</td>
+<td><code>None + 5</code> → <code>TypeError</code></td>
+</tr>
+<tr>
+<td><strong>Duplicados</strong></td>
+<td>¿Y si el mismo registro viene dos veces?</td>
+<td>Sumas dos veces la misma venta</td>
+</tr>
+<tr>
+<td><strong>Negativos / cero</strong></td>
+<td>¿Y si el número es 0 o negativo?</td>
+<td>&quot;El máximo empieza en 0&quot; y todos son negativos</td>
+</tr>
+<tr>
+<td><strong>Mayúsculas y espacios</strong></td>
+<td>¿&quot;Chile&quot;, &quot;chile &quot; y &quot;CHILE&quot; son lo mismo?</td>
+<td>Tres grupos donde había uno</td>
+</tr>
+<tr>
+<td><strong>Muy grande</strong></td>
+<td>¿Y si son 10 millones?</td>
+<td>Un bucle dentro de otro bucle tarda horas</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 El error más clásico de todos</div>
+
+<p>Empezar el máximo en <code>0</code>. Si todos los números son negativos, tu función devuelve <code>0</code>, que ni siquiera está en la lista. Empieza con <strong>el primer elemento</strong> (o usa <code>max()</code>), nunca con un número inventado.</p>
+</div>
+
+
+<h2>Escribe tus propias pruebas</h2>
+<p><code>assert condición, &quot;mensaje&quot;</code> no hace nada si la condición es verdadera, y corta el programa con tu mensaje si es falsa. Es la forma más barata de probar.</p>
+<pre><code class="language-python">def promedio(numeros):
+    if not numeros:
+        return None
+    return sum(numeros) / len(numeros)
+
+assert promedio([2, 4]) == 3, &quot;caso normal&quot;
+assert promedio([5]) == 5, &quot;uno solo&quot;
+assert promedio([]) is None, &quot;vacío: no hay promedio&quot;
+assert promedio([-2, 2]) == 0, &quot;negativos&quot;
+print(&quot;todas las pruebas pasaron&quot;)</code></pre>
+<p>Fíjate en el orden de trabajo: <strong>primero</strong> escribes qué esperas en cada caso borde, <strong>después</strong> ajustas el código hasta que pase. Así te obligas a decidir qué significa &quot;promedio de nada&quot; antes de que el programa explote.</p>
+<h2>Decidir qué devolver en el caso raro</h2>
+<p>No hay una respuesta única. Lo importante es <strong>decidirlo a propósito</strong> y dejarlo escrito:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Opciones razonables</th>
+</tr>
+</thead><tbody><tr>
+<td>Promedio de una lista vacía</td>
+<td><code>None</code>, <code>0</code>, o lanzar un error claro</td>
+</tr>
+<tr>
+<td>&quot;El mejor vendedor&quot; con empate</td>
+<td>Todos los empatados, o el primero alfabético (y avisar)</td>
+</tr>
+<tr>
+<td>Un monto <code>None</code> en una suma</td>
+<td>Ignorarlo (y contar cuántos faltaron)</td>
+</tr>
+<tr>
+<td>Un monto <code>None</code> en un conteo de filas</td>
+<td>Contar la fila igual: la venta existió</td>
+</tr>
+</tbody></table></div>
+<p>En SQL la decisión ya está tomada por el motor: <code>SUM</code> y <code>AVG</code> <strong>ignoran</strong> los nulos, <code>COUNT(*)</code> cuenta filas y <code>COUNT(columna)</code> cuenta solo los no nulos. Saberlo te evita sorpresas.</p>
+<h2>Empates: devuelve todos</h2>
+<p>Cuando el enunciado dice &quot;el que más&quot;, pregúntate si puede haber más de uno. La forma segura es en dos pasadas: primero encuentra el valor máximo, después quédate con <strong>todos</strong> los que lo tienen.</p>
+<pre><code class="language-python">ventas = {&quot;Ana&quot;: 300, &quot;Luis&quot;: 300, &quot;Eva&quot;: 120}
+maximo = max(ventas.values())
+ganadores = [nombre for nombre, v in ventas.items() if v == maximo]
+print(ganadores)  # ['Ana', 'Luis']</code></pre>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/logica-casos-borde">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="logica-descomponer.html">← Descomponer - del enunciado a pasos chicos</a><a href="logica-patrones.html">Patrones - los mismos 7 trucos resuelven casi todo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -15,6 +15,7 @@ const PAGINAS = [
   ['Airflow', '#/airflow', '#afp'],
   ['GitHub', '#/github', '.ghp'],
   ['Snowflake', '#/snowflake', '.sfp'],
+  ['BigQuery', '#/bigquery', '.bqp'],
 ];
 
 let fallas = 0;

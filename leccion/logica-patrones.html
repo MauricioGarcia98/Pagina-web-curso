@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patrones - los mismos 7 trucos resuelven casi todo · Academia de Datos</title><meta name="description" content="La mayoría de los problemas de programación son variaciones de unos pocos patrones - acumulador, contador, mejor hasta ahora, bandera, diccionario como índice, comparar con el anterior y ventana. Reconocerlos es lo que hace que un problema nuevo se sienta conocido."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-patrones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Patrones - los mismos 7 trucos resuelven casi todo · Academia de Datos"><meta property="og:description" content="La mayoría de los problemas de programación son variaciones de unos pocos patrones - acumulador, contador, mejor hasta ahora, bandera, diccionario como índice, comparar con el anterior y ventana. Reconocerlos es lo que hace que un problema nuevo se sienta conocido."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-patrones.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#logica">🧩 Lógica: resolver cualquier problema</a> · Intermedio · 45 min</div>
+<h1>Patrones - los mismos 7 trucos resuelven casi todo</h1><p class="resumen">La mayoría de los problemas de programación son variaciones de unos pocos patrones - acumulador, contador, mejor hasta ahora, bandera, diccionario como índice, comparar con el anterior y ventana. Reconocerlos es lo que hace que un problema nuevo se sienta conocido.</p>
+<a class="cta" href="../index.html#/l/logica-patrones">▶ Abrir la lección interactiva (8 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer qué patrón pide un enunciado a partir de sus palabras</li><li>Usar un diccionario como índice para no recorrer la lista dos veces</li><li>Comparar cada elemento con el anterior para encontrar rachas y cambios</li><li>Calcular una ventana móvil sin errores de borde</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un cocinero no inventa cada plato desde cero: sabe hervir, saltear, hornear y hacer una salsa base, y combina esas técnicas. En programación pasa lo mismo. Si conoces siete técnicas y sabes cuál pide cada enunciado, un problema &quot;nuevo&quot; casi siempre es una combinación de cosas que ya hiciste.</p>
+</div>
+
+
+<h2>La tabla de patrones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Patrón</th>
+<th>Palabras del enunciado</th>
+<th>Esqueleto en Python</th>
+<th>En SQL / Spark</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Acumulador</strong></td>
+<td>total, suma, promedio</td>
+<td><code>total += x</code></td>
+<td><code>SUM</code>, <code>AVG</code></td>
+</tr>
+<tr>
+<td><strong>Contador</strong></td>
+<td>cuántos, cuántos de cada</td>
+<td><code>c[k] = c.get(k, 0) + 1</code></td>
+<td><code>COUNT(*) ... GROUP BY</code></td>
+</tr>
+<tr>
+<td><strong>Mejor hasta ahora</strong></td>
+<td>el mayor, el más, el primero</td>
+<td><code>if x &gt; mejor: mejor = x</code></td>
+<td><code>MAX</code>, <code>ORDER BY ... LIMIT 1</code></td>
+</tr>
+<tr>
+<td><strong>Bandera</strong></td>
+<td>¿existe alguno?, ¿todos?</td>
+<td><code>encontrado = True; break</code></td>
+<td><code>EXISTS</code>, <code>MIN(cond)</code></td>
+</tr>
+<tr>
+<td><strong>Diccionario índice</strong></td>
+<td>buscar, cruzar, emparejar</td>
+<td><code>por_id = {x[&quot;id&quot;]: x for x in lista}</code></td>
+<td><code>JOIN</code></td>
+</tr>
+<tr>
+<td><strong>Comparar con el anterior</strong></td>
+<td>racha, cambio, creció, seguidos</td>
+<td><code>anterior = x</code> al final del bucle</td>
+<td><code>LAG()</code></td>
+</tr>
+<tr>
+<td><strong>Ventana</strong></td>
+<td>móvil, últimos N, acumulado</td>
+<td><code>sum(lista[i-n+1:i+1])</code></td>
+<td><code>AVG() OVER (ROWS ...)</code></td>
+</tr>
+</tbody></table></div>
+<p>La última columna es la clave de este módulo: <strong>el patrón es el mismo, cambia la sintaxis</strong>. Si sabes pensarlo en Python, lo sabes pensar en SQL y en Spark.</p>
+<h2>Bandera: cortar apenas lo encuentras</h2>
+<pre><code class="language-python">def hay_negativo(numeros):
+    for n in numeros:
+        if n &lt; 0:
+            return True   # encontré uno: no hace falta seguir
+    return False          # recorrí todo y no hubo ninguno</code></pre>
+<p>Ojo con el error típico: poner <code>return False</code> <strong>dentro</strong> del bucle, en un <code>else</code>. Así la función decide mirando solo el primer elemento.</p>
+<h2>Diccionario índice: de dos bucles a uno</h2>
+<p>&quot;¿Hay dos números en la lista que sumen 10?&quot; La primera idea es probar todos los pares: un bucle dentro de otro. Con 100.000 números son 5.000 millones de pares.</p>
+<p>La idea mejor: mientras recorres, guarda lo que ya viste. Para cada número <code>n</code>, el que necesitas es <code>10 - n</code>. Si ya lo viste, terminaste.</p>
+<pre><code class="language-python">def dos_suman(numeros, objetivo):
+    vistos = set()
+    for n in numeros:
+        if objetivo - n in vistos:
+            return True
+        vistos.add(n)
+    return False
+
+print(dos_suman([3, 8, 1, 7], 10))   # True: 3 + 7</code></pre>
+<p>Buscar en un <code>set</code> o en un <code>dict</code> es casi instantáneo, sin importar el tamaño. Este truco aparece en entrevistas una y otra vez, y es la misma idea que hace rápido a un <code>JOIN</code>.</p>
+<h2>Comparar con el anterior: rachas y cambios</h2>
+<p>Para saber si algo &quot;creció&quot;, &quot;se repitió&quot; o &quot;cuántos días seguidos&quot;, necesitas recordar el elemento anterior.</p>
+<pre><code class="language-python">ventas = [100, 120, 90, 95, 130]
+anterior = None
+for v in ventas:
+    if anterior is not None and v &gt; anterior:
+        print(v, &quot;creció&quot;)
+    anterior = v      # siempre al final de la vuelta</code></pre>
+<p>La racha más larga es el mismo patrón con un contador que <strong>se reinicia</strong> cuando la condición se corta.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Vuelta</th>
+<th>valor</th>
+<th>¿sigue la racha?</th>
+<th>racha actual</th>
+<th>mejor</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>100</td>
+<td>primero</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>120</td>
+<td>120 &gt; 100 sí</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>90</td>
+<td>90 &gt; 120 no</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>95</td>
+<td>95 &gt; 90 sí</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>130</td>
+<td>130 &gt; 95 sí</td>
+<td>3</td>
+<td><strong>3</strong></td>
+</tr>
+</tbody></table></div>
+<h2>Ventana: los últimos N</h2>
+<p>El promedio móvil de 3 días en la posición <code>i</code> usa los elementos <code>i-2</code>, <code>i-1</code> e <code>i</code>. El borde: en las dos primeras posiciones todavía no hay 3 días.</p>
+<pre><code class="language-python">def movil(valores, n):
+    salida = []
+    for i in range(len(valores)):
+        if i + 1 &lt; n:
+            salida.append(None)          # todavía no hay n valores
+        else:
+            ventana = valores[i - n + 1 : i + 1]
+            salida.append(sum(ventana) / n)
+    return salida
+
+print(movil([10, 20, 30, 40], 3))   # [None, None, 20.0, 30.0]</code></pre>
+<p>En SQL lo mismo es <code>AVG(x) OVER (ORDER BY fecha ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)</code>. SQL no pone <code>None</code> en los bordes: promedia los que haya. Es una diferencia que conviene saber, no un error.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>8 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/logica-patrones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="logica-casos-borde.html">← Casos borde - romper tu propia solución antes que nadie</a><a href="logica-sql-con-metodo.html">SQL con el mismo método - pensar antes de escribir →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

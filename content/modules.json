@@ -130,6 +130,20 @@
     ]
   },
   {
+    "id": "logica",
+    "titulo": "Lógica: resolver cualquier problema",
+    "icono": "🧩",
+    "color": "#8b5cf6",
+    "descripcion": "El método para resolver problemas que nunca viste, en Python, SQL y PySpark: entender, descomponer, reconocer patrones, probar casos borde, aclarar pedidos ambiguos, depurar y desafíos tipo entrevista.",
+    "objetivos": [
+      "Seguir un método de 6 pasos ante cualquier problema nuevo",
+      "Partir un enunciado en filtrar, transformar, agrupar, agregar y ordenar",
+      "Reconocer los patrones que resuelven casi todo y traducirlos a Python, SQL y PySpark",
+      "Detectar casos borde y pedidos ambiguos antes de entregar",
+      "Depurar con método leyendo errores y reduciendo el caso"
+    ]
+  },
+  {
     "id": "dbt",
     "titulo": "dbt",
     "icono": "🔧",
@@ -232,9 +246,9 @@
     "titulo": "Las herramientas por dentro: qué es cada cosa",
     "icono": "🧭",
     "color": "#0f766e",
-    "descripcion": "Un recorrido profundo por Power BI, el portal de Azure, Data Factory, Databricks, GitHub, Microsoft Fabric, Airflow y Snowflake: qué es cada botón, panel y concepto, para qué sirve y cómo se conecta con lo demás. Con la réplica de cada herramienta para practicar mientras lees.",
+    "descripcion": "Un recorrido profundo por Power BI, el portal de Azure, Data Factory, Databricks, GitHub, Microsoft Fabric, Airflow, Snowflake y BigQuery: qué es cada botón, panel y concepto, para qué sirve y cómo se conecta con lo demás. Con la réplica de cada herramienta para practicar mientras lees.",
     "objetivos": [
-      "Ubicar cada zona de Power BI, el portal de Azure, Data Factory Studio, Databricks, GitHub, Fabric, Airflow y Snowflake",
+      "Ubicar cada zona de Power BI, el portal de Azure, Data Factory Studio, Databricks, GitHub, Fabric, Airflow, Snowflake y BigQuery",
       "Explicar los conceptos de cada herramienta con tus palabras",
       "Saber qué hace la réplica y qué tendrás que hacer en la herramienta real"
     ]

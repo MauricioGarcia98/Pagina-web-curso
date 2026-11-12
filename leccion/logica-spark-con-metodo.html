@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PySpark con el mismo método - el plan no cambia, cambia la sintaxis · Academia de Datos</title><meta name="description" content="El mismo plan de filtrar, transformar, agrupar, agregar y ordenar escrito con DataFrames de PySpark. Cómo traducir línea por línea desde Python o SQL, por qué en Spark no se recorren filas con un for, y cómo resolver comparar con el anterior y top N por grupo con ventanas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-spark-con-metodo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="PySpark con el mismo método - el plan no cambia, cambia la sintaxis · Academia de Datos"><meta property="og:description" content="El mismo plan de filtrar, transformar, agrupar, agregar y ordenar escrito con DataFrames de PySpark. Cómo traducir línea por línea desde Python o SQL, por qué en Spark no se recorren filas con un for, y cómo resolver comparar con el anterior y top N por grupo con ventanas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-spark-con-metodo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#logica">🧩 Lógica: resolver cualquier problema</a> · Intermedio · 40 min</div>
+<h1>PySpark con el mismo método - el plan no cambia, cambia la sintaxis</h1><p class="resumen">El mismo plan de filtrar, transformar, agrupar, agregar y ordenar escrito con DataFrames de PySpark. Cómo traducir línea por línea desde Python o SQL, por qué en Spark no se recorren filas con un for, y cómo resolver comparar con el anterior y top N por grupo con ventanas.</p>
+<a class="cta" href="../index.html#/l/logica-spark-con-metodo">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Traducir un plan en pasos a una cadena de transformaciones de DataFrame</li><li>Reemplazar un bucle fila por fila por operaciones sobre columnas</li><li>Usar Window para comparar con la fila anterior y para top N por grupo</li><li>Verificar cada paso con show() y count()</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Escribir una receta en castellano o en inglés no cambia la receta. Python, SQL y PySpark son tres idiomas para el mismo plan. Si escribiste los pasos en castellano primero, traducir es lo fácil.</p>
+</div>
+
+
+<h2>El diccionario de traducción</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>Python puro</th>
+<th>SQL</th>
+<th>PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td>Filtrar</td>
+<td><code>if p[&quot;estado&quot;] == &quot;entregado&quot;</code></td>
+<td><code>WHERE estado = &#39;entregado&#39;</code></td>
+<td><code>.filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)</code></td>
+</tr>
+<tr>
+<td>Transformar</td>
+<td><code>p[&quot;monto&quot;] * 1.21</code></td>
+<td><code>monto * 1.21 AS con_iva</code></td>
+<td><code>.withColumn(&quot;con_iva&quot;, F.col(&quot;monto&quot;) * 1.21)</code></td>
+</tr>
+<tr>
+<td>Agrupar + agregar</td>
+<td>diccionario acumulador</td>
+<td><code>GROUP BY canal</code> + <code>SUM(...)</code></td>
+<td><code>.groupBy(&quot;canal&quot;).agg(F.sum(...))</code></td>
+</tr>
+<tr>
+<td>Ordenar y cortar</td>
+<td><code>sorted(...)[:5]</code></td>
+<td><code>ORDER BY ... LIMIT 5</code></td>
+<td><code>.orderBy(F.desc(&quot;x&quot;)).limit(5)</code></td>
+</tr>
+<tr>
+<td>Cruzar</td>
+<td>diccionario índice</td>
+<td><code>JOIN</code></td>
+<td><code>.join(otro, &quot;clave&quot;, &quot;left&quot;)</code></td>
+</tr>
+<tr>
+<td>Comparar con el anterior</td>
+<td>variable <code>anterior</code></td>
+<td><code>LAG() OVER (...)</code></td>
+<td><code>F.lag(...).over(w)</code></td>
+</tr>
+</tbody></table></div>
+<h2>En Spark no se recorre con un for</h2>
+<p>En Python puro escribes el bucle. En Spark los datos están repartidos entre muchas máquinas: <strong>describes qué hacer con cada columna</strong> y Spark decide cómo repartir el trabajo. Si te encuentras escribiendo <code>for fila in df.collect()</code>, casi siempre hay una forma con <code>filter</code>, <code>withColumn</code> o <code>groupBy</code>.</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+
+pedidos = spark.table(&quot;pedidos&quot;)
+
+# Plan: pedidos entregados → por canal → cuántos → de mayor a menor
+resultado = (pedidos
+    .filter(F.col(&quot;estado&quot;) == &quot;entregado&quot;)   # filtrar
+    .groupBy(&quot;canal&quot;)                          # agrupar
+    .agg(F.count(&quot;*&quot;).alias(&quot;pedidos&quot;))        # agregar
+    .orderBy(F.desc(&quot;pedidos&quot;)))               # ordenar
+
+resultado.show()</code></pre>
+<p>Cada línea es un paso del plan. Si el resultado está mal, comenta las últimas líneas y mira con <code>.show()</code> el paso anterior, igual que probabas cada CTE.</p>
+<h2>Comparar con el anterior y top N: ventanas</h2>
+<p>Una <code>Window</code> define &quot;el grupo y el orden&quot; en el que miras a los vecinos de cada fila.</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+por_anio = (spark.table(&quot;pedidos&quot;)
+    .groupBy(F.year(&quot;fecha_pedido&quot;).alias(&quot;anio&quot;))
+    .count())
+
+w = Window.orderBy(&quot;anio&quot;)
+por_anio.withColumn(&quot;anterior&quot;, F.lag(&quot;count&quot;).over(w)).show()</code></pre>
+<p>Para &quot;los 2 productos más caros de cada categoría&quot;, numeras dentro de cada grupo y te quedas con los primeros:</p>
+<pre><code class="language-python">from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.partitionBy(&quot;categoria_id&quot;).orderBy(F.desc(&quot;precio&quot;), &quot;nombre&quot;)
+(spark.table(&quot;productos&quot;)
+    .withColumn(&quot;puesto&quot;, F.row_number().over(w))
+    .filter(F.col(&quot;puesto&quot;) &lt;= 2)
+    .select(&quot;categoria_id&quot;, &quot;nombre&quot;, &quot;precio&quot;)
+    .show())</code></pre>
+<h2>Verificar en Spark</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Cómo la respondes</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Cuántas filas quedaron?</td>
+<td><code>df.count()</code></td>
+</tr>
+<tr>
+<td>¿Hay duplicados de la clave?</td>
+<td><code>df.groupBy(&quot;id&quot;).count().filter(&quot;count &gt; 1&quot;).count()</code></td>
+</tr>
+<tr>
+<td>¿Cómo se ven los datos?</td>
+<td><code>df.show(5)</code></td>
+</tr>
+<tr>
+<td>¿Qué columnas y tipos tengo?</td>
+<td><code>df.printSchema()</code></td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/logica-spark-con-metodo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="logica-sql-con-metodo.html">← SQL con el mismo método - pensar antes de escribir</a><a href="logica-pedidos-ambiguos.html">Pedidos ambiguos - qué preguntar y qué suponer →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

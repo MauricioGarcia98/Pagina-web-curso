@@ -660,10 +660,26 @@ body.vscode-abierto { overflow: hidden; }
 .herr-bar .hb-tit { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .herr-bar .hb-tag { font-size: 11px; padding: 2px 6px; border-radius: 10px; background: #2e3146; color: #b9bbd6; }
 .herr-bar .hb-sp { flex: 1; }
-body.herr-on .pbi, body.herr-on .dbx, body.herr-on .azp, body.herr-on .adf, body.herr-on .ghp, body.herr-on .fbp, body.herr-on .afp, body.herr-on .sfp { top: 34px; }
+body.herr-on .pbi, body.herr-on .dbx, body.herr-on .azp, body.herr-on .adf, body.herr-on .ghp, body.herr-on .fbp, body.herr-on .afp, body.herr-on .sfp, body.herr-on .bqp { top: 34px; }
+/* foco de teclado visible dentro de las réplicas (cada una trae sus propios estilos y varias lo quitaban) */
+body.herr-on :is(a, button, [role="button"], [tabindex], summary, select):focus-visible { outline: 2px solid #4f6bed !important; outline-offset: 1px; }
 @media (max-width: 640px) {
   .herr-bar { padding: 0 4px; }
   .herr-bar .hb-donde, .herr-bar .hb-txt, .herr-bar .hb-tag { display: none; }
   .herr-bar a { padding: 0 9px; }
 }
 @media print { .herr-bar { display: none; } }
+
+/* racha de estudio (portada y Mi progreso) */
+.racha { display: flex; align-items: center; gap: 16px; padding: 14px 18px; margin: 12px 0; }
+.racha-n { display: flex; align-items: baseline; gap: 6px; font-size: 22px; min-width: 96px; }
+.racha-n b { font-size: 30px; line-height: 1; }
+.racha-n small { font-size: 13px; color: var(--ink-3); }
+.racha-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.racha-msg { font-weight: 600; }
+.racha-sem { display: flex; gap: 6px; }
+.racha-sem span { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--ink-3); border: 2px solid transparent; }
+.racha-sem span.ok { background: #f59e0b; color: #fff; }
+.racha-sem span.hoy { border-color: var(--brand); }
+.racha-sem span.fut { opacity: .45; }
+@media (max-width: 560px) { .racha { flex-direction: column; align-items: flex-start; gap: 8px; } }

@@ -1,0 +1,16 @@
+{
+  "name": "Academia de Datos",
+  "short_name": "Academia de Datos",
+  "description": "Curso gratis y en español de ingeniería de datos: SQL, Python, Spark, dbt, Airflow, Databricks, Azure y Power BI, con práctica en el navegador.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f7fb",
+  "theme_color": "#4f46e5",
+  "icons": [
+    { "src": "assets/img/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

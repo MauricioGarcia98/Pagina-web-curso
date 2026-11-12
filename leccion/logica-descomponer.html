@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Descomponer - del enunciado a pasos chicos · Academia de Datos</title><meta name="description" content="Cómo partir un problema grande en problemas chicos que ya sabes resolver - encontrar los verbos del enunciado, escribir funciones pequeñas, seguir el programa con una tabla de traza y reconocer cuándo un problema es dos problemas pegados."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-descomponer.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Descomponer - del enunciado a pasos chicos · Academia de Datos"><meta property="og:description" content="Cómo partir un problema grande en problemas chicos que ya sabes resolver - encontrar los verbos del enunciado, escribir funciones pequeñas, seguir el programa con una tabla de traza y reconocer cuándo un problema es dos problemas pegados."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/logica-descomponer.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#logica">🧩 Lógica: resolver cualquier problema</a> · Básico · 35 min</div>
+<h1>Descomponer - del enunciado a pasos chicos</h1><p class="resumen">Cómo partir un problema grande en problemas chicos que ya sabes resolver - encontrar los verbos del enunciado, escribir funciones pequeñas, seguir el programa con una tabla de traza y reconocer cuándo un problema es dos problemas pegados.</p>
+<a class="cta" href="../index.html#/l/logica-descomponer">▶ Abrir la lección interactiva (7 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Partir un enunciado en subproblemas independientes</li><li>Seguir la ejecución de un programa con una tabla de traza</li><li>Escribir funciones chicas que hacen una sola cosa y combinarlas</li><li>Reconocer cuándo un problema es &quot;filtrar y después agregar&quot; o &quot;agrupar y después elegir&quot;</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>&quot;Organizar un cumpleaños&quot; asusta. &quot;Hacer la lista de invitados&quot;, &quot;comprar la torta&quot; y &quot;avisar la hora&quot; no asustan a nadie. Es el mismo trabajo, partido en tareas que sabes hacer. Con el código pasa lo mismo: ningún problema grande se resuelve entero; se resuelve por partes.</p>
+</div>
+
+
+<h2>Busca los verbos</h2>
+<p>Un enunciado esconde varias tareas. Los <strong>verbos</strong> las delatan.</p>
+<blockquote>
+<p>&quot;De los pedidos <strong>entregados</strong>, <strong>calcula</strong> el total por cliente y <strong>muestra</strong> los tres clientes que más gastaron.&quot;</p>
+</blockquote>
+<div class="table-wrap"><table><thead><tr>
+<th>Verbo</th>
+<th>Subproblema</th>
+<th>Lo que ya sabes</th>
+</tr>
+</thead><tbody><tr>
+<td>entregados</td>
+<td>Filtrar por estado</td>
+<td>un <code>if</code> dentro del bucle</td>
+</tr>
+<tr>
+<td>calcula el total por cliente</td>
+<td>Agrupar y sumar</td>
+<td>diccionario acumulador</td>
+</tr>
+<tr>
+<td>los tres que más</td>
+<td>Ordenar y cortar</td>
+<td><code>sorted(...)[:3]</code></td>
+</tr>
+</tbody></table></div>
+<p>Tres problemas chicos, en fila. Ninguno es difícil por separado.</p>
+<h2>Casi todo es una de estas cinco cosas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>En palabras</th>
+<th>Pregunta típica</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Filtrar</strong></td>
+<td>Quedarme con algunos</td>
+<td>&quot;los que…&quot;, &quot;solo…&quot;, &quot;sin…&quot;</td>
+</tr>
+<tr>
+<td><strong>Transformar</strong></td>
+<td>Cambiar cada elemento</td>
+<td>&quot;en mayúsculas&quot;, &quot;con IVA&quot;, &quot;el año de…&quot;</td>
+</tr>
+<tr>
+<td><strong>Agrupar</strong></td>
+<td>Juntar por una clave</td>
+<td>&quot;por cliente&quot;, &quot;por mes&quot;, &quot;cada…&quot;</td>
+</tr>
+<tr>
+<td><strong>Agregar</strong></td>
+<td>Resumir muchos en uno</td>
+<td>&quot;total&quot;, &quot;promedio&quot;, &quot;cuántos&quot;, &quot;el mayor&quot;</td>
+</tr>
+<tr>
+<td><strong>Ordenar</strong></td>
+<td>Poner en orden y cortar</td>
+<td>&quot;los 5 más…&quot;, &quot;del más nuevo al más viejo&quot;</td>
+</tr>
+</tbody></table></div>
+<p>Resolver un problema es, casi siempre, decidir <strong>cuáles</strong> de estas necesitas y <strong>en qué orden</strong>.</p>
+<h2>Una función por paso</h2>
+<pre><code class="language-python">def solo_entregados(pedidos):
+    return [p for p in pedidos if p[&quot;estado&quot;] == &quot;entregado&quot;]
+
+def total_por_cliente(pedidos):
+    totales = {}
+    for p in pedidos:
+        totales[p[&quot;cliente&quot;]] = totales.get(p[&quot;cliente&quot;], 0) + p[&quot;monto&quot;]
+    return totales
+
+def top(totales, n):
+    ordenados = sorted(totales.items(), key=lambda par: par[1], reverse=True)
+    return [cliente for cliente, total in ordenados[:n]]
+
+pedidos = [
+    {&quot;cliente&quot;: &quot;Ana&quot;, &quot;monto&quot;: 100, &quot;estado&quot;: &quot;entregado&quot;},
+    {&quot;cliente&quot;: &quot;Luis&quot;, &quot;monto&quot;: 900, &quot;estado&quot;: &quot;cancelado&quot;},
+    {&quot;cliente&quot;: &quot;Ana&quot;, &quot;monto&quot;: 50, &quot;estado&quot;: &quot;entregado&quot;},
+    {&quot;cliente&quot;: &quot;Eva&quot;, &quot;monto&quot;: 120, &quot;estado&quot;: &quot;entregado&quot;},
+]
+print(top(total_por_cliente(solo_entregados(pedidos)), 3))</code></pre>
+<p>Cada función se puede <strong>probar sola</strong>. Si el resultado final está mal, pruebas las tres por separado y encuentras cuál falla en un minuto.</p>
+<h2>La tabla de traza: seguir el programa a mano</h2>
+<p>Cuando un bucle no hace lo que esperas, deja de mirar el código y <strong>síguelo paso a paso</strong> anotando el valor de cada variable.</p>
+<pre><code class="language-python">numeros = [3, 8, 5]
+mayor = numeros[0]
+for n in numeros:
+    if n &gt; mayor:
+        mayor = n
+print(mayor)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Vuelta</th>
+<th><code>n</code></th>
+<th>¿<code>n &gt; mayor</code>?</th>
+<th><code>mayor</code> después</th>
+</tr>
+</thead><tbody><tr>
+<td>antes</td>
+<td>–</td>
+<td>–</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>3</td>
+<td>3 &gt; 3 → no</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>8</td>
+<td>8 &gt; 3 → sí</td>
+<td>8</td>
+</tr>
+<tr>
+<td>3</td>
+<td>5</td>
+<td>5 &gt; 8 → no</td>
+<td>8</td>
+</tr>
+</tbody></table></div>
+<p>La traza muestra exactamente dónde el programa hace algo distinto de lo que imaginabas. Es la herramienta más simple y más útil para aprender a programar.</p>
+<h2>El orden importa</h2>
+<p>&quot;El promedio de los pedidos entregados por país&quot; <strong>no es lo mismo</strong> si filtras antes o después.</p>
+<ul>
+<li><strong>Filtrar y después agrupar:</strong> promedio solo de los entregados. Es lo pedido.</li>
+<li><strong>Agrupar y después filtrar:</strong> primero calculas el promedio de todos, y ya es tarde para sacar los cancelados.</li>
+</ul>
+<p>Regla práctica: <strong>filtra lo antes posible</strong>, agrupa después, ordena al final.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>7 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/logica-descomponer">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="logica-metodo.html">← El método - cómo resolver un problema que nunca viste</a><a href="logica-casos-borde.html">Casos borde - romper tu propia solución antes que nadie →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

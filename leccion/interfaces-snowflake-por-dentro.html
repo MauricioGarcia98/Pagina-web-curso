@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Snowflake por dentro - warehouses, bases, stages, Time Travel y costos · Academia de Datos</title><meta name="description" content="Recorrido por Snowflake y su interfaz web (Snowsight) - la separación entre almacenamiento y cómputo, warehouses virtuales y créditos, bases y esquemas, hojas de SQL, stages y COPY INTO, Time Travel, UNDROP y clones, roles y permisos, y Query History. Con una carga completa de punta a punta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-snowflake-por-dentro.html">
-<meta property="og:type" content="article"><meta property="og:title" content="Snowflake por dentro - warehouses, bases, stages, Time Travel y costos · Academia de Datos"><meta property="og:description" content="Recorrido por Snowflake y su interfaz web (Snowsight) - la separación entre almacenamiento y cómputo, warehouses virtuales y créditos, bases y esquemas, hojas de SQL, stages y COPY INTO, Time Travel, UNDROP y clones, roles y permisos, y Query History. Con una carga completa de punta a punta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-snowflake-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta name="twitter:card" content="summary">
+<meta property="og:type" content="article"><meta property="og:title" content="Snowflake por dentro - warehouses, bases, stages, Time Travel y costos · Academia de Datos"><meta property="og:description" content="Recorrido por Snowflake y su interfaz web (Snowsight) - la separación entre almacenamiento y cómputo, warehouses virtuales y créditos, bases y esquemas, hojas de SQL, stages y COPY INTO, Time Travel, UNDROP y clones, roles y permisos, y Query History. Con una carga completa de punta a punta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-snowflake-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
 *{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
 header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
@@ -158,13 +158,17 @@ UNDROP TABLE ventas;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Para que un rol pueda leer una tabla necesita permiso en <strong>toda la cadena</strong>: el warehouse, la base, el esquema y la tabla.</p>
-<pre data-norun><code class="language-sql">CREATE ROLE analista;
+<pre data-norun><code class="language-sql">USE ROLE SECURITYADMIN;   -- SYSADMIN no puede crear roles
+CREATE ROLE analista;
 GRANT USAGE ON WAREHOUSE compute_wh TO ROLE analista;
 GRANT USAGE ON DATABASE tienda_andina TO ROLE analista;
 GRANT USAGE ON SCHEMA tienda_andina.public TO ROLE analista;
 GRANT SELECT ON ALL TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
 GRANT SELECT ON FUTURE TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
-GRANT ROLE analista TO USER ana;</code></pre>
+GRANT ROLE analista TO USER alumno;
+
+USE ROLE analista;       -- prueba el rol: solo puede leer ese esquema</code></pre>
+<p>En la réplica los permisos <strong>se cumplen</strong>: con <code>analista</code>, una tabla de otro esquema responde <em>does not exist or not authorized</em> (Snowflake no distingue &quot;no existe&quot; de &quot;no tienes permiso&quot;, a propósito), y un warehouse sin <code>USAGE</code> responde <em>Insufficient privileges</em>.</p>
 <p><code>FUTURE TABLES</code> hace que las tablas que se creen después también queden con el permiso.</p>
 <h2>Funciones propias de Snowflake</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -203,7 +207,7 @@ GRANT ROLE analista TO USER ana;</code></pre>
 <li>En <strong>Databases</strong>, abre el stage y agrega los archivos de ejemplo.</li>
 <li>Crea la tabla <code>clientes_nuevos</code> y cárgala con <code>COPY INTO</code>. Ejecuta el <code>COPY</code> otra vez y mira el <code>LOAD_SKIPPED</code>.</li>
 <li>Borra por error los clientes de un país con <code>DELETE</code> y recupéralos con <code>BEFORE(STATEMENT =&gt; ...)</code>.</li>
-<li>Crea el rol <code>analista</code> con permiso de lectura y revisa <code>SHOW GRANTS TO ROLE analista</code>.</li>
+<li>Con <code>SECURITYADMIN</code>, crea el rol <code>analista</code> con permiso de lectura, asígnatelo y prueba qué puede y qué no.</li>
 <li>Mira en <strong>Warehouses</strong> cuántos créditos usaste y en <strong>Query History</strong> todo lo que corrió.</li>
 </ol>
 <h2>Qué tiene la réplica y qué no</h2>
@@ -232,7 +236,7 @@ GRANT ROLE analista TO USER ana;</code></pre>
 <td>Fail-safe, retención configurable</td>
 </tr>
 <tr>
-<td>Roles, <code>GRANT</code>/<code>REVOKE</code>, <code>SHOW GRANTS</code> (se registran; no se bloquean consultas por permisos)</td>
+<td>Roles con jerarquía, <code>GRANT</code>/<code>REVOKE</code>, <code>SHOW GRANTS</code>; los permisos se hacen cumplir en cada consulta</td>
 <td>Políticas de enmascaramiento y de filas, tags</td>
 </tr>
 </tbody></table></div>
@@ -257,6 +261,6 @@ GRANT ROLE analista TO USER ana;</code></pre>
 
 
 <h2>Practica</h2><p>Esta lección tiene <b>5 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-snowflake-por-dentro">▶ Hacer los ejercicios</a>
-<nav class="nav"><a href="interfaces-airflow-por-dentro.html">← Airflow por dentro - la interfaz web de Airflow 3 pantalla por pantalla</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<nav class="nav"><a href="interfaces-airflow-por-dentro.html">← Airflow por dentro - la interfaz web de Airflow 3 pantalla por pantalla</a><a href="interfaces-proyecto-integrador.html">Proyecto integrador - un mismo dato cruzando Airflow, Databricks, Snowflake, Fabric y Power BI →</a></nav></main>
 <footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
 </body></html>

@@ -666,6 +666,10 @@
       <div class="pb-obt-i" data-o="csv">${fl('document_text')} Texto/CSV <small>.csv, .txt, .tsv</small></div>
       <div class="pb-obt-i" data-o="json">${fl('braces')} JSON <small>.json</small></div>
       <div class="pb-obt-i" data-o="curso">${fl('database')} Base de datos del curso (SQLite) <small>99 tablas de 13 empresas</small></div>
+      <div class="pb-obt-i" data-o="snowflake">${fl('database')} Snowflake <small>las tablas de tu Snowflake de práctica</small></div>
+      <div class="pb-obt-i" data-o="bigquery">${fl('database')} Google BigQuery <small>los datasets de tu BigQuery de práctica</small></div>
+      <div class="pb-obt-i" data-o="databricks">${fl('database')} Azure Databricks <small>tablas de Unity Catalog de tu workspace de práctica</small></div>
+      <div class="pb-obt-i" data-o="fabric">${fl('database')} Lakehouses y warehouses de Fabric <small>OneLake de tu Fabric de práctica</small></div>
       <div class="pb-obt-i" data-o="web">${fl('globe')} Web <small>una URL a un CSV o JSON</small></div>
       <div class="pb-obt-i" data-o="escribir">${fl('table_edit')} Escribir datos <small>una tabla a mano</small></div>
       <div class="pb-obt-i" data-o="pegar">${fl('clipboard_paste')} Pegar desde Excel o Google Sheets</div>
@@ -676,6 +680,7 @@
       if (t === 'excel' || t === 'csv' || t === 'json') main.querySelector('#pbFile').click();
       else if (t === 'curso') navegadorCurso();
       else if (t === 'escribir') escribirDatos();
+      else if (t === 'snowflake' || t === 'databricks' || t === 'fabric' || t === 'bigquery') conectorReplica(t);
       else if (t === 'pegar') pegarDatos();
       else if (t === 'blanca') barraFormula({ tipo: 'tabla' });
       else if (t === 'web') {
@@ -689,25 +694,26 @@
     const m = modal(`<div class="pb-m-cab">Navegador<button data-cerrar-modal>✕</button></div><div class="pb-nav"><div class="pb-nav-l"><input placeholder="Buscar" data-nb><div class="pb-nav-lista"></div></div><div class="pb-nav-r"><div class="pb-nav-t"></div><div class="pb-tabla pb-prev"></div></div></div><div class="pb-m-pie"><span class="pb-dim small">${esc(origen)}</span><span class="spacer"></span><button class="pb-btn pb-btn-am" data-cargar>Cargar</button><button class="pb-btn" data-transf>Transformar datos</button><button class="pb-btn" data-cerrar-modal>Cancelar</button></div>`, 'grande');
     const marcadas = new Set(lista.length === 1 ? [0] : []);
     const pintarL = () => { const qt = (m.querySelector('[data-nb]').value || '').toLowerCase(); m.querySelector('.pb-nav-lista').innerHTML = lista.map((t, i) => (!qt || t.nombre.toLowerCase().includes(qt) ? `<label class="${i === elegida ? 'on' : ''}" data-i="${i}"><input type="checkbox" data-c="${i}" ${marcadas.has(i) ? 'checked' : ''}> ${fl('table')} ${esc(t.nombre)}${t.grupo ? ` <small>${esc(t.grupo)}</small>` : ''}</label>` : '')).join(''); };
-    const prev = () => { const t = lista[elegida]; if (!t) return; const filas = t.filas || []; m.querySelector('.pb-nav-t').textContent = t.nombre; const cab = t.cols || filas[0] || []; const cuerpo = t.cols ? filas : filas.slice(1); m.querySelector('.pb-prev').innerHTML = `<table><thead><tr>${cab.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${cuerpo.slice(0, 40).map((f) => `<tr>${f.map((x) => `<td>${esc(x ?? 'null')}</td>`).join('')}</tr>`).join('')}</tbody></table>`; };
+    const prev = () => { const t = lista[elegida]; if (!t) return; if (!t.filas && t.previa) { m.querySelector('.pb-nav-t').textContent = t.nombre; m.querySelector('.pb-prev').innerHTML = '<p class="pb-dim" style="padding:12px">Cargando vista previa…</p>'; t.previa().then((f) => { t.filas = f; if (lista[elegida] === t && m.isConnected) prev(); }, (e) => { m.querySelector('.pb-prev').innerHTML = `<p class="pb-dim" style="padding:12px">${esc(e.message)}</p>`; }); return; } const filas = t.filas || []; m.querySelector('.pb-nav-t').textContent = t.nombre; const cab = t.cols || filas[0] || []; const cuerpo = t.cols ? filas : filas.slice(1); m.querySelector('.pb-prev').innerHTML = `<table><thead><tr>${cab.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${cuerpo.slice(0, 40).map((f) => `<tr>${f.map((x) => `<td>${esc(x ?? 'null')}</td>`).join('')}</tr>`).join('')}</tbody></table>`; };
     pintarL(); prev();
     m.querySelector('[data-nb]').addEventListener('input', pintarL);
     const listaEl = m.querySelector('.pb-nav-lista');
     listaEl.addEventListener('click', (e) => { const l = e.target.closest('[data-i]'); if (!l || Number(l.dataset.i) === elegida) return; elegida = Number(l.dataset.i); listaEl.querySelectorAll('[data-i]').forEach((x) => x.classList.toggle('on', x === l)); prev(); });
     listaEl.addEventListener('change', (e) => { const cb = e.target.closest('[data-c]'); if (cb) cb.checked ? marcadas.add(Number(cb.dataset.c)) : marcadas.delete(Number(cb.dataset.c)); });
-    const cargar = (transformar) => {
+    const cargar = async (transformar) => {
       if (!marcadas.size) { toast('Marca al menos una tabla.'); return; }
       const nuevas = [];
       for (const i of marcadas) {
         const t = lista[i];
+        if (t.todas) { try { t.filas = await t.todas(); } catch (e) { toast(`No se pudo cargar ${t.nombre}: ${e.message}`, 7000); return; } }
         if (t.tipo === 'curso') nuevas.push(registrarTabla(t.nombre, { tipo: 'curso', ref: t.ref }, [{ tipo: 'origen', m: '= Sqlite.Database(File.Contents("curso.db"))' }, { tipo: 'navegacion', ref: t.ref }]));
         else {
           const clave = 'd' + Date.now().toString(36) + i; DATOS[clave] = { filas: t.filas };
           const ar = t.archivo || '';
-          const m0 = /\.xls/i.test(ar) ? `= Excel.Workbook(File.Contents("${ar}"), null, true)` : /\.json/i.test(ar) ? `= Json.Document(File.Contents("${ar}"))` : ar === 'escritos' ? '= Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("…"))))' : ar === 'portapapeles' ? '= Table.FromRows(Clipboard)' : /^https?:/.test(ar) ? `= Csv.Document(Web.Contents("${ar}"), [Delimiter=",", Encoding=65001])` : `= Csv.Document(File.Contents("${ar}"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None])`;
+          const m0 = t.m ? t.m : /\.xls/i.test(ar) ? `= Excel.Workbook(File.Contents("${ar}"), null, true)` : /\.json/i.test(ar) ? `= Json.Document(File.Contents("${ar}"))` : ar === 'escritos' ? '= Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("…"))))' : ar === 'portapapeles' ? '= Table.FromRows(Clipboard)' : /^https?:/.test(ar) ? `= Csv.Document(Web.Contents("${ar}"), [Delimiter=",", Encoding=65001])` : `= Csv.Document(File.Contents("${ar}"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None])`;
           const pasos = [{ tipo: 'origen', m: m0 }]; if (/\.xls/i.test(ar)) pasos.push({ tipo: 'navegacion', m: `= Origen{[Item="${t.nombre}",Kind="Sheet"]}[Data]` });
           pasos.push({ tipo: 'encabezados' });
-          nuevas.push(registrarTabla(t.nombre, { tipo: 'archivo', clave, archivo: ar }, pasos));
+          nuevas.push(registrarTabla(t.tabla || t.nombre, { tipo: 'archivo', clave, archivo: ar }, pasos));
         }
       }
       guardarDatos(); m.parentElement.remove();
@@ -717,6 +723,62 @@
     };
     m.querySelector('[data-cargar]').addEventListener('click', () => cargar(false));
     m.querySelector('[data-transf]').addEventListener('click', () => cargar(true));
+  }
+  // Conectores a las otras réplicas del curso: las tablas se importan (modo Import), como en Power BI real.
+  async function conectorReplica(cual) {
+    const cruce = (k) => { Store.data.cruces = Store.data.cruces || {}; Store.data.cruces[k] = Date.now(); Store.save(); };
+    const aFilas = (cols, filas) => [cols, ...filas];
+    try {
+      if (cual === 'snowflake') {
+        toast('Conectando con Snowflake…');
+        if (!window.SnowflakeMotor && window.__cargarGrupo) await window.__cargarGrupo('snowflake');
+        const M = window.SnowflakeMotor; M.conectar(Store); await M.init();
+        const s = M.st(); const bases = (await M.bases()).filter((b) => b !== 'SNOWFLAKE_SAMPLE_DATA');
+        const propia = bases.find((b) => b !== 'TIENDA_ANDINA') || 'TIENDA_ANDINA';
+        const r = await pedir('Snowflake', [{ n: 'Servidor', v: 'practica01.snowflakecomputing.com' }, { n: `Warehouse (${Object.keys(s.warehouses).join(', ')})`, v: s.ctx.wh || Object.keys(s.warehouses)[0] || '' }, { n: `Base de datos (${bases.join(', ')})`, v: propia }]); if (!r) return;
+        const wh = r[1].trim().toUpperCase(), db = r[2].trim().toUpperCase();
+        if (!s.warehouses[wh]) { toast(`El warehouse ${wh || '(vacío)'} no existe en tu Snowflake de práctica.`, 6000); return; }
+        if (!bases.includes(db)) { toast(`La base ${db} no existe en tu Snowflake de práctica.`, 6000); return; }
+        const lista = [];
+        for (const e of await M.esquemas(db)) for (const t of await M.tablas(db, e)) {
+          const ref = `${db}.${e}.${t.nombre}`;
+          lista.push({ nombre: `${e}.${t.nombre}`, tabla: t.nombre.toLowerCase(), grupo: db, tipo: 'archivo', archivo: 'snowflake', m: `= Snowflake.Databases("${r[0]}", "${wh}"){[Name="${db}"]}[Data]{[Name="${e}"]}[Data]{[Name="${t.nombre}"]}[Data]`,
+            previa: async () => { const x = await M.leer(`SELECT * FROM ${ref} LIMIT 40`); return aFilas(x.columns, x.values); },
+            todas: async () => { const rs = await M.ejecutar(`USE WAREHOUSE ${wh}; SELECT * FROM ${ref}`); const u = rs[rs.length - 1]; if (u.error) throw new Error(u.error.message.split('\n')[0]); cruce('pbiSnowflake'); return aFilas(u.r.columns, u.r.values); } });
+        }
+        if (!lista.length) { toast(`La base ${db} no tiene tablas todavía.`, 5000); return; }
+        navegador(lista, `Snowflake · ${r[0]} · ${db} (se importa con el warehouse ${wh})`);
+      } else if (cual === 'bigquery') {
+        toast('Conectando con BigQuery…');
+        if (!window.BigQueryMotor && window.__cargarGrupo) await window.__cargarGrupo('bigquery');
+        const B = window.BigQueryMotor; B.conectar(Store); await B.init();
+        const lista = [];
+        for (const d of await B.datasets()) for (const t of await B.tablas(d)) {
+          lista.push({ nombre: `${d}.${t.nombre}`, tabla: t.nombre, grupo: B.PROYECTO, tipo: 'archivo', archivo: 'bigquery', m: `= GoogleBigQuery.Database(){[Name="${B.PROYECTO}"]}[Data]{[Name="${d}",Kind="Schema"]}[Data]{[Name="${t.nombre}",Kind="Table"]}[Data]`,
+            previa: async () => { const x = await B.vistaPrevia(d, t.nombre, 40); return aFilas(x.columns, x.values); },
+            todas: async () => { const rs = await B.ejecutar(`SELECT * FROM \`${B.PROYECTO}.${d}.${t.nombre}\``, { usuario: 'powerbi@tienda-andina.example', sinCache: true }); const u = rs[rs.length - 1]; if (u.error) throw new Error(u.error.message); cruce('pbiBigQuery'); toast(`BigQuery procesó ${B.fmtBytes(u.job.procesado)} para importar ${t.nombre}`, 5000); return aFilas(u.r.columns, u.r.values); } });
+        }
+        navegador(lista, `Google BigQuery · ${B.PROYECTO} (importar hace un SELECT * de la tabla: se cobra entera)`);
+      } else if (cual === 'databricks') {
+        toast('Conectando con Azure Databricks…');
+        if (!window.DBSQL) { toast('El Databricks de práctica no está disponible.'); return; }
+        const r = await pedir('Azure Databricks', [{ n: 'Nombre de host del servidor', v: 'adb-1234567890123456.7.azuredatabricks.net' }, { n: 'Ruta HTTP (la del SQL warehouse)', v: '/sql/1.0/warehouses/abc123def456' }]); if (!r) return;
+        await window.DBSQL.init({ Store });
+        const ts = await window.DBSQL.tablasAlumno();
+        if (!ts.length) { toast('Todavía no creaste tablas en tu Databricks de práctica. Crea una (CREATE TABLE … AS SELECT en el editor SQL o un notebook) y vuelve.', 7000); return; }
+        navegador(ts.map((t) => { const p = t.nombre.split('.'); return { nombre: `${p[1]}.${p[2]}`, tabla: p[2], grupo: p[0], tipo: 'archivo', archivo: 'databricks', m: `= Databricks.Catalogs("${r[0]}", "${r[1]}"){[Name="${p[0]}",Kind="Database"]}[Data]{[Name="${p[1]}",Kind="Schema"]}[Data]{[Name="${p[2]}",Kind="Table"]}[Data]`, filas: aFilas(t.cols, t.filas.slice(0, 40)), todas: async () => { cruce('pbiDatabricks'); return aFilas(t.cols, t.filas); } }; }), `Azure Databricks · ${r[0]} · Unity Catalog`);
+      } else {
+        const F = Store.data.fabric; const lista = [];
+        if (F) { if (!window.FabricPractica && window.__cargarGrupo) await window.__cargarGrupo('fabric'); }
+        const dt = window.FabricPractica && window.FabricPractica._.datosTabla;
+        if (F && dt) for (const [wid, W] of Object.entries(F.ws)) for (const it of Object.values(W.items)) {
+          if (it.tipo !== 'lakehouse' && it.tipo !== 'warehouse') continue;
+          for (const [n, t] of Object.entries(it.tablas || {})) { const d = dt(t); const cols = (d.cols || []).map((c) => (typeof c === 'string' ? c : c.n)); lista.push({ nombre: `${it.nombre}.${n}`, tabla: n, grupo: W.nombre, tipo: 'archivo', archivo: 'fabric', m: it.tipo === 'lakehouse' ? `= Lakehouse.Contents(null){[workspaceId="${wid}"]}[Data]{[lakehouseId="${it.id}"]}[Data]{[Id="${n}",ItemKind="Table"]}[Data]` : `= Fabric.Warehouse(null){[workspaceId="${wid}"]}[Data]{[warehouseId="${it.id}"]}[Data]{[Schema="dbo",Item="${n}"]}[Data]`, filas: aFilas(cols, d.filas.slice(0, 40)), todas: async () => { cruce('pbiFabric'); return aFilas(cols, d.filas); } }); }
+        }
+        if (!lista.length) { toast('Todavía no hay tablas en ningún lakehouse o warehouse de tu Fabric de práctica. Crea una (por ejemplo, con Load to Tables) y vuelve.', 7000); return; }
+        navegador(lista, 'Microsoft Fabric · OneLake');
+      }
+    } catch (e) { toast('No se pudo conectar: ' + e.message, 7000); }
   }
   function navegadorCurso() {
     const casos = (window.DataGen && window.DataGen.CASOS) || [];
