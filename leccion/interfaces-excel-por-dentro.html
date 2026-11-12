@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel por dentro - fórmulas, referencias, tablas dinámicas y gráficos · Academia de Datos</title><meta name="description" content="Excel sigue siendo la herramienta de datos más usada en las empresas. Recorrido por lo que un analista o ingeniero de datos necesita - celdas y referencias relativas y absolutas, las funciones que más se usan (SUMIFS, COUNTIFS, XLOOKUP, IF), filtros, ordenar, quitar duplicados, tablas dinámicas y gráficos, y cuándo conviene pasar de Excel a SQL o Python."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-excel-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Excel por dentro - fórmulas, referencias, tablas dinámicas y gráficos · Academia de Datos"><meta property="og:description" content="Excel sigue siendo la herramienta de datos más usada en las empresas. Recorrido por lo que un analista o ingeniero de datos necesita - celdas y referencias relativas y absolutas, las funciones que más se usan (SUMIFS, COUNTIFS, XLOOKUP, IF), filtros, ordenar, quitar duplicados, tablas dinámicas y gráficos, y cuándo conviene pasar de Excel a SQL o Python."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-excel-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Básico · 45 min</div>
+<h1>Excel por dentro - fórmulas, referencias, tablas dinámicas y gráficos</h1><p class="resumen">Excel sigue siendo la herramienta de datos más usada en las empresas. Recorrido por lo que un analista o ingeniero de datos necesita - celdas y referencias relativas y absolutas, las funciones que más se usan (SUMIFS, COUNTIFS, XLOOKUP, IF), filtros, ordenar, quitar duplicados, tablas dinámicas y gráficos, y cuándo conviene pasar de Excel a SQL o Python.</p>
+<a class="cta" href="../index.html#/l/interfaces-excel-por-dentro">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir fórmulas con referencias relativas y absolutas y arrastrarlas sin errores</li><li>Usar SUMIFS, COUNTIFS, XLOOKUP e IF para responder preguntas de negocio</li><li>Resumir una tabla con una tabla dinámica y graficar el resultado</li><li>Leer los errores de Excel (#N/A, #DIV/0!, #NAME?, #VALUE!) y corregirlos</li><li>Reconocer los límites de Excel y cuándo pasar a SQL, Python o Power BI</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/excel">Excel de práctica</a>. Las fórmulas se calculan de verdad en tu navegador y con <strong>Data → Get Data</strong> cargas las tablas de la tienda del curso. Las funciones van en inglés y con coma, como en Excel en inglés. Los <strong>🎯 Retos</strong> siguen el orden de esta lección.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una hoja de cálculo es una cuadrícula donde cada casillero puede guardar un dato o una <strong>cuenta que mira otros casilleros</strong>. Si cambias un dato, todas las cuentas que dependen de él se actualizan solas. Es como una calculadora que recuerda cómo hiciste cada cuenta.</p>
+</div>
+
+
+<h2>Celdas, rangos y hojas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Concepto</th>
+<th>Cómo se escribe</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Celda</strong></td>
+<td><code>B3</code></td>
+<td>Columna B, fila 3</td>
+</tr>
+<tr>
+<td><strong>Rango</strong></td>
+<td><code>B2:B100</code></td>
+<td>Todas las celdas de B2 a B100</td>
+</tr>
+<tr>
+<td><strong>Columna entera</strong></td>
+<td><code>B:B</code></td>
+<td>Toda la columna B</td>
+</tr>
+<tr>
+<td><strong>Otra hoja</strong></td>
+<td><code>Ventas!B2</code> o <code>&#39;Ventas 2024&#39;!B2</code></td>
+<td>Una celda de otra hoja del libro</td>
+</tr>
+</tbody></table></div>
+<p>Una fórmula siempre empieza con <code>=</code>: <code>=B2*C2</code>, <code>=SUM(D2:D50)</code>. La barra de fórmulas (<strong>fx</strong>) muestra la fórmula; la celda muestra el resultado.</p>
+<h2>Referencias relativas y absolutas</h2>
+<p>Cuando copias o arrastras una fórmula, las referencias <strong>se mueven</strong> con ella:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Escribes en D2</th>
+<th>Arrastras a D3</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>=B2*C2</code></td>
+<td><code>=B3*C3</code></td>
+<td>Relativas: se mueven una fila</td>
+</tr>
+<tr>
+<td><code>=B2*$F$1</code></td>
+<td><code>=B3*$F$1</code></td>
+<td><code>$F$1</code> es absoluta: no se mueve</td>
+</tr>
+<tr>
+<td><code>=B2*F$1</code></td>
+<td><code>=B3*F$1</code></td>
+<td>Fila fija, columna libre</td>
+</tr>
+<tr>
+<td><code>=B2*$F1</code></td>
+<td><code>=B3*$F2</code></td>
+<td>Columna fija, fila libre</td>
+</tr>
+</tbody></table></div>
+<p>Usa <code>$</code> cuando todas las filas deben mirar <strong>la misma celda</strong>, por ejemplo una tasa de impuesto o un tipo de cambio. Mientras editas, <strong>F4</strong> alterna entre las cuatro formas.</p>
+<h2>Las funciones que más se usan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Función</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Cuánto suman?</td>
+<td><code>SUM</code></td>
+<td><code>=SUM(D2:D100)</code></td>
+</tr>
+<tr>
+<td>¿Cuánto suman los de Chile?</td>
+<td><code>SUMIF</code> / <code>SUMIFS</code></td>
+<td><code>=SUMIFS(D:D, B:B, &quot;Chile&quot;, C:C, &quot;&gt;=2024-01-01&quot;)</code></td>
+</tr>
+<tr>
+<td>¿Cuántos son?</td>
+<td><code>COUNT</code> (números), <code>COUNTA</code> (no vacíos)</td>
+<td><code>=COUNTA(A2:A100)</code></td>
+</tr>
+<tr>
+<td>¿Cuántos cumplen algo?</td>
+<td><code>COUNTIF</code> / <code>COUNTIFS</code></td>
+<td><code>=COUNTIF(F:F, &quot;entregado&quot;)</code></td>
+</tr>
+<tr>
+<td>¿Promedio?</td>
+<td><code>AVERAGE</code> / <code>AVERAGEIFS</code></td>
+<td><code>=AVERAGEIFS(D:D, B:B, &quot;Perú&quot;)</code></td>
+</tr>
+<tr>
+<td>Traer un dato de otra tabla</td>
+<td><code>XLOOKUP</code> (o <code>VLOOKUP</code>)</td>
+<td><code>=XLOOKUP(A2, Clientes!A:A, Clientes!G:G, &quot;no está&quot;)</code></td>
+</tr>
+<tr>
+<td>Decidir</td>
+<td><code>IF</code>, <code>IFS</code></td>
+<td><code>=IF(D2&gt;1000, &quot;grande&quot;, &quot;chico&quot;)</code></td>
+</tr>
+<tr>
+<td>Que un error no rompa todo</td>
+<td><code>IFERROR</code></td>
+<td><code>=IFERROR(B2/C2, 0)</code></td>
+</tr>
+<tr>
+<td>Limpiar texto</td>
+<td><code>TRIM</code>, <code>UPPER</code>, <code>LOWER</code>, <code>PROPER</code></td>
+<td><code>=LOWER(TRIM(E2))</code></td>
+</tr>
+<tr>
+<td>Partes de una fecha</td>
+<td><code>YEAR</code>, <code>MONTH</code>, <code>DAY</code></td>
+<td><code>=YEAR(C2)</code></td>
+</tr>
+</tbody></table></div>
+<p>Los criterios de <code>COUNTIF</code> y <code>SUMIF</code> van entre comillas: <code>&quot;Chile&quot;</code>, <code>&quot;&gt;100&quot;</code>, <code>&quot;&lt;&gt;cancelado&quot;</code>, y aceptan comodines: <code>&quot;Ch*&quot;</code> empieza con Ch.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Si sabes SQL, ya sabes Excel</div>
+
+<p><code>=SUMIFS(monto, pais, &quot;Chile&quot;)</code> es <code>SELECT SUM(monto) FROM t WHERE pais = &#39;Chile&#39;</code>. <code>XLOOKUP</code> es un <code>LEFT JOIN</code> de una columna. Una tabla dinámica es un <code>GROUP BY</code>. Cambia la forma, no la idea.</p>
+</div>
+
+
+<h2>Los errores de Excel</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Error</th>
+<th>Qué significa</th>
+<th>Causa típica</th>
+</tr>
+</thead><tbody><tr>
+<td><code>#N/A</code></td>
+<td>No se encontró el valor</td>
+<td><code>XLOOKUP</code> o <code>VLOOKUP</code> buscando algo que no existe (o con espacios de más)</td>
+</tr>
+<tr>
+<td><code>#DIV/0!</code></td>
+<td>División por cero</td>
+<td>Dividir por una celda vacía o en cero</td>
+</tr>
+<tr>
+<td><code>#NAME?</code></td>
+<td>Excel no conoce ese nombre</td>
+<td>Función mal escrita (<code>=SUMA(</code> en un Excel en inglés) o texto sin comillas</td>
+</tr>
+<tr>
+<td><code>#VALUE!</code></td>
+<td>Tipo de dato equivocado</td>
+<td>Sumar un texto, una fecha guardada como texto</td>
+</tr>
+<tr>
+<td><code>#REF!</code></td>
+<td>La referencia ya no existe</td>
+<td>Se borró la fila o columna a la que apuntaba</td>
+</tr>
+</tbody></table></div>
+<h2>Filtrar, ordenar y quitar duplicados</h2>
+<ul>
+<li><strong>Filter</strong> (Ctrl+Shift+L) agrega una flecha en cada encabezado para mostrar solo algunos valores. Las filas ocultas siguen ahí: no se borran.</li>
+<li><strong>Sort</strong> ordena la tabla entera por la columna elegida, manteniendo juntas las celdas de cada fila.</li>
+<li><strong>Remove Duplicates</strong> borra las filas repetidas. Antes de usarlo, piensa qué hace a dos filas &quot;iguales&quot;: ¿todas las columnas o solo el email?</li>
+</ul>
+<h2>Tablas dinámicas</h2>
+<p>Una <strong>tabla dinámica</strong> (PivotTable) resume una tabla grande en segundos: eliges qué campo va en las <strong>filas</strong>, opcionalmente uno en las <strong>columnas</strong>, y qué <strong>valor</strong> resumir con qué operación.</p>
+<blockquote>
+<p>&quot;¿Cuántos pedidos hay de cada estado y canal?&quot; → Rows: <code>estado</code>, Columns: <code>canal</code>, Values: Count of <code>pedido_id</code>.</p>
+</blockquote>
+<p>Es exactamente un <code>GROUP BY estado, canal</code> con <code>COUNT(*)</code>. Agrega totales generales por fila y por columna.</p>
+<h2>Gráficos</h2>
+<p>Selecciona un rango con <strong>categorías en la primera columna</strong> y <strong>números en las siguientes</strong>, y elige el tipo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Quieres mostrar</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Comparar categorías</td>
+<td>Columnas o barras</td>
+</tr>
+<tr>
+<td>Evolución en el tiempo</td>
+<td>Líneas</td>
+</tr>
+<tr>
+<td>Partes de un total (pocas categorías)</td>
+<td>Torta</td>
+</tr>
+</tbody></table></div>
+<h2>Excel, SQL, Python o Power BI</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Herramienta</th>
+</tr>
+</thead><tbody><tr>
+<td>Un análisis rápido de unos miles de filas, para compartir con alguien de negocio</td>
+<td>Excel</td>
+</tr>
+<tr>
+<td>Datos que viven en una base y se consultan seguido</td>
+<td>SQL</td>
+</tr>
+<tr>
+<td>Limpiezas que se repiten todos los días, o millones de filas</td>
+<td>Python o SQL en un pipeline</td>
+</tr>
+<tr>
+<td>Un tablero que mucha gente mira y se actualiza solo</td>
+<td>Power BI</td>
+</tr>
+</tbody></table></div>
+<p>Excel tiene un límite de 1.048.576 filas por hoja y no deja registro de qué pasos hiciste. Cuando un proceso en Excel se repite cada semana, es candidato a automatizarse.</p>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tiene</th>
+<th>No tiene</th>
+</tr>
+</thead><tbody><tr>
+<td>Fórmulas con referencias relativas, absolutas y entre hojas, y más de 70 funciones</td>
+<td>Macros, VBA, Power Query y Power Pivot</td>
+</tr>
+<tr>
+<td>Relleno arrastrando, copiar y pegar con ajuste de referencias, deshacer</td>
+<td>Formato condicional y validación de datos</td>
+</tr>
+<tr>
+<td>Filtro, ordenar, quitar duplicados, tabla dinámica (estática) y gráficos</td>
+<td>Tablas dinámicas que se actualizan solas</td>
+</tr>
+<tr>
+<td>Las tablas del curso con Data → Get Data, abrir y exportar CSV</td>
+<td>Archivos .xlsx</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-excel-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-jupyterlab-por-dentro.html">← JupyterLab por dentro - notebooks, kernel, celdas y buenos hábitos</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

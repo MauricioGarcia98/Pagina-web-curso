@@ -34,6 +34,7 @@
     { id: 'snowflake', ico: '❄️', nombre: 'Snowflake', desc: 'Warehouses, bases, tablas, roles, permisos e historial de consultas.', store: ['snowflake'], auto: true },
     { id: 'bigquery', ico: '🔎', nombre: 'BigQuery', desc: 'Datasets, tablas cargadas e historial de jobs.', store: ['bigquery'], auto: true },
     { id: 'jupyter', ico: '📓', nombre: 'JupyterLab', desc: 'Tus notebooks, archivos (.py, .csv, .md) y el historial de celdas ejecutadas.', store: ['jupyter'], auto: true, aviso: 'Se borran tus notebooks y archivos de JupyterLab.' },
+    { id: 'excel', ico: '📗', nombre: 'Excel', desc: 'Tu libro de práctica: hojas, fórmulas, tablas dinámicas y gráficos.', store: ['excel'], auto: true },
     { id: 'nubes', ico: '🌩️', nombre: 'AWS y Google Cloud (CLI)', desc: 'Los recursos creados con aws y gcloud en la terminal.', nube: ['aws', 'gcp'], auto: true },
     { id: 'terminal', ico: '⌨️', nombre: 'Terminal: archivos, Git y GitHub', desc: 'Tus archivos y carpetas, el historial de comandos, los repositorios Git y los de GitHub de práctica.', maq: ['fs', 'cwd', 'env', 'history', 'git', 'alias', 'gen'], auto: true, aviso: 'Se borran tus archivos, repositorios y pull requests de práctica.' },
     { id: 'notas', ico: '📝', nombre: 'Notas', desc: 'Todas tus notas y carpetas.', ls: [K_NOTAS], aviso: 'Se borran todas tus notas.' },
