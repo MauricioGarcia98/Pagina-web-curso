@@ -57,6 +57,8 @@
     return grupoCargas[g];
   }
   window.__cargarGrupo = cargarGrupo;
+  // enlace "Reportar un error": abre un issue de GitHub (o un correo) ya escrito; si no hay nada configurado, no aparece
+  const enlaceReporte = (titulo, cuerpo) => { const u = window.Sitio && window.Sitio.urlReporte({ titulo, cuerpo }); return u ? `<a class="badge badge-link" href="${esc(u)}" target="_blank" rel="noopener" title="¿Viste un error o algo que no se entiende? Avísanos">⚑ Reportar un error</a>` : ''; };
   window.__almacen = () => Store; // para que una réplica use a otra sin haber pasado por su página
   // lo que se descarga con "Guardar todo el curso" (Mis datos): el contenido de cada módulo, el buscador,
   // las herramientas de práctica y los datos de ejemplo
@@ -2262,7 +2264,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <details class="indice indice-movil" id="indiceMovil"><summary>📑 En esta lección</summary><div class="indice-cuerpo"></div></details>
       <article class="prose" id="lessonBody">
         <h1>${esc(l.titulo)}</h1>
-        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a>${herramientasDe(l).slice(0, 3).map((x) => `<a class="badge badge-link badge-herr" href="${x.href}" title="Practica esta lección en ${esc(x.nombre)} (réplica en tu navegador)">${x.ico} ${esc(x.nombre)}</a>`).join('')}<a class="badge badge-link" href="leccion/${l.id}.html" target="_blank" rel="noopener" title="Página de esta lección para compartir: se ve bien en redes y en buscadores">🔗 Compartir</a></div>
+        <div class="lesson-meta"><span class="badge ${levelClass(l.nivel)}">${esc(l.nivel)}</span><span class="badge">⏱ ${l.duracion} min</span>${l.ejercicios.length ? `<span class="badge">✍️ ${l.ejercicios.length} ejercicio${l.ejercicios.length > 1 ? 's' : ''}</span>` : ''}<a class="badge badge-link" href="#/notas?leccion=${l.id}" title="Abrir o crear tus apuntes de esta lección">📝 Mis notas</a>${herramientasDe(l).slice(0, 3).map((x) => `<a class="badge badge-link badge-herr" href="${x.href}" title="Practica esta lección en ${esc(x.nombre)} (réplica en tu navegador)">${x.ico} ${esc(x.nombre)}</a>`).join('')}<a class="badge badge-link" href="leccion/${l.id}.html" target="_blank" rel="noopener" title="Página de esta lección para compartir: se ve bien en redes y en buscadores">🔗 Compartir</a>${enlaceReporte(l.titulo, `**Lección:** ${l.titulo}\n**Dirección:** ${location.href}`)}</div>
         ${lessonIntro(l)}
         ${l.html}
         ${l.autoevaluacion.length ? `<section class="autoeval" id="autoEval"><h2>✅ Autoevaluación</h2><p class="muted">Marca solo lo que puedas hacer <b>sin mirar la lección</b>. Si dudas en algo, vuelve a esa parte: esto es lo que se pregunta en una entrevista o se usa el primer día de trabajo.</p>${l.autoevaluacion.map((q, i) => `<label class="auto-item"><input type="checkbox" data-auto="${i}"><span>${q}</span></label>`).join('')}<div class="small muted" id="autoCount"></div></section>` : ''}
@@ -3790,7 +3792,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     else if (r.name === 'plan') viewPlan(r.cert);
     else if (r.name === 'simulacro') viewSimulacro(r.cert);
     else if (r.name === 'certificaciones') viewCertificaciones(r.q);
-    else main.innerHTML = '<div class="container prose"><h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p></div>';
+    else main.innerHTML = `<div class="container prose"><h1>Página no encontrada</h1><p>La dirección <code>${esc(location.hash)}</code> no existe o cambió de lugar.</p><p><a class="btn btn-primary" href="#/">Ir al inicio</a> <a class="btn" href="#/ruta">Ver la ruta de aprendizaje</a> <a class="btn" href="#/herramientas">Herramientas de práctica</a></p><p class="muted">También puedes usar el buscador de arriba.${enlaceReporte('Página no encontrada', `**Dirección:** ${location.href}`).replace('class="badge badge-link"', 'style="margin-left:6px"')}</p></div>`;
     barraHerramienta(r);
     if (window.RetosHerramientas) { if (r.name === 'azure') window.RetosHerramientas.montar(r.sub && r.sub[0] === 'studio' ? 'adf' : 'azure', Store); else if (r.name === 'databricks') window.RetosHerramientas.montar('databricks', Store); else if (r.name === 'github') window.RetosHerramientas.montar('github', Store); else if (r.name === 'snowflake') window.RetosHerramientas.montar('snowflake', Store); else if (r.name === 'bigquery') window.RetosHerramientas.montar('bigquery', Store); else window.RetosHerramientas.desmontar(); }
     document.title = r.lesson ? `${r.lesson.titulo} · Academia de Datos` : r.module ? `${r.module.titulo} · Academia de Datos` : (titles[r.name] || 'Academia de Datos');
@@ -3832,6 +3834,6 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
   $('#termBtn').addEventListener('click', () => Dock.toggle());
   document.addEventListener('keydown', (e) => { if (e.key === '`' && e.ctrlKey) { e.preventDefault(); Dock.toggle(); } });
   if (Store.data.editor !== 'simple') Monaco.load().catch(() => {});
-  if (window.Sitio) { window.Sitio.iniciar({ Store, toast }); window.Sitio.avisoConsentimiento(); }
+  if (window.Sitio) { window.Sitio.iniciar({ Store, toast }); window.Sitio.avisoConsentimiento(); window.Sitio.iniciarMedicion(); }
   route();
 })();

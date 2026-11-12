@@ -16,6 +16,15 @@ window.SITIO = {
   adsenseCliente: '',     // por ejemplo: ca-pub-1234567890123456
   adsenseBloques: { leccion: '', portada: '' }, // el número "data-ad-slot" de cada bloque
 
+  // Reportes de errores: el botón "Reportar un error" de cada lección abre un issue ya escrito en este
+  // repositorio de GitHub (dueño/nombre). Déjalo vacío para usar el correo de contacto, o para ocultar el botón.
+  repoReportes: 'MauricioGarcia98/Pagina-web-curso',
+
+  // Medición de visitas SIN cookies (opcional): qué páginas se abren, sin identificar a nadie.
+  //   proveedor 'goatcounter' → sitio: tu código (el de tucodigo.goatcounter.com)
+  //   proveedor 'plausible'   → sitio: tu dominio (por ejemplo academiadedatos.com)
+  medicion: { proveedor: '', sitio: '' },
+
   // Datos para las páginas legales
   nombreSitio: 'Academia de Datos',
   responsable: '',        // tu nombre o el de tu empresa
