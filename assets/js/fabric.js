@@ -12,7 +12,7 @@
 (function () {
   'use strict';
   const esc = (s) => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const ci = (n) => `<i class="codicon codicon-${n}"></i>`;
+  const ci = (n) => (window.IconosOficiales ? window.IconosOficiales.deCodicon(n) : `<i class="codicon codicon-${n}"></i>`);
   const ahora = () => new Date().toISOString();
   const uid = () => Math.random().toString(36).slice(2, 10);
   let main = null, Store = null, toast = (m) => console.log(m), ruta = [], query = new URLSearchParams();

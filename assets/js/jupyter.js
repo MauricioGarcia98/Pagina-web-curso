@@ -25,7 +25,10 @@
     toc: '<path d="M4 6h16M4 12h10M4 18h13"/>', curso: '<path d="M15 6l-6 6 6 6"/>', arriba: '<path d="M12 19V5M6 11l6-6 6 6"/>', abajo: '<path d="M12 5v14M6 13l6 6 6-6"/>', basura: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     descargar: '<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>',
   };
-  const ic = (n, t = 16) => `<svg class="jl-ic" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n] || ''}</svg>`;
+  // íconos de JupyterLab (@jupyterlab/ui-components, BSD-3); los dibujos propios quedan de respaldo
+  const JLMAP = { carpeta: 'folder', archivo: 'file', nb: 'notebook', py: 'python', csv: 'spreadsheet', md: 'markdown', mas: 'add', nuevaCarpeta: 'new-folder', subir: 'file-upload', refrescar: 'refresh', guardar: 'save', cortar: 'cut', copiar: 'copy', pegar: 'paste', play: 'run', stop: 'stop', reinicio: 'refresh', ffwd: 'fast-forward', x: 'close', archivos: 'folder', corriendo: 'running', toc: 'toc', arriba: 'move-up', abajo: 'move-down', basura: 'delete', descargar: 'download' };
+  const ic = (n, t = 16) => (window.IconosOficiales && JLMAP[n] && window.IconosOficiales.tiene('jl', JLMAP[n]) ? window.IconosOficiales.jl(JLMAP[n], t, 'jl-ic') : icPropio(n, t));
+  const icPropio = (n, t = 16) => `<svg class="jl-ic" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n] || ''}</svg>`;
 
   // ---------------------------------------------------------------- estado guardado
   function S() {

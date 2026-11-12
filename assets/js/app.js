@@ -44,14 +44,15 @@
   const GRUPOS = {
     powerbi: ['powerbi-iconos', 'powerbi-visuales', 'powerbi', 'powerbi-informe', 'powerbi-ia', 'powerbi-servicio'],
     databricks: ['databricks', 'databricks-datos', 'databricks-computo', 'databricks-analitica', 'databricks-ml'],
-    azure: ['@databricks', 'azure-portal', 'azure-extra', 'adf-studio'],
+    iconos: ['iconos-oficiales'],
+    azure: ['@databricks', '@iconos', 'azure-portal', 'azure-extra', 'adf-studio'],
     github: ['octicons', 'github-actions', 'github', 'github-colab'],
-    fabric: ['@databricks', 'fabric', 'fabric-editores'],
+    fabric: ['@databricks', '@iconos', 'fabric', 'fabric-editores'],
     airflow: ['airflow-iconos', 'airflow-motor', 'airflow', 'airflow-paginas', 'terminal-airflow'],
     snowflake: ['snowflake-motor', 'snowflake'],
-    bigquery: ['bigquery-motor', 'bigquery'],
-    jupyter: ['jupyter-kernel', 'jupyter'],
-    excel: ['excel-motor', 'excel'],
+    bigquery: ['@iconos', 'bigquery-motor', 'bigquery'],
+    jupyter: ['@iconos', 'jupyter-kernel', 'jupyter'],
+    excel: ['@iconos', 'excel-motor', 'excel'],
   };
   const grupoCargas = {};
   function cargarGrupo(g) {

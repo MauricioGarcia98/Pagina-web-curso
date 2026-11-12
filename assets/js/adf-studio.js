@@ -17,7 +17,7 @@
   'use strict';
   let main = null, ctx = null, fabrica = null;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const ic = (n) => `<i class="codicon codicon-${n}" aria-hidden="true"></i>`;
+  const ic = (n) => (window.IconosOficiales ? window.IconosOficiales.deCodicon(n) : `<i class="codicon codicon-${n}" aria-hidden="true"></i>`);
   const uid = (n) => Array.from({ length: n }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
   const guid = () => `${uid(8)}-${uid(4)}-4${uid(3)}-a${uid(3)}-${uid(12)}`;
   const ahora = () => new Date().toISOString();

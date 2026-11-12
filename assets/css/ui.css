@@ -683,3 +683,7 @@ body.herr-on :is(a, button, [role="button"], [tabindex], summary, select):focus-
 .racha-sem span.hoy { border-color: var(--brand); }
 .racha-sem span.fut { opacity: .45; }
 @media (max-width: 560px) { .racha { flex-direction: column; align-items: flex-start; gap: 8px; } }
+/* íconos oficiales (assets/js/iconos-oficiales.js) dentro de las réplicas */
+.ico-of { flex: none; vertical-align: -3px; display: inline-block; }
+.azp .ico-of, .adf .ico-of, .fbp .ico-of { vertical-align: -3px; }
+.xl-bi .ico-of { vertical-align: 0; display: block; margin: 1px auto; }

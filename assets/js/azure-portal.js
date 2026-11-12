@@ -15,7 +15,8 @@
 (function () {
   'use strict';
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const ic = (n) => `<i class="codicon codicon-${n}"></i>`;
+  // íconos Fluent UI (los del portal real); si falta alguno, queda el codicon
+  const ic = (n) => (window.IconosOficiales ? window.IconosOficiales.deCodicon(n) : `<i class="codicon codicon-${n}"></i>`);
   const uid = (n) => Array.from({ length: n }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
   const ahora = () => new Date().toISOString();
   const hora = (iso) => { try { return new Date(iso).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return iso; } };
@@ -99,7 +100,7 @@
     main.innerHTML = `<div class="azp" id="azp">
       <header class="az-top"><button class="az-tb" id="azMenuB" title="Show portal menu">${ic('menu')}</button><a class="az-marca" href="#/azure">Microsoft Azure <span>práctica</span></a>
         <div class="az-buscar"><span>${ic('search')}</span><input id="azQ" placeholder="Search resources, services, and docs (G+/)" autocomplete="off"><div class="az-buscar-res" id="azQR" hidden></div></div>
-        <div class="az-top-der"><button class="az-tb" id="azShellB" title="Cloud Shell">${ic('terminal')}</button><button class="az-tb" id="azNotB" title="Notifications">${ic('bell')}<b class="az-badge" id="azBadge" hidden></b></button><button class="az-tb" title="Settings (simulado)">${ic('gear')}</button><a class="az-tb" href="https://learn.microsoft.com/azure/azure-portal/" target="_blank" rel="noopener" title="Help + support">${ic('question')}</a>
+        <div class="az-top-der"><button class="az-tb" id="azShellB" title="Cloud Shell">${ic('terminal')}</button><button class="az-tb" id="azNotB" title="Notifications">${ic('bell')}<b class="az-badge" id="azBadge" hidden></b></button><button class="az-tb" id="azCfgB" title="Settings">${ic('gear')}</button><a class="az-tb" href="https://learn.microsoft.com/azure/azure-portal/" target="_blank" rel="noopener" title="Help + support">${ic('question')}</a>
         <button class="az-cuenta" id="azCuenta"><span><b>${USUARIO}</b><small>ACADEMIA (DEFAULT DIRECTORY)</small></span><i>AA</i></button></div></header>
       <div class="az-cuerpo"><main class="az-main" id="azMain"></main></div>
       <aside class="az-menu" id="azMenu" hidden><div class="az-menu-in">${MENU.map((m) => (m[0][0] === '#' ? `<div class="az-menu-sec">${esc(m[0].slice(1))}</div>` : `<a href="#/azure/${m[0]}">${svg(m[1])}<span>${esc(m[2])}</span></a>`)).join('')}<a href="#/" class="az-menu-salir">${ic('arrow-left')}<span>Volver al curso</span></a></div></aside>
@@ -110,8 +111,15 @@
     const $ = (q) => main.querySelector(q);
     $('#azMenuB').onclick = () => { $('#azMenu').hidden = !$('#azMenu').hidden; };
     $('#azMenu').onclick = (e) => { if (e.target === $('#azMenu') || e.target.closest('a')) $('#azMenu').hidden = true; };
-    $('#azNotB').onclick = () => { const f = $('#azNot'); f.hidden = !f.hidden; if (!f.hidden) pintarNotif(); };
+    $('#azNotB').onclick = () => { const f = $('#azNot'); if (!f.hidden && f.dataset.v !== 'cfg') { f.hidden = true; return; } f.hidden = false; f.dataset.v = 'notif'; pintarNotif(); };
     $('#azShellB').onclick = () => cloudShell();
+    // Settings: Appearance + startup views (tema del portal, como en el real)
+    const aplicarTema = () => { const t = portal().tema || 'azure'; const r = $('#azp'); r.classList.remove('tema-light', 'tema-dark'); if (t !== 'azure') r.classList.add('tema-' + t); };
+    aplicarTema();
+    $('#azCfgB').onclick = () => { const f = $('#azNot'); if (!f.hidden && f.dataset.v === 'cfg') { f.hidden = true; return; } f.hidden = false; f.dataset.v = 'cfg'; const t = portal().tema || 'azure';
+      f.innerHTML = `<div class="az-fly-cab"><h3>Portal settings | Appearance + startup views</h3><button class="az-tb2" id="azCfgX">${ic('close')}</button></div><div style="padding:12px 16px"><h4 style="margin:4px 0">Theme</h4><div class="az-temas">${[['azure', 'Azure'], ['light', 'Light'], ['dark', 'Dark']].map(([v, n]) => `<button class="az-tema${t === v ? ' on' : ''}" data-tema="${v}"><i class="${v}"></i>${n}</button>`).join('')}</div><p class="az-dim">El tema se guarda en tu navegador, igual que en el portal real (que lo guarda en tu perfil).</p></div>`;
+      f.querySelector('#azCfgX').onclick = () => { f.hidden = true; };
+      f.querySelectorAll('[data-tema]').forEach((b) => (b.onclick = () => { portal().tema = b.dataset.tema; guardarP(); aplicarTema(); f.querySelectorAll('.az-tema').forEach((x) => x.classList.toggle('on', x === b)); })); };
     $('#azCuenta').onclick = (e) => menu(e.currentTarget, [{ ic: 'account', txt: `${USUARIO}`, des: true }, { ic: 'key', txt: `Subscription: ${sub().name}`, des: true }, '-', { ic: 'arrow-swap', txt: 'Cambiar de suscripción', fn: () => { const s = az(); s.sub = SUBS.find((x) => x.id !== s.sub).id; guardarAz(); toast('Suscripción: ' + sub().name); render(actual); } }, { ic: 'arrow-left', txt: 'Volver al curso', fn: () => { location.hash = '#/'; } }, '-', { ic: 'trash', txt: 'Borrar todo lo creado en Azure (práctica)…', fn: reiniciar }], 'der');
     buscar();
     pintarCampana();
