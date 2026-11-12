@@ -189,6 +189,33 @@
     ]],
   ] };
 
+  // JupyterLab: mira el historial de celdas ejecutadas, los archivos y los eventos de la réplica
+  const jpS = () => (Store && Store.data.jupyter) || { archivos: {}, hist: [], eventos: {} };
+  const jpH = (f) => (jpS().hist || []).some((x) => f(x.code || '', x.tipos || []));
+  const jpOk = (t) => !t.some((x) => x.startsWith('error'));
+  const jpNb = (f) => Object.entries(jpS().archivos || {}).some(([r, a]) => /\.ipynb$/.test(r) && (() => { try { return f(JSON.parse(a.t), r); } catch (e) { return false; } })());
+  const jpSrc = (c) => (Array.isArray(c.source) ? c.source.join('') : c.source || '');
+  RETOS.jupyter = { titulo: 'Retos de JupyterLab', niveles: [
+    ['Básico', [
+      ['jp-nb', 'Crea un notebook nuevo', 'Launcher → Notebook → Python 3 (ipykernel), o File → New Notebook.', () => (jpS().eventos || {}).nuevoNb > 0],
+      ['jp-print', 'Ejecuta una celda que imprima algo', 'Escribe print("hola") y presiona Shift+Enter.', () => jpH((c, t) => /print\s*\(/.test(c) && t.includes('stream') && jpOk(t))],
+      ['jp-md', 'Escribe una celda Markdown con un título', 'Esc → M convierte la celda en Markdown. Escribe # Mi análisis y ejecútala con Shift+Enter.', () => jpNb((nb, r) => r !== 'Bienvenida.ipynb' && nb.cells.some((c) => c.cell_type === 'markdown' && /^#\s+\S/m.test(jpSrc(c))))],
+      ['jp-csv', 'Lee un CSV con pandas y muestra la tabla', 'pd.read_csv("datos/clientes.csv") y deja el DataFrame como última línea de la celda (o usa .head()).', () => jpH((c, t) => /read_csv\(/.test(c) && t.includes('html') && jpOk(t))],
+    ]],
+    ['Intermedio', [
+      ['jp-group', 'Agrupa con pandas', 'Por ejemplo pedidos.groupby("canal").size() o .agg(...).', () => jpH((c, t) => /\.groupby\(/.test(c) && jpOk(t) && t.length > 0)],
+      ['jp-plot', 'Dibuja un gráfico', 'Con .plot(...) de pandas o con matplotlib.pyplot. Aparece como imagen debajo de la celda.', () => jpH((c, t) => t.includes('imagen'))],
+      ['jp-save', 'Guarda un resultado en un archivo nuevo', 'df.to_csv("resultado.csv", index=False). Aparece en el explorador de archivos.', () => Object.keys(jpS().archivos || {}).some((r) => /\.(csv|json|txt)$/i.test(r))],
+      ['jp-magic', 'Usa un comando mágico o de shell', '%timeit, %pwd, %ls o !head datos/clientes.csv', () => jpH((c, t) => /^\s*(%|!)\w/m.test(c) && jpOk(t))],
+    ]],
+    ['Avanzado', [
+      ['jp-restart', 'Reinicia el kernel y ejecuta todo de nuevo', 'Kernel → Restart Kernel and Run All Cells… (el botón ⏩ de la barra). Así compruebas que el notebook corre de arriba abajo.', () => (jpS().eventos || {}).reiniciarTodo > 0],
+      ['jp-modulo', 'Importa una función de un archivo .py tuyo', 'Crea utilidades.py (File → New Python File, o %%writefile utilidades.py) y después: from utilidades import ...', () => Object.keys(jpS().archivos || {}).some((r) => /\.py$/.test(r)) && jpH((c, t) => /^\s*(from\s+\w+\s+import|import\s+\w+)/m.test(c) && jpOk(t) && Object.keys(jpS().archivos || {}).some((r) => /\.py$/.test(r) && new RegExp('\\b' + r.replace(/\.py$/, '').split('/').pop() + '\\b').test(c)))],
+      ['jp-limpiar', 'Limpia clientes_crudo.csv: sin duplicados y emails en minúscula', 'drop_duplicates(), str.strip().str.lower() y guarda el resultado con to_csv.', () => jpH((c, t) => /clientes_crudo/.test(c) && /drop_duplicates/.test(c) && /lower\(\)/.test(c) && jpOk(t))],
+      ['jp-descarga', 'Descarga tu notebook en formato .ipynb', 'File → Download, o clic derecho en el archivo → Download. Se abre igual en un JupyterLab real.', () => (jpS().eventos || {}).descarga > 0],
+    ]],
+  ] };
+
   // Airflow: mira el estado de la réplica (corridas, eventos del registro de auditoría, variables y conexiones)
   const afS = () => { const M = window.Shell && window.Shell.Machine; return (M && M.cloud && M.cloud.airflow) || { runs: {}, eventos: [], vars: {}, conns: {}, assetEv: [] }; };
   const afEv = (t) => (afS().eventos || []).some((e) => e.evento === t);
@@ -273,7 +300,7 @@
   function desmontar() { clearInterval(timer); timer = null; actual = null; abierto = false; ['retosHerrBtn', 'retosHerrPanel'].forEach((x) => { const e = document.getElementById(x); if (e) e.remove(); }); }
   window.addEventListener('hashchange', () => {
     const h = location.hash;
-    const id = /^#\/azure\/studio\//.test(h) ? 'adf' : /^#\/azure/.test(h) ? 'azure' : /^#\/databricks/.test(h) ? 'databricks' : /^#\/github/.test(h) ? 'github' : null;
+    const id = /^#\/azure\/studio\//.test(h) ? 'adf' : /^#\/azure/.test(h) ? 'azure' : /^#\/databricks/.test(h) ? 'databricks' : /^#\/github/.test(h) ? 'github' : /^#\/jupyter/.test(h) ? 'jupyter' : null;
     if (!id) desmontar(); else if (id !== actual && Store) montar(id);
   });
   window.RetosHerramientas = { montar, desmontar, RETOS, resumen: () => Object.keys(RETOS).map((id) => ({ id, titulo: RETOS[id].titulo, hechos: hechosDe(id), total: total(id) })), _revisar: revisar };

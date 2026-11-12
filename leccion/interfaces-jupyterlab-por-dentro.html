@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JupyterLab por dentro - notebooks, kernel, celdas y buenos hábitos · Academia de Datos</title><meta name="description" content="Recorrido por JupyterLab, el entorno de notebooks más usado para explorar datos con Python - la interfaz, qué es un kernel, celdas de código y Markdown, el modo comando y el modo edición, el contador de ejecución, los comandos mágicos, el formato .ipynb y los hábitos que evitan el clásico &quot;en mi notebook funcionaba&quot;."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-jupyterlab-por-dentro.html">
+<meta property="og:type" content="article"><meta property="og:title" content="JupyterLab por dentro - notebooks, kernel, celdas y buenos hábitos · Academia de Datos"><meta property="og:description" content="Recorrido por JupyterLab, el entorno de notebooks más usado para explorar datos con Python - la interfaz, qué es un kernel, celdas de código y Markdown, el modo comando y el modo edición, el contador de ejecución, los comandos mágicos, el formato .ipynb y los hábitos que evitan el clásico &quot;en mi notebook funcionaba&quot;."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/interfaces-jupyterlab-por-dentro.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#interfaces">🧭 Las herramientas por dentro: qué es cada cosa</a> · Básico · 40 min</div>
+<h1>JupyterLab por dentro - notebooks, kernel, celdas y buenos hábitos</h1><p class="resumen">Recorrido por JupyterLab, el entorno de notebooks más usado para explorar datos con Python - la interfaz, qué es un kernel, celdas de código y Markdown, el modo comando y el modo edición, el contador de ejecución, los comandos mágicos, el formato .ipynb y los hábitos que evitan el clásico &quot;en mi notebook funcionaba&quot;.</p>
+<a class="cta" href="../index.html#/l/interfaces-jupyterlab-por-dentro">▶ Abrir la lección interactiva (6 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer las partes de la interfaz de JupyterLab</li><li>Explicar qué es el kernel y por qué las variables se pierden al reiniciarlo</li><li>Moverte con el modo comando y el modo edición usando el teclado</li><li>Usar comandos mágicos como %timeit, %%writefile y !ls</li><li>Saber cuándo un notebook está listo para compartir y cuándo conviene pasarlo a un script .py</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Practícalo mientras lees</div>
+
+<p>Abre <a href="#/jupyter">JupyterLab de práctica</a>. Ejecuta Python de verdad en tu navegador (con Pyodide), con pandas, numpy y matplotlib, y los datos del curso en la carpeta <code>datos/</code>. No necesitas instalar nada. Al final está lo que cambia respecto del real. Los <strong>🎯 Retos</strong> siguen el orden de esta lección.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un notebook es como un cuaderno de laboratorio: escribes una idea, haces el experimento justo debajo y anotas el resultado. Cada celda es una página que puedes volver a ejecutar. El &quot;kernel&quot; es el ayudante que hace las cuentas y <strong>se acuerda</strong> de todo lo que ya calculaste, mientras no lo mandes a casa (reiniciar).</p>
+</div>
+
+
+<h2>Qué es JupyterLab</h2>
+<p><strong>JupyterLab</strong> es una aplicación web, de código abierto, del Proyecto Jupyter. Se usa para explorar datos, probar ideas y mostrar análisis con código, texto y gráficos en un mismo documento. Lo vas a encontrar en todas partes: en tu computadora (<code>pip install jupyterlab</code> y después <code>jupyter lab</code>), en Google Colab, en SageMaker Studio, en Azure Machine Learning y, con otra interfaz, en los notebooks de Databricks y de Fabric.</p>
+<h2>La interfaz</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Dónde está</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Barra de menús</strong></td>
+<td>Arriba</td>
+<td>File, Edit, View, Run, Kernel, Tabs, Settings y Help</td>
+</tr>
+<tr>
+<td><strong>Barra lateral izquierda</strong></td>
+<td>A la izquierda</td>
+<td>Explorador de archivos, kernels en ejecución, índice del notebook</td>
+</tr>
+<tr>
+<td><strong>Área de trabajo</strong></td>
+<td>Centro</td>
+<td>Pestañas con notebooks, archivos de texto, CSV, terminales</td>
+</tr>
+<tr>
+<td><strong>Launcher</strong></td>
+<td>Una pestaña con tarjetas</td>
+<td>Crear un notebook, un archivo de texto o de Python</td>
+</tr>
+<tr>
+<td><strong>Barra de estado</strong></td>
+<td>Abajo</td>
+<td>Kernel y su estado (Idle, Busy), modo, línea y columna</td>
+</tr>
+</tbody></table></div>
+<h2>El kernel: quien ejecuta tu código</h2>
+<p>El notebook es solo el documento. Quien ejecuta el código es el <strong>kernel</strong>, un proceso de Python que queda vivo esperando órdenes. Todo lo que ejecutas queda en su memoria.</p>
+<ul>
+<li>El círculo arriba a la derecha muestra si está <strong>libre</strong> (vacío) u <strong>ocupado</strong> (lleno).</li>
+<li><strong>Restart Kernel</strong> lo apaga y lo vuelve a encender: se borran <strong>todas</strong> las variables. El texto de las celdas y las salidas que ya se ven quedan, pero las variables no.</li>
+<li>Si algo tarda demasiado, <strong>Interrupt Kernel</strong> (el cuadrado ■) corta lo que está corriendo.</li>
+</ul>
+<h2>Celdas: código, Markdown y raw</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Qué tiene</th>
+<th>Cómo se ve al ejecutarla</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Code</strong></td>
+<td>Código Python</td>
+<td>Debajo aparece la salida: lo que imprimes, tablas, gráficos o errores</td>
+</tr>
+<tr>
+<td><strong>Markdown</strong></td>
+<td>Texto con formato (<code>#</code> títulos, <code>**negrita**</code>, listas, tablas)</td>
+<td>Se muestra el texto formateado</td>
+</tr>
+<tr>
+<td><strong>Raw</strong></td>
+<td>Texto que no se ejecuta ni se formatea</td>
+<td>Igual que lo escribiste</td>
+</tr>
+</tbody></table></div>
+<p>Si la <strong>última línea</strong> de una celda de código es una expresión, Jupyter muestra su valor sin necesidad de <code>print</code>. Por eso <code>df.head()</code> al final de una celda dibuja la tabla. Si terminas la línea con <code>;</code>, no se muestra.</p>
+<h2>El número entre corchetes</h2>
+<p><code>[1]:</code>, <code>[2]:</code>, <code>[7]:</code>… es el <strong>orden en que se ejecutaron</strong> las celdas, no su posición en el notebook. <code>[*]:</code> significa que está corriendo y <code>[ ]:</code> que todavía no se ejecutó en este kernel.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 La trampa más común</div>
+
+<p>Si los números no van en orden de arriba abajo (por ejemplo <code>[5]</code>, <code>[2]</code>, <code>[9]</code>), el notebook depende de un orden que nadie más va a seguir. Antes de entregar o compartir: <strong>Kernel → Restart Kernel and Run All Cells</strong>. Si corre entero sin errores, está listo.</p>
+</div>
+
+
+<h2>Modo comando y modo edición</h2>
+<p>Jupyter tiene dos modos, como vim:</p>
+<ul>
+<li><strong>Modo edición</strong> (Enter o clic dentro de la celda): escribes código. El borde de la celda se resalta.</li>
+<li><strong>Modo comando</strong> (Esc): las teclas son atajos sobre celdas enteras.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>En modo comando</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>A</code> / <code>B</code></td>
+<td>Agrega una celda arriba / abajo</td>
+</tr>
+<tr>
+<td><code>D</code>, <code>D</code></td>
+<td>Borra la celda (dos veces D)</td>
+</tr>
+<tr>
+<td><code>Z</code></td>
+<td>Deshace el borrado</td>
+</tr>
+<tr>
+<td><code>M</code> / <code>Y</code></td>
+<td>Convierte en Markdown / en código</td>
+</tr>
+<tr>
+<td><code>X</code> / <code>C</code> / <code>V</code></td>
+<td>Corta / copia / pega celdas</td>
+</tr>
+<tr>
+<td><code>↑</code> <code>↓</code></td>
+<td>Cambia de celda</td>
+</tr>
+<tr>
+<td><code>0</code>, <code>0</code></td>
+<td>Reinicia el kernel</td>
+</tr>
+</tbody></table></div>
+<p>En los dos modos: <strong>Shift+Enter</strong> ejecuta y pasa a la siguiente, <strong>Ctrl+Enter</strong> ejecuta y se queda, <strong>Alt+Enter</strong> ejecuta e inserta una celda nueva.</p>
+<h2>Comandos mágicos y de shell</h2>
+<p>IPython, el kernel de Python de Jupyter, agrega comandos que empiezan con <code>%</code> (una línea) o <code>%%</code> (toda la celda). No son Python: los entiende el kernel.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>%pwd</code>, <code>%cd carpeta</code>, <code>%ls</code></td>
+<td>Ver y cambiar la carpeta actual</td>
+</tr>
+<tr>
+<td><code>%timeit sum(range(1000))</code></td>
+<td>Medir cuánto tarda una línea, repitiéndola muchas veces</td>
+</tr>
+<tr>
+<td><code>%%time</code></td>
+<td>Medir cuánto tarda la celda entera</td>
+</tr>
+<tr>
+<td><code>%%writefile utilidades.py</code></td>
+<td>Guardar el contenido de la celda en un archivo</td>
+</tr>
+<tr>
+<td><code>%run script.py</code></td>
+<td>Ejecutar un archivo y traer sus variables</td>
+</tr>
+<tr>
+<td><code>%who</code>, <code>%whos</code></td>
+<td>Listar las variables del kernel</td>
+</tr>
+<tr>
+<td><code>!ls</code>, <code>!head archivo.csv</code></td>
+<td>Ejecutar un comando de la terminal</td>
+</tr>
+<tr>
+<td><code>%pip install paquete</code></td>
+<td>Instalar un paquete en el entorno del kernel</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-text">%%writefile utilidades.py
+def limpiar_email(email):
+    return email.strip().lower()</code></pre>
+<p>Después, en otra celda: <code>from utilidades import limpiar_email</code>. Así el código que se repite sale del notebook y se puede probar y reutilizar.</p>
+<h2>El formato .ipynb</h2>
+<p>Un notebook es un archivo <strong>JSON</strong> con extensión <code>.ipynb</code>. Adentro guarda cada celda con su tipo, su código y <strong>sus salidas</strong> (incluidas las imágenes de los gráficos codificadas en texto).</p>
+<pre><code class="language-json">{
+ &quot;cells&quot;: [
+  { &quot;cell_type&quot;: &quot;markdown&quot;, &quot;source&quot;: [&quot;# Mi análisis&quot;] },
+  { &quot;cell_type&quot;: &quot;code&quot;, &quot;execution_count&quot;: 1, &quot;source&quot;: [&quot;1 + 1&quot;],
+    &quot;outputs&quot;: [{ &quot;output_type&quot;: &quot;execute_result&quot;, &quot;data&quot;: { &quot;text/plain&quot;: [&quot;2&quot;] } }] }
+ ],
+ &quot;metadata&quot;: { &quot;kernelspec&quot;: { &quot;name&quot;: &quot;python3&quot; } },
+ &quot;nbformat&quot;: 4
+}</code></pre>
+<p>Consecuencias prácticas:</p>
+<ul>
+<li>En Git, un <code>.ipynb</code> con salidas genera diferencias enormes y difíciles de revisar. Muchos equipos <strong>limpian las salidas</strong> antes de subirlo (Edit → Clear Outputs of All Cells, o herramientas como <code>nbstripout</code>).</li>
+<li>Las salidas pueden contener <strong>datos sensibles</strong> (una tabla de clientes, un email). Revisa antes de compartir.</li>
+<li>GitHub y VS Code muestran los <code>.ipynb</code> como notebooks, no como JSON.</li>
+</ul>
+<h2>Notebook o script</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Úsalo para</th>
+<th>Notebook</th>
+<th>Script <code>.py</code></th>
+</tr>
+</thead><tbody><tr>
+<td>Explorar datos nuevos</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>Mostrar un análisis con gráficos y explicación</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>Un pipeline que corre todos los días</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Código que otros importan o prueban</td>
+<td></td>
+<td>✓</td>
+</tr>
+</tbody></table></div>
+<p>El camino habitual: exploras en el notebook, y lo que funciona lo pasas a funciones en archivos <code>.py</code> con pruebas. Herramientas como <strong>papermill</strong> permiten ejecutar notebooks con parámetros desde un orquestador, pero un script sigue siendo más fácil de probar y de revisar.</p>
+<h2>Un flujo completo</h2>
+<ol>
+<li>Launcher → <strong>Python 3 (ipykernel)</strong> crea <code>Untitled.ipynb</code>. Clic derecho → <strong>Rename</strong> y ponle un nombre que diga qué hace.</li>
+<li>Primera celda en Markdown (<code>Esc</code>, <code>M</code>): título y la pregunta que quieres responder.</li>
+<li><code>import pandas as pd</code> y <code>pd.read_csv(&quot;datos/pedidos.csv&quot;)</code>. Mira la tabla con <code>.head()</code>, <code>.info()</code> y <code>.describe()</code>.</li>
+<li>Una celda por paso: limpiar, agrupar, graficar. Cada una con un título Markdown corto.</li>
+<li>Lo que repites va a <code>utilidades.py</code> con <code>%%writefile</code>.</li>
+<li><strong>Restart Kernel and Run All Cells</strong>. Si todo corre de arriba abajo, guarda (<code>Ctrl+S</code>) y descarga el <code>.ipynb</code>.</li>
+</ol>
+<h2>Qué tiene la réplica y qué no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tiene</th>
+<th>No tiene</th>
+</tr>
+</thead><tbody><tr>
+<td>Python 3.13 real en tu navegador (Pyodide) con pandas, numpy y matplotlib</td>
+<td>Instalar paquetes con <code>pip</code> (avisa en lugar de instalar)</td>
+</tr>
+<tr>
+<td>Notebooks en formato <code>.ipynb</code> real: se descargan y abren en JupyterLab</td>
+<td>Terminal, consola y extensiones</td>
+</tr>
+<tr>
+<td>Modo comando y edición con los atajos principales</td>
+<td>Interrumpir una celda que ya está corriendo (se corta sola a los 2 minutos)</td>
+</tr>
+<tr>
+<td>Magics: <code>%timeit</code>, <code>%%time</code>, <code>%%writefile</code>, <code>%run</code>, <code>%pwd</code>, <code>%cd</code>, <code>%who</code>, <code>!ls</code>, <code>!head</code>…</td>
+<td>Widgets interactivos y otros kernels (R, Julia)</td>
+</tr>
+<tr>
+<td>Explorador de archivos, visor de CSV, editor de texto y vista previa de Markdown</td>
+<td>Colaboración en tiempo real</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>6 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/interfaces-jupyterlab-por-dentro">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-bigquery-por-dentro.html">← BigQuery por dentro - bytes procesados, particiones, clustering y costos</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
