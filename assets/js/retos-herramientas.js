@@ -165,6 +165,30 @@
     ['sf-pbi', 'Importa en Power BI una tabla de Snowflake', 'En Power BI: Obtener datos → Snowflake → elige warehouse y base → Cargar. La consulta queda en Query History.', () => cruce('pbiSnowflake')],
   ]]);
 
+  // BigQuery: mira el historial de jobs y los metadatos de las tablas de la réplica
+  const bqS = () => (Store && Store.data.bigquery) || { jobs: [], meta: {} };
+  const bqJ = (f) => (bqS().jobs || []).some((j) => j.estado === 'DONE' && f(j));
+  RETOS.bigquery = { titulo: 'Retos de BigQuery', niveles: [
+    ['Básico', [
+      ['bq-run', 'Ejecuta una consulta que devuelva filas', 'Studio → escribe un SELECT sobre tienda.pedidos → Run (Ctrl+Enter).', () => bqJ((j) => j.tipo === 'QUERY' && /^\s*(SELECT|WITH)/i.test(j.sql) && j.filas > 0)],
+      ['bq-cols', 'Procesa menos bytes nombrando solo las columnas que necesitas', 'Compara el validador con SELECT * y con SELECT canal, estado. Ejecuta la segunda.', () => bqJ((j) => j.tipo === 'QUERY' && !j.estrella && j.procesado > 0 && (j.tablas || []).some((t) => !t.todas && t.columnas > 0))],
+      ['bq-count', 'Cuenta las filas de una tabla sin procesar ni un byte', 'SELECT COUNT(*) FROM tienda.pedidos: BigQuery lo responde con los metadatos.', () => bqJ((j) => /COUNT\(\s*\*\s*\)/i.test(j.sql) && j.procesado === 0 && !j.cache && (j.tablas || []).length > 0)],
+      ['bq-cache', 'Ejecuta dos veces la misma consulta y mira la caché', 'La segunda vez dice "results cached" y procesa 0 B.', () => bqJ((j) => j.cache)],
+    ]],
+    ['Intermedio', [
+      ['bq-part', 'Filtra por la columna de partición y lee solo una parte de la tabla', "WHERE fecha_pedido >= '2024-06-01' sobre tienda.pedidos. En Job information verás el porcentaje leído.", () => bqJ((j) => (j.tablas || []).some((t) => t.particion && t.fraccion < 1 && t.columnas > 0))],
+      ['bq-ds', 'Crea un dataset', 'El + del Explorer, o CREATE SCHEMA analitica;', () => bqJ((j) => /^\s*CREATE\s+SCHEMA/i.test(j.sql))],
+      ['bq-ctas', 'Crea una tabla particionada', 'CREATE TABLE analitica.ventas (…) PARTITION BY fecha; o CREATE TABLE … PARTITION BY … AS SELECT …', () => Object.values(bqS().meta || {}).some((m) => m.particion && !m.inicial)],
+      ['bq-load', 'Carga un archivo a una tabla nueva', 'Abre un dataset → Create table → sube un CSV o usa el archivo de ejemplo.', () => bqJ((j) => j.tipo === 'LOAD')],
+    ]],
+    ['Avanzado', [
+      ['bq-cluster', 'Crea una tabla con clustering', 'CREATE TABLE … PARTITION BY fecha CLUSTER BY pais …', () => Object.values(bqS().meta || {}).some((m) => (m.cluster || []).length && !m.inicial)],
+      ['bq-req', 'Exige el filtro de partición y comprueba que la consulta sin filtro se rechaza', 'OPTIONS(require_partition_filter = TRUE) y después un SELECT sin WHERE sobre esa tabla.', () => (bqS().jobs || []).some((j) => j.estado === 'FAILED' && /partition elimination/i.test(j.error || ''))],
+      ['bq-dml', 'Modifica filas con UPDATE o DELETE (con WHERE)', 'BigQuery rechaza un UPDATE o DELETE sin WHERE.', () => bqJ((j) => /^\s*(UPDATE|DELETE)\b/i.test(j.sql))],
+      ['bq-pbi', 'Importa en Power BI una tabla de BigQuery', 'En Power BI: Obtener datos → Google BigQuery → marca la tabla → Cargar. Queda como un job en Job history.', () => cruce('pbiBigQuery')],
+    ]],
+  ] };
+
   let Store = null;
   const hechos = () => { if (!Store) return {}; Store.data.retosHerr = Store.data.retosHerr || {}; return Store.data.retosHerr; };
   function revisar(id) {

@@ -667,6 +667,7 @@
       <div class="pb-obt-i" data-o="json">${fl('braces')} JSON <small>.json</small></div>
       <div class="pb-obt-i" data-o="curso">${fl('database')} Base de datos del curso (SQLite) <small>99 tablas de 13 empresas</small></div>
       <div class="pb-obt-i" data-o="snowflake">${fl('database')} Snowflake <small>las tablas de tu Snowflake de práctica</small></div>
+      <div class="pb-obt-i" data-o="bigquery">${fl('database')} Google BigQuery <small>los datasets de tu BigQuery de práctica</small></div>
       <div class="pb-obt-i" data-o="databricks">${fl('database')} Azure Databricks <small>tablas de Unity Catalog de tu workspace de práctica</small></div>
       <div class="pb-obt-i" data-o="fabric">${fl('database')} Lakehouses y warehouses de Fabric <small>OneLake de tu Fabric de práctica</small></div>
       <div class="pb-obt-i" data-o="web">${fl('globe')} Web <small>una URL a un CSV o JSON</small></div>
@@ -679,7 +680,7 @@
       if (t === 'excel' || t === 'csv' || t === 'json') main.querySelector('#pbFile').click();
       else if (t === 'curso') navegadorCurso();
       else if (t === 'escribir') escribirDatos();
-      else if (t === 'snowflake' || t === 'databricks' || t === 'fabric') conectorReplica(t);
+      else if (t === 'snowflake' || t === 'databricks' || t === 'fabric' || t === 'bigquery') conectorReplica(t);
       else if (t === 'pegar') pegarDatos();
       else if (t === 'blanca') barraFormula({ tipo: 'tabla' });
       else if (t === 'web') {
@@ -747,6 +748,17 @@
         }
         if (!lista.length) { toast(`La base ${db} no tiene tablas todavía.`, 5000); return; }
         navegador(lista, `Snowflake · ${r[0]} · ${db} (se importa con el warehouse ${wh})`);
+      } else if (cual === 'bigquery') {
+        toast('Conectando con BigQuery…');
+        if (!window.BigQueryMotor && window.__cargarGrupo) await window.__cargarGrupo('bigquery');
+        const B = window.BigQueryMotor; B.conectar(Store); await B.init();
+        const lista = [];
+        for (const d of await B.datasets()) for (const t of await B.tablas(d)) {
+          lista.push({ nombre: `${d}.${t.nombre}`, tabla: t.nombre, grupo: B.PROYECTO, tipo: 'archivo', archivo: 'bigquery', m: `= GoogleBigQuery.Database(){[Name="${B.PROYECTO}"]}[Data]{[Name="${d}",Kind="Schema"]}[Data]{[Name="${t.nombre}",Kind="Table"]}[Data]`,
+            previa: async () => { const x = await B.vistaPrevia(d, t.nombre, 40); return aFilas(x.columns, x.values); },
+            todas: async () => { const rs = await B.ejecutar(`SELECT * FROM \`${B.PROYECTO}.${d}.${t.nombre}\``, { usuario: 'powerbi@tienda-andina.example', sinCache: true }); const u = rs[rs.length - 1]; if (u.error) throw new Error(u.error.message); cruce('pbiBigQuery'); toast(`BigQuery procesó ${B.fmtBytes(u.job.procesado)} para importar ${t.nombre}`, 5000); return aFilas(u.r.columns, u.r.values); } });
+        }
+        navegador(lista, `Google BigQuery · ${B.PROYECTO} (importar hace un SELECT * de la tabla: se cobra entera)`);
       } else if (cual === 'databricks') {
         toast('Conectando con Azure Databricks…');
         if (!window.DBSQL) { toast('El Databricks de práctica no está disponible.'); return; }
