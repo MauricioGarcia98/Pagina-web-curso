@@ -17,6 +17,7 @@ const PAGINAS = [
   ['Snowflake', '#/snowflake', '.sfp'],
   ['BigQuery', '#/bigquery', '.bqp'],
   ['JupyterLab', '#/jupyter', '.jlp'],
+  ['Excel', '#/excel', '.xlp'],
 ];
 
 let fallas = 0;

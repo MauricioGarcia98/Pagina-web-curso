@@ -216,6 +216,31 @@
     ]],
   ] };
 
+  // Excel: mira las fórmulas que confirmaste (y si dieron error), las hojas y los eventos de la réplica
+  const xlS = () => (Store && Store.data.excel) || { hojas: [], hist: [], eventos: {} };
+  const xlF = (re) => (xlS().hist || []).some((x) => x.ok && re.test(x.f));
+  const xlEv = (n) => ((xlS().eventos || {})[n] || 0) > 0;
+  RETOS.excel = { titulo: 'Retos de Excel', niveles: [
+    ['Básico', [
+      ['xl-sum', 'Suma un rango con una fórmula', 'Escribe =SUM(B2:B5) en una celda y presiona Enter (o usa AutoSum, Alt+=).', () => xlF(/^=SUM\(/i)],
+      ['xl-prom', 'Calcula un promedio', '=AVERAGE(C2:C5)', () => xlF(/AVERAGE\(/i)],
+      ['xl-datos', 'Carga una tabla del curso', 'Data → Get Data → elige pedidos o clientes → Load.', () => xlEv('obtener')],
+      ['xl-fmt', 'Dale formato de moneda o porcentaje a una celda', 'Home → Number Format → Currency o Percentage.', () => xlEv('formato')],
+    ]],
+    ['Intermedio', [
+      ['xl-abs', 'Usa una referencia absoluta y arrastra la fórmula', 'Por ejemplo =B2*$F$1, y arrastra el cuadradito verde hacia abajo (o Ctrl+D). F4 pone los $.', () => xlF(/\$[A-Z]+\$\d+/) && (xlEv('relleno') || xlEv('pegar'))],
+      ['xl-countif', 'Cuenta con una condición', '=COUNTIF(F:F,"entregado") o =COUNTIFS(...) sobre una tabla del curso.', () => xlF(/COUNTIFS?\(/i)],
+      ['xl-sumif', 'Suma con una condición', '=SUMIF(rango,"Chile",rango_suma) o SUMIFS con varios criterios.', () => xlF(/SUMIFS?\(/i)],
+      ['xl-buscar', 'Busca un valor en otra tabla', '=XLOOKUP(valor, rango_búsqueda, rango_resultado) o =VLOOKUP(valor, tabla, columna, FALSE).', () => xlF(/(XLOOKUP|VLOOKUP|INDEX)\(/i)],
+    ]],
+    ['Avanzado', [
+      ['xl-if', 'Clasifica con IF (y protege los errores con IFERROR)', '=IF(B2>100,"alto","bajo") · =IFERROR(VLOOKUP(...),"no está")', () => xlF(/\bIF\(/i) && xlF(/IFERROR\(/i)],
+      ['xl-filtro', 'Filtra una tabla', 'Home o Data → Filter, y en la flecha del encabezado desmarca valores.', () => xlEv('filtrar')],
+      ['xl-pivot', 'Resume con una tabla dinámica', 'Insert → PivotTable: Rows = estado, Values = Count of pedido_id.', () => xlEv('pivot')],
+      ['xl-graf', 'Grafica un resumen', 'Selecciona el resultado de la tabla dinámica → Insert → Column.', () => xlEv('grafico')],
+    ]],
+  ] };
+
   // Airflow: mira el estado de la réplica (corridas, eventos del registro de auditoría, variables y conexiones)
   const afS = () => { const M = window.Shell && window.Shell.Machine; return (M && M.cloud && M.cloud.airflow) || { runs: {}, eventos: [], vars: {}, conns: {}, assetEv: [] }; };
   const afEv = (t) => (afS().eventos || []).some((e) => e.evento === t);
@@ -300,7 +325,7 @@
   function desmontar() { clearInterval(timer); timer = null; actual = null; abierto = false; ['retosHerrBtn', 'retosHerrPanel'].forEach((x) => { const e = document.getElementById(x); if (e) e.remove(); }); }
   window.addEventListener('hashchange', () => {
     const h = location.hash;
-    const id = /^#\/azure\/studio\//.test(h) ? 'adf' : /^#\/azure/.test(h) ? 'azure' : /^#\/databricks/.test(h) ? 'databricks' : /^#\/github/.test(h) ? 'github' : /^#\/jupyter/.test(h) ? 'jupyter' : null;
+    const id = /^#\/azure\/studio\//.test(h) ? 'adf' : /^#\/azure/.test(h) ? 'azure' : /^#\/databricks/.test(h) ? 'databricks' : /^#\/github/.test(h) ? 'github' : /^#\/jupyter/.test(h) ? 'jupyter' : /^#\/excel/.test(h) ? 'excel' : null;
     if (!id) desmontar(); else if (id !== actual && Store) montar(id);
   });
   window.RetosHerramientas = { montar, desmontar, RETOS, resumen: () => Object.keys(RETOS).map((id) => ({ id, titulo: RETOS[id].titulo, hechos: hechosDe(id), total: total(id) })), _revisar: revisar };
