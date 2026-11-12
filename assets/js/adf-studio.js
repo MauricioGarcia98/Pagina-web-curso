@@ -453,7 +453,22 @@
   // ------------------------------------------------------------------ UI
   let vista = 'home', sel = { tipo: null, n: null }, actSel = null, rutaCont = { pipe: null, pasos: [] }, pestPipe = 'parametros', pestAct = 'general', monitor = { run: null, modo: 'triggered' }, gestion = 'linked', salidaDebug = null, panelValid = null;
   function render(sub) {
-    if (!F()) { main.innerHTML = `<div class="adf"><div class="adf-top"><span class="adf-marca">Azure Data Factory</span></div><div class="adf-vacio"><h2>No se encontró el data factory "${esc(fabrica)}"</h2><p><a href="#/azure/servicio/adf">Volver a Data factories</a></p></div></div>`; return; }
+    if (!F()) {
+      // sin fábrica (o con un nombre que no existe): se ofrecen las que hay o crear una de práctica en un clic
+      const todas = Object.keys(az().adf || {});
+      main.innerHTML = `<div class="adf"><div class="adf-top"><span class="adf-marca">Azure Data Factory</span></div><div class="adf-vacio"><h2>${fabrica ? `No se encontró el data factory "${esc(fabrica)}"` : 'Elige un data factory'}</h2>
+        ${todas.length ? `<p>Tus data factories:</p><p>${todas.map((n) => `<a class="adf-btn" href="#/azure/studio/${encodeURIComponent(n)}" style="margin:4px">${esc(n)}</a>`).join('')}</p>` : '<p>Todavía no creaste ningún data factory. En Azure real se crea desde el portal (Create a resource → Data Factory); aquí puedes hacerlo así o empezar con uno de práctica.</p>'}
+        <p><button class="adf-btn primario" id="adfDemo">Crear un data factory de práctica</button> <a class="adf-btn" href="#/azure/servicio/adf">Ir al portal de Azure</a></p></div></div>`;
+      main.querySelector('#adfDemo').addEventListener('click', () => {
+        const s = az(); let n = 'adf-practica', i = 2; while (s.adf[n]) n = 'adf-practica-' + i++;
+        s.groups = s.groups || {}; const rg = Object.keys(s.groups)[0] || 'rg-practica';
+        if (!s.groups[rg]) s.groups[rg] = { location: 'eastus2', tags: {} };
+        s.adf[n] = { rg, location: 'eastus2', tags: {}, creado: new Date().toISOString(), props: { version: 'V2', red: 'public' } };
+        try { window.CloudSim && window.CloudSim.save(); } catch (e) { /* sin almacenamiento */ }
+        location.hash = '#/azure/studio/' + encodeURIComponent(n);
+      });
+      return;
+    }
     if (sub && sub[0]) vista = sub[0];
     if (sub && sub[1] && vista === 'author') { const [t, n] = sub[1].split(':'); sel = { tipo: t, n: decodeURIComponent(n || '') }; }
     const pend = pendientes().length;

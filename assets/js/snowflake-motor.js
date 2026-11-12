@@ -216,6 +216,62 @@ ORDER BY ventas DESC;
     });
   }
 
+  // ---------------------------------------------------------------- permisos
+  // Los privilegios se dan a roles. ACCOUNTADMIN y SYSADMIN pueden todo sobre los datos; SECURITYADMIN y USERADMIN
+  // administran roles y permisos pero no leen datos; los demás roles (PUBLIC y los creados) solo lo que se les otorgó,
+  // lo que crearon ellos mismos, y lo de los roles que heredan con GRANT ROLE x TO ROLE y.
+  const HEREDA = { ACCOUNTADMIN: ['SYSADMIN', 'SECURITYADMIN'], SECURITYADMIN: ['USERADMIN'] };
+  function rolesEfectivos(rol) {
+    const s = st(); const vistos = new Set(['PUBLIC']); const cola = [rol];
+    while (cola.length) { const r = cola.pop(); if (vistos.has(r)) continue; vistos.add(r); cola.push(...(HEREDA[r] || [])); for (const g of s.grants) if (g.tipo === 'ROLE' && g.aTipo === 'ROLE' && g.a === r) cola.push(g.obj); }
+    return vistos;
+  }
+  const esAdminDatos = (ef) => ef.has('ACCOUNTADMIN') || ef.has('SYSADMIN');
+  function coincide(g, tipo, p) {
+    const o = g.obj.split('.'); const fin = (a, b) => a.length <= b.length && a.every((x, i) => x === b[b.length - a.length + i]);
+    if (g.tipo === tipo || (tipo === 'TABLE' && g.tipo === 'VIEW')) return fin(o, p);
+    if (tipo === 'TABLE' && /^(ALL|FUTURE) (TABLES|VIEWS) IN SCHEMA$/.test(g.tipo)) return fin(o, p.slice(0, 2));
+    if (tipo === 'TABLE' && /^(ALL|FUTURE) (TABLES|VIEWS) IN DATABASE$/.test(g.tipo)) return o[0] === p[0];
+    if (tipo === 'SCHEMA' && /^(ALL|FUTURE) SCHEMAS IN DATABASE$/.test(g.tipo)) return o[0] === p[0];
+    return false;
+  }
+  function tiene(priv, tipo, obj) {
+    const s = st(); const ef = rolesEfectivos(s.ctx.rol);
+    if (esAdminDatos(ef)) return true;
+    const dueno = (s.duenos || {})[`${tipo}:${obj}`]; if (dueno && ef.has(dueno)) return true;
+    const p = obj.split('.');
+    return s.grants.some((g) => g.aTipo !== 'USER' && ef.has(g.a) && (g.priv === priv || g.priv === 'ALL' || g.priv === 'ALL PRIVILEGES' || g.priv === 'OWNERSHIP') && coincide(g, tipo, p));
+  }
+  const sinPermiso = (queEs) => err(`SQL access control error:\nInsufficient privileges to operate on ${queEs}.\nEl rol actual es ${st().ctx.rol}: cambia de rol (USE ROLE …) o pide el permiso con GRANT.`, '003001');
+  function noAutorizado(n) { return err(`SQL compilation error:\nObject '${n.db}.${n.esquema}.${n.tabla}' does not exist or not authorized.\nEl rol ${st().ctx.rol} no tiene los permisos: necesita USAGE en la base y en el esquema, y el privilegio sobre la tabla. Revisa SHOW GRANTS TO ROLE ${st().ctx.rol};`, '002003'); }
+  // comprueba la cadena completa para leer o escribir una tabla: base → esquema → tabla
+  function exigirTabla(n, priv) {
+    if (!tiene('USAGE', 'DATABASE', n.db) || !tiene('USAGE', 'SCHEMA', `${n.db}.${n.esquema}`) || !tiene(priv, 'TABLE', `${n.db}.${n.esquema}.${n.tabla}`)) throw noAutorizado(n);
+  }
+  function exigirPermisos(sql) {
+    const s = st(); const ef = rolesEfectivos(s.ctx.rol); if (esAdminDatos(ef)) return;
+    const plano = sql.replace(/'(?:[^']|'')*'/g, "''").replace(/\b(EXTRACT|SUBSTRING|TRIM|POSITION)\s*\(([^()]*?)\bFROM\b/gi, '$1($2 , ');
+    const ctes = new Set([...plano.matchAll(/(?:WITH|,)\s+(\w+)\s+AS\s*\(/gi)].map((m) => m[1].toUpperCase()));
+    for (const m of plano.matchAll(/\b(?:FROM|JOIN)\s+("?[\w$]+"?(?:\."?[\w$]+"?){0,2})/gi)) { const n = nombreCompleto(m[1]); if (m[1].includes('.') || !ctes.has(n.tabla)) exigirTabla(n, 'SELECT'); }
+    let m;
+    if ((m = /^INSERT\s+(?:OVERWRITE\s+)?INTO\s+("?[\w$."]+"?)/i.exec(plano))) exigirTabla(nombreCompleto(m[1]), 'INSERT');
+    else if ((m = /^UPDATE\s+("?[\w$."]+"?)/i.exec(plano))) exigirTabla(nombreCompleto(m[1]), 'UPDATE');
+    else if ((m = /^(?:DELETE\s+FROM|TRUNCATE\s+(?:TABLE\s+)?(?:IF\s+EXISTS\s+)?)\s*("?[\w$."]+"?)/i.exec(plano))) exigirTabla(nombreCompleto(m[1]), 'DELETE');
+    else if ((m = /^MERGE\s+INTO\s+("?[\w$."]+"?)/i.exec(plano))) exigirTabla(nombreCompleto(m[1]), 'UPDATE');
+    else if ((m = /^COPY\s+INTO\s+("?[\w$."]+"?)/i.exec(plano))) exigirTabla(nombreCompleto(m[1]), 'INSERT');
+    else if ((m = /^CREATE\s+(?:OR\s+REPLACE\s+)?(?:TRANSIENT\s+|TEMPORARY\s+)?(TABLE|VIEW)\s+(?:IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)/i.exec(plano))) {
+      const n = nombreCompleto(m[2]);
+      if (!tiene('USAGE', 'DATABASE', n.db) || !tiene('USAGE', 'SCHEMA', `${n.db}.${n.esquema}`) || !tiene(`CREATE ${m[1].toUpperCase()}`, 'SCHEMA', `${n.db}.${n.esquema}`)) throw sinPermiso(`schema '${n.esquema}'`);
+    } else if ((m = /^(?:DROP|ALTER|UNDROP)\s+(?:TABLE|VIEW)\s+(?:IF\s+EXISTS\s+)?("?[\w$."]+"?)/i.exec(plano))) {
+      const n = nombreCompleto(m[1]); const d = (s.duenos || {})[`TABLE:${n.db}.${n.esquema}.${n.tabla}`];
+      if (!(d && ef.has(d))) throw sinPermiso(`table '${n.tabla}'`);
+    }
+  }
+  function anotarDueno(sql) {
+    const m = /^CREATE\s+(?:OR\s+REPLACE\s+)?(?:TRANSIENT\s+|TEMPORARY\s+)?(?:TABLE|VIEW)\s+(?:IF\s+NOT\s+EXISTS\s+)?("?[\w$."]+"?)/i.exec(sql); if (!m) return;
+    const s = st(); const n = nombreCompleto(m[1]); s.duenos = s.duenos || {}; s.duenos[`TABLE:${n.db}.${n.esquema}.${n.tabla}`] = s.ctx.rol;
+  }
+
   // ---------------------------------------------------------------- ejecutar una sentencia
   async function ejecutarUna(sqlOriginal, op = {}) {
     const s = st(); tick();
@@ -225,6 +281,11 @@ ORDER BY ventas DESC;
     // --- contexto
     if ((m = /^USE\s+ROLE\s+("?[\w$]+"?)$/i.exec(sql))) {
       const r = nombreSf(m[1]); if (!ROLES_SISTEMA.includes(r) && !s.roles[r]) throw err(`Role '${r}' specified in the connect string does not exist or not authorized.`, '390189');
+      if (!ROLES_SISTEMA.includes(r) && !op.replay) {
+        // el usuario de práctica tiene todos los roles del sistema; un rol creado hay que asignárselo (o a uno de esos roles)
+        const asignado = s.grants.some((g) => g.tipo === 'ROLE' && g.obj === r && (g.aTipo === 'USER' ? g.a === USUARIO : ROLES_SISTEMA.includes(g.a) || rolesEfectivos('ACCOUNTADMIN').has(g.a)));
+        if (!asignado) throw err(`Requested role '${r}' is not assigned to the executing user. Specify another role to activate.\nAsígnalo primero: GRANT ROLE ${r} TO USER ${USUARIO};`, '390189');
+      }
       s.ctx.rol = r; return { estado: 'Statement executed successfully.' };
     }
     if ((m = /^USE\s+WAREHOUSE\s+("?[\w$]+"?)$/i.exec(sql))) {
@@ -243,6 +304,7 @@ ORDER BY ventas DESC;
     // --- warehouses
     if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?WAREHOUSE\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$]+"?)(.*)$/is.exec(sql))) {
       const w = nombreSf(m[3]);
+      if (!op.replay && !esAdminDatos(rolesEfectivos(s.ctx.rol))) throw sinPermiso("account 'PRACTICA01' (CREATE WAREHOUSE lo tienen SYSADMIN y ACCOUNTADMIN)");
       if (s.warehouses[w] && !m[1]) { if (m[2]) return { estado: `${w} already exists, statement succeeded.` }; throw err(`Object '${w}' already exists.`, '002002'); }
       const o = opciones(m[4]);
       s.warehouses[w] = { nombre: w, tamano: TAMANO(o.WAREHOUSE_SIZE || 'XSMALL'), autoSuspend: o.AUTO_SUSPEND !== undefined ? Number(o.AUTO_SUSPEND) : 600, autoResume: o.AUTO_RESUME === undefined ? true : /TRUE/i.test(o.AUTO_RESUME), estado: /TRUE/i.test(o.INITIALLY_SUSPENDED || '') ? 'SUSPENDED' : 'STARTED', creditos: 0, desde: Date.now(), ultima: Date.now(), dueno: s.ctx.rol, creado: Date.now() };
@@ -252,6 +314,7 @@ ORDER BY ventas DESC;
     }
     if ((m = /^ALTER\s+WAREHOUSE\s+(IF\s+EXISTS\s+)?("?[\w$]+"?)\s+(SUSPEND|RESUME(?:\s+IF\s+SUSPENDED)?|SET\s+(.*))$/is.exec(sql))) {
       const w = s.warehouses[nombreSf(m[2])]; if (!w) throw err(`Object does not exist, or operation cannot be performed.`, '000606');
+      { const ef = rolesEfectivos(s.ctx.rol); if (!esAdminDatos(ef) && !ef.has(w.dueno) && !tiene('OPERATE', 'WAREHOUSE', w.nombre) && !tiene('MODIFY', 'WAREHOUSE', w.nombre)) throw sinPermiso(`warehouse '${w.nombre}'`); }
       if (/^SUSPEND/i.test(m[3])) { if (w.estado !== 'STARTED') throw err('Invalid state. Warehouse cannot be suspended.', '000620'); suspender(w); }
       else if (/^RESUME/i.test(m[3])) { if (w.estado === 'STARTED' && !/IF/i.test(m[3])) throw err('Invalid state. Warehouse cannot be resumed.', '000621'); reanudar(w); }
       else { const o = opciones(m[4]); if (o.WAREHOUSE_SIZE) { const t = TAMANO(o.WAREHOUSE_SIZE); if (!CREDITOS_HORA[t]) throw err(`invalid value '${o.WAREHOUSE_SIZE}' for property 'warehouse_size'`, '001008'); if (w.estado === 'STARTED') { suspender(w); reanudar(w); } w.tamano = t; } if (o.AUTO_SUSPEND !== undefined) w.autoSuspend = Number(o.AUTO_SUSPEND); if (o.AUTO_RESUME !== undefined) w.autoResume = /TRUE/i.test(o.AUTO_RESUME); }
@@ -259,12 +322,15 @@ ORDER BY ventas DESC;
     }
     if ((m = /^DROP\s+WAREHOUSE\s+(IF\s+EXISTS\s+)?("?[\w$]+"?)$/i.exec(sql))) {
       const w = nombreSf(m[2]); if (!s.warehouses[w]) { if (m[1]) return { estado: 'Statement executed successfully.' }; throw err('Object does not exist, or operation cannot be performed.', '000606'); }
+      { const ef = rolesEfectivos(s.ctx.rol); if (!esAdminDatos(ef) && !ef.has(s.warehouses[w].dueno)) throw sinPermiso(`warehouse '${w}'`); }
       suspender(s.warehouses[w]); delete s.warehouses[w]; if (s.ctx.wh === w) s.ctx.wh = null; guardar();
       return { estado: `${w} successfully dropped.` };
     }
     // --- roles y permisos
     if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?ROLE\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$]+"?)/i.exec(sql))) {
-      const r = nombreSf(m[3]); if ((s.roles[r] || ROLES_SISTEMA.includes(r)) && !m[1]) { if (m[2]) return { estado: `${r} already exists, statement succeeded.` }; throw err(`Object '${r}' already exists.`, '002002'); }
+      const r = nombreSf(m[3]);
+      { const ef = rolesEfectivos(s.ctx.rol); if (!ef.has('USERADMIN')) throw sinPermiso("account 'PRACTICA01' (CREATE ROLE lo tienen USERADMIN, SECURITYADMIN y ACCOUNTADMIN: ejecuta USE ROLE SECURITYADMIN;)"); }
+      if ((s.roles[r] || ROLES_SISTEMA.includes(r)) && !m[1]) { if (m[2]) return { estado: `${r} already exists, statement succeeded.` }; throw err(`Object '${r}' already exists.`, '002002'); }
       s.roles[r] = { nombre: r, dueno: s.ctx.rol, creado: Date.now() }; guardar(); return { estado: `Role ${r} successfully created.` };
     }
     if ((m = /^DROP\s+ROLE\s+(IF\s+EXISTS\s+)?("?[\w$]+"?)$/i.exec(sql))) {
@@ -273,12 +339,16 @@ ORDER BY ventas DESC;
     }
     if ((m = /^GRANT\s+ROLE\s+("?[\w$]+"?)\s+TO\s+(ROLE|USER)\s+("?[\w$]+"?)$/i.exec(sql))) {
       const r = nombreSf(m[1]); if (!s.roles[r] && !ROLES_SISTEMA.includes(r)) throw err(`Role '${r}' does not exist or not authorized.`);
+      { const ef = rolesEfectivos(s.ctx.rol); if (!ef.has('SECURITYADMIN') && !(s.roles[r] && ef.has(s.roles[r].dueno))) throw sinPermiso(`role '${r}' (GRANT ROLE lo puede hacer el dueño del rol, SECURITYADMIN o ACCOUNTADMIN)`); }
       s.grants.push({ priv: 'USAGE', tipo: 'ROLE', obj: r, a: nombreSf(m[3]), aTipo: m[2].toUpperCase(), por: s.ctx.rol, cuando: Date.now() }); guardar();
       return { estado: 'Statement executed successfully.' };
     }
     if ((m = /^(GRANT|REVOKE)\s+(.+?)\s+ON\s+(?:(ALL|FUTURE)\s+(TABLES|VIEWS|SCHEMAS)\s+IN\s+(SCHEMA|DATABASE)|(WAREHOUSE|DATABASE|SCHEMA|TABLE|VIEW|STAGE|INTEGRATION))\s+("?[\w$."]+"?)\s+(TO|FROM)\s+(?:ROLE\s+)?("?[\w$]+"?)$/i.exec(sql))) {
       const a = nombreSf(m[9]); if (!s.roles[a] && !ROLES_SISTEMA.includes(a)) throw err(`Role '${a}' does not exist or not authorized.`);
-      const tipo = (m[3] ? `${m[3]} ${m[4]} IN ${m[5]}` : m[6]).toUpperCase(), obj = m[7].replace(/"/g, '').toUpperCase();
+      const tipo = (m[3] ? `${m[3]} ${m[4]} IN ${m[5]}` : m[6]).toUpperCase(); let obj = m[7].replace(/"/g, '').toUpperCase();
+      // el objeto se guarda con su nombre completo, para que el permiso no dependa del contexto en que se otorgó
+      if (/SCHEMA$/.test(tipo) && !obj.includes('.')) obj = `${s.ctx.db}.${obj}`; else if (/^(TABLE|VIEW)$/.test(tipo)) { const n = nombreCompleto(obj); obj = `${n.db}.${n.esquema}.${n.tabla}`; }
+      { const ef = rolesEfectivos(s.ctx.rol); if (!esAdminDatos(ef) && !ef.has('SECURITYADMIN')) throw sinPermiso(`${tipo.toLowerCase()} '${obj}' (para otorgar permisos hace falta ser dueño del objeto, SECURITYADMIN o ACCOUNTADMIN)`); }
       const privs = m[2].toUpperCase().split(',').map((x) => x.trim());
       if (m[1].toUpperCase() === 'GRANT') for (const p of privs) s.grants.push({ priv: p, tipo, obj, a, aTipo: 'ROLE', por: s.ctx.rol, cuando: Date.now() });
       else s.grants = s.grants.filter((g) => !(g.a === a && g.obj === obj && g.tipo === tipo && (privs.includes(g.priv) || privs.includes('ALL') || privs.includes('ALL PRIVILEGES'))));
@@ -309,6 +379,7 @@ ORDER BY ventas DESC;
     // --- bases y esquemas
     if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?(?:TRANSIENT\s+)?DATABASE\s+(IF\s+NOT\s+EXISTS\s+)?("?[\w$]+"?)(?:\s+CLONE\s+("?[\w$]+"?))?/i.exec(sql))) {
       const d = nombreSf(m[3]);
+      if (!op.replay && !esAdminDatos(rolesEfectivos(s.ctx.rol))) throw sinPermiso("account 'PRACTICA01' (CREATE DATABASE lo tienen SYSADMIN y ACCOUNTADMIN)");
       if (await dbExiste(d)) { if (m[2]) return { estado: `${d} already exists, statement succeeded.` }; if (!m[1]) throw err(`Object '${d}' already exists.`, '002002'); await con.query(`DETACH ${ident(d)}`); }
       await con.query(`ATTACH ':memory:' AS ${ident(d)}`); await con.query(`CREATE SCHEMA IF NOT EXISTS ${ident(d)}.public`);
       if (m[4]) { const src = nombreSf(m[4]); for (const e of await esquemas(src)) { await con.query(`CREATE SCHEMA IF NOT EXISTS ${ident(d)}.${ident(e)}`); for (const t of await tablas(src, e)) if (!t.vista) await con.query(`CREATE TABLE ${ident(d)}.${ident(e)}.${ident(t.nombre)} AS SELECT * FROM ${ident(src)}.${ident(e)}.${ident(t.nombre)}`); } }
@@ -322,6 +393,7 @@ ORDER BY ventas DESC;
     }
     if ((m = /^CREATE\s+(OR\s+REPLACE\s+)?(?:TRANSIENT\s+)?SCHEMA\s+(IF\s+NOT\s+EXISTS\s+)?(?:("?[\w$]+"?)\.)?("?[\w$]+"?)/i.exec(sql))) {
       const d = m[3] ? nombreSf(m[3]) : s.ctx.db, e = nombreSf(m[4]);
+      if (!op.replay && !tiene('CREATE SCHEMA', 'DATABASE', d)) throw sinPermiso(`database '${d}'`);
       if (await esquemaExiste(d, e)) { if (m[2]) return { estado: `${e} already exists, statement succeeded.` }; if (!m[1]) throw err(`Object '${e}' already exists.`, '002002'); await con.query(`DROP SCHEMA ${ident(d)}.${ident(e)} CASCADE`); }
       await con.query(`CREATE SCHEMA ${ident(d)}.${ident(e)}`);
       if (!op.replay) { s.ctx.db = d; s.ctx.esquema = e; await usarContexto(); }
@@ -344,7 +416,7 @@ ORDER BY ventas DESC;
       return filas(['name', 'result'], borrados.map((n) => [`${x.nombre.toLowerCase()}/${n}`, 'removed']));
     }
     if ((m = /^COPY\s+INTO\s+("?[\w$."]+"?)\s+FROM\s+@("?[\w$]+"?)(\/\S*)?(.*)$/is.exec(sql))) {
-      await requiereWarehouse();
+      await requiereWarehouse(); if (!op.replay) exigirPermisos(sql);
       const x = s.stages[nombreSf(m[2])]; if (!x) throw err('Stage does not exist or not authorized.', '002003');
       const n = nombreCompleto(m[1]); const resto = m[4] || '';
       const skip = /SKIP_HEADER\s*=\s*(\d+)/i.exec(resto); const delim = /FIELD_DELIMITER\s*=\s*'([^']*)'/i.exec(resto); const pat = /PATTERN\s*=\s*'([^']*)'/i.exec(resto);
@@ -378,6 +450,7 @@ ORDER BY ventas DESC;
     }
     // --- UNDROP
     if ((m = /^UNDROP\s+TABLE\s+("?[\w$."]+"?)$/i.exec(sql))) {
+      if (!op.replay) exigirPermisos(sql);
       const n = nombreCompleto(m[1]); const k = `${n.db}.${n.esquema}.${n.tabla}`; const b = (s.borradas || {})[k];
       if (!b || !b.length) throw err(`Table ${n.tabla} did not exist or was purged.`, '002003');
       const ult = b.pop(); await con.query(`ALTER TABLE ${ref(n, ult.oculto)} RENAME TO ${ident(n.tabla)}`); guardar();
@@ -387,6 +460,7 @@ ORDER BY ventas DESC;
     const esDml = /^(INSERT|UPDATE|DELETE|MERGE|TRUNCATE)\b/i.test(sql);
     const esDdl = /^(CREATE|ALTER|DROP|COMMENT)\b/i.test(sql);
     const soloMeta = /^(DESCRIBE|DESC|EXPLAIN)\b/i.test(sql);
+    if (!op.replay) exigirPermisos(sql);
     if (!soloMeta && !/^SELECT\s+(CURRENT_\w+\(\)\s*(,\s*CURRENT_\w+\(\)\s*)*|\d+|'[^']*')\s*;?$/i.test(sql)) await requiereWarehouse();
     let tr = traducir(sql);
     tr = resolverTimeTravel(tr);
@@ -407,6 +481,7 @@ ORDER BY ventas DESC;
     let r;
     try { r = await con.query(tr); }
     catch (e) { throw err(mensajeError(String(e.message || e), sql), '000904'); }
+    anotarDueno(sql);
     const campos = r.schema.fields; const D = window.SqlMotores.DUCK;
     if (campos.length === 1 && campos[0].name === 'Count' && (esDml || esDdl)) {
       const n = Number((r.toArray()[0] || {}).Count || 0);
@@ -433,6 +508,7 @@ ORDER BY ventas DESC;
     const w = s.warehouses[s.ctx.wh];
     if (!w) throw err(`Object does not exist, or operation cannot be performed.`, '000606');
     if (w.estado !== 'STARTED') { if (!w.autoResume) throw err(`Warehouse '${w.nombre}' cannot be resumed because resource monitor or AUTO_RESUME = FALSE. Ejecuta ALTER WAREHOUSE ${w.nombre} RESUME.`, '000630'); reanudar(w); }
+    if (!tiene('USAGE', 'WAREHOUSE', w.nombre) && !rolesEfectivos(s.ctx.rol).has(w.dueno)) throw sinPermiso(`warehouse '${w.nombre}' (falta GRANT USAGE ON WAREHOUSE ${w.nombre} TO ROLE ${s.ctx.rol})`);
     w.ultima = Date.now();
   }
   function mensajeError(msg, sql) {

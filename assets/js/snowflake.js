@@ -304,13 +304,17 @@ FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</pre><button class="sf-btn" id="sfCo
     main.innerHTML = marco(`<div class="sf-pag"><h1>Users &amp; Roles</h1><p class="sf-dim">En Snowflake los permisos se dan a <b>roles</b>, y los roles a usuarios (o a otros roles, formando una jerarquía). Lo recomendado: un rol por función (por ejemplo, <code>ANALISTA</code>) con solo lo que necesita.</p>
       <div class="sf-tabs"><span class="on">Roles</span></div>
       <table class="sf-tabla"><thead><tr><th>Role</th><th>Descripción</th><th class="sf-der">Grants</th></tr></thead><tbody>${todos.map((r) => `<tr><td><b>${esc(r)}</b>${r === s.ctx.rol ? ' <small class="sf-chip on">actual</small>' : ''}</td><td class="sf-dim">${esc(DESC[r] || 'Rol creado por ti')}</td><td class="sf-der">${s.grants.filter((g) => g.a === r).length}</td></tr>`).join('')}</tbody></table>
-      <h2>Permisos otorgados</h2>${s.grants.length ? `<table class="sf-tabla"><thead><tr><th>Privilege</th><th>On</th><th>Object</th><th>To role</th><th>By</th></tr></thead><tbody>${s.grants.map((g) => `<tr><td><code>${esc(g.priv)}</code></td><td>${esc(g.tipo)}</td><td>${esc(g.obj)}</td><td><b>${esc(g.a)}</b></td><td class="sf-dim">${esc(g.por)}</td></tr>`).join('')}</tbody></table>` : `<div class="sf-vacio">Todavía no hay permisos propios. Prueba en una hoja:<pre class="sf-codigo">CREATE ROLE analista;
+      <h2>Permisos otorgados</h2>${s.grants.length ? `<table class="sf-tabla"><thead><tr><th>Privilege</th><th>On</th><th>Object</th><th>To role</th><th>By</th></tr></thead><tbody>${s.grants.map((g) => `<tr><td><code>${esc(g.priv)}</code></td><td>${esc(g.tipo)}</td><td>${esc(g.obj)}</td><td><b>${esc(g.a)}</b></td><td class="sf-dim">${esc(g.por)}</td></tr>`).join('')}</tbody></table>` : `<div class="sf-vacio">Todavía no hay permisos propios. Prueba en una hoja:<pre class="sf-codigo">USE ROLE SECURITYADMIN;   -- SYSADMIN no puede crear roles
+CREATE ROLE analista;
 GRANT USAGE ON WAREHOUSE compute_wh TO ROLE analista;
 GRANT USAGE ON DATABASE tienda_andina TO ROLE analista;
 GRANT USAGE ON SCHEMA tienda_andina.public TO ROLE analista;
 GRANT SELECT ON ALL TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
 GRANT ROLE analista TO USER alumno;
-SHOW GRANTS TO ROLE analista;</pre></div>`}
+SHOW GRANTS TO ROLE analista;
+
+USE ROLE analista;        -- ahora prueba: solo puede leer ese esquema
+SELECT COUNT(*) FROM tienda_andina.public.pedidos;</pre></div>`}
       <h2>Users</h2><table class="sf-tabla"><thead><tr><th>User</th><th>Default role</th><th>Default warehouse</th></tr></thead><tbody><tr><td><b>${esc(M().USUARIO)}</b></td><td>SYSADMIN</td><td>COMPUTE_WH</td></tr></tbody></table></div>`, 'roles');
   }
 

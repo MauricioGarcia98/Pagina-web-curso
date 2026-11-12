@@ -149,8 +149,8 @@
       ['sf-tt', 'Consulta una tabla como estaba antes de un cambio (Time Travel)', "SELECT * FROM t BEFORE(STATEMENT => '<Query ID>'); el ID está en Query History.", () => sfOk(/\b(BEFORE|AT)\s*\(\s*(STATEMENT|OFFSET|TIMESTAMP)\s*=>/i)],
       ['sf-undrop', 'Borra una tabla y recupérala con UNDROP', 'DROP TABLE t; UNDROP TABLE t;', () => sfOk(/^\s*UNDROP\s+TABLE/i)],
       ['sf-clone', 'Clona una tabla para tener una copia de pruebas', 'CREATE TABLE ventas_dev CLONE ventas;', () => sfOk(/\bCLONE\b/i)],
-      ['sf-rol', 'Crea un rol con permiso de lectura sobre un esquema', 'CREATE ROLE analista; GRANT USAGE ON ... ; GRANT SELECT ON ALL TABLES IN SCHEMA ... TO ROLE analista;', () => (sfS().grants || []).some((g) => g.priv === 'SELECT' && (sfS().roles || {})[g.a])],
-      ['sf-usar-rol', 'Ejecuta una consulta con tu rol nuevo (no ACCOUNTADMIN ni SYSADMIN)', 'USE ROLE analista; y luego un SELECT.', () => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*SELECT/i.test(h.sql) && (sfS().roles || {})[h.rol])],
+      ['sf-rol', 'Crea un rol con permiso de lectura sobre un esquema', 'USE ROLE SECURITYADMIN; CREATE ROLE analista; GRANT USAGE ON WAREHOUSE/DATABASE/SCHEMA … ; GRANT SELECT ON ALL TABLES IN SCHEMA … TO ROLE analista;', () => (sfS().grants || []).some((g) => g.priv === 'SELECT' && (sfS().roles || {})[g.a])],
+      ['sf-usar-rol', 'Ejecuta una consulta con tu rol nuevo (no ACCOUNTADMIN ni SYSADMIN)', 'GRANT ROLE analista TO USER alumno; USE ROLE analista; y luego un SELECT sobre una tabla a la que le diste permiso.', () => (sfS().historial || []).some((h) => h.estado === 'Succeeded' && /^\s*SELECT/i.test(h.sql) && (sfS().roles || {})[h.rol])],
     ]],
   ] };
 
@@ -186,6 +186,57 @@
       ['bq-req', 'Exige el filtro de partición y comprueba que la consulta sin filtro se rechaza', 'OPTIONS(require_partition_filter = TRUE) y después un SELECT sin WHERE sobre esa tabla.', () => (bqS().jobs || []).some((j) => j.estado === 'FAILED' && /partition elimination/i.test(j.error || ''))],
       ['bq-dml', 'Modifica filas con UPDATE o DELETE (con WHERE)', 'BigQuery rechaza un UPDATE o DELETE sin WHERE.', () => bqJ((j) => /^\s*(UPDATE|DELETE)\b/i.test(j.sql))],
       ['bq-pbi', 'Importa en Power BI una tabla de BigQuery', 'En Power BI: Obtener datos → Google BigQuery → marca la tabla → Cargar. Queda como un job en Job history.', () => cruce('pbiBigQuery')],
+    ]],
+  ] };
+
+  // Airflow: mira el estado de la réplica (corridas, eventos del registro de auditoría, variables y conexiones)
+  const afS = () => { const M = window.Shell && window.Shell.Machine; return (M && M.cloud && M.cloud.airflow) || { runs: {}, eventos: [], vars: {}, conns: {}, assetEv: [] }; };
+  const afEv = (t) => (afS().eventos || []).some((e) => e.evento === t);
+  const afRuns = (f) => Object.entries(afS().runs || {}).some(([dag, rs]) => (Array.isArray(rs) ? rs : Object.values(rs || {})).some((r) => f(dag, r)));
+  const AF_EJEMPLOS = ['ventas_diarias', 'reporte_ventas', 'ingesta_api', 'conciliacion_pagos'];
+  RETOS.airflow = { titulo: 'Retos de Airflow', niveles: [
+    ['Básico', [
+      ['af-unpause', 'Despausa un DAG', 'En Dags, el interruptor de la izquierda. Los DAGs nuevos empiezan pausados.', () => afEv('unpaused')],
+      ['af-trigger', 'Dispara un DAG a mano', 'El botón ▶ (Trigger) de la fila, o airflow dags trigger <dag_id> en la terminal.', () => afEv('trigger')],
+      ['af-ok', 'Consigue una corrida completa en verde', 'Prueba con ventas_diarias: despáusalo y dispáralo. Mira la Grid.', () => afRuns((d, r) => r.state === 'success')],
+      ['af-var', 'Crea una variable', 'Admin → Variables → +, o airflow variables set mi_variable 10.', () => Object.keys(afS().vars || {}).some((k) => !['umbral_alerta', 'entorno'].includes(k))],
+    ]],
+    ['Intermedio', [
+      ['af-fix', 'Arregla conciliacion_pagos y consigue que termine bien', 'Dispáralo, lee el log de la tarea que falla y corrige el archivo en ~/airflow/dags con nano o vim.', () => afRuns((d, r) => d === 'conciliacion_pagos' && r.state === 'success')],
+      ['af-clear', 'Vuelve a correr una tarea con Clear', 'Clic en el cuadro de la tarea en la Grid → Clear.', () => afEv('clear')],
+      ['af-conn', 'Crea una conexión', 'Admin → Connections → +, o airflow connections add …', () => Object.keys(afS().conns || {}).some((k) => k !== 'postgres_tienda')],
+      ['af-asset', 'Haz que un DAG dispare a otro por datos (assets)', 'Despausa reporte_ventas y corre ventas_diarias: al actualizar el asset, el segundo arranca solo.', () => afRuns((d, r) => d === 'reporte_ventas' && r.state === 'success' && r.tipo !== 'manual')],
+    ]],
+    ['Avanzado', [
+      ['af-propio', 'Escribe tu propio DAG y consigue una corrida en verde', 'Crea un archivo .py en ~/airflow/dags con un dag_id nuevo. Aparece en la lista al analizarse.', () => afRuns((d, r) => !AF_EJEMPLOS.includes(d) && r.state === 'success')],
+      ['af-backfill', 'Rellena fechas pasadas con un backfill', 'En el DAG: Trigger → Backfill, con un rango de fechas.', () => afEv('backfill') || afRuns((d, r) => r.tipo === 'backfill')],
+      ['af-dbx', 'Dispara un job de Databricks desde un DAG', 'Conexión databricks_default y un DAG con DatabricksRunNowOperator(job_id=…). Sigue el proyecto integrador.', cruceAirflow],
+    ]],
+  ] };
+
+  // Fabric: mira los workspaces y sus ítems
+  const fbS = () => (Store && Store.data.fabric) || { ws: {}, runs: [] };
+  const fbItems = () => Object.values(fbS().ws || {}).flatMap((w) => Object.values(w.items || {}));
+  const fbHay = (tipo, f = () => true) => fbItems().some((i) => i.tipo === tipo && f(i));
+  const fbRun = (tipo) => (fbS().runs || []).some((r) => r.tipo === tipo && r.estado === 'Succeeded');
+  RETOS.fabric = { titulo: 'Retos de Microsoft Fabric', niveles: [
+    ['Básico', [
+      ['fb-ws', 'Crea un workspace', 'Workspaces → New workspace.', () => Object.values(fbS().ws || {}).some((w) => !w.personal)],
+      ['fb-lh', 'Crea un lakehouse', 'En el workspace: + New item → Lakehouse.', () => fbHay('lakehouse')],
+      ['fb-tabla', 'Deja una tabla Delta en el lakehouse', 'Sube un CSV a Files y usa Load to Tables, o carga los datos de ejemplo.', () => fbHay('lakehouse', (i) => Object.keys(i.tablas || {}).length > 0)],
+      ['fb-sql', 'Guarda una consulta en el SQL analytics endpoint', 'En el lakehouse, cambia a SQL analytics endpoint y crea una New SQL query.', () => fbHay('lakehouse', (i) => (i.consultas || []).some((q) => (q.sql || '').trim().length > 10))],
+    ]],
+    ['Intermedio', [
+      ['fb-wh', 'Crea un warehouse con al menos una tabla', '+ New item → Warehouse, y crea la tabla con T-SQL (CREATE TABLE … AS SELECT) o con los datos de ejemplo.', () => fbHay('warehouse', (i) => Object.keys(i.tablas || {}).length > 0)],
+      ['fb-nb', 'Ejecuta una celda en un notebook', '+ New item → Notebook, elige el lakehouse y ejecuta una celda de PySpark.', () => fbRun('Notebook')],
+      ['fb-pipe', 'Arma un pipeline con una actividad', '+ New item → Pipeline → Copy data o Notebook.', () => fbHay('pipeline', (i) => (i.acts || []).length > 0)],
+      ['fb-run', 'Ejecuta el pipeline y míralo en Monitor', 'Run en el pipeline; después abre Monitor.', () => fbRun('Pipeline')],
+    ]],
+    ['Avanzado', [
+      ['fb-atajo', 'Crea un shortcut a una tabla de otro lakehouse', 'En el lakehouse: New shortcut. El atajo no copia los datos.', () => fbHay('lakehouse', (i) => (i.atajos || []).length > 0)],
+      ['fb-sm', 'Crea un modelo semántico', 'Desde el lakehouse o el warehouse: New semantic model.', () => fbHay('semanticmodel')],
+      ['fb-git', 'Conecta el workspace a Git', 'Workspace settings → Git integration (necesitas un repositorio tuyo en el GitHub de práctica).', () => Object.values(fbS().ws || {}).some((w) => w.git)],
+      ['fb-pbi', 'Importa en Power BI una tabla de Fabric', 'En Power BI: Obtener datos → Lakehouses y warehouses de Fabric.', () => cruce('pbiFabric')],
     ]],
   ] };
 

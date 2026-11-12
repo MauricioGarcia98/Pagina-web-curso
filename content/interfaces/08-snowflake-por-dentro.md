@@ -128,14 +128,19 @@ En Snowflake los permisos se dan a **roles**, y los roles a usuarios. Los roles 
 Para que un rol pueda leer una tabla necesita permiso en **toda la cadena**: el warehouse, la base, el esquema y la tabla.
 
 ```sql norun
+USE ROLE SECURITYADMIN;   -- SYSADMIN no puede crear roles
 CREATE ROLE analista;
 GRANT USAGE ON WAREHOUSE compute_wh TO ROLE analista;
 GRANT USAGE ON DATABASE tienda_andina TO ROLE analista;
 GRANT USAGE ON SCHEMA tienda_andina.public TO ROLE analista;
 GRANT SELECT ON ALL TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
 GRANT SELECT ON FUTURE TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
-GRANT ROLE analista TO USER ana;
+GRANT ROLE analista TO USER alumno;
+
+USE ROLE analista;       -- prueba el rol: solo puede leer ese esquema
 ```
+
+En la réplica los permisos **se cumplen**: con `analista`, una tabla de otro esquema responde *does not exist or not authorized* (Snowflake no distingue "no existe" de "no tienes permiso", a propósito), y un warehouse sin `USAGE` responde *Insufficient privileges*.
 
 `FUTURE TABLES` hace que las tablas que se creen después también queden con el permiso.
 
@@ -157,7 +162,7 @@ GRANT ROLE analista TO USER ana;
 3. En **Databases**, abre el stage y agrega los archivos de ejemplo.
 4. Crea la tabla `clientes_nuevos` y cárgala con `COPY INTO`. Ejecuta el `COPY` otra vez y mira el `LOAD_SKIPPED`.
 5. Borra por error los clientes de un país con `DELETE` y recupéralos con `BEFORE(STATEMENT => ...)`.
-6. Crea el rol `analista` con permiso de lectura y revisa `SHOW GRANTS TO ROLE analista`.
+6. Con `SECURITYADMIN`, crea el rol `analista` con permiso de lectura, asígnatelo y prueba qué puede y qué no.
 7. Mira en **Warehouses** cuántos créditos usaste y en **Query History** todo lo que corrió.
 
 ## Qué tiene la réplica y qué no
@@ -169,7 +174,7 @@ GRANT ROLE analista TO USER ana;
 | Bases, esquemas, tablas, vistas, clones | Data sharing, Marketplace, tablas Iceberg, dynamic tables |
 | Stages internos, `LIST`, `REMOVE`, `COPY INTO` con `PATTERN`, `SKIP_HEADER`, `FORCE` | Stages externos, Snowpipe, `PUT`/`GET` desde SnowSQL |
 | Time Travel (`AT`, `BEFORE`) y `UNDROP TABLE` | Fail-safe, retención configurable |
-| Roles, `GRANT`/`REVOKE`, `SHOW GRANTS` (se registran; no se bloquean consultas por permisos) | Políticas de enmascaramiento y de filas, tags |
+| Roles con jerarquía, `GRANT`/`REVOKE`, `SHOW GRANTS`; los permisos se hacen cumplir en cada consulta | Políticas de enmascaramiento y de filas, tags |
 
 El motor por debajo es DuckDB: algunas funciones muy específicas de Snowflake pueden no estar o dar mensajes de error distintos.
 

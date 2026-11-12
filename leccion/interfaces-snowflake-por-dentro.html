@@ -158,13 +158,17 @@ UNDROP TABLE ventas;</code></pre>
 </tr>
 </tbody></table></div>
 <p>Para que un rol pueda leer una tabla necesita permiso en <strong>toda la cadena</strong>: el warehouse, la base, el esquema y la tabla.</p>
-<pre data-norun><code class="language-sql">CREATE ROLE analista;
+<pre data-norun><code class="language-sql">USE ROLE SECURITYADMIN;   -- SYSADMIN no puede crear roles
+CREATE ROLE analista;
 GRANT USAGE ON WAREHOUSE compute_wh TO ROLE analista;
 GRANT USAGE ON DATABASE tienda_andina TO ROLE analista;
 GRANT USAGE ON SCHEMA tienda_andina.public TO ROLE analista;
 GRANT SELECT ON ALL TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
 GRANT SELECT ON FUTURE TABLES IN SCHEMA tienda_andina.public TO ROLE analista;
-GRANT ROLE analista TO USER ana;</code></pre>
+GRANT ROLE analista TO USER alumno;
+
+USE ROLE analista;       -- prueba el rol: solo puede leer ese esquema</code></pre>
+<p>En la réplica los permisos <strong>se cumplen</strong>: con <code>analista</code>, una tabla de otro esquema responde <em>does not exist or not authorized</em> (Snowflake no distingue &quot;no existe&quot; de &quot;no tienes permiso&quot;, a propósito), y un warehouse sin <code>USAGE</code> responde <em>Insufficient privileges</em>.</p>
 <p><code>FUTURE TABLES</code> hace que las tablas que se creen después también queden con el permiso.</p>
 <h2>Funciones propias de Snowflake</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -203,7 +207,7 @@ GRANT ROLE analista TO USER ana;</code></pre>
 <li>En <strong>Databases</strong>, abre el stage y agrega los archivos de ejemplo.</li>
 <li>Crea la tabla <code>clientes_nuevos</code> y cárgala con <code>COPY INTO</code>. Ejecuta el <code>COPY</code> otra vez y mira el <code>LOAD_SKIPPED</code>.</li>
 <li>Borra por error los clientes de un país con <code>DELETE</code> y recupéralos con <code>BEFORE(STATEMENT =&gt; ...)</code>.</li>
-<li>Crea el rol <code>analista</code> con permiso de lectura y revisa <code>SHOW GRANTS TO ROLE analista</code>.</li>
+<li>Con <code>SECURITYADMIN</code>, crea el rol <code>analista</code> con permiso de lectura, asígnatelo y prueba qué puede y qué no.</li>
 <li>Mira en <strong>Warehouses</strong> cuántos créditos usaste y en <strong>Query History</strong> todo lo que corrió.</li>
 </ol>
 <h2>Qué tiene la réplica y qué no</h2>
@@ -232,7 +236,7 @@ GRANT ROLE analista TO USER ana;</code></pre>
 <td>Fail-safe, retención configurable</td>
 </tr>
 <tr>
-<td>Roles, <code>GRANT</code>/<code>REVOKE</code>, <code>SHOW GRANTS</code> (se registran; no se bloquean consultas por permisos)</td>
+<td>Roles con jerarquía, <code>GRANT</code>/<code>REVOKE</code>, <code>SHOW GRANTS</code>; los permisos se hacen cumplir en cada consulta</td>
 <td>Políticas de enmascaramiento y de filas, tags</td>
 </tr>
 </tbody></table></div>
