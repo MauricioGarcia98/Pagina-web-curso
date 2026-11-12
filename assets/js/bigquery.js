@@ -14,11 +14,24 @@
     ok: '<circle cx="12" cy="12" r="9"/><path d="M8 12.500l2.700 2.700L16 9.500"/>', mal: '<circle cx="12" cy="12" r="9"/><path d="M12 7.500v5.500M12 16.300v.200"/>', subir: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>', basura: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', part: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18"/>',
   };
   // íconos Material Symbols (los de la consola de Google Cloud, Apache-2.0); los trazos propios quedan de respaldo
-  const MSMAP = { estudio: 'query_stats', jobs: 'history', costo: 'payments', volver: 'arrow_back', play: 'play_arrow', mas: 'add', flecha: 'chevron_right', abajo: 'keyboard_arrow_down', proyecto: 'deployed_code', dataset: 'dataset', tabla: 'table', vista: 'visibility', ok: 'check_circle', mal: 'error', subir: 'upload', basura: 'delete', part: 'table_view' };
+  const MSMAP = { resumen: 'grid_view', lupa: 'search', transferir: 'upload', reloj: 'schedule', dataform: 'schema', compartir: 'share', capacidad: 'monitoring', shell: 'terminal', campana: 'notifications', ayuda: 'help', puntos: 'more_vert', menu: 'menu', estrella: 'star', guardar: 'save', descargar: 'download', cerrar: 'close', estudio: 'query_stats', jobs: 'history', costo: 'payments', volver: 'arrow_back', play: 'play_arrow', mas: 'add', flecha: 'chevron_right', abajo: 'keyboard_arrow_down', proyecto: 'deployed_code', dataset: 'dataset', tabla: 'table', vista: 'visibility', ok: 'check_circle', mal: 'error', subir: 'upload', basura: 'delete', part: 'table_view' };
   const ic = (n, t = 16) => (window.IconosOficiales && MSMAP[n] && window.IconosOficiales.tiene('ms', MSMAP[n]) ? window.IconosOficiales.ms(MSMAP[n], t + 2, 'bq-ic') : icPropio(n, t));
   const icPropio = (n, t = 16) => `<svg class="bq-ic" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${(IC[n] || '').replace(/(\d)\.(\d)00\b/g, '$1.$2')}</svg>`;
   const href = (h) => '#/bigquery' + (h ? '/' + h : '');
-  const NAV = [['estudio', 'Studio', 'estudio', ''], ['jobs', 'Job history', 'jobs', 'jobs'], ['costos', 'Costos', 'costo', 'costos']];
+  // menú de BigQuery agrupado como en la consola (lo que no se simula se explica en una página)
+  const NAV = [['resumen', 'Overview', 'resumen', 'resumen'], ['estudio', 'Studio', 'estudio', ''], ['buscar', 'Search', 'lupa', 'buscar'],
+    ['#Pipelines and integration'], ['transferencias', 'Data transfers', 'transferir', 'transferencias'], ['programadas', 'Scheduled queries', 'reloj', 'programadas'], ['dataform', 'Dataform', 'dataform', 'dataform'],
+    ['#Governance'], ['sharing', 'Sharing (Analytics Hub)', 'compartir', 'sharing'],
+    ['#Administration'], ['jobs', 'Jobs explorer', 'jobs', 'jobs'], ['costos', 'Costs (práctica)', 'costo', 'costos'], ['capacidad', 'Capacity management', 'capacidad', 'capacidad']];
+  const NO_SIMULADO = {
+    resumen: ['Overview', 'La portada de BigQuery: novedades, datasets públicos de ejemplo y accesos rápidos. En la práctica, empieza por Studio.', ''],
+    buscar: ['Search', 'Busca tablas, vistas y columnas en todos los proyectos a los que tienes acceso (usa el catálogo de Dataplex). En la práctica, el explorador de Studio tiene un buscador.', ''],
+    transferencias: ['Data transfers', 'BigQuery Data Transfer Service copia datos a horario desde Google Ads, YouTube, Cloud Storage, Amazon S3, Teradata y otros, sin escribir código.', ''],
+    programadas: ['Scheduled queries', 'Consultas que corren solas a horario y escriben su resultado en una tabla. Es la forma más simple de automatizar un SQL en BigQuery.', ''],
+    dataform: ['Dataform', 'Proyectos de transformaciones en SQL (SQLX) con dependencias, pruebas y versiones en Git, como dbt pero dentro de BigQuery.', '#/lab/dbt'],
+    sharing: ['Sharing (Analytics Hub)', 'Publica datasets para que otras organizaciones los usen sin copiarlos; ellos los ven como un dataset enlazado de solo lectura.', ''],
+    capacidad: ['Capacity management', 'Reservas de slots (modelo de capacidad con ediciones Standard, Enterprise y Enterprise Plus) como alternativa a pagar por bytes procesados.', '#/bigquery/costos'],
+  };
 
   function vista(m, ctx, sub) {
     main = m; Store = ctx.Store; toast = ctx.toast || toast; ruta = (sub || []).map(decodeURIComponent);
@@ -26,12 +39,25 @@
     dibujar();
   }
   function marco(contenido, seccion) {
-    return `<div class="bqp" id="bqp"><header class="bq-top"><b class="bq-marca">Google Cloud</b><span class="bq-tag">práctica</span><span class="bq-proy">${ic('proyecto', 15)} ${esc(M().PROYECTO)}</span><span class="bq-sp"></span><span class="bq-prod">BigQuery</span></header>
-      <div class="bq-cuerpo"><aside class="bq-nav"><nav>${NAV.map(([id, t, i, h]) => `<a class="bq-nav-i${seccion === id ? ' on' : ''}" href="${href(h)}">${ic(i, 18)}<span>${t}</span></a>`).join('')}</nav><a class="bq-nav-i bq-curso" href="#/herramientas">${ic('volver', 18)}<span>Curso</span></a></aside>
+    return `<div class="bqp" id="bqp"><header class="bq-top"><button class="bq-icono bq-top-ic" title="Navigation menu">${ic('menu', 20)}</button><b class="bq-marca">Google Cloud</b><span class="bq-tag">práctica</span><button class="bq-proy" title="Select a project">${ic('proyecto', 15)} ${esc(M().PROYECTO)} ${ic('abajo', 14)}</button>
+      <label class="bq-gbuscar">${ic('lupa', 18)}<input placeholder="Search (/) for resources, docs, products, and more" aria-label="Search" id="bqGBuscar"></label><span class="bq-sp"></span>
+      <button class="bq-icono bq-top-ic" title="Activate Cloud Shell (en la práctica: la terminal del curso)" data-ir="#/lab/terminal">${ic('shell', 20)}</button><button class="bq-icono bq-top-ic" title="Notifications">${ic('campana', 20)}</button><button class="bq-icono bq-top-ic" title="Help">${ic('ayuda', 20)}</button><button class="bq-icono bq-top-ic" title="More">${ic('puntos', 20)}</button><span class="bq-avatar" title="alumno@academia.dev">A</span></header>
+      <div class="bq-cuerpo"><aside class="bq-nav"><div class="bq-nav-prod">BigQuery</div><nav>${NAV.map(([id, t, i, h]) => (id[0] === '#' ? `<div class="bq-nav-sec">${id.slice(1)}</div>` : `<a class="bq-nav-i${seccion === id ? ' on' : ''}" href="${href(h)}">${ic(i, 18)}<span>${t}</span></a>`)).join('')}</nav><a class="bq-nav-i bq-curso" href="#/herramientas">${ic('volver', 18)}<span>Curso</span></a></aside>
       <main class="bq-main">${contenido}</main></div><div class="bq-modal" id="bqModal" hidden></div></div>`;
+  }
+  function noSimulado(id) {
+    const [t, txt, enlace] = NO_SIMULADO[id];
+    main.innerHTML = marco(`<section class="bq-pag"><h1>${esc(t)}</h1><div class="bq-aviso">${ic('ok')} <div><b>Esta sección no está simulada.</b> ${esc(txt)}</div></div>${enlace ? `<p><a class="bq-btn" href="${enlace}">Ir a lo que sí puedes practicar</a></p>` : ''}</section>`, id);
+    montarTop();
+  }
+  function montarTop() {
+    main.querySelectorAll('[data-ir]').forEach((b) => (b.onclick = () => { location.hash = b.dataset.ir; }));
+    const gb = main.querySelector('#bqGBuscar'); if (gb) gb.onkeydown = (e) => { if (e.key === 'Enter') { const q = gb.value.trim().toLowerCase(); if (!q) return; const hit = NAV.find((n) => n[1] && n[1].toLowerCase().includes(q)); if (hit) location.hash = href(hit[3]); else toast('En la práctica, el buscador solo encuentra secciones de BigQuery'); } };
   }
   function dibujar() {
     const r = ruta[0] || '';
+    if (NO_SIMULADO[r]) return noSimulado(r);
+    setTimeout(montarTop, 0);
     if (r === 'jobs') return jobs();
     if (r === 'costos') return costos();
     return estudio();
@@ -42,8 +68,9 @@
     const s = M().st(); const r = ruta[0] || '';
     let q = s.consultas.find((x) => x.id === (r === 'q' ? ruta[1] : s.actual)) || s.consultas[s.consultas.length - 1];
     const panel = r === 't' ? '<section class="bq-pag" id="bqDet"></section>' : r === 'd' ? '<section class="bq-pag" id="bqDet"></section>' : `<section class="bq-ed-zona">
-        <div class="bq-hoja-bar"><select id="bqSel" class="bq-select" aria-label="Consultas guardadas">${s.consultas.map((x) => `<option value="${x.id}" ${x.id === q.id ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select><button class="bq-icono" id="bqNueva" title="Nueva consulta">${ic('mas')}</button><button class="bq-icono" id="bqRen" title="Cambiar el nombre">✎</button>
-          <button class="bq-btn bq-pri" id="bqRun" title="Ejecutar (Ctrl+Enter)">${ic('play', 13)} Run</button><span class="bq-sp"></span><span class="bq-valida" id="bqVal"><span class="bq-spin"></span> Cargando el motor…</span></div>
+        <div class="bq-pestanas">${s.consultas.map((x) => `<a class="bq-pest${x.id === q.id ? ' on' : ''}" href="${href('q/' + x.id)}" title="${esc(x.nombre)}">${ic('estudio', 14)}<span>${esc(x.nombre)}</span>${s.consultas.length > 1 ? `<button class="bq-pest-x" data-cerrar="${x.id}" title="Close tab">${ic('cerrar', 14)}</button>` : ''}</a>`).join('')}<button class="bq-icono" id="bqNueva" title="SQL query (nueva pestaña)">${ic('mas')}</button></div>
+        <div class="bq-hoja-bar"><button class="bq-icono" id="bqRen" title="Cambiar el nombre">✎</button>
+          <button class="bq-btn bq-pri" id="bqRun" title="Ejecutar (Ctrl+Enter)">${ic('play', 13)} Run</button><button class="bq-btn bq-sec" id="bqGuardar" title="Save query">${ic('guardar', 15)} Save</button><button class="bq-btn bq-sec" id="bqCompartir" title="Copy link">${ic('compartir', 15)} Share</button><button class="bq-btn bq-sec" data-ir="#/bigquery/programadas" title="Schedule">${ic('reloj', 15)} Schedule</button><span class="bq-sp"></span><span class="bq-valida" id="bqVal"><span class="bq-spin"></span> Cargando el motor…</span></div>
         <div class="bq-editor" id="bqEd"></div><div class="bq-res" id="bqRes"><div class="bq-res-vacio">Escribe una consulta y mira arriba a la derecha <b>cuántos datos va a procesar</b> antes de ejecutarla. <b>Ctrl+Enter</b> la ejecuta.</div></div></section>`;
     main.innerHTML = marco(`<div class="bq-estudio"><aside class="bq-arbol" id="bqArbol"><div class="bq-dim bq-pad">Cargando…</div></aside>${panel}</div>`, 'estudio');
     M().init((t) => { const a = main.querySelector('#bqArbol'); if (a) a.innerHTML = `<div class="bq-dim bq-pad">${esc(t)}</div>`; const v = main.querySelector('#bqVal'); if (v) v.innerHTML = `<span class="bq-spin"></span> ${esc(t)}`; }).then(() => { arbol(); if (r === 't') tabla(ruta[1], ruta[2]); else if (r === 'd') dataset(ruta[1]); else validar(); }).catch((e) => { const a = main.querySelector('#bqArbol'); if (a) a.innerHTML = `<div class="bq-err bq-pad">${esc(e.message)}</div>`; });
@@ -56,7 +83,9 @@
       setTimeout(() => cm.refresh(), 0);
     } else { ed.innerHTML = `<textarea class="bq-ta" spellcheck="false">${esc(q.sql)}</textarea>`; const ta = ed.firstChild; cm = { getValue: () => ta.value, getSelection: () => ta.value.slice(ta.selectionStart, ta.selectionEnd), setValue: (v) => { ta.value = v; } }; ta.addEventListener('input', () => { q.sql = ta.value; Store.save(); clearTimeout(tEst); tEst = setTimeout(validar, 450); }); }
     main.querySelector('#bqRun').onclick = correr;
-    main.querySelector('#bqSel').onchange = (e) => { location.hash = href('q/' + e.target.value); };
+    main.querySelector('#bqGuardar').onclick = () => { Store.save(); toast(`Consulta "${q.nombre}" guardada (en tu navegador)`); };
+    main.querySelector('#bqCompartir').onclick = () => { try { navigator.clipboard.writeText(location.href); } catch (e) { /* sin portapapeles */ } toast('Enlace copiado. En BigQuery real, compartir una consulta guardada usa permisos de IAM.'); };
+    main.querySelectorAll('[data-cerrar]').forEach((b) => (b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); const i = s.consultas.findIndex((x) => x.id === b.dataset.cerrar); if (i < 0 || s.consultas.length < 2) return; s.consultas.splice(i, 1); if (s.actual === b.dataset.cerrar) s.actual = s.consultas[Math.max(0, i - 1)].id; Store.save(); location.hash = href('q/' + s.actual); estudio(); }));
     main.querySelector('#bqNueva').onclick = () => nuevaConsulta('');
     main.querySelector('#bqRen').onclick = () => { const n = prompt('Nombre de la consulta', q.nombre); if (n && n.trim()) { q.nombre = n.trim(); Store.save(); estudio(); } };
     if (ultimo && ultimo.q === q.id) mostrar(ultimo.rs);

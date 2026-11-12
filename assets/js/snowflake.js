@@ -17,13 +17,29 @@
     play: '<path d="M7 4l13 8-13 8z" fill="currentColor"/>', mas: '<path d="M12 5v14M5 12h14"/>', flecha: '<path d="M9 6l6 6-6 6"/>', abajo: '<path d="M6 9l6 6 6-6"/>',
     tabla: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M9 10v10"/>', vista: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     esquema: '<path d="M3 7h7l2 2h9v10H3z"/>', stage: '<path d="M4 4h16v6H4zM4 14h16v6H4z"/><path d="M12 10v4"/>', volver: '<path d="M15 6l-6 6 6 6"/>', subir: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>',
+    cuaderno: '<path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/>', app: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>', tablero: '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/>',
+    tienda: '<path d="M4 9l1-5h14l1 5M4 9v11h16V9M4 9h16M9 20v-6h6v6"/>', tarea: '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>', costo: '<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2.2s1.2 1.8 3 2.1 3 .9 3 2.2-1.3 2.3-3 2.3c-1.5 0-2.6-.6-3.1-1.6M12 6v2M12 16.3v1.7"/>',
+    salir: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>', doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/>',
     basura: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', copo: '<path d="M12 2v20M3.3 7l17.4 10M20.7 7L3.3 17"/><path d="M9.5 3.5L12 6l2.5-2.5M9.5 20.5L12 18l2.5 2.5M4.6 10l3.4-1 .9-3.4M19.4 14l-3.4 1-.9 3.4M19.4 10l-3.4-1-.9-3.4M4.6 14l3.4 1 .9 3.4"/>',
   };
   const ic = (n, t = 16) => `<svg class="sf-ic" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n] || ''}</svg>`;
+  // menú de Snowsight agrupado como el real (Projects, Data, Monitoring, Admin); lo que no se simula se explica
   const NAV = [
-    ['home', 'Home', 'home', ''], ['hojas', 'Worksheets', 'hoja', 'hojas'], ['datos', 'Databases', 'datos', 'datos'],
-    ['historial', 'Query History', 'historial', 'historial'], ['warehouses', 'Warehouses', 'wh', 'warehouses'], ['roles', 'Users & Roles', 'roles', 'roles'],
+    ['home', 'Home', 'home', ''],
+    ['#Projects'], ['hojas', 'Worksheets', 'hoja', 'hojas'], ['notebooks', 'Notebooks', 'cuaderno', 'notebooks'], ['streamlit', 'Streamlit', 'app', 'streamlit'], ['dashboards', 'Dashboards', 'tablero', 'dashboards'],
+    ['#Data'], ['datos', 'Databases', 'datos', 'datos'], ['marketplace', 'Marketplace', 'tienda', 'marketplace'],
+    ['#Monitoring'], ['historial', 'Query History', 'historial', 'historial'], ['copy', 'Copy History', 'subir', 'copy'], ['tareas', 'Task History', 'tarea', 'tareas'],
+    ['#Admin'], ['warehouses', 'Warehouses', 'wh', 'warehouses'], ['costos', 'Cost Management', 'costo', 'costos'], ['roles', 'Users & Roles', 'roles', 'roles'],
   ];
+  const NO_SIMULADO = {
+    notebooks: ['Notebooks', 'Los notebooks de Snowflake mezclan celdas de SQL, Python y Markdown y corren sobre un warehouse (o en contenedores). Para practicar notebooks usa JupyterLab o Databricks de práctica.', '#/jupyter'],
+    streamlit: ['Streamlit', 'Streamlit in Snowflake publica aplicaciones de datos hechas en Python dentro de la cuenta, con los permisos de Snowflake.', ''],
+    dashboards: ['Dashboards', 'Tableros simples a partir de consultas de las worksheets. Para tableros completos se suele usar Power BI o Tableau conectados a Snowflake.', '#/powerbi'],
+    marketplace: ['Marketplace', 'Datos y aplicaciones de terceros que se comparten sin copiarlos (Secure Data Sharing): aparecen como una base de datos de solo lectura.', ''],
+    copy: ['Copy History', 'El historial de cargas con COPY INTO: archivo por archivo, filas cargadas y errores. En la práctica, los COPY INTO aparecen en Query History.', '#/snowflake/historial'],
+    tareas: ['Task History', 'Las ejecuciones de las TASKs programadas (CREATE TASK ... SCHEDULE). Sirven para orquestar SQL dentro de Snowflake sin Airflow.', ''],
+    costos: ['Cost Management', 'El consumo de créditos por warehouse, servicio y día, con presupuestos y alertas. En la práctica, mira los créditos estimados en Warehouses.', '#/snowflake/warehouses'],
+  };
   const href = (h) => '#/snowflake' + (h ? '/' + h : '');
 
   function vista(m, ctx, sub) {
@@ -40,12 +56,47 @@
     const s = M().st();
     return `<div class="sfp" id="sfp"><aside class="sf-nav">
       <div class="sf-cuenta">${ic('copo', 22)}<div><b>Snowflake</b><span class="sf-tag">práctica</span><small>${esc(M().USUARIO)} · ${esc(s.ctx.rol)}</small></div></div>
-      <nav>${NAV.map(([id, t, i, h]) => `<a class="sf-nav-i${seccion === id ? ' on' : ''}" href="${href(h)}">${ic(i, 18)}<span>${t}</span></a>`).join('')}</nav>
+      <button class="sf-crear" id="sfCrear">${ic('mas', 16)} Create</button>
+      <nav>${NAV.map(([id, t, i, h]) => (id[0] === '#' ? `<div class="sf-nav-sec">${id.slice(1)}</div>` : `<a class="sf-nav-i${seccion === id ? ' on' : ''}" href="${href(h)}">${ic(i, 18)}<span>${t}</span></a>`)).join('')}</nav>
       <a class="sf-nav-i sf-curso" href="#/herramientas">${ic('volver', 18)}<span>Curso</span></a>
-    </aside><main class="sf-main">${contenido}</main></div>`;
+      <button class="sf-usuario" id="sfUsuario"><span class="sf-avatar">${esc(M().USUARIO.slice(0, 2))}</span><span><b>${esc(M().USUARIO)}</b><small>${esc(s.ctx.rol)}</small></span>${ic('abajo', 14)}</button>
+    </aside><main class="sf-main">${contenido}</main><div class="sf-pop" id="sfPop" hidden></div></div>`;
   }
 
+  // apariencia (menú del usuario → Appearance): Light, Dark o System (sigue el tema del curso)
+  function temaClase() { const t = ((M().st().prefs || {}).tema) || 'system'; return t === 'dark' ? 'oscuro' : t === 'light' ? 'claro' : ''; }
+  const CREAR = [['hoja', 'SQL Worksheet', ''], ['datos', 'Database', 'CREATE DATABASE mi_base;\nCREATE SCHEMA mi_base.crudo;'], ['wh', 'Warehouse', "CREATE WAREHOUSE mi_wh\n  WAREHOUSE_SIZE = 'XSMALL'\n  AUTO_SUSPEND = 60\n  AUTO_RESUME = TRUE;"], ['stage', 'Stage', 'CREATE STAGE mi_stage\n  FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);'], ['tabla', 'Table', 'CREATE TABLE mi_tabla (\n  id NUMBER,\n  nombre STRING,\n  creado TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()\n);']];
+  function montarMarco() {
+    const raiz = main.querySelector('#sfp'); if (!raiz) return; const c = temaClase(); raiz.classList.remove('oscuro', 'claro'); if (c) raiz.classList.add(c);
+    const pop = main.querySelector('#sfPop');
+    const abrir = (btn, html) => {
+      if (!pop.hidden && pop.dataset.de === btn.id) { pop.hidden = true; return; }
+      const r = btn.getBoundingClientRect(), rr = raiz.getBoundingClientRect(); pop.innerHTML = html; pop.hidden = false; pop.dataset.de = btn.id; pop.style.left = (r.left - rr.left) + 'px';
+      if (btn.id === 'sfUsuario') { pop.style.top = ''; pop.style.bottom = (rr.bottom - r.top + 6) + 'px'; } else { pop.style.bottom = ''; pop.style.top = (r.bottom - rr.top + 6) + 'px'; }
+    };
+    const cr = main.querySelector('#sfCrear'); if (cr) cr.onclick = () => abrir(cr, CREAR.map(([i, t], k) => `<button data-crear="${k}">${ic(i)} ${t}</button>`).join(''));
+    const us = main.querySelector('#sfUsuario');
+    if (us) us.onclick = () => {
+      const s = M().st(); const t = (s.prefs || {}).tema || 'system'; const roles = [...M().ROLES_SISTEMA, ...Object.keys(s.roles || {})];
+      abrir(us, `<div class="sf-pop-cab"><b>${esc(M().USUARIO)}</b><small>Account: TIENDA_ANDINA · práctica</small></div><div class="sf-pop-sec">Switch Role</div>${roles.map((r) => `<button data-rol="${esc(r)}"><i>${r === s.ctx.rol ? '✓' : ''}</i>${esc(r)}</button>`).join('')}<hr><div class="sf-pop-sec">Appearance</div>${[['light', 'Light'], ['dark', 'Dark'], ['system', 'System']].map(([v, n]) => `<button data-tema="${v}"><i>${t === v ? '✓' : ''}</i>${n}</button>`).join('')}<hr><a href="https://docs.snowflake.com/" target="_blank" rel="noopener">${ic('doc')} Documentation</a><a href="#/herramientas">${ic('salir')} Sign out (volver al curso)</a>`);
+    };
+    if (pop) pop.onclick = async (e) => {
+      const b = e.target.closest('button'); if (!b) return; pop.hidden = true;
+      if (b.dataset.crear != null) return nuevaHoja(CREAR[Number(b.dataset.crear)][2]);
+      if (b.dataset.tema) { const s = M().st(); s.prefs = s.prefs || {}; s.prefs.tema = b.dataset.tema; Store.save(); return dibujar(); }
+      if (b.dataset.rol) { const res = await M().ejecutar(`USE ROLE ${b.dataset.rol}`); const r = res && res[0]; if (r && r.error) toast(String(r.error.message).split('\n')[0]); else toast('Rol activo: ' + b.dataset.rol); return dibujar(); }
+    };
+  }
+  function noSimulado(id) {
+    const [t, txt, enlace] = NO_SIMULADO[id];
+    main.innerHTML = marco(`<div class="sf-pag"><h1>${esc(t)}</h1><div class="sf-aviso">${ic('copo')} <div><b>Esta sección no está simulada.</b> ${esc(txt)}</div></div>${enlace ? `<p><a class="sf-btn" href="${enlace}">Ir a lo que sí puedes practicar</a></p>` : ''}</div>`, id);
+  }
   function dibujar() {
+    const r = ruta[0] || '';
+    if (NO_SIMULADO[r]) { noSimulado(r); return montarMarco(); }
+    dibujarSeccion(); montarMarco();
+  }
+  function dibujarSeccion() {
     const r = ruta[0] || '';
     if (r === 'hojas' && ruta[1]) return hoja(ruta[1]);
     if (r === 'hojas') return hojas();
