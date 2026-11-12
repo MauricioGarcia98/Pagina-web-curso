@@ -627,3 +627,283 @@ GitHub Actions debe desplegar tablas con Terraform en Google Cloud sin claves de
 - [ ] La cuenta personal del líder.
 - [ ] Un bucket público.
 porque: La federación entrega credenciales de corta duración sin claves permanentes.
+
+## Retraso de un pipeline
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Un pipeline de Dataflow en streaming empieza a acumular retraso de madrugada y nadie se entera hasta la mañana. ¿Qué configuras?
+- [ ] Un correo diario con el resumen de los logs del job, enviado por un script en una VM.
+- [x] Una política de alertas de Cloud Monitoring sobre la métrica de retraso del sistema.
+- [ ] Más workers fijos, para que el retraso no pueda aparecer nunca.
+- [ ] Un panel de Looker que alguien revise cada mañana antes de empezar.
+porque: Cloud Monitoring expone métricas de Dataflow como el retraso del sistema y la frescura de datos; una política de alertas avisa en cuanto superan el umbral.
+
+## Backlog de Pub/Sub
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Quieres enterarte cuando los suscriptores de un tema no dan abasto y los mensajes se quedan esperando. ¿Qué métrica vigilas?
+- [ ] La cantidad de temas creados en el proyecto durante el día.
+- [x] La antigüedad del mensaje más viejo sin confirmar de la suscripción.
+- [ ] El tamaño promedio de cada mensaje publicado en el tema principal.
+- [ ] El número de cuentas de servicio con permiso de publicación.
+porque: La antigüedad del mensaje sin confirmar más antiguo crece cuando el consumo no alcanza al ritmo de publicación.
+
+## Consultas más caras
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+La factura de BigQuery subió y necesitas saber qué usuarios y consultas procesaron más bytes la semana pasada. ¿Dónde lo buscas?
+- [ ] En los logs de acceso del bucket de Cloud Storage del proyecto.
+- [x] En INFORMATION_SCHEMA.JOBS, ordenando por bytes facturados.
+- [ ] En la consola de Compute Engine, en la sección de máquinas virtuales.
+- [ ] En el historial de versiones de las tablas de cada dataset afectado.
+porque: Las vistas INFORMATION_SCHEMA.JOBS guardan cada trabajo con su usuario, consulta y bytes procesados y facturados.
+
+## Tope de gasto por usuario
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Un analista ejecutó por error consultas que leyeron decenas de TB en un día. ¿Qué evita que vuelva a pasar en el modelo a demanda?
+- [ ] Prohibir las consultas con SELECT en todo el proyecto.
+- [x] Una cuota personalizada de bytes consultados por usuario por día.
+- [ ] Mover todas las tablas a Cloud Storage en formato CSV para que nadie pueda consultarlas.
+- [ ] Borrar la caché de resultados al final de cada jornada.
+porque: Las cuotas personalizadas de BigQuery limitan los bytes procesados por día, por proyecto o por usuario.
+
+## Tabla borrada
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Alguien borró una tabla de BigQuery hace tres días. ¿Qué es lo más rápido para recuperarla?
+- [ ] Pedir a soporte que restaure el proyecto entero a una copia de la semana pasada.
+- [x] Recuperarla con time travel, que guarda hasta 7 días de historia.
+- [ ] Volver a cargar todos los datos desde los sistemas de origen.
+- [ ] Ninguna: en BigQuery lo borrado no se puede recuperar.
+porque: Dentro de la ventana de time travel (hasta 7 días) se puede copiar la tabla tal como estaba en un momento anterior, incluso si se borró.
+
+## Mínimo privilegio para analistas
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Un analista debe poder ejecutar consultas sobre el dataset ventas, y nada más. ¿Qué roles le das?
+- [ ] BigQuery Admin en el proyecto, para que no tenga problemas de permisos.
+- [x] BigQuery Job User en el proyecto y BigQuery Data Viewer en el dataset ventas.
+- [ ] Editor del proyecto, que incluye todo lo necesario para trabajar.
+- [ ] BigQuery Data Owner en todos los datasets de la organización.
+porque: Job User permite crear trabajos de consulta y Data Viewer en el dataset da lectura solo sobre esas tablas.
+
+## Cuenta de servicio de Dataflow
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Los jobs de Dataflow corren con la cuenta de servicio predeterminada de Compute Engine, que tiene el rol Editor. ¿Qué mejoras?
+- [ ] Nada: es la configuración que recomienda Google para todos los jobs.
+- [x] Una cuenta de servicio propia para los workers, con solo los roles que el pipeline necesita.
+- [ ] Darle además el rol Owner para evitar errores de permisos en producción.
+- [ ] Compartir una clave JSON de esa cuenta con todo el equipo.
+porque: Una cuenta de servicio dedicada con roles mínimos reduce el impacto si algo se compromete.
+
+## Datos viejos que vencen
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Por política, los eventos de una tabla particionada por día deben borrarse después de 400 días. ¿Cómo lo automatizas?
+- [ ] Un analista que borra a mano las particiones viejas cada primer lunes del mes.
+- [x] Configurar la expiración de particiones de la tabla en 400 días.
+- [ ] Una consulta que copia la tabla entera a otra cada noche, sin los días viejos.
+- [ ] Bajar la clase de almacenamiento del dataset a Archive.
+porque: La expiración de particiones borra cada partición automáticamente cuando supera la antigüedad configurada.
+
+## Orquestar sin sobrecargar
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+En Cloud Composer, una tarea con PythonOperator procesa 50 GB con pandas y deja sin memoria a los workers de Airflow. ¿Qué cambias?
+- [ ] Subir el tamaño de los workers de Composer hasta que el proceso entre en memoria.
+- [x] Delegar el procesamiento en BigQuery o Dataflow y dejar a Airflow solo orquestando.
+- [ ] Ejecutar la tarea en el scheduler de Airflow, que tiene más recursos libres.
+- [ ] Partir el DAG en cien DAGs pequeños que procesen 500 MB cada uno.
+porque: Airflow coordina tareas; el trabajo pesado debe correr en servicios hechos para eso, con operadores que los invocan.
+
+## Carga diaria reintentable
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+Un DAG carga cada día una partición de BigQuery y a veces se reintenta, duplicando filas. ¿Qué lo hace idempotente?
+- [ ] Desactivar los reintentos del DAG para que nunca se ejecute dos veces.
+- [x] Escribir con WRITE_TRUNCATE sobre la partición de ese día.
+- [ ] Agregar un ORDER BY a la consulta de carga antes de insertar.
+- [ ] Usar WRITE_APPEND y revisar los duplicados a fin de mes.
+porque: Reemplazar solo la partición del día hace que ejecutar la carga una o varias veces deje el mismo resultado.
+
+## Despliegue de Dataform
+leccion: cert-gcp-pde-operacion-seguridad-adp
+dominio: 5
+El equipo quiere que los cambios a sus modelos de Dataform pasen por revisión y se ejecuten en producción a horario. ¿Qué usas?
+- [ ] Editar directamente en producción desde la consola cada vez que haga falta.
+- [x] Un repositorio Git conectado, con configuraciones de versión y de flujo de trabajo programadas.
+- [ ] Copiar el SQL compilado a consultas programadas de BigQuery, una por tabla.
+- [ ] Un documento compartido donde cada uno anota qué cambió.
+porque: Dataform se integra con Git para revisar cambios, y las configuraciones de versión y de flujo de trabajo compilan y ejecutan a horario.
+
+## Plantillas reutilizables
+leccion: cert-gcp-pde-diseno-ingesta
+dominio: 5
+Otros equipos deben lanzar el mismo pipeline de Dataflow con distintos parámetros (bucket, tabla) sin tocar el código. ¿Qué usas?
+- [ ] Copiar el código del pipeline al repositorio de cada equipo.
+- [x] Una plantilla Flex de Dataflow con parámetros.
+- [ ] Un clúster de Dataproc compartido con un script por equipo.
+- [ ] Una Cloud Function por cada combinación de parámetros.
+porque: Las plantillas Flex empaquetan el pipeline en un contenedor y se lanzan con parámetros desde la consola, gcloud o la API.
+
+## Política de filas
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Cada gerente regional debe ver en la misma tabla de ventas solo las filas de su región. ¿Qué usas en BigQuery?
+- [ ] Una copia de la tabla por región, actualizada cada noche por un job.
+- [x] Políticas de acceso a nivel de fila.
+- [ ] Etiquetas de política en la columna región.
+- [ ] Un filtro en el tablero que cada gerente se compromete a no quitar.
+porque: Las políticas de acceso a nivel de fila filtran qué filas ve cada usuario o grupo sobre la misma tabla.
+
+## Vista autorizada
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Marketing debe consultar un resumen de clientes sin acceso a la tabla original, que tiene datos personales. ¿Qué haces?
+- [ ] Les das lectura sobre la tabla original y les pides que no miren las columnas sensibles.
+- [x] Creas una vista en otro dataset y la autorizas sobre el dataset de origen.
+- [ ] Exportas el resumen a una hoja de cálculo y la envías por correo cada semana.
+- [ ] Les das el rol de propietario del dataset de origen por un día.
+porque: Una vista autorizada puede leer la tabla de origen aunque quienes consultan la vista no tengan permiso sobre esa tabla.
+
+## Compartir con otra empresa
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Hay que compartir un dataset de precios con socios de otras organizaciones, sin copiar los datos y pudiendo revocar el acceso. ¿Qué usas?
+- [ ] Exportaciones diarias a un bucket público de Cloud Storage.
+- [x] Una publicación en Analytics Hub (BigQuery sharing).
+- [ ] Cuentas de usuario de tu organización para cada persona del socio.
+- [ ] Un volcado en CSV enviado por un servicio de transferencia de archivos.
+porque: Analytics Hub publica datasets que los suscriptores enlazan en su proyecto sin copias, y el publicador controla el acceso.
+
+## Pronóstico de ventas
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Necesitas pronosticar las ventas diarias de los próximos 30 días por tienda, sin salir de BigQuery. ¿Qué modelo de BigQuery ML usas?
+- [ ] LOGISTIC_REG, entrenado con la columna tienda como etiqueta.
+- [x] ARIMA_PLUS, con una serie temporal por tienda.
+- [ ] KMEANS, agrupando los días parecidos entre sí.
+- [ ] Un modelo de matriz de factorización de usuarios y productos.
+porque: ARIMA_PLUS es el modelo de series temporales de BigQuery ML y admite muchas series a la vez con time_series_id_col.
+
+## Evaluar un modelo
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Entrenaste un modelo con CREATE MODEL en BigQuery ML. ¿Qué función devuelve sus métricas sobre datos de evaluación?
+- [ ] ML.PREDICT, que también calcula la precisión de cada fila.
+- [x] ML.EVALUATE.
+- [ ] ML.EXPLAIN_FORECAST, aplicada sobre la tabla de entrenamiento completa.
+- [ ] INFORMATION_SCHEMA.MODELS.
+porque: ML.EVALUATE calcula las métricas del modelo (por ejemplo, error o precisión) sobre los datos que le pases.
+
+## Calidad de datos gestionada
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Quieres reglas automáticas que revisen cada día que una tabla no tenga nulos en el id ni valores fuera de rango, con resultados históricos. ¿Qué usas?
+- [ ] Un analista que revisa una muestra de filas cada mañana.
+- [x] Escaneos de calidad de datos de Dataplex sobre la tabla.
+- [ ] Vistas materializadas que guardan solo las filas correctas de la tabla.
+- [ ] Una alerta de facturación con umbral bajo.
+porque: Los escaneos de calidad de datos de Dataplex aplican reglas programadas a tablas de BigQuery y guardan los resultados.
+
+## Perfil de una tabla
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Recibes una tabla nueva y quieres ver rápido la proporción de nulos, valores distintos y rangos de cada columna. ¿Qué usas?
+- [ ] Un modelo KMEANS de BigQuery ML entrenado sobre todas las columnas.
+- [x] Un escaneo de perfil de datos de Dataplex.
+- [ ] La vista previa de la tabla, revisando las primeras cien filas.
+- [ ] El historial de jobs de la tabla en INFORMATION_SCHEMA.
+porque: El perfil de datos calcula estadísticas por columna (nulos, distintos, mínimos, máximos) sin escribir consultas a mano.
+
+## Conteo aproximado
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Un tablero muestra usuarios únicos por día sobre miles de millones de eventos y un error menor al 1 % es aceptable. ¿Qué abarata la consulta?
+- [ ] COUNT(DISTINCT usuario) dentro de una subconsulta con ORDER BY.
+- [x] APPROX_COUNT_DISTINCT(usuario).
+- [ ] Agregar LIMIT 1000 al final de la consulta para leer menos datos.
+- [ ] Convertir la columna usuario a texto antes de contar.
+porque: APPROX_COUNT_DISTINCT usa HyperLogLog++ y es mucho más barato en memoria y tiempo que el conteo exacto.
+
+## Buscar texto en logs
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Hay que encontrar rápido filas que contienen un identificador dentro de columnas de texto de una tabla de logs de varios TB. ¿Qué ayuda en BigQuery?
+- [ ] Particionar la tabla por la columna de texto.
+- [x] Un índice de búsqueda y la función SEARCH.
+- [ ] Una vista que concatene todas las columnas en una sola cadena.
+- [ ] Exportar la tabla a Cloud SQL y usar LIKE.
+porque: Los índices de búsqueda de BigQuery permiten que SEARCH encuentre términos en texto sin recorrer toda la tabla.
+
+## Semántica única
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 4
+Tres áreas calculan "ingreso neto" de formas distintas en sus tableros. ¿Qué lo resuelve con Looker?
+- [ ] Que cada área documente su fórmula en un archivo de texto aparte.
+- [x] Definir la medida una vez en el modelo semántico de LookML y reutilizarla.
+- [ ] Prohibir los tableros y enviar solo hojas de cálculo.
+- [ ] Copiar la consulta de un área en los tableros de las otras dos.
+porque: LookML centraliza definiciones de dimensiones y medidas para que todos los tableros usen la misma lógica.
+
+## Orden por cliente
+leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
+Los eventos de cada cliente deben llegar al suscriptor en el mismo orden en que se publicaron. ¿Qué activas en Pub/Sub?
+- [ ] Entrega push con un único suscriptor para todo el tema.
+- [x] Claves de ordenamiento, usando el id del cliente como clave.
+- [ ] Una retención de mensajes de siete días en la suscripción.
+- [ ] Un tema por cada cliente, creado al vuelo.
+porque: Con claves de ordenamiento, Pub/Sub entrega en orden los mensajes que comparten la misma clave.
+
+## Reprocesar mensajes
+leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
+Un bug procesó mal los mensajes de las últimas 6 horas. La suscripción retiene mensajes confirmados. ¿Cómo los vuelves a procesar?
+- [ ] Pedir a los sistemas de origen que vuelvan a enviar los eventos.
+- [x] Usar seek para llevar la suscripción a un momento anterior.
+- [ ] Borrar la suscripción y crear otra con el mismo nombre.
+- [ ] Aumentar el plazo de confirmación a 600 segundos.
+porque: Seek a una marca de tiempo vuelve a entregar los mensajes retenidos desde ese momento.
+
+## Escritura de alto volumen
+leccion: cert-gcp-pde-diseno-ingesta
+dominio: 2
+Una aplicación debe escribir en BigQuery cientos de miles de filas por segundo, con semántica de exactamente una vez. ¿Qué API usas?
+- [ ] La API de inserción por streaming heredada (insertAll), fila por fila.
+- [x] La Storage Write API con flujos de tipo confirmado (committed).
+- [ ] Trabajos de carga desde CSV cada segundo.
+- [ ] Sentencias INSERT de DML, una por fila.
+porque: La Storage Write API ofrece alto rendimiento y, con offsets en flujos confirmados, escritura exactamente una vez.
+
+## Archivos que se enfrían
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
+Los archivos crudos se leen mucho la primera semana y casi nunca después de 90 días, pero deben guardarse 5 años. ¿Qué configuras?
+- [ ] Todo en Standard para siempre, porque es la clase más simple de usar.
+- [x] Reglas de ciclo de vida que pasan los objetos a Coldline o Archive según su antigüedad.
+- [ ] Borrar los archivos a los 90 días y confiar en que no hagan falta.
+- [ ] Un disco persistente grande montado en una VM, con copias manuales.
+porque: El ciclo de vida de Cloud Storage cambia la clase de almacenamiento automáticamente y abarata lo que casi no se lee.
+
+## Clave de fila para series
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
+En Bigtable guardas lecturas de miles de sensores y consultas casi siempre "las últimas lecturas de un sensor". ¿Qué clave de fila conviene?
+- [ ] La marca de tiempo sola, para que las filas queden en orden de llegada.
+- [x] El id del sensor seguido de la marca de tiempo invertida.
+- [ ] Un número secuencial que aumenta en uno por cada lectura.
+- [ ] Un valor aleatorio, para repartir mejor la carga entre nodos.
+porque: Empezar por el id del sensor reparte la carga y agrupa sus datos; el tiempo invertido deja primero las lecturas más recientes.
+
+## Agrupar por columnas filtradas
+leccion: cert-gcp-pde-almacenamiento-analisis
+dominio: 3
+Una tabla particionada por fecha se filtra casi siempre también por cliente_id, que tiene millones de valores. ¿Qué mejora el costo?
+- [ ] Particionar además por cliente_id, con una partición por cliente.
+- [x] Agregar clustering por cliente_id.
+- [ ] Crear una tabla por cliente con un sufijo en el nombre.
+- [ ] Quitar la partición por fecha y dejar solo índices.
+porque: El clustering ordena los bloques por cliente_id y BigQuery lee menos bloques; particionar por millones de valores supera los límites de particiones.

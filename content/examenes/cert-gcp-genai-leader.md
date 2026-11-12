@@ -586,3 +586,143 @@ dominio: 4
 - [ ] Ocultar que se usa IA.
 - [ ] Eliminar la revisión humana.
 porque: La IA responsable combina evaluación de riesgos, equidad, transparencia y gobierno.
+
+## Embeddings
+leccion: cert-gcp-genai-leader
+dominio: 1
+En una búsqueda semántica, ¿qué es un embedding?
+- [ ] Una copia comprimida del documento original guardada como imagen.
+- [x] Un vector de números que representa el significado de un texto, de modo que textos parecidos quedan cerca.
+- [ ] Una lista de palabras prohibidas que el modelo no puede usar.
+- [ ] La contraseña que protege el acceso al modelo.
+porque: Los embeddings convierten contenido en vectores; la distancia entre vectores mide la similitud de significado.
+
+## Ventana de contexto
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Qué limita la ventana de contexto de un modelo?
+- [ ] La cantidad de usuarios que pueden usar el modelo a la vez en la empresa.
+- [x] Cuántos tokens de entrada y salida puede considerar el modelo en una misma interacción.
+- [ ] El número de idiomas distintos que el modelo es capaz de entender y de usar al responder a los usuarios.
+- [ ] Cuántos días se guardan las conversaciones en el historial.
+porque: Todo lo que el modelo "ve" (instrucciones, documentos, historial y respuesta) debe entrar en su ventana de contexto, medida en tokens.
+
+## Aprendizaje no supervisado
+leccion: cert-gcp-genai-leader
+dominio: 1
+¿Cuál es un ejemplo de aprendizaje no supervisado?
+- [ ] Predecir si un cliente se dará de baja a partir de casos históricos ya marcados.
+- [x] Agrupar clientes por comportamiento parecido sin etiquetas previas.
+- [ ] Clasificar correos como spam usando miles de correos etiquetados.
+- [ ] Estimar el precio de una casa a partir de ventas anteriores con precio conocido.
+porque: En el aprendizaje no supervisado no hay etiquetas: el modelo encuentra estructura, como grupos, por su cuenta.
+
+## IA generativa o predictiva
+leccion: cert-gcp-genai-leader
+dominio: 1
+Una empresa quiere estimar cuántas unidades venderá el mes próximo. ¿Qué tipo de IA encaja mejor?
+- [ ] IA generativa, porque puede escribir un informe largo sobre las ventas.
+- [x] Un modelo predictivo de ML (pronóstico) entrenado con el historial de ventas.
+- [ ] Un modelo de generación de imágenes con fotos de los productos.
+- [ ] Ninguna: los pronósticos no se pueden hacer con IA.
+porque: La IA generativa crea contenido nuevo; para estimar un número a partir de historia se usa ML predictivo.
+
+## Calidad de los datos
+leccion: cert-gcp-genai-leader
+dominio: 1
+El equipo conecta un asistente a documentos internos desactualizados y contradictorios. ¿Qué es lo más probable?
+- [ ] Que el modelo detecte solo cuál es la versión correcta de cada documento.
+- [x] Que las respuestas hereden los errores y contradicciones de esos documentos.
+- [ ] Que el modelo deje de funcionar hasta que se borren los documentos.
+- [ ] Que las respuestas mejoren porque hay más información disponible.
+porque: La calidad de la respuesta depende de la calidad de los datos con los que se fundamenta: datos malos dan respuestas malas.
+
+## Top-p
+leccion: cert-gcp-genai-leader
+dominio: 3
+¿Qué controla el parámetro top-p al generar texto?
+- [ ] La cantidad máxima de respuestas que se generan en paralelo.
+- [x] Que el modelo elija solo entre los tokens más probables cuya probabilidad acumulada llega a p.
+- [ ] El idioma en que el modelo escribe la respuesta, según el país desde donde llega cada pedido del usuario.
+- [ ] El tiempo máximo que puede tardar el modelo en responder.
+porque: Top-p (muestreo por núcleo) recorta las opciones a las más probables; junto con la temperatura regula la variedad de la salida.
+
+## Límite de salida
+leccion: cert-gcp-genai-leader
+dominio: 3
+Las respuestas de un asistente se cortan a mitad de oración. ¿Qué parámetro revisas?
+- [ ] La temperatura, que está demasiado baja.
+- [x] El máximo de tokens de salida.
+- [ ] El top-k, que limita los idiomas disponibles.
+- [ ] La región donde está desplegado el modelo.
+porque: Si la respuesta supera el máximo de tokens de salida configurado, el modelo la corta.
+
+## Zero-shot
+leccion: cert-gcp-genai-leader
+dominio: 3
+Un prompt pide "clasifica este reclamo como facturación, envío u otro" sin dar ejemplos. ¿Cómo se llama esa técnica?
+- [ ] Few-shot, porque hay tres categorías posibles.
+- [x] Zero-shot.
+- [ ] Ajuste fino supervisado.
+- [ ] Cadena de pensamiento.
+porque: Zero-shot pide la tarea sin ejemplos; few-shot incluye algunos ejemplos en el prompt.
+
+## Encadenar prompts
+leccion: cert-gcp-genai-leader
+dominio: 3
+Una tarea compleja (resumir un contrato, extraer riesgos y redactar un correo) da resultados flojos en un solo prompt. ¿Qué ayuda?
+- [ ] Escribir todo en mayúsculas para que el modelo preste más atención.
+- [x] Dividirla en pasos encadenados, donde la salida de uno es la entrada del siguiente.
+- [ ] Subir la temperatura al máximo para obtener más creatividad.
+- [ ] Repetir el mismo prompt hasta que salga bien por azar.
+porque: Encadenar prompts descompone la tarea en pasos más simples, que se pueden revisar y mejorar por separado.
+
+## Salida estructurada
+leccion: cert-gcp-genai-leader
+dominio: 3
+Un sistema necesita que el modelo devuelva siempre los campos nombre, fecha y monto para guardarlos en una base. ¿Qué haces?
+- [ ] Pedir una respuesta libre y que alguien copie los datos a mano.
+- [x] Pedir la salida en un formato estructurado (por ejemplo, JSON con un esquema).
+- [ ] Usar un modelo de generación de imágenes.
+- [ ] Aumentar la ventana de contexto al máximo y confiar en que el modelo ordene los campos siempre del mismo modo.
+porque: Una salida estructurada con esquema es fácil de validar y de cargar en otros sistemas.
+
+## Construir o comprar
+leccion: cert-gcp-genai-leader
+dominio: 4
+Una empresa quiere que sus empleados busquen en el correo y los documentos de la oficina con IA, lo antes posible. ¿Qué conviene evaluar primero?
+- [ ] Entrenar un modelo propio desde cero con sus datos.
+- [x] Una solución lista para usar que ya se integra con esas herramientas, antes de construir algo a medida.
+- [ ] Contratar un equipo de investigación para diseñar un modelo nuevo y entrenarlo con todos los documentos de la empresa.
+- [ ] Esperar a que salga una nueva generación de modelos.
+porque: Si una solución existente cubre el caso, da valor más rápido y con menos riesgo; construir a medida se justifica cuando hay necesidades específicas.
+
+## Medir el éxito
+leccion: cert-gcp-genai-leader
+dominio: 4
+Lanzaron un asistente para el centro de atención. ¿Qué métrica muestra mejor si genera valor de negocio?
+- [ ] La cantidad de parámetros del modelo elegido.
+- [x] El cambio en el tiempo de resolución y en la satisfacción de los clientes frente a antes del asistente.
+- [ ] El número de veces que se abrió la página del asistente.
+- [ ] La cantidad de prompts distintos que escribió el equipo técnico durante el desarrollo y las pruebas del asistente.
+porque: Las métricas de éxito deben conectar con objetivos del negocio y compararse con la situación previa.
+
+## Explicar decisiones
+leccion: cert-gcp-genai-leader
+dominio: 4
+Un banco usa IA para ayudar a decidir créditos. ¿Qué práctica de IA responsable es clave?
+- [ ] Ocultar a los clientes que interviene un sistema de IA.
+- [x] Poder explicar los factores de cada decisión y que una persona revise los casos sensibles.
+- [ ] Usar el modelo más grande disponible para que no haya errores.
+- [ ] Aprobar automáticamente todas las solicitudes para evitar sesgos.
+porque: La transparencia, la explicabilidad y la supervisión humana son pilares de la IA responsable en decisiones de alto impacto.
+
+## Marco de seguridad
+leccion: cert-gcp-genai-leader
+dominio: 4
+¿Para qué sirve el Secure AI Framework (SAIF) de Google?
+- [ ] Para medir cuántos tokens consume cada usuario por mes.
+- [x] Para guiar la seguridad de los sistemas de IA en todo su ciclo de vida, desde los datos hasta el uso en producción.
+- [ ] Para entrenar modelos más rápido en TPUs y reducir el costo de cómputo de cada experimento que hace el equipo de datos.
+- [ ] Para traducir prompts entre idiomas.
+porque: SAIF es un marco conceptual de Google con prácticas para proteger sistemas de IA frente a riesgos propios de esta tecnología.
