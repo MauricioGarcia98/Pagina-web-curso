@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica al Excel real - Tablas, Power Query, formato condicional, validación y Excel en español · Academia de Datos</title><meta name="description" content="Todo lo que aprendiste funciona igual en el Excel de las empresas. Esta lección cubre lo que la réplica no tiene y vas a usar desde el primer día - Tablas con Ctrl+T, inmovilizar paneles, formato condicional, validación de datos, pegado especial, relleno rápido, Power Query, tablas dinámicas con segmentaciones - más la traducción de funciones y menús para Excel en español, las diferencias en Mac y cómo practicar gratis con Excel para la web."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-de-la-practica-al-excel-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica al Excel real - Tablas, Power Query, formato condicional, validación y Excel en español · Academia de Datos"><meta property="og:description" content="Todo lo que aprendiste funciona igual en el Excel de las empresas. Esta lección cubre lo que la réplica no tiene y vas a usar desde el primer día - Tablas con Ctrl+T, inmovilizar paneles, formato condicional, validación de datos, pegado especial, relleno rápido, Power Query, tablas dinámicas con segmentaciones - más la traducción de funciones y menús para Excel en español, las diferencias en Mac y cómo practicar gratis con Excel para la web."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-de-la-practica-al-excel-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 6 · Avanzado completo · 60 min</div>
+<h1>De la práctica al Excel real - Tablas, Power Query, formato condicional, validación y Excel en español</h1><p class="resumen">Todo lo que aprendiste funciona igual en el Excel de las empresas. Esta lección cubre lo que la réplica no tiene y vas a usar desde el primer día - Tablas con Ctrl+T, inmovilizar paneles, formato condicional, validación de datos, pegado especial, relleno rápido, Power Query, tablas dinámicas con segmentaciones - más la traducción de funciones y menús para Excel en español, las diferencias en Mac y cómo practicar gratis con Excel para la web.</p>
+<a class="cta" href="../index.html#/l/excel-de-la-practica-al-excel-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear y usar Tablas con referencias estructuradas</li><li>Aplicar formato condicional y validación de datos</li><li>Limpiar y combinar datos con Power Query y actualizarlos</li><li>Usar segmentaciones, agrupar fechas y mostrar porcentajes en tablas dinámicas</li><li>Trabajar en Excel en español y en Mac</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Aprendiste a manejar en un simulador. Los pedales, el volante y las reglas son los mismos en el auto real; el auto real además tiene aire acondicionado, GPS y sensores. Esta lección es el recorrido por esos extras, para que el primer día con Excel real no te sorprenda nada.</p>
+</div>
+
+
+<h2>Paso 1 — Dónde practicar gratis</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Costo</th>
+<th>Qué tiene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Excel para la web</strong> (office.com, con una cuenta personal de Microsoft)</td>
+<td>Gratis</td>
+<td>Casi todo lo del curso: fórmulas, Tablas, tablas dinámicas, gráficos, formato condicional, validación. Power Query limitado</td>
+</tr>
+<tr>
+<td>Excel de escritorio (Microsoft 365)</td>
+<td>Suscripción; muchas empresas y universidades lo dan</td>
+<td>Todo, incluido Power Query completo y Power Pivot</td>
+</tr>
+<tr>
+<td>Excel en el celular</td>
+<td>Gratis para uso básico</td>
+<td>Para revisar, no para construir</td>
+</tr>
+<tr>
+<td>LibreOffice Calc / Google Sheets</td>
+<td>Gratis</td>
+<td>Fórmulas parecidas; no tienen Power Query ni las mismas tablas dinámicas</td>
+</tr>
+</tbody></table></div>
+<p>Abre Excel para la web, crea un libro en blanco y ten esta lección al lado.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Tus datos y tu cuenta</div>
+
+<p>Practica con datos ficticios (exporta a CSV las tablas de este curso y ábrelas allá). No subas a tu cuenta personal archivos de tu trabajo con datos de clientes.</p>
+</div>
+
+
+<h2>Paso 2 — Tablas (Ctrl + T): el cambio más importante</h2>
+<p>En la réplica trabajaste con rangos. En Excel real, lo primero que se hace con una tabla de datos es convertirla en <strong>Tabla</strong>:</p>
+<ol>
+<li>Haz clic dentro de los datos.</li>
+<li><strong>Insert → Table</strong> (o <strong>Ctrl + T</strong>). Confirma que <strong>My table has headers</strong> está marcado → <strong>OK</strong>.</li>
+<li>En la pestaña <strong>Table Design</strong>, cambia el nombre (casilla <strong>Table Name</strong>) a <code>pedidos</code>.</li>
+</ol>
+<p>Qué ganas:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Ventaja</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>El rango crece solo al agregar filas</td>
+<td>Las fórmulas, gráficos y tablas dinámicas toman las filas nuevas</td>
+</tr>
+<tr>
+<td>Fórmulas con nombres de columna</td>
+<td><code>=SUMIFS(pagos[monto],pagos[estado],&quot;aprobado&quot;)</code></td>
+</tr>
+<tr>
+<td>Una fórmula escrita en una fila se copia a toda la columna</td>
+<td>Columna calculada automática</td>
+</tr>
+<tr>
+<td>Filtros y formato con bandas incluidos</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<p>Las <strong>referencias estructuradas</strong> (<code>pagos[monto]</code>) se leen como frases y no se rompen cuando insertas columnas. Es el reemplazo profesional de <code>D:D</code>.</p>
+<h2>Paso 3 — Ver encabezados siempre: Freeze Panes</h2>
+<p><strong>View → Freeze Panes → Freeze Top Row</strong>. Al bajar por 12.000 filas, los encabezados quedan visibles. Para fijar filas y columnas a la vez: selecciona la celda debajo y a la derecha de lo que quieres fijar (por ejemplo <strong>B2</strong>) → <strong>Freeze Panes</strong>.</p>
+<h2>Paso 4 — Formato condicional</h2>
+<p>Resaltar automáticamente lo que importa:</p>
+<ol>
+<li>Selecciona la columna <strong>% de la meta</strong> del proyecto 2.</li>
+<li><strong>Home → Conditional Formatting → Highlight Cells Rules → Less Than…</strong> → <code>1</code> → elige el formato rojo → <strong>OK</strong>. Los días bajo la meta quedan en rojo.</li>
+</ol>
+<p>Otras reglas útiles:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Regla</th>
+<th>Dónde</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Data Bars</td>
+<td>Conditional Formatting → Data Bars</td>
+<td>Una barra dentro de cada celda: ranking visual</td>
+</tr>
+<tr>
+<td>Color Scales</td>
+<td>Conditional Formatting → Color Scales</td>
+<td>Mapa de calor (por ejemplo, pedidos por mes y canal)</td>
+</tr>
+<tr>
+<td>Duplicate Values</td>
+<td>Highlight Cells Rules → Duplicate Values</td>
+<td>Ver ids repetidos antes de quitar duplicados</td>
+</tr>
+<tr>
+<td>Con fórmula</td>
+<td>New Rule → Use a formula… → <code>=$E2=&quot;cancelado&quot;</code></td>
+<td>Pintar la fila entera según una condición</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Validación de datos: que nadie escriba cualquier cosa</h2>
+<p>En una plantilla que otros completan:</p>
+<ol>
+<li>Selecciona la columna <strong>canal</strong>.</li>
+<li><strong>Data → Data Validation</strong> → <strong>Allow: List</strong> → <strong>Source:</strong> <code>web,app,tienda,telefono</code> → <strong>OK</strong>.</li>
+<li>Ahora cada celda tiene un desplegable y rechaza valores fuera de la lista.</li>
+</ol>
+<p>También: números entre un mínimo y un máximo, fechas dentro de un período, largo máximo de texto. Es la forma de evitar los datos sucios <strong>en el origen</strong>.</p>
+<h2>Paso 6 — Pegado especial y relleno rápido</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Cómo</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Paste Values</strong></td>
+<td>Home → Paste ▾ → Values (o Ctrl + Alt + V → Values)</td>
+<td>Pegar resultados sin fórmulas (lección 15, paso 8)</td>
+</tr>
+<tr>
+<td><strong>Paste Special → Transpose</strong></td>
+<td>Ctrl + Alt + V → Transpose</td>
+<td>Pasar filas a columnas</td>
+</tr>
+<tr>
+<td><strong>Flash Fill</strong></td>
+<td>Data → Flash Fill (Ctrl + E)</td>
+<td>Escribes el resultado en 1–2 celdas (por ejemplo el dominio de un email) y Excel deduce el patrón para el resto</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Flash Fill no es una fórmula</div>
+
+<p>El resultado de Flash Fill son valores fijos: si cambian los datos, no se actualiza. Para algo que se repite, usa fórmulas o Power Query.</p>
+</div>
+
+
+<h2>Paso 7 — Power Query: la limpieza que se repite sola</h2>
+<p>Power Query graba cada paso de limpieza y lo repite cuando llegan datos nuevos. Es lo que convierte el proyecto 4 en un proceso de un clic.</p>
+<ol>
+<li><strong>Data → Get Data → From File → From Text/CSV</strong> → elige <code>clientes_crudo.csv</code> (expórtalo desde la réplica) → <strong>Transform Data</strong>.</li>
+<li>Se abre el editor de Power Query. Haz los pasos con clics:<ul>
+<li>Columna email → clic derecho → <strong>Transform → Trim</strong>, y otra vez <strong>Transform → lowercase</strong>.</li>
+<li>Columna fecha_carga → <strong>Sort Descending</strong>.</li>
+<li>Columna cliente_id → clic derecho → <strong>Remove Duplicates</strong>.</li>
+</ul>
+</li>
+<li>A la derecha, en <strong>Applied Steps</strong>, ves cada paso grabado. Puedes borrar o reordenar pasos.</li>
+<li><strong>Home → Close &amp; Load</strong>: el resultado se carga como una Tabla.</li>
+<li>El mes que viene: reemplaza el CSV por el nuevo y presiona <strong>Data → Refresh All</strong>. Todos los pasos se repiten.</li>
+</ol>
+<p>Con <strong>Merge Queries</strong> unes dos consultas por una clave (el XLOOKUP de la lección 13, pero para toda la tabla) y con <strong>Append Queries</strong> apilas archivos de varios meses. Es el mismo motor que usa Power BI: lo que aprendas aquí sirve allá.</p>
+<h2>Paso 8 — Tablas dinámicas en Excel real</h2>
+<p>Al insertar una tabla dinámica aparece el panel <strong>PivotTable Fields</strong>: arrastras campos a <strong>Filters</strong>, <strong>Columns</strong>, <strong>Rows</strong> y <strong>Values</strong>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Quiero</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Agrupar fechas por mes o año</td>
+<td>Clic derecho en una fecha de la tabla dinámica → <strong>Group</strong> → Months, Years</td>
+</tr>
+<tr>
+<td>Ver porcentajes</td>
+<td>Clic derecho en un valor → <strong>Show Values As → % of Grand Total</strong> (o % of Row Total)</td>
+</tr>
+<tr>
+<td>Filtrar con botones</td>
+<td><strong>PivotTable Analyze → Insert Slicer</strong> → elige canal</td>
+</tr>
+<tr>
+<td>Actualizar con datos nuevos</td>
+<td>Clic derecho → <strong>Refresh</strong> (o Data → Refresh All)</td>
+</tr>
+<tr>
+<td>Cambiar Count por Sum</td>
+<td>Clic en el campo de Values → <strong>Value Field Settings</strong></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 9 — Excel en español: funciones y separador</h2>
+<p>Si tu Excel está en español, las funciones cambian de nombre y los argumentos se separan con <strong>punto y coma</strong>. La lógica es idéntica.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Inglés</th>
+<th>Español</th>
+<th>Inglés</th>
+<th>Español</th>
+</tr>
+</thead><tbody><tr>
+<td>SUM</td>
+<td>SUMA</td>
+<td>XLOOKUP</td>
+<td>BUSCARX</td>
+</tr>
+<tr>
+<td>AVERAGE</td>
+<td>PROMEDIO</td>
+<td>VLOOKUP</td>
+<td>BUSCARV</td>
+</tr>
+<tr>
+<td>COUNT / COUNTA</td>
+<td>CONTAR / CONTARA</td>
+<td>INDEX / MATCH</td>
+<td>INDICE / COINCIDIR</td>
+</tr>
+<tr>
+<td>COUNTIF / COUNTIFS</td>
+<td>CONTAR.SI / CONTAR.SI.CONJUNTO</td>
+<td>IFERROR / IFNA</td>
+<td>SI.ERROR / SI.ND</td>
+</tr>
+<tr>
+<td>SUMIF / SUMIFS</td>
+<td>SUMAR.SI / SUMAR.SI.CONJUNTO</td>
+<td>TEXT</td>
+<td>TEXTO</td>
+</tr>
+<tr>
+<td>AVERAGEIF</td>
+<td>PROMEDIO.SI</td>
+<td>YEAR / MONTH / DAY</td>
+<td>AÑO / MES / DIA</td>
+</tr>
+<tr>
+<td>MAXIFS / MINIFS</td>
+<td>MAX.SI.CONJUNTO / MIN.SI.CONJUNTO</td>
+<td>TODAY / DATE</td>
+<td>HOY / FECHA</td>
+</tr>
+<tr>
+<td>IF / IFS</td>
+<td>SI / SI.CONJUNTO</td>
+<td>EOMONTH / DATEDIF</td>
+<td>FIN.MES / SIFECHA</td>
+</tr>
+<tr>
+<td>AND / OR / NOT</td>
+<td>Y / O / NO</td>
+<td>LEFT / RIGHT / MID</td>
+<td>IZQUIERDA / DERECHA / EXTRAE</td>
+</tr>
+<tr>
+<td>ROUND / ROUNDUP</td>
+<td>REDONDEAR / REDONDEAR.MAS</td>
+<td>LEN / FIND</td>
+<td>LARGO / ENCONTRAR</td>
+</tr>
+<tr>
+<td>MEDIAN</td>
+<td>MEDIANA</td>
+<td>TRIM / LOWER / PROPER</td>
+<td>ESPACIOS / MINUSC / NOMPROPIO</td>
+</tr>
+<tr>
+<td>SUMPRODUCT</td>
+<td>SUMAPRODUCTO</td>
+<td>SUBSTITUTE / TEXTJOIN</td>
+<td>SUSTITUIR / UNIRCADENAS</td>
+</tr>
+<tr>
+<td>UNIQUE / FILTER / SORT</td>
+<td>UNICOS / FILTRAR / ORDENAR</td>
+<td>VALUE / ISNUMBER</td>
+<td>VALOR / ESNUMERO</td>
+</tr>
+</tbody></table></div>
+<p>Ejemplo: <code>=SUMIFS(D:D,E:E,&quot;aprobado&quot;)</code> en español es <code>=SUMAR.SI.CONJUNTO(D:D;E:E;&quot;aprobado&quot;)</code>.</p>
+<p>Menús: Home = <strong>Inicio</strong>, Insert = <strong>Insertar</strong>, Formulas = <strong>Fórmulas</strong>, Data = <strong>Datos</strong>, View = <strong>Vista</strong>, PivotTable = <strong>Tabla dinámica</strong>, Remove Duplicates = <strong>Quitar duplicados</strong>, Filter = <strong>Filtro</strong>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Si un archivo viene en otro idioma</div>
+
+<p>Las fórmulas se traducen solas: un libro hecho en inglés se abre en un Excel en español con las funciones en español. Lo que no se traduce son los textos dentro de comillas.</p>
+</div>
+
+
+<h2>Paso 10 — Si usas Mac</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Windows</th>
+<th>Mac</th>
+</tr>
+</thead><tbody><tr>
+<td>Ctrl + C / V / Z</td>
+<td>⌘ + C / V / Z</td>
+</tr>
+<tr>
+<td>F4 (alternar $)</td>
+<td>⌘ + T</td>
+</tr>
+<tr>
+<td>F2 (editar celda)</td>
+<td>Ctrl + U (o F2 si las teclas de función están activas)</td>
+</tr>
+<tr>
+<td>Ctrl + flecha</td>
+<td>⌘ + flecha</td>
+</tr>
+<tr>
+<td>Alt + = (AutoSum)</td>
+<td>⌘ + Shift + T</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 11 — Copilot y la IA en Excel</h2>
+<p>Algunas cuentas empresariales tienen <strong>Copilot</strong> en Excel: le pides en lenguaje natural &quot;agregá una columna con el mes&quot; o &quot;resumí ventas por canal&quot; y propone fórmulas o tablas dinámicas. Úsalo como un compañero rápido, no como un auditor: <strong>verifica cada fórmula que proponga</strong> con lo que aprendiste (controles, números de control, Show Formulas). Si no sabes leer la fórmula que te propone, no puedes saber si está bien.</p>
+<h2>Tu checklist de transición</h2>
+<p>Rehaz en Excel real, en este orden:</p>
+<ul>
+<li><input disabled="" type="checkbox"> Proyecto 1 y 2: igual que en la práctica, más <strong>Freeze Panes</strong> y <strong>formato condicional</strong> en % de la meta.</li>
+<li><input disabled="" type="checkbox"> Proyecto 3: convierte <code>pedidos</code> en <strong>Tabla</strong> y reescribe los COUNTIFS con referencias estructuradas.</li>
+<li><input disabled="" type="checkbox"> Proyecto 4: hazlo entero en <strong>Power Query</strong> y prueba <strong>Refresh All</strong>.</li>
+<li><input disabled="" type="checkbox"> Proyecto 5: tablas dinámicas con <strong>fechas agrupadas por mes</strong>, <strong>% of Grand Total</strong> y un <strong>Slicer</strong> de canal.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conoces las herramientas de Excel real que la práctica no tiene.</li>
+<li>Sabes trabajar en Excel en español y en Mac.</li>
+<li>Tienes un plan para rehacer tus proyectos en Excel real.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-de-la-practica-al-excel-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-excel-en-el-flujo-de-datos.html">← Excel en el flujo de datos - CSV, límites, y cuándo pasar la lógica a SQL, Python o Power BI</a><a href="excel-proyecto-final.html">Proyecto final (solo el pedido) - ¿dónde está perdiendo plata la tienda? →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

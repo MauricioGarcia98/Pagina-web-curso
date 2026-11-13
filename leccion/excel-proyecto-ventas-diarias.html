@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 2 (guiado, con pistas) - el cierre semanal de ventas de una sucursal · Academia de Datos</title><meta name="description" content="El gerente de una sucursal te pasa las ventas de la semana y quiere saber cuánto se vendió de verdad, cómo le fue contra la meta y qué día rindió más. Esta vez tienes el qué pero no el cómo - cada columna dice qué calcular y las fórmulas están en pistas que abres solo si las necesitas. Incluye una trampa clásica (el promedio de promedios) y números de control para verificar tu trabajo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-ventas-diarias.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 2 (guiado, con pistas) - el cierre semanal de ventas de una sucursal · Academia de Datos"><meta property="og:description" content="El gerente de una sucursal te pasa las ventas de la semana y quiere saber cuánto se vendió de verdad, cómo le fue contra la meta y qué día rindió más. Esta vez tienes el qué pero no el cómo - cada columna dice qué calcular y las fórmulas están en pistas que abres solo si las necesitas. Incluye una trampa clásica (el promedio de promedios) y números de control para verificar tu trabajo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-ventas-diarias.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 2 · Básico-intermedio · 60 min</div>
+<h1>Proyecto 2 (guiado, con pistas) - el cierre semanal de ventas de una sucursal</h1><p class="resumen">El gerente de una sucursal te pasa las ventas de la semana y quiere saber cuánto se vendió de verdad, cómo le fue contra la meta y qué día rindió más. Esta vez tienes el qué pero no el cómo - cada columna dice qué calcular y las fórmulas están en pistas que abres solo si las necesitas. Incluye una trampa clásica (el promedio de promedios) y números de control para verificar tu trabajo.</p>
+<a class="cta" href="../index.html#/l/excel-proyecto-ventas-diarias">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir un pedido en columnas calculadas</li><li>Usar referencias absolutas para una meta fija</li><li>Resumir con SUM, AVERAGE, MAX y MIN</li><li>Evitar el error del promedio de promedios</li><li>Verificar el trabajo con números de control</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje del gerente de la sucursal Centro: <em>&quot;Te paso lo que facturamos esta semana. Para la reunión del lunes necesito: cuánto vendimos de verdad (sacando devoluciones), el ticket promedio, cómo estuvimos contra la meta de 7.500 por día y cuál fue el mejor y el peor día. Y si podés, qué porcentaje se nos fue en devoluciones.&quot;</em></p>
+</div>
+
+
+<p>En este proyecto <strong>no hay capturas de cada clic</strong>: ya sabes moverte por Excel. Cada paso dice <strong>qué</strong> calcular. Si te trabas, abre la pista. Intenta primero sin mirarla.</p>
+<h2>Los datos</h2>
+<p>Crea una hoja <code>Semana</code> y escribe:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Día</td>
+<td>Tickets</td>
+<td>Ventas brutas</td>
+<td>Devoluciones</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Lunes</td>
+<td>142</td>
+<td>6390</td>
+<td>210</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Martes</td>
+<td>128</td>
+<td>5630</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Miércoles</td>
+<td>135</td>
+<td>6075</td>
+<td>180</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Jueves</td>
+<td>160</td>
+<td>7520</td>
+<td>95</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Viernes</td>
+<td>210</td>
+<td>10290</td>
+<td>340</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Sábado</td>
+<td>265</td>
+<td>13780</td>
+<td>520</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Domingo</td>
+<td>190</td>
+<td>9310</td>
+<td>150</td>
+</tr>
+</tbody></table></div>
+<p>La meta no se escribe dentro de las fórmulas: en <strong>I1</strong> escribe <code>Meta diaria</code> y en <strong>J1</strong> <code>7500</code>.</p>
+<h2>Tarea 1 — Ventas netas (columna E)</h2>
+<p>Lo que de verdad entró: ventas brutas menos devoluciones. Escribe la fórmula en <strong>E2</strong> y cópiala hasta el domingo.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>=C2-D2</code> y después selecciona E2:E8 → Ctrl + D.</p>
+</details>
+
+<h2>Tarea 2 — Ticket promedio (columna F)</h2>
+<p>Cuánto gastó en promedio cada cliente ese día: ventas netas divididas por cantidad de tickets.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>=E2/B2</code>, copiada hacia abajo.</p>
+</details>
+
+<h2>Tarea 3 — % de la meta (columna G)</h2>
+<p>Ventas netas del día contra la meta de <strong>J1</strong>. Ojo: la fórmula se va a copiar siete filas.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>=E2/$J$1</code>. Sin los <code>$</code>, en G3 la fórmula apuntaría a J2, que está vacía, y daría <code>#DIV/0!</code>.</p>
+</details>
+
+<h2>Tarea 4 — El resumen de la semana</h2>
+<p>Debajo de la tabla, deja una fila vacía y arma:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Fila</th>
+<th>Rótulo</th>
+<th>Qué calcular</th>
+</tr>
+</thead><tbody><tr>
+<td>10</td>
+<td>Total</td>
+<td>La suma de tickets, brutas, devoluciones y netas (columnas B a E)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Promedio diario</td>
+<td>El promedio de ventas netas por día</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Mejor día</td>
+<td>La venta neta más alta</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Peor día</td>
+<td>La venta neta más baja</td>
+</tr>
+<tr>
+<td>14</td>
+<td>% devoluciones</td>
+<td>Devoluciones totales sobre ventas brutas totales</td>
+</tr>
+</tbody></table></div>
+<details><summary>💡 Pista</summary>
+
+<p>B10 <code>=SUM(B2:B8)</code> (cópiala a C10:E10) · E11 <code>=AVERAGE(E2:E8)</code> · E12 <code>=MAX(E2:E8)</code> · E13 <code>=MIN(E2:E8)</code> · E14 <code>=D10/C10</code>.</p>
+</details>
+
+<h2>Tarea 5 — La trampa: el ticket promedio de la semana</h2>
+<p>¿Cuál es el ticket promedio <strong>de toda la semana</strong>? Hay dos formas de calcularlo y solo una es correcta:</p>
+<ul>
+<li><code>=AVERAGE(F2:F8)</code> → promedia los siete tickets promedio: <strong>46.17</strong>.</li>
+<li><code>=E10/B10</code> → todo lo vendido dividido por todos los tickets: <strong>46.75</strong>.</li>
+</ul>
+<p>La correcta es la segunda. El sábado tuvo el doble de tickets que el martes, pero en <code>AVERAGE(F2:F8)</code> los dos días pesan igual. <strong>Nunca promedies promedios</strong>: vuelve a los totales y divide.</p>
+<p>Escribe en <strong>F10</strong> <code>=E10/B10</code>, y en <strong>G10</strong> el % de la meta semanal (las netas totales contra siete días de meta).</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>=E10/(J1*7)</code>.</p>
+</details>
+
+<h2>Tarea 6 — Formato para presentar</h2>
+<ul>
+<li>Importes (C2:F13) en <strong>Currency</strong>; porcentajes (G2:G10 y E14) en <strong>Percentage</strong>.</li>
+<li>Encabezados y fila de Total en negrita.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/excel/e08-semana.webp" alt="El cierre de la semana: el ticket promedio semanal (2) se calcula con los totales (1)" loading="lazy"><figcaption>El cierre de la semana: el ticket promedio semanal (2) se calcula con los totales (1)</figcaption></figure>
+
+
+<h2>✔ Números de control</h2>
+<p>Si tu hoja está bien, tienes que ver exactamente esto. Si algún número no coincide, revisa la fórmula de esa celda con F2 o con Show Formulas.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Valor esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Ventas netas de la semana</td>
+<td>$57,500.00</td>
+</tr>
+<tr>
+<td>Brutas − devoluciones (C10 − D10)</td>
+<td>igual a E10: $57,500.00</td>
+</tr>
+<tr>
+<td>Tickets de la semana</td>
+<td>1230</td>
+</tr>
+<tr>
+<td>Ticket promedio semanal</td>
+<td>$46.75</td>
+</tr>
+<tr>
+<td>Mejor día / peor día</td>
+<td>$13,260.00 / $5,630.00</td>
+</tr>
+<tr>
+<td>Sábado, % de la meta</td>
+<td>176.8 %</td>
+</tr>
+<tr>
+<td>% de devoluciones</td>
+<td>2.5 %</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Verificar de dos formas</div>
+
+<p>La segunda fila de la tabla de control es una técnica profesional: calcular el mismo número por dos caminos (sumar las netas de cada día, o restar los totales). Si coinciden, la tabla es coherente.</p>
+</div>
+
+
+<h2>Entrega</h2>
+<ol>
+<li><strong>File → Export CSV</strong> y renombra el archivo a <code>cierre_semana_sucursal_centro.csv</code>.</li>
+<li>Escribe el mensaje para el gerente (máximo tres líneas). Debe tener el número principal, la comparación con la meta y una observación. Ejemplo: <em>&quot;Vendimos $57.500 netos (109,5 % de la meta semanal). El fin de semana explica casi el 40 % de la venta; de lunes a jueves estuvimos debajo de la meta todos los días.&quot;</em></li>
+</ol>
+<details><summary>Cómo sale el "casi 40 %" del ejemplo</summary>
+
+<p>Sábado + domingo = 13.260 + 9.160 = 22.420; 22.420 / 57.500 = 39 %. Puedes calcularlo en una celda: <code>=(E7+E8)/E10</code>.</p>
+</details>
+
+<h2>🖥️ Hazlo también en Excel real</h2>
+<p>Repite el proyecto en Excel para la web o de escritorio. Todo lo que usaste existe igual. Dos diferencias que vas a notar: en Excel real puedes ajustar el ancho de una columna con <strong>doble clic</strong> en el borde del encabezado, y el controlador de relleno también se puede usar con <strong>doble clic</strong> (rellena hasta donde llegan los datos de la columna de al lado).</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-proyecto-ventas-diarias">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-funciones-basicas.html">← Funciones básicas - SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, MEDIAN y ROUND</a><a href="excel-decisiones-if.html">Decisiones con IF - clasificar filas con condiciones, AND, OR, IFS e IFERROR →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

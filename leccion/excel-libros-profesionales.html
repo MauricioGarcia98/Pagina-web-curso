@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libros profesionales - estructura, convenciones y controles para que tu Excel aguante el uso real · Academia de Datos</title><meta name="description" content="Un Excel de trabajo lo usan otras personas, se actualiza cada mes y a veces termina en una decisión importante. Cómo estructurarlo (supuestos, datos, cálculos, salida), qué convenciones usan los equipos profesionales, los errores que arruinan libros enteros (números pegados encima de fórmulas, rangos que no crecen, celdas combinadas), cómo agregar controles y cómo versionar y compartir sin perder trabajo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-libros-profesionales.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Libros profesionales - estructura, convenciones y controles para que tu Excel aguante el uso real · Academia de Datos"><meta property="og:description" content="Un Excel de trabajo lo usan otras personas, se actualiza cada mes y a veces termina en una decisión importante. Cómo estructurarlo (supuestos, datos, cálculos, salida), qué convenciones usan los equipos profesionales, los errores que arruinan libros enteros (números pegados encima de fórmulas, rangos que no crecen, celdas combinadas), cómo agregar controles y cómo versionar y compartir sin perder trabajo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-libros-profesionales.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>Libros profesionales - estructura, convenciones y controles para que tu Excel aguante el uso real</h1><p class="resumen">Un Excel de trabajo lo usan otras personas, se actualiza cada mes y a veces termina en una decisión importante. Cómo estructurarlo (supuestos, datos, cálculos, salida), qué convenciones usan los equipos profesionales, los errores que arruinan libros enteros (números pegados encima de fórmulas, rangos que no crecen, celdas combinadas), cómo agregar controles y cómo versionar y compartir sin perder trabajo.</p>
+<a class="cta" href="../index.html#/l/excel-libros-profesionales">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Organizar un libro en capas (supuestos, datos, cálculos, salida)</li><li>Aplicar convenciones de nombres, formatos y colores</li><li>Reconocer y evitar los errores que rompen libros</li><li>Agregar controles automáticos</li><li>Versionar, documentar y compartir un libro con criterio</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un libro profesional es como una cocina de restaurante: los ingredientes (datos) en un lugar, las recetas (cálculos) en otro y el plato (salida) se sirve aparte. Si todo está mezclado en la misma mesada, funciona para una persona un día, pero no para un equipo todos los días.</p>
+</div>
+
+
+<h2>Paso 1 — Las cuatro capas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Capa</th>
+<th>Hoja típica</th>
+<th>Qué tiene</th>
+<th>Quién la toca</th>
+</tr>
+</thead><tbody><tr>
+<td>Supuestos</td>
+<td><code>supuestos</code></td>
+<td>Año, metas, tipos de cambio, umbrales: cada valor con rótulo, unidad y fuente</td>
+<td>Quien define el análisis</td>
+</tr>
+<tr>
+<td>Datos</td>
+<td><code>pedidos</code>, <code>pagos</code>…</td>
+<td>Los datos tal como llegaron, sin editar a mano</td>
+<td>Nadie (solo se reemplazan)</td>
+</tr>
+<tr>
+<td>Cálculos</td>
+<td><code>calculos</code></td>
+<td>Tablas intermedias con fórmulas</td>
+<td>Quien construye</td>
+</tr>
+<tr>
+<td>Salida</td>
+<td><code>tablero</code>, <code>informe</code></td>
+<td>Lo que se presenta: indicadores, gráficos, notas</td>
+<td>Se lee, no se edita</td>
+</tr>
+</tbody></table></div>
+<p>Más una hoja <code>LEEME</code> al principio (qué es el libro, de dónde salen los datos, cómo actualizarlo, quién lo mantiene) y una hoja <code>control</code> al final.</p>
+<figure class="captura"><img src="assets/img/guias/excel/e21-hojas.webp" alt="Un libro de práctica después del curso: muchas hojas sin orden. En un libro profesional, el nombre y el orden de las hojas cuentan la historia" loading="lazy"><figcaption>Un libro de práctica después del curso: muchas hojas sin orden. En un libro profesional, el nombre y el orden de las hojas cuentan la historia</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Ordena las pestañas como se lee</div>
+
+<p>LEEME → supuestos → datos → cálculos → salida → control. Quien abre el archivo por primera vez lo recorre de izquierda a derecha y entiende cómo fluye.</p>
+</div>
+
+
+<h2>Paso 2 — Convenciones que usan los equipos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Convención</th>
+<th>Ejemplo</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td>Nombres de hoja cortos, en minúscula, sin espacios</td>
+<td><code>ventas_mes</code></td>
+<td>Fórmulas legibles: <code>=SUM(ventas_mes!B:B)</code></td>
+</tr>
+<tr>
+<td>Una tabla por hoja, empezando en A1</td>
+<td>encabezados en la fila 1</td>
+<td>Filtros, tablas dinámicas y Power Query la reconocen sola</td>
+</tr>
+<tr>
+<td>Sin filas ni columnas vacías dentro de los datos</td>
+<td></td>
+<td>Ctrl + flecha y la detección de rangos funcionan</td>
+</tr>
+<tr>
+<td>Sin celdas combinadas en los datos</td>
+<td></td>
+<td>Combinar rompe orden, filtros y copiar fórmulas</td>
+</tr>
+<tr>
+<td>Colores con significado</td>
+<td>Azul = dato que se escribe a mano; negro = fórmula</td>
+<td>Se ve qué se puede cambiar y qué no</td>
+</tr>
+<tr>
+<td>Unidades en el encabezado</td>
+<td><code>monto_usd</code>, <code>peso_kg</code></td>
+<td>Nadie suma dólares con pesos</td>
+</tr>
+<tr>
+<td>Fechas en formato ISO</td>
+<td><code>2024-03-15</code></td>
+<td>Sin ambigüedad entre países</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Los errores que arruinan libros</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Error</th>
+<th>Cómo pasa</th>
+<th>Cómo evitarlo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Número pegado encima de una fórmula</strong></td>
+<td>Alguien &quot;corrige&quot; un total escribiendo el valor</td>
+<td>Revisa con Show Formulas; los totales siempre con fórmula</td>
+</tr>
+<tr>
+<td><strong>Rango que no crece</strong></td>
+<td><code>=SUM(B2:B100)</code> y los datos llegan a la fila 150</td>
+<td>Columnas enteras (<code>B:B</code>) o, en Excel real, Tablas (Ctrl + T)</td>
+</tr>
+<tr>
+<td><strong>Constante escondida</strong></td>
+<td><code>=B2*1.21</code> repetido en 500 celdas</td>
+<td>El 1.21 en <code>supuestos</code>, referenciado con <code>$</code></td>
+</tr>
+<tr>
+<td><strong>Fórmula distinta en una fila</strong></td>
+<td>Una fila se editó a mano y el resto no</td>
+<td>Copia la fórmula de nuevo a toda la columna</td>
+</tr>
+<tr>
+<td><strong>Copiar sin <code>$</code></strong></td>
+<td>La referencia a la meta se corre al copiar</td>
+<td>F4 antes de copiar; revisar la última fila</td>
+</tr>
+<tr>
+<td><strong>IFERROR que tapa todo</strong></td>
+<td>Un error real queda oculto como 0</td>
+<td>IFNA en búsquedas; IFERROR solo si sabes qué falla</td>
+</tr>
+<tr>
+<td><strong>Datos editados a mano</strong></td>
+<td>Se &quot;arregla&quot; un valor en la tabla original</td>
+<td>Los arreglos van en columnas limpias, con fórmula</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un caso real</div>
+
+<p>Errores así no son teóricos: hay casos públicos de informes económicos y de salud con conclusiones equivocadas por un rango que dejaba filas afuera, o por una tabla que se quedó sin espacio y perdió registros en silencio. La lección es siempre la misma: <strong>controles automáticos</strong> y nunca confiar en un número que nadie verificó.</p>
+</div>
+
+
+<h2>Paso 4 — La hoja de controles</h2>
+<p>Cada control es una fórmula que dice <code>OK</code> o <code>REVISAR</code>. Ejemplos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Fórmula</th>
+</tr>
+</thead><tbody><tr>
+<td>Las partes suman el total</td>
+<td><code>=IF(SUM(calculos!B2:B5)=tablero!B2,&quot;OK&quot;,&quot;REVISAR&quot;)</code></td>
+</tr>
+<tr>
+<td>No hay errores en los cálculos</td>
+<td><code>=IF(SUMPRODUCT(--ISERROR(calculos!B2:E20))=0,&quot;OK&quot;,&quot;REVISAR&quot;)</code> (en Excel real)</td>
+</tr>
+<tr>
+<td>No faltan datos clave</td>
+<td><code>=IF(COUNTBLANK(pedidos!A2:A12001)=0,&quot;OK&quot;,&quot;REVISAR&quot;)</code></td>
+</tr>
+<tr>
+<td>La cantidad de filas es la esperada</td>
+<td><code>=IF(COUNTA(pedidos!A:A)-1=12000,&quot;OK&quot;,&quot;REVISAR&quot;)</code></td>
+</tr>
+<tr>
+<td>El resultado está en un rango razonable</td>
+<td><code>=IF(AND(tablero!B3&gt;0.5,tablero!B3&lt;1),&quot;OK&quot;,&quot;REVISAR&quot;)</code></td>
+</tr>
+</tbody></table></div>
+<p>Y arriba de todo, un resumen: <code>=IF(COUNTIF(B2:B10,&quot;REVISAR&quot;)=0,&quot;✔ Todo cierra&quot;,&quot;✘ Hay controles en rojo&quot;)</code>.</p>
+<h2>Paso 5 — Documentar sin escribir un manual</h2>
+<p>La hoja <code>LEEME</code> con cinco cosas alcanza:</p>
+<ol>
+<li><strong>Qué es</strong>: &quot;Tablero comercial anual de Tienda Andina&quot;.</li>
+<li><strong>Fuente</strong>: &quot;Tablas pedidos y pagos exportadas del sistema el 2025-01-05&quot;.</li>
+<li><strong>Cómo actualizar</strong>: &quot;Reemplazar las hojas de datos, cambiar el año en supuestos, revisar control&quot;.</li>
+<li><strong>Definiciones</strong>: &quot;Cobrado = pagos aprobados por fecha de pago&quot;.</li>
+<li><strong>Responsable y fecha</strong> de la última actualización.</li>
+</ol>
+<h2>Paso 6 — Versionar y compartir</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica</th>
+<th>En lugar de</th>
+</tr>
+</thead><tbody><tr>
+<td><code>tablero_comercial_2024-12-31_v3.xlsx</code> (fecha y versión)</td>
+<td><code>tablero FINAL final (2) corregido.xlsx</code></td>
+</tr>
+<tr>
+<td>Un archivo compartido en OneDrive/SharePoint con historial de versiones</td>
+<td>Mandar copias por mail que divergen</td>
+</tr>
+<tr>
+<td>Comentarios en la celda para preguntas y decisiones</td>
+<td>Cambios sin explicar</td>
+</tr>
+<tr>
+<td>Proteger las hojas de cálculo y salida (Excel real: Review → Protect Sheet)</td>
+<td>Que cualquiera pise una fórmula</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Datos personales</div>
+
+<p>Si el libro tiene emails, teléfonos o documentos de clientes, compártelo solo con quien lo necesita, no lo subas a sitios públicos y, si es para un análisis, quita o enmascara esas columnas. En las capturas que publiques (portafolio, LinkedIn), usa siempre datos ficticios como los de este curso.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes organizar un libro en capas y documentarlo.</li>
+<li>Conoces las convenciones y los errores más caros.</li>
+<li>Sabes agregar controles y versionar con criterio.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-libros-profesionales">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-proyecto-dashboard.html">← Proyecto 5 (requisitos y rúbrica) - el tablero comercial 2024 en una hoja</a><a href="excel-excel-en-el-flujo-de-datos.html">Excel en el flujo de datos - CSV, límites, y cuándo pasar la lógica a SQL, Python o Power BI →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

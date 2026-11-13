@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel en el flujo de datos - CSV, límites, y cuándo pasar la lógica a SQL, Python o Power BI · Academia de Datos</title><meta name="description" content="En un equipo de datos, Excel es una pieza de un flujo más grande - recibe extractos, alimenta reportes y a veces es la fuente de un pipeline. Cómo importar y exportar CSV sin romper datos (separadores, codificación, ceros a la izquierda, fechas), cuáles son los límites reales de Excel, y la tabla de equivalencias para llevar lo que hiciste en Excel a SQL, pandas y Power BI."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-excel-en-el-flujo-de-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Excel en el flujo de datos - CSV, límites, y cuándo pasar la lógica a SQL, Python o Power BI · Academia de Datos"><meta property="og:description" content="En un equipo de datos, Excel es una pieza de un flujo más grande - recibe extractos, alimenta reportes y a veces es la fuente de un pipeline. Cómo importar y exportar CSV sin romper datos (separadores, codificación, ceros a la izquierda, fechas), cuáles son los límites reales de Excel, y la tabla de equivalencias para llevar lo que hiciste en Excel a SQL, pandas y Power BI."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-excel-en-el-flujo-de-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>Excel en el flujo de datos - CSV, límites, y cuándo pasar la lógica a SQL, Python o Power BI</h1><p class="resumen">En un equipo de datos, Excel es una pieza de un flujo más grande - recibe extractos, alimenta reportes y a veces es la fuente de un pipeline. Cómo importar y exportar CSV sin romper datos (separadores, codificación, ceros a la izquierda, fechas), cuáles son los límites reales de Excel, y la tabla de equivalencias para llevar lo que hiciste en Excel a SQL, pandas y Power BI.</p>
+<a class="cta" href="../index.html#/l/excel-excel-en-el-flujo-de-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Importar y exportar CSV sabiendo qué se pierde</li><li>Evitar los problemas clásicos de CSV (separador, codificación, ceros, fechas)</li><li>Conocer los límites de Excel y cuándo dejar de usarlo</li><li>Traducir fórmulas y tablas dinámicas a SQL, pandas y Power BI</li><li>Ubicar a Excel en una arquitectura de datos</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Excel es la navaja suiza del trabajo con datos: sirve para casi todo en pequeño. Pero no construirías una casa con una navaja. En un equipo de datos, Excel convive con bases de datos, pipelines y Power BI: recibe pedazos, los analiza y los devuelve. Saber cuándo pasar la tarea a otra herramienta es parte de dominar Excel.</p>
+</div>
+
+
+<h2>Paso 1 — CSV: el idioma común</h2>
+<p>Un CSV es un archivo de texto: una línea por fila, valores separados por coma (o punto y coma). Lo leen Excel, SQL, Python, Power BI y cualquier sistema.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Guarda</th>
+<th>No guarda</th>
+</tr>
+</thead><tbody><tr>
+<td>Los valores que se ven</td>
+<td>Fórmulas (solo su resultado)</td>
+</tr>
+<tr>
+<td>Una sola hoja</td>
+<td>Formatos, colores, anchos</td>
+</tr>
+<tr>
+<td></td>
+<td>Gráficos, tablas dinámicas, varias hojas</td>
+</tr>
+</tbody></table></div>
+<p>En la réplica:</p>
+<ul>
+<li><strong>File → Export CSV</strong> descarga la hoja activa.</li>
+<li><strong>File → Open CSV</strong> (o <strong>Data → From Text/CSV</strong>) abre un CSV de tu computadora en una hoja nueva.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/excel/06-exportar.webp" alt="Export CSV (1) descarga la hoja activa; Office Theme (2) cambia el tema" loading="lazy"><figcaption>Export CSV (1) descarga la hoja activa; Office Theme (2) cambia el tema</figcaption></figure>
+
+
+<p>Prueba el viaje completo: exporta la hoja <code>Semana</code> del proyecto 2 y vuelve a abrirla con <strong>Open CSV</strong>. Los números están, pero las fórmulas se convirtieron en valores y se perdió el formato.</p>
+<h2>Paso 2 — Los cuatro problemas clásicos del CSV</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Ejemplo</th>
+<th>Solución</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Separador</strong></td>
+<td>En países que usan coma decimal, Excel guarda con <code>;</code> y otro sistema espera <code>,</code></td>
+<td>Acordar el separador; en Excel real, <strong>Data → From Text/CSV</strong> deja elegirlo al importar</td>
+</tr>
+<tr>
+<td><strong>Codificación</strong></td>
+<td><code>Bogotá</code> aparece como <code>BogotÃ¡</code></td>
+<td>Guardar y abrir como <strong>UTF-8</strong> (en Excel real: <em>CSV UTF-8</em> al guardar)</td>
+</tr>
+<tr>
+<td><strong>Ceros a la izquierda</strong></td>
+<td>El código <code>01234</code> se convierte en <code>1234</code></td>
+<td>Importar esa columna como <strong>texto</strong> (Power Query o el asistente de importación)</td>
+</tr>
+<tr>
+<td><strong>Fechas</strong></td>
+<td><code>03/04/2024</code> se interpreta como 3 de abril o 4 de marzo según el idioma</td>
+<td>Fechas en ISO (<code>2024-04-03</code>) en todos los archivos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Excel cambia datos al abrir un CSV con doble clic</div>
+
+<p>Abrir un CSV con doble clic deja que Excel &quot;adivine&quot; los tipos: quita ceros, convierte códigos en fechas (<code>MAR1</code> → 1-mar) y números largos en notación científica (un número de tarjeta o documento pierde dígitos). Para datos que importan, importa con <strong>Data → From Text/CSV</strong> y revisa los tipos antes de cargar.</p>
+</div>
+
+
+<h2>Paso 3 — Los límites de Excel</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Límite</th>
+<th>Valor</th>
+<th>Qué significa</th>
+</tr>
+</thead><tbody><tr>
+<td>Filas por hoja</td>
+<td>1,048,576</td>
+<td>Un año de transacciones de una empresa mediana no entra</td>
+</tr>
+<tr>
+<td>Columnas por hoja</td>
+<td>16,384 (hasta XFD)</td>
+<td></td>
+</tr>
+<tr>
+<td>Precisión numérica</td>
+<td>15 dígitos</td>
+<td>Ids de 16+ dígitos pierden los últimos (guárdalos como texto)</td>
+</tr>
+<tr>
+<td>Concurrencia</td>
+<td>Coautoría en la nube, pero sin control fino</td>
+<td>No es una base de datos multiusuario</td>
+</tr>
+<tr>
+<td>Auditoría</td>
+<td>Difícil saber quién cambió qué y por qué</td>
+<td>No sirve como &quot;fuente de verdad&quot;</td>
+</tr>
+</tbody></table></div>
+<p>Excel avisa cuando un archivo supera el límite de filas, pero <strong>carga lo que entra y descarta el resto</strong>: si no lees el aviso, analizas datos incompletos.</p>
+<h2>Paso 4 — Cuándo seguir en Excel y cuándo pasar a otra herramienta</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Herramienta</th>
+</tr>
+</thead><tbody><tr>
+<td>Análisis puntual, miles de filas, una persona</td>
+<td><strong>Excel</strong></td>
+</tr>
+<tr>
+<td>Lo mismo todos los meses con datos nuevos</td>
+<td>Excel con <strong>Power Query</strong>, o un <strong>pipeline</strong></td>
+</tr>
+<tr>
+<td>Millones de filas, varias tablas grandes</td>
+<td><strong>SQL</strong> (una base de datos o un lakehouse)</td>
+</tr>
+<tr>
+<td>Limpieza compleja, automatización, modelos</td>
+<td><strong>Python</strong> (pandas, PySpark)</td>
+</tr>
+<tr>
+<td>Tablero que muchos consultan y filtran</td>
+<td><strong>Power BI</strong></td>
+</tr>
+<tr>
+<td>Fuente de verdad compartida</td>
+<td>Una <strong>base de datos</strong> o tabla del lakehouse, nunca un Excel en un mail</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Lo que hiciste en Excel, en SQL, pandas y Power BI</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En Excel</th>
+<th>En SQL</th>
+<th>En pandas</th>
+<th>En Power BI (DAX)</th>
+</tr>
+</thead><tbody><tr>
+<td><code>=COUNTIFS(E:E,&quot;entregado&quot;)</code></td>
+<td><code>SELECT COUNT(*) FROM pedidos WHERE estado=&#39;entregado&#39;</code></td>
+<td><code>(df.estado==&#39;entregado&#39;).sum()</code></td>
+<td><code>CALCULATE(COUNTROWS(pedidos), pedidos[estado]=&quot;entregado&quot;)</code></td>
+</tr>
+<tr>
+<td><code>=SUMIFS(D:D,E:E,&quot;aprobado&quot;)</code></td>
+<td><code>SELECT SUM(monto) FROM pagos WHERE estado=&#39;aprobado&#39;</code></td>
+<td><code>df.loc[df.estado==&#39;aprobado&#39;,&#39;monto&#39;].sum()</code></td>
+<td><code>CALCULATE(SUM(pagos[monto]), pagos[estado]=&quot;aprobado&quot;)</code></td>
+</tr>
+<tr>
+<td>Tabla dinámica canal × estado</td>
+<td><code>GROUP BY canal, estado</code></td>
+<td><code>pd.pivot_table(df, index=&#39;canal&#39;, columns=&#39;estado&#39;, aggfunc=&#39;size&#39;)</code></td>
+<td>Matriz con canal en filas y estado en columnas</td>
+</tr>
+<tr>
+<td><code>=XLOOKUP(B2,clientes!A:A,clientes!G:G)</code></td>
+<td><code>LEFT JOIN clientes c ON c.cliente_id=p.cliente_id</code></td>
+<td><code>pedidos.merge(clientes, on=&#39;cliente_id&#39;, how=&#39;left&#39;)</code></td>
+<td>Relación entre tablas en el modelo</td>
+</tr>
+<tr>
+<td>Remove Duplicates por cliente_id (el más nuevo)</td>
+<td><code>ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_carga DESC) = 1</code></td>
+<td><code>df.sort_values(&#39;fecha_carga&#39;).drop_duplicates(&#39;cliente_id&#39;, keep=&#39;last&#39;)</code></td>
+<td>Power Query: ordenar y quitar duplicados</td>
+</tr>
+<tr>
+<td><code>=TEXT(D2,&quot;yyyy-mm&quot;)</code></td>
+<td><code>strftime(&#39;%Y-%m&#39;, fecha)</code> / <code>DATE_TRUNC(&#39;month&#39;, fecha)</code></td>
+<td><code>df.fecha.dt.to_period(&#39;M&#39;)</code></td>
+<td>Columna de fecha con jerarquía año/mes</td>
+</tr>
+<tr>
+<td><code>=LOWER(TRIM(E2))</code></td>
+<td><code>LOWER(TRIM(email))</code></td>
+<td><code>df.email.str.strip().str.lower()</code></td>
+<td>Power Query: Recortar + Minúsculas</td>
+</tr>
+</tbody></table></div>
+<p>Si entendiste la lógica en Excel, la entiendes en todas: cambia la sintaxis, no la idea. Puedes practicar cada fila de esta tabla en el curso: <a href="#/m/sql">SQL</a>, <a href="#/jupyter">JupyterLab de práctica</a> y <a href="#/powerbi">Power BI de práctica</a>.</p>
+<h2>Paso 6 — Excel dentro de una arquitectura de datos</h2>
+<p>En una empresa con equipo de datos, Excel suele aparecer en estos lugares:</p>
+<ol>
+<li><strong>Como fuente</strong>: un área envía un Excel mensual (presupuesto, metas). Un pipeline (Data Factory, Databricks, Fabric) lo lee y lo carga en una tabla. Por eso importan las convenciones de la lección 21: un Excel prolijo se carga solo; uno con celdas combinadas y totales mezclados rompe el pipeline.</li>
+<li><strong>Como destino</strong>: un extracto que alguien pidió para analizar por su cuenta. Se genera desde SQL o Power BI (&quot;Export to Excel&quot; / &quot;Analyze in Excel&quot;).</li>
+<li><strong>Como prototipo</strong>: se valida una lógica en Excel con el área de negocio y después se implementa en SQL o en un modelo de Power BI.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 El Excel que se carga en un pipeline</div>
+
+<p>Una hoja, una tabla, encabezados en la fila 1, sin filas de total, sin celdas combinadas, sin colores con significado (el pipeline no ve colores), fechas reales y un nombre de archivo con fecha. Si vas a pedirle a alguien un Excel que se cargará automáticamente, mándale una plantilla con esas reglas.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes importar y exportar CSV sin romper datos.</li>
+<li>Conoces los límites de Excel y cuándo usar otra herramienta.</li>
+<li>Puedes traducir tu trabajo de Excel a SQL, pandas y Power BI.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-excel-en-el-flujo-de-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-libros-profesionales.html">← Libros profesionales - estructura, convenciones y controles para que tu Excel aguante el uso real</a><a href="excel-de-la-practica-al-excel-real.html">De la práctica al Excel real - Tablas, Power Query, formato condicional, validación y Excel en español →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

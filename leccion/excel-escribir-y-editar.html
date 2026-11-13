@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escribir, editar y borrar datos - los cuatro tipos de dato y los atajos que usarás todos los días · Academia de Datos</title><meta name="description" content="Cómo se escribe en una celda, cómo Excel decide si lo que escribiste es texto, número, fecha o lógico, cómo corregir una celda sin reescribirla (F2), cómo borrar, deshacer y rehacer, y cómo copiar, cortar y pegar un rango. Todo paso a paso con capturas de la app."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-escribir-y-editar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Escribir, editar y borrar datos - los cuatro tipos de dato y los atajos que usarás todos los días · Academia de Datos"><meta property="og:description" content="Cómo se escribe en una celda, cómo Excel decide si lo que escribiste es texto, número, fecha o lógico, cómo corregir una celda sin reescribirla (F2), cómo borrar, deshacer y rehacer, y cómo copiar, cortar y pegar un rango. Todo paso a paso con capturas de la app."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-escribir-y-editar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 1 · Básico · 35 min</div>
+<h1>Escribir, editar y borrar datos - los cuatro tipos de dato y los atajos que usarás todos los días</h1><p class="resumen">Cómo se escribe en una celda, cómo Excel decide si lo que escribiste es texto, número, fecha o lógico, cómo corregir una celda sin reescribirla (F2), cómo borrar, deshacer y rehacer, y cómo copiar, cortar y pegar un rango. Todo paso a paso con capturas de la app.</p>
+<a class="cta" href="../index.html#/l/excel-escribir-y-editar">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir datos y confirmar con Enter o Tab</li><li>Reconocer los cuatro tipos de dato por cómo se alinean</li><li>Editar una celda con F2 o desde la barra de fórmulas</li><li>Borrar, deshacer (Ctrl+Z) y rehacer (Ctrl+Y)</li><li>Copiar, cortar y pegar un rango</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Escribir en Excel es como completar un formulario: eliges la casilla, escribes y pasas a la siguiente. La diferencia es que Excel <strong>mira lo que escribiste</strong> y decide si es un texto, un número o una fecha. De eso depende si después puede sumarlo u ordenarlo.</p>
+</div>
+
+
+<h2>Paso 1 — Escribe y confirma</h2>
+<ol>
+<li>Abre <a href="#/excel">Excel de práctica</a>.</li>
+<li>Abajo, junto a las hojas, presiona <strong>+</strong> para crear una hoja nueva (en la próxima lección vemos las hojas a fondo).</li>
+<li>Haz clic en <strong>A1</strong> y escribe <code>Texto</code>. Fíjate: el texto aparece en la celda <strong>y</strong> en la barra de fórmulas a la vez.</li>
+<li>Presiona <strong>Tab</strong>: Excel confirma y pasa a <strong>B1</strong>. Escribe <code>Número</code>, Tab, <code>Fecha</code>, Tab, <code>Lógico</code> y <strong>Enter</strong>.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th>Tecla</th>
+<th>Confirma y va a…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Enter</strong></td>
+<td>La celda de abajo</td>
+</tr>
+<tr>
+<td><strong>Tab</strong></td>
+<td>La celda de la derecha</td>
+</tr>
+<tr>
+<td><strong>Shift + Enter</strong></td>
+<td>La celda de arriba</td>
+</tr>
+<tr>
+<td><strong>Esc</strong></td>
+<td>No confirma: deja la celda como estaba</td>
+</tr>
+</tbody></table></div>
+<ol start="5">
+<li>Completa dos filas más:</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead><tbody><tr>
+<td>2</td>
+<td>Mouse</td>
+<td>12.5</td>
+<td>2024-03-15</td>
+<td>TRUE</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Teclado</td>
+<td>-3</td>
+<td>2024-12-01</td>
+<td>FALSE</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El separador decimal</div>
+
+<p>En esta réplica (y en Excel configurado en inglés) el decimal se escribe con <strong>punto</strong>: <code>12.5</code>. Si tu Excel real está en español de España o Argentina, usa <strong>coma</strong>: <code>12,5</code>. Si escribes el separador equivocado, Excel lo toma como texto.</p>
+</div>
+
+
+<h2>Paso 2 — Reconoce el tipo de dato por la alineación</h2>
+<figure class="captura"><img src="assets/img/guias/excel/e02-tipos.webp" alt="Texto a la izquierda; números y fechas a la derecha" loading="lazy"><figcaption>Texto a la izquierda; números y fechas a la derecha</figcaption></figure>
+
+
+<p>Excel alinea solo, según el tipo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Ejemplo</th>
+<th>Alineación</th>
+<th>Se puede sumar</th>
+</tr>
+</thead><tbody><tr>
+<td>Texto</td>
+<td><code>Mouse</code></td>
+<td>Izquierda</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Número</td>
+<td><code>12.5</code>, <code>-3</code></td>
+<td>Derecha</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Fecha</td>
+<td><code>2024-03-15</code></td>
+<td>Derecha (por dentro es un número)</td>
+<td>Se puede restar: días entre fechas</td>
+</tr>
+<tr>
+<td>Lógico</td>
+<td><code>TRUE</code>, <code>FALSE</code></td>
+<td>Centro</td>
+<td>Cuenta como 1 y 0 en algunas funciones</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 El truco para detectar datos rotos</div>
+
+<p>Si ves un &quot;número&quot; pegado a la izquierda, Excel lo guardó como <strong>texto</strong> (por ejemplo <code>12,5</code> con coma o <code>  300</code> con espacios). No se va a sumar. Es el problema número uno de los archivos que llegan de otros sistemas; lo resolvemos en el nivel 4.</p>
+</div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Fechas en formato ISO</div>
+
+<p>Escribe las fechas como <code>año-mes-día</code> (<code>2024-03-15</code>). Es el formato que entienden todos los sistemas de datos (SQL, Python, Power BI) y Excel lo reconoce en cualquier idioma. <code>03/04/2024</code> es ambiguo: ¿3 de abril o 4 de marzo?</p>
+</div>
+
+
+<h2>Paso 3 — Corrige una celda sin borrarla: F2</h2>
+<p>Quieres cambiar <code>Teclado</code> por <code>Teclado inalámbrico</code>.</p>
+<ol>
+<li>Selecciona <strong>A3</strong>.</li>
+<li>Presiona <strong>F2</strong>. Aparece el cursor al final del texto: estás en <strong>modo edición</strong> (la barra de estado lo dice).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e02-editar-f2.webp" alt="Con F2 editas el contenido sin reemplazarlo" loading="lazy"><figcaption>Con F2 editas el contenido sin reemplazarlo</figcaption></figure>
+
+
+<ol start="3">
+<li>Escribe <code> inalámbrico</code> y Enter.</li>
+</ol>
+<p>Otras dos formas de editar: <strong>doble clic</strong> en la celda, o hacer clic en la <strong>barra de fórmulas</strong> y escribir ahí.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Escribir encima reemplaza</div>
+
+<p>Si seleccionas una celda y empiezas a escribir <strong>sin</strong> F2, lo que había se borra y queda lo nuevo. Si te pasa, presiona <strong>Esc</strong> antes de Enter, o <strong>Ctrl + Z</strong> después.</p>
+</div>
+
+
+<h2>Paso 4 — Borra, deshaz y rehaz</h2>
+<ol>
+<li>Selecciona <strong>D2:D3</strong> (clic en D2, Shift + clic en D3).</li>
+<li>Presiona <strong>Supr</strong> (Delete). Las celdas quedan vacías.</li>
+<li>Presiona <strong>Ctrl + Z</strong>: vuelven. <strong>Ctrl + Y</strong> rehace el borrado; presiona Ctrl + Z otra vez para dejarlas.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th>Acción</th>
+<th>Atajo</th>
+<th>Botón</th>
+</tr>
+</thead><tbody><tr>
+<td>Borrar contenido</td>
+<td>Supr</td>
+<td>Home → <strong>Clear</strong></td>
+</tr>
+<tr>
+<td>Deshacer</td>
+<td>Ctrl + Z</td>
+<td></td>
+</tr>
+<tr>
+<td>Rehacer</td>
+<td>Ctrl + Y</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Copia y pega un bloque</h2>
+<ol>
+<li>Selecciona <strong>A1:D3</strong>.</li>
+<li><strong>Ctrl + C</strong> (o Home → <strong>Copy</strong>). El rango queda con un borde animado.</li>
+<li>Haz clic en <strong>F1</strong> y presiona <strong>Ctrl + V</strong> (o Home → <strong>Paste</strong>).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e02-copiar-pegar.webp" alt="Paste (1) pega el bloque copiado a partir de F1 (2)" loading="lazy"><figcaption>Paste (1) pega el bloque copiado a partir de F1 (2)</figcaption></figure>
+
+
+<p>Solo hace falta elegir la <strong>primera celda</strong> de destino: Excel pega el bloque entero hacia la derecha y hacia abajo.</p>
+<p><strong>Cortar</strong> (Ctrl + X) funciona igual, pero mueve en lugar de copiar. Borra ahora la copia: selecciona <strong>F1:I3</strong> y presiona Supr.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribiste datos de los cuatro tipos y aprendiste a reconocerlos.</li>
+<li>Editaste sin reescribir, deshiciste errores y copiaste bloques.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-escribir-y-editar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-la-pantalla.html">← Excel desde cero - la pantalla, las celdas y tu primer libro</a><a href="excel-hojas-filas-formato.html">Hojas, columnas y formato - ordenar el libro para que otros lo entiendan →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -639,7 +639,7 @@
     if (a === 'ctx-renombrar') return renombrar(r);
     if (a === 'ctx-borrar') return borrar(r, esDir);
     if (a === 'ctx-descargar') return descargar(r);
-    if (a === 'ctx-ruta') { try { navigator.clipboard.writeText(r); toast('Ruta copiada: ' + r); } catch (er) { toast(r); } return; }
+    if (a === 'ctx-ruta') { try { Promise.resolve().then(() => navigator.clipboard.writeText(r)).catch(() => {}); toast('Ruta copiada: ' + r); } catch (er) { toast(r); } return; }
     if (a === 'ctx-duplicar') { const p = r.lastIndexOf('.'); const raiz = base(p > 0 ? r.slice(0, p) : r) + '-Copy'; const ext = p > 0 ? r.slice(p) : ''; const n = nombreLibre(dir(r), raiz, ext); escribir(n, NBS[r] ? serializar(NBS[r].nb) : texto(r) || ''); pintarPanel(); }
   }
   let ultD = 0, ultCero = 0, ultI = 0;

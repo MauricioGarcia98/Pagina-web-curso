@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña de email · Academia de Datos</title><meta name="description" content="Marketing quiere mandar una campaña a los clientes que compraron en 2024, y la única fuente es una tabla de clientes cargada varias veces y sucia. Limpias, quitas duplicados quedándote con la versión más nueva, unes con pedidos y clientes para traer cuántas compras hizo cada uno y de qué país es, separas a quienes no se puede contactar y entregas la lista con un informe de calidad. Pistas solo para los puntos difíciles."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-unir-y-limpiar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña de email · Academia de Datos"><meta property="og:description" content="Marketing quiere mandar una campaña a los clientes que compraron en 2024, y la única fuente es una tabla de clientes cargada varias veces y sucia. Limpias, quitas duplicados quedándote con la versión más nueva, unes con pedidos y clientes para traer cuántas compras hizo cada uno y de qué país es, separas a quienes no se puede contactar y entregas la lista con un informe de calidad. Pistas solo para los puntos difíciles."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-unir-y-limpiar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 4 · Intermedio-avanzado · 90 min</div>
+<h1>Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña de email</h1><p class="resumen">Marketing quiere mandar una campaña a los clientes que compraron en 2024, y la única fuente es una tabla de clientes cargada varias veces y sucia. Limpias, quitas duplicados quedándote con la versión más nueva, unes con pedidos y clientes para traer cuántas compras hizo cada uno y de qué país es, separas a quienes no se puede contactar y entregas la lista con un informe de calidad. Pistas solo para los puntos difíciles.</p>
+<a class="cta" href="../index.html#/l/excel-proyecto-unir-y-limpiar">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Planificar una limpieza antes de ejecutarla</li><li>Deduplicar por clave conservando el registro más reciente</li><li>Unir tablas con XLOOKUP y contar con COUNTIFS entre hojas</li><li>Separar registros no contactables sin inventar datos</li><li>Entregar un dataset con su informe de calidad</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Sofía, de marketing: <em>&quot;Queremos mandar el newsletter de fin de año a los clientes que compraron en 2024. Me pasaron la tabla <code>clientes_crudo</code> pero está llena de repetidos y emails en mayúsculas, y la herramienta de envío rechaza el archivo si hay duplicados. Necesito una lista con nombre, apellido, email, país y cuántas compras hizo cada uno en 2024 (para segmentar). Y avisame cuántos clientes no vamos a poder contactar.&quot;</em></p>
+</div>
+
+
+<p>Este proyecto se parece a un pedido real: <strong>sabes qué hay que entregar, no cómo</strong>. Primero planifica; después ejecuta. Hay pistas solo para las partes difíciles.</p>
+<h2>Las fuentes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Hoja</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>clientes_crudo</code></td>
+<td>Nombre, apellido, email, ciudad (sucios y repetidos)</td>
+</tr>
+<tr>
+<td><code>pedidos</code></td>
+<td>Para contar compras de 2024 por cliente (<strong>B</strong> cliente_id, <strong>D</strong> fecha)</td>
+</tr>
+<tr>
+<td><code>clientes</code></td>
+<td>Para traer el país (<strong>A</strong> cliente_id, <strong>G</strong> pais)</td>
+</tr>
+</tbody></table></div>
+<h2>Antes de empezar: tu plan</h2>
+<p>Escribe en una hoja <code>Plan</code> (o en un papel) los pasos en orden, <strong>antes de tocar los datos</strong>. Un buen plan responde: ¿qué columna es la clave? ¿qué versión de cada cliente me quedo? ¿qué limpio? ¿con qué uno? ¿qué hago con lo que falta?</p>
+<details><summary>Comparar con un plan de referencia (después de escribir el tuyo)</summary>
+
+<ol>
+<li>Medir: filas, clientes distintos, emails vacíos.</li>
+<li>Copiar <code>clientes_crudo</code> a una hoja de trabajo (la original no se toca).</li>
+<li>Ordenar por fecha_carga de nueva a vieja y quitar duplicados por cliente_id.</li>
+<li>Columnas limpias: nombre y apellido con PROPER/TRIM, email con LOWER/TRIM.</li>
+<li>Traer el país desde <code>clientes</code> y contar las compras 2024 desde <code>pedidos</code>.</li>
+<li>Marcar quién compró en 2024 y quién tiene email.</li>
+<li>Filtrar los contactables, exportar y escribir el informe de calidad.</li>
+</ol>
+</details>
+
+<h2>Entregable 1 — La hoja de trabajo deduplicada</h2>
+<p>Una fila por cliente, con la carga <strong>más reciente</strong> de cada uno. La original queda intacta.</p>
+<details><summary>💡 Pista: cómo copiar la tabla a otra hoja</summary>
+
+<p>En <code>clientes_crudo</code>: escribe <code>A1:G401</code> en el cuadro de nombres y Enter, Ctrl + C. Crea una hoja <code>campana</code> (+), clic en A1 y Ctrl + V.</p>
+</details>
+
+<h2>Entregable 2 — Las columnas de la lista</h2>
+<p>En la hoja de trabajo, agrega (con fórmulas):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Columna</th>
+<th>Contenido</th>
+</tr>
+</thead><tbody><tr>
+<td>nombre_ok</td>
+<td>Nombre sin espacios de más, con mayúscula inicial</td>
+</tr>
+<tr>
+<td>apellido_ok</td>
+<td>Igual para el apellido</td>
+</tr>
+<tr>
+<td>email_ok</td>
+<td>Email sin espacios y en minúsculas</td>
+</tr>
+<tr>
+<td>pais</td>
+<td>El país del cliente, desde la hoja <code>clientes</code></td>
+</tr>
+<tr>
+<td>compras_2024</td>
+<td>Cantidad de pedidos del cliente con fecha en 2024</td>
+</tr>
+<tr>
+<td>contactable</td>
+<td><code>sí</code> si compró en 2024 <strong>y</strong> tiene email; <code>no</code> en otro caso</td>
+</tr>
+</tbody></table></div>
+<details><summary>💡 Pista: compras_2024</summary>
+
+<p>Un COUNTIFS con tres condiciones sobre la hoja pedidos: el cliente_id igual al de la fila, la fecha mayor o igual al 1/1/2024 y menor al 1/1/2025.</p>
+</details>
+
+<details><summary>💡 Pista: contactable</summary>
+
+<p><code>IF</code> con <code>AND</code>: compras mayor a 0 <strong>y</strong> email_ok distinto de vacío (<code>&lt;&gt;&quot;&quot;</code>).</p>
+</details>
+
+<h2>Entregable 3 — El archivo para la herramienta de envío</h2>
+<p>Filtra <code>contactable</code> = <code>sí</code> y prepara el archivo: <strong>solo</strong> las columnas nombre_ok, apellido_ok, email_ok, pais y compras_2024, con encabezados. Expórtalo como <code>newsletter_2024.csv</code>.</p>
+<details><summary>💡 Pista: solo algunas columnas</summary>
+
+<p>Una forma: crea una hoja <code>envio</code> y trae cada columna con referencias (<code>=campana!H2</code>) o copia y pega las columnas filtradas. Lo que importa es que el CSV tenga solo lo que pide la herramienta, sin columnas auxiliares.</p>
+</details>
+
+<h2>Entregable 4 — El informe de calidad (para Sofía)</h2>
+<p>Una tabla corta en una hoja <code>calidad</code>, con fórmulas, y el mensaje de entrega. Tiene que responder:</p>
+<ul>
+<li>¿Cuántas filas llegaron y cuántos clientes únicos había?</li>
+<li>¿Cuántos compraron en 2024?</li>
+<li>¿Cuántos de esos no tienen email (y por lo tanto no van en la lista)?</li>
+<li>¿Cuántos van en la lista final?</li>
+</ul>
+<h2>✔ Números de control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Valor</th>
+</tr>
+</thead><tbody><tr>
+<td>Filas en clientes_crudo</td>
+<td>400</td>
+</tr>
+<tr>
+<td>Clientes únicos (después de deduplicar)</td>
+<td>243</td>
+</tr>
+<tr>
+<td>Clientes con al menos una compra en 2024</td>
+<td>147</td>
+</tr>
+<tr>
+<td>Pedidos de 2024 de esos clientes</td>
+<td>509</td>
+</tr>
+<tr>
+<td>Clientes sin email (en su carga más reciente)</td>
+<td>13</td>
+</tr>
+<tr>
+<td>Compraron en 2024 pero no tienen email</td>
+<td>8</td>
+</tr>
+<tr>
+<td><strong>Filas del archivo para la campaña</strong></td>
+<td><strong>139</strong></td>
+</tr>
+<tr>
+<td>País con más clientes en la lista de 147</td>
+<td>Colombia (33)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La trampa de este proyecto</div>
+
+<p>El cliente que más compró en 2024 (11 pedidos) <strong>no tiene email</strong> en su carga más reciente. Es tentador buscar su email en una carga vieja o &quot;deducirlo&quot; de su nombre. No lo hagas: un email inventado o desactualizado rebota, daña la reputación del dominio de envío y puede violar normas de privacidad. Lo correcto es informarlo: <em>&quot;8 clientes activos no tienen email, entre ellos el que más compró; sugiero pedir el dato en la próxima compra.&quot;</em></p>
+</div>
+
+
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Bien</th>
+<th>Muy bien</th>
+</tr>
+</thead><tbody><tr>
+<td>Deduplicación</td>
+<td>Una fila por cliente</td>
+<td>Además se conservó la carga más reciente y la original quedó intacta</td>
+</tr>
+<tr>
+<td>Limpieza</td>
+<td>Emails en minúscula sin espacios</td>
+<td>Nombres, apellidos y emails normalizados con fórmulas</td>
+</tr>
+<tr>
+<td>Unión</td>
+<td>País y compras traídos con fórmulas</td>
+<td>Se verificó que ningún cliente quedó sin país</td>
+</tr>
+<tr>
+<td>Entrega</td>
+<td>CSV con 139 filas</td>
+<td>CSV solo con las columnas pedidas y nombre de archivo claro</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>Informa cuántos no se pueden contactar</td>
+<td>Informe de calidad con números y una recomendación</td>
+</tr>
+</tbody></table></div>
+<h2>🖥️ Hazlo también en Excel real</h2>
+<p>En Excel real hay dos herramientas que hacen esto más cómodo, y vale la pena probarlas con este mismo ejercicio:</p>
+<ul>
+<li><strong>Data → Remove Duplicates</strong> es igual que en la práctica (eliges las columnas).</li>
+<li><strong>Data → Get Data → From Table/Range</strong> abre <strong>Power Query</strong>, donde cada paso de limpieza (quitar espacios, minúsculas, quitar duplicados, combinar con otra tabla) queda grabado y se repite solo cuando llegan datos nuevos. Lo vemos en el nivel 6.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-proyecto-unir-y-limpiar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-limpiar-datos.html">← Limpiar datos - duplicados por clave, textos desprolijos, vacíos y números guardados como texto</a><a href="excel-tablas-dinamicas.html">Tablas dinámicas - resumir miles de filas sin escribir fórmulas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limpiar datos - duplicados por clave, textos desprolijos, vacíos y números guardados como texto · Academia de Datos</title><meta name="description" content="Los datos reales llegan sucios. Con una tabla de clientes cargada varias veces (con mayúsculas, espacios y emails vacíos), aprendes el método completo - primero medir los problemas con fórmulas, después decidir qué es un duplicado, quedarte con el registro más reciente, normalizar textos y dejar documentado qué hiciste. Igual que la capa bronze-silver de un pipeline, pero en Excel."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-limpiar-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Limpiar datos - duplicados por clave, textos desprolijos, vacíos y números guardados como texto · Academia de Datos"><meta property="og:description" content="Los datos reales llegan sucios. Con una tabla de clientes cargada varias veces (con mayúsculas, espacios y emails vacíos), aprendes el método completo - primero medir los problemas con fórmulas, después decidir qué es un duplicado, quedarte con el registro más reciente, normalizar textos y dejar documentado qué hiciste. Igual que la capa bronze-silver de un pipeline, pero en Excel."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-limpiar-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 4 · Intermedio-avanzado · 55 min</div>
+<h1>Limpiar datos - duplicados por clave, textos desprolijos, vacíos y números guardados como texto</h1><p class="resumen">Los datos reales llegan sucios. Con una tabla de clientes cargada varias veces (con mayúsculas, espacios y emails vacíos), aprendes el método completo - primero medir los problemas con fórmulas, después decidir qué es un duplicado, quedarte con el registro más reciente, normalizar textos y dejar documentado qué hiciste. Igual que la capa bronze-silver de un pipeline, pero en Excel.</p>
+<a class="cta" href="../index.html#/l/excel-limpiar-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Medir la calidad de una tabla antes de tocarla (vacíos, repetidos, formatos)</li><li>Detectar claves repetidas con COUNTIF</li><li>Quitar duplicados por clave quedándote con el registro más reciente</li><li>Normalizar textos con TRIM, LOWER y PROPER</li><li>Convertir números y fechas guardados como texto</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Limpiar datos es como ordenar un placard antes de mudarte: primero miras qué hay (cuántas cosas repetidas, cuáles están rotas), después decides qué tirar y qué arreglar, y recién ahí guardas. Si empiezas a tirar sin mirar, tiras cosas que necesitabas.</p>
+</div>
+
+
+<h2>Paso 1 — Carga la tabla sucia</h2>
+<ol>
+<li><strong>Data → Get Data → clientes_crudo → Load</strong>.</li>
+<li>Es una tabla de <strong>aterrizaje</strong>: cada vez que el sistema de origen manda un cliente, se agrega una fila, con lo que venga.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-crudo.webp" alt="clientes_crudo: el mismo cliente cargado varias veces, con mayúsculas, espacios y emails vacíos" loading="lazy"><figcaption>clientes_crudo: el mismo cliente cargado varias veces, con mayúsculas, espacios y emails vacíos</figcaption></figure>
+
+
+<p>Columnas: <strong>A</strong> registro_id (único por fila), <strong>B</strong> cliente_id, <strong>C</strong> nombre, <strong>D</strong> apellido, <strong>E</strong> email, <strong>F</strong> ciudad, <strong>G</strong> fecha_carga.</p>
+<h2>Paso 2 — Mide antes de tocar</h2>
+<p>Antes de limpiar, cuantifica los problemas. En una zona libre (por ejemplo <strong>K1:L6</strong>) arma un pequeño informe de calidad:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>K (rótulo)</th>
+<th>L (fórmula)</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>Filas</td>
+<td><code>=COUNTA(A:A)-1</code></td>
+<td>400</td>
+</tr>
+<tr>
+<td>Clientes distintos</td>
+<td><code>=COUNTA(UNIQUE(B2:B401))</code></td>
+<td>243</td>
+</tr>
+<tr>
+<td>Filas que sobran</td>
+<td><code>=L1-L2</code></td>
+<td>157</td>
+</tr>
+<tr>
+<td>Emails vacíos</td>
+<td><code>=COUNTBLANK(E2:E401)</code></td>
+<td>19</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Clientes distintos en cualquier versión de Excel</div>
+
+<p><code>UNIQUE</code> existe en Excel 365, 2021 y la web. En versiones anteriores se usa una columna auxiliar: <code>=IF(COUNTIF($B$2:B2,B2)=1,1,0)</code> copiada hacia abajo vale 1 la primera vez que aparece cada cliente y 0 las siguientes; <code>SUM</code> de esa columna da los distintos. Fíjate en el rango <code>$B$2:B2</code>: el inicio está fijo y el final crece al copiar.</p>
+</div>
+
+
+<p>Ya sabes lo que hay: <strong>400 filas para 243 clientes</strong> (157 filas sobran) y 19 emails vacíos. Mirando la tabla también ves nombres en mayúsculas, espacios de más y ciudades en minúscula.</p>
+<h2>Paso 3 — ¿Cuántas veces aparece cada cliente?</h2>
+<ol>
+<li>En <strong>I1</strong> escribe <code>veces</code> y en <strong>I2</strong>: <code>=COUNTIF(B:B,B2)</code>.</li>
+<li>Cópiala hacia abajo.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e15-veces.webp" alt="COUNTIF(B:B,B2) (1): el cliente 1638 aparece 5 veces (2)" loading="lazy"><figcaption>COUNTIF(B:B,B2) (1): el cliente 1638 aparece 5 veces (2)</figcaption></figure>
+
+
+<p>Activa el filtro y, en la flecha de <strong>veces</strong>, desmarca el <strong>1</strong>: quedan solo los clientes repetidos. Ordena por <strong>cliente_id</strong> para ver los repetidos uno al lado del otro: mismo cliente, con el nombre escrito distinto, el email en mayúsculas o la ciudad en minúsculas. Quita el filtro y borra la columna I cuando termines (selecciona I1:I401 y Supr).</p>
+<h2>Paso 4 — Decide qué es un duplicado</h2>
+<p>Esta es la decisión más importante, y no es técnica:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Si comparas…</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>La fila completa</td>
+<td><strong>0</strong> duplicados: registro_id y fecha_carga siempre cambian</td>
+</tr>
+<tr>
+<td>nombre + apellido</td>
+<td>Junta clientes distintos que se llaman igual</td>
+</tr>
+<tr>
+<td><strong>cliente_id</strong></td>
+<td>✔ La clave del cliente: una fila por cliente</td>
+</tr>
+</tbody></table></div>
+<p>Y cuando hay varias filas del mismo cliente, ¿con cuál te quedas? Con la <strong>carga más reciente</strong> (la última información que mandó el sistema).</p>
+<h2>Paso 5 — Quédate con la carga más reciente de cada cliente</h2>
+<p>Remove Duplicates se queda con la <strong>primera</strong> fila de cada grupo. El truco: ordenar antes para que la primera sea la más nueva.</p>
+<ol>
+<li>Haz clic en una celda de <strong>fecha_carga</strong> (por ejemplo <strong>G3</strong>) → <strong>Data → Sort Z→A</strong>. Las cargas más nuevas quedan arriba.</li>
+<li>Con una celda de la tabla seleccionada: <strong>Data → Remove Duplicates</strong>.</li>
+<li>Presiona <strong>Unselect All</strong> (1), marca solo <strong>cliente_id</strong> (2) y <strong>OK</strong> (3).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-duplicados-columnas.webp" alt="Remove Duplicates: quitar todas las marcas (1), marcar solo la clave cliente_id (2) y OK (3)" loading="lazy"><figcaption>Remove Duplicates: quitar todas las marcas (1), marcar solo la clave cliente_id (2) y OK (3)</figcaption></figure>
+
+
+<ol start="4">
+<li>Excel informa cuántas filas quitó y cuántas quedan.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-duplicados.webp" alt="157 duplicados quitados; quedan 243 clientes, uno por cliente_id" loading="lazy"><figcaption>157 duplicados quitados; quedan 243 clientes, uno por cliente_id</figcaption></figure>
+
+
+<p>El resultado coincide con lo que mediste en el paso 2 (243 clientes distintos). <strong>Si no coincide, algo salió mal</strong>: deshaz con Ctrl + Z y revisa.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Remove Duplicates borra sin preguntar</div>
+
+<p>Las filas quitadas desaparecen. En el trabajo real, nunca limpies la única copia: trabaja sobre una copia de la hoja o, mejor, deja la tabla original intacta y limpia en otra (la capa <em>bronze</em> se conserva tal como llegó; la limpia es la <em>silver</em>).</p>
+</div>
+
+
+<h2>Paso 6 — Normaliza los textos</h2>
+<ol>
+<li>En <strong>H1</strong> escribe <code>email_limpio</code> y en <strong>H2</strong>: <code>=LOWER(TRIM(E2))</code>. Cópiala hacia abajo.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-limpiar-texto.webp" alt="LOWER(TRIM(...)) quita los espacios y pasa a minúsculas" loading="lazy"><figcaption>LOWER(TRIM(...)) quita los espacios y pasa a minúsculas</figcaption></figure>
+
+
+<ol start="2">
+<li>Haz lo mismo con el nombre: en <strong>I1</strong> <code>nombre_limpio</code>, <strong>I2</strong>: <code>=PROPER(TRIM(C2))</code> → <code>&quot;  DIEGO &quot;</code> queda <code>Diego</code>.</li>
+<li>Y la ciudad: <strong>J1</strong> <code>ciudad_limpia</code>, <strong>J2</strong>: <code>=PROPER(TRIM(F2))</code> → <code>bogotá</code> queda <code>Bogotá</code>.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>TRIM</code></td>
+<td>Quita espacios al inicio, al final y repetidos</td>
+<td><code>&quot;  ana &quot;</code> → <code>&quot;ana&quot;</code></td>
+</tr>
+<tr>
+<td><code>LOWER</code> / <code>UPPER</code></td>
+<td>Minúsculas / mayúsculas</td>
+<td></td>
+</tr>
+<tr>
+<td><code>PROPER</code></td>
+<td>Primera letra de cada palabra en mayúscula</td>
+<td><code>&quot;juan pérez&quot;</code> → <code>&quot;Juan Pérez&quot;</code></td>
+</tr>
+<tr>
+<td><code>SUBSTITUTE</code></td>
+<td>Reemplaza un texto</td>
+<td><code>=SUBSTITUTE(A2,&quot;-&quot;,&quot;&quot;)</code></td>
+</tr>
+<tr>
+<td><code>CLEAN</code> (Excel real)</td>
+<td>Quita caracteres invisibles de sistemas viejos</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 Email vacío no se inventa</div>
+
+<p><code>=LOWER(TRIM(E2))</code> de un email vacío da un texto vacío. Está bien: un dato que falta se informa (&quot;19 clientes sin email&quot;), no se rellena con un valor inventado.</p>
+</div>
+
+
+<h2>Paso 7 — Números y fechas que llegaron como texto</h2>
+<p>Cuando un archivo trae <code>&quot;1500&quot;</code> como texto (alineado a la izquierda), las sumas lo ignoran. Para convertirlo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Fórmula</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>Número como texto</td>
+<td><code>=VALUE(A2)</code></td>
+<td>1500</td>
+</tr>
+<tr>
+<td>Número con espacios</td>
+<td><code>=VALUE(TRIM(A2))</code></td>
+<td>1500</td>
+</tr>
+<tr>
+<td>Decimal con coma en un Excel en inglés</td>
+<td><code>=VALUE(SUBSTITUTE(A2,&quot;,&quot;,&quot;.&quot;))</code></td>
+<td>12.5</td>
+</tr>
+<tr>
+<td>¿Es número de verdad?</td>
+<td><code>=ISNUMBER(A2)</code></td>
+<td>TRUE / FALSE</td>
+</tr>
+</tbody></table></div>
+<p>Comprueba siempre con <code>ISNUMBER</code> o mirando la alineación.</p>
+<h2>Paso 8 — Reemplaza las columnas sucias por las limpias</h2>
+<p>Las columnas con fórmulas dependen de las originales. Para quedarte solo con lo limpio en Excel real: copia <strong>H:J</strong> y usa <strong>Paste Special → Values</strong> (pega los resultados, no las fórmulas). Después ya puedes borrar las columnas originales. En esta réplica, exporta la hoja con <strong>File → Export CSV</strong>: el CSV guarda los valores.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Mediste la calidad de una tabla antes de limpiarla.</li>
+<li>Quitaste duplicados por clave, quedándote con el registro más reciente.</li>
+<li>Normalizaste textos y sabes convertir números guardados como texto.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-limpiar-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-ordenar-y-filtrar.html">← Ordenar y filtrar - ver solo lo que importa sin romper la tabla</a><a href="excel-proyecto-unir-y-limpiar.html">Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña de email →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

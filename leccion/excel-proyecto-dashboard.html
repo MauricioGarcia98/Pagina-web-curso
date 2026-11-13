@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (requisitos y rúbrica) - el tablero comercial 2024 en una hoja · Academia de Datos</title><meta name="description" content="Gerencia quiere abrir un solo archivo el lunes y entender cómo fue 2024. Diseñas y construyes un tablero en Excel - indicadores principales con fórmulas, una tabla dinámica verificada, un gráfico mensual y uno de composición - con supuestos separados, controles de calidad y una nota de lectura. Recibes requisitos y una rúbrica; las decisiones de diseño son tuyas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-dashboard.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (requisitos y rúbrica) - el tablero comercial 2024 en una hoja · Academia de Datos"><meta property="og:description" content="Gerencia quiere abrir un solo archivo el lunes y entender cómo fue 2024. Diseñas y construyes un tablero en Excel - indicadores principales con fórmulas, una tabla dinámica verificada, un gráfico mensual y uno de composición - con supuestos separados, controles de calidad y una nota de lectura. Recibes requisitos y una rúbrica; las decisiones de diseño son tuyas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-dashboard.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 5 · Avanzado · 120 min</div>
+<h1>Proyecto 5 (requisitos y rúbrica) - el tablero comercial 2024 en una hoja</h1><p class="resumen">Gerencia quiere abrir un solo archivo el lunes y entender cómo fue 2024. Diseñas y construyes un tablero en Excel - indicadores principales con fórmulas, una tabla dinámica verificada, un gráfico mensual y uno de composición - con supuestos separados, controles de calidad y una nota de lectura. Recibes requisitos y una rúbrica; las decisiones de diseño son tuyas.</p>
+<a class="cta" href="../index.html#/l/excel-proyecto-dashboard">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar un tablero a partir de preguntas de negocio</li><li>Calcular indicadores con fórmulas robustas y supuestos en celdas</li><li>Combinar fórmulas, tablas dinámicas y gráficos en un entregable</li><li>Incluir controles que prueben que los números cierran</li><li>Evaluar el propio trabajo con una rúbrica</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Reunión con el gerente general: <em>&quot;Quiero un tablero de una página con cómo nos fue en 2024: cuántos pedidos, cuántos se entregaron, cuánta plata cobramos, cómo se repartió por canal, cómo fue cada mes y con qué pagan los clientes. Lo voy a mirar yo y lo voy a reenviar al directorio, así que tiene que entenderse solo. Y que se pueda actualizar el año que viene sin rehacerlo.&quot;</em></p>
+</div>
+
+
+<p>Este proyecto no tiene pasos ni pistas de fórmulas: <strong>ya tienes todas las herramientas</strong>. Tienes requisitos, números de control y una rúbrica. Diseña antes de construir.</p>
+<h2>Requisitos</h2>
+<h3>R1 — Estructura del libro</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Hoja</th>
+<th>Contiene</th>
+</tr>
+</thead><tbody><tr>
+<td><code>supuestos</code></td>
+<td>El año del tablero (2024) y cualquier umbral, cada uno con su rótulo</td>
+</tr>
+<tr>
+<td><code>calculos</code></td>
+<td>Las tablas intermedias (por canal, por mes, por método de pago)</td>
+</tr>
+<tr>
+<td><code>tablero</code></td>
+<td>Solo lo que ve el gerente: indicadores, gráficos y la nota</td>
+</tr>
+<tr>
+<td><code>control</code></td>
+<td>Las verificaciones (R5)</td>
+</tr>
+</tbody></table></div>
+<p>Las tablas del curso (<code>pedidos</code>, <code>pagos</code>) quedan como vinieron.</p>
+<h3>R2 — Indicadores principales (en <code>tablero</code>)</h3>
+<ol>
+<li>Pedidos del año.</li>
+<li>% de pedidos entregados.</li>
+<li>% de pedidos cancelados.</li>
+<li>Monto cobrado en el año (pagos <strong>aprobados</strong>).</li>
+<li>Pago promedio aprobado del año.</li>
+</ol>
+<p>Todas las fórmulas deben tomar el año de <code>supuestos</code>: si el año que viene se cambia 2024 por 2025, el tablero se actualiza solo.</p>
+<h3>R3 — Tablas de apoyo (en <code>calculos</code>)</h3>
+<ul>
+<li>Pedidos del año por <strong>canal</strong>, ordenados de mayor a menor.</li>
+<li>Pedidos del año por <strong>mes</strong> (1 a 12).</li>
+<li>Pedidos del año por <strong>método de pago</strong>.</li>
+</ul>
+<p>Al menos una de ellas hecha con <strong>tabla dinámica</strong> y verificada contra una fórmula (la réplica crea las tablas dinámicas en su propia hoja: está bien que quede ahí).</p>
+<h3>R4 — Gráficos (en <code>tablero</code> o junto a sus tablas)</h3>
+<ul>
+<li>La evolución mensual (el tipo de gráfico lo eliges tú, con criterio).</li>
+<li>La composición por método de pago o por canal.</li>
+<li>Cada gráfico con un título que diga la conclusión, no el tema.</li>
+</ul>
+<h3>R5 — Controles (en <code>control</code>)</h3>
+<p>Cada control es una fórmula que devuelve <code>OK</code> o <code>REVISAR</code>:</p>
+<ul>
+<li>La suma de los 12 meses es igual a los pedidos del año.</li>
+<li>La suma por canal es igual a los pedidos del año.</li>
+<li>El cobrado con SUMIFS es igual al total de la tabla dinámica de pagos (si la hiciste).</li>
+</ul>
+<details><summary>💡 La única pista: cómo armar un control</summary>
+
+<p><code>=IF(SUM(calculos!B2:B13)=tablero!B2,&quot;OK&quot;,&quot;REVISAR&quot;)</code>. Cuando compares montos con decimales, redondea los dos lados: <code>=IF(ROUND(x,2)=ROUND(y,2),&quot;OK&quot;,&quot;REVISAR&quot;)</code>.</p>
+</details>
+
+<h3>R6 — Nota de lectura</h3>
+<p>Tres a cinco líneas en <code>tablero</code>, arriba o al lado de los indicadores: qué pasó en el año, qué destaca y una recomendación. Con números.</p>
+<h2>✔ Números de control (año 2024)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Indicador</th>
+<th>Valor</th>
+</tr>
+</thead><tbody><tr>
+<td>Pedidos del año</td>
+<td>4,633</td>
+</tr>
+<tr>
+<td>Entregados</td>
+<td>3,597 (77.6 %)</td>
+</tr>
+<tr>
+<td>Cancelados</td>
+<td>371 (8.0 %)</td>
+</tr>
+<tr>
+<td>Pagos aprobados en el año</td>
+<td>4,163</td>
+</tr>
+<tr>
+<td>Monto cobrado</td>
+<td>$5,232,793.79</td>
+</tr>
+<tr>
+<td>Pago promedio aprobado</td>
+<td>$1,256.98</td>
+</tr>
+<tr>
+<td>Canal con más pedidos</td>
+<td>web (2,061)</td>
+</tr>
+<tr>
+<td>Pedidos con tarjeta de crédito</td>
+<td>2,139</td>
+</tr>
+<tr>
+<td>Mes con más pedidos</td>
+<td>diciembre (594)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Cuidado con las fechas de dos tablas</div>
+
+<p>Los pedidos se filtran por <code>fecha_pedido</code> y los pagos por <code>fecha_pago</code>. Un pedido del 31 de diciembre puede cobrarse el 2 de enero: por eso &quot;pagos de 2024&quot; no es lo mismo que &quot;pagos de los pedidos de 2024&quot;. Elige una definición, escríbela en <code>supuestos</code> y respétala. Los números de control usan <code>fecha_pago</code>.</p>
+</div>
+
+
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Insuficiente</th>
+<th>Bien</th>
+<th>Excelente</th>
+</tr>
+</thead><tbody><tr>
+<td>Exactitud</td>
+<td>Algún indicador no coincide con el control</td>
+<td>Todos coinciden</td>
+<td>Coinciden y los controles de R5 lo demuestran</td>
+</tr>
+<tr>
+<td>Robustez</td>
+<td>Números escritos a mano</td>
+<td>Todo con fórmulas</td>
+<td>Cambiar el año en <code>supuestos</code> actualiza todo</td>
+</tr>
+<tr>
+<td>Estructura</td>
+<td>Todo mezclado en una hoja</td>
+<td>Datos, cálculos y tablero separados</td>
+<td>Además, rótulos claros y nombres de hoja consistentes</td>
+</tr>
+<tr>
+<td>Gráficos</td>
+<td>Tipo equivocado o sin título</td>
+<td>Tipo correcto con título</td>
+<td>Título con la conclusión y orden que ayuda a leer</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>Sin nota</td>
+<td>Nota que describe</td>
+<td>Nota con hallazgos, números y una recomendación</td>
+</tr>
+</tbody></table></div>
+<p>Evalúate con la rúbrica antes de dar el proyecto por terminado. Si algo queda en &quot;Bien&quot;, ya sabes qué mejorar.</p>
+<h2>Entrega</h2>
+<ol>
+<li>Exporta cada hoja importante con <strong>File → Export CSV</strong> (en Excel real entregarías el <code>.xlsx</code>).</li>
+<li>Escribe el mail al gerente con la nota de lectura en el cuerpo.</li>
+<li>Opcional para tu portafolio: replica el tablero en <a href="#/powerbi">Power BI de práctica</a> con las mismas cifras. Si los números coinciden en dos herramientas, tu lógica es correcta.</li>
+</ol>
+<details><summary>Ver una nota de lectura de ejemplo (después de escribir la tuya)</summary>
+
+<p><em>&quot;En 2024 recibimos 4.633 pedidos y cobramos $5,23 millones. El 77,6 % se entregó y el 8,0 % se canceló, en línea con 2023. La web trae el 44 % de los pedidos. Noviembre y diciembre concentran el 24 % del año: recomendamos planificar stock y logística desde octubre.&quot;</em></p>
+</details>
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-proyecto-dashboard">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-formulas-avanzadas.html">← Fórmulas avanzadas - SUMPRODUCT, búsquedas por tramos y con dos criterios, INDEX/MATCH de doble entrada y auditoría</a><a href="excel-libros-profesionales.html">Libros profesionales - estructura, convenciones y controles para que tu Excel aguante el uso real →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

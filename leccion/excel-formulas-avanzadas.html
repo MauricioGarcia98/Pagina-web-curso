@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fórmulas avanzadas - SUMPRODUCT, búsquedas por tramos y con dos criterios, INDEX/MATCH de doble entrada y auditoría · Academia de Datos</title><meta name="description" content="Las técnicas que separan a quien usa Excel de quien lo domina. Multiplicar y sumar columnas en un paso (SUMPRODUCT), clasificar por tramos con una tabla de referencia en lugar de IF anidados, buscar con dos condiciones, leer una celda de una tabla de doble entrada, armar una hoja de indicadores y auditar fórmulas largas. Con las funciones nuevas de Excel 365 que vas a encontrar en el trabajo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-formulas-avanzadas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Fórmulas avanzadas - SUMPRODUCT, búsquedas por tramos y con dos criterios, INDEX/MATCH de doble entrada y auditoría · Academia de Datos"><meta property="og:description" content="Las técnicas que separan a quien usa Excel de quien lo domina. Multiplicar y sumar columnas en un paso (SUMPRODUCT), clasificar por tramos con una tabla de referencia en lugar de IF anidados, buscar con dos condiciones, leer una celda de una tabla de doble entrada, armar una hoja de indicadores y auditar fórmulas largas. Con las funciones nuevas de Excel 365 que vas a encontrar en el trabajo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-formulas-avanzadas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 5 · Avanzado · 55 min</div>
+<h1>Fórmulas avanzadas - SUMPRODUCT, búsquedas por tramos y con dos criterios, INDEX/MATCH de doble entrada y auditoría</h1><p class="resumen">Las técnicas que separan a quien usa Excel de quien lo domina. Multiplicar y sumar columnas en un paso (SUMPRODUCT), clasificar por tramos con una tabla de referencia en lugar de IF anidados, buscar con dos condiciones, leer una celda de una tabla de doble entrada, armar una hoja de indicadores y auditar fórmulas largas. Con las funciones nuevas de Excel 365 que vas a encontrar en el trabajo.</p>
+<a class="cta" href="../index.html#/l/excel-formulas-avanzadas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Calcular totales ponderados con SUMPRODUCT</li><li>Clasificar por tramos con XLOOKUP aproximado o VLOOKUP TRUE</li><li>Buscar con dos criterios usando una clave auxiliar</li><li>Leer una tabla de doble entrada con INDEX y dos MATCH</li><li>Construir y auditar una hoja de indicadores</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Hasta ahora cada fórmula respondía una pregunta simple. Las fórmulas avanzadas combinan piezas: multiplicar dos columnas y sumarlas, buscar en una tabla de tramos, unir dos condiciones en una clave. No son más difíciles: son piezas conocidas armadas con intención.</p>
+</div>
+
+
+<h2>Paso 1 — Una hoja de indicadores (KPIs)</h2>
+<ol>
+<li>Carga <strong>productos</strong> (Data → Get Data → productos): <strong>E</strong> precio, <strong>F</strong> costo, <strong>G</strong> stock.</li>
+<li>Crea una hoja <code>KPIs</code> y arma:</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Indicador</td>
+<td>Valor</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Pedidos</td>
+<td><code>=COUNTA(pedidos!A:A)-1</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Entregados</td>
+<td><code>=COUNTIF(pedidos!E:E,&quot;entregado&quot;)</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>% entregados</td>
+<td><code>=B3/B2</code> (formato Percentage)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Mayor id entregado</td>
+<td><code>=MAXIFS(pedidos!A:A,pedidos!E:E,&quot;entregado&quot;)</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Stock valorizado</td>
+<td><code>=SUMPRODUCT(productos!E2:E301,productos!G2:G301)</code></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — SUMPRODUCT: multiplicar y sumar en un paso</h2>
+<p>¿Cuánto vale todo el stock a precio de venta? Habría que multiplicar precio × stock de cada producto y sumar. <code>SUMPRODUCT</code> lo hace sin columna auxiliar:</p>
+<figure class="captura"><img src="assets/img/guias/excel/e19-sumproduct.webp" alt="SUMPRODUCT (1) multiplica precio por stock fila a fila y suma: el stock valorizado (2)" loading="lazy"><figcaption>SUMPRODUCT (1) multiplica precio por stock fila a fila y suma: el stock valorizado (2)</figcaption></figure>
+
+
+<pre><code class="language-text">=SUMPRODUCT(rango1, rango2)   →   rango1[1]×rango2[1] + rango1[2]×rango2[2] + …</code></pre>
+<p>Los rangos tienen que tener <strong>el mismo tamaño</strong> (E2:E301 y G2:G301). Con rangos distintos, da <code>#VALUE!</code>.</p>
+<p>Otros usos:</p>
+<ul>
+<li>Margen total del stock: <code>=SUMPRODUCT(productos!E2:E301-productos!F2:F301,productos!G2:G301)</code> → (precio − costo) × stock de cada producto, sumado: <strong>11,053,184.41</strong>.</li>
+<li>Contar con una condición escrita como cuenta: <code>=SUMPRODUCT((pedidos!E2:E12001=&quot;cancelado&quot;)*1)</code> → 967. La comparación da TRUE/FALSE por fila y <code>*1</code> lo convierte en 1/0.</li>
+<li>Promedio ponderado: <code>=SUMPRODUCT(precios,cantidades)/SUM(cantidades)</code>.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 El promedio ponderado</div>
+
+<p>Es la solución correcta a la trampa del proyecto 2 (el promedio de promedios): cada valor pesa según su cantidad. Cuando promedies tasas o precios, piensa si cada fila debería pesar lo mismo.</p>
+</div>
+
+
+<h2>Paso 3 — Revisa la hoja entera de un vistazo</h2>
+<p><strong>Formulas → Show Formulas</strong> muestra todas las fórmulas de la hoja: ideal para revisar una hoja de indicadores antes de entregarla.</p>
+<figure class="captura"><img src="assets/img/guias/excel/e20-kpis-formulas.webp" alt="Show Formulas (1): la hoja de indicadores con todas sus fórmulas a la vista" loading="lazy"><figcaption>Show Formulas (1): la hoja de indicadores con todas sus fórmulas a la vista</figcaption></figure>
+
+
+<p>Revisa cada una preguntándote: ¿apunta a la hoja correcta? ¿al rango completo? ¿el criterio está bien escrito?</p>
+<h2>Paso 4 — Clasificar por tramos sin IF anidados</h2>
+<p>Clasificar pagos en <code>bajo</code> (menos de 500), <code>medio</code> (500 a 999) y <code>alto</code> (1000 o más) con IF anidados funciona, pero cuando los tramos cambian hay que editar cada fórmula. Mejor: una <strong>tabla de tramos</strong>.</p>
+<ol>
+<li>En una hoja <code>Tramos</code>, escribe:</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>desde</td>
+<td>tramo</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0</td>
+<td>bajo</td>
+</tr>
+<tr>
+<td>3</td>
+<td>500</td>
+<td>medio</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1000</td>
+<td>alto</td>
+</tr>
+</tbody></table></div>
+<ol start="2">
+<li>Para clasificar un monto (por ejemplo, el de <strong>pagos!D2</strong>):</li>
+</ol>
+<pre><code class="language-text">=XLOOKUP(pagos!D2,Tramos!A2:A4,Tramos!B2:B4,&quot;&quot;,-1)</code></pre>
+<p>El <code>-1</code> del final es el <strong>modo de coincidencia</strong>: &quot;si no está exacto, devolvé el siguiente <strong>menor</strong>&quot;. 750 no está, el menor más cercano es 500 → <code>medio</code>.</p>
+<p>La versión clásica, que verás en muchos archivos: <code>=VLOOKUP(pagos!D2,Tramos!A2:B4,2,TRUE)</code>. Con <code>TRUE</code>, VLOOKUP busca aproximado y <strong>exige</strong> la primera columna ordenada de menor a mayor.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo de XLOOKUP</th>
+<th>Si no encuentra el valor exacto…</th>
+</tr>
+</thead><tbody><tr>
+<td>0 (o vacío)</td>
+<td>devuelve #N/A (o el 4.º argumento)</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>devuelve el siguiente menor</td>
+</tr>
+<tr>
+<td>1</td>
+<td>devuelve el siguiente mayor</td>
+</tr>
+<tr>
+<td>2</td>
+<td>permite comodines (<code>*</code>, <code>?</code>)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Buscar con dos criterios: una clave auxiliar</h2>
+<p>Pregunta: ¿qué número de pedido hizo el cliente <strong>528</strong> el <strong>2022-01-01</strong>? Ninguna columna sola identifica el pedido: hace falta cliente <strong>y</strong> fecha.</p>
+<ol>
+<li>En <strong>pedidos</strong>, en una columna libre (por ejemplo <strong>P</strong>), arma la clave: <strong>P1</strong> <code>clave</code>, <strong>P2</strong> <code>=B2&amp;&quot;|&quot;&amp;D2</code>, copiada hacia abajo.</li>
+<li>Busca la clave combinada:</li>
+</ol>
+<pre><code class="language-text">=XLOOKUP(&quot;528|2022-01-01&quot;,pedidos!P:P,pedidos!A:A,&quot;no hay&quot;)</code></pre>
+<p>El <code>|</code> separa las partes para que <code>12|3</code> no se confunda con <code>1|23</code>. Es la misma idea que una <strong>clave compuesta</strong> en una base de datos.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 En Excel 365, sin columna auxiliar</div>
+
+<p>Con arrays dinámicos se puede escribir <code>=XLOOKUP(1,(pedidos!B:B=528)*(pedidos!D:D=DATE(2022,1,1)),pedidos!A:A)</code>: cada comparación da una columna de TRUE/FALSE, al multiplicarlas queda 1 solo donde se cumplen las dos, y XLOOKUP busca ese 1. Funciona en Excel 365, en la web y en esta réplica. En Excel 2019 o anterior no: ahí la clave auxiliar es la única opción, y además es más fácil de revisar.</p>
+</div>
+
+
+<h2>Paso 6 — Una celda de una tabla de doble entrada: INDEX + MATCH + MATCH</h2>
+<p>En la hoja <strong>PivotTable</strong> (canal × estado) quieres leer &quot;app / cancelado&quot; con una fórmula que no dependa de la posición:</p>
+<pre><code class="language-text">=INDEX(PivotTable!A1:G7, MATCH(&quot;app&quot;,PivotTable!A1:A7,0), MATCH(&quot;cancelado&quot;,PivotTable!A1:G1,0))</code></pre>
+<p>Un MATCH encuentra la <strong>fila</strong>, el otro la <strong>columna</strong>, e INDEX devuelve el cruce. Si cambia el orden de las filas o columnas, sigue funcionando. (Ajusta los rangos a donde quedó tu tabla: mira en qué fila están los encabezados.)</p>
+<h2>Paso 7 — Excel 365: las funciones que vas a ver en el trabajo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>FILTER</code></td>
+<td>Devuelve las filas que cumplen una condición</td>
+<td><code>=FILTER(A2:G100,E2:E100=&quot;cancelado&quot;)</code></td>
+</tr>
+<tr>
+<td><code>SORT</code> / <code>SORTBY</code></td>
+<td>Ordena un rango con una fórmula</td>
+<td><code>=SORT(A2:B20,2,-1)</code></td>
+</tr>
+<tr>
+<td><code>UNIQUE</code></td>
+<td>Valores distintos</td>
+<td><code>=UNIQUE(F2:F12001)</code></td>
+</tr>
+<tr>
+<td><code>LET</code></td>
+<td>Pone nombre a partes de una fórmula larga</td>
+<td><code>=LET(t,SUM(B2:B8),n,COUNT(B2:B8),t/n)</code></td>
+</tr>
+<tr>
+<td><code>XLOOKUP</code></td>
+<td>La búsqueda moderna</td>
+<td>ya la usas</td>
+</tr>
+</tbody></table></div>
+<p>Estas fórmulas &quot;derraman&quot; el resultado en varias celdas. Funcionan en Excel 365 y en Excel para la web; en versiones viejas no existen. En esta réplica funcionan XLOOKUP, UNIQUE (muestra la primera celda; <code>COUNTA(UNIQUE(...))</code> cuenta los distintos) y las operaciones entre rangos dentro de SUMPRODUCT, SUM o XLOOKUP; FILTER, SORT y LET no.</p>
+<h2>Paso 8 — Auditar fórmulas largas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Técnica</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Ver todas las fórmulas</td>
+<td>Formulas → Show Formulas (Ctrl + `)</td>
+</tr>
+<tr>
+<td>Leer por partes</td>
+<td>Copia una parte interna (por ejemplo el <code>MATCH</code>) a otra celda y mira qué devuelve</td>
+</tr>
+<tr>
+<td>Excel real: evaluar paso a paso</td>
+<td>Formulas → <strong>Evaluate Formula</strong></td>
+</tr>
+<tr>
+<td>Excel real: ver de dónde sale un número</td>
+<td>Formulas → <strong>Trace Precedents</strong> dibuja flechas a las celdas que usa</td>
+</tr>
+<tr>
+<td>Referencia circular</td>
+<td>Si una fórmula se usa a sí misma, Excel avisa: revisa la celda que indica</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Calculaste totales ponderados con SUMPRODUCT.</li>
+<li>Clasificaste por tramos con una tabla de referencia.</li>
+<li>Buscaste con dos criterios y en una tabla de doble entrada.</li>
+<li>Armaste y auditaste una hoja de indicadores.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-formulas-avanzadas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-graficos.html">← Gráficos que se entienden - elegir el tipo, preparar los datos y no engañar</a><a href="excel-proyecto-dashboard.html">Proyecto 5 (requisitos y rúbrica) - el tablero comercial 2024 en una hoja →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

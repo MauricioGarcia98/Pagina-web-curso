@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (solo el pedido) - ¿dónde está perdiendo plata la tienda? · Academia de Datos</title><meta name="description" content="El proyecto que cierra el curso, como llega en un trabajo real - un mail ambiguo de la dirección, cuatro tablas y una fecha de entrega. Sin pasos ni pistas. Defines las preguntas, decides las métricas, construyes un libro profesional con controles, encuentras hallazgos y los presentas con una recomendación. Primero en la práctica y después en Excel real, para tu portafolio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-final.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (solo el pedido) - ¿dónde está perdiendo plata la tienda? · Academia de Datos"><meta property="og:description" content="El proyecto que cierra el curso, como llega en un trabajo real - un mail ambiguo de la dirección, cuatro tablas y una fecha de entrega. Sin pasos ni pistas. Defines las preguntas, decides las métricas, construyes un libro profesional con controles, encuentras hallazgos y los presentas con una recomendación. Primero en la práctica y después en Excel real, para tu portafolio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-final.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 6 · Avanzado completo · 240 min</div>
+<h1>Proyecto final (solo el pedido) - ¿dónde está perdiendo plata la tienda?</h1><p class="resumen">El proyecto que cierra el curso, como llega en un trabajo real - un mail ambiguo de la dirección, cuatro tablas y una fecha de entrega. Sin pasos ni pistas. Defines las preguntas, decides las métricas, construyes un libro profesional con controles, encuentras hallazgos y los presentas con una recomendación. Primero en la práctica y después en Excel real, para tu portafolio.</p>
+<a class="cta" href="../index.html#/l/excel-proyecto-final">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir un pedido ambiguo en preguntas y métricas definidas</li><li>Construir un libro en capas con supuestos, cálculos, salida y controles</li><li>Combinar todas las técnicas del curso sin guía</li><li>Presentar hallazgos con números y una recomendación accionable</li><li>Reproducir el trabajo en Excel real como pieza de portafolio</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mail del director de operaciones, un viernes a las 18:40:</p>
+<p><em>&quot;Hola. En la reunión de directorio salió que estamos perdiendo plata con los pedidos que no se concretan: cancelaciones, devoluciones, pagos rechazados. Nadie tiene números. Necesito para el miércoles algo que me diga dónde está el problema y qué haríamos. Tenés acceso a pedidos, pagos, clientes y productos. Gracias.&quot;</em></p>
+</div>
+
+
+<h2>Las reglas de este proyecto</h2>
+<ul>
+<li><strong>No hay pasos ni pistas.</strong> Todo lo que necesitas lo aprendiste en las lecciones 1 a 23.</li>
+<li>El pedido es ambiguo a propósito: &quot;perder plata&quot;, &quot;el problema&quot; y &quot;qué haríamos&quot; los defines tú, y lo dejas escrito.</li>
+<li>Se entrega como en un trabajo: un libro, un resumen ejecutivo y los supuestos explícitos.</li>
+</ul>
+<h2>Datos disponibles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Filas</th>
+<th>Te sirve para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>pedidos</code></td>
+<td>12,000</td>
+<td>Estado (cancelado, devuelto…), canal, método de pago, fecha, cliente</td>
+</tr>
+<tr>
+<td><code>pagos</code></td>
+<td>11,081</td>
+<td>Pagos aprobados y rechazados, montos, fechas</td>
+</tr>
+<tr>
+<td><code>clientes</code></td>
+<td>2,000</td>
+<td>País, segmento, fecha de registro</td>
+</tr>
+<tr>
+<td><code>productos</code></td>
+<td>300</td>
+<td>Precio, costo, categoría</td>
+</tr>
+</tbody></table></div>
+<p>Números para verificar que cargaste bien: <strong>967</strong> pedidos cancelados, <strong>506</strong> devueltos, <strong>337</strong> pagos rechazados por <strong>$373,571.98</strong>.</p>
+<h2>Entregables</h2>
+<ol>
+<li><strong>El libro</strong> (en la práctica: las hojas exportadas a CSV; en Excel real: el <code>.xlsx</code>), con:<ul>
+<li><code>LEEME</code>: qué es, fuentes, definiciones, cómo actualizarlo.</li>
+<li><code>supuestos</code>: período analizado, definiciones de cada métrica, umbrales.</li>
+<li><code>calculos</code>: las tablas que respaldan cada hallazgo.</li>
+<li><code>tablero</code>: indicadores y gráficos de los hallazgos.</li>
+<li><code>control</code>: controles OK/REVISAR que demuestran que los números cierran.</li>
+</ul>
+</li>
+<li><strong>El resumen ejecutivo</strong> (máximo 10 líneas, en el cuerpo del mail): 3 hallazgos con números, 1 recomendación priorizada y qué harías después.</li>
+<li><strong>Una lista de limitaciones</strong>: qué no pudiste medir con estos datos y qué dato pedirías.</li>
+</ol>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Peso</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Definición del problema</td>
+<td>15 %</td>
+<td>Analiza sin definir qué es &quot;perder plata&quot;</td>
+<td>Define métricas y período en <code>supuestos</code></td>
+<td>Además justifica por qué esas métricas y no otras</td>
+</tr>
+<tr>
+<td>Exactitud</td>
+<td>25 %</td>
+<td>Números que no cierran o no se pueden rastrear</td>
+<td>Todo con fórmulas y controles OK</td>
+<td>Controles cubren totales, cruces entre tablas y casos borde</td>
+</tr>
+<tr>
+<td>Profundidad del análisis</td>
+<td>20 %</td>
+<td>Solo totales</td>
+<td>Corta por al menos dos dimensiones (canal, método, país, mes…)</td>
+<td>Encuentra dónde se concentra el problema y lo cuantifica en dinero</td>
+</tr>
+<tr>
+<td>Estructura del libro</td>
+<td>15 %</td>
+<td>Todo en una hoja</td>
+<td>Capas separadas y LEEME</td>
+<td>Un tercero puede actualizarlo con datos nuevos sin ayuda</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>25 %</td>
+<td>Describe tablas</td>
+<td>3 hallazgos con números y una recomendación</td>
+<td>Recomendación priorizada, con impacto estimado y próximo paso concreto</td>
+</tr>
+</tbody></table></div>
+<p><strong>Aprobado</strong>: competente o más en todos los criterios. Evalúate con honestidad; si algo queda insuficiente, rehazlo antes de darlo por terminado.</p>
+<h2>Preguntas que un director haría (para que te prepares)</h2>
+<p>No son pistas: son las preguntas que te van a hacer cuando presentes. Tu libro debería poder responderlas.</p>
+<ul>
+<li>&quot;¿Esto es mucho o poco? ¿Comparado con qué?&quot;</li>
+<li>&quot;¿Es un problema de un canal, de un medio de pago o de todos?&quot;</li>
+<li>&quot;¿Empeora o mejora con el tiempo?&quot;</li>
+<li>&quot;¿Cuánta plata es, más o menos?&quot;</li>
+<li>&quot;Si hacemos lo que recomendás, ¿cuánto recuperamos y cómo lo medimos?&quot;</li>
+</ul>
+<h2>La segunda vuelta: en Excel real, para tu portafolio</h2>
+<p>Cuando termines en la práctica, rehaz el proyecto en Excel real (Excel para la web alcanza):</p>
+<ol>
+<li>Exporta las cuatro tablas a CSV desde la réplica.</li>
+<li>Cárgalas con <strong>Power Query</strong> y conviértelas en <strong>Tablas</strong>.</li>
+<li>Reconstruye los cálculos con <strong>referencias estructuradas</strong> y las tablas dinámicas con <strong>Slicers</strong>.</li>
+<li>Agrega <strong>formato condicional</strong> a los indicadores que superan tus umbrales.</li>
+<li>Comprueba que los números coinciden con los de tu versión en la práctica: es tu control final.</li>
+<li>Para publicarlo: guarda el <code>.xlsx</code>, saca capturas del tablero (con datos ficticios, como estos) y escribe el resumen ejecutivo como descripción del proyecto.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo contarlo en una entrevista</div>
+
+<p>&quot;Recibí un pedido ambiguo sobre pérdidas por pedidos no concretados. Definí tres métricas, construí un libro en capas con controles automáticos y encontré que [tu hallazgo principal, con número]. Recomendé [tu recomendación], con un impacto estimado de [monto].&quot; Esa estructura (contexto, decisión, resultado con número) es la que buscan los entrevistadores.</p>
+</div>
+
+
+<h2>Después de este curso</h2>
+<p>Ya dominas Excel como herramienta de análisis. Los caminos naturales desde aquí:</p>
+<ul>
+<li><strong><a href="#/m/sql">SQL</a></strong>: las mismas preguntas sobre millones de filas.</li>
+<li><strong><a href="#/m/python">Python</a></strong> y <a href="#/jupyter">JupyterLab</a>: automatizar la limpieza y el análisis.</li>
+<li><strong><a href="#/m/powerbi">Power BI</a></strong>: tableros interactivos que muchos consultan.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-proyecto-final">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-de-la-practica-al-excel-real.html">← De la práctica al Excel real - Tablas, Power Query, formato condicional, validación y Excel en español</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

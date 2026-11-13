@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones básicas - SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, MEDIAN y ROUND · Academia de Datos</title><meta name="description" content="Las ocho funciones que resuelven la mayoría de las preguntas del día a día. Cómo se escribe una función (nombre, paréntesis, argumentos), qué diferencia hay entre COUNT y COUNTA, por qué el promedio puede engañar y la mediana no, y cómo redondear de verdad. Armas una tabla de ventas con descuentos y la resumes con funciones."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-funciones-basicas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Funciones básicas - SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, MEDIAN y ROUND · Academia de Datos"><meta property="og:description" content="Las ocho funciones que resuelven la mayoría de las preguntas del día a día. Cómo se escribe una función (nombre, paréntesis, argumentos), qué diferencia hay entre COUNT y COUNTA, por qué el promedio puede engañar y la mediana no, y cómo redondear de verdad. Armas una tabla de ventas con descuentos y la resumes con funciones."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-funciones-basicas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 2 · Básico-intermedio · 40 min</div>
+<h1>Funciones básicas - SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, MEDIAN y ROUND</h1><p class="resumen">Las ocho funciones que resuelven la mayoría de las preguntas del día a día. Cómo se escribe una función (nombre, paréntesis, argumentos), qué diferencia hay entre COUNT y COUNTA, por qué el promedio puede engañar y la mediana no, y cómo redondear de verdad. Armas una tabla de ventas con descuentos y la resumes con funciones.</p>
+<a class="cta" href="../index.html#/l/excel-funciones-basicas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir funciones con uno o varios argumentos</li><li>Resumir una columna con SUM, AVERAGE, MIN y MAX</li><li>Distinguir COUNT de COUNTA</li><li>Saber cuándo usar MEDIAN en lugar de AVERAGE</li><li>Redondear con ROUND sabiendo que cambia el valor</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una función es una fórmula que ya viene hecha y tiene nombre. En lugar de escribir <code>=E2+E3+E4+E5</code>, escribes <code>=SUM(E2:E5)</code>. Entre paréntesis le das los datos con los que trabaja: sus <strong>argumentos</strong>, separados por coma.</p>
+</div>
+
+
+<h2>Paso 1 — Cómo se escribe una función</h2>
+<pre><code class="language-text">=NOMBRE(argumento1, argumento2, ...)</code></pre>
+<ul>
+<li><code>=SUM(E2:E5)</code> → un argumento: un rango.</li>
+<li><code>=ROUND(E8, 0)</code> → dos argumentos: qué redondear y con cuántos decimales.</li>
+<li><code>=MAX(E2:E5, 1000)</code> → el mayor entre el rango y el número 1000.</li>
+</ul>
+<div class="callout callout-nota"><div class="callout-title">📝 Coma o punto y coma</div>
+
+<p>En Excel en inglés los argumentos se separan con <strong>coma</strong>. En Excel configurado en español, con <strong>punto y coma</strong>: <code>=REDONDEAR(E8;0)</code>. La lógica es la misma.</p>
+</div>
+
+
+<h2>Paso 2 — Arma la tabla de ventas</h2>
+<ol>
+<li>En <a href="#/excel">Excel de práctica</a>, crea una hoja (<strong>+</strong>) y llámala <code>Ventas</code>.</li>
+<li>Escribe:</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Producto</td>
+<td>Cantidad</td>
+<td>Precio</td>
+<td>Descuento</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Notebook</td>
+<td>2</td>
+<td>820</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Monitor</td>
+<td>5</td>
+<td>190</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Mouse</td>
+<td>12</td>
+<td>15</td>
+<td>0.05</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Teclado</td>
+<td>7</td>
+<td>35</td>
+<td>0</td>
+</tr>
+</tbody></table></div>
+<ol start="3">
+<li>En <strong>E1</strong> escribe <code>Neto</code> y en <strong>E2</strong>: <code>=B2*C2*(1-D2)</code> (cantidad × precio, menos el descuento).</li>
+<li>Selecciona <strong>E2:E5</strong> y <strong>Ctrl + D</strong>. Notebook debe dar <strong>1476</strong>.</li>
+</ol>
+<h2>Paso 3 — Resume la columna con funciones</h2>
+<p>Escribe los rótulos en la columna A y las funciones en la E:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Celda</th>
+<th>Rótulo (A)</th>
+<th>Fórmula (E)</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>fila 7</td>
+<td>Total</td>
+<td><code>=SUM(E2:E5)</code></td>
+<td>2842</td>
+</tr>
+<tr>
+<td>fila 8</td>
+<td>Promedio</td>
+<td><code>=AVERAGE(E2:E5)</code></td>
+<td>710.5</td>
+</tr>
+<tr>
+<td>fila 9</td>
+<td>Máximo</td>
+<td><code>=MAX(E2:E5)</code></td>
+<td>1476</td>
+</tr>
+<tr>
+<td>fila 10</td>
+<td>Mínimo</td>
+<td><code>=MIN(E2:E5)</code></td>
+<td>171</td>
+</tr>
+<tr>
+<td>fila 11</td>
+<td>Productos</td>
+<td><code>=COUNT(E2:E5)</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td>fila 12</td>
+<td>Redondeado</td>
+<td><code>=ROUND(E8,0)</code></td>
+<td>711</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/excel/e07-funciones.webp" alt="AVERAGE en la barra de fórmulas (1) y su resultado (2)" loading="lazy"><figcaption>AVERAGE en la barra de fórmulas (1) y su resultado (2)</figcaption></figure>
+
+
+<h2>Paso 4 — COUNT y COUNTA no son lo mismo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Cuenta</th>
+<th>En <code>Mouse, 12, (vacía), 15</code> da</th>
+</tr>
+</thead><tbody><tr>
+<td><code>COUNT</code></td>
+<td>Solo celdas con <strong>números</strong></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>COUNTA</code></td>
+<td>Celdas <strong>no vacías</strong> (números, textos, fechas)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>COUNTBLANK</code></td>
+<td>Celdas vacías</td>
+<td>1</td>
+</tr>
+</tbody></table></div>
+<p>Pruébalo: en <strong>G2</strong> escribe <code>=COUNT(A2:A5)</code> (da 0: son textos) y en <strong>G3</strong> <code>=COUNTA(A2:A5)</code> (da 4).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Para contar filas de una tabla</div>
+
+<p><code>=COUNTA(A:A)-1</code> cuenta las filas con datos de la columna A, menos el encabezado. Úsalo sobre una columna que <strong>nunca</strong> esté vacía (como un id).</p>
+</div>
+
+
+<h2>Paso 5 — El promedio puede engañar: MEDIAN</h2>
+<p>Agrega una venta grande para ver el efecto:</p>
+<ol>
+<li>En <strong>A6</strong> escribe <code>Servidor</code>, en <strong>B6</strong> <code>1</code>, en <strong>C6</strong> <code>9000</code>, en <strong>D6</strong> <code>0</code>, y en <strong>E6</strong> <code>=B6*C6*(1-D6)</code>.</li>
+<li>Cambia las fórmulas de las filas 7 a 11 para que lleguen hasta la fila 6 (por ejemplo <code>=AVERAGE(E2:E6)</code>).</li>
+<li>En <strong>A13</strong> escribe <code>Mediana</code> y en <strong>E13</strong> <code>=MEDIAN(E2:E6)</code>.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Sin el servidor</th>
+<th>Con el servidor</th>
+</tr>
+</thead><tbody><tr>
+<td>Promedio</td>
+<td>710.5</td>
+<td>2368.4</td>
+</tr>
+<tr>
+<td>Mediana</td>
+<td>—</td>
+<td>950</td>
+</tr>
+</tbody></table></div>
+<p>Una sola venta grande triplicó el promedio, pero la mediana (el valor del medio cuando ordenas) casi no se movió. Cuando hay valores extremos (sueldos, montos de compras, tiempos de entrega), informa la <strong>mediana</strong> o las dos.</p>
+<ol start="4">
+<li>Borra la fila del servidor (selecciona <strong>A6:E6</strong> y Supr) y vuelve las fórmulas a <code>E2:E5</code> para seguir con las capturas.</li>
+</ol>
+<h2>Paso 6 — Redondear de verdad: ROUND</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Escribes</th>
+<th>Da</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>=ROUND(710.5,0)</code></td>
+<td>711</td>
+<td>Redondeo normal</td>
+</tr>
+<tr>
+<td><code>=ROUND(710.456,2)</code></td>
+<td>710.46</td>
+<td>Dos decimales (dinero)</td>
+</tr>
+<tr>
+<td><code>=ROUNDUP(710.1,0)</code></td>
+<td>711</td>
+<td>Siempre hacia arriba (cajas, personas)</td>
+</tr>
+<tr>
+<td><code>=ROUNDDOWN(710.9,0)</code></td>
+<td>710</td>
+<td>Siempre hacia abajo</td>
+</tr>
+<tr>
+<td><code>=ROUND(1234,-2)</code></td>
+<td>1200</td>
+<td>A las centenas</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ROUND cambia el valor, el formato no</div>
+
+<p>El formato de número solo cambia cómo se <strong>ve</strong>. <code>ROUND</code> cambia el <strong>valor</strong>: las cuentas que usen esa celda van a usar el número redondeado. Redondea al final (en el número que se informa), no en los pasos intermedios.</p>
+</div>
+
+
+<h2>Paso 7 — El IVA y el formato final</h2>
+<ol>
+<li>En <strong>H1</strong> escribe <code>IVA</code> y en <strong>I1</strong> <code>1.21</code>.</li>
+<li>En <strong>F1</strong> escribe <code>Con IVA</code> y en <strong>F2</strong> <code>=E2*$I$1</code>. Cópiala hasta <strong>F5</strong>. En <strong>F7</strong>: <code>=SUM(F2:F5)</code>.</li>
+<li>Formato: <strong>D2:D5</strong> → Percentage; <strong>C2:C5</strong> y <strong>E2:F10</strong> → Currency.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e08-ventas.webp" alt="La tabla terminada: =E2*$I$1 (1) con el IVA fijo en I1" loading="lazy"><figcaption>La tabla terminada: =E2*$I$1 (1) con el IVA fijo en I1</figcaption></figure>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribiste funciones de uno y varios argumentos.</li>
+<li>Resumiste una tabla y entendiste COUNT, COUNTA y MEDIAN.</li>
+<li>Sabes cuándo redondear con ROUND y cuándo alcanza con el formato.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-funciones-basicas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-copiar-formulas-y-referencias.html">← Copiar fórmulas y referencias - relativas, absolutas ($) y mixtas</a><a href="excel-proyecto-ventas-diarias.html">Proyecto 2 (guiado, con pistas) - el cierre semanal de ventas de una sucursal →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

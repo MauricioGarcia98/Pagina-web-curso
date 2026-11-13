@@ -64,12 +64,16 @@
     if (H.base) { const B = base(H.base); if (f === 0) return B.cols[c]; const r = B.filas[H.perm ? H.perm[f - 1] : f - 1]; if (r) { const v = r[c]; return v == null ? undefined : v; } }
     return undefined;
   }
-  function ultimaFila(h) { const H = S().hojas[h]; let m = 0; for (const d of Object.keys(H.celdas)) { const p = X().parseDir(d); if (p && p.f > m) m = p.f; } if (H.base) m = Math.max(m, H.perm ? H.perm.length : base(H.base).filas.length); return m; }
-  function ultimaCol(h) { const H = S().hojas[h]; let m = 0; for (const d of Object.keys(H.celdas)) { const p = X().parseDir(d); if (p && p.c > m) m = p.c; } if (H.base) m = Math.max(m, base(H.base).cols.length - 1); return m; }
+  // última fila/columna con datos: se memoriza hasta el próximo cambio (recalcular limpia la memoria)
+  const UF = new Map(), UC = new Map();
+  function ultimaFila(h) { if (UF.has(h)) return UF.get(h); const m = ultimaFilaCalc(h); UF.set(h, m); return m; }
+  function ultimaCol(h) { if (UC.has(h)) return UC.get(h); const m = ultimaColCalc(h); UC.set(h, m); return m; }
+  function ultimaFilaCalc(h) { const H = S().hojas[h]; if (!H) return 0; let m = 0; for (const d of Object.keys(H.celdas)) { const p = X().parseDir(d); if (p && p.f > m) m = p.f; } if (H.base) m = Math.max(m, H.perm ? H.perm.length : base(H.base).filas.length); return m; }
+  function ultimaColCalc(h) { const H = S().hojas[h]; if (!H) return 0; let m = 0; for (const d of Object.keys(H.celdas)) { const p = X().parseDir(d); if (p && p.c > m) m = p.c; } if (H.base) m = Math.max(m, base(H.base).cols.length - 1); return m; }
   let EV = null;
   function evaluador() { if (!EV) { EV = X().crearEvaluador((h, c, f) => crudo(h, c, f), () => S().hojas.map((x) => x.nombre)); EV.ultimaFila = (h) => ultimaFila(h); } return EV; }
   const valor = (h, c, f) => evaluador().valor(h, c, f);
-  const recalcular = () => evaluador().limpiar();
+  const recalcular = () => { UF.clear(); UC.clear(); evaluador().limpiar(); };
 
   // ---------------------------------------------------------------- cambios con deshacer
   const deshacer = [], rehacer = [];
@@ -112,7 +116,7 @@
     fx.addEventListener('input', () => { if (editando && editando.input) editando.input.value = fx.value; });
     fx.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); confirmar(fx.value, 1, 0); hj.focus(); } else if (e.key === 'Escape') { cancelar(); hj.focus(); } e.stopPropagation(); });
     const nb = $('#xlNombre');
-    nb.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const p = X().parseDir(nb.value.trim().split(':')[0]); if (p) { sel = p; ancla = null; visible(); pintarGrilla(); actualizarBarra(); } hj.focus(); } e.stopPropagation(); });
+    nb.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const [a, b] = nb.value.trim().toUpperCase().split(':'); const p = X().parseDir(a), q = b ? X().parseDir(b) : null; if (p) { if (q) { ancla = p; sel = q; } else { sel = p; ancla = null; } visible(); pintarGrilla(); actualizarBarra(); } hj.focus(); } e.stopPropagation(); });
     $('#xlCsv').onchange = (e) => importarCsv(e.target.files[0]);
     hj.focus();
   }
@@ -135,7 +139,7 @@
       Insert: grupo('Tables', boton('pivot', '▦', 'PivotTable', 'Resume una tabla agrupando por un campo')) + grupo('Charts', boton('graf-col', '▮▮', 'Column') + boton('graf-bar', '▬', 'Bar') + boton('graf-linea', '⟋', 'Line') + boton('graf-torta', '◔', 'Pie')),
       Formulas: grupo('Function Library', boton('insertar-fn', 'fx', 'Insert Function', 'Busca una función y mira cómo se usa') + boton('autosuma', 'Σ', 'AutoSum')) + grupo('Formula Auditing', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas" title="Ctrl+\`"><span class="xl-bi">${icx('ver-formulas', 'ƒ')}</span><span>Show Formulas</span></button>`),
       Data: grupo('Get & Transform Data', boton('obtener', '⛁', 'Get Data', 'Carga una tabla del curso en una hoja nueva') + boton('csv-importar', '⭱', 'From Text/CSV')) + grupo('Sort & Filter', boton('orden-asc', 'A↓', 'Sort A→Z') + boton('orden-desc', 'Z↓', 'Sort Z→A') + boton('filtro', '⏷', 'Filter')) + grupo('Data Tools', boton('duplicados', '⧉', 'Remove Duplicates', 'Quita las filas repetidas de la tabla')),
-      View: grupo('Show', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas"><span class="xl-bi">${icx('ver-formulas', 'ƒ')}</span><span>Formulas</span></button>`) + grupo('Ayuda', boton('leccion', '📘', 'Lección', 'Excel por dentro') + boton('atajos', '⌨', 'Shortcuts')),
+      View: grupo('Show', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas"><span class="xl-bi">${icx('ver-formulas', 'ƒ')}</span><span>Formulas</span></button>`) + grupo('Ayuda', boton('curso', '🎓', 'Curso', 'Excel paso a paso: 24 lecciones de cero a avanzado') + boton('leccion', '📘', 'Lección', 'Excel por dentro') + boton('atajos', '⌨', 'Shortcuts')),
     };
     c.innerHTML = cintas[pestaña] || '';
     const tm = c.querySelector('#xlTema'); if (tm) tm.onchange = () => { S().tema = tm.value; guardar(); aplicarTema(); };
@@ -194,7 +198,9 @@
     html += '</tbody></table>';
     // encabezados de columnas fijos arriba
     html += `<div class="xl-ch" style="top:${top}px;width:${tot}px"><div class="xl-esq" style="width:${ANCHO_FILAS}px" title="Seleccionar todo"></div>${anchos.map((a, c) => `<div class="xl-chc${c >= r.c0 && c <= r.c1 ? ' on' : ''}" style="width:${a}px" data-col="${c}">${X().colTxt(c)}<span class="xl-res" data-res="${c}"></span></div>`).join('')}</div>`;
+    const foco = editando && editando.input && document.activeElement === editando.input;
     $('#xlCapa').innerHTML = html;
+    if (editando && editando.input) { const pos = editando.input.selectionStart; colocarEditor(); if (foco) { editando.input.focus({ preventScroll: true }); editando.input.setSelectionRange(pos, pos); } }
     // controlador de relleno
     const act = $('#xlCapa').querySelector(`td[data-c="${r.c1}"][data-f="${r.f1}"]`);
     if (act && !editando) { const tr = act.getBoundingClientRect(), hr = hj.getBoundingClientRect(); const h0 = document.createElement('div'); h0.className = 'xl-relleno'; h0.title = 'Arrastra para rellenar'; h0.style.left = tr.right - hr.left + hj.scrollLeft - 4 + 'px'; h0.style.top = tr.bottom - hr.top + hj.scrollTop - 4 + 'px'; $('#xlCapa').append(h0); }
@@ -245,7 +251,7 @@
     if (editando) return;
     editando = { c: sel.c, f: sel.f, orig: textoCelda(sel.c, sel.f) };
     colocarEditor(); const inp = editando.input; inp.value = inicial != null ? inicial : editando.orig; $('#xlFormula').value = inp.value;
-    inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); estado();
+    inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); estado();
   }
   function cerrarEditor() { if (editando && editando.input) editando.input.remove(); editando = null; cerrarSugerencias(); }
   function cancelar() { cerrarEditor(); actualizarBarra(); pintarGrilla(); $('#xlHoja').focus(); }
@@ -360,6 +366,7 @@
     if (mod && k.toLowerCase() === 'z') { e.preventDefault(); return accion('deshacer'); }
     if (mod && k.toLowerCase() === 'y') { e.preventDefault(); return accion('rehacer'); }
     if (mod && k.toLowerCase() === 'b') { e.preventDefault(); return accion('negrita'); }
+    if (mod && k.toLowerCase() === 'r') { e.preventDefault(); const r = rangoSel(); if (r.c1 > r.c0) { const cambios = []; for (let f = r.f0; f <= r.f1; f++) { const cel = hoja().celdas[X().dir(r.c0, f)]; const v = textoCelda(r.c0, f); for (let c = r.c0 + 1; c <= r.c1; c++) cambios.push({ h: S().activa, d: X().dir(c, f), cel: v === '' ? null : { ...(cel || {}), v: X().moverFormula(v, c - r.c0, 0) } }); } escribirCeldas(cambios); pintarGrilla(); actualizarBarra(); } return; }
     if (mod && k.toLowerCase() === 'd') { e.preventDefault(); const r = rangoSel(); if (r.f1 > r.f0) rellenar({ ...r, f1: r.f0 }, r.f1); return; }
     if (mod && e.shiftKey && k.toLowerCase() === 'l') { e.preventDefault(); return accion('filtro'); }
     if (mod && k.toLowerCase() === 'a') { e.preventDefault(); ancla = { c: 0, f: 0 }; sel = { c: ultimaCol(S().activa), f: ultimaFila(S().activa) }; pintarGrilla(); actualizarBarra(); return; }
@@ -421,22 +428,33 @@
     toast(`Ordenado por ${X().colTxt(sel.c)} ${desc ? 'Z→A' : 'A→Z'}${tieneEnc ? ' (la primera fila quedó como encabezado)' : ''}`);
   }
   function quitarDuplicados() {
+    // como en Excel: primero se eligen las columnas que definen un duplicado
     const r = region(); if (!r) return toast('Selecciona una celda dentro de una tabla');
-    const h = S().activa; const f0 = r.f0 + 1; if (r.f1 - f0 > 30000) return toast('La tabla es muy grande para esta réplica');
+    const h = S().activa; if (r.f1 - r.f0 > 30001) return toast('La tabla es muy grande para esta réplica');
+    const cols = []; for (let c = r.c0; c <= r.c1; c++) cols.push({ c, n: String(X().mostrar(valor(h, c, r.f0)) || X().colTxt(c)) });
+    const m = abrirModal('Remove Duplicates', `<p>To delete duplicate values, select one or more columns that contain duplicates.</p><p><button class="xl-btn" id="xlDupTodo">Select All</button> <button class="xl-btn" id="xlDupNada">Unselect All</button> <label class="xl-dim" style="margin-left:12px"><input type="checkbox" checked disabled> My data has headers</label></p><div class="xl-lista" id="xlDupCols">${cols.map((x) => `<label><input type="checkbox" data-dupc="${x.c}" checked> ${esc(x.n)}</label>`).join('')}</div><p class="xl-dim">Marca solo las columnas que identifican un registro (por ejemplo, el id). Dos filas cuentan como duplicadas si coinciden en todas las columnas marcadas, sin distinguir mayúsculas; se queda la primera.</p>`, [['Cancel', cerrarModal], ['OK', () => { const elegidas = [...m.querySelectorAll('[data-dupc]:checked')].map((x) => Number(x.dataset.dupc)); if (!elegidas.length) return toast('Marca al menos una columna'); cerrarModal(); aplicarDuplicados(r, elegidas); }]]);
+    m.querySelector('#xlDupTodo').onclick = () => m.querySelectorAll('[data-dupc]').forEach((x) => (x.checked = true));
+    m.querySelector('#xlDupNada').onclick = () => m.querySelectorAll('[data-dupc]').forEach((x) => (x.checked = false));
+  }
+  function resultadoDuplicados(quitadas, quedan) {
+    abrirModal('Microsoft Excel', `<p>${quitadas ? `<b>${quitadas}</b> duplicate values found and removed; <b>${quedan}</b> unique values remain.` : `No duplicate values found.`}</p><p class="xl-dim">${quitadas ? `Se quitaron ${quitadas} filas repetidas; quedan ${quedan}.` : 'No hay filas que coincidan en las columnas marcadas.'}</p>`, [['OK', cerrarModal]]);
+  }
+  function aplicarDuplicados(r, elegidas) {
+    const h = S().activa; const f0 = r.f0 + 1;
     if (hoja().base && r.f0 === 0) {
       const H = hoja(); const B = base(H.base); const actual = H.perm || B.filas.map((_, i) => i);
       const vistos = new Set(); const quedan = [];
-      actual.forEach((idx, i) => { const k = B.cols.map((_, c) => String(X().mostrar(valor(h, c, i + 1))).toLowerCase()).join('\u0001'); if (!vistos.has(k)) { vistos.add(k); quedan.push(idx); } });
+      actual.forEach((idx, i) => { const k = elegidas.map((c) => String(X().mostrar(valor(h, c, i + 1))).toLowerCase()).join('\u0001'); if (!vistos.has(k)) { vistos.add(k); quedan.push(idx); } });
       const quitadas = actual.length - quedan.length; H.perm = quedan; recalcular(); guardar(); evento('duplicados'); pintarGrilla(); actualizarBarra();
-      return abrirModal('Remove Duplicates', `<p>Se encontraron y quitaron <b>${quitadas}</b> filas duplicadas; quedan <b>${quedan.length}</b> valores únicos.</p><p class="xl-dim">Se comparan las filas completas, sin distinguir mayúsculas.</p>`, [['OK', cerrarModal]]);
+      return resultadoDuplicados(quitadas, quedan.length);
     }
     materializar(); const H = hoja();
     const vistos = new Set(); const quedan = []; let quitadas = 0;
-    for (let f = f0; f <= r.f1; f++) { const fila = []; const clave = []; for (let c = r.c0; c <= r.c1; c++) { fila.push(H.celdas[X().dir(c, f)] || null); clave.push(String(X().mostrar(valor(h, c, f))).toLowerCase()); } const k = clave.join('\u0001'); if (vistos.has(k)) { quitadas++; continue; } vistos.add(k); quedan.push(fila); }
+    for (let f = f0; f <= r.f1; f++) { const fila = []; for (let c = r.c0; c <= r.c1; c++) fila.push(H.celdas[X().dir(c, f)] || null); const k = elegidas.map((c) => String(X().mostrar(valor(h, c, f))).toLowerCase()).join('\u0001'); if (vistos.has(k)) { quitadas++; continue; } vistos.add(k); quedan.push(fila); }
     const cambios = [];
     for (let i = 0; i <= r.f1 - f0; i++) for (let k = 0; k <= r.c1 - r.c0; k++) cambios.push({ h, d: X().dir(r.c0 + k, f0 + i), cel: quedan[i] ? quedan[i][k] : null });
     escribirCeldas(cambios); evento('duplicados'); pintarGrilla(); actualizarBarra();
-    abrirModal('Remove Duplicates', `<p>Se encontraron y quitaron <b>${quitadas}</b> filas duplicadas; quedan <b>${quedan.length}</b> valores únicos.</p><p class="xl-dim">Se comparan las filas completas, sin distinguir mayúsculas.</p>`, [['OK', cerrarModal]]);
+    resultadoDuplicados(quitadas, quedan.length);
   }
   function autoSuma() {
     const h = S().activa; let f = sel.f - 1; if (f < 0) return;
@@ -468,8 +486,11 @@
   function accion(a) {
     const h = S().activa; const H = hoja();
     switch (a) {
-      case 'copiar': case 'cortar': { const r = rangoSel(); porta = { r, h, cortar: a === 'cortar', celdas: [] }; for (let f = r.f0; f <= r.f1; f++) { const fila = []; for (let c = r.c0; c <= r.c1; c++) fila.push(H.celdas[X().dir(c, f)] ? JSON.parse(JSON.stringify(H.celdas[X().dir(c, f)])) : (crudo(h, c, f) != null ? { v: String(crudo(h, c, f)) } : null)); porta.celdas.push(fila); } try { navigator.clipboard.writeText(porta.celdas.map((fl, i) => fl.map((cel, k) => X().mostrar(valor(h, r.c0 + k, r.f0 + i))).join('\t')).join('\n')); } catch (e) { /* sin portapapeles */ } toast(a === 'copiar' ? 'Copiado' : 'Cortado: pega con Ctrl+V'); return; }
-      case 'pegar': { if (!porta) return toast('Primero copia algo (Ctrl+C)'); const cambios = []; const df = sel.f - porta.r.f0, dc = sel.c - porta.r.c0; porta.celdas.forEach((fl, i) => fl.forEach((cel, k) => cambios.push({ h, d: X().dir(sel.c + k, sel.f + i), cel: cel ? { ...cel, v: porta.cortar ? cel.v : X().moverFormula(cel.v, dc, df) } : null }))); if (porta.cortar) { porta.celdas.forEach((fl, i) => fl.forEach((_, k) => { const d = X().dir(porta.r.c0 + k, porta.r.f0 + i); if (!cambios.some((x) => x.d === d && x.h === h)) cambios.unshift({ h: porta.h, d, cel: null }); })); porta = null; } escribirCeldas(cambios); evento('pegar'); pintarGrilla(); pintarGraficos(); actualizarBarra(); return; }
+      case 'copiar': case 'cortar': { const r = rangoSel(); porta = { r, h, cortar: a === 'cortar', celdas: [] }; for (let f = r.f0; f <= r.f1; f++) { const fila = []; for (let c = r.c0; c <= r.c1; c++) fila.push(H.celdas[X().dir(c, f)] ? JSON.parse(JSON.stringify(H.celdas[X().dir(c, f)])) : (crudo(h, c, f) != null ? { v: String(crudo(h, c, f)) } : null)); porta.celdas.push(fila); } Promise.resolve().then(() => navigator.clipboard.writeText(porta.celdas.map((fl, i) => fl.map((cel, k) => X().mostrar(valor(h, r.c0 + k, r.f0 + i))).join('\t')).join('\n'))).catch(() => {}); toast(a === 'copiar' ? 'Copiado' : 'Cortado: pega con Ctrl+V'); return; }
+      case 'pegar': { if (!porta) return toast('Primero copia algo (Ctrl+C)'); const cambios = []; const dst = rangoSel(); const alto = porta.celdas.length, ancho = porta.celdas[0].length; const rf = dst.f1 - dst.f0 + 1, rc = dst.c1 - dst.c0 + 1;
+        // como en Excel: si el destino es un múltiplo del bloque copiado, se repite hasta llenarlo
+        const vf = !porta.cortar && rf > alto && rf % alto === 0 ? rf / alto : 1, vc = !porta.cortar && rc > ancho && rc % ancho === 0 ? rc / ancho : 1;
+        for (let tf = 0; tf < vf; tf++) for (let tc = 0; tc < vc; tc++) { const f0 = dst.f0 + tf * alto, c0 = dst.c0 + tc * ancho; const df = f0 - porta.r.f0, dc = c0 - porta.r.c0; porta.celdas.forEach((fl, i) => fl.forEach((cel, k) => cambios.push({ h, d: X().dir(c0 + k, f0 + i), cel: cel ? { ...cel, v: porta.cortar ? cel.v : X().moverFormula(cel.v, dc, df) } : null }))); } if (porta.cortar) { porta.celdas.forEach((fl, i) => fl.forEach((_, k) => { const d = X().dir(porta.r.c0 + k, porta.r.f0 + i); if (!cambios.some((x) => x.d === d && x.h === h)) cambios.unshift({ h: porta.h, d, cel: null }); })); porta = null; } escribirCeldas(cambios); evento('pegar'); pintarGrilla(); pintarGraficos(); actualizarBarra(); return; }
       case 'deshacer': { const p = deshacer.pop(); if (!p) return; const actual = p.map(({ h: hh, d }) => ({ h: hh, d, cel: S().hojas[hh].celdas[d] ? JSON.parse(JSON.stringify(S().hojas[hh].celdas[d])) : null })); rehacer.push(actual); escribirCeldas(p, true); pintarGrilla(); pintarGraficos(); actualizarBarra(); return; }
       case 'rehacer': { const p = rehacer.pop(); if (!p) return; escribirCeldas(p, true); deshacer.push(p); pintarGrilla(); pintarGraficos(); actualizarBarra(); return; }
       case 'negrita': { const on = !(H.celdas[X().dir(sel.c, sel.f)] || {}).b; aplicarARango((c) => ({ ...c, b: on || undefined })); return; }
@@ -491,6 +512,7 @@
       case 'reiniciar': return abrirModal('New workbook', '<p>¿Empezar un libro nuevo? Se borran todas las hojas de este libro de práctica.</p>', [['Cancel', cerrarModal], ['Start over', () => { delete Store.data.excel; guardar(); cerrarModal(); vista(main, { Store, toast }); }]]);
       case 'salir': location.hash = '#/herramientas'; return;
       case 'leccion': location.hash = '#/l/interfaces-excel-por-dentro'; return;
+      case 'curso': location.hash = '#/m/excel'; return;
       case 'atajos': return abrirModal('Keyboard shortcuts', `<table class="xl-at">${[['Enter / Tab', 'Confirma y baja / va a la derecha'], ['F2', 'Edita la celda'], ['F4 (editando)', 'Alterna A1 → $A$1 → A$1 → $A1'], ['Ctrl+flecha', 'Salta al borde de los datos'], ['Shift+flecha', 'Extiende la selección'], ['Ctrl+C / X / V', 'Copiar / cortar / pegar (las fórmulas se ajustan)'], ['Ctrl+D', 'Rellena hacia abajo'], ['Ctrl+Z / Y', 'Deshacer / rehacer'], ['Ctrl+B', 'Negrita'], ['Alt+=', 'AutoSum'], ['Ctrl+Shift+L', 'Filtro'], ['Ctrl+`', 'Mostrar fórmulas'], ['Supr', 'Borra el contenido']].map(([k, d]) => `<tr><td><kbd>${k}</kbd></td><td>${d}</td></tr>`).join('')}</table>`, [['Close', cerrarModal]]);
     }
   }

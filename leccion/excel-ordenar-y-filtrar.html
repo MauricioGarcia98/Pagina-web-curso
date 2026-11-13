@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordenar y filtrar - ver solo lo que importa sin romper la tabla · Academia de Datos</title><meta name="description" content="Filtrar para quedarte con las filas que importan, ordenar sin separar los datos de una fila, combinar filtros en varias columnas y leer correctamente lo que muestra la barra de estado cuando hay filas ocultas. Con la regla que evita el error más caro de Excel - ordenar una sola columna."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-ordenar-y-filtrar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Ordenar y filtrar - ver solo lo que importa sin romper la tabla · Academia de Datos"><meta property="og:description" content="Filtrar para quedarte con las filas que importan, ordenar sin separar los datos de una fila, combinar filtros en varias columnas y leer correctamente lo que muestra la barra de estado cuando hay filas ocultas. Con la regla que evita el error más caro de Excel - ordenar una sola columna."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-ordenar-y-filtrar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 4 · Intermedio-avanzado · 40 min</div>
+<h1>Ordenar y filtrar - ver solo lo que importa sin romper la tabla</h1><p class="resumen">Filtrar para quedarte con las filas que importan, ordenar sin separar los datos de una fila, combinar filtros en varias columnas y leer correctamente lo que muestra la barra de estado cuando hay filas ocultas. Con la regla que evita el error más caro de Excel - ordenar una sola columna.</p>
+<a class="cta" href="../index.html#/l/excel-ordenar-y-filtrar">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Activar y quitar el filtro de una tabla</li><li>Filtrar por uno o varios valores y en varias columnas</li><li>Ordenar una tabla sin mezclar sus filas</li><li>Leer cuántas filas quedan visibles</li><li>Saber qué fórmulas ven y cuáles no las filas ocultas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Filtrar es como un colador: pasan solo las filas que elegiste y las demás quedan escondidas (no se borran). Ordenar es acomodar las fichas de un fichero: cada ficha (fila) se mueve <strong>entera</strong>.</p>
+</div>
+
+
+<h2>Paso 1 — Activa el filtro</h2>
+<p>En la hoja <strong>pedidos</strong> (Data → Get Data → pedidos si no la tienes):</p>
+<ol>
+<li>Haz clic en cualquier celda de la tabla, por ejemplo <strong>E3</strong>.</li>
+<li>Pestaña <strong>Data</strong> → <strong>Filter</strong> (atajo: <strong>Ctrl + Shift + L</strong>).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-boton-filtro.webp" alt="El botón Filter de la pestaña Data" loading="lazy"><figcaption>El botón Filter de la pestaña Data</figcaption></figure>
+
+
+<ol start="3">
+<li>Aparece una flechita en cada encabezado.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-flechas.webp" alt="Las flechas de filtro en los encabezados; la de &quot;estado&quot; está marcada" loading="lazy"><figcaption>Las flechas de filtro en los encabezados; la de &quot;estado&quot; está marcada</figcaption></figure>
+
+
+<h2>Paso 2 — Muestra solo los pedidos cancelados</h2>
+<ol>
+<li>Haz clic en la flechita de <strong>estado</strong>.</li>
+<li>Desmarca <strong>(Select All)</strong> para quitar todas las marcas.</li>
+<li>Marca solo <strong>cancelado</strong>. Al lado de cada valor ves cuántas filas tiene.</li>
+<li>Presiona <strong>OK</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-menu-filtro.webp" alt="El menú del filtro: (1) quitar todo, (2) marcar cancelado, (3) OK" loading="lazy"><figcaption>El menú del filtro: (1) quitar todo, (2) marcar cancelado, (3) OK</figcaption></figure>
+
+
+<ol start="5">
+<li>Quedan solo los cancelados. La barra de estado dice cuántas filas se ven.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-filtrado.webp" alt="Modo filtro: la barra de estado cuenta las filas visibles" loading="lazy"><figcaption>Modo filtro: la barra de estado cuenta las filas visibles</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Las filas no se borraron</div>
+
+<p>Fíjate en los números de fila: saltan (15, 36, 59…). Las demás siguen ahí, ocultas. Para volver a verlas, presiona otra vez <strong>Filter</strong>.</p>
+</div>
+
+
+<h2>Paso 3 — Filtros en varias columnas</h2>
+<p>Con el filtro de <strong>estado</strong> = cancelado activo, abre la flecha de <strong>canal</strong> y deja solo <strong>web</strong>. Ahora ves los pedidos web cancelados: los filtros de distintas columnas se combinan con <strong>Y</strong> (las dos condiciones a la vez).</p>
+<p>Para el <strong>O</strong> (por ejemplo, cancelado <strong>o</strong> devuelto) se marcan los dos valores en la <strong>misma</strong> columna.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Quiero ver</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Cancelados de la web</td>
+<td>estado = cancelado <strong>y</strong> canal = web (dos columnas)</td>
+</tr>
+<tr>
+<td>Cancelados o devueltos</td>
+<td>estado: marcar cancelado y devuelto (una columna)</td>
+</tr>
+<tr>
+<td>Todo menos tienda</td>
+<td>canal: Select All y desmarcar tienda</td>
+</tr>
+</tbody></table></div>
+<p>Presiona <strong>Filter</strong> para quitar todos los filtros antes de seguir.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las fórmulas ven todo</div>
+
+<p><code>SUM</code>, <code>COUNTIF</code> y casi todas las funciones calculan con <strong>todas</strong> las filas, también las ocultas por el filtro. El filtro es para <strong>mirar</strong>; para calcular con condiciones usa <code>COUNTIFS</code>/<code>SUMIFS</code> (nivel 3) o una tabla dinámica (nivel 5). En Excel real existe <code>SUBTOTAL</code>, que solo cuenta las visibles, pero es fácil olvidarse de que el resultado cambia según el filtro activo.</p>
+</div>
+
+
+<h2>Paso 4 — Ordena la tabla</h2>
+<ol>
+<li>Haz clic en una celda de la columna <strong>fecha_pedido</strong> (por ejemplo <strong>D3</strong>).</li>
+<li>Pestaña <strong>Data</strong> → <strong>Sort Z→A</strong> (de la más nueva a la más vieja).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/04-ordenado.webp" alt="Sort Z→A (1): los pedidos más recientes quedan arriba (2)" loading="lazy"><figcaption>Sort Z→A (1): los pedidos más recientes quedan arriba (2)</figcaption></figure>
+
+
+<p>Excel reconoce que la primera fila es el encabezado y la deja arriba. Cada fila se mueve <strong>entera</strong>: el pedido sigue con su cliente, su estado y su canal.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Nunca ordenes una sola columna</div>
+
+<p>Si seleccionas solo una columna y la ordenas aparte, se mezclan los datos: el pedido 1 quedaría con el estado de otro. Es un error que no se ve a simple vista y puede pasar meses sin que nadie lo note. Haz clic <strong>dentro</strong> de la tabla (una sola celda) y deja que Excel tome la tabla entera. Si te pasa, <strong>Ctrl + Z</strong> de inmediato.</p>
+</div>
+
+
+<h2>Paso 5 — Ordenar por varias columnas</h2>
+<p>¿Quieres los pedidos ordenados por canal y, dentro de cada canal, del más nuevo al más viejo? Ordena <strong>primero por la columna menos importante</strong> y <strong>al final por la más importante</strong>:</p>
+<ol>
+<li>Clic en <strong>D3</strong> → <strong>Sort Z→A</strong> (fecha, más nueva primero).</li>
+<li>Clic en <strong>F3</strong> → <strong>Sort A→Z</strong> (canal).</li>
+</ol>
+<p>El último orden manda; los anteriores se conservan dentro de cada grupo. (En Excel real, <strong>Data → Sort</strong> abre un cuadro donde agregas los niveles en orden.)</p>
+<h2>Paso 6 — Listas de valores únicos</h2>
+<p>Para saber qué valores distintos tiene una columna, en una celda vacía (por ejemplo <strong>Q1</strong>) escribe:</p>
+<pre><code class="language-text">=UNIQUE(F2:F12001)</code></pre>
+<p>En Excel 365 el resultado se &quot;derrama&quot; hacia abajo, una fila por valor. En esta réplica la celda muestra el primero; el menú del filtro te da la lista completa con la cantidad de cada uno.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Filtraste por uno y varios valores, en una y varias columnas.</li>
+<li>Ordenaste por una y por varias columnas sin romper la tabla.</li>
+<li>Sabes que el filtro es para mirar y las fórmulas siguen viendo todo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-ordenar-y-filtrar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-buscar-entre-tablas.html">← Buscar entre tablas - XLOOKUP, VLOOKUP, INDEX con MATCH y el error #N/A</a><a href="excel-limpiar-datos.html">Limpiar datos - duplicados por clave, textos desprolijos, vacíos y números guardados como texto →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

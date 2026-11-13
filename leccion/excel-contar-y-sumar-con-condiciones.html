@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contar y sumar con condiciones - COUNTIF(S), SUMIF(S), AVERAGEIF(S) y MAXIFS · Academia de Datos</title><meta name="description" content="Las funciones que más se usan en el trabajo con datos en Excel. Cómo contar y sumar solo las filas que cumplen una o varias condiciones, cómo escribir criterios (texto, números, comodines, distinto de, fechas entre dos días) y cómo armar una tabla resumen con criterios en celdas para copiarla. Sobre los pedidos y los pagos reales de la tienda."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-contar-y-sumar-con-condiciones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Contar y sumar con condiciones - COUNTIF(S), SUMIF(S), AVERAGEIF(S) y MAXIFS · Academia de Datos"><meta property="og:description" content="Las funciones que más se usan en el trabajo con datos en Excel. Cómo contar y sumar solo las filas que cumplen una o varias condiciones, cómo escribir criterios (texto, números, comodines, distinto de, fechas entre dos días) y cómo armar una tabla resumen con criterios en celdas para copiarla. Sobre los pedidos y los pagos reales de la tienda."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-contar-y-sumar-con-condiciones.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Contar y sumar con condiciones - COUNTIF(S), SUMIF(S), AVERAGEIF(S) y MAXIFS</h1><p class="resumen">Las funciones que más se usan en el trabajo con datos en Excel. Cómo contar y sumar solo las filas que cumplen una o varias condiciones, cómo escribir criterios (texto, números, comodines, distinto de, fechas entre dos días) y cómo armar una tabla resumen con criterios en celdas para copiarla. Sobre los pedidos y los pagos reales de la tienda.</p>
+<a class="cta" href="../index.html#/l/excel-contar-y-sumar-con-condiciones">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Contar con una condición (COUNTIF) y con varias (COUNTIFS)</li><li>Sumar y promediar con condiciones (SUMIF, SUMIFS, AVERAGEIF)</li><li>Escribir criterios con operadores, comodines y fechas</li><li>Tomar el criterio de una celda para copiar la fórmula</li><li>Buscar el máximo con condición (MAXIFS)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Con miles de filas no se cuenta a mano: se le hace una pregunta a la tabla. &quot;¿Cuántos pedidos están entregados?&quot; es <code>COUNTIF</code>. &quot;¿Cuánta plata entró por pagos aprobados en 2024?&quot; es <code>SUMIFS</code>. Las funciones con <strong>IF</strong> al final son las mismas de siempre, pero solo miran las filas que cumplen tu condición.</p>
+</div>
+
+
+<h2>Paso 1 — Contar con una condición: COUNTIF</h2>
+<p>Seguimos en la hoja <strong>pedidos</strong> (si no la tienes: <strong>Data → Get Data → pedidos → Load</strong>).</p>
+<p>Pregunta: <strong>¿cuántos pedidos están entregados?</strong></p>
+<ol>
+<li>En <strong>I1</strong> escribe <code>Entregados</code>.</li>
+<li>En <strong>J1</strong> escribe <code>=COUNTIF(E:E,&quot;entregado&quot;)</code> y Enter.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/03-countif.webp" alt="COUNTIF en la barra de fórmulas (1) y su resultado (2): 9.288 pedidos entregados" loading="lazy"><figcaption>COUNTIF en la barra de fórmulas (1) y su resultado (2): 9.288 pedidos entregados</figcaption></figure>
+
+
+<pre><code class="language-text">=COUNTIF(dónde_buscar, qué_condición)</code></pre>
+<p><code>E:E</code> es toda la columna E. Se lee: &quot;en la columna E, contá las celdas que dicen <em>entregado</em>&quot;.</p>
+<h2>Paso 2 — Cómo se escriben los criterios</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Cuenta las celdas…</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&quot;entregado&quot;</code></td>
+<td>iguales a ese texto (sin importar mayúsculas)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>&quot;&lt;&gt;cancelado&quot;</code></td>
+<td>distintas de cancelado</td>
+<td></td>
+</tr>
+<tr>
+<td><code>&quot;&gt;100&quot;</code></td>
+<td>mayores a 100</td>
+<td>montos</td>
+</tr>
+<tr>
+<td><code>&quot;&lt;=0&quot;</code></td>
+<td>menores o iguales a 0</td>
+<td>stock agotado</td>
+</tr>
+<tr>
+<td><code>&quot;t*&quot;</code></td>
+<td>que empiezan con t</td>
+<td>tienda, telefono</td>
+</tr>
+<tr>
+<td><code>&quot;*tarjeta*&quot;</code></td>
+<td>que contienen &quot;tarjeta&quot;</td>
+<td>tarjeta_credito, tarjeta_debito</td>
+</tr>
+<tr>
+<td><code>&quot;&gt;=&quot;&amp;H1</code></td>
+<td>mayores o iguales al valor de H1</td>
+<td>criterio en una celda</td>
+</tr>
+</tbody></table></div>
+<p>Prueba en una celda vacía, por ejemplo <strong>J6</strong>: <code>=COUNTIF(G:G,&quot;tarjeta*&quot;)</code> (pedidos pagados con cualquier tarjeta: 8.366).</p>
+<h2>Paso 3 — Varias condiciones: COUNTIFS</h2>
+<p>Pregunta: <strong>¿cuántos pedidos entregados entraron por la web?</strong></p>
+<ol>
+<li>En <strong>I2</strong> escribe <code>Entregados web</code>.</li>
+<li>En <strong>J2</strong> escribe <code>=COUNTIFS(E:E,&quot;entregado&quot;,F:F,&quot;web&quot;)</code> → <strong>4.201</strong>.</li>
+</ol>
+<p><code>COUNTIFS</code> recibe <strong>pares</strong> de rango y criterio, y cuenta las filas que cumplen <strong>todos</strong> (es un AND).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Fechas entre dos días</div>
+
+<p>Para contar los pedidos de marzo de 2024, usa dos condiciones sobre la misma columna:</p>
+<pre><code class="language-text">=COUNTIFS(D:D,&quot;&gt;=2024-03-01&quot;,D:D,&quot;&lt;2024-04-01&quot;)</code></pre>
+<p>Resultado: 354. Usa siempre &quot;mayor o igual al primer día&quot; y &quot;menor al primer día del mes siguiente&quot;: funciona con meses de 28, 30 o 31 días sin pensar.</p>
+</div>
+
+
+<h2>Paso 4 — Sumar con condiciones: SUMIF y SUMIFS</h2>
+<p>Para sumar plata necesitamos montos. Carga la tabla <strong>pagos</strong> (<strong>Data → Get Data → pagos → Load</strong>): una fila por pago, con <strong>C</strong> fecha_pago, <strong>D</strong> monto y <strong>E</strong> estado (aprobado o rechazado).</p>
+<ol>
+<li>Crea una hoja <code>Cobros</code> y escribe este esqueleto:</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>estado</td>
+<td>pagos</td>
+<td>monto</td>
+<td>promedio</td>
+</tr>
+<tr>
+<td>2</td>
+<td>aprobado</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>rechazado</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<ol start="2">
+<li>En <strong>B2</strong>: <code>=COUNTIF(pagos!E:E,A2)</code> — fíjate que el criterio es <strong>la celda A2</strong>, no el texto.</li>
+<li>En <strong>C2</strong>: <code>=SUMIF(pagos!E:E,A2,pagos!D:D)</code>.</li>
+<li>En <strong>D2</strong>: <code>=AVERAGEIF(pagos!E:E,A2,pagos!D:D)</code>.</li>
+<li>Selecciona <strong>B2:D3</strong> y <strong>Ctrl + D</strong>: la fila 3 calcula para <em>rechazado</em> sin escribir nada más.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e10-sumif.webp" alt="SUMIF (1) suma los montos de los pagos con el estado de A2 (2)" loading="lazy"><figcaption>SUMIF (1) suma los montos de los pagos con el estado de A2 (2)</figcaption></figure>
+
+
+<p><code>pagos!E:E</code> significa &quot;la columna E de la hoja pagos&quot;. Así se usan datos de otra hoja.</p>
+<pre><code class="language-text">=SUMIF(dónde_mirar_la_condición, condición, qué_sumar)
+=SUMIFS(qué_sumar, rango1, condición1, rango2, condición2, ...)</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ SUMIF y SUMIFS tienen el orden al revés</div>
+
+<p>En <code>SUMIF</code> el rango a sumar va <strong>al final</strong>; en <code>SUMIFS</code> va <strong>primero</strong>. Es la confusión más común. Si dudas, empieza a escribir la función y mira la ayuda que aparece.</p>
+</div>
+
+
+<ol start="6">
+<li>Cobrado en 2024 (aprobado <strong>y</strong> con fecha en 2024). En <strong>A5</strong> escribe <code>Aprobado 2024</code> y en <strong>C5</strong>:</li>
+</ol>
+<pre><code class="language-text">=SUMIFS(pagos!D:D,pagos!E:E,&quot;aprobado&quot;,pagos!C:C,&quot;&gt;=2024-01-01&quot;,pagos!C:C,&quot;&lt;2025-01-01&quot;)</code></pre>
+<figure class="captura"><img src="assets/img/guias/excel/e10-sumifs.webp" alt="SUMIFS con tres condiciones (1): lo cobrado en 2024 (2)" loading="lazy"><figcaption>SUMIFS con tres condiciones (1): lo cobrado en 2024 (2)</figcaption></figure>
+
+
+<h2>Paso 5 — El máximo y el mínimo con condición</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Pregunta</th>
+<th>Fórmula</th>
+</tr>
+</thead><tbody><tr>
+<td><code>MAXIFS</code></td>
+<td>¿Cuál fue el pago aprobado más alto?</td>
+<td><code>=MAXIFS(pagos!D:D,pagos!E:E,&quot;aprobado&quot;)</code></td>
+</tr>
+<tr>
+<td><code>MINIFS</code></td>
+<td>¿Y el más bajo?</td>
+<td><code>=MINIFS(pagos!D:D,pagos!E:E,&quot;aprobado&quot;)</code></td>
+</tr>
+<tr>
+<td><code>AVERAGEIFS</code></td>
+<td>¿Promedio de pagos aprobados en 2024?</td>
+<td><code>=AVERAGEIFS(pagos!D:D,pagos!E:E,&quot;aprobado&quot;,pagos!C:C,&quot;&gt;=2024-01-01&quot;)</code></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — La tabla resumen que se copia sola</h2>
+<p>El patrón profesional: <strong>criterios en celdas, una sola fórmula, copiada</strong>.</p>
+<p>En la hoja <strong>Cobros</strong>, arma un cuadro por canal con los pedidos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>F</th>
+<th>G</th>
+<th>H</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>canal</td>
+<td>pedidos</td>
+<td>cancelados</td>
+</tr>
+<tr>
+<td>2</td>
+<td>web</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>app</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>tienda</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>telefono</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<ul>
+<li><strong>G2</strong>: <code>=COUNTIF(pedidos!F:F,F2)</code></li>
+<li><strong>H2</strong>: <code>=COUNTIFS(pedidos!F:F,F2,pedidos!E:E,&quot;cancelado&quot;)</code></li>
+<li>Selecciona <strong>G2:H5</strong> → Ctrl + D.</li>
+</ul>
+<p>Control: la suma de <strong>G2:G5</strong> tiene que dar <strong>12.000</strong> (todos los pedidos tienen canal).</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Contaste, sumaste y promediaste con una y varias condiciones.</li>
+<li>Filtraste por rangos de fechas y usaste datos de otra hoja.</li>
+<li>Armaste una tabla resumen que se copia con una sola fórmula.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-contar-y-sumar-con-condiciones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-decisiones-if.html">← Decisiones con IF - clasificar filas con condiciones, AND, OR, IFS e IFERROR</a><a href="excel-texto-y-fechas.html">Texto y fechas - separar, unir y transformar textos; año, mes, períodos y días entre fechas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
