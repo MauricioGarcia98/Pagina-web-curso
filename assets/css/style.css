@@ -1158,3 +1158,7 @@ table.cols-tabla td, table.cols-tabla th { padding: 4px 10px; }
 .aviso-cookies { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 950; max-width: 640px; margin: 0 auto; padding: 16px 18px; border-radius: 12px; background: var(--surface, #fff); color: var(--text, #111); border: 1px solid var(--border, #d1d5db); box-shadow: 0 10px 30px rgba(0,0,0,.18); font-size: 14px; }
 .aviso-cookies p { margin: 0 0 12px; }
 .legal h2 { margin-top: 28px; }
+.captura img { cursor: zoom-in; }
+.cap-zoom { position: fixed; inset: 0; z-index: 5000; background: rgba(10, 12, 16, .88); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; cursor: zoom-out; }
+.cap-zoom img { max-width: 100%; max-height: calc(100vh - 70px); border-radius: 8px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); }
+.cap-zoom span { color: #e8eaf0; font-size: 14px; text-align: center; max-width: 900px; }

@@ -164,7 +164,7 @@ function md(text, file = '') {
   text = text.replace(/^```captura[ \t]*\n([\s\S]*?)^```[ \t]*$/gm, (_, body) => {
     const get = (k) => ((body.match(new RegExp(`^${k}:\\s*(.+)$`, 'm')) || [])[1] || '').trim();
     const archivo = get('archivo'), texto = get('texto');
-    if (!/^[\w.-]+\.(png|jpe?g|webp)$/i.test(archivo)) throw new Error(`Captura en ${file}: "archivo:" debe ser un nombre como paso-01.png`);
+    if (!/^([\w-]+\/)?[\w.-]+\.(png|jpe?g|webp)$/i.test(archivo)) throw new Error(`Captura en ${file}: "archivo:" debe ser un nombre como paso-01.png o app/paso-01.jpg`);
     const ruta = `assets/img/guias/${archivo}`;
     if (fs.existsSync(path.join(ROOT, ruta))) {
       return `<figure class="captura"><img src="${ruta}" alt="${escapeHtml(texto)}" loading="lazy"><figcaption>${escapeHtml(texto)}</figcaption></figure>\n`;

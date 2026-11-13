@@ -61,10 +61,10 @@
   function crudo(h, c, f) {
     const H = S().hojas[h]; if (!H) return undefined;
     const cel = H.celdas[X().dir(c, f)]; if (cel) return cel.v;
-    if (H.base) { const B = base(H.base); if (f === 0) return B.cols[c]; const r = B.filas[f - 1]; if (r) { const v = r[c]; return v == null ? undefined : v; } }
+    if (H.base) { const B = base(H.base); if (f === 0) return B.cols[c]; const r = B.filas[H.perm ? H.perm[f - 1] : f - 1]; if (r) { const v = r[c]; return v == null ? undefined : v; } }
     return undefined;
   }
-  function ultimaFila(h) { const H = S().hojas[h]; let m = 0; for (const d of Object.keys(H.celdas)) { const p = X().parseDir(d); if (p && p.f > m) m = p.f; } if (H.base) m = Math.max(m, base(H.base).filas.length); return m; }
+  function ultimaFila(h) { const H = S().hojas[h]; let m = 0; for (const d of Object.keys(H.celdas)) { const p = X().parseDir(d); if (p && p.f > m) m = p.f; } if (H.base) m = Math.max(m, H.perm ? H.perm.length : base(H.base).filas.length); return m; }
   function ultimaCol(h) { const H = S().hojas[h]; let m = 0; for (const d of Object.keys(H.celdas)) { const p = X().parseDir(d); if (p && p.c > m) m = p.c; } if (H.base) m = Math.max(m, base(H.base).cols.length - 1); return m; }
   let EV = null;
   function evaluador() { if (!EV) { EV = X().crearEvaluador((h, c, f) => crudo(h, c, f), () => S().hojas.map((x) => x.nombre)); EV.ultimaFila = (h) => ultimaFila(h); } return EV; }
@@ -378,12 +378,18 @@
     // la tabla contigua alrededor de la celda activa (como Ctrl+A dentro de una tabla)
     const h = S().activa; const lleno = (c, f) => { const v = crudo(h, c, f); return v !== undefined && v !== null && v !== ''; };
     let { c, f } = sel; if (!lleno(c, f)) return null;
-    let c0 = c, c1 = c, f0 = f, f1 = f; let cambio = true;
-    while (cambio) { cambio = false;
-      if (c0 > 0 && [...Array(f1 - f0 + 1)].some((_, i) => lleno(c0 - 1, f0 + i))) { c0--; cambio = true; }
-      if ([...Array(f1 - f0 + 1)].some((_, i) => lleno(c1 + 1, f0 + i))) { c1++; cambio = true; }
-      if (f0 > 0 && [...Array(c1 - c0 + 1)].some((_, i) => lleno(c0 + i, f0 - 1))) { f0--; cambio = true; }
-      if (f1 - f0 < 200000 && [...Array(c1 - c0 + 1)].some((_, i) => lleno(c0 + i, f1 + 1))) { f1++; cambio = true; }
+    let c0 = c, c1 = c, f0 = f, f1 = f;
+    // se expande primero en vertical (mirando solo las columnas de la tabla) y después en horizontal (mirando solo
+    // sus filas), hasta que no cambie: así es lineal aunque la tabla tenga decenas de miles de filas
+    const filaTiene = (ff) => { for (let k = c0; k <= c1; k++) if (lleno(k, ff)) return true; return false; };
+    const colTiene = (cc) => { for (let k = f0; k <= f1; k++) if (lleno(cc, k)) return true; return false; };
+    let cambio = true;
+    while (cambio) {
+      cambio = false;
+      while (f0 > 0 && filaTiene(f0 - 1)) { f0--; cambio = true; }
+      while (f1 - f0 < 200000 && filaTiene(f1 + 1)) { f1++; cambio = true; }
+      while (c0 > 0 && colTiene(c0 - 1)) { c0--; cambio = true; }
+      while (c1 < 16000 && colTiene(c1 + 1)) { c1++; cambio = true; }
     }
     return { c0, c1, f0, f1 };
   }
@@ -398,6 +404,14 @@
     const h = S().activa; const tieneEnc = typeof valor(h, sel.c, r.f0) === 'string' && r.f1 > r.f0;
     const f0 = tieneEnc ? r.f0 + 1 : r.f0;
     if (r.f1 - f0 > 30000) return toast('La tabla es muy grande para ordenarla en esta réplica');
+    if (hoja().base && f0 === 1) {
+      // tabla del curso: se guarda solo el nuevo orden de las filas (no se copian miles de celdas al navegador)
+      const H = hoja(); const B = base(H.base); const actual = H.perm || B.filas.map((_, i) => i);
+      const filas = actual.map((idx, i) => ({ idx, clave: valor(h, sel.c, i + 1) }));
+      filas.sort((a, b) => { const k = X().cmp(a.clave ?? '', b.clave ?? ''); return desc ? -k : k; });
+      H.perm = filas.map((x) => x.idx); recalcular(); guardar(); evento('ordenar'); calcularFiltro(); pintarGrilla(); pintarGraficos(); actualizarBarra();
+      return toast(`Ordenado por ${X().colTxt(sel.c)} ${desc ? 'Z→A' : 'A→Z'} (la primera fila quedó como encabezado)`);
+    }
     materializar(); const H = hoja();
     const filas = []; for (let f = f0; f <= r.f1; f++) { const fila = []; for (let c = r.c0; c <= r.c1; c++) fila.push(H.celdas[X().dir(c, f)] || null); filas.push({ fila, clave: valor(h, sel.c, f) }); }
     filas.sort((a, b) => { const k = X().cmp(a.clave ?? '', b.clave ?? ''); return desc ? -k : k; });
@@ -409,6 +423,13 @@
   function quitarDuplicados() {
     const r = region(); if (!r) return toast('Selecciona una celda dentro de una tabla');
     const h = S().activa; const f0 = r.f0 + 1; if (r.f1 - f0 > 30000) return toast('La tabla es muy grande para esta réplica');
+    if (hoja().base && r.f0 === 0) {
+      const H = hoja(); const B = base(H.base); const actual = H.perm || B.filas.map((_, i) => i);
+      const vistos = new Set(); const quedan = [];
+      actual.forEach((idx, i) => { const k = B.cols.map((_, c) => String(X().mostrar(valor(h, c, i + 1))).toLowerCase()).join('\u0001'); if (!vistos.has(k)) { vistos.add(k); quedan.push(idx); } });
+      const quitadas = actual.length - quedan.length; H.perm = quedan; recalcular(); guardar(); evento('duplicados'); pintarGrilla(); actualizarBarra();
+      return abrirModal('Remove Duplicates', `<p>Se encontraron y quitaron <b>${quitadas}</b> filas duplicadas; quedan <b>${quedan.length}</b> valores únicos.</p><p class="xl-dim">Se comparan las filas completas, sin distinguir mayúsculas.</p>`, [['OK', cerrarModal]]);
+    }
     materializar(); const H = hoja();
     const vistos = new Set(); const quedan = []; let quitadas = 0;
     for (let f = f0; f <= r.f1; f++) { const fila = []; const clave = []; for (let c = r.c0; c <= r.c1; c++) { fila.push(H.celdas[X().dir(c, f)] || null); clave.push(String(X().mostrar(valor(h, c, f))).toLowerCase()); } const k = clave.join('\u0001'); if (vistos.has(k)) { quitadas++; continue; } vistos.add(k); quedan.push(fila); }
@@ -537,6 +558,7 @@
     filasK.forEach((kf, i) => { put(0, 2 + i, kf === '' ? '(blank)' : kf); let tot = { s: 0, n: 0, cn: 0, max: -Infinity, min: Infinity }; encs.forEach((kc, j) => { const a = agr.get(kf + '\u0001' + kc); const v = res(a); if (v !== '') put(1 + j, 2 + i, v); if (a) { tot.s += a.s; tot.n += a.n; tot.cn += a.cn; tot.max = Math.max(tot.max, a.max); tot.min = Math.min(tot.min, a.min); } }); if (encs.length > 1 || cfg.col != null) put(1 + encs.length, 2 + i, res(tot), { b: true }); });
     const ft = 2 + filasK.length; put(0, ft, 'Grand Total', { b: true });
     encs.forEach((kc, j) => { const tot = { s: 0, n: 0, cn: 0, max: -Infinity, min: Infinity }; for (const kf of filasK) { const a = agr.get(kf + '\u0001' + kc); if (a) { tot.s += a.s; tot.n += a.n; tot.cn += a.cn; tot.max = Math.max(tot.max, a.max); tot.min = Math.min(tot.min, a.min); } } put(1 + j, ft, res(tot), { b: true }); });
+    if (encs.length > 1 || cfg.col != null) { const tot = { s: 0, n: 0, cn: 0, max: -Infinity, min: Infinity }; for (const a2 of agr.values()) { tot.s += a2.s; tot.n += a2.n; tot.cn += a2.cn; tot.max = Math.max(tot.max, a2.max); tot.min = Math.min(tot.min, a2.min); } put(1 + encs.length, ft, res(tot), { b: true }); }
     nuevaHoja('PivotTable', { celdas: c, pivot: cfg, anchos: { A: 160, B: 130 } }); evento('pivot');
     toast('Tabla dinámica creada. Es un resumen fijo: si cambian los datos, vuelve a crearla (en Excel real: Refresh).');
   }

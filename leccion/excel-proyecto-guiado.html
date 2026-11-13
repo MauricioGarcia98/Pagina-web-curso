@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto guiado - un informe de ventas de punta a punta en Excel · Academia de Datos</title><meta name="description" content="Juntas todo lo del curso en un pedido real - &quot;¿cómo vienen las ventas por canal y cuántos pedidos se pierden?&quot;. Cargas los datos, calculas indicadores con fórmulas, los comparas con una tabla dinámica, haces el gráfico y entregas el resultado en CSV. Con una lista de control para revisar antes de entregar y los retos de la app."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-guiado.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto guiado - un informe de ventas de punta a punta en Excel · Academia de Datos"><meta property="og:description" content="Juntas todo lo del curso en un pedido real - &quot;¿cómo vienen las ventas por canal y cuántos pedidos se pierden?&quot;. Cargas los datos, calculas indicadores con fórmulas, los comparas con una tabla dinámica, haces el gráfico y entregas el resultado en CSV. Con una lista de control para revisar antes de entregar y los retos de la app."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-guiado.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · Avanzado · 60 min</div>
+<h1>Proyecto guiado - un informe de ventas de punta a punta en Excel</h1><p class="resumen">Juntas todo lo del curso en un pedido real - &quot;¿cómo vienen las ventas por canal y cuántos pedidos se pierden?&quot;. Cargas los datos, calculas indicadores con fórmulas, los comparas con una tabla dinámica, haces el gráfico y entregas el resultado en CSV. Con una lista de control para revisar antes de entregar y los retos de la app.</p>
+<a class="cta" href="../index.html#/l/excel-proyecto-guiado">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir un pedido de negocio en preguntas que Excel puede responder</li><li>Calcular indicadores con COUNTIF, COUNTIFS y porcentajes</li><li>Verificar tus fórmulas con una tabla dinámica</li><li>Entregar el resultado (gráfico y CSV) y revisarlo con una lista de control</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Tu jefa te escribe: <em>&quot;Para la reunión de mañana necesito saber cuántos pedidos tuvimos por canal, qué porcentaje se canceló en cada uno y un gráfico simple. Mandámelo en un archivo.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Convierte el pedido en preguntas</h2>
+<p>Antes de tocar Excel, escribe las preguntas (este es el método del módulo <a href="#/m/logica">Lógica</a>):</p>
+<ol>
+<li>¿Cuántos pedidos hay por canal?</li>
+<li>¿Cuántos cancelados por canal?</li>
+<li>¿Qué porcentaje de cancelación tiene cada canal?</li>
+<li>Un gráfico que se entienda en 5 segundos.</li>
+</ol>
+<h2>Paso 2 — Prepara la hoja de resultados</h2>
+<ol>
+<li>Carga <strong>pedidos</strong> (<strong>Data → Get Data</strong>).</li>
+<li>Crea una hoja nueva con el <strong>+</strong> de abajo. Haz doble clic en su nombre y llámala <code>Informe</code>.</li>
+<li>Escribe esta tabla de base:</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>canal</td>
+<td>pedidos</td>
+<td>cancelados</td>
+<td>% cancelación</td>
+</tr>
+<tr>
+<td>2</td>
+<td>web</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>app</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>tienda</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>telefono</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Calcula con fórmulas</h2>
+<p>En la hoja <strong>Informe</strong>:</p>
+<ol>
+<li><strong>B2</strong>: <code>=COUNTIF(pedidos!F:F,A2)</code>. La referencia <code>pedidos!F:F</code> trae la columna F de <strong>otra hoja</strong>.</li>
+<li><strong>C2</strong>: <code>=COUNTIFS(pedidos!F:F,A2,pedidos!E:E,&quot;cancelado&quot;)</code>.</li>
+<li><strong>D2</strong>: <code>=C2/B2</code> y dale formato <strong>Percentage</strong>.</li>
+<li>Selecciona <strong>B2:D2</strong> y arrastra el controlador de relleno hasta la fila 5. <code>A2</code> pasa a <code>A3</code>, <code>A4</code>… y cada fila calcula su canal.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Por qué A2 y no &quot;web&quot;</div>
+
+<p>Escribiendo <code>A2</code> en lugar de <code>&quot;web&quot;</code>, la misma fórmula sirve para todas las filas: al copiarla, cambia sola al canal de cada fila.</p>
+</div>
+
+
+<h2>Paso 4 — Verifica con una tabla dinámica</h2>
+<p>Un número que no comprobaste es un número en el que no puedes confiar. Crea una tabla dinámica (Rows = canal, Columns = estado, Values = pedido_id, Count) y compara: los totales de cada canal y la columna <strong>cancelado</strong> deben coincidir con tu hoja <strong>Informe</strong>.</p>
+<figure class="captura"><img src="assets/img/guias/excel/05-pivot-resultado.webp" alt="La tabla dinámica de control: los totales por canal deben coincidir con tus fórmulas" loading="lazy"><figcaption>La tabla dinámica de control: los totales por canal deben coincidir con tus fórmulas</figcaption></figure>
+
+
+<p>Si no coinciden, revisa: ¿escribiste bien el canal? (<code>telefono</code> va sin tilde). ¿Copiaste la fórmula entera?</p>
+<h2>Paso 5 — El gráfico</h2>
+<ol>
+<li>En <strong>Informe</strong>, selecciona <strong>A1:B5</strong> (canal y pedidos).</li>
+<li><strong>Insert → Column</strong>.</li>
+<li>Si quieres comparar la cancelación, selecciona <code>A1:A5</code> junto con <code>D1:D5</code>. (En esta réplica, selecciona <code>A1:D5</code> y el gráfico mostrará las tres series.)</li>
+</ol>
+<h2>Paso 6 — Entrega</h2>
+<ol>
+<li>Pestaña <strong>File</strong> → <strong>Export CSV</strong>: descarga la hoja activa como archivo.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/06-exportar.webp" alt="Export CSV (1) descarga la hoja; Office Theme (2) cambia el tema" loading="lazy"><figcaption>Export CSV (1) descarga la hoja; Office Theme (2) cambia el tema</figcaption></figure>
+
+
+<ol start="2">
+<li>Escribe dos líneas para acompañar el archivo: qué muestra y qué conclusión sacas (por ejemplo, &quot;el canal web concentra el 45 % de los pedidos y su cancelación es similar a la de la app&quot;).</li>
+</ol>
+<h2>✔ Lista de control antes de entregar</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Los totales coinciden con la tabla dinámica.</li>
+<li><input disabled="" type="checkbox"> Los porcentajes tienen formato de porcentaje.</li>
+<li><input disabled="" type="checkbox"> Ninguna celda muestra errores (<code>#N/A</code>, <code>#DIV/0!</code>).</li>
+<li><input disabled="" type="checkbox"> El gráfico tiene título y se entiende sin explicación.</li>
+<li><input disabled="" type="checkbox"> El archivo tiene un nombre claro (<code>informe_canales_2024.csv</code>, no <code>Sheet1.csv</code>).</li>
+</ul>
+<h2>🎯 Retos de la app</h2>
+<p>En <a href="#/excel">Excel de práctica</a>, el botón <strong>🎯 Retos</strong> tiene 12 retos que se corrigen solos (de sumar un rango a crear una tabla dinámica y un gráfico). Si completaste este curso, deberías poder resolverlos todos.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-proyecto-guiado">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-tablas-dinamicas-graficos.html">← Tablas dinámicas y gráficos - resumir miles de filas en segundos</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

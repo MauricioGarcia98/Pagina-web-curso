@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excel desde cero - la pantalla, las celdas y tu primer libro · Academia de Datos</title><meta name="description" content="Primer contacto con Excel, paso a paso y con capturas. Qué es cada parte de la pantalla (pestañas, cinta de opciones, cuadro de nombres, barra de fórmulas, grilla, hojas y barra de estado), cómo se llama cada celda y cómo seleccionar celdas y rangos con el mouse y con el teclado."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-la-pantalla.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Excel desde cero - la pantalla, las celdas y tu primer libro · Academia de Datos"><meta property="og:description" content="Primer contacto con Excel, paso a paso y con capturas. Qué es cada parte de la pantalla (pestañas, cinta de opciones, cuadro de nombres, barra de fórmulas, grilla, hojas y barra de estado), cómo se llama cada celda y cómo seleccionar celdas y rangos con el mouse y con el teclado."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-la-pantalla.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · Básico · 30 min</div>
+<h1>Excel desde cero - la pantalla, las celdas y tu primer libro</h1><p class="resumen">Primer contacto con Excel, paso a paso y con capturas. Qué es cada parte de la pantalla (pestañas, cinta de opciones, cuadro de nombres, barra de fórmulas, grilla, hojas y barra de estado), cómo se llama cada celda y cómo seleccionar celdas y rangos con el mouse y con el teclado.</p>
+<a class="cta" href="../index.html#/l/excel-la-pantalla">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer las seis partes de la pantalla de Excel</li><li>Nombrar una celda (B3) y un rango (A1:D6)</li><li>Seleccionar celdas y rangos con mouse y teclado</li><li>Leer la barra de estado para ver sumas y promedios sin escribir fórmulas</li></ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo usar este curso</div>
+
+<p>Abre <a href="#/excel">Excel de práctica</a> en otra pestaña (o en otra ventana al lado) y haz cada paso a medida que lo lees. Las capturas son de esa misma app: lo que ves aquí es lo que vas a ver allá. Todo se guarda en tu navegador; si te equivocas, <strong>File → New workbook</strong> empieza de cero.</p>
+</div>
+
+
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una hoja de cálculo es una cuadrícula gigante, como una hoja cuadriculada de cuaderno. Cada cuadradito es una <strong>celda</strong> y tiene una dirección (como &quot;la casilla B3&quot; de la batalla naval). En cada celda puedes escribir un dato o una <strong>cuenta</strong> que usa otras celdas.</p>
+</div>
+
+
+<h2>Paso 1 — Abre Excel y mira la pantalla completa</h2>
+<ol>
+<li>Entra a <a href="#/excel">Excel de práctica</a>.</li>
+<li>Se abre un libro de ejemplo con una pequeña tabla de productos.</li>
+<li>No toques nada todavía: primero vamos a reconocer cada parte.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/01-pantalla.webp" alt="Excel recién abierto, con el libro de ejemplo" loading="lazy"><figcaption>Excel recién abierto, con el libro de ejemplo</figcaption></figure>
+
+
+<h2>Paso 2 — Reconoce las seis partes de la pantalla</h2>
+<figure class="captura"><img src="assets/img/guias/excel/01-zonas.webp" alt="Las seis partes de la pantalla, numeradas" loading="lazy"><figcaption>Las seis partes de la pantalla, numeradas</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Parte</th>
+<th>Para qué sirve</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td><strong>Pestañas</strong> (File, Home, Insert, Formulas, Data, View)</td>
+<td>Cambian los botones que se ven abajo</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Cinta de opciones</strong></td>
+<td>Los botones de la pestaña elegida, agrupados (Clipboard, Font, Number…)</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Cuadro de nombres</strong></td>
+<td>Dice qué celda está seleccionada (por ejemplo <code>A1</code>). También sirve para saltar a una celda</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Barra de fórmulas</strong> (fx)</td>
+<td>Muestra lo que <strong>realmente</strong> hay dentro de la celda: el dato o la fórmula</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Pestañas de hojas</strong> (Sheet1, +)</td>
+<td>Un libro puede tener varias hojas, como las páginas de un cuaderno</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Barra de estado</strong></td>
+<td>Dice si estás editando y muestra la suma, el promedio y la cantidad de lo que seleccionaste</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 La diferencia más importante</div>
+
+<p>La <strong>celda</strong> muestra el resultado; la <strong>barra de fórmulas</strong> muestra cómo se calculó. Si la celda dice <code>$300.00</code>, la barra puede decir <code>=B2*C2</code>. Siempre que algo te parezca raro, mira la barra de fórmulas.</p>
+</div>
+
+
+<h2>Paso 3 — El nombre de cada celda</h2>
+<p>Cada columna tiene una letra (A, B, C…) y cada fila un número (1, 2, 3…). El nombre de una celda es <strong>letra + número</strong>.</p>
+<ol>
+<li>Haz clic en la celda que dice <strong>Mouse</strong> y después en su precio, <strong>$12.50</strong>.</li>
+<li>Mira el cuadro de nombres: dice <strong>C3</strong> (columna C, fila 3).</li>
+<li>Mira la barra de fórmulas: dice <strong>12.5</strong>. El signo <code>$</code> y los dos decimales son solo el <strong>formato</strong>, no el dato.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/01-celda-activa.webp" alt="La celda C3 seleccionada: su nombre aparece en el cuadro de nombres (1) y su contenido en la barra de fórmulas (2)" loading="lazy"><figcaption>La celda C3 seleccionada: su nombre aparece en el cuadro de nombres (1) y su contenido en la barra de fórmulas (2)</figcaption></figure>
+
+
+<h2>Paso 4 — Selecciona un rango</h2>
+<p>Un <strong>rango</strong> es un rectángulo de celdas. Se nombra con la primera y la última celda separadas por dos puntos: <code>A1:D6</code>.</p>
+<ol>
+<li>Haz clic en <strong>A1</strong>.</li>
+<li>Mantén apretada la tecla <strong>Shift</strong> y haz clic en <strong>D6</strong>.</li>
+<li>El cuadro de nombres dice <strong>A1:D6</strong> y la barra de estado muestra <strong>Average</strong>, <strong>Count</strong> y <strong>Sum</strong> de los números seleccionados.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/01-rango.webp" alt="El rango A1:D6 seleccionado: su nombre (1) y el resumen en la barra de estado (2)" loading="lazy"><figcaption>El rango A1:D6 seleccionado: su nombre (1) y el resumen en la barra de estado (2)</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Truco que usan todos los analistas</div>
+
+<p>La barra de estado es una calculadora gratis: selecciona una columna de números y ves la suma y el promedio al instante, sin escribir ninguna fórmula.</p>
+</div>
+
+
+<h2>Paso 5 — Muévete con el teclado</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tecla</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Flechas</td>
+<td>Mueven la celda activa</td>
+</tr>
+<tr>
+<td>Enter / Tab</td>
+<td>Bajan / van a la derecha</td>
+</tr>
+<tr>
+<td>Shift + flechas</td>
+<td>Agrandan la selección</td>
+</tr>
+<tr>
+<td>Ctrl + flecha</td>
+<td>Saltan al borde de los datos (muy útil en tablas largas)</td>
+</tr>
+<tr>
+<td>Ctrl + A</td>
+<td>Selecciona toda la tabla</td>
+</tr>
+<tr>
+<td>Escribe en el cuadro de nombres <code>D6</code> + Enter</td>
+<td>Salta directo a esa celda</td>
+</tr>
+</tbody></table></div>
+<p>Prueba ahora: haz clic en <strong>A1</strong> y presiona <strong>Ctrl + ↓</strong>. Vas directo a la última fila con datos.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Reconoces las seis partes de la pantalla.</li>
+<li>Sabes nombrar una celda (<code>C3</code>) y un rango (<code>A1:D6</code>).</li>
+<li>Sabes leer la barra de estado.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-la-pantalla">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="interfaces-excel-por-dentro.html">← Excel por dentro - fórmulas, referencias, tablas dinámicas y gráficos</a><a href="excel-formulas.html">Fórmulas paso a paso - escribir, copiar y fijar referencias con $ →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
