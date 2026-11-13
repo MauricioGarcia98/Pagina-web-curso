@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablas dinámicas y gráficos - resumir miles de filas en segundos · Academia de Datos</title><meta name="description" content="Cómo crear una tabla dinámica (PivotTable) paso a paso, qué va en Rows, Columns y Values, cómo leer los totales generales y cómo convertir el resumen en un gráfico de columnas o de torta. Con su equivalente en SQL para que veas que es la misma idea."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-tablas-dinamicas-graficos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tablas dinámicas y gráficos - resumir miles de filas en segundos · Academia de Datos"><meta property="og:description" content="Cómo crear una tabla dinámica (PivotTable) paso a paso, qué va en Rows, Columns y Values, cómo leer los totales generales y cómo convertir el resumen en un gráfico de columnas o de torta. Con su equivalente en SQL para que veas que es la misma idea."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-tablas-dinamicas-graficos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · Intermedio · 40 min</div>
+<h1>Tablas dinámicas y gráficos - resumir miles de filas en segundos</h1><p class="resumen">Cómo crear una tabla dinámica (PivotTable) paso a paso, qué va en Rows, Columns y Values, cómo leer los totales generales y cómo convertir el resumen en un gráfico de columnas o de torta. Con su equivalente en SQL para que veas que es la misma idea.</p>
+<a class="cta" href="../index.html#/l/excel-tablas-dinamicas-graficos">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla dinámica eligiendo filas, columnas, valores y operación</li><li>Leer los totales generales de una tabla dinámica</li><li>Graficar un resumen con columnas y con torta</li><li>Relacionar una tabla dinámica con GROUP BY de SQL</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una tabla dinámica es como pedirle a alguien: &quot;agrupame los pedidos por canal y decime cuántos hay de cada estado&quot;. Tú eliges cómo agrupar; Excel cuenta, suma y arma la tabla.</p>
+</div>
+
+
+<h2>Paso 1 — Abre el asistente de tabla dinámica</h2>
+<ol>
+<li>Ve a la hoja <strong>pedidos</strong> (pestaña de abajo).</li>
+<li>Haz clic en cualquier celda de la tabla.</li>
+<li>Pestaña <strong>Insert</strong> → <strong>PivotTable</strong>.</li>
+</ol>
+<h2>Paso 2 — Elige qué resumir</h2>
+<p>En el diálogo:</p>
+<ol>
+<li><strong>Rows</strong>: <code>canal</code> (una fila por canal).</li>
+<li><strong>Columns</strong>: <code>estado</code> (una columna por estado). Es opcional.</li>
+<li><strong>Values</strong>: <code>pedido_id</code> (lo que se va a contar).</li>
+<li><strong>Summarize by</strong>: <code>Count</code> (contar).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/05-pivot-dialogo.webp" alt="(1) filas, (2) columnas, (3) valor y (4) operación" loading="lazy"><figcaption>(1) filas, (2) columnas, (3) valor y (4) operación</figcaption></figure>
+
+
+<ol start="5">
+<li>Presiona <strong>OK</strong>.</li>
+</ol>
+<h2>Paso 3 — Lee el resultado</h2>
+<p>Se crea una hoja nueva, <strong>PivotTable</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/excel/05-pivot-resultado.webp" alt="La tabla dinámica en su propia hoja" loading="lazy"><figcaption>La tabla dinámica en su propia hoja</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td>Fila <code>app</code> / columna <code>entregado</code></td>
+<td>Pedidos de la app que están entregados</td>
+</tr>
+<tr>
+<td>Columna <strong>Grand Total</strong></td>
+<td>Total de cada canal (suma de la fila)</td>
+</tr>
+<tr>
+<td>Fila <strong>Grand Total</strong></td>
+<td>Total de cada estado (suma de la columna)</td>
+</tr>
+<tr>
+<td>Esquina inferior derecha</td>
+<td>El total general: los 12.000 pedidos</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Es un GROUP BY</div>
+
+<p>Esta tabla es lo mismo que en SQL:</p>
+<pre><code class="language-sql">SELECT canal, estado, COUNT(pedido_id) AS pedidos
+FROM pedidos
+GROUP BY canal, estado;</code></pre>
+<p>Si ya sabes una, sabes la otra.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Es una foto del momento</div>
+
+<p>En esta réplica la tabla dinámica es un resumen fijo: si cambian los datos, vuelve a crearla. En Excel real se actualiza con <strong>Refresh</strong> (clic derecho → Refresh).</p>
+</div>
+
+
+<h2>Paso 4 — Grafica el resumen</h2>
+<ol>
+<li>En la hoja <strong>PivotTable</strong>, haz clic dentro de la tabla (por ejemplo en <strong>A4</strong>).</li>
+<li>Pestaña <strong>Insert</strong> → <strong>Column</strong>.</li>
+<li>Aparece un gráfico de columnas, con una serie por estado. Arrástralo por el título para moverlo; la ✕ lo borra.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/05-grafico.webp" alt="El gráfico de columnas creado desde la tabla dinámica" loading="lazy"><figcaption>El gráfico de columnas creado desde la tabla dinámica</figcaption></figure>
+
+
+<h2>Paso 5 — Un gráfico de torta</h2>
+<p>La torta sirve para mostrar <strong>partes de un total</strong> con pocas categorías.</p>
+<ol>
+<li>Vuelve a <strong>pedidos</strong> y crea otra tabla dinámica: Rows = <code>metodo_pago</code>, Values = <code>pedido_id</code>, Count.</li>
+<li>Haz clic dentro del resultado y elige <strong>Insert → Pie</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/05-torta.webp" alt="La proporción de pedidos por método de pago" loading="lazy"><figcaption>La proporción de pedidos por método de pago</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Quieres mostrar</th>
+<th>Gráfico</th>
+</tr>
+</thead><tbody><tr>
+<td>Comparar categorías</td>
+<td>Columnas o barras</td>
+</tr>
+<tr>
+<td>Evolución en el tiempo</td>
+<td>Líneas</td>
+</tr>
+<tr>
+<td>Partes de un total, con pocas categorías</td>
+<td>Torta</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste una tabla dinámica y leíste sus totales.</li>
+<li>La convertiste en gráficos.</li>
+<li>Viste que es la misma idea que un GROUP BY.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-tablas-dinamicas-graficos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-ordenar-filtrar-limpiar.html">← Ordenar, filtrar y limpiar datos - Filter, Sort, Remove Duplicates y funciones de texto</a><a href="excel-proyecto-guiado.html">Proyecto guiado - un informe de ventas de punta a punta en Excel →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

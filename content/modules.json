@@ -254,6 +254,20 @@
     ]
   },
   {
+    "id": "excel",
+    "titulo": "Excel paso a paso",
+    "icono": "📗",
+    "color": "#107c41",
+    "descripcion": "Curso guiado con capturas de Excel de práctica: la pantalla, fórmulas y referencias, funciones para analizar (COUNTIFS, XLOOKUP), ordenar, filtrar y limpiar, tablas dinámicas y gráficos, y un informe de punta a punta.",
+    "objetivos": [
+      "Moverte por Excel con mouse y teclado",
+      "Escribir y copiar fórmulas con referencias relativas y absolutas",
+      "Responder preguntas de negocio con COUNTIFS, SUMIFS y XLOOKUP",
+      "Filtrar, ordenar y limpiar datos reales",
+      "Resumir con tablas dinámicas, graficar y entregar un informe"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

@@ -207,3 +207,17 @@
 
   window.Sitio = { hayCuentas, hayAnuncios, hayMedicion, urlReporte, iniciarMedicion, iniciar, vistaCuenta, vistaLegal, bloqueAnuncio, activarAnuncios, avisoConsentimiento, _: { fusionar, paquete: () => paquete(), sincronizar, setCliente: (c, u) => { sb = c; usuario = u; } } };
 })();
+
+// Capturas de las lecciones: clic para verlas en grande (Esc o clic para cerrar)
+(function () {
+  document.addEventListener('click', (e) => {
+    const img = e.target.closest && e.target.closest('.captura img');
+    const abierta = document.getElementById('capZoom');
+    if (abierta) { abierta.remove(); return; }
+    if (!img) return;
+    const d = document.createElement('div'); d.id = 'capZoom'; d.className = 'cap-zoom'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', img.alt || 'Captura');
+    d.innerHTML = `<img src="${img.getAttribute('src')}" alt=""><span>${(img.alt || '').replace(/[<>&]/g, '')}</span>`;
+    document.body.append(d);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { const z = document.getElementById('capZoom'); if (z) z.remove(); } });
+})();
