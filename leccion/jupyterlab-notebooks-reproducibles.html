@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notebooks reproducibles - magics, archivos .py, rutas y el notebook que corre de arriba abajo · Academia de Datos</title><meta name="description" content="Un análisis vale si otra persona (o tú dentro de un mes) puede volver a ejecutarlo y obtener lo mismo. Las magics más útiles (%timeit, %%writefile, %run, %pwd, %ls, %whos), llevar funciones a un archivo .py e importarlas, guardar resultados intermedios, fijar semillas y fechas de corte, y la rutina para dejar un notebook reproducible."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-notebooks-reproducibles.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Notebooks reproducibles - magics, archivos .py, rutas y el notebook que corre de arriba abajo · Academia de Datos"><meta property="og:description" content="Un análisis vale si otra persona (o tú dentro de un mes) puede volver a ejecutarlo y obtener lo mismo. Las magics más útiles (%timeit, %%writefile, %run, %pwd, %ls, %whos), llevar funciones a un archivo .py e importarlas, guardar resultados intermedios, fijar semillas y fechas de corte, y la rutina para dejar un notebook reproducible."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-notebooks-reproducibles.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 4 · Intermedio-avanzado · 45 min</div>
+<h1>Notebooks reproducibles - magics, archivos .py, rutas y el notebook que corre de arriba abajo</h1><p class="resumen">Un análisis vale si otra persona (o tú dentro de un mes) puede volver a ejecutarlo y obtener lo mismo. Las magics más útiles (%timeit, %%writefile, %run, %pwd, %ls, %whos), llevar funciones a un archivo .py e importarlas, guardar resultados intermedios, fijar semillas y fechas de corte, y la rutina para dejar un notebook reproducible.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-notebooks-reproducibles">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Usar las magics de línea y de celda más comunes</li><li>Escribir un módulo .py con %%writefile e importarlo</li><li>Medir tiempos con %timeit</li><li>Guardar y leer resultados intermedios en archivos</li><li>Aplicar la rutina de reproducibilidad antes de compartir</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un notebook reproducible es una receta que sale igual en cualquier cocina: tiene todos los ingredientes listados (imports y archivos), los pasos en orden (de arriba abajo) y ninguna medida &quot;a ojo&quot; (fechas de corte y parámetros escritos). Si solo sale bien en tu computadora y en el orden en que tú hiciste clic, no es una receta: es una anécdota.</p>
+</div>
+
+
+<h2>Paso 1 — Magics: comandos de Jupyter, no de Python</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Magic</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>%pwd</code></td>
+<td>Muestra la carpeta actual</td>
+</tr>
+<tr>
+<td><code>%ls</code> / <code>!ls</code></td>
+<td>Lista archivos</td>
+</tr>
+<tr>
+<td><code>%whos</code></td>
+<td>Variables en memoria con su tipo</td>
+</tr>
+<tr>
+<td><code>%time código</code></td>
+<td>Mide una ejecución</td>
+</tr>
+<tr>
+<td><code>%timeit código</code></td>
+<td>Mide muchas ejecuciones y da el promedio</td>
+</tr>
+<tr>
+<td><code>%run archivo.py</code></td>
+<td>Ejecuta un script</td>
+</tr>
+<tr>
+<td><code>%%writefile archivo.py</code></td>
+<td>(primera línea de la celda) guarda la celda como archivo</td>
+</tr>
+<tr>
+<td><code>%lsmagic</code></td>
+<td>Lista todas las magics disponibles</td>
+</tr>
+</tbody></table></div>
+<p><code>%</code> (una) afecta a <strong>una línea</strong>; <code>%%</code> (dos) a <strong>toda la celda</strong> y va en la primera línea.</p>
+<h2>Paso 2 — Lleva funciones a un archivo .py</h2>
+<pre data-norun><code class="language-python">%%writefile utilidades.py
+def limpiar_email(email):
+    return str(email).strip().lower()</code></pre>
+<p>La celda no se ejecuta como código: se guarda como <code>utilidades.py</code> (aparece en el explorador). En otra celda:</p>
+<pre data-norun><code class="language-python">from utilidades import limpiar_email
+print(limpiar_email(&quot;  ANA@Correo.COM &quot;))
+%timeit limpiar_email(&quot; X@Y.COM &quot;)</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/05-magics.webp" alt="%%writefile creó utilidades.py (1); el import y %timeit funcionan desde el notebook" loading="lazy"><figcaption>%%writefile creó utilidades.py (1); el import y %timeit funcionan desde el notebook</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Por qué un .py</div>
+
+<p>Las funciones que usas en varios notebooks (limpiar emails, calcular tasas) van en un módulo <code>.py</code>: se corrigen en un solo lugar, se pueden probar y después se reutilizan en un pipeline. Es el primer paso del notebook al código de producción (nivel 5).</p>
+</div>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Si editas el .py</div>
+
+<p>Python importa un módulo una sola vez. Si cambias <code>utilidades.py</code>, reinicia el kernel (o usa <code>%load_ext autoreload</code> y <code>%autoreload 2</code> en Jupyter real) para que el notebook vea la versión nueva.</p>
+</div>
+
+
+<h2>Paso 3 — Rutas y archivos intermedios</h2>
+<pre data-norun><code class="language-python">limpio.to_csv(&quot;clientes_limpios.csv&quot;, index=False)
+# en otro notebook o al día siguiente:
+limpio = pd.read_csv(&quot;clientes_limpios.csv&quot;)</code></pre>
+<ul>
+<li><code>index=False</code> evita guardar el índice como una columna extra sin nombre.</li>
+<li>Usa rutas <strong>relativas</strong> (<code>datos/…</code>, <code>salidas/…</code>), nunca <code>C:\Users\ana\Desktop\…</code>: en otra computadora esa ruta no existe.</li>
+</ul>
+<h2>Paso 4 — Lo que rompe la reproducibilidad</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Solución</th>
+</tr>
+</thead><tbody><tr>
+<td>Celdas ejecutadas en desorden</td>
+<td>Restart Kernel and Run All Cells antes de compartir</td>
+</tr>
+<tr>
+<td><code>pd.Timestamp.today()</code> o <code>TODAY</code> en los cálculos</td>
+<td>Una fecha de corte fija en la celda de parámetros</td>
+</tr>
+<tr>
+<td>Muestras al azar (<code>df.sample(100)</code>)</td>
+<td>Fijar la semilla: <code>df.sample(100, random_state=42)</code></td>
+</tr>
+<tr>
+<td>Variables que existen solo en tu kernel</td>
+<td>Reiniciar y ejecutar todo lo detecta</td>
+</tr>
+<tr>
+<td>Archivos que solo tienes tú</td>
+<td>Documentar de dónde salen y guardarlos en la carpeta del proyecto</td>
+</tr>
+<tr>
+<td>Versiones distintas de pandas</td>
+<td>En Jupyter real, un <code>requirements.txt</code> (lección 23)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — La rutina antes de compartir</h2>
+<ol>
+<li>Celda de parámetros al principio (fechas, umbrales, rutas).</li>
+<li>Imports todos juntos en la primera celda de código.</li>
+<li><strong>Kernel → Restart Kernel and Run All Cells</strong>.</li>
+<li>Revisar que no haya errores ni celdas sin ejecutar.</li>
+<li>Guardar (Ctrl + S) y descargar.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/05-tras-reinicio.webp" alt="Después de Restart and Run All, la numeración sale ordenada desde [1]: el notebook corre de arriba abajo" loading="lazy"><figcaption>Después de Restart and Run All, la numeración sale ordenada desde [1]: el notebook corre de arriba abajo</figcaption></figure>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Usas magics para inspeccionar, medir y crear archivos.</li>
+<li>Llevas funciones a un .py y las importas.</li>
+<li>Conoces lo que rompe la reproducibilidad y la rutina para evitarlo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-notebooks-reproducibles">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-limpiar-datos.html">← Limpiar datos con pandas - medir, deduplicar por clave, normalizar textos y tratar nulos</a><a href="jupyterlab-proyecto-lista-campana.html">Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña, como un pipeline en un notebook →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

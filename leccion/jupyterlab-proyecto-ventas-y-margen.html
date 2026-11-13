@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (requisitos y rúbrica) - ventas y margen por rubro, con categorías en tres niveles · Academia de Datos</title><meta name="description" content="El gerente de producto quiere saber qué rubros y categorías dejan más plata en 2024, no solo cuáles venden más, y cómo crecieron contra 2023. Unes cuatro tablas, resuelves una jerarquía de categorías de tres niveles, calculas ventas y margen respetando el grano, lo empaquetas en funciones probadas y entregas un notebook reproducible con gráficos y un CSV. Requisitos y rúbrica; las decisiones son tuyas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-ventas-y-margen.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (requisitos y rúbrica) - ventas y margen por rubro, con categorías en tres niveles · Academia de Datos"><meta property="og:description" content="El gerente de producto quiere saber qué rubros y categorías dejan más plata en 2024, no solo cuáles venden más, y cómo crecieron contra 2023. Unes cuatro tablas, resuelves una jerarquía de categorías de tres niveles, calculas ventas y margen respetando el grano, lo empaquetas en funciones probadas y entregas un notebook reproducible con gráficos y un CSV. Requisitos y rúbrica; las decisiones son tuyas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-ventas-y-margen.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 5 · Avanzado · 120 min</div>
+<h1>Proyecto 5 (requisitos y rúbrica) - ventas y margen por rubro, con categorías en tres niveles</h1><p class="resumen">El gerente de producto quiere saber qué rubros y categorías dejan más plata en 2024, no solo cuáles venden más, y cómo crecieron contra 2023. Unes cuatro tablas, resuelves una jerarquía de categorías de tres niveles, calculas ventas y margen respetando el grano, lo empaquetas en funciones probadas y entregas un notebook reproducible con gráficos y un CSV. Requisitos y rúbrica; las decisiones son tuyas.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-proyecto-ventas-y-margen">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Unir cuatro tablas respetando el grano de cada una</li><li>Resolver una jerarquía padre-hijo de varios niveles</li><li>Calcular ventas, margen y crecimiento por grupo</li><li>Encapsular la lógica en funciones probadas en un módulo</li><li>Entregar un análisis reproducible con controles</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Reunión con el gerente de producto: <em>&quot;Siempre miramos qué vende más, pero quiero saber qué nos deja más plata. Para 2024: ventas y margen por rubro (Tecnología, Hogar, Deportes, Moda) y por categoría, cuánto creció cada rubro contra 2023, y los cinco productos que más venden. Solo pedidos entregados: lo cancelado no es venta.&quot;</em></p>
+</div>
+
+
+<p>Sin pasos ni pistas de código. Tienes requisitos, números de control y una rúbrica.</p>
+<h2>Las tablas (en datos/)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Grano (una fila es…)</th>
+<th>Columnas clave</th>
+</tr>
+</thead><tbody><tr>
+<td><code>detalle_pedidos</code></td>
+<td>una línea de producto en un pedido</td>
+<td>pedido_id, producto_id, cantidad, precio_unitario, descuento</td>
+</tr>
+<tr>
+<td><code>pedidos</code></td>
+<td>un pedido</td>
+<td>pedido_id, fecha_pedido, estado</td>
+</tr>
+<tr>
+<td><code>productos</code></td>
+<td>un producto</td>
+<td>producto_id, nombre, categoria_id, costo</td>
+</tr>
+<tr>
+<td><code>categorias</code></td>
+<td>una categoría</td>
+<td>categoria_id, nombre, categoria_padre_id</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La jerarquía tiene tres niveles</div>
+
+<p><code>Laptops</code> tiene como padre a <code>Computadoras</code>, y <code>Computadoras</code> a <code>Tecnología</code>. Si unes solo un nivel, Laptops queda bajo &quot;Computadoras&quot;, que no es un rubro. Tienes que subir hasta la categoría que no tiene padre.</p>
+</div>
+
+
+<h2>Requisitos</h2>
+<p><strong>R1 — Parámetros</strong>: <code>ANIO = 2024</code> y <code>ESTADO_VENTA = &quot;entregado&quot;</code> en la primera celda de código. Ningún año escrito en otro lugar.</p>
+<p><strong>R2 — Módulo</strong>: un archivo <code>ventas.py</code> con, al menos, una función que agregue la columna <code>rubro</code> a la tabla de categorías (resolviendo la jerarquía) y otra que calcule importe y margen de cada línea. Cada función con docstring y probada con <code>assert</code> en el notebook (incluido un caso borde).</p>
+<p><strong>R3 — Definiciones</strong> (escritas en Markdown):</p>
+<ul>
+<li>Importe de una línea = cantidad × precio_unitario × (1 − descuento).</li>
+<li>Margen de una línea = importe − cantidad × costo.</li>
+<li>% de margen = margen / importe.</li>
+</ul>
+<p><strong>R4 — Tablas de resultado</strong>:</p>
+<ol>
+<li>Por rubro en el año: ventas, margen y % de margen, ordenado por ventas.</li>
+<li>Crecimiento de ventas por rubro contra el año anterior (%).</li>
+<li>Por categoría en el año: ventas, margen y % de margen.</li>
+<li>Los 5 productos con más ventas del año.</li>
+</ol>
+<p><strong>R5 — Gráficos</strong>: al menos dos, con títulos que concluyan (por ejemplo, ventas contra % de margen por rubro).</p>
+<p><strong>R6 — Controles</strong> (<code>assert</code>): la cantidad de líneas no cambia al unir con productos y categorías; la suma de ventas por rubro es igual a la suma total de importes del año.</p>
+<p><strong>R7 — Entrega</strong>: <code>ventas_por_categoria_{ANIO}.csv</code> y una sección <code>## Conclusiones</code> con 3 hallazgos y una recomendación.</p>
+<h2>✔ Números de control (ANIO = 2024, solo entregados)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Valor</th>
+</tr>
+</thead><tbody><tr>
+<td>Líneas de detalle de pedidos entregados en 2024</td>
+<td>7,592</td>
+</tr>
+<tr>
+<td>Ventas 2024</td>
+<td>4,509,913.91</td>
+</tr>
+<tr>
+<td>Margen 2024</td>
+<td>1,793,408.71 (39.8 %)</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Rubro (2024)</th>
+<th>Ventas</th>
+<th>% margen</th>
+<th>Crecimiento vs 2023</th>
+</tr>
+</thead><tbody><tr>
+<td>Tecnología</td>
+<td>2,337,903.7</td>
+<td>39.9 %</td>
+<td>+25.7 %</td>
+</tr>
+<tr>
+<td>Deportes</td>
+<td>1,324,689.5</td>
+<td>38.8 %</td>
+<td>+19.1 %</td>
+</tr>
+<tr>
+<td>Hogar</td>
+<td>667,648.2</td>
+<td>41.1 %</td>
+<td>+24.1 %</td>
+</tr>
+<tr>
+<td>Moda</td>
+<td>179,672.6</td>
+<td>40.0 %</td>
+<td>+19.9 %</td>
+</tr>
+</tbody></table></div>
+<p>Categoría con más ventas en 2024: <strong>Laptops</strong> (1,187,630.5). Producto con más ventas: <strong>Notebook HP Mini 300</strong> (232,543.28).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Si tus números no coinciden</div>
+
+<p>Revisa en este orden: (1) ¿filtraste solo entregados y el año correcto? (2) ¿subiste la jerarquía hasta el primer nivel? (3) ¿el merge con productos o categorías cambió la cantidad de filas? (4) ¿aplicaste el descuento?</p>
+</div>
+
+
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Insuficiente</th>
+<th>Bien</th>
+<th>Excelente</th>
+</tr>
+</thead><tbody><tr>
+<td>Exactitud</td>
+<td>No coincide con el control</td>
+<td>Coincide</td>
+<td>Coincide y los assert lo demuestran</td>
+</tr>
+<tr>
+<td>Grano y uniones</td>
+<td>Totales inflados o líneas perdidas</td>
+<td>Uniones correctas</td>
+<td>Verificadas con validate o conteos</td>
+</tr>
+<tr>
+<td>Código</td>
+<td>Celdas copiadas</td>
+<td>Funciones en un .py</td>
+<td>Funciones probadas, con casos borde y docstring</td>
+</tr>
+<tr>
+<td>Reproducibilidad</td>
+<td>Depende del orden de ejecución</td>
+<td>Restart and Run All funciona</td>
+<td>Cambiar ANIO a 2023 funciona sin tocar nada más</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>Describe tablas</td>
+<td>3 hallazgos con números</td>
+<td>Hallazgos que distinguen &quot;vende más&quot; de &quot;deja más&quot; y recomendación accionable</td>
+</tr>
+</tbody></table></div>
+<details><summary>Ver un ejemplo de conclusión (después de escribir la tuya)</summary>
+
+<p><em>&quot;Tecnología concentra el 52 % de las ventas de 2024 y es el rubro que más creció (+25,7 %). Hogar vende tres veces y media menos, pero tiene el mejor margen (41,1 %). Recomendación: en Hogar, dar más visibilidad a Muebles, la categoría que más vende del rubro y una de las de mayor margen (41,8 %).&quot;</em></p>
+</details>
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-proyecto-ventas-y-margen">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-rendimiento-y-buenas-practicas.html">← Rendimiento y buenas prácticas en pandas - vectorizar, medir, ahorrar memoria y evitar trampas</a><a href="jupyterlab-notebook-profesional.html">El notebook profesional - estructura, narrativa, tabla de contenidos y cómo se comparte →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

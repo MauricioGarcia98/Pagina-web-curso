@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (solo el pedido) - ¿estamos perdiendo clientes? · Academia de Datos</title><meta name="description" content="El proyecto que cierra el curso, como llega en un trabajo real - una pregunta ambigua de la dirección, cuatro tablas y una fecha. Sin pasos ni pistas. Defines qué significa &quot;perder un cliente&quot;, construyes un notebook profesional y reproducible con funciones probadas, encuentras dónde se concentra el problema y cuánto vale, y lo presentas con una recomendación. Después lo repites en JupyterLab real para tu portafolio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-final.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (solo el pedido) - ¿estamos perdiendo clientes? · Academia de Datos"><meta property="og:description" content="El proyecto que cierra el curso, como llega en un trabajo real - una pregunta ambigua de la dirección, cuatro tablas y una fecha. Sin pasos ni pistas. Defines qué significa &quot;perder un cliente&quot;, construyes un notebook profesional y reproducible con funciones probadas, encuentras dónde se concentra el problema y cuánto vale, y lo presentas con una recomendación. Después lo repites en JupyterLab real para tu portafolio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-final.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 6 · Avanzado completo · 240 min</div>
+<h1>Proyecto final (solo el pedido) - ¿estamos perdiendo clientes?</h1><p class="resumen">El proyecto que cierra el curso, como llega en un trabajo real - una pregunta ambigua de la dirección, cuatro tablas y una fecha. Sin pasos ni pistas. Defines qué significa &quot;perder un cliente&quot;, construyes un notebook profesional y reproducible con funciones probadas, encuentras dónde se concentra el problema y cuánto vale, y lo presentas con una recomendación. Después lo repites en JupyterLab real para tu portafolio.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-proyecto-final">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir una pregunta ambigua en definiciones y métricas</li><li>Construir un notebook profesional, parametrizado y reproducible</li><li>Combinar uniones, agrupaciones, fechas y gráficos sin guía</li><li>Cuantificar un problema de negocio en clientes y en dinero</li><li>Presentar hallazgos y una recomendación accionable</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de la directora general, un jueves a la noche:</p>
+<p><em>&quot;Hola. En el directorio alguien dijo que estamos perdiendo clientes, y otro dijo que no, que crecimos. Los dos tienen razón a medias y nadie tiene números. Para el martes necesito entender qué pasa con nuestros clientes de un año al otro: cuántos se quedan, cuántos se van, quiénes son los que se van y cuánto nos cuesta. Y qué harías. Tenés pedidos, detalle, clientes y productos.&quot;</em></p>
+</div>
+
+
+<h2>Las reglas de este proyecto</h2>
+<ul>
+<li><strong>No hay pasos ni pistas.</strong> Todo lo que necesitas está en las lecciones 1 a 23.</li>
+<li>La pregunta es ambigua a propósito: &quot;perder un cliente&quot;, &quot;quedarse&quot; y &quot;cuánto nos cuesta&quot; los defines tú, y lo dejas escrito.</li>
+<li>Se entrega como en un trabajo: notebook, archivos de salida y un resumen ejecutivo.</li>
+</ul>
+<h2>Datos (en datos/)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Filas</th>
+<th>Te sirve para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>pedidos.csv</code></td>
+<td>12,000</td>
+<td>Quién compró, cuándo, por qué canal y en qué estado</td>
+</tr>
+<tr>
+<td><code>detalle_pedidos.csv</code></td>
+<td>25,524</td>
+<td>Cuánto valió cada pedido</td>
+</tr>
+<tr>
+<td><code>clientes.csv</code></td>
+<td>2,000</td>
+<td>País, segmento, fecha de registro</td>
+</tr>
+<tr>
+<td><code>productos.csv</code></td>
+<td>300</td>
+<td>Qué compraron</td>
+</tr>
+</tbody></table></div>
+<p>Verifica la carga con esas cantidades de filas antes de empezar.</p>
+<h2>Entregables</h2>
+<ol>
+<li><strong>El notebook</strong> <code>retencion_clientes.ipynb</code>, con la estructura de la lección 21: contexto, resumen, parámetros (incluido el año de análisis), carga, preparación, análisis por pregunta y conclusiones. Debe correr con <strong>Restart Kernel and Run All Cells</strong> y funcionar cambiando el año.</li>
+<li><strong>Un módulo</strong> <code>retencion.py</code> con las funciones principales, probadas con <code>assert</code> (incluido un caso borde).</li>
+<li><strong>Archivos de salida</strong>: un CSV con los clientes que se fueron (sin datos de contacto) y al menos dos gráficos PNG.</li>
+<li><strong>El resumen ejecutivo</strong> (máximo 10 líneas): 3 hallazgos con números, 1 recomendación priorizada con su impacto estimado y cómo medirías si funcionó.</li>
+<li><strong>Limitaciones</strong>: qué no pudiste saber con estos datos y qué dato pedirías.</li>
+</ol>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Peso</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Definiciones</td>
+<td>15 %</td>
+<td>Analiza sin definir &quot;perder&quot; o &quot;retener&quot;</td>
+<td>Definiciones escritas y aplicadas de forma consistente</td>
+<td>Justifica por qué esas definiciones y discute alternativas</td>
+</tr>
+<tr>
+<td>Exactitud</td>
+<td>25 %</td>
+<td>Números que no cierran o no se pueden rastrear</td>
+<td>Controles con assert que cierran</td>
+<td>Controles cubren uniones (sin duplicar), totales y casos borde</td>
+</tr>
+<tr>
+<td>Profundidad</td>
+<td>20 %</td>
+<td>Solo un total</td>
+<td>Corta por al menos dos dimensiones (segmento, país, canal, antigüedad…)</td>
+<td>Encuentra dónde se concentra y lo cuantifica en dinero</td>
+</tr>
+<tr>
+<td>Calidad del código</td>
+<td>15 %</td>
+<td>Celdas copiadas, orden frágil</td>
+<td>Funciones en un .py, notebook reproducible</td>
+<td>Parametrizado: otro año funciona sin tocar el código</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>25 %</td>
+<td>Describe tablas</td>
+<td>3 hallazgos con números y una recomendación</td>
+<td>Recomendación priorizada, con impacto estimado y métrica de seguimiento</td>
+</tr>
+</tbody></table></div>
+<p><strong>Aprobado</strong>: competente o más en todos los criterios.</p>
+<h2>Preguntas que te van a hacer el martes</h2>
+<p>No son pistas: tu notebook debería poder responderlas.</p>
+<ul>
+<li>&quot;¿Perdimos clientes o crecimos? ¿Las dos cosas?&quot;</li>
+<li>&quot;¿De cada 100 clientes de un año, cuántos vuelven al siguiente?&quot;</li>
+<li>&quot;¿Los que se van son de algún segmento, país o canal en particular?&quot;</li>
+<li>&quot;¿Cuánto compraban los que se fueron?&quot;</li>
+<li>&quot;Si hacemos lo que proponés, ¿cuánto recuperamos y cómo lo medimos?&quot;</li>
+</ul>
+<details><summary>Puntos de control (ábrelos solo al terminar, para comparar)</summary>
+
+<p>Con estas definiciones, que no son las únicas válidas: <em>cliente activo en un año</em> = hizo al menos un pedido con fecha en ese año (cualquier estado); <em>perdido</em> = activo en 2023 y no en 2024.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Valor</th>
+</tr>
+</thead><tbody><tr>
+<td>Clientes activos en 2023</td>
+<td>988</td>
+</tr>
+<tr>
+<td>Clientes activos en 2024</td>
+<td>1,276</td>
+</tr>
+<tr>
+<td>Activos en 2023 que no compraron en 2024</td>
+<td>135</td>
+</tr>
+<tr>
+<td>Retención 2023 → 2024</td>
+<td>86.3 %</td>
+</tr>
+<tr>
+<td>Clientes registrados que nunca compraron</td>
+<td>547</td>
+</tr>
+<tr>
+<td>Importe de pedidos entregados en 2023 de los clientes perdidos</td>
+<td>233,137.70 (6.4 % del total de 2023)</td>
+</tr>
+</tbody></table></div>
+<p>Si usaste otras definiciones (por ejemplo, contar solo pedidos entregados), tus números serán distintos: lo que importa es que estén escritas y que tus controles cierren.</p>
+</details>
+
+<h2>La segunda vuelta: en JupyterLab real, para tu portafolio</h2>
+<ol>
+<li>Descarga los CSV de <code>datos/</code> desde la práctica (clic derecho → Download).</li>
+<li>Crea el proyecto con la estructura de carpetas de la lección 21, un entorno virtual y <code>requirements.txt</code>.</li>
+<li>Ejecuta tu notebook: los números deben coincidir con los de la práctica.</li>
+<li>Agrega un <code>README.md</code> con la pregunta, el enfoque, los hallazgos y cómo ejecutarlo.</li>
+<li>Exporta a HTML sin código para la versión &quot;para negocio&quot; y súbelo todo a un repositorio (sin datos personales: estos son ficticios).</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo contarlo en una entrevista</div>
+
+<p>&quot;Recibí una pregunta ambigua sobre pérdida de clientes. Definí retención y pérdida, construí un notebook reproducible con funciones probadas y encontré que [hallazgo con número]. Recomendé [acción], con un impacto estimado de [monto], medible con [métrica].&quot; Contexto, decisión, resultado con número.</p>
+</div>
+
+
+<h2>Después de este curso</h2>
+<ul>
+<li><strong><a href="#/m/sql">SQL</a></strong>: las mismas preguntas sobre tablas de millones de filas.</li>
+<li><strong><a href="#/m/pyspark">PySpark</a></strong> y <a href="#/databricks">Databricks</a>: el mismo análisis a escala, en notebooks sobre Spark.</li>
+<li><strong><a href="#/m/powerbi">Power BI</a></strong>: llevar tus hallazgos a un tablero que otros consultan.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-proyecto-final">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-de-la-practica-al-jupyter-real.html">← De la práctica al JupyterLab real - instalar, entornos, kernels, paquetes y extensiones</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jupyter en el flujo de datos - del notebook al pipeline, la automatización y otras plataformas · Academia de Datos</title><meta name="description" content="En un equipo de datos, el notebook es donde se explora y se prototipa; lo que se repite todos los días vive en otro lado. Cuándo un notebook está bien y cuándo hay que convertirlo, cómo ejecutar notebooks con parámetros de forma automática (papermill, nbconvert), cómo pasar la lógica a scripts y pipelines, y cómo se usan los notebooks en Databricks, Fabric, Colab y VS Code."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-jupyter-en-el-flujo-de-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Jupyter en el flujo de datos - del notebook al pipeline, la automatización y otras plataformas · Academia de Datos"><meta property="og:description" content="En un equipo de datos, el notebook es donde se explora y se prototipa; lo que se repite todos los días vive en otro lado. Cuándo un notebook está bien y cuándo hay que convertirlo, cómo ejecutar notebooks con parámetros de forma automática (papermill, nbconvert), cómo pasar la lógica a scripts y pipelines, y cómo se usan los notebooks en Databricks, Fabric, Colab y VS Code."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-jupyter-en-el-flujo-de-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>Jupyter en el flujo de datos - del notebook al pipeline, la automatización y otras plataformas</h1><p class="resumen">En un equipo de datos, el notebook es donde se explora y se prototipa; lo que se repite todos los días vive en otro lado. Cuándo un notebook está bien y cuándo hay que convertirlo, cómo ejecutar notebooks con parámetros de forma automática (papermill, nbconvert), cómo pasar la lógica a scripts y pipelines, y cómo se usan los notebooks en Databricks, Fabric, Colab y VS Code.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-jupyter-en-el-flujo-de-datos">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Decidir cuándo un análisis debe dejar de ser un notebook</li><li>Ejecutar notebooks de forma automática con parámetros</li><li>Convertir notebooks a scripts, HTML o PDF</li><li>Llevar la lógica de un notebook a un pipeline</li><li>Reconocer las diferencias de los notebooks en Databricks, Fabric, Colab y VS Code</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El notebook es la mesa de trabajo del taller: ahí pruebas, ajustas y entiendes. Cuando algo tiene que fabricarse todos los días igual, se lleva a la línea de producción (un script o un pipeline programado). Sacar algo de la mesa no es abandonarla: es el siguiente paso.</p>
+</div>
+
+
+<h2>Paso 1 — Cuándo un notebook está bien y cuándo no</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Está bien en un notebook</th>
+<th>Mejor como script o pipeline</th>
+</tr>
+</thead><tbody><tr>
+<td>Explorar un dataset nuevo</td>
+<td>Un proceso que corre todos los días</td>
+</tr>
+<tr>
+<td>Un análisis puntual con su informe</td>
+<td>Una carga que alimenta un tablero</td>
+</tr>
+<tr>
+<td>Prototipar una limpieza</td>
+<td>Lógica que usan varios equipos</td>
+</tr>
+<tr>
+<td>Enseñar o documentar un resultado</td>
+<td>Algo que necesita pruebas, revisión de código y alertas si falla</td>
+</tr>
+</tbody></table></div>
+<p>Señales de que llegó el momento: lo ejecutas a mano todos los lunes, alguien te pide &quot;que corra solo&quot;, o el notebook pasó las 100 celdas.</p>
+<h2>Paso 2 — Ejecutar notebooks con parámetros (papermill)</h2>
+<p>El patrón de la celda de parámetros (proyectos 3, 4 y 5) existe por esto. En Jupyter real, marcas esa celda con la etiqueta <code>parameters</code> y <strong>papermill</strong> ejecuta el notebook con otros valores:</p>
+<pre><code class="language-text">papermill reporte.ipynb salidas/reporte_2025.ipynb -p ANIO 2025</code></pre>
+<p>El resultado es un notebook nuevo, ejecutado, con las salidas de 2025. Un programador de tareas (cron, Airflow, Azure Data Factory) puede lanzarlo todos los meses.</p>
+<h2>Paso 3 — Convertir notebooks (nbconvert)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando (Jupyter real)</th>
+<th>Produce</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>jupyter nbconvert --to html reporte.ipynb</code></td>
+<td>Una página HTML con texto, código y gráficos</td>
+<td>Mandarlo a alguien que no tiene Jupyter</td>
+</tr>
+<tr>
+<td><code>jupyter nbconvert --to html --no-input reporte.ipynb</code></td>
+<td>El HTML <strong>sin el código</strong></td>
+<td>Un informe para negocio</td>
+</tr>
+<tr>
+<td><code>jupyter nbconvert --to script reporte.ipynb</code></td>
+<td>Un <code>.py</code> con todo el código</td>
+<td>Empezar a llevarlo a un script</td>
+</tr>
+<tr>
+<td><code>jupyter nbconvert --to notebook --execute reporte.ipynb</code></td>
+<td>El notebook ejecutado de punta a punta</td>
+<td>Comprobar que corre</td>
+</tr>
+</tbody></table></div>
+<p>En JupyterLab también está en <strong>File → Save and Export Notebook As…</strong>. En esta práctica, <strong>File → Download</strong> descarga el <code>.ipynb</code>.</p>
+<h2>Paso 4 — Del notebook al pipeline</h2>
+<p>El camino habitual, que ya empezaste en los niveles 4 y 5:</p>
+<ol>
+<li><strong>Notebook de exploración</strong>: entiendes los datos y decides la lógica.</li>
+<li><strong>Funciones en un <code>.py</code></strong>, probadas (lección 18).</li>
+<li><strong>Un script</strong> que llama a esas funciones de principio a fin (<code>python limpiar_clientes.py</code>).</li>
+<li><strong>Un pipeline</strong> que ejecuta el script o el notebook en un horario, con reintentos y alertas: Airflow, Data Factory, Databricks Jobs, Fabric.</li>
+</ol>
+<p>Puedes ver ese último paso en las réplicas de <a href="#/airflow">Airflow</a>, <a href="#/azure/servicio/adf">Data Factory</a> y <a href="#/databricks">Databricks</a> del curso.</p>
+<h2>Paso 5 — Los notebooks en otras plataformas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Plataforma</th>
+<th>Qué cambia respecto de JupyterLab</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Databricks</strong></td>
+<td>El kernel es un clúster de Spark; celdas en Python, SQL, Scala o R (<code>%sql</code>, <code>%python</code>); <strong>widgets</strong> para parámetros; se programan como <strong>Jobs</strong>; tablas en Unity Catalog en lugar de CSV locales</td>
+</tr>
+<tr>
+<td><strong>Microsoft Fabric</strong></td>
+<td>Notebooks sobre Spark conectados a un Lakehouse; se orquestan desde Data Pipelines</td>
+</tr>
+<tr>
+<td><strong>Google Colab</strong></td>
+<td>Jupyter en la nube de Google, gratis con límites; se guarda en Drive; ideal para practicar</td>
+</tr>
+<tr>
+<td><strong>VS Code</strong></td>
+<td>Abre <code>.ipynb</code> con su propio editor: depurador, Git integrado y el mismo kernel de Jupyter</td>
+</tr>
+<tr>
+<td><strong>JupyterHub</strong></td>
+<td>JupyterLab compartido por un equipo, cada uno con su espacio, en un servidor de la empresa</td>
+</tr>
+</tbody></table></div>
+<p>Lo que aprendiste (celdas, kernel, Markdown, reproducibilidad, parámetros) es igual en todas.</p>
+<h2>Paso 6 — De pandas a Spark</h2>
+<p>En Databricks y Fabric los datos suelen ser demasiado grandes para pandas, y se usa PySpark con la misma lógica:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>pandas</th>
+<th>PySpark</th>
+</tr>
+</thead><tbody><tr>
+<td><code>df[df[&quot;estado&quot;] == &quot;entregado&quot;]</code></td>
+<td><code>df.filter(df.estado == &quot;entregado&quot;)</code></td>
+</tr>
+<tr>
+<td><code>df.groupby(&quot;canal&quot;).size()</code></td>
+<td><code>df.groupBy(&quot;canal&quot;).count()</code></td>
+</tr>
+<tr>
+<td><code>a.merge(b, on=&quot;id&quot;, how=&quot;left&quot;)</code></td>
+<td><code>a.join(b, on=&quot;id&quot;, how=&quot;left&quot;)</code></td>
+</tr>
+<tr>
+<td><code>df[&quot;x&quot;] = df[&quot;a&quot;] * df[&quot;b&quot;]</code></td>
+<td><code>df = df.withColumn(&quot;x&quot;, df.a * df.b)</code></td>
+</tr>
+</tbody></table></div>
+<p>Si quieres seguir por ese camino, el módulo <a href="#/m/pyspark">PySpark</a> parte de lo que ya sabes de pandas.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes cuándo un notebook debe convertirse en script o pipeline.</li>
+<li>Conoces papermill y nbconvert para automatizar y compartir.</li>
+<li>Reconoces cómo cambian los notebooks en Databricks, Fabric, Colab y VS Code.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-jupyter-en-el-flujo-de-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-notebook-profesional.html">← El notebook profesional - estructura, narrativa, tabla de contenidos y cómo se comparte</a><a href="jupyterlab-de-la-practica-al-jupyter-real.html">De la práctica al JupyterLab real - instalar, entornos, kernels, paquetes y extensiones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

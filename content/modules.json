@@ -269,6 +269,20 @@
     ]
   },
   {
+    "id": "jupyterlab",
+    "titulo": "JupyterLab paso a paso",
+    "icono": "📓",
+    "color": "#f37626",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas de JupyterLab de práctica y Python real en el navegador. Celdas, kernel y Markdown; pandas para explorar, filtrar, agrupar, unir y limpiar; gráficos; notebooks reproducibles con funciones probadas. Cada nivel cierra con un proyecto real que da cada vez menos ayuda, y termina con el paso al JupyterLab real.",
+    "objetivos": [
+      "Manejar celdas, modos, kernel y Markdown con el teclado",
+      "Explorar, filtrar, agrupar y graficar datos reales con pandas y matplotlib",
+      "Unir y limpiar tablas verificando cada paso con controles",
+      "Escribir notebooks reproducibles y parametrizados, con funciones en módulos .py",
+      "Entregar análisis profesionales y llevarlos a JupyterLab real, Colab o un pipeline"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

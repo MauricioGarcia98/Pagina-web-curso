@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña, como un pipeline en un notebook · Academia de Datos</title><meta name="description" content="Marketing necesita la lista de clientes que compraron en 2024 para una campaña, y la fuente es la tabla de clientes sucia. Planificas, limpias, deduplicas quedándote con la carga más reciente, unes con pedidos y clientes, separas a quienes no se pueden contactar y entregas un CSV con validaciones automáticas y un informe de calidad. Pistas solo para lo difícil, y una función reutilizable en un .py."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-lista-campana.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña, como un pipeline en un notebook · Academia de Datos"><meta property="og:description" content="Marketing necesita la lista de clientes que compraron en 2024 para una campaña, y la fuente es la tabla de clientes sucia. Planificas, limpias, deduplicas quedándote con la carga más reciente, unes con pedidos y clientes, separas a quienes no se pueden contactar y entregas un CSV con validaciones automáticas y un informe de calidad. Pistas solo para lo difícil, y una función reutilizable en un .py."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-lista-campana.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 4 · Intermedio-avanzado · 90 min</div>
+<h1>Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña, como un pipeline en un notebook</h1><p class="resumen">Marketing necesita la lista de clientes que compraron en 2024 para una campaña, y la fuente es la tabla de clientes sucia. Planificas, limpias, deduplicas quedándote con la carga más reciente, unes con pedidos y clientes, separas a quienes no se pueden contactar y entregas un CSV con validaciones automáticas y un informe de calidad. Pistas solo para lo difícil, y una función reutilizable en un .py.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-proyecto-lista-campana">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Planificar una limpieza como pasos de un pipeline</li><li>Deduplicar, normalizar y unir tablas en código reutilizable</li><li>Contar compras por cliente con groupby y unirlas</li><li>Separar registros no contactables sin inventar datos</li><li>Entregar un dataset con validaciones assert e informe de calidad</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Sofía, de marketing: <em>&quot;Queremos mandar el newsletter de fin de año a los clientes que compraron en 2024. Tengo la tabla <code>clientes_crudo</code> pero está llena de repetidos y emails en mayúsculas, y la herramienta de envío rechaza el archivo si hay duplicados. Necesito nombre, apellido, email, país y cuántas compras hizo cada uno en 2024. Y decime cuántos no vamos a poder contactar. Ah, y probablemente lo pidamos de nuevo en marzo.&quot;</em></p>
+</div>
+
+
+<p>Sabes <strong>qué</strong> entregar, no <strong>cómo</strong>. &quot;Lo pedimos de nuevo en marzo&quot; significa que tiene que poder repetirse: piensa en parámetros y en una función.</p>
+<h2>Fuentes (en datos/)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Archivo</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>clientes_crudo.csv</code></td>
+<td>Nombre, apellido, email (sucios y repetidos)</td>
+</tr>
+<tr>
+<td><code>pedidos.csv</code></td>
+<td>Compras del año por cliente</td>
+</tr>
+<tr>
+<td><code>clientes.csv</code></td>
+<td>País del cliente</td>
+</tr>
+</tbody></table></div>
+<h2>Antes del código: el plan</h2>
+<p>Escribe en una celda Markdown los pasos en orden. Respóndete: ¿cuál es la clave? ¿qué versión de cada cliente me quedo? ¿qué limpio? ¿con qué uno? ¿qué hago con lo que falta? ¿cómo sé que salió bien?</p>
+<details><summary>Comparar con un plan de referencia (después de escribir el tuyo)</summary>
+
+<ol>
+<li>Parámetros: <code>ANIO = 2024</code>, nombres de archivo.</li>
+<li>Medir el crudo: filas, clientes distintos, emails vacíos.</li>
+<li>Deduplicar por cliente_id quedándome con la fecha_carga más reciente.</li>
+<li>Normalizar nombre, apellido y email.</li>
+<li>Contar pedidos del año por cliente (groupby) y unir; traer el país (merge).</li>
+<li>Marcar <code>contactable</code> = compró en el año y tiene email.</li>
+<li>Validar con assert y exportar solo los contactables con las columnas pedidas.</li>
+<li>Informe de calidad en Markdown.</li>
+</ol>
+</details>
+
+<h2>Entregable 1 — La función de limpieza en un .py</h2>
+<p>Un archivo <code>limpieza.py</code> (con <code>%%writefile</code>) con una función <code>limpiar_clientes(crudo)</code> que reciba el DataFrame crudo y devuelva uno deduplicado y normalizado. El notebook la importa y la usa.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Adentro de la función van los pasos 3 y 4 de la lección 14: <code>sort_values</code> + <code>drop_duplicates</code> + <code>assign</code> con <code>.str.strip()</code>, <code>.str.title()</code> y <code>.str.lower()</code>. Recuerda: si editas el .py, reinicia el kernel.</p>
+</details>
+
+<h2>Entregable 2 — La tabla de trabajo</h2>
+<p>Una tabla con una fila por cliente y las columnas: <code>cliente_id</code>, <code>nombre</code>, <code>apellido</code>, <code>email</code>, <code>pais</code>, <code>compras_anio</code> (0 si no compró) y <code>contactable</code> (True/False).</p>
+<details><summary>💡 Pista: compras del año</summary>
+
+<p><code>pedidos[pedidos[&quot;fecha_pedido&quot;].str[:4] == str(ANIO)].groupby(&quot;cliente_id&quot;).size().rename(&quot;compras_anio&quot;)</code>; únelo con <code>merge(..., on=&quot;cliente_id&quot;, how=&quot;left&quot;)</code> y completa los vacíos con <code>fillna(0)</code>: aquí rellenar con 0 es correcto, porque no comprar es cero compras.</p>
+</details>
+
+<h2>Entregable 3 — Validaciones</h2>
+<p>Al menos tres <code>assert</code>: que no haya clientes repetidos, que la cantidad de filas sea la de clientes distintos del crudo y que ningún email contactable tenga mayúsculas o espacios.</p>
+<h2>Entregable 4 — El archivo para la herramienta de envío</h2>
+<p><code>newsletter_{ANIO}.csv</code> con <strong>solo</strong> los contactables y <strong>solo</strong> las columnas nombre, apellido, email, pais y compras_anio, sin índice.</p>
+<h2>Entregable 5 — El informe de calidad (Markdown)</h2>
+<p>Filas recibidas, clientes únicos, clientes que compraron en el año, cuántos de ellos no tienen email y cuántos van en la lista. Con una recomendación.</p>
+<h2>✔ Números de control (ANIO = 2024)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Valor</th>
+</tr>
+</thead><tbody><tr>
+<td>Filas en clientes_crudo</td>
+<td>400</td>
+</tr>
+<tr>
+<td>Clientes únicos</td>
+<td>243</td>
+</tr>
+<tr>
+<td>Con al menos una compra en 2024</td>
+<td>147</td>
+</tr>
+<tr>
+<td>Pedidos de 2024 de esos clientes</td>
+<td>509</td>
+</tr>
+<tr>
+<td>Sin email en su carga más reciente</td>
+<td>13</td>
+</tr>
+<tr>
+<td>Compraron en 2024 pero no tienen email</td>
+<td>8</td>
+</tr>
+<tr>
+<td><strong>Filas del CSV para la campaña</strong></td>
+<td><strong>139</strong></td>
+</tr>
+<tr>
+<td>País con más clientes entre los 147</td>
+<td>Colombia (33)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La trampa de este proyecto</div>
+
+<p>El cliente que más compró en 2024 (11 pedidos) no tiene email en su carga más reciente. No lo busques en cargas viejas ni lo &quot;deduzcas&quot;: un email desactualizado rebota y daña la reputación del dominio de envío. Infórmalo como recomendación: pedir el dato en la próxima compra.</p>
+</div>
+
+
+<h2>La prueba de marzo</h2>
+<p>Cambia <code>ANIO = 2023</code>, <strong>Restart Kernel and Run All Cells</strong>. Todo tiene que correr y generar <code>newsletter_2023.csv</code>. Si algo falla o sigue diciendo 2024, hay un año escrito a mano.</p>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Bien</th>
+<th>Muy bien</th>
+</tr>
+</thead><tbody><tr>
+<td>Plan</td>
+<td>Pasos listados</td>
+<td>Pasos con la decisión de cada uno (clave, versión, nulos)</td>
+</tr>
+<tr>
+<td>Limpieza</td>
+<td>Una fila por cliente, emails normalizados</td>
+<td>En una función de un .py, reutilizable</td>
+</tr>
+<tr>
+<td>Unión</td>
+<td>País y compras correctos</td>
+<td>Verificado con validate o comparando filas</td>
+</tr>
+<tr>
+<td>Validaciones</td>
+<td>Hay assert</td>
+<td>Cubren duplicados, cantidad y formato</td>
+</tr>
+<tr>
+<td>Entrega</td>
+<td>CSV con 139 filas</td>
+<td>Solo columnas pedidas, sin índice, nombre con el año</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>Informa los no contactables</td>
+<td>Informe con números y recomendación</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-proyecto-lista-campana">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-notebooks-reproducibles.html">← Notebooks reproducibles - magics, archivos .py, rutas y el notebook que corre de arriba abajo</a><a href="jupyterlab-analisis-exploratorio.html">Análisis exploratorio - distribuciones, valores extremos y preguntas que llevan a hallazgos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

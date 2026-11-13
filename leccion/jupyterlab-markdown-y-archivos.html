@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markdown y archivos - explicar con texto, crear notebooks, carpetas y abrir los datos · Academia de Datos</title><meta name="description" content="Un notebook no es solo código - el texto que explica es lo que lo vuelve útil para otros. Cómo escribir celdas Markdown (títulos, negrita, listas, tablas, código), cómo moverte por el explorador de archivos, abrir un CSV en el visor, crear un notebook nuevo, renombrarlo, duplicarlo y borrarlo con el menú contextual."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-markdown-y-archivos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Markdown y archivos - explicar con texto, crear notebooks, carpetas y abrir los datos · Academia de Datos"><meta property="og:description" content="Un notebook no es solo código - el texto que explica es lo que lo vuelve útil para otros. Cómo escribir celdas Markdown (títulos, negrita, listas, tablas, código), cómo moverte por el explorador de archivos, abrir un CSV en el visor, crear un notebook nuevo, renombrarlo, duplicarlo y borrarlo con el menú contextual."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-markdown-y-archivos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 1 · Básico · 40 min</div>
+<h1>Markdown y archivos - explicar con texto, crear notebooks, carpetas y abrir los datos</h1><p class="resumen">Un notebook no es solo código - el texto que explica es lo que lo vuelve útil para otros. Cómo escribir celdas Markdown (títulos, negrita, listas, tablas, código), cómo moverte por el explorador de archivos, abrir un CSV en el visor, crear un notebook nuevo, renombrarlo, duplicarlo y borrarlo con el menú contextual.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-markdown-y-archivos">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir celdas Markdown con títulos, listas, negrita y código</li><li>Navegar carpetas en el explorador de archivos</li><li>Abrir un CSV en el visor de tablas</li><li>Crear, renombrar, duplicar y borrar archivos</li><li>Entender las rutas relativas (datos/pedidos.csv)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Las celdas Markdown son los textos del informe: el título, la explicación de qué vas a hacer y la conclusión. Un notebook sin texto es como una planilla sin rótulos: funciona, pero nadie más lo entiende, ni tú dentro de tres meses.</p>
+</div>
+
+
+<h2>Paso 1 — Edita una celda Markdown</h2>
+<ol>
+<li>En <strong>Bienvenida.ipynb</strong>, haz <strong>doble clic</strong> en el texto de &quot;Un gráfico&quot;. Se abre el código Markdown y el desplegable de tipo dice <strong>Markdown</strong> (1).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/02-markdown-editando.webp" alt="Una celda Markdown en edición: el texto con su marcado y el tipo de celda (1)" loading="lazy"><figcaption>Una celda Markdown en edición: el texto con su marcado y el tipo de celda (1)</figcaption></figure>
+
+
+<ol start="2">
+<li>Presiona <strong>Shift + Enter</strong> para &quot;ejecutarla&quot;: vuelve a verse con formato.</li>
+</ol>
+<h2>Paso 2 — Lo que vas a escribir siempre en Markdown</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Escribes</th>
+<th>Se ve</th>
+</tr>
+</thead><tbody><tr>
+<td><code># Título</code></td>
+<td>Título principal</td>
+</tr>
+<tr>
+<td><code>## Sección</code></td>
+<td>Subtítulo</td>
+</tr>
+<tr>
+<td><code>**importante**</code></td>
+<td><strong>importante</strong></td>
+</tr>
+<tr>
+<td><code>*nota*</code></td>
+<td><em>nota</em></td>
+</tr>
+<tr>
+<td><code>- punto</code></td>
+<td>Una lista con viñetas</td>
+</tr>
+<tr>
+<td><code>1. paso</code></td>
+<td>Una lista numerada</td>
+</tr>
+<tr>
+<td><code>`pedidos.csv`</code></td>
+<td><code>pedidos.csv</code> (código en línea)</td>
+</tr>
+<tr>
+<td><code>[texto](https://…)</code></td>
+<td>Un enlace</td>
+</tr>
+</tbody></table></div>
+<p>Practica: agrega una celda abajo (<strong>B</strong>), conviértela en Markdown (<strong>M</strong>), Enter, escribe:</p>
+<pre><code class="language-text">## Mis notas
+- El archivo tiene **12.000 pedidos**.
+- Columnas clave: `estado` y `canal`.</code></pre>
+<p>y Shift + Enter.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Los títulos arman el índice</div>
+
+<p>Cada título (<code>#</code>, <code>##</code>) aparece en la <strong>tabla de contenidos</strong> (tercer ícono de la barra lateral). En un notebook largo es la forma de saltar entre secciones. Lo usamos en el nivel 6.</p>
+</div>
+
+
+<h2>Paso 3 — El explorador de archivos</h2>
+<ol>
+<li>En el panel de la izquierda, haz <strong>doble clic</strong> en la carpeta <strong>datos</strong>. Arriba aparece la ruta (1) y la lista de archivos.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/03-carpeta-datos.webp" alt="La carpeta datos/: la ruta (1) y el archivo pedidos.csv (2)" loading="lazy"><figcaption>La carpeta datos/: la ruta (1) y el archivo pedidos.csv (2)</figcaption></figure>
+
+
+<ol start="2">
+<li>Haz <strong>doble clic</strong> en <strong>pedidos.csv</strong>: se abre en el visor de tablas, en su propia pestaña.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/03-visor-csv.webp" alt="El CSV abierto en el visor, en una pestaña nueva" loading="lazy"><figcaption>El CSV abierto en el visor, en una pestaña nueva</figcaption></figure>
+
+
+<ol start="3">
+<li>Para volver a la carpeta principal, haz clic en el ícono de carpeta de la ruta, arriba del explorador.</li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 Rutas relativas</div>
+
+<p>En el código escribimos <code>pd.read_csv(&quot;datos/pedidos.csv&quot;)</code>: &quot;desde la carpeta donde está el notebook, entra a <code>datos/</code> y abre <code>pedidos.csv</code>&quot;. Si el notebook estuviera dentro de otra carpeta, la ruta cambiaría. El error <code>FileNotFoundError</code> casi siempre es una ruta mal escrita.</p>
+</div>
+
+
+<h2>Paso 4 — Crea, renombra y organiza</h2>
+<ol>
+<li><strong>File → New → Notebook</strong> (o el Launcher).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/03-menu-file.webp" alt="El menú File: New Notebook (1)" loading="lazy"><figcaption>El menú File: New Notebook (1)</figcaption></figure>
+
+
+<ol start="2">
+<li>Aparece <strong>Untitled.ipynb</strong> en el explorador (1) y abierto en una pestaña (2).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/03-notebook-nuevo.webp" alt="El notebook nuevo en el explorador (1) y en su pestaña (2)" loading="lazy"><figcaption>El notebook nuevo en el explorador (1) y en su pestaña (2)</figcaption></figure>
+
+
+<ol start="3">
+<li><strong>Clic derecho</strong> sobre Untitled.ipynb en el explorador → <strong>Rename</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/03-clic-derecho.webp" alt="El menú contextual del explorador: Rename (1), Delete, Duplicate, Download…" loading="lazy"><figcaption>El menú contextual del explorador: Rename (1), Delete, Duplicate, Download…</figcaption></figure>
+
+
+<ol start="4">
+<li>Escribe <code>analisis_pedidos.ipynb</code> y <strong>Rename</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/03-renombrar.webp" alt="El cuadro para renombrar el archivo" loading="lazy"><figcaption>El cuadro para renombrar el archivo</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción del menú contextual</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Open</td>
+<td>Abre el archivo</td>
+</tr>
+<tr>
+<td>Rename</td>
+<td>Cambia el nombre (también: F2 sobre el archivo en JupyterLab real)</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td>Borra el archivo</td>
+</tr>
+<tr>
+<td>Duplicate</td>
+<td>Crea una copia (<code>…-Copy1.ipynb</code>)</td>
+</tr>
+<tr>
+<td>Download</td>
+<td>Lo descarga a tu computadora</td>
+</tr>
+<tr>
+<td>Copy Path</td>
+<td>Copia la ruta, para usarla en el código</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Nombres de archivo</div>
+
+<p>Sin espacios ni tildes, en minúscula y que digan qué hay: <code>analisis_pedidos_2024.ipynb</code>, no <code>Untitled3.ipynb</code>. Con el botón <strong>New Folder</strong> del explorador puedes agrupar notebooks por proyecto.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribes texto con formato en celdas Markdown.</li>
+<li>Navegas carpetas y abres CSV en el visor.</li>
+<li>Creas, renombras y organizas archivos.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-markdown-y-archivos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-celdas-y-modos.html">← Celdas, modos y kernel - ejecutar código, el modo comando y los atajos de todos los días</a><a href="jupyterlab-proyecto-presupuesto-viaje.html">Proyecto 1 (guiado paso a paso) - el notebook del presupuesto de un viaje de trabajo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

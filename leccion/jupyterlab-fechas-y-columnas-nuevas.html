@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fechas y columnas nuevas - to_datetime, año, mes, día de la semana y columnas calculadas · Academia de Datos</title><meta name="description" content="Casi todo análisis termina en &quot;por mes&quot; o &quot;por año&quot;. Cómo convertir texto a fecha con to_datetime, sacar año, mes, período y día de la semana con .dt, filtrar por rangos de fechas, calcular diferencias en días, y crear columnas nuevas con operaciones, np.where, map y assign, sin bucles."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-fechas-y-columnas-nuevas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Fechas y columnas nuevas - to_datetime, año, mes, día de la semana y columnas calculadas · Academia de Datos"><meta property="og:description" content="Casi todo análisis termina en &quot;por mes&quot; o &quot;por año&quot;. Cómo convertir texto a fecha con to_datetime, sacar año, mes, período y día de la semana con .dt, filtrar por rangos de fechas, calcular diferencias en días, y crear columnas nuevas con operaciones, np.where, map y assign, sin bucles."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-fechas-y-columnas-nuevas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Fechas y columnas nuevas - to_datetime, año, mes, día de la semana y columnas calculadas</h1><p class="resumen">Casi todo análisis termina en &quot;por mes&quot; o &quot;por año&quot;. Cómo convertir texto a fecha con to_datetime, sacar año, mes, período y día de la semana con .dt, filtrar por rangos de fechas, calcular diferencias en días, y crear columnas nuevas con operaciones, np.where, map y assign, sin bucles.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-fechas-y-columnas-nuevas">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir una columna de texto a fecha con to_datetime</li><li>Extraer año, mes, período y día de la semana con .dt</li><li>Filtrar por un rango de fechas</li><li>Crear columnas con operaciones vectorizadas, np.where y map</li><li>Encadenar transformaciones con assign</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una fecha guardada como texto (<code>&quot;2024-03-15&quot;</code>) es como una palabra: se puede leer, pero no se puede preguntar &quot;¿en qué mes cae?&quot;. <code>to_datetime</code> la convierte en una fecha de verdad, y desde ahí <code>.dt</code> te deja preguntarle el año, el mes o el día de la semana.</p>
+</div>
+
+
+<h2>Paso 1 — De texto a fecha</h2>
+<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;].dtype</code></pre>
+<p>Dice <code>object</code> o <code>str</code>: es texto. Conviértela:</p>
+<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;] = pd.to_datetime(pedidos[&quot;fecha_pedido&quot;])
+pedidos[&quot;anio&quot;] = pedidos[&quot;fecha_pedido&quot;].dt.year
+pedidos.groupby(&quot;anio&quot;).size()</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e10-fechas.webp" alt="Con la fecha convertida, .dt.year saca el año: 3.346, 4.021 y 4.633 pedidos" loading="lazy"><figcaption>Con la fecha convertida, .dt.year saca el año: 3.346, 4.021 y 4.633 pedidos</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Convertir al cargar</div>
+
+<p><code>pd.read_csv(&quot;datos/pedidos.csv&quot;, parse_dates=[&quot;fecha_pedido&quot;])</code> convierte la columna en el mismo paso de la carga.</p>
+</div>
+
+
+<h2>Paso 2 — Lo que .dt sabe responder</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Escribes</th>
+<th>Con 2024-03-15 da</th>
+</tr>
+</thead><tbody><tr>
+<td><code>.dt.year</code></td>
+<td>2024</td>
+</tr>
+<tr>
+<td><code>.dt.month</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>.dt.day</code></td>
+<td>15</td>
+</tr>
+<tr>
+<td><code>.dt.day_name()</code></td>
+<td>Friday</td>
+</tr>
+<tr>
+<td><code>.dt.dayofweek</code></td>
+<td>4 (lunes = 0)</td>
+</tr>
+<tr>
+<td><code>.dt.to_period(&quot;M&quot;)</code></td>
+<td>2024-03 (año-mes: para agrupar por mes sin mezclar años)</td>
+</tr>
+<tr>
+<td><code>.dt.quarter</code></td>
+<td>1</td>
+</tr>
+</tbody></table></div>
+<p>¿Qué día de la semana tiene más pedidos?</p>
+<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;].dt.day_name().value_counts()</code></pre>
+<h2>Paso 3 — Filtrar por fechas</h2>
+<pre data-norun><code class="language-python">pedidos_2024 = pedidos[(pedidos[&quot;fecha_pedido&quot;] &gt;= &quot;2024-01-01&quot;) &amp; (pedidos[&quot;fecha_pedido&quot;] &lt; &quot;2025-01-01&quot;)]
+len(pedidos_2024)</code></pre>
+<p>Da 4.633. Igual que en Excel y SQL: &quot;mayor o igual al primer día&quot; y &quot;menor al primer día del período siguiente&quot;. Con la columna <code>anio</code> también vale <code>pedidos[pedidos[&quot;anio&quot;] == 2024]</code>.</p>
+<h2>Paso 4 — Diferencias entre fechas</h2>
+<pre data-norun><code class="language-python">clientes = pd.read_csv(&quot;datos/clientes.csv&quot;, parse_dates=[&quot;fecha_registro&quot;])
+corte = pd.Timestamp(&quot;2024-12-31&quot;)
+clientes[&quot;dias_cliente&quot;] = (corte - clientes[&quot;fecha_registro&quot;]).dt.days
+clientes[&quot;dias_cliente&quot;].describe()</code></pre>
+<p>Restar fechas da una duración (<em>timedelta</em>); <code>.dt.days</code> la pasa a días. Usa una <strong>fecha de corte fija</strong> en lugar de &quot;hoy&quot;, para que el análisis se pueda repetir.</p>
+<h2>Paso 5 — Columnas calculadas sin bucles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Quieres</th>
+<th>Escribes</th>
+</tr>
+</thead><tbody><tr>
+<td>Operación entre columnas</td>
+<td><code>df[&quot;total&quot;] = df[&quot;cantidad&quot;] * df[&quot;precio&quot;]</code></td>
+</tr>
+<tr>
+<td>Dos valores según una condición</td>
+<td><code>df[&quot;tipo&quot;] = np.where(df[&quot;canal&quot;].isin([&quot;web&quot;, &quot;app&quot;]), &quot;online&quot;, &quot;presencial&quot;)</code></td>
+</tr>
+<tr>
+<td>Traducir códigos</td>
+<td><code>df[&quot;canal_es&quot;] = df[&quot;canal&quot;].map({&quot;web&quot;: &quot;Web&quot;, &quot;app&quot;: &quot;App&quot;, &quot;tienda&quot;: &quot;Tienda&quot;, &quot;telefono&quot;: &quot;Teléfono&quot;})</code></td>
+</tr>
+<tr>
+<td>Más de dos casos</td>
+<td><code>np.select([cond1, cond2], [&quot;a&quot;, &quot;b&quot;], default=&quot;c&quot;)</code></td>
+</tr>
+</tbody></table></div>
+<p>(<code>np</code> es numpy: <code>import numpy as np</code>.)</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Evita los bucles for sobre filas</div>
+
+<p><code>for i, fila in df.iterrows(): ...</code> funciona, pero es cientos de veces más lento que una operación sobre la columna entera. Con 12.000 filas no se nota; con 12 millones, sí. En pandas se piensa en columnas, no en filas (lo medimos en la lección 19).</p>
+</div>
+
+
+<h2>Paso 6 — Encadenar con assign</h2>
+<pre data-norun><code class="language-python">resumen_mes = (
+    pedidos
+    .assign(mes=pedidos[&quot;fecha_pedido&quot;].dt.to_period(&quot;M&quot;))
+    .query(&quot;anio == 2024&quot;)
+    .groupby(&quot;mes&quot;)
+    .size()
+)
+resumen_mes</code></pre>
+<p>Cada línea es un paso y se lee de arriba abajo, como una receta. <code>assign</code> crea columnas sin modificar <code>pedidos</code>; <code>query</code> filtra con una condición escrita como texto.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conviertes texto a fecha y extraes año, mes, período y día.</li>
+<li>Filtras por rangos y calculas diferencias en días.</li>
+<li>Creas columnas calculadas sin bucles y encadenas transformaciones.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-fechas-y-columnas-nuevas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-agrupar-y-resumir.html">← Agrupar y resumir - groupby, agg y pivot_table para responder preguntas de negocio</a><a href="jupyterlab-graficos-con-matplotlib.html">Gráficos con pandas y matplotlib - barras, líneas e histogramas que se entienden →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

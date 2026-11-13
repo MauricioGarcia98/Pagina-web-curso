@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unir tablas con merge - traer datos de otra tabla sin perder ni duplicar filas · Academia de Datos</title><meta name="description" content="Los datos reales vienen repartidos en varias tablas - pedidos por un lado, clientes por otro, productos en una tercera. Cómo unirlas con merge por una clave, qué cambia con how left, inner y outer, cómo verificar la unión con indicator y validate, cómo encontrar lo que no tiene pareja (anti-join) y las dos trampas que arruinan análisis - claves duplicadas y tipos distintos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-unir-tablas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Unir tablas con merge - traer datos de otra tabla sin perder ni duplicar filas · Academia de Datos"><meta property="og:description" content="Los datos reales vienen repartidos en varias tablas - pedidos por un lado, clientes por otro, productos en una tercera. Cómo unirlas con merge por una clave, qué cambia con how left, inner y outer, cómo verificar la unión con indicator y validate, cómo encontrar lo que no tiene pareja (anti-join) y las dos trampas que arruinan análisis - claves duplicadas y tipos distintos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-unir-tablas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 4 · Intermedio-avanzado · 50 min</div>
+<h1>Unir tablas con merge - traer datos de otra tabla sin perder ni duplicar filas</h1><p class="resumen">Los datos reales vienen repartidos en varias tablas - pedidos por un lado, clientes por otro, productos en una tercera. Cómo unirlas con merge por una clave, qué cambia con how left, inner y outer, cómo verificar la unión con indicator y validate, cómo encontrar lo que no tiene pareja (anti-join) y las dos trampas que arruinan análisis - claves duplicadas y tipos distintos.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-unir-tablas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Unir dos DataFrames por una clave con merge</li><li>Elegir entre how left, inner, outer y right</li><li>Verificar una unión con indicator=True y validate</li><li>Encontrar registros sin pareja (anti-join)</li><li>Detectar claves duplicadas y tipos que no coinciden</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p><code>merge</code> es lo mismo que el BUSCARX de Excel o el JOIN de SQL, pero para la tabla entera de una vez: cada pedido busca a su cliente por el <code>cliente_id</code> y se trae las columnas que le pidas. La clave es la &quot;llave&quot; que comparten las dos tablas.</p>
+</div>
+
+
+<h2>Paso 1 — Tu primer merge</h2>
+<pre data-norun><code class="language-python">clientes = pd.read_csv(&quot;datos/clientes.csv&quot;)
+unido = pedidos.merge(clientes[[&quot;cliente_id&quot;, &quot;pais&quot;, &quot;segmento&quot;]], on=&quot;cliente_id&quot;, how=&quot;left&quot;)
+unido.shape</code></pre>
+<p>Da <code>(12000, 9)</code>: las mismas 12.000 filas de pedidos, con dos columnas más.</p>
+<ul>
+<li><code>on=&quot;cliente_id&quot;</code>: la clave común.</li>
+<li><code>clientes[[&quot;cliente_id&quot;, &quot;pais&quot;, &quot;segmento&quot;]]</code>: trae <strong>solo</strong> las columnas que necesitas (siempre incluyendo la clave).</li>
+<li><code>how=&quot;left&quot;</code>: todas las filas de la tabla de la izquierda (pedidos), encuentren o no pareja.</li>
+</ul>
+<p>Ahora puedes agrupar por país: <code>unido.groupby(&quot;pais&quot;).size().sort_values(ascending=False).head(3)</code> → Argentina 2.318, México 2.081, España 1.956.</p>
+<h2>Paso 2 — Los cuatro tipos de unión</h2>
+<div class="table-wrap"><table><thead><tr>
+<th><code>how=</code></th>
+<th>Quedan</th>
+<th>SQL</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&quot;left&quot;</code></td>
+<td>Todas las de la izquierda; las sin pareja con NaN</td>
+<td><code>LEFT JOIN</code></td>
+</tr>
+<tr>
+<td><code>&quot;inner&quot;</code></td>
+<td>Solo las que tienen pareja en las dos</td>
+<td><code>INNER JOIN</code></td>
+</tr>
+<tr>
+<td><code>&quot;right&quot;</code></td>
+<td>Todas las de la derecha</td>
+<td><code>RIGHT JOIN</code></td>
+</tr>
+<tr>
+<td><code>&quot;outer&quot;</code></td>
+<td>Todas las de las dos</td>
+<td><code>FULL OUTER JOIN</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 La regla práctica</div>
+
+<p>Cuando &quot;enriqueces&quot; una tabla principal (agregar datos del cliente a cada pedido), usa <strong>left</strong>: nunca pierdes filas de la tabla que te importa. Si después hay NaN, ya sabes que faltó la pareja.</p>
+</div>
+
+
+<h2>Paso 3 — Verifica la unión con indicator</h2>
+<pre data-norun><code class="language-python">unido = pedidos.merge(clientes[[&quot;cliente_id&quot;, &quot;pais&quot;]], on=&quot;cliente_id&quot;, how=&quot;left&quot;, indicator=True)
+unido[&quot;_merge&quot;].value_counts()</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e13-merge.webp" alt="indicator=True agrega _merge: los 12.000 pedidos encontraron a su cliente (both)" loading="lazy"><figcaption>indicator=True agrega _merge: los 12.000 pedidos encontraron a su cliente (both)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th><code>_merge</code></th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>both</code></td>
+<td>La fila encontró pareja</td>
+</tr>
+<tr>
+<td><code>left_only</code></td>
+<td>Estaba solo en la izquierda (pedido sin cliente)</td>
+</tr>
+<tr>
+<td><code>right_only</code></td>
+<td>Solo en la derecha (con how=&quot;outer&quot;)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Lo que no tiene pareja: anti-join</h2>
+<p>¿Qué clientes <strong>nunca</strong> hicieron un pedido?</p>
+<pre data-norun><code class="language-python">todos = clientes.merge(pedidos[[&quot;cliente_id&quot;]].drop_duplicates(), on=&quot;cliente_id&quot;, how=&quot;left&quot;, indicator=True)
+sin_pedidos = todos[todos[&quot;_merge&quot;] == &quot;left_only&quot;]
+len(sin_pedidos)</code></pre>
+<p>Da <strong>547</strong>: más de una cuarta parte de los clientes registrados no compró nunca. Un hallazgo de negocio que sale de una unión.</p>
+<p>Forma corta: <code>clientes[~clientes[&quot;cliente_id&quot;].isin(pedidos[&quot;cliente_id&quot;])]</code>.</p>
+<h2>Paso 5 — Trampa 1: claves duplicadas</h2>
+<p>Si la tabla de la derecha tiene la clave <strong>repetida</strong>, cada fila de la izquierda se duplica. Protégete con <code>validate</code>:</p>
+<pre data-norun><code class="language-python">pedidos.merge(clientes, on=&quot;cliente_id&quot;, how=&quot;left&quot;, validate=&quot;many_to_one&quot;)</code></pre>
+<p><code>many_to_one</code> = &quot;muchos pedidos por cliente, pero un solo registro por cliente&quot;. Si <code>clientes</code> tuviera un id repetido, pandas lanza un error <strong>antes</strong> de que el análisis quede mal. Compara siempre la cantidad de filas antes y después del merge.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El JOIN que infla las ventas</div>
+
+<p>Unir pedidos con una tabla de clientes que tiene cada cliente dos veces duplica los pedidos y, con ellos, las ventas. Nadie lo nota hasta que un total no coincide con contabilidad. <code>validate</code> y comparar <code>len()</code> antes y después lo evitan.</p>
+</div>
+
+
+<h2>Paso 6 — Trampa 2: tipos distintos</h2>
+<p>Si la clave es número en una tabla y texto en la otra (<code>528</code> contra <code>&quot;528&quot;</code>), merge da error o no encuentra parejas. Revisa con <code>df[&quot;clave&quot;].dtype</code> y convierte: <code>df[&quot;cliente_id&quot;] = df[&quot;cliente_id&quot;].astype(int)</code>.</p>
+<h2>Paso 7 — Claves con distinto nombre y varias tablas</h2>
+<pre data-norun><code class="language-python">detalle = pd.read_csv(&quot;datos/detalle_pedidos.csv&quot;)
+productos = pd.read_csv(&quot;datos/productos.csv&quot;)
+categorias = pd.read_csv(&quot;datos/categorias.csv&quot;)
+lineas = (detalle
+          .merge(productos[[&quot;producto_id&quot;, &quot;nombre&quot;, &quot;categoria_id&quot;]], on=&quot;producto_id&quot;, how=&quot;left&quot;)
+          .merge(categorias.rename(columns={&quot;nombre&quot;: &quot;categoria&quot;})[[&quot;categoria_id&quot;, &quot;categoria&quot;]], on=&quot;categoria_id&quot;, how=&quot;left&quot;))
+lineas.head()</code></pre>
+<p>Si las claves se llaman distinto, usa <code>left_on=&quot;id_cliente&quot;, right_on=&quot;cliente_id&quot;</code>. Y fíjate en el <code>rename</code>: dos tablas con una columna <code>nombre</code> producirían <code>nombre_x</code> y <code>nombre_y</code>.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Unes tablas con merge eligiendo el tipo de unión.</li>
+<li>Verificas uniones con indicator y validate.</li>
+<li>Encuentras registros sin pareja y evitas duplicar filas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-unir-tablas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-proyecto-reporte-comercial.html">← Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 en un notebook</a><a href="jupyterlab-limpiar-datos.html">Limpiar datos con pandas - medir, deduplicar por clave, normalizar textos y tratar nulos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

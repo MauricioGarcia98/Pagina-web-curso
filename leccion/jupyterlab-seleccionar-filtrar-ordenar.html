@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seleccionar, filtrar y ordenar - quedarte con las filas y columnas que responden la pregunta · Academia de Datos</title><meta name="description" content="Las operaciones más usadas en pandas. Elegir una o varias columnas, filtrar filas con condiciones (y combinarlas con &amp; y |), filtrar por una lista de valores con isin, ordenar con sort_values, quedarte con los primeros con head y nlargest, y seleccionar con loc. Cada una con su equivalente en SQL y en Excel."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-seleccionar-filtrar-ordenar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Seleccionar, filtrar y ordenar - quedarte con las filas y columnas que responden la pregunta · Academia de Datos"><meta property="og:description" content="Las operaciones más usadas en pandas. Elegir una o varias columnas, filtrar filas con condiciones (y combinarlas con &amp; y |), filtrar por una lista de valores con isin, ordenar con sort_values, quedarte con los primeros con head y nlargest, y seleccionar con loc. Cada una con su equivalente en SQL y en Excel."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-seleccionar-filtrar-ordenar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Seleccionar, filtrar y ordenar - quedarte con las filas y columnas que responden la pregunta</h1><p class="resumen">Las operaciones más usadas en pandas. Elegir una o varias columnas, filtrar filas con condiciones (y combinarlas con &amp; y |), filtrar por una lista de valores con isin, ordenar con sort_values, quedarte con los primeros con head y nlargest, y seleccionar con loc. Cada una con su equivalente en SQL y en Excel.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-seleccionar-filtrar-ordenar">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Seleccionar columnas con [] y [[ ]]</li><li>Filtrar filas con condiciones y combinarlas con &amp; y</li><li>| Filtrar por varios valores con isin</li><li>Ordenar con sort_values por una o varias columnas</li><li>Usar loc para filas y columnas a la vez</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Filtrar en pandas es lo mismo que el filtro de Excel o el <code>WHERE</code> de SQL: escribes la condición y te quedas con las filas que la cumplen. La diferencia es que queda escrito, y mañana se repite igual con un clic.</p>
+</div>
+
+
+<p>Seguimos con <code>pedidos</code> cargado (si reiniciaste: <code>import pandas as pd</code> y <code>pedidos = pd.read_csv(&quot;datos/pedidos.csv&quot;)</code>).</p>
+<h2>Paso 1 — Seleccionar columnas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Escribes</th>
+<th>Obtienes</th>
+</tr>
+</thead><tbody><tr>
+<td><code>pedidos[&quot;canal&quot;]</code></td>
+<td><strong>Una</strong> columna (Series)</td>
+</tr>
+<tr>
+<td><code>pedidos[[&quot;canal&quot;, &quot;estado&quot;]]</code></td>
+<td>Una <strong>tabla</strong> con esas columnas (DataFrame): ojo, doble corchete</td>
+</tr>
+<tr>
+<td><code>pedidos.drop(columns=[&quot;empleado_id&quot;])</code></td>
+<td>Todas menos esa</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Filtrar filas con una condición</h2>
+<pre data-norun><code class="language-python">cancelados = pedidos[pedidos[&quot;estado&quot;] == &quot;cancelado&quot;]
+len(cancelados)</code></pre>
+<p>Da <strong>967</strong>. Cómo funciona: <code>pedidos[&quot;estado&quot;] == &quot;cancelado&quot;</code> da una columna de <code>True</code>/<code>False</code> (una por fila); al ponerla entre corchetes, pandas se queda con las filas <code>True</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Operador</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>==</code> / <code>!=</code></td>
+<td>igual / distinto</td>
+</tr>
+<tr>
+<td><code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code></td>
+<td>comparaciones</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Dos condiciones: &amp; (y), | (o)</h2>
+<pre data-norun><code class="language-python">cancel_web = pedidos[(pedidos[&quot;canal&quot;] == &quot;web&quot;) &amp; (pedidos[&quot;estado&quot;] == &quot;cancelado&quot;)]
+cancel_web.shape</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e07-filtro.webp" alt="Dos condiciones con &amp;: 421 pedidos web cancelados" loading="lazy"><figcaption>Dos condiciones con &amp;: 421 pedidos web cancelados</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>En pandas</th>
+<th>En Python común</th>
+<th>En SQL</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&amp;</code></td>
+<td><code>and</code></td>
+<td><code>AND</code></td>
+</tr>
+<tr>
+<td><code>|</code></td>
+<td><code>or</code></td>
+<td><code>OR</code></td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td><code>not</code></td>
+<td><code>NOT</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los paréntesis son obligatorios</div>
+
+<p><code>pedidos[&quot;canal&quot;] == &quot;web&quot; &amp; pedidos[&quot;estado&quot;] == &quot;cancelado&quot;</code> sin paréntesis da un error confuso, porque <code>&amp;</code> se evalúa antes que <code>==</code>. Pon <strong>cada condición entre paréntesis</strong>. Y usa <code>&amp;</code>/<code>|</code>, nunca <code>and</code>/<code>or</code>, con columnas de pandas.</p>
+</div>
+
+
+<h2>Paso 4 — Varios valores: isin</h2>
+<pre data-norun><code class="language-python">perdidos = pedidos[pedidos[&quot;estado&quot;].isin([&quot;cancelado&quot;, &quot;devuelto&quot;])]
+len(perdidos)</code></pre>
+<p>Da <strong>1.473</strong> (967 cancelados + 506 devueltos). Es el <code>IN (...)</code> de SQL. Para &quot;todos menos&quot;: <code>~pedidos[&quot;estado&quot;].isin([...])</code>.</p>
+<h2>Paso 5 — Ordenar</h2>
+<pre data-norun><code class="language-python">pedidos.sort_values(&quot;fecha_pedido&quot;, ascending=False).head()</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e07-orden.webp" alt="sort_values con ascending=False: los pedidos más recientes primero" loading="lazy"><figcaption>sort_values con ascending=False: los pedidos más recientes primero</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Quieres</th>
+<th>Escribes</th>
+</tr>
+</thead><tbody><tr>
+<td>De menor a mayor</td>
+<td><code>sort_values(&quot;col&quot;)</code></td>
+</tr>
+<tr>
+<td>De mayor a menor</td>
+<td><code>sort_values(&quot;col&quot;, ascending=False)</code></td>
+</tr>
+<tr>
+<td>Por dos columnas</td>
+<td><code>sort_values([&quot;canal&quot;, &quot;fecha_pedido&quot;], ascending=[True, False])</code></td>
+</tr>
+<tr>
+<td>Los 3 más grandes de una columna numérica</td>
+<td><code>df.nlargest(3, &quot;col&quot;)</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 No cambia la tabla original</div>
+
+<p><code>sort_values</code> y los filtros <strong>devuelven una tabla nueva</strong>: <code>pedidos</code> sigue igual. Si quieres guardarlo, asígnalo: <code>pedidos_ordenados = pedidos.sort_values(...)</code>.</p>
+</div>
+
+
+<h2>Paso 6 — loc: filas y columnas a la vez</h2>
+<pre data-norun><code class="language-python">pedidos.loc[pedidos[&quot;canal&quot;] == &quot;telefono&quot;, [&quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;estado&quot;]]</code></pre>
+<p><code>loc[filas, columnas]</code>: la condición elige las filas y la lista elige las columnas. Es la forma más clara cuando necesitas las dos cosas, y la correcta para <strong>modificar</strong> valores de algunas filas (<code>pedidos.loc[cond, &quot;col&quot;] = valor</code>).</p>
+<h2>Equivalencias</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>pandas</th>
+<th>SQL</th>
+<th>Excel</th>
+</tr>
+</thead><tbody><tr>
+<td><code>df[df[&quot;estado&quot;] == &quot;cancelado&quot;]</code></td>
+<td><code>WHERE estado = &#39;cancelado&#39;</code></td>
+<td>Filtro: estado = cancelado</td>
+</tr>
+<tr>
+<td><code>df[[&quot;a&quot;, &quot;b&quot;]]</code></td>
+<td><code>SELECT a, b</code></td>
+<td>Ocultar columnas</td>
+</tr>
+<tr>
+<td><code>df.sort_values(&quot;f&quot;, ascending=False)</code></td>
+<td><code>ORDER BY f DESC</code></td>
+<td>Sort Z→A</td>
+</tr>
+<tr>
+<td><code>df[&quot;estado&quot;].isin([...])</code></td>
+<td><code>estado IN (...)</code></td>
+<td>Filtro con varios valores</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Seleccionas columnas y filtras filas con una o varias condiciones.</li>
+<li>Ordenas y te quedas con los primeros.</li>
+<li>Usas loc para elegir filas y columnas a la vez.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-seleccionar-filtrar-ordenar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-pandas-cargar-y-explorar.html">← pandas para empezar - cargar un CSV y conocer una tabla en cinco comandos</a><a href="jupyterlab-proyecto-perfil-de-pedidos.html">Proyecto 2 (guiado, con pistas) - el perfil de la tabla de pedidos para el equipo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

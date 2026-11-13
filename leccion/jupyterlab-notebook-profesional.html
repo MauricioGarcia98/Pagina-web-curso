@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El notebook profesional - estructura, narrativa, tabla de contenidos y cómo se comparte · Academia de Datos</title><meta name="description" content="Un notebook de trabajo lo leen personas que no estuvieron cuando lo escribiste. La estructura que usan los equipos (contexto, parámetros, carga, preparación, análisis, conclusiones), cómo escribir la narrativa en Markdown, la tabla de contenidos, qué dejar y qué sacar antes de compartir, nombres y carpetas de proyecto, notebooks en Git y el tema oscuro."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-notebook-profesional.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El notebook profesional - estructura, narrativa, tabla de contenidos y cómo se comparte · Academia de Datos"><meta property="og:description" content="Un notebook de trabajo lo leen personas que no estuvieron cuando lo escribiste. La estructura que usan los equipos (contexto, parámetros, carga, preparación, análisis, conclusiones), cómo escribir la narrativa en Markdown, la tabla de contenidos, qué dejar y qué sacar antes de compartir, nombres y carpetas de proyecto, notebooks en Git y el tema oscuro."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-notebook-profesional.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>El notebook profesional - estructura, narrativa, tabla de contenidos y cómo se comparte</h1><p class="resumen">Un notebook de trabajo lo leen personas que no estuvieron cuando lo escribiste. La estructura que usan los equipos (contexto, parámetros, carga, preparación, análisis, conclusiones), cómo escribir la narrativa en Markdown, la tabla de contenidos, qué dejar y qué sacar antes de compartir, nombres y carpetas de proyecto, notebooks en Git y el tema oscuro.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-notebook-profesional">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Estructurar un notebook en secciones estándar</li><li>Escribir narrativa que explique decisiones, no solo código</li><li>Navegar con la tabla de contenidos</li><li>Preparar un notebook para compartir (limpieza, salidas, datos sensibles)</li><li>Organizar un proyecto y versionar notebooks con Git</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un notebook profesional se lee como un informe que, además, se puede volver a ejecutar. Quien lo abre tiene que entender en dos minutos qué pregunta responde, con qué datos, qué decidiste y qué encontraste, sin leer una línea de código.</p>
+</div>
+
+
+<h2>Paso 1 — La estructura estándar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Contenido</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Título y contexto</strong></td>
+<td>Qué pregunta responde, para quién, fecha de corte, autor</td>
+</tr>
+<tr>
+<td><strong>Resumen</strong></td>
+<td>3 a 5 hallazgos arriba de todo: lo que el lector quiere ver primero</td>
+</tr>
+<tr>
+<td><strong>Parámetros</strong></td>
+<td>Años, umbrales, rutas: todo lo que cambia entre ejecuciones</td>
+</tr>
+<tr>
+<td><strong>Imports y carga</strong></td>
+<td>Bibliotecas y lectura de datos, con la fuente de cada archivo</td>
+</tr>
+<tr>
+<td><strong>Preparación</strong></td>
+<td>Limpieza y uniones, con las decisiones explicadas</td>
+</tr>
+<tr>
+<td><strong>Análisis</strong></td>
+<td>Una sección por pregunta, cada una con su conclusión parcial</td>
+</tr>
+<tr>
+<td><strong>Conclusiones y próximos pasos</strong></td>
+<td>Qué significa, qué recomendás, qué falta saber</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — La tabla de contenidos</h2>
+<p>Cada título Markdown (<code>#</code>, <code>##</code>, <code>###</code>) aparece en la <strong>tabla de contenidos</strong>: el tercer ícono de la barra lateral.</p>
+<figure class="captura"><img src="assets/img/guias/jupyter/e21-toc.webp" alt="La tabla de contenidos arma un índice con los títulos del notebook; un clic salta a esa sección" loading="lazy"><figcaption>La tabla de contenidos arma un índice con los títulos del notebook; un clic salta a esa sección</figcaption></figure>
+
+
+<p>Con un buen índice, un notebook de 80 celdas se recorre en segundos.</p>
+<h2>Paso 3 — Narrativa: explica las decisiones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Débil</th>
+<th>Útil</th>
+</tr>
+</thead><tbody><tr>
+<td><code>## Limpieza</code></td>
+<td><code>## Limpieza: una fila por cliente (nos quedamos con la carga más reciente)</code></td>
+</tr>
+<tr>
+<td>(sin texto)</td>
+<td>&quot;Se excluyen los pedidos cancelados y devueltos porque no son venta.&quot;</td>
+</tr>
+<tr>
+<td>&quot;Gráfico de ventas&quot;</td>
+<td>&quot;Las ventas crecen todos los años; el pico es siempre noviembre-diciembre.&quot;</td>
+</tr>
+</tbody></table></div>
+<p>Escribe en Markdown <strong>lo que el código no dice</strong>: por qué filtraste, qué supusiste, qué te llamó la atención.</p>
+<h2>Paso 4 — Antes de compartir</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>Restart Kernel and Run All Cells</strong> sin errores.</li>
+<li><input disabled="" type="checkbox"> Sin celdas de prueba sueltas (<code>df.head()</code> repetidos, celdas vacías, código comentado que ya no sirve).</li>
+<li><input disabled="" type="checkbox"> Sin salidas enormes (una tabla de 12.000 filas impresa vuelve el archivo pesado e ilegible: muestra <code>head()</code>).</li>
+<li><input disabled="" type="checkbox"> Sin <strong>datos sensibles</strong> en las salidas (emails, teléfonos, documentos): si el notebook va a terceros, agrega o enmascara.</li>
+<li><input disabled="" type="checkbox"> Sin contraseñas ni claves en el código: en Jupyter real se leen de variables de entorno o de un gestor de secretos.</li>
+<li><input disabled="" type="checkbox"> Rutas relativas.</li>
+<li><input disabled="" type="checkbox"> Nombre del archivo claro y con fecha o versión si corresponde.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las salidas se guardan dentro del .ipynb</div>
+
+<p>Si imprimiste una tabla con emails de clientes, esos emails quedan <strong>dentro del archivo</strong>. Aunque después cambies el código de la celda (por ejemplo, para mostrar solo conteos), la salida vieja sigue guardada hasta que vuelvas a ejecutar esa celda o limpies las salidas (<strong>Edit → Clear Outputs of All Cells</strong>). Revisa antes de mandar un notebook por mail o subirlo a un repositorio.</p>
+</div>
+
+
+<h2>Paso 5 — Un proyecto ordenado</h2>
+<pre><code class="language-text">analisis_retencion/
+├── README.md              ← qué es, cómo se ejecuta
+├── datos/                 ← entradas (o cómo conseguirlas, si son grandes o privadas)
+├── notebooks/
+│   ├── 01_exploracion.ipynb
+│   └── 02_analisis_retencion.ipynb
+├── src/
+│   └── metricas.py        ← funciones reutilizables
+└── salidas/               ← CSV y gráficos generados</code></pre>
+<p>Los prefijos <code>01_</code>, <code>02_</code> indican el orden en que se ejecutan.</p>
+<h2>Paso 6 — Notebooks en Git</h2>
+<p>Un <code>.ipynb</code> es un JSON con el código <strong>y las salidas</strong> (incluidas las imágenes en base64). En Git eso trae dos problemas: los cambios son ilegibles y los conflictos son difíciles de resolver.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Limpiar salidas antes de hacer commit</td>
+<td>Clear Outputs, o la herramienta <code>nbstripout</code> en Jupyter real</td>
+</tr>
+<tr>
+<td>Ver diferencias legibles</td>
+<td><code>nbdime</code> (diff de notebooks) o la vista de diferencias de VS Code</td>
+</tr>
+<tr>
+<td>Llevar la lógica estable a <code>.py</code></td>
+<td>Los <code>.py</code> se versionan y revisan como cualquier código</td>
+</tr>
+<tr>
+<td>Alternativa</td>
+<td>Jupytext: guarda el notebook también como <code>.py</code></td>
+</tr>
+</tbody></table></div>
+<p>Puedes practicar Git en la <a href="#/lab/terminal">terminal de práctica</a> y en la lección <a href="#/l/fundamentos-git-en-equipo">Git en equipo</a>.</p>
+<h2>Paso 7 — Tema claro u oscuro</h2>
+<p><strong>Settings → Theme</strong>: JupyterLab Light, Dark o sincronizado con el sistema. Es solo visual, pero conviene saber dónde está.</p>
+<figure class="captura"><img src="assets/img/guias/jupyter/e23-oscuro.webp" alt="El tema JupyterLab Dark" loading="lazy"><figcaption>El tema JupyterLab Dark</figcaption></figure>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Estructuras notebooks como informes reproducibles.</li>
+<li>Escribes narrativa que explica decisiones.</li>
+<li>Sabes preparar un notebook para compartir y versionarlo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-notebook-profesional">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-proyecto-ventas-y-margen.html">← Proyecto 5 (requisitos y rúbrica) - ventas y margen por rubro, con categorías en tres niveles</a><a href="jupyterlab-jupyter-en-el-flujo-de-datos.html">Jupyter en el flujo de datos - del notebook al pipeline, la automatización y otras plataformas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

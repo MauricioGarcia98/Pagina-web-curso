@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Análisis exploratorio - distribuciones, valores extremos y preguntas que llevan a hallazgos · Academia de Datos</title><meta name="description" content="Cómo explorar datos con método en lugar de mirar tablas al azar. Construir la métrica de importe por pedido a partir del detalle, leer su distribución con describe e histograma, detectar valores extremos con el rango intercuartílico, comparar grupos con medianas, cruzar dos variables y convertir cada observación en un hallazgo con número."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-analisis-exploratorio.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Análisis exploratorio - distribuciones, valores extremos y preguntas que llevan a hallazgos · Academia de Datos"><meta property="og:description" content="Cómo explorar datos con método en lugar de mirar tablas al azar. Construir la métrica de importe por pedido a partir del detalle, leer su distribución con describe e histograma, detectar valores extremos con el rango intercuartílico, comparar grupos con medianas, cruzar dos variables y convertir cada observación en un hallazgo con número."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-analisis-exploratorio.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 5 · Avanzado · 55 min</div>
+<h1>Análisis exploratorio - distribuciones, valores extremos y preguntas que llevan a hallazgos</h1><p class="resumen">Cómo explorar datos con método en lugar de mirar tablas al azar. Construir la métrica de importe por pedido a partir del detalle, leer su distribución con describe e histograma, detectar valores extremos con el rango intercuartílico, comparar grupos con medianas, cruzar dos variables y convertir cada observación en un hallazgo con número.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-analisis-exploratorio">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Construir una métrica de negocio desde una tabla de detalle</li><li>Leer una distribución asimétrica con describe, mediana e histograma</li><li>Detectar valores extremos con el criterio del rango intercuartílico</li><li>Comparar grupos con mediana y percentiles</li><li>Formular hallazgos verificables</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Explorar datos es como hacer un chequeo médico antes de diagnosticar: tomas medidas (describe), miras la forma (histograma), buscas lo anormal (extremos) y comparas contra lo esperado (grupos). Recién después opinas.</p>
+</div>
+
+
+<h2>Paso 1 — Construye la métrica: importe por pedido</h2>
+<p>La tabla <code>detalle_pedidos</code> tiene una fila por <strong>producto dentro de un pedido</strong>. El importe de cada línea es cantidad × precio × (1 − descuento):</p>
+<pre data-norun><code class="language-python">detalle = pd.read_csv(&quot;datos/detalle_pedidos.csv&quot;)
+detalle[&quot;importe&quot;] = detalle[&quot;cantidad&quot;] * detalle[&quot;precio_unitario&quot;] * (1 - detalle[&quot;descuento&quot;])
+ticket = detalle.groupby(&quot;pedido_id&quot;)[&quot;importe&quot;].sum()
+ticket.describe()</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e17-describe.webp" alt="El importe por pedido: promedio 1.202,97, mediana 710,96 y un máximo de 16.258,85" loading="lazy"><figcaption>El importe por pedido: promedio 1.202,97, mediana 710,96 y un máximo de 16.258,85</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 El grano de una tabla</div>
+
+<p>Antes de sumar, pregúntate &quot;¿qué es una fila?&quot;. En <code>detalle_pedidos</code> una fila es una línea de producto; en <code>pedidos</code>, un pedido. Para el importe <strong>por pedido</strong> hay que sumar las líneas de cada pedido (<code>groupby(&quot;pedido_id&quot;)</code>). Confundir el grano es la fuente número uno de totales inflados.</p>
+</div>
+
+
+<h2>Paso 2 — Lee la distribución</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Medida</th>
+<th>Valor</th>
+<th>Qué dice</th>
+</tr>
+</thead><tbody><tr>
+<td>mean (promedio)</td>
+<td>1,202.97</td>
+<td>Lo &quot;arrastran&quot; los pedidos grandes</td>
+</tr>
+<tr>
+<td>50% (mediana)</td>
+<td>710.96</td>
+<td>La mitad de los pedidos está por debajo</td>
+</tr>
+<tr>
+<td>75%</td>
+<td>1,648.66</td>
+<td>Tres de cada cuatro están por debajo</td>
+</tr>
+<tr>
+<td>max</td>
+<td>16,258.85</td>
+<td>Hay pedidos muy grandes</td>
+</tr>
+</tbody></table></div>
+<p>El promedio es mucho mayor que la mediana: la distribución es <strong>asimétrica</strong> (muchos pedidos chicos y pocos muy grandes). Míralo:</p>
+<pre data-norun><code class="language-python">ticket.plot(kind=&quot;hist&quot;, bins=40, title=&quot;Importe por pedido&quot;, figsize=(7, 3))</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e17-hist.webp" alt="El histograma muestra la cola larga: la mayoría de los pedidos son chicos" loading="lazy"><figcaption>El histograma muestra la cola larga: la mayoría de los pedidos son chicos</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Qué número informar</div>
+
+<p>Con distribuciones así, &quot;el pedido promedio es de 1.203&quot; da una idea equivocada del pedido típico. Informa la <strong>mediana</strong> (711) y, si hace falta, el promedio aclarando por qué difieren.</p>
+</div>
+
+
+<h2>Paso 3 — Valores extremos con el rango intercuartílico</h2>
+<pre data-norun><code class="language-python">q1, q3 = ticket.quantile([0.25, 0.75])
+iqr = q3 - q1
+limite = q3 + 1.5 * iqr
+extremos = ticket[ticket &gt; limite]
+round(limite, 2), len(extremos)</code></pre>
+<p>Da un límite de <strong>3,804.42</strong> y <strong>716</strong> pedidos por encima. El criterio Q3 + 1,5 × IQR es una convención: no dice que esos pedidos estén mal, dice que son <strong>inusuales</strong> y merecen una mirada.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Antes de &quot;sacar&quot; un extremo, pregúntate</th>
+<th></th>
+</tr>
+</thead><tbody><tr>
+<td>¿Es un error? (cantidad 1000 en lugar de 10)</td>
+<td>Corrígelo o descártalo, documentándolo</td>
+</tr>
+<tr>
+<td>¿Es real? (una empresa que compra 20 notebooks)</td>
+<td>Déjalo: es parte del negocio</td>
+</tr>
+<tr>
+<td>¿Distorsiona la métrica que informas?</td>
+<td>Usa mediana o informa con y sin extremos</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Compara grupos</h2>
+<pre data-norun><code class="language-python">pedidos = pd.read_csv(&quot;datos/pedidos.csv&quot;)
+t = pedidos.merge(ticket.rename(&quot;importe&quot;).reset_index(), on=&quot;pedido_id&quot;)
+t.groupby(&quot;canal&quot;)[&quot;importe&quot;].agg([&quot;count&quot;, &quot;median&quot;, &quot;mean&quot;]).round(0)</code></pre>
+<p>Compara <strong>medianas</strong> entre canales: es más robusto que comparar promedios cuando hay pedidos muy grandes.</p>
+<h2>Paso 5 — Cruza dos variables</h2>
+<pre data-norun><code class="language-python">t[&quot;fecha_pedido&quot;] = pd.to_datetime(t[&quot;fecha_pedido&quot;])
+t[&quot;mes&quot;] = t[&quot;fecha_pedido&quot;].dt.month
+t.groupby(&quot;mes&quot;)[&quot;importe&quot;].median().plot(kind=&quot;bar&quot;, title=&quot;Mediana del importe por mes&quot;, figsize=(8, 3))</code></pre>
+<p>¿Los pedidos de fin de año son más <strong>grandes</strong> o solo hay <strong>más</strong> pedidos? Separar &quot;cantidad&quot; de &quot;tamaño&quot; es una de las preguntas más útiles de un análisis.</p>
+<h2>Paso 6 — De observación a hallazgo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Observación (débil)</th>
+<th>Hallazgo (útil)</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;Hay pedidos grandes&quot;</td>
+<td>&quot;716 pedidos (6 %) superan los 3.800; conviene revisarlos como segmento aparte&quot;</td>
+</tr>
+<tr>
+<td>&quot;La distribución es asimétrica&quot;</td>
+<td>&quot;El pedido típico es de 711 (mediana); el promedio de 1.203 está inflado por pedidos grandes&quot;</td>
+</tr>
+<tr>
+<td>&quot;Diciembre es alto&quot;</td>
+<td>&quot;Diciembre tiene más pedidos, pero de tamaño similar: el pico es de volumen, no de ticket&quot;</td>
+</tr>
+</tbody></table></div>
+<p>Un hallazgo tiene <strong>un número, una comparación y una consecuencia</strong>. Verifica cada uno antes de escribirlo (el último ejemplo es una hipótesis: compruébala con el gráfico del paso 5).</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Construiste una métrica respetando el grano de la tabla.</li>
+<li>Leíste una distribución asimétrica y detectaste extremos.</li>
+<li>Comparaste grupos y escribiste hallazgos verificables.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-analisis-exploratorio">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-proyecto-lista-campana.html">← Proyecto 4 (entregables y pistas mínimas) - la lista limpia para una campaña, como un pipeline en un notebook</a><a href="jupyterlab-funciones-y-modulos.html">Funciones, módulos y pruebas - del código repetido a herramientas que se reutilizan →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

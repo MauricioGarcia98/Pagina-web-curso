@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 2 (guiado, con pistas) - el perfil de la tabla de pedidos para el equipo · Academia de Datos</title><meta name="description" content="Entraste a un equipo de datos y la líder te pide un primer informe sobre la tabla de pedidos - tamaño, calidad, cómo se reparten los pedidos y qué llama la atención. Esta vez cada tarea dice qué averiguar, y el código está en pistas que abres solo si te trabas. Terminas con un notebook ordenado, números de control para verificar y un resumen en Markdown."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-perfil-de-pedidos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 2 (guiado, con pistas) - el perfil de la tabla de pedidos para el equipo · Academia de Datos"><meta property="og:description" content="Entraste a un equipo de datos y la líder te pide un primer informe sobre la tabla de pedidos - tamaño, calidad, cómo se reparten los pedidos y qué llama la atención. Esta vez cada tarea dice qué averiguar, y el código está en pistas que abres solo si te trabas. Terminas con un notebook ordenado, números de control para verificar y un resumen en Markdown."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-perfil-de-pedidos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 2 · Básico-intermedio · 60 min</div>
+<h1>Proyecto 2 (guiado, con pistas) - el perfil de la tabla de pedidos para el equipo</h1><p class="resumen">Entraste a un equipo de datos y la líder te pide un primer informe sobre la tabla de pedidos - tamaño, calidad, cómo se reparten los pedidos y qué llama la atención. Esta vez cada tarea dice qué averiguar, y el código está en pistas que abres solo si te trabas. Terminas con un notebook ordenado, números de control para verificar y un resumen en Markdown.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-proyecto-perfil-de-pedidos">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Planificar un perfil de datos con preguntas</li><li>Responder con shape, info, isna, value_counts, filtros y nunique</li><li>Interpretar un nulo con significado</li><li>Calcular tasas con filtros</li><li>Redactar hallazgos en Markdown dentro del notebook</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de tu líder: <em>&quot;Bienvenida/o al equipo. Para arrancar, armame un notebook con el perfil de la tabla de pedidos: qué tamaño tiene, qué calidad, cómo se reparten los pedidos y si ves algo raro. Mañana lo repasamos juntos.&quot;</em></p>
+</div>
+
+
+<p>En este proyecto <strong>no hay capturas de cada clic</strong>: ya sabes moverte. Cada tarea dice <strong>qué</strong> averiguar; el código está en la pista. Intenta primero sin abrirla.</p>
+<h2>Preparación</h2>
+<ol>
+<li>Crea <code>perfil_pedidos.ipynb</code> y una celda Markdown con el título <code># Perfil de la tabla pedidos</code> y una línea de contexto.</li>
+<li>Una celda de código que cargue los datos:</li>
+</ol>
+<pre data-norun><code class="language-python">import pandas as pd
+pedidos = pd.read_csv(&quot;datos/pedidos.csv&quot;)</code></pre>
+<p>Antes de cada tarea, agrega una celda Markdown con el subtítulo (<code>## 1. Tamaño</code>, <code>## 2. Calidad</code>…). Así el notebook se lee como un informe.</p>
+<h2>Tarea 1 — Tamaño y estructura</h2>
+<p>¿Cuántas filas y columnas tiene? ¿Qué columnas y de qué tipo?</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>pedidos.shape</code> y <code>pedidos.info()</code>.</p>
+</details>
+
+<h2>Tarea 2 — Calidad: nulos</h2>
+<p>¿Qué columnas tienen nulos y cuántos? ¿<strong>Por qué</strong> están vacíos? (Investiga en qué canales falta el dato.)</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>pedidos.isna().sum()</code> para contar. Para el porqué: <code>pedidos[pedidos[&quot;empleado_id&quot;].isna()][&quot;canal&quot;].value_counts()</code>.</p>
+</details>
+
+<h2>Tarea 3 — Período</h2>
+<p>¿Desde qué fecha hasta qué fecha hay pedidos?</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>pedidos[&quot;fecha_pedido&quot;].min()</code> y <code>.max()</code>. Como las fechas están en formato ISO (<code>2024-03-15</code>), el mínimo y el máximo de texto coinciden con las fechas más vieja y más nueva.</p>
+</details>
+
+<h2>Tarea 4 — Cómo se reparten</h2>
+<p>Porcentaje de pedidos por <strong>canal</strong> y por <strong>estado</strong>, y el <strong>método de pago</strong> más usado.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>pedidos[&quot;canal&quot;].value_counts(normalize=True)</code>; lo mismo con <code>&quot;estado&quot;</code> y <code>&quot;metodo_pago&quot;</code>. Multiplica por 100 y usa <code>.round(1)</code> para que se lea mejor.</p>
+</details>
+
+<h2>Tarea 5 — Clientes</h2>
+<p>¿Cuántos clientes <strong>distintos</strong> hicieron pedidos? ¿Cuál hizo más pedidos y cuántos?</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>pedidos[&quot;cliente_id&quot;].nunique()</code> cuenta valores distintos. <code>pedidos[&quot;cliente_id&quot;].value_counts().head(1)</code> da el que más se repite.</p>
+</details>
+
+<h2>Tarea 6 — ¿Qué canal cancela más?</h2>
+<p>Calcula el <strong>% de pedidos cancelados de cada canal</strong> (cancelados del canal / pedidos del canal). Hazlo al menos para app y web.</p>
+<details><summary>💡 Pista</summary>
+
+<pre data-norun><code class="language-python">app = pedidos[pedidos[&quot;canal&quot;] == &quot;app&quot;]
+(app[&quot;estado&quot;] == &quot;cancelado&quot;).mean() * 100</code></pre>
+<p><code>(condición).mean()</code> es el porcentaje de <code>True</code>: un truco que vas a usar siempre. En el nivel 3 lo haces para todos los canales de una vez con <code>groupby</code>.</p>
+</details>
+
+<h2>Tarea 7 — Lo más reciente</h2>
+<p>Muestra los 5 pedidos más recientes, solo con las columnas <code>pedido_id</code>, <code>fecha_pedido</code>, <code>canal</code> y <code>estado</code>.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>pedidos.sort_values(&quot;fecha_pedido&quot;, ascending=False)[[&quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;canal&quot;, &quot;estado&quot;]].head()</code></p>
+</details>
+
+<h2>✔ Números de control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Valor esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Filas, columnas</td>
+<td>12,000, 7</td>
+</tr>
+<tr>
+<td>Nulos en empleado_id</td>
+<td>8,373 (todos los pedidos de web y app)</td>
+</tr>
+<tr>
+<td>Período</td>
+<td>2022-01-01 a 2024-12-31</td>
+</tr>
+<tr>
+<td>Web / app / tienda / teléfono</td>
+<td>45.0 % / 24.8 % / 22.0 % / 8.2 %</td>
+</tr>
+<tr>
+<td>Entregados</td>
+<td>77.4 %</td>
+</tr>
+<tr>
+<td>Método de pago más usado</td>
+<td>tarjeta_credito (5,428)</td>
+</tr>
+<tr>
+<td>Clientes distintos</td>
+<td>1,453</td>
+</tr>
+<tr>
+<td>Cliente con más pedidos</td>
+<td>el 1367, con 38</td>
+</tr>
+<tr>
+<td>% cancelados app / web</td>
+<td>8.9 % / 7.8 %</td>
+</tr>
+</tbody></table></div>
+<h2>Tarea 8 — Los hallazgos (Markdown)</h2>
+<p>Al final, una celda Markdown <code>## Hallazgos</code> con 3 a 5 puntos, cada uno con un número. Por ejemplo:</p>
+<details><summary>Ver un ejemplo (después de escribir los tuyos)</summary>
+
+<ul>
+<li>La tabla tiene 12.000 pedidos de 2022 a 2024 y no tiene nulos salvo en <code>empleado_id</code>.</li>
+<li><code>empleado_id</code> está vacío en el 70 % de los pedidos, pero no es un error: web y app no tienen vendedor.</li>
+<li>La web concentra el 45 % de los pedidos; el teléfono solo el 8 %.</li>
+<li>La app es el canal que más cancela (8,9 %), un punto más que la web.</li>
+</ul>
+</details>
+
+<h2>Entrega</h2>
+<ol>
+<li><strong>Kernel → Restart Kernel and Run All Cells</strong>: todo corre de arriba abajo sin errores.</li>
+<li><strong>File → Save</strong> y <strong>File → Download</strong> el <code>.ipynb</code>.</li>
+<li>Mensaje: <em>&quot;Te paso el perfil de pedidos. Lo principal: tabla limpia salvo empleado_id (vacío con sentido en web/app) y la app cancela más que el resto.&quot;</em></li>
+</ol>
+<h2>🖥️ Hazlo también en JupyterLab real</h2>
+<p>Exporta <code>pedidos.csv</code> desde la práctica (clic derecho en el explorador → <strong>Download</strong>), súbelo a Google Colab o a tu JupyterLab y ejecuta el mismo notebook. Si los números coinciden, tu notebook es reproducible.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-proyecto-perfil-de-pedidos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-seleccionar-filtrar-ordenar.html">← Seleccionar, filtrar y ordenar - quedarte con las filas y columnas que responden la pregunta</a><a href="jupyterlab-agrupar-y-resumir.html">Agrupar y resumir - groupby, agg y pivot_table para responder preguntas de negocio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

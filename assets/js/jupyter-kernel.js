@@ -105,19 +105,27 @@ def _jup_dur(seg):
     if seg >= 1e-6: return '%.2f µs' % (seg * 1e6)
     return '%.0f ns' % (seg * 1e9)
 def _jup_timeit(src):
-    c = compile(src, '<timeit>', 'exec'); n = 1
+    import re as _rx
+    n_fijo, r = None, 7
+    m = _rx.match(r'^((?:-[nr]\s*\d+\s+)+)(.*)$', src.strip(), _rx.S)
+    if m:
+        for k, v in _rx.findall(r'-([nr])\s*(\d+)', m.group(1)):
+            if k == 'n': n_fijo = max(1, int(v))
+            else: r = max(1, int(v))
+        src = m.group(2)
+    c = compile(src, '<timeit>', 'exec'); n = n_fijo or 1
     while True:
         t0 = _tm.perf_counter()
         for _ in range(n): exec(c, _JNS)
         dt = _tm.perf_counter() - t0
-        if dt >= 0.2 or n >= 1000000: break
+        if n_fijo or dt >= 0.2 or n >= 1000000: break
         n *= 10
     runs = [dt / n]
-    for _ in range(6):
+    for _ in range(r - 1):
         t0 = _tm.perf_counter()
         for _ in range(n): exec(c, _JNS)
         runs.append((_tm.perf_counter() - t0) / n)
-    print('%s ± %s per loop (mean ± std. dev. of 7 runs, %s loop%s each)' % (_jup_dur(_st.mean(runs)), _jup_dur(_st.pstdev(runs)), '{:,}'.format(n), '' if n == 1 else 's'))
+    print('%s ± %s per loop (mean ± std. dev. of %d run%s, %s loop%s each)' % (_jup_dur(_st.mean(runs)), _jup_dur(_st.pstdev(runs)), r, '' if r == 1 else 's', '{:,}'.format(n), '' if n == 1 else 's'))
 def _jup_time(src, celda=False):
     t0 = _tm.perf_counter(); c0 = _tm.process_time()
     try:
