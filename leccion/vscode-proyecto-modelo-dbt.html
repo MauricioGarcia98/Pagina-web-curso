@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (requisitos y rúbrica) - un modelo dbt nuevo, probado y entregado por pull request · Academia de Datos</title><meta name="description" content="El equipo de análisis necesita ver las ventas por mes y por canal en el proyecto dbt de la tienda. Diseñas el modelo, lo escribes en VS Code con ref, lo construyes con sus dependencias, le agregas tests en el schema.yml, verificas los resultados contra los datos, lo versionas en una rama y lo entregas con un pull request. Requisitos y rúbrica; las decisiones son tuyas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-proyecto-modelo-dbt.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (requisitos y rúbrica) - un modelo dbt nuevo, probado y entregado por pull request · Academia de Datos"><meta property="og:description" content="El equipo de análisis necesita ver las ventas por mes y por canal en el proyecto dbt de la tienda. Diseñas el modelo, lo escribes en VS Code con ref, lo construyes con sus dependencias, le agregas tests en el schema.yml, verificas los resultados contra los datos, lo versionas en una rama y lo entregas con un pull request. Requisitos y rúbrica; las decisiones son tuyas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-proyecto-modelo-dbt.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 5 · Avanzado · 120 min</div>
+<h1>Proyecto 5 (requisitos y rúbrica) - un modelo dbt nuevo, probado y entregado por pull request</h1><p class="resumen">El equipo de análisis necesita ver las ventas por mes y por canal en el proyecto dbt de la tienda. Diseñas el modelo, lo escribes en VS Code con ref, lo construyes con sus dependencias, le agregas tests en el schema.yml, verificas los resultados contra los datos, lo versionas en una rama y lo entregas con un pull request. Requisitos y rúbrica; las decisiones son tuyas.</p>
+<a class="cta" href="../index.html#/l/vscode-proyecto-modelo-dbt">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar un modelo dbt a partir de un pedido</li><li>Escribir el SQL con ref y una columna de período</li><li>Construir el modelo con sus dependencias</li><li>Definir tests de calidad en el schema.yml</li><li>Verificar los resultados y entregarlos por pull request</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje del equipo de análisis: <em>&quot;Para el tablero mensual necesitamos una tabla en dbt con las ventas por mes y por canal: pedidos, importe y ticket promedio. Que tenga tests para no publicar datos rotos. Mandalo por PR así lo revisamos.&quot;</em></p>
+</div>
+
+
+<p>Sin pasos ni pistas de código. Requisitos, controles y rúbrica.</p>
+<h2>Punto de partida</h2>
+<p>El proyecto <code>~/tienda_dbt</code> en <a href="#/vscode">VS Code de práctica</a> (<code>code ~/tienda_dbt</code>). Si no es un repositorio, inicialízalo y haz un primer commit de lo que hay <strong>antes</strong> de empezar.</p>
+<h2>Requisitos</h2>
+<p><strong>R1 — El modelo</strong>: <code>models/marts/ventas_mensuales.sql</code>, materializado como tabla, con una fila por <strong>mes y canal</strong> y las columnas <code>mes</code> (texto <code>AAAA-MM</code>), <code>canal</code>, <code>pedidos</code> (distintos), <code>importe</code> (redondeado a 2) y <code>ticket</code> (importe / pedidos, redondeado a 2). Construido sobre <code>stg_ventas</code> con <code>ref</code>.</p>
+<p><strong>R2 — Tests</strong> en <code>models/schema.yml</code>: <code>mes</code>, <code>canal</code> y <code>pedidos</code> no nulos, y la combinación mes + canal sin repetidos (pista: dbt tiene tests genéricos; si no hay uno para combinaciones, crea una columna <code>clave</code> = mes || &#39;-&#39; || canal y prueba <code>unique</code> sobre ella).</p>
+<p><strong>R3 — Construcción</strong>: <code>dbt run --select +ventas_mensuales</code> y <code>dbt test --select ventas_mensuales</code> sin errores.</p>
+<p><strong>R4 — Verificación</strong>: comprobar en <code>sqlite3</code> (o con una consulta) que la suma de <code>importe</code> del modelo es igual a la suma de <code>importe</code> de <code>stg_ventas</code>. Anota los dos números en la descripción del PR.</p>
+<p><strong>R5 — Entrega</strong>: rama <code>feature/ventas-mensuales</code>, al menos dos commits (modelo; tests), push y PR con descripción: qué agrega, cómo se probó, los números de la verificación y qué queda fuera.</p>
+<p><strong>R6 — Calidad</strong>: SQL legible (una columna por línea, alias claros, palabras clave en minúscula como el resto del proyecto) y un comentario de una línea arriba del modelo que diga qué es.</p>
+<h2>✔ Controles</h2>
+<ul>
+<li>El modelo tiene <strong>una fila por cada combinación</strong> de mes y canal presente en los datos: ni más (duplicados) ni menos.</li>
+<li>Suma de <code>importe</code> del modelo = suma de <code>importe</code> de <code>stg_ventas</code> (si no coincide, revisa el <code>group by</code> y el <code>join</code>).</li>
+<li>El <code>ticket</code> de una fila cualquiera = <code>importe / pedidos</code> de esa fila.</li>
+<li><code>dbt test</code> pasa todos los tests.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Fechas en SQLite y en Databricks</div>
+
+<p>Esta práctica corre dbt sobre SQLite, donde el mes se obtiene con <code>strftime(&#39;%Y-%m&#39;, fecha_pedido)</code>. En Databricks o Snowflake sería <code>date_format(fecha_pedido, &#39;yyyy-MM&#39;)</code> o <code>to_char(...)</code>. En un proyecto real, para que el SQL funcione en cualquier motor se usan macros (<code>{{ dbt.date_trunc(&#39;month&#39;, &#39;fecha_pedido&#39;) }}</code>).</p>
+</div>
+
+
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Insuficiente</th>
+<th>Bien</th>
+<th>Excelente</th>
+</tr>
+</thead><tbody><tr>
+<td>Modelo</td>
+<td>No usa ref o el grano es incorrecto</td>
+<td>Una fila por mes y canal, columnas correctas</td>
+<td>Además legible y comentado, consistente con el proyecto</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>Sin tests</td>
+<td>not_null en las columnas clave</td>
+<td>Unicidad de la combinación mes + canal resuelta</td>
+</tr>
+<tr>
+<td>Verificación</td>
+<td>No se comprobó</td>
+<td>Total del modelo = total de staging</td>
+<td>Además controla el ticket y explica cómo</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>Todo en un commit en main</td>
+<td>Rama y dos commits</td>
+<td>Commits con buenos mensajes y PR completo</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>PR sin descripción</td>
+<td>Descripción con qué y cómo</td>
+<td>Incluye los números de verificación y el alcance</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-proyecto-modelo-dbt">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-productividad.html">← Productividad - editor dividido, modo zen, esquema, atajos y tareas para no repetir comandos</a><a href="vscode-proyecto-profesional.html">Un repositorio profesional - estructura, entorno virtual, dependencias, configuración y README →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

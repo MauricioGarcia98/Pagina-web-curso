@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Depurar - puntos de interrupción, paso a paso y variables para encontrar el error en minutos · Academia de Datos</title><meta name="description" content="Cuando un script no falla pero da un resultado equivocado, el depurador es la herramienta. Con un script de descuentos que calcula mal el total, aprendes a poner puntos de interrupción, iniciar la depuración, avanzar paso a paso, mirar y vigilar variables, leer la pila de llamadas y usar la consola de depuración para probar hipótesis sin cambiar el código."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-depurar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Depurar - puntos de interrupción, paso a paso y variables para encontrar el error en minutos · Academia de Datos"><meta property="og:description" content="Cuando un script no falla pero da un resultado equivocado, el depurador es la herramienta. Con un script de descuentos que calcula mal el total, aprendes a poner puntos de interrupción, iniciar la depuración, avanzar paso a paso, mirar y vigilar variables, leer la pila de llamadas y usar la consola de depuración para probar hipótesis sin cambiar el código."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-depurar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Depurar - puntos de interrupción, paso a paso y variables para encontrar el error en minutos</h1><p class="resumen">Cuando un script no falla pero da un resultado equivocado, el depurador es la herramienta. Con un script de descuentos que calcula mal el total, aprendes a poner puntos de interrupción, iniciar la depuración, avanzar paso a paso, mirar y vigilar variables, leer la pila de llamadas y usar la consola de depuración para probar hipótesis sin cambiar el código.</p>
+<a class="cta" href="../index.html#/l/vscode-depurar">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer un error lógico (no hay traceback, pero el resultado está mal)</li><li>Poner y quitar puntos de interrupción</li><li>Iniciar la depuración y avanzar con continuar, paso a paso y salir</li><li>Leer variables, inspecciones y la pila de llamadas</li><li>Probar expresiones en la consola de depuración</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Depurar es poner el programa en cámara lenta: lo detienes en una línea (punto de interrupción) y ves qué valor tiene cada variable en ese momento. En lugar de adivinar dónde está el error llenando todo de <code>print</code>, lo miras pasar.</p>
+</div>
+
+
+<h2>Paso 1 — Un error que no da error</h2>
+<p>Crea <strong>scripts/descuentos.py</strong> con:</p>
+<pre data-norun><code class="language-python">precios = [100, 250, 80]
+descuento = 0.1
+total = 0
+for precio in precios:
+    total = precio * (1 - descuento)
+print(&quot;Total:&quot;, total)</code></pre>
+<p>Ejecútalo con ▷:</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v09-bug.webp" alt="El script corre sin errores, pero dice Total: 72.0" loading="lazy"><figcaption>El script corre sin errores, pero dice Total: 72.0</figcaption></figure>
+
+
+<p>El total debería ser (100 + 250 + 80) × 0,9 = <strong>387</strong>. No hay traceback: es un <strong>error lógico</strong>. Python hizo exactamente lo que le pediste… que no era lo que querías.</p>
+<h2>Paso 2 — Pon un punto de interrupción</h2>
+<ol>
+<li>Haz clic en el margen izquierdo de la <strong>línea 5</strong> (a la izquierda del número), o pon el cursor en la línea y presiona <strong>F9</strong>. Aparece un <strong>punto rojo</strong>.</li>
+<li>Abre la vista <strong>Ejecutar y depurar</strong> (ícono del triángulo con el bicho).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/vscode/v09-punto.webp" alt="El punto rojo en la línea 5 y el botón Ejecutar y depurar (2)" loading="lazy"><figcaption>El punto rojo en la línea 5 y el botón Ejecutar y depurar (2)</figcaption></figure>
+
+
+<h2>Paso 3 — Inicia la depuración</h2>
+<p>Presiona <strong>Ejecutar y depurar</strong> (o <strong>F5</strong>). El programa arranca y se <strong>detiene</strong> en la línea 5, resaltada en amarillo.</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v09-depurando.webp" alt="Detenido en la línea 5: las variables en la barra lateral (1) y la barra de depuración (2)" loading="lazy"><figcaption>Detenido en la línea 5: las variables en la barra lateral (1) y la barra de depuración (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Muestra</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Variables</strong></td>
+<td>El valor de cada variable en este instante: <code>precios</code>, <code>descuento</code>, <code>total</code>, <code>precio</code></td>
+</tr>
+<tr>
+<td><strong>Inspección</strong></td>
+<td>Expresiones que quieres vigilar (por ejemplo <code>total + precio</code>)</td>
+</tr>
+<tr>
+<td><strong>Pila de llamadas</strong></td>
+<td>En qué función estás y quién la llamó</td>
+</tr>
+<tr>
+<td><strong>Puntos de interrupción</strong></td>
+<td>La lista de todos los puntos rojos</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Avanza y observa</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Botón de la barra</th>
+<th>Atajo</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td>Continuar</td>
+<td><strong>F5</strong></td>
+<td>Sigue hasta el próximo punto de interrupción</td>
+</tr>
+<tr>
+<td>Paso a paso por procedimientos</td>
+<td><strong>F10</strong></td>
+<td>Ejecuta la línea y se detiene en la siguiente</td>
+</tr>
+<tr>
+<td>Paso a paso por instrucciones</td>
+<td><strong>F11</strong></td>
+<td>Entra dentro de la función que se llama en esta línea</td>
+</tr>
+<tr>
+<td>Salir de la función</td>
+<td><strong>Shift + F11</strong></td>
+<td>Termina la función actual y vuelve a quien la llamó</td>
+</tr>
+<tr>
+<td>Reiniciar</td>
+<td><strong>Ctrl + Shift + F5</strong></td>
+<td>Vuelve a empezar</td>
+</tr>
+<tr>
+<td>Detener</td>
+<td><strong>Shift + F5</strong></td>
+<td>Termina la depuración</td>
+</tr>
+</tbody></table></div>
+<p>Presiona <strong>F5</strong> para ir a la segunda vuelta del bucle:</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v09-segunda-vuelta.webp" alt="Segunda vuelta: precio vale 250 y total vale 90.0, solo el primer precio con descuento" loading="lazy"><figcaption>Segunda vuelta: precio vale 250 y total vale 90.0, solo el primer precio con descuento</figcaption></figure>
+
+
+<p>Ahí está: en cada vuelta, <code>total</code> <strong>se reemplaza</strong> en lugar de <strong>sumarse</strong>. La línea correcta es <code>total = total + precio * (1 - descuento)</code> (o <code>total += ...</code>).</p>
+<h2>Paso 5 — Prueba la hipótesis antes de cambiar el código</h2>
+<p>En el panel, pestaña <strong>CONSOLA DE DEPURACIÓN</strong>, escribe expresiones mientras el programa está detenido:</p>
+<pre><code class="language-text">total + precio * (1 - descuento)</code></pre>
+<p>Te muestra el valor que tendría <code>total</code> con la corrección. Es la forma de comprobar una idea sin editar ni volver a ejecutar.</p>
+<h2>Paso 6 — Corrige y vuelve a ejecutar</h2>
+<ol>
+<li><strong>Shift + F5</strong> para detener.</li>
+<li>Cambia la línea 5 por <code>total += precio * (1 - descuento)</code>.</li>
+<li>Quita el punto de interrupción (clic en el punto rojo o F9).</li>
+<li>Ejecuta: <code>Total: 387.0</code>.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Cuándo depurar y cuándo usar print</div>
+
+<p>Un <code>print</code> sirve para una duda rápida. El depurador conviene cuando no sabes <strong>dónde</strong> está el problema, cuando hay bucles o funciones anidadas, o cuando necesitas ver muchas variables a la vez. Y no te deja <code>print</code> olvidados en el código.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Reconoces un error lógico.</li>
+<li>Usas puntos de interrupción, paso a paso, variables y la consola de depuración.</li>
+<li>Encontraste y corregiste un error sin adivinar.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-depurar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-proyecto-resumen-de-ventas.html">← Proyecto 2 (guiado, con pistas) - mejorar el script de resumen de ventas</a><a href="vscode-problemas-y-calidad.html">Problemas y calidad de código - el panel de problemas, ruff y el estilo que espera un equipo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

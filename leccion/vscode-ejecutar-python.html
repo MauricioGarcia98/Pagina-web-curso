@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ejecutar Python desde VS Code - el botón ▷, la salida, los archivos que genera un script y el intérprete · Academia de Datos</title><meta name="description" content="Cómo correr un script y entender lo que pasa. El botón Ejecutar archivo, qué comando lanza en la terminal, leer la salida y los errores, un script real que resume ventas y escribe un CSV, ejecutar con argumentos, el intérprete de Python que muestra la barra de estado y la diferencia entre ejecutar un script y un notebook."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-ejecutar-python.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Ejecutar Python desde VS Code - el botón ▷, la salida, los archivos que genera un script y el intérprete · Academia de Datos"><meta property="og:description" content="Cómo correr un script y entender lo que pasa. El botón Ejecutar archivo, qué comando lanza en la terminal, leer la salida y los errores, un script real que resume ventas y escribe un CSV, ejecutar con argumentos, el intérprete de Python que muestra la barra de estado y la diferencia entre ejecutar un script y un notebook."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-ejecutar-python.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 2 · Básico-intermedio · 40 min</div>
+<h1>Ejecutar Python desde VS Code - el botón ▷, la salida, los archivos que genera un script y el intérprete</h1><p class="resumen">Cómo correr un script y entender lo que pasa. El botón Ejecutar archivo, qué comando lanza en la terminal, leer la salida y los errores, un script real que resume ventas y escribe un CSV, ejecutar con argumentos, el intérprete de Python que muestra la barra de estado y la diferencia entre ejecutar un script y un notebook.</p>
+<a class="cta" href="../index.html#/l/vscode-ejecutar-python">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Ejecutar un archivo de Python con ▷ o desde la terminal</li><li>Leer la salida y relacionar un error con su línea</li><li>Ejecutar un script que lee un CSV y escribe un resultado</li><li>Reconocer qué intérprete de Python usa VS Code</li><li>Distinguir script de notebook y saber cuándo usar cada uno</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un script es una receta que se ejecuta entera, de la primera a la última línea, cada vez. El botón ▷ es un atajo: escribe por ti <code>python archivo.py</code> en la terminal.</p>
+</div>
+
+
+<h2>Paso 1 — Ejecuta un script corto</h2>
+<ol>
+<li>Crea <code>scripts/hola.py</code> con:</li>
+</ol>
+<pre data-norun><code class="language-python">nombre = &quot;Ana&quot;
+print(f&quot;Hola, {nombre}&quot;)</code></pre>
+<ol start="2">
+<li>Guarda y presiona <strong>▷</strong> (arriba a la derecha del editor).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/vscode/v06-ejecutar.webp" alt="El botón Ejecutar (1): en la terminal (2) se ve el comando que lanzó y la salida" loading="lazy"><figcaption>El botón Ejecutar (1): en la terminal (2) se ve el comando que lanzó y la salida</figcaption></figure>
+
+
+<p>El ▷ guarda el archivo y escribe en la terminal <code>python ~/scripts/hola.py</code>. Atajos: <strong>Ctrl + F5</strong> (ejecutar sin depurar) y <strong>F5</strong> (depurar, nivel 3).</p>
+<h2>Paso 2 — Un script real: resumen de ventas</h2>
+<p>Abre <strong>scripts/resumen_ventas.py</strong> y léelo antes de ejecutarlo:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Líneas</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>with open(&quot;datos/ventas_2024_12.csv&quot;...)</code></td>
+<td>Abre el CSV de ventas de diciembre</td>
+</tr>
+<tr>
+<td><code>csv.DictReader(f)</code></td>
+<td>Lee cada fila como un diccionario (<code>fila[&quot;canal&quot;]</code>)</td>
+</tr>
+<tr>
+<td><code>if fila[&quot;estado&quot;] == &quot;cancelado&quot;: continue</code></td>
+<td>Salta los cancelados</td>
+</tr>
+<tr>
+<td><code>totales[...] += float(fila[&quot;total&quot;])</code></td>
+<td>Acumula las ventas por canal</td>
+</tr>
+<tr>
+<td><code>print(f&quot;{canal:&lt;10}...&quot;)</code></td>
+<td>Imprime una tabla alineada</td>
+</tr>
+<tr>
+<td><code>with open(&quot;datos/resumen_canales.csv&quot;, &quot;w&quot;)</code></td>
+<td>Escribe el resultado en un CSV nuevo</td>
+</tr>
+</tbody></table></div>
+<p>Presiona <strong>▷</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v06-resumen.webp" alt="La salida: ventas de diciembre por canal y el aviso del archivo escrito" loading="lazy"><figcaption>La salida: ventas de diciembre por canal y el aviso del archivo escrito</figcaption></figure>
+
+
+<p>El script imprimió web 237 pedidos y 309,633.38; app 143 y 183,748.86; tienda 126 y 129,482.33; teléfono 43 y 54,685.17. Además creó <strong>datos/resumen_canales.csv</strong>: búscalo en el explorador (botón <strong>Actualizar</strong> si no aparece) y ábrelo.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 El script escribió un archivo</div>
+
+<p>Muchos scripts de datos no &quot;muestran&quot; su resultado: lo <strong>guardan</strong> (un CSV, una tabla, un archivo en la nube). Después de ejecutar, comprueba siempre que el archivo de salida existe y tiene lo que esperabas.</p>
+</div>
+
+
+<h2>Paso 3 — Cuando falla</h2>
+<p>Si un script tiene un error, la terminal muestra un <strong>traceback</strong>. La última línea dice el tipo de error; una línea más arriba dice <code>File &quot;.../archivo.py&quot;, line 12</code>. Con <strong>Ctrl + G</strong> vas a esa línea. Los errores más comunes son los de la lección 5 de JupyterLab: <code>NameError</code>, <code>KeyError</code>, <code>FileNotFoundError</code>, <code>SyntaxError</code>, <code>TypeError</code>.</p>
+<h2>Paso 4 — El intérprete de Python</h2>
+<p>En la barra de estado, a la derecha, aparece la versión de Python (por ejemplo <strong>3.12</strong>). En VS Code real ese botón abre <strong>Seleccionar intérprete</strong>: qué Python (y qué entorno virtual) usa el proyecto. Si un <code>import</code> funciona en la terminal pero VS Code lo marca con error, casi siempre es porque VS Code está usando otro intérprete (lección 23).</p>
+<h2>Paso 5 — Script o notebook</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Usa un script (.py) cuando…</th>
+<th>Usa un notebook (.ipynb) cuando…</th>
+</tr>
+</thead><tbody><tr>
+<td>El proceso se repite igual cada vez</td>
+<td>Exploras datos nuevos</td>
+</tr>
+<tr>
+<td>Lo va a ejecutar un pipeline o un compañero</td>
+<td>Quieres ver tablas y gráficos paso a paso</td>
+</tr>
+<tr>
+<td>Necesita tests y revisión de código</td>
+<td>Documentas un análisis con texto y resultados</td>
+</tr>
+</tbody></table></div>
+<p>VS Code abre los dos: en la lección 22 vemos los notebooks dentro de VS Code.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Ejecutas scripts con ▷ y desde la terminal.</li>
+<li>Lees la salida y los archivos que genera un script.</li>
+<li>Sabes qué es el intérprete y cuándo usar script o notebook.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-ejecutar-python">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-terminal-integrada.html">← La terminal integrada - ejecutar comandos sin salir del editor</a><a href="vscode-buscar-y-configurar.html">Buscar en todo el proyecto y configurar VS Code - búsqueda global, settings y guardado automático →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

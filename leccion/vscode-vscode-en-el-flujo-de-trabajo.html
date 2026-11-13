@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VS Code en el flujo de trabajo real - notebooks, contenedores, conexiones remotas, la nube y la IA · Academia de Datos</title><meta name="description" content="En una empresa, VS Code se conecta con todo lo demás. Notebooks de Jupyter dentro de VS Code, Dev Containers para que todos tengan el mismo entorno, desarrollo remoto por SSH y WSL, Codespaces en la nube, la extensión de Databricks para ejecutar en un clúster, GitHub Actions para correr tests en cada PR y asistentes de IA como GitHub Copilot, con sus límites."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-vscode-en-el-flujo-de-trabajo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="VS Code en el flujo de trabajo real - notebooks, contenedores, conexiones remotas, la nube y la IA · Academia de Datos"><meta property="og:description" content="En una empresa, VS Code se conecta con todo lo demás. Notebooks de Jupyter dentro de VS Code, Dev Containers para que todos tengan el mismo entorno, desarrollo remoto por SSH y WSL, Codespaces en la nube, la extensión de Databricks para ejecutar en un clúster, GitHub Actions para correr tests en cada PR y asistentes de IA como GitHub Copilot, con sus límites."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-vscode-en-el-flujo-de-trabajo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>VS Code en el flujo de trabajo real - notebooks, contenedores, conexiones remotas, la nube y la IA</h1><p class="resumen">En una empresa, VS Code se conecta con todo lo demás. Notebooks de Jupyter dentro de VS Code, Dev Containers para que todos tengan el mismo entorno, desarrollo remoto por SSH y WSL, Codespaces en la nube, la extensión de Databricks para ejecutar en un clúster, GitHub Actions para correr tests en cada PR y asistentes de IA como GitHub Copilot, con sus límites.</p>
+<a class="cta" href="../index.html#/l/vscode-vscode-en-el-flujo-de-trabajo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Abrir y ejecutar notebooks dentro de VS Code</li><li>Explicar qué resuelven los Dev Containers y Codespaces</li><li>Conocer el desarrollo remoto por SSH y WSL</li><li>Relacionar VS Code con Databricks y con la integración continua</li><li>Usar asistentes de IA de forma responsable</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>VS Code es el escritorio desde donde manejas máquinas que pueden estar en otro lado: un contenedor con todo instalado, un servidor de la empresa, un clúster de Databricks. Tú escribes en tu pantalla; el código corre donde tiene que correr.</p>
+</div>
+
+
+<h2>Paso 1 — Notebooks dentro de VS Code</h2>
+<p>Con la extensión <strong>Jupyter</strong>, un <code>.ipynb</code> se abre en VS Code con celdas, como en JupyterLab:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>En JupyterLab</th>
+<th>En VS Code</th>
+</tr>
+</thead><tbody><tr>
+<td>Kernel arriba a la derecha</td>
+<td><strong>Seleccionar kernel</strong> arriba a la derecha (elige el <code>.venv</code> del proyecto)</td>
+</tr>
+<tr>
+<td>Shift + Enter</td>
+<td>Shift + Enter</td>
+</tr>
+<tr>
+<td>Variables con %whos</td>
+<td>Panel <strong>Variables</strong> con un clic</td>
+</tr>
+<tr>
+<td>Git como extensión</td>
+<td>Git integrado, con diff de notebooks</td>
+</tr>
+</tbody></table></div>
+<p>Ventaja: el notebook convive en el mismo editor con los <code>.py</code>, los tests y Git. Todo lo del curso <a href="#/m/jupyterlab">JupyterLab paso a paso</a> aplica igual.</p>
+<h2>Paso 2 — Dev Containers: el mismo entorno para todos</h2>
+<p>&quot;En mi máquina funciona&quot; se termina con un <strong>contenedor de desarrollo</strong>: un archivo <code>.devcontainer/devcontainer.json</code> en el repositorio describe la imagen (Python 3.12, dbt, las extensiones). VS Code abre el proyecto <strong>dentro</strong> de ese contenedor, con todo instalado igual para todos.</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;ventas_app&quot;,
+  &quot;image&quot;: &quot;mcr.microsoft.com/devcontainers/python:3.12&quot;,
+  &quot;postCreateCommand&quot;: &quot;pip install -e '.[dev]'&quot;,
+  &quot;customizations&quot;: { &quot;vscode&quot;: { &quot;extensions&quot;: [&quot;ms-python.python&quot;, &quot;charliermarsh.ruff&quot;] } }
+}</code></pre>
+<p>Necesita Docker instalado y la extensión <strong>Dev Containers</strong>. <strong>GitHub Codespaces</strong> hace lo mismo pero en la nube: abres el repositorio desde GitHub y tienes VS Code en el navegador con el contenedor listo.</p>
+<h2>Paso 3 — Desarrollo remoto</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Extensión</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Remote - SSH</strong></td>
+<td>Abrir una carpeta de un servidor: editas en tu VS Code, el código corre en el servidor</td>
+</tr>
+<tr>
+<td><strong>WSL</strong></td>
+<td>En Windows, trabajar dentro de Linux (Ubuntu) con VS Code de Windows</td>
+</tr>
+<tr>
+<td><strong>Tunnels</strong></td>
+<td>Conectarte a una máquina sin abrir puertos</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — VS Code y la nube de datos</h2>
+<ul>
+<li><strong>Extensión de Databricks</strong>: sincroniza la carpeta con el workspace y ejecuta archivos o notebooks en un clúster; combinada con <strong>Databricks Asset Bundles</strong> (<code>databricks bundle deploy</code>) despliega jobs desde el repositorio.</li>
+<li><strong>dbt Power User / dbt Cloud</strong>: modelos, linaje y SQL compilado desde el editor.</li>
+<li>Extensiones de <strong>Azure</strong>, <strong>AWS</strong> y <strong>Google Cloud</strong> para explorar recursos y desplegar.</li>
+</ul>
+<p>Puedes ver ese otro lado en las réplicas de <a href="#/databricks">Databricks</a> y <a href="#/github">GitHub</a> del curso.</p>
+<h2>Paso 5 — Integración continua: los tests corren solos</h2>
+<p>Un archivo <code>.github/workflows/tests.yml</code> hace que GitHub ejecute <code>ruff check</code> y <code>pytest</code> en cada pull request. Si fallan, el PR muestra una cruz roja y no se fusiona. Es la misma rutina de &quot;revisar y probar&quot; que haces en VS Code, pero automática y para todo el equipo.</p>
+<h2>Paso 6 — Asistentes de IA (GitHub Copilot y otros)</h2>
+<p>Sugieren código mientras escribes y responden preguntas sobre el proyecto en un chat. Bien usados, ahorran tiempo en lo repetitivo.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La responsabilidad es tuya</div>
+
+<p>Lo que sugiere la IA puede estar mal, usar funciones que no existen o tener errores sutiles (como el <code>&gt;=</code> del proyecto 3). Reglas: entiende cada línea antes de aceptarla, prueba con tests, nunca pegues datos de clientes ni claves en un chat externo, y respeta la política de tu empresa sobre qué herramientas se pueden usar.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes trabajar con notebooks en VS Code.</li>
+<li>Conoces Dev Containers, Codespaces y el desarrollo remoto.</li>
+<li>Relacionas VS Code con Databricks, la integración continua y la IA, con criterio.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-vscode-en-el-flujo-de-trabajo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-proyecto-profesional.html">← Un repositorio profesional - estructura, entorno virtual, dependencias, configuración y README</a><a href="vscode-de-la-practica-a-vscode-real.html">De la práctica a VS Code real - instalar, Python, intérprete, idioma, sincronización y diferencias →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (solo el pedido) - del script suelto al repositorio que el equipo puede usar · Academia de Datos</title><meta name="description" content="El proyecto que cierra el curso, como llega en un trabajo real. El equipo depende de un script que solo funciona en la computadora de quien lo escribió, sin tests ni documentación. Te piden convertirlo en un repositorio profesional - estructura, entorno, funciones probadas, código limpio, configuración compartida, historia de Git ordenada y entrega por pull request - para que cualquiera lo clone y lo ejecute. Sin pasos ni pistas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-proyecto-final.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (solo el pedido) - del script suelto al repositorio que el equipo puede usar · Academia de Datos"><meta property="og:description" content="El proyecto que cierra el curso, como llega en un trabajo real. El equipo depende de un script que solo funciona en la computadora de quien lo escribió, sin tests ni documentación. Te piden convertirlo en un repositorio profesional - estructura, entorno, funciones probadas, código limpio, configuración compartida, historia de Git ordenada y entrega por pull request - para que cualquiera lo clone y lo ejecute. Sin pasos ni pistas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-proyecto-final.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 6 · Avanzado completo · 240 min</div>
+<h1>Proyecto final (solo el pedido) - del script suelto al repositorio que el equipo puede usar</h1><p class="resumen">El proyecto que cierra el curso, como llega en un trabajo real. El equipo depende de un script que solo funciona en la computadora de quien lo escribió, sin tests ni documentación. Te piden convertirlo en un repositorio profesional - estructura, entorno, funciones probadas, código limpio, configuración compartida, historia de Git ordenada y entrega por pull request - para que cualquiera lo clone y lo ejecute. Sin pasos ni pistas.</p>
+<a class="cta" href="../index.html#/l/vscode-proyecto-final">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diagnosticar qué le falta a un script para ser mantenible</li><li>Reorganizar código en un repositorio profesional sin cambiar su resultado</li><li>Cubrir la lógica con tests y dejar el código limpio</li><li>Compartir entorno y configuración con el equipo</li><li>Entregar con una historia de Git clara y un pull request completo</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de la líder del equipo:</p>
+<p><em>&quot;El script <code>resumen_ventas.py</code> lo usamos todos los meses y solo funciona en la máquina de Martín, que se va de vacaciones. No tiene tests, la ruta del CSV está escrita adentro, nadie sabe qué versión de Python usa y cuando alguien lo tocó, rompió los totales. Necesito que lo conviertas en un repositorio como la gente: que cualquiera lo clone y lo corra con el mes que quiera, con tests, y que quede todo por PR para revisarlo. Que dé exactamente los mismos números que hoy.&quot;</em></p>
+</div>
+
+
+<h2>Las reglas de este proyecto</h2>
+<ul>
+<li><strong>No hay pasos ni pistas.</strong> Todo lo que necesitas está en las lecciones 1 a 23.</li>
+<li>&quot;Exactamente los mismos números que hoy&quot; es un requisito, no una sugerencia: tienes que poder demostrarlo.</li>
+<li>Se entrega como en un trabajo: un repositorio en la <a href="#/github">réplica de GitHub</a> y un pull request.</li>
+</ul>
+<h2>Punto de partida</h2>
+<p>El script <code>~/scripts/resumen_ventas.py</code> y el CSV <code>~/datos/ventas_2024_12.csv</code> de la máquina de práctica. Antes de tocar nada, ejecútalo y guarda su salida y el CSV que genera: es tu <strong>referencia</strong>.</p>
+<h2>Entregables</h2>
+<ol>
+<li><strong>El repositorio</strong> <code>resumen_ventas</code> con: estructura <code>src/</code> y <code>tests/</code>, <code>pyproject.toml</code> (o <code>requirements.txt</code>) con las versiones, <code>.gitignore</code> (sin datos ni entornos), <code>.vscode/</code> con ajustes, extensiones recomendadas y una tarea de &quot;revisar y probar&quot;, y un <code>README.md</code> que lleve de cero a ejecutar.</li>
+<li><strong>El código</strong>: la lógica en funciones (leer, filtrar, agregar, escribir), el archivo de entrada y el de salida como <strong>argumentos</strong> (no escritos dentro), y un punto de entrada que se ejecute como <code>python -m resumen_ventas datos/ventas_2024_12.csv salidas/resumen.csv</code> o similar.</li>
+<li><strong>Los tests</strong>: de las funciones de agregación con datos chicos inventados (incluido un mes sin ventas de un canal y filas canceladas), y un test de <strong>regresión</strong> que compruebe que el resultado con el CSV de diciembre es igual a tu referencia.</li>
+<li><strong>Calidad</strong>: <code>ruff check</code> y <code>ruff format</code> sin cambios pendientes; <code>pytest</code> en verde.</li>
+<li><strong>Git</strong>: rama de trabajo, commits pequeños con mensajes útiles (no &quot;cambios&quot;), push y un <strong>PR</strong> con: qué problema resuelve, qué cambió, cómo se probó (incluida la comparación con la referencia) y qué queda fuera.</li>
+<li><strong>Una nota de traspaso</strong> (en el README o en el PR): cómo correrlo para otro mes y qué hacer si falla.</li>
+</ol>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Peso</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Mismo resultado</td>
+<td>20 %</td>
+<td>No se comprobó</td>
+<td>La salida coincide con la referencia</td>
+<td>Hay un test de regresión que lo demuestra</td>
+</tr>
+<tr>
+<td>Estructura y entorno</td>
+<td>15 %</td>
+<td>Archivos sueltos</td>
+<td>src/, tests/, dependencias, .gitignore</td>
+<td>Además .vscode compartido y README de cero a ejecutar probado</td>
+</tr>
+<tr>
+<td>Código</td>
+<td>20 %</td>
+<td>Rutas escritas adentro, todo en un bloque</td>
+<td>Funciones y argumentos</td>
+<td>Funciones chicas, con docstring, y un punto de entrada claro</td>
+</tr>
+<tr>
+<td>Tests y calidad</td>
+<td>20 %</td>
+<td>Sin tests</td>
+<td>Tests de las funciones, ruff limpio</td>
+<td>Casos borde (canal sin ventas, cancelados) y regresión</td>
+</tr>
+<tr>
+<td>Git y entrega</td>
+<td>15 %</td>
+<td>Un commit en main</td>
+<td>Rama, varios commits, PR</td>
+<td>Historia que se lee como un relato, PR completo con la prueba de regresión</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>10 %</td>
+<td>Sin nota</td>
+<td>Nota de uso</td>
+<td>Nota de traspaso: otro mes, errores típicos, a quién preguntar</td>
+</tr>
+</tbody></table></div>
+<p><strong>Aprobado</strong>: competente o más en todos los criterios. La prueba final: alguien que nunca vio el proyecto lo clona, sigue el README y obtiene los mismos números.</p>
+<h2>Preguntas que te va a hacer quien revise</h2>
+<p>No son pistas: tu entrega debería responderlas.</p>
+<ul>
+<li>&quot;¿Cómo sé que da lo mismo que el script viejo?&quot;</li>
+<li>&quot;¿Cómo lo corro para enero?&quot;</li>
+<li>&quot;Si mañana agregan un canal nuevo, ¿qué hay que tocar?&quot;</li>
+<li>&quot;¿Qué pasa si el CSV viene sin la columna <code>estado</code>?&quot;</li>
+<li>&quot;¿Por qué está la lógica separada en estas funciones?&quot;</li>
+</ul>
+<h2>Después de este curso</h2>
+<ul>
+<li><strong><a href="#/l/fundamentos-git-en-equipo">Git en equipo</a></strong> y el <a href="#/lab/terminal">laboratorio de terminal</a>: dominar la línea de comandos.</li>
+<li><strong><a href="#/m/dbt">dbt</a></strong> y <strong><a href="#/m/airflow">Airflow</a></strong>: los proyectos de datos que vas a editar en VS Code todos los días.</li>
+<li><strong><a href="#/m/jupyterlab">JupyterLab paso a paso</a></strong>: la exploración que después se convierte en código como el de este proyecto.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-proyecto-final">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-de-la-practica-a-vscode-real.html">← De la práctica a VS Code real - instalar, Python, intérprete, idioma, sincronización y diferencias</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

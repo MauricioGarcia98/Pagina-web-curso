@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica a VS Code real - instalar, Python, intérprete, idioma, sincronización y diferencias · Academia de Datos</title><meta name="description" content="Todo lo que hiciste funciona igual en el VS Code de tu computadora. Cómo instalarlo en Windows, Mac o Linux, instalar Python y Git, las extensiones del primer día, elegir el intérprete correcto, cambiar el idioma (y los nombres de los menús en inglés), sincronizar la configuración entre computadoras, las diferencias con esta práctica y los problemas típicos de la primera semana."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-de-la-practica-a-vscode-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica a VS Code real - instalar, Python, intérprete, idioma, sincronización y diferencias · Academia de Datos"><meta property="og:description" content="Todo lo que hiciste funciona igual en el VS Code de tu computadora. Cómo instalarlo en Windows, Mac o Linux, instalar Python y Git, las extensiones del primer día, elegir el intérprete correcto, cambiar el idioma (y los nombres de los menús en inglés), sincronizar la configuración entre computadoras, las diferencias con esta práctica y los problemas típicos de la primera semana."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-de-la-practica-a-vscode-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>De la práctica a VS Code real - instalar, Python, intérprete, idioma, sincronización y diferencias</h1><p class="resumen">Todo lo que hiciste funciona igual en el VS Code de tu computadora. Cómo instalarlo en Windows, Mac o Linux, instalar Python y Git, las extensiones del primer día, elegir el intérprete correcto, cambiar el idioma (y los nombres de los menús en inglés), sincronizar la configuración entre computadoras, las diferencias con esta práctica y los problemas típicos de la primera semana.</p>
+<a class="cta" href="../index.html#/l/vscode-de-la-practica-a-vscode-real">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Instalar VS Code, Python y Git en tu sistema operativo</li><li>Configurar las extensiones y el intérprete del primer día</li><li>Trabajar con VS Code en español o en inglés</li><li>Sincronizar la configuración entre computadoras</li><li>Resolver los problemas típicos de la primera semana</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>La práctica es un VS Code que ya viene armado dentro del navegador. En tu computadora lo armas una vez (VS Code, Python, Git y unas pocas extensiones) y después funciona igual que acá, con la diferencia de que todo es real: tus archivos, tu Python y tu GitHub.</p>
+</div>
+
+
+<h2>Paso 1 — Instalar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Programa</th>
+<th>De dónde</th>
+<th>Nota</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>VS Code</strong></td>
+<td>code.visualstudio.com</td>
+<td>Gratis. En Windows, marca &quot;Agregar a PATH&quot; y &quot;Abrir con Code&quot; en el instalador</td>
+</tr>
+<tr>
+<td><strong>Python</strong></td>
+<td>python.org (o la Microsoft Store en Windows)</td>
+<td>En Windows, marca <strong>&quot;Add python.exe to PATH&quot;</strong></td>
+</tr>
+<tr>
+<td><strong>Git</strong></td>
+<td>git-scm.com</td>
+<td>Después: <code>git config --global user.name &quot;Tu Nombre&quot;</code> y <code>user.email</code></td>
+</tr>
+</tbody></table></div>
+<p>Comprueba en una terminal nueva: <code>code --version</code>, <code>python --version</code> (en Mac/Linux puede ser <code>python3</code>) y <code>git --version</code>.</p>
+<h2>Paso 2 — Las extensiones del primer día</h2>
+<p>Python (incluye Pylance y el depurador), Jupyter, Ruff y, si trabajas con dbt, dbt Power User. Con eso tienes todo lo de este curso.</p>
+<h2>Paso 3 — El intérprete correcto</h2>
+<ol>
+<li>Abre la carpeta del proyecto y crea el entorno: <code>python -m venv .venv</code>.</li>
+<li><strong>Ctrl + Shift + P</strong> → <strong>Python: Select Interpreter</strong> → elige el de <code>.venv</code>.</li>
+<li>La barra de estado muestra <code>3.12 (&#39;.venv&#39;: venv)</code>; las terminales nuevas activan el entorno solas.</li>
+</ol>
+<p>Si un import funciona en la terminal pero VS Code lo marca en rojo, o al revés, casi siempre es el intérprete equivocado.</p>
+<h2>Paso 4 — Español o inglés</h2>
+<p>VS Code viene en inglés. Para español: paleta → <strong>Configure Display Language</strong> → <strong>Spanish</strong> (instala el paquete de idioma y reinicia). La mayoría de los tutoriales y las empresas lo usan en inglés, así que conviene conocer los dos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Español</th>
+<th>Inglés</th>
+</tr>
+</thead><tbody><tr>
+<td>Archivo, Editar, Ver, Ejecutar, Terminal</td>
+<td>File, Edit, View, Run, Terminal</td>
+</tr>
+<tr>
+<td>Explorador</td>
+<td>Explorer</td>
+</tr>
+<tr>
+<td>Control de código fuente</td>
+<td>Source Control</td>
+</tr>
+<tr>
+<td>Ejecutar y depurar</td>
+<td>Run and Debug</td>
+</tr>
+<tr>
+<td>Extensiones</td>
+<td>Extensions</td>
+</tr>
+<tr>
+<td>Paleta de comandos</td>
+<td>Command Palette</td>
+</tr>
+<tr>
+<td>Configuración</td>
+<td>Settings</td>
+</tr>
+<tr>
+<td>Problemas, Salida, Consola de depuración</td>
+<td>Problems, Output, Debug Console</td>
+</tr>
+<tr>
+<td>Esquema, Línea de tiempo</td>
+<td>Outline, Timeline</td>
+</tr>
+<tr>
+<td>Punto de interrupción</td>
+<td>Breakpoint</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Sincronizar la configuración</h2>
+<p>Ruedita (abajo a la izquierda) → <strong>Backup and Sync Settings</strong> (Sincronización de configuración): con tu cuenta de GitHub o Microsoft, tus ajustes, extensiones, atajos y fragmentos se copian a cualquier computadora donde inicies sesión.</p>
+<h2>Paso 6 — Diferencias con la práctica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En VS Code real</th>
+<th>En la práctica</th>
+</tr>
+</thead><tbody><tr>
+<td>Archivos de tu disco</td>
+<td>Archivos de la máquina simulada (se guardan en tu navegador)</td>
+</tr>
+<tr>
+<td>Cualquier lenguaje y extensión del Marketplace</td>
+<td>Las extensiones del catálogo de la práctica</td>
+</tr>
+<tr>
+<td>Python, pip, Git, dbt de verdad en tu sistema</td>
+<td>Simulados en el navegador (Python de verdad con Pyodide)</td>
+</tr>
+<tr>
+<td>Vista Testing, Rename Symbol (F2), Go to Definition (F12) con Pylance</td>
+<td>Tests y búsquedas desde la terminal y la paleta</td>
+</tr>
+<tr>
+<td>Botones para resolver conflictos de merge</td>
+<td>Se resuelven editando el texto</td>
+</tr>
+<tr>
+<td>GitHub real</td>
+<td>La <a href="#/github">réplica de GitHub</a></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 7 — Problemas típicos de la primera semana</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Causa probable</th>
+<th>Solución</th>
+</tr>
+</thead><tbody><tr>
+<td><code>python</code> no se reconoce</td>
+<td>No está en el PATH</td>
+<td>Reinstala marcando &quot;Add to PATH&quot;, o usa <code>py</code> en Windows / <code>python3</code> en Mac</td>
+</tr>
+<tr>
+<td><code>No module named pandas</code></td>
+<td>Instalaste en otro Python</td>
+<td>Activa el <code>.venv</code> y <code>pip install pandas</code>; revisa el intérprete</td>
+</tr>
+<tr>
+<td>La terminal no activa el entorno (Windows)</td>
+<td>Política de scripts de PowerShell</td>
+<td><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>, o usa la terminal &quot;Command Prompt&quot;</td>
+</tr>
+<tr>
+<td><code>git push</code> pide contraseña y falla</td>
+<td>GitHub no acepta contraseñas</td>
+<td><code>gh auth login</code> o un token personal</td>
+</tr>
+<tr>
+<td>Todo va lento</td>
+<td>Demasiadas extensiones</td>
+<td>Desactiva las que no uses (o un perfil limpio)</td>
+</tr>
+</tbody></table></div>
+<h2>Tu checklist de transición</h2>
+<ul>
+<li><input disabled="" type="checkbox"> VS Code, Python y Git instalados y comprobados con <code>--version</code>.</li>
+<li><input disabled="" type="checkbox"> Extensiones Python, Jupyter y Ruff.</li>
+<li><input disabled="" type="checkbox"> Un proyecto con <code>.venv</code> seleccionado como intérprete.</li>
+<li><input disabled="" type="checkbox"> El proyecto 4 rehecho contra un repositorio tuyo en GitHub.</li>
+<li><input disabled="" type="checkbox"> Sincronización de configuración activada.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes instalar y configurar VS Code real para datos.</li>
+<li>Trabajas con los menús en español o en inglés.</li>
+<li>Conoces las diferencias con la práctica y cómo resolver los problemas típicos.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-de-la-practica-a-vscode-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-vscode-en-el-flujo-de-trabajo.html">← VS Code en el flujo de trabajo real - notebooks, contenedores, conexiones remotas, la nube y la IA</a><a href="vscode-proyecto-final.html">Proyecto final (solo el pedido) - del script suelto al repositorio que el equipo puede usar →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

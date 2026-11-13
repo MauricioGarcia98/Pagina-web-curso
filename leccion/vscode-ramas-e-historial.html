@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ramas e historial - trabajar en una rama, ver la historia y volver atrás sin miedo · Academia de Datos</title><meta name="description" content="Las ramas permiten trabajar en un cambio sin tocar la versión que funciona. Cómo crear y cambiar de rama, leer la rama actual en la barra de estado, ver la historia con git log y la línea de tiempo de VS Code, comparar contra commits anteriores, descartar cambios y fusionar una rama terminada."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-ramas-e-historial.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Ramas e historial - trabajar en una rama, ver la historia y volver atrás sin miedo · Academia de Datos"><meta property="og:description" content="Las ramas permiten trabajar en un cambio sin tocar la versión que funciona. Cómo crear y cambiar de rama, leer la rama actual en la barra de estado, ver la historia con git log y la línea de tiempo de VS Code, comparar contra commits anteriores, descartar cambios y fusionar una rama terminada."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-ramas-e-historial.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 4 · Intermedio-avanzado · 45 min</div>
+<h1>Ramas e historial - trabajar en una rama, ver la historia y volver atrás sin miedo</h1><p class="resumen">Las ramas permiten trabajar en un cambio sin tocar la versión que funciona. Cómo crear y cambiar de rama, leer la rama actual en la barra de estado, ver la historia con git log y la línea de tiempo de VS Code, comparar contra commits anteriores, descartar cambios y fusionar una rama terminada.</p>
+<a class="cta" href="../index.html#/l/vscode-ramas-e-historial">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una rama y cambiar entre ramas</li><li>Leer la rama actual en la barra de estado</li><li>Ver la historia del proyecto y de un archivo</li><li>Descartar cambios no guardados en un commit</li><li>Fusionar una rama con merge</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una rama es una copia de trabajo paralela: en la rama <code>main</code> está la versión que funciona; en la rama <code>feature/validaciones</code> pruebas un cambio. Si sale bien, la juntas con <code>main</code>; si sale mal, la tiras y <code>main</code> nunca se enteró.</p>
+</div>
+
+
+<h2>Paso 1 — Crea una rama</h2>
+<p>En la terminal integrada (dentro de <code>ventas_app</code>):</p>
+<pre><code class="language-bash">git checkout -b feature/validaciones
+git log --oneline</code></pre>
+<figure class="captura"><img src="assets/img/guias/vscode/v14-rama.webp" alt="La barra de estado muestra la rama actual (1); git log lista los commits (2)" loading="lazy"><figcaption>La barra de estado muestra la rama actual (1); git log lista los commits (2)</figcaption></figure>
+
+
+<ul>
+<li><code>git checkout -b nombre</code> crea la rama y se cambia a ella (también: <code>git switch -c nombre</code>).</li>
+<li>La <strong>barra de estado</strong>, abajo a la izquierda, muestra siempre la rama en la que estás. Mírala antes de hacer commit.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>Convención de nombres</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>feature/descripcion</code></td>
+<td>Algo nuevo</td>
+</tr>
+<tr>
+<td><code>fix/descripcion</code></td>
+<td>Una corrección</td>
+</tr>
+<tr>
+<td><code>docs/descripcion</code></td>
+<td>Documentación</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Trabaja en la rama</h2>
+<p>Agrega a <code>src/limpieza.py</code> una función <code>es_email_valido(email)</code> que devuelva <code>True</code> si el texto tiene una <code>@</code> y un punto después. Haz commit en la rama: <code>Agrega validación de emails</code>.</p>
+<p>La rama <code>main</code> sigue igual: si haces <code>git checkout main</code>, la función desaparece del archivo; al volver (<code>git checkout feature/validaciones</code>), reaparece.</p>
+<h2>Paso 3 — La historia de un archivo: línea de tiempo</h2>
+<p>Abre <strong>README.md</strong> y mira la sección <strong>LÍNEA DE TIEMPO</strong> del explorador:</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v14-timeline.webp" alt="La línea de tiempo muestra los commits que tocaron este archivo, del más nuevo al más viejo" loading="lazy"><figcaption>La línea de tiempo muestra los commits que tocaron este archivo, del más nuevo al más viejo</figcaption></figure>
+
+
+<p>Un clic en un commit muestra cómo cambió el archivo en ese commit. Para la historia de todo el proyecto: <code>git log --oneline</code> (o <code>git log --oneline --graph --all</code> para ver las ramas).</p>
+<h2>Paso 4 — Volver atrás</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Quieres</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td>Descartar los cambios de un archivo que no commiteaste</td>
+<td><code>git restore archivo</code> (en VS Code: botón de descartar en la vista de Git)</td>
+</tr>
+<tr>
+<td>Sacar un archivo de lo preparado para commit</td>
+<td><code>git restore --staged archivo</code></td>
+</tr>
+<tr>
+<td>Ver cómo estaba un archivo en un commit</td>
+<td>Clic en el commit de la línea de tiempo, o <code>git show HASH:archivo</code></td>
+</tr>
+<tr>
+<td>Deshacer un commit ya compartido</td>
+<td><code>git revert HASH</code> (crea un commit que lo deshace, sin reescribir la historia)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Descartar es definitivo</div>
+
+<p><code>git restore</code> borra los cambios que no estaban en un commit: no hay Ctrl + Z. Antes de descartar, mira el diff.</p>
+</div>
+
+
+<h2>Paso 5 — Fusionar la rama</h2>
+<p>Cuando la rama está lista:</p>
+<pre><code class="language-bash">git checkout main
+git merge feature/validaciones
+git branch -d feature/validaciones</code></pre>
+<p><code>main</code> ahora tiene la validación. En un equipo, en lugar de fusionar en tu máquina, se abre un <strong>pull request</strong> para que alguien revise antes (lección 15 y proyecto 4).</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Trabajas en ramas y sabes en cuál estás.</li>
+<li>Ves la historia del proyecto y de cada archivo.</li>
+<li>Descartas cambios, revisas versiones anteriores y fusionas ramas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-ramas-e-historial">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-git-en-vscode.html">← Git en VS Code - inicializar un repositorio, ver cambios, hacer commits y leer diferencias</a><a href="vscode-git-con-el-equipo.html">Git con el equipo - repositorio remoto, push, pull, pull requests y conflictos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
