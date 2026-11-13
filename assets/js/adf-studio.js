@@ -456,9 +456,16 @@
     if (!F()) {
       // sin fábrica (o con un nombre que no existe): se ofrecen las que hay o crear una de práctica en un clic
       const todas = Object.keys(az().adf || {});
-      main.innerHTML = `<div class="adf"><div class="adf-top"><span class="adf-marca">Azure Data Factory</span></div><div class="adf-vacio"><h2>${fabrica ? `No se encontró el data factory "${esc(fabrica)}"` : 'Elige un data factory'}</h2>
-        ${todas.length ? `<p>Tus data factories:</p><p>${todas.map((n) => `<a class="adf-btn" href="#/azure/studio/${encodeURIComponent(n)}" style="margin:4px">${esc(n)}</a>`).join('')}</p>` : '<p>Todavía no creaste ningún data factory. En Azure real se crea desde el portal (Create a resource → Data Factory); aquí puedes hacerlo así o empezar con uno de práctica.</p>'}
-        <p><button class="adf-btn primario" id="adfDemo">Crear un data factory de práctica</button> <a class="adf-btn" href="#/azure/servicio/adf">Ir al portal de Azure</a></p></div></div>`;
+      const sub = (az().subscription || {}).name || 'Suscripción de práctica';
+      main.innerHTML = `<div class="adf"><div class="adf-top"><span class="adf-marca">Azure Data Factory</span></div><div class="adf-sel-fondo"><div class="adf-sel" role="dialog" aria-label="Select a data factory">
+        <h2>${fabrica ? `No se encontró el data factory "${esc(fabrica)}"` : 'Select a data factory'}</h2>
+        <label class="adf-campo"><span>Microsoft Entra directory</span><select disabled><option>ACADEMIA (Default Directory)</option></select></label>
+        <label class="adf-campo"><span>Azure subscription name</span><select disabled><option>${esc(sub)}</option></select></label>
+        <label class="adf-campo"><span>Data factory name *</span><select id="adfElegir">${todas.length ? todas.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join('') : '<option value="">(no hay data factories en esta suscripción)</option>'}</select></label>
+        ${todas.length ? '' : '<p class="adf-dim">Todavía no creaste ningún data factory. En Azure real se crea desde el portal (Create a resource → Data Factory); aquí puedes hacerlo así o empezar con uno de práctica.</p>'}
+        <div class="adf-sel-pie"><button class="adf-btn primario" id="adfSeguir" ${todas.length ? '' : 'disabled'}>Continue</button><button class="adf-btn" id="adfDemo">Crear uno de práctica</button><a class="adf-btn" href="#/azure/servicio/adf">Ir al portal de Azure</a></div>
+      </div></div></div>`;
+      const seguir = main.querySelector('#adfSeguir'); if (seguir) seguir.onclick = () => { const n = main.querySelector('#adfElegir').value; if (n) location.hash = '#/azure/studio/' + encodeURIComponent(n); };
       main.querySelector('#adfDemo').addEventListener('click', () => {
         const s = az(); let n = 'adf-practica', i = 2; while (s.adf[n]) n = 'adf-practica-' + i++;
         s.groups = s.groups || {}; const rg = Object.keys(s.groups)[0] || 'rg-practica';

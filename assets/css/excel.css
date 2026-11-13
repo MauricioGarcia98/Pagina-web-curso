@@ -6,7 +6,7 @@ body.xl-abierto { overflow: hidden; }
   position: fixed; inset: 0; z-index: 900; display: flex; flex-direction: column; background: var(--bg); color: var(--t); color-scheme: light;
   font: 13px/1.35 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
 }
-:root[data-theme="dark"] .xlp { --t: #f3f2f1; --t2: #c8c6c4; --bd: #3b3a39; --bd2: #605e5c; --bg: #1f1f1f; --bg2: #292827; --bg3: #252423; --grid: #3b3a39; --ac: #4caf7a; --ac-bg: #173a27; --sel: rgba(76, 175, 122, .18); --err: #ff8a8a; color-scheme: dark; }
+:root[data-theme="dark"] .xlp:not(.xl-claro), .xlp.xl-oscuro { --t: #f3f2f1; --t2: #c8c6c4; --bd: #3b3a39; --bd2: #605e5c; --bg: #1f1f1f; --bg2: #292827; --bg3: #252423; --grid: #3b3a39; --ac: #4caf7a; --ac-bg: #173a27; --sel: rgba(76, 175, 122, .18); --err: #ff8a8a; color-scheme: dark; }
 .xlp * { box-sizing: border-box; }
 .xlp button, .xlp select, .xlp input { font: inherit; color: inherit; }
 .xl-sp { flex: 1; }
@@ -14,7 +14,7 @@ body.xl-abierto { overflow: hidden; }
 .xl-titulo { height: 34px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: var(--ac); color: #fff; }
 .xl-titulo .xl-dim { color: rgba(255,255,255,.8); }
 .xl-marca { width: 20px; height: 20px; border-radius: 3px; background: #fff; color: var(--ac); font-weight: 700; display: grid; place-items: center; font-size: 12px; }
-:root[data-theme="dark"] .xl-titulo { background: #0e5c31; }
+:root[data-theme="dark"] .xlp:not(.xl-claro) .xl-titulo, .xlp.xl-oscuro .xl-titulo { background: #0e5c31; }
 .xl-volver { color: #fff; text-decoration: none; font-size: 12px; padding: 3px 8px; border-radius: 3px; }
 .xl-volver:hover { background: rgba(255,255,255,.15); }
 .xl-tabs { display: flex; gap: 2px; padding: 0 8px; background: var(--bg2); flex: none; }

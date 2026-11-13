@@ -100,7 +100,7 @@
       <footer class="xl-pie"><div class="xl-hojas" id="xlHojas"></div><div class="xl-estado" id="xlEstado"></div></footer>
       <div class="xl-pop" id="xlPop" hidden></div><div class="xl-modal" id="xlModal" hidden></div><input type="file" id="xlCsv" accept=".csv,.txt" hidden>
     </div>`;
-    pintarTabs(); pintarCinta(); pintarHojas(); calcularFiltro(); pintarGrilla(); pintarGraficos(); actualizarBarra(); estado();
+    aplicarTema(); pintarTabs(); pintarCinta(); pintarHojas(); calcularFiltro(); pintarGrilla(); pintarGraficos(); actualizarBarra(); estado();
     const hj = $('#xlHoja');
     hj.addEventListener('scroll', () => pintarGrilla());
     hj.addEventListener('mousedown', mouseDown); document.addEventListener('mousemove', mouseMove); document.addEventListener('mouseup', mouseUp);
@@ -117,6 +117,7 @@
     hj.focus();
   }
   const $ = (s) => main.querySelector(s);
+  function aplicarTema() { const r = main && main.querySelector('#xlp'); if (!r) return; const t = S().tema || 'system'; r.classList.toggle('xl-oscuro', t === 'dark'); r.classList.toggle('xl-claro', t === 'light'); }
 
   function pintarTabs() { $('#xlTabs').innerHTML = ['File', 'Home', 'Insert', 'Formulas', 'Data', 'View'].map((t) => `<button class="xl-tab${t === pestaña ? ' on' : ''}" data-tab="${t}">${t}</button>`).join(''); }
   const icx = (a, alt) => (window.IconosOficiales && window.IconosOficiales.excel(a) ? window.IconosOficiales.excel(a, 22) : alt);
@@ -125,7 +126,7 @@
   function pintarCinta() {
     const c = $('#xlCinta'); const H = hoja(); const cel = H.celdas[X().dir(sel.c, sel.f)] || {};
     const cintas = {
-      File: grupo('Archivo', boton('csv-exportar', '⭳', 'Export CSV', 'Descarga la hoja activa como CSV') + boton('csv-importar', '⭱', 'Open CSV', 'Abre un archivo CSV en una hoja nueva') + boton('reiniciar', '↺', 'New workbook', 'Empieza un libro nuevo (borra el actual)')) + grupo('Curso', boton('salir', '←', 'Volver al curso')),
+      File: grupo('Office Theme', `<select class="xl-sel" id="xlTema" title="Office Theme">${[['system', 'Use system setting'], ['light', 'White'], ['dark', 'Black']].map(([v, t]) => `<option value="${v}"${(S().tema || 'system') === v ? ' selected' : ''}>${t}</option>`).join('')}</select>`) + grupo('Archivo', boton('csv-exportar', '⭳', 'Export CSV', 'Descarga la hoja activa como CSV') + boton('csv-importar', '⭱', 'Open CSV', 'Abre un archivo CSV en una hoja nueva') + boton('reiniciar', '↺', 'New workbook', 'Empieza un libro nuevo (borra el actual)')) + grupo('Curso', boton('salir', '←', 'Volver al curso')),
       Home: grupo('Clipboard', boton('copiar', '⧉', 'Copy', 'Ctrl+C') + boton('cortar', '✂', 'Cut', 'Ctrl+X') + boton('pegar', '📋', 'Paste', 'Ctrl+V')) +
         grupo('Font', `<button class="xl-b sq${cel.b ? ' on' : ''}" data-a="negrita" title="Bold (Ctrl+B)">${icx('negrita', '<b>B</b>')}</button>`) +
         grupo('Alignment', ['left', 'center', 'right'].map((al) => `<button class="xl-b sq${cel.al === al ? ' on' : ''}" data-a="al-${al}" title="Align ${al}">${icx('al-' + al, { left: '⯇≡', center: '≡', right: '≡⯈' }[al])}</button>`).join('')) +
@@ -137,6 +138,7 @@
       View: grupo('Show', `<button class="xl-b${verFormulas ? ' on' : ''}" data-a="ver-formulas"><span class="xl-bi">${icx('ver-formulas', 'ƒ')}</span><span>Formulas</span></button>`) + grupo('Ayuda', boton('leccion', '📘', 'Lección', 'Excel por dentro') + boton('atajos', '⌨', 'Shortcuts')),
     };
     c.innerHTML = cintas[pestaña] || '';
+    const tm = c.querySelector('#xlTema'); if (tm) tm.onchange = () => { S().tema = tm.value; guardar(); aplicarTema(); };
     const f = c.querySelector('#xlFmt'); if (f) f.onchange = () => { aplicarARango((cel0) => ({ ...cel0, fmt: f.value || undefined })); evento('formato'); };
   }
   function pintarHojas() {

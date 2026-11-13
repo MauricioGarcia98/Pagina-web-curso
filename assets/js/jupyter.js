@@ -125,7 +125,7 @@
     if (!j.tabs.includes(j.activo)) j.activo = j.tabs[0];
     K().alCambiar = () => estado();
     main.innerHTML = `<div class="jlp" id="jlp">
-      <header class="jl-menu"><span class="jl-marca" title="JupyterLab de práctica (no es el producto oficial)"><i></i><i></i><i></i></span>${['File', 'Edit', 'View', 'Run', 'Kernel', 'Tabs', 'Help'].map((x) => `<button class="jl-mi" data-menu="${x}">${x}</button>`).join('')}<span class="jl-sp"></span><span class="jl-tag">práctica</span><a class="jl-volver" href="#/herramientas">${ic('curso', 14)} Curso</a></header>
+      <header class="jl-menu"><span class="jl-marca" title="JupyterLab de práctica (no es el producto oficial)"><i></i><i></i><i></i></span>${['File', 'Edit', 'View', 'Run', 'Kernel', 'Tabs', 'Settings', 'Help'].map((x) => `<button class="jl-mi" data-menu="${x}">${x}</button>`).join('')}<span class="jl-sp"></span><span class="jl-tag">práctica</span><a class="jl-volver" href="#/herramientas">${ic('curso', 14)} Curso</a></header>
       <div class="jl-cuerpo">
         <nav class="jl-side">${[['archivos', 'File Browser (Ctrl+Shift+F)'], ['corriendo', 'Running Terminals and Kernels'], ['toc', 'Table of Contents']].map(([id, t]) => `<button class="jl-sb${panel === id ? ' on' : ''}" data-panel="${id}" title="${t}">${ic(id, 20)}</button>`).join('')}</nav>
         <aside class="jl-panel" id="jlPanel"></aside>
@@ -140,8 +140,10 @@
     root.addEventListener('contextmenu', menuContexto);
     document.removeEventListener('keydown', teclas); document.addEventListener('keydown', teclas);
     if (window.innerWidth < 760) root.querySelector('#jlPanel').classList.add('oculto');
+    aplicarTema();
     pintarPanel(); pintarTabs(); pintarArea(); estado();
   }
+  function aplicarTema() { const r = main && main.querySelector('#jlp'); if (!r) return; const t = S().tema || 'system'; r.classList.toggle('jl-oscuro', t === 'dark'); r.classList.toggle('jl-claro', t === 'light'); }
   const $ = (s) => main.querySelector(s);
   const activo = () => S().activo;
 
@@ -537,7 +539,7 @@
     View: [['numeros', 'Show Line Numbers', 'Shift+L'], ['panel-izq', 'Show Left Sidebar', 'Ctrl+B'], ['ver-toc', 'Table of Contents']],
     Run: [['correr', 'Run Selected Cell', 'Shift+Enter'], ['correr-quedar', 'Run Selected Cell and Do not Advance', 'Ctrl+Enter'], ['correr-insertar', 'Run Selected Cell and Insert Below', 'Alt+Enter'], '-', ['correr-arriba', 'Run All Above Selected Cell'], ['correr-todo', 'Run All Cells'], ['reiniciar-todo', 'Restart Kernel and Run All Cells…']],
     Kernel: [['parar', 'Interrupt Kernel', 'I, I'], ['reiniciar', 'Restart Kernel…', '0, 0'], ['reiniciar-limpiar', 'Restart Kernel and Clear Outputs of All Cells…'], ['reiniciar-todo', 'Restart Kernel and Run All Cells…'], '-', ['apagar', 'Shut Down All Kernels…']],
-    Tabs: [], Help: [['atajos', 'Show Keyboard Shortcuts'], ['leccion', 'Lección: JupyterLab por dentro'], ['acerca', 'About JupyterLab de práctica']],
+    Tabs: [], Settings: [['tema-light', 'Theme: JupyterLab Light'], ['tema-dark', 'Theme: JupyterLab Dark'], ['tema-system', 'Theme: Synchronize with System Settings'], '-', ['numeros', 'Show Line Numbers'], ['atajos', 'Settings Editor (atajos)']], Help: [['atajos', 'Show Keyboard Shortcuts'], ['leccion', 'Lección: JupyterLab por dentro'], ['acerca', 'About JupyterLab de práctica']],
   };
   function accion(a, extra) {
     const r = activo(); const st = NBS[r];
@@ -574,6 +576,7 @@
       case 'reiniciar-limpiar': return confirmar('Restart Kernel?', 'Do you want to restart the kernel and clear all output? All variables will be lost.', () => reiniciarKernel(st ? r : null, { limpiar: true }));
       case 'reiniciar-todo': return enNb(() => confirmar('Restart Kernel?', 'Do you want to restart the current kernel and re-execute the whole notebook? All variables and outputs will be lost.', () => reiniciarKernel(r, { limpiar: true, todo: true })));
       case 'apagar': vaciarCola(); K().reiniciar().then(() => { toast('Kernel apagado (las variables se borraron)'); pintarPanel(); }); return;
+      case 'tema-light': case 'tema-dark': case 'tema-system': S().tema = a.slice(5); guardar(); aplicarTema(); return;
       case 'atajos': return atajos();
       case 'leccion': location.hash = '#/l/interfaces-jupyterlab-por-dentro'; return;
       case 'acerca': toast('JupyterLab de práctica: una réplica para aprender, con Python en tu navegador. No es el producto oficial del Proyecto Jupyter.'); return;
