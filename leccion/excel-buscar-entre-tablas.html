@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buscar entre tablas - XLOOKUP, VLOOKUP, INDEX con MATCH y el error #N/A · Academia de Datos</title><meta name="description" content="Unir dos tablas por una clave es lo que más se hace con datos, en Excel y en SQL. Cómo traer el país del cliente a cada pedido con XLOOKUP, qué hace VLOOKUP y por qué falla cuando insertas columnas, la combinación INDEX/MATCH, cómo leer y tratar #N/A, y cómo comprobar que la búsqueda no perdió filas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-buscar-entre-tablas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Buscar entre tablas - XLOOKUP, VLOOKUP, INDEX con MATCH y el error #N/A · Academia de Datos"><meta property="og:description" content="Unir dos tablas por una clave es lo que más se hace con datos, en Excel y en SQL. Cómo traer el país del cliente a cada pedido con XLOOKUP, qué hace VLOOKUP y por qué falla cuando insertas columnas, la combinación INDEX/MATCH, cómo leer y tratar #N/A, y cómo comprobar que la búsqueda no perdió filas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-buscar-entre-tablas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 4 · Intermedio-avanzado · 50 min</div>
+<h1>Buscar entre tablas - XLOOKUP, VLOOKUP, INDEX con MATCH y el error #N/A</h1><p class="resumen">Unir dos tablas por una clave es lo que más se hace con datos, en Excel y en SQL. Cómo traer el país del cliente a cada pedido con XLOOKUP, qué hace VLOOKUP y por qué falla cuando insertas columnas, la combinación INDEX/MATCH, cómo leer y tratar #N/A, y cómo comprobar que la búsqueda no perdió filas.</p>
+<a class="cta" href="../index.html#/l/excel-buscar-entre-tablas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Traer datos de otra tabla con XLOOKUP</li><li>Leer y escribir un VLOOKUP con coincidencia exacta</li><li>Buscar con INDEX y MATCH</li><li>Tratar los #N/A con el cuarto argumento de XLOOKUP o IFNA</li><li>Verificar una búsqueda contando los no encontrados</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Buscar es como usar una agenda: tienes el <strong>número de cliente</strong> en el pedido y quieres su <strong>país</strong>. Vas a la tabla de clientes, buscas ese número en la columna de ids y lees el país en la misma fila. XLOOKUP hace eso mismo, para 12.000 pedidos en un segundo.</p>
+</div>
+
+
+<h2>Paso 1 — Una búsqueda en la misma hoja</h2>
+<p>En la hoja <strong>pedidos</strong>: <strong>¿por qué canal entró el pedido número 5?</strong></p>
+<ol>
+<li>En <strong>I3</strong> escribe <code>Canal del pedido 5</code>.</li>
+<li>En <strong>J3</strong> escribe <code>=XLOOKUP(5,A:A,F:F,&quot;no está&quot;)</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/03-xlookup.webp" alt="XLOOKUP (1) busca el 5 en la columna A y devuelve lo de la columna F (2)" loading="lazy"><figcaption>XLOOKUP (1) busca el 5 en la columna A y devuelve lo de la columna F (2)</figcaption></figure>
+
+
+<pre><code class="language-text">=XLOOKUP(qué_busco, dónde_lo_busco, qué_devuelvo, [si_no_lo_encuentra])</code></pre>
+<p>Se lee: &quot;buscá <strong>5</strong> en <strong>A:A</strong>, y devolvé lo que está en la misma fila de <strong>F:F</strong>; si no lo encontrás, poné <em>no está</em>&quot;.</p>
+<h2>Paso 2 — Unir dos tablas: el país del cliente</h2>
+<p>Cada pedido tiene un <strong>cliente_id</strong> (columna B), pero el país está en la tabla <strong>clientes</strong>.</p>
+<ol>
+<li>Carga <strong>clientes</strong> si no la tienes (Data → Get Data → clientes). Su columna <strong>A</strong> es cliente_id y la <strong>G</strong> es pais.</li>
+<li>Vuelve a <strong>pedidos</strong>. En <strong>O1</strong> escribe <code>pais_cliente</code>.</li>
+<li>En <strong>O2</strong> escribe:</li>
+</ol>
+<pre><code class="language-text">=XLOOKUP(B2,clientes!A:A,clientes!G:G,&quot;sin cliente&quot;)</code></pre>
+<ol start="4">
+<li>Cópiala hacia abajo (selecciona <strong>O2:O8</strong> y Ctrl + D para probar).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e13-xlookup-hojas.webp" alt="XLOOKUP entre hojas (1): cada pedido trae el país de su cliente (2)" loading="lazy"><figcaption>XLOOKUP entre hojas (1): cada pedido trae el país de su cliente (2)</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Es un JOIN</div>
+
+<p>Esto es exactamente un <code>LEFT JOIN</code> de SQL: cada pedido busca su cliente; si no lo encuentra, queda &quot;sin cliente&quot;.</p>
+<pre><code class="language-sql">SELECT p.*, c.pais AS pais_cliente
+FROM pedidos p LEFT JOIN clientes c ON c.cliente_id = p.cliente_id;</code></pre>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Copiar a 12.000 filas</div>
+
+<p>Para llenar toda la columna: escribe <code>O2:O12001</code> en el cuadro de nombres y Enter (queda seleccionado el rango), y presiona <strong>Ctrl + D</strong>. Con miles de búsquedas la hoja tarda unos segundos en recalcular: es normal.</p>
+</div>
+
+
+<h2>Paso 3 — VLOOKUP, la clásica</h2>
+<p>Vas a encontrar <code>VLOOKUP</code> en casi todos los archivos de las empresas. Hace lo mismo con otra forma:</p>
+<pre><code class="language-text">=VLOOKUP(qué_busco, tabla, número_de_columna, FALSE)
+=VLOOKUP(B2, clientes!A:J, 7, FALSE)</code></pre>
+<ul>
+<li>Busca <strong>siempre en la primera columna</strong> de la tabla (A).</li>
+<li>Devuelve la columna número <strong>7</strong> contando desde la primera (G = pais).</li>
+<li><strong>FALSE</strong> pide coincidencia exacta. Si lo omites, VLOOKUP hace una coincidencia aproximada y puede devolver el país de <strong>otro</strong> cliente sin avisar.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>XLOOKUP</th>
+<th>VLOOKUP</th>
+</tr>
+</thead><tbody><tr>
+<td>Busca a la izquierda</td>
+<td>Sí</td>
+<td>No (solo en la primera columna)</td>
+</tr>
+<tr>
+<td>Si insertas una columna en medio</td>
+<td>Sigue bien</td>
+<td>El número 7 queda apuntando a otra columna</td>
+</tr>
+<tr>
+<td>Exacta por defecto</td>
+<td>Sí</td>
+<td>No: hay que poner FALSE</td>
+</tr>
+<tr>
+<td>Valor si no encuentra</td>
+<td>4.º argumento</td>
+<td>Hay que envolverla en IFNA</td>
+</tr>
+<tr>
+<td>Disponible en</td>
+<td>Excel 2021, 365 y la web</td>
+<td>Todas las versiones</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — El error #N/A</h2>
+<ol>
+<li>En <strong>I4</strong> escribe <code>Pedido 999999</code> y en <strong>J4</strong>: <code>=VLOOKUP(999999,A:F,6,FALSE)</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/03-error-na.webp" alt="#N/A significa &quot;no se encontró&quot;" loading="lazy"><figcaption>#N/A significa &quot;no se encontró&quot;</figcaption></figure>
+
+
+<p><code>#N/A</code> no es un fallo de la fórmula: es la respuesta &quot;<strong>no existe</strong>&quot;. Para mostrar otra cosa:</p>
+<pre><code class="language-text">=IFNA(VLOOKUP(999999,A:F,6,FALSE),&quot;no existe&quot;)</code></pre>
+<p>Prefiere <code>IFNA</code> a <code>IFERROR</code> en búsquedas: IFNA solo tapa el &quot;no encontrado&quot;; IFERROR taparía también un <code>#REF!</code> por una tabla mal escrita.</p>
+<h2>Paso 5 — INDEX con MATCH</h2>
+<p>Antes de XLOOKUP, la forma flexible de buscar era combinar dos funciones:</p>
+<ul>
+<li><code>MATCH(qué, dónde, 0)</code> devuelve la <strong>posición</strong> (fila) donde está el valor.</li>
+<li><code>INDEX(columna, posición)</code> devuelve el valor de esa posición.</li>
+</ul>
+<pre><code class="language-text">=INDEX(clientes!G:G, MATCH(B2, clientes!A:A, 0))</code></pre>
+<p>Da lo mismo que el XLOOKUP del paso 2. Vale la pena reconocerla porque aparece en muchos archivos heredados, y funciona en cualquier versión de Excel.</p>
+<h2>Paso 6 — Verifica la búsqueda</h2>
+<p>Una unión que pierde filas en silencio es un error grave. Después de buscar, controla:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Fórmula</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Cuántos no encontraron cliente?</td>
+<td><code>=COUNTIF(O:O,&quot;sin cliente&quot;)</code></td>
+</tr>
+<tr>
+<td>¿Cuántas filas tiene la columna?</td>
+<td><code>=COUNTA(O:O)-1</code> (debe ser igual a las filas de pedidos)</td>
+</tr>
+<tr>
+<td>¿Hay ids de cliente repetidos en clientes?</td>
+<td><code>=COUNTIF(clientes!A:A,B2)</code> debe dar 1</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La clave repetida</div>
+
+<p>Si un cliente_id aparece <strong>dos veces</strong> en la tabla de clientes, XLOOKUP devuelve el primero y no avisa. En SQL, el JOIN duplicaría el pedido. Por eso, antes de unir, se verifica que la clave sea única en la tabla que buscas (nivel 4, lección de limpieza).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Uniste dos tablas por una clave con XLOOKUP.</li>
+<li>Sabes leer VLOOKUP e INDEX/MATCH, y sus trampas.</li>
+<li>Sabes tratar #N/A y verificar que la unión no perdió filas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-buscar-entre-tablas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-proyecto-reporte-comercial.html">← Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024</a><a href="excel-ordenar-y-filtrar.html">Ordenar y filtrar - ver solo lo que importa sin romper la tabla →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

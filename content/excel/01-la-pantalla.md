@@ -1,7 +1,7 @@
 ---
 titulo: Excel desde cero - la pantalla, las celdas y tu primer libro
-nivel: Básico
-duracion: 30
+nivel: 1 · Básico
+duracion: 35
 resumen: Primer contacto con Excel, paso a paso y con capturas. Qué es cada parte de la pantalla (pestañas, cinta de opciones, cuadro de nombres, barra de fórmulas, grilla, hojas y barra de estado), cómo se llama cada celda y cómo seleccionar celdas y rangos con el mouse y con el teclado.
 objetivos: Reconocer las seis partes de la pantalla de Excel | Nombrar una celda (B3) y un rango (A1:D6) | Seleccionar celdas y rangos con mouse y teclado | Leer la barra de estado para ver sumas y promedios sin escribir fórmulas
 prerrequisitos: fundamentos-bienvenida
@@ -10,6 +10,8 @@ autoevaluacion: ¿Sabes dónde se ve el nombre de la celda activa? | ¿Sabes qu�
 
 :::tip Cómo usar este curso
 Abre [Excel de práctica](#/excel) en otra pestaña (o en otra ventana al lado) y haz cada paso a medida que lo lees. Las capturas son de esa misma app: lo que ves aquí es lo que vas a ver allá. Todo se guarda en tu navegador; si te equivocas, **File → New workbook** empieza de cero.
+
+El curso tiene **24 lecciones en 6 niveles**. Cada nivel termina con un **proyecto real**, y cada proyecto te da un poco menos de ayuda que el anterior: el del nivel 1 va paso a paso; el del nivel 6 es un pedido de trabajo con entregables y una rúbrica, sin instrucciones. Los nombres de menús y funciones están en inglés, igual que en el Excel que vas a encontrar en la mayoría de las empresas.
 :::
 
 :::analogia En palabras simples

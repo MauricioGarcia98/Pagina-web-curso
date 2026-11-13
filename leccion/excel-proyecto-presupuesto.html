@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 1 (guiado paso a paso) - el presupuesto de una jornada de capacitación · Academia de Datos</title><meta name="description" content="Primer proyecto real. Tu área organiza una jornada para 40 personas y te piden el presupuesto en Excel. Armas la tabla, escribes tus primeras cuentas (cantidad por precio y un total), le das formato, la revisas con una lista de control y la entregas en CSV. Con cada paso explicado y capturas, y la versión para hacerlo en Excel real."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-presupuesto.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 1 (guiado paso a paso) - el presupuesto de una jornada de capacitación · Academia de Datos"><meta property="og:description" content="Primer proyecto real. Tu área organiza una jornada para 40 personas y te piden el presupuesto en Excel. Armas la tabla, escribes tus primeras cuentas (cantidad por precio y un total), le das formato, la revisas con una lista de control y la entregas en CSV. Con cada paso explicado y capturas, y la versión para hacerlo en Excel real."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-presupuesto.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 1 · Básico · 45 min</div>
+<h1>Proyecto 1 (guiado paso a paso) - el presupuesto de una jornada de capacitación</h1><p class="resumen">Primer proyecto real. Tu área organiza una jornada para 40 personas y te piden el presupuesto en Excel. Armas la tabla, escribes tus primeras cuentas (cantidad por precio y un total), le das formato, la revisas con una lista de control y la entregas en CSV. Con cada paso explicado y capturas, y la versión para hacerlo en Excel real.</p>
+<a class="cta" href="../index.html#/l/excel-proyecto-presupuesto">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Pasar un pedido de trabajo a una tabla con encabezados claros</li><li>Escribir una multiplicación y un total con AutoSum</li><li>Dar formato profesional (negrita, moneda, anchos)</li><li>Revisar con una lista de control y entregar el archivo</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de tu jefa: <em>&quot;El jueves 20 hacemos la jornada de capacitación para 40 personas. Necesito el presupuesto en Excel: catering para todos (18 por persona), el alquiler del salón (450), el sonido (220) y una remera para cada asistente (9,50 cada una). Mandámelo hoy así lo aprueba finanzas.&quot;</em></p>
+</div>
+
+
+<p>Este proyecto es <strong>guiado paso a paso</strong>: cada paso dice exactamente qué hacer. En los próximos niveles vas a recibir cada vez menos instrucciones.</p>
+<h2>Paso 1 — Antes de abrir Excel: ¿qué columnas necesito?</h2>
+<p>Lee el pedido y separa lo que se repite en cada renglón:</p>
+<ul>
+<li>Cada cosa a comprar es un <strong>ítem</strong> (catering, salón, sonido, remeras).</li>
+<li>Cada ítem tiene una <strong>cantidad</strong> (40 personas, 1 salón…).</li>
+<li>Cada ítem tiene un <strong>precio unitario</strong>.</li>
+<li>Lo que vas a calcular es el <strong>subtotal</strong> = cantidad × precio.</li>
+</ul>
+<p>Esas cuatro son las columnas. Al final, una fila de <strong>Total</strong>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 La regla de oro de las tablas</div>
+
+<p>Una fila por cosa, una columna por dato, y los encabezados en la fila 1. Si respetas esto desde el principio, todo lo que viene (filtros, tablas dinámicas, gráficos) funciona solo.</p>
+</div>
+
+
+<h2>Paso 2 — Prepara la hoja</h2>
+<ol>
+<li>Abre <a href="#/excel">Excel de práctica</a>.</li>
+<li>Presiona <strong>+</strong> abajo para crear una hoja nueva.</li>
+<li>Doble clic en la pestaña → escribe <code>Presupuesto</code> → <strong>OK</strong>.</li>
+</ol>
+<h2>Paso 3 — Escribe la tabla</h2>
+<p>Escribe exactamente esto (usa <strong>Tab</strong> para ir a la derecha y <strong>Enter</strong> al final de cada fila):</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Ítem</td>
+<td>Cantidad</td>
+<td>Precio unitario</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Catering</td>
+<td>40</td>
+<td>18</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Alquiler del salón</td>
+<td>1</td>
+<td>450</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Sonido</td>
+<td>1</td>
+<td>220</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Remeras</td>
+<td>40</td>
+<td>9.5</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Total</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<p>En <strong>D1</strong> escribe <code>Subtotal</code>.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los números sin símbolos</div>
+
+<p>Escribe <code>9.5</code>, no <code>$9,50</code>. El signo de moneda se agrega después con formato. Si lo escribes a mano, Excel puede tomarlo como texto y no va a multiplicar.</p>
+</div>
+
+
+<h2>Paso 4 — Tu primera cuenta: cantidad × precio</h2>
+<ol>
+<li>Haz clic en <strong>D2</strong>.</li>
+<li>Escribe <code>=B2*C2</code> y presiona <strong>Enter</strong>. Aparece <strong>720</strong>.</li>
+</ol>
+<p>Qué significa: el <code>=</code> le avisa a Excel que viene una cuenta; <code>B2*C2</code> es &quot;lo que hay en B2 multiplicado por lo que hay en C2&quot;. El asterisco <code>*</code> es la multiplicación.</p>
+<ol start="3">
+<li>Repite en las filas siguientes:<ul>
+<li><strong>D3</strong>: <code>=B3*C3</code></li>
+<li><strong>D4</strong>: <code>=B4*C4</code></li>
+<li><strong>D5</strong>: <code>=B5*C5</code></li>
+</ul>
+</li>
+</ol>
+<p>(En el nivel 2 vas a aprender a copiar una fórmula a cien filas de una vez.)</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Comprueba que es una receta</div>
+
+<p>Cambia la cantidad de <strong>B2</strong> de 40 a 45: el subtotal de D2 se actualiza solo. Vuelve a dejarlo en 40.</p>
+</div>
+
+
+<h2>Paso 5 — El total con AutoSum</h2>
+<ol>
+<li>Haz clic en <strong>D6</strong>.</li>
+<li>Presiona <strong>Alt + =</strong> (o Home → <strong>AutoSum</strong>). Excel propone <code>=SUM(D2:D5)</code>.</li>
+<li>Presiona <strong>Enter</strong>. El total es <strong>1770</strong>.</li>
+</ol>
+<h2>Paso 6 — Formato profesional</h2>
+<ol>
+<li>Selecciona <strong>A1:D1</strong> → <strong>Ctrl + B</strong> (negrita).</li>
+<li>Selecciona <strong>C2:D6</strong> → Home → Number → <strong>Currency</strong>.</li>
+<li>Ensancha la columna <strong>A</strong> para que entre &quot;Alquiler del salón&quot; (arrastra el borde entre A y B).</li>
+<li>Pon en negrita la fila del total: selecciona <strong>A6:D6</strong> → Ctrl + B.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e04-presupuesto.webp" alt="El presupuesto terminado: total $1,770.00" loading="lazy"><figcaption>El presupuesto terminado: total $1,770.00</figcaption></figure>
+
+
+<h2>Paso 7 — Revisa antes de entregar</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Hay un subtotal por cada ítem y ninguno está vacío.</li>
+<li><input disabled="" type="checkbox"> El total es <strong>$1,770.00</strong>.</li>
+<li><input disabled="" type="checkbox"> Al cambiar una cantidad, cambia el subtotal y el total (las cuentas son fórmulas, no números escritos a mano).</li>
+<li><input disabled="" type="checkbox"> Los encabezados están en negrita y los importes con formato de moneda.</li>
+<li><input disabled="" type="checkbox"> La hoja se llama <code>Presupuesto</code>, no <code>Sheet2</code>.</li>
+</ul>
+<h2>Paso 8 — Entrega</h2>
+<ol>
+<li>Pestaña <strong>File</strong> → <strong>Export CSV</strong>. Se descarga la hoja activa.</li>
+<li>Renombra el archivo a algo que cualquiera entienda: <code>presupuesto_jornada_capacitacion.csv</code>.</li>
+<li>Escribe el mensaje de entrega en dos líneas: <em>&quot;Te paso el presupuesto de la jornada: total $1.770. El 62 % es catering y remeras, que dependen de la cantidad de asistentes; si confirman menos personas, baja.&quot;</em></li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 Por qué el mensaje importa</div>
+
+<p>Quien recibe el archivo no tiene tiempo de abrirlo para entender qué le mandaste. Dos líneas con el número principal y una observación útil (qué parte depende de qué) hacen que tu trabajo se use.</p>
+</div>
+
+
+<h2>🖥️ Hazlo también en Excel real</h2>
+<p>Repite el proyecto en Excel de verdad para comprobar que todo funciona igual:</p>
+<ul>
+<li><strong>Excel para la web</strong> es gratis con una cuenta personal de Microsoft (office.com → Excel → Blank workbook). La cinta y los nombres son los mismos que en la práctica.</li>
+<li>Si tu Excel está en español, los menús cambian de nombre (<strong>Inicio</strong> en lugar de Home, <strong>Autosuma</strong> en lugar de AutoSum) y las funciones también (<code>SUMA</code> en lugar de <code>SUM</code>). Las fórmulas con <code>*</code> y referencias como <code>B2</code> son idénticas.</li>
+<li>En Excel real se guarda como <code>.xlsx</code> (File → Save As / Download a copy). El CSV solo guarda los valores, sin formato ni fórmulas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-proyecto-presupuesto">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-hojas-filas-formato.html">← Hojas, columnas y formato - ordenar el libro para que otros lo entiendan</a><a href="excel-formulas-y-operadores.html">Fórmulas y operadores - cómo calcula Excel, en qué orden y por qué se recalcula solo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

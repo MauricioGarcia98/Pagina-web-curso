@@ -99,11 +99,13 @@
     if (typeof c === 'number' || typeof c === 'boolean') return (v) => cmp(v, c) === 0 && !vacio(v);
     const s = String(c ?? ''); const m = /^(<=|>=|<>|<|>|=)?(.*)$/.exec(s); const op = m[1] || '='; const r = m[2];
     const n = r !== '' && !isNaN(Number(r)) ? Number(r) : null;
-    if (n !== null) return (v) => { if (vacio(v) && op !== '<>') return false; let x = v; if (typeof x === 'string' && x.trim() !== '' && !isNaN(Number(x))) x = Number(x); if (typeof x !== 'number') return op === '<>'; return { '=': x === n, '<>': x !== n, '<': x < n, '>': x > n, '<=': x <= n, '>=': x >= n }[op]; };
+    if (n !== null) return (v) => { if (vacio(v) && op !== '<>') return false; let x = v; if (typeof x === 'string' && x.trim() !== '' && !isNaN(Number(x))) x = Number(x); else if (typeof x === 'string') { const fd = fechaDeTexto(x.trim()); if (fd != null) x = fd; } if (typeof x !== 'number') return op === '<>'; return { '=': x === n, '<>': x !== n, '<': x < n, '>': x > n, '<=': x <= n, '>=': x >= n }[op]; };
     if (op === '=' || op === '<>') {
       const re = new RegExp('^' + r.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/~\*/g, '\u0001').replace(/~\?/g, '\u0002').replace(/\*/g, '.*').replace(/\?/g, '.').replace(/\u0001/g, '\\*').replace(/\u0002/g, '\\?') + '$', 'i');
       return op === '=' ? (v) => (r === '' ? vacio(v) : re.test(txt(v))) : (v) => (r === '' ? !vacio(v) : !re.test(txt(v)));
     }
+    const fr = fechaDeTexto(r.trim());
+    if (fr != null) return (v) => { if (vacio(v)) return false; const x = typeof v === 'number' ? v : fechaDeTexto(String(v).trim()); if (x == null) return false; return { '<': x < fr, '>': x > fr, '<=': x <= fr, '>=': x >= fr }[op]; };
     return (v) => { if (vacio(v) || typeof v === 'number') return false; const k = cmp(String(v), r); return { '<': k < 0, '>': k > 0, '<=': k <= 0, '>=': k >= 0 }[op]; };
   }
 
@@ -167,7 +169,15 @@
       let mejor = null; for (const fila of tabla) { if (vacio(fila[0])) continue; if (cmp(fila[0], v) <= 0) mejor = fila; else break; } if (!mejor) throw E.NA; return mejor[k - 1] ?? '';
     },
     HLOOKUP: (ctx, [v, tabla, fila, aprox]) => { if (!Array.isArray(tabla)) throw E.VALUE; const t = tabla[0].map((_, c) => tabla.map((r) => r[c])); return FR.VLOOKUP(ctx, [v, t, fila, aprox]); },
-    XLOOKUP: (ctx, [v, busca, devuelve, siNo]) => { const b = plano(busca); const i = b.findIndex((x) => !vacio(x) && cmp(x, v) === 0); if (i < 0) { if (siNo !== undefined) return siNo; throw E.NA; } const d = Array.isArray(devuelve) ? devuelve : [[devuelve]]; return d.length === 1 ? d[0][i] ?? '' : (d[i] || [])[0] ?? ''; },
+    XLOOKUP: (ctx, [v, busca, devuelve, siNo, modo, sentido]) => {
+      // match_mode: 0 exacta, -1 exacta o la siguiente menor, 1 exacta o la siguiente mayor, 2 comodines; search_mode -1 busca desde el final
+      const b = plano(busca); const mm = modo === undefined || vacio(modo) ? 0 : num(modo); const desdeFin = sentido !== undefined && num(sentido) < 0;
+      const orden = b.map((_, k) => k); if (desdeFin) orden.reverse();
+      let i = -1;
+      if (mm === 2) { const f = criterio(String(v)); i = orden.find((k) => !vacio(b[k]) && f(b[k])) ?? -1; }
+      else { i = orden.find((k) => !vacio(b[k]) && cmp(b[k], v) === 0) ?? -1;
+        if (i < 0 && (mm === -1 || mm === 1)) { let mejor = -1; for (const k of orden) { const x = b[k]; if (vacio(x) || typeof x !== typeof v) continue; const c = cmp(x, v); if ((mm === -1 && c < 0 && (mejor < 0 || cmp(x, b[mejor]) > 0)) || (mm === 1 && c > 0 && (mejor < 0 || cmp(x, b[mejor]) < 0))) mejor = k; } i = mejor; } }
+      if (i < 0) { if (siNo !== undefined) return siNo; throw E.NA; } const d = Array.isArray(devuelve) ? devuelve : [[devuelve]]; return d.length === 1 ? d[0][i] ?? '' : (d[i] || [])[0] ?? ''; },
     MATCH: (ctx, [v, r, tipo]) => { const b = plano(r); const t = tipo === undefined ? 1 : num(tipo); if (t === 0) { const f = typeof v === 'string' ? criterio(v) : (x) => cmp(x, v) === 0; const i = b.findIndex((x) => !vacio(x) && f(x)); if (i < 0) throw E.NA; return i + 1; } let k = -1; for (let i = 0; i < b.length; i++) { if (vacio(b[i])) continue; if (t > 0 ? cmp(b[i], v) <= 0 : cmp(b[i], v) >= 0) k = i; else break; } if (k < 0) throw E.NA; return k + 1; },
     INDEX: (ctx, [r, f, c]) => { if (!Array.isArray(r)) return r; const fi = num(f ?? 1), co = c === undefined ? 1 : num(c); const filas = r.length === 1 && c === undefined ? [r[0].map((x) => x)] : r; if (r.length === 1 && c === undefined) { const v = r[0][fi - 1]; if (v === undefined) throw E.REF; return v; } const fila = filas[fi - 1]; if (!fila || fila[co - 1] === undefined) throw E.REF; return fila[co - 1]; },
     ROWS: (ctx, [r]) => (Array.isArray(r) ? r.length : 1), COLUMNS: (ctx, [r]) => (Array.isArray(r) ? (r[0] || []).length : 1),
@@ -217,8 +227,26 @@
       const h = hojaDe(n.hoja, actual); const a = parseDir(n.a), b = n.b ? parseDir(n.b) : a; if (!a || !b) throw E.REF;
       let c0 = Math.min(a.c, b.c), c1 = Math.max(a.c, b.c), f0 = Math.min(a.f, b.f), f1 = Math.max(a.f, b.f);
       if (n.cols || f1 - f0 > 200000) { f0 = 0; f1 = Math.min(f1, ultimaFila(h)); }
+      // los rangos grandes (columnas enteras) se arman una vez por recálculo: 12.000 búsquedas sobre clientes!A:A no copian 12.000 veces la columna
+      const grande = f1 - f0 > 100; const kr = grande ? h + ':' + c0 + ':' + c1 + ':' + f0 + ':' + f1 : null;
+      if (grande && rangos.has(kr)) return rangos.get(kr);
       const out = []; for (let f = f0; f <= f1; f++) { const fila = []; for (let c = c0; c <= c1; c++) fila.push(valor(h, c, f)); out.push(fila); }
+      if (grande && ![...pila].some((k) => { const [ph, pc, pf] = k.split(':').map(Number); return ph === h && pc >= c0 && pc <= c1 && pf >= f0 && pf <= f1; })) rangos.set(kr, out);
       return out;
+    }
+    const rangos = new Map();
+    function operar(op, a, b) {
+      if (esErr(a)) throw a; if (esErr(b)) throw b;
+      // las fechas de las tablas del curso son textos ISO; en Excel son números: al comparar con un número se convierten
+      if (typeof a === 'number' && typeof b === 'string') { const fd = fechaDeTexto(b.trim()); if (fd != null) b = fd; }
+      else if (typeof b === 'number' && typeof a === 'string') { const fd = fechaDeTexto(a.trim()); if (fd != null) a = fd; }
+      switch (op) {
+        case '+': return num(a) + num(b); case '-': return num(a) - num(b); case '*': return num(a) * num(b);
+        case '/': { const d = num(b); if (d === 0) throw E.DIV0; return num(a) / d; }
+        case '^': return Math.pow(num(a), num(b)); case '&': return txt(a) + txt(b);
+        case '=': return cmp(a, b) === 0; case '<>': return cmp(a, b) !== 0; case '<': return cmp(a, b) < 0; case '>': return cmp(a, b) > 0; case '<=': return cmp(a, b) <= 0; case '>=': return cmp(a, b) >= 0;
+      }
+      throw E.VALUE;
     }
     let ultimaFila = () => 0;
     function evalArgs(args, actual) { return args.map((a) => (a.k === 'vacio' ? undefined : a.k === 'ref' ? (a.b || a.cols ? rango(a, actual) : evalNodo(a, actual)) : evalNodo(a, actual))); }
@@ -229,19 +257,20 @@
         case 'errlit': return ERR(n.v);
         case 'vacio': return null;
         case 'name': throw E.NAME;
-        case 'neg': return -num(evalNodo(n.a, actual));
+        case 'neg': { const v = evalNodo(n.a, actual); return Array.isArray(v) ? v.map((fl) => fl.map((x) => (esErr(x) ? x : -num(x)))) : -num(v); }
         case 'ref': { if (n.b || n.cols) return rango(n, actual); const h = hojaDe(n.hoja, actual); const d = parseDir(n.a); if (!d) throw E.REF; const v = valor(h, d.c, d.f); return v === null ? 0 : v; }
         case 'bin': {
-          let a = evalNodo(n.a, actual), b = evalNodo(n.b, actual);
-          if (Array.isArray(a)) a = a[0] && a[0][0]; if (Array.isArray(b)) b = b[0] && b[0][0];
-          if (esErr(a)) throw a; if (esErr(b)) throw b;
-          switch (n.op) {
-            case '+': return num(a) + num(b); case '-': return num(a) - num(b); case '*': return num(a) * num(b);
-            case '/': { const d = num(b); if (d === 0) throw E.DIV0; return num(a) / d; }
-            case '^': return Math.pow(num(a), num(b)); case '&': return txt(a) + txt(b);
-            case '=': return cmp(a, b) === 0; case '<>': return cmp(a, b) !== 0; case '<': return cmp(a, b) < 0; case '>': return cmp(a, b) > 0; case '<=': return cmp(a, b) <= 0; case '>=': return cmp(a, b) >= 0;
+          const a0 = evalNodo(n.a, actual), b0 = evalNodo(n.b, actual);
+          // como Excel 365: una operación con rangos se aplica celda a celda (B2:B9*C2:C9 da un array)
+          if (Array.isArray(a0) || Array.isArray(b0)) {
+            const A = Array.isArray(a0) ? a0 : [[a0]], B = Array.isArray(b0) ? b0 : [[b0]];
+            const nf = Math.max(A.length, B.length), nc = Math.max(A[0].length, B[0].length);
+            const en = (M, f, c) => (M[M.length === 1 ? 0 : f] || [])[M[0].length === 1 ? 0 : c];
+            const out = [];
+            for (let f = 0; f < nf; f++) { const fila = []; for (let c = 0; c < nc; c++) { const x = en(A, f, c), y = en(B, f, c); if (x === undefined || y === undefined) { fila.push(E.NA); continue; } try { fila.push(operar(n.op, x, y)); } catch (e) { fila.push(esErr(e) ? e : E.VALUE); } } out.push(fila); }
+            return out;
           }
-          throw E.VALUE;
+          return operar(n.op, a0, b0);
         }
         case 'fn': {
           if (n.v === 'IFERROR' || n.v === 'IFNA') { let v; try { v = evalNodo(n.args[0], actual); if (Array.isArray(v)) v = v[0][0]; } catch (e) { v = esErr(e) ? e : E.VALUE; } return F[n.v]([v, n.args[1] ? evalNodo(n.args[1], actual) : '']); }
@@ -255,7 +284,7 @@
       throw E.VALUE;
     }
     return {
-      valor, limpiar() { cache.clear(); }, set ultimaFila(f) { ultimaFila = f; },
+      valor, limpiar() { cache.clear(); rangos.clear(); }, set ultimaFila(f) { ultimaFila = f; },
       // valor de una fórmula suelta (para pruebas)
       evaluar(formula, hoja = 0) { try { const v = evalNodo(parse(formula.replace(/^=/, '')), hoja); return Array.isArray(v) ? v[0][0] : v; } catch (e) { return esErr(e) ? e : E.VALUE; } },
     };

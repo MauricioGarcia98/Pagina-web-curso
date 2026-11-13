@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 · Academia de Datos</title><meta name="description" content="La directora comercial necesita comparar 2024 contra 2023 - cuántos pedidos hubo en cada estado, qué canal pierde más pedidos y cómo se movió cada mes. Recibes el pedido y una lista de entregables; tú decides las fórmulas (con pistas cerradas por si te trabas). Trabajas sobre los 12.000 pedidos reales de la tienda y verificas con números de control."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-reporte-comercial.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 · Academia de Datos"><meta property="og:description" content="La directora comercial necesita comparar 2024 contra 2023 - cuántos pedidos hubo en cada estado, qué canal pierde más pedidos y cómo se movió cada mes. Recibes el pedido y una lista de entregables; tú decides las fórmulas (con pistas cerradas por si te trabas). Trabajas sobre los 12.000 pedidos reales de la tienda y verificas con números de control."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-proyecto-reporte-comercial.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 3 · Intermedio · 75 min</div>
+<h1>Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024</h1><p class="resumen">La directora comercial necesita comparar 2024 contra 2023 - cuántos pedidos hubo en cada estado, qué canal pierde más pedidos y cómo se movió cada mes. Recibes el pedido y una lista de entregables; tú decides las fórmulas (con pistas cerradas por si te trabas). Trabajas sobre los 12.000 pedidos reales de la tienda y verificas con números de control.</p>
+<a class="cta" href="../index.html#/l/excel-proyecto-reporte-comercial">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Traducir un pedido de negocio en tablas de resumen</li><li>Contar por dos dimensiones (estado y año) con COUNTIFS y criterios de fecha</li><li>Calcular tasas y marcarlas con IF</li><li>Armar una serie mensual con criterios de fecha en celdas</li><li>Redactar hallazgos con números</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mail de la directora comercial: <em>&quot;Para el comité del jueves necesito ver cómo cerramos 2024 contra 2023. Tres cosas: (1) cuántos pedidos hubo en cada estado, los dos años lado a lado; (2) de 2024, qué canal pierde más pedidos por cancelación; (3) la evolución mes a mes de 2024. Y mandame tres conclusiones en el cuerpo del mail, no quiero abrir el archivo para entender.&quot;</em></p>
+</div>
+
+
+<p>Desde este proyecto <strong>no hay pasos numerados</strong>: hay entregables. Las pistas están cerradas; ábrelas solo si te trabas más de diez minutos. Al final tienes números de control para verificar.</p>
+<h2>Datos</h2>
+<p>La hoja <strong>pedidos</strong> (Data → Get Data → pedidos). Recuerda: <strong>D</strong> fecha_pedido, <strong>E</strong> estado, <strong>F</strong> canal. Los pedidos van de 2022 a 2024; solo nos interesan 2023 y 2024.</p>
+<h2>Entregable 1 — Estados por año</h2>
+<p>Una hoja <code>Reporte</code> con esta forma (los números los calculas tú):</p>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>estado</td>
+<td>2023</td>
+<td>2024</td>
+</tr>
+<tr>
+<td>2</td>
+<td>entregado</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>cancelado</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>devuelto</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>enviado</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>pendiente</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Total</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>8</td>
+<td>% cancelación</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<p>Requisitos: <strong>una sola fórmula</strong> escrita en B2 que se pueda copiar a todo el cuadro B2:C6 (el estado sale de la columna A y el año de la fila 1).</p>
+<details><summary>💡 Pista 1: cómo filtrar un año</summary>
+
+<p>Dos criterios sobre la misma columna de fecha: <code>&quot;&gt;=2023-01-01&quot;</code> y <code>&quot;&lt;2024-01-01&quot;</code>.</p>
+</details>
+
+<details><summary>💡 Pista 2: la fórmula que se copia</summary>
+
+<p>Si escribes los años como números en B1 y C1, puedes armar los criterios con <code>DATE</code>:</p>
+<pre><code class="language-text">=COUNTIFS(pedidos!$E:$E,$A2,pedidos!$D:$D,&quot;&gt;=&quot;&amp;DATE(B$1,1,1),pedidos!$D:$D,&quot;&lt;&quot;&amp;DATE(B$1+1,1,1))</code></pre>
+<p><code>$A2</code> fija la columna del estado; <code>B$1</code> fija la fila del año. Cópiala a B2:C6.</p>
+</details>
+
+<details><summary>💡 Pista 3: total y tasa</summary>
+
+<p>B7 <code>=SUM(B2:B6)</code> · B8 <code>=B3/B7</code> con formato Percentage.</p>
+</details>
+
+<figure class="captura"><img src="assets/img/guias/excel/e12-reporte.webp" alt="Una versión del cuadro con criterios de fecha escritos: COUNTIFS por estado y año" loading="lazy"><figcaption>Una versión del cuadro con criterios de fecha escritos: COUNTIFS por estado y año</figcaption></figure>
+
+
+<h2>Entregable 2 — Cancelación por canal en 2024</h2>
+<p>En la misma hoja (por ejemplo desde <strong>E1</strong>): canal, pedidos 2024, cancelados 2024, % cancelación y una columna <strong>alerta</strong> que diga <code>revisar</code> si el canal supera el <strong>8 %</strong> de cancelación y quede vacía si no. El 8 % no va escrito dentro de la fórmula: va en una celda de supuestos.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Pedidos: COUNTIFS con canal y las dos fechas de 2024. Cancelados: lo mismo más <code>pedidos!E:E,&quot;cancelado&quot;</code>. Alerta: <code>=IF(H2&gt;$K$1,&quot;revisar&quot;,&quot;&quot;)</code> si la tasa está en H y el umbral en K1.</p>
+</details>
+
+<h2>Entregable 3 — Pedidos por mes de 2024</h2>
+<p>Una tabla con los meses 1 a 12 y la cantidad de pedidos de cada uno. Los 12 números tienen que sumar el total de 2024.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Con el mes en la columna A (números 1 a 12):</p>
+<pre><code class="language-text">=COUNTIFS(pedidos!D:D,&quot;&gt;=&quot;&amp;DATE(2024,A2,1),pedidos!D:D,&quot;&lt;&quot;&amp;DATE(2024,A2+1,1))</code></pre>
+<p><code>DATE(2024,13,1)</code> da el 1 de enero de 2025: diciembre también funciona.</p>
+</details>
+
+<h2>✔ Números de control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>2023</th>
+<th>2024</th>
+</tr>
+</thead><tbody><tr>
+<td>Entregados</td>
+<td>3,115</td>
+<td>3,597</td>
+</tr>
+<tr>
+<td>Cancelados</td>
+<td>332</td>
+<td>371</td>
+</tr>
+<tr>
+<td>Pendientes</td>
+<td>168</td>
+<td>183</td>
+</tr>
+<tr>
+<td>Total de pedidos</td>
+<td>4,021</td>
+<td>4,633</td>
+</tr>
+<tr>
+<td>% cancelación</td>
+<td>8.3 %</td>
+<td>8.0 %</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Canal (2024)</th>
+<th>Pedidos</th>
+<th>Cancelados</th>
+<th>%</th>
+</tr>
+</thead><tbody><tr>
+<td>web</td>
+<td>2,061</td>
+<td>172</td>
+<td>8.3 %</td>
+</tr>
+<tr>
+<td>app</td>
+<td>1,142</td>
+<td>102</td>
+<td>8.9 %</td>
+</tr>
+<tr>
+<td>tienda</td>
+<td>1,012</td>
+<td>69</td>
+<td>6.8 %</td>
+</tr>
+<tr>
+<td>telefono</td>
+<td>418</td>
+<td>28</td>
+<td>6.7 %</td>
+</tr>
+</tbody></table></div>
+<p>Pedidos por mes de 2024: enero <strong>376</strong>, julio <strong>444</strong>, diciembre <strong>594</strong>; la suma de los 12 meses, <strong>4,633</strong>.</p>
+<h2>Entregable 4 — El mail</h2>
+<p>Tres conclusiones, cada una con un número. No describas la tabla (&quot;en la tabla se ve…&quot;): di qué significa. Por ejemplo:</p>
+<details><summary>Ver un ejemplo de mail (después de escribir el tuyo)</summary>
+
+<p><em>&quot;Cerramos 2024 con 4.633 pedidos, 15 % más que en 2023 (4.021). La tasa de cancelación se mantuvo estable (8,0 % contra 8,3 %), pero la app es el canal que más pierde: 8,9 % de sus pedidos se cancelan, contra 6,8 % de la tienda. Noviembre y diciembre concentraron el 24 % de los pedidos del año: conviene reforzar logística en ese período.&quot;</em></p>
+</details>
+
+<h2>✔ Lista de control antes de enviar</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Cada número del cuadro sale de una fórmula (no hay valores escritos a mano).</li>
+<li><input disabled="" type="checkbox"> La fórmula del cuadro de estados es una sola, copiada.</li>
+<li><input disabled="" type="checkbox"> El umbral del 8 % está en una celda, con un rótulo.</li>
+<li><input disabled="" type="checkbox"> Los totales coinciden con los números de control.</li>
+<li><input disabled="" type="checkbox"> Los porcentajes tienen formato Percentage.</li>
+<li><input disabled="" type="checkbox"> El mail tiene tres conclusiones con números y se entiende sin abrir el archivo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-proyecto-reporte-comercial">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-texto-y-fechas.html">← Texto y fechas - separar, unir y transformar textos; año, mes, períodos y días entre fechas</a><a href="excel-buscar-entre-tablas.html">Buscar entre tablas - XLOOKUP, VLOOKUP, INDEX con MATCH y el error #N/A →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

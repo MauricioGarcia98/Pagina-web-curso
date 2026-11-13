@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hojas, columnas y formato - ordenar el libro para que otros lo entiendan · Academia de Datos</title><meta name="description" content="Un libro bien armado se entiende sin explicaciones. Cómo crear, renombrar y borrar hojas, ajustar el ancho de las columnas, poner encabezados en negrita y centrados, y aplicar formatos de número (moneda, porcentaje, fecha) sabiendo que el formato cambia cómo se ve el dato, no el dato."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-hojas-filas-formato.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Hojas, columnas y formato - ordenar el libro para que otros lo entiendan · Academia de Datos"><meta property="og:description" content="Un libro bien armado se entiende sin explicaciones. Cómo crear, renombrar y borrar hojas, ajustar el ancho de las columnas, poner encabezados en negrita y centrados, y aplicar formatos de número (moneda, porcentaje, fecha) sabiendo que el formato cambia cómo se ve el dato, no el dato."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-hojas-filas-formato.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 1 · Básico · 35 min</div>
+<h1>Hojas, columnas y formato - ordenar el libro para que otros lo entiendan</h1><p class="resumen">Un libro bien armado se entiende sin explicaciones. Cómo crear, renombrar y borrar hojas, ajustar el ancho de las columnas, poner encabezados en negrita y centrados, y aplicar formatos de número (moneda, porcentaje, fecha) sabiendo que el formato cambia cómo se ve el dato, no el dato.</p>
+<a class="cta" href="../index.html#/l/excel-hojas-filas-formato">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear, renombrar y borrar hojas</li><li>Ajustar el ancho de una columna</li><li>Dar formato a encabezados (negrita, alineación)</li><li>Aplicar formatos de número y distinguir valor de formato</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un libro de Excel es una carpeta; cada hoja es una pestaña de la carpeta. Si las pestañas se llaman &quot;Sheet1&quot;, &quot;Sheet2&quot; y &quot;Copia de Sheet1 (2)&quot;, nadie sabe dónde está cada cosa. Nombres claros y encabezados prolijos son la diferencia entre un archivo que se usa y uno que se descarta.</p>
+</div>
+
+
+<h2>Paso 1 — Crea una hoja nueva</h2>
+<ol>
+<li>En <a href="#/excel">Excel de práctica</a>, mira la barra de abajo: ahí están las pestañas de las hojas.</li>
+<li>Presiona el botón <strong>+</strong> (1). Aparece una hoja nueva y queda activa (2).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e03-hoja-nueva.webp" alt="El botón + (1) agrega una hoja; la pestaña activa (2) se ve resaltada" loading="lazy"><figcaption>El botón + (1) agrega una hoja; la pestaña activa (2) se ve resaltada</figcaption></figure>
+
+
+<p>Para cambiar de hoja, haz clic en su pestaña.</p>
+<h2>Paso 2 — Ponle un nombre que diga qué tiene</h2>
+<ol>
+<li>Haz <strong>doble clic</strong> en la pestaña de la hoja.</li>
+<li>Se abre el cuadro <strong>Rename sheet</strong>. Escribe <code>Datos</code> y presiona <strong>OK</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e03-renombrar.webp" alt="El cuadro Rename sheet: escribe el nombre nuevo" loading="lazy"><figcaption>El cuadro Rename sheet: escribe el nombre nuevo</figcaption></figure>
+
+
+<p>Reglas para el nombre:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Regla</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>Máximo 31 caracteres</td>
+<td><code>ventas_2024</code> ✔</td>
+</tr>
+<tr>
+<td>Sin <code>\ / ? * [ ] :</code></td>
+<td><code>ventas/2024</code> ✘</td>
+</tr>
+<tr>
+<td>No se puede repetir en el libro</td>
+<td>dos hojas <code>Datos</code> ✘</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Nombres que funcionan en todos lados</div>
+
+<p>Usa nombres cortos, en minúscula y sin espacios (<code>ventas_2024</code>, <code>clientes</code>). Más adelante vas a escribir fórmulas como <code>=SUM(ventas_2024!B:B)</code> y, si la hoja tiene espacios, hay que encerrarla entre comillas simples: <code>=&#39;ventas 2024&#39;!B:B</code>.</p>
+</div>
+
+
+<p>En el mismo cuadro está <strong>Delete sheet</strong>, para borrar la hoja. Cuidado: se borra con todo lo que tiene (Ctrl + Z la recupera si te arrepientes enseguida).</p>
+<h2>Paso 3 — Ensancha una columna</h2>
+<p>Cuando un texto no entra, se corta o invade la celda de al lado.</p>
+<ol>
+<li>Lleva el mouse al <strong>borde derecho del encabezado</strong> de la columna (entre la letra A y la B). El cursor cambia a ↔.</li>
+<li>Arrastra hacia la derecha hasta que el texto entre.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e03-ancho-columna.webp" alt="El borde del encabezado de columna: arrástralo para cambiar el ancho" loading="lazy"><figcaption>El borde del encabezado de columna: arrástralo para cambiar el ancho</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Los ######</div>
+
+<p>Si un <strong>número</strong> no entra en la columna, Excel muestra <code>#####</code> en lugar de cortarlo (cortarlo podría mostrar un número equivocado). No es un error: ensancha la columna.</p>
+</div>
+
+
+<h2>Paso 4 — Encabezados en negrita y centrados</h2>
+<ol>
+<li>Selecciona la fila de encabezados, <strong>A1:D1</strong>.</li>
+<li>Pestaña <strong>Home</strong> → <strong>B</strong> (Bold, atajo <strong>Ctrl + B</strong>) (1).</li>
+<li>En <strong>Alignment</strong>, presiona el botón del centro (2).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e03-formato-cinta.webp" alt="Bold (1), Center (2) y el desplegable de formato de número (3) en la pestaña Home" loading="lazy"><figcaption>Bold (1), Center (2) y el desplegable de formato de número (3) en la pestaña Home</figcaption></figure>
+
+
+<h2>Paso 5 — Formato de número: cómo se ve, no qué es</h2>
+<ol>
+<li>Selecciona <strong>B2:B3</strong> (los números).</li>
+<li>En <strong>Number</strong> (3), elige <strong>Currency</strong>. <code>12.5</code> se ve como <code>$12.50</code>.</li>
+<li>Haz clic en <strong>B2</strong> y mira la barra de fórmulas: sigue diciendo <code>12.5</code>.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th>Formato</th>
+<th>El valor <code>0.256</code> se ve</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td>General</td>
+<td>0.256</td>
+<td>Lo que Excel decida</td>
+</tr>
+<tr>
+<td>Number</td>
+<td>0.26</td>
+<td>Cantidades con decimales fijos</td>
+</tr>
+<tr>
+<td>Currency</td>
+<td>$0.26</td>
+<td>Dinero</td>
+</tr>
+<tr>
+<td>Percentage</td>
+<td>25.6%</td>
+<td>Tasas, participaciones</td>
+</tr>
+<tr>
+<td>Integer</td>
+<td>0</td>
+<td>Cantidades enteras</td>
+</tr>
+<tr>
+<td>Date</td>
+<td>(para números de fecha)</td>
+<td>Fechas</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El formato no redondea el valor</div>
+
+<p>Si una celda vale <code>0.256</code> y la ves como <code>26%</code>, al sumarla Excel usa <code>0.256</code>. Por eso a veces un total &quot;no cierra&quot; por centavos con lo que ves en pantalla. Si necesitas redondear de verdad, se usa la función <code>ROUND</code> (nivel 2).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste y renombraste hojas con nombres útiles.</li>
+<li>Ajustaste anchos y diste formato a encabezados.</li>
+<li>Entendiste la diferencia entre valor y formato.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-hojas-filas-formato">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-escribir-y-editar.html">← Escribir, editar y borrar datos - los cuatro tipos de dato y los atajos que usarás todos los días</a><a href="excel-proyecto-presupuesto.html">Proyecto 1 (guiado paso a paso) - el presupuesto de una jornada de capacitación →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texto y fechas - separar, unir y transformar textos; año, mes, períodos y días entre fechas · Academia de Datos</title><meta name="description" content="Los datos reales traen nombres en mayúsculas, emails que hay que partir y fechas con las que hay que agrupar por mes. Funciones de texto (LEFT, RIGHT, MID, LEN, FIND, PROPER, CONCAT, TEXTJOIN, SUBSTITUTE) y de fecha (YEAR, MONTH, DAY, TEXT, DATE, EOMONTH, WEEKDAY, TODAY, DATEDIF), con por qué una fecha es un número por dentro."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-texto-y-fechas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Texto y fechas - separar, unir y transformar textos; año, mes, períodos y días entre fechas · Academia de Datos"><meta property="og:description" content="Los datos reales traen nombres en mayúsculas, emails que hay que partir y fechas con las que hay que agrupar por mes. Funciones de texto (LEFT, RIGHT, MID, LEN, FIND, PROPER, CONCAT, TEXTJOIN, SUBSTITUTE) y de fecha (YEAR, MONTH, DAY, TEXT, DATE, EOMONTH, WEEKDAY, TODAY, DATEDIF), con por qué una fecha es un número por dentro."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-texto-y-fechas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Texto y fechas - separar, unir y transformar textos; año, mes, períodos y días entre fechas</h1><p class="resumen">Los datos reales traen nombres en mayúsculas, emails que hay que partir y fechas con las que hay que agrupar por mes. Funciones de texto (LEFT, RIGHT, MID, LEN, FIND, PROPER, CONCAT, TEXTJOIN, SUBSTITUTE) y de fecha (YEAR, MONTH, DAY, TEXT, DATE, EOMONTH, WEEKDAY, TODAY, DATEDIF), con por qué una fecha es un número por dentro.</p>
+<a class="cta" href="../index.html#/l/excel-texto-y-fechas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Extraer partes de un texto con LEFT, RIGHT, MID y FIND</li><li>Unir textos con &amp; , CONCAT y TEXTJOIN</li><li>Sacar año, mes y período de una fecha</li><li>Calcular días entre fechas y fin de mes</li><li>Construir columnas auxiliares para agrupar</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Las funciones de texto son tijeras y pegamento: cortan un pedazo de un texto (<code>LEFT</code>, <code>MID</code>) o pegan varios (<code>&amp;</code>, <code>TEXTJOIN</code>). Las de fecha son un calendario: le preguntas a una fecha en qué año, mes o día de la semana cae.</p>
+</div>
+
+
+<h2>Paso 1 — Una fecha es un número</h2>
+<p>En Excel, cada fecha es la cantidad de días desde el 1 de enero de 1900. El <code>2024-03-15</code> es, por dentro, <strong>45366</strong>. Por eso:</p>
+<ul>
+<li><code>=D3-D2</code> da los <strong>días</strong> entre dos fechas.</li>
+<li><code>=D2+30</code> da la fecha <strong>30 días después</strong>.</li>
+<li>Ordenar por fecha funciona como ordenar números.</li>
+</ul>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Fechas que en realidad son texto</div>
+
+<p>Si una fecha quedó alineada a la izquierda, es texto (llegó así de un CSV o alguien la escribió con un formato que Excel no reconoce). No se puede restar ni agrupar. Lo arreglamos en el nivel 4 con <code>DATEVALUE</code> y Power Query; por ahora, verifica la alineación.</p>
+</div>
+
+
+<h2>Paso 2 — Año, mes y período (columnas auxiliares)</h2>
+<p>En la hoja <strong>pedidos</strong> (Data → Get Data → pedidos si no la tienes), usa las columnas libres <strong>K</strong>, <strong>L</strong> y <strong>M</strong>:</p>
+<ol>
+<li><strong>K1</strong> <code>anio</code> · <strong>K2</strong> <code>=YEAR(D2)</code></li>
+<li><strong>L1</strong> <code>mes</code> · <strong>L2</strong> <code>=MONTH(D2)</code></li>
+<li><strong>M1</strong> <code>periodo</code> · <strong>M2</strong> <code>=TEXT(D2,&quot;yyyy-mm&quot;)</code></li>
+<li>Selecciona <strong>K2:M6</strong> y Ctrl + D para probar en algunas filas.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/e11-fechas.webp" alt="TEXT(D2,&quot;yyyy-mm&quot;) (1) arma el período; YEAR y MONTH sacan el año y el mes" loading="lazy"><figcaption>TEXT(D2,&quot;yyyy-mm&quot;) (1) arma el período; YEAR y MONTH sacan el año y el mes</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Por qué &quot;2024-03&quot; y no &quot;marzo&quot;</div>
+
+<p><code>TEXT(D2,&quot;yyyy-mm&quot;)</code> da un texto que se ordena bien (2023-12 va antes que 2024-01) y no se confunde entre años. &quot;marzo&quot; se ordena alfabéticamente (abril, agosto, diciembre…) y mezcla marzo de 2023 con marzo de 2024.</p>
+</div>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Con <code>2024-03-15</code> da</th>
+</tr>
+</thead><tbody><tr>
+<td><code>=YEAR(D2)</code></td>
+<td>2024</td>
+</tr>
+<tr>
+<td><code>=MONTH(D2)</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>=DAY(D2)</code></td>
+<td>15</td>
+</tr>
+<tr>
+<td><code>=WEEKDAY(D2,2)</code></td>
+<td>5 (viernes; con el 2, lunes = 1)</td>
+</tr>
+<tr>
+<td><code>=TEXT(D2,&quot;yyyy-mm&quot;)</code></td>
+<td>2024-03</td>
+</tr>
+<tr>
+<td><code>=EOMONTH(D2,0)</code></td>
+<td>45382 → con formato <strong>Date</strong>: 2024-03-31 (último día del mes)</td>
+</tr>
+<tr>
+<td><code>=DATE(2024,3,1)</code></td>
+<td>45352 → con formato <strong>Date</strong>: 2024-03-01 (arma una fecha)</td>
+</tr>
+<tr>
+<td><code>=TODAY()</code></td>
+<td>la fecha de hoy (cambia cada día)</td>
+</tr>
+</tbody></table></div>
+<p>Cuando una función devuelve una fecha y ves un número como 45382, no está mal: es la fecha por dentro. Dale formato <strong>Date</strong> (Home → Number) y se ve como fecha.</p>
+<h2>Paso 3 — Días entre fechas y edades</h2>
+<p>Carga <strong>clientes</strong> (Data → Get Data → clientes): tiene <strong>I</strong> fecha_nacimiento y <strong>J</strong> fecha_registro.</p>
+<ol>
+<li><strong>K1</strong> <code>antiguedad_dias</code> · <strong>K2</strong> <code>=TODAY()-J2</code> → días desde que se registró.</li>
+<li><strong>L1</strong> <code>edad</code> · <strong>L2</strong> <code>=DATEDIF(I2,TODAY(),&quot;y&quot;)</code> → años cumplidos.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th><code>DATEDIF(inicio, fin, unidad)</code></th>
+<th>Devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&quot;y&quot;</code></td>
+<td>años completos</td>
+</tr>
+<tr>
+<td><code>&quot;m&quot;</code></td>
+<td>meses completos</td>
+</tr>
+<tr>
+<td><code>&quot;d&quot;</code></td>
+<td>días</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 TODAY cambia todos los días</div>
+
+<p>Una hoja con <code>TODAY()</code> da resultados distintos mañana. Para un informe que tiene que poder repetirse, escribe la fecha de corte en una celda (por ejemplo <code>2024-12-31</code> en <strong>N1</strong>) y usa <code>=DATEDIF(I2,$N$1,&quot;y&quot;)</code>.</p>
+</div>
+
+
+<h2>Paso 4 — Cortar textos: LEFT, RIGHT, MID, FIND, LEN</h2>
+<p>Sigue en <strong>clientes</strong>. La columna <strong>D</strong> tiene el email (<code>lucia.aguilar@correo.com</code>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Quiero</th>
+<th>Fórmula</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>Largo del texto</td>
+<td><code>=LEN(D2)</code></td>
+<td>24</td>
+</tr>
+<tr>
+<td>Posición de la @</td>
+<td><code>=FIND(&quot;@&quot;,D2)</code></td>
+<td>14</td>
+</tr>
+<tr>
+<td>Usuario (antes de la @)</td>
+<td><code>=LEFT(D2,FIND(&quot;@&quot;,D2)-1)</code></td>
+<td>lucia.aguilar</td>
+</tr>
+<tr>
+<td>Dominio (después de la @)</td>
+<td><code>=MID(D2,FIND(&quot;@&quot;,D2)+1,100)</code></td>
+<td>correo.com</td>
+</tr>
+<tr>
+<td>Últimos 3 caracteres</td>
+<td><code>=RIGHT(D2,3)</code></td>
+<td>com</td>
+</tr>
+</tbody></table></div>
+<p>Escribe el <strong>dominio</strong> en <strong>M2</strong> (rótulo <code>dominio</code> en M1). Así puedes contar cuántos clientes usan cada proveedor de correo con <code>COUNTIF</code>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo leer una fórmula anidada</div>
+
+<p>Léela de adentro hacia afuera: <code>FIND(&quot;@&quot;,D2)</code> da 14; <code>14+1</code> es 15; <code>MID(D2,15,100)</code> toma desde el carácter 15 hasta 100 caracteres (o hasta el final). El 100 es &quot;suficientemente largo&quot;.</p>
+</div>
+
+
+<h2>Paso 5 — Unir y transformar textos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Quiero</th>
+<th>Fórmula</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>Nombre completo</td>
+<td><code>=B2&amp;&quot; &quot;&amp;C2</code></td>
+<td>Lucía Aguilar</td>
+</tr>
+<tr>
+<td>Lo mismo con función</td>
+<td><code>=CONCAT(B2,&quot; &quot;,C2)</code></td>
+<td>Lucía Aguilar</td>
+</tr>
+<tr>
+<td>Varios con separador</td>
+<td><code>=TEXTJOIN(&quot;, &quot;,TRUE,B2,C2,F2)</code></td>
+<td>Lucía, Aguilar, Madrid</td>
+</tr>
+<tr>
+<td>Inicial y apellido</td>
+<td><code>=LEFT(B2,1)&amp;&quot;. &quot;&amp;C2</code></td>
+<td>L. Aguilar</td>
+</tr>
+<tr>
+<td>Todo en mayúsculas</td>
+<td><code>=UPPER(C2)</code></td>
+<td>AGUILAR</td>
+</tr>
+<tr>
+<td>Primera letra en mayúscula</td>
+<td><code>=PROPER(&quot;juan pérez&quot;)</code></td>
+<td>Juan Pérez</td>
+</tr>
+<tr>
+<td>Reemplazar</td>
+<td><code>=SUBSTITUTE(E2,&quot; &quot;,&quot;&quot;)</code></td>
+<td>el teléfono sin espacios</td>
+</tr>
+</tbody></table></div>
+<p><code>TEXTJOIN</code> con <code>TRUE</code> ignora las celdas vacías: no quedan comas dobles.</p>
+<h2>Paso 6 — Texto que parece número</h2>
+<p><code>TEXT</code> convierte un número en texto con formato, útil para armar frases:</p>
+<pre><code class="language-text">=&quot;Ventas del mes: &quot;&amp;TEXT(57500,&quot;#,##0&quot;)</code></pre>
+<p>Da <code>Ventas del mes: 57,500</code>. Y al revés, <code>VALUE(&quot;1500&quot;)</code> convierte un texto con forma de número en número.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sacaste año, mes y período de fechas para poder agrupar.</li>
+<li>Calculaste días y edades entre fechas.</li>
+<li>Cortaste, uniste y transformaste textos.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-texto-y-fechas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-contar-y-sumar-con-condiciones.html">← Contar y sumar con condiciones - COUNTIF(S), SUMIF(S), AVERAGEIF(S) y MAXIFS</a><a href="excel-proyecto-reporte-comercial.html">Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Copiar fórmulas y referencias - relativas, absolutas ($) y mixtas · Academia de Datos</title><meta name="description" content="Escribir una fórmula una vez y copiarla a mil filas es lo que hace rápido a Excel. Cómo copiar con el controlador de relleno y con Ctrl+D, qué le pasa a cada referencia al copiarla, cuándo fijar una celda con $ (y F4 para ponerlo), las referencias mixtas para tablas de doble entrada y cómo auditar el resultado con Show Formulas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-copiar-formulas-y-referencias.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Copiar fórmulas y referencias - relativas, absolutas ($) y mixtas · Academia de Datos"><meta property="og:description" content="Escribir una fórmula una vez y copiarla a mil filas es lo que hace rápido a Excel. Cómo copiar con el controlador de relleno y con Ctrl+D, qué le pasa a cada referencia al copiarla, cuándo fijar una celda con $ (y F4 para ponerlo), las referencias mixtas para tablas de doble entrada y cómo auditar el resultado con Show Formulas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-copiar-formulas-y-referencias.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Copiar fórmulas y referencias - relativas, absolutas ($) y mixtas</h1><p class="resumen">Escribir una fórmula una vez y copiarla a mil filas es lo que hace rápido a Excel. Cómo copiar con el controlador de relleno y con Ctrl+D, qué le pasa a cada referencia al copiarla, cuándo fijar una celda con $ (y F4 para ponerlo), las referencias mixtas para tablas de doble entrada y cómo auditar el resultado con Show Formulas.</p>
+<a class="cta" href="../index.html#/l/excel-copiar-formulas-y-referencias">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Copiar una fórmula con el controlador de relleno y con Ctrl+D</li><li>Predecir cómo cambia una referencia relativa al copiarla</li><li>Fijar una celda con $ y alternar con F4</li><li>Usar referencias mixtas ($A2, B$1) en una tabla de doble entrada</li><li>Auditar las fórmulas copiadas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una referencia como <code>D2</code> no significa &quot;la celda D2&quot; sino &quot;la celda que está <strong>una columna a la izquierda</strong> en mi misma fila&quot;. Por eso, al copiar la fórmula una fila más abajo, apunta a D3. El <code>$</code> es como clavar la referencia con un alfiler: no se mueve.</p>
+</div>
+
+
+<h2>Paso 1 — Prepara una celda fija</h2>
+<p>Seguimos en la hoja <strong>Sheet1</strong> del libro de ejemplo. Queremos el total <strong>con IVA</strong> de cada producto. El IVA (1.21) va en <strong>una sola celda</strong>, para poder cambiarlo en un solo lugar.</p>
+<ol>
+<li>En <strong>H1</strong> escribe <code>1.21</code> y Enter.</li>
+<li>En <strong>E1</strong> escribe <code>Con IVA</code> y Enter.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Los supuestos, separados</div>
+
+<p>Los números que pueden cambiar (IVA, tipo de cambio, comisión) van en su propia celda, con un rótulo al lado. Nunca los escribas dentro de las fórmulas (<code>=D2*1.21</code>): el día que cambie el IVA tendrías que editar cada fórmula.</p>
+</div>
+
+
+<h2>Paso 2 — Escribe la fórmula con $</h2>
+<ol>
+<li>En <strong>E2</strong> escribe <code>=D2*$H$1</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/02-absoluta.webp" alt="La fórmula =D2*$H$1 (1) usa la celda fija H1 (2)" loading="lazy"><figcaption>La fórmula =D2*$H$1 (1) usa la celda fija H1 (2)</figcaption></figure>
+
+
+<p>El <code>$</code> delante de la columna <strong>y</strong> de la fila significa: &quot;esta celda no se mueve aunque copie la fórmula&quot;.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 F4 pone los $ por ti</div>
+
+<p>Mientras editas, deja el cursor sobre una referencia (por ejemplo <code>H1</code>) y presiona <strong>F4</strong>: va pasando por <code>$H$1</code> → <code>H$1</code> → <code>$H1</code> → <code>H1</code>.</p>
+</div>
+
+
+<h2>Paso 3 — Copia la fórmula</h2>
+<ol>
+<li>Haz clic en <strong>E2</strong>. Abajo a la derecha de la celda hay un <strong>cuadradito verde</strong>: el <em>controlador de relleno</em>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/02-controlador.webp" alt="El controlador de relleno, el cuadradito verde de la esquina" loading="lazy"><figcaption>El controlador de relleno, el cuadradito verde de la esquina</figcaption></figure>
+
+
+<ol start="2">
+<li>Arrástralo hacia abajo hasta <strong>E5</strong>.</li>
+</ol>
+<p>Otra forma, la que más se usa con tablas largas: selecciona <strong>E2:E5</strong> y presiona <strong>Ctrl + D</strong> (&quot;rellenar hacia abajo&quot;: copia la primera celda en las demás).</p>
+<figure class="captura"><img src="assets/img/guias/excel/02-relleno-hecho.webp" alt="La fórmula copiada hasta E5" loading="lazy"><figcaption>La fórmula copiada hasta E5</figcaption></figure>
+
+
+<h2>Paso 4 — Mira qué pasó con cada referencia</h2>
+<ol>
+<li>Pestaña <strong>Formulas</strong> → <strong>Show Formulas</strong> (o <strong>Ctrl + `</strong>).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/02-ver-formulas.webp" alt="Show Formulas (1): se ve cómo cambió cada fórmula al copiarla" loading="lazy"><figcaption>Show Formulas (1): se ve cómo cambió cada fórmula al copiarla</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Celda</th>
+<th>Fórmula</th>
+<th>Qué se movió</th>
+</tr>
+</thead><tbody><tr>
+<td>E2</td>
+<td><code>=D2*$H$1</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>E3</td>
+<td><code>=D3*$H$1</code></td>
+<td><code>D2</code> pasó a <code>D3</code>; <code>$H$1</code> quedó igual</td>
+</tr>
+<tr>
+<td>E5</td>
+<td><code>=D5*$H$1</code></td>
+<td>solo se mueve la parte sin <code>$</code></td>
+</tr>
+</tbody></table></div>
+<p>Sin el <code>$</code>, en E3 habría quedado <code>=D3*H2</code>, y H2 está vacía: el resultado sería <strong>0</strong>. Es el error más común de quien empieza, y es silencioso: no aparece ningún mensaje.</p>
+<ol start="2">
+<li>Presiona otra vez <strong>Show Formulas</strong> para volver a los resultados.</li>
+</ol>
+<h2>Paso 5 — Las cuatro formas de una referencia</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Escribes</th>
+<th>Al copiar hacia abajo</th>
+<th>Al copiar a la derecha</th>
+<th>Se llama</th>
+</tr>
+</thead><tbody><tr>
+<td><code>H1</code></td>
+<td>cambia la fila</td>
+<td>cambia la columna</td>
+<td>relativa</td>
+</tr>
+<tr>
+<td><code>$H$1</code></td>
+<td>no cambia</td>
+<td>no cambia</td>
+<td>absoluta</td>
+</tr>
+<tr>
+<td><code>H$1</code></td>
+<td><strong>no</strong> cambia la fila</td>
+<td>cambia la columna</td>
+<td>mixta (fila fija)</td>
+</tr>
+<tr>
+<td><code>$H1</code></td>
+<td>cambia la fila</td>
+<td><strong>no</strong> cambia la columna</td>
+<td>mixta (columna fija)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — Referencias mixtas: una tabla de doble entrada</h2>
+<p>Las mixtas sirven cuando una fórmula se copia <strong>hacia abajo y hacia la derecha</strong> a la vez. Ejemplo real: cuánto cuesta cada producto si lo compras en 1, 5 o 10 unidades.</p>
+<ol>
+<li>Crea una hoja nueva (<strong>+</strong>) y llámala <code>Cantidades</code>.</li>
+<li>Escribe:</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Precio \ Unidades</td>
+<td>1</td>
+<td>5</td>
+<td>10</td>
+</tr>
+<tr>
+<td>2</td>
+<td>25</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>12.5</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>180</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<ol start="3">
+<li>En <strong>B2</strong> escribe <code>=$A2*B$1</code>: el precio está siempre en la columna A (<code>$A</code>) y las unidades siempre en la fila 1 (<code>$1</code>).</li>
+<li>Copia <strong>B2</strong> (Ctrl + C), selecciona <strong>B2:D4</strong> y pega (Ctrl + V): Excel pega la fórmula en las nueve celdas y ajusta cada copia. (Otra forma: selecciona B2:B4 y <strong>Ctrl + D</strong>; después B2:D4 y <strong>Ctrl + R</strong>, &quot;rellenar a la derecha&quot;.)</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Selecciona un rango escribiéndolo</div>
+
+<p>En el cuadro de nombres puedes escribir un rango, por ejemplo <code>B2:D4</code>, y presionar Enter: queda seleccionado. Es lo más rápido con rangos grandes.</p>
+</div>
+
+<ol start="5">
+<li>Comprueba: <strong>D4</strong> debe dar <strong>1800</strong> (180 × 10). Mira su fórmula: <code>=$A4*D$1</code>.</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Si te olvidas un $</div>
+
+<p>Con <code>=A2*B1</code> copiado a la derecha, C2 quedaría <code>=B2*C1</code>: multiplicaría el resultado anterior por 5. Si una tabla de doble entrada da números absurdos, revisa los <code>$</code> con Show Formulas.</p>
+</div>
+
+
+<h2>Paso 7 — Formato a los importes</h2>
+<ol>
+<li>Vuelve a <strong>Sheet1</strong>, selecciona <strong>D2:E6</strong>.</li>
+<li>Home → Number → <strong>Currency</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/02-formato.webp" alt="El formato de número (1) cambia cómo se ve el valor, no el valor" loading="lazy"><figcaption>El formato de número (1) cambia cómo se ve el valor, no el valor</figcaption></figure>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Copiaste fórmulas a muchas filas en segundos.</li>
+<li>Sabes predecir cómo cambia cada referencia y cuándo fijarla.</li>
+<li>Armaste una tabla de doble entrada con referencias mixtas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-copiar-formulas-y-referencias">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-formulas-y-operadores.html">← Fórmulas y operadores - cómo calcula Excel, en qué orden y por qué se recalcula solo</a><a href="excel-funciones-basicas.html">Funciones básicas - SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, MEDIAN y ROUND →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

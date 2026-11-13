@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decisiones con IF - clasificar filas con condiciones, AND, OR, IFS e IFERROR · Academia de Datos</title><meta name="description" content="Cómo hacer que Excel decida - si el pedido entró por web o app es &quot;online&quot;, si no &quot;presencial&quot;. IF paso a paso, cómo encadenar varias condiciones (IF anidado e IFS), cómo combinarlas con AND y OR, y cómo atajar errores con IFERROR. Sobre la tabla real de 12.000 pedidos de la tienda del curso."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-decisiones-if.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Decisiones con IF - clasificar filas con condiciones, AND, OR, IFS e IFERROR · Academia de Datos"><meta property="og:description" content="Cómo hacer que Excel decida - si el pedido entró por web o app es &quot;online&quot;, si no &quot;presencial&quot;. IF paso a paso, cómo encadenar varias condiciones (IF anidado e IFS), cómo combinarlas con AND y OR, y cómo atajar errores con IFERROR. Sobre la tabla real de 12.000 pedidos de la tienda del curso."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/excel-decisiones-if.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#excel">📗 Excel paso a paso</a> · 3 · Intermedio · 45 min</div>
+<h1>Decisiones con IF - clasificar filas con condiciones, AND, OR, IFS e IFERROR</h1><p class="resumen">Cómo hacer que Excel decida - si el pedido entró por web o app es &quot;online&quot;, si no &quot;presencial&quot;. IF paso a paso, cómo encadenar varias condiciones (IF anidado e IFS), cómo combinarlas con AND y OR, y cómo atajar errores con IFERROR. Sobre la tabla real de 12.000 pedidos de la tienda del curso.</p>
+<a class="cta" href="../index.html#/l/excel-decisiones-if">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Cargar una tabla del curso con Get Data</li><li>Escribir un IF con prueba lógica, valor si es verdadero y valor si es falso</li><li>Encadenar condiciones con IF anidado e IFS</li><li>Combinar condiciones con AND y OR</li><li>Reemplazar errores con IFERROR</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p><code>IF</code> es una pregunta con dos respuestas posibles: &quot;<strong>si</strong> el canal es web, escribe <em>online</em>; <strong>si no</strong>, escribe <em>presencial</em>&quot;. Es lo mismo que decides tú todos los días: si llueve, llevo paraguas; si no, no.</p>
+</div>
+
+
+<h2>Paso 1 — Carga los pedidos de la tienda</h2>
+<p>Desde este nivel trabajamos con datos reales de <strong>Tienda Andina</strong>, la empresa del curso: 12.000 pedidos de 2022 a 2024.</p>
+<ol>
+<li>En <a href="#/excel">Excel de práctica</a>, pestaña <strong>Data</strong> → <strong>Get Data</strong>.</li>
+<li>Elige <strong>pedidos</strong> (ya viene marcado) y presiona <strong>Load</strong>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/03-get-data.webp" alt="Get Data: elige la tabla y presiona Load (2)" loading="lazy"><figcaption>Get Data: elige la tabla y presiona Load (2)</figcaption></figure>
+
+
+<ol start="3">
+<li>Se abre la hoja <strong>pedidos</strong>, con una fila por pedido.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/excel/03-pedidos.webp" alt="La hoja pedidos (1), con una fila por pedido" loading="lazy"><figcaption>La hoja pedidos (1), con una fila por pedido</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Columna</th>
+<th>Dato</th>
+<th>Valores</th>
+</tr>
+</thead><tbody><tr>
+<td>A</td>
+<td>pedido_id</td>
+<td>1 a 12000</td>
+</tr>
+<tr>
+<td>B</td>
+<td>cliente_id</td>
+<td>id del cliente</td>
+</tr>
+<tr>
+<td>D</td>
+<td>fecha_pedido</td>
+<td>2022-01-01 a 2024-12-31</td>
+</tr>
+<tr>
+<td>E</td>
+<td>estado</td>
+<td>entregado, enviado, pendiente, cancelado, devuelto</td>
+</tr>
+<tr>
+<td>F</td>
+<td>canal</td>
+<td>web, app, tienda, telefono (sin tilde)</td>
+</tr>
+<tr>
+<td>G</td>
+<td>metodo_pago</td>
+<td>tarjeta_credito, tarjeta_debito, transferencia, efectivo, billetera_virtual</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Muévete rápido en tablas largas</div>
+
+<p><strong>Ctrl + ↓</strong> te lleva a la última fila; <strong>Ctrl + ↑</strong> vuelve arriba. Para ir a una celda lejana, escríbela en el cuadro de nombres (por ejemplo <code>N2</code>) y Enter.</p>
+</div>
+
+
+<h2>Paso 2 — Tu primer IF</h2>
+<p>Queremos una columna <strong>tipo</strong> que diga si el pedido fue <em>online</em> o <em>presencial</em>. Usaremos la columna <strong>N</strong> (deja I a M libres: las usamos en las próximas lecciones).</p>
+<pre><code class="language-text">=IF(prueba_lógica, valor_si_verdadero, valor_si_falso)</code></pre>
+<ol>
+<li>En <strong>N1</strong> escribe <code>tipo</code>.</li>
+<li>En <strong>N2</strong> escribe <code>=IF(F2=&quot;tienda&quot;,&quot;presencial&quot;,&quot;online&quot;)</code> y Enter.</li>
+</ol>
+<p>Se lee: &quot;si F2 es igual a <em>tienda</em>, escribe <em>presencial</em>; si no, <em>online</em>&quot;.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Los textos van entre comillas</div>
+
+<p><code>&quot;tienda&quot;</code> con comillas es un texto. Sin comillas, <code>tienda</code> es un nombre que Excel no conoce y da <code>#NAME?</code>. Los números van sin comillas: <code>=IF(B2&gt;100,&quot;grande&quot;,&quot;chico&quot;)</code>.</p>
+</div>
+
+
+<p>Pero hay un problema: los pedidos por <strong>teléfono</strong> quedaron como <em>online</em>. Hace falta más de una condición.</p>
+<h2>Paso 3 — Varias condiciones: IF dentro de IF</h2>
+<p>Reemplaza N2 por:</p>
+<pre><code class="language-text">=IF(F2=&quot;web&quot;,&quot;online&quot;,IF(F2=&quot;app&quot;,&quot;online&quot;,&quot;presencial&quot;))</code></pre>
+<p>El segundo IF está en el lugar del &quot;si no&quot;: si no es web, pregunta si es app; si tampoco, es presencial (tienda o teléfono).</p>
+<figure class="captura"><img src="assets/img/guias/excel/e09-if.webp" alt="El IF anidado en la barra de fórmulas (1) y su resultado (2)" loading="lazy"><figcaption>El IF anidado en la barra de fórmulas (1) y su resultado (2)</figcaption></figure>
+
+
+<p>Cópiala hacia abajo (selecciona <strong>N2:N6</strong> y Ctrl + D para probar en pocas filas).</p>
+<h2>Paso 4 — Más claro con OR y AND</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Devuelve TRUE si…</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><code>OR(c1, c2, …)</code></td>
+<td><strong>alguna</strong> condición se cumple</td>
+<td><code>OR(F2=&quot;web&quot;,F2=&quot;app&quot;)</code></td>
+</tr>
+<tr>
+<td><code>AND(c1, c2, …)</code></td>
+<td><strong>todas</strong> se cumplen</td>
+<td><code>AND(E2=&quot;entregado&quot;,F2=&quot;web&quot;)</code></td>
+</tr>
+<tr>
+<td><code>NOT(c)</code></td>
+<td>la condición <strong>no</strong> se cumple</td>
+<td><code>NOT(E2=&quot;cancelado&quot;)</code></td>
+</tr>
+</tbody></table></div>
+<p>La misma clasificación, más fácil de leer:</p>
+<pre><code class="language-text">=IF(OR(F2=&quot;web&quot;,F2=&quot;app&quot;),&quot;online&quot;,&quot;presencial&quot;)</code></pre>
+<p>Y una con AND: marcar los pedidos web que se perdieron.</p>
+<pre><code class="language-text">=IF(AND(F2=&quot;web&quot;,E2=&quot;cancelado&quot;),&quot;revisar&quot;,&quot;&quot;)</code></pre>
+<p><code>&quot;&quot;</code> (dos comillas juntas) es un texto vacío: la celda queda en blanco.</p>
+<h2>Paso 5 — Tres o más grupos: IFS</h2>
+<p>Para clasificar el estado en tres grupos, IFS evita anidar:</p>
+<pre><code class="language-text">=IFS(E2=&quot;entregado&quot;,&quot;cerrado&quot;,OR(E2=&quot;cancelado&quot;,E2=&quot;devuelto&quot;),&quot;perdido&quot;,TRUE,&quot;en curso&quot;)</code></pre>
+<p>IFS recibe pares <strong>condición, resultado</strong> y devuelve el primero que se cumple. El último par <code>TRUE,&quot;en curso&quot;</code> es el &quot;en cualquier otro caso&quot;.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El orden importa</div>
+
+<p>IFS e IF anidado se detienen en la <strong>primera</strong> condición verdadera. Para clasificar montos: <code>=IFS(B2&gt;=1000,&quot;alto&quot;,B2&gt;=500,&quot;medio&quot;,TRUE,&quot;bajo&quot;)</code> funciona; si pones primero <code>B2&gt;=500</code>, un pedido de 2000 queda como &quot;medio&quot;.</p>
+</div>
+
+
+<h2>Paso 6 — Atajar errores: IFERROR</h2>
+<p>Cuando una cuenta puede fallar (dividir por cero, buscar algo que no existe), IFERROR muestra otra cosa en lugar del error:</p>
+<pre><code class="language-text">=IFERROR(C2/B2, 0)
+=IFERROR(C2/B2, &quot;sin datos&quot;)</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ No escondas errores que importan</div>
+
+<p>IFERROR tapa <strong>cualquier</strong> error, incluido uno que te avisa de un dato mal cargado. Úsalo cuando sabes por qué puede fallar (por ejemplo, un día sin ventas) y no para que &quot;la hoja se vea limpia&quot;.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Cargaste una tabla real de 12.000 filas.</li>
+<li>Clasificaste filas con IF, IF anidado, OR, AND e IFS.</li>
+<li>Sabes atajar errores esperables con IFERROR.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/excel-decisiones-if">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="excel-proyecto-ventas-diarias.html">← Proyecto 2 (guiado, con pistas) - el cierre semanal de ventas de una sucursal</a><a href="excel-contar-y-sumar-con-condiciones.html">Contar y sumar con condiciones - COUNTIF(S), SUMIF(S), AVERAGEIF(S) y MAXIFS →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

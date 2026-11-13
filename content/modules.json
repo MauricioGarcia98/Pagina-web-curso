@@ -258,13 +258,14 @@
     "titulo": "Excel paso a paso",
     "icono": "📗",
     "color": "#107c41",
-    "descripcion": "Curso guiado con capturas de Excel de práctica: la pantalla, fórmulas y referencias, funciones para analizar (COUNTIFS, XLOOKUP), ordenar, filtrar y limpiar, tablas dinámicas y gráficos, y un informe de punta a punta.",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas de Excel de práctica. Cada nivel cierra con un proyecto real que da cada vez menos ayuda: del presupuesto guiado paso a paso al pedido ambiguo de la dirección, con rúbrica y números de control. Termina con el paso al Excel real (Tablas, Power Query, Excel en español).",
     "objetivos": [
-      "Moverte por Excel con mouse y teclado",
-      "Escribir y copiar fórmulas con referencias relativas y absolutas",
-      "Responder preguntas de negocio con COUNTIFS, SUMIFS y XLOOKUP",
-      "Filtrar, ordenar y limpiar datos reales",
-      "Resumir con tablas dinámicas, graficar y entregar un informe"
+      "Moverte por Excel con mouse y teclado, escribir y dar formato a datos",
+      "Escribir y copiar fórmulas con referencias relativas, absolutas y mixtas",
+      "Responder preguntas de negocio con IF, COUNTIFS, SUMIFS, XLOOKUP y SUMPRODUCT",
+      "Limpiar, deduplicar y unir tablas reales verificando cada paso",
+      "Resumir con tablas dinámicas y gráficos honestos en un tablero con controles",
+      "Construir libros profesionales y llevarlos al Excel real (Tablas, Power Query)"
     ]
   },
   {
