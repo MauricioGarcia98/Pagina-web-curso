@@ -179,7 +179,7 @@
   }
 
   // ------------------------------------------------------------------ marco
-  const NAV = [['home', 'home', 'Home'], ['ws', 'organization', 'Workspaces'], ['onelake', 'database', 'OneLake'], ['monitor', 'pulse', 'Monitor'], ['realtime', 'zap', 'Real-Time'], ['workloads', 'extensions', 'Workloads']];
+  const NAV = [['home', 'home', 'Home'], ['create', 'add', 'Create'], ['browse', 'folder-opened', 'Browse'], ['ws', 'organization', 'Workspaces'], ['onelake', 'database', 'OneLake'], ['monitor', 'pulse', 'Monitor'], ['realtime', 'zap', 'Real-Time'], ['workloads', 'extensions', 'Workloads']];
   function marco(sel, cuerpo, o = {}) {
     const f = F(), W = wsDe(o.ws || f.act);
     const abiertos = f.tabs.filter((t) => itemDe(t.ws, t.item)).slice(-6);
@@ -247,6 +247,19 @@
   }
 
   // ------------------------------------------------------------------ Home, OneLake, Monitor
+  // Create: todos los ítems agrupados por tarea, como el centro de creación de Fabric
+  function vistaCrear() {
+    const grupos = {}; for (const [t, T] of Object.entries(TIPOS)) (grupos[T.g || 'Other'] = grupos[T.g || 'Other'] || []).push(t);
+    const cuerpo = `<div class="fb-pag"><h1 class="fb-h1">Create</h1><p class="fb-dim">Elige qué crear. Se crea en el workspace activo: <b>${esc((wsDe(F().act) || {}).nombre || '')}</b>.</p>${Object.entries(grupos).map(([g, ts]) => `<h2 class="fb-h2">${esc(g)}</h2><div class="fb-crear">${ts.map((t) => `<button class="fb-tile" data-crear="${t}"><span class="fb-ico" style="--c:${TIPOS[t].col}">${ci(TIPOS[t].ico)}</span><b>${TIPOS[t].n}</b><span class="fb-dim">${TIPOS[t].d || ''}</span></button>`).join('')}</div>`).join('')}</div>`;
+    marco('create', cuerpo);
+    main.querySelectorAll('[data-crear]').forEach((b) => b.addEventListener('click', () => dialogoNuevoItem(F().act, b.dataset.crear)));
+  }
+  // Browse: recientes de todos los workspaces (Recent, Favorites, Shared with me)
+  function vistaBrowse() {
+    const f = F(); const items = Object.entries(f.ws).flatMap(([wid, w]) => Object.entries(w.items).map(([iid, it]) => ({ wid, iid, w, it }))).sort((a, b) => String(b.it.mod).localeCompare(String(a.it.mod)));
+    const cuerpo = `<div class="fb-pag"><h1 class="fb-h1">Browse</h1><nav class="fb-tabs"><a class="sel">Recent</a><a class="fb-dim" title="No simulado">Favorites</a><a class="fb-dim" title="No simulado">Shared with me</a></nav>${items.length ? `<table class="fb-tabla"><thead><tr><th>Name</th><th>Type</th><th>Workspace</th><th>Modified</th></tr></thead><tbody>${items.map(({ wid, iid, w, it }) => `<tr><td><a href="#/fabric/ws/${wid}/${iid}">${esc(it.nombre)}</a></td><td>${esc((TIPOS[it.tipo] || {}).n || it.tipo)}</td><td>${esc(w.nombre)}</td><td class="fb-dim">${esc(String(it.mod || '').slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table>` : '<p class="fb-dim">Todavía no hay ítems. Crea uno desde Create.</p>'}</div>`;
+    marco('browse', cuerpo);
+  }
   function vistaHome() {
     const f = F();
     const recientes = Object.entries(f.ws).flatMap(([wid, w]) => Object.values(w.items).map((it) => ({ wid, w, it }))).sort((a, b) => String(b.it.mod).localeCompare(String(a.it.mod))).slice(0, 10);
@@ -435,6 +448,8 @@
     else if (a === 'ws' && b && c) abrirItem(b, c);
     else if (a === 'ws' && b) vistaWs(b);
     else if (a === 'ws') { const fly = () => { const x = document.querySelector('[data-ws-flyout]'); if (x) x.click(); }; vistaHome(); setTimeout(fly, 0); }
+    else if (a === 'create') vistaCrear();
+    else if (a === 'browse') vistaBrowse();
     else if (a === 'onelake') vistaOneLake();
     else if (a === 'monitor') vistaMonitor();
     else if (a === 'realtime') vistaStub('realtime', 'Real-Time hub', 'El Real-Time hub reúne los flujos de datos en movimiento (Eventstreams, Event Hubs, CDC de bases de datos y eventos de OneLake). No está simulado en la práctica.');
