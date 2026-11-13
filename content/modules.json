@@ -283,6 +283,20 @@
     ]
   },
   {
+    "id": "vscode",
+    "titulo": "VS Code paso a paso",
+    "icono": "🟦",
+    "color": "#0078d4",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del VS Code de práctica conectado a la terminal: archivos y atajos, terminal integrada y ejecución de Python, depurador, ruff y pytest, Git con ramas y pull requests, dbt, extensiones y productividad. Cada nivel cierra con un proyecto real con menos ayuda que el anterior, y termina con el paso a VS Code instalado en tu computadora.",
+    "objetivos": [
+      "Moverte por un proyecto con el explorador, Ctrl+P, la paleta y los atajos de edición",
+      "Ejecutar, depurar y probar Python desde el editor con el depurador, ruff y pytest",
+      "Trabajar con Git en VS Code: commits, diferencias, ramas, conflictos y pull requests",
+      "Editar y construir proyectos dbt y configurar extensiones, temas y tareas",
+      "Dejar repositorios profesionales que otros puedan clonar, ejecutar y mantener"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

@@ -1311,13 +1311,44 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       ['Editor: cerrar el editor actual', '', () => actual && cerrarTab(actual)],
     ];
     const paleta = () => selector('> Escribe un comando', COMANDOS.map(([l, d, f]) => ({ label: l, desc: d, f })), (x) => x.f());
+    // como en VS Code: el nombre se escribe en una fila del explorador (Enter confirma, Esc cancela)
+    function entradaEnArbol({ base = raiz, valor = '', carpeta = false, fila = null }, alConfirmar) {
+      vistaLat = 'explorador'; lateralOculto = false; if (base !== raiz) abiertas.add(base); pintarLateral();
+      const inp = h(`<input class="vs-entrada" spellcheck="false" value="${esc(valor)}" aria-label="${carpeta ? 'Nombre de la carpeta' : 'Nombre del archivo'}">`);
+      let destino = fila ? latEl.querySelector(`[data-f="${CSS.escape(fila)}"], [data-dir="${CSS.escape(fila)}"]`) : null;
+      if (destino) { const nom = destino.querySelector('.vs-nom') || destino.lastChild; nom.replaceWith(inp); }
+      else {
+        const ancla = base === raiz ? latEl.querySelector('.vs-raiz') : latEl.querySelector(`[data-dir="${CSS.escape(base)}"]`);
+        const nivel = base === raiz ? 0 : base.slice(raiz.length + 1).split('/').length;
+        destino = h(`<div class="vs-n vs-arch vs-n-nueva" style="padding-left:${22 + nivel * 12}px"><span class="vs-ic">${carpeta ? ci('folder') : ci('file')}</span></div>`);
+        destino.appendChild(inp); (ancla || latEl.querySelector('.vs-lat-cab')).after(destino);
+      }
+      inp.focus(); const punto = valor.lastIndexOf('.'); inp.setSelectionRange(0, punto > 0 ? punto : valor.length);
+      let listo = false;
+      const terminar = (ok) => { if (listo) return; listo = true; const v = inp.value.trim(); if (ok && v) alConfirmar(v); else pintarLateral(); };
+      inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); terminar(true); } if (e.key === 'Escape') { e.preventDefault(); terminar(false); } });
+      inp.addEventListener('blur', () => terminar(true));
+      inp.addEventListener('mousedown', (e) => e.stopPropagation()); inp.addEventListener('click', (e) => e.stopPropagation());
+    }
+    function renombrar(k) {
+      entradaEnArbol({ base: k.slice(0, k.lastIndexOf('/')), valor: k.split('/').pop(), fila: k }, (n) => {
+        if (n.includes('/')) { toast('El nombre no puede tener /'); pintarLateral(); return; }
+        const destino = k.slice(0, k.lastIndexOf('/')) + '/' + n;
+        if (destino === k) { pintarLateral(); return; }
+        if (Sh.exists(destino)) { toast('Ya existe un archivo con ese nombre.'); pintarLateral(); return; }
+        for (const p of Object.keys(Sh.Machine.fs)) if (p === k || p.startsWith(k + '/')) { Sh.Machine.fs[destino + p.slice(k.length)] = Sh.Machine.fs[p]; delete Sh.Machine.fs[p]; }
+        const i = abiertos.indexOf(k); if (i >= 0) abiertos[i] = destino; if (actual === k) actual = destino;
+        Sh.Machine.save(); pintarLateral(); pintarTabs();
+      });
+    }
     function nuevo(carpeta, base = raiz) {
-      const n = prompt(carpeta ? 'Nombre de la carpeta nueva (puede incluir subcarpetas, ej. src/utils):' : 'Nombre del archivo nuevo (ej. pipelines/limpieza.py):');
-      if (!n || !n.trim()) return;
-      const p = Sh.norm(base + '/' + n.trim().replace(/^\/+/, ''));
-      if (carpeta) { Sh.mkdirp(p); abiertas.add(p); Sh.Machine.save(); pintarLateral(); return; }
-      if (!Sh.exists(p)) { Sh.mkdirp(p.slice(0, p.lastIndexOf('/'))); Sh.writeFile(p, ''); Sh.Machine.save(); }
-      abrir(p);
+      entradaEnArbol({ base, carpeta }, (n) => {
+        const p = Sh.norm(base + '/' + n.replace(/^\/+/, ''));
+        if (carpeta) { Sh.mkdirp(p); abiertas.add(p); Sh.Machine.save(); pintarLateral(); return; }
+        if (!Sh.exists(p)) { Sh.mkdirp(p.slice(0, p.lastIndexOf('/'))); Sh.writeFile(p, ''); Sh.Machine.save(); }
+        for (let d = p.slice(0, p.lastIndexOf('/')); d.length > raiz.length; d = d.slice(0, d.lastIndexOf('/'))) abiertas.add(d);
+        abrir(p);
+      });
     }
     // ---------------------------------------------------------------- menú contextual del explorador
     function menuContextual(x, y, k) {
@@ -1336,12 +1367,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
         if (c === 'term') correrEnTerminal(`cd ${Sh.display(esDir ? k : k.slice(0, k.lastIndexOf('/')))}`);
         if (c === 'ruta') { try { await navigator.clipboard.writeText(Sh.display(k)); toast('Ruta copiada: ' + Sh.display(k)); } catch (err) { prompt('Ruta:', Sh.display(k)); } }
         if (c === 'renombrar') {
-          const n = prompt('Nuevo nombre:', k.split('/').pop()); if (!n || !n.trim() || n.includes('/')) return;
-          const destino = k.slice(0, k.lastIndexOf('/')) + '/' + n.trim();
-          if (Sh.exists(destino)) { toast('Ya existe un archivo con ese nombre.'); return; }
-          for (const p of Object.keys(Sh.Machine.fs)) if (p === k || p.startsWith(k + '/')) { Sh.Machine.fs[destino + p.slice(k.length)] = Sh.Machine.fs[p]; delete Sh.Machine.fs[p]; }
-          const i = abiertos.indexOf(k); if (i >= 0) abiertos[i] = destino; if (actual === k) actual = destino;
-          Sh.Machine.save(); pintarLateral(); pintarTabs();
+          renombrar(k);
         }
         if (c === 'eliminar') {
           if (!confirm(`¿Eliminar ${esDir ? 'la carpeta' : 'el archivo'} ${Sh.display(k)}? (como rm${esDir ? ' -r' : ''}: no hay papelera)`)) return;
@@ -1379,6 +1405,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       else if (e.key === 'F11' && dbg) { e.preventDefault(); pasoDbg(e.shiftKey ? 'salir' : 'dentro'); }
       else if (c && e.key === ',') { e.preventDefault(); abrir(AJUSTES); }
       else if (c && e.shiftKey && k === 'x') { e.preventDefault(); vistaLat = 'ext'; lateralOculto = false; pintarLateral(); }
+      else if (e.key === 'F2' && !c && actual && vistaLat === 'explorador' && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('.vs-editor, input, textarea'))) { e.preventDefault(); renombrar(actual); }
       else if (c && e.shiftKey && k === 'p') { e.preventDefault(); paleta(); }
       else if (c && !e.shiftKey && k === 'p') { e.preventDefault(); abrirRapido(); }
       else if (c && !e.shiftKey && k === 'b') { e.preventDefault(); lateralOculto = !lateralOculto; pintarLateral(); }
@@ -1718,7 +1745,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
     { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces'] },
     { id: 'e6', titulo: 'Etapa 6 · Diseñar, automatizar y tu computadora', desc: 'Cómo se diseña una plataforma de datos, cómo se crea la infraestructura con código y cómo armar tu entorno en tu propia computadora.', mods: ['arquitectura', 'terraform', 'local'] },
-    { id: 'eh', titulo: '🧰 Las herramientas, paso a paso', desc: 'Un curso guiado por cada herramienta de práctica, con capturas de la misma app: desde la primera pantalla hasta usarla como en el trabajo. Puedes hacerlos en cualquier momento, junto con la etapa donde aparece cada herramienta.', mods: ['excel', 'jupyterlab'] },
+    { id: 'eh', titulo: '🧰 Las herramientas, paso a paso', desc: 'Un curso guiado por cada herramienta de práctica, con capturas de la misma app: desde la primera pantalla hasta usarla como en el trabajo. Puedes hacerlos en cualquier momento, junto con la etapa donde aparece cada herramienta.', mods: ['excel', 'jupyterlab', 'vscode'] },
     { id: 'e7', titulo: '💼 Trabajo real · Casos de negocio y operación', desc: 'Aquí dejas de ser estudiante y resuelves pedidos como en una empresa: casos de negocio con SQL (puedes hacerlos apenas termines la etapa 2), pipelines de punta a punta, incidentes de guardia y laboratorios en la nube.', mods: ['casos', 'pipelines', 'incidentes', 'laboratorios'] },
     { id: 'e8', titulo: '💼 Trabajo real · Tu portafolio y tu primer empleo', desc: 'Proyectos para mostrar, el proyecto final y cómo prepararte para las entrevistas.', mods: ['portafolio', 'proyecto'] },
     { id: 'e9', titulo: 'Opcional · Certificaciones', desc: 'Preparación para las certificaciones de Databricks, Azure, AWS y Google Cloud. Mejor después de la etapa 5.', mods: ['cert-databricks', 'cert-azure', 'cert-aws', 'cert-gcp'] },
@@ -2631,7 +2658,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
       <div class="vsl-cab"><span class="vsl-logo">🟦</span><div><h1>Visual Studio Code</h1><p class="muted">Réplica de VS Code con los temas e íconos del repositorio oficial (microsoft/vscode, licencia MIT) y el mismo editor (Monaco). Trabaja sobre el disco de la <a href="#/lab/terminal">terminal de práctica</a>: lo que guardas aquí lo ves con <code>cat</code> y <code>git status</code>.</p></div></div>
       <div class="vsl-grid">
         <section class="card"><h2>Inicio</h2>
-          <button class="btn btn-primary" data-abrir="${esc(Sh.HOME)}">📂 Abrir la carpeta personal (~)</button>
+          <button class="btn btn-primary" data-abrir="${esc(Sh.HOME)}">📂 Abrir la carpeta personal (~)</button> <a class="btn" href="#/m/vscode">📘 Curso: VS Code paso a paso</a>
           <p class="small muted">También desde la terminal: <code>code .</code> abre la carpeta actual y <code>code archivo.py</code> un archivo.</p>
           ${recientes.length ? `<h3>Recientes</h3><ul class="vsl-lista">${recientes.slice(0, 6).map((r) => `<li><a href="#/vscode" data-abrir="${esc(r)}">${esc(r.split('/').pop() || '~')}</a> <span class="small muted">${esc(Sh.display(r))}</span></li>`).join('')}</ul>` : ''}
         </section>

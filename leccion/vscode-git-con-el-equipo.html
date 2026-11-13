@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Git con el equipo - repositorio remoto, push, pull, pull requests y conflictos · Academia de Datos</title><meta name="description" content="Git se vuelve indispensable cuando trabajan varias personas. Cómo conectar tu repositorio con GitHub, subir (push) y traer (pull) cambios, el flujo de trabajo con ramas y pull requests que usan casi todos los equipos, cómo se ve un conflicto en VS Code y cómo resolverlo eligiendo qué versión queda."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-git-con-el-equipo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Git con el equipo - repositorio remoto, push, pull, pull requests y conflictos · Academia de Datos"><meta property="og:description" content="Git se vuelve indispensable cuando trabajan varias personas. Cómo conectar tu repositorio con GitHub, subir (push) y traer (pull) cambios, el flujo de trabajo con ramas y pull requests que usan casi todos los equipos, cómo se ve un conflicto en VS Code y cómo resolverlo eligiendo qué versión queda."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-git-con-el-equipo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 4 · Intermedio-avanzado · 50 min</div>
+<h1>Git con el equipo - repositorio remoto, push, pull, pull requests y conflictos</h1><p class="resumen">Git se vuelve indispensable cuando trabajan varias personas. Cómo conectar tu repositorio con GitHub, subir (push) y traer (pull) cambios, el flujo de trabajo con ramas y pull requests que usan casi todos los equipos, cómo se ve un conflicto en VS Code y cómo resolverlo eligiendo qué versión queda.</p>
+<a class="cta" href="../index.html#/l/vscode-git-con-el-equipo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un repositorio remoto y conectarlo con push</li><li>Traer los cambios del equipo con pull</li><li>Seguir el flujo rama → commits → push → pull request → revisión → merge</li><li>Reconocer y resolver un conflicto de merge en VS Code</li><li>Evitar los errores comunes al trabajar en equipo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Tu repositorio local es tu cuaderno; GitHub es la carpeta compartida del equipo. <strong>Commit</strong> es escribir en tu cuaderno; <strong>push</strong> es subir tus páginas a la carpeta; <strong>pull</strong> es traer lo que subieron los demás. El pull request es pedir: &quot;revisen estas páginas antes de agregarlas a la versión oficial&quot;.</p>
+</div>
+
+
+<h2>Paso 1 — Conecta con GitHub</h2>
+<p>En la terminal integrada, dentro de <code>ventas_app</code> (con al menos un commit):</p>
+<pre><code class="language-bash">gh repo create ventas_app --private --source=. --push</code></pre>
+<p>Crea el repositorio en GitHub, lo conecta como <code>origin</code> y sube tu rama. En la práctica se crea en la <a href="#/github">réplica de GitHub</a>; en tu computadora, en GitHub de verdad (después de <code>gh auth login</code>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>git remote -v</code></td>
+<td>Muestra a dónde está conectado el repositorio</td>
+</tr>
+<tr>
+<td><code>git push</code></td>
+<td>Sube tus commits de la rama actual</td>
+</tr>
+<tr>
+<td><code>git push -u origin feature/x</code></td>
+<td>Sube una rama nueva y la deja asociada</td>
+</tr>
+<tr>
+<td><code>git pull</code></td>
+<td>Trae y aplica los commits nuevos del remoto</td>
+</tr>
+</tbody></table></div>
+<p>En la vista de Git de VS Code, las flechas <strong>↓</strong> (pull) y <strong>↑</strong> (push) ejecutan lo mismo.</p>
+<h2>Paso 2 — El flujo de trabajo del equipo</h2>
+<ol>
+<li><code>git checkout main &amp;&amp; git pull</code> — empiezas desde lo último.</li>
+<li><code>git checkout -b feature/algo</code> — una rama para tu cambio.</li>
+<li>Commits pequeños mientras trabajas.</li>
+<li><code>git push -u origin feature/algo</code> — subes la rama.</li>
+<li><strong>Pull request</strong> (<code>gh pr create</code> o desde GitHub): describes qué cambia y por qué.</li>
+<li>Alguien revisa, comenta, tú corriges con más commits en la misma rama.</li>
+<li>Cuando está aprobado y los tests pasan, se fusiona en <code>main</code>.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Commits chicos, PR chicos</div>
+
+<p>Un PR de 50 líneas se revisa en diez minutos y bien; uno de 2.000 líneas se aprueba sin leer. Divide el trabajo en cambios que se entiendan solos.</p>
+</div>
+
+
+<h2>Paso 3 — Un conflicto</h2>
+<p>Un conflicto aparece cuando dos personas cambiaron <strong>las mismas líneas</strong> de un archivo. Al hacer <code>git pull</code> o <code>git merge</code>, Git no sabe con cuál quedarse y marca el archivo:</p>
+<pre><code class="language-text">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+UMBRAL = 8.0
+=======
+UMBRAL = 7.5
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/ajuste-umbral</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Marcador</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code></td>
+<td>Empieza tu versión (la de la rama donde estás)</td>
+</tr>
+<tr>
+<td><code>=======</code></td>
+<td>Separa las dos versiones</td>
+</tr>
+<tr>
+<td><code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/…</code></td>
+<td>Termina la versión que llega de la otra rama</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Resolverlo en VS Code</h2>
+<ol>
+<li>El archivo aparece con <strong>C</strong> en el explorador y en la vista de Git.</li>
+<li>VS Code real muestra encima del conflicto los botones <strong>Aceptar cambio actual</strong>, <strong>Aceptar cambio entrante</strong>, <strong>Aceptar ambos</strong> y <strong>Comparar</strong>. En la práctica, editas el texto a mano.</li>
+<li>Deja el archivo como debe quedar (puede ser una de las dos versiones o una combinación) y <strong>borra los tres marcadores</strong>.</li>
+<li>Guarda, <code>git add archivo</code> y <code>git commit</code>.</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Resolver no es elegir al azar</div>
+
+<p>Antes de elegir, pregunta: ¿por qué la otra persona cambió esa línea? Un conflicto en <code>UMBRAL</code> es una decisión de negocio, no técnica. Si no estás seguro, pregunta antes de fusionar.</p>
+</div>
+
+
+<p>Para practicar conflictos con casos guiados está la lección <a href="#/l/fundamentos-git-en-equipo">Git en equipo</a>.</p>
+<h2>Paso 5 — Errores comunes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Error</th>
+<th>Cómo evitarlo</th>
+</tr>
+</thead><tbody><tr>
+<td>Trabajar directo en <code>main</code></td>
+<td>Siempre una rama por cambio</td>
+</tr>
+<tr>
+<td>Empezar sin <code>git pull</code></td>
+<td>Traer lo último antes de crear la rama</td>
+</tr>
+<tr>
+<td><code>git push --force</code> en una rama compartida</td>
+<td>Borra el trabajo de otros: no lo uses salvo que sepas exactamente por qué</td>
+</tr>
+<tr>
+<td>Subir datos o claves</td>
+<td><code>.gitignore</code> desde el primer commit</td>
+</tr>
+<tr>
+<td>Commits enormes con &quot;varios cambios&quot;</td>
+<td>Un commit, una idea</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conectas un repositorio con GitHub y sincronizas con push y pull.</li>
+<li>Conoces el flujo de ramas y pull requests.</li>
+<li>Sabes leer y resolver un conflicto.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-git-con-el-equipo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-ramas-e-historial.html">← Ramas e historial - trabajar en una rama, ver la historia y volver atrás sin miedo</a><a href="vscode-proyecto-pull-request.html">Proyecto 4 (entregables y pistas mínimas) - un cambio completo, de la rama al pull request →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

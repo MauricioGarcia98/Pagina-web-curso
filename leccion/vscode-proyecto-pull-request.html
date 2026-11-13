@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4 (entregables y pistas mínimas) - un cambio completo, de la rama al pull request · Academia de Datos</title><meta name="description" content="Te asignan un cambio en el proyecto ventas_app - agregar la validación de emails con sus tests - y tienes que entregarlo como se hace en un equipo - rama con nombre claro, commits pequeños con buenos mensajes, tests y ruff en verde, push, y un pull request con descripción, que revisas, ajustas y fusionas. Entregables y una rúbrica; pistas solo para lo difícil."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-proyecto-pull-request.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4 (entregables y pistas mínimas) - un cambio completo, de la rama al pull request · Academia de Datos"><meta property="og:description" content="Te asignan un cambio en el proyecto ventas_app - agregar la validación de emails con sus tests - y tienes que entregarlo como se hace en un equipo - rama con nombre claro, commits pequeños con buenos mensajes, tests y ruff en verde, push, y un pull request con descripción, que revisas, ajustas y fusionas. Entregables y una rúbrica; pistas solo para lo difícil."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-proyecto-pull-request.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 4 · Intermedio-avanzado · 90 min</div>
+<h1>Proyecto 4 (entregables y pistas mínimas) - un cambio completo, de la rama al pull request</h1><p class="resumen">Te asignan un cambio en el proyecto ventas_app - agregar la validación de emails con sus tests - y tienes que entregarlo como se hace en un equipo - rama con nombre claro, commits pequeños con buenos mensajes, tests y ruff en verde, push, y un pull request con descripción, que revisas, ajustas y fusionas. Entregables y una rúbrica; pistas solo para lo difícil.</p>
+<a class="cta" href="../index.html#/l/vscode-proyecto-pull-request">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Planificar un cambio en pasos que se puedan commitear</li><li>Trabajar en una rama con commits pequeños y mensajes útiles</li><li>Acompañar el cambio con tests y código limpio</li><li>Subir la rama y abrir un pull request con buena descripción</li><li>Responder a una revisión y fusionar</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 La tarea</div>
+
+<p>Ticket del tablero del equipo: <strong>VENTAS-42 · Validar emails antes de exportar clientes.</strong> <em>&quot;El archivo de clientes que mandamos a marketing tiene emails mal escritos (sin @, con espacios). Agregar a <code>src/limpieza.py</code> una función que diga si un email es válido, con tests, y dejar documentado en el README cómo se usa. Entregar como PR para revisión.&quot;</em></p>
+</div>
+
+
+<p>Sabes <strong>qué</strong> entregar. Las pistas están cerradas.</p>
+<h2>Punto de partida</h2>
+<p>El repositorio <code>ventas_app</code> de las lecciones 13 a 15 (con <code>README.md</code>, <code>src/limpieza.py</code>, <code>.gitignore</code> y al menos un commit en <code>main</code>), conectado a la réplica de GitHub con <code>gh repo create</code>. Si no lo tienes, créalo primero siguiendo la lección 13.</p>
+<h2>Entregable 1 — La rama</h2>
+<p>Una rama con nombre convencional que referencie el ticket, creada desde <code>main</code> actualizado.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>git checkout main &amp;&amp; git pull</code> y después <code>git checkout -b feature/VENTAS-42-validar-emails</code>.</p>
+</details>
+
+<h2>Entregable 2 — El código y los tests (en commits separados)</h2>
+<ul>
+<li><code>es_email_valido(email)</code> en <code>src/limpieza.py</code>: <code>True</code> si, después de quitar espacios, tiene exactamente una <code>@</code>, algo antes de la <code>@</code> y un punto en la parte de después.</li>
+<li><code>tests/test_limpieza.py</code> con al menos cinco casos: uno válido, uno sin <code>@</code>, uno con dos <code>@</code>, uno sin punto en el dominio y uno con espacios alrededor (válido después de limpiar).</li>
+<li><code>pytest</code> y <code>ruff check .</code> sin problemas.</li>
+<li>Al menos <strong>tres commits</strong>: la función, los tests, el README.</li>
+</ul>
+<details><summary>💡 Pista: importar desde tests/</summary>
+
+<p>Desde la raíz del proyecto, <code>pytest</code> encuentra <code>tests/test_limpieza.py</code>. Para importar <code>src/limpieza.py</code>, agrega un archivo vacío <code>tests/__init__.py</code> y en el test <code>from src.limpieza import es_email_valido</code>, o ejecuta con <code>python -m pytest</code>.</p>
+</details>
+
+<h2>Entregable 3 — El README</h2>
+<p>Una sección <code>## Validación de emails</code> que explique qué considera válido y un ejemplo de uso.</p>
+<h2>Entregable 4 — El pull request</h2>
+<p>La rama subida (<code>git push -u origin …</code>) y un PR con:</p>
+<ul>
+<li><strong>Título</strong> que diga qué cambia (no &quot;cambios&quot; ni el nombre de la rama).</li>
+<li><strong>Descripción</strong> con: qué problema resuelve (el ticket), qué cambia, cómo se probó y qué queda fuera.</li>
+</ul>
+<details><summary>💡 Pista</summary>
+
+<p><code>gh pr create --title &quot;Valida emails antes de exportar clientes (VENTAS-42)&quot; --body &quot;...&quot;</code>. Después mira el PR en la <a href="#/github">réplica de GitHub</a>.</p>
+</details>
+
+<h2>Entregable 5 — La revisión</h2>
+<p>Imagina que el revisor comenta: <em>&quot;¿Y un email en mayúsculas, como <a href="mailto:ANA@CORREO.COM">ANA@CORREO.COM</a>? ¿Es válido?&quot;</em>. Decide, agrega el test correspondiente en un commit nuevo en la misma rama, súbelo y responde el comentario. Después fusiona el PR (<code>gh pr merge</code>) y borra la rama local.</p>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Bien</th>
+<th>Muy bien</th>
+</tr>
+</thead><tbody><tr>
+<td>Rama</td>
+<td>Nombre claro, desde main</td>
+<td>Desde main actualizado, con el ticket en el nombre</td>
+</tr>
+<tr>
+<td>Commits</td>
+<td>Tres o más con mensajes útiles</td>
+<td>Cada commit es una idea y el proyecto funciona en cada uno</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>Cinco casos que pasan</td>
+<td>Incluyen los bordes y el caso que pidió el revisor</td>
+</tr>
+<tr>
+<td>Calidad</td>
+<td>ruff sin problemas</td>
+<td>Además formateado y sin código de prueba olvidado</td>
+</tr>
+<tr>
+<td>PR</td>
+<td>Título y descripción</td>
+<td>La descripción explica problema, cambio, prueba y alcance</td>
+</tr>
+<tr>
+<td>Revisión</td>
+<td>Se corrigió lo pedido</td>
+<td>Se respondió el comentario con la decisión tomada</td>
+</tr>
+</tbody></table></div>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-proyecto-pull-request">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-git-con-el-equipo.html">← Git con el equipo - repositorio remoto, push, pull, pull requests y conflictos</a><a href="vscode-sql-y-dbt-en-vscode.html">SQL y dbt en VS Code - editar modelos, ejecutarlos y leer los errores de dependencias →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

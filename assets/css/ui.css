@@ -687,3 +687,6 @@ body.herr-on :is(a, button, [role="button"], [tabindex], summary, select):focus-
 .ico-of { flex: none; vertical-align: -3px; display: inline-block; }
 .azp .ico-of, .adf .ico-of, .fbp .ico-of { vertical-align: -3px; }
 .xl-bi .ico-of { vertical-align: 0; display: block; margin: 1px auto; }
+/* VS Code: fila para escribir el nombre de un archivo nuevo o renombrado, dentro del explorador */
+.vs-entrada { flex: 1; min-width: 60px; width: calc(100% - 28px); font: inherit; color: inherit; background: var(--vs-input-bg, #313131); border: 1px solid var(--vs-focus, #0078d4); outline: none; padding: 1px 4px; border-radius: 2px; }
+.vs-n-nueva { display: flex; align-items: center; gap: 4px; }

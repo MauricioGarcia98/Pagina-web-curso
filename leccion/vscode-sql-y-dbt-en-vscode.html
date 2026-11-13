@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL y dbt en VS Code - editar modelos, ejecutarlos y leer los errores de dependencias · Academia de Datos</title><meta name="description" content="Buena parte del trabajo de un analytics engineer es SQL dentro de un proyecto dbt, y se hace en VS Code. Cómo se organiza un proyecto dbt en el explorador, editar un modelo con ref(), ejecutarlo con ▷ o dbt run --select, entender por qué un modelo falla si su dependencia no existe, construir el proyecto completo y dónde mirar los tests del schema.yml."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-sql-y-dbt-en-vscode.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL y dbt en VS Code - editar modelos, ejecutarlos y leer los errores de dependencias · Academia de Datos"><meta property="og:description" content="Buena parte del trabajo de un analytics engineer es SQL dentro de un proyecto dbt, y se hace en VS Code. Cómo se organiza un proyecto dbt en el explorador, editar un modelo con ref(), ejecutarlo con ▷ o dbt run --select, entender por qué un modelo falla si su dependencia no existe, construir el proyecto completo y dónde mirar los tests del schema.yml."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-sql-y-dbt-en-vscode.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 5 · Avanzado · 45 min</div>
+<h1>SQL y dbt en VS Code - editar modelos, ejecutarlos y leer los errores de dependencias</h1><p class="resumen">Buena parte del trabajo de un analytics engineer es SQL dentro de un proyecto dbt, y se hace en VS Code. Cómo se organiza un proyecto dbt en el explorador, editar un modelo con ref(), ejecutarlo con ▷ o dbt run --select, entender por qué un modelo falla si su dependencia no existe, construir el proyecto completo y dónde mirar los tests del schema.yml.</p>
+<a class="cta" href="../index.html#/l/vscode-sql-y-dbt-en-vscode">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer la estructura de un proyecto dbt en el explorador</li><li>Editar modelos SQL que usan ref()</li><li>Ejecutar un modelo y el proyecto completo desde VS Code</li><li>Diagnosticar un error de dependencia (tabla que no existe)</li><li>Relacionar modelos, schema.yml y tests</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un proyecto dbt es una receta de varias capas: los modelos de <em>staging</em> limpian las tablas crudas y los <em>marts</em> arman los resúmenes encima de ellos. <code>ref(&#39;stg_ventas&#39;)</code> dice &quot;usá lo que produce ese otro modelo&quot;. Si pides el resumen sin haber preparado la capa de abajo, la receta no puede salir.</p>
+</div>
+
+
+<h2>Paso 1 — El proyecto en el explorador</h2>
+<p>En la terminal integrada: <code>code ~/tienda_dbt</code>. El explorador muestra:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Carpeta / archivo</th>
+<th>Contiene</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt_project.yml</code></td>
+<td>La configuración del proyecto</td>
+</tr>
+<tr>
+<td><code>models/staging/</code></td>
+<td>Modelos que limpian y renombran las tablas de origen (<code>stg_ventas.sql</code>)</td>
+</tr>
+<tr>
+<td><code>models/marts/</code></td>
+<td>Modelos de negocio (<code>ventas_por_canal.sql</code>, <code>top_clientes.sql</code>)</td>
+</tr>
+<tr>
+<td><code>models/schema.yml</code></td>
+<td>Descripciones y <strong>tests</strong> de los modelos</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Un modelo</h2>
+<p>Abre <strong>models/marts/ventas_por_canal.sql</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v17-modelo-dbt.webp" alt="Un modelo dbt: un SELECT que usa ref('stg_ventas'); el ▷ (1) lo ejecuta con dbt run --select" loading="lazy"><figcaption>Un modelo dbt: un SELECT que usa ref('stg_ventas'); el ▷ (1) lo ejecuta con dbt run --select</figcaption></figure>
+
+
+<pre data-norun><code class="language-sql">select
+    canal,
+    count(distinct pedido_id) as pedidos,
+    round(sum(importe), 2)    as ventas
+from {{ ref('stg_ventas') }}
+group by canal</code></pre>
+<p>Un modelo es solo un <code>SELECT</code>. dbt lo convierte en una tabla o vista, y <code>{{ ref(&#39;stg_ventas&#39;) }}</code> se reemplaza por el nombre real de la tabla de ese modelo. Gracias a <code>ref</code>, dbt sabe el <strong>orden</strong> en que hay que construir todo.</p>
+<h2>Paso 3 — Ejecuta un modelo… y lee el error</h2>
+<p>Presiona <strong>▷</strong> (con la extensión dbt Power User, VS Code ejecuta <code>dbt run --select</code> del modelo abierto). Si es la primera vez:</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v17-dbt-error.webp" alt="ERROR no such table main.stg_ventas: el modelo depende de otro que todavía no se construyó" loading="lazy"><figcaption>ERROR no such table main.stg_ventas: el modelo depende de otro que todavía no se construyó</figcaption></figure>
+
+
+<p><code>no such table: main.stg_ventas</code>: pediste construir solo <code>ventas_por_canal</code>, pero la tabla de <code>stg_ventas</code> todavía no existe. No es un error en tu SQL: falta la capa de abajo.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Construye</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbt run --select ventas_por_canal</code></td>
+<td>Solo ese modelo</td>
+</tr>
+<tr>
+<td><code>dbt run --select +ventas_por_canal</code></td>
+<td>Ese modelo <strong>y todo lo que necesita antes</strong></td>
+</tr>
+<tr>
+<td><code>dbt run --select ventas_por_canal+</code></td>
+<td>Ese modelo y todo lo que depende de él</td>
+</tr>
+<tr>
+<td><code>dbt run</code></td>
+<td>Todo el proyecto, en orden</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Construye el proyecto</h2>
+<p>En la terminal:</p>
+<pre><code class="language-bash">dbt run</code></pre>
+<figure class="captura"><img src="assets/img/guias/vscode/v17-dbt-run.webp" alt="dbt run construye los 3 modelos en orden: primero stg_ventas, después los marts" loading="lazy"><figcaption>dbt run construye los 3 modelos en orden: primero stg_ventas, después los marts</figcaption></figure>
+
+
+<p>Ahora sí, <code>▷</code> sobre <code>ventas_por_canal.sql</code> funciona.</p>
+<h2>Paso 5 — Los tests del schema.yml</h2>
+<p>Abre <strong>models/schema.yml</strong>:</p>
+<pre><code class="language-yaml">models:
+  - name: ventas_por_canal
+    columns:
+      - name: canal
+        data_tests: [unique, not_null]</code></pre>
+<p>Dice que en <code>ventas_por_canal</code> la columna <code>canal</code> no puede repetirse ni estar vacía. <code>dbt test</code> lo comprueba; <code>dbt build</code> construye y prueba todo junto. Si un test falla, el modelo tiene datos que no cumplen lo que el equipo espera.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Buscar en todo el proyecto</div>
+
+<p>¿Qué modelos usan <code>stg_ventas</code>? <strong>Ctrl + Shift + F</strong> → <code>ref(&#39;stg_ventas&#39;)</code>. Antes de cambiar un modelo, mira quién depende de él.</p>
+</div>
+
+
+<p>Para profundizar en dbt (materializaciones, incrementales, fuentes, macros), está el módulo <a href="#/m/dbt">dbt</a> y el <a href="#/lab/dbt">laboratorio de dbt</a>.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Reconoces la estructura de un proyecto dbt y editas modelos con ref().</li>
+<li>Ejecutas modelos y el proyecto completo.</li>
+<li>Diagnosticas errores de dependencias y sabes dónde están los tests.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-sql-y-dbt-en-vscode">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-proyecto-pull-request.html">← Proyecto 4 (entregables y pistas mínimas) - un cambio completo, de la rama al pull request</a><a href="vscode-extensiones-y-temas.html">Extensiones, temas y perfiles - armar el VS Code de un profesional de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

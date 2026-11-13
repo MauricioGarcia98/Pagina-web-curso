@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests con pytest - comprobar automáticamente que tu código hace lo que dice · Academia de Datos</title><meta name="description" content="Un test es un pequeño programa que comprueba que otro funciona. Cómo separar la lógica en funciones, escribir tests con pytest (archivos test_*.py, funciones test_* y assert), ejecutarlos desde VS Code, leer un fallo, cubrir casos borde y por qué los tests son lo que permite cambiar código sin miedo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-tests-con-pytest.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tests con pytest - comprobar automáticamente que tu código hace lo que dice · Academia de Datos"><meta property="og:description" content="Un test es un pequeño programa que comprueba que otro funciona. Cómo separar la lógica en funciones, escribir tests con pytest (archivos test_*.py, funciones test_* y assert), ejecutarlos desde VS Code, leer un fallo, cubrir casos borde y por qué los tests son lo que permite cambiar código sin miedo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/vscode-tests-con-pytest.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#vscode">🟦 VS Code paso a paso</a> · 3 · Intermedio · 45 min</div>
+<h1>Tests con pytest - comprobar automáticamente que tu código hace lo que dice</h1><p class="resumen">Un test es un pequeño programa que comprueba que otro funciona. Cómo separar la lógica en funciones, escribir tests con pytest (archivos test_*.py, funciones test_* y assert), ejecutarlos desde VS Code, leer un fallo, cubrir casos borde y por qué los tests son lo que permite cambiar código sin miedo.</p>
+<a class="cta" href="../index.html#/l/vscode-tests-con-pytest">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Separar la lógica de un script en funciones probables</li><li>Escribir tests con pytest siguiendo sus convenciones</li><li>Ejecutar los tests y leer el resultado</li><li>Interpretar un test que falla</li><li>Elegir qué casos probar, incluidos los bordes</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un test es una pregunta con respuesta conocida: &quot;si el precio es 100 y el descuento 10 %, ¿el resultado es 90?&quot;. Si mañana alguien cambia la función, los tests vuelven a preguntar todo en un segundo y te avisan si algo se rompió.</p>
+</div>
+
+
+<h2>Paso 1 — La función a probar</h2>
+<p>Crea <strong>scripts/precios.py</strong>:</p>
+<pre data-norun><code class="language-python">def con_descuento(precio, descuento):
+    &quot;&quot;&quot;Precio con descuento (descuento entre 0 y 1).&quot;&quot;&quot;
+    return round(precio * (1 - descuento), 2)</code></pre>
+<p>Para poder probar algo, tiene que estar en una <strong>función</strong> que reciba datos y devuelva un resultado. Un script que lee un CSV e imprime no se puede probar fácil; una función sí.</p>
+<h2>Paso 2 — Los tests</h2>
+<p>Crea <strong>scripts/test_precios.py</strong>:</p>
+<pre data-norun><code class="language-python">from precios import con_descuento
+
+
+def test_descuento_normal():
+    assert con_descuento(100, 0.1) == 90
+
+
+def test_sin_descuento():
+    assert con_descuento(80, 0) == 80</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Convención de pytest</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td>El archivo empieza con <code>test_</code></td>
+<td><code>test_precios.py</code></td>
+</tr>
+<tr>
+<td>Cada test es una función que empieza con <code>test_</code></td>
+<td><code>def test_sin_descuento():</code></td>
+</tr>
+<tr>
+<td>Adentro, <code>assert</code> con lo que esperas</td>
+<td><code>assert con_descuento(80, 0) == 80</code></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Ejecuta los tests</h2>
+<p>En la terminal, desde la carpeta <code>scripts</code>:</p>
+<pre><code class="language-bash">cd ~/scripts
+pytest</code></pre>
+<p>(O en la paleta: <strong>Python: ejecutar los tests (pytest)</strong>.)</p>
+<figure class="captura"><img src="assets/img/guias/vscode/v11-pytest.webp" alt="pytest encuentra los dos tests y los dos pasan: 2 passed, 0 failed" loading="lazy"><figcaption>pytest encuentra los dos tests y los dos pasan: 2 passed, 0 failed</figcaption></figure>
+
+
+<h2>Paso 4 — Un test que falla</h2>
+<p>Agrega un test con un error a propósito:</p>
+<pre data-norun><code class="language-python">def test_descuento_total():
+    assert con_descuento(50, 1) == 5</code></pre>
+<p>Ejecuta <code>pytest</code>: aparece <strong>FAILED</strong> con el detalle <code>assert 0.0 == 5</code>. Se lee: &quot;esperabas 5, la función devolvió 0.0&quot;. Acá el error está en el test (con 100 % de descuento el precio es 0); en la vida real, puede estar en la función. Corrige el test (<code>== 0</code>) y vuelve a ejecutar.</p>
+<h2>Paso 5 — Qué probar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de caso</th>
+<th>Ejemplo para <code>con_descuento</code></th>
+</tr>
+</thead><tbody><tr>
+<td>El caso normal</td>
+<td>100 con 10 % → 90</td>
+</tr>
+<tr>
+<td>Sin efecto</td>
+<td>descuento 0 → el mismo precio</td>
+</tr>
+<tr>
+<td>El extremo</td>
+<td>descuento 1 → 0</td>
+</tr>
+<tr>
+<td>Decimales</td>
+<td>19,99 con 15 % → 16,99 (redondeo)</td>
+</tr>
+<tr>
+<td>Entrada inválida</td>
+<td>descuento 1,5 → ¿debería dar error? Decídelo y pruébalo</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Los tests protegen el futuro</div>
+
+<p>El valor de un test no es el día que lo escribes, sino el día que alguien cambia la función &quot;para mejorarla&quot; y el test avisa que rompió un caso. Con tests, se puede cambiar código sin miedo; sin tests, cada cambio es una apuesta.</p>
+</div>
+
+
+<h2>Paso 6 — En VS Code real</h2>
+<p>La extensión de Python tiene una vista <strong>Testing</strong> (ícono de matraz) que descubre los tests, los ejecuta con un clic y muestra ✓ o ✗ al lado de cada uno, incluso dentro del editor. En esta práctica se ejecutan desde la terminal o la paleta.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Separaste lógica en funciones y la probaste con pytest.</li>
+<li>Lees tests que pasan y que fallan.</li>
+<li>Sabes elegir casos, incluidos los bordes.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/vscode-tests-con-pytest">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="vscode-problemas-y-calidad.html">← Problemas y calidad de código - el panel de problemas, ruff y el estilo que espera un equipo</a><a href="vscode-proyecto-el-reporte-da-mal.html">Proyecto 3 (pedido con pistas) - &quot;el reporte de comisiones da mal&quot; - depurar, corregir y proteger con tests →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
