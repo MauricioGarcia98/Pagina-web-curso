@@ -1,6 +1,18 @@
 /* Academia de Datos — aplicación principal (router, vistas, ejercicios, laboratorios). */
 (function () {
   'use strict';
+  // Comillas en todos los editores (como en JupyterLab y VS Code): dentro de un string abierto (también f"...", r"...") la comilla lo cierra, no abre un par nuevo.
+  // El autocierre de CodeMirror 5 no reconoce los prefijos de string y en f"{x}" terminaba agregando "" de más.
+  const comillaPy = (q) => (cm) => {
+    if (cm.somethingSelected()) return window.CodeMirror.Pass;
+    const cur = cm.getCursor(); const antes = cm.getLine(cur.line).slice(0, cur.ch); const sig = cm.getLine(cur.line).charAt(cur.ch);
+    let abierta = null;
+    for (let i = 0; i < antes.length; i++) { const ch = antes[i]; if (ch === '\\' && abierta) { i++; continue; } if (ch === '#' && !abierta) break; if (ch === '"' || ch === "'") { if (!abierta) abierta = ch; else if (abierta === ch) abierta = null; } }
+    if (abierta !== q) return window.CodeMirror.Pass;
+    if (sig === q) cm.execCommand('goCharRight'); else cm.replaceSelection(q);
+  };
+  const COMILLAS_CM = { "'\"'": comillaPy('"'), "'''": comillaPy("'") };
+  if (window.CodeMirror && window.CodeMirror.defineInitHook) window.CodeMirror.defineInitHook((cm) => cm.addKeyMap(COMILLAS_CM));
 
   const C = window.COURSE;
   const { SQL, PY, DBT, CLI } = window.Engines;
@@ -1706,7 +1718,7 @@ print('\\u0001TRAZA' + json.dumps({'pasos': pasos, 'salida': salida.getvalue(), 
     { id: 'e4', titulo: 'Etapa 4 · Transformar y orquestar', desc: 'dbt para organizar las transformaciones en SQL y Airflow para que todo corra solo, en orden y a horario.', mods: ['dbt', 'airflow'] },
     { id: 'e5', titulo: 'Etapa 5 · La nube y las plataformas', desc: 'Dónde corre todo en las empresas: Azure, AWS, Google Cloud, Databricks y Genie.', mods: ['azure', 'aws', 'gcp', 'databricks', 'genie', 'interfaces'] },
     { id: 'e6', titulo: 'Etapa 6 · Diseñar, automatizar y tu computadora', desc: 'Cómo se diseña una plataforma de datos, cómo se crea la infraestructura con código y cómo armar tu entorno en tu propia computadora.', mods: ['arquitectura', 'terraform', 'local'] },
-    { id: 'eh', titulo: '🧰 Las herramientas, paso a paso', desc: 'Un curso guiado por cada herramienta de práctica, con capturas de la misma app: desde la primera pantalla hasta usarla como en el trabajo. Puedes hacerlos en cualquier momento, junto con la etapa donde aparece cada herramienta.', mods: ['excel'] },
+    { id: 'eh', titulo: '🧰 Las herramientas, paso a paso', desc: 'Un curso guiado por cada herramienta de práctica, con capturas de la misma app: desde la primera pantalla hasta usarla como en el trabajo. Puedes hacerlos en cualquier momento, junto con la etapa donde aparece cada herramienta.', mods: ['excel', 'jupyterlab'] },
     { id: 'e7', titulo: '💼 Trabajo real · Casos de negocio y operación', desc: 'Aquí dejas de ser estudiante y resuelves pedidos como en una empresa: casos de negocio con SQL (puedes hacerlos apenas termines la etapa 2), pipelines de punta a punta, incidentes de guardia y laboratorios en la nube.', mods: ['casos', 'pipelines', 'incidentes', 'laboratorios'] },
     { id: 'e8', titulo: '💼 Trabajo real · Tu portafolio y tu primer empleo', desc: 'Proyectos para mostrar, el proyecto final y cómo prepararte para las entrevistas.', mods: ['portafolio', 'proyecto'] },
     { id: 'e9', titulo: 'Opcional · Certificaciones', desc: 'Preparación para las certificaciones de Databricks, Azure, AWS y Google Cloud. Mejor después de la etapa 5.', mods: ['cert-databricks', 'cert-azure', 'cert-aws', 'cert-gcp'] },

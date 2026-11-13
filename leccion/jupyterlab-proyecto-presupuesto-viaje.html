@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 1 (guiado paso a paso) - el notebook del presupuesto de un viaje de trabajo · Academia de Datos</title><meta name="description" content="Primer proyecto real. Te piden calcular y documentar el presupuesto de un viaje de tres días para una visita a un cliente. Creas un notebook con nombre claro, lo estructuras con títulos Markdown, haces las cuentas con variables de Python, muestras el resultado con un mensaje claro y lo entregas descargado. Cada paso explicado y con capturas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-presupuesto-viaje.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 1 (guiado paso a paso) - el notebook del presupuesto de un viaje de trabajo · Academia de Datos"><meta property="og:description" content="Primer proyecto real. Te piden calcular y documentar el presupuesto de un viaje de tres días para una visita a un cliente. Creas un notebook con nombre claro, lo estructuras con títulos Markdown, haces las cuentas con variables de Python, muestras el resultado con un mensaje claro y lo entregas descargado. Cada paso explicado y con capturas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-presupuesto-viaje.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 1 · Básico · 45 min</div>
+<h1>Proyecto 1 (guiado paso a paso) - el notebook del presupuesto de un viaje de trabajo</h1><p class="resumen">Primer proyecto real. Te piden calcular y documentar el presupuesto de un viaje de tres días para una visita a un cliente. Creas un notebook con nombre claro, lo estructuras con títulos Markdown, haces las cuentas con variables de Python, muestras el resultado con un mensaje claro y lo entregas descargado. Cada paso explicado y con capturas.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-proyecto-presupuesto-viaje">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear y nombrar un notebook para una tarea concreta</li><li>Estructurar un notebook con títulos y explicaciones</li><li>Calcular con variables y mostrar resultados con print y f-strings</li><li>Verificar el resultado y entregar el .ipynb</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de tu líder: <em>&quot;La semana que viene viajás tres días a ver al cliente de Lima. Armame el presupuesto en un notebook así queda documentado: pasajes 420, hotel 85 por noche (3 noches) y comidas 40 por día. Necesito el total y cuánto es por día.&quot;</em></p>
+</div>
+
+
+<p>Proyecto <strong>guiado paso a paso</strong>. En los próximos niveles tendrás cada vez menos instrucciones.</p>
+<h2>Paso 1 — Crea y nombra el notebook</h2>
+<ol>
+<li>En <a href="#/jupyter">JupyterLab de práctica</a>: <strong>File → New → Notebook</strong>.</li>
+<li>Clic derecho sobre <strong>Untitled.ipynb</strong> → <strong>Rename</strong> → <code>presupuesto_viaje_lima.ipynb</code>.</li>
+</ol>
+<h2>Paso 2 — El título y el contexto (Markdown)</h2>
+<ol>
+<li>Selecciona la primera celda, presiona <strong>Esc</strong> y después <strong>M</strong> (Markdown). Enter para editar.</li>
+<li>Escribe:</li>
+</ol>
+<pre><code class="language-text"># Presupuesto del viaje a Lima
+Visita al cliente, 3 días. Montos en dólares.</code></pre>
+<ol start="3">
+<li><strong>Shift + Enter</strong>.</li>
+</ol>
+<h2>Paso 3 — Los datos, en variables</h2>
+<p>En la celda de código que quedó abajo, escribe:</p>
+<pre data-norun><code class="language-python">pasajes = 420
+hotel = 3 * 85
+comidas = 3 * 40
+total = pasajes + hotel + comidas
+print(f&quot;Total del viaje: {total} | por día: {total / 3:.2f}&quot;)
+total</code></pre>
+<p>Qué hace cada línea:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Línea</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>pasajes = 420</code></td>
+<td>Guarda 420 en una variable llamada <code>pasajes</code></td>
+</tr>
+<tr>
+<td><code>hotel = 3 * 85</code></td>
+<td>3 noches × 85 = 255</td>
+</tr>
+<tr>
+<td><code>total = pasajes + hotel + comidas</code></td>
+<td>Suma las tres variables</td>
+</tr>
+<tr>
+<td><code>print(f&quot;... {total} ...&quot;)</code></td>
+<td>Muestra un texto; lo que va entre <code>{}</code> se reemplaza por su valor</td>
+</tr>
+<tr>
+<td><code>{total / 3:.2f}</code></td>
+<td>El total dividido 3, con <strong>2 decimales</strong></td>
+</tr>
+<tr>
+<td><code>total</code> (última línea)</td>
+<td>Jupyter muestra el valor de la última expresión como <code>Out</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Shift + Enter</strong>.</p>
+<figure class="captura"><img src="assets/img/guias/jupyter/p1-viaje.webp" alt="El resultado: el texto del print (1) y el valor de la última línea (2)" loading="lazy"><figcaption>El resultado: el texto del print (1) y el valor de la última línea (2)</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 print o la última línea</div>
+
+<p>Lo que escribes en <code>print()</code> aparece como texto. La <strong>última línea</strong> de la celda, si es un valor, aparece al lado de <code>[n]:</code> en color: es el &quot;Out&quot; de la celda. En la próxima lección vemos la diferencia a fondo.</p>
+</div>
+
+
+<h2>Paso 4 — Comprueba que es una receta</h2>
+<p>Cambia <code>pasajes = 420</code> por <code>pasajes = 380</code> y vuelve a ejecutar la celda (<strong>Ctrl + Enter</strong>). El total cambia a 755. Vuelve a dejar 420 y ejecuta otra vez.</p>
+<h2>Paso 5 — La conclusión (Markdown)</h2>
+<p>Agrega una celda Markdown al final (<strong>B</strong>, <strong>M</strong>, Enter):</p>
+<pre><code class="language-text">## Conclusión
+El viaje cuesta **795 dólares** (265 por día). El 53 % son los pasajes.</code></pre>
+<p>Y Shift + Enter.</p>
+<h2>Paso 6 — Revisa antes de entregar</h2>
+<ul>
+<li><input disabled="" type="checkbox"> El notebook se llama <code>presupuesto_viaje_lima.ipynb</code>.</li>
+<li><input disabled="" type="checkbox"> Tiene título, contexto, el cálculo y la conclusión.</li>
+<li><input disabled="" type="checkbox"> El total es <strong>795</strong> y por día <strong>265.00</strong>.</li>
+<li><input disabled="" type="checkbox"> Las cuentas usan variables, no números sueltos repetidos.</li>
+<li><input disabled="" type="checkbox"> <strong>Run → Run All Cells</strong> ejecuta todo sin errores, de arriba abajo.</li>
+</ul>
+<h2>Paso 7 — Entrega</h2>
+<ol>
+<li><strong>File → Save Notebook</strong> (Ctrl + S).</li>
+<li><strong>File → Download</strong>: se descarga el <code>.ipynb</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/06-descargar.webp" alt="File → Download (1) descarga el notebook; Save (2) lo guarda" loading="lazy"><figcaption>File → Download (1) descarga el notebook; Save (2) lo guarda</figcaption></figure>
+
+
+<ol start="3">
+<li>Mensaje de entrega: <em>&quot;Te paso el notebook del presupuesto: total 795 USD (265 por día). Si cambia la tarifa del hotel, se actualiza cambiando una sola línea.&quot;</em></li>
+</ol>
+<h2>🖥️ Hazlo también en JupyterLab real</h2>
+<ul>
+<li>Opción sin instalar nada: <strong>Google Colab</strong> (colab.research.google.com) o <strong>JupyterLite</strong> (jupyter.org/try-jupyter) abren notebooks en el navegador.</li>
+<li>Opción profesional: instalar JupyterLab en tu computadora (lección 23).</li>
+<li>El <code>.ipynb</code> que descargaste se abre igual en cualquiera de ellos.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-proyecto-presupuesto-viaje">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-markdown-y-archivos.html">← Markdown y archivos - explicar con texto, crear notebooks, carpetas y abrir los datos</a><a href="jupyterlab-python-en-celdas.html">Python en celdas - Out y print, el orden de ejecución, los errores y reiniciar el kernel →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

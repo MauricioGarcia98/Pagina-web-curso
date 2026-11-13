@@ -198,3 +198,9 @@ body.jl-abierto { overflow: hidden; }
   .jl-kernel { display: none; }
   .jl-status .jl-st-i:nth-child(n+3) { display: none; }
 }
+/* modo oscuro: el texto común del editor (variables, propiedades, operadores) debe ser claro, como en el tema JupyterLab Dark */
+:root[data-theme="dark"] .jlp:not(.jl-claro) .CodeMirror, .jlp.jl-oscuro .CodeMirror { color: #e0e0e0; }
+:root[data-theme="dark"] .jlp:not(.jl-claro) .cm-variable, :root[data-theme="dark"] .jlp:not(.jl-claro) .cm-property, :root[data-theme="dark"] .jlp:not(.jl-claro) .cm-punctuation, .jlp.jl-oscuro .cm-variable, .jlp.jl-oscuro .cm-property, .jlp.jl-oscuro .cm-punctuation { color: #e0e0e0; }
+:root[data-theme="dark"] .jlp:not(.jl-claro) .cm-operator, .jlp.jl-oscuro .cm-operator { color: #89ddff; }
+:root[data-theme="dark"] .jlp:not(.jl-claro) .cm-meta, :root[data-theme="dark"] .jlp:not(.jl-claro) .cm-variable-3, .jlp.jl-oscuro .cm-meta, .jlp.jl-oscuro .cm-variable-3 { color: #ffcb6b; }
+:root[data-theme="dark"] .jlp:not(.jl-claro) .CodeMirror-cursor, .jlp.jl-oscuro .CodeMirror-cursor { border-left-color: #e0e0e0; }

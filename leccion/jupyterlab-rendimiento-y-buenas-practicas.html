@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rendimiento y buenas prácticas en pandas - vectorizar, medir, ahorrar memoria y evitar trampas · Academia de Datos</title><meta name="description" content="Lo que separa un notebook que tarda horas de uno que tarda segundos, y uno que da resultados raros de uno confiable. Medir con %timeit, reemplazar bucles por operaciones vectorizadas, reducir memoria con tipos adecuados (category, enteros chicos), leer solo lo necesario, la advertencia SettingWithCopy y cuándo pandas deja de ser la herramienta correcta."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-rendimiento-y-buenas-practicas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Rendimiento y buenas prácticas en pandas - vectorizar, medir, ahorrar memoria y evitar trampas · Academia de Datos"><meta property="og:description" content="Lo que separa un notebook que tarda horas de uno que tarda segundos, y uno que da resultados raros de uno confiable. Medir con %timeit, reemplazar bucles por operaciones vectorizadas, reducir memoria con tipos adecuados (category, enteros chicos), leer solo lo necesario, la advertencia SettingWithCopy y cuándo pandas deja de ser la herramienta correcta."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-rendimiento-y-buenas-practicas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 5 · Avanzado · 45 min</div>
+<h1>Rendimiento y buenas prácticas en pandas - vectorizar, medir, ahorrar memoria y evitar trampas</h1><p class="resumen">Lo que separa un notebook que tarda horas de uno que tarda segundos, y uno que da resultados raros de uno confiable. Medir con %timeit, reemplazar bucles por operaciones vectorizadas, reducir memoria con tipos adecuados (category, enteros chicos), leer solo lo necesario, la advertencia SettingWithCopy y cuándo pandas deja de ser la herramienta correcta.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-rendimiento-y-buenas-practicas">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Medir el tiempo de una celda o una línea con %timeit</li><li>Reemplazar bucles e iterrows por operaciones vectorizadas</li><li>Medir y reducir memoria con memory_usage y category</li><li>Leer solo columnas y filas necesarias</li><li>Evitar la advertencia SettingWithCopy usando loc y copy</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un bucle sobre filas es como pagar en el supermercado producto por producto, haciendo una fila nueva cada vez. Una operación vectorizada es pasar todo el carrito por la caja de una vez. Con 10 productos da igual; con 10 millones, es la diferencia entre segundos y horas.</p>
+</div>
+
+
+<h2>Paso 1 — Mide antes de optimizar</h2>
+<pre data-norun><code class="language-python">%timeit pedidos[&quot;estado&quot;].value_counts()</code></pre>
+<p><code>%timeit</code> ejecuta la línea muchas veces y da el promedio (por ejemplo <code>512 µs ± 8 µs per loop</code>). Para medir una celda entera, <code>%%timeit</code> en la primera línea. Optimiza solo lo que medido es lento.</p>
+<h2>Paso 2 — Vectorizar en lugar de recorrer filas</h2>
+<p>Calcular el importe de cada línea del detalle, de dos formas:</p>
+<pre data-norun><code class="language-python">detalle = pd.read_csv(&quot;datos/detalle_pedidos.csv&quot;)
+
+def con_bucle(df):
+    out = []
+    for _, fila in df.iterrows():
+        out.append(fila[&quot;cantidad&quot;] * fila[&quot;precio_unitario&quot;] * (1 - fila[&quot;descuento&quot;]))
+    return out
+
+%timeit -n 1 -r 1 con_bucle(detalle)
+%timeit detalle[&quot;cantidad&quot;] * detalle[&quot;precio_unitario&quot;] * (1 - detalle[&quot;descuento&quot;])</code></pre>
+<p>La versión vectorizada (la segunda) es <strong>cientos de veces más rápida</strong>: pandas hace la cuenta en C sobre la columna entera.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>En lugar de</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>for</code> + <code>iterrows</code></td>
+<td>Operaciones entre columnas</td>
+</tr>
+<tr>
+<td><code>if</code> dentro de un bucle</td>
+<td><code>np.where</code>, <code>np.select</code></td>
+</tr>
+<tr>
+<td><code>apply</code> con una función simple</td>
+<td>El método vectorizado (<code>.str</code>, <code>.dt</code>, aritmética)</td>
+</tr>
+<tr>
+<td>Varios <code>merge</code> dentro de un bucle</td>
+<td>Un solo merge con la tabla completa</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 apply no es vectorizar</div>
+
+<p><code>df[&quot;x&quot;].apply(funcion)</code> se lee lindo, pero por dentro es un bucle. Úsalo cuando no hay alternativa vectorizada (lógica compleja), no por costumbre.</p>
+</div>
+
+
+<h2>Paso 3 — Memoria</h2>
+<pre data-norun><code class="language-python">pedidos.memory_usage(deep=True).sum() / 1e6     # megabytes
+pedidos.memory_usage(deep=True)</code></pre>
+<p>Las columnas de texto ocupan mucho. Si tienen pocos valores distintos (canal, estado, método de pago), conviértelas a <code>category</code>:</p>
+<pre data-norun><code class="language-python">for col in [&quot;estado&quot;, &quot;canal&quot;, &quot;metodo_pago&quot;]:
+    pedidos[col] = pedidos[col].astype(&quot;category&quot;)
+pedidos.memory_usage(deep=True).sum() / 1e6</code></pre>
+<p>La tabla pasa a ocupar una fracción. Con archivos de millones de filas, es la diferencia entre que el kernel se quede sin memoria o no.</p>
+<h2>Paso 4 — Lee solo lo que necesitas</h2>
+<pre data-norun><code class="language-python">pd.read_csv(&quot;datos/pedidos.csv&quot;, usecols=[&quot;pedido_id&quot;, &quot;fecha_pedido&quot;, &quot;estado&quot;], dtype={&quot;estado&quot;: &quot;category&quot;})</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parámetro</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>usecols=[...]</code></td>
+<td>Leer solo algunas columnas</td>
+</tr>
+<tr>
+<td><code>dtype={...}</code></td>
+<td>Fijar tipos al leer (y ahorrar memoria)</td>
+</tr>
+<tr>
+<td><code>parse_dates=[...]</code></td>
+<td>Convertir fechas al leer</td>
+</tr>
+<tr>
+<td><code>nrows=1000</code></td>
+<td>Probar con las primeras filas</td>
+</tr>
+<tr>
+<td><code>chunksize=100_000</code></td>
+<td>Procesar archivos enormes por partes</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — La advertencia SettingWithCopy</h2>
+<pre data-norun><code class="language-python">web = pedidos[pedidos[&quot;canal&quot;] == &quot;web&quot;]
+web[&quot;tipo&quot;] = &quot;online&quot;      # en pandas 2: ⚠ SettingWithCopyWarning</code></pre>
+<p>Con pandas 2 (todavía muy usado en empresas), pandas avisa que <code>web</code> podría ser una &quot;vista&quot; de <code>pedidos</code> y no sabe si querías modificar la original. Las dos formas correctas:</p>
+<pre data-norun><code class="language-python">web = pedidos[pedidos[&quot;canal&quot;] == &quot;web&quot;].copy()   # quiero una tabla nueva
+web[&quot;tipo&quot;] = &quot;online&quot;
+
+pedidos.loc[pedidos[&quot;canal&quot;] == &quot;web&quot;, &quot;tipo&quot;] = &quot;online&quot;   # quiero modificar la original</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 pandas 3 y Copy-on-Write</div>
+
+<p>Desde pandas 3.0, el modo <em>Copy-on-Write</em> está activado siempre: modificar un filtro nunca cambia la tabla original y esta advertencia desaparece. Esta práctica usa pandas 3, así que aquí no la vas a ver; sí en muchos entornos de trabajo con pandas 2. Con <code>.copy()</code> o <code>loc</code> tu código es claro en las dos versiones.</p>
+</div>
+
+
+<h2>Paso 6 — Cuándo pandas ya no alcanza</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Herramienta</th>
+</tr>
+</thead><tbody><tr>
+<td>Hasta algunos millones de filas en memoria</td>
+<td>pandas</td>
+</tr>
+<tr>
+<td>Archivos más grandes que la memoria en una sola máquina</td>
+<td>DuckDB o Polars (desde el mismo notebook)</td>
+</tr>
+<tr>
+<td>Datos en una base de datos</td>
+<td>SQL: lleva a pandas solo el resultado agregado</td>
+</tr>
+<tr>
+<td>Decenas o cientos de millones de filas, procesos diarios</td>
+<td>Spark (Databricks, Fabric)</td>
+</tr>
+</tbody></table></div>
+<p>Lo que aprendiste (filtrar, agrupar, unir) es igual en todas: cambia la sintaxis. Puedes compararlo en los módulos <a href="#/m/sql">SQL</a> y <a href="#/m/pyspark">PySpark</a>.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Mides tiempos y optimizas lo que de verdad es lento.</li>
+<li>Vectorizas en lugar de recorrer filas.</li>
+<li>Reduces memoria y lees solo lo necesario.</li>
+<li>Evitas SettingWithCopy y sabes cuándo cambiar de herramienta.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-rendimiento-y-buenas-practicas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-funciones-y-modulos.html">← Funciones, módulos y pruebas - del código repetido a herramientas que se reutilizan</a><a href="jupyterlab-proyecto-ventas-y-margen.html">Proyecto 5 (requisitos y rúbrica) - ventas y margen por rubro, con categorías en tres niveles →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

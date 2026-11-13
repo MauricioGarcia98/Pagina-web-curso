@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 en un notebook · Academia de Datos</title><meta name="description" content="La directora comercial quiere comparar 2024 contra 2023 - pedidos por estado, qué canal pierde más por cancelación y la evolución mensual - y que se pueda repetir el año que viene cambiando un solo valor. Recibes entregables y decides el código; las pistas están cerradas. Trabajas con los 12.000 pedidos, verificas con números de control y entregas notebook, gráfico y CSV."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-reporte-comercial.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 en un notebook · Academia de Datos"><meta property="og:description" content="La directora comercial quiere comparar 2024 contra 2023 - pedidos por estado, qué canal pierde más por cancelación y la evolución mensual - y que se pueda repetir el año que viene cambiando un solo valor. Recibes entregables y decides el código; las pistas están cerradas. Trabajas con los 12.000 pedidos, verificas con números de control y entregas notebook, gráfico y CSV."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-proyecto-reporte-comercial.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 3 · Intermedio · 90 min</div>
+<h1>Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 en un notebook</h1><p class="resumen">La directora comercial quiere comparar 2024 contra 2023 - pedidos por estado, qué canal pierde más por cancelación y la evolución mensual - y que se pueda repetir el año que viene cambiando un solo valor. Recibes entregables y decides el código; las pistas están cerradas. Trabajas con los 12.000 pedidos, verificas con números de control y entregas notebook, gráfico y CSV.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-proyecto-reporte-comercial">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Traducir un pedido en tablas de resumen con groupby y pivot_table</li><li>Parametrizar el año de análisis en una variable</li><li>Calcular tasas por grupo y marcarlas contra un umbral</li><li>Graficar la evolución mensual con un título que concluye</li><li>Exportar resultados con to_csv y savefig</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mail de la directora comercial: <em>&quot;Para el comité del jueves necesito ver cómo cerramos 2024 contra 2023: (1) cuántos pedidos hubo en cada estado, los dos años lado a lado; (2) de 2024, qué canal pierde más pedidos por cancelación; (3) la evolución mes a mes de 2024. Y que el año que viene lo podamos correr de nuevo sin rehacerlo.&quot;</em></p>
+</div>
+
+
+<p>Desde este proyecto <strong>no hay pasos numerados</strong>: hay entregables. Las pistas están cerradas; ábrelas solo si te trabas más de diez minutos.</p>
+<h2>Estructura obligatoria del notebook</h2>
+<ol>
+<li><code># Reporte comercial</code> + contexto (Markdown).</li>
+<li><strong>Parámetros</strong>: una celda con <code>ANIO = 2024</code>, <code>ANIO_ANTERIOR = ANIO - 1</code> y <code>UMBRAL_CANCELACION = 8.0</code>. Ningún año ni umbral puede aparecer escrito en otro lugar del notebook.</li>
+<li>Carga y preparación (<code>import pandas as pd</code>, <code>import numpy as np</code>, leer <code>datos/pedidos.csv</code> y convertir la fecha).</li>
+<li>Una sección por entregable, con un subtítulo Markdown.</li>
+<li><code>## Conclusiones</code> con tres hallazgos con números.</li>
+</ol>
+<h2>Entregable 1 — Estados por año</h2>
+<p>Una tabla con los estados en filas y los dos años en columnas (cantidad de pedidos), más una fila o columna de total.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Convierte la fecha, crea <code>anio</code>, filtra los dos años con <code>isin([ANIO_ANTERIOR, ANIO])</code> y usa <code>pd.pivot_table(..., index=&quot;estado&quot;, columns=&quot;anio&quot;, values=&quot;pedido_id&quot;, aggfunc=&quot;count&quot;, margins=True)</code>.</p>
+</details>
+
+<h2>Entregable 2 — Cancelación por canal en el año</h2>
+<p>Por canal: pedidos del año, cancelados, % de cancelación y una columna <code>alerta</code> con <code>&quot;revisar&quot;</code> si supera el umbral (o vacío si no). Ordenada de mayor a menor tasa.</p>
+<details><summary>💡 Pista</summary>
+
+<pre data-norun><code class="language-python">del_anio = pedidos[pedidos[&quot;anio&quot;] == ANIO].assign(cancelado=lambda d: d[&quot;estado&quot;] == &quot;cancelado&quot;)
+canal = del_anio.groupby(&quot;canal&quot;).agg(pedidos=(&quot;pedido_id&quot;, &quot;count&quot;), cancelados=(&quot;cancelado&quot;, &quot;sum&quot;))
+canal[&quot;tasa&quot;] = (canal[&quot;cancelados&quot;] / canal[&quot;pedidos&quot;] * 100).round(1)
+canal[&quot;alerta&quot;] = np.where(canal[&quot;tasa&quot;] &gt; UMBRAL_CANCELACION, &quot;revisar&quot;, &quot;&quot;)</code></pre>
+</details>
+
+<h2>Entregable 3 — Evolución mensual</h2>
+<p>Pedidos por mes del año en un gráfico de líneas, con un título que diga la conclusión. Guarda la imagen como <code>pedidos_mensuales_{ANIO}.png</code>.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>del_anio.groupby(del_anio[&quot;fecha_pedido&quot;].dt.month).size()</code>, después <code>.plot(...)</code> y <code>ax.figure.savefig(f&quot;pedidos_mensuales_{ANIO}.png&quot;, dpi=150, bbox_inches=&quot;tight&quot;)</code>. El <code>f</code> delante del texto reemplaza <code>{ANIO}</code> por su valor.</p>
+</details>
+
+<h2>Entregable 4 — Exportar</h2>
+<p>La tabla del entregable 2 como <code>cancelacion_por_canal_{ANIO}.csv</code> (con <code>to_csv</code>), para que el equipo de BI la cargue en Power BI.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>canal.to_csv(f&quot;cancelacion_por_canal_{ANIO}.csv&quot;)</code>. El archivo aparece en el explorador; clic derecho → Download.</p>
+</details>
+
+<h2>✔ Números de control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>2023</th>
+<th>2024</th>
+</tr>
+</thead><tbody><tr>
+<td>Entregados</td>
+<td>3,115</td>
+<td>3,597</td>
+</tr>
+<tr>
+<td>Cancelados</td>
+<td>332</td>
+<td>371</td>
+</tr>
+<tr>
+<td>Pendientes</td>
+<td>168</td>
+<td>183</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>4,021</td>
+<td>4,633</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Canal (2024)</th>
+<th>Pedidos</th>
+<th>Cancelados</th>
+<th>%</th>
+</tr>
+</thead><tbody><tr>
+<td>app</td>
+<td>1,142</td>
+<td>102</td>
+<td>8.9</td>
+</tr>
+<tr>
+<td>web</td>
+<td>2,061</td>
+<td>172</td>
+<td>8.3</td>
+</tr>
+<tr>
+<td>tienda</td>
+<td>1,012</td>
+<td>69</td>
+<td>6.8</td>
+</tr>
+<tr>
+<td>telefono</td>
+<td>418</td>
+<td>28</td>
+<td>6.7</td>
+</tr>
+</tbody></table></div>
+<p>Pedidos por mes en 2024: enero <strong>376</strong>, julio <strong>444</strong>, diciembre <strong>594</strong>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 La prueba de la parametrización</div>
+
+<p>Cambia <code>ANIO = 2024</code> por <code>ANIO = 2023</code>, <strong>Restart Kernel and Run All Cells</strong>, y el notebook entero tiene que funcionar y mostrar 2023 contra 2022 (y el CSV y el PNG con 2023 en el nombre). Si algo sigue diciendo 2024, quedó un año escrito a mano.</p>
+</div>
+
+
+<h2>✔ Lista de control antes de entregar</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Restart Kernel and Run All Cells corre sin errores.</li>
+<li><input disabled="" type="checkbox"> Ningún año ni umbral escrito fuera de la celda de parámetros.</li>
+<li><input disabled="" type="checkbox"> Los números coinciden con los de control.</li>
+<li><input disabled="" type="checkbox"> El gráfico tiene un título con la conclusión.</li>
+<li><input disabled="" type="checkbox"> Las conclusiones tienen tres hallazgos con números.</li>
+<li><input disabled="" type="checkbox"> Se generaron el PNG y el CSV con el año en el nombre.</li>
+</ul>
+<h2>🖥️ Hazlo también en JupyterLab real</h2>
+<p>En Jupyter real, este patrón (una celda de parámetros) es el que usa <strong>papermill</strong> para ejecutar el mismo notebook con distintos valores de forma automática, y el que usan los <strong>widgets</strong> de Databricks. Lo vemos en la lección 22.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-proyecto-reporte-comercial">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-graficos-con-matplotlib.html">← Gráficos con pandas y matplotlib - barras, líneas e histogramas que se entienden</a><a href="jupyterlab-unir-tablas.html">Unir tablas con merge - traer datos de otra tabla sin perder ni duplicar filas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

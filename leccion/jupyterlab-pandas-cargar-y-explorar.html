@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pandas para empezar - cargar un CSV y conocer una tabla en cinco comandos · Academia de Datos</title><meta name="description" content="pandas es la biblioteca con la que se trabajan tablas en Python. Cómo cargar un CSV con read_csv, qué es un DataFrame, y los comandos que se usan siempre al recibir datos nuevos - shape, head, info, describe, columns, dtypes, isna y value_counts - para saber qué tienes antes de analizar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-pandas-cargar-y-explorar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="pandas para empezar - cargar un CSV y conocer una tabla en cinco comandos · Academia de Datos"><meta property="og:description" content="pandas es la biblioteca con la que se trabajan tablas en Python. Cómo cargar un CSV con read_csv, qué es un DataFrame, y los comandos que se usan siempre al recibir datos nuevos - shape, head, info, describe, columns, dtypes, isna y value_counts - para saber qué tienes antes de analizar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-pandas-cargar-y-explorar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>pandas para empezar - cargar un CSV y conocer una tabla en cinco comandos</h1><p class="resumen">pandas es la biblioteca con la que se trabajan tablas en Python. Cómo cargar un CSV con read_csv, qué es un DataFrame, y los comandos que se usan siempre al recibir datos nuevos - shape, head, info, describe, columns, dtypes, isna y value_counts - para saber qué tienes antes de analizar.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-pandas-cargar-y-explorar">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Cargar un CSV en un DataFrame con read_csv</li><li>Ver tamaño, columnas y primeras filas</li><li>Leer info() para tipos de dato y nulos</li><li>Resumir columnas numéricas con describe()</li><li>Contar valores de una columna con value_counts()</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un <strong>DataFrame</strong> es una tabla de Excel dentro de Python: filas, columnas con nombre y un índice (el número de fila). La diferencia es que en vez de hacer clic, le haces preguntas escribiendo una línea. Los cinco comandos de esta lección son el &quot;primer vistazo&quot; que hace cualquier analista con un archivo nuevo.</p>
+</div>
+
+
+<h2>Paso 1 — Carga el CSV</h2>
+<p>En un notebook nuevo (<a href="#/jupyter">JupyterLab de práctica</a>):</p>
+<pre data-norun><code class="language-python">import pandas as pd
+pedidos = pd.read_csv(&quot;datos/pedidos.csv&quot;)
+pedidos.head()</code></pre>
+<ul>
+<li><code>import pandas as pd</code>: carga la biblioteca y la llama <code>pd</code> (todo el mundo usa ese nombre).</li>
+<li><code>pd.read_csv(...)</code>: lee el archivo y devuelve un DataFrame.</li>
+<li><code>.head()</code>: las primeras 5 filas. <code>.head(10)</code> muestra 10; <code>.tail()</code> las últimas.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/jupyter/02-tabla-pandas.webp" alt="head() muestra las primeras filas como tabla" loading="lazy"><figcaption>head() muestra las primeras filas como tabla</figcaption></figure>
+
+
+<h2>Paso 2 — Tamaño y columnas</h2>
+<pre data-norun><code class="language-python">pedidos.shape</code></pre>
+<p>Da <code>(12000, 7)</code>: <strong>12.000 filas y 7 columnas</strong>. Es una tupla (filas, columnas), sin paréntesis de función.</p>
+<pre data-norun><code class="language-python">pedidos.columns</code></pre>
+<p>Lista los nombres de las columnas: <code>pedido_id</code>, <code>cliente_id</code>, <code>empleado_id</code>, <code>fecha_pedido</code>, <code>estado</code>, <code>canal</code>, <code>metodo_pago</code>.</p>
+<h2>Paso 3 — info(): tipos y nulos</h2>
+<pre data-norun><code class="language-python">pedidos.info()</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/04-info.webp" alt="info() muestra cada columna, cuántos valores no nulos tiene y su tipo" loading="lazy"><figcaption>info() muestra cada columna, cuántos valores no nulos tiene y su tipo</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Lo que miras</th>
+<th>Qué te dice</th>
+</tr>
+</thead><tbody><tr>
+<td><code>RangeIndex: 12000 entries</code></td>
+<td>La cantidad de filas</td>
+</tr>
+<tr>
+<td><code>Non-Null Count</code></td>
+<td>Cuántos valores <strong>no</strong> están vacíos por columna</td>
+</tr>
+<tr>
+<td><code>Dtype</code></td>
+<td><code>int64</code> (enteros), <code>float64</code> (decimales), <code>object</code>/<code>str</code> (texto)</td>
+</tr>
+</tbody></table></div>
+<p><code>empleado_id</code> tiene solo <strong>3.627</strong> no nulos y es <code>float64</code> (pandas usa decimales para poder representar el vacío como <code>NaN</code>).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Un nulo también es un dato</div>
+
+<p>¿Por qué falta el empleado en 8.373 pedidos? Investígalo: <code>pedidos[pedidos[&quot;empleado_id&quot;].isna()][&quot;canal&quot;].value_counts()</code> muestra que son <strong>todos</strong> los pedidos de web y app: ahí no interviene un vendedor. No es un error, es información. Antes de &quot;limpiar&quot; un nulo, pregunta por qué está.</p>
+</div>
+
+
+<h2>Paso 4 — describe(): resumen de los números</h2>
+<pre data-norun><code class="language-python">pedidos.describe()</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e06-describe.webp" alt="describe() resume cada columna numérica: cantidad, promedio, desvío, mínimo, cuartiles y máximo" loading="lazy"><figcaption>describe() resume cada columna numérica: cantidad, promedio, desvío, mínimo, cuartiles y máximo</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Fila</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td>count</td>
+<td>Valores no nulos</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>Promedio</td>
+</tr>
+<tr>
+<td>std</td>
+<td>Desvío estándar: cuánto se alejan los valores del promedio</td>
+</tr>
+<tr>
+<td>min / max</td>
+<td>Mínimo y máximo</td>
+</tr>
+<tr>
+<td>25% / 50% / 75%</td>
+<td>Cuartiles: el 50% es la <strong>mediana</strong></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ describe() de un id no significa nada</div>
+
+<p>El &quot;promedio de pedido_id&quot; (6000.5) es un número sin sentido: es un identificador, no una cantidad. describe() resume todo lo numérico; tú decides qué tiene sentido mirar. En la lección 17 lo usamos con importes, donde sí importa.</p>
+</div>
+
+
+<h2>Paso 5 — value_counts(): contar categorías</h2>
+<pre data-norun><code class="language-python">pedidos[&quot;canal&quot;].value_counts()</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e06-value-counts.webp" alt="value_counts() cuenta cuántas veces aparece cada valor, de mayor a menor" loading="lazy"><figcaption>value_counts() cuenta cuántas veces aparece cada valor, de mayor a menor</figcaption></figure>
+
+
+<ul>
+<li><code>pedidos[&quot;canal&quot;]</code> toma <strong>una columna</strong> (una <em>Series</em>).</li>
+<li><code>.value_counts()</code> cuenta cada valor: web 5.400, app 2.973, tienda 2.645, telefono 982.</li>
+<li><code>.value_counts(normalize=True)</code> da proporciones: web es el 45 %.</li>
+</ul>
+<h2>Paso 6 — Nulos de un vistazo</h2>
+<pre data-norun><code class="language-python">pedidos.isna().sum()</code></pre>
+<p>Da la cantidad de nulos por columna. Con <code>.isna().mean()</code> obtienes el <strong>porcentaje</strong>.</p>
+<h2>La ficha del primer vistazo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Comando</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Cuántas filas y columnas?</td>
+<td><code>df.shape</code></td>
+</tr>
+<tr>
+<td>¿Cómo se ve?</td>
+<td><code>df.head()</code></td>
+</tr>
+<tr>
+<td>¿Qué tipos y cuántos nulos?</td>
+<td><code>df.info()</code></td>
+</tr>
+<tr>
+<td>¿Cómo se distribuyen los números?</td>
+<td><code>df.describe()</code></td>
+</tr>
+<tr>
+<td>¿Qué valores tiene una categoría?</td>
+<td><code>df[&quot;col&quot;].value_counts()</code></td>
+</tr>
+<tr>
+<td>¿Cuántos nulos por columna?</td>
+<td><code>df.isna().sum()</code></td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Cargaste un CSV y conoces su tamaño, columnas, tipos y nulos.</li>
+<li>Resumiste números y contaste categorías.</li>
+<li>Sabes que un nulo puede tener significado.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-pandas-cargar-y-explorar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-python-en-celdas.html">← Python en celdas - Out y print, el orden de ejecución, los errores y reiniciar el kernel</a><a href="jupyterlab-seleccionar-filtrar-ordenar.html">Seleccionar, filtrar y ordenar - quedarte con las filas y columnas que responden la pregunta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

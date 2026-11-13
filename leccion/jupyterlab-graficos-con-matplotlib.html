@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gráficos con pandas y matplotlib - barras, líneas e histogramas que se entienden · Academia de Datos</title><meta name="description" content="Cómo graficar directo desde pandas con .plot, cuándo usar barras, líneas o histogramas, cómo poner títulos y etiquetas que digan algo, ordenar las barras, armar dos gráficos lado a lado con subplots y guardar la imagen para un informe con savefig."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-graficos-con-matplotlib.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Gráficos con pandas y matplotlib - barras, líneas e histogramas que se entienden · Academia de Datos"><meta property="og:description" content="Cómo graficar directo desde pandas con .plot, cuándo usar barras, líneas o histogramas, cómo poner títulos y etiquetas que digan algo, ordenar las barras, armar dos gráficos lado a lado con subplots y guardar la imagen para un informe con savefig."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-graficos-con-matplotlib.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 3 · Intermedio · 45 min</div>
+<h1>Gráficos con pandas y matplotlib - barras, líneas e histogramas que se entienden</h1><p class="resumen">Cómo graficar directo desde pandas con .plot, cuándo usar barras, líneas o histogramas, cómo poner títulos y etiquetas que digan algo, ordenar las barras, armar dos gráficos lado a lado con subplots y guardar la imagen para un informe con savefig.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-graficos-con-matplotlib">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Graficar una Series o DataFrame con .plot(kind=...)</li><li>Elegir el tipo de gráfico según la pregunta</li><li>Agregar título, etiquetas y orden</li><li>Combinar gráficos con plt.subplots</li><li>Guardar un gráfico como imagen con savefig</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>En pandas, un gráfico es un paso más al final de la cuenta: primero calculas la tabla (por canal, por mes) y después le agregas <code>.plot()</code>. Si la tabla está bien, el gráfico sale solo; si sale raro, casi siempre el problema está en la tabla.</p>
+</div>
+
+
+<h2>Paso 1 — Barras en una línea</h2>
+<pre data-norun><code class="language-python">ax = pedidos[&quot;canal&quot;].value_counts().plot(kind=&quot;bar&quot;, title=&quot;Pedidos por canal&quot;, figsize=(7, 3))
+ax.set_ylabel(&quot;pedidos&quot;)</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e11-barras.webp" alt="value_counts().plot(kind=&quot;bar&quot;): las barras ya salen ordenadas de mayor a menor" loading="lazy"><figcaption>value_counts().plot(kind=&quot;bar&quot;): las barras ya salen ordenadas de mayor a menor</figcaption></figure>
+
+
+<ul>
+<li><code>kind=</code>: <code>&quot;bar&quot;</code> (barras verticales), <code>&quot;barh&quot;</code> (horizontales), <code>&quot;line&quot;</code>, <code>&quot;hist&quot;</code>, <code>&quot;pie&quot;</code>.</li>
+<li><code>figsize=(ancho, alto)</code> en pulgadas.</li>
+<li><code>.plot</code> devuelve los <strong>ejes</strong> (<code>ax</code>): con ellos pones etiquetas (<code>set_ylabel</code>, <code>set_xlabel</code>, <code>set_title</code>).</li>
+</ul>
+<h2>Paso 2 — Líneas para el tiempo</h2>
+<pre data-norun><code class="language-python">pedidos[&quot;fecha_pedido&quot;] = pd.to_datetime(pedidos[&quot;fecha_pedido&quot;])
+por_mes = pedidos.groupby(pedidos[&quot;fecha_pedido&quot;].dt.to_period(&quot;M&quot;)).size()
+por_mes.plot(title=&quot;Pedidos por mes&quot;, figsize=(8, 3))</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/04-linea-por-mes.webp" alt="La evolución mensual: se ve el crecimiento y el pico de fin de año" loading="lazy"><figcaption>La evolución mensual: se ve el crecimiento y el pico de fin de año</figcaption></figure>
+
+
+<h2>Paso 3 — Qué gráfico para qué pregunta</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Gráfico</th>
+<th>En pandas</th>
+</tr>
+</thead><tbody><tr>
+<td>Comparar categorías</td>
+<td>Barras (horizontales si los nombres son largos)</td>
+<td><code>kind=&quot;bar&quot;</code> / <code>&quot;barh&quot;</code></td>
+</tr>
+<tr>
+<td>Evolución en el tiempo</td>
+<td>Líneas</td>
+<td><code>kind=&quot;line&quot;</code></td>
+</tr>
+<tr>
+<td>Cómo se distribuye un número (montos, tiempos)</td>
+<td>Histograma</td>
+<td><code>kind=&quot;hist&quot;, bins=30</code></td>
+</tr>
+<tr>
+<td>Partes de un total, pocas categorías</td>
+<td>Torta (con moderación)</td>
+<td><code>kind=&quot;pie&quot;</code></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Títulos que dicen la conclusión</h2>
+<pre data-norun><code class="language-python">import matplotlib.pyplot as plt
+tasa = (pedidos.assign(c=pedidos[&quot;estado&quot;] == &quot;cancelado&quot;).groupby(&quot;canal&quot;)[&quot;c&quot;].mean() * 100).sort_values()
+ax = tasa.plot(kind=&quot;barh&quot;, figsize=(7, 3), title=&quot;La app cancela más que el resto (% de pedidos)&quot;)
+ax.set_xlabel(&quot;% cancelados&quot;)
+plt.show()</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Tres reglas</div>
+
+<ol>
+<li>El título dice <strong>la conclusión</strong>, no el tema (&quot;La app cancela más&quot; y no &quot;Cancelaciones por canal&quot;).</li>
+<li>Las barras <strong>ordenadas</strong> (<code>sort_values</code>), salvo que sea tiempo.</li>
+<li>En barras, el eje empieza en cero (pandas lo hace por defecto: no lo cambies para &quot;exagerar&quot; diferencias).</li>
+</ol>
+</div>
+
+
+<h2>Paso 5 — Dos gráficos lado a lado</h2>
+<pre data-norun><code class="language-python">fig, (izq, der) = plt.subplots(1, 2, figsize=(10, 3))
+pedidos[&quot;canal&quot;].value_counts().plot(kind=&quot;bar&quot;, ax=izq, title=&quot;Por canal&quot;)
+pedidos[&quot;estado&quot;].value_counts().plot(kind=&quot;bar&quot;, ax=der, title=&quot;Por estado&quot;)
+plt.tight_layout()</code></pre>
+<p><code>plt.subplots(filas, columnas)</code> crea una figura con varios ejes; a cada <code>.plot</code> le dices en cuál dibujar con <code>ax=</code>.</p>
+<h2>Paso 6 — Guardar la imagen</h2>
+<pre data-norun><code class="language-python">ax = por_mes.plot(title=&quot;Pedidos por mes&quot;, figsize=(8, 3))
+ax.figure.savefig(&quot;pedidos_por_mes.png&quot;, dpi=150, bbox_inches=&quot;tight&quot;)</code></pre>
+<p>El PNG aparece en el explorador de archivos; clic derecho → <strong>Download</strong> para llevarlo a un informe o una presentación.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Graficas desde pandas eligiendo el tipo según la pregunta.</li>
+<li>Pones títulos con conclusión, etiquetas y orden.</li>
+<li>Combinas gráficos y guardas imágenes.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-graficos-con-matplotlib">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-fechas-y-columnas-nuevas.html">← Fechas y columnas nuevas - to_datetime, año, mes, día de la semana y columnas calculadas</a><a href="jupyterlab-proyecto-reporte-comercial.html">Proyecto 3 (pedido con pistas) - el reporte comercial 2023 vs 2024 en un notebook →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

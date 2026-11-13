@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Celdas, modos y kernel - ejecutar código, el modo comando y los atajos de todos los días · Academia de Datos</title><meta name="description" content="Lo esencial para trabajar en un notebook. Qué es una celda, la diferencia entre el modo comando (azul) y el modo edición (verde), cómo ejecutar con Shift+Enter, qué significa [*] y el número entre corchetes, qué hace el kernel, y los atajos A, B, M, Y y D D que usa todo el mundo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-celdas-y-modos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Celdas, modos y kernel - ejecutar código, el modo comando y los atajos de todos los días · Academia de Datos"><meta property="og:description" content="Lo esencial para trabajar en un notebook. Qué es una celda, la diferencia entre el modo comando (azul) y el modo edición (verde), cómo ejecutar con Shift+Enter, qué significa [*] y el número entre corchetes, qué hace el kernel, y los atajos A, B, M, Y y D D que usa todo el mundo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-celdas-y-modos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 1 · Básico · 40 min</div>
+<h1>Celdas, modos y kernel - ejecutar código, el modo comando y los atajos de todos los días</h1><p class="resumen">Lo esencial para trabajar en un notebook. Qué es una celda, la diferencia entre el modo comando (azul) y el modo edición (verde), cómo ejecutar con Shift+Enter, qué significa [*] y el número entre corchetes, qué hace el kernel, y los atajos A, B, M, Y y D D que usa todo el mundo.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-celdas-y-modos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir el modo comando del modo edición</li><li>Ejecutar celdas con Shift+Enter, Ctrl+Enter y Alt+Enter</li><li>Leer los indicadores [ ], [*] y [n]</li><li>Agregar, borrar, mover y cambiar el tipo de celdas con el teclado</li><li>Entender qué hace el kernel</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El <strong>kernel</strong> es un Python que queda encendido detrás del notebook, esperando órdenes. Cada vez que ejecutas una celda, le mandas ese pedazo de código; él lo ejecuta, <strong>recuerda</strong> las variables y te devuelve el resultado, que aparece debajo de la celda.</p>
+</div>
+
+
+<h2>Paso 1 — Los dos modos</h2>
+<p>En <a href="#/jupyter">JupyterLab de práctica</a>, notebook <strong>Bienvenida.ipynb</strong>:</p>
+<ol>
+<li>Haz clic en el <strong>margen izquierdo</strong> de la primera celda de código (donde dice <code>[ ]:</code>). La celda queda con una barra azul a la izquierda: <strong>modo comando</strong>. La barra de estado dice <code>Mode: Command</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/02-modo-comando.webp" alt="Modo comando: la celda seleccionada (1) y el modo en la barra de estado (2)" loading="lazy"><figcaption>Modo comando: la celda seleccionada (1) y el modo en la barra de estado (2)</figcaption></figure>
+
+
+<ol start="2">
+<li>Presiona <strong>Enter</strong>. Aparece el cursor dentro de la celda: <strong>modo edición</strong> (<code>Mode: Edit</code>).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/02-modo-edicion.webp" alt="Modo edición: el cursor dentro de la celda (1); la barra de estado lo indica (2)" loading="lazy"><figcaption>Modo edición: el cursor dentro de la celda (1); la barra de estado lo indica (2)</figcaption></figure>
+
+
+<ol start="3">
+<li>Presiona <strong>Esc</strong> para volver al modo comando.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th>Modo</th>
+<th>Cómo entras</th>
+<th>Las teclas…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Comando</strong></td>
+<td>Esc, o clic en el margen</td>
+<td>son atajos para manejar celdas (A, B, M, D D…)</td>
+</tr>
+<tr>
+<td><strong>Edición</strong></td>
+<td>Enter, o clic dentro del código</td>
+<td>escriben texto en la celda</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El error de todos los principiantes</div>
+
+<p>Si estás en modo comando y escribes, cada letra es un atajo: la <strong>D</strong> dos veces borra la celda, la <strong>M</strong> la convierte en texto. Si algo raro le pasó a tu celda, presiona <strong>Z</strong> (en modo comando) para deshacer la última operación de celdas.</p>
+</div>
+
+
+<h2>Paso 2 — Ejecuta una celda</h2>
+<ol>
+<li>Con la primera celda de código seleccionada, presiona <strong>Shift + Enter</strong>.</li>
+<li>Mientras corre, el indicador muestra <code>[*]</code> y el círculo del kernel se llena.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/02-corriendo.webp" alt="[*] mientras la celda se ejecuta; el círculo del kernel (2) indica que está ocupado" loading="lazy"><figcaption>[*] mientras la celda se ejecuta; el círculo del kernel (2) indica que está ocupado</figcaption></figure>
+
+
+<ol start="3">
+<li>Cuando termina, aparece la tabla de pedidos debajo, y el indicador cambia a un número.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/02-tabla-pandas.webp" alt="El resultado de la celda: las primeras filas de la tabla de pedidos" loading="lazy"><figcaption>El resultado de la celda: las primeras filas de la tabla de pedidos</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Indicador</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>[ ]:</code></td>
+<td>La celda nunca se ejecutó</td>
+</tr>
+<tr>
+<td><code>[*]:</code></td>
+<td>Se está ejecutando (o espera en la cola)</td>
+</tr>
+<tr>
+<td><code>[1]:</code>, <code>[2]:</code>…</td>
+<td>El orden en que se ejecutó: la 1.ª, la 2.ª…</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Atajo</th>
+<th>Ejecuta y…</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Shift + Enter</strong></td>
+<td>pasa a la celda siguiente (la que más se usa)</td>
+</tr>
+<tr>
+<td><strong>Ctrl + Enter</strong></td>
+<td>se queda en la misma celda</td>
+</tr>
+<tr>
+<td><strong>Alt + Enter</strong></td>
+<td>inserta una celda nueva debajo</td>
+</tr>
+</tbody></table></div>
+<ol start="4">
+<li>Ejecuta las celdas siguientes con Shift + Enter hasta ver el gráfico de barras.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/jupyter/02-grafico.webp" alt="Los gráficos aparecen debajo de la celda que los crea" loading="lazy"><figcaption>Los gráficos aparecen debajo de la celda que los crea</figcaption></figure>
+
+
+<h2>Paso 3 — Maneja celdas con el teclado (modo comando)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tecla</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>A</strong></td>
+<td>Agrega una celda <strong>arriba</strong> (Above)</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>Agrega una celda <strong>abajo</strong> (Below)</td>
+</tr>
+<tr>
+<td><strong>D, D</strong></td>
+<td>Borra la celda (dos veces la D)</td>
+</tr>
+<tr>
+<td><strong>Z</strong></td>
+<td>Deshace la última operación de celdas</td>
+</tr>
+<tr>
+<td><strong>M</strong></td>
+<td>Convierte la celda en <strong>Markdown</strong> (texto)</td>
+</tr>
+<tr>
+<td><strong>Y</strong></td>
+<td>Convierte la celda en <strong>código</strong></td>
+</tr>
+<tr>
+<td><strong>↑ / ↓</strong> (o K / J)</td>
+<td>Selecciona la celda de arriba / abajo</td>
+</tr>
+<tr>
+<td><strong>C / X / V</strong></td>
+<td>Copia / corta / pega celdas</td>
+</tr>
+</tbody></table></div>
+<p>Practica: selecciona la última celda, presiona <strong>B</strong> para agregar una nueva, Enter, escribe <code>2 + 2</code> y Shift + Enter. Después, con esa celda seleccionada en modo comando, presiona <strong>D D</strong> para borrarla y <strong>Z</strong> para recuperarla.</p>
+<h2>Paso 4 — El kernel recuerda</h2>
+<p>Las variables que creas en una celda existen para todas las demás, <strong>en el orden en que las ejecutaste</strong>. La celda que carga <code>pedidos</code> tiene que correr antes que la que usa <code>pedidos</code>. Si abres el notebook mañana, el kernel arranca vacío: hay que volver a ejecutar desde arriba (<strong>Run → Run All Cells</strong>).</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Distingues el modo comando del modo edición.</li>
+<li>Ejecutas celdas y lees sus indicadores.</li>
+<li>Manejas celdas con el teclado y sabes qué hace el kernel.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-celdas-y-modos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-la-pantalla.html">← JupyterLab desde cero - qué es un notebook y cómo se lee la pantalla</a><a href="jupyterlab-markdown-y-archivos.html">Markdown y archivos - explicar con texto, crear notebooks, carpetas y abrir los datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

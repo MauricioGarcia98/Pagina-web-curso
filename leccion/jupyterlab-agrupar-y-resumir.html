@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agrupar y resumir - groupby, agg y pivot_table para responder preguntas de negocio · Academia de Datos</title><meta name="description" content="La operación central del análisis de datos. Cómo agrupar con groupby y calcular conteos, sumas, promedios y tasas por grupo, varias métricas a la vez con agg y nombres claros, agrupar por dos columnas, y armar tablas de doble entrada con pivot_table. Es el GROUP BY de SQL y la tabla dinámica de Excel, en una línea."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-agrupar-y-resumir.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Agrupar y resumir - groupby, agg y pivot_table para responder preguntas de negocio · Academia de Datos"><meta property="og:description" content="La operación central del análisis de datos. Cómo agrupar con groupby y calcular conteos, sumas, promedios y tasas por grupo, varias métricas a la vez con agg y nombres claros, agrupar por dos columnas, y armar tablas de doble entrada con pivot_table. Es el GROUP BY de SQL y la tabla dinámica de Excel, en una línea."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-agrupar-y-resumir.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Agrupar y resumir - groupby, agg y pivot_table para responder preguntas de negocio</h1><p class="resumen">La operación central del análisis de datos. Cómo agrupar con groupby y calcular conteos, sumas, promedios y tasas por grupo, varias métricas a la vez con agg y nombres claros, agrupar por dos columnas, y armar tablas de doble entrada con pivot_table. Es el GROUP BY de SQL y la tabla dinámica de Excel, en una línea.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-agrupar-y-resumir">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Agrupar con groupby y calcular size, sum, mean</li><li>Calcular tasas por grupo con el promedio de una condición</li><li>Calcular varias métricas con agg y nombrarlas</li><li>Agrupar por dos columnas y usar reset_index</li><li>Construir tablas de doble entrada con pivot_table</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p><code>groupby</code> es separar las fichas en pilas (una por canal), hacer la misma cuenta en cada pila (contar, sumar, promediar) y juntar los resultados en una tabla. Esa idea (&quot;separar, calcular, combinar&quot;) está detrás de la tabla dinámica de Excel, del GROUP BY de SQL y de casi todos los informes.</p>
+</div>
+
+
+<p>Con <code>pedidos</code> cargado en un notebook de <a href="#/jupyter">JupyterLab de práctica</a>:</p>
+<h2>Paso 1 — Contar por grupo</h2>
+<pre data-norun><code class="language-python">pedidos.groupby(&quot;canal&quot;).size()</code></pre>
+<p>Da la cantidad de pedidos de cada canal (lo mismo que <code>value_counts</code>, pero ordenado por nombre). El patrón siempre es:</p>
+<pre><code class="language-text">df.groupby(&quot;columna_que_agrupa&quot;)[&quot;columna_que_calculo&quot;].operación()</code></pre>
+<h2>Paso 2 — Una tasa por grupo</h2>
+<p>¿Qué porcentaje de pedidos cancela cada canal?</p>
+<pre data-norun><code class="language-python">pedidos[&quot;es_cancelado&quot;] = pedidos[&quot;estado&quot;] == &quot;cancelado&quot;
+(pedidos.groupby(&quot;canal&quot;)[&quot;es_cancelado&quot;].mean() * 100).round(1)</code></pre>
+<p>Resultado: app 8.9, telefono 7.4, tienda 7.8, web 7.8. El truco del proyecto anterior (<code>mean</code> de True/False = proporción), ahora para todos los grupos de una vez.</p>
+<h2>Paso 3 — Varias métricas: agg con nombres</h2>
+<pre data-norun><code class="language-python">resumen = pedidos.groupby(&quot;canal&quot;).agg(
+    pedidos=(&quot;pedido_id&quot;, &quot;count&quot;),
+    clientes=(&quot;cliente_id&quot;, &quot;nunique&quot;),
+    tasa_cancelacion=(&quot;es_cancelado&quot;, &quot;mean&quot;),
+)
+resumen.sort_values(&quot;pedidos&quot;, ascending=False)</code></pre>
+<p>Cada línea es <code>nombre_nuevo=(&quot;columna&quot;, &quot;operación&quot;)</code>. Operaciones comunes: <code>count</code>, <code>sum</code>, <code>mean</code>, <code>median</code>, <code>min</code>, <code>max</code>, <code>nunique</code>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Nombres claros desde el principio</div>
+
+<p>Con <code>agg(nombre=(...))</code> la tabla sale con columnas que se entienden (<code>pedidos</code>, <code>clientes</code>, <code>tasa_cancelacion</code>) en lugar de nombres repetidos. Es la diferencia entre una tabla que copias a un informe y una que hay que rehacer.</p>
+</div>
+
+
+<h2>Paso 4 — Agrupar por dos columnas</h2>
+<pre data-norun><code class="language-python">pedidos.groupby([&quot;canal&quot;, &quot;estado&quot;]).size().reset_index(name=&quot;pedidos&quot;)</code></pre>
+<p><code>reset_index</code> convierte el resultado agrupado en una tabla común, con <code>canal</code>, <code>estado</code> y <code>pedidos</code> como columnas: el formato &quot;largo&quot; que piden Power BI, SQL y los gráficos.</p>
+<h2>Paso 5 — Tabla de doble entrada: pivot_table</h2>
+<pre data-norun><code class="language-python">pd.pivot_table(pedidos, index=&quot;canal&quot;, columns=&quot;estado&quot;, values=&quot;pedido_id&quot;, aggfunc=&quot;count&quot;, margins=True)</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e09-pivot.webp" alt="pivot_table: canal en filas, estado en columnas, y los totales (All) con margins=True" loading="lazy"><figcaption>pivot_table: canal en filas, estado en columnas, y los totales (All) con margins=True</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parámetro</th>
+<th>Es como en Excel</th>
+</tr>
+</thead><tbody><tr>
+<td><code>index</code></td>
+<td>Rows</td>
+</tr>
+<tr>
+<td><code>columns</code></td>
+<td>Columns</td>
+</tr>
+<tr>
+<td><code>values</code> + <code>aggfunc</code></td>
+<td>Values + Summarize by</td>
+</tr>
+<tr>
+<td><code>margins=True</code></td>
+<td>Grand Total (aquí se llama <strong>All</strong>)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — Un groupby que ya conoces</h2>
+<pre data-norun><code class="language-python">entregados = pedidos[pedidos[&quot;estado&quot;] == &quot;entregado&quot;]
+entregados.groupby(&quot;canal&quot;).size().sort_values(ascending=False)</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/04-groupby.webp" alt="Filtrar primero y agrupar después: pedidos entregados por canal" loading="lazy"><figcaption>Filtrar primero y agrupar después: pedidos entregados por canal</figcaption></figure>
+
+
+<p>El orden importa: <strong>filtrar → agrupar → ordenar</strong>. Es el mismo orden que <code>WHERE → GROUP BY → ORDER BY</code> en SQL.</p>
+<h2>Equivalencias</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>pandas</th>
+<th>SQL</th>
+<th>Excel</th>
+</tr>
+</thead><tbody><tr>
+<td><code>df.groupby(&quot;canal&quot;).size()</code></td>
+<td><code>SELECT canal, COUNT(*) … GROUP BY canal</code></td>
+<td>Tabla dinámica, Count</td>
+</tr>
+<tr>
+<td><code>df.groupby(&quot;canal&quot;)[&quot;monto&quot;].sum()</code></td>
+<td><code>SUM(monto) … GROUP BY canal</code></td>
+<td>Tabla dinámica, Sum</td>
+</tr>
+<tr>
+<td><code>pd.pivot_table(df, index=…, columns=…)</code></td>
+<td><code>GROUP BY</code> + pivot</td>
+<td>Tabla dinámica con Columns</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Agrupaste y calculaste conteos, tasas y varias métricas.</li>
+<li>Agrupaste por dos columnas y armaste tablas de doble entrada.</li>
+<li>Relacionaste groupby con SQL y con las tablas dinámicas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-agrupar-y-resumir">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-proyecto-perfil-de-pedidos.html">← Proyecto 2 (guiado, con pistas) - el perfil de la tabla de pedidos para el equipo</a><a href="jupyterlab-fechas-y-columnas-nuevas.html">Fechas y columnas nuevas - to_datetime, año, mes, día de la semana y columnas calculadas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

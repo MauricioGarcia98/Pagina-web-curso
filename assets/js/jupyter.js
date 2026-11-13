@@ -539,7 +539,7 @@
     View: [['numeros', 'Show Line Numbers', 'Shift+L'], ['panel-izq', 'Show Left Sidebar', 'Ctrl+B'], ['ver-toc', 'Table of Contents']],
     Run: [['correr', 'Run Selected Cell', 'Shift+Enter'], ['correr-quedar', 'Run Selected Cell and Do not Advance', 'Ctrl+Enter'], ['correr-insertar', 'Run Selected Cell and Insert Below', 'Alt+Enter'], '-', ['correr-arriba', 'Run All Above Selected Cell'], ['correr-todo', 'Run All Cells'], ['reiniciar-todo', 'Restart Kernel and Run All Cells…']],
     Kernel: [['parar', 'Interrupt Kernel', 'I, I'], ['reiniciar', 'Restart Kernel…', '0, 0'], ['reiniciar-limpiar', 'Restart Kernel and Clear Outputs of All Cells…'], ['reiniciar-todo', 'Restart Kernel and Run All Cells…'], '-', ['apagar', 'Shut Down All Kernels…']],
-    Tabs: [], Settings: [['tema-light', 'Theme: JupyterLab Light'], ['tema-dark', 'Theme: JupyterLab Dark'], ['tema-system', 'Theme: Synchronize with System Settings'], '-', ['numeros', 'Show Line Numbers'], ['atajos', 'Settings Editor (atajos)']], Help: [['atajos', 'Show Keyboard Shortcuts'], ['leccion', 'Lección: JupyterLab por dentro'], ['acerca', 'About JupyterLab de práctica']],
+    Tabs: [], Settings: [['tema-light', 'Theme: JupyterLab Light'], ['tema-dark', 'Theme: JupyterLab Dark'], ['tema-system', 'Theme: Synchronize with System Settings'], '-', ['numeros', 'Show Line Numbers'], ['atajos', 'Settings Editor (atajos)']], Help: [['atajos', 'Show Keyboard Shortcuts'], ['curso', 'Curso: JupyterLab paso a paso (24 lecciones)'], ['leccion', 'Lección: JupyterLab por dentro'], ['acerca', 'About JupyterLab de práctica']],
   };
   function accion(a, extra) {
     const r = activo(); const st = NBS[r];
@@ -579,6 +579,7 @@
       case 'tema-light': case 'tema-dark': case 'tema-system': S().tema = a.slice(5); guardar(); aplicarTema(); return;
       case 'atajos': return atajos();
       case 'leccion': location.hash = '#/l/interfaces-jupyterlab-por-dentro'; return;
+      case 'curso': location.hash = '#/m/jupyterlab'; return;
       case 'acerca': toast('JupyterLab de práctica: una réplica para aprender, con Python en tu navegador. No es el producto oficial del Proyecto Jupyter.'); return;
       case 'md-preview': { const p = $('#jlMdPrev'); const ed = EDS[r] && EDS[r].ed; if (!p || !ed) return; p.hidden = !p.hidden; p.innerHTML = p.hidden ? '' : mdHtml(ed.getValue()); return; }
       case 'py-run': { guardarTexto(r); const nbAbierto = S().tabs.find((t) => tipoDe(t) === 'nb'); K().ejecutar(`%run ${JSON.stringify(r)}`, { archivos: archivosParaKernel() }).then((res) => { const txt = res.outputs.map((o) => o.output_type === 'error' ? (o.traceback || []).join('\n') : fuente(o.text || (o.data && o.data['text/plain']) || '')).join('\n'); toast(txt.trim() ? txt.trim().slice(0, 300) : `Se ejecutó ${base(r)}: sus variables ya están en el kernel${nbAbierto ? ' (úsalas desde el notebook)' : ''}.`); }); return; }

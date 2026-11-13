@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limpiar datos con pandas - medir, deduplicar por clave, normalizar textos y tratar nulos · Academia de Datos</title><meta name="description" content="El método profesional para limpiar una tabla sucia, en código que se puede repetir. Con clientes_crudo (el mismo cliente cargado varias veces, con mayúsculas, espacios y emails vacíos) mides la calidad, decides qué es un duplicado, te quedas con la carga más reciente, normalizas textos con .str, tratas nulos sin inventar datos y dejas validaciones con assert."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-limpiar-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Limpiar datos con pandas - medir, deduplicar por clave, normalizar textos y tratar nulos · Academia de Datos"><meta property="og:description" content="El método profesional para limpiar una tabla sucia, en código que se puede repetir. Con clientes_crudo (el mismo cliente cargado varias veces, con mayúsculas, espacios y emails vacíos) mides la calidad, decides qué es un duplicado, te quedas con la carga más reciente, normalizas textos con .str, tratas nulos sin inventar datos y dejas validaciones con assert."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/jupyterlab-limpiar-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#jupyterlab">📓 JupyterLab paso a paso</a> · 4 · Intermedio-avanzado · 55 min</div>
+<h1>Limpiar datos con pandas - medir, deduplicar por clave, normalizar textos y tratar nulos</h1><p class="resumen">El método profesional para limpiar una tabla sucia, en código que se puede repetir. Con clientes_crudo (el mismo cliente cargado varias veces, con mayúsculas, espacios y emails vacíos) mides la calidad, decides qué es un duplicado, te quedas con la carga más reciente, normalizas textos con .str, tratas nulos sin inventar datos y dejas validaciones con assert.</p>
+<a class="cta" href="../index.html#/l/jupyterlab-limpiar-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Medir la calidad de una tabla antes de limpiarla</li><li>Detectar y quitar duplicados por clave conservando el registro más reciente</li><li>Normalizar textos con .str.strip, .str.lower y .str.title</li><li>Decidir qué hacer con cada nulo (dejar, marcar, rellenar o descartar)</li><li>Validar el resultado con assert</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Limpiar en pandas es escribir la receta de la limpieza. La primera vez cuesta lo mismo que hacerlo a mano en Excel; la segunda (el mes que viene, con datos nuevos) es ejecutar el notebook. Y la receta queda como documentación de qué se hizo con los datos.</p>
+</div>
+
+
+<h2>Paso 1 — Carga y mide</h2>
+<pre data-norun><code class="language-python">crudo = pd.read_csv(&quot;datos/clientes_crudo.csv&quot;)
+print(&quot;filas:&quot;, len(crudo))
+print(&quot;clientes distintos:&quot;, crudo[&quot;cliente_id&quot;].nunique())
+print(&quot;repetidos por cliente_id:&quot;, crudo[&quot;cliente_id&quot;].duplicated().sum())
+crudo.isna().sum()</code></pre>
+<p>400 filas, <strong>243</strong> clientes distintos, <strong>157</strong> filas repetidas y <strong>19</strong> emails vacíos. Mira algunas filas del mismo cliente:</p>
+<pre data-norun><code class="language-python">crudo[crudo[&quot;cliente_id&quot;] == 1638].sort_values(&quot;fecha_carga&quot;)</code></pre>
+<p>El mismo Benjamín Torres aparece cinco veces: con el nombre en mayúsculas, el email en mayúsculas o la ciudad en minúscula.</p>
+<h2>Paso 2 — Decide qué es un duplicado</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si comparas</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td>La fila completa (<code>crudo.duplicated()</code>)</td>
+<td>0: <code>registro_id</code> y <code>fecha_carga</code> siempre cambian</td>
+</tr>
+<tr>
+<td><code>cliente_id</code></td>
+<td>✔ La clave: una fila por cliente</td>
+</tr>
+</tbody></table></div>
+<p>Y de cada cliente repetido te quedas con la <strong>carga más reciente</strong>.</p>
+<h2>Paso 3 — Deduplica conservando la más reciente</h2>
+<pre data-norun><code class="language-python">limpio = (crudo
+          .sort_values(&quot;fecha_carga&quot;, ascending=False)
+          .drop_duplicates(&quot;cliente_id&quot;, keep=&quot;first&quot;))
+len(limpio)</code></pre>
+<p>Da <strong>243</strong>: coincide con los clientes distintos que mediste. <code>drop_duplicates</code> conserva la primera aparición (<code>keep=&quot;first&quot;</code>); como ordenaste de la más nueva a la más vieja, la primera es la más reciente.</p>
+<h2>Paso 4 — Normaliza los textos</h2>
+<pre data-norun><code class="language-python">limpio = limpio.assign(
+    nombre=limpio[&quot;nombre&quot;].str.strip().str.title(),
+    apellido=limpio[&quot;apellido&quot;].str.strip().str.title(),
+    email=limpio[&quot;email&quot;].str.strip().str.lower(),
+    ciudad=limpio[&quot;ciudad&quot;].str.strip().str.title(),
+)</code></pre>
+<figure class="captura"><img src="assets/img/guias/jupyter/e14-limpieza.webp" alt="La limpieza encadenada: 400 filas con 157 repetidas pasan a 243 clientes con el email normalizado" loading="lazy"><figcaption>La limpieza encadenada: 400 filas con 157 repetidas pasan a 243 clientes con el email normalizado</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Método <code>.str</code></th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>.str.strip()</code></td>
+<td>Quita espacios al principio y al final</td>
+</tr>
+<tr>
+<td><code>.str.lower()</code> / <code>.str.upper()</code></td>
+<td>Minúsculas / mayúsculas</td>
+</tr>
+<tr>
+<td><code>.str.title()</code></td>
+<td>Primera letra de cada palabra en mayúscula</td>
+</tr>
+<tr>
+<td><code>.str.replace(&quot;-&quot;, &quot;&quot;)</code></td>
+<td>Reemplaza texto</td>
+</tr>
+<tr>
+<td><code>.str.contains(&quot;@&quot;)</code></td>
+<td>¿Contiene? (True/False)</td>
+</tr>
+<tr>
+<td><code>.str.split(&quot;@&quot;).str[1]</code></td>
+<td>Parte un texto y toma un pedazo (el dominio del email)</td>
+</tr>
+</tbody></table></div>
+<p>Los métodos <code>.str</code> respetan los nulos: un email vacío sigue vacío, no se rompe la cadena.</p>
+<h2>Paso 5 — Qué hacer con cada nulo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Cuándo</th>
+<th>Código</th>
+</tr>
+</thead><tbody><tr>
+<td>Dejarlo</td>
+<td>El dato falta y no se puede saber</td>
+<td>(nada)</td>
+</tr>
+<tr>
+<td>Marcarlo</td>
+<td>Para informar o filtrar después</td>
+<td><code>limpio[&quot;sin_email&quot;] = limpio[&quot;email&quot;].isna()</code></td>
+</tr>
+<tr>
+<td>Rellenarlo</td>
+<td>Hay un valor por defecto real (0 unidades, &quot;sin canal&quot;)</td>
+<td><code>df[&quot;col&quot;].fillna(0)</code></td>
+</tr>
+<tr>
+<td>Descartar la fila</td>
+<td>La fila no sirve sin ese dato para este análisis</td>
+<td><code>df.dropna(subset=[&quot;email&quot;])</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Nunca inventes un dato</div>
+
+<p>Rellenar un email vacío con uno &quot;deducido&quot; del nombre, o una edad vacía con el promedio, sin decirlo, cambia los resultados y puede tener consecuencias (correos que rebotan, decisiones con datos falsos). Si rellenas, que sea con una regla explícita y documentada.</p>
+</div>
+
+
+<p>En la carga más reciente quedan <strong>13</strong> clientes sin email.</p>
+<h2>Paso 6 — Valida con assert</h2>
+<pre data-norun><code class="language-python">assert limpio[&quot;cliente_id&quot;].is_unique, &quot;Hay clientes repetidos&quot;
+assert len(limpio) == crudo[&quot;cliente_id&quot;].nunique()
+assert (limpio[&quot;email&quot;].dropna() == limpio[&quot;email&quot;].dropna().str.lower()).all(), &quot;Quedan emails con mayúsculas&quot;</code></pre>
+<p><code>assert condición, &quot;mensaje&quot;</code> no hace nada si la condición se cumple; si no, detiene el notebook con el mensaje. Son tus controles automáticos: si mañana llega un archivo con un problema nuevo, el notebook avisa.</p>
+<h2>Paso 7 — Tipos de dato</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Solución</th>
+</tr>
+</thead><tbody><tr>
+<td>Número leído como texto (<code>&quot;1.500&quot;</code>)</td>
+<td><code>pd.to_numeric(df[&quot;col&quot;].str.replace(&quot;.&quot;, &quot;&quot;), errors=&quot;coerce&quot;)</code></td>
+</tr>
+<tr>
+<td>Fecha como texto</td>
+<td><code>pd.to_datetime(df[&quot;col&quot;], errors=&quot;coerce&quot;)</code></td>
+</tr>
+<tr>
+<td>Código con ceros a la izquierda</td>
+<td><code>pd.read_csv(..., dtype={&quot;codigo&quot;: str})</code></td>
+</tr>
+</tbody></table></div>
+<p><code>errors=&quot;coerce&quot;</code> convierte lo que no puede en <code>NaN</code> en lugar de fallar: después cuenta cuántos quedaron (<code>isna().sum()</code>) para saber cuántos valores eran inválidos.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Mediste la calidad y deduplicaste por clave con el registro más reciente.</li>
+<li>Normalizaste textos y decidiste qué hacer con cada nulo.</li>
+<li>Dejaste validaciones automáticas con assert.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/jupyterlab-limpiar-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="jupyterlab-unir-tablas.html">← Unir tablas con merge - traer datos de otra tabla sin perder ni duplicar filas</a><a href="jupyterlab-notebooks-reproducibles.html">Notebooks reproducibles - magics, archivos .py, rutas y el notebook que corre de arriba abajo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
