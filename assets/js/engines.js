@@ -340,8 +340,19 @@ def _grade(mode, code, solution, tests, var, ordered):
 
 _REPL_NS = {"__name__": "__main__"}
 
-def _shell(mode, code, argv_json, files_json, cwd):
+_ENV_PUESTAS = set()
+
+
+def _shell(mode, code, argv_json, files_json, cwd, env_json="{}"):
     import os, shutil
+    # las variables de entorno de la terminal (export, env: de un paso de Actions) llegan a os.environ
+    for _k in list(_ENV_PUESTAS):
+        os.environ.pop(_k, None)
+    _ENV_PUESTAS.clear()
+    for _k, _v in json.loads(env_json or "{}").items():
+        if isinstance(_v, str) and _k:
+            os.environ[_k] = _v
+            _ENV_PUESTAS.add(_k)
     home = "/home/alumno"
     runner = "/home/runner"
     for d in (home, runner):
@@ -464,7 +475,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
         }
         if (msg.kind === 'shell') {
           const f = py.globals.get('_shell');
-          const r = f(msg.mode, msg.code, JSON.stringify(msg.argv || []), JSON.stringify(msg.files || {}), msg.cwd || '/home/alumno');
+          const r = f(msg.mode, msg.code, JSON.stringify(msg.argv || []), JSON.stringify(msg.files || {}), msg.cwd || '/home/alumno', JSON.stringify(msg.env || {}));
           const out = r.toJs({ dict_converter: Object.fromEntries });
           r.destroy(); f.destroy();
           self.postMessage({ id: msg.id, ...out });
@@ -548,7 +559,7 @@ def _dbt_render(template, macros, is_inc, vars_json, this_name="this"):
     },
     dbt(template, opts = {}) { return this._send({ kind: 'dbt', mode: 'dbt', template, ...opts }); },
     warmup(mode) { return this._send({ kind: 'warmup', mode }); },
-    shell({ code, argv, files, cwd, mode = 'python' }) { return this._send({ kind: 'shell', mode, code, argv, files, cwd }); },
+    shell({ code, argv, files, cwd, mode = 'python', env }) { return this._send({ kind: 'shell', mode, code, argv, files, cwd, env }); },
     repl(code, mode = 'python', opts = {}) { return this._send({ kind: 'repl', mode, code, libs: opts.libs }, opts.timeoutMs || 45000); }
   };
 

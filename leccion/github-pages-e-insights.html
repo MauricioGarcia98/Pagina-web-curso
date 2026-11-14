@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub Pages e Insights - publicar documentación y medir la actividad del proyecto · Academia de Datos</title><meta name="description" content="GitHub Pages publica un sitio estático gratis desde tu repositorio - ideal para la documentación de un pipeline, un diccionario de datos o tu portafolio. Publicar desde una rama y desde GitHub Actions, la URL que recibes, y después Insights - Pulse y Contributors para ver qué pasó en el proyecto."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-pages-e-insights.html">
+<meta property="og:type" content="article"><meta property="og:title" content="GitHub Pages e Insights - publicar documentación y medir la actividad del proyecto · Academia de Datos"><meta property="og:description" content="GitHub Pages publica un sitio estático gratis desde tu repositorio - ideal para la documentación de un pipeline, un diccionario de datos o tu portafolio. Publicar desde una rama y desde GitHub Actions, la URL que recibes, y después Insights - Pulse y Contributors para ver qué pasó en el proyecto."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-pages-e-insights.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 5 · Avanzado · 45 min</div>
+<h1>GitHub Pages e Insights - publicar documentación y medir la actividad del proyecto</h1><p class="resumen">GitHub Pages publica un sitio estático gratis desde tu repositorio - ideal para la documentación de un pipeline, un diccionario de datos o tu portafolio. Publicar desde una rama y desde GitHub Actions, la URL que recibes, y después Insights - Pulse y Contributors para ver qué pasó en el proyecto.</p>
+<a class="cta" href="../index.html#/l/github-pages-e-insights">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Publicar un sitio con Pages desde una rama</li><li>Publicar con un workflow de Actions</li><li>Saber qué puede y qué no puede alojar Pages</li><li>Leer Pulse y Contributors</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>GitHub Pages es una vidriera gratis pegada a tu repositorio: lo que pongas en una carpeta (páginas HTML, imágenes, el README) se muestra como sitio web en una dirección pública. Este mismo curso está publicado con GitHub Pages.</p>
+</div>
+
+
+<h2>Paso 1 — Publicar desde una rama</h2>
+<p>En <code>ventas-app</code>: <strong>Settings → Pages</strong>. En <strong>Source</strong> elige <strong>Deploy from a branch</strong>, rama <code>main</code>, carpeta <code>/ (root)</code>, <strong>Save</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g19-pages.webp" alt="Source Deploy from a branch (1) y la rama main con la carpeta root (2)" loading="lazy"><figcaption>Source Deploy from a branch (1) y la rama main con la carpeta root (2)</figcaption></figure>
+
+
+<p>En uno o dos minutos el sitio queda en:</p>
+<pre><code class="language-text">https://alumno.github.io/ventas-app/</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de sitio</th>
+<th>Repositorio</th>
+<th>URL</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>De proyecto</strong></td>
+<td>Cualquiera (<code>ventas-app</code>)</td>
+<td><code>https://&lt;usuario&gt;.github.io/&lt;repo&gt;/</code></td>
+</tr>
+<tr>
+<td><strong>De usuario</strong></td>
+<td>Uno llamado exactamente <code>&lt;usuario&gt;.github.io</code></td>
+<td><code>https://&lt;usuario&gt;.github.io/</code></td>
+</tr>
+</tbody></table></div>
+<p>Si hay un <code>index.html</code>, se muestra ese; si no, GitHub convierte el <code>README.md</code> en página. La carpeta puede ser <code>/ (root)</code> o <code>/docs</code> (para separar la documentación del código).</p>
+<h2>Paso 2 — Una página de documentación</h2>
+<p>Crea <code>docs/index.html</code> (y elige la carpeta <code>/docs</code> en Pages) con lo mínimo de un diccionario de datos:</p>
+<pre><code class="language-html">&lt;!doctype html&gt;
+&lt;html lang=&quot;es&quot;&gt;
+&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;ventas-app - documentación&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;ventas-app&lt;/h1&gt;
+  &lt;p&gt;Resumen de ventas por canal de Tienda Andina.&lt;/p&gt;
+  &lt;h2&gt;Diccionario de datos&lt;/h2&gt;
+  &lt;table&gt;
+    &lt;tr&gt;&lt;th&gt;Columna&lt;/th&gt;&lt;th&gt;Tipo&lt;/th&gt;&lt;th&gt;Descripción&lt;/th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;canal&lt;/td&gt;&lt;td&gt;texto&lt;/td&gt;&lt;td&gt;web, app o tienda&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;estado&lt;/td&gt;&lt;td&gt;texto&lt;/td&gt;&lt;td&gt;entregado, cancelado, devuelto…&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;total&lt;/td&gt;&lt;td&gt;decimal&lt;/td&gt;&lt;td&gt;Monto del pedido&lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>Entra por PR (main está protegida). Al fusionar, Pages vuelve a publicar solo.</p>
+<h2>Paso 3 — Publicar con GitHub Actions</h2>
+<p>Cuando el sitio se <strong>genera</strong> (por ejemplo, la documentación de dbt con <code>dbt docs generate</code>, o un reporte que crea un script), se publica con un workflow. En <strong>Settings → Pages → Source</strong> elige <strong>GitHub Actions</strong>, y en <strong>Actions → New workflow</strong> está la plantilla <strong>Static HTML</strong>. Lo esencial:</p>
+<pre><code class="language-yaml">name: docs
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - uses: actions/deploy-pages@v4</code></pre>
+<p>Entre <code>checkout</code> y <code>upload-pages-artifact</code> puedes agregar pasos que generan archivos en <code>docs/</code> (correr un script de Python que escribe un HTML, por ejemplo). Lo que esté en esa carpeta al final es lo que se publica.</p>
+<h2>Paso 4 — Qué puede y qué no puede alojar Pages</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sí</th>
+<th>No</th>
+</tr>
+</thead><tbody><tr>
+<td>HTML, CSS, JavaScript, imágenes</td>
+<td>Código de servidor (Python, una API, una base de datos)</td>
+</tr>
+<tr>
+<td>Documentación, portafolios, reportes estáticos</td>
+<td>Datos privados: un sitio de Pages es <strong>público</strong> aunque el repositorio sea privado (salvo en planes empresariales)</td>
+</tr>
+<tr>
+<td>Un dominio propio (<code>docs.tuempresa.com</code>)</td>
+<td>Sitios de mucho tráfico comercial (tiene límites de uso)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ No publiques datos reales</div>
+
+<p>Un reporte con datos de clientes publicado en Pages queda en internet para cualquiera. Para reportes internos, usa Power BI, un tablero interno o un sitio con acceso controlado.</p>
+</div>
+
+
+<h2>Paso 5 — Insights: Pulse y Contributors</h2>
+<p>Pestaña <strong>Insights</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g19-insights.webp" alt="Pulse - 1 PR fusionado, 1 issue cerrado, y alumno con 6 commits en Contributors" loading="lazy"><figcaption>Pulse - 1 PR fusionado, 1 issue cerrado, y alumno con 6 commits en Contributors</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Vista</th>
+<th>Qué muestra</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Pulse</strong></td>
+<td>PRs fusionados y abiertos, issues cerrados y abiertos en un período</td>
+</tr>
+<tr>
+<td><strong>Contributors</strong></td>
+<td>Commits por persona a lo largo del tiempo</td>
+</tr>
+<tr>
+<td><strong>Traffic</strong> (GitHub real)</td>
+<td>Visitas y clones de las últimas dos semanas (útil para tu portafolio)</td>
+</tr>
+<tr>
+<td><strong>Network / Forks</strong> (GitHub real)</td>
+<td>Ramas y forks</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Insights no mide el rendimiento de una persona</div>
+
+<p>Más commits no es más trabajo: un commit puede ser un error de tipeo y otro una semana de diseño. Usa Insights para ver el ritmo del proyecto (¿se acumulan PRs sin revisar?), no para comparar personas.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Publicaste un sitio con Pages desde una rama.</li>
+<li>Sabes publicar con un workflow cuando el sitio se genera.</li>
+<li>Sabes qué no poner en Pages.</li>
+<li>Lees Pulse y Contributors.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-pages-e-insights">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-seguridad.html">← Seguridad en GitHub - claves filtradas, push protection, Dependabot y buenas prácticas</a><a href="github-proyecto-ci-avanzado-y-docs.html">Proyecto 5 (requisitos y rúbrica) - CI con matriz, reporte como artefacto y documentación publicada →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

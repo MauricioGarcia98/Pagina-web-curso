@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica a GitHub real - cuenta, autenticación, herramientas y tu perfil · Academia de Datos</title><meta name="description" content="Todo lo que hiciste en la réplica funciona igual en github.com, con algunas diferencias. Crear tu cuenta con 2FA, autenticarte desde la terminal (gh auth login, HTTPS con token o SSH), GitHub Desktop, Codespaces, Copilot, el Student Pack, tu README de perfil y qué cosas de GitHub real no viste en la práctica."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-de-la-practica-a-github-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica a GitHub real - cuenta, autenticación, herramientas y tu perfil · Academia de Datos"><meta property="og:description" content="Todo lo que hiciste en la réplica funciona igual en github.com, con algunas diferencias. Crear tu cuenta con 2FA, autenticarte desde la terminal (gh auth login, HTTPS con token o SSH), GitHub Desktop, Codespaces, Copilot, el Student Pack, tu README de perfil y qué cosas de GitHub real no viste en la práctica."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-de-la-practica-a-github-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>De la práctica a GitHub real - cuenta, autenticación, herramientas y tu perfil</h1><p class="resumen">Todo lo que hiciste en la réplica funciona igual en github.com, con algunas diferencias. Crear tu cuenta con 2FA, autenticarte desde la terminal (gh auth login, HTTPS con token o SSH), GitHub Desktop, Codespaces, Copilot, el Student Pack, tu README de perfil y qué cosas de GitHub real no viste en la práctica.</p>
+<a class="cta" href="../index.html#/l/github-de-la-practica-a-github-real">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una cuenta segura</li><li>Autenticar git y gh desde tu computadora</li><li>Elegir entre HTTPS y SSH</li><li>Conocer Desktop, Codespaces y Copilot</li><li>Armar un perfil que muestre tu trabajo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>La réplica fue el simulador de vuelo: los mismos botones, los mismos comandos, sin riesgo. Ahora toca el avión de verdad. La buena noticia es que el panel es el mismo; solo cambian algunos trámites (la cuenta, las llaves) y hay algunos instrumentos más.</p>
+</div>
+
+
+<h2>Paso 1 — La cuenta</h2>
+<ol>
+<li>Entra a <strong>github.com</strong> → <strong>Sign up</strong>. El nombre de usuario aparece en todas tus URLs (<code>github.com/tu-usuario</code>): elige uno profesional.</li>
+<li>Activa <strong>2FA</strong> (Settings → Password and authentication): una app autenticadora o una <em>passkey</em>. Guarda los códigos de recuperación.</li>
+<li>En <strong>Settings → Emails</strong>, activa <strong>Keep my email addresses private</strong>: tus commits usarán una dirección <code>@users.noreply.github.com</code>.</li>
+</ol>
+<pre><code class="language-bash">git config --global user.name &quot;Tu Nombre&quot;
+git config --global user.email &quot;ID+usuario@users.noreply.github.com&quot;</code></pre>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Capturas de tu cuenta</div>
+
+<p>Si compartes capturas de tu GitHub real (en un curso, un foro, un portafolio), tapa tu correo, tus tokens y cualquier dato privado de repositorios del trabajo.</p>
+</div>
+
+
+<h2>Paso 2 — Autenticarte desde la terminal</h2>
+<p><code>git push</code> ya no acepta la contraseña de la cuenta. Tres caminos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Camino</th>
+<th>Cómo</th>
+<th>Para quién</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>gh auth login</strong> (recomendado)</td>
+<td>Instala <a href="https://cli.github.com">GitHub CLI</a>, corre <code>gh auth login</code>, elige HTTPS y &quot;Login with a web browser&quot;</td>
+<td>Casi todos: configura git y gh a la vez</td>
+</tr>
+<tr>
+<td><strong>HTTPS + token</strong></td>
+<td>Settings → Developer settings → <em>Fine-grained tokens</em>, con vencimiento y permisos mínimos; el token se usa como contraseña</td>
+<td>Cuando no puedes instalar gh</td>
+</tr>
+<tr>
+<td><strong>SSH</strong></td>
+<td><code>ssh-keygen -t ed25519 -C &quot;tu-correo&quot;</code>, copias <code>~/.ssh/id_ed25519.pub</code> en Settings → SSH keys, clonas con <code>git@github.com:usuario/repo.git</code></td>
+<td>Quien prefiere llaves; común en Linux</td>
+</tr>
+</tbody></table></div>
+<p>Comprueba:</p>
+<pre><code class="language-bash">gh auth status
+ssh -T git@github.com     # si usas SSH: &quot;Hi usuario! You've successfully authenticated&quot;</code></pre>
+<h2>Paso 3 — Herramientas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>VS Code</strong></td>
+<td>Panel de control de código fuente con Git y la extensión <em>GitHub Pull Requests</em> para revisar PRs sin salir del editor</td>
+</tr>
+<tr>
+<td><strong>GitHub Desktop</strong></td>
+<td>Aplicación con botones para commit, push y ramas; útil para empezar, pero aprende la terminal igual</td>
+</tr>
+<tr>
+<td><strong>Codespaces</strong></td>
+<td>Un VS Code en el navegador con una máquina en la nube ya configurada (botón <strong>Code → Codespaces</strong>); tiene horas gratis por mes</td>
+</tr>
+<tr>
+<td><strong>github.dev</strong></td>
+<td>Apretando <code>.</code> en un repositorio se abre un editor web liviano (sin terminal)</td>
+</tr>
+<tr>
+<td><strong>Copilot</strong></td>
+<td>Asistente de IA en el editor y en GitHub; revisa siempre lo que sugiere como revisarías el PR de un compañero</td>
+</tr>
+<tr>
+<td><strong>GitHub Mobile</strong></td>
+<td>Revisar y aprobar PRs, responder notificaciones</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 GitHub Student Developer Pack</div>
+
+<p>Si estudias, el <strong>Student Developer Pack</strong> (education.github.com) da GitHub Pro, Copilot y créditos de varias herramientas gratis mientras estés estudiando.</p>
+</div>
+
+
+<h2>Paso 4 — Tu perfil</h2>
+<ul>
+<li>Un repositorio llamado <strong>exactamente como tu usuario</strong> (<code>tu-usuario/tu-usuario</code>) con un <code>README.md</code> se muestra arriba de tu perfil. Escribe quién eres, qué haces y enlaza tus tres mejores proyectos.</li>
+<li><strong>Pin</strong> (fijar) hasta seis repositorios: los que más muestran lo que sabes hacer.</li>
+<li>Cada proyecto fijado con descripción, topics, README completo y CI en verde (la lista de control de la lección 21).</li>
+<li>El gráfico de contribuciones muestra constancia, pero los reclutadores miran los <strong>proyectos</strong>, no los cuadraditos verdes.</li>
+</ul>
+<pre><code class="language-text"># Hola, soy Ana 👋
+
+Ingeniera de datos en formación. Construyo pipelines con Python, SQL, dbt y Databricks.
+
+## Proyectos
+- **ventas-app** — resumen de ventas con CI, tests y reporte automático
+- **lakehouse-tienda** — capas bronze/silver/gold con PySpark y Delta
+- **dbt-tienda** — modelos de dbt con tests y documentación publicada</code></pre>
+<h2>Paso 5 — Lo que en la práctica no viste (o viste simplificado)</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En GitHub real</th>
+<th>Notas</th>
+</tr>
+</thead><tbody><tr>
+<td>Forks y PRs entre repositorios</td>
+<td>El flujo open source de la lección 15</td>
+</tr>
+<tr>
+<td>Releases y etiquetas en la web</td>
+<td>Lección 21</td>
+</tr>
+<tr>
+<td>Workflows programados (<code>schedule</code>)</td>
+<td>Lección 22</td>
+</tr>
+<tr>
+<td>Environments con aprobación</td>
+<td>Lección 22</td>
+</tr>
+<tr>
+<td>CODEOWNERS automático, Rulesets</td>
+<td>Lecciones 14 y 15</td>
+</tr>
+<tr>
+<td>Projects (tableros), Discussions, Wiki</td>
+<td>Organización del trabajo y la comunidad</td>
+</tr>
+<tr>
+<td>Push protection activa en repos públicos</td>
+<td>Lección 18</td>
+</tr>
+<tr>
+<td>Minutos de Actions limitados en repos privados</td>
+<td>Los públicos son gratis; los privados tienen una cuota mensual gratuita</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes crear una cuenta segura y autenticarte desde tu computadora.</li>
+<li>Conoces las herramientas del ecosistema.</li>
+<li>Sabes armar un perfil que muestra tu trabajo.</li>
+<li>Sabes qué diferencias hay entre la práctica y GitHub real.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-de-la-practica-a-github-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-github-en-el-flujo-de-datos.html">← GitHub en el flujo de datos - CI de dbt, despliegue de Databricks, Terraform, entornos y workflows programados</a><a href="github-proyecto-final.html">Proyecto final (solo el pedido) - el repositorio del pipeline de un equipo, de cero a producción →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

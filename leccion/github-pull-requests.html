@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pull requests - proponer un cambio para que el equipo lo vea antes de entrar a main · Academia de Datos</title><meta name="description" content="El pull request (PR) es el corazón del trabajo en equipo en GitHub - una rama con cambios más una conversación para decidir si entran a main. Crear un PR desde la web y desde la terminal con gh, escribir un buen título y descripción, recorrer sus pestañas (Conversation, Commits, Files changed), los borradores y cómo un PR cierra issues."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-pull-requests.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pull requests - proponer un cambio para que el equipo lo vea antes de entrar a main · Academia de Datos"><meta property="og:description" content="El pull request (PR) es el corazón del trabajo en equipo en GitHub - una rama con cambios más una conversación para decidir si entran a main. Crear un PR desde la web y desde la terminal con gh, escribir un buen título y descripción, recorrer sus pestañas (Conversation, Commits, Files changed), los borradores y cómo un PR cierra issues."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-pull-requests.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 3 · Intermedio · 45 min</div>
+<h1>Pull requests - proponer un cambio para que el equipo lo vea antes de entrar a main</h1><p class="resumen">El pull request (PR) es el corazón del trabajo en equipo en GitHub - una rama con cambios más una conversación para decidir si entran a main. Crear un PR desde la web y desde la terminal con gh, escribir un buen título y descripción, recorrer sus pestañas (Conversation, Commits, Files changed), los borradores y cómo un PR cierra issues.</p>
+<a class="cta" href="../index.html#/l/github-pull-requests">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un pull request y por qué existe</li><li>Crear un PR desde la web y con gh pr create</li><li>Escribir título y descripción útiles</li><li>Leer las pestañas Conversation, Commits y Files changed</li><li>Usar borradores y enlazar issues</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un pull request es como entregar un borrador a tu jefe con una nota: &quot;acá está lo que cambié, por qué, y cómo probarlo. ¿Lo revisas antes de que lo publiquemos?&quot;. La rama es el borrador; el PR es la entrega con la conversación.</p>
+</div>
+
+
+<h2>Paso 1 — Qué es un PR</h2>
+<p>Un PR dice: <strong>&quot;quiero llevar los commits de la rama <code>feature/resumen</code> a <code>main</code>&quot;</strong>. Mientras está abierto:</p>
+<ul>
+<li>El equipo ve exactamente qué cambia, línea por línea.</li>
+<li>Se comenta, se pide cambios y se aprueba.</li>
+<li>Corren los tests automáticos (GitHub Actions, nivel 4).</li>
+<li>Si llegan commits nuevos a la rama, el PR se actualiza solo.</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>Término</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>base</strong></td>
+<td>La rama que recibe los cambios (casi siempre <code>main</code>)</td>
+</tr>
+<tr>
+<td><strong>compare</strong> / <strong>head</strong></td>
+<td>Tu rama con los cambios</td>
+</tr>
+<tr>
+<td><strong>merge</strong></td>
+<td>Fusionar: los cambios entran a la base</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Crear el PR desde la terminal</h2>
+<p>En el nivel 2 subiste la rama <code>feature/resumen</code> de <code>ventas-app</code>. Si todavía no creaste el PR (o lo haces de nuevo con otra rama):</p>
+<pre><code class="language-bash">gh auth login
+gh pr create --title &quot;Agrega el resumen de ventas por canal&quot; --body &quot;Closes #1. Agrega totales_por_canal con un test que comprueba que se ignoran los cancelados.&quot;</code></pre>
+<p><code>gh auth login</code> se hace una vez: conecta la terminal con tu cuenta. <code>gh pr create</code> crea el PR desde la rama en la que estás hacia la rama por defecto.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Desde la web también</div>
+
+<p>Después de un <code>git push</code> de una rama nueva, GitHub muestra un aviso amarillo <strong>&quot;feature/resumen had recent pushes&quot;</strong> con el botón <strong>Compare &amp; pull request</strong>. También: pestaña <strong>Pull requests → New pull request</strong>, eliges base y compare.</p>
+</div>
+
+
+<h2>Paso 3 — La página del PR</h2>
+<figure class="captura"><img src="assets/img/guias/github/g09-pr.webp" alt="El PR número 2 con sus pestañas: Conversation, Commits, Checks y Files changed" loading="lazy"><figcaption>El PR número 2 con sus pestañas: Conversation, Commits, Checks y Files changed</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Pestaña</th>
+<th>Qué tiene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Conversation</strong></td>
+<td>La descripción, los comentarios, las revisiones y la caja de merge al final</td>
+</tr>
+<tr>
+<td><strong>Commits</strong></td>
+<td>Los commits de la rama que entrarían</td>
+</tr>
+<tr>
+<td><strong>Checks</strong></td>
+<td>Los tests automáticos (cuando hay workflows)</td>
+</tr>
+<tr>
+<td><strong>Files changed</strong></td>
+<td>El diff: qué líneas se agregan (verde) y cuáles se quitan (rojo)</td>
+</tr>
+</tbody></table></div>
+<p>Fíjate en el número: es <strong>#2</strong> porque issues y PRs comparten la numeración del repositorio (el #1 es el issue).</p>
+<h2>Paso 4 — Files changed</h2>
+<figure class="captura"><img src="assets/img/guias/github/g09-archivos.webp" alt="Files changed: resumen.py y test_resumen.py completos en verde porque son archivos nuevos" loading="lazy"><figcaption>Files changed: resumen.py y test_resumen.py completos en verde porque son archivos nuevos</figcaption></figure>
+
+
+<p>Acá trabaja quien revisa. Pasando el mouse por una línea aparece un <strong>+</strong> azul para comentar esa línea (lo usas en la próxima lección).</p>
+<h2>Paso 5 — Un buen título y una buena descripción</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Mal</th>
+<th>Bien</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;cambios&quot;</td>
+<td>&quot;Agrega el resumen de ventas por canal&quot;</td>
+</tr>
+<tr>
+<td>&quot;fix&quot;</td>
+<td>&quot;Corrige el total cuando hay pedidos cancelados&quot;</td>
+</tr>
+<tr>
+<td>Descripción vacía</td>
+<td>Qué cambia, por qué, cómo probarlo, qué issue cierra</td>
+</tr>
+</tbody></table></div>
+<p>Una plantilla que sirve casi siempre:</p>
+<pre><code class="language-text">## Qué cambia
+Agrega totales_por_canal() en resumen.py.
+
+## Por qué
+El reporte semanal necesita los totales por canal sin cancelados (#1).
+
+## Cómo probarlo
+pytest
+
+Closes #1</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 El revisor no está en tu cabeza</div>
+
+<p>Escribe la descripción para alguien que no sabe nada de lo que hiciste. Si el PR toca algo delicado (datos de producción, una tabla que usan otros), dilo arriba de todo.</p>
+</div>
+
+
+<h2>Paso 6 — Borradores y PRs chicos</h2>
+<ul>
+<li><strong>Draft pull request</strong>: en el botón verde de crear, la flecha permite <strong>Create draft pull request</strong>. Sirve para mostrar trabajo a medio hacer y pedir opinión temprano; no se puede fusionar hasta marcarlo <strong>Ready for review</strong>. Con gh: <code>gh pr create --draft</code>.</li>
+<li><strong>PRs chicos</strong>: un PR de 50 líneas se revisa en 10 minutos; uno de 1500 se aprueba sin leer. Un PR = una idea.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué es un PR y para qué sirve.</li>
+<li>Creaste uno desde la terminal y recorriste sus pestañas.</li>
+<li>Sabes escribir título y descripción útiles.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-pull-requests">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-proyecto-organizar-el-trabajo.html">← Proyecto 2 (guiado, con pistas) - organizar el trabajo de un proyecto con issues</a><a href="github-revisar-codigo.html">Revisar código - pedir revisión, comentar líneas, aprobar o pedir cambios →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

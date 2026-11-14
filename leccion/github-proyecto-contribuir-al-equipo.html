@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 3 (pistas cerradas) - tu primera contribución al repositorio del equipo · Academia de Datos</title><meta name="description" content="Llegas al equipo de datos de Tienda Andina y te asignan el &quot;good first issue&quot; del repositorio pipelines - agregar tests al ETL. Haces todo el ciclo real - tomar el issue, rama, tests con pytest, PR que cierra el issue, revisión de Martín, correcciones si las pide y merge - mientras una compañera sigue subiendo cambios a main. Las pistas están cerradas: ábrelas solo si te trabas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-contribuir-al-equipo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 3 (pistas cerradas) - tu primera contribución al repositorio del equipo · Academia de Datos"><meta property="og:description" content="Llegas al equipo de datos de Tienda Andina y te asignan el &quot;good first issue&quot; del repositorio pipelines - agregar tests al ETL. Haces todo el ciclo real - tomar el issue, rama, tests con pytest, PR que cierra el issue, revisión de Martín, correcciones si las pide y merge - mientras una compañera sigue subiendo cambios a main. Las pistas están cerradas: ábrelas solo si te trabas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-contribuir-al-equipo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 3 · Intermedio · 75 min</div>
+<h1>Proyecto 3 (pistas cerradas) - tu primera contribución al repositorio del equipo</h1><p class="resumen">Llegas al equipo de datos de Tienda Andina y te asignan el &quot;good first issue&quot; del repositorio pipelines - agregar tests al ETL. Haces todo el ciclo real - tomar el issue, rama, tests con pytest, PR que cierra el issue, revisión de Martín, correcciones si las pide y merge - mientras una compañera sigue subiendo cambios a main. Las pistas están cerradas: ábrelas solo si te trabas.</p>
+<a class="cta" href="../index.html#/l/github-proyecto-contribuir-al-equipo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Tomar un issue y comunicar que lo estás haciendo</li><li>Trabajar en una rama a partir del main actualizado</li><li>Escribir tests de la función que pide el issue</li><li>Abrir un PR completo que cierre el issue</li><li>Pasar la revisión y fusionar</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Primer día. Martín, el líder técnico, te escribe: <em>&quot;Bienvenida/o. Para arrancar, tomá el issue #2 de <code>tienda-andina/pipelines</code>, el de los tests del ETL: es chico y te hace recorrer todo el flujo. Cuando tengas el PR, asignámelo para revisión. Ojo que Camila está tocando el ETL esta semana.&quot;</em></p>
+</div>
+
+
+<p>Pistas cerradas: intenta cada tarea antes de abrirlas.</p>
+<h2>Tarea 1 — Leer el issue y tomarlo</h2>
+<p>Abre <a href="#/github/tienda-andina/pipelines">tienda-andina/pipelines</a> → <strong>Issues</strong> → <strong>#2 Agregar tests al ETL</strong>. Lee qué piden (dos casos con casillas). Comenta en el issue que lo tomas y asígnatelo.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Comentario: &quot;Lo tomo yo. Voy a agregar <code>tests/test_etl.py</code> con los dos casos.&quot; Asignar: barra lateral → <strong>Assignees</strong> → <em>assign yourself</em>.</p>
+</details>
+
+<h2>Tarea 2 — Rama desde el main actualizado</h2>
+<p>Clona el repositorio (o actualízalo si ya lo tenías) y crea una rama con un nombre que diga qué haces.</p>
+<details><summary>💡 Pista</summary>
+
+<pre><code class="language-bash">cd ~ &amp;&amp; git clone https://github.com/tienda-andina/pipelines.git &amp;&amp; cd pipelines
+# si ya lo tenías: cd ~/pipelines &amp;&amp; git switch main &amp;&amp; git pull
+git switch -c test/etl-filtrar</code></pre>
+</details>
+
+<h2>Tarea 3 — Los tests</h2>
+<p>Lee <code>pipelines/etl.py</code>: la función <code>filtrar(filas)</code> deja solo las filas de <code>PAISES</code> con <code>fecha &gt;= FECHA_INICIO</code>. Escribe <code>tests/test_etl.py</code> con los dos casos del issue y comprueba que pasan con <code>pytest</code>.</p>
+<details><summary>💡 Pista</summary>
+
+<pre data-norun><code class="language-python">import sys
+sys.path.insert(0, &quot;pipelines&quot;)
+from etl import filtrar
+
+
+def test_descarta_paises_fuera_de_la_lista():
+    filas = [{&quot;pais&quot;: &quot;Chile&quot;, &quot;fecha&quot;: &quot;2024-03-01&quot;}, {&quot;pais&quot;: &quot;Bolivia&quot;, &quot;fecha&quot;: &quot;2024-03-01&quot;}]
+    assert filtrar(filas) == [{&quot;pais&quot;: &quot;Chile&quot;, &quot;fecha&quot;: &quot;2024-03-01&quot;}]
+
+
+def test_descarta_fechas_anteriores_al_inicio():
+    filas = [{&quot;pais&quot;: &quot;Perú&quot;, &quot;fecha&quot;: &quot;2023-12-31&quot;}, {&quot;pais&quot;: &quot;Perú&quot;, &quot;fecha&quot;: &quot;2024-01-01&quot;}]
+    assert filtrar(filas) == [{&quot;pais&quot;: &quot;Perú&quot;, &quot;fecha&quot;: &quot;2024-01-01&quot;}]</code></pre>
+<p><code>mkdir -p tests</code>, guarda el archivo y corre <code>pytest</code> desde la raíz del repositorio: <code>2 passed</code>.</p>
+</details>
+
+<h2>Tarea 4 — Commit, push y PR</h2>
+<p>Haz commit con un mensaje claro, sube la rama y abre un PR hacia <code>main</code> que <strong>cierre el issue #2</strong>, con descripción (qué, por qué, cómo probar) y con <strong>martin</strong> como revisor.</p>
+<details><summary>💡 Pista</summary>
+
+<pre><code class="language-bash">git add tests/test_etl.py
+git commit -m &quot;Agrega tests de filtrar() en el ETL&quot;
+git push -u origin test/etl-filtrar
+gh pr create --title &quot;Agrega tests de filtrar() en el ETL&quot; --body &quot;Closes #2. Dos tests con pytest: países fuera de PAISES y fechas anteriores a FECHA_INICIO. Cómo probar: pytest&quot;</code></pre>
+<p>El revisor se agrega en la web: <strong>Reviewers → martin</strong>.</p>
+</details>
+
+<h2>Tarea 5 — Si main cambió mientras trabajabas</h2>
+<p>Camila sube su cambio de México a <code>main</code> en algún momento después de tu primer commit. Comprueba si tu rama quedó desactualizada y tráela al día sin perder tu trabajo.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>git fetch</code> muestra que <code>main -&gt; origin/main</code> avanzó: llegó el commit de Camila &quot;Agrega México a los países del ETL&quot;. Para traerlo: <code>git pull origin main</code> en tu rama y <code>git push</code>. No hay conflicto porque tú agregaste un archivo nuevo. En la web, el botón <strong>Update branch</strong> del PR hace lo mismo. Fíjate: con México en <code>PAISES</code> tus tests siguen pasando, porque usaste Bolivia como país fuera de la lista.</p>
+</details>
+
+<h2>Tarea 6 — Revisión y merge</h2>
+<p>Atiende la revisión de Martín: si pide cambios, corrige en la misma rama. Cuando apruebe, fusiona con <strong>Squash and merge</strong>, borra la rama y actualiza tu <code>main</code> local.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Si comentó algo, corrige, <code>git commit -am &quot;...&quot; &amp;&amp; git push</code>, responde y vuelve a pedir revisión (🔄). Después del merge: <code>git switch main &amp;&amp; git pull &amp;&amp; git branch -d test/etl-filtrar</code>.</p>
+</details>
+
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Issue #2</td>
+<td>Cerrado, enlazado a tu PR, con tu comentario</td>
+</tr>
+<tr>
+<td>Tu PR</td>
+<td>Número <strong>#4</strong> (los #1–#3 son issues), estado Merged</td>
+</tr>
+<tr>
+<td><code>tests/test_etl.py</code> en main</td>
+<td>Sí, con 2 tests</td>
+</tr>
+<tr>
+<td><code>pytest</code> en tu main local</td>
+<td><code>2 passed</code></td>
+</tr>
+<tr>
+<td>Historia de main</td>
+<td>Incluye el commit de Camila (México) y el tuyo</td>
+</tr>
+<tr>
+<td>Rama <code>test/etl-filtrar</code></td>
+<td>Borrada en GitHub y en local</td>
+</tr>
+</tbody></table></div>
+<h2>Entrega</h2>
+<p>Comentario en el issue #3 (el de CI): <em>&quot;Los tests de #2 ya están en main (PR #4). Este issue ya se puede trabajar.&quot;</em> Eso conecta el trabajo: el siguiente paso, CI, depende del tuyo.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-proyecto-contribuir-al-equipo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-fusionar-y-conflictos.html">← Fusionar un pull request - merge, squash, rebase y resolver conflictos</a><a href="github-github-actions.html">GitHub Actions - tests automáticos en cada push y cada pull request →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

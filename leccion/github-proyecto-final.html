@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (solo el pedido) - el repositorio del pipeline de un equipo, de cero a producción · Academia de Datos</title><meta name="description" content="El proyecto que cierra el curso, como llega en un trabajo real - un pedido de una líder de datos para montar desde cero el repositorio de un pipeline nuevo, con el flujo de trabajo de un equipo. Sin pasos ni pistas. Organizas el trabajo en issues, construyes con PRs revisados, automatizas con Actions, proteges, documentas y publicas. Primero en la práctica y después en GitHub real, como pieza central de tu portafolio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-final.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (solo el pedido) - el repositorio del pipeline de un equipo, de cero a producción · Academia de Datos"><meta property="og:description" content="El proyecto que cierra el curso, como llega en un trabajo real - un pedido de una líder de datos para montar desde cero el repositorio de un pipeline nuevo, con el flujo de trabajo de un equipo. Sin pasos ni pistas. Organizas el trabajo en issues, construyes con PRs revisados, automatizas con Actions, proteges, documentas y publicas. Primero en la práctica y después en GitHub real, como pieza central de tu portafolio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-final.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 6 · Avanzado completo · 300 min</div>
+<h1>Proyecto final (solo el pedido) - el repositorio del pipeline de un equipo, de cero a producción</h1><p class="resumen">El proyecto que cierra el curso, como llega en un trabajo real - un pedido de una líder de datos para montar desde cero el repositorio de un pipeline nuevo, con el flujo de trabajo de un equipo. Sin pasos ni pistas. Organizas el trabajo en issues, construyes con PRs revisados, automatizas con Actions, proteges, documentas y publicas. Primero en la práctica y después en GitHub real, como pieza central de tu portafolio.</p>
+<a class="cta" href="../index.html#/l/github-proyecto-final">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir un pedido en un plan de issues</li><li>Construir un repositorio con el flujo completo de un equipo</li><li>Automatizar calidad, reportes y documentación</li><li>Aplicar seguridad y protección</li><li>Presentar el repositorio como proyecto de portafolio</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Lucía, líder de datos de Tienda Andina, un lunes:</p>
+<p><em>&quot;Arrancamos el pipeline de devoluciones y lo vas a armar vos. Necesito un repo nuevo, <code>devoluciones</code>, que lea el archivo diario de devoluciones, lo limpie y calcule la tasa de devolución por categoría y por canal. Quiero que sea el modelo para los próximos repos del equipo: que nada entre sin revisión y tests, que el reporte se genere solo, que esté documentado y que cualquiera que llegue sepa cómo contribuir. Camila y Martín te revisan. El viernes me mostrás el repo.&quot;</em></p>
+</div>
+
+
+<h2>Las reglas de este proyecto</h2>
+<ul>
+<li><strong>No hay pasos ni pistas.</strong> Todo lo que necesitas está en las lecciones 1 a 23.</li>
+<li>El pedido es ambiguo a propósito: qué columnas tiene &quot;el archivo diario&quot;, cómo se define &quot;tasa de devolución&quot; y qué significa &quot;limpio&quot; los decides tú, y lo dejas escrito (en issues y en la documentación).</li>
+<li>Se trabaja como en un equipo: <strong>nada entra a main sin PR</strong>, desde el segundo commit en adelante.</li>
+</ul>
+<h2>Datos</h2>
+<p>Inventa un <code>datos/ejemplo/devoluciones.csv</code> pequeño (entre 20 y 50 filas) con lo que consideres necesario: id de pedido, fecha, categoría, canal, motivo, monto. Incluye <strong>a propósito</strong> problemas reales: un email o categoría con espacios y mayúsculas mezcladas, una fila duplicada, un monto vacío. Tus tests tienen que demostrar que la limpieza los resuelve.</p>
+<h2>Entregables</h2>
+<ol>
+<li><strong>El repositorio <code>devoluciones</code></strong> con:<ul>
+<li>Código en <code>src/</code> y tests en <code>tests/</code> (al menos 8 tests: limpieza, cálculo, casos borde).</li>
+<li><code>requirements.txt</code>, <code>.gitignore</code>, <code>LICENSE</code>, <code>README.md</code> con badge de CI, <code>CONTRIBUTING.md</code>, <code>SECURITY.md</code>, <code>CODEOWNERS</code>, plantilla de PR y al menos una plantilla de issue.</li>
+</ul>
+</li>
+<li><strong>El plan</strong>: un backlog de al menos 6 issues con etiquetas, criterio de terminado y responsable, creado <strong>antes</strong> de escribir el código. Todos cerrados por PRs al final, salvo los que dejes como &quot;próximos pasos&quot;.</li>
+<li><strong>La automatización</strong>:<ul>
+<li>CI en cada PR: lint + tests en dos versiones de Python.</li>
+<li>En cada merge a main: el reporte (tasa por categoría y por canal) como artefacto, y la documentación publicada en Pages con el diccionario de datos y las definiciones.</li>
+<li>Dependabot para pip y para las acciones.</li>
+</ul>
+</li>
+<li><strong>La protección</strong>: main con PR, 1 aprobación, checks de la matriz obligatorios, conversaciones resueltas y sin bypass.</li>
+<li><strong>La historia</strong>: al menos 6 PRs fusionados con descripción completa, al menos uno con cambios pedidos en la revisión y atendidos, y al menos un conflicto resuelto.</li>
+<li><strong>La presentación</strong> (máximo 10 líneas, como mensaje a Lucía): qué construiste, las decisiones que tomaste (definiciones, estructura, reglas) y qué harías después.</li>
+</ol>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Peso</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Planificación</td>
+<td>15 %</td>
+<td>Issues creados al final o sin criterio</td>
+<td>Backlog previo, etiquetado, cerrado por PRs</td>
+<td>Issues chicos y bien cortados; los &quot;próximos pasos&quot; están justificados</td>
+</tr>
+<tr>
+<td>Código y tests</td>
+<td>20 %</td>
+<td>Sin tests o tests que no prueban los problemas de los datos</td>
+<td>8+ tests que cubren limpieza, cálculo y casos borde</td>
+<td>Los tests documentan las definiciones (se leen como especificación)</td>
+</tr>
+<tr>
+<td>Automatización</td>
+<td>25 %</td>
+<td>CI incompleto</td>
+<td>CI con matriz, reporte como artefacto, docs en Pages, Dependabot</td>
+<td>Además permisos mínimos, caché y resumen en <code>$GITHUB_STEP_SUMMARY</code></td>
+</tr>
+<tr>
+<td>Flujo de equipo</td>
+<td>20 %</td>
+<td>Cambios directos a main o PRs sin descripción</td>
+<td>6+ PRs revisados, uno con cambios pedidos, un conflicto resuelto</td>
+<td>El historial cuenta la construcción del proyecto sin explicación extra</td>
+</tr>
+<tr>
+<td>Documentación y presentación</td>
+<td>20 %</td>
+<td>README mínimo</td>
+<td>README, CONTRIBUTING, docs y presentación claros</td>
+<td>Alguien nuevo hace su primer PR solo con lo escrito; la presentación prioriza decisiones</td>
+</tr>
+</tbody></table></div>
+<p><strong>Aprobado</strong>: competente o más en todos los criterios. Evalúate con honestidad; si algo queda insuficiente, rehazlo antes de darlo por terminado.</p>
+<h2>Preguntas que te harían al presentarlo</h2>
+<p>No son pistas: son las preguntas que te van a hacer. Tu repositorio debería poder responderlas.</p>
+<ul>
+<li>&quot;¿Cómo definiste la tasa de devolución y dónde está escrito?&quot;</li>
+<li>&quot;Si mañana llega una categoría nueva o una columna cambia de nombre, ¿qué falla y cómo te enteras?&quot;</li>
+<li>&quot;¿Qué pasa si alguien intenta fusionar con un test en rojo? ¿Y si es admin?&quot;</li>
+<li>&quot;¿Dónde estarían las credenciales de la base de producción?&quot;</li>
+<li>&quot;¿Qué harías para que esto corra todos los días en producción?&quot;</li>
+</ul>
+<h2>La segunda vuelta: en GitHub real, para tu portafolio</h2>
+<ol>
+<li>Crea el repositorio <code>devoluciones</code> en tu cuenta real (público, con licencia MIT).</li>
+<li>Sube el código y rehaz la historia con PRs reales; para las revisiones, invita a un compañero de curso como colaborador (si estás solo, deja 0 aprobaciones obligatorias y mantén los checks).</li>
+<li>Activa Pages con Actions, Dependabot, secret scanning y push protection.</li>
+<li>Agrega un <code>schedule</code> para generar el reporte todos los días.</li>
+<li>Fíjalo en tu perfil, con descripción y topics, y enlázalo desde tu README de perfil.</li>
+<li>Comprueba que un desconocido pueda clonarlo y correr los tests siguiendo solo el README.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo contarlo en una entrevista</div>
+
+<p>&quot;Monté desde cero el repositorio de un pipeline de devoluciones con el flujo de un equipo: backlog en issues, todo por pull requests revisados, CI con tests en dos versiones de Python, main protegida, reporte automático como artefacto y documentación publicada. Definí la tasa de devolución como [tu definición] y los tests la documentan.&quot; Contexto, decisiones, resultado: eso buscan.</p>
+</div>
+
+
+<h2>Después de este curso</h2>
+<p>Ya dominas GitHub como lo usa un equipo de datos. Los caminos naturales desde aquí:</p>
+<ul>
+<li><strong><a href="#/m/dbt">dbt</a></strong>: modelos de datos con el mismo flujo de PRs y CI.</li>
+<li><strong><a href="#/m/terraform">Terraform</a></strong>: infraestructura como código revisada en PRs.</li>
+<li><strong><a href="#/m/databricks">Databricks</a></strong>: desplegar jobs desde GitHub con bundles.</li>
+<li><strong><a href="#/m/portafolio">Portafolio</a></strong>: más proyectos para tu perfil.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-proyecto-final">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-de-la-practica-a-github-real.html">← De la práctica a GitHub real - cuenta, autenticación, herramientas y tu perfil</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

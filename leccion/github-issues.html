@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issues - registrar tareas y errores, etiquetar, asignar y cerrar desde un commit · Academia de Datos</title><meta name="description" content="Los issues son la lista de trabajo de un repositorio. Cómo escribir un issue que se entienda (título, contexto, pasos, criterio de terminado), usar listas de tareas, etiquetas y responsables, comentar, buscar con filtros y cerrar un issue automáticamente desde un pull request con Closes #n."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-issues.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Issues - registrar tareas y errores, etiquetar, asignar y cerrar desde un commit · Academia de Datos"><meta property="og:description" content="Los issues son la lista de trabajo de un repositorio. Cómo escribir un issue que se entienda (título, contexto, pasos, criterio de terminado), usar listas de tareas, etiquetas y responsables, comentar, buscar con filtros y cerrar un issue automáticamente desde un pull request con Closes #n."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-issues.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 2 · Básico-intermedio · 40 min</div>
+<h1>Issues - registrar tareas y errores, etiquetar, asignar y cerrar desde un commit</h1><p class="resumen">Los issues son la lista de trabajo de un repositorio. Cómo escribir un issue que se entienda (título, contexto, pasos, criterio de terminado), usar listas de tareas, etiquetas y responsables, comentar, buscar con filtros y cerrar un issue automáticamente desde un pull request con Closes #n.</p>
+<a class="cta" href="../index.html#/l/github-issues">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un issue claro con contexto y criterio de terminado</li><li>Usar listas de tareas, etiquetas y responsables</li><li>Buscar issues con filtros</li><li>Cerrar un issue automáticamente desde un PR o un commit con Closes #n</li><li>Saber cuándo un issue es demasiado grande</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un issue es una tarjeta del tablero de tareas del equipo: dice qué hay que hacer o qué está roto, quién lo tiene y en qué estado está. La diferencia con un mensaje de chat es que queda registrado, se puede buscar y se cierra solo cuando el código que lo resuelve se fusiona.</p>
+</div>
+
+
+<h2>Paso 1 — Un issue nuevo</h2>
+<p>En tu repositorio <code>ventas-app</code> → pestaña <strong>Issues</strong> → <strong>New issue</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g06-issue-nuevo.webp" alt="El título (1), la descripción con una lista de tareas (2) y la barra lateral con responsable y etiqueta (3)" loading="lazy"><figcaption>El título (1), la descripción con una lista de tareas (2) y la barra lateral con responsable y etiqueta (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Título</strong></td>
+<td>Qué hay que hacer, en una línea: <code>Agregar el script de resumen de ventas</code></td>
+</tr>
+<tr>
+<td><strong>Descripción</strong></td>
+<td>Contexto, qué se espera y cómo se sabe que está terminado</td>
+</tr>
+<tr>
+<td><strong>Lista de tareas</strong></td>
+<td><code>- [ ] Leer el CSV</code> crea casillas que se tildan</td>
+</tr>
+<tr>
+<td><strong>Assignees</strong></td>
+<td>Quién lo tiene (ruedita → tu usuario)</td>
+</tr>
+<tr>
+<td><strong>Labels</strong></td>
+<td><code>bug</code>, <code>enhancement</code>, <code>documentation</code>…</td>
+</tr>
+</tbody></table></div>
+<p>Presiona <strong>Create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g06-issue.webp" alt="El issue #1 abierto, con su lista de tareas, responsable y etiqueta" loading="lazy"><figcaption>El issue #1 abierto, con su lista de tareas, responsable y etiqueta</figcaption></figure>
+
+
+<p>El número (<code>#1</code>) es su identificador: se usa para mencionarlo en commits, PRs y otros issues.</p>
+<h2>Paso 2 — Qué tiene un buen issue</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Débil</th>
+<th>Útil</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;No anda&quot;</td>
+<td>&quot;El ETL no incluye pedidos de México desde el 2024-10-01&quot;</td>
+</tr>
+<tr>
+<td>(sin descripción)</td>
+<td>Qué pasa, qué debería pasar, cómo reproducirlo</td>
+</tr>
+<tr>
+<td>&quot;Mejorar el script&quot;</td>
+<td>&quot;Agregar ticket promedio por canal al resumen; terminado cuando el CSV tenga la columna <code>ticket</code>&quot;</td>
+</tr>
+</tbody></table></div>
+<p>Para un <strong>bug</strong>: qué hiciste, qué esperabas, qué pasó (con el mensaje de error) y en qué versión o commit. Para una <strong>mejora</strong>: el problema que resuelve y el criterio de terminado.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Un issue, una cosa</div>
+
+<p>Si la lista de tareas tiene diez casillas de temas distintos, son varios issues. Issues chicos se terminan, se revisan y se cierran; los gigantes quedan abiertos para siempre.</p>
+</div>
+
+
+<h2>Paso 3 — Cerrar desde un pull request</h2>
+<p>Si un commit o la descripción de un PR dice <strong><code>Closes #1</code></strong> (también <code>Fixes #1</code> o <code>Resolves #1</code>), cuando ese PR se fusiona en <code>main</code>, GitHub <strong>cierra el issue solo</strong> y deja el enlace entre los dos. En el nivel 3 lo vas a ver pasar:</p>
+<figure class="captura"><img src="assets/img/guias/github/g06-issue-cerrado.webp" alt="El issue #1 cerrado automáticamente al fusionar el pull request que decía Closes #1" loading="lazy"><figcaption>El issue #1 cerrado automáticamente al fusionar el pull request que decía Closes #1</figcaption></figure>
+
+
+<h2>Paso 4 — Buscar issues</h2>
+<p>El buscador de la pestaña Issues acepta filtros:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Filtro</th>
+<th>Muestra</th>
+</tr>
+</thead><tbody><tr>
+<td><code>is:issue is:open</code></td>
+<td>Los abiertos</td>
+</tr>
+<tr>
+<td><code>label:bug</code></td>
+<td>Los que tienen esa etiqueta</td>
+</tr>
+<tr>
+<td><code>assignee:@me</code></td>
+<td>Los asignados a ti</td>
+</tr>
+<tr>
+<td><code>author:camila</code></td>
+<td>Los que abrió camila</td>
+</tr>
+<tr>
+<td><code>is:closed</code></td>
+<td>Los cerrados</td>
+</tr>
+</tbody></table></div>
+<p>Se combinan: <code>is:open label:bug assignee:@me</code>.</p>
+<h2>Paso 5 — Comentar y mencionar</h2>
+<p>En los comentarios puedes mencionar a alguien con <code>@camila</code> (le llega una notificación) y a otro issue o PR con <code>#2</code>. En el repositorio del equipo, si comentas un issue, Camila o Martín responden.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribes issues claros con tareas, etiquetas y responsables.</li>
+<li>Buscas issues con filtros.</li>
+<li>Sabes cerrar un issue automáticamente desde un PR.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-issues">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-clonar-y-subir.html">← Clonar, subir y traer - el ida y vuelta entre tu computadora y GitHub</a><a href="github-markdown-en-github.html">Markdown en GitHub - README, issues y comentarios que se leen bien →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

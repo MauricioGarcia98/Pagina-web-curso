@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4 (con requisitos) - un repositorio con CI y main protegida, listo para un equipo · Academia de Datos</title><meta name="description" content="Tu líder te pide que ventas-app quede listo para que entren dos personas más al equipo - CI que corre lint y tests en cada PR, main protegida, colaboradores, CODEOWNERS y una plantilla de PR. Lo demuestras con un PR que primero queda bloqueado por un test en rojo y después entra con tests en verde y aprobación. Hay requisitos y control; no hay pasos ni pistas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-ci-y-proteccion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4 (con requisitos) - un repositorio con CI y main protegida, listo para un equipo · Academia de Datos"><meta property="og:description" content="Tu líder te pide que ventas-app quede listo para que entren dos personas más al equipo - CI que corre lint y tests en cada PR, main protegida, colaboradores, CODEOWNERS y una plantilla de PR. Lo demuestras con un PR que primero queda bloqueado por un test en rojo y después entra con tests en verde y aprobación. Hay requisitos y control; no hay pasos ni pistas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-ci-y-proteccion.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 4 · Intermedio-avanzado · 90 min</div>
+<h1>Proyecto 4 (con requisitos) - un repositorio con CI y main protegida, listo para un equipo</h1><p class="resumen">Tu líder te pide que ventas-app quede listo para que entren dos personas más al equipo - CI que corre lint y tests en cada PR, main protegida, colaboradores, CODEOWNERS y una plantilla de PR. Lo demuestras con un PR que primero queda bloqueado por un test en rojo y después entra con tests en verde y aprobación. Hay requisitos y control; no hay pasos ni pistas.</p>
+<a class="cta" href="../index.html#/l/github-proyecto-ci-y-proteccion">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Configurar CI con lint y tests</li><li>Proteger main con PR, aprobación y check obligatorio</li><li>Agregar colaboradores, CODEOWNERS y plantilla de PR</li><li>Demostrar que la protección funciona con un PR bloqueado y luego aprobado</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Martín: <em>&quot;La semana que viene entran dos personas al equipo y van a trabajar en <code>ventas-app</code>. Antes de eso quiero que nadie pueda romper main: todo por PR, con los tests corriendo solos y al menos una aprobación. Que quede documentado cómo se contribuye. Mandame el link del PR donde se vea que funciona.&quot;</em></p>
+</div>
+
+
+<p>Este proyecto tiene <strong>requisitos y control</strong>, sin pasos. Todo lo necesario está en las lecciones 9 a 15.</p>
+<h2>Requisitos</h2>
+<ol>
+<li><strong>CI</strong> — <code>.github/workflows/ci.yml</code> que corra en cada <code>pull_request</code> y en cada push a <code>main</code>, con un job llamado <code>checks</code> que ejecute <code>ruff check .</code> y <code>pytest</code>.</li>
+<li><strong>Tests</strong> — al menos <strong>3</strong> tests en total en el repositorio (los de <code>resumen.py</code> cuentan). Agrega un test de <code>totales_por_canal</code> con una lista vacía (debe devolver <code>{}</code>).</li>
+<li><strong>Protección</strong> — regla para <code>main</code>: PR obligatorio, <strong>1</strong> aprobación, check <code>checks</code> obligatorio.</li>
+<li><strong>Equipo</strong> — camila y martin como colaboradores; <code>.github/CODEOWNERS</code> con <code>*</code> → <code>@martin</code> y <code>/.github/</code> → <code>@martin @camila</code>.</li>
+<li><strong>Contribuir</strong> — <code>.github/pull_request_template.md</code> con secciones <em>Qué cambia</em>, <em>Por qué</em>, <em>Cómo probarlo</em>; y una sección <strong>Cómo contribuir</strong> en el README (ramas, tests, PR).</li>
+<li><strong>La demostración</strong> — un PR (<code>feature/ticket-promedio</code>) que agregue <code>ticket_promedio_por_canal(filas)</code> a <code>resumen.py</code> con su test. El <strong>primer push</strong> de ese PR debe tener un test que falla a propósito (o un error de ruff), para que se vea bloqueado. Después lo arreglas, pides revisión y lo fusionas.</li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 El orden importa</div>
+
+<p>La regla de protección se crea <strong>después</strong> de que el workflow haya corrido al menos una vez: si no, GitHub no conoce el check <code>checks</code> para sugerirlo. Y los archivos de configuración (CI, CODEOWNERS, plantilla) tienen que entrar a main antes de proteger, o por PR después.</p>
+</div>
+
+
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Push directo a main</td>
+<td>Rechazado con GH006</td>
+</tr>
+<tr>
+<td>Pestaña Actions</td>
+<td>Ejecuciones de <code>ci</code> en push a main y en el PR</td>
+</tr>
+<tr>
+<td>PR <code>feature/ticket-promedio</code>, primer push</td>
+<td>❌ <code>checks</code> en rojo + <em>Merging is blocked</em></td>
+</tr>
+<tr>
+<td>Mismo PR, después del arreglo</td>
+<td>✓ <code>checks</code> en verde + aprobación → fusionado</td>
+</tr>
+<tr>
+<td><code>pytest</code> en main</td>
+<td>Al menos 4 passed (3 requeridos + el de ticket promedio)</td>
+</tr>
+<tr>
+<td>Descripción del PR</td>
+<td>Usa las secciones de la plantilla</td>
+</tr>
+<tr>
+<td>README</td>
+<td>Sección Cómo contribuir</td>
+</tr>
+</tbody></table></div>
+<p><strong>Comprobación de la función</strong>: con las filas <code>[{&quot;canal&quot;: &quot;web&quot;, &quot;estado&quot;: &quot;entregado&quot;, &quot;total&quot;: &quot;100&quot;}, {&quot;canal&quot;: &quot;web&quot;, &quot;estado&quot;: &quot;entregado&quot;, &quot;total&quot;: &quot;50&quot;}, {&quot;canal&quot;: &quot;app&quot;, &quot;estado&quot;: &quot;cancelado&quot;, &quot;total&quot;: &quot;80&quot;}]</code>, <code>ticket_promedio_por_canal</code> debe devolver <code>{&quot;web&quot;: 75.0}</code> (los cancelados no cuentan).</p>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>CI</td>
+<td>No corre o corre solo en push</td>
+<td>Corre en PR y push a main, lint + tests</td>
+<td>Además usa caché de pip o matriz de versiones</td>
+</tr>
+<tr>
+<td>Protección</td>
+<td>Falta alguna condición</td>
+<td>PR + 1 aprobación + check</td>
+<td>Además <em>up to date</em> y sin bypass de admins</td>
+</tr>
+<tr>
+<td>Demostración</td>
+<td>No se ve el bloqueo</td>
+<td>Se ve rojo bloqueado y luego verde fusionado</td>
+<td>El historial del PR cuenta la historia sin explicación extra</td>
+</tr>
+<tr>
+<td>Documentación</td>
+<td>Sin plantilla ni guía</td>
+<td>Plantilla y Cómo contribuir</td>
+<td>Alguien nuevo podría hacer su primer PR solo leyendo el README</td>
+</tr>
+</tbody></table></div>
+<h2>Entrega</h2>
+<p>Mensaje a Martín con el enlace al PR: <em>&quot;Listo. main protegida (PR + 1 aprobación + check <code>checks</code>). En el PR #N se ve el bloqueo con el test en rojo y después el merge con todo en verde. La guía para contribuir está en el README.&quot;</em></p>
+<h2>🖥️ Hazlo también en GitHub real</h2>
+<p>Repite el proyecto en tu repositorio de portafolio en GitHub real. Para la aprobación vas a necesitar a otra persona (un compañero de curso): un repositorio personal no deja que te apruebes tú. Si estás solo, deja <strong>Required approvals</strong> en 0 y conserva el check obligatorio: igual te protege de subir código roto.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-proyecto-ci-y-proteccion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-trabajo-en-equipo.html">← Trabajo en equipo - colaboradores, permisos, CODEOWNERS, forks y notificaciones</a><a href="github-secretos-y-variables.html">Secretos y variables - contraseñas fuera del código, también en GitHub Actions →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (requisitos y rúbrica) - CI con matriz, reporte como artefacto y documentación publicada · Academia de Datos</title><meta name="description" content="El equipo quiere más de ventas-app - que los tests corran en dos versiones de Python, que cada ejecución en main genere el reporte de ventas como artefacto descargable y que la documentación se publique sola en Pages. Un workflow de varios jobs encadenados con needs, matriz, artefactos, variables y despliegue. Solo requisitos, control y rúbrica."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-ci-avanzado-y-docs.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (requisitos y rúbrica) - CI con matriz, reporte como artefacto y documentación publicada · Academia de Datos"><meta property="og:description" content="El equipo quiere más de ventas-app - que los tests corran en dos versiones de Python, que cada ejecución en main genere el reporte de ventas como artefacto descargable y que la documentación se publique sola en Pages. Un workflow de varios jobs encadenados con needs, matriz, artefactos, variables y despliegue. Solo requisitos, control y rúbrica."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-ci-avanzado-y-docs.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 5 · Avanzado · 120 min</div>
+<h1>Proyecto 5 (requisitos y rúbrica) - CI con matriz, reporte como artefacto y documentación publicada</h1><p class="resumen">El equipo quiere más de ventas-app - que los tests corran en dos versiones de Python, que cada ejecución en main genere el reporte de ventas como artefacto descargable y que la documentación se publique sola en Pages. Un workflow de varios jobs encadenados con needs, matriz, artefactos, variables y despliegue. Solo requisitos, control y rúbrica.</p>
+<a class="cta" href="../index.html#/l/github-proyecto-ci-avanzado-y-docs">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar un workflow de varios jobs con needs</li><li>Usar una matriz de versiones</li><li>Generar y subir un artefacto</li><li>Publicar documentación con Actions</li><li>Mantener todo dentro de un flujo con main protegida</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Camila: <em>&quot;Producción sigue en Python 3.11 y queremos pasar a 3.12, así que los tests tienen que correr en las dos. Además, los de negocio piden el reporte de ventas todas las semanas: que cada vez que algo entra a main se genere solo y quede para descargar. Y la documentación, publicada, que siempre estamos mandando el README por chat.&quot;</em></p>
+</div>
+
+
+<h2>Requisitos</h2>
+<ol>
+<li><strong>Script del reporte</strong> — <code>reporte.py</code> que lea <code>datos/ventas.csv</code> (créalo con al menos 8 filas de ejemplo con columnas <code>canal</code>, <code>estado</code>, <code>total</code>; datos inventados), use <code>totales_por_canal</code> y <code>ticket_promedio_por_canal</code> y escriba <code>salida/reporte.md</code> con una tabla Markdown por canal.</li>
+<li><strong>Workflow</strong> <code>.github/workflows/pipeline.yml</code> con tres jobs:<ul>
+<li><code>tests</code>: matriz <code>python-version: [&quot;3.11&quot;, &quot;3.12&quot;]</code>, corre <code>ruff check .</code> y <code>pytest</code>. En cada PR y en cada push a main.</li>
+<li><code>reporte</code>: <code>needs: tests</code>, solo en push a main (<code>if: github.event_name == &#39;push&#39;</code>), corre <code>reporte.py</code> y sube <code>salida/reporte.md</code> como artefacto <code>reporte-ventas</code> con <code>actions/upload-artifact</code>.</li>
+<li><code>docs</code>: <code>needs: reporte</code>, solo en push a main, publica la carpeta <code>docs/</code> en Pages con <code>configure-pages</code>, <code>upload-pages-artifact</code> y <code>deploy-pages</code>.</li>
+</ul>
+</li>
+<li><strong>Variable</strong> — <code>vars.MONEDA</code> (por ejemplo <code>USD</code>) que <code>reporte.py</code> lee de la variable de entorno y muestra en el encabezado del reporte.</li>
+<li><strong>Documentación</strong> — <code>docs/index.html</code> con qué hace el proyecto, cómo correrlo, el diccionario de datos y un enlace al repositorio.</li>
+<li><strong>Protección</strong> — actualiza la regla de main: los checks obligatorios ahora son los de la matriz.</li>
+<li><strong>Todo por PR</strong> — al menos dos PRs fusionados para este proyecto, con descripción.</li>
+</ol>
+<div class="callout callout-nota"><div class="callout-title">📝 El nombre de los checks con matriz</div>
+
+<p>Con matriz, cada combinación es un check distinto: <code>tests (3.11)</code> y <code>tests (3.12)</code>. Si la regla sigue esperando un check llamado <code>tests</code> (o <code>checks</code> del proyecto 4), los PRs quedan esperando para siempre. Ese es uno de los errores reales más comunes al cambiar un workflow.</p>
+</div>
+
+
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Ejecución en un PR</td>
+<td>2 jobs (<code>tests (3.11)</code>, <code>tests (3.12)</code>); <code>reporte</code> y <code>docs</code> omitidos</td>
+</tr>
+<tr>
+<td>Ejecución en push a main</td>
+<td>4 jobs en verde, en orden: tests ×2 → reporte → docs</td>
+</tr>
+<tr>
+<td>Artefacto</td>
+<td><code>reporte-ventas</code> descargable desde el resumen de la ejecución</td>
+</tr>
+<tr>
+<td>Reporte</td>
+<td>Un renglón por canal; los cancelados no suman; el encabezado muestra la moneda de <code>vars.MONEDA</code></td>
+</tr>
+<tr>
+<td>Pages</td>
+<td><code>https://alumno.github.io/ventas-app/</code> muestra <code>docs/index.html</code></td>
+</tr>
+<tr>
+<td>Regla de main</td>
+<td>Checks obligatorios <code>tests (3.11)</code> y <code>tests (3.12)</code></td>
+</tr>
+</tbody></table></div>
+<p>Verifica tu reporte a mano con tus 8 filas: suma por canal en una hoja (o en Python) y compara. Si no coincide, el error está en el script, no en el control.</p>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Workflow</td>
+<td>Un solo job o jobs sin orden</td>
+<td>3 jobs con needs, matriz y condiciones correctas</td>
+<td>Además caché de pip y <code>permissions</code> mínimos por job</td>
+</tr>
+<tr>
+<td>Reporte</td>
+<td>No se genera o los números no cierran</td>
+<td>Artefacto correcto y verificado</td>
+<td>Además lo escribe en el resumen de la ejecución (<code>$GITHUB_STEP_SUMMARY</code>)</td>
+</tr>
+<tr>
+<td>Documentación</td>
+<td>Página vacía o README copiado</td>
+<td>Página con uso y diccionario</td>
+<td>Se regenera con datos del reporte en cada push</td>
+</tr>
+<tr>
+<td>Flujo de trabajo</td>
+<td>Cambios directos o PRs sin descripción</td>
+<td>PRs con descripción y checks en verde</td>
+<td>Historia de PRs que cuenta cómo se construyó el pipeline</td>
+</tr>
+</tbody></table></div>
+<h2>Entrega</h2>
+<p>Mensaje a Camila: <em>&quot;Listo: tests en 3.11 y 3.12 en cada PR; cada merge a main genera el reporte (artefacto <code>reporte-ventas</code>) y publica la documentación en alumno.github.io/ventas-app. Cambié la regla de main para exigir los dos checks de la matriz.&quot;</em></p>
+<h2>🖥️ Hazlo también en GitHub real</h2>
+<p>En GitHub real, agrega a <code>on:</code> un <code>schedule</code> para generar el reporte todos los lunes aunque nadie haga push:</p>
+<pre><code class="language-yaml">on:
+  schedule:
+    - cron: &quot;0 11 * * 1&quot;   # lunes 11:00 UTC</code></pre>
+<p>La réplica no corre workflows programados; GitHub real sí (con hasta unos minutos de demora, y se pausan si el repositorio no tiene actividad por 60 días).</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-proyecto-ci-avanzado-y-docs">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-pages-e-insights.html">← GitHub Pages e Insights - publicar documentación y medir la actividad del proyecto</a><a href="github-repositorio-profesional.html">Un repositorio profesional - README, licencia, plantillas, CONTRIBUTING, releases y orden →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
