@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 1 (guiado) - tu primer análisis, guardado como tabla · Academia de Datos</title><meta name="description" content="Tu líder quiere saber por qué canal llegan los pedidos de Tienda Andina y en qué estado están, y quiere el resultado guardado como tabla para usarlo después. Lo haces completo en el notebook Ventas por canal - una celda de texto, SQL, Python con display(), guardar en main.default y comprobar en el catálogo. Cada paso con su captura."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-proyecto-primer-analisis.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 1 (guiado) - tu primer análisis, guardado como tabla · Academia de Datos"><meta property="og:description" content="Tu líder quiere saber por qué canal llegan los pedidos de Tienda Andina y en qué estado están, y quiere el resultado guardado como tabla para usarlo después. Lo haces completo en el notebook Ventas por canal - una celda de texto, SQL, Python con display(), guardar en main.default y comprobar en el catálogo. Cada paso con su captura."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-proyecto-primer-analisis.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 1 · Básico · 50 min</div>
+<h1>Proyecto 1 (guiado) - tu primer análisis, guardado como tabla</h1><p class="resumen">Tu líder quiere saber por qué canal llegan los pedidos de Tienda Andina y en qué estado están, y quiere el resultado guardado como tabla para usarlo después. Lo haces completo en el notebook Ventas por canal - una celda de texto, SQL, Python con display(), guardar en main.default y comprobar en el catálogo. Cada paso con su captura.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-proyecto-primer-analisis">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Documentar un notebook con una celda de texto</li><li>Consultar con SQL y con Python en el mismo notebook</li><li>Guardar un resultado como tabla en Unity Catalog</li><li>Comprobar la tabla en el Catalog Explorer y su historial</li><li>Verificar los números antes de entregar</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Lucía, líder de datos: <em>&quot;Antes de la reunión del jueves necesito saber cuántos pedidos entran por cada canal y cuántos hay en cada estado. Dejalo en un notebook y guardá el resultado por canal como tabla en <code>main.default</code>, que después lo quiero en un tablero.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Abrir el notebook y documentarlo</h2>
+<p>Abre <strong>Workspace → Ventas por canal</strong> (lo creaste en la lección 2). En la primera celda escribe una celda de texto:</p>
+<pre><code class="language-text">%md
+# Ventas por canal
+Primer análisis sobre `samples.tienda.pedidos`: cuántos pedidos hay por canal y por estado, y una tabla guardada en `main.default`.</code></pre>
+<p>Al ejecutarla (Shift + Enter) se convierte en texto con formato. Un notebook que empieza explicando qué hace se entiende dentro de seis meses.</p>
+<h2>Paso 2 — Pedidos por canal (SQL)</h2>
+<p>En la celda siguiente:</p>
+<pre data-norun><code class="language-sql">%sql
+SELECT canal, COUNT(*) AS pedidos
+FROM samples.tienda.pedidos
+GROUP BY canal
+ORDER BY pedidos DESC</code></pre>
+<p>Deberías ver <strong>web 5400</strong>, <strong>app 2973</strong>, <strong>tienda 2645</strong>, <strong>telefono 982</strong>. Suma: 12 000 pedidos.</p>
+<h2>Paso 3 — Pedidos por estado (Python)</h2>
+<pre data-norun><code class="language-python">df = spark.table(&quot;samples.tienda.pedidos&quot;)
+display(df.groupBy(&quot;estado&quot;).count().orderBy(&quot;count&quot;, ascending=False))</code></pre>
+<p><code>groupBy(&quot;estado&quot;).count()</code> es el <code>GROUP BY</code> de Spark. Resultado: <strong>entregado 9288</strong>, <strong>cancelado 967</strong>, <strong>enviado 736</strong>, <strong>devuelto 506</strong>, <strong>pendiente 503</strong>. Suma: 12 000 otra vez. Cuando dos caminos distintos dan el mismo total, el número es confiable.</p>
+<h2>Paso 4 — Guardar el resultado como tabla</h2>
+<pre data-norun><code class="language-python">(df.groupBy(&quot;canal&quot;).count()
+   .write.mode(&quot;overwrite&quot;)
+   .saveAsTable(&quot;main.default.ventas_por_canal&quot;))</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>.write</code></td>
+<td>Vamos a escribir</td>
+</tr>
+<tr>
+<td><code>.mode(&quot;overwrite&quot;)</code></td>
+<td>Si la tabla existe, se reemplaza (<code>append</code> agregaría filas)</td>
+</tr>
+<tr>
+<td><code>.saveAsTable(&quot;main.default.ventas_por_canal&quot;)</code></td>
+<td>Tabla <strong>Delta administrada</strong> en Unity Catalog, con nombre de tres partes</td>
+</tr>
+</tbody></table></div>
+<p>Y compruébalo con SQL en la celda siguiente:</p>
+<pre data-norun><code class="language-sql">%sql
+SELECT * FROM main.default.ventas_por_canal ORDER BY count DESC</code></pre>
+<figure class="captura"><img src="assets/img/guias/databricks/d04-guardar-tabla.webp" alt="La celda que guarda (1) no muestra nada - la consulta siguiente (2) confirma que la tabla existe con los 4 canales" loading="lazy"><figcaption>La celda que guarda (1) no muestra nada - la consulta siguiente (2) confirma que la tabla existe con los 4 canales</figcaption></figure>
+
+
+<h2>Paso 5 — Verlo en el catálogo</h2>
+<p>Menú <strong>Catalog → main → default → ventas_por_canal</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d04-tabla-main.webp" alt="La tabla en main.default (1) - Managed table, Delta, 4 filas, dueño tú (2)" loading="lazy"><figcaption>La tabla en main.default (1) - Managed table, Delta, 4 filas, dueño tú (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d04-historial.webp" alt="History - la primera versión de la tabla, creada por el notebook" loading="lazy"><figcaption>History - la primera versión de la tabla, creada por el notebook</figcaption></figure>
+
+
+<p>Cada vez que vuelvas a ejecutar la celda de guardado aparecerá una versión nueva en <strong>History</strong>: en el nivel 3 vas a usar eso para volver atrás en el tiempo.</p>
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Pedidos por canal</td>
+<td>web 5400 · app 2973 · tienda 2645 · telefono 982</td>
+</tr>
+<tr>
+<td>Pedidos por estado</td>
+<td>entregado 9288 · cancelado 967 · enviado 736 · devuelto 506 · pendiente 503</td>
+</tr>
+<tr>
+<td>Suma de cada tabla</td>
+<td>12 000</td>
+</tr>
+<tr>
+<td><code>main.default.ventas_por_canal</code></td>
+<td>Existe, 4 filas, Managed table · Delta</td>
+</tr>
+<tr>
+<td>El notebook</td>
+<td>Empieza con una celda de texto que explica qué hace</td>
+</tr>
+</tbody></table></div>
+<h2>Entrega</h2>
+<p>Respuesta a Lucía: <em>&quot;Listo: el 45 % de los pedidos entra por la web (5400 de 12 000) y el 77 % está entregado. El detalle está en el notebook <code>Ventas por canal</code> y la tabla por canal quedó en <code>main.default.ventas_por_canal</code>.&quot;</em></p>
+<h2>🖥️ Hazlo también en Databricks real</h2>
+<p>En un workspace real el flujo es idéntico: <code>samples</code> también existe (con otras tablas, como <code>samples.nyctaxi.trips</code>), tu catálogo se llamará como lo haya definido tu administrador (<code>main</code>, <code>dev</code>, el nombre de tu área) y el cómputo <strong>Serverless</strong> está listo al instante. La única diferencia que vas a notar: la primera celda de Python tarda unos segundos en conectar, no en cargar.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-proyecto-primer-analisis">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-catalog-explorer.html">← Catalog Explorer - dónde están los datos</a><a href="databricks-paso-a-paso-editor-sql.html">El editor SQL - consultas, resultados, gráficos, parámetros y consultas guardadas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Genie Agents - preguntas en lenguaje natural sobre tus tablas · Academia de Datos</title><meta name="description" content="Un Genie Agent deja que alguien del negocio pregunte &quot;¿cuánto vendimos por categoría?&quot; y reciba la tabla, el gráfico y el SQL que lo calculó. Crear un agente con pocas tablas bien elegidas, preguntar, leer el SQL generado, y lo que de verdad mejora las respuestas - comentarios en las tablas, instrucciones con el vocabulario del negocio y consultas de ejemplo guardadas. Y cómo evaluarlo antes de dárselo a nadie."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-genie-agents.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Genie Agents - preguntas en lenguaje natural sobre tus tablas · Academia de Datos"><meta property="og:description" content="Un Genie Agent deja que alguien del negocio pregunte &quot;¿cuánto vendimos por categoría?&quot; y reciba la tabla, el gráfico y el SQL que lo calculó. Crear un agente con pocas tablas bien elegidas, preguntar, leer el SQL generado, y lo que de verdad mejora las respuestas - comentarios en las tablas, instrucciones con el vocabulario del negocio y consultas de ejemplo guardadas. Y cómo evaluarlo antes de dárselo a nadie."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-genie-agents.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 5 · Avanzado · 45 min</div>
+<h1>Genie Agents - preguntas en lenguaje natural sobre tus tablas</h1><p class="resumen">Un Genie Agent deja que alguien del negocio pregunte &quot;¿cuánto vendimos por categoría?&quot; y reciba la tabla, el gráfico y el SQL que lo calculó. Crear un agente con pocas tablas bien elegidas, preguntar, leer el SQL generado, y lo que de verdad mejora las respuestas - comentarios en las tablas, instrucciones con el vocabulario del negocio y consultas de ejemplo guardadas. Y cómo evaluarlo antes de dárselo a nadie.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-genie-agents">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un Genie Agent y elegir sus tablas</li><li>Leer y validar el SQL de una respuesta</li><li>Escribir instrucciones y ejemplos que mejoren las respuestas</li><li>Usar la retroalimentación y guardar ejemplos</li><li>Evaluar un agente con preguntas de prueba</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Genie es un analista nuevo muy rápido: sabe SQL perfecto pero no conoce tu negocio. Si le das tres tablas bien explicadas y le dices &quot;cuando pregunten ventas, es cantidad por precio&quot;, responde bien. Si le das cuarenta tablas sin comentarios, adivina. Tu trabajo es prepararle el escritorio.</p>
+</div>
+
+
+<h2>Paso 1 — Crear el agente</h2>
+<p>Menú <strong>Analytics → Genie Agents → New</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d18-nuevo.webp" alt="Nombre (1) y las tablas que podrá usar (2) - pedidos, detalle_pedidos y productos" loading="lazy"><figcaption>Nombre (1) y las tablas que podrá usar (2) - pedidos, detalle_pedidos y productos</figcaption></figure>
+
+
+<p>Elige <strong>pocas tablas</strong>: las necesarias para las preguntas que esperas. Cada tabla de más es una oportunidad de que una pregunta se responda con la tabla equivocada.</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d18-espacio.webp" alt="El espacio - el campo de pregunta (1) y las pestañas Chat y Configure (2)" loading="lazy"><figcaption>El espacio - el campo de pregunta (1) y las pestañas Chat y Configure (2)</figcaption></figure>
+
+
+<h2>Paso 2 — Preguntar</h2>
+<p>Escribe <strong>¿Cuántos pedidos hay por canal?</strong> y después <strong>¿Cuánto vendimos por categoría?</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d18-chat.webp" alt="La respuesta - tabla, gráfico, el SQL que la calculó, y los botones para calificarla o guardarla como ejemplo" loading="lazy"><figcaption>La respuesta - tabla, gráfico, el SQL que la calculó, y los botones para calificarla o guardarla como ejemplo</figcaption></figure>
+
+
+<p>Cada respuesta trae el <strong>SQL generado</strong>. Léelo: ¿unió las tablas por la clave correcta? ¿Filtró lo que había que filtrar? ¿Usó la columna que tú usarías? Genie es confiable cuando su SQL es el que escribirías tú.</p>
+<h2>Paso 3 — Lo que mejora las respuestas</h2>
+<p>Pestaña <strong>Configure</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d18-config.webp" alt="Instrucciones (1) y consultas de ejemplo - pregunta (2) con su SQL correcto (3)" loading="lazy"><figcaption>Instrucciones (1) y consultas de ejemplo - pregunta (2) con su SQL correcto (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Mejora</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Comentarios en tablas y columnas</strong> (lección 15)</td>
+<td>Genie los lee para entender qué es cada cosa</td>
+<td><code>monto</code>: &quot;importe de la línea, ya con descuento&quot;</td>
+</tr>
+<tr>
+<td><strong>Instrucciones</strong></td>
+<td>Vocabulario y reglas del negocio, una por línea</td>
+<td><code>ventas = cantidad * precio_unitario</code>, <code>facturación significa monto</code>, <code>pedidos activos = estado distinto de cancelado</code></td>
+</tr>
+<tr>
+<td><strong>Consultas de ejemplo</strong></td>
+<td>Pregunta + SQL correcto; ante la misma pregunta, usa ese SQL tal cual</td>
+<td>&quot;¿Cuánto vendimos por categoría?&quot; con el <code>JOIN</code> correcto</td>
+</tr>
+<tr>
+<td><strong>Retroalimentación</strong> 👍 👎</td>
+<td>Marca respuestas buenas y malas; <strong>Guardar como ejemplo</strong> convierte una buena en consulta de ejemplo</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Evaluar antes de entregar</h2>
+<p>Antes de darle el agente al área de ventas:</p>
+<ol>
+<li>Escribe <strong>10 preguntas</strong> que ellos harían, con la respuesta correcta calculada por ti.</li>
+<li>Hazlas al agente y compara número por número.</li>
+<li>Para cada error: ¿falta un comentario? ¿una instrucción? ¿un ejemplo? Corrige y repite.</li>
+<li>Entrega cuando acierte todas y explica qué <strong>no</strong> sabe responder (lo que no está en sus tablas).</li>
+</ol>
+<p>El <a href="#/m/genie">módulo de Genie</a> del curso profundiza en diseño de espacios, evaluación y límites.</p>
+<h2>Paso 5 — Qué no es Genie</h2>
+<ul>
+<li>No reemplaza la capa gold ni el dashboard: responde preguntas nuevas, no sustituye el tablero que todos miran igual cada lunes.</li>
+<li>No inventa datos, pero sí puede elegir mal una tabla o una columna: por eso se evalúa.</li>
+<li>Respeta los permisos de Unity Catalog: cada persona ve solo lo que puede ver (incluidos filtros de fila y máscaras, lección 19).</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un Genie Agent y le preguntaste.</li>
+<li>Sabes leer el SQL de una respuesta y qué configurar para mejorarla.</li>
+<li>Sabes evaluar un agente antes de entregarlo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-genie-agents">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-dashboards-y-alertas.html">← Dashboards AI/BI y alertas - tableros para el negocio y avisos automáticos</a><a href="databricks-paso-a-paso-seguridad-filtros-mascaras-y-secretos.html">Seguridad - filtros de fila, máscaras de columna, grupos, secretos y tokens →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -30,6 +30,13 @@ texto: Las carpetas (1), la ruta actual (2) y el botón Create (3)
 
 La ruta de arriba (2) son las "migas": cada parte es un enlace.
 
+Menú **Recents** lista lo último que abriste (notebooks, tablas, jobs), venga de donde venga: es la forma más rápida de volver a lo de ayer.
+
+```captura
+archivo: databricks/d23-recientes.webp
+texto: Recents - lo último que abriste, con su tipo
+```
+
 ## Paso 2 — Abrir el notebook de ejemplo
 
 Haz clic en **Introducción a Databricks**:

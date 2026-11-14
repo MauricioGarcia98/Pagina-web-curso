@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subir datos - de un CSV a una tabla Delta, y los volúmenes para archivos · Academia de Datos</title><meta name="description" content="Dos formas de meter datos propios en Databricks desde la interfaz - el asistente Add data, que convierte un CSV o JSON en una tabla Delta en tres clics, y los volúmenes de Unity Catalog, carpetas gobernadas para archivos que después lees con read_files o COPY INTO. Cuándo usar cada una y qué pasa con los tipos de datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-subir-datos-y-volumenes.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Subir datos - de un CSV a una tabla Delta, y los volúmenes para archivos · Academia de Datos"><meta property="og:description" content="Dos formas de meter datos propios en Databricks desde la interfaz - el asistente Add data, que convierte un CSV o JSON en una tabla Delta en tres clics, y los volúmenes de Unity Catalog, carpetas gobernadas para archivos que después lees con read_files o COPY INTO. Cuándo usar cada una y qué pasa con los tipos de datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-subir-datos-y-volumenes.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Subir datos - de un CSV a una tabla Delta, y los volúmenes para archivos</h1><p class="resumen">Dos formas de meter datos propios en Databricks desde la interfaz - el asistente Add data, que convierte un CSV o JSON en una tabla Delta en tres clics, y los volúmenes de Unity Catalog, carpetas gobernadas para archivos que después lees con read_files o COPY INTO. Cuándo usar cada una y qué pasa con los tipos de datos.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-subir-datos-y-volumenes">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla Delta desde un archivo con Add data</li><li>Crear un volumen y subir archivos</li><li>Leer un archivo de un volumen con read_files</li><li>Distinguir tabla de volumen y cuándo usar cada uno</li><li>Revisar tipos y nombres de columnas al cargar</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Una <strong>tabla</strong> es un estante ordenado: filas y columnas con tipos, listo para consultar. Un <strong>volumen</strong> es un cajón para archivos tal cual llegan (CSV, JSON, imágenes, PDF). Los datos suelen entrar al cajón primero y de ahí pasan al estante.</p>
+</div>
+
+
+<h2>Paso 1 — El archivo de práctica</h2>
+<p>Crea en tu computadora un archivo <code>devoluciones.csv</code> con este contenido (un editor de texto alcanza; guárdalo con extensión <code>.csv</code>):</p>
+<pre><code class="language-text">pedido_id,fecha,categoria,canal,motivo,monto
+1001,2024-11-02,Electrónica,web,defectuoso,129.90
+1002,2024-11-02,Hogar,app,no le gustó,45.00
+1003,2024-11-03,Electrónica,tienda,defectuoso,89.50
+1004,2024-11-03,Ropa,web,talle incorrecto,32.00
+1005,2024-11-04,Ropa,app,talle incorrecto,54.90
+1006,2024-11-04,Hogar,web,llegó roto,210.00
+1007,2024-11-05,Electrónica,web,no era lo pedido,399.00
+1008,2024-11-05,Juguetes,tienda,defectuoso,25.50
+1009,2024-11-06,Ropa,web,no le gustó,61.00
+1010,2024-11-06,Electrónica,app,defectuoso,149.00
+1011,2024-11-07,Hogar,tienda,llegó roto,78.00
+1012,2024-11-07,Juguetes,web,no era lo pedido,19.90</code></pre>
+<h2>Paso 2 — Add data: de CSV a tabla</h2>
+<p>Menú <strong>Data Engineering → Data Ingestion</strong> (o <strong>New → Add or upload data</strong>):</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d07-add-data.webp" alt="Crear una tabla desde un archivo (1), subir archivos a un volumen (2) o un pipeline de Lakeflow (3)" loading="lazy"><figcaption>Crear una tabla desde un archivo (1), subir archivos a un volumen (2) o un pipeline de Lakeflow (3)</figcaption></figure>
+
+
+<p>Elige <strong>Create or modify table</strong> y selecciona <code>devoluciones.csv</code>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d07-preview.webp" alt="El catálogo (1), el esquema (2), el nombre de la tabla (3), la vista previa con los tipos detectados y Create table (4)" loading="lazy"><figcaption>El catálogo (1), el esquema (2), el nombre de la tabla (3), la vista previa con los tipos detectados y Create table (4)</figcaption></figure>
+
+
+<p>Revisa la vista previa antes de crear: los nombres de columna, y sobre todo los <strong>tipos</strong> (<code>monto</code> tiene que ser numérico, <code>fecha</code> una fecha). <strong>Create table</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d07-tabla-creada.webp" alt="La tabla main.default.devoluciones ya existe como tabla Delta administrada" loading="lazy"><figcaption>La tabla main.default.devoluciones ya existe como tabla Delta administrada</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Lo que el asistente adivina mal</div>
+
+<p>Un CSV con punto y coma como separador, decimales con coma (<code>129,90</code>) o fechas como <code>02/11/2024</code> puede quedar con montos como texto o fechas mal interpretadas. Si la vista previa muestra <code>STRING</code> donde esperabas un número, arregla el archivo o crea la tabla con SQL (paso 4) indicando el formato.</p>
+</div>
+
+
+<h2>Paso 3 — Volúmenes: archivos gobernados</h2>
+<p>Un volumen vive en un esquema, como una tabla, y hereda sus permisos. <strong>Catalog → main → default → Create volume</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d07-volumen-nuevo.webp" alt="Nombre del volumen (1) y el SQL equivalente que ejecuta el asistente (2)" loading="lazy"><figcaption>Nombre del volumen (1) y el SQL equivalente que ejecuta el asistente (2)</figcaption></figure>
+
+
+<p>Llámalo <code>raw</code>. Su ruta es <code>/Volumes/main/default/raw/</code>. Entra al volumen y usa <strong>Upload to this volume</strong> con el mismo CSV:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d07-volumen.webp" alt="Subir archivos al volumen (1) y, para cada archivo, Preview o Create table (2)" loading="lazy"><figcaption>Subir archivos al volumen (1) y, para cada archivo, Preview o Create table (2)</figcaption></figure>
+
+
+<p>Desde la terminal del curso es lo mismo: <code>databricks fs cp devoluciones.csv dbfs:/Volumes/main/default/raw/</code>.</p>
+<h2>Paso 4 — Leer el archivo con SQL</h2>
+<p><strong>Create table</strong> junto al archivo abre el editor SQL con la consulta lista:</p>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.devoluciones AS
+SELECT * EXCEPT (_rescued_data)
+FROM read_files('/Volumes/main/default/raw/devoluciones.csv', format =&gt; 'csv', header =&gt; true);</code></pre>
+<figure class="captura"><img src="assets/img/guias/databricks/d07-read-files.webp" alt="read_files lee el archivo del volumen (1) y el resultado confirma las 12 filas (2)" loading="lazy"><figcaption>read_files lee el archivo del volumen (1) y el resultado confirma las 12 filas (2)</figcaption></figure>
+
+
+<ul>
+<li><code>read_files</code> lee archivos de un volumen o de una ubicación externa, infiere el esquema y agrega la columna <code>_rescued_data</code> con lo que no pudo interpretar; por eso se excluye al crear la tabla.</li>
+<li>También puedes solo consultarlo sin crear tabla: <code>SELECT * FROM read_files(&#39;/Volumes/main/default/raw/*.csv&#39;, format =&gt; &#39;csv&#39;, header =&gt; true)</code>.</li>
+<li><code>COPY INTO</code> (nivel 3) carga archivos nuevos en una tabla existente sin repetir los ya cargados.</li>
+</ul>
+<h2>Paso 5 — ¿Tabla o volumen?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Datos tabulares para consultar y transformar</td>
+<td><strong>Tabla</strong></td>
+</tr>
+<tr>
+<td>Archivos que llegan de otro sistema y hay que guardar tal cual</td>
+<td><strong>Volumen</strong> (y de ahí a una tabla)</td>
+</tr>
+<tr>
+<td>Imágenes, PDF, modelos, librerías</td>
+<td><strong>Volumen</strong></td>
+</tr>
+<tr>
+<td>Carga puntual de un CSV pequeño</td>
+<td><strong>Add data</strong> directo a tabla</td>
+</tr>
+<tr>
+<td>Archivos que llegan todos los días</td>
+<td>Volumen + <code>COPY INTO</code> o un <strong>pipeline</strong> (nivel 4)</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste una tabla Delta desde un CSV con el asistente.</li>
+<li>Creaste un volumen, subiste un archivo y lo leíste con <code>read_files</code>.</li>
+<li>Sabes cuándo usar tabla y cuándo volumen.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-subir-datos-y-volumenes">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-notebooks-a-fondo.html">← Notebooks a fondo - comandos mágicos, widgets, dbutils, gráficos y el menú File</a><a href="databricks-paso-a-paso-proyecto-cargar-y-consultar.html">Proyecto 2 (guiado, con pistas) - cargar las devoluciones y responder al área de atención al cliente →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

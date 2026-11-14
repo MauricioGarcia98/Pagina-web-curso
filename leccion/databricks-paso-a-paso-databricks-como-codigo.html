@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks como código - View as code, la CLI, bundles y Git · Academia de Datos</title><meta name="description" content="Todo lo que hiciste con clics se puede escribir - y en un equipo, se escribe. Ver un job como YAML y JSON, exportar el workspace como bundle, la CLI databricks desde la terminal (que comparte estado con la práctica), qué es un Declarative Automation Bundle y cómo se despliega a dev y prod, las carpetas Git del workspace y el flujo completo con GitHub Actions."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-databricks-como-codigo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Databricks como código - View as code, la CLI, bundles y Git · Academia de Datos"><meta property="og:description" content="Todo lo que hiciste con clics se puede escribir - y en un equipo, se escribe. Ver un job como YAML y JSON, exportar el workspace como bundle, la CLI databricks desde la terminal (que comparte estado con la práctica), qué es un Declarative Automation Bundle y cómo se despliega a dev y prod, las carpetas Git del workspace y el flujo completo con GitHub Actions."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-databricks-como-codigo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 6 · Avanzado completo · 50 min</div>
+<h1>Databricks como código - View as code, la CLI, bundles y Git</h1><p class="resumen">Todo lo que hiciste con clics se puede escribir - y en un equipo, se escribe. Ver un job como YAML y JSON, exportar el workspace como bundle, la CLI databricks desde la terminal (que comparte estado con la práctica), qué es un Declarative Automation Bundle y cómo se despliega a dev y prod, las carpetas Git del workspace y el flujo completo con GitHub Actions.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-databricks-como-codigo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Leer la definición de un job como código</li><li>Usar la CLI para listar y crear recursos</li><li>Explicar qué es un bundle y qué contiene</li><li>Describir el despliegue a dev y prod</li><li>Conectar el workspace con Git y CI/CD</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Hacer un job con clics es cocinar de memoria: sale bien hoy, pero nadie puede repetirlo igual mañana ni en otra cocina. Escribirlo como código es la receta: se guarda en Git, se revisa, se prueba en la cocina de desarrollo y se despliega idéntica en producción.</p>
+</div>
+
+
+<h2>Paso 1 — Un job como código</h2>
+<p>En el job <code>ventas_diarias</code>, <strong>View as code</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d22-view-as-code.webp" alt="El mismo job como YAML de bundle y como JSON de la API" loading="lazy"><figcaption>El mismo job como YAML de bundle y como JSON de la API</figcaption></figure>
+
+
+<pre><code class="language-yaml">resources:
+  jobs:
+    ventas_diarias:
+      name: ventas_diarias
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: cargar_ventas
+          notebook_task:
+            notebook_path: /Workspace/Users/alumno@academia.dev/Ventas por canal
+        - task_key: control_calidad
+          depends_on:
+            - task_key: cargar_ventas
+          sql_task:
+            query:
+              query_text: SELECT COUNT(*) AS filas FROM main.default.ventas_por_canal
+            warehouse_id: 1a2b3c4d5e6f7a8b</code></pre>
+<p>Todo lo que configuraste en el formulario está ahí: tareas, dependencias, cómputo, horario. Ese texto se guarda en un repositorio y se despliega.</p>
+<h2>Paso 2 — La CLI</h2>
+<p>La terminal del curso tiene la CLI <code>databricks</code>, conectada al mismo estado que la práctica:</p>
+<pre><code class="language-bash">databricks auth login --host https://adb-123.azuredatabricks.net   # en real: abre el navegador
+databricks clusters list
+databricks jobs list
+databricks jobs run-now --job-id 505991137319
+databricks fs cp devoluciones.csv dbfs:/Volumes/main/default/raw/
+databricks secrets create-scope kv-datos
+databricks workspace export /Workspace/Users/alumno@academia.dev/Ventas\ por\ canal</code></pre>
+<p>Lo que creas con la CLI aparece en la interfaz y al revés. El curso de <a href="#/m/databricks">Databricks y Databricks CLI</a> la cubre a fondo.</p>
+<h2>Paso 3 — Bundles</h2>
+<p>Un <strong>Declarative Automation Bundle</strong> (antes <em>Asset Bundle</em>) es una carpeta con:</p>
+<pre><code class="language-text">mi-proyecto/
+├── databricks.yml          # nombre del bundle, targets (dev, prod) y a qué workspace va cada uno
+├── resources/
+│   ├── ventas_diarias.job.yml
+│   └── pedidos_diarios.pipeline.yml
+└── src/
+    ├── ventas_por_canal.py  # los notebooks como archivos fuente
+    └── pipeline.sql</code></pre>
+<pre><code class="language-yaml"># databricks.yml
+bundle:
+  name: ventas
+
+targets:
+  dev:
+    mode: development          # recursos con prefijo [dev tu_usuario], horarios pausados
+    default: true
+    workspace:
+      host: https://adb-dev.azuredatabricks.net
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-prod.azuredatabricks.net
+    run_as:
+      service_principal_name: sp-datos-prod</code></pre>
+<pre><code class="language-bash">databricks bundle validate            # ¿está bien escrito?
+databricks bundle deploy -t dev       # crea o actualiza jobs, pipelines y notebooks en dev
+databricks bundle run ventas_diarias  # lo ejecuta
+databricks bundle deploy -t prod      # lo mismo, en producción (normalmente desde CI/CD)</code></pre>
+<p>El botón <strong>Export as bundle</strong> de la página de jobs descarga tus jobs y pipelines de práctica con esta estructura, listos para <code>databricks bundle deploy</code> en un workspace real.</p>
+<h2>Paso 4 — Git en el workspace</h2>
+<p>En Databricks real, <strong>Workspace → Create → Git folder</strong> clona un repositorio (GitHub, Azure DevOps, GitLab) dentro del workspace: editas notebooks ahí, cambias de rama, haces commit y push desde la interfaz, y abres el pull request en GitHub. Los notebooks se guardan como archivos <code>.py</code>/<code>.sql</code> con separadores de celda, que Git compara línea a línea.</p>
+<h2>Paso 5 — El flujo completo</h2>
+<pre><code class="language-text">Git folder (rama feature) → commit → pull request → CI: bundle validate + tests
+   → merge a main → CD: bundle deploy -t prod con OIDC (sin tokens guardados)</code></pre>
+<pre><code class="language-yaml"># .github/workflows/deploy.yml (resumen)
+- uses: databricks/setup-cli@main
+- run: databricks bundle validate -t prod
+- run: databricks bundle deploy -t prod
+  env:
+    DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+    DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
+    DATABRICKS_AUTH_TYPE: github-oidc</code></pre>
+<p>El curso de <a href="#/m/github">GitHub</a> (lecciones 17 y 22) arma este flujo paso a paso.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Por qué nadie toca producción con clics</div>
+
+<p>Un job creado a mano en prod no tiene historial, no se puede revisar, no se puede reproducir en otro workspace y se pierde si alguien lo borra. Con bundles, producción es el resultado de un archivo en Git: se sabe quién cambió qué, se puede volver atrás y dev y prod son iguales salvo por el target.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Lees un job como código y sabes exportarlo.</li>
+<li>Usas la CLI y entiendes qué es un bundle.</li>
+<li>Conoces el flujo Git → CI/CD → producción.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-databricks-como-codigo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-mlflow-experimentos-y-modelos.html">← MLflow - experimentos, corridas, comparación y registro de modelos</a><a href="databricks-paso-a-paso-de-la-practica-a-databricks-real.html">De la práctica a Databricks real - cuenta, workspace, costos y lo que cambia →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -311,6 +311,20 @@
     ]
   },
   {
+    "id": "databricks-paso-a-paso",
+    "titulo": "Databricks paso a paso",
+    "icono": "🧱",
+    "color": "#ff3621",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del Databricks de práctica: el workspace, notebooks, Catalog Explorer, editor SQL, carga de datos y volúmenes, tablas Delta con historial y MERGE, compute, jobs, pipelines declarativos, Unity Catalog, dashboards, Genie, seguridad por filas y columnas, MLflow y bundles. Cada nivel cierra con un proyecto real con menos ayuda que el anterior, y termina con el paso a un workspace real.",
+    "objetivos": [
+      "Moverte por el workspace, los notebooks, el catálogo y el editor SQL",
+      "Cargar datos y trabajar con tablas Delta: historial, viaje en el tiempo, MERGE y COPY INTO",
+      "Elegir y controlar el cómputo, y orquestar con jobs y pipelines declarativos con calidad de datos",
+      "Gobernar con Unity Catalog: permisos, linaje, filtros de fila, máscaras y secretos",
+      "Publicar dashboards, alertas y Genie Agents, registrar modelos con MLflow y dejar todo como código"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

@@ -16,6 +16,7 @@ export default async function (c) {
   const celdas = (ruta, srcs) => p.evaluate(([r, ss]) => { const D = window.DBX; const it = D.ws().items[r]; it.celdas = ss.map((src) => ({ id: D.nid(), src })); D.guardar(); }, [ruta, srcs]);
   const correr = async (i, ms = 400) => { await p.locator('.nb-celda').nth(i).locator('.nb-run').click(); await c.espera(300); await libre(); await c.espera(ms); };
   const verCelda = async (i) => { await p.evaluate((k) => { const el = document.querySelectorAll('.nb-celda')[k]; if (el) el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -70); }, i); await c.espera(300); };
+  const arriba = async () => { await p.evaluate(() => { window.scrollTo(0, 0); const m = document.querySelector('#dbxMain'); if (m) m.scrollTop = 0; document.querySelectorAll('.dbx-pag, .dbx-nb').forEach((e) => { e.scrollTop = 0; }); }); await c.espera(250); };
   const celdaSel = (k) => `#nbCeldas > div:nth-child(${k * 2})`; // las celdas van intercaladas con los botones "+ Code / + Text"
   const sql = async (texto, espera = 500) => { await setCM('#dbxMain .sqx-ed', texto); await p.click('#sqxRun'); await c.espera(400); await libre(); await c.espera(espera); };
   const csv = path.join(os.tmpdir(), 'devoluciones.csv');
@@ -104,7 +105,7 @@ export default async function (c) {
   await c.foto('d06-widgets', { marcas: [['#nbW', '1'], [celdaSel(3) + ' .nb-c-out', '2']] });
   await correr(3); await correr(4); await verCelda(3);
   await c.foto('d06-magics', { marcas: [[celdaSel(4), '1'], [celdaSel(5), '2']] });
-  await p.evaluate(() => window.scrollTo(0, 0)); await c.espera(200);
+  await arriba();
   await p.click('[data-m="file"]'); await c.espera(300);
   await c.foto('d06-menu-file', { marcas: [['#dbxMenu', null]] });
   await cerrarMenu();
@@ -126,7 +127,7 @@ export default async function (c) {
   await c.foto('d07-volumen-nuevo', { marcas: [['#oNom', '1'], ['#oSql', '2']] });
   await dlgOk(900);
   await ir('/volumen/main/default/raw', '.cx-lay');
-  await p.setInputFiles('#vSubir', csv); await c.espera(900);
+  await p.setInputFiles('#vSubir', csv); await p.waitForSelector('[data-v="sql"]', { timeout: 20000 }); await c.espera(600);
   await c.foto('d07-volumen', { marcas: [['label.dbx-btn.primario', '1'], ['[data-v="sql"]', '2']] });
   await p.click('[data-v="sql"]'); await p.waitForSelector('.sqx-ed'); await c.espera(600);
   await p.click('#sqxRun'); await c.espera(400); await libre(); await c.espera(500);
@@ -149,7 +150,10 @@ export default async function (c) {
   await sql("CREATE OR REPLACE TABLE main.default.productos_precio AS\nSELECT producto_id, nombre, precio FROM samples.tienda.productos LIMIT 20;");
   await sql("MERGE INTO main.default.productos_precio AS destino\nUSING (\n  SELECT producto_id, nombre, precio * 1.10 AS precio FROM samples.tienda.productos LIMIT 5\n) AS origen\nON destino.producto_id = origen.producto_id\nWHEN MATCHED THEN UPDATE SET precio = origen.precio\nWHEN NOT MATCHED THEN INSERT *;");
   await c.foto('d10-merge', { marcas: [['.sqx-ed', '1'], ['#sqxRes', '2']] });
+  await sql("CREATE TABLE IF NOT EXISTS main.default.devoluciones_raw (pedido_id INT, fecha DATE, categoria STRING, canal STRING, motivo STRING, monto DOUBLE);");
   await sql("COPY INTO main.default.devoluciones_raw\nFROM '/Volumes/main/default/raw/devoluciones.csv'\nFILEFORMAT = CSV\nFORMAT_OPTIONS ('header' = 'true', 'inferSchema' = 'true');").catch(() => {});
+  await c.foto('d10-copy-into-1', { marcas: [['#sqxRes', null]] });
+  await p.click('#sqxRun'); await c.espera(400); await libre(); await c.espera(500);
   await c.foto('d10-copy-into', { marcas: [['#sqxRes', null]] });
   // compute
   await ir('/compute', '.dbx-pag');
@@ -180,6 +184,7 @@ export default async function (c) {
   await p.fill('#jNom', 'ventas_diarias'); await p.press('#jNom', 'Enter'); await c.espera(300);
   await p.fill('#tf [name="key"]', 'cargar_ventas');
   await p.selectOption('#tf [name="notebook_path"]', NB1); await c.espera(200);
+  await arriba();
   await c.foto('d13-tarea', { marcas: [['#jNom', '1'], ['.jb-dag', '2'], ['#tf', '3'], ['#jbD', '4']] });
   await p.click('#tf button.primario'); await c.espera(600);
   await p.click('#tAdd'); await c.espera(300); await menu('SQL'); await c.espera(500);
@@ -187,7 +192,10 @@ export default async function (c) {
   await p.fill('#tf [name="sql"]', 'SELECT COUNT(*) AS filas FROM main.default.ventas_por_canal');
   await p.check('#tf [name="dep"][value="cargar_ventas"]').catch(() => {}); await c.espera(200);
   await p.click('#tf button.primario'); await c.espera(700);
-  await c.foto('d13-dag', { marcas: [['.jb-dag', '1'], ['#tf [name="dep"]', '2'], ['#tf [name="run_if"]', '3'], ['#tf [name="max_retries"]', '4']] });
+  await arriba();
+  await c.foto('d13-dag', { marcas: [['.jb-dag', '1'], ['#tAdd', '2']] });
+  await p.evaluate(() => { const e = document.querySelector('#tf [name="run_if"]'); if (e) e.scrollIntoView({ block: 'center' }); }); await c.espera(300);
+  await c.foto('d13-dependencias', { marcas: [['#tf [name="dep"]', '1'], ['#tf [name="run_if"]', '2'], ['#tf [name="max_retries"]', '3'], ['#tf [name="timeout"]', '4']] });
   await p.click('#jSch'); await c.espera(400);
   await c.foto('d13-schedule', { marcas: [['#dbxCapa .dbx-dlg', null]] });
   await dlgCancelar();
@@ -231,7 +239,7 @@ export default async function (c) {
   await c.foto('d15-grant', { marcas: [['#gP', '1'], ['#dbxCapa .dbx-checks', '2']] });
   await dlgOk(900); await p.waitForSelector('.cx-lay'); await c.espera(500);
   await c.foto('d15-permisos');
-  await ir('/catalogo/main/default/ventas_por_canal/linaje', '.cx-lay');
+  await ir('/catalogo/main/ventas_pipeline/pedidos_silver/linaje', '.cx-lay');
   await c.foto('d15-linaje', { marcas: [['#cxPest', null]] });
   await ir('/ajustes', '.dbx-pag');
   await c.foto('d19-grupos', { marcas: [['.dbx-pest', '1'], ['#gNuevo', '2']] });

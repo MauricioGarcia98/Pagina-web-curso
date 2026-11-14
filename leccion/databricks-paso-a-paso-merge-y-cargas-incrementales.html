@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MERGE y cargas incrementales - actualizar sin reescribir todo · Academia de Datos</title><meta name="description" content="En producción las tablas no se reescriben enteras cada día - llegan cambios y se aplican. MERGE INTO para insertar lo nuevo y actualizar lo existente en una sola sentencia (upsert), COPY INTO para cargar solo los archivos que todavía no entraron, y los patrones para no duplicar filas - claves, idempotencia y qué pasa si una carga corre dos veces."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-merge-y-cargas-incrementales.html">
+<meta property="og:type" content="article"><meta property="og:title" content="MERGE y cargas incrementales - actualizar sin reescribir todo · Academia de Datos"><meta property="og:description" content="En producción las tablas no se reescriben enteras cada día - llegan cambios y se aplican. MERGE INTO para insertar lo nuevo y actualizar lo existente en una sola sentencia (upsert), COPY INTO para cargar solo los archivos que todavía no entraron, y los patrones para no duplicar filas - claves, idempotencia y qué pasa si una carga corre dos veces."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-merge-y-cargas-incrementales.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 3 · Intermedio · 45 min</div>
+<h1>MERGE y cargas incrementales - actualizar sin reescribir todo</h1><p class="resumen">En producción las tablas no se reescriben enteras cada día - llegan cambios y se aplican. MERGE INTO para insertar lo nuevo y actualizar lo existente en una sola sentencia (upsert), COPY INTO para cargar solo los archivos que todavía no entraron, y los patrones para no duplicar filas - claves, idempotencia y qué pasa si una carga corre dos veces.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-merge-y-cargas-incrementales">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un MERGE INTO con las tres ramas</li><li>Cargar archivos nuevos con COPY INTO</li><li>Explicar qué es idempotencia y por qué importa</li><li>Elegir entre overwrite, append, MERGE y COPY INTO</li><li>Verificar una carga incremental con el historial</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Actualizar una agenda de contactos: no la copias entera cada vez que alguien cambia de teléfono. Buscas la persona; si está, corriges el número; si no está, la agregas. Eso, en una sola operación, es un <strong>MERGE</strong>. Y si cada día te llega una hoja nueva de contactos, <strong>COPY INTO</strong> carga las hojas que todavía no pasaste, sin repetir las de ayer.</p>
+</div>
+
+
+<h2>Paso 1 — El problema</h2>
+<p>Tienes <code>main.default.productos_precio</code> con 20 productos y te llegan precios nuevos para 5 (y podría venir alguno nuevo). Opciones:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Problema</th>
+</tr>
+</thead><tbody><tr>
+<td>Reescribir la tabla con <code>overwrite</code></td>
+<td>Funciona con 20 filas; con 200 millones, no</td>
+</tr>
+<tr>
+<td><code>INSERT</code> de los 5</td>
+<td>Quedan duplicados: el precio viejo y el nuevo</td>
+</tr>
+<tr>
+<td><code>UPDATE</code> + <code>INSERT</code> por separado</td>
+<td>Dos pasos, y entre uno y otro la tabla está a medias</td>
+</tr>
+<tr>
+<td><strong><code>MERGE</code></strong></td>
+<td>Un solo paso, atómico</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — MERGE INTO</h2>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE main.default.productos_precio AS
+SELECT producto_id, nombre, precio FROM samples.tienda.productos LIMIT 20;
+
+MERGE INTO main.default.productos_precio AS destino
+USING (
+  SELECT producto_id, nombre, precio * 1.10 AS precio FROM samples.tienda.productos LIMIT 5
+) AS origen
+ON destino.producto_id = origen.producto_id
+WHEN MATCHED THEN UPDATE SET precio = origen.precio
+WHEN NOT MATCHED THEN INSERT *;</code></pre>
+<figure class="captura"><img src="assets/img/guias/databricks/d10-merge.webp" alt="El MERGE (1) y su resultado (2) - cuántas filas se actualizaron, insertaron y borraron" loading="lazy"><figcaption>El MERGE (1) y su resultado (2) - cuántas filas se actualizaron, insertaron y borraron</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>MERGE INTO destino USING origen ON clave</code></td>
+<td>La tabla que cambia, de dónde vienen los cambios y cómo se emparejan</td>
+</tr>
+<tr>
+<td><code>WHEN MATCHED THEN UPDATE</code></td>
+<td>La fila existe: actualizar</td>
+</tr>
+<tr>
+<td><code>WHEN NOT MATCHED THEN INSERT</code></td>
+<td>No existe: insertar</td>
+</tr>
+<tr>
+<td><code>WHEN NOT MATCHED BY SOURCE THEN DELETE</code></td>
+<td>Existe en destino pero ya no en origen: borrar (opcional)</td>
+</tr>
+</tbody></table></div>
+<p>Las condiciones admiten filtros: <code>WHEN MATCHED AND origen.precio &lt;&gt; destino.precio THEN UPDATE …</code> actualiza solo lo que cambió.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ La clave tiene que ser única en el origen</div>
+
+<p>Si el origen trae dos filas con el mismo <code>producto_id</code>, el <code>MERGE</code> falla (&quot;multiple source rows matched&quot;). Antes de un <code>MERGE</code>, deduplica el origen (<code>QUALIFY ROW_NUMBER() OVER (PARTITION BY producto_id ORDER BY fecha DESC) = 1</code>).</p>
+</div>
+
+
+<h2>Paso 3 — COPY INTO: solo los archivos nuevos</h2>
+<p>Para archivos que van llegando a un volumen:</p>
+<pre data-norun><code class="language-sql">CREATE TABLE IF NOT EXISTS main.default.devoluciones_raw
+  (pedido_id INT, fecha DATE, categoria STRING, canal STRING, motivo STRING, monto DOUBLE);
+
+COPY INTO main.default.devoluciones_raw
+FROM '/Volumes/main/default/raw/devoluciones.csv'
+FILEFORMAT = CSV
+FORMAT_OPTIONS ('header' = 'true', 'inferSchema' = 'true');</code></pre>
+<figure class="captura"><img src="assets/img/guias/databricks/d10-copy-into-1.webp" alt="La primera vez carga las 12 filas del archivo" loading="lazy"><figcaption>La primera vez carga las 12 filas del archivo</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d10-copy-into.webp" alt="La segunda vez, 0 filas - el archivo ya estaba cargado" loading="lazy"><figcaption>La segunda vez, 0 filas - el archivo ya estaba cargado</figcaption></figure>
+
+
+<p><code>COPY INTO</code> recuerda qué archivos ya procesó: puedes correrlo todos los días sobre la misma carpeta (<code>FROM &#39;/Volumes/main/default/raw/&#39;</code>) y solo entran los archivos nuevos.</p>
+<h2>Paso 4 — Idempotencia</h2>
+<p>Una carga es <strong>idempotente</strong> si correrla dos veces deja el mismo resultado que correrla una. Importa porque en producción las cosas se reintentan: un job falla a la mitad y vuelve a correr, alguien lo lanza de nuevo &quot;por las dudas&quot;.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Operación</th>
+<th>¿Idempotente?</th>
+</tr>
+</thead><tbody><tr>
+<td><code>INSERT INTO</code> / <code>append</code></td>
+<td><strong>No</strong>: duplica</td>
+</tr>
+<tr>
+<td><code>overwrite</code></td>
+<td>Sí (reescribe todo)</td>
+</tr>
+<tr>
+<td><code>MERGE</code> por clave</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td><code>COPY INTO</code></td>
+<td>Sí (por archivo)</td>
+</tr>
+<tr>
+<td>Pipeline con tabla de streaming</td>
+<td>Sí (nivel 4)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Cuál usar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Situación</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Tabla chica que se recalcula entera</td>
+<td><code>overwrite</code></td>
+</tr>
+<tr>
+<td>Llegan cambios de filas existentes y filas nuevas</td>
+<td><code>MERGE</code></td>
+</tr>
+<tr>
+<td>Llegan archivos nuevos a una carpeta</td>
+<td><code>COPY INTO</code> (o un pipeline)</td>
+</tr>
+<tr>
+<td>Solo se agregan eventos que nunca cambian, con control de duplicados aguas arriba</td>
+<td><code>append</code></td>
+</tr>
+</tbody></table></div>
+<p>Verifícalo siempre con el historial: <code>DESCRIBE HISTORY</code> muestra en <code>operationMetrics</code> cuántas filas insertó, actualizó o borró cada operación.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribes un <code>MERGE</code> con sus ramas.</li>
+<li>Cargas archivos nuevos con <code>COPY INTO</code> sin duplicar.</li>
+<li>Eliges la operación según el caso y entiendes la idempotencia.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-merge-y-cargas-incrementales">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-tablas-delta-e-historial.html">← Tablas Delta - historial, viaje en el tiempo y restaurar</a><a href="databricks-paso-a-paso-compute-clusters-y-warehouses.html">Compute - clusters, SQL warehouses, serverless y el costo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

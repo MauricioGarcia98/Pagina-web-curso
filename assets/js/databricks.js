@@ -243,7 +243,7 @@
     const W = D.ws(), C = D.cli();
     const corriendo = Object.values(C.clusters || {}).filter((c) => c.state === 'RUNNING').length;
     cont.innerHTML = `<div class="dbx-pag dbx-home">
-      <div class="dbx-home-hola"><h1>Buenas, Alumno</h1><p>Este es tu workspace de práctica. Todo corre en tu navegador: no hay costo ni cuenta real.</p></div>
+      <div class="dbx-home-hola"><h1>Buenas, Alumno</h1><p>Este es tu workspace de práctica. Todo corre en tu navegador: no hay costo ni cuenta real. ¿Primera vez? Sigue el <a href="#/m/databricks-paso-a-paso">curso de Databricks paso a paso</a>.</p></div>
       <div class="dbx-home-genie">${ic('sparkle')}<input id="homeQ" placeholder="Busca notebooks, tablas o jobs… (Enter)"><button class="dbx-btn primario" id="homeIr">Buscar</button></div>
       <h2>Para empezar</h2>
       <div class="dbx-tarjetas">

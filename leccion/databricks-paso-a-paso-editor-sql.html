@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El editor SQL - consultas, resultados, gráficos, parámetros y consultas guardadas · Academia de Datos</title><meta name="description" content="El SQL Editor es donde un analista o ingeniero pasa buena parte del día en Databricks. Pestañas, el navegador de esquemas, Run y Run selected, el límite de 1000 filas, el resultado como tabla y como gráfico, parámetros con dos puntos, guardar consultas en el workspace, la lista Queries y el historial de todo lo que corrió."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-editor-sql.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El editor SQL - consultas, resultados, gráficos, parámetros y consultas guardadas · Academia de Datos"><meta property="og:description" content="El SQL Editor es donde un analista o ingeniero pasa buena parte del día en Databricks. Pestañas, el navegador de esquemas, Run y Run selected, el límite de 1000 filas, el resultado como tabla y como gráfico, parámetros con dos puntos, guardar consultas en el workspace, la lista Queries y el historial de todo lo que corrió."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-editor-sql.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>El editor SQL - consultas, resultados, gráficos, parámetros y consultas guardadas</h1><p class="resumen">El SQL Editor es donde un analista o ingeniero pasa buena parte del día en Databricks. Pestañas, el navegador de esquemas, Run y Run selected, el límite de 1000 filas, el resultado como tabla y como gráfico, parámetros con dos puntos, guardar consultas en el workspace, la lista Queries y el historial de todo lo que corrió.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-editor-sql">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir y ejecutar consultas en el SQL Editor</li><li>Convertir un resultado en gráfico</li><li>Usar parámetros en una consulta</li><li>Guardar una consulta y encontrarla en Queries</li><li>Leer el Query History</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si el notebook es un cuaderno para explorar y contar una historia, el editor SQL es la calculadora rápida: una pregunta, un resultado, un gráfico si hace falta, y guardar la consulta para la próxima vez.</p>
+</div>
+
+
+<h2>Paso 1 — La pantalla</h2>
+<p>Menú <strong>Lakehouse → SQL Editor</strong>. Escribe:</p>
+<pre data-norun><code class="language-sql">SELECT canal, estado, COUNT(*) AS pedidos
+FROM samples.tienda.pedidos
+GROUP BY canal, estado
+ORDER BY pedidos DESC</code></pre>
+<figure class="captura"><img src="assets/img/guias/databricks/d05-editor.webp" alt="Pestañas (1), Run (2), el SQL warehouse que ejecuta (3), el editor (4) y el área de resultados (5)" loading="lazy"><figcaption>Pestañas (1), Run (2), el SQL warehouse que ejecuta (3), el editor (4) y el área de resultados (5)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Pestañas</strong></td>
+<td>Varias consultas abiertas a la vez; doble clic para renombrar</td>
+</tr>
+<tr>
+<td><strong>Schema browser</strong> (izquierda)</td>
+<td>Los catálogos, esquemas y tablas; haz clic en una tabla para ver sus columnas</td>
+</tr>
+<tr>
+<td><strong>Run (1000)</strong></td>
+<td>Ejecuta toda la consulta; el 1000 es el límite de filas que trae a la pantalla</td>
+</tr>
+<tr>
+<td><strong>Run selected</strong></td>
+<td>Ejecuta solo el texto seleccionado: ideal para probar una parte de una consulta larga</td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td>Ordena el SQL con mayúsculas y sangrías</td>
+</tr>
+<tr>
+<td><strong>Warehouse</strong> (3)</td>
+<td>El cómputo para SQL: <strong>Serverless Starter Warehouse</strong> está siempre listo</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Ejecutar y leer el resultado</h2>
+<p><strong>Run</strong> (o <strong>Ctrl + Enter</strong>):</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d05-resultado.webp" alt="El resultado - pestaña Table, el botón + para gráficos, cantidad de filas y descarga" loading="lazy"><figcaption>El resultado - pestaña Table, el botón + para gráficos, cantidad de filas y descarga</figcaption></figure>
+
+
+<p>Debajo de la tabla ves cuántas filas devolvió y cuánto tardó. El ícono de descarga baja el resultado como CSV.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El límite de 1000 filas es de la pantalla, no de la consulta</div>
+
+<p>Si tu consulta devuelve 50 000 filas, el motor las calcula todas pero el editor muestra 1000. Para un total, agrupa o cuenta en SQL; no cuentes filas en pantalla.</p>
+</div>
+
+
+<h2>Paso 3 — Un gráfico del resultado</h2>
+<p>El <strong>+</strong> junto a <strong>Table</strong> abre el editor de visualizaciones:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d05-visualizacion.webp" alt="Tipo Bar (1), eje X canal (2), eje Y pedidos (3) y la vista previa (4)" loading="lazy"><figcaption>Tipo Bar (1), eje X canal (2), eje Y pedidos (3) y la vista previa (4)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d05-grafico.webp" alt="El gráfico queda como una pestaña junto a Table" loading="lazy"><figcaption>El gráfico queda como una pestaña junto a Table</figcaption></figure>
+
+
+<p>Tipos disponibles: barras, líneas, área, torta, dispersión y contador (un solo número grande, para KPIs).</p>
+<h2>Paso 4 — Parámetros</h2>
+<p>Un parámetro es un valor que se completa antes de ejecutar. Se escribe con dos puntos:</p>
+<pre data-norun><code class="language-sql">SELECT estado, COUNT(*) AS pedidos
+FROM samples.tienda.pedidos
+WHERE canal = :canal
+GROUP BY estado
+ORDER BY pedidos DESC</code></pre>
+<figure class="captura"><img src="assets/img/guias/databricks/d05-parametros.webp" alt="El campo canal aparece arriba del editor (1); con app, el resultado (2) muestra 2261 entregados y 266 cancelados" loading="lazy"><figcaption>El campo canal aparece arriba del editor (1); con app, el resultado (2) muestra 2261 entregados y 266 cancelados</figcaption></figure>
+
+
+<p>Sirve para que otra persona use tu consulta sin tocar el SQL: cambia el valor y ejecuta.</p>
+<h2>Paso 5 — Guardar y volver a encontrar</h2>
+<p><strong>Save</strong> guarda la consulta en el workspace:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d05-guardar.webp" alt="Nombre (1) y carpeta (2) donde se guarda" loading="lazy"><figcaption>Nombre (1) y carpeta (2) donde se guarda</figcaption></figure>
+
+
+<p>Menú <strong>Lakehouse → Queries</strong> lista las consultas guardadas, y <strong>Query History</strong> todo lo que se ejecutó (desde el editor, los notebooks, los dashboards), con duración y estado:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d05-consultas.webp" alt="Queries - las consultas guardadas, con su carpeta y fecha" loading="lazy"><figcaption>Queries - las consultas guardadas, con su carpeta y fecha</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d05-historial.webp" alt="Query History - cada ejecución, de dónde vino y cuánto tardó" loading="lazy"><figcaption>Query History - cada ejecución, de dónde vino y cuánto tardó</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 El historial es tu primera herramienta de diagnóstico</div>
+
+<p>&quot;¿Por qué el tablero está lento?&quot; → <strong>Query History</strong>, ordena por duración. &quot;¿Quién borró esa tabla?&quot; → busca <code>DROP</code> en el historial. En Databricks real guarda 30 días y se puede consultar como tabla (<code>system.query.history</code>).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Ejecutas consultas y lees los resultados con sus límites.</li>
+<li>Haces gráficos y usas parámetros.</li>
+<li>Guardas consultas y las encuentras en Queries y en el historial.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-editor-sql">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-proyecto-primer-analisis.html">← Proyecto 1 (guiado) - tu primer análisis, guardado como tabla</a><a href="databricks-paso-a-paso-notebooks-a-fondo.html">Notebooks a fondo - comandos mágicos, widgets, dbutils, gráficos y el menú File →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

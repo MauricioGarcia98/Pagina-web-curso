@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notebooks a fondo - comandos mágicos, widgets, dbutils, gráficos y el menú File · Academia de Datos</title><meta name="description" content="Lo que convierte un notebook en una herramienta de trabajo - los comandos mágicos (%sql, %md, %fs, %sh, %run, %pip), widgets para parametrizar, dbutils para archivos y secretos, gráficos sobre los resultados, el menú File (exportar, clonar, mover) y las buenas prácticas para que un notebook sea legible y reproducible."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-notebooks-a-fondo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Notebooks a fondo - comandos mágicos, widgets, dbutils, gráficos y el menú File · Academia de Datos"><meta property="og:description" content="Lo que convierte un notebook en una herramienta de trabajo - los comandos mágicos (%sql, %md, %fs, %sh, %run, %pip), widgets para parametrizar, dbutils para archivos y secretos, gráficos sobre los resultados, el menú File (exportar, clonar, mover) y las buenas prácticas para que un notebook sea legible y reproducible."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-notebooks-a-fondo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 2 · Básico-intermedio · 50 min</div>
+<h1>Notebooks a fondo - comandos mágicos, widgets, dbutils, gráficos y el menú File</h1><p class="resumen">Lo que convierte un notebook en una herramienta de trabajo - los comandos mágicos (%sql, %md, %fs, %sh, %run, %pip), widgets para parametrizar, dbutils para archivos y secretos, gráficos sobre los resultados, el menú File (exportar, clonar, mover) y las buenas prácticas para que un notebook sea legible y reproducible.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-notebooks-a-fondo">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Usar los comandos mágicos según la tarea</li><li>Crear widgets y leerlos desde Python y SQL</li><li>Conocer dbutils y sus familias</li><li>Hacer un gráfico dentro del notebook</li><li>Exportar, clonar y organizar notebooks</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Los comandos mágicos son como los botones de una radio: con uno cambias a SQL, con otro a texto, con otro ves archivos. Los widgets son los diales que alguien puede girar sin abrir el aparato: cambias el canal o la fecha y el notebook hace lo mismo con otros datos.</p>
+</div>
+
+
+<h2>Paso 1 — Comandos mágicos</h2>
+<p>Van en la primera línea de la celda:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>%sql</code></td>
+<td>La celda es SQL</td>
+</tr>
+<tr>
+<td><code>%python</code></td>
+<td>La celda es Python (en un notebook SQL)</td>
+</tr>
+<tr>
+<td><code>%md</code></td>
+<td>Texto con formato Markdown</td>
+</tr>
+<tr>
+<td><code>%fs ls /Volumes/main/default/</code></td>
+<td>Comandos de archivos (<code>ls</code>, <code>head</code>, <code>cp</code>, <code>rm</code>, <code>mkdirs</code>)</td>
+</tr>
+<tr>
+<td><code>%sh</code></td>
+<td>Un comando de la terminal del driver (<code>ls</code>, <code>pip list</code>, <code>date</code>)</td>
+</tr>
+<tr>
+<td><code>%run ./otro_notebook</code></td>
+<td>Ejecuta otro notebook dentro de este: sus variables y funciones quedan disponibles</td>
+</tr>
+<tr>
+<td><code>%pip install paquete</code></td>
+<td>Instala una librería solo para este notebook</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/databricks/d06-magics.webp" alt="%fs ls lista los volúmenes (1) y %sh corre un comando en la máquina (2)" loading="lazy"><figcaption>%fs ls lista los volúmenes (1) y %sh corre un comando en la máquina (2)</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 %run y la organización</div>
+
+<p>Un patrón muy usado: un notebook <code>utilidades</code> con funciones de limpieza y conexiones, y cada notebook de trabajo empieza con <code>%run ./utilidades</code>. Un cambio en las funciones se aplica a todos.</p>
+</div>
+
+
+<h2>Paso 2 — Widgets: parámetros del notebook</h2>
+<pre data-norun><code class="language-python">dbutils.widgets.dropdown(&quot;canal&quot;, &quot;web&quot;, [&quot;web&quot;, &quot;app&quot;, &quot;tienda&quot;, &quot;telefono&quot;], &quot;Canal&quot;)
+dbutils.widgets.text(&quot;minimo&quot;, &quot;10&quot;, &quot;Mínimo de pedidos&quot;)</code></pre>
+<p>Al ejecutarla aparece una barra arriba del notebook con los dos controles. Se leen así:</p>
+<pre data-norun><code class="language-python">canal = dbutils.widgets.get(&quot;canal&quot;)
+minimo = int(dbutils.widgets.get(&quot;minimo&quot;))
+df = spark.table(&quot;samples.tienda.pedidos&quot;).filter(f&quot;canal = '{canal}'&quot;)
+display(df.groupBy(&quot;estado&quot;).count().filter(f&quot;count &gt;= {minimo}&quot;))</code></pre>
+<figure class="captura"><img src="assets/img/guias/databricks/d06-widgets.webp" alt="La barra de widgets (1) y el resultado filtrado por el canal elegido (2)" loading="lazy"><figcaption>La barra de widgets (1) y el resultado filtrado por el canal elegido (2)</figcaption></figure>
+
+
+<p>En SQL, el widget se usa con dos puntos: <code>WHERE canal = :canal</code>.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>text</code></td>
+<td>Un valor libre (fecha, ruta)</td>
+</tr>
+<tr>
+<td><code>dropdown</code></td>
+<td>Elegir uno de una lista</td>
+</tr>
+<tr>
+<td><code>combobox</code></td>
+<td>Lista o valor libre</td>
+</tr>
+<tr>
+<td><code>multiselect</code></td>
+<td>Varios de una lista</td>
+</tr>
+</tbody></table></div>
+<p>Los widgets son lo que un <strong>job</strong> usa para pasar parámetros al notebook (nivel 4): el job define <code>fecha=2024-12-01</code> y el notebook lo lee con <code>dbutils.widgets.get(&quot;fecha&quot;)</code>. <code>dbutils.widgets.removeAll()</code> los quita.</p>
+<h2>Paso 3 — dbutils</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Familia</th>
+<th>Ejemplos</th>
+</tr>
+</thead><tbody><tr>
+<td><code>dbutils.fs</code></td>
+<td><code>ls</code>, <code>head</code>, <code>cp</code>, <code>mv</code>, <code>rm</code>, <code>mkdirs</code>, <code>put</code>: lo mismo que <code>%fs</code>, desde Python</td>
+</tr>
+<tr>
+<td><code>dbutils.widgets</code></td>
+<td>Los parámetros del paso 2</td>
+</tr>
+<tr>
+<td><code>dbutils.secrets</code></td>
+<td><code>get(&quot;scope&quot;, &quot;clave&quot;)</code>: leer una contraseña sin que aparezca en el código (nivel 5)</td>
+</tr>
+<tr>
+<td><code>dbutils.notebook</code></td>
+<td><code>exit(&quot;valor&quot;)</code>: terminar el notebook devolviendo un valor al job</td>
+</tr>
+<tr>
+<td><code>dbutils.jobs.taskValues</code></td>
+<td>Pasar valores entre tareas de un job</td>
+</tr>
+</tbody></table></div>
+<p><code>dbutils.fs.help()</code> muestra la ayuda de cada familia.</p>
+<h2>Paso 4 — Gráficos en el notebook</h2>
+<p>Todo resultado tabular (SQL o <code>display()</code>) tiene el <strong>+</strong> junto a <strong>Table</strong>, igual que en el editor SQL:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d06-grafico-celda.webp" alt="Un gráfico de torta como segunda pestaña del resultado (1), debajo de la celda (2)" loading="lazy"><figcaption>Un gráfico de torta como segunda pestaña del resultado (1), debajo de la celda (2)</figcaption></figure>
+
+
+<p>El gráfico se guarda con el notebook: quien lo abra lo ve sin volver a configurarlo.</p>
+<h2>Paso 5 — El menú File</h2>
+<figure class="captura"><img src="assets/img/guias/databricks/d06-menu-file.webp" alt="File - clonar, renombrar, mover, exportar e importar" loading="lazy"><figcaption>File - clonar, renombrar, mover, exportar e importar</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Clone</strong></td>
+<td>Una copia para probar sin romper el original</td>
+</tr>
+<tr>
+<td><strong>Rename / Move</strong></td>
+<td>Ordenar en carpetas</td>
+</tr>
+<tr>
+<td><strong>Export</strong></td>
+<td>Descargar como archivo fuente (<code>.py</code> o <code>.sql</code> con las celdas separadas por <code># COMMAND ----------</code>) para subirlo a Git</td>
+</tr>
+<tr>
+<td><strong>Import</strong> (en Workspace)</td>
+<td>Traer un notebook exportado o un <code>.ipynb</code></td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — Buenas prácticas</h2>
+<ul>
+<li><strong>Una celda de texto al principio</strong>: qué hace, qué tablas lee, qué tablas escribe.</li>
+<li><strong>Parámetros arriba, en widgets</strong>: nada de fechas escritas a mano en el medio del código.</li>
+<li><strong>Celdas chicas, una idea por celda</strong>: se depura más fácil.</li>
+<li><strong>Run all debe funcionar de arriba abajo</strong>: si depende de que ejecutes algo a mano en otro orden, un job va a fallar.</li>
+<li><strong>Sin credenciales en el código</strong>: <code>dbutils.secrets.get</code>.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Usas los comandos mágicos y <code>dbutils</code>.</li>
+<li>Parametrizas con widgets desde Python y SQL.</li>
+<li>Haces gráficos, exportas y organizas notebooks.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-notebooks-a-fondo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-editor-sql.html">← El editor SQL - consultas, resultados, gráficos, parámetros y consultas guardadas</a><a href="databricks-paso-a-paso-subir-datos-y-volumenes.html">Subir datos - de un CSV a una tabla Delta, y los volúmenes para archivos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

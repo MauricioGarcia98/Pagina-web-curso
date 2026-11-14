@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El workspace y tu primer notebook · Academia de Datos</title><meta name="description" content="El explorador del workspace guarda tus notebooks, consultas y carpetas. Recorrer Home, Shared y la papelera, abrir el notebook de ejemplo, entender su cabecera (lenguaje, cómputo, Run all), ejecutar una celda SQL y una celda Python con Shift+Enter, crear tu propio notebook y renombrarlo, y los atajos que vas a usar todo el tiempo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-workspace-y-primer-notebook.html">
+<meta property="og:type" content="article"><meta property="og:title" content="El workspace y tu primer notebook · Academia de Datos"><meta property="og:description" content="El explorador del workspace guarda tus notebooks, consultas y carpetas. Recorrer Home, Shared y la papelera, abrir el notebook de ejemplo, entender su cabecera (lenguaje, cómputo, Run all), ejecutar una celda SQL y una celda Python con Shift+Enter, crear tu propio notebook y renombrarlo, y los atajos que vas a usar todo el tiempo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-workspace-y-primer-notebook.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 1 · Básico · 40 min</div>
+<h1>El workspace y tu primer notebook</h1><p class="resumen">El explorador del workspace guarda tus notebooks, consultas y carpetas. Recorrer Home, Shared y la papelera, abrir el notebook de ejemplo, entender su cabecera (lenguaje, cómputo, Run all), ejecutar una celda SQL y una celda Python con Shift+Enter, crear tu propio notebook y renombrarlo, y los atajos que vas a usar todo el tiempo.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-workspace-y-primer-notebook">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Moverte por el explorador del workspace</li><li>Reconocer las partes de un notebook</li><li>Ejecutar celdas SQL y Python</li><li>Crear y renombrar un notebook</li><li>Usar los atajos básicos de celdas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un notebook es un cuaderno con celdas: en cada una escribes un pedazo de código o un texto, lo ejecutas y el resultado aparece debajo. Es la herramienta principal de un ingeniero de datos en Databricks: ahí se explora, se prueba y se deja el código que después corre solo.</p>
+</div>
+
+
+<h2>Paso 1 — El explorador del workspace</h2>
+<p>Menú lateral → <strong>Workspace</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d02-workspace.webp" alt="Las carpetas (1), la ruta actual (2) y el botón Create (3)" loading="lazy"><figcaption>Las carpetas (1), la ruta actual (2) y el botón Create (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Carpeta</th>
+<th>Qué guarda</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Home</strong> (<code>/Workspace/Users/tu@correo</code>)</td>
+<td>Tus cosas: notebooks, consultas, carpetas</td>
+</tr>
+<tr>
+<td><strong>Workspace</strong></td>
+<td>La raíz: <code>Users</code> y <code>Shared</code></td>
+</tr>
+<tr>
+<td><strong>Shared</strong></td>
+<td>Lo compartido con todo el equipo</td>
+</tr>
+<tr>
+<td><strong>Trash</strong></td>
+<td>Lo borrado (en Databricks real, 30 días)</td>
+</tr>
+</tbody></table></div>
+<p>La ruta de arriba (2) son las &quot;migas&quot;: cada parte es un enlace.</p>
+<p>Menú <strong>Recents</strong> lista lo último que abriste (notebooks, tablas, jobs), venga de donde venga: es la forma más rápida de volver a lo de ayer.</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d23-recientes.webp" alt="Recents - lo último que abriste, con su tipo" loading="lazy"><figcaption>Recents - lo último que abriste, con su tipo</figcaption></figure>
+
+
+<h2>Paso 2 — Abrir el notebook de ejemplo</h2>
+<p>Haz clic en <strong>Introducción a Databricks</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d02-notebook.webp" alt="Un notebook - título (1), lenguaje por defecto (2), cómputo conectado (3), Run all (4) y una celda (5)" loading="lazy"><figcaption>Un notebook - título (1), lenguaje por defecto (2), cómputo conectado (3), Run all (4) y una celda (5)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Título</strong> (1)</td>
+<td>Haz clic para renombrar</td>
+</tr>
+<tr>
+<td><strong>Lenguaje</strong> (2)</td>
+<td>Python o SQL: el que usan las celdas que no dicen otra cosa</td>
+</tr>
+<tr>
+<td><strong>Cómputo</strong> (3)</td>
+<td>La máquina que ejecuta. <strong>Serverless</strong> está lista al instante; un clúster propio se enciende y se apaga (nivel 3)</td>
+</tr>
+<tr>
+<td><strong>Run all</strong> (4)</td>
+<td>Ejecuta todas las celdas en orden</td>
+</tr>
+<tr>
+<td><strong>Celda</strong> (5)</td>
+<td>Un bloque de código o texto; su resultado aparece debajo</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Ejecutar una celda</h2>
+<p>Haz clic dentro de la segunda celda (la que empieza con <code>%sql</code>) y presiona <strong>Shift + Enter</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d02-celda-sql.webp" alt="El botón ▶ (1) también la ejecuta; el resultado (2) aparece como tabla debajo de la celda" loading="lazy"><figcaption>El botón ▶ (1) también la ejecuta; el resultado (2) aparece como tabla debajo de la celda</figcaption></figure>
+
+
+<p><code>%sql</code> al principio dice &quot;esta celda es SQL aunque el notebook sea Python&quot;. La consulta cuenta pedidos por canal en la tabla <code>samples.tienda.pedidos</code>.</p>
+<p>Ahora la tercera celda, que es Python:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d02-celda-python.webp" alt="spark.table() lee la tabla y display() la muestra agrupada por estado - 9288 entregados, 967 cancelados" loading="lazy"><figcaption>spark.table() lee la tabla y display() la muestra agrupada por estado - 9288 entregados, 967 cancelados</figcaption></figure>
+
+
+<ul>
+<li><code>spark.table(&quot;samples.tienda.pedidos&quot;)</code> abre la tabla como un <strong>DataFrame</strong>.</li>
+<li><code>display(df)</code> la muestra como tabla interactiva (ordenable, descargable, con el <strong>+</strong> para hacer gráficos).</li>
+<li>La primera celda Python tarda más: la práctica carga Python en tu navegador una sola vez.</li>
+</ul>
+<div class="callout callout-nota"><div class="callout-title">📝 El número de la celda</div>
+
+<p>A la izquierda de cada celda ejecutada aparece <code>[1]</code>, <code>[2]</code>… el orden en que se corrieron. Si ves <code>[5]</code> arriba y <code>[2]</code> abajo, las celdas se ejecutaron en otro orden que el que se lee: un clásico de los notebooks que después da resultados raros. <strong>Run all</strong> las corre en orden.</p>
+</div>
+
+
+<h2>Paso 4 — Crear tu notebook</h2>
+<p>Vuelve a <strong>Workspace</strong> → <strong>Create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d02-crear.webp" alt="Create - Notebook, Query, Folder, File" loading="lazy"><figcaption>Create - Notebook, Query, Folder, File</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d02-notebook-nuevo.webp" alt="El notebook nuevo - haz clic en el título (1) para renombrarlo; la primera celda (2) espera código" loading="lazy"><figcaption>El notebook nuevo - haz clic en el título (1) para renombrarlo; la primera celda (2) espera código</figcaption></figure>
+
+
+<p>Escribe el nombre <strong>Ventas por canal</strong> y Enter. Lo vas a usar en todo el nivel.</p>
+<h2>Paso 5 — Los atajos de celdas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Atajo</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Shift + Enter</strong></td>
+<td>Ejecuta y pasa a la siguiente celda (crea una si no hay)</td>
+</tr>
+<tr>
+<td><strong>Ctrl + Enter</strong></td>
+<td>Ejecuta y se queda en la celda</td>
+</tr>
+<tr>
+<td><strong>Alt + Enter</strong></td>
+<td>Ejecuta y crea una celda nueva debajo</td>
+</tr>
+<tr>
+<td><strong>Ctrl + /</strong></td>
+<td>Comenta o descomenta las líneas</td>
+</tr>
+<tr>
+<td><strong>+ Code</strong> / <strong>+ Text</strong></td>
+<td>Agregar una celda de código o de texto (Markdown) entre dos celdas</td>
+</tr>
+<tr>
+<td>↑ ↓ ⋯ (a la derecha de la celda)</td>
+<td>Mover arriba o abajo, más opciones</td>
+</tr>
+</tbody></table></div>
+<p>Una celda de texto empieza con <code>%md</code> y acepta Markdown (<code>#</code> títulos, <code>-</code> listas, <code>**negrita**</code>): sirve para explicar qué hace el notebook.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Te mueves por el workspace.</li>
+<li>Ejecutaste celdas SQL y Python y entendiste la cabecera del notebook.</li>
+<li>Creaste y renombraste tu notebook.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-workspace-y-primer-notebook">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-que-es-databricks.html">← Qué es Databricks y cómo es el workspace</a><a href="databricks-paso-a-paso-catalog-explorer.html">Catalog Explorer - dónde están los datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
