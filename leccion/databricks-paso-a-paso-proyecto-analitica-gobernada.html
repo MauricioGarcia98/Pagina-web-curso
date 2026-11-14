@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (requisitos y rúbrica) - analítica gobernada para el área comercial · Academia de Datos</title><meta name="description" content="El área comercial quiere ver sus ventas sin pedirle nada al equipo de datos - un tablero publicado, un agente de Genie que responda sus preguntas y alertas que avisen cuando algo se sale de lo normal. Pero los datos de clientes tienen correos y países, y cada gerente regional solo puede ver su región. Dashboards, Genie, alertas, filtros de fila, máscaras y permisos, con requisitos y rúbrica."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-proyecto-analitica-gobernada.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (requisitos y rúbrica) - analítica gobernada para el área comercial · Academia de Datos"><meta property="og:description" content="El área comercial quiere ver sus ventas sin pedirle nada al equipo de datos - un tablero publicado, un agente de Genie que responda sus preguntas y alertas que avisen cuando algo se sale de lo normal. Pero los datos de clientes tienen correos y países, y cada gerente regional solo puede ver su región. Dashboards, Genie, alertas, filtros de fila, máscaras y permisos, con requisitos y rúbrica."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-proyecto-analitica-gobernada.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 5 · Avanzado · 120 min</div>
+<h1>Proyecto 5 (requisitos y rúbrica) - analítica gobernada para el área comercial</h1><p class="resumen">El área comercial quiere ver sus ventas sin pedirle nada al equipo de datos - un tablero publicado, un agente de Genie que responda sus preguntas y alertas que avisen cuando algo se sale de lo normal. Pero los datos de clientes tienen correos y países, y cada gerente regional solo puede ver su región. Dashboards, Genie, alertas, filtros de fila, máscaras y permisos, con requisitos y rúbrica.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-proyecto-analitica-gobernada">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Diseñar una capa gold y un dashboard para un área</li><li>Configurar un Genie Agent evaluado con preguntas de prueba</li><li>Definir alertas con umbrales justificados</li><li>Proteger datos personales y regionales con máscaras y filtros</li><li>Entregar con evidencia de que la seguridad funciona</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Rodrigo, gerente comercial: <em>&quot;Quiero un tablero de ventas por categoría, canal y país, que mi equipo pueda consultar solo. Los gerentes regionales (México, Argentina, Colombia) solo pueden ver su país. Nadie fuera de datos debe ver los correos de los clientes. Quiero poder preguntarle cosas en lenguaje natural, y que me avisen si las ventas de un día caen por debajo de lo normal o si los pagos rechazados suben.&quot;</em></p>
+</div>
+
+
+<h2>Requisitos</h2>
+<ol>
+<li><strong>Capa gold</strong> en <code>main.comercial</code>: <code>ventas_detalle</code> (una fila por línea de pedido entregado, con <code>fecha</code>, <code>categoria</code>, <code>canal</code>, <code>pais</code>, <code>cliente_id</code>, <code>monto = cantidad × precio_unitario</code>), <code>ventas_por_dia</code> (por fecha, canal y país) y <code>clientes</code> (copia de <code>samples.tienda.clientes</code> con <code>pais</code>, <code>segmento</code>, <code>email</code>, <code>telefono</code>).</li>
+<li><strong>Seguridad</strong>: grupos <code>comercial</code>, <code>region_mx</code>, <code>region_ar</code>, <code>region_co</code>, <code>datos</code>. Filtro de fila sobre <code>ventas_detalle</code>, <code>ventas_por_dia</code> y <code>clientes</code> por país según el grupo regional (<code>datos</code> y <code>comercial</code> ven todo). Máscara sobre <code>email</code> y <code>telefono</code> (solo <code>datos</code> los ve). Etiquetas <code>pii</code> en esas columnas. Permisos: <code>comercial</code> y los grupos regionales solo <code>SELECT</code> en <code>main.comercial</code>.</li>
+<li><strong>Dashboard</strong> <code>Ventas comerciales</code>, publicado, con: tres contadores (ventas totales, pedidos, ticket promedio), ventas por categoría, ventas por mes y canal, ventas por país, y filtros de país y categoría. Datasets sobre la gold, no sobre <code>samples</code>.</li>
+<li><strong>Genie Agent</strong> <code>Ventas comerciales</code> con las tres tablas gold, instrucciones con el vocabulario del área (al menos cinco reglas) y al menos cinco consultas de ejemplo. Evaluado con <strong>diez preguntas</strong> cuya respuesta calculaste tú; deja la lista con el resultado de cada una.</li>
+<li><strong>Alertas</strong>: (a) ventas del último día de datos por debajo de un umbral que justifiques con el promedio histórico; (b) pagos rechazados del último mes de datos por encima de un umbral justificado. Ambas evaluadas al menos una vez.</li>
+<li><strong>Evidencia</strong>: una consulta de control guardada que muestre, para tu usuario, cuántas filas ve de <code>ventas_detalle</code> <strong>dentro</strong> del grupo <code>region_ar</code> y <strong>fuera</strong> de todo grupo regional, y qué ve en <code>email</code> dentro y fuera de <code>datos</code>.</li>
+</ol>
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>ventas_detalle</code></td>
+<td>Solo pedidos entregados; total de <code>monto</code> <strong>11 518 639.19</strong> (= web 5 352 449.11 + app 2 833 377.12 + tienda 2 436 056.90 + telefono 896 756.06)</td>
+</tr>
+<tr>
+<td>Ventas por categoría (sobre todos los pedidos, para comparar con Genie)</td>
+<td>Laptops 4 039 091.97 · Ciclismo 3 103 504.61 · Celulares 2 273 958.70 · … · Calzado 244 892.04; total 14 878 014.07</td>
+</tr>
+<tr>
+<td><code>clientes</code></td>
+<td>2000 filas; 89 sin email; México 387, Argentina 363, Colombia 312</td>
+</tr>
+<tr>
+<td>Dentro de <code>region_ar</code></td>
+<td><code>clientes</code> muestra 363 filas; <code>ventas_detalle</code> solo las de Argentina</td>
+</tr>
+<tr>
+<td>Fuera de <code>datos</code></td>
+<td><code>email</code> y <code>telefono</code> aparecen enmascarados</td>
+</tr>
+<tr>
+<td>Pagos rechazados (histórico)</td>
+<td>337 pagos por 373 571.98: tu umbral mensual debe salir de ahí</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>Publicado; los filtros cambian todos los widgets</td>
+</tr>
+<tr>
+<td>Genie</td>
+<td>10/10 en tu lista de preguntas (o la explicación de cada fallo que no pudiste corregir)</td>
+</tr>
+</tbody></table></div>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Peso</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Capa gold</td>
+<td>20 %</td>
+<td>Dashboard sobre <code>samples</code></td>
+<td>Tres tablas gold con comentarios</td>
+<td>Linaje completo visible y una consulta de control que cuadra con la fuente</td>
+</tr>
+<tr>
+<td>Seguridad</td>
+<td>30 %</td>
+<td>Permisos sin filtros ni máscaras</td>
+<td>Filtros, máscaras, etiquetas y permisos mínimos</td>
+<td>Evidencia reproducible (la consulta de control) y funciones reutilizables para otras tablas</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>15 %</td>
+<td>Gráficos sueltos</td>
+<td>Contadores, gráficos y filtros que funcionan</td>
+<td>Responde las tres preguntas del gerente sin tocar nada</td>
+</tr>
+<tr>
+<td>Genie</td>
+<td>20 %</td>
+<td>Sin instrucciones ni ejemplos</td>
+<td>Instrucciones, ejemplos y evaluación de 10 preguntas</td>
+<td>Documenta qué no sabe responder y por qué</td>
+</tr>
+<tr>
+<td>Alertas</td>
+<td>15 %</td>
+<td>Umbrales arbitrarios</td>
+<td>Umbrales justificados con datos</td>
+<td>Ambas con horario acorde a la carga de datos</td>
+</tr>
+</tbody></table></div>
+<p><strong>Aprobado</strong>: competente o más en todos los criterios.</p>
+<h2>Entrega</h2>
+<p>Mensaje a Rodrigo: <em>&quot;Tablero <code>Ventas comerciales</code> publicado para el grupo <code>comercial</code>; los gerentes regionales ven solo su país y nadie fuera de datos ve correos ni teléfonos (lo probé entrando y saliendo de los grupos). Podés preguntarle al agente <code>Ventas comerciales</code>; respondió bien las 10 preguntas de prueba, que te adjunto. Las alertas avisan si un día vende menos de X o si los rechazos del mes superan Y, con esos umbrales porque…&quot;</em></p>
+<h2>🖥️ Hazlo también en Databricks real</h2>
+<p>Los grupos los crea un administrador de la cuenta; pídelos con sus miembros. Al publicar el dashboard, elige <strong>credenciales del lector</strong> para que los filtros de fila se apliquen a cada gerente. Genie respeta los mismos filtros: un gerente que pregunta &quot;ventas por país&quot; ve solo el suyo.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-proyecto-analitica-gobernada">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-seguridad-filtros-mascaras-y-secretos.html">← Seguridad - filtros de fila, máscaras de columna, grupos, secretos y tokens</a><a href="databricks-paso-a-paso-mlflow-experimentos-y-modelos.html">MLflow - experimentos, corridas, comparación y registro de modelos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

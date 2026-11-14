@@ -264,6 +264,8 @@
         const r = await D.ejecutarCelda(c.src, { nb: { ...nb, _ruta: t.notebook_path, widgets }, origen: 'Job ' + ctx.jobId, aviso, job: { tvin: ctx.tv } });
         salidas.push({ src: c.src, out: r.salidas.map((s) => (s.tipo === 'tabla' ? { ...s, filas: s.filas.slice(0, 50) } : s)) });
         if (r.post && r.post.tv) ctx.tv[t.task_key] = { ...(ctx.tv[t.task_key] || {}), ...r.post.tv };
+        // los widgets que define una celda (dbutils.widgets.text/dropdown) valen para las celdas siguientes, como en un notebook; los parámetros del job mandan
+        if (r.post && r.post.wdefs) for (const [k, d] of Object.entries(r.post.wdefs)) { if (d === null) { if (!(k in ctx.params)) delete widgets[k]; } else if (!(k in widgets)) widgets[k] = { default: d.default, valor: d.default }; }
         if (!r.ok) return { estado: 'FAILED', error: (r.salidas.find((s) => s.tipo === 'error') || {}).v || 'La celda falló', salidas };
         if (r.exit != null) { exit = r.exit; break; }
       }

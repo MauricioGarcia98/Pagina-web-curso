@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compute - clusters, SQL warehouses, serverless y el costo · Academia de Datos</title><meta name="description" content="Nada corre sin cómputo. Qué es un cluster y qué es un SQL warehouse, crear un cluster leyendo cada campo del formulario (runtime, tipo de nodo, workers, autoescalado, autoterminación, Photon, spot), los estados de un cluster y su registro de eventos, los tamaños de un warehouse, qué es serverless y cómo se calcula el costo en DBU - lo que más errores caros causa en los equipos nuevos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-compute-clusters-y-warehouses.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Compute - clusters, SQL warehouses, serverless y el costo · Academia de Datos"><meta property="og:description" content="Nada corre sin cómputo. Qué es un cluster y qué es un SQL warehouse, crear un cluster leyendo cada campo del formulario (runtime, tipo de nodo, workers, autoescalado, autoterminación, Photon, spot), los estados de un cluster y su registro de eventos, los tamaños de un warehouse, qué es serverless y cómo se calcula el costo en DBU - lo que más errores caros causa en los equipos nuevos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-compute-clusters-y-warehouses.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Compute - clusters, SQL warehouses, serverless y el costo</h1><p class="resumen">Nada corre sin cómputo. Qué es un cluster y qué es un SQL warehouse, crear un cluster leyendo cada campo del formulario (runtime, tipo de nodo, workers, autoescalado, autoterminación, Photon, spot), los estados de un cluster y su registro de eventos, los tamaños de un warehouse, qué es serverless y cómo se calcula el costo en DBU - lo que más errores caros causa en los equipos nuevos.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-compute-clusters-y-warehouses">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir cluster de uso general, job compute, SQL warehouse y serverless</li><li>Crear un cluster entendiendo cada campo</li><li>Leer estados y eventos de un cluster</li><li>Crear un SQL warehouse y elegir su tamaño</li><li>Estimar y controlar el costo (DBU, autoterminación)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El cómputo son las máquinas alquiladas por hora. Un <strong>cluster</strong> es un grupo de máquinas para tus notebooks y jobs; un <strong>SQL warehouse</strong> es un grupo de máquinas afinadas para SQL; <strong>serverless</strong> es que Databricks las tenga listas y te cobre solo lo que usas. Como en cualquier alquiler por hora, lo caro no es usarlas: es olvidarlas encendidas.</p>
+</div>
+
+
+<h2>Paso 1 — Los tipos de cómputo</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Para</th>
+<th>Quién lo enciende</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>All-purpose compute</strong> (cluster)</td>
+<td>Notebooks interactivos, exploración</td>
+<td>Tú; se queda encendido hasta la autoterminación</td>
+</tr>
+<tr>
+<td><strong>Job compute</strong></td>
+<td>Jobs programados</td>
+<td>El job lo crea al empezar y lo borra al terminar: más barato</td>
+</tr>
+<tr>
+<td><strong>SQL warehouse</strong></td>
+<td>Editor SQL, dashboards, Genie, Power BI</td>
+<td>Se enciende al llegar una consulta y se apaga solo</td>
+</tr>
+<tr>
+<td><strong>Serverless</strong></td>
+<td>Cualquiera de los anteriores sin administrar máquinas</td>
+<td>Databricks; listo en segundos</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/databricks/d11-compute.webp" alt="La página Compute - pestañas por tipo (1) y Create compute (2)" loading="lazy"><figcaption>La página Compute - pestañas por tipo (1) y Create compute (2)</figcaption></figure>
+
+
+<h2>Paso 2 — Crear un cluster</h2>
+<p><strong>Create compute</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d11-nuevo.webp" alt="Nombre (1), Databricks runtime (2), tipo de nodo (3), workers y autoescalado (4), autoterminación (5) y el resumen con DBU por hora (6)" loading="lazy"><figcaption>Nombre (1), Databricks runtime (2), tipo de nodo (3), workers y autoescalado (4), autoterminación (5) y el resumen con DBU por hora (6)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Campo</th>
+<th>Qué es</th>
+<th>Qué elegir</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Policy</strong></td>
+<td>Reglas del administrador que limitan opciones</td>
+<td><em>Personal Compute</em> para uno; <em>Shared</em> para el equipo</td>
+</tr>
+<tr>
+<td><strong>Databricks runtime</strong></td>
+<td>La versión de Spark y librerías</td>
+<td>La última <strong>LTS</strong> (soporte largo); <strong>ML</strong> si necesitas librerías de aprendizaje automático</td>
+</tr>
+<tr>
+<td><strong>Photon</strong></td>
+<td>Motor vectorizado</td>
+<td>Más rápido para SQL y DataFrames; cobra más DBU por hora</td>
+</tr>
+<tr>
+<td><strong>Worker type</strong></td>
+<td>El tamaño de cada máquina</td>
+<td>Empieza chico; sube si falta memoria</td>
+</tr>
+<tr>
+<td><strong>Single node</strong></td>
+<td>Solo el driver</td>
+<td>Datos chicos, pruebas, librerías que no son Spark</td>
+</tr>
+<tr>
+<td><strong>Workers / autoescalado</strong></td>
+<td>Cuántas máquinas; con autoescalado, un mínimo y un máximo</td>
+<td>Autoescalado para cargas variables</td>
+</tr>
+<tr>
+<td><strong>Terminate after</strong></td>
+<td>Minutos sin uso antes de apagarse</td>
+<td><strong>Siempre</strong>: 30–60 min en desarrollo</td>
+</tr>
+<tr>
+<td><strong>Spot instances</strong></td>
+<td>Máquinas más baratas que la nube puede quitar</td>
+<td>Sí para desarrollo y jobs tolerantes; no para el driver</td>
+</tr>
+</tbody></table></div>
+<p>El <strong>resumen</strong> de la derecha estima los <strong>DBU/h</strong>: la unidad de cómputo de Databricks. El costo = DBU × tarifa del plan + el precio de las máquinas de la nube.</p>
+<h2>Paso 3 — Estados y eventos</h2>
+<p>Al crear, el cluster pasa por <strong>PENDING</strong> (pidiendo máquinas) → <strong>RUNNING</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d11-iniciando.webp" alt="Recién creado, arrancando" loading="lazy"><figcaption>Recién creado, arrancando</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d11-cluster.webp" alt="El cluster en RUNNING - acciones (1) y pestañas de configuración, notebooks, librerías, eventos, Spark UI, logs y métricas (2)" loading="lazy"><figcaption>El cluster en RUNNING - acciones (1) y pestañas de configuración, notebooks, librerías, eventos, Spark UI, logs y métricas (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d11-eventos.webp" alt="Event log - quién lo creó, cuándo arrancó, por qué se apagó" loading="lazy"><figcaption>Event log - quién lo creó, cuándo arrancó, por qué se apagó</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Estado</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>PENDING</strong></td>
+<td>Arrancando (en Databricks real, 3 a 7 minutos)</td>
+</tr>
+<tr>
+<td><strong>RUNNING</strong></td>
+<td>Listo; cobra</td>
+</tr>
+<tr>
+<td><strong>TERMINATED</strong></td>
+<td>Apagado; no cobra. El evento dice si fue por inactividad o a mano</td>
+</tr>
+<tr>
+<td><strong>ERROR</strong></td>
+<td>No pudo arrancar (cuota de la nube, tipo de máquina sin stock)</td>
+</tr>
+</tbody></table></div>
+<p>En la pestaña <strong>Libraries</strong> se instalan paquetes para todos los notebooks del cluster (<code>%pip</code> instala solo para uno).</p>
+<h2>Paso 4 — SQL warehouses</h2>
+<figure class="captura"><img src="assets/img/guias/databricks/d11-warehouses.webp" alt="El Serverless Starter Warehouse siempre disponible" loading="lazy"><figcaption>El Serverless Starter Warehouse siempre disponible</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d11-warehouse-nuevo.webp" alt="Tamaño (1), auto stop (2), tipo (3) y el costo máximo por hora (4)" loading="lazy"><figcaption>Tamaño (1), auto stop (2), tipo (3) y el costo máximo por hora (4)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Campo</th>
+<th>Qué elegir</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cluster size</strong></td>
+<td>De 2X-Small a 4X-Large: duplica potencia y DBU en cada paso. Empieza en Small y mide</td>
+</tr>
+<tr>
+<td><strong>Auto stop</strong></td>
+<td>10 minutos para desarrollo; para tableros, lo que tarde la gente en pedir la siguiente consulta</td>
+</tr>
+<tr>
+<td><strong>Scaling</strong></td>
+<td>Más clusters para muchos usuarios a la vez (concurrencia), no para consultas más grandes</td>
+</tr>
+<tr>
+<td><strong>Type</strong></td>
+<td><strong>Serverless</strong> (arranca en segundos), Pro o Classic</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Elegir el cómputo en un notebook</h2>
+<figure class="captura"><img src="assets/img/guias/databricks/d11-nb-compute.webp" alt="El selector del notebook - Serverless o tu cluster, con su estado" loading="lazy"><figcaption>El selector del notebook - Serverless o tu cluster, con su estado</figcaption></figure>
+
+
+<p>Si eliges un cluster apagado, la primera celda lo enciende y espera. En la práctica tarda segundos; en Databricks real, minutos: por eso para explorar casi siempre conviene <strong>Serverless</strong>.</p>
+<h2>Paso 6 — Las reglas del costo</h2>
+<ol>
+<li><strong>Autoterminación siempre</strong>: un cluster de 8 máquinas olvidado un fin de semana cuesta más que un mes de trabajo cuidadoso.</li>
+<li><strong>Job compute para jobs</strong>, no clusters de uso general.</li>
+<li><strong>Serverless</strong> para interactivo: pagas por segundos de uso real.</li>
+<li><strong>Warehouse chico + medir</strong> antes de subir de tamaño.</li>
+<li><strong>Etiquetas</strong> (<em>tags</em>) en cada cluster: <code>equipo=datos</code>, <code>entorno=dev</code>, para saber quién gasta qué.</li>
+<li>Las <strong>políticas</strong> del administrador limitan tamaños y obligan autoterminación: en una empresa casi siempre vas a crear compute con una política.</li>
+</ol>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Distingues los tipos de cómputo y cuándo usar cada uno.</li>
+<li>Creas un cluster y un warehouse entendiendo cada campo.</li>
+<li>Sabes leer estados y eventos y controlar el costo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-compute-clusters-y-warehouses">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-merge-y-cargas-incrementales.html">← MERGE y cargas incrementales - actualizar sin reescribir todo</a><a href="databricks-paso-a-paso-proyecto-capa-silver.html">Proyecto 3 (pistas cerradas) - la capa silver de pedidos, con cargas incrementales y vuelta atrás →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

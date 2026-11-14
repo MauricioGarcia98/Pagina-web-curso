@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipelines declarativos - bronze, silver y gold con expectativas de calidad · Academia de Datos</title><meta name="description" content="Un pipeline declarativo (Lakeflow Declarative Pipelines) es otra forma de construir tablas - describes qué tabla sale de qué y Databricks resuelve el orden, lo incremental y la calidad. Crear un pipeline, leer su código (tablas de streaming, vistas materializadas, expectativas), ejecutarlo, leer el grafo, las métricas y el registro de eventos, y qué hacen Dry run y Full refresh."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-pipelines-declarativos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pipelines declarativos - bronze, silver y gold con expectativas de calidad · Academia de Datos"><meta property="og:description" content="Un pipeline declarativo (Lakeflow Declarative Pipelines) es otra forma de construir tablas - describes qué tabla sale de qué y Databricks resuelve el orden, lo incremental y la calidad. Crear un pipeline, leer su código (tablas de streaming, vistas materializadas, expectativas), ejecutarlo, leer el grafo, las métricas y el registro de eventos, y qué hacen Dry run y Full refresh."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-pipelines-declarativos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 4 · Intermedio-avanzado · 55 min</div>
+<h1>Pipelines declarativos - bronze, silver y gold con expectativas de calidad</h1><p class="resumen">Un pipeline declarativo (Lakeflow Declarative Pipelines) es otra forma de construir tablas - describes qué tabla sale de qué y Databricks resuelve el orden, lo incremental y la calidad. Crear un pipeline, leer su código (tablas de streaming, vistas materializadas, expectativas), ejecutarlo, leer el grafo, las métricas y el registro de eventos, y qué hacen Dry run y Full refresh.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-pipelines-declarativos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar la diferencia entre un job y un pipeline declarativo</li><li>Leer y escribir tablas de streaming y vistas materializadas</li><li>Definir expectativas con las tres acciones</li><li>Ejecutar un pipeline y leer grafo, calidad y eventos</li><li>Saber cuándo usar Full refresh</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Con un job tú escribes la receta paso a paso: primero esto, después aquello. Con un pipeline declarativo escribes el <strong>menú</strong>: &quot;la tabla silver sale de la bronze filtrada; la gold sale de la silver agrupada&quot;. La cocina deduce el orden, procesa solo lo nuevo y anota qué platos no pasaron el control de calidad.</p>
+</div>
+
+
+<h2>Paso 1 — Crear el pipeline</h2>
+<p><strong>Jobs &amp; Pipelines → Create → ETL pipeline</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d14-nuevo.webp" alt="Nombre (1), catálogo (2) y esquema de destino (3), y el código inicial (4) - el ejemplo trae bronze, silver y gold" loading="lazy"><figcaption>Nombre (1), catálogo (2) y esquema de destino (3), y el código inicial (4) - el ejemplo trae bronze, silver y gold</figcaption></figure>
+
+
+<p>Las tablas que produce el pipeline quedan en <strong>catálogo.esquema</strong> de destino (<code>main.ventas_pipeline</code>).</p>
+<h2>Paso 2 — El código</h2>
+<figure class="captura"><img src="assets/img/guias/databricks/d14-pipeline.webp" alt="El archivo de transformaciones (1), el grafo que Databricks deduce del código (2), Run pipeline (3) y Dry run (4)" loading="lazy"><figcaption>El archivo de transformaciones (1), el grafo que Databricks deduce del código (2), Run pipeline (3) y Dry run (4)</figcaption></figure>
+
+
+<pre data-norun><code class="language-sql">-- Bronze: tabla de streaming (incremental: en cada actualización procesa solo lo nuevo)
+CREATE OR REFRESH STREAMING TABLE pedidos_bronze
+COMMENT 'Pedidos tal como llegan'
+AS SELECT * FROM STREAM(samples.tienda.pedidos);
+
+-- Silver: vista materializada con expectativas de calidad
+CREATE OR REFRESH MATERIALIZED VIEW pedidos_silver (
+  CONSTRAINT canal_valido EXPECT (canal IN ('web', 'app', 'tienda', 'telefono')) ON VIOLATION DROP ROW,
+  CONSTRAINT con_cliente EXPECT (cliente_id IS NOT NULL),
+  CONSTRAINT estado_conocido EXPECT (estado &lt;&gt; 'desconocido')
+)
+COMMENT 'Pedidos limpios'
+AS SELECT pedido_id, cliente_id, canal, estado, CAST(fecha_pedido AS DATE) AS fecha
+FROM pedidos_bronze;
+
+-- Gold: agregado para el tablero
+CREATE OR REFRESH MATERIALIZED VIEW pedidos_por_dia
+AS SELECT fecha, canal, COUNT(*) AS pedidos
+FROM pedidos_silver
+GROUP BY fecha, canal;</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Elemento</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Streaming table</strong></td>
+<td>Se alimenta de una fuente que crece (archivos, una tabla, un tópico); cada actualización procesa <strong>solo lo nuevo</strong></td>
+</tr>
+<tr>
+<td><strong>Materialized view</strong></td>
+<td>Se recalcula a partir de sus fuentes; Databricks la actualiza incrementalmente cuando puede</td>
+</tr>
+<tr>
+<td><strong><code>STREAM(...)</code></strong></td>
+<td>Leer la fuente como flujo</td>
+</tr>
+<tr>
+<td><strong><code>CONSTRAINT … EXPECT (condición)</code></strong></td>
+<td>Una expectativa de calidad</td>
+</tr>
+<tr>
+<td>El orden</td>
+<td>No importa: el grafo sale de las dependencias (<code>pedidos_silver</code> lee <code>pedidos_bronze</code>)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Expectativas: las tres acciones</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Acción</th>
+<th>Qué pasa con la fila que no cumple</th>
+</tr>
+</thead><tbody><tr>
+<td><em>(sin ON VIOLATION)</em></td>
+<td>Se <strong>conserva</strong> y se cuenta como fallida (avisar)</td>
+</tr>
+<tr>
+<td><code>ON VIOLATION DROP ROW</code></td>
+<td>Se <strong>descarta</strong></td>
+</tr>
+<tr>
+<td><code>ON VIOLATION FAIL UPDATE</code></td>
+<td><strong>Falla</strong> toda la actualización (para reglas que no admiten excepción)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Ejecutar</h2>
+<p><strong>Run pipeline</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d14-corriendo.webp" alt="Los datasets se actualizan en orden - cada nodo muestra su estado" loading="lazy"><figcaption>Los datasets se actualizan en orden - cada nodo muestra su estado</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d14-completado.webp" alt="COMPLETED (1) - bronze 12 000 escritas, silver 12 000 con 3 expectativas, gold 3719 filas (2)" loading="lazy"><figcaption>COMPLETED (1) - bronze 12 000 escritas, silver 12 000 con 3 expectativas, gold 3719 filas (2)</figcaption></figure>
+
+
+<p>Haz clic en <code>pedidos_silver</code>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d14-calidad.webp" alt="Data quality - cada expectativa con su acción, filas que pasaron, que fallaron y el porcentaje" loading="lazy"><figcaption>Data quality - cada expectativa con su acción, filas que pasaron, que fallaron y el porcentaje</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d14-event-log.webp" alt="El registro de eventos - cada flujo con su inicio, fin y filas escritas" loading="lazy"><figcaption>El registro de eventos - cada flujo con su inicio, fin y filas escritas</figcaption></figure>
+
+
+<p>Las tablas quedan en <strong>Catalog → main → ventas_pipeline</strong>, consultables como cualquier otra.</p>
+<h2>Paso 5 — Dry run, Full refresh y modos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Botón</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Dry run</strong></td>
+<td>Valida el código y arma el grafo sin escribir nada</td>
+</tr>
+<tr>
+<td><strong>Run pipeline</strong></td>
+<td>Actualización incremental</td>
+</tr>
+<tr>
+<td><strong>Full refresh all</strong></td>
+<td>Vuelve a procesar <strong>todo</strong> desde cero (para cambios de lógica o datos corregidos en origen; en producción, con cuidado: puede tardar y costar)</td>
+</tr>
+<tr>
+<td><strong>Triggered / Continuous</strong></td>
+<td>Correr cuando se lo pide (un job, un horario) o quedarse procesando sin parar</td>
+</tr>
+</tbody></table></div>
+<p>Un pipeline se programa agregándolo como <strong>tarea de tipo Pipeline</strong> en un job (lección 13).</p>
+<h2>Paso 6 — Job o pipeline</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Transformaciones de tablas en cadena, calidad de datos, cargas incrementales</td>
+<td><strong>Pipeline declarativo</strong></td>
+</tr>
+<tr>
+<td>Pasos heterogéneos (un notebook, una consulta, una condición, llamar al pipeline, avisar)</td>
+<td><strong>Job</strong>, que puede incluir el pipeline como tarea</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 AUTO CDC</div>
+
+<p>Para aplicar cambios de un origen (altas, bajas, modificaciones) a una tabla de destino, los pipelines tienen <code>CREATE FLOW … AS AUTO CDC INTO destino FROM origen KEYS (…) SEQUENCE BY …</code>: el <code>MERGE</code> incremental resuelto por la plataforma, incluso con historial (SCD tipo 2). Lo practicas en la <a href="#/l/databricks-practica-sql">práctica autocorregida de Databricks SQL</a>.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste y ejecutaste un pipeline con bronze, silver y gold.</li>
+<li>Entiendes tablas de streaming, vistas materializadas y expectativas.</li>
+<li>Lees el grafo, la calidad y los eventos, y sabes cuándo hacer Full refresh.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-pipelines-declarativos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-jobs-orquestar.html">← Jobs - orquestar notebooks y consultas con tareas, dependencias, reintentos y horario</a><a href="databricks-paso-a-paso-unity-catalog-gobierno.html">Unity Catalog - catálogos, esquemas, permisos, linaje y tablas del sistema →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboards AI/BI y alertas - tableros para el negocio y avisos automáticos · Academia de Datos</title><meta name="description" content="Un dashboard de AI/BI junta consultas (datasets) y gráficos (widgets) en una página con filtros, se edita como borrador y se publica para el negocio. Crear uno, agregar visualizaciones y un filtro, publicarlo y entender la diferencia entre borrador y publicado. Después, alertas - una consulta, una condición y un aviso cuando se cumple, con su historial."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-dashboards-y-alertas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Dashboards AI/BI y alertas - tableros para el negocio y avisos automáticos · Academia de Datos"><meta property="og:description" content="Un dashboard de AI/BI junta consultas (datasets) y gráficos (widgets) en una página con filtros, se edita como borrador y se publica para el negocio. Crear uno, agregar visualizaciones y un filtro, publicarlo y entender la diferencia entre borrador y publicado. Después, alertas - una consulta, una condición y un aviso cuando se cumple, con su historial."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-dashboards-y-alertas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 5 · Avanzado · 50 min</div>
+<h1>Dashboards AI/BI y alertas - tableros para el negocio y avisos automáticos</h1><p class="resumen">Un dashboard de AI/BI junta consultas (datasets) y gráficos (widgets) en una página con filtros, se edita como borrador y se publica para el negocio. Crear uno, agregar visualizaciones y un filtro, publicarlo y entender la diferencia entre borrador y publicado. Después, alertas - una consulta, una condición y un aviso cuando se cumple, con su historial.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-dashboards-y-alertas">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un dashboard con dataset, visualización y filtro</li><li>Distinguir borrador de versión publicada</li><li>Diseñar un dataset que sirva a varios gráficos</li><li>Crear y evaluar una alerta</li><li>Elegir umbrales y horarios con criterio</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El dashboard es la vidriera del trabajo del equipo de datos: el director no abre notebooks, abre el tablero. Y la alerta es el vigilante nocturno: mira un número cada hora y te despierta solo si pasa algo.</p>
+</div>
+
+
+<h2>Paso 1 — Crear el dashboard</h2>
+<p>Menú <strong>Analytics → Dashboards → Create dashboard</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d17-nuevo.webp" alt="Nombre (1) y el primer dataset (2) - una consulta que junta pedidos, detalle, productos, categorías y clientes" loading="lazy"><figcaption>Nombre (1) y el primer dataset (2) - una consulta que junta pedidos, detalle, productos, categorías y clientes</figcaption></figure>
+
+
+<p>Un <strong>dataset</strong> es una consulta SQL; los gráficos se construyen sobre sus columnas. El del ejemplo devuelve una fila por línea de pedido con <code>categoria</code>, <code>pais</code>, <code>canal</code> y <code>monto</code>: un dataset &quot;ancho&quot; que sirve para muchos gráficos distintos.</p>
+<h2>Paso 2 — Visualizaciones y filtros</h2>
+<p><strong>Add visualization</strong> → eliges dataset y título → el editor de gráficos:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d17-viz.webp" alt="Tipo (1), eje X (2), eje Y con agregación (3) y vista previa (4)" loading="lazy"><figcaption>Tipo (1), eje X (2), eje Y con agregación (3) y vista previa (4)</figcaption></figure>
+
+
+<p><strong>Add filter</strong> → eliges la columna (<code>categoria</code>). El filtro aplica a todos los widgets que usen un dataset con esa columna:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d17-dashboard.webp" alt="El borrador - datasets (1), filtros (2), los widgets en la grilla (3) y Publish (4)" loading="lazy"><figcaption>El borrador - datasets (1), filtros (2), los widgets en la grilla (3) y Publish (4)</figcaption></figure>
+
+
+<p>Cada widget se puede editar (lápiz), ensanchar o borrar. Un dashboard útil tiene <strong>pocos</strong> gráficos que responden preguntas concretas, un filtro o dos, y contadores arriba para los números clave.</p>
+<h2>Paso 3 — Publicar</h2>
+<figure class="captura"><img src="assets/img/guias/databricks/d17-publicado.webp" alt="La versión publicada - lo que ve el negocio, con el filtro funcionando" loading="lazy"><figcaption>La versión publicada - lo que ve el negocio, con el filtro funcionando</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Borrador (Draft)</th>
+<th>Publicado</th>
+</tr>
+</thead><tbody><tr>
+<td>Quién lo ve</td>
+<td>Quien edita</td>
+<td>Quien tenga permiso de ver</td>
+</tr>
+<tr>
+<td>Qué pasa al editar</td>
+<td>Cambia el borrador</td>
+<td>No cambia hasta volver a publicar</td>
+</tr>
+</tbody></table></div>
+<p>Así puedes rehacer el tablero con calma mientras el negocio sigue viendo la versión estable. En Databricks real, al publicar eliges si los lectores usan <strong>tus</strong> credenciales (ven todo lo que tú ves) o las <strong>suyas</strong> (solo lo que sus permisos permiten).</p>
+<h2>Paso 4 — Alertas</h2>
+<p>Menú <strong>Analytics → Alerts → Create alert</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d17-alerta-nueva.webp" alt="La consulta (1), la columna a vigilar (2), el operador (3), el umbral (4) y el horario (5)" loading="lazy"><figcaption>La consulta (1), la columna a vigilar (2), el operador (3), el umbral (4) y el horario (5)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d17-alerta.webp" alt="La alerta evaluada - TRIGGERED (1) porque hay 967 cancelados, más que el umbral; Evaluate now (2) la evalúa al instante" loading="lazy"><figcaption>La alerta evaluada - TRIGGERED (1) porque hay 967 cancelados, más que el umbral; Evaluate now (2) la evalúa al instante</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Estado</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>OK</strong></td>
+<td>La condición no se cumple</td>
+</tr>
+<tr>
+<td><strong>TRIGGERED</strong></td>
+<td>Se cumple: se envía la notificación</td>
+</tr>
+<tr>
+<td><strong>UNKNOWN</strong></td>
+<td>La consulta falló o no devolvió valor</td>
+</tr>
+</tbody></table></div>
+<p>La alerta mira la <strong>primera fila</strong> de la columna elegida: la consulta debe devolver un solo número (un <code>COUNT</code>, un <code>SUM</code>, un <code>MAX</code>).</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Umbrales que no griten todo el día</div>
+
+<p>Una alerta que se dispara siempre se ignora siempre. Define la condición sobre algo <strong>anormal</strong> (&quot;más de 50 cancelados en la última hora&quot;, no &quot;más de 10 cancelados en toda la historia&quot;), con un horario acorde al dato (si los datos se cargan a la mañana, evaluar cada hora de madrugada no aporta).</p>
+</div>
+
+
+<h2>Paso 5 — El cómputo de todo esto</h2>
+<p>Dashboards, alertas y Genie corren sobre un <strong>SQL warehouse</strong> (lección 11). Un tablero con diez gráficos que consultan tablas de millones de filas, abierto por cien personas, necesita un warehouse más grande o más clusters; un tablero sobre tablas <strong>gold</strong> chicas (como <code>pedidos_por_dia</code>) vuela en el más pequeño. Por eso la capa gold existe: no para el ingeniero, sino para el tablero.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste y publicaste un dashboard con dataset, gráfico y filtro.</li>
+<li>Entiendes borrador y publicado.</li>
+<li>Creaste una alerta y sabes definir umbrales útiles.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-dashboards-y-alertas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-proyecto-pipeline-orquestado.html">← Proyecto 4 (con requisitos) - un pipeline de pedidos orquestado, con calidad y permisos</a><a href="databricks-paso-a-paso-genie-agents.html">Genie Agents - preguntas en lenguaje natural sobre tus tablas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

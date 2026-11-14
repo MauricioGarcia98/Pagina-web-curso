@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qué es Databricks y cómo es el workspace · Academia de Datos</title><meta name="description" content="Databricks es la plataforma donde los equipos de datos guardan, transforman, analizan y modelan datos a gran escala. Qué es un lakehouse, qué es un workspace, qué hay en cada parte de la pantalla (barra superior, menú lateral, área de trabajo, botón New) y qué puedes hacer en el Databricks de práctica, que corre en tu navegador sin cuenta ni costo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-que-es-databricks.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Qué es Databricks y cómo es el workspace · Academia de Datos"><meta property="og:description" content="Databricks es la plataforma donde los equipos de datos guardan, transforman, analizan y modelan datos a gran escala. Qué es un lakehouse, qué es un workspace, qué hay en cada parte de la pantalla (barra superior, menú lateral, área de trabajo, botón New) y qué puedes hacer en el Databricks de práctica, que corre en tu navegador sin cuenta ni costo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-que-es-databricks.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 1 · Básico · 30 min</div>
+<h1>Qué es Databricks y cómo es el workspace</h1><p class="resumen">Databricks es la plataforma donde los equipos de datos guardan, transforman, analizan y modelan datos a gran escala. Qué es un lakehouse, qué es un workspace, qué hay en cada parte de la pantalla (barra superior, menú lateral, área de trabajo, botón New) y qué puedes hacer en el Databricks de práctica, que corre en tu navegador sin cuenta ni costo.</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-que-es-databricks">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es Databricks y qué problema resuelve</li><li>Reconocer las zonas de la pantalla del workspace</li><li>Ubicar cada sección del menú lateral y para qué sirve</li><li>Saber qué hace el botón New</li><li>Entender qué es real y qué es simulado en la práctica</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Imagina una fábrica de datos. Databricks es el edificio completo: el depósito donde llegan los datos (el <em>lakehouse</em>), las máquinas que los procesan (el <strong>cómputo</strong>), los cuadernos donde los ingenieros escriben las recetas (los <strong>notebooks</strong>), el catálogo que dice qué hay en cada estante y quién puede tocarlo (<strong>Unity Catalog</strong>) y la sala de tableros para los directores (<strong>dashboards</strong>). El <strong>workspace</strong> es la puerta por la que entras a todo eso.</p>
+</div>
+
+
+<h2>Paso 1 — Qué es Databricks</h2>
+<p>Databricks es una plataforma en la nube (Azure, AWS o Google Cloud) para trabajar con datos de cualquier tamaño:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas</th>
+<th>En Databricks</th>
+</tr>
+</thead><tbody><tr>
+<td>Guardar millones de filas y consultarlas rápido</td>
+<td>Tablas <strong>Delta</strong> sobre el almacenamiento de tu nube</td>
+</tr>
+<tr>
+<td>Transformar datos con SQL o Python</td>
+<td><strong>Notebooks</strong> y el <strong>editor SQL</strong> sobre Spark</td>
+</tr>
+<tr>
+<td>Que algo corra todos los días a las 6</td>
+<td><strong>Jobs</strong> y <strong>pipelines</strong></td>
+</tr>
+<tr>
+<td>Saber qué tabla es cuál y quién la puede ver</td>
+<td><strong>Unity Catalog</strong></td>
+</tr>
+<tr>
+<td>Tableros y preguntas en lenguaje natural</td>
+<td><strong>Dashboards</strong> y <strong>Genie</strong></td>
+</tr>
+<tr>
+<td>Entrenar y registrar modelos</td>
+<td><strong>MLflow</strong></td>
+</tr>
+</tbody></table></div>
+<p>La palabra <strong>lakehouse</strong> resume la idea: la flexibilidad de un <em>data lake</em> (archivos en tu nube, baratos, de cualquier tipo) con el orden de un <em>data warehouse</em> (tablas, transacciones, permisos, rendimiento).</p>
+<h2>Paso 2 — La pantalla</h2>
+<p>Abre el <a href="#/databricks">Databricks de práctica</a>:</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d01-pantalla.webp" alt="El inicio del workspace de práctica" loading="lazy"><figcaption>El inicio del workspace de práctica</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/databricks/d01-zonas.webp" alt="Las cuatro zonas - barra superior (1), menú lateral (2), área de trabajo (3) y el botón New (4)" loading="lazy"><figcaption>Las cuatro zonas - barra superior (1), menú lateral (2), área de trabajo (3) y el botón New (4)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué tiene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>1. Barra superior</strong></td>
+<td>El buscador (<strong>Ctrl P</strong>: tablas, notebooks, jobs, recientes), el selector de workspace (<code>academia-dev</code>), la ayuda y tu usuario con <strong>Settings</strong></td>
+</tr>
+<tr>
+<td><strong>2. Menú lateral</strong></td>
+<td>Las secciones del producto; el botón ☰ lo pliega para ganar espacio</td>
+</tr>
+<tr>
+<td><strong>3. Área de trabajo</strong></td>
+<td>Lo que estés haciendo: un notebook, una tabla, un job…</td>
+</tr>
+<tr>
+<td><strong>4. New</strong></td>
+<td>Crear cualquier cosa desde cualquier lugar</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — El menú lateral</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Sección</th>
+<th>Elementos</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><em>(arriba)</em></td>
+<td><strong>Workspace</strong>, <strong>Recents</strong>, <strong>Catalog</strong>, <strong>Jobs &amp; Pipelines</strong>, <strong>Compute</strong></td>
+<td>Lo de todos los días: archivos, datos, orquestación y máquinas</td>
+</tr>
+<tr>
+<td><strong>Lakehouse</strong></td>
+<td><strong>SQL Editor</strong>, <strong>Queries</strong>, <strong>Query History</strong>, <strong>SQL Warehouses</strong></td>
+<td>Trabajar con SQL</td>
+</tr>
+<tr>
+<td><strong>Analytics</strong></td>
+<td><strong>Dashboards</strong>, <strong>Genie Agents</strong>, <strong>Alerts</strong></td>
+<td>Analítica para el negocio</td>
+</tr>
+<tr>
+<td><strong>Data Engineering</strong></td>
+<td><strong>Runs</strong>, <strong>Data Ingestion</strong></td>
+<td>Ejecuciones y asistentes para cargar datos</td>
+</tr>
+<tr>
+<td><strong>AI/ML</strong></td>
+<td><strong>Playground</strong>, <strong>Agents</strong>, <strong>AI Gateway</strong>, <strong>Experiments</strong>, <strong>Features</strong>, <strong>Models</strong>, <strong>Serving</strong></td>
+<td>Modelos de lenguaje, agentes y MLflow</td>
+</tr>
+</tbody></table></div>
+<p>Al final del menú, <strong>Volver al curso</strong> te trae de regreso a esta lección.</p>
+<h2>Paso 4 — El botón New</h2>
+<figure class="captura"><img src="assets/img/guias/databricks/d01-nuevo.webp" alt="Todo lo que se puede crear desde New - notebook, consulta, dashboard, Genie Agent, alerta, job, pipeline, compute, SQL warehouse, datos y catálogo" loading="lazy"><figcaption>Todo lo que se puede crear desde New - notebook, consulta, dashboard, Genie Agent, alerta, job, pipeline, compute, SQL warehouse, datos y catálogo</figcaption></figure>
+
+
+<p>Es el atajo más usado: en lugar de ir a cada sección, <strong>New → Notebook</strong> crea un notebook en tu carpeta personal, <strong>New → Job</strong> abre un job vacío, etc.</p>
+<h2>Paso 5 — Qué es real y qué es simulado en la práctica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Real</th>
+<th>Simulado</th>
+</tr>
+</thead><tbody><tr>
+<td>El SQL: corre de verdad sobre las bases del curso (catálogo <code>samples</code>) y sobre lo que crees en <code>main</code></td>
+<td>No hay máquinas: Python y Spark corren en tu navegador con un Spark reducido</td>
+</tr>
+<tr>
+<td>Las pantallas, los menús, los formularios y los mensajes de error siguen al producto</td>
+<td>Los clusters &quot;arrancan&quot; en segundos (en Databricks real tardan minutos)</td>
+</tr>
+<tr>
+<td>Lo que crees queda guardado en tu navegador</td>
+<td>No hay cuenta, costo ni conexión a una nube</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Lo que guardes se queda</div>
+
+<p>Notebooks, tablas, jobs y clusters se guardan en tu navegador: al volver están donde los dejaste. Si quieres empezar de cero, el menú de tu usuario (la <strong>A</strong> arriba a la derecha) tiene la opción de reiniciar la práctica.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué es Databricks y qué es un lakehouse.</li>
+<li>Reconoces las zonas de la pantalla y las secciones del menú.</li>
+<li>Sabes qué puedes practicar y qué es simulado.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-que-es-databricks">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-proyecto-final.html">← Proyecto final (solo el pedido) - el repositorio del pipeline de un equipo, de cero a producción</a><a href="databricks-paso-a-paso-workspace-y-primer-notebook.html">El workspace y tu primer notebook →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

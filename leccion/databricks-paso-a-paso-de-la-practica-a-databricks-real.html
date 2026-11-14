@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica a Databricks real - cuenta, workspace, costos y lo que cambia · Academia de Datos</title><meta name="description" content="Todo lo que hiciste funciona igual en un workspace real, con algunas diferencias que conviene conocer antes de entrar. Cómo conseguir un workspace (Free Edition, prueba, Azure Databricks de tu empresa), cómo se ve el costo de verdad, los tiempos reales de clusters y pipelines, lo que la práctica simplifica, el asistente y las herramientas de la interfaz que no viste, y cómo seguir aprendiendo (certificaciones, documentación, comunidad)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-de-la-practica-a-databricks-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica a Databricks real - cuenta, workspace, costos y lo que cambia · Academia de Datos"><meta property="og:description" content="Todo lo que hiciste funciona igual en un workspace real, con algunas diferencias que conviene conocer antes de entrar. Cómo conseguir un workspace (Free Edition, prueba, Azure Databricks de tu empresa), cómo se ve el costo de verdad, los tiempos reales de clusters y pipelines, lo que la práctica simplifica, el asistente y las herramientas de la interfaz que no viste, y cómo seguir aprendiendo (certificaciones, documentación, comunidad)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/databricks-paso-a-paso-de-la-practica-a-databricks-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#databricks-paso-a-paso">🧱 Databricks paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>De la práctica a Databricks real - cuenta, workspace, costos y lo que cambia</h1><p class="resumen">Todo lo que hiciste funciona igual en un workspace real, con algunas diferencias que conviene conocer antes de entrar. Cómo conseguir un workspace (Free Edition, prueba, Azure Databricks de tu empresa), cómo se ve el costo de verdad, los tiempos reales de clusters y pipelines, lo que la práctica simplifica, el asistente y las herramientas de la interfaz que no viste, y cómo seguir aprendiendo (certificaciones, documentación, comunidad).</p>
+<a class="cta" href="../index.html#/l/databricks-paso-a-paso-de-la-practica-a-databricks-real">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir la forma de acceder a un workspace real según tu situación</li><li>Entender la factura - DBU, plan, nube</li><li>Anticipar las diferencias de tiempo y comportamiento</li><li>Conocer el Assistant, Marketplace, Apps y otras piezas no simuladas</li><li>Trazar el camino hacia una certificación</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>La práctica fue el simulador: mismos controles, sin combustible. En el avión real los controles son los mismos, pero el motor tarda en calentar, el combustible se paga y hay una torre de control (el administrador) que decide a qué pistas puedes salir.</p>
+</div>
+
+
+<h2>Paso 1 — Conseguir un workspace</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Para quién</th>
+<th>Qué tiene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Databricks Free Edition</strong></td>
+<td>Aprender por tu cuenta, gratis, sin tarjeta</td>
+<td>Un workspace serverless con límites de uso; alcanza para repetir todo este curso</td>
+</tr>
+<tr>
+<td><strong>Prueba de 14 días</strong></td>
+<td>Evaluar con tu nube (Azure, AWS, GCP)</td>
+<td>Todo el producto; pagas la nube, no los DBU</td>
+</tr>
+<tr>
+<td><strong>Azure Databricks de tu empresa</strong></td>
+<td>Trabajar</td>
+<td>El administrador te invita; llegas a un workspace ya configurado con políticas, catálogos y grupos</td>
+</tr>
+</tbody></table></div>
+<p>En Azure, un workspace se crea desde el portal como cualquier recurso (grupo de recursos, región, plan <em>Premium</em> para Unity Catalog). El <a href="#/m/azure">curso del portal de Azure</a> lo hace paso a paso.</p>
+<h2>Paso 2 — La factura</h2>
+<pre><code class="language-text">Costo = DBU consumidos × tarifa por DBU (según plan y tipo de cómputo)
+      + máquinas de la nube (cuando el cómputo es clásico, no serverless)
+      + almacenamiento de los datos (centavos por GB)</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Cómputo</th>
+<th>Tarifa por DBU (orientativa)</th>
+<th>Las máquinas las pagas</th>
+</tr>
+</thead><tbody><tr>
+<td>Jobs (job compute)</td>
+<td>La más baja</td>
+<td>Sí, a la nube</td>
+</tr>
+<tr>
+<td>All-purpose (interactivo)</td>
+<td>Más alta</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>SQL warehouse serverless</td>
+<td>Media</td>
+<td>No: va incluido</td>
+</tr>
+<tr>
+<td>Serverless para notebooks y jobs</td>
+<td>Media</td>
+<td>No</td>
+</tr>
+</tbody></table></div>
+<p><strong>Las tablas del sistema</strong> (<code>system.billing.usage</code>) muestran el gasto por cluster, job, usuario y etiqueta. Un equipo serio las mira cada semana. Las reglas de la lección 11 (autoterminación, job compute, etiquetas, políticas) son lo que separa una factura razonable de una sorpresa.</p>
+<h2>Paso 3 — Lo que tarda de verdad</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la práctica</th>
+<th>En Databricks real</th>
+</tr>
+</thead><tbody><tr>
+<td>Un cluster arranca en segundos</td>
+<td>3 a 7 minutos (serverless: segundos)</td>
+</tr>
+<tr>
+<td>Un pipeline corre en segundos</td>
+<td>La primera actualización, varios minutos; después depende del volumen</td>
+</tr>
+<tr>
+<td>Python carga una vez en tu navegador</td>
+<td>Cada cluster nuevo instala las librerías (por eso existen las políticas y los pools)</td>
+</tr>
+<tr>
+<td>Las consultas son instantáneas</td>
+<td>Sobre millones de filas, segundos; el warehouse se enciende si estaba apagado</td>
+</tr>
+</tbody></table></div>
+<p>Esto cambia la forma de trabajar: en real, <strong>agrupas</strong> lo que vas a ejecutar, usas serverless para explorar y dejas los clusters para jobs.</p>
+<h2>Paso 4 — Lo que la práctica simplifica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tema</th>
+<th>En la práctica</th>
+<th>En real</th>
+</tr>
+</thead><tbody><tr>
+<td>Grupos</td>
+<td>Entras y sales tú mismo</td>
+<td>Los administra la cuenta; se prueban con usuarios de prueba</td>
+</tr>
+<tr>
+<td>Correos de alertas y jobs</td>
+<td>Simulados</td>
+<td>Llegan de verdad (y por Slack, Teams, webhooks)</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>Exportar e importar notebooks</td>
+<td><strong>Git folders</strong> con ramas, commit, pull request desde la interfaz</td>
+</tr>
+<tr>
+<td>Conectores</td>
+<td>CSV y tablas del curso</td>
+<td><strong>Lakeflow Connect</strong>: bases de datos, Salesforce, SharePoint, Kafka… sin código</td>
+</tr>
+<tr>
+<td>Datos externos</td>
+<td>No</td>
+<td><strong>External locations</strong> y <strong>storage credentials</strong> para leer tu almacenamiento</td>
+</tr>
+<tr>
+<td>Compartir con otras empresas</td>
+<td>No</td>
+<td><strong>Delta Sharing</strong>: compartir tablas sin copiarlas</td>
+</tr>
+<tr>
+<td>Datos de terceros</td>
+<td>No</td>
+<td><strong>Marketplace</strong>: datasets y modelos listos para usar</td>
+</tr>
+<tr>
+<td>Aplicaciones</td>
+<td>No</td>
+<td><strong>Databricks Apps</strong>: aplicaciones web (Streamlit, Dash) dentro del workspace</td>
+</tr>
+<tr>
+<td>Asistente de IA</td>
+<td>No</td>
+<td><strong>Databricks Assistant</strong>: escribe y corrige SQL y Python en el notebook y el editor, explica errores</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Tus primeras horas en un workspace real</h2>
+<ol>
+<li><strong>Mira el catálogo</strong> antes de crear nada: qué catálogos hay, dónde te dejan escribir (pregunta por el de desarrollo).</li>
+<li><strong>Usa serverless</strong> para explorar; crea compute solo con una política y con autoterminación.</li>
+<li><strong>Pide los grupos</strong> que necesitas en lugar de permisos personales.</li>
+<li><strong>Trabaja en una Git folder</strong> desde el primer día.</li>
+<li><strong>No subas datos reales a volúmenes de prueba</strong> sin saber las reglas de la empresa sobre datos personales.</li>
+<li><strong>Revisa el costo</strong> de tu primera semana en <code>system.billing.usage</code>.</li>
+</ol>
+<h2>Paso 6 — Ajustes personales</h2>
+<p>Menú de usuario → <strong>Settings → Preferences</strong>: tema claro, oscuro o el del sistema, idioma y otros ajustes de la interfaz. En <strong>Developer</strong> están los tokens (lección 19). En un workspace real, además, la pestaña de administración (si tienes el rol) controla usuarios, políticas de compute y funciones habilitadas.</p>
+<figure class="captura"><img src="assets/img/guias/databricks/d23-apariencia.webp" alt="Preferences - el tema del workspace" loading="lazy"><figcaption>Preferences - el tema del workspace</figcaption></figure>
+
+
+<h2>Paso 7 — Seguir aprendiendo</h2>
+<ul>
+<li><strong>Certificaciones</strong>: lo que hiciste cubre buena parte del <strong>Databricks Certified Data Engineer Associate</strong>; el módulo de <a href="#/m/cert-databricks">certificaciones Databricks</a> tiene el plan de estudio y los simulacros.</li>
+<li><strong>Documentación</strong>: <code>docs.databricks.com</code> (y <code>learn.microsoft.com/azure/databricks</code> para Azure). Cada pantalla de la práctica sigue la documentación pública.</li>
+<li><strong>Práctica en Free Edition</strong>: repite los seis proyectos con tus propios datos.</li>
+<li>Los cursos de <a href="#/m/pyspark">PySpark</a>, <a href="#/m/dbt">dbt</a> y <a href="#/m/airflow">Airflow</a> del sitio se conectan directamente con lo que hace Databricks por dentro y alrededor.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes cómo conseguir un workspace y qué vas a pagar.</li>
+<li>Anticipas las diferencias de tiempo y de funciones.</li>
+<li>Tienes un plan para tus primeras horas y para seguir.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/databricks-paso-a-paso-de-la-practica-a-databricks-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="databricks-paso-a-paso-databricks-como-codigo.html">← Databricks como código - View as code, la CLI, bundles y Git</a><a href="databricks-paso-a-paso-proyecto-final.html">Proyecto final (solo el pedido) - el lakehouse de una app de delivery, de cero a producción →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
