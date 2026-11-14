@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguridad en GitHub - claves filtradas, push protection, Dependabot y buenas prácticas · Academia de Datos</title><meta name="description" content="El error de seguridad más común de un equipo de datos es subir una clave al repositorio. Qué hace GitHub cuando detecta una (secret scanning y push protection), qué tienes que hacer tú (rotar, no solo borrar), cómo te avisa de librerías vulnerables (Dependabot), cómo endurecer los workflows y tu cuenta, y un plan de respuesta para cuando pasa."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-seguridad.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Seguridad en GitHub - claves filtradas, push protection, Dependabot y buenas prácticas · Academia de Datos"><meta property="og:description" content="El error de seguridad más común de un equipo de datos es subir una clave al repositorio. Qué hace GitHub cuando detecta una (secret scanning y push protection), qué tienes que hacer tú (rotar, no solo borrar), cómo te avisa de librerías vulnerables (Dependabot), cómo endurecer los workflows y tu cuenta, y un plan de respuesta para cuando pasa."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-seguridad.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 5 · Avanzado · 50 min</div>
+<h1>Seguridad en GitHub - claves filtradas, push protection, Dependabot y buenas prácticas</h1><p class="resumen">El error de seguridad más común de un equipo de datos es subir una clave al repositorio. Qué hace GitHub cuando detecta una (secret scanning y push protection), qué tienes que hacer tú (rotar, no solo borrar), cómo te avisa de librerías vulnerables (Dependabot), cómo endurecer los workflows y tu cuenta, y un plan de respuesta para cuando pasa.</p>
+<a class="cta" href="../index.html#/l/github-seguridad">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer una alerta de secret scanning</li><li>Explicar push protection</li><li>Responder correctamente a una clave filtrada</li><li>Configurar Dependabot</li><li>Endurecer workflows y cuenta (permisos, 2FA)</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Subir una clave a GitHub es como olvidar la llave de casa pegada en la puerta. Sacarla después no sirve si alguien ya pudo copiarla: hay que <strong>cambiar la cerradura</strong>. En un repositorio público, hay bots que buscan claves nuevas en minutos.</p>
+</div>
+
+
+<h2>Paso 1 — Provocar una alerta (con una clave falsa)</h2>
+<p>En <code>ventas-app</code>, en una rama, crea <code>config.py</code> con la clave de ejemplo que AWS publica en su documentación (no es real y no funciona):</p>
+<pre data-norun><code class="language-python">AWS_ACCESS_KEY_ID = &quot;AKIAIOSFODNN7EXAMPLE&quot;
+AWS_SECRET_ACCESS_KEY = &quot;wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY&quot;</code></pre>
+<pre><code class="language-bash">git switch -c feature/config
+git add config.py &amp;&amp; git commit -m &quot;Agrega configuración&quot; &amp;&amp; git push -u origin feature/config</code></pre>
+<figure class="captura"><img src="assets/img/guias/github/g18-push-protection.webp" alt="En la práctica el push pasa, como en un repositorio sin push protection" loading="lazy"><figcaption>En la práctica el push pasa, como en un repositorio sin push protection</figcaption></figure>
+
+
+<p>Ahora mira la pestaña <strong>Security</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g18-security.webp" alt="Secret scanning detectó una Amazon AWS Access Key ID en config.py línea 1, rama feature/config" loading="lazy"><figcaption>Secret scanning detectó una Amazon AWS Access Key ID en config.py línea 1, rama feature/config</figcaption></figure>
+
+
+<h2>Paso 2 — Secret scanning y push protection</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Cuándo actúa</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Secret scanning</strong></td>
+<td>Después del push</td>
+<td>Busca patrones de claves de cientos de proveedores en todo el historial y abre una alerta (y en repos públicos avisa al proveedor, que muchas veces revoca la clave)</td>
+</tr>
+<tr>
+<td><strong>Push protection</strong></td>
+<td>Durante el push</td>
+<td><strong>Rechaza</strong> el push si contiene una clave conocida (<code>GH013: Repository rule violations found</code>) y te dice el archivo y la línea</td>
+</tr>
+</tbody></table></div>
+<p>En GitHub real, push protection está activa por defecto en los repositorios públicos y se activa en <strong>Settings → Advanced Security</strong> en los privados. En la práctica la omitimos a propósito para que veas la alerta.</p>
+<h2>Paso 3 — Qué hacer cuando se filtra una clave</h2>
+<ol>
+<li><strong>Rotar primero</strong>: en el sistema de origen (AWS, Azure, la base de datos), revocar la clave y crear otra. Esto es lo único que realmente protege.</li>
+<li>Guardar la nueva como <strong>secreto</strong> (lección 17) o en un gestor (Key Vault, Secrets Manager).</li>
+<li>Cambiar el código para que lea de una variable de entorno: <code>os.environ[&quot;AWS_ACCESS_KEY_ID&quot;]</code>.</li>
+<li>Revisar los logs del proveedor: ¿alguien usó la clave mientras estuvo expuesta?</li>
+<li>Cerrar la alerta como <strong>Revoked</strong>.</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Borrarla en un commit nuevo no alcanza</div>
+
+<p>El commit viejo sigue en el historial: cualquiera puede verlo con <code>git log -p</code>. Reescribir el historial (<code>git filter-repo</code>) tampoco basta si ya alguien clonó o si el repositorio es público. <strong>La clave expuesta se considera comprometida: se rota siempre.</strong></p>
+</div>
+
+
+<p>Limpia la práctica: <code>git switch main &amp;&amp; git branch -D feature/config</code> y borra la rama en GitHub.</p>
+<h2>Paso 4 — Dependabot</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Dependabot alerts</strong></td>
+<td>Te avisa si una librería de tu <code>requirements.txt</code> tiene una vulnerabilidad conocida</td>
+</tr>
+<tr>
+<td><strong>Dependabot security updates</strong></td>
+<td>Abre un PR que sube la librería a la versión corregida</td>
+</tr>
+<tr>
+<td><strong>Dependabot version updates</strong></td>
+<td>Abre PRs periódicos para mantener las librerías al día</td>
+</tr>
+</tbody></table></div>
+<p>Las <em>version updates</em> se configuran con <code>.github/dependabot.yml</code>:</p>
+<pre><code class="language-yaml">version: 2
+updates:
+  - package-ecosystem: &quot;pip&quot;
+    directory: &quot;/&quot;
+    schedule:
+      interval: &quot;weekly&quot;
+  - package-ecosystem: &quot;github-actions&quot;
+    directory: &quot;/&quot;
+    schedule:
+      interval: &quot;weekly&quot;</code></pre>
+<p>Cada PR de Dependabot pasa por tu CI: si los tests pasan, lo revisas y lo fusionas.</p>
+<h2>Paso 5 — Endurecer los workflows</h2>
+<pre><code class="language-yaml">permissions:
+  contents: read          # el token del workflow solo puede leer</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Práctica</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>permissions</code> mínimos arriba del workflow</td>
+<td>El <code>GITHUB_TOKEN</code> automático no puede hacer más de lo necesario</td>
+</tr>
+<tr>
+<td>Acciones de terceros fijadas por SHA (<code>uses: org/accion@&lt;sha-completo&gt;</code>)</td>
+<td>Una etiqueta <code>@v1</code> puede moverse a código malicioso</td>
+</tr>
+<tr>
+<td>No usar <code>pull_request_target</code> con código del PR</td>
+<td>Corre con permisos del repositorio sobre código de un desconocido</td>
+</tr>
+<tr>
+<td>No interpolar <code>${{ github.event.issue.title }}</code> dentro de <code>run:</code></td>
+<td>Un título malicioso se ejecuta como comando; pásalo por <code>env:</code></td>
+</tr>
+<tr>
+<td><strong>Code scanning</strong> (CodeQL)</td>
+<td>Analiza tu código buscando vulnerabilidades en cada PR</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — Tu cuenta</h2>
+<ul>
+<li><strong>2FA obligatorio</strong>: con una app autenticadora o una <em>passkey</em>. GitHub lo exige a quien contribuye código.</li>
+<li><strong>Tokens con fecha de vencimiento</strong> y los permisos mínimos (<em>fine-grained tokens</em>).</li>
+<li>Revisa de vez en cuando <strong>Settings → Applications</strong> y <strong>Sessions</strong>.</li>
+<li>Un archivo <strong>SECURITY.md</strong> en el repositorio explica cómo reportar una vulnerabilidad de forma privada.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Viste una alerta de secret scanning y sabes qué es push protection.</li>
+<li>Sabes responder a una clave filtrada: rotar primero.</li>
+<li>Configuraste Dependabot y sabes endurecer workflows y tu cuenta.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-seguridad">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-secretos-y-variables.html">← Secretos y variables - contraseñas fuera del código, también en GitHub Actions</a><a href="github-pages-e-insights.html">GitHub Pages e Insights - publicar documentación y medir la actividad del proyecto →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

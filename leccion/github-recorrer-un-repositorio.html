@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recorrer un repositorio - archivos, README, ramas, historial e issues · Academia de Datos</title><meta name="description" content="Cómo leer un repositorio que no conoces, como el primer día en un equipo nuevo. Las pestañas del repositorio, el README, la lista de archivos con su último commit, el selector de ramas, el botón Code para clonar, la vista de un archivo, el historial de commits y la lista de issues con sus etiquetas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-recorrer-un-repositorio.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Recorrer un repositorio - archivos, README, ramas, historial e issues · Academia de Datos"><meta property="og:description" content="Cómo leer un repositorio que no conoces, como el primer día en un equipo nuevo. Las pestañas del repositorio, el README, la lista de archivos con su último commit, el selector de ramas, el botón Code para clonar, la vista de un archivo, el historial de commits y la lista de issues con sus etiquetas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-recorrer-un-repositorio.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 1 · Básico · 35 min</div>
+<h1>Recorrer un repositorio - archivos, README, ramas, historial e issues</h1><p class="resumen">Cómo leer un repositorio que no conoces, como el primer día en un equipo nuevo. Las pestañas del repositorio, el README, la lista de archivos con su último commit, el selector de ramas, el botón Code para clonar, la vista de un archivo, el historial de commits y la lista de issues con sus etiquetas.</p>
+<a class="cta" href="../index.html#/l/github-recorrer-un-repositorio">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Reconocer las partes de la página de un repositorio</li><li>Leer el README y la descripción del repositorio</li><li>Abrir un archivo y ver quién lo cambió por última vez</li><li>Recorrer el historial de commits</li><li>Leer la lista de issues y sus etiquetas</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un repositorio es como la carpeta compartida de un proyecto, pero con memoria: cada archivo sabe quién lo cambió, cuándo y por qué. El README es el cartel de la puerta: lo primero que lees para saber qué hay adentro.</p>
+</div>
+
+
+<h2>Paso 1 — La página del repositorio</h2>
+<p>Abre <a href="#/github/tienda-andina/pipelines">tienda-andina/pipelines</a>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g02-repo.webp" alt="Las pestañas (1), la barra de ramas y botones (2), la lista de archivos (3), el README (4) y la sección About (5)" loading="lazy"><figcaption>Las pestañas (1), la barra de ramas y botones (2), la lista de archivos (3), el README (4) y la sección About (5)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Parte</th>
+<th>Qué muestra</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td><strong>Pestañas</strong></td>
+<td>Code, Issues (con cuántos abiertos), Pull requests, Actions, Security, Insights, Settings</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Barra de ramas</strong></td>
+<td>La rama que estás viendo (<code>main</code>), cuántas ramas y tags hay, buscar un archivo, <strong>Add file</strong> y <strong>Code</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Lista de archivos</strong></td>
+<td>Cada archivo o carpeta con el mensaje y la fecha de su <strong>último commit</strong>; arriba, el último commit del repositorio y el total de commits</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>README</strong></td>
+<td>El archivo README.md mostrado con formato: qué es el proyecto y cómo se usa</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>About</strong></td>
+<td>Descripción, temas (<em>topics</em>), licencia, estrellas y lenguajes</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Leer un repositorio nuevo</div>
+
+<p>Orden recomendado: (1) el README, (2) la estructura de carpetas, (3) los últimos commits para ver qué se está cambiando, (4) los issues abiertos para saber qué falta. En diez minutos entiendes de qué se trata.</p>
+</div>
+
+
+<h2>Paso 2 — El botón Code</h2>
+<p>Presiona el botón verde <strong>Code</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g02-boton-code.webp" alt="El menú Code: la URL para clonar (HTTPS, SSH o GitHub CLI) y Download ZIP" loading="lazy"><figcaption>El menú Code: la URL para clonar (HTTPS, SSH o GitHub CLI) y Download ZIP</figcaption></figure>
+
+
+<ul>
+<li><strong>HTTPS</strong>: <code>https://github.com/tienda-andina/pipelines.git</code>, la URL para <code>git clone</code>.</li>
+<li><strong>SSH</strong> y <strong>GitHub CLI</strong>: otras formas de clonar (lección 23).</li>
+<li><strong>Clonar en la terminal de práctica</strong> (solo en la práctica) y <strong>Download ZIP</strong>: una copia sin historia de Git.</li>
+</ul>
+<h2>Paso 3 — Un archivo</h2>
+<p>Haz clic en la carpeta <strong>pipelines</strong> y después en <strong>etl.py</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g02-archivo.webp" alt="Un archivo: la ruta, el último commit que lo cambió, el código con números de línea y los botones Raw, copiar, descargar y editar" loading="lazy"><figcaption>Un archivo: la ruta, el último commit que lo cambió, el código con números de línea y los botones Raw, copiar, descargar y editar</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Botón</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Blame</strong></td>
+<td>Muestra qué commit cambió cada línea (útil para preguntar &quot;¿por qué está esto?&quot;)</td>
+</tr>
+<tr>
+<td><strong>History</strong></td>
+<td>Los commits que tocaron este archivo</td>
+</tr>
+<tr>
+<td><strong>Raw</strong></td>
+<td>El archivo sin formato</td>
+</tr>
+<tr>
+<td>Lápiz</td>
+<td>Editarlo en el navegador (lección 3)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — El historial</h2>
+<p>En la página del repositorio, haz clic en <strong>2 Commits</strong> (arriba de la lista de archivos):</p>
+<figure class="captura"><img src="assets/img/guias/github/g02-commits.webp" alt="El historial: cada commit con su mensaje, autor, fecha y su identificador (hash)" loading="lazy"><figcaption>El historial: cada commit con su mensaje, autor, fecha y su identificador (hash)</figcaption></figure>
+
+
+<p>Cada commit tiene un <strong>hash</strong> (por ejemplo <code>ef356a5</code>): su identificador único. Un clic en el commit muestra exactamente qué cambió.</p>
+<h2>Paso 5 — Los issues</h2>
+<p>Pestaña <strong>Issues</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g02-issues.webp" alt="Los issues abiertos del equipo, con etiquetas como enhancement, good first issue o help wanted" loading="lazy"><figcaption>Los issues abiertos del equipo, con etiquetas como enhancement, good first issue o help wanted</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Etiqueta</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>bug</code></td>
+<td>Algo no funciona</td>
+</tr>
+<tr>
+<td><code>enhancement</code></td>
+<td>Algo nuevo o una mejora</td>
+</tr>
+<tr>
+<td><code>good first issue</code></td>
+<td>Buen punto de partida para alguien que recién llega</td>
+</tr>
+<tr>
+<td><code>help wanted</code></td>
+<td>El equipo necesita ayuda con esto</td>
+</tr>
+<tr>
+<td><code>documentation</code></td>
+<td>Mejoras en la documentación</td>
+</tr>
+</tbody></table></div>
+<p>El issue <strong>#2 Agregar tests al ETL</strong> es <code>good first issue</code>: lo vas a resolver en el proyecto 3.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Lees la página de un repositorio y su README.</li>
+<li>Sabes dónde está la URL para clonar.</li>
+<li>Recorres archivos, historial e issues.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-recorrer-un-repositorio">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-que-es-github.html">← GitHub desde cero - qué es, para qué lo usa un equipo de datos y cómo se lee su pantalla</a><a href="github-crear-y-editar-en-la-web.html">Crear un repositorio y editar en la web - README, .gitignore, licencia y commits desde el navegador →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

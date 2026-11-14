@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 2 (guiado, con pistas) - organizar el trabajo de un proyecto con issues · Academia de Datos</title><meta name="description" content="Tu líder te pide que el repositorio ventas-app deje de ser un archivo suelto y tenga el trabajo organizado - un README completo, un backlog de issues bien escritos con etiquetas y responsable, y el primero de ellos resuelto desde la terminal y cerrado automáticamente. Cada tarea dice qué hacer; los comandos están en pistas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-organizar-el-trabajo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 2 (guiado, con pistas) - organizar el trabajo de un proyecto con issues · Academia de Datos"><meta property="og:description" content="Tu líder te pide que el repositorio ventas-app deje de ser un archivo suelto y tenga el trabajo organizado - un README completo, un backlog de issues bien escritos con etiquetas y responsable, y el primero de ellos resuelto desde la terminal y cerrado automáticamente. Cada tarea dice qué hacer; los comandos están en pistas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proyecto-organizar-el-trabajo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 2 · Básico-intermedio · 60 min</div>
+<h1>Proyecto 2 (guiado, con pistas) - organizar el trabajo de un proyecto con issues</h1><p class="resumen">Tu líder te pide que el repositorio ventas-app deje de ser un archivo suelto y tenga el trabajo organizado - un README completo, un backlog de issues bien escritos con etiquetas y responsable, y el primero de ellos resuelto desde la terminal y cerrado automáticamente. Cada tarea dice qué hacer; los comandos están en pistas.</p>
+<a class="cta" href="../index.html#/l/github-proyecto-organizar-el-trabajo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir un pedido en issues chicos con criterio de terminado</li><li>Etiquetar y asignar issues</li><li>Resolver un issue desde la terminal y cerrarlo con el mensaje del commit</li><li>Documentar el proyecto en el README con Markdown</li><li>Revisar el estado del proyecto con filtros</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de tu líder: <em>&quot;Para <code>ventas-app</code> quiero ver el trabajo organizado antes de seguir: un README que explique qué es y cómo se usa, y el backlog en issues. Lo que falta: leer el CSV de ventas, los totales por canal, el ticket promedio, tests y un workflow de CI. Arrancá por el README y cerrá ese issue cuando esté.&quot;</em></p>
+</div>
+
+
+<p>No hay capturas de cada clic. Cada tarea dice <strong>qué</strong> hacer; los comandos están en la pista.</p>
+<h2>Tarea 1 — El backlog</h2>
+<p>Crea <strong>cinco issues</strong>, uno por cada cosa que falta, más uno para el README:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Issue</th>
+<th>Etiqueta</th>
+</tr>
+</thead><tbody><tr>
+<td>Documentar el proyecto en el README</td>
+<td><code>documentation</code></td>
+</tr>
+<tr>
+<td>Leer el CSV de ventas</td>
+<td><code>enhancement</code></td>
+</tr>
+<tr>
+<td>Totales por canal</td>
+<td><code>enhancement</code></td>
+</tr>
+<tr>
+<td>Ticket promedio por canal</td>
+<td><code>enhancement</code></td>
+</tr>
+<tr>
+<td>Tests y CI</td>
+<td><code>enhancement</code></td>
+</tr>
+</tbody></table></div>
+<p>Cada uno con una descripción de dos o tres líneas que termine con <strong>Terminado cuando:</strong> y una condición verificable. Asígnate el del README.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Pestaña Issues → New issue; las etiquetas y el responsable se eligen con la ruedita de la barra lateral. Desde la terminal también: <code>gh issue create --title &quot;...&quot; --body &quot;...&quot; --label documentation --assignee @me</code>.</p>
+</details>
+
+<h2>Tarea 2 — El README</h2>
+<p>Clona el repositorio (si no lo tienes), y escribe un README con: título y una línea, <strong>Cómo se instala</strong>, <strong>Cómo se usa</strong> (con un bloque de código), <strong>Estructura</strong> (una tabla con las carpetas) y <strong>Estado</strong> (una lista de tareas que enlace a los issues con <code>#n</code>).</p>
+<details><summary>💡 Pista</summary>
+
+<p>En la terminal de la práctica, <code>nano README.md</code> o <code>code .</code> para abrirlo en VS Code de práctica. Para la lista: <code>- [ ] Leer el CSV de ventas (#3)</code>.</p>
+</details>
+
+<h2>Tarea 3 — Cerrar el issue con el commit</h2>
+<p>Haz commit del README con un mensaje que <strong>cierre el issue</strong> del README, y súbelo a <code>main</code>.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>git add README.md &amp;&amp; git commit -m &quot;README: instalación, uso y estado (Closes #N)&quot; &amp;&amp; git push</code>, con el número de tu issue. Un commit que llega a <code>main</code> con <code>Closes #N</code> cierra el issue igual que un PR.</p>
+</details>
+
+<h2>Tarea 4 — El estado del proyecto</h2>
+<p>Con el buscador de issues, encuentra: los abiertos con etiqueta <code>enhancement</code>, los cerrados y los asignados a ti. Anota cuántos hay de cada uno.</p>
+<details><summary>💡 Pista</summary>
+
+<p><code>is:open label:enhancement</code>, <code>is:issue is:closed</code>, <code>assignee:@me</code>.</p>
+</details>
+
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Issues creados</td>
+<td>5 (o más si dividiste alguno)</td>
+</tr>
+<tr>
+<td>Issues con etiqueta</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td>Issues con &quot;Terminado cuando:&quot;</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td>Issue del README</td>
+<td>Cerrado por tu commit (se ve el enlace al commit en el issue)</td>
+</tr>
+<tr>
+<td><code>is:open label:enhancement</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td>README</td>
+<td>Se ve con formato, con tabla, bloque de código y lista de tareas con enlaces <code>#n</code></td>
+</tr>
+</tbody></table></div>
+<h2>Entrega</h2>
+<p>Mensaje a tu líder: <em>&quot;Listo: README completo y el backlog en 5 issues (4 abiertos de mejoras, el del README cerrado). Sigo por &#39;Leer el CSV de ventas&#39;.&quot;</em></p>
+<h2>🖥️ Hazlo también en GitHub real</h2>
+<p>En GitHub real hay además <strong>Projects</strong> (un tablero tipo Kanban con columnas Todo / In progress / Done que se llena con tus issues) y <strong>Milestones</strong> (agrupar issues por entrega). Pruébalos en tu repositorio de portafolio.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-proyecto-organizar-el-trabajo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-markdown-en-github.html">← Markdown en GitHub - README, issues y comentarios que se leen bien</a><a href="github-pull-requests.html">Pull requests - proponer un cambio para que el equipo lo vea antes de entrar a main →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

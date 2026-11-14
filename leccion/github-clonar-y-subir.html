@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clonar, subir y traer - el ida y vuelta entre tu computadora y GitHub · Academia de Datos</title><meta name="description" content="Cómo se conecta tu repositorio local con GitHub. Clonar un repositorio, trabajar en una rama, hacer commits y subirlos con push, traer los cambios del equipo con pull, iniciar sesión con la CLI de GitHub (gh) y leer lo que responde el servidor cuando subes una rama nueva."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-clonar-y-subir.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Clonar, subir y traer - el ida y vuelta entre tu computadora y GitHub · Academia de Datos"><meta property="og:description" content="Cómo se conecta tu repositorio local con GitHub. Clonar un repositorio, trabajar en una rama, hacer commits y subirlos con push, traer los cambios del equipo con pull, iniciar sesión con la CLI de GitHub (gh) y leer lo que responde el servidor cuando subes una rama nueva."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-clonar-y-subir.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Clonar, subir y traer - el ida y vuelta entre tu computadora y GitHub</h1><p class="resumen">Cómo se conecta tu repositorio local con GitHub. Clonar un repositorio, trabajar en una rama, hacer commits y subirlos con push, traer los cambios del equipo con pull, iniciar sesión con la CLI de GitHub (gh) y leer lo que responde el servidor cuando subes una rama nueva.</p>
+<a class="cta" href="../index.html#/l/github-clonar-y-subir">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Clonar un repositorio de GitHub con git clone</li><li>Crear una rama, hacer commits y subirla con git push -u</li><li>Traer los cambios del remoto con git pull</li><li>Autenticarse con gh auth login</li><li>Leer la respuesta del servidor después de un push</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Clonar es bajar a tu computadora una copia completa del proyecto, con toda su historia. Después trabajas tranquilo en tu copia; cuando tienes algo listo, lo <strong>subes</strong> (push), y cuando el equipo subió cosas, las <strong>traes</strong> (pull).</p>
+</div>
+
+
+<h2>Paso 1 — Abre la terminal de la práctica</h2>
+<p>En <a href="#/github">GitHub de práctica</a>, el botón de terminal de la barra superior abre abajo la terminal conectada a estos repositorios.</p>
+<h2>Paso 2 — Clona y crea una rama</h2>
+<pre><code class="language-bash">cd ~
+git clone https://github.com/alumno/ventas-app.git
+cd ventas-app
+git checkout -b feature/resumen</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Comando</th>
+<th>Hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>git clone URL</code></td>
+<td>Crea la carpeta <code>ventas-app</code> con todos los archivos y la historia, y la conecta al remoto como <code>origin</code></td>
+</tr>
+<tr>
+<td><code>git remote -v</code></td>
+<td>Muestra a dónde está conectado (<code>origin</code> = la URL de GitHub)</td>
+</tr>
+<tr>
+<td><code>git checkout -b feature/resumen</code></td>
+<td>Crea una rama y se cambia a ella</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Commit y push</h2>
+<p>Crea un archivo <code>resumen.py</code> (en la práctica, con <code>nano resumen.py</code> o desde <a href="#/vscode">VS Code de práctica</a> con <code>code .</code>) y después:</p>
+<pre><code class="language-bash">git add .
+git commit -m &quot;Agrega el resumen de ventas por canal&quot;
+git push -u origin feature/resumen</code></pre>
+<figure class="captura"><img src="assets/img/guias/github/g05-push.webp" alt="El push de una rama nueva: el servidor responde con el enlace para crear un pull request" loading="lazy"><figcaption>El push de una rama nueva: el servidor responde con el enlace para crear un pull request</figcaption></figure>
+
+
+<p>Fíjate en la respuesta del servidor:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Línea</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>Create a pull request for &#39;feature/resumen&#39; on GitHub by visiting: …/pull/new/feature/resumen</code></td>
+<td>GitHub te ofrece abrir el PR de esa rama</td>
+</tr>
+<tr>
+<td><code>* [new branch] feature/resumen -&gt; feature/resumen</code></td>
+<td>La rama se creó en el remoto</td>
+</tr>
+<tr>
+<td><code>rama &#39;feature/resumen&#39; configurada para rastrear &#39;origin/feature/resumen&#39;</code></td>
+<td>Gracias a <code>-u</code>, desde ahora basta con <code>git push</code> y <code>git pull</code> en esta rama</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 4 — Traer los cambios del equipo</h2>
+<pre><code class="language-bash">git checkout main
+git pull</code></pre>
+<p><code>git pull</code> trae los commits nuevos del remoto y los aplica a tu rama. Regla: <strong>antes de empezar algo nuevo, <code>git pull</code> en <code>main</code></strong>, así partes de lo último.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Si <code>git pull</code> dice…</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>Already up to date.</code></td>
+<td>No había nada nuevo</td>
+</tr>
+<tr>
+<td><code>Fast-forward</code></td>
+<td>Llegaron commits y se aplicaron sin conflicto</td>
+</tr>
+<tr>
+<td><code>CONFLICT</code></td>
+<td>Alguien cambió las mismas líneas que tú (lección 11)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Iniciar sesión con gh</h2>
+<p>La CLI de GitHub (<code>gh</code>) permite crear repositorios, PRs e issues desde la terminal. La primera vez:</p>
+<pre><code class="language-bash">gh auth login</code></pre>
+<p>En la práctica responde sola; en tu computadora te muestra un código y abre el navegador para autorizar (lección 23). Después: <code>gh repo create</code>, <code>gh pr create</code>, <code>gh issue list</code>, <code>gh pr checks</code>…</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ GitHub no acepta contraseñas en la terminal</div>
+
+<p>Desde 2021, <code>git push</code> con usuario y contraseña falla. Se usa <code>gh auth login</code>, un token personal o una clave SSH. Si alguna guía vieja te dice &quot;escribe tu contraseña&quot;, ese paso ya no funciona.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Clonas, trabajas en una rama, haces commit y subes con push.</li>
+<li>Traes los cambios del equipo con pull.</li>
+<li>Inicias sesión con gh para trabajar desde la terminal.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-clonar-y-subir">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-proyecto-repositorio-portafolio.html">← Proyecto 1 (guiado paso a paso) - tu repositorio de portafolio de datos</a><a href="github-issues.html">Issues - registrar tareas y errores, etiquetar, asignar y cerrar desde un commit →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

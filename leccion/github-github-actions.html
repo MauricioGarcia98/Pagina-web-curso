@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub Actions - tests automáticos en cada push y cada pull request · Academia de Datos</title><meta name="description" content="GitHub Actions corre código por ti cuando pasa algo en el repositorio. Escribir tu primer workflow (ruff y pytest en cada push y PR), entender su estructura (on, jobs, steps, uses, run), leer una ejecución que falla, encontrar el error en el log, arreglarlo y ver el check en verde - el mismo flujo que usa cualquier equipo de datos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-github-actions.html">
+<meta property="og:type" content="article"><meta property="og:title" content="GitHub Actions - tests automáticos en cada push y cada pull request · Academia de Datos"><meta property="og:description" content="GitHub Actions corre código por ti cuando pasa algo en el repositorio. Escribir tu primer workflow (ruff y pytest en cada push y PR), entender su estructura (on, jobs, steps, uses, run), leer una ejecución que falla, encontrar el error en el log, arreglarlo y ver el check en verde - el mismo flujo que usa cualquier equipo de datos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-github-actions.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 4 · Intermedio-avanzado · 55 min</div>
+<h1>GitHub Actions - tests automáticos en cada push y cada pull request</h1><p class="resumen">GitHub Actions corre código por ti cuando pasa algo en el repositorio. Escribir tu primer workflow (ruff y pytest en cada push y PR), entender su estructura (on, jobs, steps, uses, run), leer una ejecución que falla, encontrar el error en el log, arreglarlo y ver el check en verde - el mismo flujo que usa cualquier equipo de datos.</p>
+<a class="cta" href="../index.html#/l/github-github-actions">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es CI y qué es un workflow</li><li>Escribir un workflow YAML con on, jobs y steps</li><li>Diferenciar uses de run</li><li>Leer el log de una ejecución fallida y encontrar el error</li><li>Arreglar y comprobar el check en verde</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>GitHub Actions es un ayudante que, cada vez que alguien sube código, lo descarga en una computadora limpia y corre la lista de comprobaciones que le dejaste escrita. Si algo falla, pone una ❌ roja junto al commit y avisa. Eso se llama <strong>integración continua (CI)</strong>.</p>
+</div>
+
+
+<h2>Paso 1 — Dónde vive un workflow</h2>
+<p>Un workflow es un archivo YAML en <strong><code>.github/workflows/</code></strong> del repositorio. GitHub lee esa carpeta en cada push: no hay que activar nada.</p>
+<p>En tu clon de <code>ventas-app</code> (en <code>main</code> actualizado), crea <code>.github/workflows/tests.yml</code>:</p>
+<pre><code class="language-yaml">name: tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: &quot;3.12&quot;
+      - run: pip install pytest ruff
+      - run: ruff check .
+      - run: pytest</code></pre>
+<h2>Paso 2 — Qué significa cada parte</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Clave</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><code>name</code></td>
+<td>Nombre del workflow (y del check en los PRs)</td>
+</tr>
+<tr>
+<td><code>on</code></td>
+<td>Cuándo corre: aquí en cada push a main y en cada PR</td>
+</tr>
+<tr>
+<td><code>jobs</code></td>
+<td>Trabajos; cada uno corre en una máquina limpia</td>
+</tr>
+<tr>
+<td><code>runs-on</code></td>
+<td>El sistema de esa máquina (<em>runner</em>)</td>
+</tr>
+<tr>
+<td><code>steps</code></td>
+<td>Los pasos, en orden; si uno falla, los siguientes no corren</td>
+</tr>
+<tr>
+<td><code>uses</code></td>
+<td>Usa una <strong>acción</strong> ya hecha (<code>actions/checkout</code> descarga el repo, <code>setup-python</code> instala Python)</td>
+</tr>
+<tr>
+<td><code>run</code></td>
+<td>Corre un comando de la terminal</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ El error clásico de YAML</div>
+
+<p><code>python-version: 3.10</code> sin comillas es el <strong>número</strong> 3.1, y GitHub instala Python 3.1 (o falla). Las versiones van siempre entre comillas: <code>&quot;3.10&quot;</code>, <code>&quot;3.12&quot;</code>. La práctica reproduce este error tal cual.</p>
+</div>
+
+
+<h2>Paso 3 — Subir y ver la ejecución</h2>
+<pre><code class="language-bash">git add .github/workflows/tests.yml
+git commit -m &quot;CI: ruff y pytest en cada push y pull request&quot;
+git push</code></pre>
+<p>Pestaña <strong>Actions</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g13-actions.webp" alt="La lista de ejecuciones: el workflow tests corrió con el commit que acabas de subir" loading="lazy"><figcaption>La lista de ejecuciones: el workflow tests corrió con el commit que acabas de subir</figcaption></figure>
+
+
+<p>Si dejaste el <code>import csv</code> sin usar de <code>resumen.py</code> (como en la lección 5), la ejecución falla. Ábrela:</p>
+<figure class="captura"><img src="assets/img/guias/github/g13-run.webp" alt="La ejecución en rojo con el job tests fallido" loading="lazy"><figcaption>La ejecución en rojo con el job tests fallido</figcaption></figure>
+
+
+<h2>Paso 4 — Leer el log</h2>
+<p>Haz clic en el job <strong>tests</strong>. Cada paso se despliega; el que falló está abierto con ❌:</p>
+<figure class="captura"><img src="assets/img/guias/github/g13-log.webp" alt="El paso ruff check falló - resumen.py línea 1, F401 csv imported but unused; pytest no llegó a correr" loading="lazy"><figcaption>El paso ruff check falló - resumen.py línea 1, F401 csv imported but unused; pytest no llegó a correr</figcaption></figure>
+
+
+<p>Cómo se lee:</p>
+<ul>
+<li><code>resumen.py:1:1: F401 [*] &#39;csv&#39; imported but unused</code> → archivo, línea, columna, código de regla y mensaje.</li>
+<li><code>Error: Process completed with exit code 1.</code> → un comando que termina con código distinto de 0 hace fallar el paso.</li>
+<li><strong>Run pytest</strong> aparece gris (omitido): después de un paso fallido, los demás no corren.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Reproduce en tu computadora</div>
+
+<p>Lo que falla en CI se reproduce con el mismo comando local: <code>ruff check .</code>. Arreglar en tu máquina y subir es mucho más rápido que adivinar mirando el log. <code>ruff check . --fix</code> arregla los errores marcados con <code>[*]</code>.</p>
+</div>
+
+
+<h2>Paso 5 — Arreglar y ver el verde</h2>
+<p>Quita la línea <code>import csv</code> de <code>resumen.py</code>:</p>
+<pre><code class="language-bash">git commit -am &quot;Quita el import sin usar que marcó ruff (F401)&quot;
+git push</code></pre>
+<figure class="captura"><img src="assets/img/guias/github/g13-actions-verde.webp" alt="La segunda ejecución quedó en verde" loading="lazy"><figcaption>La segunda ejecución quedó en verde</figcaption></figure>
+
+
+<p>Desde ahora, cada PR muestra el check <strong>tests</strong> y el revisor sabe, sin correr nada, si el código pasa.</p>
+<h2>Paso 6 — Desde la terminal</h2>
+<pre><code class="language-bash">gh run list            # últimas ejecuciones
+gh run view            # detalle de la última</code></pre>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribiste tu primer workflow de CI.</li>
+<li>Sabes qué es cada parte del YAML.</li>
+<li>Leíste un log fallido, encontraste el error, lo arreglaste y viste el check verde.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-github-actions">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-proyecto-contribuir-al-equipo.html">← Proyecto 3 (pistas cerradas) - tu primera contribución al repositorio del equipo</a><a href="github-proteger-main.html">Proteger main - reglas para que nada entre sin PR, aprobación y tests en verde →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

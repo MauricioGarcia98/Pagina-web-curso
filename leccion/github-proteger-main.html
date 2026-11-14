@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proteger main - reglas para que nada entre sin PR, aprobación y tests en verde · Academia de Datos</title><meta name="description" content="En un equipo de datos, main es lo que corre en producción. Las reglas de protección de rama obligan a que todo cambio entre por pull request, con al menos una aprobación y los checks de CI en verde. Crear la regla, ver cómo rechaza un push directo (GH006), cómo bloquea un PR con tests en rojo y qué opciones conviene activar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proteger-main.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proteger main - reglas para que nada entre sin PR, aprobación y tests en verde · Academia de Datos"><meta property="og:description" content="En un equipo de datos, main es lo que corre en producción. Las reglas de protección de rama obligan a que todo cambio entre por pull request, con al menos una aprobación y los checks de CI en verde. Crear la regla, ver cómo rechaza un push directo (GH006), cómo bloquea un PR con tests en rojo y qué opciones conviene activar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-proteger-main.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 4 · Intermedio-avanzado · 45 min</div>
+<h1>Proteger main - reglas para que nada entre sin PR, aprobación y tests en verde</h1><p class="resumen">En un equipo de datos, main es lo que corre en producción. Las reglas de protección de rama obligan a que todo cambio entre por pull request, con al menos una aprobación y los checks de CI en verde. Crear la regla, ver cómo rechaza un push directo (GH006), cómo bloquea un PR con tests en rojo y qué opciones conviene activar.</p>
+<a class="cta" href="../index.html#/l/github-proteger-main">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar por qué se protege main</li><li>Crear una regla que exija PR, aprobación y un check</li><li>Reconocer el error GH006 y recuperarse</li><li>Ver un PR bloqueado por checks o falta de aprobación</li><li>Conocer las opciones de rulesets en GitHub real</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Proteger main es como poner una regla en una cocina de restaurante: ningún plato sale al salón sin que el jefe de cocina lo pruebe. Aunque seas el dueño, el plato pasa por el control.</p>
+</div>
+
+
+<h2>Paso 1 — Crear la regla</h2>
+<p>En <code>ventas-app</code>: <strong>Settings → Branches → Add classic branch protection rule</strong>.</p>
+<figure class="captura"><img src="assets/img/guias/github/g14-regla.webp" alt="La regla para main - patrón main (1), exigir pull request con 1 aprobación (2) y exigir el check tests (3)" loading="lazy"><figcaption>La regla para main - patrón main (1), exigir pull request con 1 aprobación (2) y exigir el check tests (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué obliga</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Branch name pattern</strong>: <code>main</code></td>
+<td>A qué rama(s) aplica (admite comodines: <code>release/*</code>)</td>
+</tr>
+<tr>
+<td><strong>Require a pull request before merging</strong></td>
+<td>Nada entra por push directo</td>
+</tr>
+<tr>
+<td><strong>Required approvals</strong>: 1</td>
+<td>Al menos una aprobación de otra persona</td>
+</tr>
+<tr>
+<td><strong>Require status checks to pass</strong> → <code>tests</code></td>
+<td>El check del workflow tiene que estar en verde</td>
+</tr>
+</tbody></table></div>
+<p>Guarda con <strong>Create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/github/g14-reglas.webp" alt="La regla creada - Require 1 approval y 1 required check" loading="lazy"><figcaption>La regla creada - Require 1 approval y 1 required check</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 El nombre del check</div>
+
+<p>El check se llama como el <strong>job</strong> del workflow (<code>tests</code>). Si renombras el job, la regla espera un check que nunca llega y los PRs quedan bloqueados para siempre (&quot;Expected — Waiting for status to be reported&quot;).</p>
+</div>
+
+
+<h2>Paso 2 — Intentar un push directo</h2>
+<pre><code class="language-bash">git switch main
+# cambia cualquier línea del README
+git commit -am &quot;Cambio directo a main&quot;
+git push</code></pre>
+<figure class="captura"><img src="assets/img/guias/github/g14-push-rechazado.webp" alt="GH006 - Protected branch update failed - Changes must be made through a pull request" loading="lazy"><figcaption>GH006 - Protected branch update failed - Changes must be made through a pull request</figcaption></figure>
+
+
+<h2>Paso 3 — Recuperarte del commit que no pudo subir</h2>
+<p>Tu <code>main</code> local tiene un commit que GitHub no acepta. Dos caminos:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Quieres</th>
+<th>Comandos</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Conservar</strong> el cambio</td>
+<td><code>git switch -c feature/readme-cambio</code> → <code>git push -u origin feature/readme-cambio</code> → PR. Después <code>git switch main &amp;&amp; git reset --hard origin/main</code></td>
+</tr>
+<tr>
+<td><strong>Descartarlo</strong></td>
+<td><code>git reset --hard origin/main</code></td>
+</tr>
+</tbody></table></div>
+<p><code>git reset --hard origin/main</code> deja tu main igual a la de GitHub. <strong>Borra los cambios no subidos de esa rama</strong>: úsalo solo cuando ya los guardaste en otra rama o no los quieres.</p>
+<h2>Paso 4 — Un PR bloqueado</h2>
+<p>Crea un PR que rompa algo (por ejemplo, que vuelva a agregar <code>import csv</code> sin usar). En la caja de merge vas a ver:</p>
+<ul>
+<li><strong>Some checks were not successful</strong> — el check <code>tests</code> en rojo.</li>
+<li><strong>Review required</strong> — falta la aprobación.</li>
+<li><strong>Merging is blocked</strong> y el botón gris.</li>
+</ul>
+<p>Arregla, sube, pide revisión: cuando las dos condiciones se cumplen, el botón vuelve a verde. Ese es el ciclo normal en un equipo.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ &quot;Soy admin, puedo saltearla&quot;</div>
+
+<p>El dueño del repositorio ve la opción de fusionar igual (<strong>bypass</strong>). La opción <strong>Do not allow bypassing the above settings</strong> (o <em>Include administrators</em>) aplica la regla también a los admins. En producción, actívala: los incidentes más caros empiezan con &quot;era un cambio chiquito&quot;.</p>
+</div>
+
+
+<h2>Paso 5 — Más opciones útiles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Require branches to be up to date before merging</strong></td>
+<td>El PR tiene que tener lo último de main (evita que dos PRs verdes por separado rompan main juntos)</td>
+</tr>
+<tr>
+<td><strong>Require conversation resolution</strong></td>
+<td>No se fusiona con comentarios sin resolver</td>
+</tr>
+<tr>
+<td><strong>Dismiss stale approvals</strong></td>
+<td>Un push nuevo anula las aprobaciones viejas</td>
+</tr>
+<tr>
+<td><strong>Require review from Code Owners</strong></td>
+<td>Aprobación de los dueños del área tocada (lección 15)</td>
+</tr>
+<tr>
+<td><strong>Restrict deletions / Block force pushes</strong></td>
+<td>Nadie borra ni reescribe main</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — En GitHub real: rulesets</h2>
+<p>GitHub real tiene además <strong>Rulesets</strong> (Settings → Rules → Rulesets): las mismas reglas pero con más control (varias reglas por rama, aplicar a toda una organización, modo <em>Evaluate</em> para probar sin bloquear). Las <em>classic branch protection rules</em> que usaste siguen funcionando y son las que vas a ver en la mayoría de los repositorios.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Protegiste main con PR, aprobación y check obligatorios.</li>
+<li>Viste el rechazo GH006 y sabes recuperarte.</li>
+<li>Sabes por qué un PR queda bloqueado y cómo destrabarlo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-proteger-main">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-github-actions.html">← GitHub Actions - tests automáticos en cada push y cada pull request</a><a href="github-trabajo-en-equipo.html">Trabajo en equipo - colaboradores, permisos, CODEOWNERS, forks y notificaciones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

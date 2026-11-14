@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisar código - pedir revisión, comentar líneas, aprobar o pedir cambios · Academia de Datos</title><meta name="description" content="La revisión de código es donde un equipo de datos atrapa errores antes de que lleguen a producción. Pedir revisión a un compañero, leer su revisión, responder comentarios de línea, sugerir cambios, y del otro lado - cómo revisar tú, qué mirar en un PR de datos y cómo escribir comentarios que ayudan."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-revisar-codigo.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Revisar código - pedir revisión, comentar líneas, aprobar o pedir cambios · Academia de Datos"><meta property="og:description" content="La revisión de código es donde un equipo de datos atrapa errores antes de que lleguen a producción. Pedir revisión a un compañero, leer su revisión, responder comentarios de línea, sugerir cambios, y del otro lado - cómo revisar tú, qué mirar en un PR de datos y cómo escribir comentarios que ayudan."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/github-revisar-codigo.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#github">🐙 GitHub paso a paso</a> · 3 · Intermedio · 45 min</div>
+<h1>Revisar código - pedir revisión, comentar líneas, aprobar o pedir cambios</h1><p class="resumen">La revisión de código es donde un equipo de datos atrapa errores antes de que lleguen a producción. Pedir revisión a un compañero, leer su revisión, responder comentarios de línea, sugerir cambios, y del otro lado - cómo revisar tú, qué mirar en un PR de datos y cómo escribir comentarios que ayudan.</p>
+<a class="cta" href="../index.html#/l/github-revisar-codigo">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Pedir revisión a compañeros</li><li>Distinguir Comment, Approve y Request changes</li><li>Comentar una línea y usar sugerencias</li><li>Responder y resolver conversaciones</li><li>Revisar un PR de datos con una lista de control</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Revisar código es como pedirle a un compañero que lea tu informe antes de mandarlo al director. No es desconfianza: dos pares de ojos ven más que uno, y el que revisa aprende cómo funciona tu parte.</p>
+</div>
+
+
+<h2>Paso 1 — Pedir revisión</h2>
+<p>En el PR, barra lateral derecha, <strong>Reviewers</strong> → la ruedita → elige a alguien. En la práctica están <strong>camila</strong> y <strong>martin</strong>, compañeros del equipo de datos de Tienda Andina:</p>
+<figure class="captura"><img src="assets/img/guias/github/g10-pedir-revision.webp" alt="El menú Reviewers con camila y martin; tú no apareces porque el autor no puede aprobar su propio PR" loading="lazy"><figcaption>El menú Reviewers con camila y martin; tú no apareces porque el autor no puede aprobar su propio PR</figcaption></figure>
+
+
+<p>Elige a <strong>camila</strong>. En unos segundos revisa tu PR (en la práctica, la revisión la hace un revisor automático que mira tu código de verdad: si dejas un <code>print</code> de depuración, un <code>except:</code> sin tipo o una contraseña en el código, te lo comenta).</p>
+<h2>Paso 2 — Leer la revisión</h2>
+<figure class="captura"><img src="assets/img/guias/github/g10-revision.webp" alt="Camila aprobó el PR con &quot;LGTM 🚀&quot; y la caja de merge quedó en verde" loading="lazy"><figcaption>Camila aprobó el PR con &quot;LGTM 🚀&quot; y la caja de merge quedó en verde</figcaption></figure>
+
+
+<p>Hay tres tipos de revisión:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Ícono</th>
+<th>Significa</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Comment</strong></td>
+<td>💬</td>
+<td>Comentarios sin decidir</td>
+</tr>
+<tr>
+<td><strong>Approve</strong></td>
+<td>✓ verde</td>
+<td>&quot;Está bien, puede entrar&quot;</td>
+</tr>
+<tr>
+<td><strong>Request changes</strong></td>
+<td>± rojo</td>
+<td>&quot;Hay que cambiar algo antes de fusionar&quot;</td>
+</tr>
+</tbody></table></div>
+<p><em>LGTM</em> = <em>Looks good to me</em> (&quot;me parece bien&quot;), la aprobación más común.</p>
+<h2>Paso 3 — Cuando te piden cambios</h2>
+<p>Si la revisión es <strong>Request changes</strong>, el flujo es:</p>
+<ol>
+<li>Lee cada comentario de línea (aparecen en <strong>Conversation</strong> y en <strong>Files changed</strong>).</li>
+<li>Corrige en tu rama, en tu editor.</li>
+<li><code>git commit</code> y <code>git push</code> a la <strong>misma rama</strong>: el PR se actualiza solo.</li>
+<li>Responde cada comentario (&quot;Listo, lo cambié a logging&quot;) y haz clic en <strong>Resolve conversation</strong>.</li>
+<li>Vuelve a pedir revisión con el ícono 🔄 junto al nombre del revisor.</li>
+</ol>
+<p>Pruébalo: en otra rama agrega una línea <code>print(&quot;debug&quot;, totales)</code> dentro de la función, sube, crea el PR y pide revisión a camila. Te va a comentar esa línea.</p>
+<h2>Paso 4 — Comentar una línea y sugerir</h2>
+<p>En <strong>Files changed</strong>, pasa el mouse por una línea y haz clic en el <strong>+</strong> azul:</p>
+<ul>
+<li><strong>Add single comment</strong>: publica el comentario ya.</li>
+<li><strong>Start a review</strong>: junta varios comentarios y los publica todos juntos al final con <strong>Review changes</strong> (Comment / Approve / Request changes). Es lo que se usa al revisar un PR completo.</li>
+</ul>
+<p>En GitHub real, el botón <strong>±</strong> del comentario inserta un bloque <code>suggestion</code>: el autor lo acepta con un clic (<strong>Commit suggestion</strong>) y se crea el commit solo.</p>
+<pre><code class="language-text">```suggestion
+    totales[fila[&quot;canal&quot;]] += float(fila[&quot;total&quot;])
+```</code></pre>
+<h2>Paso 5 — Revisar tú: qué mirar en un PR de datos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pregunta</th>
+<th>Por qué</th>
+</tr>
+</thead><tbody><tr>
+<td>¿Hace lo que dice la descripción?</td>
+<td>El título y el código no siempre coinciden</td>
+</tr>
+<tr>
+<td>¿Hay tests y pasan?</td>
+<td>Sin test, nadie sabe si sigue funcionando el mes que viene</td>
+</tr>
+<tr>
+<td>¿Qué pasa con nulos, vacíos y duplicados?</td>
+<td>Los datos reales los traen siempre</td>
+</tr>
+<tr>
+<td>¿Cambia el esquema de una tabla que otros leen?</td>
+<td>Puede romper tableros y pipelines de otros</td>
+</tr>
+<tr>
+<td>¿Hay credenciales, rutas locales o <code>SELECT *</code>?</td>
+<td>Seguridad y fragilidad</td>
+</tr>
+<tr>
+<td>¿Se reprocesa todo o solo lo nuevo?</td>
+<td>Costo y tiempo en producción</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — Comentarios que ayudan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>No</th>
+<th>Sí</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;Esto está mal.&quot;</td>
+<td>&quot;Si <code>total</code> viene vacío, <code>float(&quot;&quot;)</code> falla. ¿Lo filtramos antes?&quot;</td>
+</tr>
+<tr>
+<td>&quot;¿Por qué hiciste esto?&quot;</td>
+<td>&quot;No entiendo por qué se excluye &#39;devuelto&#39;; ¿lo agregamos a la descripción?&quot;</td>
+</tr>
+<tr>
+<td>Diez comentarios de estilo</td>
+<td>&quot;nit:&quot; delante de lo menor (&quot;nit: este nombre podría ser <code>filas_validas</code>&quot;)</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Revisa como te gustaría que te revisen</div>
+
+<p>Comenta el código, no a la persona. Pregunta antes de afirmar. Y si algo está bien hecho, dilo: también es información útil.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Pediste revisión y leíste una aprobación.</li>
+<li>Sabes el flujo cuando te piden cambios.</li>
+<li>Sabes comentar líneas, sugerir y qué revisar en un PR de datos.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/github-revisar-codigo">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="github-pull-requests.html">← Pull requests - proponer un cambio para que el equipo lo vea antes de entrar a main</a><a href="github-fusionar-y-conflictos.html">Fusionar un pull request - merge, squash, rebase y resolver conflictos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

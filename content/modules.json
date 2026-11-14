@@ -297,6 +297,20 @@
     ]
   },
   {
+    "id": "github",
+    "titulo": "GitHub paso a paso",
+    "icono": "🐙",
+    "color": "#24292f",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del GitHub de práctica conectado a la terminal: repositorios, clonar y subir, issues, pull requests con revisión de compañeros, merge y conflictos, GitHub Actions que corre de verdad, protección de main, secretos, seguridad, Pages y el flujo de un equipo de datos. Cada nivel cierra con un proyecto real con menos ayuda que el anterior, y termina con el paso a GitHub real y tu perfil.",
+    "objetivos": [
+      "Crear, recorrer y documentar repositorios desde la web y desde la terminal",
+      "Organizar el trabajo con issues y colaborar con pull requests, revisiones y merges",
+      "Automatizar tests, reportes y documentación con GitHub Actions",
+      "Proteger main y manejar secretos, permisos y seguridad como en un equipo",
+      "Dejar un repositorio profesional en GitHub real, listo para tu portafolio"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",
