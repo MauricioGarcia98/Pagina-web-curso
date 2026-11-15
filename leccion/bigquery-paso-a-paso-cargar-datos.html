@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cargar datos - de un archivo a una tabla particionada · Academia de Datos</title><meta name="description" content="Los eventos de la app llegan en un CSV. Creas la tabla eventos_app desde un archivo con Create table, con el esquema autodetectado y particionada por fecha, la revisas y conoces las otras formas de cargar - LOAD DATA, bq load, tablas externas sobre Cloud Storage y streaming."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-cargar-datos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Cargar datos - de un archivo a una tabla particionada · Academia de Datos"><meta property="og:description" content="Los eventos de la app llegan en un CSV. Creas la tabla eventos_app desde un archivo con Create table, con el esquema autodetectado y particionada por fecha, la revisas y conoces las otras formas de cargar - LOAD DATA, bq load, tablas externas sobre Cloud Storage y streaming."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-cargar-datos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#bigquery-paso-a-paso">🔎 BigQuery paso a paso</a> · 3 · Intermedio · 35 min</div>
+<h1>Cargar datos - de un archivo a una tabla particionada</h1><p class="resumen">Los eventos de la app llegan en un CSV. Creas la tabla eventos_app desde un archivo con Create table, con el esquema autodetectado y particionada por fecha, la revisas y conoces las otras formas de cargar - LOAD DATA, bq load, tablas externas sobre Cloud Storage y streaming.</p>
+<a class="cta" href="../index.html#/l/bigquery-paso-a-paso-cargar-datos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una tabla desde un archivo</li><li>Particionar al cargar</li><li>Revisar el esquema detectado</li><li>Elegir entre carga por lotes, tablas externas y streaming</li></ul>
+<h2>Paso 1 — Create table</h2>
+<p>En el dataset <code>analitica</code>, <strong>Create table</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/bigquery/q10-crear.webp" alt="Create table - desde un archivo (aquí, el de ejemplo del curso), tabla eventos_app y partición por la columna fecha" loading="lazy"><figcaption>Create table - desde un archivo (aquí, el de ejemplo del curso), tabla eventos_app y partición por la columna fecha</figcaption></figure>
+
+
+<p>En la práctica puedes subir tu propio CSV o JSON por líneas; el de ejemplo trae 600 eventos de la app en 60 días.</p>
+<h2>Paso 2 — La tabla cargada</h2>
+<figure class="captura"><img src="assets/img/guias/bigquery/q10-tabla.webp" alt="eventos_app (1) - el esquema detectado con fecha como columna de partición (2)" loading="lazy"><figcaption>eventos_app (1) - el esquema detectado con fecha como columna de partición (2)</figcaption></figure>
+
+
+<p><strong>Auto detect</strong> deduce los tipos mirando los datos. Para producción conviene un <strong>esquema explícito</strong>: si mañana un archivo trae <code>&quot;N/A&quot;</code> en una columna numérica, el esquema fijo rechaza la fila en lugar de cambiar el tipo.</p>
+<h2>Paso 3 — Otras formas de cargar</h2>
+<pre data-norun><code class="language-sql">-- con SQL, desde Cloud Storage
+LOAD DATA INTO analitica.eventos_app
+PARTITION BY fecha
+FROM FILES (format = 'CSV', skip_leading_rows = 1, uris = ['gs://tienda-andina-landing/eventos/*.csv']);</code></pre>
+<pre data-norun><code class="language-bash"># con la CLI
+bq load --source_format=CSV --skip_leading_rows=1 --time_partitioning_field=fecha \
+  analitica.eventos_app gs://tienda-andina-landing/eventos/*.csv</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Forma</th>
+<th>Cuándo</th>
+<th>Costo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Carga por lotes</strong> (Create table, <code>LOAD DATA</code>, <code>bq load</code>)</td>
+<td>Archivos que llegan cada hora o cada día</td>
+<td>Gratis; se paga el almacenamiento</td>
+</tr>
+<tr>
+<td><strong>Tabla externa / BigLake</strong></td>
+<td>Consultar archivos en Cloud Storage sin cargarlos</td>
+<td>Se paga al consultarlos</td>
+</tr>
+<tr>
+<td><strong>Streaming</strong> (Storage Write API)</td>
+<td>Datos que tienen que estar al instante</td>
+<td>Por volumen ingerido</td>
+</tr>
+<tr>
+<td><strong>Data Transfer Service</strong></td>
+<td>Fuentes conocidas (Google Ads, S3, otros) a horario</td>
+<td>Según la fuente</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste una tabla particionada desde un archivo.</li>
+<li>Revisaste el esquema detectado.</li>
+<li>Conoces las otras formas de cargar.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/bigquery-paso-a-paso-cargar-datos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="bigquery-paso-a-paso-particiones-y-clustering.html">← Particiones y clustering - leer solo lo necesario</a><a href="bigquery-paso-a-paso-vistas-struct-array-y-unnest.html">Vistas, STRUCT, ARRAY y UNNEST - datos anidados →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

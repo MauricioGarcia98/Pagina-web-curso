@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MERGE - actualizar, insertar y borrar en una sola sentencia · Academia de Datos</title><meta name="description" content="El inventario de las tiendas llega como un archivo con cambios. Con un MERGE borras los productos que quedaron en cero, actualizas el stock de los que cambiaron e insertas los nuevos, todo en una sentencia. Lees su resultado y conoces las cláusulas de BigQuery (BY TARGET, BY SOURCE, INSERT ROW)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-merge.html">
+<meta property="og:type" content="article"><meta property="og:title" content="MERGE - actualizar, insertar y borrar en una sola sentencia · Academia de Datos"><meta property="og:description" content="El inventario de las tiendas llega como un archivo con cambios. Con un MERGE borras los productos que quedaron en cero, actualizas el stock de los que cambiaron e insertas los nuevos, todo en una sentencia. Lees su resultado y conoces las cláusulas de BigQuery (BY TARGET, BY SOURCE, INSERT ROW)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-merge.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#bigquery-paso-a-paso">🔎 BigQuery paso a paso</a> · 4 · Intermedio-avanzado · 40 min</div>
+<h1>MERGE - actualizar, insertar y borrar en una sola sentencia</h1><p class="resumen">El inventario de las tiendas llega como un archivo con cambios. Con un MERGE borras los productos que quedaron en cero, actualizas el stock de los que cambiaron e insertas los nuevos, todo en una sentencia. Lees su resultado y conoces las cláusulas de BigQuery (BY TARGET, BY SOURCE, INSERT ROW).</p>
+<a class="cta" href="../index.html#/l/bigquery-paso-a-paso-merge">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un MERGE con DELETE, UPDATE e INSERT</li><li>Entender que gana la primera cláusula que se cumple</li><li>Usar WHEN NOT MATCHED BY SOURCE e INSERT ROW</li><li>Saber por qué los DML de BigQuery exigen WHERE</li></ul>
+<h2>Paso 1 — El MERGE</h2>
+<pre data-norun><code class="language-sql">CREATE OR REPLACE TABLE analitica.stock_tiendas AS
+SELECT producto_id, stock FROM tienda.productos WHERE producto_id &lt;= 5;
+
+MERGE analitica.stock_tiendas AS t
+USING (SELECT 1 AS producto_id, 0 AS stock
+       UNION ALL SELECT 2, 99
+       UNION ALL SELECT 500, 12) AS s
+ON t.producto_id = s.producto_id
+WHEN MATCHED AND s.stock = 0 THEN DELETE
+WHEN MATCHED THEN UPDATE SET stock = s.stock
+WHEN NOT MATCHED THEN INSERT (producto_id, stock) VALUES (s.producto_id, s.stock);</code></pre>
+<figure class="captura"><img src="assets/img/guias/bigquery/q13-merge.webp" alt="El MERGE (1) - &quot;This statement modified 3 rows&quot;: un borrado, una actualización y una inserción (2)" loading="lazy"><figcaption>El MERGE (1) - &quot;This statement modified 3 rows&quot;: un borrado, una actualización y una inserción (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/bigquery/q13-resultado.webp" alt="El stock - el producto 1 ya no está, el 2 tiene 99 y el 500 es nuevo" loading="lazy"><figcaption>El stock - el producto 1 ya no está, el 2 tiene 99 y el 500 es nuevo</figcaption></figure>
+
+
+<p>Para cada fila de la fuente se aplica <strong>la primera cláusula WHEN que se cumple</strong>: el producto 1 llega con stock 0 y entra por el <code>DELETE</code>, aunque también cumpliría el <code>UPDATE</code>.</p>
+<h2>Paso 2 — Las cláusulas de BigQuery</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Cláusula</th>
+<th>Se aplica a</th>
+</tr>
+</thead><tbody><tr>
+<td><code>WHEN MATCHED [AND …]</code></td>
+<td>Filas que están en el destino y en la fuente</td>
+</tr>
+<tr>
+<td><code>WHEN NOT MATCHED [BY TARGET] [AND …]</code></td>
+<td>Filas de la fuente que no están en el destino</td>
+</tr>
+<tr>
+<td><code>WHEN NOT MATCHED BY SOURCE [AND …]</code></td>
+<td>Filas del destino que no vinieron en la fuente (por ejemplo, productos discontinuados)</td>
+</tr>
+<tr>
+<td><code>INSERT ROW</code></td>
+<td>Inserta la fila de la fuente completa, sin listar columnas</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — DML con WHERE obligatorio</h2>
+<pre data-norun><code class="language-sql">UPDATE analitica.stock_tiendas SET stock = 0;              -- error: UPDATE must have a WHERE clause
+UPDATE analitica.stock_tiendas SET stock = 0 WHERE TRUE;   -- explícito: todas las filas</code></pre>
+<p>BigQuery obliga a escribir <code>WHERE</code> en <code>UPDATE</code> y <code>DELETE</code>: un recordatorio de que vas a tocar filas. Y los DML se cobran por los bytes que leen de la tabla, como cualquier consulta.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 MERGE para cargas</div>
+
+<p>Un MERGE bien escrito es <strong>idempotente</strong>: correrlo dos veces con los mismos datos deja el mismo resultado. Es la forma recomendada de aplicar cargas incrementales.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribiste un MERGE con borrado, actualización e inserción.</li>
+<li>Conoces las cláusulas BY TARGET, BY SOURCE e INSERT ROW.</li>
+<li>Sabes por qué los DML exigen WHERE.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/bigquery-paso-a-paso-merge">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="bigquery-paso-a-paso-proyecto-tabla-de-hechos.html">← Proyecto 3 (semiguiado) - la tabla de hechos de ventas</a><a href="bigquery-paso-a-paso-time-travel.html">Time travel - consultar y recuperar la tabla de hace un rato →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

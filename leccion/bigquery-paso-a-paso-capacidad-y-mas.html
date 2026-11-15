@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capacidad, transferencias y lo que hay más allá del SQL · Academia de Datos</title><meta name="description" content="El panorama de la plataforma - slots y ediciones (el modelo de capacidad), Data Transfer Service, BigQuery ML para entrenar modelos con SQL, BI Engine para tableros rápidos, vistas materializadas, búsqueda y las funciones de IA, con el SQL de cada uno y cuándo conviene."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-capacidad-y-mas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Capacidad, transferencias y lo que hay más allá del SQL · Academia de Datos"><meta property="og:description" content="El panorama de la plataforma - slots y ediciones (el modelo de capacidad), Data Transfer Service, BigQuery ML para entrenar modelos con SQL, BI Engine para tableros rápidos, vistas materializadas, búsqueda y las funciones de IA, con el SQL de cada uno y cuándo conviene."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-capacidad-y-mas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#bigquery-paso-a-paso">🔎 BigQuery paso a paso</a> · 6 · Avanzado completo · 40 min</div>
+<h1>Capacidad, transferencias y lo que hay más allá del SQL</h1><p class="resumen">El panorama de la plataforma - slots y ediciones (el modelo de capacidad), Data Transfer Service, BigQuery ML para entrenar modelos con SQL, BI Engine para tableros rápidos, vistas materializadas, búsqueda y las funciones de IA, con el SQL de cada uno y cuándo conviene.</p>
+<a class="cta" href="../index.html#/l/bigquery-paso-a-paso-capacidad-y-mas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Entender slots, ediciones y reservas</li><li>Ubicar Data Transfer Service</li><li>Entrenar un modelo con BigQuery ML</li><li>Conocer BI Engine, vistas materializadas y las funciones de IA</li></ul>
+<div class="callout callout-nota"><div class="callout-title">📝 En la práctica</div>
+
+<p>Estas secciones no están simuladas: la práctica te muestra qué son. El SQL es el de BigQuery real (BigQuery ML también se puede probar con <code>bq query</code> en la <a href="#/lab/terminal">terminal del curso</a>).</p>
+</div>
+
+
+<h2>Paso 1 — Slots y ediciones</h2>
+<figure class="captura"><img src="assets/img/guias/bigquery/q22-capacidad.webp" alt="Capacity management - reservas de slots con las ediciones Standard, Enterprise y Enterprise Plus" loading="lazy"><figcaption>Capacity management - reservas de slots con las ediciones Standard, Enterprise y Enterprise Plus</figcaption></figure>
+
+
+<p>Un <strong>slot</strong> es una unidad de cómputo virtual: una consulta usa muchos slots en paralelo durante unos segundos.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Modelo</th>
+<th>Se paga</th>
+<th>Conviene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>On-demand</strong></td>
+<td>Bytes procesados</td>
+<td>Uso variable o chico; empezar</td>
+</tr>
+<tr>
+<td><strong>Capacidad (ediciones)</strong></td>
+<td>Slots por hora, con autoescalado y compromisos de 1 o 3 años</td>
+<td>Volumen grande y estable; costo predecible</td>
+</tr>
+</tbody></table></div>
+<p>Las ediciones (Standard, Enterprise, Enterprise Plus) se diferencian en funciones de seguridad, gobierno y disponibilidad.</p>
+<h2>Paso 2 — Data Transfer Service</h2>
+<figure class="captura"><img src="assets/img/guias/bigquery/q22-transferencias.webp" alt="Data transfers - copias programadas desde Google Ads, YouTube, Cloud Storage, Amazon S3 y otras fuentes" loading="lazy"><figcaption>Data transfers - copias programadas desde Google Ads, YouTube, Cloud Storage, Amazon S3 y otras fuentes</figcaption></figure>
+
+
+<h2>Paso 3 — BigQuery ML</h2>
+<pre data-norun><code class="language-sql">-- ¿qué clientes van a volver a comprar? un modelo con SQL
+CREATE OR REPLACE MODEL analitica.modelo_recompra
+OPTIONS (model_type = 'logistic_reg', input_label_cols = ['volvio']) AS
+SELECT pais, segmento, pedidos_previos, dias_desde_ultimo, volvio
+FROM analitica.entrenamiento_clientes;
+
+SELECT * FROM ML.EVALUATE(MODEL analitica.modelo_recompra);
+SELECT cliente_id, predicted_volvio_probs
+FROM ML.PREDICT(MODEL analitica.modelo_recompra, TABLE analitica.clientes_actuales);</code></pre>
+<p>Entrenar y predecir sin sacar los datos de BigQuery: regresión, clasificación, series de tiempo (<code>ARIMA_PLUS</code>), k-means y modelos remotos de Vertex AI.</p>
+<h2>Paso 4 — Más piezas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>BI Engine</strong></td>
+<td>Una caché en memoria que acelera tableros (Looker Studio, Looker, Power BI)</td>
+</tr>
+<tr>
+<td><strong>Vistas materializadas</strong></td>
+<td>Agregados precalculados y mantenidos al día</td>
+</tr>
+<tr>
+<td><strong>Search indexes</strong></td>
+<td>Búsquedas de texto en tablas enormes (<code>SEARCH(...)</code>)</td>
+</tr>
+<tr>
+<td><strong>Funciones de IA</strong></td>
+<td>Resumir, clasificar o generar texto desde SQL con modelos de Vertex AI</td>
+</tr>
+<tr>
+<td><strong>BigLake</strong></td>
+<td>Consultar archivos abiertos (Parquet, Iceberg) en Cloud Storage con la misma seguridad</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Entiendes slots y ediciones.</li>
+<li>Conoces Data Transfer Service y BigQuery ML.</li>
+<li>Ubicas las demás piezas de la plataforma.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/bigquery-paso-a-paso-capacidad-y-mas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="bigquery-paso-a-paso-buenas-practicas.html">← Buenas prácticas - consultas baratas y rápidas por diseño</a><a href="bigquery-paso-a-paso-de-la-practica-a-bigquery-real.html">De la práctica a BigQuery real - sandbox, CLI y conexiones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

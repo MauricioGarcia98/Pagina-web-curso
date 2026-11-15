@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buenas prácticas - consultas baratas y rápidas por diseño · Academia de Datos</title><meta name="description" content="Juntas lo aprendido en una consulta que lee 2 columnas, el 2 % de una tabla particionada y con clustering, y en una lista de hábitos para consultas, tablas, cargas y equipo que mantienen BigQuery rápido y barato a medida que los datos crecen."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-buenas-practicas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Buenas prácticas - consultas baratas y rápidas por diseño · Academia de Datos"><meta property="og:description" content="Juntas lo aprendido en una consulta que lee 2 columnas, el 2 % de una tabla particionada y con clustering, y en una lista de hábitos para consultas, tablas, cargas y equipo que mantienen BigQuery rápido y barato a medida que los datos crecen."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/bigquery-paso-a-paso-buenas-practicas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#bigquery-paso-a-paso">🔎 BigQuery paso a paso</a> · 6 · Avanzado completo · 35 min</div>
+<h1>Buenas prácticas - consultas baratas y rápidas por diseño</h1><p class="resumen">Juntas lo aprendido en una consulta que lee 2 columnas, el 2 % de una tabla particionada y con clustering, y en una lista de hábitos para consultas, tablas, cargas y equipo que mantienen BigQuery rápido y barato a medida que los datos crecen.</p>
+<a class="cta" href="../index.html#/l/bigquery-paso-a-paso-buenas-practicas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Optimizar una consulta con columnas, partición y clustering</li><li>Elegir el diseño de tabla según el uso</li><li>Evitar los antipatrones más caros</li><li>Revisar consultas con una lista</li></ul>
+<h2>Paso 1 — Las tres palancas juntas</h2>
+<pre data-norun><code class="language-sql">-- columnas justas + filtro de partición + clustering
+SELECT canal, COUNT(*) AS pedidos
+FROM analitica.pedidos_part
+WHERE fecha_pedido BETWEEN '2024-12-01' AND '2024-12-31'
+  AND canal = 'web'
+GROUP BY canal;</code></pre>
+<figure class="captura"><img src="assets/img/guias/bigquery/q21-optimizada.webp" alt="La estimación (1) y lo que realmente se leyó - 2 columnas y el 2 % de la tabla gracias a la partición y el clustering (2)" loading="lazy"><figcaption>La estimación (1) y lo que realmente se leyó - 2 columnas y el 2 % de la tabla gracias a la partición y el clustering (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Palanca</th>
+<th>Efecto</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Columnas</strong></td>
+<td>Solo se leen las nombradas</td>
+</tr>
+<tr>
+<td><strong>Partición</strong></td>
+<td>Solo se leen las particiones del filtro</td>
+</tr>
+<tr>
+<td><strong>Clustering</strong></td>
+<td>Dentro de cada partición, se saltan los bloques que no tienen ese canal</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Hábitos</h2>
+<p><strong>Consultas</strong></p>
+<ul>
+<li>Nombrar columnas; <code>SELECT * EXCEPT(...)</code> si hacen falta casi todas.</li>
+<li>Filtrar por la partición <strong>antes</strong> de unir tablas grandes.</li>
+<li>Mirar el validador antes de ejecutar y el &quot;qué se leyó&quot; después.</li>
+<li>Para explorar: Preview, no <code>LIMIT</code>.</li>
+</ul>
+<p><strong>Tablas</strong></p>
+<ul>
+<li>Particionar las tablas grandes por la fecha de uso y exigir el filtro.</li>
+<li>Clustering por las columnas que más se filtran (hasta 4).</li>
+<li>Desnormalizar o anidar (<code>ARRAY&lt;STRUCT&gt;</code>) cuando un JOIN se repite mucho.</li>
+<li><strong>Vistas materializadas</strong> para agregados que se consultan seguido: BigQuery las mantiene al día y las usa solo.</li>
+</ul>
+<p><strong>Cargas</strong></p>
+<ul>
+<li>Cargas por lotes (gratis) antes que streaming si no hace falta al instante.</li>
+<li>MERGE idempotente para incrementales.</li>
+<li>Vencimiento automático para tablas temporales.</li>
+</ul>
+<p><strong>Equipo</strong></p>
+<ul>
+<li>Datasets por capa y por equipo, con permisos por dataset.</li>
+<li>Límite de bytes por consulta y cuotas diarias.</li>
+<li>SQL versionado (Dataform o dbt), no consultas sueltas en pestañas.</li>
+</ul>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Combinaste las tres palancas.</li>
+<li>Tienes una lista de hábitos para consultas, tablas, cargas y equipo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/bigquery-paso-a-paso-buenas-practicas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="bigquery-paso-a-paso-proyecto-costo-bajo-control.html">← Proyecto 5 (solo el objetivo) - el costo de BigQuery bajo control</a><a href="bigquery-paso-a-paso-capacidad-y-mas.html">Capacidad, transferencias y lo que hay más allá del SQL →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
