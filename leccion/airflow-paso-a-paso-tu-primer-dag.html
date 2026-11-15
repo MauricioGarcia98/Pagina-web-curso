@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu primer Dag - un archivo Python en la carpeta de Dags · Academia de Datos</title><meta name="description" content="Un Dag es un archivo Python que vive en la carpeta de Dags. Escribes hola_tienda.py con nano en la terminal, entiendes cada línea (imports de Airflow 3, el bloque with DAG, dos operadores y la flecha &gt;&gt;), compruebas con airflow dags list que Airflow lo leyó y lo encuentras en la interfaz."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-tu-primer-dag.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Tu primer Dag - un archivo Python en la carpeta de Dags · Academia de Datos"><meta property="og:description" content="Un Dag es un archivo Python que vive en la carpeta de Dags. Escribes hola_tienda.py con nano en la terminal, entiendes cada línea (imports de Airflow 3, el bloque with DAG, dos operadores y la flecha &gt;&gt;), compruebas con airflow dags list que Airflow lo leyó y lo encuentras en la interfaz."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-tu-primer-dag.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 1 · Básico · 45 min</div>
+<h1>Tu primer Dag - un archivo Python en la carpeta de Dags</h1><p class="resumen">Un Dag es un archivo Python que vive en la carpeta de Dags. Escribes hola_tienda.py con nano en la terminal, entiendes cada línea (imports de Airflow 3, el bloque with DAG, dos operadores y la flecha &gt;&gt;), compruebas con airflow dags list que Airflow lo leyó y lo encuentras en la interfaz.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-tu-primer-dag">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un archivo de Dag en ~/airflow/dags</li><li>Entender dag_id, schedule, start_date y tags</li><li>Crear tareas con BashOperator y PythonOperator</li><li>Definir el orden con &gt;&gt;</li><li>Comprobar que Airflow leyó el Dag</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía, líder del equipo de datos: <em>&quot;Antes de migrar los scripts, quiero ver un Dag mínimo funcionando: un paso que avise que arranca la carga y otro que salude desde Python.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Abrir la terminal</h2>
+<p>En la barra izquierda, <strong>Terminal</strong>. Es la misma máquina del curso: los Dags viven en <code>~/airflow/dags</code>.</p>
+<pre data-norun><code class="language-bash">cd ~/airflow/dags
+ls
+nano hola_tienda.py</code></pre>
+<h2>Paso 2 — Escribir el Dag</h2>
+<pre data-norun><code class="language-python">from datetime import datetime
+
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.sdk import DAG
+
+
+def saludar():
+    print(&quot;Hola, Tienda Andina: el equipo de datos ya orquesta con Airflow&quot;)
+
+
+with DAG(
+    dag_id=&quot;hola_tienda&quot;,
+    schedule=None,
+    start_date=datetime(2026, 11, 1),
+    tags=[&quot;curso&quot;],
+):
+    inicio = BashOperator(task_id=&quot;inicio&quot;, bash_command=&quot;echo 'Arranca la carga'&quot;)
+    saludo = PythonOperator(task_id=&quot;saludo&quot;, python_callable=saludar)
+
+    inicio &gt;&gt; saludo</code></pre>
+<figure class="captura"><img src="assets/img/guias/airflow/a03-nano.webp" alt="El archivo hola_tienda.py abierto con nano en la terminal de la práctica" loading="lazy"><figcaption>El archivo hola_tienda.py abierto con nano en la terminal de la práctica</figcaption></figure>
+
+
+<p>Guarda con <strong>Ctrl+O</strong>, Enter, y sal con <strong>Ctrl+X</strong>.</p>
+<h2>Paso 3 — Línea por línea</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Línea</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>from airflow.sdk import DAG</code></td>
+<td>En Airflow 3, lo que usas para escribir Dags se importa de <strong><code>airflow.sdk</code></strong> (el Task SDK)</td>
+</tr>
+<tr>
+<td><code>from airflow.providers.standard...</code></td>
+<td>Los operadores básicos vienen en el provider <strong>standard</strong></td>
+</tr>
+<tr>
+<td><code>dag_id=&quot;hola_tienda&quot;</code></td>
+<td>El nombre único del Dag</td>
+</tr>
+<tr>
+<td><code>schedule=None</code></td>
+<td>No corre solo: se dispara a mano</td>
+</tr>
+<tr>
+<td><code>start_date=...</code></td>
+<td>Desde qué fecha el Dag puede tener corridas</td>
+</tr>
+<tr>
+<td><code>tags=[&quot;curso&quot;]</code></td>
+<td>Etiquetas para filtrar</td>
+</tr>
+<tr>
+<td><code>BashOperator</code></td>
+<td>Una tarea que corre un comando de la terminal</td>
+</tr>
+<tr>
+<td><code>PythonOperator</code></td>
+<td>Una tarea que llama a una función de Python</td>
+</tr>
+<tr>
+<td><code>task_id</code></td>
+<td>El nombre de la tarea, único dentro del Dag</td>
+</tr>
+<tr>
+<td><code>inicio &gt;&gt; saludo</code></td>
+<td>El orden: <code>saludo</code> corre después de que <code>inicio</code> termine bien</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 Si vienes de Airflow 2</div>
+
+<p><code>from airflow import DAG</code> y <code>from airflow.operators.bash import BashOperator</code> todavía funcionan en muchos casos, pero muestran avisos de obsoleto. En Airflow 3 usa <code>airflow.sdk</code> y los providers.</p>
+</div>
+
+
+<h2>Paso 4 — Comprobar que Airflow lo leyó</h2>
+<pre data-norun><code class="language-bash">airflow dags list</code></pre>
+<figure class="captura"><img src="assets/img/guias/airflow/a03-cli.webp" alt="airflow dags list - hola_tienda aparece con su archivo, su dueño y pausado" loading="lazy"><figcaption>airflow dags list - hola_tienda aparece con su archivo, su dueño y pausado</figcaption></figure>
+
+
+<p>Y en la interfaz, busca <code>hola</code>:</p>
+<figure class="captura"><img src="assets/img/guias/airflow/a03-lista.webp" alt="hola_tienda en la lista de Dags, con Schedule None y la etiqueta curso" loading="lazy"><figcaption>hola_tienda en la lista de Dags, con Schedule None y la etiqueta curso</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a03-code.webp" alt="La pestaña Code muestra el archivo tal como lo leyó Airflow" loading="lazy"><figcaption>La pestaña Code muestra el archivo tal como lo leyó Airflow</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ¿No aparece?</div>
+
+<p>Si el archivo tiene un error de Python, no aparece en la lista: aparece en <strong>Dag Import Errors</strong>. Si tiene código válido pero no aparece, pulsa <strong>Reparse</strong> en la lista. En Airflow real el dag processor revisa la carpeta cada cierto tiempo (<code>refresh_interval</code>), así que puede tardar hasta unos minutos.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Escribiste tu primer Dag en la carpeta de Dags.</li>
+<li>Entiendes cada línea.</li>
+<li>Comprobaste que Airflow lo leyó.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-tu-primer-dag">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-paso-a-paso-la-lista-de-dags.html">← La lista de Dags y la página de un Dag</a><a href="airflow-paso-a-paso-proyecto-primer-dag-corriendo.html">Proyecto 1 (guiado) - dispararlo, seguirlo y leer su log →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

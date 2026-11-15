@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 2 (semiguiado) - el Dag diario de ventas · Academia de Datos</title><meta name="description" content="El equipo quiere dejar de correr la carga de ventas a mano. Escribes carga_ventas_tienda - tres tareas, todos los días a las 6:00 UTC, con dueño, etiquetas, reintentos y documentación - lo activas, lo pruebas y compruebas que la plantilla {{ ds }} se resolvió con la fecha correcta. Pistas escondidas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-dag-diario-de-ventas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 2 (semiguiado) - el Dag diario de ventas · Academia de Datos"><meta property="og:description" content="El equipo quiere dejar de correr la carga de ventas a mano. Escribes carga_ventas_tienda - tres tareas, todos los días a las 6:00 UTC, con dueño, etiquetas, reintentos y documentación - lo activas, lo pruebas y compruebas que la plantilla {{ ds }} se resolvió con la fecha correcta. Pistas escondidas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-dag-diario-de-ventas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 2 · Básico-intermedio · 50 min</div>
+<h1>Proyecto 2 (semiguiado) - el Dag diario de ventas</h1><p class="resumen">El equipo quiere dejar de correr la carga de ventas a mano. Escribes carga_ventas_tienda - tres tareas, todos los días a las 6:00 UTC, con dueño, etiquetas, reintentos y documentación - lo activas, lo pruebas y compruebas que la plantilla {{ ds }} se resolvió con la fecha correcta. Pistas escondidas.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-dag-diario-de-ventas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un Dag programado desde cero</li><li>Usar default_args para dueño y reintentos</li><li>Documentar el Dag con doc_md</li><li>Usar una plantilla con la fecha lógica</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Quiero <code>carga_ventas_tienda</code>: extraer, validar y publicar, todos los días a las 6 UTC. Que diga de quién es, que reintente dos veces si falla y que tenga escrito qué hace, para que la guardia de la noche sepa qué mirar.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li>Un archivo <code>carga_ventas_tienda.py</code> en la carpeta de Dags.</li>
+<li>Tres tareas en orden: <code>extraer</code> (Bash, que imprima la fecha de los datos) → <code>validar</code> (Python, que falle si no hay filas) → <code>publicar</code> (Bash).</li>
+<li><code>schedule=&quot;0 6 * * *&quot;</code>, <code>catchup=False</code>, etiquetas <code>tienda</code> y <code>ventas</code>.</li>
+<li><code>owner</code>, <code>retries=2</code> y <code>retry_delay</code> de 5 minutos para todas las tareas.</li>
+<li>Documentación visible en la pestaña Overview.</li>
+<li>Una corrida exitosa y el Dag activo.</li>
+</ol>
+<details><summary>💡 Pista 1: lo que se repite en todas las tareas</summary>
+
+<p><code>default_args={&quot;owner&quot;: &quot;equipo-datos&quot;, &quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)}</code> en el <code>DAG(...)</code>. Cada tarea toma esos valores salvo que los pise.</p>
+</details>
+
+<details><summary>💡 Pista 2: la documentación</summary>
+
+<p>Escribe un docstring en Markdown al principio del archivo y pásalo con <code>doc_md=__doc__</code>.</p>
+</details>
+
+<details><summary>💡 Pista 3: la fecha en el comando</summary>
+
+<p><code>bash_command</code> es una <strong>plantilla</strong>: <code>&quot;echo &#39;Descargando ventas del {{ ds }}&#39;&quot;</code>. Airflow reemplaza <code>{{ ds }}</code> por la fecha lógica justo antes de ejecutar.</p>
+</details>
+
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/airflow/a08-dag.webp" alt="Horario 0 6 * * *, próxima corrida a las 06:00, dueño y etiquetas (1), la primera corrida en verde (2) y la documentación del Dag (3)" loading="lazy"><figcaption>Horario 0 6 * * *, próxima corrida a las 06:00, dueño y etiquetas (1), la primera corrida en verde (2) y la documentación del Dag (3)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a08-rendered.webp" alt="Rendered Templates de extraer - {{ ds }} quedó reemplazado por la fecha de la corrida" loading="lazy"><figcaption>Rendered Templates de extraer - {{ ds }} quedó reemplazado por la fecha de la corrida</figcaption></figure>
+
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> El Dag aparece sin errores de importación.</li>
+<li><input disabled="" type="checkbox"> Next Run dice el próximo día a las 06:00 UTC.</li>
+<li><input disabled="" type="checkbox"> Overview muestra la documentación.</li>
+<li><input disabled="" type="checkbox"> Rendered Templates de <code>extraer</code> muestra la fecha, no <code>{{ ds }}</code>.</li>
+<li><input disabled="" type="checkbox"> Details dice Catchup false y Owners equipo-datos.</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<pre data-norun><code class="language-python">&quot;&quot;&quot;
+### Carga de ventas de Tienda Andina
+
+Todos los días a las 6:00 UTC trae las ventas, las valida y las publica.
+Responsable: **equipo de datos**. Si falla, revisar primero el log de `validar`.
+&quot;&quot;&quot;
+from datetime import datetime, timedelta
+
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.sdk import DAG
+
+
+def validar_ventas(**context):
+    filas = 1240
+    print(f&quot;Ventas del {context['ds']}: {filas} filas&quot;)
+    if filas == 0:
+        raise ValueError(&quot;No llegaron ventas&quot;)
+    return filas
+
+
+with DAG(
+    dag_id=&quot;carga_ventas_tienda&quot;,
+    schedule=&quot;0 6 * * *&quot;,
+    start_date=datetime(2026, 11, 1),
+    catchup=False,
+    tags=[&quot;tienda&quot;, &quot;ventas&quot;, &quot;curso&quot;],
+    default_args={&quot;owner&quot;: &quot;equipo-datos&quot;, &quot;retries&quot;: 2, &quot;retry_delay&quot;: timedelta(minutes=5)},
+    doc_md=__doc__,
+):
+    extraer = BashOperator(task_id=&quot;extraer&quot;, bash_command=&quot;echo 'Descargando ventas del {{ ds }}'&quot;)
+    validar = PythonOperator(task_id=&quot;validar&quot;, python_callable=validar_ventas)
+    publicar = BashOperator(task_id=&quot;publicar&quot;, bash_command=&quot;echo 'Publicando ventas validadas'&quot;)
+
+    extraer &gt;&gt; validar &gt;&gt; publicar</code></pre>
+<p><strong>Por qué <code>validar</code> lanza un error:</strong> si la carga trae cero filas, es mejor que la tarea <strong>falle</strong> (y se vea en rojo) a que publique un reporte vacío que parece correcto. Un Dag que termina en verde con datos malos es el peor caso.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 2</h2>
+<ul>
+<li>Grid, Graph y tipos de corrida.</li>
+<li>Logs, reintentos y Clear.</li>
+<li>Horarios, catchup y el timetable de Airflow 3.</li>
+</ul>
+<p>En el nivel 3: TaskFlow, XComs, variables, conexiones y parámetros.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-dag-diario-de-ventas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-paso-a-paso-programacion.html">← Programación - schedule, cron, start_date y catchup</a><a href="airflow-paso-a-paso-taskflow-y-operadores.html">TaskFlow y operadores - dos formas de escribir tareas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -377,7 +377,7 @@
     function tecla(e) {
       if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
       e.preventDefault(); e.stopPropagation();
-      const k = e.key, ctrl = e.ctrlKey || e.metaKey;
+      const ctrl = e.ctrlKey || e.metaKey, k = ctrl && e.key.length === 1 ? e.key.toLowerCase() : e.key;
       if (st.prompt) {
         const p = st.prompt;
         if (p.tipo === 'salir') {

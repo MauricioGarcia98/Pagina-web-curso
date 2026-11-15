@@ -394,6 +394,30 @@
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-capacidad-y-costos.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-de-la-practica-a-fabric-real.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-proyecto-final-plataforma-tienda-andina.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-que-es-airflow-y-la-pantalla.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-la-lista-de-dags.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-tu-primer-dag.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-primer-dag-corriendo.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-grid-graph-y-estados.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-errores-reintentos-y-clear.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-programacion.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-dag-diario-de-ventas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-taskflow-y-operadores.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-xcoms-y-plantillas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-variables-y-connections.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-ingesta-parametrizada.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-assets.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-ramas-y-trigger-rules.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-backfill.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-reproceso-de-un-dia.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-errores-de-importacion-y-pruebas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-pools-y-concurrencia.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-browse-y-auditoria.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-alertas-al-fallar.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-buenas-practicas.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-mapeo-dinamico.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-de-la-practica-a-airflow-real.html</loc><lastmod>2026-11-15</lastmod></url>
+  <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-final-orquestacion-tienda-andina.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-que-es.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-ingesta.html</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/arquitectura-almacenamiento.html</loc><lastmod>2026-11-15</lastmod></url>

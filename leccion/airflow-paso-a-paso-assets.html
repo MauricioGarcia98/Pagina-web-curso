@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assets - programar por datos en lugar de por hora · Academia de Datos</title><meta name="description" content="El reporte de ventas no debería correr &quot;a las 7&quot;, sino &quot;cuando las ventas estén listas&quot;. Con assets, ventas_diarias declara que produce la tabla gold/ventas_diarias y reporte_ventas se programa con ese asset. Ves el asset, el grafo con datos, la corrida disparada por el asset y su historia de eventos."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-assets.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Assets - programar por datos en lugar de por hora · Academia de Datos"><meta property="og:description" content="El reporte de ventas no debería correr &quot;a las 7&quot;, sino &quot;cuando las ventas estén listas&quot;. Con assets, ventas_diarias declara que produce la tabla gold/ventas_diarias y reporte_ventas se programa con ese asset. Ves el asset, el grafo con datos, la corrida disparada por el asset y su historia de eventos."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-assets.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 4 · Intermedio-avanzado · 45 min</div>
+<h1>Assets - programar por datos en lugar de por hora</h1><p class="resumen">El reporte de ventas no debería correr &quot;a las 7&quot;, sino &quot;cuando las ventas estén listas&quot;. Con assets, ventas_diarias declara que produce la tabla gold/ventas_diarias y reporte_ventas se programa con ese asset. Ves el asset, el grafo con datos, la corrida disparada por el asset y su historia de eventos.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-assets">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un asset y para qué sirve</li><li>Declarar outlets en la tarea productora</li><li>Programar un Dag con schedule=[Asset(...)]</li><li>Seguir eventos y corridas disparadas por assets</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El problema</div>
+
+<p>El reporte corría a las 07:00 &quot;porque las ventas suelen estar a las 06:30&quot;. El día que la carga tardó una hora más, el reporte salió con los datos de ayer y nadie se dio cuenta.</p>
+</div>
+
+
+<h2>Paso 1 — Qué es un asset</h2>
+<p>Un <strong>asset</strong> es un dato con nombre (una tabla, un archivo) identificado por una URI, por ejemplo <code>tienda://gold/ventas_diarias</code>. Una tarea declara que lo <strong>produce</strong>, y otro Dag se programa para correr cuando ese dato <strong>se actualiza</strong>.</p>
+<pre data-norun><code class="language-python">from airflow.sdk import Asset, dag, task
+
+VENTAS = Asset(&quot;tienda://gold/ventas_diarias&quot;)
+
+# en ventas_diarias: la tarea que escribe la tabla
+@task(outlets=[VENTAS])
+def publicar(pedidos):
+    ...
+
+# reporte_ventas: corre cuando VENTAS se actualiza
+@dag(schedule=[VENTAS], start_date=datetime(2026, 1, 1), catchup=False)
+def reporte_ventas():
+    ...</code></pre>
+<div class="callout callout-nota"><div class="callout-title">📝 Si vienes de Airflow 2</div>
+
+<p>En Airflow 2 se llamaban <strong>Datasets</strong> (<code>from airflow.datasets import Dataset</code>). En Airflow 3 son <strong>Assets</strong> y se importan de <code>airflow.sdk</code>.</p>
+</div>
+
+
+<h2>Paso 2 — La página Assets</h2>
+<figure class="captura"><img src="assets/img/guias/airflow/a13-assets.webp" alt="Assets - tienda://gold/ventas_diarias, producido por ventas_diarias.publicar y esperado por reporte_ventas" loading="lazy"><figcaption>Assets - tienda://gold/ventas_diarias, producido por ventas_diarias.publicar y esperado por reporte_ventas</figcaption></figure>
+
+
+<h2>Paso 3 — El grafo con datos</h2>
+<p>En <code>ventas_diarias</code> → <strong>Graph → Tasks and assets</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/airflow/a13-graph.webp" alt="extraer → limpiar → publicar → el asset tienda://gold/ventas_diarias" loading="lazy"><figcaption>extraer → limpiar → publicar → el asset tienda://gold/ventas_diarias</figcaption></figure>
+
+
+<h2>Paso 4 — Que se dispare solo</h2>
+<p><code>reporte_ventas</code> está pausado. Actívalo:</p>
+<figure class="captura"><img src="assets/img/guias/airflow/a13-despausar.webp" alt="reporte_ventas activo - Schedule Asset y &quot;0 of 1 assets updated&quot; en Next Run" loading="lazy"><figcaption>reporte_ventas activo - Schedule Asset y &quot;0 of 1 assets updated&quot; en Next Run</figcaption></figure>
+
+
+<p>Ahora dispara <code>ventas_diarias</code>. Cuando <code>publicar</code> termina bien, registra un evento del asset y el scheduler crea una corrida de <code>reporte_ventas</code>:</p>
+<figure class="captura"><img src="assets/img/guias/airflow/a13-run-asset.webp" alt="La corrida asset_triggered de reporte_ventas (1) en la grilla (2)" loading="lazy"><figcaption>La corrida asset_triggered de reporte_ventas (1) en la grilla (2)</figcaption></figure>
+
+
+<h2>Paso 5 — La historia del asset</h2>
+<p>Abre el asset:</p>
+<figure class="captura"><img src="assets/img/guias/airflow/a13-asset.webp" alt="Quién lo produce y quién lo espera (1) y cada evento con la tarea que lo generó y la corrida que disparó (2)" loading="lazy"><figcaption>Quién lo produce y quién lo espera (1) y cada evento con la tarea que lo generó y la corrida que disparó (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Programar por hora</th>
+<th>Programar por asset</th>
+</tr>
+</thead><tbody><tr>
+<td>Corre aunque los datos no estén</td>
+<td>Corre <strong>cuando</strong> los datos están</td>
+</tr>
+<tr>
+<td>Si la carga se atrasa, el reporte sale con datos viejos</td>
+<td>Si la carga se atrasa, el reporte espera</td>
+</tr>
+<tr>
+<td>Las dependencias entre Dags quedan en la cabeza del equipo</td>
+<td>Quedan declaradas y visibles en Assets</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Varios assets</div>
+
+<p><code>schedule=[A, B]</code> corre cuando <strong>los dos</strong> se actualizaron. También existen <code>AssetAll</code> y <code>AssetAny</code> para combinar condiciones (&quot;cuando se actualice A o B&quot;).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Entiendes qué es un asset.</li>
+<li>Conectaste un Dag productor con uno consumidor.</li>
+<li>Seguiste el evento y la corrida que disparó.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-assets">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-paso-a-paso-proyecto-ingesta-parametrizada.html">← Proyecto 3 (semiguiado) - la ingesta de clientes parametrizada</a><a href="airflow-paso-a-paso-ramas-y-trigger-rules.html">Ramas y trigger rules - decidir qué corre →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapeo dinámico - una tarea por cada elemento · Academia de Datos</title><meta name="description" content="Cuando la cantidad de tiendas, archivos o países cambia, no conviene escribir una tarea por cada uno. Con dynamic task mapping, procesar.expand(tienda=...) crea una instancia por elemento en el momento de correr. Escribes ventas_por_tienda, ves las instancias mapeadas y aprendes partial, los límites y cuándo usar mapeo en lugar de un for."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-mapeo-dinamico.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Mapeo dinámico - una tarea por cada elemento · Academia de Datos"><meta property="og:description" content="Cuando la cantidad de tiendas, archivos o países cambia, no conviene escribir una tarea por cada uno. Con dynamic task mapping, procesar.expand(tienda=...) crea una instancia por elemento en el momento de correr. Escribes ventas_por_tienda, ves las instancias mapeadas y aprendes partial, los límites y cuándo usar mapeo en lugar de un for."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-mapeo-dinamico.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 6 · Avanzado completo · 40 min</div>
+<h1>Mapeo dinámico - una tarea por cada elemento</h1><p class="resumen">Cuando la cantidad de tiendas, archivos o países cambia, no conviene escribir una tarea por cada uno. Con dynamic task mapping, procesar.expand(tienda=...) crea una instancia por elemento en el momento de correr. Escribes ventas_por_tienda, ves las instancias mapeadas y aprendes partial, los límites y cuándo usar mapeo en lugar de un for.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-mapeo-dinamico">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear tareas mapeadas con expand</li><li>Fijar argumentos comunes con partial</li><li>Leer las instancias mapeadas en la grilla y el log</li><li>Elegir entre mapeo dinámico y un bucle for</li></ul>
+<h2>Paso 1 — El Dag</h2>
+<p><code>ventas_por_tienda.py</code>:</p>
+<pre data-norun><code class="language-python">from datetime import datetime
+
+from airflow.sdk import dag, task
+
+
+@dag(schedule=None, start_date=datetime(2026, 11, 1), catchup=False, tags=[&quot;curso&quot;, &quot;tienda&quot;])
+def ventas_por_tienda():
+    @task
+    def tiendas():
+        return [&quot;Lima Centro&quot;, &quot;Bogotá Norte&quot;, &quot;CDMX Roma&quot;, &quot;Santiago Providencia&quot;]
+
+    @task
+    def procesar(tienda):
+        print(f&quot;Procesando las ventas de {tienda}&quot;)
+        return len(tienda)
+
+    @task
+    def consolidar(resultados):
+        print(f&quot;Tiendas procesadas: {len(list(resultados))}&quot;)
+
+    consolidar(procesar.expand(tienda=tiendas()))
+
+
+ventas_por_tienda()</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>tiendas()</code></td>
+<td>Devuelve la lista <strong>al correr</strong> (podría leerla de una tabla)</td>
+</tr>
+<tr>
+<td><code>procesar.expand(tienda=...)</code></td>
+<td>Crea <strong>una instancia de <code>procesar</code> por elemento</strong></td>
+</tr>
+<tr>
+<td><code>consolidar(...)</code></td>
+<td>Recibe la lista de resultados de todas las instancias</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Correrlo</h2>
+<figure class="captura"><img src="assets/img/guias/airflow/a22-mapeo.webp" alt="La grilla con procesar [ ] - una tarea mapeada (1) - y las tres tareas en success (2)" loading="lazy"><figcaption>La grilla con procesar [ ] - una tarea mapeada (1) - y las tres tareas en success (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a22-log.webp" alt="El log de procesar - 4 instancias mapeadas, una por tienda" loading="lazy"><figcaption>El log de procesar - 4 instancias mapeadas, una por tienda</figcaption></figure>
+
+
+<p>Si mañana se abre una quinta tienda, la lista trae cinco elementos y hay cinco instancias, <strong>sin tocar el Dag</strong>.</p>
+<h2>Paso 3 — partial</h2>
+<p>Para fijar argumentos que son iguales en todas las instancias:</p>
+<pre data-norun><code class="language-python">@task
+def cargar(tienda, destino):
+    print(f&quot;Cargando {tienda} en {destino}&quot;)
+
+cargar.partial(destino=&quot;gold.ventas&quot;).expand(tienda=tiendas())</code></pre>
+<p>Con operadores clásicos funciona igual: <code>BashOperator.partial(task_id=&quot;copiar&quot;).expand(bash_command=[...])</code>.</p>
+<h2>Paso 4 — ¿Mapeo o for?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Usa un <code>for</code> (como en <code>catalogo_api</code>)</th>
+<th>Usa mapeo dinámico</th>
+</tr>
+</thead><tbody><tr>
+<td>La lista es fija y la conoces al escribir el Dag</td>
+<td>La lista se conoce <strong>al correr</strong> (archivos que llegaron, filas de una tabla)</td>
+</tr>
+<tr>
+<td>Pocas tareas con nombre propio</td>
+<td>Cantidad variable</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Límites</div>
+
+<p><code>[core] max_map_length</code> (1024 por defecto) limita cuántas instancias puede crear una tarea mapeada. Si son miles de elementos, agrúpalos en lotes. Las instancias mapeadas también respetan pools y <code>max_active_tasks</code>.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste tareas mapeadas con expand y partial.</li>
+<li>Lees las instancias mapeadas.</li>
+<li>Sabes cuándo conviene mapear.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-mapeo-dinamico">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-paso-a-paso-buenas-practicas.html">← Buenas prácticas - Dags confiables y baratos de operar</a><a href="airflow-paso-a-paso-de-la-practica-a-airflow-real.html">De la práctica a Airflow real - instalar, desplegar y elegir servicio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
