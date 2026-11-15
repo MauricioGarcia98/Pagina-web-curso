@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notebooks - Spark sobre el lakehouse · Academia de Datos</title><meta name="description" content="Los notebooks de Fabric corren Spark (PySpark y Spark SQL) con un lakehouse por defecto. Abres un notebook desde el lakehouse, recorres su explorador, ejecutas la primera celda que lee la tabla de ventas y entiendes la sesión de Spark, las celdas de código y de texto, y cómo se cambia el lenguaje."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-notebooks.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Notebooks - Spark sobre el lakehouse · Academia de Datos"><meta property="og:description" content="Los notebooks de Fabric corren Spark (PySpark y Spark SQL) con un lakehouse por defecto. Abres un notebook desde el lakehouse, recorres su explorador, ejecutas la primera celda que lee la tabla de ventas y entiendes la sesión de Spark, las celdas de código y de texto, y cómo se cambia el lenguaje."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-notebooks.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 3 · Intermedio · 35 min</div>
+<h1>Notebooks - Spark sobre el lakehouse</h1><p class="resumen">Los notebooks de Fabric corren Spark (PySpark y Spark SQL) con un lakehouse por defecto. Abres un notebook desde el lakehouse, recorres su explorador, ejecutas la primera celda que lee la tabla de ventas y entiendes la sesión de Spark, las celdas de código y de texto, y cómo se cambia el lenguaje.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-notebooks">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un notebook adjunto a un lakehouse</li><li>Entender el lakehouse por defecto</li><li>Ejecutar celdas y leer su salida</li><li>Distinguir celdas de código y Markdown</li><li>Cambiar de lenguaje con %%sql</li></ul>
+<h2>Paso 1 — Abrir un notebook desde el lakehouse</h2>
+<p>En <code>lh_ventas</code>, <strong>Open notebook → New notebook</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b09-notebook.webp" alt="El lakehouse por defecto (1), la primera celda (2) y Run all (3)" loading="lazy"><figcaption>El lakehouse por defecto (1), la primera celda (2) y Run all (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué tiene</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Explorer</strong></td>
+<td>El lakehouse <strong>por defecto</strong> (con estrella), sus tablas y archivos</td>
+</tr>
+<tr>
+<td><strong>Celdas</strong></td>
+<td>Código (PySpark por defecto) o texto (Markdown)</td>
+</tr>
+<tr>
+<td><strong>Cinta</strong></td>
+<td>Run all, Stop session, + Code, + Markdown</td>
+</tr>
+</tbody></table></div>
+<p>El <strong>lakehouse por defecto</strong> es al que se refieren los nombres cortos: <code>spark.table(&quot;pedidos&quot;)</code> lee <code>lh_ventas.pedidos</code>, y <code>Files/raw/…</code> es una carpeta de ese lakehouse.</p>
+<h2>Paso 2 — Ejecutar</h2>
+<p>La celda que creó Fabric lee la tabla:</p>
+<pre data-norun><code class="language-python">df = spark.sql(&quot;SELECT * FROM lh_ventas.ventas_tiendas LIMIT 1000&quot;)
+display(df)</code></pre>
+<p><strong>Run all</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b09-celda.webp" alt="La celda ejecutada - el tiempo, &quot;Command executed&quot; y la tabla con sus tipos" loading="lazy"><figcaption>La celda ejecutada - el tiempo, &quot;Command executed&quot; y la tabla con sus tipos</figcaption></figure>
+
+
+<p>La primera ejecución tarda más: arranca la <strong>sesión de Spark</strong> (en Fabric real, unos segundos gracias a los <em>starter pools</em>). Las siguientes celdas usan la misma sesión. <strong>Stop session</strong> la apaga: en una capacidad real, una sesión encendida consume capacidad.</p>
+<h2>Paso 3 — Los lenguajes</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Escribes</th>
+<th>Lenguaje</th>
+</tr>
+</thead><tbody><tr>
+<td>Nada (por defecto)</td>
+<td><strong>PySpark</strong> (Python)</td>
+</tr>
+<tr>
+<td><code>%%sql</code> en la primera línea</td>
+<td><strong>Spark SQL</strong></td>
+</tr>
+<tr>
+<td>Celda <strong>Markdown</strong></td>
+<td>Texto con formato para documentar</td>
+</tr>
+</tbody></table></div>
+<p>Formas habituales de leer datos:</p>
+<pre data-norun><code class="language-python"># una tabla del lakehouse
+pedidos = spark.table(&quot;pedidos&quot;)
+
+# un archivo de Files
+crudo = spark.read.csv(&quot;Files/raw/pedidos_2024.csv&quot;, header=True)
+
+# SQL desde Python
+resumen = spark.sql(&quot;SELECT canal, COUNT(*) AS n FROM pedidos GROUP BY canal&quot;)</code></pre>
+<div class="callout callout-tip"><div class="callout-title">💡 Documenta en el mismo notebook</div>
+
+<p>Una celda Markdown al principio con <strong>qué hace el notebook, qué lee y qué escribe</strong> ahorra horas al próximo que lo abra (que puedes ser tú en tres meses).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Abriste un notebook con lakehouse por defecto y ejecutaste celdas.</li>
+<li>Conoces la sesión de Spark y los lenguajes de las celdas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-notebooks">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-proyecto-lakehouse-ordenado.html">← Proyecto 2 (semiguiado) - el lakehouse de ventas, ordenado</a><a href="fabric-paso-a-paso-transformar-con-spark.html">Transformar con Spark SQL y PySpark - escribir tablas nuevas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

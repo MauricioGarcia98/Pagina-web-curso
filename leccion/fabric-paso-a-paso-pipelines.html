@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipelines en Fabric - copiar y ejecutar notebooks en orden · Academia de Datos</title><meta name="description" content="Los pipelines de Fabric son el Data Factory de Fabric. Creas pl_cargar_pedidos con una actividad Copy data que trae los pedidos a una tabla del lakehouse y una actividad Notebook que corre la transformación después, lo ejecutas y lees el resultado de cada actividad."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-pipelines.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Pipelines en Fabric - copiar y ejecutar notebooks en orden · Academia de Datos"><meta property="og:description" content="Los pipelines de Fabric son el Data Factory de Fabric. Creas pl_cargar_pedidos con una actividad Copy data que trae los pedidos a una tabla del lakehouse y una actividad Notebook que corre la transformación después, lo ejecutas y lees el resultado de cada actividad."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/fabric-paso-a-paso-pipelines.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#fabric-paso-a-paso">🟩 Fabric paso a paso</a> · 3 · Intermedio · 40 min</div>
+<h1>Pipelines en Fabric - copiar y ejecutar notebooks en orden</h1><p class="resumen">Los pipelines de Fabric son el Data Factory de Fabric. Creas pl_cargar_pedidos con una actividad Copy data que trae los pedidos a una tabla del lakehouse y una actividad Notebook que corre la transformación después, lo ejecutas y lees el resultado de cada actividad.</p>
+<a class="cta" href="../index.html#/l/fabric-paso-a-paso-pipelines">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un pipeline en un workspace</li><li>Configurar Copy data con origen y destino</li><li>Encadenar una actividad Notebook</li><li>Ejecutar y leer la salida</li><li>Relacionar los pipelines de Fabric con Azure Data Factory</li></ul>
+<h2>Paso 1 — Crear el pipeline</h2>
+<p>En el workspace, <strong>New item → Pipeline</strong>, <code>pl_cargar_pedidos</code>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b11-pipeline-vacio.webp" alt="La cinta con Save, Run, Schedule y las actividades (1), y el lienzo vacío (2)" loading="lazy"><figcaption>La cinta con Save, Run, Schedule y las actividades (1), y el lienzo vacío (2)</figcaption></figure>
+
+
+<h2>Paso 2 — Copy data</h2>
+<p><strong>Copy data</strong> y configura:</p>
+<ul>
+<li><strong>Name</strong>: <code>Copiar pedidos</code>.</li>
+<li><strong>Source</strong>: los datos de ejemplo, tabla <code>pedidos</code>.</li>
+<li><strong>Destination</strong>: <code>lh_ventas</code>, tabla <code>pedidos_copia</code>.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/fabric/b11-copy.webp" alt="El origen, el lakehouse de destino y la tabla nueva" loading="lazy"><figcaption>El origen, el lakehouse de destino y la tabla nueva</figcaption></figure>
+
+
+<p>En Fabric real, Copy data tiene los mismos más de 90 conectores que Data Factory (bases, archivos, APIs, otras nubes), y como destino un lakehouse, un warehouse u otros almacenes.</p>
+<h2>Paso 3 — La actividad Notebook</h2>
+<p><strong>Notebook</strong>, nombre <code>Transformar</code>, notebook <code>Notebook1</code>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b11-notebook.webp" alt="Copiar pedidos y después Transformar (1), con sus propiedades (2)" loading="lazy"><figcaption>Copiar pedidos y después Transformar (1), con sus propiedades (2)</figcaption></figure>
+
+
+<p>La flecha indica la dependencia: el notebook corre <strong>cuando la copia termina bien</strong>.</p>
+<h2>Paso 4 — Ejecutar</h2>
+<p><strong>Run</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/fabric/b11-run.webp" alt="Las dos actividades en verde (1) y la salida con filas leídas y copiadas (2)" loading="lazy"><figcaption>Las dos actividades en verde (1) y la salida con filas leídas y copiadas (2)</figcaption></figure>
+
+
+<p><code>rowsRead: 12000, rowsCopied: 12000</code>: los 12 000 pedidos llegaron a <code>pedidos_copia</code>, y después corrió el notebook.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Si ya hiciste el curso de Data Factory</div>
+
+<p>Todo lo que aprendiste allá vale aquí: actividades, dependencias, parámetros, expresiones, ForEach, If Condition, Lookup y triggers. La práctica de Fabric tiene solo Copy data y Notebook; para practicar lo demás usa el <a href="#/m/data-factory-paso-a-paso">curso de Data Factory</a>. Diferencias de Fabric: no hay linked services ni datasets separados (las conexiones se eligen en la actividad), no hay que publicar (se guarda y listo) y el monitoreo está en el Monitor de Fabric.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un pipeline con copia y notebook encadenados.</li>
+<li>Lo ejecutaste y leíste la salida de cada actividad.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/fabric-paso-a-paso-pipelines">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-transformar-con-spark.html">← Transformar con Spark SQL y PySpark - escribir tablas nuevas</a><a href="fabric-paso-a-paso-proyecto-cargar-y-transformar.html">Proyecto 3 (semiguiado) - cargar, transformar y comprobar de punta a punta →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
