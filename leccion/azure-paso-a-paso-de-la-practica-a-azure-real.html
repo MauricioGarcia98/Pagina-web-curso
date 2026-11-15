@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica al Azure real · Academia de Datos</title><meta name="description" content="Todo lo que hiciste funciona igual en un Azure de verdad, con algunas diferencias que conviene conocer antes de gastar un peso. Cómo abrir una cuenta gratis y no llevarte sorpresas, cómo se organizan las empresas (grupos de administración, suscripciones por entorno, políticas), la convención de nombres completa, cómo pasar lo que hiciste en el portal a Bicep o a la CLI, y qué certificaciones y siguientes pasos tienen sentido."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-de-la-practica-a-azure-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica al Azure real · Academia de Datos"><meta property="og:description" content="Todo lo que hiciste funciona igual en un Azure de verdad, con algunas diferencias que conviene conocer antes de gastar un peso. Cómo abrir una cuenta gratis y no llevarte sorpresas, cómo se organizan las empresas (grupos de administración, suscripciones por entorno, políticas), la convención de nombres completa, cómo pasar lo que hiciste en el portal a Bicep o a la CLI, y qué certificaciones y siguientes pasos tienen sentido."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-de-la-practica-a-azure-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 6 · Avanzado completo · 40 min</div>
+<h1>De la práctica al Azure real</h1><p class="resumen">Todo lo que hiciste funciona igual en un Azure de verdad, con algunas diferencias que conviene conocer antes de gastar un peso. Cómo abrir una cuenta gratis y no llevarte sorpresas, cómo se organizan las empresas (grupos de administración, suscripciones por entorno, políticas), la convención de nombres completa, cómo pasar lo que hiciste en el portal a Bicep o a la CLI, y qué certificaciones y siguientes pasos tienen sentido.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-de-la-practica-a-azure-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Abrir una cuenta de Azure de prueba sin riesgos de costo</li><li>Entender cómo organiza Azure una empresa</li><li>Aplicar la convención de nombres del Cloud Adoption Framework</li><li>Convertir lo hecho en el portal a Bicep o CLI</li><li>Planificar los siguientes pasos de aprendizaje</li></ul>
+<h2>Paso 1 — Una cuenta propia sin sorpresas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué incluye</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Cuenta gratuita de Azure</strong></td>
+<td>Crédito de USD 200 para los primeros 30 días + servicios gratis por 12 meses + algunos siempre gratis</td>
+<td>Cualquiera, con tarjeta</td>
+</tr>
+<tr>
+<td><strong>Azure for Students</strong></td>
+<td>Crédito anual sin tarjeta, con correo de una institución educativa</td>
+<td>Estudiantes</td>
+</tr>
+<tr>
+<td><strong>Microsoft Learn sandbox</strong></td>
+<td>Suscripciones temporales gratis dentro de algunos módulos de Learn</td>
+<td>Ejercicios guiados</td>
+</tr>
+</tbody></table></div>
+<p>Lo primero que haces en una cuenta nueva, antes de crear nada:</p>
+<ol>
+<li>Un <strong>presupuesto</strong> chico (USD 5 o 10) con alertas al 50, 80 y 100 %.</li>
+<li>Un grupo de recursos <strong>por práctica</strong>, que borras al terminar.</li>
+<li>Clústeres de Databricks con <strong>apagado automático</strong> de 15 minutos.</li>
+<li>Revisar <strong>Cost Management</strong> al día siguiente de cada práctica.</li>
+</ol>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Las capturas de tu Azure real</div>
+
+<p>Si compartes capturas de tu portal (en un foro, un informe o un portafolio), tapa el <strong>correo</strong>, el <strong>ID de la suscripción</strong>, el <strong>ID del tenant</strong>, las <strong>claves</strong> y cualquier <strong>SAS</strong>. Una SAS o una clave en una captura es una credencial filtrada.</p>
+</div>
+
+
+<h2>Paso 2 — Cómo organiza Azure una empresa</h2>
+<pre><code class="language-text">Tenant
+ └── Management group &quot;Empresa&quot;           ← políticas para todos
+      ├── Management group &quot;Plataforma&quot;
+      │    └── Suscripción conectividad, identidad, logs
+      └── Management group &quot;Datos&quot;
+           ├── Suscripción sub-datos-dev   ← presupuestos y permisos de dev
+           ├── Suscripción sub-datos-qa
+           └── Suscripción sub-datos-prod  ← bloqueos, alertas, sin acceso manual</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Management groups</strong></td>
+<td>Agrupar suscripciones y heredarles políticas y permisos</td>
+</tr>
+<tr>
+<td><strong>Suscripciones por entorno</strong></td>
+<td>Separar costos, límites y permisos de dev, qa y prod</td>
+</tr>
+<tr>
+<td><strong>Azure Policy</strong></td>
+<td>Reglas automáticas: &quot;solo estas regiones&quot;, &quot;toda cuenta con TLS 1.2&quot;, &quot;sin etiqueta <code>owner</code> no se crea&quot;</td>
+</tr>
+<tr>
+<td><strong>Landing zone</strong></td>
+<td>La plantilla de todo lo anterior que propone el <strong>Cloud Adoption Framework</strong> de Microsoft</td>
+</tr>
+</tbody></table></div>
+<p>En la práctica, el grupo <code>rg-tiendaandina-prod</code> quedó en la misma suscripción que dev para simplificar. En una empresa iría en <code>sub-datos-prod</code>.</p>
+<h2>Paso 3 — La convención de nombres</h2>
+<p>El <strong>Cloud Adoption Framework</strong> propone abreviaturas por tipo de recurso. Las de este curso:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Abreviatura</th>
+<th>Ejemplo</th>
+<th>Reglas propias</th>
+</tr>
+</thead><tbody><tr>
+<td>Resource group</td>
+<td><code>rg</code></td>
+<td><code>rg-tiendaandina-prod</code></td>
+<td>Hasta 90 caracteres</td>
+</tr>
+<tr>
+<td>Storage account</td>
+<td><code>st</code></td>
+<td><code>sttiendaandinaprod</code></td>
+<td>3–24, solo minúsculas y números, único global</td>
+</tr>
+<tr>
+<td>Key vault</td>
+<td><code>kv</code></td>
+<td><code>kv-tiendaandina-prod</code></td>
+<td>3–24, único global</td>
+</tr>
+<tr>
+<td>Azure Databricks</td>
+<td><code>dbw</code></td>
+<td><code>dbw-tiendaandina-prod</code></td>
+<td>3–64</td>
+</tr>
+<tr>
+<td>Data factory</td>
+<td><code>adf</code></td>
+<td><code>adf-tiendaandina-prod</code></td>
+<td>3–63, único global</td>
+</tr>
+<tr>
+<td>SQL server / base</td>
+<td><code>sql</code> / <code>sqldb</code></td>
+<td><code>sql-tiendaandina-prod</code></td>
+<td>Servidor único global</td>
+</tr>
+</tbody></table></div>
+<p>Forma general: <strong>tipo-proyecto-entorno[-región][-número]</strong>. Lo importante no es la convención exacta sino que <strong>todo el equipo use la misma</strong>.</p>
+<h2>Paso 4 — Del portal al código</h2>
+<p>Cada asistente del portal ofrece la plantilla de lo que vas a crear. En <strong>Review + create → Download a template for automation</strong>, pestaña <strong>Bicep</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b23-bicep.webp" alt="Las pestañas ARM, Bicep y Azure CLI (1) y la versión Bicep de la cuenta (2)" loading="lazy"><figcaption>Las pestañas ARM, Bicep y Azure CLI (1) y la versión Bicep de la cuenta (2)</figcaption></figure>
+
+
+<p>Y la pestaña <strong>Azure CLI</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b23-cli.webp" alt="El mismo recurso como un comando az storage account create" loading="lazy"><figcaption>El mismo recurso como un comando az storage account create</figcaption></figure>
+
+
+<p>En Azure real, además, cada grupo de recursos tiene <strong>Export template</strong>, que genera la plantilla de <strong>lo que ya existe</strong>. Es un buen punto de partida para pasar a código algo que se creó a mano (conviene limpiarla antes de usarla).</p>
+<h2>Paso 5 — Detalles del portal real</h2>
+<ul>
+<li>El portal real tiene muchas más opciones en cada pestaña; las que viste son las que importan para datos.</li>
+<li>Se puede elegir el <strong>tema</strong> y el <strong>idioma</strong> en los ajustes:</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/azure/b23-tema-oscuro.webp" alt="El portal con el tema oscuro" loading="lazy"><figcaption>El portal con el tema oscuro</figcaption></figure>
+
+
+<ul>
+<li>Puedes crear <strong>dashboards</strong> propios con gráficos de métricas y costos, y fijar recursos a <strong>favoritos</strong>.</li>
+<li><strong>Azure Advisor</strong> revisa tu suscripción y propone mejoras de costo, seguridad y confiabilidad.</li>
+</ul>
+<h2>Paso 6 — Siguientes pasos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si quieres…</th>
+<th>Sigue con</th>
+</tr>
+</thead><tbody><tr>
+<td>Procesar los datos del lago</td>
+<td><a href="#/m/databricks-paso-a-paso">Databricks paso a paso</a></td>
+</tr>
+<tr>
+<td>Llevar los datos a informes</td>
+<td><a href="#/m/powerbi-paso-a-paso">Power BI paso a paso</a></td>
+</tr>
+<tr>
+<td>Automatizar la infraestructura</td>
+<td><a href="#/m/terraform">Terraform</a></td>
+</tr>
+<tr>
+<td>Ver la teoría de Azure y la CLI</td>
+<td><a href="#/m/azure">Azure y Azure CLI</a></td>
+</tr>
+<tr>
+<td>Certificarte</td>
+<td><a href="#/m/cert-azure">Certificaciones Azure</a>: <strong>DP-700</strong> (Fabric Data Engineer) para ingeniería de datos; <strong>AZ-900</strong> como introducción general</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes abrir una cuenta propia y protegerte de costos inesperados.</li>
+<li>Entiendes cómo organiza Azure una empresa y para qué sirve Azure Policy.</li>
+<li>Pasas lo hecho en el portal a Bicep o CLI y sabes por dónde seguir.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-de-la-practica-a-azure-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-costos-y-presupuestos.html">← Costos a escala - leer la factura, alertas tempranas y optimizar</a><a href="azure-paso-a-paso-proyecto-final.html">Proyecto final (solo el pedido) - la plataforma de producción de Tienda Andina →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Etiquetas, registro de actividad y costos · Academia de Datos</title><meta name="description" content="Tres herramientas que responden las preguntas que siempre llegan - ¿de quién es esto?, ¿quién lo cambió? y ¿cuánto cuesta? Editas etiquetas de un recurso, lees el registro de actividad, abres Cost Management para ver el costo por servicio, por recurso y por grupo, y creas un presupuesto con alertas al 50, 80 y 100 por ciento."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-etiquetas-actividad-y-costos.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Etiquetas, registro de actividad y costos · Academia de Datos"><meta property="og:description" content="Tres herramientas que responden las preguntas que siempre llegan - ¿de quién es esto?, ¿quién lo cambió? y ¿cuánto cuesta? Editas etiquetas de un recurso, lees el registro de actividad, abres Cost Management para ver el costo por servicio, por recurso y por grupo, y creas un presupuesto con alertas al 50, 80 y 100 por ciento."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-etiquetas-actividad-y-costos.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 2 · Básico-intermedio · 35 min</div>
+<h1>Etiquetas, registro de actividad y costos</h1><p class="resumen">Tres herramientas que responden las preguntas que siempre llegan - ¿de quién es esto?, ¿quién lo cambió? y ¿cuánto cuesta? Editas etiquetas de un recurso, lees el registro de actividad, abres Cost Management para ver el costo por servicio, por recurso y por grupo, y creas un presupuesto con alertas al 50, 80 y 100 por ciento.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-etiquetas-actividad-y-costos">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Editar las etiquetas de un recurso</li><li>Leer el registro de actividad para saber quién hizo qué</li><li>Ver el costo por servicio, por recurso y por grupo</li><li>Crear un presupuesto con umbrales de alerta</li><li>Explicar qué hace y qué no hace un presupuesto</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Finanzas nos pide dos cosas: que podamos explicar cada peso que gasta el equipo, y que nos avisen antes de pasarnos de USD 20 por mes en dev.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Editar etiquetas</h2>
+<p>En <code>sttiendaandinadev</code>, menú <strong>Tags</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b07-etiquetas.webp" alt="Tags de la cuenta - se agregan, cambian o borran y se guardan con Apply" loading="lazy"><figcaption>Tags de la cuenta - se agregan, cambian o borran y se guardan con Apply</figcaption></figure>
+
+
+<p>Cambia, agrega o quita pares y pulsa <strong>Apply</strong>. Si hiciste la pista del proyecto 1, ya tiene <code>owner</code>. Las etiquetas típicas en una empresa:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Etiqueta</th>
+<th>Ejemplo</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><code>entorno</code></td>
+<td><code>dev</code>, <code>qa</code>, <code>prod</code></td>
+<td>Separar costos y aplicar políticas distintas</td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td><code>equipo-datos</code></td>
+<td>Saber a quién preguntar</td>
+</tr>
+<tr>
+<td><code>proyecto</code> o <code>costcenter</code></td>
+<td><code>tienda-andina</code>, <code>1234</code></td>
+<td>Repartir la factura</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — El registro de actividad</h2>
+<p>En el buscador escribe <code>activity log</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b07-actividad.webp" alt="Activity log - cada operación de escritura con su estado, hora, recurso y quién la hizo" loading="lazy"><figcaption>Activity log - cada operación de escritura con su estado, hora, recurso y quién la hizo</figcaption></figure>
+
+
+<p>El <strong>registro de actividad</strong> guarda cada operación de <strong>escritura</strong> sobre los recursos: crear, cambiar, borrar, asignar un rol, generar una clave. Responde la pregunta de todo incidente: <em>&quot;¿quién cambió esto y cuándo?&quot;</em>.</p>
+<ul>
+<li>Se guarda <strong>90 días</strong>. Para más tiempo se envía a un Log Analytics workspace o a una cuenta de almacenamiento.</li>
+<li>No registra <strong>lecturas de datos</strong> (quién descargó un archivo). Eso son los <em>diagnostic logs</em> de cada recurso.</li>
+</ul>
+<p>Cada recurso y cada grupo tienen también su propio <strong>Activity log</strong> en el menú, filtrado a lo suyo.</p>
+<h2>Paso 3 — Cost Management</h2>
+<p>Abre <strong>Cost Management</strong> desde Home:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b07-costos.webp" alt="Cost analysis - costo actual, pronóstico y presupuesto (1), y costo por servicio (2)" loading="lazy"><figcaption>Cost analysis - costo actual, pronóstico y presupuesto (1), y costo por servicio (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Dato</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Actual cost</strong></td>
+<td>Lo gastado en el mes hasta hoy</td>
+</tr>
+<tr>
+<td><strong>Forecast</strong></td>
+<td>La proyección a fin de mes con el ritmo actual</td>
+</tr>
+<tr>
+<td><strong>Cost by service</strong></td>
+<td>Qué tipo de servicio gasta más</td>
+</tr>
+<tr>
+<td><strong>Cost by resource</strong></td>
+<td>Qué recurso puntual gasta más</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-nota"><div class="callout-title">📝 Precios de práctica</div>
+
+<p>Los montos de la práctica son inventados para aprender a leerlos. En Azure real, una cuenta de almacenamiento cobra por <strong>GB guardado</strong>, por <strong>operaciones</strong> y por <strong>datos que salen</strong> de la región; un workspace de Databricks cobra por las <strong>máquinas</strong> y los <strong>DBU</strong> mientras los clústeres están encendidos.</p>
+</div>
+
+
+<p>También puedes ver el costo de <strong>un solo grupo</strong>: en <code>rg-tiendaandina-dev</code>, menú <strong>Cost analysis</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b07-costos-grupo.webp" alt="Cost analysis del grupo (1) - solo los recursos de rg-tiendaandina-dev (2)" loading="lazy"><figcaption>Cost analysis del grupo (1) - solo los recursos de rg-tiendaandina-dev (2)</figcaption></figure>
+
+
+<h2>Paso 4 — Un presupuesto con alertas</h2>
+<p>En Cost Management, <strong>Budgets → + Add</strong>:</p>
+<ol>
+<li><strong>Name</strong>: <code>presupuesto-datos-dev</code>.</li>
+<li><strong>Amount (USD)</strong>: <code>20</code>.</li>
+<li><strong>Alert conditions</strong>: <code>50, 80, 100</code>.</li>
+<li><strong>Alert recipients</strong>: el correo del equipo.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/azure/b07-presupuesto.webp" alt="Create budget - monto (1), umbrales de alerta (2) y destinatarios (3)" loading="lazy"><figcaption>Create budget - monto (1), umbrales de alerta (2) y destinatarios (3)</figcaption></figure>
+
+
+<p>Haz clic en <strong>Create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b07-presupuestos.webp" alt="El presupuesto creado (1) con su gasto evaluado y sus alertas (2)" loading="lazy"><figcaption>El presupuesto creado (1) con su gasto evaluado y sus alertas (2)</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Un presupuesto avisa, no frena</div>
+
+<p>Cuando el gasto llega al 50, 80 o 100 %, Azure <strong>manda un correo</strong>. <strong>No apaga nada</strong>. Si un clúster de Databricks queda encendido el fin de semana, el presupuesto avisa y el gasto sigue. Para cortar automáticamente hay que conectar la alerta a una automatización (un <em>action group</em> que ejecute un runbook o una Function), o usar los límites propios de cada servicio, como el apagado automático de los clústeres.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Editas etiquetas para que cada recurso tenga dueño y entorno.</li>
+<li>Sabes responder &quot;¿quién cambió esto?&quot; con el registro de actividad.</li>
+<li>Lees el costo por servicio, recurso y grupo, y tienes un presupuesto con alertas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-etiquetas-actividad-y-costos">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-adls-gen2-y-las-capas-del-lago.html">← ADLS Gen2 y las capas del lago (bronze, silver, gold)</a><a href="azure-paso-a-paso-proyecto-lago-con-capas.html">Proyecto 2 (semiguiado) - el lago de Tienda Andina listo para recibir datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

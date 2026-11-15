@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Factory desde el portal - el recurso, su identidad y el Studio · Academia de Datos</title><meta name="description" content="Azure Data Factory orquesta el movimiento de datos - copia desde las fuentes al lago y dispara los notebooks. Creas adf-tiendaandina-dev, decides qué hacer con Git, conoces su identidad administrada, le das permiso de escritura sobre el lago sin guardar ni un secreto, y abres el Studio, donde se diseñan los pipelines."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-data-factory-desde-el-portal.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Data Factory desde el portal - el recurso, su identidad y el Studio · Academia de Datos"><meta property="og:description" content="Azure Data Factory orquesta el movimiento de datos - copia desde las fuentes al lago y dispara los notebooks. Creas adf-tiendaandina-dev, decides qué hacer con Git, conoces su identidad administrada, le das permiso de escritura sobre el lago sin guardar ni un secreto, y abres el Studio, donde se diseñan los pipelines."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-data-factory-desde-el-portal.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 4 · Intermedio-avanzado · 40 min</div>
+<h1>Data Factory desde el portal - el recurso, su identidad y el Studio</h1><p class="resumen">Azure Data Factory orquesta el movimiento de datos - copia desde las fuentes al lago y dispara los notebooks. Creas adf-tiendaandina-dev, decides qué hacer con Git, conoces su identidad administrada, le das permiso de escritura sobre el lago sin guardar ni un secreto, y abres el Studio, donde se diseñan los pipelines.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-data-factory-desde-el-portal">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un data factory con un nombre válido</li><li>Entender la opción de Git y cuándo configurarla</li><li>Explicar la identidad administrada del factory</li><li>Dar un rol de datos a una identidad administrada</li><li>Abrir Data Factory Studio desde el portal</li></ul>
+<h2>Paso 1 — Qué es Data Factory</h2>
+<p><strong>Azure Data Factory</strong> (ADF) es el orquestador de datos de Azure: <strong>copia</strong> datos entre más de 90 tipos de origen y destino, <strong>transforma</strong> con data flows o llamando a Databricks, y <strong>programa</strong> todo con triggers. En Tienda Andina, ADF copia cada noche los pedidos de la base de ventas a <code>bronze</code> y después ejecuta el notebook que los limpia.</p>
+<p>Igual que Databricks: el <strong>recurso</strong> se crea en el portal y los <strong>pipelines</strong> se diseñan en el <strong>Studio</strong>. El módulo <a href="#/m/azure">Azure y Azure CLI</a> explica sus piezas, y el Studio de práctica trae su propia guía de inicio.</p>
+<h2>Paso 2 — Crear el factory</h2>
+<p><strong>Create a resource → Data Factory</strong>:</p>
+<ol>
+<li><strong>Resource group</strong>: <code>rg-tiendaandina-dev</code>.</li>
+<li><strong>Name</strong>: <code>adf-tiendaandina-dev</code> (3 a 63 caracteres, letras, números y guiones; <strong>único en todo Azure</strong>).</li>
+<li><strong>Region</strong>: East US 2. <strong>Version</strong>: V2.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/azure/b14-adf-basics.webp" alt="Basics - el nombre (1) y la versión (2)" loading="lazy"><figcaption>Basics - el nombre (1) y la versión (2)</figcaption></figure>
+
+
+<p>Pasa a <strong>Git configuration</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b14-adf-git.webp" alt="Git configuration - Configure Git later" loading="lazy"><figcaption>Git configuration - Configure Git later</figcaption></figure>
+
+
+<p>Con <strong>Git</strong> conectado (Azure DevOps o GitHub), cada cambio del Studio queda en una rama, se revisa con un pull request y se publica a otros entornos con CI/CD. Para aprender, marca <strong>Configure Git later</strong>; en un equipo real, el factory de <strong>dev</strong> se conecta a Git y los de <strong>qa</strong> y <strong>prod</strong> reciben los cambios solo por el pipeline de despliegue.</p>
+<p><strong>Review + create → Create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b14-adf-overview.webp" alt="El factory creado (1) y Launch studio (2)" loading="lazy"><figcaption>El factory creado (1) y Launch studio (2)</figcaption></figure>
+
+
+<h2>Paso 3 — La identidad administrada</h2>
+<p>Menú <strong>Identity</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b14-adf-identidad.webp" alt="System assigned: On - la identidad administrada del factory" loading="lazy"><figcaption>System assigned: On - la identidad administrada del factory</figcaption></figure>
+
+
+<p>Cada data factory nace con una <strong>identidad administrada</strong> (<em>system-assigned managed identity</em>): una identidad de Entra ID que <strong>pertenece al recurso</strong>. Azure le administra las credenciales; tú no ves ni guardas ningún secreto, y nada vence.</p>
+<h2>Paso 4 — Darle permiso sobre el lago</h2>
+<p>El factory va a <strong>escribir</strong> en bronze. En <code>sttiendaandinadev</code> → <strong>Access control (IAM) → + Add role assignment</strong>:</p>
+<ol>
+<li>Rol: <strong>Storage Blob Data Contributor</strong>.</li>
+<li><strong>Assign access to</strong>: <strong>Managed identity</strong>.</li>
+<li><strong>Members</strong>: <code>adf-tiendaandina-dev</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/azure/b14-adf-rol.webp" alt="Assign access to Managed identity (1) y el factory como miembro (2)" loading="lazy"><figcaption>Assign access to Managed identity (1) y el factory como miembro (2)</figcaption></figure>
+
+
+<p>Compáralo con el proyecto 3: para el programa externo hubo que registrar una aplicación, crear un secreto, guardarlo en el vault y anotar su vencimiento. Para el factory, <strong>un rol y listo</strong>.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 La regla</div>
+
+<p>Si quien necesita acceso <strong>es un recurso de Azure</strong> (Data Factory, Databricks, una Function, una VM), usa su <strong>identidad administrada</strong>. Usa un service principal con secreto solo para lo que corre <strong>fuera</strong> de Azure.</p>
+</div>
+
+
+<p>Si el factory también necesita la contraseña de la base de ventas, se le da <strong>Key Vault Secrets User</strong> sobre <code>kv-tiendaandina-dev</code>, con el mismo procedimiento.</p>
+<h2>Paso 5 — El Studio</h2>
+<p>En la hoja del factory, <strong>Launch studio</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b14-adf-studio.webp" alt="Azure Data Factory Studio - Home, Author, Monitor y Manage" loading="lazy"><figcaption>Azure Data Factory Studio - Home, Author, Monitor y Manage</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Pestaña</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Home</strong></td>
+<td>Accesos rápidos y guía de inicio</td>
+</tr>
+<tr>
+<td><strong>Author</strong></td>
+<td>Diseñar pipelines, datasets y data flows</td>
+</tr>
+<tr>
+<td><strong>Monitor</strong></td>
+<td>Ver cada ejecución, su duración y sus errores</td>
+</tr>
+<tr>
+<td><strong>Manage</strong></td>
+<td>Linked services (conexiones), integration runtimes, triggers, Git</td>
+</tr>
+</tbody></table></div>
+<p>Lo que sigue (linked service al lago, la actividad Copy, el trigger) se hace en el Studio, siguiendo la guía <strong>Por dónde empezar</strong> de su página Home.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste el factory y sabes cuándo conectar Git.</li>
+<li>Entiendes la identidad administrada y le diste un rol de datos.</li>
+<li>Llegas al Studio desde el portal.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-data-factory-desde-el-portal">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-azure-databricks-desde-el-portal.html">← Azure Databricks desde el portal - el workspace y su grupo administrado</a><a href="azure-paso-a-paso-azure-sql-database.html">Azure SQL Database - la base operativa, su cortafuegos y sus conexiones →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

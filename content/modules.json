@@ -339,6 +339,20 @@
     ]
   },
   {
+    "id": "azure-paso-a-paso",
+    "titulo": "Portal de Azure paso a paso",
+    "icono": "☁️",
+    "color": "#0078d4",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del portal de Azure de práctica: suscripciones y grupos de recursos, el data lake en ADLS Gen2 con sus capas, etiquetas y costos, Cloud Shell y la CLI az, Entra ID y RBAC, Key Vault, Databricks, Data Factory y Azure SQL desde el portal, red, claves y SAS, protección de datos y ciclo de vida, bloqueos y alertas, plantillas ARM y presupuestos. Cada nivel cierra con un proyecto real para Tienda Andina con menos ayuda que el anterior, y termina con el paso al Azure real.",
+    "objetivos": [
+      "Crear y organizar recursos con suscripciones, grupos, etiquetas y convenciones de nombres",
+      "Montar un data lake en ADLS Gen2 con capas, protección de datos y ciclo de vida",
+      "Dar acceso con Entra ID, RBAC, identidades administradas y Key Vault, sin claves en el código",
+      "Operar la plataforma con bloqueos, monitoreo, alertas, costos y presupuestos",
+      "Desplegar entornos completos con plantillas ARM y pasar lo hecho en el portal a código"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

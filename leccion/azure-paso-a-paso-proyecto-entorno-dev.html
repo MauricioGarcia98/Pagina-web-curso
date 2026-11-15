@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 1 (guiado) - el inventario del entorno dev · Academia de Datos</title><meta name="description" content="Lucía quiere saber qué hay en el entorno dev y poder encontrarlo rápido. Usas lo que aprendiste para revisar el grupo y la cuenta - recientes, All resources con filtros, el visualizador de recursos y la vista JSON - y entregas un inventario verificado con nombres, tipos, región, redundancia y etiquetas. Cada paso con su captura y una lista de verificación al final."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-entorno-dev.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 1 (guiado) - el inventario del entorno dev · Academia de Datos"><meta property="og:description" content="Lucía quiere saber qué hay en el entorno dev y poder encontrarlo rápido. Usas lo que aprendiste para revisar el grupo y la cuenta - recientes, All resources con filtros, el visualizador de recursos y la vista JSON - y entregas un inventario verificado con nombres, tipos, región, redundancia y etiquetas. Cada paso con su captura y una lista de verificación al final."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-entorno-dev.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 1 · Básico · 40 min</div>
+<h1>Proyecto 1 (guiado) - el inventario del entorno dev</h1><p class="resumen">Lucía quiere saber qué hay en el entorno dev y poder encontrarlo rápido. Usas lo que aprendiste para revisar el grupo y la cuenta - recientes, All resources con filtros, el visualizador de recursos y la vista JSON - y entregas un inventario verificado con nombres, tipos, región, redundancia y etiquetas. Cada paso con su captura y una lista de verificación al final.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-entorno-dev">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Encontrar recursos con los filtros de All resources</li><li>Ver cómo se relacionan los recursos de un grupo</li><li>Leer la definición JSON de un recurso</li><li>Verificar nombres, región, redundancia y etiquetas</li><li>Entregar un inventario claro</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Lucía: <em>&quot;Antes de seguir, mándame un inventario del entorno dev: qué recursos hay, en qué grupo, en qué región, con qué redundancia y con qué etiquetas. Y que cualquiera del equipo pueda encontrarlos en el portal en dos clics.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Los recientes</h2>
+<p>Vuelve a <strong>Home</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b04-recientes.webp" alt="Resources → Recent - el grupo y la cuenta que abriste en las lecciones anteriores" loading="lazy"><figcaption>Resources → Recent - el grupo y la cuenta que abriste en las lecciones anteriores</figcaption></figure>
+
+
+<p>La lista <strong>Recent</strong> guarda lo último que abriste. Es el atajo más rápido para volver a algo con lo que estabas trabajando.</p>
+<h2>Paso 2 — All resources con filtros</h2>
+<p>Abre <strong>All resources</strong> y escribe <code>tienda</code> en el filtro:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b04-todos-recursos.webp" alt="All resources - el filtro de texto (1), el filtro por tipo (2) y el filtro por grupo (3)" loading="lazy"><figcaption>All resources - el filtro de texto (1), el filtro por tipo (2) y el filtro por grupo (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Filtro</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Filter for any field</strong> (1)</td>
+<td>Busca en nombre, tipo, grupo y región a la vez</td>
+</tr>
+<tr>
+<td><strong>Type</strong> (2)</td>
+<td>Solo un tipo de recurso, por ejemplo Storage account</td>
+</tr>
+<tr>
+<td><strong>Resource group</strong> (3)</td>
+<td>Solo lo de un grupo</td>
+</tr>
+</tbody></table></div>
+<p>Con 2 recursos parece innecesario. Con 300 recursos de 15 equipos, estos filtros son lo que usas todo el día.</p>
+<h2>Paso 3 — El visualizador de recursos</h2>
+<p>En el grupo <code>rg-tiendaandina-dev</code>, menú <strong>Resource visualizer</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b04-visualizador.webp" alt="Resource visualizer - el grupo y los recursos que contiene" loading="lazy"><figcaption>Resource visualizer - el grupo y los recursos que contiene</figcaption></figure>
+
+
+<p>Muestra el grupo y lo que hay adentro como un diagrama. Cuando el grupo tenga storage, key vault, Databricks y Data Factory (nivel 4), lo vuelves a abrir.</p>
+<h2>Paso 4 — La vista JSON</h2>
+<p>En la cuenta <code>sttiendaandinadev</code>, haz clic en <strong>JSON View</strong> (arriba a la derecha de Essentials):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b04-json.webp" alt="Resource JSON - el ID completo, la SKU, el tipo de cuenta y sus propiedades" loading="lazy"><figcaption>Resource JSON - el ID completo, la SKU, el tipo de cuenta y sus propiedades</figcaption></figure>
+
+
+<p>Lo más útil de esta vista:</p>
+<ul>
+<li><strong>id</strong>: el identificador completo del recurso. Tiene la forma <code>/subscriptions/&lt;id&gt;/resourceGroups/&lt;grupo&gt;/providers/Microsoft.Storage/storageAccounts/&lt;nombre&gt;</code> y es lo que piden la CLI, las plantillas y los permisos.</li>
+<li><strong>sku.name</strong>: <code>Standard_LRS</code> = rendimiento Standard + redundancia LRS.</li>
+<li><strong>properties.isHnsEnabled</strong>: <code>true</code> confirma que es ADLS Gen2.</li>
+<li><strong>primaryEndpoints</strong>: las direcciones <code>blob</code> y <code>dfs</code>.</li>
+</ul>
+<h2>Paso 5 — El inventario</h2>
+<p>Con lo que viste, completa el inventario:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Recurso</th>
+<th>Tipo</th>
+<th>Grupo</th>
+<th>Región</th>
+<th>Configuración</th>
+<th>Etiquetas</th>
+</tr>
+</thead><tbody><tr>
+<td><code>rg-tiendaandina-dev</code></td>
+<td>Resource group</td>
+<td>—</td>
+<td>East US 2</td>
+<td>—</td>
+<td>proyecto, entorno, owner</td>
+</tr>
+<tr>
+<td><code>sttiendaandinadev</code></td>
+<td>Storage account (ADLS Gen2)</td>
+<td><code>rg-tiendaandina-dev</code></td>
+<td>East US 2</td>
+<td>Standard_LRS, HNS activado, Hot, TLS 1.2</td>
+<td>proyecto, entorno</td>
+</tr>
+</tbody></table></div>
+<details><summary>💡 Pista: ¿falta algo?</summary>
+
+<p>La cuenta no tiene la etiqueta <code>owner</code>. Las etiquetas del grupo <strong>no se copian solas</strong> a los recursos de adentro: cada recurso tiene las suyas. Agrégala en la cuenta desde el menú <strong>Tags</strong> (<code>owner = equipo-datos</code>) y pulsa <strong>Apply</strong>. En Azure real, una <strong>Azure Policy</strong> puede heredar o exigir etiquetas automáticamente.</p>
+</details>
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>rg-tiendaandina-dev</code> existe en East US 2 con las tres etiquetas.</li>
+<li><input disabled="" type="checkbox"> <code>sttiendaandinadev</code> está en ese grupo, en East US 2.</li>
+<li><input disabled="" type="checkbox"> La cuenta dice <code>Standard_LRS</code> y <code>isHnsEnabled: true</code>.</li>
+<li><input disabled="" type="checkbox"> La cuenta tiene <code>proyecto</code>, <code>entorno</code> y <code>owner</code>.</li>
+<li><input disabled="" type="checkbox"> Puedes llegar a la cuenta desde el buscador escribiendo <code>tienda</code>.</li>
+</ul>
+<h2>Lo que aprendiste en el nivel 1</h2>
+<ul>
+<li>La jerarquía de Azure y qué se hereda.</li>
+<li>El asistente de creación: pestañas, validación, plantilla y despliegue.</li>
+<li>Cómo encontrar, inspeccionar y documentar lo que hay en una suscripción.</li>
+</ul>
+<p>En el nivel 2 llenas el data lake: contenedores, archivos y las capas bronze, silver y gold.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-entorno-dev">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-tu-primera-cuenta-de-almacenamiento.html">← Tu primera cuenta de almacenamiento (el futuro data lake)</a><a href="azure-paso-a-paso-contenedores-y-blobs.html">Contenedores y blobs - subir los primeros archivos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

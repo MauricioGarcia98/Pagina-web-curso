@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure Databricks desde el portal - el workspace y su grupo administrado · Academia de Datos</title><meta name="description" content="Desde el portal se crea el recurso de Azure Databricks; lo de adentro (notebooks, clústeres, tablas) se trabaja en el workspace. Creas dbw-tiendaandina-dev eligiendo el nivel de precio y la conectividad segura, ves qué es el grupo de recursos administrado que Azure crea solo, por qué no puedes borrarlo ni tocarlo (deny assignment) y cómo se pasa del portal al workspace con Launch Workspace."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-azure-databricks-desde-el-portal.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Azure Databricks desde el portal - el workspace y su grupo administrado · Academia de Datos"><meta property="og:description" content="Desde el portal se crea el recurso de Azure Databricks; lo de adentro (notebooks, clústeres, tablas) se trabaja en el workspace. Creas dbw-tiendaandina-dev eligiendo el nivel de precio y la conectividad segura, ves qué es el grupo de recursos administrado que Azure crea solo, por qué no puedes borrarlo ni tocarlo (deny assignment) y cómo se pasa del portal al workspace con Launch Workspace."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-azure-databricks-desde-el-portal.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 4 · Intermedio-avanzado · 40 min</div>
+<h1>Azure Databricks desde el portal - el workspace y su grupo administrado</h1><p class="resumen">Desde el portal se crea el recurso de Azure Databricks; lo de adentro (notebooks, clústeres, tablas) se trabaja en el workspace. Creas dbw-tiendaandina-dev eligiendo el nivel de precio y la conectividad segura, ves qué es el grupo de recursos administrado que Azure crea solo, por qué no puedes borrarlo ni tocarlo (deny assignment) y cómo se pasa del portal al workspace con Launch Workspace.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-azure-databricks-desde-el-portal">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un workspace de Azure Databricks con sus opciones de red</li><li>Explicar qué administra el portal y qué el workspace</li><li>Entender el grupo de recursos administrado y su deny assignment</li><li>Saber qué genera costo en Databricks</li><li>Abrir el workspace desde el portal</li></ul>
+<h2>Paso 1 — Portal y workspace: dos lugares distintos</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Dónde</th>
+<th>Qué se administra</th>
+<th>Quién</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Portal de Azure</strong></td>
+<td>El <strong>recurso</strong> Azure Databricks: región, red, cifrado, permisos de Azure, costo</td>
+<td>Quien administra la nube</td>
+</tr>
+<tr>
+<td><strong>Workspace de Databricks</strong></td>
+<td>Lo de <strong>adentro</strong>: notebooks, clústeres, jobs, Unity Catalog, SQL warehouses</td>
+<td>El equipo de datos</td>
+</tr>
+</tbody></table></div>
+<p>Este curso cubre la parte del portal. Lo de adentro está en el curso <a href="#/m/databricks-paso-a-paso">Databricks paso a paso</a>.</p>
+<h2>Paso 2 — Crear el workspace</h2>
+<p><strong>Create a resource → Azure Databricks</strong>:</p>
+<ol>
+<li><strong>Resource group</strong>: <code>rg-tiendaandina-dev</code>.</li>
+<li><strong>Workspace name</strong>: <code>dbw-tiendaandina-dev</code> (3 a 64 caracteres: letras, números, <code>_</code> y <code>-</code>).</li>
+<li><strong>Region</strong>: East US 2.</li>
+<li><strong>Pricing Tier</strong>: <strong>Premium</strong>.</li>
+<li><strong>Managed Resource Group name</strong>: déjalo vacío para que Azure lo nombre.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/azure/b13-dbw-basics.webp" alt="Basics - el nombre (1), el nivel de precio (2) y el grupo administrado (3)" loading="lazy"><figcaption>Basics - el nombre (1), el nivel de precio (2) y el grupo administrado (3)</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Premium</div>
+
+<p>Hoy los workspaces nuevos de Azure Databricks son <strong>Premium</strong> (control de acceso por roles, Unity Catalog, SQL warehouses). La opción <strong>Trial</strong> da 14 días de DBU gratis para probar; las máquinas virtuales se pagan igual.</p>
+</div>
+
+
+<p>Pasa a <strong>Networking</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b13-dbw-red.webp" alt="Networking - Secure Cluster Connectivity (sin IP pública) y despliegue en tu propia red virtual" loading="lazy"><figcaption>Networking - Secure Cluster Connectivity (sin IP pública) y despliegue en tu propia red virtual</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué hace</th>
+<th>Recomendación</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Secure Cluster Connectivity (No Public IP)</strong></td>
+<td>Las máquinas de los clústeres no tienen IP pública</td>
+<td><strong>Yes</strong>, siempre</td>
+</tr>
+<tr>
+<td><strong>Deploy in your own Virtual Network (VNet injection)</strong></td>
+<td>Los clústeres viven en una red tuya</td>
+<td>En empresas con redes privadas; para aprender, <strong>No</strong></td>
+</tr>
+</tbody></table></div>
+<p><strong>Review + create</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b13-dbw-revisar.webp" alt="Validation passed (1) y el resumen con el grupo administrado que se va a crear (2)" loading="lazy"><figcaption>Validation passed (1) y el resumen con el grupo administrado que se va a crear (2)</figcaption></figure>
+
+
+<p>Haz clic en <strong>Create</strong>. Un workspace tarda algo más que una cuenta (en Azure real, varios minutos).</p>
+<h2>Paso 3 — La hoja del workspace</h2>
+<figure class="captura"><img src="assets/img/guias/azure/b13-dbw-overview.webp" alt="El workspace - Essentials con el grupo administrado y la URL (1), y Launch Workspace (2)" loading="lazy"><figcaption>El workspace - Essentials con el grupo administrado y la URL (1), y Launch Workspace (2)</figcaption></figure>
+
+
+<ul>
+<li><strong>Managed Resource Group</strong>: un grupo nuevo, <code>databricks-rg-dbw-tiendaandina-dev-…</code>.</li>
+<li><strong>URL</strong>: la dirección del workspace, <code>adb-….azuredatabricks.net</code>.</li>
+<li><strong>Launch Workspace</strong> abre el workspace. En la práctica te lleva al <a href="#/databricks">Databricks de práctica</a>.</li>
+</ul>
+<h2>Paso 4 — El grupo de recursos administrado</h2>
+<p>Haz clic en el <strong>Managed Resource Group</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b13-rg-administrado.webp" alt="El grupo administrado por Databricks - su red, su grupo de seguridad, la cuenta del workspace y el conector de Unity Catalog" loading="lazy"><figcaption>El grupo administrado por Databricks - su red, su grupo de seguridad, la cuenta del workspace y el conector de Unity Catalog</figcaption></figure>
+
+
+<p>Azure Databricks crea este grupo con lo que necesita para funcionar: una <strong>red virtual</strong>, un <strong>grupo de seguridad de red</strong>, una <strong>cuenta de almacenamiento</strong> interna del workspace y el <strong>Access Connector</strong> que usa Unity Catalog. Cuando enciendes un clúster, sus <strong>máquinas virtuales</strong> también aparecen aquí.</p>
+<p>Prueba <strong>Delete resource group</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b13-rg-administrado-error.webp" alt="El borrado falla - &quot;denied because of the deny assignment&quot; creada por Azure Databricks" loading="lazy"><figcaption>El borrado falla - &quot;denied because of the deny assignment&quot; creada por Azure Databricks</figcaption></figure>
+
+
+<p>El grupo tiene una <strong>deny assignment</strong>: una regla que niega cambios aunque seas Owner. Así nadie rompe el workspace borrando su red por error. El grupo se borra <strong>solo</strong> cuando borras el workspace.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Qué cuesta en Databricks</div>
+
+<p>El workspace en sí no cobra. Cobran las <strong>máquinas virtuales</strong> de los clústeres (en tu suscripción, dentro del grupo administrado) y los <strong>DBU</strong> (la unidad de Databricks) mientras están encendidos. Un clúster olvidado encendido todo el fin de semana es el clásico susto en la factura: configura siempre el <strong>apagado automático</strong> (<em>auto termination</em>).</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un workspace Premium con conectividad segura.</li>
+<li>Distingues lo que se administra en el portal y en el workspace.</li>
+<li>Entiendes el grupo administrado y su deny assignment.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-azure-databricks-desde-el-portal">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-proyecto-un-programa-sin-contrasenas.html">← Proyecto 3 (semiguiado) - un programa externo que entra sin contraseñas en el código</a><a href="azure-paso-a-paso-data-factory-desde-el-portal.html">Data Factory desde el portal - el recurso, su identidad y el Studio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

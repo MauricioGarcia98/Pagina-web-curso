@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microsoft Entra ID y control de acceso (RBAC) · Academia de Datos</title><meta name="description" content="Quién puede hacer qué en Azure se decide con dos piezas - las identidades de Microsoft Entra ID (usuarios, grupos, aplicaciones e identidades administradas) y los roles de Access control (IAM). Creas una usuaria y un grupo de analistas, le das al grupo un rol de solo lectura sobre el lago, te das a ti un rol de escritura de datos, compruebas los permisos con Check access y vuelves a abrir el contenedor con tu usuario - esta vez sí funciona."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-entra-id-y-control-de-acceso.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Microsoft Entra ID y control de acceso (RBAC) · Academia de Datos"><meta property="og:description" content="Quién puede hacer qué en Azure se decide con dos piezas - las identidades de Microsoft Entra ID (usuarios, grupos, aplicaciones e identidades administradas) y los roles de Access control (IAM). Creas una usuaria y un grupo de analistas, le das al grupo un rol de solo lectura sobre el lago, te das a ti un rol de escritura de datos, compruebas los permisos con Check access y vuelves a abrir el contenedor con tu usuario - esta vez sí funciona."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-entra-id-y-control-de-acceso.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Microsoft Entra ID y control de acceso (RBAC)</h1><p class="resumen">Quién puede hacer qué en Azure se decide con dos piezas - las identidades de Microsoft Entra ID (usuarios, grupos, aplicaciones e identidades administradas) y los roles de Access control (IAM). Creas una usuaria y un grupo de analistas, le das al grupo un rol de solo lectura sobre el lago, te das a ti un rol de escritura de datos, compruebas los permisos con Check access y vuelves a abrir el contenedor con tu usuario - esta vez sí funciona.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-entra-id-y-control-de-acceso">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Distinguir usuario, grupo, service principal e identidad administrada</li><li>Crear un usuario y un grupo en Entra ID</li><li>Asignar un rol en Access control (IAM) a un grupo</li><li>Comprobar permisos con Check access</li><li>Explicar el principio de mínimo privilegio</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Entra María López, analista. Tiene que poder leer el lago pero no cambiar nada. Y tú necesitas escribir en el lago con tu usuario, no con la clave de la cuenta.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Las identidades</h2>
+<p>Abre <strong>Microsoft Entra ID</strong> (en el buscador, <code>entra</code>):</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-entra.webp" alt="Microsoft Entra ID - las pestañas Users, Groups y App registrations (1) y los datos del tenant (2)" loading="lazy"><figcaption>Microsoft Entra ID - las pestañas Users, Groups y App registrations (1) y los datos del tenant (2)</figcaption></figure>
+
+
+<p><strong>Microsoft Entra ID</strong> (antes Azure Active Directory) es el <strong>directorio</strong>: la lista de quién existe para Azure. Hay cuatro tipos de identidad:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Identidad</th>
+<th>Qué es</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Usuario</strong></td>
+<td>Una persona</td>
+<td><code>maria.lopez@academia.dev</code></td>
+</tr>
+<tr>
+<td><strong>Grupo</strong></td>
+<td>Un conjunto de usuarios</td>
+<td><code>analistas-datos</code></td>
+</tr>
+<tr>
+<td><strong>Service principal</strong></td>
+<td>La identidad de un programa externo, con secreto o certificado</td>
+<td>Un pipeline de GitHub Actions</td>
+</tr>
+<tr>
+<td><strong>Identidad administrada</strong></td>
+<td>La identidad de un recurso de Azure, sin secretos</td>
+<td>El Data Factory leyendo el lago</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Crear la usuaria</h2>
+<p><strong>Users → + New user</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-nuevo-usuario.webp" alt="Create new user - el nombre principal (1) y el nombre para mostrar (2)" loading="lazy"><figcaption>Create new user - el nombre principal (1) y el nombre para mostrar (2)</figcaption></figure>
+
+
+<ul>
+<li><strong>User principal name</strong>: <code>maria.lopez</code> (se completa con <code>@academia.dev</code>).</li>
+<li><strong>Display name</strong>: <code>María López</code>.</li>
+</ul>
+<figure class="captura"><img src="assets/img/guias/azure/b10-usuarios.webp" alt="Users - la nueva usuaria en el directorio" loading="lazy"><figcaption>Users - la nueva usuaria en el directorio</figcaption></figure>
+
+
+<h2>Paso 3 — Crear el grupo y agregarla</h2>
+<p><strong>Groups → + New group</strong>, con nombre <code>analistas-datos</code> y descripción <em>Analistas que leen la capa gold</em>. Después, con el ícono de miembros del grupo, marca a María:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-miembros.webp" alt="Members - quién pertenece al grupo" loading="lazy"><figcaption>Members - quién pertenece al grupo</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b10-grupos.webp" alt="El grupo analistas-datos con María como miembro" loading="lazy"><figcaption>El grupo analistas-datos con María como miembro</figcaption></figure>
+
+
+<div class="callout callout-tip"><div class="callout-title">💡 Roles a grupos, no a personas</div>
+
+<p>Si das el rol a María, cuando entre otro analista tienes que repetirlo, y cuando María se vaya tienes que acordarte de quitarlo. Si das el rol al <strong>grupo</strong>, solo cambias la membresía. Es la práctica estándar.</p>
+</div>
+
+
+<h2>Paso 4 — Access control (IAM)</h2>
+<p>En <code>sttiendaandinadev</code>, menú <strong>Access control (IAM)</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-iam.webp" alt="IAM - Add role assignment (1), las pestañas (2) y las asignaciones actuales (3)" loading="lazy"><figcaption>IAM - Add role assignment (1), las pestañas (2) y las asignaciones actuales (3)</figcaption></figure>
+
+
+<p>Ya hay una asignación: tú eres <strong>Owner</strong>, heredado de la suscripción (<em>Subscription (Inherited)</em>). Una asignación de rol tiene tres partes:</p>
+<pre><code class="language-text">QUIÉN (identidad)  +  QUÉ (rol)  +  DÓNDE (alcance)
+analistas-datos       Storage Blob   sttiendaandinadev
+                      Data Reader</code></pre>
+<p>El <strong>alcance</strong> puede ser la suscripción, un grupo, un recurso o incluso un contenedor. Cuanto más chico, mejor.</p>
+<h2>Paso 5 — Asignar el rol al grupo</h2>
+<p><strong>+ Add role assignment</strong>. Busca <code>Storage Blob Data</code>, elige <strong>Storage Blob Data Reader</strong> y en <strong>Members</strong> elige <code>analistas-datos</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-asignar-rol.webp" alt="Add role assignment - buscar el rol (1), elegir Storage Blob Data Reader (2) y el grupo (3)" loading="lazy"><figcaption>Add role assignment - buscar el rol (1), elegir Storage Blob Data Reader (2) y el grupo (3)</figcaption></figure>
+
+
+<p>Haz clic en <strong>Review + assign</strong>. Repite para ti con <strong>Storage Blob Data Contributor</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-asignaciones.webp" alt="Las tres asignaciones - tu Owner heredado, el lector del grupo y tu rol de escritura de datos" loading="lazy"><figcaption>Las tres asignaciones - tu Owner heredado, el lector del grupo y tu rol de escritura de datos</figcaption></figure>
+
+
+<p>Los roles de almacenamiento más usados:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Rol</th>
+<th>Puede</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Storage Blob Data Reader</strong></td>
+<td>Leer y listar</td>
+<td>Analistas, dashboards</td>
+</tr>
+<tr>
+<td><strong>Storage Blob Data Contributor</strong></td>
+<td>Leer, escribir y borrar</td>
+<td>Pipelines, ingenieros</td>
+</tr>
+<tr>
+<td><strong>Storage Blob Data Owner</strong></td>
+<td>Todo lo anterior + permisos POSIX (ACL)</td>
+<td>Administradores del lago</td>
+</tr>
+<tr>
+<td><strong>Contributor</strong></td>
+<td>Administrar el recurso, <strong>no</strong> los datos</td>
+<td>Quien configura la cuenta</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 6 — Comprobar con Check access</h2>
+<p>Pestaña <strong>Check access</strong>, elige <code>analistas-datos</code>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-check-access.webp" alt="Check access - qué roles tiene el grupo (1) y en qué alcance (2)" loading="lazy"><figcaption>Check access - qué roles tiene el grupo (1) y en qué alcance (2)</figcaption></figure>
+
+
+<p><strong>Check access</strong> responde &quot;¿qué puede hacer esta identidad aquí?&quot;, incluyendo lo heredado. En el portal real también muestra lo que una persona recibe <strong>por pertenecer a un grupo</strong>.</p>
+<h2>Paso 7 — Volver al contenedor</h2>
+<p>Abre <code>bronze</code> y cambia a <strong>Microsoft Entra user account</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b10-entra-con-rol.webp" alt="Ahora sí - con tu usuario de Entra (1) ves los blobs (2), porque tienes un rol de datos" loading="lazy"><figcaption>Ahora sí - con tu usuario de Entra (1) ves los blobs (2), porque tienes un rol de datos</figcaption></figure>
+
+
+<div class="callout callout-nota"><div class="callout-title">📝 Los roles tardan en aplicarse</div>
+
+<p>En Azure real, una asignación nueva puede tardar <strong>hasta 10 minutos</strong> en hacer efecto (a veces más). Si después de asignar un rol sigues viendo &quot;no tienes permisos&quot;, espera y vuelve a intentar antes de buscar otro problema.</p>
+</div>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Mínimo privilegio</div>
+
+<p>Da el rol <strong>más chico</strong>, en el <strong>alcance más chico</strong>, al <strong>grupo</strong> correcto. Un Contributor sobre toda la suscripción &quot;para que no moleste&quot; es la puerta por la que se cuelan los incidentes de seguridad.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conoces los cuatro tipos de identidad de Entra ID.</li>
+<li>Creaste una usuaria y un grupo, y diste un rol de datos al grupo.</li>
+<li>Compruebas permisos con Check access y accedes al lago sin la clave.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-entra-id-y-control-de-acceso">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-cloud-shell-y-la-cli-az.html">← Cloud Shell y la CLI az - lo mismo, desde la terminal</a><a href="azure-paso-a-paso-key-vault-y-secretos.html">Key Vault - dónde se guardan los secretos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

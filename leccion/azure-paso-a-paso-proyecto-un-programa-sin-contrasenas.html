@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 3 (semiguiado) - un programa externo que entra sin contraseñas en el código · Academia de Datos</title><meta name="description" content="Un script de ingesta que corre fuera de Azure tiene que subir los pedidos diarios al lago. Registras la aplicación sp-ingesta-ventas en Entra ID, le creas un secreto de cliente, guardas ese secreto en Key Vault en el mismo minuto, le das el rol mínimo sobre la cuenta y verificas las tres piezas que necesita cualquier programa - tenant, client ID y secreto - más su rol. Las pistas están escondidas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-un-programa-sin-contrasenas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 3 (semiguiado) - un programa externo que entra sin contraseñas en el código · Academia de Datos"><meta property="og:description" content="Un script de ingesta que corre fuera de Azure tiene que subir los pedidos diarios al lago. Registras la aplicación sp-ingesta-ventas en Entra ID, le creas un secreto de cliente, guardas ese secreto en Key Vault en el mismo minuto, le das el rol mínimo sobre la cuenta y verificas las tres piezas que necesita cualquier programa - tenant, client ID y secreto - más su rol. Las pistas están escondidas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-un-programa-sin-contrasenas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Proyecto 3 (semiguiado) - un programa externo que entra sin contraseñas en el código</h1><p class="resumen">Un script de ingesta que corre fuera de Azure tiene que subir los pedidos diarios al lago. Registras la aplicación sp-ingesta-ventas en Entra ID, le creas un secreto de cliente, guardas ese secreto en Key Vault en el mismo minuto, le das el rol mínimo sobre la cuenta y verificas las tres piezas que necesita cualquier programa - tenant, client ID y secreto - más su rol. Las pistas están escondidas.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-un-programa-sin-contrasenas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Registrar una aplicación y obtener su service principal</li><li>Crear un secreto de cliente y guardarlo en Key Vault</li><li>Dar a la aplicación el rol mínimo sobre la cuenta</li><li>Identificar los tres datos que necesita un programa para entrar</li><li>Explicar cuándo usar service principal y cuándo identidad administrada</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;El sistema de ventas corre en un servidor de la empresa, fuera de Azure, y cada noche tiene que subir los pedidos a bronze. Créale una identidad propia, con el permiso justo, y deja su secreto en el key vault. Que nadie tenga que escribir una contraseña en el código.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li>Una aplicación registrada en Entra ID llamada <code>sp-ingesta-ventas</code>.</li>
+<li>Un secreto de cliente de esa aplicación, que vence en 6 meses.</li>
+<li>Ese secreto guardado en <code>kv-tiendaandina-dev</code> como <code>sp-ingesta-ventas-secret</code>.</li>
+<li>El rol <strong>Storage Blob Data Contributor</strong> para la aplicación sobre <code>sttiendaandinadev</code>, y nada más.</li>
+</ol>
+<h2>Paso 1 — Registrar la aplicación</h2>
+<p>En <strong>Microsoft Entra ID → App registrations → + New registration</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b12-registrar-app.webp" alt="Register an application - el nombre (1) y quién puede usarla (2)" loading="lazy"><figcaption>Register an application - el nombre (1) y quién puede usarla (2)</figcaption></figure>
+
+
+<p>Registrar una aplicación crea su <strong>service principal</strong>: la identidad con la que el programa entra a Azure.</p>
+<h2>Paso 2 — El secreto de cliente</h2>
+<p>En la aplicación, <strong>Certificates &amp; secrets → + New client secret</strong>, con vencimiento de <strong>180 days (6 months)</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b12-secreto-app.webp" alt="Los datos de la aplicación (1), el valor del secreto que se muestra una sola vez (2) y la lista de secretos (3)" loading="lazy"><figcaption>Los datos de la aplicación (1), el valor del secreto que se muestra una sola vez (2) y la lista de secretos (3)</figcaption></figure>
+
+
+<p>Un programa necesita <strong>tres datos</strong> para entrar:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dato</th>
+<th>Dónde está</th>
+<th>¿Es secreto?</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Directory (tenant) ID</strong></td>
+<td>En la aplicación</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Application (client) ID</strong></td>
+<td>En la aplicación</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Client secret</strong></td>
+<td>Se muestra <strong>una sola vez</strong> al crearlo</td>
+<td><strong>Sí</strong></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Copia el valor ahora</div>
+
+<p>El valor del secreto se ve una vez. Si sales de la página sin copiarlo, hay que crear otro. Cópialo <strong>directamente</strong> al key vault, sin pasar por un chat, un correo ni un archivo.</p>
+</div>
+
+
+<details><summary>💡 Pista: ¿dónde lo guardo?</summary>
+
+<p>En <code>kv-tiendaandina-dev</code> → <strong>Secrets → + Generate/Import</strong>, con nombre <code>sp-ingesta-ventas-secret</code> y el valor que acabas de copiar. Ya tienes el rol Key Vault Secrets Officer de la lección anterior.</p>
+</details>
+
+<h2>Paso 3 — Verificar el vault</h2>
+<figure class="captura"><img src="assets/img/guias/azure/b12-kv-secretos.webp" alt="El vault con los dos secretos - la contraseña de la base y el secreto de la aplicación" loading="lazy"><figcaption>El vault con los dos secretos - la contraseña de la base y el secreto de la aplicación</figcaption></figure>
+
+
+<h2>Paso 4 — El permiso justo</h2>
+<details><summary>💡 Pista: ¿qué rol y dónde?</summary>
+
+<p>En <code>sttiendaandinadev</code> → <strong>Access control (IAM) → + Add role assignment</strong> → <strong>Storage Blob Data Contributor</strong> → en Members, <code>sp-ingesta-ventas</code>. El alcance es la cuenta; si quisieras ser más estricto, en Azure real puedes asignarlo solo sobre el contenedor <code>bronze</code>.</p>
+</details>
+
+<figure class="captura"><img src="assets/img/guias/azure/b12-iam-app.webp" alt="La aplicación sp-ingesta-ventas como Storage Blob Data Contributor, junto a las asignaciones anteriores" loading="lazy"><figcaption>La aplicación sp-ingesta-ventas como Storage Blob Data Contributor, junto a las asignaciones anteriores</figcaption></figure>
+
+
+<h2>Cómo lo usa el programa</h2>
+<p>El servidor de ventas recibe el tenant ID y el client ID como configuración, y el secreto desde el vault o desde una variable de entorno que carga el equipo de infraestructura. Con la CLI, entrar como la aplicación es:</p>
+<pre><code class="language-bash">az login --service-principal -u &lt;client-id&gt; --tenant &lt;tenant-id&gt; -p &quot;$SECRETO_DESDE_EL_VAULT&quot;
+az storage blob upload --account-name sttiendaandinadev -c bronze -n pedidos/2026/11/16/pedidos.csv -f pedidos.csv --auth-mode login</code></pre>
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>sp-ingesta-ventas</code> existe en App registrations.</li>
+<li><input disabled="" type="checkbox"> Tiene un secreto que vence en 6 meses.</li>
+<li><input disabled="" type="checkbox"> El vault tiene <code>sp-ingesta-ventas-secret</code>.</li>
+<li><input disabled="" type="checkbox"> En IAM de la cuenta, la aplicación tiene <strong>solo</strong> Storage Blob Data Contributor.</li>
+<li><input disabled="" type="checkbox"> El valor del secreto no quedó en ningún archivo, chat ni nota.</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<p>El orden importa: crear el secreto y <strong>en el mismo momento</strong> guardarlo en el vault. El rol es de <strong>datos</strong> (Blob Data Contributor) y no de administración (Contributor): el programa sube archivos, no cambia la configuración de la cuenta. Anota la fecha de vencimiento en el calendario del equipo: cuando un secreto vence, el programa deja de entrar y la ingesta &quot;falla de repente&quot; — es una de las causas más comunes de incidentes. Si el programa corriera <strong>dentro</strong> de Azure (una VM, una Function, Data Factory), no harías nada de esto: usarías su <strong>identidad administrada</strong>, que no tiene secreto que guardar ni que venza.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 3</h2>
+<ul>
+<li>La CLI <code>az</code> y Cloud Shell.</li>
+<li>Identidades de Entra ID y roles de IAM con mínimo privilegio.</li>
+<li>Key Vault, sus roles y el ciclo de un secreto.</li>
+<li>Cómo dar acceso a un programa sin poner contraseñas en el código.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-un-programa-sin-contrasenas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-key-vault-y-secretos.html">← Key Vault - dónde se guardan los secretos</a><a href="azure-paso-a-paso-azure-databricks-desde-el-portal.html">Azure Databricks desde el portal - el workspace y su grupo administrado →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

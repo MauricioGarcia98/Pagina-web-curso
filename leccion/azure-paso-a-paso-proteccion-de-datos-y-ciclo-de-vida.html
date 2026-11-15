@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protección de datos y ciclo de vida - no perder datos y no pagar de más · Academia de Datos</title><meta name="description" content="Dos configuraciones de la cuenta que todo lago en producción tiene. La protección de datos (papelera de blobs y contenedores, versiones) para recuperar lo que se borra o se pisa por error, y las reglas de ciclo de vida que mueven los archivos viejos a niveles más baratos y los borran cuando ya no sirven. Configuras ambas para bronze y compruebas que un blob borrado sigue recuperable."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proteccion-de-datos-y-ciclo-de-vida.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Protección de datos y ciclo de vida - no perder datos y no pagar de más · Academia de Datos"><meta property="og:description" content="Dos configuraciones de la cuenta que todo lago en producción tiene. La protección de datos (papelera de blobs y contenedores, versiones) para recuperar lo que se borra o se pisa por error, y las reglas de ciclo de vida que mueven los archivos viejos a niveles más baratos y los borran cuando ya no sirven. Configuras ambas para bronze y compruebas que un blob borrado sigue recuperable."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proteccion-de-datos-y-ciclo-de-vida.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 5 · Avanzado · 40 min</div>
+<h1>Protección de datos y ciclo de vida - no perder datos y no pagar de más</h1><p class="resumen">Dos configuraciones de la cuenta que todo lago en producción tiene. La protección de datos (papelera de blobs y contenedores, versiones) para recuperar lo que se borra o se pisa por error, y las reglas de ciclo de vida que mueven los archivos viejos a niveles más baratos y los borran cuando ya no sirven. Configuras ambas para bronze y compruebas que un blob borrado sigue recuperable.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-proteccion-de-datos-y-ciclo-de-vida">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Configurar soft delete de blobs y contenedores con los días adecuados</li><li>Activar el versionado y entender cuándo conviene</li><li>Explicar los niveles Hot, Cool, Cold y Archive</li><li>Crear una regla de ciclo de vida por prefijo</li><li>Leer la política de ciclo de vida en JSON</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Dos pedidos: que un borrado accidental no nos haga perder datos de bronze, y que los archivos viejos no nos cuesten lo mismo que los nuevos. Bronze se lee mucho el primer mes y casi nunca después; a los dos años se puede borrar.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — La protección de datos</h2>
+<p>En <code>sttiendaandinadev</code>, menú <strong>Data protection</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b18-proteccion.webp" alt="Días que se conservan los blobs borrados (1), versionado (2) y Save (3)" loading="lazy"><figcaption>Días que se conservan los blobs borrados (1), versionado (2) y Save (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Protege contra</th>
+<th>Cómo se recupera</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Soft delete for blobs</strong></td>
+<td>Borrar un archivo</td>
+<td><em>Undelete</em> durante los días configurados (1 a 365)</td>
+</tr>
+<tr>
+<td><strong>Soft delete for containers</strong></td>
+<td>Borrar un contenedor entero</td>
+<td><em>Restore</em> del contenedor</td>
+</tr>
+<tr>
+<td><strong>Versioning for blobs</strong></td>
+<td><strong>Pisar</strong> un archivo con otro contenido</td>
+<td>Volver a una versión anterior</td>
+</tr>
+</tbody></table></div>
+<p>Configura <strong>14 días</strong> de soft delete para blobs, activa el <strong>versionado</strong> y pulsa <strong>Save</strong>.</p>
+<div class="callout callout-nota"><div class="callout-title">📝 Soft delete y versionado se complementan</div>
+
+<p>Soft delete salva un archivo <strong>borrado</strong>. El versionado salva un archivo <strong>sobrescrito</strong>: un job que escribe mal encima de <code>clientes.csv</code> no deja rastro sin versiones. Cada versión ocupa espacio y se paga, por eso se combina con una regla de ciclo de vida que borre versiones viejas.</p>
+</div>
+
+
+<h2>Paso 2 — Comprobarlo</h2>
+<p>Abre <code>bronze</code>, marca <code>pedidos/2026/11/pedidos.csv</code> y pulsa <strong>Delete</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b18-blob-borrado.webp" alt="El archivo ya no aparece en la lista, pero con soft delete sigue recuperable 14 días" loading="lazy"><figcaption>El archivo ya no aparece en la lista, pero con soft delete sigue recuperable 14 días</figcaption></figure>
+
+
+<p>En el portal real, el interruptor <strong>Show deleted blobs</strong> lo muestra y <strong>Undelete</strong> lo devuelve. Con la CLI:</p>
+<pre><code class="language-bash">az storage blob list --account-name sttiendaandinadev -c bronze --include d --auth-mode login -o table
+az storage blob undelete --account-name sttiendaandinadev -c bronze -n pedidos/2026/11/pedidos.csv --auth-mode login</code></pre>
+<h2>Paso 3 — Los niveles de acceso</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Nivel</th>
+<th>Precio por GB</th>
+<th>Precio por lectura</th>
+<th>Mínimo de días</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Hot</strong></td>
+<td>El más alto</td>
+<td>El más bajo</td>
+<td>—</td>
+<td>Lo que se lee seguido</td>
+</tr>
+<tr>
+<td><strong>Cool</strong></td>
+<td>Más bajo</td>
+<td>Más alto</td>
+<td>30</td>
+<td>Lo que se lee poco</td>
+</tr>
+<tr>
+<td><strong>Cold</strong></td>
+<td>Aún más bajo</td>
+<td>Aún más alto</td>
+<td>90</td>
+<td>Lo que casi no se lee</td>
+</tr>
+<tr>
+<td><strong>Archive</strong></td>
+<td>El más bajo</td>
+<td>El más alto</td>
+<td>180</td>
+<td>Lo que se guarda por obligación</td>
+</tr>
+</tbody></table></div>
+<p>Si sacas un archivo antes de los días mínimos, se cobra igual el resto del período.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Archive está &quot;fuera de línea&quot;</div>
+
+<p>Un archivo en <strong>Archive</strong> no se puede leer directamente: primero hay que <strong>rehidratarlo</strong> a Hot o Cool, y eso tarda <strong>horas</strong>. Nunca pongas en Archive algo que un pipeline pueda necesitar de un momento a otro.</p>
+</div>
+
+
+<h2>Paso 4 — Una regla de ciclo de vida</h2>
+<p>Menú <strong>Lifecycle management</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b18-ciclo-vacio.webp" alt="Lifecycle management sin reglas - Add a rule (1)" loading="lazy"><figcaption>Lifecycle management sin reglas - Add a rule (1)</figcaption></figure>
+
+
+<p><strong>+ Add a rule</strong>:</p>
+<ol>
+<li><strong>Rule name</strong>: <code>bronze-a-cool</code>.</li>
+<li><strong>Limit blobs with filter (prefix)</strong>: <code>bronze/</code> (solo el contenedor bronze).</li>
+<li><strong>Move to cool storage after</strong>: <code>30</code> días desde la última modificación.</li>
+<li><strong>Move to archive storage after</strong>: <code>180</code> días.</li>
+<li><strong>Delete the blob after</strong>: <code>730</code> días (dos años).</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/azure/b18-ciclo-regla.webp" alt="La regla - prefijo (1), pasar a Cool (2), a Archive (3) y borrar (4)" loading="lazy"><figcaption>La regla - prefijo (1), pasar a Cool (2), a Archive (3) y borrar (4)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b18-ciclo.webp" alt="La regla creada y la política en JSON, que es lo que guarda Azure" loading="lazy"><figcaption>La regla creada y la política en JSON, que es lo que guarda Azure</figcaption></figure>
+
+
+<p>El <strong>prefijo</strong> empieza por el nombre del contenedor: <code>bronze/</code> aplica a todo bronze; <code>bronze/pedidos/</code> solo a los pedidos. Silver y gold quedan en Hot porque se consultan todo el tiempo.</p>
+<div class="callout callout-tip"><div class="callout-title">💡 Las reglas corren una vez al día</div>
+
+<p>Azure evalúa las reglas de ciclo de vida una vez por día. Después de crear una regla puede tardar hasta 24 horas en aplicarse por primera vez.</p>
+</div>
+
+
+<h2>Paso 5 — La configuración final</h2>
+<p>Menú <strong>Configuration</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/azure/b18-config.webp" alt="Configuration - transferencia segura, acceso anónimo, TLS, nivel por defecto, replicación y espacio de nombres jerárquico" loading="lazy"><figcaption>Configuration - transferencia segura, acceso anónimo, TLS, nivel por defecto, replicación y espacio de nombres jerárquico</figcaption></figure>
+
+
+<p>Es un buen lugar para revisar de un vistazo los valores de seguridad de la cuenta.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Configuraste soft delete de 14 días y versionado.</li>
+<li>Sabes recuperar un blob borrado.</li>
+<li>Creaste una regla que abarata bronze con el tiempo y lo borra a los dos años.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-proteccion-de-datos-y-ciclo-de-vida">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-red-claves-y-sas.html">← Red, claves de acceso y SAS - quién llega al lago y cómo</a><a href="azure-paso-a-paso-bloqueos-y-azure-monitor.html">Bloqueos y Azure Monitor - que nada se borre por error y enterarte cuando algo falla →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

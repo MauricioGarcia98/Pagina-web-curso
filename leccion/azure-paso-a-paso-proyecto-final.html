@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (solo el pedido) - la plataforma de producción de Tienda Andina · Academia de Datos</title><meta name="description" content="El pedido final llega como llegaría en un trabajo - un mensaje con requisitos y una fecha. Despliegas producción desde la plantilla, con la redundancia que corresponde, la proteges con un bloqueo, das acceso por grupos con mínimo privilegio, conectas alertas y costos, y entregas la evidencia y un informe de pendientes. Sin pasos ni pistas en el enunciado; la solución comentada está al final."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-final.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (solo el pedido) - la plataforma de producción de Tienda Andina · Academia de Datos"><meta property="og:description" content="El pedido final llega como llegaría en un trabajo - un mensaje con requisitos y una fecha. Despliegas producción desde la plantilla, con la redundancia que corresponde, la proteges con un bloqueo, das acceso por grupos con mínimo privilegio, conectas alertas y costos, y entregas la evidencia y un informe de pendientes. Sin pasos ni pistas en el enunciado; la solución comentada está al final."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/azure-paso-a-paso-proyecto-final.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#azure-paso-a-paso">☁️ Portal de Azure paso a paso</a> · 6 · Avanzado completo · 90 min</div>
+<h1>Proyecto final (solo el pedido) - la plataforma de producción de Tienda Andina</h1><p class="resumen">El pedido final llega como llegaría en un trabajo - un mensaje con requisitos y una fecha. Despliegas producción desde la plantilla, con la redundancia que corresponde, la proteges con un bloqueo, das acceso por grupos con mínimo privilegio, conectas alertas y costos, y entregas la evidencia y un informe de pendientes. Sin pasos ni pistas en el enunciado; la solución comentada está al final.</p>
+<a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-final">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Desplegar un entorno de producción completo desde una plantilla</li><li>Aplicar redundancia, bloqueo, permisos y alertas de producción</li><li>Dar acceso a grupos con el mínimo privilegio</li><li>Verificar cada requisito con evidencia</li><li>Redactar los pendientes y riesgos</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Lucía, el lunes a las 9:</p>
+<p><em>&quot;Hoy pasamos a producción. Necesito el entorno prod de Tienda Andina para el viernes:</em></p>
+<ol>
+<li><em>Creado desde nuestra plantilla, en <code>rg-tiendaandina-prod</code>, nada a mano.</em></li>
+<li><em>El lago con redundancia entre zonas, porque si se cae un datacenter no podemos parar.</em></li>
+<li><em>Que nadie pueda borrar producción por error, ni yo.</em></li>
+<li><em>Los analistas pueden ver los recursos de prod pero no cambiar nada. Los ingenieros de datos administran el factory.</em></li>
+<li><em>Seguridad y la guardia, como en el lago dev: alertas si fallan los pipelines.</em></li>
+<li><em>Finanzas quiere el costo de prod separado del de dev.</em></li>
+<li><em>Un informe corto: qué hiciste, la evidencia y qué queda pendiente para la semana que viene.</em></li>
+</ol>
+<p><em>Gracias!&quot;</em></p>
+</div>
+
+
+<p>Tienes todo lo necesario de las lecciones anteriores. Trabaja solo; abre la solución cuando termines.</p>
+<h2>Tu entrega</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Requisito</th>
+<th>Cómo lo cumpliste</th>
+<th>Evidencia</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Desde la plantilla</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Redundancia entre zonas</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sin borrados accidentales</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Accesos por grupo, mínimos</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Alertas</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Costo separado</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Pendientes</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/azure/b24-revisar.webp" alt="El despliegue de la plantilla con entorno = prod (1) y los seis recursos (2)" loading="lazy"><figcaption>El despliegue de la plantilla con entorno = prod (1) y los seis recursos (2)</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b24-visualizador.webp" alt="rg-tiendaandina-prod con su cuenta, vault y factory" loading="lazy"><figcaption>rg-tiendaandina-prod con su cuenta, vault y factory</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b24-storage-prod.webp" alt="La cuenta de producción con Zone-redundant storage (ZRS) y las etiquetas de prod" loading="lazy"><figcaption>La cuenta de producción con Zone-redundant storage (ZRS) y las etiquetas de prod</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b24-iam-prod.webp" alt="Los accesos de prod - analistas como Reader e ingenieros como Data Factory Contributor" loading="lazy"><figcaption>Los accesos de prod - analistas como Reader e ingenieros como Data Factory Contributor</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b24-costos-prod.webp" alt="El costo de producción, separado por grupo" loading="lazy"><figcaption>El costo de producción, separado por grupo</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/azure/b24-grupos.webp" alt="Los grupos de la suscripción - dev, el administrado de Databricks y prod" loading="lazy"><figcaption>Los grupos de la suscripción - dev, el administrado de Databricks y prod</figcaption></figure>
+
+
+<details><summary>💡 Solución comentada</summary>
+
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Requisito</th>
+<th>Cómo</th>
+<th>Evidencia</th>
+</tr>
+</thead><tbody><tr>
+<td>1</td>
+<td>Desde la plantilla</td>
+<td><strong>Template deployment</strong> con la plantilla de la lección 21, grupo nuevo <code>rg-tiendaandina-prod</code>, parámetro <code>entorno = prod</code></td>
+<td>El despliegue <em>Microsoft.Template-…</em> en <strong>Deployments</strong> del grupo, con los seis recursos en OK</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Redundancia entre zonas</td>
+<td>La plantilla elige <code>Standard_ZRS</code> cuando <code>entorno</code> es <code>prod</code> (función <code>if</code>)</td>
+<td>Overview de <code>sttiendaandinaprod</code>: <em>Replication: Zone-redundant storage (ZRS)</em></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sin borrados</td>
+<td>Bloqueo <strong>Delete</strong> <code>no-borrar-prod</code> en el grupo</td>
+<td><strong>Locks</strong> del grupo; los recursos lo muestran <em>Inherited</em></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Accesos</td>
+<td><strong>Reader</strong> sobre el grupo para <code>analistas-datos</code>; <strong>Data Factory Contributor</strong> sobre el grupo para <code>ingenieros-datos</code></td>
+<td><strong>Access control (IAM)</strong> del grupo: dos asignaciones a grupos, ninguna a personas</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Alertas</td>
+<td>Grupo de acciones de la guardia y regla <em>Sum de Failed pipeline runs &gt; 0</em> sobre <code>adf-tiendaandina-prod</code></td>
+<td>La regla en <strong>Monitor → Alerts</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Costo separado</td>
+<td>Todo prod vive en su grupo y lleva <code>entorno = prod</code></td>
+<td><strong>Cost analysis</strong> del grupo prod; o Cost Management filtrado por etiqueta</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Pendientes</td>
+<td>Ver abajo</td>
+<td>El informe</td>
+</tr>
+</tbody></table></div>
+<p><strong>Por qué estas decisiones.</strong> El bloqueo es <strong>Delete</strong> y no Read-only porque producción tiene que poder cambiarse (por plantilla); Read-only rompería operaciones normales. Los analistas reciben <strong>Reader</strong> (ven la configuración) y <strong>no</strong> un rol de datos sobre el lago de prod: si necesitan datos, los leen de gold a través de Power BI, Databricks SQL o Unity Catalog, con permisos por tabla. Los ingenieros administran el factory, pero <strong>no</strong> son Owner del grupo: no pueden dar permisos ni borrar el bloqueo.</p>
+<p><strong>Pendientes razonables para el informe:</strong></p>
+<ol>
+<li>La red de prod está abierta: pasar a <strong>private endpoints</strong> para la cuenta, el vault y la base, y una red administrada para el factory.</li>
+<li>Mover prod a la suscripción <strong><code>sub-datos-prod</code></strong> y aplicar <strong>Azure Policy</strong> (regiones permitidas, TLS, etiquetas obligatorias).</li>
+<li>Desplegar la plantilla desde un <strong>pipeline de CI/CD</strong> (GitHub Actions o Azure DevOps) con aprobación, en lugar de a mano desde el portal.</li>
+<li>Agregar a la plantilla la <strong>protección de datos</strong> (soft delete, versionado) y la <strong>regla de ciclo de vida</strong> de bronze, para que prod no dependa de configurarlas a mano.</li>
+<li>Conectar el factory de prod al <strong>Git</strong> del equipo para publicar desde dev.</li>
+<li>Activar <strong>purge protection</strong> en el vault de prod.</li>
+<li>Enviar el Activity log a <strong>Log Analytics</strong> con retención de un año.</li>
+</ol>
+</details>
+
+<h2>✅ Lista de verificación final</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>rg-tiendaandina-prod</code> y sus recursos salieron de un único despliegue de plantilla.</li>
+<li><input disabled="" type="checkbox"> <code>sttiendaandinaprod</code> es ZRS y tiene los tres contenedores.</li>
+<li><input disabled="" type="checkbox"> El grupo tiene un bloqueo Delete.</li>
+<li><input disabled="" type="checkbox"> Las asignaciones de prod son solo a grupos, con roles mínimos.</li>
+<li><input disabled="" type="checkbox"> Hay una alerta de pipelines fallidos con su grupo de acciones.</li>
+<li><input disabled="" type="checkbox"> El costo de prod se ve separado del de dev.</li>
+<li><input disabled="" type="checkbox"> Tu informe tiene al menos cuatro pendientes concretos.</li>
+</ul>
+<h2>Lo que dominas ahora</h2>
+<ul>
+<li>El portal de Azure de punta a punta: suscripciones, grupos, asistentes, despliegues y hojas.</li>
+<li>El data lake en ADLS Gen2: capas, contenedores, red, claves, SAS, protección y ciclo de vida.</li>
+<li>Identidad y acceso: Entra ID, RBAC, identidades administradas, service principals y Key Vault.</li>
+<li>Los servicios de datos desde el portal: Databricks, Data Factory y Azure SQL.</li>
+<li>Operación: bloqueos, monitoreo, alertas, costos y presupuestos.</li>
+<li>Infraestructura como código con plantillas ARM, y el puente a Bicep y Terraform.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/azure-paso-a-paso-proyecto-final">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="azure-paso-a-paso-de-la-practica-a-azure-real.html">← De la práctica al Azure real</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
