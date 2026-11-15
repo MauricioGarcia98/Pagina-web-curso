@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De la práctica a Snowflake real - cuenta de prueba, conexiones y herramientas · Academia de Datos</title><meta name="description" content="Antes de entrar a una cuenta real, repasas qué cambia respecto de la práctica, cómo abrir una prueba gratuita sin riesgos, las ediciones, cómo se conectan las herramientas (Snowflake CLI, conectores, Power BI, dbt, Airflow) y las reglas de seguridad para tu primera semana."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-de-la-practica-a-snowflake-real.html">
+<meta property="og:type" content="article"><meta property="og:title" content="De la práctica a Snowflake real - cuenta de prueba, conexiones y herramientas · Academia de Datos"><meta property="og:description" content="Antes de entrar a una cuenta real, repasas qué cambia respecto de la práctica, cómo abrir una prueba gratuita sin riesgos, las ediciones, cómo se conectan las herramientas (Snowflake CLI, conectores, Power BI, dbt, Airflow) y las reglas de seguridad para tu primera semana."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-de-la-practica-a-snowflake-real.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 6 · Avanzado completo · 35 min</div>
+<h1>De la práctica a Snowflake real - cuenta de prueba, conexiones y herramientas</h1><p class="resumen">Antes de entrar a una cuenta real, repasas qué cambia respecto de la práctica, cómo abrir una prueba gratuita sin riesgos, las ediciones, cómo se conectan las herramientas (Snowflake CLI, conectores, Power BI, dbt, Airflow) y las reglas de seguridad para tu primera semana.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-de-la-practica-a-snowflake-real">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Saber qué cambia entre la práctica y Snowflake real</li><li>Abrir una cuenta de prueba con cuidado</li><li>Conectar herramientas de forma segura</li><li>Armar la lista de la primera semana</li></ul>
+<h2>Paso 1 — Qué cambia</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>En la práctica</th>
+<th>En Snowflake real</th>
+</tr>
+</thead><tbody><tr>
+<td>El SQL corre en tu navegador sobre datos chicos</td>
+<td>Corre en la nube sobre TB, con el optimizador de Snowflake</td>
+</tr>
+<tr>
+<td>Los créditos son estimados</td>
+<td>Los créditos se facturan</td>
+</tr>
+<tr>
+<td>Sin usuarios ni MFA</td>
+<td>Usuarios, MFA, políticas de red y SSO</td>
+</tr>
+<tr>
+<td>Marketplace, Notebooks, Task History no simulados</td>
+<td>Disponibles según la edición</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/snowflake/s23-marketplace.webp" alt="Marketplace - en Snowflake real, datos de terceros compartidos sin copiarlos" loading="lazy"><figcaption>Marketplace - en Snowflake real, datos de terceros compartidos sin copiarlos</figcaption></figure>
+
+
+<p>Lo que <strong>no</strong> cambia: el SQL, los objetos, los roles y las decisiones de diseño.</p>
+<h2>Paso 2 — Una prueba gratuita</h2>
+<ol>
+<li>En el sitio de Snowflake, <strong>Start for free</strong>: la prueba dura <strong>30 días</strong> e incluye créditos de uso (al escribir esto, USD 400).</li>
+<li>Elige <strong>edición</strong> (Standard, Enterprise, Business Critical) y <strong>nube y región</strong>. Para aprender alcanza Standard o Enterprise, en la región más cercana.</li>
+<li>Activa <strong>MFA</strong> en tu usuario el primer día.</li>
+<li>Crea un warehouse X-Small con auto suspend de 60 segundos y un resource monitor antes de cargar nada.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/snowflake/s23-cuenta.webp" alt="El menú del usuario - cuenta, roles, apariencia y documentación" loading="lazy"><figcaption>El menú del usuario - cuenta, roles, apariencia y documentación</figcaption></figure>
+
+
+<h2>Paso 3 — Conectar herramientas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Herramienta</th>
+<th>Cómo se conecta</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Snowflake CLI</strong> (<code>snow</code>)</td>
+<td>Desde la terminal: ejecutar SQL, subir archivos, desplegar apps. <code>snow sql -q &quot;SELECT CURRENT_VERSION()&quot;</code></td>
+</tr>
+<tr>
+<td><strong>Conector de Python</strong></td>
+<td><code>snowflake-connector-python</code> o Snowpark</td>
+</tr>
+<tr>
+<td><strong>Power BI / Tableau</strong></td>
+<td>Conector nativo de Snowflake con un rol de lectura (proyecto 5)</td>
+</tr>
+<tr>
+<td><strong>dbt</strong></td>
+<td><code>dbt-snowflake</code>, con un rol y warehouse de transformación</td>
+</tr>
+<tr>
+<td><strong>Airflow</strong></td>
+<td>Provider <code>apache-airflow-providers-snowflake</code> y una conexión <code>snowflake_default</code></td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Usuarios de servicio</div>
+
+<p>Para herramientas y procesos automáticos, crea <strong>usuarios de servicio</strong> con autenticación por <strong>par de claves</strong> (key-pair) u OAuth, un rol propio y un warehouse propio. Nunca uses tu usuario personal ni pongas contraseñas en el código.</p>
+</div>
+
+
+<h2>Paso 4 — Tu primera semana</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Pedir un rol de desarrollo (no ACCOUNTADMIN) y un warehouse propio.</li>
+<li><input disabled="" type="checkbox"> Recorrer las bases y esquemas y entender qué capa es cada una.</li>
+<li><input disabled="" type="checkbox"> Leer el Query History de los procesos nocturnos.</li>
+<li><input disabled="" type="checkbox"> Revisar quién tiene qué con <code>SHOW GRANTS</code>.</li>
+<li><input disabled="" type="checkbox"> Hacer tus pruebas en un clon, nunca en producción.</li>
+</ul>
+<div class="callout callout-tip"><div class="callout-title">💡 Capturas</div>
+
+<p>Si compartes capturas de una cuenta real, difumina el nombre de la cuenta, la URL, los usuarios y cualquier dato de clientes.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué cambia en Snowflake real.</li>
+<li>Sabes abrir una prueba de forma segura.</li>
+<li>Sabes conectar herramientas sin exponer credenciales.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-de-la-practica-a-snowflake-real">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas.html">← Snowpipe, streams, tasks y dynamic tables - automatizar dentro de Snowflake</a><a href="snowflake-paso-a-paso-proyecto-final-warehouse-tienda-andina.html">Proyecto final (sin ayuda) - el warehouse de Tienda Andina →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

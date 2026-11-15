@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snowpipe, streams, tasks y dynamic tables - automatizar dentro de Snowflake · Academia de Datos</title><meta name="description" content="Snowflake puede cargar, detectar cambios y transformar solo. Conoces Snowpipe (carga continua), streams (qué filas cambiaron), tasks (SQL programado), dynamic tables (tablas que se mantienen solas), Snowpark y el uso compartido de datos, con el SQL de cada uno y cuándo conviene frente a Airflow o dbt."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Snowpipe, streams, tasks y dynamic tables - automatizar dentro de Snowflake · Academia de Datos"><meta property="og:description" content="Snowflake puede cargar, detectar cambios y transformar solo. Conoces Snowpipe (carga continua), streams (qué filas cambiaron), tasks (SQL programado), dynamic tables (tablas que se mantienen solas), Snowpark y el uso compartido de datos, con el SQL de cada uno y cuándo conviene frente a Airflow o dbt."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 6 · Avanzado completo · 45 min</div>
+<h1>Snowpipe, streams, tasks y dynamic tables - automatizar dentro de Snowflake</h1><p class="resumen">Snowflake puede cargar, detectar cambios y transformar solo. Conoces Snowpipe (carga continua), streams (qué filas cambiaron), tasks (SQL programado), dynamic tables (tablas que se mantienen solas), Snowpark y el uso compartido de datos, con el SQL de cada uno y cuándo conviene frente a Airflow o dbt.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar Snowpipe y cuándo usarlo</li><li>Detectar cambios con un stream</li><li>Programar SQL con una task</li><li>Mantener una tabla con dynamic tables</li><li>Ubicar Snowpark, Cortex y Secure Data Sharing</li></ul>
+<div class="callout callout-nota"><div class="callout-title">📝 En la práctica</div>
+
+<p>Estas funciones no están simuladas: la práctica te muestra qué son. El SQL de esta lección es el de Snowflake real.</p>
+</div>
+
+
+<figure class="captura"><img src="assets/img/guias/snowflake/s22-tareas.webp" alt="Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)" loading="lazy"><figcaption>Task History - las ejecuciones de las tasks programadas (no simulado en la práctica)</figcaption></figure>
+
+
+<h2>Paso 1 — Snowpipe: carga continua</h2>
+<pre data-norun><code class="language-sql">CREATE PIPE raw.pipe_pedidos AUTO_INGEST = TRUE AS
+COPY INTO raw.pedidos_staging FROM @ventas_s3 FILE_FORMAT = (TYPE = CSV SKIP_HEADER = 1);</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>COPY INTO</th>
+<th>Snowpipe</th>
+</tr>
+</thead><tbody><tr>
+<td>Lo ejecutas tú (o un orquestador) con un warehouse</td>
+<td>Se dispara solo cuando llega un archivo al bucket (por un evento de la nube)</td>
+</tr>
+<tr>
+<td>Por lotes</td>
+<td>Continuo, en minutos</td>
+</tr>
+<tr>
+<td>Paga el warehouse</td>
+<td>Cómputo serverless de Snowflake</td>
+</tr>
+</tbody></table></div>
+<figure class="captura"><img src="assets/img/guias/snowflake/s22-copy.webp" alt="Copy History - el historial de cargas archivo por archivo (no simulado en la práctica)" loading="lazy"><figcaption>Copy History - el historial de cargas archivo por archivo (no simulado en la práctica)</figcaption></figure>
+
+
+<h2>Paso 2 — Streams y tasks</h2>
+<pre data-norun><code class="language-sql">-- un stream registra qué filas se insertaron, actualizaron o borraron desde la última vez que se leyó
+CREATE STREAM raw.cambios_pedidos ON TABLE raw.pedidos_staging;
+
+-- una task ejecuta SQL con un horario; solo corre si el stream tiene datos
+CREATE TASK analitica.aplicar_pedidos
+  WAREHOUSE = analisis_wh
+  SCHEDULE = '15 MINUTE'
+  WHEN SYSTEM$STREAM_HAS_DATA('raw.cambios_pedidos')
+AS
+  MERGE INTO analitica.pedidos_actuales t
+  USING raw.cambios_pedidos s ON t.pedido_id = s.pedido_id
+  WHEN MATCHED THEN UPDATE SET total = s.total
+  WHEN NOT MATCHED THEN INSERT (pedido_id, cliente_id, fecha, canal, total)
+                        VALUES (s.pedido_id, s.cliente_id, s.fecha, s.canal, s.total);
+
+ALTER TASK analitica.aplicar_pedidos RESUME;   -- las tasks se crean suspendidas</code></pre>
+<h2>Paso 3 — Dynamic tables</h2>
+<pre data-norun><code class="language-sql">CREATE DYNAMIC TABLE analitica.ventas_diarias
+  TARGET_LAG = '1 hour'
+  WAREHOUSE = analisis_wh
+AS
+  SELECT fecha, canal, SUM(total) AS ventas
+  FROM analitica.pedidos_actuales
+  GROUP BY fecha, canal;</code></pre>
+<p>Declaras <strong>qué</strong> resultado quieres y <strong>cuán atrasado</strong> puede estar (<code>TARGET_LAG</code>); Snowflake se encarga de refrescarla, de forma incremental cuando puede. Reemplaza muchas combinaciones de stream + task.</p>
+<h2>Paso 4 — Más de la plataforma</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Snowpark</strong></td>
+<td>Escribir transformaciones en Python, Java o Scala que corren dentro de Snowflake</td>
+</tr>
+<tr>
+<td><strong>Cortex AI</strong></td>
+<td>Funciones de IA en SQL (resumir, clasificar, traducir, búsqueda semántica)</td>
+</tr>
+<tr>
+<td><strong>Secure Data Sharing</strong></td>
+<td>Compartir tablas con otra cuenta <strong>sin copiarlas</strong>; la base del Marketplace</td>
+</tr>
+<tr>
+<td><strong>Streamlit in Snowflake</strong></td>
+<td>Apps de datos en Python dentro de la cuenta</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — ¿Dentro de Snowflake o con un orquestador?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si…</th>
+<th>Conviene</th>
+</tr>
+</thead><tbody><tr>
+<td>Todo el flujo es SQL dentro de Snowflake</td>
+<td>Tasks o dynamic tables</td>
+</tr>
+<tr>
+<td>El flujo mezcla Snowflake con APIs, otros sistemas o avisos</td>
+<td>Un orquestador como <a href="#/m/airflow-paso-a-paso">Airflow</a></td>
+</tr>
+<tr>
+<td>El equipo transforma con modelos versionados y pruebas</td>
+<td>dbt (puede generar dynamic tables)</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Conoces Snowpipe, streams, tasks y dynamic tables.</li>
+<li>Ubicas Snowpark, Cortex y Data Sharing.</li>
+<li>Sabes cuándo usar un orquestador.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-snowpipe-streams-tasks-y-mas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-buenas-practicas.html">← Buenas prácticas - rendimiento y costo bajo control</a><a href="snowflake-paso-a-paso-de-la-practica-a-snowflake-real.html">De la práctica a Snowflake real - cuenta de prueba, conexiones y herramientas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

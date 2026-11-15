@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL analítico - QUALIFY, funciones de ventana y muestreo · Academia de Datos</title><meta name="description" content="Snowflake tiene atajos de SQL que ahorran subconsultas. Obtienes el último pedido de cada cliente con QUALIFY, la variación mensual de pedidos con LAG, y conoces SAMPLE para explorar tablas grandes, más las funciones de Snowflake que más se usan."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-sql-analitico.html">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL analítico - QUALIFY, funciones de ventana y muestreo · Academia de Datos"><meta property="og:description" content="Snowflake tiene atajos de SQL que ahorran subconsultas. Obtienes el último pedido de cada cliente con QUALIFY, la variación mensual de pedidos con LAG, y conoces SAMPLE para explorar tablas grandes, más las funciones de Snowflake que más se usan."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-sql-analitico.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 4 · Intermedio-avanzado · 40 min</div>
+<h1>SQL analítico - QUALIFY, funciones de ventana y muestreo</h1><p class="resumen">Snowflake tiene atajos de SQL que ahorran subconsultas. Obtienes el último pedido de cada cliente con QUALIFY, la variación mensual de pedidos con LAG, y conoces SAMPLE para explorar tablas grandes, más las funciones de Snowflake que más se usan.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-sql-analitico">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Filtrar por funciones de ventana con QUALIFY</li><li>Calcular variaciones con LAG y CTE</li><li>Explorar tablas grandes con SAMPLE</li><li>Conocer funciones propias de Snowflake</li></ul>
+<h2>Paso 1 — QUALIFY</h2>
+<p>El último pedido de cada cliente:</p>
+<pre data-norun><code class="language-sql">SELECT cliente_id, pedido_id, fecha_pedido, canal
+FROM pedidos
+QUALIFY ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY fecha_pedido DESC, pedido_id DESC) = 1
+ORDER BY cliente_id
+LIMIT 10;</code></pre>
+<figure class="captura"><img src="assets/img/guias/snowflake/s15-qualify.webp" alt="QUALIFY con ROW_NUMBER (1) - una fila por cliente con su último pedido (2)" loading="lazy"><figcaption>QUALIFY con ROW_NUMBER (1) - una fila por cliente con su último pedido (2)</figcaption></figure>
+
+
+<p><strong>QUALIFY</strong> es a las funciones de ventana lo que <code>HAVING</code> es a <code>GROUP BY</code>: filtra después de calcularlas. Sin QUALIFY habría que envolver la consulta en una subconsulta y filtrar afuera.</p>
+<h2>Paso 2 — Ventanas: variación mensual</h2>
+<pre data-norun><code class="language-sql">WITH mensual AS (
+  SELECT DATE_TRUNC('month', fecha_pedido) AS mes, COUNT(*) AS pedidos
+  FROM pedidos
+  GROUP BY 1
+)
+SELECT mes, pedidos,
+       pedidos - LAG(pedidos) OVER (ORDER BY mes) AS variacion
+FROM mensual
+ORDER BY mes DESC
+LIMIT 12;</code></pre>
+<figure class="captura"><img src="assets/img/guias/snowflake/s15-ventana.webp" alt="La CTE con LAG (1) y los pedidos por mes con la diferencia contra el mes anterior (2)" loading="lazy"><figcaption>La CTE con LAG (1) y los pedidos por mes con la diferencia contra el mes anterior (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>LAG(x)</code> / <code>LEAD(x)</code></td>
+<td>El valor de la fila anterior / siguiente</td>
+</tr>
+<tr>
+<td><code>ROW_NUMBER()</code>, <code>RANK()</code></td>
+<td>La posición dentro de la partición</td>
+</tr>
+<tr>
+<td><code>SUM(x) OVER (ORDER BY mes)</code></td>
+<td>Acumulado</td>
+</tr>
+<tr>
+<td><code>AVG(x) OVER (ORDER BY mes ROWS 2 PRECEDING)</code></td>
+<td>Media móvil de 3 meses</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Muestreo y funciones útiles</h2>
+<pre data-norun><code class="language-sql">-- 10 % de las filas, al azar: para explorar sin leer toda la tabla
+SELECT * FROM pedidos SAMPLE (10);</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>IFF(cond, a, b)</code></td>
+<td>Un <code>CASE</code> corto</td>
+</tr>
+<tr>
+<td><code>NVL(x, 0)</code>, <code>ZEROIFNULL(x)</code></td>
+<td>Reemplazar nulos</td>
+</tr>
+<tr>
+<td><code>DATEADD(day, -7, fecha)</code> / <code>DATEDIFF(day, a, b)</code></td>
+<td>Sumar y restar fechas</td>
+</tr>
+<tr>
+<td><code>TRY_TO_NUMBER(x)</code></td>
+<td>Convertir sin fallar (devuelve NULL si no puede)</td>
+</tr>
+<tr>
+<td><code>ARRAY_AGG(x)</code>, <code>OBJECT_CONSTRUCT(...)</code></td>
+<td>Armar arreglos y JSON</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Filtraste con QUALIFY.</li>
+<li>Calculaste variaciones con LAG.</li>
+<li>Conoces SAMPLE y funciones propias de Snowflake.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-sql-analitico">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-undrop-y-clones.html">← UNDROP y clones - deshacer un DROP y copiar entornos sin duplicar datos</a><a href="snowflake-paso-a-paso-proyecto-incidente-del-update.html">Proyecto 4 (con poca ayuda) - el incidente del UPDATE →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

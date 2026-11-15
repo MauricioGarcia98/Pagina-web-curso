@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warehouses - el cómputo que se paga por segundo · Academia de Datos</title><meta name="description" content="El warehouse decide qué tan rápido corre una consulta y cuánto cuesta. Creas ANALISIS_WH desde la interfaz, entiendes tamaños y créditos, AUTO_SUSPEND y AUTO_RESUME, lo cambias de tamaño con ALTER WAREHOUSE y aprendes cuándo conviene agrandar (scale up) y cuándo agregar clústeres (scale out)."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-warehouses.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Warehouses - el cómputo que se paga por segundo · Academia de Datos"><meta property="og:description" content="El warehouse decide qué tan rápido corre una consulta y cuánto cuesta. Creas ANALISIS_WH desde la interfaz, entiendes tamaños y créditos, AUTO_SUSPEND y AUTO_RESUME, lo cambias de tamaño con ALTER WAREHOUSE y aprendes cuándo conviene agrandar (scale up) y cuándo agregar clústeres (scale out)."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-warehouses.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Warehouses - el cómputo que se paga por segundo</h1><p class="resumen">El warehouse decide qué tan rápido corre una consulta y cuánto cuesta. Creas ANALISIS_WH desde la interfaz, entiendes tamaños y créditos, AUTO_SUSPEND y AUTO_RESUME, lo cambias de tamaño con ALTER WAREHOUSE y aprendes cuándo conviene agrandar (scale up) y cuándo agregar clústeres (scale out).</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-warehouses">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un warehouse desde la interfaz y con SQL</li><li>Entender tamaños, créditos y facturación por segundo</li><li>Configurar AUTO_SUSPEND y AUTO_RESUME</li><li>Cambiar el tamaño con ALTER WAREHOUSE</li><li>Elegir entre scale up y scale out</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía, líder de datos: <em>&quot;Los analistas y la carga nocturna usan el mismo warehouse y se pisan. Quiero uno aparte para análisis, chico y que se apague solo.&quot;</em></p>
+</div>
+
+
+<h2>Paso 1 — Crear el warehouse</h2>
+<p><strong>Admin → Warehouses → + Warehouse</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/snowflake/s05-nuevo.webp" alt="New Warehouse - nombre ANALISIS_WH, tamaño X-Small (1 crédito/hora), Auto suspend 1 minuto y el SQL equivalente" loading="lazy"><figcaption>New Warehouse - nombre ANALISIS_WH, tamaño X-Small (1 crédito/hora), Auto suspend 1 minuto y el SQL equivalente</figcaption></figure>
+
+
+<pre data-norun><code class="language-sql">CREATE WAREHOUSE analisis_wh
+  WAREHOUSE_SIZE = 'XSMALL'
+  AUTO_SUSPEND = 60
+  AUTO_RESUME = TRUE
+  INITIALLY_SUSPENDED = TRUE;</code></pre>
+<h2>Paso 2 — Cómo se cobra</h2>
+<figure class="captura"><img src="assets/img/guias/snowflake/s05-lista.webp" alt="Los créditos consumidos y su equivalente en dólares (1) y los warehouses con estado, tamaño, créditos por hora y auto suspend (2)" loading="lazy"><figcaption>Los créditos consumidos y su equivalente en dólares (1) y los warehouses con estado, tamaño, créditos por hora y auto suspend (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Tamaño</th>
+<th>Créditos por hora</th>
+</tr>
+</thead><tbody><tr>
+<td>X-Small</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Small</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Large</td>
+<td>8</td>
+</tr>
+<tr>
+<td>X-Large</td>
+<td>16</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>Se cobra <strong>por segundo</strong> mientras está encendido, con un <strong>mínimo de 60 segundos</strong> cada vez que arranca.</li>
+<li>Suspendido <strong>no cobra</strong>.</li>
+<li>El precio del crédito depende de la edición y la región (en la práctica se estima en USD 3).</li>
+</ul>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>AUTO_SUSPEND = 60</code></td>
+<td>Se apaga tras 60 segundos sin consultas</td>
+</tr>
+<tr>
+<td><code>AUTO_RESUME = TRUE</code></td>
+<td>La próxima consulta lo prende sola</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — Cambiar el tamaño</h2>
+<pre data-norun><code class="language-sql">USE WAREHOUSE analisis_wh;
+ALTER WAREHOUSE analisis_wh SET WAREHOUSE_SIZE = 'SMALL';
+SHOW WAREHOUSES;</code></pre>
+<figure class="captura"><img src="assets/img/guias/snowflake/s05-alter.webp" alt="La hoja usa ANALISIS_WH (1) y SHOW WAREHOUSES lo muestra en Small (2)" loading="lazy"><figcaption>La hoja usa ANALISIS_WH (1) y SHOW WAREHOUSES lo muestra en Small (2)</figcaption></figure>
+
+
+<h2>Paso 4 — ¿Más grande o más clústeres?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Problema</th>
+<th>Solución</th>
+<th>Cómo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Una</strong> consulta pesada tarda mucho</td>
+<td><strong>Scale up</strong>: un tamaño más</td>
+<td><code>WAREHOUSE_SIZE = &#39;MEDIUM&#39;</code></td>
+</tr>
+<tr>
+<td><strong>Muchas</strong> consultas chicas hacen cola</td>
+<td><strong>Scale out</strong>: más clústeres del mismo tamaño</td>
+<td><code>MIN_CLUSTER_COUNT = 1 MAX_CLUSTER_COUNT = 3</code> (edición Enterprise)</td>
+</tr>
+</tbody></table></div>
+<p>Duplicar el tamaño duplica el costo por hora, pero si la consulta tarda la mitad, el costo total es el mismo y el resultado llega antes.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un warehouse con auto suspend.</li>
+<li>Entiendes tamaños y créditos.</li>
+<li>Sabes cuándo agrandar y cuándo agregar clústeres.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-warehouses">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-proyecto-ventas-por-pais.html">← Proyecto 1 (guiado) - las ventas por país</a><a href="snowflake-paso-a-paso-bases-esquemas-y-tablas.html">Bases, esquemas y tablas - armar un entorno ordenado →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

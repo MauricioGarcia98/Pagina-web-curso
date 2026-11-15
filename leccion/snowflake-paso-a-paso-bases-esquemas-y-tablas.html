@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bases, esquemas y tablas - armar un entorno ordenado · Academia de Datos</title><meta name="description" content="Creas la base tienda_dev con dos esquemas por capa (raw y analitica), una tabla con CREATE TABLE AS SELECT, la encuentras en el explorador y aprendes los tipos de tabla (permanente, transitoria, temporal) y una convención de nombres para que el equipo encuentre todo."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-bases-esquemas-y-tablas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Bases, esquemas y tablas - armar un entorno ordenado · Academia de Datos"><meta property="og:description" content="Creas la base tienda_dev con dos esquemas por capa (raw y analitica), una tabla con CREATE TABLE AS SELECT, la encuentras en el explorador y aprendes los tipos de tabla (permanente, transitoria, temporal) y una convención de nombres para que el equipo encuentre todo."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/snowflake-paso-a-paso-bases-esquemas-y-tablas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#snowflake-paso-a-paso">❄️ Snowflake paso a paso</a> · 2 · Básico-intermedio · 40 min</div>
+<h1>Bases, esquemas y tablas - armar un entorno ordenado</h1><p class="resumen">Creas la base tienda_dev con dos esquemas por capa (raw y analitica), una tabla con CREATE TABLE AS SELECT, la encuentras en el explorador y aprendes los tipos de tabla (permanente, transitoria, temporal) y una convención de nombres para que el equipo encuentre todo.</p>
+<a class="cta" href="../index.html#/l/snowflake-paso-a-paso-bases-esquemas-y-tablas">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear bases y esquemas</li><li>Crear una tabla con CTAS</li><li>Organizar por capas con esquemas</li><li>Distinguir tablas permanentes, transitorias y temporales</li></ul>
+<h2>Paso 1 — El entorno</h2>
+<pre data-norun><code class="language-sql">CREATE DATABASE tienda_dev;
+CREATE SCHEMA tienda_dev.raw;
+CREATE SCHEMA tienda_dev.analitica;
+USE SCHEMA tienda_dev.analitica;
+
+CREATE TABLE ventas_por_canal AS
+SELECT canal, COUNT(*) AS pedidos
+FROM tienda_andina.public.pedidos
+GROUP BY canal;
+
+SELECT * FROM ventas_por_canal ORDER BY pedidos DESC;</code></pre>
+<p>Ejecuta todo con <strong>Run all</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/snowflake/s06-crear.webp" alt="TIENDA_DEV con sus esquemas en el explorador (1), el contexto ya en TIENDA_DEV.ANALITICA (2) y las 6 sentencias ejecutadas (3)" loading="lazy"><figcaption>TIENDA_DEV con sus esquemas en el explorador (1), el contexto ya en TIENDA_DEV.ANALITICA (2) y las 6 sentencias ejecutadas (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Sentencia</th>
+<th>Qué hace</th>
+</tr>
+</thead><tbody><tr>
+<td><code>CREATE DATABASE</code></td>
+<td>Crea la base (y su esquema <code>PUBLIC</code>)</td>
+</tr>
+<tr>
+<td><code>CREATE SCHEMA base.esquema</code></td>
+<td>Crea un esquema dentro de la base</td>
+</tr>
+<tr>
+<td><code>USE SCHEMA</code></td>
+<td>Cambia el contexto</td>
+</tr>
+<tr>
+<td><code>CREATE TABLE ... AS SELECT</code> (CTAS)</td>
+<td>Crea la tabla con las columnas y filas del SELECT</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — En el explorador</h2>
+<figure class="captura"><img src="assets/img/guias/snowflake/s06-tabla.webp" alt="TIENDA_DEV / ANALITICA / VENTAS_POR_CANAL (1) y sus columnas CANAL y PEDIDOS (2)" loading="lazy"><figcaption>TIENDA_DEV / ANALITICA / VENTAS_POR_CANAL (1) y sus columnas CANAL y PEDIDOS (2)</figcaption></figure>
+
+
+<h2>Paso 3 — Esquemas por capa</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Esquema</th>
+<th>Qué guarda</th>
+<th>Quién escribe</th>
+</tr>
+</thead><tbody><tr>
+<td><code>raw</code></td>
+<td>Los datos tal como llegan</td>
+<td>Las cargas</td>
+</tr>
+<tr>
+<td><code>analitica</code></td>
+<td>Tablas limpias y agregadas para el negocio</td>
+<td>Las transformaciones</td>
+</tr>
+</tbody></table></div>
+<p>Separar por esquema permite dar permisos distintos (los analistas leen <code>analitica</code>, no <code>raw</code>) y saber qué está listo para usar.</p>
+<h2>Paso 4 — Tipos de tabla</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo</th>
+<th>Time Travel</th>
+<th>Fail-safe</th>
+<th>Para</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Permanente</strong> (por defecto)</td>
+<td>1 día (hasta 90 en Enterprise)</td>
+<td>7 días</td>
+<td>Datos que importan</td>
+</tr>
+<tr>
+<td><strong>Transitoria</strong> (<code>CREATE TRANSIENT TABLE</code>)</td>
+<td>0 o 1 día</td>
+<td>No</td>
+<td>Datos que se pueden volver a cargar: staging, intermedias</td>
+</tr>
+<tr>
+<td><strong>Temporal</strong> (<code>CREATE TEMPORARY TABLE</code>)</td>
+<td>0 o 1 día</td>
+<td>No</td>
+<td>Solo existe en tu sesión</td>
+</tr>
+</tbody></table></div>
+<p><strong>Fail-safe</strong> es una copia de recuperación que solo Snowflake puede restaurar; ocupa almacenamiento y por eso cuesta.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste una base con esquemas por capa.</li>
+<li>Creaste una tabla con CTAS.</li>
+<li>Conoces los tipos de tabla.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/snowflake-paso-a-paso-bases-esquemas-y-tablas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="snowflake-paso-a-paso-warehouses.html">← Warehouses - el cómputo que se paga por segundo</a><a href="snowflake-paso-a-paso-historial-de-consultas.html">Query History - qué corrió, quién, con qué y cuánto tardó →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
