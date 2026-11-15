@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactividad - niveles de filtro, Obtener detalles, marcadores y botones · Academia de Datos</title><meta name="description" content="Lo que hace que un informe se explore en lugar de leerse - los tres niveles del panel Filtros (objeto visual, página, todas las páginas) y sus tipos (básico, avanzado, N superior), las páginas de Obtener detalles a las que se llega con clic derecho, explorar en profundidad con jerarquías, marcadores para guardar vistas y botones para navegar."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-filtros-detalles-marcadores-y-botones.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Interactividad - niveles de filtro, Obtener detalles, marcadores y botones · Academia de Datos"><meta property="og:description" content="Lo que hace que un informe se explore en lugar de leerse - los tres niveles del panel Filtros (objeto visual, página, todas las páginas) y sus tipos (básico, avanzado, N superior), las páginas de Obtener detalles a las que se llega con clic derecho, explorar en profundidad con jerarquías, marcadores para guardar vistas y botones para navegar."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-filtros-detalles-marcadores-y-botones.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 4 · Intermedio-avanzado · 50 min</div>
+<h1>Interactividad - niveles de filtro, Obtener detalles, marcadores y botones</h1><p class="resumen">Lo que hace que un informe se explore en lugar de leerse - los tres niveles del panel Filtros (objeto visual, página, todas las páginas) y sus tipos (básico, avanzado, N superior), las páginas de Obtener detalles a las que se llega con clic derecho, explorar en profundidad con jerarquías, marcadores para guardar vistas y botones para navegar.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-filtros-detalles-marcadores-y-botones">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir el nivel de filtro correcto</li><li>Usar filtros básicos, avanzados y N superior</li><li>Crear una página de Obtener detalles</li><li>Guardar vistas con marcadores</li><li>Navegar con botones</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Un informe interactivo es como un mapa con lupa: miras el país entero y, cuando algo te llama la atención, haces zoom en una provincia, después en una ciudad, y vuelves. Los filtros son la lupa, Obtener detalles es el zoom, y los marcadores y botones son los atajos.</p>
+</div>
+
+
+<h2>Paso 1 — Los tres niveles de filtro</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b14-filtros.webp" alt="Filtros en este objeto visual (1), en esta página (2) - con segmento como filtro básico - y en todas las páginas (3)" loading="lazy"><figcaption>Filtros en este objeto visual (1), en esta página (2) - con segmento como filtro básico - y en todas las páginas (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Nivel</th>
+<th>Afecta a</th>
+<th>Ejemplo</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>En este objeto visual</strong></td>
+<td>Solo ese gráfico</td>
+<td>El top 5 de países</td>
+</tr>
+<tr>
+<td><strong>En esta página</strong></td>
+<td>Todos los visuales de la página</td>
+<td>Solo segmento Pyme en la página &quot;Empresas&quot;</td>
+</tr>
+<tr>
+<td><strong>En todas las páginas</strong></td>
+<td>Todo el informe</td>
+<td>Solo año 2024</td>
+</tr>
+</tbody></table></div>
+<p>Arrastra un campo del panel Datos al nivel que corresponda. Los filtros no se ven en el lienzo (a diferencia de las segmentaciones): úsalos para reglas fijas, y segmentaciones para lo que el usuario cambia.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tipo de filtro</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Básico</strong></td>
+<td>Marcar valores de una lista</td>
+</tr>
+<tr>
+<td><strong>Avanzado</strong></td>
+<td>Condiciones: contiene, empieza por, mayor que, está en blanco…</td>
+</tr>
+<tr>
+<td><strong>N superior</strong></td>
+<td>Los N primeros o últimos según una medida (top 5 países por ventas)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Obtener detalles</h2>
+<p>Una página de <strong>detalle</strong> muestra todo sobre un elemento (una categoría, un cliente) y se llega a ella con clic derecho desde cualquier otra página.</p>
+<ol>
+<li>Crea una página &quot;Detalle de categoría&quot; con una matriz y un mapa.</li>
+<li>En <strong>Visualizaciones → Obtener detalles</strong>, arrastra <code>categorias[nombre]</code>.</li>
+</ol>
+<figure class="captura"><img src="assets/img/guias/powerbi/b14-obtener-detalles.webp" alt="El campo de obtención de detalles en la página; la pestaña muestra el ícono de página de detalle" loading="lazy"><figcaption>El campo de obtención de detalles en la página; la pestaña muestra el ícono de página de detalle</figcaption></figure>
+
+
+<p>Ahora, en la página principal, <strong>clic derecho en una barra de una categoría → Obtener detalles → Detalle de categoría</strong> abre la página filtrada por esa categoría, con un botón <strong>←</strong> para volver.</p>
+<h2>Paso 3 — Explorar en profundidad</h2>
+<p>Un visual con una <strong>jerarquía</strong> en el eje (Año → Mes, o Categoría → Producto) muestra flechas arriba: <strong>subir</strong> un nivel, <strong>modo explorar</strong> (clic en una barra baja a su detalle), <strong>ir al siguiente nivel</strong> y <strong>expandir</strong> todos un nivel. Es la forma de ir del total al detalle sin crear otro gráfico.</p>
+<h2>Paso 4 — Marcadores</h2>
+<p><strong>Vista → Marcadores</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b14-marcadores.webp" alt="Agregar (1) guarda la vista actual - filtros, segmentaciones, página y visibilidad; Ver (2) los recorre como una presentación" loading="lazy"><figcaption>Agregar (1) guarda la vista actual - filtros, segmentaciones, página y visibilidad; Ver (2) los recorre como una presentación</figcaption></figure>
+
+
+<p>Un marcador guarda el <strong>estado</strong> de la página. Sirve para &quot;vistas guardadas&quot; (Solo 2024, Solo web) y, combinado con el panel <strong>Selección</strong> (mostrar u ocultar visuales), para armar pestañas dentro de una misma página.</p>
+<h2>Paso 5 — Botones</h2>
+<p><strong>Insertar → Botones</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b14-botones.webp" alt="Atrás, Marcador, Navegación de páginas, Obtener detalles, Preguntas y respuestas, URL" loading="lazy"><figcaption>Atrás, Marcador, Navegación de páginas, Obtener detalles, Preguntas y respuestas, URL</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Botón</th>
+<th>Acción</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Navegación de páginas</strong></td>
+<td>Ir a otra página (un menú dentro del informe)</td>
+</tr>
+<tr>
+<td><strong>Marcador</strong></td>
+<td>Aplicar un marcador</td>
+</tr>
+<tr>
+<td><strong>Atrás</strong></td>
+<td>Volver desde una página de detalle</td>
+</tr>
+<tr>
+<td><strong>Obtener detalles</strong></td>
+<td>Ir al detalle del elemento seleccionado</td>
+</tr>
+</tbody></table></div>
+<p>En Power BI Desktop se hace <strong>Ctrl + clic</strong> sobre un botón para probarlo; en el servicio, clic normal.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Usas los tres niveles y tipos de filtro.</li>
+<li>Armaste una página de detalle y conoces la exploración en profundidad.</li>
+<li>Guardas vistas con marcadores y navegas con botones.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-filtros-detalles-marcadores-y-botones">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-diseno-formato-temas-y-paginas.html">← Diseño del informe - formato de objetos visuales, temas, páginas y cuadros de texto</a><a href="powerbi-paso-a-paso-visuales-avanzados-e-ia.html">Visuales avanzados y de IA - matriz, mapa, preguntas y respuestas, árbol de descomposición →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

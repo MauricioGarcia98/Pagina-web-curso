@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Que los datos se actualicen solos - actualización programada, puerta de enlace y credenciales · Academia de Datos</title><meta name="description" content="Un informe publicado muestra los datos del momento en que se publicó hasta que se actualiza el modelo semántico. Configurar la actualización programada, por qué los orígenes de tu red necesitan una puerta de enlace, las credenciales del origen, el historial de actualizaciones para saber si falló, y los límites de cada licencia."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-actualizacion-gateway-y-credenciales.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Que los datos se actualicen solos - actualización programada, puerta de enlace y credenciales · Academia de Datos"><meta property="og:description" content="Un informe publicado muestra los datos del momento en que se publicó hasta que se actualiza el modelo semántico. Configurar la actualización programada, por qué los orígenes de tu red necesitan una puerta de enlace, las credenciales del origen, el historial de actualizaciones para saber si falló, y los límites de cada licencia."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-actualizacion-gateway-y-credenciales.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 5 · Avanzado · 40 min</div>
+<h1>Que los datos se actualicen solos - actualización programada, puerta de enlace y credenciales</h1><p class="resumen">Un informe publicado muestra los datos del momento en que se publicó hasta que se actualiza el modelo semántico. Configurar la actualización programada, por qué los orígenes de tu red necesitan una puerta de enlace, las credenciales del origen, el historial de actualizaciones para saber si falló, y los límites de cada licencia.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-actualizacion-gateway-y-credenciales">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Programar la actualización del modelo semántico</li><li>Entender qué es una puerta de enlace y cuándo hace falta</li><li>Configurar las credenciales del origen</li><li>Leer el historial de actualizaciones</li><li>Diagnosticar una actualización fallida</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>El informe publicado es una foto. La actualización programada es pedirle al servicio que saque una foto nueva todos los días a las 8. Si los datos están en un servidor de tu oficina, la nube no puede entrar: la <strong>puerta de enlace</strong> es el empleado de adentro que le alcanza los datos.</p>
+</div>
+
+
+<h2>Paso 1 — La actualización programada</h2>
+<p>En el área de trabajo, abre el <strong>modelo semántico</strong> (no el informe):</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b18-actualizacion.webp" alt="Actualización programada - activar, frecuencia, zona horaria y horas" loading="lazy"><figcaption>Actualización programada - activar, frecuencia, zona horaria y horas</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Opción</th>
+<th>Qué elegir</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Mantener los datos actualizados</strong></td>
+<td>Activado</td>
+</tr>
+<tr>
+<td><strong>Frecuencia</strong></td>
+<td>Diaria o semanal</td>
+</tr>
+<tr>
+<td><strong>Zona horaria</strong></td>
+<td>La del negocio (no la del servidor)</td>
+</tr>
+<tr>
+<td><strong>Horas</strong></td>
+<td>Después de que termina la carga de datos del origen; si el ETL termina a las 6, actualiza a las 7</td>
+</tr>
+</tbody></table></div>
+<p>Con licencia <strong>Pro</strong>: hasta <strong>8</strong> actualizaciones por día. Con <strong>Premium o Fabric</strong>: hasta <strong>48</strong>.</p>
+<h2>Paso 2 — La puerta de enlace</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b18-gateway.webp" alt="Conexión de puerta de enlace - qué orígenes locales usa el modelo" loading="lazy"><figcaption>Conexión de puerta de enlace - qué orígenes locales usa el modelo</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Origen</th>
+<th>¿Puerta de enlace?</th>
+</tr>
+</thead><tbody><tr>
+<td>SQL Server, archivos o carpetas <strong>en tu red</strong></td>
+<td><strong>Sí</strong>: una <em>puerta de enlace de datos local</em> instalada en una computadora de la red</td>
+</tr>
+<tr>
+<td>Azure SQL, Databricks, Snowflake, BigQuery, SharePoint Online</td>
+<td>No: el servicio llega directo por internet</td>
+</tr>
+</tbody></table></div>
+<p>La puerta de enlace la instala y mantiene el equipo de infraestructura; tú eliges a cuál se conecta el modelo.</p>
+<h2>Paso 3 — Credenciales</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b18-credenciales.webp" alt="Credenciales del origen de datos - el servicio necesita saber con qué usuario conectarse" loading="lazy"><figcaption>Credenciales del origen de datos - el servicio necesita saber con qué usuario conectarse</figcaption></figure>
+
+
+<p>En Desktop las credenciales son las tuyas; en el servicio hay que configurarlas otra vez para el modelo publicado. Lo recomendable es una <strong>cuenta de servicio</strong> o una <strong>entidad de servicio</strong> (no tu usuario personal), para que la actualización no falle el día que cambies la contraseña o te vayas de la empresa.</p>
+<h2>Paso 4 — El historial</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b18-historial.webp" alt="Historial de actualizaciones - cada intento con su inicio, fin y estado" loading="lazy"><figcaption>Historial de actualizaciones - cada intento con su inicio, fin y estado</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Si la actualización falla</th>
+<th>Revisa</th>
+</tr>
+</thead><tbody><tr>
+<td>&quot;Credenciales no válidas&quot;</td>
+<td>Paso 3: contraseña caducada o usuario sin permiso</td>
+</tr>
+<tr>
+<td>&quot;No se puede conectar a la puerta de enlace&quot;</td>
+<td>La computadora de la puerta de enlace apagada o sin red</td>
+</tr>
+<tr>
+<td>Tiempo de espera agotado</td>
+<td>El modelo es muy grande o el origen está lento: filtra en Power Query, usa actualización incremental</td>
+</tr>
+<tr>
+<td>Error en una columna</td>
+<td>Cambió el origen (renombraron o borraron una columna): ajusta Power Query en Desktop y vuelve a publicar</td>
+</tr>
+</tbody></table></div>
+<p>En Power BI real, el servicio envía un correo al dueño cuando una actualización programada falla.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Programaste la actualización.</li>
+<li>Sabes cuándo hace falta una puerta de enlace y cómo configurar credenciales.</li>
+<li>Sabes leer el historial y diagnosticar fallas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-actualizacion-gateway-y-credenciales">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-publicar-y-compartir.html">← Publicar y compartir - el servicio de Power BI, áreas de trabajo, apps y permisos</a><a href="powerbi-paso-a-paso-seguridad-por-filas.html">Seguridad por filas (RLS) - roles, reglas, Ver como y miembros en el servicio →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

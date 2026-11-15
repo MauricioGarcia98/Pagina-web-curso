@@ -19,7 +19,8 @@ const apps = args.length ? args : fs.readdirSync(path.join(ROOT, 'tools/capturas
 
 // la barra del curso y el botón de retos no son parte de la app real: se ocultan en las capturas
 const CSS_LIMPIO = `#herrBar, #retosHerrBtn, #retosHerrPanel, .toast, #toast { display: none !important; }
-body.herr-on .pbi, body.herr-on .dbx, body.herr-on .azp, body.herr-on .adf, body.herr-on .ghp, body.herr-on .fbp, body.herr-on .afp, body.herr-on .sfp, body.herr-on .bqp, body.herr-on .jlp, body.herr-on .xlp, body.vscode-abierto .vs { top: 0 !important; }
+body.herr-on .pbi, body.herr-on .pbs, body.herr-on .dbx, body.herr-on .azp, body.herr-on .adf, body.herr-on .ghp, body.herr-on .fbp, body.herr-on .afp, body.herr-on .sfp, body.herr-on .bqp, body.herr-on .jlp, body.herr-on .xlp, body.vscode-abierto .vs { top: 0 !important; }
+body.herr-on .pbi.pb-lectura { top: 48px !important; } body.herr-on .pbs-inf-bar { top: 48px !important; } body.herr-on #pbsInforme .pbi.pb-lectura { top: 88px !important; }
 .cap-marca { position: fixed; z-index: 2147483647; border: 3px solid #e3342f; border-radius: 8px; box-shadow: 0 0 0 4px rgba(227, 52, 47, .25); pointer-events: none; }
 .cap-num { position: fixed; z-index: 2147483647; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 13px; background: #e3342f; color: #fff; font: 700 14px/26px system-ui, sans-serif; text-align: center; pointer-events: none; box-shadow: 0 2px 6px rgba(0,0,0,.3); }`;
 

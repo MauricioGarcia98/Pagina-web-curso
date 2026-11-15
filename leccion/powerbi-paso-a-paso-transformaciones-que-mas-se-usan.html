@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las transformaciones que más se usan - columnas personalizadas, condicionales, agrupar y combinar · Academia de Datos</title><meta name="description" content="Las transformaciones que vas a usar en casi todos los informes - columna personalizada con una fórmula M, columna condicional sin escribir código, agrupar por, cambiar tipos, reemplazar valores, dividir columnas, anular dinamización y combinar o anexar consultas. Cuándo conviene hacerlo en Power Query y cuándo con DAX."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-transformaciones-que-mas-se-usan.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Las transformaciones que más se usan - columnas personalizadas, condicionales, agrupar y combinar · Academia de Datos"><meta property="og:description" content="Las transformaciones que vas a usar en casi todos los informes - columna personalizada con una fórmula M, columna condicional sin escribir código, agrupar por, cambiar tipos, reemplazar valores, dividir columnas, anular dinamización y combinar o anexar consultas. Cuándo conviene hacerlo en Power Query y cuándo con DAX."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-transformaciones-que-mas-se-usan.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 2 · Básico-intermedio · 45 min</div>
+<h1>Las transformaciones que más se usan - columnas personalizadas, condicionales, agrupar y combinar</h1><p class="resumen">Las transformaciones que vas a usar en casi todos los informes - columna personalizada con una fórmula M, columna condicional sin escribir código, agrupar por, cambiar tipos, reemplazar valores, dividir columnas, anular dinamización y combinar o anexar consultas. Cuándo conviene hacerlo en Power Query y cuándo con DAX.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-transformaciones-que-mas-se-usan">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear una columna personalizada con M</li><li>Crear una columna condicional</li><li>Agrupar filas con una operación</li><li>Cambiar tipos, reemplazar y dividir</li><li>Elegir entre Power Query y DAX para cada cálculo</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Si el paso anterior era aprender a usar la cocina, este es aprender las cinco técnicas que se usan en todos los platos: cortar (dividir), mezclar (combinar), calcular una porción (columna personalizada), clasificar (condicional) y resumir (agrupar).</p>
+</div>
+
+
+<h2>Paso 1 — Columna personalizada</h2>
+<p>En la consulta <strong>detalle_pedidos</strong>: <strong>Agregar columna → Columna personalizada</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b06-personalizada.webp" alt="El nombre de la columna (1) y la fórmula M (2), con las columnas entre corchetes" loading="lazy"><figcaption>El nombre de la columna (1) y la fórmula M (2), con las columnas entre corchetes</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Fórmula</th>
+<th>Resultado</th>
+</tr>
+</thead><tbody><tr>
+<td><code>= [cantidad] * [precio_unitario]</code></td>
+<td>El importe de la línea</td>
+</tr>
+<tr>
+<td><code>= Text.Upper([pais])</code></td>
+<td>El país en mayúsculas</td>
+</tr>
+<tr>
+<td><code>= Date.Year([fecha])</code></td>
+<td>El año de una fecha</td>
+</tr>
+<tr>
+<td><code>= if [monto] &gt; 1000 then &quot;Alto&quot; else &quot;Bajo&quot;</code></td>
+<td>Una clasificación</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Columna condicional</h2>
+<p>En <strong>pedidos</strong>: <strong>Agregar columna → Columna condicional</strong>, sin escribir código:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b06-condicional.webp" alt="La columna a evaluar (1), el operador (2), el valor (3), el resultado si se cumple (4) y si no (5)" loading="lazy"><figcaption>La columna a evaluar (1), el operador (2), el valor (3), el resultado si se cumple (4) y si no (5)</figcaption></figure>
+
+
+<p>Con <code>canal</code> <em>es igual a</em> <code>tienda</code> → <code>Presencial</code>, si no → <code>Digital</code>, la nueva columna <code>tipo_canal</code> clasifica cada pedido. Power Query escribe el <code>if … then … else</code> por ti.</p>
+<h2>Paso 3 — Agrupar por</h2>
+<p><strong>Inicio → Agrupar por</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b06-agrupar.webp" alt="La columna de agrupación (1), el nombre de la nueva columna (2) y la operación (3) - Recuento, Suma, Promedio, Mínimo, Máximo, Mediana" loading="lazy"><figcaption>La columna de agrupación (1), el nombre de la nueva columna (2) y la operación (3) - Recuento, Suma, Promedio, Mínimo, Máximo, Mediana</figcaption></figure>
+
+
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ Agrupar reemplaza la tabla</div>
+
+<p>Agrupar convierte la consulta en una tabla resumida (una fila por canal) y pierdes el detalle. Casi siempre conviene <strong>no</strong> agrupar en Power Query y dejar que los visuales y las medidas resuman. Agrupa solo cuando de verdad necesitas una tabla resumida (por ejemplo, una dimensión sin duplicados).</p>
+</div>
+
+
+<h2>Paso 4 — Otras que vas a usar</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Transformación</th>
+<th>Dónde</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Tipo de datos</strong></td>
+<td>Transformar, o el ícono del encabezado</td>
+<td>Que un número no quede como texto</td>
+</tr>
+<tr>
+<td><strong>Detectar tipo de datos</strong></td>
+<td>Transformar</td>
+<td>Power Query adivina los tipos de las columnas seleccionadas</td>
+</tr>
+<tr>
+<td><strong>Reemplazar valores</strong></td>
+<td>Transformar</td>
+<td><code>&quot;Mexico&quot;</code> → <code>&quot;México&quot;</code></td>
+</tr>
+<tr>
+<td><strong>Recortar</strong>, <strong>minúsculas</strong>, <strong>Poner en mayúsculas cada palabra</strong></td>
+<td>Transformar</td>
+<td>Normalizar texto</td>
+</tr>
+<tr>
+<td><strong>Dividir columna</strong></td>
+<td>Inicio</td>
+<td><code>&quot;ana@correo.com&quot;</code> por <code>@</code> → usuario y dominio</td>
+</tr>
+<tr>
+<td><strong>Usar la primera fila como encabezado</strong></td>
+<td>Inicio</td>
+<td>Archivos donde los títulos vienen como fila</td>
+</tr>
+<tr>
+<td><strong>Anular dinamización</strong></td>
+<td>Transformar</td>
+<td>Una tabla con una columna por mes → una fila por mes</td>
+</tr>
+<tr>
+<td><strong>Combinar consultas</strong></td>
+<td>Inicio</td>
+<td>Un JOIN: traer columnas de otra tabla por una clave</td>
+</tr>
+<tr>
+<td><strong>Anexar consultas</strong></td>
+<td>Inicio</td>
+<td>Un UNION: poner una tabla debajo de otra (ventas 2023 + ventas 2024)</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Cerrar y aplicar</h2>
+<figure class="captura"><img src="assets/img/guias/powerbi/b06-cerrar-aplicar.webp" alt="Cerrar y aplicar lleva todas las transformaciones al modelo" loading="lazy"><figcaption>Cerrar y aplicar lleva todas las transformaciones al modelo</figcaption></figure>
+
+
+<h2>Paso 6 — ¿Power Query o DAX?</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Si el cálculo…</th>
+<th>Hazlo en</th>
+</tr>
+</thead><tbody><tr>
+<td>Limpia o corrige el dato (tipos, mayúsculas, valores mal escritos)</td>
+<td><strong>Power Query</strong></td>
+</tr>
+<tr>
+<td>Es una propiedad fija de cada fila que no depende de filtros (importe de la línea, tipo de canal)</td>
+<td><strong>Power Query</strong> (o columna calculada DAX)</td>
+</tr>
+<tr>
+<td>Depende de lo que el usuario filtra (total de ventas, % del total, año anterior)</td>
+<td><strong>Medida DAX</strong> (nivel 3)</td>
+</tr>
+</tbody></table></div>
+<p>La regla general de los equipos de BI: <strong>lo más arriba posible</strong>. Si se puede limpiar en el origen (SQL, el lakehouse), mejor; si no, en Power Query; y en DAX lo que depende del contexto.</p>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste columnas personalizadas y condicionales.</li>
+<li>Sabes agrupar, cambiar tipos, reemplazar, dividir, combinar y anexar.</li>
+<li>Sabes dónde conviene cada cálculo.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-transformaciones-que-mas-se-usan">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-power-query.html">← Power Query - el editor, los pasos aplicados y el lenguaje M</a><a href="powerbi-paso-a-paso-el-modelo-relaciones-y-propiedades.html">El modelo - relaciones, cardinalidad, dirección del filtro y propiedades →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

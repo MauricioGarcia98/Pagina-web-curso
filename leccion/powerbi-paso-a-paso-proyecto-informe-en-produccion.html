@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (requisitos y rúbrica) - el informe en producción, seguro y actualizado · Academia de Datos</title><meta name="description" content="El informe comercial pasa a producción - publicado en un área de trabajo del equipo, con actualización diaria, credenciales de servicio, seguridad por país con regla dinámica, una app para los vendedores y un documento de operación para que otro pueda mantenerlo. Requisitos, control y rúbrica."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-proyecto-informe-en-produccion.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (requisitos y rúbrica) - el informe en producción, seguro y actualizado · Academia de Datos"><meta property="og:description" content="El informe comercial pasa a producción - publicado en un área de trabajo del equipo, con actualización diaria, credenciales de servicio, seguridad por país con regla dinámica, una app para los vendedores y un documento de operación para que otro pueda mantenerlo. Requisitos, control y rúbrica."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-proyecto-informe-en-produccion.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 5 · Avanzado · 120 min</div>
+<h1>Proyecto 5 (requisitos y rúbrica) - el informe en producción, seguro y actualizado</h1><p class="resumen">El informe comercial pasa a producción - publicado en un área de trabajo del equipo, con actualización diaria, credenciales de servicio, seguridad por país con regla dinámica, una app para los vendedores y un documento de operación para que otro pueda mantenerlo. Requisitos, control y rúbrica.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-proyecto-informe-en-produccion">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Publicar en un área de trabajo de equipo con roles adecuados</li><li>Configurar actualización y credenciales</li><li>Implementar RLS dinámica con una tabla de asignación</li><li>Distribuir con una app</li><li>Documentar la operación del informe</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Rodrigo: <em>&quot;El informe gustó. Ahora lo quiero en serio: que se actualice solo todas las mañanas, que cada gerente de país vea solo su país (México, Argentina y Colombia), que los vendedores lo vean desde una app y que, si vos no estás, alguien sepa qué hacer cuando falle.&quot;</em></p>
+</div>
+
+
+<h2>Requisitos</h2>
+<ol>
+<li><strong>Tabla de asignación</strong> <code>gerentes</code> (escribe los datos en Desktop: Inicio → Escribir datos) con <code>email</code> y <code>pais</code>: tres gerentes ficticios (<code>gerente.mx@empresa.com</code> → México, <code>gerente.ar@empresa.com</code> → Argentina, <code>gerente.co@empresa.com</code> → Colombia). Sin relación con el resto del modelo, oculta para los usuarios.</li>
+<li><strong>Rol dinámico</strong> <code>Gerente de país</code> sobre <code>clientes</code> con <code>LOOKUPVALUE</code> y <code>USERPRINCIPALNAME()</code>; probado con <strong>Ver como → Otro usuario</strong> para los tres correos.</li>
+<li><strong>Publicación</strong> en un área de trabajo de equipo (créala en el servicio: Áreas de trabajo → Nueva), no en Mi área de trabajo.</li>
+<li><strong>Roles del área</strong>: tú Administrador; un compañero (ficticio) Miembro; los gerentes, <strong>Visor</strong> (para que RLS se les aplique).</li>
+<li><strong>Seguridad en el servicio</strong>: los tres correos como miembros del rol.</li>
+<li><strong>Actualización</strong> diaria a una hora posterior a la carga de datos, con credenciales configuradas.</li>
+<li><strong>App</strong> con el informe, para los vendedores.</li>
+<li><strong>Documento de operación</strong> (una página de texto en el propio informe, oculta, o un archivo aparte): qué hace el informe, de dónde salen los datos, a qué hora se actualiza, quién es el dueño, cómo dar acceso a alguien nuevo y qué revisar si falla la actualización.</li>
+</ol>
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Ver como <code>gerente.ar@empresa.com</code></td>
+<td>Ventas <strong>2 895 224,93</strong>; solo Argentina en el mapa</td>
+</tr>
+<tr>
+<td>Ver como <code>gerente.mx@empresa.com</code></td>
+<td>Ventas <strong>2 621 721,71</strong></td>
+</tr>
+<tr>
+<td>Ver como <code>gerente.co@empresa.com</code></td>
+<td>Ventas <strong>2 269 767,09</strong></td>
+</tr>
+<tr>
+<td>Ver como un correo que no está en <code>gerentes</code></td>
+<td>Informe vacío (la regla no encuentra país)</td>
+</tr>
+<tr>
+<td>Área de trabajo</td>
+<td>Gerentes con rol Visor</td>
+</tr>
+<tr>
+<td>Actualización programada</td>
+<td>Activada, con hora y zona horaria del negocio</td>
+</tr>
+<tr>
+<td>App</td>
+<td>Publicada con el informe</td>
+</tr>
+</tbody></table></div>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Peso</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Seguridad</td>
+<td>30 %</td>
+<td>Roles estáticos o sin probar</td>
+<td>Rol dinámico probado con los tres correos y Visores en el área</td>
+<td>Probado también un correo sin asignación y documentado el comportamiento</td>
+</tr>
+<tr>
+<td>Publicación y distribución</td>
+<td>20 %</td>
+<td>En Mi área de trabajo</td>
+<td>Área de equipo, roles correctos y app</td>
+<td>Explica en el documento por qué app y no compartir</td>
+</tr>
+<tr>
+<td>Operación</td>
+<td>25 %</td>
+<td>Sin actualización</td>
+<td>Actualización y credenciales configuradas</td>
+<td>Credenciales de servicio, hora justificada y aviso por correo al fallar</td>
+</tr>
+<tr>
+<td>Documentación</td>
+<td>25 %</td>
+<td>Sin documento</td>
+<td>Documento con todos los puntos</td>
+<td>Alguien nuevo podría operar el informe solo con el documento</td>
+</tr>
+</tbody></table></div>
+<p><strong>Aprobado</strong>: competente o más en todos los criterios.</p>
+<h2>Entrega</h2>
+<p>Mensaje a Rodrigo: <em>&quot;El informe está en producción en el área &#39;Comercial&#39;: se actualiza todos los días a las 7:00, cada gerente ve solo su país (lo probé con los tres) y los vendedores lo tienen en la app &#39;Ventas&#39;. Dejé un documento de operación con qué hacer si falla la actualización y cómo dar acceso a alguien nuevo.&quot;</em></p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-proyecto-informe-en-produccion">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-seguridad-por-filas.html">← Seguridad por filas (RLS) - roles, reglas, Ver como y miembros en el servicio</a><a href="powerbi-paso-a-paso-rendimiento.html">Rendimiento - el analizador, el tamaño del modelo y las buenas prácticas →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

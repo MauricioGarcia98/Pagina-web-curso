@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto final (solo el pedido) - el tablero ejecutivo de una app de delivery · Academia de Datos</title><meta name="description" content="El proyecto que cierra el curso, como llega en un trabajo real - un pedido ambiguo de la directora de operaciones de una app de delivery, cuatro tablas y una semana. Sin pasos ni pistas. Defines las métricas, preparas los datos, modelas, escribes las medidas, diseñas un informe de varias páginas, lo publicas seguro y actualizado, y presentas tus conclusiones. Primero en la práctica; después en Power BI Desktop real para tu portafolio."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-proyecto-final.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto final (solo el pedido) - el tablero ejecutivo de una app de delivery · Academia de Datos"><meta property="og:description" content="El proyecto que cierra el curso, como llega en un trabajo real - un pedido ambiguo de la directora de operaciones de una app de delivery, cuatro tablas y una semana. Sin pasos ni pistas. Defines las métricas, preparas los datos, modelas, escribes las medidas, diseñas un informe de varias páginas, lo publicas seguro y actualizado, y presentas tus conclusiones. Primero en la práctica; después en Power BI Desktop real para tu portafolio."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-proyecto-final.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 6 · Avanzado completo · 300 min</div>
+<h1>Proyecto final (solo el pedido) - el tablero ejecutivo de una app de delivery</h1><p class="resumen">El proyecto que cierra el curso, como llega en un trabajo real - un pedido ambiguo de la directora de operaciones de una app de delivery, cuatro tablas y una semana. Sin pasos ni pistas. Defines las métricas, preparas los datos, modelas, escribes las medidas, diseñas un informe de varias páginas, lo publicas seguro y actualizado, y presentas tus conclusiones. Primero en la práctica; después en Power BI Desktop real para tu portafolio.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-proyecto-final">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Convertir un pedido ambiguo en métricas definidas</li><li>Preparar y modelar los datos con criterio</li><li>Escribir medidas verificadas</li><li>Diseñar un informe que responda las preguntas sin explicación</li><li>Publicarlo con seguridad y operación</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Valeria, directora de operaciones de <strong>RapiBox</strong>, una app de delivery:</p>
+<p><em>&quot;Necesito un tablero para el comité del lunes: cómo venimos con los pedidos, cuánto tardamos en entregar, cuántos se cancelan y por qué, y qué restaurantes y ciudades andan mejor o peor. Cada gerente de ciudad tiene que poder ver lo suyo, y nada más. Y que se actualice solo, que no quiero depender de que alguien lo corra.&quot;</em></p>
+</div>
+
+
+<h2>Las reglas de este proyecto</h2>
+<ul>
+<li><strong>No hay pasos ni pistas.</strong> Todo lo necesario está en las lecciones 1 a 23.</li>
+<li>El pedido es ambiguo a propósito: &quot;tardamos en entregar&quot;, &quot;se cancelan&quot;, &quot;andan mejor&quot; los defines tú y los escribes en el informe (descripciones de medidas y una página de definiciones).</li>
+<li>Se entrega como en un trabajo: el informe, el modelo publicado y una presentación corta.</li>
+</ul>
+<h2>Datos disponibles</h2>
+<p>En <strong>Obtener datos → Base de datos del curso</strong>, las tablas de <strong>delivery</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Tabla</th>
+<th>Filas</th>
+<th>Te sirve para</th>
+</tr>
+</thead><tbody><tr>
+<td><code>delivery_pedidos</code></td>
+<td>16 000</td>
+<td>Ciudad, estado, marcas de tiempo (creado, aceptado, retirado, entregado), subtotal, envío, cupón, propina, calificación</td>
+</tr>
+<tr>
+<td><code>delivery_restaurantes</code></td>
+<td>—</td>
+<td>Nombre, ciudad, categoría, comisión, rating</td>
+</tr>
+<tr>
+<td><code>delivery_repartidores</code></td>
+<td>—</td>
+<td>Quién entregó</td>
+</tr>
+<tr>
+<td><code>delivery_clientes</code></td>
+<td>—</td>
+<td>Quién pidió (datos personales)</td>
+</tr>
+</tbody></table></div>
+<p>Números para verificar que cargaste bien: <strong>16 000</strong> pedidos; <strong>14 405</strong> entregados, <strong>658</strong> cancelados por el cliente, <strong>450</strong> por el restaurante, <strong>487</strong> sin repartidor; <strong>1595</strong> sin marca de entrega; Ciudad de México 4750, Bogotá 3491, Lima 2947, Buenos Aires 2855, Medellín 1957; calificación promedio de los entregados <strong>4,42</strong>; subtotal total <strong>414 212,12</strong>.</p>
+<h2>Entregables</h2>
+<ol>
+<li><strong>El modelo</strong>: esquema en estrella, tabla de fechas marcada, datos personales de clientes fuera del modelo o protegidos, medidas en una tabla <code>_Medidas</code> con descripción.</li>
+<li><strong>Las medidas</strong>, con las definiciones que elijas: pedidos, entregados, tasa de cancelación (y por motivo), tiempo de entrega (en minutos, explicando qué marcas usas y qué haces con los pedidos sin entrega), calificación promedio, ingresos, y su comparación con el período anterior.</li>
+<li><strong>El informe</strong> (mínimo tres páginas): resumen ejecutivo con KPIs y tendencia; operación (tiempos y cancelaciones por ciudad, día y hora); restaurantes (ranking, con una página de detalle por restaurante a la que se llega con clic derecho). Una página de <strong>definiciones</strong>.</li>
+<li><strong>La seguridad</strong>: rol dinámico por ciudad con una tabla de asignación, probado con Ver como.</li>
+<li><strong>La operación</strong>: publicado en un área de equipo, actualización programada y un documento de operación.</li>
+<li><strong>La presentación</strong> (máximo 10 líneas, como mensaje a Valeria): tres hallazgos con números, una recomendación y qué harías después.</li>
+</ol>
+<h2>Rúbrica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Criterio</th>
+<th>Peso</th>
+<th>Insuficiente</th>
+<th>Competente</th>
+<th>Sobresaliente</th>
+</tr>
+</thead><tbody><tr>
+<td>Definiciones</td>
+<td>15 %</td>
+<td>Métricas sin definir</td>
+<td>Página de definiciones y descripciones en las medidas</td>
+<td>Las definiciones justifican cada decisión (qué cuenta como cancelado, qué tiempo se mide)</td>
+</tr>
+<tr>
+<td>Modelo y medidas</td>
+<td>25 %</td>
+<td>Números que no cierran con el control</td>
+<td>Estrella, tabla de fechas, medidas verificadas</td>
+<td>Grupo de cálculo para comparaciones y medidas documentadas en TMDL</td>
+</tr>
+<tr>
+<td>Informe</td>
+<td>25 %</td>
+<td>Visuales sueltos</td>
+<td>Tres páginas, navegación, detalle por restaurante</td>
+<td>Responde las preguntas de Valeria sin explicación; conclusiones escritas</td>
+</tr>
+<tr>
+<td>Seguridad y operación</td>
+<td>15 %</td>
+<td>Sin RLS ni actualización</td>
+<td>RLS dinámica probada, actualización y documento</td>
+<td>Probado un usuario sin asignación; credenciales de servicio</td>
+</tr>
+<tr>
+<td>Comunicación</td>
+<td>20 %</td>
+<td>Describe gráficos</td>
+<td>Tres hallazgos con números y una recomendación</td>
+<td>Recomendación priorizada con impacto estimado y forma de medirla</td>
+</tr>
+</tbody></table></div>
+<p><strong>Aprobado</strong>: competente o más en todos los criterios. Evalúate con honestidad; si algo queda insuficiente, rehazlo antes de darlo por terminado.</p>
+<h2>Preguntas que te harían en el comité</h2>
+<p>No son pistas: son las preguntas que te van a hacer. Tu informe debería poder responderlas.</p>
+<ul>
+<li>&quot;¿Cómo medís el tiempo de entrega? ¿Desde que el cliente pide o desde que el restaurante acepta?&quot;</li>
+<li>&quot;¿Qué pasa con los pedidos que nunca se entregaron?&quot;</li>
+<li>&quot;¿La cancelación por falta de repartidor es un problema de una ciudad o de todas?&quot;</li>
+<li>&quot;¿Qué ve el gerente de Lima cuando abre el tablero?&quot;</li>
+<li>&quot;Si mañana cambia la fuente de datos, ¿quién lo arregla y cómo?&quot;</li>
+</ul>
+<h2>La segunda vuelta: en Power BI real, para tu portafolio</h2>
+<ol>
+<li>Exporta el modelo en TMDL y ábrelo en un proyecto <code>.pbip</code> (lección 23); conecta las tablas a archivos CSV exportados desde la práctica o generados con el <a href="#/datos">generador de datos</a>.</li>
+<li>Rehaz el informe y verifica que los números coinciden con tu versión en la práctica: es tu control final.</li>
+<li>Sube el proyecto a GitHub con un README (pregunta, modelo, medidas clave, conclusiones) y capturas con datos ficticios.</li>
+</ol>
+<div class="callout callout-tip"><div class="callout-title">💡 Cómo contarlo en una entrevista</div>
+
+<p>&quot;Construí el tablero ejecutivo de una app de delivery: definí las métricas con operaciones, modelé en estrella con tabla de fechas, escribí las medidas de tiempos y cancelaciones con su comparación interanual, diseñé tres páginas con detalle por restaurante, implementé seguridad por ciudad con una regla dinámica y lo dejé actualizándose solo. El hallazgo principal fue [tu hallazgo, con número].&quot; Contexto, decisiones, resultado: eso buscan.</p>
+</div>
+
+
+<h2>Después de este curso</h2>
+<p>Ya dominas Power BI como lo usa un equipo de BI. Los caminos naturales desde aquí:</p>
+<ul>
+<li><strong><a href="#/m/powerbi">Power BI y DAX</a></strong>: el motor DAX a fondo (contexto, iteradores, inteligencia de tiempo).</li>
+<li><strong><a href="#/m/analisis">Análisis de datos con SQL</a></strong>: preparar los datos antes de que lleguen a Power BI.</li>
+<li><strong><a href="#/m/databricks-paso-a-paso">Databricks paso a paso</a></strong>: la capa gold que alimenta tus tableros.</li>
+<li><strong><a href="#/m/portafolio">Portafolio</a></strong>: convertir estos proyectos en piezas que te consigan entrevistas.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-proyecto-final">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-de-la-practica-a-power-bi-real.html">← De la práctica a Power BI real - instalar, conectar tus datos, licencias y Fabric</a><a href="arquitectura-que-es.html">Qué es la arquitectura de datos →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguridad por filas (RLS) - roles, reglas, Ver como y miembros en el servicio · Academia de Datos</title><meta name="description" content="Un mismo informe, y cada gerente ve solo su país. La seguridad por filas (RLS) se define en Desktop con roles y reglas DAX, se prueba con Ver como, y en el servicio se asignan personas o grupos a cada rol. Reglas estáticas y dinámicas con USERPRINCIPALNAME, cómo el filtro se propaga por las relaciones y a quién no se le aplica."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-seguridad-por-filas.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Seguridad por filas (RLS) - roles, reglas, Ver como y miembros en el servicio · Academia de Datos"><meta property="og:description" content="Un mismo informe, y cada gerente ve solo su país. La seguridad por filas (RLS) se define en Desktop con roles y reglas DAX, se prueba con Ver como, y en el servicio se asignan personas o grupos a cada rol. Reglas estáticas y dinámicas con USERPRINCIPALNAME, cómo el filtro se propaga por las relaciones y a quién no se le aplica."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-seguridad-por-filas.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 5 · Avanzado · 45 min</div>
+<h1>Seguridad por filas (RLS) - roles, reglas, Ver como y miembros en el servicio</h1><p class="resumen">Un mismo informe, y cada gerente ve solo su país. La seguridad por filas (RLS) se define en Desktop con roles y reglas DAX, se prueba con Ver como, y en el servicio se asignan personas o grupos a cada rol. Reglas estáticas y dinámicas con USERPRINCIPALNAME, cómo el filtro se propaga por las relaciones y a quién no se le aplica.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-seguridad-por-filas">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Crear un rol con una regla de filtro</li><li>Probar el rol con Ver como</li><li>Escribir una regla dinámica con USERPRINCIPALNAME</li><li>Asignar miembros en el servicio</li><li>Conocer los límites de RLS</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>RLS es como darle a cada gerente unos anteojos que solo dejan ver su parte del mapa. El informe es el mismo para todos; lo que cambia es lo que cada uno puede ver a través de sus anteojos.</p>
+</div>
+
+
+<h2>Paso 1 — Crear el rol</h2>
+<p><strong>Modelado → Administrar roles → + Nuevo</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b19-roles.webp" alt="El rol Gerente Argentina, la tabla clientes y la regla pais Es igual a Argentina, con su DAX equivalente" loading="lazy"><figcaption>El rol Gerente Argentina, la tabla clientes y la regla pais Es igual a Argentina, con su DAX equivalente</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Parte</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Rol</strong></td>
+<td>Un nombre (Gerente Argentina)</td>
+</tr>
+<tr>
+<td><strong>Tabla</strong></td>
+<td>Dónde se aplica el filtro (<code>clientes</code>)</td>
+</tr>
+<tr>
+<td><strong>Regla</strong></td>
+<td>Una condición DAX: <code>[pais] = &quot;Argentina&quot;</code></td>
+</tr>
+</tbody></table></div>
+<p>El filtro de <code>clientes</code> se <strong>propaga por las relaciones</strong>: los pedidos y el detalle de los clientes de otros países también desaparecen. Por eso conviene poner las reglas en las dimensiones.</p>
+<h2>Paso 2 — Probar con Ver como</h2>
+<p><strong>Modelado → Ver como</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b19-ver-como.webp" alt="Elegir el rol a probar (y opcionalmente otro usuario, para reglas dinámicas)" loading="lazy"><figcaption>Elegir el rol a probar (y opcionalmente otro usuario, para reglas dinámicas)</figcaption></figure>
+
+
+<p>Con <strong>Gerente Argentina</strong>, la tarjeta de ventas muestra <strong>2 895 224,93</strong> (las ventas de clientes argentinos) en lugar de 14 878 014,07. Un aviso arriba del lienzo recuerda que estás viendo como un rol; <strong>Detener la vista</strong> vuelve a todo.</p>
+<h2>Paso 3 — Reglas dinámicas</h2>
+<p>Con 20 países, 20 roles es inmanejable. La alternativa es <strong>una</strong> regla que use quién está mirando:</p>
+<pre><code class="language-text">-- en una tabla de asignación: gerentes[email], gerentes[pais]
+[pais] = LOOKUPVALUE(gerentes[pais], gerentes[email], USERPRINCIPALNAME())</code></pre>
+<p><code>USERPRINCIPALNAME()</code> devuelve el correo de quien abre el informe. Se mantiene una tabla <code>gerentes</code> (quién ve qué país) y el modelo hace el resto. En <strong>Ver como → Otro usuario</strong> se escribe un correo para probarla.</p>
+<h2>Paso 4 — En el servicio</h2>
+<p>Al publicar, en el modelo semántico → <strong>Seguridad (RLS)</strong>:</p>
+<figure class="captura"><img src="assets/img/guias/powerbi/b19-rls-servicio.webp" alt="El rol con su regla - agregar correos o grupos como miembros y probar como rol" loading="lazy"><figcaption>El rol con su regla - agregar correos o grupos como miembros y probar como rol</figcaption></figure>
+
+
+<p>Asigna <strong>grupos</strong> (por ejemplo, el grupo de gerentes de Argentina) en lugar de personas: cuando alguien entra o sale, se cambia el grupo.</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ A quién no se le aplica</div>
+
+<p>RLS se aplica a quienes tienen rol <strong>Visor</strong> en el área de trabajo (o acceden por app o vínculo). <strong>Administradores, Miembros y Colaboradores ven todo</strong>, porque pueden editar el modelo. Si un gerente es Miembro del área, ve todos los países.</p>
+</div>
+
+
+<h2>Paso 5 — RLS y otras formas de proteger</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Necesitas</th>
+<th>Usa</th>
+</tr>
+</thead><tbody><tr>
+<td>Que cada persona vea solo sus filas</td>
+<td><strong>RLS</strong></td>
+</tr>
+<tr>
+<td>Ocultar una columna entera (salarios) a algunos</td>
+<td><strong>Seguridad a nivel de objeto (OLS)</strong>, con herramientas externas como Tabular Editor</td>
+</tr>
+<tr>
+<td>Que nadie vea datos personales</td>
+<td>Quitarlos en Power Query o en el origen (proyecto 2)</td>
+</tr>
+<tr>
+<td>Proteger en el lakehouse para todas las herramientas</td>
+<td>Filtros de fila y máscaras en el origen (Databricks Unity Catalog, Snowflake)</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Creaste un rol con una regla y lo probaste con Ver como.</li>
+<li>Sabes escribir una regla dinámica.</li>
+<li>Sabes asignar miembros y a quién no se aplica RLS.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-seguridad-por-filas">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-actualizacion-gateway-y-credenciales.html">← Que los datos se actualicen solos - actualización programada, puerta de enlace y credenciales</a><a href="powerbi-paso-a-paso-proyecto-informe-en-produccion.html">Proyecto 5 (requisitos y rúbrica) - el informe en producción, seguro y actualizado →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

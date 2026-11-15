@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CALCULATE y el contexto de filtro - la función más importante de DAX · Academia de Datos</title><meta name="description" content="Toda medida se calcula dentro de un contexto de filtro - lo que el visual, las segmentaciones y los filtros dejan pasar. CALCULATE cambia ese contexto - agrega una condición, la reemplaza o la quita con ALL. Ventas web, porcentaje del total, por qué Ventas web da lo mismo en cada fila de canal, y la vista de consultas DAX para probar medidas sin armar un gráfico."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-calculate-y-contexto.html">
+<meta property="og:type" content="article"><meta property="og:title" content="CALCULATE y el contexto de filtro - la función más importante de DAX · Academia de Datos"><meta property="og:description" content="Toda medida se calcula dentro de un contexto de filtro - lo que el visual, las segmentaciones y los filtros dejan pasar. CALCULATE cambia ese contexto - agrega una condición, la reemplaza o la quita con ALL. Ventas web, porcentaje del total, por qué Ventas web da lo mismo en cada fila de canal, y la vista de consultas DAX para probar medidas sin armar un gráfico."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-calculate-y-contexto.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 3 · Intermedio · 55 min</div>
+<h1>CALCULATE y el contexto de filtro - la función más importante de DAX</h1><p class="resumen">Toda medida se calcula dentro de un contexto de filtro - lo que el visual, las segmentaciones y los filtros dejan pasar. CALCULATE cambia ese contexto - agrega una condición, la reemplaza o la quita con ALL. Ventas web, porcentaje del total, por qué Ventas web da lo mismo en cada fila de canal, y la vista de consultas DAX para probar medidas sin armar un gráfico.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-calculate-y-contexto">▶ Abrir la lección interactiva (3 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es el contexto de filtro</li><li>Usar CALCULATE con una condición</li><li>Calcular un porcentaje del total con ALL</li><li>Entender por qué un filtro de CALCULATE reemplaza al del visual</li><li>Probar medidas con EVALUATE en la vista de consultas DAX</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Cada número del informe se calcula &quot;mirando por una ventana&quot;: la barra de web mira solo los pedidos web, el mes de marzo mira solo marzo. Esa ventana es el <strong>contexto de filtro</strong>. <strong>CALCULATE</strong> te deja cambiar la ventana a propósito: &quot;mira solo web&quot;, o &quot;mira todo, ignorando el canal&quot;.</p>
+</div>
+
+
+<h2>Paso 1 — El contexto de filtro</h2>
+<p>En la tabla del paso anterior (canal, Ventas), la celda de <strong>app</strong> vale 3 780 449,86 porque su contexto es <code>pedidos[canal] = &quot;app&quot;</code>: el filtro viaja por la relación de <code>pedidos</code> a <code>detalle_pedidos</code> y SUMX recorre solo esas líneas. La fila <strong>Total</strong> no tiene filtro de canal: 14 878 014,07. Agrega una segmentación y su selección se suma al contexto de todas las celdas.</p>
+<h2>Paso 2 — CALCULATE con una condición</h2>
+<pre><code class="language-text">Ventas web = CALCULATE([Ventas], pedidos[canal] = &quot;web&quot;)
+% del total = DIVIDE([Ventas], CALCULATE([Ventas], ALL(pedidos)))</code></pre>
+<figure class="captura"><img src="assets/img/guias/powerbi/b10-calculate.webp" alt="Ventas, Ventas web y % del total por canal - Ventas web vale 6,8 M en todas las filas" loading="lazy"><figcaption>Ventas, Ventas web y % del total por canal - Ventas web vale 6,8 M en todas las filas</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Expresión</th>
+<th>Qué hace con el contexto</th>
+</tr>
+</thead><tbody><tr>
+<td><code>CALCULATE([Ventas], pedidos[canal] = &quot;web&quot;)</code></td>
+<td><strong>Reemplaza</strong> cualquier filtro sobre <code>canal</code> por <code>canal = &quot;web&quot;</code></td>
+</tr>
+<tr>
+<td><code>CALCULATE([Ventas], ALL(pedidos))</code></td>
+<td><strong>Quita</strong> todos los filtros sobre la tabla <code>pedidos</code></td>
+</tr>
+<tr>
+<td><code>CALCULATE([Ventas], KEEPFILTERS(pedidos[canal] = &quot;web&quot;))</code></td>
+<td><strong>Agrega</strong> la condición sin reemplazar: en la fila app daría vacío</td>
+</tr>
+</tbody></table></div>
+<p>Por eso <strong>Ventas web</strong> muestra 6 807 135,34 también en la fila de app: CALCULATE pisó el filtro <code>canal = &quot;app&quot;</code> del visual con <code>canal = &quot;web&quot;</code>. Y <strong>% del total</strong> divide las ventas de cada canal por las de todos los canales: web 0,46 · app 0,25 · tienda 0,21 · telefono 0,08 (con formato de porcentaje: 45,8 % · 25,4 % · 21,3 % · 7,5 %).</p>
+<div class="callout callout-cuidado"><div class="callout-title">⚠️ ALL quita más de lo que parece</div>
+
+<p><code>ALL(pedidos)</code> quita <strong>todos</strong> los filtros de la tabla <code>pedidos</code>, incluido el de una segmentación por estado. Si quieres el porcentaje sobre lo que el usuario dejó visible, usa <code>ALLSELECTED(pedidos)</code>; si solo quieres ignorar el canal, <code>ALL(pedidos[canal])</code>.</p>
+</div>
+
+
+<h2>Paso 3 — La vista de consultas DAX</h2>
+<p>La cuarta vista de la barra izquierda permite probar una medida sin armar un visual:</p>
+<pre><code class="language-text">EVALUATE
+    SUMMARIZECOLUMNS(
+        pedidos[canal],
+        &quot;Ventas&quot;, [Ventas],
+        &quot;Pedidos&quot;, [Pedidos]
+    )
+ORDER BY [Ventas] DESC</code></pre>
+<figure class="captura"><img src="assets/img/guias/powerbi/b10-consultas-dax.webp" alt="La consulta (1) y su resultado como tabla (2)" loading="lazy"><figcaption>La consulta (1) y su resultado como tabla (2)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Consulta</th>
+<th>Devuelve</th>
+</tr>
+</thead><tbody><tr>
+<td><code>EVALUATE TOPN(10, clientes)</code></td>
+<td>Las primeras 10 filas de una tabla</td>
+</tr>
+<tr>
+<td><code>EVALUATE SUMMARIZECOLUMNS(columna, &quot;Nombre&quot;, [Medida])</code></td>
+<td>Una tabla agrupada, como un GROUP BY</td>
+</tr>
+<tr>
+<td><code>DEFINE MEASURE pedidos[Prueba] = … EVALUATE {[Prueba]}</code></td>
+<td>Probar una medida nueva sin crearla en el modelo</td>
+</tr>
+</tbody></table></div>
+<p>Clic derecho (o ⋯) en un campo del panel Datos ofrece consultas rápidas: vista previa, estadísticas de columna, evaluar una medida.</p>
+<h2>Paso 4 — Las funciones de filtro que más se usan</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Función</th>
+<th>Uso típico</th>
+</tr>
+</thead><tbody><tr>
+<td><code>FILTER(tabla, condición)</code></td>
+<td>Condiciones que no son &quot;columna = valor&quot;: <code>FILTER(productos, productos[precio] &gt; 500)</code></td>
+</tr>
+<tr>
+<td><code>ALL</code>, <code>ALLEXCEPT</code>, <code>ALLSELECTED</code>, <code>REMOVEFILTERS</code></td>
+<td>Quitar filtros para totales y porcentajes</td>
+</tr>
+<tr>
+<td><code>VALUES(col)</code>, <code>SELECTEDVALUE(col)</code></td>
+<td>Qué valores hay en el contexto; el único seleccionado</td>
+</tr>
+<tr>
+<td><code>USERELATIONSHIP</code></td>
+<td>Usar una relación inactiva (fecha de envío en vez de fecha de pedido)</td>
+</tr>
+</tbody></table></div>
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Entiendes el contexto de filtro.</li>
+<li>Usas CALCULATE para agregar, reemplazar y quitar filtros.</li>
+<li>Pruebas medidas con la vista de consultas DAX.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>3 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-calculate-y-contexto">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-medidas-dax.html">← Medidas DAX - la barra de fórmulas, SUM, SUMX, COUNTROWS y DIVIDE</a><a href="powerbi-paso-a-paso-tabla-de-fechas-e-inteligencia-de-tiempo.html">Tabla de fechas e inteligencia de tiempo - acumulado del año y año anterior →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

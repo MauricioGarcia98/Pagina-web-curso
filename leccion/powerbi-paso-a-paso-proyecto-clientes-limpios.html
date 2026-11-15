@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 2 (guiado, con pistas) - la cartera de clientes, limpia y modelada · Academia de Datos</title><meta name="description" content="El área comercial quiere conocer su cartera de clientes - cuántos hay por país y segmento, cuántos no tienen correo para las campañas, y qué pide cada segmento. Los datos personales que no se usan no deben llegar al informe. Lo resuelves en Power Query y en el modelo, con un informe de una página. Cada tarea dice qué hacer; el cómo está en las pistas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-proyecto-clientes-limpios.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 2 (guiado, con pistas) - la cartera de clientes, limpia y modelada · Academia de Datos"><meta property="og:description" content="El área comercial quiere conocer su cartera de clientes - cuántos hay por país y segmento, cuántos no tienen correo para las campañas, y qué pide cada segmento. Los datos personales que no se usan no deben llegar al informe. Lo resuelves en Power Query y en el modelo, con un informe de una página. Cada tarea dice qué hacer; el cómo está en las pistas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/powerbi-paso-a-paso-proyecto-clientes-limpios.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#powerbi-paso-a-paso">📈 Power BI paso a paso</a> · 2 · Básico-intermedio · 60 min</div>
+<h1>Proyecto 2 (guiado, con pistas) - la cartera de clientes, limpia y modelada</h1><p class="resumen">El área comercial quiere conocer su cartera de clientes - cuántos hay por país y segmento, cuántos no tienen correo para las campañas, y qué pide cada segmento. Los datos personales que no se usan no deben llegar al informe. Lo resuelves en Power Query y en el modelo, con un informe de una página. Cada tarea dice qué hacer; el cómo está en las pistas.</p>
+<a class="cta" href="../index.html#/l/powerbi-paso-a-paso-proyecto-clientes-limpios">▶ Abrir la lección interactiva (2 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Quitar columnas innecesarias y datos personales en Power Query</li><li>Crear una columna condicional útil para el negocio</li><li>Revisar relaciones y propiedades del modelo</li><li>Construir una página con los números que pidió el área</li><li>Verificar los totales antes de entregar</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Mensaje de Andrés, de marketing: <em>&quot;Vamos a armar campañas por país y segmento. Necesito saber cuántos clientes tenemos en cada país y en cada segmento, cuántos no tienen email (no les podemos escribir) y cuántos pedidos hace cada segmento. Ah, y que en el informe no aparezcan teléfonos ni fechas de nacimiento: no los necesitamos y legal nos lo pidió.&quot;</em></p>
+</div>
+
+
+<p>Usa las cinco tablas de Tienda Andina. Cada tarea dice <strong>qué</strong>; las pistas, <strong>cómo</strong>.</p>
+<h2>Tarea 1 — Sacar los datos personales que no se usan</h2>
+<p>En Power Query, en la consulta <code>clientes</code>, quita <code>telefono</code> y <code>fecha_nacimiento</code>.</p>
+<details><summary>💡 Pista</summary>
+
+<p>Inicio → Transformar datos → consulta <strong>clientes</strong> → clic en el encabezado <code>telefono</code>, Ctrl + clic en <code>fecha_nacimiento</code> → <strong>Inicio → Quitar columnas</strong>. Debe aparecer el paso <strong>Columnas quitadas</strong>.</p>
+</details>
+
+<h2>Tarea 2 — ¿Tiene email?</h2>
+<p>Agrega una columna <code>contactable</code> que diga <code>Sí</code> si el cliente tiene email y <code>No</code> si no.</p>
+<details><summary>💡 Pista</summary>
+
+<p><strong>Agregar columna → Columna condicional</strong> → nombre <code>contactable</code> → columna <code>email</code>, operador <strong>no está en blanco</strong> → entonces <code>Sí</code>, si no <code>No</code>. Después <strong>Cerrar y aplicar</strong>.</p>
+</details>
+
+<h2>Tarea 3 — El modelo prolijo</h2>
+<p>En la vista Modelo: comprueba que <code>pedidos[cliente_id]</code> se relaciona con <code>clientes[cliente_id]</code> (*:1, única), oculta las columnas de ID de <code>clientes</code> y <code>pedidos</code> y pon <strong>No resumir</strong> en <code>cliente_id</code>.</p>
+<details><summary>💡 Pista</summary>
+
+<p><strong>Modelado → Administrar relaciones</strong> para revisar. Clic en cada columna del diagrama → panel Propiedades → <strong>Está oculto</strong>; en <code>cliente_id</code>, <strong>Resumir por → No resumir</strong>.</p>
+</details>
+
+<h2>Tarea 4 — La página</h2>
+<p>Arma una página con:</p>
+<ol>
+<li>Una tarjeta con la cantidad de clientes.</li>
+<li>Barras de clientes por país.</li>
+<li>Un gráfico de anillos de clientes por segmento.</li>
+<li>Una tarjeta con los clientes no contactables (filtro de objeto visual <code>contactable</code> = <code>No</code>).</li>
+<li>Columnas de <strong>pedidos</strong> por segmento de cliente.</li>
+<li>Una segmentación por <code>contactable</code>.</li>
+</ol>
+<details><summary>💡 Pista</summary>
+
+<p>Recuento de <code>clientes[cliente_id]</code> para contar clientes (aunque esté oculto, puedes mostrarlo con el ojo del panel Datos, o contar <code>nombre</code>). Para la tarjeta de no contactables: crea la tarjeta, después arrastra <code>contactable</code> a <strong>Filtros en este objeto visual</strong> y marca solo <code>No</code>. Para pedidos por segmento: <code>clientes[segmento]</code> en el eje y Recuento de <code>pedidos[pedido_id]</code> en los valores; funciona porque la relación lleva el filtro de clientes a pedidos.</p>
+</details>
+
+<h2>✔ Control</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Control</th>
+<th>Esperado</th>
+</tr>
+</thead><tbody><tr>
+<td>Columnas de <code>clientes</code> en el panel Datos</td>
+<td>Sin <code>telefono</code> ni <code>fecha_nacimiento</code></td>
+</tr>
+<tr>
+<td>Clientes</td>
+<td>2000</td>
+</tr>
+<tr>
+<td>Por país (los primeros)</td>
+<td>México 387 · Argentina 363 · Colombia 312 · España 300 · Chile 167 · Perú 166</td>
+</tr>
+<tr>
+<td>Por segmento</td>
+<td>Consumidor 1377 · Pyme 400 · Corporativo 223</td>
+</tr>
+<tr>
+<td>No contactables</td>
+<td><strong>89</strong></td>
+</tr>
+<tr>
+<td>Pedidos por segmento</td>
+<td>Suman 12 000 entre los tres segmentos</td>
+</tr>
+<tr>
+<td>Segmentación en <code>No</code></td>
+<td>La tarjeta de clientes muestra 89</td>
+</tr>
+</tbody></table></div>
+<p>Si los pedidos por segmento muestran 12 000 en cada barra, falta la relación o va en la dirección contraria.</p>
+<h2>Entrega</h2>
+<p>Mensaje a Andrés: <em>&quot;Tenemos 2000 clientes: México, Argentina y Colombia concentran más de la mitad. El 69 % es Consumidor. Hay 89 sin email que no entran en las campañas por correo. Teléfonos y fechas de nacimiento quedaron fuera del modelo.&quot;</em></p>
+<h2>🖥️ Hazlo también en Power BI real</h2>
+<p>Power Query es igual en Power BI Desktop, en Excel (Datos → Obtener datos) y en los Dataflows de Fabric: lo que aprendiste sirve en los tres. Quitar los datos personales lo antes posible (en Power Query o, mejor, en la vista del origen) es una buena práctica que vas a ver en cualquier empresa.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>2 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/powerbi-paso-a-paso-proyecto-clientes-limpios">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="powerbi-paso-a-paso-el-modelo-relaciones-y-propiedades.html">← El modelo - relaciones, cardinalidad, dirección del filtro y propiedades</a><a href="powerbi-paso-a-paso-medidas-dax.html">Medidas DAX - la barra de fórmulas, SUM, SUMX, COUNTROWS y DIVIDE →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>
