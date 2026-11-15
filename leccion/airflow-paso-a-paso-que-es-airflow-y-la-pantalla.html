@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qué es Apache Airflow y cómo es su pantalla · Academia de Datos</title><meta name="description" content="Airflow es el orquestador de tareas de datos más usado - decide qué corre, en qué orden, cuándo y qué pasa si algo falla. Qué problema resuelve, sus piezas (Dag, tarea, scheduler, dag processor, base de metadatos), cada zona de la pantalla de Airflow 3 y qué puedes practicar en la réplica."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-que-es-airflow-y-la-pantalla.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Qué es Apache Airflow y cómo es su pantalla · Academia de Datos"><meta property="og:description" content="Airflow es el orquestador de tareas de datos más usado - decide qué corre, en qué orden, cuándo y qué pasa si algo falla. Qué problema resuelve, sus piezas (Dag, tarea, scheduler, dag processor, base de metadatos), cada zona de la pantalla de Airflow 3 y qué puedes practicar en la réplica."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-que-es-airflow-y-la-pantalla.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 1 · Básico · 30 min</div>
+<h1>Qué es Apache Airflow y cómo es su pantalla</h1><p class="resumen">Airflow es el orquestador de tareas de datos más usado - decide qué corre, en qué orden, cuándo y qué pasa si algo falla. Qué problema resuelve, sus piezas (Dag, tarea, scheduler, dag processor, base de metadatos), cada zona de la pantalla de Airflow 3 y qué puedes practicar en la réplica.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-que-es-airflow-y-la-pantalla">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Explicar qué es un orquestador y qué problema resuelve Airflow</li><li>Nombrar las piezas de Airflow 3 y qué hace cada una</li><li>Ubicar la navegación, los indicadores y la salud de los componentes</li><li>Saber qué es real y qué es simulado en la práctica</li></ul>
+<div class="callout callout-analogia"><div class="callout-title">🧠 En palabras simples</div>
+
+<p>Airflow es el <strong>director de orquesta</strong> de los procesos de datos. No toca ningún instrumento (no guarda datos ni los transforma él mismo): le dice a cada músico cuándo entrar - &quot;primero descarga las ventas, después límpialas, después avisa&quot; - y, si alguien se equivoca, lo hace repetir o avisa al resto.</p>
+</div>
+
+
+<h2>Paso 1 — El problema que resuelve</h2>
+<p>El equipo de datos de <strong>Tienda Andina</strong> tiene varios scripts: uno descarga las ventas, otro las limpia, otro arma el reporte. Hoy los corre una persona a mano cada mañana. Cuando falla uno, nadie se entera hasta que el gerente pregunta por qué el reporte está vacío.</p>
+<p>Un <strong>orquestador</strong> resuelve eso:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Sin orquestador</th>
+<th>Con Airflow</th>
+</tr>
+</thead><tbody><tr>
+<td>Alguien corre los scripts a mano</td>
+<td>Corren solos a la hora definida</td>
+</tr>
+<tr>
+<td>El orden vive en la cabeza de una persona</td>
+<td>El orden está escrito en código</td>
+</tr>
+<tr>
+<td>Si falla, nadie se entera</td>
+<td>Reintenta, registra el error y puede avisar</td>
+</tr>
+<tr>
+<td>No hay historia</td>
+<td>Cada corrida queda con su estado, duración y log</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 2 — Las piezas</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Pieza</th>
+<th>Qué es</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Dag</strong></td>
+<td>Un flujo de trabajo: tareas y el orden entre ellas, escrito en Python. Viene de <em>Directed Acyclic Graph</em> (grafo dirigido sin ciclos)</td>
+</tr>
+<tr>
+<td><strong>Tarea (task)</strong></td>
+<td>Un paso del Dag: correr un comando, una función de Python, una consulta</td>
+</tr>
+<tr>
+<td><strong>Dag run</strong></td>
+<td>Una ejecución del Dag para una fecha</td>
+</tr>
+<tr>
+<td><strong>Scheduler</strong></td>
+<td>Decide qué corridas y tareas tienen que arrancar</td>
+</tr>
+<tr>
+<td><strong>Dag processor</strong></td>
+<td>Lee los archivos <code>.py</code> de la carpeta de Dags y los convierte en Dags</td>
+</tr>
+<tr>
+<td><strong>API server</strong></td>
+<td>Sirve la interfaz web y la API (en Airflow 3 reemplaza al antiguo <em>webserver</em>)</td>
+</tr>
+<tr>
+<td><strong>Base de metadatos</strong></td>
+<td>Guarda Dags, corridas, estados, variables y conexiones</td>
+</tr>
+<tr>
+<td><strong>Executor y workers</strong></td>
+<td>Ejecutan las tareas</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 3 — La pantalla de inicio</h2>
+<p>Abre el <a href="#/airflow">Airflow de práctica</a>:</p>
+<figure class="captura"><img src="assets/img/guias/airflow/a01-home.webp" alt="Home - la navegación (1), los indicadores de Dags (2) y la salud de los componentes (3)" loading="lazy"><figcaption>Home - la navegación (1), los indicadores de Dags (2) y la salud de los componentes (3)</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Zona</th>
+<th>Qué muestra</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Indicadores</strong></td>
+<td>Dags que fallaron, errores al importar archivos, Dags corriendo y Dags activos</td>
+</tr>
+<tr>
+<td><strong>Health</strong></td>
+<td>Si la base de metadatos, el scheduler, el triggerer y el dag processor están vivos</td>
+</tr>
+<tr>
+<td><strong>Pool Slots</strong></td>
+<td>Cuántas tareas pueden correr a la vez y cuántas lo están haciendo</td>
+</tr>
+<tr>
+<td><strong>History</strong></td>
+<td>Corridas y tareas de las últimas 24 horas por estado</td>
+</tr>
+<tr>
+<td><strong>Asset Events</strong></td>
+<td>Los últimos datos que se actualizaron (lo ves en el nivel 4)</td>
+</tr>
+</tbody></table></div>
+<p>El indicador <strong>Dag Import Errors</strong> ya marca 1: uno de los archivos de ejemplo tiene un error a propósito. Lo arreglas en el nivel 5.</p>
+<h2>Paso 4 — Browse y Admin</h2>
+<figure class="captura"><img src="assets/img/guias/airflow/a01-browse.webp" alt="Browse - Dag Runs, Task Instances, Audit Log y XComs" loading="lazy"><figcaption>Browse - Dag Runs, Task Instances, Audit Log y XComs</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a01-admin.webp" alt="Admin - Variables, Pools, Providers, Plugins, Connections y Config" loading="lazy"><figcaption>Admin - Variables, Pools, Providers, Plugins, Connections y Config</figcaption></figure>
+
+
+<div class="table-wrap"><table><thead><tr>
+<th>Menú</th>
+<th>Para qué</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Dags</strong></td>
+<td>La lista de flujos (la usas todo el tiempo)</td>
+</tr>
+<tr>
+<td><strong>Assets</strong></td>
+<td>Los datos que producen y esperan los Dags</td>
+</tr>
+<tr>
+<td><strong>Browse</strong></td>
+<td>Buscar corridas, tareas, eventos de auditoría y valores intercambiados</td>
+</tr>
+<tr>
+<td><strong>Admin</strong></td>
+<td>Configurar variables, conexiones, pools y ver los providers instalados</td>
+</tr>
+</tbody></table></div>
+<h2>Paso 5 — Qué es real en la práctica</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Real</th>
+<th>Simulado</th>
+</tr>
+</thead><tbody><tr>
+<td>Los Dags son archivos Python que escribes en <code>~/airflow/dags</code> desde la terminal</td>
+<td>No hay procesos de servidor: el scheduler y el dag processor corren en tu navegador</td>
+</tr>
+<tr>
+<td>El código se analiza con Python de verdad y los errores son los de Python</td>
+<td>Las tareas que llaman a servicios externos (S3, BigQuery) registran lo que harían</td>
+</tr>
+<tr>
+<td>La interfaz, los estados, los logs y la CLI <code>airflow</code> son los de Airflow 3</td>
+<td>Los tiempos están acelerados</td>
+</tr>
+</tbody></table></div>
+<div class="callout callout-tip"><div class="callout-title">💡 Volver al curso</div>
+
+<p>El botón <strong>Volver a Herramientas</strong> arriba a la izquierda te trae de vuelta. Lo que hagas en la práctica se guarda en tu navegador.</p>
+</div>
+
+
+<h2>✅ Lo que lograste</h2>
+<ul>
+<li>Sabes qué problema resuelve un orquestador.</li>
+<li>Conoces las piezas de Airflow 3.</li>
+<li>Ubicas cada zona de la pantalla.</li>
+</ul>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-que-es-airflow-y-la-pantalla">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="fabric-paso-a-paso-proyecto-final-plataforma-tienda-andina.html">← Proyecto final (sin ayuda) - la plataforma de datos de Tienda Andina</a><a href="airflow-paso-a-paso-la-lista-de-dags.html">La lista de Dags y la página de un Dag →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

@@ -278,8 +278,15 @@
       + tabla(['Name', 'Last Asset Event', 'Group', 'Producing Tasks', 'Scheduled Dags'], lista.map((a) => { const e = s.assetEv.find((x) => x.uri === a.uri); return [`<a href="${href('assets/' + enc(a.uri))}">${ic('database', '', 12)} ${esc(a.uri)}</a>`, e ? fecha(e.cuando) : '', 'asset', a.prod.map(([d, t]) => `${esc(d)}.${esc(t)}`).join('<br>'), a.cons.map((d) => `<a href="${href('dags/' + enc(d))}">${esc(d)}</a>`).join(', ')]; }), 'No assets found');
   };
   function triggered(e) {
+    // cada corrida disparada por un asset se asigna al último evento de ese asset anterior a su creación
+    const evs = A().st().assetEv;
     const out = [];
-    for (const [id, rs] of Object.entries(A().st().runs)) for (const r of rs) if (r.tipo === 'asset_triggered' && (r.disparo || []).includes(e.uri) && Math.abs(new Date(r.creado) - new Date(e.cuando)) < 60000) out.push(`<a href="${href('dags/' + enc(id) + '/runs/' + enc(r.run_id))}">${esc(id)}</a>`);
+    for (const [id, rs] of Object.entries(A().st().runs)) for (const r of rs) {
+      if (r.tipo !== 'asset_triggered' || !(r.disparo || []).includes(e.uri)) continue;
+      const t = new Date(r.creado);
+      const previo = evs.filter((x) => x.uri === e.uri && new Date(x.cuando) <= t).sort((a, b) => new Date(b.cuando) - new Date(a.cuando))[0];
+      if (previo === e) out.push(`<a href="${href('dags/' + enc(id) + '/runs/' + enc(r.run_id))}">${esc(id)}</a>`);
+    }
     return out.join(', ');
   }
 

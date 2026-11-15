@@ -381,6 +381,20 @@
     ]
   },
   {
+    "id": "airflow-paso-a-paso",
+    "titulo": "Airflow paso a paso",
+    "icono": "🌬️",
+    "color": "#017cee",
+    "descripcion": "De cero a dominarlo en 24 lecciones y 6 niveles (básico → avanzado completo), con capturas del Airflow 3 de práctica y Dags que escribes en la terminal: la interfaz, tu primer Dag, disparar y leer logs, grilla y grafo, reintentos y Clear, horarios y catchup, TaskFlow y operadores, XComs y plantillas, variables, conexiones y parámetros, assets, ramas y trigger rules, backfills, errores de importación y pruebas, pools, auditoría, alertas, buenas prácticas, mapeo dinámico y el paso a Airflow real. Cada nivel cierra con un proyecto real de la orquestación de Tienda Andina con menos ayuda que el anterior.",
+    "objetivos": [
+      "Escribir, disparar, seguir y depurar Dags de Airflow 3",
+      "Programar por horario, por datos (assets) y reprocesar con backfills",
+      "Pasar datos y configuración con XComs, plantillas, variables, conexiones y parámetros",
+      "Decidir qué corre con ramas, trigger rules, pools y mapeo dinámico",
+      "Operar, probar, alertar y llevar los Dags a producción"
+    ]
+  },
+  {
     "id": "arquitectura",
     "titulo": "Arquitectura de datos",
     "icono": "🏛️",

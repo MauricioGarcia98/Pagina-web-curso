@@ -6,6 +6,8 @@ TaskFlow API, dependencias con >> y <<, XCom, ramas y trigger rules) y
 "ejecutarlos" en el navegador con dag.test(). No hay scheduler, workers ni
 base de datos: es solo para aprender y practicar.
 """
+import io as _io_cb
+import sys as _sys_cb
 import datetime as _dt
 import inspect as _inspect
 
@@ -207,7 +209,17 @@ class DagRun:
                     self.states[task.task_id] = "failed"
                     print("  ❌ %-22s failed: %s: %s" % (task.task_id, type(e).__name__, e))
                     if task.on_failure_callback:
-                        task.on_failure_callback(ti.get_template_context())
+                        # como en Airflow 3, el callback corre con la tarea y su salida queda en el log de la tarea
+                        _buf_cb, _viejo_cb = _io_cb.StringIO(), _sys_cb.stdout
+                        _sys_cb.stdout = _buf_cb
+                        try:
+                            task.on_failure_callback(ti.get_template_context())
+                        finally:
+                            _sys_cb.stdout = _viejo_cb
+                        if not hasattr(self, "callback_out"):
+                            self.callback_out = {}
+                        self.callback_out[task.task_id] = _buf_cb.getvalue()
+                        print(_buf_cb.getvalue(), end="")
         ok = all(v in ("success", "skipped") for v in self.states.values())
         self.state = "success" if ok else "failed"
         print("■ DAG run %s" % self.state)
@@ -330,7 +342,7 @@ class BaseOperator:
         self.depends_on_past = depends_on_past or defaults.get("depends_on_past", False)
         self.owner = owner or defaults.get("owner", "airflow")
         self.email = email or defaults.get("email")
-        self.pool = pool
+        self.pool = pool or defaults.get("pool")
         # como en Airflow: lo que no se pasa a la tarea se toma de default_args del DAG
         self.execution_timeout = execution_timeout if execution_timeout is not None else defaults.get("execution_timeout")
         self.params = params or {}
@@ -339,7 +351,7 @@ class BaseOperator:
         self.outlets = list(kwargs.get('outlets') or [])
         self.inlets = list(kwargs.get('inlets') or [])
         self.on_failure_callback = on_failure_callback or defaults.get("on_failure_callback")
-        self.on_success_callback = on_success_callback
+        self.on_success_callback = on_success_callback or defaults.get("on_success_callback")
         self.doc_md = doc_md
         self.extra = kwargs
         self.upstream_task_ids = set()
@@ -1061,10 +1073,13 @@ _CONNECTIONS = {}
 
 class Variable:
     @staticmethod
-    def get(key, default_var=None, deserialize_json=False):
+    def get(key, default=None, deserialize_json=False, default_var=None):
+        # Airflow 3 (airflow.sdk) usa default=; default_var= es el nombre de Airflow 2 y se sigue aceptando
+        if default is None:
+            default = default_var
         if key not in _VARIABLES:
-            if default_var is not None:
-                return default_var
+            if default is not None:
+                return default
             raise KeyError("Variable %s no existe" % key)
         v = _VARIABLES[key]
         if deserialize_json:

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 3 (semiguiado) - la ingesta de clientes parametrizada · Academia de Datos</title><meta name="description" content="El equipo necesita descargar clientes todos los días y, a veces, a mano para un solo país. Escribes ingesta_clientes con parámetros (Param con lista de valores y tipo), una variable de entorno y una plantilla, lo disparas para Perú con 200 clientes y compruebas en el log y en Rendered Templates que todo llegó. Pistas escondidas."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-ingesta-parametrizada.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 3 (semiguiado) - la ingesta de clientes parametrizada · Academia de Datos"><meta property="og:description" content="El equipo necesita descargar clientes todos los días y, a veces, a mano para un solo país. Escribes ingesta_clientes con parámetros (Param con lista de valores y tipo), una variable de entorno y una plantilla, lo disparas para Perú con 200 clientes y compruebas en el log y en Rendered Templates que todo llegó. Pistas escondidas."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-ingesta-parametrizada.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 3 · Intermedio · 50 min</div>
+<h1>Proyecto 3 (semiguiado) - la ingesta de clientes parametrizada</h1><p class="resumen">El equipo necesita descargar clientes todos los días y, a veces, a mano para un solo país. Escribes ingesta_clientes con parámetros (Param con lista de valores y tipo), una variable de entorno y una plantilla, lo disparas para Perú con 200 clientes y compruebas en el log y en Rendered Templates que todo llegó. Pistas escondidas.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-ingesta-parametrizada">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Definir parámetros con Param, enum y type</li><li>Leer parámetros en TaskFlow y en plantillas</li><li>Combinar parámetros, variables y plantillas</li><li>Disparar con parámetros desde el formulario</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Lucía: <em>&quot;Todos los días a las 5 UTC descargamos todos los clientes. Pero comercial a veces pide recargar un solo país, con un tope. Que se pueda elegir desde la pantalla sin tocar código.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li><code>ingesta_clientes</code>, todos los días a las 05:00 UTC.</li>
+<li>Parámetros <code>pais</code> (todos, PE, CO, MX, CL; por defecto todos) y <code>limite</code> (entero, mínimo 1, por defecto 500).</li>
+<li>Una tarea <code>descargar</code> que lea la variable <code>entorno</code> e imprima país y límite.</li>
+<li>Una tarea <code>avisar</code> con una plantilla que use el parámetro y la variable.</li>
+<li>Una corrida manual para <strong>PE</strong> con <strong>200</strong>.</li>
+</ol>
+<details><summary>💡 Pista 1: los parámetros</summary>
+
+<pre data-norun><code class="language-python">params={
+    &quot;pais&quot;: Param(&quot;todos&quot;, enum=[&quot;todos&quot;, &quot;PE&quot;, &quot;CO&quot;, &quot;MX&quot;, &quot;CL&quot;], description=&quot;País a descargar&quot;),
+    &quot;limite&quot;: Param(500, type=&quot;integer&quot;, minimum=1, description=&quot;Máximo de clientes&quot;),
+}</code></pre>
+<p><code>Param</code> viene de <code>airflow.sdk</code>. Con <code>enum</code>, el formulario muestra una lista; con <code>type</code>, valida el tipo.</p>
+</details>
+
+<details><summary>💡 Pista 2: leerlos</summary>
+
+<p>En TaskFlow, agrega <code>params=None</code> a la función y usa <code>params[&quot;pais&quot;]</code>. En una plantilla, <code>{{ params.pais }}</code>.</p>
+</details>
+
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/airflow/a12-params.webp" alt="El formulario de Trigger con los parámetros - país PE y límite 200" loading="lazy"><figcaption>El formulario de Trigger con los parámetros - país PE y límite 200</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a12-log.webp" alt="El log de descargar - [dev] Descargando hasta 200 clientes de PE" loading="lazy"><figcaption>El log de descargar - [dev] Descargando hasta 200 clientes de PE</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a12-rendered.webp" alt="Rendered Templates de avisar - &quot;Clientes de PE cargados en dev&quot;" loading="lazy"><figcaption>Rendered Templates de avisar - &quot;Clientes de PE cargados en dev&quot;</figcaption></figure>
+
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> El formulario muestra la lista de países y valida el límite.</li>
+<li><input disabled="" type="checkbox"> La corrida manual usó PE y 200.</li>
+<li><input disabled="" type="checkbox"> El log muestra el entorno de la variable.</li>
+<li><input disabled="" type="checkbox"> Las corridas programadas usan los valores por defecto (todos, 500).</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<pre data-norun><code class="language-python">from datetime import datetime
+
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.sdk import DAG, Param, Variable, task
+
+with DAG(
+    dag_id=&quot;ingesta_clientes&quot;,
+    schedule=&quot;0 5 * * *&quot;,
+    start_date=datetime(2026, 11, 1),
+    catchup=False,
+    tags=[&quot;tienda&quot;, &quot;ingesta&quot;, &quot;curso&quot;],
+    default_args={&quot;owner&quot;: &quot;equipo-datos&quot;},
+    params={
+        &quot;pais&quot;: Param(&quot;todos&quot;, enum=[&quot;todos&quot;, &quot;PE&quot;, &quot;CO&quot;, &quot;MX&quot;, &quot;CL&quot;], description=&quot;País a descargar&quot;),
+        &quot;limite&quot;: Param(500, type=&quot;integer&quot;, minimum=1, description=&quot;Máximo de clientes&quot;),
+    },
+):
+
+    @task
+    def descargar(params=None):
+        entorno = Variable.get(&quot;entorno&quot;, default=&quot;dev&quot;)
+        print(f&quot;[{entorno}] Descargando hasta {params['limite']} clientes de {params['pais']} desde api_tienda&quot;)
+        return params[&quot;limite&quot;]
+
+    avisar = BashOperator(
+        task_id=&quot;avisar&quot;,
+        bash_command=&quot;echo 'Clientes de {{ params.pais }} cargados en {{ var.value.entorno }}'&quot;,
+    )
+
+    descargar() &gt;&gt; avisar</code></pre>
+<p><strong>Decisión de diseño:</strong> el valor por defecto (<code>todos</code>) es el caso diario. Los parámetros cubren la excepción sin crear otro Dag ni tocar código. Lo que cambia por entorno (dev o prod) es una <strong>variable</strong>, no un parámetro: no lo elige quien dispara, lo define la plataforma.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 3</h2>
+<ul>
+<li>TaskFlow y operadores.</li>
+<li>XComs y plantillas.</li>
+<li>Variables, conexiones y parámetros.</li>
+</ul>
+<p>En el nivel 4: assets, ramas, trigger rules y backfills.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-ingesta-parametrizada">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-paso-a-paso-variables-y-connections.html">← Variables y Connections - configuración fuera del código</a><a href="airflow-paso-a-paso-assets.html">Assets - programar por datos en lugar de por hora →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

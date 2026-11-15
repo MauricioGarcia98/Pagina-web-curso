@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 5 (solo el objetivo) - que las fallas avisen solas · Academia de Datos</title><meta name="description" content="La carga de devoluciones falló el fin de semana y nadie se enteró hasta el lunes. Agregas un callback de falla que arma un aviso con la tarea y la corrida, lo pruebas forzando la falla y documentas la guardia. Solo se dan el objetivo y el criterio de aceptación."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-alertas-al-fallar.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 5 (solo el objetivo) - que las fallas avisen solas · Academia de Datos"><meta property="og:description" content="La carga de devoluciones falló el fin de semana y nadie se enteró hasta el lunes. Agregas un callback de falla que arma un aviso con la tarea y la corrida, lo pruebas forzando la falla y documentas la guardia. Solo se dan el objetivo y el criterio de aceptación."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-alertas-al-fallar.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 5 · Avanzado · 50 min</div>
+<h1>Proyecto 5 (solo el objetivo) - que las fallas avisen solas</h1><p class="resumen">La carga de devoluciones falló el fin de semana y nadie se enteró hasta el lunes. Agregas un callback de falla que arma un aviso con la tarea y la corrida, lo pruebas forzando la falla y documentas la guardia. Solo se dan el objetivo y el criterio de aceptación.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-alertas-al-fallar">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Escribir un on_failure_callback</li><li>Aplicarlo a todas las tareas con default_args</li><li>Probarlo provocando una falla</li><li>Conocer notifiers y alertas por SLA en Airflow 3</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El objetivo</div>
+
+<p>Lucía: <em>&quot;Si una carga falla, quiero un aviso en el canal #datos con qué tarea falló y en qué corrida. Probalo antes de dejarlo activo.&quot;</em></p>
+</div>
+
+
+<h2>Criterio de aceptación</h2>
+<ul>
+<li><code>carga_devoluciones</code> tiene un callback de falla que aplica a todas sus tareas.</li>
+<li>El aviso incluye el <code>task_id</code> y el <code>run_id</code>.</li>
+<li>Se dispara <strong>después del último intento</strong>, no en cada reintento.</li>
+<li>Hay una corrida de prueba en la que se ve el aviso en el log.</li>
+</ul>
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/airflow/a20-callback.webp" alt="El log de validar - el error, &quot;Running on_failure_callback&quot; y la línea ALERTA con la tarea y la corrida" loading="lazy"><figcaption>El log de validar - el error, &quot;Running on_failure_callback&quot; y la línea ALERTA con la tarea y la corrida</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a20-home.webp" alt="Home - Failed Dags en 1 (1) y la falla en el historial de las últimas 24 horas (2)" loading="lazy"><figcaption>Home - Failed Dags en 1 (1) y la falla en el historial de las últimas 24 horas (2)</figcaption></figure>
+
+
+<details><summary>💡 Solución comentada</summary>
+
+<pre data-norun><code class="language-python">from datetime import datetime
+
+from airflow.sdk import DAG, task
+
+
+def avisar_falla(context):
+    tarea = context[&quot;task&quot;].task_id
+    print(f&quot;ALERTA para el canal #datos: falló {tarea} en la corrida {context['run_id']}&quot;)
+
+
+with DAG(
+    dag_id=&quot;carga_devoluciones&quot;,
+    schedule=&quot;30 6 * * *&quot;,
+    start_date=datetime(2026, 11, 1),
+    catchup=False,
+    tags=[&quot;tienda&quot;, &quot;curso&quot;],
+    default_args={&quot;owner&quot;: &quot;equipo-datos&quot;, &quot;retries&quot;: 1, &quot;on_failure_callback&quot;: avisar_falla},
+):
+
+    @task
+    def leer_devoluciones():
+        return []
+
+    @task
+    def validar(devoluciones):
+        if not devoluciones:
+            raise ValueError(&quot;El archivo de devoluciones llegó vacío&quot;)
+        return len(devoluciones)
+
+    validar(leer_devoluciones())</code></pre>
+<ul>
+<li><code>on_failure_callback</code> corre cuando la tarea queda en <strong>failed</strong>, después del último reintento. Para avisar en cada reintento existe <code>on_retry_callback</code>.</li>
+<li>En <code>default_args</code> aplica a todas las tareas. Si se pone en el <code>DAG(...)</code>, corre una vez por <strong>corrida</strong> fallida.</li>
+<li>Para mandarlo de verdad, en lugar de <code>print</code> se usa un <strong>notifier</strong> de un provider, por ejemplo <code>SlackNotifier</code> de <code>apache-airflow-providers-slack</code>: <code>on_failure_callback=SlackNotifier(slack_conn_id=&quot;slack_datos&quot;, text=&quot;Falló {{ ti.task_id }}&quot;)</code>.</li>
+<li>Para &quot;avisar si a las 8 no terminó&quot;, Airflow 3 reemplaza los antiguos SLA por <strong>Deadline Alerts</strong> (<code>deadline=</code> en el Dag).</li>
+</ul>
+<p><strong>Decisión a defender:</strong> el aviso tiene que decir <strong>qué</strong> falló y <strong>dónde mirar</strong>. &quot;Algo falló&quot; a las 3 de la mañana obliga a investigar desde cero.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 5</h2>
+<ul>
+<li>Errores de importación y pruebas.</li>
+<li>Pools y concurrencia.</li>
+<li>Browse, Audit Log y alertas.</li>
+</ul>
+<p>En el nivel 6: buenas prácticas, mapeo dinámico y el paso a Airflow real.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-alertas-al-fallar">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-paso-a-paso-browse-y-auditoria.html">← Browse y auditoría - buscar en toda la instalación</a><a href="airflow-paso-a-paso-buenas-practicas.html">Buenas prácticas - Dags confiables y baratos de operar →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

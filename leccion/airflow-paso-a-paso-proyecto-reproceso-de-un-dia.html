@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proyecto 4 (con poca ayuda) - reprocesar un día corregido · Academia de Datos</title><meta name="description" content="El proveedor reenvió las ventas del 12 de noviembre corregidas. Hay que volver a validar y publicar solo ese día, sin repetir la extracción de toda la semana, dejar constancia y explicar qué opciones de Clear se usaron. Solo se dice qué lograr; la solución comentada está al final."><link rel="canonical" href="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-reproceso-de-un-dia.html">
+<meta property="og:type" content="article"><meta property="og:title" content="Proyecto 4 (con poca ayuda) - reprocesar un día corregido · Academia de Datos"><meta property="og:description" content="El proveedor reenvió las ventas del 12 de noviembre corregidas. Hay que volver a validar y publicar solo ese día, sin repetir la extracción de toda la semana, dejar constancia y explicar qué opciones de Clear se usaron. Solo se dice qué lograr; la solución comentada está al final."><meta property="og:url" content="https://mauriciogarcia98.github.io/Pagina-web-curso/leccion/airflow-paso-a-paso-proyecto-reproceso-de-un-dia.html"><meta property="og:site_name" content="Academia de Datos"><meta property="og:image" content="https://mauriciogarcia98.github.io/Pagina-web-curso/assets/img/compartir.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%234f46e5'/><g fill='white'><ellipse cx='32' cy='18' rx='16' ry='6'/><path d='M16 22v10c0 3.3 7.2 6 16 6s16-2.7 16-6V22c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/><path d='M16 36v10c0 3.3 7.2 6 16 6s16-2.7 16-6V36c0 3.3-7.2 6-16 6s-16-2.7-16-6z'/></g></svg>"><style>:root{--t:#0f172a;--m:#475569;--b:#e2e8f0;--a:#4f46e5;--f:#f8fafc}@media (prefers-color-scheme:dark){:root{--t:#e2e8f0;--m:#94a3b8;--b:#334155;--a:#a5b4fc;--f:#0b1220}}
+*{box-sizing:border-box}body{margin:0;font:17px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--t);background:var(--f)}
+header,main,footer{max-width:820px;margin:0 auto;padding:16px 20px}header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--b)}
+header a.marca{font-weight:700;color:var(--t);text-decoration:none}a{color:var(--a)}.migas{font-size:14px;color:var(--m);margin-top:18px}h1{font-size:2rem;line-height:1.25;margin:.4em 0}
+.resumen{font-size:1.1rem;color:var(--m)}.cta{display:inline-block;background:var(--a);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;text-decoration:none;margin:12px 0}
+@media (prefers-color-scheme:dark){.cta{color:#0b1220}}pre{overflow-x:auto;background:rgba(127,127,127,.12);padding:12px 14px;border-radius:8px;font-size:14px;line-height:1.5}
+code{font-size:.92em}table{border-collapse:collapse;display:block;overflow-x:auto;margin:1em 0}th,td{border:1px solid var(--b);padding:6px 10px;text-align:left}
+.callout{border-left:4px solid var(--a);background:rgba(127,127,127,.08);padding:4px 16px;border-radius:6px;margin:1em 0}.callout-title{font-weight:700;margin-top:8px}
+img,svg{max-width:100%;height:auto}main{overflow-wrap:anywhere}main>*{max-width:100%}.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--b);margin-top:32px;padding-top:16px}
+footer{color:var(--m);font-size:14px;border-top:1px solid var(--b);margin-top:24px}ul.lista{padding-left:1.2em}ul.lista li{margin:.2em 0}</style></head><body>
+<header><a class="marca" href="../index.html">🎓 Academia de Datos</a><a href="index.html">Todas las lecciones</a></header>
+<main><div class="migas"><a href="index.html#airflow-paso-a-paso">🌬️ Airflow paso a paso</a> · 4 · Intermedio-avanzado · 45 min</div>
+<h1>Proyecto 4 (con poca ayuda) - reprocesar un día corregido</h1><p class="resumen">El proveedor reenvió las ventas del 12 de noviembre corregidas. Hay que volver a validar y publicar solo ese día, sin repetir la extracción de toda la semana, dejar constancia y explicar qué opciones de Clear se usaron. Solo se dice qué lograr; la solución comentada está al final.</p>
+<a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-reproceso-de-un-dia">▶ Abrir la lección interactiva (4 ejercicios)</a>
+<h2>Al terminar vas a poder</h2><ul class="lista"><li>Elegir entre Clear de corrida, Clear de tarea y backfill</li><li>Usar las opciones Upstream y Downstream de Clear</li><li>Leer los intentos de una tarea reprocesada</li><li>Saber cuándo usar Mark as</li></ul>
+<div class="callout callout-escenario"><div class="callout-title">🏢 El pedido</div>
+
+<p>Comercial: <em>&quot;El proveedor reenvió el archivo del 12 con 40 ventas que faltaban. Ya está en la carpeta. ¿Pueden volver a validar y publicar ese día? Los demás están bien.&quot;</em></p>
+</div>
+
+
+<h2>Lo que tienes que lograr</h2>
+<ol>
+<li>Volver a correr <code>validar</code> <strong>y lo que sigue</strong> (<code>publicar</code>) solo en la corrida del 12.</li>
+<li>No repetir <code>extraer</code> (el archivo ya está) ni tocar los otros días.</li>
+<li>Comprobar en el log que <code>validar</code> tiene un intento nuevo.</li>
+<li>Explicar en una línea cuándo usarías <strong>Mark Run as</strong>.</li>
+</ol>
+<h2>Cómo se ve terminado</h2>
+<figure class="captura"><img src="assets/img/guias/airflow/a16-clear.webp" alt="Clear Task Instance validar - Downstream marcado: se limpian validar y publicar" loading="lazy"><figcaption>Clear Task Instance validar - Downstream marcado: se limpian validar y publicar</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a16-intentos.webp" alt="El log de validar con dos intentos - el original y el del reproceso" loading="lazy"><figcaption>El log de validar con dos intentos - el original y el del reproceso</figcaption></figure>
+
+
+<figure class="captura"><img src="assets/img/guias/airflow/a16-mark.webp" alt="El menú Mark Run as - success o failed" loading="lazy"><figcaption>El menú Mark Run as - success o failed</figcaption></figure>
+
+
+<h2>✅ Lista de verificación</h2>
+<ul>
+<li><input disabled="" type="checkbox"> La corrida <code>backfill__2026-11-12...</code> tiene <code>validar</code> y <code>publicar</code> con un intento más.</li>
+<li><input disabled="" type="checkbox"> <code>extraer</code> del 12 conserva su intento original.</li>
+<li><input disabled="" type="checkbox"> Las demás corridas no cambiaron.</li>
+<li><input disabled="" type="checkbox"> Tienes la línea sobre Mark as.</li>
+</ul>
+<details><summary>💡 Solución comentada</summary>
+
+<ol>
+<li>Abre la corrida del 12 y la tarea <code>validar</code>.</li>
+<li><strong>Clear</strong> con <strong>Downstream</strong> marcado y <strong>Upstream</strong> desmarcado: se limpian <code>validar</code> y <code>publicar</code>, no <code>extraer</code>.</li>
+<li>El scheduler las vuelve a correr; en el log aparece <strong>Attempts 1 · 2</strong>.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr>
+<th>Opción de Clear</th>
+<th>Qué agrega</th>
+</tr>
+</thead><tbody><tr>
+<td><strong>Downstream</strong></td>
+<td>Las tareas que dependen de esta</td>
+</tr>
+<tr>
+<td><strong>Upstream</strong></td>
+<td>Las tareas de las que depende esta</td>
+</tr>
+<tr>
+<td><strong>Past / Future</strong></td>
+<td>La misma tarea en corridas anteriores o posteriores</td>
+</tr>
+</tbody></table></div>
+<p><strong>Mark as success</strong> cambia el estado <strong>sin ejecutar nada</strong>. Sirve cuando el trabajo se hizo por fuera (alguien cargó el dato a mano) y quieres que las tareas siguientes corran. Usarlo para &quot;poner en verde&quot; algo que falló esconde el problema: el Dag queda verde con datos malos.</p>
+</details>
+
+<h2>Lo que aprendiste en el nivel 4</h2>
+<ul>
+<li>Programar por datos con assets.</li>
+<li>Ramas y trigger rules.</li>
+<li>Backfills, Clear con opciones y Mark as.</li>
+</ul>
+<p>En el nivel 5: operar Airflow - errores de importación, pruebas, pools, auditoría y alertas.</p>
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+
+<div class="exercise-slot"></div>
+
+
+<h2>Practica</h2><p>Esta lección tiene <b>4 ejercicios</b> que se corrigen solos en el navegador, sin instalar nada.</p><a class="cta" href="../index.html#/l/airflow-paso-a-paso-proyecto-reproceso-de-un-dia">▶ Hacer los ejercicios</a>
+<nav class="nav"><a href="airflow-paso-a-paso-backfill.html">← Backfill - reprocesar fechas pasadas</a><a href="airflow-paso-a-paso-errores-de-importacion-y-pruebas.html">Errores de importación y cómo probar un Dag antes de activarlo →</a></nav></main>
+<footer>Academia de Datos · curso gratuito de datos en español, desde cero hasta certificaciones. <a href="../index.html#/privacidad">Privacidad</a> · <a href="../index.html#/terminos">Términos</a></footer>
+</body></html>

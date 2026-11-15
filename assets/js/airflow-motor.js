@@ -98,7 +98,7 @@ from airflow.sdk import Asset, Variable, dag, task
 def reporte_ventas():
     @task
     def leer_umbral():
-        umbral = float(Variable.get("umbral_alerta", default_var="100"))
+        umbral = float(Variable.get("umbral_alerta", default="100"))
         print(f"Umbral de alerta: {umbral}")
         return umbral
 
@@ -432,6 +432,9 @@ try:
     _run.run()
 finally:
     _sys.stdout = _v
+for _tid, _txt in (getattr(_run, "callback_out", None) or {}).items():
+    if _tid in _R and _R[_tid]["tries"]:
+        _R[_tid]["tries"][-1]["cb"] = _txt
 _xc = {}
 for (_tid, _key), _val in _run.xcoms.items():
     _xc.setdefault(_tid, {})[_key] = _js(_val)
@@ -600,6 +603,10 @@ print("\u0000AFJSON" + _json.dumps({"state": _run.state, "states": _run.states, 
     } else if (rec && rec.err) {
       L.push(lineaLog(f(tf - 15), 'ERROR', `Task failed with exception`, 'task', true));
       L.push({ ts: f(tf - 15), nivel: 'ERROR', msg: rec.err.trimEnd(), fuente: 'task', tb: true });
+      if (rec.cb && estado === 'failed') {
+        L.push(lineaLog(f(tf - 8), 'INFO', 'Running on_failure_callback', 'task'));
+        rec.cb.replace(/\n$/, '').split('\n').forEach((l) => L.push(lineaLog(f(tf - 6), 'INFO', l, 'task.stdout')));
+      }
     }
     L.push(lineaLog(f(tf), 'INFO', estado === 'up_for_retry' ? `Marking task as UP_FOR_RETRY. dag_id=${d.id}, task_id=${t.id}, run_id=${r.run_id}, try_number=${intento}` : `Task instance in ${estado} state`, 'task'));
     return L;

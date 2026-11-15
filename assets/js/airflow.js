@@ -186,7 +186,7 @@
     const cr = cuenta(recientes.map((r) => r.state)); const ct = cuenta(tis);
     const usados = runs.filter((r) => r.state === 'running').length;
     p.innerHTML = `<div class="af-home">
-      <h1 class="af-h1">Welcome</h1>
+      <h1 class="af-h1">Welcome</h1><p class="af-dim af-curso">¿Primera vez? Sigue el <a href="#/m/airflow-paso-a-paso">curso de Airflow paso a paso</a>.</p>
       <div class="af-stats">
         <a class="af-stat ${fallidos ? 'af-stat-r' : ''}" href="${href('dags', { last_dag_run_state: 'failed' })}"><b>${fallidos}</b><span>${ic('circle-x', '', 14)} Failed Dags</span></a>
         <button class="af-stat ${nErr ? 'af-stat-n' : ''}" id="afImpErr"><b>${nErr}</b><span>${ic('triangle-alert', '', 14)} Dag Import Errors</span></button>
@@ -333,7 +333,7 @@
     const nivel = {}; const ord = d.tasks.map((t) => t.id);
     for (const t of d.tasks) nivel[t.id] = Math.max(0, ...t.up.map((u) => (nivel[u] ?? -1) + 1));
     const cols = {}; for (const id of ord) (cols[nivel[id]] = cols[nivel[id]] || []).push(id);
-    const W = 190, H = 54, GX = 70, GY = 26;
+    const W = 190, H = 62, GX = 70, GY = 26;
     const pos = {}; const maxFilas = Math.max(...Object.values(cols).map((c) => c.length));
     for (const [n, ids] of Object.entries(cols)) ids.forEach((id, i) => { pos[id] = { x: 20 + n * (W + GX), y: 30 + (i + (maxFilas - ids.length) / 2) * (H + GY), w: W, h: H }; });
     return { pos, W, H, ancho: 40 + Object.keys(cols).length * (W + GX) - GX, alto: 60 + maxFilas * (H + GY) - GY };
